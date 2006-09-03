@@ -115,7 +115,7 @@ class DiffView(QtGui.QDialog):
                 elif line.startswith("+"):
                     style = ' style="background-color:#DDFFDD;"'
                     try:
-                        prev_line = lines[i+1]
+                        prev_line = lines[i-1]
                         if prev_line.startswith("-") and not prev_line.startswith("---"):
                             text = markup_intraline_changes(line, prev_line, "#99EE99")
                     except IndexError:
