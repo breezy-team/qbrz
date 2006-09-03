@@ -26,10 +26,10 @@ from bzrlib.workingtree import WorkingTree
 
 class CommitDialog(QtGui.QDialog):
 
-    def __init__(self, changes, parent=None):
+    def __init__(self, changes, path, parent=None):
         QtGui.QDialog.__init__(self, parent)
 
-        self.setWindowTitle("Bazaar - Commit - <path>")
+        self.setWindowTitle(u"Bazaar - Commit - %s" % (path,))
         icon = QtGui.QIcon()
         icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
@@ -40,7 +40,7 @@ class CommitDialog(QtGui.QDialog):
 
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self)
 
-        groupBox = QtGui.QGroupBox("Message", splitter)
+        groupBox = QtGui.QGroupBox(u"Message", splitter)
         splitter.addWidget(groupBox)
 
         self.commitMessageEdit = QtGui.QTextEdit(groupBox)
@@ -48,11 +48,11 @@ class CommitDialog(QtGui.QDialog):
         vbox1 = QtGui.QVBoxLayout(groupBox)
         vbox1.addWidget(self.commitMessageEdit)
 
-        groupBox = QtGui.QGroupBox("Changes made", splitter)
+        groupBox = QtGui.QGroupBox(u"Changes made", splitter)
         splitter.addWidget(groupBox)
 
         self.changesList = QtGui.QTreeWidget(groupBox)
-        self.changesList.setHeaderLabels(["File", "Extension", "Status"])
+        self.changesList.setHeaderLabels([u"File", u"Extension", u"Status"])
         self.changesList.setRootIsDecorated(False)
         
         vbox1 = QtGui.QVBoxLayout(groupBox)
@@ -61,7 +61,7 @@ class CommitDialog(QtGui.QDialog):
         for change in changes:
             item = QtGui.QTreeWidgetItem(self.changesList)
             item.setText(0, change[1])
-            item.setText(1, change[1][change[1].rfind("."):])
+            item.setText(1, change[1][change[1].rfind(u"."):])
             item.setText(2, change[2])
             item.setCheckState(0, QtCore.Qt.Checked)
         
@@ -70,10 +70,10 @@ class CommitDialog(QtGui.QDialog):
         self.hboxlayout = QtGui.QHBoxLayout()
         self.hboxlayout.addStretch()
 
-        self.okButton = QtGui.QPushButton("OK", self)
+        self.okButton = QtGui.QPushButton(u"OK", self)
         self.hboxlayout.addWidget(self.okButton)
 
-        self.cancelButton = QtGui.QPushButton("Cancel", self)
+        self.cancelButton = QtGui.QPushButton(u"Cancel", self)
         self.hboxlayout.addWidget(self.cancelButton)
         
         self.vboxlayout.addLayout(self.hboxlayout)
@@ -118,18 +118,18 @@ class cmd_qcommit(Command):
         self.file_store = []
 
         for path, _, _ in self.delta.added:
-            self.file_store.append([True, path, "Added"])
+            self.file_store.append((True, path, u"Added"))
 
         for path, _, _ in self.delta.removed:
-            self.file_store.append([True, path, "Removed"])
+            self.file_store.append((True, path, u"Removed"))
 
         for oldpath, _, _, _, _, _ in self.delta.renamed:
-            self.file_store.append([True, oldpath, "Renamed"])
+            self.file_store.append((True, oldpath, u"Renamed"))
 
         for path, _, _, _, _ in self.delta.modified:
-            self.file_store.append([True, path, "Modified"])         
+            self.file_store.append((True, path, u"Modified"))
 
-        dialog = CommitDialog(self.file_store)
+        dialog = CommitDialog(self.file_store, path)
         if dialog.exec_():
             Commit().commit(working_tree=wt,message=dialog.commitMessage,
                 specific_files=dialog.specificFiles)
