@@ -70,10 +70,10 @@ class CommitDialog(QtGui.QDialog):
         self.hboxlayout = QtGui.QHBoxLayout()
         self.hboxlayout.addStretch()
 
-        self.okButton = QtGui.QPushButton(u"OK", self)
+        self.okButton = QtGui.QPushButton(u"&OK", self)
         self.hboxlayout.addWidget(self.okButton)
 
-        self.cancelButton = QtGui.QPushButton(u"Cancel", self)
+        self.cancelButton = QtGui.QPushButton(u"&Cancel", self)
         self.hboxlayout.addWidget(self.cancelButton)
         
         self.vboxlayout.addLayout(self.hboxlayout)

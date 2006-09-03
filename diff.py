@@ -38,7 +38,7 @@ class DiffView(QtGui.QDialog):
         icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
-        self.resize(QtCore.QSize(800, 700).expandedTo(self.minimumSizeHint()))
+        self.resize(QtCore.QSize(780, 580).expandedTo(self.minimumSizeHint()))
 
         vbox = QtGui.QVBoxLayout(self)
         
@@ -76,7 +76,7 @@ class DiffView(QtGui.QDialog):
 
         hbox = QtGui.QHBoxLayout()
         hbox.addStretch()
-        self.okButton = QtGui.QPushButton(u"OK", self)
+        self.okButton = QtGui.QPushButton(u"&OK", self)
         self.connect(self.okButton, QtCore.SIGNAL("clicked()"), self.accept)
         hbox.addWidget(self.okButton)
         vbox.addLayout(hbox)
