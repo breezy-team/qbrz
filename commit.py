@@ -31,20 +31,20 @@ class CommitDialog(QtGui.QDialog):
 
         self.setWindowTitle("Bazaar - Commit - <path>")
         icon = QtGui.QIcon()
-        icon.addFile("bzr-16.png", QtCore.QSize(16, 16))
-        icon.addFile("bzr-48.png", QtCore.QSize(48, 48))
+        icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
+        icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
         self.resize(QtCore.QSize(501, 364).expandedTo(self.minimumSizeHint()))
 
         self.vboxlayout = QtGui.QVBoxLayout(self)
 
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self)
-        
+
         groupBox = QtGui.QGroupBox("Message", splitter)
         splitter.addWidget(groupBox)
-        
+
         self.commitMessageEdit = QtGui.QTextEdit(groupBox)
-        
+
         vbox1 = QtGui.QVBoxLayout(groupBox)
         vbox1.addWidget(self.commitMessageEdit)
 
@@ -129,7 +129,6 @@ class cmd_qcommit(Command):
         for path, _, _, _, _ in self.delta.modified:
             self.file_store.append([True, path, "Modified"])         
 
-        app = QtGui.QApplication(sys.argv)
         dialog = CommitDialog(self.file_store)
         if dialog.exec_():
             Commit().commit(working_tree=wt,message=dialog.commitMessage,

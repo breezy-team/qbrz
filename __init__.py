@@ -19,3 +19,7 @@
 
 from commit import *
 
+from PyQt4 import QtGui
+import resources
+app = QtGui.QApplication(sys.argv)
+
