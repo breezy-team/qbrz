@@ -47,10 +47,15 @@ class DiffView(QtGui.QDialog):
         html = []
         for line in diff.split("\n"):
             if line.startswith("=== "):
-                if line.startswith("=== modified file "):
-                    text = line[19:-1]
-                elif line.startswith("=== added file "):
-                    text = line[16:-1]
+                prefixes = ["=== modified file ", "=== added file ",
+                    "=== removed file ", "=== renames file ",
+                    "=== modified directory ", "=== added directory ",
+                    "=== removed directory ", "=== renames directory "]
+                text = line
+                for prefix in prefixes:
+                    if line.startswith(prefix):
+                        text = line[len(prefix)+1:-1]
+                        break
                 html.append(u"</pre>")
                 html.append(u"<div style=\"margin-top:10px;margin-bottom:10px;font-size:16px;font-weight:bold;\">%s</div>" % (text))
                 html.append(u"<pre>")
