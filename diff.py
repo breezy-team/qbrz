@@ -49,20 +49,18 @@ def markup_intraline_changes(line1, line2, color):
     line2 = html_escape(line2)
     start, end = _get_change_extent(line1[1:], line2[1:])
     if start == 0 and end < 0:
-        end += 1
         text = u'<span style="background-color:%s">%s</span>%s' % (color, line1[:end], line1[end:])
     elif start > 0 and end == 0:
         start += 1
         text = u'%s<span style="background-color:%s">%s</span>' % (line1[:start], color, line1[start:])
     elif start > 0 and end < 0:
         start += 1
-        end += 1
         text = u'%s<span style="background-color:%s">%s</span>%s' % (line1[:start], color, line1[start:end], line1[end:])
     else:
         text = line1
     return text
-    
-    
+
+
 def html_escape(string):
     return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
