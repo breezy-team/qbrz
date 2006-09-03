@@ -1,7 +1,7 @@
 QBzr plugin was written by Lukáš Lalinský <lalinsky@gmail.com>.
 
-The idea of a UI for Bazaar commands comes from bzr-gtk plugin by 
-Jelmer Vernooij <jelmer@samba.org>. Also some code bzr-gtk is used 
+The idea of an UI for Bazaar commands comes from bzr-gtk plugin by 
+Jelmer Vernooij <jelmer@samba.org>. Also some bzr-gtk code is used 
 in this plugin.
 
 The Bazaar icons in data/ are from http://bazaar-vcs.org/LogoOptions

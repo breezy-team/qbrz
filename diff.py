@@ -2,7 +2,8 @@
 #
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2006 Lukáš Lalinský <lalinsky@gmail.com>
-# Copyright (C) 2006 Jelmer Vernooij <jelmer@samba.org> 
+# Copyright (C) 2006 Jelmer Vernooij <jelmer@samba.org>
+# Copyright (C) 2005 Canonical Ltd. (author: Scott James Remnant <scott@ubuntu.com>)
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
