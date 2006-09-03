@@ -129,6 +129,7 @@ class cmd_qcommit(Command):
         for path, _, _, _, _ in self.delta.modified:
             self.file_store.append((True, path, u"Modified"))
 
+        app = QtGui.QApplication(sys.argv)
         dialog = CommitDialog(self.file_store, path)
         if dialog.exec_():
             Commit().commit(working_tree=wt,message=dialog.commitMessage,
