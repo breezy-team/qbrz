@@ -20,4 +20,5 @@
 import bzrlib.plugins.qbzr.resources
 from bzrlib.plugins.qbzr.commit import *
 from bzrlib.plugins.qbzr.diff import *
+from bzrlib.plugins.qbzr.log import *
 
