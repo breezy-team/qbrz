@@ -66,10 +66,13 @@ def html_escape(string):
 
 class DiffView(QtGui.QMainWindow):
 
-    def __init__(self, diff, parent=None):
+    def __init__(self, diff, filename=None, parent=None):
         QtGui.QMainWindow.__init__(self, parent)
 
-        self.setWindowTitle(u"Bazaar - Diff")
+        if filename:
+            self.setWindowTitle(u"Bazaar - Diff - %s" % filename)
+        else:
+            self.setWindowTitle(u"Bazaar - Diff")
         icon = QtGui.QIcon()
         icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
@@ -151,7 +154,7 @@ class cmd_qdiff(Command):
     takes_options = ['revision']
 
     def run(self, revision=None, filename=None):
-        wt = WorkingTree.open_containing(".")[0]
+        wt, filename = WorkingTree.open_containing(filename)
         branch = wt.branch
         if revision is not None:
             if len(revision) == 1:
@@ -168,11 +171,11 @@ class cmd_qdiff(Command):
             tree2 = tree1.basis_tree()
 
         s = StringIO()
-        show_diff_trees(tree2, tree1, s, None)
-        diff = s.getvalue()
+        show_diff_trees(tree2, tree1, s, specific_files=(filename,))
+        diff = s.getvalue().decode("UTF-8", "replace")
 
         app = QtGui.QApplication(sys.argv)
-        win = DiffView(s.getvalue().decode("UTF-8", "replace"))
+        win = DiffView(diff, filename)
         win.show()
         app.exec_()
 
