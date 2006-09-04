@@ -82,7 +82,8 @@ class LogWindow(QtGui.QMainWindow):
         
         gridLayout = QtGui.QGridLayout(groupBox)
         gridLayout.setColumnStretch(0, 0)
-        gridLayout.setColumnStretch(1, 1)
+        gridLayout.setColumnStretch(1, 3)
+        gridLayout.setColumnStretch(2, 1)
         
         gridLayout.addWidget(QtGui.QLabel(u"Revision:", groupBox), 0, 0)
         self.revisionEdit = QtGui.QLineEdit(u"", groupBox)
@@ -101,6 +102,9 @@ class LogWindow(QtGui.QMainWindow):
         self.messageEdit.setDocument(self.messageDocument)
         gridLayout.addWidget(self.messageEdit, 2, 1)
 
+        self.fileList = QtGui.QListWidget(groupBox)
+        gridLayout.addWidget(self.fileList, 0, 2, 3, 1)
+        
         self.vboxlayout.addWidget(splitter)
         
         self.hboxlayout = QtGui.QHBoxLayout()
@@ -119,9 +123,27 @@ class LogWindow(QtGui.QMainWindow):
     def updateSelection(self):
         item = self.changesList.selectedItems()[0]
         revno, rev, delta = self.itemToObj[item]
+        
         self.revisionEdit.setText(rev.revision_id)
         self.parentsEdit.setText(u", ".join(rev.parent_ids))
         self.messageDocument.setPlainText(rev.message)
+        
+        self.fileList.clear()
+        
+        for path, _, _ in delta.added:
+            item = QtGui.QListWidgetItem(path, self.fileList)
+            item.setTextColor(QtGui.QColor("blue"))
+            
+        for path, _, _, _, _ in delta.modified:
+            item = QtGui.QListWidgetItem(path, self.fileList)
+            
+        for path, _, _ in delta.removed:
+            item = QtGui.QListWidgetItem(path, self.fileList)
+            item.setTextColor(QtGui.QColor("red"))
+            
+        for oldpath, _, _, _, _, _ in delta.renamed:
+            item = QtGui.QListWidgetItem(path, self.fileList)
+            item.setTextColor(QtGui.QColor("purple"))
         
 class cmd_qlog(Command):
     """Show log of a branch, file, or directory in a Qt window.
@@ -199,7 +221,7 @@ class cmd_qlog(Command):
                 self.log = []
 
             def show(self, revno, rev, delta):
-                from bzrlib.osutils import format_date 
+                from bzrlib.osutils import format_date
                 self.log.append((revno, rev, delta))
 
         lf = QLogFormatter()
@@ -207,6 +229,7 @@ class cmd_qlog(Command):
         show_log(b,
                  lf,
                  file_id,
+                 verbose=True,
                  start_revision=rev1,
                  end_revision=rev2)
                  
