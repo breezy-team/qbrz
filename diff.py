@@ -64,10 +64,10 @@ def markup_intraline_changes(line1, line2, color):
 def html_escape(string):
     return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
-class DiffView(QtGui.QDialog):
+class DiffView(QtGui.QMainWindow):
 
     def __init__(self, diff, parent=None):
-        QtGui.QDialog.__init__(self, parent)
+        QtGui.QMainWindow.__init__(self, parent)
 
         self.setWindowTitle(u"Bazaar - Diff")
         icon = QtGui.QIcon()
@@ -76,7 +76,9 @@ class DiffView(QtGui.QDialog):
         self.setWindowIcon(icon)
         self.resize(QtCore.QSize(780, 580).expandedTo(self.minimumSizeHint()))
 
-        vbox = QtGui.QVBoxLayout(self)
+        self.centralWidget = QtGui.QWidget(self)
+        self.setCentralWidget(self.centralWidget)
+        vbox = QtGui.QVBoxLayout(self.centralWidget)
         
         self.browser = QtGui.QTextBrowser()
         
@@ -134,9 +136,9 @@ class DiffView(QtGui.QDialog):
 
         hbox = QtGui.QHBoxLayout()
         hbox.addStretch()
-        self.okButton = QtGui.QPushButton(u"&OK", self)
-        self.connect(self.okButton, QtCore.SIGNAL("clicked()"), self.accept)
-        hbox.addWidget(self.okButton)
+        self.closeButton = QtGui.QPushButton(u"&Close", self)
+        self.connect(self.closeButton, QtCore.SIGNAL("clicked()"), self.close)
+        hbox.addWidget(self.closeButton)
         vbox.addLayout(hbox)
         
 
@@ -170,8 +172,9 @@ class cmd_qdiff(Command):
         diff = s.getvalue()
 
         app = QtGui.QApplication(sys.argv)
-        dialog = DiffView(s.getvalue().decode("UTF-8", "replace"))
-        dialog.exec_()
+        win = DiffView(s.getvalue().decode("UTF-8", "replace"))
+        win.show()
+        app.exec_()
 
 register_command(cmd_qdiff)
 
