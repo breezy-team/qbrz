@@ -19,6 +19,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import sys
+import os.path
 from PyQt4 import QtCore, QtGui
 from bzrlib.option import Option 
 from bzrlib.commands import Command, register_command
@@ -72,20 +73,31 @@ class CommitDialog(QtGui.QDialog):
 
         basis_tree = self.tree.basis_tree()
         delta = self.tree.changes_from(basis_tree)
-        changed_files = (
-            map(lambda a: ("Added", a[0]), delta.added) +
-            map(lambda a: ("Removed", a[0]), delta.removed) +
-            map(lambda a: ("Renamed", a[1], a[0]), delta.renamed) +
-            map(lambda a: ("Modified", a[0]), delta.modified))
+        
+        files = []
+        for entry in delta.added:
+            files.append(("added", entry[0], entry[0], True))
+        for entry in delta.removed:
+            files.append(("removed", entry[0], entry[0], True))
+        for entry in delta.renamed:
+            files.append(("renamed", "%s => %s" % (entry[0], entry[1]),
+                          entry[1], True))
+        for entry in delta.modified:
+            files.append(("modified", entry[0], entry[0], True))
+        for entry in tree.unknowns():
+            files.append(("non-versioned", entry, entry, False))
 
         self.item_to_file = {}
-        for change in changed_files:
+        for entry in files:
             item = QtGui.QTreeWidgetItem(self.changed_filesList)
-            item.setText(0, u" => ".join(change[1:]))
-            item.setText(1, change[0][change[0].rfind(u"."):])
-            item.setText(2, change[0])
-            item.setCheckState(0, QtCore.Qt.Checked)
-            self.item_to_file[item] = change[1]
+            item.setText(0, entry[1])
+            item.setText(1, os.path.splitext(entry[2])[1])
+            item.setText(2, entry[0])
+            if entry[3]:
+                item.setCheckState(0, QtCore.Qt.Checked)
+            else:
+                item.setCheckState(0, QtCore.Qt.Unchecked)
+            self.item_to_file[item] = entry
 
         self.vboxlayout.addWidget(splitter)
 
@@ -109,15 +121,20 @@ class CommitDialog(QtGui.QDialog):
         for i in range(self.changed_filesList.topLevelItemCount()):
             item = self.changed_filesList.topLevelItem(i)
             if item.checkState(0) == QtCore.Qt.Checked:
-                self.specific_files.append(self.item_to_file[item])
+                entry = self.item_to_file[item]
+                if not entry[3]:
+                    self.tree.add(entry[2])
+                self.specific_files.append(entry[2])
         QtGui.QDialog.accept(self)
 
     def show_differences(self, item, column):
         """Show differences between the working copy and the last revision."""
-        window = DiffWindow(self.basis_tree, self.tree,
-                            specific_files=(self.item_to_file[item],),
-                            parent=self)
-        window.show()
+        entry = self.item_to_file[item]
+        if entry[3]:
+            window = DiffWindow(self.basis_tree, self.tree,
+                                specific_files=(entry[2],),
+                                parent=self)
+            window.show()
 
 class cmd_qcommit(Command):
     """Qt commit dialog
