@@ -20,15 +20,14 @@
 
 import sys
 from PyQt4 import QtCore, QtGui
-from bzrlib import bzrdir
+from bzrlib.bzrdir import BzrDir
 from bzrlib.commands import Command, register_command
-from bzrlib.option import Option 
 from bzrlib.errors import NotVersionedError, BzrCommandError, NoSuchFile
-from bzrlib.workingtree import WorkingTree 
+from bzrlib.plugins.qbzr.diff import DiffWindow
 
 class LogWindow(QtGui.QMainWindow):
 
-    def __init__(self, log, location, parent=None):
+    def __init__(self, branch, location, parent=None):
         QtGui.QMainWindow.__init__(self, parent)
 
         if location:
@@ -57,14 +56,19 @@ class LogWindow(QtGui.QMainWindow):
         header.resizeSection(0, 30)
         header.resizeSection(1, 110)
         header.resizeSection(2, 190)
-        self.connect(self.changesList, QtCore.SIGNAL("itemSelectionChanged()"), self.updateSelection)
+        self.connect(self.changesList, QtCore.SIGNAL("itemSelectionChanged()"), self.update_selection)
+        
+        self.connect(self.changesList,
+                     QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
+                     self.show_differences)
         
         vbox1 = QtGui.QVBoxLayout(groupBox)
         vbox1.addWidget(self.changesList)
 
-        self.itemToObj = {}
-        for entry in log:
-            revno, rev, delta = entry
+        self.item_to_rev = {}
+        revno = 1
+        revs = branch.repository.get_revisions(branch.revision_history())
+        for rev in reversed(revs):
             item = QtGui.QTreeWidgetItem(self.changesList)
             item.setText(0, str(revno))
             date = QtCore.QDateTime()
@@ -72,19 +76,24 @@ class LogWindow(QtGui.QMainWindow):
             item.setText(1, date.toString(QtCore.Qt.LocalDate))
             item.setText(2, rev.committer)
             item.setText(3, rev.message.split("\n")[0])
-            self.itemToObj[item] = entry
+            self.item_to_rev[item] = rev
+            rev.revno = revno
+            revno += 1
+
+        self.branch = branch
+        self.revs = revs
 
         groupBox = QtGui.QGroupBox(u"Details", splitter)
         splitter.addWidget(groupBox)
 
         splitter.setStretchFactor(0, 5)
         splitter.setStretchFactor(1, 1)
-        
+
         gridLayout = QtGui.QGridLayout(groupBox)
         gridLayout.setColumnStretch(0, 0)
         gridLayout.setColumnStretch(1, 3)
         gridLayout.setColumnStretch(2, 1)
-        
+
         gridLayout.addWidget(QtGui.QLabel(u"Revision:", groupBox), 0, 0)
         self.revisionEdit = QtGui.QLineEdit(u"", groupBox)
         self.revisionEdit.setReadOnly(True)
@@ -119,17 +128,26 @@ class LogWindow(QtGui.QMainWindow):
 
     def anchorClicked(self, url):
         print url
-        
-    def updateSelection(self):
+
+    def update_selection(self):
         item = self.changesList.selectedItems()[0]
-        revno, rev, delta = self.itemToObj[item]
-        
+        rev = self.item_to_rev[item]
+
         self.revisionEdit.setText(rev.revision_id)
         self.parentsEdit.setText(u", ".join(rev.parent_ids))
         self.messageDocument.setPlainText(rev.message)
-        
+
         self.fileList.clear()
-        
+
+        tree1 = self.branch.repository.revision_tree(rev.revision_id)
+        try:
+            index = self.revs.index(rev)
+            revision_id = self.revs[index-1].revision_id
+        except IndexError:
+            revision_id = None
+        tree2 = self.branch.repository.revision_tree(revision_id)
+        delta = tree1.changes_from(tree2)
+
         for path, _, _ in delta.added:
             item = QtGui.QListWidgetItem(path, self.fileList)
             item.setTextColor(QtGui.QColor("blue"))
@@ -145,96 +163,44 @@ class LogWindow(QtGui.QMainWindow):
             item = QtGui.QListWidgetItem(path, self.fileList)
             item.setTextColor(QtGui.QColor("purple"))
         
+    def show_differences(self, item, column):
+        """Show differences between the working copy and the last revision."""
+        rev = self.item_to_rev[item]
+        tree1 = self.branch.repository.revision_tree(rev.revision_id)
+        try:
+            index = self.revs.index(rev)
+            revision_id = self.revs[index-1].revision_id
+        except IndexError:
+            revision_id = None
+        tree2 = self.branch.repository.revision_tree(revision_id)
+        window = DiffWindow(tree2, tree1, parent=self)
+        window.show()
+
 class cmd_qlog(Command):
     """Show log of a branch, file, or directory in a Qt window.
 
     By default show the log of the branch containing the working directory."""
-    
+
     takes_args = ['location?']
-    takes_options = [Option('forward', 
-                            help='show from oldest to newest'),
-                     'timezone', 
-                     'show-ids', 'revision',
-                     'log-format',
-                     'line', 'long', 
-                     Option('message',
-                            help='show revisions whose message matches this regexp',
-                            type=str),
-                     ]
-    
-    def run(self, location=None, revision=None):
-                
-        from bzrlib.log import log_formatter, show_log, LogFormatter
-        from bzrlib.builtins import get_log_format
-        
-        # log everything
+    takes_options = []
+
+    def run(self, location=None):
         file_id = None
         if location:
-            # find the file id to log:
-
-            dir, fp = bzrdir.BzrDir.open_containing(location)
-            b = dir.open_branch()
-            if fp != '':
+            dir, path = BzrDir.open_containing(location)
+            branch = dir.open_branch()
+            if path:
                 try:
-                    # might be a tree:
                     inv = dir.open_workingtree().inventory
                 except (errors.NotBranchError, errors.NotLocalUrl):
-                    # either no tree, or is remote.
-                    inv = b.basis_tree().inventory
-                file_id = inv.path2id(fp)
+                    inv = branch.basis_tree().inventory
+                file_id = inv.path2id(path)
         else:
-            # local dir only
-            # FIXME ? log the current subdir only RBC 20060203 
-            dir, relpath = bzrdir.BzrDir.open_containing('.')
-            b = dir.open_branch()
+            dir, path = BzrDir.open_containing('.')
+            branch = dir.open_branch()
 
-        if revision is None:
-            rev1 = None
-            rev2 = None
-        elif len(revision) == 1:
-            rev1 = rev2 = revision[0].in_history(b).revno
-        elif len(revision) == 2:
-            if revision[0].spec is None:
-                # missing begin-range means first revision
-                rev1 = 1
-            else:
-                rev1 = revision[0].in_history(b).revno
-
-            if revision[1].spec is None:
-                # missing end-range means last known revision
-                rev2 = b.revno()
-            else:
-                rev2 = revision[1].in_history(b).revno
-        else:
-            raise BzrCommandError('bzr log --revision takes one or two values.')
-
-        # By this point, the revision numbers are converted to the +ve
-        # form if they were supplied in the -ve form, so we can do
-        # this comparison in relative safety
-        if rev1 > rev2:
-            (rev2, rev1) = (rev1, rev2)
-
-        class QLogFormatter(LogFormatter):
-
-            def __init__(self):
-                LogFormatter.__init__(self, None)
-                self.log = []
-
-            def show(self, revno, rev, delta):
-                from bzrlib.osutils import format_date
-                self.log.append((revno, rev, delta))
-
-        lf = QLogFormatter()
-
-        show_log(b,
-                 lf,
-                 file_id,
-                 verbose=True,
-                 start_revision=rev1,
-                 end_revision=rev2)
-                 
         app = QtGui.QApplication(sys.argv)
-        window = LogWindow(lf.log, location)
+        window = LogWindow(branch, location)
         window.show()
         app.exec_()
 
