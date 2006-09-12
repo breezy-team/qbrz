@@ -32,9 +32,9 @@ class LogWindow(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self, parent)
 
         if location:
-            self.setWindowTitle(u"Bazaar - Log - %s" % location)
+            self.setWindowTitle(u"QBzr - Log - %s" % location)
         else:
-            self.setWindowTitle(u"Bazaar - Log")
+            self.setWindowTitle(u"QBzr - Log")
         icon = QtGui.QIcon()
         icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
