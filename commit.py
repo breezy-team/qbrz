@@ -20,16 +20,20 @@
 
 import sys
 from PyQt4 import QtCore, QtGui
+from bzrlib.option import Option 
 from bzrlib.commands import Command, register_command
 from bzrlib.errors import NotVersionedError, BzrCommandError, NoSuchFile
-from bzrlib.workingtree import WorkingTree 
+from bzrlib.workingtree import WorkingTree
 
 class CommitDialog(QtGui.QDialog):
 
-    def __init__(self, changes, path, parent=None):
+    def __init__(self, changed_files, path, parent=None):
         QtGui.QDialog.__init__(self, parent)
 
-        self.setWindowTitle(u"Bazaar - Commit - %s" % (path,))
+        title = "QBzr - Commit"
+        if path:
+            title += " - " + path 
+        self.setWindowTitle(title)
         icon = QtGui.QIcon()
         icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
@@ -43,27 +47,30 @@ class CommitDialog(QtGui.QDialog):
         groupBox = QtGui.QGroupBox(u"Message", splitter)
         splitter.addWidget(groupBox)
 
-        self.commitMessageEdit = QtGui.QTextEdit(groupBox)
+        self.messageEdit = QtGui.QTextEdit(groupBox)
 
         vbox1 = QtGui.QVBoxLayout(groupBox)
-        vbox1.addWidget(self.commitMessageEdit)
+        vbox1.addWidget(self.messageEdit)
 
         groupBox = QtGui.QGroupBox(u"Changes made", splitter)
         splitter.addWidget(groupBox)
 
-        self.changesList = QtGui.QTreeWidget(groupBox)
-        self.changesList.setHeaderLabels([u"File", u"Extension", u"Status"])
-        self.changesList.setRootIsDecorated(False)
+        self.changed_filesList = QtGui.QTreeWidget(groupBox)
+        self.changed_filesList.setHeaderLabels([u"File", u"Extension",
+                                                u"Status"])
+        self.changed_filesList.setRootIsDecorated(False)
         
         vbox1 = QtGui.QVBoxLayout(groupBox)
-        vbox1.addWidget(self.changesList)
+        vbox1.addWidget(self.changed_filesList)
 
-        for change in changes:
-            item = QtGui.QTreeWidgetItem(self.changesList)
-            item.setText(0, change[1])
-            item.setText(1, change[1][change[1].rfind(u"."):])
-            item.setText(2, change[2])
+        self.item_to_file = {}
+        for change in changed_files:
+            item = QtGui.QTreeWidgetItem(self.changed_filesList)
+            item.setText(0, u" => ".join(change[1:]))
+            item.setText(1, change[0][change[0].rfind(u"."):])
+            item.setText(2, change[0])
             item.setCheckState(0, QtCore.Qt.Checked)
+            self.item_to_file[item] = change[1]
         
         self.vboxlayout.addWidget(splitter)
         
@@ -82,57 +89,47 @@ class CommitDialog(QtGui.QDialog):
         self.connect(self.cancelButton, QtCore.SIGNAL("clicked()"), self.reject)
 
     def accept(self):
-        self.commitMessage = unicode(self.commitMessageEdit.toPlainText())
-        self.specificFiles = [] 
-        for i in range(self.changesList.topLevelItemCount()):
-            item = self.changesList.topLevelItem(i)
+        self.message = unicode(self.messageEdit.toPlainText())
+        self.specific_files = [] 
+        for i in range(self.changed_filesList.topLevelItemCount()):
+            item = self.changed_filesList.topLevelItem(i)
             if item.checkState(0) == QtCore.Qt.Checked:
-                self.specificFiles.append(unicode(item.text(0)))
+                self.specific_files.append(self.item_to_file[item])
         QtGui.QDialog.accept(self)
         
 class cmd_qcommit(Command):
     """Qt commit dialog
 
     Graphical user interface for committing revisions"""
-    
-    takes_args = []
-    takes_options = []
 
-    def run(self, filename=None):
-        from bzrlib.commit import Commit
-        from bzrlib.errors import (BzrCommandError, PointlessCommit, ConflictsInTree, 
-           StrictCommitFailed)
+    takes_args = ['filename?']
+    takes_options = [
+                     Option('unchanged',
+                            help='commit even if nothing has changed'), 
+                    ]
 
-        (wt, path) = WorkingTree.open_containing(filename)
-        branch = wt.branch
+    def run(self, filename=None, unchanged=False):
+        from bzrlib.commit import ReportCommitToLog
+        from bzrlib.errors import BzrCommandError, PointlessCommit, \
+            ConflictsInTree, StrictCommitFailed
 
-        file_id = wt.path2id(path)
+        tree, filename = WorkingTree.open_containing(filename)
+        branch = tree.branch
+        old_tree = branch.repository.revision_tree(branch.last_revision())
+        delta = tree.changes_from(old_tree)
 
-        if file_id is None:
-            raise NotVersionedError(filename)
-
-        tree = wt
-        self.old_tree = tree.branch.repository.revision_tree(tree.branch.last_revision())
-        self.delta = tree.changes_from(self.old_tree) 
-
-        self.file_store = []
-
-        for path, _, _ in self.delta.added:
-            self.file_store.append((True, path, u"Added"))
-
-        for path, _, _ in self.delta.removed:
-            self.file_store.append((True, path, u"Removed"))
-
-        for oldpath, _, _, _, _, _ in self.delta.renamed:
-            self.file_store.append((True, oldpath, u"Renamed"))
-
-        for path, _, _, _, _ in self.delta.modified:
-            self.file_store.append((True, path, u"Modified"))
+        changed_files = (
+            map(lambda a: ("Added", a[0]), delta.added) +
+            map(lambda a: ("Removed", a[0]), delta.removed) +
+            map(lambda a: ("Renamed", a[1], a[0]), delta.renamed) +
+            map(lambda a: ("Modified", a[0]), delta.modified))
 
         app = QtGui.QApplication(sys.argv)
-        dialog = CommitDialog(self.file_store, path)
+        dialog = CommitDialog(changed_files, filename)
         if dialog.exec_():
-            Commit().commit(working_tree=wt,message=dialog.commitMessage,
-                specific_files=dialog.specificFiles)
+            tree.commit(message=dialog.message,
+                        specific_files=dialog.specific_files,
+                        allow_pointless=unchanged,
+                        reporter=ReportCommitToLog())
 
 register_command(cmd_qcommit)
