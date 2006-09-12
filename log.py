@@ -125,7 +125,13 @@ class LogWindow(QtGui.QMainWindow):
         self.vboxlayout.addLayout(self.hboxlayout)
         
         self.connect(self.closeButton, QtCore.SIGNAL("clicked()"), self.close)
+        self.windows = []
 
+    def closeEvent(self, event):
+        for window in self.windows:
+            window.close()
+        event.accept()
+        
     def anchorClicked(self, url):
         print url
 
@@ -173,8 +179,9 @@ class LogWindow(QtGui.QMainWindow):
         else:
             revision_id = self.revs[index-1].revision_id
         tree2 = self.branch.repository.revision_tree(revision_id)
-        window = DiffWindow(tree2, tree1, parent=self)
+        window = DiffWindow(tree2, tree1, custom_title="#%d" % rev.revno)
         window.show()
+        self.windows.append(window)
 
 class cmd_qlog(Command):
     """Show log of a branch, file, or directory in a Qt window.

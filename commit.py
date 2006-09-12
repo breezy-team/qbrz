@@ -114,7 +114,13 @@ class CommitDialog(QtGui.QDialog):
         
         self.connect(self.okButton, QtCore.SIGNAL("clicked()"), self.accept)
         self.connect(self.cancelButton, QtCore.SIGNAL("clicked()"), self.reject)
+        self.windows = []
 
+    def closeEvent(self, event):
+        for window in self.windows:
+            window.close()
+        event.accept()
+        
     def accept(self):
         self.message = unicode(self.messageEdit.toPlainText())
         self.specific_files = [] 
@@ -132,9 +138,9 @@ class CommitDialog(QtGui.QDialog):
         entry = self.item_to_file[item]
         if entry[3]:
             window = DiffWindow(self.basis_tree, self.tree,
-                                specific_files=(entry[2],),
-                                parent=self)
+                                specific_files=(entry[2],))
             window.show()
+            self.windows.append(window)
 
 class cmd_qcommit(Command):
     """Qt commit dialog

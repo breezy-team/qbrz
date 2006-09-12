@@ -65,7 +65,7 @@ def html_escape(string):
 class DiffWindow(QtGui.QMainWindow):
 
     def __init__(self, tree1=None, tree2=None, specific_files=None,
-                 parent=None):
+                 parent=None, custom_title=None):
         QtGui.QMainWindow.__init__(self, parent)
 
         self.tree1 = tree1
@@ -86,6 +86,8 @@ class DiffWindow(QtGui.QMainWindow):
         #    self.rev2 = "working tree"
 
         title = "QBzr - Diff"
+        if custom_title:
+            title += " - %s" % custom_title
         if self.specific_files:
             title += " - "
             if len(self.specific_files) > 2:
