@@ -140,11 +140,11 @@ class LogWindow(QtGui.QMainWindow):
         self.fileList.clear()
 
         tree1 = self.branch.repository.revision_tree(rev.revision_id)
-        try:
-            index = self.revs.index(rev)
-            revision_id = self.revs[index-1].revision_id
-        except IndexError:
+        index = self.revs.index(rev)
+        if not index:
             revision_id = None
+        else:
+            revision_id = self.revs[index-1].revision_id
         tree2 = self.branch.repository.revision_tree(revision_id)
         delta = tree1.changes_from(tree2)
 
@@ -167,11 +167,11 @@ class LogWindow(QtGui.QMainWindow):
         """Show differences between the working copy and the last revision."""
         rev = self.item_to_rev[item]
         tree1 = self.branch.repository.revision_tree(rev.revision_id)
-        try:
-            index = self.revs.index(rev)
-            revision_id = self.revs[index-1].revision_id
-        except IndexError:
+        index = self.revs.index(rev)
+        if not index:
             revision_id = None
+        else:
+            revision_id = self.revs[index-1].revision_id
         tree2 = self.branch.repository.revision_tree(revision_id)
         window = DiffWindow(tree2, tree1, parent=self)
         window.show()
