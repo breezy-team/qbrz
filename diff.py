@@ -25,7 +25,6 @@ from cStringIO import StringIO
 from PyQt4 import QtCore, QtGui
 from bzrlib.commands import Command, register_command
 from bzrlib.workingtree import WorkingTree
-from bzrlib.diff import show_diff_trees
 
 def _get_change_extent(str1, str2):
     """
@@ -60,19 +59,41 @@ def markup_intraline_changes(line1, line2, color):
         text = line1
     return text
 
-
 def html_escape(string):
     return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
-class DiffView(QtGui.QMainWindow):
+class DiffWindow(QtGui.QMainWindow):
 
-    def __init__(self, diff, filename=None, parent=None):
+    def __init__(self, tree1=None, tree2=None, specific_files=None,
+                 parent=None):
         QtGui.QMainWindow.__init__(self, parent)
 
-        if filename:
-            self.setWindowTitle(u"Bazaar - Diff - %s" % filename)
-        else:
-            self.setWindowTitle(u"Bazaar - Diff")
+        self.tree1 = tree1
+        self.tree2 = tree2
+        self.specific_files = specific_files
+
+        #from bzrlib.revisiontree import RevisionTree
+        #from bzrlib.workingtree import WorkingTree
+
+        #if isinstance(self.tree1, RevisionTree):
+        #    self.rev1 = self.tree1.get_revision_id()
+        #elif isinstance(self.tree1, WorkingTree):
+        #    self.rev1 = "working tree"
+
+        #if isinstance(self.tree2, RevisionTree):
+        #    self.rev2 = self.tree2.get_revision_id()
+        #elif isinstance(self.tree2, WorkingTree):
+        #    self.rev2 = "working tree"
+
+        title = "QBzr - Diff"
+        if self.specific_files:
+            title += " - "
+            if len(self.specific_files) > 2:
+                title += "%s files" % len(self.specific_files)
+            else:
+                title += ", ".join(self.specific_files)
+        self.setWindowTitle(title)
+
         icon = QtGui.QIcon()
         icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
@@ -84,16 +105,19 @@ class DiffView(QtGui.QMainWindow):
         vbox = QtGui.QVBoxLayout(self.centralWidget)
         
         self.browser = QtGui.QTextBrowser()
-        
+
+        diff = get_diff_trees(self.tree1, self.tree2,
+                              specific_files=self.specific_files)
+
         html = []
         lines = diff.split("\n")
         for i in range(len(lines)):
             line = lines[i]
             if line.startswith("=== "):
                 prefixes = ["=== modified file ", "=== added file ",
-                    "=== removed file ", "=== renames file ",
+                    "=== removed file ", "=== renamed file ",
                     "=== modified directory ", "=== added directory ",
-                    "=== removed directory ", "=== renames directory "]
+                    "=== removed directory ", "=== renamed directory "]
                 text = line
                 for prefix in prefixes:
                     if line.startswith(prefix):
@@ -143,7 +167,13 @@ class DiffView(QtGui.QMainWindow):
         self.connect(self.closeButton, QtCore.SIGNAL("clicked()"), self.close)
         hbox.addWidget(self.closeButton)
         vbox.addLayout(hbox)
-        
+
+def get_diff_trees(tree1, tree2, **kwargs):
+    """Return unified diff between two trees as a string."""
+    from bzrlib.diff import show_diff_trees
+    output = StringIO()
+    show_diff_trees(tree1, tree2, output, **kwargs)
+    return output.getvalue().decode("UTF-8", "replace")
 
 class cmd_qdiff(Command):
     """Show differences in working tree in a Qt window.
@@ -170,12 +200,12 @@ class cmd_qdiff(Command):
             tree1 = wt
             tree2 = tree1.basis_tree()
 
-        s = StringIO()
-        show_diff_trees(tree2, tree1, s, specific_files=(filename,))
-        diff = s.getvalue().decode("UTF-8", "replace")
+        specific_files = None
+        if filename:
+            specific_files = (filename,)
 
         app = QtGui.QApplication(sys.argv)
-        win = DiffView(diff, filename)
+        win = DiffWindow(tree2, tree1, specific_files=specific_files)
         win.show()
         app.exec_()
 

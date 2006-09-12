@@ -24,11 +24,15 @@ from bzrlib.option import Option
 from bzrlib.commands import Command, register_command
 from bzrlib.errors import NotVersionedError, BzrCommandError, NoSuchFile
 from bzrlib.workingtree import WorkingTree
+from bzrlib.plugins.qbzr.diff import get_diff_trees, DiffWindow
 
 class CommitDialog(QtGui.QDialog):
 
-    def __init__(self, changed_files, path, parent=None):
+    def __init__(self, tree, path, parent=None):
         QtGui.QDialog.__init__(self, parent)
+
+        self.tree = tree
+        self.basis_tree = self.tree.basis_tree()
 
         title = "QBzr - Commit"
         if path:
@@ -59,9 +63,20 @@ class CommitDialog(QtGui.QDialog):
         self.changed_filesList.setHeaderLabels([u"File", u"Extension",
                                                 u"Status"])
         self.changed_filesList.setRootIsDecorated(False)
+        self.connect(self.changed_filesList,
+                     QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
+                     self.show_differences)
         
         vbox1 = QtGui.QVBoxLayout(groupBox)
         vbox1.addWidget(self.changed_filesList)
+
+        basis_tree = self.tree.basis_tree()
+        delta = self.tree.changes_from(basis_tree)
+        changed_files = (
+            map(lambda a: ("Added", a[0]), delta.added) +
+            map(lambda a: ("Removed", a[0]), delta.removed) +
+            map(lambda a: ("Renamed", a[1], a[0]), delta.renamed) +
+            map(lambda a: ("Modified", a[0]), delta.modified))
 
         self.item_to_file = {}
         for change in changed_files:
@@ -71,9 +86,9 @@ class CommitDialog(QtGui.QDialog):
             item.setText(2, change[0])
             item.setCheckState(0, QtCore.Qt.Checked)
             self.item_to_file[item] = change[1]
-        
+
         self.vboxlayout.addWidget(splitter)
-        
+
         self.hboxlayout = QtGui.QHBoxLayout()
         self.hboxlayout.addStretch()
 
@@ -96,7 +111,14 @@ class CommitDialog(QtGui.QDialog):
             if item.checkState(0) == QtCore.Qt.Checked:
                 self.specific_files.append(self.item_to_file[item])
         QtGui.QDialog.accept(self)
-        
+
+    def show_differences(self, item, column):
+        """Show differences between the working copy and the last revision."""
+        window = DiffWindow(self.basis_tree, self.tree,
+                            specific_files=(self.item_to_file[item],),
+                            parent=self)
+        window.show()
+
 class cmd_qcommit(Command):
     """Qt commit dialog
 
@@ -114,18 +136,9 @@ class cmd_qcommit(Command):
             ConflictsInTree, StrictCommitFailed
 
         tree, filename = WorkingTree.open_containing(filename)
-        branch = tree.branch
-        old_tree = branch.repository.revision_tree(branch.last_revision())
-        delta = tree.changes_from(old_tree)
-
-        changed_files = (
-            map(lambda a: ("Added", a[0]), delta.added) +
-            map(lambda a: ("Removed", a[0]), delta.removed) +
-            map(lambda a: ("Renamed", a[1], a[0]), delta.renamed) +
-            map(lambda a: ("Modified", a[0]), delta.modified))
 
         app = QtGui.QApplication(sys.argv)
-        dialog = CommitDialog(changed_files, filename)
+        dialog = CommitDialog(tree, filename)
         if dialog.exec_():
             tree.commit(message=dialog.message,
                         specific_files=dialog.specific_files,
