@@ -61,8 +61,11 @@ class CommitDialog(QtGui.QDialog):
         splitter.addWidget(groupBox)
 
         self.changed_filesList = QtGui.QTreeWidget(groupBox)
+        self.changed_filesList.setSortingEnabled(True)
         self.changed_filesList.setHeaderLabels([u"File", u"Extension",
                                                 u"Status"])
+        self.changed_filesList.header().resizeSection(0, 250)
+        self.changed_filesList.header().resizeSection(1, 70)
         self.changed_filesList.setRootIsDecorated(False)
         self.connect(self.changed_filesList,
                      QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
