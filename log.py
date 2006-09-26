@@ -165,8 +165,8 @@ class LogWindow(QtGui.QMainWindow):
             item = QtGui.QListWidgetItem(path, self.fileList)
             item.setTextColor(QtGui.QColor("red"))
             
-        for oldpath, _, _, _, _, _ in delta.renamed:
-            item = QtGui.QListWidgetItem(path, self.fileList)
+        for oldpath, newpath, _, _, _, _ in delta.renamed:
+            item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
             item.setTextColor(QtGui.QColor("purple"))
         
     def show_differences(self, item, column):
