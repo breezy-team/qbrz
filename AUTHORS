@@ -4,4 +4,8 @@ The idea of an UI for Bazaar commands comes from bzr-gtk plugin by
 Jelmer Vernooij <jelmer@samba.org>. Also some bzr-gtk code is used 
 in this plugin.
 
-The Bazaar icons in data/ are from http://bazaar-vcs.org/LogoOptions
+The Bazaar icons, data/bzr-16.png and data/bzr-48.png, are from
+http://bazaar-vcs.org/LogoOptions.
+
+Icons data/folder.png and text-x-generic.png are from Tango Desktop
+Project (http://tango.freedesktop.org/Tango_Desktop_Project).

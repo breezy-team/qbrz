@@ -44,8 +44,11 @@ class BrowseWindow(QtGui.QMainWindow):
         vbox = QtGui.QVBoxLayout(self.centralWidget)
 
         self.file_tree = QtGui.QTreeWidget(self.centralWidget)
-        self.file_tree.setHeaderLabels([u"Name", u"Revision", u"Committer", u"Message"])
-        
+        self.file_tree.setHeaderLabels([u"Name", u"Date", u"Committer", u"Message"])
+
+        self.dir_icon = QtGui.QIcon(":/folder.png")
+        self.file_icon = QtGui.QIcon(":/text-x-generic.png")
+
         self.items = []
 
         tree = self.branch.basis_tree()
@@ -53,9 +56,11 @@ class BrowseWindow(QtGui.QMainWindow):
         revs = self.load_file_tree(tree.inventory[file_id], self.file_tree)
         revs = dict(zip(revs, self.branch.repository.get_revisions(list(revs))))
         
+        date = QtCore.QDateTime()
         for item, rev_id in self.items:
             rev = revs[rev_id]
-            item.setText(1, rev.revision_id)
+            date.setTime_t(int(rev.timestamp))
+            item.setText(1, date.toString(QtCore.Qt.LocalDate))
             item.setText(2, rev.committer)
             item.setText(3, rev.message.split("\n")[0])
 
@@ -79,11 +84,13 @@ class BrowseWindow(QtGui.QMainWindow):
                 files.append(child)
         for child in dirs:
             item = QtGui.QTreeWidgetItem(parent_item)
+            item.setIcon(0, self.dir_icon)
             item.setText(0, child.name)
             revs.update(self.load_file_tree(child, item))
             self.items.append((item, child.revision))
         for child in files:
             item = QtGui.QTreeWidgetItem(parent_item)
+            item.setIcon(0, self.file_icon)
             item.setText(0, child.name)
             self.items.append((item, child.revision))
         return revs
