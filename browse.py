@@ -69,25 +69,23 @@ class BrowseWindow(QtGui.QMainWindow):
         vbox.addLayout(hbox)
 
     def load_file_tree(self, entry, parent_item):
-        #print entry.name
+        files, dirs = [], []
         revs = set()
         for name, child in entry.sorted_children():
-            #print "-", name, child.revision
-            #try:
-            #    revno = self.branch.revision_id_to_revno(child.revision)
-            #except NoSuchRevision:
-            #    revno = "?"
             revs.add(child.revision)
-
-            item = QtGui.QTreeWidgetItem(parent_item)
-            item.setText(0, name)
-            #item.setText(1, str(revno))
-
-            self.items.append((item, child.revision))
-
             if child.kind == "directory":
-                revs.update(self.load_file_tree(child, item))
-
+                dirs.append(child)
+            else:
+                files.append(child)
+        for child in dirs:
+            item = QtGui.QTreeWidgetItem(parent_item)
+            item.setText(0, child.name)
+            revs.update(self.load_file_tree(child, item))
+            self.items.append((item, child.revision))
+        for child in files:
+            item = QtGui.QTreeWidgetItem(parent_item)
+            item.setText(0, child.name)
+            self.items.append((item, child.revision))
         return revs
 
 
