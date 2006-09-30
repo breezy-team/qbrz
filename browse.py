@@ -41,7 +41,9 @@ class BrowseWindow(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self, parent)
         self.branch = branch
 
-        title = u"QBzr - Browse - " + local_path_from_url(branch.base)
+        self.location = local_path_from_url(branch.base)
+        
+        title = u"QBzr - Browse - " + self.location
         self.setWindowTitle(title)
 
         icon = QtGui.QIcon()
@@ -53,6 +55,19 @@ class BrowseWindow(QtGui.QMainWindow):
         self.centralWidget = QtGui.QWidget(self)
         self.setCentralWidget(self.centralWidget)
         vbox = QtGui.QVBoxLayout(self.centralWidget)
+
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(QtGui.QLabel(u"Location:", self.centralWidget))
+        self.location_edit = QtGui.QLineEdit(self.centralWidget)
+        self.location_edit.setText(self.location)
+        hbox.addWidget(self.location_edit, 7)
+        hbox.addWidget(QtGui.QLabel(u"Revision:", self.centralWidget))
+        self.revision_edit = QtGui.QLineEdit(self.centralWidget)
+        self.revision_edit.setText(str(self.branch.revno()))
+        hbox.addWidget(self.revision_edit, 1)
+        self.show_button = QtGui.QPushButton(u"Show", self.centralWidget)
+        hbox.addWidget(self.show_button, 0)
+        vbox.addLayout(hbox)
 
         self.file_tree = FileTreeWidget(self, self.centralWidget)
         self.file_tree.setHeaderLabels([u"Name", u"Date", u"Author", u"Message"])
