@@ -50,7 +50,7 @@ class LogWindow(QtGui.QMainWindow):
         splitter.addWidget(groupBox)
 
         self.changesList = QtGui.QTreeWidget(groupBox)
-        self.changesList.setHeaderLabels([u"Rev", u"Date", u"Comitter", u"Message"])
+        self.changesList.setHeaderLabels([u"Rev", u"Date", u"Author", u"Message"])
         self.changesList.setRootIsDecorated(False)
         header = self.changesList.header()
         header.resizeSection(0, 30)

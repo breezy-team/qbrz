@@ -55,7 +55,7 @@ class BrowseWindow(QtGui.QMainWindow):
         vbox = QtGui.QVBoxLayout(self.centralWidget)
 
         self.file_tree = FileTreeWidget(self, self.centralWidget)
-        self.file_tree.setHeaderLabels([u"Name", u"Date", u"Committer", u"Message"])
+        self.file_tree.setHeaderLabels([u"Name", u"Date", u"Author", u"Message"])
 
         self.context_menu = QtGui.QMenu(self.file_tree)
         self.context_menu.addAction("Show log...")
