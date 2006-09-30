@@ -25,6 +25,7 @@ from PyQt4 import QtCore, QtGui
 from bzrlib.bzrdir import BzrDir
 from bzrlib.commands import Command, register_command
 from bzrlib.errors import NotVersionedError, BzrCommandError, NoSuchFile
+from bzrlib.log import get_view_revisions, _enumerate_history
 from bzrlib.plugins.qbzr.diff import DiffWindow
 
 
@@ -66,9 +67,8 @@ class LogWindow(QtGui.QMainWindow):
 
         self.changesList = QtGui.QTreeWidget(groupBox)
         self.changesList.setHeaderLabels([u"Rev", u"Date", u"Author", u"Message"])
-        self.changesList.setRootIsDecorated(False)
         header = self.changesList.header()
-        header.resizeSection(0, 30)
+        header.resizeSection(0, 50)
         header.resizeSection(1, 110)
         header.resizeSection(2, 190)
         self.connect(self.changesList, QtCore.SIGNAL("itemSelectionChanged()"), self.update_selection)
@@ -83,11 +83,13 @@ class LogWindow(QtGui.QMainWindow):
         self.branch = branch
         self.item_to_rev = {}
 
+        self.last_item = None
+        self.merge_stack = [self.changesList]
         self.connect(self, QtCore.SIGNAL("log_entry_loaded()"),
                      self.add_log_entry, QtCore.Qt.QueuedConnection)
         self.log_queue = Queue.Queue()
         self.thread = CustomFunctionThread(self.load_history, parent=self)
-        self.thread.start(QtCore.QThread.LowPriority)
+        self.thread.start()
 
         groupBox = QtGui.QGroupBox(u"Details", splitter)
         splitter.addWidget(groupBox)
@@ -179,15 +181,22 @@ class LogWindow(QtGui.QMainWindow):
             old_tree = self.branch.repository.revision_tree(None)
         else:
             old_tree = self.branch.repository.revision_tree(rev.parent_ids[0])
-        window = DiffWindow(old_tree, tree, custom_title="#%d" % rev.revno)
+        window = DiffWindow(old_tree, tree, custom_title=rev.revision_id)
         window.show()
         self.windows.append(window)
 
     def add_log_entry(self):
         """Add loaded entries to the list."""
-        revno, rev, delta = self.log_queue.get()
-        item = QtGui.QTreeWidgetItem(self.changesList)
-        item.setText(0, str(revno))
+        revno, rev, delta, merge_depth = self.log_queue.get()
+
+        if merge_depth > len(self.merge_stack) - 1:
+            self.merge_stack.append(self.last_item)
+        elif merge_depth < len(self.merge_stack) - 1:
+            self.merge_stack.pop()
+
+        item = QtGui.QTreeWidgetItem(self.merge_stack[-1])
+        if revno:
+            item.setText(0, str(revno))
         date = QtCore.QDateTime()
         date.setTime_t(int(rev.timestamp))
         item.setText(1, date.toString(QtCore.Qt.LocalDate))
@@ -195,6 +204,7 @@ class LogWindow(QtGui.QMainWindow):
         item.setText(3, rev.message.split("\n")[0])
         rev.delta = delta
         self.item_to_rev[item] = rev
+        self.last_item = item
         rev.revno = revno
 
     def load_history(self):
@@ -203,10 +213,43 @@ class LogWindow(QtGui.QMainWindow):
         repository = branch.repository
         specific_fileid = self.specific_fileid
 
+        start_revision = None
+        end_revision = None
+
+        which_revs = _enumerate_history(branch)
+
+        if start_revision is None:
+            start_revision = 1
+        else:
+            branch.check_real_revno(start_revision)
+        
+        if end_revision is None:
+            end_revision = len(which_revs)
+        else:
+            branch.check_real_revno(end_revision)
+    
+        # list indexes are 0-based; revisions are 1-based
+        cut_revs = which_revs[(start_revision-1):(end_revision)]
+        if not cut_revs:
+            return
+    
+        # convert the revision history to a dictionary:
+        rev_nos = dict((k, v) for v, k in cut_revs)
+    
+        # override the mainline to look like the revision history.
+        mainline_revs = [revision_id for index, revision_id in cut_revs]
+        if cut_revs[0][0] == 1:
+            mainline_revs.insert(0, None)
+        else:
+            mainline_revs.insert(0, which_revs[start_revision-2][1])
+        include_merges = True
+        direction = 'reverse'
+        view_revisions = list(get_view_revisions(mainline_revs, rev_nos, branch,
+                              direction, include_merges=include_merges))
+            
         def iter_revisions():
-            revision_ids = branch.revision_history()
-            revision_ids.reverse()
-            revno = len(revision_ids) + 1
+            revision_ids = [r for r, n, d in view_revisions]
+            #revision_ids.reverse()
             num = 20
             while revision_ids:
                 cur_deltas = {}
@@ -217,20 +260,17 @@ class LogWindow(QtGui.QMainWindow):
                     cur_deltas = dict(izip(cur_revision_ids, deltas))
                     
                 for revision in revisions:
-                    revno -= 1
                     delta = cur_deltas.get(revision.revision_id)
                     if specific_fileid and \
                        not delta.touches_file_id(specific_fileid):
                         continue
-                    yield revno, revision, delta
+                    yield revision, delta
                 revision_ids  = revision_ids[num:]
                 num = int(num * 1.5)
 
-        for entry in iter_revisions():
-            if specific_fileid:
-                if not entry[2].touches_file_id(specific_fileid):
-                    continue 
-            self.log_queue.put(entry)
+        for ((rev_id, revno, merge_depth), (rev, delta)) in \
+             izip(view_revisions, iter_revisions()): 
+            self.log_queue.put((revno, rev, delta, merge_depth))
             self.emit(QtCore.SIGNAL("log_entry_loaded()"))
 
 
