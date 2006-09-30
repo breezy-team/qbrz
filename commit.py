@@ -23,15 +23,16 @@ import os.path
 from PyQt4 import QtCore, QtGui
 from bzrlib.option import Option 
 from bzrlib.commands import Command, register_command
-from bzrlib.errors import NotVersionedError, BzrCommandError, NoSuchFile
+from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.diff import get_diff_trees, DiffWindow
 
 class CommitDialog(QtGui.QDialog):
 
-    def __init__(self, tree, path, parent=None):
+    def __init__(self, tree, path, unchanged, parent=None):
         QtGui.QDialog.__init__(self, parent)
 
+        self.unchanged = unchanged
         self.tree = tree
         self.basis_tree = self.tree.basis_tree()
 
@@ -125,15 +126,18 @@ class CommitDialog(QtGui.QDialog):
         event.accept()
         
     def accept(self):
-        self.message = unicode(self.messageEdit.toPlainText())
-        self.specific_files = [] 
+        specific_files = [] 
         for i in range(self.changed_filesList.topLevelItemCount()):
             item = self.changed_filesList.topLevelItem(i)
             if item.checkState(0) == QtCore.Qt.Checked:
                 entry = self.item_to_file[item]
                 if not entry[3]:
                     self.tree.add(entry[2])
-                self.specific_files.append(entry[2])
+                specific_files.append(entry[2])
+        self.tree.commit(message=unicode(self.messageEdit.toPlainText()),
+                         specific_files=specific_files,
+                         allow_pointless=self.unchanged,
+                         reporter=ReportCommitToLog())
         QtGui.QDialog.accept(self)
 
     def show_differences(self, item, column):
@@ -145,10 +149,11 @@ class CommitDialog(QtGui.QDialog):
             window.show()
             self.windows.append(window)
 
+
 class cmd_qcommit(Command):
     """Qt commit dialog
 
-    Graphical user interface for committing revisions"""
+    Graphical user interface for committing revisions."""
 
     takes_args = ['filename?']
     takes_options = [
@@ -157,18 +162,11 @@ class cmd_qcommit(Command):
                     ]
 
     def run(self, filename=None, unchanged=False):
-        from bzrlib.commit import ReportCommitToLog
-        from bzrlib.errors import BzrCommandError, PointlessCommit, \
-            ConflictsInTree, StrictCommitFailed
-
         tree, filename = WorkingTree.open_containing(filename)
-
         app = QtGui.QApplication(sys.argv)
-        dialog = CommitDialog(tree, filename)
-        if dialog.exec_():
-            tree.commit(message=dialog.message,
-                        specific_files=dialog.specific_files,
-                        allow_pointless=unchanged,
-                        reporter=ReportCommitToLog())
+        win = CommitDialog(tree, filename, unchanged)
+        win.show()
+        app.exec_()
+
 
 register_command(cmd_qcommit)
