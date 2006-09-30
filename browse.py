@@ -24,6 +24,17 @@ from bzrlib.commands import Command, register_command
 from bzrlib.urlutils import local_path_from_url
 
 
+class FileTreeWidget(QtGui.QTreeWidget):
+
+    def __init__(self, window, *args):
+        QtGui.QTreeWidget.__init__(self, *args)
+        self.window = window
+    
+    def contextMenuEvent(self, event):
+        self.window.context_menu.popup(event.globalPos())
+        event.accept()
+
+
 class BrowseWindow(QtGui.QMainWindow):
 
     def __init__(self, branch=None, parent=None):
@@ -43,8 +54,11 @@ class BrowseWindow(QtGui.QMainWindow):
         self.setCentralWidget(self.centralWidget)
         vbox = QtGui.QVBoxLayout(self.centralWidget)
 
-        self.file_tree = QtGui.QTreeWidget(self.centralWidget)
+        self.file_tree = FileTreeWidget(self, self.centralWidget)
         self.file_tree.setHeaderLabels([u"Name", u"Date", u"Committer", u"Message"])
+
+        self.context_menu = QtGui.QMenu(self.file_tree)
+        self.context_menu.addAction("Show log...")
 
         self.dir_icon = QtGui.QIcon(":/folder.png")
         self.file_icon = QtGui.QIcon(":/text-x-generic.png")
