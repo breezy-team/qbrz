@@ -19,17 +19,32 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import sys
+import Queue
+from itertools import izip
 from PyQt4 import QtCore, QtGui
 from bzrlib.bzrdir import BzrDir
 from bzrlib.commands import Command, register_command
 from bzrlib.errors import NotVersionedError, BzrCommandError, NoSuchFile
 from bzrlib.plugins.qbzr.diff import DiffWindow
 
+
+class CustomFunctionThread(QtCore.QThread):
+
+    def __init__(self, target, args=[], parent=None):
+        QtCore.QThread.__init__(self, parent)
+        self.target = target
+        self.args = args
+
+    def run(self):
+        self.target(*self.args)
+
+
 class LogWindow(QtGui.QMainWindow):
 
-    def __init__(self, branch, location, parent=None):
+    def __init__(self, branch, location, specific_fileid, parent=None):
         QtGui.QMainWindow.__init__(self, parent)
-
+        self.specific_fileid = specific_fileid
+        
         if location:
             self.setWindowTitle(u"QBzr - Log - %s" % location)
         else:
@@ -57,31 +72,22 @@ class LogWindow(QtGui.QMainWindow):
         header.resizeSection(1, 110)
         header.resizeSection(2, 190)
         self.connect(self.changesList, QtCore.SIGNAL("itemSelectionChanged()"), self.update_selection)
-        
+
         self.connect(self.changesList,
                      QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
                      self.show_differences)
-        
+
         vbox1 = QtGui.QVBoxLayout(groupBox)
         vbox1.addWidget(self.changesList)
 
-        self.item_to_rev = {}
-        revno = 1
-        revs = branch.repository.get_revisions(branch.revision_history())
-        for rev in reversed(revs):
-            item = QtGui.QTreeWidgetItem(self.changesList)
-            item.setText(0, str(revno))
-            date = QtCore.QDateTime()
-            date.setTime_t(int(rev.timestamp))
-            item.setText(1, date.toString(QtCore.Qt.LocalDate))
-            item.setText(2, rev.committer)
-            item.setText(3, rev.message.split("\n")[0])
-            self.item_to_rev[item] = rev
-            rev.revno = revno
-            revno += 1
-
         self.branch = branch
-        self.revs = revs
+        self.item_to_rev = {}
+
+        self.connect(self, QtCore.SIGNAL("log_entry_loaded()"),
+                     self.add_log_entry, QtCore.Qt.QueuedConnection)
+        self.log_queue = Queue.Queue()
+        self.thread = CustomFunctionThread(self.load_history, parent=self)
+        self.thread.start(QtCore.QThread.LowPriority)
 
         groupBox = QtGui.QGroupBox(u"Details", splitter)
         splitter.addWidget(groupBox)
@@ -145,43 +151,88 @@ class LogWindow(QtGui.QMainWindow):
 
         self.fileList.clear()
 
-        tree1 = self.branch.repository.revision_tree(rev.revision_id)
-        index = self.revs.index(rev)
-        if not index:
-            revision_id = None
-        else:
-            revision_id = self.revs[index-1].revision_id
-        tree2 = self.branch.repository.revision_tree(revision_id)
-        delta = tree1.changes_from(tree2)
+        if not rev.delta:
+            rev.delta = \
+                self.branch.repository.get_deltas_for_revisions([rev]).next()
+        delta = rev.delta
 
         for path, _, _ in delta.added:
             item = QtGui.QListWidgetItem(path, self.fileList)
             item.setTextColor(QtGui.QColor("blue"))
-            
+
         for path, _, _, _, _ in delta.modified:
             item = QtGui.QListWidgetItem(path, self.fileList)
-            
+
         for path, _, _ in delta.removed:
             item = QtGui.QListWidgetItem(path, self.fileList)
             item.setTextColor(QtGui.QColor("red"))
-            
+
         for oldpath, newpath, _, _, _, _ in delta.renamed:
             item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
             item.setTextColor(QtGui.QColor("purple"))
-        
+
     def show_differences(self, item, column):
         """Show differences between the working copy and the last revision."""
         rev = self.item_to_rev[item]
-        tree1 = self.branch.repository.revision_tree(rev.revision_id)
-        index = self.revs.index(rev)
-        if not index:
-            revision_id = None
+        tree = self.branch.repository.revision_tree(rev.revision_id)
+        if not rev.parent_ids:
+            old_tree = self.branch.repository.revision_tree(None)
         else:
-            revision_id = self.revs[index-1].revision_id
-        tree2 = self.branch.repository.revision_tree(revision_id)
-        window = DiffWindow(tree2, tree1, custom_title="#%d" % rev.revno)
+            old_tree = self.branch.repository.revision_tree(rev.parent_ids[0])
+        window = DiffWindow(old_tree, tree, custom_title="#%d" % rev.revno)
         window.show()
         self.windows.append(window)
+
+    def add_log_entry(self):
+        """Add loaded entries to the list."""
+        revno, rev, delta = self.log_queue.get()
+        item = QtGui.QTreeWidgetItem(self.changesList)
+        item.setText(0, str(revno))
+        date = QtCore.QDateTime()
+        date.setTime_t(int(rev.timestamp))
+        item.setText(1, date.toString(QtCore.Qt.LocalDate))
+        item.setText(2, rev.committer)
+        item.setText(3, rev.message.split("\n")[0])
+        rev.delta = delta
+        self.item_to_rev[item] = rev
+        rev.revno = revno
+
+    def load_history(self):
+        """Load branch history."""
+        branch = self.branch
+        repository = branch.repository
+        specific_fileid = self.specific_fileid
+
+        def iter_revisions():
+            revision_ids = branch.revision_history()
+            revision_ids.reverse()
+            revno = len(revision_ids) + 1
+            num = 20
+            while revision_ids:
+                cur_deltas = {}
+                cur_revision_ids = revision_ids[:num]
+                revisions = repository.get_revisions(cur_revision_ids)
+                if specific_fileid:
+                    deltas = repository.get_deltas_for_revisions(revisions)
+                    cur_deltas = dict(izip(cur_revision_ids, deltas))
+                    
+                for revision in revisions:
+                    revno -= 1
+                    delta = cur_deltas.get(revision.revision_id)
+                    if specific_fileid and \
+                       not delta.touches_file_id(specific_fileid):
+                        continue
+                    yield revno, revision, delta
+                revision_ids  = revision_ids[num:]
+                num = int(num * 1.5)
+
+        for entry in iter_revisions():
+            if specific_fileid:
+                if not entry[2].touches_file_id(specific_fileid):
+                    continue 
+            self.log_queue.put(entry)
+            self.emit(QtCore.SIGNAL("log_entry_loaded()"))
+
 
 class cmd_qlog(Command):
     """Show log of a branch, file, or directory in a Qt window.
@@ -207,8 +258,9 @@ class cmd_qlog(Command):
             branch = dir.open_branch()
 
         app = QtGui.QApplication(sys.argv)
-        window = LogWindow(branch, location)
+        window = LogWindow(branch, location, file_id)
         window.show()
         app.exec_()
+
 
 register_command(cmd_qlog)
