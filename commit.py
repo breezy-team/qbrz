@@ -160,6 +160,7 @@ class cmd_qcommit(Command):
                      Option('unchanged',
                             help='commit even if nothing has changed'), 
                     ]
+    aliases = ['qci']
 
     def run(self, filename=None, unchanged=False):
         tree, filename = WorkingTree.open_containing(filename)

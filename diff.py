@@ -184,6 +184,7 @@ class cmd_qdiff(Command):
     """
     takes_args = ['filename?']
     takes_options = ['revision']
+    aliases = ['qdi']
 
     def run(self, revision=None, filename=None):
         wt, filename = WorkingTree.open_containing(filename)
