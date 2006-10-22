@@ -19,6 +19,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import sys
+import re
 import Queue
 from itertools import izip
 from PyQt4 import QtCore, QtGui
@@ -42,10 +43,12 @@ class CustomFunctionThread(QtCore.QThread):
 
 class LogWindow(QtGui.QMainWindow):
 
-    def __init__(self, branch, location, specific_fileid, parent=None):
+    def __init__(self, branch, location, specific_fileid, replace=None, parent=None):
         QtGui.QMainWindow.__init__(self, parent)
         self.specific_fileid = specific_fileid
-        
+
+        self.replace = replace
+
         if location:
             self.setWindowTitle(u"QBzr - Log - %s" % location)
         else:
@@ -113,11 +116,12 @@ class LogWindow(QtGui.QMainWindow):
         gridLayout.addWidget(self.parentsEdit, 1, 1)
 
         gridLayout.addWidget(QtGui.QLabel(u"Message:", groupBox), 2, 0)
-        self.messageEdit = QtGui.QTextEdit(u"", groupBox)
-        self.messageEdit.setReadOnly(True)
-        self.messageDocument = QtGui.QTextDocument()
-        self.messageEdit.setDocument(self.messageDocument)
-        gridLayout.addWidget(self.messageEdit, 2, 1)
+        self.message = QtGui.QTextDocument()
+        self.message_browser = QtGui.QTextBrowser(groupBox)
+        if hasattr(self.message_browser, "setOpenExternalLinks"):
+            self.message_browser.setOpenExternalLinks(True)
+        self.message_browser.setDocument(self.message)
+        gridLayout.addWidget(self.message_browser, 2, 1)
 
         self.fileList = QtGui.QListWidget(groupBox)
         gridLayout.addWidget(self.fileList, 0, 2, 3, 1)
@@ -140,16 +144,22 @@ class LogWindow(QtGui.QMainWindow):
             window.close()
         event.accept()
         
-    def anchorClicked(self, url):
-        print url
-
     def update_selection(self):
         item = self.changesList.selectedItems()[0]
         rev = self.item_to_rev[item]
 
         self.revisionEdit.setText(rev.revision_id)
         self.parentsEdit.setText(u", ".join(rev.parent_ids))
-        self.messageDocument.setPlainText(rev.message)
+
+        message = rev.message
+        message = message.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br />")
+        message = re.sub(r"([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])", "\\1<a href=\"\\2://\\3\">\\2://\\3</a>", message)
+        message = re.sub(r"(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)", "\\1<a href=\"http://www.\\2.\\3\\4\">www.\\2.\\3\\4</a>", message)
+        message = re.sub(r"([a-z0-9_\-.]+@[a-z0-9_\-.]+)", '<a href="mailto:\\1">\\1</a>', message)
+        for search, replace in self.replace:
+            message = re.sub(search, replace, message)
+
+        self.message.setHtml(message)
 
         self.fileList.clear()
 
@@ -297,8 +307,15 @@ class cmd_qlog(Command):
             dir, path = BzrDir.open_containing('.')
             branch = dir.open_branch()
 
+        config = branch.get_config()
+        replace = config.get_user_option("qlog_replace")
+        if replace:
+            replace = replace.split("\n")
+            replace = [tuple(replace[2*i:2*i+2])
+                       for i in range(len(replace) // 2)]
+
         app = QtGui.QApplication(sys.argv)
-        window = LogWindow(branch, location, file_id)
+        window = LogWindow(branch, location, file_id, replace)
         window.show()
         app.exec_()
 
