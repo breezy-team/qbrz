@@ -156,8 +156,9 @@ class LogWindow(QtGui.QMainWindow):
         message = re.sub(r"([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])", "\\1<a href=\"\\2://\\3\">\\2://\\3</a>", message)
         message = re.sub(r"(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)", "\\1<a href=\"http://www.\\2.\\3\\4\">www.\\2.\\3\\4</a>", message)
         message = re.sub(r"([a-z0-9_\-.]+@[a-z0-9_\-.]+)", '<a href="mailto:\\1">\\1</a>', message)
-        for search, replace in self.replace:
-            message = re.sub(search, replace, message)
+        if self.replace:
+            for search, replace in self.replace:
+                message = re.sub(search, replace, message)
 
         self.message.setHtml(message)
 
