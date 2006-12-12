@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import bzrlib.plugins.qbzr.resources
+from bzrlib.plugins.qbzr.annotate import *
 from bzrlib.plugins.qbzr.browse import *
 from bzrlib.plugins.qbzr.commit import *
 from bzrlib.plugins.qbzr.diff import *
