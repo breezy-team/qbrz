@@ -19,19 +19,20 @@
 
 import bzrlib.plugins.qbzr.resources
 from bzrlib.plugins.qbzr.browse import *
-from bzrlib.plugins.qbzr.log import *
 from bzrlib.option import Option
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from PyQt4 import QtGui
+from bzrlib.bzrdir import BzrDir
 from bzrlib.plugins.qbzr.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.commit import CommitWindow
 from bzrlib.plugins.qbzr.diff import DiffWindow
+from bzrlib.plugins.qbzr.log import LogWindow
 from bzrlib.workingtree import WorkingTree
 ''')
 
-    
+
 class cmd_qannotate(Command):
     """Show the origin of each line in a file."""
     takes_args = ['filename?']
@@ -112,6 +113,43 @@ class cmd_qdiff(Command):
         application.exec_()
 
 
+class cmd_qlog(Command):
+    """Show log of a branch, file, or directory in a Qt window.
+
+    By default show the log of the branch containing the working directory."""
+
+    takes_args = ['location?']
+    takes_options = []
+
+    def run(self, location=None):
+        file_id = None
+        if location:
+            dir, path = BzrDir.open_containing(location)
+            branch = dir.open_branch()
+            if path:
+                try:
+                    inv = dir.open_workingtree().inventory
+                except (errors.NotBranchError, errors.NotLocalUrl):
+                    inv = branch.basis_tree().inventory
+                file_id = inv.path2id(path)
+        else:
+            dir, path = BzrDir.open_containing('.')
+            branch = dir.open_branch()
+
+        config = branch.get_config()
+        replace = config.get_user_option("qlog_replace")
+        if replace:
+            replace = replace.split("\n")
+            replace = [tuple(replace[2*i:2*i+2])
+                       for i in range(len(replace) // 2)]
+
+        app = QtGui.QApplication(sys.argv)
+        window = LogWindow(branch, location, file_id, replace)
+        window.show()
+        app.exec_()
+
+
 register_command(cmd_qannotate)
 register_command(cmd_qcommit)
 register_command(cmd_qdiff)
+register_command(cmd_qlog)

@@ -28,6 +28,7 @@ from bzrlib.commands import Command, register_command
 from bzrlib.errors import NotVersionedError, BzrCommandError, NoSuchFile
 from bzrlib.log import get_view_revisions, _enumerate_history
 from bzrlib.plugins.qbzr.diff import DiffWindow
+from bzrlib.plugins.qbzr.util import QBzrWindow
 
 
 class CustomFunctionThread(QtCore.QThread):
@@ -41,27 +42,16 @@ class CustomFunctionThread(QtCore.QThread):
         self.target(*self.args)
 
 
-class LogWindow(QtGui.QMainWindow):
+class LogWindow(QBzrWindow):
 
     def __init__(self, branch, location, specific_fileid, replace=None, parent=None):
-        QtGui.QMainWindow.__init__(self, parent)
+        title = ["Log"]
+        if location:
+            title.append(location)
+        QBzrWindow.__init__(self, title, (710, 580), parent)
         self.specific_fileid = specific_fileid
 
         self.replace = replace
-
-        if location:
-            self.setWindowTitle(u"QBzr - Log - %s" % location)
-        else:
-            self.setWindowTitle(u"QBzr - Log")
-        icon = QtGui.QIcon()
-        icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
-        icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
-        self.setWindowIcon(icon)
-        self.resize(QtCore.QSize(710, 580).expandedTo(self.minimumSizeHint()))
-
-        self.centralWidget = QtGui.QWidget(self)
-        self.setCentralWidget(self.centralWidget)
-        self.vboxlayout = QtGui.QVBoxLayout(self.centralWidget)
 
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
 
@@ -125,18 +115,17 @@ class LogWindow(QtGui.QMainWindow):
 
         self.fileList = QtGui.QListWidget(groupBox)
         gridLayout.addWidget(self.fileList, 0, 2, 3, 1)
-        
-        self.vboxlayout.addWidget(splitter)
-        
-        self.hboxlayout = QtGui.QHBoxLayout()
-        self.hboxlayout.addStretch()
 
-        self.closeButton = QtGui.QPushButton(u"&Close", self)
-        self.hboxlayout.addWidget(self.closeButton)
+        buttonbox = QtGui.QDialogButtonBox(
+            QtGui.QDialogButtonBox.StandardButtons(
+                QtGui.QDialogButtonBox.Close),
+            QtCore.Qt.Horizontal,
+            self)
+        self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.close)
 
-        self.vboxlayout.addLayout(self.hboxlayout)
-        
-        self.connect(self.closeButton, QtCore.SIGNAL("clicked()"), self.close)
+        vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox.addWidget(splitter)
+        vbox.addWidget(buttonbox)
         self.windows = []
 
     def closeEvent(self, event):
@@ -283,42 +272,3 @@ class LogWindow(QtGui.QMainWindow):
              izip(view_revisions, iter_revisions()): 
             self.log_queue.put((revno, rev, delta, merge_depth))
             self.emit(QtCore.SIGNAL("log_entry_loaded()"))
-
-
-class cmd_qlog(Command):
-    """Show log of a branch, file, or directory in a Qt window.
-
-    By default show the log of the branch containing the working directory."""
-
-    takes_args = ['location?']
-    takes_options = []
-
-    def run(self, location=None):
-        file_id = None
-        if location:
-            dir, path = BzrDir.open_containing(location)
-            branch = dir.open_branch()
-            if path:
-                try:
-                    inv = dir.open_workingtree().inventory
-                except (errors.NotBranchError, errors.NotLocalUrl):
-                    inv = branch.basis_tree().inventory
-                file_id = inv.path2id(path)
-        else:
-            dir, path = BzrDir.open_containing('.')
-            branch = dir.open_branch()
-
-        config = branch.get_config()
-        replace = config.get_user_option("qlog_replace")
-        if replace:
-            replace = replace.split("\n")
-            replace = [tuple(replace[2*i:2*i+2])
-                       for i in range(len(replace) // 2)]
-
-        app = QtGui.QApplication(sys.argv)
-        window = LogWindow(branch, location, file_id, replace)
-        window.show()
-        app.exec_()
-
-
-register_command(cmd_qlog)
