@@ -1,7 +1,7 @@
 QBzr ChangeLog
 ===============
 
-Version 0.1 - 2006-12-27
-------------------------
+Version 0.1.0 - 2006-12-26
+--------------------------
 
- * First release.
+ * Initial release.
