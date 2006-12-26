@@ -18,14 +18,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import bzrlib.plugins.qbzr.resources
-from bzrlib.plugins.qbzr.browse import *
+import sys
 from bzrlib.option import Option
-
+from bzrlib.commands import Command, register_command
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from PyQt4 import QtGui
+from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
 from bzrlib.plugins.qbzr.annotate import AnnotateWindow
+from bzrlib.plugins.qbzr.browse import BrowseWindow
 from bzrlib.plugins.qbzr.commit import CommitWindow
 from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.log import LogWindow
@@ -60,6 +62,19 @@ class cmd_qannotate(Command):
 
         app = QtGui.QApplication(sys.argv)
         win = AnnotateWindow(filename, lines)
+        win.show()
+        app.exec_()
+
+
+class cmd_qbrowse(Command):
+    """Show inventory."""
+    takes_args = ['location?']
+    takes_options = ['revision']
+
+    def run(self, revision=None, location=None):
+        branch, path = Branch.open_containing(location)
+        app = QtGui.QApplication(sys.argv)
+        win = BrowseWindow(branch)
         win.show()
         app.exec_()
 
@@ -150,6 +165,7 @@ class cmd_qlog(Command):
 
 
 register_command(cmd_qannotate)
+register_command(cmd_qbrowse)
 register_command(cmd_qcommit)
 register_command(cmd_qdiff)
 register_command(cmd_qlog)
