@@ -21,6 +21,7 @@ import bzrlib.plugins.qbzr.resources
 from bzrlib.plugins.qbzr.annotate import *
 from bzrlib.plugins.qbzr.browse import *
 from bzrlib.plugins.qbzr.log import *
+from bzrlib.option import Option
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
@@ -46,10 +47,14 @@ class cmd_qcommit(Command):
 class cmd_qdiff(Command):
     """Show differences in working tree in a GUI window."""
     takes_args = ['filename?']
-    takes_options = ['revision']
+    takes_options = [
+        'revision',
+        Option('inline', help='Show inline diff'),
+        Option('complete', help='Show complete files'),
+        ]
     aliases = ['qdi']
 
-    def run(self, revision=None, filename=None):
+    def run(self, revision=None, filename=None, inline=False, complete=False):
         wt, filename = WorkingTree.open_containing(filename)
         branch = wt.branch
         if revision is not None:
@@ -69,7 +74,8 @@ class cmd_qdiff(Command):
         if filename:
             specific_files = (filename,)
         application = QtGui.QApplication(sys.argv)
-        window = DiffWindow(tree2, tree1, specific_files=specific_files)
+        window = DiffWindow(tree2, tree1, inline=inline, complete=complete,
+                            specific_files=specific_files)
         window.show()
         application.exec_()
 
