@@ -18,7 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import bzrlib.plugins.qbzr.resources
-from bzrlib.plugins.qbzr.annotate import *
 from bzrlib.plugins.qbzr.browse import *
 from bzrlib.plugins.qbzr.log import *
 from bzrlib.option import Option
@@ -26,9 +25,42 @@ from bzrlib.option import Option
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from PyQt4 import QtGui
+from bzrlib.plugins.qbzr.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.commit import CommitWindow
 from bzrlib.plugins.qbzr.diff import DiffWindow
+from bzrlib.workingtree import WorkingTree
 ''')
+
+    
+class cmd_qannotate(Command):
+    """Show the origin of each line in a file."""
+    takes_args = ['filename?']
+    takes_options = ['revision']
+    aliases = ['qann', 'qblame']
+
+    def run(self, filename=None, revision=None):
+        from bzrlib.annotate import _annotate_file
+        tree, relpath = WorkingTree.open_containing(filename)
+        branch = tree.branch
+        branch.lock_read()
+        try:
+            if revision is None:
+                revision_id = branch.last_revision()
+            elif len(revision) != 1:
+                raise errors.BzrCommandError('bzr qannotate --revision takes exactly 1 argument')
+            else:
+                revision_id = revision[0].in_history(branch).rev_id
+            file_id = tree.inventory.path2id(relpath)
+            tree = branch.repository.revision_tree(revision_id)
+            file_version = tree.inventory[file_id].revision
+            lines = list(_annotate_file(branch, file_version, file_id))
+        finally:
+            branch.unlock()
+
+        app = QtGui.QApplication(sys.argv)
+        win = AnnotateWindow(filename, lines)
+        win.show()
+        app.exec_()
 
 
 class cmd_qcommit(Command):
@@ -80,5 +112,6 @@ class cmd_qdiff(Command):
         application.exec_()
 
 
+register_command(cmd_qannotate)
 register_command(cmd_qcommit)
 register_command(cmd_qdiff)

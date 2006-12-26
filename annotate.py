@@ -17,10 +17,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import sys
 from PyQt4 import QtCore, QtGui
-from bzrlib.commands import Command, register_command
-from bzrlib.workingtree import WorkingTree
+from bzrlib.plugins.qbzr.util import QBzrWindow
 
 have_pygments = True
 try:
@@ -30,24 +28,11 @@ try:
 except ImportError:
     have_pygments = False
 
-class AnnotateWindow(QtGui.QMainWindow):
+class AnnotateWindow(QBzrWindow):
 
     def __init__(self, filename, lines, parent=None):
-        QtGui.QMainWindow.__init__(self, parent)
+        QBzrWindow.__init__(self, ["Annotate", filename], (780, 580), parent)
 
-        title = "QBzr - Annotate - %s" % filename
-        self.setWindowTitle(title)
-
-        icon = QtGui.QIcon()
-        icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
-        icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
-        self.setWindowIcon(icon)
-        self.resize(QtCore.QSize(780, 580).expandedTo(self.minimumSizeHint()))
-
-        self.centralWidget = QtGui.QWidget(self)
-        self.setCentralWidget(self.centralWidget)
-        vbox = QtGui.QVBoxLayout(self.centralWidget)
-        
         self.browser = QtGui.QTextBrowser()
         code = []
         ann = []
@@ -79,48 +64,16 @@ class AnnotateWindow(QtGui.QMainWindow):
         self.doc = QtGui.QTextDocument()
         self.doc.setHtml(html)
 
-        self.browser = QtGui.QTextBrowser()
-        self.browser.setDocument(self.doc)
+        browser = QtGui.QTextBrowser()
+        browser.setDocument(self.doc)
 
-        vbox.addWidget(self.browser)
+        buttonbox = QtGui.QDialogButtonBox(
+            QtGui.QDialogButtonBox.StandardButtons(
+                QtGui.QDialogButtonBox.Close),
+            QtCore.Qt.Horizontal,
+            self)
+        self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.close)
 
-        hbox = QtGui.QHBoxLayout()
-        hbox.addStretch()
-        self.closeButton = QtGui.QPushButton(u"&Close", self)
-        self.connect(self.closeButton, QtCore.SIGNAL("clicked()"), self.close)
-        hbox.addWidget(self.closeButton)
-        vbox.addLayout(hbox)
-
-class cmd_qannotate(Command):
-    """Show the origin of each line in a file.
-    """
-    takes_args = ['filename?']
-    takes_options = ['revision']
-    aliases = ['qann', 'qblame']
-
-    def run(self, filename=None, revision=None):
-        from bzrlib.annotate import _annotate_file
-        tree, relpath = WorkingTree.open_containing(filename)
-        branch = tree.branch
-        branch.lock_read()
-        try:
-            if revision is None:
-                revision_id = branch.last_revision()
-            elif len(revision) != 1:
-                raise errors.BzrCommandError('bzr qannotate --revision takes exactly 1 argument')
-            else:
-                revision_id = revision[0].in_history(branch).rev_id
-            file_id = tree.inventory.path2id(relpath)
-            tree = branch.repository.revision_tree(revision_id)
-            file_version = tree.inventory[file_id].revision
-            lines = list(_annotate_file(branch, file_version, file_id))
-        finally:
-            branch.unlock()
-
-        app = QtGui.QApplication(sys.argv)
-        win = AnnotateWindow(filename, lines)
-        win.show()
-        app.exec_()
-
-register_command(cmd_qannotate)
-
+        vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox.addWidget(browser)
+        vbox.addWidget(buttonbox)
