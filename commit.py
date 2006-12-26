@@ -21,63 +21,55 @@
 import sys
 import os.path
 from PyQt4 import QtCore, QtGui
+
 from bzrlib.option import Option 
 from bzrlib.commands import Command, register_command
 from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.diff import get_diff_trees, DiffWindow
+from bzrlib.plugins.qbzr.util import QBzrWindow
 
-class CommitDialog(QtGui.QDialog):
+class CommitWindow(QBzrWindow):
 
-    def __init__(self, tree, path, unchanged, parent=None):
-        QtGui.QDialog.__init__(self, parent)
+    def __init__(self, tree, path, parent=None):
+        title = ["Commit"]
+        if path:
+            title.append(path)
+        QBzrWindow.__init__(self, title, (540, 500), parent)
 
-        self.unchanged = unchanged
         self.tree = tree
         self.basis_tree = self.tree.basis_tree()
+        self.windows = []
 
-        title = "QBzr - Commit"
-        if path:
-            title += " - " + path 
-        self.setWindowTitle(title)
-        icon = QtGui.QIcon()
-        icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
-        icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
-        self.setWindowIcon(icon)
-        self.resize(QtCore.QSize(501, 364).expandedTo(self.minimumSizeHint()))
+        splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self.centralwidget)
 
-        self.vboxlayout = QtGui.QVBoxLayout(self)
+        groupbox = QtGui.QGroupBox("Message", splitter)
+        splitter.addWidget(groupbox)
 
-        splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self)
+        self.message = QtGui.QTextEdit(groupbox)
 
-        groupBox = QtGui.QGroupBox(u"Message", splitter)
-        splitter.addWidget(groupBox)
+        vbox = QtGui.QVBoxLayout(groupbox)
+        vbox.addWidget(self.message)
 
-        self.messageEdit = QtGui.QTextEdit(groupBox)
+        groupbox = QtGui.QGroupBox("Changes made", splitter)
+        splitter.addWidget(groupbox)
 
-        vbox1 = QtGui.QVBoxLayout(groupBox)
-        vbox1.addWidget(self.messageEdit)
-
-        groupBox = QtGui.QGroupBox(u"Changes made", splitter)
-        splitter.addWidget(groupBox)
-
-        self.changed_filesList = QtGui.QTreeWidget(groupBox)
-        self.changed_filesList.setSortingEnabled(True)
-        self.changed_filesList.setHeaderLabels([u"File", u"Extension",
-                                                u"Status"])
-        self.changed_filesList.header().resizeSection(0, 250)
-        self.changed_filesList.header().resizeSection(1, 70)
-        self.changed_filesList.setRootIsDecorated(False)
-        self.connect(self.changed_filesList,
+        self.filelist = QtGui.QTreeWidget(groupbox)
+        self.filelist.setSortingEnabled(True)
+        self.filelist.setHeaderLabels(["File", "Extension", "Status"])
+        self.filelist.header().resizeSection(0, 250)
+        self.filelist.header().resizeSection(1, 70)
+        self.filelist.setRootIsDecorated(False)
+        self.connect(self.filelist,
                      QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
                      self.show_differences)
-        
-        vbox1 = QtGui.QVBoxLayout(groupBox)
-        vbox1.addWidget(self.changed_filesList)
+
+        vbox = QtGui.QVBoxLayout(groupbox)
+        vbox.addWidget(self.filelist)
 
         basis_tree = self.tree.basis_tree()
         delta = self.tree.changes_from(basis_tree)
-        
+
         files = []
         for entry in delta.added:
             files.append(("added", entry[0], entry[0], True))
@@ -93,81 +85,61 @@ class CommitDialog(QtGui.QDialog):
 
         self.item_to_file = {}
         for entry in files:
-            item = QtGui.QTreeWidgetItem(self.changed_filesList)
+            item = QtGui.QTreeWidgetItem(self.filelist)
             item.setText(0, entry[1])
             item.setText(1, os.path.splitext(entry[2])[1])
             item.setText(2, entry[0])
-            if entry[3]:
+            if (entry[3] and not path) or (path == entry[1]):
                 item.setCheckState(0, QtCore.Qt.Checked)
             else:
                 item.setCheckState(0, QtCore.Qt.Unchecked)
             self.item_to_file[item] = entry
 
-        self.vboxlayout.addWidget(splitter)
+        splitter.setStretchFactor(0, 2)
+        splitter.setStretchFactor(1, 3)
 
-        self.hboxlayout = QtGui.QHBoxLayout()
-        self.hboxlayout.addStretch()
+        buttonbox = QtGui.QDialogButtonBox(
+            QtGui.QDialogButtonBox.StandardButtons(
+                QtGui.QDialogButtonBox.Ok |
+                QtGui.QDialogButtonBox.Cancel),
+            QtCore.Qt.Horizontal,
+            self)
+        self.connect(buttonbox, QtCore.SIGNAL("accepted()"), self.accept)
+        self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
 
-        self.okButton = QtGui.QPushButton(u"&OK", self)
-        self.hboxlayout.addWidget(self.okButton)
-
-        self.cancelButton = QtGui.QPushButton(u"&Cancel", self)
-        self.hboxlayout.addWidget(self.cancelButton)
-        
-        self.vboxlayout.addLayout(self.hboxlayout)
-        
-        self.connect(self.okButton, QtCore.SIGNAL("clicked()"), self.accept)
-        self.connect(self.cancelButton, QtCore.SIGNAL("clicked()"), self.reject)
-        self.windows = []
+        vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox.addWidget(splitter)
+        vbox.addWidget(buttonbox)
 
     def closeEvent(self, event):
         for window in self.windows:
             window.close()
         event.accept()
-        
+
     def accept(self):
+        """Accept the commit."""
         specific_files = [] 
-        for i in range(self.changed_filesList.topLevelItemCount()):
-            item = self.changed_filesList.topLevelItem(i)
+        for i in range(self.filelist.topLevelItemCount()):
+            item = self.filelist.topLevelItem(i)
             if item.checkState(0) == QtCore.Qt.Checked:
                 entry = self.item_to_file[item]
                 if not entry[3]:
                     self.tree.add(entry[2])
                 specific_files.append(entry[2])
-        self.tree.commit(message=unicode(self.messageEdit.toPlainText()),
+        self.tree.commit(message=unicode(self.message.toPlainText()),
                          specific_files=specific_files,
-                         allow_pointless=self.unchanged,
                          reporter=ReportCommitToLog())
-        QtGui.QDialog.accept(self)
+        self.close()
+
+    def reject(self):
+        """Reject the commit."""
+        self.close()
 
     def show_differences(self, item, column):
         """Show differences between the working copy and the last revision."""
         entry = self.item_to_file[item]
         if entry[3]:
             window = DiffWindow(self.basis_tree, self.tree,
-                                specific_files=(entry[2],))
+                                specific_files=(entry[2],), parent=self)
             window.show()
             self.windows.append(window)
-
-
-class cmd_qcommit(Command):
-    """Qt commit dialog
-
-    Graphical user interface for committing revisions."""
-
-    takes_args = ['filename?']
-    takes_options = [
-                     Option('unchanged',
-                            help='commit even if nothing has changed'), 
-                    ]
-    aliases = ['qci']
-
-    def run(self, filename=None, unchanged=False):
-        tree, filename = WorkingTree.open_containing(filename)
-        app = QtGui.QApplication(sys.argv)
-        win = CommitDialog(tree, filename, unchanged)
-        win.show()
-        app.exec_()
-
-
-register_command(cmd_qcommit)

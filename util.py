@@ -17,31 +17,21 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import bzrlib.plugins.qbzr.resources
-from bzrlib.plugins.qbzr.annotate import *
-from bzrlib.plugins.qbzr.browse import *
-from bzrlib.plugins.qbzr.diff import *
-from bzrlib.plugins.qbzr.log import *
+from PyQt4 import QtCore, QtGui
 
-from bzrlib.lazy_import import lazy_import
-lazy_import(globals(), '''
-from PyQt4 import QtGui
-from bzrlib.plugins.qbzr.commit import CommitWindow
-''')
+class QBzrWindow(QtGui.QMainWindow):
 
-class cmd_qcommit(Command):
-    """Qt commit dialog
+    def __init__(self, title=[], size=(540, 500), parent=None):
+        QtGui.QMainWindow.__init__(self, parent)
 
-    Graphical user interface for committing revisions."""
+        self.setWindowTitle(" - ".join(["QBzr"] + title))
+        icon = QtGui.QIcon()
+        icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
+        icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
+        self.setWindowIcon(icon)
+        self.resize(QtCore.QSize(size[0], size[1]).expandedTo(self.minimumSizeHint()))
 
-    takes_args = ['filename?']
-    aliases = ['qci']
+        self.centralwidget = QtGui.QWidget(self)
+        self.setCentralWidget(self.centralwidget)
 
-    def run(self, filename=None):
-        tree, filename = WorkingTree.open_containing(filename)
-        application = QtGui.QApplication(sys.argv)
-        window = CommitWindow(tree, filename)
-        window.show()
-        application.exec_()
 
-register_command(cmd_qcommit)
