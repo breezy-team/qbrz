@@ -25,6 +25,8 @@ from cStringIO import StringIO
 from PyQt4 import QtCore, QtGui
 from bzrlib.commands import Command, register_command
 from bzrlib.workingtree import WorkingTree
+from bzrlib.plugins.qbzr.util import QBzrWindow
+
 
 def _get_change_extent(str1, str2):
     """
@@ -43,6 +45,7 @@ def _get_change_extent(str1, str2):
         end -= 1
     return (start, end + 1)
 
+
 def markup_intraline_changes(line1, line2, color):
     line1 = html_escape(line1)
     line2 = html_escape(line2)
@@ -59,53 +62,37 @@ def markup_intraline_changes(line1, line2, color):
         text = line1
     return text
 
+
 def html_escape(string):
     return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
-class DiffWindow(QtGui.QMainWindow):
+
+def get_diff_trees(tree1, tree2, **kwargs):
+    """Return unified diff between two trees as a string."""
+    from bzrlib.diff import show_diff_trees
+    output = StringIO()
+    show_diff_trees(tree1, tree2, output, **kwargs)
+    return output.getvalue().decode("UTF-8", "replace")
+
+
+class DiffWindow(QBzrWindow):
 
     def __init__(self, tree1=None, tree2=None, specific_files=None,
                  parent=None, custom_title=None):
-        QtGui.QMainWindow.__init__(self, parent)
+        title = ["Diff"]
+        if custom_title:
+            title.append(custom_title)
+        if specific_files:
+            if len(specific_files) > 2:
+                title.append("%s files" % len(specific_files))
+            else:
+                title.append(", ".join(specific_files))
+        QBzrWindow.__init__(self, title, (780, 580), parent)
 
         self.tree1 = tree1
         self.tree2 = tree2
         self.specific_files = specific_files
 
-        #from bzrlib.revisiontree import RevisionTree
-        #from bzrlib.workingtree import WorkingTree
-
-        #if isinstance(self.tree1, RevisionTree):
-        #    self.rev1 = self.tree1.get_revision_id()
-        #elif isinstance(self.tree1, WorkingTree):
-        #    self.rev1 = "working tree"
-
-        #if isinstance(self.tree2, RevisionTree):
-        #    self.rev2 = self.tree2.get_revision_id()
-        #elif isinstance(self.tree2, WorkingTree):
-        #    self.rev2 = "working tree"
-
-        title = "QBzr - Diff"
-        if custom_title:
-            title += " - %s" % custom_title
-        if self.specific_files:
-            title += " - "
-            if len(self.specific_files) > 2:
-                title += "%s files" % len(self.specific_files)
-            else:
-                title += ", ".join(self.specific_files)
-        self.setWindowTitle(title)
-
-        icon = QtGui.QIcon()
-        icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
-        icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
-        self.setWindowIcon(icon)
-        self.resize(QtCore.QSize(780, 580).expandedTo(self.minimumSizeHint()))
-
-        self.centralWidget = QtGui.QWidget(self)
-        self.setCentralWidget(self.centralWidget)
-        vbox = QtGui.QVBoxLayout(self.centralWidget)
-        
         self.browser = QtGui.QTextBrowser()
 
         diff = get_diff_trees(self.tree1, self.tree2,
@@ -161,56 +148,13 @@ class DiffWindow(QtGui.QMainWindow):
         self.browser = QtGui.QTextBrowser()
         self.browser.setDocument(self.doc)
 
+        buttonbox = QtGui.QDialogButtonBox(
+            QtGui.QDialogButtonBox.StandardButtons(
+                QtGui.QDialogButtonBox.Close),
+            QtCore.Qt.Horizontal,
+            self)
+        self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.close)
+
+        vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(self.browser)
-
-        hbox = QtGui.QHBoxLayout()
-        hbox.addStretch()
-        self.closeButton = QtGui.QPushButton(u"&Close", self)
-        self.connect(self.closeButton, QtCore.SIGNAL("clicked()"), self.close)
-        hbox.addWidget(self.closeButton)
-        vbox.addLayout(hbox)
-
-def get_diff_trees(tree1, tree2, **kwargs):
-    """Return unified diff between two trees as a string."""
-    from bzrlib.diff import show_diff_trees
-    output = StringIO()
-    show_diff_trees(tree1, tree2, output, **kwargs)
-    return output.getvalue().decode("UTF-8", "replace")
-
-class cmd_qdiff(Command):
-    """Show differences in working tree in a Qt window.
-    
-    Otherwise, all changes for the tree are listed.
-    """
-    takes_args = ['filename?']
-    takes_options = ['revision']
-    aliases = ['qdi']
-
-    def run(self, revision=None, filename=None):
-        wt, filename = WorkingTree.open_containing(filename)
-        branch = wt.branch
-        if revision is not None:
-            if len(revision) == 1:
-                tree1 = wt
-                revision_id = revision[0].in_history(branch).rev_id
-                tree2 = branch.repository.revision_tree(revision_id)
-            elif len(revision) == 2:
-                revision_id_0 = revision[0].in_history(branch).rev_id
-                tree2 = branch.repository.revision_tree(revision_id_0)
-                revision_id_1 = revision[1].in_history(branch).rev_id
-                tree1 = branch.repository.revision_tree(revision_id_1)
-        else:
-            tree1 = wt
-            tree2 = tree1.basis_tree()
-
-        specific_files = None
-        if filename:
-            specific_files = (filename,)
-
-        app = QtGui.QApplication(sys.argv)
-        win = DiffWindow(tree2, tree1, specific_files=specific_files)
-        win.show()
-        app.exec_()
-
-register_command(cmd_qdiff)
-
+        vbox.addWidget(buttonbox)
