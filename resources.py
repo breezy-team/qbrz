@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
+
 # Resource object code
 #
-# Created: pi 29. IX 20:02:04 2006
-#      by: The Resource Compiler for PyQt (Qt v4.1.3)
+# Created: Ut dec 26 17:10:06 2006
+#      by: The Resource Compiler for PyQt (Qt v4.2.1)
 #
 # WARNING! All changes made in this file will be lost!
 
