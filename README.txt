@@ -14,6 +14,7 @@ Configuration
  * qlog_replace -- Multiline value containing regular expressions to replace
                    text in commit messages (useful to make clickable links to
                    bug reports, ...).
+ * qdiff_window_size -- Default window size in format WIDTHxHEIGHT (e.g. 780x580)
 
 More Info
 ---------

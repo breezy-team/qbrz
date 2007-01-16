@@ -1,6 +1,12 @@
 QBzr ChangeLog
 ===============
 
+Version 0.2.0 - XXXX-XX-XX
+--------------------------
+
+ * Compatibility with Qt 4.1
+ * Configurable diff window size.
+
 Version 0.1.0 - 2006-12-26
 --------------------------
 

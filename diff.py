@@ -216,7 +216,8 @@ def get_diff_trees(old_tree, new_tree, specific_files=None, old_label='a/',
 class DiffWindow(QBzrWindow):
 
     def __init__(self, tree1=None, tree2=None, specific_files=None,
-                 parent=None, custom_title=None, inline=False, complete=False):
+                 parent=None, custom_title=None, inline=False,
+                 complete=False):
         title = ["Diff"]
         if custom_title:
             title.append(custom_title)
@@ -225,7 +226,23 @@ class DiffWindow(QBzrWindow):
                 title.append("%s files" % len(specific_files))
             else:
                 title.append(", ".join(specific_files))
-        QBzrWindow.__init__(self, title, (780, 580), parent)
+
+        size = (780, 580)
+        try:
+            branch = None
+            if hasattr(tree1, '_branch'):
+                branch = tree1._branch
+            elif hasattr(tree2, '_branch'):
+                branch = tree2._branch
+            if branch:
+                config = branch.get_config()
+                size_str = config.get_user_option("qdiff_window_size")
+                if size_str:
+                    size = map(int, size_str.split("x"))
+        except:
+            pass
+
+        QBzrWindow.__init__(self, title, size, parent)
 
         self.tree1 = tree1
         self.tree2 = tree2
