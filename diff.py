@@ -292,7 +292,7 @@ class DiffWindow(QBzrWindow):
             QtGui.QDialogButtonBox.StandardButtons(
                 QtGui.QDialogButtonBox.Close),
             QtCore.Qt.Horizontal,
-            self)
+            self.centralwidget)
         self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.close)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)

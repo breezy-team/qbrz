@@ -103,7 +103,7 @@ class CommitWindow(QBzrWindow):
                 QtGui.QDialogButtonBox.Ok |
                 QtGui.QDialogButtonBox.Cancel),
             QtCore.Qt.Horizontal,
-            self)
+            self.centralwidget)
         self.connect(buttonbox, QtCore.SIGNAL("accepted()"), self.accept)
         self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
 
