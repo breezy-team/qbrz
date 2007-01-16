@@ -52,8 +52,8 @@ def get_change_extent(str1, str2):
 
 
 def markup_intraline_changes(line1, line2, color):
-    line1 = htmlencode(line1)
-    line2 = htmlencode(line2)
+    line1 = line1.replace("&", "\1").replace("<", "\2").replace(">", "\3")
+    line2 = line2.replace("&", "\1").replace("<", "\2").replace(">", "\3")
     start, end = get_change_extent(line1[1:], line2[1:])
     if start == 0 and end < 0:
         text = '<span style="background-color:%s">%s</span>%s' % (color, line1[:end], line1[end:])
@@ -65,6 +65,7 @@ def markup_intraline_changes(line1, line2, color):
         text = '%s<span style="background-color:%s">%s</span>%s' % (line1[:start], color, line1[start:end], line1[end:])
     else:
         text = line1
+    text = text.replace("\1", "&amp;").replace("\2", "&lt;").replace("\3", "&gt;")
     return text
 
 
@@ -77,7 +78,7 @@ def markup_line(line, style='', encode=True):
         line = htmlencode(line)
     if style:
         style = ' style="%s"' % style
-    return '<div%s>%s</div>' % (style, line or '&nbsp;')
+    return '<div%s>%s</div>' % (style, line.rstrip() or '&nbsp;')
 
 
 def html_diff_lines(data, html1, html2, inline=True):
