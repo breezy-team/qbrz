@@ -19,6 +19,38 @@
 
 from PyQt4 import QtCore, QtGui
 
+if not hasattr(QtGui, 'QDialogButtonBox'):
+    class FakeQDialogButtonBox(QtGui.QWidget):
+        """Fake QDialogButtonBox for Qt 4.1"""
+        Ok = 1
+        Cancel = 2
+        Close = 4
+
+        def __init__(self, buttons, orientation, parent=None):
+            QtGui.QWidget.__init__(self, parent)
+            self.hbox = QtGui.QHBoxLayout(self)
+            self.hbox.setMargin(0)
+            self.hbox.addStretch()
+            if buttons & self.Ok:
+                button = QtGui.QPushButton('Ok')
+                self.hbox.addWidget(button)
+                self.connect(button, QtCore.SIGNAL('clicked()'), self, QtCore.SIGNAL('accepted()'))
+            if buttons & self.Cancel:
+                button = QtGui.QPushButton('Cancel')
+                self.hbox.addWidget(button)
+                self.connect(button, QtCore.SIGNAL('clicked()'), self, QtCore.SIGNAL('rejected()'))
+            if buttons & self.Close:
+                button = QtGui.QPushButton('Close')
+                self.hbox.addWidget(button)
+                self.connect(button, QtCore.SIGNAL('clicked()'), self, QtCore.SIGNAL('rejected()'))
+
+        @staticmethod
+        def StandardButtons(buttons):
+            return buttons
+
+    QtGui.QDialogButtonBox = FakeQDialogButtonBox
+
+
 class QBzrWindow(QtGui.QMainWindow):
 
     def __init__(self, title=[], size=(540, 500), parent=None):
