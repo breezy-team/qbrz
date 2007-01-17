@@ -89,7 +89,7 @@ class CommitWindow(QBzrWindow):
             item.setText(0, entry[1])
             item.setText(1, os.path.splitext(entry[2])[1])
             item.setText(2, entry[0])
-            if (entry[3] and not path) or (path == entry[1]):
+            if entry[3] and (entry[1].startswith(path) or not path):
                 item.setCheckState(0, QtCore.Qt.Checked)
             else:
                 item.setCheckState(0, QtCore.Qt.Unchecked)
