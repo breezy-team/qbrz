@@ -47,6 +47,7 @@ class CommitWindow(QBzrWindow):
         splitter.addWidget(groupbox)
 
         self.message = QtGui.QTextEdit(groupbox)
+        self.message.setAcceptRichText(False)
 
         vbox = QtGui.QVBoxLayout(groupbox)
         vbox.addWidget(self.message)
