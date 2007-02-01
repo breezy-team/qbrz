@@ -9,3 +9,4 @@ TODO List
  - fix multithreading (need to lock/unlock the branch for opening new diff windows) in qlog
  - more information in qblame (like gblame)
  - view non-versioned files from qcommit
+ - graphical progress bar for operations like revert

@@ -180,6 +180,16 @@ class CommitWindow(QBzrWindow):
                      QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
                      self.show_differences)
 
+        self.filelist.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+
+        self.revert_action = QtGui.QAction("&Revert...", self)
+        self.connect(self.revert_action, QtCore.SIGNAL("activated()"), self.revert_selected)
+        self.filelist.addAction(self.revert_action)
+
+        self.show_diff_action = QtGui.QAction("Show &Differences...", self)
+        self.connect(self.show_diff_action, QtCore.SIGNAL("activated()"), self.show_differences)
+        self.filelist.addAction(self.show_diff_action)
+
         vbox = QtGui.QVBoxLayout(groupbox)
         vbox.addWidget(self.filelist)
 
@@ -243,19 +253,23 @@ class CommitWindow(QBzrWindow):
                              reporter=ReportCommitToLog(),
                              allow_pointless=False)
         except BzrError, e:
-            QtGui.QMessageBox.warning(self, "Commit", str(e), QtGui.QMessageBox.Ok)
+            QtGui.QMessageBox.warning(self, "QBzr - Commit", str(e), QtGui.QMessageBox.Ok)
         self.close()
 
     def reject(self):
         """Reject the commit."""
         self.close()
 
-    def show_differences(self, item, column):
+    def show_differences(self, item=None, column=None):
         """Show differences between the working copy and the last revision."""
+        if item is None:
+            items = self.filelist.selectedItems()
+            if not items:
+                return
+            item = items[0]
         entry = self.item_to_file[item]
-        if entry[3]:
-            window = DiffWindow(self.basis_tree, self.tree,
-                                specific_files=(entry[2],), parent=self)
+        if entry[4]:
+            window = DiffWindow(self.basis_tree, self.tree, specific_files=(entry[3],), parent=self)
             window.show()
             self.windows.append(window)
 
@@ -264,3 +278,21 @@ class CommitWindow(QBzrWindow):
         state = not state
         for item in self.unknowns:
             item.setHidden(state)
+
+    def revert_selected(self):
+        """Revert the selected file."""
+        items = self.filelist.selectedItems()
+        if not items:
+            return
+        item = items[0]
+        path = self.item_to_file[item][3]
+        button = QtGui.QMessageBox.question(self, "QBzr - Commit", "Do you really want to revert the selected file(s)?", QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel))
+        if button == QtGui.QMessageBox.Ok:
+            try:
+                self.tree.revert([path], self.tree.branch.repository.revision_tree(self.tree.last_revision()))
+            except BzrError, e:
+                QtGui.QMessageBox.warning(self, "QBzr - Revert", str(e), QtGui.QMessageBox.Ok)
+            else:
+                index = self.filelist.indexOfTopLevelItem(item)
+                self.filelist.takeTopLevelItem(index)
+

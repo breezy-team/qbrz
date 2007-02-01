@@ -15,6 +15,7 @@
      * Auto completion of file and variable/class/function names (only for
        Python source code right now, but it's easily extendable for other
        languages).
+     * Added option to revert a file from the commit dialog.
 
 0.1.0 - 2006-12-26
 ------------------
