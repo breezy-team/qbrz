@@ -33,12 +33,15 @@ from bzrlib.plugins.qbzr.diff import get_diff_trees, DiffWindow
 from bzrlib.plugins.qbzr.util import QBzrWindow
 
 
-_python_identifier_re = re.compile("(?:def|class)\s+(\w+)")
-_python_variable_re = re.compile("(\w+)\s*=\s*")
+_python_identifier_re = re.compile(r"(?:def|class)\s+(\w+)")
+_python_variable_re = re.compile(r"(\w+)\s*=\s*")
 
 def python_word_list_builder(file):
     for line in file:
         match = _python_identifier_re.search(line)
+        if match:
+            yield match.group(1)
+        match = _python_variable_re.search(line)
         if match:
             yield match.group(1)
 
