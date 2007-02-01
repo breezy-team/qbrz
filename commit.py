@@ -46,8 +46,26 @@ def python_word_list_builder(file):
             yield match.group(1)
 
 
+_cpp_identifier_re = re.compile(r"(?:class|typedef|struct|union|namespace)\s+(\w+)")
+_cpp_member_re = re.compile(r"::\s*(\w+)\s*\(")
+
+def cpp_header_word_list_builder(file):
+    for line in file:
+        match = _cpp_identifier_re.search(line)
+        if match:
+            yield match.group(1)
+
+def cpp_source_word_list_builder(file):
+    for line in file:
+        match = _cpp_member_re.search(line)
+        if match:
+            yield match.group(1)
+
+
 _word_list_builders = {
     ".py": python_word_list_builder,
+    ".cpp": cpp_source_word_list_builder,
+    ".h": cpp_header_word_list_builder,
 }
 
 
@@ -148,7 +166,11 @@ class CommitWindow(QBzrWindow):
         for status, name, ext, path, versioned in files:
             words.extend(os.path.split(path))
             if versioned and ext in _word_list_builders:
-                words.extend(_word_list_builders[ext](open(path, 'rt')))
+                try:
+                    file = open(path, 'rt')
+                except EnvironmentError:
+                    pass
+                words.extend(_word_list_builders[ext](file))
         words = list(set(words))
         words.sort(lambda a, b: cmp(a.lower(), b.lower()))
 
