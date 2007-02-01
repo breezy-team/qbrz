@@ -150,6 +150,7 @@ class CommitWindow(QBzrWindow):
             if versioned and ext in _word_list_builders:
                 words.extend(_word_list_builders[ext](open(path, 'rt')))
         words = list(set(words))
+        words.sort(lambda a, b: cmp(a.lower(), b.lower()))
 
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self.centralwidget)
 
