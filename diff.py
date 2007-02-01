@@ -248,8 +248,6 @@ class DiffWindow(QBzrWindow):
         self.tree2 = tree2
         self.specific_files = specific_files
 
-        self.browser = QtGui.QTextBrowser()
-
         if inline:
             html = []
         else:
@@ -284,6 +282,7 @@ class DiffWindow(QBzrWindow):
             self.doc2.setHtml("".join(html2))
             self.browser1 = QtGui.QTextBrowser()
             self.browser1.setDocument(self.doc1)
+            self.browser1.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
             self.browser2 = QtGui.QTextBrowser()
             self.browser2.setDocument(self.doc2)
             self.connect(self.browser1.verticalScrollBar(),
