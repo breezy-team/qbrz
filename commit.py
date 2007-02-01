@@ -22,7 +22,8 @@ import sys
 import os.path
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.option import Option 
+from bzrlib.errors import BzrError
+from bzrlib.option import Option
 from bzrlib.commands import Command, register_command
 from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
@@ -68,6 +69,12 @@ class CommitWindow(QBzrWindow):
         vbox = QtGui.QVBoxLayout(groupbox)
         vbox.addWidget(self.filelist)
 
+        hbox = QtGui.QVBoxLayout()
+        self.show_nonversioned_checkbox = QtGui.QCheckBox("Show non-versioned files")
+        self.connect(self.show_nonversioned_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_nonversioned)
+        hbox.addWidget(self.show_nonversioned_checkbox)
+        vbox.addLayout(hbox)
+
         basis_tree = self.tree.basis_tree()
         delta = self.tree.changes_from(basis_tree)
 
@@ -77,13 +84,13 @@ class CommitWindow(QBzrWindow):
         for entry in delta.removed:
             files.append(("removed", entry[0], entry[0], True))
         for entry in delta.renamed:
-            files.append(("renamed", "%s => %s" % (entry[0], entry[1]),
-                          entry[1], True))
+            files.append(("renamed", "%s => %s" % (entry[0], entry[1]), entry[1], True))
         for entry in delta.modified:
             files.append(("modified", entry[0], entry[0], True))
         for entry in tree.unknowns():
             files.append(("non-versioned", entry, entry, False))
 
+        self.unknowns = []
         self.item_to_file = {}
         for entry in files:
             item = QtGui.QTreeWidgetItem(self.filelist)
@@ -95,6 +102,9 @@ class CommitWindow(QBzrWindow):
             else:
                 item.setCheckState(0, QtCore.Qt.Unchecked)
             self.item_to_file[item] = entry
+            if not entry[3]:
+                item.setHidden(not self.show_nonversioned_checkbox.isChecked())
+                self.unknowns.append(item)
 
         splitter.setStretchFactor(0, 2)
         splitter.setStretchFactor(1, 3)
@@ -118,8 +128,8 @@ class CommitWindow(QBzrWindow):
         event.accept()
 
     def accept(self):
-        """Accept the commit."""
-        specific_files = [] 
+        """Commit the changes."""
+        specific_files = []
         for i in range(self.filelist.topLevelItemCount()):
             item = self.filelist.topLevelItem(i)
             if item.checkState(0) == QtCore.Qt.Checked:
@@ -127,9 +137,13 @@ class CommitWindow(QBzrWindow):
                 if not entry[3]:
                     self.tree.add(entry[2])
                 specific_files.append(entry[2])
-        self.tree.commit(message=unicode(self.message.toPlainText()),
-                         specific_files=specific_files,
-                         reporter=ReportCommitToLog())
+        try:
+            self.tree.commit(message=unicode(self.message.toPlainText()),
+                             specific_files=specific_files,
+                             reporter=ReportCommitToLog(),
+                             allow_pointless=False)
+        except BzrError, e:
+            QtGui.QMessageBox.warning(self, "Commit", str(e), QtGui.QMessageBox.Ok)
         self.close()
 
     def reject(self):
@@ -144,3 +158,9 @@ class CommitWindow(QBzrWindow):
                                 specific_files=(entry[2],), parent=self)
             window.show()
             self.windows.append(window)
+
+    def show_nonversioned(self, state):
+        """Show/hide non-versioned files."""
+        state = not state
+        for item in self.unknowns:
+            item.setHidden(state)
