@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 #
 # QBzr - Qt frontend to Bazaar commands
-# Copyright (C) 2006 Lukáš Lalinský <lalinsky@gmail.com>
-# Portions Copyright (C) 2006 Jelmer Vernooij <jelmer@samba.org> 
+# Copyright (C) 2006-2007 Lukáš Lalinský <lalinsky@gmail.com>
+# Copyright (C) 2006 Trolltech ASA
+# Copyright (C) 2006 Jelmer Vernooij <jelmer@samba.org>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,8 +19,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import sys
 import os.path
+import re
+import sys
 from PyQt4 import QtCore, QtGui
 
 from bzrlib.errors import BzrError
@@ -29,6 +31,83 @@ from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.diff import get_diff_trees, DiffWindow
 from bzrlib.plugins.qbzr.util import QBzrWindow
+
+
+_python_identifier_re = re.compile("(?:def|class)\s+(\w+)")
+_python_variable_re = re.compile("(\w+)\s*=\s*")
+
+def python_word_list_builder(file):
+    for line in file:
+        match = _python_identifier_re.search(line)
+        if match:
+            yield match.group(1)
+
+
+_word_list_builders = {
+    ".py": python_word_list_builder,
+}
+
+
+class TextEdit(QtGui.QTextEdit):
+
+    def __init__(self, parent=None):
+        QtGui.QTextEdit.__init__(self, parent)
+        self.completer = None
+        self.eow = QtCore.QString("~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-=")
+
+    def keyPressEvent(self, e):
+        c = self.completer
+        if c.popup().isVisible():
+            if (e.key() == QtCore.Qt.Key_Enter or
+                e.key() == QtCore.Qt.Key_Return or
+                e.key() == QtCore.Qt.Key_Escape or
+                e.key() == QtCore.Qt.Key_Tab or
+                e.key() == QtCore.Qt.Key_Backtab):
+                e.ignore()
+                return
+
+        isShortcut = e.modifiers() & QtCore.Qt.ControlModifier and e.key() == QtCore.Qt.Key_E
+        if not isShortcut:
+            QtGui.QTextEdit.keyPressEvent(self, e)
+
+        ctrlOrShift = e.modifiers() & (QtCore.Qt.ControlModifier | QtCore.Qt.ShiftModifier)
+        if ctrlOrShift and e.text().isEmpty():
+            return
+
+        hasModifier = (e.modifiers() != QtCore.Qt.NoModifier) and not ctrlOrShift
+        completionPrefix = self.textUnderCursor()
+
+        if not isShortcut and (hasModifier or e.text().isEmpty() or completionPrefix.length() < 2 or self.eow.contains(e.text().right(1))):
+            c.popup().hide()
+            return
+
+        if completionPrefix != c.completionPrefix():
+            c.setCompletionPrefix(completionPrefix)
+            c.popup().setCurrentIndex(c.completionModel().index(0, 0))
+
+        cr = self.cursorRect()
+        cr.setWidth(c.popup().sizeHintForColumn(0) + c.popup().verticalScrollBar().sizeHint().width())
+        c.complete(cr);
+
+    def textUnderCursor(self):
+        tc = self.textCursor()
+        tc.select(QtGui.QTextCursor.WordUnderCursor)
+        return tc.selectedText()
+
+    def insertCompletion(self, completion):
+        tc = self.textCursor()
+        extra = completion.length() - self.completer.completionPrefix().length()
+        tc.movePosition(QtGui.QTextCursor.Left)
+        tc.movePosition(QtGui.QTextCursor.EndOfWord)
+        tc.insertText(completion.right(extra))
+        self.setTextCursor(tc)
+
+    def setCompleter(self, completer):
+        self.completer = completer
+        completer.setWidget(self)
+        completer.setCaseSensitivity(QtCore.Qt.CaseSensitive)
+        self.connect(completer, QtCore.SIGNAL("activated(QString)"), self.insertCompletion)
+
 
 class CommitWindow(QBzrWindow):
 
@@ -42,12 +121,43 @@ class CommitWindow(QBzrWindow):
         self.basis_tree = self.tree.basis_tree()
         self.windows = []
 
+        # Get information about modified files
+        files = []
+        delta = self.tree.changes_from(self.basis_tree)
+        for entry in delta.added:
+            ext = os.path.splitext(entry[0])[1]
+            files.append(("added", entry[0], ext, entry[0], True))
+        for entry in delta.removed:
+            ext = os.path.splitext(entry[0])[1]
+            files.append(("removed", entry[0], ext, entry[0], True))
+        for entry in delta.renamed:
+            ext = os.path.splitext(entry[1])[1]
+            files.append(("renamed", "%s => %s" % (entry[0], entry[1]), ext, entry[1], True))
+        for entry in delta.modified:
+            ext = os.path.splitext(entry[0])[1]
+            files.append(("modified", entry[0], ext, entry[0], True))
+        for entry in tree.unknowns():
+            ext = os.path.splitext(entry)[1]
+            files.append(("non-versioned", entry, ext, entry, False))
+
+        # Build a word list for message completer
+        words = []
+        for status, name, ext, path, versioned in files:
+            words.extend(os.path.split(path))
+            if versioned and ext in _word_list_builders:
+                words.extend(_word_list_builders[ext](open(path, 'rt')))
+        words = list(set(words))
+
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self.centralwidget)
 
         groupbox = QtGui.QGroupBox("Message", splitter)
         splitter.addWidget(groupbox)
 
-        self.message = QtGui.QTextEdit(groupbox)
+        completer = QtGui.QCompleter()
+        completer.setModel(QtGui.QStringListModel(words, completer))
+
+        self.message = TextEdit(groupbox)
+        self.message.setCompleter(completer)
         self.message.setAcceptRichText(False)
 
         vbox = QtGui.QVBoxLayout(groupbox)
@@ -75,34 +185,20 @@ class CommitWindow(QBzrWindow):
         hbox.addWidget(self.show_nonversioned_checkbox)
         vbox.addLayout(hbox)
 
-        basis_tree = self.tree.basis_tree()
-        delta = self.tree.changes_from(basis_tree)
-
-        files = []
-        for entry in delta.added:
-            files.append(("added", entry[0], entry[0], True))
-        for entry in delta.removed:
-            files.append(("removed", entry[0], entry[0], True))
-        for entry in delta.renamed:
-            files.append(("renamed", "%s => %s" % (entry[0], entry[1]), entry[1], True))
-        for entry in delta.modified:
-            files.append(("modified", entry[0], entry[0], True))
-        for entry in tree.unknowns():
-            files.append(("non-versioned", entry, entry, False))
-
         self.unknowns = []
         self.item_to_file = {}
         for entry in files:
+            status, name, ext, path, versioned = entry
             item = QtGui.QTreeWidgetItem(self.filelist)
-            item.setText(0, entry[1])
-            item.setText(1, os.path.splitext(entry[2])[1])
-            item.setText(2, entry[0])
-            if entry[3] and (entry[1].startswith(path) or not path):
+            item.setText(0, name)
+            item.setText(1, ext)
+            item.setText(2, status)
+            if versioned and (path.startswith(path) or not path):
                 item.setCheckState(0, QtCore.Qt.Checked)
             else:
                 item.setCheckState(0, QtCore.Qt.Unchecked)
             self.item_to_file[item] = entry
-            if not entry[3]:
+            if not versioned:
                 item.setHidden(not self.show_nonversioned_checkbox.isChecked())
                 self.unknowns.append(item)
 
@@ -134,9 +230,9 @@ class CommitWindow(QBzrWindow):
             item = self.filelist.topLevelItem(i)
             if item.checkState(0) == QtCore.Qt.Checked:
                 entry = self.item_to_file[item]
-                if not entry[3]:
-                    self.tree.add(entry[2])
-                specific_files.append(entry[2])
+                if not entry[4]:
+                    self.tree.add(entry[3])
+                specific_files.append(entry[3])
         try:
             self.tree.commit(message=unicode(self.message.toPlainText()),
                              specific_files=specific_files,

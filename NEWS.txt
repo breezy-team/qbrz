@@ -1,16 +1,22 @@
-QBzr ChangeLog
-===============
+0.2.0 - XXXX-XX-XX
+------------------
 
-Version 0.2.0 - XXXX-XX-XX
---------------------------
+ * Bug Fixes:
+   * qdiff
+     * Fixed highlighting of inter-line changes containing HTML.
+   * qcommit
+     * The editor now doesn't accept rich-text.
 
- * Compatibility with Qt 4.1
- * qdiff
-   * Configurable window size.
- * qcommit
-   * Non-versioned are hidden by default, add a checkbox to show them.
+ * New Features:
+   * qdiff
+     * Configurable window size.
+   * qcommit
+     * Non-versioned are hidden by default, add a checkbox to show them.
+     * Auto completion of file and variable/class/function names (only for
+       Python source code right now, but it's easily extendable for other
+       languages).
 
-Version 0.1.0 - 2006-12-26
---------------------------
+0.1.0 - 2006-12-26
+------------------
 
  * Initial release.
