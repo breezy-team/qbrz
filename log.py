@@ -108,8 +108,7 @@ class LogWindow(QBzrWindow):
         gridLayout.addWidget(QtGui.QLabel(u"Message:", groupBox), 2, 0)
         self.message = QtGui.QTextDocument()
         self.message_browser = QtGui.QTextBrowser(groupBox)
-        if hasattr(self.message_browser, "setOpenExternalLinks"):
-            self.message_browser.setOpenExternalLinks(True)
+        self.message_browser.setOpenExternalLinks(True)
         self.message_browser.setDocument(self.message)
         gridLayout.addWidget(self.message_browser, 2, 1)
 
