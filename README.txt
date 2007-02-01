@@ -53,8 +53,5 @@ Default window size in format WIDTHxHEIGHT (e.g. 780x580)
 More Info
 =========
 
- * Homepage
-   http://oxygene.sk/lukas/projects/qbzr
-
- * Bug Tracker
+ * Bug Tracker, Source Code
    https://launchpad.net/products/qbzr
