@@ -164,8 +164,10 @@ class CommitWindow(QBzrWindow):
         # Build a word list for message completer
         words = []
         for status, name, ext, path, versioned in files:
+            if not versioned:
+                continue
             words.extend(os.path.split(path))
-            if versioned and ext in _word_list_builders:
+            if ext in _word_list_builders:
                 try:
                     file = open(path, 'rt')
                 except EnvironmentError:
