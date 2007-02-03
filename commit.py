@@ -170,9 +170,9 @@ class CommitWindow(QBzrWindow):
             if ext in _word_list_builders:
                 try:
                     file = open(path, 'rt')
+                    words.extend(_word_list_builders[ext](file))
                 except EnvironmentError:
                     pass
-                words.extend(_word_list_builders[ext](file))
         words = list(set(words))
         words.sort(lambda a, b: cmp(a.lower(), b.lower()))
 
