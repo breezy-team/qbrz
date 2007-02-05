@@ -169,6 +169,11 @@ def _internal_diff(old_filename, oldlines, new_filename, newlines, output,
     output.extend([oldlines, newlines, groups])
 
 
+class _output_list(list):
+    def write(self, data):
+        pass
+
+
 def get_diff_trees(old_tree, new_tree, specific_files=None, old_label='a/',
                    new_label='b/', complete=False):
     from bzrlib.diff import _patch_header_date, _maybe_diff_file_or_symlink
@@ -180,13 +185,13 @@ def get_diff_trees(old_tree, new_tree, specific_files=None, old_label='a/',
     _complete = complete
 
     for path, file_id, kind in delta.removed:
-        output = []
+        output = _output_list()
         old_tree.inventory[file_id].diff(_internal_diff, None, old_tree,
                                          None, None, None, output)
         diffs.append(('removed', path, output))
 
     for path, file_id, kind in delta.added:
-        output = []
+        output = _output_list()
         new_tree.inventory[file_id].diff(_internal_diff, None, new_tree,
                                          None, None, None, output,
                                          reverse=True)
@@ -194,7 +199,7 @@ def get_diff_trees(old_tree, new_tree, specific_files=None, old_label='a/',
 
     for (old_path, new_path, file_id, kind,
          text_modified, meta_modified) in delta.renamed:
-        output = []
+        output = _output_list()
         _maybe_diff_file_or_symlink(None, old_tree, file_id,
                                     None, new_tree,
                                     text_modified, kind, output, _internal_diff)
@@ -203,7 +208,7 @@ def get_diff_trees(old_tree, new_tree, specific_files=None, old_label='a/',
     for path, file_id, kind, text_modified, meta_modified in delta.modified:
         old_name = '%s%s' % (old_label, path)
         new_name = '%s%ss' % (new_label, path)
-        output = []
+        output = _output_list()
         if text_modified:
             _maybe_diff_file_or_symlink(None, old_tree, file_id,
                                         None, new_tree, True, kind,
