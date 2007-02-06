@@ -20,6 +20,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import locale
 import sys
 import time
 from cStringIO import StringIO
@@ -38,7 +39,7 @@ STYLES = {
     'delete': 'background-color:#FFDDDD',
     'insert': 'background-color:#DDFFDD',
     'missing': 'background-color:#E0E0E0',
-    'title': 'margin-top:10px;font-size:16px;font-weight:bold;',
+    'title': 'margin-top: 10px; font-size: 14px; font-weight: bold;',
     'metainfo': 'font-size: 9px; margin-bottom: 10px;',
 }
 
@@ -200,32 +201,39 @@ class FileDiff(object):
 
 class TreeDiff(list):
 
-    def _date(self, tree, file_id, path):
-        try:
-            tm = time.gmtime(tree.get_file_mtime(file_id, path))
-        except NoSuchId:
-            tm = time.gmtime(0)
-        return time.strftime('%Y-%m-%d %H:%M:%S +0000', tm)
+    def _date(self, tree, file_id, path, secs=None):
+        if secs is None:
+            try:
+                secs = tree.get_file_mtime(file_id, path)
+            except NoSuchId:
+                secs = 0
+        tm = time.localtime(secs)
+        return time.strftime('%c', tm).decode(locale.getpreferredencoding())
 
     def __init__(self, old_tree, new_tree, specific_files=[], complete=False):
         delta = new_tree.changes_from(old_tree, specific_files=specific_files, require_versioned=True)
 
         for path, file_id, kind in delta.removed:
             diff = FileDiff('removed', path)
+            diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path)
             diff.new_date = self._date(new_tree, file_id, path)
-            diff.make_diff(get_file_lines_from_tree(old_tree, file_id), [], complete)
+            if diff.kind != 'directory':
+                diff.make_diff(get_file_lines_from_tree(old_tree, file_id), [], complete)
             self.append(diff)
 
         for path, file_id, kind in delta.added:
             diff = FileDiff('added', path)
-            diff.old_date = self._date(old_tree, file_id, path)
+            diff.kind = kind
+            diff.old_date = self._date(old_tree, file_id, path, 0)
             diff.new_date = self._date(new_tree, file_id, path)
-            diff.make_diff([], get_file_lines_from_tree(new_tree, file_id), complete)
+            if diff.kind != 'directory':
+                diff.make_diff([], get_file_lines_from_tree(new_tree, file_id), complete)
             self.append(diff)
 
         for old_path, new_path, file_id, kind, text_modified, meta_modified in delta.renamed:
             diff = FileDiff('renamed', u'%s \u2192 %s' % (old_path, new_path))
+            diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path)
             diff.new_date = self._date(new_tree, file_id, path)
             if text_modified:
@@ -236,6 +244,7 @@ class TreeDiff(list):
 
         for path, file_id, kind, text_modified, meta_modified in delta.modified:
             diff = FileDiff('modified', path)
+            diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path)
             diff.new_date = self._date(new_tree, file_id, path)
             if text_modified:
@@ -243,6 +252,27 @@ class TreeDiff(list):
                 new_lines = get_file_lines_from_tree(new_tree, file_id)
                 diff.make_diff(old_lines, new_lines, complete)
             self.append(diff)
+
+    def html_inline(self):
+        html = []
+        for diff in self:
+            html.append('<div style="%s">%s</div>' % (STYLES['title'], diff.path))
+            html.append('<div style="%s"><small><b>Last modified:</b> %s, <b>Status:</b> %s, <b>Kind:</b> %s</small></div>' % (STYLES['metainfo'], diff.old_date, diff.status, diff.kind))
+            html.append(diff.html_inline())
+        return ''.join(html)
+
+    def html_side_by_side(self):
+        html1 = []
+        html2 = []
+        for diff in self:
+            html1.append('<div style="%s">%s</div>' % (STYLES['title'], diff.path))
+            html1.append('<div style="%s"><small><b>Last modified:</b> %s, <b>Status:</b> %s, <b>Kind:</b> %s</small></div>' % (STYLES['metainfo'], diff.old_date, diff.status, diff.kind))
+            html2.append('<div style="%s">%s</div>' % (STYLES['title'], diff.path))
+            html2.append('<div style="%s"><small><b>Last modified:</b> %s, <b>Status:</b> %s, <b>Kind:</b> %s</small></div>' % (STYLES['metainfo'], diff.new_date, diff.status, diff.kind))
+            lines1, lines2 = diff.html_side_by_side()
+            html1.append(lines1)
+            html2.append(lines2)
+        return ''.join(html1), ''.join(html2)
 
 
 class DiffWindow(QBzrWindow):
@@ -280,61 +310,30 @@ class DiffWindow(QBzrWindow):
         self.tree2 = tree2
         self.specific_files = specific_files
 
-        if inline:
-            html = []
-        else:
-            html1 = []
-            html2 = []
-
         treediff = TreeDiff(self.tree1, self.tree2, self.specific_files, complete)
-        for diff in treediff:
-            name = diff.path
-            change = diff.status
-            if inline:
-                html.append('<div style="%s">%s %s</div>' % (STYLES['title'], change, name))
-                html.append(diff.html_inline())
-            else:
-                html1.append('<div style="%s">%s %s</div>' % (STYLES['title'], change, name))
-                html1.append('<div style="%s"><small>%s</small></div>' % (STYLES['metainfo'], diff.old_date))
-                html2.append('<div style="%s">%s %s</div>' % (STYLES['title'], change, name))
-                html2.append('<div style="%s"><small>%s</small></div>' % (STYLES['metainfo'], diff.new_date))
-                lines1, lines2 = diff.html_side_by_side()
-                html1.append(lines1)
-                html2.append(lines2)
 
         hbox = QtGui.QHBoxLayout()
         if inline:
             self.doc = QtGui.QTextDocument()
-            self.doc.setHtml("".join(html))
+            self.doc.setHtml(treediff.html_inline())
             self.browser = QtGui.QTextBrowser()
             self.browser.setDocument(self.doc)
             hbox.addWidget(self.browser)
         else:
+            html1, html2 = treediff.html_side_by_side()
             self.doc1 = QtGui.QTextDocument()
-            self.doc1.setHtml("".join(html1))
+            self.doc1.setHtml(html1)
             self.doc2 = QtGui.QTextDocument()
-            self.doc2.setHtml("".join(html2))
+            self.doc2.setHtml(html2)
             self.browser1 = QtGui.QTextBrowser()
             self.browser1.setDocument(self.doc1)
             self.browser1.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
             self.browser2 = QtGui.QTextBrowser()
             self.browser2.setDocument(self.doc2)
-            self.connect(self.browser1.verticalScrollBar(),
-                         QtCore.SIGNAL("valueChanged(int)"),
-                         self.browser2.verticalScrollBar(),
-                         QtCore.SLOT("setValue(int)"))
-            self.connect(self.browser1.horizontalScrollBar(),
-                         QtCore.SIGNAL("valueChanged(int)"),
-                         self.browser2.horizontalScrollBar(),
-                         QtCore.SLOT("setValue(int)"))
-            self.connect(self.browser2.verticalScrollBar(),
-                         QtCore.SIGNAL("valueChanged(int)"),
-                         self.browser1.verticalScrollBar(),
-                         QtCore.SLOT("setValue(int)"))
-            self.connect(self.browser2.horizontalScrollBar(),
-                         QtCore.SIGNAL("valueChanged(int)"),
-                         self.browser1.horizontalScrollBar(),
-                         QtCore.SLOT("setValue(int)"))
+            self.connect(self.browser1.verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.browser2.verticalScrollBar(), QtCore.SLOT("setValue(int)"))
+            self.connect(self.browser1.horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.browser2.horizontalScrollBar(), QtCore.SLOT("setValue(int)"))
+            self.connect(self.browser2.verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.browser1.verticalScrollBar(), QtCore.SLOT("setValue(int)"))
+            self.connect(self.browser2.horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.browser1.horizontalScrollBar(), QtCore.SLOT("setValue(int)"))
             hbox.addWidget(self.browser1)
             hbox.addWidget(self.browser2)
 
