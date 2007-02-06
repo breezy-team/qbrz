@@ -29,7 +29,7 @@ from bzrlib.option import Option
 from bzrlib.commands import Command, register_command
 from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
-from bzrlib.plugins.qbzr.diff import get_diff_trees, DiffWindow
+from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.util import QBzrWindow
 
 

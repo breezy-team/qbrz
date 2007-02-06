@@ -21,13 +21,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import sys
+import time
 from cStringIO import StringIO
 from PyQt4 import QtCore, QtGui
+from bzrlib.errors import BinaryFile, NoSuchId
+from bzrlib.textfile import check_text_lines
 from bzrlib.commands import Command, register_command
 from bzrlib.diff import show_diff_trees
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.util import QBzrWindow
-from bzrlib import textfile, patiencediff
+from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 
 
 STYLES = {
@@ -35,8 +38,16 @@ STYLES = {
     'delete': 'background-color:#FFDDDD',
     'insert': 'background-color:#DDFFDD',
     'missing': 'background-color:#E0E0E0',
-    'title': 'margin-top:10px;margin-bottom:10px;font-size:16px;font-weight:bold;',
+    'title': 'margin-top:10px;font-size:16px;font-weight:bold;',
+    'metainfo': 'font-size: 9px; margin-bottom: 10px;',
 }
+
+
+def get_file_lines_from_tree(tree, file_id):
+    try:
+        return tree.get_file_lines(file_id)
+    except AttributeError:
+        return tree.get_file(file_id).readlines()
 
 
 def get_change_extent(str1, str2):
@@ -81,141 +92,157 @@ def markup_line(line, style='', encode=True):
     return '<div%s>%s</div>' % (style, line.rstrip() or '&nbsp;')
 
 
-def html_diff_lines(data, html1, html2, inline=True):
-    if not data:
-        return
-    a, b, groups = data
-    a = [a.decode("utf-8", "replace").rstrip("\n") for a in a]
-    b = [b.decode("utf-8", "replace").rstrip("\n") for b in b]
-    for group in groups:
-        i1, i2, j1, j2 = group[0][1], group[-1][2], group[0][3], group[-1][4]
-        hunk = "@@ -%d,%d +%d,%d @@" % (i1+1, i2-i1, j1+1, j2-j1)
-        html1.append('<div style="%s">%s</div>' % (STYLES['hunk'], htmlencode(hunk)))
-        if not inline:
-            html2.append('<div style="%s">%s</div>' % (STYLES['hunk'], htmlencode(hunk)))
-        for tag, i1, i2, j1, j2 in group:
-            if tag == 'equal':
-                for line in a[i1:i2]:
-                    line = markup_line(line)
-                    html1.append(line)
-                    if not inline:
-                        html2.append(line)
-            elif tag == 'replace':
-                d = (i2 - i1) - (j2 - j1)
-                if d == 0:
-                    for i in range(i2 - i1):
-                        linea = a[i1 + i]
-                        lineb = b[j1 + i]
-                        linea = markup_intraline_changes(linea, lineb, '#EE9999')
-                        lineb = markup_intraline_changes(lineb, linea, '#99EE99')
-                        html1.append(markup_line(linea, STYLES['delete'], encode=False))
-                        html2.append(markup_line(lineb, STYLES['insert'], encode=False))
+class FileDiff(object):
+
+    def __init__(self, status, path):
+        self.status = status
+        self.path = path
+        self.binary = False
+        self.old_lines = []
+        self.new_lines = []
+        self.groups = []
+
+    def make_diff(self, old_lines, new_lines, complete):
+        try:
+            check_text_lines(old_lines)
+            check_text_lines(new_lines)
+        except BinaryFile:
+            self.binary = True
+        else:
+            self.old_lines = old_lines
+            self.new_lines = new_lines
+            if old_lines and not new_lines:
+                self.groups = [[('delete', 0, len(old_lines), 0, 0)]]
+            elif not old_lines and new_lines:
+                self.groups = [[('insert', 0, 0, 0, len(new_lines))]]
+            else:
+                matcher = SequenceMatcher(None, old_lines, new_lines)
+                if complete:
+                    self.groups = [matcher.get_opcodes()]
                 else:
+                    self.groups = matcher.get_grouped_opcodes()
+
+    def html_diff_lines(self, html1, html2, inline=True):
+        a = self.old_lines
+        b = self.new_lines
+        groups = self.groups
+        a = [a.decode("utf-8", "replace").rstrip("\n") for a in a]
+        b = [b.decode("utf-8", "replace").rstrip("\n") for b in b]
+        for group in groups:
+            i1, i2, j1, j2 = group[0][1], group[-1][2], group[0][3], group[-1][4]
+            hunk = "@@ -%d,%d +%d,%d @@" % (i1+1, i2-i1, j1+1, j2-j1)
+            html1.append('<div style="%s">%s</div>' % (STYLES['hunk'], htmlencode(hunk)))
+            if not inline:
+                html2.append('<div style="%s">%s</div>' % (STYLES['hunk'], htmlencode(hunk)))
+            for tag, i1, i2, j1, j2 in group:
+                if tag == 'equal':
+                    for line in a[i1:i2]:
+                        line = markup_line(line)
+                        html1.append(line)
+                        if not inline:
+                            html2.append(line)
+                elif tag == 'replace':
+                    d = (i2 - i1) - (j2 - j1)
+                    if d == 0:
+                        for i in range(i2 - i1):
+                            linea = a[i1 + i]
+                            lineb = b[j1 + i]
+                            linea = markup_intraline_changes(linea, lineb, '#EE9999')
+                            lineb = markup_intraline_changes(lineb, linea, '#99EE99')
+                            html1.append(markup_line(linea, STYLES['delete'], encode=False))
+                            html2.append(markup_line(lineb, STYLES['insert'], encode=False))
+                    else:
+                        for line in a[i1:i2]:
+                            html1.append(markup_line(line, STYLES['delete']))
+                        for line in b[j1:j2]:
+                            html2.append(markup_line(line, STYLES['insert']))
+                        if not inline:
+                            if d < 0:
+                                for i in range(-d):
+                                    html1.append(markup_line('', STYLES['missing']))
+                            else:
+                                for i in range(d):
+                                    html2.append(markup_line('', STYLES['missing']))
+                elif tag == 'insert':
+                    for line in b[j1:j2]:
+                        if not inline:
+                            html1.append(markup_line('', STYLES['missing']))
+                        html2.append(markup_line(line, STYLES['insert']))
+                elif tag == 'delete':
                     for line in a[i1:i2]:
                         html1.append(markup_line(line, STYLES['delete']))
-                    for line in b[j1:j2]:
-                        html2.append(markup_line(line, STYLES['insert']))
-                    if not inline:
-                        if d < 0:
-                            for i in range(-d):
-                                html1.append(markup_line('', STYLES['missing']))
-                        else:
-                            for i in range(d):
-                                html2.append(markup_line('', STYLES['missing']))
-            elif tag == 'insert':
-                for line in b[j1:j2]:
-                    if not inline:
-                        html1.append(markup_line('', STYLES['missing']))
-                    html2.append(markup_line(line, STYLES['insert']))
-            elif tag == 'delete':
-                for line in a[i1:i2]:
-                    html1.append(markup_line(line, STYLES['delete']))
-                    if not inline:
-                        html2.append(markup_line('', STYLES['missing']))
-    html1.append('</pre>')
-    html2.append('</pre>')
+                        if not inline:
+                            html2.append(markup_line('', STYLES['missing']))
+        html1.append('</pre>')
+        html2.append('</pre>')
+
+    def html_side_by_side(self):
+        """Make HTML for side-by-side diff view."""
+        if self.binary:
+            line = '<p>[binary file]</p>'
+            return line, line
+        else:
+            lines1 = []
+            lines2 = []
+            self.html_diff_lines(lines1, lines2, inline=False)
+            return '<pre>%s</pre>' % ''.join(lines1), '<pre>%s</pre>' % ''.join(lines2)
+
+    def html_inline(self):
+        """Make HTML for in-line diff view."""
+        if self.binary:
+            line = '<p>[binary file]</p>'
+            return line, line
+        else:
+            lines = []
+            self.html_diff_lines(lines, lines, inline=True)
+            return '<pre>%s</pre>' % ''.join(lines)
 
 
-def make_sidebyside_html(data):
-    """Make HTML for side-by-side diff view."""
-    lines1 = []
-    lines2 = []
-    html_diff_lines(data, lines1, lines2, inline=False)
-    return '<pre>%s</pre>' % ''.join(lines1), '<pre>%s</pre>' % ''.join(lines2)
+class TreeDiff(list):
 
+    def _date(self, tree, file_id, path):
+        try:
+            tm = time.gmtime(tree.get_file_mtime(file_id, path))
+        except NoSuchId:
+            tm = time.gmtime(0)
+        return time.strftime('%Y-%m-%d %H:%M:%S +0000', tm)
 
-def make_inline_html(data):
-    """Make HTML for in-line diff view."""
-    lines = []
-    html_diff_lines(data, lines, lines, inline=True)
-    return '<pre>%s</pre>' % ''.join(lines)
+    def __init__(self, old_tree, new_tree, specific_files=[], complete=False):
+        delta = new_tree.changes_from(old_tree, specific_files=specific_files, require_versioned=True)
 
+        for path, file_id, kind in delta.removed:
+            diff = FileDiff('removed', path)
+            diff.old_date = self._date(old_tree, file_id, path)
+            diff.new_date = self._date(new_tree, file_id, path)
+            diff.make_diff(get_file_lines_from_tree(old_tree, file_id), [], complete)
+            self.append(diff)
 
-_complete = False
+        for path, file_id, kind in delta.added:
+            diff = FileDiff('added', path)
+            diff.old_date = self._date(old_tree, file_id, path)
+            diff.new_date = self._date(new_tree, file_id, path)
+            diff.make_diff([], get_file_lines_from_tree(new_tree, file_id), complete)
+            self.append(diff)
 
-def _internal_diff(old_filename, oldlines, new_filename, newlines, output,
-                  allow_binary=False, sequence_matcher=None,
-                  path_encoding='utf8'):
-    global _complete
-    if allow_binary is False:
-        textfile.check_text_lines(oldlines)
-        textfile.check_text_lines(newlines)
-    if sequence_matcher is None:
-        sequence_matcher = patiencediff.PatienceSequenceMatcher
-    if not _complete:
-        groups = sequence_matcher(None, oldlines, newlines).get_grouped_opcodes()
-    else:
-        groups = [sequence_matcher(None, oldlines, newlines).get_opcodes()]
-    output.extend([oldlines, newlines, groups])
+        for old_path, new_path, file_id, kind, text_modified, meta_modified in delta.renamed:
+            diff = FileDiff('renamed', u'%s \u2192 %s' % (old_path, new_path))
+            diff.old_date = self._date(old_tree, file_id, path)
+            diff.new_date = self._date(new_tree, file_id, path)
+            if text_modified:
+                old_lines = get_file_lines_from_tree(old_tree, file_id)
+                new_lines = get_file_lines_from_tree(new_tree, file_id)
+                diff.make_diff(old_lines, new_lines, complete)
+            self.append(diff)
 
-
-class _output_list(list):
-    def write(self, data):
-        pass
-
-
-def get_diff_trees(old_tree, new_tree, specific_files=None, old_label='a/',
-                   new_label='b/', complete=False):
-    from bzrlib.diff import _patch_header_date, _maybe_diff_file_or_symlink
-    diffs = []
-    delta = new_tree.changes_from(old_tree,
-        specific_files=specific_files, require_versioned=True)
-
-    global _complete
-    _complete = complete
-
-    for path, file_id, kind in delta.removed:
-        output = _output_list()
-        old_tree.inventory[file_id].diff(_internal_diff, None, old_tree,
-                                         None, None, None, output)
-        diffs.append(('removed', path, output))
-
-    for path, file_id, kind in delta.added:
-        output = _output_list()
-        new_tree.inventory[file_id].diff(_internal_diff, None, new_tree,
-                                         None, None, None, output,
-                                         reverse=True)
-        diffs.append(('added', path, output))
-
-    for (old_path, new_path, file_id, kind,
-         text_modified, meta_modified) in delta.renamed:
-        output = _output_list()
-        _maybe_diff_file_or_symlink(None, old_tree, file_id,
-                                    None, new_tree,
-                                    text_modified, kind, output, _internal_diff)
-        diffs.append(('renamed', u'%s \u2192 %s' % (old_path, new_path), output))
-
-    for path, file_id, kind, text_modified, meta_modified in delta.modified:
-        old_name = '%s%s' % (old_label, path)
-        new_name = '%s%ss' % (new_label, path)
-        output = _output_list()
-        if text_modified:
-            _maybe_diff_file_or_symlink(None, old_tree, file_id,
-                                        None, new_tree, True, kind,
-                                        output, _internal_diff)
-        diffs.append(('modified', path, output))
-
-    return diffs
+        for path, file_id, kind, text_modified, meta_modified in delta.modified:
+            diff = FileDiff('modified', path)
+            diff.old_date = self._date(old_tree, file_id, path)
+            diff.new_date = self._date(new_tree, file_id, path)
+            if text_modified:
+                old_lines = get_file_lines_from_tree(old_tree, file_id)
+                new_lines = get_file_lines_from_tree(new_tree, file_id)
+                diff.make_diff(old_lines, new_lines, complete)
+            self.append(diff)
 
 
 class DiffWindow(QBzrWindow):
@@ -259,17 +286,19 @@ class DiffWindow(QBzrWindow):
             html1 = []
             html2 = []
 
-        diffs = get_diff_trees(self.tree1, self.tree2, complete=complete,
-                               specific_files=self.specific_files)
-        for change, name, data in diffs:
-            title = name
+        treediff = TreeDiff(self.tree1, self.tree2, self.specific_files, complete)
+        for diff in treediff:
+            name = diff.path
+            change = diff.status
             if inline:
                 html.append('<div style="%s">%s %s</div>' % (STYLES['title'], change, name))
-                html.append(make_inline_html(data))
+                html.append(diff.html_inline())
             else:
                 html1.append('<div style="%s">%s %s</div>' % (STYLES['title'], change, name))
+                html1.append('<div style="%s"><small>%s</small></div>' % (STYLES['metainfo'], diff.old_date))
                 html2.append('<div style="%s">%s %s</div>' % (STYLES['title'], change, name))
-                lines1, lines2 = make_sidebyside_html(data)
+                html2.append('<div style="%s"><small>%s</small></div>' % (STYLES['metainfo'], diff.new_date))
+                lines1, lines2 = diff.html_side_by_side()
                 html1.append(lines1)
                 html2.append(lines2)
 
