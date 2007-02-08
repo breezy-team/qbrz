@@ -64,8 +64,8 @@ class BrowseWindow(QBzrWindow):
         self.context_menu = QtGui.QMenu(self.file_tree)
         self.context_menu.addAction("Show log...")
 
-        self.dir_icon = QtGui.QIcon(":/folder.png")
-        self.file_icon = QtGui.QIcon(":/text-x-generic.png")
+        self.dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
+        self.file_icon = self.style().standardIcon(QtGui.QStyle.SP_FileIcon)
 
         self.items = []
 

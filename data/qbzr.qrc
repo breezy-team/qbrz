@@ -2,7 +2,5 @@
 <qresource>
     <file>bzr-16.png</file>
     <file>bzr-48.png</file>
-    <file>folder.png</file>
-    <file>text-x-generic.png</file>
 </qresource>
 </RCC>
