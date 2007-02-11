@@ -234,8 +234,8 @@ class TreeDiff(list):
         for old_path, new_path, file_id, kind, text_modified, meta_modified in delta.renamed:
             diff = FileDiff('renamed', u'%s \u2192 %s' % (old_path, new_path))
             diff.kind = kind
-            diff.old_date = self._date(old_tree, file_id, path)
-            diff.new_date = self._date(new_tree, file_id, path)
+            diff.old_date = self._date(old_tree, file_id, old_path)
+            diff.new_date = self._date(new_tree, file_id, new_path)
             if text_modified:
                 old_lines = get_file_lines_from_tree(old_tree, file_id)
                 new_lines = get_file_lines_from_tree(new_tree, file_id)
