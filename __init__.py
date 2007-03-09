@@ -19,9 +19,14 @@
 
 __version__ = "0.2.0"
 
+import os.path
+import sys
+
+if hasattr(sys, "frozen"):
+    # "hack in" our PyQt4 binaries
+    sys.path.append(os.path.join(os.path.dirname(__file__), '_lib'))
 
 import bzrlib.plugins.qbzr.resources
-import sys
 from bzrlib.option import Option
 from bzrlib.commands import Command, register_command
 from bzrlib.lazy_import import lazy_import
