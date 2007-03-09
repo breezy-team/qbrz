@@ -6,7 +6,7 @@ from distutils.core import setup
 setup(name='qbzr',
       description='Qt4 frontend for Bazaar',
       keywords='plugin bzr qt qbzr',
-      version='0.2.0',
+      version='0.3.0',
       url='http://lukas.oxygene.sk/wiki/QBzr',
       license='GPL',
       author='Lukáš Lalinský',
