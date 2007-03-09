@@ -1,3 +1,12 @@
+0.3.0 - 2007-03-09
+------------------
+
+ * Rewritten diff viewer:
+   * Now works also with binary files.
+   * Displays more information about the files.
+ * qbrowse uses native system icons instead of the Tango ones.
+ * Windows installer for the 'standalone' Bazaar package.
+
 0.2.0 - 2007-02-02
 ------------------
 

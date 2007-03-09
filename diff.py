@@ -205,7 +205,7 @@ class TreeDiff(list):
         if secs is None:
             try:
                 secs = tree.get_file_mtime(file_id, path)
-            except NoSuchId:
+            except (NoSuchId, OSError):
                 secs = 0
         tm = time.localtime(secs)
         return time.strftime('%c', tm).decode(locale.getpreferredencoding())
