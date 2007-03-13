@@ -210,7 +210,7 @@ class TreeDiff(list):
         tm = time.localtime(secs)
         return time.strftime('%c', tm).decode(locale.getpreferredencoding())
 
-    def __init__(self, old_tree, new_tree, specific_files=[], complete=False):
+    def _make_diff(self, old_tree, new_tree, specific_files=[], complete=False):
         delta = new_tree.changes_from(old_tree, specific_files=specific_files, require_versioned=True)
 
         for path, file_id, kind in delta.removed:
@@ -252,6 +252,15 @@ class TreeDiff(list):
                 new_lines = get_file_lines_from_tree(new_tree, file_id)
                 diff.make_diff(old_lines, new_lines, complete)
             self.append(diff)
+
+    def __init__(self, old_tree, new_tree, specific_files=[], complete=False):
+        old_tree.lock_read()
+        new_tree.lock_read()
+        try:
+            self._make_diff(old_tree, new_tree, specific_files, complete)
+        finally:
+            old_tree.unlock()
+            new_tree.unlock()
 
     def html_inline(self):
         html = []
