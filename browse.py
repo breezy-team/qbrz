@@ -70,9 +70,12 @@ class BrowseWindow(QBzrWindow):
         self.items = []
 
         tree = self.branch.basis_tree()
-        file_id = tree.inventory.path2id('.')
-        revs = self.load_file_tree(tree.inventory[file_id], self.file_tree)
-        revs = dict(zip(revs, self.branch.repository.get_revisions(list(revs))))
+        file_id = tree.path2id('.')
+        if file_id is not None:
+            revs = self.load_file_tree(tree.inventory[file_id], self.file_tree)
+            revs = dict(zip(revs, self.branch.repository.get_revisions(list(revs))))
+        else:
+            revs = {}
 
         date = QtCore.QDateTime()
         for item, rev_id in self.items:
