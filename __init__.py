@@ -40,6 +40,7 @@ from bzrlib.plugins.qbzr.commit import CommitWindow
 from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.log import LogWindow
 from bzrlib.workingtree import WorkingTree
+from bzrlib import errors
 ''')
 
 
@@ -102,7 +103,7 @@ class cmd_qcommit(Command):
 
 class cmd_qdiff(Command):
     """Show differences in working tree in a GUI window."""
-    takes_args = ['filename?']
+    takes_args = ['file*']
     takes_options = [
         'revision',
         Option('inline', help='Show inline diff'),
@@ -110,28 +111,47 @@ class cmd_qdiff(Command):
         ]
     aliases = ['qdi']
 
-    def run(self, revision=None, filename=None, inline=False, complete=False):
-        wt, filename = WorkingTree.open_containing(filename)
-        branch = wt.branch
-        if revision is not None:
-            if len(revision) == 1:
-                tree1 = wt
-                revision_id = revision[0].in_history(branch).rev_id
-                tree2 = branch.repository.revision_tree(revision_id)
-            elif len(revision) == 2:
-                revision_id_0 = revision[0].in_history(branch).rev_id
-                tree2 = branch.repository.revision_tree(revision_id_0)
-                revision_id_1 = revision[1].in_history(branch).rev_id
-                tree1 = branch.repository.revision_tree(revision_id_1)
+    def run(self, revision=None, file_list=None, inline=False, complete=False):
+        from bzrlib.builtins import internal_tree_files
+
+        if revision and len(revision) > 2:
+            raise errors.BzrCommandError('bzr qdiff --revision takes exactly'
+                                         ' one or two revision specifiers')
+
+        try:
+            tree1, file_list = internal_tree_files(file_list)
+            tree2 = None
+        except errors.FileInWrongBranch:
+            if len(file_list) != 2:
+                raise errors.BzrCommandError("Can diff only two branches")
+
+            tree1, file1 = WorkingTree.open_containing(file_list[1])
+            tree2, file2 = WorkingTree.open_containing(file_list[0])
+            if file1 != "" or file2 != "":
+                raise errors.BzrCommandError("Files are in different branches")
+            file_list = None
+
+        if tree2 is not None:
+            if revision is not None:
+                raise errors.BzrCommandError(
+                        "Sorry, diffing arbitrary revisions across branches "
+                        "is not implemented yet")
         else:
-            tree1 = wt
-            tree2 = tree1.basis_tree()
-        specific_files = None
-        if filename:
-            specific_files = (filename,)
+            if revision is not None:
+                branch = tree1.branch
+                if len(revision) == 1:
+                    revision_id = revision[0].in_history(branch).rev_id
+                    tree2 = branch.repository.revision_tree(revision_id)
+                elif len(revision) == 2:
+                    revision_id_0 = revision[0].in_history(branch).rev_id
+                    tree2 = branch.repository.revision_tree(revision_id_0)
+                    revision_id_1 = revision[1].in_history(branch).rev_id
+                    tree1 = branch.repository.revision_tree(revision_id_1)
+            else:
+                tree2 = tree1.basis_tree()
+
         application = QtGui.QApplication(sys.argv)
-        window = DiffWindow(tree2, tree1, inline=inline, complete=complete,
-                            specific_files=specific_files)
+        window = DiffWindow(tree2, tree1, inline=inline, complete=complete, specific_files=file_list)
         window.show()
         application.exec_()
 
