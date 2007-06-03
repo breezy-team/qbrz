@@ -332,7 +332,7 @@ class CommitWindow(QBzrWindow):
             item = items[0]
         entry = self.item_to_file[item]
         if entry[4]:
-            window = DiffWindow(self.basis_tree, self.tree, specific_files=(entry[3],), parent=self)
+            window = DiffWindow(self.basis_tree, self.tree, specific_files=(entry[3],), parent=self, branch=self.tree.branch)
             window.show()
             self.windows.append(window)
 

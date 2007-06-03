@@ -28,6 +28,7 @@ from PyQt4 import QtCore, QtGui
 from bzrlib.errors import BinaryFile, NoSuchId
 from bzrlib.textfile import check_text_lines
 from bzrlib.commands import Command, register_command
+from bzrlib.config import GlobalConfig
 from bzrlib.diff import show_diff_trees
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.util import QBzrWindow
@@ -288,7 +289,7 @@ class DiffWindow(QBzrWindow):
 
     def __init__(self, tree1=None, tree2=None, specific_files=None,
                  parent=None, custom_title=None, inline=False,
-                 complete=False):
+                 complete=False, branch=None):
         title = ["Diff"]
         if custom_title:
             title.append(custom_title)
@@ -300,16 +301,13 @@ class DiffWindow(QBzrWindow):
 
         size = (780, 580)
         try:
-            branch = None
-            if hasattr(tree1, '_branch'):
-                branch = tree1._branch
-            elif hasattr(tree2, '_branch'):
-                branch = tree2._branch
-            if branch:
+            if branch is not None:
                 config = branch.get_config()
-                size_str = config.get_user_option("qdiff_window_size")
-                if size_str:
-                    size = map(int, size_str.split("x"))
+            else:
+                config = GlobalConfig()
+            size_str = config.get_user_option("qdiff_window_size")
+            if size_str:
+                size = map(int, size_str.split("x", 2))
         except:
             pass
 

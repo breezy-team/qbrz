@@ -131,14 +131,15 @@ class cmd_qdiff(Command):
                 raise errors.BzrCommandError("Files are in different branches")
             file_list = None
 
+        branch = None
         if tree2 is not None:
             if revision is not None:
                 raise errors.BzrCommandError(
                         "Sorry, diffing arbitrary revisions across branches "
                         "is not implemented yet")
         else:
+            branch = tree1.branch
             if revision is not None:
-                branch = tree1.branch
                 if len(revision) == 1:
                     revision_id = revision[0].in_history(branch).rev_id
                     tree2 = branch.repository.revision_tree(revision_id)
@@ -151,7 +152,7 @@ class cmd_qdiff(Command):
                 tree2 = tree1.basis_tree()
 
         application = QtGui.QApplication(sys.argv)
-        window = DiffWindow(tree2, tree1, inline=inline, complete=complete, specific_files=file_list)
+        window = DiffWindow(tree2, tree1, inline=inline, complete=complete, specific_files=file_list, branch=branch)
         window.show()
         application.exec_()
 
