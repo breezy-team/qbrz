@@ -161,6 +161,15 @@ class CommitWindow(QBzrWindow):
             ext = os.path.splitext(entry)[1]
             files.append(("non-versioned", entry, ext, entry, False))
 
+
+        parents = tree.get_parent_ids()
+        pending_merges = None
+        if len(parents) > 1:
+            pending_merges = tree.branch.repository.get_revisions(parents[1:])
+            #for rev in pending_merges:
+            #    print rev.committer, rev.get_summary()
+        self.has_pending_merges = bool(pending_merges)
+
         # Build a word list for message completer
         words = []
         for status, name, ext, path, versioned in files:
@@ -191,7 +200,30 @@ class CommitWindow(QBzrWindow):
         vbox = QtGui.QVBoxLayout(groupbox)
         vbox.addWidget(self.message)
 
-        groupbox = QtGui.QGroupBox("Changes made", splitter)
+        if pending_merges:
+            groupbox = QtGui.QGroupBox("Pending Merges", splitter)
+            splitter.addWidget(groupbox)
+
+            self.merge_list = QtGui.QTreeWidget(groupbox)
+            self.merge_list.setHeaderLabels(["Date", "Author", "Message"])
+
+            header = self.merge_list.header()
+            header.resizeSection(0, 120)
+            header.resizeSection(1, 190)
+
+            vbox = QtGui.QVBoxLayout(groupbox)
+            vbox.addWidget(self.merge_list)
+
+            for merge in pending_merges:
+                item = QtGui.QTreeWidgetItem(self.merge_list)
+                date = QtCore.QDateTime()
+                date.setTime_t(int(merge.timestamp))
+                item.setText(0, date.toString(QtCore.Qt.LocalDate))
+                item.setText(1, merge.committer)
+                item.setText(2, merge.get_summary())
+
+
+        groupbox = QtGui.QGroupBox("Changes", splitter)
         splitter.addWidget(groupbox)
 
         self.filelist = QtGui.QTreeWidget(groupbox)
@@ -231,10 +263,11 @@ class CommitWindow(QBzrWindow):
             item.setText(0, name)
             item.setText(1, ext)
             item.setText(2, status)
-            if versioned and (path.startswith(path) or not path):
-                item.setCheckState(0, QtCore.Qt.Checked)
-            else:
-                item.setCheckState(0, QtCore.Qt.Unchecked)
+            if not self.has_pending_merges:
+                if versioned and (path.startswith(path) or not path):
+                    item.setCheckState(0, QtCore.Qt.Checked)
+                else:
+                    item.setCheckState(0, QtCore.Qt.Unchecked)
             self.item_to_file[item] = entry
             if not versioned:
                 item.setHidden(not self.show_nonversioned_checkbox.isChecked())
@@ -263,14 +296,19 @@ class CommitWindow(QBzrWindow):
 
     def accept(self):
         """Commit the changes."""
-        specific_files = []
-        for i in range(self.filelist.topLevelItemCount()):
-            item = self.filelist.topLevelItem(i)
-            if item.checkState(0) == QtCore.Qt.Checked:
-                entry = self.item_to_file[item]
-                if not entry[4]:
-                    self.tree.add(entry[3])
-                specific_files.append(entry[3])
+
+        if not self.has_pending_merges:
+            specific_files = []
+            for i in range(self.filelist.topLevelItemCount()):
+                item = self.filelist.topLevelItem(i)
+                if item.checkState(0) == QtCore.Qt.Checked:
+                    entry = self.item_to_file[item]
+                    if not entry[4]:
+                        self.tree.add(entry[3])
+                    specific_files.append(entry[3])
+        else:
+            specific_files = None
+
         try:
             self.tree.commit(message=unicode(self.message.toPlainText()),
                              specific_files=specific_files,
@@ -278,6 +316,7 @@ class CommitWindow(QBzrWindow):
                              allow_pointless=False)
         except BzrError, e:
             QtGui.QMessageBox.warning(self, "QBzr - Commit", str(e), QtGui.QMessageBox.Ok)
+
         self.close()
 
     def reject(self):

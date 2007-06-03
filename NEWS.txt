@@ -3,6 +3,7 @@
 
  * qbrowse of a new branch errors (#113602)
  * Support for diffing of two working trees.
+ * Display pending merges in the commit dialog.
 
 0.3.1 - 2007-03-15
 ------------------
