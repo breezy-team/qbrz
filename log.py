@@ -31,6 +31,9 @@ from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.util import QBzrWindow
 
 
+TagNameRole = QtCore.Qt.UserRole + 1
+
+
 class CustomFunctionThread(QtCore.QThread):
 
     def __init__(self, target, args=[], parent=None):
@@ -40,6 +43,37 @@ class CustomFunctionThread(QtCore.QThread):
 
     def run(self):
         self.target(*self.args)
+
+
+class LogWidgetDelegate(QtGui.QItemDelegate):
+
+    def paint(self, painter, option, index):
+        self.tag = None
+        if index.column() == 3:
+            tag = index.data(TagNameRole)
+            if tag:
+                self.tag = tag.toString()
+        QtGui.QItemDelegate.paint(self, painter, option, index)
+
+    def drawDisplay(self, painter, option, rect, text):
+        if not self.tag:
+            return QtGui.QItemDelegate.drawDisplay(self, painter, option, rect, text)
+
+        tagRect = rect.adjusted(1, 1, -1, -1)
+        tagFont = QtGui.QFont(option.font)
+        tagFont.setPointSizeF(tagFont.pointSizeF() * 9 / 10)
+        tagRect.setWidth(QtGui.QFontMetrics(tagFont).width(self.tag) + 6)
+
+        painter.save()
+        painter.fillRect(tagRect.adjusted(1, 1, -1, -1), QtGui.QColor(200, 247, 176))
+        painter.setPen(QtGui.QColor(115, 191, 76))
+        painter.drawRect(tagRect.adjusted(0, 0, -1, -1))
+        painter.setFont(tagFont)
+        painter.setPen(option.palette.text().color())
+        painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, self.tag)
+        painter.setFont(option.font)
+        painter.drawText(rect.left() + tagRect.width() + 5, rect.bottom() - option.fontMetrics.descent(), text)
+        painter.restore()
 
 
 class LogWindow(QBzrWindow):
@@ -60,6 +94,7 @@ class LogWindow(QBzrWindow):
 
         self.changesList = QtGui.QTreeWidget(groupBox)
         self.changesList.setHeaderLabels([u"Rev", u"Date", u"Author", u"Message"])
+
         header = self.changesList.header()
         header.resizeSection(0, 50)
         header.resizeSection(1, 110)
@@ -75,6 +110,15 @@ class LogWindow(QBzrWindow):
 
         self.branch = branch
         self.item_to_rev = {}
+
+        if branch.tags.supports_tags():
+            self.tags = branch.tags.get_reverse_tag_dict()
+        else:
+            self.tags = {}
+
+        if self.tags:
+            delegate = LogWidgetDelegate(self)
+            self.changesList.setItemDelegate(delegate)
 
         self.last_item = None
         self.merge_stack = [self.changesList]
@@ -200,7 +244,10 @@ class LogWindow(QBzrWindow):
         date.setTime_t(int(rev.timestamp))
         item.setText(1, date.toString(QtCore.Qt.LocalDate))
         item.setText(2, rev.committer)
-        item.setText(3, rev.message.split("\n")[0])
+        item.setText(3, rev.get_summary())
+        tag = self.tags.get(rev.revision_id, None)
+        if tag:
+            item.setData(3, TagNameRole, QtCore.QVariant(tag))
         rev.delta = delta
         self.item_to_rev[item] = rev
         self.last_item = item
