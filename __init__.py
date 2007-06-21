@@ -62,7 +62,7 @@ class cmd_qannotate(Command):
                 raise errors.BzrCommandError('bzr qannotate --revision takes exactly 1 argument')
             else:
                 revision_id = revision[0].in_history(branch).rev_id
-            file_id = tree.inventory.path2id(relpath)
+            file_id = tree.path2id(relpath)
             tree = branch.repository.revision_tree(revision_id)
             file_version = tree.inventory[file_id].revision
             lines = list(_annotate_file(branch, file_version, file_id))

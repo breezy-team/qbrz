@@ -5,6 +5,8 @@
  * Support for diffing of two working trees.
  * Display pending merges in the commit dialog.
  * Display tags in the log view.
+ * Fixed working tree locking for qannotate by using tree.path2id
+   instead of tree.inventory.path2id. (#121631)
 
 0.3.1 - 2007-03-15
 ------------------
