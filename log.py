@@ -26,7 +26,7 @@ from PyQt4 import QtCore, QtGui
 from bzrlib.bzrdir import BzrDir
 from bzrlib.commands import Command, register_command
 from bzrlib.errors import NotVersionedError, BzrCommandError, NoSuchFile
-from bzrlib.log import get_view_revisions, _enumerate_history
+from bzrlib.log import LogFormatter, show_log
 from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.util import QBzrWindow
 
@@ -76,6 +76,12 @@ class LogWidgetDelegate(QtGui.QItemDelegate):
         painter.restore()
 
 
+class LogMessageBrowser(QtGui.QTextBrowser):
+
+    def setSource(self, uri):
+        pass
+
+
 class LogWindow(QBzrWindow):
 
     def __init__(self, branch, location, specific_fileid, replace=None, parent=None):
@@ -89,10 +95,10 @@ class LogWindow(QBzrWindow):
 
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
 
-        groupBox = QtGui.QGroupBox(u"Log", splitter)
-        splitter.addWidget(groupBox)
+        #groupBox = QtGui.QGroupBox(u"Log", splitter)
+        #splitter.addWidget(groupBox)
 
-        self.changesList = QtGui.QTreeWidget(groupBox)
+        self.changesList = QtGui.QTreeWidget(splitter)
         self.changesList.setHeaderLabels([u"Rev", u"Date", u"Author", u"Message"])
 
         header = self.changesList.header()
@@ -105,18 +111,14 @@ class LogWindow(QBzrWindow):
                      QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
                      self.show_differences)
 
-        vbox1 = QtGui.QVBoxLayout(groupBox)
-        vbox1.addWidget(self.changesList)
+        splitter.addWidget(self.changesList)
+        #vbox1 = QtGui.QVBoxLayout(groupBox)
+        #vbox1.addWidget(self.changesList)
 
         self.branch = branch
         self.item_to_rev = {}
 
         if branch.tags.supports_tags():
-            self.tags = branch.tags.get_reverse_tag_dict()
-        else:
-            self.tags = {}
-
-        if self.tags:
             delegate = LogWidgetDelegate(self)
             self.changesList.setItemDelegate(delegate)
 
@@ -128,36 +130,42 @@ class LogWindow(QBzrWindow):
         self.thread = CustomFunctionThread(self.load_history, parent=self)
         self.thread.start()
 
-        groupBox = QtGui.QGroupBox(u"Details", splitter)
-        splitter.addWidget(groupBox)
+        #groupBox = QtGui.QGroupBox(u"Details", splitter)
 
-        splitter.setStretchFactor(0, 5)
+        splitter.setStretchFactor(0, 6)
         splitter.setStretchFactor(1, 1)
 
-        gridLayout = QtGui.QGridLayout(groupBox)
-        gridLayout.setColumnStretch(0, 0)
-        gridLayout.setColumnStretch(1, 3)
-        gridLayout.setColumnStretch(2, 1)
+        #hbox = QtGui.QHBoxLayout(groupBox)
+        hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
+        #gridLayout.setColumnStretch(0, 0)
+        #gridLayout.setColumnStretch(1, 3)
+        #gridLayout.setColumnStretch(2, 1)
 
-        gridLayout.addWidget(QtGui.QLabel(u"Revision:", groupBox), 0, 0)
-        self.revisionEdit = QtGui.QLineEdit(u"", groupBox)
-        self.revisionEdit.setReadOnly(True)
-        gridLayout.addWidget(self.revisionEdit, 0, 1)
+        #gridLayout.addWidget(QtGui.QLabel(u"Revision:", groupBox), 0, 0)
+        #self.revisionEdit = QtGui.QLineEdit(u"", groupBox)
+        #self.revisionEdit.setReadOnly(True)
+        #gridLayout.addWidget(self.revisionEdit, 0, 1)
 
-        gridLayout.addWidget(QtGui.QLabel(u"Parents:", groupBox), 1, 0)
-        self.parentsEdit = QtGui.QLineEdit(u"", groupBox)
-        self.parentsEdit.setReadOnly(True)
-        gridLayout.addWidget(self.parentsEdit, 1, 1)
+        #gridLayout.addWidget(QtGui.QLabel(u"Parents:", groupBox), 1, 0)
+        #self.parentsEdit = QtGui.QLineEdit(u"", groupBox)
+        #self.parentsEdit.setReadOnly(True)
+        #gridLayout.addWidget(self.parentsEdit, 1, 1)
 
-        gridLayout.addWidget(QtGui.QLabel(u"Message:", groupBox), 2, 0)
         self.message = QtGui.QTextDocument()
-        self.message_browser = QtGui.QTextBrowser(groupBox)
-        self.message_browser.setOpenExternalLinks(True)
+        self.message_browser = LogMessageBrowser(hsplitter)
+        #self.message_browser.setOpenExternalLinks(True)
         self.message_browser.setDocument(self.message)
-        gridLayout.addWidget(self.message_browser, 2, 1)
+        self.connect(self.message_browser, QtCore.SIGNAL("anchorClicked(QUrl)"), self.link_clicked)
+        hsplitter.addWidget(self.message_browser)
 
-        self.fileList = QtGui.QListWidget(groupBox)
-        gridLayout.addWidget(self.fileList, 0, 2, 3, 1)
+        self.fileList = QtGui.QListWidget(hsplitter)
+        hsplitter.addWidget(self.fileList)
+
+        hsplitter.setStretchFactor(0, 3)
+        hsplitter.setStretchFactor(1, 1)
+
+        splitter.addWidget(hsplitter)
+
 
         buttonbox = QtGui.QDialogButtonBox(
             QtGui.QDialogButtonBox.StandardButtons(
@@ -175,28 +183,62 @@ class LogWindow(QBzrWindow):
         for window in self.windows:
             window.close()
         event.accept()
-        
+
+    def link_clicked(self, url):
+        scheme = unicode(url.scheme())
+        if scheme == 'qlog-revid':
+            revision_id = unicode(url.path())
+            for item, rev in self.item_to_rev.iteritems():
+                if rev.revision_id == revision_id:
+                    self.changesList.setCurrentItem(item)
+                    break
+        else:
+            import webbrowser
+            webbrowser.open(str(url.toEncoded()))
+
     def update_selection(self):
         item = self.changesList.selectedItems()[0]
         rev = self.item_to_rev[item]
 
-        self.revisionEdit.setText(rev.revision_id)
-        self.parentsEdit.setText(u", ".join(rev.parent_ids))
+        def htmlencode(text):
+            return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br />")
 
-        message = rev.message
-        message = message.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br />")
+        message = htmlencode(rev.message)
         message = re.sub(r"([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])", "\\1<a href=\"\\2://\\3\">\\2://\\3</a>", message)
         message = re.sub(r"(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)", "\\1<a href=\"http://www.\\2.\\3\\4\">www.\\2.\\3\\4</a>", message)
-        message = re.sub(r"([a-z0-9_\-.]+@[a-z0-9_\-.]+)", '<a href="mailto:\\1">\\1</a>', message)
+        message = re.sub(r"([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)", '<a href="mailto:\\1">\\1</a>', message)
         if self.replace:
             for search, replace in self.replace:
                 message = re.sub(search, replace, message)
 
-        self.message.setHtml(message)
+        text = []
+        text.append("<b>Revision:</b> " + rev.revision_id)
+
+        parent_ids = rev.parent_ids
+        if parent_ids:
+            text.append("<b>Parent revisions:</b> " + ", ".join('<a href="qlog-revid:%s">%s</a>' % (a, a) for a in parent_ids))
+
+        committer = htmlencode(rev.committer)
+        committer = re.sub(r"([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)", '<a href="mailto:\\1">\\1</a>', committer)
+        text.append('<b>Author:</b> ' + committer)
+
+        branch_nick = rev.properties.get('branch-nick')
+        if branch_nick:
+            text.append('<b>Branch nick:</b> ' + branch_nick)
+
+        tags = rev.tags
+        if tags:
+            text.append('<b>Tags:</b> ' + ', '.join(tags))
+
+        text.append("")
+        text.append(message)
+
+        self.message.setHtml("<br />".join(text))
 
         self.fileList.clear()
 
         if not rev.delta:
+            # TODO move this to a thread
             rev.delta = \
                 self.branch.repository.get_deltas_for_revisions([rev]).next()
         delta = rev.delta
@@ -230,91 +272,48 @@ class LogWindow(QBzrWindow):
 
     def add_log_entry(self):
         """Add loaded entries to the list."""
-        revno, rev, delta, merge_depth = self.log_queue.get()
+        revision = self.log_queue.get()
 
+        merge_depth = revision.merge_depth
         if merge_depth > len(self.merge_stack) - 1:
             self.merge_stack.append(self.last_item)
         elif merge_depth < len(self.merge_stack) - 1:
             self.merge_stack.pop()
 
         item = QtGui.QTreeWidgetItem(self.merge_stack[-1])
-        if revno:
-            item.setText(0, str(revno))
+        item.setText(0, str(revision.revno))
+        rev = revision.rev
         date = QtCore.QDateTime()
         date.setTime_t(int(rev.timestamp))
         item.setText(1, date.toString(QtCore.Qt.LocalDate))
         item.setText(2, rev.committer)
         item.setText(3, rev.get_summary())
-        tag = self.tags.get(rev.revision_id, None)
-        if tag:
-            item.setData(3, TagNameRole, QtCore.QVariant(tag))
-        rev.delta = delta
+        tags = revision.tags
+        if tags:
+            # TODO support multiple tags
+            item.setData(3, TagNameRole, QtCore.QVariant(tags[0]))
+        rev.delta = revision.delta
+        rev.revno = revision.revno
+        rev.tags = revision.tags
         self.item_to_rev[item] = rev
         self.last_item = item
-        rev.revno = revno
 
     def load_history(self):
         """Load branch history."""
-        branch = self.branch
-        repository = branch.repository
-        specific_fileid = self.specific_fileid
 
-        start_revision = None
-        end_revision = None
+        class QLogFormatter(LogFormatter):
 
-        which_revs = _enumerate_history(branch)
+            supports_merge_revisions = True
+            supports_tags = True
+            supports_delta = True
 
-        if start_revision is None:
-            start_revision = 1
-        else:
-            branch.check_real_revno(start_revision)
-        
-        if end_revision is None:
-            end_revision = len(which_revs)
-        else:
-            branch.check_real_revno(end_revision)
-    
-        # list indexes are 0-based; revisions are 1-based
-        cut_revs = which_revs[(start_revision-1):(end_revision)]
-        if not cut_revs:
-            return
-    
-        # convert the revision history to a dictionary:
-        rev_nos = dict((k, v) for v, k in cut_revs)
-    
-        # override the mainline to look like the revision history.
-        mainline_revs = [revision_id for index, revision_id in cut_revs]
-        if cut_revs[0][0] == 1:
-            mainline_revs.insert(0, None)
-        else:
-            mainline_revs.insert(0, which_revs[start_revision-2][1])
-        include_merges = True
-        direction = 'reverse'
-        view_revisions = list(get_view_revisions(mainline_revs, rev_nos, branch,
-                              direction, include_merges=include_merges))
-            
-        def iter_revisions():
-            revision_ids = [r for r, n, d in view_revisions]
-            #revision_ids.reverse()
-            num = 20
-            while revision_ids:
-                cur_deltas = {}
-                cur_revision_ids = revision_ids[:num]
-                revisions = repository.get_revisions(cur_revision_ids)
-                if specific_fileid:
-                    deltas = repository.get_deltas_for_revisions(revisions)
-                    cur_deltas = dict(izip(cur_revision_ids, deltas))
-                    
-                for revision in revisions:
-                    delta = cur_deltas.get(revision.revision_id)
-                    if specific_fileid and \
-                       not delta.touches_file_id(specific_fileid):
-                        continue
-                    yield revision, delta
-                revision_ids  = revision_ids[num:]
-                num = int(num * 1.5)
+            def __init__(self, parent):
+                self.parent = parent
 
-        for ((rev_id, revno, merge_depth), (rev, delta)) in \
-             izip(view_revisions, iter_revisions()): 
-            self.log_queue.put((revno, rev, delta, merge_depth))
-            self.emit(QtCore.SIGNAL("log_entry_loaded()"))
+            def log_revision(self, revision):
+                self.parent.log_queue.put(revision)
+                self.parent.emit(QtCore.SIGNAL("log_entry_loaded()"))
+
+        formatter = QLogFormatter(self)
+        show_log(self.branch, formatter, verbose=False,
+                 specific_fileid=self.specific_fileid)

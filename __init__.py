@@ -27,6 +27,7 @@ if hasattr(sys, "frozen"):
     sys.path.append(os.path.join(os.path.dirname(__file__), '_lib'))
 
 import bzrlib.plugins.qbzr.resources
+from bzrlib import errors
 from bzrlib.option import Option
 from bzrlib.commands import Command, register_command
 from bzrlib.lazy_import import lazy_import
@@ -40,7 +41,6 @@ from bzrlib.plugins.qbzr.commit import CommitWindow
 from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.log import LogWindow
 from bzrlib.workingtree import WorkingTree
-from bzrlib import errors
 ''')
 
 
@@ -172,10 +172,10 @@ class cmd_qlog(Command):
             branch = dir.open_branch()
             if path:
                 try:
-                    inv = dir.open_workingtree().inventory
+                    tree = dir.open_workingtree()
                 except (errors.NotBranchError, errors.NotLocalUrl):
-                    inv = branch.basis_tree().inventory
-                file_id = inv.path2id(path)
+                    tree = branch.basis_tree()
+                file_id = tree.path2id(path)
         else:
             dir, path = BzrDir.open_containing('.')
             branch = dir.open_branch()
