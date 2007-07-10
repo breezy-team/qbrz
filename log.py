@@ -23,6 +23,7 @@ import re
 import Queue
 from itertools import izip
 from PyQt4 import QtCore, QtGui
+from bzrlib import lazy_regex
 from bzrlib.bzrdir import BzrDir
 from bzrlib.commands import Command, register_command
 from bzrlib.errors import NotVersionedError, BzrCommandError, NoSuchFile
@@ -32,6 +33,20 @@ from bzrlib.plugins.qbzr.util import QBzrWindow
 
 
 TagNameRole = QtCore.Qt.UserRole + 1
+
+
+_email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)')
+_link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])')
+_link2_re = lazy_regex.lazy_compile(r'(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)')
+
+
+def htmlize(text):
+    global _email_re, _link1_re, _link2_re
+    text = text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace("\n", '<br />')
+    text = _email_re.sub('<a href="mailto:\\1">\\1</a>', text)
+    text = _link1_re.sub('\\1<a href="\\2://\\3">\\2://\\3</a>', text)
+    text = _link2_re.sub('\\1<a href="http://www.\\2.\\3\\4">www.\\2.\\3\\4</a>', text)
+    return text
 
 
 class CustomFunctionThread(QtCore.QThread):
@@ -200,17 +215,6 @@ class LogWindow(QBzrWindow):
         item = self.changesList.selectedItems()[0]
         rev = self.item_to_rev[item]
 
-        def htmlencode(text):
-            return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br />")
-
-        message = htmlencode(rev.message)
-        message = re.sub(r"([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])", "\\1<a href=\"\\2://\\3\">\\2://\\3</a>", message)
-        message = re.sub(r"(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)", "\\1<a href=\"http://www.\\2.\\3\\4\">www.\\2.\\3\\4</a>", message)
-        message = re.sub(r"([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)", '<a href="mailto:\\1">\\1</a>', message)
-        if self.replace:
-            for search, replace in self.replace:
-                message = re.sub(search, replace, message)
-
         text = []
         text.append("<b>Revision:</b> " + rev.revision_id)
 
@@ -218,9 +222,7 @@ class LogWindow(QBzrWindow):
         if parent_ids:
             text.append("<b>Parent revisions:</b> " + ", ".join('<a href="qlog-revid:%s">%s</a>' % (a, a) for a in parent_ids))
 
-        committer = htmlencode(rev.committer)
-        committer = re.sub(r"([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)", '<a href="mailto:\\1">\\1</a>', committer)
-        text.append('<b>Author:</b> ' + committer)
+        text.append('<b>Author:</b> ' + htmlize(rev.committer))
 
         branch_nick = rev.properties.get('branch-nick')
         if branch_nick:
@@ -230,6 +232,10 @@ class LogWindow(QBzrWindow):
         if tags:
             text.append('<b>Tags:</b> ' + ', '.join(tags))
 
+        message = htmlize(rev.message)
+        if self.replace:
+            for search, replace in self.replace:
+                message = re.sub(search, replace, message)
         text.append("")
         text.append(message)
 
