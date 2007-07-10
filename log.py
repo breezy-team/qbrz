@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # QBzr - Qt frontend to Bazaar commands
-# Copyright (C) 2006 Lukáš Lalinský <lalinsky@gmail.com>
-# Porions Copyright (C) 2004, 2005, 2006 by Canonical Ltd 
+# Copyright (C) 2006-2007 Lukáš Lalinský <lalinsky@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -21,12 +20,8 @@
 import sys
 import re
 import Queue
-from itertools import izip
 from PyQt4 import QtCore, QtGui
 from bzrlib import lazy_regex
-from bzrlib.bzrdir import BzrDir
-from bzrlib.commands import Command, register_command
-from bzrlib.errors import NotVersionedError, BzrCommandError, NoSuchFile
 from bzrlib.log import LogFormatter, show_log
 from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.util import QBzrWindow
@@ -97,6 +92,20 @@ class LogMessageBrowser(QtGui.QTextBrowser):
         pass
 
 
+class QLogFormatter(LogFormatter):
+
+    supports_merge_revisions = True
+    supports_tags = True
+    supports_delta = True
+
+    def __init__(self, parent):
+        self.parent = parent
+
+    def log_revision(self, revision):
+        self.parent.log_queue.put(revision)
+        self.parent.emit(QtCore.SIGNAL("log_entry_loaded()"))
+
+
 class LogWindow(QBzrWindow):
 
     def __init__(self, branch, location, specific_fileid, replace=None, parent=None):
@@ -147,7 +156,7 @@ class LogWindow(QBzrWindow):
 
         #groupBox = QtGui.QGroupBox(u"Details", splitter)
 
-        splitter.setStretchFactor(0, 6)
+        splitter.setStretchFactor(0, 5)
         splitter.setStretchFactor(1, 1)
 
         #hbox = QtGui.QHBoxLayout(groupBox)
@@ -168,7 +177,6 @@ class LogWindow(QBzrWindow):
 
         self.message = QtGui.QTextDocument()
         self.message_browser = LogMessageBrowser(hsplitter)
-        #self.message_browser.setOpenExternalLinks(True)
         self.message_browser.setDocument(self.message)
         self.connect(self.message_browser, QtCore.SIGNAL("anchorClicked(QUrl)"), self.link_clicked)
         hsplitter.addWidget(self.message_browser)
@@ -180,7 +188,6 @@ class LogWindow(QBzrWindow):
         hsplitter.setStretchFactor(1, 1)
 
         splitter.addWidget(hsplitter)
-
 
         buttonbox = QtGui.QDialogButtonBox(
             QtGui.QDialogButtonBox.StandardButtons(
@@ -306,20 +313,6 @@ class LogWindow(QBzrWindow):
 
     def load_history(self):
         """Load branch history."""
-
-        class QLogFormatter(LogFormatter):
-
-            supports_merge_revisions = True
-            supports_tags = True
-            supports_delta = True
-
-            def __init__(self, parent):
-                self.parent = parent
-
-            def log_revision(self, revision):
-                self.parent.log_queue.put(revision)
-                self.parent.emit(QtCore.SIGNAL("log_entry_loaded()"))
-
         formatter = QLogFormatter(self)
         show_log(self.branch, formatter, verbose=False,
                  specific_fileid=self.specific_fileid)
