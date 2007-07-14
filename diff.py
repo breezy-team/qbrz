@@ -31,8 +31,10 @@ from bzrlib.commands import Command, register_command
 from bzrlib.config import GlobalConfig
 from bzrlib.diff import show_diff_trees
 from bzrlib.workingtree import WorkingTree
-from bzrlib.plugins.qbzr.util import QBzrWindow
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
+
+from bzrlib.plugins.qbzr.util import QBzrWindow, get_branch_config
+from bzrlib.plugins.qbzr.diffview import DiffView
 
 
 STYLES = {
@@ -50,36 +52,6 @@ def get_file_lines_from_tree(tree, file_id):
         return tree.get_file_lines(file_id)
     except AttributeError:
         return tree.get_file(file_id).readlines()
-
-
-def get_change_extent(str1, str2):
-    start = 0
-    limit = min(len(str1), len(str2))
-    while start < limit and str1[start] == str2[start]:
-        start += 1
-    end = -1
-    limit = limit - start
-    while -end <= limit and str1[end] == str2[end]:
-        end -= 1
-    return (start, end + 1)
-
-
-def markup_intraline_changes(line1, line2, color):
-    line1 = line1.replace("&", "\1").replace("<", "\2").replace(">", "\3")
-    line2 = line2.replace("&", "\1").replace("<", "\2").replace(">", "\3")
-    start, end = get_change_extent(line1[1:], line2[1:])
-    if start == 0 and end < 0:
-        text = '<span style="background-color:%s">%s</span>%s' % (color, line1[:end], line1[end:])
-    elif start > 0 and end == 0:
-        start += 1
-        text = '%s<span style="background-color:%s">%s</span>' % (line1[:start], color, line1[start:])
-    elif start > 0 and end < 0:
-        start += 1
-        text = '%s<span style="background-color:%s">%s</span>%s' % (line1[:start], color, line1[start:end], line1[end:])
-    else:
-        text = line1
-    text = text.replace("\1", "&amp;").replace("\2", "&lt;").replace("\3", "&gt;")
-    return text
 
 
 def htmlencode(string):
@@ -150,7 +122,7 @@ class FileDiff(object):
                             linea = a[i1 + i]
                             lineb = b[j1 + i]
                             linea = markup_intraline_changes(linea, lineb, '#EE9999')
-                            lineb = markup_intraline_changes(lineb, linea, '#99EE99')
+                            lineb = markup_intraline_changes(lineb, linea, '#99EE93')
                             html1.append(markup_line(linea, STYLES['delete'], encode=False))
                             html2.append(markup_line(lineb, STYLES['insert'], encode=False))
                     else:
@@ -301,11 +273,7 @@ class DiffWindow(QBzrWindow):
 
         size = (780, 580)
         try:
-            if branch is not None:
-                config = branch.get_config()
-            else:
-                config = GlobalConfig()
-            size_str = config.get_user_option("qdiff_window_size")
+            size_str = get_branch_config(branch).get_user_option("qdiff_window_size")
             if size_str:
                 size = map(int, size_str.split("x", 2))
         except:
@@ -318,31 +286,7 @@ class DiffWindow(QBzrWindow):
         self.specific_files = specific_files
 
         treediff = TreeDiff(self.tree1, self.tree2, self.specific_files, complete)
-
-        hbox = QtGui.QHBoxLayout()
-        if inline:
-            self.doc = QtGui.QTextDocument()
-            self.doc.setHtml(treediff.html_inline())
-            self.browser = QtGui.QTextBrowser()
-            self.browser.setDocument(self.doc)
-            hbox.addWidget(self.browser)
-        else:
-            html1, html2 = treediff.html_side_by_side()
-            self.doc1 = QtGui.QTextDocument()
-            self.doc1.setHtml(html1)
-            self.doc2 = QtGui.QTextDocument()
-            self.doc2.setHtml(html2)
-            self.browser1 = QtGui.QTextBrowser()
-            self.browser1.setDocument(self.doc1)
-            self.browser1.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-            self.browser2 = QtGui.QTextBrowser()
-            self.browser2.setDocument(self.doc2)
-            self.connect(self.browser1.verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.browser2.verticalScrollBar(), QtCore.SLOT("setValue(int)"))
-            self.connect(self.browser1.horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.browser2.horizontalScrollBar(), QtCore.SLOT("setValue(int)"))
-            self.connect(self.browser2.verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.browser1.verticalScrollBar(), QtCore.SLOT("setValue(int)"))
-            self.connect(self.browser2.horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.browser1.horizontalScrollBar(), QtCore.SLOT("setValue(int)"))
-            hbox.addWidget(self.browser1)
-            hbox.addWidget(self.browser2)
+        diffview = DiffView(treediff, self)
 
         buttonbox = QtGui.QDialogButtonBox(
             QtGui.QDialogButtonBox.StandardButtons(
@@ -352,5 +296,5 @@ class DiffWindow(QBzrWindow):
         self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.close)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
-        vbox.addLayout(hbox)
+        vbox.addWidget(diffview)
         vbox.addWidget(buttonbox)

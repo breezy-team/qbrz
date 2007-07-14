@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
+from bzrlib.config import GlobalConfig
 
 
 class QBzrWindow(QtGui.QMainWindow):
@@ -36,3 +37,8 @@ class QBzrWindow(QtGui.QMainWindow):
         self.setCentralWidget(self.centralwidget)
 
 
+def get_branch_config(branch):
+    if branch is not None:
+        return branch.get_config()
+    else:
+        return GlobalConfig()
