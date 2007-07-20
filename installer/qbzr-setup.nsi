@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "QBzr"
-!define PRODUCT_VERSION "0.3.1"
+!define PRODUCT_VERSION "0.4.0"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
@@ -50,7 +50,7 @@ Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
   File "..\*.py" "..\*.txt"
   SetOutPath "$INSTDIR\_ext"
-  File "_ext\*.pyd" "_ext\*.dll"
+  File "_ext\*.pyd"
   SetOutPath "$INSTDIR\_lib"
   File /r "_lib\*.py"
 
