@@ -1,4 +1,4 @@
-0.3.2 - 2007-XX-XX
+0.4.0 - 2007-07-20
 ------------------
 
  * qbrowse of a new branch errors (#113602)
@@ -7,6 +7,7 @@
  * Display tags in the log view.
  * Fixed working tree locking for qannotate by using tree.path2id
    instead of tree.inventory.path2id. (#121631)
+ * New diff viewer.
 
 0.3.1 - 2007-03-15
 ------------------
