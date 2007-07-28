@@ -19,6 +19,20 @@
 
 from PyQt4 import QtCore, QtGui
 from bzrlib.config import GlobalConfig
+from bzrlib import lazy_regex
+
+
+_email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)')
+_link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])')
+_link2_re = lazy_regex.lazy_compile(r'(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)')
+
+
+def htmlize(text):
+    text = text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace("\n", '<br />')
+    text = _email_re.sub('<a href="mailto:\\1">\\1</a>', text)
+    text = _link1_re.sub('\\1<a href="\\2://\\3">\\2://\\3</a>', text)
+    text = _link2_re.sub('\\1<a href="http://www.\\2.\\3\\4">www.\\2.\\3\\4</a>', text)
+    return text
 
 
 class QBzrWindow(QtGui.QMainWindow):
@@ -42,3 +56,28 @@ def get_branch_config(branch):
         return branch.get_config()
     else:
         return GlobalConfig()
+
+
+def format_revision_html(rev):
+    text = []
+    text.append("<b>Revision:</b> " + rev.revision_id)
+
+    parent_ids = rev.parent_ids
+    if parent_ids:
+        text.append("<b>Parent revisions:</b> " + ", ".join('<a href="qlog-revid:%s">%s</a>' % (a, a) for a in parent_ids))
+
+    text.append('<b>Author:</b> ' + htmlize(rev.committer))
+
+    branch_nick = rev.properties.get('branch-nick')
+    if branch_nick:
+        text.append('<b>Branch nick:</b> ' + branch_nick)
+
+    tags = getattr(rev, 'tags', None)
+    if tags:
+        text.append('<b>Tags:</b> ' + ', '.join(tags))
+
+    message = htmlize(rev.message)
+    text.append("")
+    text.append(message)
+
+    return "<br />".join(text)
