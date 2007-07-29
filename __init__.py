@@ -64,13 +64,17 @@ class cmd_qannotate(Command):
                 revision_id = revision[0].in_history(branch).rev_id
             file_id = tree.path2id(relpath)
             tree = branch.repository.revision_tree(revision_id)
-            file_version = tree.inventory[file_id].revision
-            lines = list(_annotate_file(branch, file_version, file_id))
+
+            w = branch.repository.weave_store.get_weave(
+                file_id, branch.repository.get_transaction())
+
+            revisions = branch.repository.get_revisions(w.versions())
+            content = list(w.annotate_iter(tree.inventory[file_id].revision))
         finally:
             branch.unlock()
 
         app = QtGui.QApplication(sys.argv)
-        win = AnnotateWindow(filename, lines)
+        win = AnnotateWindow(filename, content, revisions)
         win.show()
         app.exec_()
 
