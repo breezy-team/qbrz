@@ -45,9 +45,10 @@ class AnnotateView(QtGui.QTextBrowser):
     def paintEvent(self, event):
         w = self.width()
         h = self.height()
-        y = -self.verticalScrollBar().value()
+        y = 1 - self.verticalScrollBar().value()
         painter = QtGui.QPainter(self.viewport())
         painter.setClipRect(event.rect())
+        painter.setPen(QtGui.QColor(150, 150, 150))
         for pos, length, col in self.blocks:
             y1 = y + self.line_height * pos
             y2 = y1 + self.line_height * length
@@ -56,7 +57,6 @@ class AnnotateView(QtGui.QTextBrowser):
             if y2 >= 0:
                 if y1 >= 0:
                     painter.fillRect(0, y1, w, y2, col)
-                    painter.setPen(col.dark(150))
                     painter.drawLine(0, y1, w, y1)
                 else:
                     painter.fillRect(0, 0, w, y2, col)
