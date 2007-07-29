@@ -1,3 +1,9 @@
+0.5.0 - 2007-07-29
+------------------
+
+ * Improved annotation viewer.
+ * Fixed Windows installer (included the Queue Python module).
+
 0.4.0 - 2007-07-20
 ------------------
 
