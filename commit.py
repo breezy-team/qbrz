@@ -24,7 +24,7 @@ import re
 import sys
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.errors import BzrError
+from bzrlib.errors import BzrError, NoSuchRevision
 from bzrlib.option import Option
 from bzrlib.commands import Command, register_command
 from bzrlib.commit import ReportCommitToLog
@@ -161,11 +161,30 @@ class CommitWindow(QBzrWindow):
             ext = os.path.splitext(entry)[1]
             files.append(("non-versioned", entry, ext, entry, False))
 
-
+        branch = tree.branch
         parents = tree.get_parent_ids()
         pending_merges = None
         if len(parents) > 1:
-            pending_merges = tree.branch.repository.get_revisions(parents[1:])
+            last_revision = parents[0]
+            if last_revision is not None:
+                try:
+                    ignore = set(branch.repository.get_ancestry(last_revision,
+                                                                topo_sorted=False))
+                except NoSuchRevision:
+                    ignore = set([None, last_revision])
+            else:
+                ignore = set([None])
+            pending_merges = branch.repository.get_revisions(parents[1:])
+            for i, merge in enumerate(pending_merges):
+                ignore.add(merge.revision_id)
+                inner_merges = branch.repository.get_ancestry(merge.revision_id)
+                inner_merges.pop(0)
+                for inner_merge in inner_merges:
+                    if inner_merge in ignore:
+                        continue
+                    ignore.add(inner_merge)
+                    inner_merge = branch.repository.get_revision(inner_merge)
+                    pending_merges.insert(i + 1, inner_merge)
             #for rev in pending_merges:
             #    print rev.committer, rev.get_summary()
         self.has_pending_merges = bool(pending_merges)
