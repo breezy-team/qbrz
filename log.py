@@ -21,22 +21,19 @@ import sys
 import re
 import Queue
 from PyQt4 import QtCore, QtGui
-from bzrlib import lazy_regex
+from bzrlib import bugtracker, lazy_regex
 from bzrlib.log import LogFormatter, show_log
 from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.util import QBzrWindow
 
 
 TagNameRole = QtCore.Qt.UserRole + 1
+BugIdRole = QtCore.Qt.UserRole + 100
 
 
 _email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)')
 _link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])')
 _link2_re = lazy_regex.lazy_compile(r'(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)')
-
-
-_tag_color = QtGui.QColor(255, 255, 170)
-_tag_color_border = QtGui.QColor(255, 238, 0)
 
 
 def htmlize(text):
@@ -46,6 +43,15 @@ def htmlize(text):
     text = _link1_re.sub('\\1<a href="\\2://\\3">\\2://\\3</a>', text)
     text = _link2_re.sub('\\1<a href="http://www.\\2.\\3\\4">www.\\2.\\3\\4</a>', text)
     return text
+
+
+_bug_id_re = lazy_regex.lazy_compile(r'(?:bugs/|ticket/|show_bug\.cgi\?id=)(\d+)(?:\b|$)')
+
+def get_bug_id(branch, bug_url):
+    match = _bug_id_re.search(bug_url)
+    if match:
+        return match.group(1)
+    return None
 
 
 class CustomFunctionThread(QtCore.QThread):
@@ -61,32 +67,58 @@ class CustomFunctionThread(QtCore.QThread):
 
 class LogWidgetDelegate(QtGui.QItemDelegate):
 
+    _tagColor = QtGui.QColor(255, 255, 170)
+    _tagColorBorder = QtGui.QColor(255, 238, 0)
+
+    _bugColor = QtGui.QColor(255, 188, 188)
+    _bugColorBorder = QtGui.QColor(255, 79, 79)
+
     def paint(self, painter, option, index):
-        self.tag = None
+        self.labels = []
         if index.column() == 3:
-            tag = index.data(TagNameRole)
-            if tag:
-                self.tag = tag.toString()
+            # collect tag names
+            for i in range(10):
+                tag = index.data(TagNameRole + i)
+                if not tag.isNull():
+                    self.labels.append(
+                        (tag.toString(), self._tagColor,
+                         self._tagColorBorder))
+                else:
+                    break
+            # collect bug ids
+            for i in range(10):
+                bug = index.data(BugIdRole + i)
+                if not bug.isNull():
+                    self.labels.append(
+                        ("bug #" + bug.toString(), self._bugColor,
+                         self._bugColorBorder))
+                else:
+                    break
         QtGui.QItemDelegate.paint(self, painter, option, index)
 
     def drawDisplay(self, painter, option, rect, text):
-        if not self.tag:
+        if not self.labels:
             return QtGui.QItemDelegate.drawDisplay(self, painter, option, rect, text)
 
-        tagRect = rect.adjusted(1, 1, -1, -1)
+        painter.save()
         tagFont = QtGui.QFont(option.font)
         tagFont.setPointSizeF(tagFont.pointSizeF() * 9 / 10)
-        tagRect.setWidth(QtGui.QFontMetrics(tagFont).width(self.tag) + 6)
 
-        painter.save()
-        painter.fillRect(tagRect.adjusted(1, 1, -1, -1), _tag_color)
-        painter.setPen(_tag_color_border)
-        painter.drawRect(tagRect.adjusted(0, 0, -1, -1))
-        painter.setFont(tagFont)
-        painter.setPen(option.palette.text().color())
-        painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, self.tag)
+        x = 0
+        for label, color, borderColor in self.labels:
+            tagRect = rect.adjusted(1, 1, -1, -1)
+            tagRect.setWidth(QtGui.QFontMetrics(tagFont).width(label) + 6)
+            tagRect.moveLeft(tagRect.x() + x)
+            painter.fillRect(tagRect.adjusted(1, 1, -1, -1), color)
+            painter.setPen(borderColor)
+            painter.drawRect(tagRect.adjusted(0, 0, -1, -1))
+            painter.setFont(tagFont)
+            painter.setPen(option.palette.text().color())
+            painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, label)
+            x += tagRect.width() + 3
+
         painter.setFont(option.font)
-        painter.drawText(rect.left() + tagRect.width() + 5, rect.bottom() - option.fontMetrics.descent(), text)
+        painter.drawText(rect.left() + x + 2, rect.bottom() - option.fontMetrics.descent(), text)
         painter.restore()
 
 
@@ -243,6 +275,15 @@ class LogWindow(QBzrWindow):
         if tags:
             text.append('<b>Tags:</b> ' + ', '.join(tags))
 
+        bugs = []
+        for bug in rev.properties.get('bugs', '').split('\n'):
+            if bug:
+                url, status = bug.split(' ')
+                bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
+                    dict(url=url, status=status)))
+        if bugs:
+            text.append('<b>Bugs:</b> ' + ', '.join(bugs))
+
         message = htmlize(rev.message)
         if self.replace:
             for search, replace in self.replace:
@@ -305,10 +346,26 @@ class LogWindow(QBzrWindow):
         item.setText(1, date.toString(QtCore.Qt.LocalDate))
         item.setText(2, rev.committer)
         item.setText(3, rev.get_summary())
-        tags = revision.tags
+
+
+        tags = getattr(revision, 'tags', None)
         if tags:
-            # TODO support multiple tags
-            item.setData(3, TagNameRole, QtCore.QVariant(tags[0]))
+            i = TagNameRole
+            for tag in tags:
+                item.setData(3, i, QtCore.QVariant(tag))
+                i += 1
+
+        #get_bug_id = getattr(bugtracker, 'get_bug_id', None)
+        if get_bug_id:
+            i = BugIdRole
+            for bug in rev.properties.get('bugs', '').split('\n'):
+                if bug:
+                    url, status = bug.split(' ')
+                    bug_id = get_bug_id(self.branch, url)
+                    if bug_id:
+                        item.setData(3, i, QtCore.QVariant(bug_id))
+                        i += 1
+
         rev.delta = revision.delta
         rev.revno = revision.revno
         rev.tags = revision.tags
