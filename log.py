@@ -35,6 +35,10 @@ _link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}(
 _link2_re = lazy_regex.lazy_compile(r'(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)')
 
 
+_tag_color = QtGui.QColor(255, 255, 170)
+_tag_color_border = QtGui.QColor(255, 238, 0)
+
+
 def htmlize(text):
     global _email_re, _link1_re, _link2_re
     text = text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace("\n", '<br />')
@@ -75,8 +79,8 @@ class LogWidgetDelegate(QtGui.QItemDelegate):
         tagRect.setWidth(QtGui.QFontMetrics(tagFont).width(self.tag) + 6)
 
         painter.save()
-        painter.fillRect(tagRect.adjusted(1, 1, -1, -1), QtGui.QColor(200, 247, 176))
-        painter.setPen(QtGui.QColor(115, 191, 76))
+        painter.fillRect(tagRect.adjusted(1, 1, -1, -1), _tag_color)
+        painter.setPen(_tag_color_border)
         painter.drawRect(tagRect.adjusted(0, 0, -1, -1))
         painter.setFont(tagFont)
         painter.setPen(option.palette.text().color())
