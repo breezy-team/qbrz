@@ -274,11 +274,11 @@ class LogWindow(QBzrWindow):
     def show_differences(self, item, column):
         """Show differences between the working copy and the last revision."""
         rev = self.item_to_rev[item]
-        tree = self.branch.repository.revision_tree(rev.revision_id)
         if not rev.parent_ids:
+            tree = self.branch.repository.revision_tree(rev.revision_id)
             old_tree = self.branch.repository.revision_tree(None)
         else:
-            old_tree = self.branch.repository.revision_tree(rev.parent_ids[0])
+            tree, old_tree = self.branch.repository.revision_trees([rev.revision_id, rev.parent_ids[0]])
         window = DiffWindow(old_tree, tree, custom_title=rev.revision_id, branch=self.branch)
         window.show()
         self.windows.append(window)
