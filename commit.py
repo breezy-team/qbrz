@@ -24,6 +24,10 @@ import re
 import sys
 from PyQt4 import QtCore, QtGui
 
+from bzrlib import (
+    bugtracker,
+    errors,
+    )
 from bzrlib.errors import BzrError, NoSuchRevision
 from bzrlib.option import Option
 from bzrlib.commands import Command, register_command
@@ -219,6 +223,17 @@ class CommitWindow(QBzrWindow):
         vbox = QtGui.QVBoxLayout(groupbox)
         vbox.addWidget(self.message)
 
+        self.bugsCheckBox = QtGui.QCheckBox("&Fixed bugs:")
+        self.bugs = QtGui.QLineEdit()
+        self.bugs.setEnabled(False)
+        self.connect(self.bugsCheckBox, QtCore.SIGNAL("stateChanged(int)"), self.enableBugs)
+
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(self.bugsCheckBox)
+        hbox.addWidget(self.bugs)
+
+        vbox.addLayout(hbox)
+
         if pending_merges:
             groupbox = QtGui.QGroupBox("Pending Merges", splitter)
             splitter.addWidget(groupbox)
@@ -240,7 +255,6 @@ class CommitWindow(QBzrWindow):
                 item.setText(0, date.toString(QtCore.Qt.LocalDate))
                 item.setText(1, merge.committer)
                 item.setText(2, merge.get_summary())
-
 
         groupbox = QtGui.QGroupBox("Changes", splitter)
         splitter.addWidget(groupbox)
@@ -292,8 +306,8 @@ class CommitWindow(QBzrWindow):
                 item.setHidden(not self.show_nonversioned_checkbox.isChecked())
                 self.unknowns.append(item)
 
-        splitter.setStretchFactor(0, 2)
-        splitter.setStretchFactor(1, 3)
+        splitter.setStretchFactor(0, 3)
+        splitter.setStretchFactor(1, 4)
 
         buttonbox = QtGui.QDialogButtonBox(
             QtGui.QDialogButtonBox.StandardButtons(
@@ -313,8 +327,49 @@ class CommitWindow(QBzrWindow):
             window.close()
         event.accept()
 
+    def enableBugs(self, state):
+        if state == QtCore.Qt.Checked:
+            self.bugs.setEnabled(True)
+            self.bugs.setFocus(QtCore.Qt.OtherFocusReason)
+        else:
+            self.bugs.setEnabled(False)
+
+    def parseBugs(self):
+        fixes = self.bugs.text().split(' ', QtCore.QString.SkipEmptyParts)
+        properties = []
+        for fixed_bug in fixes:
+            tokens = fixed_bug.split(':')
+            if len(tokens) != 2:
+                raise errors.BzrCommandError(
+                    "Invalid bug '%s'. Must be in the form of 'tag:id'."
+                    % fixed_bug)
+            tag, bug_id = tokens
+            try:
+                bug_url = bugtracker.get_bug_url(tag, self.tree.branch, bug_id)
+            except errors.UnknownBugTrackerAbbreviation:
+                raise errors.BzrCommandError(
+                    "Unrecognized bug '%s'." % fixed_bug)
+            except errors.MalformedBugIdentifier:
+                raise errors.BzrCommandError(
+                    "Invalid bug identifier for '%s'." % fixed_bug)
+            properties.append('%s fixed' % bug_url)
+        return '\n'.join(properties)
+
     def accept(self):
         """Commit the changes."""
+
+        properties = {}
+
+        if self.bugsCheckBox.checkState() == QtCore.Qt.Checked:
+            try:
+                bugs = self.parseBugs()
+            except Exception, e:
+                QtGui.QMessageBox.warning(self,
+                    "QBzr - Commit", str(e), QtGui.QMessageBox.Ok)
+                return
+            else:
+                if bugs:
+                    properties['bugs'] = bugs
 
         if not self.has_pending_merges:
             specific_files = []
@@ -332,7 +387,8 @@ class CommitWindow(QBzrWindow):
             self.tree.commit(message=unicode(self.message.toPlainText()),
                              specific_files=specific_files,
                              reporter=ReportCommitToLog(),
-                             allow_pointless=False)
+                             allow_pointless=False,
+                             revprops=properties)
         except BzrError, e:
             QtGui.QMessageBox.warning(self, "QBzr - Commit", str(e), QtGui.QMessageBox.Ok)
 
