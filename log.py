@@ -265,7 +265,10 @@ class LogWindow(QBzrWindow):
         if parent_ids:
             text.append("<b>Parent revisions:</b> " + ", ".join('<a href="qlog-revid:%s">%s</a>' % (a, a) for a in parent_ids))
 
-        text.append('<b>Author:</b> ' + htmlize(rev.committer))
+        text.append('<b>Committer:</b> ' + htmlize(rev.committer))
+        author = rev.properties.get('author')
+        if author:
+            text.append('<b>Author:</b> ' + htmlize(author))
 
         branch_nick = rev.properties.get('branch-nick')
         if branch_nick:
@@ -344,9 +347,9 @@ class LogWindow(QBzrWindow):
         date = QtCore.QDateTime()
         date.setTime_t(int(rev.timestamp))
         item.setText(1, date.toString(QtCore.Qt.LocalDate))
-        item.setText(2, rev.committer)
+        author = rev.properties.get('author', rev.committer)
+        item.setText(2, author)
         item.setText(3, rev.get_summary())
-
 
         tags = getattr(revision, 'tags', None)
         if tags:
