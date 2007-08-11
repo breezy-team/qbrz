@@ -46,7 +46,7 @@ from bzrlib.workingtree import WorkingTree
 
 class cmd_qannotate(Command):
     """Show the origin of each line in a file."""
-    takes_args = ['filename?']
+    takes_args = ['filename']
     takes_options = ['revision']
     aliases = ['qann', 'qblame']
 
