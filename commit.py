@@ -140,7 +140,8 @@ class CommitWindow(QBzrWindow):
         title = ["Commit"]
         if path:
             title.append(path)
-        QBzrWindow.__init__(self, title, (540, 500), parent)
+        QBzrWindow.__init__(self, title, (540, 540), parent)
+        self.setWindowFlags(QtCore.Qt.WindowContextHelpButtonHint)
 
         self.tree = tree
         self.basis_tree = self.tree.basis_tree()
@@ -212,50 +213,68 @@ class CommitWindow(QBzrWindow):
 
         groupbox = QtGui.QGroupBox("Message", splitter)
         splitter.addWidget(groupbox)
+        grid = QtGui.QGridLayout(groupbox)
 
+        # Equivalent for 'bzr commit --message'
+        self.message = TextEdit(groupbox)
+        self.message.setToolTip("Enter the commit message")
         completer = QtGui.QCompleter()
         completer.setModel(QtGui.QStringListModel(words, completer))
-
-        self.message = TextEdit(groupbox)
         self.message.setCompleter(completer)
         self.message.setAcceptRichText(False)
+        grid.addWidget(self.message, 0, 0, 1, 2)
 
-        vbox = QtGui.QVBoxLayout(groupbox)
-        vbox.addWidget(self.message)
-
+        # Equivalent for 'bzr commit --fixes'
         self.bugsCheckBox = QtGui.QCheckBox("&Fixed bugs:")
+        self.bugsCheckBox.setToolTip("Set the IDs of bugs fixed by "
+                                     "this commit")
         self.bugs = QtGui.QLineEdit()
+        self.bugs.setToolTip("Enter the list of bug IDs in format "
+                             "<i>tag:id</i> separated by a space, "
+                             "e.g. <i>project:123 project:765</i>")
         self.bugs.setEnabled(False)
-        self.connect(self.bugsCheckBox, QtCore.SIGNAL("stateChanged(int)"), self.enableBugs)
+        self.connect(self.bugsCheckBox, QtCore.SIGNAL("stateChanged(int)"),
+                     self.enableBugs)
+        grid.addWidget(self.bugsCheckBox, 1, 0)
+        grid.addWidget(self.bugs, 1, 1)
 
-        hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(self.bugsCheckBox)
-        hbox.addWidget(self.bugs)
+        # Equivalent for 'bzr commit --author'
+        self.authorCheckBox = QtGui.QCheckBox("&Author:")
+        self.authorCheckBox.setToolTip("Set the author of this change, if"
+                                       " it's different from the committer")
+        self.author = QtGui.QLineEdit()
+        self.author.setToolTip("Enter the author's name, e.g. <i>John Doe "
+                               "&lt;jdoe@example.com&gt;</i>")
+        self.author.setEnabled(False)
+        self.connect(self.authorCheckBox, QtCore.SIGNAL("stateChanged(int)"),
+                     self.enableAuthor)
+        grid.addWidget(self.authorCheckBox, 2, 0)
+        grid.addWidget(self.author, 2, 1)
 
-        vbox.addLayout(hbox)
-
+        # Display a list of pending merges
         if pending_merges:
             groupbox = QtGui.QGroupBox("Pending Merges", splitter)
             splitter.addWidget(groupbox)
 
-            self.merge_list = QtGui.QTreeWidget(groupbox)
-            self.merge_list.setHeaderLabels(["Date", "Author", "Message"])
-
-            header = self.merge_list.header()
+            pendingMergesWidget = QtGui.QTreeWidget(groupbox)
+            pendingMergesWidgetList.setHeaderLabels(
+                ["Date", "Author", "Message"])
+            header = self.pendingMergesWidget.header()
             header.resizeSection(0, 120)
             header.resizeSection(1, 190)
 
-            vbox = QtGui.QVBoxLayout(groupbox)
-            vbox.addWidget(self.merge_list)
-
+            date = QtCore.QDateTime()
             for merge in pending_merges:
-                item = QtGui.QTreeWidgetItem(self.merge_list)
-                date = QtCore.QDateTime()
+                item = QtGui.QTreeWidgetItem(pendingMergesWidget)
                 date.setTime_t(int(merge.timestamp))
                 item.setText(0, date.toString(QtCore.Qt.LocalDate))
                 item.setText(1, merge.committer)
                 item.setText(2, merge.get_summary())
 
+            vbox = QtGui.QVBoxLayout(groupbox)
+            vbox.addWidget(pendingMergesWidget)
+
+        # Display the list of changed files
         groupbox = QtGui.QGroupBox("Changes", splitter)
         splitter.addWidget(groupbox)
 
@@ -334,8 +353,15 @@ class CommitWindow(QBzrWindow):
         else:
             self.bugs.setEnabled(False)
 
+    def enableAuthor(self, state):
+        if state == QtCore.Qt.Checked:
+            self.author.setEnabled(True)
+            self.author.setFocus(QtCore.Qt.OtherFocusReason)
+        else:
+            self.author.setEnabled(False)
+
     def parseBugs(self):
-        fixes = self.bugs.text().split(' ', QtCore.QString.SkipEmptyParts)
+        fixes = unicode(self.bugs.text()).split()
         properties = []
         for fixed_bug in fixes:
             tokens = fixed_bug.split(':')
@@ -370,6 +396,11 @@ class CommitWindow(QBzrWindow):
             else:
                 if bugs:
                     properties['bugs'] = bugs
+
+        if self.authorCheckBox.checkState() == QtCore.Qt.Checked:
+            author = unicode(self.author.text())
+            if author:
+                properties['author'] = author
 
         if not self.has_pending_merges:
             specific_files = []
