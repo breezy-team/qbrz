@@ -291,11 +291,11 @@ class CommitWindow(QBzrWindow):
         self.filelist.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
 
         self.revert_action = QtGui.QAction("&Revert...", self)
-        self.connect(self.revert_action, QtCore.SIGNAL("activated()"), self.revert_selected)
+        self.connect(self.revert_action, QtCore.SIGNAL("triggered()"), self.revert_selected)
         self.filelist.addAction(self.revert_action)
 
         self.show_diff_action = QtGui.QAction("Show &Differences...", self)
-        self.connect(self.show_diff_action, QtCore.SIGNAL("activated()"), self.show_differences)
+        self.connect(self.show_diff_action, QtCore.SIGNAL("triggered()"), self.show_differences)
         self.filelist.addAction(self.show_diff_action)
 
         vbox = QtGui.QVBoxLayout(groupbox)
