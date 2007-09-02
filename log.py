@@ -20,6 +20,7 @@
 import sys
 import re
 import Queue
+import copy
 from PyQt4 import QtCore, QtGui
 from bzrlib import bugtracker, lazy_regex
 from bzrlib.log import LogFormatter, show_log
@@ -52,17 +53,6 @@ def get_bug_id(branch, bug_url):
     if match:
         return match.group(1)
     return None
-
-
-class CustomFunctionThread(QtCore.QThread):
-
-    def __init__(self, target, args=[], parent=None):
-        QtCore.QThread.__init__(self, parent)
-        self.target = target
-        self.args = args
-
-    def run(self):
-        self.target(*self.args)
 
 
 class LogWidgetDelegate(QtGui.QItemDelegate):
@@ -128,6 +118,9 @@ class LogMessageBrowser(QtGui.QTextBrowser):
         pass
 
 
+class StopLoading(Exception): pass
+
+
 class QLogFormatter(LogFormatter):
 
     supports_merge_revisions = True
@@ -136,10 +129,22 @@ class QLogFormatter(LogFormatter):
 
     def __init__(self, parent):
         self.parent = parent
+        self.items = []
+        self.n = 10
+
+    def add_items(self):
+        for revision in self.items:
+            self.parent.add_log_entry(revision)
+        self.items = []
 
     def log_revision(self, revision):
-        self.parent.log_queue.put(revision)
-        self.parent.emit(QtCore.SIGNAL("log_entry_loaded()"))
+        if self.parent.isHidden():
+            raise StopLoading()
+        self.items.append(revision)
+        if len(self.items) > self.n:
+            self.add_items()
+            self.n = max(200, int(self.n * 1.5))
+        QtCore.QCoreApplication.processEvents()
 
 
 class LogWindow(QBzrWindow):
@@ -184,11 +189,6 @@ class LogWindow(QBzrWindow):
 
         self.last_item = None
         self.merge_stack = [self.changesList]
-        self.connect(self, QtCore.SIGNAL("log_entry_loaded()"),
-                     self.add_log_entry, QtCore.Qt.QueuedConnection)
-        self.log_queue = Queue.Queue()
-        self.thread = CustomFunctionThread(self.load_history, parent=self)
-        self.thread.start()
 
         #groupBox = QtGui.QGroupBox(u"Details", splitter)
 
@@ -236,6 +236,10 @@ class LogWindow(QBzrWindow):
         vbox.addWidget(splitter)
         vbox.addWidget(buttonbox)
         self.windows = []
+
+    def show(self):
+        QBzrWindow.show(self)
+        QtCore.QTimer.singleShot(5, self.load_history)
 
     def closeEvent(self, event):
         for window in self.windows:
@@ -331,9 +335,8 @@ class LogWindow(QBzrWindow):
         window.show()
         self.windows.append(window)
 
-    def add_log_entry(self):
+    def add_log_entry(self, revision):
         """Add loaded entries to the list."""
-        revision = self.log_queue.get()
 
         merge_depth = revision.merge_depth
         if merge_depth > len(self.merge_stack) - 1:
@@ -347,6 +350,7 @@ class LogWindow(QBzrWindow):
         date = QtCore.QDateTime()
         date.setTime_t(int(rev.timestamp))
         item.setText(1, date.toString(QtCore.Qt.LocalDate))
+
         author = rev.properties.get('author', rev.committer)
         item.setText(2, author)
         item.setText(3, rev.get_summary())
@@ -369,7 +373,7 @@ class LogWindow(QBzrWindow):
                         item.setData(3, i, QtCore.QVariant(bug_id))
                         i += 1
 
-        rev.delta = revision.delta
+        rev.delta = None
         rev.revno = revision.revno
         rev.tags = revision.tags
         self.item_to_rev[item] = rev
@@ -378,5 +382,10 @@ class LogWindow(QBzrWindow):
     def load_history(self):
         """Load branch history."""
         formatter = QLogFormatter(self)
-        show_log(self.branch, formatter, verbose=False,
-                 specific_fileid=self.specific_fileid)
+        try:
+            show_log(self.branch, formatter, verbose=False,
+                     specific_fileid=self.specific_fileid)
+        except StopLoading:
+            pass
+        else:
+            formatter.add_items()
