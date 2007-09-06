@@ -1,8 +1,12 @@
-0.6.0 - 2007-XX-YY
+0.6.0 - 2007-09-06
 ------------------
 
  * Support for --fixes and --author eqivalents in the commit dialog.
  * Display fixed bugs in the log view.
+ * Changed color of tags to yellow (to make it more consistant with gitk/hgk).
+ * Faster diff viewing from the log window.
+ * Pending merges in the commit dialog are now displayed as a flat list.
+ * PyQt 4.3 fixes.
 
 0.5.0 - 2007-07-29
 ------------------
