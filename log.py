@@ -19,8 +19,6 @@
 
 import sys
 import re
-import Queue
-import copy
 from PyQt4 import QtCore, QtGui
 from bzrlib import bugtracker, lazy_regex
 from bzrlib.log import LogFormatter, show_log
