@@ -181,9 +181,8 @@ class LogWindow(QBzrWindow):
         self.branch = branch
         self.item_to_rev = {}
 
-        if branch.supports_tags():
-            delegate = LogWidgetDelegate(self)
-            self.changesList.setItemDelegate(delegate)
+        delegate = LogWidgetDelegate(self)
+        self.changesList.setItemDelegate(delegate)
 
         self.last_item = None
         self.merge_stack = [self.changesList]
