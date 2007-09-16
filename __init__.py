@@ -109,7 +109,7 @@ class cmd_qdiff(Command):
     """Show differences in working tree in a GUI window."""
     takes_args = ['file*']
     takes_options = [
-        'revision',
+        'revision', 'change',
         Option('inline', help='Show inline diff'),
         Option('complete', help='Show complete files'),
         ]
