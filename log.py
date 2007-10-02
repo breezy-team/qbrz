@@ -23,7 +23,7 @@ from PyQt4 import QtCore, QtGui
 from bzrlib import bugtracker, lazy_regex
 from bzrlib.log import LogFormatter, show_log
 from bzrlib.plugins.qbzr.diff import DiffWindow
-from bzrlib.plugins.qbzr.util import QBzrWindow
+from bzrlib.plugins.qbzr.util import QBzrWindow, open_browser
 
 
 TagNameRole = QtCore.Qt.UserRole + 1
@@ -256,8 +256,7 @@ class LogWindow(QBzrWindow):
                     self.changesList.setCurrentItem(item)
                     break
         else:
-            import webbrowser
-            webbrowser.open(str(url.toEncoded()))
+            open_browser(str(url.toEncoded()))
 
     def update_selection(self):
         item = self.changesList.selectedItems()[0]

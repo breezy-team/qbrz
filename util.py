@@ -17,6 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import os
 from PyQt4 import QtCore, QtGui
 from bzrlib.config import GlobalConfig
 from bzrlib import lazy_regex
@@ -81,3 +82,15 @@ def format_revision_html(rev):
     text.append(message)
 
     return "<br />".join(text)
+
+
+def open_browser(url):
+    try:
+        import webbrowser
+        open_func = webbrowser.open
+    except ImportError:
+        try:
+            open_func = os.startfile
+        except AttributeError:
+            open_func = lambda x: None
+    open_func(url)
