@@ -106,6 +106,10 @@ class LogWidgetDelegate(QtGui.QItemDelegate):
             x += tagRect.width() + 3
 
         painter.setFont(option.font)
+        if option.state & QtGui.QStyle.State_Selected:
+            painter.setPen(option.palette.highlightedText().color())
+        else:
+            painter.setPen(option.palette.text().color())
         painter.drawText(rect.left() + x + 2, rect.bottom() - option.fontMetrics.descent(), text)
         painter.restore()
 
