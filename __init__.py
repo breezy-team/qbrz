@@ -17,6 +17,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+"""QBzr - Qt-based front end for Bazaar
+
+Provided commands: qcommit, qdiff, qlog, qannotate, qbrowse
+"""
+
 __version__ = "0.6.0"
 
 import os.path
