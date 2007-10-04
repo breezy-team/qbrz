@@ -307,6 +307,6 @@ class DiffWindow(QBzrWindow):
         self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.close)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
-        #vbox.addWidget(diffview)
         vbox.addWidget(tab)
         vbox.addWidget(buttonbox)
+

@@ -370,12 +370,12 @@ class DiffView(QtGui.QSplitter):
 
 
 
-class SimpleDiffView(QtGui.QTextBrowser):
+class SimpleDiffView(QtGui.QTextEdit):
 
-    def __init__(self, treediff, parent=None):
-        QtGui.QTextBrowser.__init__(self, parent)
+    def __init__(self, parent=None):
+        QtGui.QTextEdit.__init__(self, parent)
         self.doc = QtGui.QTextDocument(parent)
-        self.setDocument(self.doc)
+        self.setReadOnly(1)
 
     def gendiff(self, old_tree, new_tree, specific_files=None):
         old_tree.lock_read()
@@ -406,6 +406,9 @@ class SimpleDiffView(QtGui.QTextBrowser):
             else:
                 res += "%s<br>"%markup_line(l)
 
+        if len(s) and s[-1] == '\n' and (res[-4:] == "<br>"):
+            res = res[:-4]
+
         res += '</span>'
         return res
 
@@ -416,4 +419,4 @@ class SimpleDiffView(QtGui.QTextBrowser):
         res = self._diff2html(s.getvalue())
         self.doc.setHtml("<html><body><pre>%s</pre></body></html>"%(res))
         self.setDocument(self.doc)
-
+        self.verticalScrollBar().setValue(0)
