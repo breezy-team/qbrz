@@ -254,30 +254,6 @@ class LogWindow(QBzrWindow):
             window.close()
         event.accept()
 
-    def diff_pushed(self, checked):
-        """Show differences of the selected range or of a single revision"""
-        items = self.changesList.selectedItems()
-        if len(items) == 0:
-            # the list is empty
-            return
-        elif len(items) == 1:
-            item = items[0]
-            rev = self.item_to_rev[item]
-            if not rev.parent_ids:
-                tree = self.branch.repository.revision_tree(rev.revision_id)
-                old_tree = self.branch.repository.revision_tree(None)
-            else:
-                tree, old_tree = self.branch.repository.revision_trees([rev.revision_id, rev.parent_ids[0]])
-        else:
-            rev = self.item_to_rev[items[0]]
-            revto = self.item_to_rev[items[-1]]
-            tree = self.branch.repository.revision_tree(rev.revision_id)
-            old_tree = self.branch.repository.revision_tree(revto.revision_id)
-
-        window = DiffWindow(old_tree, tree, custom_title=rev.revision_id, branch=self.branch)
-        window.show()
-        self.windows.append(window)
-
     def link_clicked(self, url):
         scheme = unicode(url.scheme())
         if scheme == 'qlog-revid':
@@ -358,17 +334,33 @@ class LogWindow(QBzrWindow):
             item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
             item.setTextColor(QtGui.QColor("purple"))
 
-    def show_differences(self, item, column):
-        """Show differences between the working copy and the last revision."""
-        rev = self.item_to_rev[item]
-        if not rev.parent_ids:
-            tree = self.branch.repository.revision_tree(rev.revision_id)
+    def show_diff_window(self, rev1, rev2):
+        if not rev2.parent_ids:
+            revs = [rev1.revision_id]
+            tree = self.branch.repository.revision_tree(rev1.revision_id)
             old_tree = self.branch.repository.revision_tree(None)
         else:
-            tree, old_tree = self.branch.repository.revision_trees([rev.revision_id, rev.parent_ids[0]])
-        window = DiffWindow(old_tree, tree, custom_title=rev.revision_id, branch=self.branch)
+            revs = [rev1.revision_id, rev2.parent_ids[0]]
+            tree, old_tree = self.branch.repository.revision_trees(revs)
+        window = DiffWindow(old_tree, tree, custom_title="..".join(revs),
+                            branch=self.branch)
         window.show()
         self.windows.append(window)
+
+    def show_differences(self, item, column):
+        """Show differences of a single revision"""
+        rev = self.item_to_rev[item]
+        self.show_diff_window(rev, rev)
+
+    def diff_pushed(self, checked):
+        """Show differences of the selected range or of a single revision"""
+        items = self.changesList.selectedItems()
+        if len(items) == 0:
+            # the list is empty
+            return
+        rev1 = self.item_to_rev[items[0]]
+        rev2 = self.item_to_rev[items[-1]]
+        self.show_diff_window(rev1, rev2)
 
     def add_log_entry(self, revision):
         """Add loaded entries to the list."""
