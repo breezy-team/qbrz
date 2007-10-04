@@ -1,4 +1,6 @@
 from PyQt4 import QtGui, QtCore
+from StringIO import StringIO
+from bzrlib.diff import show_diff_trees
 
 colors = {
     'delete': (QtGui.QColor(255, 216, 216), QtGui.QColor(243, 61, 61)),
@@ -212,6 +214,8 @@ class DiffView(QtGui.QSplitter):
 
         self.treediff = treediff
         self.displayCombined(expand=False)
+
+
         #self.displayFull(1)
 
     def _syncSliders(self, slider1, slider2, value):
@@ -363,3 +367,53 @@ class DiffView(QtGui.QSplitter):
         self.browser1.setData(text1, changes1)
         self.browser2.setData(text2, changes2)
         self.handle(1).setData(changes)
+
+
+
+class SimpleDiffView(QtGui.QTextBrowser):
+
+    def __init__(self, treediff, parent=None):
+        QtGui.QTextBrowser.__init__(self, parent)
+        self.doc = QtGui.QTextDocument(parent)
+        self.setDocument(self.doc)
+
+    def gendiff(self, old_tree, new_tree, specific_files=None):
+        old_tree.lock_read()
+        new_tree.lock_read()
+        try:
+            self._gendiff(old_tree, new_tree, specific_files)
+        finally:
+            old_tree.unlock()
+            new_tree.unlock()
+
+    def _diff2html(self, s):
+        def span(color, s):
+            return "<font color=%s>%s</font><br>"%(color, markup_line(s))
+        res ='<span style="font-size:12px">'
+        for l in s.split("\n"):
+            if l.startswith('='):
+                res += span('blue', l)
+            elif l.startswith('+++'):
+                res += span('green', l)
+            elif l.startswith('---'):
+                res += span('red', l)
+            elif l.startswith('+'):
+                res += span('green', l)
+            elif l.startswith('-'):
+                res += span('red', l)
+            elif l.startswith('@'):
+                res += span('purple', l)
+            else:
+                res += "%s<br>"%markup_line(l)
+
+        res += '</span>'
+        return res
+
+    def _gendiff(self, old_tree, new_tree, specific_files):
+        s = StringIO()
+        show_diff_trees(old_tree, new_tree, s, specific_files,
+            old_label="", new_label="")
+        res = self._diff2html(s.getvalue())
+        self.doc.setHtml("<html><body><pre>%s</pre></body></html>"%(res))
+        self.setDocument(self.doc)
+

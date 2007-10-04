@@ -34,7 +34,10 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 
 from bzrlib.plugins.qbzr.util import QBzrWindow, get_branch_config
-from bzrlib.plugins.qbzr.diffview import DiffView
+from bzrlib.plugins.qbzr.diffview import (
+    DiffView,
+    SimpleDiffView
+)
 
 
 STYLES = {
@@ -285,8 +288,16 @@ class DiffWindow(QBzrWindow):
         self.tree2 = tree2
         self.specific_files = specific_files
 
+
         treediff = TreeDiff(self.tree1, self.tree2, self.specific_files, complete)
         diffview = DiffView(treediff, self)
+
+        sdiffview = SimpleDiffView(self)
+        sdiffview.gendiff(self.tree1, self.tree2, self.specific_files)
+
+        tab = QtGui.QTabWidget(self)
+        tab.addTab(diffview, u"Side by side diff")
+        tab.addTab(sdiffview, u"Simple diff")
 
         buttonbox = QtGui.QDialogButtonBox(
             QtGui.QDialogButtonBox.StandardButtons(
@@ -296,5 +307,6 @@ class DiffWindow(QBzrWindow):
         self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.close)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
-        vbox.addWidget(diffview)
+        #vbox.addWidget(diffview)
+        vbox.addWidget(tab)
         vbox.addWidget(buttonbox)
