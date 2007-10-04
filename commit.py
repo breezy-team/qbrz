@@ -257,9 +257,9 @@ class CommitWindow(QBzrWindow):
             splitter.addWidget(groupbox)
 
             pendingMergesWidget = QtGui.QTreeWidget(groupbox)
-            pendingMergesWidgetList.setHeaderLabels(
+            pendingMergesWidget.setHeaderLabels(
                 ["Date", "Author", "Message"])
-            header = self.pendingMergesWidget.header()
+            header = pendingMergesWidget.header()
             header.resizeSection(0, 120)
             header.resizeSection(1, 190)
 
