@@ -35,6 +35,7 @@ from bzrlib.commands import Command, register_command
 from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.diff import DiffWindow
+from bzrlib.plugins.qbzr.i18n import _
 from bzrlib.plugins.qbzr.util import QBzrWindow
 
 
@@ -151,32 +152,32 @@ class CommitWindow(QBzrWindow):
         # Get information about modified files
         files = []
         delta = self.tree.changes_from(self.basis_tree)
-        for path, _, kind in delta.added:       # here and below _ is file id
+        for path, id_, kind in delta.added:
             marker = osutils.kind_marker(kind)
             ext = os.path.splitext(path)[1]
-            files.append(("added", path+marker, ext, path, True))
-        for path, _, kind in delta.removed:
+            files.append((_("added"), path+marker, ext, path, True))
+        for path, id_, kind in delta.removed:
             marker = osutils.kind_marker(kind)
             ext = os.path.splitext(path)[1]
-            files.append(("removed", path+marker, ext, path, True))
-        for (oldpath, newpath, _, kind,
+            files.append((_("removed"), path+marker, ext, path, True))
+        for (oldpath, newpath, id_, kind,
             text_modified, meta_modified) in delta.renamed:
             marker = osutils.kind_marker(kind)
             ext = os.path.splitext(newpath)[1]
             if text_modified or meta_modified:
-                changes = "renamed and modified"
+                changes = _("renamed and modified")
             else:
-                changes = "renamed"
+                changes = _("renamed")
             files.append((changes,
                           "%s%s => %s%s" % (oldpath, marker, newpath, marker),
                           ext, newpath, True))
-        for path, _, kind, text_modified, meta_modified in delta.modified:
+        for path, id_, kind, text_modified, meta_modified in delta.modified:
             marker = osutils.kind_marker(kind)
             ext = os.path.splitext(path)[1]
-            files.append(("modified", path+marker, ext, path, True))
+            files.append((_("modified"), path+marker, ext, path, True))
         for entry in tree.unknowns():
             ext = os.path.splitext(entry)[1]
-            files.append(("non-versioned", entry, ext, entry, False))
+            files.append((_("non-versioned"), entry, ext, entry, False))
 
         branch = tree.branch
         parents = tree.get_parent_ids()
