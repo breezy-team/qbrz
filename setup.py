@@ -3,6 +3,9 @@
 
 from distutils.core import setup
 
+from extras.build_pot import build_pot
+
+
 setup(name='qbzr',
       description='Qt4 frontend for Bazaar',
       keywords='plugin bzr qt qbzr',
@@ -12,5 +15,8 @@ setup(name='qbzr',
       author='Lukáš Lalinský',
       author_email='lalinsky@gmail.com',
       package_dir={'bzrlib.plugins.qbzr': '.'},
-      packages=['bzrlib.plugins.qbzr']
+      packages=['bzrlib.plugins.qbzr'],
+      cmdclass = {
+            'build_pot': build_pot,
+            }
       )
