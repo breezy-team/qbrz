@@ -27,6 +27,7 @@ from PyQt4 import QtCore, QtGui
 from bzrlib import (
     bugtracker,
     errors,
+    osutils,
     )
 from bzrlib.errors import BzrError, NoSuchRevision
 from bzrlib.option import Option
@@ -150,18 +151,29 @@ class CommitWindow(QBzrWindow):
         # Get information about modified files
         files = []
         delta = self.tree.changes_from(self.basis_tree)
-        for entry in delta.added:
-            ext = os.path.splitext(entry[0])[1]
-            files.append(("added", entry[0], ext, entry[0], True))
-        for entry in delta.removed:
-            ext = os.path.splitext(entry[0])[1]
-            files.append(("removed", entry[0], ext, entry[0], True))
-        for entry in delta.renamed:
-            ext = os.path.splitext(entry[1])[1]
-            files.append(("renamed", "%s => %s" % (entry[0], entry[1]), ext, entry[1], True))
-        for entry in delta.modified:
-            ext = os.path.splitext(entry[0])[1]
-            files.append(("modified", entry[0], ext, entry[0], True))
+        for path, _, kind in delta.added:       # here and below _ is file id
+            marker = osutils.kind_marker(kind)
+            ext = os.path.splitext(path)[1]
+            files.append(("added", path+marker, ext, path, True))
+        for path, _, kind in delta.removed:
+            marker = osutils.kind_marker(kind)
+            ext = os.path.splitext(path)[1]
+            files.append(("removed", path+marker, ext, path, True))
+        for (oldpath, newpath, _, kind,
+            text_modified, meta_modified) in delta.renamed:
+            marker = osutils.kind_marker(kind)
+            ext = os.path.splitext(newpath)[1]
+            if text_modified or meta_modified:
+                changes = "renamed and modified"
+            else:
+                changes = "renamed"
+            files.append((changes,
+                          "%s%s => %s%s" % (oldpath, marker, newpath, marker),
+                          ext, newpath, True))
+        for path, _, kind, text_modified, meta_modified in delta.modified:
+            marker = osutils.kind_marker(kind)
+            ext = os.path.splitext(path)[1]
+            files.append(("modified", path+marker, ext, path, True))
         for entry in tree.unknowns():
             ext = os.path.splitext(entry)[1]
             files.append(("non-versioned", entry, ext, entry, False))
