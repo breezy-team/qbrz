@@ -32,7 +32,7 @@ class build_pot(Command):
     #   - long name,
     #   - short name (None if no short name),
     #   - help string.
-    user_options = [('build-dir=', None, 'Directory to put POT file'),
+    user_options = [('build-dir=', 'd', 'Directory to put POT file'),
                     ('output=', 'o', 'POT filename'),
                    ]
 
@@ -55,6 +55,9 @@ class build_pot(Command):
         else:
             fullname = self.output
         print 'Generate POT file:', fullname
+        if not os.path.isdir(self.build_dir):
+            print 'Make directory:', self.build_dir
+            os.makedirs(self.build_dir)
         self.spawn(['python',
                     'extras/pygettext.py',
                     '-p', self.build_dir,
