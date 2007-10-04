@@ -22,7 +22,8 @@
 Provided commands: qcommit, qdiff, qlog, qannotate, qbrowse
 """
 
-__version__ = "0.6.0"
+version_info = (0, 6, 0)
+__version__ = '.'.join(map(str, version_info))
 
 import os.path
 import sys
