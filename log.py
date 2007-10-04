@@ -233,13 +233,14 @@ class LogWindow(QBzrWindow):
             self.centralwidget)
         self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.close)
 
-        diffbutton = QtGui.QPushButton(u'Diff',self.centralwidget)
-        self.connect(diffbutton, QtCore.SIGNAL("clicked(bool)"), self.diff_pushed)
+        self.diffbutton = QtGui.QPushButton(u'Diff',self.centralwidget)
+        self.diffbutton.setEnabled(False)
+        self.connect(self.diffbutton, QtCore.SIGNAL("clicked(bool)"), self.diff_pushed)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)
-        hbox = QtGui.QHBoxLayout(self.centralwidget)
-        hbox.addWidget(diffbutton)
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(self.diffbutton)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
         self.windows = []
@@ -289,7 +290,11 @@ class LogWindow(QBzrWindow):
             open_browser(str(url.toEncoded()))
 
     def update_selection(self):
-        item = self.changesList.selectedItems()[0]
+        items = self.changesList.selectedItems()
+        if not items:
+            return
+        self.diffbutton.setEnabled(True)
+        item = items[0]
         rev = self.item_to_rev[item]
 
         text = []
