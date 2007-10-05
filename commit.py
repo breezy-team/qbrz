@@ -338,8 +338,10 @@ class CommitWindow(QBzrWindow):
                     item.setCheckState(0, QtCore.Qt.Unchecked)
             self.item_to_file[item] = entry
             if not versioned:
-                item.setHidden(not self.show_nonversioned_checkbox.isChecked())
                 self.unknowns.append(item)
+
+        self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
+        self.show_nonversioned(self.show_nonversioned_checkbox.isChecked())
 
         splitter.setStretchFactor(0, 3)
         splitter.setStretchFactor(1, 4)
