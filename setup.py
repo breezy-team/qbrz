@@ -3,6 +3,7 @@
 
 from distutils.core import setup
 
+from extras.build_mo import build_mo
 from extras.build_pot import build_pot
 
 
@@ -17,6 +18,7 @@ setup(name='qbzr',
       package_dir={'bzrlib.plugins.qbzr': '.'},
       packages=['bzrlib.plugins.qbzr'],
       cmdclass = {
+            'build_mo': build_mo,
             'build_pot': build_pot,
-            }
+            },
       )
