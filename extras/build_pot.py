@@ -42,13 +42,15 @@ class build_pot(Command):
 
     def finalize_options(self):
         if self.build_dir is None:
-            self.build_dir = '.'
+            self.build_dir = 'po'
         if not self.output:
             self.output = (self.distribution.get_name() or 'messages')+'.pot'
 
     def run(self):
         """Run pygettext.py for QBzr sources"""
+        import glob
         import os
+        import shutil
         # output file
         if self.build_dir != '.':
             fullname = os.path.join(self.build_dir, self.output)
@@ -64,3 +66,9 @@ class build_pot(Command):
                     '-o', self.output,
                     '*.py'
                     ])
+        # search and update all po-files
+        for po in glob.glob(os.path.join(self.build_dir,'*.po')):
+            cmd = "msgmerge %s %s -o %s.new" % (po, fullname, po)
+            self.spawn(cmd.split())
+            print "%s.new --> %s" % (po, po)
+            shutil.move("%s.new" % po, po)
