@@ -21,6 +21,7 @@ import sys
 from PyQt4 import QtCore, QtGui
 from bzrlib.branch import Branch
 from bzrlib.urlutils import local_path_from_url
+from bzrlib.plugins.qbzr.i18n import _
 from bzrlib.plugins.qbzr.util import QBzrWindow
 
 
@@ -40,29 +41,31 @@ class BrowseWindow(QBzrWindow):
     def __init__(self, branch=None, parent=None):
         self.branch = branch
         self.location = local_path_from_url(branch.base)
-        QBzrWindow.__init__(self, ["Browse", self.location], (780, 580), parent)
+        QBzrWindow.__init__(self,
+            [_("Browse"), self.location], (780, 580), parent)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
 
         hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(QtGui.QLabel(u"Location:"))
+        hbox.addWidget(QtGui.QLabel(_("Location:")))
         self.location_edit = QtGui.QLineEdit()
         self.location_edit.setText(self.location)
         hbox.addWidget(self.location_edit, 7)
-        hbox.addWidget(QtGui.QLabel(u"Revision:"))
+        hbox.addWidget(QtGui.QLabel(_("Revision:")))
         self.revision_edit = QtGui.QLineEdit()
         self.revision_edit.setText(str(self.branch.revno()))
         hbox.addWidget(self.revision_edit, 1)
-        self.show_button = QtGui.QPushButton(u"Show")
+        self.show_button = QtGui.QPushButton(_("Show"))
         self.show_button.setEnabled(False)
         hbox.addWidget(self.show_button, 0)
         vbox.addLayout(hbox)
 
         self.file_tree = FileTreeWidget(self)
-        self.file_tree.setHeaderLabels([u"Name", u"Date", u"Author", u"Message"])
+        self.file_tree.setHeaderLabels(
+            [_("Name"), _("Date"), _("Author"), _("Message")])
 
         self.context_menu = QtGui.QMenu(self.file_tree)
-        self.context_menu.addAction("Show log...")
+        self.context_menu.addAction(_("Show log..."))
 
         self.dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
         self.file_icon = self.style().standardIcon(QtGui.QStyle.SP_FileIcon)
@@ -123,5 +126,5 @@ def get_diff_trees(tree1, tree2, **kwargs):
     from bzrlib.diff import show_diff_trees
     output = StringIO()
     show_diff_trees(tree1, tree2, output, **kwargs)
+    # XXX more complicated encoding support needed
     return output.getvalue().decode("UTF-8", "replace")
-
