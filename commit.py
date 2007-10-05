@@ -35,7 +35,7 @@ from bzrlib.commands import Command, register_command
 from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.diff import DiffWindow
-from bzrlib.plugins.qbzr.util import QBzrWindow
+from bzrlib.plugins.qbzr.util import QBzrWindow, get_apparent_author
 
 
 _python_identifier_re = re.compile(r"(?:def|class)\s+(\w+)")
@@ -280,7 +280,7 @@ class CommitWindow(QBzrWindow):
                 item = QtGui.QTreeWidgetItem(pendingMergesWidget)
                 date.setTime_t(int(merge.timestamp))
                 item.setText(0, date.toString(QtCore.Qt.LocalDate))
-                item.setText(1, merge.committer)
+                item.setText(1, get_apparent_author(merge))
                 item.setText(2, merge.get_summary())
 
             vbox = QtGui.QVBoxLayout(groupbox)
@@ -478,13 +478,13 @@ class CommitWindow(QBzrWindow):
             return
         button = QtGui.QMessageBox.question(self, "QBzr - Commit", "Do you really want to revert the selected file(s)?", QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel))
         if button == QtGui.QMessageBox.Ok:
-            for item in items:
-                path = self.item_to_file[item][3]
-                try:
-                    self.tree.revert([path], self.tree.branch.repository.revision_tree(self.tree.last_revision()))
-                except BzrError, e:
-                    QtGui.QMessageBox.warning(self, "QBzr - Revert", str(e), QtGui.QMessageBox.Ok)
-                else:
+            paths = [self.item_to_file[item][3] for item in items]
+            try:
+                self.tree.revert(paths, self.tree.branch.repository.revision_tree(self.tree.last_revision()))
+            except BzrError, e:
+                QtGui.QMessageBox.warning(self, "QBzr - Revert", str(e), QtGui.QMessageBox.Ok)
+            else:
+                for item in items:
                     index = self.filelist.indexOfTopLevelItem(item)
                     self.filelist.takeTopLevelItem(index)
 
