@@ -478,13 +478,12 @@ class CommitWindow(QBzrWindow):
             return
         button = QtGui.QMessageBox.question(self, "QBzr - Commit", "Do you really want to revert the selected file(s)?", QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel))
         if button == QtGui.QMessageBox.Ok:
-            for item in items:
-                path = self.item_to_file[item][3]
-                try:
-                    self.tree.revert([path], self.tree.branch.repository.revision_tree(self.tree.last_revision()))
-                except BzrError, e:
-                    QtGui.QMessageBox.warning(self, "QBzr - Revert", str(e), QtGui.QMessageBox.Ok)
-                else:
+            paths = [self.item_to_file[item][3] for item in items]
+            try:
+                self.tree.revert(paths, self.tree.branch.repository.revision_tree(self.tree.last_revision()))
+            except BzrError, e:
+                QtGui.QMessageBox.warning(self, "QBzr - Revert", str(e), QtGui.QMessageBox.Ok)
+            else:
+                for item in items:
                     index = self.filelist.indexOfTopLevelItem(item)
                     self.filelist.takeTopLevelItem(index)
-
