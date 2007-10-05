@@ -20,6 +20,7 @@
 
 """I18N and L10N support for QBzr"""
 
+import gettext
 import os
 import sys
 
@@ -52,5 +53,6 @@ if sys.platform == 'win32':
             os.environ['LANGUAGE'] = lang
 
 
-# Fake translation function for *now*
-_ = lambda x: unicode(x)
+d = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'locale')
+t = gettext.translation('qbzr', localedir=d, fallback=True)
+_ = t.ugettext
