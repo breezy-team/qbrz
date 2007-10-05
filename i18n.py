@@ -53,4 +53,4 @@ if sys.platform == 'win32':
 
 
 # Fake translation function for *now*
-_ = lambda x: x
+_ = lambda x: unicode(x)
