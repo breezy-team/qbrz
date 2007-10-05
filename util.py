@@ -21,6 +21,7 @@ import os
 from PyQt4 import QtCore, QtGui
 from bzrlib.config import GlobalConfig
 from bzrlib import lazy_regex
+from bzrlib.plugins.qbzr.i18n import _
 
 
 _email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)')
@@ -59,25 +60,41 @@ def get_branch_config(branch):
         return GlobalConfig()
 
 
-def format_revision_html(rev):
+def format_revision_html(rev, search_replace=None):
     text = []
-    text.append("<b>Revision:</b> " + rev.revision_id)
+    text.append("<b>%s</b> %s" % (_("Revision:"), rev.revision_id))
 
     parent_ids = rev.parent_ids
     if parent_ids:
-        text.append("<b>Parent revisions:</b> " + ", ".join('<a href="qlog-revid:%s">%s</a>' % (a, a) for a in parent_ids))
+        text.append("<b>%s</b> %s" % (_("Parent revisions:"),
+            ", ".join('<a href="qlog-revid:%s">%s</a>' % (a, a) for a in parent_ids)))
 
-    text.append('<b>Author:</b> ' + htmlize(rev.committer))
+    text.append('<b>%s</b> %s' % (_("Committer:"), htmlize(rev.committer)))
+    author = rev.properties.get('author')
+    if author:
+        text.append('<b>%s</b> %s' % (_("Author:"), htmlize(author)))
 
     branch_nick = rev.properties.get('branch-nick')
     if branch_nick:
-        text.append('<b>Branch nick:</b> ' + branch_nick)
+        text.append('<b>%s</b> %s' % (_("Branch nick:"), branch_nick))
 
     tags = getattr(rev, 'tags', None)
     if tags:
-        text.append('<b>Tags:</b> ' + ', '.join(tags))
+        text.append('<b>%s</b> %s' % (_("Tags:"), ', '.join(tags)))
+
+    bugs = []
+    for bug in rev.properties.get('bugs', '').split('\n'):
+        if bug:
+            url, status = bug.split(' ')
+            bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
+                dict(url=url, status=status)))
+    if bugs:
+        text.append('<b>%s</b> %s' % (_("Bugs:"), ', '.join(bugs)))
 
     message = htmlize(rev.message)
+    if search_replace:
+        for search, replace in search_replace:
+            message = re.sub(search, replace, message)
     text.append("")
     text.append(message)
 
