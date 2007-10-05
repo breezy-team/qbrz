@@ -155,7 +155,7 @@ class FileDiff(object):
     def html_side_by_side(self):
         """Make HTML for side-by-side diff view."""
         if self.binary:
-            line = '<p>[%s]</p>' % _('binary file')
+            line = '<p>%s</p>' % _('[binary file]')
             return line, line
         else:
             lines1 = []
@@ -166,7 +166,7 @@ class FileDiff(object):
     def html_inline(self):
         """Make HTML for in-line diff view."""
         if self.binary:
-            line = '<p>[%s]</p>' % _('binary file')
+            line = '<p>%s</p>' % _('[binary file]')
             return line, line
         else:
             lines = []
