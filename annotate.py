@@ -19,7 +19,8 @@
 
 import operator
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.util import QBzrWindow, format_revision_html
+from bzrlib.plugins.qbzr.util import (QBzrWindow, format_revision_html,
+                                      get_apparent_author)
 
 have_pygments = True
 try:
@@ -148,7 +149,7 @@ body {white-space:pre;}
             date = QtCore.QDateTime()
             date.setTime_t(int(rev.timestamp))
             item.setText(0, date.toString(QtCore.Qt.LocalDate))
-            item.setText(1, rev.committer)
+            item.setText(1, get_apparent_author(rev))
             item.setText(2, rev.get_summary())
             self.itemToRev[item] = rev
 

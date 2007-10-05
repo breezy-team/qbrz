@@ -94,3 +94,7 @@ def open_browser(url):
         except AttributeError:
             open_func = lambda x: None
     open_func(url)
+
+
+def get_apparent_author(rev):
+    return rev.properties.get('author', rev.committer)

@@ -35,7 +35,7 @@ from bzrlib.commands import Command, register_command
 from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.diff import DiffWindow
-from bzrlib.plugins.qbzr.util import QBzrWindow
+from bzrlib.plugins.qbzr.util import QBzrWindow, get_apparent_author
 
 
 _python_identifier_re = re.compile(r"(?:def|class)\s+(\w+)")
@@ -280,7 +280,7 @@ class CommitWindow(QBzrWindow):
                 item = QtGui.QTreeWidgetItem(pendingMergesWidget)
                 date.setTime_t(int(merge.timestamp))
                 item.setText(0, date.toString(QtCore.Qt.LocalDate))
-                item.setText(1, merge.committer)
+                item.setText(1, get_apparent_author(merge))
                 item.setText(2, merge.get_summary())
 
             vbox = QtGui.QVBoxLayout(groupbox)
