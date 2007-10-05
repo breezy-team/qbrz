@@ -290,14 +290,11 @@ class DiffWindow(QBzrWindow):
 
 
         treediff = TreeDiff(self.tree1, self.tree2, self.specific_files, complete)
-        diffview = DiffView(treediff, self)
+        self.diffview = DiffView(treediff, self)
 
-        sdiffview = SimpleDiffView(self)
-        sdiffview.gendiff(self.tree1, self.tree2, self.specific_files)
-
-        tab = QtGui.QTabWidget(self)
-        tab.addTab(diffview, u"Side by side diff")
-        tab.addTab(sdiffview, u"Simple diff")
+        self.sdiffview = SimpleDiffView(self)
+        self.sdiffview.gendiff(self.tree1, self.tree2, self.specific_files)
+        self.sdiffview.setVisible(False)
 
         buttonbox = QtGui.QDialogButtonBox(
             QtGui.QDialogButtonBox.StandardButtons(
@@ -307,6 +304,32 @@ class DiffWindow(QBzrWindow):
         self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.close)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
-        vbox.addWidget(tab)
-        vbox.addWidget(buttonbox)
+        vbox.addWidget(self.diffview)
+        vbox.addWidget(self.sdiffview)
 
+        diffsidebyside = QtGui.QRadioButton(u"Side by side", self.centralwidget)
+        self.connect(diffsidebyside,
+                     QtCore.SIGNAL("clicked(bool)"),
+                     self.click_diffsidebyside)
+        diffsidebyside.setChecked(True);
+
+        unidiff = QtGui.QRadioButton(u"Unidiff", self.centralwidget)
+        self.connect(unidiff,
+                     QtCore.SIGNAL("clicked(bool)"),
+                     self.click_unidiff)
+
+        hbox = QtGui.QHBoxLayout(self.centralwidget)
+        hbox.addWidget(diffsidebyside)
+        hbox.addWidget(unidiff)
+        hbox.addWidget(buttonbox)
+        vbox.addLayout(hbox)
+
+    def click_unidiff(self, checked):
+        if self.diffview.isVisible():
+            self.diffview.setVisible(False)
+            self.sdiffview.setVisible(True)
+
+    def click_diffsidebyside(self, checked):
+        if self.sdiffview.isVisible():
+            self.sdiffview.setVisible(False)
+            self.diffview.setVisible(True)
