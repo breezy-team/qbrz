@@ -23,7 +23,7 @@ from PyQt4 import QtCore, QtGui
 from bzrlib import bugtracker, lazy_regex
 from bzrlib.log import LogFormatter, show_log
 from bzrlib.plugins.qbzr.diff import DiffWindow
-from bzrlib.plugins.qbzr.util import QBzrWindow, open_browser
+from bzrlib.plugins.qbzr.util import QBzrWindow, open_browser, extract_name
 
 
 TagNameRole = QtCore.Qt.UserRole + 1
@@ -169,9 +169,9 @@ class LogWindow(QBzrWindow):
         self.changesList.setHeaderLabels([u"Rev", u"Date", u"Author", u"Message"])
         self.changesList.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection);
         header = self.changesList.header()
-        header.resizeSection(0, 50)
+        header.resizeSection(0, 70)
         header.resizeSection(1, 110)
-        header.resizeSection(2, 190)
+        header.resizeSection(2, 150)
         self.connect(self.changesList, QtCore.SIGNAL("itemSelectionChanged()"), self.update_selection)
 
         self.connect(self.changesList,
@@ -379,7 +379,7 @@ class LogWindow(QBzrWindow):
         item.setText(1, date.toString(QtCore.Qt.LocalDate))
 
         author = rev.properties.get('author', rev.committer)
-        item.setText(2, author)
+        item.setText(2, extract_name(author))
         item.setText(3, rev.get_summary())
 
         tags = getattr(revision, 'tags', None)
