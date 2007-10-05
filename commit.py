@@ -36,7 +36,7 @@ from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.i18n import _
-from bzrlib.plugins.qbzr.util import QBzrWindow
+from bzrlib.plugins.qbzr.util import QBzrWindow, get_apparent_author
 
 
 _python_identifier_re = re.compile(r"(?:def|class)\s+(\w+)")
@@ -284,7 +284,7 @@ class CommitWindow(QBzrWindow):
                 item = QtGui.QTreeWidgetItem(pendingMergesWidget)
                 date.setTime_t(int(merge.timestamp))
                 item.setText(0, date.toString(QtCore.Qt.LocalDate))
-                item.setText(1, merge.committer)
+                item.setText(1, get_apparent_author(merge))
                 item.setText(2, merge.get_summary())
 
             vbox = QtGui.QVBoxLayout(groupbox)
@@ -295,6 +295,7 @@ class CommitWindow(QBzrWindow):
         splitter.addWidget(groupbox)
 
         self.filelist = QtGui.QTreeWidget(groupbox)
+        self.filelist.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection);
         self.filelist.setSortingEnabled(True)
         self.filelist.setHeaderLabels([_("File"), _("Extension"), _("Status")])
         self.filelist.header().resizeSection(0, 250)
@@ -448,16 +449,24 @@ class CommitWindow(QBzrWindow):
         """Reject the commit."""
         self.close()
 
-    def show_differences(self, item=None, column=None):
+    def show_differences(self, items=None, column=None):
         """Show differences between the working copy and the last revision."""
-        if item is None:
+        if items is None:
             items = self.filelist.selectedItems()
             if not items:
                 return
-            item = items[0]
-        entry = self.item_to_file[item]
-        if entry[4]:
-            window = DiffWindow(self.basis_tree, self.tree, specific_files=(entry[3],), parent=self, branch=self.tree.branch)
+            #item = items[0]
+
+        if not isinstance(items, list):
+            items = (items,)
+
+        entries = [self.item_to_file[item][3] for item in items]
+        if entries:
+            window = DiffWindow(self.basis_tree,
+                                self.tree,
+                                specific_files=entries,
+                                parent=self,
+                                branch=self.tree.branch)
             window.show()
             self.windows.append(window)
 
@@ -472,18 +481,18 @@ class CommitWindow(QBzrWindow):
         items = self.filelist.selectedItems()
         if not items:
             return
-        item = items[0]
-        path = self.item_to_file[item][3]
         button = QtGui.QMessageBox.question(self,
             "QBzr - " + _("Commit"),
             _("Do you really want to revert the selected file(s)?"),
             QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel))
         if button == QtGui.QMessageBox.Ok:
+            paths = [self.item_to_file[item][3] for item in items]
             try:
-                self.tree.revert([path], self.tree.branch.repository.revision_tree(self.tree.last_revision()))
+                self.tree.revert(paths, self.tree.branch.repository.revision_tree(self.tree.last_revision()))
             except BzrError, e:
                 QtGui.QMessageBox.warning(self,
                     "QBzr - " + _("Revert"), str(e), QtGui.QMessageBox.Ok)
             else:
-                index = self.filelist.indexOfTopLevelItem(item)
-                self.filelist.takeTopLevelItem(index)
+                for item in items:
+                    index = self.filelist.indexOfTopLevelItem(item)
+                    self.filelist.takeTopLevelItem(index)
