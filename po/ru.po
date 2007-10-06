@@ -4,7 +4,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: QBzr 0.7.0\n"
-"POT-Creation-Date: 2007-10-05 22:09+0300\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-10-06 19:13+0300\n"
 "PO-Revision-Date: 2007-10-04 21:49+0300\n"
 "Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
 "Language-Team: Russian\n"
@@ -19,17 +20,17 @@ msgstr ""
 msgid "Annotate"
 msgstr "Аннотация"
 
-#: annotate.py:146
-msgid "Summary"
-msgstr "Кратко"
+#: annotate.py:146 browse.py:65 commit.py:277 log.py:163
+msgid "Date"
+msgstr "Дата"
 
 #: annotate.py:146 browse.py:65 commit.py:277 log.py:163
 msgid "Author"
 msgstr "Автор"
 
-#: annotate.py:146 browse.py:65 commit.py:277 log.py:163
-msgid "Date"
-msgstr "Дата"
+#: annotate.py:146
+msgid "Summary"
+msgstr "Кратко"
 
 #: browse.py:45
 msgid "Browse"
@@ -104,8 +105,8 @@ msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
 msgstr ""
-"Введите список номеров ошибок в формате <i>tag:id</i>, несколько ошибок разделяются пробелами, "
-"например: <i>project:123 project:765</i>"
+"Введите список номеров ошибок в формате <i>tag:id</i>, несколько ошибок "
+"разделяются пробелами, например: <i>project:123 project:765</i>"
 
 #: commit.py:258
 msgid "&Author:"
@@ -113,7 +114,9 @@ msgstr "&Автор:"
 
 #: commit.py:259
 msgid "Set the author of this change, if it's different from the committer"
-msgstr "Указать автора этих изменений, если он отличается от того, кто делает фиксацию версии"
+msgstr ""
+"Указать автора этих изменений, если он отличается от того, кто делает "
+"фиксацию версии"
 
 #: commit.py:262
 msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
@@ -128,12 +131,12 @@ msgid "Changes"
 msgstr "Изменения"
 
 #: commit.py:300
-msgid "Extension"
-msgstr "Расширение"
-
-#: commit.py:300
 msgid "File"
 msgstr "Файл"
+
+#: commit.py:300
+msgid "Extension"
+msgstr "Расширение"
 
 #: commit.py:300
 msgid "Status"
@@ -153,7 +156,8 @@ msgstr "Показать неизвестные файлы"
 
 #: commit.py:486
 msgid "Do you really want to revert the selected file(s)?"
-msgstr "Вы уверены, что хотите вернуться к предыдущей версии отмеченных файлов?"
+msgstr ""
+"Вы уверены, что хотите вернуться к предыдущей версии отмеченных файлов?"
 
 #: commit.py:494
 msgid "Revert"
@@ -179,9 +183,13 @@ msgstr "Тип:"
 msgid "Diff"
 msgstr "Различия"
 
-#: diff.py:294
-msgid "%s files"
-msgstr "%s файлов"
+#: diff.py:296
+#, fuzzy, python-format
+msgid "%d file"
+msgid_plural "%d files"
+msgstr[0] "%s файл"
+msgstr[1] "%s файла"
+msgstr[2] "%s файлов"
 
 #: log.py:148
 msgid "Log"
