@@ -204,7 +204,7 @@ msgstr "Предыдущая версия:"
 
 #: util.py:72
 msgid "Committer:"
-msgstr "Кто зафиксировал:"
+msgstr "Зафиксировал:"
 
 #: util.py:75
 msgid "Author:"
