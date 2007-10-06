@@ -33,6 +33,7 @@ from bzrlib.diff import show_diff_trees
 from bzrlib.workingtree import WorkingTree
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 
+from bzrlib.plugins.qbzr.i18n import _
 from bzrlib.plugins.qbzr.util import QBzrWindow, get_branch_config
 from bzrlib.plugins.qbzr.diffview import DiffView
 
@@ -100,6 +101,7 @@ class FileDiff(object):
         a = self.old_lines
         b = self.new_lines
         groups = self.groups
+        # XXX more complicated encoding support needed
         a = [a.decode("utf-8", "replace").rstrip("\n") for a in a]
         b = [b.decode("utf-8", "replace").rstrip("\n") for b in b]
         for group in groups:
@@ -153,7 +155,7 @@ class FileDiff(object):
     def html_side_by_side(self):
         """Make HTML for side-by-side diff view."""
         if self.binary:
-            line = '<p>[binary file]</p>'
+            line = '<p>%s</p>' % _('[binary file]')
             return line, line
         else:
             lines1 = []
@@ -164,7 +166,7 @@ class FileDiff(object):
     def html_inline(self):
         """Make HTML for in-line diff view."""
         if self.binary:
-            line = '<p>[binary file]</p>'
+            line = '<p>%s</p>' % _('[binary file]')
             return line, line
         else:
             lines = []
@@ -187,7 +189,7 @@ class TreeDiff(list):
         delta = new_tree.changes_from(old_tree, specific_files=specific_files, require_versioned=True)
 
         for path, file_id, kind in delta.removed:
-            diff = FileDiff('removed', path)
+            diff = FileDiff(_('removed'), path)
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path)
             diff.new_date = self._date(new_tree, file_id, path)
@@ -196,7 +198,7 @@ class TreeDiff(list):
             self.append(diff)
 
         for path, file_id, kind in delta.added:
-            diff = FileDiff('added', path)
+            diff = FileDiff(_('added'), path)
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path, 0)
             diff.new_date = self._date(new_tree, file_id, path)
@@ -205,7 +207,7 @@ class TreeDiff(list):
             self.append(diff)
 
         for old_path, new_path, file_id, kind, text_modified, meta_modified in delta.renamed:
-            diff = FileDiff('renamed', u'%s \u2192 %s' % (old_path, new_path))
+            diff = FileDiff(_('renamed'), u'%s \u2192 %s' % (old_path, new_path))
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, old_path)
             diff.new_date = self._date(new_tree, file_id, new_path)
@@ -216,7 +218,7 @@ class TreeDiff(list):
             self.append(diff)
 
         for path, file_id, kind, text_modified, meta_modified in delta.modified:
-            diff = FileDiff('modified', path)
+            diff = FileDiff(_('modified'), path)
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path)
             diff.new_date = self._date(new_tree, file_id, path)
@@ -227,6 +229,7 @@ class TreeDiff(list):
             self.append(diff)
 
     def __init__(self, old_tree, new_tree, specific_files=[], complete=False):
+        self._metainfo_template = None
         old_tree.lock_read()
         new_tree.lock_read()
         try:
@@ -235,11 +238,26 @@ class TreeDiff(list):
             old_tree.unlock()
             new_tree.unlock()
 
+    def _get_metainfo_template(self):
+        if self._metainfo_template is None:
+            self._metainfo_template = (
+                '<div style="%%s"><small>'
+                '<b>%s</b> %%s, '
+                '<b>%s</b> %%s, '
+                '<b>%s</b> %%s'
+                '</small></div>') % (_('Last modified:'),
+                                     _('Status:'),
+                                     _('Kind:'))
+        return self._metainfo_template
+
     def html_inline(self):
         html = []
         for diff in self:
             html.append('<div style="%s">%s</div>' % (STYLES['title'], diff.path))
-            html.append('<div style="%s"><small><b>Last modified:</b> %s, <b>Status:</b> %s, <b>Kind:</b> %s</small></div>' % (STYLES['metainfo'], diff.old_date, diff.status, diff.kind))
+            html.append(self._get_metainfo_template() % (STYLES['metainfo'],
+                                                         diff.old_date,
+                                                         diff.status,
+                                                         diff.kind))
             html.append(diff.html_inline())
         return ''.join(html)
 
@@ -248,9 +266,15 @@ class TreeDiff(list):
         html2 = []
         for diff in self:
             html1.append('<div style="%s">%s</div>' % (STYLES['title'], diff.path))
-            html1.append('<div style="%s"><small><b>Last modified:</b> %s, <b>Status:</b> %s, <b>Kind:</b> %s</small></div>' % (STYLES['metainfo'], diff.old_date, diff.status, diff.kind))
+            html1.append(self._get_metainfo_template() % (STYLES['metainfo'],
+                                                          diff.old_date,
+                                                          diff.status,
+                                                          diff.kind))
             html2.append('<div style="%s">%s</div>' % (STYLES['title'], diff.path))
-            html2.append('<div style="%s"><small><b>Last modified:</b> %s, <b>Status:</b> %s, <b>Kind:</b> %s</small></div>' % (STYLES['metainfo'], diff.new_date, diff.status, diff.kind))
+            html2.append(self._get_metainfo_template() % (STYLES['metainfo'],
+                                                          diff.new_date,
+                                                          diff.status,
+                                                          diff.kind))
             lines1, lines2 = diff.html_side_by_side()
             html1.append(lines1)
             html2.append(lines2)
@@ -262,12 +286,12 @@ class DiffWindow(QBzrWindow):
     def __init__(self, tree1=None, tree2=None, specific_files=None,
                  parent=None, custom_title=None, inline=False,
                  complete=False, branch=None):
-        title = ["Diff"]
+        title = [_("Diff")]
         if custom_title:
             title.append(custom_title)
         if specific_files:
             if len(specific_files) > 2:
-                title.append("%s files" % len(specific_files))
+                title.append(_("%s files") % len(specific_files))
             else:
                 title.append(", ".join(specific_files))
 

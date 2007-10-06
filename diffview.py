@@ -1,4 +1,6 @@
 from PyQt4 import QtGui, QtCore
+from bzrlib.plugins.qbzr.i18n import _
+
 
 colors = {
     'delete': (QtGui.QColor(255, 216, 216), QtGui.QColor(243, 61, 61)),
@@ -260,8 +262,14 @@ class DiffView(QtGui.QSplitter):
         titles1 = []
         titles2 = []
         for diff in self.treediff:
-            titles1.append((len(lines1), diff.path, (('Last modified: ', diff.old_date + ', '), ('Status ', diff.status + ', '), ('Kind: ', diff.kind))))
-            titles2.append((len(lines2), diff.path, (('Last modified: ', diff.old_date + ', '), ('Status ', diff.status + ', '), ('Kind: ', diff.kind))))
+            titles1.append((len(lines1), diff.path,
+                ((_('Last modified:'), ' %s, ' % diff.old_date),
+                (_('Status:'), ' %s, ' % diff.status),
+                (_('Kind:'), ' %s' % diff.kind))))
+            titles2.append((len(lines2), diff.path,
+                ((_('Last modified:'), ' %s, ' % diff.old_date),
+                (_('Status:'), ' %s, ' % diff.status),
+                (_('Kind:'), ' %s' % diff.kind))))
             #lines1.append('<span style="font-family:%s;%s">%s</span>' % (self.ff, STYLES['title'], diff.path))
             #lines1.append('<span style="font-family:%s;%s"><b>Last modified:</b> %s, <b>Status:</b> %s, <b>Kind:</b> %s</span>' % (self.ff, STYLES['metainfo'], diff.old_date, diff.status, diff.kind))
             #lines2.append('<span style="font-family:%s;%s">%s</span>' % (self.ff, STYLES['title'], diff.path))

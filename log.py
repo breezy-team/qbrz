@@ -23,25 +23,18 @@ from PyQt4 import QtCore, QtGui
 from bzrlib import bugtracker, lazy_regex
 from bzrlib.log import LogFormatter, show_log
 from bzrlib.plugins.qbzr.diff import DiffWindow
-from bzrlib.plugins.qbzr.util import QBzrWindow, open_browser, extract_name
+from bzrlib.plugins.qbzr.i18n import _
+from bzrlib.plugins.qbzr.util import (
+    QBzrWindow,
+    open_browser,
+    format_revision_html,
+    htmlize,
+    extract_name,
+    )
 
 
 TagNameRole = QtCore.Qt.UserRole + 1
 BugIdRole = QtCore.Qt.UserRole + 100
-
-
-_email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)')
-_link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])')
-_link2_re = lazy_regex.lazy_compile(r'(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)')
-
-
-def htmlize(text):
-    global _email_re, _link1_re, _link2_re
-    text = text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace("\n", '<br />')
-    text = _email_re.sub('<a href="mailto:\\1">\\1</a>', text)
-    text = _link1_re.sub('\\1<a href="\\2://\\3">\\2://\\3</a>', text)
-    text = _link2_re.sub('\\1<a href="http://www.\\2.\\3\\4">www.\\2.\\3\\4</a>', text)
-    return text
 
 
 _bug_id_re = lazy_regex.lazy_compile(r'(?:bugs/|ticket/|show_bug\.cgi\?id=)(\d+)(?:\b|$)')
@@ -152,7 +145,7 @@ class QLogFormatter(LogFormatter):
 class LogWindow(QBzrWindow):
 
     def __init__(self, branch, location, specific_fileid, replace=None, parent=None):
-        title = ["Log"]
+        title = [_("Log")]
         if location:
             title.append(location)
         QBzrWindow.__init__(self, title, (710, 580), parent)
@@ -166,7 +159,8 @@ class LogWindow(QBzrWindow):
         #splitter.addWidget(groupBox)
 
         self.changesList = QtGui.QTreeWidget(splitter)
-        self.changesList.setHeaderLabels([u"Rev", u"Date", u"Author", u"Message"])
+        self.changesList.setHeaderLabels(
+            [_("Rev"), _("Date"), _("Author"), _("Message")])
         self.changesList.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection);
         header = self.changesList.header()
         header.resizeSection(0, 70)
@@ -233,7 +227,7 @@ class LogWindow(QBzrWindow):
             self.centralwidget)
         self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.close)
 
-        self.diffbutton = QtGui.QPushButton(u'Diff',self.centralwidget)
+        self.diffbutton = QtGui.QPushButton(_('Diff'), self.centralwidget)
         self.diffbutton.setEnabled(False)
         self.connect(self.diffbutton, QtCore.SIGNAL("clicked(bool)"), self.diff_pushed)
 
@@ -273,43 +267,7 @@ class LogWindow(QBzrWindow):
         item = items[0]
         rev = self.item_to_rev[item]
 
-        text = []
-        text.append("<b>Revision:</b> " + rev.revision_id)
-
-        parent_ids = rev.parent_ids
-        if parent_ids:
-            text.append("<b>Parent revisions:</b> " + ", ".join('<a href="qlog-revid:%s">%s</a>' % (a, a) for a in parent_ids))
-
-        text.append('<b>Committer:</b> ' + htmlize(rev.committer))
-        author = rev.properties.get('author')
-        if author:
-            text.append('<b>Author:</b> ' + htmlize(author))
-
-        branch_nick = rev.properties.get('branch-nick')
-        if branch_nick:
-            text.append('<b>Branch nick:</b> ' + branch_nick)
-
-        tags = rev.tags
-        if tags:
-            text.append('<b>Tags:</b> ' + ', '.join(tags))
-
-        bugs = []
-        for bug in rev.properties.get('bugs', '').split('\n'):
-            if bug:
-                url, status = bug.split(' ')
-                bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
-                    dict(url=url, status=status)))
-        if bugs:
-            text.append('<b>Bugs:</b> ' + ', '.join(bugs))
-
-        message = htmlize(rev.message)
-        if self.replace:
-            for search, replace in self.replace:
-                message = re.sub(search, replace, message)
-        text.append("")
-        text.append(message)
-
-        self.message.setHtml("<br />".join(text))
+        self.message.setHtml(format_revision_html(rev, self.replace))
 
         self.fileList.clear()
 
@@ -319,18 +277,19 @@ class LogWindow(QBzrWindow):
                 self.branch.repository.get_deltas_for_revisions([rev]).next()
         delta = rev.delta
 
-        for path, _, _ in delta.added:
+        for path, id_, kind in delta.added:
             item = QtGui.QListWidgetItem(path, self.fileList)
             item.setTextColor(QtGui.QColor("blue"))
 
-        for path, _, _, _, _ in delta.modified:
+        for path, id_, kind, text_modified, meta_modified in delta.modified:
             item = QtGui.QListWidgetItem(path, self.fileList)
 
-        for path, _, _ in delta.removed:
+        for path, id_, kind in delta.removed:
             item = QtGui.QListWidgetItem(path, self.fileList)
             item.setTextColor(QtGui.QColor("red"))
 
-        for oldpath, newpath, _, _, _, _ in delta.renamed:
+        for (oldpath, newpath, id_, kind,
+            text_modified, meta_modified) in delta.renamed:
             item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
             item.setTextColor(QtGui.QColor("purple"))
 
