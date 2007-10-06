@@ -131,10 +131,13 @@ def htmlencode(string):
     return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def markup_line(line, encode=True):
+def markup_line(line, encode=True, decode_unicode=True):
     if encode:
         line = htmlencode(line)
-    return line.rstrip("\n").replace("\t", "&nbsp;" * 8).decode("utf-8", "replace")
+    line = line.rstrip("\n").replace("\t", "&nbsp;" * 8)
+    if decode_unicode:
+        line = line.decode("utf-8", "replace")
+    return line
 
 
 
@@ -151,21 +154,22 @@ def get_change_extent(str1, str2):
 
 
 def markup_intraline_changes(line1, line2, color):
-    line1 = line1.replace("&", "\1").replace("<", "\2").replace(">", "\3")
-    line2 = line2.replace("&", "\1").replace("<", "\2").replace(">", "\3")
+    line1 = line1.decode("utf-8", "replace")
+    line2 = line2.decode("utf-8", "replace")
+    line1 = line1.replace(u"&", u"\1").replace(u"<", u"\2").replace(u">", u"\3")
+    line2 = line2.replace(u"&", u"\1").replace(u"<", u"\2").replace(u">", u"\3")
     start, end = get_change_extent(line1[1:], line2[1:])
     if start == 0 and end < 0:
-        text = '<span style="background-color:%s">%s</span>%s' % (color, line1[:end], line1[end:])
+        text = u'<span style="background-color:%s">%s</span>%s' % (color, line1[:end], line1[end:])
     elif start > 0 and end == 0:
         start += 1
-        text = '%s<span style="background-color:%s">%s</span>' % (line1[:start], color, line1[start:])
+        text = u'%s<span style="background-color:%s">%s</span>' % (line1[:start], color, line1[start:])
     elif start > 0 and end < 0:
         start += 1
-        text = '%s<span style="background-color:%s">%s</span>%s' % (line1[:start], color, line1[start:end], line1[end:])
+        text = u'%s<span style="background-color:%s">%s</span>%s' % (line1[:start], color, line1[start:end], line1[end:])
     else:
         text = line1
-    text = text.replace("\1", "&amp;").replace("\2", "&lt;").replace("\3", "&gt;")
-    return text
+    return text.replace(u"\1", u"&amp;").replace(u"\2", u"&lt;").replace(u"\3", u"&gt;ee")
 
 
 STYLES = {
@@ -305,10 +309,10 @@ class DiffView(QtGui.QSplitter):
                             for i in range(ni):
                                 linea = a[i1 + i]
                                 lineb = b[j1 + i]
-                                linea = markup_intraline_changes(linea, lineb, '#ABC1DE')
-                                lineb = markup_intraline_changes(lineb, linea, '#ABC1DE')
-                                lines1.append(markup_line(linea, encode=False))
-                                lines2.append(markup_line(lineb, encode=False))
+                                new_linea = markup_intraline_changes(linea, lineb, '#ABC1DE')
+                                new_lineb = markup_intraline_changes(lineb, linea, '#ABC1DE')
+                                lines1.append(markup_line(new_linea, encode=False, decode_unicode=False))
+                                lines2.append(markup_line(new_lineb, encode=False, decode_unicode=False))
                         else:
                             lines1.extend(map(markup_line, a[i1:i2]))
                             lines2.extend(map(markup_line, b[j1:j2]))
