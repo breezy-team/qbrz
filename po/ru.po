@@ -183,7 +183,7 @@ msgid "Diff"
 msgstr "Различия"
 
 #: diff.py:296
-#, fuzzy, python-format
+#, python-format
 msgid "%d file"
 msgid_plural "%d files"
 msgstr[0] "%s файл"
