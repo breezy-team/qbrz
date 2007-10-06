@@ -48,7 +48,7 @@ class build_pot(Command):
             self.output = (self.distribution.get_name() or 'messages')+'.pot'
 
     def run(self):
-        """Run pygettext.py for QBzr sources"""
+        """Run xgettext for QBzr sources"""
         import glob
         import os
         import shutil
