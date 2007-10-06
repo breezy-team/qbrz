@@ -33,7 +33,7 @@ from bzrlib.diff import show_diff_trees
 from bzrlib.workingtree import WorkingTree
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 
-from bzrlib.plugins.qbzr.i18n import _
+from bzrlib.plugins.qbzr.i18n import _, ngettext
 from bzrlib.plugins.qbzr.util import QBzrWindow, get_branch_config
 from bzrlib.plugins.qbzr.diffview import DiffView
 
@@ -290,8 +290,10 @@ class DiffWindow(QBzrWindow):
         if custom_title:
             title.append(custom_title)
         if specific_files:
-            if len(specific_files) > 2:
-                title.append(_("%s files") % len(specific_files))
+            nfiles = len(specific_files)
+            if nfiles > 2:
+                title.append(
+                    ngettext("%d file", "%d files", nfiles) % nfiles)
             else:
                 title.append(", ".join(specific_files))
 

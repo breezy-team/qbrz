@@ -55,4 +55,5 @@ if sys.platform == 'win32':
 
 d = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'locale')
 t = gettext.translation('qbzr', localedir=d, fallback=True)
+ngettext = t.ungettext
 _ = t.ugettext

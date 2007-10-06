@@ -20,6 +20,7 @@
 
 """build_pot command for setup.py"""
 
+import glob
 from distutils.core import Command
 
 
@@ -60,12 +61,9 @@ class build_pot(Command):
         if not os.path.isdir(self.build_dir):
             print 'Make directory:', self.build_dir
             os.makedirs(self.build_dir)
-        self.spawn(['python',
-                    'extras/pygettext.py',
+        self.spawn(['xgettext',
                     '-p', self.build_dir,
-                    '-o', self.output,
-                    '*.py'
-                    ])
+                    '-o', self.output] + glob.glob('*.py'))
         # search and update all po-files
         for po in glob.glob(os.path.join(self.build_dir,'*.po')):
             cmd = "msgmerge %s %s -o %s.new" % (po, fullname, po)
