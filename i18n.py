@@ -55,5 +55,16 @@ if sys.platform == 'win32':
 
 d = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'locale')
 t = gettext.translation('qbzr', localedir=d, fallback=True)
+
+# functions for interface translation
 ngettext = t.ungettext
 _ = t.ugettext
+N_ = lambda x: x
+
+
+# additional strings for translation
+if 0:
+    # file kinds
+    N_('file')
+    N_('directory')
+    N_('symlink')
