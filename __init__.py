@@ -69,7 +69,11 @@ class cmd_qannotate(Command):
             else:
                 revision_id = revision[0].in_history(branch).rev_id
             file_id = tree.path2id(relpath)
+            if file_id is None:
+                raise errors.NotVersionedError(filename)
             tree = branch.repository.revision_tree(revision_id)
+            if tree.inventory[file_id].kind != 'file':
+                return
 
             w = branch.repository.weave_store.get_weave(
                 file_id, branch.repository.get_transaction())
