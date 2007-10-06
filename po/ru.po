@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: QBzr 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-10-06 19:13+0300\n"
+"POT-Creation-Date: 2007-10-06 23:43+0300\n"
 "PO-Revision-Date: 2007-10-04 21:49+0300\n"
 "Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
 "Language-Team: Russian\n"
@@ -189,6 +189,18 @@ msgid_plural "%d files"
 msgstr[0] "%s файл"
 msgstr[1] "%s файла"
 msgstr[2] "%s файлов"
+
+#: i18n.py:68
+msgid "file"
+msgstr "файл"
+
+#: i18n.py:69
+msgid "directory"
+msgstr "каталог"
+
+#: i18n.py:70
+msgid "symlink"
+msgstr "символическая связь"
 
 #: log.py:148
 msgid "Log"
