@@ -26,10 +26,11 @@ from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.i18n import _
 from bzrlib.plugins.qbzr.util import (
     QBzrWindow,
-    open_browser,
-    format_revision_html,
-    htmlize,
     extract_name,
+    format_revision_html,
+    format_timestamp,
+    htmlize,
+    open_browser,
     )
 
 
@@ -333,9 +334,7 @@ class LogWindow(QBzrWindow):
         item = QtGui.QTreeWidgetItem(self.merge_stack[-1])
         item.setText(0, str(revision.revno))
         rev = revision.rev
-        date = QtCore.QDateTime()
-        date.setTime_t(int(rev.timestamp))
-        item.setText(1, date.toString(QtCore.Qt.LocalDate))
+        item.setText(1, format_timestamp(rev.timestamp))
 
         author = rev.properties.get('author', rev.committer)
         item.setText(2, extract_name(author))

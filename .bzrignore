@@ -1,2 +1,6 @@
 po/qbzr.pot
 locale
+# files from standalone QBzr installation
+./_ext
+./_lib
+./uninst.exe
