@@ -166,7 +166,8 @@ class cmd_qdiff(Command):
                 tree2 = tree1.basis_tree()
 
         application = QtGui.QApplication(sys.argv)
-        window = DiffWindow(tree2, tree1, inline=inline, complete=complete, specific_files=file_list, branch=branch)
+        window = DiffWindow(tree2, tree1, inline=inline, complete=complete,
+            specific_files=file_list, branch=branch)
         window.show()
         application.exec_()
 

@@ -20,8 +20,13 @@
 import operator
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.i18n import _
-from bzrlib.plugins.qbzr.util import (QBzrWindow, format_revision_html,
-                                      get_apparent_author, extract_name)
+from bzrlib.plugins.qbzr.util import (
+    QBzrWindow,
+    extract_name,
+    format_revision_html,
+    format_timestamp,
+    get_apparent_author,
+    )
 
 have_pygments = True
 try:
@@ -150,9 +155,7 @@ body {white-space:pre;}
         self.itemToRev = {}
         for rev in revisions:
             item = QtGui.QTreeWidgetItem(self.changes)
-            date = QtCore.QDateTime()
-            date.setTime_t(int(rev.timestamp))
-            item.setText(0, date.toString(QtCore.Qt.LocalDate))
+            item.setText(0, format_timestamp(rev.timestamp))
             item.setText(1, extract_name(get_apparent_author(rev)))
             item.setText(2, rev.get_summary())
             self.itemToRev[item] = rev

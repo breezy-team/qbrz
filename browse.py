@@ -22,7 +22,10 @@ from PyQt4 import QtCore, QtGui
 from bzrlib.branch import Branch
 from bzrlib.urlutils import local_path_from_url
 from bzrlib.plugins.qbzr.i18n import _
-from bzrlib.plugins.qbzr.util import QBzrWindow
+from bzrlib.plugins.qbzr.util import (
+    QBzrWindow,
+    format_timestamp,
+    )
 
 
 class FileTreeWidget(QtGui.QTreeWidget):
@@ -80,11 +83,9 @@ class BrowseWindow(QBzrWindow):
         else:
             revs = {}
 
-        date = QtCore.QDateTime()
         for item, rev_id in self.items:
             rev = revs[rev_id]
-            date.setTime_t(int(rev.timestamp))
-            item.setText(1, date.toString(QtCore.Qt.LocalDate))
+            item.setText(1, format_timestamp(rev.timestamp))
             item.setText(2, rev.committer)
             item.setText(3, rev.message.split("\n")[0])
 

@@ -271,7 +271,7 @@ class DiffView(QtGui.QSplitter):
                 (_('Status:'), ' %s, ' % diff.status),
                 (_('Kind:'), ' %s' % _(diff.kind)))))
             titles2.append((len(lines2), diff.path,
-                ((_('Last modified:'), ' %s, ' % diff.old_date),
+                ((_('Last modified:'), ' %s, ' % diff.new_date),
                 (_('Status:'), ' %s, ' % diff.status),
                 (_('Kind:'), ' %s' % _(diff.kind)))))
             #lines1.append('<span style="font-family:%s;%s">%s</span>' % (self.ff, STYLES['title'], diff.path))

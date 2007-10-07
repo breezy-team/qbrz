@@ -131,3 +131,12 @@ def extract_name(author):
         else:
             name = author
     return name.strip()
+
+
+_date = QtCore.QDateTime()
+
+def format_timestamp(timestamp):
+    """Returns unicode string representation of timestamp
+    formatted in user locale"""
+    _date.setTime_t(int(timestamp))
+    return unicode(_date.toString(QtCore.Qt.LocalDate))

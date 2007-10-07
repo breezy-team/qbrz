@@ -34,7 +34,11 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 
 from bzrlib.plugins.qbzr.i18n import _, ngettext
-from bzrlib.plugins.qbzr.util import QBzrWindow, get_branch_config
+from bzrlib.plugins.qbzr.util import (
+    QBzrWindow,
+    format_timestamp,
+    get_branch_config,
+    )
 from bzrlib.plugins.qbzr.diffview import DiffView
 
 
@@ -182,8 +186,7 @@ class TreeDiff(list):
                 secs = tree.get_file_mtime(file_id, path)
             except (NoSuchId, OSError):
                 secs = 0
-        tm = time.localtime(secs)
-        return time.strftime('%c', tm).decode(locale.getpreferredencoding())
+        return format_timestamp(secs)
 
     def _make_diff(self, old_tree, new_tree, specific_files=[], complete=False):
         delta = new_tree.changes_from(old_tree, specific_files=specific_files, require_versioned=True)
