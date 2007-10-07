@@ -169,7 +169,7 @@ def markup_intraline_changes(line1, line2, color):
         text = u'%s<span style="background-color:%s">%s</span>%s' % (line1[:start], color, line1[start:end], line1[end:])
     else:
         text = line1
-    return text.replace(u"\1", u"&amp;").replace(u"\2", u"&lt;").replace(u"\3", u"&gt;ee")
+    return text.replace(u"\1", u"&amp;").replace(u"\2", u"&lt;").replace(u"\3", u"&gt;")
 
 
 STYLES = {
