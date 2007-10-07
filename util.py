@@ -133,7 +133,6 @@ def extract_name(author):
     return name.strip()
 
 
-
 def format_timestamp(timestamp):
     """Returns unicode string representation of timestamp
     formatted in user locale"""
