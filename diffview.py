@@ -3,10 +3,10 @@ from bzrlib.plugins.qbzr.i18n import _
 
 
 colors = {
-    'delete': (QtGui.QColor(255, 216, 216), QtGui.QColor(243, 61, 61)),
-    'insert': (QtGui.QColor(216, 255, 216), QtGui.QColor(156, 222, 156)),
-    'replace': (QtGui.QColor(221, 238, 255), QtGui.QColor(171, 193, 222)),
-    'blank': (QtGui.QColor(238, 238, 238), QtGui.QColor(171, 171, 171)),
+    'delete': (QtGui.QColor(255, 160, 180), QtGui.QColor(200, 60, 90)),
+    'insert': (QtGui.QColor(180, 255, 180), QtGui.QColor(80, 210, 80)),
+    'replace': (QtGui.QColor(180, 210, 250), QtGui.QColor(90, 130, 180)),
+    'blank': (QtGui.QColor(240, 240, 240), QtGui.QColor(171, 171, 171)),
 }
 
 brushes = {}
@@ -309,8 +309,8 @@ class DiffView(QtGui.QSplitter):
                             for i in range(ni):
                                 linea = a[i1 + i]
                                 lineb = b[j1 + i]
-                                new_linea = markup_intraline_changes(linea, lineb, '#ABC1DE')
-                                new_lineb = markup_intraline_changes(lineb, linea, '#ABC1DE')
+                                new_linea = markup_intraline_changes(linea, lineb, '#5A82B4')
+                                new_lineb = markup_intraline_changes(lineb, linea, '#5A82B4')
                                 lines1.append(markup_line(new_linea, encode=False, decode_unicode=False))
                                 lines2.append(markup_line(new_lineb, encode=False, decode_unicode=False))
                         else:
