@@ -38,22 +38,6 @@ def htmlize(text):
     return text
 
 
-class QBzrWindow(QtGui.QMainWindow):
-
-    def __init__(self, title=[], size=(540, 500), parent=None):
-        QtGui.QMainWindow.__init__(self, parent)
-
-        self.setWindowTitle(" - ".join(["QBzr"] + title))
-        icon = QtGui.QIcon()
-        icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
-        icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
-        self.setWindowIcon(icon)
-        self.resize(QtCore.QSize(size[0], size[1]).expandedTo(self.minimumSizeHint()))
-
-        self.centralwidget = QtGui.QWidget(self)
-        self.setCentralWidget(self.centralwidget)
-
-
 # standard buttons with translatable labels
 BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP = range(4)
 
@@ -77,6 +61,45 @@ class StandardButton(QtGui.QPushButton):
                 new_args = [icon, label]
         new_args.extend(args)
         QtGui.QPushButton.__init__(self, *new_args)
+
+
+class QBzrWindow(QtGui.QMainWindow):
+
+    def __init__(self, title=[], size=(540, 500), parent=None):
+        QtGui.QMainWindow.__init__(self, parent)
+
+        self.setWindowTitle(" - ".join(["QBzr"] + title))
+        icon = QtGui.QIcon()
+        icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
+        icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
+        self.setWindowIcon(icon)
+        self.resize(QtCore.QSize(size[0], size[1]).expandedTo(self.minimumSizeHint()))
+
+        self.centralwidget = QtGui.QWidget(self)
+        self.setCentralWidget(self.centralwidget)
+
+    def create_button_box(self, *buttons):
+        """Create and return button box with pseudo-standard buttons
+        @param  buttons:    any from BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP
+        @return:    QtGui.QDialogButtonBox with attached buttons and signals
+        """
+        ROLES = {
+            BTN_OK: (QtGui.QDialogButtonBox.AcceptRole,
+                "accepted()", "accept"),
+            BTN_CANCEL: (QtGui.QDialogButtonBox.RejectRole,
+                "rejected()", "reject"),
+            BTN_CLOSE: (QtGui.QDialogButtonBox.RejectRole,
+                "rejected()", "close"),
+            # XXX support for HelpRole
+            }
+        buttonbox = QtGui.QDialogButtonBox(self.centralwidget)
+        for i in buttons:
+            btn = StandardButton(i)
+            role, signal_name, method_name = ROLES[i]
+            buttonbox.addButton(btn, role)
+            self.connect(buttonbox,
+                QtCore.SIGNAL(signal_name), getattr(self, method_name))
+        return buttonbox
 
 
 def get_branch_config(branch):

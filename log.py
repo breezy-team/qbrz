@@ -27,7 +27,6 @@ from bzrlib.plugins.qbzr.i18n import _
 from bzrlib.plugins.qbzr.util import (
     BTN_CLOSE,
     QBzrWindow,
-    StandardButton,
     extract_name,
     format_revision_html,
     format_timestamp,
@@ -223,10 +222,7 @@ class LogWindow(QBzrWindow):
 
         splitter.addWidget(hsplitter)
 
-        buttonbox = QtGui.QDialogButtonBox(self.centralwidget)
-        closebutton = StandardButton(BTN_CLOSE)
-        buttonbox.addButton(closebutton, QtGui.QDialogButtonBox.RejectRole)
-        self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.close)
+        buttonbox = self.create_button_box(BTN_CLOSE)
 
         self.diffbutton = QtGui.QPushButton(_('Diff'), self.centralwidget)
         self.diffbutton.setEnabled(False)

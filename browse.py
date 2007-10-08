@@ -25,7 +25,6 @@ from bzrlib.plugins.qbzr.i18n import _
 from bzrlib.plugins.qbzr.util import (
     BTN_CLOSE,
     QBzrWindow,
-    StandardButton,
     format_timestamp,
     )
 
@@ -93,10 +92,7 @@ class BrowseWindow(QBzrWindow):
 
         vbox.addWidget(self.file_tree)
 
-        buttonbox = QtGui.QDialogButtonBox(self.centralwidget)
-        closebutton = StandardButton(BTN_CLOSE)
-        buttonbox.addButton(closebutton, QtGui.QDialogButtonBox.RejectRole)
-        self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.close)
+        buttonbox = self.create_button_box(BTN_CLOSE)
         vbox.addWidget(buttonbox)
 
     def load_file_tree(self, entry, parent_item):

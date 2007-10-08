@@ -37,7 +37,6 @@ from bzrlib.plugins.qbzr.i18n import _, ngettext
 from bzrlib.plugins.qbzr.util import (
     BTN_CLOSE,
     QBzrWindow,
-    StandardButton,
     format_timestamp,
     get_branch_config,
     )
@@ -319,10 +318,7 @@ class DiffWindow(QBzrWindow):
         treediff = TreeDiff(self.tree1, self.tree2, self.specific_files, complete)
         diffview = DiffView(treediff, self)
 
-        buttonbox = QtGui.QDialogButtonBox(self.centralwidget)
-        closebutton = StandardButton(BTN_CLOSE)
-        buttonbox.addButton(closebutton, QtGui.QDialogButtonBox.RejectRole)
-        self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.close)
+        buttonbox = self.create_button_box(BTN_CLOSE)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(diffview)

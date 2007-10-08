@@ -40,7 +40,6 @@ from bzrlib.plugins.qbzr.util import (
     BTN_CANCEL,
     BTN_OK,
     QBzrWindow,
-    StandardButton,
     format_timestamp,
     get_apparent_author,
     )
@@ -352,13 +351,7 @@ class CommitWindow(QBzrWindow):
         splitter.setStretchFactor(0, 3)
         splitter.setStretchFactor(1, 4)
 
-        buttonbox = QtGui.QDialogButtonBox(self.centralwidget)
-        okbutton = StandardButton(BTN_OK)
-        cancelbutton = StandardButton(BTN_CANCEL)
-        buttonbox.addButton(okbutton, QtGui.QDialogButtonBox.AcceptRole)
-        buttonbox.addButton(cancelbutton, QtGui.QDialogButtonBox.RejectRole)
-        self.connect(buttonbox, QtCore.SIGNAL("accepted()"), self.accept)
-        self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
+        buttonbox = self.create_button_box(BTN_OK, BTN_CANCEL)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)
