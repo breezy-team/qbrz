@@ -19,8 +19,14 @@
 
 import operator
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.util import (QBzrWindow, format_revision_html,
-                                      get_apparent_author, extract_name)
+from bzrlib.plugins.qbzr.i18n import _
+from bzrlib.plugins.qbzr.util import (
+    QBzrWindow,
+    extract_name,
+    format_revision_html,
+    format_timestamp,
+    get_apparent_author,
+    )
 
 have_pygments = True
 try:
@@ -68,7 +74,8 @@ class AnnotateView(QtGui.QTextBrowser):
 class AnnotateWindow(QBzrWindow):
 
     def __init__(self, filename, lines, revisions, parent=None):
-        QBzrWindow.__init__(self, ["Annotate", filename], (780, 680), parent)
+        QBzrWindow.__init__(self,
+            [_("Annotate"), filename], (780, 680), parent)
 
         revisions.sort(key=operator.attrgetter('timestamp'), reverse=True)
 
@@ -102,6 +109,8 @@ class AnnotateWindow(QBzrWindow):
         self.blocks = [(a, b, make_color(rev_id)) for (rev_id, a, b) in self.blocks]
 
         code = "".join(a[1] for a in lines)
+        # XXX more complicated encoding detecting
+        #     also probe bzrlib.user_encoding
         try:
             code = code.decode('utf-8', 'errors')
         except UnicodeError:
@@ -139,16 +148,14 @@ body {white-space:pre;}
         message.setDocument(self.message_doc)
 
         self.changes = QtGui.QTreeWidget()
-        self.changes.setHeaderLabels(["Date", "Author", "Summary"])
+        self.changes.setHeaderLabels([_("Date"), _("Author"), _("Summary")])
         self.changes.setRootIsDecorated(False)
         self.changes.setUniformRowHeights(True)
         self.connect(self.changes, QtCore.SIGNAL("itemSelectionChanged()"), self.set_revision_by_item)
         self.itemToRev = {}
         for rev in revisions:
             item = QtGui.QTreeWidgetItem(self.changes)
-            date = QtCore.QDateTime()
-            date.setTime_t(int(rev.timestamp))
-            item.setText(0, date.toString(QtCore.Qt.LocalDate))
+            item.setText(0, format_timestamp(rev.timestamp))
             item.setText(1, extract_name(get_apparent_author(rev)))
             item.setText(2, rev.get_summary())
             self.itemToRev[item] = rev
