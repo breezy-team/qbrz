@@ -162,44 +162,8 @@ class FileDiff(object):
         return '\n'.join(self.unidiff_list(lineterm=''))+'\n'
 
     def unidiff_list(self, n=3, lineterm='\n'):
-        r"""
-        Compare two sequences of lines; generate the delta as a unified diff.
+        """Create an unidiff output"""
 
-        Unified diffs are a compact way of showing line changes and a few
-        lines of context.  The number of context lines is set by 'n' which
-        defaults to three.
-
-        By default, the diff control lines (those with ---, +++, or @@) are
-        created with a trailing newline.  This is helpful so that inputs
-        created from file.readlines() result in diffs that are suitable for
-        file.writelines() since both the inputs and outputs have trailing
-        newlines.
-
-        For inputs that do not have trailing newlines, set the lineterm
-        argument to "" so that the output will be uniformly newline free.
-
-        The unidiff format normally has a header for filenames and modification
-        times.  Any or all of these may be specified using strings for
-        'fromfile', 'tofile', 'fromfiledate', and 'tofiledate'.  The modification
-        times are normally expressed in the format returned by time.ctime().
-
-        Example:
-
-        >>> for line in unified_diff('one two three four'.split(),
-        ...             'zero one tree four'.split(), 'Original', 'Current',
-        ...             'Sat Jan 26 23:30:50 1991', 'Fri Jun 06 10:20:52 2003',
-        ...             lineterm=''):
-        ...     print line
-        --- Original Sat Jan 26 23:30:50 1991
-        +++ Current Fri Jun 06 10:20:52 2003
-        @@ -1,4 +1,4 @@
-        +zero
-         one
-        -two
-        -three
-        +tree
-         four
-        """
         a = self.old_lines
         fromfiledate = self.old_date
         fromfile = self.new_path
@@ -450,13 +414,13 @@ class DiffWindow(QBzrWindow):
         vbox.addWidget(self.diffview)
         vbox.addWidget(self.sdiffview)
 
-        diffsidebyside = QtGui.QRadioButton(u"Side by side", self.centralwidget)
+        diffsidebyside = QtGui.QRadioButton(_("Side by side"), self.centralwidget)
         self.connect(diffsidebyside,
                      QtCore.SIGNAL("clicked(bool)"),
                      self.click_diffsidebyside)
         diffsidebyside.setChecked(True);
 
-        unidiff = QtGui.QRadioButton(u"Unidiff", self.centralwidget)
+        unidiff = QtGui.QRadioButton(_("Unidiff"), self.centralwidget)
         self.connect(unidiff,
                      QtCore.SIGNAL("clicked(bool)"),
                      self.click_unidiff)
