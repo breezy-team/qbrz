@@ -369,54 +369,13 @@ class DiffView(QtGui.QSplitter):
         self.handle(1).setData(changes)
 
 
-
 class SimpleDiffView(QtGui.QTextEdit):
 
-    def __init__(self, parent=None):
+    def __init__(self, treeview, parent=None):
         QtGui.QTextEdit.__init__(self, parent)
         self.doc = QtGui.QTextDocument(parent)
         self.setReadOnly(1)
-
-    def gendiff(self, old_tree, new_tree, specific_files=None):
-        old_tree.lock_read()
-        new_tree.lock_read()
-        try:
-            self._gendiff(old_tree, new_tree, specific_files)
-        finally:
-            old_tree.unlock()
-            new_tree.unlock()
-
-    def _diff2html(self, s):
-        def span(color, s):
-            return "<font color=%s>%s</font><br>"%(color, markup_line(s))
-        res ='<span style="font-size:12px">'
-        for l in s.split("\n"):
-            if l.startswith('='):
-                res += span('blue', l)
-            elif l.startswith('+++'):
-                res += span('green', l)
-            elif l.startswith('---'):
-                res += span('red', l)
-            elif l.startswith('+'):
-                res += span('green', l)
-            elif l.startswith('-'):
-                res += span('red', l)
-            elif l.startswith('@'):
-                res += span('purple', l)
-            else:
-                res += "%s<br>"%markup_line(l)
-
-        if len(s) and s[-1] == '\n' and (res[-4:] == "<br>"):
-            res = res[:-4]
-
-        res += '</span>'
-        return res
-
-    def _gendiff(self, old_tree, new_tree, specific_files):
-        s = StringIO()
-        show_diff_trees(old_tree, new_tree, s, specific_files,
-            old_label="", new_label="")
-        res = self._diff2html(s.getvalue())
+        res = treeview.html_unidiff( )
         self.doc.setHtml("<html><body><pre>%s</pre></body></html>"%(res))
         self.setDocument(self.doc)
         self.verticalScrollBar().setValue(0)

@@ -95,9 +95,9 @@ class FileDiff(object):
             else:
                 matcher = SequenceMatcher(None, old_lines, new_lines)
                 if complete:
-                    self.groups = [matcher.get_opcodes()]
+                    self.groups = list([matcher.get_opcodes()])
                 else:
-                    self.groups = matcher.get_grouped_opcodes()
+                    self.groups = list(matcher.get_grouped_opcodes())
 
     def html_diff_lines(self, html1, html2, inline=True):
         a = self.old_lines
@@ -153,6 +153,102 @@ class FileDiff(object):
         html1.append('</pre>')
         html2.append('</pre>')
 
+    def txt_unidiff(self):
+        return '\n'.join(self.unidiff_list(lineterm=''))+'\n'
+
+    def unidiff_list(self, n=3, lineterm='\n'):
+        r"""
+        Compare two sequences of lines; generate the delta as a unified diff.
+
+        Unified diffs are a compact way of showing line changes and a few
+        lines of context.  The number of context lines is set by 'n' which
+        defaults to three.
+
+        By default, the diff control lines (those with ---, +++, or @@) are
+        created with a trailing newline.  This is helpful so that inputs
+        created from file.readlines() result in diffs that are suitable for
+        file.writelines() since both the inputs and outputs have trailing
+        newlines.
+
+        For inputs that do not have trailing newlines, set the lineterm
+        argument to "" so that the output will be uniformly newline free.
+
+        The unidiff format normally has a header for filenames and modification
+        times.  Any or all of these may be specified using strings for
+        'fromfile', 'tofile', 'fromfiledate', and 'tofiledate'.  The modification
+        times are normally expressed in the format returned by time.ctime().
+
+        Example:
+
+        >>> for line in unified_diff('one two three four'.split(),
+        ...             'zero one tree four'.split(), 'Original', 'Current',
+        ...             'Sat Jan 26 23:30:50 1991', 'Fri Jun 06 10:20:52 2003',
+        ...             lineterm=''):
+        ...     print line
+        --- Original Sat Jan 26 23:30:50 1991
+        +++ Current Fri Jun 06 10:20:52 2003
+        @@ -1,4 +1,4 @@
+        +zero
+         one
+        -two
+        -three
+        +tree
+         four
+        """
+        a = self.old_lines
+        fromfiledate = self.old_date
+        fromfile = self.new_path
+
+        b = self.new_lines
+        tofiledate = self.new_date
+        tofile = self.new_path
+
+        a = [a.decode("utf-8", "replace").rstrip("\n") for a in a]
+        b = [b.decode("utf-8", "replace").rstrip("\n") for b in b]
+
+        started = False
+        for group in self.groups:
+            if not started:
+                yield '--- %s %s%s' % (fromfile, fromfiledate, lineterm)
+                yield '+++ %s %s%s' % (tofile, tofiledate, lineterm)
+                started = True
+            i1, i2, j1, j2 = group[0][1], group[-1][2], group[0][3], group[-1][4]
+            yield "@@ -%d,%d +%d,%d @@%s" % (i1+1, i2-i1, j1+1, j2-j1, lineterm)
+            for tag, i1, i2, j1, j2 in group:
+                if tag == 'equal':
+                    for line in a[i1:i2]:
+                        yield ' ' + line
+                    continue
+                if tag == 'replace' or tag == 'delete':
+                    for line in a[i1:i2]:
+                        yield '-' + line
+                if tag == 'replace' or tag == 'insert':
+                    for line in b[j1:j2]:
+                        yield '+' + line
+
+    def html_unidiff(self):
+        def span(color, s):
+            return "<font color=%s>%s</font>"%(color, markup_line(s))
+        res ='<span style="font-size:12px">'
+        for l in self.unidiff_list(lineterm=''):
+            if l.startswith('='):
+                res += span('blue', l)
+            elif l.startswith('+++'):
+                res += span('green', l)
+            elif l.startswith('---'):
+                res += span('red', l)
+            elif l.startswith('+'):
+                res += span('green', l)
+            elif l.startswith('-'):
+                res += span('red', l)
+            elif l.startswith('@'):
+                res += span('purple', l)
+            else:
+                res += "%s"%markup_line(l)
+
+        res += '</span>'
+        return res
+
     def html_side_by_side(self):
         """Make HTML for side-by-side diff view."""
         if self.binary:
@@ -194,6 +290,8 @@ class TreeDiff(list):
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path)
             diff.new_date = self._date(new_tree, file_id, path)
+            diff.old_path = path
+            diff.new_path = path
             if diff.kind != 'directory':
                 diff.make_diff(get_file_lines_from_tree(old_tree, file_id), [], complete)
             self.append(diff)
@@ -203,6 +301,8 @@ class TreeDiff(list):
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path, 0)
             diff.new_date = self._date(new_tree, file_id, path)
+            diff.old_path = path
+            diff.new_path = path
             if diff.kind != 'directory':
                 diff.make_diff([], get_file_lines_from_tree(new_tree, file_id), complete)
             self.append(diff)
@@ -212,6 +312,8 @@ class TreeDiff(list):
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, old_path)
             diff.new_date = self._date(new_tree, file_id, new_path)
+            diff.old_path = old_path
+            diff.new_path = new_path
             if text_modified:
                 old_lines = get_file_lines_from_tree(old_tree, file_id)
                 new_lines = get_file_lines_from_tree(new_tree, file_id)
@@ -223,6 +325,8 @@ class TreeDiff(list):
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path)
             diff.new_date = self._date(new_tree, file_id, path)
+            diff.old_path = path
+            diff.new_path = path
             if text_modified:
                 old_lines = get_file_lines_from_tree(old_tree, file_id)
                 new_lines = get_file_lines_from_tree(new_tree, file_id)
@@ -245,6 +349,18 @@ class TreeDiff(list):
             html.append('<div style="%s"><small><b>Last modified:</b> %s, <b>Status:</b> %s, <b>Kind:</b> %s</small></div>' % (STYLES['metainfo'], diff.old_date, diff.status, diff.kind))
             html.append(diff.html_inline())
         return ''.join(html)
+
+    def txt_unidiff(self):
+        res = []
+        for diff in self:
+            res.append(diff.txt_unidiff())
+        return ''.join(res)
+
+    def html_unidiff(self):
+        res = []
+        for diff in self:
+            res.append(diff.html_unidiff())
+        return ''.join(res)
 
     def html_side_by_side(self):
         html1 = []
@@ -292,8 +408,7 @@ class DiffWindow(QBzrWindow):
         treediff = TreeDiff(self.tree1, self.tree2, self.specific_files, complete)
         self.diffview = DiffView(treediff, self)
 
-        self.sdiffview = SimpleDiffView(self)
-        self.sdiffview.gendiff(self.tree1, self.tree2, self.specific_files)
+        self.sdiffview = SimpleDiffView(treediff, self)
         self.sdiffview.setVisible(False)
 
         buttonbox = QtGui.QDialogButtonBox(
