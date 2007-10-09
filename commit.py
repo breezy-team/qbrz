@@ -37,6 +37,8 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.i18n import _
 from bzrlib.plugins.qbzr.util import (
+    BTN_CANCEL,
+    BTN_OK,
     QBzrWindow,
     format_timestamp,
     get_apparent_author,
@@ -349,14 +351,7 @@ class CommitWindow(QBzrWindow):
         splitter.setStretchFactor(0, 3)
         splitter.setStretchFactor(1, 4)
 
-        buttonbox = QtGui.QDialogButtonBox(
-            QtGui.QDialogButtonBox.StandardButtons(
-                QtGui.QDialogButtonBox.Ok |
-                QtGui.QDialogButtonBox.Cancel),
-            QtCore.Qt.Horizontal,
-            self.centralwidget)
-        self.connect(buttonbox, QtCore.SIGNAL("accepted()"), self.accept)
-        self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
+        buttonbox = self.create_button_box(BTN_OK, BTN_CANCEL)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)
