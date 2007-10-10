@@ -40,7 +40,10 @@ from bzrlib.plugins.qbzr.util import (
     format_timestamp,
     get_branch_config,
     )
-from bzrlib.plugins.qbzr.diffview import DiffView
+from bzrlib.plugins.qbzr.diffview import (
+    DiffView,
+    SimpleDiffView
+)
 
 
 STYLES = {
@@ -98,9 +101,9 @@ class FileDiff(object):
             else:
                 matcher = SequenceMatcher(None, old_lines, new_lines)
                 if complete:
-                    self.groups = [matcher.get_opcodes()]
+                    self.groups = list([matcher.get_opcodes()])
                 else:
-                    self.groups = matcher.get_grouped_opcodes()
+                    self.groups = list(matcher.get_grouped_opcodes())
 
     def html_diff_lines(self, html1, html2, inline=True):
         a = self.old_lines
@@ -157,6 +160,66 @@ class FileDiff(object):
         html1.append('</pre>')
         html2.append('</pre>')
 
+    def txt_unidiff(self):
+        return '\n'.join(self.unidiff_list(lineterm=''))+'\n'
+
+    def unidiff_list(self, n=3, lineterm='\n'):
+        """Create an unidiff output"""
+
+        a = self.old_lines
+        fromfiledate = self.old_date
+        fromfile = self.new_path
+
+        b = self.new_lines
+        tofiledate = self.new_date
+        tofile = self.new_path
+
+        a = [a.decode("utf-8", "replace").rstrip("\n") for a in a]
+        b = [b.decode("utf-8", "replace").rstrip("\n") for b in b]
+
+        started = False
+        for group in self.groups:
+            if not started:
+                yield '--- %s %s%s' % (fromfile, fromfiledate, lineterm)
+                yield '+++ %s %s%s' % (tofile, tofiledate, lineterm)
+                started = True
+            i1, i2, j1, j2 = group[0][1], group[-1][2], group[0][3], group[-1][4]
+            yield "@@ -%d,%d +%d,%d @@%s" % (i1+1, i2-i1, j1+1, j2-j1, lineterm)
+            for tag, i1, i2, j1, j2 in group:
+                if tag == 'equal':
+                    for line in a[i1:i2]:
+                        yield ' ' + line
+                    continue
+                if tag == 'replace' or tag == 'delete':
+                    for line in a[i1:i2]:
+                        yield '-' + line
+                if tag == 'replace' or tag == 'insert':
+                    for line in b[j1:j2]:
+                        yield '+' + line
+
+    def html_unidiff(self):
+        def span(color, s):
+            return "<font color=%s>%s</font>"%(color, markup_line(s))
+        res ='<span style="font-size:12px">'
+        for l in self.unidiff_list(lineterm=''):
+            if l.startswith('='):
+                res += span('blue', l)
+            elif l.startswith('+++'):
+                res += span('green', l)
+            elif l.startswith('---'):
+                res += span('red', l)
+            elif l.startswith('+'):
+                res += span('green', l)
+            elif l.startswith('-'):
+                res += span('red', l)
+            elif l.startswith('@'):
+                res += span('purple', l)
+            else:
+                res += "%s"%markup_line(l)
+
+        res += '</span>'
+        return res
+
     def html_side_by_side(self):
         """Make HTML for side-by-side diff view."""
         if self.binary:
@@ -197,6 +260,8 @@ class TreeDiff(list):
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path)
             diff.new_date = self._date(new_tree, file_id, path)
+            diff.old_path = path
+            diff.new_path = path
             if diff.kind != 'directory':
                 diff.make_diff(get_file_lines_from_tree(old_tree, file_id), [], complete)
             self.append(diff)
@@ -206,6 +271,8 @@ class TreeDiff(list):
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path, 0)
             diff.new_date = self._date(new_tree, file_id, path)
+            diff.old_path = path
+            diff.new_path = path
             if diff.kind != 'directory':
                 diff.make_diff([], get_file_lines_from_tree(new_tree, file_id), complete)
             self.append(diff)
@@ -215,6 +282,8 @@ class TreeDiff(list):
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, old_path)
             diff.new_date = self._date(new_tree, file_id, new_path)
+            diff.old_path = old_path
+            diff.new_path = new_path
             if text_modified:
                 old_lines = get_file_lines_from_tree(old_tree, file_id)
                 new_lines = get_file_lines_from_tree(new_tree, file_id)
@@ -226,6 +295,8 @@ class TreeDiff(list):
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path)
             diff.new_date = self._date(new_tree, file_id, path)
+            diff.old_path = path
+            diff.new_path = path
             if text_modified:
                 old_lines = get_file_lines_from_tree(old_tree, file_id)
                 new_lines = get_file_lines_from_tree(new_tree, file_id)
@@ -264,6 +335,18 @@ class TreeDiff(list):
                                                          diff.kind))
             html.append(diff.html_inline())
         return ''.join(html)
+
+    def txt_unidiff(self):
+        res = []
+        for diff in self:
+            res.append(diff.txt_unidiff())
+        return ''.join(res)
+
+    def html_unidiff(self):
+        res = []
+        for diff in self:
+            res.append(diff.html_unidiff())
+        return ''.join(res)
 
     def html_side_by_side(self):
         html1 = []
@@ -316,10 +399,41 @@ class DiffWindow(QBzrWindow):
         self.specific_files = specific_files
 
         treediff = TreeDiff(self.tree1, self.tree2, self.specific_files, complete)
-        diffview = DiffView(treediff, self)
+        self.diffview = DiffView(treediff, self)
+
+        self.sdiffview = SimpleDiffView(treediff, self)
+        self.sdiffview.setVisible(False)
+
+        self.stack = QtGui.QStackedWidget(self.centralwidget)
+        self.stack.addWidget(self.diffview)
+        self.stack.addWidget(self.sdiffview)
+
+        vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox.addWidget(self.stack)
+
+        diffsidebyside = QtGui.QRadioButton(_("Side by side"), self.centralwidget)
+        self.connect(diffsidebyside,
+                     QtCore.SIGNAL("clicked(bool)"),
+                     self.click_diffsidebyside)
+        diffsidebyside.setChecked(True);
+
+        unidiff = QtGui.QRadioButton(_("Unidiff"), self.centralwidget)
+        self.connect(unidiff,
+                     QtCore.SIGNAL("clicked(bool)"),
+                     self.click_unidiff)
 
         buttonbox = self.create_button_box(BTN_CLOSE)
 
-        vbox = QtGui.QVBoxLayout(self.centralwidget)
-        vbox.addWidget(diffview)
-        vbox.addWidget(buttonbox)
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(diffsidebyside)
+        hbox.addWidget(unidiff)
+        hbox.addWidget(buttonbox)
+        vbox.addLayout(hbox)
+
+    def click_unidiff(self, checked):
+        if(checked):
+            self.stack.setCurrentIndex(1)
+
+    def click_diffsidebyside(self, checked):
+        if(checked):
+            self.stack.setCurrentIndex(0)

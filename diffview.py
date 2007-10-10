@@ -375,3 +375,15 @@ class DiffView(QtGui.QSplitter):
         self.browser1.setData(text1, changes1)
         self.browser2.setData(text2, changes2)
         self.handle(1).setData(changes)
+
+
+class SimpleDiffView(QtGui.QTextEdit):
+
+    def __init__(self, treeview, parent=None):
+        QtGui.QTextEdit.__init__(self, parent)
+        self.doc = QtGui.QTextDocument(parent)
+        self.setReadOnly(1)
+        res = treeview.html_unidiff( )
+        self.doc.setHtml("<html><body><pre>%s</pre></body></html>"%(res))
+        self.setDocument(self.doc)
+        self.verticalScrollBar().setValue(0)
