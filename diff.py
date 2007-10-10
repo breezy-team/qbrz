@@ -32,6 +32,7 @@ from bzrlib.config import GlobalConfig
 from bzrlib.diff import show_diff_trees
 from bzrlib.workingtree import WorkingTree
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
+
 from bzrlib.plugins.qbzr.i18n import _, ngettext
 from bzrlib.plugins.qbzr.util import (
     BTN_CLOSE,
@@ -396,7 +397,6 @@ class DiffWindow(QBzrWindow):
         self.tree1 = tree1
         self.tree2 = tree2
         self.specific_files = specific_files
-
 
         treediff = TreeDiff(self.tree1, self.tree2, self.specific_files, complete)
         self.diffview = DiffView(treediff, self)

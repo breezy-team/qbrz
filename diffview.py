@@ -1,6 +1,7 @@
 from PyQt4 import QtGui, QtCore
 from bzrlib.plugins.qbzr.i18n import _
 
+
 colors = {
     'delete': (QtGui.QColor(255, 160, 180), QtGui.QColor(200, 60, 90)),
     'insert': (QtGui.QColor(180, 255, 180), QtGui.QColor(80, 210, 80)),
@@ -217,8 +218,6 @@ class DiffView(QtGui.QSplitter):
 
         self.treediff = treediff
         self.displayCombined(expand=False)
-
-
         #self.displayFull(1)
 
     def _syncSliders(self, slider1, slider2, value):

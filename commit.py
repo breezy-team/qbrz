@@ -493,4 +493,3 @@ class CommitWindow(QBzrWindow):
                 for item in items:
                     index = self.filelist.indexOfTopLevelItem(item)
                     self.filelist.takeTopLevelItem(index)
-
