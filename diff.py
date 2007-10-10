@@ -424,7 +424,7 @@ class DiffWindow(QBzrWindow):
 
         buttonbox = self.create_button_box(BTN_CLOSE)
 
-        hbox = QtGui.QHBoxLayout(self.centralwidget)
+        hbox = QtGui.QHBoxLayout()
         hbox.addWidget(diffsidebyside)
         hbox.addWidget(unidiff)
         hbox.addWidget(buttonbox)
