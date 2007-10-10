@@ -18,10 +18,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os
+import sys
 from PyQt4 import QtCore, QtGui
 from bzrlib.config import GlobalConfig
 from bzrlib import lazy_regex
-from bzrlib.plugins.qbzr.i18n import _
+from bzrlib.plugins.qbzr.i18n import _, N_
 
 
 _email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)')
@@ -35,6 +36,31 @@ def htmlize(text):
     text = _link1_re.sub('\\1<a href="\\2://\\3">\\2://\\3</a>', text)
     text = _link2_re.sub('\\1<a href="http://www.\\2.\\3\\4">www.\\2.\\3\\4</a>', text)
     return text
+
+
+# standard buttons with translatable labels
+BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP = range(4)
+
+class StandardButton(QtGui.QPushButton):
+
+    __types = {
+        BTN_OK: (N_('&OK'), 'SP_DialogOkButton'),
+        BTN_CANCEL: (N_('&Cancel'), 'SP_DialogCancelButton'),
+        BTN_CLOSE: (N_('&Close'), 'SP_DialogCloseButton'),
+        BTN_HELP: (N_('&Help'), 'SP_DialogHelpButton'),
+    }
+
+    def __init__(self, btntype, *args):
+        label = _(self.__types[btntype][0])
+        new_args = [label]
+        if sys.platform != 'win32' and sys.platform != 'darwin':
+            iconname = self.__types[btntype][1]
+            if hasattr(QtGui.QStyle, iconname):
+                icon = QtGui.QApplication.style().standardIcon(
+                    getattr(QtGui.QStyle, iconname))
+                new_args = [icon, label]
+        new_args.extend(args)
+        QtGui.QPushButton.__init__(self, *new_args)
 
 
 class QBzrWindow(QtGui.QMainWindow):
@@ -51,6 +77,29 @@ class QBzrWindow(QtGui.QMainWindow):
 
         self.centralwidget = QtGui.QWidget(self)
         self.setCentralWidget(self.centralwidget)
+
+    def create_button_box(self, *buttons):
+        """Create and return button box with pseudo-standard buttons
+        @param  buttons:    any from BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP
+        @return:    QtGui.QDialogButtonBox with attached buttons and signals
+        """
+        ROLES = {
+            BTN_OK: (QtGui.QDialogButtonBox.AcceptRole,
+                "accepted()", "accept"),
+            BTN_CANCEL: (QtGui.QDialogButtonBox.RejectRole,
+                "rejected()", "reject"),
+            BTN_CLOSE: (QtGui.QDialogButtonBox.RejectRole,
+                "rejected()", "close"),
+            # XXX support for HelpRole
+            }
+        buttonbox = QtGui.QDialogButtonBox(self.centralwidget)
+        for i in buttons:
+            btn = StandardButton(i)
+            role, signal_name, method_name = ROLES[i]
+            buttonbox.addButton(btn, role)
+            self.connect(buttonbox,
+                QtCore.SIGNAL(signal_name), getattr(self, method_name))
+        return buttonbox
 
 
 def get_branch_config(branch):
@@ -131,7 +180,6 @@ def extract_name(author):
         else:
             name = author
     return name.strip()
-
 
 
 def format_timestamp(timestamp):

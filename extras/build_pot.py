@@ -35,17 +35,22 @@ class build_pot(Command):
     #   - help string.
     user_options = [('build-dir=', 'd', 'Directory to put POT file'),
                     ('output=', 'o', 'POT filename'),
+                    ('lang=', None, 'Comma-separated list of languages '
+                                    'to update po-files'),
                    ]
 
     def initialize_options(self):
         self.build_dir = None
         self.output = None
+        self.lang = None
 
     def finalize_options(self):
         if self.build_dir is None:
             self.build_dir = 'po'
         if not self.output:
             self.output = (self.distribution.get_name() or 'messages')+'.pot'
+        if self.lang is not None:
+            self.lang = [i.strip() for i in self.lang.split(',') if i.strip()]
 
     def run(self):
         """Run xgettext for QBzr sources"""
@@ -67,6 +72,10 @@ class build_pot(Command):
                     '-o', self.output] + glob.glob('*.py'))
         # search and update all po-files
         for po in glob.glob(os.path.join(self.build_dir,'*.po')):
+            if self.lang is not None:
+                po_lang = os.path.splitext(os.path.basename(po))[0]
+                if po_lang not in self.lang:
+                    continue
             cmd = "msgmerge %s %s -o %s.new" % (po, fullname, po)
             self.spawn(cmd.split())
             print "%s.new --> %s" % (po, po)

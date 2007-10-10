@@ -34,6 +34,7 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.plugins.qbzr.i18n import _, ngettext
 from bzrlib.plugins.qbzr.util import (
+    BTN_CLOSE,
     QBzrWindow,
     format_timestamp,
     get_branch_config,
@@ -421,12 +422,7 @@ class DiffWindow(QBzrWindow):
                      QtCore.SIGNAL("clicked(bool)"),
                      self.click_unidiff)
 
-        buttonbox = QtGui.QDialogButtonBox(
-            QtGui.QDialogButtonBox.StandardButtons(
-                QtGui.QDialogButtonBox.Close),
-            QtCore.Qt.Horizontal,
-            self.centralwidget)
-        self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.close)
+        buttonbox = self.create_button_box(BTN_CLOSE)
 
         hbox = QtGui.QHBoxLayout(self.centralwidget)
         hbox.addWidget(diffsidebyside)
