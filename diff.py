@@ -403,16 +403,12 @@ class DiffWindow(QBzrWindow):
         self.sdiffview = SimpleDiffView(treediff, self)
         self.sdiffview.setVisible(False)
 
-        buttonbox = QtGui.QDialogButtonBox(
-            QtGui.QDialogButtonBox.StandardButtons(
-                QtGui.QDialogButtonBox.Close),
-            QtCore.Qt.Horizontal,
-            self.centralwidget)
-        self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.close)
+        self.stack = QtGui.QStackedWidget(self.centralwidget)
+        self.stack.addWidget(self.diffview)
+        self.stack.addWidget(self.sdiffview)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
-        vbox.addWidget(self.diffview)
-        vbox.addWidget(self.sdiffview)
+        vbox.addWidget(self.stack)
 
         diffsidebyside = QtGui.QRadioButton(_("Side by side"), self.centralwidget)
         self.connect(diffsidebyside,
@@ -425,6 +421,13 @@ class DiffWindow(QBzrWindow):
                      QtCore.SIGNAL("clicked(bool)"),
                      self.click_unidiff)
 
+        buttonbox = QtGui.QDialogButtonBox(
+            QtGui.QDialogButtonBox.StandardButtons(
+                QtGui.QDialogButtonBox.Close),
+            QtCore.Qt.Horizontal,
+            self.centralwidget)
+        self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.close)
+
         hbox = QtGui.QHBoxLayout(self.centralwidget)
         hbox.addWidget(diffsidebyside)
         hbox.addWidget(unidiff)
@@ -432,11 +435,9 @@ class DiffWindow(QBzrWindow):
         vbox.addLayout(hbox)
 
     def click_unidiff(self, checked):
-        if self.diffview.isVisible():
-            self.diffview.setVisible(False)
-            self.sdiffview.setVisible(True)
+        if(checked):
+            self.stack.setCurrentIndex(1)
 
     def click_diffsidebyside(self, checked):
-        if self.sdiffview.isVisible():
-            self.sdiffview.setVisible(False)
-            self.diffview.setVisible(True)
+        if(checked):
+            self.stack.setCurrentIndex(0)
