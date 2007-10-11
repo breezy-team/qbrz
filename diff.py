@@ -340,7 +340,7 @@ class TreeDiff(list):
         res = []
         for diff in self:
             res.append(diff.txt_unidiff())
-        return ''.join(res)
+        return '\n'.join(res)
 
     def html_unidiff(self):
         res = []
