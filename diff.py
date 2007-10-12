@@ -168,7 +168,7 @@ class FileDiff(object):
 
         a = self.old_lines
         fromfiledate = self.old_date
-        fromfile = self.new_path
+        fromfile = self.old_path
 
         b = self.new_lines
         tofiledate = self.new_date
@@ -178,6 +178,20 @@ class FileDiff(object):
         b = [b.decode("utf-8", "replace").rstrip("\n") for b in b]
 
         started = False
+        if self.status == 'renamed':
+            yield "=== %s %s '%s' => '%s'"%(
+                _('renamed'), self.kind, fromfile, tofile)
+        elif self.status == 'modified':
+            yield "=== %s %s '%s'"%(_('modified'), self.kind, fromfile)
+        elif self.status == 'removed':
+            yield "=== %s %s '%s'"%(_('removed'), self.kind, fromfile)
+        elif self.status == 'added':
+            yield "=== %s %s '%s'"%(_('added'), self.kind, fromfile)
+        if self.binary:
+            yield "=== %s %s"%(_('binary'),_('file'))
+            yield '--- %s %s%s' % (fromfile, fromfiledate, lineterm)
+            yield '+++ %s %s%s' % (tofile, tofiledate, lineterm)
+            return
         for group in self.groups:
             if not started:
                 yield '--- %s %s%s' % (fromfile, fromfiledate, lineterm)
@@ -198,25 +212,34 @@ class FileDiff(object):
                         yield '+' + line
 
     def html_unidiff(self):
-        def span(color, s):
-            return "<font color=%s>%s</font>"%(color, markup_line(s))
-        res ='<span style="font-size:12px">'
+        style = {
+            '---': 'background-color:#b4d2f6; font-weight:bold; color:black',
+            '+++': 'background-color:#b4d2f6; font-weight:bold; color:black',
+            '-':   'background-color:#FFDDDD; color:black',
+            '+':   'background-color:#DDFFDD; color:black',
+            '@':   'background-color:#b4d2f6; font-weight:bold; color:black',
+            '=':   'background-color:#b4d2f6; font-weight:bold; color:black',
+        }
+        defaultstyle = 'background-color:#f0f0f0; color=black',
+        #style = {
+            #'---': 'background-color:#f4f4f4; font-weight:bold; color:red',
+            #'+++': 'background-color:#f4f4f4; font-weight:bold; color:green',
+            #'-':   'background-color:#f4f4f4; color:red',
+            #'+':   'background-color:#f4f4f4; color:green',
+            #'@':   'background-color:#f4f4f4; font-weight:bold; color:purple',
+            #'=':   'background-color:#f4f4f4; font-weight:bold; color:purple',
+        #}
+        #defaultstyle = 'background-color:white; color=black',
+        res ='<span style="font-size:14px">'
+        keys = style.keys( )
+        keys.sort(reverse=True)
         for l in self.unidiff_list(lineterm=''):
-            if l.startswith('='):
-                res += span('blue', l)
-            elif l.startswith('+++'):
-                res += span('green', l)
-            elif l.startswith('---'):
-                res += span('red', l)
-            elif l.startswith('+'):
-                res += span('green', l)
-            elif l.startswith('-'):
-                res += span('red', l)
-            elif l.startswith('@'):
-                res += span('purple', l)
+            for k in keys:
+                if l.startswith(k):
+                    res += markup_line(l, style[k])
+                    break
             else:
-                res += "%s"%markup_line(l)
-
+                res += markup_line(l, defaultstyle)
         res += '</span>'
         return res
 
@@ -267,7 +290,7 @@ class TreeDiff(list):
             self.append(diff)
 
         for path, file_id, kind in delta.added:
-            diff = FileDiff(_('added'), path)
+            diff = FileDiff('added', path)
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path, 0)
             diff.new_date = self._date(new_tree, file_id, path)
@@ -278,7 +301,7 @@ class TreeDiff(list):
             self.append(diff)
 
         for old_path, new_path, file_id, kind, text_modified, meta_modified in delta.renamed:
-            diff = FileDiff(_('renamed'), u'%s \u2192 %s' % (old_path, new_path))
+            diff = FileDiff('renamed', u'%s \u2192 %s' % (old_path, new_path))
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, old_path)
             diff.new_date = self._date(new_tree, file_id, new_path)
@@ -291,7 +314,7 @@ class TreeDiff(list):
             self.append(diff)
 
         for path, file_id, kind, text_modified, meta_modified in delta.modified:
-            diff = FileDiff(_('modified'), path)
+            diff = FileDiff('modified', path)
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path)
             diff.new_date = self._date(new_tree, file_id, path)
@@ -331,7 +354,7 @@ class TreeDiff(list):
             html.append('<div style="%s">%s</div>' % (STYLES['title'], diff.path))
             html.append(self._get_metainfo_template() % (STYLES['metainfo'],
                                                          diff.old_date,
-                                                         diff.status,
+                                                         _(diff.status),
                                                          diff.kind))
             html.append(diff.html_inline())
         return ''.join(html)
@@ -355,12 +378,12 @@ class TreeDiff(list):
             html1.append('<div style="%s">%s</div>' % (STYLES['title'], diff.path))
             html1.append(self._get_metainfo_template() % (STYLES['metainfo'],
                                                           diff.old_date,
-                                                          diff.status,
+                                                          _(diff.status),
                                                           diff.kind))
             html2.append('<div style="%s">%s</div>' % (STYLES['title'], diff.path))
             html2.append(self._get_metainfo_template() % (STYLES['metainfo'],
                                                           diff.new_date,
-                                                          diff.status,
+                                                          _(diff.status),
                                                           diff.kind))
             lines1, lines2 = diff.html_side_by_side()
             html1.append(lines1)

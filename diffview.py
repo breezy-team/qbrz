@@ -13,7 +13,6 @@ brushes = {}
 for kind, cols in colors.items():
     brushes[kind] = (QtGui.QBrush(cols[0]), QtGui.QBrush(cols[1]))
 
-
 class DiffSourceView(QtGui.QTextBrowser):
 
     def __init__(self, font, titleFont, metainfoFont, metainfoTitleFont, lineHeight, parent=None):
@@ -377,7 +376,7 @@ class DiffView(QtGui.QSplitter):
         self.handle(1).setData(changes)
 
 
-class SimpleDiffView2(QtGui.QTextEdit):
+class SimpleDiffView(QtGui.QTextEdit):
 
     def __init__(self, treeview, parent=None):
         QtGui.QTextEdit.__init__(self, parent)
@@ -387,70 +386,3 @@ class SimpleDiffView2(QtGui.QTextEdit):
         self.doc.setHtml("<html><body><pre>%s</pre></body></html>"%(res))
         self.setDocument(self.doc)
         self.verticalScrollBar().setValue(0)
-
-class SimpleDiffView(QtGui.QTextEdit):
-
-    def __init__(self, treeview, parent=None):
-        QtGui.QTextEdit.__init__(self, parent)
-        self.setReadOnly(1)
-        self.text = treeview.txt_unidiff( )
-        self.setCurrentFont(QtGui.QFont("Courier New,courier", 8))
-        self.setText(self.text)
-        self.verticalScrollBar().setValue(0)
-
-        last = ''
-        self.changes = []
-        count = 1
-        nline = -1
-        for line in self.text.split('\n'):
-            nline += 1
-            if len(line)<1:
-                continue
-            c = line[0]
-            if c == last:
-                count += 1
-                continue
-
-            if last and last in '+-@=':
-                self.changes.append((last, count, nline-count))
-
-            if c in '+-@=':
-                last = c
-            else:
-                last = ''
-            count = 1
-
-    def paintEvent(self, event):
-        w = self.width()
-        h = self.height()
-        x = 1 - self.horizontalScrollBar().value()
-        y = 1 - self.verticalScrollBar().value()
-
-        painter = QtGui.QPainter(self.viewport())
-        painter.setClipRect(event.rect())
-
-        pen = QtGui.QPen(QtCore.Qt.black)
-        pen.setWidth(2)
-        painter.setPen(pen)
-
-        fm = painter.fontMetrics()
-        fheight = fm.height()
-
-        for kind, nlines, pos in self.changes:
-            y1 = y + fheight * pos
-            y2 = y1 + fheight * nlines
-            if y1 >= h or y2 < 0:
-                continue
-            if kind == '+':
-                kind = 'insert'
-            elif kind == '-':
-                kind = 'delete'
-            else:
-                kind = 'replace'
-            painter.fillRect(0, y1, w, y2 - y1 + 1, brushes[kind][0])
-            painter.setPen(colors[kind][1])
-            painter.drawLine(0, y1, w, y1)
-            if y1 != y2:
-                painter.drawLine(0, y2, w, y2)
-
-        QtGui.QTextEdit.paintEvent(self, event)
