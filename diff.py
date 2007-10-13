@@ -24,10 +24,11 @@ import locale
 import sys
 import time
 from cStringIO import StringIO
+
 from PyQt4 import QtCore, QtGui
+
 from bzrlib.errors import BinaryFile, NoSuchId
 from bzrlib.textfile import check_text_lines
-from bzrlib.commands import Command, register_command
 from bzrlib.config import GlobalConfig
 from bzrlib.diff import show_diff_trees
 from bzrlib.workingtree import WorkingTree
@@ -85,7 +86,7 @@ class FileDiff(object):
         self.new_lines = []
         self.groups = []
 
-    def make_diff(self, old_lines, new_lines, complete):
+    def make_diff(self, old_lines, new_lines, complete, encoding='utf-8'):
         try:
             check_text_lines(old_lines)
             check_text_lines(new_lines)
@@ -104,12 +105,13 @@ class FileDiff(object):
                     self.groups = list([matcher.get_opcodes()])
                 else:
                     self.groups = list(matcher.get_grouped_opcodes())
+            self.old_lines = [i.decode(encoding,'replace') for i in old_lines]
+            self.new_lines = [i.decode(encoding,'replace') for i in new_lines]
 
     def html_diff_lines(self, html1, html2, inline=True):
         a = self.old_lines
         b = self.new_lines
         groups = self.groups
-        # XXX more complicated encoding support needed
         a = [a.decode("utf-8", "replace").rstrip("\n") for a in a]
         b = [b.decode("utf-8", "replace").rstrip("\n") for b in b]
         for group in groups:
@@ -174,8 +176,8 @@ class FileDiff(object):
         tofiledate = self.new_date
         tofile = self.new_path
 
-        a = [a.decode("utf-8", "replace").rstrip("\n") for a in a]
-        b = [b.decode("utf-8", "replace").rstrip("\n") for b in b]
+        a = [a.rstrip("\n") for a in a]
+        b = [b.rstrip("\n") for b in b]
 
         started = False
         if self.status == 'renamed':
@@ -266,8 +268,10 @@ class TreeDiff(list):
                 secs = 0
         return format_timestamp(secs)
 
-    def _make_diff(self, old_tree, new_tree, specific_files=[], complete=False):
-        delta = new_tree.changes_from(old_tree, specific_files=specific_files, require_versioned=True)
+    def _make_diff(self, old_tree, new_tree, specific_files=[], complete=False,
+                   encoding='utf-8'):
+        delta = new_tree.changes_from(old_tree, specific_files=specific_files,
+                                      require_versioned=True)
 
         for path, file_id, kind in delta.removed:
             diff = FileDiff(_('removed'), path)
@@ -277,7 +281,8 @@ class TreeDiff(list):
             diff.old_path = path
             diff.new_path = path
             if diff.kind != 'directory':
-                diff.make_diff(get_file_lines_from_tree(old_tree, file_id), [], complete)
+                diff.make_diff(get_file_lines_from_tree(old_tree, file_id),
+                               [], complete, encoding)
             self.append(diff)
 
         for path, file_id, kind in delta.added:
@@ -288,7 +293,8 @@ class TreeDiff(list):
             diff.old_path = path
             diff.new_path = path
             if diff.kind != 'directory':
-                diff.make_diff([], get_file_lines_from_tree(new_tree, file_id), complete)
+                diff.make_diff([], get_file_lines_from_tree(new_tree, file_id),
+                               complete, encoding)
             self.append(diff)
 
         for old_path, new_path, file_id, kind, text_modified, meta_modified in delta.renamed:
@@ -301,7 +307,7 @@ class TreeDiff(list):
             if text_modified:
                 old_lines = get_file_lines_from_tree(old_tree, file_id)
                 new_lines = get_file_lines_from_tree(new_tree, file_id)
-                diff.make_diff(old_lines, new_lines, complete)
+                diff.make_diff(old_lines, new_lines, complete, encoding)
             self.append(diff)
 
         for path, file_id, kind, text_modified, meta_modified in delta.modified:
@@ -314,15 +320,17 @@ class TreeDiff(list):
             if text_modified:
                 old_lines = get_file_lines_from_tree(old_tree, file_id)
                 new_lines = get_file_lines_from_tree(new_tree, file_id)
-                diff.make_diff(old_lines, new_lines, complete)
+                diff.make_diff(old_lines, new_lines, complete, encoding)
             self.append(diff)
 
-    def __init__(self, old_tree, new_tree, specific_files=[], complete=False):
+    def __init__(self, old_tree, new_tree, specific_files=[], complete=False,
+                 encoding='utf-8'):
         self._metainfo_template = None
         old_tree.lock_read()
         new_tree.lock_read()
         try:
-            self._make_diff(old_tree, new_tree, specific_files, complete)
+            self._make_diff(old_tree, new_tree, specific_files, complete,
+                            encoding)
         finally:
             old_tree.unlock()
             new_tree.unlock()
@@ -386,7 +394,7 @@ class DiffWindow(QBzrWindow):
 
     def __init__(self, tree1=None, tree2=None, specific_files=None,
                  parent=None, custom_title=None, inline=False,
-                 complete=False, branch=None):
+                 complete=False, branch=None, encoding=None):
         title = [_("Diff")]
         if custom_title:
             title.append(custom_title)
@@ -398,13 +406,20 @@ class DiffWindow(QBzrWindow):
             else:
                 title.append(", ".join(specific_files))
 
+        config = get_branch_config(branch)
+
         size = (780, 580)
         try:
-            size_str = get_branch_config(branch).get_user_option("qdiff_window_size")
+            size_str = config.get_user_option("qdiff_window_size")
             if size_str:
                 size = map(int, size_str.split("x", 2))
         except:
             pass
+
+        if encoding is None:
+            encoding = config.get_user_option("encoding") or 'utf-8'
+        else:
+            config.set_user_option('encoding', encoding)
 
         QBzrWindow.__init__(self, title, size, parent)
 
@@ -412,7 +427,8 @@ class DiffWindow(QBzrWindow):
         self.tree2 = tree2
         self.specific_files = specific_files
 
-        treediff = TreeDiff(self.tree1, self.tree2, self.specific_files, complete)
+        treediff = TreeDiff(self.tree1, self.tree2, self.specific_files,
+                            complete, encoding)
         self.diffview = DiffView(treediff, self)
 
         self.sdiffview = SimpleDiffView(treediff, self)

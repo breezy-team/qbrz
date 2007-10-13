@@ -21,11 +21,13 @@ import operator
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.i18n import _
 from bzrlib.plugins.qbzr.util import (
+    BTN_CLOSE,
     QBzrWindow,
     extract_name,
     format_revision_html,
     format_timestamp,
     get_apparent_author,
+    htmlencode,
     )
 
 have_pygments = True
@@ -73,7 +75,7 @@ class AnnotateView(QtGui.QTextBrowser):
 
 class AnnotateWindow(QBzrWindow):
 
-    def __init__(self, filename, lines, revisions, parent=None):
+    def __init__(self, filename, lines, revisions, parent=None, encoding=None):
         QBzrWindow.__init__(self,
             [_("Annotate"), filename], (780, 680), parent)
 
@@ -109,16 +111,13 @@ class AnnotateWindow(QBzrWindow):
         self.blocks = [(a, b, make_color(rev_id)) for (rev_id, a, b) in self.blocks]
 
         code = "".join(a[1] for a in lines)
-        # XXX more complicated encoding detecting
-        #     also probe bzrlib.user_encoding
-        try:
-            code = code.decode('utf-8', 'errors')
-        except UnicodeError:
-            code = code.decode('iso-8859-1', 'replace')
+        if encoding is None:
+            encoding = 'utf-8'
+        code = code.decode(encoding, 'replace')
 
         if not have_pygments:
             style = ''
-            code_html = '%s' % code
+            code_html = htmlencode(code)
         else:
             try:
                 lexer = get_lexer_for_filename(filename)
@@ -127,7 +126,7 @@ class AnnotateWindow(QBzrWindow):
                 code_html = highlight(code, lexer, formatter)
             except ValueError:
                 style = ''
-                code_html = '%s' % code
+                code_html = htmlencode(code)
 
         font = QtGui.QFont("Courier New,courier", 8)
         self.lineHeight = QtGui.QFontMetrics(font).height()
@@ -174,12 +173,7 @@ body {white-space:pre;}
         splitter.setStretchFactor(0, 5)
         splitter.setStretchFactor(1, 2)
 
-        buttonbox = QtGui.QDialogButtonBox(
-            QtGui.QDialogButtonBox.StandardButtons(
-                QtGui.QDialogButtonBox.Close),
-            QtCore.Qt.Horizontal,
-            self)
-        self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.close)
+        buttonbox = self.create_button_box(BTN_CLOSE)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)

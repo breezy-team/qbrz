@@ -1,4 +1,5 @@
 from PyQt4 import QtGui, QtCore
+from bzrlib.plugins.qbzr.util import htmlencode
 from bzrlib.plugins.qbzr.i18n import _
 
 
@@ -126,16 +127,10 @@ class DiffViewHandle(QtGui.QSplitterHandle):
 
 
 
-def htmlencode(string):
-    return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
-
-def markup_line(line, encode=True, decode_unicode=True):
+def markup_line(line, encode=True):
     if encode:
         line = htmlencode(line)
     line = line.rstrip("\n").replace("\t", "&nbsp;" * 8)
-    if decode_unicode:
-        line = line.decode("utf-8", "replace")
     return line
 
 
@@ -153,8 +148,6 @@ def get_change_extent(str1, str2):
 
 
 def markup_intraline_changes(line1, line2, color):
-    line1 = line1.decode("utf-8", "replace")
-    line2 = line2.decode("utf-8", "replace")
     line1 = line1.replace(u"&", u"\1").replace(u"<", u"\2").replace(u">", u"\3")
     line2 = line2.replace(u"&", u"\1").replace(u"<", u"\2").replace(u">", u"\3")
     start, end = get_change_extent(line1[1:], line2[1:])
@@ -310,8 +303,8 @@ class DiffView(QtGui.QSplitter):
                                 lineb = b[j1 + i]
                                 new_linea = markup_intraline_changes(linea, lineb, '#5A82B4')
                                 new_lineb = markup_intraline_changes(lineb, linea, '#5A82B4')
-                                lines1.append(markup_line(new_linea, encode=False, decode_unicode=False))
-                                lines2.append(markup_line(new_lineb, encode=False, decode_unicode=False))
+                                lines1.append(markup_line(new_linea, encode=False))
+                                lines2.append(markup_line(new_lineb, encode=False))
                         else:
                             lines1.extend(map(markup_line, a[i1:i2]))
                             lines2.extend(map(markup_line, b[j1:j2]))
