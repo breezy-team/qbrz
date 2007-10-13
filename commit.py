@@ -284,12 +284,17 @@ class CommitWindow(QBzrWindow):
             header = pendingMergesWidget.header()
             header.resizeSection(0, 120)
             header.resizeSection(1, 190)
+            self.connect(pendingMergesWidget,
+                QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
+                self.show_changeset)
 
             for merge in pending_merges:
                 item = QtGui.QTreeWidgetItem(pendingMergesWidget)
                 item.setText(0, format_timestamp(merge.timestamp))
                 item.setText(1, get_apparent_author(merge))
                 item.setText(2, merge.get_summary())
+                item.setData(0, QtCore.Qt.UserRole + 1,
+                             QtCore.QVariant(merge.revision_id))
 
             vbox = QtGui.QVBoxLayout(groupbox)
             vbox.addWidget(pendingMergesWidget)
@@ -445,6 +450,17 @@ class CommitWindow(QBzrWindow):
     def reject(self):
         """Reject the commit."""
         self.close()
+
+    def show_changeset(self, item=None, column=None):
+        repo = self.tree.branch.repository
+        rev_id = str(item.data(0, QtCore.Qt.UserRole + 1).toString())
+        rev_parent_id = repo.revision_parents(rev_id)[0]
+        revs = [rev_parent_id, rev_id]
+        tree1, tree2 = repo.revision_trees(revs)
+        window = DiffWindow(tree1, tree2, custom_title="..".join(revs),
+                            branch=self.tree.branch)
+        window.show()
+        self.windows.append(window)
 
     def show_differences(self, items=None, column=None):
         """Show differences between the working copy and the last revision."""
