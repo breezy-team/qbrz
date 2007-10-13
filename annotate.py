@@ -27,6 +27,7 @@ from bzrlib.plugins.qbzr.util import (
     format_revision_html,
     format_timestamp,
     get_apparent_author,
+    htmlencode,
     )
 
 have_pygments = True
@@ -116,7 +117,7 @@ class AnnotateWindow(QBzrWindow):
 
         if not have_pygments:
             style = ''
-            code_html = '%s' % code
+            code_html = htmlencode(code)
         else:
             try:
                 lexer = get_lexer_for_filename(filename)
@@ -125,7 +126,7 @@ class AnnotateWindow(QBzrWindow):
                 code_html = highlight(code, lexer, formatter)
             except ValueError:
                 style = ''
-                code_html = '%s' % code
+                code_html = htmlencode(code)
 
         font = QtGui.QFont("Courier New,courier", 8)
         self.lineHeight = QtGui.QFontMetrics(font).height()

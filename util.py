@@ -188,3 +188,7 @@ def format_timestamp(timestamp):
     date = QtCore.QDateTime()
     date.setTime_t(int(timestamp))
     return unicode(date.toString(QtCore.Qt.LocalDate))
+
+
+def htmlencode(string):
+    return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
