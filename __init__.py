@@ -46,6 +46,7 @@ from bzrlib.plugins.qbzr.browse import BrowseWindow
 from bzrlib.plugins.qbzr.commit import CommitWindow
 from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.log import LogWindow
+from bzrlib.plugins.qbzr.util import get_branch_config
 from bzrlib.workingtree import WorkingTree
 ''')
 
@@ -53,10 +54,13 @@ from bzrlib.workingtree import WorkingTree
 class cmd_qannotate(Command):
     """Show the origin of each line in a file."""
     takes_args = ['filename']
-    takes_options = ['revision']
+    takes_options = ['revision',
+                     Option('encoding', type=str,
+                     help='Encoding of files content (default: utf-8)'),
+                    ]
     aliases = ['qann', 'qblame']
 
-    def run(self, filename=None, revision=None):
+    def run(self, filename=None, revision=None, encoding=None):
         from bzrlib.annotate import _annotate_file
         tree, relpath = WorkingTree.open_containing(filename)
         branch = tree.branch
@@ -83,8 +87,14 @@ class cmd_qannotate(Command):
         finally:
             branch.unlock()
 
+        config = get_branch_config(branch)
+        if encoding is None:
+            encoding = config.get_user_option("encoding") or 'utf-8'
+        else:
+            config.set_user_option("encoding", encoding)
+
         app = QtGui.QApplication(sys.argv)
-        win = AnnotateWindow(filename, content, revisions)
+        win = AnnotateWindow(filename, content, revisions, encoding=encoding)
         win.show()
         app.exec_()
 
