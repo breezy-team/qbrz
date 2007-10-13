@@ -380,7 +380,7 @@ class DiffWindow(QBzrWindow):
 
     def __init__(self, tree1=None, tree2=None, specific_files=None,
                  parent=None, custom_title=None, inline=False,
-                 complete=False, branch=None):
+                 complete=False, branch=None, encoding=None):
         title = [_("Diff")]
         if custom_title:
             title.append(custom_title)
@@ -402,9 +402,10 @@ class DiffWindow(QBzrWindow):
         except:
             pass
 
-        encoding = config.get_user_option("encoding")
         if encoding is None:
-            encoding = 'utf-8'
+            encoding = config.get_user_option("encoding") or 'utf-8'
+        else:
+            config.set_user_option('encoding', encoding)
 
         QBzrWindow.__init__(self, title, size, parent)
 
