@@ -213,26 +213,17 @@ class FileDiff(object):
 
     def html_unidiff(self):
         style = {
-            '---': 'background-color:#b4d2f6; font-weight:bold; color:black',
-            '+++': 'background-color:#b4d2f6; font-weight:bold; color:black',
+            '---': 'background-color:#c5e3f7; color:black',
+            '+++': 'background-color:#c5e3f7; color:black',
             '-':   'background-color:#FFDDDD; color:black',
             '+':   'background-color:#DDFFDD; color:black',
-            '@':   'background-color:#b4d2f6; font-weight:bold; color:black',
-            '=':   'background-color:#b4d2f6; font-weight:bold; color:black',
+            '@':   'background-color:#c5e3f7; color:black',
+            '=':   'background-color:#c5e3f7; color:black',
         }
-        defaultstyle = 'background-color:#f0f0f0; color=black',
-        #style = {
-            #'---': 'background-color:#f4f4f4; font-weight:bold; color:red',
-            #'+++': 'background-color:#f4f4f4; font-weight:bold; color:green',
-            #'-':   'background-color:#f4f4f4; color:red',
-            #'+':   'background-color:#f4f4f4; color:green',
-            #'@':   'background-color:#f4f4f4; font-weight:bold; color:purple',
-            #'=':   'background-color:#f4f4f4; font-weight:bold; color:purple',
-        #}
-        #defaultstyle = 'background-color:white; color=black',
-        res ='<span style="font-size:14px">'
+        defaultstyle = 'background-color:#ffffff; color=black',
+        res ='<span style="font-size:12px">'
         keys = style.keys( )
-        keys.sort(reverse=True)
+        keys.sort(reverse=True) # so '---' is before '-'
         for l in self.unidiff_list(lineterm=''):
             for k in keys:
                 if l.startswith(k):
