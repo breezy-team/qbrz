@@ -192,3 +192,28 @@ def format_timestamp(timestamp):
 
 def htmlencode(string):
     return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def is_valid_encoding(encoding):
+    import codecs
+    try:
+        codecs.lookup(encoding)
+    except LookupError:
+        return False
+    return True
+
+
+def get_set_encoding(encoding, config):
+    """Return encoding value from branch config if encoding is None,
+    otherwise store encoding value in branch config.
+    """
+    if encoding is None:
+        encoding = config.get_user_option("encoding") or 'utf-8'
+        if not is_valid_encoding(encoding):
+            from bzrlib.trace import note
+            note(('NOTE: Invalid encoding value in branch config: %s\n'
+                'utf-8 will be used instead') % encoding)
+            encoding = 'utf-8'
+    else:
+        config.set_user_option("encoding", encoding)
+    return encoding
