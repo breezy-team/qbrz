@@ -1,4 +1,5 @@
 from PyQt4 import QtGui, QtCore
+from bzrlib.plugins.qbzr.util import htmlencode
 from bzrlib.plugins.qbzr.i18n import _
 
 
@@ -125,10 +126,6 @@ class DiffViewHandle(QtGui.QSplitterHandle):
             painter.setRenderHints(QtGui.QPainter.Antialiasing, ly2 != ry2)
             painter.drawLine(0, ly2, w, ry2)
 
-
-
-def htmlencode(string):
-    return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
 def markup_line(line, encode=True):
