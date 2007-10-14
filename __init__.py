@@ -46,16 +46,39 @@ from bzrlib.plugins.qbzr.browse import BrowseWindow
 from bzrlib.plugins.qbzr.commit import CommitWindow
 from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.log import LogWindow
-from bzrlib.plugins.qbzr.util import get_branch_config
+from bzrlib.plugins.qbzr.util import (
+    get_branch_config,
+    get_set_encoding,
+    is_valid_encoding,
+    )
 from bzrlib.workingtree import WorkingTree
 ''')
+
+
+class InvalidEncodingOption(errors.BzrError):
+
+    _fmt = ('Invalid encoding: %(encoding)s\n'
+            'Valid encodings are:\n%(valid)s')
+
+    def __init__(self, encoding):
+        errors.BzrError.__init__(self)
+        self.encoding = encoding
+        import encodings
+        self.valid = ', '.join(sorted(list(
+            set(encodings.aliases.aliases.values())))).replace('_','-')
+
+
+def check_encoding(encoding):
+    if is_valid_encoding(encoding):
+        return encoding
+    raise InvalidEncodingOption(encoding)
 
 
 class cmd_qannotate(Command):
     """Show the origin of each line in a file."""
     takes_args = ['filename']
     takes_options = ['revision',
-                     Option('encoding', type=str,
+                     Option('encoding', type=check_encoding,
                      help='Encoding of files content (default: utf-8)'),
                     ]
     aliases = ['qann', 'qblame']
@@ -88,10 +111,7 @@ class cmd_qannotate(Command):
             branch.unlock()
 
         config = get_branch_config(branch)
-        if encoding is None:
-            encoding = config.get_user_option("encoding") or 'utf-8'
-        else:
-            config.set_user_option("encoding", encoding)
+        encoding = get_set_encoding(encoding, config)
 
         app = QtGui.QApplication(sys.argv)
         win = AnnotateWindow(filename, content, revisions, encoding=encoding)
@@ -132,7 +152,7 @@ class cmd_qdiff(Command):
         'revision', 'change',
         Option('inline', help='Show inline diff'),
         Option('complete', help='Show complete files'),
-        Option('encoding', type=str,
+        Option('encoding', type=check_encoding,
                help='Encoding of files content (default: utf-8)'),
         ]
     aliases = ['qdi']
