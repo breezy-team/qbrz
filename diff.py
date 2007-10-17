@@ -81,8 +81,8 @@ class FileDiff(object):
     status_msg = {
         'renamed':  _('renamed'),
         'removed':  _('removed'),
-        'added':  _('added'),
-        'modified':  _('modified'),
+        'added':    _('added'),
+        'modified': _('modified'),
     }
 
     def __init__(self, status, path):
