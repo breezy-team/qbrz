@@ -40,6 +40,7 @@ from bzrlib.plugins.qbzr.util import (
     QBzrWindow,
     format_timestamp,
     get_branch_config,
+    get_set_encoding,
     )
 from bzrlib.plugins.qbzr.diffview import (
     DiffView,
@@ -414,7 +415,7 @@ class DiffWindow(QBzrWindow):
                 title.append(", ".join(specific_files))
 
         config = get_branch_config(branch)
-
+        encoding = get_set_encoding(encoding, config)
         size = (780, 580)
         try:
             size_str = config.get_user_option("qdiff_window_size")
@@ -422,11 +423,6 @@ class DiffWindow(QBzrWindow):
                 size = map(int, size_str.split("x", 2))
         except:
             pass
-
-        if encoding is None:
-            encoding = config.get_user_option("encoding") or 'utf-8'
-        else:
-            config.set_user_option('encoding', encoding)
 
         QBzrWindow.__init__(self, title, size, parent)
 
