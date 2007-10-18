@@ -220,18 +220,19 @@ class FileDiff(object):
             '=':   'background-color:#c5e3f7; color:black',
         }
         defaultstyle = 'background-color:#ffffff; color=black',
-        res ='<span style="font-size:12px">'
+        res = ['<span style="font-size:12px">']
         keys = style.keys( )
         keys.sort(reverse=True) # so '---' is before '-'
         for l in self.unidiff_list(lineterm=''):
             for k in keys:
                 if l.startswith(k):
-                    res += markup_line(l, style[k])
+                    res.append(markup_line(l, style[k]))
                     break
             else:
-                res += markup_line(l, defaultstyle)
-        res += '</span>'
-        return res
+                res.append(markup_line(l, defaultstyle))
+        res.append('</span>')
+        res.append(markup_line('', defaultstyle))   # blank line between files
+        return ''.join(res)
 
     def html_side_by_side(self):
         """Make HTML for side-by-side diff view."""
@@ -371,7 +372,6 @@ class TreeDiff(list):
         res = []
         for diff in self:
             res.append(diff.html_unidiff())
-            res.append('<br/>')             # blank line between files
         return ''.join(res)
 
     def html_side_by_side(self):
