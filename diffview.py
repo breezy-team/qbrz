@@ -260,11 +260,11 @@ class DiffView(QtGui.QSplitter):
         for diff in self.treediff:
             titles1.append((len(lines1), diff.path,
                 ((_('Last modified:'), ' %s, ' % diff.old_date),
-                (_('Status:'), ' %s, ' % diff.status),
+                (_('Status:'), ' %s, ' % _(diff.status)),
                 (_('Kind:'), ' %s' % _(diff.kind)))))
             titles2.append((len(lines2), diff.path,
                 ((_('Last modified:'), ' %s, ' % diff.new_date),
-                (_('Status:'), ' %s, ' % diff.status),
+                (_('Status:'), ' %s, ' % _(diff.status)),
                 (_('Kind:'), ' %s' % _(diff.kind)))))
             #lines1.append('<span style="font-family:%s;%s">%s</span>' % (self.ff, STYLES['title'], diff.path))
             #lines1.append('<span style="font-family:%s;%s"><b>Last modified:</b> %s, <b>Status:</b> %s, <b>Kind:</b> %s</span>' % (self.ff, STYLES['metainfo'], diff.old_date, diff.status, diff.kind))
@@ -375,7 +375,7 @@ class SimpleDiffView(QtGui.QTextEdit):
         QtGui.QTextEdit.__init__(self, parent)
         self.doc = QtGui.QTextDocument(parent)
         self.setReadOnly(1)
-        res = treeview.html_unidiff( )
+        res = treeview.html_unidiff()
         self.doc.setHtml("<html><body><pre>%s</pre></body></html>"%(res))
         self.setDocument(self.doc)
         self.verticalScrollBar().setValue(0)
