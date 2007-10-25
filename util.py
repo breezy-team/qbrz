@@ -22,7 +22,7 @@ import sys
 from PyQt4 import QtCore, QtGui
 from bzrlib.config import GlobalConfig
 from bzrlib import lazy_regex
-from bzrlib.plugins.qbzr.i18n import _, N_
+from bzrlib.plugins.qbzr.i18n import _, N_, ngettext
 
 
 _email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)')
@@ -144,9 +144,11 @@ def format_revision_html(rev, search_replace=None):
         if bug:
             url, status = bug.split(' ')
             bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
-                dict(url=url, status=status)))
+                dict(url=url, status=_(status))))
     if bugs:
-        text.append('<b>%s</b> %s' % (_("Bugs:"), ', '.join(bugs)))
+        text.append('<b>%s</b> %s' % (
+            ngettext("Bug:", "Bugs:", len(bugs)),
+            ', '.join(bugs)))
 
     message = htmlize(rev.message)
     if search_replace:

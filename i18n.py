@@ -68,3 +68,5 @@ if 0:
     N_('file')
     N_('directory')
     N_('symlink')
+    # bugs status
+    N_('fixed')
