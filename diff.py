@@ -79,6 +79,13 @@ def markup_line(line, style='', encode=True):
 
 class FileDiff(object):
 
+    status_msg = {
+        'renamed':  _('renamed'),
+        'removed':  _('removed'),
+        'added':    _('added'),
+        'modified': _('modified'),
+    }
+
     def __init__(self, status, path):
         self.status = status
         self.path = path
@@ -86,6 +93,7 @@ class FileDiff(object):
         self.old_lines = []
         self.new_lines = []
         self.groups = []
+        self.status_msg = FileDiff.status_msg[status]
 
     def make_diff(self, old_lines, new_lines, complete, encoding='utf-8'):
         try:
@@ -171,7 +179,7 @@ class FileDiff(object):
 
         a = self.old_lines
         fromfiledate = self.old_date
-        fromfile = self.new_path
+        fromfile = self.old_path
 
         b = self.new_lines
         tofiledate = self.new_date
@@ -181,6 +189,19 @@ class FileDiff(object):
         b = [b.rstrip("\n") for b in b]
 
         started = False
+        if self.status == 'renamed':
+            yield "=== renamed %s '%s' => '%s'"%(self.kind, fromfile, tofile)
+        elif self.status == 'modified':
+            yield "=== modified %s '%s'"%(self.kind, fromfile)
+        elif self.status == 'removed':
+            yield "=== removed %s '%s'"%(self.kind, fromfile)
+        elif self.status == 'added':
+            yield "=== added %s '%s'"%(self.kind, fromfile)
+        if self.binary:
+            yield "=== binary file"
+            yield '--- %s %s%s' % (fromfile, fromfiledate, lineterm)
+            yield '+++ %s %s%s' % (tofile, tofiledate, lineterm)
+            return
         for group in self.groups:
             if not started:
                 yield '--- %s %s%s' % (fromfile, fromfiledate, lineterm)
@@ -201,25 +222,25 @@ class FileDiff(object):
                         yield '+' + line
 
     def html_unidiff(self):
-        def span(color, s):
-            return "<font color=%s>%s</font>"%(color, markup_line(s))
+        style = {
+            '---': 'background-color:#c5e3f7; color:black',
+            '+++': 'background-color:#c5e3f7; color:black',
+            '-':   'background-color:#FFDDDD; color:black',
+            '+':   'background-color:#DDFFDD; color:black',
+            '@':   'background-color:#c5e3f7; color:black',
+            '=':   'background-color:#c5e3f7; color:black',
+        }
+        defaultstyle = 'background-color:#ffffff; color=black',
         res ='<span style="font-size:12px">'
+        keys = style.keys( )
+        keys.sort(reverse=True) # so '---' is before '-'
         for l in self.unidiff_list(lineterm=''):
-            if l.startswith('='):
-                res += span('blue', l)
-            elif l.startswith('+++'):
-                res += span('green', l)
-            elif l.startswith('---'):
-                res += span('red', l)
-            elif l.startswith('+'):
-                res += span('green', l)
-            elif l.startswith('-'):
-                res += span('red', l)
-            elif l.startswith('@'):
-                res += span('purple', l)
+            for k in keys:
+                if l.startswith(k):
+                    res += markup_line(l, style[k])
+                    break
             else:
-                res += "%s"%markup_line(l)
-
+                res += markup_line(l, defaultstyle)
         res += '</span>'
         return res
 
@@ -261,7 +282,7 @@ class TreeDiff(list):
                                       require_versioned=True)
 
         for path, file_id, kind in delta.removed:
-            diff = FileDiff(_('removed'), path)
+            diff = FileDiff('removed', path)
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path)
             diff.new_date = self._date(new_tree, file_id, path)
@@ -273,7 +294,7 @@ class TreeDiff(list):
             self.append(diff)
 
         for path, file_id, kind in delta.added:
-            diff = FileDiff(_('added'), path)
+            diff = FileDiff('added', path)
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path, 0)
             diff.new_date = self._date(new_tree, file_id, path)
@@ -285,7 +306,7 @@ class TreeDiff(list):
             self.append(diff)
 
         for old_path, new_path, file_id, kind, text_modified, meta_modified in delta.renamed:
-            diff = FileDiff(_('renamed'), u'%s \u2192 %s' % (old_path, new_path))
+            diff = FileDiff('renamed', u'%s \u2192 %s' % (old_path, new_path))
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, old_path)
             diff.new_date = self._date(new_tree, file_id, new_path)
@@ -298,7 +319,7 @@ class TreeDiff(list):
             self.append(diff)
 
         for path, file_id, kind, text_modified, meta_modified in delta.modified:
-            diff = FileDiff(_('modified'), path)
+            diff = FileDiff('modified', path)
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path)
             diff.new_date = self._date(new_tree, file_id, path)
@@ -340,7 +361,7 @@ class TreeDiff(list):
             html.append('<div style="%s">%s</div>' % (STYLES['title'], diff.path))
             html.append(self._get_metainfo_template() % (STYLES['metainfo'],
                                                          diff.old_date,
-                                                         diff.status,
+                                                         diff.status_msg,
                                                          diff.kind))
             html.append(diff.html_inline())
         return ''.join(html)
@@ -349,7 +370,7 @@ class TreeDiff(list):
         res = []
         for diff in self:
             res.append(diff.txt_unidiff())
-        return ''.join(res)
+        return '\n'.join(res)
 
     def html_unidiff(self):
         res = []
@@ -364,12 +385,12 @@ class TreeDiff(list):
             html1.append('<div style="%s">%s</div>' % (STYLES['title'], diff.path))
             html1.append(self._get_metainfo_template() % (STYLES['metainfo'],
                                                           diff.old_date,
-                                                          diff.status,
+                                                          diff.status_msg,
                                                           diff.kind))
             html2.append('<div style="%s">%s</div>' % (STYLES['title'], diff.path))
             html2.append(self._get_metainfo_template() % (STYLES['metainfo'],
                                                           diff.new_date,
-                                                          diff.status,
+                                                          diff.status_msg,
                                                           diff.kind))
             lines1, lines2 = diff.html_side_by_side()
             html1.append(lines1)

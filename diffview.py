@@ -14,7 +14,6 @@ brushes = {}
 for kind, cols in colors.items():
     brushes[kind] = (QtGui.QBrush(cols[0]), QtGui.QBrush(cols[1]))
 
-
 class DiffSourceView(QtGui.QTextBrowser):
 
     def __init__(self, font, titleFont, metainfoFont, metainfoTitleFont, lineHeight, parent=None):
