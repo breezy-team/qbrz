@@ -338,6 +338,7 @@ class LogWindow(QBzrWindow):
 
         tags = getattr(revision, 'tags', None)
         if tags:
+            tags.sort()
             i = TagNameRole
             for tag in tags:
                 item.setData(3, i, QtCore.QVariant(tag))
@@ -356,7 +357,7 @@ class LogWindow(QBzrWindow):
 
         rev.delta = None
         rev.revno = revision.revno
-        rev.tags = revision.tags
+        rev.tags = tags
         self.item_to_rev[item] = rev
         self.last_item = item
 

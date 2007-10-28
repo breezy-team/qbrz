@@ -22,12 +22,13 @@ import sys
 from PyQt4 import QtCore, QtGui
 from bzrlib.config import GlobalConfig
 from bzrlib import lazy_regex
-from bzrlib.plugins.qbzr.i18n import _, N_
+from bzrlib.plugins.qbzr.i18n import _, N_, ngettext
 
 
 _email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)')
 _link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])')
 _link2_re = lazy_regex.lazy_compile(r'(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)')
+_tag_re = lazy_regex.lazy_compile(r'[, ]')
 
 
 def htmlize(text):
@@ -109,6 +110,12 @@ def get_branch_config(branch):
         return GlobalConfig()
 
 
+def quote_tag(tag):
+    if _tag_re.search(tag):
+        return '"%s"' % tag
+    return tag
+
+
 def format_revision_html(rev, search_replace=None):
     text = []
     text.append("<b>%s</b> %s" % (_("Revision:"), rev.revision_id))
@@ -129,6 +136,7 @@ def format_revision_html(rev, search_replace=None):
 
     tags = getattr(rev, 'tags', None)
     if tags:
+        tags = map(quote_tag, tags)
         text.append('<b>%s</b> %s' % (_("Tags:"), ', '.join(tags)))
 
     bugs = []
@@ -136,9 +144,11 @@ def format_revision_html(rev, search_replace=None):
         if bug:
             url, status = bug.split(' ')
             bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
-                dict(url=url, status=status)))
+                dict(url=url, status=_(status))))
     if bugs:
-        text.append('<b>%s</b> %s' % (_("Bugs:"), ', '.join(bugs)))
+        text.append('<b>%s</b> %s' % (
+            ngettext("Bug:", "Bugs:", len(bugs)),
+            ', '.join(bugs)))
 
     message = htmlize(rev.message)
     if search_replace:
