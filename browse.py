@@ -20,6 +20,7 @@
 import sys
 from PyQt4 import QtCore, QtGui
 from bzrlib.branch import Branch
+from bzrlib.bzrdir import BzrDir
 from bzrlib.urlutils import local_path_from_url
 from bzrlib.plugins.qbzr.i18n import _
 from bzrlib.plugins.qbzr.util import (
@@ -27,6 +28,7 @@ from bzrlib.plugins.qbzr.util import (
     QBzrWindow,
     format_timestamp,
     )
+from bzrlib.plugins.qbzr.log import LogWindow
 
 
 class FileTreeWidget(QtGui.QTreeWidget):
@@ -69,7 +71,7 @@ class BrowseWindow(QBzrWindow):
             [_("Name"), _("Date"), _("Author"), _("Message")])
 
         self.context_menu = QtGui.QMenu(self.file_tree)
-        self.context_menu.addAction(_("Show log..."))
+        self.context_menu.addAction(_("Show log..."), self.show_file_log)
 
         self.dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
         self.file_icon = self.style().standardIcon(QtGui.QStyle.SP_FileIcon)
@@ -95,6 +97,13 @@ class BrowseWindow(QBzrWindow):
         buttonbox = self.create_button_box(BTN_CLOSE)
         vbox.addWidget(buttonbox)
 
+        self.windows = []
+
+    def closeEvent(self, event):
+        for window in self.windows:
+            window.close()
+        event.accept()
+
     def load_file_tree(self, entry, parent_item):
         files, dirs = [], []
         revs = set()
@@ -117,6 +126,44 @@ class BrowseWindow(QBzrWindow):
             self.items.append((item, child.revision))
         return revs
 
+    def show_file_log(self):
+
+        item = self.file_tree.currentItem()
+        if item == None: return
+
+        # La columna que me interesa es la primera (0), pero tengo que tener en cuenta que
+        # puede estar dentro de un directorio y no a un primer nivel.
+        # **D** ----------------------------------------------------------
+        for i in range(item.columnCount()):
+            print item.text(i).__str__()
+        # **D** ----------------------------------------------------------
+
+        location = item.text(0).__str__()
+        print "location: " + location #**D**
+
+        # All this code is a copy-paste from __init__.class cmd_qlog.run()
+        dir, path = BzrDir.open_containing(location)
+        branch = dir.open_branch()
+        if path:
+            try:
+                tree = dir.open_workingtree()
+            except (errors.NotBranchError, errors.NotLocalUrl):
+                tree = branch.basis_tree()
+            file_id = tree.path2id(path)
+        else:
+            dir, path = BzrDir.open_containing('.')
+            branch = dir.open_branch()
+
+        config = branch.get_config()
+        replace = config.get_user_option("qlog_replace")
+        if replace:
+            replace = replace.split("\n")
+            replace = [tuple(replace[2*i:2*i+2])
+                        for i in range(len(replace) // 2)]
+
+        window = LogWindow(branch, location, file_id, replace)
+        window.show()
+        self.windows.append(window)
 
 def get_diff_trees(tree1, tree2, **kwargs):
     """Return unified diff between two trees as a string."""
