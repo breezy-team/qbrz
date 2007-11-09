@@ -128,20 +128,18 @@ class BrowseWindow(QBzrWindow):
 
     def show_file_log(self):
 
+        # Get selected item.
         item = self.file_tree.currentItem()
         if item == None: return
 
-        # La columna que me interesa es la primera (0), pero tengo que tener en cuenta que
-        # puede estar dentro de un directorio y no a un primer nivel.
-        # **D** ----------------------------------------------------------
-        for i in range(item.columnCount()):
-            print item.text(i).__str__()
-        # **D** ----------------------------------------------------------
-
+        # Build full item path.
         location = item.text(0).__str__()
-        print "location: " + location #**D**
+        parent = item.parent()
+        while parent != None:
+            location = "%s/%s" % (parent.text(0).__str__(), location)
+            parent = parent.parent()
 
-        # All this code is a copy-paste from __init__.class cmd_qlog.run()
+        # All this code is just a copy-paste from __init__.class cmd_qlog.run()
         dir, path = BzrDir.open_containing(location)
         branch = dir.open_branch()
         if path:
