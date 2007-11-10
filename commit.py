@@ -147,10 +147,8 @@ class TextEdit(QtGui.QTextEdit):
 
 class CommitWindow(QBzrWindow):
 
-    def __init__(self, tree, path, parent=None):
+    def __init__(self, tree, selected_list, parent=None):
         title = [_("Commit")]
-        if path:
-            title.append(path)
         QBzrWindow.__init__(self, title, (540, 540), parent)
         self.setWindowFlags(QtCore.Qt.WindowContextHelpButtonHint)
 
@@ -333,6 +331,16 @@ class CommitWindow(QBzrWindow):
         hbox.addWidget(self.show_nonversioned_checkbox)
         vbox.addLayout(hbox)
 
+        def in_selected_list(path):
+            if not selected_list:
+                return True
+            if path in selected_list:
+                return True
+            for p in selected_list:
+                if path.startswith(p):
+                    return True
+            return False
+
         self.unknowns = []
         self.item_to_file = {}
         for entry in files:
@@ -342,7 +350,7 @@ class CommitWindow(QBzrWindow):
             item.setText(1, ext)
             item.setText(2, status)
             if not self.has_pending_merges:
-                if versioned and (path.startswith(path) or not path):
+                if versioned and in_selected_list(path):
                     item.setCheckState(0, QtCore.Qt.Checked)
                 else:
                     item.setCheckState(0, QtCore.Qt.Unchecked)
