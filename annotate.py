@@ -78,6 +78,7 @@ class AnnotateWindow(QBzrWindow):
     def __init__(self, filename, lines, revisions, parent=None, encoding=None):
         QBzrWindow.__init__(self,
             [_("Annotate"), filename], (780, 680), parent)
+        self.restore_size("annotate")
 
         revisions.sort(key=operator.attrgetter('timestamp'), reverse=True)
 
@@ -198,3 +199,8 @@ body {white-space:pre;}
                 if item == items[0]:
                     self.message_doc.setHtml(format_revision_html(rev))
                     break
+
+    def closeEvent(self, event):
+        self.save_size("annotate")
+        event.accept()
+

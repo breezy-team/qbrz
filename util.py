@@ -20,8 +20,8 @@
 import os
 import sys
 from PyQt4 import QtCore, QtGui
-from bzrlib.config import GlobalConfig
-from bzrlib import lazy_regex
+from bzrlib.config import GlobalConfig, IniBasedConfig, config_dir, ensure_config_dir_exists
+from bzrlib import lazy_regex, osutils
 from bzrlib.plugins.qbzr.i18n import _, N_, ngettext
 
 
@@ -64,6 +64,27 @@ class StandardButton(QtGui.QPushButton):
         QtGui.QPushButton.__init__(self, *new_args)
 
 
+def config_filename():
+    return osutils.pathjoin(config_dir(), 'qbzr.conf')
+
+
+class QBzrGlobalConfig(IniBasedConfig):
+
+    def __init__(self):
+        super(QBzrGlobalConfig, self).__init__(config_filename)
+
+    def set_user_option(self, option, value):
+        """Save option and its value in the configuration."""
+        conf_dir = os.path.dirname(self._get_filename())
+        ensure_config_dir_exists(conf_dir)
+        if 'DEFAULT' not in self._get_parser():
+            self._get_parser()['DEFAULT'] = {}
+        self._get_parser()['DEFAULT'][option] = value
+        f = open(self._get_filename(), 'wb')
+        self._get_parser().write(f)
+        f.close()
+
+
 class QBzrWindow(QtGui.QMainWindow):
 
     def __init__(self, title=[], size=(540, 500), parent=None):
@@ -101,6 +122,35 @@ class QBzrWindow(QtGui.QMainWindow):
             self.connect(buttonbox,
                 QtCore.SIGNAL(signal_name), getattr(self, method_name))
         return buttonbox
+
+    def save_size(self, name):
+        is_maximized = int(self.windowState()) & QtCore.Qt.WindowMaximized != 0
+        if is_maximized:
+            # XXX for some reason this doesn't work
+            geom = self.normalGeometry()
+            size = geom.width(), geom.height()
+        else:
+            size = self.width(), self.height()
+        config = QBzrGlobalConfig()
+        config.set_user_option(name + "_window_size", "%dx%d" % size)
+        config.set_user_option(name + "_window_maximized", is_maximized)
+
+    def restore_size(self, name):
+        config = QBzrGlobalConfig()
+        size = config.get_user_option(name + "_window_size")
+        if size:
+            size = size.split("x")
+            if len(size) == 2:
+                try:
+                    size = map(int, size)
+                except ValueError:
+                    pass
+                else:
+                    if size[0] > 100 and size[1] > 100:
+                        self.resize(*size)
+        is_maximized = config.get_user_option(name + "_window_maximized")
+        if is_maximized in ("True", "1"):
+            self.setWindowState(QtCore.Qt.WindowMaximized)
 
 
 def get_branch_config(branch):
