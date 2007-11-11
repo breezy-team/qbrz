@@ -20,7 +20,7 @@
 
 """I18N and L10N support for QBzr"""
 
-import gettext
+import gettext as _gettext
 import os
 import sys
 
@@ -54,11 +54,11 @@ if sys.platform == 'win32':
 
 
 d = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'locale')
-t = gettext.translation('qbzr', localedir=d, fallback=True)
+t = _gettext.translation('qbzr', localedir=d, fallback=True)
 
 # functions for interface translation
 ngettext = t.ungettext
-_ = t.ugettext
+gettext = t.ugettext
 N_ = lambda x: x
 
 

@@ -19,7 +19,7 @@
 
 import operator
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.i18n import _
+from bzrlib.plugins.qbzr.i18n import gettext
 from bzrlib.plugins.qbzr.util import (
     BTN_CLOSE,
     QBzrWindow,
@@ -77,7 +77,7 @@ class AnnotateWindow(QBzrWindow):
 
     def __init__(self, filename, lines, revisions, parent=None, encoding=None):
         QBzrWindow.__init__(self,
-            [_("Annotate"), filename], (780, 680), parent)
+            [gettext("Annotate"), filename], (780, 680), parent)
         self.restore_size("annotate")
 
         revisions.sort(key=operator.attrgetter('timestamp'), reverse=True)
@@ -148,7 +148,8 @@ body {white-space:pre;}
         message.setDocument(self.message_doc)
 
         self.changes = QtGui.QTreeWidget()
-        self.changes.setHeaderLabels([_("Date"), _("Author"), _("Summary")])
+        self.changes.setHeaderLabels(
+            [gettext("Date"), gettext("Author"), gettext("Summary")])
         self.changes.setRootIsDecorated(False)
         self.changes.setUniformRowHeights(True)
         self.connect(self.changes, QtCore.SIGNAL("itemSelectionChanged()"), self.set_revision_by_item)

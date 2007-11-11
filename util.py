@@ -22,7 +22,7 @@ import sys
 from PyQt4 import QtCore, QtGui
 from bzrlib.config import GlobalConfig, IniBasedConfig, config_dir, ensure_config_dir_exists
 from bzrlib import lazy_regex, osutils
-from bzrlib.plugins.qbzr.i18n import _, N_, ngettext
+from bzrlib.plugins.qbzr.i18n import gettext, N_, ngettext
 
 
 _email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)')
@@ -52,7 +52,7 @@ class StandardButton(QtGui.QPushButton):
     }
 
     def __init__(self, btntype, *args):
-        label = _(self.__types[btntype][0])
+        label = gettext(self.__types[btntype][0])
         new_args = [label]
         if sys.platform != 'win32' and sys.platform != 'darwin':
             iconname = self.__types[btntype][1]
@@ -168,33 +168,33 @@ def quote_tag(tag):
 
 def format_revision_html(rev, search_replace=None):
     text = []
-    text.append("<b>%s</b> %s" % (_("Revision:"), rev.revision_id))
+    text.append("<b>%s</b> %s" % (gettext("Revision:"), rev.revision_id))
 
     parent_ids = rev.parent_ids
     if parent_ids:
-        text.append("<b>%s</b> %s" % (_("Parent revisions:"),
+        text.append("<b>%s</b> %s" % (gettext("Parent revisions:"),
             ", ".join('<a href="qlog-revid:%s">%s</a>' % (a, a) for a in parent_ids)))
 
-    text.append('<b>%s</b> %s' % (_("Committer:"), htmlize(rev.committer)))
+    text.append('<b>%s</b> %s' % (gettext("Committer:"), htmlize(rev.committer)))
     author = rev.properties.get('author')
     if author:
-        text.append('<b>%s</b> %s' % (_("Author:"), htmlize(author)))
+        text.append('<b>%s</b> %s' % (gettext("Author:"), htmlize(author)))
 
     branch_nick = rev.properties.get('branch-nick')
     if branch_nick:
-        text.append('<b>%s</b> %s' % (_("Branch nick:"), branch_nick))
+        text.append('<b>%s</b> %s' % (gettext("Branch nick:"), branch_nick))
 
     tags = getattr(rev, 'tags', None)
     if tags:
         tags = map(quote_tag, tags)
-        text.append('<b>%s</b> %s' % (_("Tags:"), ', '.join(tags)))
+        text.append('<b>%s</b> %s' % (gettext("Tags:"), ', '.join(tags)))
 
     bugs = []
     for bug in rev.properties.get('bugs', '').split('\n'):
         if bug:
             url, status = bug.split(' ')
             bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
-                dict(url=url, status=_(status))))
+                dict(url=url, status=gettext(status))))
     if bugs:
         text.append('<b>%s</b> %s' % (
             ngettext("Bug:", "Bugs:", len(bugs)),

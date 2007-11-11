@@ -21,7 +21,7 @@ import sys
 from PyQt4 import QtCore, QtGui
 from bzrlib.branch import Branch
 from bzrlib.urlutils import local_path_from_url
-from bzrlib.plugins.qbzr.i18n import _
+from bzrlib.plugins.qbzr.i18n import gettext
 from bzrlib.plugins.qbzr.util import (
     BTN_CLOSE,
     QBzrWindow,
@@ -46,30 +46,31 @@ class BrowseWindow(QBzrWindow):
         self.branch = branch
         self.location = local_path_from_url(branch.base)
         QBzrWindow.__init__(self,
-            [_("Browse"), self.location], (780, 580), parent)
+            [gettext("Browse"), self.location], (780, 580), parent)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
 
         hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(QtGui.QLabel(_("Location:")))
+        hbox.addWidget(QtGui.QLabel(gettext("Location:")))
         self.location_edit = QtGui.QLineEdit()
         self.location_edit.setText(self.location)
         hbox.addWidget(self.location_edit, 7)
-        hbox.addWidget(QtGui.QLabel(_("Revision:")))
+        hbox.addWidget(QtGui.QLabel(gettext("Revision:")))
         self.revision_edit = QtGui.QLineEdit()
         self.revision_edit.setText(str(self.branch.revno()))
         hbox.addWidget(self.revision_edit, 1)
-        self.show_button = QtGui.QPushButton(_("Show"))
+        self.show_button = QtGui.QPushButton(gettext("Show"))
         self.show_button.setEnabled(False)
         hbox.addWidget(self.show_button, 0)
         vbox.addLayout(hbox)
 
         self.file_tree = FileTreeWidget(self)
         self.file_tree.setHeaderLabels(
-            [_("Name"), _("Date"), _("Author"), _("Message")])
+            [gettext("Name"), gettext("Date"),
+             gettext("Author"), gettext("Message")])
 
         self.context_menu = QtGui.QMenu(self.file_tree)
-        self.context_menu.addAction(_("Show log..."))
+        self.context_menu.addAction(gettext("Show log..."))
 
         self.dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
         self.file_icon = self.style().standardIcon(QtGui.QStyle.SP_FileIcon)
