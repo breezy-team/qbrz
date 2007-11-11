@@ -22,7 +22,7 @@
 Provided commands: qcommit, qdiff, qlog, qannotate, qbrowse
 """
 
-version_info = (0, 6, 0)
+version_info = (0, 7, 0)
 __version__ = '.'.join(map(str, version_info))
 
 import os.path
@@ -39,6 +39,9 @@ from bzrlib.commands import Command, register_command
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from PyQt4 import QtGui
+from bzrlib import (
+    builtins,
+)
 from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
 from bzrlib.plugins.qbzr.annotate import AnnotateWindow
@@ -46,17 +49,44 @@ from bzrlib.plugins.qbzr.browse import BrowseWindow
 from bzrlib.plugins.qbzr.commit import CommitWindow
 from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.log import LogWindow
+from bzrlib.plugins.qbzr.util import (
+    get_branch_config,
+    get_set_encoding,
+    is_valid_encoding,
+    )
 from bzrlib.workingtree import WorkingTree
 ''')
+
+
+class InvalidEncodingOption(errors.BzrError):
+
+    _fmt = ('Invalid encoding: %(encoding)s\n'
+            'Valid encodings are:\n%(valid)s')
+
+    def __init__(self, encoding):
+        errors.BzrError.__init__(self)
+        self.encoding = encoding
+        import encodings
+        self.valid = ', '.join(sorted(list(
+            set(encodings.aliases.aliases.values())))).replace('_','-')
+
+
+def check_encoding(encoding):
+    if is_valid_encoding(encoding):
+        return encoding
+    raise InvalidEncodingOption(encoding)
 
 
 class cmd_qannotate(Command):
     """Show the origin of each line in a file."""
     takes_args = ['filename']
-    takes_options = ['revision']
+    takes_options = ['revision',
+                     Option('encoding', type=check_encoding,
+                     help='Encoding of files content (default: utf-8)'),
+                    ]
     aliases = ['qann', 'qblame']
 
-    def run(self, filename=None, revision=None):
+    def run(self, filename=None, revision=None, encoding=None):
         from bzrlib.annotate import _annotate_file
         tree, relpath = WorkingTree.open_containing(filename)
         branch = tree.branch
@@ -83,8 +113,11 @@ class cmd_qannotate(Command):
         finally:
             branch.unlock()
 
+        config = get_branch_config(branch)
+        encoding = get_set_encoding(encoding, config)
+
         app = QtGui.QApplication(sys.argv)
-        win = AnnotateWindow(filename, content, revisions)
+        win = AnnotateWindow(filename, content, revisions, encoding=encoding)
         win.show()
         app.exec_()
 
@@ -104,13 +137,15 @@ class cmd_qbrowse(Command):
 
 class cmd_qcommit(Command):
     """GUI for committing revisions."""
-    takes_args = ['filename?']
+    takes_args = ['selected*']
     aliases = ['qci']
 
-    def run(self, filename=None):
-        tree, filename = WorkingTree.open_containing(filename)
+    def run(self, selected_list=None):
+        tree, selected_list = builtins.tree_files(selected_list)
+        if selected_list == ['']:
+            selected_list = []
         application = QtGui.QApplication(sys.argv)
-        window = CommitWindow(tree, filename)
+        window = CommitWindow(tree, selected_list)
         window.show()
         application.exec_()
 
@@ -122,10 +157,13 @@ class cmd_qdiff(Command):
         'revision', 'change',
         Option('inline', help='Show inline diff'),
         Option('complete', help='Show complete files'),
+        Option('encoding', type=check_encoding,
+               help='Encoding of files content (default: utf-8)'),
         ]
     aliases = ['qdi']
 
-    def run(self, revision=None, file_list=None, inline=False, complete=False):
+    def run(self, revision=None, file_list=None, inline=False, complete=False,
+            encoding=None):
         from bzrlib.builtins import internal_tree_files
 
         if revision and len(revision) > 2:
@@ -167,7 +205,7 @@ class cmd_qdiff(Command):
 
         application = QtGui.QApplication(sys.argv)
         window = DiffWindow(tree2, tree1, inline=inline, complete=complete,
-            specific_files=file_list, branch=branch)
+            specific_files=file_list, branch=branch, encoding=encoding)
         window.show()
         application.exec_()
 

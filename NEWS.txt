@@ -1,3 +1,26 @@
+0.7.0 - 2007-11-10
+------------------
+
+ * Added version info for 'bzr plugins'.
+ * Gettext support.
+ * Remember window sizes and states. (#148157)
+ * qdiff:
+    * New command line option '-c'.
+    * Optional unified diff view.
+    * Use per-branch 'encoding' option to decode source code. (#148159)
+ * qlog:
+    * Display text with the right color for selected lines with
+      tags/bugs. (#147998)
+    * Use os.startfile to open external links if the webbrowser module
+      is not available. (#148002)
+    * Add the Diff button in the Log dialog.
+    * Display only the committer/author name in revision lists.
+ * qcommit:
+    * Fixed commit with pending merges. (#148849)
+    * Allow reverting and viewing changes of multiple files in qcommit.
+    * Double click on a pending merged revision will show the changes.
+    * Fixed pre-selecting of files specified on the command line.
+
 0.6.0 - 2007-09-06
 ------------------
 

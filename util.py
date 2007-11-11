@@ -20,14 +20,15 @@
 import os
 import sys
 from PyQt4 import QtCore, QtGui
-from bzrlib.config import GlobalConfig
-from bzrlib import lazy_regex
-from bzrlib.plugins.qbzr.i18n import _, N_
+from bzrlib.config import GlobalConfig, IniBasedConfig, config_dir, ensure_config_dir_exists
+from bzrlib import lazy_regex, osutils
+from bzrlib.plugins.qbzr.i18n import _, N_, ngettext
 
 
 _email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)')
 _link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])')
 _link2_re = lazy_regex.lazy_compile(r'(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)')
+_tag_re = lazy_regex.lazy_compile(r'[, ]')
 
 
 def htmlize(text):
@@ -61,6 +62,27 @@ class StandardButton(QtGui.QPushButton):
                 new_args = [icon, label]
         new_args.extend(args)
         QtGui.QPushButton.__init__(self, *new_args)
+
+
+def config_filename():
+    return osutils.pathjoin(config_dir(), 'qbzr.conf')
+
+
+class QBzrGlobalConfig(IniBasedConfig):
+
+    def __init__(self):
+        super(QBzrGlobalConfig, self).__init__(config_filename)
+
+    def set_user_option(self, option, value):
+        """Save option and its value in the configuration."""
+        conf_dir = os.path.dirname(self._get_filename())
+        ensure_config_dir_exists(conf_dir)
+        if 'DEFAULT' not in self._get_parser():
+            self._get_parser()['DEFAULT'] = {}
+        self._get_parser()['DEFAULT'][option] = value
+        f = open(self._get_filename(), 'wb')
+        self._get_parser().write(f)
+        f.close()
 
 
 class QBzrWindow(QtGui.QMainWindow):
@@ -101,12 +123,47 @@ class QBzrWindow(QtGui.QMainWindow):
                 QtCore.SIGNAL(signal_name), getattr(self, method_name))
         return buttonbox
 
+    def save_size(self, name):
+        is_maximized = int(self.windowState()) & QtCore.Qt.WindowMaximized != 0
+        if is_maximized:
+            # XXX for some reason this doesn't work
+            geom = self.normalGeometry()
+            size = geom.width(), geom.height()
+        else:
+            size = self.width(), self.height()
+        config = QBzrGlobalConfig()
+        config.set_user_option(name + "_window_size", "%dx%d" % size)
+        config.set_user_option(name + "_window_maximized", is_maximized)
+
+    def restore_size(self, name):
+        config = QBzrGlobalConfig()
+        size = config.get_user_option(name + "_window_size")
+        if size:
+            size = size.split("x")
+            if len(size) == 2:
+                try:
+                    size = map(int, size)
+                except ValueError:
+                    pass
+                else:
+                    if size[0] > 100 and size[1] > 100:
+                        self.resize(*size)
+        is_maximized = config.get_user_option(name + "_window_maximized")
+        if is_maximized in ("True", "1"):
+            self.setWindowState(QtCore.Qt.WindowMaximized)
+
 
 def get_branch_config(branch):
     if branch is not None:
         return branch.get_config()
     else:
         return GlobalConfig()
+
+
+def quote_tag(tag):
+    if _tag_re.search(tag):
+        return '"%s"' % tag
+    return tag
 
 
 def format_revision_html(rev, search_replace=None):
@@ -129,6 +186,7 @@ def format_revision_html(rev, search_replace=None):
 
     tags = getattr(rev, 'tags', None)
     if tags:
+        tags = map(quote_tag, tags)
         text.append('<b>%s</b> %s' % (_("Tags:"), ', '.join(tags)))
 
     bugs = []
@@ -136,9 +194,11 @@ def format_revision_html(rev, search_replace=None):
         if bug:
             url, status = bug.split(' ')
             bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
-                dict(url=url, status=status)))
+                dict(url=url, status=_(status))))
     if bugs:
-        text.append('<b>%s</b> %s' % (_("Bugs:"), ', '.join(bugs)))
+        text.append('<b>%s</b> %s' % (
+            ngettext("Bug:", "Bugs:", len(bugs)),
+            ', '.join(bugs)))
 
     message = htmlize(rev.message)
     if search_replace:
@@ -188,3 +248,32 @@ def format_timestamp(timestamp):
     date = QtCore.QDateTime()
     date.setTime_t(int(timestamp))
     return unicode(date.toString(QtCore.Qt.LocalDate))
+
+
+def htmlencode(string):
+    return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def is_valid_encoding(encoding):
+    import codecs
+    try:
+        codecs.lookup(encoding)
+    except LookupError:
+        return False
+    return True
+
+
+def get_set_encoding(encoding, config):
+    """Return encoding value from branch config if encoding is None,
+    otherwise store encoding value in branch config.
+    """
+    if encoding is None:
+        encoding = config.get_user_option("encoding") or 'utf-8'
+        if not is_valid_encoding(encoding):
+            from bzrlib.trace import note
+            note(('NOTE: Invalid encoding value in branch config: %s\n'
+                'utf-8 will be used instead') % encoding)
+            encoding = 'utf-8'
+    else:
+        config.set_user_option("encoding", encoding)
+    return encoding

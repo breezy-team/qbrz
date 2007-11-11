@@ -1,18 +1,18 @@
 from PyQt4 import QtGui, QtCore
+from bzrlib.plugins.qbzr.util import htmlencode
 from bzrlib.plugins.qbzr.i18n import _
 
 
 colors = {
-    'delete': (QtGui.QColor(255, 216, 216), QtGui.QColor(243, 61, 61)),
-    'insert': (QtGui.QColor(216, 255, 216), QtGui.QColor(156, 222, 156)),
-    'replace': (QtGui.QColor(221, 238, 255), QtGui.QColor(171, 193, 222)),
-    'blank': (QtGui.QColor(238, 238, 238), QtGui.QColor(171, 171, 171)),
+    'delete': (QtGui.QColor(255, 160, 180), QtGui.QColor(200, 60, 90)),
+    'insert': (QtGui.QColor(180, 255, 180), QtGui.QColor(80, 210, 80)),
+    'replace': (QtGui.QColor(180, 210, 250), QtGui.QColor(90, 130, 180)),
+    'blank': (QtGui.QColor(240, 240, 240), QtGui.QColor(171, 171, 171)),
 }
 
 brushes = {}
 for kind, cols in colors.items():
     brushes[kind] = (QtGui.QBrush(cols[0]), QtGui.QBrush(cols[1]))
-
 
 class DiffSourceView(QtGui.QTextBrowser):
 
@@ -127,16 +127,10 @@ class DiffViewHandle(QtGui.QSplitterHandle):
 
 
 
-def htmlencode(string):
-    return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
-
-def markup_line(line, encode=True, decode_unicode=True):
+def markup_line(line, encode=True):
     if encode:
         line = htmlencode(line)
     line = line.rstrip("\n").replace("\t", "&nbsp;" * 8)
-    if decode_unicode:
-        line = line.decode("utf-8", "replace")
     return line
 
 
@@ -154,8 +148,6 @@ def get_change_extent(str1, str2):
 
 
 def markup_intraline_changes(line1, line2, color):
-    line1 = line1.decode("utf-8", "replace")
-    line2 = line2.decode("utf-8", "replace")
     line1 = line1.replace(u"&", u"\1").replace(u"<", u"\2").replace(u">", u"\3")
     line2 = line2.replace(u"&", u"\1").replace(u"<", u"\2").replace(u">", u"\3")
     start, end = get_change_extent(line1[1:], line2[1:])
@@ -169,7 +161,7 @@ def markup_intraline_changes(line1, line2, color):
         text = u'%s<span style="background-color:%s">%s</span>%s' % (line1[:start], color, line1[start:end], line1[end:])
     else:
         text = line1
-    return text.replace(u"\1", u"&amp;").replace(u"\2", u"&lt;").replace(u"\3", u"&gt;ee")
+    return text.replace(u"\1", u"&amp;").replace(u"\2", u"&lt;").replace(u"\3", u"&gt;")
 
 
 STYLES = {
@@ -268,11 +260,11 @@ class DiffView(QtGui.QSplitter):
         for diff in self.treediff:
             titles1.append((len(lines1), diff.path,
                 ((_('Last modified:'), ' %s, ' % diff.old_date),
-                (_('Status:'), ' %s, ' % diff.status),
+                (_('Status:'), ' %s, ' % _(diff.status)),
                 (_('Kind:'), ' %s' % _(diff.kind)))))
             titles2.append((len(lines2), diff.path,
                 ((_('Last modified:'), ' %s, ' % diff.new_date),
-                (_('Status:'), ' %s, ' % diff.status),
+                (_('Status:'), ' %s, ' % _(diff.status)),
                 (_('Kind:'), ' %s' % _(diff.kind)))))
             #lines1.append('<span style="font-family:%s;%s">%s</span>' % (self.ff, STYLES['title'], diff.path))
             #lines1.append('<span style="font-family:%s;%s"><b>Last modified:</b> %s, <b>Status:</b> %s, <b>Kind:</b> %s</span>' % (self.ff, STYLES['metainfo'], diff.old_date, diff.status, diff.kind))
@@ -309,10 +301,10 @@ class DiffView(QtGui.QSplitter):
                             for i in range(ni):
                                 linea = a[i1 + i]
                                 lineb = b[j1 + i]
-                                new_linea = markup_intraline_changes(linea, lineb, '#ABC1DE')
-                                new_lineb = markup_intraline_changes(lineb, linea, '#ABC1DE')
-                                lines1.append(markup_line(new_linea, encode=False, decode_unicode=False))
-                                lines2.append(markup_line(new_lineb, encode=False, decode_unicode=False))
+                                new_linea = markup_intraline_changes(linea, lineb, '#5A82B4')
+                                new_lineb = markup_intraline_changes(lineb, linea, '#5A82B4')
+                                lines1.append(markup_line(new_linea, encode=False))
+                                lines2.append(markup_line(new_lineb, encode=False))
                         else:
                             lines1.extend(map(markup_line, a[i1:i2]))
                             lines2.extend(map(markup_line, b[j1:j2]))
@@ -375,3 +367,15 @@ class DiffView(QtGui.QSplitter):
         self.browser1.setData(text1, changes1)
         self.browser2.setData(text2, changes2)
         self.handle(1).setData(changes)
+
+
+class SimpleDiffView(QtGui.QTextEdit):
+
+    def __init__(self, treeview, parent=None):
+        QtGui.QTextEdit.__init__(self, parent)
+        self.doc = QtGui.QTextDocument(parent)
+        self.setReadOnly(1)
+        res = treeview.html_unidiff()
+        self.doc.setHtml("<html><body><pre>%s</pre></body></html>"%(res))
+        self.setDocument(self.doc)
+        self.verticalScrollBar().setValue(0)

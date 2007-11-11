@@ -151,6 +151,7 @@ class LogWindow(QBzrWindow):
         if location:
             title.append(location)
         QBzrWindow.__init__(self, title, (710, 580), parent)
+        self.restore_size("log")
         self.specific_fileid = specific_fileid
 
         self.replace = replace
@@ -241,6 +242,7 @@ class LogWindow(QBzrWindow):
         QtCore.QTimer.singleShot(5, self.load_history)
 
     def closeEvent(self, event):
+        self.save_size("log")
         for window in self.windows:
             window.close()
         event.accept()
@@ -270,8 +272,13 @@ class LogWindow(QBzrWindow):
 
         if not rev.delta:
             # TODO move this to a thread
-            rev.delta = \
-                self.branch.repository.get_deltas_for_revisions([rev]).next()
+            self.branch.repository.lock_read()
+            try:
+                rev.delta = \
+                    self.branch.repository.get_deltas_for_revisions(
+                        [rev]).next()
+            finally:
+                self.branch.repository.unlock()
         delta = rev.delta
 
         for path, id_, kind in delta.added:
@@ -338,6 +345,7 @@ class LogWindow(QBzrWindow):
 
         tags = getattr(revision, 'tags', None)
         if tags:
+            tags.sort()
             i = TagNameRole
             for tag in tags:
                 item.setData(3, i, QtCore.QVariant(tag))
@@ -356,7 +364,7 @@ class LogWindow(QBzrWindow):
 
         rev.delta = None
         rev.revno = revision.revno
-        rev.tags = revision.tags
+        rev.tags = tags
         self.item_to_rev[item] = rev
         self.last_item = item
 
