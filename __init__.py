@@ -22,7 +22,7 @@
 Provided commands: qcommit, qdiff, qlog, qannotate, qbrowse
 """
 
-version_info = (0, 6, 0)
+version_info = (0, 7, 0)
 __version__ = '.'.join(map(str, version_info))
 
 import os.path
@@ -39,6 +39,9 @@ from bzrlib.commands import Command, register_command
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from PyQt4 import QtGui
+from bzrlib import (
+    builtins,
+)
 from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
 from bzrlib.plugins.qbzr.annotate import AnnotateWindow
@@ -134,13 +137,15 @@ class cmd_qbrowse(Command):
 
 class cmd_qcommit(Command):
     """GUI for committing revisions."""
-    takes_args = ['filename?']
+    takes_args = ['selected*']
     aliases = ['qci']
 
-    def run(self, filename=None):
-        tree, filename = WorkingTree.open_containing(filename)
+    def run(self, selected_list=None):
+        tree, selected_list = builtins.tree_files(selected_list)
+        if selected_list == ['']:
+            selected_list = []
         application = QtGui.QApplication(sys.argv)
-        window = CommitWindow(tree, filename)
+        window = CommitWindow(tree, selected_list)
         window.show()
         application.exec_()
 
