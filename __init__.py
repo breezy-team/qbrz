@@ -33,7 +33,7 @@ if hasattr(sys, "frozen"):
     sys.path.append(os.path.join(os.path.dirname(__file__), '_lib'))
 
 import bzrlib.plugins.qbzr.resources
-from bzrlib import errors, options
+from bzrlib import errors
 from bzrlib.option import Option
 from bzrlib.commands import Command, register_command
 from bzrlib.lazy_import import lazy_import
