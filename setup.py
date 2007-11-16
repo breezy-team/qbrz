@@ -16,6 +16,7 @@ setup(name='qbzr',
       author='Lukáš Lalinský',
       author_email='lalinsky@gmail.com',
       package_dir={'bzrlib.plugins.qbzr': '.'},
+      package_data={'bzrlib.plugins.qbzr': ['locale/*/LC_MESSAGES/qbzr.mo']},
       packages=['bzrlib.plugins.qbzr'],
       cmdclass = {
             'build_mo': build_mo,

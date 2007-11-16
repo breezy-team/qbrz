@@ -86,4 +86,4 @@ class build_mo(Command):
                 self.spawn(['msgfmt', '-o', mo, po])
 
 
-build.sub_commands.append(('build_mo', None))
+build.sub_commands.insert(0, ('build_mo', None))
