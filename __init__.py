@@ -120,14 +120,15 @@ class cmd_qannotate(Command):
             if file_id is None:
                 raise errors.NotVersionedError(filename)
             tree = branch.repository.revision_tree(revision_id)
-            if tree.inventory[file_id].kind != 'file':
+            entry = tree.inventory[file_id]
+            if entry.kind != 'file':
                 return
-
-            w = branch.repository.weave_store.get_weave(
-                file_id, branch.repository.get_transaction())
-
-            revisions = branch.repository.get_revisions(w.versions())
-            content = list(w.annotate_iter(tree.inventory[file_id].revision))
+            repo = branch.repository
+            w = repo.weave_store.get_weave(file_id, repo.get_transaction())
+            content = list(w.annotate_iter(entry.revision))
+            revision_ids = set(o for o, t in content)
+            revision_ids = [o for o in revision_ids if repo.has_revision(o)]
+            revisions = branch.repository.get_revisions(revision_ids)
         finally:
             branch.unlock()
 
