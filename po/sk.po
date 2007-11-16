@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: sk\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2007-11-16 03:07+0200\n"
-"PO-Revision-Date: 2007-10-06 11:16+0200\n"
+"PO-Revision-Date: 2007-11-16 11:46+0100\n"
 "Last-Translator: Lukáš Lalinský <lalinsky@gmail.com>\n"
 "Language-Team: Slovak <sk@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -42,7 +42,7 @@ msgstr "Umiestnenie:"
 
 #: browse.py:58 util.py:171
 msgid "Revision:"
-msgstr ""
+msgstr "Revízia:"
 
 #: browse.py:62
 msgid "Show"
@@ -62,7 +62,7 @@ msgstr "Zobraziť históriu..."
 
 #: commit.py:179 commit.py:431 commit.py:462 commit.py:514
 msgid "Commit"
-msgstr ""
+msgstr "Odovzdať"
 
 #: commit.py:200 diff.py:287
 msgid "added"
@@ -90,7 +90,7 @@ msgstr "neverzované"
 
 #: commit.py:247
 msgid "Enter the commit message"
-msgstr ""
+msgstr "Vložte správu"
 
 #: commit.py:255
 msgid "&Fixed bugs:"
@@ -98,13 +98,15 @@ msgstr "&Opravené chyby:"
 
 #: commit.py:256
 msgid "Set the IDs of bugs fixed by this commit"
-msgstr ""
+msgstr "Nastaví identifikátory chýb opravených týmto odovzdaním"
 
 #: commit.py:259
 msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
 msgstr ""
+"Vložte zoznam identifikátorov chýb vo formáte <i>značka:id</i> oddelených medzerou, napr. "
+"<i>projekt:123 projekt:765</i>"
 
 #: commit.py:269
 msgid "&Author:"
@@ -112,15 +114,15 @@ msgstr "&Autor:"
 
 #: commit.py:270
 msgid "Set the author of this change, if it's different from the committer"
-msgstr ""
+msgstr "Nastaví meno autora tejto zmeny, v prípade že je odlišné od odovzdávateľa."
 
 #: commit.py:273
 msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
-msgstr ""
+msgstr "Vložte meno autora, napr. <i>Ján Mrkvička &lt;jmrkvicka@example.com&gt;</i>"
 
 #: commit.py:283
 msgid "Pending Merges"
-msgstr ""
+msgstr "Čakajúce zlúčenia"
 
 #: commit.py:308
 msgid "Changes"
@@ -190,24 +192,23 @@ msgstr[2] "%d súborov"
 
 #: diff.py:439
 msgid "Side by side"
-msgstr ""
+msgstr "Po stránách"
 
 #: diff.py:445
 msgid "Unidiff"
-msgstr ""
+msgstr "Unifikované"
 
 #: i18n.py:68
-#, fuzzy
 msgid "file"
-msgstr "Súbor"
+msgstr "súbor"
 
 #: i18n.py:69
 msgid "directory"
-msgstr ""
+msgstr "adresár"
 
 #: i18n.py:70
 msgid "symlink"
-msgstr ""
+msgstr "symbolický odkaz"
 
 #: i18n.py:72
 #, fuzzy
@@ -220,31 +221,31 @@ msgstr "História"
 
 #: log.py:166
 msgid "Rev"
-msgstr ""
+msgstr "Rev"
 
 #: util.py:48
 msgid "&OK"
-msgstr ""
+msgstr "&OK"
 
 #: util.py:49
 msgid "&Cancel"
-msgstr ""
+msgstr "&Zrušiť"
 
 #: util.py:50
 msgid "&Close"
-msgstr ""
+msgstr "&Zavrieť"
 
 #: util.py:51
 msgid "&Help"
-msgstr ""
+msgstr "&Pomoc"
 
 #: util.py:175
 msgid "Parent revisions:"
-msgstr ""
+msgstr "Rodičovské revízie:"
 
 #: util.py:178
 msgid "Committer:"
-msgstr ""
+msgstr "Odovzdávateľ:"
 
 #: util.py:181
 msgid "Author:"
@@ -252,11 +253,11 @@ msgstr "Autor:"
 
 #: util.py:185
 msgid "Branch nick:"
-msgstr ""
+msgstr "Názov vetvy:"
 
 #: util.py:190
 msgid "Tags:"
-msgstr "Tagy:"
+msgstr "Značky:"
 
 #: util.py:200
 #, fuzzy
@@ -265,3 +266,4 @@ msgid_plural "Bugs:"
 msgstr[0] "Chyby:"
 msgstr[1] "Chyby:"
 msgstr[2] "Chyby:"
+
