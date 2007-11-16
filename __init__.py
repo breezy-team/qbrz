@@ -33,7 +33,7 @@ if hasattr(sys, "frozen"):
     sys.path.append(os.path.join(os.path.dirname(__file__), '_lib'))
 
 import bzrlib.plugins.qbzr.resources
-from bzrlib import errors
+from bzrlib import errors, options
 from bzrlib.option import Option
 from bzrlib.commands import Command, register_command
 from bzrlib.lazy_import import lazy_import
@@ -56,6 +56,24 @@ from bzrlib.plugins.qbzr.util import (
     )
 from bzrlib.workingtree import WorkingTree
 ''')
+
+
+# install global 'change' option for compatiblity with bzr 0.90 and older
+if 'change' not in Option.OPTIONS:
+    from bzrlib import revisionspec
+    from bzrlib.option import _global_option, _parse_revision_str
+    def _parse_change_str(revstr):
+        revs = _parse_revision_str(revstr)
+        if len(revs) > 1:
+            raise errors.RangeInChangeOption()
+        return (revisionspec.RevisionSpec.from_string('before:' + revstr),
+                revs[0])
+    _global_option('change',
+                   type=_parse_change_str,
+                   short_name='c',
+                   param_name='revision',
+                   help='Select changes introduced by the specified '
+                        'revision. See also "help revisionspec".')
 
 
 class InvalidEncodingOption(errors.BzrError):
