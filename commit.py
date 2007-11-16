@@ -320,6 +320,9 @@ class CommitWindow(QBzrWindow):
                      self.show_differences)
 
         self.filelist.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+        self.connect(self.filelist,
+                     QtCore.SIGNAL("itemSelectionChanged()"),
+                     self.update_context_menu_actions)
 
         self.revert_action = QtGui.QAction(_("&Revert..."), self)
         self.connect(self.revert_action, QtCore.SIGNAL("triggered()"), self.revert_selected)
@@ -525,3 +528,13 @@ class CommitWindow(QBzrWindow):
                 for item in items:
                     index = self.filelist.indexOfTopLevelItem(item)
                     self.filelist.takeTopLevelItem(index)
+
+    def update_context_menu_actions(self):
+        contains_non_versioned = False
+        files = (self.item_to_file[i] for i in self.filelist.selectedItems())
+        for file in files:
+            if not file[4]:
+                contains_non_versioned = True
+                break
+        self.revert_action.setEnabled(not contains_non_versioned)
+        self.show_diff_action.setEnabled(not contains_non_versioned)
