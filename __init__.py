@@ -22,7 +22,7 @@
 Provided commands: qcommit, qdiff, qlog, qannotate, qbrowse
 """
 
-version_info = (0, 7, 1)
+version_info = (0, 8, 0, 'dev', 0)
 __version__ = '.'.join(map(str, version_info))
 
 import os.path
