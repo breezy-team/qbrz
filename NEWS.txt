@@ -1,5 +1,11 @@
-0.7.1 - not released yet
-------------------------
+0.7.1 - 2007-11-17
+------------------
+
+ * Custom implementation of global bzr option 'change' used by qdiff,
+   to provide support of bzr older than 0.91. (#162875)
+ * qannotate no more try to read revisions outside of text origins.
+   (#151458, #162505)
+ * Windows installers contain compiled translations files. (#162951)
 
 0.7.0 - 2007-11-10
 ------------------

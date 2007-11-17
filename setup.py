@@ -11,7 +11,7 @@ from extras.build_pot import build_pot
 setup(name='qbzr',
       description='Qt4 frontend for Bazaar',
       keywords='plugin bzr qt qbzr',
-      version='0.7.1.dev.0',
+      version='0.7.1',
       url='http://bazaar-vcs.org/QBzr',
       license='GPL',
       author='Lukáš Lalinský',
