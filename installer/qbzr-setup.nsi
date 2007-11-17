@@ -1,5 +1,5 @@
 !define PRODUCT_NAME "QBzr"
-!define PRODUCT_VERSION "0.7.0"
+!define PRODUCT_VERSION "0.7.1"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
@@ -53,6 +53,8 @@ Section "MainSection" SEC01
   File "_ext\*.pyd"
   SetOutPath "$INSTDIR\_lib"
   File /r "_lib\*.py"
+  SetOutPath "$INSTDIR\locale"
+  File /r "..\locale\*.mo"
 
   ; Write the installation path into the registry
   WriteRegStr HKLM "Software\QBzr\${PRODUCT_NAME}" "InstallDir" "$INSTDIR"

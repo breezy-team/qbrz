@@ -56,7 +56,6 @@ class build_pot(Command):
         """Run xgettext for QBzr sources"""
         import glob
         import os
-        import shutil
         # output file
         if self.build_dir != '.':
             fullname = os.path.join(self.build_dir, self.output)
@@ -76,7 +75,19 @@ class build_pot(Command):
                 po_lang = os.path.splitext(os.path.basename(po))[0]
                 if po_lang not in self.lang:
                     continue
-            cmd = "msgmerge %s %s -o %s.new" % (po, fullname, po)
+            new_po = po + ".new"
+            cmd = "msgmerge %s %s -o %s" % (po, fullname, new_po)
             self.spawn(cmd.split())
-            print "%s.new --> %s" % (po, po)
-            shutil.move("%s.new" % po, po)
+            # force LF line-endings
+            print "%s --> %s" % (new_po, po)
+            f = file(new_po, 'rU')
+            try:
+                content = f.read()
+            finally:
+                f.close()
+            f = file(po, 'wb')
+            try:
+                f.write(content)
+            finally:
+                f.close()
+            os.unlink(new_po)

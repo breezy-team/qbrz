@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: QBzr 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-10-25 13:50+0300\n"
+"POT-Creation-Date: 2007-11-16 03:07+0200\n"
 "PO-Revision-Date: 2007-10-04 21:49+0300\n"
 "Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
 "Language-Team: Russian\n"
@@ -19,15 +19,15 @@ msgstr ""
 msgid "Annotate"
 msgstr "Аннотация"
 
-#: annotate.py:150 browse.py:69 commit.py:283 log.py:165
+#: annotate.py:151 browse.py:69 commit.py:288 log.py:166
 msgid "Date"
 msgstr "Дата"
 
-#: annotate.py:150 browse.py:69 commit.py:283 log.py:165
+#: annotate.py:151 browse.py:69 commit.py:288 log.py:166
 msgid "Author"
 msgstr "Автор"
 
-#: annotate.py:150
+#: annotate.py:151
 msgid "Summary"
 msgstr "Кратко"
 
@@ -39,7 +39,7 @@ msgstr "Обзор"
 msgid "Location:"
 msgstr "Расположение:"
 
-#: browse.py:58 util.py:121
+#: browse.py:58 util.py:171
 msgid "Revision:"
 msgstr "Версия:"
 
@@ -51,7 +51,7 @@ msgstr "Показать"
 msgid "Name"
 msgstr "Имя"
 
-#: browse.py:69 commit.py:236 commit.py:283 log.py:165
+#: browse.py:69 commit.py:241 commit.py:288 log.py:166
 msgid "Message"
 msgstr "Комментарий"
 
@@ -59,47 +59,47 @@ msgstr "Комментарий"
 msgid "Show log..."
 msgstr "Показать журнал..."
 
-#: commit.py:151 commit.py:415 commit.py:446 commit.py:498
+#: commit.py:179 commit.py:431 commit.py:462 commit.py:514
 msgid "Commit"
 msgstr "Зафиксировать"
 
-#: commit.py:167 diff.py:287
+#: commit.py:200 diff.py:287
 msgid "added"
 msgstr "добавлен"
 
-#: commit.py:171 diff.py:275
+#: commit.py:204 diff.py:275
 msgid "removed"
 msgstr "удален"
 
-#: commit.py:177 diff.py:301
+#: commit.py:210 diff.py:301
 msgid "renamed and modified"
 msgstr "переименован и изменен"
 
-#: commit.py:179 diff.py:303
+#: commit.py:212 diff.py:303
 msgid "renamed"
 msgstr "переименован"
 
-#: commit.py:186 diff.py:317
+#: commit.py:219 diff.py:317
 msgid "modified"
 msgstr "изменен"
 
-#: commit.py:189
+#: commit.py:222
 msgid "non-versioned"
 msgstr "неизвестный"
 
-#: commit.py:242
+#: commit.py:247
 msgid "Enter the commit message"
 msgstr "Введите комментарий к этой версии"
 
-#: commit.py:250
+#: commit.py:255
 msgid "&Fixed bugs:"
 msgstr "&Исправленные ошибки:"
 
-#: commit.py:251
+#: commit.py:256
 msgid "Set the IDs of bugs fixed by this commit"
 msgstr "Указать номера ошибок, исправленных в этой версии"
 
-#: commit.py:254
+#: commit.py:259
 msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
@@ -107,58 +107,58 @@ msgstr ""
 "Введите список номеров ошибок в формате <i>tag:id</i>, несколько ошибок "
 "разделяются пробелами, например: <i>project:123 project:765</i>"
 
-#: commit.py:264
+#: commit.py:269
 msgid "&Author:"
 msgstr "&Автор:"
 
-#: commit.py:265
+#: commit.py:270
 msgid "Set the author of this change, if it's different from the committer"
 msgstr ""
 "Указать автора этих изменений, если он отличается от того, кто делает "
 "фиксацию версии"
 
-#: commit.py:268
+#: commit.py:273
 msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr "Введите имя автора, например: <i>John Doe &lt;jdoe@example.com&gt;</i>"
 
-#: commit.py:278
+#: commit.py:283
 msgid "Pending Merges"
 msgstr "Незаконченное объединение"
 
-#: commit.py:303
+#: commit.py:308
 msgid "Changes"
 msgstr "Изменения"
 
-#: commit.py:309
+#: commit.py:314
 msgid "File"
 msgstr "Файл"
 
-#: commit.py:309
+#: commit.py:314
 msgid "Extension"
 msgstr "Расширение"
 
-#: commit.py:309
+#: commit.py:314
 msgid "Status"
 msgstr "Состояние"
 
-#: commit.py:319
+#: commit.py:324
 msgid "&Revert..."
 msgstr "&Вернуть предыдущую версию..."
 
-#: commit.py:323
+#: commit.py:328
 msgid "Show &Differences..."
 msgstr "Показать &различия..."
 
-#: commit.py:331
+#: commit.py:336
 msgid "Show non-versioned files"
 msgstr "Показать неизвестные файлы"
 
-#: commit.py:499
+#: commit.py:515
 msgid "Do you really want to revert the selected file(s)?"
 msgstr ""
 "Вы уверены, что хотите вернуться к предыдущей версии отмеченных файлов?"
 
-#: commit.py:507
+#: commit.py:523
 msgid "Revert"
 msgstr "Возврат к предыдущей версии"
 
@@ -178,7 +178,7 @@ msgstr "Состояние:"
 msgid "Kind:"
 msgstr "Тип:"
 
-#: diff.py:404 log.py:227
+#: diff.py:404 log.py:228
 msgid "Diff"
 msgstr "Различия"
 
@@ -190,11 +190,11 @@ msgstr[0] "%s файл"
 msgstr[1] "%s файла"
 msgstr[2] "%s файлов"
 
-#: diff.py:445
+#: diff.py:439
 msgid "Side by side"
 msgstr ""
 
-#: diff.py:451
+#: diff.py:445
 msgid "Unidiff"
 msgstr ""
 
@@ -218,7 +218,7 @@ msgstr "исправлена"
 msgid "Log"
 msgstr "Журнал"
 
-#: log.py:165
+#: log.py:166
 msgid "Rev"
 msgstr "Версия"
 
@@ -238,27 +238,27 @@ msgstr "&Закрыть"
 msgid "&Help"
 msgstr "&Справка"
 
-#: util.py:125
+#: util.py:175
 msgid "Parent revisions:"
 msgstr "Предыдущая версия:"
 
-#: util.py:128
+#: util.py:178
 msgid "Committer:"
 msgstr "Зафиксировал:"
 
-#: util.py:131
+#: util.py:181
 msgid "Author:"
 msgstr "Автор:"
 
-#: util.py:135
+#: util.py:185
 msgid "Branch nick:"
 msgstr "Название ветки:"
 
-#: util.py:140
+#: util.py:190
 msgid "Tags:"
 msgstr "Тэги:"
 
-#: util.py:150
+#: util.py:200
 msgid "Bug:"
 msgid_plural "Bugs:"
 msgstr[0] "Ошибка:"
