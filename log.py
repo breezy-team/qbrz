@@ -23,7 +23,7 @@ from PyQt4 import QtCore, QtGui
 from bzrlib import bugtracker, lazy_regex
 from bzrlib.log import LogFormatter, show_log
 from bzrlib.plugins.qbzr.diff import DiffWindow
-from bzrlib.plugins.qbzr.i18n import _
+from bzrlib.plugins.qbzr.i18n import gettext
 from bzrlib.plugins.qbzr.util import (
     BTN_CLOSE,
     QBzrWindow,
@@ -147,7 +147,7 @@ class QLogFormatter(LogFormatter):
 class LogWindow(QBzrWindow):
 
     def __init__(self, branch, location, specific_fileid, replace=None, parent=None):
-        title = [_("Log")]
+        title = [gettext("Log")]
         if location:
             title.append(location)
         QBzrWindow.__init__(self, title, (710, 580), parent)
@@ -163,7 +163,8 @@ class LogWindow(QBzrWindow):
 
         self.changesList = QtGui.QTreeWidget(splitter)
         self.changesList.setHeaderLabels(
-            [_("Rev"), _("Date"), _("Author"), _("Message")])
+            [gettext("Rev"), gettext("Date"), gettext("Author"),
+             gettext("Message")])
         self.changesList.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection);
         header = self.changesList.header()
         header.resizeSection(0, 70)
@@ -225,7 +226,8 @@ class LogWindow(QBzrWindow):
 
         buttonbox = self.create_button_box(BTN_CLOSE)
 
-        self.diffbutton = QtGui.QPushButton(_('Diff'), self.centralwidget)
+        self.diffbutton = QtGui.QPushButton(gettext('Diff'),
+            self.centralwidget)
         self.diffbutton.setEnabled(False)
         self.connect(self.diffbutton, QtCore.SIGNAL("clicked(bool)"), self.diff_pushed)
 

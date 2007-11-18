@@ -35,7 +35,7 @@ from bzrlib.commands import Command, register_command
 from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.diff import DiffWindow
-from bzrlib.plugins.qbzr.i18n import _
+from bzrlib.plugins.qbzr.i18n import gettext
 from bzrlib.plugins.qbzr.util import (
     BTN_CANCEL,
     BTN_OK,
@@ -176,7 +176,7 @@ class CommitWindow(QBzrWindow):
         self.pending_merges = repo.get_revisions(pending_merges)
 
     def __init__(self, tree, selected_list, parent=None):
-        title = [_("Commit")]
+        title = [gettext("Commit")]
         QBzrWindow.__init__(self, title, (540, 540), parent)
         self.restore_size("commit")
         self.setWindowFlags(QtCore.Qt.WindowContextHelpButtonHint)
@@ -197,29 +197,29 @@ class CommitWindow(QBzrWindow):
         for path, id_, kind in delta.added:
             marker = osutils.kind_marker(kind)
             ext = os.path.splitext(path)[1]
-            files.append((_("added"), path+marker, ext, path, True))
+            files.append((gettext("added"), path+marker, ext, path, True))
         for path, id_, kind in delta.removed:
             marker = osutils.kind_marker(kind)
             ext = os.path.splitext(path)[1]
-            files.append((_("removed"), path+marker, ext, path, True))
+            files.append((gettext("removed"), path+marker, ext, path, True))
         for (oldpath, newpath, id_, kind,
             text_modified, meta_modified) in delta.renamed:
             marker = osutils.kind_marker(kind)
             ext = os.path.splitext(newpath)[1]
             if text_modified or meta_modified:
-                changes = _("renamed and modified")
+                changes = gettext("renamed and modified")
             else:
-                changes = _("renamed")
+                changes = gettext("renamed")
             files.append((changes,
                           "%s%s => %s%s" % (oldpath, marker, newpath, marker),
                           ext, newpath, True))
         for path, id_, kind, text_modified, meta_modified in delta.modified:
             marker = osutils.kind_marker(kind)
             ext = os.path.splitext(path)[1]
-            files.append((_("modified"), path+marker, ext, path, True))
+            files.append((gettext("modified"), path+marker, ext, path, True))
         for entry in tree.unknowns():
             ext = os.path.splitext(entry)[1]
-            files.append((_("non-versioned"), entry, ext, entry, False))
+            files.append((gettext("non-versioned"), entry, ext, entry, False))
 
         # Build a word list for message completer
         words = []
@@ -238,13 +238,13 @@ class CommitWindow(QBzrWindow):
 
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self.centralwidget)
 
-        groupbox = QtGui.QGroupBox(_("Message"), splitter)
+        groupbox = QtGui.QGroupBox(gettext("Message"), splitter)
         splitter.addWidget(groupbox)
         grid = QtGui.QGridLayout(groupbox)
 
         # Equivalent for 'bzr commit --message'
         self.message = TextEdit(groupbox)
-        self.message.setToolTip(_("Enter the commit message"))
+        self.message.setToolTip(gettext("Enter the commit message"))
         completer = QtGui.QCompleter()
         completer.setModel(QtGui.QStringListModel(words, completer))
         self.message.setCompleter(completer)
@@ -252,11 +252,11 @@ class CommitWindow(QBzrWindow):
         grid.addWidget(self.message, 0, 0, 1, 2)
 
         # Equivalent for 'bzr commit --fixes'
-        self.bugsCheckBox = QtGui.QCheckBox(_("&Fixed bugs:"))
-        self.bugsCheckBox.setToolTip(_("Set the IDs of bugs fixed by "
+        self.bugsCheckBox = QtGui.QCheckBox(gettext("&Fixed bugs:"))
+        self.bugsCheckBox.setToolTip(gettext("Set the IDs of bugs fixed by "
                                      "this commit"))
         self.bugs = QtGui.QLineEdit()
-        self.bugs.setToolTip(_("Enter the list of bug IDs in format "
+        self.bugs.setToolTip(gettext("Enter the list of bug IDs in format "
                              "<i>tag:id</i> separated by a space, "
                              "e.g. <i>project:123 project:765</i>"))
         self.bugs.setEnabled(False)
@@ -266,12 +266,12 @@ class CommitWindow(QBzrWindow):
         grid.addWidget(self.bugs, 1, 1)
 
         # Equivalent for 'bzr commit --author'
-        self.authorCheckBox = QtGui.QCheckBox(_("&Author:"))
-        self.authorCheckBox.setToolTip(_("Set the author of this change, if"
-                                       " it's different from the committer"))
+        self.authorCheckBox = QtGui.QCheckBox(gettext("&Author:"))
+        self.authorCheckBox.setToolTip(gettext("Set the author of this change,"
+            " if it's different from the committer"))
         self.author = QtGui.QLineEdit()
-        self.author.setToolTip(_("Enter the author's name, e.g. <i>John Doe "
-                               "&lt;jdoe@example.com&gt;</i>"))
+        self.author.setToolTip(gettext("Enter the author's name, "
+            "e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"))
         self.author.setEnabled(False)
         self.connect(self.authorCheckBox, QtCore.SIGNAL("stateChanged(int)"),
                      self.enableAuthor)
@@ -280,12 +280,12 @@ class CommitWindow(QBzrWindow):
 
         # Display a list of pending merges
         if self.pending_merges:
-            groupbox = QtGui.QGroupBox(_("Pending Merges"), splitter)
+            groupbox = QtGui.QGroupBox(gettext("Pending Merges"), splitter)
             splitter.addWidget(groupbox)
 
             pendingMergesWidget = QtGui.QTreeWidget(groupbox)
             pendingMergesWidget.setHeaderLabels(
-                [_("Date"), _("Author"), _("Message")])
+                [gettext("Date"), gettext("Author"), gettext("Message")])
             header = pendingMergesWidget.header()
             header.resizeSection(0, 120)
             header.resizeSection(1, 190)
@@ -305,13 +305,14 @@ class CommitWindow(QBzrWindow):
             vbox.addWidget(pendingMergesWidget)
 
         # Display the list of changed files
-        groupbox = QtGui.QGroupBox(_("Changes"), splitter)
+        groupbox = QtGui.QGroupBox(gettext("Changes"), splitter)
         splitter.addWidget(groupbox)
 
         self.filelist = QtGui.QTreeWidget(groupbox)
-        self.filelist.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection);
+        self.filelist.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.filelist.setSortingEnabled(True)
-        self.filelist.setHeaderLabels([_("File"), _("Extension"), _("Status")])
+        self.filelist.setHeaderLabels(
+            [gettext("File"), gettext("Extension"), gettext("Status")])
         self.filelist.header().resizeSection(0, 250)
         self.filelist.header().resizeSection(1, 70)
         self.filelist.setRootIsDecorated(False)
@@ -324,11 +325,12 @@ class CommitWindow(QBzrWindow):
                      QtCore.SIGNAL("itemSelectionChanged()"),
                      self.update_context_menu_actions)
 
-        self.revert_action = QtGui.QAction(_("&Revert..."), self)
+        self.revert_action = QtGui.QAction(gettext("&Revert..."), self)
         self.connect(self.revert_action, QtCore.SIGNAL("triggered()"), self.revert_selected)
         self.filelist.addAction(self.revert_action)
 
-        self.show_diff_action = QtGui.QAction(_("Show &Differences..."), self)
+        self.show_diff_action = QtGui.QAction(gettext("Show &Differences..."),
+                                              self)
         self.connect(self.show_diff_action, QtCore.SIGNAL("triggered()"), self.show_differences)
         self.filelist.addAction(self.show_diff_action)
 
@@ -336,7 +338,8 @@ class CommitWindow(QBzrWindow):
         vbox.addWidget(self.filelist)
 
         hbox = QtGui.QVBoxLayout()
-        self.show_nonversioned_checkbox = QtGui.QCheckBox(_("Show non-versioned files"))
+        self.show_nonversioned_checkbox = QtGui.QCheckBox(
+            gettext("Show non-versioned files"))
         self.connect(self.show_nonversioned_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_nonversioned)
         hbox.addWidget(self.show_nonversioned_checkbox)
         vbox.addLayout(hbox)
@@ -431,7 +434,7 @@ class CommitWindow(QBzrWindow):
                 bugs = self.parseBugs()
             except Exception, e:
                 QtGui.QMessageBox.warning(self,
-                    "QBzr - " + _("Commit"), str(e), QtGui.QMessageBox.Ok)
+                    "QBzr - "+gettext("Commit"), str(e), QtGui.QMessageBox.Ok)
                 return
             else:
                 if bugs:
@@ -462,7 +465,7 @@ class CommitWindow(QBzrWindow):
                              revprops=properties)
         except BzrError, e:
             QtGui.QMessageBox.warning(self,
-                "QBzr - " + _("Commit"), str(e), QtGui.QMessageBox.Ok)
+                "QBzr - " + gettext("Commit"), str(e), QtGui.QMessageBox.Ok)
 
         self.close()
 
@@ -514,8 +517,8 @@ class CommitWindow(QBzrWindow):
         if not items:
             return
         button = QtGui.QMessageBox.question(self,
-            "QBzr - " + _("Commit"),
-            _("Do you really want to revert the selected file(s)?"),
+            "QBzr - " + gettext("Commit"),
+            gettext("Do you really want to revert the selected file(s)?"),
             QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel))
         if button == QtGui.QMessageBox.Ok:
             paths = [self.item_to_file[item][3] for item in items]
@@ -523,7 +526,7 @@ class CommitWindow(QBzrWindow):
                 self.tree.revert(paths, self.tree.branch.repository.revision_tree(self.tree.last_revision()))
             except BzrError, e:
                 QtGui.QMessageBox.warning(self,
-                    "QBzr - " + _("Revert"), str(e), QtGui.QMessageBox.Ok)
+                    "QBzr - "+gettext("Revert"), str(e), QtGui.QMessageBox.Ok)
             else:
                 for item in items:
                     index = self.filelist.indexOfTopLevelItem(item)

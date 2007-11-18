@@ -34,7 +34,7 @@ from bzrlib.diff import show_diff_trees
 from bzrlib.workingtree import WorkingTree
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 
-from bzrlib.plugins.qbzr.i18n import _, ngettext, N_
+from bzrlib.plugins.qbzr.i18n import gettext, ngettext, N_
 from bzrlib.plugins.qbzr.util import (
     BTN_CLOSE,
     QBzrWindow,
@@ -237,7 +237,7 @@ class FileDiff(object):
     def html_side_by_side(self):
         """Make HTML for side-by-side diff view."""
         if self.binary:
-            line = '<p>%s</p>' % _('[binary file]')
+            line = '<p>%s</p>' % gettext('[binary file]')
             return line, line
         else:
             lines1 = []
@@ -248,7 +248,7 @@ class FileDiff(object):
     def html_inline(self):
         """Make HTML for in-line diff view."""
         if self.binary:
-            line = '<p>%s</p>' % _('[binary file]')
+            line = '<p>%s</p>' % gettext('[binary file]')
             return line, line
         else:
             lines = []
@@ -345,9 +345,9 @@ class TreeDiff(list):
                 '<b>%s</b> %%s, '
                 '<b>%s</b> %%s, '
                 '<b>%s</b> %%s'
-                '</small></div>') % (_('Last modified:'),
-                                     _('Status:'),
-                                     _('Kind:'))
+                '</small></div>') % (gettext('Last modified:'),
+                                     gettext('Status:'),
+                                     gettext('Kind:'))
         return self._metainfo_template
 
     def html_inline(self):
@@ -401,7 +401,7 @@ class DiffWindow(QBzrWindow):
     def __init__(self, tree1=None, tree2=None, specific_files=None,
                  parent=None, custom_title=None, inline=False,
                  complete=False, branch=None, encoding=None):
-        title = [_("Diff")]
+        title = [gettext("Diff")]
         if custom_title:
             title.append(custom_title)
         if specific_files:
@@ -436,13 +436,14 @@ class DiffWindow(QBzrWindow):
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(self.stack)
 
-        diffsidebyside = QtGui.QRadioButton(_("Side by side"), self.centralwidget)
+        diffsidebyside = QtGui.QRadioButton(gettext("Side by side"),
+                                            self.centralwidget)
         self.connect(diffsidebyside,
                      QtCore.SIGNAL("clicked(bool)"),
                      self.click_diffsidebyside)
         diffsidebyside.setChecked(True);
 
-        unidiff = QtGui.QRadioButton(_("Unidiff"), self.centralwidget)
+        unidiff = QtGui.QRadioButton(gettext("Unidiff"), self.centralwidget)
         self.connect(unidiff,
                      QtCore.SIGNAL("clicked(bool)"),
                      self.click_unidiff)
