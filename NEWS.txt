@@ -1,6 +1,9 @@
 0.8.0 - in development
 ----------------------
 
+ * qbrowse: context menu "Show log" now actually works.
+   (Alexander Belchenko, Mario del Pozo, #147434)
+
 0.7.1 - 2007-11-17
 ------------------
 

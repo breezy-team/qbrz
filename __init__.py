@@ -51,6 +51,7 @@ from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.log import LogWindow
 from bzrlib.plugins.qbzr.util import (
     get_branch_config,
+    get_qlog_replace,
     get_set_encoding,
     is_valid_encoding,
     )
@@ -252,15 +253,8 @@ class cmd_qlog(Command):
             dir, path = BzrDir.open_containing('.')
             branch = dir.open_branch()
 
-        config = branch.get_config()
-        replace = config.get_user_option("qlog_replace")
-        if replace:
-            replace = replace.split("\n")
-            replace = [tuple(replace[2*i:2*i+2])
-                       for i in range(len(replace) // 2)]
-
         app = QtGui.QApplication(sys.argv)
-        window = LogWindow(branch, location, file_id, replace)
+        window = LogWindow(branch, location, file_id, get_qlog_replace(branch))
         window.show()
         app.exec_()
 
