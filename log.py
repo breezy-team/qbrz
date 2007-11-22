@@ -161,7 +161,37 @@ class LogWindow(QBzrWindow):
         #groupBox = QtGui.QGroupBox(u"Log", splitter)
         #splitter.addWidget(groupBox)
 
-        self.changesList = QtGui.QTreeWidget(splitter)
+        logwidget = QtGui.QWidget()
+        logbox = QtGui.QVBoxLayout(logwidget)
+        logbox.setContentsMargins(0, 0, 0, 0)
+
+        searchbox = QtGui.QHBoxLayout()
+
+        self.search_label = QtGui.QLabel(gettext("&Search:"))
+        self.search_edit = QtGui.QLineEdit()
+        self.search_label.setBuddy(self.search_edit)
+        self.connect(self.search_edit, QtCore.SIGNAL("textEdited(QString)"),
+                     self.set_search_timer)
+
+        self.search_timer = QtCore.QTimer(self)
+        self.search_timer.setSingleShot(True)
+        self.connect(self.search_timer, QtCore.SIGNAL("timeout()"),
+                     self.update_search)
+
+        searchbox.addWidget(self.search_label)
+        searchbox.addWidget(self.search_edit)
+
+        self.search_in_messages = QtGui.QRadioButton(gettext("Messages"))
+        self.connect(self.search_in_messages, QtCore.SIGNAL("toggled(bool)"),
+                     self.update_search_type)
+        self.search_in_paths = QtGui.QRadioButton(gettext("Paths"))
+        self.connect(self.search_in_paths, QtCore.SIGNAL("toggled(bool)"),
+                     self.update_search_type)
+        searchbox.addWidget(self.search_in_messages)
+        searchbox.addWidget(self.search_in_paths)
+        self.search_in_messages.setChecked(True)
+
+        self.changesList = QtGui.QTreeWidget()
         self.changesList.setHeaderLabels(
             [gettext("Rev"), gettext("Date"), gettext("Author"),
              gettext("Message")])
@@ -176,9 +206,10 @@ class LogWindow(QBzrWindow):
                      QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
                      self.show_differences)
 
-        splitter.addWidget(self.changesList)
-        #vbox1 = QtGui.QVBoxLayout(groupBox)
-        #vbox1.addWidget(self.changesList)
+        logbox.addLayout(searchbox)
+        logbox.addWidget(self.changesList)
+
+        splitter.addWidget(logwidget)
 
         self.branch = branch
         self.item_to_rev = {}
@@ -380,3 +411,15 @@ class LogWindow(QBzrWindow):
             pass
         else:
             formatter.add_items()
+
+    def update_search_type(self, checked):
+        if checked:
+            self.update_search()
+
+    def update_search(self):
+        in_paths = self.search_in_paths.isChecked()
+        query = unicode(self.search_edit.text())
+        print "TODO: Search for %r in %r" % (query, 'paths' if in_paths else 'messages')
+
+    def set_search_timer(self):
+        self.search_timer.start(300)
