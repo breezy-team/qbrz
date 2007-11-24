@@ -59,24 +59,6 @@ from bzrlib.workingtree import WorkingTree
 ''')
 
 
-# install global 'change' option for compatiblity with bzr 0.90 and older
-if 'change' not in Option.OPTIONS:
-    from bzrlib import revisionspec
-    from bzrlib.option import _global_option, _parse_revision_str
-    def _parse_change_str(revstr):
-        revs = _parse_revision_str(revstr)
-        if len(revs) > 1:
-            raise errors.RangeInChangeOption()
-        return (revisionspec.RevisionSpec.from_string('before:' + revstr),
-                revs[0])
-    _global_option('change',
-                   type=_parse_change_str,
-                   short_name='c',
-                   param_name='revision',
-                   help='Select changes introduced by the specified '
-                        'revision. See also "help revisionspec".')
-
-
 class InvalidEncodingOption(errors.BzrError):
 
     _fmt = ('Invalid encoding: %(encoding)s\n'
@@ -174,12 +156,14 @@ class cmd_qdiff(Command):
     """Show differences in working tree in a GUI window."""
     takes_args = ['file*']
     takes_options = [
-        'revision', 'change',
+        'revision',
         Option('inline', help='Show inline diff'),
         Option('complete', help='Show complete files'),
         Option('encoding', type=check_encoding,
                help='Encoding of files content (default: utf-8)'),
         ]
+    if 'change' in Option.OPTIONS:
+        takes_options.append('change')
     aliases = ['qdi']
 
     def run(self, revision=None, file_list=None, inline=False, complete=False,
