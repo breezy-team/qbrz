@@ -157,7 +157,6 @@ class cmd_qdiff(Command):
     takes_args = ['file*']
     takes_options = [
         'revision',
-        Option('inline', help='Show inline diff'),
         Option('complete', help='Show complete files'),
         Option('encoding', type=check_encoding,
                help='Encoding of files content (default: utf-8)'),
@@ -166,7 +165,7 @@ class cmd_qdiff(Command):
         takes_options.append('change')
     aliases = ['qdi']
 
-    def run(self, revision=None, file_list=None, inline=False, complete=False,
+    def run(self, revision=None, file_list=None, complete=False,
             encoding=None):
         from bzrlib.builtins import internal_tree_files
 
@@ -208,7 +207,7 @@ class cmd_qdiff(Command):
                 tree2 = tree1.basis_tree()
 
         application = QtGui.QApplication(sys.argv)
-        window = DiffWindow(tree2, tree1, inline=inline, complete=complete,
+        window = DiffWindow(tree2, tree1, complete=complete,
             specific_files=file_list, branch=branch, encoding=encoding)
         window.show()
         application.exec_()
