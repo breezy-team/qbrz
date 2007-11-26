@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-11-16 03:07+0200\n"
+"POT-Creation-Date: 2007-11-26 17:02+0100\n"
 "PO-Revision-Date: 2007-10-09 19:35+0000\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Ukrainian <uk@li.org>\n"
@@ -19,73 +19,150 @@ msgstr ""
 "X-Launchpad-Export-Date: 2007-10-12 07:08+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
+#: diff.py:197 commit.py:204
+msgid "removed"
+msgstr "видалений"
+
+#: diff.py:209 commit.py:200
+msgid "added"
+msgstr "доданий"
+
+#: diff.py:223 commit.py:210
+msgid "renamed and modified"
+msgstr "перейменований та змінений"
+
+#: diff.py:225 commit.py:212
+msgid "renamed"
+msgstr "перейменований"
+
+#: diff.py:239 commit.py:219
+msgid "modified"
+msgstr "змінений"
+
+#: diff.py:275 log.py:254
+msgid "Diff"
+msgstr "Різниця"
+
+#: diff.py:282
+#, python-format
+msgid "%d file"
+msgid_plural "%d files"
+msgstr[0] "%d файл"
+msgstr[1] "%d файли"
+msgstr[2] "%d файлів"
+
+#: diff.py:310
+msgid "Side by side"
+msgstr ""
+
+#: diff.py:317
+msgid "Unidiff"
+msgstr ""
+
 #: annotate.py:80
 msgid "Annotate"
 msgstr "Анотація"
 
-#: annotate.py:151 browse.py:69 commit.py:288 log.py:166
+#: annotate.py:152 log.py:163 commit.py:288 browse.py:72
 msgid "Date"
 msgstr "Дата"
 
-#: annotate.py:151 browse.py:69 commit.py:288 log.py:166
+#: annotate.py:152 log.py:163 commit.py:288 browse.py:73
 msgid "Author"
 msgstr "Автор"
 
-#: annotate.py:151
+#: annotate.py:152
 msgid "Summary"
 msgstr "Коротко"
 
-#: browse.py:49
-msgid "Browse"
-msgstr "Огляд"
+#: util.py:49
+msgid "&OK"
+msgstr "&OK"
 
-#: browse.py:54
-msgid "Location:"
-msgstr "Місцезнаходження:"
+#: util.py:50
+msgid "&Cancel"
+msgstr "&Скасувати"
 
-#: browse.py:58 util.py:171
+#: util.py:51
+msgid "&Close"
+msgstr "&Закрити"
+
+#: util.py:52
+msgid "&Help"
+msgstr "&Допомога"
+
+#: util.py:172 browse.py:61
 msgid "Revision:"
 msgstr "Версія:"
 
-#: browse.py:62
-msgid "Show"
-msgstr "Показати"
+#: util.py:176
+msgid "Parent revisions:"
+msgstr "Попередня версія:"
 
-#: browse.py:69
-msgid "Name"
-msgstr "Ім’я"
+#: util.py:179
+msgid "Committer:"
+msgstr "Зафіксовано:"
 
-#: browse.py:69 commit.py:241 commit.py:288 log.py:166
+#: util.py:182
+msgid "Author:"
+msgstr "Автор:"
+
+#: util.py:186
+#, fuzzy
+msgid "Branch nick:"
+msgstr "Назва гілки:"
+
+#: util.py:191
+msgid "Tags:"
+msgstr ""
+
+#: util.py:201
+msgid "Bug:"
+msgid_plural "Bugs:"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: diffview.py:282 diffview.py:286
+msgid "Last modified:"
+msgstr "Останні зміни"
+
+#: diffview.py:283 diffview.py:287
+msgid "Status:"
+msgstr "Стан:"
+
+#: diffview.py:284 diffview.py:288
+msgid "Kind:"
+msgstr "Тип:"
+
+#: log.py:151
+msgid "Log"
+msgstr "Журнал"
+
+#: log.py:163
+msgid "Rev"
+msgstr "Версія"
+
+#: log.py:163 commit.py:241 commit.py:288 browse.py:73
 msgid "Message"
 msgstr "Коментар"
 
-#: browse.py:72
-msgid "Show log..."
-msgstr "Показати журнал..."
+#: log.py:177
+msgid "&Search:"
+msgstr ""
 
-#: commit.py:179 commit.py:431 commit.py:462 commit.py:514
+#: log.py:191
+#, fuzzy
+msgid "Messages"
+msgstr "Коментар"
+
+#: log.py:194
+msgid "Paths"
+msgstr ""
+
+#: commit.py:179 commit.py:437 commit.py:468 commit.py:520
 msgid "Commit"
 msgstr "Фіксувати"
-
-#: commit.py:200 diff.py:287
-msgid "added"
-msgstr "доданий"
-
-#: commit.py:204 diff.py:275
-msgid "removed"
-msgstr "видалений"
-
-#: commit.py:210 diff.py:301
-msgid "renamed and modified"
-msgstr "перейменований та змінений"
-
-#: commit.py:212 diff.py:303
-msgid "renamed"
-msgstr "перейменований"
-
-#: commit.py:219 diff.py:317
-msgid "modified"
-msgstr "змінений"
 
 #: commit.py:222
 msgid "non-versioned"
@@ -129,73 +206,37 @@ msgstr ""
 msgid "Changes"
 msgstr "Зміни"
 
-#: commit.py:314
+#: commit.py:315
 msgid "File"
 msgstr "Файл"
 
-#: commit.py:314
+#: commit.py:315
 msgid "Extension"
 msgstr "Розширення"
 
-#: commit.py:314
+#: commit.py:315
 msgid "Status"
 msgstr "Статус"
 
-#: commit.py:324
+#: commit.py:328
 msgid "&Revert..."
 msgstr "&Повернути попередню версію..."
 
-#: commit.py:328
+#: commit.py:332
 msgid "Show &Differences..."
 msgstr "Показати &різницю..."
 
-#: commit.py:336
+#: commit.py:342
 msgid "Show non-versioned files"
 msgstr ""
 
-#: commit.py:515
+#: commit.py:521
 msgid "Do you really want to revert the selected file(s)?"
 msgstr ""
 
-#: commit.py:523
+#: commit.py:529
 msgid "Revert"
 msgstr "Повернути"
-
-#: diff.py:240 diff.py:251
-msgid "[binary file]"
-msgstr ""
-
-#: diff.py:348 diffview.py:262 diffview.py:266
-msgid "Last modified:"
-msgstr "Останні зміни"
-
-#: diff.py:349 diffview.py:263 diffview.py:267
-msgid "Status:"
-msgstr "Стан:"
-
-#: diff.py:350 diffview.py:264 diffview.py:268
-msgid "Kind:"
-msgstr "Тип:"
-
-#: diff.py:404 log.py:228
-msgid "Diff"
-msgstr "Різниця"
-
-#: diff.py:411
-#, python-format
-msgid "%d file"
-msgid_plural "%d files"
-msgstr[0] "%d файл"
-msgstr[1] "%d файли"
-msgstr[2] "%d файлів"
-
-#: diff.py:439
-msgid "Side by side"
-msgstr ""
-
-#: diff.py:445
-msgid "Unidiff"
-msgstr ""
 
 #: i18n.py:68
 msgid "file"
@@ -214,54 +255,22 @@ msgstr "символичний зв'язок"
 msgid "fixed"
 msgstr "файл"
 
-#: log.py:150
-msgid "Log"
-msgstr "Журнал"
+#: browse.py:52
+msgid "Browse"
+msgstr "Огляд"
 
-#: log.py:166
-msgid "Rev"
-msgstr "Версія"
+#: browse.py:57
+msgid "Location:"
+msgstr "Місцезнаходження:"
 
-#: util.py:48
-msgid "&OK"
-msgstr "&OK"
+#: browse.py:65
+msgid "Show"
+msgstr "Показати"
 
-#: util.py:49
-msgid "&Cancel"
-msgstr "&Скасувати"
+#: browse.py:72
+msgid "Name"
+msgstr "Ім’я"
 
-#: util.py:50
-msgid "&Close"
-msgstr "&Закрити"
-
-#: util.py:51
-msgid "&Help"
-msgstr "&Допомога"
-
-#: util.py:175
-msgid "Parent revisions:"
-msgstr "Попередня версія:"
-
-#: util.py:178
-msgid "Committer:"
-msgstr "Зафіксовано:"
-
-#: util.py:181
-msgid "Author:"
-msgstr "Автор:"
-
-#: util.py:185
-#, fuzzy
-msgid "Branch nick:"
-msgstr "Назва гілки:"
-
-#: util.py:190
-msgid "Tags:"
-msgstr ""
-
-#: util.py:200
-msgid "Bug:"
-msgid_plural "Bugs:"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+#: browse.py:76
+msgid "Show log..."
+msgstr "Показати журнал..."

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-11-16 03:07+0200\n"
+"POT-Creation-Date: 2007-11-26 17:02+0100\n"
 "PO-Revision-Date: 2007-11-16 11:46+0100\n"
 "Last-Translator: Lukáš Lalinský <lalinsky@gmail.com>\n"
 "Language-Team: Slovak <sk@li.org>\n"
@@ -16,73 +16,149 @@ msgstr ""
 "X-Generator: KBabel 1.11.4\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 
+#: diff.py:197 commit.py:204
+msgid "removed"
+msgstr "vymazané"
+
+#: diff.py:209 commit.py:200
+msgid "added"
+msgstr "pridané"
+
+#: diff.py:223 commit.py:210
+msgid "renamed and modified"
+msgstr "premenované a zmeneé"
+
+#: diff.py:225 commit.py:212
+msgid "renamed"
+msgstr "premenované"
+
+#: diff.py:239 commit.py:219
+msgid "modified"
+msgstr "zmenené"
+
+#: diff.py:275 log.py:254
+msgid "Diff"
+msgstr "Rozdiely"
+
+#: diff.py:282
+#, python-format
+msgid "%d file"
+msgid_plural "%d files"
+msgstr[0] "%d súbor"
+msgstr[1] "%d súbory"
+msgstr[2] "%d súborov"
+
+#: diff.py:310
+msgid "Side by side"
+msgstr "Po stránách"
+
+#: diff.py:317
+msgid "Unidiff"
+msgstr "Unifikované"
+
 #: annotate.py:80
 msgid "Annotate"
 msgstr "Anotovať"
 
-#: annotate.py:151 browse.py:69 commit.py:288 log.py:166
+#: annotate.py:152 log.py:163 commit.py:288 browse.py:72
 msgid "Date"
 msgstr "Dátum"
 
-#: annotate.py:151 browse.py:69 commit.py:288 log.py:166
+#: annotate.py:152 log.py:163 commit.py:288 browse.py:73
 msgid "Author"
 msgstr "Autor"
 
-#: annotate.py:151
+#: annotate.py:152
 msgid "Summary"
 msgstr "Zhrnutie"
 
-#: browse.py:49
-msgid "Browse"
-msgstr "Prehliadať"
+#: util.py:49
+msgid "&OK"
+msgstr "&OK"
 
-#: browse.py:54
-msgid "Location:"
-msgstr "Umiestnenie:"
+#: util.py:50
+msgid "&Cancel"
+msgstr "&Zrušiť"
 
-#: browse.py:58 util.py:171
+#: util.py:51
+msgid "&Close"
+msgstr "&Zavrieť"
+
+#: util.py:52
+msgid "&Help"
+msgstr "&Pomoc"
+
+#: util.py:172 browse.py:61
 msgid "Revision:"
 msgstr "Revízia:"
 
-#: browse.py:62
-msgid "Show"
-msgstr "Zobraziť"
+#: util.py:176
+msgid "Parent revisions:"
+msgstr "Rodičovské revízie:"
 
-#: browse.py:69
-msgid "Name"
-msgstr "Názov"
+#: util.py:179
+msgid "Committer:"
+msgstr "Odovzdávateľ:"
 
-#: browse.py:69 commit.py:241 commit.py:288 log.py:166
+#: util.py:182
+msgid "Author:"
+msgstr "Autor:"
+
+#: util.py:186
+msgid "Branch nick:"
+msgstr "Názov vetvy:"
+
+#: util.py:191
+msgid "Tags:"
+msgstr "Značky:"
+
+#: util.py:201
+#, fuzzy
+msgid "Bug:"
+msgid_plural "Bugs:"
+msgstr[0] "Chyby:"
+msgstr[1] "Chyby:"
+msgstr[2] "Chyby:"
+
+#: diffview.py:282 diffview.py:286
+msgid "Last modified:"
+msgstr "Naposledy zmenené:"
+
+#: diffview.py:283 diffview.py:287
+msgid "Status:"
+msgstr "Stav:"
+
+#: diffview.py:284 diffview.py:288
+msgid "Kind:"
+msgstr "Druh:"
+
+#: log.py:151
+msgid "Log"
+msgstr "História"
+
+#: log.py:163
+msgid "Rev"
+msgstr "Rev"
+
+#: log.py:163 commit.py:241 commit.py:288 browse.py:73
 msgid "Message"
 msgstr "Správa"
 
-#: browse.py:72
-msgid "Show log..."
-msgstr "Zobraziť históriu..."
+#: log.py:177
+msgid "&Search:"
+msgstr "&Vyhľadávanie:"
 
-#: commit.py:179 commit.py:431 commit.py:462 commit.py:514
+#: log.py:191
+msgid "Messages"
+msgstr "Správy"
+
+#: log.py:194
+msgid "Paths"
+msgstr "Cesty"
+
+#: commit.py:179 commit.py:437 commit.py:468 commit.py:520
 msgid "Commit"
 msgstr "Odovzdať"
-
-#: commit.py:200 diff.py:287
-msgid "added"
-msgstr "pridané"
-
-#: commit.py:204 diff.py:275
-msgid "removed"
-msgstr "vymazané"
-
-#: commit.py:210 diff.py:301
-msgid "renamed and modified"
-msgstr "premenované a zmeneé"
-
-#: commit.py:212 diff.py:303
-msgid "renamed"
-msgstr "premenované"
-
-#: commit.py:219 diff.py:317
-msgid "modified"
-msgstr "zmenené"
 
 #: commit.py:222
 msgid "non-versioned"
@@ -105,8 +181,8 @@ msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
 msgstr ""
-"Vložte zoznam identifikátorov chýb vo formáte <i>značka:id</i> oddelených medzerou, napr. "
-"<i>projekt:123 projekt:765</i>"
+"Vložte zoznam identifikátorov chýb vo formáte <i>značka:id</i> oddelených "
+"medzerou, napr. <i>projekt:123 projekt:765</i>"
 
 #: commit.py:269
 msgid "&Author:"
@@ -114,11 +190,13 @@ msgstr "&Autor:"
 
 #: commit.py:270
 msgid "Set the author of this change, if it's different from the committer"
-msgstr "Nastaví meno autora tejto zmeny, v prípade že je odlišné od odovzdávateľa."
+msgstr ""
+"Nastaví meno autora tejto zmeny, v prípade že je odlišné od odovzdávateľa."
 
 #: commit.py:273
 msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
-msgstr "Vložte meno autora, napr. <i>Ján Mrkvička &lt;jmrkvicka@example.com&gt;</i>"
+msgstr ""
+"Vložte meno autora, napr. <i>Ján Mrkvička &lt;jmrkvicka@example.com&gt;</i>"
 
 #: commit.py:283
 msgid "Pending Merges"
@@ -128,75 +206,38 @@ msgstr "Čakajúce zlúčenia"
 msgid "Changes"
 msgstr "Zmeny"
 
-#: commit.py:314
+#: commit.py:315
 msgid "File"
 msgstr "Súbor"
 
-#: commit.py:314
+#: commit.py:315
 msgid "Extension"
 msgstr "Prípona"
 
-#: commit.py:314
+#: commit.py:315
 msgid "Status"
 msgstr "Stav"
 
-#: commit.py:324
+#: commit.py:328
 msgid "&Revert..."
 msgstr "&Revertovať..."
 
-#: commit.py:328
+#: commit.py:332
 msgid "Show &Differences..."
 msgstr "Zobraziť roz&diely..."
 
-#: commit.py:336
+#: commit.py:342
 msgid "Show non-versioned files"
 msgstr "Zobraziť neverzované súbory"
 
-#: commit.py:515
+#: commit.py:521
 msgid "Do you really want to revert the selected file(s)?"
 msgstr "Naozaj chcete revertovať vybrané súbory?"
 
-#: commit.py:523
+#: commit.py:529
 #, fuzzy
 msgid "Revert"
 msgstr "&Revertovať..."
-
-#: diff.py:240 diff.py:251
-#, fuzzy
-msgid "[binary file]"
-msgstr "binárny súbor"
-
-#: diff.py:348 diffview.py:262 diffview.py:266
-msgid "Last modified:"
-msgstr "Naposledy zmenené:"
-
-#: diff.py:349 diffview.py:263 diffview.py:267
-msgid "Status:"
-msgstr "Stav:"
-
-#: diff.py:350 diffview.py:264 diffview.py:268
-msgid "Kind:"
-msgstr "Druh:"
-
-#: diff.py:404 log.py:228
-msgid "Diff"
-msgstr "Rozdiely"
-
-#: diff.py:411
-#, python-format
-msgid "%d file"
-msgid_plural "%d files"
-msgstr[0] "%d súbor"
-msgstr[1] "%d súbory"
-msgstr[2] "%d súborov"
-
-#: diff.py:439
-msgid "Side by side"
-msgstr "Po stránách"
-
-#: diff.py:445
-msgid "Unidiff"
-msgstr "Unifikované"
 
 #: i18n.py:68
 msgid "file"
@@ -215,55 +256,26 @@ msgstr "symbolický odkaz"
 msgid "fixed"
 msgstr "zmenené"
 
-#: log.py:150
-msgid "Log"
-msgstr "História"
+#: browse.py:52
+msgid "Browse"
+msgstr "Prehliadať"
 
-#: log.py:166
-msgid "Rev"
-msgstr "Rev"
+#: browse.py:57
+msgid "Location:"
+msgstr "Umiestnenie:"
 
-#: util.py:48
-msgid "&OK"
-msgstr "&OK"
+#: browse.py:65
+msgid "Show"
+msgstr "Zobraziť"
 
-#: util.py:49
-msgid "&Cancel"
-msgstr "&Zrušiť"
+#: browse.py:72
+msgid "Name"
+msgstr "Názov"
 
-#: util.py:50
-msgid "&Close"
-msgstr "&Zavrieť"
+#: browse.py:76
+msgid "Show log..."
+msgstr "Zobraziť históriu..."
 
-#: util.py:51
-msgid "&Help"
-msgstr "&Pomoc"
-
-#: util.py:175
-msgid "Parent revisions:"
-msgstr "Rodičovské revízie:"
-
-#: util.py:178
-msgid "Committer:"
-msgstr "Odovzdávateľ:"
-
-#: util.py:181
-msgid "Author:"
-msgstr "Autor:"
-
-#: util.py:185
-msgid "Branch nick:"
-msgstr "Názov vetvy:"
-
-#: util.py:190
-msgid "Tags:"
-msgstr "Značky:"
-
-#: util.py:200
 #, fuzzy
-msgid "Bug:"
-msgid_plural "Bugs:"
-msgstr[0] "Chyby:"
-msgstr[1] "Chyby:"
-msgstr[2] "Chyby:"
-
+#~ msgid "[binary file]"
+#~ msgstr "binárny súbor"
