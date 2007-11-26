@@ -385,7 +385,7 @@ class LogWindow(QBzrWindow):
             tags.sort()
             i = TagNameRole
             for tag in tags:
-                item1.setData(QtCore.QVariant(tag), i)
+                item4.setData(QtCore.QVariant(tag), i)
                 i += 1
 
         #get_bug_id = getattr(bugtracker, 'get_bug_id', None)
@@ -396,7 +396,7 @@ class LogWindow(QBzrWindow):
                     url, status = bug.split(' ')
                     bug_id = get_bug_id(self.branch, url)
                     if bug_id:
-                        item1.setData(QtCore.QVariant(bug_id), i)
+                        item4.setData(QtCore.QVariant(bug_id), i)
                         i += 1
 
         self.merge_stack[-1].appendRow([item1, item2, item3, item4])
