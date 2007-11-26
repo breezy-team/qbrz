@@ -244,10 +244,10 @@ class LogWindow(QBzrWindow):
         hsplitter.setStretchFactor(1, 1)
 
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
-        splitter.setStretchFactor(0, 5)
-        splitter.setStretchFactor(1, 1)
         splitter.addWidget(logwidget)
         splitter.addWidget(hsplitter)
+        splitter.setStretchFactor(0, 5)
+        splitter.setStretchFactor(1, 3)
 
         buttonbox = self.create_button_box(BTN_CLOSE)
 
