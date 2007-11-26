@@ -341,7 +341,11 @@ class LogWindow(QBzrWindow):
             old_tree = self.branch.repository.revision_tree(None)
         else:
             revs = [rev1.revision_id, rev2.parent_ids[0]]
-            tree, old_tree = self.branch.repository.revision_trees(revs)
+            self.branch.repository.lock_read()
+            try:
+                tree, old_tree = self.branch.repository.revision_trees(revs)
+            finally:
+                self.branch.repository.unlock()
         window = DiffWindow(old_tree, tree, custom_title="..".join(revs),
                             branch=self.branch, specific_files=specific_files)
         window.show()
