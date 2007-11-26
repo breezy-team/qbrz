@@ -249,6 +249,7 @@ class CommitWindow(QBzrWindow):
         completer.setModel(QtGui.QStringListModel(words, completer))
         self.message.setCompleter(completer)
         self.message.setAcceptRichText(False)
+        self.restore_message()
         grid.addWidget(self.message, 0, 0, 1, 2)
 
         # Equivalent for 'bzr commit --fixes'
@@ -424,6 +425,23 @@ class CommitWindow(QBzrWindow):
             properties.append('%s fixed' % bug_url)
         return '\n'.join(properties)
 
+    def restore_message(self):
+        config = self.tree.branch.get_config()._get_branch_data_config()
+        message = config.get_user_option('qbzr_commit_message')
+        if message:
+            self.message.setText(message)
+
+    def save_message(self):
+        message = unicode(self.message.toPlainText())
+        if message:
+            config = self.tree.branch.get_config()
+            config.set_user_option('qbzr_commit_message', message)
+
+    def clear_saved_message(self):
+        config = self.tree.branch.get_config()
+        # FIXME this should delete the config entry, not just set it to ''
+        config.set_user_option('qbzr_commit_message', '')
+
     def accept(self):
         """Commit the changes."""
 
@@ -464,13 +482,17 @@ class CommitWindow(QBzrWindow):
                              allow_pointless=False,
                              revprops=properties)
         except BzrError, e:
+            self.save_message()
             QtGui.QMessageBox.warning(self,
                 "QBzr - " + gettext("Commit"), str(e), QtGui.QMessageBox.Ok)
+        else:
+            self.clear_saved_message()
 
         self.close()
 
     def reject(self):
         """Reject the commit."""
+        self.save_message()
         self.close()
 
     def show_changeset(self, item=None, column=None):
