@@ -209,6 +209,7 @@ class LogWindow(QBzrWindow):
         header.resizeSection(2, 150)
         logbox.addWidget(self.changesList)
 
+        self.current_rev = None
         self.connect(self.changesList.selectionModel(),
                      QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
                      self.update_selection)
@@ -224,17 +225,21 @@ class LogWindow(QBzrWindow):
         self.last_item = None
         self.merge_stack = [self.changesModel.invisibleRootItem()]
 
-        hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
-
         self.message = QtGui.QTextDocument()
-        self.message_browser = LogMessageBrowser(hsplitter)
+        self.message_browser = LogMessageBrowser()
         self.message_browser.setDocument(self.message)
-        self.connect(self.message_browser, QtCore.SIGNAL("anchorClicked(QUrl)"), self.link_clicked)
+        self.connect(self.message_browser,
+                     QtCore.SIGNAL("anchorClicked(QUrl)"),
+                     self.link_clicked)
+
+        self.fileList = QtGui.QListWidget()
+        self.connect(self.fileList,
+                     QtCore.SIGNAL("doubleClicked(QModelIndex)"),
+                     self.show_file_differences)
+
+        hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
         hsplitter.addWidget(self.message_browser)
-
-        self.fileList = QtGui.QListWidget(hsplitter)
         hsplitter.addWidget(self.fileList)
-
         hsplitter.setStretchFactor(0, 3)
         hsplitter.setStretchFactor(1, 1)
 
@@ -296,6 +301,7 @@ class LogWindow(QBzrWindow):
         self.diffbutton.setEnabled(True)
         item = items[0]
         rev = self.item_to_rev[item]
+        self.current_rev = rev
 
         self.message.setHtml(format_revision_html(rev, self.replace))
 
@@ -328,7 +334,7 @@ class LogWindow(QBzrWindow):
             item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
             item.setTextColor(QtGui.QColor("purple"))
 
-    def show_diff_window(self, rev1, rev2):
+    def show_diff_window(self, rev1, rev2, specific_files=None):
         if not rev2.parent_ids:
             revs = [rev1.revision_id]
             tree = self.branch.repository.revision_tree(rev1.revision_id)
@@ -337,7 +343,7 @@ class LogWindow(QBzrWindow):
             revs = [rev1.revision_id, rev2.parent_ids[0]]
             tree, old_tree = self.branch.repository.revision_trees(revs)
         window = DiffWindow(old_tree, tree, custom_title="..".join(revs),
-                            branch=self.branch)
+                            branch=self.branch, specific_files=specific_files)
         window.show()
         self.windows.append(window)
 
@@ -347,6 +353,14 @@ class LogWindow(QBzrWindow):
         item = self.changesModel.itemFromIndex(index)
         rev = self.item_to_rev[item]
         self.show_diff_window(rev, rev)
+
+    def show_file_differences(self, index):
+        """Show differences of a specific file in a single revision"""
+        item = self.fileList.itemFromIndex(index)
+        if item and self.current_rev:
+            file = unicode(item.text())
+            rev = self.current_rev
+            self.show_diff_window(rev, rev, [file])
 
     def diff_pushed(self, checked):
         """Show differences of the selected range or of a single revision"""
