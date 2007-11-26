@@ -109,63 +109,6 @@ class FileDiff(object):
             self.old_lines = [i.decode(encoding,'replace') for i in old_lines]
             self.new_lines = [i.decode(encoding,'replace') for i in new_lines]
 
-    def html_diff_lines(self, html1, html2, inline=True):
-        a = self.old_lines
-        b = self.new_lines
-        groups = self.groups
-        a = [a.decode("utf-8", "replace").rstrip("\n") for a in a]
-        b = [b.decode("utf-8", "replace").rstrip("\n") for b in b]
-        for group in groups:
-            i1, i2, j1, j2 = group[0][1], group[-1][2], group[0][3], group[-1][4]
-            hunk = "@@ -%d,%d +%d,%d @@" % (i1+1, i2-i1, j1+1, j2-j1)
-            html1.append('<div style="%s">%s</div>' % (STYLES['hunk'], htmlencode(hunk)))
-            if not inline:
-                html2.append('<div style="%s">%s</div>' % (STYLES['hunk'], htmlencode(hunk)))
-            for tag, i1, i2, j1, j2 in group:
-                if tag == 'equal':
-                    for line in a[i1:i2]:
-                        line = markup_line(line)
-                        html1.append(line)
-                        if not inline:
-                            html2.append(line)
-                elif tag == 'replace':
-                    d = (i2 - i1) - (j2 - j1)
-                    if d == 0:
-                        for i in range(i2 - i1):
-                            linea = a[i1 + i]
-                            lineb = b[j1 + i]
-                            linea = markup_intraline_changes(linea, lineb, '#EE9999')
-                            lineb = markup_intraline_changes(lineb, linea, '#99EE93')
-                            html1.append(markup_line(linea, STYLES['delete'], encode=False))
-                            html2.append(markup_line(lineb, STYLES['insert'], encode=False))
-                    else:
-                        for line in a[i1:i2]:
-                            html1.append(markup_line(line, STYLES['delete']))
-                        for line in b[j1:j2]:
-                            html2.append(markup_line(line, STYLES['insert']))
-                        if not inline:
-                            if d < 0:
-                                for i in range(-d):
-                                    html1.append(markup_line('', STYLES['missing']))
-                            else:
-                                for i in range(d):
-                                    html2.append(markup_line('', STYLES['missing']))
-                elif tag == 'insert':
-                    for line in b[j1:j2]:
-                        if not inline:
-                            html1.append(markup_line('', STYLES['missing']))
-                        html2.append(markup_line(line, STYLES['insert']))
-                elif tag == 'delete':
-                    for line in a[i1:i2]:
-                        html1.append(markup_line(line, STYLES['delete']))
-                        if not inline:
-                            html2.append(markup_line('', STYLES['missing']))
-        html1.append('</pre>')
-        html2.append('</pre>')
-
-    def txt_unidiff(self):
-        return '\n'.join(self.unidiff_list(lineterm=''))+'\n'
-
     def unidiff_list(self, n=3, lineterm='\n'):
         """Create an unidiff output"""
 
@@ -233,27 +176,6 @@ class FileDiff(object):
         res.append('</span>')
         res.append(markup_line('', defaultstyle))   # blank line between files
         return ''.join(res)
-
-    def html_side_by_side(self):
-        """Make HTML for side-by-side diff view."""
-        if self.binary:
-            line = '<p>%s</p>' % gettext('[binary file]')
-            return line, line
-        else:
-            lines1 = []
-            lines2 = []
-            self.html_diff_lines(lines1, lines2, inline=False)
-            return '<pre>%s</pre>' % ''.join(lines1), '<pre>%s</pre>' % ''.join(lines2)
-
-    def html_inline(self):
-        """Make HTML for in-line diff view."""
-        if self.binary:
-            line = '<p>%s</p>' % gettext('[binary file]')
-            return line, line
-        else:
-            lines = []
-            self.html_diff_lines(lines, lines, inline=True)
-            return '<pre>%s</pre>' % ''.join(lines)
 
 
 class TreeDiff(list):
@@ -338,68 +260,17 @@ class TreeDiff(list):
             old_tree.unlock()
             new_tree.unlock()
 
-    def _get_metainfo_template(self):
-        if self._metainfo_template is None:
-            self._metainfo_template = (
-                '<div style="%%s"><small>'
-                '<b>%s</b> %%s, '
-                '<b>%s</b> %%s, '
-                '<b>%s</b> %%s'
-                '</small></div>') % (gettext('Last modified:'),
-                                     gettext('Status:'),
-                                     gettext('Kind:'))
-        return self._metainfo_template
-
-    def html_inline(self):
-        # XXX obsolete code? (bialix 20071018)
-        html = []
-        for diff in self:
-            html.append('<div style="%s">%s</div>' % (STYLES['title'], diff.path))
-            html.append(self._get_metainfo_template() % (STYLES['metainfo'],
-                                                         diff.old_date,
-                                                         diff.status,
-                                                         diff.kind))
-            html.append(diff.html_inline())
-        return ''.join(html)
-
-    def txt_unidiff(self):
-        res = []
-        for diff in self:
-            res.append(diff.txt_unidiff())
-        return '\n'.join(res)
-
     def html_unidiff(self):
         res = []
         for diff in self:
             res.append(diff.html_unidiff())
         return ''.join(res)
 
-    def html_side_by_side(self):
-        # XXX this code seems obsolete, real side-by-side work done in diffview.py
-        # (bialix 20071018)
-        html1 = []
-        html2 = []
-        for diff in self:
-            html1.append('<div style="%s">%s</div>' % (STYLES['title'], diff.path))
-            html1.append(self._get_metainfo_template() % (STYLES['metainfo'],
-                                                          diff.old_date,
-                                                          diff.status,
-                                                          diff.kind))
-            html2.append('<div style="%s">%s</div>' % (STYLES['title'], diff.path))
-            html2.append(self._get_metainfo_template() % (STYLES['metainfo'],
-                                                          diff.new_date,
-                                                          diff.status,
-                                                          diff.kind))
-            lines1, lines2 = diff.html_side_by_side()
-            html1.append(lines1)
-            html2.append(lines2)
-        return ''.join(html1), ''.join(html2)
-
 
 class DiffWindow(QBzrWindow):
 
     def __init__(self, tree1=None, tree2=None, specific_files=None,
-                 parent=None, custom_title=None, inline=False,
+                 parent=None, custom_title=None,
                  complete=False, branch=None, encoding=None):
         title = [gettext("Diff")]
         if custom_title:
@@ -461,9 +332,9 @@ class DiffWindow(QBzrWindow):
         event.accept()
 
     def click_unidiff(self, checked):
-        if(checked):
+        if checked:
             self.stack.setCurrentIndex(1)
 
     def click_diffsidebyside(self, checked):
-        if(checked):
+        if checked:
             self.stack.setCurrentIndex(0)

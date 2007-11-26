@@ -51,29 +51,12 @@ from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.log import LogWindow
 from bzrlib.plugins.qbzr.util import (
     get_branch_config,
+    get_qlog_replace,
     get_set_encoding,
     is_valid_encoding,
     )
 from bzrlib.workingtree import WorkingTree
 ''')
-
-
-# install global 'change' option for compatiblity with bzr 0.90 and older
-if 'change' not in Option.OPTIONS:
-    from bzrlib import revisionspec
-    from bzrlib.option import _global_option, _parse_revision_str
-    def _parse_change_str(revstr):
-        revs = _parse_revision_str(revstr)
-        if len(revs) > 1:
-            raise errors.RangeInChangeOption()
-        return (revisionspec.RevisionSpec.from_string('before:' + revstr),
-                revs[0])
-    _global_option('change',
-                   type=_parse_change_str,
-                   short_name='c',
-                   param_name='revision',
-                   help='Select changes introduced by the specified '
-                        'revision. See also "help revisionspec".')
 
 
 class InvalidEncodingOption(errors.BzrError):
@@ -173,15 +156,16 @@ class cmd_qdiff(Command):
     """Show differences in working tree in a GUI window."""
     takes_args = ['file*']
     takes_options = [
-        'revision', 'change',
-        Option('inline', help='Show inline diff'),
+        'revision',
         Option('complete', help='Show complete files'),
         Option('encoding', type=check_encoding,
                help='Encoding of files content (default: utf-8)'),
         ]
+    if 'change' in Option.OPTIONS:
+        takes_options.append('change')
     aliases = ['qdi']
 
-    def run(self, revision=None, file_list=None, inline=False, complete=False,
+    def run(self, revision=None, file_list=None, complete=False,
             encoding=None):
         from bzrlib.builtins import internal_tree_files
 
@@ -223,7 +207,7 @@ class cmd_qdiff(Command):
                 tree2 = tree1.basis_tree()
 
         application = QtGui.QApplication(sys.argv)
-        window = DiffWindow(tree2, tree1, inline=inline, complete=complete,
+        window = DiffWindow(tree2, tree1, complete=complete,
             specific_files=file_list, branch=branch, encoding=encoding)
         window.show()
         application.exec_()
@@ -252,15 +236,8 @@ class cmd_qlog(Command):
             dir, path = BzrDir.open_containing('.')
             branch = dir.open_branch()
 
-        config = branch.get_config()
-        replace = config.get_user_option("qlog_replace")
-        if replace:
-            replace = replace.split("\n")
-            replace = [tuple(replace[2*i:2*i+2])
-                       for i in range(len(replace) // 2)]
-
         app = QtGui.QApplication(sys.argv)
-        window = LogWindow(branch, location, file_id, replace)
+        window = LogWindow(branch, location, file_id, get_qlog_replace(branch))
         window.show()
         app.exec_()
 

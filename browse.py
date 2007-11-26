@@ -20,13 +20,16 @@
 import sys
 from PyQt4 import QtCore, QtGui
 from bzrlib.branch import Branch
+from bzrlib.osutils import pathjoin
 from bzrlib.urlutils import local_path_from_url
 from bzrlib.plugins.qbzr.i18n import gettext
 from bzrlib.plugins.qbzr.util import (
     BTN_CLOSE,
     QBzrWindow,
     format_timestamp,
+    get_qlog_replace,
     )
+from bzrlib.plugins.qbzr.log import LogWindow
 
 
 class FileTreeWidget(QtGui.QTreeWidget):
@@ -70,7 +73,7 @@ class BrowseWindow(QBzrWindow):
              gettext("Author"), gettext("Message")])
 
         self.context_menu = QtGui.QMenu(self.file_tree)
-        self.context_menu.addAction(gettext("Show log..."))
+        self.context_menu.addAction(gettext("Show log..."), self.show_file_log)
 
         self.dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
         self.file_icon = self.style().standardIcon(QtGui.QStyle.SP_FileIcon)
@@ -96,6 +99,13 @@ class BrowseWindow(QBzrWindow):
         buttonbox = self.create_button_box(BTN_CLOSE)
         vbox.addWidget(buttonbox)
 
+        self.windows = []
+
+    def closeEvent(self, event):
+        for window in self.windows:
+            window.close()
+        event.accept()
+
     def load_file_tree(self, entry, parent_item):
         files, dirs = [], []
         revs = set()
@@ -117,6 +127,29 @@ class BrowseWindow(QBzrWindow):
             item.setText(0, child.name)
             self.items.append((item, child.revision))
         return revs
+
+    def show_file_log(self):
+        """Show qlog for one selected file."""
+        # Get selected item.
+        item = self.file_tree.currentItem()
+        if item == None: return
+
+        # Build full item path.
+        path_parts = [unicode(item.text(0))]
+        parent = item.parent()
+        while parent is not None:
+            path_parts.append(unicode(parent.text(0)))
+            parent = parent.parent()
+        path_parts.append('.')      # IMO with leading ./ path looks better
+        path_parts.reverse()
+        path = pathjoin(*path_parts)
+
+        branch = self.branch
+        file_id = branch.basis_tree().path2id(path)
+
+        window = LogWindow(branch, path, file_id, get_qlog_replace(branch))
+        window.show()
+        self.windows.append(window)
 
 
 def get_diff_trees(tree1, tree2, **kwargs):

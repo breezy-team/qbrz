@@ -277,3 +277,13 @@ def get_set_encoding(encoding, config):
     else:
         config.set_user_option("encoding", encoding)
     return encoding
+
+
+def get_qlog_replace(branch):
+    config = branch.get_config()
+    replace = config.get_user_option("qlog_replace")
+    if replace:
+        replace = replace.split("\n")
+        replace = [tuple(replace[2*i:2*i+2])
+                   for i in range(len(replace) // 2)]
+    return replace
