@@ -19,15 +19,16 @@
 
 import os
 import sys
+import re
 from PyQt4 import QtCore, QtGui
 from bzrlib.config import GlobalConfig, IniBasedConfig, config_dir, ensure_config_dir_exists
 from bzrlib import lazy_regex, osutils
 from bzrlib.plugins.qbzr.i18n import gettext, N_, ngettext
 
 
-_email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)')
-_link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])')
-_link2_re = lazy_regex.lazy_compile(r'(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)')
+_email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)', re.IGNORECASE)
+_link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])', re.IGNORECASE)
+_link2_re = lazy_regex.lazy_compile(r'(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)', re.IGNORECASE)
 _tag_re = lazy_regex.lazy_compile(r'[, ]')
 
 
