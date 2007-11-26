@@ -37,6 +37,7 @@ from bzrlib.plugins.qbzr.util import (
 
 TagNameRole = QtCore.Qt.UserRole + 1
 BugIdRole = QtCore.Qt.UserRole + 100
+CommitMessageRole = QtCore.Qt.UserRole + 200
 
 
 _bug_id_re = lazy_regex.lazy_compile(r'(?:bugs/|ticket/|show_bug\.cgi\?id=)(\d+)(?:\b|$)')
@@ -155,11 +156,17 @@ class LogWindow(QBzrWindow):
         self.specific_fileid = specific_fileid
 
         self.replace = replace
+        self.item_to_rev = {}
 
-        splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        self.changesModel = QtGui.QStandardItemModel()
+        self.changesModel.setHorizontalHeaderLabels(
+            [gettext("Rev"), gettext("Date"), gettext("Author"), gettext("Message")])
 
-        #groupBox = QtGui.QGroupBox(u"Log", splitter)
-        #splitter.addWidget(groupBox)
+        self.changesProxyModel = QtGui.QSortFilterProxyModel()
+        self.changesProxyModel.setSourceModel(self.changesModel)
+        self.changesProxyModel.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.changesProxyModel.setFilterRole(CommitMessageRole)
+        self.changesProxyModel.setFilterKeyColumn(3)
 
         logwidget = QtGui.QWidget()
         logbox = QtGui.QVBoxLayout(logwidget)
@@ -191,55 +198,33 @@ class LogWindow(QBzrWindow):
         searchbox.addWidget(self.search_in_paths)
         self.search_in_messages.setChecked(True)
 
-        self.changesList = QtGui.QTreeWidget()
-        self.changesList.setHeaderLabels(
-            [gettext("Rev"), gettext("Date"), gettext("Author"),
-             gettext("Message")])
-        self.changesList.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection);
+        logbox.addLayout(searchbox)
+
+        self.changesList = QtGui.QTreeView()
+        self.changesList.setModel(self.changesProxyModel)
+        self.changesList.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
         header = self.changesList.header()
         header.resizeSection(0, 70)
         header.resizeSection(1, 110)
         header.resizeSection(2, 150)
-        self.connect(self.changesList, QtCore.SIGNAL("itemSelectionChanged()"), self.update_selection)
-
-        self.connect(self.changesList,
-                     QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
-                     self.show_differences)
-
-        logbox.addLayout(searchbox)
         logbox.addWidget(self.changesList)
 
-        splitter.addWidget(logwidget)
+        self.connect(self.changesList.selectionModel(),
+                     QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
+                     self.update_selection)
+        self.connect(self.changesList,
+                     QtCore.SIGNAL("doubleClicked(QModelIndex)"),
+                     self.show_differences)
 
         self.branch = branch
-        self.item_to_rev = {}
 
         delegate = LogWidgetDelegate(self)
         self.changesList.setItemDelegate(delegate)
 
         self.last_item = None
-        self.merge_stack = [self.changesList]
+        self.merge_stack = [self.changesModel.invisibleRootItem()]
 
-        #groupBox = QtGui.QGroupBox(u"Details", splitter)
-
-        splitter.setStretchFactor(0, 5)
-        splitter.setStretchFactor(1, 1)
-
-        #hbox = QtGui.QHBoxLayout(groupBox)
         hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
-        #gridLayout.setColumnStretch(0, 0)
-        #gridLayout.setColumnStretch(1, 3)
-        #gridLayout.setColumnStretch(2, 1)
-
-        #gridLayout.addWidget(QtGui.QLabel(u"Revision:", groupBox), 0, 0)
-        #self.revisionEdit = QtGui.QLineEdit(u"", groupBox)
-        #self.revisionEdit.setReadOnly(True)
-        #gridLayout.addWidget(self.revisionEdit, 0, 1)
-
-        #gridLayout.addWidget(QtGui.QLabel(u"Parents:", groupBox), 1, 0)
-        #self.parentsEdit = QtGui.QLineEdit(u"", groupBox)
-        #self.parentsEdit.setReadOnly(True)
-        #gridLayout.addWidget(self.parentsEdit, 1, 1)
 
         self.message = QtGui.QTextDocument()
         self.message_browser = LogMessageBrowser(hsplitter)
@@ -253,6 +238,10 @@ class LogWindow(QBzrWindow):
         hsplitter.setStretchFactor(0, 3)
         hsplitter.setStretchFactor(1, 1)
 
+        splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        splitter.setStretchFactor(0, 5)
+        splitter.setStretchFactor(1, 1)
+        splitter.addWidget(logwidget)
         splitter.addWidget(hsplitter)
 
         buttonbox = self.create_button_box(BTN_CLOSE)
@@ -291,8 +280,17 @@ class LogWindow(QBzrWindow):
         else:
             open_browser(str(url.toEncoded()))
 
-    def update_selection(self):
-        items = self.changesList.selectedItems()
+    def selected_items(self):
+        items = []
+        for index in self.changesList.selectedIndexes():
+            index = self.changesProxyModel.mapToSource(index)
+            item = self.changesModel.itemFromIndex(index)
+            if item.column() == 0:
+                items.append(item)
+        return items
+
+    def update_selection(self, selected, deselected):
+        items = self.selected_items()
         if not items:
             return
         self.diffbutton.setEnabled(True)
@@ -343,15 +341,17 @@ class LogWindow(QBzrWindow):
         window.show()
         self.windows.append(window)
 
-    def show_differences(self, item, column):
+    def show_differences(self, index):
         """Show differences of a single revision"""
+        index = self.changesProxyModel.mapToSource(index)
+        item = self.changesModel.itemFromIndex(index)
         rev = self.item_to_rev[item]
         self.show_diff_window(rev, rev)
 
     def diff_pushed(self, checked):
         """Show differences of the selected range or of a single revision"""
-        items = self.changesList.selectedItems()
-        if len(items) == 0:
+        items = self.selected_items()
+        if not items:
             # the list is empty
             return
         rev1 = self.item_to_rev[items[0]]
@@ -367,21 +367,25 @@ class LogWindow(QBzrWindow):
         elif merge_depth < len(self.merge_stack) - 1:
             self.merge_stack.pop()
 
-        item = QtGui.QTreeWidgetItem(self.merge_stack[-1])
-        item.setText(0, str(revision.revno))
         rev = revision.rev
-        item.setText(1, format_timestamp(rev.timestamp))
+        item1 = QtGui.QStandardItem(str(revision.revno))
+        item1.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+        item2 = QtGui.QStandardItem(format_timestamp(rev.timestamp))
+        item2.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
 
         author = rev.properties.get('author', rev.committer)
-        item.setText(2, extract_name(author))
-        item.setText(3, rev.get_summary())
+        item3 = QtGui.QStandardItem(extract_name(author))
+        item3.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+        item4 = QtGui.QStandardItem(rev.get_summary())
+        item4.setData(QtCore.QVariant(rev.message), CommitMessageRole)
+        item4.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
 
         tags = getattr(revision, 'tags', None)
         if tags:
             tags.sort()
             i = TagNameRole
             for tag in tags:
-                item.setData(3, i, QtCore.QVariant(tag))
+                item1.setData(QtCore.QVariant(tag), i)
                 i += 1
 
         #get_bug_id = getattr(bugtracker, 'get_bug_id', None)
@@ -392,14 +396,19 @@ class LogWindow(QBzrWindow):
                     url, status = bug.split(' ')
                     bug_id = get_bug_id(self.branch, url)
                     if bug_id:
-                        item.setData(3, i, QtCore.QVariant(bug_id))
+                        item1.setData(QtCore.QVariant(bug_id), i)
                         i += 1
+
+        self.merge_stack[-1].appendRow([item1, item2, item3, item4])
 
         rev.delta = None
         rev.revno = revision.revno
         rev.tags = tags
-        self.item_to_rev[item] = rev
-        self.last_item = item
+        self.item_to_rev[item1] = rev
+        self.item_to_rev[item2] = rev
+        self.item_to_rev[item3] = rev
+        self.item_to_rev[item4] = rev
+        self.last_item = item1
 
     def load_history(self):
         """Load branch history."""
@@ -417,9 +426,8 @@ class LogWindow(QBzrWindow):
             self.update_search()
 
     def update_search(self):
-        in_paths = self.search_in_paths.isChecked()
-        query = unicode(self.search_edit.text())
-        print "TODO: Search for %r in %r" % (query, 'paths' if in_paths else 'messages')
+        # TODO in_paths = self.search_in_paths.isChecked()
+        self.changesProxyModel.setFilterRegExp(self.search_edit.text())
 
     def set_search_timer(self):
-        self.search_timer.start(300)
+        self.search_timer.start(200)
