@@ -120,7 +120,8 @@ class cmd_qannotate(Command):
         encoding = get_set_encoding(encoding, config)
 
         app = QtGui.QApplication(sys.argv)
-        win = AnnotateWindow(filename, content, revisions, encoding=encoding)
+        win = AnnotateWindow(filename, content, revisions, encoding=encoding,
+                             branch=branch)
         win.show()
         app.exec_()
 

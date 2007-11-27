@@ -20,6 +20,7 @@
 import operator
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.i18n import gettext
+from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.util import (
     BTN_CLOSE,
     QBzrWindow,
@@ -75,10 +76,12 @@ class AnnotateView(QtGui.QTextBrowser):
 
 class AnnotateWindow(QBzrWindow):
 
-    def __init__(self, filename, lines, revisions, parent=None, encoding=None):
+    def __init__(self, filename, lines, revisions, parent=None, encoding=None, branch=None):
         QBzrWindow.__init__(self,
             [gettext("Annotate"), filename], (780, 680), parent)
         self.restore_size("annotate")
+        self.branch = branch
+        self.windows = []
 
         revisions.sort(key=operator.attrgetter('timestamp'), reverse=True)
 
@@ -152,7 +155,12 @@ body {white-space:pre;}
             [gettext("Date"), gettext("Author"), gettext("Summary")])
         self.changes.setRootIsDecorated(False)
         self.changes.setUniformRowHeights(True)
-        self.connect(self.changes, QtCore.SIGNAL("itemSelectionChanged()"), self.set_revision_by_item)
+        self.connect(self.changes,
+                     QtCore.SIGNAL("itemSelectionChanged()"),
+                     self.set_revision_by_item)
+        self.connect(self.changes,
+                     QtCore.SIGNAL("doubleClicked(QModelIndex)"),
+                     self.show_revision_diff)
         self.itemToRev = {}
         for rev in revisions:
             item = QtGui.QTreeWidgetItem(self.changes)
@@ -201,7 +209,28 @@ body {white-space:pre;}
                     self.message_doc.setHtml(format_revision_html(rev))
                     break
 
+    def show_revision_diff(self, index):
+        item = self.changes.itemFromIndex(index)
+        rev = self.itemToRev[item]
+        repo = self.branch.repository
+        repo.lock_read()
+        try:
+            if not rev.parent_ids:
+                revs = [rev.revision_id]
+                tree = repo.revision_tree(rev1.revision_id)
+                old_tree = repo.revision_tree(None)
+            else:
+                revs = [rev.revision_id, rev.parent_ids[0]]
+                tree, old_tree = repo.revision_trees(revs)
+        finally:
+            repo.unlock()
+        window = DiffWindow(old_tree, tree, custom_title="..".join(revs),
+                            branch=self.branch)
+        window.show()
+        self.windows.append(window)
+
     def closeEvent(self, event):
         self.save_size("annotate")
+        for window in self.windows:
+            window.close()
         event.accept()
-
