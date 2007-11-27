@@ -17,8 +17,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import os.path
 from PyQt4 import QtCore, QtGui
-from bzrlib.config import GlobalConfig, extract_email_address
+from bzrlib.config import (
+    GlobalConfig,
+    ensure_config_dir_exists,
+    extract_email_address,
+    )
 from bzrlib.plugins.qbzr.i18n import gettext, N_
 from bzrlib.plugins.qbzr.util import (
     BTN_OK,
@@ -47,8 +52,8 @@ class QBzrConfigWindow(QBzrWindow):
 
         tabwidget = QtGui.QTabWidget()
 
-        general = QtGui.QWidget()
-        generalVBox = QtGui.QVBoxLayout(general)
+        generalWidget = QtGui.QWidget()
+        generalVBox = QtGui.QVBoxLayout(generalWidget)
         generalGrid = QtGui.QGridLayout()
 
         self.nameEdit = QtGui.QLineEdit()
@@ -58,7 +63,7 @@ class QBzrConfigWindow(QBzrWindow):
         generalGrid.addWidget(self.nameEdit, 0, 1)
 
         self.emailEdit = QtGui.QLineEdit()
-        label = QtGui.QLabel(gettext("&E-mail:"))
+        label = QtGui.QLabel(gettext("E-&mail:"))
         label.setBuddy(self.emailEdit)
         generalGrid.addWidget(label, 1, 0)
         generalGrid.addWidget(self.emailEdit, 1, 1)
@@ -79,7 +84,30 @@ class QBzrConfigWindow(QBzrWindow):
 
         generalVBox.addLayout(generalGrid)
         generalVBox.addStretch()
-        tabwidget.addTab(general, gettext("General"))
+
+        self.aliasesList = QtGui.QTreeWidget()
+        self.aliasesList.setRootIsDecorated(False)
+        self.aliasesList.setHeaderLabels([gettext("Alias"), gettext("Command")])
+
+        addAliasButton = QtGui.QPushButton(gettext("Add"))
+        self.connect(addAliasButton, QtCore.SIGNAL("clicked()"),
+                     self.addAlias)
+        removeAliasButton = QtGui.QPushButton(gettext("Remove"))
+        self.connect(removeAliasButton, QtCore.SIGNAL("clicked()"),
+                     self.removeAlias)
+
+        aliasesHBox = QtGui.QHBoxLayout()
+        aliasesHBox.addWidget(addAliasButton)
+        aliasesHBox.addWidget(removeAliasButton)
+        aliasesHBox.addStretch()
+
+        aliasesWidget = QtGui.QWidget()
+        aliasesVBox = QtGui.QVBoxLayout(aliasesWidget)
+        aliasesVBox.addWidget(self.aliasesList)
+        aliasesVBox.addLayout(aliasesHBox)
+
+        tabwidget.addTab(generalWidget, gettext("General"))
+        tabwidget.addTab(aliasesWidget, gettext("Aliases"))
 
         buttonbox = self.create_button_box(BTN_OK, BTN_CANCEL)
 
@@ -91,6 +119,7 @@ class QBzrConfigWindow(QBzrWindow):
     def load(self):
         """Load the configuration."""
         config = GlobalConfig()
+        parser = config._get_parser()
 
         # Name & e-mail
         username = config.username()
@@ -111,24 +140,52 @@ class QBzrConfigWindow(QBzrWindow):
         if index >= 0:
             self.emailClientCombo.setCurrentIndex(index)
 
+        # Aliases
+        aliases = parser.get('ALIASES', {})
+        for alias, command in aliases.items():
+            item = QtGui.QTreeWidgetItem(self.aliasesList)
+            item.setFlags(QtCore.Qt.ItemIsSelectable |
+                          QtCore.Qt.ItemIsEditable |
+                          QtCore.Qt.ItemIsEnabled)
+            item.setText(0, alias)
+            item.setText(1, command)
+
     def save(self):
         """Save the configuration."""
         config = GlobalConfig()
+        parser = config._get_parser()
+
+        if 'DEFAULT' not in parser:
+            parser['DEFAULT'] = {}
 
         # Name & e-mail
         username = '%s <%s>' % (
             unicode(self.nameEdit.text()),
             unicode(self.emailEdit.text()))
-        config.set_user_option('email', username)
+        parser['DEFAULT']['email'] = username
 
         # Editor
         editor = unicode(self.editorEdit.text())
-        config.set_user_option('editor', editor)
+        parser['DEFAULT']['editor'] = editor
 
         # E-mail client
         index = self.emailClientCombo.currentIndex()
-        mail_client = unicode(self.emailClientCombo.itemData(index).toString())
-        config.set_user_option('mail_client', mail_client)
+        emailClient = unicode(self.emailClientCombo.itemData(index).toString())
+        parser['DEFAULT']['mail_client'] = emailClient
+
+        # Aliases
+        parser['ALIASES'] = {}
+        for index in range(self.aliasesList.topLevelItemCount()):
+            item = self.aliasesList.topLevelItem(index)
+            alias = unicode(item.text(0))
+            command = unicode(item.text(1))
+            if alias and command:
+                parser['ALIASES'][alias] = command
+
+        ensure_config_dir_exists(os.path.dirname(config._get_filename()))
+        f = open(config._get_filename(), 'wb')
+        parser.write(f)
+        f.close()
 
     def accept(self):
         """Save changes and close the window."""
@@ -138,3 +195,17 @@ class QBzrConfigWindow(QBzrWindow):
     def reject(self):
         """Close the window."""
         self.close()
+
+    def addAlias(self):
+        item = QtGui.QTreeWidgetItem(self.aliasesList)
+        item.setFlags(QtCore.Qt.ItemIsSelectable |
+                      QtCore.Qt.ItemIsEditable |
+                      QtCore.Qt.ItemIsEnabled)
+        self.aliasesList.setCurrentItem(item)
+        self.aliasesList.editItem(item, 0)
+
+    def removeAlias(self):
+        for item in self.aliasesList.selectedItems():
+            index = self.aliasesList.indexOfTopLevelItem(item)
+            if index >= 0:
+                self.aliasesList.takeTopLevelItem(index)
