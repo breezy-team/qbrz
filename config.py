@@ -17,6 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import re
 import os.path
 from PyQt4 import QtCore, QtGui
 from bzrlib.config import (
@@ -43,6 +44,8 @@ _mail_clients = [
     ('mapi', N_('MAPI e-mail client')),
     ('editor', N_('Editor')),
 ]
+
+_bug_tracker_re = re.compile('bugtracker_(.+?)_url')
 
 
 class QBzrConfigWindow(QBzrWindow):
@@ -106,8 +109,30 @@ class QBzrConfigWindow(QBzrWindow):
         aliasesVBox.addWidget(self.aliasesList)
         aliasesVBox.addLayout(aliasesHBox)
 
+        self.bugTrackersList = QtGui.QTreeWidget()
+        self.bugTrackersList.setRootIsDecorated(False)
+        self.bugTrackersList.setHeaderLabels([gettext("Abbreviation"), gettext("URL")])
+
+        addBugTrackerButton = QtGui.QPushButton(gettext("Add"))
+        self.connect(addBugTrackerButton, QtCore.SIGNAL("clicked()"),
+                     self.addBugTracker)
+        removeBugTrackerButton = QtGui.QPushButton(gettext("Remove"))
+        self.connect(removeBugTrackerButton, QtCore.SIGNAL("clicked()"),
+                     self.removeBugTracker)
+
+        bugTrackersHBox = QtGui.QHBoxLayout()
+        bugTrackersHBox.addWidget(addBugTrackerButton)
+        bugTrackersHBox.addWidget(removeBugTrackerButton)
+        bugTrackersHBox.addStretch()
+
+        bugTrackersWidget = QtGui.QWidget()
+        bugTrackersVBox = QtGui.QVBoxLayout(bugTrackersWidget)
+        bugTrackersVBox.addWidget(self.bugTrackersList)
+        bugTrackersVBox.addLayout(bugTrackersHBox)
+
         tabwidget.addTab(generalWidget, gettext("General"))
         tabwidget.addTab(aliasesWidget, gettext("Aliases"))
+        tabwidget.addTab(bugTrackersWidget, gettext("Bug Trackers"))
 
         buttonbox = self.create_button_box(BTN_OK, BTN_CANCEL)
 
@@ -153,6 +178,19 @@ class QBzrConfigWindow(QBzrWindow):
             item.setText(0, alias)
             item.setText(1, command)
 
+        # Bug trackers
+        for name, value in parser.get('DEFAULT', {}).items():
+            m = _bug_tracker_re.match(name)
+            if not m:
+                continue
+            abbreviation = m.group(1)
+            item = QtGui.QTreeWidgetItem(self.bugTrackersList)
+            item.setFlags(QtCore.Qt.ItemIsSelectable |
+                          QtCore.Qt.ItemIsEditable |
+                          QtCore.Qt.ItemIsEnabled)
+            item.setText(0, abbreviation)
+            item.setText(1, value)
+
     def save(self):
         """Save the configuration."""
         config = GlobalConfig()
@@ -185,6 +223,20 @@ class QBzrConfigWindow(QBzrWindow):
             if alias and command:
                 parser['ALIASES'][alias] = command
 
+        # Bug trackers
+        for name, value in parser.get('DEFAULT', {}).items():
+            m = _bug_tracker_re.match(name)
+            if m:
+                abbrev = m.group(1)
+                del parser['DEFAULT']['bugtracker_%s_url' % abbrev]
+        for index in range(self.bugTrackersList.topLevelItemCount()):
+            item = self.bugTrackersList.topLevelItem(index)
+            abbrev = unicode(item.text(0))
+            url = unicode(item.text(1))
+            # FIXME add URL validation (must contain {id})
+            if abbrev and url:
+                parser['DEFAULT']['bugtracker_%s_url' % abbrev] = url
+
         ensure_config_dir_exists(os.path.dirname(config._get_filename()))
         f = open(config._get_filename(), 'wb')
         parser.write(f)
@@ -212,3 +264,17 @@ class QBzrConfigWindow(QBzrWindow):
             index = self.aliasesList.indexOfTopLevelItem(item)
             if index >= 0:
                 self.aliasesList.takeTopLevelItem(index)
+
+    def addBugTracker(self):
+        item = QtGui.QTreeWidgetItem(self.bugTrackersList)
+        item.setFlags(QtCore.Qt.ItemIsSelectable |
+                      QtCore.Qt.ItemIsEditable |
+                      QtCore.Qt.ItemIsEnabled)
+        self.bugTrackersList.setCurrentItem(item)
+        self.bugTrackersList.editItem(item, 0)
+
+    def removeBugTracker(self):
+        for item in self.bugTrackersList.selectedItems():
+            index = self.bugTrackersList.indexOfTopLevelItem(item)
+            if index >= 0:
+                self.bugTrackersList.takeTopLevelItem(index)
