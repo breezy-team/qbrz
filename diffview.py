@@ -168,6 +168,8 @@ def get_change_extent(str1, str2):
 
 
 def markup_intraline_changes(line1, line2, color):
+    line1 = line1.rstrip("\n")
+    line2 = line2.rstrip("\n")
     line1 = line1.replace(u"&", u"\1").replace(u"<", u"\2").replace(u">", u"\3")
     line2 = line2.replace(u"&", u"\1").replace(u"<", u"\2").replace(u">", u"\3")
     start, end = get_change_extent(line1[1:], line2[1:])
