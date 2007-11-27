@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-11-26 17:02+0100\n"
-"PO-Revision-Date: 2007-11-16 11:46+0100\n"
+"POT-Creation-Date: 2007-11-27 14:58+0100\n"
+"PO-Revision-Date: 2007-11-27 14:59+0100\n"
 "Last-Translator: Lukáš Lalinský <lalinsky@gmail.com>\n"
 "Language-Team: Slovak <sk@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -15,6 +15,84 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: KBabel 1.11.4\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
+
+#: config.py:37
+msgid "Default"
+msgstr "Štandardný"
+
+#: config.py:38
+msgid "Thunderbird"
+msgstr "Thunderbird"
+
+#: config.py:39
+msgid "Evolution"
+msgstr "Evolution"
+
+#: config.py:40
+msgid "KMail"
+msgstr "KMail"
+
+#: config.py:41
+msgid "Mutt"
+msgstr "Mutt"
+
+#: config.py:42
+msgid "XDG e-mail client"
+msgstr "XDG e-mailový klient"
+
+#: config.py:43
+msgid "MAPI e-mail client"
+msgstr "MAPI e-mailový klient"
+
+#: config.py:44
+#, fuzzy
+msgid "Editor"
+msgstr "adresár"
+
+#: config.py:51
+msgid "Configuration"
+msgstr "Nastavenie"
+
+#: config.py:60
+msgid "&Name:"
+msgstr "Me&no:"
+
+#: config.py:66
+msgid "E-&mail:"
+msgstr "E-&mail:"
+
+#: config.py:72
+#, fuzzy
+msgid "&Editor:"
+msgstr "&Autor:"
+
+#: config.py:80
+msgid "E-mail &client:"
+msgstr "E-mail &klient:"
+
+#: config.py:90
+msgid "Alias"
+msgstr "Alias"
+
+#: config.py:90
+msgid "Command"
+msgstr "Príkaz"
+
+#: config.py:92
+msgid "Add"
+msgstr "Pridať"
+
+#: config.py:95
+msgid "Remove"
+msgstr "Odstrániť"
+
+#: config.py:109
+msgid "General"
+msgstr "Všeobecné"
+
+#: config.py:110
+msgid "Aliases"
+msgstr "Aliasy"
 
 #: diff.py:197 commit.py:204
 msgid "removed"
@@ -36,7 +114,7 @@ msgstr "premenované"
 msgid "modified"
 msgstr "zmenené"
 
-#: diff.py:275 log.py:254
+#: diff.py:275 log.py:255
 msgid "Diff"
 msgstr "Rozdiely"
 
@@ -60,11 +138,11 @@ msgstr "Unifikované"
 msgid "Annotate"
 msgstr "Anotovať"
 
-#: annotate.py:152 log.py:163 commit.py:288 browse.py:72
+#: annotate.py:152 log.py:164 commit.py:289 browse.py:72
 msgid "Date"
 msgstr "Dátum"
 
-#: annotate.py:152 log.py:163 commit.py:288 browse.py:73
+#: annotate.py:152 log.py:164 commit.py:289 browse.py:73
 msgid "Author"
 msgstr "Autor"
 
@@ -120,43 +198,43 @@ msgstr[0] "Chyby:"
 msgstr[1] "Chyby:"
 msgstr[2] "Chyby:"
 
-#: diffview.py:282 diffview.py:286
+#: diffview.py:284 diffview.py:288
 msgid "Last modified:"
 msgstr "Naposledy zmenené:"
 
-#: diffview.py:283 diffview.py:287
+#: diffview.py:285 diffview.py:289
 msgid "Status:"
 msgstr "Stav:"
 
-#: diffview.py:284 diffview.py:288
+#: diffview.py:286 diffview.py:290
 msgid "Kind:"
 msgstr "Druh:"
 
-#: log.py:151
+#: log.py:152
 msgid "Log"
 msgstr "História"
 
-#: log.py:163
+#: log.py:164
 msgid "Rev"
 msgstr "Rev"
 
-#: log.py:163 commit.py:241 commit.py:288 browse.py:73
+#: log.py:164 commit.py:241 commit.py:289 browse.py:73
 msgid "Message"
 msgstr "Správa"
 
-#: log.py:177
+#: log.py:178
 msgid "&Search:"
 msgstr "&Vyhľadávanie:"
 
-#: log.py:191
+#: log.py:192
 msgid "Messages"
 msgstr "Správy"
 
-#: log.py:194
+#: log.py:195
 msgid "Paths"
 msgstr "Cesty"
 
-#: commit.py:179 commit.py:437 commit.py:468 commit.py:520
+#: commit.py:179 commit.py:455 commit.py:487 commit.py:542
 msgid "Commit"
 msgstr "Odovzdať"
 
@@ -168,15 +246,15 @@ msgstr "neverzované"
 msgid "Enter the commit message"
 msgstr "Vložte správu"
 
-#: commit.py:255
+#: commit.py:256
 msgid "&Fixed bugs:"
 msgstr "&Opravené chyby:"
 
-#: commit.py:256
+#: commit.py:257
 msgid "Set the IDs of bugs fixed by this commit"
 msgstr "Nastaví identifikátory chýb opravených týmto odovzdaním"
 
-#: commit.py:259
+#: commit.py:260
 msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
@@ -184,57 +262,55 @@ msgstr ""
 "Vložte zoznam identifikátorov chýb vo formáte <i>značka:id</i> oddelených "
 "medzerou, napr. <i>projekt:123 projekt:765</i>"
 
-#: commit.py:269
+#: commit.py:270
 msgid "&Author:"
 msgstr "&Autor:"
 
-#: commit.py:270
+#: commit.py:271
 msgid "Set the author of this change, if it's different from the committer"
-msgstr ""
-"Nastaví meno autora tejto zmeny, v prípade že je odlišné od odovzdávateľa."
+msgstr "Nastaví meno autora tejto zmeny, v prípade že je odlišné od odovzdávateľa."
 
-#: commit.py:273
+#: commit.py:274
 msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
-msgstr ""
-"Vložte meno autora, napr. <i>Ján Mrkvička &lt;jmrkvicka@example.com&gt;</i>"
+msgstr "Vložte meno autora, napr. <i>Ján Mrkvička &lt;jmrkvicka@example.com&gt;</i>"
 
-#: commit.py:283
+#: commit.py:284
 msgid "Pending Merges"
 msgstr "Čakajúce zlúčenia"
 
-#: commit.py:308
+#: commit.py:309
 msgid "Changes"
 msgstr "Zmeny"
 
-#: commit.py:315
+#: commit.py:316
 msgid "File"
 msgstr "Súbor"
 
-#: commit.py:315
+#: commit.py:316
 msgid "Extension"
 msgstr "Prípona"
 
-#: commit.py:315
+#: commit.py:316
 msgid "Status"
 msgstr "Stav"
 
-#: commit.py:328
+#: commit.py:329
 msgid "&Revert..."
 msgstr "&Revertovať..."
 
-#: commit.py:332
+#: commit.py:333
 msgid "Show &Differences..."
 msgstr "Zobraziť roz&diely..."
 
-#: commit.py:342
+#: commit.py:343
 msgid "Show non-versioned files"
 msgstr "Zobraziť neverzované súbory"
 
-#: commit.py:521
+#: commit.py:543
 msgid "Do you really want to revert the selected file(s)?"
 msgstr "Naozaj chcete revertovať vybrané súbory?"
 
-#: commit.py:529
+#: commit.py:551
 #, fuzzy
 msgid "Revert"
 msgstr "&Revertovať..."
@@ -276,6 +352,3 @@ msgstr "Názov"
 msgid "Show log..."
 msgstr "Zobraziť históriu..."
 
-#, fuzzy
-#~ msgid "[binary file]"
-#~ msgstr "binárny súbor"

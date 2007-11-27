@@ -48,7 +48,7 @@ _mail_clients = [
 class QBzrConfigWindow(QBzrWindow):
 
     def __init__(self, parent=None):
-        QBzrWindow.__init__(self, [gettext("Configure")], (400, 300), parent)
+        QBzrWindow.__init__(self, [gettext("Configuration")], (400, 300), parent)
 
         tabwidget = QtGui.QTabWidget()
 
