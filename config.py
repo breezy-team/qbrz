@@ -123,11 +123,12 @@ class QBzrConfigWindow(QBzrWindow):
 
         # Name & e-mail
         username = config.username()
-        self.nameEdit.setText(extract_name(username, strict=True))
-        try:
-            self.emailEdit.setText(extract_email_address(username))
-        except errors.NoEmailInUsername:
-            pass
+        if username:
+            self.nameEdit.setText(extract_name(username, strict=True))
+            try:
+                self.emailEdit.setText(extract_email_address(username))
+            except errors.NoEmailInUsername:
+                pass
 
         # Editor
         editor = config.get_user_option('editor')
@@ -135,10 +136,12 @@ class QBzrConfigWindow(QBzrWindow):
             self.editorEdit.setText(editor)
 
         # E-mail client
-        mail_client = config.get_user_option('mail_client')
-        index = self.emailClientCombo.findData(QtCore.QVariant(mail_client))
-        if index >= 0:
-            self.emailClientCombo.setCurrentIndex(index)
+        mailClient = config.get_user_option('mail_client')
+        if mailClient:
+            index = self.emailClientCombo.findData(
+                QtCore.QVariant(mailClient))
+            if index >= 0:
+                self.emailClientCombo.setCurrentIndex(index)
 
         # Aliases
         aliases = parser.get('ALIASES', {})
