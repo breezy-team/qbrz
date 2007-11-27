@@ -47,6 +47,7 @@ from bzrlib.bzrdir import BzrDir
 from bzrlib.plugins.qbzr.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.browse import BrowseWindow
 from bzrlib.plugins.qbzr.commit import CommitWindow
+from bzrlib.plugins.qbzr.config import QBzrConfigWindow
 from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.log import LogWindow
 from bzrlib.plugins.qbzr.util import (
@@ -242,8 +243,23 @@ class cmd_qlog(Command):
         app.exec_()
 
 
+class cmd_qconfig(Command):
+    """Configure Bazaar."""
+
+    takes_args = []
+    takes_options = []
+    aliases = ['qconfigure']
+
+    def run(self):
+        app = QtGui.QApplication(sys.argv)
+        window = QBzrConfigWindow()
+        window.show()
+        app.exec_()
+
+
 register_command(cmd_qannotate)
 register_command(cmd_qbrowse)
+register_command(cmd_qconfig)
 register_command(cmd_qcommit)
 register_command(cmd_qdiff)
 register_command(cmd_qlog)

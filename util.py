@@ -230,16 +230,19 @@ def get_apparent_author(rev):
 _extract_name_re = lazy_regex.lazy_compile('(.*?) <.*?@.*?>')
 _extract_email_re = lazy_regex.lazy_compile('<(.*?@.*?)>')
 
-def extract_name(author):
+def extract_name(author, strict=False):
     m = _extract_name_re.match(author)
     if m:
         name = m.group(1)
     else:
-        m = _extract_email_re.match(author)
-        if m:
-            name = m.group(1)
-        else:
+        if strict:
             name = author
+        else:
+            m = _extract_email_re.match(author)
+            if m:
+                name = m.group(1)
+            else:
+                name = author
     return name.strip()
 
 

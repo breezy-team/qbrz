@@ -36,6 +36,10 @@ qbrowse
 ~~~~~~~
 Browse your branch a-la Trac Browse Source.
 
+qconfig
+~~~~~~~
+Bazaar configuration.
+
 
 Interface localization
 ======================
