@@ -380,7 +380,11 @@ class LogWindow(QBzrWindow):
     def add_log_entry(self, revision):
         """Add loaded entries to the list."""
 
-        merge_depth = revision.merge_depth
+        # Use flat list for a single-file log
+        if self.specific_fileid:
+            merge_depth = 0
+        else:
+            merge_depth = revision.merge_depth
         if merge_depth > len(self.merge_stack) - 1:
             self.merge_stack.append(self.last_item)
         elif merge_depth < len(self.merge_stack) - 1:
