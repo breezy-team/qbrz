@@ -445,6 +445,16 @@ class CommitWindow(QBzrWindow):
     def accept(self):
         """Commit the changes."""
 
+        message = unicode(self.message.toPlainText()).strip()
+        if not message:
+            button = QtGui.QMessageBox.warning(self,
+                "QBzr - " + gettext("Commit"),
+                gettext("Empty commit message. Do you really want to commit?"),
+                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+            if button == QtGui.QMessageBox.No:
+                # don't commit, but don't close the window either
+                return
+
         properties = {}
 
         if self.bugsCheckBox.checkState() == QtCore.Qt.Checked:
@@ -476,7 +486,7 @@ class CommitWindow(QBzrWindow):
             specific_files = None
 
         try:
-            self.tree.commit(message=unicode(self.message.toPlainText()),
+            self.tree.commit(message=message,
                              specific_files=specific_files,
                              reporter=ReportCommitToLog(),
                              allow_pointless=False,
