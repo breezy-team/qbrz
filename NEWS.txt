@@ -1,11 +1,32 @@
 0.8.0 - in development
 ----------------------
 
- * qbrowse: context menu "Show log" now actually works.
-   (Alexander Belchenko, Mario del Pozo, #147434)
- * qdiff: removed unused option --inline.
-   (Alexander Belchenko, #148409)
- * qconfig: New command. (Lukáš Lalinský)
+ * qannotate:
+    * Double clicking history in annotate window should open diff window.
+      (Lukáš Lalinský, #148024)
+ * qbrowse:
+    * Context menu "Show log" now actually works.
+      (Alexander Belchenko, Mario del Pozo, #147434)
+ * qcommit:
+    * Ask for confirmation when trying to commit with empty message.
+      (Lukáš Lalinský, #173327)
+    * Remember the last message on cancel or error.
+      (Lukáš Lalinský, #149743)
+ * qconfig:
+    * New command. (Lukáš Lalinský)
+ * qdiff:
+    * Removed unused option --inline. (Alexander Belchenko, #148409)
+    * Fix a special case where the line in the HTML view still contained
+      newline characters. (Lukáš Lalinský)
+ * qlog:
+    * Add a global branch lock around qlog to make showing of modified
+      files on packs faster. (Lukáš Lalinský, #173327)
+    * Use a flat list for single-file log. (Lukáš Lalinský, #172558)
+    * Display text with the right color for selected but non-active lines
+      with tags/bugs. (Alexander Belchenko)
+    * Open a single-file diff window after double-clicking on a file.
+      (Lukáš Lalinský, #148410)
+    * Search in commit messages. (Lukáš Lalinský, #162952)
 
 0.7.1 - 2007-11-17
 ------------------
