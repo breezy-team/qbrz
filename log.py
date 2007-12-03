@@ -310,13 +310,9 @@ class LogWindow(QBzrWindow):
 
         if not rev.delta:
             # TODO move this to a thread
-            self.branch.repository.lock_read()
-            try:
-                rev.delta = \
-                    self.branch.repository.get_deltas_for_revisions(
-                        [rev]).next()
-            finally:
-                self.branch.repository.unlock()
+            rev.delta = \
+                self.branch.repository.get_deltas_for_revisions(
+                    [rev]).next()
         delta = rev.delta
 
         for path, id_, kind in delta.added:
@@ -342,11 +338,7 @@ class LogWindow(QBzrWindow):
             old_tree = self.branch.repository.revision_tree(None)
         else:
             revs = [rev1.revision_id, rev2.parent_ids[0]]
-            self.branch.repository.lock_read()
-            try:
-                tree, old_tree = self.branch.repository.revision_trees(revs)
-            finally:
-                self.branch.repository.unlock()
+            tree, old_tree = self.branch.repository.revision_trees(revs)
         window = DiffWindow(old_tree, tree, custom_title="..".join(revs),
                             branch=self.branch, specific_files=specific_files)
         window.show()

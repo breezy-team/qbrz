@@ -239,9 +239,13 @@ class cmd_qlog(Command):
             branch = dir.open_branch()
 
         app = QtGui.QApplication(sys.argv)
-        window = LogWindow(branch, location, file_id, get_qlog_replace(branch))
-        window.show()
-        app.exec_()
+        branch.lock_read()
+        try:
+            window = LogWindow(branch, location, file_id, get_qlog_replace(branch))
+            window.show()
+            app.exec_()
+        finally:
+            branch.unlock()
 
 
 class cmd_qconfig(Command):
