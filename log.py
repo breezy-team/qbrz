@@ -37,7 +37,9 @@ from bzrlib.plugins.qbzr.util import (
 
 TagNameRole = QtCore.Qt.UserRole + 1
 BugIdRole = QtCore.Qt.UserRole + 100
-CommitMessageRole = QtCore.Qt.UserRole + 200
+
+FilterTextRole = QtCore.Qt.UserRole + 200
+FilterIdRole = QtCore.Qt.UserRole + 201
 
 
 _bug_id_re = lazy_regex.lazy_compile(r'(?:bugs/|ticket/|show_bug\.cgi\?id=)(\d+)(?:\b|$)')
@@ -146,6 +148,53 @@ class QLogFormatter(LogFormatter):
         QtCore.QCoreApplication.processEvents()
 
 
+class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
+
+    def __init__(self):
+        QtGui.QSortFilterProxyModel.__init__(self)
+        self._filterCache = {}
+
+    def filterAcceptsRow(self, sourceRow, sourceParent):
+        # TODO this seriously needs to be in C++
+
+        filterRegExp = self.filterRegExp()
+        sourceModel = self.sourceModel()
+        #if filterRegExp != self._filterCacheRegExp:
+        #    print "clearing cache"
+        #    self._filterCache = {}
+
+        if filterRegExp.isEmpty():
+            return True
+
+        index = sourceModel.index(sourceRow, 0, sourceParent)
+        if not index.isValid():
+            return True
+
+        filterId = sourceModel.data(index, FilterIdRole).toString()
+        accepts = self._filterCache.get(filterId)
+        if accepts is not None:
+            return accepts
+
+        key = sourceModel.data(index, FilterTextRole).toString()
+        if key.contains(filterRegExp):
+            self._filterCache[filterId] = True
+            return True
+
+        if sourceModel.hasChildren(index):
+            childRow = 0
+            while True:
+                child = index.child(childRow, index.column())
+                if not child.isValid():
+                    break
+                if self.filterAcceptsRow(childRow, index):
+                    self._filterCache[filterId] = True
+                    return True
+                childRow += 1
+
+        self._filterCache[filterId] = False
+        return False
+
+
 class LogWindow(QBzrWindow):
 
     def __init__(self, branch, location, specific_fileid, replace=None, parent=None):
@@ -163,11 +212,9 @@ class LogWindow(QBzrWindow):
         self.changesModel.setHorizontalHeaderLabels(
             [gettext("Rev"), gettext("Date"), gettext("Author"), gettext("Message")])
 
-        self.changesProxyModel = QtGui.QSortFilterProxyModel()
+        self.changesProxyModel = TreeFilterProxyModel()
         self.changesProxyModel.setSourceModel(self.changesModel)
         self.changesProxyModel.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
-        self.changesProxyModel.setFilterRole(CommitMessageRole)
-        self.changesProxyModel.setFilterKeyColumn(3)
 
         logwidget = QtGui.QWidget()
         logbox = QtGui.QVBoxLayout(logwidget)
@@ -387,6 +434,8 @@ class LogWindow(QBzrWindow):
         rev = revision.rev
         item1 = QtGui.QStandardItem(str(revision.revno))
         item1.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+        item1.setData(QtCore.QVariant(rev.message), FilterTextRole)
+        item1.setData(QtCore.QVariant(rev.revision_id), FilterIdRole)
         item2 = QtGui.QStandardItem(format_timestamp(rev.timestamp))
         item2.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
 
@@ -394,7 +443,6 @@ class LogWindow(QBzrWindow):
         item3 = QtGui.QStandardItem(extract_name(author))
         item3.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
         item4 = QtGui.QStandardItem(rev.get_summary())
-        item4.setData(QtCore.QVariant(rev.message), CommitMessageRole)
         item4.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
 
         tags = getattr(revision, 'tags', None)
@@ -444,6 +492,7 @@ class LogWindow(QBzrWindow):
 
     def update_search(self):
         # TODO in_paths = self.search_in_paths.isChecked()
+        self.changesProxyModel._filterCache = {}
         self.changesProxyModel.setFilterRegExp(self.search_edit.text())
 
     def set_search_timer(self):
