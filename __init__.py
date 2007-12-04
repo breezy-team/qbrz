@@ -46,6 +46,7 @@ from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
 from bzrlib.plugins.qbzr.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.browse import BrowseWindow
+from bzrlib.plugins.qbzr.cat import QBzrCatWindow
 from bzrlib.plugins.qbzr.commit import CommitWindow
 from bzrlib.plugins.qbzr.config import QBzrConfigWindow
 from bzrlib.plugins.qbzr.diff import DiffWindow
@@ -265,9 +266,46 @@ class cmd_qconfig(Command):
         app.exec_()
 
 
+class cmd_qcat(Command):
+    """View the contents of a file as of a given revision.
+
+    If no revision is nominated, the last revision is used.
+    """
+
+    takes_options = [
+        'revision',
+        Option('encoding', type=check_encoding,
+               help='Encoding of files content (default: utf-8)'),
+        ]
+    takes_args = ['filename']
+
+    def run(self, filename, revision=None, encoding=None):
+        if revision is not None and len(revision) != 1:
+            raise errors.BzrCommandError("bzr qcat --revision takes exactly"
+                                         " one revision specifier")
+
+        branch, relpath = Branch.open_containing(filename)
+        if revision is None:
+            tree = branch.basis_tree()
+        else:
+            revision_id = revision[0].in_branch(branch).rev_id
+            tree = branch.repository.revision_tree(revision_id)
+
+        app = QtGui.QApplication(sys.argv)
+        tree.lock_read()
+        try:
+            window = QBzrCatWindow.from_tree_and_path(tree, relpath, encoding)
+        finally:
+            tree.unlock()
+        if window is not None:
+            window.show()
+            app.exec_()
+
+
 register_command(cmd_qannotate)
 register_command(cmd_qbrowse)
 register_command(cmd_qconfig)
 register_command(cmd_qcommit)
+register_command(cmd_qcat)
 register_command(cmd_qdiff)
 register_command(cmd_qlog)
