@@ -286,8 +286,8 @@ class DiffWindow(QBzrWindow):
         config = get_branch_config(branch)
         encoding = get_set_encoding(encoding, config)
 
-        QBzrWindow.__init__(self, title, (780, 580), parent)
-        self.restore_size("diff")
+        QBzrWindow.__init__(self, title, parent)
+        self.restoreSize("diff", (780, 580))
 
         self.tree1 = tree1
         self.tree2 = tree2
@@ -326,10 +326,6 @@ class DiffWindow(QBzrWindow):
         hbox.addWidget(unidiff)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
-
-    def closeEvent(self, event):
-        self.save_size("diff")
-        event.accept()
 
     def click_unidiff(self, checked):
         if checked:

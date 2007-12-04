@@ -78,8 +78,8 @@ class AnnotateWindow(QBzrWindow):
 
     def __init__(self, filename, lines, revisions, parent=None, encoding=None, branch=None):
         QBzrWindow.__init__(self,
-            [gettext("Annotate"), filename], (780, 680), parent)
-        self.restore_size("annotate")
+            [gettext("Annotate"), filename], parent)
+        self.restoreSize("annotate", (780, 680))
         self.branch = branch
         self.windows = []
 
@@ -228,9 +228,3 @@ body {white-space:pre;}
                             branch=self.branch)
         window.show()
         self.windows.append(window)
-
-    def closeEvent(self, event):
-        self.save_size("annotate")
-        for window in self.windows:
-            window.close()
-        event.accept()

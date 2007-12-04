@@ -54,8 +54,8 @@ class BrowseWindow(QBzrWindow):
         self.branch = branch
         self.location = local_path_from_url(branch.base)
         QBzrWindow.__init__(self,
-            [gettext("Browse"), self.location], (780, 580), parent)
-        self.restore_size("browse")
+            [gettext("Browse"), self.location], parent)
+        self.restoreSize("browse", (780, 580))
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
 
@@ -98,11 +98,6 @@ class BrowseWindow(QBzrWindow):
             self.set_revision(revision_id=revision_id, text=revision_spec)
         else:
             self.set_revision(revspec)
-
-    def closeEvent(self, event):
-        self.save_size("browse")
-        self.closeChildWindows(self.windows)
-        event.accept()
 
     def load_file_tree(self, entry, parent_item):
         files, dirs = [], []

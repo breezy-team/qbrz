@@ -152,8 +152,8 @@ class LogWindow(QBzrWindow):
         title = [gettext("Log")]
         if location:
             title.append(location)
-        QBzrWindow.__init__(self, title, (710, 580), parent)
-        self.restore_size("log")
+        QBzrWindow.__init__(self, title, parent)
+        self.restoreSize("log", (710, 580))
         self.specific_fileid = specific_fileid
 
         self.replace = replace
@@ -276,11 +276,6 @@ class LogWindow(QBzrWindow):
     def show(self):
         QBzrWindow.show(self)
         QtCore.QTimer.singleShot(5, self.load_history)
-
-    def closeEvent(self, event):
-        self.save_size("log")
-        self.closeChildWindows(self.windows)
-        event.accept()
 
     def link_clicked(self, url):
         scheme = unicode(url.scheme())

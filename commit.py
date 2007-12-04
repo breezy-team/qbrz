@@ -177,8 +177,8 @@ class CommitWindow(QBzrWindow):
 
     def __init__(self, tree, selected_list, parent=None):
         title = [gettext("Commit")]
-        QBzrWindow.__init__(self, title, (540, 540), parent)
-        self.restore_size("commit")
+        QBzrWindow.__init__(self, title, parent)
+        self.restoreSize("commit", (540, 540))
         self.setWindowFlags(QtCore.Qt.WindowContextHelpButtonHint)
 
         self.tree = tree
@@ -383,11 +383,6 @@ class CommitWindow(QBzrWindow):
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)
         vbox.addWidget(buttonbox)
-
-    def closeEvent(self, event):
-        self.save_size("commit")
-        self.closeChildWindows(self.windows)
-        event.accept()
 
     def enableBugs(self, state):
         if state == QtCore.Qt.Checked:

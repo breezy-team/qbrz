@@ -88,7 +88,7 @@ class QBzrGlobalConfig(IniBasedConfig):
 
 class QBzrWindow(QtGui.QMainWindow):
 
-    def __init__(self, title=[], size=(540, 500), parent=None):
+    def __init__(self, title=[], parent=None):
         QtGui.QMainWindow.__init__(self, parent)
 
         self.setWindowTitle(" - ".join(["QBzr"] + title))
@@ -96,10 +96,10 @@ class QBzrWindow(QtGui.QMainWindow):
         icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
-        self.resize(QtCore.QSize(size[0], size[1]).expandedTo(self.minimumSizeHint()))
 
         self.centralwidget = QtGui.QWidget(self)
         self.setCentralWidget(self.centralwidget)
+        self.windows = []
 
     def create_button_box(self, *buttons):
         """Create and return button box with pseudo-standard buttons
@@ -124,7 +124,8 @@ class QBzrWindow(QtGui.QMainWindow):
                 QtCore.SIGNAL(signal_name), getattr(self, method_name))
         return buttonbox
 
-    def save_size(self, name):
+    def saveSize(self):
+        name = self._window_name
         is_maximized = int(self.windowState()) & QtCore.Qt.WindowMaximized != 0
         if is_maximized:
             # XXX for some reason this doesn't work
@@ -136,7 +137,8 @@ class QBzrWindow(QtGui.QMainWindow):
         config.set_user_option(name + "_window_size", "%dx%d" % size)
         config.set_user_option(name + "_window_maximized", is_maximized)
 
-    def restore_size(self, name):
+    def restoreSize(self, name, defaultSize):
+        self._window_name = name
         config = QBzrGlobalConfig()
         size = config.get_user_option(name + "_window_size")
         if size:
@@ -145,18 +147,24 @@ class QBzrWindow(QtGui.QMainWindow):
                 try:
                     size = map(int, size)
                 except ValueError:
-                    pass
+                    size = defaultSize
                 else:
-                    if size[0] > 100 and size[1] > 100:
-                        self.resize(*size)
+                    if size[0] < 100 or size[1] < 100:
+                        size = defaultSize
+        else:
+            size = defaultSize
+        size = QtCore.QSize(size[0], size[1])
+        self.resize(size.expandedTo(self.minimumSizeHint()))
         is_maximized = config.get_user_option(name + "_window_maximized")
         if is_maximized in ("True", "1"):
             self.setWindowState(QtCore.Qt.WindowMaximized)
 
-    def closeChildWindows(self, windows):
-        for window in windows:
+    def closeEvent(self, event):
+        self.saveSize()
+        for window in self.windows:
             if window.isVisible():
                 window.close()
+        event.accept()
 
 
 def get_branch_config(branch):
