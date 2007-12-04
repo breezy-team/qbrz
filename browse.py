@@ -49,11 +49,13 @@ class FileTreeWidget(QtGui.QTreeWidget):
 
 class BrowseWindow(QBzrWindow):
 
-    def __init__(self, branch=None, revspec=None, parent=None):
+    def __init__(self, branch=None, revision=None, revision_id=None,
+                 revision_spec=None, parent=None):
         self.branch = branch
         self.location = local_path_from_url(branch.base)
         QBzrWindow.__init__(self,
             [gettext("Browse"), self.location], (780, 580), parent)
+        self.restore_size("browse")
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
 
@@ -89,16 +91,17 @@ class BrowseWindow(QBzrWindow):
 
         self.windows = []
 
-        if revspec is None:
-            revno, revision_id = self.branch.last_revision_info()
-            spec = str(revno)
-            self.set_revision(revision_id=revision_id, text=spec)
+        if revision is None:
+            if revision_id is None:
+                revno, revision_id = self.branch.last_revision_info()
+                revision_spec = str(revno)
+            self.set_revision(revision_id=revision_id, text=revision_spec)
         else:
             self.set_revision(revspec)
 
     def closeEvent(self, event):
-        for window in self.windows:
-            window.close()
+        self.save_size("browse")
+        self.closeChildWindows(self.windows)
         event.accept()
 
     def load_file_tree(self, entry, parent_item):

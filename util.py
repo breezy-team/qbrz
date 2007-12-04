@@ -153,6 +153,11 @@ class QBzrWindow(QtGui.QMainWindow):
         if is_maximized in ("True", "1"):
             self.setWindowState(QtCore.Qt.WindowMaximized)
 
+    def closeChildWindows(self, windows):
+        for window in windows:
+            if window.isVisible():
+                window.close()
+
 
 def get_branch_config(branch):
     if branch is not None:

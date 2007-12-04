@@ -386,8 +386,7 @@ class CommitWindow(QBzrWindow):
 
     def closeEvent(self, event):
         self.save_size("commit")
-        for window in self.windows:
-            window.close()
+        self.closeChildWindows(self.windows)
         event.accept()
 
     def enableBugs(self, state):

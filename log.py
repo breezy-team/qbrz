@@ -202,6 +202,7 @@ class LogWindow(QBzrWindow):
         logbox.addLayout(searchbox)
 
         self.changesList = QtGui.QTreeView()
+        self.changesList.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.changesList.setModel(self.changesProxyModel)
         self.changesList.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
         header = self.changesList.header()
@@ -217,6 +218,9 @@ class LogWindow(QBzrWindow):
         self.connect(self.changesList,
                      QtCore.SIGNAL("doubleClicked(QModelIndex)"),
                      self.show_differences)
+        self.connect(self.changesList,
+                     QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
+                     self.show_context_menu)
 
         self.branch = branch
 
@@ -257,6 +261,9 @@ class LogWindow(QBzrWindow):
         self.diffbutton.setEnabled(False)
         self.connect(self.diffbutton, QtCore.SIGNAL("clicked(bool)"), self.diff_pushed)
 
+        self.contextMenu = QtGui.QMenu(self)
+        self.contextMenu.addAction(gettext("Show tree..."), self.show_revision_tree)
+
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)
         hbox = QtGui.QHBoxLayout()
@@ -270,9 +277,8 @@ class LogWindow(QBzrWindow):
         QtCore.QTimer.singleShot(5, self.load_history)
 
     def closeEvent(self, event):
-        self.save_size("log")
-        for window in self.windows:
-            window.close()
+        self.save_size("commit")
+        self.closeChildWindows(self.windows)
         event.accept()
 
     def link_clicked(self, url):
@@ -446,3 +452,19 @@ class LogWindow(QBzrWindow):
 
     def set_search_timer(self):
         self.search_timer.start(200)
+
+    def show_revision_tree(self):
+        from bzrlib.plugins.qbzr.browse import BrowseWindow
+        rev = self.current_rev
+        window = BrowseWindow(self.branch, revision_id=rev.revision_id,
+                              revision_spec=rev.revno, parent=self)
+        window.show()
+        self.windows.append(window)
+
+    def show_context_menu(self, pos):
+        index = self.changesList.indexAt(pos)
+        index = self.changesProxyModel.mapToSource(index)
+        item = self.changesModel.itemFromIndex(index)
+        rev = self.item_to_rev[item]
+        #print index, item, rev
+        self.contextMenu.popup(self.changesList.viewport().mapToGlobal(pos))
