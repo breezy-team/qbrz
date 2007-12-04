@@ -193,6 +193,7 @@ class LogWindow(QBzrWindow):
         self.connect(self.search_in_messages, QtCore.SIGNAL("toggled(bool)"),
                      self.update_search_type)
         self.search_in_paths = QtGui.QRadioButton(gettext("Paths"))
+        self.search_in_paths.setEnabled(False)
         self.connect(self.search_in_paths, QtCore.SIGNAL("toggled(bool)"),
                      self.update_search_type)
         searchbox.addWidget(self.search_in_messages)
@@ -277,7 +278,7 @@ class LogWindow(QBzrWindow):
         QtCore.QTimer.singleShot(5, self.load_history)
 
     def closeEvent(self, event):
-        self.save_size("commit")
+        self.save_size("log")
         self.closeChildWindows(self.windows)
         event.accept()
 
