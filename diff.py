@@ -155,12 +155,12 @@ class FileDiff(object):
 
     def html_unidiff(self):
         style = {
-            '---': 'background-color:#c5e3f7; color:black',
-            '+++': 'background-color:#c5e3f7; color:black',
-            '-':   'background-color:#FFDDDD; color:black',
-            '+':   'background-color:#DDFFDD; color:black',
-            '@':   'background-color:#c5e3f7; color:black',
-            '=':   'background-color:#c5e3f7; color:black',
+            '---': 'color:#CC0000; font-weight: bold;',
+            '+++': 'color:#00880B; font-weight: bold;',
+            '-':   'color:#CC0000',
+            '+':   'color:#00880B',
+            '@':   'color:#991EC7;font-style:italic;',
+            '=':   'background-color:#F6F5EE; color:#777777; font-weight: bold;',
         }
         defaultstyle = 'background-color:#ffffff; color=black',
         res = ['<span style="font-size:12px">']
