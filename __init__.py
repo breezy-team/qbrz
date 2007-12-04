@@ -134,7 +134,7 @@ class cmd_qbrowse(Command):
     def run(self, revision=None, location=None):
         branch, path = Branch.open_containing(location)
         app = QtGui.QApplication(sys.argv)
-        win = BrowseWindow(branch)
+        win = BrowseWindow(branch, revision[0])
         win.show()
         app.exec_()
 

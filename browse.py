@@ -19,6 +19,9 @@
 
 import sys
 from PyQt4 import QtCore, QtGui
+from bzrlib import (
+    errors,
+    )
 from bzrlib.branch import Branch
 from bzrlib.osutils import pathjoin
 from bzrlib.urlutils import local_path_from_url
@@ -30,6 +33,7 @@ from bzrlib.plugins.qbzr.util import (
     get_qlog_replace,
     )
 from bzrlib.plugins.qbzr.log import LogWindow
+from bzrlib.revisionspec import RevisionSpec
 
 
 class FileTreeWidget(QtGui.QTreeWidget):
@@ -45,7 +49,7 @@ class FileTreeWidget(QtGui.QTreeWidget):
 
 class BrowseWindow(QBzrWindow):
 
-    def __init__(self, branch=None, parent=None):
+    def __init__(self, branch=None, revspec=None, parent=None):
         self.branch = branch
         self.location = local_path_from_url(branch.base)
         QBzrWindow.__init__(self,
@@ -56,14 +60,14 @@ class BrowseWindow(QBzrWindow):
         hbox = QtGui.QHBoxLayout()
         hbox.addWidget(QtGui.QLabel(gettext("Location:")))
         self.location_edit = QtGui.QLineEdit()
+        self.location_edit.setReadOnly(True)
         self.location_edit.setText(self.location)
         hbox.addWidget(self.location_edit, 7)
         hbox.addWidget(QtGui.QLabel(gettext("Revision:")))
         self.revision_edit = QtGui.QLineEdit()
-        self.revision_edit.setText(str(self.branch.revno()))
         hbox.addWidget(self.revision_edit, 1)
         self.show_button = QtGui.QPushButton(gettext("Show"))
-        self.show_button.setEnabled(False)
+        self.connect(self.show_button, QtCore.SIGNAL("clicked()"), self.reload_tree)
         hbox.addWidget(self.show_button, 0)
         vbox.addLayout(hbox)
 
@@ -78,28 +82,19 @@ class BrowseWindow(QBzrWindow):
         self.dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
         self.file_icon = self.style().standardIcon(QtGui.QStyle.SP_FileIcon)
 
-        self.items = []
-
-        tree = self.branch.basis_tree()
-        file_id = tree.path2id('.')
-        if file_id is not None:
-            revs = self.load_file_tree(tree.inventory[file_id], self.file_tree)
-            revs = dict(zip(revs, self.branch.repository.get_revisions(list(revs))))
-        else:
-            revs = {}
-
-        for item, rev_id in self.items:
-            rev = revs[rev_id]
-            item.setText(1, format_timestamp(rev.timestamp))
-            item.setText(2, rev.committer)
-            item.setText(3, rev.message.split("\n")[0])
-
         vbox.addWidget(self.file_tree)
 
         buttonbox = self.create_button_box(BTN_CLOSE)
         vbox.addWidget(buttonbox)
 
         self.windows = []
+
+        if revspec is None:
+            revno, revision_id = self.branch.last_revision_info()
+            spec = str(revno)
+            self.set_revision(revision_id=revision_id, text=spec)
+        else:
+            self.set_revision(revspec)
 
     def closeEvent(self, event):
         for window in self.windows:
@@ -150,6 +145,46 @@ class BrowseWindow(QBzrWindow):
         window = LogWindow(branch, path, file_id, get_qlog_replace(branch))
         window.show()
         self.windows.append(window)
+
+    def set_revision(self, revspec=None, revision_id=None, text=None):
+        branch = self.branch
+        branch.lock_read()
+        try:
+            if revision_id is None:
+                text = revspec.spec or ''
+                if revspec.in_branch == revspec.in_history:
+                    args = [branch]
+                else:
+                    args = [branch, False]
+                try:
+                    revision_id = revspec.in_branch(*args).rev_id
+                except errors.InvalidRevisionSpec, e:
+                    QtGui.QMessageBox.warning(self,
+                        "QBzr - " + gettext("Commit"), str(e),
+                        QtGui.QMessageBox.Ok)
+                    return
+            self.items = []
+            self.file_tree.invisibleRootItem().takeChildren()
+            tree = branch.repository.revision_tree(revision_id)
+            root_file_id = tree.path2id('.')
+            if root_file_id is not None:
+                revs = self.load_file_tree(tree.inventory[root_file_id],
+                                           self.file_tree)
+                revs = dict(zip(revs, branch.repository.get_revisions(list(revs))))
+            else:
+                revs = {}
+        finally:
+            branch.unlock()
+        self.revision_edit.setText(text)
+        for item, revision_id in self.items:
+            rev = revs[revision_id]
+            item.setText(1, format_timestamp(rev.timestamp))
+            item.setText(2, rev.committer)
+            item.setText(3, rev.get_summary())
+
+    def reload_tree(self):
+        revspec = RevisionSpec.from_string(unicode(self.revision_edit.text()))
+        self.set_revision(revspec)
 
 
 def get_diff_trees(tree1, tree2, **kwargs):
