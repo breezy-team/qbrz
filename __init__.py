@@ -19,10 +19,10 @@
 
 """QBzr - Qt-based front end for Bazaar
 
-Provided commands: qcommit, qdiff, qlog, qannotate, qbrowse
+Provided commands: qannotate, qbrowse, qcat, qcommit, qconfig, qdiff, qlog
 """
 
-version_info = (0, 8, 0, 'dev', 0)
+version_info = (0, 8, 0)
 __version__ = '.'.join(map(str, version_info))
 
 import os.path

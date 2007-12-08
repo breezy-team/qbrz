@@ -1,5 +1,5 @@
-0.8.0 - in development
-----------------------
+0.8.0 - 2007-12-08
+------------------
 
  * qannotate:
     * Double clicking history in annotate window should open diff window.
@@ -7,6 +7,9 @@
  * qbrowse:
     * Context menu "Show log" now actually works.
       (Alexander Belchenko, Mario del Pozo, #147434)
+ * qcat:
+    * Show contents of a file in a particular revision.
+      (Lukáš Lalinský)
  * qcommit:
     * Ask for confirmation when trying to commit with empty message.
       (Lukáš Lalinský, #173327)
@@ -18,6 +21,7 @@
     * Removed unused option --inline. (Alexander Belchenko, #148409)
     * Fix a special case where the line in the HTML view still contained
       newline characters. (Lukáš Lalinský)
+    * Fix failure for modified file in moved directory. (Lukáš Lalinský)
  * qlog:
     * Add a global branch lock around qlog to make showing of modified
       files on packs faster. (Lukáš Lalinský, #173327)
