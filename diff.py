@@ -183,7 +183,7 @@ class TreeDiff(list):
     def _date(self, tree, file_id, path, secs=None):
         if secs is None:
             try:
-                secs = tree.get_file_mtime(file_id)
+                secs = tree.get_file_mtime(file_id, path)
             except (NoSuchId, OSError):
                 secs = 0
         return format_timestamp(secs)
@@ -238,10 +238,10 @@ class TreeDiff(list):
         for path, file_id, kind, text_modified, meta_modified in delta.modified:
             diff = FileDiff(N_('modified'), path)
             diff.kind = kind
-            diff.old_date = self._date(old_tree, file_id, path)
             # the path for this file might be changed by a directory rename, so
             # let it to use just the file_id
-            diff.new_date = self._date(new_tree, file_id, None)
+            diff.old_date = self._date(old_tree, file_id, None)
+            diff.new_date = self._date(new_tree, file_id, path)
             diff.old_path = path
             diff.new_path = path
             if text_modified:
