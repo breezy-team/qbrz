@@ -51,7 +51,8 @@ _bug_tracker_re = re.compile('bugtracker_(.+?)_url')
 class QBzrConfigWindow(QBzrWindow):
 
     def __init__(self, parent=None):
-        QBzrWindow.__init__(self, [gettext("Configuration")], (400, 300), parent)
+        QBzrWindow.__init__(self, [gettext("Configuration")], parent)
+        self.restoreSize("config", (400, 300))
 
         tabwidget = QtGui.QTabWidget()
 
