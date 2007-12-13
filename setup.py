@@ -6,6 +6,7 @@ from distutils.core import setup
 from extras.bdist_nsis import bdist_nsis
 from extras.build_mo import build_mo
 from extras.build_pot import build_pot
+from extras.build_ui import build_ui
 
 
 setup(name='qbzr',
@@ -23,5 +24,6 @@ setup(name='qbzr',
             'bdist_nsis': bdist_nsis,
             'build_mo': build_mo,
             'build_pot': build_pot,
+            'build_ui': build_ui,
             },
       )
