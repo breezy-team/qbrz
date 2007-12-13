@@ -35,7 +35,7 @@ from bzrlib.commands import Command, register_command
 from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.diff import DiffWindow
-from bzrlib.plugins.qbzr.i18n import gettext
+from bzrlib.plugins.qbzr.i18n import gettext, N_
 from bzrlib.plugins.qbzr.util import (
     BTN_CANCEL,
     BTN_OK,
@@ -43,12 +43,18 @@ from bzrlib.plugins.qbzr.util import (
     StandardButton,
     )
 from bzrlib.plugins.qbzr.ui_pull import Ui_PullForm
+from bzrlib.plugins.qbzr.ui_push import Ui_PushForm
 
 class QBzrPullWindow(QBzrWindow):
 
+    TITLE = N_("Pull")
+    NAME = "pull"
+    DEFAULT_SIZE = (460, 450)
+
     def __init__(self, branch, parent=None):
-        QBzrWindow.__init__(self, [gettext("Pull")], parent)
-        self.restoreSize("pull", (440, 380))
+        QBzrWindow.__init__(self, [gettext(self.TITLE)], parent)
+        self.restoreSize(self.NAME, self.DEFAULT_SIZE)
+        self.branch = branch
 
         self.process = QtCore.QProcess()
         self.connect(self.process,
@@ -83,15 +89,21 @@ class QBzrPullWindow(QBzrWindow):
         self.connect(buttonbox, QtCore.SIGNAL("accepted()"), self.accept)
         self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
 
-        self.ui = Ui_PullForm()
+        self.ui = self.create_ui()
         self.ui.setupUi(self.centralwidget)
         self.ui.vboxlayout.addWidget(buttonbox)
 
-        location = branch.get_parent()
+        location = self.get_stored_location(branch)
         if location is not None:
             location = urlutils.unescape(location)
             self.ui.location.setEditText(location)
             self.ui.location.lineEdit().setCursorPosition(0)
+
+    def get_stored_location(self, branch):
+        return branch.get_parent()
+
+    def create_ui(self):
+        return Ui_PullForm()
 
     def start(self, *args):
         self.setProgress(0, [gettext("Starting...")])
@@ -112,7 +124,7 @@ class QBzrPullWindow(QBzrWindow):
         if self.finished:
             self.close()
         else:
-            args = []
+            args = ['--directory', self.branch.base]
             if self.ui.overwrite.isChecked():
                 args.append('--overwrite')
             if self.ui.remember.isChecked():
@@ -196,3 +208,32 @@ class QBzrPullWindow(QBzrWindow):
         else:
             self.setProgress(1000000, [gettext("Failed!")])
         self.okButton.setEnabled(True)
+
+
+class QBzrPushWindow(QBzrPullWindow):
+
+    TITLE = N_("Push")
+    NAME = "push"
+    DEFAULT_SIZE = (460, 450)
+
+    def get_stored_location(self, branch):
+        return branch.get_push_location()
+
+    def create_ui(self):
+        return Ui_PushForm()
+
+    def accept(self):
+        if self.finished:
+            self.close()
+        else:
+            args = ['--directory', self.branch.base]
+            if self.ui.overwrite.isChecked():
+                args.append('--overwrite')
+            if self.ui.remember.isChecked():
+                args.append('--remember')
+            if self.ui.create_prefix.isChecked():
+                args.append('--create-prefix')
+            if self.ui.use_existing_dir.isChecked():
+                args.append('--use-existing-dir')
+            location = str(self.ui.location.currentText())
+            self.start('push', location, *args)

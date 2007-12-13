@@ -57,7 +57,10 @@ from bzrlib.plugins.qbzr.commit import CommitWindow
 from bzrlib.plugins.qbzr.config import QBzrConfigWindow
 from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.log import LogWindow
-from bzrlib.plugins.qbzr.pull import QBzrPullWindow
+from bzrlib.plugins.qbzr.pull import (
+    QBzrPullWindow,
+    QBzrPushWindow,
+    )
 from bzrlib.plugins.qbzr.util import (
     get_branch_config,
     get_qlog_replace,
@@ -309,15 +312,6 @@ class cmd_qcat(Command):
             app.exec_()
 
 
-register_command(cmd_qannotate)
-register_command(cmd_qbrowse)
-register_command(cmd_qconfig)
-register_command(cmd_qcommit)
-register_command(cmd_qcat)
-register_command(cmd_qdiff)
-register_command(cmd_qlog)
-
-
 class cmd_qpull(Command):
     """Turn this branch into a mirror of another branch."""
 
@@ -331,7 +325,31 @@ class cmd_qpull(Command):
         window.show()
         app.exec_()
 
+
+
+class cmd_qpush(Command):
+    """Update a mirror of this branch."""
+
+    takes_options = []
+    takes_args = []
+
+    def run(self):
+        branch, relpath = Branch.open_containing('.')
+        app = QtGui.QApplication(sys.argv)
+        window = QBzrPushWindow(branch)
+        window.show()
+        app.exec_()
+
+
+register_command(cmd_qannotate)
+register_command(cmd_qbrowse)
+register_command(cmd_qconfig)
+register_command(cmd_qcommit)
+register_command(cmd_qcat)
+register_command(cmd_qdiff)
+register_command(cmd_qlog)
 register_command(cmd_qpull)
+register_command(cmd_qpush)
 
 
 class SubprocessChildProgress(progress._BaseProgressBar):
