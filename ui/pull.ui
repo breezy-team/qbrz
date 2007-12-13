@@ -86,7 +86,14 @@
      </property>
      <layout class="QVBoxLayout" >
       <item>
-       <widget class="QLabel" name="progressMessage" />
+       <widget class="QLabel" name="progressMessage" >
+        <property name="text" >
+         <string>Stopped</string>
+        </property>
+        <property name="wordWrap" >
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QProgressBar" name="progressBar" >

@@ -49,7 +49,7 @@ class QBzrPullWindow(QBzrWindow):
 
     TITLE = N_("Pull")
     NAME = "pull"
-    DEFAULT_SIZE = (460, 450)
+    DEFAULT_SIZE = (400, 420)
 
     def __init__(self, branch, parent=None):
         QBzrWindow.__init__(self, [gettext(self.TITLE)], parent)
@@ -214,7 +214,7 @@ class QBzrPushWindow(QBzrPullWindow):
 
     TITLE = N_("Push")
     NAME = "push"
-    DEFAULT_SIZE = (460, 450)
+    DEFAULT_SIZE = (400, 420)
 
     def get_stored_location(self, branch):
         return branch.get_push_location()
