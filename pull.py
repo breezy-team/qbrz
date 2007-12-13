@@ -141,13 +141,13 @@ class QBzrPullWindow(QBzrWindow):
             self.start('pull', location, *args)
 
     def reject(self):
-        if not self.started or self.finished:
+        if self.process.state() == QtCore.QProcess.NotRunning:
             self.close()
         else:
             self.abort()
 
     def closeEvent(self, event):
-        if not self.started or self.finished:
+        if self.process.state() == QtCore.QProcess.NotRunning:
             QBzrWindow.closeEvent(self, event)
         else:
             self.abort()
@@ -210,7 +210,6 @@ class QBzrPullWindow(QBzrWindow):
 
     def onFinished(self, exitCode, exitStatus):
         if self.aborting == True:
-            self.finished = True
             self.close()
         self.aborting = False
         if exitCode == 0:
