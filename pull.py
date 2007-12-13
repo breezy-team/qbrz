@@ -27,6 +27,7 @@ from bzrlib import (
     bugtracker,
     errors,
     osutils,
+    urlutils,
     )
 from bzrlib.errors import BzrError, NoSuchRevision
 from bzrlib.option import Option
@@ -41,16 +42,13 @@ from bzrlib.plugins.qbzr.util import (
     QBzrWindow,
     StandardButton,
     )
-
+from bzrlib.plugins.qbzr.ui_pull import Ui_PullForm
 
 class QBzrPullWindow(QBzrWindow):
 
-    def __init__(self, location, parent=None):
+    def __init__(self, branch, parent=None):
         QBzrWindow.__init__(self, [gettext("Pull")], parent)
-        self.restoreSize("progress", (450, 250))
-        self.location = location
-
-        self.progressMessage = QtGui.QLabel("Foo")
+        self.restoreSize("pull", (440, 380))
 
         self.process = QtCore.QProcess()
         self.connect(self.process,
@@ -64,17 +62,11 @@ class QBzrPullWindow(QBzrWindow):
             self.reportProcessError)
         self.connect(self.process,
             QtCore.SIGNAL("finished(int, QProcess::ExitStatus)"),
-            self.finished)
+            self.onFinished)
+
+        self.started = False
+        self.finished = False
         self.aborting = False
-
-        self.progressBar = QtGui.QProgressBar()
-        self.progressBar.setValue(0)
-        self.progressBar.setMinimum(0)
-        self.progressBar.setMaximum(1000000)
-
-        self.consoleDocument = QtGui.QTextDocument()
-        self.console = QtGui.QTextBrowser()
-        self.console.setDocument(self.consoleDocument)
 
         self.messageFormat = QtGui.QTextCharFormat()
         self.errorFormat = QtGui.QTextCharFormat()
@@ -91,17 +83,20 @@ class QBzrPullWindow(QBzrWindow):
         self.connect(buttonbox, QtCore.SIGNAL("accepted()"), self.accept)
         self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
 
+        self.ui = Ui_PullForm()
+        self.ui.setupUi(self.centralwidget)
+        self.ui.vboxlayout.addWidget(buttonbox)
 
-        vbox = QtGui.QVBoxLayout(self.centralwidget)
-        vbox.addWidget(self.progressMessage)
-        vbox.addWidget(self.progressBar)
-        vbox.addWidget(self.console)
-        vbox.addWidget(buttonbox)
+        location = branch.get_parent()
+        if location is not None:
+            location = urlutils.unescape(location)
+            self.ui.location.setEditText(location)
+            self.ui.location.lineEdit().setCursorPosition(0)
 
-    def start(self):
-        args = ['pull']
-        if self.location:
-            args.append(self.location)
+    def start(self, *args):
+        self.setProgress(0, [gettext("Starting...")])
+        self.ui.console.setFocus(QtCore.Qt.OtherFocusReason)
+        self.okButton.setEnabled(False)
         args = ' '.join('"%s"' % a.replace('"', '\"') for a in args)
         if sys.argv[0].endswith('.exe'):
             self.process.start(
@@ -112,23 +107,31 @@ class QBzrPullWindow(QBzrWindow):
 
     def show(self):
         QBzrWindow.show(self)
-        self.start()
-        self.setProgress(0, [gettext("Starting...")])
-        self.okButton.setEnabled(False)
-        self.cancelButton.setEnabled(True)
 
     def accept(self):
-        if self.process.state() == QtCore.QProcess.NotRunning:
+        if self.finished:
             self.close()
+        else:
+            args = []
+            if self.ui.overwrite.isChecked():
+                args.append('--overwrite')
+            if self.ui.remember.isChecked():
+                args.append('--remember')
+            revision = str(self.ui.revision.text())
+            if revision:
+                args.append('--revision')
+                args.append(revision)
+            location = str(self.ui.location.currentText())
+            self.start('pull', location, *args)
 
     def reject(self):
-        if self.process.state() == QtCore.QProcess.NotRunning:
+        if not self.started or self.finished:
             self.close()
         else:
             self.abort()
 
     def closeEvent(self, event):
-        if self.process.state() == QtCore.QProcess.NotRunning:
+        if not self.started or self.finished:
             QBzrWindow.closeEvent(self, event)
         else:
             self.abort()
@@ -140,12 +143,12 @@ class QBzrPullWindow(QBzrWindow):
 
     def setProgress(self, progress, messages):
         if progress is not None:
-            self.progressBar.setValue(progress)
+            self.ui.progressBar.setValue(progress)
         if progress == 1000000 and not messages:
             text = gettext("Finished!")
         else:
             text = " / ".join(messages)
-        self.progressMessage.setText(text)
+        self.ui.progressMessage.setText(text)
 
     def readStdout(self):
         data = str(self.process.readAllStandardOutput())
@@ -171,21 +174,25 @@ class QBzrPullWindow(QBzrWindow):
             format = self.errorFormat
         else:
             format = self.messageFormat
-        cursor = self.console.textCursor()
+        cursor = self.ui.console.textCursor()
         cursor.insertText(message + "\n", format)
-        scrollbar = self.console.verticalScrollBar()
+        scrollbar = self.ui.console.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
 
     def reportProcessError(self, error):
-        self.setProgress(1000000, [gettext("Failed")])
+        self.setProgress(1000000, [gettext("Failed!")])
         if error == QtCore.QProcess.FailedToStart:
             message = gettext("Failed to start bzr.")
         else:
             message = gettext("Error while running bzr. (error code: %d)" % error)
         self.logMessage(message, True)
 
-    def finished(self, exitCode, exitStatus):
+    def onFinished(self, exitCode, exitStatus):
         if self.aborting == True:
             self.close()
+        if exitCode == 0:
+            self.finished = True
+            self.cancelButton.setEnabled(False)
+        else:
+            self.setProgress(1000000, [gettext("Failed!")])
         self.okButton.setEnabled(True)
-        self.cancelButton.setEnabled(False)

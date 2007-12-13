@@ -26,7 +26,7 @@ import os
 import re
 
 
-_translate_re = re.compile(r'QtGui\.QApplication.translate\("Form", (.*?), None, QtGui\.QApplication\.UnicodeUTF8\)')
+_translate_re = re.compile(r'QtGui\.QApplication.translate\(.*?, (.*?), None, QtGui\.QApplication\.UnicodeUTF8\)')
 _import_re = re.compile(r'(from PyQt4 import QtCore, QtGui)')
 
 
@@ -52,7 +52,6 @@ class build_ui(Command):
                 source = source.replace("from PyQt4 import QtCore, QtGui",
                     "from PyQt4 import QtCore, QtGui\n"
                     "from bzrlib.plugins.qbzr.i18n import gettext")
-                #re.replace()
                 f = open(pyfile, "w")
                 f.write(source)
                 f.close()

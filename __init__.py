@@ -319,13 +319,15 @@ register_command(cmd_qlog)
 
 
 class cmd_qpull(Command):
+    """Turn this branch into a mirror of another branch."""
 
     takes_options = []
-    takes_args = ['location?']
+    takes_args = []
 
-    def run(self, location=None):
+    def run(self):
+        branch, relpath = Branch.open_containing('.')
         app = QtGui.QApplication(sys.argv)
-        window = QBzrPullWindow(location)
+        window = QBzrPullWindow(branch)
         window.show()
         app.exec_()
 
