@@ -4,9 +4,19 @@ Most parts of the QBzr plugin were written by Lukáš Lalinský
 The idea of an UI for Bazaar commands comes from bzr-gtk plugin by 
 Jelmer Vernooij <jelmer at samba dot org>.
 
-The Bazaar icons, data/bzr-16.png and data/bzr-48.png, are from
-http://bazaar-vcs.org/LogoOptions.
-
 Contributors:
  * Alexander Belchenko <bialix at ukr dot net>
  * Goffredo Baroncelli <kreijack at tiscalinet dot it>
+
+Used icons:
+ * bzr-16.png and bzr-48.png
+     The official Bazaar icons
+     http://bazaar-vcs.org/LogoOptions
+ * bookmark.png
+     From the Tango Firefox theme
+     http://tango.freedesktop.org/Firefox
+     Copyright (C) Jakub 'jimmac' Steiner <jimmac at ximian dot com>
+ * view-refresh.png
+     From the Tango Desktop Project
+     http://tango.freedesktop.org/Tango_Desktop_Project
+     Copyright (C) Jakub 'jimmac' Steiner <jimmac at ximian dot com>

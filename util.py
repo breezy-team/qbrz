@@ -136,6 +136,7 @@ class QBzrWindow(QtGui.QMainWindow):
         config = QBzrGlobalConfig()
         config.set_user_option(name + "_window_size", "%dx%d" % size)
         config.set_user_option(name + "_window_maximized", is_maximized)
+        return config
 
     def restoreSize(self, name, defaultSize):
         self._window_name = name
@@ -158,6 +159,7 @@ class QBzrWindow(QtGui.QMainWindow):
         is_maximized = config.get_user_option(name + "_window_maximized")
         if is_maximized in ("True", "1"):
             self.setWindowState(QtCore.Qt.WindowMaximized)
+        return config
 
     def closeEvent(self, event):
         self.saveSize()
