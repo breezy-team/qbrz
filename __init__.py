@@ -50,6 +50,7 @@ from bzrlib import (
 from bzrlib.util import bencode
 from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
+from bzrlib.plugins.qbzr.main import QBzrMainWindow
 from bzrlib.plugins.qbzr.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.browse import BrowseWindow
 from bzrlib.plugins.qbzr.cat import QBzrCatWindow
@@ -355,6 +356,19 @@ class cmd_qbranch(Command):
         app.exec_()
 
 
+class cmd_qbzr(Command):
+    """The QBzr application."""
+
+    takes_options = []
+    takes_args = []
+
+    def run(self):
+        app = QtGui.QApplication(sys.argv)
+        window = QBzrMainWindow()
+        window.show()
+        app.exec_()
+
+
 register_command(cmd_qannotate)
 register_command(cmd_qbrowse)
 register_command(cmd_qconfig)
@@ -365,6 +379,9 @@ register_command(cmd_qlog)
 register_command(cmd_qpull)
 register_command(cmd_qpush)
 register_command(cmd_qbranch)
+
+# "bzr qbzr" :)
+register_command(cmd_qbzr)
 
 
 class SubprocessChildProgress(progress._BaseProgressBar):
