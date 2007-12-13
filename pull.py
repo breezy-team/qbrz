@@ -111,7 +111,7 @@ class QBzrPullWindow(QBzrWindow):
         self.okButton.setEnabled(False)
         self.started = True
         args = ' '.join('"%s"' % a.replace('"', '\"') for a in args)
-        if sys.argv[0].endswith('.exe'):
+        if sys.argv[0].lower().endswith('.exe'):
             self.process.start(
                 sys.argv[0], ['qsubprocess', args])
         else:
@@ -197,6 +197,7 @@ class QBzrPullWindow(QBzrWindow):
         scrollbar.setValue(scrollbar.maximum())
 
     def reportProcessError(self, error):
+        self.aborting = False
         self.setProgress(1000000, [gettext("Failed!")])
         if error == QtCore.QProcess.FailedToStart:
             message = gettext("Failed to start bzr.")
