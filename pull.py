@@ -109,6 +109,7 @@ class QBzrPullWindow(QBzrWindow):
         self.setProgress(0, [gettext("Starting...")])
         self.ui.console.setFocus(QtCore.Qt.OtherFocusReason)
         self.okButton.setEnabled(False)
+        self.started = True
         args = ' '.join('"%s"' % a.replace('"', '\"') for a in args)
         if sys.argv[0].endswith('.exe'):
             self.process.start(
@@ -201,7 +202,9 @@ class QBzrPullWindow(QBzrWindow):
 
     def onFinished(self, exitCode, exitStatus):
         if self.aborting == True:
+            self.finished = True
             self.close()
+        self.aborting = False
         if exitCode == 0:
             self.finished = True
             self.cancelButton.setEnabled(False)
