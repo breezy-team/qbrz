@@ -44,6 +44,7 @@ from bzrlib.plugins.qbzr.util import (
     )
 from bzrlib.plugins.qbzr.ui_pull import Ui_PullForm
 from bzrlib.plugins.qbzr.ui_push import Ui_PushForm
+from bzrlib.plugins.qbzr.ui_branch import Ui_BranchForm
 
 class QBzrPullWindow(QBzrWindow):
 
@@ -81,26 +82,28 @@ class QBzrPullWindow(QBzrWindow):
         self.okButton = StandardButton(BTN_OK)
         self.cancelButton = StandardButton(BTN_CANCEL)
 
-        buttonbox = QtGui.QDialogButtonBox(self.centralwidget)
-        buttonbox.addButton(self.okButton,
+        self.buttonbox = QtGui.QDialogButtonBox(self.centralwidget)
+        self.buttonbox.addButton(self.okButton,
             QtGui.QDialogButtonBox.AcceptRole)
-        buttonbox.addButton(self.cancelButton,
+        self.buttonbox.addButton(self.cancelButton,
             QtGui.QDialogButtonBox.RejectRole)
-        self.connect(buttonbox, QtCore.SIGNAL("accepted()"), self.accept)
-        self.connect(buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
+        self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.accept)
+        self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
 
+        self.setupUi()
+
+    def get_stored_location(self, branch):
+        return branch.get_parent()
+
+    def setupUi(self):
         self.ui = self.create_ui()
         self.ui.setupUi(self.centralwidget)
-        self.ui.vboxlayout.addWidget(buttonbox)
-
-        location = self.get_stored_location(branch)
+        self.ui.vboxlayout.addWidget(self.buttonbox)
+        location = self.get_stored_location(self.branch)
         if location is not None:
             location = urlutils.unescape(location)
             self.ui.location.setEditText(location)
             self.ui.location.lineEdit().setCursorPosition(0)
-
-    def get_stored_location(self, branch):
-        return branch.get_parent()
 
     def create_ui(self):
         return Ui_PullForm()
@@ -245,3 +248,34 @@ class QBzrPushWindow(QBzrPullWindow):
                 args.append('--use-existing-dir')
             location = str(self.ui.location.currentText())
             self.start('push', location, *args)
+
+
+class QBzrBranchWindow(QBzrPullWindow):
+
+    TITLE = N_("Branch")
+    NAME = "branch"
+    DEFAULT_SIZE = (400, 420)
+
+    def setupUi(self):
+        self.ui = Ui_BranchForm()
+        self.ui.setupUi(self.centralwidget)
+        self.ui.vboxlayout.addWidget(self.buttonbox)
+        #print urlutils.local_path_to_url('.')
+        #location = self.get_stored_location(branch)
+        #if location is not None:
+        #    location = urlutils.unescape(location)
+        #    self.ui.location.setEditText(location)
+        #    self.ui.location.lineEdit().setCursorPosition(0)
+
+    def accept(self):
+        if self.finished:
+            self.close()
+        else:
+            args = []
+            revision = str(self.ui.revision.text())
+            if revision:
+                args.append('--revision')
+                args.append(revision)
+            from_location = str(self.ui.from_location.currentText())
+            to_location = str(self.ui.to_location.currentText())
+            self.start('branch', from_location, to_location, *args)

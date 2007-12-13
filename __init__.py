@@ -60,6 +60,7 @@ from bzrlib.plugins.qbzr.log import LogWindow
 from bzrlib.plugins.qbzr.pull import (
     QBzrPullWindow,
     QBzrPushWindow,
+    QBzrBranchWindow,
     )
 from bzrlib.plugins.qbzr.util import (
     get_branch_config,
@@ -341,6 +342,19 @@ class cmd_qpush(Command):
         app.exec_()
 
 
+class cmd_qbranch(Command):
+    """Create a new copy of a branch."""
+
+    takes_options = []
+    takes_args = []
+
+    def run(self):
+        app = QtGui.QApplication(sys.argv)
+        window = QBzrBranchWindow(None)
+        window.show()
+        app.exec_()
+
+
 register_command(cmd_qannotate)
 register_command(cmd_qbrowse)
 register_command(cmd_qconfig)
@@ -350,6 +364,7 @@ register_command(cmd_qdiff)
 register_command(cmd_qlog)
 register_command(cmd_qpull)
 register_command(cmd_qpush)
+register_command(cmd_qbranch)
 
 
 class SubprocessChildProgress(progress._BaseProgressBar):
