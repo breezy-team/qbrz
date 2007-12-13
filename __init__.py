@@ -39,9 +39,15 @@ from bzrlib.commands import Command, register_command
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from PyQt4 import QtGui
+import shlex
 from bzrlib import (
     builtins,
+    commands,
+    ui,
+    ui.text,
+    progress,
 )
+from bzrlib.util import bencode
 from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
 from bzrlib.plugins.qbzr.annotate import AnnotateWindow
@@ -51,6 +57,7 @@ from bzrlib.plugins.qbzr.commit import CommitWindow
 from bzrlib.plugins.qbzr.config import QBzrConfigWindow
 from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.log import LogWindow
+from bzrlib.plugins.qbzr.pull import QBzrPullWindow
 from bzrlib.plugins.qbzr.util import (
     get_branch_config,
     get_qlog_replace,
@@ -309,3 +316,87 @@ register_command(cmd_qcommit)
 register_command(cmd_qcat)
 register_command(cmd_qdiff)
 register_command(cmd_qlog)
+
+
+class cmd_qpull(Command):
+
+    takes_options = []
+    takes_args = ['location?']
+
+    def run(self, location=None):
+        app = QtGui.QApplication(sys.argv)
+        window = QBzrPullWindow(location)
+        window.show()
+        app.exec_()
+
+register_command(cmd_qpull)
+
+
+class SubprocessChildProgress(progress._BaseProgressBar):
+
+    def __init__(self, _stack, **kwargs):
+        super(SubprocessChildProgress, self).__init__(_stack=_stack, **kwargs)
+        self.parent = _stack.top()
+        self.message = None
+        self.current = 0
+        self.total = 0
+
+    def tick(self, messages, progress):
+        self.parent.child_update(messages, progress)
+
+    def child_update(self, messages, progress):
+        if self.current is not None and self.total:
+            progress = (self.current + progress) / self.total
+        else:
+            progress = 0.0
+        if self.message:
+            messages = [self.message] + messages
+        self.tick(messages, progress)
+
+    def update(self, message, current=None, total=None):
+        self.message = '%s (%s/%s)' % (message, current, total)
+        self.current = current
+        self.total = total
+        self.child_update([], 0.0)
+
+    def clear(self):
+        pass
+
+    def note(self, *args, **kwargs):
+        self.parent.note(*args, **kwargs)
+
+    def child_progress(self, **kwargs):
+        return SubprocessChildProgress(**kwargs)
+
+
+class SubprocessProgress(SubprocessChildProgress):
+
+    def __init__(self, **kwargs):
+        super(SubprocessProgress, self).__init__(**kwargs)
+        self.last_data = None
+
+    def _report(self, progress, messages=()):
+        data = int(progress * 1000000), messages
+        sys.stdout.write('qbzr:PROGRESS:' + bencode.bencode(data) + '\n')
+        sys.stdout.flush()
+        if sys.stdin.readline().startswith("ABORT"):
+            raise KeyboardInterrupt
+
+    def tick(self, messages, progress):
+        self._report(progress, messages)
+
+    def finished(self):
+        self._report(1.0)
+
+
+class cmd_qsubprocess(Command):
+
+    takes_args = ['cmd']
+    hidden = True
+
+    def run(self, cmd):
+        ui.ui_factory = ui.text.TextUIFactory(SubprocessProgress)
+        argv = [p.decode('utf8') for p in shlex.split(cmd.encode('utf8'))]
+        commands.run_bzr(argv)
+
+register_command(cmd_qsubprocess)
