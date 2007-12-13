@@ -200,6 +200,8 @@ class QBzrPullWindow(QBzrWindow):
         scrollbar.setValue(scrollbar.maximum())
 
     def reportProcessError(self, error):
+        if self.aborting == True:
+            self.close()
         self.aborting = False
         self.setProgress(1000000, [gettext("Failed!")])
         if error == QtCore.QProcess.FailedToStart:
