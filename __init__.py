@@ -354,7 +354,13 @@ class SubprocessChildProgress(progress._BaseProgressBar):
         self.tick(messages, progress)
 
     def update(self, message, current=None, total=None):
-        self.message = '%s (%s/%s)' % (message, current, total)
+        if current is not None:
+            if total is not None:
+                self.message = '%s (%s/%s)' % (message, current, total)
+            else:
+                self.message = '%s (%s)' % (message, current)
+        else:
+            self.message = message
         self.current = current
         self.total = total
         self.child_update([], 0.0)
