@@ -151,8 +151,12 @@ class QBzrPullWindow(QBzrWindow):
             event.ignore()
 
     def abort(self):
-        self.aborting = True
-        self.setProgress(None, [gettext("Aborting...")])
+        if not self.aborting:
+            # be nice and try to use ^C
+            self.aborting = True
+            self.setProgress(None, [gettext("Aborting...")])
+        else:
+            self.process.terminate()
 
     def setProgress(self, progress, messages):
         if progress is not None:
