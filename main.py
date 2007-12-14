@@ -79,6 +79,9 @@ class DirectoryItem(SideBarItem):
             item = DirectoryItem(fileInfo, self, sidebar)
             sidebar.addItem(item)
 
+    def refresh(self):
+        self.children = None
+
 
 class FileSystemItem(DirectoryItem):
 
@@ -133,6 +136,9 @@ class BookmarksItem(SideBarItem):
         for name, path in bookmarks.iteritems():
             item = BookmarkItem(name, path, self, sidebar)
             sidebar.addItem(item)
+
+    def refresh(self):
+        self.children = None
 
 
 class SideBarModel(QtCore.QAbstractItemModel):
@@ -189,6 +195,12 @@ class SideBarModel(QtCore.QAbstractItemModel):
         else:
             row = item.parent.children.index(item)
             return self.createIndex(row, 0, id(item))
+
+    def refresh(self):
+        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+        for item in self.byid.values():
+            item.refresh()
+        self.emit(QtCore.SIGNAL("layoutChanged()"))
 
 
 class QBzrMainWindow(QBzrWindow):
@@ -345,7 +357,7 @@ class QBzrMainWindow(QBzrWindow):
             self.icons[name] = icon
 
     def refresh(self):
-        print "refresh"
+        self.sideBarModel.refresh()
 
     def commit(self):
         from bzrlib.workingtree import WorkingTree
