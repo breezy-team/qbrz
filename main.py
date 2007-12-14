@@ -54,8 +54,24 @@ class QBzrMainWindow(QBzrWindow):
         action = QtGui.QAction(self.icons['view-refresh'],
                                gettext("&Refresh"), self)
         action.setShortcut("Ctrl+R")
+        action.setStatusTip(gettext("Refresh the directory tree"))
         self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.refresh)
         self.actions['refresh'] = action
+        action = QtGui.QAction(self.icons['image-missing'],
+                               gettext("&Commit"), self)
+        action.setStatusTip(gettext("Commit changes into a new revision"))
+        self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.commit)
+        self.actions['commit'] = action
+        action = QtGui.QAction(self.icons['qbzr-push'],
+                               gettext("&Push"), self)
+        action.setStatusTip(gettext("Turn this branch into a mirror of another branch"))
+        self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.push)
+        self.actions['push'] = action
+        action = QtGui.QAction(self.icons['qbzr-pull'],
+                               gettext("Pu&ll"), self)
+        action.setStatusTip(gettext("Update a mirror of this branch"))
+        self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.push)
+        self.actions['pull'] = action
 
     def createMenuBar(self):
         # FIXME: this maybe needs a special version for OS X
@@ -75,6 +91,10 @@ class QBzrMainWindow(QBzrWindow):
         self.toolBar = self.addToolBar("Main")
         self.toolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
         self.toolBar.addAction(self.actions['refresh'])
+        self.toolBar.addSeparator()
+        self.toolBar.addAction(self.actions['commit'])
+        self.toolBar.addAction(self.actions['pull'])
+        self.toolBar.addAction(self.actions['push'])
 
     def createStatusBar(self):
         self.statusBar().showMessage("Ready")
@@ -82,8 +102,24 @@ class QBzrMainWindow(QBzrWindow):
     def createUi(self):
         self.vsplitter = QtGui.QSplitter(QtCore.Qt.Vertical)
 
-        self.dirView = QtGui.QTreeView()
-        self.dirView.header().setVisible(False)
+        self.dirView = QtGui.QTreeWidget()
+        self.dirView.setTextElideMode(QtCore.Qt.ElideLeft)
+        header = self.dirView.header()
+        #header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        #header.setStretchLastSection(False)
+        header.setVisible(False)
+
+        item = QtGui.QTreeWidgetItem(self.dirView)
+        item.setText(0, gettext("Bookmarks"))
+        item.setIcon(0, self.icons['bookmark'])
+
+        item1 = QtGui.QTreeWidgetItem(item)
+        item1.setText(0, gettext("/path/to/branch"))
+        item1.setIcon(0, self.icons['folder'])
+
+        item = QtGui.QTreeWidgetItem(self.dirView)
+        item.setText(0, gettext("Computer"))
+        item.setIcon(0, self.icons['computer'])
 
         self.fileListView = QtGui.QTreeWidget()
         self.fileListView.setHeaderLabels([
@@ -141,10 +177,18 @@ class QBzrMainWindow(QBzrWindow):
                     u'<a href="http://bazaar-vcs.org/QBzr">http://bazaar-vcs.org/QBzr</a>') % tpl)
 
     def loadIcons(self):
-        icon_names = ['view-refresh', 'bookmark']
-        sizes = ['16x16', '22x22']
+        icons = [
+            ('view-refresh', ('16x16', '22x22')),
+            ('bookmark', ('16x16',)),
+            ('computer', ('16x16',)),
+            ('folder', ('16x16',)),
+            ('folder-remote', ('16x16',)),
+            ('qbzr-pull', ('22x22',)),
+            ('qbzr-push', ('22x22',)),
+            ('image-missing', ('22x22',)),
+            ]
         self.icons = {}
-        for name in icon_names:
+        for name, sizes in icons:
             icon = QtGui.QIcon()
             for size in sizes:
                 icon.addFile('/'.join([':', size, name]) + '.png')
@@ -152,3 +196,12 @@ class QBzrMainWindow(QBzrWindow):
 
     def refresh(self):
         print "refresh"
+
+    def commit(self):
+        print "commit"
+
+    def push(self):
+        print "push"
+
+    def pull(self):
+        print "pull"
