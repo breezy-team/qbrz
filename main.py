@@ -57,7 +57,11 @@ class DirectoryItem(SideBarItem):
 
     def __init__(self, fileInfo, parent, sidebar):
         self.path = fileInfo.filePath()
-        self.icon = QtCore.QVariant(sidebar.window.icons['folder'])
+        self.isBranch = QtCore.QDir(self.path).exists('.bzr/branch')
+        if self.isBranch:
+            self.icon = QtCore.QVariant(sidebar.window.icons['folder-bzr'])
+        else:
+            self.icon = QtCore.QVariant(sidebar.window.icons['folder'])
         self.text = QtCore.QVariant(fileInfo.fileName())
         self.parent = parent
         self.children = None
@@ -293,6 +297,7 @@ class QBzrMainWindow(QBzrWindow):
             ('bookmark', ('16x16',), None),
             ('computer', ('16x16',), None),
             ('folder', ('16x16',), 'folder-open'),
+            ('folder-bzr', ('16x16',), 'folder-bzr-open'),
             ('folder-remote', ('16x16',), None),
             ('qbzr-pull', ('22x22',), None),
             ('qbzr-push', ('22x22',), None),
