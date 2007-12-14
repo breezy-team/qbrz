@@ -57,7 +57,9 @@ class DirectoryItem(SideBarItem):
 
     def __init__(self, fileInfo, parent, sidebar):
         self.path = fileInfo.filePath()
-        self.isBranch = QtCore.QDir(self.path).exists('.bzr/branch')
+        self.isBranch = parent.isBranch
+        if not self.isBranch:
+            self.isBranch = QtCore.QDir(self.path).exists('.bzr/branch')
         if self.isBranch:
             self.icon = QtCore.QVariant(sidebar.window.icons['folder-bzr'])
         else:
@@ -80,6 +82,7 @@ class DirectoryItem(SideBarItem):
 class FileSystemItem(DirectoryItem):
 
     def __init__(self, sidebar):
+        self.isBranch = False
         self.icon = QtCore.QVariant(sidebar.window.icons['computer'])
         self.text = QtCore.QVariant(gettext("Computer"))
         self.parent = sidebar.root
