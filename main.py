@@ -37,6 +37,127 @@ from bzrlib.plugins.qbzr.util import (
     open_browser,
     )
 
+
+class SideBarItem(object):
+
+    def __init__(self):
+        self.icon = QtCore.QVariant()
+        self.text = QtCore.QVariant()
+        self.parent = None
+        self.children = []
+
+    def loadChildren(self, sidebar):
+        pass
+
+    def __repr__(self):
+        return '<%s ("%s")>' % (self.__class__.__name__, self.text.toString())
+
+
+class DirectoryItem(SideBarItem):
+
+    def __init__(self, fileInfo, parent, sidebar):
+        self.path = fileInfo.filePath()
+        self.icon = QtCore.QVariant(sidebar.window.icons['folder'])
+        self.text = QtCore.QVariant(fileInfo.fileName())
+        self.parent = parent
+        self.children = None
+
+    def load(self, sidebar):
+        self.children = []
+        fileInfoList = QtCore.QDir(self.path).entryInfoList(
+            QtCore.QDir.Dirs |
+            QtCore.QDir.Drives |
+            QtCore.QDir.NoDotAndDotDot)
+        for fileInfo in fileInfoList:
+            item = DirectoryItem(fileInfo, self, sidebar)
+            sidebar.addItem(item)
+
+
+class FileSystemItem(DirectoryItem):
+
+    def __init__(self, sidebar):
+        self.icon = QtCore.QVariant(sidebar.window.icons['computer'])
+        self.text = QtCore.QVariant(gettext("Computer"))
+        self.parent = sidebar.root
+        self.children = None
+
+    def load(self, sidebar):
+        self.children = []
+        if sys.platform == 'win32':
+            fileInfoList = QtCore.QDir.drives()
+        else:
+            fileInfoList = QtCore.QDir.root().entryInfoList(
+                QtCore.QDir.Dirs |
+                QtCore.QDir.Drives |
+                QtCore.QDir.NoDotAndDotDot)
+        for fileInfo in fileInfoList:
+            item = DirectoryItem(fileInfo, self, sidebar)
+            sidebar.addItem(item)
+
+
+class SideBarModel(QtCore.QAbstractItemModel):
+
+    def __init__(self, parent=None):
+        QtCore.QAbstractItemModel.__init__(self, parent)
+        self.window = parent
+        self.bookmarks = ["Picard"]
+
+        self.byid = {}
+        self.root = SideBarItem()
+
+        item = SideBarItem()
+        item.icon = QtCore.QVariant(self.window.icons['bookmark'])
+        item.text = QtCore.QVariant(gettext("Bookmarks"))
+        item.parent = self.root
+        self.addItem(item)
+
+        item = FileSystemItem(self)
+        self.addItem(item)
+
+    def addItem(self, item):
+        item.parent.children.append(item)
+        self.byid[id(item)] = item
+
+    def itemFromIndex(self, index):
+        if not index.isValid():
+            return self.root
+        else:
+            return self.byid[index.internalId()]
+
+    def data(self, index, role):
+        item = self.itemFromIndex(index)
+        if role == QtCore.Qt.DecorationRole:
+            return item.icon
+        elif role == QtCore.Qt.DisplayRole:
+            return item.text
+        return QtCore.QVariant()
+
+    def columnCount(self, parent):
+        return 1
+
+    def rowCount(self, index):
+        item = self.itemFromIndex(index)
+        if item.children is None:
+            item.load(self)
+        return len(item.children)
+
+    def hasChildren(self, index):
+        children = self.itemFromIndex(index).children
+        return children is None or bool(children)
+
+    def index(self, row, column, parent):
+        return self.createIndex(row, column,
+            self.itemFromIndex(parent).children[row])
+
+    def parent(self, index):
+        item = self.itemFromIndex(index).parent
+        if item is None or item.parent is None:
+            return QtCore.QModelIndex()
+        else:
+            row = item.parent.children.index(item)
+            return self.createIndex(row, 0, id(item))
+
+
 class QBzrMainWindow(QBzrWindow):
 
     def __init__(self, parent=None):
@@ -102,24 +223,14 @@ class QBzrMainWindow(QBzrWindow):
     def createUi(self):
         self.vsplitter = QtGui.QSplitter(QtCore.Qt.Vertical)
 
-        self.dirView = QtGui.QTreeWidget()
-        self.dirView.setTextElideMode(QtCore.Qt.ElideLeft)
-        header = self.dirView.header()
-        #header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        #header.setStretchLastSection(False)
+        self.sideBarView = QtGui.QTreeView()
+        self.sideBarModel = SideBarModel(self)
+        self.sideBarView.setModel(self.sideBarModel)
+        self.sideBarView.setTextElideMode(QtCore.Qt.ElideLeft)
+        header = self.sideBarView.header()
+        header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        header.setStretchLastSection(False)
         header.setVisible(False)
-
-        item = QtGui.QTreeWidgetItem(self.dirView)
-        item.setText(0, gettext("Bookmarks"))
-        item.setIcon(0, self.icons['bookmark'])
-
-        item1 = QtGui.QTreeWidgetItem(item)
-        item1.setText(0, gettext("/path/to/branch"))
-        item1.setIcon(0, self.icons['folder'])
-
-        item = QtGui.QTreeWidgetItem(self.dirView)
-        item.setText(0, gettext("Computer"))
-        item.setIcon(0, self.icons['computer'])
 
         self.fileListView = QtGui.QTreeWidget()
         self.fileListView.setHeaderLabels([
@@ -130,7 +241,7 @@ class QBzrMainWindow(QBzrWindow):
             ])
 
         self.hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
-        self.hsplitter.addWidget(self.dirView)
+        self.hsplitter.addWidget(self.sideBarView)
         self.hsplitter.addWidget(self.fileListView)
 
         self.console = QtGui.QTextBrowser()
@@ -178,27 +289,35 @@ class QBzrMainWindow(QBzrWindow):
 
     def loadIcons(self):
         icons = [
-            ('view-refresh', ('16x16', '22x22')),
-            ('bookmark', ('16x16',)),
-            ('computer', ('16x16',)),
-            ('folder', ('16x16',)),
-            ('folder-remote', ('16x16',)),
-            ('qbzr-pull', ('22x22',)),
-            ('qbzr-push', ('22x22',)),
-            ('image-missing', ('22x22',)),
+            ('view-refresh', ('16x16', '22x22'), None),
+            ('bookmark', ('16x16',), None),
+            ('computer', ('16x16',), None),
+            ('folder', ('16x16',), 'folder-open'),
+            ('folder-remote', ('16x16',), None),
+            ('qbzr-pull', ('22x22',), None),
+            ('qbzr-push', ('22x22',), None),
+            ('image-missing', ('22x22',), None),
             ]
         self.icons = {}
-        for name, sizes in icons:
+        for name, sizes, name_on in icons:
             icon = QtGui.QIcon()
             for size in sizes:
                 icon.addFile('/'.join([':', size, name]) + '.png')
+            if name_on is not None:
+                for size in sizes:
+                    icon.addFile('/'.join([':', size, name_on]) + '.png',
+                        QtCore.QSize(), QtGui.QIcon.Normal, QtGui.QIcon.On)
             self.icons[name] = icon
 
     def refresh(self):
         print "refresh"
 
     def commit(self):
-        print "commit"
+        from bzrlib.workingtree import WorkingTree
+        from bzrlib.plugins.qbzr.commit import CommitWindow
+        tree = WorkingTree.open('.')
+        self.window = CommitWindow(tree, [])
+        self.window.show()
 
     def push(self):
         print "push"
