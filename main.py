@@ -34,6 +34,7 @@ from bzrlib.plugins import qbzr
 from bzrlib.plugins.qbzr.i18n import gettext, N_
 from bzrlib.plugins.qbzr.util import (
     QBzrWindow,
+    QBzrGlobalConfig,
     open_browser,
     )
 
@@ -102,23 +103,49 @@ class FileSystemItem(DirectoryItem):
             sidebar.addItem(item)
 
 
+class BookmarkItem(DirectoryItem):
+
+    def __init__(self, name, path, parent, sidebar):
+        self.path = path
+        self.isBranch = QtCore.QDir(self.path).exists('.bzr/branch')
+        if self.isBranch:
+            self.icon = QtCore.QVariant(sidebar.window.icons['folder-bzr'])
+        else:
+            self.icon = QtCore.QVariant(sidebar.window.icons['folder'])
+        self.text = QtCore.QVariant(name)
+        self.parent = parent
+        self.children = None
+
+
+class BookmarksItem(SideBarItem):
+
+    def __init__(self, sidebar):
+        self.icon = QtCore.QVariant(sidebar.window.icons['bookmark'])
+        self.text = QtCore.QVariant(gettext("Bookmarks"))
+        self.parent = sidebar.root
+        self.children = None
+
+    def load(self, sidebar):
+        config = QBzrGlobalConfig()
+        parser = config._get_parser()
+        bookmarks = parser.get('BOOKMARKS', {})
+        self.children = []
+        for name, path in bookmarks.iteritems():
+            item = BookmarkItem(name, path, self, sidebar)
+            sidebar.addItem(item)
+
+
 class SideBarModel(QtCore.QAbstractItemModel):
 
     def __init__(self, parent=None):
         QtCore.QAbstractItemModel.__init__(self, parent)
         self.window = parent
-
         self.byid = {}
         self.root = SideBarItem()
-
-        item = SideBarItem()
-        item.icon = QtCore.QVariant(self.window.icons['bookmark'])
-        item.text = QtCore.QVariant(gettext("Bookmarks"))
-        item.parent = self.root
-        self.addItem(item)
-
-        item = FileSystemItem(self)
-        self.addItem(item)
+        self.bookmarksItem = BookmarksItem(self)
+        self.addItem(self.bookmarksItem)
+        self.fileSystemItem = FileSystemItem(self)
+        self.addItem(self.fileSystemItem)
 
     def addItem(self, item):
         item.parent.children.append(item)
