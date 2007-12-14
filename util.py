@@ -169,6 +169,89 @@ class QBzrWindow(QtGui.QMainWindow):
         event.accept()
 
 
+class QBzrDialog(QtGui.QDialog):
+
+    def __init__(self, title=[], parent=None):
+        QtGui.QDialog.__init__(self, parent)
+
+        self.setWindowTitle(" - ".join(["QBzr"] + title))
+        icon = QtGui.QIcon()
+        icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
+        icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
+        self.setWindowIcon(icon)
+
+        self.centralwidget = self
+        #self.setCentralWidget(self.centralwidget)
+        self.windows = []
+
+    def create_button_box(self, *buttons):
+        """Create and return button box with pseudo-standard buttons
+        @param  buttons:    any from BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP
+        @return:    QtGui.QDialogButtonBox with attached buttons and signals
+        """
+        ROLES = {
+            BTN_OK: (QtGui.QDialogButtonBox.AcceptRole,
+                "accepted()", "accept"),
+            BTN_CANCEL: (QtGui.QDialogButtonBox.RejectRole,
+                "rejected()", "reject"),
+            BTN_CLOSE: (QtGui.QDialogButtonBox.RejectRole,
+                "rejected()", "close"),
+            # XXX support for HelpRole
+            }
+        buttonbox = QtGui.QDialogButtonBox(self.centralwidget)
+        for i in buttons:
+            btn = StandardButton(i)
+            role, signal_name, method_name = ROLES[i]
+            buttonbox.addButton(btn, role)
+            self.connect(buttonbox,
+                QtCore.SIGNAL(signal_name), getattr(self, method_name))
+        return buttonbox
+
+    def saveSize(self):
+        name = self._window_name
+        is_maximized = int(self.windowState()) & QtCore.Qt.WindowMaximized != 0
+        if is_maximized:
+            # XXX for some reason this doesn't work
+            geom = self.normalGeometry()
+            size = geom.width(), geom.height()
+        else:
+            size = self.width(), self.height()
+        config = QBzrGlobalConfig()
+        config.set_user_option(name + "_window_size", "%dx%d" % size)
+        config.set_user_option(name + "_window_maximized", is_maximized)
+        return config
+
+    def restoreSize(self, name, defaultSize):
+        self._window_name = name
+        config = QBzrGlobalConfig()
+        size = config.get_user_option(name + "_window_size")
+        if size:
+            size = size.split("x")
+            if len(size) == 2:
+                try:
+                    size = map(int, size)
+                except ValueError:
+                    size = defaultSize
+                else:
+                    if size[0] < 100 or size[1] < 100:
+                        size = defaultSize
+        else:
+            size = defaultSize
+        size = QtCore.QSize(size[0], size[1])
+        self.resize(size.expandedTo(self.minimumSizeHint()))
+        is_maximized = config.get_user_option(name + "_window_maximized")
+        if is_maximized in ("True", "1"):
+            self.setWindowState(QtCore.Qt.WindowMaximized)
+        return config
+
+    def closeEvent(self, event):
+        self.saveSize()
+        for window in self.windows:
+            if window.isVisible():
+                window.close()
+        event.accept()
+
+
 def get_branch_config(branch):
     if branch is not None:
         return branch.get_config()

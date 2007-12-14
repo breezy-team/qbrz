@@ -100,7 +100,6 @@ class SideBarModel(QtCore.QAbstractItemModel):
     def __init__(self, parent=None):
         QtCore.QAbstractItemModel.__init__(self, parent)
         self.window = parent
-        self.bookmarks = ["Picard"]
 
         self.byid = {}
         self.root = SideBarItem()
@@ -191,13 +190,14 @@ class QBzrMainWindow(QBzrWindow):
         action = QtGui.QAction(self.icons['qbzr-pull'],
                                gettext("Pu&ll"), self)
         action.setStatusTip(gettext("Update a mirror of this branch"))
-        self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.push)
+        self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.pull)
         self.actions['pull'] = action
 
     def createMenuBar(self):
         # FIXME: this maybe needs a special version for OS X
         mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu(gettext("&File"))
+        fileMenu.addAction(gettext("&Configure..."), self.configure)
         fileMenu.addSeparator()
         fileMenu.addAction(gettext("&Quit"), self.close, "Ctrl+Q")
         viewMenu = mainMenu.addMenu(gettext("&View"))
@@ -324,3 +324,8 @@ class QBzrMainWindow(QBzrWindow):
 
     def pull(self):
         print "pull"
+
+    def configure(self):
+        from bzrlib.plugins.qbzr.config import QBzrConfigWindow
+        window = QBzrConfigWindow(self)
+        window.exec_()
