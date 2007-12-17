@@ -193,8 +193,12 @@ class SideBarModel(QtCore.QAbstractItemModel):
 
     def refresh(self):
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
-        for item in self.root.children:
-            item.refresh()
+        for row, item in enumerate(self.root.children):
+            if item.children:
+                parent = self.createIndex(row, 0, item)
+                self.beginRemoveRows(parent, 0, len(item.children) - 1)
+                item.refresh()
+                self.endRemoveRows()
         self.emit(QtCore.SIGNAL("layoutChanged()"))
 
 
