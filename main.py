@@ -34,14 +34,15 @@ from bzrlib.plugins import qbzr
 from bzrlib.plugins.qbzr.i18n import gettext, N_
 from bzrlib.plugins.qbzr.util import (
     QBzrWindow,
+    QBzrConfig,
     QBzrGlobalConfig,
     open_browser,
     StandardButton,
     BTN_OK,
     BTN_CANCEL,
     )
-
 from bzrlib.plugins.qbzr.ui_bookmark import Ui_BookmarkDialog
+
 
 class BookmarkDialog(QtGui.QDialog):
 
@@ -54,6 +55,10 @@ class BookmarkDialog(QtGui.QDialog):
                                     QtGui.QDialogButtonBox.AcceptRole)
         self.ui.buttonBox.addButton(StandardButton(BTN_CANCEL),
                                     QtGui.QDialogButtonBox.RejectRole)
+
+    def setValues(self, name, location):
+        self.ui.name.setText(name)
+        self.ui.location.setText(location)
 
     def values(self):
         return (unicode(self.ui.name.text()),
@@ -143,10 +148,23 @@ class BookmarkItem(DirectoryItem):
         self.parent = parent
         self.children = None
 
+    def showContextMenu(self, sidebar, pos):
+        self.contextMenu = QtGui.QMenu()
+        self.contextMenu.addAction(gettext("&Edit Bookmark..."), self.edit)
+        self.contextMenu.addAction(gettext("&Remove Bookmark..."), self.remove)
+        self.contextMenu.popup(pos)
+
+    def edit(self):
+        self.parent.window.editBookmark(self.parent.children.index(self))
+
+    def remove(self):
+        self.parent.window.removeBookmark(self.parent.children.index(self))
+
 
 class BookmarksItem(SideBarItem):
 
     def __init__(self, sidebar):
+        self.window = sidebar.window
         self.icon = QtCore.QVariant(sidebar.window.icons['bookmark'])
         self.text = QtCore.QVariant(gettext("Bookmarks"))
         self.parent = sidebar.root
@@ -155,11 +173,9 @@ class BookmarksItem(SideBarItem):
         self.contextMenu.addAction(sidebar.window.actions['add-bookmark'])
 
     def load(self, sidebar):
-        config = QBzrGlobalConfig()
-        parser = config._get_parser()
-        bookmarks = parser.get('BOOKMARKS', {})
+        config = QBzrConfig()
         self.children = []
-        for name, path in bookmarks.iteritems():
+        for name, path in config.getBookmarks():
             item = BookmarkItem(name, path, self, sidebar)
             self.children.append(item)
 
@@ -220,9 +236,13 @@ class SideBarModel(QtCore.QAbstractItemModel):
             row = item.parent.children.index(item)
             return self.createIndex(row, 0, item)
 
-    def refresh(self):
+    def refresh(self, item=None):
+        if item is None:
+            items = self.root.children
+        else:
+            items = [item]
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
-        for row, item in enumerate(self.root.children):
+        for row, item in enumerate(items):
             if item.children:
                 parent = self.createIndex(row, 0, item)
                 self.beginRemoveRows(parent, 0, len(item.children) - 1)
@@ -425,4 +445,31 @@ class QBzrMainWindow(QBzrWindow):
         dialog = BookmarkDialog(gettext("Add Bookmark"), self)
         if dialog.exec_() == QtGui.QDialog.Accepted:
             name, location = dialog.values()
-            print name, location
+            config = QBzrConfig()
+            config.addBookmark(name, location)
+            config.save()
+            self.sideBarModel.refresh(self.sideBarModel.bookmarksItem)
+
+    def editBookmark(self, pos):
+        config = QBzrConfig()
+        bookmarks = list(config.getBookmarks())
+        dialog = BookmarkDialog(gettext("Edit Bookmark"), self)
+        dialog.setValues(*bookmarks[pos])
+        if dialog.exec_() == QtGui.QDialog.Accepted:
+            bookmarks[pos] = dialog.values()
+            config.setBookmarks(bookmarks)
+            config.save()
+            self.sideBarModel.refresh(self.sideBarModel.bookmarksItem)
+
+    def removeBookmark(self, pos):
+        res = QtGui.QMessageBox.question(self,
+            gettext("Remove Bookmark"),
+            gettext("Do you really want to remove the selected bookmark?"),
+            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+        if res == QtGui.QMessageBox.Yes:
+            config = QBzrConfig()
+            bookmarks = list(config.getBookmarks())
+            del bookmarks[pos]
+            config.setBookmarks(bookmarks)
+            config.save()
+            self.sideBarModel.refresh(self.sideBarModel.bookmarksItem)
