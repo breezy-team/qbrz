@@ -77,7 +77,7 @@ class DirectoryItem(SideBarItem):
             QtCore.QDir.NoDotAndDotDot)
         for fileInfo in fileInfoList:
             item = DirectoryItem(fileInfo, self, sidebar)
-            sidebar.addItem(item)
+            self.children.append(item)
 
     def refresh(self):
         self.children = None
@@ -103,7 +103,7 @@ class FileSystemItem(DirectoryItem):
                 QtCore.QDir.NoDotAndDotDot)
         for fileInfo in fileInfoList:
             item = DirectoryItem(fileInfo, self, sidebar)
-            sidebar.addItem(item)
+            self.children.append(item)
 
 
 class BookmarkItem(DirectoryItem):
@@ -135,7 +135,7 @@ class BookmarksItem(SideBarItem):
         self.children = []
         for name, path in bookmarks.iteritems():
             item = BookmarkItem(name, path, self, sidebar)
-            sidebar.addItem(item)
+            self.children.append(item)
 
     def refresh(self):
         self.children = None
@@ -146,22 +146,17 @@ class SideBarModel(QtCore.QAbstractItemModel):
     def __init__(self, parent=None):
         QtCore.QAbstractItemModel.__init__(self, parent)
         self.window = parent
-        self.byid = {}
         self.root = SideBarItem()
         self.bookmarksItem = BookmarksItem(self)
-        self.addItem(self.bookmarksItem)
+        self.root.children.append(self.bookmarksItem)
         self.fileSystemItem = FileSystemItem(self)
-        self.addItem(self.fileSystemItem)
-
-    def addItem(self, item):
-        item.parent.children.append(item)
-        self.byid[id(item)] = item
+        self.root.children.append(self.fileSystemItem)
 
     def itemFromIndex(self, index):
         if not index.isValid():
             return self.root
         else:
-            return self.byid[index.internalId()]
+            return index.internalPointer()
 
     def data(self, index, role):
         item = self.itemFromIndex(index)
@@ -194,11 +189,11 @@ class SideBarModel(QtCore.QAbstractItemModel):
             return QtCore.QModelIndex()
         else:
             row = item.parent.children.index(item)
-            return self.createIndex(row, 0, id(item))
+            return self.createIndex(row, 0, item)
 
     def refresh(self):
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
-        for item in self.byid.values():
+        for item in self.root.children:
             item.refresh()
         self.emit(QtCore.SIGNAL("layoutChanged()"))
 
