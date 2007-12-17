@@ -36,7 +36,28 @@ from bzrlib.plugins.qbzr.util import (
     QBzrWindow,
     QBzrGlobalConfig,
     open_browser,
+    StandardButton,
+    BTN_OK,
+    BTN_CANCEL,
     )
+
+from bzrlib.plugins.qbzr.ui_bookmark import Ui_BookmarkDialog
+
+class BookmarkDialog(QtGui.QDialog):
+
+    def __init__(self, title, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        self.setWindowTitle(title)
+        self.ui = Ui_BookmarkDialog()
+        self.ui.setupUi(self)
+        self.ui.buttonBox.addButton(StandardButton(BTN_OK),
+                                    QtGui.QDialogButtonBox.AcceptRole)
+        self.ui.buttonBox.addButton(StandardButton(BTN_CANCEL),
+                                    QtGui.QDialogButtonBox.RejectRole)
+
+    def values(self):
+        return (unicode(self.ui.name.text()),
+                unicode(self.ui.location.text()))
 
 
 class SideBarItem(object):
@@ -48,6 +69,9 @@ class SideBarItem(object):
         self.children = []
 
     def loadChildren(self, sidebar):
+        pass
+
+    def showContextMenu(self, sidebar, pos):
         pass
 
     def __repr__(self):
@@ -127,6 +151,8 @@ class BookmarksItem(SideBarItem):
         self.text = QtCore.QVariant(gettext("Bookmarks"))
         self.parent = sidebar.root
         self.children = None
+        self.contextMenu = QtGui.QMenu()
+        self.contextMenu.addAction(sidebar.window.actions['add-bookmark'])
 
     def load(self, sidebar):
         config = QBzrGlobalConfig()
@@ -139,6 +165,9 @@ class BookmarksItem(SideBarItem):
 
     def refresh(self):
         self.children = None
+
+    def showContextMenu(self, sidebar, pos):
+        self.contextMenu.popup(pos)
 
 
 class SideBarModel(QtCore.QAbstractItemModel):
@@ -201,6 +230,13 @@ class SideBarModel(QtCore.QAbstractItemModel):
                 self.endRemoveRows()
         self.emit(QtCore.SIGNAL("layoutChanged()"))
 
+    def showContextMenu(self, pos):
+        index = self.window.sideBarView.indexAt(pos)
+        if not index.isValid():
+            return
+        pos = self.window.sideBarView.viewport().mapToGlobal(pos)
+        self.itemFromIndex(index).showContextMenu(self, pos)
+
 
 class QBzrMainWindow(QBzrWindow):
 
@@ -237,6 +273,9 @@ class QBzrMainWindow(QBzrWindow):
         action.setStatusTip(gettext("Update a mirror of this branch"))
         self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.pull)
         self.actions['pull'] = action
+        action = QtGui.QAction(gettext("&Add Bookmark..."), self)
+        self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.addBookmark)
+        self.actions['add-bookmark'] = action
 
     def createMenuBar(self):
         # FIXME: this maybe needs a special version for OS X
@@ -247,6 +286,8 @@ class QBzrMainWindow(QBzrWindow):
         fileMenu.addAction(gettext("&Quit"), self.close, "Ctrl+Q")
         viewMenu = mainMenu.addMenu(gettext("&View"))
         viewMenu.addAction(self.actions['refresh'])
+        bookmarksMenu = mainMenu.addMenu(gettext("&Bookmarks"))
+        bookmarksMenu.addAction(self.actions['add-bookmark'])
         helpMenu = mainMenu.addMenu(gettext("&Help"))
         helpMenu.addAction(gettext("&Help..."), self.showHelp, "F1")
         helpMenu.addSeparator()
@@ -272,6 +313,10 @@ class QBzrMainWindow(QBzrWindow):
         self.sideBarModel = SideBarModel(self)
         self.sideBarView.setModel(self.sideBarModel)
         self.sideBarView.setTextElideMode(QtCore.Qt.ElideLeft)
+        self.sideBarView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.connect(self.sideBarView,
+                     QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
+                     self.sideBarModel.showContextMenu)
         header = self.sideBarView.header()
         header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
         header.setStretchLastSection(False)
@@ -375,3 +420,9 @@ class QBzrMainWindow(QBzrWindow):
         from bzrlib.plugins.qbzr.config import QBzrConfigWindow
         window = QBzrConfigWindow(self)
         window.exec_()
+
+    def addBookmark(self):
+        dialog = BookmarkDialog(gettext("Add Bookmark"), self)
+        if dialog.exec_() == QtGui.QDialog.Accepted:
+            name, location = dialog.values()
+            print name, location
