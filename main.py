@@ -44,6 +44,13 @@ from bzrlib.plugins.qbzr.util import (
 from bzrlib.plugins.qbzr.ui_bookmark import Ui_BookmarkDialog
 
 
+def formatFileSize(size):
+    if size < 1024:
+        return "%d B" % (size,)
+    else:
+        return "%0.1f KB" % (size / 1024.0,)
+
+
 class BookmarkDialog(QtGui.QDialog):
 
     def __init__(self, title, parent=None):
@@ -269,6 +276,9 @@ class QBzrMainWindow(QBzrWindow):
         self.createStatusBar()
         self.createUi()
         self.restoreSize("main", (800, 600))
+        self.fsWatcher = QtCore.QFileSystemWatcher(self)
+        self.connect(self.fsWatcher, QtCore.SIGNAL("directoryChanged(QString)"), self.updateDirectory)
+        self.connect(self.fsWatcher, QtCore.SIGNAL("fileChanged(QString)"), self.updateFile)
 
     def createActions(self):
         self.actions = {}
@@ -337,12 +347,16 @@ class QBzrMainWindow(QBzrWindow):
         self.connect(self.sideBarView,
                      QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
                      self.sideBarModel.showContextMenu)
+        self.connect(self.sideBarView.selectionModel(),
+                     QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
+                     self.updateFileList)
         header = self.sideBarView.header()
         header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
         header.setStretchLastSection(False)
         header.setVisible(False)
 
         self.fileListView = QtGui.QTreeWidget()
+        self.fileListView.setRootIsDecorated(False)
         self.fileListView.setHeaderLabels([
             gettext("Name"),
             gettext("Size"),
@@ -408,6 +422,11 @@ class QBzrMainWindow(QBzrWindow):
             ('qbzr-pull', ('22x22',), None),
             ('qbzr-push', ('22x22',), None),
             ('image-missing', ('22x22',), None),
+            ('file', ('16x16',), None),
+            ('file-unchanged', ('16x16',), None),
+            ('file-modified', ('16x16',), None),
+            ('folder-unchanged', ('16x16',), None),
+            ('folder-modified', ('16x16',), None),
             ]
         self.icons = {}
         for name, sizes, name_on in icons:
@@ -473,3 +492,57 @@ class QBzrMainWindow(QBzrWindow):
             config.setBookmarks(bookmarks)
             config.save()
             self.sideBarModel.refresh(self.sideBarModel.bookmarksItem)
+
+    def updateFileList(self, selected, deselected):
+        from bzrlib.workingtree import WorkingTree
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        try:
+            items = map(self.sideBarModel.itemFromIndex, self.sideBarView.selectedIndexes())
+            if not items:
+                return
+            item = items[0]
+            if not isinstance(item, DirectoryItem):
+                return
+            path = unicode(item.path)
+            #self.fsWatcher.addPath(item.path)
+            wt, relpath = WorkingTree.open_containing(path)
+            bt = wt.basis_tree()
+
+            delta = wt.changes_from(bt, specific_files=[relpath], want_unchanged=True)
+
+            statuses = {}
+
+            for entry in delta.added:
+                statuses[entry[0]] = 'added'
+            for entry in delta.removed:
+                statuses[entry[0]] = 'removed'
+            for entry in delta.modified:
+                statuses[entry[0]] = 'modified'
+            for entry in delta.unchanged:
+                statuses[entry[0]] = 'unchanged'
+
+            self.fileListView.invisibleRootItem().takeChildren()
+            for fileInfo in QtCore.QDir(path).entryInfoList(QtCore.QDir.AllEntries | QtCore.QDir.NoDotAndDotDot, QtCore.QDir.DirsFirst):
+                item = QtGui.QTreeWidgetItem(self.fileListView)
+                item.setText(0, fileInfo.fileName())
+                p = wt.relpath(unicode(fileInfo.filePath()))
+                status = statuses.get(p, 'non-versioned')
+                if fileInfo.isDir():
+                    if status == 'non-versioned':
+                        icon = 'folder'
+                    else:
+                        icon = 'folder-' + status
+                    item.setIcon(0, self.icons[icon])
+                else:
+                    if status == 'non-versioned':
+                        icon = 'file'
+                    else:
+                        icon = 'file-' + status
+                    item.setIcon(0, self.icons[icon])
+                    item.setText(1, formatFileSize(fileInfo.size()))
+                item.setText(2, status)
+        finally:
+            QtGui.QApplication.restoreOverrideCursor()
+
+    def updateDirectory(self, path):
+        print "directory '%s' changed, needs refresh" % (path,)

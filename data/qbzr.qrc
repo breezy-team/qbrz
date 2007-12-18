@@ -14,5 +14,12 @@
     <file>22x22/qbzr-pull.png</file>
     <file>22x22/qbzr-push.png</file>
     <file>22x22/image-missing.png</file>
+
+    <file>16x16/file.png</file>
+    <file>16x16/file-unchanged.png</file>
+    <file>16x16/file-modified.png</file>
+    <file>16x16/folder-unchanged.png</file>
+    <file>16x16/folder-modified.png</file>
+
 </qresource>
 </RCC>
