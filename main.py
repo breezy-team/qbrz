@@ -29,6 +29,7 @@ from bzrlib import (
     osutils,
     urlutils,
     )
+from bzrlib.workingtree import WorkingTree
 import bzrlib
 from bzrlib.plugins import qbzr
 from bzrlib.plugins.qbzr.i18n import gettext, N_
@@ -94,13 +95,7 @@ class DirectoryItem(SideBarItem):
 
     def __init__(self, fileInfo, parent, sidebar):
         self.path = fileInfo.filePath()
-        self.isBranch = parent.isBranch
-        if not self.isBranch:
-            self.isBranch = QtCore.QDir(self.path).exists('.bzr/branch')
-        if self.isBranch:
-            self.icon = QtCore.QVariant(sidebar.window.icons['folder-bzr'])
-        else:
-            self.icon = QtCore.QVariant(sidebar.window.icons['folder'])
+        self.icon = QtCore.QVariant(sidebar.window.icons['folder'])
         self.text = QtCore.QVariant(fileInfo.fileName())
         self.parent = parent
         self.children = None
@@ -111,7 +106,9 @@ class DirectoryItem(SideBarItem):
             QtCore.QDir.Dirs |
             QtCore.QDir.Drives |
             QtCore.QDir.NoDotAndDotDot)
+        pathParts = osutils.splitpath(unicode(self.path))
         for fileInfo in fileInfoList:
+            #print fileInfo.fileName(), sidebar.window.getDirectoryStatus(pathParts, unicode(fileInfo.fileName()))
             item = DirectoryItem(fileInfo, self, sidebar)
             self.children.append(item)
 
@@ -265,6 +262,18 @@ class SideBarModel(QtCore.QAbstractItemModel):
         self.itemFromIndex(index).showContextMenu(self, pos)
 
 
+class CacheEntry(object):
+
+    __slots__ = ['status', 'children']
+
+    def __init__(self):
+        self.status = 'unknown'
+        self.children = {}
+
+    def __repr__(self):
+        return '(%s, %r)' % (self.status, self.children)
+
+
 class QBzrMainWindow(QBzrWindow):
 
     def __init__(self, parent=None):
@@ -278,7 +287,7 @@ class QBzrMainWindow(QBzrWindow):
         self.restoreSize("main", (800, 600))
         self.fsWatcher = QtCore.QFileSystemWatcher(self)
         self.connect(self.fsWatcher, QtCore.SIGNAL("directoryChanged(QString)"), self.updateDirectory)
-        self.connect(self.fsWatcher, QtCore.SIGNAL("fileChanged(QString)"), self.updateFile)
+        self.cache = CacheEntry()
 
     def createActions(self):
         self.actions = {}
@@ -493,8 +502,76 @@ class QBzrMainWindow(QBzrWindow):
             config.save()
             self.sideBarModel.refresh(self.sideBarModel.bookmarksItem)
 
+    def _cacheStatus(self, path, status, root=None):
+        if root is None:
+            root = self.cache
+        entry = root
+        for part in path:
+            if part not in entry.children:
+                entry.children[part] = CacheEntry()
+            entry = entry.children[part]
+        entry.status = status
+        return entry
+
+    def _getCacheEntry(self, parts):
+        entry = self.cache
+        for part in parts:
+            entry = entry.children[part]
+        return entry
+
+    def _cacheDirectoryStatus(self, path):
+        p = '/' + '/'.join(path)
+        print "caching", p
+        try:
+            # to stop bzr-svn from trying to give status on svn checkouts
+            if not QtCore.QDir(p).exists('.bzr'):
+                raise errors.NotBranchError(p)
+            wt, relpath = WorkingTree.open_containing(p)
+        except errors.BzrError:
+            return self._cacheStatus(path, 'non-versioned')
+        bt = wt.basis_tree()
+        root = self._cacheStatus(osutils.splitpath(wt.basedir), 'bzr')
+        delta = wt.changes_from(bt, want_unchanged=True, want_unversioned=True)
+        for entry in delta.added:
+            self._cacheStatus(osutils.splitpath(entry[0]), 'added', root=root)
+        for entry in delta.removed:
+            self._cacheStatus(osutils.splitpath(entry[0]), 'removed', root=root)
+        for entry in delta.modified:
+            self._cacheStatus(osutils.splitpath(entry[0]), 'modified', root=root)
+        for entry in delta.unchanged:
+            self._cacheStatus(osutils.splitpath(entry[0]), 'unchanged', root=root)
+        for entry in delta.unversioned:
+            self._cacheStatus(osutils.splitpath(entry[0]), 'non-versioned', root=root)
+        try:
+            return self._getCacheEntry(path)
+        except KeyError:
+            return self._cacheStatus(path, 'non-versioned')
+
+    def getFileStatus(self, path, name):
+        try:
+            parentEntry = self._getCacheEntry(path)
+        except KeyError:
+            parentEntry = None
+        if parentEntry is None or parentEntry.status == 'unknown':
+            parentEntry = self._cacheDirectoryStatus(path)
+        try:
+            entry = parentEntry.children[name]
+        except KeyError:
+            if parentEntry.status == 'non-versioned':
+                return 'non-versioned'
+            else:
+                print "NOW WHAT??"
+        return entry.status
+
+    def getDirectoryStatus(self, path, name):
+        path = path + [name]
+        try:
+            entry = self._getCacheEntry(path)
+        except KeyError:
+            entry = self._cacheDirectoryStatus(path)
+        return entry.status
+
     def updateFileList(self, selected, deselected):
-        from bzrlib.workingtree import WorkingTree
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         try:
             items = map(self.sideBarModel.itemFromIndex, self.sideBarView.selectedIndexes())
@@ -504,36 +581,23 @@ class QBzrMainWindow(QBzrWindow):
             if not isinstance(item, DirectoryItem):
                 return
             path = unicode(item.path)
-            #self.fsWatcher.addPath(item.path)
-            wt, relpath = WorkingTree.open_containing(path)
-            bt = wt.basis_tree()
-
-            delta = wt.changes_from(bt, specific_files=[relpath], want_unchanged=True)
-
-            statuses = {}
-
-            for entry in delta.added:
-                statuses[entry[0]] = 'added'
-            for entry in delta.removed:
-                statuses[entry[0]] = 'removed'
-            for entry in delta.modified:
-                statuses[entry[0]] = 'modified'
-            for entry in delta.unchanged:
-                statuses[entry[0]] = 'unchanged'
-
+            pathParts = osutils.splitpath(path)
             self.fileListView.invisibleRootItem().takeChildren()
-            for fileInfo in QtCore.QDir(path).entryInfoList(QtCore.QDir.AllEntries | QtCore.QDir.NoDotAndDotDot, QtCore.QDir.DirsFirst):
+            fileInfoList = QtCore.QDir(path).entryInfoList(
+                QtCore.QDir.AllEntries | QtCore.QDir.NoDotAndDotDot,
+                QtCore.QDir.DirsFirst)
+            for fileInfo in fileInfoList:
                 item = QtGui.QTreeWidgetItem(self.fileListView)
                 item.setText(0, fileInfo.fileName())
-                p = wt.relpath(unicode(fileInfo.filePath()))
-                status = statuses.get(p, 'non-versioned')
                 if fileInfo.isDir():
+                    status = self.getDirectoryStatus(pathParts, unicode(fileInfo.fileName()))
                     if status == 'non-versioned':
                         icon = 'folder'
                     else:
                         icon = 'folder-' + status
                     item.setIcon(0, self.icons[icon])
                 else:
+                    status = self.getFileStatus(pathParts, unicode(fileInfo.fileName()))
                     if status == 'non-versioned':
                         icon = 'file'
                     else:
