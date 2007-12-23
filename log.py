@@ -330,7 +330,9 @@ class LogWindow(QBzrWindow):
             revision_id = unicode(url.path())
             for item, rev in self.item_to_rev.iteritems():
                 if rev.revision_id == revision_id:
-                    self.changesList.setCurrentItem(item)
+                    index = self.changesProxyModel.mapFromSource(
+                        self.changesModel.indexFromItem(item))
+                    self.changesList.setCurrentIndex(index)
                     break
         else:
             open_browser(str(url.toEncoded()))
