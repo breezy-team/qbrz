@@ -372,6 +372,9 @@ class QBzrMainWindow(QBzrWindow):
             gettext("Status"),
             gettext("Revision"),
             ])
+        self.connect(self.fileListView,
+                     QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
+                     self.onFileActivated)
 
         self.hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
         self.hsplitter.addWidget(self.sideBarView)
@@ -572,15 +575,23 @@ class QBzrMainWindow(QBzrWindow):
         return entry.status
 
     def updateFileList(self, selected, deselected):
+        items = map(self.sideBarModel.itemFromIndex, self.sideBarView.selectedIndexes())
+        if not items:
+            return
+        item = items[0]
+        if not isinstance(item, DirectoryItem):
+            return
+        self._updateFileList(unicode(item.path))
+
+    def onFileActivated(self, item, column):
+        path = item.data(0, QtCore.Qt.UserRole).toString()
+        if not path:
+            return
+        self._updateFileList(unicode(path))
+
+    def _updateFileList(self, path):
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         try:
-            items = map(self.sideBarModel.itemFromIndex, self.sideBarView.selectedIndexes())
-            if not items:
-                return
-            item = items[0]
-            if not isinstance(item, DirectoryItem):
-                return
-            path = unicode(item.path)
             pathParts = osutils.splitpath(path)
             self.fileListView.invisibleRootItem().takeChildren()
             fileInfoList = QtCore.QDir(path).entryInfoList(
@@ -595,6 +606,7 @@ class QBzrMainWindow(QBzrWindow):
                         icon = 'folder'
                     else:
                         icon = 'folder-' + status
+                    item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(fileInfo.filePath()))
                     item.setIcon(0, self.icons[icon])
                 else:
                     status = self.getFileStatus(pathParts, unicode(fileInfo.fileName()))
