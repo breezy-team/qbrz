@@ -38,8 +38,9 @@ from bzrlib.plugins.qbzr.util import (
 TagNameRole = QtCore.Qt.UserRole + 1
 BugIdRole = QtCore.Qt.UserRole + 100
 
-FilterTextRole = QtCore.Qt.UserRole + 200
-FilterIdRole = QtCore.Qt.UserRole + 201
+FilterIdRole = QtCore.Qt.UserRole + 200
+FilterMessageRole = QtCore.Qt.UserRole + 201
+FilterAuthorRole = QtCore.Qt.UserRole + 202
 
 
 _bug_id_re = lazy_regex.lazy_compile(r'(?:bugs/|ticket/|show_bug\.cgi\?id=)(\d+)(?:\b|$)')
@@ -175,7 +176,7 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         if accepts is not None:
             return accepts
 
-        key = sourceModel.data(index, FilterTextRole).toString()
+        key = sourceModel.data(index, self.filterRole()).toString()
         if key.contains(filterRegExp):
             self._filterCache[filterId] = True
             return True
@@ -193,6 +194,12 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
 
         self._filterCache[filterId] = False
         return False
+
+
+try:
+    from bzrlib.plugins.qbzr._ext import TreeFilterProxyModel
+except ImportError:
+    pass
 
 
 class LogWindow(QBzrWindow):
@@ -215,6 +222,7 @@ class LogWindow(QBzrWindow):
         self.changesProxyModel = TreeFilterProxyModel()
         self.changesProxyModel.setSourceModel(self.changesModel)
         self.changesProxyModel.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+        self.changesProxyModel.setFilterRole(FilterMessageRole)
 
         logwidget = QtGui.QWidget()
         logbox = QtGui.QVBoxLayout(logwidget)
@@ -236,16 +244,28 @@ class LogWindow(QBzrWindow):
         searchbox.addWidget(self.search_label)
         searchbox.addWidget(self.search_edit)
 
-        self.search_in_messages = QtGui.QRadioButton(gettext("Messages"))
-        self.connect(self.search_in_messages, QtCore.SIGNAL("toggled(bool)"),
-                     self.update_search_type)
-        self.search_in_paths = QtGui.QRadioButton(gettext("Paths"))
-        self.search_in_paths.setEnabled(False)
-        self.connect(self.search_in_paths, QtCore.SIGNAL("toggled(bool)"),
-                     self.update_search_type)
-        searchbox.addWidget(self.search_in_messages)
-        searchbox.addWidget(self.search_in_paths)
-        self.search_in_messages.setChecked(True)
+        self.searchType = QtGui.QComboBox()
+        self.searchType.addItem(gettext("Messages"),
+                                QtCore.QVariant(FilterMessageRole))
+        self.searchType.addItem(gettext("Authors"),
+                                QtCore.QVariant(FilterAuthorRole))
+        self.searchType.addItem(gettext("Revision IDs"),
+                                QtCore.QVariant(FilterIdRole))
+        searchbox.addWidget(self.searchType)
+        self.connect(self.searchType,
+                     QtCore.SIGNAL("currentIndexChanged(int)"),
+                     self.updateSearchType)
+
+        #self.search_in_messages = QtGui.QRadioButton(gettext("Messages"))
+        #self.connect(self.search_in_messages, QtCore.SIGNAL("toggled(bool)"),
+        #             self.update_search_type)
+        #self.search_in_paths = QtGui.QRadioButton(gettext("Paths"))
+        #self.search_in_paths.setEnabled(False)
+        #self.connect(self.search_in_paths, QtCore.SIGNAL("toggled(bool)"),
+        #             self.update_search_type)
+        #searchbox.addWidget(self.search_in_messages)
+        #searchbox.addWidget(self.search_in_paths)
+        #self.search_in_messages.setChecked(True)
 
         logbox.addLayout(searchbox)
 
@@ -330,7 +350,9 @@ class LogWindow(QBzrWindow):
             revision_id = unicode(url.path())
             for item, rev in self.item_to_rev.iteritems():
                 if rev.revision_id == revision_id:
-                    self.changesList.setCurrentItem(item)
+                    index = self.changesProxyModel.mapFromSource(
+                        self.changesModel.indexFromItem(item))
+                    self.changesList.setCurrentIndex(index)
                     break
         else:
             open_browser(str(url.toEncoded()))
@@ -432,14 +454,16 @@ class LogWindow(QBzrWindow):
             self.merge_stack.pop()
 
         rev = revision.rev
+        author = rev.properties.get('author', rev.committer)
+
         item1 = QtGui.QStandardItem(str(revision.revno))
         item1.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-        item1.setData(QtCore.QVariant(rev.message), FilterTextRole)
+        item1.setData(QtCore.QVariant(rev.message), FilterMessageRole)
+        item1.setData(QtCore.QVariant(rev.committer + author), FilterAuthorRole)
         item1.setData(QtCore.QVariant(rev.revision_id), FilterIdRole)
         item2 = QtGui.QStandardItem(format_timestamp(rev.timestamp))
         item2.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
 
-        author = rev.properties.get('author', rev.committer)
         item3 = QtGui.QStandardItem(extract_name(author))
         item3.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
         item4 = QtGui.QStandardItem(rev.get_summary())
@@ -494,6 +518,11 @@ class LogWindow(QBzrWindow):
         # TODO in_paths = self.search_in_paths.isChecked()
         self.changesProxyModel._filterCache = {}
         self.changesProxyModel.setFilterRegExp(self.search_edit.text())
+
+    def updateSearchType(self, index=None):
+        role = self.searchType.itemData(index).toInt()[0]
+        self.changesProxyModel._filterCache = {}
+        self.changesProxyModel.setFilterRole(role)
 
     def set_search_timer(self):
         self.search_timer.start(200)
