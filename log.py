@@ -196,6 +196,12 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         return False
 
 
+try:
+    from bzrlib.plugins.qbzr._ext import TreeFilterProxyModel
+except ImportError:
+    pass
+
+
 class LogWindow(QBzrWindow):
 
     def __init__(self, branch, location, specific_fileid, replace=None, parent=None):
