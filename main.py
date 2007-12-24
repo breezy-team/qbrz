@@ -32,6 +32,7 @@ from bzrlib import (
 from bzrlib.workingtree import WorkingTree
 import bzrlib
 from bzrlib.plugins import qbzr
+from bzrlib.plugins.qbzr.statuscache import StatusCache
 from bzrlib.plugins.qbzr.i18n import gettext, N_
 from bzrlib.plugins.qbzr.util import (
     QBzrWindow,
@@ -262,18 +263,6 @@ class SideBarModel(QtCore.QAbstractItemModel):
         self.itemFromIndex(index).showContextMenu(self, pos)
 
 
-class CacheEntry(object):
-
-    __slots__ = ['status', 'children']
-
-    def __init__(self):
-        self.status = 'unknown'
-        self.children = {}
-
-    def __repr__(self):
-        return '(%s, %r)' % (self.status, self.children)
-
-
 class QBzrMainWindow(QBzrWindow):
 
     def __init__(self, parent=None):
@@ -285,9 +274,7 @@ class QBzrMainWindow(QBzrWindow):
         self.createStatusBar()
         self.createUi()
         self.restoreSize("main", (800, 600))
-        self.fsWatcher = QtCore.QFileSystemWatcher(self)
-        self.connect(self.fsWatcher, QtCore.SIGNAL("directoryChanged(QString)"), self.updateDirectory)
-        self.cache = CacheEntry()
+        self.cache = StatusCache(self)
 
     def createActions(self):
         self.actions = {}
@@ -505,75 +492,6 @@ class QBzrMainWindow(QBzrWindow):
             config.save()
             self.sideBarModel.refresh(self.sideBarModel.bookmarksItem)
 
-    def _cacheStatus(self, path, status, root=None):
-        if root is None:
-            root = self.cache
-        entry = root
-        for part in path:
-            if part not in entry.children:
-                entry.children[part] = CacheEntry()
-            entry = entry.children[part]
-        entry.status = status
-        return entry
-
-    def _getCacheEntry(self, parts):
-        entry = self.cache
-        for part in parts:
-            entry = entry.children[part]
-        return entry
-
-    def _cacheDirectoryStatus(self, path):
-        p = '/' + '/'.join(path)
-        print "caching", p
-        try:
-            # to stop bzr-svn from trying to give status on svn checkouts
-            if not QtCore.QDir(p).exists('.bzr'):
-                raise errors.NotBranchError(p)
-            wt, relpath = WorkingTree.open_containing(p)
-        except errors.BzrError:
-            return self._cacheStatus(path, 'non-versioned')
-        bt = wt.basis_tree()
-        root = self._cacheStatus(osutils.splitpath(wt.basedir), 'bzr')
-        delta = wt.changes_from(bt, want_unchanged=True, want_unversioned=True)
-        for entry in delta.added:
-            self._cacheStatus(osutils.splitpath(entry[0]), 'added', root=root)
-        for entry in delta.removed:
-            self._cacheStatus(osutils.splitpath(entry[0]), 'removed', root=root)
-        for entry in delta.modified:
-            self._cacheStatus(osutils.splitpath(entry[0]), 'modified', root=root)
-        for entry in delta.unchanged:
-            self._cacheStatus(osutils.splitpath(entry[0]), 'unchanged', root=root)
-        for entry in delta.unversioned:
-            self._cacheStatus(osutils.splitpath(entry[0]), 'non-versioned', root=root)
-        try:
-            return self._getCacheEntry(path)
-        except KeyError:
-            return self._cacheStatus(path, 'non-versioned')
-
-    def getFileStatus(self, path, name):
-        try:
-            parentEntry = self._getCacheEntry(path)
-        except KeyError:
-            parentEntry = None
-        if parentEntry is None or parentEntry.status == 'unknown':
-            parentEntry = self._cacheDirectoryStatus(path)
-        try:
-            entry = parentEntry.children[name]
-        except KeyError:
-            if parentEntry.status == 'non-versioned':
-                return 'non-versioned'
-            else:
-                print "NOW WHAT??"
-        return entry.status
-
-    def getDirectoryStatus(self, path, name):
-        path = path + [name]
-        try:
-            entry = self._getCacheEntry(path)
-        except KeyError:
-            entry = self._cacheDirectoryStatus(path)
-        return entry.status
-
     def updateFileList(self, selected, deselected):
         items = map(self.sideBarModel.itemFromIndex, self.sideBarView.selectedIndexes())
         if not items:
@@ -601,7 +519,7 @@ class QBzrMainWindow(QBzrWindow):
                 item = QtGui.QTreeWidgetItem(self.fileListView)
                 item.setText(0, fileInfo.fileName())
                 if fileInfo.isDir():
-                    status = self.getDirectoryStatus(pathParts, unicode(fileInfo.fileName()))
+                    status = self.cache.getDirectoryStatus(pathParts, unicode(fileInfo.fileName()))
                     if status == 'non-versioned':
                         icon = 'folder'
                     else:
@@ -609,7 +527,7 @@ class QBzrMainWindow(QBzrWindow):
                     item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(fileInfo.filePath()))
                     item.setIcon(0, self.icons[icon])
                 else:
-                    status = self.getFileStatus(pathParts, unicode(fileInfo.fileName()))
+                    status = self.cache.getFileStatus(pathParts, unicode(fileInfo.fileName()))
                     if status == 'non-versioned':
                         icon = 'file'
                     else:
@@ -619,6 +537,3 @@ class QBzrMainWindow(QBzrWindow):
                 item.setText(2, status)
         finally:
             QtGui.QApplication.restoreOverrideCursor()
-
-    def updateDirectory(self, path):
-        print "directory '%s' changed, needs refresh" % (path,)
