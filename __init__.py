@@ -165,7 +165,7 @@ class cmd_qcommit(Command):
         if selected_list == ['']:
             selected_list = []
         application = QtGui.QApplication(sys.argv)
-        window = CommitWindow(tree, selected_list)
+        window = CommitWindow(tree, selected_list, dialog=False)
         window.show()
         application.exec_()
 

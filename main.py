@@ -447,8 +447,8 @@ class QBzrMainWindow(QBzrWindow):
     def commit(self):
         from bzrlib.workingtree import WorkingTree
         from bzrlib.plugins.qbzr.commit import CommitWindow
-        tree = WorkingTree.open('.')
-        self.window = CommitWindow(tree, [])
+        tree = WorkingTree.open_containing(self.currentDirectory)[0]
+        self.window = CommitWindow(tree, [], parent=self)
         self.window.show()
 
     def push(self):
