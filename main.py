@@ -499,19 +499,23 @@ class QBzrMainWindow(QBzrWindow):
         item = items[0]
         if not isinstance(item, DirectoryItem):
             return
-        self._updateFileList(unicode(item.path))
+        self.setDirectory(unicode(item.path))
 
     def onFileActivated(self, item, column):
         path = item.data(0, QtCore.Qt.UserRole).toString()
         if not path:
             return
-        self._updateFileList(unicode(path))
+        self.setDirectory(unicode(path))
 
-    def _updateFileList(self, path):
+    def setDirectory(self, path):
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         try:
             pathParts = osutils.splitpath(path)
             self.fileListView.invisibleRootItem().takeChildren()
+            item = QtGui.QTreeWidgetItem(self.fileListView)
+            item.setText(0, '..')
+            item.setIcon(0, self.icons['folder'])
+            item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(os.path.dirname(path)))
             fileInfoList = QtCore.QDir(path).entryInfoList(
                 QtCore.QDir.AllEntries | QtCore.QDir.NoDotAndDotDot,
                 QtCore.QDir.DirsFirst)
