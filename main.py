@@ -357,7 +357,6 @@ class QBzrMainWindow(QBzrWindow):
             gettext("Name"),
             gettext("Size"),
             gettext("Status"),
-            gettext("Revision"),
             ])
         self.connect(self.fileListView,
                      QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
@@ -378,10 +377,13 @@ class QBzrMainWindow(QBzrWindow):
         name = self._window_name
         config.set_user_option(
             name + "_vsplitter_state",
-            str(self.vsplitter.saveState()).encode("base64"))
+            str(self.vsplitter.saveState()).encode("base64").strip())
         config.set_user_option(
             name + "_hsplitter_state",
-            str(self.hsplitter.saveState()).encode("base64"))
+            str(self.hsplitter.saveState()).encode("base64").strip())
+        config.set_user_option(
+            name + "_file_list_header_state",
+            str(self.fileListView.header().saveState()).encode("base64").strip())
 
     def restoreSize(self, name, defaultSize):
         config = QBzrWindow.restoreSize(self, name, defaultSize)
@@ -392,6 +394,9 @@ class QBzrMainWindow(QBzrWindow):
         value = config.get_user_option(name + "_hsplitter_state")
         if value:
             self.hsplitter.restoreState(value.decode("base64"))
+        value = config.get_user_option(name + "_file_list_header_state")
+        if value:
+            self.fileListView.header().restoreState(value.decode("base64"))
 
     def showHelp(self):
         open_browser("http://bazaar-vcs.org/QBzr/Documentation")
