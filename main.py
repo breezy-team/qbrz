@@ -544,6 +544,7 @@ class QBzrMainWindow(QBzrWindow):
                         icon = 'file-' + status
                     item.setIcon(0, self.icons[icon])
                     item.setText(1, formatFileSize(fileInfo.size()))
+                    item.setTextAlignment(1, QtCore.Qt.AlignRight)
                 item.setText(2, status)
         finally:
             QtGui.QApplication.restoreOverrideCursor()
