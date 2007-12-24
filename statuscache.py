@@ -45,6 +45,7 @@ class StatusCache(QtCore.QObject):
         self.connect(self.fileSystemWatcher,
                      QtCore.SIGNAL("directoryChanged(QString)"),
                      self.invalidateDirectory)
+        self.autoRefreshPath = None
         self.autoRefreshTimer = QtCore.QTimer(self)
         self.autoRefreshTimer.setSingleShot(True)
         self.connect(self.autoRefreshTimer,
@@ -127,8 +128,9 @@ class StatusCache(QtCore.QObject):
         return entry.status
 
     def invalidateDirectory(self, path):
+        path = unicode(path)
         try:
-            parts = osutils.splitpath(unicode(path))
+            parts = osutils.splitpath(path)
             entry = self.cache
             for part in parts[:-1]:
                 entry = entry.children[part]
@@ -137,7 +139,8 @@ class StatusCache(QtCore.QObject):
         except KeyError:
             pass
         else:
-            self.autoRefreshTimer.start(500)
+            self.autoRefreshPath = path
+            self.autoRefreshTimer.start(1000)
 
     def autoRefresh(self):
-        print "auto refreshing"
+        self.window.autoRefresh(self.autoRefreshPath)

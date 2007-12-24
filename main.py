@@ -275,6 +275,7 @@ class QBzrMainWindow(QBzrWindow):
         self.createUi()
         self.restoreSize("main", (800, 600))
         self.cache = StatusCache(self)
+        self.currentDirectory = None
 
     def createActions(self):
         self.actions = {}
@@ -443,9 +444,6 @@ class QBzrMainWindow(QBzrWindow):
                         QtCore.QSize(), QtGui.QIcon.Normal, QtGui.QIcon.On)
             self.icons[name] = icon
 
-    def refresh(self):
-        self.sideBarModel.refresh()
-
     def commit(self):
         from bzrlib.workingtree import WorkingTree
         from bzrlib.plugins.qbzr.commit import CommitWindow
@@ -512,7 +510,20 @@ class QBzrMainWindow(QBzrWindow):
             return
         self.setDirectory(unicode(path))
 
+    def refresh(self):
+        if self.currentDirectory:
+            self.setDirectory(self.currentDirectory)
+        self.sideBarModel.refresh()
+
+    def autoRefresh(self, path):
+        try:
+            relpath = osutils.relpath(self.currentDirectory, path)
+            self.setDirectory(self.currentDirectory)
+        except errors.PathNotChild:
+            pass
+
     def setDirectory(self, path):
+        self.currentDirectory = path
         self.setWindowTitle("QBzr - %s" % path)
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         try:
