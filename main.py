@@ -508,6 +508,7 @@ class QBzrMainWindow(QBzrWindow):
         self.setDirectory(unicode(path))
 
     def setDirectory(self, path):
+        self.setWindowTitle("QBzr - %s" % path)
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         try:
             pathParts = osutils.splitpath(path)

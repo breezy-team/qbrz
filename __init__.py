@@ -45,6 +45,7 @@ from bzrlib import (
     ui,
     ui.text,
     progress,
+    osutils,
 )
 from bzrlib.util import bencode
 from bzrlib.branch import Branch
@@ -364,6 +365,7 @@ class cmd_qbzr(Command):
     def run(self):
         app = QtGui.QApplication(sys.argv)
         window = QBzrMainWindow()
+        window.setDirectory(osutils.realpath(u'.'))
         window.show()
         app.exec_()
 
