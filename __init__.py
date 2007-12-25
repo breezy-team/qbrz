@@ -363,6 +363,16 @@ class cmd_qbzr(Command):
     takes_args = []
 
     def run(self):
+        # Remove svn checkout support
+        try:
+            from bzrlib.plugins.svn.format import SvnWorkingTreeDirFormat
+        except ImportError:
+            pass
+        else:
+            from bzrlib.bzrdir import BzrDirFormat, format_registry
+            BzrDirFormat.unregister_control_format(SvnWorkingTreeDirFormat)
+            format_registry.remove('subversion-wc')
+        # Start QBzr
         app = QtGui.QApplication(sys.argv)
         window = QBzrMainWindow()
         window.setDirectory(osutils.realpath(u'.'))
