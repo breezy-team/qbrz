@@ -6,20 +6,23 @@
     <file>16x16/computer.png</file>
     <file>16x16/view-refresh.png</file>
     <file>22x22/view-refresh.png</file>
-    <file>16x16/folder.png</file>
-    <file>16x16/folder-open.png</file>
-    <file>16x16/folder-bzr.png</file>
-    <file>16x16/folder-bzr-open.png</file>
-    <file>16x16/folder-remote.png</file>
     <file>22x22/qbzr-pull.png</file>
     <file>22x22/qbzr-push.png</file>
     <file>22x22/image-missing.png</file>
 
     <file>16x16/file.png</file>
+    <file>16x16/file-added.png</file>
     <file>16x16/file-unchanged.png</file>
     <file>16x16/file-modified.png</file>
+    <file>16x16/file-conflict.png</file>
+
+    <file>16x16/folder.png</file>
+    <file>16x16/folder-open.png</file>
+    <file>16x16/folder-branch.png</file>
+    <file>16x16/folder-added.png</file>
     <file>16x16/folder-unchanged.png</file>
     <file>16x16/folder-modified.png</file>
+    <file>16x16/folder-conflict.png</file>
 
 </qresource>
 </RCC>

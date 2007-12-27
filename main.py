@@ -144,11 +144,7 @@ class BookmarkItem(DirectoryItem):
 
     def __init__(self, name, path, parent, sidebar):
         self.path = path
-        self.isBranch = QtCore.QDir(self.path).exists('.bzr/branch')
-        if self.isBranch:
-            self.icon = QtCore.QVariant(sidebar.window.icons['folder-bzr'])
-        else:
-            self.icon = QtCore.QVariant(sidebar.window.icons['folder'])
+        self.icon = QtCore.QVariant(sidebar.window.icons['folder'])
         self.text = QtCore.QVariant(name)
         self.parent = parent
         self.children = None
@@ -421,17 +417,20 @@ class QBzrMainWindow(QBzrWindow):
             ('view-refresh', ('16x16', '22x22'), None),
             ('bookmark', ('16x16',), None),
             ('computer', ('16x16',), None),
-            ('folder', ('16x16',), 'folder-open'),
-            ('folder-bzr', ('16x16',), 'folder-bzr-open'),
-            ('folder-remote', ('16x16',), None),
             ('qbzr-pull', ('22x22',), None),
             ('qbzr-push', ('22x22',), None),
             ('image-missing', ('22x22',), None),
+            ('folder', ('16x16',), 'folder-open'),
+            ('folder-branch', ('16x16',), None),
+            ('folder-unchanged', ('16x16',), None),
+            ('folder-modified', ('16x16',), None),
+            ('folder-added', ('16x16',), None),
+            ('folder-conflict', ('16x16',), None),
             ('file', ('16x16',), None),
             ('file-unchanged', ('16x16',), None),
             ('file-modified', ('16x16',), None),
-            ('folder-unchanged', ('16x16',), None),
-            ('folder-modified', ('16x16',), None),
+            ('file-added', ('16x16',), None),
+            ('file-conflict', ('16x16',), None),
             ]
         self.icons = {}
         for name, sizes, name_on in icons:

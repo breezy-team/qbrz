@@ -84,12 +84,14 @@ class StatusCache(QtCore.QObject):
             return self._cacheStatus(path, 'non-versioned')
         self.fileSystemWatcher.addPath(wt.basedir)
         bt = wt.basis_tree()
-        root = self._cacheStatus(osutils.splitpath(wt.basedir), 'bzr')
+        root = self._cacheStatus(osutils.splitpath(wt.basedir), 'branch')
         delta = wt.changes_from(bt, want_unchanged=True, want_unversioned=True)
         for entry in delta.added:
             self._cacheStatus(osutils.splitpath(entry[0]), 'added', root=root)
         for entry in delta.removed:
-            self._cacheStatus(osutils.splitpath(entry[0]), 'removed', root=root)
+            # FIXME
+            self._cacheStatus(osutils.splitpath(entry[0]), 'modified', root=root)
+#            self._cacheStatus(osutils.splitpath(entry[0]), 'removed', root=root)
         for entry in delta.modified:
             self._cacheStatus(osutils.splitpath(entry[0]), 'modified', root=root)
         for entry in delta.unchanged:
@@ -124,6 +126,9 @@ class StatusCache(QtCore.QObject):
             entry = self._getCacheEntry(path)
         except KeyError:
             entry = self._cacheDirectoryStatus(path)
+        else:
+            if entry.status == 'unknown':
+                entry = self._cacheDirectoryStatus(path)
         print path, entry.status
         return entry.status
 
