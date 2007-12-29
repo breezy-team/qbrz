@@ -2,6 +2,7 @@
 #
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2006 Lukáš Lalinský <lalinsky@gmail.com>
+# Copyright (C) 2005 Dan Loda <danloda@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import operator
+import operator, sys, time
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.i18n import gettext
 from bzrlib.plugins.qbzr.diff import DiffWindow
@@ -38,6 +39,47 @@ try:
     from pygments.formatters import HtmlFormatter
 except ImportError:
     have_pygments = False
+
+
+class AnnotateColorSaturation(object):
+
+    def __init__(self):
+        self.current_angle = 0
+
+    def hue(self, angle):
+        return tuple([self.v(angle, r) for r in (0, 120, 240)])
+
+    def ang(self, angle, rotation):
+        angle += rotation
+        angle = angle % 360
+        if angle > 180:
+            angle = 180 - (angle - 180)
+        return abs(angle)
+
+    def v(self, angle, rotation):
+        ang = self.ang(angle, rotation)
+        if ang < 60:
+            return 1
+        elif ang > 120:
+            return 0
+        else:
+            return 1 - ((ang - 60) / 60)
+
+    def saturate_v(self, saturation, hv):
+        return int(255 - (saturation/3*(1-hv)))
+
+    def committer_angle(self, committer):
+        return float(abs(hash(committer))) / sys.maxint * 360.0
+
+    def _days(self, revision, now):
+        return (now - revision.timestamp) / (24 * 60 * 60)
+
+    def get_color(self, revision, now):
+        days = self._days(revision, now)
+        saturation = 255/((days/50) + 1)
+        hue = self.hue(self.committer_angle(revision._author_name))
+        color = tuple([self.saturate_v(saturation, h) for h in hue])
+        return QtGui.QColor(*color)
 
 
 class AnnotateView(QtGui.QTextBrowser):
@@ -76,75 +118,26 @@ class AnnotateView(QtGui.QTextBrowser):
 
 class AnnotateWindow(QBzrWindow):
 
-    def __init__(self, filename, lines, revisions, parent=None, encoding=None, branch=None):
+    def __init__(self, branch, tree, path, fileId, encoding=None, parent=None):
         QBzrWindow.__init__(self,
-            [gettext("Annotate"), filename], parent)
+            [gettext("Annotate"), path], parent)
         self.restoreSize("annotate", (780, 680))
-        self.branch = branch
+
         self.windows = []
 
-        revisions.sort(key=operator.attrgetter('timestamp'), reverse=True)
+        self.branch = branch
+        self.tree = tree
+        self.fileId = fileId
+        self.colormap = AnnotateColorSaturation()
 
-        self.annotations = [a[0] for a in lines]
-
-        c1 = (255, 255, 255)
-        c2 = (255, 216, 132)
-
-        self.blocks = []
-        last_block = (self.annotations[0], 0)
-        used_revisions = set([self.annotations[0]])
-        for i, rev_id in enumerate(self.annotations):
-            if rev_id != last_block[0]:
-                self.blocks.append((last_block[0], last_block[1], i - last_block[1]))
-                last_block = (rev_id, i)
-                used_revisions.add(rev_id)
-
-        rev_dict = dict((r.revision_id, r) for r in revisions)
-
-        used_revisions = list(used_revisions)
-        used_revisions.sort(lambda a, b: cmp(rev_dict[a].timestamp, rev_dict[b].timestamp))
-        used_revisions = dict((r, i) for (i, r) in enumerate(used_revisions))
-
-        def make_color(i):
-            f = (float(used_revisions[i]) / (len(used_revisions) - 1)) ** 2
-            return QtGui.QColor(
-                c1[0] + (c2[0] - c1[0]) * f,
-                c1[1] + (c2[1] - c1[1]) * f,
-                c1[2] + (c2[2] - c1[2]) * f)
-
-        self.blocks = [(a, b, make_color(rev_id)) for (rev_id, a, b) in self.blocks]
-
-        code = "".join(a[1] for a in lines)
-        if encoding is None:
-            encoding = 'utf-8'
-        code = code.decode(encoding, 'replace')
-
-        if not have_pygments:
-            style = ''
-            code_html = htmlencode(code)
-        else:
-            try:
-                lexer = get_lexer_for_filename(filename)
-                formatter = HtmlFormatter()
-                style = formatter.get_style_defs()
-                code_html = highlight(code, lexer, formatter)
-            except ValueError:
-                style = ''
-                code_html = htmlencode(code)
-
-        font = QtGui.QFont("Courier New,courier", 8)
-        self.lineHeight = QtGui.QFontMetrics(font).height()
-
-        html = '''<html><head><style>%s
-body {white-space:pre;}
-</style></head><body>%s</body></html>''' % (style, code_html)
-        self.doc = QtGui.QTextDocument()
-        self.doc.setHtml(html)
-        self.doc.setDefaultFont(font)
-
-        browser = AnnotateView(self.lineHeight, self.blocks)
-        browser.setDocument(self.doc)
-        self.connect(browser, QtCore.SIGNAL("lineClicked"), self.set_revision_by_line)
+        self.browser = QtGui.QTreeWidget()
+        self.browser.setRootIsDecorated(False)
+        self.browser.setHeaderLabels([gettext("Line"), gettext("Author"), gettext("Rev"), ""])
+        self.browser.header().setStretchLastSection(False)
+        self.browser.header().setResizeMode(3, QtGui.QHeaderView.ResizeToContents)
+        self.connect(self.browser,
+            QtCore.SIGNAL("itemSelectionChanged()"),
+            self.setRevisionByLine)
 
         self.message_doc = QtGui.QTextDocument()
         message = QtGui.QTextEdit()
@@ -161,13 +154,6 @@ body {white-space:pre;}
         self.connect(self.changes,
                      QtCore.SIGNAL("doubleClicked(QModelIndex)"),
                      self.show_revision_diff)
-        self.itemToRev = {}
-        for rev in revisions:
-            item = QtGui.QTreeWidgetItem(self.changes)
-            item.setText(0, format_timestamp(rev.timestamp))
-            item.setText(1, extract_name(get_apparent_author(rev)))
-            item.setText(2, rev.get_summary())
-            self.itemToRev[item] = rev
 
         hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
         hsplitter.addWidget(self.changes)
@@ -177,7 +163,7 @@ body {white-space:pre;}
         hsplitter.setStretchFactor(1, 2)
 
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
-        splitter.addWidget(browser)
+        splitter.addWidget(self.browser)
         splitter.addWidget(hsplitter)
 
         splitter.setStretchFactor(0, 5)
@@ -189,17 +175,59 @@ body {white-space:pre;}
         vbox.addWidget(splitter)
         vbox.addWidget(buttonbox)
 
-    def set_revision_by_line(self, line):
+        branch.lock_read()
         try:
-            revisionId = self.annotations[line]
-        except IndexError:
-            pass
-        else:
-            for item, rev in self.itemToRev.iteritems():
-                if rev.revision_id == revisionId:
-                    self.changes.setCurrentItem(item)
-                    self.message_doc.setHtml(format_revision_html(rev))
-                    break
+            self.annotate(tree, fileId)
+        finally:
+            branch.unlock()
+
+    def annotate(self, tree, fileId):
+        revnos = self.branch.get_revision_id_to_revno_map()
+        revnos = dict((k, '.'.join(map(str, v))) for k, v in revnos.iteritems())
+        font = QtGui.QFont("Courier New,courier", 8)
+        revisionIds = set()
+        items = []
+        for i, (origin, text) in enumerate(tree.annotate_iter(fileId)):
+            revisionIds.add(origin)
+            item = QtGui.QTreeWidgetItem(self.browser)
+            item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(origin))
+            item.setText(0, QtCore.QString.number(i + 1))
+            item.setText(2, revnos[origin])
+            item.setText(3, text.rstrip())
+            item.setFont(3, font)
+            items.append((origin, item))
+
+        revisionIds = list(revisionIds)
+        revisions = self.branch.repository.get_revisions(revisionIds)
+        revisionDict = dict(zip(revisionIds, revisions))
+        now = time.time()
+        for revisionId, item in items:
+            r = revisionDict[revisionId]
+            r._author_name = extract_name(get_apparent_author(r))
+            item.setText(1, r._author_name)
+            item.setBackground(3, self.colormap.get_color(r, now))
+
+        revisions.sort(key=operator.attrgetter('timestamp'), reverse=True)
+
+        self.itemToRev = {}
+        for rev in revisions:
+            item = QtGui.QTreeWidgetItem(self.changes)
+            item.setText(0, format_timestamp(rev.timestamp))
+            item.setText(1, rev._author_name)
+            item.setText(2, rev.get_summary())
+            self.itemToRev[item] = rev
+
+
+    def setRevisionByLine(self):
+        items = self.browser.selectedItems()
+        if not items:
+            return
+        revisionId = str(items[0].data(0, QtCore.Qt.UserRole).toString())
+        for item, rev in self.itemToRev.iteritems():
+            if rev.revision_id == revisionId:
+                self.changes.setCurrentItem(item)
+                self.message_doc.setHtml(format_revision_html(rev))
+                break
 
     def set_revision_by_item(self):
         items = self.changes.selectedItems()
