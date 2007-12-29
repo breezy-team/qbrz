@@ -77,7 +77,7 @@ class LogWidgetDelegate(QtGui.QItemDelegate):
                 bug = index.data(BugIdRole + i)
                 if not bug.isNull():
                     self.labels.append(
-                        ("bug #" + bug.toString(), self._bugColor,
+                        (bug.toString(), self._bugColor,
                          self._bugColorBorder))
                 else:
                     break
@@ -197,7 +197,10 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
 
 
 try:
-    from bzrlib.plugins.qbzr._ext import TreeFilterProxyModel
+    from bzrlib.plugins.qbzr._ext import (
+        TreeFilterProxyModel,
+        LogWidgetDelegate,
+        )
 except ImportError:
     pass
 
@@ -293,8 +296,8 @@ class LogWindow(QBzrWindow):
 
         self.branch = branch
 
-        delegate = LogWidgetDelegate(self)
-        self.changesList.setItemDelegate(delegate)
+        self.delegate = LogWidgetDelegate(self)
+        self.changesList.setItemDelegate(self.delegate)
 
         self.last_item = None
         self.merge_stack = [self.changesModel.invisibleRootItem()]
@@ -481,12 +484,13 @@ class LogWindow(QBzrWindow):
         #get_bug_id = getattr(bugtracker, 'get_bug_id', None)
         if get_bug_id:
             i = BugIdRole
+            bugtext = gettext("bug #%s")
             for bug in rev.properties.get('bugs', '').split('\n'):
                 if bug:
                     url, status = bug.split(' ')
                     bug_id = get_bug_id(self.branch, url)
                     if bug_id:
-                        item4.setData(QtCore.QVariant(bug_id), i)
+                        item4.setData(QtCore.QVariant(bugtext % bug_id), i)
                         i += 1
 
         self.merge_stack[-1].appendRow([item1, item2, item3, item4])
