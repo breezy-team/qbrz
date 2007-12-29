@@ -95,6 +95,7 @@ class AnnotateWindow(QBzrWindow):
 
         self.browser = QtGui.QTreeWidget()
         self.browser.setRootIsDecorated(False)
+        self.browser.setUniformRowHeights(True)
         self.browser.setHeaderLabels([gettext("Line"), gettext("Author"), gettext("Rev"), ""])
         self.browser.header().setStretchLastSection(False)
         self.browser.header().setResizeMode(3, QtGui.QHeaderView.ResizeToContents)
@@ -150,25 +151,32 @@ class AnnotateWindow(QBzrWindow):
         font = QtGui.QFont("Courier New,courier", 8)
         revisionIds = set()
         items = []
+        lastRevisionId = None
         for i, (origin, text) in enumerate(tree.annotate_iter(fileId)):
             revisionIds.add(origin)
             item = QtGui.QTreeWidgetItem(self.browser)
             item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(origin))
             item.setText(0, QtCore.QString.number(i + 1))
-            item.setText(2, revnos[origin])
+            if lastRevisionId != origin:
+                item.setText(2, revnos[origin])
+                item.setTextAlignment(2, QtCore.Qt.AlignRight)
             item.setText(3, self.codec.decode(text.rstrip(), 'replace')[0])
             item.setFont(3, font)
             items.append((origin, item))
+            lastRevisionId = origin
 
         revisionIds = list(revisionIds)
         revisions = self.branch.repository.get_revisions(revisionIds)
         revisionDict = dict(zip(revisionIds, revisions))
         now = time.time()
+        lastRevisionId = None
         for revisionId, item in items:
             r = revisionDict[revisionId]
             r._author_name = extract_name(get_apparent_author(r))
-            item.setText(1, r._author_name)
+            if lastRevisionId != revisionId:
+                item.setText(1, r._author_name)
             item.setBackground(3, self.colormap.get_color(r, now))
+            lastRevisionId = revisionId
 
         revisions.sort(key=operator.attrgetter('timestamp'), reverse=True)
 
