@@ -273,6 +273,7 @@ class LogWindow(QBzrWindow):
         self.changesList.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.changesList.setModel(self.changesProxyModel)
         self.changesList.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
+        self.changesList.setUniformRowHeights(True)
         header = self.changesList.header()
         header.resizeSection(0, 70)
         header.resizeSection(1, 110)
