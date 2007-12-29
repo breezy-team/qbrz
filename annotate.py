@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import operator, sys, time
+import operator, sys, time, codecs
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.i18n import gettext
 from bzrlib.plugins.qbzr.diff import DiffWindow
@@ -123,6 +123,8 @@ class AnnotateWindow(QBzrWindow):
             [gettext("Annotate"), path], parent)
         self.restoreSize("annotate", (780, 680))
 
+        self.codec = codecs.lookup(encoding or 'utf-8')
+
         self.windows = []
 
         self.branch = branch
@@ -193,7 +195,7 @@ class AnnotateWindow(QBzrWindow):
             item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(origin))
             item.setText(0, QtCore.QString.number(i + 1))
             item.setText(2, revnos[origin])
-            item.setText(3, text.rstrip())
+            item.setText(3, self.codec.decode(text.rstrip(), 'replace')[0])
             item.setFont(3, font)
             items.append((origin, item))
 
