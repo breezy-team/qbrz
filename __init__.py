@@ -119,12 +119,12 @@ class cmd_qannotate(Command):
             entry = tree.inventory[file_id]
             if entry.kind != 'file':
                 return
-            repo = branch.repository
-            w = repo.weave_store.get_weave(file_id, repo.get_transaction())
-            content = list(w.annotate_iter(entry.revision))
-            revision_ids = set(o for o, t in content)
-            revision_ids = [o for o in revision_ids if repo.has_revision(o)]
-            revisions = branch.repository.get_revisions(revision_ids)
+            #repo = branch.repository
+            #w = repo.weave_store.get_weave(file_id, repo.get_transaction())
+            #content = list(w.annotate_iter(entry.revision))
+            #revision_ids = set(o for o, t in content)
+            #revision_ids = [o for o in revision_ids if repo.has_revision(o)]
+            #revisions = branch.repository.get_revisions(revision_ids)
         finally:
             branch.unlock()
 
@@ -132,8 +132,7 @@ class cmd_qannotate(Command):
         encoding = get_set_encoding(encoding, config)
 
         app = QtGui.QApplication(sys.argv)
-        win = AnnotateWindow(filename, content, revisions, encoding=encoding,
-                             branch=branch)
+        win = AnnotateWindow(branch, tree, relpath, file_id, encoding)
         win.show()
         app.exec_()
 
