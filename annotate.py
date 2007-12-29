@@ -18,6 +18,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+# TODO:
+#  - better annotate algorithm on packs
+#  - syntax highlighting of the source code
+
 import operator, sys, time, codecs
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.i18n import gettext
@@ -29,16 +33,7 @@ from bzrlib.plugins.qbzr.util import (
     format_revision_html,
     format_timestamp,
     get_apparent_author,
-    htmlencode,
     )
-
-have_pygments = True
-try:
-    from pygments import highlight
-    from pygments.lexers import get_lexer_for_filename
-    from pygments.formatters import HtmlFormatter
-except ImportError:
-    have_pygments = False
 
 
 class AnnotateColorSaturation(object):
