@@ -82,40 +82,6 @@ class AnnotateColorSaturation(object):
         return QtGui.QColor(*color)
 
 
-class AnnotateView(QtGui.QTextBrowser):
-
-    def __init__(self, line_height, blocks, parent=None):
-        QtGui.QTextBrowser.__init__(self, parent)
-        self.line_height = line_height
-        self.blocks = blocks
-
-    def mousePressEvent(self, event):
-        lineno = (self.verticalScrollBar().value() + event.y()) / self.line_height
-        self.emit(QtCore.SIGNAL("lineClicked"), lineno)
-        return QtGui.QTextBrowser.mousePressEvent(self, event)
-
-    def paintEvent(self, event):
-        w = self.width()
-        h = self.height()
-        y = 1 - self.verticalScrollBar().value()
-        painter = QtGui.QPainter(self.viewport())
-        painter.setClipRect(event.rect())
-        painter.setPen(QtGui.QColor(150, 150, 150))
-        for pos, length, col in self.blocks:
-            y1 = y + self.line_height * pos
-            y2 = y1 + self.line_height * length
-            if y1 >= h:
-                break
-            if y2 >= 0:
-                if y1 >= 0:
-                    painter.fillRect(0, y1, w, y2, col)
-                    painter.drawLine(0, y1, w, y1)
-                else:
-                    painter.fillRect(0, 0, w, y2, col)
-
-        return QtGui.QTextBrowser.paintEvent(self, event)
-
-
 class AnnotateWindow(QBzrWindow):
 
     def __init__(self, branch, tree, path, fileId, encoding=None, parent=None):
