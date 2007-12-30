@@ -41,6 +41,7 @@ BugIdRole = QtCore.Qt.UserRole + 100
 FilterIdRole = QtCore.Qt.UserRole + 200
 FilterMessageRole = QtCore.Qt.UserRole + 201
 FilterAuthorRole = QtCore.Qt.UserRole + 202
+FilterRevnoRole = QtCore.Qt.UserRole + 203
 
 
 _bug_id_re = lazy_regex.lazy_compile(r'(?:bugs/|ticket/|show_bug\.cgi\?id=)(\d+)(?:\b|$)')
@@ -255,6 +256,8 @@ class LogWindow(QBzrWindow):
                                 QtCore.QVariant(FilterAuthorRole))
         self.searchType.addItem(gettext("Revision IDs"),
                                 QtCore.QVariant(FilterIdRole))
+        self.searchType.addItem(gettext("Revision Numbers"),
+                                QtCore.QVariant(FilterRevnoRole))
         searchbox.addWidget(self.searchType)
         self.connect(self.searchType,
                      QtCore.SIGNAL("currentIndexChanged(int)"),
@@ -471,11 +474,13 @@ class LogWindow(QBzrWindow):
         rev = revision.rev
         author = rev.properties.get('author', rev.committer)
 
-        item1 = QtGui.QStandardItem(str(revision.revno))
+        revno = str(revision.revno)
+        item1 = QtGui.QStandardItem(revno)
         item1.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
         item1.setData(QtCore.QVariant(rev.message), FilterMessageRole)
         item1.setData(QtCore.QVariant(rev.committer + author), FilterAuthorRole)
         item1.setData(QtCore.QVariant(rev.revision_id), FilterIdRole)
+        item1.setData(QtCore.QVariant(revno), FilterRevnoRole)
         item2 = QtGui.QStandardItem(format_timestamp(rev.timestamp))
         item2.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
 
