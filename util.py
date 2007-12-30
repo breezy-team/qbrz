@@ -197,7 +197,7 @@ def format_revision_html(rev, search_replace=None):
         return ', '.join('<a href="qlog-revid:%s">%s: %s</a>' % (
             (r.revision_id,
              short_text(r.revno, 10),
-             short_text(r.get_summary(), 40))) for r in revisions)
+             short_text(r.get_summary(), 60))) for r in revisions)
 
     parents = getattr(rev, 'parents', None)
     if parents:
