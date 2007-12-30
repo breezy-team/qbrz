@@ -32,8 +32,11 @@ _link2_re = lazy_regex.lazy_compile(r'(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((
 _tag_re = lazy_regex.lazy_compile(r'[, ]')
 
 
+def escape_html(text):
+    return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace("\n", '<br />')
+
 def htmlize(text):
-    text = text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace("\n", '<br />')
+    text = escape_html(text)
     text = _email_re.sub('<a href="mailto:\\1">\\1</a>', text)
     text = _link1_re.sub('\\1<a href="\\2://\\3">\\2://\\3</a>', text)
     text = _link2_re.sub('\\1<a href="http://www.\\2.\\3\\4">www.\\2.\\3\\4</a>', text)
@@ -184,10 +187,27 @@ def format_revision_html(rev, search_replace=None):
     text = []
     text.append("<b>%s</b> %s" % (gettext("Revision:"), rev.revision_id))
 
-    parent_ids = rev.parent_ids
-    if parent_ids:
-        text.append("<b>%s</b> %s" % (gettext("Parent revisions:"),
-            ", ".join('<a href="qlog-revid:%s">%s</a>' % (a, a) for a in parent_ids)))
+    def short_text(summary, length):
+        if len(summary) > length:
+            return summary[:length-1] + u"\u2026"
+        else:
+            return summary
+
+    def revision_list_html(revisions):
+        return ', '.join('<a href="qlog-revid:%s">%s: %s</a>' % (
+            (r.revision_id,
+             short_text(r.revno, 10),
+             short_text(r.get_summary(), 40))) for r in revisions)
+
+    parents = getattr(rev, 'parents', None)
+    if parents:
+        text.append("<b>%s</b> %s" % (gettext("Parents:"),
+                                      revision_list_html(parents)))
+
+    children = getattr(rev, 'children', None)
+    if children:
+        text.append("<b>%s</b> %s" % (gettext("Children:"),
+                                      revision_list_html(children)))
 
     text.append('<b>%s</b> %s' % (gettext("Committer:"), htmlize(rev.committer)))
     author = rev.properties.get('author')

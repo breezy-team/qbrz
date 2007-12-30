@@ -217,6 +217,7 @@ class LogWindow(QBzrWindow):
 
         self.replace = replace
         self.item_to_rev = {}
+        self.revisions = {}
 
         self.changesModel = QtGui.QStandardItemModel()
         self.changesModel.setHorizontalHeaderLabels(
@@ -379,7 +380,17 @@ class LogWindow(QBzrWindow):
         rev = self.item_to_rev[item]
         self.current_rev = rev
 
+        if not hasattr(rev, 'parents'):
+            rev.parents = [self.revisions[i] for i in rev.parent_ids]
+
+        if not hasattr(rev, 'children'):
+            rev.children = [
+                child for child in self.revisions.itervalues()
+                if rev.revision_id in child.parent_ids]
+
         self.message.setHtml(format_revision_html(rev, self.replace))
+
+        #print children
 
         self.fileList.clear()
 
@@ -503,6 +514,7 @@ class LogWindow(QBzrWindow):
         self.item_to_rev[item3] = rev
         self.item_to_rev[item4] = rev
         self.last_item = item1
+        self.revisions[rev.revision_id] = rev
 
     def load_history(self):
         """Load branch history."""
