@@ -32,6 +32,7 @@ from bzrlib.plugins.qbzr.util import (
     format_timestamp,
     htmlize,
     open_browser,
+    RevisionMessageBrowser,
     )
 
 
@@ -113,12 +114,6 @@ class LogWidgetDelegate(QtGui.QItemDelegate):
             painter.setPen(option.palette.text().color())
         painter.drawText(rect.left() + x + 2, rect.bottom() - option.fontMetrics.descent(), text)
         painter.restore()
-
-
-class LogMessageBrowser(QtGui.QTextBrowser):
-
-    def setSource(self, uri):
-        pass
 
 
 class StopLoading(Exception): pass
@@ -307,7 +302,7 @@ class LogWindow(QBzrWindow):
         self.merge_stack = [self.changesModel.invisibleRootItem()]
 
         self.message = QtGui.QTextDocument()
-        self.message_browser = LogMessageBrowser()
+        self.message_browser = RevisionMessageBrowser()
         self.message_browser.setDocument(self.message)
         self.connect(self.message_browser,
                      QtCore.SIGNAL("anchorClicked(QUrl)"),

@@ -324,3 +324,9 @@ def get_qlog_replace(branch):
         replace = [tuple(replace[2*i:2*i+2])
                    for i in range(len(replace) // 2)]
     return replace
+
+
+class RevisionMessageBrowser(QtGui.QTextBrowser):
+
+    def setSource(self, uri):
+        pass

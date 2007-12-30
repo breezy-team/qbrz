@@ -33,6 +33,8 @@ from bzrlib.plugins.qbzr.util import (
     format_revision_html,
     format_timestamp,
     get_apparent_author,
+    open_browser,
+    RevisionMessageBrowser,
     )
 
 
@@ -104,8 +106,11 @@ class AnnotateWindow(QBzrWindow):
             self.setRevisionByLine)
 
         self.message_doc = QtGui.QTextDocument()
-        message = QtGui.QTextEdit()
+        message = RevisionMessageBrowser()
         message.setDocument(self.message_doc)
+        self.connect(message,
+                     QtCore.SIGNAL("anchorClicked(QUrl)"),
+                     self.linkClicked)
 
         self.changes = QtGui.QTreeWidget()
         self.changes.setHeaderLabels(
@@ -227,3 +232,7 @@ class AnnotateWindow(QBzrWindow):
                             branch=self.branch)
         window.show()
         self.windows.append(window)
+
+    def linkClicked(self, url):
+        open_browser(str(url.toEncoded()))
+
