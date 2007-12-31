@@ -32,6 +32,7 @@ from bzrlib.plugins.qbzr.util import (
     format_timestamp,
     htmlize,
     open_browser,
+    RevisionMessageBrowser,
     )
 
 
@@ -41,6 +42,7 @@ BugIdRole = QtCore.Qt.UserRole + 100
 FilterIdRole = QtCore.Qt.UserRole + 200
 FilterMessageRole = QtCore.Qt.UserRole + 201
 FilterAuthorRole = QtCore.Qt.UserRole + 202
+FilterRevnoRole = QtCore.Qt.UserRole + 203
 
 
 _bug_id_re = lazy_regex.lazy_compile(r'(?:bugs/|ticket/|show_bug\.cgi\?id=)(\d+)(?:\b|$)')
@@ -77,7 +79,7 @@ class LogWidgetDelegate(QtGui.QItemDelegate):
                 bug = index.data(BugIdRole + i)
                 if not bug.isNull():
                     self.labels.append(
-                        ("bug #" + bug.toString(), self._bugColor,
+                        (bug.toString(), self._bugColor,
                          self._bugColorBorder))
                 else:
                     break
@@ -112,12 +114,6 @@ class LogWidgetDelegate(QtGui.QItemDelegate):
             painter.setPen(option.palette.text().color())
         painter.drawText(rect.left() + x + 2, rect.bottom() - option.fontMetrics.descent(), text)
         painter.restore()
-
-
-class LogMessageBrowser(QtGui.QTextBrowser):
-
-    def setSource(self, uri):
-        pass
 
 
 class StopLoading(Exception): pass
@@ -197,7 +193,10 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
 
 
 try:
-    from bzrlib.plugins.qbzr._ext import TreeFilterProxyModel
+    from bzrlib.plugins.qbzr._ext import (
+        TreeFilterProxyModel,
+        LogWidgetDelegate,
+        )
 except ImportError:
     pass
 
@@ -214,6 +213,7 @@ class LogWindow(QBzrWindow):
 
         self.replace = replace
         self.item_to_rev = {}
+        self.revisions = {}
 
         self.changesModel = QtGui.QStandardItemModel()
         self.changesModel.setHorizontalHeaderLabels(
@@ -251,6 +251,8 @@ class LogWindow(QBzrWindow):
                                 QtCore.QVariant(FilterAuthorRole))
         self.searchType.addItem(gettext("Revision IDs"),
                                 QtCore.QVariant(FilterIdRole))
+        self.searchType.addItem(gettext("Revision Numbers"),
+                                QtCore.QVariant(FilterRevnoRole))
         searchbox.addWidget(self.searchType)
         self.connect(self.searchType,
                      QtCore.SIGNAL("currentIndexChanged(int)"),
@@ -273,6 +275,7 @@ class LogWindow(QBzrWindow):
         self.changesList.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.changesList.setModel(self.changesProxyModel)
         self.changesList.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
+        self.changesList.setUniformRowHeights(True)
         header = self.changesList.header()
         header.resizeSection(0, 70)
         header.resizeSection(1, 110)
@@ -292,14 +295,14 @@ class LogWindow(QBzrWindow):
 
         self.branch = branch
 
-        delegate = LogWidgetDelegate(self)
-        self.changesList.setItemDelegate(delegate)
+        self.delegate = LogWidgetDelegate(self)
+        self.changesList.setItemDelegate(self.delegate)
 
         self.last_item = None
         self.merge_stack = [self.changesModel.invisibleRootItem()]
 
         self.message = QtGui.QTextDocument()
-        self.message_browser = LogMessageBrowser()
+        self.message_browser = RevisionMessageBrowser()
         self.message_browser.setDocument(self.message)
         self.connect(self.message_browser,
                      QtCore.SIGNAL("anchorClicked(QUrl)"),
@@ -375,7 +378,17 @@ class LogWindow(QBzrWindow):
         rev = self.item_to_rev[item]
         self.current_rev = rev
 
+        if not hasattr(rev, 'parents'):
+            rev.parents = [self.revisions[i] for i in rev.parent_ids]
+
+        if not hasattr(rev, 'children'):
+            rev.children = [
+                child for child in self.revisions.itervalues()
+                if rev.revision_id in child.parent_ids]
+
         self.message.setHtml(format_revision_html(rev, self.replace))
+
+        #print children
 
         self.fileList.clear()
 
@@ -456,11 +469,13 @@ class LogWindow(QBzrWindow):
         rev = revision.rev
         author = rev.properties.get('author', rev.committer)
 
-        item1 = QtGui.QStandardItem(str(revision.revno))
+        revno = str(revision.revno)
+        item1 = QtGui.QStandardItem(revno)
         item1.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
         item1.setData(QtCore.QVariant(rev.message), FilterMessageRole)
         item1.setData(QtCore.QVariant(rev.committer + author), FilterAuthorRole)
         item1.setData(QtCore.QVariant(rev.revision_id), FilterIdRole)
+        item1.setData(QtCore.QVariant(revno), FilterRevnoRole)
         item2 = QtGui.QStandardItem(format_timestamp(rev.timestamp))
         item2.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
 
@@ -480,12 +495,13 @@ class LogWindow(QBzrWindow):
         #get_bug_id = getattr(bugtracker, 'get_bug_id', None)
         if get_bug_id:
             i = BugIdRole
+            bugtext = gettext("bug #%s")
             for bug in rev.properties.get('bugs', '').split('\n'):
                 if bug:
                     url, status = bug.split(' ')
                     bug_id = get_bug_id(self.branch, url)
                     if bug_id:
-                        item4.setData(QtCore.QVariant(bug_id), i)
+                        item4.setData(QtCore.QVariant(bugtext % bug_id), i)
                         i += 1
 
         self.merge_stack[-1].appendRow([item1, item2, item3, item4])
@@ -498,6 +514,7 @@ class LogWindow(QBzrWindow):
         self.item_to_rev[item3] = rev
         self.item_to_rev[item4] = rev
         self.last_item = item1
+        self.revisions[rev.revision_id] = rev
 
     def load_history(self):
         """Load branch history."""
