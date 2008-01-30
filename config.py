@@ -208,12 +208,24 @@ class QBzrConfigWindow(QBzrWindow):
 
         # Editor
         editor = unicode(self.editorEdit.text())
-        parser['DEFAULT']['editor'] = editor
+        if editor:
+            parser['DEFAULT']['editor'] = editor
+        else:
+            try:
+                del parser['DEFAULT']['editor']
+            except KeyError, e:
+                pass
 
         # E-mail client
         index = self.emailClientCombo.currentIndex()
         emailClient = unicode(self.emailClientCombo.itemData(index).toString())
-        parser['DEFAULT']['mail_client'] = emailClient
+        if emailClient:
+            parser['DEFAULT']['mail_client'] = emailClient
+        else:
+            try:
+                del parser['DEFAULT']['mail_client']
+            except KeyError:
+                pass
 
         # Aliases
         parser['ALIASES'] = {}
