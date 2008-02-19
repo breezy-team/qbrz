@@ -309,6 +309,10 @@ class QBzrMainWindow(QBzrWindow):
         fileMenu.addAction(gettext("&Quit"), self.close, "Ctrl+Q")
         viewMenu = mainMenu.addMenu(gettext("&View"))
         viewMenu.addAction(self.actions['refresh'])
+        branchMenu = mainMenu.addMenu(gettext("&Branch"))
+        branchMenu.addAction(self.actions['commit'])
+        branchMenu.addAction(self.actions['push'])
+        branchMenu.addAction(self.actions['pull'])
         bookmarksMenu = mainMenu.addMenu(gettext("&Bookmarks"))
         bookmarksMenu.addAction(self.actions['add-bookmark'])
         helpMenu = mainMenu.addMenu(gettext("&Help"))
@@ -451,10 +455,18 @@ class QBzrMainWindow(QBzrWindow):
         self.window.show()
 
     def push(self):
-        print "push"
+        from bzrlib.workingtree import WorkingTree
+        from bzrlib.plugins.qbzr.pull import QBzrPushWindow
+        tree = WorkingTree.open_containing(self.currentDirectory)[0]
+        self.window = QBzrPushWindow(tree.branch, parent=self)
+        self.window.show()
 
     def pull(self):
-        print "pull"
+        from bzrlib.workingtree import WorkingTree
+        from bzrlib.plugins.qbzr.pull import QBzrPullWindow
+        tree = WorkingTree.open_containing(self.currentDirectory)[0]
+        self.window = QBzrPullWindow(tree.branch, parent=self)
+        self.window.show()
 
     def configure(self):
         from bzrlib.plugins.qbzr.config import QBzrConfigWindow
