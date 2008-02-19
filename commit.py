@@ -174,6 +174,7 @@ class CommitWindow(QBzrWindow):
                     ignore.add(inner_merge)
                     pending_merges.append(inner_merge)
         self.pending_merges = repo.get_revisions(pending_merges)
+        self.is_bound = bool(branch.get_bound_location())
 
     def __init__(self, tree, selected_list, dialog=True, parent=None):
         title = [gettext("Commit")]
@@ -282,6 +283,14 @@ class CommitWindow(QBzrWindow):
                      self.enableAuthor)
         grid.addWidget(self.authorCheckBox, 2, 0)
         grid.addWidget(self.author, 2, 1)
+
+        if self.is_bound:
+            self.local_checkbox = QtGui.QCheckBox(gettext(
+                "&Local commit in a bound branch"))
+            self.local_checkbox.setToolTip(gettext(
+                "Local commits are not pushed to the master branch "
+                "until a normal commit is performed"))
+            grid.addWidget(self.local_checkbox, 3, 0, 1, 2)
 
         # Display a list of pending merges
         if self.pending_merges:
@@ -483,12 +492,17 @@ class CommitWindow(QBzrWindow):
         else:
             specific_files = None
 
+        local = None
+        if self.is_bound:
+            local = self.local_checkbox.isChecked()
+
         try:
             self.tree.commit(message=message,
                              specific_files=specific_files,
                              reporter=ReportCommitToLog(),
                              allow_pointless=False,
-                             revprops=properties)
+                             revprops=properties,
+                             local=local)
         except BzrError, e:
             self.save_message()
             QtGui.QMessageBox.warning(self,
