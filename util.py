@@ -20,10 +20,12 @@
 import os
 import sys
 import re
+import bzrlib.plugins.qbzr.resources
 from PyQt4 import QtCore, QtGui
 from bzrlib.config import GlobalConfig, IniBasedConfig, config_dir, ensure_config_dir_exists
 from bzrlib import lazy_regex, osutils
 from bzrlib.plugins.qbzr.i18n import gettext, N_, ngettext
+from bzrlib.util.configobj import configobj
 
 
 _email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)', re.IGNORECASE)
@@ -70,6 +72,84 @@ class StandardButton(QtGui.QPushButton):
 
 def config_filename():
     return osutils.pathjoin(config_dir(), 'qbzr.conf')
+
+
+class Config(object):
+
+    def __init__(self, filename):
+        self._filename = filename
+        self._configobj = None
+
+    def _load(self):
+        if self._configobj is not None:
+            return
+        self._configobj = configobj.ConfigObj(self._filename,
+                                              encoding='utf-8')
+
+    def setOption(self, name, value, section=None):
+        self._load()
+        if section is None:
+            section = 'DEFAULT'
+        if section not in self._configobj:
+            self._configobj['DEFAULT'] = {}
+        self._configobj['DEFAULT'][name] = value
+
+    def getOption(self, name, value, section=None):
+        self._load()
+        if section is None:
+            section = 'DEFAULT'
+        try:
+            return self._configobj['DEFAULT'][name]
+        except KeyError:
+            return None
+
+    def setSection(self, name, values):
+        self._load()
+        self._configobj[name] = values
+
+    def getSection(self, name):
+        self._load()
+        try:
+            return self._configobj[name]
+        except KeyError:
+            return {}
+
+    def save(self):
+        self._load()
+        ensure_config_dir_exists(os.path.dirname(self._filename))
+        f = open(self._filename, 'wb')
+        self._configobj.write(f)
+        f.close()
+
+
+class QBzrConfig(Config):
+
+    def __init__(self):
+        super(QBzrConfig, self).__init__(config_filename())
+
+    def getBookmarks(self):
+        section = self.getSection('BOOKMARKS')
+        i = 0
+        while True:
+            try:
+                location = section['bookmark%d' % i]
+            except KeyError:
+                break
+            name = section.get('bookmark%d_name' % i, location)
+            i += 1
+            yield name, location
+
+    def setBookmarks(self, bookmarks):
+        section = {}
+        for i, (name, location) in enumerate(bookmarks):
+            section['bookmark%d' % i] = location
+            section['bookmark%d_name' % i] = name
+        self.setSection('BOOKMARKS', section)
+
+    def addBookmark(self, name, location):
+        bookmarks = list(self.getBookmarks())
+        bookmarks.append((name, location))
+        self.setBookmarks(bookmarks)
 
 
 class QBzrGlobalConfig(IniBasedConfig):
@@ -139,6 +219,7 @@ class QBzrWindow(QtGui.QMainWindow):
         config = QBzrGlobalConfig()
         config.set_user_option(name + "_window_size", "%dx%d" % size)
         config.set_user_option(name + "_window_maximized", is_maximized)
+        return config
 
     def restoreSize(self, name, defaultSize):
         self._window_name = name
@@ -161,6 +242,90 @@ class QBzrWindow(QtGui.QMainWindow):
         is_maximized = config.get_user_option(name + "_window_maximized")
         if is_maximized in ("True", "1"):
             self.setWindowState(QtCore.Qt.WindowMaximized)
+        return config
+
+    def closeEvent(self, event):
+        self.saveSize()
+        for window in self.windows:
+            if window.isVisible():
+                window.close()
+        event.accept()
+
+
+class QBzrDialog(QtGui.QDialog):
+
+    def __init__(self, title=[], parent=None):
+        QtGui.QDialog.__init__(self, parent)
+
+        self.setWindowTitle(" - ".join(["QBzr"] + title))
+        icon = QtGui.QIcon()
+        icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
+        icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
+        self.setWindowIcon(icon)
+
+        self.centralwidget = self
+        #self.setCentralWidget(self.centralwidget)
+        self.windows = []
+
+    def create_button_box(self, *buttons):
+        """Create and return button box with pseudo-standard buttons
+        @param  buttons:    any from BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP
+        @return:    QtGui.QDialogButtonBox with attached buttons and signals
+        """
+        ROLES = {
+            BTN_OK: (QtGui.QDialogButtonBox.AcceptRole,
+                "accepted()", "accept"),
+            BTN_CANCEL: (QtGui.QDialogButtonBox.RejectRole,
+                "rejected()", "reject"),
+            BTN_CLOSE: (QtGui.QDialogButtonBox.RejectRole,
+                "rejected()", "close"),
+            # XXX support for HelpRole
+            }
+        buttonbox = QtGui.QDialogButtonBox(self.centralwidget)
+        for i in buttons:
+            btn = StandardButton(i)
+            role, signal_name, method_name = ROLES[i]
+            buttonbox.addButton(btn, role)
+            self.connect(buttonbox,
+                QtCore.SIGNAL(signal_name), getattr(self, method_name))
+        return buttonbox
+
+    def saveSize(self):
+        name = self._window_name
+        is_maximized = int(self.windowState()) & QtCore.Qt.WindowMaximized != 0
+        if is_maximized:
+            # XXX for some reason this doesn't work
+            geom = self.normalGeometry()
+            size = geom.width(), geom.height()
+        else:
+            size = self.width(), self.height()
+        config = QBzrGlobalConfig()
+        config.set_user_option(name + "_window_size", "%dx%d" % size)
+        config.set_user_option(name + "_window_maximized", is_maximized)
+        return config
+
+    def restoreSize(self, name, defaultSize):
+        self._window_name = name
+        config = QBzrGlobalConfig()
+        size = config.get_user_option(name + "_window_size")
+        if size:
+            size = size.split("x")
+            if len(size) == 2:
+                try:
+                    size = map(int, size)
+                except ValueError:
+                    size = defaultSize
+                else:
+                    if size[0] < 100 or size[1] < 100:
+                        size = defaultSize
+        else:
+            size = defaultSize
+        size = QtCore.QSize(size[0], size[1])
+        self.resize(size.expandedTo(self.minimumSizeHint()))
+        is_maximized = config.get_user_option(name + "_window_maximized")
+        if is_maximized in ("True", "1"):
+            self.setWindowState(QtCore.Qt.WindowMaximized)
+        return config
 
     def closeEvent(self, event):
         self.saveSize()

@@ -29,7 +29,7 @@ from bzrlib.plugins.qbzr.i18n import gettext, N_
 from bzrlib.plugins.qbzr.util import (
     BTN_OK,
     BTN_CANCEL,
-    QBzrWindow,
+    QBzrDialog,
     extract_name,
     )
 
@@ -48,10 +48,10 @@ _mail_clients = [
 _bug_tracker_re = re.compile('bugtracker_(.+?)_url')
 
 
-class QBzrConfigWindow(QBzrWindow):
+class QBzrConfigWindow(QBzrDialog):
 
     def __init__(self, parent=None):
-        QBzrWindow.__init__(self, [gettext("Configuration")], parent)
+        QBzrDialog.__init__(self, [gettext("Configuration")], parent)
         self.restoreSize("config", (400, 300))
 
         tabwidget = QtGui.QTabWidget()

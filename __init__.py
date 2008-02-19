@@ -32,7 +32,6 @@ if hasattr(sys, "frozen"):
     # "hack in" our PyQt4 binaries
     sys.path.append(os.path.join(os.path.dirname(__file__), '_lib'))
 
-import bzrlib.plugins.qbzr.resources
 from bzrlib import errors
 from bzrlib.option import Option
 from bzrlib.commands import Command, register_command
@@ -46,10 +45,12 @@ from bzrlib import (
     ui,
     ui.text,
     progress,
+    osutils,
 )
 from bzrlib.util import bencode
 from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
+from bzrlib.plugins.qbzr.main import QBzrMainWindow
 from bzrlib.plugins.qbzr.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.browse import BrowseWindow
 from bzrlib.plugins.qbzr.cat import QBzrCatWindow
@@ -163,7 +164,7 @@ class cmd_qcommit(Command):
         if selected_list == ['']:
             selected_list = []
         application = QtGui.QApplication(sys.argv)
-        window = CommitWindow(tree, selected_list)
+        window = CommitWindow(tree, selected_list, dialog=False)
         window.show()
         application.exec_()
 
@@ -354,6 +355,31 @@ class cmd_qbranch(Command):
         app.exec_()
 
 
+class cmd_qbzr(Command):
+    """The QBzr application."""
+
+    takes_options = []
+    takes_args = []
+    hidden = True
+
+    def run(self):
+        # Remove svn checkout support
+        try:
+            from bzrlib.plugins.svn.format import SvnWorkingTreeDirFormat
+        except ImportError:
+            pass
+        else:
+            from bzrlib.bzrdir import BzrDirFormat, format_registry
+            BzrDirFormat.unregister_control_format(SvnWorkingTreeDirFormat)
+            format_registry.remove('subversion-wc')
+        # Start QBzr
+        app = QtGui.QApplication(sys.argv)
+        window = QBzrMainWindow()
+        window.setDirectory(osutils.realpath(u'.'))
+        window.show()
+        app.exec_()
+
+
 register_command(cmd_qannotate)
 register_command(cmd_qbrowse)
 register_command(cmd_qconfig)
@@ -364,6 +390,9 @@ register_command(cmd_qlog)
 register_command(cmd_qpull)
 register_command(cmd_qpush)
 register_command(cmd_qbranch)
+
+# "bzr qbzr" :)
+register_command(cmd_qbzr)
 
 
 class SubprocessChildProgress(progress._BaseProgressBar):

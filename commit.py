@@ -176,11 +176,15 @@ class CommitWindow(QBzrWindow):
         self.pending_merges = repo.get_revisions(pending_merges)
         self.is_bound = bool(branch.get_bound_location())
 
-    def __init__(self, tree, selected_list, parent=None):
+    def __init__(self, tree, selected_list, dialog=True, parent=None):
         title = [gettext("Commit")]
         QBzrWindow.__init__(self, title, parent)
         self.restoreSize("commit", (540, 540))
-        self.setWindowFlags(QtCore.Qt.WindowContextHelpButtonHint)
+        if dialog:
+            flags = QtCore.Qt.Dialog | QtCore.Qt.WindowContextHelpButtonHint
+        else:
+            flags = QtCore.Qt.Window | QtCore.Qt.WindowContextHelpButtonHint
+        self.setWindowFlags(flags)
 
         self.tree = tree
         self.basis_tree = self.tree.basis_tree()
@@ -237,7 +241,7 @@ class CommitWindow(QBzrWindow):
         words = list(set(words))
         words.sort(lambda a, b: cmp(a.lower(), b.lower()))
 
-        splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self.centralwidget)
+        splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
 
         groupbox = QtGui.QGroupBox(gettext("Message"), splitter)
         splitter.addWidget(groupbox)
@@ -520,7 +524,7 @@ class CommitWindow(QBzrWindow):
         revs = [rev_parent_id, rev_id]
         tree1, tree2 = repo.revision_trees(revs)
         window = DiffWindow(tree1, tree2, custom_title="..".join(revs),
-                            branch=self.tree.branch)
+                            branch=self.tree.branch, parent=self)
         window.show()
         self.windows.append(window)
 
@@ -556,17 +560,17 @@ class CommitWindow(QBzrWindow):
         items = self.filelist.selectedItems()
         if not items:
             return
-        button = QtGui.QMessageBox.question(self,
-            "QBzr - " + gettext("Commit"),
+        res = QtGui.QMessageBox.question(self,
+            gettext("Revert"),
             gettext("Do you really want to revert the selected file(s)?"),
-            QtGui.QMessageBox.StandardButtons(QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel))
-        if button == QtGui.QMessageBox.Ok:
+            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+        if res == QtGui.QMessageBox.Yes:
             paths = [self.item_to_file[item][3] for item in items]
             try:
                 self.tree.revert(paths, self.tree.branch.repository.revision_tree(self.tree.last_revision()))
             except BzrError, e:
                 QtGui.QMessageBox.warning(self,
-                    "QBzr - "+gettext("Revert"), str(e), QtGui.QMessageBox.Ok)
+                    gettext("Revert"), str(e), QtGui.QMessageBox.Ok)
             else:
                 for item in items:
                     index = self.filelist.indexOfTopLevelItem(item)
