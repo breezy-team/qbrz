@@ -44,6 +44,8 @@ FilterMessageRole = QtCore.Qt.UserRole + 201
 FilterAuthorRole = QtCore.Qt.UserRole + 202
 FilterRevnoRole = QtCore.Qt.UserRole + 203
 
+PathRole = QtCore.Qt.UserRole + 1
+
 
 _bug_id_re = lazy_regex.lazy_compile(r'(?:bugs/|ticket/|show_bug\.cgi\?id=)(\d+)(?:\b|$)')
 
@@ -413,6 +415,7 @@ class LogWindow(QBzrWindow):
         for (oldpath, newpath, id_, kind,
             text_modified, meta_modified) in delta.renamed:
             item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
+            item.setData(PathRole, QtCore.QVariant(newpath))
             item.setTextColor(QtGui.QColor("purple"))
 
     def show_diff_window(self, rev1, rev2, specific_files=None):
@@ -439,9 +442,11 @@ class LogWindow(QBzrWindow):
         """Show differences of a specific file in a single revision"""
         item = self.fileList.itemFromIndex(index)
         if item and self.current_rev:
-            file = unicode(item.text())
+            path = item.data(PathRole).toString()
+            if path.isNull():
+                path = item.text()
             rev = self.current_rev
-            self.show_diff_window(rev, rev, [file])
+            self.show_diff_window(rev, rev, [unicode(path)])
 
     def diff_pushed(self, checked):
         """Show differences of the selected range or of a single revision"""
