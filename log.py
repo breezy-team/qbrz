@@ -380,13 +380,19 @@ class LogWindow(QBzrWindow):
         rev = self.item_to_rev[item]
         self.current_rev = rev
 
-        if not hasattr(rev, 'parents'):
-            rev.parents = [self.revisions[i] for i in rev.parent_ids]
+        try:
+            if not hasattr(rev, 'parents'):
+                rev.parents = [self.revisions[i] for i in rev.parent_ids]
+        except KeyError:
+            pass
 
-        if not hasattr(rev, 'children'):
-            rev.children = [
-                child for child in self.revisions.itervalues()
-                if rev.revision_id in child.parent_ids]
+        try:
+            if not hasattr(rev, 'children'):
+                rev.children = [
+                    child for child in self.revisions.itervalues()
+                    if rev.revision_id in child.parent_ids]
+        except KeyError:
+            pass
 
         self.message.setHtml(format_revision_html(rev, self.replace))
 
