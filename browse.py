@@ -158,7 +158,7 @@ class BrowseWindow(QBzrWindow):
                     revision_id = revspec.in_branch(*args).rev_id
                 except errors.InvalidRevisionSpec, e:
                     QtGui.QMessageBox.warning(self,
-                        "QBzr - " + gettext("Commit"), str(e),
+                        "QBzr - " + gettext("Browse"), str(e),
                         QtGui.QMessageBox.Ok)
                     return
             self.items = []
@@ -181,8 +181,20 @@ class BrowseWindow(QBzrWindow):
             item.setText(3, rev.get_summary())
 
     def reload_tree(self):
-        revspec = RevisionSpec.from_string(unicode(self.revision_edit.text()))
-        self.set_revision(revspec)
+        revstr = unicode(self.revision_edit.text())
+        if not revstr:
+            revno, revision_id = self.branch.last_revision_info()
+            revision_spec = str(revno)
+            self.set_revision(revision_id=revision_id, text=revision_spec)
+        else:
+            try:
+                revspec = RevisionSpec.from_string(revstr)
+            except errors.NoSuchRevisionSpec, e:
+                QtGui.QMessageBox.warning(self,
+                    "QBzr - " + gettext("Browse"), str(e),
+                    QtGui.QMessageBox.Ok)
+                return
+            self.set_revision(revspec)
 
 
 def get_diff_trees(tree1, tree2, **kwargs):
