@@ -360,6 +360,7 @@ class cmd_qbzr(Command):
 
     takes_options = []
     takes_args = []
+    hidden = True
 
     def run(self):
         # Remove svn checkout support

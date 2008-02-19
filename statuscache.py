@@ -129,7 +129,7 @@ class StatusCache(QtCore.QObject):
         else:
             if entry.status == 'unknown':
                 entry = self._cacheDirectoryStatus(path)
-        print path, entry.status
+        #print path, entry.status
         return entry.status
 
     def invalidateDirectory(self, path):
