@@ -29,6 +29,7 @@ from bzrlib.plugins.qbzr.i18n import gettext
 from bzrlib.plugins.qbzr.util import (
     BTN_CLOSE,
     QBzrWindow,
+    extract_name,
     format_timestamp,
     get_qlog_replace,
     )
@@ -177,7 +178,8 @@ class BrowseWindow(QBzrWindow):
         for item, revision_id in self.items:
             rev = revs[revision_id]
             item.setText(1, format_timestamp(rev.timestamp))
-            item.setText(2, rev.committer)
+            author = rev.properties.get('author', rev.committer)
+            item.setText(2, extract_name(author))
             item.setText(3, rev.get_summary())
 
     def reload_tree(self):
