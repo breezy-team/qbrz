@@ -98,7 +98,7 @@ class BrowseWindow(QBzrWindow):
                 revision_spec = str(revno)
             self.set_revision(revision_id=revision_id, text=revision_spec)
         else:
-            self.set_revision(revspec)
+            self.set_revision(revision)
 
     def load_file_tree(self, entry, parent_item):
         files, dirs = [], []
