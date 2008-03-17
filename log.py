@@ -402,9 +402,12 @@ class LogWindow(QBzrWindow):
 
         if not rev.delta:
             # TODO move this to a thread
-            rev.delta = \
-                self.branch.repository.get_deltas_for_revisions(
+            self.branch.repository.lock_read()
+            try:
+                rev.delta = self.branch.repository.get_deltas_for_revisions(
                     [rev]).next()
+            finally:
+                self.branch.repository.unlock()
         delta = rev.delta
 
         for path, id_, kind in delta.added:
