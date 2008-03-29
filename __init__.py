@@ -356,7 +356,10 @@ class cmd_qbranch(Command):
 
 
 class cmd_qbzr(Command):
-    """The QBzr application."""
+    """The QBzr application.
+
+    Not finished -- DON'T USE
+    """
 
     takes_options = []
     takes_args = []
