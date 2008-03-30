@@ -22,7 +22,7 @@
 Provided commands: qannotate, qbrowse, qcat, qcommit, qconfig, qdiff, qlog
 """
 
-version_info = (0, 9, 0, 'dev', 0)
+version_info = (0, 9, 0, 'final', 0)
 __version__ = '.'.join(map(str, version_info))
 
 import os.path
@@ -356,7 +356,10 @@ class cmd_qbranch(Command):
 
 
 class cmd_qbzr(Command):
-    """The QBzr application."""
+    """The QBzr application.
+
+    Not finished -- DON'T USE
+    """
 
     takes_options = []
     takes_args = []

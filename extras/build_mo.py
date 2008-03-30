@@ -24,6 +24,7 @@ from distutils.command.build import build
 from distutils.core import Command
 from distutils.dep_util import newer
 import os
+import re
 
 
 class build_mo(Command):
@@ -61,9 +62,11 @@ class build_mo(Command):
         if self.source_dir is None:
             self.source_dir = 'po'
         if self.lang is None:
-            self.lang = [i[:-3]
-                         for i in os.listdir(self.source_dir)
-                         if i.endswith('.po')]
+            self.lang = []
+            for i in os.listdir(self.source_dir):
+                mo = re.match(r'^(?:qbzr-)?([a-zA-Z_]+)\.po$', i)
+                if mo:
+                    self.lang.append(mo.group(1))
         else:
             self.lang = [i.strip() for i in self.lang.split(',') if i.strip()]
 
@@ -78,6 +81,8 @@ class build_mo(Command):
 
         for lang in self.lang:
             po = os.path.join('po', lang + '.po')
+            if not os.path.isfile(po):
+                po = os.path.join('po', 'qbzr-' + lang + '.po')
             dir_ = os.path.join(self.build_dir, lang, 'LC_MESSAGES')
             self.mkpath(dir_)
             mo = os.path.join(dir_, basename)
