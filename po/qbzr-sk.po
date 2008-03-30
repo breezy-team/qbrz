@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-03-24 12:54+0200\n"
+"POT-Creation-Date: 2008-03-30 09:22+0200\n"
 "PO-Revision-Date: 2007-11-27 19:36+0000\n"
 "Last-Translator: Lukáš Lalinský <lalinsky@gmail.com>\n"
 "Language-Team: Slovak <sk@li.org>\n"
@@ -16,12 +16,6 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 1 : (n>=2 && n<=4) ? 2 : 0;\n"
 "X-Launchpad-Export-Date: 2008-03-24 12:40+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
-
-#~ msgid "Parent revisions:"
-#~ msgstr "Rodičovské revízie:"
-
-#~ msgid "Paths"
-#~ msgstr "Cesty"
 
 #: annotate.py:86
 msgid "Annotate"
@@ -142,8 +136,7 @@ msgstr ""
 "Nastaví meno autora tejto zmeny, v prípade že je odlišné od odovzdávateľa."
 
 #: commit.py:279
-msgid ""
-"Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
+msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
 "Vložte meno autora, napr. <i>Ján Mrkvička &lt;jmrkvicka@example.com&gt;</i>"
 
@@ -473,10 +466,10 @@ msgstr ""
 #: main.py:412
 #, python-format
 msgid ""
-"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
-"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2007 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
-"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
+"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2007 Lukš Lalinsk and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
+"\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
 
 #: main.py:477
@@ -611,3 +604,9 @@ msgid_plural "Bugs:"
 msgstr[0] "Chyby:"
 msgstr[1] "Chyby:"
 msgstr[2] "Chyby:"
+
+#~ msgid "Parent revisions:"
+#~ msgstr "Rodičovské revízie:"
+
+#~ msgid "Paths"
+#~ msgstr "Cesty"
