@@ -86,7 +86,7 @@ if have_pyqt_dev:
 setup(name='qbzr',
       description='Qt4 frontend for Bazaar',
       keywords='plugin bzr qt qbzr',
-      version='0.9.0',
+      version='0.9.1',
       url='http://bazaar-vcs.org/QBzr',
       license='GPL',
       author='Lukáš Lalinský',
