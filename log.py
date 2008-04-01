@@ -428,6 +428,14 @@ class LogWindow(QBzrWindow):
             item.setTextColor(QtGui.QColor("purple"))
 
     def show_diff_window(self, rev1, rev2, specific_files=None):
+        self.branch.repository.lock_read()
+        try:
+            self._show_diff_window(rev1, rev2, specific_files)
+        finally:
+            self.branch.repository.unlock()
+
+    def _show_diff_window(self, rev1, rev2, specific_files=None):
+        # repository should be locked
         if not rev2.parent_ids:
             revs = [rev1.revision_id]
             tree = self.branch.repository.revision_tree(rev1.revision_id)
