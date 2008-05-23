@@ -381,7 +381,7 @@ def format_revision_html(rev, search_replace=None):
 
     branch_nick = rev.properties.get('branch-nick')
     if branch_nick:
-        text.append('<b>%s</b> %s' % (gettext("Branch nick:"), branch_nick))
+        text.append('<b>%s</b> %s' % (gettext("Branch nick:"), htmlize(branch_nick)))
 
     tags = getattr(rev, 'tags', None)
     if tags:
