@@ -97,6 +97,7 @@ class DiffSourceView(QtGui.QTextBrowser):
             if y1 != y2:
                 painter.drawLine(0, y2, w, y2)
 
+        painter = None
         QtGui.QTextBrowser.paintEvent(self, event)
 
 
