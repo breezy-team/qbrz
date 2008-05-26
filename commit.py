@@ -477,6 +477,7 @@ class CommitWindow(QBzrWindow):
 
         if self.authorCheckBox.checkState() == QtCore.Qt.Checked:
             author = unicode(self.author.text())
+            author = re.sub('\s+', ' ', author).strip()
             if author:
                 properties['author'] = author
 
