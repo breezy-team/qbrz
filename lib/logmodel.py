@@ -172,7 +172,15 @@ class TreeModel(QtCore.QAbstractTableModel):
             
             
             if specific_fileid is not None:
-                results_batch_size = 25
+                results_batch_size = 5
+                def makeVisible(msri, results_batch_size):
+                    self.visible_msri.append(msri)
+                    if len(self.visible_msri) % results_batch_size == 0:
+                        self.compute_search()
+                        QtCore.QCoreApplication.processEvents()
+                        results_batch_size = max(200, results_batch_size*2)
+                    return results_batch_size
+                
                 self.visible_msri = []
                 for rev_msri, (sequence_number,
                                revid,
@@ -182,13 +190,32 @@ class TreeModel(QtCore.QAbstractTableModel):
                     text_key = (specific_fileid, revid)
                     modified_text_versions = branch.repository.texts.get_parent_map([text_key])
                     if text_key in modified_text_versions:
-                        self.visible_msri.append(rev_msri)
+                        results_batch_size = makeVisible(rev_msri, results_batch_size)
+                        #Find Merges that are closer to main line.
+                        next_revid = revid
+                        last_depth = merge_depth
+                        while last_depth > 0:
+                            min_depth = None
+                            min_depth_revid = None
+                            min_depth_msri = None
+                            children = self.graph_children[next_revid]
+                            for child_revid in children:
+                                child_msri = self.revid_msri[child_revid]
+                                depth = self.merge_sorted_revisions[child_msri][2]
+                                if not min_depth or depth < min_depth:
+                                    min_depth = depth
+                                    min_depth_revid = child_revid
+                                    min_depth_msri = child_msri
+                            if min_depth_msri in self.visible_msri:
+                                break
+                            if min_depth == last_depth:
+                                next_revid = min_depth_revid
+                            else:
+                                results_batch_size = makeVisible(min_depth_msri, results_batch_size)
+                                next_revid = min_depth_revid
+                                last_depth = min_depth
                     if rev_msri % 100 == 0 :
                         QtCore.QCoreApplication.processEvents()
-                    if len(self.visible_msri) % results_batch_size == 0:
-                        self.compute_search()
-                        QtCore.QCoreApplication.processEvents()
-                        results_batch_size = 200
                 self.compute_search()
                 QtCore.QCoreApplication.processEvents()
             else:
@@ -850,3 +877,5 @@ def _mark_column_as_used(columns, col_index, line_range):
     column = columns[col_index]
     for row_index in line_range:
         column[row_index] = True
+
+ 
