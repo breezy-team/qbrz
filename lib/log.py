@@ -273,17 +273,6 @@ class LogWindow(QBzrWindow):
                      QtCore.SIGNAL("currentIndexChanged(int)"),
                      self.updateSearchType)
 
-        #self.search_in_messages = QtGui.QRadioButton(gettext("Messages"))
-        #self.connect(self.search_in_messages, QtCore.SIGNAL("toggled(bool)"),
-        #             self.update_search_type)
-        #self.search_in_paths = QtGui.QRadioButton(gettext("Paths"))
-        #self.search_in_paths.setEnabled(False)
-        #self.connect(self.search_in_paths, QtCore.SIGNAL("toggled(bool)"),
-        #             self.update_search_type)
-        #searchbox.addWidget(self.search_in_messages)
-        #searchbox.addWidget(self.search_in_paths)
-        #self.search_in_messages.setChecked(True)
-
         logbox.addLayout(searchbox)
 
         self.changesList = QtGui.QTreeView()
@@ -490,21 +479,42 @@ class LogWindow(QBzrWindow):
         """Load branch history."""
         self.changesModel.loadBranch(self.branch, specific_fileid = self.specific_fileid)
 
-    def update_search_type(self, checked):
-        if checked:
-            self.update_search()
-
     def update_search(self):
         # TODO in_paths = self.search_in_paths.isChecked()
-        has_search = self.search_edit.text().length() > 0
-        self.changesModel.set_search_mode(has_search)
-        self.changesProxyModel._filterCache = {}
-        self.changesProxyModel.setFilterRegExp(self.search_edit.text())
+        role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
+        search_text = self.search_edit.text()
+        has_search = search_text.length() > 0
+        search_mode = not role == logmodel.FilterIdRole and \
+                      not role == logmodel.FilterRevnoRole and \
+                      has_search
+        self.changesModel.set_search_mode(search_mode)
+        if role == logmodel.FilterIdRole:
+            self.changesProxyModel.setFilterRegExp("")
+            
+            if self.changesModel.has_rev_id(search_text):
+                self.changesModel.ensure_rev_visible(search_text)
+                index = self.changesModel.indexFromRevId(search_text)
+                index = self.changesProxyModel.mapFromSource(index)
+                self.changesList.setCurrentIndex(index)
+        elif role == logmodel.FilterRevnoRole:
+            self.changesProxyModel.setFilterRegExp("")
+            try:
+                revno = tuple((int(number) for number in search_text.split('.')))
+            except ValueError:
+                revno = ()
+                # Not sure what to do if there is an error. Nothing for now
+            revid = self.changesModel.revid_from_revno(revno)
+            if revid:
+                self.changesModel.ensure_rev_visible(revid)
+                index = self.changesModel.indexFromRevId(revid)
+                index = self.changesProxyModel.mapFromSource(index)
+                self.changesList.setCurrentIndex(index)
+        else:
+            self.changesProxyModel.setFilterRegExp(self.search_edit.text())
+            self.changesProxyModel.setFilterRole(role)
 
     def updateSearchType(self, index=None):
-        role = self.searchType.itemData(index).toInt()[0]
-        self.changesProxyModel._filterCache = {}
-        self.changesProxyModel.setFilterRole(role)
+        self.update_search()
 
     def set_search_timer(self):
         self.search_timer.start(200)
