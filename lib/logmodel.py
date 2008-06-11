@@ -831,26 +831,25 @@ class TreeModel(QtCore.QAbstractTableModel):
             pass
     
     def _nextRevisionToLoad(self):
-        if self.visible_msri is not None:
-            for msri in self.visible_msri :
-                revid = self.merge_sorted_revisions[msri][1]
-                if revid not in self.revisions:
-                    yield revid
-            return
-        
         if not self.searchMode:
             for (msri, node, lines,
                  twisty_state, twisty_branch_ids) in self.linegraphdata:
                 revid = self.merge_sorted_revisions[msri][1]
                 if revid not in self.revisions:
                     yield revid
-        for (sequence_number,
-             revid,
-             merge_depth,
-             revno_sequence,
-             end_of_merge) in self.merge_sorted_revisions:
-            if revid not in self.revisions:
-                yield revid
+        if self.visible_msri is not None:
+            for msri in self.visible_msri :
+                revid = self.merge_sorted_revisions[msri][1]
+                if revid not in self.revisions:
+                    yield revid
+        else:
+            for (sequence_number,
+                 revid,
+                 merge_depth,
+                 revno_sequence,
+                 end_of_merge) in self.merge_sorted_revisions:
+                if revid not in self.revisions:
+                    yield revid
 
     def indexFromRevId(self, revid):
         revindex = self.msri_index[self.revid_msri[revid]]
