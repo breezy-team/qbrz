@@ -294,6 +294,11 @@ class cmd_qlog(Command):
                 except (errors.NotBranchError, errors.NotLocalUrl):
                     tree = branch.basis_tree()
                 file_id = tree.path2id(path)
+                if file_id is None:
+                    raise errors.BzrCommandError(
+                        "Path does not have any revision history: %s" %
+                        location)
+
         else:
             dir, path = BzrDir.open_containing('.')
             branch = dir.open_branch()
