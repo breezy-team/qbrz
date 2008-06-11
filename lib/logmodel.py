@@ -181,15 +181,29 @@ class TreeModel(QtCore.QAbstractTableModel):
                         results_batch_size = max(200, results_batch_size*2)
                     return results_batch_size
                 
+                try:
+                    branch.repository.texts.get_parent_map([])
+                    use_texts = True
+                except AttributeError:
+                    use_texts = False
+                    file_weave = branch.repository.weave_store.get_weave(specific_fileid,
+                                        branch.repository.get_transaction())
+                    weave_modifed_revisions = set(file_weave.versions())
+
                 self.visible_msri = []
                 for rev_msri, (sequence_number,
                                revid,
                                merge_depth,
                                revno_sequence,
                                end_of_merge) in enumerate(self.merge_sorted_revisions):
-                    text_key = (specific_fileid, revid)
-                    modified_text_versions = branch.repository.texts.get_parent_map([text_key])
-                    if text_key in modified_text_versions:
+                    if use_texts:
+                        text_key = (specific_fileid, revid)
+                        modified_text_versions = branch.repository.texts.get_parent_map([text_key])
+                        changed = text_key in modified_text_versions
+                    else:
+                        changed = revid in weave_modifed_revisions
+
+                    if changed:
                         results_batch_size = makeVisible(rev_msri, results_batch_size)
                         #Find Merges that are closer to main line.
                         next_revid = revid
