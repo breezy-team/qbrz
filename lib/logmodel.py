@@ -230,11 +230,9 @@ class TreeModel(QtCore.QAbstractTableModel):
                                 last_depth = min_depth
                     if rev_msri % 100 == 0 :
                         QtCore.QCoreApplication.processEvents()
-                self.compute_search()
-                QtCore.QCoreApplication.processEvents()
-            else:
-                self.compute_lines(update_before_lines = True)
-                QtCore.QCoreApplication.processEvents()
+            
+            self.compute_lines(update_before_lines = True)
+            QtCore.QCoreApplication.processEvents()
             
             self._nextRevisionToLoadGen = self._nextRevisionToLoad()
             self._loadNextRevision()
@@ -242,8 +240,6 @@ class TreeModel(QtCore.QAbstractTableModel):
             branch.unlock
         
     def compute_lines(self, broken_line_length = None, update_before_lines = False):
-        if self.visible_msri is not None:
-            return self.compute_search()
         
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
         try:
@@ -262,8 +258,8 @@ class TreeModel(QtCore.QAbstractTableModel):
             # away from the revision, if you also need to draw lines into the
             # revision you should use the lines list from the previous
             # iteration. Each tuples in the list is in the form (start, end,
-            # color) with start and end being zero-indexed column numbers and
-            # color as in node.
+            # color, direct) with start and end being zero-indexed column
+            # numbers and color as in node.
             #
             # twisties are +- buttons to show/hide branches. list branch_ids
             self.linegraphdata = []
@@ -296,12 +292,12 @@ class TreeModel(QtCore.QAbstractTableModel):
         if update_before_lines:
             QtCore.QCoreApplication.processEvents()
         
-        # This will hold a tuple of (child_index, parent_index, col_index
-        # for each line that needs to be drawn. If col_index is not none,
-        # then the line is drawn along that column, else the the line can be
-        # drawn directly between the child and parent because either the
-        # child and parent are in the same branch line, or the child and
-        # parent are 1 row apart.
+        # This will hold a tuple of (child_index, parent_index, col_index,
+        # direct) for each line that needs to be drawn. If col_index is not
+        # none, then the line is drawn along that column, else the the line can
+        # be drawn directly between the child and parent because either the
+        # child and parent are in the same branch line, or the child and parent
+        # are 1 row apart.
         lines = []
         empty_column = [False for i in range(len(self.linegraphdata))]
         # This will hold a bit map for each cell. If the cell is true, then
@@ -319,6 +315,8 @@ class TreeModel(QtCore.QAbstractTableModel):
             
             if branch_visible:
                 color = reduce(lambda x, y: x+y, branch_id, 0)
+                branch_rev_msri = [rev_msri for rev_msri in branch_rev_msri
+                                   if rev_msri in self.msri_index]
                 
                 # Find columns for lines for each parent of each revision in
                 # the branch that are long and need to go between the parent
@@ -333,7 +331,7 @@ class TreeModel(QtCore.QAbstractTableModel):
                          revno_sequence,
                          end_of_merge) = self.merge_sorted_revisions[rev_msri]
                     
-                    for parent_revid in self.graph_parents[revid]:
+                    for (parent_revid, direct) in self._find_visible_parents(revid):
                         parent_msri = self.revid_msri[parent_revid]
                         parent_branch_id = \
                             self.merge_sorted_revisions[parent_msri][3][0:-1]
@@ -375,6 +373,7 @@ class TreeModel(QtCore.QAbstractTableModel):
                                     lines.append((rev_index,
                                                   parent_index,
                                                   (line_col_index,),
+                                                  direct,
                                                   ))
                                     parents_with_lines.append(parent_revid)
                     
@@ -454,7 +453,7 @@ class TreeModel(QtCore.QAbstractTableModel):
                     
                     col_index = self.linegraphdata[rev_index][1][0]
                     
-                    for parent_revid in self.graph_parents[revid]:
+                    for (parent_revid, direct) in self._find_visible_parents(revid):
                         parent_msri = self.revid_msri[parent_revid]
                         
                         if parent_revid in parents_with_lines:
@@ -503,6 +502,7 @@ class TreeModel(QtCore.QAbstractTableModel):
                                               parent_index,
                                               (child_line_col_index,
                                                parent_col_line_index),
+                                              direct,
                                               ))
                             else :
                                 line_col_index = col_index
@@ -519,6 +519,7 @@ class TreeModel(QtCore.QAbstractTableModel):
                                 lines.append((rev_index,
                                               parent_index,
                                               (line_col_index,),
+                                              direct,
                                               ))
         
         # It has now been calculated which column a line must go into. Now
@@ -526,6 +527,7 @@ class TreeModel(QtCore.QAbstractTableModel):
         for (child_index,
              parent_index,
              line_col_indexes,
+             direct,
              ) in lines:
             
             (child_col_index, child_color) = self.linegraphdata[child_index][1]
@@ -540,51 +542,75 @@ class TreeModel(QtCore.QAbstractTableModel):
                     self.linegraphdata[child_index][2].append(
                         (child_col_index,
                          parent_col_index,
-                         parent_color))
+                         parent_color,
+                         direct))
                 else:
                     # line from the child's column to the lines column
                     self.linegraphdata[child_index][2].append(
                         (child_col_index,
                          line_col_indexes[0],
-                         parent_color))
+                         parent_color,
+                         direct))
                     # lines down the line's column
                     for line_part_index in range(child_index+1, parent_index-1):
                         self.linegraphdata[line_part_index][2].append(
                             (line_col_indexes[0],   
                              line_col_indexes[0],
-                             parent_color))
+                             parent_color,
+                             direct))
                     # line from the line's column to the parent's column
                     self.linegraphdata[parent_index-1][2].append(
                         (line_col_indexes[0],
                          parent_col_index,
-                         parent_color))
+                         parent_color,
+                         direct))
             else:
                 # Broken line
                 # line from the child's column to the lines column
                 self.linegraphdata[child_index][2].append(
                     (child_col_index,
                      line_col_indexes[0],
-                     parent_color))
+                     parent_color,
+                     direct))
                 # Broken line end
                 self.linegraphdata[child_index+1][2].append(
                     (line_col_indexes[0],
                      None,
-                     parent_color))
+                     parent_color,
+                     direct))
                 
                 if line_col_indexes[1] is not None:
                     # Broken line end 
                     self.linegraphdata[parent_index-2][2].append(
                         (None,
                          line_col_indexes[1],
-                         parent_color))
+                         parent_color,
+                         direct))
                     # line from the line's column to the parent's column
                     self.linegraphdata[parent_index-1][2].append(
                         (line_col_indexes[1],
                          parent_col_index,
-                         parent_color))
+                         parent_color,
+                         direct))
         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                   self.createIndex (0, COL_MESSAGE, QtCore.QModelIndex()),
                   self.createIndex (len(self.linegraphdata), COL_MESSAGE, QtCore.QModelIndex()))
+    
+    def _find_visible_parents(self, revid):
+        for parent_revid in self.graph_parents[revid]:
+            parent_msri = self.revid_msri[parent_revid]
+            if parent_msri in self.visible_msri:
+                yield (parent_revid, True)
+            else:
+                while parent_revid and parent_msri not in self.visible_msri:
+                    parents = self.graph_parents[parent_revid]
+                    if len(parents) == 0:
+                        parent_revid = None
+                    else:
+                        parent_revid = parents[0]
+                        parent_msri = self.revid_msri[parent_revid]
+                if parent_revid:
+                    yield (parent_revid, False)
     
     def _set_branch_visible(self, branch_id, visible, has_change):
         if not self.branch_lines[branch_id][1] == visible:
@@ -683,12 +709,13 @@ class TreeModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant([QtCore.QVariant(nodei) for nodei in node])
         if role == GraphLinesRole:
             qlines = []
-            for start, end, color in lines:
+            for start, end, color, direct in lines:
                 if start is None: start = -1
                 if end is None: end = -1
                 qlines.append(QtCore.QVariant([QtCore.QVariant(start),
                                                QtCore.QVariant(end),
-                                               QtCore.QVariant(color)]))
+                                               QtCore.QVariant(color),
+                                               QtCore.QVariant(direct)]))
             return QtCore.QVariant(qlines)
         if role == GraphTwistyStateRole:
             if twisty_state is None:

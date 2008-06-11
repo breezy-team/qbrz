@@ -85,8 +85,13 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
         
         return qcolor
     
-    def drawLine(self, painter, pen, rect, boxsize, mid, height, start, end, color):
+    def drawLine(self, painter, pen, rect, boxsize, mid, height,
+                 start, end, color, direct):
         pen.setColor(self.get_color(color,False))
+        if direct:
+            pen.setStyle(QtCore.Qt.SolidLine)
+        else:
+            pen.setStyle(QtCore.Qt.DotLine)            
         painter.setPen(pen)
         if start is -1:
             x = rect.x() + boxsize * end + boxsize / 2
@@ -120,6 +125,7 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                              QtCore.QPointF(endx, mid + height / 5),
                              QtCore.QPointF(endx, mid + height / 2 + 1))
             painter.drawPath(path)
+        pen.setStyle(QtCore.Qt.SolidLine)
 
     def drawDisplay(self, painter, option, rect, text):
         graphCols = 0
@@ -139,18 +145,20 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                 
                 # Draw lines into the cell
                 for line in self.prevLines:
-                    start, end, color = [linei.toInt()[0] for linei in line.toList()]
+                    start, end, color = [linei.toInt()[0] for linei in line.toList()[0:3]]
+                    direct = line.toList()[3].toBool()
                     self.drawLine (painter, pen, rect, boxsize,
                                    rect.y(), boxsize,
-                                   start, end, color)
+                                   start, end, color, direct)
                     graphCols = max((graphCols, min(start, end)))
         
                 # Draw lines out of the cell
                 for line in self.lines:
-                    start, end, color = [linei.toInt()[0] for linei in line.toList()]
+                    start, end, color = [linei.toInt()[0] for linei in line.toList()[0:3]]
+                    direct = line.toList()[3].toBool()
                     self.drawLine (painter, pen, rect,boxsize,
                                    rect.y() + boxsize, boxsize,
-                                   start, end, color)
+                                   start, end, color, direct)
                     graphCols = max((graphCols, min(start, end)))
                 
                 
