@@ -599,7 +599,7 @@ class TreeModel(QtCore.QAbstractTableModel):
     def _find_visible_parents(self, revid):
         for parent_revid in self.graph_parents[revid]:
             parent_msri = self.revid_msri[parent_revid]
-            if parent_msri in self.visible_msri:
+            if not self.visible_msri or parent_msri in self.visible_msri:
                 yield (parent_revid, True)
             else:
                 while parent_revid and parent_msri not in self.visible_msri:
