@@ -25,6 +25,7 @@ from bzrlib.config import (
     ensure_config_dir_exists,
     extract_email_address,
     )
+from bzrlib import errors
 from bzrlib.plugins.qbzr.i18n import gettext, N_
 from bzrlib.plugins.qbzr.util import (
     BTN_OK,
