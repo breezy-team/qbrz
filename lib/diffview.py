@@ -45,9 +45,6 @@ class DiffSourceView(QtGui.QTextBrowser):
         self.setLineWrapMode(QtGui.QTextEdit.NoWrap)
         self.changes = []
 
-    def setChanges(self, changes):
-        self.changes = changes
-
     def paintEvent(self, event):
         w = self.width()
         y = self.verticalScrollBar().value()
@@ -74,9 +71,7 @@ class DiffViewHandle(QtGui.QSplitterHandle):
     def __init__(self, parent=None):
         QtGui.QSplitterHandle.__init__(self, QtCore.Qt.Horizontal, parent)
         self.view = parent
-
-    def setChanges(self, changes):
-        self.changes = changes
+        self.changes = []
 
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
@@ -150,201 +145,10 @@ def markup_intraline_changes(line1, line2, color):
         text = line1
     return text.replace(u"\1", u"&amp;").replace(u"\2", u"&lt;").replace(u"\3", u"&gt;")
 
-
-def populate_diff_documents(font, treediff, view1, view2):
-    monospacedFont = QtGui.QFont("Courier New, Courier", font.pointSize())
-    titleFont = QtGui.QFont(font)
-    titleFont.setPointSize(titleFont.pointSize() * 140 / 100)
-    titleFont.setBold(True)
-    metadataFont = QtGui.QFont(font)
-    metadataFont.setPointSize(titleFont.pointSize() * 70 / 100)
-    metadataLabelFont = QtGui.QFont(metadataFont)
-    metadataLabelFont.setBold(True)
-
-    monospacedFormat = QtGui.QTextCharFormat()
-    monospacedFormat.setFont(monospacedFont)
-    titleFormat = QtGui.QTextCharFormat()
-    titleFormat.setFont(titleFont)
-    metadataFormat = QtGui.QTextCharFormat()
-    metadataFormat.setFont(metadataFont)
-    metadataLabelFormat = QtGui.QTextCharFormat()
-    metadataLabelFormat.setFont(metadataLabelFont)
-
-    monospacedInsertFormat = QtGui.QTextCharFormat(monospacedFormat)
-    monospacedInsertFormat.setForeground(QtGui.QColor(0, 136, 11))
-    monospacedDeleteFormat = QtGui.QTextCharFormat(monospacedFormat)
-    monospacedDeleteFormat.setForeground(QtGui.QColor(204, 0, 0))
-
-    monospacedBoldFont = QtGui.QFont(monospacedFont)
-    monospacedBoldFont.setBold(True)
-
-    monospacedItalicFont = QtGui.QFont(monospacedFont)
-    monospacedItalicFont.setItalic(True)
-
-    monospacedBoldInsertFormat = QtGui.QTextCharFormat(monospacedInsertFormat)
-    monospacedBoldInsertFormat.setFont(monospacedBoldFont)
-    monospacedBoldDeleteFormat = QtGui.QTextCharFormat(monospacedDeleteFormat)
-    monospacedBoldDeleteFormat.setFont(monospacedBoldFont)
-
-    monospacedHeaderFormat = QtGui.QTextCharFormat()
-    monospacedHeaderFormat.setFont(monospacedBoldFont)
-    monospacedHeaderFormat.setBackground(QtGui.QColor(246, 245, 238))
-    monospacedHeaderFormat.setForeground(QtGui.QColor(117, 117, 117))
-
-    monospacedHunkFormat = QtGui.QTextCharFormat()
-    monospacedHunkFormat.setFont(monospacedItalicFont)
-    monospacedHunkFormat.setForeground(QtGui.QColor(153, 30, 199))
-
-    cursors = [QtGui.QTextCursor(view1.doc1), QtGui.QTextCursor(view1.doc2)]
-    unidiff_cursor = QtGui.QTextCursor(view2.doc)
-
-    for cursor in cursors + [unidiff_cursor]:
-        cursor.beginEditBlock()
-        format = QtGui.QTextCharFormat()
-        format.setAnchorNames(["top"])
-        cursor.insertText("", format)
-
-    changes = []
-
-    lastModifiedLabel = gettext('Last modified:')
-    statusLabel = gettext('Status:')
-    kindLabel = gettext('Kind:')
-
-    image_exts = ['.'+str(i)
-        for i in QtGui.QImageReader.supportedImageFormats()]
-
-    for diff in treediff:
-        # file path
-        cursors[0].insertText(diff.path, titleFormat)
-        cursors[1].insertText(diff.path, titleFormat)
-        # metadata
-        cursors[0].insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
-        cursors[0].insertText(lastModifiedLabel, metadataLabelFormat)
-        cursors[0].insertText(" %s, " % diff.old_date, metadataFormat)
-        cursors[0].insertText(statusLabel, metadataLabelFormat)
-        cursors[0].insertText(" %s, " % gettext(diff.status), metadataFormat)
-        cursors[0].insertText(kindLabel, metadataLabelFormat)
-        cursors[0].insertText(" %s" % gettext(diff.kind), metadataFormat)
-        cursors[1].insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
-        cursors[1].insertText(lastModifiedLabel, metadataLabelFormat)
-        cursors[1].insertText(" %s, " % diff.new_date, metadataFormat)
-        cursors[1].insertText(statusLabel, metadataLabelFormat)
-        cursors[1].insertText(" %s, " % gettext(diff.status), metadataFormat)
-        cursors[1].insertText(kindLabel, metadataLabelFormat)
-        cursors[1].insertText(" %s" % gettext(diff.kind), metadataFormat)
-        for cursor in cursors:
-            cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
-            cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
-        # unidiff
-        unidiff_cursor.insertText("=== %s %s %s\n" % (gettext(diff.status), gettext(diff.kind), diff.path), monospacedHeaderFormat)
-        unidiff_cursor.insertText('--- %s %s\n' % (diff.old_path, diff.old_date), monospacedBoldInsertFormat)
-        unidiff_cursor.insertText('+++ %s %s\n' % (diff.new_path, diff.new_date), monospacedBoldDeleteFormat)
-
-        margins = [0, 0]
-        if not diff.binary:
-            a = diff.old_lines
-            b = diff.new_lines
-            for i, group in enumerate(diff.groups):
-                if i > 0:
-                    blocka0 = cursors[0].block().layout()
-                    blockb0 = cursors[1].block().layout()
-                    for cursor in cursors:
-                        cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
-                    blocka1 = cursors[0].block().layout()
-                    blockb1 = cursors[1].block().layout()
-                    changes.append((blocka0, blockb0, blocka1, blockb1, 'blank'))
-                i1, i2, j1, j2 = group[0][1], group[-1][2], group[0][3], group[-1][4]
-                unidiff_cursor.insertText("@@ -%d,%d +%d,%d @@\n" % (i1+1, i2-i1, j1+1, j2-j1), monospacedHunkFormat)
-                linediff = 0
-                for tag, i1, i2, j1, j2 in group:
-                    ni = i2 - i1
-                    nj = j2 - j1
-                    if tag == "equal":
-                        text = "".join(l for l in a[i1:i2])
-                        for cursor in cursors:
-                            cursor.insertText(text, monospacedFormat)
-                        text = "".join(" " + l for l in a[i1:i2])
-                        unidiff_cursor.insertText(text, monospacedFormat)
-                    else:
-                        blocka0 = cursors[0].block().layout()
-                        blockb0 = cursors[1].block().layout()
-                        if ni == nj:
-                            for i in xrange(ni):
-                                linea = a[i1 + i]
-                                lineb = b[j1 + i]
-                                cursors[0].insertText(linea, monospacedFormat)
-                                cursors[1].insertText(lineb, monospacedFormat)
-                        else:
-                            linediff += ni - nj
-                            text = "".join(l for l in a[i1:i2])
-                            cursors[0].insertText(text, monospacedFormat)
-                            text = "".join(l for l in b[j1:j2])
-                            cursors[1].insertText(text, monospacedFormat)
-                        blocka1 = cursors[0].block().layout()
-                        blockb1 = cursors[1].block().layout()
-                        changes.append((blocka0, blockb0, blocka1, blockb1, tag))
-                        text = "".join("-" + l for l in a[i1:i2])
-                        unidiff_cursor.insertText(text, monospacedDeleteFormat)
-                        text = "".join("+" + l for l in b[j1:j2])
-                        unidiff_cursor.insertText(text, monospacedInsertFormat)
-                if linediff == 0:
-                    continue
-                if linediff < 0:
-                    i1 = group[-1][2]
-                    i2 = i1 - linediff
-                    lines = a[i1:i2]
-                    linediff = -linediff - len(lines)
-                    cursor = cursors[0]
-                else:
-                    j1 = group[-1][4]
-                    j2 = j1 + linediff
-                    lines = b[j1:j2]
-                    linediff = linediff - len(lines)
-                    cursor = cursors[1]
-                lines.extend(["\n"] * linediff)
-                cursor.insertText("".join(lines), monospacedFormat)
-        else:
-            ext = file_extension(diff.path).lower()
-            if ext in image_exts:
-                heights = [0, 0]
-                for i, (data, doc, cursor) in enumerate(
-                        [(diff.old_data, self.doc1, cursors[0]),
-                            (diff.new_data, self.doc2, cursors[1])]):
-                    if data:
-                        image = QtGui.QImage()
-                        image.loadFromData(data)
-                        heights[i] = image.height() + 1 # QTextDocument seems to add 1 pixel when layouting the text
-                        doc.addResource(QtGui.QTextDocument.ImageResource,
-                                        QtCore.QUrl(diff.file_id),
-                                        QtCore.QVariant(image))
-                        cursor.insertImage(diff.file_id)
-                        cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
-                if heights[0] > heights[1]:
-                    margins = [0, heights[0] - heights[1]]
-                else:
-                    margins = [heights[1] - heights[0], 0]
-
-        for i, cursor in enumerate(cursors):
-            format = QtGui.QTextBlockFormat()
-            format.setTopMargin(margins[i])
-            cursor.insertBlock(format, monospacedFormat)
-        unidiff_cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
-
-    for cursor in cursors + [unidiff_cursor]:
-        cursor.endEditBlock()
-        cursor.setPosition(0)
-
-    changes1 = [(line[0], line[2], line[4]) for line in changes]
-    changes2 = [(line[1], line[3], line[4]) for line in changes]
-    view1.browser1.setChanges(changes1)
-    view1.browser2.setChanges(changes2)
-    view1.handle(1).setChanges(changes)
-
-
-class DiffView(QtGui.QSplitter):
+class SidebySideDiffView(QtGui.QSplitter):
     """Widget to show differences in side-by-side format."""
 
-    def __init__(self, treediff, parent=None):
+    def __init__(self, parent=None):
         QtGui.QSplitter.__init__(self, QtCore.Qt.Horizontal, parent)
         self.setHandleWidth(30)
 
@@ -355,16 +159,29 @@ class DiffView(QtGui.QSplitter):
         titleFont.setBold(True)
         titleFont.setPixelSize(14)
 
-        metainfoFont = QtGui.QFont(self.font())
-        metainfoFont.setPixelSize(9)
+        monospacedFont = QtGui.QFont("Courier New, Courier",
+                                     self.font().pointSize())
+        titleFont = QtGui.QFont(self.font())
+        titleFont.setPointSize(titleFont.pointSize() * 140 / 100)
+        titleFont.setBold(True)
+        metadataFont = QtGui.QFont(self.font())
+        metadataFont.setPointSize(titleFont.pointSize() * 70 / 100)
+        metadataLabelFont = QtGui.QFont(metadataFont)
+        metadataLabelFont.setBold(True)
+    
+        self.monospacedFormat = QtGui.QTextCharFormat()
+        self.monospacedFormat.setFont(monospacedFont)
+        self.titleFormat = QtGui.QTextCharFormat()
+        self.titleFormat.setFont(titleFont)
+        self.metadataFormat = QtGui.QTextCharFormat()
+        self.metadataFormat.setFont(metadataFont)
+        self.metadataLabelFormat = QtGui.QTextCharFormat()
+        self.metadataLabelFormat.setFont(metadataLabelFont)
 
-        metainfoTitleFont = QtGui.QFont(metainfoFont)
-        metainfoTitleFont.setBold(True)
-
-        self.doc1 = QtGui.QTextDocument()
-        self.doc1.setUndoRedoEnabled(False)
-        self.doc2 = QtGui.QTextDocument()
-        self.doc2.setUndoRedoEnabled(False)
+        self.docs = (QtGui.QTextDocument(),
+                     QtGui.QTextDocument())
+        for doc in self.docs:
+            doc.setUndoRedoEnabled(False)
 
         self.browser1 = DiffSourceView(self)
         self.browser2 = DiffSourceView(self)
@@ -378,13 +195,139 @@ class DiffView(QtGui.QSplitter):
         self.setCollapsible(0, False)
         self.setCollapsible(1, False)
 
-        self.treediff = treediff
-        self.browser1.setDocument(self.doc1)
-        self.browser2.setDocument(self.doc2)
+        self.browser1.setDocument(self.docs[0])
+        self.browser2.setDocument(self.docs[1])
 
         self.addWidget(self.browser1)
         self.addWidget(self.browser2)
         self.rewinded = False
+        
+        self.cursors = [QtGui.QTextCursor(doc) for doc in self.docs]
+        for cursor in self.cursors :
+            format = QtGui.QTextCharFormat()
+            format.setAnchorNames(["top"])
+            cursor.insertText("", format)
+        
+        self.lastModifiedLabel = gettext('Last modified:')
+        self.statusLabel = gettext('Status:')
+        self.kindLabel = gettext('Kind:')
+        
+        self.image_exts = ['.'+str(i)
+            for i in QtGui.QImageReader.supportedImageFormats()]
+
+    def append_file_info(self, paths, kind, status, dates, present):
+        for i in range(2):
+            cursor = self.cursors[i]
+            cursor.beginEditBlock()
+            cursor.insertText(paths[i] if paths[i] is not None else " ", self.titleFormat)
+            cursor.insertBlock(QtGui.QTextBlockFormat(), self.monospacedFormat)
+            if present[i]:
+                cursor.insertText(self.lastModifiedLabel, self.metadataLabelFormat)
+                cursor.insertText(" %s, " % dates[i], self.metadataFormat)
+                cursor.insertText(self.statusLabel, self.metadataLabelFormat)
+                cursor.insertText(" %s, " % gettext(status), self.metadataFormat)
+                cursor.insertText(self.kindLabel, self.metadataLabelFormat)
+                cursor.insertText(" %s" % gettext(kind[1]), self.metadataFormat)
+            else:
+                cursor.insertText("", self.metadataFormat)
+            cursor.insertBlock(QtGui.QTextBlockFormat(), self.monospacedFormat)
+            cursor.endEditBlock()
+    
+    def append_file_diff(self, paths, file_id, present, lines, groups):
+        format = self.monospacedFormat
+        cursors = self.cursors
+        for cursor in cursors:
+            cursor.beginEditBlock()
+        changes = []
+        a = lines[0]
+        b = lines[1]
+        for i, group in enumerate(groups):
+            if i > 0:
+                block0 = [cursor.block().layout() for cursor in self.cursors]
+                for cursor in cursors:
+                    cursor.insertBlock(QtGui.QTextBlockFormat(), format)
+                block1 = [cursor.block().layout() for cursor in self.cursors]
+                changes.append((block0[0], block0[1], block1[0], block1[1], 'blank'))
+            linediff = 0
+            for tag, i1, i2, j1, j2 in group:
+                ni = i2 - i1
+                nj = j2 - j1
+                if tag == "equal":
+                    text = "".join(l for l in a[i1:i2])
+                    for cursor in cursors:
+                        cursor.insertText(text, format)
+                else:
+                    blocka0 = cursors[0].block().layout()
+                    blockb0 = cursors[1].block().layout()
+                    if ni == nj:
+                        for i in xrange(ni):
+                            linea = a[i1 + i]
+                            lineb = b[j1 + i]
+                            cursors[0].insertText(linea, format)
+                            cursors[1].insertText(lineb, format)
+                    else:
+                        linediff += ni - nj
+                        text = "".join(l for l in a[i1:i2])
+                        cursors[0].insertText(text, format)
+                        text = "".join(l for l in b[j1:j2])
+                        cursors[1].insertText(text, format)
+                    blocka1 = cursors[0].block().layout()
+                    blockb1 = cursors[1].block().layout()
+                    changes.append((blocka0, blockb0, blocka1, blockb1, tag))
+            if linediff == 0:
+                continue
+            if linediff < 0:
+                i1 = group[-1][2]
+                i2 = i1 - linediff
+                lines = a[i1:i2]
+                linediff = -linediff - len(lines)
+                cursor = cursors[0]
+            else:
+                j1 = group[-1][4]
+                j2 = j1 + linediff
+                lines = b[j1:j2]
+                linediff = linediff - len(lines)
+                cursor = cursors[1]
+            lines.extend(["\n"] * linediff)
+            cursor.insertText("".join(lines), format)
+        for cursor in self.cursors:
+            cursor.insertBlock(QtGui.QTextBlockFormat(), format)
+            cursor.endEditBlock()
+
+        changes1 = [(line[0], line[2], line[4]) for line in changes]
+        changes2 = [(line[1], line[3], line[4]) for line in changes]
+
+        self.browser1.changes.extend(changes1)
+        self.browser2.changes.extend(changes2)
+        self.handle(1).changes.extend(changes)
+
+    def append_file_binary(self, paths, file_id, present, data):
+        heights = [0,0]
+        for i in range(2):
+            self.cursors[i].beginEditBlock()
+            self.cursors[i].insertBlock(QtGui.QTextBlockFormat(), self.monospacedFormat)
+            if present[i]:
+                ext = file_extension(paths[1]).lower()
+                if ext in self.image_exts:
+                    image = QtGui.QImage()
+                    image.loadFromData(data[i])
+                    heights[i] = image.height() - 3 # QTextDocument seems to add 1 pixel when layouting the text
+                    self.docs[i].addResource(QtGui.QTextDocument.ImageResource,
+                                    QtCore.QUrl(file_id),
+                                    QtCore.QVariant(image))
+                    self.cursors[i].insertImage(file_id)
+                    self.cursors[i].insertBlock(QtGui.QTextBlockFormat(), self.monospacedFormat)
+                else:
+                    self.cursors[i].insertText(gettext('[binary file]'))
+            else:
+                self.cursors[i].insertText(" ")
+        
+        max_height = max(heights)
+        for i, cursor in enumerate(self.cursors):
+            format = QtGui.QTextBlockFormat()
+            format.setTopMargin(max_height - heights[i])
+            cursor.insertBlock(format, self.monospacedFormat)
+            cursor.endEditBlock()
 
     def rewind(self):
         if not self.rewinded:
@@ -435,14 +378,81 @@ class DiffView(QtGui.QSplitter):
 class SimpleDiffView(QtGui.QTextBrowser):
     """Widget to show differences in unidiff format."""
 
-    def __init__(self, treeview, parent=None):
+    def __init__(self, parent=None):
         QtGui.QTextBrowser.__init__(self, parent)
         self.doc = QtGui.QTextDocument(parent)
         self.doc.setUndoRedoEnabled(False)
         self.setDocument(self.doc)
         self.rewinded = False
+        self.cursor = QtGui.QTextCursor(self.doc)
+        self.cursor.beginEditBlock()
+        format = QtGui.QTextCharFormat()
+        format.setAnchorNames(["top"])
+        self.cursor.insertText("", format)
+        monospacedFont = QtGui.QFont("Courier New, Courier",
+                                     self.font().pointSize())
+        self.monospacedFormat = QtGui.QTextCharFormat()
+        self.monospacedFormat.setFont(monospacedFont)
+
+        self.monospacedInsertFormat = QtGui.QTextCharFormat(self.monospacedFormat)
+        self.monospacedInsertFormat.setForeground(QtGui.QColor(0, 136, 11))
+        self.monospacedDeleteFormat = QtGui.QTextCharFormat(self.monospacedFormat)
+        self.monospacedDeleteFormat.setForeground(QtGui.QColor(204, 0, 0))
+    
+        monospacedBoldFont = QtGui.QFont(monospacedFont)
+        monospacedBoldFont.setBold(True)
+    
+        monospacedItalicFont = QtGui.QFont(monospacedFont)
+        monospacedItalicFont.setItalic(True)
+    
+        self.monospacedBoldInsertFormat = QtGui.QTextCharFormat(self.monospacedInsertFormat)
+        self.monospacedBoldInsertFormat.setFont(monospacedBoldFont)
+        self.monospacedBoldDeleteFormat = QtGui.QTextCharFormat(self.monospacedDeleteFormat)
+        self.monospacedBoldDeleteFormat.setFont(monospacedBoldFont)
+    
+        self.monospacedHeaderFormat = QtGui.QTextCharFormat()
+        self.monospacedHeaderFormat.setFont(monospacedBoldFont)
+        self.monospacedHeaderFormat.setBackground(QtGui.QColor(246, 245, 238))
+        self.monospacedHeaderFormat.setForeground(QtGui.QColor(117, 117, 117))
+    
+        self.monospacedHunkFormat = QtGui.QTextCharFormat()
+        self.monospacedHunkFormat.setFont(monospacedItalicFont)
+        self.monospacedHunkFormat.setForeground(QtGui.QColor(153, 30, 199))
+
 
     def rewind(self):
         if not self.rewinded:
             self.rewinded = True
             self.scrollToAnchor("top")
+
+    def append_file_info(self, paths, kind, status, dates, present):
+        self.cursor.insertText("=== %s %s %s\n" % (gettext(status),
+                                                   gettext(kind[0] if kind[0] is not None else kind[1]),
+                                                   paths[0] if paths[0] is not None else paths[1] ),
+                                  self.monospacedHeaderFormat)
+        self.cursor.insertText('--- %s %s\n' % (paths[0], dates[0]),
+                                  self.monospacedBoldInsertFormat)
+        self.cursor.insertText('+++ %s %s\n' % (paths[1], dates[1]),
+                               self.monospacedBoldDeleteFormat)
+    
+    def append_file_diff(self, paths, file_id, present, lines, groups):
+        a = lines[0]
+        b = lines[1]
+        for i, group in enumerate(groups):
+            i1, i2, j1, j2 = group[0][1], group[-1][2], group[0][3], group[-1][4]
+            self.cursor.insertText("@@ -%d,%d +%d,%d @@\n" % (i1+1, i2-i1, j1+1, j2-j1), self.monospacedHunkFormat)
+            for tag, i1, i2, j1, j2 in group:
+                ni = i2 - i1
+                nj = j2 - j1
+                if tag == "equal":
+                    text = "".join(" " + l for l in a[i1:i2])
+                    self.cursor.insertText(text, self.monospacedFormat)
+                else:
+                    text = "".join("-" + l for l in a[i1:i2])
+                    self.cursor.insertText(text, self.monospacedDeleteFormat)
+                    text = "".join("+" + l for l in b[j1:j2])
+                    self.cursor.insertText(text, self.monospacedInsertFormat)
+
+    def append_file_binary(self, paths, file_id, present, data):
+        pass
+    
