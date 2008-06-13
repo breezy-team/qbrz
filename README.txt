@@ -63,9 +63,25 @@ Help translate
 ~~~~~~~~~~~~~~
 
 You can help to translate QBzr interface to other languages.
-You can use any suitable editor with UTF-8 support and edit
-corresponding po-file. Or you can use web-interface at Launchpad:
-	https://translations.launchpad.net/qbzr/
+
+First at all you need to download from 
+http://bazaar.launchpad.net/~qbzr-dev/qbzr/trunk/files
+either `po/qbzr-XX.po` (where XX is your language and country code) 
+or `po/qbzr.pot` if there is no po-file for your language yet.
+
+Then you need to translate it either using any suitable text editor 
+with UTF-8 support or with tools like Poedit (http://www.poedit.net/)  
+or KBabel (http://kbabel.kde.org/).
+
+When you're finish please file a bug report at
+https://launchpad.net/qbzr/+filebug and attach the translated file.
+
+To learn more about gettext and po-files see:
+	http://www.gnu.org/software/gettext/
+
+Language and country codes listed in gettext manual:
+	http://www.gnu.org/software/gettext/manual/gettext.html#Language-Codes
+        http://www.gnu.org/software/gettext/manual/gettext.html#Country-Codes
 
 
 Configuration

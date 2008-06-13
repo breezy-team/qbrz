@@ -5,16 +5,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: QBzr 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-03-30 09:22+0200\n"
-"PO-Revision-Date: 2008-03-19 15:47+0000\n"
-"Last-Translator: Odes <Unknown>\n"
+"POT-Creation-Date: 2008-04-01 08:16+0200\n"
+"PO-Revision-Date: 2008-03-24 21:41+0000\n"
+"Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
 "10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Launchpad-Export-Date: 2008-03-24 12:40+0000\n"
+"X-Launchpad-Export-Date: 2008-03-31 22:28+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: annotate.py:86
@@ -23,7 +23,7 @@ msgstr "Аннотация"
 
 #: annotate.py:101
 msgid "Line"
-msgstr ""
+msgstr "Строка"
 
 #: annotate.py:101 annotate.py:117 browse.py:80 commit.py:302 log.py:222
 msgid "Author"
@@ -71,12 +71,12 @@ msgstr "Показать журнал..."
 
 #: cat.py:39 cat.py:76
 msgid "View File"
-msgstr ""
+msgstr "Просмотр файла"
 
 #: cat.py:77
 #, python-format
 msgid "File \"%s\" not found in the specified revision."
-msgstr ""
+msgstr "Файл \"%s\" не найден в указанной версии проекта."
 
 #: commit.py:180 commit.py:458 commit.py:472 commit.py:509
 msgid "Commit"
@@ -142,13 +142,15 @@ msgstr "Введите имя автора, например: <i>John Doe &lt;jd
 
 #: commit.py:289
 msgid "&Local commit in a bound branch"
-msgstr ""
+msgstr "Локальная фиксация (если ветка привязана к серверу)."
 
 #: commit.py:291
 msgid ""
 "Local commits are not pushed to the master branch until a normal commit is "
 "performed"
 msgstr ""
+"Локальные фиксации не передаются в главную ветку до тех пор, пока не будет "
+"сделана обычная фиксация."
 
 #: commit.py:297
 msgid "Pending Merges"
@@ -197,15 +199,15 @@ msgstr ""
 
 #: config.py:38
 msgid "Default"
-msgstr "Стандарт"
+msgstr "По умолчанию"
 
 #: config.py:39
 msgid "Thunderbird"
-msgstr "Буревестник"
+msgstr "Thunderbird"
 
 #: config.py:40
 msgid "Evolution"
-msgstr "Эволюция"
+msgstr "Evolution"
 
 #: config.py:41
 msgid "KMail"
@@ -225,7 +227,7 @@ msgstr "MAPI e-mail клиент"
 
 #: config.py:45
 msgid "Editor"
-msgstr ""
+msgstr "Текстовый редактор"
 
 #: config.py:54
 msgid "Configuration"
@@ -297,7 +299,7 @@ msgstr[2] "%d файлов"
 
 #: diff.py:312
 msgid "Side by side"
-msgstr "Side by side"
+msgstr "Две панели рядом"
 
 #: diff.py:319
 msgid "Unidiff"
@@ -345,28 +347,28 @@ msgstr "Комментарий"
 
 #: log.py:252
 msgid "Authors"
-msgstr ""
+msgstr "Авторы"
 
 #: log.py:254
 msgid "Revision IDs"
-msgstr ""
+msgstr "Revision IDs"
 
 #: log.py:256
 msgid "Revision Numbers"
-msgstr ""
+msgstr "Номера версий"
 
 #: log.py:338
 msgid "Show tree..."
-msgstr ""
+msgstr "Показать дерево файлов..."
 
 #: log.py:512
 #, python-format
 msgid "bug #%s"
-msgstr ""
+msgstr "bug #%s"
 
 #: main.py:125
 msgid "Computer"
-msgstr ""
+msgstr "Компьютер"
 
 #: main.py:154
 msgid "&Edit Bookmark..."
@@ -378,11 +380,11 @@ msgstr ""
 
 #: main.py:170
 msgid "Bookmarks"
-msgstr ""
+msgstr "Закладки"
 
 #: main.py:279
 msgid "&Refresh"
-msgstr ""
+msgstr "&Обновить"
 
 #: main.py:281
 msgid "Refresh the directory tree"
@@ -390,7 +392,7 @@ msgstr ""
 
 #: main.py:285
 msgid "&Commit"
-msgstr ""
+msgstr "&Зафиксировать"
 
 #: main.py:286
 msgid "Commit changes into a new revision"
@@ -418,7 +420,7 @@ msgstr ""
 
 #: main.py:306
 msgid "&File"
-msgstr ""
+msgstr "&Файл"
 
 #: main.py:307
 msgid "&Configure..."
@@ -426,7 +428,7 @@ msgstr ""
 
 #: main.py:309
 msgid "&Quit"
-msgstr ""
+msgstr "&Выход"
 
 #: main.py:310
 msgid "&View"
@@ -434,11 +436,11 @@ msgstr ""
 
 #: main.py:312
 msgid "&Branch"
-msgstr ""
+msgstr "&Ветка"
 
 #: main.py:316
 msgid "&Bookmarks"
-msgstr ""
+msgstr "&Закладки"
 
 #: main.py:318 util.py:57
 msgid "&Help"
@@ -446,11 +448,11 @@ msgstr "&Справка"
 
 #: main.py:319
 msgid "&Help..."
-msgstr ""
+msgstr "&Справка..."
 
 #: main.py:321
 msgid "&About..."
-msgstr ""
+msgstr "&О программе..."
 
 #: main.py:359
 msgid "Size"
@@ -487,64 +489,64 @@ msgstr ""
 
 #: pull.py:51
 msgid "Pull"
-msgstr ""
+msgstr "Подтянуть новые данные"
 
 #: pull.py:112
 msgid "Starting..."
-msgstr ""
+msgstr "Операция начинается..."
 
 #: pull.py:160
 msgid "Aborting..."
-msgstr ""
+msgstr "Операция прервана..."
 
 #: pull.py:168
 msgid "Finished!"
-msgstr ""
+msgstr "Завершено!"
 
 #: pull.py:206 pull.py:221
 msgid "Failed!"
-msgstr ""
+msgstr "Неудачно!"
 
 #: pull.py:208
 msgid "Failed to start bzr."
-msgstr ""
+msgstr "Не могу запустить bzr."
 
 #: pull.py:210
 #, python-format
 msgid "Error while running bzr. (error code: %d)"
-msgstr ""
+msgstr "Ошибка во время работы bzr. (код ошибки: %d)"
 
 #: pull.py:227
 msgid "Push"
-msgstr ""
+msgstr "Отправить новые данные"
 
 #: pull.py:256
 msgid "Branch"
-msgstr ""
+msgstr "Ветка"
 
 #: ui_bookmark.py:58 ui_branch.py:86 ui_pull.py:85 ui_push.py:87
 msgid "&Location:"
-msgstr ""
+msgstr "&Расположение:"
 
 #: ui_branch.py:85 ui_pull.py:84 ui_push.py:86
 msgid "Options"
-msgstr ""
+msgstr "Параметры"
 
 #: ui_branch.py:87 ui_pull.py:86
 msgid "&Revision:"
-msgstr ""
+msgstr "&Версия"
 
 #: ui_branch.py:88
 msgid "&To:"
-msgstr ""
+msgstr "&Куда:"
 
 #: ui_branch.py:90 ui_pull.py:90 ui_push.py:93
 msgid "Stopped"
-msgstr ""
+msgstr "Остановлено"
 
 #: ui_pull.py:87 ui_push.py:88
 msgid "Remember this location as a default"
-msgstr ""
+msgstr "Запомнить этот URL в качестве значения по умолчанию."
 
 #: ui_pull.py:88 ui_push.py:89
 msgid "Overwrite differences between branches"
@@ -552,15 +554,15 @@ msgstr ""
 
 #: ui_push.py:90
 msgid "Use existing directory"
-msgstr ""
+msgstr "Использовать существующий каталог"
 
 #: ui_push.py:91
 msgid "Create the path up to the branch if it does not exist"
-msgstr ""
+msgstr "Создать все недостающие каталоги вплоть до каталога с новой веткой"
 
 #: util.py:54
 msgid "&OK"
-msgstr "&OK"
+msgstr "&ОК"
 
 #: util.py:55
 msgid "&Cancel"
@@ -572,11 +574,11 @@ msgstr "&Закрыть"
 
 #: util.py:369
 msgid "Parents:"
-msgstr ""
+msgstr "Предыдущие версии:"
 
 #: util.py:374
 msgid "Children:"
-msgstr ""
+msgstr "Следующие версии:"
 
 #: util.py:377
 msgid "Committer:"
