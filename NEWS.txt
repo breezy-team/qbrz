@@ -1,5 +1,20 @@
-0.9.1 - in development
+0.9.1 - 2008-06-17
 ----------------------
+Maintenance release:
+
+ * qannotate: fixing incompatibility with Python 2.4.x 
+   in decoding lines to unicode (#209467)
+ * qbrowse->qlog->qdiff: properly lock repository before
+   invoking qdiff window (#209875)
+ * qconfig no more fails if whoami missed e-mail. (#239534)
+ * catching PyQt4 ImportError and show to user explanation
+   message instead a traceback. (#240123, #163728)
+ * Fix "QPainter::begin: A paint device can only be painted 
+   by one painter at a time." warning from Qt (#234965)
+
+Translations was updated; Spanish translation added.
+Launchpad Rosetta service no more used for translations.
+See "Help translate" section in README.txt for details.
 
 0.9.0 - 2008-03-29
 ----------------------
