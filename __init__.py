@@ -42,11 +42,11 @@ import shlex
 from bzrlib import (
     builtins,
     commands,
+    osutils,
+    progress,
     ui,
     ui.text,
-    progress,
-    osutils,
-)
+    )
 from bzrlib.util import bencode
 from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
@@ -92,6 +92,28 @@ def check_encoding(encoding):
     raise InvalidEncodingOption(encoding)
 
 
+class PyQt4NotInstalled(errors.BzrError):
+
+    _fmt = ('QBzr require at least PyQt 4.1 and '
+            'Qt 4.2 to run. Please check your install')
+
+
+def report_missing_pyqt(unbound):
+    """Decorator for q-commands run method to catch ImportError PyQt4
+    and show explanation to user instead of scary traceback.
+    See bugs: #240123, #163728
+    """
+    def run(self, *args, **kwargs):
+        try:
+            return unbound(self, *args, **kwargs)
+        except ImportError, e:
+            if str(e).endswith('PyQt4'):
+                raise PyQt4NotInstalled
+            else:
+                raise e
+    return run
+
+
 class cmd_qannotate(Command):
     """Show the origin of each line in a file."""
     takes_args = ['filename']
@@ -101,6 +123,7 @@ class cmd_qannotate(Command):
                     ]
     aliases = ['qann', 'qblame']
 
+    @report_missing_pyqt
     def run(self, filename=None, revision=None, encoding=None):
         from bzrlib.annotate import _annotate_file
         tree, relpath = WorkingTree.open_containing(filename)
@@ -143,6 +166,7 @@ class cmd_qbrowse(Command):
     takes_args = ['location?']
     takes_options = ['revision']
 
+    @report_missing_pyqt
     def run(self, revision=None, location=None):
         branch, path = Branch.open_containing(location)
         app = QtGui.QApplication(sys.argv)
@@ -159,6 +183,7 @@ class cmd_qcommit(Command):
     takes_args = ['selected*']
     aliases = ['qci']
 
+    @report_missing_pyqt
     def run(self, selected_list=None):
         tree, selected_list = builtins.tree_files(selected_list)
         if selected_list == ['']:
@@ -182,6 +207,7 @@ class cmd_qdiff(Command):
         takes_options.append('change')
     aliases = ['qdi']
 
+    @report_missing_pyqt
     def run(self, revision=None, file_list=None, complete=False,
             encoding=None):
         from bzrlib.builtins import internal_tree_files
@@ -238,6 +264,7 @@ class cmd_qlog(Command):
     takes_args = ['location?']
     takes_options = []
 
+    @report_missing_pyqt
     def run(self, location=None):
         file_id = None
         if location:
@@ -270,6 +297,7 @@ class cmd_qconfig(Command):
     takes_options = []
     aliases = ['qconfigure']
 
+    @report_missing_pyqt
     def run(self):
         app = QtGui.QApplication(sys.argv)
         window = QBzrConfigWindow()
@@ -290,6 +318,7 @@ class cmd_qcat(Command):
         ]
     takes_args = ['filename']
 
+    @report_missing_pyqt
     def run(self, filename, revision=None, encoding=None):
         if revision is not None and len(revision) != 1:
             raise errors.BzrCommandError("bzr qcat --revision takes exactly"
@@ -319,6 +348,7 @@ class cmd_qpull(Command):
     takes_options = []
     takes_args = []
 
+    @report_missing_pyqt
     def run(self):
         branch, relpath = Branch.open_containing('.')
         app = QtGui.QApplication(sys.argv)
@@ -334,6 +364,7 @@ class cmd_qpush(Command):
     takes_options = []
     takes_args = []
 
+    @report_missing_pyqt
     def run(self):
         branch, relpath = Branch.open_containing('.')
         app = QtGui.QApplication(sys.argv)
@@ -348,6 +379,7 @@ class cmd_qbranch(Command):
     takes_options = []
     takes_args = []
 
+    @report_missing_pyqt
     def run(self):
         app = QtGui.QApplication(sys.argv)
         window = QBzrBranchWindow(None)
@@ -365,6 +397,7 @@ class cmd_qbzr(Command):
     takes_args = []
     hidden = True
 
+    @report_missing_pyqt
     def run(self):
         # Remove svn checkout support
         try:
@@ -466,6 +499,7 @@ class cmd_qsubprocess(Command):
     takes_args = ['cmd']
     hidden = True
 
+    @report_missing_pyqt
     def run(self, cmd):
         ui.ui_factory = ui.text.TextUIFactory(SubprocessProgress)
         argv = [p.decode('utf8') for p in shlex.split(cmd.encode('utf8'))]
