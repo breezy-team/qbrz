@@ -40,6 +40,7 @@ from bzrlib.plugins.qbzr.util import (
     BTN_CANCEL,
     BTN_OK,
     QBzrWindow,
+    file_extension,
     format_timestamp,
     get_apparent_author,
     )
@@ -201,16 +202,16 @@ class CommitWindow(QBzrWindow):
         delta = self.tree.changes_from(self.basis_tree)
         for path, id_, kind in delta.added:
             marker = osutils.kind_marker(kind)
-            ext = os.path.splitext(path)[1]
+            ext = file_extension(path)
             files.append((gettext("added"), path+marker, ext, path, True))
         for path, id_, kind in delta.removed:
             marker = osutils.kind_marker(kind)
-            ext = os.path.splitext(path)[1]
+            ext = file_extension(path)
             files.append((gettext("removed"), path+marker, ext, path, True))
         for (oldpath, newpath, id_, kind,
             text_modified, meta_modified) in delta.renamed:
             marker = osutils.kind_marker(kind)
-            ext = os.path.splitext(newpath)[1]
+            ext = file_extension(newpath)
             if text_modified or meta_modified:
                 changes = gettext("renamed and modified")
             else:
@@ -220,10 +221,10 @@ class CommitWindow(QBzrWindow):
                           ext, newpath, True))
         for path, id_, kind, text_modified, meta_modified in delta.modified:
             marker = osutils.kind_marker(kind)
-            ext = os.path.splitext(path)[1]
+            ext = file_extension(path)
             files.append((gettext("modified"), path+marker, ext, path, True))
         for entry in tree.unknowns():
-            ext = os.path.splitext(entry)[1]
+            ext = file_extension(entry)
             files.append((gettext("non-versioned"), entry, ext, entry, False))
 
         # Build a word list for message completer

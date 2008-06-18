@@ -4,6 +4,7 @@
  * qlog: always show location even in the case it runs as ``bzr qlog``.
  * util.py: new helper function file_extension() 
    as much smarter os.path.splitext()[1]
+ * qcommit: using file_extension() instead of os.path.splitext() in commit.py
 
 0.9.1 - 2008-06-17
 ----------------------
