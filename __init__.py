@@ -55,20 +55,20 @@ from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
 from bzrlib.workingtree import WorkingTree
 
-from bzrlib.plugins.qbzr.main import QBzrMainWindow
-from bzrlib.plugins.qbzr.annotate import AnnotateWindow
-from bzrlib.plugins.qbzr.browse import BrowseWindow
-from bzrlib.plugins.qbzr.cat import QBzrCatWindow
-from bzrlib.plugins.qbzr.commit import CommitWindow
-from bzrlib.plugins.qbzr.config import QBzrConfigWindow
-from bzrlib.plugins.qbzr.diff import DiffWindow
-from bzrlib.plugins.qbzr.log import LogWindow
-from bzrlib.plugins.qbzr.pull import (
+from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
+from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
+from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
+from bzrlib.plugins.qbzr.lib.commit import CommitWindow
+from bzrlib.plugins.qbzr.lib.config import QBzrConfigWindow
+from bzrlib.plugins.qbzr.lib.diff import DiffWindow
+from bzrlib.plugins.qbzr.lib.log import LogWindow
+from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
+from bzrlib.plugins.qbzr.lib.pull import (
     QBzrPullWindow,
     QBzrPushWindow,
     QBzrBranchWindow,
     )
-from bzrlib.plugins.qbzr.util import (
+from bzrlib.plugins.qbzr.lib.util import (
     get_branch_config,
     get_qlog_replace,
     get_set_encoding,
@@ -515,5 +515,5 @@ register_command(cmd_qsubprocess)
 
 def test_suite():
     from bzrlib.tests.TestUtil import TestLoader
-    import test
+    from bzrlib.plugins.qbzr.lib import test
     return TestLoader().loadTestsFromModule(test)

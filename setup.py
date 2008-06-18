@@ -69,8 +69,8 @@ if have_pyqt_dev:
     pyqt_cfg = pyqtconfig.Configuration()
 
     ext_modules.append(
-        SipExtension("bzrlib.plugins.qbzr._ext",
-            ["_ext.sip", "_ext.cpp"],
+        SipExtension("bzrlib.plugins.qbzr.lib._ext",
+            ["lib/_ext.sip", "lib/_ext.cpp"],
             #moc_sources=["_ext.h"],
             include_dirs=[
                 pyqt_cfg.qt_inc_dir,

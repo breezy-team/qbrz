@@ -26,8 +26,9 @@ from bzrlib.config import (
     extract_email_address,
     )
 from bzrlib import errors
-from bzrlib.plugins.qbzr.i18n import gettext, N_
-from bzrlib.plugins.qbzr.util import (
+
+from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
+from bzrlib.plugins.qbzr.lib.util import (
     BTN_OK,
     BTN_CANCEL,
     QBzrDialog,

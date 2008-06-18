@@ -2,13 +2,14 @@
 
 # Form implementation generated from reading ui file 'ui/branch.ui'
 #
-# Created: Thu Dec 13 20:49:28 2007
-#      by: PyQt4 UI code generator 4.3
+# Created: Wed Jun 18 15:52:44 2008
+#      by: PyQt4 UI code generator 4.3.1
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.i18n import gettext
+from bzrlib.plugins.qbzr.lib.i18n import gettext
+
 
 class Ui_BranchForm(object):
     def setupUi(self, BranchForm):

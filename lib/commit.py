@@ -34,9 +34,10 @@ from bzrlib.option import Option
 from bzrlib.commands import Command, register_command
 from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
-from bzrlib.plugins.qbzr.diff import DiffWindow
-from bzrlib.plugins.qbzr.i18n import gettext
-from bzrlib.plugins.qbzr.util import (
+
+from bzrlib.plugins.qbzr.lib.diff import DiffWindow
+from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     BTN_OK,
     QBzrWindow,

@@ -31,10 +31,12 @@ from bzrlib import (
     )
 from bzrlib.workingtree import WorkingTree
 import bzrlib
+
 from bzrlib.plugins import qbzr
-from bzrlib.plugins.qbzr.statuscache import StatusCache
-from bzrlib.plugins.qbzr.i18n import gettext, N_
-from bzrlib.plugins.qbzr.util import (
+from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
+from bzrlib.plugins.qbzr.lib.statuscache import StatusCache
+from bzrlib.plugins.qbzr.lib.ui_bookmark import Ui_BookmarkDialog
+from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     QBzrConfig,
     QBzrGlobalConfig,
@@ -43,7 +45,6 @@ from bzrlib.plugins.qbzr.util import (
     BTN_OK,
     BTN_CANCEL,
     )
-from bzrlib.plugins.qbzr.ui_bookmark import Ui_BookmarkDialog
 
 
 def formatFileSize(size):
@@ -449,27 +450,27 @@ class QBzrMainWindow(QBzrWindow):
 
     def commit(self):
         from bzrlib.workingtree import WorkingTree
-        from bzrlib.plugins.qbzr.commit import CommitWindow
+        from bzrlib.plugins.qbzr.lib.commit import CommitWindow
         tree = WorkingTree.open_containing(self.currentDirectory)[0]
         self.window = CommitWindow(tree, [], parent=self)
         self.window.show()
 
     def push(self):
         from bzrlib.workingtree import WorkingTree
-        from bzrlib.plugins.qbzr.pull import QBzrPushWindow
+        from bzrlib.plugins.qbzr.lib.pull import QBzrPushWindow
         tree = WorkingTree.open_containing(self.currentDirectory)[0]
         self.window = QBzrPushWindow(tree.branch, parent=self)
         self.window.show()
 
     def pull(self):
         from bzrlib.workingtree import WorkingTree
-        from bzrlib.plugins.qbzr.pull import QBzrPullWindow
+        from bzrlib.plugins.qbzr.lib.pull import QBzrPullWindow
         tree = WorkingTree.open_containing(self.currentDirectory)[0]
         self.window = QBzrPullWindow(tree.branch, parent=self)
         self.window.show()
 
     def configure(self):
-        from bzrlib.plugins.qbzr.config import QBzrConfigWindow
+        from bzrlib.plugins.qbzr.lib.config import QBzrConfigWindow
         window = QBzrConfigWindow(self)
         window.exec_()
 

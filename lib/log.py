@@ -22,9 +22,9 @@ import re
 from PyQt4 import QtCore, QtGui
 from bzrlib import bugtracker, lazy_regex
 from bzrlib.log import LogFormatter, show_log
-from bzrlib.plugins.qbzr.diff import DiffWindow
-from bzrlib.plugins.qbzr.i18n import gettext
-from bzrlib.plugins.qbzr.util import (
+from bzrlib.plugins.qbzr.lib.diff import DiffWindow
+from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     extract_name,
@@ -195,7 +195,7 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
 
 
 try:
-    from bzrlib.plugins.qbzr._ext import (
+    from bzrlib.plugins.qbzr.lib._ext import (
         TreeFilterProxyModel,
         LogWidgetDelegate,
         )
@@ -567,7 +567,7 @@ class LogWindow(QBzrWindow):
         self.search_timer.start(200)
 
     def show_revision_tree(self):
-        from bzrlib.plugins.qbzr.browse import BrowseWindow
+        from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
         rev = self.current_rev
         window = BrowseWindow(self.branch, revision_id=rev.revision_id,
                               revision_spec=rev.revno, parent=self)

@@ -24,17 +24,18 @@ from bzrlib import (
     )
 from bzrlib.branch import Branch
 from bzrlib.osutils import pathjoin
+from bzrlib.revisionspec import RevisionSpec
 from bzrlib.urlutils import local_path_from_url
-from bzrlib.plugins.qbzr.i18n import gettext
-from bzrlib.plugins.qbzr.util import (
+
+from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.log import LogWindow
+from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     extract_name,
     format_timestamp,
     get_qlog_replace,
     )
-from bzrlib.plugins.qbzr.log import LogWindow
-from bzrlib.revisionspec import RevisionSpec
 
 
 class FileTreeWidget(QtGui.QTreeWidget):

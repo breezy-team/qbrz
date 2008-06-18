@@ -34,18 +34,18 @@ from bzrlib.diff import show_diff_trees
 from bzrlib.workingtree import WorkingTree
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 
-from bzrlib.plugins.qbzr.i18n import gettext, ngettext, N_
-from bzrlib.plugins.qbzr.util import (
+from bzrlib.plugins.qbzr.lib.diffview import (
+    DiffView,
+    SimpleDiffView,
+    )
+from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
+from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     format_timestamp,
     get_branch_config,
     get_set_encoding,
     )
-from bzrlib.plugins.qbzr.diffview import (
-    DiffView,
-    SimpleDiffView
-)
 
 
 STYLES = {

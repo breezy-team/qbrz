@@ -2,13 +2,14 @@
 
 # Form implementation generated from reading ui file 'ui/bookmark.ui'
 #
-# Created: Mon Dec 17 10:41:01 2007
-#      by: PyQt4 UI code generator 4.3
+# Created: Wed Jun 18 15:52:44 2008
+#      by: PyQt4 UI code generator 4.3.1
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.i18n import gettext
+from bzrlib.plugins.qbzr.lib.i18n import gettext
+
 
 class Ui_BookmarkDialog(object):
     def setupUi(self, BookmarkDialog):

@@ -18,12 +18,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.i18n import gettext
-from bzrlib.plugins.qbzr.util import (
+
+from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     htmlencode,
     )
+
 
 have_pygments = True
 try:
@@ -32,6 +34,7 @@ try:
     from pygments.formatters import HtmlFormatter
 except ImportError:
     have_pygments = False
+
 
 class QBzrCatWindow(QBzrWindow):
 

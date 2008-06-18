@@ -18,8 +18,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtGui, QtCore
-from bzrlib.plugins.qbzr.util import htmlencode
-from bzrlib.plugins.qbzr.i18n import gettext
+
+from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.util import htmlencode
 
 
 colors = {

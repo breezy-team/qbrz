@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 #
+# QBzr - Qt frontend to Bazaar commands
+# Copyright (C) 2006-2008 Lukáš Lalinský <lalinsky@gmail.com>
 # Copyright (C) 2008 Alexander Belchenko
 #
 # This program is free software; you can redistribute it and/or
@@ -15,21 +17,3 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-
-"""Tests for QBzr plugin."""
-
-from bzrlib.tests import TestCase
-
-from bzrlib.plugins.qbzr import util
-
-
-class TestUtilFuncs(TestCase):
-
-    def test_file_extension(self):
-        self.assertEquals('', util.file_extension(''))
-        self.assertEquals('', util.file_extension('/foo/bar.x/'))
-        self.assertEquals('', util.file_extension('C:/foo/bar.x/'))
-        self.assertEquals('', util.file_extension('.bzrignore'))
-        self.assertEquals('', util.file_extension('/foo/bar.x/.bzrignore'))
-        self.assertEquals('.txt', util.file_extension('foo.txt'))
-        self.assertEquals('.txt', util.file_extension('/foo/bar.x/foo.txt'))

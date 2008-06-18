@@ -53,7 +53,7 @@ if sys.platform == 'win32':
             os.environ['LANGUAGE'] = lang
 
 
-d = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'locale')
+d = os.path.join(os.path.realpath(os.path.dirname(__file__)), '..', 'locale')
 t = _gettext.translation('qbzr', localedir=d, fallback=True)
 
 # functions for interface translation

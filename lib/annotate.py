@@ -24,9 +24,9 @@
 
 import operator, sys, time
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.i18n import gettext
-from bzrlib.plugins.qbzr.diff import DiffWindow
-from bzrlib.plugins.qbzr.util import (
+from bzrlib.plugins.qbzr.lib.diff import DiffWindow
+from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     extract_name,
