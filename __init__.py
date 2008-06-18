@@ -2,6 +2,7 @@
 #
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2006 Lukáš Lalinský <lalinsky@gmail.com>
+# Copyright (C) 2008 Alexander Belchenko
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -35,6 +36,7 @@ if hasattr(sys, "frozen"):
 from bzrlib import errors
 from bzrlib.option import Option
 from bzrlib.commands import Command, register_command
+
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from PyQt4 import QtGui
@@ -46,10 +48,13 @@ from bzrlib import (
     progress,
     ui,
     ui.text,
+    urlutils,
     )
 from bzrlib.util import bencode
 from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
+from bzrlib.workingtree import WorkingTree
+
 from bzrlib.plugins.qbzr.main import QBzrMainWindow
 from bzrlib.plugins.qbzr.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.browse import BrowseWindow
@@ -69,7 +74,6 @@ from bzrlib.plugins.qbzr.util import (
     get_set_encoding,
     is_valid_encoding,
     )
-from bzrlib.workingtree import WorkingTree
 ''')
 
 
@@ -278,6 +282,8 @@ class cmd_qlog(Command):
         else:
             dir, path = BzrDir.open_containing('.')
             branch = dir.open_branch()
+            location = urlutils.unescape_for_display(branch.base,
+                'utf-8').decode('utf-8')
 
         app = QtGui.QApplication(sys.argv)
         branch.lock_read()
