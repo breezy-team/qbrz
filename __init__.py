@@ -109,8 +109,7 @@ def report_missing_pyqt(unbound):
         except ImportError, e:
             if str(e).endswith('PyQt4'):
                 raise PyQt4NotInstalled
-            else:
-                raise e
+            raise
     return run
 
 
