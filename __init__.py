@@ -511,3 +511,9 @@ class cmd_qsubprocess(Command):
         commands.run_bzr(argv)
 
 register_command(cmd_qsubprocess)
+
+
+def test_suite():
+    from bzrlib.tests.TestUtil import TestLoader
+    import test
+    return TestLoader().loadTestsFromModule(test)
