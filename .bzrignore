@@ -6,3 +6,4 @@
 ./uninst.exe
 tags
 ./MANIFEST
+./docs/make_release.html
