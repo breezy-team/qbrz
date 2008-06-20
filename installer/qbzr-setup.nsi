@@ -51,10 +51,8 @@ Section "MainSection" SEC01
   File "..\__init__.py" "..\*.txt"
   SetOutPath "$INSTDIR\lib"
   File /r "..\lib\*.py"
-  SetOutPath "$INSTDIR\_ext"
-  File "_ext\*.pyd"
   SetOutPath "$INSTDIR\_lib"
-  File /r "_lib\*.py"
+  File /r "_lib\*.py" "_lib\*.pyd"
   SetOutPath "$INSTDIR\locale"
   File /r "..\locale\*.mo"
 

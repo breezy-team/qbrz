@@ -1,5 +1,6 @@
 ./build
 ./docs/make_release.html
+./installer/_lib/*
 ./locale
 ./MANIFEST
 ./tags
@@ -7,3 +8,4 @@
 ./_ext
 ./_lib
 ./uninst.exe
+__x
