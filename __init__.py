@@ -528,6 +528,10 @@ register_command(cmd_qsubprocess)
 
 
 def test_suite():
+    # disable gettext
+    from bzrlib.plugins.qbzr.lib import i18n
+    i18n.disable()
+    # load tests
     from bzrlib.tests.TestUtil import TestLoader
     from bzrlib.plugins.qbzr.lib import test
     return TestLoader().loadTestsFromModule(test)

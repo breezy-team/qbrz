@@ -35,12 +35,39 @@ class TestUtil(TestCase):
         self.assertEquals('.txt', util.file_extension('/foo/bar.x/foo.txt'))
 
     def test_filter_options(self):
-        self.assertEquals(False, bool(util.FilterOptions()))
-        self.assertEquals(True, bool(util.FilterOptions(added=True)))
-        self.assertEquals(True, bool(util.FilterOptions(deleted=True)))
-        self.assertEquals(True, bool(util.FilterOptions(modified=True)))
-        self.assertEquals(True, bool(util.FilterOptions(renamed=True)))
+        fo = util.FilterOptions()
+        self.assertEquals(False, bool(fo))
+        self.assertEquals(False, fo.is_all_enable())
+        self.assertEquals('', fo.to_str())
+
+        fo = util.FilterOptions(deleted=True)
+        self.assertEquals(True, bool(fo))
+        self.assertEquals(False, fo.is_all_enable())
+        self.assertEquals('deleted files', fo.to_str())
+
+        fo = util.FilterOptions(added=True)
+        self.assertEquals(True, bool(fo))
+        self.assertEquals(False, fo.is_all_enable())
+        self.assertEquals('added files', fo.to_str())
+
+        fo = util.FilterOptions(renamed=True)
+        self.assertEquals(True, bool(fo))
+        self.assertEquals(False, fo.is_all_enable())
+        self.assertEquals('renamed files', fo.to_str())
+
+        fo = util.FilterOptions(modified=True)
+        self.assertEquals(True, bool(fo))
+        self.assertEquals(False, fo.is_all_enable())
+        self.assertEquals('modified files', fo.to_str())
+
+        fo = util.FilterOptions(added=True, deleted=True, modified=True,
+                renamed=True)
+        self.assertEquals(True, bool(fo))
+        self.assertEquals(True, fo.is_all_enable())
+        self.assertEquals('deleted files, added files, '
+            'renamed files, modified files', fo.to_str())
+
         fo = util.FilterOptions()
         fo.all_enable()
         self.assertEquals(True, bool(fo))
-        self.assertEquals(True, fo.renamed_modified)
+        self.assertEquals(True, fo.is_all_enable())

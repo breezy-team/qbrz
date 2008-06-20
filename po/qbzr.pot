@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-06-21 00:37+0300\n"
+"POT-Creation-Date: 2008-06-21 01:36+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -291,11 +291,11 @@ msgid_plural "%d files"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib\diff.py:333
+#: lib\diff.py:336
 msgid "Side by side"
 msgstr ""
 
-#: lib\diff.py:340
+#: lib\diff.py:343
 msgid "Unidiff"
 msgstr ""
 
@@ -311,19 +311,19 @@ msgstr ""
 msgid "Kind:"
 msgstr ""
 
-#: lib\i18n.py:68
+#: lib\i18n.py:74
 msgid "file"
 msgstr ""
 
-#: lib\i18n.py:69
+#: lib\i18n.py:75
 msgid "directory"
 msgstr ""
 
-#: lib\i18n.py:70
+#: lib\i18n.py:76
 msgid "symlink"
 msgstr ""
 
-#: lib\i18n.py:72
+#: lib\i18n.py:78
 msgid "fixed"
 msgstr ""
 
@@ -596,3 +596,19 @@ msgid "Bug:"
 msgid_plural "Bugs:"
 msgstr[0] ""
 msgstr[1] ""
+
+#: lib\util.py:553
+msgid "deleted files"
+msgstr ""
+
+#: lib\util.py:555
+msgid "added files"
+msgstr ""
+
+#: lib\util.py:557
+msgid "renamed files"
+msgstr ""
+
+#: lib\util.py:559
+msgid "modified files"
+msgstr ""

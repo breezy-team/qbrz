@@ -62,6 +62,13 @@ gettext = t.ugettext
 N_ = lambda x: x
 
 
+def disable():
+    """Disable translations (e.g. for unit tests)"""
+    global ngettext, gettext
+    ngettext = N_
+    gettext = N_
+
+
 # additional strings for translation
 if 0:
     # file kinds

@@ -205,7 +205,7 @@ class TreeDiff(list):
             delta_removed = delta.removed
         if filter_options.added:
             delta_added = delta.added
-        if filter_options.renamed_modified:
+        if filter_options.renamed or filter_options.modified:
             delta_renamed = delta.renamed
         if filter_options.modified:
             delta_modified = delta.modified
@@ -305,6 +305,9 @@ class DiffWindow(QBzrWindow):
                     ngettext("%d file", "%d files", nfiles) % nfiles)
             else:
                 title.append(", ".join(specific_files))
+        else:
+            if filter_options and not filter_options.is_all_enable():
+                title.append(filter_options.to_str())
 
         config = get_branch_config(branch)
         encoding = get_set_encoding(encoding, config)

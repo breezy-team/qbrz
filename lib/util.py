@@ -36,6 +36,7 @@ from bzrlib import (
     )
 from bzrlib.util.configobj import configobj
 
+from bzrlib.plugins.qbzr.lib import i18n
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
 import bzrlib.plugins.qbzr.lib.resources
 
@@ -527,8 +528,7 @@ def file_extension(path):
 class FilterOptions(object):
     """Filter options container."""
 
-    __slots__ = ['deleted', 'added', 'renamed', 'modified',
-        'renamed_modified']
+    __slots__ = ['deleted', 'added', 'renamed', 'modified']
 
     def __init__(self, **kw):
         self.added = False
@@ -537,7 +537,6 @@ class FilterOptions(object):
         self.renamed = False
         for k in kw:
             setattr(self, k, kw[k])
-        self.renamed_modified = self.renamed or self.modified
 
     def all_enable(self):
         for i in self.__slots__:
@@ -545,3 +544,18 @@ class FilterOptions(object):
 
     def __nonzero__(self):
         return self.added or self.deleted or self.modified or self.renamed
+
+    def is_all_enable(self):
+        return self.added and self.deleted and self.modified and self.renamed
+
+    def to_str(self):
+        s = []
+        if self.deleted:
+            s.append(i18n.gettext('deleted files'))
+        if self.added:
+            s.append(i18n.gettext('added files'))
+        if self.renamed:
+            s.append(i18n.gettext('renamed files'))
+        if self.modified:
+            s.append(i18n.gettext('modified files'))
+        return ', '.join(s)
