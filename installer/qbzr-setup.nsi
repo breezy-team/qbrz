@@ -5,7 +5,7 @@
 
 SetCompressor /SOLID lzma
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "qbzr-setup-${PRODUCT_VERSION}.exe"
+OutFile "..\qbzr-setup-${PRODUCT_VERSION}.exe"
 ShowInstDetails show
 ShowUnInstDetails show
 
@@ -48,7 +48,9 @@ Section "MainSection" SEC01
 
   ; Files
   SetOutPath "$INSTDIR"
-  File "..\*.py" "..\*.txt"
+  File "..\__init__.py" "..\*.txt"
+  SetOutPath "$INSTDIR\lib"
+  File /r "..\lib\*.py"
   SetOutPath "$INSTDIR\_ext"
   File "_ext\*.pyd"
   SetOutPath "$INSTDIR\_lib"

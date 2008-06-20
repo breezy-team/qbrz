@@ -93,7 +93,7 @@ setup(name='qbzr',
       author_email='lalinsky@gmail.com',
       package_dir={'bzrlib.plugins.qbzr': '.'},
       package_data={'bzrlib.plugins.qbzr': ['locale/*/LC_MESSAGES/qbzr.mo']},
-      packages=['bzrlib.plugins.qbzr'],
+      packages=['bzrlib.plugins.qbzr', 'bzrlib.plugins.qbzr.lib'],
       ext_modules=ext_modules,
       cmdclass=cmdclass,
 )

@@ -62,7 +62,7 @@ Build distribution files
 
 	python setup.py bdist_nsis
         
-   This command will produce qbzr-setup-X.Y.Z.exe file in 'installer' directory.
+   This command will produce qbzr-setup-X.Y.Z.exe file in tree root directory.
    Sign this file with your GPG key::
    
    	gpg -ab qbzr-setup-X.Y.Z.exe
