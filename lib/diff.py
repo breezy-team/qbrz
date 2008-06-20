@@ -41,6 +41,7 @@ from bzrlib.plugins.qbzr.lib.diffview import (
 from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
+    FilterOptions,
     QBzrWindow,
     format_timestamp,
     get_branch_config,
@@ -189,11 +190,27 @@ class TreeDiff(list):
         return format_timestamp(secs)
 
     def _make_diff(self, old_tree, new_tree, specific_files=[], complete=False,
-                   encoding='utf-8'):
+                   encoding='utf-8', filter_options=None):
+        if filter_options == None:
+            filter_options = FilterOptions()
+            filter_options.all_enable()
         delta = new_tree.changes_from(old_tree, specific_files=specific_files,
                                       require_versioned=True)
 
-        for path, file_id, kind in delta.removed:
+        delta_removed = []
+        delta_added = []
+        delta_renamed = []
+        delta_modified = []
+        if filter_options.deleted:
+            delta_removed = delta.removed
+        if filter_options.added:
+            delta_added = delta.added
+        if filter_options.renamed_modified:
+            delta_renamed = delta.renamed
+        if filter_options.modified:
+            delta_modified = delta.modified
+
+        for path, file_id, kind in delta_removed:
             diff = FileDiff(N_('removed'), path)
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path)
@@ -205,7 +222,7 @@ class TreeDiff(list):
                                [], complete, encoding)
             self.append(diff)
 
-        for path, file_id, kind in delta.added:
+        for path, file_id, kind in delta_added:
             diff = FileDiff(N_('added'), path)
             diff.kind = kind
             diff.old_date = self._date(old_tree, file_id, path, 0)
@@ -218,10 +235,12 @@ class TreeDiff(list):
             self.append(diff)
 
         for (old_path, new_path, file_id, kind, text_modified, meta_modified
-            ) in delta.renamed:
+            ) in delta_renamed:
             if text_modified:
                 status = N_('renamed and modified')
             else:
+                if not filter_options.renamed:
+                    continue
                 status = N_('renamed')
             diff = FileDiff(status, u'%s \u2192 %s' % (old_path, new_path))
             diff.kind = kind
@@ -235,7 +254,8 @@ class TreeDiff(list):
                 diff.make_diff(old_lines, new_lines, complete, encoding)
             self.append(diff)
 
-        for path, file_id, kind, text_modified, meta_modified in delta.modified:
+        for (path, file_id, kind, text_modified, meta_modified
+            ) in delta_modified:
             diff = FileDiff(N_('modified'), path)
             diff.kind = kind
             # the path for this file might be changed by a directory rename, so
@@ -251,13 +271,13 @@ class TreeDiff(list):
             self.append(diff)
 
     def __init__(self, old_tree, new_tree, specific_files=[], complete=False,
-                 encoding='utf-8'):
+                 encoding='utf-8', filter_options=None):
         self._metainfo_template = None
         old_tree.lock_read()
         new_tree.lock_read()
         try:
             self._make_diff(old_tree, new_tree, specific_files, complete,
-                            encoding)
+                            encoding, filter_options)
         finally:
             old_tree.unlock()
             new_tree.unlock()
@@ -273,7 +293,8 @@ class DiffWindow(QBzrWindow):
 
     def __init__(self, tree1=None, tree2=None, specific_files=None,
                  parent=None, custom_title=None,
-                 complete=False, branch=None, encoding=None):
+                 complete=False, branch=None, encoding=None,
+                 filter_options=None):
         title = [gettext("Diff")]
         if custom_title:
             title.append(custom_title)
@@ -296,7 +317,7 @@ class DiffWindow(QBzrWindow):
         self.specific_files = specific_files
 
         treediff = TreeDiff(self.tree1, self.tree2, self.specific_files,
-                            complete, encoding)
+                            complete, encoding, filter_options)
         self.diffview = DiffView(treediff, self)
 
         self.sdiffview = SimpleDiffView(treediff, self)

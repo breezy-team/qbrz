@@ -4,6 +4,8 @@
  * qlog: always show location even in the case it runs as ``bzr qlog``.
  * qcommit: don't show entire filename as extension if name started with dot
    (e.g. for .bzrignore files)
+ * qdiff: options to filter diff output 
+   (to see added/deleted/modified/renamed files in any combination)
 
 0.9.1 - 2008-06-17
 ----------------------

@@ -23,7 +23,7 @@ from bzrlib.tests import TestCase
 from bzrlib.plugins.qbzr.lib import util
 
 
-class TestUtilFuncs(TestCase):
+class TestUtil(TestCase):
 
     def test_file_extension(self):
         self.assertEquals('', util.file_extension(''))
@@ -33,3 +33,14 @@ class TestUtilFuncs(TestCase):
         self.assertEquals('', util.file_extension('/foo/bar.x/.bzrignore'))
         self.assertEquals('.txt', util.file_extension('foo.txt'))
         self.assertEquals('.txt', util.file_extension('/foo/bar.x/foo.txt'))
+
+    def test_filter_options(self):
+        self.assertEquals(False, bool(util.FilterOptions()))
+        self.assertEquals(True, bool(util.FilterOptions(added=True)))
+        self.assertEquals(True, bool(util.FilterOptions(deleted=True)))
+        self.assertEquals(True, bool(util.FilterOptions(modified=True)))
+        self.assertEquals(True, bool(util.FilterOptions(renamed=True)))
+        fo = util.FilterOptions()
+        fo.all_enable()
+        self.assertEquals(True, bool(fo))
+        self.assertEquals(True, fo.renamed_modified)

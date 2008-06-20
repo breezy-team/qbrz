@@ -522,3 +522,26 @@ def file_extension(path):
     else:
         ext = ''
     return ext
+
+
+class FilterOptions(object):
+    """Filter options container."""
+
+    __slots__ = ['deleted', 'added', 'renamed', 'modified',
+        'renamed_modified']
+
+    def __init__(self, **kw):
+        self.added = False
+        self.deleted = False
+        self.modified = False
+        self.renamed = False
+        for k in kw:
+            setattr(self, k, kw[k])
+        self.renamed_modified = self.renamed or self.modified
+
+    def all_enable(self):
+        for i in self.__slots__:
+            setattr(self, i, True)
+
+    def __nonzero__(self):
+        return self.added or self.deleted or self.modified or self.renamed

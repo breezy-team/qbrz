@@ -69,6 +69,7 @@ from bzrlib.plugins.qbzr.lib.pull import (
     QBzrBranchWindow,
     )
 from bzrlib.plugins.qbzr.lib.util import (
+    FilterOptions,
     get_branch_config,
     get_qlog_replace,
     get_set_encoding,
@@ -205,6 +206,11 @@ class cmd_qdiff(Command):
         Option('complete', help='Show complete files'),
         Option('encoding', type=check_encoding,
                help='Encoding of files content (default: utf-8)'),
+        Option('added', short_name='A', help='Show diff for added files'),
+        Option('deleted', short_name='D', help='Show diff for deleted files'),
+        Option('modified', short_name='M',
+               help='Show diff for modified files'),
+        Option('renamed', short_name='R', help='Show diff for renamed files'),
         ]
     if 'change' in Option.OPTIONS:
         takes_options.append('change')
@@ -212,12 +218,19 @@ class cmd_qdiff(Command):
 
     @report_missing_pyqt
     def run(self, revision=None, file_list=None, complete=False,
-            encoding=None):
+            encoding=None,
+            added=None, deleted=None, modified=None, renamed=None):
         from bzrlib.builtins import internal_tree_files
 
         if revision and len(revision) > 2:
             raise errors.BzrCommandError('bzr qdiff --revision takes exactly'
                                          ' one or two revision specifiers')
+        # changes filter
+        filter_options = FilterOptions(added=added, deleted=deleted,
+            modified=modified, renamed=renamed)
+        if not (added or deleted or modified or renamed):
+            # if no filter option used then turn all on
+            filter_options.all_enable()
 
         try:
             tree1, file_list = internal_tree_files(file_list)
@@ -254,7 +267,8 @@ class cmd_qdiff(Command):
 
         application = QtGui.QApplication(sys.argv)
         window = DiffWindow(tree2, tree1, complete=complete,
-            specific_files=file_list, branch=branch, encoding=encoding)
+            specific_files=file_list, branch=branch, encoding=encoding,
+            filter_options=filter_options)
         window.show()
         application.exec_()
 
