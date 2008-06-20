@@ -1,3 +1,4 @@
-include *.txt
-recursive-include installer *
-recursive-include data *
+include ./*.txt
+prune docs/*
+include po/*
+include extras/*.py
