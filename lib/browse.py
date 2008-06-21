@@ -25,7 +25,7 @@ from bzrlib import (
 from bzrlib.branch import Branch
 from bzrlib.osutils import pathjoin
 from bzrlib.revisionspec import RevisionSpec
-from bzrlib.urlutils import local_path_from_url
+from bzrlib.urlutils import unescape_for_display
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.log import LogWindow
@@ -54,7 +54,7 @@ class BrowseWindow(QBzrWindow):
     def __init__(self, branch=None, revision=None, revision_id=None,
                  revision_spec=None, parent=None):
         self.branch = branch
-        self.location = local_path_from_url(branch.base)
+        self.location = unescape_for_display(branch.base, 'utf-8')
         QBzrWindow.__init__(self,
             [gettext("Browse"), self.location], parent)
         self.restoreSize("browse", (780, 580))
