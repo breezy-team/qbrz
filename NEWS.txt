@@ -6,6 +6,8 @@
    (e.g. for .bzrignore files)
  * qdiff: options to filter diff output 
    (to see added/deleted/modified/renamed files in any combination)
+ * qcommit: set focus on Message Edit area if there is no saved message;
+   otherwise set focus on OK button (bug #215271)
 
 0.9.1 - 2008-06-17
 ----------------------

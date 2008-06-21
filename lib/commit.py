@@ -243,7 +243,14 @@ class CommitWindow(QBzrWindow):
         words = list(set(words))
         words.sort(lambda a, b: cmp(a.lower(), b.lower()))
 
-        splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        # To set focus on splitter below one need to pass
+        # second argument to constructor: self.centralwidget
+        # Try to be smart: if there is no saved message
+        # then set focus on Edit Area; otherwise on OK button.
+        if self.get_saved_message():
+            splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        else:
+            splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self.centralwidget)
 
         groupbox = QtGui.QGroupBox(gettext("Message"), splitter)
         splitter.addWidget(groupbox)
@@ -434,9 +441,12 @@ class CommitWindow(QBzrWindow):
             properties.append('%s fixed' % bug_url)
         return '\n'.join(properties)
 
-    def restore_message(self):
+    def get_saved_message(self):
         config = self.tree.branch.get_config()._get_branch_data_config()
-        message = config.get_user_option('qbzr_commit_message')
+        return config.get_user_option('qbzr_commit_message')
+
+    def restore_message(self):
+        message = self.get_saved_message()
         if message:
             self.message.setText(message)
 
