@@ -17,6 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import sys
 from PyQt4 import QtCore, QtGui
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -48,6 +49,8 @@ class QBzrCatWindow(QBzrWindow):
             self._create_text_view(relpath, text)
         else:
             ext = file_extension(relpath)
+            if sys.platform == 'win32':
+                ext = ext.lower()
             image_exts = ['.'+str(i)
                 for i in QtGui.QImageReader.supportedImageFormats()]
             if ext in image_exts:
