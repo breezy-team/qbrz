@@ -22,6 +22,7 @@
 
 import glob
 from distutils.core import Command
+from distutils.errors import DistutilsOptionError
 
 
 class build_pot(Command):
@@ -37,12 +38,15 @@ class build_pot(Command):
                     ('output=', 'o', 'POT filename'),
                     ('lang=', None, 'Comma-separated list of languages '
                                     'to update po-files'),
+                    ('no-lang', 'N', "Don't update po-files"),
                    ]
+    boolean_options = ['no-lang']
 
     def initialize_options(self):
         self.build_dir = None
         self.output = None
         self.lang = None
+        self.no_lang = False
 
     def finalize_options(self):
         if self.build_dir is None:
@@ -51,6 +55,9 @@ class build_pot(Command):
             self.output = (self.distribution.get_name() or 'messages')+'.pot'
         if self.lang is not None:
             self.lang = [i.strip() for i in self.lang.split(',') if i.strip()]
+        if self.lang and self.no_lang:
+            raise DistutilsOptionError("You can't use options "
+                "--lang=XXX and --no-lang in the same time.")
 
     def _force_LF(self, src, dst=None):
         f = open(src, 'rU')
@@ -87,6 +94,8 @@ class build_pot(Command):
                     ] + glob.glob('lib/*.py'))
         self._force_LF(fullname)
         # search and update all po-files
+        if self.no_lang:
+            return
         for po in glob.glob(os.path.join(self.build_dir,'*.po')):
             if self.lang is not None:
                 po_lang = os.path.splitext(os.path.basename(po))[0]
