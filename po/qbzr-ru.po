@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: QBzr 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-06-21 01:36+0300\n"
+"POT-Creation-Date: 2008-06-22 20:49+0300\n"
 "PO-Revision-Date: 2008-03-24 21:41+0000\n"
 "Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
 "Language-Team: Russian\n"
@@ -25,7 +25,7 @@ msgstr "Аннотация"
 msgid "Line"
 msgstr "Строка"
 
-#: lib\annotate.py:101 lib\annotate.py:117 lib\browse.py:81 lib\commit.py:304
+#: lib\annotate.py:101 lib\annotate.py:117 lib\browse.py:82 lib\commit.py:311
 #: lib\log.py:222
 msgid "Author"
 msgstr "Автор"
@@ -34,7 +34,7 @@ msgstr "Автор"
 msgid "Rev"
 msgstr "Версия"
 
-#: lib\annotate.py:117 lib\browse.py:80 lib\commit.py:304 lib\log.py:222
+#: lib\annotate.py:117 lib\browse.py:81 lib\commit.py:311 lib\log.py:222
 msgid "Date"
 msgstr "Дата"
 
@@ -42,44 +42,48 @@ msgstr "Дата"
 msgid "Summary"
 msgstr "Кратко"
 
-#: lib\browse.py:59 lib\browse.py:163 lib\browse.py:197
+#: lib\browse.py:60 lib\browse.py:196 lib\browse.py:231
 msgid "Browse"
 msgstr "Обзор"
 
-#: lib\browse.py:65
+#: lib\browse.py:66
 msgid "Location:"
 msgstr "Расположение:"
 
-#: lib\browse.py:70 lib\util.py:365
+#: lib\browse.py:71 lib\util.py:366
 msgid "Revision:"
 msgstr "Версия:"
 
-#: lib\browse.py:73
+#: lib\browse.py:74
 msgid "Show"
 msgstr "Показать"
 
-#: lib\browse.py:80 lib\main.py:359
+#: lib\browse.py:81 lib\main.py:359
 msgid "Name"
 msgstr "Имя"
 
-#: lib\browse.py:81 lib\commit.py:248 lib\commit.py:304 lib\log.py:222
+#: lib\browse.py:82 lib\commit.py:255 lib\commit.py:311 lib\log.py:222
 msgid "Message"
 msgstr "Комментарий"
 
-#: lib\browse.py:84
+#: lib\browse.py:85
 msgid "Show log..."
 msgstr "Показать журнал..."
 
-#: lib\cat.py:42 lib\cat.py:79
+#: lib\browse.py:86
+msgid "View file"
+msgstr "Просмотр файла"
+
+#: lib\cat.py:44 lib\cat.py:104
 msgid "View File"
 msgstr "Просмотр файла"
 
-#: lib\cat.py:80
+#: lib\cat.py:105
 #, python-format
 msgid "File \"%s\" not found in the specified revision."
 msgstr "Файл \"%s\" не найден в указанной версии проекта."
 
-#: lib\commit.py:182 lib\commit.py:460 lib\commit.py:474 lib\commit.py:512
+#: lib\commit.py:182 lib\commit.py:470 lib\commit.py:484 lib\commit.py:522
 msgid "Commit"
 msgstr "Зафиксировать"
 
@@ -107,19 +111,19 @@ msgstr "изменен"
 msgid "non-versioned"
 msgstr "неизвестный"
 
-#: lib\commit.py:254
+#: lib\commit.py:261
 msgid "Enter the commit message"
 msgstr "Введите комментарий к этой версии"
 
-#: lib\commit.py:263
+#: lib\commit.py:270
 msgid "&Fixed bugs:"
 msgstr "&Исправленные ошибки:"
 
-#: lib\commit.py:264
+#: lib\commit.py:271
 msgid "Set the IDs of bugs fixed by this commit"
 msgstr "Указать номера ошибок, исправленных в этой версии"
 
-#: lib\commit.py:267
+#: lib\commit.py:274
 msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
@@ -127,25 +131,25 @@ msgstr ""
 "Введите список номеров ошибок в формате <i>tag:id</i>, несколько ошибок "
 "разделяются пробелами, например: <i>project:123 project:765</i>"
 
-#: lib\commit.py:277
+#: lib\commit.py:284
 msgid "&Author:"
 msgstr "&Автор:"
 
-#: lib\commit.py:278
+#: lib\commit.py:285
 msgid "Set the author of this change, if it's different from the committer"
 msgstr ""
 "Указать автора этих изменений, если он отличается от того, кто делает "
 "фиксацию версии"
 
-#: lib\commit.py:281
+#: lib\commit.py:288
 msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr "Введите имя автора, например: <i>John Doe &lt;jdoe@example.com&gt;</i>"
 
-#: lib\commit.py:291
+#: lib\commit.py:298
 msgid "&Local commit in a bound branch"
 msgstr "Локальная фиксация (если ветка привязана к серверу)."
 
-#: lib\commit.py:293
+#: lib\commit.py:300
 msgid ""
 "Local commits are not pushed to the master branch until a normal commit is "
 "performed"
@@ -153,48 +157,48 @@ msgstr ""
 "Локальные фиксации не передаются в главную ветку до тех пор, пока не будет "
 "сделана обычная фиксация."
 
-#: lib\commit.py:299
+#: lib\commit.py:306
 msgid "Pending Merges"
 msgstr "Незаконченное объединение"
 
-#: lib\commit.py:324
+#: lib\commit.py:331
 msgid "Changes"
 msgstr "Изменения"
 
-#: lib\commit.py:331
+#: lib\commit.py:338
 msgid "File"
 msgstr "Файл"
 
-#: lib\commit.py:331
+#: lib\commit.py:338
 msgid "Extension"
 msgstr "Расширение"
 
-#: lib\commit.py:331 lib\main.py:361 lib\ui_branch.py:90 lib\ui_pull.py:90
+#: lib\commit.py:338 lib\main.py:361 lib\ui_branch.py:90 lib\ui_pull.py:90
 #: lib\ui_push.py:93
 msgid "Status"
 msgstr "Состояние"
 
-#: lib\commit.py:344
+#: lib\commit.py:351
 msgid "&Revert..."
 msgstr "&Вернуть предыдущую версию..."
 
-#: lib\commit.py:348
+#: lib\commit.py:355
 msgid "Show &Differences..."
 msgstr "Показать &различия..."
 
-#: lib\commit.py:358
+#: lib\commit.py:365
 msgid "Show non-versioned files"
 msgstr "Показать неизвестные файлы"
 
-#: lib\commit.py:461
+#: lib\commit.py:471
 msgid "Empty commit message. Do you really want to commit?"
 msgstr "Отсутствует комментарий. Вы уверены, что хотите зафиксировать?"
 
-#: lib\commit.py:567 lib\commit.py:576
+#: lib\commit.py:577 lib\commit.py:586
 msgid "Revert"
 msgstr "Возврат к предыдущей версии"
 
-#: lib\commit.py:568
+#: lib\commit.py:578
 msgid "Do you really want to revert the selected file(s)?"
 msgstr ""
 "Вы уверены, что хотите вернуться к предыдущей версии выделенных файлов?"
@@ -319,19 +323,19 @@ msgstr "Состояние:"
 msgid "Kind:"
 msgstr "Тип:"
 
-#: lib\i18n.py:74
+#: lib\i18n.py:75
 msgid "file"
 msgstr "файл"
 
-#: lib\i18n.py:75
+#: lib\i18n.py:76
 msgid "directory"
 msgstr "каталог"
 
-#: lib\i18n.py:76
+#: lib\i18n.py:77
 msgid "symlink"
 msgstr "символическая связь"
 
-#: lib\i18n.py:78
+#: lib\i18n.py:79
 msgid "fixed"
 msgstr "исправлена"
 
@@ -444,7 +448,7 @@ msgstr "&Ветка"
 msgid "&Bookmarks"
 msgstr "&Закладки"
 
-#: lib\main.py:319 lib\util.py:69
+#: lib\main.py:319 lib\util.py:70
 msgid "&Help"
 msgstr "&Справка"
 
@@ -563,62 +567,62 @@ msgstr "Использовать существующий каталог"
 msgid "Create the path up to the branch if it does not exist"
 msgstr "Создать все недостающие каталоги вплоть до каталога с новой веткой"
 
-#: lib\util.py:66
+#: lib\util.py:67
 msgid "&OK"
 msgstr "&ОК"
 
-#: lib\util.py:67
+#: lib\util.py:68
 msgid "&Cancel"
 msgstr "&Отмена"
 
-#: lib\util.py:68
+#: lib\util.py:69
 msgid "&Close"
 msgstr "&Закрыть"
 
-#: lib\util.py:381
+#: lib\util.py:382
 msgid "Parents:"
 msgstr "Предыдущие версии:"
 
-#: lib\util.py:386
+#: lib\util.py:387
 msgid "Children:"
 msgstr "Следующие версии:"
 
-#: lib\util.py:389
+#: lib\util.py:390
 msgid "Committer:"
 msgstr "Зафиксировал:"
 
-#: lib\util.py:392
+#: lib\util.py:393
 msgid "Author:"
 msgstr "Автор:"
 
-#: lib\util.py:396
+#: lib\util.py:397
 msgid "Branch nick:"
 msgstr "Название ветки:"
 
-#: lib\util.py:401
+#: lib\util.py:402
 msgid "Tags:"
 msgstr "Тэги:"
 
-#: lib\util.py:411
+#: lib\util.py:412
 msgid "Bug:"
 msgid_plural "Bugs:"
 msgstr[0] "Ошибка:"
 msgstr[1] "Ошибки:"
 msgstr[2] "Ошибки:"
 
-#: lib\util.py:553
+#: lib\util.py:554
 msgid "deleted files"
 msgstr "удаленные файлы"
 
-#: lib\util.py:555
+#: lib\util.py:556
 msgid "added files"
 msgstr "добавленные файлы"
 
-#: lib\util.py:557
+#: lib\util.py:558
 msgid "renamed files"
 msgstr "переименованные файлы"
 
-#: lib\util.py:559
+#: lib\util.py:560
 msgid "modified files"
 msgstr "измененные файлы"
 
