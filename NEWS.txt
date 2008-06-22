@@ -10,6 +10,8 @@
    otherwise set focus on OK button (bug #215271)
  * qbrowse: now supports any kind of URLs as branch location, not only local 
    paths (bug #241930)
+ * qbrowse: double-click on file opens qcat window and show file content
+   (bug #148028). Also user can run this action via context menu -> View file.
 
 0.9.1 - 2008-06-17
 ----------------------

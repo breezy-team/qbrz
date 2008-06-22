@@ -169,6 +169,7 @@ class cmd_qbrowse(Command):
     """Show inventory."""
     takes_args = ['location?']
     takes_options = ['revision']
+    aliases = ['qbw']
 
     @report_missing_pyqt
     def run(self, revision=None, location=None):

@@ -83,8 +83,12 @@ class BrowseWindow(QBzrWindow):
 
         self.context_menu = QtGui.QMenu(self.file_tree)
         self.context_menu.addAction(gettext("Show log..."), self.show_file_log)
-        self.context_menu.addAction(gettext("Show file content"),
+        self.context_menu.addAction(gettext("View file"),
                                     self.show_file_content)
+
+        self.connect(self.file_tree,
+                     QtCore.SIGNAL("doubleClicked(QModelIndex)"),
+                     self.show_file_content)
 
         self.dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
         self.file_icon = self.style().standardIcon(QtGui.QStyle.SP_FileIcon)
