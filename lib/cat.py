@@ -23,6 +23,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
+    file_extension,
     htmlencode,
     )
 
@@ -38,10 +39,29 @@ except ImportError:
 
 class QBzrCatWindow(QBzrWindow):
 
-    def __init__(self, relpath, text, parent=None):
+    def __init__(self, relpath, text, parent=None, encoding=None):
         QBzrWindow.__init__(self, [gettext("View File"), relpath], parent)
         self.restoreSize("cat", (780, 580))
 
+        if not '\0' in text:
+            text = text.decode(encoding or 'utf-8', 'replace')
+            self._create_text_view(relpath, text)
+        else:
+            ext = file_extension(relpath)
+            image_exts = ['.'+str(i)
+                for i in QtGui.QImageReader.supportedImageFormats()]
+            if ext in image_exts:
+                self._create_image_view(relpath, text)
+            else:
+                self._create_text_view(relpath, '[binary file]')
+
+        self.buttonbox = self.create_button_box(BTN_CLOSE)
+
+        vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox.addWidget(self.browser)
+        vbox.addWidget(self.buttonbox)
+
+    def _create_text_view(self, relpath, text):
         if not have_pygments:
             style = ''
             content = htmlencode(text)
@@ -65,11 +85,13 @@ body {white-space:pre;}
         self.browser = QtGui.QTextBrowser()
         self.browser.setDocument(self.doc)
 
-        self.buttonbox = self.create_button_box(BTN_CLOSE)
-
-        vbox = QtGui.QVBoxLayout(self.centralwidget)
-        vbox.addWidget(self.browser)
-        vbox.addWidget(self.buttonbox)
+    def _create_image_view(self, relpath, text):
+        self.pixmap = QtGui.QPixmap()
+        self.pixmap.loadFromData(text)
+        self.item = QtGui.QGraphicsPixmapItem(self.pixmap)
+        self.scene = QtGui.QGraphicsScene(self.item.boundingRect())
+        self.scene.addItem(self.item)
+        self.browser = QtGui.QGraphicsView(self.scene)
 
     @staticmethod
     def from_tree_and_path(tree, relpath, encoding=None, parent=None):
@@ -82,5 +104,4 @@ body {white-space:pre;}
                 QtGui.QMessageBox.Ok)
             return None
         text = tree.get_file_text(file_id)
-        text = text.decode(encoding or 'utf-8', 'replace')
         return QBzrCatWindow(relpath, text)

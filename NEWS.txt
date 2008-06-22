@@ -7,11 +7,12 @@
  * qdiff: options to filter diff output 
    (to see added/deleted/modified/renamed files in any combination)
  * qcommit: set focus on Message Edit area if there is no saved message;
-   otherwise set focus on OK button (bug #215271)
+   otherwise set focus on OK button (#215271)
  * qbrowse: now supports any kind of URLs as branch location, not only local 
-   paths (bug #241930)
+   paths (#241930)
  * qbrowse: double-click on file opens qcat window and show file content
-   (bug #148028). Also user can run this action via context menu -> View file.
+   (#148028). Also user can run this action via context menu -> View file.
+ * qcat: show content of image file as image (#242070)
 
 0.9.1 - 2008-06-17
 ----------------------
