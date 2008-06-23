@@ -1,0 +1,104 @@
+Short checklist and instructions how to make release
+====================================================
+
+When you're ready to make release X.Y.Z you need to do
+following steps.
+
+Prepare code
+------------
+1. Update ./NEWS.txt with descriptions of user-visible changes.
+2. Update version numbers in following places:
+
+   * ./__init__.py: at the beginning of file::
+   
+   	version_info = (X, Y, Z, 'final', 0)
+   
+   * ./setup.py: function setup() at the end of file, argument version::
+   
+   	version='X.Y.Z',
+
+   * ./installer/qbzr-setup.nsi: at the beginning of file::
+   
+   	!define PRODUCT_VERSION "X.Y.Z"
+   
+3. Commit this changes and tag the revision with label: release-X.Y.Z
+4. Push the code to Launchpad
+
+
+Register release at Launchpad
+-----------------------------
+1. Make corresponding page for new release on Launchpad:
+
+	https://launchpad.net/qbzr/trunk/+addrelease
+        
+2. Put info about release from ./NEWS.txt to Description section.
+
+
+Build distribution files
+------------------------
+1. Make source code tarball::
+
+	bzr export --root=qbzr qbzr-X.Y.Z.tar.gz
+        
+   The file qbzr-X.Y.Z.tar.gz will be created in tree root directory.
+   Sign this file with your GPG key::
+   
+   	gpg -ab qbzr-X.Y.Z.tar.gz
+
+2. Build binary translations files::
+
+	python setup.py build_mo -f
+
+3. Make Windows Python-based installer::
+
+	python setup.py bdist_wininst -d.
+
+   This command will produce qbzr-X.Y.Z.win32.exe file in tree root directory.
+   Sign this file with your GPG key::
+   
+   	gpg -ab qbzr-X.Y.Z.win32.exe
+
+4. Make Windows Standalone installer::
+
+	python setup.py bdist_nsis
+        
+   This command will produce qbzr-setup-X.Y.Z.exe file in tree root directory.
+   Sign this file with your GPG key::
+   
+   	gpg -ab qbzr-setup-X.Y.Z.exe
+
+5. Upload tarball and installers with their gpg-signatures to Launchpad:
+
+	https://launchpad.net/qbzr/trunk/X.Y.Z/+adddownloadfile
+
+
+Update QBzr Wiki page
+---------------------
+1. Update QBzr page at Bazaar wiki with corresponding NEWS entry,
+   update links to tarball and installers.
+   
+   	http://bazaar-vcs.org/QBzr
+
+
+Make announcement
+-----------------
+1. Send short e-mail with announcement to <bazaar-announce@lists.canonical.com>
+   and optionally to main Bazaar ML <bazaar@lists.canonical.com>
+
+2. Optionally make announcement about release via Launchpad RSS:
+
+	https://launchpad.net/qbzr/+announce
+
+
+Finishing stuff at Launchpad
+----------------------------
+1. Mark all bugs targeted to X.Y.Z milestone as Fix Released.
+
+2. Mark corresponding milestone X.Y.Z as inactive:
+
+	https://launchpad.net/qbzr/+milestone/X.Y.Z/+edit
+
+
+Create deb packages with Launchpad PPA
+--------------------------------------
+XXX

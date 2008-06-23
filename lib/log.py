@@ -24,10 +24,10 @@ from time import (strftime, localtime)
 from bzrlib import bugtracker, lazy_regex
 from bzrlib.log import LogFormatter, show_log
 from bzrlib.revision import NULL_REVISION
-from bzrlib.plugins.qbzr.linegraph import linegraph
-from bzrlib.plugins.qbzr.diff import DiffWindow
-from bzrlib.plugins.qbzr.i18n import gettext
-from bzrlib.plugins.qbzr.util import (
+from bzrlib.plugins.qbzr.lib.linegraph import linegraph
+from bzrlib.plugins.qbzr.lib.diff import DiffWindow
+from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     extract_name,
@@ -271,7 +271,7 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
 
 
 try:
-    from bzrlib.plugins.qbzr._ext import (
+    from bzrlib.plugins.qbzr.lib._ext import (
         TreeFilterProxyModel,
         LogWidgetDelegate,
         )
@@ -636,6 +636,14 @@ class LogWindow(QBzrWindow):
             item.setTextColor(QtGui.QColor("purple"))
 
     def show_diff_window(self, rev1, rev2, specific_files=None):
+        self.branch.repository.lock_read()
+        try:
+            self._show_diff_window(rev1, rev2, specific_files)
+        finally:
+            self.branch.repository.unlock()
+
+    def _show_diff_window(self, rev1, rev2, specific_files=None):
+        # repository should be locked
         if not rev2.parent_ids:
             revs = [rev1.revision_id]
             tree = self.branch.repository.revision_tree(rev1.revision_id)
@@ -760,7 +768,7 @@ class LogWindow(QBzrWindow):
         self.search_timer.start(200)
 
     def show_revision_tree(self):
-        from bzrlib.plugins.qbzr.browse import BrowseWindow
+        from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
         rev = self.current_rev
         window = BrowseWindow(self.branch, revision_id=rev.revision_id,
                               revision_spec=rev.revno, parent=self)

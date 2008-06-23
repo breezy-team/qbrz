@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-03-30 09:22+0200\n"
+"POT-Creation-Date: 2008-06-22 20:49+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,579 +17,602 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: annotate.py:86
+#: lib\annotate.py:86
 msgid "Annotate"
 msgstr ""
 
-#: annotate.py:101
+#: lib\annotate.py:101
 msgid "Line"
 msgstr ""
 
-#: annotate.py:101 annotate.py:117 browse.py:80 commit.py:302 log.py:222
+#: lib\annotate.py:101 lib\annotate.py:117 lib\browse.py:82 lib\commit.py:311
+#: lib\log.py:222
 msgid "Author"
 msgstr ""
 
-#: annotate.py:101 log.py:222
+#: lib\annotate.py:101 lib\log.py:222
 msgid "Rev"
 msgstr ""
 
-#: annotate.py:117 browse.py:79 commit.py:302 log.py:222
+#: lib\annotate.py:117 lib\browse.py:81 lib\commit.py:311 lib\log.py:222
 msgid "Date"
 msgstr ""
 
-#: annotate.py:117
+#: lib\annotate.py:117
 msgid "Summary"
 msgstr ""
 
-#: browse.py:58 browse.py:162 browse.py:196
+#: lib\browse.py:60 lib\browse.py:196 lib\browse.py:231
 msgid "Browse"
 msgstr ""
 
-#: browse.py:64
+#: lib\browse.py:66
 msgid "Location:"
 msgstr ""
 
-#: browse.py:69 util.py:353
+#: lib\browse.py:71 lib\util.py:366
 msgid "Revision:"
 msgstr ""
 
-#: browse.py:72
+#: lib\browse.py:74
 msgid "Show"
 msgstr ""
 
-#: browse.py:79 main.py:358
+#: lib\browse.py:81 lib\main.py:359
 msgid "Name"
 msgstr ""
 
-#: browse.py:80 commit.py:246 commit.py:302 log.py:222
+#: lib\browse.py:82 lib\commit.py:255 lib\commit.py:311 lib\log.py:222
 msgid "Message"
 msgstr ""
 
-#: browse.py:83
+#: lib\browse.py:85
 msgid "Show log..."
 msgstr ""
 
-#: cat.py:39 cat.py:76
+#: lib\browse.py:86
+msgid "View file"
+msgstr ""
+
+#: lib\cat.py:44 lib\cat.py:104
 msgid "View File"
 msgstr ""
 
-#: cat.py:77
+#: lib\cat.py:105
 #, python-format
 msgid "File \"%s\" not found in the specified revision."
 msgstr ""
 
-#: commit.py:180 commit.py:458 commit.py:472 commit.py:509
+#: lib\commit.py:182 lib\commit.py:470 lib\commit.py:484 lib\commit.py:522
 msgid "Commit"
 msgstr ""
 
-#: commit.py:205 diff.py:209
+#: lib\commit.py:207 lib\diff.py:226
 msgid "added"
 msgstr ""
 
-#: commit.py:209 diff.py:197
+#: lib\commit.py:211 lib\diff.py:214
 msgid "removed"
 msgstr ""
 
-#: commit.py:215 diff.py:223
+#: lib\commit.py:217 lib\diff.py:240
 msgid "renamed and modified"
 msgstr ""
 
-#: commit.py:217 diff.py:225
+#: lib\commit.py:219 lib\diff.py:244
 msgid "renamed"
 msgstr ""
 
-#: commit.py:224 diff.py:239
+#: lib\commit.py:226 lib\diff.py:259
 msgid "modified"
 msgstr ""
 
-#: commit.py:227
+#: lib\commit.py:229
 msgid "non-versioned"
 msgstr ""
 
-#: commit.py:252
+#: lib\commit.py:261
 msgid "Enter the commit message"
 msgstr ""
 
-#: commit.py:261
+#: lib\commit.py:270
 msgid "&Fixed bugs:"
 msgstr ""
 
-#: commit.py:262
+#: lib\commit.py:271
 msgid "Set the IDs of bugs fixed by this commit"
 msgstr ""
 
-#: commit.py:265
+#: lib\commit.py:274
 msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
 msgstr ""
 
-#: commit.py:275
+#: lib\commit.py:284
 msgid "&Author:"
 msgstr ""
 
-#: commit.py:276
+#: lib\commit.py:285
 msgid "Set the author of this change, if it's different from the committer"
 msgstr ""
 
-#: commit.py:279
+#: lib\commit.py:288
 msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
 
-#: commit.py:289
+#: lib\commit.py:298
 msgid "&Local commit in a bound branch"
 msgstr ""
 
-#: commit.py:291
+#: lib\commit.py:300
 msgid ""
 "Local commits are not pushed to the master branch until a normal commit is "
 "performed"
 msgstr ""
 
-#: commit.py:297
+#: lib\commit.py:306
 msgid "Pending Merges"
 msgstr ""
 
-#: commit.py:322
+#: lib\commit.py:331
 msgid "Changes"
 msgstr ""
 
-#: commit.py:329
+#: lib\commit.py:338
 msgid "File"
 msgstr ""
 
-#: commit.py:329
+#: lib\commit.py:338
 msgid "Extension"
 msgstr ""
 
-#: commit.py:329 main.py:360 ui_branch.py:89 ui_pull.py:89 ui_push.py:92
+#: lib\commit.py:338 lib\main.py:361 lib\ui_branch.py:90 lib\ui_pull.py:90
+#: lib\ui_push.py:93
 msgid "Status"
 msgstr ""
 
-#: commit.py:342
+#: lib\commit.py:351
 msgid "&Revert..."
 msgstr ""
 
-#: commit.py:346
+#: lib\commit.py:355
 msgid "Show &Differences..."
 msgstr ""
 
-#: commit.py:356
+#: lib\commit.py:365
 msgid "Show non-versioned files"
 msgstr ""
 
-#: commit.py:459
+#: lib\commit.py:471
 msgid "Empty commit message. Do you really want to commit?"
 msgstr ""
 
-#: commit.py:564 commit.py:573
+#: lib\commit.py:577 lib\commit.py:586
 msgid "Revert"
 msgstr ""
 
-#: commit.py:565
+#: lib\commit.py:578
 msgid "Do you really want to revert the selected file(s)?"
 msgstr ""
 
-#: config.py:38
+#: lib\config.py:40
 msgid "Default"
 msgstr ""
 
-#: config.py:39
+#: lib\config.py:41
 msgid "Thunderbird"
 msgstr ""
 
-#: config.py:40
+#: lib\config.py:42
 msgid "Evolution"
 msgstr ""
 
-#: config.py:41
+#: lib\config.py:43
 msgid "KMail"
 msgstr ""
 
-#: config.py:42
+#: lib\config.py:44
 msgid "Mutt"
 msgstr ""
 
-#: config.py:43
+#: lib\config.py:45
 msgid "XDG e-mail client"
 msgstr ""
 
-#: config.py:44
+#: lib\config.py:46
 msgid "MAPI e-mail client"
 msgstr ""
 
-#: config.py:45
+#: lib\config.py:47
 msgid "Editor"
 msgstr ""
 
-#: config.py:54
+#: lib\config.py:56
 msgid "Configuration"
 msgstr ""
 
-#: config.py:64 ui_bookmark.py:57
+#: lib\config.py:66 lib\ui_bookmark.py:58
 msgid "&Name:"
 msgstr ""
 
-#: config.py:70
+#: lib\config.py:72
 msgid "E-&mail:"
 msgstr ""
 
-#: config.py:76
+#: lib\config.py:78
 msgid "&Editor:"
 msgstr ""
 
-#: config.py:84
+#: lib\config.py:86
 msgid "E-mail &client:"
 msgstr ""
 
-#: config.py:94
+#: lib\config.py:96
 msgid "Alias"
 msgstr ""
 
-#: config.py:94
+#: lib\config.py:96
 msgid "Command"
 msgstr ""
 
-#: config.py:96 config.py:117
+#: lib\config.py:98 lib\config.py:119
 msgid "Add"
 msgstr ""
 
-#: config.py:99 config.py:120
+#: lib\config.py:101 lib\config.py:122
 msgid "Remove"
 msgstr ""
 
-#: config.py:115
+#: lib\config.py:117
 msgid "Abbreviation"
 msgstr ""
 
-#: config.py:115
+#: lib\config.py:117
 msgid "URL"
 msgstr ""
 
-#: config.py:134
+#: lib\config.py:136
 msgid "General"
 msgstr ""
 
-#: config.py:135
+#: lib\config.py:137
 msgid "Aliases"
 msgstr ""
 
-#: config.py:136
+#: lib\config.py:138
 msgid "Bug Trackers"
 msgstr ""
 
-#: diff.py:277 log.py:332
+#: lib\diff.py:298 lib\log.py:332
 msgid "Diff"
 msgstr ""
 
-#: diff.py:284
+#: lib\diff.py:305
 #, python-format
 msgid "%d file"
 msgid_plural "%d files"
 msgstr[0] ""
 msgstr[1] ""
 
-#: diff.py:312
+#: lib\diff.py:336
 msgid "Side by side"
 msgstr ""
 
-#: diff.py:319
+#: lib\diff.py:343
 msgid "Unidiff"
 msgstr ""
 
-#: diffview.py:284 diffview.py:288
+#: lib\diffview.py:286 lib\diffview.py:290
 msgid "Last modified:"
 msgstr ""
 
-#: diffview.py:285 diffview.py:289
+#: lib\diffview.py:287 lib\diffview.py:291
 msgid "Status:"
 msgstr ""
 
-#: diffview.py:286 diffview.py:290
+#: lib\diffview.py:288 lib\diffview.py:292
 msgid "Kind:"
 msgstr ""
 
-#: i18n.py:68
+#: lib\i18n.py:75
 msgid "file"
 msgstr ""
 
-#: i18n.py:69
+#: lib\i18n.py:76
 msgid "directory"
 msgstr ""
 
-#: i18n.py:70
+#: lib\i18n.py:77
 msgid "symlink"
 msgstr ""
 
-#: i18n.py:72
+#: lib\i18n.py:79
 msgid "fixed"
 msgstr ""
 
-#: log.py:209
+#: lib\log.py:209
 msgid "Log"
 msgstr ""
 
-#: log.py:235
+#: lib\log.py:235
 msgid "&Search:"
 msgstr ""
 
-#: log.py:250
+#: lib\log.py:250
 msgid "Messages"
 msgstr ""
 
-#: log.py:252
+#: lib\log.py:252
 msgid "Authors"
 msgstr ""
 
-#: log.py:254
+#: lib\log.py:254
 msgid "Revision IDs"
 msgstr ""
 
-#: log.py:256
+#: lib\log.py:256
 msgid "Revision Numbers"
 msgstr ""
 
-#: log.py:338
+#: lib\log.py:338
 msgid "Show tree..."
 msgstr ""
 
-#: log.py:512
+#: lib\log.py:520
 #, python-format
 msgid "bug #%s"
 msgstr ""
 
-#: main.py:125
+#: lib\main.py:126
 msgid "Computer"
 msgstr ""
 
-#: main.py:154
+#: lib\main.py:155
 msgid "&Edit Bookmark..."
 msgstr ""
 
-#: main.py:155
+#: lib\main.py:156
 msgid "&Remove Bookmark..."
 msgstr ""
 
-#: main.py:170
+#: lib\main.py:171
 msgid "Bookmarks"
 msgstr ""
 
-#: main.py:279
+#: lib\main.py:280
 msgid "&Refresh"
 msgstr ""
 
-#: main.py:281
+#: lib\main.py:282
 msgid "Refresh the directory tree"
 msgstr ""
 
-#: main.py:285
+#: lib\main.py:286
 msgid "&Commit"
 msgstr ""
 
-#: main.py:286
+#: lib\main.py:287
 msgid "Commit changes into a new revision"
 msgstr ""
 
-#: main.py:290
+#: lib\main.py:291
 msgid "&Push"
 msgstr ""
 
-#: main.py:291
+#: lib\main.py:292
 msgid "Turn this branch into a mirror of another branch"
 msgstr ""
 
-#: main.py:295
+#: lib\main.py:296
 msgid "Pu&ll"
 msgstr ""
 
-#: main.py:296
+#: lib\main.py:297
 msgid "Update a mirror of this branch"
 msgstr ""
 
-#: main.py:299
+#: lib\main.py:300
 msgid "&Add Bookmark..."
 msgstr ""
 
-#: main.py:306
+#: lib\main.py:307
 msgid "&File"
 msgstr ""
 
-#: main.py:307
+#: lib\main.py:308
 msgid "&Configure..."
 msgstr ""
 
-#: main.py:309
+#: lib\main.py:310
 msgid "&Quit"
 msgstr ""
 
-#: main.py:310
+#: lib\main.py:311
 msgid "&View"
 msgstr ""
 
-#: main.py:312
+#: lib\main.py:313
 msgid "&Branch"
 msgstr ""
 
-#: main.py:316
+#: lib\main.py:317
 msgid "&Bookmarks"
 msgstr ""
 
-#: main.py:318 util.py:57
+#: lib\main.py:319 lib\util.py:70
 msgid "&Help"
 msgstr ""
 
-#: main.py:319
+#: lib\main.py:320
 msgid "&Help..."
 msgstr ""
 
-#: main.py:321
+#: lib\main.py:322
 msgid "&About..."
 msgstr ""
 
-#: main.py:359
+#: lib\main.py:360
 msgid "Size"
 msgstr ""
 
-#: main.py:411
+#: lib\main.py:412
 msgid "About QBzr"
 msgstr ""
 
-#: main.py:412
+#: lib\main.py:413
 #, python-format
 msgid ""
 "<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
 "(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2007 Lukš Lalinsk and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
+"2007 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
 "\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
 
-#: main.py:477
+#: lib\main.py:478
 msgid "Add Bookmark"
 msgstr ""
 
-#: main.py:488
+#: lib\main.py:489
 msgid "Edit Bookmark"
 msgstr ""
 
-#: main.py:498
+#: lib\main.py:499
 msgid "Remove Bookmark"
 msgstr ""
 
-#: main.py:499
+#: lib\main.py:500
 msgid "Do you really want to remove the selected bookmark?"
 msgstr ""
 
-#: pull.py:51
+#: lib\pull.py:53
 msgid "Pull"
 msgstr ""
 
-#: pull.py:112
+#: lib\pull.py:114
 msgid "Starting..."
 msgstr ""
 
-#: pull.py:160
+#: lib\pull.py:162
 msgid "Aborting..."
 msgstr ""
 
-#: pull.py:168
+#: lib\pull.py:170
 msgid "Finished!"
 msgstr ""
 
-#: pull.py:206 pull.py:221
+#: lib\pull.py:208 lib\pull.py:223
 msgid "Failed!"
 msgstr ""
 
-#: pull.py:208
+#: lib\pull.py:210
 msgid "Failed to start bzr."
 msgstr ""
 
-#: pull.py:210
+#: lib\pull.py:212
 #, python-format
 msgid "Error while running bzr. (error code: %d)"
 msgstr ""
 
-#: pull.py:227
+#: lib\pull.py:229
 msgid "Push"
 msgstr ""
 
-#: pull.py:256
+#: lib\pull.py:258
 msgid "Branch"
 msgstr ""
 
-#: ui_bookmark.py:58 ui_branch.py:86 ui_pull.py:85 ui_push.py:87
+#: lib\ui_bookmark.py:59 lib\ui_branch.py:87 lib\ui_pull.py:86
+#: lib\ui_push.py:88
 msgid "&Location:"
 msgstr ""
 
-#: ui_branch.py:85 ui_pull.py:84 ui_push.py:86
+#: lib\ui_branch.py:86 lib\ui_pull.py:85 lib\ui_push.py:87
 msgid "Options"
 msgstr ""
 
-#: ui_branch.py:87 ui_pull.py:86
+#: lib\ui_branch.py:88 lib\ui_pull.py:87
 msgid "&Revision:"
 msgstr ""
 
-#: ui_branch.py:88
+#: lib\ui_branch.py:89
 msgid "&To:"
 msgstr ""
 
-#: ui_branch.py:90 ui_pull.py:90 ui_push.py:93
+#: lib\ui_branch.py:91 lib\ui_pull.py:91 lib\ui_push.py:94
 msgid "Stopped"
 msgstr ""
 
-#: ui_pull.py:87 ui_push.py:88
+#: lib\ui_pull.py:88 lib\ui_push.py:89
 msgid "Remember this location as a default"
 msgstr ""
 
-#: ui_pull.py:88 ui_push.py:89
+#: lib\ui_pull.py:89 lib\ui_push.py:90
 msgid "Overwrite differences between branches"
 msgstr ""
 
-#: ui_push.py:90
+#: lib\ui_push.py:91
 msgid "Use existing directory"
 msgstr ""
 
-#: ui_push.py:91
+#: lib\ui_push.py:92
 msgid "Create the path up to the branch if it does not exist"
 msgstr ""
 
-#: util.py:54
+#: lib\util.py:67
 msgid "&OK"
 msgstr ""
 
-#: util.py:55
+#: lib\util.py:68
 msgid "&Cancel"
 msgstr ""
 
-#: util.py:56
+#: lib\util.py:69
 msgid "&Close"
 msgstr ""
 
-#: util.py:369
+#: lib\util.py:382
 msgid "Parents:"
 msgstr ""
 
-#: util.py:374
+#: lib\util.py:387
 msgid "Children:"
 msgstr ""
 
-#: util.py:377
+#: lib\util.py:390
 msgid "Committer:"
 msgstr ""
 
-#: util.py:380
+#: lib\util.py:393
 msgid "Author:"
 msgstr ""
 
-#: util.py:384
+#: lib\util.py:397
 msgid "Branch nick:"
 msgstr ""
 
-#: util.py:389
+#: lib\util.py:402
 msgid "Tags:"
 msgstr ""
 
-#: util.py:399
+#: lib\util.py:412
 msgid "Bug:"
 msgid_plural "Bugs:"
 msgstr[0] ""
 msgstr[1] ""
+
+#: lib\util.py:554
+msgid "deleted files"
+msgstr ""
+
+#: lib\util.py:556
+msgid "added files"
+msgstr ""
+
+#: lib\util.py:558
+msgid "renamed files"
+msgstr ""
+
+#: lib\util.py:560
+msgid "modified files"
+msgstr ""

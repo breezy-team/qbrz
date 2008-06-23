@@ -22,11 +22,11 @@
 #  - better annotate algorithm on packs
 #  - syntax highlighting of the source code
 
-import operator, sys, time, codecs
+import operator, sys, time
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.i18n import gettext
-from bzrlib.plugins.qbzr.diff import DiffWindow
-from bzrlib.plugins.qbzr.util import (
+from bzrlib.plugins.qbzr.lib.diff import DiffWindow
+from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     extract_name,
@@ -86,7 +86,7 @@ class AnnotateWindow(QBzrWindow):
             [gettext("Annotate"), path], parent)
         self.restoreSize("annotate", (780, 680))
 
-        self.codec = codecs.lookup(encoding or 'utf-8')
+        self.encoding = encoding or 'utf-8'
 
         self.windows = []
 
@@ -165,7 +165,7 @@ class AnnotateWindow(QBzrWindow):
             if lastRevisionId != origin:
                 item.setText(2, revnos[origin])
                 item.setTextAlignment(2, QtCore.Qt.AlignRight)
-            item.setText(3, self.codec.decode(text.rstrip(), 'replace')[0])
+            item.setText(3, text.rstrip().decode(self.encoding, 'replace'))
             item.setFont(3, font)
             items.append((origin, item))
             lastRevisionId = origin

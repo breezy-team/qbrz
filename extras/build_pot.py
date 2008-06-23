@@ -22,6 +22,7 @@
 
 import glob
 from distutils.core import Command
+from distutils.errors import DistutilsOptionError
 
 
 class build_pot(Command):
@@ -37,12 +38,15 @@ class build_pot(Command):
                     ('output=', 'o', 'POT filename'),
                     ('lang=', None, 'Comma-separated list of languages '
                                     'to update po-files'),
+                    ('no-lang', 'N', "Don't update po-files"),
                    ]
+    boolean_options = ['no-lang']
 
     def initialize_options(self):
         self.build_dir = None
         self.output = None
         self.lang = None
+        self.no_lang = False
 
     def finalize_options(self):
         if self.build_dir is None:
@@ -51,6 +55,23 @@ class build_pot(Command):
             self.output = (self.distribution.get_name() or 'messages')+'.pot'
         if self.lang is not None:
             self.lang = [i.strip() for i in self.lang.split(',') if i.strip()]
+        if self.lang and self.no_lang:
+            raise DistutilsOptionError("You can't use options "
+                "--lang=XXX and --no-lang in the same time.")
+
+    def _force_LF(self, src, dst=None):
+        f = open(src, 'rU')
+        try:
+            content = f.read()
+        finally:
+            f.close()
+        if dst is None:
+            dst = src
+        f = open(dst, 'wb')
+        try:
+            f.write(content)
+        finally:
+            f.close()
 
     def run(self):
         """Run xgettext for QBzr sources"""
@@ -68,11 +89,18 @@ class build_pot(Command):
         self.spawn(['xgettext',
                     '--k=N_',
                     '-p', self.build_dir,
-                    '-o', self.output] + glob.glob('*.py'))
+                    '-o', self.output,
+                    '__init__.py',
+                    ] + glob.glob('lib/*.py'))
+        self._force_LF(fullname)
         # search and update all po-files
+        if self.no_lang:
+            return
         for po in glob.glob(os.path.join(self.build_dir,'*.po')):
             if self.lang is not None:
                 po_lang = os.path.splitext(os.path.basename(po))[0]
+                if po_lang.startswith('qbzr-'):
+                    po_lang = po_lang[5:]
                 if po_lang not in self.lang:
                     continue
             new_po = po + ".new"
@@ -80,14 +108,5 @@ class build_pot(Command):
             self.spawn(cmd.split())
             # force LF line-endings
             print "%s --> %s" % (new_po, po)
-            f = file(new_po, 'rU')
-            try:
-                content = f.read()
-            finally:
-                f.close()
-            f = file(po, 'wb')
-            try:
-                f.write(content)
-            finally:
-                f.close()
+            self._force_LF(new_po, po)
             os.unlink(new_po)

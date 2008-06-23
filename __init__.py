@@ -2,6 +2,7 @@
 #
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2006 Lukáš Lalinský <lalinsky@gmail.com>
+# Copyright (C) 2008 Alexander Belchenko
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -22,7 +23,7 @@
 Provided commands: qannotate, qbrowse, qcat, qcommit, qconfig, qdiff, qlog
 """
 
-version_info = (0, 9, 0, 'final', 0)
+version_info = (0, 9, 2, 'dev', 0)
 __version__ = '.'.join(map(str, version_info))
 
 import os.path
@@ -35,6 +36,7 @@ if hasattr(sys, "frozen"):
 from bzrlib import errors
 from bzrlib.option import Option
 from bzrlib.commands import Command, register_command
+
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from PyQt4 import QtGui
@@ -42,34 +44,37 @@ import shlex
 from bzrlib import (
     builtins,
     commands,
+    osutils,
+    progress,
     ui,
     ui.text,
-    progress,
-    osutils,
-)
+    urlutils,
+    )
 from bzrlib.util import bencode
 from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
-from bzrlib.plugins.qbzr.main import QBzrMainWindow
-from bzrlib.plugins.qbzr.annotate import AnnotateWindow
-from bzrlib.plugins.qbzr.browse import BrowseWindow
-from bzrlib.plugins.qbzr.cat import QBzrCatWindow
-from bzrlib.plugins.qbzr.commit import CommitWindow
-from bzrlib.plugins.qbzr.config import QBzrConfigWindow
-from bzrlib.plugins.qbzr.diff import DiffWindow
-from bzrlib.plugins.qbzr.log import LogWindow
-from bzrlib.plugins.qbzr.pull import (
+from bzrlib.workingtree import WorkingTree
+
+from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
+from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
+from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
+from bzrlib.plugins.qbzr.lib.commit import CommitWindow
+from bzrlib.plugins.qbzr.lib.config import QBzrConfigWindow
+from bzrlib.plugins.qbzr.lib.diff import DiffWindow
+from bzrlib.plugins.qbzr.lib.log import LogWindow
+from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
+from bzrlib.plugins.qbzr.lib.pull import (
     QBzrPullWindow,
     QBzrPushWindow,
     QBzrBranchWindow,
     )
-from bzrlib.plugins.qbzr.util import (
+from bzrlib.plugins.qbzr.lib.util import (
+    FilterOptions,
     get_branch_config,
     get_qlog_replace,
     get_set_encoding,
     is_valid_encoding,
     )
-from bzrlib.workingtree import WorkingTree
 ''')
 
 
@@ -92,6 +97,27 @@ def check_encoding(encoding):
     raise InvalidEncodingOption(encoding)
 
 
+class PyQt4NotInstalled(errors.BzrError):
+
+    _fmt = ('QBzr require at least PyQt 4.1 and '
+            'Qt 4.2 to run. Please check your install')
+
+
+def report_missing_pyqt(unbound):
+    """Decorator for q-commands run method to catch ImportError PyQt4
+    and show explanation to user instead of scary traceback.
+    See bugs: #240123, #163728
+    """
+    def run(self, *args, **kwargs):
+        try:
+            return unbound(self, *args, **kwargs)
+        except ImportError, e:
+            if str(e).endswith('PyQt4'):
+                raise PyQt4NotInstalled
+            raise
+    return run
+
+
 class cmd_qannotate(Command):
     """Show the origin of each line in a file."""
     takes_args = ['filename']
@@ -101,6 +127,7 @@ class cmd_qannotate(Command):
                     ]
     aliases = ['qann', 'qblame']
 
+    @report_missing_pyqt
     def run(self, filename=None, revision=None, encoding=None):
         from bzrlib.annotate import _annotate_file
         tree, relpath = WorkingTree.open_containing(filename)
@@ -142,7 +169,9 @@ class cmd_qbrowse(Command):
     """Show inventory."""
     takes_args = ['location?']
     takes_options = ['revision']
+    aliases = ['qbw']
 
+    @report_missing_pyqt
     def run(self, revision=None, location=None):
         branch, path = Branch.open_containing(location)
         app = QtGui.QApplication(sys.argv)
@@ -159,6 +188,7 @@ class cmd_qcommit(Command):
     takes_args = ['selected*']
     aliases = ['qci']
 
+    @report_missing_pyqt
     def run(self, selected_list=None):
         tree, selected_list = builtins.tree_files(selected_list)
         if selected_list == ['']:
@@ -177,18 +207,31 @@ class cmd_qdiff(Command):
         Option('complete', help='Show complete files'),
         Option('encoding', type=check_encoding,
                help='Encoding of files content (default: utf-8)'),
+        Option('added', short_name='A', help='Show diff for added files'),
+        Option('deleted', short_name='D', help='Show diff for deleted files'),
+        Option('modified', short_name='M',
+               help='Show diff for modified files'),
+        Option('renamed', short_name='R', help='Show diff for renamed files'),
         ]
     if 'change' in Option.OPTIONS:
         takes_options.append('change')
     aliases = ['qdi']
 
+    @report_missing_pyqt
     def run(self, revision=None, file_list=None, complete=False,
-            encoding=None):
+            encoding=None,
+            added=None, deleted=None, modified=None, renamed=None):
         from bzrlib.builtins import internal_tree_files
 
         if revision and len(revision) > 2:
             raise errors.BzrCommandError('bzr qdiff --revision takes exactly'
                                          ' one or two revision specifiers')
+        # changes filter
+        filter_options = FilterOptions(added=added, deleted=deleted,
+            modified=modified, renamed=renamed)
+        if not (added or deleted or modified or renamed):
+            # if no filter option used then turn all on
+            filter_options.all_enable()
 
         try:
             tree1, file_list = internal_tree_files(file_list)
@@ -225,7 +268,8 @@ class cmd_qdiff(Command):
 
         application = QtGui.QApplication(sys.argv)
         window = DiffWindow(tree2, tree1, complete=complete,
-            specific_files=file_list, branch=branch, encoding=encoding)
+            specific_files=file_list, branch=branch, encoding=encoding,
+            filter_options=filter_options)
         window.show()
         application.exec_()
 
@@ -238,6 +282,7 @@ class cmd_qlog(Command):
     takes_args = ['location?']
     takes_options = []
 
+    @report_missing_pyqt
     def run(self, location=None):
         file_id = None
         if location:
@@ -252,6 +297,8 @@ class cmd_qlog(Command):
         else:
             dir, path = BzrDir.open_containing('.')
             branch = dir.open_branch()
+            location = urlutils.unescape_for_display(branch.base,
+                'utf-8').decode('utf-8')
 
         app = QtGui.QApplication(sys.argv)
         branch.lock_read()
@@ -270,6 +317,7 @@ class cmd_qconfig(Command):
     takes_options = []
     aliases = ['qconfigure']
 
+    @report_missing_pyqt
     def run(self):
         app = QtGui.QApplication(sys.argv)
         window = QBzrConfigWindow()
@@ -290,6 +338,7 @@ class cmd_qcat(Command):
         ]
     takes_args = ['filename']
 
+    @report_missing_pyqt
     def run(self, filename, revision=None, encoding=None):
         if revision is not None and len(revision) != 1:
             raise errors.BzrCommandError("bzr qcat --revision takes exactly"
@@ -319,6 +368,7 @@ class cmd_qpull(Command):
     takes_options = []
     takes_args = []
 
+    @report_missing_pyqt
     def run(self):
         branch, relpath = Branch.open_containing('.')
         app = QtGui.QApplication(sys.argv)
@@ -334,6 +384,7 @@ class cmd_qpush(Command):
     takes_options = []
     takes_args = []
 
+    @report_missing_pyqt
     def run(self):
         branch, relpath = Branch.open_containing('.')
         app = QtGui.QApplication(sys.argv)
@@ -348,6 +399,7 @@ class cmd_qbranch(Command):
     takes_options = []
     takes_args = []
 
+    @report_missing_pyqt
     def run(self):
         app = QtGui.QApplication(sys.argv)
         window = QBzrBranchWindow(None)
@@ -365,6 +417,7 @@ class cmd_qbzr(Command):
     takes_args = []
     hidden = True
 
+    @report_missing_pyqt
     def run(self):
         # Remove svn checkout support
         try:
@@ -466,9 +519,20 @@ class cmd_qsubprocess(Command):
     takes_args = ['cmd']
     hidden = True
 
+    @report_missing_pyqt
     def run(self, cmd):
         ui.ui_factory = ui.text.TextUIFactory(SubprocessProgress)
         argv = [p.decode('utf8') for p in shlex.split(cmd.encode('utf8'))]
         commands.run_bzr(argv)
 
 register_command(cmd_qsubprocess)
+
+
+def test_suite():
+    # disable gettext
+    from bzrlib.plugins.qbzr.lib import i18n
+    i18n.disable()
+    # load tests
+    from bzrlib.tests.TestUtil import TestLoader
+    from bzrlib.plugins.qbzr.lib import test
+    return TestLoader().loadTestsFromModule(test)

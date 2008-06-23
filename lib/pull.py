@@ -34,17 +34,19 @@ from bzrlib.option import Option
 from bzrlib.commands import Command, register_command
 from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
-from bzrlib.plugins.qbzr.diff import DiffWindow
-from bzrlib.plugins.qbzr.i18n import gettext, N_
-from bzrlib.plugins.qbzr.util import (
+
+from bzrlib.plugins.qbzr.lib.diff import DiffWindow
+from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
+from bzrlib.plugins.qbzr.lib.ui_branch import Ui_BranchForm
+from bzrlib.plugins.qbzr.lib.ui_pull import Ui_PullForm
+from bzrlib.plugins.qbzr.lib.ui_push import Ui_PushForm
+from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     BTN_OK,
     QBzrWindow,
     StandardButton,
     )
-from bzrlib.plugins.qbzr.ui_pull import Ui_PullForm
-from bzrlib.plugins.qbzr.ui_push import Ui_PushForm
-from bzrlib.plugins.qbzr.ui_branch import Ui_BranchForm
+
 
 class QBzrPullWindow(QBzrWindow):
 

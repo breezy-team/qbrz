@@ -34,12 +34,14 @@ from bzrlib.option import Option
 from bzrlib.commands import Command, register_command
 from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
-from bzrlib.plugins.qbzr.diff import DiffWindow
-from bzrlib.plugins.qbzr.i18n import gettext
-from bzrlib.plugins.qbzr.util import (
+
+from bzrlib.plugins.qbzr.lib.diff import DiffWindow
+from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     BTN_OK,
     QBzrWindow,
+    file_extension,
     format_timestamp,
     get_apparent_author,
     )
@@ -201,16 +203,16 @@ class CommitWindow(QBzrWindow):
         delta = self.tree.changes_from(self.basis_tree)
         for path, id_, kind in delta.added:
             marker = osutils.kind_marker(kind)
-            ext = os.path.splitext(path)[1]
+            ext = file_extension(path)
             files.append((gettext("added"), path+marker, ext, path, True))
         for path, id_, kind in delta.removed:
             marker = osutils.kind_marker(kind)
-            ext = os.path.splitext(path)[1]
+            ext = file_extension(path)
             files.append((gettext("removed"), path+marker, ext, path, True))
         for (oldpath, newpath, id_, kind,
             text_modified, meta_modified) in delta.renamed:
             marker = osutils.kind_marker(kind)
-            ext = os.path.splitext(newpath)[1]
+            ext = file_extension(newpath)
             if text_modified or meta_modified:
                 changes = gettext("renamed and modified")
             else:
@@ -220,10 +222,10 @@ class CommitWindow(QBzrWindow):
                           ext, newpath, True))
         for path, id_, kind, text_modified, meta_modified in delta.modified:
             marker = osutils.kind_marker(kind)
-            ext = os.path.splitext(path)[1]
+            ext = file_extension(path)
             files.append((gettext("modified"), path+marker, ext, path, True))
         for entry in tree.unknowns():
-            ext = os.path.splitext(entry)[1]
+            ext = file_extension(entry)
             files.append((gettext("non-versioned"), entry, ext, entry, False))
 
         # Build a word list for message completer
@@ -241,7 +243,14 @@ class CommitWindow(QBzrWindow):
         words = list(set(words))
         words.sort(lambda a, b: cmp(a.lower(), b.lower()))
 
-        splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        # To set focus on splitter below one need to pass
+        # second argument to constructor: self.centralwidget
+        # Try to be smart: if there is no saved message
+        # then set focus on Edit Area; otherwise on OK button.
+        if self.get_saved_message():
+            splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        else:
+            splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self.centralwidget)
 
         groupbox = QtGui.QGroupBox(gettext("Message"), splitter)
         splitter.addWidget(groupbox)
@@ -432,9 +441,12 @@ class CommitWindow(QBzrWindow):
             properties.append('%s fixed' % bug_url)
         return '\n'.join(properties)
 
-    def restore_message(self):
+    def get_saved_message(self):
         config = self.tree.branch.get_config()._get_branch_data_config()
-        message = config.get_user_option('qbzr_commit_message')
+        return config.get_user_option('qbzr_commit_message')
+
+    def restore_message(self):
+        message = self.get_saved_message()
         if message:
             self.message.setText(message)
 

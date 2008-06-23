@@ -1,7 +1,11 @@
-po/qbzr.pot
-locale
+./build
+./docs/make_release.html
+./installer/_lib/*
+./locale
+./MANIFEST
+./tags
 # files from standalone QBzr installation
 ./_ext
 ./_lib
 ./uninst.exe
-tags
+__x

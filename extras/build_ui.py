@@ -32,10 +32,13 @@ _import_re = re.compile(r'(from PyQt4 import QtCore, QtGui)')
 
 class build_ui(Command):
     description = "build Qt UI files"
-    user_options = []
+    user_options = [
+        ('force', 'f', 'Force creation of ui files'),
+        ]
+    boolean_options = ['force']
 
     def initialize_options(self):
-        pass
+        self.force = None
 
     def finalize_options(self):
         pass
@@ -43,15 +46,16 @@ class build_ui(Command):
     def run(self):
         from PyQt4 import uic
         for uifile in glob.glob("ui/*.ui"):
-            pyfile = "ui_%s.py" % os.path.splitext(os.path.basename(uifile))[0]
-            if newer(uifile, pyfile):
+            uifile = uifile.replace('\\', '/')
+            pyfile = "lib/ui_%s.py" % os.path.splitext(os.path.basename(uifile))[0]
+            if self.force or newer(uifile, pyfile):
                 log.info("compiling %s -> %s", uifile, pyfile)
                 tmp = StringIO()
                 uic.compileUi(uifile, tmp)
                 source = _translate_re.sub(r'gettext(\1)', tmp.getvalue())
                 source = source.replace("from PyQt4 import QtCore, QtGui",
                     "from PyQt4 import QtCore, QtGui\n"
-                    "from bzrlib.plugins.qbzr.i18n import gettext")
-                f = open(pyfile, "w")
+                    "from bzrlib.plugins.qbzr.lib.i18n import gettext\n")
+                f = open(pyfile, "wb")
                 f.write(source)
                 f.close()

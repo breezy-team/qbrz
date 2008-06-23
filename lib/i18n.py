@@ -53,13 +53,20 @@ if sys.platform == 'win32':
             os.environ['LANGUAGE'] = lang
 
 
-d = os.path.join(os.path.realpath(os.path.dirname(__file__)), 'locale')
+d = os.path.join(os.path.realpath(os.path.dirname(__file__)), '..', 'locale')
 t = _gettext.translation('qbzr', localedir=d, fallback=True)
 
 # functions for interface translation
 ngettext = t.ungettext
 gettext = t.ugettext
 N_ = lambda x: x
+
+
+def disable():
+    """Disable translations (e.g. for unit tests)"""
+    global ngettext, gettext
+    ngettext = N_
+    gettext = N_
 
 
 # additional strings for translation

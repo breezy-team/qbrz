@@ -24,17 +24,19 @@ from bzrlib import (
     )
 from bzrlib.branch import Branch
 from bzrlib.osutils import pathjoin
-from bzrlib.urlutils import local_path_from_url
-from bzrlib.plugins.qbzr.i18n import gettext
-from bzrlib.plugins.qbzr.util import (
+from bzrlib.revisionspec import RevisionSpec
+from bzrlib.urlutils import unescape_for_display
+
+from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
+from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.log import LogWindow
+from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     extract_name,
     format_timestamp,
     get_qlog_replace,
     )
-from bzrlib.plugins.qbzr.log import LogWindow
-from bzrlib.revisionspec import RevisionSpec
 
 
 class FileTreeWidget(QtGui.QTreeWidget):
@@ -53,7 +55,7 @@ class BrowseWindow(QBzrWindow):
     def __init__(self, branch=None, revision=None, revision_id=None,
                  revision_spec=None, parent=None):
         self.branch = branch
-        self.location = local_path_from_url(branch.base)
+        self.location = unescape_for_display(branch.base, 'utf-8')
         QBzrWindow.__init__(self,
             [gettext("Browse"), self.location], parent)
         self.restoreSize("browse", (780, 580))
@@ -81,6 +83,12 @@ class BrowseWindow(QBzrWindow):
 
         self.context_menu = QtGui.QMenu(self.file_tree)
         self.context_menu.addAction(gettext("Show log..."), self.show_file_log)
+        self.context_menu.addAction(gettext("View file"),
+                                    self.show_file_content)
+
+        self.connect(self.file_tree,
+                     QtCore.SIGNAL("doubleClicked(QModelIndex)"),
+                     self.show_file_content)
 
         self.dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
         self.file_icon = self.style().standardIcon(QtGui.QStyle.SP_FileIcon)
@@ -121,6 +129,32 @@ class BrowseWindow(QBzrWindow):
             item.setText(0, child.name)
             self.items.append((item, child.revision))
         return revs
+
+    def show_file_content(self):
+        """Launch qcat for one selected file."""
+        # Get selected item.
+        item = self.file_tree.currentItem()
+        if item == None: return
+
+        # Build full item path.
+        path_parts = [unicode(item.text(0))]
+        parent = item.parent()
+        while parent is not None:
+            path_parts.append(unicode(parent.text(0)))
+            parent = parent.parent()
+        path_parts.append('.')      # IMO with leading ./ path looks better
+        path_parts.reverse()
+        path = pathjoin(*path_parts)
+
+        tree = self.branch.repository.revision_tree(self.revision_id)
+
+        tree.lock_read()
+        try:
+            window = QBzrCatWindow.from_tree_and_path(tree, path, parent=self)
+        finally:
+            tree.unlock()
+        window.show()
+        self.windows.append(window)
 
     def show_file_log(self):
         """Show qlog for one selected file."""
@@ -164,6 +198,7 @@ class BrowseWindow(QBzrWindow):
                     return
             self.items = []
             self.file_tree.invisibleRootItem().takeChildren()
+            self.revision_id = revision_id
             tree = branch.repository.revision_tree(revision_id)
             root_file_id = tree.path2id('.')
             if root_file_id is not None:

@@ -2,6 +2,7 @@
 #
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2006 Lukáš Lalinský <lalinsky@gmail.com>
+# Copyright (C) 2007, 2008 Alexander Belchenko
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,14 +19,26 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os
-import sys
 import re
-import bzrlib.plugins.qbzr.resources
+import sys
+
 from PyQt4 import QtCore, QtGui
-from bzrlib.config import GlobalConfig, IniBasedConfig, config_dir, ensure_config_dir_exists
-from bzrlib import lazy_regex, osutils
-from bzrlib.plugins.qbzr.i18n import gettext, N_, ngettext
+
+from bzrlib.config import (
+    GlobalConfig,
+    IniBasedConfig,
+    config_dir,
+    ensure_config_dir_exists,
+    )
+from bzrlib import (
+    lazy_regex,
+    osutils,
+    )
 from bzrlib.util.configobj import configobj
+
+from bzrlib.plugins.qbzr.lib import i18n
+from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
+import bzrlib.plugins.qbzr.lib.resources
 
 
 _email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)', re.IGNORECASE)
@@ -495,3 +508,54 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
 
     def setSource(self, uri):
         pass
+
+
+def file_extension(path):
+    """Return extension of the file.
+    This function is smarter than standard os.path.splitext,
+    because it correctly process filenames with leading dot.
+    (e.g. ".bzrignore")
+    """
+    basename = os.path.basename(path)
+    ix = basename.rfind('.')
+    if ix > 0:
+        ext = basename[ix:]
+    else:
+        ext = ''
+    return ext
+
+
+class FilterOptions(object):
+    """Filter options container."""
+
+    __slots__ = ['deleted', 'added', 'renamed', 'modified']
+
+    def __init__(self, **kw):
+        self.added = False
+        self.deleted = False
+        self.modified = False
+        self.renamed = False
+        for k in kw:
+            setattr(self, k, kw[k])
+
+    def all_enable(self):
+        for i in self.__slots__:
+            setattr(self, i, True)
+
+    def __nonzero__(self):
+        return self.added or self.deleted or self.modified or self.renamed
+
+    def is_all_enable(self):
+        return self.added and self.deleted and self.modified and self.renamed
+
+    def to_str(self):
+        s = []
+        if self.deleted:
+            s.append(i18n.gettext('deleted files'))
+        if self.added:
+            s.append(i18n.gettext('added files'))
+        if self.renamed:
+            s.append(i18n.gettext('renamed files'))
+        if self.modified:
+            s.append(i18n.gettext('modified files'))
+        return ', '.join(s)

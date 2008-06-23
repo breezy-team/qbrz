@@ -1,11 +1,11 @@
 !define PRODUCT_NAME "QBzr"
-!define PRODUCT_VERSION "0.9.0"
+!define PRODUCT_VERSION "0.9.2"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
 SetCompressor /SOLID lzma
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "qbzr-setup-${PRODUCT_VERSION}.exe"
+OutFile "..\qbzr-setup-${PRODUCT_VERSION}.exe"
 ShowInstDetails show
 ShowUnInstDetails show
 
@@ -48,11 +48,11 @@ Section "MainSection" SEC01
 
   ; Files
   SetOutPath "$INSTDIR"
-  File "..\*.py" "..\*.txt"
-  SetOutPath "$INSTDIR\_ext"
-  File "_ext\*.pyd"
+  File "..\__init__.py" "..\*.txt"
+  SetOutPath "$INSTDIR\lib"
+  File /r "..\lib\*.py"
   SetOutPath "$INSTDIR\_lib"
-  File /r "_lib\*.py"
+  File /r "_lib\*.py" "_lib\*.pyd"
   SetOutPath "$INSTDIR\locale"
   File /r "..\locale\*.mo"
 

@@ -1,30 +1,30 @@
-# German translation for qbzr
-# Copyright (c) 2007 Rosetta Contributors and Canonical Ltd 2007
+# Spanish translation for qbzr
+# Copyright (c) 2008 Rosetta Contributors and Canonical Ltd 2008
 # This file is distributed under the same license as the qbzr package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2007.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2008.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-04-01 08:16+0200\n"
-"PO-Revision-Date: 2008-03-22 14:12+0000\n"
-"Last-Translator: hangy <Unknown>\n"
-"Language-Team: German <de@li.org>\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2008-03-24 12:54+0200\n"
+"PO-Revision-Date: 2008-03-24 21:37+0000\n"
+"Last-Translator: Guillermo Gonzalez <guillo.gonzo@gmail.com>\n"
+"Language-Team: Spanish <es@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2008-03-31 22:28+0000\n"
+"X-Launchpad-Export-Date: 2008-04-01 01:16+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: annotate.py:86
 msgid "Annotate"
-msgstr "Beschreibe"
+msgstr ""
 
 #: annotate.py:101
 msgid "Line"
-msgstr ""
+msgstr "Línea"
 
 #: annotate.py:101 annotate.py:117 browse.py:80 commit.py:302 log.py:222
 msgid "Author"
@@ -32,43 +32,43 @@ msgstr "Autor"
 
 #: annotate.py:101 log.py:222
 msgid "Rev"
-msgstr "Rev"
+msgstr ""
 
 #: annotate.py:117 browse.py:79 commit.py:302 log.py:222
 msgid "Date"
-msgstr "Datum"
+msgstr "Fecha"
 
 #: annotate.py:117
 msgid "Summary"
-msgstr "Zusammenfassung"
+msgstr ""
 
 #: browse.py:58 browse.py:162 browse.py:196
 msgid "Browse"
-msgstr "Durchsuchen"
+msgstr ""
 
 #: browse.py:64
 msgid "Location:"
-msgstr "Speicherort:"
+msgstr ""
 
 #: browse.py:69 util.py:353
 msgid "Revision:"
-msgstr "Revision:"
+msgstr "Revisión:"
 
 #: browse.py:72
 msgid "Show"
-msgstr "Anzeigen"
+msgstr ""
 
 #: browse.py:79 main.py:358
 msgid "Name"
-msgstr "Name"
+msgstr ""
 
 #: browse.py:80 commit.py:246 commit.py:302 log.py:222
 msgid "Message"
-msgstr "Nachricht"
+msgstr "Mensaje"
 
 #: browse.py:83
 msgid "Show log..."
-msgstr "Zeige Protokoll …"
+msgstr ""
 
 #: cat.py:39 cat.py:76
 msgid "View File"
@@ -81,40 +81,39 @@ msgstr ""
 
 #: commit.py:180 commit.py:458 commit.py:472 commit.py:509
 msgid "Commit"
-msgstr "Festlegen"
+msgstr ""
 
 #: commit.py:205 diff.py:209
 msgid "added"
-msgstr "hinzugefügt"
+msgstr ""
 
 #: commit.py:209 diff.py:197
 msgid "removed"
-msgstr "entfernt"
+msgstr ""
 
 #: commit.py:215 diff.py:223
 msgid "renamed and modified"
-msgstr "umbenannt und verändert"
+msgstr ""
 
 #: commit.py:217 diff.py:225
 msgid "renamed"
-msgstr "umbenannt"
+msgstr ""
 
 #: commit.py:224 diff.py:239
 msgid "modified"
-msgstr "verändert"
+msgstr ""
 
 #: commit.py:227
 msgid "non-versioned"
-msgstr "nicht versioniert"
+msgstr ""
 
 #: commit.py:252
 msgid "Enter the commit message"
 msgstr ""
 
 #: commit.py:261
-#, fuzzy
 msgid "&Fixed bugs:"
-msgstr "Behobene Fehler:"
+msgstr ""
 
 #: commit.py:262
 msgid "Set the IDs of bugs fixed by this commit"
@@ -135,7 +134,8 @@ msgid "Set the author of this change, if it's different from the committer"
 msgstr ""
 
 #: commit.py:279
-msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
+msgid ""
+"Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
 
 #: commit.py:289
@@ -149,37 +149,36 @@ msgid ""
 msgstr ""
 
 #: commit.py:297
-#, fuzzy
 msgid "Pending Merges"
-msgstr "Anliegende Verflechtungen"
+msgstr ""
 
 #: commit.py:322
 msgid "Changes"
-msgstr "Änderungen"
+msgstr "Cambios"
 
 #: commit.py:329
 msgid "File"
-msgstr "Datei"
+msgstr "Archivo"
 
 #: commit.py:329
 msgid "Extension"
-msgstr "Erweiterung"
+msgstr ""
 
 #: commit.py:329 main.py:360 ui_branch.py:89 ui_pull.py:89 ui_push.py:92
 msgid "Status"
-msgstr "Status"
+msgstr ""
 
 #: commit.py:342
 msgid "&Revert..."
-msgstr "&Rückgängig …"
+msgstr ""
 
 #: commit.py:346
 msgid "Show &Differences..."
-msgstr "Än&derungen anzeigen …"
+msgstr ""
 
 #: commit.py:356
 msgid "Show non-versioned files"
-msgstr "Zeige nicht versionierte Dateien"
+msgstr ""
 
 #: commit.py:459
 msgid "Empty commit message. Do you really want to commit?"
@@ -187,15 +186,15 @@ msgstr ""
 
 #: commit.py:564 commit.py:573
 msgid "Revert"
-msgstr "Zurücksetzen"
+msgstr ""
 
 #: commit.py:565
 msgid "Do you really want to revert the selected file(s)?"
-msgstr "Soll(en) die ausgewählte(n) Datei(en) wirklich zurückgesetzt werden?"
+msgstr ""
 
 #: config.py:38
 msgid "Default"
-msgstr "Standard"
+msgstr ""
 
 #: config.py:39
 msgid "Thunderbird"
@@ -215,11 +214,11 @@ msgstr "Mutt"
 
 #: config.py:43
 msgid "XDG e-mail client"
-msgstr "XDG-E-Mail-Client"
+msgstr ""
 
 #: config.py:44
 msgid "MAPI e-mail client"
-msgstr "MAPI-E-Mail-Client"
+msgstr ""
 
 #: config.py:45
 msgid "Editor"
@@ -227,15 +226,15 @@ msgstr "Editor"
 
 #: config.py:54
 msgid "Configuration"
-msgstr "Konfiguration"
+msgstr "Configuración"
 
 #: config.py:64 ui_bookmark.py:57
 msgid "&Name:"
-msgstr "&Name:"
+msgstr "&Nombre:"
 
 #: config.py:70
 msgid "E-&mail:"
-msgstr "E-&Mail:"
+msgstr ""
 
 #: config.py:76
 msgid "&Editor:"
@@ -243,23 +242,23 @@ msgstr "&Editor:"
 
 #: config.py:84
 msgid "E-mail &client:"
-msgstr "E-Mail-&Client:"
+msgstr ""
 
 #: config.py:94
 msgid "Alias"
-msgstr "Alias"
+msgstr ""
 
 #: config.py:94
 msgid "Command"
-msgstr "Befehl"
+msgstr ""
 
 #: config.py:96 config.py:117
 msgid "Add"
-msgstr "Hinzufügen"
+msgstr ""
 
 #: config.py:99 config.py:120
 msgid "Remove"
-msgstr "Entfernen"
+msgstr ""
 
 #: config.py:115
 msgid "Abbreviation"
@@ -271,11 +270,11 @@ msgstr ""
 
 #: config.py:134
 msgid "General"
-msgstr "Allgemein"
+msgstr ""
 
 #: config.py:135
 msgid "Aliases"
-msgstr "Aliase"
+msgstr ""
 
 #: config.py:136
 msgid "Bug Trackers"
@@ -283,66 +282,66 @@ msgstr ""
 
 #: diff.py:277 log.py:332
 msgid "Diff"
-msgstr "Diff"
+msgstr ""
 
 #: diff.py:284
 #, python-format
 msgid "%d file"
 msgid_plural "%d files"
-msgstr[0] "%d Datei"
-msgstr[1] "%d Dateien"
+msgstr[0] ""
+msgstr[1] ""
 
 #: diff.py:312
 msgid "Side by side"
-msgstr "Seite an Seite"
+msgstr ""
 
 #: diff.py:319
 msgid "Unidiff"
-msgstr "Unidiff"
+msgstr ""
 
 #: diffview.py:284 diffview.py:288
 msgid "Last modified:"
-msgstr "Letzte Änderung:"
+msgstr ""
 
 #: diffview.py:285 diffview.py:289
 msgid "Status:"
-msgstr "Status:"
+msgstr ""
 
 #: diffview.py:286 diffview.py:290
 msgid "Kind:"
-msgstr "Art:"
+msgstr ""
 
 #: i18n.py:68
 msgid "file"
-msgstr "Datei"
+msgstr "archivo"
 
 #: i18n.py:69
 msgid "directory"
-msgstr "Verzeichnis"
+msgstr ""
 
 #: i18n.py:70
 msgid "symlink"
-msgstr "Symlink"
+msgstr ""
 
 #: i18n.py:72
 msgid "fixed"
-msgstr "behoben"
+msgstr ""
 
 #: log.py:209
 msgid "Log"
-msgstr "Protokoll"
+msgstr ""
 
 #: log.py:235
 msgid "&Search:"
-msgstr "&Suchen:"
+msgstr ""
 
 #: log.py:250
 msgid "Messages"
-msgstr "Nachrichten"
+msgstr "Mensajes"
 
 #: log.py:252
 msgid "Authors"
-msgstr ""
+msgstr "Autores"
 
 #: log.py:254
 msgid "Revision IDs"
@@ -415,19 +414,19 @@ msgstr ""
 
 #: main.py:306
 msgid "&File"
-msgstr ""
+msgstr "&Archivo"
 
 #: main.py:307
 msgid "&Configure..."
-msgstr ""
+msgstr "&Configurar..."
 
 #: main.py:309
 msgid "&Quit"
-msgstr ""
+msgstr "&Salir"
 
 #: main.py:310
 msgid "&View"
-msgstr ""
+msgstr "&Ver"
 
 #: main.py:312
 msgid "&Branch"
@@ -439,15 +438,15 @@ msgstr ""
 
 #: main.py:318 util.py:57
 msgid "&Help"
-msgstr "&Hilfe"
+msgstr "Ay&uda"
 
 #: main.py:319
 msgid "&Help..."
-msgstr ""
+msgstr "Ay&uda..."
 
 #: main.py:321
 msgid "&About..."
-msgstr ""
+msgstr "&Acerca de..."
 
 #: main.py:359
 msgid "Size"
@@ -455,15 +454,15 @@ msgstr ""
 
 #: main.py:411
 msgid "About QBzr"
-msgstr ""
+msgstr "Acerca de QBzr"
 
 #: main.py:412
 #, python-format
 msgid ""
-"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
-"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2007 Lukš Lalinsk and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
-"\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2007 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
 
 #: main.py:477
@@ -492,7 +491,7 @@ msgstr ""
 
 #: pull.py:160
 msgid "Aborting..."
-msgstr ""
+msgstr "Abortando..."
 
 #: pull.py:168
 msgid "Finished!"
@@ -525,7 +524,7 @@ msgstr ""
 
 #: ui_branch.py:85 ui_pull.py:84 ui_push.py:86
 msgid "Options"
-msgstr ""
+msgstr "Opciones"
 
 #: ui_branch.py:87 ui_pull.py:86
 msgid "&Revision:"
@@ -557,15 +556,15 @@ msgstr ""
 
 #: util.py:54
 msgid "&OK"
-msgstr "&OK"
+msgstr "&Aceptar"
 
 #: util.py:55
 msgid "&Cancel"
-msgstr "&Abbrechen"
+msgstr "&Cancelar"
 
 #: util.py:56
 msgid "&Close"
-msgstr "&Schließen"
+msgstr "Ce&rrar"
 
 #: util.py:369
 msgid "Parents:"
@@ -577,7 +576,7 @@ msgstr ""
 
 #: util.py:377
 msgid "Committer:"
-msgstr "Täter:"
+msgstr ""
 
 #: util.py:380
 msgid "Author:"
@@ -585,14 +584,14 @@ msgstr "Autor:"
 
 #: util.py:384
 msgid "Branch nick:"
-msgstr "Zweig-Spitzname:"
+msgstr ""
 
 #: util.py:389
 msgid "Tags:"
-msgstr "Stichworte:"
+msgstr ""
 
 #: util.py:399
 msgid "Bug:"
 msgid_plural "Bugs:"
-msgstr[0] "Bug:"
-msgstr[1] "Bugs:"
+msgstr[0] ""
+msgstr[1] ""
