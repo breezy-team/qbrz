@@ -89,7 +89,7 @@ class GraphItemDelegate(QtGui.QItemDelegate):
             if back:
                 qcolor.setHsvF(h,0.4,1)
             else:
-                qcolor.setHsvF(h,0.8,1)
+                qcolor.setHsvF(h,1,0.7)
         
         return qcolor
     
@@ -104,17 +104,21 @@ class GraphItemDelegate(QtGui.QItemDelegate):
         painter.setPen(pen)
         if start is -1:
             x = rect.x() + boxsize * end + boxsize / 2
-            painter.drawPoint(QtCore.QPointF (x, mid + height / 3)) 
-            painter.drawPoint(QtCore.QPointF (x, mid + height / 6)) 
+            painter.drawLine(QtCore.QLineF (x, mid + (height * 0.1),
+                                            x, mid + (height * 0.2))) 
+            painter.drawLine(QtCore.QLineF (x, mid + (height * 0.3),
+                                            x, mid + (height * 0.4))) 
             
         elif end is -1:
-            x = rect.x() + boxsize * end + boxsize / 2
-            painter.drawPoint(QtCore.QPointF (x, mid - height / 3)) 
-            painter.drawPoint(QtCore.QPointF (x, mid - height / 6)) 
+            x = rect.x() + boxsize * start + boxsize / 2 
+            painter.drawLine(QtCore.QLineF (x, mid - (height * 0.1),
+                                            x, mid - (height * 0.2))) 
+            painter.drawLine(QtCore.QLineF (x, mid - (height * 0.3),
+                                            x, mid - (height * 0.4))) 
 
         else:
-            startx = rect.x() + boxsize * start + boxsize / 2
-            endx = rect.x() + boxsize * end + boxsize / 2
+            startx = rect.x() + boxsize * start + boxsize / 2 
+            endx = rect.x() + boxsize * end + boxsize / 2 
             
             path = QtGui.QPainterPath()
             path.moveTo(QtCore.QPointF(startx, mid - height / 2))
@@ -135,12 +139,16 @@ class GraphItemDelegate(QtGui.QItemDelegate):
     def drawDisplay(self, painter, option, rect, text):
         painter.save()
         try:
-            painter.setRenderHint(QtGui.QPainter.Antialiasing)
-            
-            boxsize = rect.height()
-            dotsize = 0.6
+            painter.setRenderHint(QtGui.QPainter.Antialiasing)            
+            boxsize = float(rect.height())
+            dotsize = 0.55
             pen = QtGui.QPen()
-            pen.setWidth(boxsize*0.15)
+            penwidth = 1
+            pen.setWidth(penwidth)
+            pen.setCapStyle(QtCore.Qt.FlatCap)
+            #this is to try get lines 1 pixel wide to actualy be 1 pixel wide.
+            painter.translate(0.5, 0.5)
+            
             
             # Draw lines into the cell
             for line in self.linesIn:
