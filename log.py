@@ -20,8 +20,11 @@
 import sys
 import re
 from PyQt4 import QtCore, QtGui
+from time import (strftime, localtime)
 from bzrlib import bugtracker, lazy_regex
 from bzrlib.log import LogFormatter, show_log
+from bzrlib.revision import NULL_REVISION
+from bzrlib.plugins.qbzr.linegraph import linegraph
 from bzrlib.plugins.qbzr.diff import DiffWindow
 from bzrlib.plugins.qbzr.i18n import gettext
 from bzrlib.plugins.qbzr.util import (
@@ -36,13 +39,22 @@ from bzrlib.plugins.qbzr.util import (
     )
 
 
-TagNameRole = QtCore.Qt.UserRole + 1
-BugIdRole = QtCore.Qt.UserRole + 100
+TagsRole = QtCore.Qt.UserRole + 1
+BugIdsRole = QtCore.Qt.UserRole + 2
+GraphNodeRole = QtCore.Qt.UserRole + 3
+GraphLinesInRole = QtCore.Qt.UserRole + 4
+GraphLinesOutRole = QtCore.Qt.UserRole + 5
 
-FilterIdRole = QtCore.Qt.UserRole + 200
-FilterMessageRole = QtCore.Qt.UserRole + 201
-FilterAuthorRole = QtCore.Qt.UserRole + 202
-FilterRevnoRole = QtCore.Qt.UserRole + 203
+FilterIdRole = QtCore.Qt.UserRole + 100
+FilterMessageRole = QtCore.Qt.UserRole + 101
+FilterAuthorRole = QtCore.Qt.UserRole + 102
+FilterRevnoRole = QtCore.Qt.UserRole + 103
+
+COL_REV = 0
+COL_GRAPH = 1
+COL_DATE = 2
+COL_AUTHOR = 3
+COL_MESSAGE = 4
 
 PathRole = QtCore.Qt.UserRole + 1
 
@@ -55,8 +67,109 @@ def get_bug_id(branch, bug_url):
         return match.group(1)
     return None
 
+class GraphItemDelegate(QtGui.QItemDelegate):
+    
+    def get_colour(self, colour, back):
+        """Set the context source colour.
 
-class LogWidgetDelegate(QtGui.QItemDelegate):
+        Picks a distinct colour based on an internal wheel; the bg
+        parameter provides the value that should be assigned to the 'zero'
+        colours and the fg parameter provides the multiplier that should be
+        applied to the foreground colours.
+        """
+
+        qcolor = QtGui.QColor()
+        if colour == 0:
+            if back:
+                qcolor.setHsvF(0,0,0.5)
+            else:
+                qcolor.setHsvF(0,0,0)
+        else:
+            h = float(colour % 6) / 6
+            if back:
+                qcolor.setHsvF(h,0.4,1)
+            else:
+                qcolor.setHsvF(h,0.8,1)
+        
+        return qcolor
+    
+    def paint(self, painter, option, index):        
+        self.node = index.data(GraphNodeRole).toList()
+        self.linesIn = index.data(GraphLinesInRole).toList()
+        self.linesOut = index.data(GraphLinesOutRole).toList()
+        QtGui.QItemDelegate.paint(self, painter, option, index)
+    
+    def render_line(self, painter, pen, rect, boxsize, mid, height, start, end, colour):
+        pen.setColor(self.get_colour(colour,False))
+        painter.setPen(pen)
+        if start is -1:
+            x = rect.x() + boxsize * end + boxsize / 2
+            painter.drawPoint(QtCore.QPointF (x, mid + height / 3)) 
+            painter.drawPoint(QtCore.QPointF (x, mid + height / 6)) 
+            
+        elif end is -1:
+            x = rect.x() + boxsize * end + boxsize / 2
+            painter.drawPoint(QtCore.QPointF (x, mid - height / 3)) 
+            painter.drawPoint(QtCore.QPointF (x, mid - height / 6)) 
+
+        else:
+            startx = rect.x() + boxsize * start + boxsize / 2
+            endx = rect.x() + boxsize * end + boxsize / 2
+            
+            path = QtGui.QPainterPath()
+            path.moveTo(QtCore.QPointF(startx, mid - height / 2))
+            
+            if start - end == 0 :
+                path.lineTo(QtCore.QPointF(endx, mid + height / 2)) 
+            else:
+                path.cubicTo(QtCore.QPointF(startx, mid - height / 5),
+                             QtCore.QPointF(startx, mid - height / 5),
+                             QtCore.QPointF(startx + (endx - startx) / 2, mid))
+
+                path.cubicTo(QtCore.QPointF(endx, mid + height / 5),
+                             QtCore.QPointF(endx, mid + height / 5),
+                             QtCore.QPointF(endx, mid + height / 2 + 1))
+            painter.drawPath(path)
+
+
+    def drawDisplay(self, painter, option, rect, text):
+        painter.save()
+        try:
+            painter.setRenderHint(QtGui.QPainter.Antialiasing)
+            
+            boxsize = rect.height()
+            dotsize = 0.6
+            pen = QtGui.QPen()
+            pen.setWidth(boxsize*0.15)
+            
+            # Draw lines into the cell
+            for line in self.linesIn:
+                start, end, colour = [linei.toInt()[0] for linei in line.toList()]
+                self.render_line (painter, pen, rect, boxsize,
+                                  rect.y(), boxsize,
+                                  start, end, colour)
+    
+            # Draw lines out of the cell
+            for line in self.linesOut:
+                start, end, colour = [linei.toInt()[0] for linei in line.toList()]
+                self.render_line (painter, pen, rect,boxsize,
+                                  rect.y() + boxsize, boxsize,
+                                  start, end, colour)
+            
+            # Draw the revision node in the right column
+            colour = self.node[1].toInt()[0]
+            column = self.node[0].toInt()[0]
+            pen.setColor(self.get_colour(colour,False))
+            painter.setPen(pen)
+            painter.setBrush(QtGui.QBrush(self.get_colour(colour,True)))
+            painter.drawEllipse(
+                QtCore.QRectF(option.rect.x() + (boxsize * (1 - dotsize) / 2) + boxsize * column,
+                             option.rect.y() + (boxsize * (1 - dotsize) / 2),
+                             boxsize * dotsize, boxsize * dotsize))
+        finally:
+            painter.restore()
+
+class TagsBugsItemDelegate(QtGui.QItemDelegate):
 
     _tagColor = QtGui.QColor(255, 255, 170)
     _tagColorBorder = QtGui.QColor(255, 238, 0)
@@ -64,27 +177,19 @@ class LogWidgetDelegate(QtGui.QItemDelegate):
     _bugColor = QtGui.QColor(255, 188, 188)
     _bugColorBorder = QtGui.QColor(255, 79, 79)
 
+
     def paint(self, painter, option, index):
         self.labels = []
-        if index.column() == 3:
-            # collect tag names
-            for i in range(10):
-                tag = index.data(TagNameRole + i)
-                if not tag.isNull():
-                    self.labels.append(
-                        (tag.toString(), self._tagColor,
-                         self._tagColorBorder))
-                else:
-                    break
-            # collect bug ids
-            for i in range(10):
-                bug = index.data(BugIdRole + i)
-                if not bug.isNull():
-                    self.labels.append(
-                        (bug.toString(), self._bugColor,
-                         self._bugColorBorder))
-                else:
-                    break
+        # collect tag names
+        for tag in index.data(TagsRole).toList():
+            self.labels.append(
+                (tag.toString(), self._tagColor,
+                 self._tagColorBorder))
+        # collect bug ids
+        for bug in index.data(BugIdsRole).toList():
+            self.labels.append(
+                (bug.toString(), self._bugColor,
+                 self._bugColorBorder))
         QtGui.QItemDelegate.paint(self, painter, option, index)
 
     def drawDisplay(self, painter, option, rect, text):
@@ -116,35 +221,6 @@ class LogWidgetDelegate(QtGui.QItemDelegate):
             painter.setPen(option.palette.text().color())
         painter.drawText(rect.left() + x + 2, rect.bottom() - option.fontMetrics.descent(), text)
         painter.restore()
-
-
-class StopLoading(Exception): pass
-
-
-class QLogFormatter(LogFormatter):
-
-    supports_merge_revisions = True
-    supports_tags = True
-    supports_delta = True
-
-    def __init__(self, parent):
-        self.parent = parent
-        self.items = []
-        self.n = 10
-
-    def add_items(self):
-        for revision in self.items:
-            self.parent.add_log_entry(revision)
-        self.items = []
-
-    def log_revision(self, revision):
-        if self.parent.isHidden():
-            raise StopLoading()
-        self.items.append(revision)
-        if len(self.items) > self.n:
-            self.add_items()
-            self.n = max(200, int(self.n * 1.5))
-        QtCore.QCoreApplication.processEvents()
 
 
 class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
@@ -202,6 +278,138 @@ try:
 except ImportError:
     pass
 
+class TreeModel(QtCore.QAbstractTableModel):
+    def __init__(self, parent=None):
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        
+        self.horizontalHeaderLabels = [gettext("Rev"),
+                                       gettext("Graph"),
+                                       gettext("Date"),
+                                       gettext("Author"),
+                                       gettext("Message"),
+                                       ]
+        
+        self.linegraphdata = []
+        self.index = {}
+        self.columns_len = 0
+        self.revisions = {}
+        self.tags = {}
+
+    def loadBranch(self, branch, start_revs = None, maxnum = None,
+                   broken_line_length = 32, graph_data = True,
+                   mainline_only = False):
+        self.branch = branch
+        branch.lock_read()
+        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+        self.revisions = {}
+        try:
+            if start_revs is None:
+                start_revs = [branch.last_revision()]
+            (self.linegraphdata, self.index, self.columns_len) = linegraph(branch.repository,
+                                                            start_revs,
+                                                            maxnum, 
+                                                            broken_line_length,
+                                                            graph_data,
+                                                            mainline_only)
+            self.tags = branch.tags.get_reverse_tag_dict()
+        except:
+            self.linegraphdata = []
+            self.index = {}
+            self.columns_len = 0
+            self.tags = {}
+        finally:
+            self.emit(QtCore.SIGNAL("layoutChanged()"))
+            branch.unlock
+
+    def columnCount(self, parent):
+        if parent.isValid():
+            return 0
+        return len(self.horizontalHeaderLabels)
+
+    def rowCount(self, parent):
+        if parent.isValid():
+            return 0
+        return len(self.linegraphdata)
+    
+    def linesToQVariant(self,lines):
+        qlines = []
+        for start, end, colour in lines:
+            if start is None: start = -1
+            if end is None: end = -1
+            qlines.append(QtCore.QVariant([QtCore.QVariant(start),
+                                           QtCore.QVariant(end),
+                                           QtCore.QVariant(colour)]))
+        return QtCore.QVariant(qlines)
+
+    def data(self, index, role):
+        if not index.isValid():
+            return QtCore.QVariant()
+        
+        (revid, node, lines, parents, children, revno_sequence) = \
+            self.linegraphdata[index.row()]
+        
+        if role == QtCore.Qt.DisplayRole and index.column() == COL_REV:
+            revnos = ".".join(["%d" % (revno)
+                                      for revno in revno_sequence])
+            return QtCore.QVariant(revnos)
+        if role == TagsRole:
+            tags = []
+            if revid in self.tags:
+                tags = self.tags[revid]
+            return QtCore.QVariant(tags)
+        if role == GraphNodeRole:
+            return QtCore.QVariant([QtCore.QVariant(nodei) for nodei in node])
+        if role == GraphLinesOutRole:
+            return self.linesToQVariant(lines)
+        if role == GraphLinesInRole:
+            if index.row()>0:
+                return self.linesToQVariant(self.linegraphdata[index.row()-1][2])
+            return QtCore.QVariant([])
+        
+        #Everything from here foward need to have the revision loaded.
+        if not revid or revid == NULL_REVISION:
+            return QtCore.QVariant()
+        if revid not in self.revisions:
+            revision = self.branch.repository.get_revisions([revid])[0]
+            self.revisions[revid] = revision
+        else:
+            revision = self.revisions[revid]
+        
+        if role == QtCore.Qt.DisplayRole and index.column() == COL_DATE:
+            return QtCore.QVariant(strftime("%Y-%m-%d %H:%M",
+                                            localtime(revision.timestamp)))
+        if role == QtCore.Qt.DisplayRole and index.column() == COL_AUTHOR:
+            return QtCore.QVariant(extract_name(revision.committer))
+        if role == QtCore.Qt.DisplayRole and index.column() == COL_MESSAGE:
+            return QtCore.QVariant(revision.get_summary())
+        if role == BugIdsRole:
+            bugtext = gettext("bug #%s")
+            bugs = []
+            for bug in revision.properties.get('bugs', '').split('\n'):
+                if bug:
+                    url, status = bug.split(' ')
+                    bug_id = get_bug_id(self.branch, url)
+                    if bug_id:
+                        bugs.append(bugtext % bug_id)
+            return QtCore.QVariant(bugs)
+
+        
+        #return QtCore.QVariant(item.data(index.column()))
+        return QtCore.QVariant()
+
+    def flags(self, index):
+        if not index.isValid():
+            return QtCore.Qt.ItemIsEnabled
+
+        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+            return QtCore.QVariant(self.horizontalHeaderLabels[section])
+
+        return QtCore.QVariant()
+
+
 
 class LogWindow(QBzrWindow):
 
@@ -217,9 +425,7 @@ class LogWindow(QBzrWindow):
         self.item_to_rev = {}
         self.revisions = {}
 
-        self.changesModel = QtGui.QStandardItemModel()
-        self.changesModel.setHorizontalHeaderLabels(
-            [gettext("Rev"), gettext("Date"), gettext("Author"), gettext("Message")])
+        self.changesModel = TreeModel()
 
         self.changesProxyModel = TreeFilterProxyModel()
         self.changesProxyModel.setSourceModel(self.changesModel)
@@ -297,11 +503,13 @@ class LogWindow(QBzrWindow):
 
         self.branch = branch
 
-        self.delegate = LogWidgetDelegate(self)
-        self.changesList.setItemDelegate(self.delegate)
+        self.changesList.setItemDelegateForColumn(COL_GRAPH,
+                                                  GraphItemDelegate(self))
+        self.changesList.setItemDelegateForColumn(COL_MESSAGE,
+                                                  TagsBugsItemDelegate(self))
 
         self.last_item = None
-        self.merge_stack = [self.changesModel.invisibleRootItem()]
+        #self.merge_stack = [self.changesModel.invisibleRootItem()]
 
         self.message = QtGui.QTextDocument()
         self.message_browser = RevisionMessageBrowser()
@@ -532,14 +740,7 @@ class LogWindow(QBzrWindow):
 
     def load_history(self):
         """Load branch history."""
-        formatter = QLogFormatter(self)
-        try:
-            show_log(self.branch, formatter, verbose=False,
-                     specific_fileid=self.specific_fileid)
-        except StopLoading:
-            pass
-        else:
-            formatter.add_items()
+        self.changesModel.loadBranch(self.branch)
 
     def update_search_type(self, checked):
         if checked:
