@@ -107,4 +107,4 @@ body {white-space:pre;}
                 QtGui.QMessageBox.Ok)
             return None
         text = tree.get_file_text(file_id)
-        return QBzrCatWindow(relpath, text)
+        return QBzrCatWindow(relpath, text, encoding=encoding)
