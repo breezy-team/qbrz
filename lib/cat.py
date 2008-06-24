@@ -48,9 +48,7 @@ class QBzrCatWindow(QBzrWindow):
             text = text.decode(encoding or 'utf-8', 'replace')
             self._create_text_view(relpath, text)
         else:
-            ext = file_extension(relpath)
-            if sys.platform == 'win32':
-                ext = ext.lower()
+            ext = file_extension(relpath).lower()
             image_exts = ['.'+str(i)
                 for i in QtGui.QImageReader.supportedImageFormats()]
             if ext in image_exts:
