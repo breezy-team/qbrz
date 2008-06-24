@@ -120,8 +120,8 @@ class TreeModel(QtCore.QAbstractTableModel):
             assert self.merge_sorted_revisions[0][1] == "top:"
             self.merge_sorted_revisions = self.merge_sorted_revisions[1:]
             
-            # This will hold, for each "branch", a list of revision indexes in
-            # the branch.
+            # This will hold, for each "branch", [a list of revision indexes in
+            # the branch, is the branch visible].
             #
             # For a revisions, the revsion number less the least significant
             # digit is the branch_id, and used as the key for the dict. Hence
@@ -140,12 +140,14 @@ class TreeModel(QtCore.QAbstractTableModel):
                 
                 branch_line = None
                 if branch_id not in self.branch_lines:
-                    branch_line = []
+                    #initialy, only the main line is visible
+                    branch_vis = len(branch_id)==0
+                    branch_line = [[],branch_vis]
                     self.branch_lines[branch_id] = branch_line
                 else:
                     branch_line = self.branch_lines[branch_id]
                 
-                branch_line.append(rev_index)        
+                branch_line[0].append(rev_index)        
         
             self.branch_ids = self.branch_lines.keys()
         
@@ -222,7 +224,7 @@ class TreeModel(QtCore.QAbstractTableModel):
             
             
             for branch_id in self.branch_ids:
-                branch_line = self.branch_lines[branch_id]
+                branch_rev_indexes, branch_visible = self.branch_lines[branch_id]
                 
                 # Find the col_index for the direct parent branch. This will be the
                 # starting point when looking for a free column.
@@ -244,7 +246,7 @@ class TreeModel(QtCore.QAbstractTableModel):
                 
                 line_range = []
                 last_rev_index = None
-                for rev_index in branch_line:
+                for rev_index in branch_rev_indexes:
                     if last_rev_index:
                         if broken_line_length and \
                            rev_index - last_rev_index > broken_line_length:
@@ -268,11 +270,11 @@ class TreeModel(QtCore.QAbstractTableModel):
                                               col_search_order,
                                               line_range)
                 node = (col_index, color)
-                for rev_index in branch_line:
+                for rev_index in branch_rev_indexes:
                     self.linegraphdata[rev_index][1] = node
                     columns[col_index][rev_index] = True
                 
-                for rev_index in branch_line:
+                for rev_index in branch_rev_indexes:
                     (sequence_number,
                          revid,
                          merge_depth,
