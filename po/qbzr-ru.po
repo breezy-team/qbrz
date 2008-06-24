@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: QBzr 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-06-22 20:49+0300\n"
+"POT-Creation-Date: 2008-06-25 01:01+0300\n"
 "PO-Revision-Date: 2008-03-24 21:41+0000\n"
 "Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
 "Language-Team: Russian\n"
@@ -74,11 +74,11 @@ msgstr "Показать журнал..."
 msgid "View file"
 msgstr "Просмотр файла"
 
-#: lib\cat.py:44 lib\cat.py:104
+#: lib\cat.py:64 lib\cat.py:130
 msgid "View File"
 msgstr "Просмотр файла"
 
-#: lib\cat.py:105
+#: lib\cat.py:131
 #, python-format
 msgid "File \"%s\" not found in the specified revision."
 msgstr "Файл \"%s\" не найден в указанной версии проекта."
@@ -323,6 +323,10 @@ msgstr "Состояние:"
 msgid "Kind:"
 msgstr "Тип:"
 
+#: lib\diffview.py:305
+msgid "[binary file]"
+msgstr "[бинарный файл]"
+
 #: lib\i18n.py:75
 msgid "file"
 msgstr "файл"
@@ -497,36 +501,36 @@ msgstr ""
 msgid "Pull"
 msgstr "Подтянуть новые данные"
 
-#: lib\pull.py:114
+#: lib\pull.py:115
 msgid "Starting..."
 msgstr "Операция начинается..."
 
-#: lib\pull.py:162
+#: lib\pull.py:163
 msgid "Aborting..."
 msgstr "Операция прервана..."
 
-#: lib\pull.py:170
+#: lib\pull.py:171
 msgid "Finished!"
 msgstr "Завершено!"
 
-#: lib\pull.py:208 lib\pull.py:223
+#: lib\pull.py:209 lib\pull.py:224
 msgid "Failed!"
 msgstr "Неудачно!"
 
-#: lib\pull.py:210
+#: lib\pull.py:211
 msgid "Failed to start bzr."
 msgstr "Не могу запустить bzr."
 
-#: lib\pull.py:212
+#: lib\pull.py:213
 #, python-format
 msgid "Error while running bzr. (error code: %d)"
 msgstr "Ошибка во время работы bzr. (код ошибки: %d)"
 
-#: lib\pull.py:229
+#: lib\pull.py:230
 msgid "Push"
 msgstr "Отправить новые данные"
 
-#: lib\pull.py:258
+#: lib\pull.py:260
 msgid "Branch"
 msgstr "Ветка"
 
@@ -579,55 +583,56 @@ msgstr "&Отмена"
 msgid "&Close"
 msgstr "&Закрыть"
 
-#: lib\util.py:382
+#: lib\util.py:367
+msgid "Revision Id:"
+msgstr "Revision Id:"
+
+#: lib\util.py:383
 msgid "Parents:"
 msgstr "Предыдущие версии:"
 
-#: lib\util.py:387
+#: lib\util.py:388
 msgid "Children:"
 msgstr "Следующие версии:"
 
-#: lib\util.py:390
+#: lib\util.py:391
 msgid "Committer:"
 msgstr "Зафиксировал:"
 
-#: lib\util.py:393
+#: lib\util.py:394
 msgid "Author:"
 msgstr "Автор:"
 
-#: lib\util.py:397
+#: lib\util.py:398
 msgid "Branch nick:"
 msgstr "Название ветки:"
 
-#: lib\util.py:402
+#: lib\util.py:403
 msgid "Tags:"
 msgstr "Тэги:"
 
-#: lib\util.py:412
+#: lib\util.py:413
 msgid "Bug:"
 msgid_plural "Bugs:"
 msgstr[0] "Ошибка:"
 msgstr[1] "Ошибки:"
 msgstr[2] "Ошибки:"
 
-#: lib\util.py:554
+#: lib\util.py:555
 msgid "deleted files"
 msgstr "удаленные файлы"
 
-#: lib\util.py:556
+#: lib\util.py:557
 msgid "added files"
 msgstr "добавленные файлы"
 
-#: lib\util.py:558
+#: lib\util.py:559
 msgid "renamed files"
 msgstr "переименованные файлы"
 
-#: lib\util.py:560
+#: lib\util.py:561
 msgid "modified files"
 msgstr "измененные файлы"
-
-#~ msgid "[binary file]"
-#~ msgstr "[бинарный файл]"
 
 #~ msgid "Parent revisions:"
 #~ msgstr "Предыдущая версия:"

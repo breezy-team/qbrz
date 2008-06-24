@@ -148,7 +148,6 @@ class DiffViewHandle(QtGui.QSplitterHandle):
             painter.drawLine(0, ly2, w, ry2)
 
 
-
 def markup_line(line, encode=True):
     if encode:
         line = htmlencode(line)
@@ -199,6 +198,7 @@ STYLES = {
 
 
 class DiffView(QtGui.QSplitter):
+    """Widget to show differences in side-by-side format."""
 
     def __init__(self, treediff, parent=None):
         QtGui.QSplitter.__init__(self, QtCore.Qt.Horizontal, parent)
@@ -300,6 +300,11 @@ class DiffView(QtGui.QSplitter):
             lines2.append('')
             lines2.append('')
             lines2.append('')
+            if diff.binary:
+                _s = '<span style="background-color:#FFFF80;">%s</span>' % (
+                    gettext('[binary file]'))
+                lines1.append(_s)
+                lines2.append(_s)
             a = diff.old_lines
             b = diff.new_lines
             for i, group in enumerate(diff.groups):
@@ -394,6 +399,7 @@ class DiffView(QtGui.QSplitter):
 
 
 class SimpleDiffView(QtGui.QTextEdit):
+    """Widget to show differences in unidiff format."""
 
     def __init__(self, treeview, parent=None):
         QtGui.QTextEdit.__init__(self, parent)
