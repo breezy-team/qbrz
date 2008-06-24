@@ -12,7 +12,11 @@
    paths (#241930)
  * qbrowse: double-click on file opens qcat window and show file content
    (#148028). Also user can run this action via context menu -> View file.
- * qcat: show content of image file as image (#242070)
+ * qcat: show content of image file as image (#242070) and hex dump for other
+   binary files.
+ * qannotate: show tags (if any) for revision in revision message view 
+   (#149246).
+ * qdiff: show label '[binary file]' for modified binary files (#165006).
 
 0.9.1 - 2008-06-17
 ----------------------
