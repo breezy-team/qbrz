@@ -367,6 +367,7 @@ class cmd_qpull(Command):
 
     takes_options = []
     takes_args = []
+    hidden = True
 
     @report_missing_pyqt
     def run(self):
@@ -383,6 +384,7 @@ class cmd_qpush(Command):
 
     takes_options = []
     takes_args = []
+    hidden = True
 
     @report_missing_pyqt
     def run(self):
@@ -398,6 +400,7 @@ class cmd_qbranch(Command):
 
     takes_options = []
     takes_args = []
+    hidden = True
 
     @report_missing_pyqt
     def run(self):
