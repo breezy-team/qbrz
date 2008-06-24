@@ -173,12 +173,13 @@ class TreeModel(QtCore.QAbstractTableModel):
             revno_index = {}
             msri_index = {}
             
-            # This will hold for each revision, a tuple of (revid,
-            #                                               node,
-            #                                               lines,
-            #                                               parents,
-            #                                               children,
-            #                                               revno_sequence).
+            # This will hold for each revision, a list of (revid,
+            #                                              node,
+            #                                              lines,
+            #                                              parents,
+            #                                              children,
+            #                                              revno_sequence,
+            #                                              twisties).
             #
             # Node is a tuple of (column, colour) with column being a
             # zero-indexed column number of the graph that this revision
@@ -191,6 +192,9 @@ class TreeModel(QtCore.QAbstractTableModel):
             # iteration. Each tuples in the list is in the form (start, end,
             # colour) with start and end being zero-indexed column numbers and
             # colour as in node.
+            #
+            # twisties are +- buttons to show/hide branches. list of Tuple of
+            # (column, open, branch_id)
             self.linegraphdata = []
 
             rev_index = 0
@@ -211,7 +215,9 @@ class TreeModel(QtCore.QAbstractTableModel):
                                       [],
                                       self.graph_parents[revid],
                                       self.graph_children[revid],
-                                      revno_sequence])
+                                      revno_sequence,
+                                      [],
+                                      ])
                     rev_index+=1
             
             # This will hold a tuple of (child_index, parent_index, col_index) for each
@@ -231,8 +237,12 @@ class TreeModel(QtCore.QAbstractTableModel):
                 branch_rev_indexes, branch_visible = self.branch_lines[branch_id]
                 
                 if branch_visible:
-                    # Find the col_index for the direct parent branch. This will be the
-                    # starting point when looking for a free column.
+                    color = reduce(lambda x, y: x+y, branch_id, 0)
+                    
+                    # Find a column for this branch.
+                    #
+                    # Find the col_index for the direct parent branch. This will
+                    # be the starting point when looking for a free column.
                     parent_col_index = 0
                     parent_index = None
                     if len(branch_id) > 1:
@@ -246,9 +256,9 @@ class TreeModel(QtCore.QAbstractTableModel):
                     
                     col_search_order = _branch_line_col_search_order(columns,
                                                                      parent_col_index)
-                    color = reduce(lambda x, y: x+y, branch_id, 0)
                     cur_cont_line = []
                     
+                    # Work out what rows this branch spans
                     line_range = []
                     last_rev_lgdi = None
                     for rev_msri in branch_rev_indexes:
@@ -276,11 +286,14 @@ class TreeModel(QtCore.QAbstractTableModel):
                                                   col_search_order,
                                                   line_range)
                     node = (col_index, color)
+                    # Free column for this branch found. Set node for all
+                    # revision in this branch.
                     for rev_msri in branch_rev_indexes:
                         rev_index = msri_index[rev_msri]
                         self.linegraphdata[rev_index][1] = node
                         columns[col_index][rev_index] = True
                     
+                    # Find columns for lines for each relationship 
                     for rev_msri in branch_rev_indexes:
                         rev_index = msri_index[rev_msri]
                         (sequence_number,
@@ -291,9 +304,8 @@ class TreeModel(QtCore.QAbstractTableModel):
                         
                         col_index = self.linegraphdata[rev_index][1][0]
                         
-                        for parent_revid in self.graph_parents[revid]:
+                        for parent_revid in self.graph_parents[revid]:                            
                             if parent_revid in revid_index:
-                                
                                 parent_index = revid_index[parent_revid]                            
                                 parent_node = self.linegraphdata[parent_index][1]
                                 if parent_node:
@@ -319,7 +331,7 @@ class TreeModel(QtCore.QAbstractTableModel):
                                                          (rev_index + 1,))
                                     
                                     # Recall _line_col_search_order to reset it back to
-                                    # the beging.
+                                    # the start.
                                     col_search_order = \
                                             _line_col_search_order(columns,
                                                                    parent_col_index,
@@ -351,12 +363,35 @@ class TreeModel(QtCore.QAbstractTableModel):
                                     lines.append((rev_index,
                                                   parent_index,
                                                   (line_col_index,)))
+                            else:
+                                # The parent is probably hidden. Just show a
+                                # broken stub.
+                                col_search_order = \
+                                        _line_col_search_order(columns,
+                                                               parent_col_index,
+                                                               col_index)
+                                child_line_col_index = \
+                                    _find_free_column(columns,
+                                                      empty_column,
+                                                      col_search_order,
+                                                      (rev_index + 1,))
+                                _mark_column_as_used(columns,
+                                                     child_line_col_index,
+                                                     (rev_index + 1,))
+                                lines.append((rev_index,
+                                              None,
+                                              (child_line_col_index,
+                                               None)))                                
             
             for (child_index, parent_index, line_col_indexes) in lines:
                 (child_col_index, child_color) = self.linegraphdata[child_index][1]
-                (parent_col_index, parent_color) = self.linegraphdata[parent_index][1]
+                if parent_index is not None:
+                    (parent_col_index, parent_color) = self.linegraphdata[parent_index][1]
+                else:
+                    (parent_col_index, parent_color) = (child_col_index, 0)
                 
                 if len(line_col_indexes) == 1:
+                    assert parent_index is not None
                     if parent_index - child_index == 1:
                         self.linegraphdata[child_index][2].append(
                             (child_col_index,
@@ -386,22 +421,23 @@ class TreeModel(QtCore.QAbstractTableModel):
                         (child_col_index,
                          line_col_indexes[0],
                          parent_color))
-                    # Broken line end
-                    self.linegraphdata[child_index+1][2].append(
-                        (line_col_indexes[0],
-                         None,
-                         parent_color))
                     
-                    # Broken line end 
-                    self.linegraphdata[parent_index-2][2].append(
-                        (None,
-                         line_col_indexes[1],
-                         parent_color))
-                    # line from the line's column to the parent's column
-                    self.linegraphdata[parent_index-1][2].append(
-                        (line_col_indexes[1],
-                         parent_col_index,
-                         parent_color))
+                    if line_col_indexes[1] is not None:
+                        # Broken line end
+                        self.linegraphdata[child_index+1][2].append(
+                            (line_col_indexes[0],
+                             None,
+                             parent_color))
+                        # Broken line end 
+                        self.linegraphdata[parent_index-2][2].append(
+                            (None,
+                             line_col_indexes[1],
+                             parent_color))
+                        # line from the line's column to the parent's column
+                        self.linegraphdata[parent_index-1][2].append(
+                            (line_col_indexes[1],
+                             parent_col_index,
+                             parent_color))
         finally:
             self.emit(QtCore.SIGNAL("layoutChanged()"))
 
@@ -429,7 +465,7 @@ class TreeModel(QtCore.QAbstractTableModel):
         if not index.isValid():
             return QtCore.QVariant()
         
-        (revid, node, lines, parents, children, revno_sequence) = \
+        (revid, node, lines, parents, children, revno_sequence, twisties) = \
             self.linegraphdata[index.row()]
         
         if role == QtCore.Qt.DisplayRole and index.column() == COL_REV:
