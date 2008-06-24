@@ -38,6 +38,26 @@ except ImportError:
     have_pygments = False
 
 
+def hexdump(data):
+    content = []
+    for i in range(0, len(data), 16):
+        hexdata = []
+        chardata = []
+        for c in data[i:i+16]:
+            j = ord(c)
+            hexdata.append('%02x' % j)
+            if j >= 32 and j < 128:
+                chardata.append(c)
+            else:
+                chardata.append('.')
+        for c in range(16 - len(hexdata)):
+            hexdata.append('  ')
+            chardata.append(' ')
+        line = '%08x  ' % i + ' '.join(hexdata[:8]) + '  ' + ' '.join(hexdata[8:]) + '  |' + ''.join(chardata) + '|'
+        content.append(line)
+    return '\n'.join(content)
+
+
 class QBzrCatWindow(QBzrWindow):
 
     def __init__(self, relpath, text, parent=None, encoding=None):
@@ -54,7 +74,7 @@ class QBzrCatWindow(QBzrWindow):
             if ext in image_exts:
                 self._create_image_view(relpath, text)
             else:
-                self._create_text_view(relpath, '[binary file]')
+                self._create_hexdump_view(relpath, text)
 
         self.buttonbox = self.create_button_box(BTN_CLOSE)
 
@@ -79,10 +99,18 @@ class QBzrCatWindow(QBzrWindow):
         html = '''<html><head><style>%s
 body {white-space:pre;}
 </style></head><body>%s</body></html>''' % (style, content)
+        self._create_html_view(html)
+
+    def _create_hexdump_view(self, relpath, data):
+        html = '''<html><head><style>
+body {white-space:pre;}
+</style></head><body>%s</body></html>''' % (htmlencode(hexdump(data)),)
+        self._create_html_view(html)
+
+    def _create_html_view(self, html):
         self.doc = QtGui.QTextDocument()
         self.doc.setHtml(html)
         self.doc.setDefaultFont(QtGui.QFont("Courier New,courier", 8))
-
         self.browser = QtGui.QTextBrowser()
         self.browser.setDocument(self.doc)
 
