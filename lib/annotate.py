@@ -185,14 +185,17 @@ class AnnotateWindow(QBzrWindow):
 
         revisions.sort(key=operator.attrgetter('timestamp'), reverse=True)
 
+        revid_to_tags = self.branch.tags.get_reverse_tag_dict()
+
         self.itemToRev = {}
         for rev in revisions:
             item = QtGui.QTreeWidgetItem(self.changes)
             item.setText(0, format_timestamp(rev.timestamp))
             item.setText(1, rev._author_name)
             item.setText(2, rev.get_summary())
+            rev.revno = revnos[rev.revision_id]
+            rev.tags = sorted(revid_to_tags.get(rev.revision_id, []))
             self.itemToRev[item] = rev
-
 
     def setRevisionByLine(self):
         items = self.browser.selectedItems()
