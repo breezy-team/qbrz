@@ -52,53 +52,12 @@ def linegraph(repository, start_revs, maxnum, broken_line_length = None,
     curved, kinked, etc.) and to pick the actual colours for each index.
     """
     
-    graph = repository.get_graph()
-    graph_parents = {}
-    ghosts = set()
-    graph_children = {}
-    for (revid, parent_revids) in graph.iter_ancestry(start_revs):
-        if parent_revids is None:
-            ghosts.add(revid)
-            continue
-        if parent_revids == (NULL_REVISION,):
-            graph_parents[revid] = ()
-        else:
-            graph_parents[revid] = parent_revids
-        for parent in parent_revids:
-            graph_children.setdefault(parent, []).append(revid)
-        graph_children.setdefault(revid, [])
-    for ghost in ghosts:
-        for ghost_child in graph_children[ghost]:
-            graph_parents[ghost_child] = [p for p in graph_parents[ghost_child]
-                                          if p not in ghosts]
-    graph_parents["top:"] = start_revs
 
-    if len(graph_parents)>0:
-        merge_sorted_revisions = merge_sort(
-            graph_parents,
-            "top:",
-            generate_revno=True)
-    else:
-        merge_sorted_revisions = ()
     
     if mainline_only:
         merge_sorted_revisions = [elem for elem in merge_sorted_revisions \
                                   if len(elem[3])==1 ]
 
-    assert merge_sorted_revisions[0][1] == "top:"
-    merge_sorted_revisions = merge_sorted_revisions[1:]
-    
-    revid_index = {}
-    revno_index = {}
-    
-    # This will hold an item for each "branch". For a revisions, the revsion
-    # number less the least significant digit is the branch_id, and used as the
-    # key for the dict. Hence revision with the same revsion number less the
-    # least significant digit are considered to be in the same branch line.
-    # e.g.: for revisions 290.12.1 and 290.12.2, the branch_id would be 290.12,
-    # and these two revisions will be in the same branch line. Each value is
-    # a list of rev_indexes in the branch.
-    branch_lines = {}
     
     linegraph = []    
     
@@ -380,7 +339,7 @@ def _find_free_column(columns, empty_column, col_search_order, line_range):
 def _mark_column_as_used(columns, col_index, line_range):
     column = columns[col_index]
     for row_index in line_range:
-        column[row_index] = True    
+        column[row_index] = True
 
 def same_branch(a, b):
     """Return whether we think revisions a and b are on the same branch."""
