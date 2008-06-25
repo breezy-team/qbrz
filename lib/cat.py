@@ -60,21 +60,21 @@ def hexdump(data):
 
 class QBzrCatWindow(QBzrWindow):
 
-    def __init__(self, relpath, text, parent=None, encoding=None):
-        QBzrWindow.__init__(self, [gettext("View File"), relpath], parent)
+    def __init__(self, relpath, text, parent=None, encoding=None, kind='file'):
+        """Create qcat window.
+        @param  relpath:    file path relative to tree root.
+        @param  text:       file content (bytes).
+        @param  parent:     parent window.
+        @param  encoding:   file text encoding.
+        @param  kind:       inventory entry kind (file/directory/symlink).
+        """
+        type_, fview = self.detect_content_type(relpath, text, kind)
+
+        QBzrWindow.__init__(self, [gettext("View "+type_), relpath], parent)
         self.restoreSize("cat", (780, 580))
 
-        if not '\0' in text:
-            text = text.decode(encoding or 'utf-8', 'replace')
-            self._create_text_view(relpath, text)
-        else:
-            ext = file_extension(relpath).lower()
-            image_exts = ['.'+str(i)
-                for i in QtGui.QImageReader.supportedImageFormats()]
-            if ext in image_exts:
-                self._create_image_view(relpath, text)
-            else:
-                self._create_hexdump_view(relpath, text)
+        self.encoding = encoding
+        fview(relpath, text)
 
         self.buttonbox = self.create_button_box(BTN_CLOSE)
 
@@ -82,7 +82,30 @@ class QBzrCatWindow(QBzrWindow):
         vbox.addWidget(self.browser)
         vbox.addWidget(self.buttonbox)
 
+    def detect_content_type(self, relpath, text, kind='file'):
+        """Return (file_type, viewer_factory) based on kind, text and relpath.
+        Supported file types: text, image, binary
+        """
+        if kind == 'file':
+            if not '\0' in text:
+                return 'text file', self._create_text_view
+            else:
+                ext = file_extension(relpath).lower()
+                image_exts = ['.'+str(i)
+                    for i in QtGui.QImageReader.supportedImageFormats()]
+                if ext in image_exts:
+                    return 'image file', self._create_image_view
+                else:
+                    return 'binary file', self._create_hexdump_view
+        else:
+            return kind, self._create_symlink_view
+
+    html_template = ('<html><head><style>%s\n'
+                     'body {white-space:pre;}\n'
+                     '</style></head><body>%s</body></html>')
+
     def _create_text_view(self, relpath, text):
+        text = text.decode(self.encoding or 'utf-8', 'replace')
         if not have_pygments:
             style = ''
             content = htmlencode(text)
@@ -95,16 +118,16 @@ class QBzrCatWindow(QBzrWindow):
             except ValueError:
                 style = ''
                 content = htmlencode(text)
+        html = self.html_template % (style, content)
+        self._create_html_view(html)
 
-        html = '''<html><head><style>%s
-body {white-space:pre;}
-</style></head><body>%s</body></html>''' % (style, content)
+    def _create_symlink_view(self, relpath, target):
+        html = self.html_template % ('',
+            htmlencode('-> ' + target.decode('utf-8', 'replace')))
         self._create_html_view(html)
 
     def _create_hexdump_view(self, relpath, data):
-        html = '''<html><head><style>
-body {white-space:pre;}
-</style></head><body>%s</body></html>''' % (htmlencode(hexdump(data)),)
+        html = self.html_template % ('', htmlencode(hexdump(data)))
         self._create_html_view(html)
 
     def _create_html_view(self, html):
@@ -114,9 +137,9 @@ body {white-space:pre;}
         self.browser = QtGui.QTextBrowser()
         self.browser.setDocument(self.doc)
 
-    def _create_image_view(self, relpath, text):
+    def _create_image_view(self, relpath, data):
         self.pixmap = QtGui.QPixmap()
-        self.pixmap.loadFromData(text)
+        self.pixmap.loadFromData(data)
         self.item = QtGui.QGraphicsPixmapItem(self.pixmap)
         self.scene = QtGui.QGraphicsScene(self.item.boundingRect())
         self.scene.addItem(self.item)
@@ -132,5 +155,11 @@ body {white-space:pre;}
                     relpath,),
                 QtGui.QMessageBox.Ok)
             return None
-        text = tree.get_file_text(file_id)
-        return QBzrCatWindow(relpath, text, encoding=encoding)
+        kind = tree.kind(file_id)
+        if kind == 'file':
+            text = tree.get_file_text(file_id)
+        elif kind == 'symlink':
+            text = tree.get_symlink_target(file_id)
+        else:
+            text = ''
+        return QBzrCatWindow(relpath, text, encoding=encoding, kind=kind)

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-06-25 01:01+0300\n"
+"POT-Creation-Date: 2008-06-25 09:24+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -74,11 +74,15 @@ msgstr ""
 msgid "View file"
 msgstr ""
 
-#: lib\cat.py:64 lib\cat.py:130
+#: lib\cat.py:73
+msgid "View "
+msgstr ""
+
+#: lib\cat.py:153
 msgid "View File"
 msgstr ""
 
-#: lib\cat.py:131
+#: lib\cat.py:154
 #, python-format
 msgid "File \"%s\" not found in the specified revision."
 msgstr ""
@@ -333,6 +337,26 @@ msgstr ""
 
 #: lib\i18n.py:79
 msgid "fixed"
+msgstr ""
+
+#: lib\i18n.py:81
+msgid "View text file"
+msgstr ""
+
+#: lib\i18n.py:82
+msgid "View image file"
+msgstr ""
+
+#: lib\i18n.py:83
+msgid "View binary file"
+msgstr ""
+
+#: lib\i18n.py:84
+msgid "View symlink"
+msgstr ""
+
+#: lib\i18n.py:85
+msgid "View directory"
 msgstr ""
 
 #: lib\log.py:209

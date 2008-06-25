@@ -17,6 +17,8 @@
  * qannotate: show tags (if any) for revision in revision message view 
    (#149246).
  * qdiff: show label '[binary file]' for modified binary files (#165006).
+ * qcat: now able to show symlink target. Window title better reflects content
+   type.
 
 0.9.1 - 2008-06-17
 ----------------------

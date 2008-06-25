@@ -77,3 +77,9 @@ if 0:
     N_('symlink')
     # bugs status
     N_('fixed')
+    # qcat titles for various file types
+    N_('View text file')
+    N_('View image file')
+    N_('View binary file')
+    N_('View symlink')
+    N_('View directory')
