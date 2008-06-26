@@ -303,8 +303,14 @@ class DiffView(QtGui.QSplitter):
             if diff.binary:
                 _s = '<span style="background-color:#FFFF80;">%s</span>' % (
                     gettext('[binary file]'))
-                lines1.append(_s)
-                lines2.append(_s)
+                if diff.status != 'added':
+                    lines1.append(_s)
+                else:
+                    lines1.append('')
+                if diff.status != 'removed':
+                    lines2.append(_s)
+                else:
+                    lines2.append('')
             a = diff.old_lines
             b = diff.new_lines
             for i, group in enumerate(diff.groups):
