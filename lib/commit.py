@@ -301,6 +301,11 @@ class CommitWindow(QBzrWindow):
                      self.enableAuthor)
         grid.addWidget(self.authorCheckBox, 2, 0)
         grid.addWidget(self.author, 2, 1)
+        # default author from config
+        config = self.tree.branch.get_config()
+        self.default_author = config.username()
+        self.custom_author = ''
+        self.author.setText(self.default_author)
 
         if self.is_bound:
             self.local_checkbox = QtGui.QCheckBox(gettext(
@@ -425,9 +430,12 @@ class CommitWindow(QBzrWindow):
     def enableAuthor(self, state):
         if state == QtCore.Qt.Checked:
             self.author.setEnabled(True)
+            self.author.setText(self.custom_author)
             self.author.setFocus(QtCore.Qt.OtherFocusReason)
         else:
             self.author.setEnabled(False)
+            self.custom_author = self.author.text()
+            self.author.setText(self.default_author)
 
     def parseBugs(self):
         fixes = unicode(self.bugs.text()).split()
