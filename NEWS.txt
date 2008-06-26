@@ -19,6 +19,11 @@
  * qdiff: show label '[binary file]' for modified binary files (#165006).
  * qcat: now able to show symlink target. Window title better reflects content
    type.
+ * qcommit: UI improvements:
+     * user can walk with Tab key over all control widgets (#243177);
+     * message saved not only when user press Cancel, but on other closing
+       actions too (e.g. Alt+F4);
+     * Ctrl+Enter in message edit area triggers commit action (#148156).
 
 0.9.1 - 2008-06-17
 ----------------------
