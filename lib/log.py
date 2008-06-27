@@ -656,10 +656,12 @@ class LogWindow(QBzrWindow):
                     if twistyAtPos(twisty.toList()[0].toDouble()[0],
                                    pos, rect, rect.height()):
                         return twisty
-                
-            column, open, branch_id, color = findTwistyAtPos(e.pos()).toList()
-            branch_id = tuple([i.toInt()[0] for i in  branch_id.toList()])
-            self.changesModel.branch_lines[branch_id][1] = not open.toBool()
-            self.changesModel.compute_lines()
+            
+            twisty = findTwistyAtPos(e.pos())
+            if twisty is not None:
+                column, open, branch_id, color = twisty.toList()
+                branch_id = tuple([i.toInt()[0] for i in  branch_id.toList()])
+                self.changesModel.branch_lines[branch_id][1] = not open.toBool()
+                self.changesModel.compute_lines()
             
         QtGui.QTreeView.mouseReleaseEvent(self.changesList, e)
