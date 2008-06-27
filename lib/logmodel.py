@@ -233,6 +233,69 @@ class TreeModel(QtCore.QAbstractTableModel):
                 if branch_visible:
                     color = reduce(lambda x, y: x+y, branch_id, 0)
                     
+                    # Find columns for lines for each parent of each revision in
+                    # the branch that are long and need to go between the parent
+                    # branch and the child branch.
+                    parents_with_lines = []
+                    for rev_msri in branch_rev_indexes[0:-1]:
+                        rev_index = msri_index[rev_msri]
+                        (sequence_number,
+                             revid,
+                             merge_depth,
+                             revno_sequence,
+                             end_of_merge) = self.merge_sorted_revisions[rev_msri]
+                        
+                        for parent_revid in self.graph_parents[revid]:
+                            parent_msri = self.revid_msri[parent_revid]
+                            parent_branch_id = \
+                                self.merge_sorted_revisions[parent_msri][3][0:-1]
+                            
+                            if parent_branch_id == branch_id:
+                                continue
+                            
+                            # We have to recalculate the color of the parent,
+                            # because it may be hidden, and not yet calculated
+                            parent_color = \
+                                reduce(lambda x, y: x+y, parent_branch_id, 0)
+                            
+                            if not parent_branch_id == branch_id and \
+                               not parent_branch_id == ():
+                                twisty_branch_id = parent_branch_id
+                            else:
+                                twisty_branch_id = None
+                            
+                            if parent_msri in msri_index:
+                                parent_index = msri_index[parent_msri]                            
+                                parent_node = self.linegraphdata[parent_index][1]
+                                if parent_node:
+                                    parent_col_index = parent_node[0]
+                                else:
+                                    parent_col_index = 0
+                                col_search_order = \
+                                    _branch_line_col_search_order(columns, parent_col_index)
+                                    
+                                
+                                if not (len(branch_id) > 0 and \
+                                        broken_line_length and \
+                                        parent_index - rev_index > broken_line_length):
+                                    line_col_index = parent_col_index
+                                    if parent_index - rev_index >1:
+                                        line_range = range(rev_index + 1, parent_index)
+                                        line_col_index = \
+                                            _find_free_column(columns,
+                                                              empty_column,
+                                                              col_search_order,
+                                                              line_range)
+                                        _mark_column_as_used(columns,
+                                                             line_col_index,
+                                                             line_range)
+                                        lines.append((rev_index,
+                                                      parent_index,
+                                                      (line_col_index,),
+                                                      parent_color,
+                                                      twisty_branch_id))
+                                        parents_with_lines.append(parent_revid)
+                    
                     # Find a column for this branch.
                     #
                     # Find the col_index for the direct parent branch. This will
@@ -300,15 +363,16 @@ class TreeModel(QtCore.QAbstractTableModel):
                         col_index = self.linegraphdata[rev_index][1][0]
                         
                         for parent_revid in self.graph_parents[revid]:
+                            if parent_revid in parents_with_lines:
+                                continue
                             parent_msri = self.revid_msri[parent_revid]
                             # We have to recalculate the color of the parent,
-                            # because it may be hidden, an not yet calculated
+                            # because it may be hidden, and not yet calculated
                             parent_branch_id = \
                                 self.merge_sorted_revisions[parent_msri][3][0:-1]
                             
                             parent_color = \
                                 reduce(lambda x, y: x+y, parent_branch_id, 0)
-                            
                             
                             if not parent_branch_id == branch_id and \
                                not parent_branch_id == ():
