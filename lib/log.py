@@ -455,7 +455,7 @@ class LogWindow(QBzrWindow):
 
     def show(self):
         QBzrWindow.show(self)
-        QtCore.QTimer.singleShot(5, self.load_history)
+        QtCore.QTimer.singleShot(1, self.load_history)
 
     def link_clicked(self, url):
         scheme = unicode(url.scheme())
@@ -583,68 +583,6 @@ class LogWindow(QBzrWindow):
         rev2 = self.item_to_rev[items[-1]]
         self.show_diff_window(rev1, rev2)
 
-    def add_log_entry(self, revision):
-        """Add loaded entries to the list."""
-
-        # Use flat list for a single-file log
-        if self.specific_fileid:
-            merge_depth = 0
-        else:
-            merge_depth = revision.merge_depth
-        if merge_depth > len(self.merge_stack) - 1:
-            self.merge_stack.append(self.last_item)
-        elif merge_depth < len(self.merge_stack) - 1:
-            self.merge_stack.pop()
-
-        rev = revision.rev
-        author = rev.properties.get('author', rev.committer)
-
-        revno = str(revision.revno)
-        item1 = QtGui.QStandardItem(revno)
-        item1.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-        item1.setData(QtCore.QVariant(rev.message), FilterMessageRole)
-        item1.setData(QtCore.QVariant(rev.committer + author), FilterAuthorRole)
-        item1.setData(QtCore.QVariant(rev.revision_id), FilterIdRole)
-        item1.setData(QtCore.QVariant(revno), FilterRevnoRole)
-        item2 = QtGui.QStandardItem(format_timestamp(rev.timestamp))
-        item2.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-
-        item3 = QtGui.QStandardItem(extract_name(author))
-        item3.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-        item4 = QtGui.QStandardItem(rev.get_summary())
-        item4.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-
-        tags = getattr(revision, 'tags', None)
-        if tags:
-            tags.sort()
-            i = TagNameRole
-            for tag in tags:
-                item4.setData(QtCore.QVariant(tag), i)
-                i += 1
-
-        #get_bug_id = getattr(bugtracker, 'get_bug_id', None)
-        if get_bug_id:
-            i = BugIdRole
-            bugtext = gettext("bug #%s")
-            for bug in rev.properties.get('bugs', '').split('\n'):
-                if bug:
-                    url, status = bug.split(' ')
-                    bug_id = get_bug_id(self.branch, url)
-                    if bug_id:
-                        item4.setData(QtCore.QVariant(bugtext % bug_id), i)
-                        i += 1
-
-        self.merge_stack[-1].appendRow([item1, item2, item3, item4])
-
-        rev.delta = None
-        rev.revno = revision.revno
-        rev.tags = tags
-        self.item_to_rev[item1] = rev
-        self.item_to_rev[item2] = rev
-        self.item_to_rev[item3] = rev
-        self.item_to_rev[item4] = rev
-        self.last_item = item1
-        self.revisions[rev.revision_id] = rev
 
     def load_history(self):
         """Load branch history."""
@@ -711,7 +649,7 @@ class LogWindow(QBzrWindow):
                 column, open, branch_id, color = twisty.toList()
                 branch_id = tuple([i.toInt()[0] for i in  branch_id.toList()])
                 model.branch_lines[branch_id][1] = not open.toBool()
-                QtCore.QTimer.singleShot(5, model.compute_lines)
+                QtCore.QTimer.singleShot(0, model.compute_lines)
             
             # Check bottom of twisties for prev row
             for twisty in prevTwisties:
