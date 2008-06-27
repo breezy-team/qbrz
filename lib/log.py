@@ -634,7 +634,7 @@ class LogWindow(QBzrWindow):
                     prevTwisties = []
                 
                 def twistyAtPos (column, pos, rect, mid):
-                    twistysize = 0.6
+                    twistysize = 0.8
                     boxsize = rect.height()
                     centerx = rect.x() + boxsize * (column + 0.5)
                     centery = rect.y() + mid

@@ -81,7 +81,7 @@ class TreeModel(QtCore.QAbstractTableModel):
         self.revisions = {}
         self.tags = {}
     
-    def loadBranch(self, branch, start_revs = None, broken_line_length = 32):
+    def loadBranch(self, branch, start_revs = None):
         self.branch = branch
         branch.lock_read()
         try:
@@ -164,13 +164,13 @@ class TreeModel(QtCore.QAbstractTableModel):
                 return cmp(len_x, len_y)
             
             self.branch_ids.sort(branch_id_cmp)
-            
-            self.compute_lines(broken_line_length)
             self.tags = branch.tags.get_reverse_tag_dict()
+            
+            self.compute_lines()
         finally:
             branch.unlock
         
-    def compute_lines(self, broken_line_length = 32):
+    def compute_lines(self, broken_line_length = None):
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
         try:
             # This will hold for each revision, a list of (msri,
