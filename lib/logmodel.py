@@ -130,6 +130,7 @@ class TreeModel(QtCore.QAbstractTableModel):
             # revisions 290.12.1 and 290.12.2, the branch_id would be 290.12,
             # and these two revisions will be in the same branch line. 
             self.branch_lines = {}
+            self.revid_msri = {}
             
             for (rev_index, (sequence_number,
                              revid,
@@ -146,7 +147,8 @@ class TreeModel(QtCore.QAbstractTableModel):
                 else:
                     branch_line = self.branch_lines[branch_id]
                 
-                branch_line[0].append(rev_index)        
+                branch_line[0].append(rev_index)
+                self.revid_msri[revid] = rev_index
         
             self.branch_ids = self.branch_lines.keys()
         
@@ -181,17 +183,17 @@ class TreeModel(QtCore.QAbstractTableModel):
             #                                              revno_sequence,
             #                                              twisties).
             #
-            # Node is a tuple of (column, colour) with column being a
+            # Node is a tuple of (column, color) with column being a
             # zero-indexed column number of the graph that this revision
-            # represents and colour being a zero-indexed colour (which doesn't
-            # specify any actual colour in particular) to draw the node in.
+            # represents and color being a zero-indexed color (which doesn't
+            # specify any actual color in particular) to draw the node in.
             #
             # Lines is a list of tuples which represent lines you should draw
             # away from the revision, if you also need to draw lines into the
             # revision you should use the lines list from the previous
             # iteration. Each tuples in the list is in the form (start, end,
-            # colour) with start and end being zero-indexed column numbers and
-            # colour as in node.
+            # color) with start and end being zero-indexed column numbers and
+            # color as in node.
             #
             # twisties are +- buttons to show/hide branches. list of Tuple of
             # (column, open, branch_id)
@@ -293,7 +295,8 @@ class TreeModel(QtCore.QAbstractTableModel):
                         self.linegraphdata[rev_index][1] = node
                         columns[col_index][rev_index] = True
                     
-                    # Find columns for lines for each relationship 
+                    # Find columns for lines for each parent of each
+                    # revision in the branch.
                     for rev_msri in branch_rev_indexes:
                         rev_index = msri_index[rev_msri]
                         (sequence_number,
@@ -304,7 +307,16 @@ class TreeModel(QtCore.QAbstractTableModel):
                         
                         col_index = self.linegraphdata[rev_index][1][0]
                         
-                        for parent_revid in self.graph_parents[revid]:                            
+                        for parent_revid in self.graph_parents[revid]:
+                            parent_msri = self.revid_msri[parent_revid]
+                            # We have to recalculate the color of the parent,
+                            # because it may be hidden, an not yet calculated
+                            parent_branch_id = \
+                                self.merge_sorted_revisions[parent_msri][3][0:-1]
+                            
+                            parent_color = \
+                                reduce(lambda x, y: x+y, parent_branch_id, 0)
+
                             if parent_revid in revid_index:
                                 parent_index = revid_index[parent_revid]                            
                                 parent_node = self.linegraphdata[parent_index][1]
@@ -347,7 +359,8 @@ class TreeModel(QtCore.QAbstractTableModel):
                                     lines.append((rev_index,
                                                   parent_index,
                                                   (child_line_col_index,
-                                                   parent_col_line_index)))
+                                                   parent_col_line_index),
+                                                  parent_color))
                                 else :
                                     line_col_index = col_index
                                     if parent_index - rev_index >1:
@@ -362,7 +375,8 @@ class TreeModel(QtCore.QAbstractTableModel):
                                                              line_range)
                                     lines.append((rev_index,
                                                   parent_index,
-                                                  (line_col_index,)))
+                                                  (line_col_index,),
+                                                  parent_color))
                             else:
                                 # The parent is probably hidden. Just show a
                                 # broken stub.
@@ -380,15 +394,21 @@ class TreeModel(QtCore.QAbstractTableModel):
                                                      (rev_index + 1,))
                                 lines.append((rev_index,
                                               None,
-                                              (child_line_col_index,
-                                               None)))                                
+                                              (child_line_col_index, None),
+                                              parent_color))                                
             
-            for (child_index, parent_index, line_col_indexes) in lines:
+            # It has now been calculated which column a line must go into. Now
+            # copy the lines in to linegraphdata.
+            for (child_index,
+                 parent_index,
+                 line_col_indexes,
+                 parent_color) in lines:
+                
                 (child_col_index, child_color) = self.linegraphdata[child_index][1]
                 if parent_index is not None:
                     (parent_col_index, parent_color) = self.linegraphdata[parent_index][1]
                 else:
-                    (parent_col_index, parent_color) = (child_col_index, 0)
+                    (parent_col_index, parent_color) = (child_col_index, parent_color)
                 
                 if len(line_col_indexes) == 1:
                     assert parent_index is not None
@@ -421,13 +441,13 @@ class TreeModel(QtCore.QAbstractTableModel):
                         (child_col_index,
                          line_col_indexes[0],
                          parent_color))
+                    # Broken line end
+                    self.linegraphdata[child_index+1][2].append(
+                        (line_col_indexes[0],
+                         None,
+                         parent_color))
                     
                     if line_col_indexes[1] is not None:
-                        # Broken line end
-                        self.linegraphdata[child_index+1][2].append(
-                            (line_col_indexes[0],
-                             None,
-                             parent_color))
                         # Broken line end 
                         self.linegraphdata[parent_index-2][2].append(
                             (None,
@@ -453,12 +473,12 @@ class TreeModel(QtCore.QAbstractTableModel):
     
     def linesToQVariant(self,lines):
         qlines = []
-        for start, end, colour in lines:
+        for start, end, color in lines:
             if start is None: start = -1
             if end is None: end = -1
             qlines.append(QtCore.QVariant([QtCore.QVariant(start),
                                            QtCore.QVariant(end),
-                                           QtCore.QVariant(colour)]))
+                                           QtCore.QVariant(color)]))
         return QtCore.QVariant(qlines)
 
     def data(self, index, role):
