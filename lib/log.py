@@ -623,43 +623,43 @@ class LogWindow(QBzrWindow):
     
     def changesList_mouseReleaseEvent (self, e):
         if e.button() & QtCore.Qt.LeftButton:
-            index = self.changesList.indexAt(e.pos())
-            rect = self.changesList.visualRect(index)
-            twisties = index.data(logmodel.GraphTwistiesRole).toList()            
-            prevIndex = index.sibling (index.row()-1, index.column())
-            if prevIndex.isValid ():
-                prevTwisties = prevIndex.data(logmodel.GraphTwistiesRole).toList()
-            else:
-                prevTwisties = []
-            
-            def twistyAtPos (column, pos, rect, mid):
-                twistysize = 0.6
-                boxsize = rect.height()
-                centerx = rect.x() + boxsize * (column + 0.5)
-                centery = rect.y() + mid
+            def findTwistyAtPos(pos):
+                index = self.changesList.indexAt(pos)
+                rect = self.changesList.visualRect(index)
+                twisties = index.data(logmodel.GraphTwistiesRole).toList()            
+                prevIndex = index.sibling (index.row()-1, index.column())
+                if prevIndex.isValid ():
+                    prevTwisties = prevIndex.data(logmodel.GraphTwistiesRole).toList()
+                else:
+                    prevTwisties = []
                 
-                twistyRect = QtCore.QRectF (centerx - boxsize * twistysize / 2,
-                                            centery - boxsize * twistysize / 2,
-                                            boxsize * twistysize,
-                                            boxsize * twistysize)
+                def twistyAtPos (column, pos, rect, mid):
+                    twistysize = 0.6
+                    boxsize = rect.height()
+                    centerx = rect.x() + boxsize * (column + 0.5)
+                    centery = rect.y() + mid
+                    
+                    twistyRect = QtCore.QRectF (centerx - boxsize * twistysize / 2,
+                                                centery - boxsize * twistysize / 2,
+                                                boxsize * twistysize,
+                                                boxsize * twistysize)
+                    
+                    return twistyRect.contains(QtCore.QPointF (pos))
+                # Check bottom of twisties for prev row
+                for twisty in prevTwisties:
+                    if twistyAtPos(twisty.toList()[0].toDouble()[0],
+                                   pos, rect, 0):
+                        return twisty
                 
-                return twistyRect.contains(QtCore.QPointF (pos))
+                # Check top of twisties for this row
+                for twisty in twisties:
+                    if twistyAtPos(twisty.toList()[0].toDouble()[0],
+                                   pos, rect, rect.height()):
+                        return twisty
+                
+            column, open, branch_id, color = findTwistyAtPos(e.pos()).toList()
+            branch_id = tuple([i.toInt()[0] for i in  branch_id.toList()])
+            self.changesModel.branch_lines[branch_id][1] = not open.toBool()
+            self.changesModel.compute_lines()
             
-            def colapseExpandTwisty(twisty, model):
-                column, open, branch_id, color = twisty.toList()
-                branch_id = tuple([i.toInt()[0] for i in  branch_id.toList()])
-                model.branch_lines[branch_id][1] = not open.toBool()
-                QtCore.QTimer.singleShot(0, model.compute_lines)
-            
-            # Check bottom of twisties for prev row
-            for twisty in prevTwisties:
-                if twistyAtPos(twisty.toList()[0].toDouble()[0],
-                               e.pos(), rect, 0):
-                    colapseExpandTwisty(twisty, self.changesModel)
-            
-            # Check top of twisties for this row
-            for twisty in twisties:
-                if twistyAtPos(twisty.toList()[0].toDouble()[0],
-                               e.pos(), rect, rect.height()):
-                    colapseExpandTwisty(twisty, self.changesModel)                    
-            QtGui.QTreeView.mouseReleaseEvent(self.changesList, e)
+        QtGui.QTreeView.mouseReleaseEvent(self.changesList, e)
