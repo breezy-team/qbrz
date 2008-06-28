@@ -77,10 +77,10 @@ class TreeModel(QtCore.QAbstractTableModel):
                                        ]
         
         self.linegraphdata = []
-        self.index = {}
         self.columns_len = 0
         self.revisions = {}
         self.tags = {}
+        self.searchMode = False
     
     def loadBranch(self, branch, start_revs = None):
         self.branch = branch
@@ -557,7 +557,37 @@ class TreeModel(QtCore.QAbstractTableModel):
         
         finally:
             self.emit(QtCore.SIGNAL("layoutChanged()"))
-
+    
+    def compute_search(self):
+        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+        try:
+            self.linegraphdata = []
+            
+            self.msri_index = {}
+            
+            for (rev_index, (sequence_number,
+                             revid,
+                             merge_depth,
+                             revno_sequence,
+                             end_of_merge)) in enumerate(self.merge_sorted_revisions):
+                self.linegraphdata.append([rev_index,
+                                           None,
+                                           [],
+                                           [],
+                                          ])
+                
+                self.msri_index [rev_index]=rev_index
+        finally:
+            self.emit(QtCore.SIGNAL("layoutChanged()"))
+    
+    def set_search_mode(self, searchMode):
+        if not searchMode == self.searchMode:
+            if searchMode:
+                self.compute_search()
+            else:
+                self.compute_lines()
+            self.searchMode = searchMode
+    
     def columnCount(self, parent):
         if parent.isValid():
             return 0
@@ -575,6 +605,8 @@ class TreeModel(QtCore.QAbstractTableModel):
         (msri, node, lines, twisties) = self.linegraphdata[index.row()]
         
         if role == GraphNodeRole:
+            if node is None:
+                return QtCore.QVariant()
             return QtCore.QVariant([QtCore.QVariant(nodei) for nodei in node])
         if role == GraphLinesRole:
             qlines = []
@@ -598,7 +630,8 @@ class TreeModel(QtCore.QAbstractTableModel):
         (sequence_number, revid, merge_depth, revno_sequence, end_of_merge) = \
             self.merge_sorted_revisions[msri]
         
-        if role == QtCore.Qt.DisplayRole and index.column() == COL_REV:
+        if (role == QtCore.Qt.DisplayRole and index.column() == COL_REV) or \
+                role == FilterRevnoRole:
             revnos = ".".join(["%d" % (revno)
                                       for revno in revno_sequence])
             return QtCore.QVariant(revnos)
@@ -608,7 +641,7 @@ class TreeModel(QtCore.QAbstractTableModel):
             if revid in self.tags:
                 tags = self.tags[revid]
             return QtCore.QVariant(tags)
-        if role == RevIdRole:
+        if role == RevIdRole or role == FilterIdRole:
             return QtCore.QVariant(revid)
         
         #Everything from here foward will need to have the revision loaded.
@@ -633,7 +666,11 @@ class TreeModel(QtCore.QAbstractTableModel):
                     if bug_id:
                         bugs.append(bugtext % bug_id)
             return QtCore.QVariant(bugs)
-
+        
+        if role == FilterMessageRole:
+            return QtCore.QVariant(revision.message)
+        if role == FilterAuthorRole:
+            return QtCore.QVariant(revision.committer)
         
         #return QtCore.QVariant(item.data(index.column()))
         return QtCore.QVariant()

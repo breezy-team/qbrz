@@ -42,18 +42,23 @@ PathRole = QtCore.Qt.UserRole + 1
 
 class GraphItemDelegate(QtGui.QItemDelegate):
     
-    def paint(self, painter, option, index):                
-        self.node = index.data(logmodel.GraphNodeRole).toList()
-        self.lines = index.data(logmodel.GraphLinesRole).toList()
-        self.twisties = index.data(logmodel.GraphTwistiesRole).toList()
-        
-        prevIndex = index.sibling (index.row()-1, index.column())
-        if prevIndex.isValid ():
-            self.prevLines = prevIndex.data(logmodel.GraphLinesRole).toList()
-            self.prevTwisties = prevIndex.data(logmodel.GraphTwistiesRole).toList()
+    def paint(self, painter, option, index):
+        node = index.data(logmodel.GraphNodeRole)
+        if node.isValid():
+            self.drawGraph = True
+            self.node = node.toList()
+            self.lines = index.data(logmodel.GraphLinesRole).toList()
+            self.twisties = index.data(logmodel.GraphTwistiesRole).toList()
+            
+            prevIndex = index.sibling (index.row()-1, index.column())
+            if prevIndex.isValid ():
+                self.prevLines = prevIndex.data(logmodel.GraphLinesRole).toList()
+                self.prevTwisties = prevIndex.data(logmodel.GraphTwistiesRole).toList()
+            else:
+                self.prevLines = []
+                self.prevTwisties = []
         else:
-            self.prevLines = []
-            self.prevTwisties = []
+            self.drawGraph = False
         
         QtGui.QItemDelegate.paint(self, painter, option, index)
     
@@ -135,58 +140,60 @@ class GraphItemDelegate(QtGui.QItemDelegate):
                                             centery + boxsize * linesize / 2))
         
     def drawDisplay(self, painter, option, rect, text):
-        painter.save()
-        try:
-            painter.setRenderHint(QtGui.QPainter.Antialiasing)            
-            boxsize = float(rect.height())
-            dotsize = 0.5
-            pen = QtGui.QPen()
-            penwidth = 1
-            pen.setWidth(penwidth)
-            pen.setCapStyle(QtCore.Qt.FlatCap)
-            #this is to try get lines 1 pixel wide to actualy be 1 pixel wide.
-            painter.translate(0.5, 0.5)
-            
-            
-            # Draw lines into the cell
-            for line in self.prevLines:
-                start, end, color = [linei.toInt()[0] for linei in line.toList()]
-                self.drawLine (painter, pen, rect, boxsize,
-                               rect.y(), boxsize,
-                               start, end, color)
+        if self.drawGraph:
+            painter.save()
+            try:
+                painter.setRenderHint(QtGui.QPainter.Antialiasing)            
+                boxsize = float(rect.height())
+                dotsize = 0.5
+                pen = QtGui.QPen()
+                penwidth = 1
+                pen.setWidth(penwidth)
+                pen.setCapStyle(QtCore.Qt.FlatCap)
+                #this is to try get lines 1 pixel wide to actualy be 1 pixel wide.
+                painter.translate(0.5, 0.5)
+                
+                
+                # Draw lines into the cell
+                for line in self.prevLines:
+                    start, end, color = [linei.toInt()[0] for linei in line.toList()]
+                    self.drawLine (painter, pen, rect, boxsize,
+                                   rect.y(), boxsize,
+                                   start, end, color)
+        
+                # Draw lines out of the cell
+                for line in self.lines:
+                    start, end, color = [linei.toInt()[0] for linei in line.toList()]
+                    self.drawLine (painter, pen, rect,boxsize,
+                                   rect.y() + boxsize, boxsize,
+                                   start, end, color)
+                
+                # Draw bottom of twisties for prev row
+                for twisty in self.prevTwisties:
+                    column, open, branch_id, color = twisty.toList()
+                    self.drawTwisty(painter, pen, rect, boxsize, 0,
+                                    column.toDouble()[0], open.toBool(),
+                                    color.toInt()[0])
+                # Draw twisties 
+                for twisty in self.twisties:
+                    column, open, branch_id, color = twisty.toList()
+                    self.drawTwisty(painter, pen, rect, boxsize, boxsize,
+                                    column.toDouble()[0], open.toBool(),
+                                    color.toInt()[0])
+                
+                # Draw the revision node in the right column
+                color = self.node[1].toInt()[0]
+                column = self.node[0].toInt()[0]
+                pen.setColor(self.get_color(color,False))
+                painter.setPen(pen)
+                painter.setBrush(QtGui.QBrush(self.get_color(color,True)))
+                painter.drawEllipse(
+                    QtCore.QRectF(option.rect.x() + (boxsize * (1 - dotsize) / 2) + boxsize * column,
+                                 option.rect.y() + (boxsize * (1 - dotsize) / 2),
+                                 boxsize * dotsize, boxsize * dotsize))
+            finally:
+                painter.restore()
     
-            # Draw lines out of the cell
-            for line in self.lines:
-                start, end, color = [linei.toInt()[0] for linei in line.toList()]
-                self.drawLine (painter, pen, rect,boxsize,
-                               rect.y() + boxsize, boxsize,
-                               start, end, color)
-            
-            # Draw bottom of twisties for prev row
-            for twisty in self.prevTwisties:
-                column, open, branch_id, color = twisty.toList()
-                self.drawTwisty(painter, pen, rect, boxsize, 0,
-                                column.toDouble()[0], open.toBool(),
-                                color.toInt()[0])
-            # Draw twisties 
-            for twisty in self.twisties:
-                column, open, branch_id, color = twisty.toList()
-                self.drawTwisty(painter, pen, rect, boxsize, boxsize,
-                                column.toDouble()[0], open.toBool(),
-                                color.toInt()[0])
-            
-            # Draw the revision node in the right column
-            color = self.node[1].toInt()[0]
-            column = self.node[0].toInt()[0]
-            pen.setColor(self.get_color(color,False))
-            painter.setPen(pen)
-            painter.setBrush(QtGui.QBrush(self.get_color(color,True)))
-            painter.drawEllipse(
-                QtCore.QRectF(option.rect.x() + (boxsize * (1 - dotsize) / 2) + boxsize * column,
-                             option.rect.y() + (boxsize * (1 - dotsize) / 2),
-                             boxsize * dotsize, boxsize * dotsize))
-        finally:
-            painter.restore()
     def drawFocus(self, painter, option, rect):
         pass
 
@@ -266,7 +273,7 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         if not index.isValid():
             return True
 
-        filterId = sourceModel.data(index, FilterIdRole).toString()
+        filterId = sourceModel.data(index, logmodel.FilterIdRole).toString()
         accepts = self._filterCache.get(filterId)
         if accepts is not None:
             return accepts
@@ -275,17 +282,6 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         if key.contains(filterRegExp):
             self._filterCache[filterId] = True
             return True
-
-        if sourceModel.hasChildren(index):
-            childRow = 0
-            while True:
-                child = index.child(childRow, index.column())
-                if not child.isValid():
-                    break
-                if self.filterAcceptsRow(childRow, index):
-                    self._filterCache[filterId] = True
-                    return True
-                childRow += 1
 
         self._filterCache[filterId] = False
         return False
@@ -453,6 +449,7 @@ class LogWindow(QBzrWindow):
         if scheme == 'qlog-revid':
             revision_id = unicode(url.path())
             index = self.changesModel.indexFromRevId(revision_id)
+            index = self.changesProxyModel.mapFromSource(index)
             self.changesList.setCurrentIndex(index)
         else:
             open_browser(str(url.toEncoded()))
@@ -462,6 +459,8 @@ class LogWindow(QBzrWindow):
         indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
         if not indexes:
             self.diffbutton.setEnabled(False)
+            self.message.setHtml("")
+            self.fileList.clear()
         else:
             self.diffbutton.setEnabled(True)
             index = indexes[0]
@@ -475,32 +474,32 @@ class LogWindow(QBzrWindow):
     
             self.fileList.clear()
         
-        if not hasattr(rev, 'delta'):
-            # TODO move this to a thread
-            self.branch.repository.lock_read()
-            try:
-                rev.delta = self.branch.repository.get_deltas_for_revisions(
-                    [rev]).next()
-            finally:
-                self.branch.repository.unlock()
-        delta = rev.delta
-
-        for path, id_, kind in delta.added:
-            item = QtGui.QListWidgetItem(path, self.fileList)
-            item.setTextColor(QtGui.QColor("blue"))
-
-        for path, id_, kind, text_modified, meta_modified in delta.modified:
-            item = QtGui.QListWidgetItem(path, self.fileList)
-
-        for path, id_, kind in delta.removed:
-            item = QtGui.QListWidgetItem(path, self.fileList)
-            item.setTextColor(QtGui.QColor("red"))
-
-        for (oldpath, newpath, id_, kind,
-            text_modified, meta_modified) in delta.renamed:
-            item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
-            item.setData(PathRole, QtCore.QVariant(newpath))
-            item.setTextColor(QtGui.QColor("purple"))
+            if not hasattr(rev, 'delta'):
+                # TODO move this to a thread
+                self.branch.repository.lock_read()
+                try:
+                    rev.delta = self.branch.repository.get_deltas_for_revisions(
+                        [rev]).next()
+                finally:
+                    self.branch.repository.unlock()
+            delta = rev.delta
+    
+            for path, id_, kind in delta.added:
+                item = QtGui.QListWidgetItem(path, self.fileList)
+                item.setTextColor(QtGui.QColor("blue"))
+    
+            for path, id_, kind, text_modified, meta_modified in delta.modified:
+                item = QtGui.QListWidgetItem(path, self.fileList)
+    
+            for path, id_, kind in delta.removed:
+                item = QtGui.QListWidgetItem(path, self.fileList)
+                item.setTextColor(QtGui.QColor("red"))
+    
+            for (oldpath, newpath, id_, kind,
+                text_modified, meta_modified) in delta.renamed:
+                item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
+                item.setData(PathRole, QtCore.QVariant(newpath))
+                item.setTextColor(QtGui.QColor("purple"))
 
     def show_diff_window(self, rev1, rev2, specific_files=None):
         self.branch.repository.lock_read()
@@ -561,6 +560,8 @@ class LogWindow(QBzrWindow):
 
     def update_search(self):
         # TODO in_paths = self.search_in_paths.isChecked()
+        has_search = self.search_edit.text().length() > 0
+        self.changesModel.set_search_mode(has_search)
         self.changesProxyModel._filterCache = {}
         self.changesProxyModel.setFilterRegExp(self.search_edit.text())
 
