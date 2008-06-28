@@ -52,10 +52,9 @@ FilterAuthorRole = QtCore.Qt.UserRole + 102
 FilterRevnoRole = QtCore.Qt.UserRole + 103
 
 COL_REV = 0
-COL_GRAPH = 1
+COL_MESSAGE = 1
 COL_DATE = 2
 COL_AUTHOR = 3
-COL_MESSAGE = 4
 
 _bug_id_re = lazy_regex.lazy_compile(r'(?:bugs/|ticket/|show_bug\.cgi\?id=)(\d+)(?:\b|$)')
 
@@ -70,10 +69,9 @@ class TreeModel(QtCore.QAbstractTableModel):
         QtCore.QAbstractTableModel.__init__(self, parent)
         
         self.horizontalHeaderLabels = [gettext("Rev"),
-                                       gettext("Graph"),
+                                       gettext("Message"),
                                        gettext("Date"),
                                        gettext("Author"),
-                                       gettext("Message"),
                                        ]
         
         self.linegraphdata = []

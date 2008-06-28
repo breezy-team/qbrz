@@ -40,7 +40,13 @@ from bzrlib.plugins.qbzr.lib.util import (
 
 PathRole = QtCore.Qt.UserRole + 1
 
-class GraphItemDelegate(QtGui.QItemDelegate):
+class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
+
+    _tagColor = QtGui.QColor(255, 255, 170)
+    _tagColorBorder = QtGui.QColor(255, 238, 0)
+
+    _bugColor = QtGui.QColor(255, 188, 188)
+    _bugColorBorder = QtGui.QColor(255, 79, 79)
     
     def paint(self, painter, option, index):
         node = index.data(logmodel.GraphNodeRole)
@@ -60,6 +66,17 @@ class GraphItemDelegate(QtGui.QItemDelegate):
         else:
             self.drawGraph = False
         
+        self.labels = []
+        # collect tag names
+        for tag in index.data(logmodel.TagsRole).toList():
+            self.labels.append(
+                (tag.toString(), self._tagColor,
+                 self._tagColorBorder))
+        # collect bug ids
+        for bug in index.data(logmodel.BugIdsRole).toList():
+            self.labels.append(
+                (bug.toString(), self._bugColor,
+                 self._bugColorBorder))
         QtGui.QItemDelegate.paint(self, painter, option, index)
     
     def get_color(self, color, back):
@@ -140,6 +157,7 @@ class GraphItemDelegate(QtGui.QItemDelegate):
                                             centery + boxsize * linesize / 2))
         
     def drawDisplay(self, painter, option, rect, text):
+        graphCols = 0
         if self.drawGraph:
             painter.save()
             try:
@@ -160,6 +178,7 @@ class GraphItemDelegate(QtGui.QItemDelegate):
                     self.drawLine (painter, pen, rect, boxsize,
                                    rect.y(), boxsize,
                                    start, end, color)
+                    graphCols = max((graphCols, min(start, end)))
         
                 # Draw lines out of the cell
                 for line in self.lines:
@@ -167,6 +186,7 @@ class GraphItemDelegate(QtGui.QItemDelegate):
                     self.drawLine (painter, pen, rect,boxsize,
                                    rect.y() + boxsize, boxsize,
                                    start, end, color)
+                    graphCols = max((graphCols, min(start, end)))
                 
                 # Draw bottom of twisties for prev row
                 for twisty in self.prevTwisties:
@@ -184,6 +204,7 @@ class GraphItemDelegate(QtGui.QItemDelegate):
                 # Draw the revision node in the right column
                 color = self.node[1].toInt()[0]
                 column = self.node[0].toInt()[0]
+                graphCols = max((graphCols, column))
                 pen.setColor(self.get_color(color,False))
                 painter.setPen(pen)
                 painter.setBrush(QtGui.QBrush(self.get_color(color,True)))
@@ -193,63 +214,31 @@ class GraphItemDelegate(QtGui.QItemDelegate):
                                  boxsize * dotsize, boxsize * dotsize))
             finally:
                 painter.restore()
-    
-    def drawFocus(self, painter, option, rect):
-        pass
-
-class TagsBugsItemDelegate(QtGui.QItemDelegate):
-
-    _tagColor = QtGui.QColor(255, 255, 170)
-    _tagColorBorder = QtGui.QColor(255, 238, 0)
-
-    _bugColor = QtGui.QColor(255, 188, 188)
-    _bugColorBorder = QtGui.QColor(255, 79, 79)
-
-
-    def paint(self, painter, option, index):
-        self.labels = []
-        # collect tag names
-        for tag in index.data(logmodel.TagsRole).toList():
-            self.labels.append(
-                (tag.toString(), self._tagColor,
-                 self._tagColorBorder))
-        # collect bug ids
-        for bug in index.data(logmodel.BugIdsRole).toList():
-            self.labels.append(
-                (bug.toString(), self._bugColor,
-                 self._bugColorBorder))
-        QtGui.QItemDelegate.paint(self, painter, option, index)
-
-    def drawDisplay(self, painter, option, rect, text):
-        if not self.labels:
-            return QtGui.QItemDelegate.drawDisplay(self, painter, option, rect, text)
-
+            rect.adjust( (graphCols + 1.2) * boxsize, 0, 0, 0)
+        
         painter.save()
-        tagFont = QtGui.QFont(option.font)
-        tagFont.setPointSizeF(tagFont.pointSizeF() * 9 / 10)
-
-        x = 0
-        for label, color, borderColor in self.labels:
-            tagRect = rect.adjusted(1, 1, -1, -1)
-            tagRect.setWidth(QtGui.QFontMetrics(tagFont).width(label) + 6)
-            tagRect.moveLeft(tagRect.x() + x)
-            painter.fillRect(tagRect.adjusted(1, 1, -1, -1), color)
-            painter.setPen(borderColor)
-            painter.drawRect(tagRect.adjusted(0, 0, -1, -1))
-            painter.setFont(tagFont)
-            painter.setPen(option.palette.text().color())
-            painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, label)
-            x += tagRect.width() + 3
-
-        painter.setFont(option.font)
-        if (option.state & QtGui.QStyle.State_Selected
-            and option.state & QtGui.QStyle.State_Active):
-            painter.setPen(option.palette.highlightedText().color())
-        else:
-            painter.setPen(option.palette.text().color())
-        painter.drawText(rect.left() + x + 2, rect.bottom() - option.fontMetrics.descent(), text)
-        painter.restore()
-
+        try:
+            tagFont = QtGui.QFont(option.font)
+            tagFont.setPointSizeF(tagFont.pointSizeF() * 9 / 10)
+    
+            x = 0
+            for label, color, borderColor in self.labels:
+                tagRect = rect.adjusted(1, 1, -1, -1)
+                tagRect.setWidth(QtGui.QFontMetrics(tagFont).width(label) + 6)
+                tagRect.moveLeft(tagRect.x() + x)
+                painter.fillRect(tagRect.adjusted(1, 1, -1, -1), color)
+                painter.setPen(borderColor)
+                painter.drawRect(tagRect.adjusted(0, 0, -1, -1))
+                painter.setFont(tagFont)
+                painter.setPen(option.palette.text().color())
+                painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, label)
+                x += tagRect.width() + 3
+        finally:
+            painter.restore()
+        
+        rect.adjust( x, 0, 0, 0)
+        
+        return QtGui.QItemDelegate.drawDisplay(self, painter, option, rect, text)
 
 class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
 
@@ -370,9 +359,11 @@ class LogWindow(QBzrWindow):
         self.changesList.setAllColumnsShowFocus(True)
         self.changesList.setRootIsDecorated (False)
         header = self.changesList.header()
-        header.resizeSection(0, 70)
-        header.resizeSection(1, 110)
-        header.resizeSection(2, 150)
+        header.resizeSection(logmodel.COL_REV, 70)
+        #header.setResizeMode(logmodel.COL_MESSAGE, QtGui.QHeaderView.Stretch)
+        header.resizeSection(logmodel.COL_MESSAGE, 600)
+        header.resizeSection(logmodel.COL_DATE, 100)
+        header.resizeSection(logmodel.COL_AUTHOR, 150)
         logbox.addWidget(self.changesList)
 
         self.current_rev = None
@@ -392,10 +383,8 @@ class LogWindow(QBzrWindow):
         
         self.branch = branch
 
-        self.changesList.setItemDelegateForColumn(logmodel.COL_GRAPH,
-                                                  GraphItemDelegate(self))
         self.changesList.setItemDelegateForColumn(logmodel.COL_MESSAGE,
-                                                  TagsBugsItemDelegate(self))
+                                                  GraphTagsBugsItemDelegate(self))
 
         self.last_item = None
         #self.merge_stack = [self.changesModel.invisibleRootItem()]
