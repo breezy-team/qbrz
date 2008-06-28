@@ -460,12 +460,8 @@ class LogWindow(QBzrWindow):
         scheme = unicode(url.scheme())
         if scheme == 'qlog-revid':
             revision_id = unicode(url.path())
-            for item, rev in self.item_to_rev.iteritems():
-                if rev.revision_id == revision_id:
-                    index = self.changesProxyModel.mapFromSource(
-                        self.changesModel.indexFromItem(item))
-                    self.changesList.setCurrentIndex(index)
-                    break
+            index = self.changesModel.indexFromRevId(revision_id)
+            self.changesList.setCurrentIndex(index)
         else:
             open_browser(str(url.toEncoded()))
 
@@ -486,8 +482,8 @@ class LogWindow(QBzrWindow):
             #print children
     
             self.fileList.clear()
-
-        if not rev.delta:
+        
+        if not hasattr(rev, 'delta'):
             # TODO move this to a thread
             self.branch.repository.lock_read()
             try:
