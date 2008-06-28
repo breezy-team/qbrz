@@ -58,14 +58,6 @@ class GraphItemDelegate(QtGui.QItemDelegate):
         QtGui.QItemDelegate.paint(self, painter, option, index)
     
     def get_color(self, color, back):
-        """Set the context source color.
-
-        Picks a distinct color based on an internal wheel; the bg
-        parameter provides the value that should be assigned to the 'zero'
-        colors and the fg parameter provides the multiplier that should be
-        applied to the foreground colors.
-        """
-
         qcolor = QtGui.QColor()
         if color == 0:
             if back:
