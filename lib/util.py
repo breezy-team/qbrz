@@ -562,3 +562,19 @@ class FilterOptions(object):
         if self.modified:
             s.append(i18n.gettext('modified files'))
         return ', '.join(s)
+
+
+class AbortThread(QtCore.QThread):
+    """Monitor sys.stdin and wait for ABORT command.
+    Intended to use with SubprocessProgress [bar].
+    """
+
+    def __init__(self, on_abort):
+        QtCore.QThread.__init__(self)
+        self.on_abort = on_abort
+
+    def run(self):
+        self.setTerminationEnabled()
+        while True:
+            if sys.stdin.readline().startswith("ABORT"):
+                self.on_abort()
