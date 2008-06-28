@@ -190,6 +190,7 @@ class QBzrWindow(QtGui.QMainWindow):
         self.setWindowTitle(" - ".join(["QBzr"] + title))
         icon = QtGui.QIcon()
         icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
+        icon.addFile(":/bzr-32.png", QtCore.QSize(32, 32))
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
 
@@ -273,6 +274,7 @@ class QBzrDialog(QtGui.QDialog):
         self.setWindowTitle(" - ".join(["QBzr"] + title))
         icon = QtGui.QIcon()
         icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
+        icon.addFile(":/bzr-32.png", QtCore.QSize(32, 32))
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
 
