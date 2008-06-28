@@ -367,6 +367,8 @@ class LogWindow(QBzrWindow):
         self.changesList.setModel(self.changesProxyModel)
         self.changesList.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
         self.changesList.setUniformRowHeights(True)
+        self.changesList.setAllColumnsShowFocus(True)
+        self.changesList.setRootIsDecorated (False)
         header = self.changesList.header()
         header.resizeSection(0, 70)
         header.resizeSection(1, 110)
@@ -524,9 +526,8 @@ class LogWindow(QBzrWindow):
 
     def show_differences(self, index):
         """Show differences of a single revision"""
-        index = self.changesProxyModel.mapToSource(index)
-        item = self.changesModel.itemFromIndex(index)
-        rev = self.item_to_rev[item]
+        revid = str(index.data(logmodel.RevIdRole).toString())
+        rev = self.changesModel.revision(revid)
         self.show_diff_window(rev, rev)
 
     def show_file_differences(self, index):
@@ -583,9 +584,8 @@ class LogWindow(QBzrWindow):
 
     def show_context_menu(self, pos):
         index = self.changesList.indexAt(pos)
-        index = self.changesProxyModel.mapToSource(index)
-        item = self.changesModel.itemFromIndex(index)
-        rev = self.item_to_rev[item]
+        revid = str(index.data(logmodel.RevIdRole).toString())
+        rev = self.changesModel.revision(revid)
         #print index, item, rev
         self.contextMenu.popup(self.changesList.viewport().mapToGlobal(pos))
     
