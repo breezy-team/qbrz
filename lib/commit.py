@@ -85,20 +85,27 @@ _word_list_builders = {
 
 class TextEdit(QtGui.QTextEdit):
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, main_window=None):
         QtGui.QTextEdit.__init__(self, parent)
         self.completer = None
         self.eow = QtCore.QString("~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-=")
+        self.main_window = main_window
 
     def keyPressEvent(self, e):
         c = self.completer
-        if c.popup().isVisible():
-            if (e.key() == QtCore.Qt.Key_Enter or
-                e.key() == QtCore.Qt.Key_Return or
-                e.key() == QtCore.Qt.Key_Escape or
-                e.key() == QtCore.Qt.Key_Tab or
-                e.key() == QtCore.Qt.Key_Backtab):
+        e_key = e.key()
+        if (e_key in (QtCore.Qt.Key_Tab, QtCore.Qt.Key_Backtab)
+            or (c.popup().isVisible() and e_key in (QtCore.Qt.Key_Enter,
+                QtCore.Qt.Key_Return, QtCore.Qt.Key_Escape))):
+            e.ignore()
+            return
+        if (self.main_window
+            and e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return)
+            and (int(e.modifiers()) & QtCore.Qt.ControlModifier)):
                 e.ignore()
+                # FIXME probably this is ugly hack and main qcommit window
+                # should explicitly catch Ctrl+Enter by self
+                self.main_window.accept()
                 return
 
         isShortcut = e.modifiers() & QtCore.Qt.ControlModifier and e.key() == QtCore.Qt.Key_E
@@ -251,13 +258,15 @@ class CommitWindow(QBzrWindow):
             splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
         else:
             splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self.centralwidget)
+        # function f_on_close will be invoked on closing window action
+        self.f_on_close = self.save_message
 
         groupbox = QtGui.QGroupBox(gettext("Message"), splitter)
         splitter.addWidget(groupbox)
         grid = QtGui.QGridLayout(groupbox)
 
         # Equivalent for 'bzr commit --message'
-        self.message = TextEdit(groupbox)
+        self.message = TextEdit(groupbox, main_window=self)
         self.message.setToolTip(gettext("Enter the commit message"))
         completer = QtGui.QCompleter()
         completer.setModel(QtGui.QStringListModel(words, completer))
@@ -292,6 +301,11 @@ class CommitWindow(QBzrWindow):
                      self.enableAuthor)
         grid.addWidget(self.authorCheckBox, 2, 0)
         grid.addWidget(self.author, 2, 1)
+        # default author from config
+        config = self.tree.branch.get_config()
+        self.default_author = config.username()
+        self.custom_author = ''
+        self.author.setText(self.default_author)
 
         if self.is_bound:
             self.local_checkbox = QtGui.QCheckBox(gettext(
@@ -416,9 +430,12 @@ class CommitWindow(QBzrWindow):
     def enableAuthor(self, state):
         if state == QtCore.Qt.Checked:
             self.author.setEnabled(True)
+            self.author.setText(self.custom_author)
             self.author.setFocus(QtCore.Qt.OtherFocusReason)
         else:
             self.author.setEnabled(False)
+            self.custom_author = self.author.text()
+            self.author.setText(self.default_author)
 
     def parseBugs(self):
         fixes = unicode(self.bugs.text()).split()
@@ -452,9 +469,13 @@ class CommitWindow(QBzrWindow):
 
     def save_message(self):
         message = unicode(self.message.toPlainText())
-        if message:
-            config = self.tree.branch.get_config()
+        config = self.tree.branch.get_config()
+        if message.strip():
             config.set_user_option('qbzr_commit_message', message)
+        else:
+            if config.get_user_option('qbzr_commit_message'):
+                # FIXME this should delete the config entry, not just set it to ''
+                config.set_user_option('qbzr_commit_message', '')
 
     def clear_saved_message(self):
         config = self.tree.branch.get_config()
@@ -521,13 +542,13 @@ class CommitWindow(QBzrWindow):
             QtGui.QMessageBox.warning(self,
                 "QBzr - " + gettext("Commit"), str(e), QtGui.QMessageBox.Ok)
         else:
-            self.clear_saved_message()
+            self.f_on_close = self.clear_saved_message
 
         self.close()
 
     def reject(self):
         """Reject the commit."""
-        self.save_message()
+        self.f_on_close = self.save_message
         self.close()
 
     def show_changeset(self, item=None, column=None):
@@ -598,3 +619,7 @@ class CommitWindow(QBzrWindow):
                 break
         self.revert_action.setEnabled(not contains_non_versioned)
         self.show_diff_action.setEnabled(not contains_non_versioned)
+
+    def closeEvent(self, event):
+        self.f_on_close()   # either save_message or clear_saved_message
+        return QBzrWindow.closeEvent(self, event)

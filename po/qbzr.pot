@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-06-22 20:49+0300\n"
+"POT-Creation-Date: 2008-06-25 09:24+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -74,11 +74,15 @@ msgstr ""
 msgid "View file"
 msgstr ""
 
-#: lib\cat.py:44 lib\cat.py:104
+#: lib\cat.py:73
+msgid "View "
+msgstr ""
+
+#: lib\cat.py:153
 msgid "View File"
 msgstr ""
 
-#: lib\cat.py:105
+#: lib\cat.py:154
 #, python-format
 msgid "File \"%s\" not found in the specified revision."
 msgstr ""
@@ -315,6 +319,10 @@ msgstr ""
 msgid "Kind:"
 msgstr ""
 
+#: lib\diffview.py:305
+msgid "[binary file]"
+msgstr ""
+
 #: lib\i18n.py:75
 msgid "file"
 msgstr ""
@@ -329,6 +337,26 @@ msgstr ""
 
 #: lib\i18n.py:79
 msgid "fixed"
+msgstr ""
+
+#: lib\i18n.py:81
+msgid "View text file"
+msgstr ""
+
+#: lib\i18n.py:82
+msgid "View image file"
+msgstr ""
+
+#: lib\i18n.py:83
+msgid "View binary file"
+msgstr ""
+
+#: lib\i18n.py:84
+msgid "View symlink"
+msgstr ""
+
+#: lib\i18n.py:85
+msgid "View directory"
 msgstr ""
 
 #: lib\log.py:209
@@ -489,36 +517,36 @@ msgstr ""
 msgid "Pull"
 msgstr ""
 
-#: lib\pull.py:114
+#: lib\pull.py:115
 msgid "Starting..."
 msgstr ""
 
-#: lib\pull.py:162
+#: lib\pull.py:163
 msgid "Aborting..."
 msgstr ""
 
-#: lib\pull.py:170
+#: lib\pull.py:171
 msgid "Finished!"
 msgstr ""
 
-#: lib\pull.py:208 lib\pull.py:223
+#: lib\pull.py:209 lib\pull.py:224
 msgid "Failed!"
 msgstr ""
 
-#: lib\pull.py:210
+#: lib\pull.py:211
 msgid "Failed to start bzr."
 msgstr ""
 
-#: lib\pull.py:212
+#: lib\pull.py:213
 #, python-format
 msgid "Error while running bzr. (error code: %d)"
 msgstr ""
 
-#: lib\pull.py:229
+#: lib\pull.py:230
 msgid "Push"
 msgstr ""
 
-#: lib\pull.py:258
+#: lib\pull.py:260
 msgid "Branch"
 msgstr ""
 
@@ -571,48 +599,52 @@ msgstr ""
 msgid "&Close"
 msgstr ""
 
-#: lib\util.py:382
+#: lib\util.py:367
+msgid "Revision Id:"
+msgstr ""
+
+#: lib\util.py:383
 msgid "Parents:"
 msgstr ""
 
-#: lib\util.py:387
+#: lib\util.py:388
 msgid "Children:"
 msgstr ""
 
-#: lib\util.py:390
+#: lib\util.py:391
 msgid "Committer:"
 msgstr ""
 
-#: lib\util.py:393
+#: lib\util.py:394
 msgid "Author:"
 msgstr ""
 
-#: lib\util.py:397
+#: lib\util.py:398
 msgid "Branch nick:"
 msgstr ""
 
-#: lib\util.py:402
+#: lib\util.py:403
 msgid "Tags:"
 msgstr ""
 
-#: lib\util.py:412
+#: lib\util.py:413
 msgid "Bug:"
 msgid_plural "Bugs:"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib\util.py:554
+#: lib\util.py:555
 msgid "deleted files"
 msgstr ""
 
-#: lib\util.py:556
+#: lib\util.py:557
 msgid "added files"
 msgstr ""
 
-#: lib\util.py:558
+#: lib\util.py:559
 msgid "renamed files"
 msgstr ""
 
-#: lib\util.py:560
+#: lib\util.py:561
 msgid "modified files"
 msgstr ""

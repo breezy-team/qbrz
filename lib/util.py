@@ -190,6 +190,7 @@ class QBzrWindow(QtGui.QMainWindow):
         self.setWindowTitle(" - ".join(["QBzr"] + title))
         icon = QtGui.QIcon()
         icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
+        icon.addFile(":/bzr-32.png", QtCore.QSize(32, 32))
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
 
@@ -273,6 +274,7 @@ class QBzrDialog(QtGui.QDialog):
         self.setWindowTitle(" - ".join(["QBzr"] + title))
         icon = QtGui.QIcon()
         icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
+        icon.addFile(":/bzr-32.png", QtCore.QSize(32, 32))
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
 
@@ -363,7 +365,8 @@ def quote_tag(tag):
 
 def format_revision_html(rev, search_replace=None):
     text = []
-    text.append("<b>%s</b> %s" % (gettext("Revision:"), rev.revision_id))
+    text.append("<b>%s</b> %s" % (gettext("Revision:"), rev.revno))
+    text.append("<b>%s</b> %s" % (gettext("Revision Id:"), rev.revision_id))
 
     def short_text(summary, length):
         if len(summary) > length:
@@ -559,3 +562,19 @@ class FilterOptions(object):
         if self.modified:
             s.append(i18n.gettext('modified files'))
         return ', '.join(s)
+
+
+class AbortThread(QtCore.QThread):
+    """Monitor sys.stdin and wait for ABORT command.
+    Intended to use with SubprocessProgress [bar].
+    """
+
+    def __init__(self, on_abort):
+        QtCore.QThread.__init__(self)
+        self.on_abort = on_abort
+
+    def run(self):
+        self.setTerminationEnabled()
+        while True:
+            if sys.stdin.readline().startswith("ABORT"):
+                self.on_abort()

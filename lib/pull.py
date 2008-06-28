@@ -94,18 +94,19 @@ class QBzrPullWindow(QBzrWindow):
 
         self.setupUi()
 
-    def get_stored_location(self, branch):
-        return branch.get_parent()
+    def get_stored_locations(self, branch):
+        """Generators that could returns several stored locations."""
+        yield branch.get_parent()   # parent is always first one
+        yield branch.get_push_location()
 
     def setupUi(self):
         self.ui = self.create_ui()
         self.ui.setupUi(self.centralwidget)
         self.ui.vboxlayout.addWidget(self.buttonbox)
-        location = self.get_stored_location(self.branch)
-        if location is not None:
-            location = urlutils.unescape(location)
-            self.ui.location.setEditText(location)
-            self.ui.location.lineEdit().setCursorPosition(0)
+        for location in self.get_stored_locations(self.branch):
+            if location:
+                location = urlutils.unescape_for_display(location, 'utf-8')
+                self.ui.location.addItem(location)
 
     def create_ui(self):
         return Ui_PullForm()
@@ -230,8 +231,9 @@ class QBzrPushWindow(QBzrPullWindow):
     NAME = "push"
     DEFAULT_SIZE = (400, 420)
 
-    def get_stored_location(self, branch):
-        return branch.get_push_location()
+    def get_stored_locations(self, branch):
+        yield branch.get_push_location()    # push location is always first one
+        yield branch.get_parent()
 
     def create_ui(self):
         return Ui_PushForm()
