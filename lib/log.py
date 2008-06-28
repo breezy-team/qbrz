@@ -318,7 +318,6 @@ class LogWindow(QBzrWindow):
         self.specific_fileid = specific_fileid
 
         self.replace = replace
-        self.item_to_rev = {}
         self.revisions = {}
 
         self.changesModel = logmodel.TreeModel()
@@ -470,43 +469,23 @@ class LogWindow(QBzrWindow):
         else:
             open_browser(str(url.toEncoded()))
 
-    def selected_items(self):
-        items = []
-        for index in self.changesList.selectedIndexes():
-            index = self.changesProxyModel.mapToSource(index)
-            item = self.changesModel.itemFromIndex(index)
-            if item.column() == 0:
-                items.append(item)
-        return items
 
     def update_selection(self, selected, deselected):
-        items = self.selected_items()
-        if not items:
-            return
-        self.diffbutton.setEnabled(True)
-        item = items[0]
-        rev = self.item_to_rev[item]
-        self.current_rev = rev
-
-        try:
-            if not hasattr(rev, 'parents'):
-                rev.parents = [self.revisions[i] for i in rev.parent_ids]
-        except KeyError:
-            pass
-
-        try:
-            if not hasattr(rev, 'children'):
-                rev.children = [
-                    child for child in self.revisions.itervalues()
-                    if rev.revision_id in child.parent_ids]
-        except KeyError:
-            pass
-
-        self.message.setHtml(format_revision_html(rev, self.replace))
-
-        #print children
-
-        self.fileList.clear()
+        indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
+        if not indexes:
+            self.diffbutton.setEnabled(False)
+        else:
+            self.diffbutton.setEnabled(True)
+            index = indexes[0]
+            revid = str(index.data(logmodel.RevIdRole).toString())
+            rev = self.changesModel.revision(revid)
+            self.current_rev = rev
+    
+            self.message.setHtml(format_revision_html(rev, self.replace))
+    
+            #print children
+    
+            self.fileList.clear()
 
         if not rev.delta:
             # TODO move this to a thread

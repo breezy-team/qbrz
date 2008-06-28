@@ -44,6 +44,7 @@ BugIdsRole = QtCore.Qt.UserRole + 2
 GraphNodeRole = QtCore.Qt.UserRole + 3
 GraphLinesRole = QtCore.Qt.UserRole + 4
 GraphTwistiesRole = QtCore.Qt.UserRole + 5
+RevIdRole = QtCore.Qt.UserRole + 6
 
 FilterIdRole = QtCore.Qt.UserRole + 100
 FilterMessageRole = QtCore.Qt.UserRole + 101
@@ -607,15 +608,13 @@ class TreeModel(QtCore.QAbstractTableModel):
             if revid in self.tags:
                 tags = self.tags[revid]
             return QtCore.QVariant(tags)
+        if role == RevIdRole:
+            return QtCore.QVariant(revid)
         
         #Everything from here foward will need to have the revision loaded.
         if not revid or revid == NULL_REVISION:
             return QtCore.QVariant()
-        if revid not in self.revisions:
-            revision = self.branch.repository.get_revisions([revid])[0]
-            self.revisions[revid] = revision
-        else:
-            revision = self.revisions[revid]
+        revision = self._revision(revid)
         
         if role == QtCore.Qt.DisplayRole and index.column() == COL_DATE:
             return QtCore.QVariant(strftime("%Y-%m-%d %H:%M",
@@ -648,9 +647,27 @@ class TreeModel(QtCore.QAbstractTableModel):
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
             return QtCore.QVariant(self.horizontalHeaderLabels[section])
-
         return QtCore.QVariant()
-
+    
+    def _revision(self, revid):
+        if revid not in self.revisions:
+            revision = self.branch.repository.get_revisions([revid])[0]
+            self.revisions[revid] = revision
+            revno_sequence = self.merge_sorted_revisions[self.revid_msri[revid]][3]
+            revision.revno = ".".join(["%d" % (revno)
+                                      for revno in revno_sequence])
+        else:
+            revision = self.revisions[revid]
+        return revision
+    
+    def revision(self, revid):
+        revision = self._revision(revid)
+        if not hasattr(revision, 'parents'):
+            revision.parents = [self._revision(i) for i in self.graph_parents[revid]]
+        if not hasattr(revision, 'children'):
+            revision.children = [self._revision(i) for i in self.graph_children[revid]]
+        return revision
+    
 def _branch_line_col_search_order(columns, parent_col_index):
     for col_index in range(parent_col_index, len(columns)):
         yield col_index
