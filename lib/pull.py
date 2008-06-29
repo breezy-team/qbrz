@@ -73,7 +73,6 @@ class QBzrPullWindow(QBzrWindow):
             QtCore.SIGNAL("finished(int, QProcess::ExitStatus)"),
             self.onFinished)
 
-        self.started = False
         self.finished = False
         self.aborting = False
 
@@ -115,7 +114,6 @@ class QBzrPullWindow(QBzrWindow):
         self.setProgress(0, [gettext("Starting...")])
         self.ui.console.setFocus(QtCore.Qt.OtherFocusReason)
         self.okButton.setEnabled(False)
-        self.started = True
         args = ' '.join('"%s"' % a.replace('"', '\"') for a in args)
         if sys.argv[0].lower().endswith('.exe'):
             self.process.start(
@@ -179,18 +177,18 @@ class QBzrPullWindow(QBzrWindow):
             if line.startswith("qbzr:PROGRESS:"):
                 progress, messages = bencode.bdecode(line[14:])
                 self.setProgress(progress, messages)
-                if self.aborting:
-                    self.process.write("ABORT\n")
-                else:
-                    self.process.write("OK\n")
             else:
                 self.logMessage(line)
+        if self.aborting:
+            self.process.close()
 
     def readStderr(self):
         data = str(self.process.readAllStandardError())
         for line in data.splitlines():
             error = line.startswith("bzr: ERROR:")
             self.logMessage(line, error)
+        if self.aborting:
+            self.process.close()
 
     def logMessage(self, message, error=False):
         if error:
@@ -205,6 +203,7 @@ class QBzrPullWindow(QBzrWindow):
     def reportProcessError(self, error):
         if self.aborting == True:
             self.close()
+            return
         self.aborting = False
         self.setProgress(1000000, [gettext("Failed!")])
         if error == QtCore.QProcess.FailedToStart:
@@ -216,6 +215,7 @@ class QBzrPullWindow(QBzrWindow):
     def onFinished(self, exitCode, exitStatus):
         if self.aborting == True:
             self.close()
+            return
         self.aborting = False
         if exitCode == 0:
             self.finished = True

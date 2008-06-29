@@ -69,7 +69,6 @@ from bzrlib.plugins.qbzr.lib.pull import (
     QBzrBranchWindow,
     )
 from bzrlib.plugins.qbzr.lib.util import (
-    AbortThread,
     FilterOptions,
     get_branch_config,
     get_qlog_replace,
@@ -502,19 +501,11 @@ class SubprocessProgress(SubprocessChildProgress):
 
     def __init__(self, **kwargs):
         super(SubprocessProgress, self).__init__(**kwargs)
-        self.need_abort = False
-        self.athread = AbortThread(self.on_abort)
-        self.athread.start()
-
-    def on_abort(self):
-        self.need_abort = True
 
     def _report(self, progress, messages=()):
         data = int(progress * 1000000), messages
         sys.stdout.write('qbzr:PROGRESS:' + bencode.bencode(data) + '\n')
         sys.stdout.flush()
-        if self.need_abort:
-            raise KeyboardInterrupt
 
     def tick(self, messages, progress):
         self._report(progress, messages)
