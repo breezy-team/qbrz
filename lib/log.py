@@ -54,15 +54,13 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
             self.drawGraph = True
             self.node = node.toList()
             self.lines = index.data(logmodel.GraphLinesRole).toList()
-            self.twisties = index.data(logmodel.GraphTwistiesRole).toList()
+            self.twisty_state = index.data(logmodel.GraphTwistyStateRole)
             
             prevIndex = index.sibling (index.row()-1, index.column())
             if prevIndex.isValid ():
                 self.prevLines = prevIndex.data(logmodel.GraphLinesRole).toList()
-                self.prevTwisties = prevIndex.data(logmodel.GraphTwistiesRole).toList()
             else:
                 self.prevLines = []
-                self.prevTwisties = []
         else:
             self.drawGraph = False
         
@@ -83,7 +81,7 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
         qcolor = QtGui.QColor()
         if color == 0:
             if back:
-                qcolor.setHsvF(0,0,0.5)
+                qcolor.setHsvF(0,0,0.8)
             else:
                 qcolor.setHsvF(0,0,0)
         else:
@@ -131,31 +129,6 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                              QtCore.QPointF(endx, mid + height / 2 + 1))
             painter.drawPath(path)
 
-    def drawTwisty(self, painter, pen, rect, boxsize, mid, column, open, color):
-        twistysize = 0.45
-        linesize = 0.25
-        pen.setColor(self.get_color(color,False))
-        painter.setPen(pen)
-        painter.setBrush(QtGui.QBrush(QtGui.QColor.fromRgb(255, 255, 255)))
-        centerx = rect.x() + boxsize * (column + 0.5)
-        centery = rect.y() + mid
-        
-        painter.drawRect(QtCore.QRectF (centerx - boxsize * twistysize / 2,
-                                        centery - boxsize * twistysize / 2,
-                                        boxsize * twistysize,
-                                        boxsize * twistysize))
-        
-        painter.drawLine(QtCore.QLineF (centerx - boxsize * linesize / 2,
-                                        centery,
-                                        centerx + boxsize * linesize / 2,
-                                        centery))
-        
-        if not open:
-            painter.drawLine(QtCore.QLineF (centerx,
-                                            centery - boxsize * linesize / 2,
-                                            centerx,
-                                            centery + boxsize * linesize / 2))
-        
     def drawDisplay(self, painter, option, rect, text):
         graphCols = 0
         if self.drawGraph:
@@ -163,7 +136,7 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
             try:
                 painter.setRenderHint(QtGui.QPainter.Antialiasing)            
                 boxsize = float(rect.height())
-                dotsize = 0.5
+                dotsize = 0.7
                 pen = QtGui.QPen()
                 penwidth = 1
                 pen.setWidth(penwidth)
@@ -188,18 +161,6 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                                    start, end, color)
                     graphCols = max((graphCols, min(start, end)))
                 
-                # Draw bottom of twisties for prev row
-                for twisty in self.prevTwisties:
-                    column, open, branch_id, color = twisty.toList()
-                    self.drawTwisty(painter, pen, rect, boxsize, 0,
-                                    column.toDouble()[0], open.toBool(),
-                                    color.toInt()[0])
-                # Draw twisties 
-                for twisty in self.twisties:
-                    column, open, branch_id, color = twisty.toList()
-                    self.drawTwisty(painter, pen, rect, boxsize, boxsize,
-                                    column.toDouble()[0], open.toBool(),
-                                    color.toInt()[0])
                 
                 # Draw the revision node in the right column
                 color = self.node[1].toInt()[0]
@@ -208,13 +169,29 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                 pen.setColor(self.get_color(color,False))
                 painter.setPen(pen)
                 painter.setBrush(QtGui.QBrush(self.get_color(color,True)))
+                centerx = rect.x() + boxsize * (column + 0.5)
+                centery = rect.y() + boxsize * 0.5
                 painter.drawEllipse(
-                    QtCore.QRectF(option.rect.x() + (boxsize * (1 - dotsize) / 2) + boxsize * column,
-                                 option.rect.y() + (boxsize * (1 - dotsize) / 2),
+                    QtCore.QRectF(centerx - (boxsize * dotsize * 0.5 ),
+                                  centery - (boxsize * dotsize * 0.5 ),
                                  boxsize * dotsize, boxsize * dotsize))
+
+                # Draw twisty
+                if self.twisty_state.isValid():
+                    linesize = 0.35
+                    painter.drawLine(QtCore.QLineF (centerx - boxsize * linesize / 2,
+                                                    centery,
+                                                    centerx + boxsize * linesize / 2,
+                                                    centery))
+                    if not self.twisty_state.toBool():
+                        painter.drawLine(QtCore.QLineF (centerx,
+                                                        centery - boxsize * linesize / 2,
+                                                        centerx,
+                                                        centery + boxsize * linesize / 2))
+                
             finally:
                 painter.restore()
-            rect.adjust( (graphCols + 1.2) * boxsize, 0, 0, 0)
+            rect.adjust( (graphCols + 1.7) * boxsize, 0, 0, 0)
         
         painter.save()
         try:
@@ -580,45 +557,6 @@ class LogWindow(QBzrWindow):
     
     def changesList_mouseReleaseEvent (self, e):
         if e.button() & QtCore.Qt.LeftButton:
-            def findTwistyAtPos(pos):
-                index = self.changesList.indexAt(pos)
-                rect = self.changesList.visualRect(index)
-                twisties = index.data(logmodel.GraphTwistiesRole).toList()            
-                prevIndex = index.sibling (index.row()-1, index.column())
-                if prevIndex.isValid ():
-                    prevTwisties = prevIndex.data(logmodel.GraphTwistiesRole).toList()
-                else:
-                    prevTwisties = []
-                
-                def twistyAtPos (column, pos, rect, mid):
-                    twistysize = 0.8
-                    boxsize = rect.height()
-                    centerx = rect.x() + boxsize * (column + 0.5)
-                    centery = rect.y() + mid
-                    
-                    twistyRect = QtCore.QRectF (centerx - boxsize * twistysize / 2,
-                                                centery - boxsize * twistysize / 2,
-                                                boxsize * twistysize,
-                                                boxsize * twistysize)
-                    
-                    return twistyRect.contains(QtCore.QPointF (pos))
-                # Check bottom of twisties for prev row
-                for twisty in prevTwisties:
-                    if twistyAtPos(twisty.toList()[0].toDouble()[0],
-                                   pos, rect, 0):
-                        return twisty
-                
-                # Check top of twisties for this row
-                for twisty in twisties:
-                    if twistyAtPos(twisty.toList()[0].toDouble()[0],
-                                   pos, rect, rect.height()):
-                        return twisty
-            
-            twisty = findTwistyAtPos(e.pos())
-            if twisty is not None:
-                column, open, branch_id, color = twisty.toList()
-                branch_id = tuple([i.toInt()[0] for i in  branch_id.toList()])
-                self.changesModel.branch_lines[branch_id][1] = not open.toBool()
-                self.changesModel.compute_lines()
-            
+            index = self.changesList.indexAt(e.pos())
+            self.changesModel.colapse_expand_rev(index)
         QtGui.QTreeView.mouseReleaseEvent(self.changesList, e)

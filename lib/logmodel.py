@@ -43,7 +43,7 @@ TagsRole = QtCore.Qt.UserRole + 1
 BugIdsRole = QtCore.Qt.UserRole + 2
 GraphNodeRole = QtCore.Qt.UserRole + 3
 GraphLinesRole = QtCore.Qt.UserRole + 4
-GraphTwistiesRole = QtCore.Qt.UserRole + 5
+GraphTwistyStateRole = QtCore.Qt.UserRole + 5
 RevIdRole = QtCore.Qt.UserRole + 6
 
 FilterIdRole = QtCore.Qt.UserRole + 100
@@ -175,7 +175,8 @@ class TreeModel(QtCore.QAbstractTableModel):
             # This will hold for each revision, a list of (msri,
             #                                              node,
             #                                              lines,
-            #                                              twisties).
+            #                                              twisty_state,
+            #                                              twisty_branch_ids).
             #
             # Node is a tuple of (column, color) with column being a
             # zero-indexed column number of the graph that this revision
@@ -189,8 +190,7 @@ class TreeModel(QtCore.QAbstractTableModel):
             # color) with start and end being zero-indexed column numbers and
             # color as in node.
             #
-            # twisties are +- buttons to show/hide branches. list of Tuple of
-            # (column, open, branch_id, color)
+            # twisties are +- buttons to show/hide branches. list branch_ids
             self.linegraphdata = []
             
             self.msri_index = {}
@@ -203,20 +203,22 @@ class TreeModel(QtCore.QAbstractTableModel):
                         self.linegraphdata.append([rev_msri,
                                                    None,
                                                    [],
+                                                   None,
                                                    [],
                                                   ])
             self.linegraphdata.sort(lambda x, y: cmp(x[0], y[0]))
             
-            for rev_index, (msri, node, lines, twisties) in \
+            for rev_index, (msri, node, lines,
+                            twisty_state, twisty_branch_ids) in \
                     enumerate(self.linegraphdata):
                 self.msri_index[msri] = rev_index
             
-            # This will hold a tuple of (child_index, parent_index, col_index,
-            # parent_color, twisty_branch_id) for each line that needs to be
-            # drawn. If col_index is not none, then the line is drawn along that
-            # column, else the the line can be drawn directly between the child
-            # and parent because either the child and parent are in the same
-            # branch line, or the child and parent are 1 row apart.
+            # This will hold a tuple of (child_index, parent_index, col_index
+            # for each line that needs to be drawn. If col_index is not none,
+            # then the line is drawn along that column, else the the line can be
+            # drawn directly between the child and parent because either the
+            # child and parent are in the same branch line, or the child and
+            # parent are 1 row apart.
             lines = []
             empty_column = [False for i in range(len(self.linegraphdata))]
             # This will hold a bit map for each cell. If the cell is true, then
@@ -234,9 +236,10 @@ class TreeModel(QtCore.QAbstractTableModel):
                     
                     # Find columns for lines for each parent of each revision in
                     # the branch that are long and need to go between the parent
-                    # branch and the child branch.
+                    # branch and the child branch. Also add branch_ids to
+                    # twisty_branch_ids.
                     parents_with_lines = []
-                    for rev_msri in branch_rev_indexes[0:-1]:
+                    for rev_msri in branch_rev_indexes:
                         rev_index = self.msri_index[rev_msri]
                         (sequence_number,
                              revid,
@@ -249,19 +252,14 @@ class TreeModel(QtCore.QAbstractTableModel):
                             parent_branch_id = \
                                 self.merge_sorted_revisions[parent_msri][3][0:-1]
                             
-                            if parent_branch_id == branch_id:
-                                continue
-                            
-                            # We have to recalculate the color of the parent,
-                            # because it may be hidden, and not yet calculated
-                            parent_color = \
-                                reduce(lambda x, y: x+y, parent_branch_id, 0)
-                            
                             if not parent_branch_id == branch_id and \
                                not parent_branch_id == ():
-                                twisty_branch_id = parent_branch_id
-                            else:
-                                twisty_branch_id = None
+                                self.linegraphdata[rev_index][4].append (parent_branch_id)
+                            
+                            if revno_sequence[-1] == 1:
+                                continue
+                            if parent_branch_id == branch_id:
+                                continue
                             
                             if parent_msri in self.msri_index:
                                 parent_index = self.msri_index[parent_msri]                            
@@ -291,9 +289,18 @@ class TreeModel(QtCore.QAbstractTableModel):
                                         lines.append((rev_index,
                                                       parent_index,
                                                       (line_col_index,),
-                                                      parent_color,
-                                                      twisty_branch_id))
+                                                      ))
                                         parents_with_lines.append(parent_revid)
+                        
+                        # Work out if the twisty needs to show a + or -. If all
+                        # twisty_branch_ids are visible, show - else +.
+                        if len (self.linegraphdata[rev_index][4])>0:
+                            twisty_state = True
+                            for twisty_branch_id in self.linegraphdata[rev_index][4]:
+                                if not self.branch_lines[twisty_branch_id][1]:
+                                    twisty_state = False
+                                    break
+                            self.linegraphdata[rev_index][3] = twisty_state
                     
                     # Find a column for this branch.
                     #
@@ -362,22 +369,10 @@ class TreeModel(QtCore.QAbstractTableModel):
                         col_index = self.linegraphdata[rev_index][1][0]
                         
                         for parent_revid in self.graph_parents[revid]:
+                            parent_msri = self.revid_msri[parent_revid]
+                            
                             if parent_revid in parents_with_lines:
                                 continue
-                            parent_msri = self.revid_msri[parent_revid]
-                            # We have to recalculate the color of the parent,
-                            # because it may be hidden, and not yet calculated
-                            parent_branch_id = \
-                                self.merge_sorted_revisions[parent_msri][3][0:-1]
-                            
-                            parent_color = \
-                                reduce(lambda x, y: x+y, parent_branch_id, 0)
-                            
-                            if not parent_branch_id == branch_id and \
-                               not parent_branch_id == ():
-                                twisty_branch_id = parent_branch_id
-                            else:
-                                twisty_branch_id = None
                             
                             if parent_msri in self.msri_index:
                                 parent_index = self.msri_index[parent_msri]                            
@@ -422,8 +417,7 @@ class TreeModel(QtCore.QAbstractTableModel):
                                                   parent_index,
                                                   (child_line_col_index,
                                                    parent_col_line_index),
-                                                  parent_color,
-                                                  twisty_branch_id))
+                                                  ))
                                 else :
                                     line_col_index = col_index
                                     if parent_index - rev_index >1:
@@ -439,37 +433,14 @@ class TreeModel(QtCore.QAbstractTableModel):
                                     lines.append((rev_index,
                                                   parent_index,
                                                   (line_col_index,),
-                                                  parent_color,
-                                                  twisty_branch_id))
-                            else:
-                                # The parent is probably hidden. Just show a
-                                # broken stub.
-                                col_search_order = \
-                                        _line_col_search_order(columns,
-                                                               parent_col_index,
-                                                               col_index)
-                                child_line_col_index = \
-                                    _find_free_column(columns,
-                                                      empty_column,
-                                                      col_search_order,
-                                                      (rev_index + 1,))
-                                
-                                _mark_column_as_used(columns,
-                                                     child_line_col_index,
-                                                     (rev_index + 1,))
-                                lines.append((rev_index,
-                                              None,
-                                              (child_line_col_index, None),
-                                              parent_color,
-                                              twisty_branch_id))                                
+                                                  ))
             
             # It has now been calculated which column a line must go into. Now
             # copy the lines in to linegraphdata.
             for (child_index,
                  parent_index,
                  line_col_indexes,
-                 parent_color,
-                 twisty_branch_id) in lines:
+                 ) in lines:
                 
                 (child_col_index, child_color) = self.linegraphdata[child_index][1]
                 if parent_index is not None:
@@ -484,12 +455,6 @@ class TreeModel(QtCore.QAbstractTableModel):
                             (child_col_index,
                              parent_col_index,
                              parent_color))
-                        if parent_col_index == child_col_index:
-                            twisty_col_index = parent_col_index                                        
-                        elif parent_col_index < child_col_index:
-                            twisty_col_index = parent_col_index + 0.5
-                        else:
-                            twisty_col_index = parent_col_index - 0.5                        
                     else:
                         # line from the child's column to the lines column
                         self.linegraphdata[child_index][2].append(
@@ -507,13 +472,6 @@ class TreeModel(QtCore.QAbstractTableModel):
                             (line_col_indexes[0],
                              parent_col_index,
                              parent_color))
-                        
-                        if line_col_indexes[0] == child_col_index:
-                            twisty_col_index = line_col_indexes[0]                                        
-                        elif line_col_indexes[0] < child_col_index:
-                            twisty_col_index = line_col_indexes[0] + 0.5
-                        else:
-                            twisty_col_index = line_col_indexes[0] - 0.5                        
                 else:
                     # Broken line
                     # line from the child's column to the lines column
@@ -538,23 +496,19 @@ class TreeModel(QtCore.QAbstractTableModel):
                             (line_col_indexes[1],
                              parent_col_index,
                              parent_color))
-                    
-                    if line_col_indexes[0] == child_col_index:
-                        twisty_col_index = line_col_indexes[0]                                        
-                    elif line_col_indexes[0] < child_col_index:
-                        twisty_col_index = line_col_indexes[0] + 0.5
-                    else:
-                        twisty_col_index = line_col_indexes[0] - 0.5
-                
-                if twisty_branch_id is not None:
-                    self.linegraphdata[child_index][3].append (\
-                        (twisty_col_index,
-                         self.branch_lines[twisty_branch_id][1],
-                         twisty_branch_id,
-                         parent_color))
         
         finally:
             self.emit(QtCore.SIGNAL("layoutChanged()"))
+    
+    def colapse_expand_rev(self, index):
+        if not index.isValid():
+            return
+        if self.searchMode:
+            return
+        (msri, node, lines, twisty_state, twisty_branch_ids) = self.linegraphdata[index.row()]
+        for branch_id in twisty_branch_ids:
+            self.branch_lines[branch_id][1] = not twisty_state
+        self.compute_lines()
     
     def compute_search(self):
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
@@ -599,8 +553,7 @@ class TreeModel(QtCore.QAbstractTableModel):
     def data(self, index, role):
         if not index.isValid():
             return QtCore.QVariant()
-        
-        (msri, node, lines, twisties) = self.linegraphdata[index.row()]
+        (msri, node, lines, twisty_state, twisty_branch_ids) = self.linegraphdata[index.row()]
         
         if role == GraphNodeRole:
             if node is None:
@@ -615,15 +568,10 @@ class TreeModel(QtCore.QAbstractTableModel):
                                                QtCore.QVariant(end),
                                                QtCore.QVariant(color)]))
             return QtCore.QVariant(qlines)
-        if role == GraphTwistiesRole:
-            qtwisties = []
-            for column, open, branch_id, color in twisties:
-                branch_id = [QtCore.QVariant(i) for i in branch_id]
-                qtwisties.append(QtCore.QVariant([QtCore.QVariant(column),
-                                                  QtCore.QVariant(open),
-                                                  QtCore.QVariant(branch_id),
-                                                  QtCore.QVariant(color)]))
-            return QtCore.QVariant(qtwisties)
+        if role == GraphTwistyStateRole:
+            if twisty_state is None:
+                return QtCore.QVariant()
+            return QtCore.QVariant(twisty_state)
         
         (sequence_number, revid, merge_depth, revno_sequence, end_of_merge) = \
             self.merge_sorted_revisions[msri]
