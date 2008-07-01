@@ -506,9 +506,13 @@ class TreeModel(QtCore.QAbstractTableModel):
         if self.searchMode:
             return
         (msri, node, lines, twisty_state, twisty_branch_ids) = self.linegraphdata[index.row()]
+        has_change = False
         for branch_id in twisty_branch_ids:
+            if self.branch_lines[branch_id][1] == twisty_state:
+                has_change = True
             self.branch_lines[branch_id][1] = not twisty_state
-        self.compute_lines()
+        if has_change:
+            self.compute_lines()
     
     def compute_search(self):
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))

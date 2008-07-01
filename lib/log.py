@@ -557,6 +557,15 @@ class LogWindow(QBzrWindow):
     
     def changesList_mouseReleaseEvent (self, e):
         if e.button() & QtCore.Qt.LeftButton:
-            index = self.changesList.indexAt(e.pos())
-            self.changesModel.colapse_expand_rev(index)
+            pos = e.pos()
+            index = self.changesList.indexAt(pos)
+            rect = self.changesList.visualRect(index)
+            boxsize = rect.height()
+            node_column = index.data(logmodel.GraphNodeRole).toList()[0].toInt()[0]
+            twistyRect = QtCore.QRect (rect.x() + boxsize * node_column,
+                                       rect.y() ,
+                                       boxsize,
+                                       boxsize)
+            if twistyRect.contains(pos):
+                self.changesModel.colapse_expand_rev(index)
         QtGui.QTreeView.mouseReleaseEvent(self.changesList, e)
