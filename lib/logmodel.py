@@ -120,7 +120,7 @@ class TreeModel(QtCore.QAbstractTableModel):
             self.merge_sorted_revisions = self.merge_sorted_revisions[1:]
             
             # This will hold, for each "branch", [a list of revision indexes in
-            # the branch, is the branch visible].
+            # the branch, is the branch visible, parents, children].
             #
             # For a revisions, the revsion number less the least significant
             # digit is the branch_id, and used as the key for the dict. Hence
@@ -142,7 +142,10 @@ class TreeModel(QtCore.QAbstractTableModel):
                 branch_line = None
                 if branch_id not in self.branch_lines:
                     #initialy, only the main line is visible
-                    branch_line = [[], len(branch_id)==0]
+                    branch_line = [[],
+                                   len(branch_id)==0,
+                                   set(),
+                                   set()]
                     self.branch_lines[branch_id] = branch_line
                 else:
                     branch_line = self.branch_lines[branch_id]
@@ -150,7 +153,14 @@ class TreeModel(QtCore.QAbstractTableModel):
                 branch_line[0].append(rev_index)
                 self.revid_msri[revid] = rev_index
                 self.revno_msri[revno_sequence] = rev_index
-        
+                if not branch_id == ():
+                    for child_revid in self.graph_children[revid]:
+                        child_msri = self.revid_msri[child_revid]
+                        child_branch_id = self.merge_sorted_revisions[child_msri][3][0:-1]
+                        if not child_branch_id == branch_id and not child_branch_id == ():
+                            branch_line[3].add(child_branch_id)
+                            self.branch_lines[child_branch_id][2].add(branch_id)
+            
             self.branch_ids = self.branch_lines.keys()
         
             def branch_id_cmp(x, y):
@@ -197,7 +207,10 @@ class TreeModel(QtCore.QAbstractTableModel):
             
             rev_index = 0
             for branch_id in self.branch_ids:
-                branch_rev_msri, branch_visible = self.branch_lines[branch_id]
+                (branch_rev_msri,
+                 branch_visible,
+                 branch_parents,
+                 branch_children) = self.branch_lines[branch_id]
                 if branch_visible:
                     for rev_msri in branch_rev_msri:
                         self.linegraphdata.append([rev_msri,
@@ -229,7 +242,10 @@ class TreeModel(QtCore.QAbstractTableModel):
             
             
             for branch_id in self.branch_ids:
-                branch_rev_indexes, branch_visible = self.branch_lines[branch_id]
+                (branch_rev_msri,
+                 branch_visible,
+                 branch_parents,
+                 branch_children) = self.branch_lines[branch_id]
                 
                 if branch_visible:
                     color = reduce(lambda x, y: x+y, branch_id, 0)
@@ -239,7 +255,7 @@ class TreeModel(QtCore.QAbstractTableModel):
                     # branch and the child branch. Also add branch_ids to
                     # twisty_branch_ids.
                     parents_with_lines = []
-                    for rev_msri in branch_rev_indexes:
+                    for rev_msri in branch_rev_msri:
                         rev_index = self.msri_index[rev_msri]
                         (sequence_number,
                              revid,
@@ -324,7 +340,7 @@ class TreeModel(QtCore.QAbstractTableModel):
                     # Work out what rows this branch spans
                     line_range = []
                     last_rev_index = None
-                    for rev_msri in branch_rev_indexes:
+                    for rev_msri in branch_rev_msri:
                         rev_index = self.msri_index[rev_msri]
                         if last_rev_index:
                             if broken_line_length and \
@@ -351,14 +367,14 @@ class TreeModel(QtCore.QAbstractTableModel):
                     node = (col_index, color)
                     # Free column for this branch found. Set node for all
                     # revision in this branch.
-                    for rev_msri in branch_rev_indexes:
+                    for rev_msri in branch_rev_msri:
                         rev_index = self.msri_index[rev_msri]
                         self.linegraphdata[rev_index][1] = node
                         columns[col_index][rev_index] = True
                     
                     # Find columns for lines for each parent of each
                     # revision in the branch.
-                    for rev_msri in branch_rev_indexes:
+                    for rev_msri in branch_rev_msri:
                         rev_index = self.msri_index[rev_msri]
                         (sequence_number,
                              revid,
@@ -511,6 +527,16 @@ class TreeModel(QtCore.QAbstractTableModel):
             if self.branch_lines[branch_id][1] == twisty_state:
                 has_change = True
             self.branch_lines[branch_id][1] = not twisty_state
+            if twisty_state:
+                for parent_branch_id in self.branch_lines[branch_id][2]:
+                    vis_children = 0
+                    for child_branch_id in self.branch_lines[parent_branch_id][2]:
+                        if self.branch_lines[child_branch_id][1]:
+                            vis_children += 1
+                    if vis_children == 0:
+                        if self.branch_lines[parent_branch_id][1] == twisty_state:
+                            has_change = True
+                        self.branch_lines[parent_branch_id][1] = not twisty_state
         if has_change:
             self.compute_lines()
     
