@@ -357,6 +357,7 @@ class LogWindow(QBzrWindow):
         #             QtCore.SIGNAL("clicked (QModelIndex)"),
         #             self.changesList_clicked)
         self.changesList.mouseReleaseEvent  = self.changesList_mouseReleaseEvent
+        self.changesList.keyPressEvent  = self.changesList_keyPressEvent
         
         self.branch = branch
 
@@ -568,9 +569,35 @@ class LogWindow(QBzrWindow):
                                        boxsize,
                                        boxsize)
             if twistyRect.contains(pos):
-                revision_id = str(index.data(logmodel.RevIdRole).toString())
-                self.changesModel.colapse_expand_rev(index)
-                index = self.changesModel.indexFromRevId(revision_id)
-                index = self.changesProxyModel.mapFromSource(index)
-                self.changesList.setCurrentIndex(index)
+                e.accept ()
+                twisty_state = index.data(logmodel.GraphTwistyStateRole)
+                if twisty_state.isValid():
+                    revision_id = str(index.data(logmodel.RevIdRole).toString())
+                    self.changesModel.colapse_expand_rev(index, not twisty_state.toBool())
+                    newindex = self.changesModel.indexFromRevId(revision_id)
+                    newindex = self.changesProxyModel.mapFromSource(newindex)
+                    self.changesList.setCurrentIndex(newindex)
         QtGui.QTreeView.mouseReleaseEvent(self.changesList, e)
+    
+    def changesList_keyPressEvent (self, e):
+        if e.key() == QtCore.Qt.Key_Left or e.key() == QtCore.Qt.Key_Right:
+            e.accept()
+            indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
+            index = indexes[0]
+            revision_id = str(index.data(logmodel.RevIdRole).toString())
+            twisty_state = index.data(logmodel.GraphTwistyStateRole)
+            if e.key() == QtCore.Qt.Key_Right \
+                    and twisty_state.isValid() \
+                    and not twisty_state.toBool():
+                self.changesModel.colapse_expand_rev(index, True)
+            if e.key() == QtCore.Qt.Key_Left:
+                if twisty_state.isValid() and twisty_state.toBool():
+                    self.changesModel.colapse_expand_rev(index, False)
+                else:
+                    #find merge of child branch
+                    revision_id = self.changesModel.findChildBranchMergeRevision(revision_id)
+            newindex = self.changesModel.indexFromRevId(revision_id)
+            newindex = self.changesProxyModel.mapFromSource(newindex)
+            self.changesList.setCurrentIndex(newindex)
+        else:
+            QtGui.QTreeView.keyPressEvent(self.changesList, e)

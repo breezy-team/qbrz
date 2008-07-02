@@ -527,19 +527,19 @@ class TreeModel(QtCore.QAbstractTableModel):
                 return True
         return False
     
-    def colapse_expand_rev(self, index):
+    def colapse_expand_rev(self, index, visible):
         if not index.isValid():
             return
         if self.searchMode:
             return
-        (msri, node, lines, twisty_state, twisty_branch_ids) = self.linegraphdata[index.row()]
+        twisty_branch_ids = self.linegraphdata[index.row()][4]
         has_change = False
         for branch_id in twisty_branch_ids:
-            has_change = self._set_branch_visible(branch_id, not twisty_state, has_change)
-            if twisty_state:
+            has_change = self._set_branch_visible(branch_id, visible, has_change)
+            if not visible:
                 for parent_branch_id in self.branch_lines[branch_id][2]:
                     if not parent_branch_id==() and self._has_visible_child(parent_branch_id):
-                        has_change = self._set_branch_visible(parent_branch_id, not twisty_state, has_change)
+                        has_change = self._set_branch_visible(parent_branch_id, visible, has_change)
         if has_change:
             self.compute_lines()
     
@@ -700,6 +700,23 @@ class TreeModel(QtCore.QAbstractTableModel):
     def indexFromRevId(self, revid):
         revindex = self.msri_index[self.revid_msri[revid]]
         return self.createIndex (revindex, 0, QtCore.QModelIndex())
+    
+    def findChildBranchMergeRevision (self, revid):
+        branch_id = self.merge_sorted_revisions[self.revid_msri[revid]][3][0:-1]
+        current_revid = revid
+        result_revid = None
+        while current_revid is not None and result_revid is None:
+            child_revids = self.graph_children[current_revid]
+            current_revid = None
+            for child_revid in child_revids:
+                child_branch_id = self.merge_sorted_revisions[self.revid_msri[child_revid]][3][0:-1]
+                if child_branch_id == branch_id:
+                    current_revid = child_revid
+                else:
+                    if self.branch_lines[child_branch_id][1]:
+                        result_revid = child_revid
+                        break
+        return result_revid
     
 def _branch_line_col_search_order(columns, parent_col_index):
     for col_index in range(parent_col_index, len(columns)):
