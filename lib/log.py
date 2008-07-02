@@ -568,5 +568,9 @@ class LogWindow(QBzrWindow):
                                        boxsize,
                                        boxsize)
             if twistyRect.contains(pos):
+                revision_id = str(index.data(logmodel.RevIdRole).toString())
                 self.changesModel.colapse_expand_rev(index)
+                index = self.changesModel.indexFromRevId(revision_id)
+                index = self.changesProxyModel.mapFromSource(index)
+                self.changesList.setCurrentIndex(index)
         QtGui.QTreeView.mouseReleaseEvent(self.changesList, e)
