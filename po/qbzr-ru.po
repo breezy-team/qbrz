@@ -503,11 +503,11 @@ msgstr "Подтянуть новые данные"
 
 #: lib\pull.py:115
 msgid "Starting..."
-msgstr "Операция начинается..."
+msgstr "Начинаем операцию..."
 
 #: lib\pull.py:163
 msgid "Aborting..."
-msgstr "Операция прервана..."
+msgstr "Останавливаем операцию..."
 
 #: lib\pull.py:171
 msgid "Finished!"
