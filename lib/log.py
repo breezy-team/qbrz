@@ -416,6 +416,7 @@ class LogWindow(QBzrWindow):
         scheme = unicode(url.scheme())
         if scheme == 'qlog-revid':
             revision_id = unicode(url.path())
+            self.changesModel.ensure_rev_visible(revision_id)
             index = self.changesModel.indexFromRevId(revision_id)
             index = self.changesProxyModel.mapFromSource(index)
             self.changesList.setCurrentIndex(index)

@@ -153,13 +153,12 @@ class TreeModel(QtCore.QAbstractTableModel):
                 branch_line[0].append(rev_index)
                 self.revid_msri[revid] = rev_index
                 self.revno_msri[revno_sequence] = rev_index
-                if not branch_id == ():
-                    for child_revid in self.graph_children[revid]:
-                        child_msri = self.revid_msri[child_revid]
-                        child_branch_id = self.merge_sorted_revisions[child_msri][3][0:-1]
-                        if not child_branch_id == branch_id and not child_branch_id == ():
-                            branch_line[3].add(child_branch_id)
-                            self.branch_lines[child_branch_id][2].add(branch_id)
+                for child_revid in self.graph_children[revid]:
+                    child_msri = self.revid_msri[child_revid]
+                    child_branch_id = self.merge_sorted_revisions[child_msri][3][0:-1]
+                    if not child_branch_id == branch_id:
+                        branch_line[3].add(child_branch_id)
+                        self.branch_lines[child_branch_id][2].add(branch_id)
             
             self.branch_ids = self.branch_lines.keys()
         
@@ -516,6 +515,18 @@ class TreeModel(QtCore.QAbstractTableModel):
         finally:
             self.emit(QtCore.SIGNAL("layoutChanged()"))
     
+    def _set_branch_visible(self, branch_id, visible, has_change):
+        if not self.branch_lines[branch_id][1] == visible:
+            has_change = True
+        self.branch_lines[branch_id][1] = visible
+        return has_change
+    
+    def _has_visible_child(self, branch_id):
+        for child_branch_id in self.branch_lines[branch_id][3]:
+            if self.branch_lines[branch_id][1]:
+                return True
+        return False
+    
     def colapse_expand_rev(self, index):
         if not index.isValid():
             return
@@ -524,19 +535,23 @@ class TreeModel(QtCore.QAbstractTableModel):
         (msri, node, lines, twisty_state, twisty_branch_ids) = self.linegraphdata[index.row()]
         has_change = False
         for branch_id in twisty_branch_ids:
-            if self.branch_lines[branch_id][1] == twisty_state:
-                has_change = True
-            self.branch_lines[branch_id][1] = not twisty_state
+            has_change = self._set_branch_visible(branch_id, not twisty_state, has_change)
             if twisty_state:
                 for parent_branch_id in self.branch_lines[branch_id][2]:
-                    vis_children = 0
-                    for child_branch_id in self.branch_lines[parent_branch_id][2]:
-                        if self.branch_lines[child_branch_id][1]:
-                            vis_children += 1
-                    if vis_children == 0:
-                        if self.branch_lines[parent_branch_id][1] == twisty_state:
-                            has_change = True
-                        self.branch_lines[parent_branch_id][1] = not twisty_state
+                    if not parent_branch_id==() and self._has_visible_child(parent_branch_id):
+                        has_change = self._set_branch_visible(parent_branch_id, not twisty_state, has_change)
+        if has_change:
+            self.compute_lines()
+    
+    def ensure_rev_visible(self, revid):
+        if self.searchMode:
+            return
+        rev_msri = self.revid_msri[revid]
+        branch_id = self.merge_sorted_revisions[rev_msri][3][0:-1]
+        has_change = self._set_branch_visible(branch_id, True, False)
+        while not self._has_visible_child(branch_id):
+            branch_id = self.branch_lines[branch_id][3][0]
+            has_change = self._set_branch_visible(branch_id, True, False)
         if has_change:
             self.compute_lines()
     
