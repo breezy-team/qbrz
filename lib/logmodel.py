@@ -523,7 +523,7 @@ class TreeModel(QtCore.QAbstractTableModel):
     
     def _has_visible_child(self, branch_id):
         for child_branch_id in self.branch_lines[branch_id][3]:
-            if self.branch_lines[branch_id][1]:
+            if self.branch_lines[child_branch_id][1]:
                 return True
         return False
     
@@ -538,7 +538,7 @@ class TreeModel(QtCore.QAbstractTableModel):
             has_change = self._set_branch_visible(branch_id, visible, has_change)
             if not visible:
                 for parent_branch_id in self.branch_lines[branch_id][2]:
-                    if not parent_branch_id==() and self._has_visible_child(parent_branch_id):
+                    if not parent_branch_id==() and not self._has_visible_child(parent_branch_id):
                         has_change = self._set_branch_visible(parent_branch_id, visible, has_change)
         if has_change:
             self.compute_lines()
