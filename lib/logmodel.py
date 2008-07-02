@@ -570,6 +570,7 @@ class TreeModel(QtCore.QAbstractTableModel):
                 self.linegraphdata.append([rev_index,
                                            None,
                                            [],
+                                           None,
                                            [],
                                           ])
                 
