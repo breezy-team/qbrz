@@ -523,7 +523,7 @@ class LogWindow(QBzrWindow):
 
     def load_history(self):
         """Load branch history."""
-        self.changesModel.loadBranch(self.branch)
+        self.changesModel.loadBranch(self.branch, specific_fileid = self.specific_fileid)
 
     def update_search_type(self, checked):
         if checked:

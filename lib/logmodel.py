@@ -80,7 +80,7 @@ class TreeModel(QtCore.QAbstractTableModel):
         self.tags = {}
         self.searchMode = False
     
-    def loadBranch(self, branch, start_revs = None):
+    def loadBranch(self, branch, start_revs = None, specific_fileid = None):
         self.branch = branch
         branch.lock_read()
         try:
@@ -119,6 +119,22 @@ class TreeModel(QtCore.QAbstractTableModel):
             assert self.merge_sorted_revisions[0][1] == "top:"
             self.merge_sorted_revisions = self.merge_sorted_revisions[1:]
             
+            if specific_fileid is not None:
+                text_keys = [(specific_fileid, revid) for (sequence_number,
+                                                            revid,
+                                                            merge_depth,
+                                                            revno_sequence,
+                                                            end_of_merge) in self.merge_sorted_revisions]
+                modified_text_versions = branch.repository.texts.get_parent_map(text_keys)
+                
+                self.visible_msri = [rev_index for (rev_index,(sequence_number,
+                                                               revid,
+                                                               merge_depth,
+                                                               revno_sequence,
+                                                               end_of_merge)) \
+                                     in enumerate(self.merge_sorted_revisions) \
+                                     if (specific_fileid, revid) in modified_text_versions]
+          
             # This will hold, for each "branch", [a list of revision indexes in
             # the branch, is the branch visible, parents, children].
             #
@@ -139,26 +155,28 @@ class TreeModel(QtCore.QAbstractTableModel):
                              end_of_merge)) in enumerate(self.merge_sorted_revisions):
                 branch_id = revno_sequence[0:-1]
                 
-                branch_line = None
-                if branch_id not in self.branch_lines:
-                    #initialy, only the main line is visible
-                    branch_line = [[],
-                                   len(branch_id)==0,
-                                   set(),
-                                   set()]
-                    self.branch_lines[branch_id] = branch_line
-                else:
-                    branch_line = self.branch_lines[branch_id]
-                
-                branch_line[0].append(rev_index)
                 self.revid_msri[revid] = rev_index
                 self.revno_msri[revno_sequence] = rev_index
-                for child_revid in self.graph_children[revid]:
-                    child_msri = self.revid_msri[child_revid]
-                    child_branch_id = self.merge_sorted_revisions[child_msri][3][0:-1]
-                    if not child_branch_id == branch_id:
-                        branch_line[3].add(child_branch_id)
-                        self.branch_lines[child_branch_id][2].add(branch_id)
+                
+                if self.visible_msri is None or rev_index in self.visible_msri:
+                    branch_line = None
+                    if branch_id not in self.branch_lines:
+                        #initialy, only the main line is visible
+                        branch_line = [[],
+                                       len(branch_id)==0,
+                                       set(),
+                                       set()]
+                        self.branch_lines[branch_id] = branch_line
+                    else:
+                        branch_line = self.branch_lines[branch_id]
+                    
+                    branch_line[0].append(rev_index)
+                    for child_revid in self.graph_children[revid]:
+                        child_msri = self.revid_msri[child_revid]
+                        child_branch_id = self.merge_sorted_revisions[child_msri][3][0:-1]
+                        if not child_branch_id == branch_id and child_branch_id in self.branch_lines:
+                            branch_line[3].add(child_branch_id)
+                            self.branch_lines[child_branch_id][2].add(branch_id)
             
             self.branch_ids = self.branch_lines.keys()
         
@@ -204,7 +222,6 @@ class TreeModel(QtCore.QAbstractTableModel):
             
             self.msri_index = {}
             
-            rev_index = 0
             for branch_id in self.branch_ids:
                 (branch_rev_msri,
                  branch_visible,
@@ -212,12 +229,13 @@ class TreeModel(QtCore.QAbstractTableModel):
                  branch_children) = self.branch_lines[branch_id]
                 if branch_visible:
                     for rev_msri in branch_rev_msri:
-                        self.linegraphdata.append([rev_msri,
-                                                   None,
-                                                   [],
-                                                   None,
-                                                   [],
-                                                  ])
+                        if self.visible_msri is None or rev_msri in self.visible_msri:
+                            self.linegraphdata.append([rev_msri,
+                                                       None,
+                                                       [],
+                                                       None,
+                                                       [],
+                                                      ])
             self.linegraphdata.sort(lambda x, y: cmp(x[0], y[0]))
             
             for rev_index, (msri, node, lines,
@@ -567,12 +585,13 @@ class TreeModel(QtCore.QAbstractTableModel):
                              merge_depth,
                              revno_sequence,
                              end_of_merge)) in enumerate(self.merge_sorted_revisions):
-                self.linegraphdata.append([rev_index,
-                                           None,
-                                           [],
-                                           None,
-                                           [],
-                                          ])
+                if self.visible_msri is None or rev_index in self.visible_msri:
+                    self.linegraphdata.append([rev_index,
+                                               None,
+                                               [],
+                                               None,
+                                               [],
+                                              ])
                 
                 self.msri_index [rev_index]=rev_index
         finally:
