@@ -195,6 +195,7 @@ class TreeModel(QtCore.QAbstractTableModel):
             self.tags = branch.tags.get_reverse_tag_dict()
             
             self.compute_lines()
+            self.loadAllRevisions()
         finally:
             branch.unlock
         
@@ -718,6 +719,26 @@ class TreeModel(QtCore.QAbstractTableModel):
             revision.children = [self._revision(i) for i in self.graph_children[revid]]
         return revision
     
+    def loadAllRevisions(self):
+        if self.visible_msri:
+            for rev_msri in self.visible_msri:
+                revid = self.merge_sorted_revisions[rev_msri][1]
+                self._revision(revid)
+                QtCore.QCoreApplication.processEvents()
+        else:
+            # load revisions in linegraphdata first, then others
+            for (rev_msri, node, lines, twisty_state, twisty_branch_ids) in self.linegraphdata:
+                revid = self.merge_sorted_revisions[rev_msri][1]
+                self._revision(revid)
+                QtCore.QCoreApplication.processEvents()
+            for (sequence_number,
+                 revid,
+                 merge_depth,
+                 revno_sequence,
+                 end_of_merge) in self.merge_sorted_revisions:
+                self._revision(revid)
+                QtCore.QCoreApplication.processEvents()
+            
     def indexFromRevId(self, revid):
         revindex = self.msri_index[self.revid_msri[revid]]
         return self.createIndex (revindex, 0, QtCore.QModelIndex())
