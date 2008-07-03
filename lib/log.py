@@ -335,12 +335,12 @@ class LogWindow(QBzrWindow):
         self.changesList.setUniformRowHeights(True)
         self.changesList.setAllColumnsShowFocus(True)
         self.changesList.setRootIsDecorated (False)
+        self.changesList.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         header = self.changesList.header()
         header.resizeSection(logmodel.COL_REV, 70)
-        #header.setResizeMode(logmodel.COL_MESSAGE, QtGui.QHeaderView.Stretch)
-        header.resizeSection(logmodel.COL_MESSAGE, 600)
         header.resizeSection(logmodel.COL_DATE, 100)
         header.resizeSection(logmodel.COL_AUTHOR, 150)
+      
         logbox.addWidget(self.changesList)
 
         self.current_rev = None
@@ -411,6 +411,8 @@ class LogWindow(QBzrWindow):
 
     def show(self):
         QBzrWindow.show(self)
+        header = self.changesList.header()
+        header.resizeSection(logmodel.COL_MESSAGE, self.changesList.maximumViewportSize().width() - 320 )
         QtCore.QTimer.singleShot(1, self.load_history)
 
     def link_clicked(self, url):
