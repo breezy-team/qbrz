@@ -271,9 +271,9 @@ class TreeModel(QtCore.QAbstractTableModel):
                                not parent_branch_id == ():
                                 self.linegraphdata[rev_index][4].append (parent_branch_id)
                             
-                            if revno_sequence[-1] == 1:
-                                continue
-                            if parent_branch_id == branch_id:
+                            if revno_sequence[-1] == 1 or \
+                                    parent_branch_id == branch_id or\
+                                    branch_id == ():
                                 continue
                             
                             if parent_msri in self.msri_index:
