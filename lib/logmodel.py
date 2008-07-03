@@ -192,14 +192,17 @@ class TreeModel(QtCore.QAbstractTableModel):
                 return cmp(len_x, len_y)
             
             self.branch_ids.sort(branch_id_cmp)
+            
             self.tags = branch.tags.get_reverse_tag_dict()
             
-            self.compute_lines()
+            self.compute_lines(update_before_lines = True)
+            
+            QtCore.QCoreApplication.processEvents()
             self.loadAllRevisions()
         finally:
             branch.unlock
         
-    def compute_lines(self, broken_line_length = None):
+    def compute_lines(self, broken_line_length = None, update_before_lines = False):
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
         try:
             # This will hold for each revision, a list of (msri,
@@ -244,297 +247,302 @@ class TreeModel(QtCore.QAbstractTableModel):
             for rev_index, (msri, node, lines,
                             twisty_state, twisty_branch_ids) in \
                     enumerate(self.linegraphdata):
-                self.msri_index[msri] = rev_index
+                self.msri_index[msri] = rev_index        
+        finally:
+            self.emit(QtCore.SIGNAL("layoutChanged()"))
+        
+        if update_before_lines:
+            QtCore.QCoreApplication.processEvents()
+        
+        # This will hold a tuple of (child_index, parent_index, col_index
+        # for each line that needs to be drawn. If col_index is not none,
+        # then the line is drawn along that column, else the the line can be
+        # drawn directly between the child and parent because either the
+        # child and parent are in the same branch line, or the child and
+        # parent are 1 row apart.
+        lines = []
+        empty_column = [False for i in range(len(self.linegraphdata))]
+        # This will hold a bit map for each cell. If the cell is true, then
+        # the cell allready contains a node or line. This use when deciding
+        # what column to place a branch line or line in, without it
+        # overlaping something else.
+        columns = [list(empty_column)]
+        
+        
+        for branch_id in self.branch_ids:
+            (branch_rev_msri,
+             branch_visible,
+             branch_parents,
+             branch_children) = self.branch_lines[branch_id]
             
-            # This will hold a tuple of (child_index, parent_index, col_index
-            # for each line that needs to be drawn. If col_index is not none,
-            # then the line is drawn along that column, else the the line can be
-            # drawn directly between the child and parent because either the
-            # child and parent are in the same branch line, or the child and
-            # parent are 1 row apart.
-            lines = []
-            empty_column = [False for i in range(len(self.linegraphdata))]
-            # This will hold a bit map for each cell. If the cell is true, then
-            # the cell allready contains a node or line. This use when deciding
-            # what column to place a branch line or line in, without it
-            # overlaping something else.
-            columns = [list(empty_column)]
-            
-            
-            for branch_id in self.branch_ids:
-                (branch_rev_msri,
-                 branch_visible,
-                 branch_parents,
-                 branch_children) = self.branch_lines[branch_id]
+            if branch_visible:
+                color = reduce(lambda x, y: x+y, branch_id, 0)
                 
-                if branch_visible:
-                    color = reduce(lambda x, y: x+y, branch_id, 0)
+                # Find columns for lines for each parent of each revision in
+                # the branch that are long and need to go between the parent
+                # branch and the child branch. Also add branch_ids to
+                # twisty_branch_ids.
+                parents_with_lines = []
+                for rev_msri in branch_rev_msri:
+                    rev_index = self.msri_index[rev_msri]
+                    (sequence_number,
+                         revid,
+                         merge_depth,
+                         revno_sequence,
+                         end_of_merge) = self.merge_sorted_revisions[rev_msri]
                     
-                    # Find columns for lines for each parent of each revision in
-                    # the branch that are long and need to go between the parent
-                    # branch and the child branch. Also add branch_ids to
-                    # twisty_branch_ids.
-                    parents_with_lines = []
-                    for rev_msri in branch_rev_msri:
-                        rev_index = self.msri_index[rev_msri]
-                        (sequence_number,
-                             revid,
-                             merge_depth,
-                             revno_sequence,
-                             end_of_merge) = self.merge_sorted_revisions[rev_msri]
+                    for parent_revid in self.graph_parents[revid]:
+                        parent_msri = self.revid_msri[parent_revid]
+                        parent_branch_id = \
+                            self.merge_sorted_revisions[parent_msri][3][0:-1]
                         
-                        for parent_revid in self.graph_parents[revid]:
-                            parent_msri = self.revid_msri[parent_revid]
-                            parent_branch_id = \
-                                self.merge_sorted_revisions[parent_msri][3][0:-1]
-                            
-                            if not parent_branch_id == branch_id and \
-                               not parent_branch_id == ():
-                                self.linegraphdata[rev_index][4].append (parent_branch_id)
-                            
-                            if revno_sequence[-1] == 1 or \
-                                    parent_branch_id == branch_id or\
-                                    branch_id == ():
-                                continue
-                            
-                            if parent_msri in self.msri_index:
-                                parent_index = self.msri_index[parent_msri]                            
-                                parent_node = self.linegraphdata[parent_index][1]
-                                if parent_node:
-                                    parent_col_index = parent_node[0]
-                                else:
-                                    parent_col_index = 0
-                                col_search_order = \
-                                    _branch_line_col_search_order(columns, parent_col_index)
-                                    
-                                
-                                if not (len(branch_id) > 0 and \
-                                        broken_line_length and \
-                                        parent_index - rev_index > broken_line_length):
-                                    line_col_index = parent_col_index
-                                    if parent_index - rev_index >1:
-                                        line_range = range(rev_index + 1, parent_index)
-                                        line_col_index = \
-                                            _find_free_column(columns,
-                                                              empty_column,
-                                                              col_search_order,
-                                                              line_range)
-                                        _mark_column_as_used(columns,
-                                                             line_col_index,
-                                                             line_range)
-                                        lines.append((rev_index,
-                                                      parent_index,
-                                                      (line_col_index,),
-                                                      ))
-                                        parents_with_lines.append(parent_revid)
+                        if not parent_branch_id == branch_id and \
+                           not parent_branch_id == ():
+                            self.linegraphdata[rev_index][4].append (parent_branch_id)
                         
-                        # Work out if the twisty needs to show a + or -. If all
-                        # twisty_branch_ids are visible, show - else +.
-                        if len (self.linegraphdata[rev_index][4])>0:
-                            twisty_state = True
-                            for twisty_branch_id in self.linegraphdata[rev_index][4]:
-                                if not self.branch_lines[twisty_branch_id][1]:
-                                    twisty_state = False
-                                    break
-                            self.linegraphdata[rev_index][3] = twisty_state
-                    
-                    # Find a column for this branch.
-                    #
-                    # Find the col_index for the direct parent branch. This will
-                    # be the starting point when looking for a free column.
-                    parent_col_index = 0
-                    parent_index = None
-                    if len(branch_id) > 1:
-                        parent_revno = branch_id[0:-1]
-                        parent_msri = self.revno_msri[parent_revno]
+                        if revno_sequence[-1] == 1 or \
+                                parent_branch_id == branch_id or\
+                                branch_id == ():
+                            continue
+                        
                         if parent_msri in self.msri_index:
-                            parent_index = self.msri_index[parent_msri]
+                            parent_index = self.msri_index[parent_msri]                            
                             parent_node = self.linegraphdata[parent_index][1]
                             if parent_node:
                                 parent_col_index = parent_node[0]
-                    
-                    col_search_order = _branch_line_col_search_order(columns,
-                                                                     parent_col_index)
-                    cur_cont_line = []
-                    
-                    # Work out what rows this branch spans
-                    line_range = []
-                    last_rev_index = None
-                    for rev_msri in branch_rev_msri:
-                        rev_index = self.msri_index[rev_msri]
-                        if last_rev_index:
-                            if broken_line_length and \
-                               rev_index - last_rev_index > broken_line_length:
-                                line_range.append(last_rev_index+1)
-                                line_range.append(rev_index-1)
                             else:
-                                line_range.extend(range(last_rev_index+1, rev_index))
-                        
-                        line_range.append(rev_index)
-                        last_rev_index = rev_index
-                    
-                    if parent_index:
-                        if broken_line_length and \
-                           parent_index - last_rev_index > broken_line_length:
-                            line_range.append(last_rev_index+1)
-                        else:
-                            line_range.extend(range(last_rev_index+1, parent_index))
-                    
-                    col_index = _find_free_column(columns,
-                                                  empty_column,
-                                                  col_search_order,
-                                                  line_range)
-                    node = (col_index, color)
-                    # Free column for this branch found. Set node for all
-                    # revision in this branch.
-                    for rev_msri in branch_rev_msri:
-                        rev_index = self.msri_index[rev_msri]
-                        self.linegraphdata[rev_index][1] = node
-                        columns[col_index][rev_index] = True
-                    
-                    # Find columns for lines for each parent of each
-                    # revision in the branch.
-                    for rev_msri in branch_rev_msri:
-                        rev_index = self.msri_index[rev_msri]
-                        (sequence_number,
-                             revid,
-                             merge_depth,
-                             revno_sequence,
-                             end_of_merge) = self.merge_sorted_revisions[rev_msri]
-                        
-                        col_index = self.linegraphdata[rev_index][1][0]
-                        
-                        for parent_revid in self.graph_parents[revid]:
-                            parent_msri = self.revid_msri[parent_revid]
+                                parent_col_index = 0
+                            col_search_order = \
+                                _branch_line_col_search_order(columns, parent_col_index)
+                                
                             
-                            if parent_revid in parents_with_lines:
-                                continue
-                            
-                            if parent_msri in self.msri_index:
-                                parent_index = self.msri_index[parent_msri]                            
-                                parent_node = self.linegraphdata[parent_index][1]
-                                if parent_node:
-                                    parent_col_index = parent_node[0]
-                                else:
-                                    parent_col_index = None
-                                col_search_order = \
-                                        _line_col_search_order(columns,
-                                                               parent_col_index,
-                                                               col_index)
-                                    
-                                # If this line is really long, break it.
-                                if len(branch_id) > 0 and \
-                                   broken_line_length and \
-                                   parent_index - rev_index > broken_line_length:
-                                    child_line_col_index = \
+                            if not (len(branch_id) > 0 and \
+                                    broken_line_length and \
+                                    parent_index - rev_index > broken_line_length):
+                                line_col_index = parent_col_index
+                                if parent_index - rev_index >1:
+                                    line_range = range(rev_index + 1, parent_index)
+                                    line_col_index = \
                                         _find_free_column(columns,
                                                           empty_column,
                                                           col_search_order,
-                                                          (rev_index + 1,))
+                                                          line_range)
                                     _mark_column_as_used(columns,
-                                                         child_line_col_index,
-                                                         (rev_index + 1,))
-                                    
-                                    # Recall _line_col_search_order to reset it back to
-                                    # the start.
-                                    col_search_order = \
-                                            _line_col_search_order(columns,
-                                                                   parent_col_index,
-                                                                   col_index)
-                                    parent_col_line_index = \
-                                        _find_free_column(columns,
-                                                          empty_column,
-                                                          col_search_order,
-                                                          (parent_index - 1,))
-                                    _mark_column_as_used(columns,
-                                                         parent_col_line_index,
-                                                         (parent_index - 1,))
-                                    lines.append((rev_index,
-                                                  parent_index,
-                                                  (child_line_col_index,
-                                                   parent_col_line_index),
-                                                  ))
-                                else :
-                                    line_col_index = col_index
-                                    if parent_index - rev_index >1:
-                                        line_range = range(rev_index + 1, parent_index)
-                                        line_col_index = \
-                                            _find_free_column(columns,
-                                                              empty_column,
-                                                              col_search_order,
-                                                              line_range)
-                                        _mark_column_as_used(columns,
-                                                             line_col_index,
-                                                             line_range)
+                                                         line_col_index,
+                                                         line_range)
                                     lines.append((rev_index,
                                                   parent_index,
                                                   (line_col_index,),
                                                   ))
-            
-            # It has now been calculated which column a line must go into. Now
-            # copy the lines in to linegraphdata.
-            for (child_index,
-                 parent_index,
-                 line_col_indexes,
-                 ) in lines:
+                                    parents_with_lines.append(parent_revid)
+                    
+                    # Work out if the twisty needs to show a + or -. If all
+                    # twisty_branch_ids are visible, show - else +.
+                    if len (self.linegraphdata[rev_index][4])>0:
+                        twisty_state = True
+                        for twisty_branch_id in self.linegraphdata[rev_index][4]:
+                            if not self.branch_lines[twisty_branch_id][1]:
+                                twisty_state = False
+                                break
+                        self.linegraphdata[rev_index][3] = twisty_state
                 
-                (child_col_index, child_color) = self.linegraphdata[child_index][1]
-                if parent_index is not None:
-                    (parent_col_index, parent_color) = self.linegraphdata[parent_index][1]
-                else:
-                    (parent_col_index, parent_color) = (child_col_index, parent_color)
+                # Find a column for this branch.
+                #
+                # Find the col_index for the direct parent branch. This will
+                # be the starting point when looking for a free column.
+                parent_col_index = 0
+                parent_index = None
+                if len(branch_id) > 1:
+                    parent_revno = branch_id[0:-1]
+                    parent_msri = self.revno_msri[parent_revno]
+                    if parent_msri in self.msri_index:
+                        parent_index = self.msri_index[parent_msri]
+                        parent_node = self.linegraphdata[parent_index][1]
+                        if parent_node:
+                            parent_col_index = parent_node[0]
                 
-                if len(line_col_indexes) == 1:
-                    assert parent_index is not None
-                    if parent_index - child_index == 1:
-                        self.linegraphdata[child_index][2].append(
-                            (child_col_index,
-                             parent_col_index,
-                             parent_color))
+                col_search_order = _branch_line_col_search_order(columns,
+                                                                 parent_col_index)
+                cur_cont_line = []
+                
+                # Work out what rows this branch spans
+                line_range = []
+                last_rev_index = None
+                for rev_msri in branch_rev_msri:
+                    rev_index = self.msri_index[rev_msri]
+                    if last_rev_index:
+                        if broken_line_length and \
+                           rev_index - last_rev_index > broken_line_length:
+                            line_range.append(last_rev_index+1)
+                            line_range.append(rev_index-1)
+                        else:
+                            line_range.extend(range(last_rev_index+1, rev_index))
+                    
+                    line_range.append(rev_index)
+                    last_rev_index = rev_index
+                
+                if parent_index:
+                    if broken_line_length and \
+                       parent_index - last_rev_index > broken_line_length:
+                        line_range.append(last_rev_index+1)
                     else:
-                        # line from the child's column to the lines column
-                        self.linegraphdata[child_index][2].append(
-                            (child_col_index,
-                             line_col_indexes[0],
-                             parent_color))
-                        # lines down the line's column
-                        for line_part_index in range(child_index+1, parent_index-1):
-                            self.linegraphdata[line_part_index][2].append(
-                                (line_col_indexes[0],   
-                                 line_col_indexes[0],
-                                 parent_color))
-                        # line from the line's column to the parent's column
-                        self.linegraphdata[parent_index-1][2].append(
-                            (line_col_indexes[0],
-                             parent_col_index,
-                             parent_color))
+                        line_range.extend(range(last_rev_index+1, parent_index))
+                
+                col_index = _find_free_column(columns,
+                                              empty_column,
+                                              col_search_order,
+                                              line_range)
+                node = (col_index, color)
+                # Free column for this branch found. Set node for all
+                # revision in this branch.
+                for rev_msri in branch_rev_msri:
+                    rev_index = self.msri_index[rev_msri]
+                    self.linegraphdata[rev_index][1] = node
+                    columns[col_index][rev_index] = True
+                
+                # Find columns for lines for each parent of each
+                # revision in the branch.
+                for rev_msri in branch_rev_msri:
+                    rev_index = self.msri_index[rev_msri]
+                    (sequence_number,
+                         revid,
+                         merge_depth,
+                         revno_sequence,
+                         end_of_merge) = self.merge_sorted_revisions[rev_msri]
+                    
+                    col_index = self.linegraphdata[rev_index][1][0]
+                    
+                    for parent_revid in self.graph_parents[revid]:
+                        parent_msri = self.revid_msri[parent_revid]
+                        
+                        if parent_revid in parents_with_lines:
+                            continue
+                        
+                        if parent_msri in self.msri_index:
+                            parent_index = self.msri_index[parent_msri]                            
+                            parent_node = self.linegraphdata[parent_index][1]
+                            if parent_node:
+                                parent_col_index = parent_node[0]
+                            else:
+                                parent_col_index = None
+                            col_search_order = \
+                                    _line_col_search_order(columns,
+                                                           parent_col_index,
+                                                           col_index)
+                                
+                            # If this line is really long, break it.
+                            if len(branch_id) > 0 and \
+                               broken_line_length and \
+                               parent_index - rev_index > broken_line_length:
+                                child_line_col_index = \
+                                    _find_free_column(columns,
+                                                      empty_column,
+                                                      col_search_order,
+                                                      (rev_index + 1,))
+                                _mark_column_as_used(columns,
+                                                     child_line_col_index,
+                                                     (rev_index + 1,))
+                                
+                                # Recall _line_col_search_order to reset it back to
+                                # the start.
+                                col_search_order = \
+                                        _line_col_search_order(columns,
+                                                               parent_col_index,
+                                                               col_index)
+                                parent_col_line_index = \
+                                    _find_free_column(columns,
+                                                      empty_column,
+                                                      col_search_order,
+                                                      (parent_index - 1,))
+                                _mark_column_as_used(columns,
+                                                     parent_col_line_index,
+                                                     (parent_index - 1,))
+                                lines.append((rev_index,
+                                              parent_index,
+                                              (child_line_col_index,
+                                               parent_col_line_index),
+                                              ))
+                            else :
+                                line_col_index = col_index
+                                if parent_index - rev_index >1:
+                                    line_range = range(rev_index + 1, parent_index)
+                                    line_col_index = \
+                                        _find_free_column(columns,
+                                                          empty_column,
+                                                          col_search_order,
+                                                          line_range)
+                                    _mark_column_as_used(columns,
+                                                         line_col_index,
+                                                         line_range)
+                                lines.append((rev_index,
+                                              parent_index,
+                                              (line_col_index,),
+                                              ))
+        
+        # It has now been calculated which column a line must go into. Now
+        # copy the lines in to linegraphdata.
+        for (child_index,
+             parent_index,
+             line_col_indexes,
+             ) in lines:
+            
+            (child_col_index, child_color) = self.linegraphdata[child_index][1]
+            if parent_index is not None:
+                (parent_col_index, parent_color) = self.linegraphdata[parent_index][1]
+            else:
+                (parent_col_index, parent_color) = (child_col_index, parent_color)
+            
+            if len(line_col_indexes) == 1:
+                assert parent_index is not None
+                if parent_index - child_index == 1:
+                    self.linegraphdata[child_index][2].append(
+                        (child_col_index,
+                         parent_col_index,
+                         parent_color))
                 else:
-                    # Broken line
                     # line from the child's column to the lines column
                     self.linegraphdata[child_index][2].append(
                         (child_col_index,
                          line_col_indexes[0],
                          parent_color))
-                    # Broken line end
-                    self.linegraphdata[child_index+1][2].append(
+                    # lines down the line's column
+                    for line_part_index in range(child_index+1, parent_index-1):
+                        self.linegraphdata[line_part_index][2].append(
+                            (line_col_indexes[0],   
+                             line_col_indexes[0],
+                             parent_color))
+                    # line from the line's column to the parent's column
+                    self.linegraphdata[parent_index-1][2].append(
                         (line_col_indexes[0],
-                         None,
+                         parent_col_index,
                          parent_color))
-                    
-                    if line_col_indexes[1] is not None:
-                        # Broken line end 
-                        self.linegraphdata[parent_index-2][2].append(
-                            (None,
-                             line_col_indexes[1],
-                             parent_color))
-                        # line from the line's column to the parent's column
-                        self.linegraphdata[parent_index-1][2].append(
-                            (line_col_indexes[1],
-                             parent_col_index,
-                             parent_color))
-        
-        finally:
-            self.emit(QtCore.SIGNAL("layoutChanged()"))
+            else:
+                # Broken line
+                # line from the child's column to the lines column
+                self.linegraphdata[child_index][2].append(
+                    (child_col_index,
+                     line_col_indexes[0],
+                     parent_color))
+                # Broken line end
+                self.linegraphdata[child_index+1][2].append(
+                    (line_col_indexes[0],
+                     None,
+                     parent_color))
+                
+                if line_col_indexes[1] is not None:
+                    # Broken line end 
+                    self.linegraphdata[parent_index-2][2].append(
+                        (None,
+                         line_col_indexes[1],
+                         parent_color))
+                    # line from the line's column to the parent's column
+                    self.linegraphdata[parent_index-1][2].append(
+                        (line_col_indexes[1],
+                         parent_col_index,
+                         parent_color))
+        self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                  self.createIndex (0, COL_MESSAGE, QtCore.QModelIndex()),
+                  self.createIndex (len(self.linegraphdata), COL_MESSAGE, QtCore.QModelIndex()))
     
     def _set_branch_visible(self, branch_id, visible, has_change):
         if not self.branch_lines[branch_id][1] == visible:
