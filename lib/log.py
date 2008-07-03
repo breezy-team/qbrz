@@ -589,6 +589,8 @@ class LogWindow(QBzrWindow):
         if e.key() == QtCore.Qt.Key_Left or e.key() == QtCore.Qt.Key_Right:
             e.accept()
             indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
+            if not indexes:
+                return
             index = indexes[0]
             revision_id = str(index.data(logmodel.RevIdRole).toString())
             twisty_state = index.data(logmodel.GraphTwistyStateRole)
@@ -602,6 +604,8 @@ class LogWindow(QBzrWindow):
                 else:
                     #find merge of child branch
                     revision_id = self.changesModel.findChildBranchMergeRevision(revision_id)
+                    if revision_id is None:
+                        return
             newindex = self.changesModel.indexFromRevId(revision_id)
             newindex = self.changesProxyModel.mapFromSource(newindex)
             self.changesList.setCurrentIndex(newindex)
