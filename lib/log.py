@@ -510,12 +510,14 @@ class LogWindow(QBzrWindow):
 
     def diff_pushed(self, checked):
         """Show differences of the selected range or of a single revision"""
-        items = self.selected_items()
-        if not items:
+        indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
+        if not indexes:
             # the list is empty
             return
-        rev1 = self.item_to_rev[items[0]]
-        rev2 = self.item_to_rev[items[-1]]
+        revid1 = str(indexes[0].data(logmodel.RevIdRole).toString())
+        rev1 = self.changesModel.revision(revid1)
+        revid2 = str(indexes[-1].data(logmodel.RevIdRole).toString())
+        rev2 = self.changesModel.revision(revid2)
         self.show_diff_window(rev1, rev2)
 
 
