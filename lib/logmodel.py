@@ -119,6 +119,8 @@ class TreeModel(QtCore.QAbstractTableModel):
             assert self.merge_sorted_revisions[0][1] == "top:"
             self.merge_sorted_revisions = self.merge_sorted_revisions[1:]
             
+            self.visible_msri = None
+            
             if specific_fileid is not None:
                 text_keys = [(specific_fileid, revid) for (sequence_number,
                                                             revid,

@@ -565,20 +565,22 @@ class LogWindow(QBzrWindow):
             index = self.changesList.indexAt(pos)
             rect = self.changesList.visualRect(index)
             boxsize = rect.height()
-            node_column = index.data(logmodel.GraphNodeRole).toList()[0].toInt()[0]
-            twistyRect = QtCore.QRect (rect.x() + boxsize * node_column,
-                                       rect.y() ,
-                                       boxsize,
-                                       boxsize)
-            if twistyRect.contains(pos):
-                e.accept ()
-                twisty_state = index.data(logmodel.GraphTwistyStateRole)
-                if twisty_state.isValid():
-                    revision_id = str(index.data(logmodel.RevIdRole).toString())
-                    self.changesModel.colapse_expand_rev(index, not twisty_state.toBool())
-                    newindex = self.changesModel.indexFromRevId(revision_id)
-                    newindex = self.changesProxyModel.mapFromSource(newindex)
-                    self.changesList.setCurrentIndex(newindex)
+            node = index.data(logmodel.GraphNodeRole).toList()
+            if len(node)>0:
+                node_column = node[0].toInt()[0]
+                twistyRect = QtCore.QRect (rect.x() + boxsize * node_column,
+                                           rect.y() ,
+                                           boxsize,
+                                           boxsize)
+                if twistyRect.contains(pos):
+                    e.accept ()
+                    twisty_state = index.data(logmodel.GraphTwistyStateRole)
+                    if twisty_state.isValid():
+                        revision_id = str(index.data(logmodel.RevIdRole).toString())
+                        self.changesModel.colapse_expand_rev(index, not twisty_state.toBool())
+                        newindex = self.changesModel.indexFromRevId(revision_id)
+                        newindex = self.changesProxyModel.mapFromSource(newindex)
+                        self.changesList.setCurrentIndex(newindex)
         QtGui.QTreeView.mouseReleaseEvent(self.changesList, e)
     
     def changesList_keyPressEvent (self, e):
