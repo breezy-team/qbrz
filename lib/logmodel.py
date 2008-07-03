@@ -79,6 +79,8 @@ class TreeModel(QtCore.QAbstractTableModel):
         self.revisions = {}
         self.tags = {}
         self.searchMode = False
+        self.revToLoad = []
+
     
     def loadBranch(self, branch, start_revs = None, specific_fileid = None):
         self.branch = branch
@@ -102,6 +104,8 @@ class TreeModel(QtCore.QAbstractTableModel):
                 for parent in parent_revids:
                     self.graph_children.setdefault(parent, []).append(revid)
                 self.graph_children.setdefault(revid, [])
+                if len(self.graph_parents) % 100 == 0 :
+                    QtCore.QCoreApplication.processEvents()
             for ghost in ghosts:
                 for ghost_child in self.graph_children[ghost]:
                     self.graph_parents[ghost_child] = [p for p in self.graph_parents[ghost_child]
@@ -198,7 +202,11 @@ class TreeModel(QtCore.QAbstractTableModel):
             self.compute_lines(update_before_lines = True)
             
             QtCore.QCoreApplication.processEvents()
-            self.loadAllRevisions()
+            
+            self.loadRevisionsTimer =  QtCore.QTimer()
+            self.loadRevisionsTimer.connect(self.loadRevisionsTimer, QtCore.SIGNAL("timeout()"), self.loadNextRevision)
+            self.loadRevisionsTimer.start(10)
+
         finally:
             branch.unlock
         
@@ -290,6 +298,9 @@ class TreeModel(QtCore.QAbstractTableModel):
                          merge_depth,
                          revno_sequence,
                          end_of_merge) = self.merge_sorted_revisions[rev_msri]
+                    
+                    if revid not in self.revisions:
+                        self.revToLoad.append(revid)
                     
                     for parent_revid in self.graph_parents[revid]:
                         parent_msri = self.revid_msri[parent_revid]
@@ -591,28 +602,37 @@ class TreeModel(QtCore.QAbstractTableModel):
             
             self.msri_index = {}
             
-            for (rev_index, (sequence_number,
+            rev_index = 0
+            for (rev_msri, (sequence_number,
                              revid,
                              merge_depth,
                              revno_sequence,
                              end_of_merge)) in enumerate(self.merge_sorted_revisions):
-                if self.visible_msri is None or rev_index in self.visible_msri:
+                if (self.visible_msri is None or rev_index in self.visible_msri) \
+                        and revid in self.revisions:
                     self.linegraphdata.append([rev_index,
                                                None,
                                                [],
                                                None,
                                                [],
                                               ])
-                
-                self.msri_index [rev_index]=rev_index
+                    self.msri_index [rev_msri]=rev_index
+                    rev_index += 1
         finally:
             self.emit(QtCore.SIGNAL("layoutChanged()"))
     
     def set_search_mode(self, searchMode):
         if not searchMode == self.searchMode:
             if searchMode:
+                self.revToLoad = [revid for (sequence_number,
+                                             revid,
+                                             merge_depth,
+                                             revno_sequence,
+                                             end_of_merge) in self.merge_sorted_revisions \
+                                  if revid not in self.revisions]
                 self.compute_search()
             else:
+                self.revToLoad = []
                 self.compute_lines()
             self.searchMode = searchMode
     
@@ -727,26 +747,12 @@ class TreeModel(QtCore.QAbstractTableModel):
             revision.children = [self._revision(i) for i in self.graph_children[revid]]
         return revision
     
-    def loadAllRevisions(self):
-        if self.visible_msri:
-            for rev_msri in self.visible_msri:
-                revid = self.merge_sorted_revisions[rev_msri][1]
-                self._revision(revid)
-                QtCore.QCoreApplication.processEvents()
-        else:
-            # load revisions in linegraphdata first, then others
-            for (rev_msri, node, lines, twisty_state, twisty_branch_ids) in self.linegraphdata:
-                revid = self.merge_sorted_revisions[rev_msri][1]
-                self._revision(revid)
-                QtCore.QCoreApplication.processEvents()
-            for (sequence_number,
-                 revid,
-                 merge_depth,
-                 revno_sequence,
-                 end_of_merge) in self.merge_sorted_revisions:
-                self._revision(revid)
-                QtCore.QCoreApplication.processEvents()
-            
+    def loadNextRevision(self):
+        if len(self.revToLoad) > 0:
+            self._revision(self.revToLoad.pop(0))
+            if self.searchMode and len(self.revToLoad) % 200 == 0:
+                self.compute_search()
+    
     def indexFromRevId(self, revid):
         revindex = self.msri_index[self.revid_msri[revid]]
         return self.createIndex (revindex, 0, QtCore.QModelIndex())
