@@ -17,26 +17,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-#TODO: This list just coppied and pasted. Work out what we really need.
-import sys
-import re
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtCore
 from time import (strftime, localtime)
-from bzrlib import bugtracker, lazy_regex
-from bzrlib.log import LogFormatter, show_log
+from bzrlib import lazy_regex
 from bzrlib.revision import NULL_REVISION
 from bzrlib.tsort import merge_sort
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
-    BTN_CLOSE,
-    QBzrWindow,
     extract_name,
-    format_revision_html,
-    format_timestamp,
-    htmlize,
-    open_browser,
-    RevisionMessageBrowser,
     )
 
 TagsRole = QtCore.Qt.UserRole + 1
