@@ -373,8 +373,6 @@ class LogWindow(QBzrWindow):
 
     def show(self):
         QBzrWindow.show(self)
-        header = self.changesList.header()
-        header.resizeSection(logmodel.COL_MESSAGE, self.changesList.maximumViewportSize().width() - 320 )
         QtCore.QTimer.singleShot(1, self.load_history)
 
     def link_clicked(self, url):
