@@ -337,10 +337,15 @@ class LogWindow(QBzrWindow):
         self.changesList.setRootIsDecorated (False)
         self.changesList.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         header = self.changesList.header()
+        header.setStretchLastSection(False)
+        header.setResizeMode(logmodel.COL_REV, QtGui.QHeaderView.Interactive)
+        header.setResizeMode(logmodel.COL_MESSAGE, QtGui.QHeaderView.Stretch)
+        header.setResizeMode(logmodel.COL_DATE, QtGui.QHeaderView.Interactive)
+        header.setResizeMode(logmodel.COL_AUTHOR, QtGui.QHeaderView.Interactive)
         header.resizeSection(logmodel.COL_REV, 70)
         header.resizeSection(logmodel.COL_DATE, 100)
         header.resizeSection(logmodel.COL_AUTHOR, 150)
-      
+
         logbox.addWidget(self.changesList)
 
         self.current_rev = None
