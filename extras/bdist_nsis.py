@@ -39,15 +39,29 @@ class bdist_nsis(Command):
             "skip rebuilding everything (for testing/debugging)"),
         ('nsis-compiler', None, "full path to NSIS compiler executable"),
         ('copy-pyqt4', None, "copy PyQt4 libs from Python 2.5 site-packages"),
+        ('copy-pygments', None,
+            "copy Pygments library from Python 2.5 site-packages"),
+        ('dry-run', 'n', "copy libs (if required) but don't run makensis"),
+        ('copy-all', 'A',
+            "copy all additional libs from Python 2.5 site-packages"),
         ]
 
-    boolean_options = ['skip-build', 'copy-pyqt4']
+    boolean_options = [
+        'skip-build',
+        'copy-pyqt4',
+        'copy-pygments',
+        'copy-all',
+        'dry-run',
+        ]
 
     def initialize_options(self):
         self.nsi_script = None
         self.skip_build = False
         self.nsis_compiler = None
+        self.copy_all = False
         self.copy_pyqt4 = False
+        self.copy_pygments = False
+        self.dry_run = False
 
     def finalize_options(self):
         if not self.nsi_script:
@@ -79,6 +93,11 @@ class bdist_nsis(Command):
                     self.nsis_compiler = 'makensis.exe'
             else:
                 self.nsis_compiler = 'makensis'
+        #
+        if self.copy_all:
+            self.copy_pyqt4 = True
+            self.copy_pygments = True
+        #
         if self.copy_pyqt4:
             if sys.platform != 'win32':
                 raise DistutilsPlatformError(
@@ -96,11 +115,16 @@ class bdist_nsis(Command):
         basename = 'sip.pyd'
         src = os.path.join(sitedir, basename)
         dst = os.path.join('installer', '_lib', basename)
-        log.info('copying sip.pyd: %s -> %s', src, dst)
+        log.info('Copying sip.pyd: %s -> %s', src, dst)
         shutil.copyfile(src, dst)
         # PyQt4 package
-        log.info('copying PyQt4 package')
+        log.info('Copying PyQt4 package')
         pkg = os.path.join(sitedir, 'PyQt4')
+        self._copy_python_package(pkg)
+
+    def _copy_python_package(self, pkg):
+        sitedir = os.path.join(os.path.dirname(os.__file__),
+                               'site-packages')
         prefix = len(sitedir) + 1
         for root, dirs, files in os.walk(pkg):
             for i in files:
@@ -115,13 +139,30 @@ class bdist_nsis(Command):
                     log.info('Copying %s -> %s', src, dst)
                     shutil.copyfile(src, dst)
 
+    def _do_copy_pygments(self):
+        # copy pygments package
+        import pygments
+        log.info('Copying Pygments package')
+        pkg = os.path.dirname(pygments.__file__)
+        assert pkg.endswith('pygments')
+        self._copy_python_package(pkg)
+        # copy std lib module commands.py
+        import commands
+        src = os.path.splitext(commands.__file__)[0] + '.py'
+        dst = os.path.join('installer', '_lib', os.path.basename(src))
+        log.info('Copying %s -> %s', src, dst)
+        shutil.copyfile(src, dst)
+
     def run(self):
         if not self.skip_build:
             self.run_command('build')
         if self.copy_pyqt4:
             self._do_copy_pyqt4()
-        print 'Run NSIS compiler'
-        self.spawn([self.nsis_compiler, self.nsi_script])
+        if self.copy_pygments:
+            self._do_copy_pygments()
+        if not self.dry_run:
+            print 'Run NSIS compiler'
+            self.spawn([self.nsis_compiler, self.nsi_script])
 
 
 # plug-in our bdist builder to distutils collection

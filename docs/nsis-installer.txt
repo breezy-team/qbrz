@@ -4,10 +4,6 @@ Building NSIS installer for using QBzr with standalone bzr.exe
 To build NSIS installer you need NSIS program itself and you
 need to provide PyQt4 libraries for Windows Python 2.5.
 
-PyQt4 libraries should be placed to ``./installer/_lib`` directory.
-Usually you can copy them from your Windows Python 2.5 ``site-packages``
-directory. You need files from ``PyQt4`` directory and ``sip.pyd`` as well.
-
 To build installer you need to run command from tree root::
 
 	python setup.py bdist_nsis
@@ -15,10 +11,33 @@ To build installer you need to run command from tree root::
 NSIS is able to run on Linux platform, so in theory this command should
 work even on Linux.
 
-On Windows you can ask setup.py to copy necessary PyQt4 libs for you
-with command-line option --copy-pyqt4::
-
-	python setup.py bdist_nsis --copy-pyqt4
-
 Resulting installer will appear in tree root with name
 ``qbzr-setup-X.Y.Z.exe``.
+
+
+Additional libraries
+--------------------
+To copy all required libraries from your Python 2.5 installation
+you could use --copy-all option::
+
+	python setup.py bdist_nsis --copy-all
+
+PyQt4 (mandatory)
+*****************
+PyQt4 libraries should be placed to ``./installer/_lib`` directory.
+Usually you can copy them from your Windows Python 2.5 ``site-packages``
+directory. You need files from ``PyQt4`` directory and ``sip.pyd`` as well.
+
+On Windows you can ask setup.py to copy necessary PyQt4 libs for you
+with command-line option --copy-pyqt4.
+
+Pygments (optional)
+*******************
+Pygments library should be placed to ``./installer/_lib`` directory.
+Usually you can copy it from your Windows Python 2.5 ``site-packages``
+directory. You need also standard module ``commands.py`` from Python 2.5
+``Lib`` directory because it's not pre-packaged into bzr.exe.
+
+On Windows you can ask setup.py to copy necessary Pygments libs for you
+with command-line option --copy-pygments. This will copy ``pygments``
+package and ``commands.py`` module as well.
