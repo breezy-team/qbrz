@@ -217,49 +217,6 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
         
         return QtGui.QItemDelegate.drawDisplay(self, painter, option, rect, text)
 
-class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
-
-    def __init__(self):
-        QtGui.QSortFilterProxyModel.__init__(self)
-        self._filterCache = {}
-
-    def filterAcceptsRow(self, sourceRow, sourceParent):
-        # TODO this seriously needs to be in C++
-
-        filterRegExp = self.filterRegExp()
-        sourceModel = self.sourceModel()
-        #if filterRegExp != self._filterCacheRegExp:
-        #    print "clearing cache"
-        #    self._filterCache = {}
-
-        if filterRegExp.isEmpty():
-            return True
-
-        index = sourceModel.index(sourceRow, 0, sourceParent)
-        if not index.isValid():
-            return True
-
-        filterId = sourceModel.data(index, logmodel.FilterIdRole).toString()
-        accepts = self._filterCache.get(filterId)
-        if accepts is not None:
-            return accepts
-
-        key = sourceModel.data(index, self.filterRole()).toString()
-        if key.contains(filterRegExp):
-            self._filterCache[filterId] = True
-            return True
-
-        self._filterCache[filterId] = False
-        return False
-
-
-try:
-    from bzrlib.plugins.qbzr.lib._ext import (
-        TreeFilterProxyModel,
-        LogWidgetDelegate,
-        )
-except ImportError:
-    pass
 
 class LogWindow(QBzrWindow):
 
@@ -276,7 +233,7 @@ class LogWindow(QBzrWindow):
 
         self.changesModel = logmodel.TreeModel()
 
-        self.changesProxyModel = TreeFilterProxyModel()
+        self.changesProxyModel = QtGui.QSortFilterProxyModel()
         self.changesProxyModel.setSourceModel(self.changesModel)
         self.changesProxyModel.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.changesProxyModel.setFilterRole(logmodel.FilterMessageRole)
