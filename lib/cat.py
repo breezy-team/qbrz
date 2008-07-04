@@ -81,6 +81,8 @@ class QBzrCatWindow(QBzrWindow):
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(self.browser)
         vbox.addWidget(self.buttonbox)
+        # set focus on content
+        self.browser.setFocus()
 
     def detect_content_type(self, relpath, text, kind='file'):
         """Return (file_type, viewer_factory) based on kind, text and relpath.
