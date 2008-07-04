@@ -6,6 +6,7 @@ Jelmer Vernooij <jelmer at samba dot org>.
 
 Contributors:
  * Alexander Belchenko <bialix at ukr dot net>
+ * Gary van der Merwe <garyvdm at gmail dot com>
  * Goffredo Baroncelli <kreijack at tiscalinet dot it>
 
 Used icons:
