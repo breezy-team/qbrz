@@ -499,7 +499,7 @@ msgstr ""
 
 #: lib\pull.py:53
 msgid "Pull"
-msgstr "Подтянуть новые данные"
+msgstr "Загрузить новые данные"
 
 #: lib\pull.py:115
 msgid "Starting..."
