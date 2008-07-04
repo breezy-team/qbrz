@@ -695,7 +695,7 @@ class TreeModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant(strftime("%Y-%m-%d %H:%M",
                                             localtime(revision.timestamp)))
         if role == QtCore.Qt.DisplayRole and index.column() == COL_AUTHOR:
-            return QtCore.QVariant(extract_name(revision.committer))
+            return QtCore.QVariant(extract_name(revision.get_apparent_author()))
         if role == QtCore.Qt.DisplayRole and index.column() == COL_MESSAGE:
             return QtCore.QVariant(revision.get_summary())
         if role == BugIdsRole:
@@ -712,7 +712,7 @@ class TreeModel(QtCore.QAbstractTableModel):
         if role == FilterMessageRole:
             return QtCore.QVariant(revision.message)
         if role == FilterAuthorRole:
-            return QtCore.QVariant(revision.committer)
+            return QtCore.QVariant(revision.get_apparent_author())
         
         #return QtCore.QVariant(item.data(index.column()))
         return QtCore.QVariant()
