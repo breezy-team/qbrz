@@ -229,6 +229,7 @@ class LogWindow(QBzrWindow):
         self.changesProxyModel.setSourceModel(self.changesModel)
         self.changesProxyModel.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.changesProxyModel.setFilterRole(logmodel.FilterMessageRole)
+        self.changesProxyModel.setDynamicSortFilter(True)
 
         logwidget = QtGui.QWidget()
         logbox = QtGui.QVBoxLayout(logwidget)
