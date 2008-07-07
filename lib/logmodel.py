@@ -17,26 +17,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-#TODO: This list just coppied and pasted. Work out what we really need.
-import sys
-import re
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtCore
 from time import (strftime, localtime)
-from bzrlib import bugtracker, lazy_regex
-from bzrlib.log import LogFormatter, show_log
+from bzrlib import lazy_regex
 from bzrlib.revision import NULL_REVISION
 from bzrlib.tsort import merge_sort
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
-    BTN_CLOSE,
-    QBzrWindow,
     extract_name,
-    format_revision_html,
-    format_timestamp,
-    htmlize,
-    open_browser,
-    RevisionMessageBrowser,
     )
 
 TagsRole = QtCore.Qt.UserRole + 1
@@ -79,8 +68,6 @@ class TreeModel(QtCore.QAbstractTableModel):
         self.revisions = {}
         self.tags = {}
         self.searchMode = False
-        self.revToLoad = []
-
     
     def loadBranch(self, branch, start_revs = None, specific_fileid = None):
         self.branch = branch
@@ -203,10 +190,8 @@ class TreeModel(QtCore.QAbstractTableModel):
             
             QtCore.QCoreApplication.processEvents()
             
-            self.loadRevisionsTimer =  QtCore.QTimer()
-            self.loadRevisionsTimer.connect(self.loadRevisionsTimer, QtCore.SIGNAL("timeout()"), self.loadNextRevision)
-            self.loadRevisionsTimer.start(10)
-
+            self._nextRevisionToLoadGen = self._nextRevisionToLoad()
+            self._loadNextRevision()
         finally:
             branch.unlock
         
@@ -298,9 +283,6 @@ class TreeModel(QtCore.QAbstractTableModel):
                          merge_depth,
                          revno_sequence,
                          end_of_merge) = self.merge_sorted_revisions[rev_msri]
-                    
-                    if revid not in self.revisions:
-                        self.revToLoad.append(revid)
                     
                     for parent_revid in self.graph_parents[revid]:
                         parent_msri = self.revid_msri[parent_revid]
@@ -608,8 +590,8 @@ class TreeModel(QtCore.QAbstractTableModel):
                              merge_depth,
                              revno_sequence,
                              end_of_merge)) in enumerate(self.merge_sorted_revisions):
-                if (self.visible_msri is None or rev_index in self.visible_msri) \
-                        and revid in self.revisions:
+                if (self.visible_msri is None or rev_index in self.visible_msri) :
+                        #and revid in self.revisions:
                     self.linegraphdata.append([rev_index,
                                                None,
                                                [],
@@ -624,16 +606,11 @@ class TreeModel(QtCore.QAbstractTableModel):
     def set_search_mode(self, searchMode):
         if not searchMode == self.searchMode:
             if searchMode:
-                self.revToLoad = [revid for (sequence_number,
-                                             revid,
-                                             merge_depth,
-                                             revno_sequence,
-                                             end_of_merge) in self.merge_sorted_revisions \
-                                  if revid not in self.revisions]
                 self.compute_search()
+                self._nextRevisionToLoadGen = self._nextRevisionToLoad()
             else:
-                self.revToLoad = []
                 self.compute_lines()
+                self._nextRevisionToLoadGen = self._nextRevisionToLoad()
             self.searchMode = searchMode
     
     def columnCount(self, parent):
@@ -685,6 +662,10 @@ class TreeModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant(tags)
         if role == RevIdRole or role == FilterIdRole:
             return QtCore.QVariant(revid)
+        
+        if role == FilterMessageRole or role == FilterAuthorRole:
+            if revid not in self.revisions:
+                return QtCore.QVariant()
         
         #Everything from here foward will need to have the revision loaded.
         if not revid or revid == NULL_REVISION:
@@ -747,12 +728,47 @@ class TreeModel(QtCore.QAbstractTableModel):
             revision.children = [self._revision(i) for i in self.graph_children[revid]]
         return revision
     
-    def loadNextRevision(self):
-        if len(self.revToLoad) > 0:
-            self._revision(self.revToLoad.pop(0))
-            if self.searchMode and len(self.revToLoad) % 200 == 0:
-                self.compute_search()
+    def _loadNextRevision(self):
+        try:
+            if self.searchMode:
+                revisionsChanged = []
+                while self.searchMode:
+                    try:
+                        nextRevId = self._nextRevisionToLoadGen.next()
+                        self._revision(nextRevId)
+                        revisionsChanged.append(nextRevId)
+                        QtCore.QCoreApplication.processEvents()
+                    finally:
+                        if len(revisionsChanged) == 100:
+                            for revid in revisionsChanged:
+                                index = self.indexFromRevId(revid)
+                                self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                                          index,index)
+                            revisionsChanged = []
+                            QtCore.QCoreApplication.processEvents()
+            else:
+                nextRevId = self._nextRevisionToLoadGen.next()
+                self._revision(nextRevId)
+            QtCore.QTimer.singleShot(5, self._loadNextRevision)
+        except StopIteration:
+            # All revisions are loaded.
+            pass
     
+    def _nextRevisionToLoad(self):
+        if not self.searchMode:
+            for (msri, node, lines,
+                 twisty_state, twisty_branch_ids) in self.linegraphdata:
+                revid = self.merge_sorted_revisions[msri][1]
+                if revid not in self.revisions:
+                    yield revid
+        for (sequence_number,
+             revid,
+             merge_depth,
+             revno_sequence,
+             end_of_merge) in self.merge_sorted_revisions:
+            if revid not in self.revisions:
+                yield revid
+
     def indexFromRevId(self, revid):
         revindex = self.msri_index[self.revid_msri[revid]]
         return self.createIndex (revindex, 0, QtCore.QModelIndex())
