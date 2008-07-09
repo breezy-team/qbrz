@@ -37,106 +37,66 @@ for kind, cols in colors.items():
 
 class DiffSourceView(QtGui.QTextBrowser):
 
-    def __init__(self, font, titleFont, metainfoFont, metainfoTitleFont, lineHeight, parent=None):
+    def __init__(self, parent=None):
         QtGui.QTextBrowser.__init__(self, parent)
-        self.font = font
-        self.titleFont = titleFont
-        self.lineHeight = lineHeight
-        self.metainfoFont = metainfoFont
-        self.metainfoTitleFont = metainfoTitleFont
         self.setLineWrapMode(QtGui.QTextEdit.NoWrap)
-        #self.setViewportMargins(40, 0, 0, 0)
+        self.changes = []
 
-    def setData(self, text, titles, changes):
-        self.doc = QtGui.QTextDocument()
-        self.doc.setDefaultFont(self.font)
-        self.doc.setHtml(text)
-        self.setDocument(self.doc)
+    def setChanges(self, changes):
         self.changes = changes
-        self.titles = titles
-        self.update()
 
     def paintEvent(self, event):
         w = self.width()
-
-        x = 1 - self.horizontalScrollBar().value()
-        y = 1 - self.verticalScrollBar().value()
-
+        y = self.verticalScrollBar().value()
         painter = QtGui.QPainter(self.viewport())
         painter.setClipRect(event.rect())
-
-        pen = QtGui.QPen(QtCore.Qt.black)
-        pen.setWidth(2)
-        painter.setPen(pen)
-
-        for pos, title, metainfo in self.titles:
-            painter.setFont(self.titleFont)
-            fm = painter.fontMetrics()
-            x1 = x + 2
-            y1 = y + self.lineHeight * pos
-            painter.drawText(x1, y1 + fm.ascent(), title)
-            y1 += fm.height()
-            painter.setFont(self.metainfoTitleFont)
-            fm = painter.fontMetrics()
-            y1 += fm.ascent()
-            for name, value in metainfo:
-                painter.setFont(self.metainfoTitleFont)
-                painter.drawText(x1, y1, name)
-                x1 += fm.width(name)
-                painter.setFont(self.metainfoFont)
-                painter.drawText(x1, y1, value)
-                x1 += painter.fontMetrics().width(value)
-            y1 += fm.descent()
-            painter.drawLine(0, y1 + 2, w, y1 + 2)
-
-        for pos, nlines, kind in self.changes:
-            y1 = y + self.lineHeight * pos
-            y2 = y1 + self.lineHeight * nlines
-            painter.fillRect(0, y1, w, y2 - y1 + 1, brushes[kind][0])
+        for block0, block1, kind in self.changes:
+            y1 = block0.position().y()
+            y2 = block1.position().y()
+            if y1 <= 0 or y2 <= 0:
+                continue
+            y1 -= y
+            y2 -= y
+            painter.fillRect(0, y1, w, y2 - y1, brushes[kind][0])
             painter.setPen(colors[kind][1])
             painter.drawLine(0, y1, w, y1)
             if y1 != y2:
-                painter.drawLine(0, y2, w, y2)
-
-        painter = None
+                painter.drawLine(0, y2 - 1, w, y2 - 1)
+        del painter
         QtGui.QTextBrowser.paintEvent(self, event)
 
 
 class DiffViewHandle(QtGui.QSplitterHandle):
 
-    def __init__(self, lineHeight, parent=None):
+    def __init__(self, parent=None):
         QtGui.QSplitterHandle.__init__(self, QtCore.Qt.Horizontal, parent)
-        self.lineHeight = lineHeight
         self.view = parent
 
-    def setData(self, changes):
+    def setChanges(self, changes):
         self.changes = changes
-        self.update()
 
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
-
-        value1 = self.view.browser1.verticalScrollBar().value()
-        value2 = self.view.browser2.verticalScrollBar().value()
-
+        painter.setClipRect(event.rect())
+        frame = QtGui.QApplication.style().pixelMetric(QtGui.QStyle.PM_DefaultFrameWidth)
+        value1 = self.view.browser1.verticalScrollBar().value() - frame
+        value2 = self.view.browser2.verticalScrollBar().value() - frame
         w = self.width()
-        frame = QtGui.QApplication.style().pixelMetric(QtGui.QStyle.PM_DefaultFrameWidth) + 1
+        for blocka0, blockb0, blocka1, blockb1, kind in self.changes:
+            ly1 = blocka0.position().y()
+            ly2 = blocka1.position().y()
+            ry1 = blockb0.position().y()
+            ry2 = blockb1.position().y()
+            if ly1 <= 0 or ly2 <= 0 or ry1 <= 0 or ry2 <= 0:
+                continue
 
-        for pos1, nlines1, pos2, nlines2, kind in self.changes:
-            #if kind == 'blank' and nlines1 == 0 or nlines2 == 0:
-            #    continue
-
-            ly1 = frame + self.lineHeight * pos1 - value1
-            ly2 = ly1 + self.lineHeight * nlines1
-            ry1 = frame + self.lineHeight * pos2 - value2
-            ry2 = ry1 + self.lineHeight * nlines2
+            ly1 -= value1
+            ly2 -= value1
+            ry1 -= value2
+            ry2 -= value2
 
             polygon = QtGui.QPolygon(4)
-            polygon.setPoints(
-                0, ly1,
-                w, ry1,
-                w, ry2,
-                0, ly2)
+            polygon.setPoints(0, ly1, w, ry1, w, ry2, 0, ly2)
             painter.setPen(QtCore.Qt.NoPen)
             painter.setBrush(brushes[kind][0])
             painter.drawConvexPolygon(polygon)
@@ -146,6 +106,7 @@ class DiffViewHandle(QtGui.QSplitterHandle):
             painter.drawLine(0, ly1, w, ry1)
             painter.setRenderHints(QtGui.QPainter.Antialiasing, ly2 != ry2)
             painter.drawLine(0, ly2, w, ry2)
+        del painter
 
 
 def markup_line(line, encode=True):
@@ -217,8 +178,14 @@ class DiffView(QtGui.QSplitter):
         metainfoTitleFont = QtGui.QFont(metainfoFont)
         metainfoTitleFont.setBold(True)
 
-        self.browser1 = DiffSourceView(font, titleFont, metainfoFont, metainfoTitleFont, self.lineHeight, self)
-        self.browser2 = DiffSourceView(font, titleFont, metainfoFont, metainfoTitleFont, self.lineHeight, self)
+        self.doc1 = QtGui.QTextDocument()
+        self.doc2 = QtGui.QTextDocument()
+
+        self.browser1 = DiffSourceView(self)
+        self.browser2 = DiffSourceView(self)
+
+#        self.browser1 = DiffSourceView(font, titleFont, metainfoFont, metainfoTitleFont, self.lineHeight, self)
+#        self.browser2 = DiffSourceView(font, titleFont, metainfoFont, metainfoTitleFont, self.lineHeight, self)
 
         self.ignoreUpdate = False
         self.connect(self.browser1.verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.updateHandle1)
@@ -226,15 +193,16 @@ class DiffView(QtGui.QSplitter):
         self.connect(self.browser1.horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.syncHorizontalSlider1)
         self.connect(self.browser2.horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.syncHorizontalSlider2)
 
-        self.addWidget(self.browser1)
-        self.addWidget(self.browser2)
-
         self.setCollapsible(0, False)
         self.setCollapsible(1, False)
 
         self.treediff = treediff
-        self.displayCombined(expand=False)
-        #self.displayFull(1)
+        self.displayCombined()
+        self.browser1.setDocument(self.doc1)
+        self.browser2.setDocument(self.doc2)
+
+        self.addWidget(self.browser1)
+        self.addWidget(self.browser2)
 
     def _syncSliders(self, slider1, slider2, value):
         m = slider1.maximum()
@@ -273,135 +241,122 @@ class DiffView(QtGui.QSplitter):
             self.handle(1).update()
 
     def createHandle(self):
-        return DiffViewHandle(self.lineHeight, self)
+        return DiffViewHandle(self)
 
-    def displayCombined(self, expand=False):
-        lines1 = []
-        lines2 = []
+    def displayCombined(self):
+        monospacedFont = QtGui.QFont("Courier New, Courier", self.font().pointSize())
+        titleFont = QtGui.QFont(self.font())
+        titleFont.setPointSize(titleFont.pointSize() * 140 / 100)
+        titleFont.setBold(True)
+        metadataFont = QtGui.QFont(self.font())
+        metadataFont.setPointSize(titleFont.pointSize() * 70 / 100)
+        metadataLabelFont = QtGui.QFont(metadataFont)
+        metadataLabelFont.setBold(True)
+
+        monospacedFormat = QtGui.QTextCharFormat()
+        monospacedFormat.setFont(monospacedFont)
+        titleFormat = QtGui.QTextCharFormat()
+        titleFormat.setFont(titleFont)
+        metadataFormat = QtGui.QTextCharFormat()
+        metadataFormat.setFont(metadataFont)
+        metadataLabelFormat = QtGui.QTextCharFormat()
+        metadataLabelFormat.setFont(metadataLabelFont)
+
+        cursors = [QtGui.QTextCursor(self.doc1), QtGui.QTextCursor(self.doc2)]
+
         changes = []
-        titles1 = []
-        titles2 = []
+
+        lastModifiedLabel = gettext('Last modified:')
+        statusLabel = gettext('Status:')
+        kindLabel = gettext('Kind:')
+
         for diff in self.treediff:
-            titles1.append((len(lines1), diff.path,
-                ((gettext('Last modified:'), ' %s, ' % diff.old_date),
-                (gettext('Status:'), ' %s, ' % gettext(diff.status)),
-                (gettext('Kind:'), ' %s' % gettext(diff.kind)))))
-            titles2.append((len(lines2), diff.path,
-                ((gettext('Last modified:'), ' %s, ' % diff.new_date),
-                (gettext('Status:'), ' %s, ' % gettext(diff.status)),
-                (gettext('Kind:'), ' %s' % gettext(diff.kind)))))
-            #lines1.append('<span style="font-family:%s;%s">%s</span>' % (self.ff, STYLES['title'], diff.path))
-            #lines1.append('<span style="font-family:%s;%s"><b>Last modified:</b> %s, <b>Status:</b> %s, <b>Kind:</b> %s</span>' % (self.ff, STYLES['metainfo'], diff.old_date, diff.status, diff.kind))
-            #lines2.append('<span style="font-family:%s;%s">%s</span>' % (self.ff, STYLES['title'], diff.path))
-            #lines2.append('<span style="font-family:%s;%s"><b>Last modified:</b> %s, <b>Status:</b> %s, <b>Kind:</b> %s</span>' % (self.ff, STYLES['metainfo'], diff.new_date, diff.status, diff.kind))
-            lines1.append('')
-            lines1.append('')
-            lines1.append('')
-            lines2.append('')
-            lines2.append('')
-            lines2.append('')
-            if diff.binary:
-                _s = '<span style="background-color:#FFFF80;">%s</span>' % (
-                    gettext('[binary file]'))
-                if diff.status != 'added':
-                    lines1.append(_s)
-                else:
-                    lines1.append('')
-                if diff.status != 'removed':
-                    lines2.append(_s)
-                else:
-                    lines2.append('')
+            # file path
+            cursors[0].insertText(diff.path, titleFormat)
+            cursors[1].insertText(diff.path, titleFormat)
+            # metadata
+            cursors[0].insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
+            cursors[0].insertText(lastModifiedLabel, metadataLabelFormat)
+            cursors[0].insertText(" %s, " % diff.old_date, metadataFormat)
+            cursors[0].insertText(statusLabel, metadataLabelFormat)
+            cursors[0].insertText(" %s, " % gettext(diff.status), metadataFormat)
+            cursors[0].insertText(kindLabel, metadataLabelFormat)
+            cursors[0].insertText(" %s" % gettext(diff.kind), metadataFormat)
+            cursors[1].insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
+            cursors[1].insertText(lastModifiedLabel, metadataLabelFormat)
+            cursors[1].insertText(" %s, " % diff.new_date, metadataFormat)
+            cursors[1].insertText(statusLabel, metadataLabelFormat)
+            cursors[1].insertText(" %s, " % gettext(diff.status), metadataFormat)
+            cursors[1].insertText(kindLabel, metadataLabelFormat)
+            cursors[1].insertText(" %s" % gettext(diff.kind), metadataFormat)
+            for cursor in cursors:
+                cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
+                cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
+
             a = diff.old_lines
             b = diff.new_lines
             for i, group in enumerate(diff.groups):
                 if i > 0:
-                    pos1 = len(lines1)
-                    pos2 = len(lines2)
-                    changes.append((pos1, 1, pos2, 1, 'blank'))
-                    lines1.append("")
-                    lines2.append("")
-
+                    blocka0 = cursors[0].block().layout()
+                    blockb0 = cursors[1].block().layout()
+                    for cursor in cursors:
+                        cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
+                    blocka1 = cursors[0].block().layout()
+                    blockb1 = cursors[1].block().layout()
+                    changes.append((blocka0, blockb0, blocka1, blockb1, 'blank'))
+                linediff = 0
                 for tag, i1, i2, j1, j2 in group:
                     ni = i2 - i1
                     nj = j2 - j1
-                    pos1 = len(lines1)
-                    pos2 = len(lines2)
-                    if tag == 'equal':
-                        lines = map(markup_line, a[i1:i2])
-                        lines1.extend(lines)
-                        lines2.extend(lines)
+                    if tag == "equal":
+                        text = "".join(l for l in a[i1:i2])
+                        for cursor in cursors:
+                            cursor.insertText(text, monospacedFormat)
                     else:
-                        changes.append((pos1, ni, pos2, nj, tag))
+                        blocka0 = cursors[0].block().layout()
+                        blockb0 = cursors[1].block().layout()
                         if ni == nj:
-                            for i in range(ni):
+                            for i in xrange(ni):
                                 linea = a[i1 + i]
                                 lineb = b[j1 + i]
-                                new_linea = markup_intraline_changes(linea, lineb, '#5A82B4')
-                                new_lineb = markup_intraline_changes(lineb, linea, '#5A82B4')
-                                lines1.append(markup_line(new_linea, encode=False))
-                                lines2.append(markup_line(new_lineb, encode=False))
+                                cursors[0].insertText(linea, monospacedFormat)
+                                cursors[1].insertText(lineb, monospacedFormat)
                         else:
-                            lines1.extend(map(markup_line, a[i1:i2]))
-                            lines2.extend(map(markup_line, b[j1:j2]))
-                            if expand:
-                                pos1 = len(lines1)
-                                pos2 = len(lines2)
-                                nd = ni - nj;
-                                if nd < 0:
-                                    nd = -nd
-                                    changes.append((pos1, nd, pos2, 0, 'blank'))
-                                    lines1.extend([""] * nd)
-                                elif nd > 0:
-                                    pos2 = len(lines2)
-                                    changes.append((pos1, 0, pos2, nd, 'blank'))
-                                    lines2.extend([""] * nd)
-
-                lend = len(lines1) - len(lines2)
-                if lend < 0:
+                            linediff += ni - nj
+                            text = "".join(l for l in a[i1:i2])
+                            cursors[0].insertText(text, monospacedFormat)
+                            text = "".join(l for l in b[j1:j2])
+                            cursors[1].insertText(text, monospacedFormat)
+                        blocka1 = cursors[0].block().layout()
+                        blockb1 = cursors[1].block().layout()
+                        changes.append((blocka0, blockb0, blocka1, blockb1, tag))
+                if linediff == 0:
+                    continue
+                if linediff < 0:
                     i1 = group[-1][2]
-                    i2 = i1 - lend
-                    lines1.extend(map(markup_line, a[i1:i2]))
-                if lend > 0:
+                    i2 = i1 - linediff
+                    lines = a[i1:i2]
+                    linediff = -linediff - len(lines)
+                    cursor = cursors[0]
+                else:
                     j1 = group[-1][4]
-                    j2 = j1 + lend
-                    lines2.extend(map(markup_line, b[j1:j2]))
-                lend = len(lines1) - len(lines2)
-                if lend < 0:
-                    lines1.extend([''] * -lend)
-                if lend > 0:
-                    lines2.extend([''] * lend)
-            lines1.append('')
-            lines2.append('')
+                    j2 = j1 + linediff
+                    lines = b[j1:j2]
+                    linediff = linediff - len(lines)
+                    cursor = cursors[1]
+                lines.extend(["\n"] * linediff)
+                cursor.insertText("".join(lines), monospacedFormat)
 
-        text1 = '<div style="white-space:pre">' + '<br/>'.join(lines1) + '</div>'
-        text2 = '<div style="white-space:pre">' + '<br/>'.join(lines2) + '</div>'
-        changes1 = [(line[0], line[1], line[4]) for line in changes]
-        changes2 = [(line[2], line[3], line[4]) for line in changes]
+            for cursor in cursors:
+                cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
+                cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
 
-        self.browser1.setData(text1, titles1, changes1)
-        self.browser2.setData(text2, titles2, changes2)
-        self.handle(1).setData(changes)
-        self.browser1.verticalScrollBar().setValue(0)
+        changes1 = [(line[0], line[2], line[4]) for line in changes]
+        changes2 = [(line[1], line[3], line[4]) for line in changes]
 
-    def displayFull(self, index=0):
-        changes = []
-        diff = self.treediff[index]
-
-        for i, group in enumerate(diff.groups):
-            for tag, i1, i2, j1, j2 in group:
-                if tag != 'equal':
-                    ni = i2 - i1
-                    nj = j2 - j1
-                    changes.append((i1, ni, j1, nj, tag))
-
-        text1 = "<br>".join(map(markup_line, diff.old_lines))
-        text2 = "<br>".join(map(markup_line, diff.new_lines))
-        changes1 = [(line[0], line[1], line[4]) for line in changes]
-        changes2 = [(line[2], line[3], line[4]) for line in changes]
-
-        self.browser1.setData(text1, changes1)
-        self.browser2.setData(text2, changes2)
-        self.handle(1).setData(changes)
+        self.browser1.setChanges(changes1)
+        self.browser2.setChanges(changes2)
+        self.handle(1).setChanges(changes)
 
 
 class SimpleDiffView(QtGui.QTextEdit):
