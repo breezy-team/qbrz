@@ -196,6 +196,9 @@ class TreeModel(QtCore.QAbstractTableModel):
             branch.unlock
         
     def compute_lines(self, broken_line_length = None, update_before_lines = False):
+        if self.visible_msri is not None:
+            return self.compute_search()
+        
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
         try:
             # This will hold for each revision, a list of (msri,
@@ -590,9 +593,9 @@ class TreeModel(QtCore.QAbstractTableModel):
                              merge_depth,
                              revno_sequence,
                              end_of_merge)) in enumerate(self.merge_sorted_revisions):
-                if (self.visible_msri is None or rev_index in self.visible_msri) :
+                if (self.visible_msri is None or rev_msri in self.visible_msri) :
                         #and revid in self.revisions:
-                    self.linegraphdata.append([rev_index,
+                    self.linegraphdata.append([rev_msri,
                                                None,
                                                [],
                                                None,
@@ -755,6 +758,13 @@ class TreeModel(QtCore.QAbstractTableModel):
             pass
     
     def _nextRevisionToLoad(self):
+        if self.visible_msri is not None:
+            for msri in self.visible_msri :
+                revid = self.merge_sorted_revisions[msri][1]
+                if revid not in self.revisions:
+                    yield revid
+            return
+        
         if not self.searchMode:
             for (msri, node, lines,
                  twisty_state, twisty_branch_ids) in self.linegraphdata:
