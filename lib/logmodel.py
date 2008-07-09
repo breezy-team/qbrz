@@ -111,23 +111,7 @@ class TreeModel(QtCore.QAbstractTableModel):
             self.merge_sorted_revisions = self.merge_sorted_revisions[1:]
             
             self.visible_msri = None
-            
-            if specific_fileid is not None:
-                text_keys = [(specific_fileid, revid) for (sequence_number,
-                                                            revid,
-                                                            merge_depth,
-                                                            revno_sequence,
-                                                            end_of_merge) in self.merge_sorted_revisions]
-                modified_text_versions = branch.repository.texts.get_parent_map(text_keys)
-                
-                self.visible_msri = [rev_index for (rev_index,(sequence_number,
-                                                               revid,
-                                                               merge_depth,
-                                                               revno_sequence,
-                                                               end_of_merge)) \
-                                     in enumerate(self.merge_sorted_revisions) \
-                                     if (specific_fileid, revid) in modified_text_versions]
-          
+         
             # This will hold, for each "branch", [a list of revision indexes in
             # the branch, is the branch visible, parents, children].
             #
@@ -186,9 +170,30 @@ class TreeModel(QtCore.QAbstractTableModel):
             
             self.tags = branch.tags.get_reverse_tag_dict()
             
-            self.compute_lines(update_before_lines = True)
             
-            QtCore.QCoreApplication.processEvents()
+            if specific_fileid is not None:
+                results_batch_size = 25
+                self.visible_msri = []
+                for rev_msri, (sequence_number,
+                               revid,
+                               merge_depth,
+                               revno_sequence,
+                               end_of_merge) in enumerate(self.merge_sorted_revisions):
+                    text_key = (specific_fileid, revid)
+                    modified_text_versions = branch.repository.texts.get_parent_map([text_key])
+                    if text_key in modified_text_versions:
+                        self.visible_msri.append(rev_msri)
+                    if rev_msri % 100 == 0 :
+                        QtCore.QCoreApplication.processEvents()
+                    if len(self.visible_msri) % results_batch_size == 0:
+                        self.compute_search()
+                        QtCore.QCoreApplication.processEvents()
+                        results_batch_size = 200
+                self.compute_search()
+                QtCore.QCoreApplication.processEvents()
+            else:
+                self.compute_lines(update_before_lines = True)
+                QtCore.QCoreApplication.processEvents()
             
             self._nextRevisionToLoadGen = self._nextRevisionToLoad()
             self._loadNextRevision()
