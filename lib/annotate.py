@@ -38,47 +38,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 
 
-class AnnotateColorSaturation(object):
-
-    def __init__(self):
-        self.current_angle = 0
-
-    def hue(self, angle):
-        return tuple([self.v(angle, r) for r in (0, 120, 240)])
-
-    def ang(self, angle, rotation):
-        angle += rotation
-        angle = angle % 360
-        if angle > 180:
-            angle = 180 - (angle - 180)
-        return abs(angle)
-
-    def v(self, angle, rotation):
-        ang = self.ang(angle, rotation)
-        if ang < 60:
-            return 1
-        elif ang > 120:
-            return 0
-        else:
-            return 1 - ((ang - 60) / 60)
-
-    def saturate_v(self, saturation, hv):
-        return int(255 - (saturation/3*(1-hv)))
-
-    def committer_angle(self, committer):
-        return float(abs(hash(committer))) / sys.maxint * 360.0
-
-    def _days(self, revision, now):
-        return (now - revision.timestamp) / (24 * 60 * 60)
-
-    def get_color(self, revision, now):
-        days = self._days(revision, now)
-        saturation = 255/((days/50) + 1)
-        hue = self.hue(self.committer_angle(revision._author_name))
-        color = tuple([self.saturate_v(saturation, h) for h in hue])
-        return QtGui.QColor(*color)
-
-
 class AnnotateWindow(QBzrWindow):
 
     def __init__(self, branch, tree, path, fileId, encoding=None, parent=None):
@@ -93,7 +52,6 @@ class AnnotateWindow(QBzrWindow):
         self.branch = branch
         self.tree = tree
         self.fileId = fileId
-        self.colormap = AnnotateColorSaturation()
 
         self.browser = QtGui.QTreeWidget()
         self.browser.setRootIsDecorated(False)
@@ -180,7 +138,7 @@ class AnnotateWindow(QBzrWindow):
             r._author_name = extract_name(get_apparent_author(r))
             if lastRevisionId != revisionId:
                 item.setText(1, r._author_name)
-            item.setBackground(3, self.colormap.get_color(r, now))
+            item.setBackground(3, self.get_color(r, now))
             lastRevisionId = revisionId
 
         revisions.sort(key=operator.attrgetter('timestamp'), reverse=True)
@@ -238,4 +196,14 @@ class AnnotateWindow(QBzrWindow):
 
     def linkClicked(self, url):
         open_browser(str(url.toEncoded()))
+
+    def get_color(self, revision, now):
+        if  now < revision.timestamp:
+            days = 0
+        else:
+            days = (now - revision.timestamp) / (24 * 60 * 60)
+        
+        saturation = 0.5/((days/50) + 1)
+        hue =  1-float(abs(hash(revision._author_name))) / sys.maxint 
+        return QtGui.QColor.fromHsvF(hue, saturation, 1 )
 
