@@ -198,6 +198,12 @@ def populate_diff_documents(font, treediff, view1, view2):
     cursors = [QtGui.QTextCursor(view1.doc1), QtGui.QTextCursor(view1.doc2)]
     unidiff_cursor = QtGui.QTextCursor(view2.doc)
 
+    for cursor in cursors + [unidiff_cursor]:
+        cursor.beginEditBlock()
+        format = QtGui.QTextCharFormat()
+        format.setAnchorNames(["top"])
+        cursor.insertText("", format)
+
     changes = []
 
     lastModifiedLabel = gettext('Last modified:')
@@ -324,6 +330,10 @@ def populate_diff_documents(font, treediff, view1, view2):
             cursor.insertBlock(format, monospacedFormat)
         unidiff_cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
 
+    for cursor in cursors + [unidiff_cursor]:
+        cursor.endEditBlock()
+        cursor.setPosition(0)
+
     changes1 = [(line[0], line[2], line[4]) for line in changes]
     changes2 = [(line[1], line[3], line[4]) for line in changes]
     view1.browser1.setChanges(changes1)
@@ -352,7 +362,9 @@ class DiffView(QtGui.QSplitter):
         metainfoTitleFont.setBold(True)
 
         self.doc1 = QtGui.QTextDocument()
+        self.doc1.setUndoRedoEnabled(False)
         self.doc2 = QtGui.QTextDocument()
+        self.doc2.setUndoRedoEnabled(False)
 
         self.browser1 = DiffSourceView(self)
         self.browser2 = DiffSourceView(self)
@@ -372,6 +384,13 @@ class DiffView(QtGui.QSplitter):
 
         self.addWidget(self.browser1)
         self.addWidget(self.browser2)
+        self.rewinded = False
+
+    def rewind(self):
+        if not self.rewinded:
+            self.rewinded = True
+            self.browser1.scrollToAnchor("top")
+            self.browser2.scrollToAnchor("top")
 
     def _syncSliders(self, slider1, slider2, value):
         m = slider1.maximum()
@@ -412,21 +431,18 @@ class DiffView(QtGui.QSplitter):
     def createHandle(self):
         return DiffViewHandle(self)
 
-    def rewind(self):
-        # FIXME
-        self.browser1.verticalScrollBar().setValue(0)
-        self.browser1.verticalScrollBar().setValue(0)
 
-
-class SimpleDiffView(QtGui.QTextEdit):
+class SimpleDiffView(QtGui.QTextBrowser):
     """Widget to show differences in unidiff format."""
 
     def __init__(self, treeview, parent=None):
-        QtGui.QTextEdit.__init__(self, parent)
+        QtGui.QTextBrowser.__init__(self, parent)
         self.doc = QtGui.QTextDocument(parent)
-        self.setReadOnly(1)
+        self.doc.setUndoRedoEnabled(False)
         self.setDocument(self.doc)
+        self.rewinded = False
 
     def rewind(self):
-        # FIXME
-        self.verticalScrollBar().setValue(0)
+        if not self.rewinded:
+            self.rewinded = True
+            self.scrollToAnchor("top")

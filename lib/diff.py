@@ -239,18 +239,10 @@ class DiffWindow(QBzrWindow):
         self.tree2 = tree2
         self.specific_files = specific_files
 
-        treediff = TreeDiff(self.tree1, self.tree2, self.specific_files,
-                            complete, encoding, filter_options)
-        self.diffview = DiffView(treediff, self)
-
-        self.sdiffview = SimpleDiffView(treediff, self)
-        self.sdiffview.setVisible(False)
-
-        populate_diff_documents(self.font(), treediff,
-                                self.diffview, self.sdiffview)
-
-        self.diffview.rewind()
-        self.sdiffview.rewind()
+        self.treediff = TreeDiff(self.tree1, self.tree2, self.specific_files,
+                                 complete, encoding, filter_options)
+        self.diffview = DiffView(self.treediff, self)
+        self.sdiffview = SimpleDiffView(self.treediff, self)
 
         self.stack = QtGui.QStackedWidget(self.centralwidget)
         self.stack.addWidget(self.diffview)
@@ -279,10 +271,17 @@ class DiffWindow(QBzrWindow):
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
 
+    def show(self):
+        QBzrWindow.show(self)
+        populate_diff_documents(self.font(), self.treediff,
+                                self.diffview, self.sdiffview)
+
     def click_unidiff(self, checked):
         if checked:
+            self.sdiffview.rewind()
             self.stack.setCurrentIndex(1)
 
     def click_diffsidebyside(self, checked):
         if checked:
+            self.diffview.rewind()
             self.stack.setCurrentIndex(0)
