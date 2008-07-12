@@ -94,6 +94,8 @@ class FileDiff(object):
             check_text_lines(new_lines)
         except BinaryFile:
             self.binary = True
+            self.old_data = ''.join(old_lines)
+            self.new_data = ''.join(new_lines)
         else:
             self.old_lines = old_lines
             self.new_lines = new_lines

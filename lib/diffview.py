@@ -299,9 +299,10 @@ class DiffView(QtGui.QSplitter):
                 cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
                 cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
 
-            a = diff.old_lines
-            b = diff.new_lines
+            margins = [0, 0]
             if not diff.binary:
+                a = diff.old_lines
+                b = diff.new_lines
                 for i, group in enumerate(diff.groups):
                     if i > 0:
                         blocka0 = cursors[0].block().layout()
@@ -356,24 +357,28 @@ class DiffView(QtGui.QSplitter):
             else:
                 ext = file_extension(diff.path).lower()
                 if ext in image_exts:
-                    for tree, doc, cursor in \
-                            [(self.treediff.old_tree, self.doc1, cursors[0]),
-                             (self.treediff.new_tree, self.doc2, cursors[1])]:
-                        if tree.has_id(diff.file_id):
-                            image = QtGui.QImage ()
-                            tree.lock_read()
-                            try:
-                                image.loadFromData (tree.get_file(diff.file_id).read()) #Is this right?
-                            finally:
-                                tree.unlock()
-                            doc.addResource (QtGui.QTextDocument.ImageResource,
-                                             QtCore.QUrl (diff.file_id),
-                                             QtCore.QVariant(image))
+                    heights = [0, 0]
+                    for i, (data, doc, cursor) in enumerate(
+                            [(diff.old_data, self.doc1, cursors[0]),
+                             (diff.new_data, self.doc2, cursors[1])]):
+                        if data:
+                            image = QtGui.QImage()
+                            image.loadFromData(data)
+                            heights[i] = image.height() + 1 # QTextDocument seems to add 1 pixel when layouting the text
+                            doc.addResource(QtGui.QTextDocument.ImageResource,
+                                            QtCore.QUrl(diff.file_id),
+                                            QtCore.QVariant(image))
                             cursor.insertImage(diff.file_id)
+                            cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
+                    if heights[0] > heights[1]:
+                        margins = [0, heights[0] - heights[1]]
+                    else:
+                        margins = [heights[1] - heights[0], 0]
 
-            for cursor in cursors:
-                cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
-                cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
+            for i, cursor in enumerate(cursors):
+                format = QtGui.QTextBlockFormat()
+                format.setTopMargin(margins[i])
+                cursor.insertBlock(format, monospacedFormat)
 
         changes1 = [(line[0], line[2], line[4]) for line in changes]
         changes2 = [(line[1], line[3], line[4]) for line in changes]
