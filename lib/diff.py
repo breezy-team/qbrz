@@ -37,6 +37,7 @@ from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.plugins.qbzr.lib.diffview import (
     DiffView,
     SimpleDiffView,
+    populate_diff_documents,
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
@@ -49,33 +50,11 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 
 
-STYLES = {
-    'hunk': 'background-color:#666666;color:#FFF;font-weight:bold;',
-    'delete': 'background-color:#FFDDDD',
-    'insert': 'background-color:#DDFFDD',
-    'missing': 'background-color:#E0E0E0',
-    'title': 'margin-top: 10px; font-size: 14px; font-weight: bold;',
-    'metainfo': 'font-size: 9px; margin-bottom: 10px;',
-}
-
-
 def get_file_lines_from_tree(tree, file_id):
     try:
         return tree.get_file_lines(file_id)
     except AttributeError:
         return tree.get_file(file_id).readlines()
-
-
-def htmlencode(string):
-    return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
-
-def markup_line(line, style='', encode=True):
-    if encode:
-        line = htmlencode(line)
-    if style:
-        style = ' style="%s"' % style
-    return '<div%s>%s</div>' % (style, line.rstrip() or '&nbsp;')
 
 
 class FileDiff(object):
@@ -111,74 +90,6 @@ class FileDiff(object):
                     self.groups = list(matcher.get_grouped_opcodes())
             self.old_lines = [i.decode(encoding,'replace') for i in old_lines]
             self.new_lines = [i.decode(encoding,'replace') for i in new_lines]
-
-    def unidiff_list(self, n=3, lineterm='\n'):
-        """Create an unidiff output"""
-
-        a = self.old_lines
-        fromfiledate = self.old_date
-        fromfile = self.old_path
-
-        b = self.new_lines
-        tofiledate = self.new_date
-        tofile = self.new_path
-
-        a = [a.rstrip("\n") for a in a]
-        b = [b.rstrip("\n") for b in b]
-
-        started = False
-        if self.status in ('renamed', 'renamed and modified'):
-            yield "=== %s %s '%s' => '%s'" % (
-                self.status, self.kind, fromfile, tofile)
-        else:
-            yield "=== %s %s '%s'" % (self.status, self.kind, fromfile)
-        if self.binary:
-            yield "=== binary file"
-            yield '--- %s %s%s' % (fromfile, fromfiledate, lineterm)
-            yield '+++ %s %s%s' % (tofile, tofiledate, lineterm)
-            return
-        for group in self.groups:
-            if not started:
-                yield '--- %s %s%s' % (fromfile, fromfiledate, lineterm)
-                yield '+++ %s %s%s' % (tofile, tofiledate, lineterm)
-                started = True
-            i1, i2, j1, j2 = group[0][1], group[-1][2], group[0][3], group[-1][4]
-            yield "@@ -%d,%d +%d,%d @@%s" % (i1+1, i2-i1, j1+1, j2-j1, lineterm)
-            for tag, i1, i2, j1, j2 in group:
-                if tag == 'equal':
-                    for line in a[i1:i2]:
-                        yield ' ' + line
-                    continue
-                if tag == 'replace' or tag == 'delete':
-                    for line in a[i1:i2]:
-                        yield '-' + line
-                if tag == 'replace' or tag == 'insert':
-                    for line in b[j1:j2]:
-                        yield '+' + line
-
-    def html_unidiff(self):
-        style = {
-            '---': 'color:#CC0000; font-weight: bold;',
-            '+++': 'color:#00880B; font-weight: bold;',
-            '-':   'color:#CC0000',
-            '+':   'color:#00880B',
-            '@':   'color:#991EC7;font-style:italic;',
-            '=':   'background-color:#F6F5EE; color:#777777; font-weight: bold;',
-        }
-        defaultstyle = 'background-color:#ffffff; color=black',
-        res = ['<span style="font-size:12px">']
-        keys = style.keys( )
-        keys.sort(reverse=True) # so '---' is before '-'
-        for l in self.unidiff_list(lineterm=''):
-            for k in keys:
-                if l.startswith(k):
-                    res.append(markup_line(l, style[k]))
-                    break
-            else:
-                res.append(markup_line(l, defaultstyle))
-        res.append('</span>')
-        res.append(markup_line('', defaultstyle))   # blank line between files
-        return ''.join(res)
 
 
 class TreeDiff(list):
@@ -334,6 +245,12 @@ class DiffWindow(QBzrWindow):
 
         self.sdiffview = SimpleDiffView(treediff, self)
         self.sdiffview.setVisible(False)
+
+        populate_diff_documents(self.font(), treediff,
+                                self.diffview, self.sdiffview)
+
+        self.diffview.rewind()
+        self.sdiffview.rewind()
 
         self.stack = QtGui.QStackedWidget(self.centralwidget)
         self.stack.addWidget(self.diffview)
