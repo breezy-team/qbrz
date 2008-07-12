@@ -189,13 +189,14 @@ class TreeDiff(list):
                 secs = 0
         return format_timestamp(secs)
 
-    def _make_diff(self, old_tree, new_tree, specific_files=[], complete=False,
+    def _make_diff(self, specific_files=[], complete=False,
                    encoding='utf-8', filter_options=None):
         if filter_options == None:
             filter_options = FilterOptions()
             filter_options.all_enable()
-        delta = new_tree.changes_from(old_tree, specific_files=specific_files,
-                                      require_versioned=True)
+        delta = self.new_tree.changes_from(self.old_tree,
+                                           specific_files=specific_files,
+                                           require_versioned=True)
 
         delta_removed = []
         delta_added = []
@@ -213,24 +214,26 @@ class TreeDiff(list):
         for path, file_id, kind in delta_removed:
             diff = FileDiff(N_('removed'), path)
             diff.kind = kind
-            diff.old_date = self._date(old_tree, file_id, path)
-            diff.new_date = self._date(new_tree, file_id, path)
+            diff.old_date = self._date(self.old_tree, file_id, path)
+            diff.new_date = self._date(self.new_tree, file_id, path)
+            diff.file_id = file_id
             diff.old_path = path
             diff.new_path = path
             if diff.kind != 'directory':
-                diff.make_diff(get_file_lines_from_tree(old_tree, file_id),
+                diff.make_diff(get_file_lines_from_tree(self.old_tree, file_id),
                                [], complete, encoding)
             self.append(diff)
 
         for path, file_id, kind in delta_added:
             diff = FileDiff(N_('added'), path)
             diff.kind = kind
-            diff.old_date = self._date(old_tree, file_id, path, 0)
-            diff.new_date = self._date(new_tree, file_id, path)
+            diff.old_date = self._date(self.old_tree, file_id, path, 0)
+            diff.new_date = self._date(self.new_tree, file_id, path)
+            diff.file_id = file_id
             diff.old_path = path
             diff.new_path = path
             if diff.kind != 'directory':
-                diff.make_diff([], get_file_lines_from_tree(new_tree, file_id),
+                diff.make_diff([], get_file_lines_from_tree(self.new_tree, file_id),
                                complete, encoding)
             self.append(diff)
 
@@ -244,13 +247,14 @@ class TreeDiff(list):
                 status = N_('renamed')
             diff = FileDiff(status, u'%s \u2192 %s' % (old_path, new_path))
             diff.kind = kind
-            diff.old_date = self._date(old_tree, file_id, old_path)
-            diff.new_date = self._date(new_tree, file_id, new_path)
+            diff.old_date = self._date(self.old_tree, file_id, old_path)
+            diff.new_date = self._date(self.new_tree, file_id, new_path)
+            diff.file_id = file_id
             diff.old_path = old_path
             diff.new_path = new_path
             if text_modified:
-                old_lines = get_file_lines_from_tree(old_tree, file_id)
-                new_lines = get_file_lines_from_tree(new_tree, file_id)
+                old_lines = get_file_lines_from_tree(self.old_tree, file_id)
+                new_lines = get_file_lines_from_tree(self.new_tree, file_id)
                 diff.make_diff(old_lines, new_lines, complete, encoding)
             self.append(diff)
 
@@ -260,27 +264,30 @@ class TreeDiff(list):
             diff.kind = kind
             # the path for this file might be changed by a directory rename, so
             # let it to use just the file_id
-            diff.old_date = self._date(old_tree, file_id, None)
-            diff.new_date = self._date(new_tree, file_id, path)
+            diff.old_date = self._date(self.old_tree, file_id, None)
+            diff.new_date = self._date(self.new_tree, file_id, path)
+            diff.file_id = file_id
             diff.old_path = path
             diff.new_path = path
             if text_modified:
-                old_lines = get_file_lines_from_tree(old_tree, file_id)
-                new_lines = get_file_lines_from_tree(new_tree, file_id)
+                old_lines = get_file_lines_from_tree(self.old_tree, file_id)
+                new_lines = get_file_lines_from_tree(self.new_tree, file_id)
                 diff.make_diff(old_lines, new_lines, complete, encoding)
             self.append(diff)
 
     def __init__(self, old_tree, new_tree, specific_files=[], complete=False,
                  encoding='utf-8', filter_options=None):
         self._metainfo_template = None
-        old_tree.lock_read()
-        new_tree.lock_read()
+        self.old_tree = old_tree
+        self.new_tree = new_tree
+        self.old_tree.lock_read()
+        self.new_tree.lock_read()
         try:
-            self._make_diff(old_tree, new_tree, specific_files, complete,
+            self._make_diff(specific_files, complete,
                             encoding, filter_options)
         finally:
-            old_tree.unlock()
-            new_tree.unlock()
+            self.old_tree.unlock()
+            self.new_tree.unlock()
 
     def html_unidiff(self):
         res = []

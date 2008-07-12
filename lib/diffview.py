@@ -21,6 +21,9 @@ from PyQt4 import QtGui, QtCore
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import htmlencode
+from bzrlib.plugins.qbzr.lib.util import (
+    file_extension,
+    )
 
 
 colors = {
@@ -269,6 +272,9 @@ class DiffView(QtGui.QSplitter):
         lastModifiedLabel = gettext('Last modified:')
         statusLabel = gettext('Status:')
         kindLabel = gettext('Kind:')
+        
+        image_exts = ['.'+str(i)
+            for i in QtGui.QImageReader.supportedImageFormats()]
 
         for diff in self.treediff:
             # file path
@@ -295,57 +301,75 @@ class DiffView(QtGui.QSplitter):
 
             a = diff.old_lines
             b = diff.new_lines
-            for i, group in enumerate(diff.groups):
-                if i > 0:
-                    blocka0 = cursors[0].block().layout()
-                    blockb0 = cursors[1].block().layout()
-                    for cursor in cursors:
-                        cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
-                    blocka1 = cursors[0].block().layout()
-                    blockb1 = cursors[1].block().layout()
-                    changes.append((blocka0, blockb0, blocka1, blockb1, 'blank'))
-                linediff = 0
-                for tag, i1, i2, j1, j2 in group:
-                    ni = i2 - i1
-                    nj = j2 - j1
-                    if tag == "equal":
-                        text = "".join(l for l in a[i1:i2])
-                        for cursor in cursors:
-                            cursor.insertText(text, monospacedFormat)
-                    else:
+            if not diff.binary:
+                for i, group in enumerate(diff.groups):
+                    if i > 0:
                         blocka0 = cursors[0].block().layout()
                         blockb0 = cursors[1].block().layout()
-                        if ni == nj:
-                            for i in xrange(ni):
-                                linea = a[i1 + i]
-                                lineb = b[j1 + i]
-                                cursors[0].insertText(linea, monospacedFormat)
-                                cursors[1].insertText(lineb, monospacedFormat)
-                        else:
-                            linediff += ni - nj
-                            text = "".join(l for l in a[i1:i2])
-                            cursors[0].insertText(text, monospacedFormat)
-                            text = "".join(l for l in b[j1:j2])
-                            cursors[1].insertText(text, monospacedFormat)
+                        for cursor in cursors:
+                            cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
                         blocka1 = cursors[0].block().layout()
                         blockb1 = cursors[1].block().layout()
-                        changes.append((blocka0, blockb0, blocka1, blockb1, tag))
-                if linediff == 0:
-                    continue
-                if linediff < 0:
-                    i1 = group[-1][2]
-                    i2 = i1 - linediff
-                    lines = a[i1:i2]
-                    linediff = -linediff - len(lines)
-                    cursor = cursors[0]
-                else:
-                    j1 = group[-1][4]
-                    j2 = j1 + linediff
-                    lines = b[j1:j2]
-                    linediff = linediff - len(lines)
-                    cursor = cursors[1]
-                lines.extend(["\n"] * linediff)
-                cursor.insertText("".join(lines), monospacedFormat)
+                        changes.append((blocka0, blockb0, blocka1, blockb1, 'blank'))
+                    linediff = 0
+                    for tag, i1, i2, j1, j2 in group:
+                        ni = i2 - i1
+                        nj = j2 - j1
+                        if tag == "equal":
+                            text = "".join(l for l in a[i1:i2])
+                            for cursor in cursors:
+                                cursor.insertText(text, monospacedFormat)
+                        else:
+                            blocka0 = cursors[0].block().layout()
+                            blockb0 = cursors[1].block().layout()
+                            if ni == nj:
+                                for i in xrange(ni):
+                                    linea = a[i1 + i]
+                                    lineb = b[j1 + i]
+                                    cursors[0].insertText(linea, monospacedFormat)
+                                    cursors[1].insertText(lineb, monospacedFormat)
+                            else:
+                                linediff += ni - nj
+                                text = "".join(l for l in a[i1:i2])
+                                cursors[0].insertText(text, monospacedFormat)
+                                text = "".join(l for l in b[j1:j2])
+                                cursors[1].insertText(text, monospacedFormat)
+                            blocka1 = cursors[0].block().layout()
+                            blockb1 = cursors[1].block().layout()
+                            changes.append((blocka0, blockb0, blocka1, blockb1, tag))
+                    if linediff == 0:
+                        continue
+                    if linediff < 0:
+                        i1 = group[-1][2]
+                        i2 = i1 - linediff
+                        lines = a[i1:i2]
+                        linediff = -linediff - len(lines)
+                        cursor = cursors[0]
+                    else:
+                        j1 = group[-1][4]
+                        j2 = j1 + linediff
+                        lines = b[j1:j2]
+                        linediff = linediff - len(lines)
+                        cursor = cursors[1]
+                    lines.extend(["\n"] * linediff)
+                    cursor.insertText("".join(lines), monospacedFormat)
+            else:
+                ext = file_extension(diff.path).lower()
+                if ext in image_exts:
+                    for tree, doc, cursor in \
+                            [(self.treediff.old_tree, self.doc1, cursors[0]),
+                             (self.treediff.new_tree, self.doc2, cursors[1])]:
+                        if tree.has_id(diff.file_id):
+                            image = QtGui.QImage ()
+                            tree.lock_read()
+                            try:
+                                image.loadFromData (tree.get_file(diff.file_id).read()) #Is this right?
+                            finally:
+                                tree.unlock()
+                            doc.addResource (QtGui.QTextDocument.ImageResource,
+                                             QtCore.QUrl (diff.file_id),
+                                             QtCore.QVariant(image))
+                            cursor.insertImage(diff.file_id)
 
             for cursor in cursors:
                 cursor.insertBlock(QtGui.QTextBlockFormat(), monospacedFormat)
