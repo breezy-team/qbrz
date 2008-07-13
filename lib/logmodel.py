@@ -655,9 +655,9 @@ class TreeModel(QtCore.QAbstractTableModel):
         rev_msri = self.revid_msri[revid]
         branch_id = self.merge_sorted_revisions[rev_msri][3][0:-1]
         has_change = self._set_branch_visible(branch_id, True, False)
-        while not self._has_visible_child(branch_id):
+        while not branch_id == () and not self._has_visible_child(branch_id):
             branch_id = list(self.branch_lines[branch_id][3])[0]
-            has_change = self._set_branch_visible(branch_id, True, False)
+            has_change = self._set_branch_visible(branch_id, True, has_change)
         if has_change:
             self.compute_lines()
     
