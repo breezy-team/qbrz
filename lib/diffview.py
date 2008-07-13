@@ -94,8 +94,8 @@ class DiffViewHandle(QtGui.QSplitterHandle):
         painter = QtGui.QPainter(self)
         painter.setClipRect(event.rect())
         frame = QtGui.QApplication.style().pixelMetric(QtGui.QStyle.PM_DefaultFrameWidth)
-        value1 = self.view.browser1.verticalScrollBar().value() - frame
-        value2 = self.view.browser2.verticalScrollBar().value() - frame
+        value1 = self.view.browsers[0].verticalScrollBar().value() - frame
+        value2 = self.view.browsers[1].verticalScrollBar().value() - frame
         w = self.width()
         for blocka0, blockb0, blocka1, blockb1, kind in self.changes:
             ly1 = blocka0.position().y()
@@ -132,15 +132,15 @@ def markup_line(line, encode=True):
 
 
 def insert_intraline_changes(cursor1, cursor2, line1, line2, format, ins_format, del_format):
-    for tag, i1, i2, j1, j2 in SequenceMatcher(None, line1, line2).get_opcodes():
+    for tag, i0, i1, j0, j1 in SequenceMatcher(None, line1, line2).get_opcodes():
         if tag == 'equal':
-            cursor1.insertText(line1[i1:i2], format)
-            cursor2.insertText(line2[j1:j2], format)
+            cursor1.insertText(line1[i0:i1], format)
+            cursor2.insertText(line2[j0:j1], format)
         else:
-            if i1 != i2:
-                cursor1.insertText(line1[i1:i2], del_format)
-            if j1 != j2:
-                cursor2.insertText(line2[j1:j2], ins_format)
+            if i0 != i1:
+                cursor1.insertText(line1[i0:i1], del_format)
+            if j0 != j1:
+                cursor2.insertText(line2[j0:j1], ins_format)
 
 
 class SidebySideDiffView(QtGui.QSplitter):
@@ -182,35 +182,29 @@ class SidebySideDiffView(QtGui.QSplitter):
 
         self.docs = (QtGui.QTextDocument(),
                      QtGui.QTextDocument())
-        for doc in self.docs:
+        self.browsers = (DiffSourceView(self),
+                         DiffSourceView(self))
+        self.cursors = [QtGui.QTextCursor(doc) for doc in self.docs]
+        
+        for i, (browser, doc, cursor) in enumerate(zip(self.browsers, self.docs, self.cursors)):
             doc.setUndoRedoEnabled(False)
             doc.setDefaultFont(monospacedFont)
-
-        self.browser1 = DiffSourceView(self)
-        self.browser2 = DiffSourceView(self)
-
-        self.ignoreUpdate = False
-        self.connect(self.browser1.verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.updateHandle1)
-        self.connect(self.browser2.verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.updateHandle2)
-        self.connect(self.browser1.horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.syncHorizontalSlider1)
-        self.connect(self.browser2.horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.syncHorizontalSlider2)
-
-        self.setCollapsible(0, False)
-        self.setCollapsible(1, False)
-
-        self.browser1.setDocument(self.docs[0])
-        self.browser2.setDocument(self.docs[1])
-        self.browsers = (self.browser1, self.browser2)
-
-        self.addWidget(self.browser1)
-        self.addWidget(self.browser2)
-        self.rewinded = False
-        
-        self.cursors = [QtGui.QTextCursor(doc) for doc in self.docs]
-        for cursor in self.cursors :
+            
+            self.setCollapsible(i, False)
+            browser.setDocument(doc)
+            self.addWidget(browser)
+            
             format = QtGui.QTextCharFormat()
             format.setAnchorNames(["top"])
             cursor.insertText("", format)
+
+        self.ignoreUpdate = False
+        self.connect(self.browsers[0].verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.updateHandle1)
+        self.connect(self.browsers[1].verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.updateHandle2)
+        self.connect(self.browsers[0].horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.syncHorizontalSlider1)
+        self.connect(self.browsers[1].horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.syncHorizontalSlider2)
+
+        self.rewinded = False
         
         self.lastModifiedLabel = gettext('Last modified:')
         self.statusLabel = gettext('Status:')
@@ -221,8 +215,9 @@ class SidebySideDiffView(QtGui.QSplitter):
             for i in QtGui.QImageReader.supportedImageFormats()]
 
     def clear(self):
-        self.browser1.clear()
-        self.browser2.clear()
+        
+        self.browsers[0].clear()
+        self.browsers[1].clear()
         self.handle(1).clear()
         for doc in self.docs:
             doc.clear()
@@ -258,7 +253,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                 cursor.insertBlock()
                 cursor.setCharFormat(self.monospacedFormat)
             changes = []
-
+            
             def fix_last_line(lines):
                 """Fix last line if there is no new line.
 
@@ -271,10 +266,9 @@ class SidebySideDiffView(QtGui.QSplitter):
                     if last and last[-1] not in ('\r', '\n'):
                         lines = lines[:-1] + [last+'\n']
                 return lines
-
-            a = fix_last_line(lines[0])
-            b = fix_last_line(lines[1])
-
+            
+            lines = [fix_last_line(l) for l in lines]
+            
             for i, group in enumerate(groups):
                 if i > 0:
                     block0 = [cursor.block().layout() for cursor in self.cursors]
@@ -283,57 +277,55 @@ class SidebySideDiffView(QtGui.QSplitter):
                     block1 = [cursor.block().layout() for cursor in self.cursors]
                     changes.append((block0[0], block0[1], block1[0], block1[1], 'blank'))
                 linediff = 0
-                for tag, i1, i2, j1, j2 in group:
-                    ni = i2 - i1
-                    nj = j2 - j1
+                for g in group:
+                    tag = g[0]
+                    # indexes
+                    ixs = ((g[1], g[2]), (g[3], g[4]))
+                    n = [ix[1]-ix[0] for ix in ixs]
                     if tag == "equal":
-                        text = "".join(l for l in a[i1:i2])
-                        for cursor in cursors:
-                            cursor.insertText(text)
+                        for cursor, line, ix in zip(cursors, lines, ixs):
+                            for l in line[ix[0]:ix[1]]:
+                                cursor.insertText(l)
                     else:
-                        blocka0 = cursors[0].block().layout()
-                        blockb0 = cursors[1].block().layout()
-                        if ni == nj:
-                            for i in xrange(ni):
+                        block0 = [cursor.block().layout() for cursor in self.cursors]
+                        if n[0] == n[1]:
+                            for i in xrange(n[0]):
                                 insert_intraline_changes(
                                     cursors[0], cursors[1],
-                                    a[i1 + i], b[j1 + i],
+                                    lines[0][ixs[0][0] + i],
+                                    lines[1][ixs[1][0] + i],
                                     self.monospacedFormat,
                                     self.interLineChangeFormat,
                                     self.interLineChangeFormat)
                         else:
-                            linediff += ni - nj
-                            text = "".join(l for l in a[i1:i2])
-                            cursors[0].insertText(text)
-                            text = "".join(l for l in b[j1:j2])
-                            cursors[1].insertText(text)
-                        blocka1 = cursors[0].block().layout()
-                        blockb1 = cursors[1].block().layout()
-                        changes.append((blocka0, blockb0, blocka1, blockb1, tag))
+                            linediff += n[0] - n[1]
+                            for cursor, line, ix in zip(cursors, lines, ixs):
+                                for l in line[ix[0]:ix[1]]:
+                                    cursor.insertText(l)
+                        block1 = [cursor.block().layout() for cursor in self.cursors]
+                        changes.append((block0[0], block0[1], block1[0], block1[1], tag))
+                
                 if linediff == 0:
                     continue
                 if linediff < 0:
-                    i1 = group[-1][2]
-                    i2 = i1 - linediff
-                    lines = a[i1:i2]
+                    i0 = group[-1][2]
+                    i1 = i0 - linediff
+                    exlines = lines[0][i0:i1]
                     linediff = -linediff - len(lines)
                     cursor = cursors[0]
                 else:
-                    j1 = group[-1][4]
-                    j2 = j1 + linediff
-                    lines = b[j1:j2]
+                    j0 = group[-1][4]
+                    j1 = j0 + linediff
+                    exlines = lines[1][j0:j1]
                     linediff = linediff - len(lines)
                     cursor = cursors[1]
-                lines.extend(["\n"] * linediff)
-                cursor.insertText("".join(lines))
+                exlines.extend(["\n"] * linediff)
+                cursor.insertText("".join(exlines))
             for cursor in self.cursors:
                 cursor.insertBlock()
     
-            changes1 = [(line[0], line[2], line[4]) for line in changes]
-            changes2 = [(line[1], line[3], line[4]) for line in changes]
-    
-            self.browser1.changes.extend(changes1)
-            self.browser2.changes.extend(changes2)
+            self.browsers[0].changes.extend([(line[0], line[2], line[4]) for line in changes])
+            self.browsers[1].changes.extend([(line[1], line[3], line[4]) for line in changes])
             self.handle(1).changes.extend(changes)
         else:
             heights = [0,0]
@@ -372,43 +364,37 @@ class SidebySideDiffView(QtGui.QSplitter):
     def rewind(self):
         if not self.rewinded:
             self.rewinded = True
-            self.browser1.scrollToAnchor("top")
-            self.browser2.scrollToAnchor("top")
+            self.browsers[0].scrollToAnchor("top")
+            self.browsers[1].scrollToAnchor("top")
 
-    def _syncSliders(self, slider1, slider2, value):
-        m = slider1.maximum()
+    def _syncSliders(self, sideFrom, sideTo, value):
+        sliderFrom = self.browsers[sideFrom].verticalScrollBar()
+        sliderTo = self.browsers[sideTo].verticalScrollBar()
+        m = sliderFrom.maximum()
         if m:
-            value = slider2.minimum() + slider2.maximum() * (value - slider1.minimum()) / m
+            value = sliderTo.minimum() + sliderTo.maximum() * (value - sliderFrom.minimum()) / m
             self.ignoreUpdate = True
-            slider2.setValue(value)
+            sliderTo.setValue(value)
             self.ignoreUpdate = False
 
     def updateHandle1(self, value):
         if not self.ignoreUpdate:
-            slider1 = self.browser1.verticalScrollBar()
-            slider2 = self.browser2.verticalScrollBar()
-            self._syncSliders(slider1, slider2, value)
+            self._syncSliders(0, 1, value)
             self.handle(1).update()
 
     def updateHandle2(self, value):
         if not self.ignoreUpdate:
-            slider1 = self.browser1.verticalScrollBar()
-            slider2 = self.browser2.verticalScrollBar()
-            self._syncSliders(slider2, slider1, value)
+            self._syncSliders(1, 0, value)
             self.handle(1).update()
 
     def syncHorizontalSlider1(self, value):
         if not self.ignoreUpdate:
-            slider1 = self.browser1.horizontalScrollBar()
-            slider2 = self.browser2.horizontalScrollBar()
-            self._syncSliders(slider1, slider2, value)
+            self._syncSliders(0, 1, value)
             self.handle(1).update()
 
     def syncHorizontalSlider2(self, value):
         if not self.ignoreUpdate:
-            slider1 = self.browser1.horizontalScrollBar()
-            slider2 = self.browser2.horizontalScrollBar()
-            self._syncSliders(slider2, slider1, value)
+            self._syncSliders(1, 0, value)
             self.handle(1).update()
 
     def createHandle(self):
@@ -517,18 +503,18 @@ class SimpleDiffView(QtGui.QTextBrowser):
             b = fix_last_line(lines[1])
 
             for i, group in enumerate(groups):
-                i1, i2, j1, j2 = group[0][1], group[-1][2], group[0][3], group[-1][4]
-                self.cursor.insertText("@@ -%d,%d +%d,%d @@\n" % (i1+1, i2-i1, j1+1, j2-j1), self.monospacedHunkFormat)
-                for tag, i1, i2, j1, j2 in group:
-                    ni = i2 - i1
-                    nj = j2 - j1
+                i0, i1, j0, j1 = group[0][1], group[-1][2], group[0][3], group[-1][4]
+                self.cursor.insertText("@@ -%d,%d +%d,%d @@\n" % (i0+1, i1-i0, j0+1, j1-j0), self.monospacedHunkFormat)
+                for tag, i0, i1, j0, j1 in group:
+                    ni = i1 - i0
+                    nj = j1 - j0
                     if tag == "equal":
-                        text = "".join(" " + l for l in a[i1:i2])
+                        text = "".join(" " + l for l in a[i0:i1])
                         self.cursor.insertText(text, self.monospacedFormat)
                     else:
-                        text = "".join("-" + l for l in a[i1:i2])
+                        text = "".join("-" + l for l in a[i0:i1])
                         self.cursor.insertText(text, self.monospacedDeleteFormat)
-                        text = "".join("+" + l for l in b[j1:j2])
+                        text = "".join("+" + l for l in b[j0:j1])
                         self.cursor.insertText(text, self.monospacedInsertFormat)
         else:
             self.cursor.insertText("Binary files %s %s and %s %s differ\n" % \
