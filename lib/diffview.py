@@ -28,6 +28,13 @@ from bzrlib.plugins.qbzr.lib.util import (
     format_timestamp,
     )
 
+have_pygments = True
+try:
+    from pygments import highlight
+    from pygments.lexers import get_lexer_for_filename
+    from pygments.formatters import HtmlFormatter
+except ImportError:
+    have_pygments = False
 
 colors = {
     'delete': (QtGui.QColor(255, 160, 180), QtGui.QColor(200, 60, 90)),
@@ -186,9 +193,14 @@ class SidebySideDiffView(QtGui.QSplitter):
                          DiffSourceView(self))
         self.cursors = [QtGui.QTextCursor(doc) for doc in self.docs]
         
+        if have_pygments:
+            self.formatter = HtmlFormatter(nowrap = True,
+                                           noclasses = True)
+        
         for i, (browser, doc, cursor) in enumerate(zip(self.browsers, self.docs, self.cursors)):
             doc.setUndoRedoEnabled(False)
             doc.setDefaultFont(monospacedFont)
+            doc.setDefaultStyleSheet("body {white-space:pre;}")
             
             self.setCollapsible(i, False)
             browser.setDocument(doc)
@@ -213,7 +225,7 @@ class SidebySideDiffView(QtGui.QSplitter):
         
         self.image_exts = ['.'+str(i)
             for i in QtGui.QImageReader.supportedImageFormats()]
-
+    
     def clear(self):
         
         self.browsers[0].clear()
@@ -267,7 +279,20 @@ class SidebySideDiffView(QtGui.QSplitter):
                         lines = lines[:-1] + [last+'\n']
                 return lines
             
-            lines = [fix_last_line(l) for l in lines]
+            if have_pygments:
+                display_lines = [fix_last_line(highlight(d, lexer, self.formatter).split("\n"))
+                                 for d, lexer in zip(data,
+                                                     [get_lexer_for_filename(path)
+                                                      for path in paths])]
+            else:
+                display_lines = [fix_last_line(l) for l in lines]
+            
+            def insertLine(cursor, l):
+                if have_pygments:
+                    cursor.insertHtml(l)
+                    cursor.insertText("\n")
+                else:
+                    cursor.insertText(l)
             
             for i, group in enumerate(groups):
                 if i > 0:
@@ -283,25 +308,25 @@ class SidebySideDiffView(QtGui.QSplitter):
                     ixs = ((g[1], g[2]), (g[3], g[4]))
                     n = [ix[1]-ix[0] for ix in ixs]
                     if tag == "equal":
-                        for cursor, line, ix in zip(cursors, lines, ixs):
+                        for cursor, line, ix in zip(cursors, display_lines, ixs):
                             for l in line[ix[0]:ix[1]]:
-                                cursor.insertText(l)
+                                insertLine(cursor, l)
                     else:
                         block0 = [cursor.block().layout() for cursor in self.cursors]
-                        if n[0] == n[1]:
-                            for i in xrange(n[0]):
-                                insert_intraline_changes(
-                                    cursors[0], cursors[1],
-                                    lines[0][ixs[0][0] + i],
-                                    lines[1][ixs[1][0] + i],
-                                    self.monospacedFormat,
-                                    self.interLineChangeFormat,
-                                    self.interLineChangeFormat)
-                        else:
-                            linediff += n[0] - n[1]
-                            for cursor, line, ix in zip(cursors, lines, ixs):
-                                for l in line[ix[0]:ix[1]]:
-                                    cursor.insertText(l)
+                        #if n[0] == n[1]:
+                        #    for i in xrange(n[0]):
+                        #        insert_intraline_changes(
+                        #            cursors[0], cursors[1],
+                        #            display_lines[0][ixs[0][0] + i],
+                        #            display_lines[1][ixs[1][0] + i],
+                        #            self.monospacedFormat,
+                        #            self.interLineChangeFormat,
+                        #            self.interLineChangeFormat)
+                        #else:
+                        linediff += n[0] - n[1]
+                        for cursor, line, ix in zip(cursors, display_lines, ixs):
+                            for l in line[ix[0]:ix[1]]:
+                                insertLine(cursor, l)
                         block1 = [cursor.block().layout() for cursor in self.cursors]
                         changes.append((block0[0], block0[1], block1[0], block1[1], tag))
                 
@@ -310,20 +335,19 @@ class SidebySideDiffView(QtGui.QSplitter):
                 if linediff < 0:
                     i0 = group[-1][2]
                     i1 = i0 - linediff
-                    exlines = lines[0][i0:i1]
-                    linediff = -linediff - len(lines)
+                    exlines = display_lines[0][i0:i1]
+                    linediff = -linediff - len(exlines)
                     cursor = cursors[0]
                 else:
                     j0 = group[-1][4]
                     j1 = j0 + linediff
-                    exlines = lines[1][j0:j1]
-                    linediff = linediff - len(lines)
+                    exlines = display_lines[1][j0:j1]
+                    linediff = linediff - len(exlines)
                     cursor = cursors[1]
                 exlines.extend(["\n"] * linediff)
-                cursor.insertText("".join(exlines))
-            for cursor in self.cursors:
-                cursor.insertBlock()
-    
+                for l in exlines:
+                    insertLine(cursor, l)
+            
             self.browsers[0].changes.extend([(line[0], line[2], line[4]) for line in changes])
             self.browsers[1].changes.extend([(line[1], line[3], line[4]) for line in changes])
             self.handle(1).changes.extend(changes)

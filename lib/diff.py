@@ -232,8 +232,8 @@ class DiffWindow(QBzrWindow):
                         data = ((),())
                     except BinaryFile:
                         binary = True
-                        data = [''.join(l) for l in lines]
                         groups = []
+                    data = [''.join(l) for l in lines]
                 else:
                     binary = False
                     lines = ((),())
