@@ -39,7 +39,7 @@ except ImportError:
 colors = {
     'delete': (QtGui.QColor(255, 160, 180), QtGui.QColor(200, 60, 90)),
     'insert': (QtGui.QColor(180, 255, 180), QtGui.QColor(80, 210, 80)),
-    'replace': (QtGui.QColor(180, 210, 250), QtGui.QColor(90, 130, 180)),
+    'replace': (QtGui.QColor(206, 226, 250), QtGui.QColor(90, 130, 180)),
     'blank': (QtGui.QColor(240, 240, 240), QtGui.QColor(171, 171, 171)),
 }
 
@@ -79,12 +79,23 @@ class DiffSourceView(QtGui.QTextBrowser):
             y1 -= y
             y2 -= y
             painter.fillRect(0, y1, w, y2 - y1, brushes[kind][0])
+        del painter
+        QtGui.QTextBrowser.paintEvent(self, event)        
+
+        painter = QtGui.QPainter(self.viewport())
+        painter.setClipRect(event.rect())
+        for block0, block1, kind in self.changes:
+            y1 = block0.position().y()
+            y2 = block1.position().y()
+            if y1 <= 0 or y2 <= 0:
+                continue
+            y1 -= y
+            y2 -= y
             painter.setPen(colors[kind][1])
             painter.drawLine(0, y1, w, y1)
             if y1 != y2:
                 painter.drawLine(0, y2 - 1, w, y2 - 1)
-        del painter
-        QtGui.QTextBrowser.paintEvent(self, event)
+       
 
 
 class DiffViewHandle(QtGui.QSplitterHandle):
@@ -130,26 +141,6 @@ class DiffViewHandle(QtGui.QSplitterHandle):
             painter.drawLine(0, ly2, w, ry2)
         del painter
 
-
-def markup_line(line, encode=True):
-    if encode:
-        line = htmlencode(line)
-    line = line.rstrip("\n").replace("\t", "&nbsp;" * 8)
-    return line
-
-
-def insert_intraline_changes(cursor1, cursor2, line1, line2, format, ins_format, del_format):
-    for tag, i0, i1, j0, j1 in SequenceMatcher(None, line1, line2).get_opcodes():
-        if tag == 'equal':
-            cursor1.insertText(line1[i0:i1], format)
-            cursor2.insertText(line2[j0:j1], format)
-        else:
-            if i0 != i1:
-                cursor1.insertText(line1[i0:i1], del_format)
-            if j0 != j1:
-                cursor2.insertText(line2[j0:j1], ins_format)
-
-
 class SidebySideDiffView(QtGui.QSplitter):
     """Widget to show differences in side-by-side format."""
 
@@ -176,10 +167,6 @@ class SidebySideDiffView(QtGui.QSplitter):
     
         self.monospacedFormat = QtGui.QTextCharFormat()
         self.monospacedFormat.setFont(self.monospacedFont)
-        self.interLineChangeFormat = QtGui.QTextCharFormat()
-        self.interLineChangeFormat.setFont(self.monospacedFont)
-        self.interLineChangeFormat.setBackground(
-            QtGui.QBrush(QtGui.QColor.fromRgb(90, 130, 180)))
         self.titleFormat = QtGui.QTextCharFormat()
         self.titleFormat.setFont(titleFont)
         self.metadataFormat = QtGui.QTextCharFormat()
@@ -293,22 +280,33 @@ class SidebySideDiffView(QtGui.QSplitter):
             else:
                 display_lines = [fix_last_line(l) for l in lines]
             
+            def getFormatForTType(ttype):
+                format = QtGui.QTextCharFormat()
+                format.setFont(self.monospacedFont)
+                if ttype:
+                    tstyle = style.style_for_token(ttype)
+                    if tstyle['color']: format.setForeground (QtGui.QColor("#"+tstyle['color']))
+                    if tstyle['bold']: format.setFontWeight(QtGui.QFont.Bold)
+                    if tstyle['italic']: format.setFontItalic (True)
+                    # Can't get this not to affect line height.
+                    #if tstyle['underline']: format.setFontUnderline(True)
+                    if tstyle['bgcolor']: format.setBackground (QtGui.QColor("#"+tstyle['bgcolor']))
+                    # No way to set this for a QTextCharFormat
+                    #if tstyle['border']: format.
+                return format
+            
             def insertLine(cursor, line):
                 if have_pygments:
                     for ttype, value in line:
-                        format = QtGui.QTextCharFormat()
-                        format.setFont(self.monospacedFont)
-                        if ttype:
-                            tstyle = style.style_for_token(ttype)
-                            if tstyle['color']: format.setForeground (QtGui.QColor("#"+tstyle['color']))
-                            if tstyle['bold']: format.setFontWeight(QtGui.QFont.Bold)
-                            if tstyle['italic']: format.setFontItalic (True)
-                            # Disabled because it causes differences in line height.
-                            #if tstyle['underline']: format.setFontUnderline(True)
-                            if tstyle['bgcolor']: format.setBackground (QtGui.QColor("#"+tstyle['bgcolor']))
-                            # No way to set this for a QTextCharFormat
-                            #if tstyle['border']: format.
-                        cursor.insertText(value,format)
+                        cursor.insertText(value.rstrip('\n'),
+                                          getFormatForTType(ttype))
+                    
+                    # Use this format for the new line char, so that all line
+                    # heights are the same.
+                    format = QtGui.QTextCharFormat()
+                    format.setFont(self.monospacedFont)
+                    format.setFontItalic (True)
+                    cursor.insertText(" \n",format)
                 else:
                     cursor.insertText(line)
             
@@ -316,6 +314,56 @@ class SidebySideDiffView(QtGui.QSplitter):
                 for cursor, line, ix in zip(cursors, display_lines, ixs):
                     for l in line[ix[0]:ix[1]]:
                         insertLine(cursor, l)
+            
+            def modifyFormatForTag (format, tag):
+                if tag == "replace":
+                    format.setBackground(QtGui.QColor.fromRgb(180, 210, 250))
+                elif not tag == "equal":
+                    format.setBackground(brushes[tag][0])
+            
+            def insertIxsWithChangesHighlighted(ixs):
+                if have_pygments:
+                    groups = ([], [])
+                    for tag, i0, i1, j0, j1 in SequenceMatcher(None,
+                                                                "".join(lines[0][ixs[0][0]:ixs[0][1]]),
+                                                                "".join(lines[1][ixs[1][0]:ixs[1][1]]),
+                                                                ).get_opcodes():
+                        groups[0].append((tag, i1 - i0))
+                        groups[1].append((tag, j1 - j0))
+                    for cursor, ls, ix, g in zip(cursors, display_lines, ixs, groups):
+                        tag, n = g.pop(0)
+                        for l in ls[ix[0]:ix[1]]:
+                            for ttype, value in l:
+                                while value:
+                                    format = getFormatForTType(ttype)
+                                    modifyFormatForTag(format, tag)
+                                    t = value[0:n]
+                                    cursor.insertText(t.rstrip('\n'), format)
+                                    if t.endswith('\n'):
+                                        # Use this format for the new line char, so that all line
+                                        # heights are the same.
+                                        format = QtGui.QTextCharFormat()
+                                        format.setFont(self.monospacedFont)
+                                        format.setFontItalic (True)
+                                        cursor.insertText(" \n",format)
+                                    value = value[len(t):]
+                                    n -= len(t)
+                                    if n<=0 and len(g):
+                                        tag, n = g.pop(0)
+                else:
+                    texts = ["".join(l[ix[0]:ix[1]]) for l, ix in zip(display_lines, ixs)]
+                    
+                    for tag, i0, i1, j0, j1 in SequenceMatcher(None,
+                                                               texts[0],
+                                                               texts[1],
+                                                               ).get_opcodes():
+                        format = QtGui.QTextCharFormat()
+                        format.setFont(self.monospacedFont)
+                        modifyFormatForTag(format, tag)
+                        
+                        cursors[0].insertText(texts[0][i0:i1],format)
+                        cursors[1].insertText(texts[1][j0:j1],format)
+
             
             for i, group in enumerate(groups):
                 if i > 0:
@@ -334,18 +382,11 @@ class SidebySideDiffView(QtGui.QSplitter):
                         insertIxs(ixs)
                     else:
                         block0 = [cursor.block().layout() for cursor in self.cursors]
-                        #if n[0] == n[1]:
-                        #    for i in xrange(n[0]):
-                        #        insert_intraline_changes(
-                        #            cursors[0], cursors[1],
-                        #            display_lines[0][ixs[0][0] + i],
-                        #            display_lines[1][ixs[1][0] + i],
-                        #            self.monospacedFormat,
-                        #            self.interLineChangeFormat,
-                        #            self.interLineChangeFormat)
-                        #else:
+                        if tag == "replace":
+                            insertIxsWithChangesHighlighted(ixs)
+                        else:
+                            insertIxs(ixs)
                         linediff += n[0] - n[1]
-                        insertIxs(ixs)
                         block1 = [cursor.block().layout() for cursor in self.cursors]
                         changes.append((block0[0], block0[1], block1[0], block1[1], tag))
                 
