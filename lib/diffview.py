@@ -30,9 +30,9 @@ from bzrlib.plugins.qbzr.lib.util import (
 
 have_pygments = True
 try:
-    from pygments import highlight
+    from pygments import lex
     from pygments.lexers import get_lexer_for_filename
-    from pygments.formatters import HtmlFormatter
+    from pygments.styles import get_style_by_name
 except ImportError:
     have_pygments = False
 
@@ -164,7 +164,7 @@ class SidebySideDiffView(QtGui.QSplitter):
         titleFont.setBold(True)
         titleFont.setPixelSize(14)
 
-        monospacedFont = QtGui.QFont("Courier New, Courier",
+        self.monospacedFont = QtGui.QFont("Courier New, Courier",
                                      self.font().pointSize())
         titleFont = QtGui.QFont(self.font())
         titleFont.setPointSize(titleFont.pointSize() * 140 / 100)
@@ -175,9 +175,9 @@ class SidebySideDiffView(QtGui.QSplitter):
         metadataLabelFont.setBold(True)
     
         self.monospacedFormat = QtGui.QTextCharFormat()
-        self.monospacedFormat.setFont(monospacedFont)
+        self.monospacedFormat.setFont(self.monospacedFont)
         self.interLineChangeFormat = QtGui.QTextCharFormat()
-        self.interLineChangeFormat.setFont(monospacedFont)
+        self.interLineChangeFormat.setFont(self.monospacedFont)
         self.interLineChangeFormat.setBackground(
             QtGui.QBrush(QtGui.QColor.fromRgb(90, 130, 180)))
         self.titleFormat = QtGui.QTextCharFormat()
@@ -193,14 +193,9 @@ class SidebySideDiffView(QtGui.QSplitter):
                          DiffSourceView(self))
         self.cursors = [QtGui.QTextCursor(doc) for doc in self.docs]
         
-        if have_pygments:
-            self.formatter = HtmlFormatter(nowrap = True,
-                                           noclasses = True)
-        
         for i, (browser, doc, cursor) in enumerate(zip(self.browsers, self.docs, self.cursors)):
             doc.setUndoRedoEnabled(False)
-            doc.setDefaultFont(monospacedFont)
-            doc.setDefaultStyleSheet("body {white-space:pre;}")
+            doc.setDefaultFont(self.monospacedFont)
             
             self.setCollapsible(i, False)
             browser.setDocument(doc)
@@ -279,20 +274,48 @@ class SidebySideDiffView(QtGui.QSplitter):
                         lines = lines[:-1] + [last+'\n']
                 return lines
             
+            def splitTokensAtLines(tokens):
+                currentLine = []
+                for ttype, value in tokens:
+                    vsplit = value.splitlines(True)
+                    for v in vsplit:
+                        currentLine.append((ttype, v))
+                        if v.endswith(('\n','\r')):
+                            yield currentLine
+                            currentLine = []
+            
             if have_pygments:
-                display_lines = [fix_last_line(highlight(d, lexer, self.formatter).split("\n"))
+                display_lines = [list(splitTokensAtLines(lex(d, lexer)))
                                  for d, lexer in zip(data,
                                                      [get_lexer_for_filename(path)
                                                       for path in paths])]
+                style = get_style_by_name("default")
             else:
                 display_lines = [fix_last_line(l) for l in lines]
             
-            def insertLine(cursor, l):
+            def insertLine(cursor, line):
                 if have_pygments:
-                    cursor.insertHtml(l)
-                    cursor.insertText("\n")
+                    for ttype, value in line:
+                        format = QtGui.QTextCharFormat()
+                        format.setFont(self.monospacedFont)
+                        if ttype:
+                            tstyle = style.style_for_token(ttype)
+                            if tstyle['color']: format.setForeground (QtGui.QColor("#"+tstyle['color']))
+                            if tstyle['bold']: format.setFontWeight(QtGui.QFont.Bold)
+                            if tstyle['italic']: format.setFontItalic (True)
+                            # Disabled because it causes differences in line height.
+                            #if tstyle['underline']: format.setFontUnderline(True)
+                            if tstyle['bgcolor']: format.setBackground (QtGui.QColor("#"+tstyle['bgcolor']))
+                            # No way to set this for a QTextCharFormat
+                            #if tstyle['border']: format.
+                        cursor.insertText(value,format)
                 else:
-                    cursor.insertText(l)
+                    cursor.insertText(line)
+            
+            def insertIxs(ixs):
+                for cursor, line, ix in zip(cursors, display_lines, ixs):
+                    for l in line[ix[0]:ix[1]]:
+                        insertLine(cursor, l)
             
             for i, group in enumerate(groups):
                 if i > 0:
@@ -308,9 +331,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                     ixs = ((g[1], g[2]), (g[3], g[4]))
                     n = [ix[1]-ix[0] for ix in ixs]
                     if tag == "equal":
-                        for cursor, line, ix in zip(cursors, display_lines, ixs):
-                            for l in line[ix[0]:ix[1]]:
-                                insertLine(cursor, l)
+                        insertIxs(ixs)
                     else:
                         block0 = [cursor.block().layout() for cursor in self.cursors]
                         #if n[0] == n[1]:
@@ -324,9 +345,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                         #            self.interLineChangeFormat)
                         #else:
                         linediff += n[0] - n[1]
-                        for cursor, line, ix in zip(cursors, display_lines, ixs):
-                            for l in line[ix[0]:ix[1]]:
-                                insertLine(cursor, l)
+                        insertIxs(ixs)
                         block1 = [cursor.block().layout() for cursor in self.cursors]
                         changes.append((block0[0], block0[1], block1[0], block1[1], tag))
                 
@@ -344,7 +363,10 @@ class SidebySideDiffView(QtGui.QSplitter):
                     exlines = display_lines[1][j0:j1]
                     linediff = linediff - len(exlines)
                     cursor = cursors[1]
-                exlines.extend(["\n"] * linediff)
+                if have_pygments:
+                    exlines.extend([(None,"\n")] * linediff)
+                else:
+                    exlines.extend(["\n"] * linediff)
                 for l in exlines:
                     insertLine(cursor, l)
             
