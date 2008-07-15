@@ -252,6 +252,7 @@ class LogWindow(QBzrWindow):
 
         self.search_label = QtGui.QLabel(gettext("&Search:"))
         self.search_edit = QtGui.QLineEdit()
+        self.old_filter_str = self.search_edit.text()
         self.search_label.setBuddy(self.search_edit)
         self.connect(self.search_edit, QtCore.SIGNAL("textEdited(QString)"),
                      self.set_search_timer)
@@ -277,6 +278,7 @@ class LogWindow(QBzrWindow):
         self.connect(self.searchType,
                      QtCore.SIGNAL("currentIndexChanged(int)"),
                      self.updateSearchType)
+        self.old_filter_role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
 
         logbox.addLayout(searchbox)
 
@@ -493,7 +495,7 @@ class LogWindow(QBzrWindow):
                       has_search
         self.changesModel.set_search_mode(search_mode)
         if role == logmodel.FilterIdRole:
-            self.changesProxyModel.setFilterRegExp("")
+            self.setFilter("", self.old_filter_role)
             search_text = str(search_text)
             if self.changesModel.has_rev_id(search_text):
                 self.changesModel.ensure_rev_visible(search_text)
@@ -501,7 +503,7 @@ class LogWindow(QBzrWindow):
                 index = self.changesProxyModel.mapFromSource(index)
                 self.changesList.setCurrentIndex(index)
         elif role == logmodel.FilterRevnoRole:
-            self.changesProxyModel.setFilterRegExp("")
+            self.setFilter("", self.old_filter_role)
             try:
                 revno = tuple((int(number) for number in str(search_text).split('.')))
             except ValueError:
@@ -514,9 +516,18 @@ class LogWindow(QBzrWindow):
                 index = self.changesProxyModel.mapFromSource(index)
                 self.changesList.setCurrentIndex(index)
         else:
-            self.changesProxyModel.setFilterRegExp(self.search_edit.text())
+            self.setFilter(self.search_edit.text(), role)
+    
+    def setFilter(self, str, role):
+        if not str == self.old_filter_str or not role == self.old_filter_role:
+            self.changesProxyModel.setFilterRegExp(str)
             self.changesProxyModel.setFilterRole(role)
-
+            self.changesProxyModel.invalidateFilter()
+            self.changesModel.compute_lines()
+            
+            self.old_filter_str = str
+            self.old_filter_role = role
+    
     def updateSearchType(self, index=None):
         self.update_search()
 
@@ -556,11 +567,7 @@ class LogWindow(QBzrWindow):
                     twisty_state = index.data(logmodel.GraphTwistyStateRole)
                     if twisty_state.isValid():
                         revision_id = str(index.data(logmodel.RevIdRole).toString())
-                        self.changesModel.colapse_expand_rev(index, not twisty_state.toBool())
-                        newindex = self.changesModel.indexFromRevId(revision_id)
-                        if newindex is not None:
-                            newindex = self.changesProxyModel.mapFromSource(newindex)
-                            self.changesList.setCurrentIndex(newindex)
+                        self.changesModel.colapse_expand_rev(revision_id, not twisty_state.toBool())
         QtGui.QTreeView.mouseReleaseEvent(self.changesList, e)
     
     def changesList_keyPressEvent (self, e):
