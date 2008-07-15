@@ -332,8 +332,13 @@ class SidebySideDiffView(QtGui.QSplitter):
                                         cursor.insertText(" \n",format)
                                     value = value[len(t):]
                                     n -= len(t)
-                                    if n<=0 and len(g):
-                                        tag, n = g.pop(0)
+                                    if n<=0:
+                                        if g:
+                                            tag, n = g.pop(0)
+                                        else:
+                                            # why would this happen?????
+                                            tag = 'equal'
+                                            n = len(value)
                 else:
                     texts = ["".join(l[ix[0]:ix[1]]) for l, ix in zip(display_lines, ixs)]
                     
