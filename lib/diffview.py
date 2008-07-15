@@ -438,34 +438,40 @@ class SidebySideDiffView(QtGui.QSplitter):
             self.browsers[0].scrollToAnchor("top")
             self.browsers[1].scrollToAnchor("top")
 
-    def _syncSliders(self, sideFrom, sideTo, value):
-        sliderFrom = self.browsers[sideFrom].verticalScrollBar()
-        sliderTo = self.browsers[sideTo].verticalScrollBar()
-        m = sliderFrom.maximum()
+    def _syncSliders(self, slider1, slider2, value):
+        m = slider1.maximum()
         if m:
-            value = sliderTo.minimum() + sliderTo.maximum() * (value - sliderFrom.minimum()) / m
+            value = slider2.minimum() + slider2.maximum() * (value - slider1.minimum()) / m
             self.ignoreUpdate = True
-            sliderTo.setValue(value)
+            slider2.setValue(value)
             self.ignoreUpdate = False
 
     def updateHandle1(self, value):
         if not self.ignoreUpdate:
-            self._syncSliders(0, 1, value)
+            slider1 = self.browsers[0].verticalScrollBar()
+            slider2 = self.browsers[1].verticalScrollBar()
+            self._syncSliders(slider1, slider2, value)
             self.handle(1).update()
 
     def updateHandle2(self, value):
         if not self.ignoreUpdate:
-            self._syncSliders(1, 0, value)
+            slider1 = self.browsers[0].verticalScrollBar()
+            slider2 = self.browsers[1].verticalScrollBar()
+            self._syncSliders(slider2, slider1, value)
             self.handle(1).update()
 
     def syncHorizontalSlider1(self, value):
         if not self.ignoreUpdate:
-            self._syncSliders(0, 1, value)
+            slider1 = self.browsers[0].horizontalScrollBar()
+            slider2 = self.browsers[1].horizontalScrollBar()
+            self._syncSliders(slider1, slider2, value)
             self.handle(1).update()
 
     def syncHorizontalSlider2(self, value):
         if not self.ignoreUpdate:
-            self._syncSliders(1, 0, value)
+            slider1 = self.browsers[0].horizontalScrollBar()
+            slider2 = self.browsers[1].horizontalScrollBar()
+            self._syncSliders(slider2, slider1, value)
             self.handle(1).update()
 
     def createHandle(self):
