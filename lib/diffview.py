@@ -31,6 +31,7 @@ from bzrlib.plugins.qbzr.lib.util import (
 have_pygments = True
 try:
     from pygments import lex
+    from pygments.util import ClassNotFound
     from pygments.lexers import get_lexer_for_filename
     from pygments.styles import get_style_by_name
 except ImportError:
@@ -272,12 +273,18 @@ class SidebySideDiffView(QtGui.QSplitter):
                             currentLine = []
             
             if have_pygments:
-                display_lines = [list(splitTokensAtLines(lex(d, lexer)))
-                                 for d, lexer in zip(data,
-                                                     [get_lexer_for_filename(path)
-                                                      for path in paths])]
-                style = get_style_by_name("default")
+                use_pygments = True
+                try:
+                    display_lines = [list(splitTokensAtLines(lex(d, lexer)))
+                                     for d, lexer in zip(data,
+                                                         [get_lexer_for_filename(path)
+                                                          for path in paths])]
+                    style = get_style_by_name("default")
+                except ClassNotFound:
+                    use_pygments = False
+                    display_lines = [fix_last_line(l) for l in lines]
             else:
+                use_pygments = False
                 display_lines = [fix_last_line(l) for l in lines]
             
             def getFormatForTType(ttype):
@@ -296,7 +303,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                 return format
             
             def insertLine(cursor, line):
-                if have_pygments:
+                if use_pygments:
                     for ttype, value in line:
                         cursor.insertText(value.rstrip('\n'),
                                           getFormatForTType(ttype))
@@ -322,7 +329,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                     format.setBackground(brushes[tag][0])
             
             def insertIxsWithChangesHighlighted(ixs):
-                if have_pygments:
+                if use_pygments:
                     groups = ([], [])
                     for tag, i0, i1, j0, j1 in SequenceMatcher(None,
                                                                 "".join(lines[0][ixs[0][0]:ixs[0][1]]),
@@ -404,7 +411,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                     exlines = display_lines[1][j0:j1]
                     linediff = linediff - len(exlines)
                     cursor = cursors[1]
-                if have_pygments:
+                if use_pygments:
                     exlines.extend([(None,"\n")] * linediff)
                 else:
                     exlines.extend(["\n"] * linediff)
