@@ -266,10 +266,16 @@ class SidebySideDiffView(QtGui.QSplitter):
             if have_pygments:
                 use_pygments = True
                 try:
-                    display_lines = [list(split_tokens_at_lines(lex(d, lexer)))
-                                     for d, lexer in zip(data,
-                                                         [get_lexer_for_filename(path)
-                                                          for path in paths])]
+                    def getTokens(p, d, path):
+                        if not p:
+                            return []
+                        lexer = get_lexer_for_filename(path)
+                        return list(split_tokens_at_lines(lex(d, lexer)))
+                    
+                    display_lines = [getTokens(p, d, path)
+                                     for p, d, path in zip(present,
+                                                           data,
+                                                           paths)]
                 except ClassNotFound:
                     use_pygments = False
                     display_lines = [fix_last_line(l) for l in lines]
