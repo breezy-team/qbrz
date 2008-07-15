@@ -26,6 +26,8 @@ from bzrlib.plugins.qbzr.lib.util import htmlencode
 from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     format_timestamp,
+    split_tokens_at_lines,
+    get_format_for_ttype,
     )
 
 have_pygments = True
@@ -262,24 +264,13 @@ class SidebySideDiffView(QtGui.QSplitter):
                         lines = lines[:-1] + [last+'\n']
                 return lines
             
-            def splitTokensAtLines(tokens):
-                currentLine = []
-                for ttype, value in tokens:
-                    vsplit = value.splitlines(True)
-                    for v in vsplit:
-                        currentLine.append((ttype, v))
-                        if v.endswith(('\n','\r')):
-                            yield currentLine
-                            currentLine = []
-            
             if have_pygments:
                 use_pygments = True
                 try:
-                    display_lines = [list(splitTokensAtLines(lex(d, lexer)))
+                    display_lines = [list(split_tokens_at_lines(lex(d, lexer)))
                                      for d, lexer in zip(data,
                                                          [get_lexer_for_filename(path)
                                                           for path in paths])]
-                    style = get_style_by_name("default")
                 except ClassNotFound:
                     use_pygments = False
                     display_lines = [fix_last_line(l) for l in lines]
@@ -287,26 +278,11 @@ class SidebySideDiffView(QtGui.QSplitter):
                 use_pygments = False
                 display_lines = [fix_last_line(l) for l in lines]
             
-            def getFormatForTType(ttype):
-                format = QtGui.QTextCharFormat()
-                format.setFont(self.monospacedFont)
-                if ttype:
-                    tstyle = style.style_for_token(ttype)
-                    if tstyle['color']: format.setForeground (QtGui.QColor("#"+tstyle['color']))
-                    if tstyle['bold']: format.setFontWeight(QtGui.QFont.Bold)
-                    if tstyle['italic']: format.setFontItalic (True)
-                    # Can't get this not to affect line height.
-                    #if tstyle['underline']: format.setFontUnderline(True)
-                    if tstyle['bgcolor']: format.setBackground (QtGui.QColor("#"+tstyle['bgcolor']))
-                    # No way to set this for a QTextCharFormat
-                    #if tstyle['border']: format.
-                return format
-            
             def insertLine(cursor, line):
                 if use_pygments:
                     for ttype, value in line:
                         cursor.insertText(value.rstrip('\n'),
-                                          getFormatForTType(ttype))
+                                          get_format_for_ttype(ttype, self.monospacedFont))
                     
                     # Use this format for the new line char, so that all line
                     # heights are the same.
@@ -342,7 +318,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                         for l in ls[ix[0]:ix[1]]:
                             for ttype, value in l:
                                 while value:
-                                    format = getFormatForTType(ttype)
+                                    format = get_format_for_ttype(ttype, self.monospacedFont)
                                     modifyFormatForTag(format, tag)
                                     t = value[0:n]
                                     cursor.insertText(t.rstrip('\n'), format)
@@ -412,7 +388,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                     linediff = linediff - len(exlines)
                     cursor = cursors[1]
                 if use_pygments:
-                    exlines.extend([(None,"\n")] * linediff)
+                    exlines.extend([((None,"\n"),)] * linediff)
                 else:
                     exlines.extend(["\n"] * linediff)
                 for l in exlines:

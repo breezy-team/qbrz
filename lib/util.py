@@ -594,3 +594,37 @@ class FilterOptions(object):
         elif status == 'renamed and modified':
             return self.renamed or self.modified
         raise ValueError('unknown status: %r' % status)
+
+def split_tokens_at_lines(tokens):
+    currentLine = []
+    for ttype, value in tokens:
+        vsplit = value.splitlines(True)
+        for v in vsplit:
+            currentLine.append((ttype, v))
+            if v.endswith(('\n','\r')):
+                yield currentLine
+                currentLine = []
+
+have_pygments = True
+try:
+    from pygments.styles import get_style_by_name
+except ImportError:
+    have_pygments = False
+
+if have_pygments:
+    style = get_style_by_name("default")
+
+def get_format_for_ttype(ttype, font):
+    format = QtGui.QTextCharFormat()
+    format.setFont(font)
+    if have_pygments and ttype:
+        tstyle = style.style_for_token(ttype)
+        if tstyle['color']: format.setForeground (QtGui.QColor("#"+tstyle['color']))
+        if tstyle['bold']: format.setFontWeight(QtGui.QFont.Bold)
+        if tstyle['italic']: format.setFontItalic (True)
+        # Can't get this not to affect line height.
+        #if tstyle['underline']: format.setFontUnderline(True)
+        if tstyle['bgcolor']: format.setBackground (QtGui.QColor("#"+tstyle['bgcolor']))
+        # No way to set this for a QTextCharFormat
+        #if tstyle['border']: format.
+    return format
