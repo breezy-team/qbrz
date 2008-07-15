@@ -234,13 +234,15 @@ class LogWindow(QBzrWindow):
         self.replace = replace
         self.revisions = {}
 
-        self.changesModel = logmodel.TreeModel()
+        self.changesModel = logmodel.GraphModel()
 
-        self.changesProxyModel = QtGui.QSortFilterProxyModel()
+        self.changesProxyModel = logmodel.GraphFilterProxyModel()
         self.changesProxyModel.setSourceModel(self.changesModel)
         self.changesProxyModel.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
         self.changesProxyModel.setFilterRole(logmodel.FilterMessageRole)
         self.changesProxyModel.setDynamicSortFilter(True)
+        self.changesModel.setGraphFilterProxyModel(self.changesProxyModel)
+        
 
         logwidget = QtGui.QWidget()
         logbox = QtGui.QVBoxLayout(logwidget)
