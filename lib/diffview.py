@@ -311,11 +311,15 @@ class SidebySideDiffView(QtGui.QSplitter):
                     format.setBackground(brushes[tag][0])
             
             def insertIxsWithChangesHighlighted(ixs):
+                texts = ["".join(l[ix[0]:ix[1]]) for l, ix in zip(lines, ixs)]
                 if use_pygments:
                     groups = ([], [])
+                    # This is what the pygments lexer does, so we need to do the
+                    # same incase we have \r\n line endings.
+                    texts = ["\n".join(t.splitlines()) for t in texts]
                     for tag, i0, i1, j0, j1 in SequenceMatcher(None,
-                                                                "".join(lines[0][ixs[0][0]:ixs[0][1]]),
-                                                                "".join(lines[1][ixs[1][0]:ixs[1][1]]),
+                                                                texts [0],
+                                                                texts [1],
                                                                 ).get_opcodes():
                         groups[0].append((tag, i1 - i0))
                         groups[1].append((tag, j1 - j0))
@@ -346,8 +350,6 @@ class SidebySideDiffView(QtGui.QSplitter):
                                             tag = 'equal'
                                             n = len(value)
                 else:
-                    texts = ["".join(l[ix[0]:ix[1]]) for l, ix in zip(display_lines, ixs)]
-                    
                     for tag, i0, i1, j0, j1 in SequenceMatcher(None,
                                                                texts[0],
                                                                texts[1],
