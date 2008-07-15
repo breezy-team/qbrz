@@ -27,7 +27,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     format_timestamp,
     split_tokens_at_lines,
-    get_format_for_ttype,
+    format_for_ttype,
     )
 
 have_pygments = True
@@ -35,7 +35,6 @@ try:
     from pygments import lex
     from pygments.util import ClassNotFound
     from pygments.lexers import get_lexer_for_filename
-    from pygments.styles import get_style_by_name
 except ImportError:
     have_pygments = False
 
@@ -282,7 +281,8 @@ class SidebySideDiffView(QtGui.QSplitter):
                 if use_pygments:
                     for ttype, value in line:
                         cursor.insertText(value.rstrip('\n'),
-                                          get_format_for_ttype(ttype, self.monospacedFont))
+                                          format_for_ttype(ttype,
+                                                           QtGui.QTextCharFormat(self.monospacedFormat)))
                     
                     # Use this format for the new line char, so that all line
                     # heights are the same.
@@ -318,7 +318,8 @@ class SidebySideDiffView(QtGui.QSplitter):
                         for l in ls[ix[0]:ix[1]]:
                             for ttype, value in l:
                                 while value:
-                                    format = get_format_for_ttype(ttype, self.monospacedFont)
+                                    format = format_for_ttype(ttype,
+                                                QtGui.QTextCharFormat(self.monospacedFormat))
                                     modifyFormatForTag(format, tag)
                                     t = value[0:n]
                                     cursor.insertText(t.rstrip('\n'), format)
