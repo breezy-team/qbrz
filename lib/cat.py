@@ -133,10 +133,10 @@ class QBzrCatWindow(QBzrWindow):
         self._create_html_view(html)
 
     def _create_html_view(self, html):
+        self.browser = QtGui.QTextBrowser()
         self.doc = QtGui.QTextDocument()
         self.doc.setHtml(html)
-        self.doc.setDefaultFont(QtGui.QFont("Courier New,courier", 8))
-        self.browser = QtGui.QTextBrowser()
+        self.doc.setDefaultFont(QtGui.QFont("Courier New,courier", self.browser.font().pointSize()))
         self.browser.setDocument(self.doc)
 
     def _create_image_view(self, relpath, data):

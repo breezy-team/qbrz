@@ -111,7 +111,7 @@ class AnnotateWindow(QBzrWindow):
     def annotate(self, tree, fileId):
         revnos = self.branch.get_revision_id_to_revno_map()
         revnos = dict((k, '.'.join(map(str, v))) for k, v in revnos.iteritems())
-        font = QtGui.QFont("Courier New,courier", 8)
+        font = QtGui.QFont("Courier New,courier", self.browser.font().pointSize())
         revisionIds = set()
         items = []
         lastRevisionId = None
