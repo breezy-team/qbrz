@@ -198,6 +198,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                     parent_branch_id = self.merge_sorted_revisions[parent_msri][3][0:-1]
                     if parent_merge_depth > merge_depth and not branch_id==parent_branch_id:
                         for grand_parent_msri in self.branch_lines[parent_branch_id][0]:
+                            if grand_parent_msri < msri: continue
                             grand_parent_revid = self.merge_sorted_revisions[grand_parent_msri][1]
                             ismerged = False
                             for uncle_revid in self.graph_children[grand_parent_revid]:
