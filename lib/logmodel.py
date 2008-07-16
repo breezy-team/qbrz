@@ -182,6 +182,34 @@ class GraphModel(QtCore.QAbstractTableModel):
             
             self.branch_ids.sort(branch_id_cmp)
             
+            # Work out for each revision, which revisions it merges.
+            self.msri_merges = {}
+            for (msri, (sequence_number,
+                        revid,
+                        merge_depth,
+                        revno_sequence,
+                        end_of_merge)) in enumerate(self.merge_sorted_revisions):
+                branch_id = revno_sequence[0:-1]
+                
+                merges = []
+                for parent_revid in self.graph_parents[revid]:
+                    parent_msri = self.revid_msri[parent_revid]
+                    parent_merge_depth = self.merge_sorted_revisions[parent_msri][2]
+                    parent_branch_id = self.merge_sorted_revisions[parent_msri][3][0:-1]
+                    if parent_merge_depth > merge_depth and not branch_id==parent_branch_id:
+                        for grand_parent_msri in self.branch_lines[parent_branch_id][0]:
+                            grand_parent_revid = self.merge_sorted_revisions[grand_parent_msri][1]
+                            ismerged = False
+                            for uncle_revid in self.graph_children[grand_parent_revid]:
+                                uncle_msri = self.revid_msri[uncle_revid]
+                                uncle_branch_id = self.merge_sorted_revisions[uncle_msri][3][0:-1]
+                                if uncle_branch_id == branch_id and not revid==uncle_revid:
+                                    ismerged = True
+                                    break
+                            if ismerged: break
+                            merges.append(grand_parent_msri)
+                self.msri_merges[msri] = merges
+            
             self.emit(QtCore.SIGNAL("layoutChanged()"))
             
             if specific_fileid is not None:
@@ -768,7 +796,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                         self._revision(nextRevId)
                         revisionsChanged.append(nextRevId)
                         QtCore.QCoreApplication.processEvents()
-                        if len(revisionsChanged) == 10:
+                        if len(revisionsChanged) >= 10:
                             notifyChanges(revisionsChanged)
                 finally:
                     self.all_rev_loaded = True
@@ -871,23 +899,9 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
             return True
         
         if not (graphModel.searchMode and not graphModel.all_rev_loaded):
-            (sequence_number,
-             revid,
-             merge_depth,
-             revno_sequence,
-             end_of_merge) = graphModel.merge_sorted_revisions[source_row]
-            branch_id = revno_sequence[0:-1]
-            
-            # Is any of the parents that this rev merges visible?
-            for parent_revid in graphModel.graph_parents[revid]:
-                parent_msri = graphModel.revid_msri[parent_revid]
-                parent_branch_id = graphModel.merge_sorted_revisions[parent_msri][3][0:-1]
-                if not branch_id==parent_branch_id:
-                    for parent_msri in graphModel.branch_lines[parent_branch_id][0]:
-                        parent_merge_depth = graphModel.merge_sorted_revisions[parent_msri][2]
-                        if parent_merge_depth > merge_depth:
-                            if self.filterAcceptsRowIfBranchVisible(parent_msri, source_parent):
-                                return True
+            for parent_msri in graphModel.msri_merges[source_row]:
+                if self.filterAcceptsRowIfBranchVisible(parent_msri, source_parent):
+                    return True
         
         return False
 
