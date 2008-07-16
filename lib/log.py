@@ -582,10 +582,10 @@ class LogWindow(QBzrWindow):
             if e.key() == QtCore.Qt.Key_Right \
                     and twisty_state.isValid() \
                     and not twisty_state.toBool():
-                self.changesModel.colapse_expand_rev(index, True)
+                self.changesModel.colapse_expand_rev(revision_id, True)
             if e.key() == QtCore.Qt.Key_Left:
                 if twisty_state.isValid() and twisty_state.toBool():
-                    self.changesModel.colapse_expand_rev(index, False)
+                    self.changesModel.colapse_expand_rev(revision_id, False)
                 else:
                     #find merge of child branch
                     revision_id = self.changesModel.findChildBranchMergeRevision(revision_id)
