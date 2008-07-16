@@ -76,6 +76,7 @@ class TreeModel(QtCore.QAbstractTableModel):
             self.revisions = {}
             if start_revs is None:
                 start_revs = [branch.last_revision()]
+            start_revs = [rev for rev in start_revs if not rev == NULL_REVISION]
             graph = branch.repository.get_graph()
             self.graph_parents = {}
             ghosts = set()
