@@ -522,7 +522,7 @@ class LogWindow(QBzrWindow):
         if not str == self.old_filter_str or not role == self.old_filter_role:
             self.changesProxyModel.setFilterRegExp(str)
             self.changesProxyModel.setFilterRole(role)
-            self.changesProxyModel.invalidateFilter()
+            self.changesProxyModel.invalidateCache()
             self.changesModel.compute_lines()
             
             self.old_filter_str = str
