@@ -43,7 +43,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     FilterOptions,
     QBzrWindow,
-    format_timestamp,
     get_branch_config,
     get_set_encoding,
     )
@@ -141,7 +140,7 @@ class DiffWindow(QBzrWindow):
                     continue
                 
                 present = [k is not None and v for k,v in kind, versioned]
-                dates = [format_timestamp(tree.get_file_mtime(file_id, path)) if p else ""
+                dates = [tree.get_file_mtime(file_id, path) if p else None
                          for tree, path, p in zip(self.trees, paths, present)]            
                 paths_encoded = [(path.encode(self.encoding, "replace") \
                                  if path is not None else None )

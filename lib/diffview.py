@@ -19,10 +19,12 @@
 
 from PyQt4 import QtGui, QtCore
 
+from bzrlib import timestamp
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import htmlencode
 from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
+    format_timestamp,
     )
 
 
@@ -238,7 +240,7 @@ class SidebySideDiffView(QtGui.QSplitter):
             cursor.insertBlock()
             if present[i]:
                 cursor.insertText(self.lastModifiedLabel, self.metadataLabelFormat)
-                cursor.insertText(" %s, " % dates[i], self.metadataFormat)
+                cursor.insertText(" %s, " % format_timestamp(dates[i]), self.metadataFormat)
                 cursor.insertText(self.statusLabel, self.metadataLabelFormat)
                 cursor.insertText(" %s, " % gettext(status), self.metadataFormat)
                 cursor.insertText(self.kindLabel, self.metadataLabelFormat)
@@ -454,11 +456,22 @@ class SimpleDiffView(QtGui.QTextBrowser):
                                                    gettext(kind[0] if kind[0] is not None else kind[1]),
                                                    paths[0] if paths[0] is not None else paths[1] ),
                                   self.monospacedHeaderFormat)
-        self.cursor.insertText('--- %s %s\n' % (paths[0], dates[0]),
-                                  self.monospacedBoldInsertFormat)
-        self.cursor.insertText('+++ %s %s\n' % (paths[1], dates[1]),
-                               self.monospacedBoldDeleteFormat)
+        
+        # GNU Patch uses the epoch date to detect files that are being added
+        # or removed in a diff.
+        EPOCH_DATE = '1970-01-01 00:00:00 +0000'
+        for i in range(2):
+            if present[i]:
+                dates[i] = timestamp.format_patch_date(dates[i])
+            else:
+                paths[i] = paths[i+1%2]
+                dates[i] = EPOCH_DATE
+        
         if not binary:
+            self.cursor.insertText('--- %s %s\n' % (paths[0], dates[0]),
+                                      self.monospacedBoldInsertFormat)
+            self.cursor.insertText('+++ %s %s\n' % (paths[1], dates[1]),
+                                   self.monospacedBoldDeleteFormat)
             a = lines[0]
             b = lines[1]
             for i, group in enumerate(groups):
@@ -476,5 +489,7 @@ class SimpleDiffView(QtGui.QTextBrowser):
                         text = "".join("+" + l for l in b[j1:j2])
                         self.cursor.insertText(text, self.monospacedInsertFormat)
         else:
-            pass
+            self.cursor.insertText("Binary files %s %s and %s %s differ\n" % \
+                                   (paths[0], dates[0], paths[1], dates[1]))
+        self.cursor.insertText("\n")
     
