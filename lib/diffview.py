@@ -135,23 +135,22 @@ def get_change_extent(str1, str2):
     return (start, end + 1)
 
 
-def markup_intraline_changes(line1, line2, color):
-    line1 = line1.rstrip("\n")
-    line2 = line2.rstrip("\n")
-    line1 = line1.replace(u"&", u"\1").replace(u"<", u"\2").replace(u">", u"\3")
-    line2 = line2.replace(u"&", u"\1").replace(u"<", u"\2").replace(u">", u"\3")
+def insert_line_intraline_changes(line1, line2, cursor, format):
     start, end = get_change_extent(line1[1:], line2[1:])
     if start == 0 and end < 0:
-        text = u'<span style="background-color:%s">%s</span>%s' % (color, line1[:end], line1[end:])
+        parts = ("", line1[:end], line1[end:])
     elif start > 0 and end == 0:
         start += 1
-        text = u'%s<span style="background-color:%s">%s</span>' % (line1[:start], color, line1[start:])
+        parts = (line1[:start], line1[start:],"")
     elif start > 0 and end < 0:
         start += 1
-        text = u'%s<span style="background-color:%s">%s</span>%s' % (line1[:start], color, line1[start:end], line1[end:])
+        parts = (line1[:start], line1[start:end], line1[end:])
     else:
-        text = line1
-    return text.replace(u"\1", u"&amp;").replace(u"\2", u"&lt;").replace(u"\3", u"&gt;")
+        parts= (line1, "", "")
+    cursor.insertText(parts[0])
+    oldformat = cursor.charFormat()
+    cursor.insertText(parts[1], format)
+    cursor.insertText(parts[2], oldformat)
 
 class SidebySideDiffView(QtGui.QSplitter):
     """Widget to show differences in side-by-side format."""
@@ -179,6 +178,10 @@ class SidebySideDiffView(QtGui.QSplitter):
     
         self.monospacedFormat = QtGui.QTextCharFormat()
         self.monospacedFormat.setFont(monospacedFont)
+        self.interLineChangeFormat = QtGui.QTextCharFormat()
+        self.interLineChangeFormat.setFont(monospacedFont)
+        self.interLineChangeFormat.setBackground(
+            QtGui.QBrush(QtGui.QColor.fromRgb(90, 130, 180)))
         self.titleFormat = QtGui.QTextCharFormat()
         self.titleFormat.setFont(titleFont)
         self.metadataFormat = QtGui.QTextCharFormat()
@@ -190,6 +193,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                      QtGui.QTextDocument())
         for doc in self.docs:
             doc.setUndoRedoEnabled(False)
+            doc.setDefaultFont(monospacedFont)
 
         self.browser1 = DiffSourceView(self)
         self.browser2 = DiffSourceView(self)
@@ -274,8 +278,12 @@ class SidebySideDiffView(QtGui.QSplitter):
                             for i in xrange(ni):
                                 linea = a[i1 + i]
                                 lineb = b[j1 + i]
-                                cursors[0].insertText(linea, format)
-                                cursors[1].insertText(lineb, format)
+                                insert_line_intraline_changes(linea, lineb,
+                                                              cursors[0],
+                                                              self.interLineChangeFormat)
+                                insert_line_intraline_changes(lineb, linea,
+                                                              cursors[1],
+                                                              self.interLineChangeFormat)
                         else:
                             linediff += ni - nj
                             text = "".join(l for l in a[i1:i2])
