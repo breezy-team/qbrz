@@ -215,7 +215,8 @@ class SidebySideDiffView(QtGui.QSplitter):
         self.image_exts = ['.'+str(i)
             for i in QtGui.QImageReader.supportedImageFormats()]
 
-    def append_file_info(self, paths, kind, status, dates, present):
+    def append_diff(self, paths, file_id, kind, status, dates,
+                    present, binary, lines, groups, data):
         for i in range(2):
             cursor = self.cursors[i]
             cursor.beginEditBlock()
@@ -231,102 +232,96 @@ class SidebySideDiffView(QtGui.QSplitter):
             else:
                 cursor.insertText("", self.metadataFormat)
             cursor.insertBlock(QtGui.QTextBlockFormat(), self.monospacedFormat)
-            cursor.endEditBlock()
-    
-    def append_file_diff(self, paths, file_id, present, lines, groups):
-        format = self.monospacedFormat
-        cursors = self.cursors
-        for cursor in cursors:
-            cursor.beginEditBlock()
-        changes = []
-        a = lines[0]
-        b = lines[1]
-        for i, group in enumerate(groups):
-            if i > 0:
-                block0 = [cursor.block().layout() for cursor in self.cursors]
-                for cursor in cursors:
-                    cursor.insertBlock(QtGui.QTextBlockFormat(), format)
-                block1 = [cursor.block().layout() for cursor in self.cursors]
-                changes.append((block0[0], block0[1], block1[0], block1[1], 'blank'))
-            linediff = 0
-            for tag, i1, i2, j1, j2 in group:
-                ni = i2 - i1
-                nj = j2 - j1
-                if tag == "equal":
-                    text = "".join(l for l in a[i1:i2])
+        if not binary:
+            format = self.monospacedFormat
+            cursors = self.cursors
+            changes = []
+            a = lines[0]
+            b = lines[1]
+            for i, group in enumerate(groups):
+                if i > 0:
+                    block0 = [cursor.block().layout() for cursor in self.cursors]
                     for cursor in cursors:
-                        cursor.insertText(text, format)
-                else:
-                    blocka0 = cursors[0].block().layout()
-                    blockb0 = cursors[1].block().layout()
-                    if ni == nj:
-                        for i in xrange(ni):
-                            linea = a[i1 + i]
-                            lineb = b[j1 + i]
-                            cursors[0].insertText(linea, format)
-                            cursors[1].insertText(lineb, format)
-                    else:
-                        linediff += ni - nj
+                        cursor.insertBlock(QtGui.QTextBlockFormat(), format)
+                    block1 = [cursor.block().layout() for cursor in self.cursors]
+                    changes.append((block0[0], block0[1], block1[0], block1[1], 'blank'))
+                linediff = 0
+                for tag, i1, i2, j1, j2 in group:
+                    ni = i2 - i1
+                    nj = j2 - j1
+                    if tag == "equal":
                         text = "".join(l for l in a[i1:i2])
-                        cursors[0].insertText(text, format)
-                        text = "".join(l for l in b[j1:j2])
-                        cursors[1].insertText(text, format)
-                    blocka1 = cursors[0].block().layout()
-                    blockb1 = cursors[1].block().layout()
-                    changes.append((blocka0, blockb0, blocka1, blockb1, tag))
-            if linediff == 0:
-                continue
-            if linediff < 0:
-                i1 = group[-1][2]
-                i2 = i1 - linediff
-                lines = a[i1:i2]
-                linediff = -linediff - len(lines)
-                cursor = cursors[0]
-            else:
-                j1 = group[-1][4]
-                j2 = j1 + linediff
-                lines = b[j1:j2]
-                linediff = linediff - len(lines)
-                cursor = cursors[1]
-            lines.extend(["\n"] * linediff)
-            cursor.insertText("".join(lines), format)
-        for cursor in self.cursors:
-            cursor.insertBlock(QtGui.QTextBlockFormat(), format)
-            cursor.endEditBlock()
-
-        changes1 = [(line[0], line[2], line[4]) for line in changes]
-        changes2 = [(line[1], line[3], line[4]) for line in changes]
-
-        self.browser1.changes.extend(changes1)
-        self.browser2.changes.extend(changes2)
-        self.handle(1).changes.extend(changes)
-
-    def append_file_binary(self, paths, file_id, present, data):
-        heights = [0,0]
-        for i in range(2):
-            self.cursors[i].beginEditBlock()
-            self.cursors[i].insertBlock(QtGui.QTextBlockFormat(), self.monospacedFormat)
-            if present[i]:
-                ext = file_extension(paths[1]).lower()
-                if ext in self.image_exts:
-                    image = QtGui.QImage()
-                    image.loadFromData(data[i])
-                    heights[i] = image.height() - 3 # QTextDocument seems to add 1 pixel when layouting the text
-                    self.docs[i].addResource(QtGui.QTextDocument.ImageResource,
-                                    QtCore.QUrl(file_id),
-                                    QtCore.QVariant(image))
-                    self.cursors[i].insertImage(file_id)
-                    self.cursors[i].insertBlock(QtGui.QTextBlockFormat(), self.monospacedFormat)
+                        for cursor in cursors:
+                            cursor.insertText(text, format)
+                    else:
+                        blocka0 = cursors[0].block().layout()
+                        blockb0 = cursors[1].block().layout()
+                        if ni == nj:
+                            for i in xrange(ni):
+                                linea = a[i1 + i]
+                                lineb = b[j1 + i]
+                                cursors[0].insertText(linea, format)
+                                cursors[1].insertText(lineb, format)
+                        else:
+                            linediff += ni - nj
+                            text = "".join(l for l in a[i1:i2])
+                            cursors[0].insertText(text, format)
+                            text = "".join(l for l in b[j1:j2])
+                            cursors[1].insertText(text, format)
+                        blocka1 = cursors[0].block().layout()
+                        blockb1 = cursors[1].block().layout()
+                        changes.append((blocka0, blockb0, blocka1, blockb1, tag))
+                if linediff == 0:
+                    continue
+                if linediff < 0:
+                    i1 = group[-1][2]
+                    i2 = i1 - linediff
+                    lines = a[i1:i2]
+                    linediff = -linediff - len(lines)
+                    cursor = cursors[0]
                 else:
-                    self.cursors[i].insertText(gettext('[binary file]'))
-            else:
-                self.cursors[i].insertText(" ")
-        
-        max_height = max(heights)
-        for i, cursor in enumerate(self.cursors):
-            format = QtGui.QTextBlockFormat()
-            format.setTopMargin(max_height - heights[i])
-            cursor.insertBlock(format, self.monospacedFormat)
+                    j1 = group[-1][4]
+                    j2 = j1 + linediff
+                    lines = b[j1:j2]
+                    linediff = linediff - len(lines)
+                    cursor = cursors[1]
+                lines.extend(["\n"] * linediff)
+                cursor.insertText("".join(lines), format)
+            for cursor in self.cursors:
+                cursor.insertBlock(QtGui.QTextBlockFormat(), format)
+    
+            changes1 = [(line[0], line[2], line[4]) for line in changes]
+            changes2 = [(line[1], line[3], line[4]) for line in changes]
+    
+            self.browser1.changes.extend(changes1)
+            self.browser2.changes.extend(changes2)
+            self.handle(1).changes.extend(changes)
+        else:
+            heights = [0,0]
+            for i in range(2):
+                self.cursors[i].insertBlock(QtGui.QTextBlockFormat(), self.monospacedFormat)
+                if present[i]:
+                    ext = file_extension(paths[1]).lower()
+                    if ext in self.image_exts:
+                        image = QtGui.QImage()
+                        image.loadFromData(data[i])
+                        heights[i] = image.height() - 3 # QTextDocument seems to add 1 pixel when layouting the text
+                        self.docs[i].addResource(QtGui.QTextDocument.ImageResource,
+                                        QtCore.QUrl(file_id),
+                                        QtCore.QVariant(image))
+                        self.cursors[i].insertImage(file_id)
+                        self.cursors[i].insertBlock(QtGui.QTextBlockFormat(), self.monospacedFormat)
+                    else:
+                        self.cursors[i].insertText(gettext('[binary file]'))
+                else:
+                    self.cursors[i].insertText(" ")
+            
+            max_height = max(heights)
+            for i, cursor in enumerate(self.cursors):
+                format = QtGui.QTextBlockFormat()
+                format.setTopMargin(max_height - heights[i])
+                cursor.insertBlock(format, self.monospacedFormat)
+        for cursor in self.cursors:
             cursor.endEditBlock()
 
     def rewind(self):
@@ -425,7 +420,8 @@ class SimpleDiffView(QtGui.QTextBrowser):
             self.rewinded = True
             self.scrollToAnchor("top")
 
-    def append_file_info(self, paths, kind, status, dates, present):
+    def append_diff(self, paths, file_id, kind, status, dates,
+                    present, binary, lines, groups, data):
         self.cursor.insertText("=== %s %s %s\n" % (gettext(status),
                                                    gettext(kind[0] if kind[0] is not None else kind[1]),
                                                    paths[0] if paths[0] is not None else paths[1] ),
@@ -434,25 +430,23 @@ class SimpleDiffView(QtGui.QTextBrowser):
                                   self.monospacedBoldInsertFormat)
         self.cursor.insertText('+++ %s %s\n' % (paths[1], dates[1]),
                                self.monospacedBoldDeleteFormat)
-    
-    def append_file_diff(self, paths, file_id, present, lines, groups):
-        a = lines[0]
-        b = lines[1]
-        for i, group in enumerate(groups):
-            i1, i2, j1, j2 = group[0][1], group[-1][2], group[0][3], group[-1][4]
-            self.cursor.insertText("@@ -%d,%d +%d,%d @@\n" % (i1+1, i2-i1, j1+1, j2-j1), self.monospacedHunkFormat)
-            for tag, i1, i2, j1, j2 in group:
-                ni = i2 - i1
-                nj = j2 - j1
-                if tag == "equal":
-                    text = "".join(" " + l for l in a[i1:i2])
-                    self.cursor.insertText(text, self.monospacedFormat)
-                else:
-                    text = "".join("-" + l for l in a[i1:i2])
-                    self.cursor.insertText(text, self.monospacedDeleteFormat)
-                    text = "".join("+" + l for l in b[j1:j2])
-                    self.cursor.insertText(text, self.monospacedInsertFormat)
-
-    def append_file_binary(self, paths, file_id, present, data):
-        pass
+        if binary:
+            a = lines[0]
+            b = lines[1]
+            for i, group in enumerate(groups):
+                i1, i2, j1, j2 = group[0][1], group[-1][2], group[0][3], group[-1][4]
+                self.cursor.insertText("@@ -%d,%d +%d,%d @@\n" % (i1+1, i2-i1, j1+1, j2-j1), self.monospacedHunkFormat)
+                for tag, i1, i2, j1, j2 in group:
+                    ni = i2 - i1
+                    nj = j2 - j1
+                    if tag == "equal":
+                        text = "".join(" " + l for l in a[i1:i2])
+                        self.cursor.insertText(text, self.monospacedFormat)
+                    else:
+                        text = "".join("-" + l for l in a[i1:i2])
+                        self.cursor.insertText(text, self.monospacedDeleteFormat)
+                        text = "".join("+" + l for l in b[j1:j2])
+                        self.cursor.insertText(text, self.monospacedInsertFormat)
+        else:
+            pass
     
