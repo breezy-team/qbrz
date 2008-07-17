@@ -235,7 +235,7 @@ class SidebySideDiffView(QtGui.QSplitter):
             cursor = cursors[i]
             cursor.beginEditBlock()
             cursor.insertText(paths[i] if paths[i] is not None else " ", self.titleFormat)
-            cursor.insertBlock(QtGui.QTextBlockFormat(), self.monospacedFormat)
+            cursor.insertBlock()
             if present[i]:
                 cursor.insertText(self.lastModifiedLabel, self.metadataLabelFormat)
                 cursor.insertText(" %s, " % dates[i], self.metadataFormat)
@@ -245,14 +245,14 @@ class SidebySideDiffView(QtGui.QSplitter):
                 cursor.insertText(" %s" % gettext(kind[1]), self.metadataFormat)
             else:
                 cursor.insertText(" ", self.metadataFormat)
-            cursor.insertBlock(QtGui.QTextBlockFormat(), self.monospacedFormat)
+            cursor.insertBlock()
             if present[i]:
                 self.browsers[i].infoBlocks.append(cursor.block().layout())
             
         if not binary:
-            format = self.monospacedFormat
             for cursor in cursors:
-                cursor.insertBlock(QtGui.QTextBlockFormat(), format)
+                cursor.insertBlock()
+                cursor.setCharFormat(self.monospacedFormat)
             changes = []
             a = lines[0]
             b = lines[1]
@@ -260,7 +260,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                 if i > 0:
                     block0 = [cursor.block().layout() for cursor in self.cursors]
                     for cursor in cursors:
-                        cursor.insertBlock(QtGui.QTextBlockFormat(), format)
+                        cursor.insertBlock()
                     block1 = [cursor.block().layout() for cursor in self.cursors]
                     changes.append((block0[0], block0[1], block1[0], block1[1], 'blank'))
                 linediff = 0
@@ -270,7 +270,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                     if tag == "equal":
                         text = "".join(l for l in a[i1:i2])
                         for cursor in cursors:
-                            cursor.insertText(text, format)
+                            cursor.insertText(text)
                     else:
                         blocka0 = cursors[0].block().layout()
                         blockb0 = cursors[1].block().layout()
@@ -287,9 +287,9 @@ class SidebySideDiffView(QtGui.QSplitter):
                         else:
                             linediff += ni - nj
                             text = "".join(l for l in a[i1:i2])
-                            cursors[0].insertText(text, format)
+                            cursors[0].insertText(text)
                             text = "".join(l for l in b[j1:j2])
-                            cursors[1].insertText(text, format)
+                            cursors[1].insertText(text)
                         blocka1 = cursors[0].block().layout()
                         blockb1 = cursors[1].block().layout()
                         changes.append((blocka0, blockb0, blocka1, blockb1, tag))
@@ -308,9 +308,9 @@ class SidebySideDiffView(QtGui.QSplitter):
                     linediff = linediff - len(lines)
                     cursor = cursors[1]
                 lines.extend(["\n"] * linediff)
-                cursor.insertText("".join(lines), format)
+                cursor.insertText("".join(lines))
             for cursor in self.cursors:
-                cursor.insertBlock(QtGui.QTextBlockFormat(), format)
+                cursor.insertBlock()
     
             changes1 = [(line[0], line[2], line[4]) for line in changes]
             changes2 = [(line[1], line[3], line[4]) for line in changes]
@@ -320,29 +320,34 @@ class SidebySideDiffView(QtGui.QSplitter):
             self.handle(1).changes.extend(changes)
         else:
             heights = [0,0]
+            is_images = [False, False]
             for i in range(2):
-                self.cursors[i].insertBlock(QtGui.QTextBlockFormat(), self.monospacedFormat)
                 if present[i]:
-                    ext = file_extension(paths[1]).lower()
+                    ext = file_extension(paths[i]).lower()
                     if ext in self.image_exts:
+                        is_images[i] = True
                         image = QtGui.QImage()
                         image.loadFromData(data[i])
-                        heights[i] = image.height() + 1 # QTextDocument seems to add 1 pixel when layouting the text
+                        heights[i] = image.height() + 4 # QTextDocument seems to add 1 pixel when layouting the text
                         self.docs[i].addResource(QtGui.QTextDocument.ImageResource,
                                         QtCore.QUrl(file_id),
                                         QtCore.QVariant(image))
-                        self.cursors[i].insertImage(file_id)
-                        self.cursors[i].insertBlock(QtGui.QTextBlockFormat(), self.monospacedFormat)
-                    else:
-                        self.cursors[i].insertText(gettext('[binary file]'))
-                else:
-                    self.cursors[i].insertText(" ")
             
             max_height = max(heights)
             for i, cursor in enumerate(self.cursors):
                 format = QtGui.QTextBlockFormat()
-                format.setTopMargin(max_height - heights[i])
-                cursor.insertBlock(format, self.monospacedFormat)
+                format.setBottomMargin(max_height - heights[i])
+                cursor.insertBlock(format)
+                if present[i]:
+                    if is_images[i]:
+                        cursor.insertImage(file_id)
+                        cursor.insertBlock()
+                    else:
+                        cursor.insertText(gettext('[binary file]'))
+                else:
+                    cursor.insertText(" ")
+                cursor.insertBlock(QtGui.QTextBlockFormat())
+        
         for cursor in self.cursors:
             cursor.endEditBlock()
         self.update()
