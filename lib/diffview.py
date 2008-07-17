@@ -305,7 +305,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                     if ext in self.image_exts:
                         image = QtGui.QImage()
                         image.loadFromData(data[i])
-                        heights[i] = image.height() - 3 # QTextDocument seems to add 1 pixel when layouting the text
+                        heights[i] = image.height() - 2 # QTextDocument seems to add 1 pixel when layouting the text
                         self.docs[i].addResource(QtGui.QTextDocument.ImageResource,
                                         QtCore.QUrl(file_id),
                                         QtCore.QVariant(image))
@@ -323,6 +323,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                 cursor.insertBlock(format, self.monospacedFormat)
         for cursor in self.cursors:
             cursor.endEditBlock()
+        self.update()
 
     def rewind(self):
         if not self.rewinded:

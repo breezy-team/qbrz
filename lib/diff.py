@@ -55,116 +55,6 @@ def get_file_lines_from_tree(tree, file_id):
     except AttributeError:
         return tree.get_file(file_id).readlines()
 
-class ProxyToMainEvent(QtCore.QEvent):
-
-    def __init__(self, func, args, kwargs):
-        print "ProxyToMainEvent init"
-        print func
-        QtCore.QEvent.__init__(self, QtCore.QEvent.User)
-        self.func = func
-        self.args = args
-        self.kwargs = kwargs
-
-    def call(self):
-        print "ProxyToMainEvent call"
-        self.func(*self.args, **self.kwargs)
-
-class LoadDiffThread(QtCore.QThread):
-    
-    def __init__(self, parent, trees, specific_files, encoding,
-                 complete, append_func):
-        QtCore.QThread.__init__(self, parent)
-        self.trees = trees
-        self.specific_files = specific_files
-        self.encoding = encoding
-        self.complete = complete
-        self.stopping = False
-        self.append_func = append_func
-    
-    def stop(self):
-        self.stopping = True
-    
-    def to_main(self, func, *args, **kwargs):
-        event = ProxyToMainEvent(func, args, kwargs)
-        QtCore.QCoreApplication.postEvent(self.parent(), event)
-    
-    def run(self):
-        print "running"
-        for tree in self.trees: tree.lock_read()
-        try:
-            changes = self.trees[1].iter_changes(self.trees[0],
-                                                 specific_files=self.specific_files,
-                                                 require_versioned=True)
-            def changes_key(change):
-                old_path, new_path = change[1]
-                path = new_path
-                if path is None:
-                    path = old_path
-                return path
-            
-            for (file_id, paths, changed_content, versioned, parent, name, kind,
-                 executable) in sorted(changes, key=changes_key):
-                if parent == (None, None):
-                    continue
-                if self.stopping:
-                    break
-                
-                present = [k is not None and v for k,v in kind, versioned]
-                dates = [format_timestamp(tree.get_file_mtime(file_id, path)) if p else ""
-                         for tree, path, p in zip(self.trees, paths, present)]            
-                paths_encoded = [(path.encode(self.encoding, "replace") \
-                                 if path is not None else None )
-                                 for path in paths]
-                renamed = (parent[0], name[0]) != (parent[1], name[1])
-                properties_changed = [] 
-                # TODO
-                #properties_changed.extend(get_executable_change(executable[0], executable[1]))
-                
-                if present == [True, False]:
-                    status = N_('removed')
-                elif  present == [False, True]:
-                    status = N_('added')
-                elif renamed and changed_content:
-                    status = N_('renamed and modified')
-                elif renamed:
-                    status = N_('renamed')
-                else:
-                    status = N_('modified')
-                
-                if present == (True, False) or present == (False, True) or changed_content:
-                    lines = [get_file_lines_from_tree(tree, file_id) if p else []
-                             for tree, p in zip(self.trees, present)]
-                    try:
-                        for l in lines:
-                            check_text_lines(l)
-                        binary = False
-                        if present == (True, False):
-                            groups = [[('delete', 0, len(lines[0]), 0, 0)]]
-                        elif present == (False, True):
-                            groups = [[('insert', 0, 0, 0, len(lines[1]))]]
-                        else:
-                            matcher = SequenceMatcher(None, lines[0], lines[1])
-                            if self.complete:
-                                groups = list([matcher.get_opcodes()])
-                            else:
-                                groups = list(matcher.get_grouped_opcodes())
-                        lines = [[i.decode(self.encoding,'replace') for i in l]
-                                 for l in lines]
-                        data = ((),())
-                    except BinaryFile:
-                        binary = True
-                        data = [''.join(l) for l in lines]
-                        groups = []
-                print "append_diff to run"
-                self.to_main(self.append_func,
-                             (paths_encoded, file_id,kind, status, dates,
-                              present, binary, lines, groups, data),
-                             ())
-                
-        finally:
-            for tree in self.trees: tree.unlock() 
-    
-
 class DiffWindow(QBzrWindow):
 
     def __init__(self, tree1=None, tree2=None, specific_files=None,
@@ -233,16 +123,76 @@ class DiffWindow(QBzrWindow):
         QtCore.QTimer.singleShot(1, self.load_diff)
     
     def load_diff(self):
-        l = LoadDiffThread(self, self.trees, self.specific_files,
-                           self.encoding, self.complete,  self.append_diff)
-        l.start()
-
-    def append_diff(self, paths, file_id, kind, status, dates,
-                    present, binary, lines, groups, data):
-        print "append_diff ruinning"
-        for view in self.views:
-            view.append_diff(paths, file_id, kind, status, dates,
-                             present, binary, lines, groups, data)
+        for tree in self.trees: tree.lock_read()
+        try:
+            changes = self.trees[1].iter_changes(self.trees[0],
+                                                 specific_files=self.specific_files,
+                                                 require_versioned=True)
+            def changes_key(change):
+                old_path, new_path = change[1]
+                path = new_path
+                if path is None:
+                    path = old_path
+                return path
+            
+            for (file_id, paths, changed_content, versioned, parent, name, kind,
+                 executable) in sorted(changes, key=changes_key):
+                if parent == (None, None):
+                    continue
+                
+                present = [k is not None and v for k,v in kind, versioned]
+                dates = [format_timestamp(tree.get_file_mtime(file_id, path)) if p else ""
+                         for tree, path, p in zip(self.trees, paths, present)]            
+                paths_encoded = [(path.encode(self.encoding, "replace") \
+                                 if path is not None else None )
+                                 for path in paths]
+                renamed = (parent[0], name[0]) != (parent[1], name[1])
+                properties_changed = [] 
+                # TODO
+                #properties_changed.extend(get_executable_change(executable[0], executable[1]))
+                
+                if present == [True, False]:
+                    status = N_('removed')
+                elif  present == [False, True]:
+                    status = N_('added')
+                elif renamed and changed_content:
+                    status = N_('renamed and modified')
+                elif renamed:
+                    status = N_('renamed')
+                else:
+                    status = N_('modified')
+                
+                if present == (True, False) or present == (False, True) or changed_content:
+                    lines = [get_file_lines_from_tree(tree, file_id) if p else []
+                             for tree, p in zip(self.trees, present)]
+                    try:
+                        for l in lines:
+                            check_text_lines(l)
+                        binary = False
+                        if present == (True, False):
+                            groups = [[('delete', 0, len(lines[0]), 0, 0)]]
+                        elif present == (False, True):
+                            groups = [[('insert', 0, 0, 0, len(lines[1]))]]
+                        else:
+                            matcher = SequenceMatcher(None, lines[0], lines[1])
+                            if self.complete:
+                                groups = list([matcher.get_opcodes()])
+                            else:
+                                groups = list(matcher.get_grouped_opcodes())
+                        lines = [[i.decode(self.encoding,'replace') for i in l]
+                                 for l in lines]
+                        data = ((),())
+                    except BinaryFile:
+                        binary = True
+                        data = [''.join(l) for l in lines]
+                        groups = []
+                for view in self.views:
+                    view.append_diff(paths_encoded, file_id,kind, status, dates,
+                                     present, binary, lines, groups, data)
+                QtCore.QCoreApplication.processEvents()
+                
+        finally:
+            for tree in self.trees: tree.unlock()
 
     def click_unidiff(self, checked):
         if checked:
