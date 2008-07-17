@@ -186,6 +186,11 @@ class DiffWindow(QBzrWindow):
                         binary = True
                         data = [''.join(l) for l in lines]
                         groups = []
+                else:
+                    binary = False
+                    lines = ((),())
+                    groups = ()
+                    data = lines
                 for view in self.views:
                     view.append_diff(paths_encoded, file_id,kind, status, dates,
                                      present, binary, lines, groups, data)
