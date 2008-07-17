@@ -35,7 +35,7 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 
 from bzrlib.plugins.qbzr.lib.diffview import (
-    DiffView,
+    SidebySideDiffView,
     SimpleDiffView,
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
@@ -43,20 +43,9 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     FilterOptions,
     QBzrWindow,
-    format_timestamp,
     get_branch_config,
     get_set_encoding,
     )
-
-
-STYLES = {
-    'hunk': 'background-color:#666666;color:#FFF;font-weight:bold;',
-    'delete': 'background-color:#FFDDDD',
-    'insert': 'background-color:#DDFFDD',
-    'missing': 'background-color:#E0E0E0',
-    'title': 'margin-top: 10px; font-size: 14px; font-weight: bold;',
-    'metainfo': 'font-size: 9px; margin-bottom: 10px;',
-}
 
 
 def get_file_lines_from_tree(tree, file_id):
@@ -64,230 +53,6 @@ def get_file_lines_from_tree(tree, file_id):
         return tree.get_file_lines(file_id)
     except AttributeError:
         return tree.get_file(file_id).readlines()
-
-
-def htmlencode(string):
-    return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
-
-def markup_line(line, style='', encode=True):
-    if encode:
-        line = htmlencode(line)
-    if style:
-        style = ' style="%s"' % style
-    return '<div%s>%s</div>' % (style, line.rstrip() or '&nbsp;')
-
-
-class FileDiff(object):
-
-    def __init__(self, status, path):
-        self.status = status
-        self.path = path
-        self.binary = False
-        self.old_lines = []
-        self.new_lines = []
-        self.groups = []
-
-    def make_diff(self, old_lines, new_lines, complete, encoding='utf-8'):
-        try:
-            check_text_lines(old_lines)
-            check_text_lines(new_lines)
-        except BinaryFile:
-            self.binary = True
-        else:
-            self.old_lines = old_lines
-            self.new_lines = new_lines
-            if old_lines and not new_lines:
-                self.groups = [[('delete', 0, len(old_lines), 0, 0)]]
-            elif not old_lines and new_lines:
-                self.groups = [[('insert', 0, 0, 0, len(new_lines))]]
-            else:
-                matcher = SequenceMatcher(None, old_lines, new_lines)
-                if complete:
-                    self.groups = list([matcher.get_opcodes()])
-                else:
-                    self.groups = list(matcher.get_grouped_opcodes())
-            self.old_lines = [i.decode(encoding,'replace') for i in old_lines]
-            self.new_lines = [i.decode(encoding,'replace') for i in new_lines]
-
-    def unidiff_list(self, n=3, lineterm='\n'):
-        """Create an unidiff output"""
-
-        a = self.old_lines
-        fromfiledate = self.old_date
-        fromfile = self.old_path
-
-        b = self.new_lines
-        tofiledate = self.new_date
-        tofile = self.new_path
-
-        a = [a.rstrip("\n") for a in a]
-        b = [b.rstrip("\n") for b in b]
-
-        started = False
-        if self.status in ('renamed', 'renamed and modified'):
-            yield "=== %s %s '%s' => '%s'" % (
-                self.status, self.kind, fromfile, tofile)
-        else:
-            yield "=== %s %s '%s'" % (self.status, self.kind, fromfile)
-        if self.binary:
-            yield "=== binary file"
-            yield '--- %s %s%s' % (fromfile, fromfiledate, lineterm)
-            yield '+++ %s %s%s' % (tofile, tofiledate, lineterm)
-            return
-        for group in self.groups:
-            if not started:
-                yield '--- %s %s%s' % (fromfile, fromfiledate, lineterm)
-                yield '+++ %s %s%s' % (tofile, tofiledate, lineterm)
-                started = True
-            i1, i2, j1, j2 = group[0][1], group[-1][2], group[0][3], group[-1][4]
-            yield "@@ -%d,%d +%d,%d @@%s" % (i1+1, i2-i1, j1+1, j2-j1, lineterm)
-            for tag, i1, i2, j1, j2 in group:
-                if tag == 'equal':
-                    for line in a[i1:i2]:
-                        yield ' ' + line
-                    continue
-                if tag == 'replace' or tag == 'delete':
-                    for line in a[i1:i2]:
-                        yield '-' + line
-                if tag == 'replace' or tag == 'insert':
-                    for line in b[j1:j2]:
-                        yield '+' + line
-
-    def html_unidiff(self):
-        style = {
-            '---': 'color:#CC0000; font-weight: bold;',
-            '+++': 'color:#00880B; font-weight: bold;',
-            '-':   'color:#CC0000',
-            '+':   'color:#00880B',
-            '@':   'color:#991EC7;font-style:italic;',
-            '=':   'background-color:#F6F5EE; color:#777777; font-weight: bold;',
-        }
-        defaultstyle = 'background-color:#ffffff; color=black',
-        res = ['<span style="font-size:12px">']
-        keys = style.keys( )
-        keys.sort(reverse=True) # so '---' is before '-'
-        for l in self.unidiff_list(lineterm=''):
-            for k in keys:
-                if l.startswith(k):
-                    res.append(markup_line(l, style[k]))
-                    break
-            else:
-                res.append(markup_line(l, defaultstyle))
-        res.append('</span>')
-        res.append(markup_line('', defaultstyle))   # blank line between files
-        return ''.join(res)
-
-
-class TreeDiff(list):
-
-    def _date(self, tree, file_id, path, secs=None):
-        if secs is None:
-            try:
-                secs = tree.get_file_mtime(file_id, path)
-            except (NoSuchId, OSError):
-                secs = 0
-        return format_timestamp(secs)
-
-    def _make_diff(self, old_tree, new_tree, specific_files=[], complete=False,
-                   encoding='utf-8', filter_options=None):
-        if filter_options == None:
-            filter_options = FilterOptions()
-            filter_options.all_enable()
-        delta = new_tree.changes_from(old_tree, specific_files=specific_files,
-                                      require_versioned=True)
-
-        delta_removed = []
-        delta_added = []
-        delta_renamed = []
-        delta_modified = []
-        if filter_options.deleted:
-            delta_removed = delta.removed
-        if filter_options.added:
-            delta_added = delta.added
-        if filter_options.renamed or filter_options.modified:
-            delta_renamed = delta.renamed
-        if filter_options.modified:
-            delta_modified = delta.modified
-
-        for path, file_id, kind in delta_removed:
-            diff = FileDiff(N_('removed'), path)
-            diff.kind = kind
-            diff.old_date = self._date(old_tree, file_id, path)
-            diff.new_date = self._date(new_tree, file_id, path)
-            diff.old_path = path
-            diff.new_path = path
-            if diff.kind != 'directory':
-                diff.make_diff(get_file_lines_from_tree(old_tree, file_id),
-                               [], complete, encoding)
-            self.append(diff)
-
-        for path, file_id, kind in delta_added:
-            diff = FileDiff(N_('added'), path)
-            diff.kind = kind
-            diff.old_date = self._date(old_tree, file_id, path, 0)
-            diff.new_date = self._date(new_tree, file_id, path)
-            diff.old_path = path
-            diff.new_path = path
-            if diff.kind != 'directory':
-                diff.make_diff([], get_file_lines_from_tree(new_tree, file_id),
-                               complete, encoding)
-            self.append(diff)
-
-        for (old_path, new_path, file_id, kind, text_modified, meta_modified
-            ) in delta_renamed:
-            if text_modified:
-                status = N_('renamed and modified')
-            else:
-                if not filter_options.renamed:
-                    continue
-                status = N_('renamed')
-            diff = FileDiff(status, u'%s \u2192 %s' % (old_path, new_path))
-            diff.kind = kind
-            diff.old_date = self._date(old_tree, file_id, old_path)
-            diff.new_date = self._date(new_tree, file_id, new_path)
-            diff.old_path = old_path
-            diff.new_path = new_path
-            if text_modified:
-                old_lines = get_file_lines_from_tree(old_tree, file_id)
-                new_lines = get_file_lines_from_tree(new_tree, file_id)
-                diff.make_diff(old_lines, new_lines, complete, encoding)
-            self.append(diff)
-
-        for (path, file_id, kind, text_modified, meta_modified
-            ) in delta_modified:
-            diff = FileDiff(N_('modified'), path)
-            diff.kind = kind
-            # the path for this file might be changed by a directory rename, so
-            # let it to use just the file_id
-            diff.old_date = self._date(old_tree, file_id, None)
-            diff.new_date = self._date(new_tree, file_id, path)
-            diff.old_path = path
-            diff.new_path = path
-            if text_modified:
-                old_lines = get_file_lines_from_tree(old_tree, file_id)
-                new_lines = get_file_lines_from_tree(new_tree, file_id)
-                diff.make_diff(old_lines, new_lines, complete, encoding)
-            self.append(diff)
-
-    def __init__(self, old_tree, new_tree, specific_files=[], complete=False,
-                 encoding='utf-8', filter_options=None):
-        self._metainfo_template = None
-        old_tree.lock_read()
-        new_tree.lock_read()
-        try:
-            self._make_diff(old_tree, new_tree, specific_files, complete,
-                            encoding, filter_options)
-        finally:
-            old_tree.unlock()
-            new_tree.unlock()
-
-    def html_unidiff(self):
-        res = []
-        for diff in self:
-            res.append(diff.html_unidiff())
-        return ''.join(res)
-
 
 class DiffWindow(QBzrWindow):
 
@@ -310,21 +75,20 @@ class DiffWindow(QBzrWindow):
                 title.append(filter_options.to_str())
 
         config = get_branch_config(branch)
-        encoding = get_set_encoding(encoding, config)
+        self.encoding = get_set_encoding(encoding, config)
+        
+        self.filter_options = filter_options
 
         QBzrWindow.__init__(self, title, parent)
         self.restoreSize("diff", (780, 580))
 
-        self.tree1 = tree1
-        self.tree2 = tree2
+        self.trees = (tree1, tree2)
         self.specific_files = specific_files
+        self.complete = complete
 
-        treediff = TreeDiff(self.tree1, self.tree2, self.specific_files,
-                            complete, encoding, filter_options)
-        self.diffview = DiffView(treediff, self)
-
-        self.sdiffview = SimpleDiffView(treediff, self)
-        self.sdiffview.setVisible(False)
+        self.diffview = SidebySideDiffView(self)
+        self.sdiffview = SimpleDiffView(self)
+        self.views = (self.diffview, self.sdiffview)
 
         self.stack = QtGui.QStackedWidget(self.centralwidget)
         self.stack.addWidget(self.diffview)
@@ -353,10 +117,93 @@ class DiffWindow(QBzrWindow):
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
 
+    def show(self):
+        QBzrWindow.show(self)
+        QtCore.QTimer.singleShot(1, self.load_diff)
+    
+    def load_diff(self):
+        for tree in self.trees: tree.lock_read()
+        try:
+            changes = self.trees[1].iter_changes(self.trees[0],
+                                                 specific_files=self.specific_files,
+                                                 require_versioned=True)
+            def changes_key(change):
+                old_path, new_path = change[1]
+                path = new_path
+                if path is None:
+                    path = old_path
+                return path
+            
+            for (file_id, paths, changed_content, versioned, parent, name, kind,
+                 executable) in sorted(changes, key=changes_key):
+                if parent == (None, None):
+                    continue
+                
+                present = [k is not None and v for k,v in kind, versioned]
+                dates = [tree.get_file_mtime(file_id, path) if p else None
+                         for tree, path, p in zip(self.trees, paths, present)]            
+                paths_encoded = [(path.encode(self.encoding, "replace") \
+                                 if path is not None else None )
+                                 for path in paths]
+                renamed = (parent[0], name[0]) != (parent[1], name[1])
+                properties_changed = [] 
+                # TODO
+                #properties_changed.extend(get_executable_change(executable[0], executable[1]))
+                
+                if present == [True, False]:
+                    status = N_('removed')
+                elif  present == [False, True]:
+                    status = N_('added')
+                elif renamed and changed_content:
+                    status = N_('renamed and modified')
+                elif renamed:
+                    status = N_('renamed')
+                else:
+                    status = N_('modified')
+                
+                if present == (True, False) or present == (False, True) or changed_content:
+                    lines = [get_file_lines_from_tree(tree, file_id) if p else []
+                             for tree, p in zip(self.trees, present)]
+                    try:
+                        for l in lines:
+                            check_text_lines(l)
+                        binary = False
+                        if present == (True, False):
+                            groups = [[('delete', 0, len(lines[0]), 0, 0)]]
+                        elif present == (False, True):
+                            groups = [[('insert', 0, 0, 0, len(lines[1]))]]
+                        else:
+                            matcher = SequenceMatcher(None, lines[0], lines[1])
+                            if self.complete:
+                                groups = list([matcher.get_opcodes()])
+                            else:
+                                groups = list(matcher.get_grouped_opcodes())
+                        lines = [[i.decode(self.encoding,'replace') for i in l]
+                                 for l in lines]
+                        data = ((),())
+                    except BinaryFile:
+                        binary = True
+                        data = [''.join(l) for l in lines]
+                        groups = []
+                else:
+                    binary = False
+                    lines = ((),())
+                    groups = ()
+                    data = lines
+                for view in self.views:
+                    view.append_diff(paths_encoded, file_id,kind, status, dates,
+                                     present, binary, lines, groups, data)
+                QtCore.QCoreApplication.processEvents()
+                
+        finally:
+            for tree in self.trees: tree.unlock()
+
     def click_unidiff(self, checked):
         if checked:
+            self.sdiffview.rewind()
             self.stack.setCurrentIndex(1)
 
     def click_diffsidebyside(self, checked):
         if checked:
+            self.diffview.rewind()
             self.stack.setCurrentIndex(0)
