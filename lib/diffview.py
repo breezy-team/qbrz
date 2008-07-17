@@ -44,12 +44,20 @@ class DiffSourceView(QtGui.QTextBrowser):
         QtGui.QTextBrowser.__init__(self, parent)
         self.setLineWrapMode(QtGui.QTextEdit.NoWrap)
         self.changes = []
+        self.infoBlocks = []
 
     def paintEvent(self, event):
         w = self.width()
         y = self.verticalScrollBar().value()
         painter = QtGui.QPainter(self.viewport())
         painter.setClipRect(event.rect())
+        pen = QtGui.QPen(QtCore.Qt.black)
+        pen.setWidth(2)
+        painter.setPen(pen)
+        for block in self.infoBlocks:
+            block_y = block.position().y() - y
+            painter.drawLine(0, block_y, w, block_y)
+            
         for block0, block1, kind in self.changes:
             y1 = block0.position().y()
             y2 = block1.position().y()
@@ -197,6 +205,7 @@ class SidebySideDiffView(QtGui.QSplitter):
 
         self.browser1.setDocument(self.docs[0])
         self.browser2.setDocument(self.docs[1])
+        self.browsers = (self.browser1, self.browser2)
 
         self.addWidget(self.browser1)
         self.addWidget(self.browser2)
@@ -217,8 +226,9 @@ class SidebySideDiffView(QtGui.QSplitter):
 
     def append_diff(self, paths, file_id, kind, status, dates,
                     present, binary, lines, groups, data):
+        cursors = self.cursors
         for i in range(2):
-            cursor = self.cursors[i]
+            cursor = cursors[i]
             cursor.beginEditBlock()
             cursor.insertText(paths[i] if paths[i] is not None else " ", self.titleFormat)
             cursor.insertBlock(QtGui.QTextBlockFormat(), self.monospacedFormat)
@@ -230,11 +240,15 @@ class SidebySideDiffView(QtGui.QSplitter):
                 cursor.insertText(self.kindLabel, self.metadataLabelFormat)
                 cursor.insertText(" %s" % gettext(kind[1]), self.metadataFormat)
             else:
-                cursor.insertText("", self.metadataFormat)
+                cursor.insertText(" ", self.metadataFormat)
             cursor.insertBlock(QtGui.QTextBlockFormat(), self.monospacedFormat)
+            if present[i]:
+                self.browsers[i].infoBlocks.append(cursor.block().layout())
+            
         if not binary:
             format = self.monospacedFormat
-            cursors = self.cursors
+            for cursor in cursors:
+                cursor.insertBlock(QtGui.QTextBlockFormat(), format)
             changes = []
             a = lines[0]
             b = lines[1]
@@ -305,7 +319,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                     if ext in self.image_exts:
                         image = QtGui.QImage()
                         image.loadFromData(data[i])
-                        heights[i] = image.height() - 2 # QTextDocument seems to add 1 pixel when layouting the text
+                        heights[i] = image.height() + 1 # QTextDocument seems to add 1 pixel when layouting the text
                         self.docs[i].addResource(QtGui.QTextDocument.ImageResource,
                                         QtCore.QUrl(file_id),
                                         QtCore.QVariant(image))
