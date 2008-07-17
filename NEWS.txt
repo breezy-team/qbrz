@@ -24,7 +24,14 @@
      * message saved not only when user press Cancel, but on other closing
        actions too (e.g. Alt+F4);
      * Ctrl+Enter in message edit area triggers commit action (#148156).
- * qlog: Add a revision graph that can be expanded and colapsed.
+ * qlog: Add a revision graph that can be expanded and colapsed. (#242752)
+ * qdiff: images are shown in side by side diff. (#242083)
+ * qdiff: Window loads stright away, and the diff loads incrementaly in the
+   background, showing files that have be diffed as the become availible.
+   (#174964)
+ * qdiff, qcat, qannotate: Font sizes are no longer set a a small 8pt. They
+   now use the default widget font size. (#240859) 
+
 
 0.9.1 - 2008-06-17
 ----------------------
