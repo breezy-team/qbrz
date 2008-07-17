@@ -458,7 +458,7 @@ class SimpleDiffView(QtGui.QTextBrowser):
                                   self.monospacedBoldInsertFormat)
         self.cursor.insertText('+++ %s %s\n' % (paths[1], dates[1]),
                                self.monospacedBoldDeleteFormat)
-        if binary:
+        if not binary:
             a = lines[0]
             b = lines[1]
             for i, group in enumerate(groups):
