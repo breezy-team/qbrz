@@ -35,7 +35,8 @@ if hasattr(sys, "frozen"):
 
 from bzrlib import errors
 from bzrlib.option import Option
-from bzrlib.commands import Command, register_command
+from bzrlib.commands import Command, register_command, get_cmd_object
+import bzrlib.builtins
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
@@ -53,7 +54,6 @@ from bzrlib import (
 from bzrlib.util import bencode
 from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
-from bzrlib.workingtree import WorkingTree
 
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
@@ -414,6 +414,41 @@ class cmd_qbranch(Command):
         window.show()
         app.exec_()
 
+_original_merge = get_cmd_object('merge')
+class cmd_merge(bzrlib.builtins.cmd_merge):
+    __doc__ = _original_merge.__doc__
+
+    takes_options = _original_merge.takes_options + [
+            Option('qpreview', help='Instead of merging, show a diff of the merge in a GUI window.')]
+
+    def run(self, *args, **kw):
+        self.qpreview = ('qpreview' in kw)
+        if self.qpreview:
+            kw['preview'] = kw['qpreview']
+            del kw['qpreview']
+        bzrlib.builtins.cmd_merge.run(self, *args, **kw)
+    
+    @report_missing_pyqt
+    def _do_qpreview(self, merger):
+        from bzrlib.diff import show_diff_trees
+        tree_merger = merger.make_merger()
+        tt = tree_merger.make_preview_transform()
+        try:
+            result_tree = tt.get_preview_tree()
+            
+            application = QtGui.QApplication(sys.argv)
+            window = DiffWindow(merger.this_tree, result_tree)
+            window.show()
+            application.exec_()
+        finally:
+            tt.finalize()
+
+    def _do_preview(self, merger):
+        if self.qpreview:
+            self._do_qpreview(merger)
+        else:
+            bzrlib.builtins.cmd_merge._do_preview(self, merger)
+    
 
 class cmd_qbzr(Command):
     """The QBzr application.
@@ -454,6 +489,8 @@ register_command(cmd_qlog)
 register_command(cmd_qpull)
 register_command(cmd_qpush)
 register_command(cmd_qbranch)
+register_command(cmd_merge)
+
 
 # "bzr qbzr" :)
 register_command(cmd_qbzr)
