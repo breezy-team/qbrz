@@ -226,12 +226,13 @@ class SidebySideDiffView(QtGui.QSplitter):
         self.lastModifiedLabel = gettext('Last modified:')
         self.statusLabel = gettext('Status:')
         self.kindLabel = gettext('Kind:')
+        self.propertiesLabel = gettext('Properties:')
         
         self.image_exts = ['.'+str(i)
             for i in QtGui.QImageReader.supportedImageFormats()]
 
     def append_diff(self, paths, file_id, kind, status, dates,
-                    present, binary, lines, groups, data):
+                    present, binary, lines, groups, data, properties_changed):
         cursors = self.cursors
         for i in range(2):
             cursor = cursors[i]
@@ -244,7 +245,11 @@ class SidebySideDiffView(QtGui.QSplitter):
                 cursor.insertText(self.statusLabel, self.metadataLabelFormat)
                 cursor.insertText(" %s, " % gettext(status), self.metadataFormat)
                 cursor.insertText(self.kindLabel, self.metadataLabelFormat)
-                cursor.insertText(" %s" % gettext(kind[1]), self.metadataFormat)
+                cursor.insertText(" %s, " % gettext(kind[1]), self.metadataFormat)
+                if properties_changed:
+                    cursor.insertText(self.propertiesLabel, self.metadataLabelFormat)
+                    cursor.insertText(" ")
+                    cursor.insertText(", ".join([p[i] for p in properties_changed]), self.metadataFormat)
             else:
                 cursor.insertText(" ", self.metadataFormat)
             cursor.insertBlock()
@@ -451,11 +456,15 @@ class SimpleDiffView(QtGui.QTextBrowser):
             self.scrollToAnchor("top")
 
     def append_diff(self, paths, file_id, kind, status, dates,
-                    present, binary, lines, groups, data):
-        self.cursor.insertText("=== %s %s %s\n" % (gettext(status),
+                    present, binary, lines, groups, data, properties_changed):
+        self.cursor.insertText("=== %s %s %s" % (gettext(status),
                                                    gettext(kind[0] if kind[0] is not None else kind[1]),
                                                    paths[0] if paths[0] is not None else paths[1] ),
                                   self.monospacedHeaderFormat)
+        if properties_changed:
+            self.cursor.insertText(" (properties changed: %s)" % \
+                                   (", ".join(["%s to %s" % p for p in properties_changed])))
+        self.cursor.insertText("\n")
         
         # GNU Patch uses the epoch date to detect files that are being added
         # or removed in a diff.

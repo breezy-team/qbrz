@@ -30,7 +30,8 @@
    background, showing files that have be diffed as the become availible.
    (#174964)
  * qdiff, qcat, qannotate: Font sizes are no longer set a a small 8pt. They
-   now use the default widget font size. (#240859) 
+   now use the default widget font size. (#240859)
+ * qdiff: Show changes in x bits. (#153817)
 
 
 0.9.1 - 2008-06-17

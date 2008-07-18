@@ -147,8 +147,10 @@ class DiffWindow(QBzrWindow):
                                  for path in paths]
                 renamed = (parent[0], name[0]) != (parent[1], name[1])
                 properties_changed = [] 
-                # TODO
-                #properties_changed.extend(get_executable_change(executable[0], executable[1]))
+                if not executable[0]==executable[1]:
+                    descr = { True:"+x", False:"-x", None:"??" }
+                    properties_changed.append((descr[executable[0]],
+                                               descr[executable[1]]))
                 
                 if present == [True, False]:
                     status = N_('removed')
@@ -192,7 +194,7 @@ class DiffWindow(QBzrWindow):
                     data = lines
                 for view in self.views:
                     view.append_diff(paths_encoded, file_id,kind, status, dates,
-                                     present, binary, lines, groups, data)
+                                     present, binary, lines, groups, data, properties_changed)
                 QtCore.QCoreApplication.processEvents()
                 
         finally:
