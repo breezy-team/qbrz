@@ -473,7 +473,7 @@ class SimpleDiffView(QtGui.QTextBrowser):
             if present[i]:
                 dates[i] = timestamp.format_patch_date(dates[i])
             else:
-                paths[i] = paths[i+1%2]
+                paths[i] = paths[(i+1)%2]
                 dates[i] = EPOCH_DATE
         
         if not binary:
