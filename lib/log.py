@@ -39,7 +39,9 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
 
     _bugColor = QtGui.QColor(255, 188, 188)
     _bugColorBorder = QtGui.QColor(255, 79, 79)
-    
+
+    _twistyColor = QtCore.Qt.black
+
     def paint(self, painter, option, index):
         node = index.data(logmodel.GraphNodeRole)
         if node.isValid():
@@ -179,6 +181,8 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                 # Draw twisty
                 if self.twisty_state.isValid():
                     linesize = 0.35
+                    pen.setColor(self._twistyColor)
+                    painter.setPen(pen)
                     painter.drawLine(QtCore.QLineF (centerx - boxsize * linesize / 2,
                                                     centery,
                                                     centerx + boxsize * linesize / 2,
