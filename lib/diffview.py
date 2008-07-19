@@ -245,8 +245,9 @@ class SidebySideDiffView(QtGui.QSplitter):
                 cursor.insertText(self.statusLabel, self.metadataLabelFormat)
                 cursor.insertText(" %s, " % gettext(status), self.metadataFormat)
                 cursor.insertText(self.kindLabel, self.metadataLabelFormat)
-                cursor.insertText(" %s, " % gettext(kind[1]), self.metadataFormat)
+                cursor.insertText(" %s" % gettext(kind[1]), self.metadataFormat)
                 if properties_changed:
+                    cursor.insertText(", ")
                     cursor.insertText(self.propertiesLabel, self.metadataLabelFormat)
                     cursor.insertText(" ")
                     cursor.insertText(", ".join([p[i] for p in properties_changed]), self.metadataFormat)

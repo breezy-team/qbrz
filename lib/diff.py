@@ -147,8 +147,10 @@ class DiffWindow(QBzrWindow):
                                  for path in paths]
                 renamed = (parent[0], name[0]) != (parent[1], name[1])
                 properties_changed = [] 
-                if not executable[0]==executable[1]:
-                    descr = { True:"+x", False:"-x", None:"??" }
+                if (executable[0] != executable[1]
+                    and executable[0] is not None
+                    and executable[1] is not None):
+                    descr = {True: "+x", False: "-x"}
                     properties_changed.append((descr[executable[0]],
                                                descr[executable[1]]))
                 
