@@ -376,7 +376,7 @@ class LogWindow(QBzrWindow):
         vbox.addLayout(hbox)
         self.windows = []
         # set focus on search edit widget
-        self.search_edit.setFocus()
+        self.changesList.setFocus()
 
     def show(self):
         QBzrWindow.show(self)
