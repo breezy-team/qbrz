@@ -373,7 +373,6 @@ class cmd_qpull(Command):
 
     takes_options = []
     takes_args = []
-    hidden = True
 
     @report_missing_pyqt
     def run(self):
@@ -390,7 +389,6 @@ class cmd_qpush(Command):
 
     takes_options = []
     takes_args = []
-    hidden = True
 
     @report_missing_pyqt
     def run(self):
@@ -406,7 +404,6 @@ class cmd_qbranch(Command):
 
     takes_options = []
     takes_args = []
-    hidden = True
 
     @report_missing_pyqt
     def run(self):
@@ -414,6 +411,7 @@ class cmd_qbranch(Command):
         window = QBzrBranchWindow(None)
         window.show()
         app.exec_()
+
 
 _original_merge = get_cmd_object('merge')
 class cmd_merge(bzrlib.builtins.cmd_merge):
@@ -449,7 +447,7 @@ class cmd_merge(bzrlib.builtins.cmd_merge):
             self._do_qpreview(merger)
         else:
             bzrlib.builtins.cmd_merge._do_preview(self, merger)
-    
+
 
 class cmd_qbzr(Command):
     """The QBzr application.
