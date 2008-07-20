@@ -338,7 +338,12 @@ class TreeModel(QtCore.QAbstractTableModel):
                             self.merge_sorted_revisions[parent_msri][3][0:-1]
                         
                         if not parent_branch_id == branch_id and \
-                           not parent_branch_id == ():
+                           not parent_branch_id == () and \
+                           (
+                            len(branch_children)>1
+                            or
+                            not list(branch_children)[0] == parent_branch_id
+                           ):
                             self.linegraphdata[rev_index][4].append (parent_branch_id)
                         
                         if revno_sequence[-1] == 1 or \
