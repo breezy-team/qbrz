@@ -400,13 +400,17 @@ class TreeModel(QtCore.QAbstractTableModel):
                 parent_col_index = 0
                 parent_index = None
                 if len(branch_id) > 1:
-                    parent_revno = branch_id[0:-1]
-                    parent_msri = self.revno_msri[parent_revno]
-                    if parent_msri in self.msri_index:
+                    try:
+                        parent_revno = branch_id[0:-1]
+                        parent_msri = self.revno_msri[parent_revno]
                         parent_index = self.msri_index[parent_msri]
                         parent_node = self.linegraphdata[parent_index][1]
                         if parent_node:
                             parent_col_index = parent_node[0]
+                    except KeyError:
+                        # We may get a key errror if the parent is not visible,
+                        # or the tree has more than one root. Ignore.
+                        pass
                 
                 col_search_order = _branch_line_col_search_order(columns,
                                                                  parent_col_index)
