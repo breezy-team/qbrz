@@ -853,8 +853,10 @@ class TreeModel(QtCore.QAbstractTableModel):
                     yield revid
 
     def indexFromRevId(self, revid):
-        revindex = self.msri_index[self.revid_msri[revid]]
-        return self.createIndex (revindex, 0, QtCore.QModelIndex())
+        msri = self.revid_msri[revid]
+        if msri not in self.msri_index:
+            return None
+        return self.createIndex (self.msri_index[msri], 0, QtCore.QModelIndex())
     
     def findChildBranchMergeRevision (self, revid):
         branch_id = self.merge_sorted_revisions[self.revid_msri[revid]][3][0:-1]

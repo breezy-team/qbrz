@@ -548,8 +548,9 @@ class LogWindow(QBzrWindow):
                         revision_id = str(index.data(logmodel.RevIdRole).toString())
                         self.changesModel.colapse_expand_rev(index, not twisty_state.toBool())
                         newindex = self.changesModel.indexFromRevId(revision_id)
-                        newindex = self.changesProxyModel.mapFromSource(newindex)
-                        self.changesList.setCurrentIndex(newindex)
+                        if newindex is not None:
+                            newindex = self.changesProxyModel.mapFromSource(newindex)
+                            self.changesList.setCurrentIndex(newindex)
         QtGui.QTreeView.mouseReleaseEvent(self.changesList, e)
     
     def changesList_keyPressEvent (self, e):
