@@ -254,8 +254,7 @@ class SidebySideDiffView(QtGui.QSplitter):
             else:
                 cursor.insertText(" ", self.metadataFormat)
             cursor.insertBlock()
-            if present[i]:
-                self.browsers[i].infoBlocks.append(cursor.block().layout())
+            self.browsers[i].infoBlocks.append(cursor.block().layout())
             
         if not binary:
             for cursor in cursors:
