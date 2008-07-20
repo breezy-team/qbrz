@@ -261,8 +261,23 @@ class SidebySideDiffView(QtGui.QSplitter):
                 cursor.insertBlock()
                 cursor.setCharFormat(self.monospacedFormat)
             changes = []
-            a = lines[0]
-            b = lines[1]
+
+            def fix_last_line(lines):
+                """Fix last line if there is no new line.
+
+                @param  lines:  list of lines
+                @return:    original lines if lastline is OK,
+                            or new list with fixed last line.
+                """
+                if lines:
+                    last = lines[-1]
+                    if last and last[-1] not in ('\r', '\n'):
+                        lines = lines[:-1] + [last+'\n']
+                return lines
+
+            a = fix_last_line(lines[0])
+            b = fix_last_line(lines[1])
+
             for i, group in enumerate(groups):
                 if i > 0:
                     block0 = [cursor.block().layout() for cursor in self.cursors]
@@ -484,7 +499,7 @@ class SimpleDiffView(QtGui.QTextBrowser):
             def fix_last_line(lines):
                 """Fix last line if there is no new line.
 
-                @param  lines:  list of lines
+                @param  lines:  original list of lines
                 @return:    lines if lastline is OK,
                             or new list with fixed last line.
                 """
