@@ -125,30 +125,43 @@ class DiffWindow(QBzrWindow):
                 if path is None:
                     path = old_path
                 return path
-            
+
             for (file_id, paths, changed_content, versioned, parent, name, kind,
                  executable) in sorted(changes, key=changes_key):
+                # file_id         -> ascii string
+                # paths           -> 2-tuple (old, new) fullpaths unicode/None
+                # changed_content -> bool
+                # versioned       -> 2-tuple (bool, bool)
+                # parent          -> 2-tuple
+                # name            -> 2-tuple (old_name, new_name) utf-8?/None
+                # kind            -> 2-tuple (string/None, string/None)
+                # executable      -> 2-tuple (bool/None, bool/None)
+                # NOTE: None value used for non-existing entry in corresponding
+                #       tree, e.g. for added/deleted file
+
                 if parent == (None, None):
                     continue
-                
-                present = [k is not None and v for k,v in zip(kind, versioned)]
+
+                # XXX Python 2.5-only syntax (conditional expression)
                 dates = [tree.get_file_mtime(file_id, path) if p else None
-                         for tree, path, p in zip(self.trees, paths, present)]            
-                paths_encoded = [(path.encode(self.encoding, "replace") \
-                                 if path is not None else None )
-                                 for path in paths]
-                renamed = (parent[0], name[0]) != (parent[1], name[1])
+                         for tree, path, p in zip(self.trees, paths, versioned)]
+
+                renamed = paths[0] != paths[1]
+
                 properties_changed = [] 
                 if (executable[0] != executable[1]
                     and executable[0] is not None
                     and executable[1] is not None):
+                    # TODO for added files with +x it will be nice to show
+                    #      executable bit in side-by-side view only
                     descr = {True: "+x", False: "-x"}
                     properties_changed.append((descr[executable[0]],
                                                descr[executable[1]]))
-                
-                if present == [True, False]:
+
+                # XXX restore filtering based on kind of change
+                if versioned == (True, False):
                     status = N_('removed')
-                elif  present == [False, True]:
+                elif versioned == (False, True):
                     status = N_('added')
                 elif renamed and changed_content:
                     status = N_('renamed and modified')
@@ -156,17 +169,26 @@ class DiffWindow(QBzrWindow):
                     status = N_('renamed')
                 else:
                     status = N_('modified')
-                
-                if present == (True, False) or present == (False, True) or changed_content:
-                    lines = [get_file_lines_from_tree(tree, file_id) if p else []
-                             for tree, p in zip(self.trees, present)]
+
+                if ((versioned[0] != versioned[1] or changed_content)
+                    and (kind[0] == 'file' or kind[1] == 'file')):
+                    lines = []
+                    for ix, tree in enumerate(self.trees):
+                        content = ()
+                        if versioned[ix] and kind[ix] == 'file':
+                            content = get_file_lines_from_tree(tree, file_id)
+                        lines.append(content)
                     try:
                         for l in lines:
+                            # XXX bzrlib's check_text_lines looks at first 1K
+                            #     and therefore produce false check in some
+                            #     cases (e.g. pdf files)
+                            # TODO: write our own function to check entire file
                             check_text_lines(l)
                         binary = False
-                        if present == (True, False):
+                        if versioned == (True, False):
                             groups = [[('delete', 0, len(lines[0]), 0, 0)]]
-                        elif present == (False, True):
+                        elif versioned == (False, True):
                             groups = [[('insert', 0, 0, 0, len(lines[1]))]]
                         else:
                             matcher = SequenceMatcher(None, lines[0], lines[1])
@@ -187,10 +209,10 @@ class DiffWindow(QBzrWindow):
                     groups = ()
                     data = lines
                 for view in self.views:
-                    view.append_diff(paths_encoded, file_id,kind, status, dates,
-                                     present, binary, lines, groups, data, properties_changed)
+                    view.append_diff(list(paths), file_id, kind, status,
+                                     dates, versioned, binary, lines, groups,
+                                     data, properties_changed)
                 QtCore.QCoreApplication.processEvents()
-                
         finally:
             for tree in self.trees: tree.unlock()
 
