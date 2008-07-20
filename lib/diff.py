@@ -131,7 +131,7 @@ class DiffWindow(QBzrWindow):
                 if parent == (None, None):
                     continue
                 
-                present = [k is not None and v for k,v in kind, versioned]
+                present = [k is not None and v for k,v in zip(kind, versioned)]
                 dates = [tree.get_file_mtime(file_id, path) if p else None
                          for tree, path, p in zip(self.trees, paths, present)]            
                 paths_encoded = [(path.encode(self.encoding, "replace") \
