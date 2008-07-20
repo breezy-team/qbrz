@@ -124,7 +124,6 @@ def markup_line(line, encode=True):
     return line
 
 
-
 def get_change_extent(str1, str2):
     start = 0
     limit = min(len(str1), len(str2))
@@ -153,6 +152,7 @@ def insert_line_intraline_changes(line1, line2, cursor, format):
     oldformat = cursor.charFormat()
     cursor.insertText(parts[1], format)
     cursor.insertText(parts[2], oldformat)
+
 
 class SidebySideDiffView(QtGui.QSplitter):
     """Widget to show differences in side-by-side format."""
@@ -247,9 +247,9 @@ class SidebySideDiffView(QtGui.QSplitter):
                 cursor.insertText(self.kindLabel, self.metadataLabelFormat)
                 cursor.insertText(" %s" % gettext(kind[1]), self.metadataFormat)
                 if properties_changed:
-                    cursor.insertText(", ")
+                    cursor.insertText(", ", self.metadataFormat)
                     cursor.insertText(self.propertiesLabel, self.metadataLabelFormat)
-                    cursor.insertText(" ")
+                    cursor.insertText(" ", self.metadataFormat)
                     cursor.insertText(", ".join([p[i] for p in properties_changed]), self.metadataFormat)
             else:
                 cursor.insertText(" ", self.metadataFormat)
@@ -449,7 +449,6 @@ class SimpleDiffView(QtGui.QTextBrowser):
         self.monospacedHunkFormat.setFont(monospacedItalicFont)
         self.monospacedHunkFormat.setForeground(QtGui.QColor(153, 30, 199))
 
-
     def rewind(self):
         if not self.rewinded:
             self.rewinded = True
@@ -481,8 +480,26 @@ class SimpleDiffView(QtGui.QTextBrowser):
                                       self.monospacedBoldInsertFormat)
             self.cursor.insertText('+++ %s %s\n' % (paths[1], dates[1]),
                                    self.monospacedBoldDeleteFormat)
-            a = lines[0]
-            b = lines[1]
+
+            def fix_last_line(lines):
+                """Fix last line if there is no new line.
+
+                @param  lines:  list of lines
+                @return:    lines if lastline is OK,
+                            or new list with fixed last line.
+                """
+                if lines:
+                    last = lines[-1]
+                    if last and last[-1] not in ('\r', '\n'):
+                        last += ('\n' +
+                                 gettext('\\ No newline at end of file') +
+                                 '\n')
+                        lines = lines[:-1] + [last]
+                return lines
+
+            a = fix_last_line(lines[0])
+            b = fix_last_line(lines[1])
+
             for i, group in enumerate(groups):
                 i1, i2, j1, j2 = group[0][1], group[-1][2], group[0][3], group[-1][4]
                 self.cursor.insertText("@@ -%d,%d +%d,%d @@\n" % (i1+1, i2-i1, j1+1, j2-j1), self.monospacedHunkFormat)
@@ -501,4 +518,3 @@ class SimpleDiffView(QtGui.QTextBrowser):
             self.cursor.insertText("Binary files %s %s and %s %s differ\n" % \
                                    (paths[0], dates[0], paths[1], dates[1]))
         self.cursor.insertText("\n")
-    
