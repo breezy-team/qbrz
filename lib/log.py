@@ -163,7 +163,6 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                                    start, end, color, direct)
                     graphCols = max((graphCols, min(start, end)))
                 
-                
                 # Draw the revision node in the right column
                 color = self.node[1].toInt()[0]
                 column = self.node[0].toInt()[0]
@@ -488,7 +487,6 @@ class LogWindow(QBzrWindow):
         revid2 = str(indexes[-1].data(logmodel.RevIdRole).toString())
         rev2 = self.changesModel.revision(revid2)
         self.show_diff_window(rev1, rev2)
-
 
     def load_history(self):
         """Load branch history."""

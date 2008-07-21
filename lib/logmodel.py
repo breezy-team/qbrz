@@ -53,7 +53,9 @@ def get_bug_id(branch, bug_url):
         return match.group(1)
     return None
 
+
 class TreeModel(QtCore.QAbstractTableModel):
+
     def __init__(self, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         
@@ -73,6 +75,7 @@ class TreeModel(QtCore.QAbstractTableModel):
         self.branch = branch
         branch.lock_read()
         try:
+            self.tags = branch.tags.get_reverse_tag_dict()  # revid to tags map
             self.revisions = {}
             if start_revs is None:
                 start_revs = [branch.last_revision()]
@@ -168,9 +171,6 @@ class TreeModel(QtCore.QAbstractTableModel):
                 return cmp(len_x, len_y)
             
             self.branch_ids.sort(branch_id_cmp)
-            
-            self.tags = branch.tags.get_reverse_tag_dict()
-            
             
             if specific_fileid is not None:
                 results_batch_size = 5
@@ -842,6 +842,7 @@ class TreeModel(QtCore.QAbstractTableModel):
             revno_sequence = self.merge_sorted_revisions[self.revid_msri[revid]][3]
             revision.revno = ".".join(["%d" % (revno)
                                       for revno in revno_sequence])
+            revision.tags = sorted(self.tags.get(revision.revision_id, []))
         else:
             revision = self.revisions[revid]
         return revision
