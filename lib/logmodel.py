@@ -969,5 +969,3 @@ def _mark_column_as_used(columns, col_index, line_range):
     column = columns[col_index]
     for row_index in line_range:
         column[row_index] = True
-
- 

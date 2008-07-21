@@ -237,7 +237,7 @@ class SidebySideDiffView(QtGui.QSplitter):
         for i in range(2):
             cursor = cursors[i]
             cursor.beginEditBlock()
-            cursor.insertText(paths[i] if paths[i] is not None else " ", self.titleFormat)
+            cursor.insertText(paths[i] or " ", self.titleFormat)    # None or " " => " "
             cursor.insertBlock()
             if present[i]:
                 cursor.insertText(self.lastModifiedLabel, self.metadataLabelFormat)

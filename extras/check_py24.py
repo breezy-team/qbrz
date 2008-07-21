@@ -46,20 +46,22 @@ class check_py24(Command):
 
     def run(self):
         for root, dirs, files in os.walk('.'):
-            for fname in files:
+            for fname in sorted(files):
                 if fname.endswith('.py'):
                     fullname = os.path.join(root, fname)[2:]    # first 2 characters is ./
                     # verbose: 0=quiet, 1=normal, 2=verbose
                     if self.verbose:
                         log.info('checking ' + fullname)
                     if not self.dry_run:
-                        f = open(fullname, 'rb')
+                        f = open(fullname, 'r')
                         content = f.read()
                         f.close()
                         try:
                             compile(content, fullname, 'exec')
                         except SyntaxError, e:
                             log.error(str(e))
+                            if self.verbose:
+                                traceback.print_exc(0)
             # skip some directories
             for dname in dirs[:]:
                 fullname = os.path.join(root, dname).replace('\\','/')

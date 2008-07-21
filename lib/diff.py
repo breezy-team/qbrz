@@ -148,9 +148,10 @@ class DiffWindow(QBzrWindow):
                 if parent == (None, None):
                     continue
 
-                # XXX Python 2.5-only syntax (conditional expression)
-                dates = [tree.get_file_mtime(file_id, path) if p else None
-                         for tree, path, p in zip(self.trees, paths, versioned)]
+                dates = [None, None]
+                for ix in range(2):
+                    if versioned[ix]:
+                        dates[ix] = self.trees[ix].get_file_mtime(file_id, paths[ix])
 
                 renamed = (parent[0], name[0]) != (parent[1], name[1])
 
