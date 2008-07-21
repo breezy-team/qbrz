@@ -533,11 +533,16 @@ class FilterOptions(object):
 
     __slots__ = ['deleted', 'added', 'renamed', 'modified']
 
-    def __init__(self, **kw):
+    def __init__(self, all_enable=False, **kw):
         self.added = False
         self.deleted = False
         self.modified = False
         self.renamed = False
+        if all_enable:
+            self.added = True
+            self.deleted = True
+            self.modified = True
+            self.renamed = True
         for k in kw:
             setattr(self, k, kw[k])
 
@@ -562,3 +567,22 @@ class FilterOptions(object):
         if self.modified:
             s.append(i18n.gettext('modified files'))
         return ', '.join(s)
+
+    def check(self, status):
+        """Check status (string) and return True if enabled.
+        Allowed statuses:
+            added, removed, deleted, renamed, modified, 'renamed and modified'
+
+        @raise ValueError:  when unsupported status given.
+        """
+        if status == 'added':
+            return self.added
+        elif status in ('removed', 'deleted'):
+            return self.deleted
+        elif status == 'renamed':
+            return self.renamed
+        elif status == 'modified':
+            return self.modified
+        elif status == 'renamed and modified':
+            return self.renamed or self.modified
+        raise ValueError('unknown status: %r' % status)

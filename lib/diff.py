@@ -33,6 +33,7 @@ from bzrlib.plugins.qbzr.lib.diffview import (
 from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
+    FilterOptions,
     QBzrWindow,
     get_branch_config,
     get_set_encoding,
@@ -70,6 +71,8 @@ class DiffWindow(QBzrWindow):
         self.encoding = get_set_encoding(encoding, config)
         
         self.filter_options = filter_options
+        if filter_options is None:
+            self.filter_options = FilterOptions(all_enable=True)
 
         QBzrWindow.__init__(self, title, parent)
         self.restoreSize("diff", (780, 580))
@@ -114,6 +117,9 @@ class DiffWindow(QBzrWindow):
         QtCore.QTimer.singleShot(1, self.load_diff)
     
     def load_diff(self):
+        # function to run after each loop
+        qt_process_events = QtCore.QCoreApplication.processEvents
+        #
         for tree in self.trees: tree.lock_read()
         try:
             changes = self.trees[1].iter_changes(self.trees[0],
@@ -146,7 +152,7 @@ class DiffWindow(QBzrWindow):
                 dates = [tree.get_file_mtime(file_id, path) if p else None
                          for tree, path, p in zip(self.trees, paths, versioned)]
 
-                renamed = paths[0] != paths[1]
+                renamed = (parent[0], name[0]) != (parent[1], name[1])
 
                 properties_changed = [] 
                 if (executable[0] != executable[1]
@@ -158,7 +164,6 @@ class DiffWindow(QBzrWindow):
                     properties_changed.append((descr[executable[0]],
                                                descr[executable[1]]))
 
-                # XXX restore filtering based on kind of change
                 if versioned == (True, False):
                     status = N_('removed')
                 elif versioned == (False, True):
@@ -169,6 +174,10 @@ class DiffWindow(QBzrWindow):
                     status = N_('renamed')
                 else:
                     status = N_('modified')
+                # check filter options
+                if not self.filter_options.check(status):
+                    qt_process_events()
+                    continue
 
                 if ((versioned[0] != versioned[1] or changed_content)
                     and (kind[0] == 'file' or kind[1] == 'file')):
@@ -212,7 +221,7 @@ class DiffWindow(QBzrWindow):
                     view.append_diff(list(paths), file_id, kind, status,
                                      dates, versioned, binary, lines, groups,
                                      data, properties_changed)
-                QtCore.QCoreApplication.processEvents()
+                qt_process_events()
         finally:
             for tree in self.trees: tree.unlock()
 
