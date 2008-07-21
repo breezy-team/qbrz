@@ -245,7 +245,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                 cursor.insertText(self.statusLabel, self.metadataLabelFormat)
                 cursor.insertText(" %s, " % gettext(status), self.metadataFormat)
                 cursor.insertText(self.kindLabel, self.metadataLabelFormat)
-                cursor.insertText(" %s" % gettext(kind[1]), self.metadataFormat)
+                cursor.insertText(" %s" % gettext(kind[i]), self.metadataFormat)
                 if properties_changed:
                     cursor.insertText(", ", self.metadataFormat)
                     cursor.insertText(self.propertiesLabel, self.metadataLabelFormat)
@@ -471,10 +471,13 @@ class SimpleDiffView(QtGui.QTextBrowser):
 
     def append_diff(self, paths, file_id, kind, status, dates,
                     present, binary, lines, groups, data, properties_changed):
+        path_info = paths[1] or paths[0]
+        if status in ('renamed', 'renamed and modified'):
+            path_info = paths[0] + ' => ' + paths[1]
+        kind_info = kind[0] or kind[1]
         self.cursor.insertText("=== %s %s %s" % (gettext(status),
-                                                   gettext(kind[0] if kind[0] is not None else kind[1]),
-                                                   paths[0] if paths[0] is not None else paths[1] ),
-                                  self.monospacedHeaderFormat)
+            gettext(kind_info), path_info),
+            self.monospacedHeaderFormat)
         if properties_changed:
             self.cursor.insertText(" (properties changed: %s)" % \
                                    (", ".join(["%s to %s" % p for p in properties_changed])))
