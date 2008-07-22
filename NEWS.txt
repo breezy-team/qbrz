@@ -1,3 +1,7 @@
+0.9.3 - in development
+----------------------
+
+
 0.9.2 - 2008-07-22
 ----------------------
 This release is first step towards QBzr 1.0.
