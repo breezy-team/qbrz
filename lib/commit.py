@@ -346,6 +346,7 @@ class CommitWindow(QBzrWindow):
         splitter.addWidget(groupbox)
 
         self.filelist = QtGui.QTreeWidget(groupbox)
+        self.filelist.setTextElideMode(QtCore.Qt.ElideMiddle)
         self.filelist.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.filelist.setSortingEnabled(True)
         self.filelist.setHeaderLabels(
