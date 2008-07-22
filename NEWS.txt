@@ -1,13 +1,19 @@
-0.9.2 - in development
+0.9.2 - 2008-07-22
 ----------------------
 This release is first step towards QBzr 1.0.
-In this release QBzr introduce new qlog view with nice graph of revisions,
-qcat window allow you to see images as images, binary files as hex dump,
-and target for versioned symlink. qdiff now able to show changes in
-executable bit in side-by-side view. Also you can specify in command line
-which files (added/removed/modified/renamed) you want to see in qdiff.
-Also there is many other improvementrs and bugfixes. See the list 
-of user-visible changes:
+
+In this release QBzr introduce new qlog view with nice graph of revisions.
+qcat window now allow you to see images as images, binary files as hex dump,
+and target for versioned symlink. Side-by-side diff now able to show changes 
+in image files; side-by-side and unidiff will show you changes in executable 
+bit as well. Also you can specify in command line which files 
+(added/removed/modified/renamed) you want to see in qdiff.
+
+Also there is many other improvements and many bugfixes. 
+See the list of user-visible changes below.
+
+NOTES: when upgrading old installation of QBzr to 0.9.2, please uninstall
+or remove old files first.
 
  * qannotate: 
     * Show tags (if any) for revision in revision message view (#149246)
