@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-07-19 12:09+0300\n"
+"POT-Creation-Date: 2008-07-23 22:56+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,15 +26,15 @@ msgid "Line"
 msgstr ""
 
 #: lib\annotate.py:59 lib\annotate.py:75 lib\browse.py:82 lib\commit.py:325
-#: lib\logmodel.py:63
+#: lib\logmodel.py:65
 msgid "Author"
 msgstr ""
 
-#: lib\annotate.py:59 lib\logmodel.py:60
+#: lib\annotate.py:59 lib\logmodel.py:62
 msgid "Rev"
 msgstr ""
 
-#: lib\annotate.py:75 lib\browse.py:81 lib\commit.py:325 lib\logmodel.py:62
+#: lib\annotate.py:75 lib\browse.py:81 lib\commit.py:325 lib\logmodel.py:64
 msgid "Date"
 msgstr ""
 
@@ -62,7 +62,7 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: lib\browse.py:82 lib\commit.py:264 lib\commit.py:325 lib\logmodel.py:61
+#: lib\browse.py:82 lib\commit.py:264 lib\commit.py:325 lib\logmodel.py:63
 msgid "Message"
 msgstr ""
 
@@ -87,27 +87,27 @@ msgstr ""
 msgid "File \"%s\" not found in the specified revision."
 msgstr ""
 
-#: lib\commit.py:189 lib\commit.py:491 lib\commit.py:505 lib\commit.py:543
+#: lib\commit.py:189 lib\commit.py:492 lib\commit.py:506 lib\commit.py:544
 msgid "Commit"
 msgstr ""
 
-#: lib\commit.py:214 lib\diff.py:158
+#: lib\commit.py:214 lib\diff.py:171
 msgid "added"
 msgstr ""
 
-#: lib\commit.py:218 lib\diff.py:156
+#: lib\commit.py:218 lib\diff.py:169
 msgid "removed"
 msgstr ""
 
-#: lib\commit.py:224 lib\diff.py:160
+#: lib\commit.py:224 lib\diff.py:173
 msgid "renamed and modified"
 msgstr ""
 
-#: lib\commit.py:226 lib\diff.py:162
+#: lib\commit.py:226 lib\diff.py:175
 msgid "renamed"
 msgstr ""
 
-#: lib\commit.py:233 lib\diff.py:164
+#: lib\commit.py:233 lib\diff.py:177
 msgid "modified"
 msgstr ""
 
@@ -163,40 +163,40 @@ msgstr ""
 msgid "Changes"
 msgstr ""
 
-#: lib\commit.py:352
+#: lib\commit.py:353
 msgid "File"
 msgstr ""
 
-#: lib\commit.py:352
+#: lib\commit.py:353
 msgid "Extension"
 msgstr ""
 
-#: lib\commit.py:352 lib\main.py:361 lib\ui_branch.py:90 lib\ui_pull.py:90
+#: lib\commit.py:353 lib\main.py:361 lib\ui_branch.py:90 lib\ui_pull.py:90
 #: lib\ui_push.py:93
 msgid "Status"
 msgstr ""
 
-#: lib\commit.py:365
+#: lib\commit.py:366
 msgid "&Revert..."
 msgstr ""
 
-#: lib\commit.py:369
+#: lib\commit.py:370
 msgid "Show &Differences..."
 msgstr ""
 
-#: lib\commit.py:379
+#: lib\commit.py:380
 msgid "Show non-versioned files"
 msgstr ""
 
-#: lib\commit.py:492
+#: lib\commit.py:493
 msgid "Empty commit message. Do you really want to commit?"
 msgstr ""
 
-#: lib\commit.py:598 lib\commit.py:607
+#: lib\commit.py:599 lib\commit.py:608
 msgid "Revert"
 msgstr ""
 
-#: lib\commit.py:599
+#: lib\commit.py:600
 msgid "Do you really want to revert the selected file(s)?"
 msgstr ""
 
@@ -288,22 +288,22 @@ msgstr ""
 msgid "Bug Trackers"
 msgstr ""
 
-#: lib\diff.py:63 lib\log.py:363
+#: lib\diff.py:56 lib\log.py:362
 msgid "Diff"
 msgstr ""
 
-#: lib\diff.py:70
+#: lib\diff.py:63
 #, python-format
 msgid "%d file"
 msgid_plural "%d files"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib\diff.py:100
+#: lib\diff.py:95
 msgid "Side by side"
 msgstr ""
 
-#: lib\diff.py:107
+#: lib\diff.py:102
 msgid "Unidiff"
 msgstr ""
 
@@ -323,8 +323,12 @@ msgstr ""
 msgid "Properties:"
 msgstr ""
 
-#: lib\diffview.py:353
+#: lib\diffview.py:368
 msgid "[binary file]"
+msgstr ""
+
+#: lib\diffview.py:513
+msgid "\\ No newline at end of file"
 msgstr ""
 
 #: lib\i18n.py:75
@@ -363,35 +367,35 @@ msgstr ""
 msgid "View directory"
 msgstr ""
 
-#: lib\log.py:228
+#: lib\log.py:227
 msgid "Log"
 msgstr ""
 
-#: lib\log.py:252
+#: lib\log.py:251
 msgid "&Search:"
 msgstr ""
 
-#: lib\log.py:267
+#: lib\log.py:266
 msgid "Messages"
 msgstr ""
 
-#: lib\log.py:269
+#: lib\log.py:268
 msgid "Authors"
 msgstr ""
 
-#: lib\log.py:271
+#: lib\log.py:270
 msgid "Revision IDs"
 msgstr ""
 
-#: lib\log.py:273
+#: lib\log.py:272
 msgid "Revision Numbers"
 msgstr ""
 
-#: lib\log.py:369
+#: lib\log.py:368
 msgid "Show tree..."
 msgstr ""
 
-#: lib\logmodel.py:760
+#: lib\logmodel.py:809
 #, python-format
 msgid "bug #%s"
 msgstr ""
@@ -637,18 +641,18 @@ msgid_plural "Bugs:"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib\util.py:557
+#: lib\util.py:562
 msgid "deleted files"
 msgstr ""
 
-#: lib\util.py:559
+#: lib\util.py:564
 msgid "added files"
 msgstr ""
 
-#: lib\util.py:561
+#: lib\util.py:566
 msgid "renamed files"
 msgstr ""
 
-#: lib\util.py:563
+#: lib\util.py:568
 msgid "modified files"
 msgstr ""
