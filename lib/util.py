@@ -365,8 +365,7 @@ def quote_tag(tag):
 
 def format_revision_html(rev, search_replace=None):
     text = []
-    text.append("<b>%s</b> %s" % (gettext("Revision:"), rev.revno))
-    text.append("<b>%s</b> %s" % (gettext("Revision Id:"), rev.revision_id))
+    text.append("<b>%s</b> %s revid:%s" % (gettext("Revision:"), rev.revno, rev.revision_id))
 
     def short_text(summary, length):
         if len(summary) > length:
