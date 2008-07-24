@@ -53,7 +53,9 @@ def get_bug_id(branch, bug_url):
         return match.group(1)
     return None
 
+
 class TreeModel(QtCore.QAbstractTableModel):
+
     def __init__(self, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         
@@ -73,9 +75,11 @@ class TreeModel(QtCore.QAbstractTableModel):
         self.branch = branch
         branch.lock_read()
         try:
+            self.tags = branch.tags.get_reverse_tag_dict()  # revid to tags map
             self.revisions = {}
             if start_revs is None:
                 start_revs = [branch.last_revision()]
+            start_revs = [rev for rev in start_revs if not rev == NULL_REVISION]
             graph = branch.repository.get_graph()
             self.graph_parents = {}
             ghosts = set()
@@ -167,9 +171,6 @@ class TreeModel(QtCore.QAbstractTableModel):
                 return cmp(len_x, len_y)
             
             self.branch_ids.sort(branch_id_cmp)
-            
-            self.tags = branch.tags.get_reverse_tag_dict()
-            
             
             if specific_fileid is not None:
                 results_batch_size = 5
@@ -337,7 +338,12 @@ class TreeModel(QtCore.QAbstractTableModel):
                             self.merge_sorted_revisions[parent_msri][3][0:-1]
                         
                         if not parent_branch_id == branch_id and \
-                           not parent_branch_id == ():
+                           not parent_branch_id == () and \
+                           (
+                            len(branch_children)>1
+                            or
+                            not list(branch_children)[0] == parent_branch_id
+                           ):
                             self.linegraphdata[rev_index][4].append (parent_branch_id)
                         
                         if revno_sequence[-1] == 1 or \
@@ -394,13 +400,17 @@ class TreeModel(QtCore.QAbstractTableModel):
                 parent_col_index = 0
                 parent_index = None
                 if len(branch_id) > 1:
-                    parent_revno = branch_id[0:-1]
-                    parent_msri = self.revno_msri[parent_revno]
-                    if parent_msri in self.msri_index:
+                    try:
+                        parent_revno = branch_id[0:-1]
+                        parent_msri = self.revno_msri[parent_revno]
                         parent_index = self.msri_index[parent_msri]
                         parent_node = self.linegraphdata[parent_index][1]
                         if parent_node:
                             parent_col_index = parent_node[0]
+                    except KeyError:
+                        # We may get a key errror if the parent is not visible,
+                        # or the tree has more than one root. Ignore.
+                        pass
                 
                 col_search_order = _branch_line_col_search_order(columns,
                                                                  parent_col_index)
@@ -521,6 +531,41 @@ class TreeModel(QtCore.QAbstractTableModel):
                                               (line_col_index,),
                                               direct,
                                               ))
+                    
+                    has_visible_child = False
+                    for child_revid in self.graph_children[revid]:
+                        child_msri = self.revid_msri[child_revid]
+                        if child_msri in self.msri_index:
+                            has_visible_child = True
+                            break
+                    if not has_visible_child:
+                        # Find columns for little broken lines for each child
+                        for child_revid in self.graph_children[revid]:
+                            # It would nice to make this line the color of the
+                            # child, but I took the ability to do that out
+                            # earlier. :-(
+                            #child_msri = self.revid_msri[child_revid]
+                            #child_rev_no = self.merge_sorted_revisions[child_msri][3]
+                            #child_branch_id = child_rev_no[0:-1]
+                            #color = reduce(lambda x, y: x+y, child_branch_id, 0)
+                            col_search_order = \
+                                    _line_col_search_order(columns,
+                                                           None,
+                                                           col_index)
+                            parent_line_col_index = \
+                                _find_free_column(columns,
+                                                  empty_column,
+                                                  col_search_order,
+                                                  (rev_index - 1,))
+                            _mark_column_as_used(columns,
+                                                 parent_line_col_index,
+                                                 (rev_index - 1,))
+                            lines.append((None,
+                                          rev_index,
+                                          (None,
+                                           parent_line_col_index),
+                                          True,
+                                          ))
         
         # It has now been calculated which column a line must go into. Now
         # copy the lines in to linegraphdata.
@@ -530,7 +575,11 @@ class TreeModel(QtCore.QAbstractTableModel):
              direct,
              ) in lines:
             
-            (child_col_index, child_color) = self.linegraphdata[child_index][1]
+            if child_index is not None:
+                (child_col_index, child_color) = self.linegraphdata[child_index][1]
+            else:
+                (child_col_index, child_color) = self.linegraphdata[parent_index][1]
+            
             if parent_index is not None:
                 (parent_col_index, parent_color) = self.linegraphdata[parent_index][1]
             else:
@@ -566,18 +615,19 @@ class TreeModel(QtCore.QAbstractTableModel):
                          direct))
             else:
                 # Broken line
-                # line from the child's column to the lines column
-                self.linegraphdata[child_index][2].append(
-                    (child_col_index,
-                     line_col_indexes[0],
-                     parent_color,
-                     direct))
-                # Broken line end
-                self.linegraphdata[child_index+1][2].append(
-                    (line_col_indexes[0],
-                     None,
-                     parent_color,
-                     direct))
+                if line_col_indexes[0] is not None:
+                    # line from the child's column to the lines column
+                    self.linegraphdata[child_index][2].append(
+                        (child_col_index,
+                         line_col_indexes[0],
+                         parent_color,
+                         direct))
+                    # Broken line end
+                    self.linegraphdata[child_index+1][2].append(
+                        (line_col_indexes[0],
+                         None,
+                         parent_color,
+                         direct))
                 
                 if line_col_indexes[1] is not None:
                     # Broken line end 
@@ -801,6 +851,7 @@ class TreeModel(QtCore.QAbstractTableModel):
             revno_sequence = self.merge_sorted_revisions[self.revid_msri[revid]][3]
             revision.revno = ".".join(["%d" % (revno)
                                       for revno in revno_sequence])
+            revision.tags = sorted(self.tags.get(revision.revision_id, []))
         else:
             revision = self.revisions[revid]
         return revision
@@ -861,8 +912,10 @@ class TreeModel(QtCore.QAbstractTableModel):
                     yield revid
 
     def indexFromRevId(self, revid):
-        revindex = self.msri_index[self.revid_msri[revid]]
-        return self.createIndex (revindex, 0, QtCore.QModelIndex())
+        msri = self.revid_msri[revid]
+        if msri not in self.msri_index:
+            return None
+        return self.createIndex (self.msri_index[msri], 0, QtCore.QModelIndex())
     
     def findChildBranchMergeRevision (self, revid):
         branch_id = self.merge_sorted_revisions[self.revid_msri[revid]][3][0:-1]
@@ -926,5 +979,3 @@ def _mark_column_as_used(columns, col_index, line_range):
     column = columns[col_index]
     for row_index in line_range:
         column[row_index] = True
-
- 

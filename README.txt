@@ -5,40 +5,30 @@
 Requirements
 ============
 
+ * Python 2.4 or 2.5
+
+ * Bazaar VCS itself
+
  * PyQt 4.1 with Qt 4.2
    http://www.riverbankcomputing.co.uk/pyqt/
    http://www.trolltech.com/products/qt
 
- * Pygments (optional, only needed for syntax highlighting in qannotate)
+ * Pygments (optional, only needed for syntax highlighting in qannotate/qcat)
    http://pygments.pocoo.org/
 
 
 Provided Commands
 =================
 
-qcommit
-~~~~~~~
-GUI interface to enter log message and select changes to commit.
-
-qdiff
-~~~~~
-Side-by-side and unidiff view of changes.
-
-qlog
-~~~~
-Show log messages in GUI window.
-
-qannotate
-~~~~~~~~~
-GUI interface for file annotation.
-
-qbrowse
-~~~~~~~
-Browse your branch a-la Trac Browse Source.
-
-qconfig
-~~~~~~~
-Bazaar configuration.
+* qannotate - GUI interface for file annotation
+* qbrowse - Browse your branch a-la Trac Browse Source
+* qcat - View the contents of a file as of a given revision
+* qcommit - GUI interface to enter log message and select changes to commit
+* qconfig - Bazaar configuration
+* qdiff - Side-by-side and unidiff view of changes.
+* qlog - Show log messages in GUI window.
+* qpull - GUI interface for pull command
+* qpush - GUI interface for push command
 
 
 Interface localization

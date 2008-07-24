@@ -1,30 +1,61 @@
-0.9.2 - in development
+0.9.3 - in development
 ----------------------
 
- * qlog: always show location even in the case it runs as ``bzr qlog``.
- * qcommit: don't show entire filename as extension if name started with dot
-   (e.g. for .bzrignore files)
- * qdiff: options to filter diff output 
-   (to see added/deleted/modified/renamed files in any combination)
- * qcommit: set focus on Message Edit area if there is no saved message;
-   otherwise set focus on OK button (#215271)
- * qbrowse: now supports any kind of URLs as branch location, not only local 
-   paths (#241930)
- * qbrowse: double-click on file opens qcat window and show file content
-   (#148028). Also user can run this action via context menu -> View file.
- * qcat: show content of image file as image (#242070) and hex dump for other
-   binary files.
- * qannotate: show tags (if any) for revision in revision message view 
-   (#149246).
- * qdiff: show label '[binary file]' for modified binary files (#165006).
- * qcat: now able to show symlink target. Window title better reflects content
-   type.
- * qcommit: UI improvements:
-     * user can walk with Tab key over all control widgets (#243177);
-     * message saved not only when user press Cancel, but on other closing
-       actions too (e.g. Alt+F4);
-     * Ctrl+Enter in message edit area triggers commit action (#148156).
- * qlog: Add a revision graph that can be expanded and colapsed.
+
+0.9.2 - 2008-07-22
+----------------------
+This release is first step towards QBzr 1.0.
+
+In this release QBzr introduce new qlog view with nice graph of revisions.
+qcat window now allow you to see images as images, binary files as hex dump,
+and target for versioned symlink. Side-by-side diff now able to show changes 
+in image files; side-by-side and unidiff will show you changes in executable 
+bit as well. Also you can specify in command line which files 
+(added/removed/modified/renamed) you want to see in qdiff.
+
+Also there is many other improvements and many bugfixes. 
+See the list of user-visible changes below.
+
+NOTES: when upgrading old installation of QBzr to 0.9.2, please uninstall
+or remove old files first.
+
+ * qannotate: 
+    * Show tags (if any) for revision in revision message view (#149246)
+ * qbrowse: 
+    * Now supports any kind of URLs as branch location, not only local
+      paths (#241930)
+    * Double-click on file opens qcat window and show file content
+      (#148028). Also user can run this action via context menu -> View file
+ * qcat: 
+    * Show content of image file as image (#242070) and hex dump for other
+      binary files
+    * Now able to show symlink target. Window title better reflects content
+      type
+ * qcommit: 
+    * Don't show entire filename as extension if name started with dot
+      (e.g. for .bzrignore files)
+    * Set focus on Message Edit area if there is no saved message;
+      otherwise set focus on OK button (#215271)
+    * UI improvements:
+        * user can walk with Tab key over all control widgets (#243177);
+        * message saved not only when user press Cancel, but on other closing
+          actions too (e.g. Alt+F4);
+        * Ctrl+Enter in message edit area triggers commit action (#148156)
+ * qdiff: 
+    * Options to filter diff output (to see added/deleted/modified/renamed 
+      files in any combination)
+    * Show label '[binary file]' for modified binary files (#165006)
+    * Images are shown in side by side diff. (#242083)
+    * Window loads straight away, and the diff loads incrementaly in the
+      background, showing files that have be diffed as the become availible.
+      (#174964)
+    * Show changes in x bits. (#153817)
+ * qlog: 
+    * Always show location even in the case it runs as ``bzr qlog``
+    * Add a revision graph that can be expanded and colapsed. (#242752)
+ * qdiff, qcat, qannotate: Font sizes are no longer set a a small 8pt. They
+   now use the default widget font size. (#240859)
+
 
 0.9.1 - 2008-06-17
 ----------------------

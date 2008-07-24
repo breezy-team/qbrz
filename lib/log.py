@@ -39,7 +39,9 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
 
     _bugColor = QtGui.QColor(255, 188, 188)
     _bugColorBorder = QtGui.QColor(255, 79, 79)
-    
+
+    _twistyColor = QtCore.Qt.black
+
     def paint(self, painter, option, index):
         node = index.data(logmodel.GraphNodeRole)
         if node.isValid():
@@ -161,7 +163,6 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                                    start, end, color, direct)
                     graphCols = max((graphCols, min(start, end)))
                 
-                
                 # Draw the revision node in the right column
                 color = self.node[1].toInt()[0]
                 column = self.node[0].toInt()[0]
@@ -179,6 +180,8 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                 # Draw twisty
                 if self.twisty_state.isValid():
                     linesize = 0.35
+                    pen.setColor(self._twistyColor)
+                    painter.setPen(pen)
                     painter.drawLine(QtCore.QLineF (centerx - boxsize * linesize / 2,
                                                     centery,
                                                     centerx + boxsize * linesize / 2,
@@ -361,7 +364,7 @@ class LogWindow(QBzrWindow):
         vbox.addLayout(hbox)
         self.windows = []
         # set focus on search edit widget
-        self.search_edit.setFocus()
+        self.changesList.setFocus()
 
     def show(self):
         QBzrWindow.show(self)
@@ -474,7 +477,6 @@ class LogWindow(QBzrWindow):
         rev2 = self.changesModel.revision(revid2)
         self.show_diff_window(rev1, rev2)
 
-
     def load_history(self):
         """Load branch history."""
         self.changesModel.loadBranch(self.branch, specific_fileid = self.specific_fileid)
@@ -554,8 +556,9 @@ class LogWindow(QBzrWindow):
                         revision_id = str(index.data(logmodel.RevIdRole).toString())
                         self.changesModel.colapse_expand_rev(index, not twisty_state.toBool())
                         newindex = self.changesModel.indexFromRevId(revision_id)
-                        newindex = self.changesProxyModel.mapFromSource(newindex)
-                        self.changesList.setCurrentIndex(newindex)
+                        if newindex is not None:
+                            newindex = self.changesProxyModel.mapFromSource(newindex)
+                            self.changesList.setCurrentIndex(newindex)
         QtGui.QTreeView.mouseReleaseEvent(self.changesList, e)
     
     def changesList_keyPressEvent (self, e):

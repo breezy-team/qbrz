@@ -48,10 +48,11 @@ _tag_re = lazy_regex.lazy_compile(r'[, ]')
 
 
 def escape_html(text):
-    return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace("\n", '<br />')
+    return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
 def htmlize(text):
     text = escape_html(text)
+    text = text.replace("\n", '<br />')
     text = _email_re.sub('<a href="mailto:\\1">\\1</a>', text)
     text = _link1_re.sub('\\1<a href="\\2://\\3">\\2://\\3</a>', text)
     text = _link2_re.sub('\\1<a href="http://www.\\2.\\3\\4">www.\\2.\\3\\4</a>', text)
@@ -364,9 +365,8 @@ def quote_tag(tag):
 
 
 def format_revision_html(rev, search_replace=None):
-    text = []
-    text.append("<b>%s</b> %s" % (gettext("Revision:"), rev.revno))
-    text.append("<b>%s</b> %s" % (gettext("Revision Id:"), rev.revision_id))
+    props = []
+    props.append((gettext("Revision:"), "%s revid:%s" % (rev.revno, rev.revision_id)))
 
     def short_text(summary, length):
         if len(summary) > length:
@@ -375,34 +375,33 @@ def format_revision_html(rev, search_replace=None):
             return summary
 
     def revision_list_html(revisions):
-        return ', '.join('<a href="qlog-revid:%s">%s: %s</a>' % (
+        return ', '.join('<a href="qlog-revid:%s" title="%s">%s: %s</a>' % (
             (r.revision_id,
+             htmlencode(r.get_summary()),
              short_text(r.revno, 10),
-             short_text(r.get_summary(), 60))) for r in revisions)
+             htmlencode(short_text(r.get_summary(), 60)))) for r in revisions)
 
     parents = getattr(rev, 'parents', None)
     if parents:
-        text.append("<b>%s</b> %s" % (gettext("Parents:"),
-                                      revision_list_html(parents)))
+        props.append((gettext("Parents:"), revision_list_html(parents)))
 
     children = getattr(rev, 'children', None)
     if children:
-        text.append("<b>%s</b> %s" % (gettext("Children:"),
-                                      revision_list_html(children)))
+        props.append((gettext("Children:"), revision_list_html(children)))
 
-    text.append('<b>%s</b> %s' % (gettext("Committer:"), htmlize(rev.committer)))
+    props.append((gettext("Committer:"), htmlize(rev.committer)))
     author = rev.properties.get('author')
     if author:
-        text.append('<b>%s</b> %s' % (gettext("Author:"), htmlize(author)))
+        props.append((gettext("Author:"), htmlize(author)))
 
     branch_nick = rev.properties.get('branch-nick')
     if branch_nick:
-        text.append('<b>%s</b> %s' % (gettext("Branch nick:"), htmlize(branch_nick)))
+        props.append((gettext("Branch:"), htmlize(branch_nick)))
 
     tags = getattr(rev, 'tags', None)
     if tags:
         tags = map(quote_tag, tags)
-        text.append('<b>%s</b> %s' % (gettext("Tags:"), ', '.join(tags)))
+        props.append((gettext("Tags:"), ", ".join(tags)))
 
     bugs = []
     for bug in rev.properties.get('bugs', '').split('\n'):
@@ -411,18 +410,21 @@ def format_revision_html(rev, search_replace=None):
             bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
                 dict(url=url, status=gettext(status))))
     if bugs:
-        text.append('<b>%s</b> %s' % (
-            ngettext("Bug:", "Bugs:", len(bugs)),
-            ', '.join(bugs)))
+        props.append((ngettext("Bug:", "Bugs:", len(bugs)), ", ".join(bugs)))
+
+    text = []
+    text.append('<table style="background:#EDEDED;" width="100%" cellspacing="0" cellpadding="0">')
+    for prop in props:
+        text.append('<tr><td style="padding-left:2px" align="right" width="1%%"><b>%s</b></td><td style="padding-left:5px">%s</td></tr>' % prop)
+    text.append('</table>')
 
     message = htmlize(rev.message)
     if search_replace:
         for search, replace in search_replace:
             message = re.sub(search, replace, message)
-    text.append("")
-    text.append(message)
+    text.append('<div style="margin:2px;">%s</div>' % message)
 
-    return "<br />".join(text)
+    return "".join(text)
 
 
 def open_browser(url):
@@ -533,11 +535,16 @@ class FilterOptions(object):
 
     __slots__ = ['deleted', 'added', 'renamed', 'modified']
 
-    def __init__(self, **kw):
+    def __init__(self, all_enable=False, **kw):
         self.added = False
         self.deleted = False
         self.modified = False
         self.renamed = False
+        if all_enable:
+            self.added = True
+            self.deleted = True
+            self.modified = True
+            self.renamed = True
         for k in kw:
             setattr(self, k, kw[k])
 
@@ -562,3 +569,22 @@ class FilterOptions(object):
         if self.modified:
             s.append(i18n.gettext('modified files'))
         return ', '.join(s)
+
+    def check(self, status):
+        """Check status (string) and return True if enabled.
+        Allowed statuses:
+            added, removed, deleted, renamed, modified, 'renamed and modified'
+
+        @raise ValueError:  when unsupported status given.
+        """
+        if status == 'added':
+            return self.added
+        elif status in ('removed', 'deleted'):
+            return self.deleted
+        elif status == 'renamed':
+            return self.renamed
+        elif status == 'modified':
+            return self.modified
+        elif status == 'renamed and modified':
+            return self.renamed or self.modified
+        raise ValueError('unknown status: %r' % status)

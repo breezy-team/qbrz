@@ -30,7 +30,7 @@ import re
 class build_mo(Command):
     """Subcommand of build command: build_mo"""
 
-    description = 'Compile po files to mo files'
+    description = 'compile po files to mo files'
 
     # List of options:
     #   - long name,

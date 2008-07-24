@@ -19,8 +19,13 @@
 
 from PyQt4 import QtGui, QtCore
 
+from bzrlib import timestamp
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import htmlencode
+from bzrlib.plugins.qbzr.lib.util import (
+    file_extension,
+    format_timestamp,
+    )
 
 
 colors = {
@@ -37,106 +42,69 @@ for kind, cols in colors.items():
 
 class DiffSourceView(QtGui.QTextBrowser):
 
-    def __init__(self, font, titleFont, metainfoFont, metainfoTitleFont, lineHeight, parent=None):
+    def __init__(self, parent=None):
         QtGui.QTextBrowser.__init__(self, parent)
-        self.font = font
-        self.titleFont = titleFont
-        self.lineHeight = lineHeight
-        self.metainfoFont = metainfoFont
-        self.metainfoTitleFont = metainfoTitleFont
         self.setLineWrapMode(QtGui.QTextEdit.NoWrap)
-        #self.setViewportMargins(40, 0, 0, 0)
-
-    def setData(self, text, titles, changes):
-        self.doc = QtGui.QTextDocument()
-        self.doc.setDefaultFont(self.font)
-        self.doc.setHtml(text)
-        self.setDocument(self.doc)
-        self.changes = changes
-        self.titles = titles
-        self.update()
+        self.changes = []
+        self.infoBlocks = []
 
     def paintEvent(self, event):
         w = self.width()
-
-        x = 1 - self.horizontalScrollBar().value()
-        y = 1 - self.verticalScrollBar().value()
-
+        y = self.verticalScrollBar().value()
         painter = QtGui.QPainter(self.viewport())
         painter.setClipRect(event.rect())
-
         pen = QtGui.QPen(QtCore.Qt.black)
         pen.setWidth(2)
         painter.setPen(pen)
-
-        for pos, title, metainfo in self.titles:
-            painter.setFont(self.titleFont)
-            fm = painter.fontMetrics()
-            x1 = x + 2
-            y1 = y + self.lineHeight * pos
-            painter.drawText(x1, y1 + fm.ascent(), title)
-            y1 += fm.height()
-            painter.setFont(self.metainfoTitleFont)
-            fm = painter.fontMetrics()
-            y1 += fm.ascent()
-            for name, value in metainfo:
-                painter.setFont(self.metainfoTitleFont)
-                painter.drawText(x1, y1, name)
-                x1 += fm.width(name)
-                painter.setFont(self.metainfoFont)
-                painter.drawText(x1, y1, value)
-                x1 += painter.fontMetrics().width(value)
-            y1 += fm.descent()
-            painter.drawLine(0, y1 + 2, w, y1 + 2)
-
-        for pos, nlines, kind in self.changes:
-            y1 = y + self.lineHeight * pos
-            y2 = y1 + self.lineHeight * nlines
-            painter.fillRect(0, y1, w, y2 - y1 + 1, brushes[kind][0])
+        for block in self.infoBlocks:
+            block_y = block.position().y() - y
+            painter.drawLine(0, block_y, w, block_y)
+            
+        for block0, block1, kind in self.changes:
+            y1 = block0.position().y()
+            y2 = block1.position().y()
+            if y1 <= 0 or y2 <= 0:
+                continue
+            y1 -= y
+            y2 -= y
+            painter.fillRect(0, y1, w, y2 - y1, brushes[kind][0])
             painter.setPen(colors[kind][1])
             painter.drawLine(0, y1, w, y1)
             if y1 != y2:
-                painter.drawLine(0, y2, w, y2)
-
-        painter = None
+                painter.drawLine(0, y2 - 1, w, y2 - 1)
+        del painter
         QtGui.QTextBrowser.paintEvent(self, event)
 
 
 class DiffViewHandle(QtGui.QSplitterHandle):
 
-    def __init__(self, lineHeight, parent=None):
+    def __init__(self, parent=None):
         QtGui.QSplitterHandle.__init__(self, QtCore.Qt.Horizontal, parent)
-        self.lineHeight = lineHeight
         self.view = parent
-
-    def setData(self, changes):
-        self.changes = changes
-        self.update()
+        self.changes = []
 
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
-
-        value1 = self.view.browser1.verticalScrollBar().value()
-        value2 = self.view.browser2.verticalScrollBar().value()
-
+        painter.setClipRect(event.rect())
+        frame = QtGui.QApplication.style().pixelMetric(QtGui.QStyle.PM_DefaultFrameWidth)
+        value1 = self.view.browser1.verticalScrollBar().value() - frame
+        value2 = self.view.browser2.verticalScrollBar().value() - frame
         w = self.width()
-        frame = QtGui.QApplication.style().pixelMetric(QtGui.QStyle.PM_DefaultFrameWidth) + 1
+        for blocka0, blockb0, blocka1, blockb1, kind in self.changes:
+            ly1 = blocka0.position().y()
+            ly2 = blocka1.position().y()
+            ry1 = blockb0.position().y()
+            ry2 = blockb1.position().y()
+            if ly1 <= 0 or ly2 <= 0 or ry1 <= 0 or ry2 <= 0:
+                continue
 
-        for pos1, nlines1, pos2, nlines2, kind in self.changes:
-            #if kind == 'blank' and nlines1 == 0 or nlines2 == 0:
-            #    continue
-
-            ly1 = frame + self.lineHeight * pos1 - value1
-            ly2 = ly1 + self.lineHeight * nlines1
-            ry1 = frame + self.lineHeight * pos2 - value2
-            ry2 = ry1 + self.lineHeight * nlines2
+            ly1 -= value1
+            ly2 -= value1
+            ry1 -= value2
+            ry2 -= value2
 
             polygon = QtGui.QPolygon(4)
-            polygon.setPoints(
-                0, ly1,
-                w, ry1,
-                w, ry2,
-                0, ly2)
+            polygon.setPoints(0, ly1, w, ry1, w, ry2, 0, ly2)
             painter.setPen(QtCore.Qt.NoPen)
             painter.setBrush(brushes[kind][0])
             painter.drawConvexPolygon(polygon)
@@ -146,6 +114,7 @@ class DiffViewHandle(QtGui.QSplitterHandle):
             painter.drawLine(0, ly1, w, ry1)
             painter.setRenderHints(QtGui.QPainter.Antialiasing, ly2 != ry2)
             painter.drawLine(0, ly2, w, ry2)
+        del painter
 
 
 def markup_line(line, encode=True):
@@ -153,7 +122,6 @@ def markup_line(line, encode=True):
         line = htmlencode(line)
     line = line.rstrip("\n").replace("\t", "&nbsp;" * 8)
     return line
-
 
 
 def get_change_extent(str1, str2):
@@ -168,39 +136,28 @@ def get_change_extent(str1, str2):
     return (start, end + 1)
 
 
-def markup_intraline_changes(line1, line2, color):
-    line1 = line1.rstrip("\n")
-    line2 = line2.rstrip("\n")
-    line1 = line1.replace(u"&", u"\1").replace(u"<", u"\2").replace(u">", u"\3")
-    line2 = line2.replace(u"&", u"\1").replace(u"<", u"\2").replace(u">", u"\3")
+def insert_line_intraline_changes(line1, line2, cursor, format):
     start, end = get_change_extent(line1[1:], line2[1:])
     if start == 0 and end < 0:
-        text = u'<span style="background-color:%s">%s</span>%s' % (color, line1[:end], line1[end:])
+        parts = ("", line1[:end], line1[end:])
     elif start > 0 and end == 0:
         start += 1
-        text = u'%s<span style="background-color:%s">%s</span>' % (line1[:start], color, line1[start:])
+        parts = (line1[:start], line1[start:],"")
     elif start > 0 and end < 0:
         start += 1
-        text = u'%s<span style="background-color:%s">%s</span>%s' % (line1[:start], color, line1[start:end], line1[end:])
+        parts = (line1[:start], line1[start:end], line1[end:])
     else:
-        text = line1
-    return text.replace(u"\1", u"&amp;").replace(u"\2", u"&lt;").replace(u"\3", u"&gt;")
+        parts= (line1, "", "")
+    cursor.insertText(parts[0])
+    oldformat = cursor.charFormat()
+    cursor.insertText(parts[1], format)
+    cursor.insertText(parts[2], oldformat)
 
 
-STYLES = {
-    'hunk': 'background-color:#666666;color:#FFF;font-weight:bold;',
-    'delete': 'background-color:#FFDDDD',
-    'insert': 'background-color:#DDFFDD',
-    'missing': 'background-color:#E0E0E0',
-    'title': 'font-size:14px; font-weight:bold;',
-    'metainfo': 'font-size:9px;',
-}
-
-
-class DiffView(QtGui.QSplitter):
+class SidebySideDiffView(QtGui.QSplitter):
     """Widget to show differences in side-by-side format."""
 
-    def __init__(self, treediff, parent=None):
+    def __init__(self, parent=None):
         QtGui.QSplitter.__init__(self, QtCore.Qt.Horizontal, parent)
         self.setHandleWidth(30)
 
@@ -211,14 +168,37 @@ class DiffView(QtGui.QSplitter):
         titleFont.setBold(True)
         titleFont.setPixelSize(14)
 
-        metainfoFont = QtGui.QFont(self.font())
-        metainfoFont.setPixelSize(9)
+        monospacedFont = QtGui.QFont("Courier New, Courier",
+                                     self.font().pointSize())
+        titleFont = QtGui.QFont(self.font())
+        titleFont.setPointSize(titleFont.pointSize() * 140 / 100)
+        titleFont.setBold(True)
+        metadataFont = QtGui.QFont(self.font())
+        metadataFont.setPointSize(titleFont.pointSize() * 70 / 100)
+        metadataLabelFont = QtGui.QFont(metadataFont)
+        metadataLabelFont.setBold(True)
+    
+        self.monospacedFormat = QtGui.QTextCharFormat()
+        self.monospacedFormat.setFont(monospacedFont)
+        self.interLineChangeFormat = QtGui.QTextCharFormat()
+        self.interLineChangeFormat.setFont(monospacedFont)
+        self.interLineChangeFormat.setBackground(
+            QtGui.QBrush(QtGui.QColor.fromRgb(90, 130, 180)))
+        self.titleFormat = QtGui.QTextCharFormat()
+        self.titleFormat.setFont(titleFont)
+        self.metadataFormat = QtGui.QTextCharFormat()
+        self.metadataFormat.setFont(metadataFont)
+        self.metadataLabelFormat = QtGui.QTextCharFormat()
+        self.metadataLabelFormat.setFont(metadataLabelFont)
 
-        metainfoTitleFont = QtGui.QFont(metainfoFont)
-        metainfoTitleFont.setBold(True)
+        self.docs = (QtGui.QTextDocument(),
+                     QtGui.QTextDocument())
+        for doc in self.docs:
+            doc.setUndoRedoEnabled(False)
+            doc.setDefaultFont(monospacedFont)
 
-        self.browser1 = DiffSourceView(font, titleFont, metainfoFont, metainfoTitleFont, self.lineHeight, self)
-        self.browser2 = DiffSourceView(font, titleFont, metainfoFont, metainfoTitleFont, self.lineHeight, self)
+        self.browser1 = DiffSourceView(self)
+        self.browser2 = DiffSourceView(self)
 
         self.ignoreUpdate = False
         self.connect(self.browser1.verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.updateHandle1)
@@ -226,15 +206,179 @@ class DiffView(QtGui.QSplitter):
         self.connect(self.browser1.horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.syncHorizontalSlider1)
         self.connect(self.browser2.horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.syncHorizontalSlider2)
 
-        self.addWidget(self.browser1)
-        self.addWidget(self.browser2)
-
         self.setCollapsible(0, False)
         self.setCollapsible(1, False)
 
-        self.treediff = treediff
-        self.displayCombined(expand=False)
-        #self.displayFull(1)
+        self.browser1.setDocument(self.docs[0])
+        self.browser2.setDocument(self.docs[1])
+        self.browsers = (self.browser1, self.browser2)
+
+        self.addWidget(self.browser1)
+        self.addWidget(self.browser2)
+        self.rewinded = False
+        
+        self.cursors = [QtGui.QTextCursor(doc) for doc in self.docs]
+        for cursor in self.cursors :
+            format = QtGui.QTextCharFormat()
+            format.setAnchorNames(["top"])
+            cursor.insertText("", format)
+        
+        self.lastModifiedLabel = gettext('Last modified:')
+        self.statusLabel = gettext('Status:')
+        self.kindLabel = gettext('Kind:')
+        self.propertiesLabel = gettext('Properties:')
+        
+        self.image_exts = ['.'+str(i)
+            for i in QtGui.QImageReader.supportedImageFormats()]
+
+    def append_diff(self, paths, file_id, kind, status, dates,
+                    present, binary, lines, groups, data, properties_changed):
+        cursors = self.cursors
+        for i in range(2):
+            cursor = cursors[i]
+            cursor.beginEditBlock()
+            cursor.insertText(paths[i] or " ", self.titleFormat)    # None or " " => " "
+            cursor.insertBlock()
+            if present[i]:
+                cursor.insertText(self.lastModifiedLabel, self.metadataLabelFormat)
+                cursor.insertText(" %s, " % format_timestamp(dates[i]), self.metadataFormat)
+                cursor.insertText(self.statusLabel, self.metadataLabelFormat)
+                cursor.insertText(" %s, " % gettext(status), self.metadataFormat)
+                cursor.insertText(self.kindLabel, self.metadataLabelFormat)
+                cursor.insertText(" %s" % gettext(kind[i]), self.metadataFormat)
+                if properties_changed:
+                    cursor.insertText(", ", self.metadataFormat)
+                    cursor.insertText(self.propertiesLabel, self.metadataLabelFormat)
+                    cursor.insertText(" ", self.metadataFormat)
+                    cursor.insertText(", ".join([p[i] for p in properties_changed]), self.metadataFormat)
+            else:
+                cursor.insertText(" ", self.metadataFormat)
+            cursor.insertBlock()
+            self.browsers[i].infoBlocks.append(cursor.block().layout())
+            
+        if not binary:
+            for cursor in cursors:
+                cursor.insertBlock()
+                cursor.setCharFormat(self.monospacedFormat)
+            changes = []
+
+            def fix_last_line(lines):
+                """Fix last line if there is no new line.
+
+                @param  lines:  list of lines
+                @return:    original lines if lastline is OK,
+                            or new list with fixed last line.
+                """
+                if lines:
+                    last = lines[-1]
+                    if last and last[-1] not in ('\r', '\n'):
+                        lines = lines[:-1] + [last+'\n']
+                return lines
+
+            a = fix_last_line(lines[0])
+            b = fix_last_line(lines[1])
+
+            for i, group in enumerate(groups):
+                if i > 0:
+                    block0 = [cursor.block().layout() for cursor in self.cursors]
+                    for cursor in cursors:
+                        cursor.insertBlock()
+                    block1 = [cursor.block().layout() for cursor in self.cursors]
+                    changes.append((block0[0], block0[1], block1[0], block1[1], 'blank'))
+                linediff = 0
+                for tag, i1, i2, j1, j2 in group:
+                    ni = i2 - i1
+                    nj = j2 - j1
+                    if tag == "equal":
+                        text = "".join(l for l in a[i1:i2])
+                        for cursor in cursors:
+                            cursor.insertText(text)
+                    else:
+                        blocka0 = cursors[0].block().layout()
+                        blockb0 = cursors[1].block().layout()
+                        if ni == nj:
+                            for i in xrange(ni):
+                                linea = a[i1 + i]
+                                lineb = b[j1 + i]
+                                insert_line_intraline_changes(linea, lineb,
+                                                              cursors[0],
+                                                              self.interLineChangeFormat)
+                                insert_line_intraline_changes(lineb, linea,
+                                                              cursors[1],
+                                                              self.interLineChangeFormat)
+                        else:
+                            linediff += ni - nj
+                            text = "".join(l for l in a[i1:i2])
+                            cursors[0].insertText(text)
+                            text = "".join(l for l in b[j1:j2])
+                            cursors[1].insertText(text)
+                        blocka1 = cursors[0].block().layout()
+                        blockb1 = cursors[1].block().layout()
+                        changes.append((blocka0, blockb0, blocka1, blockb1, tag))
+                if linediff == 0:
+                    continue
+                if linediff < 0:
+                    i1 = group[-1][2]
+                    i2 = i1 - linediff
+                    lines = a[i1:i2]
+                    linediff = -linediff - len(lines)
+                    cursor = cursors[0]
+                else:
+                    j1 = group[-1][4]
+                    j2 = j1 + linediff
+                    lines = b[j1:j2]
+                    linediff = linediff - len(lines)
+                    cursor = cursors[1]
+                lines.extend(["\n"] * linediff)
+                cursor.insertText("".join(lines))
+            for cursor in self.cursors:
+                cursor.insertBlock()
+    
+            changes1 = [(line[0], line[2], line[4]) for line in changes]
+            changes2 = [(line[1], line[3], line[4]) for line in changes]
+    
+            self.browser1.changes.extend(changes1)
+            self.browser2.changes.extend(changes2)
+            self.handle(1).changes.extend(changes)
+        else:
+            heights = [0,0]
+            is_images = [False, False]
+            for i in range(2):
+                if present[i]:
+                    ext = file_extension(paths[i]).lower()
+                    if ext in self.image_exts:
+                        is_images[i] = True
+                        image = QtGui.QImage()
+                        image.loadFromData(data[i])
+                        heights[i] = image.height() + 4 # QTextDocument seems to add 1 pixel when layouting the text
+                        self.docs[i].addResource(QtGui.QTextDocument.ImageResource,
+                                        QtCore.QUrl(file_id),
+                                        QtCore.QVariant(image))
+            
+            max_height = max(heights)
+            for i, cursor in enumerate(self.cursors):
+                format = QtGui.QTextBlockFormat()
+                format.setBottomMargin(max_height - heights[i])
+                cursor.insertBlock(format)
+                if present[i]:
+                    if is_images[i]:
+                        cursor.insertImage(file_id)
+                        cursor.insertBlock()
+                    else:
+                        cursor.insertText(gettext('[binary file]'))
+                else:
+                    cursor.insertText(" ")
+                cursor.insertBlock(QtGui.QTextBlockFormat())
+        
+        for cursor in self.cursors:
+            cursor.endEditBlock()
+        self.update()
+
+    def rewind(self):
+        if not self.rewinded:
+            self.rewinded = True
+            self.browser1.scrollToAnchor("top")
+            self.browser2.scrollToAnchor("top")
 
     def _syncSliders(self, slider1, slider2, value):
         m = slider1.maximum()
@@ -273,145 +417,125 @@ class DiffView(QtGui.QSplitter):
             self.handle(1).update()
 
     def createHandle(self):
-        return DiffViewHandle(self.lineHeight, self)
+        return DiffViewHandle(self)
 
-    def displayCombined(self, expand=False):
-        lines1 = []
-        lines2 = []
-        changes = []
-        titles1 = []
-        titles2 = []
-        for diff in self.treediff:
-            titles1.append((len(lines1), diff.path,
-                ((gettext('Last modified:'), ' %s, ' % diff.old_date),
-                (gettext('Status:'), ' %s, ' % gettext(diff.status)),
-                (gettext('Kind:'), ' %s' % gettext(diff.kind)))))
-            titles2.append((len(lines2), diff.path,
-                ((gettext('Last modified:'), ' %s, ' % diff.new_date),
-                (gettext('Status:'), ' %s, ' % gettext(diff.status)),
-                (gettext('Kind:'), ' %s' % gettext(diff.kind)))))
-            #lines1.append('<span style="font-family:%s;%s">%s</span>' % (self.ff, STYLES['title'], diff.path))
-            #lines1.append('<span style="font-family:%s;%s"><b>Last modified:</b> %s, <b>Status:</b> %s, <b>Kind:</b> %s</span>' % (self.ff, STYLES['metainfo'], diff.old_date, diff.status, diff.kind))
-            #lines2.append('<span style="font-family:%s;%s">%s</span>' % (self.ff, STYLES['title'], diff.path))
-            #lines2.append('<span style="font-family:%s;%s"><b>Last modified:</b> %s, <b>Status:</b> %s, <b>Kind:</b> %s</span>' % (self.ff, STYLES['metainfo'], diff.new_date, diff.status, diff.kind))
-            lines1.append('')
-            lines1.append('')
-            lines1.append('')
-            lines2.append('')
-            lines2.append('')
-            lines2.append('')
-            if diff.binary:
-                _s = '<span style="background-color:#FFFF80;">%s</span>' % (
-                    gettext('[binary file]'))
-                if diff.status != 'added':
-                    lines1.append(_s)
-                else:
-                    lines1.append('')
-                if diff.status != 'removed':
-                    lines2.append(_s)
-                else:
-                    lines2.append('')
-            a = diff.old_lines
-            b = diff.new_lines
-            for i, group in enumerate(diff.groups):
-                if i > 0:
-                    pos1 = len(lines1)
-                    pos2 = len(lines2)
-                    changes.append((pos1, 1, pos2, 1, 'blank'))
-                    lines1.append("")
-                    lines2.append("")
 
+class SimpleDiffView(QtGui.QTextBrowser):
+    """Widget to show differences in unidiff format."""
+
+    def __init__(self, parent=None):
+        QtGui.QTextBrowser.__init__(self, parent)
+        self.doc = QtGui.QTextDocument(parent)
+        self.doc.setUndoRedoEnabled(False)
+        self.setDocument(self.doc)
+        option = self.doc.defaultTextOption()
+        option.setWrapMode(QtGui.QTextOption.NoWrap)
+        self.doc.setDefaultTextOption(option)
+        self.rewinded = False
+        self.cursor = QtGui.QTextCursor(self.doc)
+        self.cursor.beginEditBlock()
+        format = QtGui.QTextCharFormat()
+        format.setAnchorNames(["top"])
+        self.cursor.insertText("", format)
+        monospacedFont = QtGui.QFont("Courier New, Courier",
+                                     self.font().pointSize())
+        self.monospacedFormat = QtGui.QTextCharFormat()
+        self.monospacedFormat.setFont(monospacedFont)
+
+        self.monospacedInsertFormat = QtGui.QTextCharFormat(self.monospacedFormat)
+        self.monospacedInsertFormat.setForeground(QtGui.QColor(0, 136, 11))
+        self.monospacedDeleteFormat = QtGui.QTextCharFormat(self.monospacedFormat)
+        self.monospacedDeleteFormat.setForeground(QtGui.QColor(204, 0, 0))
+    
+        monospacedBoldFont = QtGui.QFont(monospacedFont)
+        monospacedBoldFont.setBold(True)
+    
+        monospacedItalicFont = QtGui.QFont(monospacedFont)
+        monospacedItalicFont.setItalic(True)
+    
+        self.monospacedBoldInsertFormat = QtGui.QTextCharFormat(self.monospacedInsertFormat)
+        self.monospacedBoldInsertFormat.setFont(monospacedBoldFont)
+        self.monospacedBoldDeleteFormat = QtGui.QTextCharFormat(self.monospacedDeleteFormat)
+        self.monospacedBoldDeleteFormat.setFont(monospacedBoldFont)
+    
+        self.monospacedHeaderFormat = QtGui.QTextCharFormat()
+        self.monospacedHeaderFormat.setFont(monospacedBoldFont)
+        self.monospacedHeaderFormat.setBackground(QtGui.QColor(246, 245, 238))
+        self.monospacedHeaderFormat.setForeground(QtGui.QColor(117, 117, 117))
+    
+        self.monospacedHunkFormat = QtGui.QTextCharFormat()
+        self.monospacedHunkFormat.setFont(monospacedItalicFont)
+        self.monospacedHunkFormat.setForeground(QtGui.QColor(153, 30, 199))
+
+    def rewind(self):
+        if not self.rewinded:
+            self.rewinded = True
+            self.scrollToAnchor("top")
+
+    def append_diff(self, paths, file_id, kind, status, dates,
+                    present, binary, lines, groups, data, properties_changed):
+        path_info = paths[1] or paths[0]
+        if status in ('renamed', 'renamed and modified'):
+            path_info = paths[0] + ' => ' + paths[1]
+        kind_info = kind[0] or kind[1]
+        self.cursor.insertText("=== %s %s %s" % (gettext(status),
+            gettext(kind_info), path_info),
+            self.monospacedHeaderFormat)
+        if properties_changed:
+            self.cursor.insertText(" (properties changed: %s)" % \
+                                   (", ".join(["%s to %s" % p for p in properties_changed])))
+        self.cursor.insertText("\n")
+        
+        # GNU Patch uses the epoch date to detect files that are being added
+        # or removed in a diff.
+        EPOCH_DATE = '1970-01-01 00:00:00 +0000'
+        for i in range(2):
+            if present[i]:
+                dates[i] = timestamp.format_patch_date(dates[i])
+            else:
+                paths[i] = paths[(i+1)%2]
+                dates[i] = EPOCH_DATE
+        
+        if not binary:
+            self.cursor.insertText('--- %s %s\n' % (paths[0], dates[0]),
+                                      self.monospacedBoldInsertFormat)
+            self.cursor.insertText('+++ %s %s\n' % (paths[1], dates[1]),
+                                   self.monospacedBoldDeleteFormat)
+
+            def fix_last_line(lines):
+                """Fix last line if there is no new line.
+
+                @param  lines:  original list of lines
+                @return:    lines if lastline is OK,
+                            or new list with fixed last line.
+                """
+                if lines:
+                    last = lines[-1]
+                    if last and last[-1] not in ('\r', '\n'):
+                        last += ('\n' +
+                                 gettext('\\ No newline at end of file') +
+                                 '\n')
+                        lines = lines[:-1] + [last]
+                return lines
+
+            a = fix_last_line(lines[0])
+            b = fix_last_line(lines[1])
+
+            for i, group in enumerate(groups):
+                i1, i2, j1, j2 = group[0][1], group[-1][2], group[0][3], group[-1][4]
+                self.cursor.insertText("@@ -%d,%d +%d,%d @@\n" % (i1+1, i2-i1, j1+1, j2-j1), self.monospacedHunkFormat)
                 for tag, i1, i2, j1, j2 in group:
                     ni = i2 - i1
                     nj = j2 - j1
-                    pos1 = len(lines1)
-                    pos2 = len(lines2)
-                    if tag == 'equal':
-                        lines = map(markup_line, a[i1:i2])
-                        lines1.extend(lines)
-                        lines2.extend(lines)
+                    if tag == "equal":
+                        text = "".join(" " + l for l in a[i1:i2])
+                        self.cursor.insertText(text, self.monospacedFormat)
                     else:
-                        changes.append((pos1, ni, pos2, nj, tag))
-                        if ni == nj:
-                            for i in range(ni):
-                                linea = a[i1 + i]
-                                lineb = b[j1 + i]
-                                new_linea = markup_intraline_changes(linea, lineb, '#5A82B4')
-                                new_lineb = markup_intraline_changes(lineb, linea, '#5A82B4')
-                                lines1.append(markup_line(new_linea, encode=False))
-                                lines2.append(markup_line(new_lineb, encode=False))
-                        else:
-                            lines1.extend(map(markup_line, a[i1:i2]))
-                            lines2.extend(map(markup_line, b[j1:j2]))
-                            if expand:
-                                pos1 = len(lines1)
-                                pos2 = len(lines2)
-                                nd = ni - nj;
-                                if nd < 0:
-                                    nd = -nd
-                                    changes.append((pos1, nd, pos2, 0, 'blank'))
-                                    lines1.extend([""] * nd)
-                                elif nd > 0:
-                                    pos2 = len(lines2)
-                                    changes.append((pos1, 0, pos2, nd, 'blank'))
-                                    lines2.extend([""] * nd)
-
-                lend = len(lines1) - len(lines2)
-                if lend < 0:
-                    i1 = group[-1][2]
-                    i2 = i1 - lend
-                    lines1.extend(map(markup_line, a[i1:i2]))
-                if lend > 0:
-                    j1 = group[-1][4]
-                    j2 = j1 + lend
-                    lines2.extend(map(markup_line, b[j1:j2]))
-                lend = len(lines1) - len(lines2)
-                if lend < 0:
-                    lines1.extend([''] * -lend)
-                if lend > 0:
-                    lines2.extend([''] * lend)
-            lines1.append('')
-            lines2.append('')
-
-        text1 = '<div style="white-space:pre">' + '<br/>'.join(lines1) + '</div>'
-        text2 = '<div style="white-space:pre">' + '<br/>'.join(lines2) + '</div>'
-        changes1 = [(line[0], line[1], line[4]) for line in changes]
-        changes2 = [(line[2], line[3], line[4]) for line in changes]
-
-        self.browser1.setData(text1, titles1, changes1)
-        self.browser2.setData(text2, titles2, changes2)
-        self.handle(1).setData(changes)
-        self.browser1.verticalScrollBar().setValue(0)
-
-    def displayFull(self, index=0):
-        changes = []
-        diff = self.treediff[index]
-
-        for i, group in enumerate(diff.groups):
-            for tag, i1, i2, j1, j2 in group:
-                if tag != 'equal':
-                    ni = i2 - i1
-                    nj = j2 - j1
-                    changes.append((i1, ni, j1, nj, tag))
-
-        text1 = "<br>".join(map(markup_line, diff.old_lines))
-        text2 = "<br>".join(map(markup_line, diff.new_lines))
-        changes1 = [(line[0], line[1], line[4]) for line in changes]
-        changes2 = [(line[2], line[3], line[4]) for line in changes]
-
-        self.browser1.setData(text1, changes1)
-        self.browser2.setData(text2, changes2)
-        self.handle(1).setData(changes)
-
-
-class SimpleDiffView(QtGui.QTextEdit):
-    """Widget to show differences in unidiff format."""
-
-    def __init__(self, treeview, parent=None):
-        QtGui.QTextEdit.__init__(self, parent)
-        self.doc = QtGui.QTextDocument(parent)
-        self.setReadOnly(1)
-        res = treeview.html_unidiff()
-        self.doc.setHtml("<html><body><pre>%s</pre></body></html>"%(res))
-        self.setDocument(self.doc)
-        self.verticalScrollBar().setValue(0)
+                        text = "".join("-" + l for l in a[i1:i2])
+                        self.cursor.insertText(text, self.monospacedDeleteFormat)
+                        text = "".join("+" + l for l in b[j1:j2])
+                        self.cursor.insertText(text, self.monospacedInsertFormat)
+        else:
+            self.cursor.insertText("Binary files %s %s and %s %s differ\n" % \
+                                   (paths[0], dates[0], paths[1], dates[1]))
+        self.cursor.insertText("\n")

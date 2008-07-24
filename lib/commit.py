@@ -346,12 +346,16 @@ class CommitWindow(QBzrWindow):
         splitter.addWidget(groupbox)
 
         self.filelist = QtGui.QTreeWidget(groupbox)
+        self.filelist.setTextElideMode(QtCore.Qt.ElideMiddle)
         self.filelist.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.filelist.setSortingEnabled(True)
         self.filelist.setHeaderLabels(
             [gettext("File"), gettext("Extension"), gettext("Status")])
-        self.filelist.header().resizeSection(0, 250)
-        self.filelist.header().resizeSection(1, 70)
+        header = self.filelist.header()
+        header.setStretchLastSection(False)
+        header.setResizeMode(0, QtGui.QHeaderView.Stretch)
+        header.setResizeMode(1, QtGui.QHeaderView.ResizeToContents)
+        header.setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
         self.filelist.setRootIsDecorated(False)
         self.connect(self.filelist,
                      QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),

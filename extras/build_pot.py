@@ -28,7 +28,7 @@ from distutils.errors import DistutilsOptionError
 class build_pot(Command):
     """Distutils command build_pot"""
 
-    description = 'Extract strings from python sources for translation'
+    description = 'extract strings from python sources for translation'
 
     # List of options:
     #   - long name,
@@ -87,7 +87,7 @@ class build_pot(Command):
             print 'Make directory:', self.build_dir
             os.makedirs(self.build_dir)
         self.spawn(['xgettext',
-                    '--k=N_',
+                    '--keyword=N_',
                     '-p', self.build_dir,
                     '-o', self.output,
                     '__init__.py',
