@@ -364,8 +364,8 @@ def quote_tag(tag):
 
 
 def format_revision_html(rev, search_replace=None):
-    text = []
-    text.append("<b>%s</b> %s revid:%s" % (gettext("Revision:"), rev.revno, rev.revision_id))
+    props = []
+    props.append((gettext("Revision:"), "%s revid:%s" % (rev.revno, rev.revision_id)))
 
     def short_text(summary, length):
         if len(summary) > length:
@@ -381,27 +381,25 @@ def format_revision_html(rev, search_replace=None):
 
     parents = getattr(rev, 'parents', None)
     if parents:
-        text.append("<b>%s</b> %s" % (gettext("Parents:"),
-                                      revision_list_html(parents)))
+        props.append((gettext("Parents:"), revision_list_html(parents)))
 
     children = getattr(rev, 'children', None)
     if children:
-        text.append("<b>%s</b> %s" % (gettext("Children:"),
-                                      revision_list_html(children)))
+        props.append((gettext("Children:"), revision_list_html(children)))
 
-    text.append('<b>%s</b> %s' % (gettext("Committer:"), htmlize(rev.committer)))
+    props.append((gettext("Committer:"), htmlize(rev.committer)))
     author = rev.properties.get('author')
     if author:
-        text.append('<b>%s</b> %s' % (gettext("Author:"), htmlize(author)))
+        props.append((gettext("Author:"), htmlize(author)))
 
     branch_nick = rev.properties.get('branch-nick')
     if branch_nick:
-        text.append('<b>%s</b> %s' % (gettext("Branch nick:"), htmlize(branch_nick)))
+        props.append((gettext("Branch:"), htmlize(branch_nick)))
 
     tags = getattr(rev, 'tags', None)
     if tags:
         tags = map(quote_tag, tags)
-        text.append('<b>%s</b> %s' % (gettext("Tags:"), ', '.join(tags)))
+        props.append((gettext("Tags:"), ", ".join(tags)))
 
     bugs = []
     for bug in rev.properties.get('bugs', '').split('\n'):
@@ -410,18 +408,21 @@ def format_revision_html(rev, search_replace=None):
             bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
                 dict(url=url, status=gettext(status))))
     if bugs:
-        text.append('<b>%s</b> %s' % (
-            ngettext("Bug:", "Bugs:", len(bugs)),
-            ', '.join(bugs)))
+        props.append((ngettext("Bug:", "Bugs:", len(bugs)), ", ".join(bugs)))
+
+    text = []
+    text.append('<table style="background:#EDEDED;" width="100%" cellspacing="0" cellpadding="0">')
+    for prop in props:
+        text.append('<tr><td style="padding-left:2px" align="right" width="1%%"><b>%s</b></td><td style="padding-left:5px">%s</td></tr>' % prop)
+    text.append('</table>')
 
     message = htmlize(rev.message)
     if search_replace:
         for search, replace in search_replace:
             message = re.sub(search, replace, message)
-    text.append("")
-    text.append(message)
+    text.append('<div style="margin:2px;">%s</div>' % message)
 
-    return "<br />".join(text)
+    return "".join(text)
 
 
 def open_browser(url):
