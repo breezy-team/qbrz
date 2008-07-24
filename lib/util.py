@@ -48,10 +48,11 @@ _tag_re = lazy_regex.lazy_compile(r'[, ]')
 
 
 def escape_html(text):
-    return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace("\n", '<br />')
+    return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
 def htmlize(text):
     text = escape_html(text)
+    text = text.replace("\n", '<br />')
     text = _email_re.sub('<a href="mailto:\\1">\\1</a>', text)
     text = _link1_re.sub('\\1<a href="\\2://\\3">\\2://\\3</a>', text)
     text = _link2_re.sub('\\1<a href="http://www.\\2.\\3\\4">www.\\2.\\3\\4</a>', text)
@@ -374,10 +375,11 @@ def format_revision_html(rev, search_replace=None):
             return summary
 
     def revision_list_html(revisions):
-        return ', '.join('<a href="qlog-revid:%s">%s: %s</a>' % (
+        return ', '.join('<a href="qlog-revid:%s" title="%s">%s: %s</a>' % (
             (r.revision_id,
+             htmlencode(r.get_summary()),
              short_text(r.revno, 10),
-             short_text(r.get_summary(), 60))) for r in revisions)
+             htmlencode(short_text(r.get_summary(), 60)))) for r in revisions)
 
     parents = getattr(rev, 'parents', None)
     if parents:
