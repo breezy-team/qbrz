@@ -428,6 +428,9 @@ class SimpleDiffView(QtGui.QTextBrowser):
         self.doc = QtGui.QTextDocument(parent)
         self.doc.setUndoRedoEnabled(False)
         self.setDocument(self.doc)
+        option = self.doc.defaultTextOption()
+        option.setWrapMode(QtGui.QTextOption.NoWrap)
+        self.doc.setDefaultTextOption(option)
         self.rewinded = False
         self.cursor = QtGui.QTextCursor(self.doc)
         self.cursor.beginEditBlock()
