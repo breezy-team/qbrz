@@ -1,6 +1,8 @@
 0.9.3 - in development
 ----------------------
-
+ * qlog: When you search on revision id or revision number, it selects the
+   revision that matches, rather than filtering the ones that don't. This also
+   faster.
 
 0.9.2 - 2008-07-22
 ----------------------
