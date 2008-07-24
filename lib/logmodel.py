@@ -690,6 +690,15 @@ class TreeModel(QtCore.QAbstractTableModel):
         if has_change:
             self.compute_lines()
     
+    def has_rev_id(revid):
+        return revid in self.revid_msri
+    
+    def revid_from_revno(self, revno):
+        if revno not in self.revno_msri:
+            return None
+        msri = self.revno_msri[revno]
+        return self.merge_sorted_revisions[msri][1]
+        
     def ensure_rev_visible(self, revid):
         if self.searchMode:
             return
