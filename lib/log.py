@@ -492,7 +492,7 @@ class LogWindow(QBzrWindow):
         self.changesModel.set_search_mode(search_mode)
         if role == logmodel.FilterIdRole:
             self.changesProxyModel.setFilterRegExp("")
-            
+            search_text = str(search_text)
             if self.changesModel.has_rev_id(search_text):
                 self.changesModel.ensure_rev_visible(search_text)
                 index = self.changesModel.indexFromRevId(search_text)
@@ -501,7 +501,7 @@ class LogWindow(QBzrWindow):
         elif role == logmodel.FilterRevnoRole:
             self.changesProxyModel.setFilterRegExp("")
             try:
-                revno = tuple((int(number) for number in search_text.split('.')))
+                revno = tuple((int(number) for number in str(search_text).split('.')))
             except ValueError:
                 revno = ()
                 # Not sure what to do if there is an error. Nothing for now

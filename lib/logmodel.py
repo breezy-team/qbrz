@@ -690,7 +690,7 @@ class TreeModel(QtCore.QAbstractTableModel):
         if has_change:
             self.compute_lines()
     
-    def has_rev_id(revid):
+    def has_rev_id(self, revid):
         return revid in self.revid_msri
     
     def revid_from_revno(self, revno):
