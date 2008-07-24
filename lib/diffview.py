@@ -99,9 +99,9 @@ class DiffViewHandle(QtGui.QSplitterHandle):
                 continue
 
             ly1 -= value1
-            ly2 -= value1
+            ly2 -= value1 + 1
             ry1 -= value2
-            ry2 -= value2
+            ry2 -= value2 + 1
 
             polygon = QtGui.QPolygon(4)
             polygon.setPoints(0, ly1, w, ry1, w, ry2, 0, ly2)
