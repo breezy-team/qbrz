@@ -20,6 +20,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import errno
+import time
+
 from PyQt4 import QtCore, QtGui
 
 from bzrlib.errors import BinaryFile
@@ -148,12 +151,19 @@ class DiffWindow(QBzrWindow):
                 if parent == (None, None):
                     continue
 
+                renamed = (parent[0], name[0]) != (parent[1], name[1])
+
                 dates = [None, None]
                 for ix in range(2):
                     if versioned[ix]:
-                        dates[ix] = self.trees[ix].get_file_mtime(file_id, paths[ix])
-
-                renamed = (parent[0], name[0]) != (parent[1], name[1])
+                        try:
+                            dates[ix] = self.trees[ix].get_file_mtime(file_id, paths[ix])
+                        except OSError, e:
+                            if not renamed or e.errno != errno.ENOENT:
+                                raise
+                            # If we get ENOENT error then probably we trigger
+                            # bug #251532 in bzrlib. Take current time instead
+                            dates[ix] = time.time()
 
                 properties_changed = [] 
                 if (executable[0] != executable[1]
