@@ -47,11 +47,8 @@ _link2_re = lazy_regex.lazy_compile(r'(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((
 _tag_re = lazy_regex.lazy_compile(r'[, ]')
 
 
-def escape_html(text):
-    return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-
 def htmlize(text):
-    text = escape_html(text)
+    text = htmlencode(text)
     text = text.replace("\n", '<br />')
     text = _email_re.sub('<a href="mailto:\\1">\\1</a>', text)
     text = _link1_re.sub('\\1<a href="\\2://\\3">\\2://\\3</a>', text)
