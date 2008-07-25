@@ -422,7 +422,7 @@ def format_revision_html(rev, search_replace=None):
     if search_replace:
         for search, replace in search_replace:
             message = re.sub(search, replace, message)
-    text.append('<div style="margin:2px;">%s</div>' % message)
+    text.append('<div style="margin:2px;margin-top:0.5em;">%s</div>' % message)
 
     return "".join(text)
 
