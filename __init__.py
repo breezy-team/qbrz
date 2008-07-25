@@ -575,6 +575,10 @@ def test_suite():
     from bzrlib.plugins.qbzr.lib import i18n
     i18n.disable()
     # load tests
-    from bzrlib.tests.TestUtil import TestLoader
-    from bzrlib.plugins.qbzr.lib import test
-    return TestLoader().loadTestsFromModule(test)
+    from bzrlib.tests import TestUtil
+    suite = TestUtil.TestSuite()
+    loader = TestUtil.TestLoader()
+    testmod_names = ['test_util', 'test_diffview']
+    suite.addTest(loader.loadTestsFromModuleNames(
+            ["%s.lib.%s" % (__name__, name) for name in testmod_names]))
+    return suite

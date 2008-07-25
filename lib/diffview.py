@@ -20,6 +20,7 @@
 from PyQt4 import QtGui, QtCore
 
 from bzrlib import timestamp
+from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import htmlencode
 from bzrlib.plugins.qbzr.lib.util import (
@@ -124,34 +125,16 @@ def markup_line(line, encode=True):
     return line
 
 
-def get_change_extent(str1, str2):
-    start = 0
-    limit = min(len(str1), len(str2))
-    while start < limit and str1[start] == str2[start]:
-        start += 1
-    end = -1
-    limit = limit - start
-    while -end <= limit and str1[end] == str2[end]:
-        end -= 1
-    return (start, end + 1)
-
-
-def insert_line_intraline_changes(line1, line2, cursor, format):
-    start, end = get_change_extent(line1[1:], line2[1:])
-    if start == 0 and end < 0:
-        parts = ("", line1[:end], line1[end:])
-    elif start > 0 and end == 0:
-        start += 1
-        parts = (line1[:start], line1[start:],"")
-    elif start > 0 and end < 0:
-        start += 1
-        parts = (line1[:start], line1[start:end], line1[end:])
-    else:
-        parts= (line1, "", "")
-    cursor.insertText(parts[0])
-    oldformat = cursor.charFormat()
-    cursor.insertText(parts[1], format)
-    cursor.insertText(parts[2], oldformat)
+def insert_intraline_changes(cursor1, cursor2, line1, line2, format, ins_format, del_format):
+    for tag, i1, i2, j1, j2 in SequenceMatcher(None, line1, line2).get_opcodes():
+        if tag == 'equal':
+            cursor1.insertText(line1[i1:i2], format)
+            cursor2.insertText(line2[j1:j2], format)
+        else:
+            if i1 != i2:
+                cursor1.insertText(line1[i1:i2], del_format)
+            if j1 != j2:
+                cursor2.insertText(line2[j1:j2], ins_format)
 
 
 class SidebySideDiffView(QtGui.QSplitter):
@@ -298,14 +281,12 @@ class SidebySideDiffView(QtGui.QSplitter):
                         blockb0 = cursors[1].block().layout()
                         if ni == nj:
                             for i in xrange(ni):
-                                linea = a[i1 + i]
-                                lineb = b[j1 + i]
-                                insert_line_intraline_changes(linea, lineb,
-                                                              cursors[0],
-                                                              self.interLineChangeFormat)
-                                insert_line_intraline_changes(lineb, linea,
-                                                              cursors[1],
-                                                              self.interLineChangeFormat)
+                                insert_intraline_changes(
+                                    cursors[0], cursors[1],
+                                    a[i1 + i], b[j1 + i],
+                                    self.monospacedFormat,
+                                    self.interLineChangeFormat,
+                                    self.interLineChangeFormat)
                         else:
                             linediff += ni - nj
                             text = "".join(l for l in a[i1:i2])
