@@ -28,13 +28,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
     )
 
-have_search = True
-try:
-    from bzrlib.plugins.search import errors as search_errors
-    from bzrlib.plugins.search import index as search_index
-except ImportError:
-    have_search = False
-
 TagsRole = QtCore.Qt.UserRole + 1
 BugIdsRole = QtCore.Qt.UserRole + 2
 GraphNodeRole = QtCore.Qt.UserRole + 3
@@ -844,6 +837,7 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
         QtGui.QSortFilterProxyModel.__init__(self, parent)
         self.cache = {}
         self.search_matching_revid = None
+        self.search_idx = None
     
     def setFilter(self, str, role):
         if not str == self.old_filter_str or not role == self.old_filter_role:
@@ -860,15 +854,11 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
             self.old_filter_str = str
             self.old_filter_role = role
     
+    def setSearchIndex(self, search_idx):
+        self.search_idx = search_idx
+    
     def setSearchFilter(self, s):
-        if "search_idx" not in dir(self):
-            graphModel = self.sourceModel()
-            try:
-                self.search_idx = search_index.open_index_branch(graphModel.branch)
-            except search_errors.NoSearchIndex:
-                self.search_idx = None
-        
-        if s == "" or self.index is None:
+        if s == "" or self.search_idx is None:
             self.search_matching_revid = None
         else:
             s = str(s).strip()

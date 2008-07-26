@@ -250,7 +250,7 @@ class LogWindow(QBzrWindow):
         self.search_label = QtGui.QLabel(gettext("&Search:"))
         self.search_edit = QtGui.QLineEdit()
         self.search_label.setBuddy(self.search_edit)
-        self.connect(self.search_edit, QtCore.SIGNAL("textEdited(QString)"),
+        self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
                      self.set_search_timer)
 
         self.search_timer = QtCore.QTimer(self)
@@ -262,20 +262,8 @@ class LogWindow(QBzrWindow):
         searchbox.addWidget(self.search_edit)
 
         self.searchType = QtGui.QComboBox()
-        if have_search:
-            try:
-                self.index = search_index.open_index_branch(self.branch)
-                self.completer = Compleater(self)
-                suggestions = QtCore.QStringList()
-                for s in self.index.suggest((("",),)):
-                    suggestions.append(s[0])
-                self.completer.setModel(QtGui.QStringListModel(suggestions, self.completer))
-                self.searchType.addItem(gettext("Messages and File text (indexed)"),
-                                        QtCore.QVariant(logmodel.FilterSearchRole))
-                self.search_edit.setCompleter(self.completer)
-            except search_errors.NoSearchIndex:
-                self.index = None
-                self.compleater = None
+        self.index = None
+        self.compleater = None
             
         self.searchType.addItem(gettext("Messages"),
                                 QtCore.QVariant(logmodel.FilterMessageRole))
@@ -492,6 +480,23 @@ class LogWindow(QBzrWindow):
     def load_history(self):
         """Load branch history."""
         self.changesModel.loadBranch(self.branch, specific_fileid = self.specific_fileid)
+        if have_search:
+            try:
+                self.index = search_index.open_index_branch(self.branch)
+                self.changesProxyModel.setSearchIndex(self.index)
+                self.completer = Compleater(self)
+                suggestions = QtCore.QStringList()
+                for s in self.index.suggest((("",),)):
+                    if suggestions.count() % 100 == 0:
+                        QtCore.QCoreApplication.processEvents()
+                    suggestions.append(s[0])
+                self.completer.setModel(QtGui.QStringListModel(suggestions, self.completer))
+                self.searchType.insertItem(0,
+                                           gettext("Messages and File text (indexed)"),
+                                           QtCore.QVariant(logmodel.FilterSearchRole))
+                self.search_edit.setCompleter(self.completer)
+            except search_errors.NoSearchIndex:
+                pass
 
     def update_search(self):
         # TODO in_paths = self.search_in_paths.isChecked()
