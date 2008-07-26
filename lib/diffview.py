@@ -46,6 +46,9 @@ class DiffSourceView(QtGui.QTextBrowser):
     def __init__(self, parent=None):
         QtGui.QTextBrowser.__init__(self, parent)
         self.setLineWrapMode(QtGui.QTextEdit.NoWrap)
+        self.clear()
+
+    def clear(self):
         self.changes = []
         self.infoBlocks = []
 
@@ -82,6 +85,9 @@ class DiffViewHandle(QtGui.QSplitterHandle):
     def __init__(self, parent=None):
         QtGui.QSplitterHandle.__init__(self, QtCore.Qt.Horizontal, parent)
         self.view = parent
+        self.clear()
+        
+    def clear(self):
         self.changes = []
 
     def paintEvent(self, event):
@@ -214,6 +220,14 @@ class SidebySideDiffView(QtGui.QSplitter):
         self.image_exts = ['.'+str(i)
             for i in QtGui.QImageReader.supportedImageFormats()]
 
+    def clear(self):
+        self.browser1.clear()
+        self.browser2.clear()
+        self.handle(1).clear()
+        for doc in self.docs:
+            doc.clear()
+        self.update()
+        
     def append_diff(self, paths, file_id, kind, status, dates,
                     present, binary, lines, groups, data, properties_changed):
         cursors = self.cursors
