@@ -102,38 +102,23 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
         else:
             pen.setStyle(QtCore.Qt.DotLine)            
         painter.setPen(pen)
-        if start is -1:
-            x = rect.x() + boxsize * end + boxsize / 2
-            painter.drawLine(QtCore.QLineF (x, mid + (height * 0.1),
-                                            x, mid + (height * 0.2))) 
-            painter.drawLine(QtCore.QLineF (x, mid + (height * 0.3),
-                                            x, mid + (height * 0.4))) 
-            
-        elif end is -1:
-            x = rect.x() + boxsize * start + boxsize / 2 
-            painter.drawLine(QtCore.QLineF (x, mid - (height * 0.1),
-                                            x, mid - (height * 0.2))) 
-            painter.drawLine(QtCore.QLineF (x, mid - (height * 0.3),
-                                            x, mid - (height * 0.4))) 
-
+        startx = rect.x() + boxsize * start + boxsize / 2 
+        endx = rect.x() + boxsize * end + boxsize / 2 
+        
+        path = QtGui.QPainterPath()
+        path.moveTo(QtCore.QPointF(startx, mid - height / 2))
+        
+        if start - end == 0 :
+            path.lineTo(QtCore.QPointF(endx, mid + height / 2)) 
         else:
-            startx = rect.x() + boxsize * start + boxsize / 2 
-            endx = rect.x() + boxsize * end + boxsize / 2 
-            
-            path = QtGui.QPainterPath()
-            path.moveTo(QtCore.QPointF(startx, mid - height / 2))
-            
-            if start - end == 0 :
-                path.lineTo(QtCore.QPointF(endx, mid + height / 2)) 
-            else:
-                path.cubicTo(QtCore.QPointF(startx, mid - height / 5),
-                             QtCore.QPointF(startx, mid - height / 5),
-                             QtCore.QPointF(startx + (endx - startx) / 2, mid))
+            path.cubicTo(QtCore.QPointF(startx, mid - height / 5),
+                         QtCore.QPointF(startx, mid - height / 5),
+                         QtCore.QPointF(startx + (endx - startx) / 2, mid))
 
-                path.cubicTo(QtCore.QPointF(endx, mid + height / 5),
-                             QtCore.QPointF(endx, mid + height / 5),
-                             QtCore.QPointF(endx, mid + height / 2 + 1))
-            painter.drawPath(path)
+            path.cubicTo(QtCore.QPointF(endx, mid + height / 5),
+                         QtCore.QPointF(endx, mid + height / 5),
+                         QtCore.QPointF(endx, mid + height / 2 + 1))
+        painter.drawPath(path)
         pen.setStyle(QtCore.Qt.SolidLine)
 
     def drawDisplay(self, painter, option, rect, text):
