@@ -435,7 +435,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                                                      line_range)
                                 lines.append((rev_index,
                                               parent_index,
-                                              (line_col_index,),
+                                              line_col_index,
                                               direct,
                                               ))
                         i += 1
@@ -534,7 +534,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                                                  line_range)
                         lines.append((rev_index,
                                       parent_index,
-                                      (line_col_index,),
+                                      line_col_index,
                                       direct,
                                       ))
         
@@ -542,48 +542,39 @@ class GraphModel(QtCore.QAbstractTableModel):
         # copy the lines in to linegraphdata.
         for (child_index,
              parent_index,
-             line_col_indexes,
+             line_col_index,
              direct,
              ) in lines:
             
-            if child_index is not None:
-                (child_col_index, child_color) = linegraphdata[child_index][1]
-            else:
-                (child_col_index, child_color) = linegraphdata[parent_index][1]
+            (child_col_index, child_color) = linegraphdata[child_index][1]
+            (parent_col_index, parent_color) = linegraphdata[parent_index][1]
             
-            if parent_index is not None:
-                (parent_col_index, parent_color) = linegraphdata[parent_index][1]
+            if parent_index - child_index == 1:
+                linegraphdata[child_index][2].append(
+                    (child_col_index,
+                     parent_col_index,
+                     parent_color,
+                     direct))
             else:
-                (parent_col_index, parent_color) = (child_col_index, parent_color)
-            
-            if len(line_col_indexes) == 1:
-                assert parent_index is not None
-                if parent_index - child_index == 1:
-                    linegraphdata[child_index][2].append(
-                        (child_col_index,
-                         parent_col_index,
+                # line from the child's column to the lines column
+                linegraphdata[child_index][2].append(
+                    (child_col_index,
+                     line_col_index,
+                     parent_color,
+                     direct))
+                # lines down the line's column
+                for line_part_index in range(child_index+1, parent_index-1):
+                    linegraphdata[line_part_index][2].append(
+                        (line_col_index,   
+                         line_col_index,
                          parent_color,
                          direct))
-                else:
-                    # line from the child's column to the lines column
-                    linegraphdata[child_index][2].append(
-                        (child_col_index,
-                         line_col_indexes[0],
-                         parent_color,
-                         direct))
-                    # lines down the line's column
-                    for line_part_index in range(child_index+1, parent_index-1):
-                        linegraphdata[line_part_index][2].append(
-                            (line_col_indexes[0],   
-                             line_col_indexes[0],
-                             parent_color,
-                             direct))
-                    # line from the line's column to the parent's column
-                    linegraphdata[parent_index-1][2].append(
-                        (line_col_indexes[0],
-                         parent_col_index,
-                         parent_color,
-                         direct))
+                # line from the line's column to the parent's column
+                linegraphdata[parent_index-1][2].append(
+                    (line_col_index,
+                     parent_col_index,
+                     parent_color,
+                     direct))
 
         self.linegraphdata = linegraphdata
         self.msri_index = msri_index
@@ -679,8 +670,6 @@ class GraphModel(QtCore.QAbstractTableModel):
         if role == GraphLinesRole:
             qlines = []
             for start, end, color, direct in lines:
-                if start is None: start = -1
-                if end is None: end = -1
                 qlines.append(QtCore.QVariant([QtCore.QVariant(start),
                                                QtCore.QVariant(end),
                                                QtCore.QVariant(color),
