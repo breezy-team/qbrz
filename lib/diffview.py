@@ -466,9 +466,6 @@ class SimpleDiffView(QtGui.QTextBrowser):
             self.rewinded = True
             self.scrollToAnchor("top")
 
-    def clear(self):
-        QtGui.QTextBrowser.clear(self)
-
     def append_diff(self, paths, file_id, kind, status, dates,
                     present, binary, lines, groups, data, properties_changed):
         self.cursor.beginEditBlock()
