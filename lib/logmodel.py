@@ -171,15 +171,13 @@ class GraphModel(QtCore.QAbstractTableModel):
                         self.branch_lines[child_branch_id][2].add(branch_id)
             
             self.branch_ids = self.branch_lines.keys()
-        
+            
             def branch_id_cmp(x, y):
-                """Compaire branch_id's first by the number of digits, then reversed
-                by their value"""
-                len_x = len(x)
-                len_y = len(y)
-                if len_x == len_y:
-                    return -cmp(x, y)
-                return cmp(len_x, len_y)
+                merge_depth_x = self.merge_sorted_revisions[self.branch_lines[x][0][0]][2]
+                merge_depth_y = self.merge_sorted_revisions[self.branch_lines[y][0][0]][2]
+                if not merge_depth_x == merge_depth_y:
+                    return cmp(merge_depth_x, merge_depth_y)
+                return cmp(x, y)
             
             self.branch_ids.sort(branch_id_cmp)
             
@@ -313,8 +311,8 @@ class GraphModel(QtCore.QAbstractTableModel):
         def _branch_line_col_search_order(parent_col_index):
             for col_index in range(parent_col_index, len(columns)):
                 yield col_index
-            for col_index in range(parent_col_index-1, -1, -1):
-                yield col_index
+            #for col_index in range(parent_col_index-1, -1, -1):
+            #    yield col_index
         
         def _line_col_search_order(parent_col_index, child_col_index):
             if parent_col_index is not None and child_col_index is not None:
@@ -335,8 +333,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                   min_index - i > -1:
                 if max_index + i < len(columns):
                     yield max_index + i
-                if min_index - i > -1:
-                    yield min_index - i
+                #if min_index - i > -1:
+                #    yield min_index - i
                 i += 1
         
         def _find_free_column(col_search_order, line_range):
@@ -474,7 +472,9 @@ class GraphModel(QtCore.QAbstractTableModel):
                         
                         if not (rev_msri == branch_last_visible_msri or \
                                 parent_branch_id == branch_id or\
-                                branch_id == ()):
+                                branch_id == ()) and \
+                           (parent_merge_depth <= merge_depth):
+                            
                             parent_index = msri_index[parent_msri]
                             if parent_index - rev_index >1:
                                 rev_visible_parents.pop(i)
@@ -550,19 +550,19 @@ class GraphModel(QtCore.QAbstractTableModel):
                 
                 # Find columns for lines for each parent of each
                 # revision in the branch.
-                for i, rev_msri in enumerate(branch_rev_msri):
+                for rev_msri, rev_visible_parents in reversed(zip(branch_rev_msri,
+                                                                  visible_parents)):
                     rev_index = msri_index[rev_msri]
                     (sequence_number,
                          revid,
                          merge_depth,
                          revno_sequence,
                          end_of_merge) = self.merge_sorted_revisions[rev_msri]
-                    
                     for (parent_revid,
                          parent_msri,
                          parent_branch_id,
                          parent_merge_depth,
-                         direct) in visible_parents[i]:
+                         direct) in rev_visible_parents:
                         
                         parent_index = msri_index[parent_msri]
                         append_line(rev_index, parent_index, direct)
@@ -578,6 +578,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                             if child_msri in msri_index:
                                 child_index = msri_index[child_msri]
                             append_line(child_index, rev_index, False)
+                
         
         # It has now been calculated which column a line must go into. Now
         # copy the lines in to linegraphdata.
