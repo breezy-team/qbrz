@@ -428,7 +428,6 @@ class SimpleDiffView(QtGui.QTextBrowser):
         self.doc.setDefaultTextOption(option)
         self.rewinded = False
         self.cursor = QtGui.QTextCursor(self.doc)
-        self.cursor.beginEditBlock()
         format = QtGui.QTextCharFormat()
         format.setAnchorNames(["top"])
         self.cursor.insertText("", format)
@@ -472,6 +471,7 @@ class SimpleDiffView(QtGui.QTextBrowser):
 
     def append_diff(self, paths, file_id, kind, status, dates,
                     present, binary, lines, groups, data, properties_changed):
+        self.cursor.beginEditBlock()
         path_info = paths[1] or paths[0]
         if status in ('renamed', 'renamed and modified'):
             path_info = paths[0] + ' => ' + paths[1]
@@ -537,4 +537,5 @@ class SimpleDiffView(QtGui.QTextBrowser):
             self.cursor.insertText("Binary files %s %s and %s %s differ\n" % \
                                    (paths[0], dates[0], paths[1], dates[1]))
         self.cursor.insertText("\n")
+        self.cursor.endEditBlock()
         self.update()
