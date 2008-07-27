@@ -254,4 +254,5 @@ class DiffWindow(QBzrWindow):
             
     def click_refresh(self):
         self.diffview.clear()
+        self.sdiffview.clear()
         self.load_diff()
