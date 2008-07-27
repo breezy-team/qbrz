@@ -309,6 +309,39 @@ class GraphModel(QtCore.QAbstractTableModel):
         # overlaping something else.
         columns = [list(empty_column)]
         
+        def append_line (child_index, parent_index):
+            parent_node = linegraphdata[parent_index][1]
+            if parent_node:
+                parent_col_index = parent_node[0]
+            else:
+                parent_col_index = None
+            
+            child_node = linegraphdata[child_index][1]
+            if child_node:
+                child_col_index = child_node[0]
+            else:
+                child_col_index = None
+                
+            line_col_index = child_col_index
+            if parent_index - child_index >1:
+                line_range = range(child_index + 1, parent_index)
+                col_search_order = \
+                        _line_col_search_order(columns,
+                                               parent_col_index,
+                                               child_col_index)
+                line_col_index = \
+                    _find_free_column(columns,
+                                      empty_column,
+                                      col_search_order,
+                                      line_range)
+                _mark_column_as_used(columns,
+                                     line_col_index,
+                                     line_range)
+            lines.append((child_index,
+                          parent_index,
+                          line_col_index,
+                          direct,
+                          ))            
         
         for branch_id in self.branch_ids:
             (branch_rev_msri,
@@ -329,14 +362,15 @@ class GraphModel(QtCore.QAbstractTableModel):
                 # the branch that are long and need to go between the parent
                 # branch and the child branch. Also add branch_ids to
                 # twisty_branch_ids.
-                parents_with_lines = []
                 visible_parents = []
-                for rev_msri in reversed(branch_rev_msri):
-                    if rev_msri in msri_index:
-                        branch_last_visible_msri = rev_msri
-                        break
-                else:
-                    branch_last_visible_msri = 0
+                def find_first_visible_msri (msri_list):                    
+                    for rev_msri in msri_list:
+                        if rev_msri in msri_index:
+                            return rev_msri
+                    else:
+                        return -1
+                branch_first_visible_msri = find_first_visible_msri(branch_rev_msri)
+                branch_last_visible_msri = find_first_visible_msri(reversed(branch_rev_msri))
                 
                 for rev_msri in branch_rev_msri:
                     rev_index = msri_index[rev_msri]
@@ -345,23 +379,6 @@ class GraphModel(QtCore.QAbstractTableModel):
                          merge_depth,
                          revno_sequence,
                          end_of_merge) = self.merge_sorted_revisions[rev_msri]
-                    
-                    # Find and add nessery twisties
-                    for parent_rev_id in self.graph_parents[revid]:
-                        (parent_msri,
-                         parent_branch_id,
-                         parent_merge_depth) = self._msri_branch_id_merge_depth(parent_rev_id)
-                        if (parent_branch_id != branch_id and  # Different Branch
-                            (parent_merge_depth >= merge_depth or # Parent branch is deeeper
-                             not self.branch_lines[parent_branch_id])): # Parent branch is not visible
-                            
-                            parent_branch_rev_msri = self.branch_lines[parent_branch_id][0]
-                            for pb_rev_msri in parent_branch_rev_msri:
-                                visible = pb_rev_msri in msri_index or\
-                                          self.graphFilterProxyModel.filterAcceptsRowIfBranchVisible(pb_rev_msri, source_parent)
-                                if visible:
-                                    linegraphdata[rev_index][4].append (parent_branch_id)
-                                    break
                     
                     # Find parents that are currently visible
                     rev_visible_parents = []
@@ -412,35 +429,30 @@ class GraphModel(QtCore.QAbstractTableModel):
                                 parent_branch_id == branch_id or\
                                 branch_id == ()):
                             parent_index = msri_index[parent_msri]
-                            parent_node = linegraphdata[parent_index][1]
-                            if parent_node:
-                                parent_col_index = parent_node[0]
-                            else:
-                                parent_col_index = 0
-                            col_search_order = \
-                                _branch_line_col_search_order(columns, parent_col_index)
-                            
-                            line_col_index = parent_col_index
                             if parent_index - rev_index >1:
                                 rev_visible_parents.pop(i)
                                 i -= 1
-                                line_range = range(rev_index + 1, parent_index)
-                                line_col_index = \
-                                    _find_free_column(columns,
-                                                      empty_column,
-                                                      col_search_order,
-                                                      line_range)
-                                _mark_column_as_used(columns,
-                                                     line_col_index,
-                                                     line_range)
-                                lines.append((rev_index,
-                                              parent_index,
-                                              line_col_index,
-                                              direct,
-                                              ))
+                                append_line(rev_index, parent_index)
                         i += 1
                     
                     visible_parents.append(rev_visible_parents)
+                    
+                    # Find and add nessery twisties
+                    for parent_rev_id in self.graph_parents[revid]:
+                        (parent_msri,
+                         parent_branch_id,
+                         parent_merge_depth) = self._msri_branch_id_merge_depth(parent_rev_id)
+                        if (parent_branch_id != branch_id and  # Different Branch
+                            (parent_merge_depth >= merge_depth or # Parent branch is deeeper
+                             not self.branch_lines[parent_branch_id])): # Parent branch is not visible
+                            
+                            parent_branch_rev_msri = self.branch_lines[parent_branch_id][0]
+                            for pb_rev_msri in parent_branch_rev_msri:
+                                visible = pb_rev_msri in msri_index or\
+                                          self.graphFilterProxyModel.filterAcceptsRowIfBranchVisible(pb_rev_msri, source_parent)
+                                if visible:
+                                    linegraphdata[rev_index][4].append (parent_branch_id)
+                                    break
                     
                     # Work out if the twisty needs to show a + or -. If all
                     # twisty_branch_ids are visible, show - else +.
@@ -502,41 +514,16 @@ class GraphModel(QtCore.QAbstractTableModel):
                          revno_sequence,
                          end_of_merge) = self.merge_sorted_revisions[rev_msri]
                     
-                    col_index = linegraphdata[rev_index][1][0]
-                    
                     for (parent_revid,
                          parent_msri,
                          parent_branch_id,
                          parent_merge_depth,
                          direct) in visible_parents[i]:
                         
-                        parent_index = msri_index[parent_msri]                            
-                        parent_node = linegraphdata[parent_index][1]
-                        if parent_node:
-                            parent_col_index = parent_node[0]
-                        else:
-                            parent_col_index = None
-                        col_search_order = \
-                                _line_col_search_order(columns,
-                                                       parent_col_index,
-                                                       col_index)
-                            
-                        line_col_index = col_index
-                        if parent_index - rev_index >1:
-                            line_range = range(rev_index + 1, parent_index)
-                            line_col_index = \
-                                _find_free_column(columns,
-                                                  empty_column,
-                                                  col_search_order,
-                                                  line_range)
-                            _mark_column_as_used(columns,
-                                                 line_col_index,
-                                                 line_range)
-                        lines.append((rev_index,
-                                      parent_index,
-                                      line_col_index,
-                                      direct,
-                                      ))
+                        parent_index = msri_index[parent_msri]
+                        append_line(rev_index, parent_index)
+
+
         
         # It has now been calculated which column a line must go into. Now
         # copy the lines in to linegraphdata.
@@ -887,15 +874,19 @@ def _branch_line_col_search_order(columns, parent_col_index):
         yield col_index
 
 def _line_col_search_order(columns, parent_col_index, child_col_index):
-    if parent_col_index is not None:
+    if parent_col_index is not None and child_col_index is not None:
         max_index = max(parent_col_index, child_col_index)
         min_index = min(parent_col_index, child_col_index)
         for col_index in range(max_index, min_index -1, -1):
             yield col_index
-    else:
+    elif child_col_index is not None:
         max_index = child_col_index
         min_index = child_col_index
         yield child_col_index
+    elif parent_col_index is not None:
+        max_index = parent_col_index
+        min_index = parent_col_index
+        yield parent_col_index
     i = 1
     while max_index + i < len(columns) or \
           min_index - i > -1:
