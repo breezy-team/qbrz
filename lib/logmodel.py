@@ -328,6 +328,10 @@ class GraphModel(QtCore.QAbstractTableModel):
                 max_index = parent_col_index
                 min_index = parent_col_index
                 yield parent_col_index
+            else:
+                max_index = 0
+                min_index = 0
+                yield 0
             i = 1
             while max_index + i < len(columns) or \
                   min_index - i > -1:
@@ -437,7 +441,11 @@ class GraphModel(QtCore.QAbstractTableModel):
                                                         parent_branch_id,
                                                         parent_merge_depth,
                                                         True))
-                        else:
+                    if not rev_visible_parents:
+                        for parent_revid in self.graph_parents[revid]:
+                            (parent_msri,
+                             parent_branch_id,
+                             parent_merge_depth) = self._msri_branch_id_merge_depth(parent_revid)
                             has_seen_different_branch = False
                             if not parent_branch_id == branch_id:
                                 has_seen_different_branch = True
@@ -550,8 +558,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                 
                 # Find columns for lines for each parent of each
                 # revision in the branch.
-                for rev_msri, rev_visible_parents in reversed(zip(branch_rev_msri,
-                                                                  visible_parents)):
+                for rev_msri, rev_visible_parents in zip(branch_rev_msri,
+                                                         visible_parents):
                     rev_index = msri_index[rev_msri]
                     (sequence_number,
                          revid,
@@ -568,9 +576,10 @@ class GraphModel(QtCore.QAbstractTableModel):
                         append_line(rev_index, parent_index, direct)
                     
                     # This may be a sprout. Add line to first visible child
-                    if rev_msri == branch_first_visible_msri:
-                        if rev_msri in self.merged_by and\
-                           not self.merged_by[rev_msri] in msri_index:
+                    if rev_msri in self.merged_by:
+                        merged_by_msri = self.merged_by[rev_msri]
+                        if not merged_by_msri in msri_index and\
+                           rev_msri == self.msri_merges[merged_by_msri][0]:
                             child_msri = self.merged_by[rev_msri]
                             while not child_msri in msri_index and\
                                   child_msri in self.merged_by:
