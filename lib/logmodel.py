@@ -887,28 +887,46 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
     def __init__(self, parent = None):
         QtGui.QSortFilterProxyModel.__init__(self, parent)
         self.cache = {}
+        self.filter_str = u""
+        self.filter_role = FilterMessageRole
+        self._sourceModel = None
+    
+    def setFilter(self, str, role):
+        if not unicode(str) == self.filter_str or not role == self.filter_role:
+            self.setFilterRegExp(str)
+            self.setFilterRole(role)
+            self.invalidateCache()
+            self.sm().compute_lines()
+            
+            self.filter_str = unicode(str)
+            self.filter_role = role
+    
+    def sm(self):
+        if not self._sourceModel:
+            self._sourceModel = self.sourceModel()
+        return self._sourceModel
     
     def invalidateCache (self):
         self.cache = {}
+        self._sourceModel = None
+    
     def invalidateCacheRow (self, source_row):
         if source_row in self.cache:
             del self.cache[source_row]
-        graphModel = self.sourceModel()
-        if source_row in graphModel.merged_by:
-            self.invalidateCacheRow(graphModel.merged_by[source_row])
+        if source_row in self.sm().merged_by:
+            self.invalidateCacheRow(self.sm().merged_by[source_row])
     
     def filterAcceptsRow(self, source_row, source_parent):
-        
-        graphModel = self.sourceModel()
+        sm = self.sm()
         
         (sequence_number,
          revid,
          merge_depth,
          revno_sequence,
-         end_of_merge) = graphModel.merge_sorted_revisions[source_row]
+         end_of_merge) = sm.merge_sorted_revisions[source_row]
         
         branch_id = revno_sequence[0:-1]
-        if not graphModel.branch_lines[branch_id][1]: # branch colapased
+        if not sm.branch_lines[branch_id][1]: # branch colapased
             return False
         
         return self.filterAcceptsRowIfBranchVisible(source_row, source_parent)
@@ -919,14 +937,16 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
         return self.cache[source_row]
         
     def _filterAcceptsRowIfBranchVisible(self, source_row, source_parent):
-        graphModel = self.sourceModel()
+        sm = self.sm()
         
-        for parent_msri in graphModel.msri_merges[source_row]:
+        for parent_msri in sm.msri_merges[source_row]:
             if self.filterAcceptsRowIfBranchVisible(parent_msri, source_parent):
                 return True
         
-        if graphModel.touches_file_msri is not None:
-            if source_row not in graphModel.touches_file_msri:
+        if sm.touches_file_msri is not None:
+            if source_row not in sm.touches_file_msri:
                 return False
+        if self.filter_str:
+            return QtGui.QSortFilterProxyModel.filterAcceptsRow(self, source_row, source_parent)
         
-        return QtGui.QSortFilterProxyModel.filterAcceptsRow(self, source_row, source_parent)
+        return True

@@ -480,7 +480,7 @@ class LogWindow(QBzrWindow):
                       has_search
         self.changesModel.set_search_mode(search_mode)
         if role == logmodel.FilterIdRole:
-            self.setFilter("", self.old_filter_role)
+            self.changesProxyModel.setFilter(u"", self.old_filter_role)
             search_text = str(search_text)
             if self.changesModel.has_rev_id(search_text):
                 self.changesModel.ensure_rev_visible(search_text)
@@ -488,7 +488,7 @@ class LogWindow(QBzrWindow):
                 index = self.changesProxyModel.mapFromSource(index)
                 self.changesList.setCurrentIndex(index)
         elif role == logmodel.FilterRevnoRole:
-            self.setFilter("", self.old_filter_role)
+            self.changesProxyModel.setFilter(u"", self.old_filter_role)
             try:
                 revno = tuple((int(number) for number in str(search_text).split('.')))
             except ValueError:
@@ -501,17 +501,7 @@ class LogWindow(QBzrWindow):
                 index = self.changesProxyModel.mapFromSource(index)
                 self.changesList.setCurrentIndex(index)
         else:
-            self.setFilter(self.search_edit.text(), role)
-    
-    def setFilter(self, str, role):
-        if not str == self.old_filter_str or not role == self.old_filter_role:
-            self.changesProxyModel.setFilterRegExp(str)
-            self.changesProxyModel.setFilterRole(role)
-            self.changesProxyModel.invalidateCache()
-            self.changesModel.compute_lines()
-            
-            self.old_filter_str = str
-            self.old_filter_role = role
+            self.changesProxyModel.setFilter(self.search_edit.text(), role)
     
     def closeEvent (self, QCloseEvent):
         self.changesModel.closing = True
