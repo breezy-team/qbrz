@@ -310,6 +310,56 @@ class GraphModel(QtCore.QAbstractTableModel):
         # overlaping something else.
         columns = [list(empty_column)]
         
+        def _branch_line_col_search_order(parent_col_index):
+            for col_index in range(parent_col_index, len(columns)):
+                yield col_index
+            for col_index in range(parent_col_index-1, -1, -1):
+                yield col_index
+        
+        def _line_col_search_order(parent_col_index, child_col_index):
+            if parent_col_index is not None and child_col_index is not None:
+                max_index = max(parent_col_index, child_col_index)
+                min_index = min(parent_col_index, child_col_index)
+                for col_index in range(max_index, min_index -1, -1):
+                    yield col_index
+            elif child_col_index is not None:
+                max_index = child_col_index
+                min_index = child_col_index
+                yield child_col_index
+            elif parent_col_index is not None:
+                max_index = parent_col_index
+                min_index = parent_col_index
+                yield parent_col_index
+            i = 1
+            while max_index + i < len(columns) or \
+                  min_index - i > -1:
+                if max_index + i < len(columns):
+                    yield max_index + i
+                if min_index - i > -1:
+                    yield min_index - i
+                i += 1
+        
+        def _find_free_column(col_search_order, line_range):
+            for col_index in col_search_order:
+                column = columns[col_index]
+                has_overlaping_line = False
+                for row_index in line_range:
+                    if column[row_index]:
+                        has_overlaping_line = True
+                        break
+                if not has_overlaping_line:
+                    break
+            else:
+                col_index = len(columns)
+                column = list(empty_column)
+                columns.append(column)
+            return col_index
+        
+        def _mark_column_as_used(col_index, line_range):
+            column = columns[col_index]
+            for row_index in line_range:
+                column[row_index] = True
+        
         def append_line (child_index, parent_index, direct):
             parent_node = linegraphdata[parent_index][1]
             if parent_node:
@@ -327,16 +377,12 @@ class GraphModel(QtCore.QAbstractTableModel):
             if parent_index - child_index >1:
                 line_range = range(child_index + 1, parent_index)
                 col_search_order = \
-                        _line_col_search_order(columns,
-                                               parent_col_index,
+                        _line_col_search_order(parent_col_index,
                                                child_col_index)
                 line_col_index = \
-                    _find_free_column(columns,
-                                      empty_column,
-                                      col_search_order,
+                    _find_free_column(col_search_order,
                                       line_range)
-                _mark_column_as_used(columns,
-                                     line_col_index,
+                _mark_column_as_used(line_col_index,
                                      line_range)
             lines.append((child_index,
                           parent_index,
@@ -480,8 +526,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                     if parent_node:
                         parent_col_index = parent_node[0]
                 
-                col_search_order = _branch_line_col_search_order(columns,
-                                                                 parent_col_index)
+                col_search_order = _branch_line_col_search_order(parent_col_index)
                 cur_cont_line = []
                 
                 # Work out what rows this branch spans
@@ -493,9 +538,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                 if parent_index:
                     line_range.extend(range(last_rev_index+1, parent_index))
                 
-                col_index = _find_free_column(columns,
-                                              empty_column,
-                                              col_search_order,
+                col_index = _find_free_column(col_search_order,
                                               line_range)
                 node = (col_index, color)
                 # Free column for this branch found. Set node for all
@@ -877,53 +920,3 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
                 return False
         
         return QtGui.QSortFilterProxyModel.filterAcceptsRow(self, source_row, source_parent)
-    
-def _branch_line_col_search_order(columns, parent_col_index):
-    for col_index in range(parent_col_index, len(columns)):
-        yield col_index
-    for col_index in range(parent_col_index-1, -1, -1):
-        yield col_index
-
-def _line_col_search_order(columns, parent_col_index, child_col_index):
-    if parent_col_index is not None and child_col_index is not None:
-        max_index = max(parent_col_index, child_col_index)
-        min_index = min(parent_col_index, child_col_index)
-        for col_index in range(max_index, min_index -1, -1):
-            yield col_index
-    elif child_col_index is not None:
-        max_index = child_col_index
-        min_index = child_col_index
-        yield child_col_index
-    elif parent_col_index is not None:
-        max_index = parent_col_index
-        min_index = parent_col_index
-        yield parent_col_index
-    i = 1
-    while max_index + i < len(columns) or \
-          min_index - i > -1:
-        if max_index + i < len(columns):
-            yield max_index + i
-        if min_index - i > -1:
-            yield min_index - i
-        i += 1
-
-def _find_free_column(columns, empty_column, col_search_order, line_range):
-    for col_index in col_search_order:
-        column = columns[col_index]
-        has_overlaping_line = False
-        for row_index in line_range:
-            if column[row_index]:
-                has_overlaping_line = True
-                break
-        if not has_overlaping_line:
-            break
-    else:
-        col_index = len(columns)
-        column = list(empty_column)
-        columns.append(column)
-    return col_index
-
-def _mark_column_as_used(columns, col_index, line_range):
-    column = columns[col_index]
-    for row_index in line_range:
-        column[row_index] = True
