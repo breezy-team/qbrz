@@ -198,7 +198,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                     (parent_msri,
                      parent_branch_id,
                      parent_merge_depth) = self._msri_branch_id_merge_depth(parent_revid)
-                    if parent_merge_depth > merge_depth and not branch_id==parent_branch_id:
+                    if parent_merge_depth >= merge_depth and \
+                       not branch_id==parent_branch_id:
                         for grand_parent_msri in self.branch_lines[parent_branch_id][0]:
                             if grand_parent_msri < msri: continue
                             grand_parent_revid = self.merge_sorted_revisions[grand_parent_msri][1]
@@ -309,7 +310,7 @@ class GraphModel(QtCore.QAbstractTableModel):
         # overlaping something else.
         columns = [list(empty_column)]
         
-        def append_line (child_index, parent_index):
+        def append_line (child_index, parent_index, direct):
             parent_node = linegraphdata[parent_index][1]
             if parent_node:
                 parent_col_index = parent_node[0]
@@ -432,7 +433,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                             if parent_index - rev_index >1:
                                 rev_visible_parents.pop(i)
                                 i -= 1
-                                append_line(rev_index, parent_index)
+                                append_line(rev_index, parent_index, direct)
                         i += 1
                     
                     visible_parents.append(rev_visible_parents)
@@ -521,9 +522,19 @@ class GraphModel(QtCore.QAbstractTableModel):
                          direct) in visible_parents[i]:
                         
                         parent_index = msri_index[parent_msri]
-                        append_line(rev_index, parent_index)
-
-
+                        append_line(rev_index, parent_index, direct)
+                    
+                    # This may be a sprout. Add line to first visible child
+                    if rev_msri == branch_first_visible_msri:
+                        if rev_msri in self.merged_by and\
+                           not self.merged_by[rev_msri] in msri_index:
+                            child_msri = self.merged_by[rev_msri]
+                            while not child_msri in msri_index and\
+                                  child_msri in self.merged_by:
+                                child_msri = self.merged_by[child_msri]
+                            if child_msri in msri_index:
+                                child_index = msri_index[child_msri]
+                            append_line(child_index, rev_index, False)
         
         # It has now been calculated which column a line must go into. Now
         # copy the lines in to linegraphdata.
