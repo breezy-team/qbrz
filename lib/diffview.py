@@ -132,7 +132,7 @@ def markup_line(line, encode=True):
 
 
 def insert_intraline_changes(cursor1, cursor2, line1, line2, format, ins_format, del_format):
-    for tag, i1, i2, j1, j2 in SequenceMatcher(None, line1, line2).get_opcodes():
+    for tag, i1, i2, j1, j2 in SequenceMatcher(None, tuple(line1), tuple(line2)).get_opcodes():
         if tag == 'equal':
             cursor1.insertText(line1[i1:i2], format)
             cursor2.insertText(line2[j1:j2], format)
@@ -255,8 +255,8 @@ class SidebySideDiffView(QtGui.QSplitter):
             
         if not binary:
             for cursor in cursors:
-                cursor.insertBlock()
                 cursor.setCharFormat(self.monospacedFormat)
+                cursor.insertBlock()
             changes = []
 
             def fix_last_line(lines):
@@ -367,6 +367,11 @@ class SidebySideDiffView(QtGui.QSplitter):
         
         for cursor in self.cursors:
             cursor.endEditBlock()
+        # check horizontal scrollbars and force both if scrollbar visible only at one side
+        if (self.browser1.horizontalScrollBar().isVisible()
+            or self.browser2.horizontalScrollBar().isVisible()):
+            self.browser1.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+            self.browser2.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.update()
 
     def rewind(self):
@@ -477,8 +482,13 @@ class SimpleDiffView(QtGui.QTextBrowser):
             gettext(kind_info), path_info),
             self.monospacedHeaderFormat)
         if properties_changed:
-            self.cursor.insertText(" (properties changed: %s)" % \
-                                   (", ".join(["%s to %s" % p for p in properties_changed])))
+            prop_str = []
+            for pair in properties_changed:
+                if None not in pair:
+                    prop_str.append("%s to %s" % pair)
+            if prop_str:
+                self.cursor.insertText(
+                    " (properties changed: %s)" % (", ".join(prop_str)))
         self.cursor.insertText("\n")
         
         # GNU Patch uses the epoch date to detect files that are being added

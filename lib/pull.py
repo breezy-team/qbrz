@@ -115,7 +115,7 @@ class QBzrPullWindow(QBzrWindow):
         self.ui.console.setFocus(QtCore.Qt.OtherFocusReason)
         self.okButton.setEnabled(False)
         args = ' '.join('"%s"' % a.replace('"', '\"') for a in args)
-        if sys.argv[0].lower().endswith('.exe'):
+        if getattr(sys, "frozen", None) is not None:
             self.process.start(
                 sys.argv[0], ['qsubprocess', args])
         else:

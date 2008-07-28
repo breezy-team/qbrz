@@ -188,15 +188,13 @@ class CommitWindow(QBzrWindow):
         self.pending_merges = repo.get_revisions(pending_merges)
         self.is_bound = bool(branch.get_bound_location())
 
-    def __init__(self, tree, selected_list, dialog=True, parent=None):
+    def __init__(self, tree, selected_list, dialog=True, parent=None, local=None, message=None):
         title = [gettext("Commit")]
         QBzrWindow.__init__(self, title, parent)
         self.restoreSize("commit", (540, 540))
         if dialog:
-            flags = QtCore.Qt.Dialog | QtCore.Qt.WindowContextHelpButtonHint
-        else:
-            flags = QtCore.Qt.Window | QtCore.Qt.WindowContextHelpButtonHint
-        self.setWindowFlags(flags)
+            flags = (self.windowFlags() & ~QtCore.Qt.Window) | QtCore.Qt.Dialog
+            self.setWindowFlags(flags)
 
         self.tree = tree
         self.basis_tree = self.tree.basis_tree()
@@ -276,6 +274,8 @@ class CommitWindow(QBzrWindow):
         self.message.setCompleter(completer)
         self.message.setAcceptRichText(False)
         self.restore_message()
+        if message:
+            self.message.setText(message)
         grid.addWidget(self.message, 0, 0, 1, 2)
 
         # Equivalent for 'bzr commit --fixes'
@@ -317,6 +317,8 @@ class CommitWindow(QBzrWindow):
                 "Local commits are not pushed to the master branch "
                 "until a normal commit is performed"))
             grid.addWidget(self.local_checkbox, 3, 0, 1, 2)
+            if local:
+                self.local_checkbox.setChecked(True)
 
         # Display a list of pending merges
         if self.pending_merges:
@@ -366,19 +368,20 @@ class CommitWindow(QBzrWindow):
                      QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
                      self.show_differences)
 
-        self.filelist.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+        self.filelist.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.connect(self.filelist,
                      QtCore.SIGNAL("itemSelectionChanged()"),
                      self.update_context_menu_actions)
+        self.connect(self.filelist,
+                     QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
+                     self.show_context_menu)
 
-        self.revert_action = QtGui.QAction(gettext("&Revert..."), self)
-        self.connect(self.revert_action, QtCore.SIGNAL("triggered()"), self.revert_selected)
-        self.filelist.addAction(self.revert_action)
-
-        self.show_diff_action = QtGui.QAction(gettext("Show &Differences..."),
-                                              self)
-        self.connect(self.show_diff_action, QtCore.SIGNAL("triggered()"), self.show_differences)
-        self.filelist.addAction(self.show_diff_action)
+        self.context_menu = QtGui.QMenu(self.filelist)
+        self.show_diff_action = self.context_menu.addAction(
+            gettext("Show &differences..."), self.show_differences)
+        self.context_menu.setDefaultAction(self.show_diff_action)
+        self.revert_action = self.context_menu.addAction(
+            gettext("&Revert..."), self.revert_selected)
 
         vbox = QtGui.QVBoxLayout(groupbox)
         vbox.addWidget(self.filelist)
@@ -622,6 +625,9 @@ class CommitWindow(QBzrWindow):
                 for item in items:
                     index = self.filelist.indexOfTopLevelItem(item)
                     self.filelist.takeTopLevelItem(index)
+
+    def show_context_menu(self, pos):
+        self.context_menu.popup(self.filelist.viewport().mapToGlobal(pos))
 
     def update_context_menu_actions(self):
         contains_non_versioned = False

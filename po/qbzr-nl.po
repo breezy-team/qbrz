@@ -1,21 +1,22 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Dutch translation for qbzr
+# Copyright (c) 2008 Rosetta Contributors and Canonical Ltd 2008
+# This file is distributed under the same license as the qbzr package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2008.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-08-17 18:45+0300\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"PO-Revision-Date: 2008-07-21 18:07+0000\n"
+"Last-Translator: ubby <Unknown>\n"
+"Language-Team: Dutch <nl@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Launchpad-Export-Date: 2008-08-17 14:40+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\annotate.py:45
 msgid "Annotate"
@@ -23,12 +24,12 @@ msgstr ""
 
 #: lib\annotate.py:59
 msgid "Line"
-msgstr ""
+msgstr "Regel"
 
 #: lib\annotate.py:59 lib\annotate.py:75 lib\browse.py:82 lib\commit.py:330
 #: lib\logmodel.py:70
 msgid "Author"
-msgstr ""
+msgstr "Auteur"
 
 #: lib\annotate.py:59 lib\logmodel.py:67
 msgid "Rev"
@@ -36,35 +37,35 @@ msgstr ""
 
 #: lib\annotate.py:75 lib\browse.py:81 lib\commit.py:330 lib\logmodel.py:69
 msgid "Date"
-msgstr ""
+msgstr "Datum"
 
 #: lib\annotate.py:75
 msgid "Summary"
-msgstr ""
+msgstr "Samenvatting"
 
 #: lib\browse.py:60 lib\browse.py:199 lib\browse.py:234
 msgid "Browse"
-msgstr ""
+msgstr "Bladeren"
 
 #: lib\browse.py:66
 msgid "Location:"
-msgstr ""
+msgstr "Locatie:"
 
 #: lib\browse.py:71 lib\util.py:370
 msgid "Revision:"
-msgstr ""
+msgstr "Revisie:"
 
 #: lib\browse.py:74
 msgid "Show"
-msgstr ""
+msgstr "Weergeven"
 
 #: lib\browse.py:81 lib\main.py:359
 msgid "Name"
-msgstr ""
+msgstr "Naam"
 
 #: lib\browse.py:82 lib\commit.py:265 lib\commit.py:330 lib\logmodel.py:68
 msgid "Message"
-msgstr ""
+msgstr "Bericht"
 
 #: lib\browse.py:87
 msgid "Show log..."
@@ -72,15 +73,15 @@ msgstr ""
 
 #: lib\browse.py:89
 msgid "View file"
-msgstr ""
+msgstr "Bestand tonen"
 
 #: lib\cat.py:73
 msgid "View "
-msgstr ""
+msgstr "Bekijk "
 
 #: lib\cat.py:155
 msgid "View File"
-msgstr ""
+msgstr "Bestand tonen"
 
 #: lib\cat.py:156
 #, python-format
@@ -89,27 +90,27 @@ msgstr ""
 
 #: lib\commit.py:192 lib\commit.py:503 lib\commit.py:517 lib\commit.py:555
 msgid "Commit"
-msgstr ""
+msgstr "Vastleggen"
 
 #: lib\commit.py:215 lib\diff.py:192
 msgid "added"
-msgstr ""
+msgstr "toegevoegd"
 
 #: lib\commit.py:219 lib\diff.py:190
 msgid "removed"
-msgstr ""
+msgstr "verwijderd"
 
 #: lib\commit.py:225 lib\diff.py:194
 msgid "renamed and modified"
-msgstr ""
+msgstr "hernoemd en gewijzigd"
 
 #: lib\commit.py:227 lib\diff.py:196
 msgid "renamed"
-msgstr ""
+msgstr "hernoemd"
 
 #: lib\commit.py:234 lib\diff.py:198
 msgid "modified"
-msgstr ""
+msgstr "gewijzigd"
 
 #: lib\commit.py:237
 msgid "non-versioned"
@@ -135,7 +136,7 @@ msgstr ""
 
 #: lib\commit.py:296
 msgid "&Author:"
-msgstr ""
+msgstr "&Auteur:"
 
 #: lib\commit.py:297
 msgid "Set the author of this change, if it's different from the committer"
@@ -161,15 +162,15 @@ msgstr ""
 
 #: lib\commit.py:352
 msgid "Changes"
-msgstr ""
+msgstr "Wijzigingen"
 
 #: lib\commit.py:360
 msgid "File"
-msgstr ""
+msgstr "Bestand"
 
 #: lib\commit.py:360
 msgid "Extension"
-msgstr ""
+msgstr "Extensie"
 
 #: lib\commit.py:360 lib\main.py:361 lib\ui_branch.py:90 lib\ui_pull.py:90
 #: lib\ui_push.py:93
@@ -182,7 +183,7 @@ msgstr ""
 
 #: lib\commit.py:384
 msgid "&Revert..."
-msgstr ""
+msgstr "&Terugzetten..."
 
 #: lib\commit.py:391
 msgid "Show non-versioned files"
@@ -194,7 +195,7 @@ msgstr ""
 
 #: lib\commit.py:614 lib\commit.py:623
 msgid "Revert"
-msgstr ""
+msgstr "Herstellen"
 
 #: lib\commit.py:615
 msgid "Do you really want to revert the selected file(s)?"
@@ -202,23 +203,23 @@ msgstr ""
 
 #: lib\config.py:40
 msgid "Default"
-msgstr ""
+msgstr "Standaard"
 
 #: lib\config.py:41
 msgid "Thunderbird"
-msgstr ""
+msgstr "Thunderbird"
 
 #: lib\config.py:42
 msgid "Evolution"
-msgstr ""
+msgstr "Evolution"
 
 #: lib\config.py:43
 msgid "KMail"
-msgstr ""
+msgstr "KMail"
 
 #: lib\config.py:44
 msgid "Mutt"
-msgstr ""
+msgstr "Mutt"
 
 #: lib\config.py:45
 msgid "XDG e-mail client"
@@ -230,19 +231,19 @@ msgstr ""
 
 #: lib\config.py:47
 msgid "Editor"
-msgstr ""
+msgstr "Editor"
 
 #: lib\config.py:56
 msgid "Configuration"
-msgstr ""
+msgstr "Instellingen"
 
 #: lib\config.py:66 lib\ui_bookmark.py:58
 msgid "&Name:"
-msgstr ""
+msgstr "&Naam:"
 
 #: lib\config.py:72
 msgid "E-&mail:"
-msgstr ""
+msgstr "E-&mail:"
 
 #: lib\config.py:78
 msgid "&Editor:"
@@ -254,19 +255,19 @@ msgstr ""
 
 #: lib\config.py:96
 msgid "Alias"
-msgstr ""
+msgstr "Alias"
 
 #: lib\config.py:96
 msgid "Command"
-msgstr ""
+msgstr "Opdracht"
 
 #: lib\config.py:98 lib\config.py:119
 msgid "Add"
-msgstr ""
+msgstr "Toevoegen"
 
 #: lib\config.py:101 lib\config.py:122
 msgid "Remove"
-msgstr ""
+msgstr "Verwijderen"
 
 #: lib\config.py:117
 msgid "Abbreviation"
@@ -274,15 +275,15 @@ msgstr ""
 
 #: lib\config.py:117
 msgid "URL"
-msgstr ""
+msgstr "URL"
 
 #: lib\config.py:136
 msgid "General"
-msgstr ""
+msgstr "Algemeen"
 
 #: lib\config.py:137
 msgid "Aliases"
-msgstr ""
+msgstr "Aliassen"
 
 #: lib\config.py:138
 msgid "Bug Trackers"
@@ -290,14 +291,14 @@ msgstr ""
 
 #: lib\diff.py:61 lib\log.py:351
 msgid "Diff"
-msgstr ""
+msgstr "Diff"
 
 #: lib\diff.py:68
 #, python-format
 msgid "%d file"
 msgid_plural "%d files"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d bestand"
+msgstr[1] "%d bestanden"
 
 #: lib\diff.py:100
 msgid "Side by side"
@@ -309,15 +310,15 @@ msgstr ""
 
 #: lib\diffview.py:215
 msgid "Last modified:"
-msgstr ""
+msgstr "Laatst gewijzigd:"
 
 #: lib\diffview.py:216
 msgid "Status:"
-msgstr ""
+msgstr "Status:"
 
 #: lib\diffview.py:217
 msgid "Kind:"
-msgstr ""
+msgstr "Type:"
 
 #: lib\diffview.py:218
 msgid "Properties:"
@@ -333,11 +334,11 @@ msgstr ""
 
 #: lib\i18n.py:75
 msgid "file"
-msgstr ""
+msgstr "bestand"
 
 #: lib\i18n.py:76
 msgid "directory"
-msgstr ""
+msgstr "directory"
 
 #: lib\i18n.py:77
 msgid "symlink"
@@ -369,19 +370,19 @@ msgstr ""
 
 #: lib\log.py:227
 msgid "Log"
-msgstr ""
+msgstr "Logboek"
 
 #: lib\log.py:251
 msgid "&Search:"
-msgstr ""
+msgstr "&Zoeken:"
 
 #: lib\log.py:266
 msgid "Messages"
-msgstr ""
+msgstr "Berichten"
 
 #: lib\log.py:268
 msgid "Authors"
-msgstr ""
+msgstr "Auteurs"
 
 #: lib\log.py:270
 msgid "Revision IDs"
@@ -402,7 +403,7 @@ msgstr ""
 
 #: lib\main.py:126
 msgid "Computer"
-msgstr ""
+msgstr "Computer"
 
 #: lib\main.py:155
 msgid "&Edit Bookmark..."
@@ -418,7 +419,7 @@ msgstr ""
 
 #: lib\main.py:280 lib\util.py:69
 msgid "&Refresh"
-msgstr ""
+msgstr "&Verversen"
 
 #: lib\main.py:282
 msgid "Refresh the directory tree"
@@ -426,7 +427,7 @@ msgstr ""
 
 #: lib\main.py:286
 msgid "&Commit"
-msgstr ""
+msgstr "&Vastleggen"
 
 #: lib\main.py:287
 msgid "Commit changes into a new revision"
@@ -454,19 +455,19 @@ msgstr ""
 
 #: lib\main.py:307
 msgid "&File"
-msgstr ""
+msgstr "&Bestand"
 
 #: lib\main.py:308
 msgid "&Configure..."
-msgstr ""
+msgstr "&Instellen..."
 
 #: lib\main.py:310
 msgid "&Quit"
-msgstr ""
+msgstr "&Afsluiten"
 
 #: lib\main.py:311
 msgid "&View"
-msgstr ""
+msgstr "&Toon"
 
 #: lib\main.py:313
 msgid "&Branch"
@@ -478,19 +479,19 @@ msgstr ""
 
 #: lib\main.py:319 lib\util.py:68
 msgid "&Help"
-msgstr ""
+msgstr "&Help"
 
 #: lib\main.py:320
 msgid "&Help..."
-msgstr ""
+msgstr "&Help..."
 
 #: lib\main.py:322
 msgid "&About..."
-msgstr ""
+msgstr "&Over..."
 
 #: lib\main.py:360
 msgid "Size"
-msgstr ""
+msgstr "Grootte"
 
 #: lib\main.py:412
 msgid "About QBzr"
@@ -527,15 +528,15 @@ msgstr ""
 
 #: lib\pull.py:114
 msgid "Starting..."
-msgstr ""
+msgstr "Bezig met starten..."
 
 #: lib\pull.py:161
 msgid "Aborting..."
-msgstr ""
+msgstr "Afbreken..."
 
 #: lib\pull.py:169
 msgid "Finished!"
-msgstr ""
+msgstr "Voltooid!"
 
 #: lib\pull.py:208 lib\pull.py:224
 msgid "Failed!"
@@ -561,11 +562,11 @@ msgstr ""
 #: lib\ui_bookmark.py:59 lib\ui_branch.py:87 lib\ui_pull.py:86
 #: lib\ui_push.py:88
 msgid "&Location:"
-msgstr ""
+msgstr "&Locatie:"
 
 #: lib\ui_branch.py:86 lib\ui_pull.py:85 lib\ui_push.py:87
 msgid "Options"
-msgstr ""
+msgstr "Opties"
 
 #: lib\ui_branch.py:88 lib\ui_pull.py:87
 msgid "&Revision:"
@@ -573,11 +574,11 @@ msgstr ""
 
 #: lib\ui_branch.py:89
 msgid "&To:"
-msgstr ""
+msgstr "&Naar:"
 
 #: lib\ui_branch.py:91 lib\ui_pull.py:91 lib\ui_push.py:94
 msgid "Stopped"
-msgstr ""
+msgstr "Gestopt"
 
 #: lib\ui_pull.py:88 lib\ui_push.py:89
 msgid "Remember this location as a default"
@@ -597,23 +598,23 @@ msgstr ""
 
 #: lib\util.py:65
 msgid "&OK"
-msgstr ""
+msgstr "&OK"
 
 #: lib\util.py:66
 msgid "&Cancel"
-msgstr ""
+msgstr "&Annuleren"
 
 #: lib\util.py:67
 msgid "&Close"
-msgstr ""
+msgstr "&Sluiten"
 
 #: lib\util.py:387
 msgid "Parents:"
-msgstr ""
+msgstr "Ouders:"
 
 #: lib\util.py:391
 msgid "Children:"
-msgstr ""
+msgstr "Kinderen:"
 
 #: lib\util.py:393
 msgid "Committer:"
@@ -621,7 +622,7 @@ msgstr ""
 
 #: lib\util.py:396
 msgid "Author:"
-msgstr ""
+msgstr "Auteur:"
 
 #: lib\util.py:400
 msgid "Branch:"
@@ -629,7 +630,7 @@ msgstr ""
 
 #: lib\util.py:405
 msgid "Tags:"
-msgstr ""
+msgstr "Labels:"
 
 #: lib\util.py:414
 msgid "Bug:"
@@ -643,12 +644,13 @@ msgstr ""
 
 #: lib\util.py:572
 msgid "added files"
-msgstr ""
+msgstr "toegevoegde bestanden"
 
 #: lib\util.py:574
+#, fuzzy
 msgid "renamed files"
-msgstr ""
+msgstr "hernoemde bestanden"
 
 #: lib\util.py:576
 msgid "modified files"
-msgstr ""
+msgstr "aangepaste bestanden"
