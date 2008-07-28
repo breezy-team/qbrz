@@ -520,7 +520,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                          direct) = rev_visible_parents[i]
                         
                         parent_index = msri_index[parent_msri]
-                        if rev_msri <> branch_rev_msri[-1] and \
+                        if (rev_msri <> branch_rev_msri[-1] or i > 0 )and \
                            parent_branch_id <> branch_id and\
                            branch_id <> () and \
                            parent_merge_depth <= merge_depth and\
