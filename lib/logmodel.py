@@ -557,7 +557,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                 
                 # Find columns for lines for each parent of each
                 # revision in the branch.
-                for rev_msri in branch_rev_msri:
+                for rev_msri in reversed(branch_rev_msri):
                     rev_index = msri_index[rev_msri]
                     (sequence_number,
                          revid,
