@@ -207,8 +207,17 @@ class GraphModel(QtCore.QAbstractTableModel):
                     if parent_merge_depth >= merge_depth and \
                        branch_id <> parent_branch_id and\
                        (was_merge_by_branch_id and was_merge_by_branch_id <>parent_branch_id or not was_merge_by_branch_id):
+                        
+                        # We merge this parent. Work out which of the revisions
+                        # in its branch we merge.
+                        
                         for grand_parent_msri in self.branch_lines[parent_branch_id][0]:
-                            if grand_parent_msri < msri: continue
+                            if grand_parent_msri < msri:
+                                # Not merged by this revision.
+                                continue
+                            
+                            # Check that this was not merged by a previously
+                            # rev in this branch.
                             grand_parent_revid = self.merge_sorted_revisions[grand_parent_msri][1]
                             (grand_parent_msri,
                              grand_parent_branch_id,
@@ -221,7 +230,11 @@ class GraphModel(QtCore.QAbstractTableModel):
                                 if uncle_branch_id == branch_id and not revid==uncle_revid:
                                     ismerged = True
                                     break
-                            if ismerged: break
+                            if ismerged:
+                                # None of the following rev in the parent branch
+                                # are merged by this rev.
+                                break
+                                
                             merges.append(grand_parent_msri)
                             self.merged_by[grand_parent_msri] = msri
                             if not grand_parent_branch_id in self.branch_lines[branch_id][2]:
@@ -335,6 +348,7 @@ class GraphModel(QtCore.QAbstractTableModel):
             if parent_col_index is not None and child_col_index is not None:
                 max_index = max(parent_col_index, child_col_index)
                 min_index = min(parent_col_index, child_col_index)
+                # First yield the columns between the child and parent.
                 for col_index in range(max_index, min_index -1, -1):
                     yield col_index
             elif child_col_index is not None:
@@ -350,6 +364,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                 min_index = 0
                 yield 0
             i = 1
+            # then yield the columns on either side.
             while max_index + i < len(columns) or \
                   min_index - i > -1:
                 if max_index + i < len(columns):
@@ -369,6 +384,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                 if not has_overlaping_line:
                     break
             else:
+                # No free columns found. Add an empty one on the end.
                 col_index = len(columns)
                 column = list(empty_column)
                 columns.append(column)
@@ -450,6 +466,9 @@ class GraphModel(QtCore.QAbstractTableModel):
                                                         parent_merge_depth,
                                                         True))
                         else:
+                            # The parent was not visible. Search for a ansestor
+                            # that is. Stop searching if we make a hop, i.e. we
+                            # go away for our branch, and we come back to it
                             has_seen_different_branch = False
                             if not parent_branch_id == branch_id:
                                 has_seen_different_branch = True
@@ -506,7 +525,9 @@ class GraphModel(QtCore.QAbstractTableModel):
                 children_with_sprout_lines = {}
                 # In this loop:
                 # * Append lines that need to go to parents before the branch
-                #   (say inbetween the main line and the branch).
+                #   (say inbetween the main line and the branch). Remove the
+                #   ones we append from rev_visible_parents so they don't get
+                #   added again later on.
                 # * Append lines to chilren for sprouts.
                 for rev_msri in branch_rev_msri:
                     rev_index = msri_index[rev_msri]
@@ -543,10 +564,19 @@ class GraphModel(QtCore.QAbstractTableModel):
                         merged_by_msri = self.merged_by[rev_msri]
                         if not merged_by_msri in msri_index and\
                            rev_msri == self.msri_merges[merged_by_msri][0]:
+                            # The revision that merges this revision is not
+                            # visible, and it is the first revision that is
+                            # merged by that revision. This is a sprout.
+                            #
+                            # XXX What if multiple merges with --force,
+                            # aka ocutpus merge?
+                            #
+                            # Search until we find a decendent that is visible.
                             child_msri = self.merged_by[rev_msri]
                             while not child_msri in msri_index and\
                                   child_msri in self.merged_by:
                                 child_msri = self.merged_by[child_msri]
+                            # Ensure only one line to a decendent.
                             if child_msri not in children_with_sprout_lines:
                                 children_with_sprout_lines[child_msri] = True
                                 if child_msri in msri_index:
