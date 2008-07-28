@@ -415,10 +415,9 @@ class GraphModel(QtCore.QAbstractTableModel):
             if branch_rev_msri:
                 color = reduce(lambda x, y: x+y, branch_id, 0)
                 
-                # Find columns for lines for each parent of each revision in
-                # the branch that are long and need to go between the parent
-                # branch and the child branch. Also add branch_ids to
-                # twisty_branch_ids.
+                # In this loop:
+                # * Find visible parents.
+                # * Populate twisty_branch_ids and twisty_state
                 branch_rev_visible_parents = {}
                 
                 for rev_msri in branch_rev_msri:
@@ -498,6 +497,9 @@ class GraphModel(QtCore.QAbstractTableModel):
                 if branch_rev_visible_parents[branch_rev_msri[-1]]: 
                     last_parent_msri = branch_rev_visible_parents[branch_rev_msri[-1]][0][1]
                 
+                # In this loop:
+                # * Append lines that need to go to parents before the branch
+                #   (say inbetween the main line and the branch).
                 for rev_msri in branch_rev_msri:
                     rev_index = msri_index[rev_msri]
                     (sequence_number,
@@ -563,8 +565,9 @@ class GraphModel(QtCore.QAbstractTableModel):
                     linegraphdata[rev_index][1] = node
                     columns[col_index][rev_index] = True
                 
-                # Find columns for lines for each parent of each
-                # revision in the branch.
+                # In this loop:
+                # * Append the remaining lines to parents.
+                # * Append lines to chilren for sprouts.
                 for rev_msri in reversed(branch_rev_msri):
                     rev_index = msri_index[rev_msri]
                     (sequence_number,
