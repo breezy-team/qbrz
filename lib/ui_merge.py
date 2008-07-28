@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui/pull.ui'
+# Form implementation generated from reading ui file 'ui/merge.ui'
 #
-# Created: Fri Aug 22 20:08:52 2008
+# Created: Fri Aug 22 20:10:16 2008
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -11,15 +11,15 @@ from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 
 
-class Ui_PullForm(object):
-    def setupUi(self, PullForm):
-        PullForm.setObjectName("PullForm")
-        PullForm.resize(QtCore.QSize(QtCore.QRect(0,0,382,341).size()).expandedTo(PullForm.minimumSizeHint()))
+class Ui_MergeForm(object):
+    def setupUi(self, MergeForm):
+        MergeForm.setObjectName("MergeForm")
+        MergeForm.resize(QtCore.QSize(QtCore.QRect(0,0,382,341).size()).expandedTo(MergeForm.minimumSizeHint()))
 
-        self.vboxlayout = QtGui.QVBoxLayout(PullForm)
+        self.vboxlayout = QtGui.QVBoxLayout(MergeForm)
         self.vboxlayout.setObjectName("vboxlayout")
 
-        self.groupBox = QtGui.QGroupBox(PullForm)
+        self.groupBox = QtGui.QGroupBox(MergeForm)
         self.groupBox.setObjectName("groupBox")
 
         self.gridlayout = QtGui.QGridLayout(self.groupBox)
@@ -54,13 +54,9 @@ class Ui_PullForm(object):
         self.remember.setChecked(True)
         self.remember.setObjectName("remember")
         self.gridlayout.addWidget(self.remember,2,0,1,4)
-
-        self.overwrite = QtGui.QCheckBox(self.groupBox)
-        self.overwrite.setObjectName("overwrite")
-        self.gridlayout.addWidget(self.overwrite,3,0,1,4)
         self.vboxlayout.addWidget(self.groupBox)
 
-        self.groupBox_2 = QtGui.QGroupBox(PullForm)
+        self.groupBox_2 = QtGui.QGroupBox(MergeForm)
         self.groupBox_2.setObjectName("groupBox_2")
 
         self.vboxlayout1 = QtGui.QVBoxLayout(self.groupBox_2)
@@ -83,16 +79,15 @@ class Ui_PullForm(object):
         self.label_2.setBuddy(self.location)
         self.label_3.setBuddy(self.revision)
 
-        self.retranslateUi(PullForm)
-        QtCore.QMetaObject.connectSlotsByName(PullForm)
+        self.retranslateUi(MergeForm)
+        QtCore.QMetaObject.connectSlotsByName(MergeForm)
 
-    def retranslateUi(self, PullForm):
+    def retranslateUi(self, MergeForm):
         self.groupBox.setTitle(gettext("Options"))
         self.label_2.setText(gettext("&Location:"))
         self.location_picker.setText(gettext("Browse..."))
         self.label_3.setText(gettext("&Revision:"))
         self.remember.setText(gettext("Remember this location as a default"))
-        self.overwrite.setText(gettext("Overwrite differences between branches"))
         self.groupBox_2.setTitle(gettext("Status"))
         self.progressMessage.setText(gettext("Stopped"))
 

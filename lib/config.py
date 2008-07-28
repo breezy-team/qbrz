@@ -28,6 +28,7 @@ from bzrlib.config import (
 from bzrlib import errors
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
+from bzrlib.plugins.qbzr.lib.spellcheck import SpellChecker
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_OK,
     BTN_CANCEL,
@@ -136,6 +137,7 @@ class QBzrConfigWindow(QBzrDialog):
         tabwidget.addTab(generalWidget, gettext("General"))
         tabwidget.addTab(aliasesWidget, gettext("Aliases"))
         tabwidget.addTab(bugTrackersWidget, gettext("Bug Trackers"))
+        tabwidget.addTab(self.getGuiTabWidget(), gettext("&User Interface"))
 
         buttonbox = self.create_button_box(BTN_OK, BTN_CANCEL)
 
@@ -143,6 +145,30 @@ class QBzrConfigWindow(QBzrDialog):
         vbox.addWidget(tabwidget)
         vbox.addWidget(buttonbox)
         self.load()
+
+    def getGuiTabWidget(self):
+        """
+        Returns the widget for the GUI tab.
+        """
+        tabwidget = QtGui.QWidget()
+        grid = QtGui.QGridLayout()
+        vbox = QtGui.QVBoxLayout(tabwidget)
+        vbox.addLayout(grid)
+        vbox.addStretch()
+
+        self.spellcheck_language_combo = QtGui.QComboBox()
+        languages = sorted(SpellChecker.list_languages())
+        for name in languages:
+            self.spellcheck_language_combo.addItem(gettext(name), QtCore.QVariant(name))
+        if not languages:
+            self.spellcheck_language_combo.setEnabled(False)
+        label = QtGui.QLabel(gettext("Spell check &language:"))
+        label.setBuddy(self.spellcheck_language_combo)
+        label.setSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Minimum)
+        grid.addWidget(label, 0, 0)
+        grid.addWidget(self.spellcheck_language_combo, 0, 1)
+
+        return tabwidget
 
     def load(self):
         """Load the configuration."""
@@ -170,6 +196,14 @@ class QBzrConfigWindow(QBzrDialog):
                 QtCore.QVariant(mailClient))
             if index >= 0:
                 self.emailClientCombo.setCurrentIndex(index)
+
+        # Spellcheck language
+        spellcheck_language = config.get_user_option('spellcheck_language') or 'en'
+        if spellcheck_language:
+            index = self.spellcheck_language_combo.findData(
+                QtCore.QVariant(spellcheck_language))
+            if index >= 0:
+                self.spellcheck_language_combo.setCurrentIndex(index)
 
         # Aliases
         aliases = parser.get('ALIASES', {})
@@ -208,26 +242,28 @@ class QBzrConfigWindow(QBzrDialog):
             unicode(self.emailEdit.text()))
         parser['DEFAULT']['email'] = username
 
+        def set_or_delete_option(name, value):
+            if value:
+                parser['DEFAULT'][name] = value
+            else:
+                try:
+                    del parser['DEFAULT'][name]
+                except KeyError:
+                    pass
+
         # Editor
         editor = unicode(self.editorEdit.text())
-        if editor:
-            parser['DEFAULT']['editor'] = editor
-        else:
-            try:
-                del parser['DEFAULT']['editor']
-            except KeyError, e:
-                pass
+        set_or_delete_option('editor', editor)
 
         # E-mail client
         index = self.emailClientCombo.currentIndex()
-        emailClient = unicode(self.emailClientCombo.itemData(index).toString())
-        if emailClient:
-            parser['DEFAULT']['mail_client'] = emailClient
-        else:
-            try:
-                del parser['DEFAULT']['mail_client']
-            except KeyError:
-                pass
+        mail_client = unicode(self.emailClientCombo.itemData(index).toString())
+        set_or_delete_option('mail_client', mail_client)
+
+        # Spellcheck language
+        index = self.spellcheck_language_combo.currentIndex()
+        spellcheck_language = unicode(self.spellcheck_language_combo.itemData(index).toString())
+        set_or_delete_option('spellcheck_language', spellcheck_language)
 
         # Aliases
         parser['ALIASES'] = {}
