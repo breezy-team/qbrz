@@ -185,7 +185,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                 merge_depth_y = self.merge_sorted_revisions[self.branch_lines[y][0][0]][2]
                 if not merge_depth_x == merge_depth_y:
                     return cmp(merge_depth_x, merge_depth_y)
-                return cmp(x, y)
+                return -cmp(x, y)
             
             self.branch_ids.sort(branch_id_cmp)
             
@@ -524,7 +524,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                            parent_branch_id <> branch_id and\
                            branch_id <> () and \
                            parent_merge_depth <= merge_depth and\
-                           (last_parent_msri and last_parent_msri >= parent_msri or not last_parent_msri):
+                           (last_parent_msri and not direct and last_parent_msri >= parent_msri or not last_parent_msri or direct):
                             
                             if parent_index - rev_index >1:
                                 rev_visible_parents.pop(i)
