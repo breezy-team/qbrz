@@ -1,6 +1,10 @@
 0.9.4 - in development
 ----------------------
-
+ * qlog:
+    * The graph is now not hidden when you search.
+    * Improved graph layout.
+    * The graph now shows lines for sprouts and roots.
+    
 0.9.3 - 2008-08-19
 ----------------------
 Maintenance release:
