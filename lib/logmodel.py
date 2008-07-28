@@ -497,9 +497,11 @@ class GraphModel(QtCore.QAbstractTableModel):
                 if branch_rev_visible_parents[branch_rev_msri[-1]]: 
                     last_parent_msri = branch_rev_visible_parents[branch_rev_msri[-1]][0][1]
                 
+                children_with_sprout_lines = {}
                 # In this loop:
                 # * Append lines that need to go to parents before the branch
                 #   (say inbetween the main line and the branch).
+                # * Append lines to chilren for sprouts.
                 for rev_msri in branch_rev_msri:
                     rev_index = msri_index[rev_msri]
                     (sequence_number,
@@ -507,6 +509,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                          merge_depth,
                          revno_sequence,
                          end_of_merge) = self.merge_sorted_revisions[rev_msri]
+                    
                     rev_visible_parents = branch_rev_visible_parents[rev_msri]
                     i = 0
                     while i < len(rev_visible_parents):
@@ -528,6 +531,21 @@ class GraphModel(QtCore.QAbstractTableModel):
                                 i -= 1
                                 append_line(rev_index, parent_index, direct)
                         i += 1
+                    
+                    # This may be a sprout. Add line to first visible child
+                    if rev_msri in self.merged_by:
+                        merged_by_msri = self.merged_by[rev_msri]
+                        if not merged_by_msri in msri_index and\
+                           rev_msri == self.msri_merges[merged_by_msri][0]:
+                            child_msri = self.merged_by[rev_msri]
+                            while not child_msri in msri_index and\
+                                  child_msri in self.merged_by:
+                                child_msri = self.merged_by[child_msri]
+                            if child_msri not in children_with_sprout_lines:
+                                children_with_sprout_lines[child_msri] = True
+                                if child_msri in msri_index:
+                                    child_index = msri_index[child_msri]
+                                append_line(child_index, rev_index, False)
                 
                 # Find a column for this branch.
                 #
@@ -567,7 +585,6 @@ class GraphModel(QtCore.QAbstractTableModel):
                 
                 # In this loop:
                 # * Append the remaining lines to parents.
-                # * Append lines to chilren for sprouts.
                 for rev_msri in reversed(branch_rev_msri):
                     rev_index = msri_index[rev_msri]
                     (sequence_number,
@@ -583,20 +600,6 @@ class GraphModel(QtCore.QAbstractTableModel):
                         
                         parent_index = msri_index[parent_msri]
                         append_line(rev_index, parent_index, direct)
-                    
-                    # This may be a sprout. Add line to first visible child
-                    if rev_msri in self.merged_by:
-                        merged_by_msri = self.merged_by[rev_msri]
-                        if not merged_by_msri in msri_index and\
-                           rev_msri == self.msri_merges[merged_by_msri][0]:
-                            child_msri = self.merged_by[rev_msri]
-                            while not child_msri in msri_index and\
-                                  child_msri in self.merged_by:
-                                child_msri = self.merged_by[child_msri]
-                            if child_msri in msri_index:
-                                child_index = msri_index[child_msri]
-                            append_line(child_index, rev_index, False)
-                
         
         # It has now been calculated which column a line must go into. Now
         # copy the lines in to linegraphdata.
