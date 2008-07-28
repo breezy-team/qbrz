@@ -196,12 +196,17 @@ class GraphModel(QtCore.QAbstractTableModel):
                 branch_id = revno_sequence[0:-1]
                 
                 merges = []
+                was_merge_by_branch_id = None
+                if msri in self.merged_by:
+                    was_merge_by_branch_id = self.merge_sorted_revisions[self.merged_by[msri]][3][0:-1]
+                
                 for parent_revid in self.graph_parents[revid]:
                     (parent_msri,
                      parent_branch_id,
                      parent_merge_depth) = self._msri_branch_id_merge_depth(parent_revid)
                     if parent_merge_depth >= merge_depth and \
-                       not branch_id==parent_branch_id:
+                       branch_id <> parent_branch_id and\
+                       (was_merge_by_branch_id and was_merge_by_branch_id <>parent_branch_id or not was_merge_by_branch_id):
                         for grand_parent_msri in self.branch_lines[parent_branch_id][0]:
                             if grand_parent_msri < msri: continue
                             grand_parent_revid = self.merge_sorted_revisions[grand_parent_msri][1]
@@ -471,21 +476,18 @@ class GraphModel(QtCore.QAbstractTableModel):
                     branch_rev_visible_parents[rev_msri]=rev_visible_parents
                     
                     # Find and add nessery twisties
-                    for parent_rev_id in self.graph_parents[revid]:
-                        (parent_msri,
-                         parent_branch_id,
-                         parent_merge_depth) = self._msri_branch_id_merge_depth(parent_rev_id)
-                        if (parent_branch_id != branch_id and  # Different Branch
-                            (parent_merge_depth >= merge_depth or # Parent branch is deeeper
-                             not self.branch_lines[parent_branch_id])): # Parent branch is not visible
-                            
-                            parent_branch_rev_msri = self.branch_lines[parent_branch_id][0]
-                            for pb_rev_msri in parent_branch_rev_msri:
-                                visible = pb_rev_msri in msri_index or\
-                                          self.graphFilterProxyModel.filterAcceptsRowIfBranchVisible(pb_rev_msri, source_parent)
-                                if visible:
-                                    linegraphdata[rev_index][4].append (parent_branch_id)
-                                    break
+                    for parent_msri in self.msri_merges[rev_msri]:
+                        parent_branch_id = self.merge_sorted_revisions[parent_msri][3][0:-1]
+                        parent_merge_depth = self.merge_sorted_revisions[parent_msri][2]
+                        
+                        # Does this branch have any visible revisions
+                        parent_branch_rev_msri = self.branch_lines[parent_branch_id][0]
+                        for pb_rev_msri in parent_branch_rev_msri:
+                            visible = pb_rev_msri in msri_index or\
+                                      self.graphFilterProxyModel.filterAcceptsRowIfBranchVisible(pb_rev_msri, source_parent)
+                            if visible:
+                                linegraphdata[rev_index][4].append (parent_branch_id)
+                                break
                     
                     # Work out if the twisty needs to show a + or -. If all
                     # twisty_branch_ids are visible, show - else +.
