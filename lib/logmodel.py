@@ -53,7 +53,7 @@ _bug_id_re = lazy_regex.lazy_compile(r'(?:'
     r')(\d+)(?:\b|$)')
 
 
-def get_bug_id(branch, bug_url):
+def get_bug_id(bug_url):
     match = _bug_id_re.search(bug_url)
     if match:
         return match.group(1)
@@ -91,7 +91,7 @@ class GraphModel(QtCore.QAbstractTableModel):
         self.graphFilterProxyModel = graphFilterProxyModel
     
     
-    def loadBranch(self, branch, start_revs = None, specific_fileid = None):
+    def loadBranch(self, branch, start_revs = None, specific_fileids = []):
         self.branch = branch
         branch.lock_read()
         try:
@@ -150,6 +150,7 @@ class GraphModel(QtCore.QAbstractTableModel):
             self.branch_lines = {}
             self.revid_msri = {}
             self.revno_msri = {}
+            self.start_branch_ids = []
             
             for (rev_index, (sequence_number,
                              revid,
@@ -163,11 +164,13 @@ class GraphModel(QtCore.QAbstractTableModel):
                 
                 branch_line = None
                 if branch_id not in self.branch_lines:
-                    #initialy, only the main line is visible
+                    start_branch = revid in start_revs
                     branch_line = [[],
-                                   len(branch_id)==0,
+                                   start_branch,
                                    [],
                                    []]
+                    if start_branch:
+                        self.start_branch_ids.append(branch_id)
                     self.branch_lines[branch_id] = branch_line
                 else:
                     branch_line = self.branch_lines[branch_id]
@@ -177,6 +180,10 @@ class GraphModel(QtCore.QAbstractTableModel):
             self.branch_ids = self.branch_lines.keys()
             
             def branch_id_cmp(x, y):
+                is_start_x = x in self.start_branch_ids
+                is_start_y = y in self.start_branch_ids
+                if not is_start_x == is_start_y:
+                    return - cmp(is_start_x, is_start_y)
                 merge_depth_x = self.merge_sorted_revisions[self.branch_lines[x][0][0]][2]
                 merge_depth_y = self.merge_sorted_revisions[self.branch_lines[y][0][0]][2]
                 if not merge_depth_x == merge_depth_y:
@@ -206,7 +213,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                      parent_merge_depth) = self._msri_branch_id_merge_depth(parent_revid)
                     if parent_merge_depth >= merge_depth and \
                        branch_id <> parent_branch_id and\
-                       (was_merge_by_branch_id and was_merge_by_branch_id <>parent_branch_id or not was_merge_by_branch_id):
+                       (was_merge_by_branch_id and was_merge_by_branch_id <>parent_branch_id or not was_merge_by_branch_id) and\
+                       not parent_branch_id in self.start_branch_ids:
                         
                         # We merge this parent. Work out which of the revisions
                         # in its branch we merge.
@@ -246,16 +254,18 @@ class GraphModel(QtCore.QAbstractTableModel):
             
             self.emit(QtCore.SIGNAL("layoutChanged()"))
             
-            if specific_fileid is not None:
+            if specific_fileids:
                 self.touches_file_msri = []
                 try:
                     branch.repository.texts.get_parent_map([])
                     use_texts = True
                 except AttributeError:
                     use_texts = False
-                    file_weave = branch.repository.weave_store.get_weave(specific_fileid,
-                                        branch.repository.get_transaction())
-                    weave_modifed_revisions = set(file_weave.versions())
+                    weave_modifed_revisions = set()
+                    for specific_fileid in specific_fileids:
+                        file_weave = branch.repository.weave_store.get_weave(specific_fileid,
+                                            branch.repository.get_transaction())
+                        weave_modifed_revisions.update(set(file_weave.versions()))
                 
                 for rev_msri, (sequence_number,
                                revid,
@@ -263,9 +273,9 @@ class GraphModel(QtCore.QAbstractTableModel):
                                revno_sequence,
                                end_of_merge) in enumerate(self.merge_sorted_revisions):
                     if use_texts:
-                        text_key = (specific_fileid, revid)
-                        modified_text_versions = branch.repository.texts.get_parent_map([text_key])
-                        changed = text_key in modified_text_versions
+                        text_keys = [(specific_fileid, revid) for specific_fileid in specific_fileids]
+                        modified_text_versions = branch.repository.texts.get_parent_map(text_keys)
+                        changed = modified_text_versions
                     else:
                         changed = revid in weave_modifed_revisions
                     
@@ -709,7 +719,7 @@ class GraphModel(QtCore.QAbstractTableModel):
             has_change = self._set_branch_visible(branch_id, visible, has_change)
             if not visible:
                 for parent_branch_id in self.branch_lines[branch_id][2]:
-                    if not parent_branch_id==() and not self._has_visible_child(parent_branch_id):
+                    if not parent_branch_id in self.start_branch_ids and not self._has_visible_child(parent_branch_id):
                         has_change = self._set_branch_visible(parent_branch_id, visible, has_change)
         if has_change:
             self.compute_lines()
@@ -729,7 +739,7 @@ class GraphModel(QtCore.QAbstractTableModel):
         rev_msri = self.revid_msri[revid]
         branch_id = self.merge_sorted_revisions[rev_msri][3][0:-1]
         has_change = self._set_branch_visible(branch_id, True, False)
-        while not branch_id == () and not self._has_visible_child(branch_id):
+        while not branch_id in self.start_branch_ids and self.branch_lines[branch_id][3]:
             branch_id = self.branch_lines[branch_id][3][0]
             has_change = self._set_branch_visible(branch_id, True, has_change)
         if has_change:
@@ -819,7 +829,7 @@ class GraphModel(QtCore.QAbstractTableModel):
             for bug in revision.properties.get('bugs', '').split('\n'):
                 if bug:
                     url, status = bug.split(' ')
-                    bug_id = get_bug_id(self.branch, url)
+                    bug_id = get_bug_id(url)
                     if bug_id:
                         bugs.append(bugtext % bug_id)
             return QtCore.QVariant(QtCore.QStringList(bugs))

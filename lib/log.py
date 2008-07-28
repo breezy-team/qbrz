@@ -206,16 +206,19 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
 
 class LogWindow(QBzrWindow):
 
-    def __init__(self, branch, location, specific_fileid, replace=None, parent=None):
+    def __init__(self, branch, locations, start_revids, specific_fileids,
+                 replace=None, parent=None):
         title = [gettext("Log")]
-        if location:
-            title.append(location)
+        if locations and not locations==["."]:
+            title.append(", ".join(locations).rstrip(", "))
         QBzrWindow.__init__(self, title, parent)
         self.restoreSize("log", (710, 580))
-        self.specific_fileid = specific_fileid
-
+        
+        self.branch = branch
+        self.specific_fileids = specific_fileids
+        self.start_revids = start_revids
+        
         self.replace = replace
-        self.revisions = {}
 
         self.changesModel = logmodel.GraphModel()
 
@@ -307,8 +310,6 @@ class LogWindow(QBzrWindow):
         self.changesList.mouseReleaseEvent  = self.changesList_mouseReleaseEvent
         self.changesList.keyPressEvent  = self.changesList_keyPressEvent
         
-        self.branch = branch
-
         self.changesList.setItemDelegateForColumn(logmodel.COL_MESSAGE,
                                                   GraphTagsBugsItemDelegate(self))
 
@@ -475,7 +476,9 @@ class LogWindow(QBzrWindow):
 
     def load_history(self):
         """Load branch history."""
-        self.changesModel.loadBranch(self.branch, specific_fileid = self.specific_fileid)
+        self.changesModel.loadBranch(self.branch,
+                                     start_revs = self.start_revids,
+                                     specific_fileids = self.specific_fileids)
 
     def update_search(self):
         # TODO in_paths = self.search_in_paths.isChecked()

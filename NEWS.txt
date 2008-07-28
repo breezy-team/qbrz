@@ -4,6 +4,8 @@
     * The graph is now not hidden when you search.
     * Improved graph layout.
     * The graph now shows lines for sprouts and roots.
+    * You can specify multiple branches, or multiple file.
+    * Pending merges are shown.
     
 0.9.3 - 2008-08-19
 ----------------------

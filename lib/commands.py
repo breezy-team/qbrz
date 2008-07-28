@@ -304,35 +304,65 @@ class cmd_qlog(QBzrCommand):
 
     By default show the log of the branch containing the working directory."""
 
-    takes_args = ['location?']
+    takes_args = ['locations*']
     takes_options = []
 
-    def _qbzr_run(self, location=None):
-        file_id = None
-        if location:
-            dir, path = BzrDir.open_containing(location)
-            branch = dir.open_branch()
-            if path:
-                try:
-                    tree = dir.open_workingtree()
-                except (errors.NotBranchError, errors.NotLocalUrl):
-                    tree = branch.basis_tree()
-                file_id = tree.path2id(path)
+    def _qbzr_run(self, locations_list):
+        if locations_list is None:
+            locations_list = ["."]
+        
+        repository = None
+        file_ids = []
+        # First branch found. Used for get_config and to check that the same
+        # branch is specified when a file path is speciffied.
+        branch = None
+        rev_ids = []
+        paths_and_branches_err = "It is not possible to specify different file paths and different branchs at the same time."
+        
+        for location in locations_list:
+            tree, br, fp = BzrDir.open_containing_tree_or_branch(
+                location)
+            
+            if branch is None:
+                branch = br
+            
+            # XXX It would be nice to overcome this. The problem is how to
+            # combinded the results from  graph.iter_ancestry(start_revs)
+            # bzr-gtk doesn't check for this. It works if the revisions
+            # happend to be in the repo, but fails without warning if they
+            # are not.
+            if repository is None:
+                repository = br.repository
+            else:
+                if not repository.base == br.repository.base:
+                    raise errors.BzrCommandError("Branches must be in a shared repository.")
+            
+            rev_ids.append(br.last_revision())
+            if tree:
+                rev_ids.extend(tree.get_parent_ids())
+            else:
+                rev_ids.append(br.last_revision())
+            
+            if fp != '':
+                if tree is None:
+                    tree = br.basis_tree()
+                file_id = tree.path2id(fp)
                 if file_id is None:
                     raise errors.BzrCommandError(
                         "Path does not have any revision history: %s" %
                         location)
-
-        else:
-            dir, path = BzrDir.open_containing('.')
-            branch = dir.open_branch()
-            location = urlutils.unescape_for_display(branch.base,
-                'utf-8').decode('utf-8')
+                file_ids.append(file_id)
+                if not branch.base == br.base:
+                    raise errors.BzrCommandError(paths_and_branches_err)
+        
+        if file_ids and len(file_ids)<>len(locations_list):
+            raise errors.BzrCommandError(paths_and_branches_err)
 
         app = QtGui.QApplication(sys.argv)
         branch.lock_read()
         try:
-            window = LogWindow(branch, location, file_id, get_qlog_replace(branch))
+            window = LogWindow(branch, locations_list, rev_ids, file_ids,
+                               get_qlog_replace(branch))
             window.show()
             app.exec_()
         finally:
