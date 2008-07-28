@@ -411,15 +411,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                 # the branch that are long and need to go between the parent
                 # branch and the child branch. Also add branch_ids to
                 # twisty_branch_ids.
-                visible_parents = []
-                def find_first_visible_msri (msri_list):                    
-                    for rev_msri in msri_list:
-                        if rev_msri in msri_index:
-                            return rev_msri
-                    else:
-                        return -1
-                branch_first_visible_msri = find_first_visible_msri(branch_rev_msri)
-                branch_last_visible_msri = find_first_visible_msri(reversed(branch_rev_msri))
+                branch_rev_visible_parents = {}
                 
                 for rev_msri in branch_rev_msri:
                     rev_index = msri_index[rev_msri]
@@ -465,28 +457,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                                                             parent_branch_id,
                                                             parent_merge_depth,
                                                             False))
-                    
-                    i = 0
-                    while i < len(rev_visible_parents):
-                        (parent_revid,
-                         parent_msri,
-                         parent_branch_id,
-                         parent_merge_depth,
-                         direct) = rev_visible_parents[i]
-                        
-                        if not (rev_msri == branch_last_visible_msri or \
-                                parent_branch_id == branch_id or\
-                                branch_id == ()) and \
-                           (parent_merge_depth <= merge_depth):
-                            
-                            parent_index = msri_index[parent_msri]
-                            if parent_index - rev_index >1:
-                                rev_visible_parents.pop(i)
-                                i -= 1
-                                append_line(rev_index, parent_index, direct)
-                        i += 1
-                    
-                    visible_parents.append(rev_visible_parents)
+                    branch_rev_visible_parents[rev_msri]=rev_visible_parents
                     
                     # Find and add nessery twisties
                     for parent_rev_id in self.graph_parents[revid]:
@@ -515,6 +486,39 @@ class GraphModel(QtCore.QAbstractTableModel):
                                 break
                         linegraphdata[rev_index][3] = twisty_state
                 
+                last_parent_msri = None
+                if branch_rev_visible_parents[branch_rev_msri[-1]]: 
+                    last_parent_msri = branch_rev_visible_parents[branch_rev_msri[-1]][0][1]
+                
+                for rev_msri in branch_rev_msri:
+                    rev_index = msri_index[rev_msri]
+                    (sequence_number,
+                         revid,
+                         merge_depth,
+                         revno_sequence,
+                         end_of_merge) = self.merge_sorted_revisions[rev_msri]
+                    rev_visible_parents = branch_rev_visible_parents[rev_msri]
+                    i = 0
+                    while i < len(rev_visible_parents):
+                        (parent_revid,
+                         parent_msri,
+                         parent_branch_id,
+                         parent_merge_depth,
+                         direct) = rev_visible_parents[i]
+                        
+                        parent_index = msri_index[parent_msri]
+                        if rev_msri <> branch_rev_msri[-1] and \
+                           parent_branch_id <> branch_id and\
+                           branch_id <> () and \
+                           parent_merge_depth <= merge_depth and\
+                           (last_parent_msri and last_parent_msri >= parent_msri or not last_parent_msri):
+                            
+                            if parent_index - rev_index >1:
+                                rev_visible_parents.pop(i)
+                                i -= 1
+                                append_line(rev_index, parent_index, direct)
+                        i += 1
+                
                 # Find a column for this branch.
                 #
                 # Find the col_index for the direct parent branch. This will
@@ -523,14 +527,13 @@ class GraphModel(QtCore.QAbstractTableModel):
                 parent_col_index = 0
                 parent_index = None
                 
-                if visible_parents[-1]:
-                    parent_msri = visible_parents[-1][0][1]
-                    parent_index = msri_index[parent_msri]
+                if last_parent_msri:
+                    parent_index = msri_index[last_parent_msri]
                     parent_node = linegraphdata[parent_index][1]
                     if parent_node:
                         parent_col_index = parent_node[0]
                 
-                col_search_order = _branch_line_col_search_order(parent_col_index)
+                col_search_order = _branch_line_col_search_order(parent_col_index) 
                 cur_cont_line = []
                 
                 # Work out what rows this branch spans
@@ -554,8 +557,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                 
                 # Find columns for lines for each parent of each
                 # revision in the branch.
-                for rev_msri, rev_visible_parents in zip(branch_rev_msri,
-                                                         visible_parents):
+                for rev_msri in branch_rev_msri:
                     rev_index = msri_index[rev_msri]
                     (sequence_number,
                          revid,
@@ -566,7 +568,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                          parent_msri,
                          parent_branch_id,
                          parent_merge_depth,
-                         direct) in rev_visible_parents:
+                         direct) in branch_rev_visible_parents[rev_msri]:
                         
                         parent_index = msri_index[parent_msri]
                         append_line(rev_index, parent_index, direct)
