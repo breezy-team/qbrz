@@ -135,8 +135,11 @@ class GraphModel(QtCore.QAbstractTableModel):
             assert self.merge_sorted_revisions[0][1] == "top:"
             self.merge_sorted_revisions = self.merge_sorted_revisions[1:]
             
-            # This will hold, for each "branch", [a list of revision indexes in
-            # the branch, is the branch visible, parents, children].
+            # This will hold, for each "branch":
+            # [a list of revision indexes in the branch,
+            #  is the branch visible,
+            #  parents,
+            #  children].
             #
             # For a revisions, the revsion number less the least significant
             # digit is the branch_id, and used as the key for the dict. Hence
