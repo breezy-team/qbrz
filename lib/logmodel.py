@@ -138,8 +138,8 @@ class GraphModel(QtCore.QAbstractTableModel):
             # This will hold, for each "branch":
             # [a list of revision indexes in the branch,
             #  is the branch visible,
-            #  parents,
-            #  children].
+            #  merges,
+            #  merged_by].
             #
             # For a revisions, the revsion number less the least significant
             # digit is the branch_id, and used as the key for the dict. Hence
@@ -166,20 +166,13 @@ class GraphModel(QtCore.QAbstractTableModel):
                     #initialy, only the main line is visible
                     branch_line = [[],
                                    len(branch_id)==0,
-                                   set(),
-                                   set()]
+                                   [],
+                                   []]
                     self.branch_lines[branch_id] = branch_line
                 else:
                     branch_line = self.branch_lines[branch_id]
                 
                 branch_line[0].append(rev_index)
-                for child_revid in self.graph_children[revid]:
-                    (child_msri,
-                     child_branch_id,
-                     child_merge_depth) = self._msri_branch_id_merge_depth(child_revid)
-                    if not child_branch_id == branch_id and child_branch_id in self.branch_lines:
-                        branch_line[3].add(child_branch_id)
-                        self.branch_lines[child_branch_id][2].add(branch_id)
             
             self.branch_ids = self.branch_lines.keys()
             
@@ -212,6 +205,9 @@ class GraphModel(QtCore.QAbstractTableModel):
                         for grand_parent_msri in self.branch_lines[parent_branch_id][0]:
                             if grand_parent_msri < msri: continue
                             grand_parent_revid = self.merge_sorted_revisions[grand_parent_msri][1]
+                            (grand_parent_msri,
+                             grand_parent_branch_id,
+                             grand_parent_merge_depth) = self._msri_branch_id_merge_depth(grand_parent_revid)
                             ismerged = False
                             for uncle_revid in self.graph_children[grand_parent_revid]:
                                 (uncle_msri,
@@ -223,6 +219,11 @@ class GraphModel(QtCore.QAbstractTableModel):
                             if ismerged: break
                             merges.append(grand_parent_msri)
                             self.merged_by[grand_parent_msri] = msri
+                            if not grand_parent_branch_id in self.branch_lines[branch_id][2]:
+                                self.branch_lines[branch_id][2].append(grand_parent_branch_id)
+                            if not branch_id in self.branch_lines[grand_parent_branch_id][2]:
+                                self.branch_lines[grand_parent_branch_id][2].append(branch_id)
+                            
                 self.msri_merges[msri] = merges
             
             self.emit(QtCore.SIGNAL("layoutChanged()"))
@@ -406,8 +407,8 @@ class GraphModel(QtCore.QAbstractTableModel):
         for branch_id in self.branch_ids:
             (branch_rev_msri,
              branch_visible,
-             branch_parents,
-             branch_children) = self.branch_lines[branch_id]
+             branch_merges,
+             branch_merged_by) = self.branch_lines[branch_id]
             
             if branch_visible:
                 branch_rev_msri = [rev_msri for rev_msri in branch_rev_msri
@@ -697,7 +698,7 @@ class GraphModel(QtCore.QAbstractTableModel):
         branch_id = self.merge_sorted_revisions[rev_msri][3][0:-1]
         has_change = self._set_branch_visible(branch_id, True, False)
         while not branch_id == () and not self._has_visible_child(branch_id):
-            branch_id = list(self.branch_lines[branch_id][3])[0]
+            branch_id = self.branch_lines[branch_id][3][0]
             has_change = self._set_branch_visible(branch_id, True, has_change)
         if has_change:
             self.compute_lines()
