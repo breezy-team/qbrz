@@ -441,11 +441,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                                                         parent_branch_id,
                                                         parent_merge_depth,
                                                         True))
-                    if not rev_visible_parents:
-                        for parent_revid in self.graph_parents[revid]:
-                            (parent_msri,
-                             parent_branch_id,
-                             parent_merge_depth) = self._msri_branch_id_merge_depth(parent_revid)
+                        else:
                             has_seen_different_branch = False
                             if not parent_branch_id == branch_id:
                                 has_seen_different_branch = True
