@@ -109,6 +109,12 @@ class DiffWindow(QBzrWindow):
 
         buttonbox = self.create_button_box(BTN_CLOSE)
 
+        refresh = QtGui.QPushButton(gettext("Refresh"), buttonbox)
+        buttonbox.addButton(refresh, QtGui.QDialogButtonBox.ActionRole)
+        self.connect(refresh,
+                     QtCore.SIGNAL("clicked()"),
+                     self.click_refresh)
+
         hbox = QtGui.QHBoxLayout()
         hbox.addWidget(diffsidebyside)
         hbox.addWidget(unidiff)
@@ -245,3 +251,8 @@ class DiffWindow(QBzrWindow):
         if checked:
             self.diffview.rewind()
             self.stack.setCurrentIndex(0)
+            
+    def click_refresh(self):
+        self.diffview.clear()
+        self.sdiffview.clear()
+        self.load_diff()
