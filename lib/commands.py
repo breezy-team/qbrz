@@ -383,14 +383,10 @@ class cmd_qlog(QBzrCommand):
             raise errors.BzrCommandError(paths_and_branches_err)
 
         app = QtGui.QApplication(sys.argv)
-        branch.lock_read()
-        try:
-            window = LogWindow(branch, locations_list, rev_ids, file_ids,
-                               get_qlog_replace(branch))
-            window.show()
-            app.exec_()
-        finally:
-            branch.unlock()
+        window = LogWindow(branch, locations_list, rev_ids, file_ids,
+                           get_qlog_replace(branch))
+        window.show()
+        app.exec_()
 
 
 class cmd_qconfig(QBzrCommand):

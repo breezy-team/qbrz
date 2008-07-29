@@ -890,14 +890,18 @@ class GraphModel(QtCore.QAbstractTableModel):
                 notify_on_count = 10
                 revisionsChanged = []
                 try:
-                    while self.searchMode and not self.closing:
-                        nextRevId = self._nextRevisionToLoadGen.next()
-                        self._revision(nextRevId)
-                        revisionsChanged.append(nextRevId)
-                        QtCore.QCoreApplication.processEvents()
-                        if len(revisionsChanged) >= notify_on_count:
-                            notifyChanges(revisionsChanged)
-                            notify_on_count = max(notify_on_count * 2, 200)
+                    self.branch.lock_read()
+                    try:
+                        while self.searchMode and not self.closing:
+                            nextRevId = self._nextRevisionToLoadGen.next()
+                            self._revision(nextRevId)
+                            revisionsChanged.append(nextRevId)
+                            QtCore.QCoreApplication.processEvents()
+                            if len(revisionsChanged) >= notify_on_count:
+                                notifyChanges(revisionsChanged)
+                                notify_on_count = max(notify_on_count * 2, 200)
+                    finally:
+                        self.branch.unlock()
                 except StopIteration, se:
                     self.graphFilterProxyModel.invalidateCache()
                     notifyChanges(revisionsChanged)
