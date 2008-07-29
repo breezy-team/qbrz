@@ -414,8 +414,8 @@ def format_revision_html(rev, search_replace=None):
     for prop in props:
         # <nobr> needed because in Russian some prop labels has 2 words
         # &nbsp; needed because on Windows + PyQt 4.3.1 style=padding-left:5px does not working
-        text.append(('<tr><td style="padding-left:2px" align="right" width="1%%"><nobr><b>%s</b></nobr></td>'
-            '<td>&nbsp;%s</td></tr>') % prop)
+        text.append(('<tr><td style="padding-left:2px" align="right" width="1%%"><nobr><b>%s&nbsp;</b></nobr></td>'
+            '<td>%s</td></tr>') % prop)
     text.append('</table>')
 
     message = htmlize(rev.message)
