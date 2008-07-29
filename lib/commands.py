@@ -67,7 +67,6 @@ from bzrlib.plugins.qbzr.lib.pull import (
 from bzrlib.plugins.qbzr.lib.util import (
     FilterOptions,
     get_branch_config,
-    get_qlog_replace,
     get_set_encoding,
     is_valid_encoding,
     )
@@ -325,66 +324,8 @@ class cmd_qlog(QBzrCommand):
     takes_options = []
 
     def _qbzr_run(self, locations_list):
-        if locations_list is None:
-            locations = ["."]
-        else:
-            locations = locations_list
-        
-        repository = None
-        file_ids = []
-        # First branch found. Used for get_config and to check that the same
-        # branch is specified when a file path is speciffied.
-        branch = None
-        rev_ids = []
-        paths_and_branches_err = "It is not possible to specify different file paths and different branchs at the same time."
-        
-        for location in locations:
-            tree, br, fp = BzrDir.open_containing_tree_or_branch(
-                location)
-            
-            if branch is None:
-                branch = br
-            
-            # XXX It would be nice to overcome this. The problem is how to
-            # combinded the results from  graph.iter_ancestry(start_revs)
-            # bzr-gtk doesn't check for this. It works if the revisions
-            # happend to be in the repo, but fails without warning if they
-            # are not.
-            # Maybe one way to solve this is to pull the missing revisions
-            # into the first branch.
-            if repository is None:
-                repository = br.repository
-            else:
-                if not repository.base == br.repository.base:
-                    raise errors.BzrCommandError("Branches must be in a shared repository.")
-            
-            rev_ids.append(br.last_revision())
-            if tree:
-                rev_ids.extend(tree.get_parent_ids())
-            else:
-                rev_ids.append(br.last_revision())
-            
-            # If no locations were sepecified, don't do file_ids
-            # Otherwise it gives you the history for the dir if you are
-            # in a sub dir.
-            if fp != '' and locations_list: 
-                if tree is None:
-                    tree = br.basis_tree()
-                file_id = tree.path2id(fp)
-                if file_id is None:
-                    raise errors.BzrCommandError(
-                        "Path does not have any revision history: %s" %
-                        location)
-                file_ids.append(file_id)
-                if not branch.base == br.base:
-                    raise errors.BzrCommandError(paths_and_branches_err)
-        
-        if file_ids and len(file_ids)<>len(locations_list):
-            raise errors.BzrCommandError(paths_and_branches_err)
-
         app = QtGui.QApplication(sys.argv)
-        window = LogWindow(branch, locations_list, rev_ids, file_ids,
-                           get_qlog_replace(branch))
+        window = LogWindow(locations_list, None, None)
         window.show()
         app.exec_()
 

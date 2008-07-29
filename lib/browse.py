@@ -35,7 +35,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     extract_name,
     format_timestamp,
-    get_qlog_replace,
     )
 
 
@@ -178,7 +177,7 @@ class BrowseWindow(QBzrWindow):
         branch = self.branch
         file_id = branch.basis_tree().path2id(path)
 
-        window = LogWindow(branch, path, file_id, get_qlog_replace(branch))
+        window = LogWindow(path, branch, [file_id])
         window.show()
         self.windows.append(window)
 

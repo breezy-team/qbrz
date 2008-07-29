@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
+from bzrlib.bzrdir import BzrDir
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -206,21 +207,87 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
         return QtGui.QItemDelegate.drawDisplay(self, painter, option, rect, text)
 
 
-class LogWindow(QBzrWindow):
+def load_locataions(locataions_list):
+    if locataions_list is None:
+        locations = ["."]
+    else:
+        locations = locataions_list
+    
+    file_ids = []
+    # First branch found. Used for get_config and to check that the same
+    # branch is specified when a file path is speciffied.
+    branch = None
+    rev_ids = []
+    paths_and_branches_err = "It is not possible to specify different file paths and different branchs at the same time."
+    
+    for location in locations:
+        tree, br, fp = BzrDir.open_containing_tree_or_branch(
+            location)
+        
+        if branch is None:
+            branch = br
+        
+        # XXX It would be nice to overcome this. The problem is how to
+        # combinded the results from  graph.iter_ancestry(start_revs)
+        # bzr-gtk doesn't check for this. It works if the revisions
+        # happend to be in the repo, but fails without warning if they
+        # are not.
+        # Maybe one way to solve this is to pull the missing revisions
+        # into the first branch.
+        if not branch.repository.base == br.repository.base:
+            raise errors.BzrCommandError("Branches must be in a shared repository.")
+        
+        rev_ids.append(br.last_revision())
+        if tree:
+            rev_ids.extend(tree.get_parent_ids())
+        else:
+            rev_ids.append(br.last_revision())
+        
+        # If no locations were sepecified, don't do file_ids
+        # Otherwise it gives you the history for the dir if you are
+        # in a sub dir.
+        if fp != '' and locations_list: 
+            if tree is None:
+                tree = br.basis_tree()
+            file_id = tree.path2id(fp)
+            if file_id is None:
+                raise errors.BzrCommandError(
+                    "Path does not have any revision history: %s" %
+                    location)
+            file_ids.append(file_id)
+            if not branch.base == br.base:
+                raise errors.BzrCommandError(paths_and_branches_err)
+    
+    if file_ids and len(file_ids)<>len(locations_list):
+        raise errors.BzrCommandError(paths_and_branches_err)
+    
+    return (branch, rev_ids, file_ids)
 
-    def __init__(self, branch, locations, start_revids, specific_fileids,
-                 replace=None, parent=None):
+class LogWindow(QBzrWindow):
+    
+    def __init__(self, locations, branch, specific_fileids, parent=None):
         title = [gettext("Log")]
         if locations and not locations==["."]:
             title.append(", ".join(locations).rstrip(", "))
         QBzrWindow.__init__(self, title, parent)
         self.restoreSize("log", (710, 580))
         
-        self.branch = branch
-        self.specific_fileids = specific_fileids
-        self.start_revids = start_revids
+        if branch:
+            self.branch = branch
+            self.specific_fileids = specific_fileids
+            self.start_revids = None
+        else:
+            self.locations = locations
+            (self.branch,
+             self.start_revids, 
+             self.specific_fileids) = load_locataions(locations)
         
-        self.replace = replace
+        config = self.branch.get_config()
+        self.replace = config.get_user_option("qlog_replace")
+        if self.replace:
+            self.replace = self.replace.split("\n")
+            self.replace = [tuple(self.replace[2*i:2*i+2])
+                            for i in range(len(self.replace) // 2)]
 
         self.changesModel = logmodel.GraphModel()
 
@@ -347,7 +414,7 @@ class LogWindow(QBzrWindow):
         buttonbox.addButton(refresh, QtGui.QDialogButtonBox.ActionRole)
         self.connect(refresh,
                      QtCore.SIGNAL("clicked()"),
-                     self.load_history)
+                     self.refresh)
 
         self.diffbutton = QtGui.QPushButton(gettext('Diff'),
             self.centralwidget)
@@ -481,6 +548,13 @@ class LogWindow(QBzrWindow):
         rev2 = self.changesModel.revision(revid2)
         self.show_diff_window(rev1, rev2)
 
+    def refresh(self):
+        if "locations" in dir(self):
+            (self.branch,
+             self.start_revids, 
+             self.specific_fileids) = load_locataions(self.locations)
+        self.load_history()
+    
     def load_history(self):
         """Load branch history."""
         self.changesModel.loadBranch(self.branch,
