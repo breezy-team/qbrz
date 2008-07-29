@@ -326,7 +326,9 @@ class cmd_qlog(QBzrCommand):
 
     def _qbzr_run(self, locations_list):
         if locations_list is None:
-            locations_list = ["."]
+            locations = ["."]
+        else:
+            locations = locations_list
         
         repository = None
         file_ids = []
@@ -336,7 +338,7 @@ class cmd_qlog(QBzrCommand):
         rev_ids = []
         paths_and_branches_err = "It is not possible to specify different file paths and different branchs at the same time."
         
-        for location in locations_list:
+        for location in locations:
             tree, br, fp = BzrDir.open_containing_tree_or_branch(
                 location)
             
@@ -362,7 +364,10 @@ class cmd_qlog(QBzrCommand):
             else:
                 rev_ids.append(br.last_revision())
             
-            if fp != '':
+            # If no locations were sepecified, don't do file_ids
+            # Otherwise it gives you the history for the dir if you are
+            # in a sub dir.
+            if fp != '' and locations_list: 
                 if tree is None:
                     tree = br.basis_tree()
                 file_id = tree.path2id(fp)
