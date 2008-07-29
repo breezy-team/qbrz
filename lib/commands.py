@@ -302,7 +302,24 @@ class cmd_qdiff(QBzrCommand):
 class cmd_qlog(QBzrCommand):
     """Show log of a branch, file, or directory in a Qt window.
 
-    By default show the log of the branch containing the working directory."""
+    By default show the log of the branch containing the working directory.
+    
+    If multiple files are speciffied, they must be from the same branch.
+    If multiple branches are speciffied, they must be from the same repository.
+
+    :Examples:
+        Log the current branch::
+
+            bzr qlog
+
+        Log of files::
+
+            bzr qlog foo.c bar.c
+
+        Log from different branches::
+
+            bzr qlog ~/repo/branch1 ~/repo/branch2
+    """
 
     takes_args = ['locations*']
     takes_options = []
@@ -331,6 +348,8 @@ class cmd_qlog(QBzrCommand):
             # bzr-gtk doesn't check for this. It works if the revisions
             # happend to be in the repo, but fails without warning if they
             # are not.
+            # Maybe one way to solve this is to pull the missing revisions
+            # into the first branch.
             if repository is None:
                 repository = br.repository
             else:
