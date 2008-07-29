@@ -109,6 +109,13 @@ class DiffWindow(QBzrWindow):
                      QtCore.SIGNAL("clicked(bool)"),
                      self.click_unidiff)
 
+        complete = QtGui.QCheckBox (gettext("Complete"),
+                                            self.centralwidget)
+        self.connect(complete,
+                     QtCore.SIGNAL("clicked(bool)"),
+                     self.click_complete)
+        complete.setChecked(self.complete);
+
         buttonbox = self.create_button_box(BTN_CLOSE)
 
         refresh = StandardButton(BTN_REFRESH)
@@ -122,6 +129,7 @@ class DiffWindow(QBzrWindow):
         hbox = QtGui.QHBoxLayout()
         hbox.addWidget(diffsidebyside)
         hbox.addWidget(unidiff)
+        hbox.addWidget(complete)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
 
@@ -253,7 +261,14 @@ class DiffWindow(QBzrWindow):
         if checked:
             self.diffview.rewind()
             self.stack.setCurrentIndex(0)
-            
+    
+    def click_complete(self, checked ):
+        self.complete = checked
+        #Has the side effect of refreshing...
+        self.diffview.clear()
+        self.sdiffview.clear()
+        self.load_diff()
+    
     def click_refresh(self):
         self.diffview.clear()
         self.sdiffview.clear()
