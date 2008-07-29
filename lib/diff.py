@@ -27,6 +27,7 @@ from PyQt4 import QtCore, QtGui
 
 from bzrlib.errors import BinaryFile
 from bzrlib.textfile import check_text_lines
+from bzrlib.mutabletree import MutableTree
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 
 from bzrlib.plugins.qbzr.lib.diffview import (
@@ -110,6 +111,8 @@ class DiffWindow(QBzrWindow):
         buttonbox = self.create_button_box(BTN_CLOSE)
 
         refresh = QtGui.QPushButton(gettext("Refresh"), buttonbox)
+        if not isinstance(tree1, MutableTree) and not isinstance(tree2, MutableTree):
+            refresh.setEnabled(False)
         buttonbox.addButton(refresh, QtGui.QDialogButtonBox.ActionRole)
         self.connect(refresh,
                      QtCore.SIGNAL("clicked()"),
