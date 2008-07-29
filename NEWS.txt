@@ -1,6 +1,14 @@
 0.9.4 - in development
 ----------------------
 
+ * qannotate:
+    * A working tree is no longer required to annotate a file.
+    * The column widths are resize automaticly.
+ * qbrowse:
+    * A context meun item has been added to annotate a file.
+ * qdiff:
+    * A checkbox has been added to control weather a Complete diff is shown.
+
 0.9.3 - 2008-08-19
 ----------------------
 Maintenance release:
