@@ -36,9 +36,10 @@ from bzrlib.plugins.qbzr.lib.diffview import (
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
-    BTN_CLOSE,
+    BTN_CLOSE, BTN_REFRESH,
     FilterOptions,
     QBzrWindow,
+    StandardButton,
     get_branch_config,
     get_set_encoding,
     )
@@ -110,7 +111,7 @@ class DiffWindow(QBzrWindow):
 
         buttonbox = self.create_button_box(BTN_CLOSE)
 
-        refresh = QtGui.QPushButton(gettext("Refresh"), buttonbox)
+        refresh = StandardButton(BTN_REFRESH)
         if not isinstance(tree1, MutableTree) and not isinstance(tree2, MutableTree):
             refresh.setEnabled(False)
         buttonbox.addButton(refresh, QtGui.QDialogButtonBox.ActionRole)

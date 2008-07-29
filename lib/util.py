@@ -57,7 +57,7 @@ def htmlize(text):
 
 
 # standard buttons with translatable labels
-BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP = range(4)
+BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP, BTN_REFRESH = range(5)
 
 class StandardButton(QtGui.QPushButton):
 
@@ -66,6 +66,7 @@ class StandardButton(QtGui.QPushButton):
         BTN_CANCEL: (N_('&Cancel'), 'SP_DialogCancelButton'),
         BTN_CLOSE: (N_('&Close'), 'SP_DialogCloseButton'),
         BTN_HELP: (N_('&Help'), 'SP_DialogHelpButton'),
+        BTN_REFRESH: (N_('&Refresh'), 'view-refresh'),
     }
 
     def __init__(self, btntype, *args):
@@ -73,7 +74,10 @@ class StandardButton(QtGui.QPushButton):
         new_args = [label]
         if sys.platform != 'win32' and sys.platform != 'darwin':
             iconname = self.__types[btntype][1]
-            if hasattr(QtGui.QStyle, iconname):
+            if iconname == 'view-refresh':
+                icon = QtGui.QIcon(':/16x16/view-refresh.png')
+                new_args = [icon, label]
+            elif hasattr(QtGui.QStyle, iconname):
                 icon = QtGui.QApplication.style().standardIcon(
                     getattr(QtGui.QStyle, iconname))
                 new_args = [icon, label]
