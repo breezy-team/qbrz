@@ -237,7 +237,6 @@ def load_locataions(locataions_list):
         if not branch.repository.base == br.repository.base:
             raise errors.BzrCommandError("Branches must be in a shared repository.")
         
-        rev_ids.append(br.last_revision())
         if tree:
             rev_ids.extend(tree.get_parent_ids())
         else:
