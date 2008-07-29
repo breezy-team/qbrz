@@ -58,7 +58,7 @@ class AnnotateWindow(QBzrWindow):
         self.browser.setUniformRowHeights(True)
         self.browser.setHeaderLabels([gettext("Line"), gettext("Author"), gettext("Rev"), ""])
         self.browser.header().setStretchLastSection(False)
-        self.browser.header().setResizeMode(3, QtGui.QHeaderView.ResizeToContents)
+        self.browser.header().setResizeMode(QtGui.QHeaderView.ResizeToContents) 
         self.connect(self.browser,
             QtCore.SIGNAL("itemSelectionChanged()"),
             self.setRevisionByLine)
@@ -73,6 +73,7 @@ class AnnotateWindow(QBzrWindow):
         self.changes = QtGui.QTreeWidget()
         self.changes.setHeaderLabels(
             [gettext("Date"), gettext("Author"), gettext("Summary")])
+ 
         self.changes.setRootIsDecorated(False)
         self.changes.setUniformRowHeights(True)
         self.connect(self.changes,
