@@ -23,7 +23,9 @@ from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
+    BTN_REFRESH,
     QBzrWindow,
+    StandardButton,
     format_revision_html,
     format_timestamp,
     open_browser,
@@ -341,6 +343,11 @@ class LogWindow(QBzrWindow):
         splitter.setStretchFactor(1, 3)
 
         buttonbox = self.create_button_box(BTN_CLOSE)
+        refresh = StandardButton(BTN_REFRESH)
+        buttonbox.addButton(refresh, QtGui.QDialogButtonBox.ActionRole)
+        self.connect(refresh,
+                     QtCore.SIGNAL("clicked()"),
+                     self.load_history)
 
         self.diffbutton = QtGui.QPushButton(gettext('Diff'),
             self.centralwidget)
