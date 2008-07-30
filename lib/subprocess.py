@@ -100,7 +100,7 @@ class SubProcessDialog (QBzrDialog):
         if not self.process_widget.is_running():
             QBzrDialog.closeEvent(self, event)
         else:
-            self.abort()
+            self.process_widget.abort()
             event.ignore()
 
 class SubProcessWidget (QtGui.QGroupBox):
@@ -164,6 +164,7 @@ class SubProcessWidget (QtGui.QGroupBox):
         if self.is_running():
             if not self.aborting:
                 # be nice and try to use ^C
+                self.process.close()
                 self.aborting = True
                 self.setProgress(None, [gettext("Aborting...")])
             else:
@@ -186,16 +187,12 @@ class SubProcessWidget (QtGui.QGroupBox):
                 self.setProgress(progress, messages)
             else:
                 self.logMessage(line)
-        if self.aborting:
-            self.process.close()
 
     def readStderr(self):
         data = str(self.process.readAllStandardError())
         for line in data.splitlines():
             error = line.startswith("bzr: ERROR:")
             self.logMessage(line, error)
-        if self.aborting:
-            self.process.close()
 
     def logMessage(self, message, error=False):
         if error:
@@ -208,9 +205,6 @@ class SubProcessWidget (QtGui.QGroupBox):
         scrollbar.setValue(scrollbar.maximum())
 
     def reportProcessError(self, error):
-        if self.aborting == True:
-            self.close()
-            return
         self.aborting = False
         self.setProgress(1000000, [gettext("Failed!")])
         if error == QtCore.QProcess.FailedToStart:
@@ -221,9 +215,6 @@ class SubProcessWidget (QtGui.QGroupBox):
         #self.emit(QtCore.SIGNAL("failed()"))
 
     def onFinished(self, exitCode, exitStatus):
-        if self.aborting == True:
-            self.close()
-            return
         self.aborting = False
         if exitCode == 0:
             self.finished = True
