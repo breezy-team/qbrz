@@ -39,6 +39,7 @@ from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellCheck
 from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     BTN_OK,
@@ -610,21 +611,21 @@ class CommitWindow(QBzrWindow):
         items = self.filelist.selectedItems()
         if not items:
             return
-        res = QtGui.QMessageBox.question(self,
-            gettext("Revert"),
-            gettext("Do you really want to revert the selected file(s)?"),
-            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-        if res == QtGui.QMessageBox.Yes:
-            paths = [self.item_to_file[item][3] for item in items]
-            try:
-                self.tree.revert(paths, self.tree.branch.repository.revision_tree(self.tree.last_revision()))
-            except BzrError, e:
-                QtGui.QMessageBox.warning(self,
-                    gettext("Revert"), str(e), QtGui.QMessageBox.Ok)
-            else:
-                for item in items:
-                    index = self.filelist.indexOfTopLevelItem(item)
-                    self.filelist.takeTopLevelItem(index)
+        
+        paths = [self.item_to_file[item][3] for item in items]
+        
+        args = ["revert"]
+        args.extend(paths)
+        desc = (gettext("Revert %s to latest revision.") % ", ".join(paths))
+        revert_dialog = SubProcessDialog(gettext("Revert"),
+                                         desc = desc,
+                                         args = args,
+                                         parent = self)
+        res = revert_dialog.exec_()
+        if res == QtGui.QDialog.Accepted:
+            for item in items:
+                index = self.filelist.indexOfTopLevelItem(item)
+                self.filelist.takeTopLevelItem(index)
 
     def show_context_menu(self, pos):
         self.context_menu.popup(self.filelist.viewport().mapToGlobal(pos))

@@ -58,6 +58,7 @@ from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.log import LogWindow
 from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
 from bzrlib.plugins.qbzr.lib.info import QBzrInfoWindow
+from bzrlib.plugins.qbzr.lib.subprocess import SubprocessProgress
 from bzrlib.plugins.qbzr.lib.pull import (
     QBzrPullWindow,
     QBzrPushWindow,
@@ -521,67 +522,6 @@ class cmd_qbzr(QBzrCommand):
         window.setDirectory(osutils.realpath(u'.'))
         window.show()
         app.exec_()
-
-
-class SubprocessChildProgress(progress._BaseProgressBar):
-
-    def __init__(self, _stack, **kwargs):
-        super(SubprocessChildProgress, self).__init__(_stack=_stack, **kwargs)
-        self.parent = _stack.top()
-        self.message = None
-        self.current = 0
-        self.total = 0
-
-    def tick(self, messages, progress):
-        self.parent.child_update(messages, progress)
-
-    def child_update(self, messages, progress):
-        if self.current is not None and self.total:
-            progress = (self.current + progress) / self.total
-        else:
-            progress = 0.0
-        if self.message:
-            messages = [self.message] + messages
-        self.tick(messages, progress)
-
-    def update(self, message, current=None, total=None):
-        if current is not None:
-            if total is not None:
-                self.message = '%s (%s/%s)' % (message, current, total)
-            else:
-                self.message = '%s (%s)' % (message, current)
-        else:
-            self.message = message
-        self.current = current
-        self.total = total
-        self.child_update([], 0.0)
-
-    def clear(self):
-        pass
-
-    def note(self, *args, **kwargs):
-        self.parent.note(*args, **kwargs)
-
-    def child_progress(self, **kwargs):
-        return SubprocessChildProgress(**kwargs)
-
-
-class SubprocessProgress(SubprocessChildProgress):
-
-    def __init__(self, **kwargs):
-        super(SubprocessProgress, self).__init__(**kwargs)
-
-    def _report(self, progress, messages=()):
-        data = int(progress * 1000000), messages
-        sys.stdout.write('qbzr:PROGRESS:' + bencode.bencode(data) + '\n')
-        sys.stdout.flush()
-
-    def tick(self, messages, progress):
-        self._report(progress, messages)
-
-    def finished(self):
-        self._report(1.0)
-
 
 class cmd_qsubprocess(Command):
 
