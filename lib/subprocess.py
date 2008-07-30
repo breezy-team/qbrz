@@ -33,21 +33,25 @@ from bzrlib.plugins.qbzr.lib.util import (
 class SubProcessDialog (QBzrDialog):
 
     def __init__(self, title, name = "genericsubprocess",
-                 desc = None, args = None, parent=None):
+                 desc = None, args = None, default_size = (500, 420),
+                 parent=None):
         QBzrDialog.__init__(self, [title], parent)
-        self.restoreSize(name, (500, 420))
+        self.restoreSize(name, default_size)
         self.desc = desc
         self.args = args
         
         layout = QtGui.QVBoxLayout(self.centralwidget)
         
-        self.ui = self.create_ui(self.centralwidget)
-        layout.addWidget(self.ui)
+        self.ui_widget = self.create_ui(self.centralwidget)
+        layout.addWidget(self.ui_widget)
         
         self.process_widget = SubProcessWidget(self)
         self.connect(self.process_widget,
             QtCore.SIGNAL("finished()"),
             self.finished)
+        self.connect(self.process_widget,
+            QtCore.SIGNAL("failed()"),
+            self.failed)
         
         layout.addWidget(self.process_widget)
         
@@ -71,6 +75,13 @@ class SubProcessDialog (QBzrDialog):
         return label
     
     def accept(self):
+        if self.process_widget.finished:
+            self.close()
+        else:
+            self.okButton.setDisabled(True)
+            self.start()
+    
+    def start(self):
         self.process_widget.start(*self.args)
     
     def reject(self):
@@ -81,7 +92,16 @@ class SubProcessDialog (QBzrDialog):
     
     def finished(self):
         self.done(QtGui.QDialog.Accepted)
-
+    
+    def failed(self):
+        self.okButton.setDisabled(False)
+    
+    def closeEvent(self, event):
+        if not self.process_widget.is_running():
+            QBzrDialog.closeEvent(self, event)
+        else:
+            self.abort()
+            event.ignore()
 
 class SubProcessWidget (QtGui.QGroupBox):
     
