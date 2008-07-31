@@ -91,7 +91,9 @@ class SubProcessDialog (QBzrDialog):
             self.done(QtGui.QDialog.Rejected)
     
     def finished(self):
-        self.done(QtGui.QDialog.Accepted)
+        #self.done(QtGui.QDialog.Accepted)
+        self.okButton.setDisabled(False)
+        self.cancelButton.setDisabled(True)
     
     def failed(self):
         self.okButton.setDisabled(False)
