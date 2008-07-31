@@ -182,7 +182,7 @@ class AnnotateWindow(QBzrWindow):
         try:
             if not rev.parent_ids:
                 revs = [rev.revision_id]
-                tree = repo.revision_tree(rev1.revision_id)
+                tree = repo.revision_tree(rev.revision_id)
                 old_tree = repo.revision_tree(None)
             else:
                 revs = [rev.revision_id, rev.parent_ids[0]]
