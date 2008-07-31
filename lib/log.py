@@ -232,9 +232,9 @@ def load_locataions(locataions_list):
     
     def append_tag_to_revid(revid, tag):
         if not revid in rev_ids:
-            rev_ids[revid] = []
+            rev_ids[revid] = (len(rev_ids), [])
         if tag:
-            rev_ids[revid].append (tag)
+            rev_ids[revid][1].append (tag)
     
     def append_location(tree, br, repo, fp, tag, main_branch):
         if main_branch is None:

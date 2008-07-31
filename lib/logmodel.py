@@ -102,12 +102,14 @@ class GraphModel(QtCore.QAbstractTableModel):
             self.revisions = {}
             if self.start_revs is None:
                 self.start_revs = {branch.last_revision():[]}
-            start_revs = [rev for rev in start_revs if not rev == NULL_REVISION]
+            start_revs = [rev for rev in self.start_revs if not rev == NULL_REVISION]
+            start_revs.sort(lambda x, y:cmp(self.start_revs[x][0], self.start_revs[y][0]))
+            
             graph = branch.repository.get_graph()
             self.graph_parents = {}
             ghosts = set()
             self.graph_children = {}
-            for (revid, parent_revids) in graph.iter_ancestry(self.start_revs):
+            for (revid, parent_revids) in graph.iter_ancestry(start_revs):
                 if parent_revids is None:
                     ghosts.add(revid)
                     continue
@@ -810,7 +812,7 @@ class GraphModel(QtCore.QAbstractTableModel):
         if role == BranchTagsRole:
             tags = []
             if revid in self.start_revs:
-                tags = self.start_revs[revid]
+                tags = self.start_revs[revid][1]
             return QtCore.QVariant(QtCore.QStringList(tags))
         
         if role == RevIdRole or role == FilterIdRole:
