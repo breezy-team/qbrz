@@ -299,11 +299,12 @@ class cmd_qdiff(QBzrCommand):
 
 
 class cmd_qlog(QBzrCommand):
-    """Show log of a branch, file, or directory in a Qt window.
+    """Show log of a repository, branch, file, or directory in a Qt window.
 
     By default show the log of the branch containing the working directory.
     
     If multiple files are speciffied, they must be from the same branch.
+    Only one repository may be speciffied.
     If multiple branches are speciffied, they must be from the same repository.
 
     :Examples:

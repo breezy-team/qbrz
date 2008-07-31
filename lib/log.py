@@ -18,7 +18,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.bzrdir import BzrDir
+from bzrlib.bzrdir import (
+    BzrDir,
+    errors,
+    )
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -216,16 +219,13 @@ def load_locataions(locataions_list):
     file_ids = []
     # First branch found. Used for get_config and to check that the same
     # branch is specified when a file path is speciffied.
-    branch = None
+    main_branch = None
     rev_ids = []
     paths_and_branches_err = "It is not possible to specify different file paths and different branchs at the same time."
     
-    for location in locations:
-        tree, br, fp = BzrDir.open_containing_tree_or_branch(
-            location)
-        
-        if branch is None:
-            branch = br
+    def append_location(tree, br, repo, fp, main_branch):
+        if main_branch is None:
+            main_branch = br
         
         # XXX It would be nice to overcome this. The problem is how to
         # combinded the results from  graph.iter_ancestry(start_revs)
@@ -234,7 +234,7 @@ def load_locataions(locataions_list):
         # are not.
         # Maybe one way to solve this is to pull the missing revisions
         # into the first branch.
-        if not branch.repository.base == br.repository.base:
+        if not main_branch.repository.base == br.repository.base:
             raise errors.BzrCommandError("Branches must be in a shared repository.")
         
         if tree:
@@ -242,10 +242,7 @@ def load_locataions(locataions_list):
         else:
             rev_ids.append(br.last_revision())
         
-        # If no locations were sepecified, don't do file_ids
-        # Otherwise it gives you the history for the dir if you are
-        # in a sub dir.
-        if fp != '' and locations_list: 
+        if fp != '' : 
             if tree is None:
                 tree = br.basis_tree()
             file_id = tree.path2id(fp)
@@ -254,13 +251,40 @@ def load_locataions(locataions_list):
                     "Path does not have any revision history: %s" %
                     location)
             file_ids.append(file_id)
-            if not branch.base == br.base:
+            if not main_branch.base == br.base:
                 raise errors.BzrCommandError(paths_and_branches_err)
+        return main_branch
+    
+    for location in locations:
+        tree, br, repo, fp = BzrDir.open_containing_tree_branch_or_repository(
+            location)
+        
+        if len(locations) == 1:
+            if br == None:
+                for br in repo.find_branches(using=True):
+                    # We don't have ref to the working tree,
+                    # so we won't show pending merges.
+                    # XXX Get ref to working tree.
+                    main_branch = append_location(None, br, repo, '', main_branch)
+                continue
+        
+        # We can only load one repo
+        if br == None:
+            raise errors.NotBranchError(path=location)
+        
+        # If no locations were sepecified, don't do file_ids
+        # Otherwise it gives you the history for the dir if you are
+        # in a sub dir.
+        if fp != '' and locations_list:
+            fp = ''
+        
+        main_branch = append_location(tree, br, repo, fp, main_branch)
+
     
     if file_ids and len(file_ids)<>len(locations_list):
         raise errors.BzrCommandError(paths_and_branches_err)
     
-    return (branch, rev_ids, file_ids)
+    return (main_branch, rev_ids, file_ids)
 
 class LogWindow(QBzrWindow):
     
