@@ -30,10 +30,11 @@ from bzrlib.plugins.qbzr.lib.util import (
 
 TagsRole = QtCore.Qt.UserRole + 1
 BugIdsRole = QtCore.Qt.UserRole + 2
-GraphNodeRole = QtCore.Qt.UserRole + 3
-GraphLinesRole = QtCore.Qt.UserRole + 4
-GraphTwistyStateRole = QtCore.Qt.UserRole + 5
-RevIdRole = QtCore.Qt.UserRole + 6
+BranchTagsRole = QtCore.Qt.UserRole + 3
+GraphNodeRole = QtCore.Qt.UserRole + 4
+GraphLinesRole = QtCore.Qt.UserRole + 5
+GraphTwistyStateRole = QtCore.Qt.UserRole + 6
+RevIdRole = QtCore.Qt.UserRole + 7
 
 FilterIdRole = QtCore.Qt.UserRole + 100
 FilterMessageRole = QtCore.Qt.UserRole + 101
@@ -93,19 +94,20 @@ class GraphModel(QtCore.QAbstractTableModel):
     
     def loadBranch(self, branch, start_revs = None, specific_fileids = []):
         self.branch = branch
+        self.start_revs = start_revs
         branch.lock_read()
         try:
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
             self.tags = branch.tags.get_reverse_tag_dict()  # revid to tags map
             self.revisions = {}
-            if start_revs is None:
-                start_revs = [branch.last_revision()]
+            if self.start_revs is None:
+                self.start_revs = {branch.last_revision():[]}
             start_revs = [rev for rev in start_revs if not rev == NULL_REVISION]
             graph = branch.repository.get_graph()
             self.graph_parents = {}
             ghosts = set()
             self.graph_children = {}
-            for (revid, parent_revids) in graph.iter_ancestry(start_revs):
+            for (revid, parent_revids) in graph.iter_ancestry(self.start_revs):
                 if parent_revids is None:
                     ghosts.add(revid)
                     continue
@@ -804,6 +806,13 @@ class GraphModel(QtCore.QAbstractTableModel):
             if revid in self.tags:
                 tags = self.tags[revid]
             return QtCore.QVariant(QtCore.QStringList(tags))
+        
+        if role == BranchTagsRole:
+            tags = []
+            if revid in self.start_revs:
+                tags = self.start_revs[revid]
+            return QtCore.QVariant(QtCore.QStringList(tags))
+        
         if role == RevIdRole or role == FilterIdRole:
             return QtCore.QVariant(revid)
         

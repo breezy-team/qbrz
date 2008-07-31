@@ -46,6 +46,9 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
     _bugColor = QtGui.QColor(255, 188, 188)
     _bugColorBorder = QtGui.QColor(255, 79, 79)
 
+    _branchTagColor = QtGui.QColor(188, 188, 255)
+    _branchTagColorBorder = QtGui.QColor(79, 79, 255)
+
     _twistyColor = QtCore.Qt.black
 
     def paint(self, painter, option, index):
@@ -65,6 +68,10 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
             self.drawGraph = False
         
         self.labels = []
+        # collect branch tags
+        for tag in index.data(logmodel.BranchTagsRole).toStringList():
+            self.labels.append(
+                (tag, self._branchTagColor, self._branchTagColorBorder))
         # collect tag names
         for tag in index.data(logmodel.TagsRole).toStringList():
             self.labels.append(
@@ -220,10 +227,16 @@ def load_locataions(locataions_list):
     # First branch found. Used for get_config and to check that the same
     # branch is specified when a file path is speciffied.
     main_branch = None
-    rev_ids = []
+    rev_ids = {}
     paths_and_branches_err = "It is not possible to specify different file paths and different branchs at the same time."
     
-    def append_location(tree, br, repo, fp, main_branch):
+    def append_tag_to_revid(revid, tag):
+        if not revid in rev_ids:
+            rev_ids[revid] = []
+        if tag:
+            rev_ids[revid].append (tag)
+    
+    def append_location(tree, br, repo, fp, tag, main_branch):
         if main_branch is None:
             main_branch = br
         
@@ -237,10 +250,16 @@ def load_locataions(locataions_list):
         if not main_branch.repository.base == br.repository.base:
             raise errors.BzrCommandError("Branches must be in a shared repository.")
         
+        branch_last_revision = br.last_revision()
+        append_tag_to_revid(branch_last_revision, tag)
+        
         if tree:
-            rev_ids.extend(tree.get_parent_ids())
-        else:
-            rev_ids.append(br.last_revision())
+            for revid in tree.get_parent_ids():
+                if revid!=branch_last_revision:
+                    if tag:
+                        append_tag_to_revid(revid, ("%s - Pending Merge" % tag))
+                    else:
+                        append_tag_to_revid(revid, "Pending Merge")
         
         if fp != '' : 
             if tree is None:
@@ -262,10 +281,12 @@ def load_locataions(locataions_list):
         if len(locations) == 1:
             if br == None:
                 for br in repo.find_branches(using=True):
+                    tag = br.nick
                     # We don't have ref to the working tree,
                     # so we won't show pending merges.
                     # XXX Get ref to working tree.
-                    main_branch = append_location(None, br, repo, '', main_branch)
+                    main_branch = append_location(None, br, repo, '', tag,
+                                                  main_branch)
                 continue
         
         # We can only load one repo
@@ -278,7 +299,12 @@ def load_locataions(locataions_list):
         if fp != '' and locations_list:
             fp = ''
         
-        main_branch = append_location(tree, br, repo, fp, main_branch)
+        if len(locations) == 1:
+            tag = None
+        else:
+            tag = br.nick
+        
+        main_branch = append_location(tree, br, repo, fp, tag, main_branch)
 
     
     if file_ids and len(file_ids)<>len(locations_list):
