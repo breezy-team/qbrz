@@ -366,7 +366,7 @@ class LogWindow(QBzrWindow):
         self.search_label = QtGui.QLabel(gettext("&Search:"))
         self.search_edit = QtGui.QLineEdit()
         self.search_label.setBuddy(self.search_edit)
-        self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
+        self.connect(self.search_edit, QtCore.SIGNAL("textEdited(QString)"),
                      self.set_search_timer)
 
         self.search_timer = QtCore.QTimer(self)
@@ -387,6 +387,17 @@ class LogWindow(QBzrWindow):
                 self.searchType.insertItem(0,
                                            gettext("Messages and File text (indexed)"),
                                            QtCore.QVariant(logmodel.FilterSearchRole))
+                
+                self.completer = Compleater(self)
+                self.completer_model = QtGui.QStringListModel(self)
+                self.completer.setModel(self.completer_model)
+                self.search_edit.setCompleter(self.completer)
+                self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
+                             self.update_search_completer)
+                self.suggestion_letters_loaded = {"":QtCore.QStringList()}
+                self.suggestion_last_first_letter = ""
+                self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
+                             self.set_search_timer)
             except search_errors.NoSearchIndex:
                 pass
         
@@ -628,16 +639,6 @@ class LogWindow(QBzrWindow):
         self.changesModel.loadBranch(self.branch,
                                      start_revs = self.start_revids,
                                      specific_fileids = self.specific_fileids)
-        if self.index:
-            self.completer = Compleater(self)
-            self.completer_model = QtGui.QStringListModel(self)
-            self.completer.setModel(self.completer_model)
-            self.search_edit.setCompleter(self.completer)
-            self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
-                         self.update_search_completer)
-            self.suggestion_letters_loaded = {"":QtCore.QStringList()}
-            self.suggestion_last_first_letter = ""
-            
 
     def update_search(self):
         # TODO in_paths = self.search_in_paths.isChecked()
