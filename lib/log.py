@@ -225,7 +225,7 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
 
 class Compleater(QtGui.QCompleter):
     def splitPath (self, path):
-        return path.split(" ")
+        return QtCore.QStringList([path.split(" ")[-1]])
 
 def load_locataions(locataions_list):
     if locataions_list is None:
@@ -357,7 +357,6 @@ class LogWindow(QBzrWindow):
         self.changesProxyModel.setDynamicSortFilter(True)
         self.changesModel.setGraphFilterProxyModel(self.changesProxyModel)
         
-
         logwidget = QtGui.QWidget()
         logbox = QtGui.QVBoxLayout(logwidget)
         logbox.setContentsMargins(0, 0, 0, 0)
@@ -379,9 +378,18 @@ class LogWindow(QBzrWindow):
         searchbox.addWidget(self.search_edit)
 
         self.searchType = QtGui.QComboBox()
-        self.index = None
-        self.compleater = None
             
+        self.index = None
+        if have_search:
+            try:
+                self.index = search_index.open_index_branch(self.branch)
+                self.changesProxyModel.setSearchIndex(self.index)
+                self.searchType.insertItem(0,
+                                           gettext("Messages and File text (indexed)"),
+                                           QtCore.QVariant(logmodel.FilterSearchRole))
+            except search_errors.NoSearchIndex:
+                pass
+        
         self.searchType.addItem(gettext("Messages"),
                                 QtCore.QVariant(logmodel.FilterMessageRole))
         self.searchType.addItem(gettext("Authors"),
@@ -620,23 +628,15 @@ class LogWindow(QBzrWindow):
         self.changesModel.loadBranch(self.branch,
                                      start_revs = self.start_revids,
                                      specific_fileids = self.specific_fileids)
-        if have_search:
-            try:
-                self.index = search_index.open_index_branch(self.branch)
-                self.changesProxyModel.setSearchIndex(self.index)
-                self.completer = Compleater(self)
-                suggestions = QtCore.QStringList()
-                for s in self.index.suggest((("",),)):
-                    if suggestions.count() % 100 == 0:
-                        QtCore.QCoreApplication.processEvents()
-                    suggestions.append(s[0])
-                self.completer.setModel(QtGui.QStringListModel(suggestions, self.completer))
-                self.searchType.insertItem(0,
-                                           gettext("Messages and File text (indexed)"),
-                                           QtCore.QVariant(logmodel.FilterSearchRole))
-                self.search_edit.setCompleter(self.completer)
-            except search_errors.NoSearchIndex:
-                pass
+        if self.index:
+            self.completer = Compleater(self)
+            self.completer_model = QtGui.QStringListModel(self)
+            self.completer.setModel(self.completer_model)
+            self.search_edit.setCompleter(self.completer)
+            self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
+                         self.update_search_completer)
+            self.suggestion_letters_loaded = {}
+            
 
     def update_search(self):
         # TODO in_paths = self.search_in_paths.isChecked()
@@ -670,6 +670,26 @@ class LogWindow(QBzrWindow):
                 self.changesList.setCurrentIndex(index)
         else:
             self.changesProxyModel.setFilter(self.search_edit.text(), role)
+    
+    
+    def update_search_completer(self, text):
+        # We only load the suggestions a letter at a time when needed.
+        term = str(text).split(" ")[-1]
+        if term:
+            first_letter = term[0]
+            if first_letter not in self.suggestion_letters_loaded:
+                suggestions = QtCore.QStringList() 
+                for s in self.index.suggest(((first_letter,),)): 
+                    #if suggestions.count() % 100 == 0: 
+                    #    QtCore.QCoreApplication.processEvents() 
+                    suggestions.append(s[0])
+                suggestions.sort()
+                self.suggestion_letters_loaded[first_letter] = suggestions
+            else:
+                suggestions = self.suggestion_letters_loaded[first_letter]
+            self.completer_model.setStringList(suggestions)
+        else:
+            self.completer_model.setStringList(QtCore.QStringList() )
     
     def closeEvent (self, QCloseEvent):
         self.changesModel.closing = True
