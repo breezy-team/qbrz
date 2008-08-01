@@ -635,7 +635,8 @@ class LogWindow(QBzrWindow):
             self.search_edit.setCompleter(self.completer)
             self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
                          self.update_search_completer)
-            self.suggestion_letters_loaded = {}
+            self.suggestion_letters_loaded = {"":QtCore.QStringList()}
+            self.suggestion_last_first_letter = ""
             
 
     def update_search(self):
@@ -677,6 +678,11 @@ class LogWindow(QBzrWindow):
         term = str(text).split(" ")[-1]
         if term:
             first_letter = term[0]
+        else:
+            first_letter = ""
+        
+        if first_letter != self.suggestion_last_first_letter:
+            self.suggestion_last_first_letter = first_letter
             if first_letter not in self.suggestion_letters_loaded:
                 suggestions = QtCore.QStringList() 
                 for s in self.index.suggest(((first_letter,),)): 
@@ -688,8 +694,6 @@ class LogWindow(QBzrWindow):
             else:
                 suggestions = self.suggestion_letters_loaded[first_letter]
             self.completer_model.setStringList(suggestions)
-        else:
-            self.completer_model.setStringList(QtCore.QStringList() )
     
     def closeEvent (self, QCloseEvent):
         self.changesModel.closing = True
