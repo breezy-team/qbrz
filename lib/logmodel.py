@@ -45,7 +45,12 @@ COL_MESSAGE = 1
 COL_DATE = 2
 COL_AUTHOR = 3
 
-_bug_id_re = lazy_regex.lazy_compile(r'(?:bugs/|ticket/|show_bug\.cgi\?id=)(\d+)(?:\b|$)')
+_bug_id_re = lazy_regex.lazy_compile(r'(?:'
+    r'bugs/'                    # Launchpad bugs URL
+    r'|ticket/'                 # Trac bugs URL
+    r'|show_bug\.cgi\?id='      # Bugzilla bugs URL
+    r'|issues/show/'            # Redmine bugs URL
+    r')(\d+)(?:\b|$)')
 
 def get_bug_id(branch, bug_url):
     match = _bug_id_re.search(bug_url)
