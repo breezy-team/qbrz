@@ -32,6 +32,7 @@ Register release at Launchpad
 	https://launchpad.net/qbzr/trunk/+addrelease
         
 2. Put info about release from ./NEWS.txt to Description section.
+   You can leave Summary and Changelog sections empty.
 
 
 Build distribution files

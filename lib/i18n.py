@@ -24,9 +24,42 @@ import gettext as _gettext
 import os
 import sys
 
+_translation = None
 
-# Windows does not use $LANG by default
-if sys.platform == 'win32':
+
+def gettext(s):
+    if _translation is not None:
+        return _translation.ugettext(s)
+    return s
+
+
+def ngettext(s, p, n):
+    if _translation is not None:
+        return _translation.ungettext(s, p, n)
+    return s if n == 1 else p
+
+
+def N_(s):
+    return s
+
+
+def install():
+    global _translation
+    if sys.platform == 'win32':
+        _check_win32_locale()
+    _translation = _gettext.translation('qbzr', localedir=_get_locale_dir(), fallback=True)
+
+
+def uninstall():
+    global _translation
+    _translation = None
+
+
+def _get_locale_dir():
+    return os.path.join(os.path.realpath(os.path.dirname(__file__)), '..', 'locale')
+
+
+def _check_win32_locale():
     for i in ('LANGUAGE','LC_ALL','LC_MESSAGES','LANG'):
         if os.environ.get(i):
             break
@@ -51,22 +84,6 @@ if sys.platform == 'win32':
         # set lang code for gettext
         if lang:
             os.environ['LANGUAGE'] = lang
-
-
-d = os.path.join(os.path.realpath(os.path.dirname(__file__)), '..', 'locale')
-t = _gettext.translation('qbzr', localedir=d, fallback=True)
-
-# functions for interface translation
-ngettext = t.ungettext
-gettext = t.ugettext
-N_ = lambda x: x
-
-
-def disable():
-    """Disable translations (e.g. for unit tests)"""
-    global ngettext, gettext
-    ngettext = N_
-    gettext = N_
 
 
 # additional strings for translation

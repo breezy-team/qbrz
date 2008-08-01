@@ -352,11 +352,20 @@ class QBzrDialog(QtGui.QDialog):
         event.accept()
 
 
+_global_config = None
+
+def get_global_config():
+    global _global_config
+    if _global_config is None:
+        _global_config = GlobalConfig()
+    return _global_config
+
+
 def get_branch_config(branch):
     if branch is not None:
         return branch.get_config()
     else:
-        return GlobalConfig()
+        return get_global_config()
 
 
 def quote_tag(tag):
@@ -503,17 +512,6 @@ def get_set_encoding(encoding, config):
     else:
         config.set_user_option("encoding", encoding)
     return encoding
-
-
-def get_qlog_replace(branch):
-    config = branch.get_config()
-    replace = config.get_user_option("qlog_replace")
-    if replace:
-        replace = replace.split("\n")
-        replace = [tuple(replace[2*i:2*i+2])
-                   for i in range(len(replace) // 2)]
-    return replace
-
 
 class RevisionMessageBrowser(QtGui.QTextBrowser):
 

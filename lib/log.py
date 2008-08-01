@@ -18,12 +18,18 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
+from bzrlib.bzrdir import (
+    BzrDir,
+    errors,
+    )
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
+    BTN_REFRESH,
     QBzrWindow,
+    StandardButton,
     format_revision_html,
     format_timestamp,
     open_browser,
@@ -47,6 +53,9 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
     _bugColor = QtGui.QColor(255, 188, 188)
     _bugColorBorder = QtGui.QColor(255, 79, 79)
 
+    _branchTagColor = QtGui.QColor(188, 188, 255)
+    _branchTagColorBorder = QtGui.QColor(79, 79, 255)
+
     _twistyColor = QtCore.Qt.black
 
     def paint(self, painter, option, index):
@@ -66,16 +75,18 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
             self.drawGraph = False
         
         self.labels = []
+        # collect branch tags
+        for tag in index.data(logmodel.BranchTagsRole).toStringList():
+            self.labels.append(
+                (tag, self._branchTagColor, self._branchTagColorBorder))
         # collect tag names
-        for tag in index.data(logmodel.TagsRole).toList():
+        for tag in index.data(logmodel.TagsRole).toStringList():
             self.labels.append(
-                (tag.toString(), self._tagColor,
-                 self._tagColorBorder))
+                (tag, self._tagColor, self._tagColorBorder))
         # collect bug ids
-        for bug in index.data(logmodel.BugIdsRole).toList():
+        for bug in index.data(logmodel.BugIdsRole).toStringList():
             self.labels.append(
-                (bug.toString(), self._bugColor,
-                 self._bugColorBorder))
+                (bug, self._bugColor, self._bugColorBorder))
         QtGui.QItemDelegate.paint(self, painter, option, index)
     
     def get_color(self, color, back):
@@ -216,20 +227,126 @@ class Compleater(QtGui.QCompleter):
     def splitPath (self, path):
         return path.split(" ")
 
+def load_locataions(locataions_list):
+    if locataions_list is None:
+        locations = ["."]
+    else:
+        locations = locataions_list
+    
+    file_ids = []
+    # First branch found. Used for get_config and to check that the same
+    # branch is specified when a file path is speciffied.
+    main_branch = None
+    rev_ids = {}
+    paths_and_branches_err = "It is not possible to specify different file paths and different branchs at the same time."
+    
+    def append_tag_to_revid(revid, tag):
+        if not revid in rev_ids:
+            rev_ids[revid] = (len(rev_ids), [])
+        if tag:
+            rev_ids[revid][1].append (tag)
+    
+    def append_location(tree, br, repo, fp, tag, main_branch):
+        if main_branch is None:
+            main_branch = br
+        
+        # XXX It would be nice to overcome this. The problem is how to
+        # combinded the results from  graph.iter_ancestry(start_revs)
+        # bzr-gtk doesn't check for this. It works if the revisions
+        # happend to be in the repo, but fails without warning if they
+        # are not.
+        # Maybe one way to solve this is to pull the missing revisions
+        # into the first branch.
+        if not main_branch.repository.base == br.repository.base:
+            raise errors.BzrCommandError("Branches must be in a shared repository.")
+        
+        branch_last_revision = br.last_revision()
+        append_tag_to_revid(branch_last_revision, tag)
+        
+        if tree:
+            for revid in tree.get_parent_ids():
+                if revid!=branch_last_revision:
+                    if tag:
+                        append_tag_to_revid(revid, ("%s - Pending Merge" % tag))
+                    else:
+                        append_tag_to_revid(revid, "Pending Merge")
+        
+        if fp != '' : 
+            if tree is None:
+                tree = br.basis_tree()
+            file_id = tree.path2id(fp)
+            if file_id is None:
+                raise errors.BzrCommandError(
+                    "Path does not have any revision history: %s" %
+                    location)
+            file_ids.append(file_id)
+            if not main_branch.base == br.base:
+                raise errors.BzrCommandError(paths_and_branches_err)
+        return main_branch
+    
+    for location in locations:
+        tree, br, repo, fp = BzrDir.open_containing_tree_branch_or_repository(
+            location)
+        
+        if len(locations) == 1:
+            if br == None:
+                for br in repo.find_branches(using=True):
+                    tag = br.nick
+                    # We don't have ref to the working tree,
+                    # so we won't show pending merges.
+                    # XXX Get ref to working tree.
+                    main_branch = append_location(None, br, repo, '', tag,
+                                                  main_branch)
+                continue
+        
+        # We can only load one repo
+        if br == None:
+            raise errors.NotBranchError(path=location)
+        
+        # If no locations were sepecified, don't do file_ids
+        # Otherwise it gives you the history for the dir if you are
+        # in a sub dir.
+        if fp != '' and locations_list:
+            fp = ''
+        
+        if len(locations) == 1:
+            tag = None
+        else:
+            tag = br.nick
+        
+        main_branch = append_location(tree, br, repo, fp, tag, main_branch)
+
+    
+    if file_ids and len(file_ids)<>len(locations_list):
+        raise errors.BzrCommandError(paths_and_branches_err)
+    
+    return (main_branch, rev_ids, file_ids)
+
 class LogWindow(QBzrWindow):
-
-    def __init__(self, branch, location, specific_fileid, replace=None, parent=None):
+    
+    def __init__(self, locations, branch, specific_fileids, parent=None):
         title = [gettext("Log")]
-        self.branch = branch
-
-        if location:
-            title.append(location)
+        if locations and not locations==["."]:
+            title.append(", ".join(locations).rstrip(", "))
         QBzrWindow.__init__(self, title, parent)
         self.restoreSize("log", (710, 580))
-        self.specific_fileid = specific_fileid
-
-        self.replace = replace
-        self.revisions = {}
+        
+        if branch:
+            self.branch = branch
+            self.specific_fileids = specific_fileids
+            self.start_revids = None
+        else:
+            self.locations = locations
+            (self.branch,
+             self.start_revids, 
+             self.specific_fileids) = load_locataions(locations)
+        
+        config = self.branch.get_config()
+        self.replace = config.get_user_option("qlog_replace")
+        if self.replace:
+            self.replace = self.replace.split("\n")
+            self.replace = [tuple(self.replace[2*i:2*i+2])
+                            for i in range(len(self.replace) // 2)]
 
         self.changesModel = logmodel.GraphModel()
 
@@ -285,7 +402,8 @@ class LogWindow(QBzrWindow):
         self.changesList.setModel(self.changesProxyModel)
         self.changesList.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
         self.changesList.setUniformRowHeights(True)
-        self.changesList.setAllColumnsShowFocus(True)
+        if self.style().objectName() != 'gtk':
+            self.changesList.setAllColumnsShowFocus(True)
         self.changesList.setRootIsDecorated (False)
         self.changesList.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         header = self.changesList.header()
@@ -299,6 +417,11 @@ class LogWindow(QBzrWindow):
         header.resizeSection(logmodel.COL_AUTHOR, 150)
 
         logbox.addWidget(self.changesList)
+
+        self.revision_delta_timer = QtCore.QTimer(self)
+        self.revision_delta_timer.setSingleShot(True)
+        self.connect(self.revision_delta_timer, QtCore.SIGNAL("timeout()"),
+                     self.update_revision_delta)
 
         self.current_rev = None
         self.connect(self.changesList.selectionModel(),
@@ -347,6 +470,11 @@ class LogWindow(QBzrWindow):
         splitter.setStretchFactor(1, 3)
 
         buttonbox = self.create_button_box(BTN_CLOSE)
+        refresh = StandardButton(BTN_REFRESH)
+        buttonbox.addButton(refresh, QtGui.QDialogButtonBox.ActionRole)
+        self.connect(refresh,
+                     QtCore.SIGNAL("clicked()"),
+                     self.refresh)
 
         self.diffbutton = QtGui.QPushButton(gettext('Diff'),
             self.centralwidget)
@@ -354,7 +482,10 @@ class LogWindow(QBzrWindow):
         self.connect(self.diffbutton, QtCore.SIGNAL("clicked(bool)"), self.diff_pushed)
 
         self.contextMenu = QtGui.QMenu(self)
-        self.contextMenu.addAction(gettext("Show tree..."), self.show_revision_tree)
+        self.show_diff_action = self.contextMenu.addAction(
+            gettext("Show &differences..."), self.diff_pushed)
+        self.contextMenu.addAction(gettext("Show &tree..."), self.show_revision_tree)
+        self.contextMenu.setDefaultAction(self.show_diff_action)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)
@@ -381,52 +512,52 @@ class LogWindow(QBzrWindow):
         else:
             open_browser(str(url.toEncoded()))
 
+    def update_revision_delta(self):
+        rev = self.current_rev
+        if not hasattr(rev, 'delta'):
+            # TODO move this to a thread
+            self.branch.repository.lock_read()
+            try:
+                rev.delta = self.branch.repository.get_deltas_for_revisions(
+                    [rev]).next()
+            finally:
+                self.branch.repository.unlock()
+        if self.current_rev is not rev:
+            # new update was requested, don't bother populating the list
+            return
+        delta = rev.delta
+
+        for path, id_, kind in delta.added:
+            item = QtGui.QListWidgetItem(path, self.fileList)
+            item.setTextColor(QtGui.QColor("blue"))
+
+        for path, id_, kind, text_modified, meta_modified in delta.modified:
+            item = QtGui.QListWidgetItem(path, self.fileList)
+
+        for path, id_, kind in delta.removed:
+            item = QtGui.QListWidgetItem(path, self.fileList)
+            item.setTextColor(QtGui.QColor("red"))
+
+        for (oldpath, newpath, id_, kind,
+            text_modified, meta_modified) in delta.renamed:
+            item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
+            item.setData(PathRole, QtCore.QVariant(newpath))
+            item.setTextColor(QtGui.QColor("purple"))
 
     def update_selection(self, selected, deselected):
         indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
+        self.fileList.clear()
         if not indexes:
             self.diffbutton.setEnabled(False)
             self.message.setHtml("")
-            self.fileList.clear()
         else:
             self.diffbutton.setEnabled(True)
             index = indexes[0]
             revid = str(index.data(logmodel.RevIdRole).toString())
             rev = self.changesModel.revision(revid)
             self.current_rev = rev
-    
             self.message.setHtml(format_revision_html(rev, self.replace))
-    
-            #print children
-    
-            self.fileList.clear()
-        
-            if not hasattr(rev, 'delta'):
-                # TODO move this to a thread
-                self.branch.repository.lock_read()
-                try:
-                    rev.delta = self.branch.repository.get_deltas_for_revisions(
-                        [rev]).next()
-                finally:
-                    self.branch.repository.unlock()
-            delta = rev.delta
-    
-            for path, id_, kind in delta.added:
-                item = QtGui.QListWidgetItem(path, self.fileList)
-                item.setTextColor(QtGui.QColor("blue"))
-    
-            for path, id_, kind, text_modified, meta_modified in delta.modified:
-                item = QtGui.QListWidgetItem(path, self.fileList)
-    
-            for path, id_, kind in delta.removed:
-                item = QtGui.QListWidgetItem(path, self.fileList)
-                item.setTextColor(QtGui.QColor("red"))
-    
-            for (oldpath, newpath, id_, kind,
-                text_modified, meta_modified) in delta.renamed:
-                item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
-                item.setData(PathRole, QtCore.QVariant(newpath))
-                item.setTextColor(QtGui.QColor("purple"))
+            self.revision_delta_timer.start(1)
 
     def show_diff_window(self, rev1, rev2, specific_files=None):
         self.branch.repository.lock_read()
@@ -465,7 +596,7 @@ class LogWindow(QBzrWindow):
             rev = self.current_rev
             self.show_diff_window(rev, rev, [unicode(path)])
 
-    def diff_pushed(self, checked):
+    def diff_pushed(self):
         """Show differences of the selected range or of a single revision"""
         indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
         if not indexes:
@@ -477,9 +608,18 @@ class LogWindow(QBzrWindow):
         rev2 = self.changesModel.revision(revid2)
         self.show_diff_window(rev1, rev2)
 
+    def refresh(self):
+        if "locations" in dir(self):
+            (self.branch,
+             self.start_revids, 
+             self.specific_fileids) = load_locataions(self.locations)
+        self.load_history()
+    
     def load_history(self):
         """Load branch history."""
-        self.changesModel.loadBranch(self.branch, specific_fileid = self.specific_fileid)
+        self.changesModel.loadBranch(self.branch,
+                                     start_revs = self.start_revids,
+                                     specific_fileids = self.specific_fileids)
         if have_search:
             try:
                 self.index = search_index.open_index_branch(self.branch)
@@ -508,7 +648,7 @@ class LogWindow(QBzrWindow):
                       search_text.length() > 0
         self.changesModel.set_search_mode(search_mode)
         if role == logmodel.FilterIdRole:
-            self.changesProxyModel.clearSearch()
+            self.changesProxyModel.setFilter(u"", self.old_filter_role)
             search_text = str(search_text)
             if self.changesModel.has_rev_id(search_text):
                 self.changesModel.ensure_rev_visible(search_text)
@@ -516,7 +656,7 @@ class LogWindow(QBzrWindow):
                 index = self.changesProxyModel.mapFromSource(index)
                 self.changesList.setCurrentIndex(index)
         elif role == logmodel.FilterRevnoRole:
-            self.changesProxyModel.clearSearch()
+            self.changesProxyModel.setFilter(u"", self.old_filter_role)
             try:
                 revno = tuple((int(number) for number in str(search_text).split('.')))
             except ValueError:
@@ -577,7 +717,8 @@ class LogWindow(QBzrWindow):
         QtGui.QTreeView.mouseReleaseEvent(self.changesList, e)
     
     def changesList_keyPressEvent (self, e):
-        if e.key() == QtCore.Qt.Key_Left or e.key() == QtCore.Qt.Key_Right:
+        e_key = e.key()
+        if e_key in (QtCore.Qt.Key_Left, QtCore.Qt.Key_Right):
             e.accept()
             indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
             if not indexes:
@@ -600,5 +741,8 @@ class LogWindow(QBzrWindow):
             newindex = self.changesModel.indexFromRevId(revision_id)
             newindex = self.changesProxyModel.mapFromSource(newindex)
             self.changesList.setCurrentIndex(newindex)
+        elif e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
+            e.accept()
+            self.diff_pushed()
         else:
             QtGui.QTreeView.keyPressEvent(self.changesList, e)

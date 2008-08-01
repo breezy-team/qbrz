@@ -35,6 +35,8 @@ from bzrlib.commands import Command, register_command
 from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
 
+from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
+from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
@@ -44,43 +46,11 @@ from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     format_timestamp,
     get_apparent_author,
+    get_global_config,
     )
 
 
-_python_identifier_re = re.compile(r"(?:def|class)\s+(\w+)")
-_python_variable_re = re.compile(r"(\w+)\s*=\s*")
-
-def python_word_list_builder(file):
-    for line in file:
-        match = _python_identifier_re.search(line)
-        if match:
-            yield match.group(1)
-        match = _python_variable_re.search(line)
-        if match:
-            yield match.group(1)
-
-
-_cpp_identifier_re = re.compile(r"(?:class|typedef|struct|union|namespace)\s+(\w+)")
-_cpp_member_re = re.compile(r"::\s*(\w+)\s*\(")
-
-def cpp_header_word_list_builder(file):
-    for line in file:
-        match = _cpp_identifier_re.search(line)
-        if match:
-            yield match.group(1)
-
-def cpp_source_word_list_builder(file):
-    for line in file:
-        match = _cpp_member_re.search(line)
-        if match:
-            yield match.group(1)
-
-
-_word_list_builders = {
-    ".py": python_word_list_builder,
-    ".cpp": cpp_source_word_list_builder,
-    ".h": cpp_header_word_list_builder,
-}
+MAX_AUTOCOMPLETE_FILES = 20
 
 
 class TextEdit(QtGui.QTextEdit):
@@ -188,15 +158,13 @@ class CommitWindow(QBzrWindow):
         self.pending_merges = repo.get_revisions(pending_merges)
         self.is_bound = bool(branch.get_bound_location())
 
-    def __init__(self, tree, selected_list, dialog=True, parent=None):
+    def __init__(self, tree, selected_list, dialog=True, parent=None, local=None, message=None):
         title = [gettext("Commit")]
         QBzrWindow.__init__(self, title, parent)
         self.restoreSize("commit", (540, 540))
         if dialog:
-            flags = QtCore.Qt.Dialog | QtCore.Qt.WindowContextHelpButtonHint
-        else:
-            flags = QtCore.Qt.Window | QtCore.Qt.WindowContextHelpButtonHint
-        self.setWindowFlags(flags)
+            flags = (self.windowFlags() & ~QtCore.Qt.Window) | QtCore.Qt.Dialog
+            self.setWindowFlags(flags)
 
         self.tree = tree
         self.basis_tree = self.tree.basis_tree()
@@ -209,6 +177,7 @@ class CommitWindow(QBzrWindow):
             tree.unlock()
 
         # Get information about modified files
+        num_versioned_files = 0
         files = []
         delta = self.tree.changes_from(self.basis_tree)
         for path, id_, kind in delta.added:
@@ -237,20 +206,25 @@ class CommitWindow(QBzrWindow):
         for entry in tree.unknowns():
             ext = file_extension(entry)
             files.append((gettext("non-versioned"), entry, ext, entry, False))
+            num_versioned_files -= 1
+        num_versioned_files += len(files)
 
         # Build a word list for message completer
-        words = []
+        words = set()
         for status, name, ext, path, versioned in files:
             if not versioned:
                 continue
-            words.extend(os.path.split(path))
-            if ext in _word_list_builders:
+            words.update(os.path.split(path))
+            if num_versioned_files > MAX_AUTOCOMPLETE_FILES:
+                continue
+            builder = get_wordlist_builder(ext)
+            if builder is not None:
                 try:
                     file = open(path, 'rt')
-                    words.extend(_word_list_builders[ext](file))
+                    words.update(builder.iter_words(file))
                 except EnvironmentError:
                     pass
-        words = list(set(words))
+        words = list(words)
         words.sort(lambda a, b: cmp(a.lower(), b.lower()))
 
         # To set focus on splitter below one need to pass
@@ -275,7 +249,14 @@ class CommitWindow(QBzrWindow):
         completer.setModel(QtGui.QStringListModel(words, completer))
         self.message.setCompleter(completer)
         self.message.setAcceptRichText(False)
+
+        language = get_global_config().get_user_option('spellcheck_language') or 'en'
+        spell_checker = SpellChecker(language)
+        spell_highlighter = SpellCheckHighlighter(self.message.document(), spell_checker)
+
         self.restore_message()
+        if message:
+            self.message.setText(message)
         grid.addWidget(self.message, 0, 0, 1, 2)
 
         # Equivalent for 'bzr commit --fixes'
@@ -317,6 +298,8 @@ class CommitWindow(QBzrWindow):
                 "Local commits are not pushed to the master branch "
                 "until a normal commit is performed"))
             grid.addWidget(self.local_checkbox, 3, 0, 1, 2)
+            if local:
+                self.local_checkbox.setChecked(True)
 
         # Display a list of pending merges
         if self.pending_merges:
@@ -324,6 +307,7 @@ class CommitWindow(QBzrWindow):
             splitter.addWidget(groupbox)
 
             pendingMergesWidget = QtGui.QTreeWidget(groupbox)
+            pendingMergesWidget.setRootIsDecorated(False)
             pendingMergesWidget.setHeaderLabels(
                 [gettext("Date"), gettext("Author"), gettext("Message")])
             header = pendingMergesWidget.header()
@@ -333,8 +317,9 @@ class CommitWindow(QBzrWindow):
                 QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
                 self.show_changeset)
 
+            items = []
             for merge in self.pending_merges:
-                item = QtGui.QTreeWidgetItem(pendingMergesWidget)
+                item = QtGui.QTreeWidgetItem()
                 item.setText(0, format_timestamp(merge.timestamp))
                 item.setText(1, get_apparent_author(merge))
                 item.setText(2, merge.get_summary())
@@ -342,6 +327,8 @@ class CommitWindow(QBzrWindow):
                              QtCore.QVariant(merge.revision_id))
                 item.setData(0, self.ParentIdRole,
                              QtCore.QVariant(merge.parent_ids[0]))
+                items.append(item)
+            pendingMergesWidget.insertTopLevelItems(0, items)
 
             vbox = QtGui.QVBoxLayout(groupbox)
             vbox.addWidget(pendingMergesWidget)
@@ -366,29 +353,36 @@ class CommitWindow(QBzrWindow):
                      QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
                      self.show_differences)
 
-        self.filelist.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+        self.filelist.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.connect(self.filelist,
                      QtCore.SIGNAL("itemSelectionChanged()"),
                      self.update_context_menu_actions)
+        self.connect(self.filelist,
+                     QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
+                     self.show_context_menu)
 
-        self.revert_action = QtGui.QAction(gettext("&Revert..."), self)
-        self.connect(self.revert_action, QtCore.SIGNAL("triggered()"), self.revert_selected)
-        self.filelist.addAction(self.revert_action)
-
-        self.show_diff_action = QtGui.QAction(gettext("Show &Differences..."),
-                                              self)
-        self.connect(self.show_diff_action, QtCore.SIGNAL("triggered()"), self.show_differences)
-        self.filelist.addAction(self.show_diff_action)
+        self.context_menu = QtGui.QMenu(self.filelist)
+        self.show_diff_action = self.context_menu.addAction(
+            gettext("Show &differences..."), self.show_differences)
+        self.context_menu.setDefaultAction(self.show_diff_action)
+        self.revert_action = self.context_menu.addAction(
+            gettext("&Revert..."), self.revert_selected)
 
         vbox = QtGui.QVBoxLayout(groupbox)
         vbox.addWidget(self.filelist)
-
-        hbox = QtGui.QVBoxLayout()
         self.show_nonversioned_checkbox = QtGui.QCheckBox(
             gettext("Show non-versioned files"))
         self.connect(self.show_nonversioned_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_nonversioned)
-        hbox.addWidget(self.show_nonversioned_checkbox)
-        vbox.addLayout(hbox)
+        vbox.addWidget(self.show_nonversioned_checkbox)
+        self._ignore_select_all_changes = False
+        self.select_all_checkbox = QtGui.QCheckBox(
+            gettext("Select / deselect all"))
+        self.select_all_checkbox.setTristate(True)
+        self.select_all_checkbox.setCheckState(QtCore.Qt.Checked)
+        if self.pending_merges:
+            self.select_all_checkbox.setEnabled(False)
+        self.connect(self.select_all_checkbox, QtCore.SIGNAL("stateChanged(int)"), self.select_all_files)
+        vbox.addWidget(self.select_all_checkbox)
 
         def in_selected_list(path):
             if not selected_list:
@@ -419,6 +413,12 @@ class CommitWindow(QBzrWindow):
 
         self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
         self.show_nonversioned(self.show_nonversioned_checkbox.isChecked())
+
+        self.connect(self.filelist,
+                     QtCore.SIGNAL("itemChanged(QTreeWidgetItem *, int)"),
+                     self.update_selected_files)
+        if not self.pending_merges:
+            self.update_selected_files(None, None)
 
         splitter.setStretchFactor(0, 3)
         splitter.setStretchFactor(1, 4)
@@ -577,6 +577,8 @@ class CommitWindow(QBzrWindow):
 
     def show_differences(self, items=None, column=None):
         """Show differences between the working copy and the last revision."""
+        if not self.show_diff_action.isEnabled():
+            return
         if items is None:
             items = self.filelist.selectedItems()
             if not items:
@@ -601,6 +603,7 @@ class CommitWindow(QBzrWindow):
         state = not state
         for item in self.unknowns:
             item.setHidden(state)
+        self.update_selected_files(None, None)
 
     def revert_selected(self):
         """Revert the selected file."""
@@ -623,6 +626,9 @@ class CommitWindow(QBzrWindow):
                     index = self.filelist.indexOfTopLevelItem(item)
                     self.filelist.takeTopLevelItem(index)
 
+    def show_context_menu(self, pos):
+        self.context_menu.popup(self.filelist.viewport().mapToGlobal(pos))
+
     def update_context_menu_actions(self):
         contains_non_versioned = False
         files = (self.item_to_file[i] for i in self.filelist.selectedItems())
@@ -636,3 +642,35 @@ class CommitWindow(QBzrWindow):
     def closeEvent(self, event):
         self.f_on_close()   # either save_message or clear_saved_message
         return QBzrWindow.closeEvent(self, event)
+
+    def update_selected_files(self, item, column):
+        if self.pending_merges:
+            return
+        checked = 0
+        num_items = self.filelist.topLevelItemCount()
+        for i in range(num_items):
+            item = self.filelist.topLevelItem(i)
+            if item.isHidden():
+                num_items -= 1
+            elif item.checkState(0) == QtCore.Qt.Checked:
+                checked += 1
+        self._ignore_select_all_changes = True
+        if checked == 0:
+            self.select_all_checkbox.setCheckState(QtCore.Qt.Unchecked)
+        elif checked == num_items:
+            self.select_all_checkbox.setCheckState(QtCore.Qt.Checked)
+        else:
+            self.select_all_checkbox.setCheckState(QtCore.Qt.PartiallyChecked)
+        self._ignore_select_all_changes = False
+
+    def select_all_files(self, state):
+        if self._ignore_select_all_changes:
+            return
+        if state == QtCore.Qt.PartiallyChecked:
+            self.select_all_checkbox.setCheckState(QtCore.Qt.Checked)
+            return
+        num_items = self.filelist.topLevelItemCount()
+        for i in range(num_items):
+            item = self.filelist.topLevelItem(i)
+            if not item.isHidden():
+                item.setCheckState(0, QtCore.Qt.CheckState(state))

@@ -35,7 +35,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     extract_name,
     format_timestamp,
-    get_qlog_replace,
     )
 
 
@@ -80,11 +79,14 @@ class BrowseWindow(QBzrWindow):
         self.file_tree.setHeaderLabels(
             [gettext("Name"), gettext("Date"),
              gettext("Author"), gettext("Message")])
+        header = self.file_tree.header()
+        header.setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
 
         self.context_menu = QtGui.QMenu(self.file_tree)
         self.context_menu.addAction(gettext("Show log..."), self.show_file_log)
-        self.context_menu.addAction(gettext("View file"),
-                                    self.show_file_content)
+        self.context_menu.setDefaultAction(
+            self.context_menu.addAction(gettext("View file"),
+                                        self.show_file_content))
 
         self.connect(self.file_tree,
                      QtCore.SIGNAL("doubleClicked(QModelIndex)"),
@@ -175,7 +177,7 @@ class BrowseWindow(QBzrWindow):
         branch = self.branch
         file_id = branch.basis_tree().path2id(path)
 
-        window = LogWindow(branch, path, file_id, get_qlog_replace(branch))
+        window = LogWindow(path, branch, [file_id])
         window.show()
         self.windows.append(window)
 
