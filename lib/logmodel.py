@@ -341,14 +341,11 @@ class TreeModel(QtCore.QAbstractTableModel):
                         parent_msri = self.revid_msri[parent_revid]
                         parent_branch_id = \
                             self.merge_sorted_revisions[parent_msri][3][0:-1]
-                        
-                        if not parent_branch_id == branch_id and \
-                           not parent_branch_id == () and \
-                           (
-                            len(branch_children)>1
-                            or
-                            not list(branch_children)[0] == parent_branch_id
-                           ):
+                        parent_merge_depth = self.merge_sorted_revisions[parent_msri][2]
+
+                        if (parent_branch_id != branch_id and  # Different Branch
+                            (parent_merge_depth >= merge_depth or # Parent branch is deeeper
+                             not self.branch_lines[parent_branch_id])): # Parent branch is not visible
                             self.linegraphdata[rev_index][4].append (parent_branch_id)
                         
                         if revno_sequence[-1] == 1 or \
