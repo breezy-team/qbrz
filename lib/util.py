@@ -414,13 +414,15 @@ def format_revision_html(rev, search_replace=None):
         props.append((ngettext("Bug:", "Bugs:", len(bugs)), ", ".join(bugs)))
 
     text = []
-    text.append('<table style="background:#EDEDED;" width="100%" cellspacing="0" cellpadding="0">')
+    text.append('<table style="background:#EDEDED;" width="100%" cellspacing="0" cellpadding="0"><tr><td>')
+    text.append('<table cellspacing="0" cellpadding="0">')
     for prop in props:
         # <nobr> needed because in Russian some prop labels has 2 words
         # &nbsp; needed because on Windows + PyQt 4.3.1 style=padding-left:5px does not working
-        text.append(('<tr><td style="padding-left:2px" align="right" width="1%%"><nobr><b>%s&nbsp;</b></nobr></td>'
+        text.append(('<tr><td style="padding-left:2px;" align="right"><b><nobr>%s </nobr></b></td>'
             '<td>%s</td></tr>') % prop)
     text.append('</table>')
+    text.append('</td></tr></table>')
 
     message = htmlize(rev.message)
     if search_replace:
