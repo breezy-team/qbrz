@@ -1,0 +1,691 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: qbzr\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-07-23 22:56+0300\n"
+"PO-Revision-Date: 2008-08-07 02:54+0900\n"
+"Last-Translator: HAYASHI Kentaro <kenhys@gigo-ice.org>\n"
+"Language-Team: Japanese <ja@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: lib\annotate.py:45
+msgid "Annotate"
+msgstr "注釈"
+
+#: lib\annotate.py:59
+msgid "Line"
+msgstr "行"
+
+#: lib\annotate.py:59
+#: lib\annotate.py:75
+#: lib\browse.py:82
+#: lib\commit.py:325
+#: lib\logmodel.py:65
+msgid "Author"
+msgstr "著者"
+
+#: lib\annotate.py:59
+#: lib\logmodel.py:62
+msgid "Rev"
+msgstr "リビジョン"
+
+#: lib\annotate.py:75
+#: lib\browse.py:81
+#: lib\commit.py:325
+#: lib\logmodel.py:64
+msgid "Date"
+msgstr "日付"
+
+#: lib\annotate.py:75
+msgid "Summary"
+msgstr "要約"
+
+#: lib\browse.py:60
+#: lib\browse.py:196
+#: lib\browse.py:231
+msgid "Browse"
+msgstr "ブラウズ"
+
+#: lib\browse.py:66
+msgid "Location:"
+msgstr "ロケーション："
+
+#: lib\browse.py:71
+#: lib\util.py:368
+msgid "Revision:"
+msgstr "リビジョン："
+
+#: lib\browse.py:74
+msgid "Show"
+msgstr "表示"
+
+#: lib\browse.py:81
+#: lib\main.py:359
+msgid "Name"
+msgstr "名前"
+
+#: lib\browse.py:82
+#: lib\commit.py:264
+#: lib\commit.py:325
+#: lib\logmodel.py:63
+msgid "Message"
+msgstr "メッセージ"
+
+#: lib\browse.py:85
+msgid "Show log..."
+msgstr "ログを表示..."
+
+#: lib\browse.py:86
+msgid "View file"
+msgstr "ファイルを表示"
+
+#: lib\cat.py:73
+msgid "View "
+msgstr "表示"
+
+#: lib\cat.py:155
+msgid "View File"
+msgstr "ファイルを表示"
+
+#: lib\cat.py:156
+#, python-format
+msgid "File \"%s\" not found in the specified revision."
+msgstr "ファイル \"%s\" はこのリビジョンには存在しません。"
+
+#: lib\commit.py:189
+#: lib\commit.py:492
+#: lib\commit.py:506
+#: lib\commit.py:544
+msgid "Commit"
+msgstr "コミット"
+
+#: lib\commit.py:214
+#: lib\diff.py:171
+msgid "added"
+msgstr "追加された"
+
+#: lib\commit.py:218
+#: lib\diff.py:169
+msgid "removed"
+msgstr "削除された"
+
+#: lib\commit.py:224
+#: lib\diff.py:173
+msgid "renamed and modified"
+msgstr "名前の変更と修正された"
+
+#: lib\commit.py:226
+#: lib\diff.py:175
+msgid "renamed"
+msgstr "名前が変更"
+
+#: lib\commit.py:233
+#: lib\diff.py:177
+msgid "modified"
+msgstr "修正された"
+
+#: lib\commit.py:236
+msgid "non-versioned"
+msgstr "バージョン管理下にない"
+
+#: lib\commit.py:270
+msgid "Enter the commit message"
+msgstr "コミットメッセージを入力してください。"
+
+#: lib\commit.py:279
+msgid "&Fixed bugs:"
+msgstr "修正されたバグ(&F)："
+
+#: lib\commit.py:280
+msgid "Set the IDs of bugs fixed by this commit"
+msgstr "このコミットにより修正されるバグのIDを設定"
+
+#: lib\commit.py:283
+msgid "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. <i>project:123 project:765</i>"
+msgstr ""
+
+#: lib\commit.py:293
+msgid "&Author:"
+msgstr "著者(&A)："
+
+#: lib\commit.py:294
+msgid "Set the author of this change, if it's different from the committer"
+msgstr ""
+
+#: lib\commit.py:297
+msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
+msgstr "著者の名前を入力してください。(例：<i>John Doe &lt;jdoe@example.com&gt;</i>)"
+
+#: lib\commit.py:312
+msgid "&Local commit in a bound branch"
+msgstr ""
+
+#: lib\commit.py:314
+msgid "Local commits are not pushed to the master branch until a normal commit is performed"
+msgstr "通常のコミットが行われるまで、ローカルコミットはマスターブランチへと送られることはありません"
+
+#: lib\commit.py:320
+msgid "Pending Merges"
+msgstr "マージ保留"
+
+#: lib\commit.py:345
+msgid "Changes"
+msgstr "変更点"
+
+#: lib\commit.py:353
+msgid "File"
+msgstr "ファイル"
+
+#: lib\commit.py:353
+msgid "Extension"
+msgstr "拡張"
+
+#: lib\commit.py:353
+#: lib\main.py:361
+#: lib\ui_branch.py:90
+#: lib\ui_pull.py:90
+#: lib\ui_push.py:93
+msgid "Status"
+msgstr "状態"
+
+#: lib\commit.py:366
+msgid "&Revert..."
+msgstr "元に戻す(&R)..."
+
+#: lib\commit.py:370
+msgid "Show &Differences..."
+msgstr "差分を表示(&D)..."
+
+#: lib\commit.py:380
+msgid "Show non-versioned files"
+msgstr "バージョン管理下にないファイルを表示"
+
+#: lib\commit.py:493
+msgid "Empty commit message. Do you really want to commit?"
+msgstr "コミットメッセージが空です。本当にコミットしますか？"
+
+#: lib\commit.py:599
+#: lib\commit.py:608
+msgid "Revert"
+msgstr "元に戻す"
+
+#: lib\commit.py:600
+msgid "Do you really want to revert the selected file(s)?"
+msgstr "選択したファイルを本当に元に戻しますか？"
+
+#: lib\config.py:40
+msgid "Default"
+msgstr "デフォルト"
+
+#: lib\config.py:41
+msgid "Thunderbird"
+msgstr "Thunderbird"
+
+#: lib\config.py:42
+msgid "Evolution"
+msgstr "Evolution"
+
+#: lib\config.py:43
+msgid "KMail"
+msgstr "KMail"
+
+#: lib\config.py:44
+msgid "Mutt"
+msgstr "Mutt"
+
+#: lib\config.py:45
+msgid "XDG e-mail client"
+msgstr "XDG e-mail クライアント"
+
+#: lib\config.py:46
+msgid "MAPI e-mail client"
+msgstr "MAPI　Eメールクライアント"
+
+#: lib\config.py:47
+msgid "Editor"
+msgstr "エディタ"
+
+#: lib\config.py:56
+msgid "Configuration"
+msgstr "設定"
+
+#: lib\config.py:66
+#: lib\ui_bookmark.py:58
+msgid "&Name:"
+msgstr "名前(&N)："
+
+#: lib\config.py:72
+msgid "E-&mail:"
+msgstr "Eメール(&E)："
+
+#: lib\config.py:78
+msgid "&Editor:"
+msgstr "エディタ(&E)："
+
+#: lib\config.py:86
+msgid "E-mail &client:"
+msgstr "Eメールクライアント(&C)："
+
+#: lib\config.py:96
+msgid "Alias"
+msgstr "エイリアス"
+
+#: lib\config.py:96
+msgid "Command"
+msgstr "コマンド"
+
+#: lib\config.py:98
+#: lib\config.py:119
+msgid "Add"
+msgstr "追加"
+
+#: lib\config.py:101
+#: lib\config.py:122
+msgid "Remove"
+msgstr "削除"
+
+#: lib\config.py:117
+msgid "Abbreviation"
+msgstr "略記"
+
+#: lib\config.py:117
+msgid "URL"
+msgstr "URL"
+
+#: lib\config.py:136
+msgid "General"
+msgstr "一般"
+
+#: lib\config.py:137
+msgid "Aliases"
+msgstr "エイリアス"
+
+#: lib\config.py:138
+msgid "Bug Trackers"
+msgstr "バグトラッカー"
+
+#: lib\diff.py:56
+#: lib\log.py:362
+msgid "Diff"
+msgstr "差分"
+
+#: lib\diff.py:63
+#, python-format
+msgid "%d file"
+msgid_plural "%d ファイル"
+msgstr[0] "%dファイル"
+msgstr[1] "%dファイル"
+
+#: lib\diff.py:95
+msgid "Side by side"
+msgstr "並べて表示"
+
+#: lib\diff.py:102
+msgid "Unidiff"
+msgstr "Unified形式で表示"
+
+#: lib\diffview.py:226
+msgid "Last modified:"
+msgstr "最終更新："
+
+#: lib\diffview.py:227
+msgid "Status:"
+msgstr "状態："
+
+#: lib\diffview.py:228
+msgid "Kind:"
+msgstr "種類："
+
+#: lib\diffview.py:229
+msgid "Properties:"
+msgstr "プロパティ："
+
+#: lib\diffview.py:368
+msgid "[binary file]"
+msgstr "[バイナリファイル]"
+
+#: lib\diffview.py:513
+msgid "\\ No newline at end of file"
+msgstr "\\ ファイル終端に改行がない"
+
+#: lib\i18n.py:75
+msgid "file"
+msgstr "ファイル"
+
+#: lib\i18n.py:76
+msgid "directory"
+msgstr "ディレクトリ"
+
+#: lib\i18n.py:77
+msgid "symlink"
+msgstr "シンボリックリンク"
+
+#: lib\i18n.py:79
+msgid "fixed"
+msgstr "修正済み"
+
+#: lib\i18n.py:81
+msgid "View text file"
+msgstr "テキストファイルを表示"
+
+#: lib\i18n.py:82
+msgid "View image file"
+msgstr "画像を表示"
+
+#: lib\i18n.py:83
+msgid "View binary file"
+msgstr "バイナリファイルを表示"
+
+#: lib\i18n.py:84
+msgid "View symlink"
+msgstr "シンボリックリンクを表示"
+
+#: lib\i18n.py:85
+msgid "View directory"
+msgstr "ディレクトリを表示"
+
+#: lib\log.py:227
+msgid "Log"
+msgstr "ログ"
+
+#: lib\log.py:251
+msgid "&Search:"
+msgstr "検索(&S)："
+
+#: lib\log.py:266
+msgid "Messages"
+msgstr "メッセージ"
+
+#: lib\log.py:268
+msgid "Authors"
+msgstr "著者"
+
+#: lib\log.py:270
+msgid "Revision IDs"
+msgstr "リビジョンID"
+
+#: lib\log.py:272
+msgid "Revision Numbers"
+msgstr "リビジョン番号"
+
+#: lib\log.py:368
+msgid "Show tree..."
+msgstr "ツリーを表示..."
+
+#: lib\logmodel.py:809
+#, python-format
+msgid "bug #%s"
+msgstr "バグ #%s"
+
+#: lib\main.py:126
+msgid "Computer"
+msgstr "コンピュータ"
+
+#: lib\main.py:155
+msgid "&Edit Bookmark..."
+msgstr "ブックマークを編集(&E)..."
+
+#: lib\main.py:156
+msgid "&Remove Bookmark..."
+msgstr "ブックマークを削除(&R)..."
+
+#: lib\main.py:171
+msgid "Bookmarks"
+msgstr "ブックマーク"
+
+#: lib\main.py:280
+msgid "&Refresh"
+msgstr "更新(&R)"
+
+#: lib\main.py:282
+msgid "Refresh the directory tree"
+msgstr "ディレクトリツリーを更新"
+
+#: lib\main.py:286
+msgid "&Commit"
+msgstr "コミット(&C)"
+
+#: lib\main.py:287
+msgid "Commit changes into a new revision"
+msgstr "新規リビジョンとして修正をコミット"
+
+#: lib\main.py:291
+msgid "&Push"
+msgstr "プッシュ(&P)"
+
+#: lib\main.py:292
+msgid "Turn this branch into a mirror of another branch"
+msgstr "このブランチを他のブランチのミラーに変える"
+
+#: lib\main.py:296
+msgid "Pu&ll"
+msgstr "プル(&U)"
+
+#: lib\main.py:297
+msgid "Update a mirror of this branch"
+msgstr "このブランチのミラーを更新"
+
+#: lib\main.py:300
+msgid "&Add Bookmark..."
+msgstr "ブックマークを追加(&A)..."
+
+#: lib\main.py:307
+msgid "&File"
+msgstr "ファイル(&F)"
+
+#: lib\main.py:308
+msgid "&Configure..."
+msgstr "設定(&C)"
+
+#: lib\main.py:310
+msgid "&Quit"
+msgstr "終了(&Q)"
+
+#: lib\main.py:311
+msgid "&View"
+msgstr "表示(&V)"
+
+#: lib\main.py:313
+msgid "&Branch"
+msgstr "ブランチ(&B)"
+
+#: lib\main.py:317
+msgid "&Bookmarks"
+msgstr "ブックマーク(&B)"
+
+#: lib\main.py:319
+#: lib\util.py:70
+msgid "&Help"
+msgstr "ヘルプ(&H)"
+
+#: lib\main.py:320
+msgid "&Help..."
+msgstr "ヘルプ(&H)..."
+
+#: lib\main.py:322
+msgid "&About..."
+msgstr "詳細(&A)..."
+
+#: lib\main.py:360
+msgid "Size"
+msgstr "サイズ"
+
+#: lib\main.py:412
+msgid "About QBzr"
+msgstr "QBzrについて"
+
+#: lib\main.py:413
+#, python-format
+msgid "<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-2007 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
+msgstr "<b>QBzr</b> — Bazaarグラフィカルユーザインタフェース<br><small>バージョン %(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-2007 Lukáš Lalinský と仲間たち<br><br><a href=\"http://bazaar-vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
+
+#: lib\main.py:478
+msgid "Add Bookmark"
+msgstr "ブックマークの追加"
+
+#: lib\main.py:489
+msgid "Edit Bookmark"
+msgstr "ブックマークの編集"
+
+#: lib\main.py:499
+msgid "Remove Bookmark"
+msgstr "ブックマークの削除"
+
+#: lib\main.py:500
+msgid "Do you really want to remove the selected bookmark?"
+msgstr "選択したブックマークを本当に削除しますか？"
+
+#: lib\pull.py:53
+msgid "Pull"
+msgstr "プル"
+
+#: lib\pull.py:114
+msgid "Starting..."
+msgstr "開始..."
+
+#: lib\pull.py:161
+msgid "Aborting..."
+msgstr "中止..."
+
+#: lib\pull.py:169
+msgid "Finished!"
+msgstr "完了!"
+
+#: lib\pull.py:208
+#: lib\pull.py:224
+msgid "Failed!"
+msgstr "失敗!"
+
+#: lib\pull.py:210
+msgid "Failed to start bzr."
+msgstr "bzrの実行に失敗しました。"
+
+#: lib\pull.py:212
+#, python-format
+msgid "Error while running bzr. (error code: %d)"
+msgstr "bzr実行中にエラーが発生しました。(エラーコード：%d)"
+
+#: lib\pull.py:230
+msgid "Push"
+msgstr "プッシュ"
+
+#: lib\pull.py:260
+msgid "Branch"
+msgstr "ブランチ"
+
+#: lib\ui_bookmark.py:59
+#: lib\ui_branch.py:87
+#: lib\ui_pull.py:86
+#: lib\ui_push.py:88
+msgid "&Location:"
+msgstr "ロケーション(&L)："
+
+#: lib\ui_branch.py:86
+#: lib\ui_pull.py:85
+#: lib\ui_push.py:87
+msgid "Options"
+msgstr "オプション"
+
+#: lib\ui_branch.py:88
+#: lib\ui_pull.py:87
+msgid "&Revision:"
+msgstr "リビジョン(&R)："
+
+#: lib\ui_branch.py:89
+msgid "&To:"
+msgstr "宛先(&T)："
+
+#: lib\ui_branch.py:91
+#: lib\ui_pull.py:91
+#: lib\ui_push.py:94
+msgid "Stopped"
+msgstr "停止"
+
+#: lib\ui_pull.py:88
+#: lib\ui_push.py:89
+msgid "Remember this location as a default"
+msgstr "ロケーションをデフォルトとして保存"
+
+#: lib\ui_pull.py:89
+#: lib\ui_push.py:90
+msgid "Overwrite differences between branches"
+msgstr "ブランチ間の差分を上書き"
+
+#: lib\ui_push.py:91
+msgid "Use existing directory"
+msgstr "すでにあるディレクトリを使用する"
+
+#: lib\ui_push.py:92
+msgid "Create the path up to the branch if it does not exist"
+msgstr ""
+
+#: lib\util.py:67
+msgid "&OK"
+msgstr "OK(&O)"
+
+#: lib\util.py:68
+msgid "&Cancel"
+msgstr "キャンセル(&C)"
+
+#: lib\util.py:69
+msgid "&Close"
+msgstr "閉じる(&C)"
+
+#: lib\util.py:369
+msgid "Revision Id:"
+msgstr "リビジョンID："
+
+#: lib\util.py:385
+msgid "Parents:"
+msgstr "親："
+
+#: lib\util.py:390
+msgid "Children:"
+msgstr "子供："
+
+#: lib\util.py:393
+msgid "Committer:"
+msgstr "コミッタ："
+
+#: lib\util.py:396
+msgid "Author:"
+msgstr "著者："
+
+#: lib\util.py:400
+msgid "Branch nick:"
+msgstr "ブランチニックネーム："
+
+#: lib\util.py:405
+msgid "Tags:"
+msgstr "タグ："
+
+#: lib\util.py:415
+msgid "Bug:"
+msgid_plural "バグ："
+msgstr[0] "バグ："
+msgstr[1] "バグ："
+
+#: lib\util.py:562
+msgid "deleted files"
+msgstr "削除されたファイル"
+
+#: lib\util.py:564
+msgid "added files"
+msgstr "追加されたファイル"
+
+#: lib\util.py:566
+msgid "renamed files"
+msgstr "ファイル名変更"
+
+#: lib\util.py:568
+msgid "modified files"
+msgstr "修正されたファイル"
+
