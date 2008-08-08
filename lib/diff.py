@@ -112,12 +112,12 @@ class DiffWindow(QBzrWindow):
         buttonbox = self.create_button_box(BTN_CLOSE)
 
         refresh = StandardButton(BTN_REFRESH)
-        if not isinstance(tree1, MutableTree) and not isinstance(tree2, MutableTree):
-            refresh.setEnabled(False)
+        refresh.setEnabled(self.can_refresh())
         buttonbox.addButton(refresh, QtGui.QDialogButtonBox.ActionRole)
         self.connect(refresh,
                      QtCore.SIGNAL("clicked()"),
                      self.click_refresh)
+        self.refresh_button = refresh
 
         hbox = QtGui.QHBoxLayout()
         hbox.addWidget(diffsidebyside)
@@ -130,6 +130,7 @@ class DiffWindow(QBzrWindow):
         QtCore.QTimer.singleShot(1, self.load_diff)
     
     def load_diff(self):
+        self.refresh_button.setEnabled(False)
         # function to run after each loop
         qt_process_events = QtCore.QCoreApplication.processEvents
         #
@@ -245,6 +246,7 @@ class DiffWindow(QBzrWindow):
                 qt_process_events()
         finally:
             for tree in self.trees: tree.unlock()
+        self.refresh_button.setEnabled(self.can_refresh())
 
     def click_unidiff(self, checked):
         if checked:
@@ -260,3 +262,10 @@ class DiffWindow(QBzrWindow):
         self.diffview.clear()
         self.sdiffview.clear()
         self.load_diff()
+
+    def can_refresh(self):
+        """Does any of tree is Mutanble/Working tree."""
+        tree1, tree2 = self.trees
+        if isinstance(tree1, MutableTree) or isinstance(tree2, MutableTree):
+            return True
+        return False
