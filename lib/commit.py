@@ -156,6 +156,9 @@ class TextEdit(QtGui.QTextEdit):
 
 class CommitWindow(QBzrWindow):
 
+    RevisionIdRole = QtCore.Qt.UserRole + 1
+    ParentIdRole = QtCore.Qt.UserRole + 2
+
     def collect_info(self):
         tree = self.tree
         branch = tree.branch
@@ -335,8 +338,10 @@ class CommitWindow(QBzrWindow):
                 item.setText(0, format_timestamp(merge.timestamp))
                 item.setText(1, get_apparent_author(merge))
                 item.setText(2, merge.get_summary())
-                item.setData(0, QtCore.Qt.UserRole + 1,
+                item.setData(0, self.RevisionIdRole,
                              QtCore.QVariant(merge.revision_id))
+                item.setData(0, self.ParentIdRole,
+                             QtCore.QVariant(merge.parent_ids[0]))
 
             vbox = QtGui.QVBoxLayout(groupbox)
             vbox.addWidget(pendingMergesWidget)
@@ -557,10 +562,14 @@ class CommitWindow(QBzrWindow):
 
     def show_changeset(self, item=None, column=None):
         repo = self.tree.branch.repository
-        rev_id = str(item.data(0, QtCore.Qt.UserRole + 1).toString())
-        rev_parent_id = repo.revision_parents(rev_id)[0]
+        rev_id = str(item.data(0, self.RevisionIdRole).toString())
+        rev_parent_id = str(item.data(0, self.ParentIdRole).toString())
         revs = [rev_parent_id, rev_id]
-        tree1, tree2 = repo.revision_trees(revs)
+        repo.lock_read()
+        try:
+            tree1, tree2 = repo.revision_trees(revs)
+        finally:
+            repo.unlock()
         window = DiffWindow(tree1, tree2, custom_title="..".join(revs),
                             branch=self.tree.branch, parent=self)
         window.show()
