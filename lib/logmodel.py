@@ -650,7 +650,10 @@ class GraphModel(QtCore.QAbstractTableModel):
                 # Find the col_index for the direct parent branch. This will
                 # be the starting point when looking for a free column.
                 
-                parent_col_index = 0
+                if branch_id == ():
+                    parent_col_index = 0
+                else:
+                    parent_col_index = 1
                 parent_index = None
                 
                 if last_parent_msri:
