@@ -521,7 +521,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                     
                     # Find parents that are currently visible
                     rev_visible_parents = []
-                    for parent_revid in self.graph_parents[revid]:
+                    for i, parent_revid in enumerate(self.graph_parents[revid]):
                         (parent_msri,
                          parent_branch_id,
                          parent_merge_depth) = self._msri_branch_id_merge_depth(parent_revid)
@@ -531,13 +531,9 @@ class GraphModel(QtCore.QAbstractTableModel):
                                                         parent_branch_id,
                                                         parent_merge_depth,
                                                         True))
-                        else:
+                        elif i == 0:
                             # The parent was not visible. Search for a ansestor
-                            # that is. Stop searching if we make a hop, i.e. we
-                            # go away for our branch, and we come back to it
-                            has_seen_different_branch = False
-                            if not parent_branch_id == branch_id:
-                                has_seen_different_branch = True
+                            # that is.
                             while parent_revid and parent_msri not in msri_index:
                                 parents = self.graph_parents[parent_revid]
                                 if len(parents) == 0:
@@ -547,11 +543,6 @@ class GraphModel(QtCore.QAbstractTableModel):
                                     (parent_msri,
                                      parent_branch_id,
                                      parent_merge_depth) = self._msri_branch_id_merge_depth(parent_revid)
-                                if not parent_branch_id == branch_id:
-                                    has_seen_different_branch = True
-                                if has_seen_different_branch and parent_branch_id == branch_id:
-                                    parent_revid = None
-                                    break
                             if parent_revid:
                                 rev_visible_parents.append((parent_revid,
                                                             parent_msri,
