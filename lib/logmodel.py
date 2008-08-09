@@ -265,7 +265,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                 self.msri_merges[msri] = merges
             
             if specific_fileids:
-                self.touches_file_msri = []
+                self.touches_file_msri = {}
             
             self.emit(QtCore.SIGNAL("layoutChanged()"))
             
@@ -325,7 +325,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                     
                     if changed or is_merging_rev(revid):
                         rev_msri = self.revid_msri[revid]
-                        self.touches_file_msri.append(rev_msri)
+                        self.touches_file_msri[rev_msri] = True
                         # Check if the revision that merges this is visible.
                         # If not, make this revisions branch visible.
                         if rev_msri in self.merged_by and \
@@ -339,7 +339,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                                   index,index)
                     
-                    if i % 100 == 0 :
+                    if i % 500 == 0 :
                         QtCore.QCoreApplication.processEvents()
             
             self.compute_lines()
