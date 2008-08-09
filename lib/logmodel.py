@@ -281,11 +281,23 @@ class GraphModel(QtCore.QAbstractTableModel):
                                             branch.repository.get_transaction())
                         weave_modifed_revisions.update(set(file_weave.versions()))
                 
-                for rev_msri, (sequence_number,
-                               revid,
-                               merge_depth,
-                               revno_sequence,
-                               end_of_merge) in enumerate(self.merge_sorted_revisions):
+                ancestry = {}
+                
+                def is_merging_rev(r):
+                    parents = self.graph_parents[r]
+                    if len(parents) > 1:
+                        leftparent = parents[0]
+                        for rightparent in parents[1:]:
+                            if not ancestry[leftparent].issuperset(
+                                    ancestry[rightparent]):
+                                return True
+                    return False
+                
+                for i, (sequence_number,
+                        revid,
+                        merge_depth,
+                        revno_sequence,
+                        end_of_merge) in enumerate(reversed(self.merge_sorted_revisions)):
                     if use_texts:
                         text_keys = [(specific_fileid, revid) for specific_fileid in specific_fileids]
                         modified_text_versions = branch.repository.texts.get_parent_map(text_keys)
@@ -293,7 +305,26 @@ class GraphModel(QtCore.QAbstractTableModel):
                     else:
                         changed = revid in weave_modifed_revisions
                     
-                    if changed:
+                    parents = self.graph_parents[revid]
+                    if not changed and len(parents) == 1:
+                        # We will not be adding anything new, so just use a reference to
+                        # the parent ancestry.
+                        rev_ancestry = ancestry[parents[0]]
+                    else:
+                        rev_ancestry = set()
+                        if changed:
+                            rev_ancestry.add(revid)
+                        for parent in parents:
+                            if parent not in ancestry:
+                                # parent is a Ghost, which won't be present in
+                                # sorted_rev_list, but we may access it later, so create an
+                                # empty node for it
+                                ancestry[parent] = set()
+                            rev_ancestry = rev_ancestry.union(ancestry[parent])
+                    ancestry[revid] = rev_ancestry
+                    
+                    if changed or is_merging_rev(revid):
+                        rev_msri = self.revid_msri[revid]
                         self.touches_file_msri.append(rev_msri)
                         # Check if the revision that merges this is visible.
                         # If not, make this revisions branch visible.
@@ -303,15 +334,14 @@ class GraphModel(QtCore.QAbstractTableModel):
                             branch_id = revno_sequence[0:-1]
                             self.branch_lines[branch_id][1] = True
                         
+                        self.graphFilterProxyModel.invalidateCacheRow(rev_msri)
                         index = self.createIndex (rev_msri, 0, QtCore.QModelIndex())
                         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                                   index,index)
                     
-                    if rev_msri % 100 == 0 :
-                        self.graphFilterProxyModel.invalidateCache()
+                    if i % 100 == 0 :
                         QtCore.QCoreApplication.processEvents()
             
-            self.graphFilterProxyModel.invalidateCache()
             self.compute_lines()
             QtCore.QCoreApplication.processEvents()
             
