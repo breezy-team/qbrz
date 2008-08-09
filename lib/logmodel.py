@@ -282,6 +282,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                         weave_modifed_revisions.update(set(file_weave.versions()))
                 
                 ancestry = {}
+                branches_that_are_merges = {}
                 
                 def is_merging_rev(r):
                     parents = self.graph_parents[r]
@@ -330,13 +331,15 @@ class GraphModel(QtCore.QAbstractTableModel):
                         # that merges it that also touches the file, then we
                         # hide the branch.
                         branch_id = revno_sequence[0:-1]
-                        self.branch_lines[branch_id][1] = True
+                        if not branch_id in branches_that_are_merges:
+                            self.branch_lines[branch_id][1] = True
                         
                         # Hide the branches we merge
                         if rev_msri in self.msri_merges:
                             for merged_rev_msri in self.msri_merges[rev_msri]:
                                 merged_branch_id = self.merge_sorted_revisions[merged_rev_msri][3][0:-1]
                                 self.branch_lines[merged_branch_id][1] = False
+                                branches_that_are_merges[merged_branch_id] = True
                         
                         self.graphFilterProxyModel.invalidateCacheRow(rev_msri)
                         index = self.createIndex (rev_msri, 0, QtCore.QModelIndex())
