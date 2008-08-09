@@ -326,13 +326,17 @@ class GraphModel(QtCore.QAbstractTableModel):
                     if changed or is_merging_rev(revid):
                         rev_msri = self.revid_msri[revid]
                         self.touches_file_msri[rev_msri] = True
-                        # Check if the revision that merges this is visible.
-                        # If not, make this revisions branch visible.
-                        if rev_msri in self.merged_by and \
-                           self.merged_by[rev_msri] not in \
-                           self.touches_file_msri:
-                            branch_id = revno_sequence[0:-1]
-                            self.branch_lines[branch_id][1] = True
+                        # Make the branch visible. Later, if we find a rev
+                        # that merges it that also touches the file, then we
+                        # hide the branch.
+                        branch_id = revno_sequence[0:-1]
+                        self.branch_lines[branch_id][1] = True
+                        
+                        # Hide the branches we merge
+                        if rev_msri in self.msri_merges:
+                            for merged_rev_msri in self.msri_merges[rev_msri]:
+                                merged_branch_id = self.merge_sorted_revisions[merged_rev_msri][3][0:-1]
+                                self.branch_lines[merged_branch_id][1] = False
                         
                         self.graphFilterProxyModel.invalidateCacheRow(rev_msri)
                         index = self.createIndex (rev_msri, 0, QtCore.QModelIndex())
