@@ -381,7 +381,6 @@ class LogWindow(QBzrWindow):
         else:
             open_browser(str(url.toEncoded()))
 
-
     def update_selection(self, selected, deselected):
         indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
         if not indexes:
@@ -465,7 +464,7 @@ class LogWindow(QBzrWindow):
             rev = self.current_rev
             self.show_diff_window(rev, rev, [unicode(path)])
 
-    def diff_pushed(self, checked):
+    def diff_pushed(self):
         """Show differences of the selected range or of a single revision"""
         indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
         if not indexes:
@@ -562,7 +561,8 @@ class LogWindow(QBzrWindow):
         QtGui.QTreeView.mouseReleaseEvent(self.changesList, e)
     
     def changesList_keyPressEvent (self, e):
-        if e.key() == QtCore.Qt.Key_Left or e.key() == QtCore.Qt.Key_Right:
+        e_key = e.key()
+        if e_key in (QtCore.Qt.Key_Left, QtCore.Qt.Key_Right):
             e.accept()
             indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
             if not indexes:
@@ -585,5 +585,8 @@ class LogWindow(QBzrWindow):
             newindex = self.changesModel.indexFromRevId(revision_id)
             newindex = self.changesProxyModel.mapFromSource(newindex)
             self.changesList.setCurrentIndex(newindex)
+        elif e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
+            e.accept()
+            self.diff_pushed()
         else:
             QtGui.QTreeView.keyPressEvent(self.changesList, e)
