@@ -371,14 +371,17 @@ class CommitWindow(QBzrWindow):
                      QtCore.SIGNAL("itemSelectionChanged()"),
                      self.update_context_menu_actions)
 
-        self.revert_action = QtGui.QAction(gettext("&Revert..."), self)
-        self.connect(self.revert_action, QtCore.SIGNAL("triggered()"), self.revert_selected)
-        self.filelist.addAction(self.revert_action)
-
         self.show_diff_action = QtGui.QAction(gettext("Show &Differences..."),
                                               self)
         self.connect(self.show_diff_action, QtCore.SIGNAL("triggered()"), self.show_differences)
+        font = QtGui.QFont()
+        font.setWeight(QtGui.QFont.Bold)
+        self.show_diff_action.setFont(font)
         self.filelist.addAction(self.show_diff_action)
+
+        self.revert_action = QtGui.QAction(gettext("&Revert..."), self)
+        self.connect(self.revert_action, QtCore.SIGNAL("triggered()"), self.revert_selected)
+        self.filelist.addAction(self.revert_action)
 
         vbox = QtGui.QVBoxLayout(groupbox)
         vbox.addWidget(self.filelist)
