@@ -188,7 +188,7 @@ class CommitWindow(QBzrWindow):
         self.pending_merges = repo.get_revisions(pending_merges)
         self.is_bound = bool(branch.get_bound_location())
 
-    def __init__(self, tree, selected_list, dialog=True, parent=None):
+    def __init__(self, tree, selected_list, dialog=True, parent=None, local=None, message=None):
         title = [gettext("Commit")]
         QBzrWindow.__init__(self, title, parent)
         self.restoreSize("commit", (540, 540))
@@ -276,6 +276,8 @@ class CommitWindow(QBzrWindow):
         self.message.setCompleter(completer)
         self.message.setAcceptRichText(False)
         self.restore_message()
+        if message:
+            self.message.setText(message)
         grid.addWidget(self.message, 0, 0, 1, 2)
 
         # Equivalent for 'bzr commit --fixes'
@@ -317,6 +319,8 @@ class CommitWindow(QBzrWindow):
                 "Local commits are not pushed to the master branch "
                 "until a normal commit is performed"))
             grid.addWidget(self.local_checkbox, 3, 0, 1, 2)
+            if local:
+                self.local_checkbox.setChecked(True)
 
         # Display a list of pending merges
         if self.pending_merges:

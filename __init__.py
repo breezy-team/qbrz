@@ -188,15 +188,26 @@ class cmd_qbrowse(Command):
 class cmd_qcommit(Command):
     """GUI for committing revisions."""
     takes_args = ['selected*']
+    takes_options = [
+            Option('message', type=unicode,
+                   short_name='m',
+                   help="Description of the new revision."),
+            Option('local',
+                   help="Perform a local commit in a bound "
+                        "branch.  Local commits are not pushed to "
+                        "the master branch until a normal commit "
+                        "is performed."),
+            ]
     aliases = ['qci']
 
     @report_missing_pyqt
-    def run(self, selected_list=None):
+    def run(self, selected_list=None, message=None, local=False):
         tree, selected_list = builtins.tree_files(selected_list)
         if selected_list == ['']:
             selected_list = []
         application = QtGui.QApplication(sys.argv)
-        window = CommitWindow(tree, selected_list, dialog=False)
+        window = CommitWindow(tree, selected_list, dialog=False,
+            message=message, local=local)
         window.show()
         application.exec_()
 
