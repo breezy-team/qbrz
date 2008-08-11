@@ -374,9 +374,6 @@ class CommitWindow(QBzrWindow):
         self.show_diff_action = QtGui.QAction(gettext("Show &Differences..."),
                                               self)
         self.connect(self.show_diff_action, QtCore.SIGNAL("triggered()"), self.show_differences)
-        font = QtGui.QFont()
-        font.setWeight(QtGui.QFont.Bold)
-        self.show_diff_action.setFont(font)
         self.filelist.addAction(self.show_diff_action)
 
         self.revert_action = QtGui.QAction(gettext("&Revert..."), self)
