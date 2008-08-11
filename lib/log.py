@@ -354,7 +354,10 @@ class LogWindow(QBzrWindow):
         self.connect(self.diffbutton, QtCore.SIGNAL("clicked(bool)"), self.diff_pushed)
 
         self.contextMenu = QtGui.QMenu(self)
-        self.contextMenu.addAction(gettext("Show tree..."), self.show_revision_tree)
+        self.show_diff_action = self.contextMenu.addAction(
+            gettext("Show &differences..."), self.diff_pushed)
+        self.contextMenu.addAction(gettext("Show &tree..."), self.show_revision_tree)
+        self.contextMenu.setDefaultAction(self.show_diff_action)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)

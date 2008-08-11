@@ -366,19 +366,20 @@ class CommitWindow(QBzrWindow):
                      QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
                      self.show_differences)
 
-        self.filelist.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+        self.filelist.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.connect(self.filelist,
                      QtCore.SIGNAL("itemSelectionChanged()"),
                      self.update_context_menu_actions)
+        self.connect(self.filelist,
+                     QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
+                     self.show_context_menu)
 
-        self.show_diff_action = QtGui.QAction(gettext("Show &Differences..."),
-                                              self)
-        self.connect(self.show_diff_action, QtCore.SIGNAL("triggered()"), self.show_differences)
-        self.filelist.addAction(self.show_diff_action)
-
-        self.revert_action = QtGui.QAction(gettext("&Revert..."), self)
-        self.connect(self.revert_action, QtCore.SIGNAL("triggered()"), self.revert_selected)
-        self.filelist.addAction(self.revert_action)
+        self.context_menu = QtGui.QMenu(self.filelist)
+        self.show_diff_action = self.context_menu.addAction(
+            gettext("Show &differences..."), self.show_differences)
+        self.context_menu.setDefaultAction(self.show_diff_action)
+        self.revert_action = self.context_menu.addAction(
+            gettext("&Revert..."), self.revert_selected)
 
         vbox = QtGui.QVBoxLayout(groupbox)
         vbox.addWidget(self.filelist)
@@ -622,6 +623,9 @@ class CommitWindow(QBzrWindow):
                 for item in items:
                     index = self.filelist.indexOfTopLevelItem(item)
                     self.filelist.takeTopLevelItem(index)
+
+    def show_context_menu(self, pos):
+        self.context_menu.popup(self.filelist.viewport().mapToGlobal(pos))
 
     def update_context_menu_actions(self):
         contains_non_versioned = False
