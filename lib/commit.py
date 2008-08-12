@@ -473,7 +473,7 @@ class CommitWindow(SubProcessWindow):
     def closeEvent(self, event):
         if not self.process_widget.is_running():
             if self.process_widget.finished:
-                self.save_message()
-            else:
                 self.clear_saved_message()
+            else:
+                self.save_message()
         return SubProcessWindow.closeEvent(self, event)
