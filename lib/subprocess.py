@@ -161,8 +161,16 @@ class SubProcessWidget(QtGui.QWidget):
                self.process.state() == QtCore.QProcess.Starting
     
     def start(self, *args):
+        self.start_multi((args))
+    
+    def start_multi(self, commands):
         self.setProgress(0, [gettext("Starting...")])
         self.console.setFocus(QtCore.Qt.OtherFocusReason)
+        self.commands = list(commands)
+        self._start_next()
+    
+    def _start_next(self):
+        args = self.commands.pop(0)
         args = ' '.join('"%s"' % a.replace('"', '\"') for a in args)
         if getattr(sys, "frozen", None) is not None:
             self.process.start(
@@ -200,14 +208,16 @@ class SubProcessWidget(QtGui.QWidget):
                 self.logMessage(line)
                 if not self.ui_mode:
                     sys.stdout.write(line)
+                    sys.stdout.write("\n")
 
     def readStderr(self):
         data = str(self.process.readAllStandardError())
-        for line in data.splitlines(True):
+        for line in data.splitlines():
             error = line.startswith("bzr: ERROR:")
             self.logMessage(line, error)
             if not self.ui_mode:
                 sys.stderr.write(line)
+                sys.stderr.write("\n")
 
     def logMessage(self, message, error=False):
         if error:
@@ -215,7 +225,7 @@ class SubProcessWidget(QtGui.QWidget):
         else:
             format = self.messageFormat
         cursor = self.console.textCursor()
-        cursor.insertText(message, format)
+        cursor.insertText(message+"\n", format)
         scrollbar = self.console.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
 
@@ -232,8 +242,11 @@ class SubProcessWidget(QtGui.QWidget):
     def onFinished(self, exitCode, exitStatus):
         self.aborting = False
         if exitCode == 0:
-            self.finished = True
-            self.emit(QtCore.SIGNAL("finished()"))
+            if self.commands:
+                self._start_next()
+            else:
+                self.finished = True
+                self.emit(QtCore.SIGNAL("finished()"))
         else:
             self.setProgress(1000000, [gettext("Failed!")])
             self.emit(QtCore.SIGNAL("failed()"))

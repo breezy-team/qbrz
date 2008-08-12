@@ -415,7 +415,8 @@ class CommitWindow(SubProcessWindow):
 
     def start(self):
         args = ["commit"]
-
+        files_to_add = ["add"]
+        
         message = unicode(self.message.toPlainText()).strip() 
         if not message: 
             button = QtGui.QMessageBox.warning(self, 
@@ -431,8 +432,8 @@ class CommitWindow(SubProcessWindow):
             for desc in self.filelist.iter_checked():
                 is_ver = self.filelist.is_changedesc_versioned(desc)
                 path = self.filelist.get_changedesc_path(desc)
-                #if not is_ver:
-                #    self.tree.add(path)
+                if not is_ver:
+                    files_to_add.append(path)
                 args.append(path)
         
         if self.bugsCheckBox.isChecked():
@@ -444,8 +445,13 @@ class CommitWindow(SubProcessWindow):
         if self.is_bound and self.local_checkbox.isChecked():
             args.append("--local")
         
+        commands = []
+        if len(files_to_add)>1:
+            commands.append(files_to_add)
+        commands.append(args)
+        
         self.tabWidget.setCurrentWidget(self.process_widget)
-        self.process_widget.start(*args)
+        self.process_widget.start_multi(commands)
 
     def show_changeset(self, item=None, column=None):
         repo = self.tree.branch.repository
