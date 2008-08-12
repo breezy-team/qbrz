@@ -26,35 +26,36 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     BTN_OK,
-    QBzrDialog,
+    QBzrWindow,
     StandardButton,
     )
 
-class SubProcessDialog(QBzrDialog):
+class SubProcessWindow(QBzrWindow):
 
     def __init__(self, title, name = "genericsubprocess",
-                 desc = None, args = None, default_size = None,
-                 ui_mode=True,  parent=None):
-        QBzrDialog.__init__(self, [title], parent)
+                 desc = "", args = None, default_size = None,
+                 ui_mode=True, dialog=True, default_layout=True,
+                 parent=None):
+        QBzrWindow.__init__(self, [title], parent)
         if default_size:
             self.restoreSize(name, default_size)
         self.desc = desc
         self.args = args
         self.ui_mode = ui_mode
 
-        layout = QtGui.QVBoxLayout(self.centralwidget)
+        if dialog:
+            flags = (self.windowFlags() & ~QtCore.Qt.Window) | QtCore.Qt.Dialog
+            self.setWindowFlags(flags)
 
         self.ui_widget = self.create_ui(self.centralwidget)
-        layout.addWidget(self.ui_widget)
 
-        self.process_widget = SubProcessWidget(self.ui_mode, self.centralwidget, )
+        self.process_widget = SubProcessWidget(self.ui_mode, self.centralwidget)
         self.connect(self.process_widget,
             QtCore.SIGNAL("finished()"),
             self.finished)
         self.connect(self.process_widget,
             QtCore.SIGNAL("failed()"),
             self.failed)
-        layout.addWidget(self.process_widget)
 
         self.okButton = StandardButton(BTN_OK)
         self.cancelButton = StandardButton(BTN_CANCEL)
@@ -66,9 +67,15 @@ class SubProcessDialog(QBzrDialog):
             QtGui.QDialogButtonBox.RejectRole)
         self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.accept)
         self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
-        layout.addWidget(self.buttonbox)
         
-        #self.setLayout(layout)
+        if default_layout:
+            layout = QtGui.QVBoxLayout(self.centralwidget)
+            layout.addWidget(self.ui_widget)
+            status_group_box = QtGui.QGroupBox(gettext("Status"), self.centralwidget)
+            status_layout = QtGui.QVBoxLayout(status_group_box)
+            status_layout.addWidget(self.process_widget)
+            layout.addWidget(status_group_box)
+            layout.addWidget(self.buttonbox)
     
     def create_ui(self, ui_parent):
         label = QtGui.QLabel(self.desc, ui_parent)
@@ -103,15 +110,15 @@ class SubProcessDialog(QBzrDialog):
     
     def closeEvent(self, event):
         if not self.process_widget.is_running():
-            QBzrDialog.closeEvent(self, event)
+            QBzrWindow.closeEvent(self, event)
         else:
             self.process_widget.abort()
             event.ignore()
 
-class SubProcessWidget(QtGui.QGroupBox):
+class SubProcessWidget(QtGui.QWidget):
 
     def __init__(self, ui_mode, parent = None):
-        QtGui.QGroupBox.__init__(self, gettext("Status"), parent)
+        QtGui.QGroupBox.__init__(self, parent)
         self.ui_mode = ui_mode
 
         layout = QtGui.QVBoxLayout(self)
@@ -196,7 +203,7 @@ class SubProcessWidget(QtGui.QGroupBox):
 
     def readStderr(self):
         data = str(self.process.readAllStandardError())
-        for line in data.splitlines():
+        for line in data.splitlines(True):
             error = line.startswith("bzr: ERROR:")
             self.logMessage(line, error)
             if not self.ui_mode:
@@ -208,7 +215,7 @@ class SubProcessWidget(QtGui.QGroupBox):
         else:
             format = self.messageFormat
         cursor = self.console.textCursor()
-        cursor.insertText(message + "\n", format)
+        cursor.insertText(message, format)
         scrollbar = self.console.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
 
