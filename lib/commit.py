@@ -209,7 +209,8 @@ class CommitWindow(QBzrWindow):
         words.sort(lambda a, b: cmp(a.lower(), b.lower()))
         self.completion_words = words
 
-    def __init__(self, tree, selected_list, dialog=True, parent=None, local=None, message=None):
+    def __init__(self, tree, selected_list, dialog=True, parent=None,
+                 local=None, message=None, ui_mode=True):
         title = [gettext("Commit")]
         QBzrWindow.__init__(self, title, parent)
         self.restoreSize("commit", (540, 540))

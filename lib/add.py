@@ -38,7 +38,7 @@ from bzrlib.plugins.qbzr.lib.wtlist import WorkingTreeFileList
 
 class AddWindow(QBzrWindow):
 
-    def __init__(self, tree, selected_list, dialog=True, parent=None, local=None, message=None):
+    def __init__(self, tree, selected_list, dialog=True, ui_mode=True, parent=None, local=None, message=None):
         title = [gettext("Add")]
         QBzrWindow.__init__(self, title, parent)
         self.restoreSize("add", (400, 400))

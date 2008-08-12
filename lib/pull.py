@@ -61,12 +61,13 @@ class QBzrPullWindow(SubProcessDialog):
     NAME = "pull"
     DEFAULT_SIZE = (500, 420)
 
-    def __init__(self, branch, parent=None):
+    def __init__(self, branch, ui_mode=True, parent=None):
         self.branch = branch
         SubProcessDialog.__init__(self,
                                   self.TITLE,
                                   name = self.NAME,
                                   default_size = self.DEFAULT_SIZE,
+                                  ui_mode = ui_mode,
                                   parent = parent)
 
     def create_ui(self, parent):

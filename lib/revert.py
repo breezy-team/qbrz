@@ -38,7 +38,8 @@ from bzrlib.plugins.qbzr.lib.wtlist import WorkingTreeFileList
 
 class RevertWindow(QBzrWindow):
 
-    def __init__(self, tree, selected_list, dialog=True, parent=None, local=None, message=None):
+    def __init__(self, tree, selected_list, dialog=True, parent=None,
+                 local=None, message=None, ui_mode=True):
         title = [gettext("Revert")]
         QBzrWindow.__init__(self, title, parent)
         self.restoreSize("revert", (400, 400))

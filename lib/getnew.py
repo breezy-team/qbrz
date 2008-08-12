@@ -42,12 +42,13 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
     NAME = "new_tree"
     DEFAULT_SIZE = (100, 100)
 
-    def __init__(self, to_location, parent=None):
+    def __init__(self, to_location, ui_mode=True, parent=None):
         self.to_location = os.path.abspath(to_location)
         SubProcessDialog.__init__(self,
                                   self.TITLE,
                                   name = self.NAME,
                                   default_size = self.DEFAULT_SIZE,
+                                  ui_mode = ui_mode,
                                   parent = parent)
 
     def create_ui(self, parent):

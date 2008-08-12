@@ -34,19 +34,20 @@ class SubProcessDialog(QBzrDialog):
 
     def __init__(self, title, name = "genericsubprocess",
                  desc = None, args = None, default_size = None,
-                 parent=None):
+                 ui_mode=True,  parent=None):
         QBzrDialog.__init__(self, [title], parent)
         if default_size:
             self.restoreSize(name, default_size)
         self.desc = desc
         self.args = args
+        self.ui_mode = ui_mode
 
         layout = QtGui.QVBoxLayout(self.centralwidget)
 
         self.ui_widget = self.create_ui(self.centralwidget)
         layout.addWidget(self.ui_widget)
 
-        self.process_widget = SubProcessWidget(self.centralwidget)
+        self.process_widget = SubProcessWidget(self.ui_mode, self.centralwidget, )
         self.connect(self.process_widget,
             QtCore.SIGNAL("finished()"),
             self.finished)
@@ -94,6 +95,8 @@ class SubProcessDialog(QBzrDialog):
         #self.done(QtGui.QDialog.Accepted)
         self.okButton.setDisabled(False)
         self.cancelButton.setDisabled(True)
+        if not self.ui_mode:
+            self.close()
     
     def failed(self):
         self.okButton.setDisabled(False)
@@ -107,8 +110,9 @@ class SubProcessDialog(QBzrDialog):
 
 class SubProcessWidget(QtGui.QGroupBox):
 
-    def __init__(self, parent = None):
+    def __init__(self, ui_mode, parent = None):
         QtGui.QGroupBox.__init__(self, gettext("Status"), parent)
+        self.ui_mode = ui_mode
 
         layout = QtGui.QVBoxLayout(self)
 
@@ -187,12 +191,16 @@ class SubProcessWidget(QtGui.QGroupBox):
                 self.setProgress(progress, messages)
             else:
                 self.logMessage(line)
+                if not self.ui_mode:
+                    sys.stdout.write(line)
 
     def readStderr(self):
         data = str(self.process.readAllStandardError())
         for line in data.splitlines():
             error = line.startswith("bzr: ERROR:")
             self.logMessage(line, error)
+            if not self.ui_mode:
+                sys.stderr.write(line)
 
     def logMessage(self, message, error=False):
         if error:
