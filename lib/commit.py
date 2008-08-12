@@ -40,7 +40,7 @@ from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.wtlist import WorkingTreeFileList
 from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     BTN_OK,
@@ -126,7 +126,7 @@ class TextEdit(QtGui.QTextEdit):
         self.connect(completer, QtCore.SIGNAL("activated(QString)"), self.insertCompletion)
 
 
-class CommitWindow(QBzrWindow):
+class CommitWindow(SubProcessWindow):
 
     RevisionIdRole = QtCore.Qt.UserRole + 1
     ParentIdRole = QtCore.Qt.UserRole + 2
@@ -211,24 +211,26 @@ class CommitWindow(QBzrWindow):
 
     def __init__(self, tree, selected_list, dialog=True, parent=None,
                  local=None, message=None, ui_mode=True):
-        title = [gettext("Commit")]
-        QBzrWindow.__init__(self, title, parent)
-        self.restoreSize("commit", (540, 540))
-        if dialog:
-            flags = (self.windowFlags() & ~QtCore.Qt.Window) | QtCore.Qt.Dialog
-            self.setWindowFlags(flags)
-
+        SubProcessWindow.__init__(self,
+                                  gettext("Commit"),
+                                  name = "commit",
+                                  default_size = (540, 540),
+                                  ui_mode = ui_mode,
+                                  dialog = dialog,
+                                  default_layout = False,
+                                  parent = parent)
         self.tree = tree
         self.basis_tree = self.tree.basis_tree()
         self.windows = []
         self.initial_selected_list = selected_list
-        splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
 
-        # function f_on_close will be invoked on closing window action
-        self.f_on_close = self.save_message
+        splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
 
         groupbox = QtGui.QGroupBox(gettext("Message"), splitter)
         splitter.addWidget(groupbox)
+        self.tabWidget = QtGui.QTabWidget()
+        splitter.addWidget(self.tabWidget)
+        
         grid = QtGui.QGridLayout(groupbox)
 
         self.show_nonversioned_checkbox = QtGui.QCheckBox(
@@ -243,8 +245,6 @@ class CommitWindow(QBzrWindow):
         tree.lock_read()
         try:
             self.collect_info()
-            if self.pending_merges:
-                selectall_checkbox.setEnabled(False)
             self.filelist.fill(self.iter_changes_and_state())
         finally:
             tree.unlock()
@@ -310,12 +310,25 @@ class CommitWindow(QBzrWindow):
             if local:
                 self.local_checkbox.setChecked(True)
 
+        # Display the list of changed files
+        files_tab = QtGui.QWidget()
+        self.tabWidget.addTab(files_tab, gettext("Changes"))
+
+        vbox = QtGui.QVBoxLayout(files_tab)
+        vbox.addWidget(self.filelist)
+        self.connect(self.show_nonversioned_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_nonversioned)
+        vbox.addWidget(self.show_nonversioned_checkbox)
+    
+        vbox.addWidget(selectall_checkbox)
+
+        self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
+
         # Display a list of pending merges
         if self.pending_merges:
-            groupbox = QtGui.QGroupBox(gettext("Pending Merges"), splitter)
-            splitter.addWidget(groupbox)
-
+            selectall_checkbox.setEnabled(False)
             pendingMergesWidget = QtGui.QTreeWidget(groupbox)
+            self.tabWidget.addTab(pending_merges_tab, gettext("Pending Merges"))
+            
             pendingMergesWidget.setRootIsDecorated(False)
             pendingMergesWidget.setHeaderLabels(
                 [gettext("Date"), gettext("Author"), gettext("Message")])
@@ -341,33 +354,19 @@ class CommitWindow(QBzrWindow):
 
             vbox = QtGui.QVBoxLayout(groupbox)
             vbox.addWidget(pendingMergesWidget)
-
-        # Display the list of changed files
-        groupbox = QtGui.QGroupBox(gettext("Changes"), splitter)
-        splitter.addWidget(groupbox)
-
-        vbox = QtGui.QVBoxLayout(groupbox)
-        vbox.addWidget(self.filelist)
-        self.connect(self.show_nonversioned_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_nonversioned)
-        vbox.addWidget(self.show_nonversioned_checkbox)
-    
-        vbox.addWidget(selectall_checkbox)
-
-        self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
-
+        
+        self.tabWidget.addTab(self.process_widget, gettext("Status"))
+        
         splitter.setStretchFactor(0, 3)
-        splitter.setStretchFactor(1, 4)
-
-        buttonbox = self.create_button_box(BTN_OK, BTN_CANCEL)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)
-        vbox.addWidget(buttonbox)
+        vbox.addWidget(self.buttonbox)
 
         # Try to be smart: if there is no saved message
         # then set focus on Edit Area; otherwise on OK button.
         if self.get_saved_message():
-            buttonbox.setFocus()
+            self.buttonbox.setFocus()
         else:
             self.message.setFocus()
 
@@ -388,26 +387,6 @@ class CommitWindow(QBzrWindow):
             self.custom_author = self.author.text()
             self.author.setText(self.default_author)
 
-    def parseBugs(self):
-        fixes = unicode(self.bugs.text()).split()
-        properties = []
-        for fixed_bug in fixes:
-            tokens = fixed_bug.split(':')
-            if len(tokens) != 2:
-                raise errors.BzrCommandError(
-                    "Invalid bug '%s'. Must be in the form of 'tag:id'."
-                    % fixed_bug)
-            tag, bug_id = tokens
-            try:
-                bug_url = bugtracker.get_bug_url(tag, self.tree.branch, bug_id)
-            except errors.UnknownBugTrackerAbbreviation:
-                raise errors.BzrCommandError(
-                    "Unrecognized bug '%s'." % fixed_bug)
-            except errors.MalformedBugIdentifier:
-                raise errors.BzrCommandError(
-                    "Invalid bug identifier for '%s'." % fixed_bug)
-            properties.append('%s fixed' % bug_url)
-        return '\n'.join(properties)
 
     def get_saved_message(self):
         config = self.tree.branch.get_config()._get_branch_data_config()
@@ -433,74 +412,40 @@ class CommitWindow(QBzrWindow):
         # FIXME this should delete the config entry, not just set it to ''
         config.set_user_option('qbzr_commit_message', '')
 
-    def accept(self):
-        """Commit the changes."""
 
-        message = unicode(self.message.toPlainText()).strip()
-        if not message:
-            button = QtGui.QMessageBox.warning(self,
-                "QBzr - " + gettext("Commit"),
-                gettext("Empty commit message. Do you really want to commit?"),
-                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-            if button == QtGui.QMessageBox.No:
-                # don't commit, but don't close the window either
+    def start(self):
+        args = ["commit"]
+
+        message = unicode(self.message.toPlainText()).strip() 
+        if not message: 
+            button = QtGui.QMessageBox.warning(self, 
+                "QBzr - " + gettext("Commit"), 
+                gettext("Empty commit message. Do you really want to commit?"), 
+                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) 
+            if button == QtGui.QMessageBox.No: 
+                # don't commit, but don't close the window either 
                 return
-
-        properties = {}
-
-        if self.bugsCheckBox.checkState() == QtCore.Qt.Checked:
-            try:
-                bugs = self.parseBugs()
-            except Exception, e:
-                QtGui.QMessageBox.warning(self,
-                    "QBzr - "+gettext("Commit"), str(e), QtGui.QMessageBox.Ok)
-                return
-            else:
-                if bugs:
-                    properties['bugs'] = bugs
-
-        if self.authorCheckBox.checkState() == QtCore.Qt.Checked:
-            author = unicode(self.author.text())
-            author = re.sub('\s+', ' ', author).strip()
-            if author:
-                properties['author'] = author
-
+        args.append(('-m %s' % message))
+        
         if not self.pending_merges:
-            specific_files = []
             for desc in self.filelist.iter_checked():
                 is_ver = self.filelist.is_changedesc_versioned(desc)
                 path = self.filelist.get_changedesc_path(desc)
-                # XXX - note this 'tree' operation outside an exception handler!
-                if not is_ver:
-                    self.tree.add(path)
-                specific_files.append(path)
-        else:
-            specific_files = None
-
-        local = None
-        if self.is_bound:
-            local = self.local_checkbox.isChecked()
-
-        try:
-            self.tree.commit(message=message,
-                             specific_files=specific_files,
-                             reporter=ReportCommitToLog(),
-                             allow_pointless=False,
-                             revprops=properties,
-                             local=local)
-        except BzrError, e:
-            self.save_message()
-            QtGui.QMessageBox.warning(self,
-                "QBzr - " + gettext("Commit"), str(e), QtGui.QMessageBox.Ok)
-        else:
-            self.f_on_close = self.clear_saved_message
-
-        self.close()
-
-    def reject(self):
-        """Reject the commit."""
-        self.f_on_close = self.save_message
-        self.close()
+                #if not is_ver:
+                #    self.tree.add(path)
+                args.append(path)
+        
+        if self.bugsCheckBox.isChecked():
+            args.append(("--fixes %s" % unicode(self.bugs.text())))
+        
+        if self.authorCheckBox.isChecked():
+            args.append(("--author %s" % unicode(self.author.text())))
+        
+        if self.is_bound and self.local_checkbox.isChecked():
+            args.append("--local")
+        
+        self.tabWidget.setCurrentWidget(self.process_widget)
+        self.process_widget.start(*args)
 
     def show_changeset(self, item=None, column=None):
         repo = self.tree.branch.repository
@@ -526,5 +471,9 @@ class CommitWindow(QBzrWindow):
         self.filelist.update_selectall_state(None, None)
 
     def closeEvent(self, event):
-        self.f_on_close()   # either save_message or clear_saved_message
-        return QBzrWindow.closeEvent(self, event)
+        if not self.process_widget.is_running():
+            if self.process_widget.finished:
+                self.save_message()
+            else:
+                self.clear_saved_message()
+        return SubProcessWindow.closeEvent(self, event)
