@@ -25,6 +25,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.trace import log_exception_quietly
 
 from bzrlib.errors import BzrError
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     BTN_OK,
@@ -36,53 +37,54 @@ from bzrlib.plugins.qbzr.lib.util import (
 
 from bzrlib.plugins.qbzr.lib.wtlist import WorkingTreeFileList
 
-class AddWindow(QBzrWindow):
+class AddWindow(SubProcessWindow):
 
     def __init__(self, tree, selected_list, dialog=True, ui_mode=True, parent=None, local=None, message=None):
-        title = [gettext("Add")]
-        QBzrWindow.__init__(self, title, parent)
-        self.restoreSize("add", (400, 400))
-        if dialog:
-            flags = (self.windowFlags() & ~QtCore.Qt.Window) | QtCore.Qt.Dialog
-            self.setWindowFlags(flags)
-
         self.tree = tree
         self.initial_selected_list = selected_list
-
-        vbox = QtGui.QVBoxLayout(self.centralwidget)
-
+        
+        SubProcessWindow.__init__(self,
+                                  gettext("Add"),
+                                  name = "add",
+                                  default_size = (400, 400),
+                                  ui_mode = ui_mode,
+                                  dialog = dialog,
+                                  parent = parent)
+        
+        self.process_widget.hide_progress()
+    
+    def create_ui(self, parent):
         # Display the list of unversioned files
         groupbox = QtGui.QGroupBox(gettext("Unversioned Files"), self)
-        vbox.addWidget(groupbox)
+        vbox = QtGui.QVBoxLayout(groupbox)
 
         self.filelist = WorkingTreeFileList(groupbox, self.tree)
+        vbox.addWidget(self.filelist)
+        self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
+        self.filelist.setup_actions()
+        
         selectall_checkbox = QtGui.QCheckBox(
-            gettext(self.filelist.SELECTALL_MESSAGE))
-        self.show_ignored_checkbox = QtGui.QCheckBox(
-            gettext("Show ignored files"))
-
+            gettext(self.filelist.SELECTALL_MESSAGE),
+            groupbox)
+        vbox.addWidget(selectall_checkbox)
         selectall_checkbox.setCheckState(QtCore.Qt.Checked)
         selectall_checkbox.setEnabled(True)
         self.filelist.set_selectall_checkbox(selectall_checkbox)
 
-        buttonbox = self.create_button_box(BTN_OK, BTN_CANCEL)
-        vbox.addWidget(buttonbox)
-
-        tree.lock_read()
+        self.show_ignored_checkbox = QtGui.QCheckBox(
+            gettext("Show ignored files"),
+            groupbox)
+        vbox.addWidget(self.show_ignored_checkbox)
+        self.connect(self.show_ignored_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_ignored)
+        
+        self.tree.lock_read()
         try:
             self.filelist.fill(self.iter_changes_and_state())
         finally:
-            tree.unlock()
+            self.tree.unlock()
 
-        self.filelist.setup_actions()
-        self.connect(self.show_ignored_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_ignored)
+        return groupbox
 
-        vbox = QtGui.QVBoxLayout(groupbox)
-        vbox.addWidget(self.filelist)
-        vbox.addWidget(self.show_ignored_checkbox)
-        vbox.addWidget(selectall_checkbox)
-
-        self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
 
     def iter_changes_and_state(self):
         """An iterator for the WorkingTreeFileList widget"""
@@ -111,21 +113,13 @@ class AddWindow(QBzrWindow):
             check_state = visible and in_selected_list(pit)
             yield desc, visible, check_state
 
-    def accept(self):
+    def start(self):
         """Add the files."""
-        try:
-            for desc in self.filelist.iter_checked():
-                self.tree.add(self.filelist.get_changedesc_path(desc))
-        except BzrError, e:
-            log_exception_quietly()
-            QtGui.QMessageBox.warning(self,
-                "QBzr - " + gettext("Add"), str(e), QtGui.QMessageBox.Ok)
-
-        self.close()
-
-    def reject(self):
-        """Cancel the add."""
-        self.close()
+        args = ["add"]
+        for desc in self.filelist.iter_checked():
+            args.append(self.filelist.get_changedesc_path(desc))
+        
+        self.process_widget.start(*args)
 
     def show_ignored(self, state):
         """Show/hide ignored files."""

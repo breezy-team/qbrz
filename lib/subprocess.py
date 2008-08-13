@@ -156,12 +156,16 @@ class SubProcessWidget(QtGui.QWidget):
         self.errorFormat = QtGui.QTextCharFormat()
         self.errorFormat.setForeground(QtGui.QColor('red'))
     
+    def hide_progress(self):
+        self.progressMessage.setHidden(True)
+        self.progressBar.setHidden(True)
+    
     def is_running(self):
         return self.process.state() == QtCore.QProcess.Running or\
                self.process.state() == QtCore.QProcess.Starting
     
     def start(self, *args):
-        self.start_multi((args))
+        self.start_multi((args, ))
     
     def start_multi(self, commands):
         self.setProgress(0, [gettext("Starting...")])
