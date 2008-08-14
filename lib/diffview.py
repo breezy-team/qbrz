@@ -367,6 +367,11 @@ class SidebySideDiffView(QtGui.QSplitter):
         
         for cursor in self.cursors:
             cursor.endEditBlock()
+        # check horizontal scrollbars and force both if scrollbar visible only at one side
+        if (self.browser1.horizontalScrollBar().isVisible()
+            or self.browser2.horizontalScrollBar().isVisible()):
+            self.browser1.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+            self.browser2.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.update()
 
     def rewind(self):
