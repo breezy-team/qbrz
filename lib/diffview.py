@@ -255,8 +255,8 @@ class SidebySideDiffView(QtGui.QSplitter):
             
         if not binary:
             for cursor in cursors:
-                cursor.insertBlock()
                 cursor.setCharFormat(self.monospacedFormat)
+                cursor.insertBlock()
             changes = []
 
             def fix_last_line(lines):
