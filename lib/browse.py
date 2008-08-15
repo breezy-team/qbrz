@@ -80,6 +80,8 @@ class BrowseWindow(QBzrWindow):
         self.file_tree.setHeaderLabels(
             [gettext("Name"), gettext("Date"),
              gettext("Author"), gettext("Message")])
+        header = self.file_tree.header()
+        header.setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
 
         self.context_menu = QtGui.QMenu(self.file_tree)
         self.context_menu.addAction(gettext("Show log..."), self.show_file_log)
