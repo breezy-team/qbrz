@@ -133,11 +133,22 @@ class QBzrConfigWindow(QBzrDialog):
         bugTrackersVBox = QtGui.QVBoxLayout(bugTrackersWidget)
         bugTrackersVBox.addWidget(self.bugTrackersList)
         bugTrackersVBox.addLayout(bugTrackersHBox)
+        
+        diffWidget = QtGui.QWidget()
+        diffWidgetVBox = QtGui.QVBoxLayout(diffWidget)
+        
+        self.extDiff = QtGui.QCheckBox(gettext("Use command for Diffs:"))
+        self.extDiffCmd = QtGui.QLineEdit()
+        self.extDiffCmd.setEnabled(False)
+        self.connect(self.extDiff, QtCore.SIGNAL("stateChanged(int)"),
+                     self.enableExtDiffCmd)
+        diffWidget
 
         tabwidget.addTab(generalWidget, gettext("General"))
         tabwidget.addTab(aliasesWidget, gettext("Aliases"))
         tabwidget.addTab(bugTrackersWidget, gettext("Bug Trackers"))
         tabwidget.addTab(self.getGuiTabWidget(), gettext("&User Interface"))
+        tabwidget.addTab(self.extDiff, gettext("&Diff"))
 
         buttonbox = self.create_button_box(BTN_OK, BTN_CANCEL)
 
@@ -329,3 +340,10 @@ class QBzrConfigWindow(QBzrDialog):
             index = self.bugTrackersList.indexOfTopLevelItem(item)
             if index >= 0:
                 self.bugTrackersList.takeTopLevelItem(index)
+
+    def enableExtDiffCmd(self, state):
+        if state == QtCore.Qt.Checked:
+            self.extDiffCmd.setEnabled(True)
+            self.extDiffCmd.setFocus(QtCore.Qt.OtherFocusReason)
+        else:
+            self.extDiffCmd.setEnabled(False)
