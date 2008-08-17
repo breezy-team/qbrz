@@ -428,7 +428,8 @@ class CommitWindow(SubProcessWindow):
                 gettext("Empty commit message. Do you really want to commit?"), 
                 QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) 
             if button == QtGui.QMessageBox.No: 
-                # don't commit, but don't close the window either 
+                # don't commit, but don't close the window either
+                self.failed()
                 return
         args.append(('-m %s' % message))
         
@@ -468,7 +469,7 @@ class CommitWindow(SubProcessWindow):
         self.files_tab.setDisabled(False)
         if self.pending_merges:
             self.pendingMergesWidget.setDisabled(False)
-    
+        self.okButton.setDisabled(False)
     
     def show_changeset(self, item=None, column=None):
         repo = self.tree.branch.repository
