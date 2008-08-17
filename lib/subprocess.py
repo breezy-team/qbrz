@@ -28,18 +28,20 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_OK,
     BTN_CLOSE,
     QBzrWindow,
+    QBzrDialog,
     StandardButton,
     )
-
-class SubProcessWindow(QBzrWindow):
-
-    def __init__(self, title, name = "genericsubprocess",
-                 desc = "", args = None, default_size = None,
-                 ui_mode=True, dialog=True, default_layout=True,
-                 parent=None):
-        QBzrWindow.__init__(self, [title], parent)
-        if default_size:
-            self.restoreSize(name, default_size)
+class SubProcessWindowBase:
+    def __init_internal__(self, title,
+                          name="genericsubprocess",
+                          desc="",
+                          args=None,
+                          default_size=None,
+                          ui_mode=True,
+                          dialog=True,
+                          default_layout=True,
+                          parent=None):
+        self.restoreSize(name, default_size)
         self.desc = desc
         self.args = args
         self.ui_mode = ui_mode
@@ -120,6 +122,50 @@ class SubProcessWindow(QBzrWindow):
         else:
             self.process_widget.abort()
             event.ignore()
+
+class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
+
+    def __init__(self, title,
+                 name="genericsubprocess",
+                 desc="",
+                 args=None,
+                 default_size=None,
+                 ui_mode=True,
+                 dialog=True,
+                 default_layout=True,
+                 parent=None):
+        QBzrWindow.__init__(self, [title], parent)
+        self.__init_internal__(title,
+                               name=name,
+                               desc=desc,
+                               args=args,
+                               default_size=default_size,
+                               ui_mode=ui_mode,
+                               dialog=dialog,
+                               default_layout=default_layout,
+                               parent=parent)
+
+class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
+
+    def __init__(self, title,
+                 name="genericsubprocess",
+                 desc="",
+                 args=None,
+                 default_size=None,
+                 ui_mode=True,
+                 dialog=True,
+                 default_layout=True,
+                 parent=None):        
+        QBzrDialog.__init__(self, [title], parent)
+        self.__init_internal__(title,
+                               name=name,
+                               desc=desc,
+                               args=args,
+                               default_size=default_size,
+                               ui_mode=ui_mode,
+                               dialog=dialog,
+                               default_layout=default_layout,
+                               parent=parent)
 
 class SubProcessWidget(QtGui.QWidget):
 

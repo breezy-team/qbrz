@@ -255,8 +255,10 @@ class QBzrWindow(QtGui.QMainWindow):
                         size = defaultSize
         else:
             size = defaultSize
-        size = QtCore.QSize(size[0], size[1])
-        self.resize(size.expandedTo(self.minimumSizeHint()))
+        if size:
+            size = QtCore.QSize(size[0], size[1])
+            self.resize(size.expandedTo(self.minimumSizeHint()))
+        
         is_maximized = config.get_user_option(name + "_window_maximized")
         if is_maximized in ("True", "1"):
             self.setWindowState(QtCore.Qt.WindowMaximized)
@@ -339,8 +341,10 @@ class QBzrDialog(QtGui.QDialog):
                         size = defaultSize
         else:
             size = defaultSize
-        size = QtCore.QSize(size[0], size[1])
-        self.resize(size.expandedTo(self.minimumSizeHint()))
+        if size:
+            size = QtCore.QSize(size[0], size[1])
+            self.resize(size.expandedTo(self.minimumSizeHint()))
+        
         is_maximized = config.get_user_option(name + "_window_maximized")
         if is_maximized in ("True", "1"):
             self.setWindowState(QtCore.Qt.WindowMaximized)
