@@ -114,6 +114,10 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
                 status = gettext("removed")
                 ext = file_extension(path_in_source)
                 name = path_in_source + osutils.kind_marker(kind[0])
+            elif kind[0] is not None and kind[1] is None:
+                status = gettext("missing")
+                ext = file_extension(path_in_source)
+                name = path_in_source + osutils.kind_marker(kind[0])
             else:
                 # versioned = True, True - so either renamed or modified.
                 if path_in_source != path_in_target:
