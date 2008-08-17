@@ -193,10 +193,8 @@ class CommitWindow(QBzrWindow):
         QBzrWindow.__init__(self, title, parent)
         self.restoreSize("commit", (540, 540))
         if dialog:
-            flags = QtCore.Qt.Dialog | QtCore.Qt.WindowContextHelpButtonHint
-        else:
-            flags = QtCore.Qt.Window | QtCore.Qt.WindowContextHelpButtonHint
-        self.setWindowFlags(flags)
+            flags = (self.windowFlags() & ~QtCore.Qt.Window) | QtCore.Qt.Dialog
+            self.setWindowFlags(flags)
 
         self.tree = tree
         self.basis_tree = self.tree.basis_tree()
