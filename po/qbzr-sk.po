@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-08-12 07:26+0200\n"
+"POT-Creation-Date: 2008-08-17 18:45+0300\n"
 "PO-Revision-Date: 2008-07-22 18:17+0000\n"
 "Last-Translator: Lukáš Lalinský <lalinsky@gmail.com>\n"
 "Language-Team: Slovak <sk@li.org>\n"
@@ -16,6 +16,661 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 1 : (n>=2 && n<=4) ? 2 : 0;\n"
 "X-Launchpad-Export-Date: 2008-08-17 14:40+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
+
+#: lib\annotate.py:45
+msgid "Annotate"
+msgstr "Anotovať"
+
+#: lib\annotate.py:59
+msgid "Line"
+msgstr ""
+
+#: lib\annotate.py:59 lib\annotate.py:75 lib\browse.py:82 lib\commit.py:330
+#: lib\logmodel.py:70
+msgid "Author"
+msgstr "Autor"
+
+#: lib\annotate.py:59 lib\logmodel.py:67
+msgid "Rev"
+msgstr "Rev"
+
+#: lib\annotate.py:75 lib\browse.py:81 lib\commit.py:330 lib\logmodel.py:69
+msgid "Date"
+msgstr "Dátum"
+
+#: lib\annotate.py:75
+msgid "Summary"
+msgstr "Zhrnutie"
+
+#: lib\browse.py:60 lib\browse.py:199 lib\browse.py:234
+msgid "Browse"
+msgstr "Prehliadať"
+
+#: lib\browse.py:66
+msgid "Location:"
+msgstr "Umiestnenie:"
+
+#: lib\browse.py:71 lib\util.py:370
+msgid "Revision:"
+msgstr "Revízia:"
+
+#: lib\browse.py:74
+msgid "Show"
+msgstr "Zobraziť"
+
+#: lib\browse.py:81 lib\main.py:359
+msgid "Name"
+msgstr "Názov"
+
+#: lib\browse.py:82 lib\commit.py:265 lib\commit.py:330 lib\logmodel.py:68
+msgid "Message"
+msgstr "Správa"
+
+#: lib\browse.py:87
+msgid "Show log..."
+msgstr "Zobraziť históriu..."
+
+#: lib\browse.py:89
+#, fuzzy
+msgid "View file"
+msgstr "%d súborov"
+
+#: lib\cat.py:73
+msgid "View "
+msgstr ""
+
+#: lib\cat.py:155
+msgid "View File"
+msgstr ""
+
+#: lib\cat.py:156
+#, python-format
+msgid "File \"%s\" not found in the specified revision."
+msgstr ""
+
+#: lib\commit.py:192 lib\commit.py:503 lib\commit.py:517 lib\commit.py:555
+msgid "Commit"
+msgstr "Odovzdať"
+
+#: lib\commit.py:215 lib\diff.py:192
+msgid "added"
+msgstr "pridané"
+
+#: lib\commit.py:219 lib\diff.py:190
+msgid "removed"
+msgstr "vymazané"
+
+#: lib\commit.py:225 lib\diff.py:194
+msgid "renamed and modified"
+msgstr "premenované a zmeneé"
+
+#: lib\commit.py:227 lib\diff.py:196
+msgid "renamed"
+msgstr "premenované"
+
+#: lib\commit.py:234 lib\diff.py:198
+msgid "modified"
+msgstr "zmenené"
+
+#: lib\commit.py:237
+msgid "non-versioned"
+msgstr "neverzované"
+
+#: lib\commit.py:271
+msgid "Enter the commit message"
+msgstr "Vložte správu"
+
+#: lib\commit.py:282
+msgid "&Fixed bugs:"
+msgstr "&Opravené chyby:"
+
+#: lib\commit.py:283
+msgid "Set the IDs of bugs fixed by this commit"
+msgstr "Nastaví identifikátory chýb opravených týmto odovzdaním"
+
+#: lib\commit.py:286
+msgid ""
+"Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
+"<i>project:123 project:765</i>"
+msgstr ""
+"Vložte zoznam identifikátorov chýb vo formáte <i>značka:id</i> oddelených "
+"medzerou, napr. <i>projekt:123 projekt:765</i>"
+
+#: lib\commit.py:296
+msgid "&Author:"
+msgstr "&Autor:"
+
+#: lib\commit.py:297
+msgid "Set the author of this change, if it's different from the committer"
+msgstr ""
+"Nastaví meno autora tejto zmeny, v prípade že je odlišné od odovzdávateľa."
+
+#: lib\commit.py:300
+msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
+msgstr ""
+"Vložte meno autora, napr. <i>Ján Mrkvička &lt;jmrkvicka@example.com&gt;</i>"
+
+#: lib\commit.py:315
+msgid "&Local commit in a bound branch"
+msgstr ""
+
+#: lib\commit.py:317
+msgid ""
+"Local commits are not pushed to the master branch until a normal commit is "
+"performed"
+msgstr ""
+
+#: lib\commit.py:325
+msgid "Pending Merges"
+msgstr "Čakajúce zlúčenia"
+
+#: lib\commit.py:352
+msgid "Changes"
+msgstr "Zmeny"
+
+#: lib\commit.py:360
+msgid "File"
+msgstr "Súbor"
+
+#: lib\commit.py:360
+msgid "Extension"
+msgstr "Prípona"
+
+#: lib\commit.py:360 lib\main.py:361 lib\ui_branch.py:90 lib\ui_pull.py:90
+#: lib\ui_push.py:93
+msgid "Status"
+msgstr "Stav"
+
+#: lib\commit.py:381 lib\log.py:358
+msgid "Show &differences..."
+msgstr ""
+
+#: lib\commit.py:384
+msgid "&Revert..."
+msgstr "&Revertovať..."
+
+#: lib\commit.py:391
+msgid "Show non-versioned files"
+msgstr "Zobraziť neverzované súbory"
+
+#: lib\commit.py:504
+msgid "Empty commit message. Do you really want to commit?"
+msgstr ""
+
+#: lib\commit.py:614 lib\commit.py:623
+#, fuzzy
+msgid "Revert"
+msgstr "&Revertovať..."
+
+#: lib\commit.py:615
+msgid "Do you really want to revert the selected file(s)?"
+msgstr "Naozaj chcete revertovať vybrané súbory?"
+
+#: lib\config.py:40
+msgid "Default"
+msgstr "Štandardný"
+
+#: lib\config.py:41
+msgid "Thunderbird"
+msgstr "Thunderbird"
+
+#: lib\config.py:42
+msgid "Evolution"
+msgstr "Evolution"
+
+#: lib\config.py:43
+msgid "KMail"
+msgstr "KMail"
+
+#: lib\config.py:44
+msgid "Mutt"
+msgstr "Mutt"
+
+#: lib\config.py:45
+msgid "XDG e-mail client"
+msgstr "XDG e-mailový klient"
+
+#: lib\config.py:46
+msgid "MAPI e-mail client"
+msgstr "MAPI e-mailový klient"
+
+#: lib\config.py:47
+#, fuzzy
+msgid "Editor"
+msgstr "adresár"
+
+#: lib\config.py:56
+msgid "Configuration"
+msgstr "Nastavenie"
+
+#: lib\config.py:66 lib\ui_bookmark.py:58
+msgid "&Name:"
+msgstr "Me&no:"
+
+#: lib\config.py:72
+msgid "E-&mail:"
+msgstr "E-&mail:"
+
+#: lib\config.py:78
+#, fuzzy
+msgid "&Editor:"
+msgstr "&Autor:"
+
+#: lib\config.py:86
+msgid "E-mail &client:"
+msgstr "E-mail &klient:"
+
+#: lib\config.py:96
+msgid "Alias"
+msgstr "Alias"
+
+#: lib\config.py:96
+msgid "Command"
+msgstr "Príkaz"
+
+#: lib\config.py:98 lib\config.py:119
+msgid "Add"
+msgstr "Pridať"
+
+#: lib\config.py:101 lib\config.py:122
+msgid "Remove"
+msgstr "Odstrániť"
+
+#: lib\config.py:117
+msgid "Abbreviation"
+msgstr ""
+
+#: lib\config.py:117
+msgid "URL"
+msgstr ""
+
+#: lib\config.py:136
+msgid "General"
+msgstr "Všeobecné"
+
+#: lib\config.py:137
+msgid "Aliases"
+msgstr "Aliasy"
+
+#: lib\config.py:138
+msgid "Bug Trackers"
+msgstr ""
+
+#: lib\diff.py:61 lib\log.py:351
+msgid "Diff"
+msgstr "Rozdiely"
+
+#: lib\diff.py:68
+#, python-format
+msgid "%d file"
+msgid_plural "%d files"
+msgstr[0] "%d súborov"
+msgstr[1] "%d súbor"
+msgstr[2] "%d súbory"
+
+#: lib\diff.py:100
+msgid "Side by side"
+msgstr "Po stránách"
+
+#: lib\diff.py:107
+msgid "Unidiff"
+msgstr "Unifikované"
+
+#: lib\diffview.py:215
+msgid "Last modified:"
+msgstr "Naposledy zmenené:"
+
+#: lib\diffview.py:216
+msgid "Status:"
+msgstr "Stav:"
+
+#: lib\diffview.py:217
+msgid "Kind:"
+msgstr "Typ:"
+
+#: lib\diffview.py:218
+msgid "Properties:"
+msgstr ""
+
+#: lib\diffview.py:363
+#, fuzzy
+msgid "[binary file]"
+msgstr "binárny súbor"
+
+#: lib\diffview.py:516
+msgid "\\ No newline at end of file"
+msgstr ""
+
+#: lib\i18n.py:75
+msgid "file"
+msgstr "súbor"
+
+#: lib\i18n.py:76
+msgid "directory"
+msgstr "adresár"
+
+#: lib\i18n.py:77
+msgid "symlink"
+msgstr "symbolický odkaz"
+
+#: lib\i18n.py:79
+#, fuzzy
+msgid "fixed"
+msgstr "zmenené"
+
+#: lib\i18n.py:81
+msgid "View text file"
+msgstr ""
+
+#: lib\i18n.py:82
+msgid "View image file"
+msgstr ""
+
+#: lib\i18n.py:83
+msgid "View binary file"
+msgstr ""
+
+#: lib\i18n.py:84
+#, fuzzy
+msgid "View symlink"
+msgstr "symbolický odkaz"
+
+#: lib\i18n.py:85
+#, fuzzy
+msgid "View directory"
+msgstr "adresár"
+
+#: lib\log.py:227
+msgid "Log"
+msgstr "História"
+
+#: lib\log.py:251
+msgid "&Search:"
+msgstr "&Vyhľadávanie:"
+
+#: lib\log.py:266
+msgid "Messages"
+msgstr "Správy"
+
+#: lib\log.py:268
+msgid "Authors"
+msgstr ""
+
+#: lib\log.py:270
+msgid "Revision IDs"
+msgstr ""
+
+#: lib\log.py:272
+msgid "Revision Numbers"
+msgstr ""
+
+#: lib\log.py:359
+msgid "Show &tree..."
+msgstr ""
+
+#: lib\logmodel.py:820
+#, python-format
+msgid "bug #%s"
+msgstr ""
+
+#: lib\main.py:126
+msgid "Computer"
+msgstr ""
+
+#: lib\main.py:155
+msgid "&Edit Bookmark..."
+msgstr ""
+
+#: lib\main.py:156
+msgid "&Remove Bookmark..."
+msgstr ""
+
+#: lib\main.py:171
+msgid "Bookmarks"
+msgstr ""
+
+#: lib\main.py:280 lib\util.py:69
+msgid "&Refresh"
+msgstr ""
+
+#: lib\main.py:282
+msgid "Refresh the directory tree"
+msgstr ""
+
+#: lib\main.py:286
+msgid "&Commit"
+msgstr ""
+
+#: lib\main.py:287
+msgid "Commit changes into a new revision"
+msgstr ""
+
+#: lib\main.py:291
+msgid "&Push"
+msgstr ""
+
+#: lib\main.py:292
+msgid "Turn this branch into a mirror of another branch"
+msgstr ""
+
+#: lib\main.py:296
+msgid "Pu&ll"
+msgstr ""
+
+#: lib\main.py:297
+msgid "Update a mirror of this branch"
+msgstr ""
+
+#: lib\main.py:300
+msgid "&Add Bookmark..."
+msgstr ""
+
+#: lib\main.py:307
+msgid "&File"
+msgstr ""
+
+#: lib\main.py:308
+msgid "&Configure..."
+msgstr ""
+
+#: lib\main.py:310
+msgid "&Quit"
+msgstr ""
+
+#: lib\main.py:311
+msgid "&View"
+msgstr ""
+
+#: lib\main.py:313
+msgid "&Branch"
+msgstr ""
+
+#: lib\main.py:317
+msgid "&Bookmarks"
+msgstr ""
+
+#: lib\main.py:319 lib\util.py:68
+msgid "&Help"
+msgstr "&Pomoc"
+
+#: lib\main.py:320
+msgid "&Help..."
+msgstr ""
+
+#: lib\main.py:322
+msgid "&About..."
+msgstr ""
+
+#: lib\main.py:360
+msgid "Size"
+msgstr ""
+
+#: lib\main.py:412
+msgid "About QBzr"
+msgstr ""
+
+#: lib\main.py:413
+#, python-format
+msgid ""
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
+"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2007 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
+"\">http://bazaar-vcs.org/QBzr</a>"
+msgstr ""
+
+#: lib\main.py:478
+msgid "Add Bookmark"
+msgstr ""
+
+#: lib\main.py:489
+msgid "Edit Bookmark"
+msgstr ""
+
+#: lib\main.py:499
+msgid "Remove Bookmark"
+msgstr ""
+
+#: lib\main.py:500
+msgid "Do you really want to remove the selected bookmark?"
+msgstr ""
+
+#: lib\pull.py:53
+msgid "Pull"
+msgstr ""
+
+#: lib\pull.py:114
+msgid "Starting..."
+msgstr ""
+
+#: lib\pull.py:161
+msgid "Aborting..."
+msgstr ""
+
+#: lib\pull.py:169
+msgid "Finished!"
+msgstr ""
+
+#: lib\pull.py:208 lib\pull.py:224
+msgid "Failed!"
+msgstr ""
+
+#: lib\pull.py:210
+msgid "Failed to start bzr."
+msgstr ""
+
+#: lib\pull.py:212
+#, python-format
+msgid "Error while running bzr. (error code: %d)"
+msgstr ""
+
+#: lib\pull.py:230
+msgid "Push"
+msgstr ""
+
+#: lib\pull.py:260
+msgid "Branch"
+msgstr ""
+
+#: lib\ui_bookmark.py:59 lib\ui_branch.py:87 lib\ui_pull.py:86
+#: lib\ui_push.py:88
+msgid "&Location:"
+msgstr ""
+
+#: lib\ui_branch.py:86 lib\ui_pull.py:85 lib\ui_push.py:87
+msgid "Options"
+msgstr ""
+
+#: lib\ui_branch.py:88 lib\ui_pull.py:87
+msgid "&Revision:"
+msgstr ""
+
+#: lib\ui_branch.py:89
+msgid "&To:"
+msgstr ""
+
+#: lib\ui_branch.py:91 lib\ui_pull.py:91 lib\ui_push.py:94
+msgid "Stopped"
+msgstr ""
+
+#: lib\ui_pull.py:88 lib\ui_push.py:89
+msgid "Remember this location as a default"
+msgstr ""
+
+#: lib\ui_pull.py:89 lib\ui_push.py:90
+msgid "Overwrite differences between branches"
+msgstr ""
+
+#: lib\ui_push.py:91
+msgid "Use existing directory"
+msgstr ""
+
+#: lib\ui_push.py:92
+msgid "Create the path up to the branch if it does not exist"
+msgstr ""
+
+#: lib\util.py:65
+msgid "&OK"
+msgstr "&OK"
+
+#: lib\util.py:66
+msgid "&Cancel"
+msgstr "&Zrušiť"
+
+#: lib\util.py:67
+msgid "&Close"
+msgstr "&Zavrieť"
+
+#: lib\util.py:387
+msgid "Parents:"
+msgstr ""
+
+#: lib\util.py:391
+msgid "Children:"
+msgstr ""
+
+#: lib\util.py:393
+msgid "Committer:"
+msgstr "Odovzdávateľ:"
+
+#: lib\util.py:396
+msgid "Author:"
+msgstr "Autor:"
+
+#: lib\util.py:400
+msgid "Branch:"
+msgstr ""
+
+#: lib\util.py:405
+msgid "Tags:"
+msgstr "Značky:"
+
+#: lib\util.py:414
+#, fuzzy
+msgid "Bug:"
+msgid_plural "Bugs:"
+msgstr[0] "Chyby:"
+msgstr[1] "Chyby:"
+msgstr[2] "Chyby:"
+
+#: lib\util.py:570
+#, fuzzy
+msgid "deleted files"
+msgstr "%d súborov"
+
+#: lib\util.py:572
+#, fuzzy
+msgid "added files"
+msgstr "%d súborov"
+
+#: lib\util.py:574
+#, fuzzy
+msgid "renamed files"
+msgstr "premenované"
+
+#: lib\util.py:576
+#, fuzzy
+msgid "modified files"
+msgstr "zmenené"
 
 #~ msgid "Parent revisions:"
 #~ msgstr "Rodičovské revízie:"
@@ -32,659 +687,3 @@ msgstr ""
 #, fuzzy
 #~ msgid "Revision Id:"
 #~ msgstr "Revízia:"
-
-#: lib/annotate.py:45
-msgid "Annotate"
-msgstr "Anotovať"
-
-#: lib/annotate.py:59
-msgid "Line"
-msgstr ""
-
-#: lib/annotate.py:59 lib/annotate.py:75 lib/browse.py:82 lib/commit.py:332
-#: lib/logmodel.py:70
-msgid "Author"
-msgstr "Autor"
-
-#: lib/annotate.py:59 lib/logmodel.py:67
-msgid "Rev"
-msgstr "Rev"
-
-#: lib/annotate.py:75 lib/browse.py:81 lib/commit.py:332 lib/logmodel.py:69
-msgid "Date"
-msgstr "Dátum"
-
-#: lib/annotate.py:75
-msgid "Summary"
-msgstr "Zhrnutie"
-
-#: lib/browse.py:60 lib/browse.py:197 lib/browse.py:232
-msgid "Browse"
-msgstr "Prehliadať"
-
-#: lib/browse.py:66
-msgid "Location:"
-msgstr "Umiestnenie:"
-
-#: lib/browse.py:71 lib/util.py:370
-msgid "Revision:"
-msgstr "Revízia:"
-
-#: lib/browse.py:74
-msgid "Show"
-msgstr "Zobraziť"
-
-#: lib/browse.py:81 lib/main.py:359
-msgid "Name"
-msgstr "Názov"
-
-#: lib/browse.py:82 lib/commit.py:267 lib/commit.py:332 lib/logmodel.py:68
-msgid "Message"
-msgstr "Správa"
-
-#: lib/browse.py:85
-msgid "Show log..."
-msgstr "Zobraziť históriu..."
-
-#: lib/browse.py:87
-#, fuzzy
-msgid "View file"
-msgstr "%d súborov"
-
-#: lib/cat.py:73
-msgid "View "
-msgstr ""
-
-#: lib/cat.py:155
-msgid "View File"
-msgstr ""
-
-#: lib/cat.py:156
-#, python-format
-msgid "File \"%s\" not found in the specified revision."
-msgstr ""
-
-#: lib/commit.py:192 lib/commit.py:505 lib/commit.py:519 lib/commit.py:557
-msgid "Commit"
-msgstr "Odovzdať"
-
-#: lib/commit.py:217 lib/diff.py:192
-msgid "added"
-msgstr "pridané"
-
-#: lib/commit.py:221 lib/diff.py:190
-msgid "removed"
-msgstr "vymazané"
-
-#: lib/commit.py:227 lib/diff.py:194
-msgid "renamed and modified"
-msgstr "premenované a zmeneé"
-
-#: lib/commit.py:229 lib/diff.py:196
-msgid "renamed"
-msgstr "premenované"
-
-#: lib/commit.py:236 lib/diff.py:198
-msgid "modified"
-msgstr "zmenené"
-
-#: lib/commit.py:239
-msgid "non-versioned"
-msgstr "neverzované"
-
-#: lib/commit.py:273
-msgid "Enter the commit message"
-msgstr "Vložte správu"
-
-#: lib/commit.py:284
-msgid "&Fixed bugs:"
-msgstr "&Opravené chyby:"
-
-#: lib/commit.py:285
-msgid "Set the IDs of bugs fixed by this commit"
-msgstr "Nastaví identifikátory chýb opravených týmto odovzdaním"
-
-#: lib/commit.py:288
-msgid ""
-"Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
-"<i>project:123 project:765</i>"
-msgstr ""
-"Vložte zoznam identifikátorov chýb vo formáte <i>značka:id</i> oddelených "
-"medzerou, napr. <i>projekt:123 projekt:765</i>"
-
-#: lib/commit.py:298
-msgid "&Author:"
-msgstr "&Autor:"
-
-#: lib/commit.py:299
-msgid "Set the author of this change, if it's different from the committer"
-msgstr ""
-"Nastaví meno autora tejto zmeny, v prípade že je odlišné od odovzdávateľa."
-
-#: lib/commit.py:302
-msgid ""
-"Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
-msgstr ""
-"Vložte meno autora, napr. <i>Ján Mrkvička &lt;jmrkvicka@example.com&gt;</i>"
-
-#: lib/commit.py:317
-msgid "&Local commit in a bound branch"
-msgstr ""
-
-#: lib/commit.py:319
-msgid ""
-"Local commits are not pushed to the master branch until a normal commit is "
-"performed"
-msgstr ""
-
-#: lib/commit.py:327
-msgid "Pending Merges"
-msgstr "Čakajúce zlúčenia"
-
-#: lib/commit.py:354
-msgid "Changes"
-msgstr "Zmeny"
-
-#: lib/commit.py:362
-msgid "File"
-msgstr "Súbor"
-
-#: lib/commit.py:362
-msgid "Extension"
-msgstr "Prípona"
-
-#: lib/commit.py:362 lib/main.py:361 lib/ui_branch.py:90 lib/ui_pull.py:90
-#: lib/ui_push.py:93
-msgid "Status"
-msgstr "Stav"
-
-#: lib/commit.py:383 lib/log.py:358
-msgid "Show &differences..."
-msgstr ""
-
-#: lib/commit.py:386
-msgid "&Revert..."
-msgstr "&Revertovať..."
-
-#: lib/commit.py:393
-msgid "Show non-versioned files"
-msgstr "Zobraziť neverzované súbory"
-
-#: lib/commit.py:506
-msgid "Empty commit message. Do you really want to commit?"
-msgstr ""
-
-#: lib/commit.py:616 lib/commit.py:625
-#, fuzzy
-msgid "Revert"
-msgstr "&Revertovať..."
-
-#: lib/commit.py:617
-msgid "Do you really want to revert the selected file(s)?"
-msgstr "Naozaj chcete revertovať vybrané súbory?"
-
-#: lib/config.py:40
-msgid "Default"
-msgstr "Štandardný"
-
-#: lib/config.py:41
-msgid "Thunderbird"
-msgstr "Thunderbird"
-
-#: lib/config.py:42
-msgid "Evolution"
-msgstr "Evolution"
-
-#: lib/config.py:43
-msgid "KMail"
-msgstr "KMail"
-
-#: lib/config.py:44
-msgid "Mutt"
-msgstr "Mutt"
-
-#: lib/config.py:45
-msgid "XDG e-mail client"
-msgstr "XDG e-mailový klient"
-
-#: lib/config.py:46
-msgid "MAPI e-mail client"
-msgstr "MAPI e-mailový klient"
-
-#: lib/config.py:47
-#, fuzzy
-msgid "Editor"
-msgstr "adresár"
-
-#: lib/config.py:56
-msgid "Configuration"
-msgstr "Nastavenie"
-
-#: lib/config.py:66 lib/ui_bookmark.py:58
-msgid "&Name:"
-msgstr "Me&no:"
-
-#: lib/config.py:72
-msgid "E-&mail:"
-msgstr "E-&mail:"
-
-#: lib/config.py:78
-#, fuzzy
-msgid "&Editor:"
-msgstr "&Autor:"
-
-#: lib/config.py:86
-msgid "E-mail &client:"
-msgstr "E-mail &klient:"
-
-#: lib/config.py:96
-msgid "Alias"
-msgstr "Alias"
-
-#: lib/config.py:96
-msgid "Command"
-msgstr "Príkaz"
-
-#: lib/config.py:98 lib/config.py:119
-msgid "Add"
-msgstr "Pridať"
-
-#: lib/config.py:101 lib/config.py:122
-msgid "Remove"
-msgstr "Odstrániť"
-
-#: lib/config.py:117
-msgid "Abbreviation"
-msgstr ""
-
-#: lib/config.py:117
-msgid "URL"
-msgstr ""
-
-#: lib/config.py:136
-msgid "General"
-msgstr "Všeobecné"
-
-#: lib/config.py:137
-msgid "Aliases"
-msgstr "Aliasy"
-
-#: lib/config.py:138
-msgid "Bug Trackers"
-msgstr ""
-
-#: lib/diff.py:61 lib/log.py:351
-msgid "Diff"
-msgstr "Rozdiely"
-
-#: lib/diff.py:68
-#, python-format
-msgid "%d file"
-msgid_plural "%d files"
-msgstr[0] "%d súborov"
-msgstr[1] "%d súbor"
-msgstr[2] "%d súbory"
-
-#: lib/diff.py:100
-msgid "Side by side"
-msgstr "Po stránách"
-
-#: lib/diff.py:107
-msgid "Unidiff"
-msgstr "Unifikované"
-
-#: lib/i18n.py:75
-msgid "file"
-msgstr "súbor"
-
-#: lib/i18n.py:76
-msgid "directory"
-msgstr "adresár"
-
-#: lib/i18n.py:77
-msgid "symlink"
-msgstr "symbolický odkaz"
-
-#: lib/i18n.py:79
-#, fuzzy
-msgid "fixed"
-msgstr "zmenené"
-
-#: lib/i18n.py:81
-msgid "View text file"
-msgstr ""
-
-#: lib/i18n.py:82
-msgid "View image file"
-msgstr ""
-
-#: lib/i18n.py:83
-msgid "View binary file"
-msgstr ""
-
-#: lib/i18n.py:84
-#, fuzzy
-msgid "View symlink"
-msgstr "symbolický odkaz"
-
-#: lib/i18n.py:85
-#, fuzzy
-msgid "View directory"
-msgstr "adresár"
-
-#: lib/log.py:227
-msgid "Log"
-msgstr "História"
-
-#: lib/log.py:251
-msgid "&Search:"
-msgstr "&Vyhľadávanie:"
-
-#: lib/log.py:266
-msgid "Messages"
-msgstr "Správy"
-
-#: lib/log.py:268
-msgid "Authors"
-msgstr ""
-
-#: lib/log.py:270
-msgid "Revision IDs"
-msgstr ""
-
-#: lib/log.py:272
-msgid "Revision Numbers"
-msgstr ""
-
-#: lib/log.py:359
-msgid "Show &tree..."
-msgstr ""
-
-#: lib/main.py:126
-msgid "Computer"
-msgstr ""
-
-#: lib/main.py:155
-msgid "&Edit Bookmark..."
-msgstr ""
-
-#: lib/main.py:156
-msgid "&Remove Bookmark..."
-msgstr ""
-
-#: lib/main.py:171
-msgid "Bookmarks"
-msgstr ""
-
-#: lib/main.py:280 lib/util.py:69
-msgid "&Refresh"
-msgstr ""
-
-#: lib/main.py:282
-msgid "Refresh the directory tree"
-msgstr ""
-
-#: lib/main.py:286
-msgid "&Commit"
-msgstr ""
-
-#: lib/main.py:287
-msgid "Commit changes into a new revision"
-msgstr ""
-
-#: lib/main.py:291
-msgid "&Push"
-msgstr ""
-
-#: lib/main.py:292
-msgid "Turn this branch into a mirror of another branch"
-msgstr ""
-
-#: lib/main.py:296
-msgid "Pu&ll"
-msgstr ""
-
-#: lib/main.py:297
-msgid "Update a mirror of this branch"
-msgstr ""
-
-#: lib/main.py:300
-msgid "&Add Bookmark..."
-msgstr ""
-
-#: lib/main.py:307
-msgid "&File"
-msgstr ""
-
-#: lib/main.py:308
-msgid "&Configure..."
-msgstr ""
-
-#: lib/main.py:310
-msgid "&Quit"
-msgstr ""
-
-#: lib/main.py:311
-msgid "&View"
-msgstr ""
-
-#: lib/main.py:313
-msgid "&Branch"
-msgstr ""
-
-#: lib/main.py:317
-msgid "&Bookmarks"
-msgstr ""
-
-#: lib/main.py:319 lib/util.py:68
-msgid "&Help"
-msgstr "&Pomoc"
-
-#: lib/main.py:320
-msgid "&Help..."
-msgstr ""
-
-#: lib/main.py:322
-msgid "&About..."
-msgstr ""
-
-#: lib/main.py:360
-msgid "Size"
-msgstr ""
-
-#: lib/main.py:412
-msgid "About QBzr"
-msgstr ""
-
-#: lib/main.py:413
-#, python-format
-msgid ""
-"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
-"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2007 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
-"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
-msgstr ""
-
-#: lib/main.py:478
-msgid "Add Bookmark"
-msgstr ""
-
-#: lib/main.py:489
-msgid "Edit Bookmark"
-msgstr ""
-
-#: lib/main.py:499
-msgid "Remove Bookmark"
-msgstr ""
-
-#: lib/main.py:500
-msgid "Do you really want to remove the selected bookmark?"
-msgstr ""
-
-#: lib/pull.py:53
-msgid "Pull"
-msgstr ""
-
-#: lib/pull.py:114
-msgid "Starting..."
-msgstr ""
-
-#: lib/pull.py:161
-msgid "Aborting..."
-msgstr ""
-
-#: lib/pull.py:169
-msgid "Finished!"
-msgstr ""
-
-#: lib/pull.py:208 lib/pull.py:224
-msgid "Failed!"
-msgstr ""
-
-#: lib/pull.py:210
-msgid "Failed to start bzr."
-msgstr ""
-
-#: lib/pull.py:212
-#, python-format
-msgid "Error while running bzr. (error code: %d)"
-msgstr ""
-
-#: lib/pull.py:230
-msgid "Push"
-msgstr ""
-
-#: lib/pull.py:260
-msgid "Branch"
-msgstr ""
-
-#: lib/ui_bookmark.py:59 lib/ui_branch.py:87 lib/ui_pull.py:86
-#: lib/ui_push.py:88
-msgid "&Location:"
-msgstr ""
-
-#: lib/ui_branch.py:86 lib/ui_pull.py:85 lib/ui_push.py:87
-msgid "Options"
-msgstr ""
-
-#: lib/ui_branch.py:88 lib/ui_pull.py:87
-msgid "&Revision:"
-msgstr ""
-
-#: lib/ui_branch.py:89
-msgid "&To:"
-msgstr ""
-
-#: lib/ui_branch.py:91 lib/ui_pull.py:91 lib/ui_push.py:94
-msgid "Stopped"
-msgstr ""
-
-#: lib/ui_pull.py:88 lib/ui_push.py:89
-msgid "Remember this location as a default"
-msgstr ""
-
-#: lib/ui_pull.py:89 lib/ui_push.py:90
-msgid "Overwrite differences between branches"
-msgstr ""
-
-#: lib/ui_push.py:91
-msgid "Use existing directory"
-msgstr ""
-
-#: lib/ui_push.py:92
-msgid "Create the path up to the branch if it does not exist"
-msgstr ""
-
-#: lib/util.py:65
-msgid "&OK"
-msgstr "&OK"
-
-#: lib/util.py:66
-msgid "&Cancel"
-msgstr "&Zrušiť"
-
-#: lib/util.py:67
-msgid "&Close"
-msgstr "&Zavrieť"
-
-#: lib/util.py:387
-msgid "Parents:"
-msgstr ""
-
-#: lib/util.py:391
-msgid "Children:"
-msgstr ""
-
-#: lib/util.py:393
-msgid "Committer:"
-msgstr "Odovzdávateľ:"
-
-#: lib/util.py:396
-msgid "Author:"
-msgstr "Autor:"
-
-#: lib/util.py:400
-msgid "Branch:"
-msgstr ""
-
-#: lib/util.py:405
-msgid "Tags:"
-msgstr "Značky:"
-
-#: lib/util.py:414
-#, fuzzy
-msgid "Bug:"
-msgid_plural "Bugs:"
-msgstr[0] "Chyby:"
-msgstr[1] "Chyby:"
-msgstr[2] "Chyby:"
-
-#: lib/util.py:570
-#, fuzzy
-msgid "deleted files"
-msgstr "%d súborov"
-
-#: lib/util.py:572
-#, fuzzy
-msgid "added files"
-msgstr "%d súborov"
-
-#: lib/util.py:574
-#, fuzzy
-msgid "renamed files"
-msgstr "premenované"
-
-#: lib/util.py:576
-#, fuzzy
-msgid "modified files"
-msgstr "zmenené"
-
-#: lib/logmodel.py:820
-#, python-format
-msgid "bug #%s"
-msgstr ""
-
-#: lib/diffview.py:215
-msgid "Last modified:"
-msgstr "Naposledy zmenené:"
-
-#: lib/diffview.py:216
-msgid "Status:"
-msgstr "Stav:"
-
-#: lib/diffview.py:217
-msgid "Kind:"
-msgstr "Typ:"
-
-#: lib/diffview.py:218
-msgid "Properties:"
-msgstr ""
-
-#: lib/diffview.py:363
-#, fuzzy
-msgid "[binary file]"
-msgstr "binárny súbor"
-
-#: lib/diffview.py:511
-msgid "\\ No newline at end of file"
-msgstr ""
