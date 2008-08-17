@@ -36,6 +36,7 @@ class SubProcessWindowBase:
                           name="genericsubprocess",
                           desc="",
                           args=None,
+                          dir=None,
                           default_size=None,
                           ui_mode=True,
                           dialog=True,
@@ -44,6 +45,7 @@ class SubProcessWindowBase:
         self.restoreSize(name, default_size)
         self.desc = desc
         self.args = args
+        self.dir = dir
         self.ui_mode = ui_mode
 
         if dialog:
@@ -95,7 +97,7 @@ class SubProcessWindowBase:
             self.start()
     
     def start(self):
-        self.process_widget.start(*self.args)
+        self.process_widget.start(self.dir, *self.args)
     
     def reject(self):
         if self.process_widget.is_running():
@@ -131,6 +133,7 @@ class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
                  name="genericsubprocess",
                  desc="",
                  args=None,
+                 dir=None,
                  default_size=None,
                  ui_mode=True,
                  dialog=True,
@@ -141,6 +144,7 @@ class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
                                name=name,
                                desc=desc,
                                args=args,
+                               dir=dir,
                                default_size=default_size,
                                ui_mode=ui_mode,
                                dialog=dialog,
@@ -153,6 +157,7 @@ class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
                  name="genericsubprocess",
                  desc="",
                  args=None,
+                 dir=None,
                  default_size=None,
                  ui_mode=True,
                  dialog=True,
@@ -163,6 +168,7 @@ class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
                                name=name,
                                desc=desc,
                                args=args,
+                               dir=dir,
                                default_size=default_size,
                                ui_mode=ui_mode,
                                dialog=dialog,
@@ -203,6 +209,8 @@ class SubProcessWidget(QtGui.QWidget):
             QtCore.SIGNAL("finished(int, QProcess::ExitStatus)"),
             self.onFinished)
         
+        self.defaultWorkingDir = self.process.workingDirectory ()
+        
         self.finished = False
         self.aborting = False
         
@@ -218,8 +226,8 @@ class SubProcessWidget(QtGui.QWidget):
         return self.process.state() == QtCore.QProcess.Running or\
                self.process.state() == QtCore.QProcess.Starting
     
-    def start(self, *args):
-        self.start_multi((args, ))
+    def start(self, dir, *args):
+        self.start_multi(((dir, args),))
     
     def start_multi(self, commands):
         self.setProgress(0, [gettext("Starting...")])
@@ -228,8 +236,12 @@ class SubProcessWidget(QtGui.QWidget):
         self._start_next()
     
     def _start_next(self):
-        args = self.commands.pop(0)
+        dir, args = self.commands.pop(0)
         args = ' '.join('"%s"' % a.replace('"', '\"') for a in args)
+        if dir is None:
+            dir = self.defaultWorkingDir
+        
+        self.process.setWorkingDirectory (dir)
         if getattr(sys, "frozen", None) is not None:
             self.process.start(
                 sys.argv[0], ['qsubprocess', args])

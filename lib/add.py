@@ -115,11 +115,11 @@ class AddWindow(SubProcessWindow):
 
     def start(self):
         """Add the files."""
-        args = ["add"]
+        files = []
         for desc in self.filelist.iter_checked():
-            args.append(self.filelist.get_changedesc_path(desc))
+            files.append(self.filelist.get_changedesc_path(desc))
         
-        self.process_widget.start(*args)
+        self.process_widget.start(self.tree.basedir, "add", *files)
 
     def show_ignored(self, state):
         """Show/hide ignored files."""

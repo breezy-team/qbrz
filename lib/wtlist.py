@@ -222,6 +222,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         revert_dialog = SubProcessDialog(gettext("Revert"),
                                          desc=desc,
                                          args=args,
+                                         dir=self.tree.basedir,
                                          parent=self,
                                         )
         res = revert_dialog.exec_()

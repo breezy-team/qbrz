@@ -451,10 +451,11 @@ class CommitWindow(SubProcessWindow):
         if self.is_bound and self.local_checkbox.isChecked():
             args.append("--local")
         
+        dir = self.tree.basedir
         commands = []
         if len(files_to_add)>1:
-            commands.append(files_to_add)
-        commands.append(args)
+            commands.append((dir, files_to_add))
+        commands.append((dir, args))
         
         self.message_groupbox.setDisabled(True)
         self.files_tab.setDisabled(True)
