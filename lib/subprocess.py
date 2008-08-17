@@ -104,7 +104,9 @@ class SubProcessWindowBase:
             self.close()
 
     def finished(self):
-        #self.done(QtGui.QDialog.Accepted)
+        if hasattr(self, 'setResult'):
+            self.setResult(QtGui.QDialog.Accepted)
+        
         self.buttonbox.addButton(self.closeButton,
             QtGui.QDialogButtonBox.AcceptRole)
         self.buttonbox.removeButton(self.okButton)
