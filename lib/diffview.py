@@ -298,7 +298,7 @@ class SidebySideDiffView(QtGui.QSplitter):
             def insertLine(cursor, line):
                 if use_pygments:
                     for ttype, value in line:
-                        cursor.insertText(value.rstrip('\n'),
+                        cursor.insertText(value.rstrip('\n\r'),
                                           format_for_ttype(ttype,
                                                            QtGui.QTextCharFormat(self.monospacedFormat)))
                     
@@ -307,7 +307,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                     format = QtGui.QTextCharFormat()
                     format.setFont(self.monospacedFont)
                     format.setFontItalic (True)
-                    cursor.insertText(" \n",format)
+                    cursor.insertText("\n",format)
                 else:
                     cursor.insertText(line)
             
@@ -325,7 +325,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                     else:
                         format.setBackground(QtGui.QColor.fromRgb(180, 210, 250))
             
-            split_words = re.compile("\W|\w+")
+            split_words = re.compile(r"\w+|\n\r|\r\n|\W")
             def insertIxsWithChangesHighlighted(ixs):
                 texts = ["".join(l[ix[0]:ix[1]]) for l, ix in zip(lines, ixs)]
                 if use_pygments:
