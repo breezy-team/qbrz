@@ -132,7 +132,7 @@ def markup_line(line, encode=True):
 
 
 def insert_intraline_changes(cursor1, cursor2, line1, line2, format, ins_format, del_format):
-    for tag, i1, i2, j1, j2 in SequenceMatcher(None, line1, line2).get_opcodes():
+    for tag, i1, i2, j1, j2 in SequenceMatcher(None, tuple(line1), tuple(line2)).get_opcodes():
         if tag == 'equal':
             cursor1.insertText(line1[i1:i2], format)
             cursor2.insertText(line2[j1:j2], format)
