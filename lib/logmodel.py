@@ -77,7 +77,6 @@ class GraphModel(QtCore.QAbstractTableModel):
         self.searchMode = False
         self.touches_file_msri = None
         self.msri_index = {}
-        self.all_rev_loaded = False
     
     def setGraphFilterProxyModel(self, graphFilterProxyModel):
         self.graphFilterProxyModel = graphFilterProxyModel
@@ -184,6 +183,7 @@ class GraphModel(QtCore.QAbstractTableModel):
             
             # Work out for each revision, which revisions it merges.
             self.msri_merges = {}
+            self.merged_by = {}
             for (msri, (sequence_number,
                         revid,
                         merge_depth,
@@ -209,6 +209,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                                     break
                             if ismerged: break
                             merges.append(grand_parent_msri)
+                            self.merged_by[grand_parent_msri] = msri
                 self.msri_merges[msri] = merges
             
             self.emit(QtCore.SIGNAL("layoutChanged()"))
@@ -279,12 +280,6 @@ class GraphModel(QtCore.QAbstractTableModel):
         linegraphdata = []
         msri_index = {}
         visible_msri = {}
-        
-        if self.searchMode and not self.all_rev_loaded:
-            self.linegraphdata = linegraphdata
-            self.msri_index = msri_index
-            self.visible_msri = visible_msri
-            return
         
         source_parent = QtCore.QModelIndex()
         for msri in xrange(0,len(self.merge_sorted_revisions)):
@@ -789,7 +784,9 @@ class GraphModel(QtCore.QAbstractTableModel):
                                   index,index)
                     revisionsChanged = []
                     QtCore.QCoreApplication.processEvents()
+                    self.compute_lines()
                 
+                notify_on_count = 10
                 revisionsChanged = []
                 try:
                     while self.searchMode:
@@ -797,20 +794,19 @@ class GraphModel(QtCore.QAbstractTableModel):
                         self._revision(nextRevId)
                         revisionsChanged.append(nextRevId)
                         QtCore.QCoreApplication.processEvents()
-                        if len(revisionsChanged) >= 10:
+                        if len(revisionsChanged) >= notify_on_count:
                             notifyChanges(revisionsChanged)
-                finally:
-                    self.all_rev_loaded = True
+                            notify_on_count = max(notify_on_count * 2, 200)
+                except StopIteration, se:
                     self.graphFilterProxyModel.invalidateCache()
                     notifyChanges(revisionsChanged)
                     self.compute_lines()
-                    QtCore.QCoreApplication.processEvents()
+                    raise se
             else:
                 nextRevId = self._nextRevisionToLoadGen.next()
                 self._revision(nextRevId)
             QtCore.QTimer.singleShot(5, self._loadNextRevision)
         except StopIteration:
-            self.all_rev_loaded = True
             pass
     
     def _nextRevisionToLoad(self):
@@ -839,21 +835,12 @@ class GraphModel(QtCore.QAbstractTableModel):
         return self.createIndex (msri, 0, QtCore.QModelIndex())
     
     def findChildBranchMergeRevision (self, revid):
-        branch_id = self.merge_sorted_revisions[self.revid_msri[revid]][3][0:-1]
-        current_revid = revid
-        result_revid = None
-        while current_revid is not None and result_revid is None:
-            child_revids = self.graph_children[current_revid]
-            current_revid = None
-            for child_revid in child_revids:
-                child_branch_id = self.merge_sorted_revisions[self.revid_msri[child_revid]][3][0:-1]
-                if child_branch_id == branch_id:
-                    current_revid = child_revid
-                else:
-                    if self.branch_lines[child_branch_id][1]:
-                        result_revid = child_revid
-                        break
-        return result_revid
+        msri = self.revid_msri[revid]
+        if msri in self.merged_by:
+            merged_by_msri = self.merged_by[msri]
+            revid = self.merge_sorted_revisions[merged_by_msri][1]
+        else:
+            return None
     
 class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
     def __init__(self, parent = None):
@@ -865,20 +852,25 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
     def invalidateCacheRow (self, source_row):
         if source_row in self.cache:
             del self.cache[source_row]
+        graphModel = self.sourceModel()
+        if source_row in graphModel.merged_by:
+            self.invalidateCacheRow(graphModel.merged_by[source_row])
     
     def filterAcceptsRow(self, source_row, source_parent):
+        if source_row % 100 == 0:
+            QtCore.QCoreApplication.processEvents()
+        
         graphModel = self.sourceModel()
-        if not (graphModel.searchMode and not graphModel.all_rev_loaded):
-            
-            (sequence_number,
-             revid,
-             merge_depth,
-             revno_sequence,
-             end_of_merge) = graphModel.merge_sorted_revisions[source_row]
-            
-            branch_id = revno_sequence[0:-1]
-            if not graphModel.branch_lines[branch_id][1]: # branch colapased
-                return False
+        
+        (sequence_number,
+         revid,
+         merge_depth,
+         revno_sequence,
+         end_of_merge) = graphModel.merge_sorted_revisions[source_row]
+        
+        branch_id = revno_sequence[0:-1]
+        if not graphModel.branch_lines[branch_id][1]: # branch colapased
+            return False
         
         return self.filterAcceptsRowIfBranchVisible(source_row, source_parent)
 
@@ -890,22 +882,15 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
     def _filterAcceptsRowIfBranchVisible(self, source_row, source_parent):
         graphModel = self.sourceModel()
         
-        searchAccepts = QtGui.QSortFilterProxyModel.filterAcceptsRow(self, source_row, source_parent)
+        for parent_msri in graphModel.msri_merges[source_row]:
+            if self.filterAcceptsRowIfBranchVisible(parent_msri, source_parent):
+                return True
+        
         if graphModel.touches_file_msri is not None:
-            fileAccepts = source_row in graphModel.touches_file_msri
-        else:
-            fileAccepts = True
+            if source_row not in graphModel.touches_file_msri:
+                return False
         
-        if searchAccepts and fileAccepts:
-            return True
-        
-        if not (graphModel.searchMode and not graphModel.all_rev_loaded):
-            for parent_msri in graphModel.msri_merges[source_row]:
-                if self.filterAcceptsRowIfBranchVisible(parent_msri, source_parent):
-                    return True
-        
-        return False
-
+        return QtGui.QSortFilterProxyModel.filterAcceptsRow(self, source_row, source_parent)
     
 def _branch_line_col_search_order(columns, parent_col_index):
     for col_index in range(parent_col_index, len(columns)):
