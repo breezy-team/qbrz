@@ -29,6 +29,7 @@ from bzrlib.errors import BinaryFile, NoSuchRevision
 from bzrlib.textfile import check_text_lines
 from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
+from bzrlib.workingtree_4 import DirStateRevisionTree
 from bzrlib.mutabletree import MutableTree
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 
@@ -64,7 +65,7 @@ def get_title_for_tree(tree, branch, other_branch):
         else:
             return gettext("Working Tree")
     
-    if isinstance(tree, RevisionTree):
+    if isinstance(tree, RevisionTree) or isinstance(tree, DirStateRevisionTree):
         # revision_id_to_revno is faster, but only works on mainline rev
         try:
             revno = branch.revision_id_to_revno(tree.get_revision_id())
