@@ -1,9 +1,33 @@
 0.9.3 - in development
 ----------------------
- * qlog: When you search on revision id or revision number, it selects the
-   revision that matches, rather than filtering the ones that don't. This also
-   faster.
- * qdiff: Added a refresh button.
+Maintenance release:
+
+ * qcommit:
+    * Double-click on pending merge show changes properly (#252879).
+    * Better support for compiz (#245419).
+    * New command-line options: --local and --message (#253613).
+ * qdiff: 
+    * Added a refresh button (#252191).
+ * qlog: 
+    * When you search on revision id or revision number, it selects the
+      revision that matches, rather than filtering the ones that don't. 
+      This also faster.
+    * New revision details view.
+    * Fixed problem with showing merges for some branches (#255265).
+    * Support for Redmine bug URLs.
+ * merge --qpreview:
+    * workaround for bug in bzrlib's PreviewTree related to renamed files
+      (#251537).
+ * qpull/qbranch:
+    * Better detection of bzr executable for the case of standalone bzr.exe
+      (#256793).
+ * New translations: Dutch, French, Italian, Japanese
+
+Launchpad Translations service re-enabled for translations of QBzr strings.
+
+NOTES: when upgrading old installation (<0.9.2) of QBzr to 0.9.3, 
+please uninstall or remove old files first.
+
 
 0.9.2 - 2008-07-22
 ----------------------
