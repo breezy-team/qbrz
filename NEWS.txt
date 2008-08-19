@@ -1,4 +1,4 @@
-0.9.3 - in development
+0.9.3 - 2008-08-19
 ----------------------
 Maintenance release:
 
@@ -8,6 +8,9 @@ Maintenance release:
     * New command-line options: --local and --message (#253613).
  * qdiff: 
     * Added a refresh button (#252191).
+    * Workaround for random segfault of qdiff due the bug in bzrlib's
+      C implementation of patience diff sequence matcher.
+    * Show x-bit (+x) property for added/removed files in side-by-side view.
  * qlog: 
     * When you search on revision id or revision number, it selects the
       revision that matches, rather than filtering the ones that don't. 
