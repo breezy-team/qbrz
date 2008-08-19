@@ -482,8 +482,13 @@ class SimpleDiffView(QtGui.QTextBrowser):
             gettext(kind_info), path_info),
             self.monospacedHeaderFormat)
         if properties_changed:
-            self.cursor.insertText(" (properties changed: %s)" % \
-                                   (", ".join(["%s to %s" % p for p in properties_changed])))
+            prop_str = []
+            for pair in properties_changed:
+                if None not in pair:
+                    prop_str.append("%s to %s" % pair)
+            if prop_str:
+                self.cursor.insertText(
+                    " (properties changed: %s)" % (", ".join(prop_str)))
         self.cursor.insertText("\n")
         
         # GNU Patch uses the epoch date to detect files that are being added
