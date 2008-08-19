@@ -7,14 +7,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-07-23 22:56+0300\n"
-"PO-Revision-Date: 2008-08-07 02:54+0900\n"
+"POT-Creation-Date: 2008-08-17 18:45+0300\n"
+"PO-Revision-Date: 2008-08-18 02:17+0900\n"
 "Last-Translator: HAYASHI Kentaro <kenhys@gigo-ice.org>\n"
 "Language-Team: Japanese <ja@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Launchpad-Export-Date: 2008-08-17 14:40+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\annotate.py:45
 msgid "Annotate"
@@ -27,20 +29,20 @@ msgstr "行"
 #: lib\annotate.py:59
 #: lib\annotate.py:75
 #: lib\browse.py:82
-#: lib\commit.py:325
-#: lib\logmodel.py:65
+#: lib\commit.py:330
+#: lib\logmodel.py:70
 msgid "Author"
 msgstr "著者"
 
 #: lib\annotate.py:59
-#: lib\logmodel.py:62
+#: lib\logmodel.py:67
 msgid "Rev"
 msgstr "リビジョン"
 
 #: lib\annotate.py:75
 #: lib\browse.py:81
-#: lib\commit.py:325
-#: lib\logmodel.py:64
+#: lib\commit.py:330
+#: lib\logmodel.py:69
 msgid "Date"
 msgstr "日付"
 
@@ -49,8 +51,8 @@ msgid "Summary"
 msgstr "要約"
 
 #: lib\browse.py:60
-#: lib\browse.py:196
-#: lib\browse.py:231
+#: lib\browse.py:199
+#: lib\browse.py:234
 msgid "Browse"
 msgstr "ブラウズ"
 
@@ -59,7 +61,7 @@ msgid "Location:"
 msgstr "ロケーション："
 
 #: lib\browse.py:71
-#: lib\util.py:368
+#: lib\util.py:370
 msgid "Revision:"
 msgstr "リビジョン："
 
@@ -73,23 +75,23 @@ msgid "Name"
 msgstr "名前"
 
 #: lib\browse.py:82
-#: lib\commit.py:264
-#: lib\commit.py:325
-#: lib\logmodel.py:63
+#: lib\commit.py:265
+#: lib\commit.py:330
+#: lib\logmodel.py:68
 msgid "Message"
 msgstr "メッセージ"
 
-#: lib\browse.py:85
+#: lib\browse.py:87
 msgid "Show log..."
 msgstr "ログを表示..."
 
-#: lib\browse.py:86
+#: lib\browse.py:89
 msgid "View file"
 msgstr "ファイルを表示"
 
 #: lib\cat.py:73
 msgid "View "
-msgstr "表示"
+msgstr "表示 "
 
 #: lib\cat.py:155
 msgid "View File"
@@ -100,95 +102,95 @@ msgstr "ファイルを表示"
 msgid "File \"%s\" not found in the specified revision."
 msgstr "ファイル \"%s\" はこのリビジョンには存在しません。"
 
-#: lib\commit.py:189
-#: lib\commit.py:492
-#: lib\commit.py:506
-#: lib\commit.py:544
+#: lib\commit.py:192
+#: lib\commit.py:503
+#: lib\commit.py:517
+#: lib\commit.py:555
 msgid "Commit"
 msgstr "コミット"
 
-#: lib\commit.py:214
-#: lib\diff.py:171
+#: lib\commit.py:215
+#: lib\diff.py:192
 msgid "added"
 msgstr "追加された"
 
-#: lib\commit.py:218
-#: lib\diff.py:169
+#: lib\commit.py:219
+#: lib\diff.py:190
 msgid "removed"
 msgstr "削除された"
 
-#: lib\commit.py:224
-#: lib\diff.py:173
+#: lib\commit.py:225
+#: lib\diff.py:194
 msgid "renamed and modified"
 msgstr "名前の変更と修正された"
 
-#: lib\commit.py:226
-#: lib\diff.py:175
+#: lib\commit.py:227
+#: lib\diff.py:196
 msgid "renamed"
 msgstr "名前が変更"
 
-#: lib\commit.py:233
-#: lib\diff.py:177
+#: lib\commit.py:234
+#: lib\diff.py:198
 msgid "modified"
 msgstr "修正された"
 
-#: lib\commit.py:236
+#: lib\commit.py:237
 msgid "non-versioned"
 msgstr "バージョン管理下にない"
 
-#: lib\commit.py:270
+#: lib\commit.py:271
 msgid "Enter the commit message"
 msgstr "コミットメッセージを入力してください。"
 
-#: lib\commit.py:279
+#: lib\commit.py:282
 msgid "&Fixed bugs:"
 msgstr "修正されたバグ(&F)："
 
-#: lib\commit.py:280
+#: lib\commit.py:283
 msgid "Set the IDs of bugs fixed by this commit"
 msgstr "このコミットにより修正されるバグのIDを設定"
 
-#: lib\commit.py:283
+#: lib\commit.py:286
 msgid "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. <i>project:123 project:765</i>"
-msgstr ""
+msgstr "バグIDのリストを入力する　フォーマットは <i>tag:id</i>でスペースで区切る。例 <i>project:123 project:765</i>"
 
-#: lib\commit.py:293
+#: lib\commit.py:296
 msgid "&Author:"
 msgstr "著者(&A)："
 
-#: lib\commit.py:294
-msgid "Set the author of this change, if it's different from the committer"
-msgstr ""
-
 #: lib\commit.py:297
+msgid "Set the author of this change, if it's different from the committer"
+msgstr "コミットした人と修正者が異なる場合、この修正へ修正者名を設定"
+
+#: lib\commit.py:300
 msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr "著者の名前を入力してください。(例：<i>John Doe &lt;jdoe@example.com&gt;</i>)"
 
-#: lib\commit.py:312
+#: lib\commit.py:315
 msgid "&Local commit in a bound branch"
-msgstr ""
+msgstr "boundブランチでローカルコミット(&L)"
 
-#: lib\commit.py:314
+#: lib\commit.py:317
 msgid "Local commits are not pushed to the master branch until a normal commit is performed"
 msgstr "通常のコミットが行われるまで、ローカルコミットはマスターブランチへと送られることはありません"
 
-#: lib\commit.py:320
+#: lib\commit.py:325
 msgid "Pending Merges"
 msgstr "マージ保留"
 
-#: lib\commit.py:345
+#: lib\commit.py:352
 msgid "Changes"
 msgstr "変更点"
 
-#: lib\commit.py:353
+#: lib\commit.py:360
 msgid "File"
 msgstr "ファイル"
 
-#: lib\commit.py:353
+#: lib\commit.py:360
 msgid "Extension"
 msgstr "拡張"
 
-#: lib\commit.py:353
+#: lib\commit.py:360
 #: lib\main.py:361
 #: lib\ui_branch.py:90
 #: lib\ui_pull.py:90
@@ -196,28 +198,29 @@ msgstr "拡張"
 msgid "Status"
 msgstr "状態"
 
-#: lib\commit.py:366
+#: lib\commit.py:381
+#: lib\log.py:358
+msgid "Show &differences..."
+msgstr "差分を表示(&D)..."
+
+#: lib\commit.py:384
 msgid "&Revert..."
 msgstr "元に戻す(&R)..."
 
-#: lib\commit.py:370
-msgid "Show &Differences..."
-msgstr "差分を表示(&D)..."
-
-#: lib\commit.py:380
+#: lib\commit.py:391
 msgid "Show non-versioned files"
 msgstr "バージョン管理下にないファイルを表示"
 
-#: lib\commit.py:493
+#: lib\commit.py:504
 msgid "Empty commit message. Do you really want to commit?"
 msgstr "コミットメッセージが空です。本当にコミットしますか？"
 
-#: lib\commit.py:599
-#: lib\commit.py:608
+#: lib\commit.py:614
+#: lib\commit.py:623
 msgid "Revert"
 msgstr "元に戻す"
 
-#: lib\commit.py:600
+#: lib\commit.py:615
 msgid "Do you really want to revert the selected file(s)?"
 msgstr "選択したファイルを本当に元に戻しますか？"
 
@@ -243,7 +246,7 @@ msgstr "Mutt"
 
 #: lib\config.py:45
 msgid "XDG e-mail client"
-msgstr "XDG e-mail クライアント"
+msgstr "XDG Eメールクライアント"
 
 #: lib\config.py:46
 msgid "MAPI e-mail client"
@@ -312,47 +315,47 @@ msgstr "エイリアス"
 msgid "Bug Trackers"
 msgstr "バグトラッカー"
 
-#: lib\diff.py:56
-#: lib\log.py:362
+#: lib\diff.py:61
+#: lib\log.py:351
 msgid "Diff"
 msgstr "差分"
 
-#: lib\diff.py:63
+#: lib\diff.py:68
 #, python-format
 msgid "%d file"
-msgid_plural "%d ファイル"
+msgid_plural "%d files"
 msgstr[0] "%dファイル"
 msgstr[1] "%dファイル"
 
-#: lib\diff.py:95
+#: lib\diff.py:100
 msgid "Side by side"
 msgstr "並べて表示"
 
-#: lib\diff.py:102
+#: lib\diff.py:107
 msgid "Unidiff"
 msgstr "Unified形式で表示"
 
-#: lib\diffview.py:226
+#: lib\diffview.py:215
 msgid "Last modified:"
 msgstr "最終更新："
 
-#: lib\diffview.py:227
+#: lib\diffview.py:216
 msgid "Status:"
 msgstr "状態："
 
-#: lib\diffview.py:228
+#: lib\diffview.py:217
 msgid "Kind:"
 msgstr "種類："
 
-#: lib\diffview.py:229
+#: lib\diffview.py:218
 msgid "Properties:"
 msgstr "プロパティ："
 
-#: lib\diffview.py:368
+#: lib\diffview.py:363
 msgid "[binary file]"
 msgstr "[バイナリファイル]"
 
-#: lib\diffview.py:513
+#: lib\diffview.py:516
 msgid "\\ No newline at end of file"
 msgstr "\\ ファイル終端に改行がない"
 
@@ -416,11 +419,11 @@ msgstr "リビジョンID"
 msgid "Revision Numbers"
 msgstr "リビジョン番号"
 
-#: lib\log.py:368
-msgid "Show tree..."
-msgstr "ツリーを表示..."
+#: lib\log.py:359
+msgid "Show &tree..."
+msgstr "ツリーを表示(&T)..."
 
-#: lib\logmodel.py:809
+#: lib\logmodel.py:820
 #, python-format
 msgid "bug #%s"
 msgstr "バグ #%s"
@@ -442,6 +445,7 @@ msgid "Bookmarks"
 msgstr "ブックマーク"
 
 #: lib\main.py:280
+#: lib\util.py:69
 msgid "&Refresh"
 msgstr "更新(&R)"
 
@@ -502,7 +506,7 @@ msgid "&Bookmarks"
 msgstr "ブックマーク(&B)"
 
 #: lib\main.py:319
-#: lib\util.py:70
+#: lib\util.py:68
 msgid "&Help"
 msgstr "ヘルプ(&H)"
 
@@ -625,29 +629,25 @@ msgstr "すでにあるディレクトリを使用する"
 
 #: lib\ui_push.py:92
 msgid "Create the path up to the branch if it does not exist"
-msgstr ""
+msgstr "存在しなければブランチへのパスを生成する"
 
-#: lib\util.py:67
+#: lib\util.py:65
 msgid "&OK"
 msgstr "OK(&O)"
 
-#: lib\util.py:68
+#: lib\util.py:66
 msgid "&Cancel"
 msgstr "キャンセル(&C)"
 
-#: lib\util.py:69
+#: lib\util.py:67
 msgid "&Close"
 msgstr "閉じる(&C)"
 
-#: lib\util.py:369
-msgid "Revision Id:"
-msgstr "リビジョンID："
-
-#: lib\util.py:385
+#: lib\util.py:387
 msgid "Parents:"
 msgstr "親："
 
-#: lib\util.py:390
+#: lib\util.py:391
 msgid "Children:"
 msgstr "子供："
 
@@ -660,32 +660,41 @@ msgid "Author:"
 msgstr "著者："
 
 #: lib\util.py:400
-msgid "Branch nick:"
-msgstr "ブランチニックネーム："
+msgid "Branch:"
+msgstr "ブランチ"
 
 #: lib\util.py:405
 msgid "Tags:"
 msgstr "タグ："
 
-#: lib\util.py:415
+#: lib\util.py:414
 msgid "Bug:"
-msgid_plural "バグ："
+msgid_plural "Bugs:"
 msgstr[0] "バグ："
 msgstr[1] "バグ："
 
-#: lib\util.py:562
+#: lib\util.py:570
 msgid "deleted files"
 msgstr "削除されたファイル"
 
-#: lib\util.py:564
+#: lib\util.py:572
 msgid "added files"
 msgstr "追加されたファイル"
 
-#: lib\util.py:566
+#: lib\util.py:574
 msgid "renamed files"
 msgstr "ファイル名変更"
 
-#: lib\util.py:568
+#: lib\util.py:576
 msgid "modified files"
 msgstr "修正されたファイル"
+
+#~ msgid "Branch nick:"
+#~ msgstr "ブランチニックネーム："
+#~ msgid "Show &Differences..."
+#~ msgstr "差分を表示(&D)..."
+#~ msgid "Show tree..."
+#~ msgstr "ツリーを表示..."
+#~ msgid "Revision Id:"
+#~ msgstr "リビジョンID："
 

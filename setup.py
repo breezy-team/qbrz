@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
-from distutils.core import setup, Command, Extension
+from distutils.core import setup
 
 from extras.bdist_nsis import bdist_nsis
 from extras.build_mo import build_mo
