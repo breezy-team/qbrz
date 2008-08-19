@@ -528,6 +528,9 @@ class LogWindow(QBzrWindow):
             self.old_filter_str = str
             self.old_filter_role = role
     
+    def closeEvent (self, QCloseEvent):
+        self.changesModel.closing = True
+        
     def updateSearchType(self, index=None):
         self.update_search()
 

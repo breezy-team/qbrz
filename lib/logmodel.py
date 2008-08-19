@@ -77,6 +77,7 @@ class GraphModel(QtCore.QAbstractTableModel):
         self.searchMode = False
         self.touches_file_msri = None
         self.msri_index = {}
+        self.closing = False
     
     def setGraphFilterProxyModel(self, graphFilterProxyModel):
         self.graphFilterProxyModel = graphFilterProxyModel
@@ -295,8 +296,6 @@ class GraphModel(QtCore.QAbstractTableModel):
                                            None,
                                            [],
                                           ])
-            if msri % 100 == 0:
-                QtCore.QCoreApplication.processEvents()
         
         # This will hold a tuple of (child_index, parent_index, col_index,
         # direct) for each line that needs to be drawn. If col_index is not
@@ -314,7 +313,6 @@ class GraphModel(QtCore.QAbstractTableModel):
         
         
         for branch_id in self.branch_ids:
-            QtCore.QCoreApplication.processEvents()
             (branch_rev_msri,
              branch_visible,
              branch_parents,
@@ -777,6 +775,7 @@ class GraphModel(QtCore.QAbstractTableModel):
         try:
             if self.searchMode:
                 def notifyChanges(revisionsChanged):
+                    if self.closing: return
                     for revid in revisionsChanged:
                         index = self.indexFromRevId(revid)
                         self.graphFilterProxyModel.invalidateCacheRow(index.row())
@@ -789,7 +788,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                 notify_on_count = 10
                 revisionsChanged = []
                 try:
-                    while self.searchMode:
+                    while self.searchMode and not self.closing:
                         nextRevId = self._nextRevisionToLoadGen.next()
                         self._revision(nextRevId)
                         revisionsChanged.append(nextRevId)
@@ -800,7 +799,6 @@ class GraphModel(QtCore.QAbstractTableModel):
                 except StopIteration, se:
                     self.graphFilterProxyModel.invalidateCache()
                     notifyChanges(revisionsChanged)
-                    self.compute_lines()
                     raise se
             else:
                 nextRevId = self._nextRevisionToLoadGen.next()
@@ -857,8 +855,6 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
             self.invalidateCacheRow(graphModel.merged_by[source_row])
     
     def filterAcceptsRow(self, source_row, source_parent):
-        if source_row % 100 == 0:
-            QtCore.QCoreApplication.processEvents()
         
         graphModel = self.sourceModel()
         
