@@ -632,18 +632,20 @@ class TreeModel(QtCore.QAbstractTableModel):
                          direct))
                 
                 if line_col_indexes[1] is not None:
-                    # Broken line end 
-                    self.linegraphdata[parent_index-2][2].append(
-                        (None,
-                         line_col_indexes[1],
-                         parent_color,
-                         direct))
+                    # Broken line end
+                    if parent_index-2>=0:
+                        self.linegraphdata[parent_index-2][2].append(
+                            (None,
+                             line_col_indexes[1],
+                             parent_color,
+                             direct))
                     # line from the line's column to the parent's column
-                    self.linegraphdata[parent_index-1][2].append(
-                        (line_col_indexes[1],
-                         parent_col_index,
-                         parent_color,
-                         direct))
+                    if parent_index-1>=0:
+                        self.linegraphdata[parent_index-1][2].append(
+                            (line_col_indexes[1],
+                             parent_col_index,
+                             parent_color,
+                             direct))
         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                   self.createIndex (0, COL_MESSAGE, QtCore.QModelIndex()),
                   self.createIndex (len(self.linegraphdata), COL_MESSAGE, QtCore.QModelIndex()))
