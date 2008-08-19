@@ -24,7 +24,7 @@ Provided commands:
     qannotate, qbrowse, qcat, qcommit, qconfig, qdiff, qlog, qpull, qpush.
 """
 
-version_info = (0, 9, 3, 'final', 0)
+version_info = (0, 9, 4, 'dev', 0)
 __version__ = '.'.join(map(str, version_info))
 
 import os.path
