@@ -333,6 +333,14 @@ class GraphModel(QtCore.QAbstractTableModel):
                 # twisty_branch_ids.
                 parents_with_lines = []
                 visible_parents = []
+                for rev_msri in reversed(branch_rev_msri):
+                    if rev_msri in visible_msri:
+                        branch_last_visible_msri = rev_msri
+                        break
+                else:
+                    branch_last_visible_msri = 0
+                
+                
                 for rev_msri in branch_rev_msri:
                     rev_index = msri_index[rev_msri]
                     (sequence_number,
@@ -356,7 +364,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                              not self.branch_lines[parent_branch_id])): # Parent branch is not visible
                             linegraphdata[rev_index][4].append (parent_branch_id)
                         
-                        if revno_sequence[-1] == 1 or \
+                        if rev_msri == branch_last_visible_msri or \
                                 parent_branch_id == branch_id or\
                                 branch_id == ():
                             continue
