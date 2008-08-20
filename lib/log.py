@@ -30,6 +30,13 @@ from bzrlib.plugins.qbzr.lib.util import (
     RevisionMessageBrowser,
     )
 
+have_search = True
+try:
+    from bzrlib.plugins.search import errors as search_errors
+    from bzrlib.plugins.search import index as search_index
+except ImportError:
+    have_search = False
+
 PathRole = QtCore.Qt.UserRole + 1
 
 class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
@@ -220,11 +227,16 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
         
         return QtGui.QItemDelegate.drawDisplay(self, painter, option, rect, text)
 
+class Compleater(QtGui.QCompleter):
+    def splitPath (self, path):
+        return path.split(" ")
 
 class LogWindow(QBzrWindow):
 
     def __init__(self, branch, location, specific_fileid, replace=None, parent=None):
         title = [gettext("Log")]
+        self.branch = branch
+
         if location:
             title.append(location)
         QBzrWindow.__init__(self, title, parent)
@@ -252,7 +264,6 @@ class LogWindow(QBzrWindow):
 
         self.search_label = QtGui.QLabel(gettext("&Search:"))
         self.search_edit = QtGui.QLineEdit()
-        self.old_filter_str = self.search_edit.text()
         self.search_label.setBuddy(self.search_edit)
         self.connect(self.search_edit, QtCore.SIGNAL("textEdited(QString)"),
                      self.set_search_timer)
@@ -266,6 +277,21 @@ class LogWindow(QBzrWindow):
         searchbox.addWidget(self.search_edit)
 
         self.searchType = QtGui.QComboBox()
+        if have_search:
+            try:
+                self.index = search_index.open_index_branch(self.branch)
+                self.completer = Compleater(self)
+                suggestions = QtCore.QStringList()
+                for s in self.index.suggest((("",),)):
+                    suggestions.append(s[0])
+                self.completer.setModel(QtGui.QStringListModel(suggestions, self.completer))
+                self.searchType.addItem(gettext("Messages and File text (indexed)"),
+                                        QtCore.QVariant(logmodel.FilterSearchRole))
+                self.search_edit.setCompleter(self.completer)
+            except search_errors.NoSearchIndex:
+                self.index = None
+                self.compleater = None
+            
         self.searchType.addItem(gettext("Messages"),
                                 QtCore.QVariant(logmodel.FilterMessageRole))
         self.searchType.addItem(gettext("Authors"),
@@ -278,7 +304,6 @@ class LogWindow(QBzrWindow):
         self.connect(self.searchType,
                      QtCore.SIGNAL("currentIndexChanged(int)"),
                      self.updateSearchType)
-        self.old_filter_role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
 
         logbox.addLayout(searchbox)
 
@@ -318,8 +343,6 @@ class LogWindow(QBzrWindow):
         self.changesList.mouseReleaseEvent  = self.changesList_mouseReleaseEvent
         self.changesList.keyPressEvent  = self.changesList_keyPressEvent
         
-        self.branch = branch
-
         self.changesList.setItemDelegateForColumn(logmodel.COL_MESSAGE,
                                                   GraphTagsBugsItemDelegate(self))
 
@@ -489,13 +512,13 @@ class LogWindow(QBzrWindow):
         # TODO in_paths = self.search_in_paths.isChecked()
         role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
         search_text = self.search_edit.text()
-        has_search = search_text.length() > 0
         search_mode = not role == logmodel.FilterIdRole and \
                       not role == logmodel.FilterRevnoRole and \
-                      has_search
+                      not role == logmodel.FilterSearchRole and \
+                      search_text.length() > 0
         self.changesModel.set_search_mode(search_mode)
         if role == logmodel.FilterIdRole:
-            self.setFilter("", self.old_filter_role)
+            self.changesProxyModel.clearSearch()
             search_text = str(search_text)
             if self.changesModel.has_rev_id(search_text):
                 self.changesModel.ensure_rev_visible(search_text)
@@ -503,7 +526,7 @@ class LogWindow(QBzrWindow):
                 index = self.changesProxyModel.mapFromSource(index)
                 self.changesList.setCurrentIndex(index)
         elif role == logmodel.FilterRevnoRole:
-            self.setFilter("", self.old_filter_role)
+            self.changesProxyModel.clearSearch()
             try:
                 revno = tuple((int(number) for number in str(search_text).split('.')))
             except ValueError:
@@ -516,17 +539,7 @@ class LogWindow(QBzrWindow):
                 index = self.changesProxyModel.mapFromSource(index)
                 self.changesList.setCurrentIndex(index)
         else:
-            self.setFilter(self.search_edit.text(), role)
-    
-    def setFilter(self, str, role):
-        if not str == self.old_filter_str or not role == self.old_filter_role:
-            self.changesProxyModel.setFilterRegExp(str)
-            self.changesProxyModel.setFilterRole(role)
-            self.changesProxyModel.invalidateCache()
-            self.changesModel.compute_lines()
-            
-            self.old_filter_str = str
-            self.old_filter_role = role
+            self.changesProxyModel.setFilter(self.search_edit.text(), role)
     
     def closeEvent (self, QCloseEvent):
         self.changesModel.closing = True

@@ -28,6 +28,13 @@ from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
     )
 
+have_search = True
+try:
+    from bzrlib.plugins.search import errors as search_errors
+    from bzrlib.plugins.search import index as search_index
+except ImportError:
+    have_search = False
+
 TagsRole = QtCore.Qt.UserRole + 1
 BugIdsRole = QtCore.Qt.UserRole + 2
 GraphNodeRole = QtCore.Qt.UserRole + 3
@@ -39,6 +46,7 @@ FilterIdRole = QtCore.Qt.UserRole + 100
 FilterMessageRole = QtCore.Qt.UserRole + 101
 FilterAuthorRole = QtCore.Qt.UserRole + 102
 FilterRevnoRole = QtCore.Qt.UserRole + 103
+FilterSearchRole = QtCore.Qt.UserRole + 104
 
 COL_REV = 0
 COL_MESSAGE = 1
@@ -645,10 +653,7 @@ class GraphModel(QtCore.QAbstractTableModel):
     def set_search_mode(self, searchMode):
         if not searchMode == self.searchMode:
             self.searchMode = searchMode
-            if searchMode:
-                self._nextRevisionToLoadGen = self._nextRevisionToLoad()
-            else:
-                self._nextRevisionToLoadGen = self._nextRevisionToLoad()
+            self._nextRevisionToLoadGen = self._nextRevisionToLoad()
     
     def columnCount(self, parent):
         if parent.isValid():
@@ -842,9 +847,53 @@ class GraphModel(QtCore.QAbstractTableModel):
     
 class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
     def __init__(self, parent = None):
+        self.old_filter_str = ""
+        self.old_filter_role = 0
         QtGui.QSortFilterProxyModel.__init__(self, parent)
         self.cache = {}
+        self.search_matching_revid = None
     
+    def setFilter(self, str, role):
+        if not str == self.old_filter_str or not role == self.old_filter_role:
+            if role == FilterSearchRole:
+                self.setSearchFilter(str)
+                self.setFilterRegExp("")
+            else:
+                self.setFilterRegExp(str)
+                self.setFilterRole(role)
+                self.setSearchFilter("")
+            self.invalidateCache()
+            self.sourceModel().compute_lines()
+            
+            self.old_filter_str = str
+            self.old_filter_role = role
+    
+    def setSearchFilter(self, s):
+        if "search_idx" not in dir(self):
+            graphModel = self.sourceModel()
+            try:
+                self.search_idx = search_index.open_index_branch(graphModel.branch)
+            except search_errors.NoSearchIndex:
+                self.search_idx = None
+        
+        if s == "" or self.index is None:
+            self.search_matching_revid = None
+        else:
+            s = str(s).strip()
+            query = [(query_item,) for query_item in s.split(" ")]
+            self.search_matching_revid = {}
+            for result in self.search_idx.search(query):
+                if isinstance(result, search_index.RevisionHit):
+                    self.search_matching_revid[result.revision_key[0]] = True
+                if isinstance(result, search_index.FileTextHit):
+                    self.search_matching_revid[result.text_key[1]] = True
+                if isinstance(result, search_index.PathHit):
+                    pass
+    
+    def clearFilter(self):
+        self.setFilterRegExp("")
+        self.setSearchFilter("")
+
     def invalidateCache (self):
         self.cache = {}
     def invalidateCacheRow (self, source_row):
@@ -855,8 +904,7 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
             self.invalidateCacheRow(graphModel.merged_by[source_row])
     
     def filterAcceptsRow(self, source_row, source_parent):
-        
-        graphModel = self.sourceModel()
+        graphModel = self.sourceModel()        
         
         (sequence_number,
          revid,
@@ -885,6 +933,14 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
         if graphModel.touches_file_msri is not None:
             if source_row not in graphModel.touches_file_msri:
                 return False
+        
+        if self.search_matching_revid is not None:
+            (sequence_number,
+             revid,
+             merge_depth,
+             revno_sequence,
+             end_of_merge) = graphModel.merge_sorted_revisions[source_row]
+            return revid in self.search_matching_revid
         
         return QtGui.QSortFilterProxyModel.filterAcceptsRow(self, source_row, source_parent)
     
