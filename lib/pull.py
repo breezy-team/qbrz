@@ -52,6 +52,7 @@ class QBzrPullWindow(QBzrWindow):
 
     TITLE = N_("Pull")
     NAME = "pull"
+    PICKER_CAPTION = N_("Select Source Location")
     DEFAULT_SIZE = (400, 420)
 
     def __init__(self, branch, parent=None):
@@ -106,6 +107,21 @@ class QBzrPullWindow(QBzrWindow):
             if location:
                 location = urlutils.unescape_for_display(location, 'utf-8')
                 self.ui.location.addItem(location)
+        # One directory picker for the pull location.
+        self.connect(self.ui.location_picker, QtCore.SIGNAL("clicked()"),
+                     self.location_picker_clicked)
+
+    def location_picker_clicked(self):
+        self._do_directory_picker(self.ui.location, self.PICKER_CAPTION)
+
+    def _do_directory_picker(self, widget, caption):
+        """Called by the clicked() signal for the various directory pickers"""
+        dir = widget.currentText()
+        if not os.path.isdir(dir):
+            dir = ""
+        dir = QtGui.QFileDialog.getExistingDirectory(self, caption, dir)
+        if dir:
+            widget.setEditText(dir)
 
     def create_ui(self):
         return Ui_PullForm()
@@ -229,6 +245,7 @@ class QBzrPushWindow(QBzrPullWindow):
 
     TITLE = N_("Push")
     NAME = "push"
+    PICKER_CAPTION = N_("Select Target Location")
     DEFAULT_SIZE = (400, 420)
 
     def get_stored_locations(self, branch):
@@ -271,6 +288,18 @@ class QBzrBranchWindow(QBzrPullWindow):
         #    location = urlutils.unescape(location)
         #    self.ui.location.setEditText(location)
         #    self.ui.location.lineEdit().setCursorPosition(0)
+
+        # Our 2 directory pickers hook up to our combos.
+        self.connect(self.ui.from_picker, QtCore.SIGNAL("clicked()"),
+                     self.from_picker_clicked)
+        self.connect(self.ui.to_picker, QtCore.SIGNAL("clicked()"),
+                     self.to_picker_clicked)
+
+    def to_picker_clicked(self):
+        self._do_directory_picker(self.ui.to_location, N_("Select Target Location"))
+
+    def from_picker_clicked(self):
+        self._do_directory_picker(self.ui.from_location, N_("Select Source Location"))
 
     def accept(self):
         if self.finished:
