@@ -52,7 +52,7 @@ class QBzrPullWindow(QBzrWindow):
 
     TITLE = N_("Pull")
     NAME = "pull"
-    PICKER_CAPTION = gettext("Select Source Location")
+    PICKER_CAPTION = N_("Select Source Location")
     DEFAULT_SIZE = (400, 420)
 
     def __init__(self, branch, parent=None):
@@ -112,7 +112,7 @@ class QBzrPullWindow(QBzrWindow):
                      self.location_picker_clicked)
 
     def location_picker_clicked(self):
-        self._do_directory_picker(self.ui.location, self.PICKER_CAPTION)
+        self._do_directory_picker(self.ui.location, gettext(self.PICKER_CAPTION))
 
     def _do_directory_picker(self, widget, caption):
         """Called by the clicked() signal for the various directory pickers"""
@@ -245,7 +245,7 @@ class QBzrPushWindow(QBzrPullWindow):
 
     TITLE = N_("Push")
     NAME = "push"
-    PICKER_CAPTION = gettext("Select Target Location")
+    PICKER_CAPTION = N_("Select Target Location")
     DEFAULT_SIZE = (400, 420)
 
     def get_stored_locations(self, branch):
