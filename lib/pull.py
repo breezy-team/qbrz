@@ -52,7 +52,7 @@ class QBzrPullWindow(QBzrWindow):
 
     TITLE = N_("Pull")
     NAME = "pull"
-    PICKER_CAPTION = N_("Select Source Location")
+    PICKER_CAPTION = gettext("Select Source Location")
     DEFAULT_SIZE = (400, 420)
 
     def __init__(self, branch, parent=None):
@@ -245,7 +245,7 @@ class QBzrPushWindow(QBzrPullWindow):
 
     TITLE = N_("Push")
     NAME = "push"
-    PICKER_CAPTION = N_("Select Target Location")
+    PICKER_CAPTION = gettext("Select Target Location")
     DEFAULT_SIZE = (400, 420)
 
     def get_stored_locations(self, branch):
@@ -296,10 +296,12 @@ class QBzrBranchWindow(QBzrPullWindow):
                      self.to_picker_clicked)
 
     def to_picker_clicked(self):
-        self._do_directory_picker(self.ui.to_location, N_("Select Target Location"))
+        self._do_directory_picker(self.ui.to_location,
+                                  gettext("Select Target Location"))
 
     def from_picker_clicked(self):
-        self._do_directory_picker(self.ui.from_location, N_("Select Source Location"))
+        self._do_directory_picker(self.ui.from_location,
+                                  gettext("Select Source Location"))
 
     def accept(self):
         if self.finished:
