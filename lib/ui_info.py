@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/info.ui'
 #
-# Created: Fri Aug 22 21:56:09 2008
+# Created: Fri Aug 22 22:07:12 2008
 #      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -22,45 +22,75 @@ class Ui_InfoForm(object):
         self.tabWidget = QtGui.QTabWidget(InfoForm)
         self.tabWidget.setObjectName("tabWidget")
 
+        self.tab = QtGui.QWidget()
+        self.tab.setObjectName("tab")
+
+        self.vboxlayout1 = QtGui.QVBoxLayout(self.tab)
+        self.vboxlayout1.setObjectName("vboxlayout1")
+
+        self.label_2 = QtGui.QLabel(self.tab)
+        self.label_2.setObjectName("label_2")
+        self.vboxlayout1.addWidget(self.label_2)
+
+        self.local_location = QtGui.QLabel(self.tab)
+        self.local_location.setWordWrap(True)
+        self.local_location.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByMouse|QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
+        self.local_location.setObjectName("local_location")
+        self.vboxlayout1.addWidget(self.local_location)
+
+        self.label_4 = QtGui.QLabel(self.tab)
+        self.label_4.setObjectName("label_4")
+        self.vboxlayout1.addWidget(self.label_4)
+
+        self.public_branch_location = QtGui.QLabel(self.tab)
+        self.public_branch_location.setWordWrap(True)
+        self.public_branch_location.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByMouse|QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
+        self.public_branch_location.setObjectName("public_branch_location")
+        self.vboxlayout1.addWidget(self.public_branch_location)
+
+        spacerItem = QtGui.QSpacerItem(20,132,QtGui.QSizePolicy.Minimum,QtGui.QSizePolicy.Expanding)
+        self.vboxlayout1.addItem(spacerItem)
+        self.tabWidget.addTab(self.tab,"")
+
         self.tab_2 = QtGui.QWidget()
         self.tab_2.setGeometry(QtCore.QRect(0,0,447,241))
         self.tab_2.setObjectName("tab_2")
 
-        self.vboxlayout1 = QtGui.QVBoxLayout(self.tab_2)
-        self.vboxlayout1.setObjectName("vboxlayout1")
+        self.vboxlayout2 = QtGui.QVBoxLayout(self.tab_2)
+        self.vboxlayout2.setObjectName("vboxlayout2")
 
         self.label = QtGui.QLabel(self.tab_2)
         self.label.setObjectName("label")
-        self.vboxlayout1.addWidget(self.label)
+        self.vboxlayout2.addWidget(self.label)
 
         self.push_branch = QtGui.QLabel(self.tab_2)
         self.push_branch.setWordWrap(True)
         self.push_branch.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByMouse|QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
         self.push_branch.setObjectName("push_branch")
-        self.vboxlayout1.addWidget(self.push_branch)
+        self.vboxlayout2.addWidget(self.push_branch)
 
         self.label_3 = QtGui.QLabel(self.tab_2)
         self.label_3.setObjectName("label_3")
-        self.vboxlayout1.addWidget(self.label_3)
+        self.vboxlayout2.addWidget(self.label_3)
 
         self.parent_branch = QtGui.QLabel(self.tab_2)
         self.parent_branch.setWordWrap(True)
         self.parent_branch.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByMouse|QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
         self.parent_branch.setObjectName("parent_branch")
-        self.vboxlayout1.addWidget(self.parent_branch)
+        self.vboxlayout2.addWidget(self.parent_branch)
 
         self.label_6 = QtGui.QLabel(self.tab_2)
         self.label_6.setObjectName("label_6")
-        self.vboxlayout1.addWidget(self.label_6)
+        self.vboxlayout2.addWidget(self.label_6)
 
         self.submit_branch = QtGui.QLabel(self.tab_2)
         self.submit_branch.setWordWrap(True)
         self.submit_branch.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByMouse|QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
         self.submit_branch.setObjectName("submit_branch")
-        self.vboxlayout1.addWidget(self.submit_branch)
+        self.vboxlayout2.addWidget(self.submit_branch)
 
-        spacerItem = QtGui.QSpacerItem(20,88,QtGui.QSizePolicy.Minimum,QtGui.QSizePolicy.Expanding)
-        self.vboxlayout1.addItem(spacerItem)
+        spacerItem1 = QtGui.QSpacerItem(20,88,QtGui.QSizePolicy.Minimum,QtGui.QSizePolicy.Expanding)
+        self.vboxlayout2.addItem(spacerItem1)
         self.tabWidget.addTab(self.tab_2,"")
 
         self.tab_3 = QtGui.QWidget()
@@ -133,8 +163,8 @@ class Ui_InfoForm(object):
         self.bzrdir_format.setObjectName("bzrdir_format")
         self.gridlayout.addWidget(self.bzrdir_format,3,1,1,1)
 
-        spacerItem1 = QtGui.QSpacerItem(298,132,QtGui.QSizePolicy.Minimum,QtGui.QSizePolicy.Expanding)
-        self.gridlayout.addItem(spacerItem1,4,0,1,2)
+        spacerItem2 = QtGui.QSpacerItem(298,132,QtGui.QSizePolicy.Minimum,QtGui.QSizePolicy.Expanding)
+        self.gridlayout.addItem(spacerItem2,4,0,1,2)
         self.tabWidget.addTab(self.tab_3,"")
         self.vboxlayout.addWidget(self.tabWidget)
 
@@ -143,6 +173,11 @@ class Ui_InfoForm(object):
         QtCore.QMetaObject.connectSlotsByName(InfoForm)
 
     def retranslateUi(self, InfoForm):
+        self.label_2.setText(gettext("Local location:"))
+        self.local_location.setText(gettext("..."))
+        self.label_4.setText(gettext("Public branch location:"))
+        self.public_branch_location.setText(gettext("..."))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), gettext("&Location"))
         self.label.setText(gettext("Push branch:"))
         self.push_branch.setText(gettext("..."))
         self.label_3.setText(gettext("Parent branch:"))

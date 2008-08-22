@@ -20,12 +20,19 @@
 import sys
 from PyQt4 import QtCore, QtGui
 
+from bzrlib import urlutils
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.ui_info import Ui_InfoForm
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     )
+
+
+def _set_location(edit, location):
+    location = location or u'-'
+    location = urlutils.unescape_for_display(location, 'utf-8')
+    edit.setText(location)
 
 
 class QBzrInfoWindow(QBzrWindow):
@@ -42,15 +49,14 @@ class QBzrInfoWindow(QBzrWindow):
     def populate_tree_info(self, tree):
         self.populate_branch_info(tree.branch)
         self.populate_bzrdir_info(tree.bzrdir)
+        _set_location(self.ui.local_location, tree.bzrdir.root_transport.base)
         self.ui.tree_format.setText(tree._format.get_format_description())
 
     def populate_branch_info(self, branch):
-        def set_location(edit, location):
-            location = location or u'-'
-            edit.setText(location)
-        set_location(self.ui.push_branch, branch.get_push_location())
-        set_location(self.ui.submit_branch, branch.get_submit_branch())
-        set_location(self.ui.parent_branch, branch.get_parent())
+        _set_location(self.ui.push_branch, branch.get_push_location())
+        _set_location(self.ui.submit_branch, branch.get_submit_branch())
+        _set_location(self.ui.parent_branch, branch.get_parent())
+        _set_location(self.ui.public_branch_location, branch.get_public_branch())
         self.ui.branch_format.setText(branch._format.get_format_description())
         self.populate_repository_info(branch.repository)
 
