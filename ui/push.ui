@@ -5,17 +5,17 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>429</width>
-    <height>400</height>
+    <width>376</width>
+    <height>378</height>
    </rect>
   </property>
-  <layout class="QVBoxLayout" >
+  <layout class="QVBoxLayout" name="verticalLayout" >
    <item>
     <widget class="QGroupBox" name="groupBox" >
      <property name="title" >
       <string>Options</string>
      </property>
-     <layout class="QGridLayout" >
+     <layout class="QGridLayout" name="gridLayout" >
       <item row="0" column="0" >
        <widget class="QLabel" name="label_2" >
         <property name="text" >
@@ -37,16 +37,19 @@
         <property name="editable" >
          <bool>true</bool>
         </property>
+        <property name="sizeAdjustPolicy" >
+         <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+        </property>
        </widget>
       </item>
-      <item row="0" column="3" >
+      <item row="0" column="2" >
        <widget class="QPushButton" name="location_picker" >
         <property name="text" >
          <string>Browse...</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="0" colspan="2" >
+      <item row="1" column="0" colspan="3" >
        <widget class="QCheckBox" name="remember" >
         <property name="text" >
          <string>Remember this location as a default</string>
@@ -56,21 +59,21 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0" colspan="2" >
+      <item row="2" column="0" colspan="3" >
        <widget class="QCheckBox" name="overwrite" >
         <property name="text" >
          <string>Overwrite differences between branches</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="0" colspan="2" >
+      <item row="3" column="0" colspan="3" >
        <widget class="QCheckBox" name="use_existing_dir" >
         <property name="text" >
          <string>Use existing directory</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="0" colspan="2" >
+      <item row="4" column="0" colspan="3" >
        <widget class="QCheckBox" name="create_prefix" >
         <property name="text" >
          <string>Create the path up to the branch if it does not exist</string>

@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/push.ui'
 #
-# Created: Wed Aug 20 14:54:23 2008
-#      by: PyQt4 UI code generator 4.4.3
+# Created: Fri Aug 22 20:08:52 2008
+#      by: PyQt4 UI code generator 4.3.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -14,54 +14,71 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 class Ui_PushForm(object):
     def setupUi(self, PushForm):
         PushForm.setObjectName("PushForm")
-        PushForm.resize(429, 400)
+        PushForm.resize(QtCore.QSize(QtCore.QRect(0,0,376,378).size()).expandedTo(PushForm.minimumSizeHint()))
+
         self.vboxlayout = QtGui.QVBoxLayout(PushForm)
         self.vboxlayout.setObjectName("vboxlayout")
+
         self.groupBox = QtGui.QGroupBox(PushForm)
         self.groupBox.setObjectName("groupBox")
+
         self.gridlayout = QtGui.QGridLayout(self.groupBox)
         self.gridlayout.setObjectName("gridlayout")
+
         self.label_2 = QtGui.QLabel(self.groupBox)
         self.label_2.setObjectName("label_2")
-        self.gridlayout.addWidget(self.label_2, 0, 0, 1, 1)
+        self.gridlayout.addWidget(self.label_2,0,0,1,1)
+
         self.location = QtGui.QComboBox(self.groupBox)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.location.sizePolicy().hasHeightForWidth())
         self.location.setSizePolicy(sizePolicy)
         self.location.setEditable(True)
+        self.location.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToMinimumContentsLength)
         self.location.setObjectName("location")
-        self.gridlayout.addWidget(self.location, 0, 1, 1, 1)
+        self.gridlayout.addWidget(self.location,0,1,1,1)
+
         self.location_picker = QtGui.QPushButton(self.groupBox)
         self.location_picker.setObjectName("location_picker")
-        self.gridlayout.addWidget(self.location_picker, 0, 3, 1, 1)
+        self.gridlayout.addWidget(self.location_picker,0,2,1,1)
+
         self.remember = QtGui.QCheckBox(self.groupBox)
         self.remember.setChecked(True)
         self.remember.setObjectName("remember")
-        self.gridlayout.addWidget(self.remember, 1, 0, 1, 2)
+        self.gridlayout.addWidget(self.remember,1,0,1,3)
+
         self.overwrite = QtGui.QCheckBox(self.groupBox)
         self.overwrite.setObjectName("overwrite")
-        self.gridlayout.addWidget(self.overwrite, 2, 0, 1, 2)
+        self.gridlayout.addWidget(self.overwrite,2,0,1,3)
+
         self.use_existing_dir = QtGui.QCheckBox(self.groupBox)
         self.use_existing_dir.setObjectName("use_existing_dir")
-        self.gridlayout.addWidget(self.use_existing_dir, 3, 0, 1, 2)
+        self.gridlayout.addWidget(self.use_existing_dir,3,0,1,3)
+
         self.create_prefix = QtGui.QCheckBox(self.groupBox)
         self.create_prefix.setObjectName("create_prefix")
-        self.gridlayout.addWidget(self.create_prefix, 4, 0, 1, 2)
+        self.gridlayout.addWidget(self.create_prefix,4,0,1,3)
         self.vboxlayout.addWidget(self.groupBox)
+
         self.groupBox_2 = QtGui.QGroupBox(PushForm)
         self.groupBox_2.setObjectName("groupBox_2")
+
         self.vboxlayout1 = QtGui.QVBoxLayout(self.groupBox_2)
         self.vboxlayout1.setObjectName("vboxlayout1")
+
         self.progressMessage = QtGui.QLabel(self.groupBox_2)
         self.progressMessage.setWordWrap(True)
         self.progressMessage.setObjectName("progressMessage")
         self.vboxlayout1.addWidget(self.progressMessage)
+
         self.progressBar = QtGui.QProgressBar(self.groupBox_2)
         self.progressBar.setMaximum(1000000)
         self.progressBar.setObjectName("progressBar")
         self.vboxlayout1.addWidget(self.progressBar)
+
         self.console = QtGui.QTextBrowser(self.groupBox_2)
         self.console.setObjectName("console")
         self.vboxlayout1.addWidget(self.console)
