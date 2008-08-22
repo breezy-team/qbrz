@@ -105,6 +105,7 @@ class QBzrPullWindow(QBzrWindow):
         add_location(branch.get_parent())
         add_location(branch.get_bound_location())
         add_location(branch.get_push_location())
+        add_location(branch.get_submit_branch())
 
     def get_related_locations(self, branch):
         # Add the stored location, if it's not set make it empty

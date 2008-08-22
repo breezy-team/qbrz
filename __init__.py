@@ -65,6 +65,7 @@ from bzrlib.plugins.qbzr.lib.config import QBzrConfigWindow
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.log import LogWindow
 from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
+from bzrlib.plugins.qbzr.lib.info import QBzrInfoWindow
 from bzrlib.plugins.qbzr.lib.pull import (
     QBzrPullWindow,
     QBzrPushWindow,
@@ -442,6 +443,20 @@ class cmd_qbranch(Command):
         app.exec_()
 
 
+class cmd_qinfo(Command):
+
+    takes_options = []
+    takes_args = []
+
+    @report_missing_pyqt
+    def run(self):
+        tree, relpath = WorkingTree.open_containing('.')
+        app = QtGui.QApplication(sys.argv)
+        window = QBzrInfoWindow(tree)
+        window.show()
+        app.exec_()
+
+
 _original_merge = get_cmd_object('merge')
 class cmd_merge(bzrlib.builtins.cmd_merge):
     __doc__ = _original_merge.__doc__
@@ -518,6 +533,7 @@ register_command(cmd_qpull)
 register_command(cmd_qmerge)
 register_command(cmd_qpush)
 register_command(cmd_qbranch)
+register_command(cmd_qinfo)
 register_command(cmd_merge)
 
 
