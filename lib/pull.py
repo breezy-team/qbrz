@@ -94,19 +94,34 @@ class QBzrPullWindow(QBzrWindow):
 
         self.setupUi()
 
-    def get_stored_locations(self, branch):
-        """Generators that could returns several stored locations."""
-        yield branch.get_parent()   # parent is always first one
-        yield branch.get_push_location()
+    def get_stored_location(self, branch):
+        return branch.get_parent()
+
+    def add_related_locations(self, locations, branch):
+        def add_location(location):
+            if location and location not in locations:
+                locations.append(location)
+        add_location(branch.get_parent())
+        add_location(branch.get_bound_location())
+        add_location(branch.get_push_location())
+
+    def get_related_locations(self, branch):
+        # Add the stored location, if it's not set make it empty
+        locations = [self.get_stored_location(branch) or u'']
+        # Add other related locations to the combo box
+        self.add_related_locations(locations, branch)
+        return locations
 
     def setupUi(self):
         self.ui = self.create_ui()
         self.ui.setupUi(self.centralwidget)
         self.ui.vboxlayout.addWidget(self.buttonbox)
-        for location in self.get_stored_locations(self.branch):
+        locations = self.get_related_locations(self.branch)
+        for location in locations:
             if location:
                 location = urlutils.unescape_for_display(location, 'utf-8')
                 self.ui.location.addItem(location)
+        self.ui.location.setEditText(locations[0])
         # One directory picker for the pull location.
         self.connect(self.ui.location_picker, QtCore.SIGNAL("clicked()"),
                      self.location_picker_clicked)
@@ -248,9 +263,8 @@ class QBzrPushWindow(QBzrPullWindow):
     PICKER_CAPTION = N_("Select Target Location")
     DEFAULT_SIZE = (400, 420)
 
-    def get_stored_locations(self, branch):
-        yield branch.get_push_location()    # push location is always first one
-        yield branch.get_parent()
+    def get_stored_location(self, branch):
+        return branch.get_push_location()
 
     def create_ui(self):
         return Ui_PushForm()
