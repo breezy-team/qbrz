@@ -69,6 +69,7 @@ from bzrlib.plugins.qbzr.lib.pull import (
     QBzrPullWindow,
     QBzrPushWindow,
     QBzrBranchWindow,
+    QBzrMergeWindow,
     )
 from bzrlib.plugins.qbzr.lib.util import (
     FilterOptions,
@@ -396,6 +397,22 @@ class cmd_qpull(Command):
 
 
 
+class cmd_qmerge(Command):
+    """Perform a three-way merge."""
+
+    takes_options = []
+    takes_args = []
+
+    @report_missing_pyqt
+    def run(self):
+        branch, relpath = Branch.open_containing('.')
+        app = QtGui.QApplication(sys.argv)
+        window = QBzrMergeWindow(branch)
+        window.show()
+        app.exec_()
+
+
+
 class cmd_qpush(Command):
     """Update a mirror of this branch."""
 
@@ -498,6 +515,7 @@ register_command(cmd_qcat)
 register_command(cmd_qdiff)
 register_command(cmd_qlog)
 register_command(cmd_qpull)
+register_command(cmd_qmerge)
 register_command(cmd_qpush)
 register_command(cmd_qbranch)
 register_command(cmd_merge)

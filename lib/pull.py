@@ -40,6 +40,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.ui_branch import Ui_BranchForm
 from bzrlib.plugins.qbzr.lib.ui_pull import Ui_PullForm
 from bzrlib.plugins.qbzr.lib.ui_push import Ui_PushForm
+from bzrlib.plugins.qbzr.lib.ui_merge import Ui_MergeForm
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     BTN_OK,
@@ -329,3 +330,24 @@ class QBzrBranchWindow(QBzrPullWindow):
             from_location = str(self.ui.from_location.currentText())
             to_location = str(self.ui.to_location.currentText())
             self.start('branch', from_location, to_location, *args)
+
+
+class QBzrMergeWindow(QBzrPullWindow):
+
+    TITLE = N_("Merge")
+    NAME = "pull"
+    PICKER_CAPTION = N_("Select Source Location")
+    DEFAULT_SIZE = (400, 420)
+
+    def create_ui(self):
+        return Ui_MergeForm()
+
+    def accept(self):
+        if self.finished:
+            self.close()
+        else:
+            args = ['--directory', self.branch.base]
+            if self.ui.remember.isChecked():
+                args.append('--remember')
+            location = str(self.ui.location.currentText())
+            self.start('merge', location, *args)
