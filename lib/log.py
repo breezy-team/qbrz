@@ -60,12 +60,12 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
         
         self.labels = []
         # collect tag names
-        for tag in index.data(logmodel.TagsRole).toList():
+        for tag in index.data(logmodel.TagsRole).toStringList():
             self.labels.append(
                 (tag.toString(), self._tagColor,
                  self._tagColorBorder))
         # collect bug ids
-        for bug in index.data(logmodel.BugIdsRole).toList():
+        for bug in index.data(logmodel.BugIdsRole).toStringList():
             self.labels.append(
                 (bug.toString(), self._bugColor,
                  self._bugColorBorder))

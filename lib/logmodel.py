@@ -52,11 +52,19 @@ _bug_id_re = lazy_regex.lazy_compile(r'(?:'
     r'|issues/show/'            # Redmine bugs URL
     r')(\d+)(?:\b|$)')
 
+
 def get_bug_id(branch, bug_url):
     match = _bug_id_re.search(bug_url)
     if match:
         return match.group(1)
     return None
+
+
+
+try:
+    QVariant_fromList = QtCore.QVariant.fromList
+except AttributeError:
+    QVariant_fromList = QtCore.QVariant
 
 
 class TreeModel(QtCore.QAbstractTableModel):
@@ -769,17 +777,18 @@ class TreeModel(QtCore.QAbstractTableModel):
         if role == GraphNodeRole:
             if node is None:
                 return QtCore.QVariant()
-            return QtCore.QVariant([QtCore.QVariant(nodei) for nodei in node])
+            return QVariant_fromList([QtCore.QVariant(nodei) for nodei in node])
         if role == GraphLinesRole:
             qlines = []
             for start, end, color, direct in lines:
                 if start is None: start = -1
                 if end is None: end = -1
-                qlines.append(QtCore.QVariant([QtCore.QVariant(start),
-                                               QtCore.QVariant(end),
-                                               QtCore.QVariant(color),
-                                               QtCore.QVariant(direct)]))
-            return QtCore.QVariant(qlines)
+                qlines.append(QVariant_fromList(
+                    [QtCore.QVariant(start),
+                     QtCore.QVariant(end),
+                     QtCore.QVariant(color),
+                     QtCore.QVariant(direct)]))
+            return QVariant_fromList(qlines)
         if role == GraphTwistyStateRole:
             if twisty_state is None:
                 return QtCore.QVariant()
