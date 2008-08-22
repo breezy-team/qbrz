@@ -283,7 +283,8 @@ class LogWindow(QBzrWindow):
         self.changesList.setModel(self.changesProxyModel)
         self.changesList.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
         self.changesList.setUniformRowHeights(True)
-        self.changesList.setAllColumnsShowFocus(True)
+        if self.style().objectName() != 'gtk':
+            self.changesList.setAllColumnsShowFocus(True)
         self.changesList.setRootIsDecorated (False)
         self.changesList.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         header = self.changesList.header()
