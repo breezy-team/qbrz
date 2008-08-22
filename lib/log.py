@@ -299,6 +299,11 @@ class LogWindow(QBzrWindow):
 
         logbox.addWidget(self.changesList)
 
+        self.revision_delta_timer = QtCore.QTimer(self)
+        self.revision_delta_timer.setSingleShot(True)
+        self.connect(self.revision_delta_timer, QtCore.SIGNAL("timeout()"),
+                     self.update_revision_delta)
+
         self.current_rev = None
         self.connect(self.changesList.selectionModel(),
                      QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
@@ -385,51 +390,52 @@ class LogWindow(QBzrWindow):
         else:
             open_browser(str(url.toEncoded()))
 
+    def update_revision_delta(self):
+        rev = self.current_rev
+        if not hasattr(rev, 'delta'):
+            # TODO move this to a thread
+            self.branch.repository.lock_read()
+            try:
+                rev.delta = self.branch.repository.get_deltas_for_revisions(
+                    [rev]).next()
+            finally:
+                self.branch.repository.unlock()
+        if self.current_rev is not rev:
+            # new update was requested, don't bother populating the list
+            return
+        delta = rev.delta
+
+        for path, id_, kind in delta.added:
+            item = QtGui.QListWidgetItem(path, self.fileList)
+            item.setTextColor(QtGui.QColor("blue"))
+
+        for path, id_, kind, text_modified, meta_modified in delta.modified:
+            item = QtGui.QListWidgetItem(path, self.fileList)
+
+        for path, id_, kind in delta.removed:
+            item = QtGui.QListWidgetItem(path, self.fileList)
+            item.setTextColor(QtGui.QColor("red"))
+
+        for (oldpath, newpath, id_, kind,
+            text_modified, meta_modified) in delta.renamed:
+            item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
+            item.setData(PathRole, QtCore.QVariant(newpath))
+            item.setTextColor(QtGui.QColor("purple"))
+
     def update_selection(self, selected, deselected):
         indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
+        self.fileList.clear()
         if not indexes:
             self.diffbutton.setEnabled(False)
             self.message.setHtml("")
-            self.fileList.clear()
         else:
             self.diffbutton.setEnabled(True)
             index = indexes[0]
             revid = str(index.data(logmodel.RevIdRole).toString())
             rev = self.changesModel.revision(revid)
             self.current_rev = rev
-    
             self.message.setHtml(format_revision_html(rev, self.replace))
-    
-            #print children
-    
-            self.fileList.clear()
-        
-            if not hasattr(rev, 'delta'):
-                # TODO move this to a thread
-                self.branch.repository.lock_read()
-                try:
-                    rev.delta = self.branch.repository.get_deltas_for_revisions(
-                        [rev]).next()
-                finally:
-                    self.branch.repository.unlock()
-            delta = rev.delta
-    
-            for path, id_, kind in delta.added:
-                item = QtGui.QListWidgetItem(path, self.fileList)
-                item.setTextColor(QtGui.QColor("blue"))
-    
-            for path, id_, kind, text_modified, meta_modified in delta.modified:
-                item = QtGui.QListWidgetItem(path, self.fileList)
-    
-            for path, id_, kind in delta.removed:
-                item = QtGui.QListWidgetItem(path, self.fileList)
-                item.setTextColor(QtGui.QColor("red"))
-    
-            for (oldpath, newpath, id_, kind,
-                text_modified, meta_modified) in delta.renamed:
-                item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
-                item.setData(PathRole, QtCore.QVariant(newpath))
-                item.setTextColor(QtGui.QColor("purple"))
+            self.revision_delta_timer.start(1)
 
     def show_diff_window(self, rev1, rev2, specific_files=None):
         self.branch.repository.lock_read()
