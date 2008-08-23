@@ -560,6 +560,8 @@ class CommitWindow(QBzrWindow):
 
     def show_differences(self, items=None, column=None):
         """Show differences between the working copy and the last revision."""
+        if not self.show_diff_action.isEnabled():
+            return
         if items is None:
             items = self.filelist.selectedItems()
             if not items:
