@@ -356,13 +356,17 @@ class CommitWindow(QBzrWindow):
 
         vbox = QtGui.QVBoxLayout(groupbox)
         vbox.addWidget(self.filelist)
-
-        hbox = QtGui.QVBoxLayout()
         self.show_nonversioned_checkbox = QtGui.QCheckBox(
             gettext("Show non-versioned files"))
         self.connect(self.show_nonversioned_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_nonversioned)
-        hbox.addWidget(self.show_nonversioned_checkbox)
-        vbox.addLayout(hbox)
+        vbox.addWidget(self.show_nonversioned_checkbox)
+        self._ignore_select_all_changes = False
+        self.select_all_checkbox = QtGui.QCheckBox(
+            gettext("Select / deselect all"))
+        self.select_all_checkbox.setTristate(True)
+        self.select_all_checkbox.setCheckState(QtCore.Qt.PartiallyChecked)
+        self.connect(self.select_all_checkbox, QtCore.SIGNAL("stateChanged(int)"), self.select_all_files)
+        vbox.addWidget(self.select_all_checkbox)
 
         def in_selected_list(path):
             if not selected_list:
@@ -393,6 +397,11 @@ class CommitWindow(QBzrWindow):
 
         self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
         self.show_nonversioned(self.show_nonversioned_checkbox.isChecked())
+
+        self.connect(self.filelist,
+                     QtCore.SIGNAL("itemChanged(QTreeWidgetItem *, int)"),
+                     self.update_selected_files)
+        self.update_selected_files(None, None)
 
         splitter.setStretchFactor(0, 3)
         splitter.setStretchFactor(1, 4)
@@ -575,6 +584,7 @@ class CommitWindow(QBzrWindow):
         state = not state
         for item in self.unknowns:
             item.setHidden(state)
+        self.update_selected_files(None, None)
 
     def revert_selected(self):
         """Revert the selected file."""
@@ -613,3 +623,33 @@ class CommitWindow(QBzrWindow):
     def closeEvent(self, event):
         self.f_on_close()   # either save_message or clear_saved_message
         return QBzrWindow.closeEvent(self, event)
+
+    def update_selected_files(self, item, column):
+        checked = 0
+        num_items = self.filelist.topLevelItemCount()
+        for i in range(num_items):
+            item = self.filelist.topLevelItem(i)
+            if item.isHidden():
+                num_items -= 1
+            elif item.checkState(0) == QtCore.Qt.Checked:
+                checked += 1
+        self._ignore_select_all_changes = True
+        if checked == 0:
+            self.select_all_checkbox.setCheckState(QtCore.Qt.Unchecked)
+        elif checked == num_items:
+            self.select_all_checkbox.setCheckState(QtCore.Qt.Checked)
+        else:
+            self.select_all_checkbox.setCheckState(QtCore.Qt.PartiallyChecked)
+        self._ignore_select_all_changes = False
+
+    def select_all_files(self, state):
+        if self._ignore_select_all_changes:
+            return
+        if state == QtCore.Qt.PartiallyChecked:
+            self.select_all_checkbox.setCheckState(QtCore.Qt.Checked)
+            return
+        num_items = self.filelist.topLevelItemCount()
+        for i in range(num_items):
+            item = self.filelist.topLevelItem(i)
+            if not item.isHidden():
+                item.setCheckState(0, QtCore.Qt.CheckState(state))
