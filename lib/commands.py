@@ -582,17 +582,3 @@ class cmd_qsubprocess(Command):
         ui.ui_factory = ui.text.TextUIFactory(SubprocessProgress)
         argv = [p.decode('utf8') for p in shlex.split(cmd.encode('utf8'))]
         commands.run_bzr(argv)
-
-
-def test_suite():
-    # disable gettext
-    from bzrlib.plugins.qbzr.lib import i18n
-    i18n.disable()
-    # load tests
-    from bzrlib.tests import TestUtil
-    suite = TestUtil.TestSuite()
-    loader = TestUtil.TestLoader()
-    testmod_names = ['test_util', 'test_diffview', 'test_autocomplete']
-    suite.addTest(loader.loadTestsFromModuleNames(
-            ["%s.lib.%s" % (__name__, name) for name in testmod_names]))
-    return suite

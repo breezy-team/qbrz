@@ -62,3 +62,17 @@ register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qmerge', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpull', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpush', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsubprocess', [])
+
+
+def test_suite():
+    # disable gettext
+    from bzrlib.plugins.qbzr.lib import i18n
+    i18n.disable()
+    # load tests
+    from bzrlib.tests import TestUtil
+    suite = TestUtil.TestSuite()
+    loader = TestUtil.TestLoader()
+    testmod_names = ['test_util', 'test_diffview', 'test_autocomplete']
+    suite.addTest(loader.loadTestsFromModuleNames(
+            ["%s.lib.%s" % (__name__, name) for name in testmod_names]))
+    return suite
