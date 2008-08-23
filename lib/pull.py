@@ -54,7 +54,7 @@ class QBzrPullWindow(QBzrWindow):
     TITLE = N_("Pull")
     NAME = "pull"
     PICKER_CAPTION = N_("Select Source Location")
-    DEFAULT_SIZE = (400, 420)
+    DEFAULT_SIZE = (500, 420)
 
     def __init__(self, branch, parent=None):
         QBzrWindow.__init__(self, [gettext(self.TITLE)], parent)
@@ -263,7 +263,7 @@ class QBzrPushWindow(QBzrPullWindow):
     TITLE = N_("Push")
     NAME = "push"
     PICKER_CAPTION = N_("Select Target Location")
-    DEFAULT_SIZE = (400, 420)
+    DEFAULT_SIZE = (500, 420)
 
     def get_stored_location(self, branch):
         return branch.get_push_location()
@@ -292,7 +292,7 @@ class QBzrBranchWindow(QBzrPullWindow):
 
     TITLE = N_("Branch")
     NAME = "branch"
-    DEFAULT_SIZE = (400, 420)
+    DEFAULT_SIZE = (500, 420)
 
     def setupUi(self):
         self.ui = Ui_BranchForm()
@@ -338,7 +338,7 @@ class QBzrMergeWindow(QBzrPullWindow):
     TITLE = N_("Merge")
     NAME = "pull"
     PICKER_CAPTION = N_("Select Source Location")
-    DEFAULT_SIZE = (400, 420)
+    DEFAULT_SIZE = (500, 420)
 
     def create_ui(self):
         return Ui_MergeForm()
