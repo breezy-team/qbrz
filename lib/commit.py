@@ -48,6 +48,9 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 
 
+MAX_AUTOCOMPLETE_FILES = 20
+
+
 class TextEdit(QtGui.QTextEdit):
 
     def __init__(self, parent=None, main_window=None):
@@ -207,6 +210,8 @@ class CommitWindow(QBzrWindow):
             if not versioned:
                 continue
             words.update(os.path.split(path))
+            if len(files) > MAX_AUTOCOMPLETE_FILES:
+                continue
             builder = get_wordlist_builder(ext)
             if builder is not None:
                 try:
