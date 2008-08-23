@@ -35,6 +35,7 @@ from bzrlib.commands import Command, register_command
 from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
 
+from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
@@ -45,42 +46,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     format_timestamp,
     get_apparent_author,
     )
-
-
-_python_identifier_re = re.compile(r"(?:def|class)\s+(\w+)")
-_python_variable_re = re.compile(r"(\w+)\s*=\s*")
-
-def python_word_list_builder(file):
-    for line in file:
-        match = _python_identifier_re.search(line)
-        if match:
-            yield match.group(1)
-        match = _python_variable_re.search(line)
-        if match:
-            yield match.group(1)
-
-
-_cpp_identifier_re = re.compile(r"(?:class|typedef|struct|union|namespace)\s+(\w+)")
-_cpp_member_re = re.compile(r"::\s*(\w+)\s*\(")
-
-def cpp_header_word_list_builder(file):
-    for line in file:
-        match = _cpp_identifier_re.search(line)
-        if match:
-            yield match.group(1)
-
-def cpp_source_word_list_builder(file):
-    for line in file:
-        match = _cpp_member_re.search(line)
-        if match:
-            yield match.group(1)
-
-
-_word_list_builders = {
-    ".py": python_word_list_builder,
-    ".cpp": cpp_source_word_list_builder,
-    ".h": cpp_header_word_list_builder,
-}
 
 
 class TextEdit(QtGui.QTextEdit):
@@ -237,18 +202,19 @@ class CommitWindow(QBzrWindow):
             files.append((gettext("non-versioned"), entry, ext, entry, False))
 
         # Build a word list for message completer
-        words = []
+        words = set()
         for status, name, ext, path, versioned in files:
             if not versioned:
                 continue
-            words.extend(os.path.split(path))
-            if ext in _word_list_builders:
+            words.update(os.path.split(path))
+            builder = get_wordlist_builder(ext)
+            if builder is not None:
                 try:
                     file = open(path, 'rt')
-                    words.extend(_word_list_builders[ext](file))
+                    words.update(builder.iter_words(file))
                 except EnvironmentError:
                     pass
-        words = list(set(words))
+        words = list(words)
         words.sort(lambda a, b: cmp(a.lower(), b.lower()))
 
         # To set focus on splitter below one need to pass
