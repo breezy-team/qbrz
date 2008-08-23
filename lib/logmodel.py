@@ -807,7 +807,7 @@ class TreeModel(QtCore.QAbstractTableModel):
             tags = []
             if revid in self.tags:
                 tags = self.tags[revid]
-            return QtCore.QVariant(tags)
+            return QtCore.QVariant(QtCore.QStringList(tags))
         if role == RevIdRole or role == FilterIdRole:
             return QtCore.QVariant(revid)
         
@@ -836,7 +836,7 @@ class TreeModel(QtCore.QAbstractTableModel):
                     bug_id = get_bug_id(self.branch, url)
                     if bug_id:
                         bugs.append(bugtext % bug_id)
-            return QtCore.QVariant(bugs)
+            return QtCore.QVariant(QtCore.QStringList(bugs))
         
         if role == FilterMessageRole:
             return QtCore.QVariant(revision.message)
