@@ -48,6 +48,7 @@ from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
 from bzrlib.workingtree import WorkingTree
 
+from bzrlib.plugins.qbzr.lib import i18n
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
@@ -113,7 +114,29 @@ def report_missing_pyqt(unbound):
     return run
 
 
-class cmd_qannotate(Command):
+def install_gettext(unbound):
+    """Decorator for q-commands run method to catch ImportError PyQt4
+    and show explanation to user instead of scary traceback.
+    See bugs: #240123, #163728
+    """
+    def run(self, *args, **kwargs):
+        i18n.install()
+        try:
+            return unbound(self, *args, **kwargs)
+        finally:
+            i18n.uninstall()
+    return run
+
+
+class QBzrCommand(Command):
+
+    @install_gettext
+    @report_missing_pyqt
+    def run(self, *args, **kwargs):
+        return self._qbzr_run(*args, **kwargs)
+
+
+class cmd_qannotate(QBzrCommand):
     """Show the origin of each line in a file."""
     takes_args = ['filename']
     takes_options = ['revision',
@@ -122,8 +145,7 @@ class cmd_qannotate(Command):
                     ]
     aliases = ['qann', 'qblame']
 
-    @report_missing_pyqt
-    def run(self, filename=None, revision=None, encoding=None):
+    def _qbzr_run(self, filename=None, revision=None, encoding=None):
         from bzrlib.annotate import _annotate_file
         tree, relpath = WorkingTree.open_containing(filename)
         branch = tree.branch
@@ -160,14 +182,13 @@ class cmd_qannotate(Command):
         app.exec_()
 
 
-class cmd_qbrowse(Command):
+class cmd_qbrowse(QBzrCommand):
     """Show inventory."""
     takes_args = ['location?']
     takes_options = ['revision']
     aliases = ['qbw']
 
-    @report_missing_pyqt
-    def run(self, revision=None, location=None):
+    def _qbzr_run(self, revision=None, location=None):
         branch, path = Branch.open_containing(location)
         app = QtGui.QApplication(sys.argv)
         if revision is None:
@@ -178,7 +199,7 @@ class cmd_qbrowse(Command):
         app.exec_()
 
 
-class cmd_qcommit(Command):
+class cmd_qcommit(QBzrCommand):
     """GUI for committing revisions."""
     takes_args = ['selected*']
     takes_options = [
@@ -193,8 +214,7 @@ class cmd_qcommit(Command):
             ]
     aliases = ['qci']
 
-    @report_missing_pyqt
-    def run(self, selected_list=None, message=None, local=False):
+    def _qbzr_run(self, selected_list=None, message=None, local=False):
         tree, selected_list = builtins.tree_files(selected_list)
         if selected_list == ['']:
             selected_list = []
@@ -205,7 +225,7 @@ class cmd_qcommit(Command):
         application.exec_()
 
 
-class cmd_qdiff(Command):
+class cmd_qdiff(QBzrCommand):
     """Show differences in working tree in a GUI window."""
     takes_args = ['file*']
     takes_options = [
@@ -223,8 +243,7 @@ class cmd_qdiff(Command):
         takes_options.append('change')
     aliases = ['qdi']
 
-    @report_missing_pyqt
-    def run(self, revision=None, file_list=None, complete=False,
+    def _qbzr_run(self, revision=None, file_list=None, complete=False,
             encoding=None,
             added=None, deleted=None, modified=None, renamed=None):
         from bzrlib.builtins import internal_tree_files
@@ -280,7 +299,7 @@ class cmd_qdiff(Command):
         application.exec_()
 
 
-class cmd_qlog(Command):
+class cmd_qlog(QBzrCommand):
     """Show log of a branch, file, or directory in a Qt window.
 
     By default show the log of the branch containing the working directory."""
@@ -288,8 +307,7 @@ class cmd_qlog(Command):
     takes_args = ['location?']
     takes_options = []
 
-    @report_missing_pyqt
-    def run(self, location=None):
+    def _qbzr_run(self, location=None):
         file_id = None
         if location:
             dir, path = BzrDir.open_containing(location)
@@ -321,22 +339,21 @@ class cmd_qlog(Command):
             branch.unlock()
 
 
-class cmd_qconfig(Command):
+class cmd_qconfig(QBzrCommand):
     """Configure Bazaar."""
 
     takes_args = []
     takes_options = []
     aliases = ['qconfigure']
 
-    @report_missing_pyqt
-    def run(self):
+    def _qbzr_run(self):
         app = QtGui.QApplication(sys.argv)
         window = QBzrConfigWindow()
         window.show()
         app.exec_()
 
 
-class cmd_qcat(Command):
+class cmd_qcat(QBzrCommand):
     """View the contents of a file as of a given revision.
 
     If no revision is nominated, the last revision is used.
@@ -349,8 +366,7 @@ class cmd_qcat(Command):
         ]
     takes_args = ['filename']
 
-    @report_missing_pyqt
-    def run(self, filename, revision=None, encoding=None):
+    def _qbzr_run(self, filename, revision=None, encoding=None):
         if revision is not None and len(revision) != 1:
             raise errors.BzrCommandError("bzr qcat --revision takes exactly"
                                          " one revision specifier")
@@ -373,14 +389,13 @@ class cmd_qcat(Command):
             app.exec_()
 
 
-class cmd_qpull(Command):
+class cmd_qpull(QBzrCommand):
     """Turn this branch into a mirror of another branch."""
 
     takes_options = []
     takes_args = []
 
-    @report_missing_pyqt
-    def run(self):
+    def _qbzr_run(self):
         branch, relpath = Branch.open_containing('.')
         app = QtGui.QApplication(sys.argv)
         window = QBzrPullWindow(branch)
@@ -389,14 +404,13 @@ class cmd_qpull(Command):
 
 
 
-class cmd_qmerge(Command):
+class cmd_qmerge(QBzrCommand):
     """Perform a three-way merge."""
 
     takes_options = []
     takes_args = []
 
-    @report_missing_pyqt
-    def run(self):
+    def _qbzr_run(self):
         branch, relpath = Branch.open_containing('.')
         app = QtGui.QApplication(sys.argv)
         window = QBzrMergeWindow(branch)
@@ -405,14 +419,13 @@ class cmd_qmerge(Command):
 
 
 
-class cmd_qpush(Command):
+class cmd_qpush(QBzrCommand):
     """Update a mirror of this branch."""
 
     takes_options = []
     takes_args = []
 
-    @report_missing_pyqt
-    def run(self):
+    def _qbzr_run(self):
         branch, relpath = Branch.open_containing('.')
         app = QtGui.QApplication(sys.argv)
         window = QBzrPushWindow(branch)
@@ -420,27 +433,25 @@ class cmd_qpush(Command):
         app.exec_()
 
 
-class cmd_qbranch(Command):
+class cmd_qbranch(QBzrCommand):
     """Create a new copy of a branch."""
 
     takes_options = []
     takes_args = []
 
-    @report_missing_pyqt
-    def run(self):
+    def _qbzr_run(self):
         app = QtGui.QApplication(sys.argv)
         window = QBzrBranchWindow(None)
         window.show()
         app.exec_()
 
 
-class cmd_qinfo(Command):
+class cmd_qinfo(QBzrCommand):
 
     takes_options = []
     takes_args = []
 
-    @report_missing_pyqt
-    def run(self):
+    def _qbzr_run(self):
         tree, relpath = WorkingTree.open_containing('.')
         app = QtGui.QApplication(sys.argv)
         window = QBzrInfoWindow(tree)
@@ -460,7 +471,8 @@ class cmd_merge(bzrlib.builtins.cmd_merge):
             kw['preview'] = kw['qpreview']
             del kw['qpreview']
         bzrlib.builtins.cmd_merge.run(self, *args, **kw)
-    
+
+    @install_gettext
     @report_missing_pyqt
     def _do_qpreview(self, merger):
         from bzrlib.diff import show_diff_trees
@@ -483,7 +495,7 @@ class cmd_merge(bzrlib.builtins.cmd_merge):
             bzrlib.builtins.cmd_merge._do_preview(self, merger)
 
 
-class cmd_qbzr(Command):
+class cmd_qbzr(QBzrCommand):
     """The QBzr application.
 
     Not finished -- DON'T USE
@@ -493,8 +505,7 @@ class cmd_qbzr(Command):
     takes_args = []
     hidden = True
 
-    @report_missing_pyqt
-    def run(self):
+    def _qbzr_run(self):
         # Remove svn checkout support
         try:
             from bzrlib.plugins.svn.format import SvnWorkingTreeDirFormat
@@ -577,7 +588,6 @@ class cmd_qsubprocess(Command):
     takes_args = ['cmd']
     hidden = True
 
-    @report_missing_pyqt
     def run(self, cmd):
         ui.ui_factory = ui.text.TextUIFactory(SubprocessProgress)
         argv = [p.decode('utf8') for p in shlex.split(cmd.encode('utf8'))]
