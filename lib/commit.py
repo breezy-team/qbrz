@@ -175,6 +175,7 @@ class CommitWindow(QBzrWindow):
             tree.unlock()
 
         # Get information about modified files
+        num_versioned_files = 0
         files = []
         delta = self.tree.changes_from(self.basis_tree)
         for path, id_, kind in delta.added:
@@ -203,6 +204,8 @@ class CommitWindow(QBzrWindow):
         for entry in tree.unknowns():
             ext = file_extension(entry)
             files.append((gettext("non-versioned"), entry, ext, entry, False))
+            num_versioned_files -= 1
+        num_versioned_files += len(files)
 
         # Build a word list for message completer
         words = set()
@@ -210,7 +213,7 @@ class CommitWindow(QBzrWindow):
             if not versioned:
                 continue
             words.update(os.path.split(path))
-            if len(files) > MAX_AUTOCOMPLETE_FILES:
+            if num_versioned_files > MAX_AUTOCOMPLETE_FILES:
                 continue
             builder = get_wordlist_builder(ext)
             if builder is not None:
