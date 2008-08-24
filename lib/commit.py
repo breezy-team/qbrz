@@ -35,6 +35,7 @@ from bzrlib.commands import Command, register_command
 from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
 
+from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -247,6 +248,8 @@ class CommitWindow(QBzrWindow):
         completer.setModel(QtGui.QStringListModel(words, completer))
         self.message.setCompleter(completer)
         self.message.setAcceptRichText(False)
+        spell_checker = SpellChecker()
+        spell_highlighter = SpellCheckHighlighter(self.message.document(), spell_checker)
         self.restore_message()
         if message:
             self.message.setText(message)
