@@ -30,7 +30,6 @@ version_info = (0, 9, 4, 'dev', 0)
 __version__ = '.'.join(map(str, version_info))
 
 
-
 class LazyCommand(object):
 
     def __init__(self, module, name, aliases):

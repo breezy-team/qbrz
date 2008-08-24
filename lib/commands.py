@@ -23,7 +23,7 @@ import sys
 
 if hasattr(sys, "frozen"):
     # "hack in" our PyQt4 binaries
-    sys.path.append(os.path.join(os.path.dirname(__file__), '_lib'))
+    sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '_lib')))
 
 from bzrlib import errors
 from bzrlib.option import Option
