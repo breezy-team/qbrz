@@ -307,6 +307,7 @@ class CommitWindow(QBzrWindow):
             splitter.addWidget(groupbox)
 
             pendingMergesWidget = QtGui.QTreeWidget(groupbox)
+            pendingMergesWidget.setRootIsDecorated(False)
             pendingMergesWidget.setHeaderLabels(
                 [gettext("Date"), gettext("Author"), gettext("Message")])
             header = pendingMergesWidget.header()
@@ -316,8 +317,9 @@ class CommitWindow(QBzrWindow):
                 QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
                 self.show_changeset)
 
+            items = []
             for merge in self.pending_merges:
-                item = QtGui.QTreeWidgetItem(pendingMergesWidget)
+                item = QtGui.QTreeWidgetItem()
                 item.setText(0, format_timestamp(merge.timestamp))
                 item.setText(1, get_apparent_author(merge))
                 item.setText(2, merge.get_summary())
@@ -325,6 +327,8 @@ class CommitWindow(QBzrWindow):
                              QtCore.QVariant(merge.revision_id))
                 item.setData(0, self.ParentIdRole,
                              QtCore.QVariant(merge.parent_ids[0]))
+                items.append(item)
+            pendingMergesWidget.insertTopLevelItems(0, items)
 
             vbox = QtGui.QVBoxLayout(groupbox)
             vbox.addWidget(pendingMergesWidget)
@@ -374,7 +378,9 @@ class CommitWindow(QBzrWindow):
         self.select_all_checkbox = QtGui.QCheckBox(
             gettext("Select / deselect all"))
         self.select_all_checkbox.setTristate(True)
-        self.select_all_checkbox.setCheckState(QtCore.Qt.PartiallyChecked)
+        self.select_all_checkbox.setCheckState(QtCore.Qt.Checked)
+        if self.pending_merges:
+            self.select_all_checkbox.setEnabled(False)
         self.connect(self.select_all_checkbox, QtCore.SIGNAL("stateChanged(int)"), self.select_all_files)
         vbox.addWidget(self.select_all_checkbox)
 
@@ -411,7 +417,8 @@ class CommitWindow(QBzrWindow):
         self.connect(self.filelist,
                      QtCore.SIGNAL("itemChanged(QTreeWidgetItem *, int)"),
                      self.update_selected_files)
-        self.update_selected_files(None, None)
+        if not self.pending_merges:
+            self.update_selected_files(None, None)
 
         splitter.setStretchFactor(0, 3)
         splitter.setStretchFactor(1, 4)
@@ -637,6 +644,8 @@ class CommitWindow(QBzrWindow):
         return QBzrWindow.closeEvent(self, event)
 
     def update_selected_files(self, item, column):
+        if self.pending_merges:
+            return
         checked = 0
         num_items = self.filelist.topLevelItemCount()
         for i in range(num_items):
