@@ -46,6 +46,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     format_timestamp,
     get_apparent_author,
+    get_global_config,
     )
 
 
@@ -248,8 +249,11 @@ class CommitWindow(QBzrWindow):
         completer.setModel(QtGui.QStringListModel(words, completer))
         self.message.setCompleter(completer)
         self.message.setAcceptRichText(False)
-        spell_checker = SpellChecker()
+
+        language = get_global_config().get_user_option('spellcheck_language') or 'en'
+        spell_checker = SpellChecker(language)
         spell_highlighter = SpellCheckHighlighter(self.message.document(), spell_checker)
+
         self.restore_message()
         if message:
             self.message.setText(message)
