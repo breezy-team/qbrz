@@ -24,28 +24,20 @@ from PyQt4 import QtGui
 # TODO integrate into the text editor's context menu
 
 
-class DummySpellChecker(object):
+class SpellChecker(object):
 
     def __init__(self, language):
-        pass
-
-    def check(self, text):
-        return []
-
-    @classmethod
-    def list_languages(cls):
-        return []
-
-
-class EnchantSpellChecker(object):
-
-    def __init__(self, language):
-        from enchant.checker import SpellChecker
-        from enchant.tokenize import EmailFilter, URLFilter
         try:
-            self.checker = SpellChecker(language, [EmailFilter, URLFilter])
-        except enchant.DictNotFoundError:
+            import enchant
+            from enchant.checker import SpellChecker
+            from enchant.tokenize import EmailFilter, URLFilter
+        except ImportError:
             self.checker = None
+        else:
+            try:
+                self.checker = SpellChecker(language, [EmailFilter, URLFilter])
+            except enchant.DictNotFoundError:
+                self.checker = None
 
     def check(self, text):
         if self.checker is None:
@@ -56,7 +48,11 @@ class EnchantSpellChecker(object):
 
     @classmethod
     def list_languages(cls):
-        return list(set(lang.replace("_", "-") for lang in enchant.list_languages()))
+        try:
+            import enchant
+            return list(set(lang.replace("_", "-") for lang in enchant.list_languages()))
+        except ImportError:
+            return []
 
 
 class SpellCheckHighlighter(QtGui.QSyntaxHighlighter):
@@ -71,10 +67,3 @@ class SpellCheckHighlighter(QtGui.QSyntaxHighlighter):
     def highlightBlock(self, text):
         for index, length in self.checker.check(unicode(text)):
             self.setFormat(index, length, self.format)
-
-
-try:
-    import enchant
-    SpellChecker = EnchantSpellChecker
-except ImportError:
-    SpellChecker = DummySpellChecker
