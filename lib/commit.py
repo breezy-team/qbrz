@@ -38,7 +38,6 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
-from bzrlib.plugins.qbzr.lib.wtlist import WorkingTreeFileList
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
 from bzrlib.plugins.qbzr.lib.util import (
@@ -49,6 +48,11 @@ from bzrlib.plugins.qbzr.lib.util import (
     format_timestamp,
     get_apparent_author,
     get_global_config,
+    )
+from bzrlib.plugins.qbzr.lib.wtlist import (
+    ChangeDesc,
+    WorkingTreeFileList,
+    closure_in_selected_list,
     )
 
 
@@ -166,22 +170,18 @@ class CommitWindow(SubProcessWindow):
         words = set()
         show_nonversioned = self.show_nonversioned_checkbox.isChecked()
 
-        def in_selected_list(path):
-            if not self.initial_selected_list:
-                return True
-            if path in self.initial_selected_list:
-                return True
-            for p in self.initial_selected_list:
-                if path.startswith(p):
-                    return True
-            return False
+        in_selected_list = closure_in_selected_list(self.initial_selected_list)
 
         num_versioned_files = 0
         for desc in self.tree.iter_changes(self.tree.basis_tree(),
                                            want_unversioned=True):
+            desc = ChangeDesc(desc)
 
-            is_versioned = self.filelist.is_changedesc_versioned(desc)
-            path = self.filelist.get_changedesc_path(desc)
+            if desc.is_tree_root(): # skip TREE_ROOT
+                continue
+
+            is_versioned = desc.is_versioned()
+            path = desc.path()
 
             if not is_versioned and self.tree.is_ignored(path):
                 continue
@@ -196,6 +196,8 @@ class CommitWindow(SubProcessWindow):
                 num_versioned_files += 1
 
                 words.update(os.path.split(path))
+                if desc.is_renamed():
+                    words.update(os.path.split(desc.oldpath()))
                 if num_versioned_files < MAX_AUTOCOMPLETE_FILES:
                     ext = file_extension(path)
                     builder = get_wordlist_builder(ext)
@@ -351,13 +353,11 @@ class CommitWindow(SubProcessWindow):
                 item.setText(2, merge.get_summary())
                 item.setData(0, self.RevisionIdRole,
                              QtCore.QVariant(merge.revision_id))
-                item.setData(0, self.ParentIdRole,
-                             QtCore.QVariant(merge.parent_ids[0]))
+                if merge.parent_ids:
+                    item.setData(0, self.ParentIdRole,
+                                 QtCore.QVariant(merge.parent_ids[0]))
                 items.append(item)
             self.pendingMergesWidget.insertTopLevelItems(0, items)
-
-            vbox = QtGui.QVBoxLayout(self.message_groupbox)
-            vbox.addWidget(self.pendingMergesWidget)
         
         self.tabWidget.addTab(self.process_widget, gettext("Status"))
         
@@ -428,20 +428,21 @@ class CommitWindow(SubProcessWindow):
                 gettext("Empty commit message. Do you really want to commit?"), 
                 QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) 
             if button == QtGui.QMessageBox.No: 
-                # don't commit, but don't close the window either 
+                # don't commit, but don't close the window either
+                self.failed()
                 return
         args.append(('-m %s' % message))
         
         if not self.pending_merges:
             for desc in self.filelist.iter_checked():
-                is_ver = self.filelist.is_changedesc_versioned(desc)
-                path = self.filelist.get_changedesc_path(desc)
-                if not is_ver:
+                path = desc.path()
+                if not desc.is_versioned():
                     files_to_add.append(path)
                 args.append(path)
         
         if self.bugsCheckBox.isChecked():
-            args.append(("--fixes=%s" % unicode(self.bugs.text())))
+            for s in unicode(self.bugs.text()).split():
+                args.append(("--fixes=%s" % s))
         
         if self.authorCheckBox.isChecked():
             args.append(("--author=%s" % unicode(self.author.text())))
@@ -449,10 +450,11 @@ class CommitWindow(SubProcessWindow):
         if self.is_bound and self.local_checkbox.isChecked():
             args.append("--local")
         
+        dir = self.tree.basedir
         commands = []
         if len(files_to_add)>1:
-            commands.append(files_to_add)
-        commands.append(args)
+            commands.append((dir, files_to_add))
+        commands.append((dir, args))
         
         self.message_groupbox.setDisabled(True)
         self.files_tab.setDisabled(True)
@@ -467,7 +469,7 @@ class CommitWindow(SubProcessWindow):
         self.files_tab.setDisabled(False)
         if self.pending_merges:
             self.pendingMergesWidget.setDisabled(False)
-    
+        self.okButton.setDisabled(False)
     
     def show_changeset(self, item=None, column=None):
         repo = self.tree.branch.repository
@@ -479,8 +481,9 @@ class CommitWindow(SubProcessWindow):
             tree1, tree2 = repo.revision_trees(revs)
         finally:
             repo.unlock()
-        window = DiffWindow(tree1, tree2, custom_title="..".join(revs),
-                            branch=self.tree.branch, parent=self)
+        window = DiffWindow(tree1, tree2,
+                            self.tree.branch, self.tree.branch,
+                            parent=self)
         window.show()
         self.windows.append(window)
 

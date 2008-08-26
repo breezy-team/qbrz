@@ -1,13 +1,51 @@
-0.9.4 - in development
+0.9.5 - in development
 ----------------------
 
+
+0.9.4 - 2008-09-20
+----------------------
+This release provide many new features and new commands,
+and many improvements and bugfixes to exisitng commands.
+
+New commands, similar to standard bzr commands:
+ qadd, qinfo, qinit, qmerge and qrevert
+
+New 'hybrid' commands:
+ qgetnew, qgetupdates, qinit
+
+Hybrid commands provide universal interface to several similar
+bzr functions in one dialog and supposed to be configurable
+via dialog options.
+
+This release is also contains next improvements: all q-commands
+now lazily registered to to minimalize the bzr startup time;
+autocompleter in qcommit now understand more programming languages, 
+not only C/Python; qcommit trying to spell check your commit message,
+if you have PyEnchant installed; qannotate and qdiff(!) highlight
+syntax of source code files; qlog can use bzr-search plugin for
+searching in history; qlog can show combinated history for several
+branches from one shared repository.
+
+Here the list of most user-visible changes since 0.9.3:
+
+ * qadd, qinfo, qinit, qmerge and qrevert:
+    * Added new commands.
  * qannotate:
     * A working tree is no longer required to annotate a file.
     * The column widths are resize automaticly.
+    * Syntax highlighting of annotated file (Pygments library required).
  * qbrowse:
-    * A context meun item has been added to annotate a file.
+    * A context menu item has been added to annotate a file.
+ * qcommit:
+    * Improved auto-completer understand more programming languages.
+    * Checkbox to select/deselect all files
+    * Simple spell checker support (required PyEnchant library)
+    * Ignored items no longer shown.
  * qdiff:
     * A checkbox has been added to control weather a Complete diff is shown.
+    * Syntax highlighting of shown files (Pygments library required).
+    * Diffing across 2 branches.
+    * Show revno in the window title not revid if possible.
  * qlog:
     * The graph is now not hidden when you search.
     * Improved graph layout.
@@ -16,18 +54,19 @@
       location. Heads from different branches are labeled.
     * Pending merges are shown.
     * A refresh button has been added.
-    * If you have bzr-search installed, and the branch you are viewing is index,
+    * If you have bzr-search installed, and the branch you are viewing has index,
       you can search using the index. (#251468)
- * qcommit
-    * ignored items no longer shown.
- * qadd and qrevert:
-    * Added.
  * qgetnew
     * New 'hybrid' command to fetch a new working tree.  The dialog allows
       you to choose if you want to 'branch' or 'checkout' the source.
  * qgetupdates
    *  new 'hybrid' command to update a working tree: involves 2 dialogs,
       one shown if the tree is a checkout, and the other if it is a branch.
+ * New translation added: Galician
+
+NOTES: when upgrading old installation (<0.9.2) of QBzr to 0.9.4,
+please uninstall or remove old files first.
+
 
 0.9.3 - 2008-08-19
 ----------------------

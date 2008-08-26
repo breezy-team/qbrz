@@ -25,8 +25,11 @@ import time
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.errors import BinaryFile
+from bzrlib.errors import BinaryFile, NoSuchRevision, PathsNotVersionedError
 from bzrlib.textfile import check_text_lines
+from bzrlib.workingtree import WorkingTree
+from bzrlib.revisiontree import RevisionTree
+from bzrlib.workingtree_4 import DirStateRevisionTree
 from bzrlib.mutabletree import MutableTree
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 
@@ -51,16 +54,60 @@ def get_file_lines_from_tree(tree, file_id):
     except AttributeError:
         return tree.get_file(file_id).readlines()
 
+def get_title_for_tree(tree, branch, other_branch):
+    branch_title = ""
+    if branch.base!=other_branch.base:
+        branch_title = branch.nick
+    
+    if isinstance(tree, WorkingTree):
+        if branch_title:
+            return gettext("Working Tree for %s") % branch_title
+        else:
+            return gettext("Working Tree")
+    
+    if isinstance(tree, RevisionTree) or isinstance(tree, DirStateRevisionTree):
+        # revision_id_to_revno is faster, but only works on mainline rev
+        revid = tree.get_revision_id()
+        try:
+            revno = branch.revision_id_to_revno(revid)
+        except NoSuchRevision:
+            try:
+                revno_map = branch.get_revision_id_to_revno_map()
+                revno_tuple = revno_map[revid]      # this can raise KeyError is revision not in the branch
+                revno = ".".join("%d" % i for i in revno_tuple)
+            except KeyError:
+                # this can happens when you try to diff against other branch
+                # or pending merge
+                revno = None
+
+        if revno is not None:
+            if branch_title:
+                return gettext("Rev %s for %s") % (revno, branch_title)
+            else:
+                return gettext("Rev %s") % revno
+        else:
+            if branch_title:
+                return gettext("Revid: %s for %s") % (revid, branch_title)
+            else:
+                return gettext("Revid: %s") % revid
+
+    # XXX I don't know what other cases we need to handle    
+    return ""
 
 class DiffWindow(QBzrWindow):
 
-    def __init__(self, tree1=None, tree2=None, specific_files=None,
-                 parent=None, custom_title=None,
-                 complete=False, branch=None, encoding=None,
+    def __init__(self,
+                 tree1=None, tree2=None,
+                 branch1=None, branch2=None,
+                 specific_files=None,
+                 parent=None,
+                 complete=False, encoding=None,
                  filter_options=None):
-        title = [gettext("Diff")]
-        if custom_title:
-            title.append(custom_title)
+        rev1_title = get_title_for_tree(tree1, branch1, branch2)
+        rev2_title = get_title_for_tree(tree2, branch2, branch1)
+        
+        title = [gettext("Diff"), "%s .. %s" % (rev1_title, rev2_title)]
+        
         if specific_files:
             nfiles = len(specific_files)
             if nfiles > 2:
@@ -72,8 +119,8 @@ class DiffWindow(QBzrWindow):
             if filter_options and not filter_options.is_all_enable():
                 title.append(filter_options.to_str())
 
-        config = get_branch_config(branch)
-        self.encoding = get_set_encoding(encoding, config)
+        self.encodings = (get_set_encoding(encoding, get_branch_config(branch1)),
+                          get_set_encoding(encoding, get_branch_config(branch2)))
         
         self.filter_options = filter_options
         if filter_options is None:
@@ -132,6 +179,7 @@ class DiffWindow(QBzrWindow):
         hbox.addWidget(complete)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
+        
 
     def show(self):
         QBzrWindow.show(self)
@@ -154,100 +202,113 @@ class DiffWindow(QBzrWindow):
                     path = old_path
                 return path
 
-            for (file_id, paths, changed_content, versioned, parent, name, kind,
-                 executable) in sorted(changes, key=changes_key):
-                # file_id         -> ascii string
-                # paths           -> 2-tuple (old, new) fullpaths unicode/None
-                # changed_content -> bool
-                # versioned       -> 2-tuple (bool, bool)
-                # parent          -> 2-tuple
-                # name            -> 2-tuple (old_name, new_name) utf-8?/None
-                # kind            -> 2-tuple (string/None, string/None)
-                # executable      -> 2-tuple (bool/None, bool/None)
-                # NOTE: None value used for non-existing entry in corresponding
-                #       tree, e.g. for added/deleted file
+            try:
+                for (file_id, paths, changed_content, versioned, parent, name, kind,
+                     executable) in sorted(changes, key=changes_key):
+                    # file_id         -> ascii string
+                    # paths           -> 2-tuple (old, new) fullpaths unicode/None
+                    # changed_content -> bool
+                    # versioned       -> 2-tuple (bool, bool)
+                    # parent          -> 2-tuple
+                    # name            -> 2-tuple (old_name, new_name) utf-8?/None
+                    # kind            -> 2-tuple (string/None, string/None)
+                    # executable      -> 2-tuple (bool/None, bool/None)
+                    # NOTE: None value used for non-existing entry in corresponding
+                    #       tree, e.g. for added/deleted file
 
-                if parent == (None, None):
-                    continue
-
-                renamed = (parent[0], name[0]) != (parent[1], name[1])
-
-                dates = [None, None]
-                for ix in range(2):
-                    if versioned[ix]:
-                        try:
-                            dates[ix] = self.trees[ix].get_file_mtime(file_id, paths[ix])
-                        except OSError, e:
-                            if not renamed or e.errno != errno.ENOENT:
-                                raise
-                            # If we get ENOENT error then probably we trigger
-                            # bug #251532 in bzrlib. Take current time instead
-                            dates[ix] = time.time()
-
-                properties_changed = [] 
-                if bool(executable[0]) != bool(executable[1]):
-                    descr = {True: "+x", False: "-x", None: None}
-                    properties_changed.append((descr[executable[0]],
-                                               descr[executable[1]]))
-
-                if versioned == (True, False):
-                    status = N_('removed')
-                elif versioned == (False, True):
-                    status = N_('added')
-                elif renamed and changed_content:
-                    status = N_('renamed and modified')
-                elif renamed:
-                    status = N_('renamed')
-                else:
-                    status = N_('modified')
-                # check filter options
-                if not self.filter_options.check(status):
                     qt_process_events()
-                    continue
 
-                if ((versioned[0] != versioned[1] or changed_content)
-                    and (kind[0] == 'file' or kind[1] == 'file')):
-                    lines = []
-                    for ix, tree in enumerate(self.trees):
-                        content = ()
-                        if versioned[ix] and kind[ix] == 'file':
-                            content = get_file_lines_from_tree(tree, file_id)
-                        lines.append(content)
-                    try:
-                        for l in lines:
-                            # XXX bzrlib's check_text_lines looks at first 1K
-                            #     and therefore produce false check in some
-                            #     cases (e.g. pdf files)
-                            # TODO: write our own function to check entire file
-                            check_text_lines(l)
-                        binary = False
-                        if versioned == (True, False):
-                            groups = [[('delete', 0, len(lines[0]), 0, 0)]]
-                        elif versioned == (False, True):
-                            groups = [[('insert', 0, 0, 0, len(lines[1]))]]
-                        else:
-                            matcher = SequenceMatcher(None, lines[0], lines[1])
-                            if self.complete:
-                                groups = list([matcher.get_opcodes()])
+                    if parent == (None, None):  # filter out TREE_ROOT (?)
+                        continue
+
+                    renamed = (parent[0], name[0]) != (parent[1], name[1])
+
+                    # check for manually deleted files (w/o using bzr rm commands)
+                    if versioned == (True, True) and kind[1] is None:
+                        versioned = (True, False)
+                        paths = (paths[0], None)
+
+                    dates = [None, None]
+                    for ix in range(2):
+                        if versioned[ix]:
+                            try:
+                                dates[ix] = self.trees[ix].get_file_mtime(file_id, paths[ix])
+                            except OSError, e:
+                                if not renamed or e.errno != errno.ENOENT:
+                                    raise
+                                # If we get ENOENT error then probably we trigger
+                                # bug #251532 in bzrlib. Take current time instead
+                                dates[ix] = time.time()
+
+                    properties_changed = [] 
+                    if bool(executable[0]) != bool(executable[1]):
+                        descr = {True: "+x", False: "-x", None: None}
+                        properties_changed.append((descr[executable[0]],
+                                                   descr[executable[1]]))
+
+                    if versioned == (True, False):
+                        status = N_('removed')
+                    elif versioned == (False, True):
+                        status = N_('added')
+                    elif renamed and changed_content:
+                        status = N_('renamed and modified')
+                    elif renamed:
+                        status = N_('renamed')
+                    else:
+                        status = N_('modified')
+                    # check filter options
+                    if not self.filter_options.check(status):
+                        qt_process_events()
+                        continue
+
+                    if ((versioned[0] != versioned[1] or changed_content)
+                        and (kind[0] == 'file' or kind[1] == 'file')):
+                        lines = []
+                        for ix, tree in enumerate(self.trees):
+                            content = ()
+                            if versioned[ix] and kind[ix] == 'file':
+                                content = get_file_lines_from_tree(tree, file_id)
+                            lines.append(content)
+                        try:
+                            for l in lines:
+                                # XXX bzrlib's check_text_lines looks at first 1K
+                                #     and therefore produce false check in some
+                                #     cases (e.g. pdf files)
+                                # TODO: write our own function to check entire file
+                                check_text_lines(l)
+                            binary = False
+                            if versioned == (True, False):
+                                groups = [[('delete', 0, len(lines[0]), 0, 0)]]
+                            elif versioned == (False, True):
+                                groups = [[('insert', 0, 0, 0, len(lines[1]))]]
                             else:
-                                groups = list(matcher.get_grouped_opcodes())
-                        lines = [[i.decode(self.encoding,'replace') for i in l]
-                                 for l in lines]
-                        data = ((),())
-                    except BinaryFile:
-                        binary = True
-                        groups = []
-                    data = [''.join(l) for l in lines]
-                else:
-                    binary = False
-                    lines = ((),())
-                    groups = ()
-                    data = ("", "")
-                for view in self.views:
-                    view.append_diff(list(paths), file_id, kind, status,
-                                     dates, versioned, binary, lines, groups,
-                                     data, properties_changed)
-                qt_process_events()
+                                matcher = SequenceMatcher(None, lines[0], lines[1])
+                                if self.complete:
+                                    groups = list([matcher.get_opcodes()])
+                                else:
+                                    groups = list(matcher.get_grouped_opcodes())
+                            lines = [[i.decode(encoding,'replace') for i in l]
+                                     for l, encoding in zip(lines, self.encodings)]
+                            data = ((),())
+                        except BinaryFile:
+                            binary = True
+                            groups = []
+                        data = [''.join(l) for l in lines]
+                    else:
+                        binary = False
+                        lines = ((),())
+                        groups = ()
+                        data = ("", "")
+                    for view in self.views:
+                        view.append_diff(list(paths), file_id, kind, status,
+                                         dates, versioned, binary, lines, groups,
+                                         data, properties_changed)
+            except PathsNotVersionedError, e:
+                    QtGui.QMessageBox.critical(self, gettext('Diff'),
+                        gettext(u'File %s is not versioned.\n'
+                            'Operation aborted.') % e.paths_as_string,
+                        gettext('&Close'))
+                    self.close()
         finally:
             for tree in self.trees: tree.unlock()
         self.refresh_button.setEnabled(self.can_refresh())

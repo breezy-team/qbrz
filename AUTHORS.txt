@@ -8,6 +8,7 @@ Contributors:
  * Alexander Belchenko <bialix at ukr dot net>
  * Gary van der Merwe <garyvdm at gmail dot com>
  * Goffredo Baroncelli <kreijack at tiscalinet dot it>
+ * Mark Hammond <mhammond at skippinet dot com au>
 
 Used icons:
  * bzr-16.png and bzr-48.png

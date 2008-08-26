@@ -19,7 +19,11 @@
 
 from PyQt4 import QtCore, QtGui
 from bzrlib.bzrdir import BzrDir
-from bzrlib import errors
+from bzrlib import (
+    errors,
+    osutils,
+    urlutils,
+    )
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -345,15 +349,10 @@ def load_locataions(locations_list):
     
     return (main_branch, rev_ids, file_ids)
 
+
 class LogWindow(QBzrWindow):
     
     def __init__(self, locations, branch, specific_fileids, parent=None):
-        title = [gettext("Log")]
-        if locations and not locations==["."]:
-            title.append(", ".join(locations).rstrip(", "))
-        QBzrWindow.__init__(self, title, parent)
-        self.restoreSize("log", (710, 580))
-        
         if branch:
             self.branch = branch
             self.specific_fileids = specific_fileids
@@ -363,7 +362,14 @@ class LogWindow(QBzrWindow):
             (self.branch,
              self.start_revids, 
              self.specific_fileids) = load_locataions(locations)
-        
+
+        lt = self._locations_for_title(locations)
+        title = [gettext("Log")]
+        if lt:
+            title.append(lt)
+        QBzrWindow.__init__(self, title, parent)
+        self.restoreSize("log", (710, 580))
+
         config = self.branch.get_config()
         self.replace = config.get_user_option("qlog_replace")
         if self.replace:
@@ -512,9 +518,9 @@ class LogWindow(QBzrWindow):
         splitter.setStretchFactor(1, 3)
 
         buttonbox = self.create_button_box(BTN_CLOSE)
-        refresh = StandardButton(BTN_REFRESH)
-        buttonbox.addButton(refresh, QtGui.QDialogButtonBox.ActionRole)
-        self.connect(refresh,
+        self.refresh_button = StandardButton(BTN_REFRESH)
+        buttonbox.addButton(self.refresh_button, QtGui.QDialogButtonBox.ActionRole)
+        self.connect(self.refresh_button,
                      QtCore.SIGNAL("clicked()"),
                      self.refresh)
 
@@ -617,8 +623,9 @@ class LogWindow(QBzrWindow):
         else:
             revs = [rev1.revision_id, rev2.parent_ids[0]]
             tree, old_tree = self.branch.repository.revision_trees(revs)
-        window = DiffWindow(old_tree, tree, custom_title="..".join(revs),
-                            branch=self.branch, specific_files=specific_files)
+        window = DiffWindow(old_tree, tree,
+                            self.branch, self.branch,
+                            specific_files=specific_files)
         window.show()
         self.windows.append(window)
 
@@ -651,17 +658,34 @@ class LogWindow(QBzrWindow):
         self.show_diff_window(rev1, rev2)
 
     def refresh(self):
-        if "locations" in dir(self):
-            (self.branch,
-             self.start_revids, 
-             self.specific_fileids) = load_locataions(self.locations)
-        self.load_history()
+        self.refresh_button.setDisabled(True)
+        QtCore.QCoreApplication.processEvents()
+        try:
+            self.changesModel.stop_revision_loading = True
+            if "locations" in dir(self):
+                
+                # The new branch will be the same as self.branch, so don't
+                # change it, because doing so caused a UserWarning:
+                # LockableFiles was gc'd while locked
+                (newbranch,
+                 self.start_revids, 
+                 self.specific_fileids) = load_locataions(self.locations)
+            
+            self.changesModel.loadBranch(self.branch,
+                                         start_revs = self.start_revids,
+                                         specific_fileids = self.specific_fileids)
+        finally:
+            self.refresh_button.setDisabled(False)
     
     def load_history(self):
         """Load branch history."""
-        self.changesModel.loadBranch(self.branch,
-                                     start_revs = self.start_revids,
-                                     specific_fileids = self.specific_fileids)
+        self.refresh_button.setDisabled(True)
+        try:
+            self.changesModel.loadBranch(self.branch,
+                                         start_revs = self.start_revids,
+                                         specific_fileids = self.specific_fileids)
+        finally:
+            self.refresh_button.setDisabled(False)
 
     def update_search(self):
         # TODO in_paths = self.search_in_paths.isChecked()
@@ -673,7 +697,7 @@ class LogWindow(QBzrWindow):
                       search_text.length() > 0
         self.changesModel.set_search_mode(search_mode)
         if role == logmodel.FilterIdRole:
-            self.changesProxyModel.setFilter(u"", self.old_filter_role)
+            self.changesProxyModel.setFilter(u"", role)
             search_text = str(search_text)
             if self.changesModel.has_rev_id(search_text):
                 self.changesModel.ensure_rev_visible(search_text)
@@ -681,7 +705,7 @@ class LogWindow(QBzrWindow):
                 index = self.changesProxyModel.mapFromSource(index)
                 self.changesList.setCurrentIndex(index)
         elif role == logmodel.FilterRevnoRole:
-            self.changesProxyModel.setFilter(u"", self.old_filter_role)
+            self.changesProxyModel.setFilter(u"", role)
             try:
                 revno = tuple((int(number) for number in str(search_text).split('.')))
             except ValueError:
@@ -720,8 +744,9 @@ class LogWindow(QBzrWindow):
             self.completer_model.setStringList(suggestions)
     
     def closeEvent (self, QCloseEvent):
+        QBzrWindow.closeEvent(self, QCloseEvent)
         self.changesModel.closing = True
-        
+    
     def updateSearchType(self, index=None):
         self.update_search()
 
@@ -794,3 +819,18 @@ class LogWindow(QBzrWindow):
             self.diff_pushed()
         else:
             QtGui.QTreeView.keyPressEvent(self.changesList, e)
+
+    def _locations_for_title(self, locations):
+        if locations == ['.']:
+            return osutils.getcwd()
+        else:
+            if locations is None:
+                locations = [self.branch.base]
+            if len(locations) > 1:
+                return (", ".join(
+                    urlutils.unescape_for_display(i, 'utf-8')
+                    for i in locations).rstrip(", "))
+            else:
+                from bzrlib.directory_service import directories
+                return (urlutils.unescape_for_display(
+                    directories.dereference(locations[0]), 'utf-8'))

@@ -22,7 +22,6 @@ from time import (strftime, localtime)
 from bzrlib import lazy_regex
 from bzrlib.revision import NULL_REVISION
 from bzrlib.tsort import merge_sort
-from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
@@ -95,6 +94,7 @@ class GraphModel(QtCore.QAbstractTableModel):
         self.touches_file_msri = None
         self.msri_index = {}
         self.closing = False
+        self.stop_revision_loading = False
     
     def setGraphFilterProxyModel(self, graphFilterProxyModel):
         self.graphFilterProxyModel = graphFilterProxyModel
@@ -107,7 +107,6 @@ class GraphModel(QtCore.QAbstractTableModel):
         try:
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
             self.tags = branch.tags.get_reverse_tag_dict()  # revid to tags map
-            self.revisions = {}
             if self.start_revs is None:
                 self.start_revs = {branch.last_revision():[]}
             start_revs = [rev for rev in self.start_revs if not rev == NULL_REVISION]
@@ -353,6 +352,7 @@ class GraphModel(QtCore.QAbstractTableModel):
             QtCore.QCoreApplication.processEvents()
             
             self._nextRevisionToLoadGen = self._nextRevisionToLoad()
+            self.stop_revision_loading = False
             self._loadNextRevision()
         finally:
             branch.unlock
@@ -524,7 +524,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                     
                     # Find parents that are currently visible
                     rev_visible_parents = []
-                    for i, parent_revid in enumerate(self.graph_parents[revid]):
+                    for parent_revid in self.graph_parents[revid]:
                         (parent_msri,
                          parent_branch_id,
                          parent_merge_depth) = self._msri_branch_id_merge_depth(parent_revid)
@@ -534,9 +534,13 @@ class GraphModel(QtCore.QAbstractTableModel):
                                                         parent_branch_id,
                                                         parent_merge_depth,
                                                         True))
-                        elif i == 0:
+                        else:
                             # The parent was not visible. Search for a ansestor
-                            # that is.
+                            # that is. Stop searching if we make a hop, i.e. we
+                            # go away for our branch, and we come back to it
+                            has_seen_different_branch = False
+                            if not parent_branch_id == branch_id:
+                                has_seen_different_branch = True
                             while parent_revid and parent_msri not in msri_index:
                                 parents = self.graph_parents[parent_revid]
                                 if len(parents) == 0:
@@ -546,6 +550,11 @@ class GraphModel(QtCore.QAbstractTableModel):
                                     (parent_msri,
                                      parent_branch_id,
                                      parent_merge_depth) = self._msri_branch_id_merge_depth(parent_revid)
+                                if not parent_branch_id == branch_id:
+                                    has_seen_different_branch = True
+                                if has_seen_different_branch and parent_branch_id == branch_id:
+                                    parent_revid = None
+                                    break
                             if parent_revid:
                                 rev_visible_parents.append((parent_revid,
                                                             parent_msri,
@@ -931,6 +940,9 @@ class GraphModel(QtCore.QAbstractTableModel):
         return revision
     
     def _loadNextRevision(self):
+        if self.stop_revision_loading:
+            self.stop_revision_loading = False
+            return
         try:
             if self.searchMode:
                 def notifyChanges(revisionsChanged):

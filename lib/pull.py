@@ -35,7 +35,6 @@ from bzrlib.commands import Command, register_command
 from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
 
-from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
 from bzrlib.plugins.qbzr.lib.ui_branch import Ui_BranchForm
@@ -96,7 +95,7 @@ class QBzrPullWindow(SubProcessWindow):
             args.append('--revision')
             args.append(revision)
         location = str(self.ui.location.currentText())
-        self.process_widget.start('pull', location, *args)
+        self.process_widget.start(None, 'pull', location, *args)
         save_pull_location(self.branch, location)
 
 
@@ -133,7 +132,7 @@ class QBzrPushWindow(QBzrPullWindow):
         if self.ui.use_existing_dir.isChecked():
             args.append('--use-existing-dir')
         location = str(self.ui.location.currentText())
-        self.process_widget.start('push', location, *args)
+        self.process_widget.start(None, 'push', location, *args)
 
 
 class QBzrBranchWindow(QBzrPullWindow):
@@ -172,7 +171,7 @@ class QBzrBranchWindow(QBzrPullWindow):
             args.append(revision)
         from_location = str(self.ui.from_location.currentText())
         to_location = str(self.ui.to_location.currentText())
-        self.process_widget.start('branch', from_location, to_location, *args)
+        self.process_widget.start(None, 'branch', from_location, to_location, *args)
 
 
 class QBzrMergeWindow(QBzrPullWindow):
@@ -199,4 +198,4 @@ class QBzrMergeWindow(QBzrPullWindow):
         if self.ui.remember.isChecked():
             args.append('--remember')
         location = str(self.ui.location.currentText())
-        self.process_widget.start('merge', location, *args)
+        self.process_widget.start(None, 'merge', location, *args)

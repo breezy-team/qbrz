@@ -28,20 +28,24 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_OK,
     BTN_CLOSE,
     QBzrWindow,
+    QBzrDialog,
     StandardButton,
     )
-
-class SubProcessWindow(QBzrWindow):
-
-    def __init__(self, title, name = "genericsubprocess",
-                 desc = "", args = None, default_size = None,
-                 ui_mode=True, dialog=True, default_layout=True,
-                 parent=None):
-        QBzrWindow.__init__(self, [title], parent)
-        if default_size:
-            self.restoreSize(name, default_size)
+class SubProcessWindowBase:
+    def __init_internal__(self, title,
+                          name="genericsubprocess",
+                          desc="",
+                          args=None,
+                          dir=None,
+                          default_size=None,
+                          ui_mode=True,
+                          dialog=True,
+                          default_layout=True,
+                          parent=None):
+        self.restoreSize(name, default_size)
         self.desc = desc
         self.args = args
+        self.dir = dir
         self.ui_mode = ui_mode
 
         if dialog:
@@ -93,7 +97,7 @@ class SubProcessWindow(QBzrWindow):
             self.start()
     
     def start(self):
-        self.process_widget.start(*self.args)
+        self.process_widget.start(self.dir, *self.args)
     
     def reject(self):
         if self.process_widget.is_running():
@@ -102,7 +106,9 @@ class SubProcessWindow(QBzrWindow):
             self.close()
 
     def finished(self):
-        #self.done(QtGui.QDialog.Accepted)
+        if hasattr(self, 'setResult'):
+            self.setResult(QtGui.QDialog.Accepted)
+        
         self.buttonbox.addButton(self.closeButton,
             QtGui.QDialogButtonBox.AcceptRole)
         self.buttonbox.removeButton(self.okButton)
@@ -120,6 +126,54 @@ class SubProcessWindow(QBzrWindow):
         else:
             self.process_widget.abort()
             event.ignore()
+
+class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
+
+    def __init__(self, title,
+                 name="genericsubprocess",
+                 desc="",
+                 args=None,
+                 dir=None,
+                 default_size=None,
+                 ui_mode=True,
+                 dialog=True,
+                 default_layout=True,
+                 parent=None):
+        QBzrWindow.__init__(self, [title], parent)
+        self.__init_internal__(title,
+                               name=name,
+                               desc=desc,
+                               args=args,
+                               dir=dir,
+                               default_size=default_size,
+                               ui_mode=ui_mode,
+                               dialog=dialog,
+                               default_layout=default_layout,
+                               parent=parent)
+
+class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
+
+    def __init__(self, title,
+                 name="genericsubprocess",
+                 desc="",
+                 args=None,
+                 dir=None,
+                 default_size=None,
+                 ui_mode=True,
+                 dialog=True,
+                 default_layout=True,
+                 parent=None):        
+        QBzrDialog.__init__(self, [title], parent)
+        self.__init_internal__(title,
+                               name=name,
+                               desc=desc,
+                               args=args,
+                               dir=dir,
+                               default_size=default_size,
+                               ui_mode=ui_mode,
+                               dialog=dialog,
+                               default_layout=default_layout,
+                               parent=parent)
 
 class SubProcessWidget(QtGui.QWidget):
 
@@ -155,6 +209,8 @@ class SubProcessWidget(QtGui.QWidget):
             QtCore.SIGNAL("finished(int, QProcess::ExitStatus)"),
             self.onFinished)
         
+        self.defaultWorkingDir = self.process.workingDirectory ()
+        
         self.finished = False
         self.aborting = False
         
@@ -170,8 +226,8 @@ class SubProcessWidget(QtGui.QWidget):
         return self.process.state() == QtCore.QProcess.Running or\
                self.process.state() == QtCore.QProcess.Starting
     
-    def start(self, *args):
-        self.start_multi((args, ))
+    def start(self, dir, *args):
+        self.start_multi(((dir, args),))
     
     def start_multi(self, commands):
         self.setProgress(0, [gettext("Starting...")])
@@ -180,8 +236,12 @@ class SubProcessWidget(QtGui.QWidget):
         self._start_next()
     
     def _start_next(self):
-        args = self.commands.pop(0)
-        args = ' '.join('"%s"' % a.replace('"', '\"') for a in args)
+        dir, args = self.commands.pop(0)
+        args = ' '.join('"%s"' % a.replace('"', '\\"') for a in args)
+        if dir is None:
+            dir = self.defaultWorkingDir
+        
+        self.process.setWorkingDirectory (dir)
         if getattr(sys, "frozen", None) is not None:
             self.process.start(
                 sys.argv[0], ['qsubprocess', args])

@@ -1,5 +1,5 @@
 ./build
-./docs/make_release.html
+./docs/*.html
 ./installer/_lib/*
 ./locale
 ./MANIFEST
@@ -8,4 +8,3 @@
 ./_ext
 ./_lib
 ./uninst.exe
-__x

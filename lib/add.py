@@ -34,8 +34,12 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_apparent_author,
     get_global_config,
     )
+from bzrlib.plugins.qbzr.lib.wtlist import (
+    ChangeDesc,
+    WorkingTreeFileList,
+    closure_in_selected_list,
+    )
 
-from bzrlib.plugins.qbzr.lib.wtlist import WorkingTreeFileList
 
 class AddWindow(SubProcessWindow):
 
@@ -89,43 +93,35 @@ class AddWindow(SubProcessWindow):
     def iter_changes_and_state(self):
         """An iterator for the WorkingTreeFileList widget"""
 
-        def in_selected_list(path):
-            if not self.initial_selected_list:
-                return True
-            if path in self.initial_selected_list:
-                return True
-            for p in self.initial_selected_list:
-                if path.startswith(p):
-                    return True
-            return False
+        in_selected_list = closure_in_selected_list(self.initial_selected_list)
 
         show_ignored = self.show_ignored_checkbox.isChecked()
 
         for desc in self.tree.iter_changes(self.tree.basis_tree(),
                                            want_unversioned=True):
 
-            is_versioned = desc[3] != (False, False)
-            if is_versioned:
+            desc = ChangeDesc(desc)
+            if desc.is_versioned():
                 continue
 
-            pis, pit = desc[1]
+            pit = desc.path()
             visible = show_ignored or not self.tree.is_ignored(pit)
             check_state = visible and in_selected_list(pit)
             yield desc, visible, check_state
 
     def start(self):
         """Add the files."""
-        args = ["add"]
+        files = []
         for desc in self.filelist.iter_checked():
-            args.append(self.filelist.get_changedesc_path(desc))
+            files.append(desc.path())
         
-        self.process_widget.start(*args)
+        self.process_widget.start(self.tree.basedir, "add", *files)
 
     def show_ignored(self, state):
         """Show/hide ignored files."""
         state = not state
         for (tree_item, change_desc) in self.filelist.iter_treeitem_and_desc(True):
-            path = self.filelist.get_changedesc_path(change_desc)
+            path = change_desc.path()
             if self.tree.is_ignored(path):
                 tree_item.setHidden(state)
         self.filelist.update_selectall_state(None, None)

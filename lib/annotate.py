@@ -249,8 +249,9 @@ class AnnotateWindow(QBzrWindow):
                 tree, old_tree = repo.revision_trees(revs)
         finally:
             repo.unlock()
-        window = DiffWindow(old_tree, tree, custom_title="..".join(revs),
-                            branch=self.branch)
+        window = DiffWindow(old_tree, tree,
+                            self.branch, self.branch,
+                            )
         window.show()
         self.windows.append(window)
 

@@ -26,7 +26,7 @@ Provided commands:
 from bzrlib.commands import register_command
 
 
-version_info = (0, 9, 4, 'dev', 0)
+version_info = (0, 9, 5, 'dev', 0)
 __version__ = '.'.join(map(str, version_info))
 
 
@@ -47,7 +47,7 @@ def register_command_lazy(module, name, aliases):
     register_command(LazyCommand(module, name, aliases))
 
 
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_merge', [])
+register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_merge', [])  # provides merge --qpreview
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qadd', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qannotate', ['qann', 'qblame'])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbranch', [])
@@ -60,6 +60,8 @@ register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qdiff', ['qdi'])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetupdates', ['qgetu'])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetnew', ['qgetn'])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinfo', [])
+register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinit', [])
+register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qhelp', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qlog', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qmerge', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpull', [])

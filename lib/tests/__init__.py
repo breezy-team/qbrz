@@ -17,6 +17,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import os
+import sys
+
+if hasattr(sys, "frozen"):
+    # "hack in" our PyQt4 binaries
+    sys.path.append(os.path.normpath(os.path.join(
+        os.path.dirname(__file__), '..', '..', '_lib')))
+
 
 def load_tests(basic_tests, module, loader):
     testmod_names = [
@@ -24,6 +32,7 @@ def load_tests(basic_tests, module, loader):
         #'test_diffview', - broken by API changes
         'test_extra_isignored',
         'test_extra_isversioned',
+        'test_i18n',
         'test_logmodel',
         'test_spellcheck',
         'test_util',

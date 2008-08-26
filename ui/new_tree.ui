@@ -9,6 +9,9 @@
     <height>428</height>
    </rect>
   </property>
+  <property name="windowTitle" >
+   <string>Create a new Bazaar Working Tree</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout" >
    <property name="margin" >
     <number>0</number>
@@ -173,37 +176,17 @@ p, li { white-space: pre-wrap; }
          </font>
         </property>
         <property name="cursor" >
-         <cursorShape>PointingHandCursor</cursorShape>
+         <cursorShape>ArrowCursor</cursorShape>
         </property>
         <property name="toolTip" >
-         <string>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
-&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
-p, li { white-space: pre-wrap; }
-&lt;/style>&lt;/head>&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;">
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">&lt;span style=" font-weight:600; text-decoration: underline;">Checkouts&lt;/span>&lt;/p>
-&lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">&lt;/p>
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Checkouts are source trees that are connected to a branch, so that when&lt;/p>
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">you commit in the source tree, the commit goes into that branch.  They&lt;/p>
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">allow you to use a simpler, more centralized workflow, ignoring some of&lt;/p>
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">Bazaar's decentralized features until you want them. Using checkouts&lt;/p>
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">with shared repositories is very similar to working with SVN or CVS, but&lt;/p>
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">doesn't have the same restrictions.  And using checkouts still allows&lt;/p>
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">others working on the project to use whatever workflow they like.&lt;/p>
-&lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-weight:600;">&lt;/p>
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-weight:600;">&lt;span style=" text-decoration: underline;">Branches&lt;/span>&lt;/p>
-&lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">&lt;/p>
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">A branch consists of the state of a project, including all of its&lt;/p>
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">history. All branches have a repository associated (which is where the&lt;/p>
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">branch history is stored), but multiple branches may share the same&lt;/p>
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">repository (a shared repository). Branches can be copied and merged.&lt;/p>
-&lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">&lt;/p>&lt;/body>&lt;/html></string>
+         <string>Click a link for more information about checkouts and branches.</string>
         </property>
         <property name="text" >
          <string>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
 &lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
 p, li { white-space: pre-wrap; }
 &lt;/style>&lt;/head>&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;">
-&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;">&lt;a href="qbzrglossary:checkouts_and_branches">&lt;span style=" text-decoration: underline; color:#0000ff;">Tell me more about checkouts and branches.&lt;/span>&lt;/a>&lt;/p>&lt;/body>&lt;/html></string>
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;">Tell me more about &lt;a href="bzrtopic:checkouts">&lt;span style=" text-decoration: underline; color:#0000ff;">checkouts&lt;/span>&lt;/a> and &lt;a href="bzrtopic:branches">&lt;span style=" text-decoration: underline; color:#0000ff;">branches&lt;/span>&lt;/a>&lt;/p>&lt;/body>&lt;/html></string>
         </property>
         <property name="textFormat" >
          <enum>Qt::RichText</enum>
@@ -243,20 +226,14 @@ p, li { white-space: pre-wrap; }
        </widget>
       </item>
       <item row="1" column="1" >
-       <widget class="QLineEdit" name="revision" />
-      </item>
-      <item row="1" column="2" >
-       <spacer name="spacer" >
-        <property name="orientation" >
-         <enum>Qt::Horizontal</enum>
+       <widget class="QLineEdit" name="revision" >
+        <property name="sizePolicy" >
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
-        <property name="sizeHint" stdset="0" >
-         <size>
-          <width>208</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
+       </widget>
       </item>
       <item row="1" column="3" >
        <widget class="QPushButton" name="but_show_log" >
@@ -265,6 +242,17 @@ p, li { white-space: pre-wrap; }
         </property>
         <property name="text" >
          <string>Show Log...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="2" >
+       <widget class="QLabel" name="link_help_revisions" >
+        <property name="text" >
+         <string>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
+p, li { white-space: pre-wrap; }
+&lt;/style>&lt;/head>&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;">
+&lt;p style=" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;">&lt;a href="bzrtopic:revisionspec">&lt;span style=" text-decoration: underline; color:#0000ff;">About revision identifiers&lt;/span>&lt;/a>&lt;/p>&lt;/body>&lt;/html></string>
         </property>
        </widget>
       </item>

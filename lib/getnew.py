@@ -28,6 +28,7 @@ from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
 from bzrlib.plugins.qbzr.lib.ui_new_tree import Ui_NewWorkingTreeForm
+from bzrlib.plugins.qbzr.lib.help import show_help
 from bzrlib.plugins.qbzr.lib.util import (
     iter_saved_pull_locations,
     save_pull_location,
@@ -81,6 +82,8 @@ class GetNewWorkingTreeWindow(SubProcessWindow):
                      self.rev_toggled)
         self.connect(self.ui.link_help, QtCore.SIGNAL("linkActivated(const QString &)"),
                      self.link_help_activated)
+        self.connect(self.ui.link_help_revisions, QtCore.SIGNAL("linkActivated(const QString &)"),
+                     self.link_help_activated)
 
         self.ui.but_checkout.setChecked(True)
         self.ui.but_rev_tip.setChecked(True)
@@ -95,12 +98,12 @@ class GetNewWorkingTreeWindow(SubProcessWindow):
         self.ui.to_location.setText(new_val)
 
     def link_help_activated(self, target):
-        # This point isn't quite correct, but its close enough and I can't
-        # work out how to position it exactly where the mouse is.
-        pt = self.pos()+self.ui.link_help.parentWidget().pos()+self.ui.link_help.pos()
-        event = QtGui.QHelpEvent(QtCore.QEvent.ToolTip, QtCore.QPoint(), pt)
-        QtGui.QApplication.sendEvent(self.ui.link_help, event)
-        
+        # Our help links all are of the form 'bzrtopic:topic-name'
+        scheme, link = unicode(target).split(":", 1)
+        if scheme != "bzrtopic":
+            raise RuntimeError, "unknown scheme"
+        show_help(link, self)
+
     def checkout_toggled(self, bool):
         # The widgets for 'checkout'
         for w in [self.ui.but_lightweight]:
@@ -138,5 +141,5 @@ class GetNewWorkingTreeWindow(SubProcessWindow):
             args.append(from_location)
             args.append(to_location)
 
-        self.process_widget.start(*args)
+        self.process_widget.start(None, *args)
         save_pull_location(None, from_location)

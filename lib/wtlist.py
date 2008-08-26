@@ -19,24 +19,27 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-# A QTreeWidget that shows the items in a working tree, and includes a common
-# context menu.
-from PyQt4 import QtCore, QtGui
-from bzrlib.errors import BzrError
+"""A QTreeWidget that shows the items in a working tree, and includes a common
+context menu."""
 
+from PyQt4 import QtCore, QtGui
+
+from bzrlib.errors import BzrError
 from bzrlib import (
     osutils,
     )
-from bzrlib.plugins.qbzr.lib.diff import DiffWindow
-from bzrlib.plugins.qbzr.lib.i18n import gettext
 
+from bzrlib.plugins.qbzr.lib.diff import DiffWindow
+from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     )
 
+
 class WorkingTreeFileList(QtGui.QTreeWidget):
 
-    SELECTALL_MESSAGE = "Select / deselect all" # you must gettext() this!
+    SELECTALL_MESSAGE = N_("Select / deselect all")
 
     def __init__(self, parent, tree):
         QtGui.QTreeWidget.__init__(self, parent)
@@ -113,6 +116,10 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
                 status = gettext("removed")
                 ext = file_extension(path_in_source)
                 name = path_in_source + osutils.kind_marker(kind[0])
+            elif kind[0] is not None and kind[1] is None:
+                status = gettext("missing")
+                ext = file_extension(path_in_source)
+                name = path_in_source + osutils.kind_marker(kind[0])
             else:
                 # versioned = True, True - so either renamed or modified.
                 if path_in_source != path_in_target:
@@ -140,7 +147,8 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
             ivs.append((item, visible))
 
             if checked is None:
-                pass
+                item.setCheckState(0, QtCore.Qt.PartiallyChecked)
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemIsUserCheckable)
             elif checked:
                 item.setCheckState(0, QtCore.Qt.Checked)
             else:
@@ -156,8 +164,8 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         if self.selectall_checkbox is not None:
             self.update_selectall_state(None, None)
 
-    # iterators to help work with the selection, checked items, etc
     def iter_treeitem_and_desc(self, include_hidden=False):
+        """iterators to help work with the selection, checked items, etc"""
         for ti, desc in self.item_to_data.iteritems():
             if include_hidden or not ti.isHidden():
                 yield ti, desc
@@ -174,24 +182,8 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
             if not item.isHidden() and item.checkState(0) == QtCore.Qt.Checked:
                 yield self.item_to_data[item]
 
-    # Given bzr changedesc tuple, return if the item is 'versioned'
-    @classmethod
-    def is_changedesc_versioned(cls, desc):
-        return desc[3] != (False, False)
-
-    # Is the item 'versioned' and considered modified.
-    @classmethod
-    def is_changedesc_modified(cls, desc):
-        return cls.is_changedesc_versioned(desc) and desc[2]
-
-    # Return a suitable entry for a 'specific_files' param to bzr functions.
-    @classmethod
-    def get_changedesc_path(cls, desc):
-        pis, pit = desc[1]
-        return pit or pis
-
-    # Context menu and double-click related functions...
     def show_context_menu(self, pos):
+        """Context menu and double-click related functions..."""
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
     def update_context_menu_actions(self):
@@ -208,40 +200,43 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         items = self.selectedItems()
         if not items:
             return
-        res = QtGui.QMessageBox.question(self,
-            gettext("Revert"),
-            gettext("Do you really want to revert the selected file(s)?"),
-            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-        if res == QtGui.QMessageBox.Yes:
-            paths = [self.item_to_data[item][3] for item in items]
-            try:
-                self.tree.revert(paths, self.tree.branch.repository.revision_tree(self.tree.last_revision()))
-            except BzrError, e:
-                QtGui.QMessageBox.warning(self,
-                    gettext("Revert"), str(e), QtGui.QMessageBox.Ok)
-            else:
-                for item in items:
-                    index = self.indexOfTopLevelItem(item)
-                    self.takeTopLevelItem(index)
+        
+        paths = [self.item_to_data[item][1][1] for item in items]
+        
+        args = ["revert"]
+        args.extend(paths)
+        desc = (gettext("Revert %s to latest revision.") % ", ".join(paths))
+        revert_dialog = SubProcessDialog(gettext("Revert"),
+                                         desc=desc,
+                                         args=args,
+                                         dir=self.tree.basedir,
+                                         parent=self,
+                                        )
+        res = revert_dialog.exec_()
+        if res == QtGui.QDialog.Accepted:
+            for item in items:
+                index = self.indexOfTopLevelItem(item)
+                self.takeTopLevelItem(index)
 
     def show_differences(self, items=None, column=None):
         """Show differences between the working copy and the last revision."""
         if not self.show_diff_action.isEnabled():
             return
     
-        entries = [self.get_changedesc_path(d) for d in self.iter_selection()]
+        entries = [desc.path() for desc in self.iter_selection()]
         if entries:
-            window = DiffWindow(self.tree.basis_tree(),
-                                self.tree,
+            window = DiffWindow(self.tree.basis_tree(), self.tree,
+                                self.tree.branch, self.tree.branch,
                                 specific_files=entries,
                                 parent=self,
-                                branch=self.tree.branch)
+                                )
             self.topLevelWidget().windows.append(window)
             window.show()
 
-    # Helpers for a 'show all' checkbox.  Parent widgets must create the
-    # widget and pass it to us.
     def set_selectall_checkbox(self, checkbox):
+        """Helpers for a 'show all' checkbox.  Parent widgets must create the
+        widget and pass it to us.
+        """
         checkbox.setTristate(True)
         self.selectall_checkbox = checkbox
         parent = self.parentWidget()
@@ -252,9 +247,10 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         parent.connect(checkbox, QtCore.SIGNAL("stateChanged(int)"),
                                                self.selectall_changed)
 
-    # Update the state of the 'select all' checkbox to reflect the state
-    # of the items in the list.
     def update_selectall_state(self, item, column):
+        """Update the state of the 'select all' checkbox to reflect the state
+        of the items in the list.
+        """
         if self._ignore_select_all_changes:
             return
         checked = 0
@@ -284,3 +280,67 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         for (tree_item, change_desc) in self.iter_treeitem_and_desc():
             tree_item.setCheckState(0, QtCore.Qt.CheckState(state))
         self._ignore_select_all_changes = False
+
+
+class ChangeDesc(tuple):
+    """Helper class that "knows" about internals of iter_changes' changed entry
+    description tuple, and provides additional helper methods.
+
+    iter_changes return tuple with info about changed entry:
+    [0]: file_id         -> ascii string
+    [1]: paths           -> 2-tuple (old, new) fullpaths unicode/None
+    [2]: changed_content -> bool
+    [3]: versioned       -> 2-tuple (bool, bool)
+    [4]: parent          -> 2-tuple
+    [5]: name            -> 2-tuple (old_name, new_name) utf-8?/None
+    [6]: kind            -> 2-tuple (string/None, string/None)
+    [7]: executable      -> 2-tuple (bool/None, bool/None)
+
+    NOTE: None value used for non-existing entry in corresponding
+          tree, e.g. for added/deleted/ignored/unversioned
+    """
+
+    def path(desc):
+        """Return a suitable entry for a 'specific_files' param to bzr functions."""
+        oldpath, newpath = desc[1]
+        return newpath or oldpath
+
+    def oldpath(desc):
+        """Return oldpath for renames."""
+        return desc[1][0]
+
+    def is_versioned(desc):
+        return desc[3] != (False, False)
+
+    def is_modified(desc):
+        return (desc[3] != (False, False) and desc[2])
+
+    def is_renamed(desc):
+        return (desc[3] == (True, True)
+                and (desc[4][0], desc[5][0]) != (desc[4][1], desc[5][1]))
+
+    def is_tree_root(desc):
+        """Check is entry actually tree root."""
+        if desc[3] != (False, False) and desc[4] == (None, None):
+            # TREE_ROOT has not parents (desc[4]).
+            # But because we could want to see unversioned files
+            # we need to check for versioned flag (desc[3])
+            return True
+        return False
+
+
+def closure_in_selected_list(selected_list):
+    """Return in_selected_list(path) function for given selected_list."""
+
+    def in_selected_list(path):
+        """Check: is path belongs to some selected_list."""
+        if path in selected_list:
+            return True
+        for p in selected_list:
+            if path.startswith(p):
+                return True
+        return False
+
+    if not selected_list:
+        return lambda path: True
+    return in_selected_list
