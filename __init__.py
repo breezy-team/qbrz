@@ -48,6 +48,7 @@ def register_command_lazy(module, name, aliases):
 
 
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_merge', [])
+register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qadd', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qannotate', ['qann', 'qblame'])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbranch', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbrowse', ['qbw'])
@@ -61,6 +62,7 @@ register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qlog', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qmerge', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpull', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpush', [])
+register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrevert', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsubprocess', [])
 
 

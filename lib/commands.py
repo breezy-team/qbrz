@@ -49,6 +49,7 @@ from bzrlib.bzrdir import BzrDir
 from bzrlib.workingtree import WorkingTree
 
 from bzrlib.plugins.qbzr.lib import i18n
+from bzrlib.plugins.qbzr.lib.add import AddWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
@@ -58,6 +59,7 @@ from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.log import LogWindow
 from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
 from bzrlib.plugins.qbzr.lib.info import QBzrInfoWindow
+from bzrlib.plugins.qbzr.lib.revert import RevertWindow
 from bzrlib.plugins.qbzr.lib.pull import (
     QBzrPullWindow,
     QBzrPushWindow,
@@ -180,6 +182,34 @@ class cmd_qannotate(QBzrCommand):
         win = AnnotateWindow(branch, tree, relpath, file_id, encoding)
         win.show()
         app.exec_()
+
+
+class cmd_qadd(QBzrCommand):
+    """Add files to the repository."""
+    takes_args = ['selected*']
+
+    def _qbzr_run(self, selected_list=None):
+        tree, selected_list = builtins.tree_files(selected_list)
+        if selected_list == ['']:
+            selected_list = []
+        application = QtGui.QApplication(sys.argv)
+        window = AddWindow(tree, selected_list, dialog=False)
+        window.show()
+        application.exec_()
+
+
+class cmd_qrevert(QBzrCommand):
+    """Revert changes files."""
+    takes_args = ['selected*']
+
+    def _qbzr_run(self, selected_list=None):
+        tree, selected_list = builtins.tree_files(selected_list)
+        if selected_list == ['']:
+            selected_list = []
+        application = QtGui.QApplication(sys.argv)
+        window = RevertWindow(tree, selected_list, dialog=False)
+        window.show()
+        application.exec_()
 
 
 class cmd_qbrowse(QBzrCommand):

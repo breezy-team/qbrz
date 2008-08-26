@@ -38,6 +38,7 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
+from bzrlib.plugins.qbzr.lib.wtlist import WorkingTreeFileList
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
@@ -158,6 +159,50 @@ class CommitWindow(QBzrWindow):
         self.pending_merges = repo.get_revisions(pending_merges)
         self.is_bound = bool(branch.get_bound_location())
 
+    def iter_changes_and_state(self):
+        """An iterator for the WorkingTreeFileList widget"""
+        # a word list for message completer
+        words = set()
+
+        def in_selected_list(path):
+            if not self.initial_selected_list:
+                return True
+            if path in self.initial_selected_list:
+                return True
+            for p in self.initial_selected_list:
+                if path.startswith(p):
+                    return True
+            return False
+
+        num_versioned_files = 0
+        for desc in self.tree.iter_changes(self.tree.basis_tree(),
+                                           want_unversioned=True):
+
+            is_versioned = self.filelist.is_changedesc_versioned(desc)
+            path = self.filelist.get_changedesc_path(desc)
+
+            check_state = None
+            if not self.pending_merges:
+                check_state = is_versioned and in_selected_list(path)
+            yield desc, check_state
+
+            if is_versioned:
+                num_versioned_files += 1
+
+                words.update(os.path.split(path))
+                if num_versioned_files < MAX_AUTOCOMPLETE_FILES:
+                    ext = file_extension(path)
+                    builder = get_wordlist_builder(ext)
+                    if builder is not None:
+                        try:
+                            file = open(path, 'rt')
+                            words.update(builder.iter_words(file))
+                        except EnvironmentError:
+                            pass
+        words = list(words)
+        words.sort(lambda a, b: cmp(a.lower(), b.lower()))
+        self.completion_words = words
+
     def __init__(self, tree, selected_list, dialog=True, parent=None, local=None, message=None):
         title = [gettext("Commit")]
         QBzrWindow.__init__(self, title, parent)
@@ -169,63 +214,7 @@ class CommitWindow(QBzrWindow):
         self.tree = tree
         self.basis_tree = self.tree.basis_tree()
         self.windows = []
-
-        tree.lock_read()
-        try:
-            self.collect_info()
-        finally:
-            tree.unlock()
-
-        # Get information about modified files
-        num_versioned_files = 0
-        files = []
-        delta = self.tree.changes_from(self.basis_tree)
-        for path, id_, kind in delta.added:
-            marker = osutils.kind_marker(kind)
-            ext = file_extension(path)
-            files.append((gettext("added"), path+marker, ext, path, True))
-        for path, id_, kind in delta.removed:
-            marker = osutils.kind_marker(kind)
-            ext = file_extension(path)
-            files.append((gettext("removed"), path+marker, ext, path, True))
-        for (oldpath, newpath, id_, kind,
-            text_modified, meta_modified) in delta.renamed:
-            marker = osutils.kind_marker(kind)
-            ext = file_extension(newpath)
-            if text_modified or meta_modified:
-                changes = gettext("renamed and modified")
-            else:
-                changes = gettext("renamed")
-            files.append((changes,
-                          "%s%s => %s%s" % (oldpath, marker, newpath, marker),
-                          ext, newpath, True))
-        for path, id_, kind, text_modified, meta_modified in delta.modified:
-            marker = osutils.kind_marker(kind)
-            ext = file_extension(path)
-            files.append((gettext("modified"), path+marker, ext, path, True))
-        for entry in tree.unknowns():
-            ext = file_extension(entry)
-            files.append((gettext("non-versioned"), entry, ext, entry, False))
-            num_versioned_files -= 1
-        num_versioned_files += len(files)
-
-        # Build a word list for message completer
-        words = set()
-        for status, name, ext, path, versioned in files:
-            if not versioned:
-                continue
-            words.update(os.path.split(path))
-            if num_versioned_files > MAX_AUTOCOMPLETE_FILES:
-                continue
-            builder = get_wordlist_builder(ext)
-            if builder is not None:
-                try:
-                    file = open(path, 'rt')
-                    words.update(builder.iter_words(file))
-                except EnvironmentError:
-                    pass
-        words = list(words)
-        words.sort(lambda a, b: cmp(a.lower(), b.lower()))
+        self.initial_selected_list = selected_list
 
         # To set focus on splitter below one need to pass
         # second argument to constructor: self.centralwidget
@@ -242,11 +231,21 @@ class CommitWindow(QBzrWindow):
         splitter.addWidget(groupbox)
         grid = QtGui.QGridLayout(groupbox)
 
+        self.filelist = WorkingTreeFileList(groupbox, self.tree)
+
+        tree.lock_read()
+        try:
+            self.collect_info()
+            self.filelist.fill(self.iter_changes_and_state())
+        finally:
+            tree.unlock()
+
+        self.filelist.setup_actions()
         # Equivalent for 'bzr commit --message'
         self.message = TextEdit(groupbox, main_window=self)
         self.message.setToolTip(gettext("Enter the commit message"))
         completer = QtGui.QCompleter()
-        completer.setModel(QtGui.QStringListModel(words, completer))
+        completer.setModel(QtGui.QStringListModel(self.completion_words, completer))
         self.message.setCompleter(completer)
         self.message.setAcceptRichText(False)
 
@@ -337,37 +336,6 @@ class CommitWindow(QBzrWindow):
         groupbox = QtGui.QGroupBox(gettext("Changes"), splitter)
         splitter.addWidget(groupbox)
 
-        self.filelist = QtGui.QTreeWidget(groupbox)
-        self.filelist.setTextElideMode(QtCore.Qt.ElideMiddle)
-        self.filelist.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
-        self.filelist.setSortingEnabled(True)
-        self.filelist.setHeaderLabels(
-            [gettext("File"), gettext("Extension"), gettext("Status")])
-        header = self.filelist.header()
-        header.setStretchLastSection(False)
-        header.setResizeMode(0, QtGui.QHeaderView.Stretch)
-        header.setResizeMode(1, QtGui.QHeaderView.ResizeToContents)
-        header.setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
-        self.filelist.setRootIsDecorated(False)
-        self.connect(self.filelist,
-                     QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
-                     self.show_differences)
-
-        self.filelist.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.connect(self.filelist,
-                     QtCore.SIGNAL("itemSelectionChanged()"),
-                     self.update_context_menu_actions)
-        self.connect(self.filelist,
-                     QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
-                     self.show_context_menu)
-
-        self.context_menu = QtGui.QMenu(self.filelist)
-        self.show_diff_action = self.context_menu.addAction(
-            gettext("Show &differences..."), self.show_differences)
-        self.context_menu.setDefaultAction(self.show_diff_action)
-        self.revert_action = self.context_menu.addAction(
-            gettext("&Revert..."), self.revert_selected)
-
         vbox = QtGui.QVBoxLayout(groupbox)
         vbox.addWidget(self.filelist)
         self.show_nonversioned_checkbox = QtGui.QCheckBox(
@@ -383,33 +351,6 @@ class CommitWindow(QBzrWindow):
             self.select_all_checkbox.setEnabled(False)
         self.connect(self.select_all_checkbox, QtCore.SIGNAL("stateChanged(int)"), self.select_all_files)
         vbox.addWidget(self.select_all_checkbox)
-
-        def in_selected_list(path):
-            if not selected_list:
-                return True
-            if path in selected_list:
-                return True
-            for p in selected_list:
-                if path.startswith(p):
-                    return True
-            return False
-
-        self.unknowns = []
-        self.item_to_file = {}
-        for entry in files:
-            status, name, ext, path, versioned = entry
-            item = QtGui.QTreeWidgetItem(self.filelist)
-            item.setText(0, name)
-            item.setText(1, ext)
-            item.setText(2, status)
-            if not self.pending_merges:
-                if versioned and in_selected_list(path):
-                    item.setCheckState(0, QtCore.Qt.Checked)
-                else:
-                    item.setCheckState(0, QtCore.Qt.Unchecked)
-            self.item_to_file[item] = entry
-            if not versioned:
-                self.unknowns.append(item)
 
         self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
         self.show_nonversioned(self.show_nonversioned_checkbox.isChecked())
@@ -525,13 +466,13 @@ class CommitWindow(QBzrWindow):
 
         if not self.pending_merges:
             specific_files = []
-            for i in range(self.filelist.topLevelItemCount()):
-                item = self.filelist.topLevelItem(i)
-                if item.checkState(0) == QtCore.Qt.Checked:
-                    entry = self.item_to_file[item]
-                    if not entry[4]:
-                        self.tree.add(entry[3])
-                    specific_files.append(entry[3])
+            for desc in self.filelist.iter_checked():
+                is_ver = self.filelist.is_changedesc_versioned(desc)
+                path = self.filelist.get_changedesc_path(desc)
+                # XXX - note this 'tree' operation outside an exception handler!
+                if not is_ver:
+                    self.tree.add(path)
+                specific_files.append(path)
         else:
             specific_files = None
 
@@ -575,69 +516,13 @@ class CommitWindow(QBzrWindow):
         window.show()
         self.windows.append(window)
 
-    def show_differences(self, items=None, column=None):
-        """Show differences between the working copy and the last revision."""
-        if not self.show_diff_action.isEnabled():
-            return
-        if items is None:
-            items = self.filelist.selectedItems()
-            if not items:
-                return
-            #item = items[0]
-
-        if not isinstance(items, list):
-            items = (items,)
-
-        entries = [self.item_to_file[item][3] for item in items]
-        if entries:
-            window = DiffWindow(self.basis_tree,
-                                self.tree,
-                                specific_files=entries,
-                                parent=self,
-                                branch=self.tree.branch)
-            window.show()
-            self.windows.append(window)
-
     def show_nonversioned(self, state):
         """Show/hide non-versioned files."""
         state = not state
-        for item in self.unknowns:
-            item.setHidden(state)
+        for (tree_item, change_desc) in self.filelist.iter_treeitem_and_desc(True):
+            if change_desc[3] == (False, False):
+                tree_item.setHidden(state)
         self.update_selected_files(None, None)
-
-    def revert_selected(self):
-        """Revert the selected file."""
-        items = self.filelist.selectedItems()
-        if not items:
-            return
-        res = QtGui.QMessageBox.question(self,
-            gettext("Revert"),
-            gettext("Do you really want to revert the selected file(s)?"),
-            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-        if res == QtGui.QMessageBox.Yes:
-            paths = [self.item_to_file[item][3] for item in items]
-            try:
-                self.tree.revert(paths, self.tree.branch.repository.revision_tree(self.tree.last_revision()))
-            except BzrError, e:
-                QtGui.QMessageBox.warning(self,
-                    gettext("Revert"), str(e), QtGui.QMessageBox.Ok)
-            else:
-                for item in items:
-                    index = self.filelist.indexOfTopLevelItem(item)
-                    self.filelist.takeTopLevelItem(index)
-
-    def show_context_menu(self, pos):
-        self.context_menu.popup(self.filelist.viewport().mapToGlobal(pos))
-
-    def update_context_menu_actions(self):
-        contains_non_versioned = False
-        files = (self.item_to_file[i] for i in self.filelist.selectedItems())
-        for file in files:
-            if not file[4]:
-                contains_non_versioned = True
-                break
-        self.revert_action.setEnabled(not contains_non_versioned)
-        self.show_diff_action.setEnabled(not contains_non_versioned)
 
     def closeEvent(self, event):
         self.f_on_close()   # either save_message or clear_saved_message
@@ -647,13 +532,12 @@ class CommitWindow(QBzrWindow):
         if self.pending_merges:
             return
         checked = 0
-        num_items = self.filelist.topLevelItemCount()
-        for i in range(num_items):
-            item = self.filelist.topLevelItem(i)
-            if item.isHidden():
-                num_items -= 1
-            elif item.checkState(0) == QtCore.Qt.Checked:
+        num_items = 0
+
+        for (tree_item, change_desc) in self.filelist.iter_treeitem_and_desc():
+            if tree_item.checkState(0) == QtCore.Qt.Checked:
                 checked += 1
+            num_items += 1
         self._ignore_select_all_changes = True
         if checked == 0:
             self.select_all_checkbox.setCheckState(QtCore.Qt.Unchecked)
@@ -669,8 +553,6 @@ class CommitWindow(QBzrWindow):
         if state == QtCore.Qt.PartiallyChecked:
             self.select_all_checkbox.setCheckState(QtCore.Qt.Checked)
             return
-        num_items = self.filelist.topLevelItemCount()
-        for i in range(num_items):
-            item = self.filelist.topLevelItem(i)
-            if not item.isHidden():
-                item.setCheckState(0, QtCore.Qt.CheckState(state))
+
+        for (tree_item, change_desc) in self.filelist.iter_treeitem_and_desc():
+            tree_item.setCheckState(0, QtCore.Qt.CheckState(state))
