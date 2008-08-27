@@ -52,11 +52,19 @@ _bug_id_re = lazy_regex.lazy_compile(r'(?:'
     r'|issues/show/'            # Redmine bugs URL
     r')(\d+)(?:\b|$)')
 
+
 def get_bug_id(branch, bug_url):
     match = _bug_id_re.search(bug_url)
     if match:
         return match.group(1)
     return None
+
+
+
+try:
+    QVariant_fromList = QtCore.QVariant.fromList
+except AttributeError:
+    QVariant_fromList = QtCore.QVariant
 
 
 class TreeModel(QtCore.QAbstractTableModel):
@@ -632,18 +640,20 @@ class TreeModel(QtCore.QAbstractTableModel):
                          direct))
                 
                 if line_col_indexes[1] is not None:
-                    # Broken line end 
-                    self.linegraphdata[parent_index-2][2].append(
-                        (None,
-                         line_col_indexes[1],
-                         parent_color,
-                         direct))
+                    # Broken line end
+                    if parent_index-2>=0:
+                        self.linegraphdata[parent_index-2][2].append(
+                            (None,
+                             line_col_indexes[1],
+                             parent_color,
+                             direct))
                     # line from the line's column to the parent's column
-                    self.linegraphdata[parent_index-1][2].append(
-                        (line_col_indexes[1],
-                         parent_col_index,
-                         parent_color,
-                         direct))
+                    if parent_index-1>=0:
+                        self.linegraphdata[parent_index-1][2].append(
+                            (line_col_indexes[1],
+                             parent_col_index,
+                             parent_color,
+                             direct))
         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                   self.createIndex (0, COL_MESSAGE, QtCore.QModelIndex()),
                   self.createIndex (len(self.linegraphdata), COL_MESSAGE, QtCore.QModelIndex()))
@@ -767,17 +777,18 @@ class TreeModel(QtCore.QAbstractTableModel):
         if role == GraphNodeRole:
             if node is None:
                 return QtCore.QVariant()
-            return QtCore.QVariant([QtCore.QVariant(nodei) for nodei in node])
+            return QVariant_fromList([QtCore.QVariant(nodei) for nodei in node])
         if role == GraphLinesRole:
             qlines = []
             for start, end, color, direct in lines:
                 if start is None: start = -1
                 if end is None: end = -1
-                qlines.append(QtCore.QVariant([QtCore.QVariant(start),
-                                               QtCore.QVariant(end),
-                                               QtCore.QVariant(color),
-                                               QtCore.QVariant(direct)]))
-            return QtCore.QVariant(qlines)
+                qlines.append(QVariant_fromList(
+                    [QtCore.QVariant(start),
+                     QtCore.QVariant(end),
+                     QtCore.QVariant(color),
+                     QtCore.QVariant(direct)]))
+            return QVariant_fromList(qlines)
         if role == GraphTwistyStateRole:
             if twisty_state is None:
                 return QtCore.QVariant()
@@ -796,7 +807,7 @@ class TreeModel(QtCore.QAbstractTableModel):
             tags = []
             if revid in self.tags:
                 tags = self.tags[revid]
-            return QtCore.QVariant(tags)
+            return QtCore.QVariant(QtCore.QStringList(tags))
         if role == RevIdRole or role == FilterIdRole:
             return QtCore.QVariant(revid)
         
@@ -825,7 +836,7 @@ class TreeModel(QtCore.QAbstractTableModel):
                     bug_id = get_bug_id(self.branch, url)
                     if bug_id:
                         bugs.append(bugtext % bug_id)
-            return QtCore.QVariant(bugs)
+            return QtCore.QVariant(QtCore.QStringList(bugs))
         
         if role == FilterMessageRole:
             return QtCore.QVariant(revision.message)

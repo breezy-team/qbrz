@@ -246,8 +246,8 @@ class SidebySideDiffView(QtGui.QSplitter):
             
         if not binary:
             for cursor in cursors:
-                cursor.insertBlock()
                 cursor.setCharFormat(self.monospacedFormat)
+                cursor.insertBlock()
             changes = []
             
             def fix_last_line(lines):
@@ -443,6 +443,11 @@ class SidebySideDiffView(QtGui.QSplitter):
         
         for cursor in self.cursors:
             cursor.endEditBlock()
+        # check horizontal scrollbars and force both if scrollbar visible only at one side
+        if (self.browsers[0].horizontalScrollBar().isVisible()
+            or self.browsers[1].horizontalScrollBar().isVisible()):
+            self.browsers[0].setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+            self.browsers[1].setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.update()
 
     def rewind(self):
@@ -553,8 +558,13 @@ class SimpleDiffView(QtGui.QTextBrowser):
             gettext(kind_info), path_info),
             self.monospacedHeaderFormat)
         if properties_changed:
-            self.cursor.insertText(" (properties changed: %s)" % \
-                                   (", ".join(["%s to %s" % p for p in properties_changed])))
+            prop_str = []
+            for pair in properties_changed:
+                if None not in pair:
+                    prop_str.append("%s to %s" % pair)
+            if prop_str:
+                self.cursor.insertText(
+                    " (properties changed: %s)" % (", ".join(prop_str)))
         self.cursor.insertText("\n")
         
         # GNU Patch uses the epoch date to detect files that are being added

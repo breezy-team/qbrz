@@ -352,11 +352,20 @@ class QBzrDialog(QtGui.QDialog):
         event.accept()
 
 
+_global_config = None
+
+def get_global_config():
+    global _global_config
+    if _global_config is None:
+        _global_config = GlobalConfig()
+    return _global_config
+
+
 def get_branch_config(branch):
     if branch is not None:
         return branch.get_config()
     else:
-        return GlobalConfig()
+        return get_global_config()
 
 
 def quote_tag(tag):

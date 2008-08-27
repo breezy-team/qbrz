@@ -177,12 +177,8 @@ class DiffWindow(QBzrWindow):
                             dates[ix] = time.time()
 
                 properties_changed = [] 
-                if (executable[0] != executable[1]
-                    and executable[0] is not None
-                    and executable[1] is not None):
-                    # TODO for added files with +x it will be nice to show
-                    #      executable bit in side-by-side view only
-                    descr = {True: "+x", False: "-x"}
+                if bool(executable[0]) != bool(executable[1]):
+                    descr = {True: "+x", False: "-x", None: None}
                     properties_changed.append((descr[executable[0]],
                                                descr[executable[1]]))
 

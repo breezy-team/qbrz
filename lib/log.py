@@ -60,15 +60,13 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
         
         self.labels = []
         # collect tag names
-        for tag in index.data(logmodel.TagsRole).toList():
+        for tag in index.data(logmodel.TagsRole).toStringList():
             self.labels.append(
-                (tag.toString(), self._tagColor,
-                 self._tagColorBorder))
+                (tag, self._tagColor, self._tagColorBorder))
         # collect bug ids
-        for bug in index.data(logmodel.BugIdsRole).toList():
+        for bug in index.data(logmodel.BugIdsRole).toStringList():
             self.labels.append(
-                (bug.toString(), self._bugColor,
-                 self._bugColorBorder))
+                (bug, self._bugColor, self._bugColorBorder))
         QtGui.QItemDelegate.paint(self, painter, option, index)
     
     def get_color(self, color, back):
@@ -283,7 +281,8 @@ class LogWindow(QBzrWindow):
         self.changesList.setModel(self.changesProxyModel)
         self.changesList.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
         self.changesList.setUniformRowHeights(True)
-        self.changesList.setAllColumnsShowFocus(True)
+        if self.style().objectName() != 'gtk':
+            self.changesList.setAllColumnsShowFocus(True)
         self.changesList.setRootIsDecorated (False)
         self.changesList.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         header = self.changesList.header()
@@ -297,6 +296,11 @@ class LogWindow(QBzrWindow):
         header.resizeSection(logmodel.COL_AUTHOR, 150)
 
         logbox.addWidget(self.changesList)
+
+        self.revision_delta_timer = QtCore.QTimer(self)
+        self.revision_delta_timer.setSingleShot(True)
+        self.connect(self.revision_delta_timer, QtCore.SIGNAL("timeout()"),
+                     self.update_revision_delta)
 
         self.current_rev = None
         self.connect(self.changesList.selectionModel(),
@@ -354,7 +358,10 @@ class LogWindow(QBzrWindow):
         self.connect(self.diffbutton, QtCore.SIGNAL("clicked(bool)"), self.diff_pushed)
 
         self.contextMenu = QtGui.QMenu(self)
-        self.contextMenu.addAction(gettext("Show tree..."), self.show_revision_tree)
+        self.show_diff_action = self.contextMenu.addAction(
+            gettext("Show &differences..."), self.diff_pushed)
+        self.contextMenu.addAction(gettext("Show &tree..."), self.show_revision_tree)
+        self.contextMenu.setDefaultAction(self.show_diff_action)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)
@@ -381,52 +388,52 @@ class LogWindow(QBzrWindow):
         else:
             open_browser(str(url.toEncoded()))
 
+    def update_revision_delta(self):
+        rev = self.current_rev
+        if not hasattr(rev, 'delta'):
+            # TODO move this to a thread
+            self.branch.repository.lock_read()
+            try:
+                rev.delta = self.branch.repository.get_deltas_for_revisions(
+                    [rev]).next()
+            finally:
+                self.branch.repository.unlock()
+        if self.current_rev is not rev:
+            # new update was requested, don't bother populating the list
+            return
+        delta = rev.delta
+
+        for path, id_, kind in delta.added:
+            item = QtGui.QListWidgetItem(path, self.fileList)
+            item.setTextColor(QtGui.QColor("blue"))
+
+        for path, id_, kind, text_modified, meta_modified in delta.modified:
+            item = QtGui.QListWidgetItem(path, self.fileList)
+
+        for path, id_, kind in delta.removed:
+            item = QtGui.QListWidgetItem(path, self.fileList)
+            item.setTextColor(QtGui.QColor("red"))
+
+        for (oldpath, newpath, id_, kind,
+            text_modified, meta_modified) in delta.renamed:
+            item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
+            item.setData(PathRole, QtCore.QVariant(newpath))
+            item.setTextColor(QtGui.QColor("purple"))
 
     def update_selection(self, selected, deselected):
         indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
+        self.fileList.clear()
         if not indexes:
             self.diffbutton.setEnabled(False)
             self.message.setHtml("")
-            self.fileList.clear()
         else:
             self.diffbutton.setEnabled(True)
             index = indexes[0]
             revid = str(index.data(logmodel.RevIdRole).toString())
             rev = self.changesModel.revision(revid)
             self.current_rev = rev
-    
             self.message.setHtml(format_revision_html(rev, self.replace))
-    
-            #print children
-    
-            self.fileList.clear()
-        
-            if not hasattr(rev, 'delta'):
-                # TODO move this to a thread
-                self.branch.repository.lock_read()
-                try:
-                    rev.delta = self.branch.repository.get_deltas_for_revisions(
-                        [rev]).next()
-                finally:
-                    self.branch.repository.unlock()
-            delta = rev.delta
-    
-            for path, id_, kind in delta.added:
-                item = QtGui.QListWidgetItem(path, self.fileList)
-                item.setTextColor(QtGui.QColor("blue"))
-    
-            for path, id_, kind, text_modified, meta_modified in delta.modified:
-                item = QtGui.QListWidgetItem(path, self.fileList)
-    
-            for path, id_, kind in delta.removed:
-                item = QtGui.QListWidgetItem(path, self.fileList)
-                item.setTextColor(QtGui.QColor("red"))
-    
-            for (oldpath, newpath, id_, kind,
-                text_modified, meta_modified) in delta.renamed:
-                item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
-                item.setData(PathRole, QtCore.QVariant(newpath))
-                item.setTextColor(QtGui.QColor("purple"))
+            self.revision_delta_timer.start(1)
 
     def show_diff_window(self, rev1, rev2, specific_files=None):
         self.branch.repository.lock_read()
@@ -465,7 +472,7 @@ class LogWindow(QBzrWindow):
             rev = self.current_rev
             self.show_diff_window(rev, rev, [unicode(path)])
 
-    def diff_pushed(self, checked):
+    def diff_pushed(self):
         """Show differences of the selected range or of a single revision"""
         indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
         if not indexes:
@@ -562,7 +569,8 @@ class LogWindow(QBzrWindow):
         QtGui.QTreeView.mouseReleaseEvent(self.changesList, e)
     
     def changesList_keyPressEvent (self, e):
-        if e.key() == QtCore.Qt.Key_Left or e.key() == QtCore.Qt.Key_Right:
+        e_key = e.key()
+        if e_key in (QtCore.Qt.Key_Left, QtCore.Qt.Key_Right):
             e.accept()
             indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
             if not indexes:
@@ -585,5 +593,8 @@ class LogWindow(QBzrWindow):
             newindex = self.changesModel.indexFromRevId(revision_id)
             newindex = self.changesProxyModel.mapFromSource(newindex)
             self.changesList.setCurrentIndex(newindex)
+        elif e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
+            e.accept()
+            self.diff_pushed()
         else:
             QtGui.QTreeView.keyPressEvent(self.changesList, e)

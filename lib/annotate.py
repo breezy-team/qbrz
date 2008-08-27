@@ -148,13 +148,14 @@ class AnnotateWindow(QBzrWindow):
         font = QtGui.QFont("Courier New,courier", self.browser.font().pointSize())
         revisionIds = set()
         items = []
+        item_revisions = []
         lastRevisionId = None
         lines = []
         for i, (origin, text) in enumerate(tree.annotate_iter(fileId)):
             text = text.decode(self.encoding, 'replace')
             lines.append(text)
             revisionIds.add(origin)
-            item = QtGui.QTreeWidgetItem(self.browser)
+            item = QtGui.QTreeWidgetItem()
             item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(origin))
             item.setText(0, QtCore.QString.number(i + 1))
             if lastRevisionId != origin:
@@ -162,15 +163,17 @@ class AnnotateWindow(QBzrWindow):
                 item.setTextAlignment(2, QtCore.Qt.AlignRight)
             item.setText(3, text.rstrip())
             item.setFont(3, font)
-            items.append((origin, item))
+            items.append(item)
+            item_revisions.append(origin)
             lastRevisionId = origin
+        self.browser.insertTopLevelItems(0, items)
 
         revisionIds = list(revisionIds)
         revisions = self.branch.repository.get_revisions(revisionIds)
         revisionDict = dict(zip(revisionIds, revisions))
         now = time.time()
         lastRevisionId = None
-        for revisionId, item in items:
+        for revisionId, item in zip(item_revisions, items):
             r = revisionDict[revisionId]
             r._author_name = extract_name(get_apparent_author(r))
             if lastRevisionId != revisionId:
@@ -183,14 +186,17 @@ class AnnotateWindow(QBzrWindow):
         revid_to_tags = self.branch.tags.get_reverse_tag_dict()
 
         self.itemToRev = {}
+        items = []
         for rev in revisions:
-            item = QtGui.QTreeWidgetItem(self.changes)
+            item = QtGui.QTreeWidgetItem()
             item.setText(0, format_timestamp(rev.timestamp))
             item.setText(1, rev._author_name)
             item.setText(2, rev.get_summary())
+            items.append(item)
             rev.revno = revnos[rev.revision_id]
             rev.tags = sorted(revid_to_tags.get(rev.revision_id, []))
             self.itemToRev[item] = rev
+        self.changes.insertTopLevelItems(0, items)
         
         self.lines = None
         if have_pygments:
@@ -207,6 +213,7 @@ class AnnotateWindow(QBzrWindow):
             except ClassNotFound:
                 pass
     
+
     def setRevisionByLine(self):
         items = self.browser.selectedItems()
         if not items:
