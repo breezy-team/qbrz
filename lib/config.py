@@ -51,6 +51,18 @@ _mail_clients = [
 
 _bug_tracker_re = re.compile('bugtracker_(.+?)_url')
 
+class QRadioCheckItemDelegate(QtGui.QItemDelegate):
+    
+    def drawCheck (self, painter, option, rect, state):
+        style = self.parent().style()
+        radioOption = QtGui.QStyleOptionButton()
+        radioOption.rect = option.rect
+        radioOption.state = option.state
+        if state:
+            radioOption.state = radioOption.state | QtGui.QStyle.State_On
+        style.drawControl(QtGui.QStyle.CE_RadioButton,
+                          radioOption,
+                          painter)
 
 class QBzrConfigWindow(QBzrDialog):
 
@@ -144,6 +156,10 @@ class QBzrConfigWindow(QBzrDialog):
         self.extDiffList.setRootIsDecorated(False)
         self.extDiffList.setHeaderLabels([gettext("Name"),
                                           gettext("Command")])
+        self.extDiffList.setItemDelegateForColumn(0,
+            QRadioCheckItemDelegate(self.extDiffList))
+        self.connect(self.extDiffList, QtCore.SIGNAL("itemChanged (QTreeWidgetItem *,int)"),
+                     self.extDiffListItemChanged)        
 
         addExtDiffButton = QtGui.QPushButton(gettext("Add"), diffWidget)
         self.connect(addExtDiffButton, QtCore.SIGNAL("clicked()"),
@@ -265,7 +281,7 @@ class QBzrConfigWindow(QBzrDialog):
         self.diffShowIntergroupColors.setChecked(qconfig.get_user_option("diff_show_intergroup_colors") in ("True", "1"))
         defaultDiff = qconfig.get_user_option("default_diff")
 
-        
+        self.extDiffListIgnore = True
         def create_ext_diff_item(name, command):
             item = QtGui.QTreeWidgetItem(self.extDiffList)
             item.setFlags(QtCore.Qt.ItemIsSelectable |
@@ -276,7 +292,6 @@ class QBzrConfigWindow(QBzrDialog):
                 item.setCheckState(0, QtCore.Qt.Checked)
             else:
                 item.setCheckState(0, QtCore.Qt.Unchecked)
-            
             
             item.setText(0, name)
             item.setText(1, command)
@@ -290,6 +305,7 @@ class QBzrConfigWindow(QBzrDialog):
         extDiffs = qparser.get('EXTDIFF', {})
         for name, command in extDiffs.items():
             create_ext_diff_item(name, command)
+        self.extDiffListIgnore = False
 
     def save(self):
         """Save the configuration."""
@@ -432,3 +448,24 @@ class QBzrConfigWindow(QBzrDialog):
             index = self.extDiffList.indexOfTopLevelItem(item)
             if index >= 1: # You can't remove the builtin diff
                 self.extDiffList.takeTopLevelItem(index)
+    
+    def extDiffListItemChanged(self, changed_item, col):
+        if col == 0 and not self.extDiffListIgnore:
+            checked_count = 0
+            for index in range(self.extDiffList.topLevelItemCount()):
+                item = self.extDiffList.topLevelItem(index)
+                if item.checkState(0) == QtCore.Qt.Checked:
+                    checked_count += 1
+            
+            if checked_count == 0:
+                self.extDiffListIgnore = True
+                changed_item.setCheckState(0, QtCore.Qt.Checked)
+                self.extDiffListIgnore = False
+            elif checked_count > 1:
+                self.extDiffListIgnore = True
+                for index in range(self.extDiffList.topLevelItemCount()):
+                    item = self.extDiffList.topLevelItem(index)
+                    if item.checkState(0) == QtCore.Qt.Checked:
+                        item.setCheckState(0, QtCore.Qt.Unchecked)
+                changed_item.setCheckState(0, QtCore.Qt.Checked)
+                self.extDiffListIgnore = False
