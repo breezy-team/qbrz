@@ -115,10 +115,7 @@ def report_missing_pyqt(unbound):
 
 
 def install_gettext(unbound):
-    """Decorator for q-commands run method to catch ImportError PyQt4
-    and show explanation to user instead of scary traceback.
-    See bugs: #240123, #163728
-    """
+    """Decorator for q-commands run method to enable gettext translations."""
     def run(self, *args, **kwargs):
         i18n.install()
         try:
@@ -129,6 +126,10 @@ def install_gettext(unbound):
 
 
 class QBzrCommand(Command):
+    """Base class for all q-commands.
+    NOTE: q-command should define method '_qbzr_run' instead of 'run' (as in
+    bzrlib).
+    """
 
     @install_gettext
     @report_missing_pyqt
