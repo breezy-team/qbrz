@@ -464,13 +464,21 @@ class cmd_merge(bzrlib.builtins.cmd_merge):
     __doc__ = bzrlib.builtins.cmd_merge.__doc__
 
     takes_options = bzrlib.builtins.cmd_merge.takes_options + [
-            Option('qpreview', help='Instead of merging, show a diff of the merge in a GUI window.')]
+            Option('qpreview', help='Instead of merging, '
+                'show a diff of the merge in a GUI window.'),
+            Option('encoding', type=check_encoding,
+                   help='Encoding of files content, used with --qpreview '
+                        '(default: utf-8)'),
+            ]
 
     def run(self, *args, **kw):
         self.qpreview = ('qpreview' in kw)
         if self.qpreview:
             kw['preview'] = kw['qpreview']
             del kw['qpreview']
+        self._encoding = kw.get('encoding')
+        if self._encoding:
+            del kw['encoding']
         bzrlib.builtins.cmd_merge.run(self, *args, **kw)
 
     @install_gettext
@@ -483,7 +491,8 @@ class cmd_merge(bzrlib.builtins.cmd_merge):
             result_tree = tt.get_preview_tree()
             
             application = QtGui.QApplication(sys.argv)
-            window = DiffWindow(merger.this_tree, result_tree)
+            window = DiffWindow(merger.this_tree, result_tree,
+                encoding=self._encoding)
             window.show()
             application.exec_()
         finally:
