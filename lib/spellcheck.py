@@ -24,37 +24,6 @@ from PyQt4 import QtGui
 # TODO integrate into the text editor's context menu
 
 
-class SpellChecker(object):
-
-    def __init__(self, language):
-        try:
-            import enchant
-            from enchant.checker import SpellChecker
-            from enchant.tokenize import EmailFilter, URLFilter
-        except ImportError:
-            self.checker = None
-        else:
-            try:
-                self.checker = SpellChecker(language, [EmailFilter, URLFilter])
-            except enchant.DictNotFoundError:
-                self.checker = None
-
-    def check(self, text):
-        if self.checker is None:
-            return
-        self.checker.set_text(text)
-        for err in self.checker:
-            yield err.wordpos, len(err.word)
-
-    @classmethod
-    def list_languages(cls):
-        try:
-            import enchant
-            return list(set(lang.replace("_", "-") for lang in enchant.list_languages()))
-        except ImportError:
-            return []
-
-
 class SpellCheckHighlighter(QtGui.QSyntaxHighlighter):
 
     def __init__(self, document, checker):
@@ -67,3 +36,22 @@ class SpellCheckHighlighter(QtGui.QSyntaxHighlighter):
     def highlightBlock(self, text):
         for index, length in self.checker.check(unicode(text)):
             self.setFormat(index, length, self.format)
+
+
+class DummySpellChecker(object):
+
+    def __init__(self, language):
+        pass
+
+    def check(self, text):
+        return []
+
+    @classmethod
+    def list_languages(cls):
+        return []
+
+
+try:
+    from bzrlib.plugins.qbzr.lib.spellcheck_enchant import EnchantSpellChecker as SpellChecker
+except ImportError:
+    SpellChecker = DummySpellChecker

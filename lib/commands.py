@@ -116,10 +116,7 @@ def report_missing_pyqt(unbound):
 
 
 def install_gettext(unbound):
-    """Decorator for q-commands run method to catch ImportError PyQt4
-    and show explanation to user instead of scary traceback.
-    See bugs: #240123, #163728
-    """
+    """Decorator for q-commands run method to enable gettext translations."""
     def run(self, *args, **kwargs):
         i18n.install()
         try:
@@ -130,6 +127,10 @@ def install_gettext(unbound):
 
 
 class QBzrCommand(Command):
+    """Base class for all q-commands.
+    NOTE: q-command should define method '_qbzr_run' instead of 'run' (as in
+    bzrlib).
+    """
 
     @install_gettext
     @report_missing_pyqt
@@ -148,9 +149,12 @@ class cmd_qannotate(QBzrCommand):
 
     def _qbzr_run(self, filename=None, revision=None, encoding=None):
         from bzrlib.annotate import _annotate_file
-        tree, relpath = WorkingTree.open_containing(filename)
-        branch = tree.branch
-        branch.lock_read()
+        wt, branch, relpath = \
+            BzrDir.open_containing_tree_or_branch(filename)
+        if wt is not None:
+            wt.lock_read()
+        else:
+            branch.lock_read()
         try:
             if revision is None:
                 revision_id = branch.last_revision()
@@ -158,10 +162,13 @@ class cmd_qannotate(QBzrCommand):
                 raise errors.BzrCommandError('bzr qannotate --revision takes exactly 1 argument')
             else:
                 revision_id = revision[0].in_history(branch).rev_id
-            file_id = tree.path2id(relpath)
+            tree = branch.repository.revision_tree(revision_id)
+            if wt is not None:
+                file_id = wt.path2id(relpath)
+            else:
+                file_id = tree.path2id(relpath)
             if file_id is None:
                 raise errors.NotVersionedError(filename)
-            tree = branch.repository.revision_tree(revision_id)
             entry = tree.inventory[file_id]
             if entry.kind != 'file':
                 return
@@ -464,13 +471,21 @@ class cmd_merge(bzrlib.builtins.cmd_merge):
     __doc__ = bzrlib.builtins.cmd_merge.__doc__
 
     takes_options = bzrlib.builtins.cmd_merge.takes_options + [
-            Option('qpreview', help='Instead of merging, show a diff of the merge in a GUI window.')]
+            Option('qpreview', help='Instead of merging, '
+                'show a diff of the merge in a GUI window.'),
+            Option('encoding', type=check_encoding,
+                   help='Encoding of files content, used with --qpreview '
+                        '(default: utf-8)'),
+            ]
 
     def run(self, *args, **kw):
         self.qpreview = ('qpreview' in kw)
         if self.qpreview:
             kw['preview'] = kw['qpreview']
             del kw['qpreview']
+        self._encoding = kw.get('encoding')
+        if self._encoding:
+            del kw['encoding']
         bzrlib.builtins.cmd_merge.run(self, *args, **kw)
 
     @install_gettext
@@ -483,7 +498,8 @@ class cmd_merge(bzrlib.builtins.cmd_merge):
             result_tree = tt.get_preview_tree()
             
             application = QtGui.QApplication(sys.argv)
-            window = DiffWindow(merger.this_tree, result_tree)
+            window = DiffWindow(merger.this_tree, result_tree,
+                encoding=self._encoding)
             window.show()
             application.exec_()
         finally:
