@@ -217,11 +217,11 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
         return QtGui.QItemDelegate.drawDisplay(self, painter, option, rect, text)
 
 
-def load_locataions(locataions_list):
-    if locataions_list is None:
+def load_locataions(locations_list):
+    if locations_list is None:
         locations = ["."]
     else:
-        locations = locataions_list
+        locations = locations_list
     
     file_ids = []
     # First branch found. Used for get_config and to check that the same
@@ -296,7 +296,7 @@ def load_locataions(locataions_list):
         # If no locations were sepecified, don't do file_ids
         # Otherwise it gives you the history for the dir if you are
         # in a sub dir.
-        if fp != '' and locations_list:
+        if fp != '' and not locations_list:
             fp = ''
         
         if len(locations) == 1:
