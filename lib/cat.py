@@ -25,15 +25,15 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     file_extension,
-    htmlencode,
+    format_for_ttype,
     )
 
 
 have_pygments = True
 try:
-    from pygments import highlight
+    from pygments import lex
+    from pygments.util import ClassNotFound
     from pygments.lexers import get_lexer_for_filename
-    from pygments.formatters import HtmlFormatter
 except ImportError:
     have_pygments = False
 
@@ -101,42 +101,40 @@ class QBzrCatWindow(QBzrWindow):
                     return 'binary file', self._create_hexdump_view
         else:
             return kind, self._create_symlink_view
-
-    html_template = ('<html><head><style>%s\n'
-                     'body {white-space:pre;}\n'
-                     '</style></head><body>%s</body></html>')
-
-    def _create_text_view(self, relpath, text):
-        text = text.decode(self.encoding or 'utf-8', 'replace')
-        if not have_pygments:
-            style = ''
-            content = htmlencode(text)
-        else:
-            try:
-                lexer = get_lexer_for_filename(relpath)
-                formatter = HtmlFormatter()
-                style = formatter.get_style_defs()
-                content = highlight(text, lexer, formatter)
-            except ValueError:
-                style = ''
-                content = htmlencode(text)
-        html = self.html_template % (style, content)
-        self._create_html_view(html)
-
-    def _create_symlink_view(self, relpath, target):
-        html = self.html_template % ('',
-            htmlencode('-> ' + target.decode('utf-8', 'replace')))
-        self._create_html_view(html)
-
-    def _create_hexdump_view(self, relpath, data):
-        html = self.html_template % ('', htmlencode(hexdump(data)))
-        self._create_html_view(html)
-
-    def _create_html_view(self, html):
+    
+    def _create_text_browser(self):
         self.browser = QtGui.QTextBrowser()
         self.doc = QtGui.QTextDocument()
-        self.doc.setHtml(html)
         self.doc.setDefaultFont(QtGui.QFont("Courier New,courier", self.browser.font().pointSize()))
+    
+    def _create_text_view(self, relpath, text):
+        self._create_text_browser()
+        text = text.decode(self.encoding or 'utf-8', 'replace')
+        if not have_pygments:
+            self.doc.setPlainText(text)
+        else:
+            try:
+                cursor = QtGui.QTextCursor(self.doc)
+                font = self.doc.defaultFont()
+                lexer = get_lexer_for_filename(relpath)
+                for ttype, value in lex(text, lexer):                    
+                    format = QtGui.QTextCharFormat()
+                    format.setFont(font)
+                    format = format_for_ttype(ttype,format)
+                    cursor.insertText(value, format)
+                cursor.movePosition (QtGui.QTextCursor.Start)
+            except ClassNotFound:
+                self.doc.setPlainText(text)
+        self.browser.setDocument(self.doc)
+
+    def _create_symlink_view(self, relpath, target):
+        self._create_text_browser()
+        self.doc.setPlainText('-> ' + target.decode('utf-8', 'replace'))
+        self.browser.setDocument(self.doc)
+
+    def _create_hexdump_view(self, relpath, data):
+        self._create_text_browser()
+        self.doc.setPlainText(hexdump(data))
         self.browser.setDocument(self.doc)
 
     def _create_image_view(self, relpath, data):

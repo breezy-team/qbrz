@@ -20,7 +20,6 @@
 
 # TODO:
 #  - better annotate algorithm on packs
-#  - syntax highlighting of the source code
 
 import operator, sys, time
 from PyQt4 import QtCore, QtGui
@@ -35,8 +34,43 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_apparent_author,
     open_browser,
     RevisionMessageBrowser,
+    split_tokens_at_lines,
+    format_for_ttype,
     )
 
+have_pygments = True
+try:
+    from pygments import lex
+    from pygments.util import ClassNotFound
+    from pygments.lexers import get_lexer_for_filename
+except ImportError:
+    have_pygments = False
+
+class FormatedCodeItemDelegate(QtGui.QItemDelegate):
+    
+    def __init__(self, lines, parent = None):
+        QtGui.QItemDelegate.__init__(self, parent)
+        self.lines = lines
+
+    def paint(self, painter, option, index):
+        self.line = self.lines[index.row()]
+        QtGui.QItemDelegate.paint(self, painter, option, index)
+
+    def drawDisplay(self, painter, option, rect, text):
+        painter.setFont(option.font)
+        if (option.state & QtGui.QStyle.State_Selected
+            and option.state & QtGui.QStyle.State_Active):
+            painter.setPen(option.palette.highlightedText().color())
+        else:
+            painter.setPen(option.palette.text().color())
+        
+        textPoint = QtCore.QPoint(rect.left() + 2, rect.bottom() - option.fontMetrics.descent())
+        for ttype, text in self.line:
+            painter.save()
+            format_for_ttype(ttype, painter)
+            painter.drawText(textPoint, text.rstrip())
+            textPoint.setX(textPoint.x() + QtGui.QFontMetrics(painter.font()).width(text))
+            painter.restore()
 
 class AnnotateWindow(QBzrWindow):
 
@@ -105,11 +139,11 @@ class AnnotateWindow(QBzrWindow):
 
         branch.lock_read()
         try:
-            self.annotate(tree, fileId)
+            self.annotate(tree, fileId, path)
         finally:
             branch.unlock()
 
-    def annotate(self, tree, fileId):
+    def annotate(self, tree, fileId, path):
         revnos = self.branch.get_revision_id_to_revno_map()
         revnos = dict((k, '.'.join(map(str, v))) for k, v in revnos.iteritems())
         font = QtGui.QFont("Courier New,courier", self.browser.font().pointSize())
@@ -117,7 +151,10 @@ class AnnotateWindow(QBzrWindow):
         items = []
         item_revisions = []
         lastRevisionId = None
+        lines = []
         for i, (origin, text) in enumerate(tree.annotate_iter(fileId)):
+            text = text.decode(self.encoding, 'replace')
+            lines.append(text)
             revisionIds.add(origin)
             item = QtGui.QTreeWidgetItem()
             item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(origin))
@@ -125,7 +162,7 @@ class AnnotateWindow(QBzrWindow):
             if lastRevisionId != origin:
                 item.setText(2, revnos[origin])
                 item.setTextAlignment(2, QtCore.Qt.AlignRight)
-            item.setText(3, text.rstrip().decode(self.encoding, 'replace'))
+            item.setText(3, text.rstrip())
             item.setFont(3, font)
             items.append(item)
             item_revisions.append(origin)
@@ -161,6 +198,22 @@ class AnnotateWindow(QBzrWindow):
             rev.tags = sorted(revid_to_tags.get(rev.revision_id, []))
             self.itemToRev[item] = rev
         self.changes.insertTopLevelItems(0, items)
+        
+        self.lines = None
+        if have_pygments:
+            try:
+                # A more correct way to do this would be to add the tokens as
+                # a data role to each respective tree item. But it is to much
+                # effort to wrap them as QVariants. We will just pass the line
+                # tokens to the delegate.
+                lines_tokens = list(split_tokens_at_lines(\
+                                  lex("".join(lines),
+                                  get_lexer_for_filename(path))))
+                self.browser.setItemDelegateForColumn(3,FormatedCodeItemDelegate(lines_tokens, self))
+                
+            except ClassNotFound:
+                pass
+    
 
     def setRevisionByLine(self):
         items = self.browser.selectedItems()
