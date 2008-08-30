@@ -64,17 +64,6 @@ register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpush', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsubprocess', [])
 
 
-def test_suite():
-    # load tests
-    from bzrlib.tests import TestUtil
-    suite = TestUtil.TestSuite()
-    loader = TestUtil.TestLoader()
-    testmod_names = [
-        'test_autocomplete',
-        'test_diffview',
-        'test_spellcheck',
-        'test_util',
-    ]
-    suite.addTest(loader.loadTestsFromModuleNames(
-            ["%s.lib.%s" % (__name__, name) for name in testmod_names]))
-    return suite
+def load_tests(basic_tests, module, loader):
+    from bzrlib.plugins.qbzr.lib.tests import load_tests
+    return load_tests(basic_tests, module, loader)
