@@ -67,7 +67,6 @@ from bzrlib.plugins.qbzr.lib.pull import (
 from bzrlib.plugins.qbzr.lib.util import (
     FilterOptions,
     get_branch_config,
-    get_qlog_replace,
     get_set_encoding,
     is_valid_encoding,
     )
@@ -307,43 +306,36 @@ class cmd_qdiff(QBzrCommand):
 
 
 class cmd_qlog(QBzrCommand):
-    """Show log of a branch, file, or directory in a Qt window.
+    """Show log of a repository, branch, file, or directory in a Qt window.
 
-    By default show the log of the branch containing the working directory."""
+    By default show the log of the branch containing the working directory.
+    
+    If multiple files are speciffied, they must be from the same branch.
+    Only one repository may be speciffied.
+    If multiple branches are speciffied, they must be from the same repository.
 
-    takes_args = ['location?']
+    :Examples:
+        Log the current branch::
+
+            bzr qlog
+
+        Log of files::
+
+            bzr qlog foo.c bar.c
+
+        Log from different branches::
+
+            bzr qlog ~/repo/branch1 ~/repo/branch2
+    """
+
+    takes_args = ['locations*']
     takes_options = []
 
-    def _qbzr_run(self, location=None):
-        file_id = None
-        if location:
-            dir, path = BzrDir.open_containing(location)
-            branch = dir.open_branch()
-            if path:
-                try:
-                    tree = dir.open_workingtree()
-                except (errors.NotBranchError, errors.NotLocalUrl):
-                    tree = branch.basis_tree()
-                file_id = tree.path2id(path)
-                if file_id is None:
-                    raise errors.BzrCommandError(
-                        "Path does not have any revision history: %s" %
-                        location)
-
-        else:
-            dir, path = BzrDir.open_containing('.')
-            branch = dir.open_branch()
-            location = urlutils.unescape_for_display(branch.base,
-                'utf-8').decode('utf-8')
-
+    def _qbzr_run(self, locations_list):
         app = QtGui.QApplication(sys.argv)
-        branch.lock_read()
-        try:
-            window = LogWindow(branch, location, file_id, get_qlog_replace(branch))
-            window.show()
-            app.exec_()
-        finally:
-            branch.unlock()
+        window = LogWindow(locations_list, None, None)
+        window.show()
+        app.exec_()
 
 
 class cmd_qconfig(QBzrCommand):
