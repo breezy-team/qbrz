@@ -192,7 +192,7 @@ class cmd_qannotate(QBzrCommand):
 
 
 class cmd_qadd(QBzrCommand):
-    """Add files to the repository."""
+    """GUI for adding files or directories."""
     takes_args = ['selected*']
 
     def _qbzr_run(self, selected_list=None):

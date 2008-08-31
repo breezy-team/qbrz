@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 #
-# QBzr - Qt frontend to Bazaar commands
-# Copyright (C) 2006-2007 Lukáš Lalinský <lalinsky@gmail.com>
-# Copyright (C) 2006 Trolltech ASA
-# Copyright (C) 2006 Jelmer Vernooij <jelmer@samba.org>
+# QBzr - Qt frontend to Bazaar commands:
+#
+# Contributors:
+#  Mark Hammond <mhammond@skippinet.com.au>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -70,22 +70,14 @@ class RevertWindow(QBzrWindow):
 
         vbox = QtGui.QVBoxLayout(groupbox)
         vbox.addWidget(self.filelist)
-        self._ignore_select_all_changes = False
-        self.select_all_checkbox = QtGui.QCheckBox(
-            gettext("Select / deselect all"))
-        self.select_all_checkbox.setTristate(True)
-        self.select_all_checkbox.setCheckState(QtCore.Qt.Checked)
-        self.select_all_checkbox.setEnabled(True)
-        self.connect(self.select_all_checkbox, QtCore.SIGNAL("stateChanged(int)"), self.select_all_files)
-        vbox.addWidget(self.select_all_checkbox)
+        selectall_checkbox = QtGui.QCheckBox(
+            gettext(self.filelist.SELECTALL_MESSAGE))
+        selectall_checkbox.setCheckState(QtCore.Qt.Checked)
+        selectall_checkbox.setEnabled(True)
+        self.filelist.set_selectall_checkbox(selectall_checkbox)
+        vbox.addWidget(selectall_checkbox)
 
         self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
-
-        self.connect(self.filelist,
-                     QtCore.SIGNAL("itemChanged(QTreeWidgetItem *, int)"),
-                     self.update_selected_files)
-        self.update_selected_files(None, None)
-
 
     def iter_changes_and_state(self):
         """An iterator for the WorkingTreeFileList widget"""
@@ -100,15 +92,12 @@ class RevertWindow(QBzrWindow):
                     return True
             return False
 
-        for desc in self.tree.iter_changes(self.tree.basis_tree(),
-                                           want_unversioned=True):
-
-            if not self.filelist.is_changedesc_modified(desc):
-                continue
+        for desc in self.tree.iter_changes(self.tree.basis_tree()):
+            assert self.filelist.is_changedesc_modified(desc), "expecting only modified!"
 
             pis, pit = desc[1]
             check_state = in_selected_list(pit)
-            yield desc, check_state
+            yield desc, True, check_state
 
     def accept(self):
         """Revert the files."""
@@ -126,30 +115,3 @@ class RevertWindow(QBzrWindow):
     def reject(self):
         """Cancel the revert."""
         self.close()
-
-    def update_selected_files(self, item, column):
-        checked = 0
-        num_items = 0
-
-        for (tree_item, change_desc) in self.filelist.iter_treeitem_and_desc():
-            if tree_item.checkState(0) == QtCore.Qt.Checked:
-                checked += 1
-            num_items += 1
-        self._ignore_select_all_changes = True
-        if checked == 0:
-            self.select_all_checkbox.setCheckState(QtCore.Qt.Unchecked)
-        elif checked == num_items:
-            self.select_all_checkbox.setCheckState(QtCore.Qt.Checked)
-        else:
-            self.select_all_checkbox.setCheckState(QtCore.Qt.PartiallyChecked)
-        self._ignore_select_all_changes = False
-
-    def select_all_files(self, state):
-        if self._ignore_select_all_changes:
-            return
-        if state == QtCore.Qt.PartiallyChecked:
-            self.select_all_checkbox.setCheckState(QtCore.Qt.Checked)
-            return
-
-        for (tree_item, change_desc) in self.filelist.iter_treeitem_and_desc():
-            tree_item.setCheckState(0, QtCore.Qt.CheckState(state))

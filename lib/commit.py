@@ -164,6 +164,7 @@ class CommitWindow(QBzrWindow):
         """An iterator for the WorkingTreeFileList widget"""
         # a word list for message completer
         words = set()
+        show_nonversioned = self.show_nonversioned_checkbox.isChecked()
 
         def in_selected_list(path):
             if not self.initial_selected_list:
@@ -182,10 +183,14 @@ class CommitWindow(QBzrWindow):
             is_versioned = self.filelist.is_changedesc_versioned(desc)
             path = self.filelist.get_changedesc_path(desc)
 
+            if not is_versioned and self.tree.is_ignored(path):
+                continue
+
+            visible = is_versioned or show_nonversioned
             check_state = None
             if not self.pending_merges:
-                check_state = is_versioned and in_selected_list(path)
-            yield desc, check_state
+                check_state = visible and is_versioned and in_selected_list(path)
+            yield desc, visible, check_state
 
             if is_versioned:
                 num_versioned_files += 1
@@ -216,15 +221,8 @@ class CommitWindow(QBzrWindow):
         self.basis_tree = self.tree.basis_tree()
         self.windows = []
         self.initial_selected_list = selected_list
+        splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
 
-        # To set focus on splitter below one need to pass
-        # second argument to constructor: self.centralwidget
-        # Try to be smart: if there is no saved message
-        # then set focus on Edit Area; otherwise on OK button.
-        if self.get_saved_message():
-            splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
-        else:
-            splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self.centralwidget)
         # function f_on_close will be invoked on closing window action
         self.f_on_close = self.save_message
 
@@ -232,16 +230,26 @@ class CommitWindow(QBzrWindow):
         splitter.addWidget(groupbox)
         grid = QtGui.QGridLayout(groupbox)
 
+        self.show_nonversioned_checkbox = QtGui.QCheckBox(
+            gettext("Show non-versioned files"))
+
         self.filelist = WorkingTreeFileList(groupbox, self.tree)
+        selectall_checkbox = QtGui.QCheckBox(
+                                gettext(self.filelist.SELECTALL_MESSAGE))
+        selectall_checkbox.setCheckState(QtCore.Qt.Checked)
+        self.filelist.set_selectall_checkbox(selectall_checkbox)
 
         tree.lock_read()
         try:
             self.collect_info()
+            if self.pending_merges:
+                selectall_checkbox.setEnabled(False)
             self.filelist.fill(self.iter_changes_and_state())
         finally:
             tree.unlock()
 
         self.filelist.setup_actions()
+
         # Equivalent for 'bzr commit --message'
         self.message = TextEdit(groupbox, main_window=self)
         self.message.setToolTip(gettext("Enter the commit message"))
@@ -339,28 +347,12 @@ class CommitWindow(QBzrWindow):
 
         vbox = QtGui.QVBoxLayout(groupbox)
         vbox.addWidget(self.filelist)
-        self.show_nonversioned_checkbox = QtGui.QCheckBox(
-            gettext("Show non-versioned files"))
         self.connect(self.show_nonversioned_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_nonversioned)
         vbox.addWidget(self.show_nonversioned_checkbox)
-        self._ignore_select_all_changes = False
-        self.select_all_checkbox = QtGui.QCheckBox(
-            gettext("Select / deselect all"))
-        self.select_all_checkbox.setTristate(True)
-        self.select_all_checkbox.setCheckState(QtCore.Qt.Checked)
-        if self.pending_merges:
-            self.select_all_checkbox.setEnabled(False)
-        self.connect(self.select_all_checkbox, QtCore.SIGNAL("stateChanged(int)"), self.select_all_files)
-        vbox.addWidget(self.select_all_checkbox)
+    
+        vbox.addWidget(selectall_checkbox)
 
         self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
-        self.show_nonversioned(self.show_nonversioned_checkbox.isChecked())
-
-        self.connect(self.filelist,
-                     QtCore.SIGNAL("itemChanged(QTreeWidgetItem *, int)"),
-                     self.update_selected_files)
-        if not self.pending_merges:
-            self.update_selected_files(None, None)
 
         splitter.setStretchFactor(0, 3)
         splitter.setStretchFactor(1, 4)
@@ -370,6 +362,13 @@ class CommitWindow(QBzrWindow):
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)
         vbox.addWidget(buttonbox)
+
+        # Try to be smart: if there is no saved message
+        # then set focus on Edit Area; otherwise on OK button.
+        if self.get_saved_message():
+            self.buttonbox.setFocus()
+        else:
+            self.message.setFocus()
 
     def enableBugs(self, state):
         if state == QtCore.Qt.Checked:
@@ -523,37 +522,8 @@ class CommitWindow(QBzrWindow):
         for (tree_item, change_desc) in self.filelist.iter_treeitem_and_desc(True):
             if change_desc[3] == (False, False):
                 tree_item.setHidden(state)
-        self.update_selected_files(None, None)
+        self.filelist.update_selectall_state(None, None)
 
     def closeEvent(self, event):
         self.f_on_close()   # either save_message or clear_saved_message
         return QBzrWindow.closeEvent(self, event)
-
-    def update_selected_files(self, item, column):
-        if self.pending_merges:
-            return
-        checked = 0
-        num_items = 0
-
-        for (tree_item, change_desc) in self.filelist.iter_treeitem_and_desc():
-            if tree_item.checkState(0) == QtCore.Qt.Checked:
-                checked += 1
-            num_items += 1
-        self._ignore_select_all_changes = True
-        if checked == 0:
-            self.select_all_checkbox.setCheckState(QtCore.Qt.Unchecked)
-        elif checked == num_items:
-            self.select_all_checkbox.setCheckState(QtCore.Qt.Checked)
-        else:
-            self.select_all_checkbox.setCheckState(QtCore.Qt.PartiallyChecked)
-        self._ignore_select_all_changes = False
-
-    def select_all_files(self, state):
-        if self._ignore_select_all_changes:
-            return
-        if state == QtCore.Qt.PartiallyChecked:
-            self.select_all_checkbox.setCheckState(QtCore.Qt.Checked)
-            return
-
-        for (tree_item, change_desc) in self.filelist.iter_treeitem_and_desc():
-            tree_item.setCheckState(0, QtCore.Qt.CheckState(state))

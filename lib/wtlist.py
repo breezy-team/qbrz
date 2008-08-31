@@ -35,8 +35,13 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 
 class WorkingTreeFileList(QtGui.QTreeWidget):
+
+    SELECTALL_MESSAGE = "Select / deselect all" # you must gettext() this!
+
     def __init__(self, parent, tree):
         QtGui.QTreeWidget.__init__(self, parent)
+        self._ignore_select_all_changes = False
+        self.selectall_checkbox = None # added by client.
         self.tree = tree
 
     def setup_actions(self):
@@ -76,6 +81,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         header.setResizeMode(1, QtGui.QHeaderView.ResizeToContents)
         header.setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
         self.setRootIsDecorated(False)
+        self._ignore_select_all_changes = True # don't update as we add items!
 
         # Each items_iter returns a tuple of (changes_tuple, is_checked)
         # Where changes_tuple is a single item from iter_changes():
@@ -85,13 +91,18 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         # Note that the current filter is used to determine if the items are
         # shown or not
         self.item_to_data = {}
-        for change_desc, checked in items_iter:
+        items = []
+        ivs = [] # work around the fact visibility seems to be ignored at creation
+        for change_desc, visible, checked in items_iter:
             (file_id, (path_in_source, path_in_target),
              changed_content, versioned, parent, name, kind,
              executable) = change_desc
 
             if versioned == (False, False):
-                status = gettext("non-versioned")
+                if self.tree.is_ignored(path_in_target):
+                    status = gettext("ignored")
+                else:
+                    status = gettext("non-versioned")
                 ext = file_extension(path_in_target)
                 name = path_in_target
             elif versioned == (False, True):
@@ -121,19 +132,31 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
                 else:
                     raise RuntimeError, "what status am I missing??"
 
-            item = QtGui.QTreeWidgetItem(self) # XXX - add at the end!
+            item = QtGui.QTreeWidgetItem()
             item.setText(0, name)
             item.setText(1, ext)
             item.setText(2, status)
+            items.append(item)
+            ivs.append((item, visible))
+
             if checked is None:
                 pass
             elif checked:
                 item.setCheckState(0, QtCore.Qt.Checked)
             else:
                 item.setCheckState(0, QtCore.Qt.Unchecked)
+            item.setHidden(not visible)
             self.item_to_data[item] = change_desc
+        # add them all to the tree in one hit.
+        self.insertTopLevelItems(0, items)
+        # for some reason the visibility doesn't work when added above??
+        for item, visible in ivs:
+            self.setItemHidden(item, not visible)
+        self._ignore_select_all_changes = False
+        if self.selectall_checkbox is not None:
+            self.update_selectall_state(None, None)
 
-    # iterators to help work with selected
+    # iterators to help work with the selection, checked items, etc
     def iter_treeitem_and_desc(self, include_hidden=False):
         for ti, desc in self.item_to_data.iteritems():
             if include_hidden or not ti.isHidden():
@@ -151,7 +174,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
             if not item.isHidden() and item.checkState(0) == QtCore.Qt.Checked:
                 yield self.item_to_data[item]
 
-    # Given bzr changedesc tuple, return is the item is 'versioned'
+    # Given bzr changedesc tuple, return if the item is 'versioned'
     @classmethod
     def is_changedesc_versioned(cls, desc):
         return desc[3] != (False, False)
@@ -216,4 +239,48 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
             self.topLevelWidget().windows.append(window)
             window.show()
 
+    # Helpers for a 'show all' checkbox.  Parent widgets must create the
+    # widget and pass it to us.
+    def set_selectall_checkbox(self, checkbox):
+        checkbox.setTristate(True)
+        self.selectall_checkbox = checkbox
+        parent = self.parentWidget()
+        parent.connect(self,
+                     QtCore.SIGNAL("itemChanged(QTreeWidgetItem *, int)"),
+                     self.update_selectall_state)
+        
+        parent.connect(checkbox, QtCore.SIGNAL("stateChanged(int)"),
+                                               self.selectall_changed)
 
+    # Update the state of the 'select all' checkbox to reflect the state
+    # of the items in the list.
+    def update_selectall_state(self, item, column):
+        if self._ignore_select_all_changes:
+            return
+        checked = 0
+        num_items = 0
+
+        for (tree_item, change_desc) in self.iter_treeitem_and_desc():
+            if tree_item.checkState(0) == QtCore.Qt.Checked:
+                checked += 1
+            num_items += 1
+        self._ignore_select_all_changes = True
+        if checked == 0:
+            self.selectall_checkbox.setCheckState(QtCore.Qt.Unchecked)
+        elif checked == num_items:
+            self.selectall_checkbox.setCheckState(QtCore.Qt.Checked)
+        else:
+            self.selectall_checkbox.setCheckState(QtCore.Qt.PartiallyChecked)
+        self._ignore_select_all_changes = False
+
+    def selectall_changed(self, state):
+        if self._ignore_select_all_changes or not self.selectall_checkbox.isEnabled():
+            return
+        if state == QtCore.Qt.PartiallyChecked:
+            self.selectall_checkbox.setCheckState(QtCore.Qt.Checked)
+            return
+
+        self._ignore_select_all_changes = True
+        for (tree_item, change_desc) in self.iter_treeitem_and_desc():
+            tree_item.setCheckState(0, QtCore.Qt.CheckState(state))
+        self._ignore_select_all_changes = False
