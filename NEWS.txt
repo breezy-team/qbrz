@@ -16,6 +16,10 @@
       location. Heads from different branches are labeled.
     * Pending merges are shown.
     * A refresh button has been added.
+ * qcommit
+    * ignored items no longer shown.
+ * qadd and qrevert:
+    * Added.
 
 0.9.3 - 2008-08-19
 ----------------------
