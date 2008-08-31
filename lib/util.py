@@ -513,17 +513,6 @@ def get_set_encoding(encoding, config):
         config.set_user_option("encoding", encoding)
     return encoding
 
-
-def get_qlog_replace(branch):
-    config = branch.get_config()
-    replace = config.get_user_option("qlog_replace")
-    if replace:
-        replace = replace.split("\n")
-        replace = [tuple(replace[2*i:2*i+2])
-                   for i in range(len(replace) // 2)]
-    return replace
-
-
 class RevisionMessageBrowser(QtGui.QTextBrowser):
 
     def setSource(self, uri):
@@ -603,3 +592,41 @@ class FilterOptions(object):
         elif status == 'renamed and modified':
             return self.renamed or self.modified
         raise ValueError('unknown status: %r' % status)
+
+def split_tokens_at_lines(tokens):
+    currentLine = []
+    for ttype, value in tokens:
+        vsplit = value.splitlines(True)
+        for v in vsplit:
+            currentLine.append((ttype, v))
+            if v.endswith(('\n','\r')):
+                yield currentLine
+                currentLine = []
+
+have_pygments = True
+try:
+    from pygments.styles import get_style_by_name
+except ImportError:
+    have_pygments = False
+
+if have_pygments:
+    style = get_style_by_name("default")
+
+def format_for_ttype(ttype, format):
+    if have_pygments and ttype:
+        font = format.font()
+        tstyle = style.style_for_token(ttype)
+        if tstyle['color']:
+            if isinstance(format, QtGui.QPainter):
+                format.setPen (QtGui.QColor("#"+tstyle['color']))
+            else:
+                format.setForeground (QtGui.QColor("#"+tstyle['color']))
+        if tstyle['bold']: font.setWeight(QtGui.QFont.Bold)
+        if tstyle['italic']: font.setItalic (True)
+        # Can't get this not to affect line height.
+        #if tstyle['underline']: format.setFontUnderline(True)
+        if tstyle['bgcolor']: format.setBackground (QtGui.QColor("#"+tstyle['bgcolor']))
+        # No way to set this for a QTextCharFormat
+        #if tstyle['border']: format.
+        format.setFont(font)
+    return format

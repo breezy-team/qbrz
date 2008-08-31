@@ -40,6 +40,7 @@ from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.wtlist import WorkingTreeFileList
 from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     BTN_OK,

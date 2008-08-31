@@ -60,6 +60,7 @@ from bzrlib.plugins.qbzr.lib.log import LogWindow
 from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
 from bzrlib.plugins.qbzr.lib.info import QBzrInfoWindow
 from bzrlib.plugins.qbzr.lib.revert import RevertWindow
+from bzrlib.plugins.qbzr.lib.subprocess import SubprocessProgress
 from bzrlib.plugins.qbzr.lib.pull import (
     QBzrPullWindow,
     QBzrPushWindow,
@@ -69,7 +70,6 @@ from bzrlib.plugins.qbzr.lib.pull import (
 from bzrlib.plugins.qbzr.lib.util import (
     FilterOptions,
     get_branch_config,
-    get_qlog_replace,
     get_set_encoding,
     is_valid_encoding,
     )
@@ -117,10 +117,7 @@ def report_missing_pyqt(unbound):
 
 
 def install_gettext(unbound):
-    """Decorator for q-commands run method to catch ImportError PyQt4
-    and show explanation to user instead of scary traceback.
-    See bugs: #240123, #163728
-    """
+    """Decorator for q-commands run method to enable gettext translations."""
     def run(self, *args, **kwargs):
         i18n.install()
         try:
@@ -131,6 +128,10 @@ def install_gettext(unbound):
 
 
 class QBzrCommand(Command):
+    """Base class for all q-commands.
+    NOTE: q-command should define method '_qbzr_run' instead of 'run' (as in
+    bzrlib).
+    """
 
     @install_gettext
     @report_missing_pyqt
@@ -149,9 +150,12 @@ class cmd_qannotate(QBzrCommand):
 
     def _qbzr_run(self, filename=None, revision=None, encoding=None):
         from bzrlib.annotate import _annotate_file
-        tree, relpath = WorkingTree.open_containing(filename)
-        branch = tree.branch
-        branch.lock_read()
+        wt, branch, relpath = \
+            BzrDir.open_containing_tree_or_branch(filename)
+        if wt is not None:
+            wt.lock_read()
+        else:
+            branch.lock_read()
         try:
             if revision is None:
                 revision_id = branch.last_revision()
@@ -159,10 +163,13 @@ class cmd_qannotate(QBzrCommand):
                 raise errors.BzrCommandError('bzr qannotate --revision takes exactly 1 argument')
             else:
                 revision_id = revision[0].in_history(branch).rev_id
-            file_id = tree.path2id(relpath)
+            tree = branch.repository.revision_tree(revision_id)
+            if wt is not None:
+                file_id = wt.path2id(relpath)
+            else:
+                file_id = tree.path2id(relpath)
             if file_id is None:
                 raise errors.NotVersionedError(filename)
-            tree = branch.repository.revision_tree(revision_id)
             entry = tree.inventory[file_id]
             if entry.kind != 'file':
                 return
@@ -330,43 +337,36 @@ class cmd_qdiff(QBzrCommand):
 
 
 class cmd_qlog(QBzrCommand):
-    """Show log of a branch, file, or directory in a Qt window.
+    """Show log of a repository, branch, file, or directory in a Qt window.
 
-    By default show the log of the branch containing the working directory."""
+    By default show the log of the branch containing the working directory.
+    
+    If multiple files are speciffied, they must be from the same branch.
+    Only one repository may be speciffied.
+    If multiple branches are speciffied, they must be from the same repository.
 
-    takes_args = ['location?']
+    :Examples:
+        Log the current branch::
+
+            bzr qlog
+
+        Log of files::
+
+            bzr qlog foo.c bar.c
+
+        Log from different branches::
+
+            bzr qlog ~/repo/branch1 ~/repo/branch2
+    """
+
+    takes_args = ['locations*']
     takes_options = []
 
-    def _qbzr_run(self, location=None):
-        file_id = None
-        if location:
-            dir, path = BzrDir.open_containing(location)
-            branch = dir.open_branch()
-            if path:
-                try:
-                    tree = dir.open_workingtree()
-                except (errors.NotBranchError, errors.NotLocalUrl):
-                    tree = branch.basis_tree()
-                file_id = tree.path2id(path)
-                if file_id is None:
-                    raise errors.BzrCommandError(
-                        "Path does not have any revision history: %s" %
-                        location)
-
-        else:
-            dir, path = BzrDir.open_containing('.')
-            branch = dir.open_branch()
-            location = urlutils.unescape_for_display(branch.base,
-                'utf-8').decode('utf-8')
-
+    def _qbzr_run(self, locations_list):
         app = QtGui.QApplication(sys.argv)
-        branch.lock_read()
-        try:
-            window = LogWindow(branch, location, file_id, get_qlog_replace(branch))
-            window.show()
-            app.exec_()
-        finally:
-            branch.unlock()
+        window = LogWindow(locations_list, None, None)
+        window.show()
+        app.exec_()
 
 
 class cmd_qconfig(QBzrCommand):
@@ -493,13 +493,21 @@ class cmd_merge(bzrlib.builtins.cmd_merge):
     __doc__ = bzrlib.builtins.cmd_merge.__doc__
 
     takes_options = bzrlib.builtins.cmd_merge.takes_options + [
-            Option('qpreview', help='Instead of merging, show a diff of the merge in a GUI window.')]
+            Option('qpreview', help='Instead of merging, '
+                'show a diff of the merge in a GUI window.'),
+            Option('encoding', type=check_encoding,
+                   help='Encoding of files content, used with --qpreview '
+                        '(default: utf-8)'),
+            ]
 
     def run(self, *args, **kw):
         self.qpreview = ('qpreview' in kw)
         if self.qpreview:
             kw['preview'] = kw['qpreview']
             del kw['qpreview']
+        self._encoding = kw.get('encoding')
+        if self._encoding:
+            del kw['encoding']
         bzrlib.builtins.cmd_merge.run(self, *args, **kw)
 
     @install_gettext
@@ -512,7 +520,8 @@ class cmd_merge(bzrlib.builtins.cmd_merge):
             result_tree = tt.get_preview_tree()
             
             application = QtGui.QApplication(sys.argv)
-            window = DiffWindow(merger.this_tree, result_tree)
+            window = DiffWindow(merger.this_tree, result_tree,
+                encoding=self._encoding)
             window.show()
             application.exec_()
         finally:
@@ -551,67 +560,6 @@ class cmd_qbzr(QBzrCommand):
         window.setDirectory(osutils.realpath(u'.'))
         window.show()
         app.exec_()
-
-
-class SubprocessChildProgress(progress._BaseProgressBar):
-
-    def __init__(self, _stack, **kwargs):
-        super(SubprocessChildProgress, self).__init__(_stack=_stack, **kwargs)
-        self.parent = _stack.top()
-        self.message = None
-        self.current = 0
-        self.total = 0
-
-    def tick(self, messages, progress):
-        self.parent.child_update(messages, progress)
-
-    def child_update(self, messages, progress):
-        if self.current is not None and self.total:
-            progress = (self.current + progress) / self.total
-        else:
-            progress = 0.0
-        if self.message:
-            messages = [self.message] + messages
-        self.tick(messages, progress)
-
-    def update(self, message, current=None, total=None):
-        if current is not None:
-            if total is not None:
-                self.message = '%s (%s/%s)' % (message, current, total)
-            else:
-                self.message = '%s (%s)' % (message, current)
-        else:
-            self.message = message
-        self.current = current
-        self.total = total
-        self.child_update([], 0.0)
-
-    def clear(self):
-        pass
-
-    def note(self, *args, **kwargs):
-        self.parent.note(*args, **kwargs)
-
-    def child_progress(self, **kwargs):
-        return SubprocessChildProgress(**kwargs)
-
-
-class SubprocessProgress(SubprocessChildProgress):
-
-    def __init__(self, **kwargs):
-        super(SubprocessProgress, self).__init__(**kwargs)
-
-    def _report(self, progress, messages=()):
-        data = int(progress * 1000000), messages
-        sys.stdout.write('qbzr:PROGRESS:' + bencode.bencode(data) + '\n')
-        sys.stdout.flush()
-
-    def tick(self, messages, progress):
-        self._report(progress, messages)
-
-    def finished(self):
-        self._report(1.0)
-
 
 class cmd_qsubprocess(Command):
 

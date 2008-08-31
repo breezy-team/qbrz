@@ -28,6 +28,7 @@ from bzrlib.revisionspec import RevisionSpec
 from bzrlib.urlutils import unescape_for_display
 
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
+from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.log import LogWindow
 from bzrlib.plugins.qbzr.lib.util import (
@@ -35,7 +36,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     extract_name,
     format_timestamp,
-    get_qlog_replace,
     )
 
 
@@ -85,6 +85,7 @@ class BrowseWindow(QBzrWindow):
 
         self.context_menu = QtGui.QMenu(self.file_tree)
         self.context_menu.addAction(gettext("Show log..."), self.show_file_log)
+        self.context_menu.addAction(gettext("Annotate"), self.show_file_annotate)
         self.context_menu.setDefaultAction(
             self.context_menu.addAction(gettext("View file"),
                                         self.show_file_content))
@@ -133,8 +134,7 @@ class BrowseWindow(QBzrWindow):
             self.items.append((item, child.revision))
         return revs
 
-    def show_file_content(self):
-        """Launch qcat for one selected file."""
+    def get_current_path(self):
         # Get selected item.
         item = self.file_tree.currentItem()
         if item == None: return
@@ -147,7 +147,11 @@ class BrowseWindow(QBzrWindow):
             parent = parent.parent()
         path_parts.append('.')      # IMO with leading ./ path looks better
         path_parts.reverse()
-        path = pathjoin(*path_parts)
+        return pathjoin(*path_parts)
+    
+    def show_file_content(self):
+        """Launch qcat for one selected file."""
+        path = self.get_current_path()
 
         tree = self.branch.repository.revision_tree(self.revision_id)
 
@@ -161,27 +165,26 @@ class BrowseWindow(QBzrWindow):
 
     def show_file_log(self):
         """Show qlog for one selected file."""
-        # Get selected item.
-        item = self.file_tree.currentItem()
-        if item == None: return
-
-        # Build full item path.
-        path_parts = [unicode(item.text(0))]
-        parent = item.parent()
-        while parent is not None:
-            path_parts.append(unicode(parent.text(0)))
-            parent = parent.parent()
-        path_parts.append('.')      # IMO with leading ./ path looks better
-        path_parts.reverse()
-        path = pathjoin(*path_parts)
+        path = self.get_current_path()
 
         branch = self.branch
         file_id = branch.basis_tree().path2id(path)
 
-        window = LogWindow(branch, path, file_id, get_qlog_replace(branch))
+        window = LogWindow(path, branch, [file_id])
         window.show()
         self.windows.append(window)
+    
+    def show_file_annotate(self):
+        """Show qannotate for selected file."""
+        path = self.get_current_path()
 
+        branch = self.branch
+        tree = self.branch.repository.revision_tree(self.revision_id)
+        file_id = tree.path2id(path)
+        window = AnnotateWindow(branch, tree, path, file_id)
+        window.show()
+        self.windows.append(window)
+    
     def set_revision(self, revspec=None, revision_id=None, text=None):
         branch = self.branch
         branch.lock_read()
