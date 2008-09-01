@@ -94,9 +94,8 @@ class RevertWindow(QBzrWindow):
 
         for desc in self.tree.iter_changes(self.tree.basis_tree()):
             assert self.filelist.is_changedesc_modified(desc), "expecting only modified!"
-
-            pis, pit = desc[1]
-            check_state = in_selected_list(pit)
+            path = self.filelist.get_changedesc_path(desc)
+            check_state = in_selected_list(path)
             yield desc, True, check_state
 
     def accept(self):
