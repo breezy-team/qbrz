@@ -189,7 +189,7 @@ class QBzrWindow(QtGui.QMainWindow):
     def __init__(self, title=[], parent=None):
         QtGui.QMainWindow.__init__(self, parent)
 
-        self.setWindowTitle(" - ".join(["QBzr"] + title))
+        self.setWindowTitle(" - ".join(title))
         icon = QtGui.QIcon()
         icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
         icon.addFile(":/bzr-32.png", QtCore.QSize(32, 32))
