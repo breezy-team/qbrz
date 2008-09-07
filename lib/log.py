@@ -18,10 +18,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.bzrdir import (
-    BzrDir,
-    errors,
-    )
+from bzrlib.bzrdir import BzrDir
+from bzrlib import errors
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -284,9 +282,34 @@ def load_locataions(locations_list):
                 raise errors.BzrCommandError(paths_and_branches_err)
         return main_branch
     
+    # This is copied stright from bzrlib/bzrdir.py. We can't just use the orig,
+    # because that would mean we require bzr 1.6
+    def open_containing_tree_branch_or_repository(location):
+        """Return the working tree, branch and repo contained by a location.
+
+        Returns (tree, branch, repository, relpath).
+        If there is no tree containing the location, tree will be None.
+        If there is no branch containing the location, branch will be None.
+        If there is no repository containing the location, repository will be
+        None.
+        relpath is the portion of the path that is contained by the innermost
+        BzrDir.
+
+        If no tree, branch or repository is found, a NotBranchError is raised.
+        """
+        bzrdir, relpath = BzrDir.open_containing(location)
+        try:
+            tree, branch = bzrdir._get_tree_branch()
+        except errors.NotBranchError:
+            try:
+                repo = bzrdir.find_repository()
+                return None, None, repo, relpath
+            except (errors.NoRepositoryPresent):
+                raise errors.NotBranchError(location)
+        return tree, branch, branch.repository, relpath
+    
     for location in locations:
-        tree, br, repo, fp = BzrDir.open_containing_tree_branch_or_repository(
-            location)
+        tree, br, repo, fp = open_containing_tree_branch_or_repository(location)
         
         if len(locations) == 1:
             if br == None:
