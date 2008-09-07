@@ -295,6 +295,14 @@ class GraphModel(QtCore.QAbstractTableModel):
                     
                     if changed:
                         self.touches_file_msri.append(rev_msri)
+                        # Check if the revision that merges this is visible.
+                        # If not, make this revisions branch visible.
+                        if rev_msri in self.merged_by and \
+                           self.merged_by[rev_msri] not in \
+                           self.touches_file_msri:
+                            branch_id = revno_sequence[0:-1]
+                            self.branch_lines[branch_id][1] = True
+                        
                         index = self.createIndex (rev_msri, 0, QtCore.QModelIndex())
                         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                                   index,index)
@@ -605,7 +613,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                                 children_with_sprout_lines[child_msri] = True
                                 if child_msri in msri_index:
                                     child_index = msri_index[child_msri]
-                                append_line(child_index, rev_index, False)
+                                    append_line(child_index, rev_index, False)
                 
                 # Find a column for this branch.
                 #
@@ -1047,13 +1055,13 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
     def _filterAcceptsRowIfBranchVisible(self, source_row, source_parent):
         sm = self.sm()
         
-        for parent_msri in sm.msri_merges[source_row]:
-            if self.filterAcceptsRowIfBranchVisible(parent_msri, source_parent):
-                return True
-        
         if sm.touches_file_msri is not None:
             if source_row not in sm.touches_file_msri:
                 return False
+        
+        for parent_msri in sm.msri_merges[source_row]:
+            if self.filterAcceptsRowIfBranchVisible(parent_msri, source_parent):
+                return True
         
         if self.search_matching_revid is not None:
             (sequence_number,
