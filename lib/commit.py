@@ -366,7 +366,7 @@ class CommitWindow(QBzrWindow):
         # Try to be smart: if there is no saved message
         # then set focus on Edit Area; otherwise on OK button.
         if self.get_saved_message():
-            self.buttonbox.setFocus()
+            buttonbox.setFocus()
         else:
             self.message.setFocus()
 
