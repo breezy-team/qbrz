@@ -264,10 +264,12 @@ class GraphModel(QtCore.QAbstractTableModel):
                             
                 self.msri_merges[msri] = merges
             
+            if specific_fileids:
+                self.touches_file_msri = []
+            
             self.emit(QtCore.SIGNAL("layoutChanged()"))
             
             if specific_fileids:
-                self.touches_file_msri = []
                 try:
                     branch.repository.texts.get_parent_map([])
                     use_texts = True
