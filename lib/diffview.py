@@ -360,6 +360,9 @@ class SidebySideDiffView(QtGui.QSplitter):
                         
                         cursors[0].insertText(texts[0][i0:i1],format)
                         cursors[1].insertText(texts[1][j0:j1],format)
+                    
+                    for cursor in cursors:
+                        cursor.setCharFormat (self.monospacedFormat)
 
             
             for i, group in enumerate(groups):
