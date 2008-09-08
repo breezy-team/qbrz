@@ -59,7 +59,7 @@ class UpdateBranchWindow(SubProcessDialog):
         while self.ui.location.count():
             self.ui.location.removeItem(0)
 
-        fill_pull_combo(self.ui.location, branch)
+        fill_pull_combo(self.ui.location, self.branch)
 
         self.connect(self.ui.but_pull, QtCore.SIGNAL("toggled(bool)"),
                      self.pull_toggled)
