@@ -19,6 +19,7 @@
 
 from PyQt4 import QtGui, QtCore
 
+import re
 from bzrlib import timestamp
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -310,19 +311,24 @@ class SidebySideDiffView(QtGui.QSplitter):
                 elif not tag == "equal":
                     format.setBackground(brushes[tag][0])
             
+            split_words = re.compile("\W|\w+")
             def insertIxsWithChangesHighlighted(ixs):
                 texts = ["".join(l[ix[0]:ix[1]]) for l, ix in zip(lines, ixs)]
                 if use_pygments:
-                    groups = ([], [])
                     # This is what the pygments lexer does, so we need to do the
                     # same incase we have \r\n line endings.
                     texts = ["\n".join(t.splitlines()) for t in texts]
+                
+                texts = [split_words.findall(t) for t in texts]
+                
+                if use_pygments:
+                    groups = ([], [])
                     for tag, i0, i1, j0, j1 in SequenceMatcher(None,
                                                                 tuple(texts[0]),
                                                                 tuple(texts[1]),
                                                                 ).get_opcodes():
-                        groups[0].append((tag, i1 - i0))
-                        groups[1].append((tag, j1 - j0))
+                        groups[0].append((tag, len("".join(texts[0][i0:i1]))))
+                        groups[1].append((tag, len("".join(texts[1][j0:j1]))))
                     for cursor, ls, ix, g in zip(cursors, display_lines, ixs, groups):
                         tag, n = g.pop(0)
                         for l in ls[ix[0]:ix[1]]:
@@ -358,8 +364,8 @@ class SidebySideDiffView(QtGui.QSplitter):
                         format.setFont(self.monospacedFont)
                         modifyFormatForTag(format, tag)
                         
-                        cursors[0].insertText(texts[0][i0:i1],format)
-                        cursors[1].insertText(texts[1][j0:j1],format)
+                        cursors[0].insertText("".join(texts[0][i0:i1]),format)
+                        cursors[1].insertText("".join(texts[1][j0:j1]),format)
                     
                     for cursor in cursors:
                         cursor.setCharFormat (self.monospacedFormat)
