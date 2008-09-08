@@ -20,6 +20,14 @@
     * ignored items no longer shown.
  * qadd and qrevert:
     * Added.
+ * qgetnew
+    * New 'hybrid' command to fetch a new working tree.  The dialog allows
+      you to choose if you want to 'branch' or 'checkout' the source.
+ * qgetupdates
+   *  new 'hybrid' command to update a working tree: involves 2 dialogs,
+      one shown if the tree is a checkout, and the other if it is a branch.
+
+and qgetupdates:
 
 0.9.3 - 2008-08-19
 ----------------------
