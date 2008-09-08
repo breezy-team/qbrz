@@ -24,6 +24,7 @@ def load_tests(basic_tests, module, loader):
         #'test_diffview', - broken by API changes
         'test_extra_isignored',
         'test_extra_isversioned',
+        'test_logmodel',
         'test_spellcheck',
         'test_util',
     ]
