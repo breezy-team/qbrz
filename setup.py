@@ -29,7 +29,7 @@ setup(name='qbzr',
       author_email='lalinsky@gmail.com',
       package_dir={'bzrlib.plugins.qbzr': '.'},
       package_data={'bzrlib.plugins.qbzr': ['locale/*/LC_MESSAGES/qbzr.mo']},
-      packages=['bzrlib.plugins.qbzr', 'bzrlib.plugins.qbzr.lib'],
+      packages=['bzrlib.plugins.qbzr', 'bzrlib.plugins.qbzr.lib', 'bzrlib.plugins.qbzr.lib.extra'],
       ext_modules=ext_modules,
       cmdclass=cmdclass,
 )
