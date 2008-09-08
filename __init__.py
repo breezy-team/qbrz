@@ -67,6 +67,9 @@ register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpush', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrevert', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsubprocess', [])
 
+register_command_lazy('bzrlib.plugins.qbzr.lib.extra.isignored', 'cmd_is_ignored', [])
+register_command_lazy('bzrlib.plugins.qbzr.lib.extra.isversioned', 'cmd_is_versioned', [])
+
 
 def load_tests(basic_tests, module, loader):
     from bzrlib.plugins.qbzr.lib.tests import load_tests

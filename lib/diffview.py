@@ -318,8 +318,8 @@ class SidebySideDiffView(QtGui.QSplitter):
                     # same incase we have \r\n line endings.
                     texts = ["\n".join(t.splitlines()) for t in texts]
                     for tag, i0, i1, j0, j1 in SequenceMatcher(None,
-                                                                texts [0],
-                                                                texts [1],
+                                                                tuple(texts[0]),
+                                                                tuple(texts[1]),
                                                                 ).get_opcodes():
                         groups[0].append((tag, i1 - i0))
                         groups[1].append((tag, j1 - j0))
@@ -351,8 +351,8 @@ class SidebySideDiffView(QtGui.QSplitter):
                                             n = len(value)
                 else:
                     for tag, i0, i1, j0, j1 in SequenceMatcher(None,
-                                                               texts[0],
-                                                               texts[1],
+                                                               tuple(texts[0]),
+                                                               tuple(texts[1]),
                                                                ).get_opcodes():
                         format = QtGui.QTextCharFormat()
                         format.setFont(self.monospacedFont)
@@ -360,6 +360,9 @@ class SidebySideDiffView(QtGui.QSplitter):
                         
                         cursors[0].insertText(texts[0][i0:i1],format)
                         cursors[1].insertText(texts[1][j0:j1],format)
+                    
+                    for cursor in cursors:
+                        cursor.setCharFormat (self.monospacedFormat)
 
             
             for i, group in enumerate(groups):

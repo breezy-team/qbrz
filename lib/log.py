@@ -18,10 +18,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.bzrdir import (
-    BzrDir,
-    errors,
-    )
+from bzrlib.bzrdir import BzrDir
+from bzrlib import errors
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -35,6 +33,13 @@ from bzrlib.plugins.qbzr.lib.util import (
     open_browser,
     RevisionMessageBrowser,
     )
+
+have_search = True
+try:
+    from bzrlib.plugins.search import errors as search_errors
+    from bzrlib.plugins.search import index as search_index
+except ImportError:
+    have_search = False
 
 PathRole = QtCore.Qt.UserRole + 1
 
@@ -216,6 +221,9 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
         
         return QtGui.QItemDelegate.drawDisplay(self, painter, option, rect, text)
 
+class Compleater(QtGui.QCompleter):
+    def splitPath (self, path):
+        return QtCore.QStringList([path.split(" ")[-1]])
 
 def load_locataions(locations_list):
     if locations_list is None:
@@ -274,9 +282,34 @@ def load_locataions(locations_list):
                 raise errors.BzrCommandError(paths_and_branches_err)
         return main_branch
     
+    # This is copied stright from bzrlib/bzrdir.py. We can't just use the orig,
+    # because that would mean we require bzr 1.6
+    def open_containing_tree_branch_or_repository(location):
+        """Return the working tree, branch and repo contained by a location.
+
+        Returns (tree, branch, repository, relpath).
+        If there is no tree containing the location, tree will be None.
+        If there is no branch containing the location, branch will be None.
+        If there is no repository containing the location, repository will be
+        None.
+        relpath is the portion of the path that is contained by the innermost
+        BzrDir.
+
+        If no tree, branch or repository is found, a NotBranchError is raised.
+        """
+        bzrdir, relpath = BzrDir.open_containing(location)
+        try:
+            tree, branch = bzrdir._get_tree_branch()
+        except errors.NotBranchError:
+            try:
+                repo = bzrdir.find_repository()
+                return None, None, repo, relpath
+            except (errors.NoRepositoryPresent):
+                raise errors.NotBranchError(location)
+        return tree, branch, branch.repository, relpath
+    
     for location in locations:
-        tree, br, repo, fp = BzrDir.open_containing_tree_branch_or_repository(
-            location)
+        tree, br, repo, fp = open_containing_tree_branch_or_repository(location)
         
         if len(locations) == 1:
             if br == None:
@@ -347,7 +380,6 @@ class LogWindow(QBzrWindow):
         self.changesProxyModel.setDynamicSortFilter(True)
         self.changesModel.setGraphFilterProxyModel(self.changesProxyModel)
         
-
         logwidget = QtGui.QWidget()
         logbox = QtGui.QVBoxLayout(logwidget)
         logbox.setContentsMargins(0, 0, 0, 0)
@@ -356,7 +388,6 @@ class LogWindow(QBzrWindow):
 
         self.search_label = QtGui.QLabel(gettext("&Search:"))
         self.search_edit = QtGui.QLineEdit()
-        self.old_filter_str = self.search_edit.text()
         self.search_label.setBuddy(self.search_edit)
         self.connect(self.search_edit, QtCore.SIGNAL("textEdited(QString)"),
                      self.set_search_timer)
@@ -370,6 +401,29 @@ class LogWindow(QBzrWindow):
         searchbox.addWidget(self.search_edit)
 
         self.searchType = QtGui.QComboBox()
+            
+        self.index = None
+        if have_search:
+            try:
+                self.index = search_index.open_index_branch(self.branch)
+                self.changesProxyModel.setSearchIndex(self.index)
+                self.searchType.insertItem(0,
+                                           gettext("Messages and File text (indexed)"),
+                                           QtCore.QVariant(logmodel.FilterSearchRole))
+                
+                self.completer = Compleater(self)
+                self.completer_model = QtGui.QStringListModel(self)
+                self.completer.setModel(self.completer_model)
+                self.search_edit.setCompleter(self.completer)
+                self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
+                             self.update_search_completer)
+                self.suggestion_letters_loaded = {"":QtCore.QStringList()}
+                self.suggestion_last_first_letter = ""
+                self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
+                             self.set_search_timer)
+            except search_errors.NoSearchIndex:
+                pass
+        
         self.searchType.addItem(gettext("Messages"),
                                 QtCore.QVariant(logmodel.FilterMessageRole))
         self.searchType.addItem(gettext("Authors"),
@@ -382,7 +436,6 @@ class LogWindow(QBzrWindow):
         self.connect(self.searchType,
                      QtCore.SIGNAL("currentIndexChanged(int)"),
                      self.updateSearchType)
-        self.old_filter_role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
 
         logbox.addLayout(searchbox)
 
@@ -614,10 +667,10 @@ class LogWindow(QBzrWindow):
         # TODO in_paths = self.search_in_paths.isChecked()
         role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
         search_text = self.search_edit.text()
-        has_search = search_text.length() > 0
         search_mode = not role == logmodel.FilterIdRole and \
                       not role == logmodel.FilterRevnoRole and \
-                      has_search
+                      not role == logmodel.FilterSearchRole and \
+                      search_text.length() > 0
         self.changesModel.set_search_mode(search_mode)
         if role == logmodel.FilterIdRole:
             self.changesProxyModel.setFilter(u"", self.old_filter_role)
@@ -642,6 +695,29 @@ class LogWindow(QBzrWindow):
                 self.changesList.setCurrentIndex(index)
         else:
             self.changesProxyModel.setFilter(self.search_edit.text(), role)
+    
+    
+    def update_search_completer(self, text):
+        # We only load the suggestions a letter at a time when needed.
+        term = str(text).split(" ")[-1]
+        if term:
+            first_letter = term[0]
+        else:
+            first_letter = ""
+        
+        if first_letter != self.suggestion_last_first_letter:
+            self.suggestion_last_first_letter = first_letter
+            if first_letter not in self.suggestion_letters_loaded:
+                suggestions = QtCore.QStringList() 
+                for s in self.index.suggest(((first_letter,),)): 
+                    #if suggestions.count() % 100 == 0: 
+                    #    QtCore.QCoreApplication.processEvents() 
+                    suggestions.append(s[0])
+                suggestions.sort()
+                self.suggestion_letters_loaded[first_letter] = suggestions
+            else:
+                suggestions = self.suggestion_letters_loaded[first_letter]
+            self.completer_model.setStringList(suggestions)
     
     def closeEvent (self, QCloseEvent):
         self.changesModel.closing = True

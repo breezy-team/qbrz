@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 #
-# QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2008 Lukáš Lalinský <lalinsky@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
@@ -17,17 +16,19 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+from bzrlib.tests import TestCaseWithTransport, KnownFailure
 
-def load_tests(basic_tests, module, loader):
-    testmod_names = [
-        'test_autocomplete',
-        #'test_diffview', - broken by API changes
-        'test_extra_isignored',
-        'test_extra_isversioned',
-        'test_logmodel',
-        'test_spellcheck',
-        'test_util',
-    ]
-    basic_tests.addTests(loader.loadTestsFromModuleNames(
-        ["%s.%s" % (__name__, name) for name in testmod_names]))
-    return basic_tests
+class TestIsIgnored(TestCaseWithTransport):
+
+    def test_is_ignored(self):
+        tree = self.make_branch_and_tree('.')
+        self.build_tree_contents([('a', 'foo\n'), ('b', 'bar\n'), ('.bzrignore', 'b\n')])
+        tree.add(['a', '.bzrignore'])
+        out, err = self.run_bzr('is-ignored b', retcode=1)
+        self.assertEquals('ignored\n', out)
+        out, err = self.run_bzr('is-ignored a', retcode=0)
+        self.assertEquals('not ignored\n', out)
+        out, err = self.run_bzr('is-ignored -q b', retcode=1)
+        self.assertEquals('', out)
+        out, err = self.run_bzr('is-ignored -q a', retcode=0)
+        self.assertEquals('', out)
