@@ -42,17 +42,18 @@ class UpdateBranchWindow(SubProcessDialog):
 
     TITLE = N_("Update Branch")
     NAME = "update_branch"
+    DEFAULT_SIZE = (100, 100)
 
     def __init__(self, branch, parent=None):
         self.branch = branch
         SubProcessDialog.__init__(self,
                                   self.TITLE,
                                   name = self.NAME,
-                                  default_size = None,
+                                  default_size = self.DEFAULT_SIZE,
                                   parent = parent)
 
     def create_ui(self, parent):
-        ui_widget = QtGui.QGroupBox(parent)
+        ui_widget = QtGui.QWidget(parent)
         self.ui = Ui_UpdateBranchForm()
         self.ui.setupUi(ui_widget)
         # nuke existing items in the combo.
@@ -103,17 +104,18 @@ class UpdateCheckoutWindow(SubProcessDialog):
 
     TITLE = N_("Update Checkout")
     NAME = "update_checkout"
+    DEFAULT_SIZE = (100, 100)
 
     def __init__(self, branch, parent=None):
         self.branch = branch
         SubProcessDialog.__init__(self,
                                   self.TITLE,
                                   name = self.NAME,
-                                  default_size = None,
+                                  default_size = self.DEFAULT_SIZE,
                                   parent = parent)
 
     def create_ui(self, parent):
-        ui_widget = QtGui.QGroupBox(parent)
+        ui_widget = QtGui.QWidget(parent)
         self.ui = Ui_UpdateCheckoutForm()
         self.ui.setupUi(ui_widget)
         # nuke existing items in the combo.

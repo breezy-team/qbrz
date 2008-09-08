@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/new_tree.ui'
 #
-# Created: Mon Sep 08 16:37:30 2008
-#      by: PyQt4 UI code generator 4.4.2
+# Created: Mon Sep  8 16:06:08 2008
+#      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -14,8 +14,9 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 class Ui_NewWorkingTreeForm(object):
     def setupUi(self, NewWorkingTreeForm):
         NewWorkingTreeForm.setObjectName("NewWorkingTreeForm")
-        NewWorkingTreeForm.resize(435, 391)
+        NewWorkingTreeForm.resize(479, 428)
         self.verticalLayout = QtGui.QVBoxLayout(NewWorkingTreeForm)
+        self.verticalLayout.setMargin(0)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBox = QtGui.QGroupBox(NewWorkingTreeForm)
         self.groupBox.setObjectName("groupBox")
@@ -110,7 +111,6 @@ class Ui_NewWorkingTreeForm(object):
         QtCore.QMetaObject.connectSlotsByName(NewWorkingTreeForm)
 
     def retranslateUi(self, NewWorkingTreeForm):
-        NewWorkingTreeForm.setWindowTitle(gettext("Create a new Bazaar Working Tree"))
         self.groupBox.setTitle(gettext("Branch"))
         self.label_4.setText(gettext("Branch source (enter a URL or select a local directory with an exiting branch)"))
         self.from_picker.setText(gettext("Browse..."))

@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/update_checkout.ui'
 #
-# Created: Mon Sep 08 10:33:48 2008
-#      by: PyQt4 UI code generator 4.4.2
+# Created: Mon Sep  8 16:11:40 2008
+#      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -14,8 +14,9 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 class Ui_UpdateCheckoutForm(object):
     def setupUi(self, UpdateCheckoutForm):
         UpdateCheckoutForm.setObjectName("UpdateCheckoutForm")
-        UpdateCheckoutForm.resize(436, 171)
+        UpdateCheckoutForm.resize(317, 170)
         self.verticalLayout = QtGui.QVBoxLayout(UpdateCheckoutForm)
+        self.verticalLayout.setMargin(0)
         self.verticalLayout.setObjectName("verticalLayout")
         self.label = QtGui.QLabel(UpdateCheckoutForm)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
@@ -47,6 +48,7 @@ class Ui_UpdateCheckoutForm(object):
         sizePolicy.setHeightForWidth(self.location.sizePolicy().hasHeightForWidth())
         self.location.setSizePolicy(sizePolicy)
         self.location.setEditable(True)
+        self.location.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToMinimumContentsLength)
         self.location.setObjectName("location")
         self.gridLayout.addWidget(self.location, 2, 1, 1, 1)
         self.location_picker = QtGui.QPushButton(self.groupBox)
@@ -65,7 +67,6 @@ class Ui_UpdateCheckoutForm(object):
         QtCore.QMetaObject.connectSlotsByName(UpdateCheckoutForm)
 
     def retranslateUi(self, UpdateCheckoutForm):
-        UpdateCheckoutForm.setWindowTitle(gettext("Update Bazaar Checkout"))
         self.label.setText(gettext("This directory is a checkout of: %s"))
         self.groupBox.setTitle(gettext("Update source"))
         self.but_update.setText(gettext("Update the working tree from the bound branch"))

@@ -40,17 +40,18 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
 
     TITLE = N_("Create a new Bazaar Working Tree")
     NAME = "new_tree"
+    DEFAULT_SIZE = (100, 100)
 
     def __init__(self, to_location, parent=None):
         self.to_location = os.path.abspath(to_location)
         SubProcessDialog.__init__(self,
                                   self.TITLE,
                                   name = self.NAME,
-                                  default_size = None,
+                                  default_size = self.DEFAULT_SIZE,
                                   parent = parent)
 
     def create_ui(self, parent):
-        ui_widget = QtGui.QGroupBox(parent)
+        ui_widget = QtGui.QWidget(parent)
         self.ui = Ui_NewWorkingTreeForm()
         self.ui.setupUi(ui_widget)
         fill_pull_combo(self.ui.from_location, None)

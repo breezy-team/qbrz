@@ -129,6 +129,7 @@ class QBzrPushWindow(QBzrPullWindow):
         location = str(self.ui.location.currentText())
         self.process_widget.start('push', location, *args)
 
+
 class QBzrBranchWindow(QBzrPullWindow):
 
     TITLE = N_("Branch")

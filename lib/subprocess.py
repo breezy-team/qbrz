@@ -88,8 +88,8 @@ class SubProcessDialog(QBzrDialog):
         if self.process_widget.is_running():
             self.process_widget.abort()
         else:
-            self.done(QtGui.QDialog.Rejected)
-    
+            self.close()
+
     def finished(self):
         #self.done(QtGui.QDialog.Accepted)
         self.okButton.setDisabled(False)

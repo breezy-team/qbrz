@@ -1,18 +1,18 @@
 <ui version="4.0" >
  <class>UpdateCheckoutForm</class>
- <widget class="QDialog" name="UpdateCheckoutForm" >
+ <widget class="QWidget" name="UpdateCheckoutForm" >
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>436</width>
-    <height>171</height>
+    <width>317</width>
+    <height>170</height>
    </rect>
   </property>
-  <property name="windowTitle" >
-   <string>Update Bazaar Checkout</string>
-  </property>
   <layout class="QVBoxLayout" name="verticalLayout" >
+   <property name="margin" >
+    <number>0</number>
+   </property>
    <item>
     <widget class="QLabel" name="label" >
      <property name="sizePolicy" >
@@ -78,6 +78,9 @@
         </property>
         <property name="editable" >
          <bool>true</bool>
+        </property>
+        <property name="sizeAdjustPolicy" >
+         <enum>QComboBox::AdjustToMinimumContentsLength</enum>
         </property>
        </widget>
       </item>
