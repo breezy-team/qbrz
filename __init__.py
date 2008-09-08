@@ -58,6 +58,7 @@ register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qcommit', ['qci']
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qconfig', ['qconfigure'])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qdiff', ['qdi'])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetupdates', ['qgetu'])
+register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetnew', ['qgetn'])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinfo', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qlog', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qmerge', [])
