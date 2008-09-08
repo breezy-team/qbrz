@@ -265,7 +265,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                 self.msri_merges[msri] = merges
             
             if specific_fileids:
-                self.touches_file_msri = []
+                self.touches_file_msri = {}
             
             self.emit(QtCore.SIGNAL("layoutChanged()"))
             
@@ -281,11 +281,24 @@ class GraphModel(QtCore.QAbstractTableModel):
                                             branch.repository.get_transaction())
                         weave_modifed_revisions.update(set(file_weave.versions()))
                 
-                for rev_msri, (sequence_number,
-                               revid,
-                               merge_depth,
-                               revno_sequence,
-                               end_of_merge) in enumerate(self.merge_sorted_revisions):
+                ancestry = {}
+                branches_that_are_merges = {}
+                
+                def is_merging_rev(r):
+                    parents = self.graph_parents[r]
+                    if len(parents) > 1:
+                        leftparent = parents[0]
+                        for rightparent in parents[1:]:
+                            if not ancestry[leftparent].issuperset(
+                                    ancestry[rightparent]):
+                                return True
+                    return False
+                
+                for i, (sequence_number,
+                        revid,
+                        merge_depth,
+                        revno_sequence,
+                        end_of_merge) in enumerate(reversed(self.merge_sorted_revisions)):
                     if use_texts:
                         text_keys = [(specific_fileid, revid) for specific_fileid in specific_fileids]
                         modified_text_versions = branch.repository.texts.get_parent_map(text_keys)
@@ -293,17 +306,49 @@ class GraphModel(QtCore.QAbstractTableModel):
                     else:
                         changed = revid in weave_modifed_revisions
                     
-                    if changed:
-                        self.touches_file_msri.append(rev_msri)
+                    parents = self.graph_parents[revid]
+                    if not changed and len(parents) == 1:
+                        # We will not be adding anything new, so just use a reference to
+                        # the parent ancestry.
+                        rev_ancestry = ancestry[parents[0]]
+                    else:
+                        rev_ancestry = set()
+                        if changed:
+                            rev_ancestry.add(revid)
+                        for parent in parents:
+                            if parent not in ancestry:
+                                # parent is a Ghost, which won't be present in
+                                # sorted_rev_list, but we may access it later, so create an
+                                # empty node for it
+                                ancestry[parent] = set()
+                            rev_ancestry = rev_ancestry.union(ancestry[parent])
+                    ancestry[revid] = rev_ancestry
+                    
+                    if changed or is_merging_rev(revid):
+                        rev_msri = self.revid_msri[revid]
+                        self.touches_file_msri[rev_msri] = True
+                        # Make the branch visible. Later, if we find a rev
+                        # that merges it that also touches the file, then we
+                        # hide the branch.
+                        branch_id = revno_sequence[0:-1]
+                        if not branch_id in branches_that_are_merges:
+                            self.branch_lines[branch_id][1] = True
+                        
+                        # Hide the branches we merge
+                        if rev_msri in self.msri_merges:
+                            for merged_rev_msri in self.msri_merges[rev_msri]:
+                                merged_branch_id = self.merge_sorted_revisions[merged_rev_msri][3][0:-1]
+                                self.branch_lines[merged_branch_id][1] = False
+                                branches_that_are_merges[merged_branch_id] = True
+                        
+                        self.graphFilterProxyModel.invalidateCacheRow(rev_msri)
                         index = self.createIndex (rev_msri, 0, QtCore.QModelIndex())
                         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                                   index,index)
                     
-                    if rev_msri % 100 == 0 :
-                        self.graphFilterProxyModel.invalidateCache()
+                    if i % 500 == 0 :
                         QtCore.QCoreApplication.processEvents()
             
-            self.graphFilterProxyModel.invalidateCache()
             self.compute_lines()
             QtCore.QCoreApplication.processEvents()
             
@@ -479,7 +524,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                     
                     # Find parents that are currently visible
                     rev_visible_parents = []
-                    for parent_revid in self.graph_parents[revid]:
+                    for i, parent_revid in enumerate(self.graph_parents[revid]):
                         (parent_msri,
                          parent_branch_id,
                          parent_merge_depth) = self._msri_branch_id_merge_depth(parent_revid)
@@ -489,13 +534,9 @@ class GraphModel(QtCore.QAbstractTableModel):
                                                         parent_branch_id,
                                                         parent_merge_depth,
                                                         True))
-                        else:
+                        elif i == 0:
                             # The parent was not visible. Search for a ansestor
-                            # that is. Stop searching if we make a hop, i.e. we
-                            # go away for our branch, and we come back to it
-                            has_seen_different_branch = False
-                            if not parent_branch_id == branch_id:
-                                has_seen_different_branch = True
+                            # that is.
                             while parent_revid and parent_msri not in msri_index:
                                 parents = self.graph_parents[parent_revid]
                                 if len(parents) == 0:
@@ -505,11 +546,6 @@ class GraphModel(QtCore.QAbstractTableModel):
                                     (parent_msri,
                                      parent_branch_id,
                                      parent_merge_depth) = self._msri_branch_id_merge_depth(parent_revid)
-                                if not parent_branch_id == branch_id:
-                                    has_seen_different_branch = True
-                                if has_seen_different_branch and parent_branch_id == branch_id:
-                                    parent_revid = None
-                                    break
                             if parent_revid:
                                 rev_visible_parents.append((parent_revid,
                                                             parent_msri,
@@ -605,14 +641,17 @@ class GraphModel(QtCore.QAbstractTableModel):
                                 children_with_sprout_lines[child_msri] = True
                                 if child_msri in msri_index:
                                     child_index = msri_index[child_msri]
-                                append_line(child_index, rev_index, False)
+                                    append_line(child_index, rev_index, False)
                 
                 # Find a column for this branch.
                 #
                 # Find the col_index for the direct parent branch. This will
                 # be the starting point when looking for a free column.
                 
-                parent_col_index = 0
+                if branch_id == ():
+                    parent_col_index = 0
+                else:
+                    parent_col_index = 1
                 parent_index = None
                 
                 if last_parent_msri:
@@ -1047,13 +1086,13 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
     def _filterAcceptsRowIfBranchVisible(self, source_row, source_parent):
         sm = self.sm()
         
-        for parent_msri in sm.msri_merges[source_row]:
-            if self.filterAcceptsRowIfBranchVisible(parent_msri, source_parent):
-                return True
-        
         if sm.touches_file_msri is not None:
             if source_row not in sm.touches_file_msri:
                 return False
+        
+        for parent_msri in sm.msri_merges[source_row]:
+            if self.filterAcceptsRowIfBranchVisible(parent_msri, source_parent):
+                return True
         
         if self.search_matching_revid is not None:
             (sequence_number,
