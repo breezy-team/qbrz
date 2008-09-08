@@ -1,80 +1,89 @@
 <ui version="4.0" >
  <class>PushForm</class>
- <widget class="QGroupBox" name="PushForm" >
+ <widget class="QWidget" name="PushForm" >
   <property name="geometry" >
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>294</width>
-    <height>153</height>
+    <width>349</width>
+    <height>175</height>
    </rect>
   </property>
-  <property name="title" >
-   <string>Options</string>
-  </property>
-  <layout class="QGridLayout" name="gridLayout" >
-   <item row="0" column="0" >
-    <widget class="QLabel" name="label_2" >
-     <property name="text" >
-      <string>&amp;Location:</string>
+  <layout class="QVBoxLayout" name="verticalLayout" >
+   <property name="margin" >
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QGroupBox" name="groupBox" >
+     <property name="title" >
+      <string>Options</string>
      </property>
-     <property name="buddy" >
-      <cstring>location</cstring>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1" >
-    <widget class="QComboBox" name="location" >
-     <property name="sizePolicy" >
-      <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="editable" >
-      <bool>true</bool>
-     </property>
-     <property name="sizeAdjustPolicy" >
-      <enum>QComboBox::AdjustToMinimumContentsLength</enum>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="2" >
-    <widget class="QPushButton" name="location_picker" >
-     <property name="text" >
-      <string>Browse...</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0" colspan="3" >
-    <widget class="QCheckBox" name="remember" >
-     <property name="text" >
-      <string>Remember this location as a default</string>
-     </property>
-     <property name="checked" >
-      <bool>true</bool>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="0" colspan="3" >
-    <widget class="QCheckBox" name="overwrite" >
-     <property name="text" >
-      <string>Overwrite differences between branches</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="0" colspan="3" >
-    <widget class="QCheckBox" name="use_existing_dir" >
-     <property name="text" >
-      <string>Use existing directory</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0" colspan="3" >
-    <widget class="QCheckBox" name="create_prefix" >
-     <property name="text" >
-      <string>Create the path up to the branch if it does not exist</string>
-     </property>
+     <layout class="QGridLayout" name="gridLayout" >
+      <item row="0" column="0" >
+       <widget class="QLabel" name="label_2" >
+        <property name="text" >
+         <string>&amp;Location:</string>
+        </property>
+        <property name="buddy" >
+         <cstring>location</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" >
+       <widget class="QComboBox" name="location" >
+        <property name="sizePolicy" >
+         <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="editable" >
+         <bool>true</bool>
+        </property>
+        <property name="sizeAdjustPolicy" >
+         <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2" >
+       <widget class="QPushButton" name="location_picker" >
+        <property name="text" >
+         <string>Browse...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0" colspan="3" >
+       <widget class="QCheckBox" name="remember" >
+        <property name="text" >
+         <string>Remember this location as a default</string>
+        </property>
+        <property name="checked" >
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="3" >
+       <widget class="QCheckBox" name="overwrite" >
+        <property name="text" >
+         <string>Overwrite differences between branches</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="3" >
+       <widget class="QCheckBox" name="use_existing_dir" >
+        <property name="text" >
+         <string>Use existing directory</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0" colspan="3" >
+       <widget class="QCheckBox" name="create_prefix" >
+        <property name="text" >
+         <string>Create the path up to the branch if it does not exist</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
   </layout>

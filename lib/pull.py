@@ -102,7 +102,7 @@ class QBzrPushWindow(QBzrPullWindow):
     DEFAULT_SIZE = (500, 420)
 
     def create_ui(self, parent):
-        ui_widget = QtGui.QGroupBox(parent)
+        ui_widget = QtGui.QWidget(parent)
         self.ui = Ui_PushForm()
         self.ui.setupUi(ui_widget)
 
