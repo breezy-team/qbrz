@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/update_branch.ui'
 #
-# Created: Sat Sep 06 10:28:50 2008
+# Created: Mon Sep 08 10:31:00 2008
 #      by: PyQt4 UI code generator 4.4.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -14,7 +14,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 class Ui_UpdateBranchForm(object):
     def setupUi(self, UpdateBranchForm):
         UpdateBranchForm.setObjectName("UpdateBranchForm")
-        UpdateBranchForm.resize(640, 220)
+        UpdateBranchForm.resize(438, 193)
         self.verticalLayout_3 = QtGui.QVBoxLayout(UpdateBranchForm)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.label = QtGui.QLabel(UpdateBranchForm)
@@ -29,20 +29,14 @@ class Ui_UpdateBranchForm(object):
         sizePolicy.setHeightForWidth(self.groupBox.sizePolicy().hasHeightForWidth())
         self.groupBox.setSizePolicy(sizePolicy)
         self.groupBox.setObjectName("groupBox")
-        self.verticalLayout_2 = QtGui.QVBoxLayout(self.groupBox)
-        self.verticalLayout_2.setObjectName("verticalLayout_2")
+        self.gridLayout = QtGui.QGridLayout(self.groupBox)
+        self.gridLayout.setObjectName("gridLayout")
         self.but_pull = QtGui.QRadioButton(self.groupBox)
         self.but_pull.setChecked(True)
         self.but_pull.setObjectName("but_pull")
-        self.verticalLayout_2.addWidget(self.but_pull)
-        self.horizontalLayout_2 = QtGui.QHBoxLayout()
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        spacerItem = QtGui.QSpacerItem(13, 98, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem)
-        self.verticalLayout = QtGui.QVBoxLayout()
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.horizontalLayout = QtGui.QHBoxLayout()
-        self.horizontalLayout.setObjectName("horizontalLayout")
+        self.gridLayout.addWidget(self.but_pull, 0, 0, 1, 3)
+        spacerItem = QtGui.QSpacerItem(18, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.gridLayout.addItem(spacerItem, 1, 0, 1, 1)
         self.location = QtGui.QComboBox(self.groupBox)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
@@ -52,24 +46,25 @@ class Ui_UpdateBranchForm(object):
         self.location.setEditable(True)
         self.location.setObjectName("location")
         self.location.addItem(QtCore.QString())
-        self.horizontalLayout.addWidget(self.location)
+        self.gridLayout.addWidget(self.location, 1, 1, 1, 1)
         self.location_picker = QtGui.QPushButton(self.groupBox)
         self.location_picker.setObjectName("location_picker")
-        self.horizontalLayout.addWidget(self.location_picker)
-        self.verticalLayout.addLayout(self.horizontalLayout)
+        self.gridLayout.addWidget(self.location_picker, 1, 2, 1, 1)
+        spacerItem1 = QtGui.QSpacerItem(18, 17, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.gridLayout.addItem(spacerItem1, 2, 0, 1, 1)
         self.but_pull_remember = QtGui.QCheckBox(self.groupBox)
         self.but_pull_remember.setEnabled(True)
         self.but_pull_remember.setChecked(False)
         self.but_pull_remember.setObjectName("but_pull_remember")
-        self.verticalLayout.addWidget(self.but_pull_remember)
+        self.gridLayout.addWidget(self.but_pull_remember, 2, 1, 1, 2)
+        spacerItem2 = QtGui.QSpacerItem(17, 18, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
+        self.gridLayout.addItem(spacerItem2, 3, 0, 1, 1)
         self.but_pull_overwrite = QtGui.QCheckBox(self.groupBox)
         self.but_pull_overwrite.setObjectName("but_pull_overwrite")
-        self.verticalLayout.addWidget(self.but_pull_overwrite)
-        self.horizontalLayout_2.addLayout(self.verticalLayout)
-        self.verticalLayout_2.addLayout(self.horizontalLayout_2)
+        self.gridLayout.addWidget(self.but_pull_overwrite, 3, 1, 1, 2)
         self.but_update = QtGui.QRadioButton(self.groupBox)
         self.but_update.setObjectName("but_update")
-        self.verticalLayout_2.addWidget(self.but_update)
+        self.gridLayout.addWidget(self.but_update, 4, 0, 1, 3)
         self.verticalLayout_3.addWidget(self.groupBox)
 
         self.retranslateUi(UpdateBranchForm)

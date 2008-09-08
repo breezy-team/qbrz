@@ -5,8 +5,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>640</width>
-    <height>220</height>
+    <width>438</width>
+    <height>193</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -37,8 +37,8 @@
      <property name="title" >
       <string>Update source</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2" >
-      <item>
+     <layout class="QGridLayout" name="gridLayout" >
+      <item row="0" column="0" colspan="3" >
        <widget class="QRadioButton" name="but_pull" >
         <property name="text" >
          <string>Pull most recent changes from:</string>
@@ -48,80 +48,94 @@
         </property>
        </widget>
       </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_2" >
-        <item>
-         <spacer name="horizontalSpacer" >
-          <property name="orientation" >
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeType" >
-           <enum>QSizePolicy::Fixed</enum>
-          </property>
-          <property name="sizeHint" stdset="0" >
-           <size>
-            <width>13</width>
-            <height>98</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <layout class="QVBoxLayout" name="verticalLayout" >
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout" >
-            <item>
-             <widget class="QComboBox" name="location" >
-              <property name="sizePolicy" >
-               <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
-                <horstretch>1</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="editable" >
-               <bool>true</bool>
-              </property>
-              <item>
-               <property name="text" >
-                <string>&lt;Parent Branch shown here></string>
-               </property>
-              </item>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="location_picker" >
-              <property name="text" >
-               <string>Browse...</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="but_pull_remember" >
-            <property name="enabled" >
-             <bool>true</bool>
-            </property>
-            <property name="text" >
-             <string>Remember this as the new parent branch</string>
-            </property>
-            <property name="checked" >
-             <bool>false</bool>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QCheckBox" name="but_pull_overwrite" >
-            <property name="text" >
-             <string>Overwrite differences between branches</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
+      <item row="1" column="0" >
+       <spacer name="horizontalSpacer_2" >
+        <property name="orientation" >
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0" >
+         <size>
+          <width>18</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
       </item>
-      <item>
+      <item row="1" column="1" >
+       <widget class="QComboBox" name="location" >
+        <property name="sizePolicy" >
+         <sizepolicy vsizetype="Fixed" hsizetype="Preferred" >
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="editable" >
+         <bool>true</bool>
+        </property>
+        <item>
+         <property name="text" >
+          <string>&lt;Parent Branch shown here></string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="2" >
+       <widget class="QPushButton" name="location_picker" >
+        <property name="text" >
+         <string>Browse...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" >
+       <spacer name="horizontalSpacer_3" >
+        <property name="orientation" >
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0" >
+         <size>
+          <width>18</width>
+          <height>17</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="2" column="1" colspan="2" >
+       <widget class="QCheckBox" name="but_pull_remember" >
+        <property name="enabled" >
+         <bool>true</bool>
+        </property>
+        <property name="text" >
+         <string>Remember this as the new parent branch</string>
+        </property>
+        <property name="checked" >
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" >
+       <spacer name="horizontalSpacer" >
+        <property name="orientation" >
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType" >
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0" >
+         <size>
+          <width>17</width>
+          <height>18</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="3" column="1" colspan="2" >
+       <widget class="QCheckBox" name="but_pull_overwrite" >
+        <property name="text" >
+         <string>Overwrite differences between branches</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0" colspan="3" >
        <widget class="QRadioButton" name="but_update" >
         <property name="text" >
          <string>Update working tree to the latest changes in the branch</string>
@@ -130,13 +144,14 @@
       </item>
      </layout>
      <zorder>but_pull</zorder>
-     <zorder>but_update</zorder>
      <zorder>but_pull_remember</zorder>
      <zorder>but_pull_overwrite</zorder>
      <zorder>horizontalSpacer</zorder>
      <zorder>location</zorder>
-     <zorder>horizontalSpacer</zorder>
-     <zorder>horizontalSpacer</zorder>
+     <zorder>horizontalSpacer_2</zorder>
+     <zorder>horizontalSpacer_3</zorder>
+     <zorder>horizontalSpacer_4</zorder>
+     <zorder>but_update</zorder>
     </widget>
    </item>
   </layout>
