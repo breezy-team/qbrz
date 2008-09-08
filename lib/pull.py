@@ -47,14 +47,18 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_OK,
     QBzrWindow,
     StandardButton,
-    )
+    iter_branch_related_locations,
+    iter_saved_pull_locations,
+    save_pull_location,
+    fill_pull_combo,
+    fill_combo_with,
+)
 
 
 class QBzrPullWindow(SubProcessDialog):
 
     TITLE = N_("Pull")
     NAME = "pull"
-    PICKER_CAPTION = N_("Select Source Location")
     DEFAULT_SIZE = (500, 420)
 
     def __init__(self, branch, parent=None):
@@ -65,53 +69,15 @@ class QBzrPullWindow(SubProcessDialog):
                                   default_size = self.DEFAULT_SIZE,
                                   parent = parent)
 
-    def get_stored_location(self, branch):
-        return branch.get_parent()
-
-    def add_related_locations(self, locations, branch):
-        def add_location(location):
-            if location and location not in locations:
-                locations.append(location)
-        add_location(branch.get_parent())
-        add_location(branch.get_bound_location())
-        add_location(branch.get_push_location())
-        add_location(branch.get_submit_branch())
-
-    def get_related_locations(self, branch):
-        # Add the stored location, if it's not set make it empty
-        locations = [self.get_stored_location(branch) or u'']
-        # Add other related locations to the combo box
-        self.add_related_locations(locations, branch)
-        return locations
-
-    def append_related_locations(self, combo_box ):
-        locations = self.get_related_locations(self.branch)
-        for location in locations:
-            if location:
-                location = urlutils.unescape_for_display(location, 'utf-8')
-                combo_box.addItem(location)
-    
-    def location_picker_clicked(self):
-        self._do_directory_picker(self.ui.location, gettext(self.PICKER_CAPTION))
-
-    def _do_directory_picker(self, widget, caption):
-        """Called by the clicked() signal for the various directory pickers"""
-        dir = widget.currentText()
-        if not os.path.isdir(dir):
-            dir = ""
-        dir = QtGui.QFileDialog.getExistingDirectory(self, caption, dir)
-        if dir:
-            widget.setEditText(dir)
-    
     def create_ui(self, parent):
         ui_widget = QtGui.QGroupBox(parent)
         self.ui = Ui_PullForm()
         self.ui.setupUi(ui_widget)
-        self.append_related_locations(self.ui.location)
-        
+        fill_pull_combo(self.ui.location, self.branch)
         # One directory picker for the pull location.
-        self.connect(self.ui.location_picker, QtCore.SIGNAL("clicked()"),
-                     self.location_picker_clicked)
+        self.hookup_directory_picker(self.ui.location_picker,
+                                     self.ui.location,
+                                     self.DIRECTORYPICKER_SOURCE)
         return ui_widget
 
     def start(self):
@@ -126,27 +92,28 @@ class QBzrPullWindow(SubProcessDialog):
             args.append(revision)
         location = str(self.ui.location.currentText())
         self.process_widget.start('pull', location, *args)
+        save_pull_location(self.branch, location)
 
 
 class QBzrPushWindow(QBzrPullWindow):
 
     TITLE = N_("Push")
     NAME = "push"
-    PICKER_CAPTION = N_("Select Target Location")
     DEFAULT_SIZE = (500, 420)
-
-    def get_stored_location(self, branch):
-        return branch.get_push_location()
 
     def create_ui(self, parent):
         ui_widget = QtGui.QGroupBox(parent)
         self.ui = Ui_PushForm()
         self.ui.setupUi(ui_widget)
-        self.append_related_locations(self.ui.location)
-        
-        # One directory picker for the pull location.
-        self.connect(self.ui.location_picker, QtCore.SIGNAL("clicked()"),
-                     self.location_picker_clicked)
+
+        df = urlutils.unescape_for_display(self.branch.get_push_location() or '', "utf-8")
+        fill_combo_with(self.ui.location, df,
+                        iter_branch_related_locations(self.branch))
+
+        # One directory picker for the push location.
+        self.hookup_directory_picker(self.ui.location_picker,
+                                     self.ui.location,
+                                     self.DIRECTORYPICKER_TARGET)
         return ui_widget
 
     def start(self):
@@ -172,23 +139,22 @@ class QBzrBranchWindow(QBzrPullWindow):
         ui_widget = QtGui.QGroupBox(parent)
         self.ui = Ui_BranchForm()
         self.ui.setupUi(ui_widget)
-        #self.append_related_locations(self.ui.location)
-        
+
+        fill_combo_with(self.ui.from_location,
+                        u'',
+                        iter_saved_pull_locations())
+
         # Our 2 directory pickers hook up to our combos.
-        self.connect(self.ui.from_picker, QtCore.SIGNAL("clicked()"),
-                     self.from_picker_clicked)
-        self.connect(self.ui.to_picker, QtCore.SIGNAL("clicked()"),
-                     self.to_picker_clicked)
+        self.hookup_directory_picker(self.ui.from_picker,
+                                     self.ui.from_location,
+                                     self.DIRECTORYPICKER_SOURCE)
+
+        self.hookup_directory_picker(self.ui.to_picker,
+                                     self.ui.to_location,
+                                     self.DIRECTORYPICKER_TARGET)
+
         return ui_widget
     
-    def to_picker_clicked(self):
-        self._do_directory_picker(self.ui.to_location,
-                                  gettext("Select Target Location"))
-
-    def from_picker_clicked(self):
-        self._do_directory_picker(self.ui.from_location,
-                                  gettext("Select Source Location"))
-
     def accept(self):
         args = []
         revision = str(self.ui.revision.text())
@@ -204,18 +170,18 @@ class QBzrMergeWindow(QBzrPullWindow):
 
     TITLE = N_("Merge")
     NAME = "pull"
-    PICKER_CAPTION = N_("Select Source Location")
     DEFAULT_SIZE = (500, 420)
 
     def create_ui(self, parent):
         ui_widget = QtGui.QGroupBox(parent)
         self.ui = Ui_MergeForm()
         self.ui.setupUi(ui_widget)
-        self.append_related_locations(self.ui.location)
-        
+        fill_pull_combo(self.ui.location, self.branch)
+            
         # One directory picker for the pull location.
-        self.connect(self.ui.location_picker, QtCore.SIGNAL("clicked()"),
-                     self.location_picker_clicked)
+        self.hookup_directory_picker(self.ui.location_picker,
+                                     self.ui.location,
+                                     self.DIRECTORYPICKER_SOURCE)
         return ui_widget
     
     def accept(self):

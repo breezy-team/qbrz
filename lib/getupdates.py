@@ -28,6 +28,13 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_update_branch import Ui_UpdateBranchForm
 from bzrlib.plugins.qbzr.lib.ui_update_checkout import Ui_UpdateCheckoutForm
+from bzrlib.plugins.qbzr.lib.util import (
+    iter_branch_related_locations,
+    iter_saved_pull_locations,
+    save_pull_location,
+    fill_combo_with,
+    fill_pull_combo,
+    )
 from bzrlib import errors, urlutils
 
 
@@ -35,7 +42,6 @@ class UpdateBranchWindow(SubProcessDialog):
 
     TITLE = N_("Update Branch")
     NAME = "update_branch"
-    PICKER_CAPTION = N_("Browse...")
 
     def __init__(self, branch, parent=None):
         self.branch = branch
@@ -45,44 +51,6 @@ class UpdateBranchWindow(SubProcessDialog):
                                   default_size = None,
                                   parent = parent)
 
-    def get_stored_location(self, branch):
-        return branch.get_parent()
-
-    def add_related_locations(self, locations, branch):
-        def add_location(location):
-            if location and location not in locations:
-                locations.append(location)
-        add_location(branch.get_parent())
-        add_location(branch.get_bound_location())
-        add_location(branch.get_push_location())
-        add_location(branch.get_submit_branch())
-
-    def get_related_locations(self, branch):
-        # Add the stored location, if it's not set make it empty
-        locations = [self.get_stored_location(branch) or u'']
-        # Add other related locations to the combo box
-        self.add_related_locations(locations, branch)
-        return locations
-
-    def append_related_locations(self, combo_box ):
-        locations = self.get_related_locations(self.branch)
-        for location in locations:
-            if location:
-                location = urlutils.unescape_for_display(location, 'utf-8')
-                combo_box.addItem(location)
-    
-    def location_picker_clicked(self):
-        self._do_directory_picker(self.ui.location, gettext(self.PICKER_CAPTION))
-
-    def _do_directory_picker(self, widget, caption):
-        """Called by the clicked() signal for the various directory pickers"""
-        dir = widget.currentText()
-        if not os.path.isdir(dir):
-            dir = ""
-        dir = QtGui.QFileDialog.getExistingDirectory(self, caption, dir)
-        if dir:
-            widget.setEditText(dir)
-    
     def create_ui(self, parent):
         ui_widget = QtGui.QGroupBox(parent)
         self.ui = Ui_UpdateBranchForm()
@@ -90,14 +58,16 @@ class UpdateBranchWindow(SubProcessDialog):
         # nuke existing items in the combo.
         while self.ui.location.count():
             self.ui.location.removeItem(0)
-        self.append_related_locations(self.ui.location)
+
+        fill_pull_combo(self.ui.location, branch)
 
         self.connect(self.ui.but_pull, QtCore.SIGNAL("toggled(bool)"),
                      self.pull_toggled)
                      
         # One directory picker for the pull location.
-        self.connect(self.ui.location_picker, QtCore.SIGNAL("clicked()"),
-                     self.location_picker_clicked)
+        self.hookup_directory_picker(self.ui.location_picker,
+                                     self.ui.location,
+                                     self.DIRECTORYPICKER_SOURCE)
 
         self.ui.but_pull.setChecked(not not self.branch.get_parent())
 
@@ -112,16 +82,20 @@ class UpdateBranchWindow(SubProcessDialog):
         
     def start(self):
         if self.ui.but_pull.isChecked():
+            # its a 'pull'
             args = ['--directory', self.branch.base]
             if self.ui.but_pull_overwrite.isChecked():
                 args.append('--overwrite')
             if self.ui.but_pull_remember.isChecked():
                 args.append('--remember')
             location = str(self.ui.location.currentText())
+            if not location:
+                return
 
             self.process_widget.start('pull', location, *args)
+            save_pull_location(self.branch, location)
         else:
-            # its an update.
+            # its an 'update'.
             self.process_widget.start('update', self.branch.base)
 
 
@@ -129,7 +103,6 @@ class UpdateCheckoutWindow(SubProcessDialog):
 
     TITLE = N_("Update Checkout")
     NAME = "update_checkout"
-    PICKER_CAPTION = N_("Browse...")
 
     def __init__(self, branch, parent=None):
         self.branch = branch
@@ -139,46 +112,6 @@ class UpdateCheckoutWindow(SubProcessDialog):
                                   default_size = None,
                                   parent = parent)
 
-    def get_stored_location(self, branch):
-        return branch.get_parent()
-
-    def add_related_locations(self, locations, branch):
-        def add_location(location):
-            if location and location not in locations:
-                locations.append(location)
-        # Do any of these make sense for 'pull' here?
-        #add_location(branch.get_parent())
-        #add_location(branch.get_bound_location())
-        #add_location(branch.get_push_location())
-        #add_location(branch.get_submit_branch())
-
-    def get_related_locations(self, branch):
-        # The parent doesn't get added to the 'pull' location in a
-        # checkout - the point is to optionally pull something different.
-        locations = [u'']
-        # Add other related locations to the combo box
-        self.add_related_locations(locations, branch)
-        return locations
-
-    def append_related_locations(self, combo_box ):
-        locations = self.get_related_locations(self.branch)
-        for location in locations:
-            if location:
-                location = urlutils.unescape_for_display(location, 'utf-8')
-                combo_box.addItem(location)
-    
-    def location_picker_clicked(self):
-        self._do_directory_picker(self.ui.location, gettext(self.PICKER_CAPTION))
-
-    def _do_directory_picker(self, widget, caption):
-        """Called by the clicked() signal for the various directory pickers"""
-        dir = widget.currentText()
-        if not os.path.isdir(dir):
-            dir = ""
-        dir = QtGui.QFileDialog.getExistingDirectory(self, caption, dir)
-        if dir:
-            widget.setEditText(dir)
-    
     def create_ui(self, parent):
         ui_widget = QtGui.QGroupBox(parent)
         self.ui = Ui_UpdateCheckoutForm()
@@ -186,21 +119,24 @@ class UpdateCheckoutWindow(SubProcessDialog):
         # nuke existing items in the combo.
         while self.ui.location.count():
             self.ui.location.removeItem(0)
-        self.append_related_locations(self.ui.location)
+        # We don't look at 'related' branches etc when doing a 'pull' from
+        # a checkout - the default is empty, but saved locations are used.
+        fill_combo_with(self.ui.location,
+                        u'',
+                        iter_saved_pull_locations())
+        # and the directory picker for the pull location.
+        self.hookup_directory_picker(self.ui.location_picker,
+                                     self.ui.location,
+                                     self.DIRECTORYPICKER_SOURCE)
 
         self.connect(self.ui.but_pull, QtCore.SIGNAL("toggled(bool)"),
                      self.pull_toggled)
-                     
-        # One directory picker for the pull location.
-        self.connect(self.ui.location_picker, QtCore.SIGNAL("clicked()"),
-                     self.location_picker_clicked)
 
         # Our 'label' object is ready to have the bound location specified.
         loc = urlutils.unescape_for_display(self.branch.get_bound_location(),
                                             'utf-8')
         self.ui.label.setText(unicode(self.ui.label.text()) % loc)
         self.ui.but_pull.setChecked(False)
-
         return ui_widget
 
     def pull_toggled(self, bool):

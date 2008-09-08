@@ -21,6 +21,7 @@
 import os
 import re
 import sys
+import itertools
 
 from PyQt4 import QtCore, QtGui
 
@@ -33,6 +34,7 @@ from bzrlib.config import (
 from bzrlib import (
     lazy_regex,
     osutils,
+    urlutils
     )
 from bzrlib.util.configobj import configobj
 
@@ -270,6 +272,12 @@ class QBzrWindow(QtGui.QMainWindow):
 
 class QBzrDialog(QtGui.QDialog):
 
+    # We use these items both as 'flags' and as titles!
+    # A directory picker used to select a 'pull' location.
+    DIRECTORYPICKER_SOURCE = "Select Source Directory"
+    # A directory picker used to select a destination
+    DIRECTORYPICKER_TARGET = "Select Target Directory"
+
     def __init__(self, title=[], parent=None):
         QtGui.QDialog.__init__(self, parent)
 
@@ -350,6 +358,20 @@ class QBzrDialog(QtGui.QDialog):
             if window.isVisible():
                 window.close()
         event.accept()
+
+    # Helpers for directory pickers.
+    def hookup_directory_picker(self, chooser, target, chooser_type):
+        # an inline handler that serves as a 'link' between the widgets.
+        caption = gettext(chooser_type)
+        def click_handler(dlg=self, chooser=chooser, target=target, caption=caption):
+            dir = target.currentText()
+            if not os.path.isdir(dir):
+                dir = ""
+            dir = QtGui.QFileDialog.getExistingDirectory(dlg, caption, dir)
+            if dir:
+                target.setEditText(dir)
+
+        self.connect(chooser, QtCore.SIGNAL("clicked()"), click_handler)
 
 
 _global_config = None
@@ -602,6 +624,66 @@ def split_tokens_at_lines(tokens):
             if v.endswith(('\n','\r')):
                 yield currentLine
                 currentLine = []
+
+# Some helpers for combo-boxes.  Combos for different purposes (eg, push
+# vs pull) have quite different requirements for the combo:
+# * When pulling from a branch, if the branch is not related to the existing
+#   branch (eg, creating a new one, pulling from non-parent), the branch
+#   location entered by the user should be remembered *globally* (ie, for
+#   the user rather than just for that branch)
+# * Pull dialogs almost always want to offer these remembered locations as
+#   options - below the 'related' locations if any exist.
+# * Push dialogs almost never want to offer these 'global' options - they
+#   only ever want to show 'related' branches plus old push branches
+#   remembered against just this branch.
+#
+# We offer a number of iterators to help enumerate the possibilities,
+# and another helper to take these iterators and fill the combo.
+
+def iter_branch_related_locations(branch):
+    for location in [branch.get_parent(),
+                     branch.get_bound_location(),
+                     branch.get_push_location(),
+                     branch.get_submit_branch(),
+                    ]:
+        if location is not None:
+            yield urlutils.unescape_for_display(location, 'utf-8')
+
+# Iterate the 'pull' locations we have previously saved for the user.
+def iter_saved_pull_locations():
+    # XXX - todo
+    # let python know its a generator and show how it *would* appear.
+    yield u"http://pretend/this/was/a/saved/location"
+
+
+# A helper to fill a 'pull' combo.
+def fill_pull_combo(combo, branch):
+    p = urlutils.unescape_for_display(branch.get_parent() or '', 'utf-8')
+    fill_combo_with(combo, p,
+                    iter_branch_related_locations(branch),
+                    iter_saved_pull_locations())
+
+
+# A helper to fill a combo with values.  Example usage:
+# fill_combo_with(combo, u'', iter_saved_pull_locations())
+def fill_combo_with(combo, default, *iterables):
+    done = set()
+    for item in itertools.chain([default], *iterables):
+        if item is not None and item not in done:
+            done.add(item)
+            combo.addItem(item)
+
+# Helper to optionally save the 'pull' location a user specified for
+# a branch.
+def save_pull_location(branch, location):
+    # XXX - todo
+    # Intent here is first to check that the location isn't related to
+    # the branch (ie, if its the branch parent, do don't remember it).
+    # Otherwise, the location gets written to our user-prefs file, using
+    # an MRU scheme to avoid runaway growth in the saved locations and keeping
+    # the most relevant locations at the top.
+    pass
+
 
 have_pygments = True
 try:
