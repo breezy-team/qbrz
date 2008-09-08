@@ -364,12 +364,20 @@ class QBzrDialog(QtGui.QDialog):
         # an inline handler that serves as a 'link' between the widgets.
         caption = gettext(chooser_type)
         def click_handler(dlg=self, chooser=chooser, target=target, caption=caption):
-            dir = target.currentText()
+            try:
+                # Might be a QComboBox
+                getter = target.currentText
+                setter = target.setEditText
+            except AttributeError:
+                # Or a QLineEdit
+                getter = target.text
+                setter = target.setText
+            dir = getter()
             if not os.path.isdir(dir):
                 dir = ""
             dir = QtGui.QFileDialog.getExistingDirectory(dlg, caption, dir)
             if dir:
-                target.setEditText(dir)
+                setter(dir)
 
         self.connect(chooser, QtCore.SIGNAL("clicked()"), click_handler)
 
@@ -658,10 +666,13 @@ def iter_saved_pull_locations():
 
 # A helper to fill a 'pull' combo.
 def fill_pull_combo(combo, branch):
-    p = urlutils.unescape_for_display(branch.get_parent() or '', 'utf-8')
-    fill_combo_with(combo, p,
-                    iter_branch_related_locations(branch),
-                    iter_saved_pull_locations())
+    if branch is None:
+        p = u''
+        related = []
+    else:
+        p = urlutils.unescape_for_display(branch.get_parent() or '', 'utf-8')
+        related = iter_branch_related_locations(branch)
+    fill_combo_with(combo, p, related, iter_saved_pull_locations())
 
 
 # A helper to fill a combo with values.  Example usage:
