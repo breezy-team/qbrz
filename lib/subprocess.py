@@ -30,7 +30,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     StandardButton,
     )
 
-class SubProcessDialog (QBzrDialog):
+class SubProcessDialog(QBzrDialog):
 
     def __init__(self, title, name = "genericsubprocess",
                  desc = None, args = None, default_size = None,
@@ -40,22 +40,21 @@ class SubProcessDialog (QBzrDialog):
             self.restoreSize(name, default_size)
         self.desc = desc
         self.args = args
-        
+
         layout = QtGui.QVBoxLayout(self.centralwidget)
-        
+
         self.ui_widget = self.create_ui(self.centralwidget)
         layout.addWidget(self.ui_widget)
-        
-        self.process_widget = SubProcessWidget(self)
+
+        self.process_widget = SubProcessWidget(self.centralwidget)
         self.connect(self.process_widget,
             QtCore.SIGNAL("finished()"),
             self.finished)
         self.connect(self.process_widget,
             QtCore.SIGNAL("failed()"),
             self.failed)
-        
         layout.addWidget(self.process_widget)
-        
+
         self.okButton = StandardButton(BTN_OK)
         self.cancelButton = StandardButton(BTN_CANCEL)
 
@@ -68,7 +67,7 @@ class SubProcessDialog (QBzrDialog):
         self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
         layout.addWidget(self.buttonbox)
         
-        self.setLayout(layout)
+        #self.setLayout(layout)
     
     def create_ui(self, ui_parent):
         label = QtGui.QLabel(self.desc, ui_parent)
@@ -106,15 +105,15 @@ class SubProcessDialog (QBzrDialog):
             self.process_widget.abort()
             event.ignore()
 
-class SubProcessWidget (QtGui.QGroupBox):
-    
+class SubProcessWidget(QtGui.QGroupBox):
+
     def __init__(self, parent = None):
-        QtGui.QWidget.__init__(self, gettext("Status"), parent)
-        
+        QtGui.QGroupBox.__init__(self, gettext("Status"), parent)
+
         layout = QtGui.QVBoxLayout(self)
-        
+
         self.progressMessage = QtGui.QLabel(self)
-        self.progressMessage.setWordWrap(True)
+        #self.progressMessage.setWordWrap(True) -- this breaks minimal window size hint
         self.progressMessage.setText(gettext("Stopped"))
         layout.addWidget(self.progressMessage)
 
@@ -124,9 +123,7 @@ class SubProcessWidget (QtGui.QGroupBox):
 
         self.console = QtGui.QTextBrowser(self)
         layout.addWidget(self.console)
-        
-        self.setLayout(layout)
-        
+
         self.process = QtCore.QProcess()
         self.connect(self.process,
             QtCore.SIGNAL("readyReadStandardOutput()"),
