@@ -56,6 +56,8 @@ from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
 from bzrlib.plugins.qbzr.lib.commit import CommitWindow
 from bzrlib.plugins.qbzr.lib.config import QBzrConfigWindow
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
+from bzrlib.plugins.qbzr.lib.getupdates import UpdateBranchWindow, UpdateCheckoutWindow
+from bzrlib.plugins.qbzr.lib.getnew import GetNewWorkingTreeWindow
 from bzrlib.plugins.qbzr.lib.log import LogWindow
 from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
 from bzrlib.plugins.qbzr.lib.info import QBzrInfoWindow
@@ -570,3 +572,33 @@ class cmd_qsubprocess(Command):
         ui.ui_factory = ui.text.TextUIFactory(SubprocessProgress)
         argv = [p.decode('utf8') for p in shlex.split(cmd.encode('utf8'))]
         commands.run_bzr(argv)
+
+class cmd_qgetupdates(QBzrCommand):
+    """Fetches external changes into the working tree"""
+
+    takes_args = ['location?']
+    aliases = ['qgetu']
+
+    def _qbzr_run(self, location="."):
+
+        branch, relpath = Branch.open_containing(location)
+        app = QtGui.QApplication(sys.argv)
+        if branch.get_bound_location():
+            window = UpdateCheckoutWindow(branch)
+        else:
+            window = UpdateBranchWindow(branch)
+
+        window.show()
+        app.exec_()
+
+class cmd_qgetnew(QBzrCommand):
+    """Creates a new working tree (either a checkout or full branch)"""
+
+    takes_args = ['location?']
+    aliases = ['qgetn']
+
+    def _qbzr_run(self, location="."):
+        app = QtGui.QApplication(sys.argv)
+        window = GetNewWorkingTreeWindow(location)
+        window.show()
+        app.exec_()

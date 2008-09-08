@@ -33,10 +33,11 @@ from bzrlib.plugins.qbzr.lib.util import (
 class SubProcessDialog (QBzrDialog):
 
     def __init__(self, title, name = "genericsubprocess",
-                 desc = None, args = None, default_size = (500, 420),
+                 desc = None, args = None, default_size = None,
                  parent=None):
         QBzrDialog.__init__(self, [title], parent)
-        self.restoreSize(name, default_size)
+        if default_size:
+            self.restoreSize(name, default_size)
         self.desc = desc
         self.args = args
         
