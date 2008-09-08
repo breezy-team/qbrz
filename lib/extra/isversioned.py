@@ -17,16 +17,27 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+from bzrlib import commands, workingtree, errors, trace
 
-def load_tests(basic_tests, module, loader):
-    testmod_names = [
-        'test_autocomplete',
-        #'test_diffview', - broken by API changes
-        'test_extra_isignored',
-        'test_extra_isversioned',
-        'test_spellcheck',
-        'test_util',
-    ]
-    basic_tests.addTests(loader.loadTestsFromModuleNames(
-        ["%s.%s" % (__name__, name) for name in testmod_names]))
-    return basic_tests
+class cmd_is_versioned(commands.Command):
+    """Check if a path is versioned.
+
+    :Exit values:
+        0 - not versioned
+        1 - versioned
+        3 - error
+    """
+
+    takes_args = ['filename']
+    hidden = True
+
+    def run(self, filename):
+        tree, relpath = workingtree.WorkingTree.open_containing(filename)
+        if tree.path2id(relpath):
+            if not trace.is_quiet():
+                print >>self.outf, 'versioned'
+            return 1
+        else:
+            if not trace.is_quiet():
+                print >>self.outf, 'not versioned'
+            return 0
