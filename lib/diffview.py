@@ -29,6 +29,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     format_timestamp,
     split_tokens_at_lines,
     format_for_ttype,
+    QBzrGlobalConfig,
     )
 
 have_pygments = True
@@ -210,6 +211,9 @@ class SidebySideDiffView(QtGui.QSplitter):
         
         self.image_exts = ['.'+str(i)
             for i in QtGui.QImageReader.supportedImageFormats()]
+        
+        config = QBzrGlobalConfig()
+        self.show_intergroup_colors = config.get_user_option("diff_show_intergroup_colors") in ("True", "1")
     
     def clear(self):
         
@@ -309,7 +313,10 @@ class SidebySideDiffView(QtGui.QSplitter):
                 if tag == "replace":
                     format.setBackground(QtGui.QColor.fromRgb(180, 210, 250))
                 elif not tag == "equal":
-                    format.setBackground(brushes[tag][0])
+                    if self.show_intergroup_colors:
+                        format.setBackground(brushes[tag][0])
+                    else:
+                        format.setBackground(QtGui.QColor.fromRgb(180, 210, 250))
             
             split_words = re.compile("\W|\w+")
             def insertIxsWithChangesHighlighted(ixs):
