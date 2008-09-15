@@ -437,10 +437,10 @@ class CommitWindow(SubProcessWindow):
                 args.append(path)
         
         if self.bugsCheckBox.isChecked():
-            args.append(("--fixes %s" % unicode(self.bugs.text())))
+            args.append(("--fixes=%s" % unicode(self.bugs.text())))
         
         if self.authorCheckBox.isChecked():
-            args.append(("--author %s" % unicode(self.author.text())))
+            args.append(("--author=%s" % unicode(self.author.text())))
         
         if self.is_bound and self.local_checkbox.isChecked():
             args.append("--local")
