@@ -140,7 +140,7 @@ class QBzrCommand(Command):
     def run(self, *args, **kwargs):
         return self._qbzr_run(*args, **kwargs)
 
-ui_mode_option = Option("ui_mode", help="Causes dialogs to wait after the operation is complete.")
+ui_mode_option = Option("ui-mode", help="Causes dialogs to wait after the operation is complete.")
 
 class cmd_qannotate(QBzrCommand):
     """Show the origin of each line in a file."""
