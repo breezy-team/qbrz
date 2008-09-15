@@ -25,7 +25,7 @@ import sys
 import os
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
 from bzrlib.plugins.qbzr.lib.ui_update_branch import Ui_UpdateBranchForm
 from bzrlib.plugins.qbzr.lib.ui_update_checkout import Ui_UpdateCheckoutForm
 from bzrlib.plugins.qbzr.lib.util import (
@@ -34,22 +34,26 @@ from bzrlib.plugins.qbzr.lib.util import (
     save_pull_location,
     fill_combo_with,
     fill_pull_combo,
+    hookup_directory_picker,
+    DIRECTORYPICKER_SOURCE,
+    DIRECTORYPICKER_TARGET,
     )
 from bzrlib import errors, urlutils
 
 
-class UpdateBranchWindow(SubProcessDialog):
+class UpdateBranchWindow(SubProcessWindow):
 
     TITLE = N_("Update Branch")
     NAME = "update_branch"
     DEFAULT_SIZE = (100, 100)
 
-    def __init__(self, branch, parent=None):
+    def __init__(self, branch, ui_mode=True, parent=None):
         self.branch = branch
-        SubProcessDialog.__init__(self,
+        SubProcessWindow.__init__(self,
                                   self.TITLE,
                                   name = self.NAME,
                                   default_size = self.DEFAULT_SIZE,
+                                  ui_mode = ui_mode,
                                   parent = parent)
 
     def create_ui(self, parent):
@@ -66,9 +70,10 @@ class UpdateBranchWindow(SubProcessDialog):
                      self.pull_toggled)
                      
         # One directory picker for the pull location.
-        self.hookup_directory_picker(self.ui.location_picker,
-                                     self.ui.location,
-                                     self.DIRECTORYPICKER_SOURCE)
+        hookup_directory_picker(self,
+                                self.ui.location_picker,
+                                self.ui.location,
+                                DIRECTORYPICKER_SOURCE)
 
         self.ui.but_pull.setChecked(not not self.branch.get_parent())
 
@@ -100,18 +105,19 @@ class UpdateBranchWindow(SubProcessDialog):
             self.process_widget.start('update', self.branch.base)
 
 
-class UpdateCheckoutWindow(SubProcessDialog):
+class UpdateCheckoutWindow(SubProcessWindow):
 
     TITLE = N_("Update Checkout")
     NAME = "update_checkout"
     DEFAULT_SIZE = (100, 100)
 
-    def __init__(self, branch, parent=None):
+    def __init__(self, branch, ui_mode=True, parent=None):
         self.branch = branch
-        SubProcessDialog.__init__(self,
+        SubProcessWindow.__init__(self,
                                   self.TITLE,
                                   name = self.NAME,
                                   default_size = self.DEFAULT_SIZE,
+                                  ui_mode = ui_mode,
                                   parent = parent)
 
     def create_ui(self, parent):
@@ -127,9 +133,10 @@ class UpdateCheckoutWindow(SubProcessDialog):
                         u'',
                         iter_saved_pull_locations())
         # and the directory picker for the pull location.
-        self.hookup_directory_picker(self.ui.location_picker,
-                                     self.ui.location,
-                                     self.DIRECTORYPICKER_SOURCE)
+        hookup_directory_picker(self,
+                                self.ui.location_picker,
+                                self.ui.location,
+                                DIRECTORYPICKER_SOURCE)
 
         self.connect(self.ui.but_pull, QtCore.SIGNAL("toggled(bool)"),
                      self.pull_toggled)

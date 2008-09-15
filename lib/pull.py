@@ -37,7 +37,7 @@ from bzrlib.workingtree import WorkingTree
 
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
 from bzrlib.plugins.qbzr.lib.ui_branch import Ui_BranchForm
 from bzrlib.plugins.qbzr.lib.ui_pull import Ui_PullForm
 from bzrlib.plugins.qbzr.lib.ui_push import Ui_PushForm
@@ -52,21 +52,25 @@ from bzrlib.plugins.qbzr.lib.util import (
     save_pull_location,
     fill_pull_combo,
     fill_combo_with,
+    hookup_directory_picker,
+    DIRECTORYPICKER_SOURCE,
+    DIRECTORYPICKER_TARGET,
 )
 
 
-class QBzrPullWindow(SubProcessDialog):
+class QBzrPullWindow(SubProcessWindow):
 
     TITLE = N_("Pull")
     NAME = "pull"
     DEFAULT_SIZE = (500, 420)
 
-    def __init__(self, branch, parent=None):
+    def __init__(self, branch, ui_mode=True, parent=None):
         self.branch = branch
-        SubProcessDialog.__init__(self,
+        SubProcessWindow.__init__(self,
                                   self.TITLE,
                                   name = self.NAME,
                                   default_size = self.DEFAULT_SIZE,
+                                  ui_mode = ui_mode,
                                   parent = parent)
 
     def create_ui(self, parent):
@@ -75,9 +79,10 @@ class QBzrPullWindow(SubProcessDialog):
         self.ui.setupUi(ui_widget)
         fill_pull_combo(self.ui.location, self.branch)
         # One directory picker for the pull location.
-        self.hookup_directory_picker(self.ui.location_picker,
-                                     self.ui.location,
-                                     self.DIRECTORYPICKER_SOURCE)
+        hookup_directory_picker(self,
+                                self.ui.location_picker,
+                                self.ui.location,
+                                DIRECTORYPICKER_SOURCE)
         return ui_widget
 
     def start(self):
@@ -111,9 +116,10 @@ class QBzrPushWindow(QBzrPullWindow):
                         iter_branch_related_locations(self.branch))
 
         # One directory picker for the push location.
-        self.hookup_directory_picker(self.ui.location_picker,
-                                     self.ui.location,
-                                     self.DIRECTORYPICKER_TARGET)
+        hookup_directory_picker(self,
+                                self.ui.location_picker,
+                                self.ui.location,
+                                DIRECTORYPICKER_TARGET)
         return ui_widget
 
     def start(self):
@@ -146,13 +152,15 @@ class QBzrBranchWindow(QBzrPullWindow):
                         iter_saved_pull_locations())
 
         # Our 2 directory pickers hook up to our combos.
-        self.hookup_directory_picker(self.ui.from_picker,
-                                     self.ui.from_location,
-                                     self.DIRECTORYPICKER_SOURCE)
+        hookup_directory_picker(self,
+                                self.ui.from_picker,
+                                self.ui.from_location,
+                                DIRECTORYPICKER_SOURCE)
 
-        self.hookup_directory_picker(self.ui.to_picker,
-                                     self.ui.to_location,
-                                     self.DIRECTORYPICKER_TARGET)
+        hookup_directory_picker(self,
+                                self.ui.to_picker,
+                                self.ui.to_location,
+                                DIRECTORYPICKER_TARGET)
 
         return ui_widget
     
@@ -180,9 +188,10 @@ class QBzrMergeWindow(QBzrPullWindow):
         fill_pull_combo(self.ui.location, self.branch)
             
         # One directory picker for the pull location.
-        self.hookup_directory_picker(self.ui.location_picker,
-                                     self.ui.location,
-                                     self.DIRECTORYPICKER_SOURCE)
+        hookup_directory_picker(self,
+                                self.ui.location_picker,
+                                self.ui.location,
+                                DIRECTORYPICKER_SOURCE)
         return ui_widget
     
     def accept(self):

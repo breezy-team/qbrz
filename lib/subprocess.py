@@ -26,35 +26,39 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     BTN_OK,
-    QBzrDialog,
+    BTN_CLOSE,
+    QBzrWindow,
     StandardButton,
     )
 
-class SubProcessDialog(QBzrDialog):
+class SubProcessWindow(QBzrWindow):
 
     def __init__(self, title, name = "genericsubprocess",
-                 desc = None, args = None, default_size = None,
+                 desc = "", args = None, default_size = None,
+                 ui_mode=True, dialog=True, default_layout=True,
                  parent=None):
-        QBzrDialog.__init__(self, [title], parent)
+        QBzrWindow.__init__(self, [title], parent)
         if default_size:
             self.restoreSize(name, default_size)
         self.desc = desc
         self.args = args
+        self.ui_mode = ui_mode
 
-        layout = QtGui.QVBoxLayout(self.centralwidget)
+        if dialog:
+            flags = (self.windowFlags() & ~QtCore.Qt.Window) | QtCore.Qt.Dialog
+            self.setWindowFlags(flags)
 
         self.ui_widget = self.create_ui(self.centralwidget)
-        layout.addWidget(self.ui_widget)
 
-        self.process_widget = SubProcessWidget(self.centralwidget)
+        self.process_widget = SubProcessWidget(self.ui_mode, self.centralwidget)
         self.connect(self.process_widget,
             QtCore.SIGNAL("finished()"),
             self.finished)
         self.connect(self.process_widget,
             QtCore.SIGNAL("failed()"),
             self.failed)
-        layout.addWidget(self.process_widget)
 
+        self.closeButton = StandardButton(BTN_CLOSE)
         self.okButton = StandardButton(BTN_OK)
         self.cancelButton = StandardButton(BTN_CANCEL)
 
@@ -65,9 +69,15 @@ class SubProcessDialog(QBzrDialog):
             QtGui.QDialogButtonBox.RejectRole)
         self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.accept)
         self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
-        layout.addWidget(self.buttonbox)
         
-        #self.setLayout(layout)
+        if default_layout:
+            layout = QtGui.QVBoxLayout(self.centralwidget)
+            layout.addWidget(self.ui_widget)
+            status_group_box = QtGui.QGroupBox(gettext("Status"), self.centralwidget)
+            status_layout = QtGui.QVBoxLayout(status_group_box)
+            status_layout.addWidget(self.process_widget)
+            layout.addWidget(status_group_box)
+            layout.addWidget(self.buttonbox)
     
     def create_ui(self, ui_parent):
         label = QtGui.QLabel(self.desc, ui_parent)
@@ -79,6 +89,7 @@ class SubProcessDialog(QBzrDialog):
             self.close()
         else:
             self.okButton.setDisabled(True)
+            self.ui_widget.setDisabled(True)
             self.start()
     
     def start(self):
@@ -92,23 +103,29 @@ class SubProcessDialog(QBzrDialog):
 
     def finished(self):
         #self.done(QtGui.QDialog.Accepted)
-        self.okButton.setDisabled(False)
+        self.buttonbox.addButton(self.closeButton,
+            QtGui.QDialogButtonBox.AcceptRole)
+        self.buttonbox.removeButton(self.okButton)
         self.cancelButton.setDisabled(True)
+        if not self.ui_mode:
+            self.close()
     
     def failed(self):
+        self.ui_widget.setDisabled(False)
         self.okButton.setDisabled(False)
     
     def closeEvent(self, event):
         if not self.process_widget.is_running():
-            QBzrDialog.closeEvent(self, event)
+            QBzrWindow.closeEvent(self, event)
         else:
             self.process_widget.abort()
             event.ignore()
 
-class SubProcessWidget(QtGui.QGroupBox):
+class SubProcessWidget(QtGui.QWidget):
 
-    def __init__(self, parent = None):
-        QtGui.QGroupBox.__init__(self, gettext("Status"), parent)
+    def __init__(self, ui_mode, parent = None):
+        QtGui.QGroupBox.__init__(self, parent)
+        self.ui_mode = ui_mode
 
         layout = QtGui.QVBoxLayout(self)
 
@@ -145,13 +162,25 @@ class SubProcessWidget(QtGui.QGroupBox):
         self.errorFormat = QtGui.QTextCharFormat()
         self.errorFormat.setForeground(QtGui.QColor('red'))
     
+    def hide_progress(self):
+        self.progressMessage.setHidden(True)
+        self.progressBar.setHidden(True)
+    
     def is_running(self):
         return self.process.state() == QtCore.QProcess.Running or\
                self.process.state() == QtCore.QProcess.Starting
     
     def start(self, *args):
+        self.start_multi((args, ))
+    
+    def start_multi(self, commands):
         self.setProgress(0, [gettext("Starting...")])
         self.console.setFocus(QtCore.Qt.OtherFocusReason)
+        self.commands = list(commands)
+        self._start_next()
+    
+    def _start_next(self):
+        args = self.commands.pop(0)
         args = ' '.join('"%s"' % a.replace('"', '\"') for a in args)
         if getattr(sys, "frozen", None) is not None:
             self.process.start(
@@ -187,12 +216,18 @@ class SubProcessWidget(QtGui.QGroupBox):
                 self.setProgress(progress, messages)
             else:
                 self.logMessage(line)
+                if not self.ui_mode:
+                    sys.stdout.write(line)
+                    sys.stdout.write("\n")
 
     def readStderr(self):
         data = str(self.process.readAllStandardError())
         for line in data.splitlines():
             error = line.startswith("bzr: ERROR:")
             self.logMessage(line, error)
+            if not self.ui_mode:
+                sys.stderr.write(line)
+                sys.stderr.write("\n")
 
     def logMessage(self, message, error=False):
         if error:
@@ -200,7 +235,7 @@ class SubProcessWidget(QtGui.QGroupBox):
         else:
             format = self.messageFormat
         cursor = self.console.textCursor()
-        cursor.insertText(message + "\n", format)
+        cursor.insertText(message+"\n", format)
         scrollbar = self.console.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
 
@@ -217,8 +252,11 @@ class SubProcessWidget(QtGui.QGroupBox):
     def onFinished(self, exitCode, exitStatus):
         self.aborting = False
         if exitCode == 0:
-            self.finished = True
-            self.emit(QtCore.SIGNAL("finished()"))
+            if self.commands:
+                self._start_next()
+            else:
+                self.finished = True
+                self.emit(QtCore.SIGNAL("finished()"))
         else:
             self.setProgress(1000000, [gettext("Failed!")])
             self.emit(QtCore.SIGNAL("failed()"))

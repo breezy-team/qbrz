@@ -272,12 +272,6 @@ class QBzrWindow(QtGui.QMainWindow):
 
 class QBzrDialog(QtGui.QDialog):
 
-    # We use these items both as 'flags' and as titles!
-    # A directory picker used to select a 'pull' location.
-    DIRECTORYPICKER_SOURCE = "Select Source Directory"
-    # A directory picker used to select a destination
-    DIRECTORYPICKER_TARGET = "Select Target Directory"
-
     def __init__(self, title=[], parent=None):
         QtGui.QDialog.__init__(self, parent)
 
@@ -359,27 +353,33 @@ class QBzrDialog(QtGui.QDialog):
                 window.close()
         event.accept()
 
-    # Helpers for directory pickers.
-    def hookup_directory_picker(self, chooser, target, chooser_type):
-        # an inline handler that serves as a 'link' between the widgets.
-        caption = gettext(chooser_type)
-        def click_handler(dlg=self, chooser=chooser, target=target, caption=caption):
-            try:
-                # Might be a QComboBox
-                getter = target.currentText
-                setter = target.setEditText
-            except AttributeError:
-                # Or a QLineEdit
-                getter = target.text
-                setter = target.setText
-            dir = getter()
-            if not os.path.isdir(dir):
-                dir = ""
-            dir = QtGui.QFileDialog.getExistingDirectory(dlg, caption, dir)
-            if dir:
-                setter(dir)
+# Helpers for directory pickers.
+# We use these items both as 'flags' and as titles!
+# A directory picker used to select a 'pull' location.
+DIRECTORYPICKER_SOURCE = "Select Source Directory"
+# A directory picker used to select a destination
+DIRECTORYPICKER_TARGET = "Select Target Directory"
 
-        self.connect(chooser, QtCore.SIGNAL("clicked()"), click_handler)
+def hookup_directory_picker(dialog, chooser, target, chooser_type):
+    # an inline handler that serves as a 'link' between the widgets.
+    caption = gettext(chooser_type)
+    def click_handler(dlg=dialog, chooser=chooser, target=target, caption=caption):
+        try:
+            # Might be a QComboBox
+            getter = target.currentText
+            setter = target.setEditText
+        except AttributeError:
+            # Or a QLineEdit
+            getter = target.text
+            setter = target.setText
+        dir = getter()
+        if not os.path.isdir(dir):
+            dir = ""
+        dir = QtGui.QFileDialog.getExistingDirectory(dlg, caption, dir)
+        if dir:
+            setter(dir)
+
+    dialog.connect(chooser, QtCore.SIGNAL("clicked()"), click_handler)
 
 
 _global_config = None

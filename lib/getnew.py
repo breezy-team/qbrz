@@ -26,28 +26,32 @@ import os
 import re
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
 from bzrlib.plugins.qbzr.lib.ui_new_tree import Ui_NewWorkingTreeForm
 from bzrlib.plugins.qbzr.lib.util import (
     iter_saved_pull_locations,
     save_pull_location,
     fill_pull_combo,
+    hookup_directory_picker,
+    DIRECTORYPICKER_SOURCE,
+    DIRECTORYPICKER_TARGET,
     )
 from bzrlib import errors, urlutils
 
 
-class GetNewWorkingTreeWindow(SubProcessDialog):
+class GetNewWorkingTreeWindow(SubProcessWindow):
 
     TITLE = N_("Create a new Bazaar Working Tree")
     NAME = "new_tree"
     DEFAULT_SIZE = (100, 100)
 
-    def __init__(self, to_location, parent=None):
+    def __init__(self, to_location, ui_mode=True, parent=None):
         self.to_location = os.path.abspath(to_location)
-        SubProcessDialog.__init__(self,
+        SubProcessWindow.__init__(self,
                                   self.TITLE,
                                   name = self.NAME,
                                   default_size = self.DEFAULT_SIZE,
+                                  ui_mode = ui_mode,
                                   parent = parent)
 
     def create_ui(self, parent):
@@ -57,13 +61,15 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
         fill_pull_combo(self.ui.from_location, None)
 
         # Our 2 directory pickers hook up to our combos.
-        self.hookup_directory_picker(self.ui.from_picker,
-                                     self.ui.from_location,
-                                     self.DIRECTORYPICKER_SOURCE)
+        hookup_directory_picker(self,
+                                self.ui.from_picker,
+                                self.ui.from_location,
+                                DIRECTORYPICKER_SOURCE)
 
-        self.hookup_directory_picker(self.ui.to_picker,
-                                     self.ui.to_location,
-                                     self.DIRECTORYPICKER_TARGET)
+        hookup_directory_picker(self,
+                                self.ui.to_picker,
+                                self.ui.to_location,
+                                DIRECTORYPICKER_TARGET)
 
         # signal to manage updating the 'location' on the fly.
         self.connect(self.ui.from_location, QtCore.SIGNAL("editTextChanged(const QString &)"),

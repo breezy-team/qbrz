@@ -134,12 +134,13 @@ class QBzrCommand(Command):
     NOTE: q-command should define method '_qbzr_run' instead of 'run' (as in
     bzrlib).
     """
-
+    
     @install_gettext
     @report_missing_pyqt
     def run(self, *args, **kwargs):
         return self._qbzr_run(*args, **kwargs)
 
+ui_mode_option = Option("ui-mode", help="Causes dialogs to wait after the operation is complete.")
 
 class cmd_qannotate(QBzrCommand):
     """Show the origin of each line in a file."""
@@ -196,13 +197,14 @@ class cmd_qannotate(QBzrCommand):
 class cmd_qadd(QBzrCommand):
     """GUI for adding files or directories."""
     takes_args = ['selected*']
-
-    def _qbzr_run(self, selected_list=None):
+    takes_options = [ui_mode_option]
+    
+    def _qbzr_run(self, selected_list=None, ui_mode=False):
         tree, selected_list = builtins.tree_files(selected_list)
         if selected_list == ['']:
             selected_list = []
         application = QtGui.QApplication(sys.argv)
-        window = AddWindow(tree, selected_list, dialog=False)
+        window = AddWindow(tree, selected_list, dialog=False, ui_mode=ui_mode)
         window.show()
         application.exec_()
 
@@ -210,13 +212,14 @@ class cmd_qadd(QBzrCommand):
 class cmd_qrevert(QBzrCommand):
     """Revert changes files."""
     takes_args = ['selected*']
+    takes_options = [ui_mode_option]
 
-    def _qbzr_run(self, selected_list=None):
+    def _qbzr_run(self, selected_list=None, ui_mode=False):
         tree, selected_list = builtins.tree_files(selected_list)
         if selected_list == ['']:
             selected_list = []
         application = QtGui.QApplication(sys.argv)
-        window = RevertWindow(tree, selected_list, dialog=False)
+        window = RevertWindow(tree, selected_list, dialog=False, ui_mode=ui_mode)
         window.show()
         application.exec_()
 
@@ -250,16 +253,17 @@ class cmd_qcommit(QBzrCommand):
                         "branch.  Local commits are not pushed to "
                         "the master branch until a normal commit "
                         "is performed."),
+            ui_mode_option,
             ]
     aliases = ['qci']
 
-    def _qbzr_run(self, selected_list=None, message=None, local=False):
+    def _qbzr_run(self, selected_list=None, message=None, local=False, ui_mode=False):
         tree, selected_list = builtins.tree_files(selected_list)
         if selected_list == ['']:
             selected_list = []
         application = QtGui.QApplication(sys.argv)
         window = CommitWindow(tree, selected_list, dialog=False,
-            message=message, local=local)
+            message=message, local=local, ui_mode=ui_mode)
         window.show()
         application.exec_()
 
@@ -424,13 +428,13 @@ class cmd_qcat(QBzrCommand):
 class cmd_qpull(QBzrCommand):
     """Turn this branch into a mirror of another branch."""
 
-    takes_options = []
+    takes_options = [ui_mode_option]
     takes_args = []
 
-    def _qbzr_run(self):
+    def _qbzr_run(self, ui_mode=False):
         branch, relpath = Branch.open_containing('.')
         app = QtGui.QApplication(sys.argv)
-        window = QBzrPullWindow(branch)
+        window = QBzrPullWindow(branch, ui_mode=ui_mode)
         window.show()
         app.exec_()
 
@@ -439,13 +443,13 @@ class cmd_qpull(QBzrCommand):
 class cmd_qmerge(QBzrCommand):
     """Perform a three-way merge."""
 
-    takes_options = []
+    takes_options = [ui_mode_option]
     takes_args = []
 
-    def _qbzr_run(self):
+    def _qbzr_run(self, ui_mode=False):
         branch, relpath = Branch.open_containing('.')
         app = QtGui.QApplication(sys.argv)
-        window = QBzrMergeWindow(branch)
+        window = QBzrMergeWindow(branch, ui_mode=ui_mode)
         window.show()
         app.exec_()
 
@@ -454,13 +458,13 @@ class cmd_qmerge(QBzrCommand):
 class cmd_qpush(QBzrCommand):
     """Update a mirror of this branch."""
 
-    takes_options = []
+    takes_options = [ui_mode_option]
     takes_args = []
 
-    def _qbzr_run(self):
+    def _qbzr_run(self, ui_mode=False):
         branch, relpath = Branch.open_containing('.')
         app = QtGui.QApplication(sys.argv)
-        window = QBzrPushWindow(branch)
+        window = QBzrPushWindow(branch, ui_mode=ui_mode, )
         window.show()
         app.exec_()
 
@@ -468,12 +472,12 @@ class cmd_qpush(QBzrCommand):
 class cmd_qbranch(QBzrCommand):
     """Create a new copy of a branch."""
 
-    takes_options = []
+    takes_options = [ui_mode_option]
     takes_args = []
 
-    def _qbzr_run(self):
+    def _qbzr_run(self, ui_mode=False):
         app = QtGui.QApplication(sys.argv)
-        window = QBzrBranchWindow(None)
+        window = QBzrBranchWindow(None, ui_mode=ui_mode)
         window.show()
         app.exec_()
 
@@ -577,16 +581,17 @@ class cmd_qgetupdates(QBzrCommand):
     """Fetches external changes into the working tree"""
 
     takes_args = ['location?']
+    takes_options = [ui_mode_option]
     aliases = ['qgetu']
 
-    def _qbzr_run(self, location="."):
+    def _qbzr_run(self, location=".", ui_mode=False):
 
         branch, relpath = Branch.open_containing(location)
         app = QtGui.QApplication(sys.argv)
         if branch.get_bound_location():
-            window = UpdateCheckoutWindow(branch)
+            window = UpdateCheckoutWindow(branch, ui_mode=ui_mode)
         else:
-            window = UpdateBranchWindow(branch)
+            window = UpdateBranchWindow(branch, ui_mode=ui_mode)
 
         window.show()
         app.exec_()
@@ -595,10 +600,11 @@ class cmd_qgetnew(QBzrCommand):
     """Creates a new working tree (either a checkout or full branch)"""
 
     takes_args = ['location?']
+    takes_options = [ui_mode_option]
     aliases = ['qgetn']
 
-    def _qbzr_run(self, location="."):
+    def _qbzr_run(self, location=".", ui_mode=False):
         app = QtGui.QApplication(sys.argv)
-        window = GetNewWorkingTreeWindow(location)
+        window = GetNewWorkingTreeWindow(location, ui_mode=ui_mode)
         window.show()
         app.exec_()
