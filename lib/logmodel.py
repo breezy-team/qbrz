@@ -259,8 +259,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                             self.merged_by[grand_parent_msri] = msri
                             if not grand_parent_branch_id in self.branch_lines[branch_id][2]:
                                 self.branch_lines[branch_id][2].append(grand_parent_branch_id)
-                            if not branch_id in self.branch_lines[grand_parent_branch_id][2]:
-                                self.branch_lines[grand_parent_branch_id][2].append(branch_id)
+                            if not branch_id in self.branch_lines[grand_parent_branch_id][3]:
+                                self.branch_lines[grand_parent_branch_id][3].append(branch_id)
                             
                 self.msri_merges[msri] = merges
             
