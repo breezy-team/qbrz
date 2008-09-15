@@ -87,6 +87,7 @@ class SubProcessWindow(QBzrWindow):
             self.close()
         else:
             self.okButton.setDisabled(True)
+            self.ui_widget.setDisabled(True)
             self.start()
     
     def start(self):
@@ -106,6 +107,7 @@ class SubProcessWindow(QBzrWindow):
             self.close()
     
     def failed(self):
+        self.ui_widget.setDisabled(False)
         self.okButton.setDisabled(False)
     
     def closeEvent(self, event):

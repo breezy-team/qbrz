@@ -224,19 +224,23 @@ class CommitWindow(SubProcessWindow):
         self.windows = []
         self.initial_selected_list = selected_list
 
+        self.connect(self.process_widget,
+            QtCore.SIGNAL("failed()"),
+            self.failed)
+
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
 
-        groupbox = QtGui.QGroupBox(gettext("Message"), splitter)
-        splitter.addWidget(groupbox)
+        self.message_groupbox = QtGui.QGroupBox(gettext("Message"), splitter)
+        splitter.addWidget(self.message_groupbox)
         self.tabWidget = QtGui.QTabWidget()
         splitter.addWidget(self.tabWidget)
         
-        grid = QtGui.QGridLayout(groupbox)
+        grid = QtGui.QGridLayout(self.message_groupbox)
 
         self.show_nonversioned_checkbox = QtGui.QCheckBox(
             gettext("Show non-versioned files"))
 
-        self.filelist = WorkingTreeFileList(groupbox, self.tree)
+        self.filelist = WorkingTreeFileList(self.message_groupbox, self.tree)
         selectall_checkbox = QtGui.QCheckBox(
                                 gettext(self.filelist.SELECTALL_MESSAGE))
         selectall_checkbox.setCheckState(QtCore.Qt.Checked)
@@ -252,7 +256,7 @@ class CommitWindow(SubProcessWindow):
         self.filelist.setup_actions()
 
         # Equivalent for 'bzr commit --message'
-        self.message = TextEdit(groupbox, main_window=self)
+        self.message = TextEdit(self.message_groupbox, main_window=self)
         self.message.setToolTip(gettext("Enter the commit message"))
         completer = QtGui.QCompleter()
         completer.setModel(QtGui.QStringListModel(self.completion_words, completer))
@@ -311,10 +315,10 @@ class CommitWindow(SubProcessWindow):
                 self.local_checkbox.setChecked(True)
 
         # Display the list of changed files
-        files_tab = QtGui.QWidget()
-        self.tabWidget.addTab(files_tab, gettext("Changes"))
+        self.files_tab = QtGui.QWidget()
+        self.tabWidget.addTab(self.files_tab, gettext("Changes"))
 
-        vbox = QtGui.QVBoxLayout(files_tab)
+        vbox = QtGui.QVBoxLayout(self.files_tab)
         vbox.addWidget(self.filelist)
         self.connect(self.show_nonversioned_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_nonversioned)
         vbox.addWidget(self.show_nonversioned_checkbox)
@@ -326,16 +330,16 @@ class CommitWindow(SubProcessWindow):
         # Display a list of pending merges
         if self.pending_merges:
             selectall_checkbox.setEnabled(False)
-            pendingMergesWidget = QtGui.QTreeWidget()
-            self.tabWidget.addTab(pendingMergesWidget, gettext("Pending Merges"))
+            self.pendingMergesWidget = QtGui.QTreeWidget()
+            self.tabWidget.addTab(self.pendingMergesWidget, gettext("Pending Merges"))
             
-            pendingMergesWidget.setRootIsDecorated(False)
-            pendingMergesWidget.setHeaderLabels(
+            self.pendingMergesWidget.setRootIsDecorated(False)
+            self.pendingMergesWidget.setHeaderLabels(
                 [gettext("Date"), gettext("Author"), gettext("Message")])
-            header = pendingMergesWidget.header()
+            header = self.pendingMergesWidget.header()
             header.resizeSection(0, 120)
             header.resizeSection(1, 190)
-            self.connect(pendingMergesWidget,
+            self.connect(self.pendingMergesWidget,
                 QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
                 self.show_changeset)
 
@@ -350,10 +354,10 @@ class CommitWindow(SubProcessWindow):
                 item.setData(0, self.ParentIdRole,
                              QtCore.QVariant(merge.parent_ids[0]))
                 items.append(item)
-            pendingMergesWidget.insertTopLevelItems(0, items)
+            self.pendingMergesWidget.insertTopLevelItems(0, items)
 
-            vbox = QtGui.QVBoxLayout(groupbox)
-            vbox.addWidget(pendingMergesWidget)
+            vbox = QtGui.QVBoxLayout(self.message_groupbox)
+            vbox.addWidget(self.pendingMergesWidget)
         
         self.tabWidget.addTab(self.process_widget, gettext("Status"))
         
@@ -450,9 +454,21 @@ class CommitWindow(SubProcessWindow):
             commands.append(files_to_add)
         commands.append(args)
         
+        self.message_groupbox.setDisabled(True)
+        self.files_tab.setDisabled(True)
+        if self.pending_merges:
+            self.pendingMergesWidget.setDisabled(True)
+        
         self.tabWidget.setCurrentWidget(self.process_widget)
         self.process_widget.start_multi(commands)
-
+    
+    def failed(self):
+        self.message_groupbox.setDisabled(False)
+        self.files_tab.setDisabled(False)
+        if self.pending_merges:
+            self.pendingMergesWidget.setDisabled(False)
+    
+    
     def show_changeset(self, item=None, column=None):
         repo = self.tree.branch.repository
         rev_id = str(item.data(0, self.RevisionIdRole).toString())
