@@ -26,6 +26,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     BTN_OK,
+    BTN_CLOSE,
     QBzrWindow,
     StandardButton,
     )
@@ -57,6 +58,7 @@ class SubProcessWindow(QBzrWindow):
             QtCore.SIGNAL("failed()"),
             self.failed)
 
+        self.closeButton = StandardButton(BTN_CLOSE)
         self.okButton = StandardButton(BTN_OK)
         self.cancelButton = StandardButton(BTN_CANCEL)
 
@@ -101,7 +103,9 @@ class SubProcessWindow(QBzrWindow):
 
     def finished(self):
         #self.done(QtGui.QDialog.Accepted)
-        self.okButton.setDisabled(False)
+        self.buttonbox.addButton(self.closeButton,
+            QtGui.QDialogButtonBox.AcceptRole)
+        self.buttonbox.removeButton(self.okButton)
         self.cancelButton.setDisabled(True)
         if not self.ui_mode:
             self.close()
