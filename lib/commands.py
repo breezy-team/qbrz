@@ -62,6 +62,7 @@ from bzrlib.plugins.qbzr.lib.help import show_help
 from bzrlib.plugins.qbzr.lib.log import LogWindow
 from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
 from bzrlib.plugins.qbzr.lib.info import QBzrInfoWindow
+from bzrlib.plugins.qbzr.lib.init import QBzrInitWindow
 from bzrlib.plugins.qbzr.lib.revert import RevertWindow
 from bzrlib.plugins.qbzr.lib.subprocess import SubprocessProgress
 from bzrlib.plugins.qbzr.lib.pull import (
@@ -493,6 +494,19 @@ class cmd_qinfo(QBzrCommand):
         tree, relpath = WorkingTree.open_containing('.')
         app = QtGui.QApplication(sys.argv)
         window = QBzrInfoWindow(tree)
+        window.show()
+        app.exec_()
+
+
+class cmd_qinit(QBzrCommand):
+    """Initializes a new (possibly shared) repository."""
+
+    takes_options = [ui_mode_option]
+    takes_args = ['location?']
+
+    def _qbzr_run(self, location='.', ui_mode=False):
+        app = QtGui.QApplication(sys.argv)
+        window = QBzrInitWindow(location, ui_mode=ui_mode)
         window.show()
         app.exec_()
 
