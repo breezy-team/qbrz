@@ -266,12 +266,15 @@ class _QBzrWindowBase:
 
 class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
 
-    def __init__(self, title=[], parent=None):
+    def __init__(self, title=[], parent=None, centralwidget=None):
         QtGui.QMainWindow.__init__(self, parent)
-        
+
         self.set_title_icon(title)
-        
-        self.centralwidget = QtGui.QWidget(self)
+
+
+        if centralwidget is None:
+            centralwidget = QtGui.QWidget(self)
+        self.centralwidget = centralwidget
         self.setCentralWidget(self.centralwidget)
         self.windows = []
 
