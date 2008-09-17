@@ -355,9 +355,6 @@ class CommitWindow(SubProcessWindow):
                              QtCore.QVariant(merge.parent_ids[0]))
                 items.append(item)
             self.pendingMergesWidget.insertTopLevelItems(0, items)
-
-            vbox = QtGui.QVBoxLayout(self.message_groupbox)
-            vbox.addWidget(self.pendingMergesWidget)
         
         self.tabWidget.addTab(self.process_widget, gettext("Status"))
         
