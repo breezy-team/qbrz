@@ -238,11 +238,11 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
     
         entries = [self.get_changedesc_path(d) for d in self.iter_selection()]
         if entries:
-            window = DiffWindow(self.tree.basis_tree(),
-                                self.tree,
+            window = DiffWindow(self.tree.basis_tree(), self.tree,
+                                self.tree.branch, self.tree.branch,
                                 specific_files=entries,
                                 parent=self,
-                                branch=self.tree.branch)
+                                )
             self.topLevelWidget().windows.append(window)
             window.show()
 
