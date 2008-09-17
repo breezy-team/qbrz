@@ -58,6 +58,7 @@ from bzrlib.plugins.qbzr.lib.config import QBzrConfigWindow
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.getupdates import UpdateBranchWindow, UpdateCheckoutWindow
 from bzrlib.plugins.qbzr.lib.getnew import GetNewWorkingTreeWindow
+from bzrlib.plugins.qbzr.lib.help import show_help
 from bzrlib.plugins.qbzr.lib.log import LogWindow
 from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
 from bzrlib.plugins.qbzr.lib.info import QBzrInfoWindow
@@ -607,4 +608,17 @@ class cmd_qgetnew(QBzrCommand):
         app = QtGui.QApplication(sys.argv)
         window = GetNewWorkingTreeWindow(location, ui_mode=ui_mode)
         window.show()
+        app.exec_()
+
+class cmd_qhelp(QBzrCommand):
+    """Shows a help window"""
+
+    takes_args = ['topic']
+
+    # until we get links and better HTML out of 'topics', this is hidden.
+    hidden = True
+
+    def _qbzr_run(self, topic):
+        app = QtGui.QApplication(sys.argv)
+        window = show_help(topic)
         app.exec_()
