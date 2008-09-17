@@ -128,9 +128,8 @@ def fill_option_combo(combo, option, default, desc_widget=None):
     """
 
     def index_changed(index, combo=combo, desc_widget=desc_widget):
-        info = combo.itemData(index).toPyObject()
-        name, short_name, argname, help = info
-        desc_widget.setText(help or '')
+        help = combo.itemData(index).toString()
+        desc_widget.setText(help)
 
     default_index = 0
     for i, info in enumerate(option.iter_switches()):
@@ -138,7 +137,7 @@ def fill_option_combo(combo, option, default, desc_widget=None):
             # this is the option itself
             continue
         name, short_name, argname, help = info
-        user_data = QtCore.QVariant(info)
+        user_data = QtCore.QVariant(help or '')
         combo.addItem(name, user_data)
         if name == default:
             default_index = i - 1
