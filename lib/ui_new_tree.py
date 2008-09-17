@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/new_tree.ui'
 #
-# Created: Mon Sep  8 16:06:08 2008
-#      by: PyQt4 UI code generator 4.4.3
+# Created: Wed Sep 17 14:00:10 2008
+#      by: PyQt4 UI code generator 4.4.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -78,7 +78,7 @@ class Ui_NewWorkingTreeForm(object):
         font = QtGui.QFont()
         font.setUnderline(True)
         self.link_help.setFont(font)
-        self.link_help.setCursor(QtCore.Qt.PointingHandCursor)
+        self.link_help.setCursor(QtCore.Qt.ArrowCursor)
         self.link_help.setTextFormat(QtCore.Qt.RichText)
         self.link_help.setOpenExternalLinks(False)
         self.link_help.setTextInteractionFlags(QtCore.Qt.TextBrowserInteraction)
@@ -97,20 +97,27 @@ class Ui_NewWorkingTreeForm(object):
         self.but_rev_specific.setObjectName("but_rev_specific")
         self.gridLayout_3.addWidget(self.but_rev_specific, 1, 0, 1, 1)
         self.revision = QtGui.QLineEdit(self.groupBox_2)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.revision.sizePolicy().hasHeightForWidth())
+        self.revision.setSizePolicy(sizePolicy)
         self.revision.setObjectName("revision")
         self.gridLayout_3.addWidget(self.revision, 1, 1, 1, 1)
-        spacerItem2 = QtGui.QSpacerItem(208, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.gridLayout_3.addItem(spacerItem2, 1, 2, 1, 1)
         self.but_show_log = QtGui.QPushButton(self.groupBox_2)
         self.but_show_log.setEnabled(False)
         self.but_show_log.setObjectName("but_show_log")
         self.gridLayout_3.addWidget(self.but_show_log, 1, 3, 1, 1)
+        self.link_help_revisions = QtGui.QLabel(self.groupBox_2)
+        self.link_help_revisions.setObjectName("link_help_revisions")
+        self.gridLayout_3.addWidget(self.link_help_revisions, 1, 2, 1, 1)
         self.verticalLayout.addWidget(self.groupBox_2)
 
         self.retranslateUi(NewWorkingTreeForm)
         QtCore.QMetaObject.connectSlotsByName(NewWorkingTreeForm)
 
     def retranslateUi(self, NewWorkingTreeForm):
+        NewWorkingTreeForm.setWindowTitle(gettext("Create a new Bazaar Working Tree"))
         self.groupBox.setTitle(gettext("Branch"))
         self.label_4.setText(gettext("Branch source (enter a URL or select a local directory with an exiting branch)"))
         self.from_picker.setText(gettext("Browse..."))
@@ -133,34 +140,19 @@ class Ui_NewWorkingTreeForm(object):
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">A <span style=\" font-style:italic;\">stacked branch</span> only stores information not in the source branch, and as such, depends on the availability of the source branch</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.but_stacked.setText(gettext("Create a stacked branch referring to the source branch"))
-        self.link_help.setToolTip(QtGui.QApplication.translate("NewWorkingTreeForm", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600; text-decoration: underline;\">Checkouts</span></p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Checkouts are source trees that are connected to a branch, so that when</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">you commit in the source tree, the commit goes into that branch.  They</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">allow you to use a simpler, more centralized workflow, ignoring some of</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Bazaar\'s decentralized features until you want them. Using checkouts</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">with shared repositories is very similar to working with SVN or CVS, but</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">doesn\'t have the same restrictions.  And using checkouts still allows</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">others working on the project to use whatever workflow they like.</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-weight:600;\"></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-weight:600;\"><span style=\" text-decoration: underline;\">Branches</span></p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">A branch consists of the state of a project, including all of its</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">history. All branches have a repository associated (which is where the</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">branch history is stored), but multiple branches may share the same</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">repository (a shared repository). Branches can be copied and merged.</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+        self.link_help.setToolTip(gettext("Click a link for more information about checkouts and branches."))
         self.link_help.setText(QtGui.QApplication.translate("NewWorkingTreeForm", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"qbzrglossary:checkouts_and_branches\"><span style=\" text-decoration: underline; color:#0000ff;\">Tell me more about checkouts and branches.</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;\">Tell me more about <a href=\"bzrtopic:checkouts\"><span style=\" text-decoration: underline; color:#0000ff;\">checkouts</span></a> and <a href=\"bzrtopic:branches\"><span style=\" text-decoration: underline; color:#0000ff;\">branches</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_2.setTitle(gettext("Revision"))
         self.but_rev_tip.setText(gettext("Most recent (tip) revision"))
         self.but_rev_specific.setText(gettext("Revision:"))
         self.but_show_log.setText(gettext("Show Log..."))
+        self.link_help_revisions.setText(QtGui.QApplication.translate("NewWorkingTreeForm", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;\"><a href=\"bzrtopic:revisionspec\"><span style=\" text-decoration: underline; color:#0000ff;\">About revision identifiers</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
 
