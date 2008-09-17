@@ -188,7 +188,7 @@ class QBzrGlobalConfig(IniBasedConfig):
 
 class QBzrWindow(QtGui.QMainWindow):
 
-    def __init__(self, title=[], parent=None):
+    def __init__(self, title=[], parent=None, centralwidget=None):
         QtGui.QMainWindow.__init__(self, parent)
 
         self.setWindowTitle(" - ".join(title))
@@ -198,7 +198,9 @@ class QBzrWindow(QtGui.QMainWindow):
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
 
-        self.centralwidget = QtGui.QWidget(self)
+        if centralwidget is None:
+            centralwidget = QtGui.QWidget(self)
+        self.centralwidget = centralwidget
         self.setCentralWidget(self.centralwidget)
         self.windows = []
 
