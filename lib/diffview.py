@@ -111,6 +111,7 @@ class DiffViewHandle(QtGui.QSplitterHandle):
         
     def clear(self):
         self.changes = []
+        self.infoBlocks = []
 
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
@@ -119,6 +120,15 @@ class DiffViewHandle(QtGui.QSplitterHandle):
         value1 = self.view.browsers[0].verticalScrollBar().value() - frame
         value2 = self.view.browsers[1].verticalScrollBar().value() - frame
         w = self.width()
+        
+        pen = QtGui.QPen(QtCore.Qt.black)
+        pen.setWidth(2)
+        painter.setPen(pen)
+        for block0, block1 in self.infoBlocks:
+            block0_y = block0.position().y() - value1
+            block1_y = block1.position().y() - value2
+            painter.drawLine(0, block0_y, w, block1_y)
+
         for blocka0, blockb0, blocka1, blockb1, kind in self.changes:
             ly1 = blocka0.position().y()
             ly2 = blocka1.position().y()
@@ -152,18 +162,12 @@ class SidebySideDiffView(QtGui.QSplitter):
         QtGui.QSplitter.__init__(self, QtCore.Qt.Horizontal, parent)
         self.setHandleWidth(30)
 
-        font = QtGui.QFont("Courier New,courier", 8)
-        self.lineHeight = QtGui.QFontMetrics(font).height()
-
-        titleFont = QtGui.QFont(self.font())
-        titleFont.setBold(True)
-        titleFont.setPixelSize(14)
-
-        self.monospacedFont = QtGui.QFont("Courier New, Courier",
-                                     self.font().pointSize())
         titleFont = QtGui.QFont(self.font())
         titleFont.setPointSize(titleFont.pointSize() * 140 / 100)
         titleFont.setBold(True)
+        
+        self.monospacedFont = QtGui.QFont("Courier New, Courier",
+                                     self.font().pointSize())
         metadataFont = QtGui.QFont(self.font())
         metadataFont.setPointSize(titleFont.pointSize() * 70 / 100)
         metadataLabelFont = QtGui.QFont(metadataFont)
@@ -248,6 +252,9 @@ class SidebySideDiffView(QtGui.QSplitter):
                 cursor.insertText(" ", self.metadataFormat)
             cursor.insertBlock()
             self.browsers[i].infoBlocks.append(cursor.block().layout())
+        
+        self.handle(1).infoBlocks.append((cursors[0].block().layout(),
+                                          cursors[1].block().layout()))
             
         if not binary:
             for cursor in cursors:
@@ -446,11 +453,11 @@ class SidebySideDiffView(QtGui.QSplitter):
             for i, cursor in enumerate(self.cursors):
                 format = QtGui.QTextBlockFormat()
                 format.setBottomMargin(max_height - heights[i])
-                cursor.insertBlock(format)
+                cursor.setBlockFormat(format)
                 if present[i]:
                     if is_images[i]:
+                        cursor.insertText("\n")
                         cursor.insertImage(file_id)
-                        cursor.insertBlock()
                     else:
                         cursor.insertText(gettext('[binary file]'))
                 else:
@@ -458,6 +465,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                 cursor.insertBlock(QtGui.QTextBlockFormat())
         
         for cursor in self.cursors:
+            cursor.insertText("\n")
             cursor.endEditBlock()
         # check horizontal scrollbars and force both if scrollbar visible only at one side
         if (self.browsers[0].horizontalScrollBar().isVisible()
