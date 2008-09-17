@@ -29,6 +29,7 @@ from bzrlib import (
     )
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 
 from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
@@ -111,6 +112,10 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
                 name = path_in_target + osutils.kind_marker(kind[1])
             elif versioned == (True, False):
                 status = gettext("removed")
+                ext = file_extension(path_in_source)
+                name = path_in_source + osutils.kind_marker(kind[0])
+            elif kind[0] is not None and kind[1] is None:
+                status = gettext("missing")
                 ext = file_extension(path_in_source)
                 name = path_in_source + osutils.kind_marker(kind[0])
             else:
@@ -208,21 +213,23 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         items = self.selectedItems()
         if not items:
             return
-        res = QtGui.QMessageBox.question(self,
-            gettext("Revert"),
-            gettext("Do you really want to revert the selected file(s)?"),
-            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-        if res == QtGui.QMessageBox.Yes:
-            paths = [self.item_to_data[item][3] for item in items]
-            try:
-                self.tree.revert(paths, self.tree.branch.repository.revision_tree(self.tree.last_revision()))
-            except BzrError, e:
-                QtGui.QMessageBox.warning(self,
-                    gettext("Revert"), str(e), QtGui.QMessageBox.Ok)
-            else:
-                for item in items:
-                    index = self.indexOfTopLevelItem(item)
-                    self.takeTopLevelItem(index)
+        
+        paths = [self.item_to_data[item][1][1] for item in items]
+        
+        args = ["revert"]
+        args.extend(paths)
+        desc = (gettext("Revert %s to latest revision.") % ", ".join(paths))
+        revert_dialog = SubProcessDialog(gettext("Revert"),
+                                         desc=desc,
+                                         args=args,
+                                         dir=self.tree.basedir,
+                                         parent=self,
+                                        )
+        res = revert_dialog.exec_()
+        if res == QtGui.QDialog.Accepted:
+            for item in items:
+                index = self.indexOfTopLevelItem(item)
+                self.takeTopLevelItem(index)
 
     def show_differences(self, items=None, column=None):
         """Show differences between the working copy and the last revision."""
@@ -231,11 +238,11 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
     
         entries = [self.get_changedesc_path(d) for d in self.iter_selection()]
         if entries:
-            window = DiffWindow(self.tree.basis_tree(),
-                                self.tree,
+            window = DiffWindow(self.tree.basis_tree(), self.tree,
+                                self.tree.branch, self.tree.branch,
                                 specific_files=entries,
                                 parent=self,
-                                branch=self.tree.branch)
+                                )
             self.topLevelWidget().windows.append(window)
             window.show()
 

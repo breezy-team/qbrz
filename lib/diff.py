@@ -54,9 +54,12 @@ def get_file_lines_from_tree(tree, file_id):
 
 class DiffWindow(QBzrWindow):
 
-    def __init__(self, tree1=None, tree2=None, specific_files=None,
+    def __init__(self,
+                 tree1=None, tree2=None,
+                 branch1=None, branch2=None,
+                 specific_files=None,
                  parent=None, custom_title=None,
-                 complete=False, branch=None, encoding=None,
+                 complete=False, encoding=None,
                  filter_options=None):
         title = [gettext("Diff")]
         if custom_title:
@@ -72,8 +75,8 @@ class DiffWindow(QBzrWindow):
             if filter_options and not filter_options.is_all_enable():
                 title.append(filter_options.to_str())
 
-        config = get_branch_config(branch)
-        self.encoding = get_set_encoding(encoding, config)
+        self.encodings = (get_set_encoding(encoding, get_branch_config(branch1)),
+                          get_set_encoding(encoding, get_branch_config(branch2)))
         
         self.filter_options = filter_options
         if filter_options is None:
@@ -231,8 +234,8 @@ class DiffWindow(QBzrWindow):
                                 groups = list([matcher.get_opcodes()])
                             else:
                                 groups = list(matcher.get_grouped_opcodes())
-                        lines = [[i.decode(self.encoding,'replace') for i in l]
-                                 for l in lines]
+                        lines = [[i.decode(encoding,'replace') for i in l]
+                                 for l, encoding in zip(lines, self.encodings)]
                         data = ((),())
                     except BinaryFile:
                         binary = True

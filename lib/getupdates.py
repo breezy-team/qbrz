@@ -98,11 +98,11 @@ class UpdateBranchWindow(SubProcessWindow):
             if not location:
                 return
 
-            self.process_widget.start('pull', location, *args)
+            self.process_widget.start(None, 'pull', location, *args)
             save_pull_location(self.branch, location)
         else:
             # its an 'update'.
-            self.process_widget.start('update', self.branch.base)
+            self.process_widget.start(None, 'update', self.branch.base)
 
 
 class UpdateCheckoutWindow(SubProcessWindow):
@@ -164,7 +164,7 @@ class UpdateCheckoutWindow(SubProcessWindow):
             location = str(self.ui.location.currentText())
             if not location:
                 return
-            self.process_widget.start('pull', location, *args)
+            self.process_widget.start(None, 'pull', location, *args)
         else:
             # its an update.
-            self.process_widget.start('update', self.branch.base)
+            self.process_widget.start(None, 'update', self.branch.base)

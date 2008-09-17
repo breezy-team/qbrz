@@ -617,8 +617,10 @@ class LogWindow(QBzrWindow):
         else:
             revs = [rev1.revision_id, rev2.parent_ids[0]]
             tree, old_tree = self.branch.repository.revision_trees(revs)
-        window = DiffWindow(old_tree, tree, custom_title="..".join(revs),
-                            branch=self.branch, specific_files=specific_files)
+        window = DiffWindow(old_tree, tree,
+                            self.branch, self.branch,
+                            custom_title="..".join(revs),
+                            specific_files=specific_files)
         window.show()
         self.windows.append(window)
 
@@ -673,7 +675,7 @@ class LogWindow(QBzrWindow):
                       search_text.length() > 0
         self.changesModel.set_search_mode(search_mode)
         if role == logmodel.FilterIdRole:
-            self.changesProxyModel.setFilter(u"", self.old_filter_role)
+            self.changesProxyModel.setFilter(u"", role)
             search_text = str(search_text)
             if self.changesModel.has_rev_id(search_text):
                 self.changesModel.ensure_rev_visible(search_text)
@@ -681,7 +683,7 @@ class LogWindow(QBzrWindow):
                 index = self.changesProxyModel.mapFromSource(index)
                 self.changesList.setCurrentIndex(index)
         elif role == logmodel.FilterRevnoRole:
-            self.changesProxyModel.setFilter(u"", self.old_filter_role)
+            self.changesProxyModel.setFilter(u"", role)
             try:
                 revno = tuple((int(number) for number in str(search_text).split('.')))
             except ValueError:

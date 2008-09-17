@@ -22,7 +22,6 @@ from time import (strftime, localtime)
 from bzrlib import lazy_regex
 from bzrlib.revision import NULL_REVISION
 from bzrlib.tsort import merge_sort
-from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
@@ -622,8 +621,19 @@ class GraphModel(QtCore.QAbstractTableModel):
                     # This may be a sprout. Add line to first visible child
                     if rev_msri in self.merged_by:
                         merged_by_msri = self.merged_by[rev_msri]
-                        if not merged_by_msri in msri_index and\
-                           rev_msri == self.msri_merges[merged_by_msri][0]:
+                        
+                        # Find the first parent that is merged by merged_by_msri
+                        # that is visible
+                        for merged_msri in self.msri_merges[merged_by_msri]:
+                            if merged_msri in msri_index:
+                                break
+                        
+                        # Is this revision the first visible parent and
+                        # The the revions that merges us is not visible or
+                        # the fist visible parent is not the first parent
+                        if rev_msri == merged_msri and\
+                           (not merged_by_msri in msri_index or\
+                            not merged_msri == self.msri_merges[merged_by_msri][0]):
                             # The revision that merges this revision is not
                             # visible, and it is the first revision that is
                             # merged by that revision. This is a sprout.

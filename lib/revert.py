@@ -106,4 +106,4 @@ class RevertWindow(SubProcessWindow):
         for desc in self.filelist.iter_checked():
             args.append(self.filelist.get_changedesc_path(desc))
         
-        self.process_widget.start(*args)
+        self.process_widget.start(self.tree.basedir, *args)

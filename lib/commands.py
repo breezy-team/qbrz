@@ -282,6 +282,14 @@ class cmd_qdiff(QBzrCommand):
         Option('modified', short_name='M',
                help='Show diff for modified files'),
         Option('renamed', short_name='R', help='Show diff for renamed files'),
+        Option('old',
+            help='Branch/tree to compare from.',
+            type=unicode,
+            ),
+        Option('new',
+            help='Branch/tree to compare to.',
+            type=unicode,
+            ),
         ]
     if 'change' in Option.OPTIONS:
         takes_options.append('change')
@@ -289,8 +297,10 @@ class cmd_qdiff(QBzrCommand):
 
     def _qbzr_run(self, revision=None, file_list=None, complete=False,
             encoding=None,
-            added=None, deleted=None, modified=None, renamed=None):
+            added=None, deleted=None, modified=None, renamed=None,
+            old=None, new=None):
         from bzrlib.builtins import internal_tree_files
+        from bzrlib.diff import _get_trees_to_diff
 
         if revision and len(revision) > 2:
             raise errors.BzrCommandError('bzr qdiff --revision takes exactly'
@@ -302,43 +312,34 @@ class cmd_qdiff(QBzrCommand):
             # if no filter option used then turn all on
             filter_options.all_enable()
 
-        try:
-            tree1, file_list = internal_tree_files(file_list)
-            tree2 = None
-        except errors.FileInWrongBranch:
-            if len(file_list) != 2:
-                raise errors.BzrCommandError("Can diff only two branches")
-
-            tree1, file1 = WorkingTree.open_containing(file_list[1])
-            tree2, file2 = WorkingTree.open_containing(file_list[0])
-            if file1 != "" or file2 != "":
-                raise errors.BzrCommandError("Files are in different branches")
-            file_list = None
-
-        branch = None
-        if tree2 is not None:
-            if revision is not None:
-                raise errors.BzrCommandError(
-                        "Sorry, diffing arbitrary revisions across branches "
-                        "is not implemented yet")
+        old_tree, new_tree, specific_files, extra_trees = \
+                _get_trees_to_diff(file_list, revision, old, new)
+        
+        if file_list:
+            default_location = file_list[0]
         else:
-            branch = tree1.branch
-            if revision is not None:
-                if len(revision) == 1:
-                    revision_id = revision[0].in_history(branch).rev_id
-                    tree2 = branch.repository.revision_tree(revision_id)
-                elif len(revision) == 2:
-                    revision_id_0 = revision[0].in_history(branch).rev_id
-                    tree2 = branch.repository.revision_tree(revision_id_0)
-                    revision_id_1 = revision[1].in_history(branch).rev_id
-                    tree1 = branch.repository.revision_tree(revision_id_1)
-            else:
-                tree2 = tree1.basis_tree()
+            # If no path is given, the current working tree is used
+            default_location = u'.'
+        
+        if old is None:
+            old = default_location
+        wt, old_branch, rp = \
+            BzrDir.open_containing_tree_or_branch(old)
+        if new is None:
+            new = default_location
+        if new != old :
+            wt, new_branch, rp = \
+                BzrDir.open_containing_tree_or_branch(new)
+        else:
+            new_branch = old_branch
 
         application = QtGui.QApplication(sys.argv)
-        window = DiffWindow(tree2, tree1, complete=complete,
-            specific_files=file_list, branch=branch, encoding=encoding,
-            filter_options=filter_options)
+        window = DiffWindow(old_tree, new_tree,
+                            old_branch, new_branch,
+                            complete=complete,
+                            specific_files=specific_files,
+                            encoding=encoding,
+                            filter_options=filter_options)
         window.show()
         application.exec_()
 
