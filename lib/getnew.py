@@ -138,5 +138,5 @@ class GetNewWorkingTreeWindow(SubProcessWindow):
             args.append(from_location)
             args.append(to_location)
 
-        self.process_widget.start(*args)
+        self.process_widget.start(None, *args)
         save_pull_location(None, from_location)

@@ -355,9 +355,6 @@ class CommitWindow(SubProcessWindow):
                              QtCore.QVariant(merge.parent_ids[0]))
                 items.append(item)
             self.pendingMergesWidget.insertTopLevelItems(0, items)
-
-            vbox = QtGui.QVBoxLayout(self.message_groupbox)
-            vbox.addWidget(self.pendingMergesWidget)
         
         self.tabWidget.addTab(self.process_widget, gettext("Status"))
         
@@ -428,7 +425,8 @@ class CommitWindow(SubProcessWindow):
                 gettext("Empty commit message. Do you really want to commit?"), 
                 QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) 
             if button == QtGui.QMessageBox.No: 
-                # don't commit, but don't close the window either 
+                # don't commit, but don't close the window either
+                self.failed()
                 return
         args.append(('-m %s' % message))
         
@@ -441,7 +439,8 @@ class CommitWindow(SubProcessWindow):
                 args.append(path)
         
         if self.bugsCheckBox.isChecked():
-            args.append(("--fixes=%s" % unicode(self.bugs.text())))
+            for s in unicode(self.bugs.text()).split():
+                args.append(("--fixes=%s" % s))
         
         if self.authorCheckBox.isChecked():
             args.append(("--author=%s" % unicode(self.author.text())))
@@ -449,10 +448,11 @@ class CommitWindow(SubProcessWindow):
         if self.is_bound and self.local_checkbox.isChecked():
             args.append("--local")
         
+        dir = self.tree.basedir
         commands = []
         if len(files_to_add)>1:
-            commands.append(files_to_add)
-        commands.append(args)
+            commands.append((dir, files_to_add))
+        commands.append((dir, args))
         
         self.message_groupbox.setDisabled(True)
         self.files_tab.setDisabled(True)
@@ -467,7 +467,7 @@ class CommitWindow(SubProcessWindow):
         self.files_tab.setDisabled(False)
         if self.pending_merges:
             self.pendingMergesWidget.setDisabled(False)
-    
+        self.okButton.setDisabled(False)
     
     def show_changeset(self, item=None, column=None):
         repo = self.tree.branch.repository
