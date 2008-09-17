@@ -179,6 +179,22 @@ class CommitWindow(SubProcessWindow):
         num_versioned_files = 0
         for desc in self.tree.iter_changes(self.tree.basis_tree(),
                                            want_unversioned=True):
+            # desc[0]: file_id         -> ascii string
+            # desc[1]: paths           -> 2-tuple (old, new) fullpaths unicode/None
+            # desc[2]: changed_content -> bool
+            # desc[3]: versioned       -> 2-tuple (bool, bool)
+            # desc[4]: parent          -> 2-tuple
+            # desc[5]: name            -> 2-tuple (old_name, new_name) utf-8?/None
+            # desc[6]: kind            -> 2-tuple (string/None, string/None)
+            # desc[7]: executable      -> 2-tuple (bool/None, bool/None)
+            # NOTE: None value used for non-existing entry in corresponding
+            #       tree, e.g. for added/deleted file
+
+            if desc[0] is not None and desc[4] == (None, None):     # skip TREE_ROOT
+                # TREE_ROOT has not parents (desc[4]).
+                # But because we want to see unversioned files we need to check
+                # for file_id too (desc[0])
+                continue
 
             is_versioned = self.filelist.is_changedesc_versioned(desc)
             path = self.filelist.get_changedesc_path(desc)
