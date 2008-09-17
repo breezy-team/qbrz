@@ -721,8 +721,9 @@ class LogWindow(QBzrWindow):
             self.completer_model.setStringList(suggestions)
     
     def closeEvent (self, QCloseEvent):
+        QBzrWindow.closeEvent(self, QCloseEvent)
         self.changesModel.closing = True
-        
+    
     def updateSearchType(self, index=None):
         self.update_search()
 
