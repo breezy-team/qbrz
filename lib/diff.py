@@ -25,8 +25,11 @@ import time
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.errors import BinaryFile
+from bzrlib.errors import BinaryFile, NoSuchRevision
 from bzrlib.textfile import check_text_lines
+from bzrlib.workingtree import WorkingTree
+from bzrlib.revisiontree import RevisionTree
+from bzrlib.workingtree_4 import DirStateRevisionTree
 from bzrlib.mutabletree import MutableTree
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 
@@ -51,6 +54,34 @@ def get_file_lines_from_tree(tree, file_id):
     except AttributeError:
         return tree.get_file(file_id).readlines()
 
+def get_title_for_tree(tree, branch, other_branch):
+    branch_title = ""
+    if branch.base!=other_branch.base:
+        branch_title = branch.nick
+    
+    if isinstance(tree, WorkingTree):
+        if branch_title:
+            return gettext("Working Tree for %s") % branch_title
+        else:
+            return gettext("Working Tree")
+    
+    if isinstance(tree, RevisionTree) or isinstance(tree, DirStateRevisionTree):
+        # revision_id_to_revno is faster, but only works on mainline rev
+        try:
+            revno = branch.revision_id_to_revno(tree.get_revision_id())
+        except NoSuchRevision:
+            revno = ".".join(["%d" % (revno)
+                                for revno in \
+                                branch.get_revision_id_to_revno_map()\
+                                [tree.get_revision_id()]])
+        
+        if branch_title:
+            return gettext("Rev %s for %s") % (revno, branch_title)
+        else:
+            return gettext("Rev %s") % revno
+    
+    # XXX I don't know what other cases we need to handle    
+    return ""
 
 class DiffWindow(QBzrWindow):
 
@@ -58,12 +89,14 @@ class DiffWindow(QBzrWindow):
                  tree1=None, tree2=None,
                  branch1=None, branch2=None,
                  specific_files=None,
-                 parent=None, custom_title=None,
+                 parent=None,
                  complete=False, encoding=None,
                  filter_options=None):
-        title = [gettext("Diff")]
-        if custom_title:
-            title.append(custom_title)
+        rev1_title = get_title_for_tree(tree1, branch1, branch2)
+        rev2_title = get_title_for_tree(tree2, branch2, branch1)
+        
+        title = [gettext("Diff"), "%s..%s" % (rev1_title, rev2_title)]
+        
         if specific_files:
             nfiles = len(specific_files)
             if nfiles > 2:
@@ -135,6 +168,7 @@ class DiffWindow(QBzrWindow):
         hbox.addWidget(complete)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
+        
 
     def show(self):
         QBzrWindow.show(self)

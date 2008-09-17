@@ -497,7 +497,6 @@ class CommitWindow(SubProcessWindow):
             repo.unlock()
         window = DiffWindow(tree1, tree2,
                             self.tree.branch, self.tree.branch,
-                            custom_title="..".join(revs),
                             parent=self)
         window.show()
         self.windows.append(window)
