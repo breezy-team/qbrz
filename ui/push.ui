@@ -9,9 +9,12 @@
     <height>175</height>
    </rect>
   </property>
+  <property name="windowTitle" >
+   <string>Push</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout" >
    <property name="margin" >
-    <number>0</number>
+    <number>9</number>
    </property>
    <item>
     <widget class="QGroupBox" name="groupBox" >

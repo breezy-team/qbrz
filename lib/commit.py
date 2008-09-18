@@ -227,13 +227,12 @@ class CommitWindow(SubProcessWindow):
 
     def __init__(self, tree, selected_list, dialog=True, parent=None,
                  local=None, message=None, ui_mode=True):
-        SubProcessWindow.__init__(self,
+        super(CommitWindow, self).__init__(
                                   gettext("Commit"),
                                   name = "commit",
                                   default_size = (540, 540),
                                   ui_mode = ui_mode,
                                   dialog = dialog,
-                                  default_layout = False,
                                   parent = parent)
         self.tree = tree
         self.basis_tree = self.tree.basis_tree()
@@ -244,7 +243,7 @@ class CommitWindow(SubProcessWindow):
             QtCore.SIGNAL("failed()"),
             self.failed)
 
-        splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self)
 
         self.message_groupbox = QtGui.QGroupBox(gettext("Message"), splitter)
         splitter.addWidget(self.message_groupbox)
@@ -387,6 +386,13 @@ class CommitWindow(SubProcessWindow):
         else:
             self.message.setFocus()
 
+    def iter_form_widgets(self):
+        """Iterate the 'ui widgets' which will be disabled as we execute."""
+        yield self.message_groupbox
+        if self.pending_merges:
+            yield self.pendingMergesWidget
+        yield self.files_tab
+
     def enableBugs(self, state):
         if state == QtCore.Qt.Checked:
             self.bugs.setEnabled(True)
@@ -469,21 +475,9 @@ class CommitWindow(SubProcessWindow):
         if len(files_to_add)>1:
             commands.append((dir, files_to_add))
         commands.append((dir, args))
-        
-        self.message_groupbox.setDisabled(True)
-        self.files_tab.setDisabled(True)
-        if self.pending_merges:
-            self.pendingMergesWidget.setDisabled(True)
-        
+
         self.tabWidget.setCurrentWidget(self.process_widget)
         self.process_widget.start_multi(commands)
-    
-    def failed(self):
-        self.message_groupbox.setDisabled(False)
-        self.files_tab.setDisabled(False)
-        if self.pending_merges:
-            self.pendingMergesWidget.setDisabled(False)
-        self.okButton.setDisabled(False)
     
     def show_changeset(self, item=None, column=None):
         repo = self.tree.branch.repository

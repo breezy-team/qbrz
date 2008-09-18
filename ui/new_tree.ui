@@ -6,7 +6,7 @@
     <x>0</x>
     <y>0</y>
     <width>479</width>
-    <height>428</height>
+    <height>385</height>
    </rect>
   </property>
   <property name="windowTitle" >
@@ -14,7 +14,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" >
    <property name="margin" >
-    <number>0</number>
+    <number>9</number>
    </property>
    <item>
     <widget class="QGroupBox" name="groupBox" >
@@ -227,6 +227,9 @@ p, li { white-space: pre-wrap; }
       </item>
       <item row="1" column="1" >
        <widget class="QLineEdit" name="revision" >
+        <property name="enabled" >
+         <bool>false</bool>
+        </property>
         <property name="sizePolicy" >
          <sizepolicy vsizetype="Fixed" hsizetype="Expanding" >
           <horstretch>1</horstretch>
@@ -262,5 +265,89 @@ p, li { white-space: pre-wrap; }
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>link_help</sender>
+   <signal>linkActivated(QString)</signal>
+   <receiver>NewWorkingTreeForm</receiver>
+   <slot>linkActivated(QString)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>101</x>
+     <y>270</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>8</x>
+     <y>296</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>link_help_revisions</sender>
+   <signal>linkActivated(QString)</signal>
+   <receiver>NewWorkingTreeForm</receiver>
+   <slot>linkActivated(QString)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>316</x>
+     <y>364</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>6</x>
+     <y>379</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>but_checkout</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>but_lightweight</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>66</x>
+     <y>173</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>88</x>
+     <y>202</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>but_branch</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>but_stacked</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>58</x>
+     <y>224</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>84</x>
+     <y>250</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>but_rev_specific</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>revision</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>73</x>
+     <y>350</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>115</x>
+     <y>356</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>linkActivated(QString)</slot>
+ </slots>
 </ui>

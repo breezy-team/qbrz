@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/new_tree.ui'
 #
-# Created: Wed Sep 17 14:00:10 2008
+# Created: Thu Sep 18 20:58:12 2008
 #      by: PyQt4 UI code generator 4.4.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -14,9 +14,9 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 class Ui_NewWorkingTreeForm(object):
     def setupUi(self, NewWorkingTreeForm):
         NewWorkingTreeForm.setObjectName("NewWorkingTreeForm")
-        NewWorkingTreeForm.resize(479, 428)
+        NewWorkingTreeForm.resize(479, 385)
         self.verticalLayout = QtGui.QVBoxLayout(NewWorkingTreeForm)
-        self.verticalLayout.setMargin(0)
+        self.verticalLayout.setMargin(9)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBox = QtGui.QGroupBox(NewWorkingTreeForm)
         self.groupBox.setObjectName("groupBox")
@@ -97,6 +97,7 @@ class Ui_NewWorkingTreeForm(object):
         self.but_rev_specific.setObjectName("but_rev_specific")
         self.gridLayout_3.addWidget(self.but_rev_specific, 1, 0, 1, 1)
         self.revision = QtGui.QLineEdit(self.groupBox_2)
+        self.revision.setEnabled(False)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
@@ -114,6 +115,11 @@ class Ui_NewWorkingTreeForm(object):
         self.verticalLayout.addWidget(self.groupBox_2)
 
         self.retranslateUi(NewWorkingTreeForm)
+        QtCore.QObject.connect(self.link_help, QtCore.SIGNAL("linkActivated(QString)"), NewWorkingTreeForm.linkActivated)
+        QtCore.QObject.connect(self.link_help_revisions, QtCore.SIGNAL("linkActivated(QString)"), NewWorkingTreeForm.linkActivated)
+        QtCore.QObject.connect(self.but_checkout, QtCore.SIGNAL("toggled(bool)"), self.but_lightweight.setEnabled)
+        QtCore.QObject.connect(self.but_branch, QtCore.SIGNAL("toggled(bool)"), self.but_stacked.setEnabled)
+        QtCore.QObject.connect(self.but_rev_specific, QtCore.SIGNAL("toggled(bool)"), self.revision.setEnabled)
         QtCore.QMetaObject.connectSlotsByName(NewWorkingTreeForm)
 
     def retranslateUi(self, NewWorkingTreeForm):

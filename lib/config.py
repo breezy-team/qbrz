@@ -141,7 +141,7 @@ class QBzrConfigWindow(QBzrDialog):
 
         buttonbox = self.create_button_box(BTN_OK, BTN_CANCEL)
 
-        vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox = QtGui.QVBoxLayout(self)
         vbox.addWidget(tabwidget)
         vbox.addWidget(buttonbox)
         self.load()

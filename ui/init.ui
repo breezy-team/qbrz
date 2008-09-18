@@ -5,16 +5,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>376</width>
-    <height>333</height>
+    <width>417</width>
+    <height>351</height>
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>Dialog</string>
+   <string>Initialize</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" >
    <property name="margin" >
-    <number>0</number>
+    <number>9</number>
    </property>
    <item>
     <widget class="QGroupBox" name="groupBox_3" >
@@ -164,7 +164,7 @@ p, li { white-space: pre-wrap; }
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>354</width>
+           <width>377</width>
            <height>60</height>
           </rect>
          </property>
@@ -210,5 +210,41 @@ p, li { white-space: pre-wrap; }
   <zorder>groupBox</zorder>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>link_help</sender>
+   <signal>linkActivated(QString)</signal>
+   <receiver>InitForm</receiver>
+   <slot>linkActivated(QString)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>46</x>
+     <y>212</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>3</x>
+     <y>264</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>link_help_formats</sender>
+   <signal>linkActivated(QString)</signal>
+   <receiver>InitForm</receiver>
+   <slot>linkActivated(QString)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>66</x>
+     <y>324</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>3</x>
+     <y>328</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>linkActivated(QString)</slot>
+ </slots>
 </ui>

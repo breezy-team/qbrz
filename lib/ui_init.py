@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/init.ui'
 #
-# Created: Thu Sep 18 15:08:22 2008
+# Created: Thu Sep 18 20:58:12 2008
 #      by: PyQt4 UI code generator 4.4.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -14,9 +14,9 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 class Ui_InitForm(object):
     def setupUi(self, InitForm):
         InitForm.setObjectName("InitForm")
-        InitForm.resize(376, 333)
+        InitForm.resize(417, 351)
         self.verticalLayout = QtGui.QVBoxLayout(InitForm)
-        self.verticalLayout.setMargin(0)
+        self.verticalLayout.setMargin(9)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBox_3 = QtGui.QGroupBox(InitForm)
         self.groupBox_3.setObjectName("groupBox_3")
@@ -86,7 +86,7 @@ class Ui_InitForm(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtGui.QWidget(self.scrollArea)
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 354, 60))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 377, 60))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.verticalLayout_2 = QtGui.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_2.setMargin(4)
@@ -104,10 +104,12 @@ class Ui_InitForm(object):
         self.verticalLayout.addWidget(self.groupBox)
 
         self.retranslateUi(InitForm)
+        QtCore.QObject.connect(self.link_help, QtCore.SIGNAL("linkActivated(QString)"), InitForm.linkActivated)
+        QtCore.QObject.connect(self.link_help_formats, QtCore.SIGNAL("linkActivated(QString)"), InitForm.linkActivated)
         QtCore.QMetaObject.connectSlotsByName(InitForm)
 
     def retranslateUi(self, InitForm):
-        InitForm.setWindowTitle(gettext("Dialog"))
+        InitForm.setWindowTitle(gettext("Initialize"))
         self.groupBox_3.setTitle(gettext("Local Directory"))
         self.location_picker.setText(gettext("Browse..."))
         self.groupBox.setTitle(gettext("Repository"))

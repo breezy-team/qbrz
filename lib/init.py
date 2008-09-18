@@ -21,9 +21,8 @@ import os
 from bzrlib.commands import get_cmd_object
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_init import Ui_InitForm
-from bzrlib.plugins.qbzr.lib.help import show_help
 
 from bzrlib.plugins.qbzr.lib.util import (
     hookup_directory_picker,
@@ -32,16 +31,21 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 
 
-class QBzrInitWindow(SubProcessWindow):
+class QBzrInitWindow(SubProcessDialog):
 
     def __init__(self, localdir=u".", parent=None, ui_mode=False):
-        SubProcessWindow.__init__(self,
+        super(QBzrInitWindow, self).__init__(
                                   gettext("Initialize"),
                                   name = "init",
-                                  default_size = (400, 300),
                                   ui_mode = ui_mode,
                                   dialog = True,
                                   parent = parent)
+
+        self.ui = Ui_InitForm()
+        self.ui.setupUi(self)
+        # and add the subprocess widgets.
+        for w in self.make_default_layout_widgets():
+            self.layout().addWidget(w)
 
         # One directory picker
         self.ui.location.setText(os.path.abspath(localdir))
@@ -66,18 +70,7 @@ class QBzrInitWindow(SubProcessWindow):
                      self.init_toggled)
         self.ui.but_init.setChecked(True)
 
-        self.connect(self.ui.link_help, QtCore.SIGNAL("linkActivated(const QString &)"),
-                     self.link_help_activated)
-        self.connect(self.ui.link_help_formats, QtCore.SIGNAL("linkActivated(const QString &)"),
-                     self.link_help_activated)
-
         self.process_widget.hide_progress()
-    
-    def create_ui(self, parent):
-        ui_widget = QtGui.QWidget(parent)
-        self.ui = Ui_InitForm()
-        self.ui.setupUi(ui_widget)
-        return ui_widget
 
     def init_toggled(self, bool):
         # The widgets for normal 'init'
@@ -86,13 +79,6 @@ class QBzrInitWindow(SubProcessWindow):
         # The widgets for 'init-repo'
         for w in [self.ui.but_no_trees]:
             w.setEnabled(not bool)
-
-    def link_help_activated(self, target):
-        # Our help links all are of the form 'bzrtopic:topic-name'
-        scheme, link = unicode(target).split(":", 1)
-        if scheme != "bzrtopic":
-            raise RuntimeError, "unknown scheme"
-        show_help(link, self)
 
     def start(self):
         location = unicode(self.ui.location.text())

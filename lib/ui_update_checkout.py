@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/update_checkout.ui'
 #
-# Created: Mon Sep  8 16:11:40 2008
-#      by: PyQt4 UI code generator 4.4.3
+# Created: Thu Sep 18 20:58:12 2008
+#      by: PyQt4 UI code generator 4.4.2
 #
 # WARNING! All changes made in this file will be lost!
 

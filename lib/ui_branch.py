@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/branch.ui'
 #
-# Created: Mon Sep  8 15:57:02 2008
-#      by: PyQt4 UI code generator 4.4.3
+# Created: Thu Sep 18 20:58:12 2008
+#      by: PyQt4 UI code generator 4.4.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -14,9 +14,9 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 class Ui_BranchForm(object):
     def setupUi(self, BranchForm):
         BranchForm.setObjectName("BranchForm")
-        BranchForm.resize(197, 128)
+        BranchForm.resize(349, 130)
         self.verticalLayout = QtGui.QVBoxLayout(BranchForm)
-        self.verticalLayout.setMargin(0)
+        self.verticalLayout.setMargin(9)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBox = QtGui.QGroupBox(BranchForm)
         self.groupBox.setObjectName("groupBox")
@@ -61,6 +61,7 @@ class Ui_BranchForm(object):
         QtCore.QMetaObject.connectSlotsByName(BranchForm)
 
     def retranslateUi(self, BranchForm):
+        BranchForm.setWindowTitle(gettext("Branch"))
         self.groupBox.setTitle(gettext("Options"))
         self.label_2.setText(gettext("&Location:"))
         self.from_picker.setText(gettext("Browse..."))

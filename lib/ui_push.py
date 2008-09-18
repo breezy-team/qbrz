@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/push.ui'
 #
-# Created: Mon Sep  8 15:39:15 2008
-#      by: PyQt4 UI code generator 4.4.3
+# Created: Thu Sep 18 20:58:12 2008
+#      by: PyQt4 UI code generator 4.4.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -16,7 +16,7 @@ class Ui_PushForm(object):
         PushForm.setObjectName("PushForm")
         PushForm.resize(349, 175)
         self.verticalLayout = QtGui.QVBoxLayout(PushForm)
-        self.verticalLayout.setMargin(0)
+        self.verticalLayout.setMargin(9)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBox = QtGui.QGroupBox(PushForm)
         self.groupBox.setObjectName("groupBox")
@@ -58,6 +58,7 @@ class Ui_PushForm(object):
         QtCore.QMetaObject.connectSlotsByName(PushForm)
 
     def retranslateUi(self, PushForm):
+        PushForm.setWindowTitle(gettext("Push"))
         self.groupBox.setTitle(gettext("Options"))
         self.label_2.setText(gettext("&Location:"))
         self.location_picker.setText(gettext("Browse..."))

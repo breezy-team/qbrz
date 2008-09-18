@@ -29,7 +29,7 @@ from bzrlib import (
     )
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
+from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
 
 from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
@@ -219,7 +219,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         args = ["revert"]
         args.extend(paths)
         desc = (gettext("Revert %s to latest revision.") % ", ".join(paths))
-        revert_dialog = SubProcessDialog(gettext("Revert"),
+        revert_dialog = SimpleSubProcessDialog(gettext("Revert"),
                                          desc=desc,
                                          args=args,
                                          dir=self.tree.basedir,
