@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/init.ui'
 #
-# Created: Wed Sep 17 18:15:43 2008
+# Created: Thu Sep 18 15:08:22 2008
 #      by: PyQt4 UI code generator 4.4.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -14,7 +14,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 class Ui_InitForm(object):
     def setupUi(self, InitForm):
         InitForm.setObjectName("InitForm")
-        InitForm.resize(376, 313)
+        InitForm.resize(376, 333)
         self.verticalLayout = QtGui.QVBoxLayout(InitForm)
         self.verticalLayout.setMargin(0)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -98,6 +98,9 @@ class Ui_InitForm(object):
         self.verticalLayout_2.addWidget(self.format_desc)
         self.scrollArea.setWidget(self.scrollAreaWidgetContents)
         self.verticalLayout_3.addWidget(self.scrollArea)
+        self.link_help_formats = QtGui.QLabel(self.groupBox)
+        self.link_help_formats.setObjectName("link_help_formats")
+        self.verticalLayout_3.addWidget(self.link_help_formats)
         self.verticalLayout.addWidget(self.groupBox)
 
         self.retranslateUi(InitForm)
@@ -119,4 +122,9 @@ class Ui_InitForm(object):
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Tell me more about <a href=\"bzrtopic:standalone-trees\"><span style=\" text-decoration: underline; color:#0000ff;\">standalone trees</span></a>, <a href=\"bzrtopic:repositories\"><span style=\" text-decoration: underline; color:#0000ff;\">repositories</span></a> and <a href=\"bzrtopic:branches\"><span style=\" text-decoration: underline; color:#0000ff;\">branches</span></a>.</p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(gettext("Repository Format:"))
         self.format_desc.setText(gettext("Description of format"))
+        self.link_help_formats.setText(QtGui.QApplication.translate("InitForm", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><a href=\"bzrtopic:formats\"><span style=\" text-decoration: underline; color:#0000ff;\">More information about repository formats.</span></a></p></body></html>", None, QtGui.QApplication.UnicodeUTF8))
 
