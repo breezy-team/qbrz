@@ -68,6 +68,8 @@ class QBzrInitWindow(SubProcessWindow):
 
         self.connect(self.ui.link_help, QtCore.SIGNAL("linkActivated(const QString &)"),
                      self.link_help_activated)
+        self.connect(self.ui.link_help_formats, QtCore.SIGNAL("linkActivated(const QString &)"),
+                     self.link_help_activated)
 
         self.process_widget.hide_progress()
     
@@ -137,6 +139,8 @@ def fill_option_combo(combo, option, default, desc_widget=None):
             # this is the option itself
             continue
         name, short_name, argname, help = info
+        if option.is_hidden(name):
+            continue
         user_data = QtCore.QVariant(help or '')
         combo.addItem(name, user_data)
         if name == default:
