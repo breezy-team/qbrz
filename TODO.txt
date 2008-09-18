@@ -1,7 +1,6 @@
 TODO List
 =========
 
- - context menu with "View", "Annotate", "Log" options in qbrowse
  - allow changing of revision and location in qbrowse
  - tabbed (per file) qdiff view
  - more information in qblame (like gblame)
