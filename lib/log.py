@@ -19,7 +19,11 @@
 
 from PyQt4 import QtCore, QtGui
 from bzrlib.bzrdir import BzrDir
-from bzrlib import errors
+from bzrlib import (
+    errors,
+    osutils,
+    urlutils,
+    )
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -345,15 +349,10 @@ def load_locataions(locations_list):
     
     return (main_branch, rev_ids, file_ids)
 
+
 class LogWindow(QBzrWindow):
     
     def __init__(self, locations, branch, specific_fileids, parent=None):
-        title = [gettext("Log")]
-        if locations and not locations==["."]:
-            title.append(", ".join(locations).rstrip(", "))
-        QBzrWindow.__init__(self, title, parent)
-        self.restoreSize("log", (710, 580))
-        
         if branch:
             self.branch = branch
             self.specific_fileids = specific_fileids
@@ -363,7 +362,14 @@ class LogWindow(QBzrWindow):
             (self.branch,
              self.start_revids, 
              self.specific_fileids) = load_locataions(locations)
-        
+
+        lt = self._locations_for_title(locations)
+        title = [gettext("Log")]
+        if lt:
+            title.append(lt)
+        QBzrWindow.__init__(self, title, parent)
+        self.restoreSize("log", (710, 580))
+
         config = self.branch.get_config()
         self.replace = config.get_user_option("qlog_replace")
         if self.replace:
@@ -795,3 +801,18 @@ class LogWindow(QBzrWindow):
             self.diff_pushed()
         else:
             QtGui.QTreeView.keyPressEvent(self.changesList, e)
+
+    def _locations_for_title(self, locations):
+        if locations == ['.']:
+            return osutils.getcwd()
+        else:
+            if locations is None:
+                locations = [self.branch.base]
+            if len(locations) > 1:
+                return (", ".join(
+                    urlutils.unescape_for_display(i, 'utf-8')
+                    for i in locations).rstrip(", "))
+            else:
+                from bzrlib.directory_service import directories
+                return (urlutils.unescape_for_display(
+                    directories.dereference(locations[0]), 'utf-8'))
