@@ -597,8 +597,7 @@ def iter_branch_related_locations(branch):
 # Iterate the 'pull' locations we have previously saved for the user.
 def iter_saved_pull_locations():
     # XXX - todo
-    # let python know its a generator and show how it *would* appear.
-    yield u"http://pretend/this/was/a/saved/location"
+    return []
 
 
 # A helper to fill a 'pull' combo.
