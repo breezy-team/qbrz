@@ -25,9 +25,31 @@ from bzrlib.help import HelpIndices
 from bzrlib.errors import NoHelpTopic
 try:
     from docutils.core import publish_string
+    from docutils.writers.html4css1 import Writer as BaseHTMLWriter
     have_docutils = True
 except ImportError:
     have_docutils = False
+
+if have_docutils:
+    # We run into issues in Windows binaries where docutils may be in a .zip
+    # file, so template and .css files can't be located.  This is OK for now,
+    # as the HTML we generate is so basic we don't need stylesheets.
+    class CustomWriter(BaseHTMLWriter):
+        # This is the context of template.txt from distutils.
+        template = """%(head_prefix)s
+            %(head)s
+            %(stylesheet)s
+            %(body_prefix)s
+            %(body_pre_docinfo)s
+            %(docinfo)s
+            %(body)s
+            %(body_suffix)s
+            """
+
+        def apply_template(self):
+            # Docutils expects to find this on disk, but its not there
+            subs = self.interpolation_dict()
+            return self.template % subs
 
 
 def get_help_topic_as_html(topic):
@@ -48,7 +70,9 @@ def get_help_topic_as_html(topic):
     if have_docutils:
         # we can make pretty HTML on the fly
         text = topic.get_help_text(plain=False)
-        html = publish_string(text, writer_name='html4css1')
+        html = publish_string(text, writer=CustomWriter(),
+                              settings_overrides={'stylesheet': None,
+                                                  'stylesheet_path': None})
     else:
         # No docutils - we don't try too hard here - installing docutils is
         # easy!  But we do try and make the line-breaks correct at least.
