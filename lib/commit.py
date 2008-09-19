@@ -367,8 +367,9 @@ class CommitWindow(SubProcessWindow):
                 item.setText(2, merge.get_summary())
                 item.setData(0, self.RevisionIdRole,
                              QtCore.QVariant(merge.revision_id))
-                item.setData(0, self.ParentIdRole,
-                             QtCore.QVariant(merge.parent_ids[0]))
+                if merge.parent_ids:
+                    item.setData(0, self.ParentIdRole,
+                                 QtCore.QVariant(merge.parent_ids[0]))
                 items.append(item)
             self.pendingMergesWidget.insertTopLevelItems(0, items)
         
