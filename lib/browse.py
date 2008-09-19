@@ -145,7 +145,7 @@ class BrowseWindow(QBzrWindow):
         while parent is not None:
             path_parts.append(unicode(parent.text(0)))
             parent = parent.parent()
-        path_parts.append('.')      # IMO with leading ./ path looks better
+        #path_parts.append('.')      # IMO with leading ./ path looks better
         path_parts.reverse()
         return pathjoin(*path_parts)
     
@@ -170,7 +170,7 @@ class BrowseWindow(QBzrWindow):
         branch = self.branch
         file_id = branch.basis_tree().path2id(path)
 
-        window = LogWindow(path, branch, [file_id])
+        window = LogWindow([path], branch, [file_id])
         window.show()
         self.windows.append(window)
     

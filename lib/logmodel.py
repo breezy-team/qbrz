@@ -523,7 +523,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                     
                     # Find parents that are currently visible
                     rev_visible_parents = []
-                    for i, parent_revid in enumerate(self.graph_parents[revid]):
+                    for parent_revid in self.graph_parents[revid]:
                         (parent_msri,
                          parent_branch_id,
                          parent_merge_depth) = self._msri_branch_id_merge_depth(parent_revid)
@@ -533,9 +533,13 @@ class GraphModel(QtCore.QAbstractTableModel):
                                                         parent_branch_id,
                                                         parent_merge_depth,
                                                         True))
-                        elif i == 0:
+                        else:
                             # The parent was not visible. Search for a ansestor
-                            # that is.
+                            # that is. Stop searching if we make a hop, i.e. we
+                            # go away for our branch, and we come back to it
+                            has_seen_different_branch = False
+                            if not parent_branch_id == branch_id:
+                                has_seen_different_branch = True
                             while parent_revid and parent_msri not in msri_index:
                                 parents = self.graph_parents[parent_revid]
                                 if len(parents) == 0:
@@ -545,6 +549,11 @@ class GraphModel(QtCore.QAbstractTableModel):
                                     (parent_msri,
                                      parent_branch_id,
                                      parent_merge_depth) = self._msri_branch_id_merge_depth(parent_revid)
+                                if not parent_branch_id == branch_id:
+                                    has_seen_different_branch = True
+                                if has_seen_different_branch and parent_branch_id == branch_id:
+                                    parent_revid = None
+                                    break
                             if parent_revid:
                                 rev_visible_parents.append((parent_revid,
                                                             parent_msri,
@@ -621,19 +630,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                     # This may be a sprout. Add line to first visible child
                     if rev_msri in self.merged_by:
                         merged_by_msri = self.merged_by[rev_msri]
-                        
-                        # Find the first parent that is merged by merged_by_msri
-                        # that is visible
-                        for merged_msri in self.msri_merges[merged_by_msri]:
-                            if merged_msri in msri_index:
-                                break
-                        
-                        # Is this revision the first visible parent and
-                        # The the revions that merges us is not visible or
-                        # the fist visible parent is not the first parent
-                        if rev_msri == merged_msri and\
-                           (not merged_by_msri in msri_index or\
-                            not merged_msri == self.msri_merges[merged_by_msri][0]):
+                        if not merged_by_msri in msri_index and\
+                           rev_msri == self.msri_merges[merged_by_msri][0]:
                             # The revision that merges this revision is not
                             # visible, and it is the first revision that is
                             # merged by that revision. This is a sprout.

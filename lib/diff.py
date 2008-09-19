@@ -209,6 +209,11 @@ class DiffWindow(QBzrWindow):
 
                 renamed = (parent[0], name[0]) != (parent[1], name[1])
 
+                # check for manually deleted files (w/o using bzr rm commands)
+                if versioned == (True, True) and kind[1] is None:
+                    versioned = (True, False)
+                    paths = (paths[0], None)
+
                 dates = [None, None]
                 for ix in range(2):
                     if versioned[ix]:

@@ -298,7 +298,7 @@ class SidebySideDiffView(QtGui.QSplitter):
             def insertLine(cursor, line):
                 if use_pygments:
                     for ttype, value in line:
-                        cursor.insertText(value.rstrip('\n\r'),
+                        cursor.insertText(value.rstrip('\n'),
                                           format_for_ttype(ttype,
                                                            QtGui.QTextCharFormat(self.monospacedFormat)))
                     
@@ -307,7 +307,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                     format = QtGui.QTextCharFormat()
                     format.setFont(self.monospacedFont)
                     format.setFontItalic (True)
-                    cursor.insertText("\n",format)
+                    cursor.insertText(" \n",format)
                 else:
                     cursor.insertText(line)
             
