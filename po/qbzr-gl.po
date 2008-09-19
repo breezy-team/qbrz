@@ -1,4 +1,4 @@
-# Dutch translation for qbzr
+# Galician translation for qbzr
 # Copyright (c) 2008 Rosetta Contributors and Canonical Ltd 2008
 # This file is distributed under the same license as the qbzr package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2008.
@@ -8,9 +8,9 @@ msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2008-09-17 11:52+0300\n"
-"PO-Revision-Date: 2008-07-21 18:07+0000\n"
-"Last-Translator: ubby <Unknown>\n"
-"Language-Team: Dutch <nl@li.org>\n"
+"PO-Revision-Date: 2008-09-01 23:57+0000\n"
+"Last-Translator: miguelbf <mbouzada@gmail.com>\n"
+"Language-Team: Galician <gl@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -20,7 +20,7 @@ msgstr ""
 
 #: lib\add.py:47 lib\config.py:99 lib\config.py:120
 msgid "Add"
-msgstr "Toevoegen"
+msgstr "Engadir"
 
 #: lib\add.py:58
 msgid "Unversioned Files"
@@ -36,73 +36,73 @@ msgstr ""
 
 #: lib\annotate.py:93
 msgid "Line"
-msgstr "Regel"
+msgstr "Liña"
 
 #: lib\annotate.py:93 lib\annotate.py:109 lib\browse.py:82 lib\commit.py:338
 #: lib\logmodel.py:86
 msgid "Author"
-msgstr "Auteur"
+msgstr "Autor"
 
 #: lib\annotate.py:93 lib\logmodel.py:83
 msgid "Rev"
-msgstr ""
+msgstr "Revisión"
 
 #: lib\annotate.py:109 lib\browse.py:81 lib\commit.py:338 lib\logmodel.py:85
 msgid "Date"
-msgstr "Datum"
+msgstr "Data"
 
 #: lib\annotate.py:109
 msgid "Summary"
-msgstr "Samenvatting"
+msgstr "Resumo"
 
 #: lib\browse.py:60 lib\browse.py:202 lib\browse.py:237
 msgid "Browse"
-msgstr "Bladeren"
+msgstr "Examinar"
 
 #: lib\browse.py:66
 msgid "Location:"
-msgstr "Locatie:"
+msgstr "Ubicación:"
 
 #: lib\browse.py:71 lib\ui_new_tree.py:151 lib\util.py:346
 msgid "Revision:"
-msgstr "Revisie:"
+msgstr "Revisión:"
 
 #: lib\browse.py:74
 msgid "Show"
-msgstr "Weergeven"
+msgstr "Amosar"
 
 #: lib\browse.py:81 lib\main.py:359
 msgid "Name"
-msgstr "Naam"
+msgstr "Nome"
 
 #: lib\browse.py:82 lib\commit.py:233 lib\commit.py:338 lib\logmodel.py:84
 msgid "Message"
-msgstr "Bericht"
+msgstr "Mensaxe"
 
 #: lib\browse.py:87
 msgid "Show log..."
-msgstr ""
+msgstr "Amosar rexistro..."
 
 #: lib\browse.py:90
 msgid "View file"
-msgstr "Bestand tonen"
+msgstr "Ver o ficheiro"
 
 #: lib\cat.py:73
 msgid "View "
-msgstr "Bekijk "
+msgstr "Ver "
 
 #: lib\cat.py:153
 msgid "View File"
-msgstr "Bestand tonen"
+msgstr "Ver o ficheiro"
 
 #: lib\cat.py:154
 #, python-format
 msgid "File \"%s\" not found in the specified revision."
-msgstr ""
+msgstr "O ficheiro «%s» non se atopa na revisión especificada"
 
 #: lib\commit.py:215 lib\commit.py:424
 msgid "Commit"
-msgstr "Vastleggen"
+msgstr "Entregar"
 
 #: lib\commit.py:241
 msgid "Show non-versioned files"
@@ -128,7 +128,7 @@ msgstr ""
 
 #: lib\commit.py:290
 msgid "&Author:"
-msgstr "&Auteur:"
+msgstr "&Autor:"
 
 #: lib\commit.py:291
 msgid "Set the author of this change, if it's different from the committer"
@@ -138,6 +138,7 @@ msgstr ""
 msgid ""
 "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
+"Introduza o nome do autor, p.ex. <i>Pepe Perez &lt:pepe@exemplo.com&gt:</i>"
 
 #: lib\commit.py:309
 msgid "&Local commit in a bound branch"
@@ -151,7 +152,7 @@ msgstr ""
 
 #: lib\commit.py:319 lib\revert.py:59
 msgid "Changes"
-msgstr "Wijzigingen"
+msgstr "Cambios"
 
 #: lib\commit.py:334
 msgid "Pending Merges"
@@ -159,7 +160,7 @@ msgstr ""
 
 #: lib\commit.py:359 lib\main.py:361 lib\subprocess.py:80 lib\wtlist.py:78
 msgid "Status"
-msgstr ""
+msgstr "Estado"
 
 #: lib\commit.py:425
 msgid "Empty commit message. Do you really want to commit?"
@@ -167,7 +168,7 @@ msgstr ""
 
 #: lib\config.py:41
 msgid "Default"
-msgstr "Standaard"
+msgstr "Predeterminado"
 
 #: lib\config.py:42
 msgid "Thunderbird"
@@ -187,11 +188,11 @@ msgstr "Mutt"
 
 #: lib\config.py:46
 msgid "XDG e-mail client"
-msgstr ""
+msgstr "Cliente de correo-e XDG"
 
 #: lib\config.py:47
 msgid "MAPI e-mail client"
-msgstr ""
+msgstr "Cliente de correo-e MAPI"
 
 #: lib\config.py:48
 msgid "Editor"
@@ -199,39 +200,39 @@ msgstr "Editor"
 
 #: lib\config.py:57
 msgid "Configuration"
-msgstr "Instellingen"
+msgstr "Configuración"
 
 #: lib\config.py:67 lib\ui_bookmark.py:58
 msgid "&Name:"
-msgstr "&Naam:"
+msgstr "&Nome:"
 
 #: lib\config.py:73
 msgid "E-&mail:"
-msgstr "E-&mail:"
+msgstr "C&orreo-e"
 
 #: lib\config.py:79
 msgid "&Editor:"
-msgstr ""
+msgstr "&Editor:"
 
 #: lib\config.py:87
 msgid "E-mail &client:"
-msgstr ""
+msgstr "&Cliente de correo-e"
 
 #: lib\config.py:97
 msgid "Alias"
-msgstr "Alias"
+msgstr "Alcume"
 
 #: lib\config.py:97
 msgid "Command"
-msgstr "Opdracht"
+msgstr "Orde"
 
 #: lib\config.py:102 lib\config.py:123
 msgid "Remove"
-msgstr "Verwijderen"
+msgstr "Eliminar"
 
 #: lib\config.py:118
 msgid "Abbreviation"
-msgstr ""
+msgstr "Abreviatura"
 
 #: lib\config.py:118
 msgid "URL"
@@ -239,11 +240,11 @@ msgstr "URL"
 
 #: lib\config.py:137
 msgid "General"
-msgstr "Algemeen"
+msgstr "Xeral"
 
 #: lib\config.py:138
 msgid "Aliases"
-msgstr "Aliassen"
+msgstr "Alcumes"
 
 #: lib\config.py:139
 msgid "Bug Trackers"
@@ -259,18 +260,17 @@ msgstr ""
 
 #: lib\diff.py:64 lib\log.py:521
 msgid "Diff"
-msgstr "Diff"
+msgstr ""
 
 #: lib\diff.py:71
 #, python-format
 msgid "%d file"
 msgid_plural "%d files"
-msgstr[0] "%d bestand"
-msgstr[1] "%d bestanden"
+msgstr[0] "ficheiro %d"
 
 #: lib\diff.py:103
 msgid "Side by side"
-msgstr ""
+msgstr "lado a lado"
 
 #: lib\diff.py:110
 msgid "Unidiff"
@@ -282,47 +282,47 @@ msgstr ""
 
 #: lib\diff.py:197 lib\wtlist.py:114
 msgid "removed"
-msgstr "verwijderd"
+msgstr "borrado"
 
 #: lib\diff.py:199 lib\wtlist.py:110
 msgid "added"
-msgstr "toegevoegd"
+msgstr "engadido"
 
 #: lib\diff.py:201 lib\wtlist.py:125
 msgid "renamed and modified"
-msgstr "hernoemd en gewijzigd"
+msgstr "renomeado e modificado"
 
 #: lib\diff.py:203 lib\wtlist.py:127
 msgid "renamed"
-msgstr "hernoemd"
+msgstr "renomeado"
 
 #: lib\diff.py:205 lib\wtlist.py:134
 msgid "modified"
-msgstr "gewijzigd"
+msgstr "modificado"
 
 #: lib\diffview.py:211
 msgid "Last modified:"
-msgstr "Laatst gewijzigd:"
+msgstr "Última modificación:"
 
 #: lib\diffview.py:212
 msgid "Status:"
-msgstr "Status:"
+msgstr "Estado"
 
 #: lib\diffview.py:213
 msgid "Kind:"
-msgstr "Type:"
+msgstr "Tipo:"
 
 #: lib\diffview.py:214
 msgid "Properties:"
-msgstr ""
+msgstr "Propiedades"
 
 #: lib\diffview.py:462
 msgid "[binary file]"
-msgstr ""
+msgstr "[ficheiro binario]"
 
 #: lib\diffview.py:621
 msgid "\\ No newline at end of file"
-msgstr ""
+msgstr "\\ Sin liña nova no fin do ficheiro"
 
 #: lib\getnew.py:45 lib\ui_new_tree.py:120
 msgid "Create a new Bazaar Working Tree"
@@ -347,39 +347,39 @@ msgstr ""
 
 #: lib\i18n.py:92
 msgid "file"
-msgstr "bestand"
+msgstr "ficheiro"
 
 #: lib\i18n.py:93
 msgid "directory"
-msgstr "directory"
+msgstr "directorio"
 
 #: lib\i18n.py:94
 msgid "symlink"
-msgstr ""
+msgstr "ligazón simbólica"
 
 #: lib\i18n.py:96
 msgid "fixed"
-msgstr ""
+msgstr "fixo"
 
 #: lib\i18n.py:98
 msgid "View text file"
-msgstr ""
+msgstr "Ver ficheiro de texto"
 
 #: lib\i18n.py:99
 msgid "View image file"
-msgstr ""
+msgstr "Ver ficheiro de imaxe"
 
 #: lib\i18n.py:100
 msgid "View binary file"
-msgstr ""
+msgstr "Ver ficheiro binario"
 
 #: lib\i18n.py:101
 msgid "View symlink"
-msgstr ""
+msgstr "Ver ligazón sinmbólica"
 
 #: lib\i18n.py:102
 msgid "View directory"
-msgstr ""
+msgstr "Ver directorio"
 
 #: lib\info.py:41
 msgid "Info"
@@ -395,11 +395,11 @@ msgstr ""
 
 #: lib\log.py:351
 msgid "Log"
-msgstr "Logboek"
+msgstr "Rexistro"
 
 #: lib\log.py:389
 msgid "&Search:"
-msgstr "&Zoeken:"
+msgstr "&Busca"
 
 #: lib\log.py:411
 msgid "Messages and File text (indexed)"
@@ -407,27 +407,27 @@ msgstr ""
 
 #: lib\log.py:427
 msgid "Messages"
-msgstr "Berichten"
+msgstr "Mensaxes"
 
 #: lib\log.py:429
 msgid "Authors"
-msgstr "Auteurs"
+msgstr "Autores/as"
 
 #: lib\log.py:431
 msgid "Revision IDs"
-msgstr ""
+msgstr "IDs de revisión"
 
 #: lib\log.py:433
 msgid "Revision Numbers"
-msgstr ""
+msgstr "Números de revisión"
 
 #: lib\log.py:528 lib\wtlist.py:65
 msgid "Show &differences..."
-msgstr ""
+msgstr "Amosar &diferencias..."
 
 #: lib\log.py:529
 msgid "Show &tree..."
-msgstr ""
+msgstr "Amosar ar&bore"
 
 #: lib\logmodel.py:894
 #, python-format
@@ -436,31 +436,31 @@ msgstr ""
 
 #: lib\main.py:126
 msgid "Computer"
-msgstr "Computer"
+msgstr "Computador"
 
 #: lib\main.py:155
 msgid "&Edit Bookmark..."
-msgstr ""
+msgstr "&Editar marcapáxinas..."
 
 #: lib\main.py:156
 msgid "&Remove Bookmark..."
-msgstr ""
+msgstr "Elimina&r marcapáxinas"
 
 #: lib\main.py:171
 msgid "Bookmarks"
-msgstr ""
+msgstr "Marca páxinas"
 
 #: lib\main.py:280 lib\util.py:71
 msgid "&Refresh"
-msgstr "&Verversen"
+msgstr "Actualiza&r"
 
 #: lib\main.py:282
 msgid "Refresh the directory tree"
-msgstr ""
+msgstr "Acrualizar a árbore do directorio"
 
 #: lib\main.py:286
 msgid "&Commit"
-msgstr "&Vastleggen"
+msgstr "&Entregar"
 
 #: lib\main.py:287
 msgid "Commit changes into a new revision"
@@ -468,7 +468,7 @@ msgstr ""
 
 #: lib\main.py:291
 msgid "&Push"
-msgstr ""
+msgstr "&Empuxar"
 
 #: lib\main.py:292
 msgid "Turn this branch into a mirror of another branch"
@@ -476,7 +476,7 @@ msgstr ""
 
 #: lib\main.py:296
 msgid "Pu&ll"
-msgstr ""
+msgstr "&Tirar"
 
 #: lib\main.py:297
 msgid "Update a mirror of this branch"
@@ -484,23 +484,23 @@ msgstr ""
 
 #: lib\main.py:300
 msgid "&Add Bookmark..."
-msgstr ""
+msgstr "Eng&adir marca páxinas..."
 
 #: lib\main.py:307
 msgid "&File"
-msgstr "&Bestand"
+msgstr "&Ficheiro"
 
 #: lib\main.py:308
 msgid "&Configure..."
-msgstr "&Instellen..."
+msgstr "Configurar..."
 
 #: lib\main.py:310
 msgid "&Quit"
-msgstr "&Afsluiten"
+msgstr "&Saír"
 
 #: lib\main.py:311
 msgid "&View"
-msgstr "&Toon"
+msgstr "&Ver"
 
 #: lib\main.py:313
 msgid "&Branch"
@@ -508,27 +508,27 @@ msgstr ""
 
 #: lib\main.py:317
 msgid "&Bookmarks"
-msgstr ""
+msgstr "&Marca páxinas"
 
 #: lib\main.py:319 lib\util.py:70
 msgid "&Help"
-msgstr "&Help"
+msgstr "A&xuda"
 
 #: lib\main.py:320
 msgid "&Help..."
-msgstr "&Help..."
+msgstr "A&xuda"
 
 #: lib\main.py:322
 msgid "&About..."
-msgstr "&Over..."
+msgstr "&Acerca de..."
 
 #: lib\main.py:360
 msgid "Size"
-msgstr "Grootte"
+msgstr "Tamaño"
 
 #: lib\main.py:412
 msgid "About QBzr"
-msgstr ""
+msgstr "Acerca de QBzr"
 
 #: lib\main.py:413
 #, python-format
@@ -541,19 +541,19 @@ msgstr ""
 
 #: lib\main.py:478
 msgid "Add Bookmark"
-msgstr ""
+msgstr "Engadir marca páxinas"
 
 #: lib\main.py:489
 msgid "Edit Bookmark"
-msgstr ""
+msgstr "Editar marca páxinas"
 
 #: lib\main.py:499
 msgid "Remove Bookmark"
-msgstr ""
+msgstr "Eliminar marca páxinas"
 
 #: lib\main.py:500
 msgid "Do you really want to remove the selected bookmark?"
-msgstr ""
+msgstr "Desexa eliminar o marca páxinas seleccionado?"
 
 #: lib\pull.py:62
 msgid "Pull"
@@ -561,7 +561,7 @@ msgstr ""
 
 #: lib\pull.py:104
 msgid "Push"
-msgstr ""
+msgstr "Empuxar"
 
 #: lib\pull.py:140 lib\ui_new_tree.py:121
 msgid "Branch"
@@ -573,45 +573,45 @@ msgstr ""
 
 #: lib\revert.py:48 lib\wtlist.py:222
 msgid "Revert"
-msgstr "Herstellen"
+msgstr "Reverter"
 
 #: lib\subprocess.py:188
 msgid "Stopped"
-msgstr "Gestopt"
+msgstr "Parado"
 
 #: lib\subprocess.py:233
 msgid "Starting..."
-msgstr "Bezig met starten..."
+msgstr "Iniciando..."
 
 #: lib\subprocess.py:258
 msgid "Aborting..."
-msgstr "Afbreken..."
+msgstr "Interrumpindo..."
 
 #: lib\subprocess.py:266
 msgid "Finished!"
-msgstr "Voltooid!"
+msgstr "Rematado!"
 
 #: lib\subprocess.py:304 lib\subprocess.py:321
 msgid "Failed!"
-msgstr ""
+msgstr "Fallou!"
 
 #: lib\subprocess.py:306
 msgid "Failed to start bzr."
-msgstr ""
+msgstr "Atopouse un fallo ao iniciar bzr."
 
 #: lib\subprocess.py:308
 #, python-format
 msgid "Error while running bzr. (error code: %d)"
-msgstr ""
+msgstr "Produciuse un erro ao executar bzr (código de erro: %d)"
 
 #: lib\ui_bookmark.py:59 lib\ui_branch.py:65 lib\ui_merge.py:57
 #: lib\ui_pull.py:60 lib\ui_push.py:62
 msgid "&Location:"
-msgstr "&Locatie:"
+msgstr "&Ubicación"
 
 #: lib\ui_branch.py:64 lib\ui_merge.py:56 lib\ui_pull.py:59 lib\ui_push.py:61
 msgid "Options"
-msgstr "Opties"
+msgstr "Opcións"
 
 #: lib\ui_branch.py:66 lib\ui_branch.py:69 lib\ui_init.py:109
 #: lib\ui_merge.py:58 lib\ui_new_tree.py:123 lib\ui_new_tree.py:125
@@ -622,11 +622,11 @@ msgstr ""
 
 #: lib\ui_branch.py:67 lib\ui_merge.py:59 lib\ui_pull.py:62
 msgid "&Revision:"
-msgstr ""
+msgstr "&Revisión:"
 
 #: lib\ui_branch.py:68
 msgid "&To:"
-msgstr "&Naar:"
+msgstr "&Para:"
 
 #: lib\ui_info.py:176
 msgid "Local location:"
@@ -720,7 +720,7 @@ msgstr ""
 
 #: lib\ui_merge.py:60 lib\ui_pull.py:63 lib\ui_push.py:64
 msgid "Remember this location as a default"
-msgstr ""
+msgstr "Lembre esta ubicación como predeterminada"
 
 #: lib\ui_new_tree.py:122
 msgid ""
@@ -775,7 +775,7 @@ msgstr ""
 
 #: lib\ui_push.py:66
 msgid "Use existing directory"
-msgstr ""
+msgstr "Usar un directorio existente"
 
 #: lib\ui_push.py:67
 msgid "Create the path up to the branch if it does not exist"
@@ -821,23 +821,23 @@ msgstr ""
 
 #: lib\util.py:67
 msgid "&OK"
-msgstr "&OK"
+msgstr "&Aceptar"
 
 #: lib\util.py:68
 msgid "&Cancel"
-msgstr "&Annuleren"
+msgstr "&Cancelar"
 
 #: lib\util.py:69
 msgid "&Close"
-msgstr "&Sluiten"
+msgstr "&Pechar"
 
 #: lib\util.py:363
 msgid "Parents:"
-msgstr "Ouders:"
+msgstr "Pdres:"
 
 #: lib\util.py:367
 msgid "Children:"
-msgstr "Kinderen:"
+msgstr "Hijos:"
 
 #: lib\util.py:369
 msgid "Committer:"
@@ -845,7 +845,7 @@ msgstr ""
 
 #: lib\util.py:372
 msgid "Author:"
-msgstr "Auteur:"
+msgstr "Autor:"
 
 #: lib\util.py:376
 msgid "Branch:"
@@ -853,7 +853,7 @@ msgstr ""
 
 #: lib\util.py:381
 msgid "Tags:"
-msgstr "Labels:"
+msgstr "Etiquetas:"
 
 #: lib\util.py:390
 msgid "Bug:"
@@ -863,31 +863,31 @@ msgstr[1] ""
 
 #: lib\util.py:535
 msgid "deleted files"
-msgstr ""
+msgstr "ficheiros borrados"
 
 #: lib\util.py:537
 msgid "added files"
-msgstr "toegevoegde bestanden"
+msgstr "ficheiros engadidos"
 
 #: lib\util.py:539
 msgid "renamed files"
-msgstr ""
+msgstr "ficheiros renomeados"
 
 #: lib\util.py:541
 msgid "modified files"
-msgstr "aangepaste bestanden"
+msgstr "ficheiros modificados"
 
 #: lib\wtlist.py:68
 msgid "&Revert..."
-msgstr "&Terugzetten..."
+msgstr "&Reverter..."
 
 #: lib\wtlist.py:78
 msgid "File"
-msgstr "Bestand"
+msgstr "Ficheiro"
 
 #: lib\wtlist.py:78
 msgid "Extension"
-msgstr "Extensie"
+msgstr "Extensión"
 
 #: lib\wtlist.py:104
 msgid "ignored"
