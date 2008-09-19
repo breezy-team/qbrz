@@ -36,7 +36,10 @@ def gettext(s):
 def ngettext(s, p, n):
     if _translation is not None:
         return _translation.ungettext(s, p, n)
-    return s if n == 1 else p
+    if n == 1:
+        return s
+    else:
+        return p
 
 
 def N_(s):
