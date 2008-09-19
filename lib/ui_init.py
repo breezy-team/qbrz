@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/init.ui'
 #
-# Created: Fri Sep 19 16:13:35 2008
+# Created: Fri Sep 19 17:17:53 2008
 #      by: PyQt4 UI code generator 4.4.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -39,6 +39,7 @@ class Ui_InitForm(object):
         self.verticalLayout_3 = QtGui.QVBoxLayout(self.groupBox)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.but_init = QtGui.QRadioButton(self.groupBox)
+        self.but_init.setChecked(True)
         self.but_init.setObjectName("but_init")
         self.verticalLayout_3.addWidget(self.but_init)
         self.horizontalLayout_3 = QtGui.QHBoxLayout()
@@ -57,6 +58,7 @@ class Ui_InitForm(object):
         spacerItem1 = QtGui.QSpacerItem(20, 20, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_4.addItem(spacerItem1)
         self.but_no_trees = QtGui.QCheckBox(self.groupBox)
+        self.but_no_trees.setEnabled(False)
         self.but_no_trees.setObjectName("but_no_trees")
         self.horizontalLayout_4.addWidget(self.but_no_trees)
         self.verticalLayout_3.addLayout(self.horizontalLayout_4)
@@ -108,6 +110,8 @@ class Ui_InitForm(object):
         QtCore.QObject.connect(self.link_help_formats, QtCore.SIGNAL("linkActivated(QString)"), InitForm.linkActivated)
         QtCore.QObject.connect(InitForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.groupBox_3.setDisabled)
         QtCore.QObject.connect(InitForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.groupBox.setDisabled)
+        QtCore.QObject.connect(self.but_init, QtCore.SIGNAL("toggled(bool)"), self.but_append_only.setEnabled)
+        QtCore.QObject.connect(self.radioButton_2, QtCore.SIGNAL("toggled(bool)"), self.but_no_trees.setEnabled)
         QtCore.QMetaObject.connectSlotsByName(InitForm)
 
     def retranslateUi(self, InitForm):

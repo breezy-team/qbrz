@@ -53,6 +53,9 @@
         <property name="text" >
          <string>Create a new standalone tree</string>
         </property>
+        <property name="checked" >
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>
@@ -109,6 +112,9 @@
         </item>
         <item>
          <widget class="QCheckBox" name="but_no_trees" >
+          <property name="enabled" >
+           <bool>false</bool>
+          </property>
           <property name="text" >
            <string>Skip the creation of working trees in this repository</string>
           </property>
@@ -268,6 +274,38 @@ p, li { white-space: pre-wrap; }
     <hint type="destinationlabel" >
      <x>15</x>
      <y>182</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>but_init</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>but_append_only</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>77</x>
+     <y>106</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>121</x>
+     <y>138</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_2</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>but_no_trees</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>150</x>
+     <y>165</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>177</x>
+     <y>187</y>
     </hint>
    </hints>
   </connection>

@@ -66,19 +66,7 @@ class QBzrInitWindow(SubProcessDialog):
         opt = cmd.options()['no-trees']
         self.ui.but_no_trees.setToolTip(opt.help)
 
-        self.connect(self.ui.but_init, QtCore.SIGNAL("toggled(bool)"),
-                     self.init_toggled)
-        self.ui.but_init.setChecked(True)
-
         self.process_widget.hide_progress()
-
-    def init_toggled(self, bool):
-        # The widgets for normal 'init'
-        for w in [self.ui.but_append_only]:
-            w.setEnabled(bool)
-        # The widgets for 'init-repo'
-        for w in [self.ui.but_no_trees]:
-            w.setEnabled(not bool)
 
     def start(self):
         location = unicode(self.ui.location.text())
