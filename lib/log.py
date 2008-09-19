@@ -518,9 +518,9 @@ class LogWindow(QBzrWindow):
         splitter.setStretchFactor(1, 3)
 
         buttonbox = self.create_button_box(BTN_CLOSE)
-        refresh = StandardButton(BTN_REFRESH)
-        buttonbox.addButton(refresh, QtGui.QDialogButtonBox.ActionRole)
-        self.connect(refresh,
+        self.refresh_button = StandardButton(BTN_REFRESH)
+        buttonbox.addButton(self.refresh_button, QtGui.QDialogButtonBox.ActionRole)
+        self.connect(self.refresh_button,
                      QtCore.SIGNAL("clicked()"),
                      self.refresh)
 
@@ -658,17 +658,31 @@ class LogWindow(QBzrWindow):
         self.show_diff_window(rev1, rev2)
 
     def refresh(self):
-        if "locations" in dir(self):
-            (self.branch,
-             self.start_revids, 
-             self.specific_fileids) = load_locataions(self.locations)
-        self.load_history()
+        self.refresh_button.setDisabled(True)
+        QtCore.QCoreApplication.processEvents()
+        try:
+            print "pre"
+            if "locations" in dir(self):
+                (self.branch,
+                 self.start_revids, 
+                 self.specific_fileids) = load_locataions(self.locations)
+            print "post"
+            
+            self.changesModel.loadBranch(self.branch,
+                                         start_revs = self.start_revids,
+                                         specific_fileids = self.specific_fileids)
+        finally:
+            self.refresh_button.setDisabled(False)
     
     def load_history(self):
         """Load branch history."""
-        self.changesModel.loadBranch(self.branch,
-                                     start_revs = self.start_revids,
-                                     specific_fileids = self.specific_fileids)
+        self.refresh_button.setDisabled(True)
+        try:
+            self.changesModel.loadBranch(self.branch,
+                                         start_revs = self.start_revids,
+                                         specific_fileids = self.specific_fileids)
+        finally:
+            self.refresh_button.setDisabled(False)
 
     def update_search(self):
         # TODO in_paths = self.search_in_paths.isChecked()
