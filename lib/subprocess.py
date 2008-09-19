@@ -237,7 +237,7 @@ class SubProcessWidget(QtGui.QWidget):
     
     def _start_next(self):
         dir, args = self.commands.pop(0)
-        args = ' '.join('"%s"' % a.replace('"', '\"') for a in args)
+        args = ' '.join('"%s"' % a.replace('"', '\\"') for a in args)
         if dir is None:
             dir = self.defaultWorkingDir
         
