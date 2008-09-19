@@ -38,7 +38,12 @@ def get_help_topic_as_html(topic):
         tpl = gettext("No help can be found for <i>%s</i>")
         return tpl % topic
 
-    assert len(results)==1, "what does more than one result mean?"
+    # assert len(results)==1, "what does more than one result mean?"
+    # An example of when one might get more than one result, is if you have
+    # bzrtools plugin install, you will get a second result for it command,
+    # if you search for "Branches". We (like bzr help) only want to show the
+    # first result.
+    
     index, topic = results[0]
     if have_docutils:
         # we can make pretty HTML on the fly
