@@ -91,5 +91,25 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>MergeForm</sender>
+   <signal>subprocessStarted(bool)</signal>
+   <receiver>groupBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>17</x>
+     <y>7</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>22</x>
+     <y>16</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <signal>subprocessStarted(bool)</signal>
+ </slots>
 </ui>

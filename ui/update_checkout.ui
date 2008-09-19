@@ -9,9 +9,12 @@
     <height>170</height>
    </rect>
   </property>
+  <property name="windowTitle" >
+   <string>Update Checkout</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout" >
    <property name="margin" >
-    <number>0</number>
+    <number>9</number>
    </property>
    <item>
     <widget class="QLabel" name="label" >
@@ -123,5 +126,73 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>but_pull</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>location</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>101</x>
+     <y>89</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>105</x>
+     <y>114</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>but_pull</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>location_picker</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>173</x>
+     <y>87</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>255</x>
+     <y>108</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>but_pull</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>but_pull_overwrite</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>62</x>
+     <y>86</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>73</x>
+     <y>141</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>UpdateCheckoutForm</sender>
+   <signal>subprocessStarted(bool)</signal>
+   <receiver>groupBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>4</x>
+     <y>6</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>18</x>
+     <y>38</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <signal>subprocessStarted(bool)</signal>
+ </slots>
 </ui>

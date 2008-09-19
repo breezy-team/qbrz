@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/update_checkout.ui'
 #
-# Created: Thu Sep 18 20:58:12 2008
+# Created: Fri Sep 19 16:13:35 2008
 #      by: PyQt4 UI code generator 4.4.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -16,7 +16,7 @@ class Ui_UpdateCheckoutForm(object):
         UpdateCheckoutForm.setObjectName("UpdateCheckoutForm")
         UpdateCheckoutForm.resize(317, 170)
         self.verticalLayout = QtGui.QVBoxLayout(UpdateCheckoutForm)
-        self.verticalLayout.setMargin(0)
+        self.verticalLayout.setMargin(9)
         self.verticalLayout.setObjectName("verticalLayout")
         self.label = QtGui.QLabel(UpdateCheckoutForm)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Fixed)
@@ -64,9 +64,14 @@ class Ui_UpdateCheckoutForm(object):
         self.verticalLayout.addWidget(self.groupBox)
 
         self.retranslateUi(UpdateCheckoutForm)
+        QtCore.QObject.connect(self.but_pull, QtCore.SIGNAL("toggled(bool)"), self.location.setEnabled)
+        QtCore.QObject.connect(self.but_pull, QtCore.SIGNAL("toggled(bool)"), self.location_picker.setEnabled)
+        QtCore.QObject.connect(self.but_pull, QtCore.SIGNAL("toggled(bool)"), self.but_pull_overwrite.setEnabled)
+        QtCore.QObject.connect(UpdateCheckoutForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.groupBox.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(UpdateCheckoutForm)
 
     def retranslateUi(self, UpdateCheckoutForm):
+        UpdateCheckoutForm.setWindowTitle(gettext("Update Checkout"))
         self.label.setText(gettext("This directory is a checkout of: %s"))
         self.groupBox.setTitle(gettext("Update source"))
         self.but_update.setText(gettext("Update the working tree from the bound branch"))

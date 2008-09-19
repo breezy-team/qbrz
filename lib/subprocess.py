@@ -57,17 +57,43 @@ class SubProcessWindowBase:
             QtCore.SIGNAL("failed()"),
             self.failed)
 
-        self.closeButton = StandardButton(BTN_CLOSE)
-        self.okButton = StandardButton(BTN_OK)
-        self.cancelButton = StandardButton(BTN_CANCEL)
+        closeButton = StandardButton(BTN_CLOSE)
+        okButton = StandardButton(BTN_OK)
+        cancelButton = StandardButton(BTN_CANCEL)
+
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessStarted(bool)"),
+                               okButton,
+                               QtCore.SLOT("setDisabled(bool)"))
+
+        # ok button gets hidden when we finish.
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessFinished(bool)"),
+                               okButton,
+                               QtCore.SLOT("setHidden(bool)"))
+
+        # close button gets shown when we finish.
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessFinished(bool)"),
+                               closeButton,
+                               QtCore.SLOT("setShown(bool)"))
+
+        # cancel button gets disabled when finished.
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessFinished(bool)"),
+                               cancelButton,
+                               QtCore.SLOT("setDisabled(bool)"))
 
         self.buttonbox = QtGui.QDialogButtonBox(self)
-        self.buttonbox.addButton(self.okButton,
+        self.buttonbox.addButton(okButton,
             QtGui.QDialogButtonBox.AcceptRole)
-        self.buttonbox.addButton(self.cancelButton,
+        self.buttonbox.addButton(closeButton,
+            QtGui.QDialogButtonBox.AcceptRole)
+        self.buttonbox.addButton(cancelButton,
             QtGui.QDialogButtonBox.RejectRole)
         self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.accept)
         self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
+        closeButton.setHidden(True) # but 'close' starts as hidden.
 
     def make_default_layout_widgets(self):
         status_group_box = QtGui.QGroupBox(gettext("Status"), self)
@@ -76,24 +102,11 @@ class SubProcessWindowBase:
         yield status_group_box
         yield self.buttonbox
 
-    def iter_form_widgets(self):
-        """Iterate the 'ui widgets' - ie, the widgets related the form rather
-        than the subprocess widgets"""
-        layout = self.layout()
-        for i in range(layout.count()):
-            item = layout.itemAt(i)
-            widget = item.widget()
-            if widget in [self.buttonbox, self.process_widget]:
-                continue
-            yield widget
-
     def accept(self):
         if self.process_widget.finished:
             self.close()
         else:
-            self.okButton.setDisabled(True)
-            for w in self.iter_form_widgets():
-                w.setDisabled(True)
+            self.emit(QtCore.SIGNAL("subprocessStarted(bool)"), True)
             self.start()
     
     def start(self):
@@ -109,17 +122,13 @@ class SubProcessWindowBase:
         if hasattr(self, 'setResult'):
             self.setResult(QtGui.QDialog.Accepted)
         
-        self.buttonbox.addButton(self.closeButton,
-            QtGui.QDialogButtonBox.AcceptRole)
-        self.buttonbox.removeButton(self.okButton)
-        self.cancelButton.setDisabled(True)
+        self.emit(QtCore.SIGNAL("subprocessFinished(bool)"), True)
+
         if not self.ui_mode:
             self.close()
 
     def failed(self):
-        for w in self.iter_form_widgets():
-            w.setDisabled(False)
-        self.okButton.setDisabled(False)
+        self.emit(QtCore.SIGNAL("subprocessStarted(bool)"), False)
     
     def closeEvent(self, event):
         if not self.process_widget.is_running():

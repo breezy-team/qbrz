@@ -346,8 +346,57 @@ p, li { white-space: pre-wrap; }
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>NewWorkingTreeForm</sender>
+   <signal>subprocessStarted(bool)</signal>
+   <receiver>groupBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>52</x>
+     <y>2</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>71</x>
+     <y>21</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>NewWorkingTreeForm</sender>
+   <signal>subprocessStarted(bool)</signal>
+   <receiver>groupBox_3</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>5</x>
+     <y>145</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>24</x>
+     <y>155</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>NewWorkingTreeForm</sender>
+   <signal>subprocessStarted(bool)</signal>
+   <receiver>groupBox_2</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>4</x>
+     <y>270</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>61</x>
+     <y>297</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>linkActivated(QString)</slot>
+  <signal>subprocessStarted(bool)</signal>
  </slots>
 </ui>

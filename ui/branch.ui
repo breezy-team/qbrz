@@ -108,5 +108,25 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>BranchForm</sender>
+   <signal>subprocessStarted(bool)</signal>
+   <receiver>groupBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>100</x>
+     <y>4</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>108</x>
+     <y>13</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <signal>subprocessStarted(bool)</signal>
+ </slots>
 </ui>

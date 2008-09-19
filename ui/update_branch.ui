@@ -228,5 +228,40 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>UpdateBranchForm</sender>
+   <signal>subprocessStarted(bool)</signal>
+   <receiver>label</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>2</x>
+     <y>6</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>15</x>
+     <y>17</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>UpdateBranchForm</sender>
+   <signal>subprocessStarted(bool)</signal>
+   <receiver>groupBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>5</x>
+     <y>43</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>11</x>
+     <y>57</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <signal>subprocessStarted(bool)</signal>
+ </slots>
 </ui>

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/merge.ui'
 #
-# Created: Thu Sep 18 20:58:12 2008
+# Created: Fri Sep 19 16:13:35 2008
 #      by: PyQt4 UI code generator 4.4.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -50,6 +50,7 @@ class Ui_MergeForm(object):
         self.label_3.setBuddy(self.revision)
 
         self.retranslateUi(MergeForm)
+        QtCore.QObject.connect(MergeForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.groupBox.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(MergeForm)
 
     def retranslateUi(self, MergeForm):

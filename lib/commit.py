@@ -245,17 +245,17 @@ class CommitWindow(SubProcessWindow):
 
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self)
 
-        self.message_groupbox = QtGui.QGroupBox(gettext("Message"), splitter)
-        splitter.addWidget(self.message_groupbox)
+        message_groupbox = QtGui.QGroupBox(gettext("Message"), splitter)
+        splitter.addWidget(message_groupbox)
         self.tabWidget = QtGui.QTabWidget()
         splitter.addWidget(self.tabWidget)
         
-        grid = QtGui.QGridLayout(self.message_groupbox)
+        grid = QtGui.QGridLayout(message_groupbox)
 
         self.show_nonversioned_checkbox = QtGui.QCheckBox(
             gettext("Show non-versioned files"))
 
-        self.filelist = WorkingTreeFileList(self.message_groupbox, self.tree)
+        self.filelist = WorkingTreeFileList(message_groupbox, self.tree)
         selectall_checkbox = QtGui.QCheckBox(
                                 gettext(self.filelist.SELECTALL_MESSAGE))
         selectall_checkbox.setCheckState(QtCore.Qt.Checked)
@@ -271,7 +271,7 @@ class CommitWindow(SubProcessWindow):
         self.filelist.setup_actions()
 
         # Equivalent for 'bzr commit --message'
-        self.message = TextEdit(self.message_groupbox, main_window=self)
+        self.message = TextEdit(message_groupbox, main_window=self)
         self.message.setToolTip(gettext("Enter the commit message"))
         completer = QtGui.QCompleter()
         completer.setModel(QtGui.QStringListModel(self.completion_words, completer))
@@ -330,10 +330,10 @@ class CommitWindow(SubProcessWindow):
                 self.local_checkbox.setChecked(True)
 
         # Display the list of changed files
-        self.files_tab = QtGui.QWidget()
-        self.tabWidget.addTab(self.files_tab, gettext("Changes"))
+        files_tab = QtGui.QWidget()
+        self.tabWidget.addTab(files_tab, gettext("Changes"))
 
-        vbox = QtGui.QVBoxLayout(self.files_tab)
+        vbox = QtGui.QVBoxLayout(files_tab)
         vbox.addWidget(self.filelist)
         self.connect(self.show_nonversioned_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_nonversioned)
         vbox.addWidget(self.show_nonversioned_checkbox)
@@ -345,18 +345,23 @@ class CommitWindow(SubProcessWindow):
         # Display a list of pending merges
         if self.pending_merges:
             selectall_checkbox.setEnabled(False)
-            self.pendingMergesWidget = QtGui.QTreeWidget()
-            self.tabWidget.addTab(self.pendingMergesWidget, gettext("Pending Merges"))
+            pendingMergesWidget = QtGui.QTreeWidget()
+            self.tabWidget.addTab(pendingMergesWidget, gettext("Pending Merges"))
             
-            self.pendingMergesWidget.setRootIsDecorated(False)
-            self.pendingMergesWidget.setHeaderLabels(
+            pendingMergesWidget.setRootIsDecorated(False)
+            pendingMergesWidget.setHeaderLabels(
                 [gettext("Date"), gettext("Author"), gettext("Message")])
-            header = self.pendingMergesWidget.header()
+            header = pendingMergesWidget.header()
             header.resizeSection(0, 120)
             header.resizeSection(1, 190)
-            self.connect(self.pendingMergesWidget,
+            self.connect(pendingMergesWidget,
                 QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
                 self.show_changeset)
+            # Pending-merge widget gets disabled as we are executing.
+            QtCore.QObject.connect(self,
+                                   QtCore.SIGNAL("subprocessStarted(bool)"),
+                                   pendingMergesWidget,
+                                   QtCore.SLOT("setDisabled(bool)"))
 
             items = []
             for merge in self.pending_merges:
@@ -370,8 +375,8 @@ class CommitWindow(SubProcessWindow):
                     item.setData(0, self.ParentIdRole,
                                  QtCore.QVariant(merge.parent_ids[0]))
                 items.append(item)
-            self.pendingMergesWidget.insertTopLevelItems(0, items)
-        
+            pendingMergesWidget.insertTopLevelItems(0, items)
+
         self.tabWidget.addTab(self.process_widget, gettext("Status"))
         
         splitter.setStretchFactor(0, 3)
@@ -380,19 +385,22 @@ class CommitWindow(SubProcessWindow):
         vbox.addWidget(splitter)
         vbox.addWidget(self.buttonbox)
 
+        # groupbox and tabbox get disabled as we are executing.
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessStarted(bool)"),
+                               message_groupbox,
+                               QtCore.SLOT("setDisabled(bool)"))
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessStarted(bool)"),
+                               files_tab,
+                               QtCore.SLOT("setDisabled(bool)"))
+        
         # Try to be smart: if there is no saved message
         # then set focus on Edit Area; otherwise on OK button.
         if self.get_saved_message():
             self.buttonbox.setFocus()
         else:
             self.message.setFocus()
-
-    def iter_form_widgets(self):
-        """Iterate the 'ui widgets' which will be disabled as we execute."""
-        yield self.message_groupbox
-        if self.pending_merges:
-            yield self.pendingMergesWidget
-        yield self.files_tab
 
     def enableBugs(self, state):
         if state == QtCore.Qt.Checked:

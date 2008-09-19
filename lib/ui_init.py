@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/init.ui'
 #
-# Created: Thu Sep 18 20:58:12 2008
+# Created: Fri Sep 19 16:13:35 2008
 #      by: PyQt4 UI code generator 4.4.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -106,6 +106,8 @@ class Ui_InitForm(object):
         self.retranslateUi(InitForm)
         QtCore.QObject.connect(self.link_help, QtCore.SIGNAL("linkActivated(QString)"), InitForm.linkActivated)
         QtCore.QObject.connect(self.link_help_formats, QtCore.SIGNAL("linkActivated(QString)"), InitForm.linkActivated)
+        QtCore.QObject.connect(InitForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.groupBox_3.setDisabled)
+        QtCore.QObject.connect(InitForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.groupBox.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(InitForm)
 
     def retranslateUi(self, InitForm):

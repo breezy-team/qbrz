@@ -98,5 +98,25 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>PullForm</sender>
+   <signal>subprocessStarted(bool)</signal>
+   <receiver>groupBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>15</x>
+     <y>7</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>24</x>
+     <y>18</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <signal>subprocessStarted(bool)</signal>
+ </slots>
 </ui>
