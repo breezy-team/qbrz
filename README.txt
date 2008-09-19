@@ -95,6 +95,12 @@ qlog_replace='''#(\d+)
 to project/.bzr/branch/branch.conf.
 
 
+diff_show_intergroup_colors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Boolean value to allow painting interline changes in different colors
+depend on the kind of change. Use values 'True' or '1' to enable option.
+
+
 More Info
 =========
 
