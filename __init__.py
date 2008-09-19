@@ -26,7 +26,7 @@ Provided commands:
 from bzrlib.commands import register_command
 
 
-version_info = (0, 9, 4, 'dev', 0)
+version_info = (0, 9, 4, 'final', 0)
 __version__ = '.'.join(map(str, version_info))
 
 
@@ -47,7 +47,7 @@ def register_command_lazy(module, name, aliases):
     register_command(LazyCommand(module, name, aliases))
 
 
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_merge', [])
+register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_merge', [])  # provides merge --qpreview
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qadd', [])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qannotate', ['qann', 'qblame'])
 register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbranch', [])
