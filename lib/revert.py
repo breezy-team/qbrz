@@ -76,6 +76,12 @@ class RevertWindow(SubProcessDialog):
 
         self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
 
+        # groupbox gets disabled as we are executing.
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessStarted(bool)"),
+                               groupbox,
+                               QtCore.SLOT("setDisabled(bool)"))
+
         layout = QtGui.QVBoxLayout(self)
         layout.addWidget(groupbox)
         # and add the subprocess widgets.
