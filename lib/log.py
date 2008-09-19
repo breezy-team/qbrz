@@ -661,12 +661,11 @@ class LogWindow(QBzrWindow):
         self.refresh_button.setDisabled(True)
         QtCore.QCoreApplication.processEvents()
         try:
-            print "pre"
+            self.changesModel.stop_revision_loading = True
             if "locations" in dir(self):
                 (self.branch,
                  self.start_revids, 
                  self.specific_fileids) = load_locataions(self.locations)
-            print "post"
             
             self.changesModel.loadBranch(self.branch,
                                          start_revs = self.start_revids,
