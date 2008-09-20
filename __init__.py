@@ -26,7 +26,7 @@ Provided commands:
 from bzrlib.commands import register_command
 
 
-version_info = (0, 9, 4, 'final', 0)
+version_info = (0, 9, 5, 'dev', 0)
 __version__ = '.'.join(map(str, version_info))
 
 
