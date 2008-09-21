@@ -215,8 +215,8 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
 
     @classmethod
     def is_changedesc_renamed(cls, desc):
-        """Is the item 'versioned' and considered renamed."""
-        return (cls.is_changedesc_versioned(desc)
+        """Is the item renamed."""
+        return (desc[3] == (True, True)
                 and (desc[4][0], desc[5][0]) != (desc[4][1], desc[5][1]))
 
     @classmethod
