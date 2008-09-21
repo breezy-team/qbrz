@@ -38,7 +38,6 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
-from bzrlib.plugins.qbzr.lib.wtlist import WorkingTreeFileList, ChangeDesc
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
 from bzrlib.plugins.qbzr.lib.util import (
@@ -49,6 +48,11 @@ from bzrlib.plugins.qbzr.lib.util import (
     format_timestamp,
     get_apparent_author,
     get_global_config,
+    )
+from bzrlib.plugins.qbzr.lib.wtlist import (
+    ChangeDesc,
+    WorkingTreeFileList,
+    closure_in_selected_list,
     )
 
 
@@ -166,15 +170,7 @@ class CommitWindow(SubProcessWindow):
         words = set()
         show_nonversioned = self.show_nonversioned_checkbox.isChecked()
 
-        def in_selected_list(path):
-            if not self.initial_selected_list:
-                return True
-            if path in self.initial_selected_list:
-                return True
-            for p in self.initial_selected_list:
-                if path.startswith(p):
-                    return True
-            return False
+        in_selected_list = closure_in_selected_list(self.initial_selected_list)
 
         num_versioned_files = 0
         for desc in self.tree.iter_changes(self.tree.basis_tree(),

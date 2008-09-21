@@ -326,3 +326,20 @@ class ChangeDesc(tuple):
             # we need to check for versioned flag (desc[3])
             return True
         return False
+
+
+def closure_in_selected_list(selected_list):
+    """Return in_selected_list(path) function for given selected_list."""
+
+    def in_selected_list(path):
+        """Check: is path belongs to some selected_list."""
+        if path in selected_list:
+            return True
+        for p in selected_list:
+            if path.startswith(p):
+                return True
+        return False
+
+    if not selected_list:
+        return lambda path: True
+    return in_selected_list

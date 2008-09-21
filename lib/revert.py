@@ -34,8 +34,11 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_apparent_author,
     get_global_config,
     )
-
-from bzrlib.plugins.qbzr.lib.wtlist import WorkingTreeFileList, ChangeDesc
+from bzrlib.plugins.qbzr.lib.wtlist import (
+    ChangeDesc,
+    WorkingTreeFileList,
+    closure_in_selected_list,
+    )
 
 
 class RevertWindow(SubProcessWindow):
@@ -85,15 +88,7 @@ class RevertWindow(SubProcessWindow):
     def iter_changes_and_state(self):
         """An iterator for the WorkingTreeFileList widget"""
 
-        def in_selected_list(path):
-            if not self.initial_selected_list:
-                return True
-            if path in self.initial_selected_list:
-                return True
-            for p in self.initial_selected_list:
-                if path.startswith(p):
-                    return True
-            return False
+        in_selected_list = closure_in_selected_list(self.initial_selected_list)
 
         for desc in self.tree.iter_changes(self.tree.basis_tree()):
             desc = ChangeDesc(desc)
