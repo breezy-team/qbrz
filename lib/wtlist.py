@@ -201,10 +201,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
     @classmethod
     def is_changedesc_tree_root(cls, desc):
         """Check is entry actually tree root."""
-        if desc[0] is not None and desc[4] == (None, None):
-            # TREE_ROOT has not parents (desc[4]).
-            # But because we could want to see unversioned files
-            # we need to check for file_id too (desc[0])
+        if desc[3] != (False, False) and desc[4] == (None, None):
             return True
         return False
 
@@ -328,3 +325,50 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         for (tree_item, change_desc) in self.iter_treeitem_and_desc():
             tree_item.setCheckState(0, QtCore.Qt.CheckState(state))
         self._ignore_select_all_changes = False
+
+
+class ChangeDesc(tuple):
+    """Helper class that "knows" about internals of iter_changes' changed entry
+    description tuple, and provides additional helper methods.
+
+    iter_changes return tuple with info about changed entry:
+    [0]: file_id         -> ascii string
+    [1]: paths           -> 2-tuple (old, new) fullpaths unicode/None
+    [2]: changed_content -> bool
+    [3]: versioned       -> 2-tuple (bool, bool)
+    [4]: parent          -> 2-tuple
+    [5]: name            -> 2-tuple (old_name, new_name) utf-8?/None
+    [6]: kind            -> 2-tuple (string/None, string/None)
+    [7]: executable      -> 2-tuple (bool/None, bool/None)
+
+    NOTE: None value used for non-existing entry in corresponding
+          tree, e.g. for added/deleted/ignored/unversioned
+    """
+
+    def path(desc):
+        """Return a suitable entry for a 'specific_files' param to bzr functions."""
+        oldpath, newpath = desc[1]
+        return newpath or oldpath
+
+    def oldpath(desc):
+        """Return oldpath for renames."""
+        return desc[1][0]
+
+    def is_versioned(desc):
+        return desc[3] != (False, False)
+
+    def is_modified(desc):
+        return (desc[3] != (False, False) and desc[2])
+
+    def is_renamed(desc):
+        return (desc[3] == (True, True)
+                and (desc[4][0], desc[5][0]) != (desc[4][1], desc[5][1]))
+
+    def is_tree_root(desc):
+        """Check is entry actually tree root."""
+        if desc[3] != (False, False) and desc[4] == (None, None):
+            # TREE_ROOT has not parents (desc[4]).
+            # But because we could want to see unversioned files
+            # we need to check for versioned flag (desc[3])
+            return True
+        return False
