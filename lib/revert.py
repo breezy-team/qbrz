@@ -35,7 +35,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_global_config,
     )
 
-from bzrlib.plugins.qbzr.lib.wtlist import WorkingTreeFileList
+from bzrlib.plugins.qbzr.lib.wtlist import WorkingTreeFileList, ChangeDesc
+
 
 class RevertWindow(SubProcessWindow):
 
@@ -95,8 +96,9 @@ class RevertWindow(SubProcessWindow):
             return False
 
         for desc in self.tree.iter_changes(self.tree.basis_tree()):
-            assert self.filelist.is_changedesc_modified(desc), "expecting only modified!"
-            path = self.filelist.get_changedesc_path(desc)
+            desc = ChangeDesc(desc)
+            assert desc.is_modified(), "expecting only modified!"
+            path = desc.path()
             check_state = in_selected_list(path)
             yield desc, True, check_state
 
@@ -104,6 +106,6 @@ class RevertWindow(SubProcessWindow):
         """Revert the files."""
         args = ["revert"]
         for desc in self.filelist.iter_checked():
-            args.append(self.filelist.get_changedesc_path(desc))
+            args.append(desc.path())
         
         self.process_widget.start(self.tree.basedir, *args)
