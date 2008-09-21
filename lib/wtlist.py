@@ -19,21 +19,23 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-# A QTreeWidget that shows the items in a working tree, and includes a common
-# context menu.
-from PyQt4 import QtCore, QtGui
-from bzrlib.errors import BzrError
+"""A QTreeWidget that shows the items in a working tree, and includes a common
+context menu."""
 
+from PyQt4 import QtCore, QtGui
+
+from bzrlib.errors import BzrError
 from bzrlib import (
     osutils,
     )
+
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-
 from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     )
+
 
 class WorkingTreeFileList(QtGui.QTreeWidget):
 
@@ -161,8 +163,8 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         if self.selectall_checkbox is not None:
             self.update_selectall_state(None, None)
 
-    # iterators to help work with the selection, checked items, etc
     def iter_treeitem_and_desc(self, include_hidden=False):
+        """iterators to help work with the selection, checked items, etc"""
         for ti, desc in self.item_to_data.iteritems():
             if include_hidden or not ti.isHidden():
                 yield ti, desc
@@ -179,24 +181,46 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
             if not item.isHidden() and item.checkState(0) == QtCore.Qt.Checked:
                 yield self.item_to_data[item]
 
-    # Given bzr changedesc tuple, return if the item is 'versioned'
+    # desc: iter_changes return tuple with info about changed entry
+    # desc[0]: file_id         -> ascii string
+    # desc[1]: paths           -> 2-tuple (old, new) fullpaths unicode/None
+    # desc[2]: changed_content -> bool
+    # desc[3]: versioned       -> 2-tuple (bool, bool)
+    # desc[4]: parent          -> 2-tuple
+    # desc[5]: name            -> 2-tuple (old_name, new_name) utf-8?/None
+    # desc[6]: kind            -> 2-tuple (string/None, string/None)
+    # desc[7]: executable      -> 2-tuple (bool/None, bool/None)
+    # NOTE: None value used for non-existing entry in corresponding
+    #       tree, e.g. for added/deleted file
+
     @classmethod
     def is_changedesc_versioned(cls, desc):
+        """Given bzr changedesc tuple, return if the item is 'versioned'"""
         return desc[3] != (False, False)
 
-    # Is the item 'versioned' and considered modified.
+    @classmethod
+    def is_tree_root(cls, desc):
+        """Check is entry actually tree root."""
+        if desc[0] is not None and desc[4] == (None, None):
+            # TREE_ROOT has not parents (desc[4]).
+            # But because we could want to see unversioned files
+            # we need to check for file_id too (desc[0])
+            return True
+        return False
+
     @classmethod
     def is_changedesc_modified(cls, desc):
+        """Is the item 'versioned' and considered modified."""
         return cls.is_changedesc_versioned(desc) and desc[2]
 
-    # Return a suitable entry for a 'specific_files' param to bzr functions.
     @classmethod
     def get_changedesc_path(cls, desc):
+        """Return a suitable entry for a 'specific_files' param to bzr functions."""
         pis, pit = desc[1]
         return pit or pis
 
-    # Context menu and double-click related functions...
     def show_context_menu(self, pos):
+        """Context menu and double-click related functions..."""
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
     def update_context_menu_actions(self):
@@ -246,9 +270,10 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
             self.topLevelWidget().windows.append(window)
             window.show()
 
-    # Helpers for a 'show all' checkbox.  Parent widgets must create the
-    # widget and pass it to us.
     def set_selectall_checkbox(self, checkbox):
+        """Helpers for a 'show all' checkbox.  Parent widgets must create the
+        widget and pass it to us.
+        """
         checkbox.setTristate(True)
         self.selectall_checkbox = checkbox
         parent = self.parentWidget()
@@ -259,9 +284,10 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         parent.connect(checkbox, QtCore.SIGNAL("stateChanged(int)"),
                                                self.selectall_changed)
 
-    # Update the state of the 'select all' checkbox to reflect the state
-    # of the items in the list.
     def update_selectall_state(self, item, column):
+        """Update the state of the 'select all' checkbox to reflect the state
+        of the items in the list.
+        """
         if self._ignore_select_all_changes:
             return
         checked = 0
