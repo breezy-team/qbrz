@@ -180,7 +180,7 @@ class CommitWindow(SubProcessWindow):
         for desc in self.tree.iter_changes(self.tree.basis_tree(),
                                            want_unversioned=True):
 
-            if self.filelist.is_tree_root(desc):    # skip TREE_ROOT
+            if self.filelist.is_changedesc_tree_root(desc): # skip TREE_ROOT
                 continue
 
             is_versioned = self.filelist.is_changedesc_versioned(desc)
@@ -199,6 +199,9 @@ class CommitWindow(SubProcessWindow):
                 num_versioned_files += 1
 
                 words.update(os.path.split(path))
+                if self.filelist.is_changedesc_renamed(desc):
+                    words.update(os.path.split(
+                        self.filelist.get_changedesc_oldpath(desc)))
                 if num_versioned_files < MAX_AUTOCOMPLETE_FILES:
                     ext = file_extension(path)
                     builder = get_wordlist_builder(ext)

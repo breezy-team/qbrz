@@ -199,7 +199,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         return desc[3] != (False, False)
 
     @classmethod
-    def is_tree_root(cls, desc):
+    def is_changedesc_tree_root(cls, desc):
         """Check is entry actually tree root."""
         if desc[0] is not None and desc[4] == (None, None):
             # TREE_ROOT has not parents (desc[4]).
@@ -214,10 +214,21 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         return cls.is_changedesc_versioned(desc) and desc[2]
 
     @classmethod
+    def is_changedesc_renamed(cls, desc):
+        """Is the item 'versioned' and considered renamed."""
+        return (cls.is_changedesc_versioned(desc)
+                and (desc[4][0], desc[5][0]) != (desc[4][1], desc[5][1]))
+
+    @classmethod
     def get_changedesc_path(cls, desc):
         """Return a suitable entry for a 'specific_files' param to bzr functions."""
         pis, pit = desc[1]
         return pit or pis
+
+    @classmethod
+    def get_changedesc_oldpath(cls, desc):
+        """Return oldpath for renames."""
+        return desc[1][0]
 
     def show_context_menu(self, pos):
         """Context menu and double-click related functions..."""
