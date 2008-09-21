@@ -35,7 +35,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_global_config,
     )
 
-from bzrlib.plugins.qbzr.lib.wtlist import WorkingTreeFileList
+from bzrlib.plugins.qbzr.lib.wtlist import WorkingTreeFileList, ChangeDesc
+
 
 class AddWindow(SubProcessWindow):
 
@@ -104,11 +105,11 @@ class AddWindow(SubProcessWindow):
         for desc in self.tree.iter_changes(self.tree.basis_tree(),
                                            want_unversioned=True):
 
-            is_versioned = desc[3] != (False, False)
-            if is_versioned:
+            desc = ChangeDesc(desc)
+            if desc.is_versioned():
                 continue
 
-            pis, pit = desc[1]
+            pit = desc.path()
             visible = show_ignored or not self.tree.is_ignored(pit)
             check_state = visible and in_selected_list(pit)
             yield desc, visible, check_state
@@ -117,7 +118,7 @@ class AddWindow(SubProcessWindow):
         """Add the files."""
         files = []
         for desc in self.filelist.iter_checked():
-            files.append(self.filelist.get_changedesc_path(desc))
+            files.append(desc.path())
         
         self.process_widget.start(self.tree.basedir, "add", *files)
 
@@ -125,7 +126,7 @@ class AddWindow(SubProcessWindow):
         """Show/hide ignored files."""
         state = not state
         for (tree_item, change_desc) in self.filelist.iter_treeitem_and_desc(True):
-            path = self.filelist.get_changedesc_path(change_desc)
+            path = change_desc.path()
             if self.tree.is_ignored(path):
                 tree_item.setHidden(state)
         self.filelist.update_selectall_state(None, None)
