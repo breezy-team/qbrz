@@ -181,34 +181,6 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
             if not item.isHidden() and item.checkState(0) == QtCore.Qt.Checked:
                 yield self.item_to_data[item]
 
-    # desc: iter_changes return tuple with info about changed entry
-    # desc[0]: file_id         -> ascii string
-    # desc[1]: paths           -> 2-tuple (old, new) fullpaths unicode/None
-    # desc[2]: changed_content -> bool
-    # desc[3]: versioned       -> 2-tuple (bool, bool)
-    # desc[4]: parent          -> 2-tuple
-    # desc[5]: name            -> 2-tuple (old_name, new_name) utf-8?/None
-    # desc[6]: kind            -> 2-tuple (string/None, string/None)
-    # desc[7]: executable      -> 2-tuple (bool/None, bool/None)
-    # NOTE: None value used for non-existing entry in corresponding
-    #       tree, e.g. for added/deleted file
-
-    @classmethod
-    def is_changedesc_versioned(cls, desc):
-        """Given bzr changedesc tuple, return if the item is 'versioned'"""
-        return desc[3] != (False, False)
-
-    @classmethod
-    def is_changedesc_modified(cls, desc):
-        """Is the item 'versioned' and considered modified."""
-        return cls.is_changedesc_versioned(desc) and desc[2]
-
-    @classmethod
-    def get_changedesc_path(cls, desc):
-        """Return a suitable entry for a 'specific_files' param to bzr functions."""
-        pis, pit = desc[1]
-        return pit or pis
-
     def show_context_menu(self, pos):
         """Context menu and double-click related functions..."""
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
@@ -250,7 +222,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         if not self.show_diff_action.isEnabled():
             return
     
-        entries = [self.get_changedesc_path(d) for d in self.iter_selection()]
+        entries = [desc.path() for desc in self.iter_selection()]
         if entries:
             window = DiffWindow(self.tree.basis_tree(), self.tree,
                                 self.tree.branch, self.tree.branch,
