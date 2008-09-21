@@ -30,7 +30,7 @@ from bzrlib import (
     )
 
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
-from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
@@ -39,7 +39,7 @@ from bzrlib.plugins.qbzr.lib.util import (
 
 class WorkingTreeFileList(QtGui.QTreeWidget):
 
-    SELECTALL_MESSAGE = "Select / deselect all" # you must gettext() this!
+    SELECTALL_MESSAGE = N_("Select / deselect all")
 
     def __init__(self, parent, tree):
         QtGui.QTreeWidget.__init__(self, parent)
