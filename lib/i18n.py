@@ -24,23 +24,15 @@ import gettext as _gettext
 import os
 import sys
 
-_translation = None
+_null_translation = _gettext.NullTranslations()
+_translation = _null_translation
 
 
 def gettext(s):
-    if _translation is not None:
-        return _translation.ugettext(s)
-    return s
-
+    return _translation.ugettext(s)
 
 def ngettext(s, p, n):
-    if _translation is not None:
-        return _translation.ungettext(s, p, n)
-    if n == 1:
-        return s
-    else:
-        return p
-
+    return _translation.ungettext(s, p, n)
 
 def N_(s):
     return s
@@ -55,7 +47,7 @@ def install():
 
 def uninstall():
     global _translation
-    _translation = None
+    _translation = _null_translation
 
 
 def _get_locale_dir():
