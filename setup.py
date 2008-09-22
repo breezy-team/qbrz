@@ -3,19 +3,10 @@
 
 from distutils.core import setup
 
-from extras.bdist_nsis import bdist_nsis
-from extras.build_mo import build_mo
-from extras.build_pot import build_pot
-from extras.build_ui import build_ui
-from extras.check_py24 import check_py24
-
-cmdclass = {
-    'bdist_nsis': bdist_nsis,
-    'build_mo': build_mo,
-    'build_pot': build_pot,
-    'build_ui': build_ui,
-    'check_py24': check_py24,
-}
+try:
+    from extras import cmdclass
+except ImportError:
+    cmdclass = {}
 
 ext_modules = []
 

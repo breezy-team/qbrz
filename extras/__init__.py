@@ -2,6 +2,7 @@
 #
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2007 Lukáš Lalinský <lalinsky@gmail.com>
+# Copyright (C) 2007, 2008 Alexander Belchenko <bialix@ukr.net>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -16,3 +17,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+from bdist_nsis import bdist_nsis
+from build_mo import build_mo
+from build_pot import build_pot
+from build_ui import build_ui
+from check_py24 import check_py24
+
+
+cmdclass = {
+    'bdist_nsis': bdist_nsis,
+    'build_mo': build_mo,
+    'build_pot': build_pot,
+    'build_ui': build_ui,
+    'check_py24': check_py24,
+}
