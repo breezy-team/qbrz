@@ -1,4 +1,5 @@
 ./build
+./docs/gettext_usage.html
 ./docs/make_release.html
 ./installer/_lib/*
 ./locale
@@ -8,4 +9,3 @@
 ./_ext
 ./_lib
 ./uninst.exe
-__x
