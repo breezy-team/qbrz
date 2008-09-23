@@ -38,7 +38,6 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
-from bzrlib.plugins.qbzr.lib.wtlist import WorkingTreeFileList
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
 from bzrlib.plugins.qbzr.lib.util import (
@@ -49,6 +48,11 @@ from bzrlib.plugins.qbzr.lib.util import (
     format_timestamp,
     get_apparent_author,
     get_global_config,
+    )
+from bzrlib.plugins.qbzr.lib.wtlist import (
+    ChangeDesc,
+    WorkingTreeFileList,
+    closure_in_selected_list,
     )
 
 
@@ -166,25 +170,18 @@ class CommitWindow(SubProcessWindow):
         words = set()
         show_nonversioned = self.show_nonversioned_checkbox.isChecked()
 
-        def in_selected_list(path):
-            if not self.initial_selected_list:
-                return True
-            if path in self.initial_selected_list:
-                return True
-            for p in self.initial_selected_list:
-                if path.startswith(p):
-                    return True
-            return False
+        in_selected_list = closure_in_selected_list(self.initial_selected_list)
 
         num_versioned_files = 0
         for desc in self.tree.iter_changes(self.tree.basis_tree(),
                                            want_unversioned=True):
+            desc = ChangeDesc(desc)
 
-            if self.filelist.is_changedesc_tree_root(desc): # skip TREE_ROOT
+            if desc.is_tree_root(): # skip TREE_ROOT
                 continue
 
-            is_versioned = self.filelist.is_changedesc_versioned(desc)
-            path = self.filelist.get_changedesc_path(desc)
+            is_versioned = desc.is_versioned()
+            path = desc.path()
 
             if not is_versioned and self.tree.is_ignored(path):
                 continue
@@ -199,9 +196,8 @@ class CommitWindow(SubProcessWindow):
                 num_versioned_files += 1
 
                 words.update(os.path.split(path))
-                if self.filelist.is_changedesc_renamed(desc):
-                    words.update(os.path.split(
-                        self.filelist.get_changedesc_oldpath(desc)))
+                if desc.is_renamed():
+                    words.update(os.path.split(desc.oldpath()))
                 if num_versioned_files < MAX_AUTOCOMPLETE_FILES:
                     ext = file_extension(path)
                     builder = get_wordlist_builder(ext)
@@ -439,9 +435,8 @@ class CommitWindow(SubProcessWindow):
         
         if not self.pending_merges:
             for desc in self.filelist.iter_checked():
-                is_ver = self.filelist.is_changedesc_versioned(desc)
-                path = self.filelist.get_changedesc_path(desc)
-                if not is_ver:
+                path = desc.path()
+                if not desc.is_versioned():
                     files_to_add.append(path)
                 args.append(path)
         

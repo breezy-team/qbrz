@@ -181,55 +181,6 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
             if not item.isHidden() and item.checkState(0) == QtCore.Qt.Checked:
                 yield self.item_to_data[item]
 
-    # desc: iter_changes return tuple with info about changed entry
-    # desc[0]: file_id         -> ascii string
-    # desc[1]: paths           -> 2-tuple (old, new) fullpaths unicode/None
-    # desc[2]: changed_content -> bool
-    # desc[3]: versioned       -> 2-tuple (bool, bool)
-    # desc[4]: parent          -> 2-tuple
-    # desc[5]: name            -> 2-tuple (old_name, new_name) utf-8?/None
-    # desc[6]: kind            -> 2-tuple (string/None, string/None)
-    # desc[7]: executable      -> 2-tuple (bool/None, bool/None)
-    # NOTE: None value used for non-existing entry in corresponding
-    #       tree, e.g. for added/deleted file
-
-    @classmethod
-    def is_changedesc_versioned(cls, desc):
-        """Given bzr changedesc tuple, return if the item is 'versioned'"""
-        return desc[3] != (False, False)
-
-    @classmethod
-    def is_changedesc_tree_root(cls, desc):
-        """Check is entry actually tree root."""
-        if desc[0] is not None and desc[4] == (None, None):
-            # TREE_ROOT has not parents (desc[4]).
-            # But because we could want to see unversioned files
-            # we need to check for file_id too (desc[0])
-            return True
-        return False
-
-    @classmethod
-    def is_changedesc_modified(cls, desc):
-        """Is the item 'versioned' and considered modified."""
-        return cls.is_changedesc_versioned(desc) and desc[2]
-
-    @classmethod
-    def is_changedesc_renamed(cls, desc):
-        """Is the item renamed."""
-        return (desc[3] == (True, True)
-                and (desc[4][0], desc[5][0]) != (desc[4][1], desc[5][1]))
-
-    @classmethod
-    def get_changedesc_path(cls, desc):
-        """Return a suitable entry for a 'specific_files' param to bzr functions."""
-        pis, pit = desc[1]
-        return pit or pis
-
-    @classmethod
-    def get_changedesc_oldpath(cls, desc):
-        """Return oldpath for renames."""
-        return desc[1][0]
-
     def show_context_menu(self, pos):
         """Context menu and double-click related functions..."""
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
@@ -271,7 +222,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         if not self.show_diff_action.isEnabled():
             return
     
-        entries = [self.get_changedesc_path(d) for d in self.iter_selection()]
+        entries = [desc.path() for desc in self.iter_selection()]
         if entries:
             window = DiffWindow(self.tree.basis_tree(), self.tree,
                                 self.tree.branch, self.tree.branch,
@@ -328,3 +279,67 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         for (tree_item, change_desc) in self.iter_treeitem_and_desc():
             tree_item.setCheckState(0, QtCore.Qt.CheckState(state))
         self._ignore_select_all_changes = False
+
+
+class ChangeDesc(tuple):
+    """Helper class that "knows" about internals of iter_changes' changed entry
+    description tuple, and provides additional helper methods.
+
+    iter_changes return tuple with info about changed entry:
+    [0]: file_id         -> ascii string
+    [1]: paths           -> 2-tuple (old, new) fullpaths unicode/None
+    [2]: changed_content -> bool
+    [3]: versioned       -> 2-tuple (bool, bool)
+    [4]: parent          -> 2-tuple
+    [5]: name            -> 2-tuple (old_name, new_name) utf-8?/None
+    [6]: kind            -> 2-tuple (string/None, string/None)
+    [7]: executable      -> 2-tuple (bool/None, bool/None)
+
+    NOTE: None value used for non-existing entry in corresponding
+          tree, e.g. for added/deleted/ignored/unversioned
+    """
+
+    def path(desc):
+        """Return a suitable entry for a 'specific_files' param to bzr functions."""
+        oldpath, newpath = desc[1]
+        return newpath or oldpath
+
+    def oldpath(desc):
+        """Return oldpath for renames."""
+        return desc[1][0]
+
+    def is_versioned(desc):
+        return desc[3] != (False, False)
+
+    def is_modified(desc):
+        return (desc[3] != (False, False) and desc[2])
+
+    def is_renamed(desc):
+        return (desc[3] == (True, True)
+                and (desc[4][0], desc[5][0]) != (desc[4][1], desc[5][1]))
+
+    def is_tree_root(desc):
+        """Check is entry actually tree root."""
+        if desc[3] != (False, False) and desc[4] == (None, None):
+            # TREE_ROOT has not parents (desc[4]).
+            # But because we could want to see unversioned files
+            # we need to check for versioned flag (desc[3])
+            return True
+        return False
+
+
+def closure_in_selected_list(selected_list):
+    """Return in_selected_list(path) function for given selected_list."""
+
+    def in_selected_list(path):
+        """Check: is path belongs to some selected_list."""
+        if path in selected_list:
+            return True
+        for p in selected_list:
+            if path.startswith(p):
+                return True
+        return False
+
+    if not selected_list:
+        return lambda path: True
+    return in_selected_list
