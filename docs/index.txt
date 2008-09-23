@@ -1,6 +1,14 @@
 QBzr developers documentation catalog
 *************************************
 
+*General topics*
+
+* `Gettext usage in QBzr <gettext_usage.html>`_
+
+
+*Release process*
+
 * `Short checklist and instructions how to make release <make_release.html>`_
+
 * `Building NSIS installer for using QBzr with standalone bzr.exe
   <nsis-installer.html>`_
