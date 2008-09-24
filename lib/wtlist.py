@@ -147,7 +147,8 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
             ivs.append((item, visible))
 
             if checked is None:
-                pass
+                item.setCheckState(0, QtCore.Qt.PartiallyChecked)
+                item.setFlags(item.flags() & ~QtCore.Qt.ItemIsUserCheckable)
             elif checked:
                 item.setCheckState(0, QtCore.Qt.Checked)
             else:
