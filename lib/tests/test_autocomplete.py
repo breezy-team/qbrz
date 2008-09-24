@@ -42,6 +42,12 @@ public:
         self.assertIn('ClassName', words)
         self.assertIn('calledFunction', words)
 
+    def test_cpp_header_space_after_name(self):
+        # space between function name and opening parenthesis is legal in C
+        source = "void  foo_bar (void);"
+        words = list(get_wordlist_builder('.h').iter_words(StringIO(source)))
+        self.assertIn('foo_bar', words)
+
     def test_cpp_source(self):
         source = '''
 ClassName::function1()
@@ -54,6 +60,17 @@ ClassName::function1()
         self.assertIn('ClassName::function1', words)
         self.assertIn('function1', words)
         self.assertIn('function2', words)
+
+    def test_c_source_space_after_name(self):
+        # space between function name and opening parenthesis is legal in C
+        source = """
+void  foo_bar (void)
+{
+    return;
+}
+"""
+        words = list(get_wordlist_builder('.c').iter_words(StringIO(source)))
+        self.assertIn('foo_bar', words)
 
     def test_java(self):
         source = '''
