@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-09-17 11:52+0300\n"
+"POT-Creation-Date: 2008-09-23 22:10+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -11,18 +11,18 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
-"X-Launchpad-Export-Date: 2008-09-19 18:52+0000\n"
+"X-Launchpad-Export-Date: 2008-09-24 05:20+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
-#: lib\add.py:47 lib\config.py:99 lib\config.py:120
+#: lib\add.py:51 lib\config.py:99 lib\config.py:120
 msgid "Add"
 msgstr ""
 
-#: lib\add.py:58
+#: lib\add.py:62
 msgid "Unversioned Files"
 msgstr ""
 
-#: lib\add.py:75
+#: lib\add.py:79
 msgid "Show ignored files"
 msgstr ""
 
@@ -34,7 +34,7 @@ msgstr ""
 msgid "Line"
 msgstr ""
 
-#: lib\annotate.py:93 lib\annotate.py:109 lib\browse.py:82 lib\commit.py:338
+#: lib\annotate.py:93 lib\annotate.py:109 lib\browse.py:82 lib\commit.py:340
 #: lib\logmodel.py:86
 msgid "Author"
 msgstr ""
@@ -43,7 +43,7 @@ msgstr ""
 msgid "Rev"
 msgstr ""
 
-#: lib\annotate.py:109 lib\browse.py:81 lib\commit.py:338 lib\logmodel.py:85
+#: lib\annotate.py:109 lib\browse.py:81 lib\commit.py:340 lib\logmodel.py:85
 msgid "Date"
 msgstr ""
 
@@ -71,7 +71,7 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: lib\browse.py:82 lib\commit.py:233 lib\commit.py:338 lib\logmodel.py:84
+#: lib\browse.py:82 lib\commit.py:235 lib\commit.py:340 lib\logmodel.py:84
 msgid "Message"
 msgstr ""
 
@@ -96,68 +96,68 @@ msgstr ""
 msgid "File \"%s\" not found in the specified revision."
 msgstr ""
 
-#: lib\commit.py:215 lib\commit.py:424
+#: lib\commit.py:217 lib\commit.py:427
 msgid "Commit"
 msgstr ""
 
-#: lib\commit.py:241
+#: lib\commit.py:243
 msgid "Show non-versioned files"
 msgstr ""
 
-#: lib\commit.py:260
+#: lib\commit.py:262
 msgid "Enter the commit message"
 msgstr ""
 
-#: lib\commit.py:276
+#: lib\commit.py:278
 msgid "&Fixed bugs:"
 msgstr ""
 
-#: lib\commit.py:277
+#: lib\commit.py:279
 msgid "Set the IDs of bugs fixed by this commit"
 msgstr ""
 
-#: lib\commit.py:280
+#: lib\commit.py:282
 msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
 msgstr ""
 
-#: lib\commit.py:290
+#: lib\commit.py:292
 msgid "&Author:"
 msgstr ""
 
-#: lib\commit.py:291
+#: lib\commit.py:293
 msgid "Set the author of this change, if it's different from the committer"
 msgstr ""
 
-#: lib\commit.py:294
+#: lib\commit.py:296
 msgid ""
 "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
 
-#: lib\commit.py:309
+#: lib\commit.py:311
 msgid "&Local commit in a bound branch"
 msgstr ""
 
-#: lib\commit.py:311
+#: lib\commit.py:313
 msgid ""
 "Local commits are not pushed to the master branch until a normal commit is "
 "performed"
 msgstr ""
 
-#: lib\commit.py:319 lib\revert.py:59
+#: lib\commit.py:321 lib\revert.py:63
 msgid "Changes"
 msgstr ""
 
-#: lib\commit.py:334
+#: lib\commit.py:336
 msgid "Pending Merges"
 msgstr ""
 
-#: lib\commit.py:359 lib\main.py:361 lib\subprocess.py:80 lib\wtlist.py:78
+#: lib\commit.py:362 lib\main.py:361 lib\subprocess.py:80 lib\wtlist.py:80
 msgid "Status"
 msgstr ""
 
-#: lib\commit.py:425
+#: lib\commit.py:428
 msgid "Empty commit message. Do you really want to commit?"
 msgstr ""
 
@@ -253,46 +253,75 @@ msgstr ""
 msgid "Spell check &language:"
 msgstr ""
 
-#: lib\diff.py:64 lib\log.py:521
+#: lib\diff.py:64
+#, python-format
+msgid "Working Tree for %s"
+msgstr ""
+
+#: lib\diff.py:66
+msgid "Working Tree"
+msgstr ""
+
+#: lib\diff.py:85
+#, python-format
+msgid "Rev %s for %s"
+msgstr ""
+
+#: lib\diff.py:87
+#, python-format
+msgid "Rev %s"
+msgstr ""
+
+#: lib\diff.py:90
+#, python-format
+msgid "Revid: %s for %s"
+msgstr ""
+
+#: lib\diff.py:92
+#, python-format
+msgid "Revid: %s"
+msgstr ""
+
+#: lib\diff.py:109 lib\log.py:527
 msgid "Diff"
 msgstr ""
 
-#: lib\diff.py:71
+#: lib\diff.py:115
 #, python-format
 msgid "%d file"
 msgid_plural "%d files"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib\diff.py:103
+#: lib\diff.py:147
 msgid "Side by side"
 msgstr ""
 
-#: lib\diff.py:110
+#: lib\diff.py:154
 msgid "Unidiff"
 msgstr ""
 
-#: lib\diff.py:115
+#: lib\diff.py:159
 msgid "Complete"
 msgstr ""
 
-#: lib\diff.py:197 lib\wtlist.py:114
+#: lib\diff.py:247 lib\wtlist.py:116
 msgid "removed"
 msgstr ""
 
-#: lib\diff.py:199 lib\wtlist.py:110
+#: lib\diff.py:249 lib\wtlist.py:112
 msgid "added"
 msgstr ""
 
-#: lib\diff.py:201 lib\wtlist.py:125
+#: lib\diff.py:251 lib\wtlist.py:127
 msgid "renamed and modified"
 msgstr ""
 
-#: lib\diff.py:203 lib\wtlist.py:127
+#: lib\diff.py:253 lib\wtlist.py:129
 msgid "renamed"
 msgstr ""
 
-#: lib\diff.py:205 lib\wtlist.py:134
+#: lib\diff.py:255 lib\wtlist.py:136
 msgid "modified"
 msgstr ""
 
@@ -332,48 +361,48 @@ msgstr ""
 msgid "Update Checkout"
 msgstr ""
 
-#: lib\help.py:38
+#: lib\help.py:60
 #, python-format
 msgid "No help can be found for <i>%s</i>"
 msgstr ""
 
-#: lib\help.py:81
+#: lib\help.py:110
 msgid "Help"
 msgstr ""
 
-#: lib\i18n.py:92
+#: lib\i18n.py:87
 msgid "file"
 msgstr ""
 
-#: lib\i18n.py:93
+#: lib\i18n.py:88
 msgid "directory"
 msgstr ""
 
-#: lib\i18n.py:94
+#: lib\i18n.py:89
 msgid "symlink"
 msgstr ""
 
-#: lib\i18n.py:96
+#: lib\i18n.py:91
 msgid "fixed"
 msgstr ""
 
-#: lib\i18n.py:98
+#: lib\i18n.py:93
 msgid "View text file"
 msgstr ""
 
-#: lib\i18n.py:99
+#: lib\i18n.py:94
 msgid "View image file"
 msgstr ""
 
-#: lib\i18n.py:100
+#: lib\i18n.py:95
 msgid "View binary file"
 msgstr ""
 
-#: lib\i18n.py:101
+#: lib\i18n.py:96
 msgid "View symlink"
 msgstr ""
 
-#: lib\i18n.py:102
+#: lib\i18n.py:97
 msgid "View directory"
 msgstr ""
 
@@ -385,47 +414,47 @@ msgstr ""
 msgid "Initialize"
 msgstr ""
 
-#: lib\init.py:98
+#: lib\init.py:100
 msgid "You must specify a location"
 msgstr ""
 
-#: lib\log.py:351
+#: lib\log.py:367
 msgid "Log"
 msgstr ""
 
-#: lib\log.py:389
+#: lib\log.py:395
 msgid "&Search:"
 msgstr ""
 
-#: lib\log.py:411
+#: lib\log.py:417
 msgid "Messages and File text (indexed)"
 msgstr ""
 
-#: lib\log.py:427
+#: lib\log.py:433
 msgid "Messages"
 msgstr ""
 
-#: lib\log.py:429
+#: lib\log.py:435
 msgid "Authors"
 msgstr ""
 
-#: lib\log.py:431
+#: lib\log.py:437
 msgid "Revision IDs"
 msgstr ""
 
-#: lib\log.py:433
+#: lib\log.py:439
 msgid "Revision Numbers"
 msgstr ""
 
-#: lib\log.py:528 lib\wtlist.py:65
+#: lib\log.py:534 lib\wtlist.py:67
 msgid "Show &differences..."
 msgstr ""
 
-#: lib\log.py:529
+#: lib\log.py:535
 msgid "Show &tree..."
 msgstr ""
 
-#: lib\logmodel.py:894
+#: lib\logmodel.py:893
 #, python-format
 msgid "bug #%s"
 msgstr ""
@@ -567,7 +596,7 @@ msgstr ""
 msgid "Merge"
 msgstr ""
 
-#: lib\revert.py:48 lib\wtlist.py:222
+#: lib\revert.py:52 lib\wtlist.py:208
 msgid "Revert"
 msgstr ""
 
@@ -609,7 +638,7 @@ msgstr ""
 msgid "Options"
 msgstr ""
 
-#: lib\ui_branch.py:66 lib\ui_branch.py:69 lib\ui_init.py:109
+#: lib\ui_branch.py:66 lib\ui_branch.py:69 lib\ui_init.py:112
 #: lib\ui_merge.py:58 lib\ui_new_tree.py:123 lib\ui_new_tree.py:125
 #: lib\ui_pull.py:61 lib\ui_push.py:63 lib\ui_update_branch.py:78
 #: lib\ui_update_checkout.py:74
@@ -678,39 +707,39 @@ msgstr ""
 msgid "&Format"
 msgstr ""
 
-#: lib\ui_init.py:107
+#: lib\ui_init.py:110
 msgid "Dialog"
 msgstr ""
 
-#: lib\ui_init.py:108
+#: lib\ui_init.py:111
 msgid "Local Directory"
 msgstr ""
 
-#: lib\ui_init.py:110
+#: lib\ui_init.py:113
 msgid "Repository"
 msgstr ""
 
-#: lib\ui_init.py:111
+#: lib\ui_init.py:114
 msgid "Create a new standalone tree"
 msgstr ""
 
-#: lib\ui_init.py:112
+#: lib\ui_init.py:115
 msgid "Ensure all revisions are appended to the log"
 msgstr ""
 
-#: lib\ui_init.py:113
+#: lib\ui_init.py:116
 msgid "Create a new shared repository"
 msgstr ""
 
-#: lib\ui_init.py:114
+#: lib\ui_init.py:117
 msgid "Skip the creation of working trees in this repository"
 msgstr ""
 
-#: lib\ui_init.py:120
+#: lib\ui_init.py:123
 msgid "Repository Format:"
 msgstr ""
 
-#: lib\ui_init.py:121
+#: lib\ui_init.py:124
 msgid "Description of format"
 msgstr ""
 
@@ -873,31 +902,35 @@ msgstr ""
 msgid "modified files"
 msgstr ""
 
-#: lib\wtlist.py:68
+#: lib\wtlist.py:42
+msgid "Select / deselect all"
+msgstr ""
+
+#: lib\wtlist.py:70
 msgid "&Revert..."
 msgstr ""
 
-#: lib\wtlist.py:78
+#: lib\wtlist.py:80
 msgid "File"
 msgstr ""
 
-#: lib\wtlist.py:78
+#: lib\wtlist.py:80
 msgid "Extension"
 msgstr ""
 
-#: lib\wtlist.py:104
+#: lib\wtlist.py:106
 msgid "ignored"
 msgstr ""
 
-#: lib\wtlist.py:106
+#: lib\wtlist.py:108
 msgid "non-versioned"
 msgstr ""
 
-#: lib\wtlist.py:118
+#: lib\wtlist.py:120
 msgid "missing"
 msgstr ""
 
-#: lib\wtlist.py:221
+#: lib\wtlist.py:207
 #, python-format
 msgid "Revert %s to latest revision."
 msgstr ""
