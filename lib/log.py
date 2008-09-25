@@ -518,9 +518,9 @@ class LogWindow(QBzrWindow):
         splitter.setStretchFactor(1, 3)
 
         buttonbox = self.create_button_box(BTN_CLOSE)
-        refresh = StandardButton(BTN_REFRESH)
-        buttonbox.addButton(refresh, QtGui.QDialogButtonBox.ActionRole)
-        self.connect(refresh,
+        self.refresh_button = StandardButton(BTN_REFRESH)
+        buttonbox.addButton(self.refresh_button, QtGui.QDialogButtonBox.ActionRole)
+        self.connect(self.refresh_button,
                      QtCore.SIGNAL("clicked()"),
                      self.refresh)
 
@@ -658,17 +658,34 @@ class LogWindow(QBzrWindow):
         self.show_diff_window(rev1, rev2)
 
     def refresh(self):
-        if "locations" in dir(self):
-            (self.branch,
-             self.start_revids, 
-             self.specific_fileids) = load_locataions(self.locations)
-        self.load_history()
+        self.refresh_button.setDisabled(True)
+        QtCore.QCoreApplication.processEvents()
+        try:
+            self.changesModel.stop_revision_loading = True
+            if "locations" in dir(self):
+                
+                # The new branch will be the same as self.branch, so don't
+                # change it, because doing so caused a UserWarning:
+                # LockableFiles was gc'd while locked
+                (newbranch,
+                 self.start_revids, 
+                 self.specific_fileids) = load_locataions(self.locations)
+            
+            self.changesModel.loadBranch(self.branch,
+                                         start_revs = self.start_revids,
+                                         specific_fileids = self.specific_fileids)
+        finally:
+            self.refresh_button.setDisabled(False)
     
     def load_history(self):
         """Load branch history."""
-        self.changesModel.loadBranch(self.branch,
-                                     start_revs = self.start_revids,
-                                     specific_fileids = self.specific_fileids)
+        self.refresh_button.setDisabled(True)
+        try:
+            self.changesModel.loadBranch(self.branch,
+                                         start_revs = self.start_revids,
+                                         specific_fileids = self.specific_fileids)
+        finally:
+            self.refresh_button.setDisabled(False)
 
     def update_search(self):
         # TODO in_paths = self.search_in_paths.isChecked()

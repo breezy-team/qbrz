@@ -94,6 +94,7 @@ class GraphModel(QtCore.QAbstractTableModel):
         self.touches_file_msri = None
         self.msri_index = {}
         self.closing = False
+        self.stop_revision_loading = False
     
     def setGraphFilterProxyModel(self, graphFilterProxyModel):
         self.graphFilterProxyModel = graphFilterProxyModel
@@ -106,7 +107,6 @@ class GraphModel(QtCore.QAbstractTableModel):
         try:
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
             self.tags = branch.tags.get_reverse_tag_dict()  # revid to tags map
-            self.revisions = {}
             if self.start_revs is None:
                 self.start_revs = {branch.last_revision():[]}
             start_revs = [rev for rev in self.start_revs if not rev == NULL_REVISION]
@@ -352,6 +352,7 @@ class GraphModel(QtCore.QAbstractTableModel):
             QtCore.QCoreApplication.processEvents()
             
             self._nextRevisionToLoadGen = self._nextRevisionToLoad()
+            self.stop_revision_loading = False
             self._loadNextRevision()
         finally:
             branch.unlock
@@ -939,6 +940,9 @@ class GraphModel(QtCore.QAbstractTableModel):
         return revision
     
     def _loadNextRevision(self):
+        if self.stop_revision_loading:
+            self.stop_revision_loading = False
+            return
         try:
             if self.searchMode:
                 def notifyChanges(revisionsChanged):

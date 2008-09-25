@@ -21,9 +21,9 @@ import re
 
 # Based on my old commit code and http://tortoisesvn.tigris.org/svn/tortoisesvn/trunk/src/TortoiseSVNSetup/include/autolist.txt
 autolist = [
-    (r'^\s*(?:class|typedef|struct|union|namespace)\s+([\w_]+)|\b([\w_]+)\(',
+    (r'^\s*(?:class|typedef|struct|union|namespace)\s+([\w_]+)|\b([\w_]+)\s*\(',
      ('.h', '.hh', '.hpp', '.hxx')),
-    (r'\b(([\w_]+)::([\w_]+))|\b([\w_]+)\(',
+    (r'\b(([\w_]+)::([\w_]+))|\b([\w_]+)\s*\(',
      ('.cpp', '.cc', '.c', '.cxx')),
     (r'(?:(?:prototype\.|this\.)(\w+)\s*=\s*)?function\s*(?:(\w*)\s*)\(',
      ('.js',)),

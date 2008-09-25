@@ -1,0 +1,84 @@
+Gettext usage in QBzr
+*********************
+Overview
+--------
+QBzr uses the standard Python/GNU gettext library to create 
+localized interface. To use gettext functions you should import 
+the bzrlib.plugins.qbzr.lib.i18n module.
+
+Functions
+---------
+i18n.py module provides the following functions:
+
+gettext(message)
+	return translated message as unicode string.
+
+ngettext(singular, plural, n)
+	do plural form lookup and return corresponding translation 
+        as unicode string.
+
+N_(message)
+	return message itself.
+
+install()
+	enable translations
+
+uninstall()
+	disable translations
+
+By default translations are disabled, and therefore gettext() 
+and ngettext() functions return original untranslated message.
+
+To enable translations you should call i18n.install() function.
+This function is called automatically for all q-commands.
+
+N_() and gettext()
+------------------
+Function N_() has only one purpose: mark some string for translation,
+so GNU xgettext utility can extract such string from source code.
+It does effectively nothing and always returns its argument.
+Function N_() should be called only for a string literal and never
+for a variable.
+
+gettext() main purpose is to do message translation lookup
+when translations are enabled. Its second purpose is to mark some string
+for translation, so GNU xgettext utility can extract such string
+from source code.
+
+Function gettext() can be called either for a string literal or for a variable.
+Argument to gettext() can be either plain string or unicode, but always
+in ascii-encoding. Function gettext() always returns an unicode string.
+
+Valid usage of these functions:
+
+====================  ================================================
+N_(message)           -> message without transformation
+gettext(message)      -> translated message (as unicode)
+gettext(variable)     -> translated message from variable (as unicode)
+gettext(N_(message))  -> translated message (as unicode)
+====================  ================================================
+
+Incorrect usage:
+
+=========================  ======================
+N_(N_(message))            -> message
+N_(gettext(message))       -> translated message
+gettext(gettext(message))  -> translated message
+=========================  ======================
+
+Although such usage don't raise runtime error, but never use it in such manner.
+
+How to use gettext() and N_()
+-----------------------------
+Simple rules:
+
+   - use N_() at import time, that is, for global and class definitions
+   - use gettext() inside functions
+
+Always call gettext() for strings that will appear [verbatim] in GUI forms.
+
+If you need to have both original and translated string (e.g. original string used as
+dictionary key etc.) then use N_() for declaring such original string, and later
+call gettext() to obtain translated string. See also:
+http://www.gnu.org/software/gettext/manual/html_node/Special-cases.html
+(replace gettext_noop() in those examples with N_()).

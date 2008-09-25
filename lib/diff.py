@@ -67,19 +67,30 @@ def get_title_for_tree(tree, branch, other_branch):
     
     if isinstance(tree, RevisionTree) or isinstance(tree, DirStateRevisionTree):
         # revision_id_to_revno is faster, but only works on mainline rev
+        revid = tree.get_revision_id()
         try:
-            revno = branch.revision_id_to_revno(tree.get_revision_id())
+            revno = branch.revision_id_to_revno(revid)
         except NoSuchRevision:
-            revno = ".".join(["%d" % (revno)
-                                for revno in \
-                                branch.get_revision_id_to_revno_map()\
-                                [tree.get_revision_id()]])
-        
-        if branch_title:
-            return gettext("Rev %s for %s") % (revno, branch_title)
+            try:
+                revno_map = branch.get_revision_id_to_revno_map()
+                revno_tuple = revno_map[revid]      # this can raise KeyError is revision not in the branch
+                revno = ".".join("%d" % i for i in revno_tuple)
+            except KeyError:
+                # this can happens when you try to diff against other branch
+                # or pending merge
+                revno = None
+
+        if revno is not None:
+            if branch_title:
+                return gettext("Rev %s for %s") % (revno, branch_title)
+            else:
+                return gettext("Rev %s") % revno
         else:
-            return gettext("Rev %s") % revno
-    
+            if branch_title:
+                return gettext("Revid: %s for %s") % (revid, branch_title)
+            else:
+                return gettext("Revid: %s") % revid
+
     # XXX I don't know what other cases we need to handle    
     return ""
 
@@ -95,7 +106,7 @@ class DiffWindow(QBzrWindow):
         rev1_title = get_title_for_tree(tree1, branch1, branch2)
         rev2_title = get_title_for_tree(tree2, branch2, branch1)
         
-        title = [gettext("Diff"), "%s..%s" % (rev1_title, rev2_title)]
+        title = [gettext("Diff"), "%s .. %s" % (rev1_title, rev2_title)]
         
         if specific_files:
             nfiles = len(specific_files)

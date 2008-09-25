@@ -38,7 +38,6 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
-from bzrlib.plugins.qbzr.lib.wtlist import WorkingTreeFileList
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
 from bzrlib.plugins.qbzr.lib.util import (
@@ -49,6 +48,11 @@ from bzrlib.plugins.qbzr.lib.util import (
     format_timestamp,
     get_apparent_author,
     get_global_config,
+    )
+from bzrlib.plugins.qbzr.lib.wtlist import (
+    ChangeDesc,
+    WorkingTreeFileList,
+    closure_in_selected_list,
     )
 
 
@@ -166,38 +170,18 @@ class CommitWindow(SubProcessWindow):
         words = set()
         show_nonversioned = self.show_nonversioned_checkbox.isChecked()
 
-        def in_selected_list(path):
-            if not self.initial_selected_list:
-                return True
-            if path in self.initial_selected_list:
-                return True
-            for p in self.initial_selected_list:
-                if path.startswith(p):
-                    return True
-            return False
+        in_selected_list = closure_in_selected_list(self.initial_selected_list)
 
         num_versioned_files = 0
         for desc in self.tree.iter_changes(self.tree.basis_tree(),
                                            want_unversioned=True):
-            # desc[0]: file_id         -> ascii string
-            # desc[1]: paths           -> 2-tuple (old, new) fullpaths unicode/None
-            # desc[2]: changed_content -> bool
-            # desc[3]: versioned       -> 2-tuple (bool, bool)
-            # desc[4]: parent          -> 2-tuple
-            # desc[5]: name            -> 2-tuple (old_name, new_name) utf-8?/None
-            # desc[6]: kind            -> 2-tuple (string/None, string/None)
-            # desc[7]: executable      -> 2-tuple (bool/None, bool/None)
-            # NOTE: None value used for non-existing entry in corresponding
-            #       tree, e.g. for added/deleted file
+            desc = ChangeDesc(desc)
 
-            if desc[0] is not None and desc[4] == (None, None):     # skip TREE_ROOT
-                # TREE_ROOT has not parents (desc[4]).
-                # But because we want to see unversioned files we need to check
-                # for file_id too (desc[0])
+            if desc.is_tree_root(): # skip TREE_ROOT
                 continue
 
-            is_versioned = self.filelist.is_changedesc_versioned(desc)
-            path = self.filelist.get_changedesc_path(desc)
+            is_versioned = desc.is_versioned()
+            path = desc.path()
 
             if not is_versioned and self.tree.is_ignored(path):
                 continue
@@ -212,6 +196,8 @@ class CommitWindow(SubProcessWindow):
                 num_versioned_files += 1
 
                 words.update(os.path.split(path))
+                if desc.is_renamed():
+                    words.update(os.path.split(desc.oldpath()))
                 if num_versioned_files < MAX_AUTOCOMPLETE_FILES:
                     ext = file_extension(path)
                     builder = get_wordlist_builder(ext)
@@ -463,9 +449,8 @@ class CommitWindow(SubProcessWindow):
         
         if not self.pending_merges:
             for desc in self.filelist.iter_checked():
-                is_ver = self.filelist.is_changedesc_versioned(desc)
-                path = self.filelist.get_changedesc_path(desc)
-                if not is_ver:
+                path = desc.path()
+                if not desc.is_versioned():
                     files_to_add.append(path)
                 args.append(path)
         
