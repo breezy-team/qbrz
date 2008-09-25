@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import os.path
+import os
 import sys
 
 if hasattr(sys, "frozen"):
@@ -32,7 +32,7 @@ import bzrlib.builtins
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 import shlex
 from bzrlib import (
     builtins,
@@ -143,6 +143,7 @@ class QBzrCommand(Command):
         return self._qbzr_run(*args, **kwargs)
 
 ui_mode_option = Option("ui-mode", help="Causes dialogs to wait after the operation is complete.")
+
 
 class cmd_qannotate(QBzrCommand):
     """Show the origin of each line in a file."""
@@ -402,10 +403,12 @@ class cmd_qcat(QBzrCommand):
         'revision',
         Option('encoding', type=check_encoding,
                help='Encoding of files content (default: utf-8)'),
+        Option('native',
+               help='Show file with native application'),
         ]
     takes_args = ['filename']
 
-    def _qbzr_run(self, filename, revision=None, encoding=None):
+    def _qbzr_run(self, filename, revision=None, encoding=None, native=None):
         if revision is not None and len(revision) != 1:
             raise errors.BzrCommandError("bzr qcat --revision takes exactly"
                                          " one revision specifier")
@@ -416,6 +419,30 @@ class cmd_qcat(QBzrCommand):
         else:
             revision_id = revision[0].in_branch(branch).rev_id
             tree = branch.repository.revision_tree(revision_id)
+
+        if native:
+            file_id = tree.path2id(relpath)
+            kind = tree.kind(file_id)
+            if kind != 'file':
+                raise errors.BzrError('bzr qcat --native is not supported '
+                    'for entry of kind %r' % kind)
+            # make temp file
+            import tempfile
+            qdir = os.path.join(tempfile.gettempdir(), 'QBzr')
+            if not os.path.isdir(qdir):
+                os.mkdir(qdir)
+            fname = os.path.join(qdir, os.path.basename(relpath))
+            f = open(fname, 'wb')
+            tree.lock_read()
+            try:
+                f.write(tree.get_file_text(file_id))
+            finally:
+                tree.unlock()
+                f.close()
+            # open it
+            url = QtCore.QUrl(fname)
+            result = QtGui.QDesktopServices.openUrl(url)
+            return int(not result)
 
         app = QtGui.QApplication(sys.argv)
         tree.lock_read()
