@@ -157,10 +157,13 @@ class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
                                dialog=dialog,
                                parent=parent)
 
-# A simple stand-alone subprocess dialog.  It creates a single widget for
-# displaying the description.
 class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
+    """An abstract base-class for all subprocess related dialogs.
 
+    It is expected that sub-classes of this will create their own UI, and while
+    doing so, will add the widgets returned by
+    self.make_default_layout_widgets()
+    """
     def __init__(self, title=None,
                  name="genericsubprocess",
                  args=None,
@@ -182,9 +185,10 @@ class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
                                parent=parent)
 
 
-# A simple stand-alone subprocess dialog.  It creates a single widget for
-# displaying the description.
 class SimpleSubProcessDialog(SubProcessDialog):
+    """A concrete helper class of SubProcessDialog, which has a single label
+    widget for displaying a simple description before executing a subprocess.
+    """
     def __init__(self, title, desc,
                  name="genericsubprocess",
                  args=None,
