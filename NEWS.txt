@@ -1,6 +1,10 @@
 0.9.5 - in development
 ----------------------
 
+ * qcat:
+   * New command-line option `--native` to show file content in native
+     application rather than in usual QCat window.
+
 
 0.9.4 - 2008-09-20
 ----------------------
