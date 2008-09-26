@@ -169,6 +169,9 @@ class QBzrCatWindow(QBzrWindow):
 def cat_to_native_app(tree, relpath):
     """Extract file content to temp directory and then launch
     native application to open it.
+
+    @param  tree:   RevisionTree object.
+    @param  relpath:    path to file relative to tree root.
     @raise  KindError:  if relpath entry has not file kind.
     @return:    True if native application was launched.
     """
@@ -183,7 +186,8 @@ def cat_to_native_app(tree, relpath):
     qdir = os.path.join(tempfile.gettempdir(), 'QBzr')
     if not os.path.isdir(qdir):
         os.mkdir(qdir)
-    fname = os.path.join(qdir, os.path.basename(relpath))
+    basename = os.path.basename(relpath)
+    fname = os.path.join(qdir, basename)
     f = open(fname, 'wb')
     tree.lock_read()
     try:
@@ -194,6 +198,23 @@ def cat_to_native_app(tree, relpath):
     # open it
     url = QtCore.QUrl(fname)
     result = QtGui.QDesktopServices.openUrl(url)
+    # now application is about to start and user will work with file
+    # so we can do cleanup in "background"
+    import time
+    limit = time.time() - 60    # files older than 1 minute
+    files = os.listdir(qdir)
+    for i in files[:20]:
+        if i == basename:
+            continue
+        fname = os.path.join(qdir, i)
+        st = os.lstat(fname)
+        if st.st_mtime > limit:
+            continue
+        try:
+            os.unlink(fname)
+        except (OSError, IOError):
+            pass
+    #
     return result
 
 

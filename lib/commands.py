@@ -422,8 +422,6 @@ class cmd_qcat(QBzrCommand):
 
         if native:
             result = cat_to_native_app(tree, relpath)
-            # now application is about to start and user will work with file
-            # so we can do cleanup in "background"
             return int(not result)
 
         app = QtGui.QApplication(sys.argv)
