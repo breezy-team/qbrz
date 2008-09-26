@@ -82,6 +82,12 @@ def get_title_for_tree(tree, branch, other_branch):
 
         if revno is not None:
             if branch_title:
+                # XXX [bialix] "Rev %s for %s" is bad for translations
+                #     because it requires keep sequence of parameters
+                #     and in translated string too. But other languages
+                #     may have other requirements for sentence stylistics.
+                #     Perhaps we need to use named parameters, i.e.
+                #     "Rev %(revno)s for %(branch)s"
                 return gettext("Rev %s for %s") % (revno, branch_title)
             else:
                 return gettext("Rev %s") % revno
