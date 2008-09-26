@@ -108,7 +108,7 @@ class GraphModel(QtCore.QAbstractTableModel):
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
             self.tags = branch.tags.get_reverse_tag_dict()  # revid to tags map
             if self.start_revs is None:
-                self.start_revs = {branch.last_revision():[]}
+                self.start_revs = {branch.last_revision():(0, [])}
             start_revs = [rev for rev in self.start_revs if not rev == NULL_REVISION]
             start_revs.sort(lambda x, y:cmp(self.start_revs[x][0], self.start_revs[y][0]))
             
