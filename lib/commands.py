@@ -52,7 +52,7 @@ from bzrlib.plugins.qbzr.lib import i18n
 from bzrlib.plugins.qbzr.lib.add import AddWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
-from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
+from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, cat_to_native_app
 from bzrlib.plugins.qbzr.lib.commit import CommitWindow
 from bzrlib.plugins.qbzr.lib.config import QBzrConfigWindow
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
@@ -421,27 +421,9 @@ class cmd_qcat(QBzrCommand):
             tree = branch.repository.revision_tree(revision_id)
 
         if native:
-            file_id = tree.path2id(relpath)
-            kind = tree.kind(file_id)
-            if kind != 'file':
-                raise errors.BzrError('bzr qcat --native is not supported '
-                    'for entry of kind %r' % kind)
-            # make temp file
-            import tempfile
-            qdir = os.path.join(tempfile.gettempdir(), 'QBzr')
-            if not os.path.isdir(qdir):
-                os.mkdir(qdir)
-            fname = os.path.join(qdir, os.path.basename(relpath))
-            f = open(fname, 'wb')
-            tree.lock_read()
-            try:
-                f.write(tree.get_file_text(file_id))
-            finally:
-                tree.unlock()
-                f.close()
-            # open it
-            url = QtCore.QUrl(fname)
-            result = QtGui.QDesktopServices.openUrl(url)
+            result = cat_to_native_app(tree, relpath)
+            # now application is about to start and user will work with file
+            # so we can do cleanup in "background"
             return int(not result)
 
         app = QtGui.QApplication(sys.argv)

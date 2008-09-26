@@ -20,6 +20,7 @@
 import sys
 from PyQt4 import QtCore, QtGui
 
+from bzrlib import errors
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
@@ -163,3 +164,38 @@ class QBzrCatWindow(QBzrWindow):
         else:
             text = ''
         return QBzrCatWindow(relpath, text, encoding=encoding, kind=kind)
+
+
+def cat_to_native_app(tree, relpath):
+    """Extract file content to temp directory and then launch
+    native application to open it.
+    @raise  KindError:  if relpath entry has not file kind.
+    @return:    True if native application was launched.
+    """
+    file_id = tree.path2id(relpath)
+    kind = tree.kind(file_id)
+    if kind != 'file':
+        raise KindError('cat to native application is not supported '
+            'for entry of kind %r' % kind)
+    # make temp file
+    import os
+    import tempfile
+    qdir = os.path.join(tempfile.gettempdir(), 'QBzr')
+    if not os.path.isdir(qdir):
+        os.mkdir(qdir)
+    fname = os.path.join(qdir, os.path.basename(relpath))
+    f = open(fname, 'wb')
+    tree.lock_read()
+    try:
+        f.write(tree.get_file_text(file_id))
+    finally:
+        tree.unlock()
+        f.close()
+    # open it
+    url = QtCore.QUrl(fname)
+    result = QtGui.QDesktopServices.openUrl(url)
+    return result
+
+
+class KindError(errors.BzrError):
+    pass
