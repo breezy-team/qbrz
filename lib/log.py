@@ -25,7 +25,7 @@ from bzrlib import (
     urlutils,
     )
 from bzrlib.plugins.qbzr.lib import logmodel
-from bzrlib.plugins.qbzr.lib.diff import DiffWindow
+from bzrlib.plugins.qbzr.lib.extdiff import showDiff
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
@@ -608,26 +608,15 @@ class LogWindow(QBzrWindow):
             self.revision_delta_timer.start(1)
 
     def show_diff_window(self, rev1, rev2, specific_files=None):
-        self.branch.repository.lock_read()
-        try:
-            self._show_diff_window(rev1, rev2, specific_files)
-        finally:
-            self.branch.repository.unlock()
-
-    def _show_diff_window(self, rev1, rev2, specific_files=None):
-        # repository should be locked
+        new_revid = rev1.revision_id
         if not rev2.parent_ids:
-            revs = [rev1.revision_id]
-            tree = self.branch.repository.revision_tree(rev1.revision_id)
-            old_tree = self.branch.repository.revision_tree(None)
+            old_revid = None
         else:
-            revs = [rev1.revision_id, rev2.parent_ids[0]]
-            tree, old_tree = self.branch.repository.revision_trees(revs)
-        window = DiffWindow(old_tree, tree,
-                            self.branch, self.branch,
-                            specific_files=specific_files)
-        window.show()
-        self.windows.append(window)
+            old_revid = rev2.parent_ids[0]
+        showDiff(old_revid, new_revid,
+                 self.branch, self.branch,
+                 specific_files=specific_files,
+                 parent_window = self)
 
     def show_differences(self, index):
         """Show differences of a single revision"""

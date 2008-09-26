@@ -37,7 +37,7 @@ from bzrlib.workingtree import WorkingTree
 
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
-from bzrlib.plugins.qbzr.lib.diff import DiffWindow
+from bzrlib.plugins.qbzr.lib.extdiff import showDiff
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
 from bzrlib.plugins.qbzr.lib.util import (
@@ -472,20 +472,11 @@ class CommitWindow(SubProcessWindow):
         self.okButton.setDisabled(False)
     
     def show_changeset(self, item=None, column=None):
-        repo = self.tree.branch.repository
-        rev_id = str(item.data(0, self.RevisionIdRole).toString())
-        rev_parent_id = str(item.data(0, self.ParentIdRole).toString())
-        revs = [rev_parent_id, rev_id]
-        repo.lock_read()
-        try:
-            tree1, tree2 = repo.revision_trees(revs)
-        finally:
-            repo.unlock()
-        window = DiffWindow(tree1, tree2,
-                            self.tree.branch, self.tree.branch,
-                            parent=self)
-        window.show()
-        self.windows.append(window)
+        new_revid = str(item.data(0, self.RevisionIdRole).toString())
+        old_revid = str(item.data(0, self.ParentIdRole).toString())
+        showDiff(old_revid, new_revid,
+                 self.tree.branch, self.tree.branch,
+                 parent_window = self)
 
     def show_nonversioned(self, state):
         """Show/hide non-versioned files."""

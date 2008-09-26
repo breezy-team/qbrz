@@ -280,6 +280,8 @@ class QBzrConfigWindow(QBzrDialog):
         # Diff
         self.diffShowIntergroupColors.setChecked(qconfig.get_user_option("diff_show_intergroup_colors") in ("True", "1"))
         defaultDiff = qconfig.get_user_option("default_diff")
+        if defaultDiff is None:
+            defaultDiff = ""
 
         self.extDiffListIgnore = True
         def create_ext_diff_item(name, command):
@@ -288,7 +290,7 @@ class QBzrConfigWindow(QBzrDialog):
                           QtCore.Qt.ItemIsEditable |
                           QtCore.Qt.ItemIsEnabled |
                           QtCore.Qt.ItemIsUserCheckable)
-            if name == defaultDiff or (defaultDiff is None and command == ""):
+            if command == defaultDiff:
                 item.setCheckState(0, QtCore.Qt.Checked)
             else:
                 item.setCheckState(0, QtCore.Qt.Unchecked)
@@ -381,7 +383,7 @@ class QBzrConfigWindow(QBzrDialog):
             name = unicode(item.text(0))
             command = unicode(item.text(1))
             if item.checkState(0) == QtCore.Qt.Checked:
-                defaultDiff = name
+                defaultDiff = command
             if name and command:
                 qparser['EXTDIFF'][name] = command
         set_or_delete_option(qparser, 'default_diff',

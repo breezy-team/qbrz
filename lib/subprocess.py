@@ -41,6 +41,7 @@ class SubProcessWindowBase:
                           ui_mode=True,
                           dialog=True,
                           default_layout=True,
+                          auto_start_show_on_failed=False,
                           parent=None):
         self.restoreSize(name, default_size)
         self.desc = desc
@@ -82,6 +83,10 @@ class SubProcessWindowBase:
             status_layout.addWidget(self.process_widget)
             layout.addWidget(status_group_box)
             layout.addWidget(self.buttonbox)
+        
+        self.auto_start_show_on_failed = auto_start_show_on_failed
+        if self.auto_start_show_on_failed:
+            self.start()
     
     def create_ui(self, ui_parent):
         label = QtGui.QLabel(self.desc, ui_parent)
@@ -117,6 +122,8 @@ class SubProcessWindowBase:
             self.close()
     
     def failed(self):
+        if self.auto_start_show_on_failed:
+            self.show()
         self.ui_widget.setDisabled(False)
         self.okButton.setDisabled(False)
     
@@ -138,6 +145,7 @@ class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
                  ui_mode=True,
                  dialog=True,
                  default_layout=True,
+                 auto_start_show_on_failed=False,
                  parent=None):
         QBzrWindow.__init__(self, [title], parent)
         self.__init_internal__(title,
@@ -149,6 +157,7 @@ class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
                                ui_mode=ui_mode,
                                dialog=dialog,
                                default_layout=default_layout,
+                               auto_start_show_on_failed=auto_start_show_on_failed,
                                parent=parent)
 
 class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
@@ -162,6 +171,7 @@ class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
                  ui_mode=True,
                  dialog=True,
                  default_layout=True,
+                 auto_start_show_on_failed=False,
                  parent=None):        
         QBzrDialog.__init__(self, [title], parent)
         self.__init_internal__(title,
@@ -173,6 +183,7 @@ class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
                                ui_mode=ui_mode,
                                dialog=dialog,
                                default_layout=default_layout,
+                               auto_start_show_on_failed=auto_start_show_on_failed,
                                parent=parent)
 
 class SubProcessWidget(QtGui.QWidget):
@@ -237,7 +248,14 @@ class SubProcessWidget(QtGui.QWidget):
     
     def _start_next(self):
         dir, args = self.commands.pop(0)
-        args = ' '.join('"%s"' % a.replace('"', '\\"') for a in args)
+        
+        def format_arg(a):
+            # Don't quote revision arg.
+            if a.startswith("-r"):
+                return a
+            return '"%s"' % a.replace('"', '\\"')
+        
+        args = ' '.join(format_arg(a) for a in args)
         if dir is None:
             dir = self.defaultWorkingDir
         
@@ -269,6 +287,8 @@ class SubProcessWidget(QtGui.QWidget):
         self.progressMessage.setText(text)
     
     def readStdout(self):
+        #if self.parent().show_on_output:
+        #    self.parent().show()
         data = str(self.process.readAllStandardOutput())
         for line in data.splitlines():
             if line.startswith("qbzr:PROGRESS:"):
@@ -281,6 +301,8 @@ class SubProcessWidget(QtGui.QWidget):
                     sys.stdout.write("\n")
 
     def readStderr(self):
+        #if self.parent().show_on_output:
+        #    self.parent().show()
         data = str(self.process.readAllStandardError())
         for line in data.splitlines():
             error = line.startswith("bzr: ERROR:")
