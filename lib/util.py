@@ -188,13 +188,14 @@ class QBzrGlobalConfig(IniBasedConfig):
 class _QBzrWindowBase:
     
     def set_title_icon(self, title):
-        self.setWindowTitle(" - ".join(title))
+        if title:
+            self.setWindowTitle(" - ".join(title))
         icon = QtGui.QIcon()
         icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
         icon.addFile(":/bzr-32.png", QtCore.QSize(32, 32))
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
-    
+
     def create_button_box(self, *buttons):
         """Create and return button box with pseudo-standard buttons
         @param  buttons:    any from BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP
@@ -209,7 +210,7 @@ class _QBzrWindowBase:
                 "rejected()", "close"),
             # XXX support for HelpRole
             }
-        buttonbox = QtGui.QDialogButtonBox(self.centralwidget)
+        buttonbox = QtGui.QDialogButtonBox(self)
         for i in buttons:
             btn = StandardButton(i)
             role, signal_name, method_name = ROLES[i]
@@ -264,13 +265,24 @@ class _QBzrWindowBase:
                 window.close()
         event.accept()
 
+    # custom signal slots.
+    def linkActivated(self, target):
+        """Sent by labels or other rich-text enabled widgets when a link
+        is clicked.
+        """
+        # Our help links all are of the form 'bzrtopic:topic-name'
+        scheme, link = unicode(target).split(":", 1)
+        if scheme != "bzrtopic":
+            raise RuntimeError, "unknown scheme"
+        from bzrlib.plugins.qbzr.lib.help import show_help
+        show_help(link, self)
+
 class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
 
     def __init__(self, title=[], parent=None, centralwidget=None):
         QtGui.QMainWindow.__init__(self, parent)
 
         self.set_title_icon(title)
-
 
         if centralwidget is None:
             centralwidget = QtGui.QWidget(self)
@@ -285,8 +297,6 @@ class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
         
         self.set_title_icon(title)
         
-        self.centralwidget = self
-        #self.setCentralWidget(self.centralwidget)
         self.windows = []
 
 

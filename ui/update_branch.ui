@@ -9,9 +9,12 @@
     <height>198</height>
    </rect>
   </property>
+  <property name="windowTitle" >
+   <string>Update Branch</string>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout_3" >
    <property name="margin" >
-    <number>0</number>
+    <number>9</number>
    </property>
    <item>
     <widget class="QLabel" name="label" >
@@ -160,5 +163,105 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>but_pull</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>but_pull_remember</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>55</x>
+     <y>65</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>93</x>
+     <y>120</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>but_pull</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>but_pull_overwrite</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>65</x>
+     <y>64</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>76</x>
+     <y>140</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>but_pull</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>location</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>143</x>
+     <y>62</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>167</x>
+     <y>93</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>but_pull</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>location_picker</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>197</x>
+     <y>65</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>341</x>
+     <y>92</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>UpdateBranchForm</sender>
+   <signal>subprocessStarted(bool)</signal>
+   <receiver>label</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>2</x>
+     <y>6</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>15</x>
+     <y>17</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>UpdateBranchForm</sender>
+   <signal>subprocessStarted(bool)</signal>
+   <receiver>groupBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>5</x>
+     <y>43</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>11</x>
+     <y>57</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <signal>subprocessStarted(bool)</signal>
+ </slots>
 </ui>

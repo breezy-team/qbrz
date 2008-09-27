@@ -25,7 +25,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.trace import log_exception_quietly
 
 from bzrlib.errors import BzrError
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     BTN_OK,
@@ -41,14 +41,14 @@ from bzrlib.plugins.qbzr.lib.wtlist import (
     )
 
 
-class RevertWindow(SubProcessWindow):
+class RevertWindow(SubProcessDialog):
 
     def __init__(self, tree, selected_list, dialog=True, parent=None,
                  local=None, message=None, ui_mode=True):
         self.tree = tree
         self.initial_selected_list = selected_list
         
-        SubProcessWindow.__init__(self,
+        SubProcessDialog.__init__(self,
                                   gettext("Revert"),
                                   name = "revert",
                                   default_size = (400, 400),
@@ -56,9 +56,6 @@ class RevertWindow(SubProcessWindow):
                                   dialog = dialog,
                                   parent = parent)
         
-        #self.process_widget.hide_progress()
-
-    def create_ui(self, parent):
         # Display the list of changed files
         groupbox = QtGui.QGroupBox(gettext("Changes"), self)
 
@@ -82,8 +79,18 @@ class RevertWindow(SubProcessWindow):
         vbox.addWidget(selectall_checkbox)
 
         self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
-        
-        return groupbox
+
+        # groupbox gets disabled as we are executing.
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessStarted(bool)"),
+                               groupbox,
+                               QtCore.SLOT("setDisabled(bool)"))
+
+        layout = QtGui.QVBoxLayout(self)
+        layout.addWidget(groupbox)
+        # and add the subprocess widgets.
+        for w in self.make_default_layout_widgets():
+            layout.addWidget(w)
 
     def iter_changes_and_state(self):
         """An iterator for the WorkingTreeFileList widget"""

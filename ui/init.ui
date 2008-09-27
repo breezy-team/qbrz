@@ -5,16 +5,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>376</width>
-    <height>333</height>
+    <width>417</width>
+    <height>351</height>
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>Dialog</string>
+   <string>Initialize</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" >
    <property name="margin" >
-    <number>0</number>
+    <number>9</number>
    </property>
    <item>
     <widget class="QGroupBox" name="groupBox_3" >
@@ -52,6 +52,9 @@
        <widget class="QRadioButton" name="but_init" >
         <property name="text" >
          <string>Create a new standalone tree</string>
+        </property>
+        <property name="checked" >
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -109,6 +112,9 @@
         </item>
         <item>
          <widget class="QCheckBox" name="but_no_trees" >
+          <property name="enabled" >
+           <bool>false</bool>
+          </property>
           <property name="text" >
            <string>Skip the creation of working trees in this repository</string>
           </property>
@@ -164,7 +170,7 @@ p, li { white-space: pre-wrap; }
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>354</width>
+           <width>377</width>
            <height>60</height>
           </rect>
          </property>
@@ -204,11 +210,108 @@ p, li { white-space: pre-wrap; }
     </widget>
    </item>
   </layout>
-  <zorder>groupBox_2</zorder>
-  <zorder>groupBox_3</zorder>
-  <zorder>stackedWidget</zorder>
-  <zorder>groupBox</zorder>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>link_help</sender>
+   <signal>linkActivated(QString)</signal>
+   <receiver>InitForm</receiver>
+   <slot>linkActivated(QString)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>46</x>
+     <y>212</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>3</x>
+     <y>264</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>link_help_formats</sender>
+   <signal>linkActivated(QString)</signal>
+   <receiver>InitForm</receiver>
+   <slot>linkActivated(QString)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>66</x>
+     <y>324</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>3</x>
+     <y>328</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>InitForm</sender>
+   <signal>subprocessStarted(bool)</signal>
+   <receiver>groupBox_3</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>9</x>
+     <y>7</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>17</x>
+     <y>15</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>InitForm</sender>
+   <signal>subprocessStarted(bool)</signal>
+   <receiver>groupBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>2</x>
+     <y>181</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>15</x>
+     <y>182</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>but_init</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>but_append_only</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>77</x>
+     <y>106</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>121</x>
+     <y>138</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radioButton_2</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>but_no_trees</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>150</x>
+     <y>165</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>177</x>
+     <y>187</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>linkActivated(QString)</slot>
+  <signal>subprocessStarted(bool)</signal>
+ </slots>
 </ui>

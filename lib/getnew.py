@@ -26,7 +26,7 @@ import os
 import re
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_new_tree import Ui_NewWorkingTreeForm
 from bzrlib.plugins.qbzr.lib.help import show_help
 from bzrlib.plugins.qbzr.lib.util import (
@@ -40,26 +40,23 @@ from bzrlib.plugins.qbzr.lib.util import (
 from bzrlib import errors, urlutils
 
 
-class GetNewWorkingTreeWindow(SubProcessWindow):
+class GetNewWorkingTreeWindow(SubProcessDialog):
 
-    TITLE = N_("Create a new Bazaar Working Tree")
     NAME = "new_tree"
-    DEFAULT_SIZE = (100, 100)
 
     def __init__(self, to_location, ui_mode=True, parent=None):
         self.to_location = os.path.abspath(to_location)
-        SubProcessWindow.__init__(self,
-                                  self.TITLE,
+        super(GetNewWorkingTreeWindow, self).__init__(
                                   name = self.NAME,
-                                  default_size = self.DEFAULT_SIZE,
                                   ui_mode = ui_mode,
                                   parent = parent)
 
-    def create_ui(self, parent):
-        ui_widget = QtGui.QWidget(parent)
         self.ui = Ui_NewWorkingTreeForm()
-        self.ui.setupUi(ui_widget)
+        self.ui.setupUi(self)
         fill_pull_combo(self.ui.from_location, None)
+        # and add the subprocess widgets.
+        for w in self.make_default_layout_widgets():
+            self.layout().addWidget(w)
 
         # Our 2 directory pickers hook up to our combos.
         hookup_directory_picker(self,
@@ -76,19 +73,9 @@ class GetNewWorkingTreeWindow(SubProcessWindow):
         self.connect(self.ui.from_location, QtCore.SIGNAL("editTextChanged(const QString &)"),
                      self.from_location_changed)
 
-        self.connect(self.ui.but_checkout, QtCore.SIGNAL("toggled(bool)"),
-                     self.checkout_toggled)
-        self.connect(self.ui.but_rev_specific, QtCore.SIGNAL("toggled(bool)"),
-                     self.rev_toggled)
-        self.connect(self.ui.link_help, QtCore.SIGNAL("linkActivated(const QString &)"),
-                     self.link_help_activated)
-        self.connect(self.ui.link_help_revisions, QtCore.SIGNAL("linkActivated(const QString &)"),
-                     self.link_help_activated)
-
         self.ui.but_checkout.setChecked(True)
         self.ui.but_rev_tip.setChecked(True)
         self.ui.to_location.setText(self.to_location)
-        return ui_widget
 
     def from_location_changed(self, new_text):
         new_val = self.to_location
@@ -97,25 +84,6 @@ class GetNewWorkingTreeWindow(SubProcessWindow):
             new_val = os.path.join(new_val, tail)
         self.ui.to_location.setText(new_val)
 
-    def link_help_activated(self, target):
-        # Our help links all are of the form 'bzrtopic:topic-name'
-        scheme, link = unicode(target).split(":", 1)
-        if scheme != "bzrtopic":
-            raise RuntimeError, "unknown scheme"
-        show_help(link, self)
-
-    def checkout_toggled(self, bool):
-        # The widgets for 'checkout'
-        for w in [self.ui.but_lightweight]:
-            w.setEnabled(bool)
-        # The widgets for 'branch'
-        for w in [self.ui.but_stacked]:
-            w.setEnabled(not bool)
-
-    def rev_toggled(self, bool):
-        for w in [self.ui.revision]:
-            w.setEnabled(bool)
-        
     def start(self):
         from_location = unicode(self.ui.from_location.currentText())
         to_location = unicode(self.ui.to_location.text())

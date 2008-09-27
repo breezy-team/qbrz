@@ -5,13 +5,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>197</width>
-    <height>128</height>
+    <width>349</width>
+    <height>130</height>
    </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Branch</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" >
    <property name="margin" >
-    <number>0</number>
+    <number>9</number>
    </property>
    <item>
     <widget class="QGroupBox" name="groupBox" >
@@ -105,5 +108,25 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>BranchForm</sender>
+   <signal>subprocessStarted(bool)</signal>
+   <receiver>groupBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>100</x>
+     <y>4</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>108</x>
+     <y>13</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <signal>subprocessStarted(bool)</signal>
+ </slots>
 </ui>

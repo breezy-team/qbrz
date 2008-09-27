@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/pull.ui'
 #
-# Created: Mon Sep  8 15:36:05 2008
-#      by: PyQt4 UI code generator 4.4.3
+# Created: Fri Sep 19 16:13:35 2008
+#      by: PyQt4 UI code generator 4.4.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -14,9 +14,9 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 class Ui_PullForm(object):
     def setupUi(self, PullForm):
         PullForm.setObjectName("PullForm")
-        PullForm.resize(305, 167)
+        PullForm.resize(404, 194)
         self.verticalLayout = QtGui.QVBoxLayout(PullForm)
-        self.verticalLayout.setMargin(0)
+        self.verticalLayout.setMargin(9)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBox = QtGui.QGroupBox(PullForm)
         self.groupBox.setObjectName("groupBox")
@@ -53,9 +53,11 @@ class Ui_PullForm(object):
         self.label_3.setBuddy(self.revision)
 
         self.retranslateUi(PullForm)
+        QtCore.QObject.connect(PullForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.groupBox.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(PullForm)
 
     def retranslateUi(self, PullForm):
+        PullForm.setWindowTitle(gettext("Pull"))
         self.groupBox.setTitle(gettext("Options"))
         self.label_2.setText(gettext("&Location:"))
         self.location_picker.setText(gettext("Browse..."))

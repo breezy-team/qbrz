@@ -21,7 +21,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrGlobalConfig,
     )
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
+from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from PyQt4 import QtCore, QtGui
 
@@ -69,11 +69,11 @@ def showDiff(old_revid, new_revid, old_branch, new_branch, new_wt = None,
         if specific_files:
             args.extend(specific_files)
         
-        window = SubProcessWindow("External Diff",
-                                  desc=ext_diff,
-                                  args=args,
-                                  auto_start_show_on_failed=True,
-                                  parent=parent_window)
+        window = SimpleSubProcessDialog("External Diff",
+                                        desc=ext_diff,
+                                        args=args,
+                                        auto_start_show_on_failed=True,
+                                        parent=parent_window)
         window.process_widget.hide_progress()
         if parent_window:
             parent_window.windows.append(window)

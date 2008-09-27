@@ -34,17 +34,14 @@ from bzrlib.plugins.qbzr.lib.util import (
 class SubProcessWindowBase:
     def __init_internal__(self, title,
                           name="genericsubprocess",
-                          desc="",
                           args=None,
                           dir=None,
                           default_size=None,
                           ui_mode=True,
                           dialog=True,
-                          default_layout=True,
                           auto_start_show_on_failed=False,
                           parent=None):
         self.restoreSize(name, default_size)
-        self.desc = desc
         self.args = args
         self.dir = dir
         self.ui_mode = ui_mode
@@ -53,9 +50,7 @@ class SubProcessWindowBase:
             flags = (self.windowFlags() & ~QtCore.Qt.Window) | QtCore.Qt.Dialog
             self.setWindowFlags(flags)
 
-        self.ui_widget = self.create_ui(self.centralwidget)
-
-        self.process_widget = SubProcessWidget(self.ui_mode, self.centralwidget)
+        self.process_widget = SubProcessWidget(self.ui_mode, self)
         self.connect(self.process_widget,
             QtCore.SIGNAL("finished()"),
             self.finished)
@@ -63,42 +58,60 @@ class SubProcessWindowBase:
             QtCore.SIGNAL("failed()"),
             self.failed)
 
-        self.closeButton = StandardButton(BTN_CLOSE)
-        self.okButton = StandardButton(BTN_OK)
-        self.cancelButton = StandardButton(BTN_CANCEL)
+        closeButton = StandardButton(BTN_CLOSE)
+        okButton = StandardButton(BTN_OK)
+        cancelButton = StandardButton(BTN_CANCEL)
 
-        self.buttonbox = QtGui.QDialogButtonBox(self.centralwidget)
-        self.buttonbox.addButton(self.okButton,
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessStarted(bool)"),
+                               okButton,
+                               QtCore.SLOT("setDisabled(bool)"))
+
+        # ok button gets hidden when we finish.
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessFinished(bool)"),
+                               okButton,
+                               QtCore.SLOT("setHidden(bool)"))
+
+        # close button gets shown when we finish.
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessFinished(bool)"),
+                               closeButton,
+                               QtCore.SLOT("setShown(bool)"))
+
+        # cancel button gets disabled when finished.
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessFinished(bool)"),
+                               cancelButton,
+                               QtCore.SLOT("setDisabled(bool)"))
+
+        self.buttonbox = QtGui.QDialogButtonBox(self)
+        self.buttonbox.addButton(okButton,
             QtGui.QDialogButtonBox.AcceptRole)
-        self.buttonbox.addButton(self.cancelButton,
+        self.buttonbox.addButton(closeButton,
+            QtGui.QDialogButtonBox.AcceptRole)
+        self.buttonbox.addButton(cancelButton,
             QtGui.QDialogButtonBox.RejectRole)
         self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.accept)
         self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
-        
-        if default_layout:
-            layout = QtGui.QVBoxLayout(self.centralwidget)
-            layout.addWidget(self.ui_widget)
-            status_group_box = QtGui.QGroupBox(gettext("Status"), self.centralwidget)
-            status_layout = QtGui.QVBoxLayout(status_group_box)
-            status_layout.addWidget(self.process_widget)
-            layout.addWidget(status_group_box)
-            layout.addWidget(self.buttonbox)
+        closeButton.setHidden(True) # but 'close' starts as hidden.
         
         self.auto_start_show_on_failed = auto_start_show_on_failed
         if self.auto_start_show_on_failed:
             self.start()
     
-    def create_ui(self, ui_parent):
-        label = QtGui.QLabel(self.desc, ui_parent)
-        label.font().setBold(True)
-        return label
-    
+    def make_default_layout_widgets(self):
+        status_group_box = QtGui.QGroupBox(gettext("Status"), self)
+        status_layout = QtGui.QVBoxLayout(status_group_box)
+        status_layout.addWidget(self.process_widget)
+        yield status_group_box
+        yield self.buttonbox
+
     def accept(self):
         if self.process_widget.finished:
             self.close()
         else:
-            self.okButton.setDisabled(True)
-            self.ui_widget.setDisabled(True)
+            self.emit(QtCore.SIGNAL("subprocessStarted(bool)"), True)
             self.start()
     
     def start(self):
@@ -114,18 +127,15 @@ class SubProcessWindowBase:
         if hasattr(self, 'setResult'):
             self.setResult(QtGui.QDialog.Accepted)
         
-        self.buttonbox.addButton(self.closeButton,
-            QtGui.QDialogButtonBox.AcceptRole)
-        self.buttonbox.removeButton(self.okButton)
-        self.cancelButton.setDisabled(True)
+        self.emit(QtCore.SIGNAL("subprocessFinished(bool)"), True)
+
         if not self.ui_mode:
             self.close()
-    
+
     def failed(self):
         if self.auto_start_show_on_failed:
             self.show()
-        self.ui_widget.setDisabled(False)
-        self.okButton.setDisabled(False)
+        self.emit(QtCore.SIGNAL("subprocessStarted(bool)"), False)
     
     def closeEvent(self, event):
         if not self.process_widget.is_running():
@@ -138,53 +148,86 @@ class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
 
     def __init__(self, title,
                  name="genericsubprocess",
-                 desc="",
                  args=None,
                  dir=None,
                  default_size=None,
                  ui_mode=True,
                  dialog=True,
-                 default_layout=True,
                  auto_start_show_on_failed=False,
                  parent=None):
         QBzrWindow.__init__(self, [title], parent)
         self.__init_internal__(title,
                                name=name,
-                               desc=desc,
                                args=args,
                                dir=dir,
                                default_size=default_size,
                                ui_mode=ui_mode,
                                dialog=dialog,
-                               default_layout=default_layout,
                                auto_start_show_on_failed=auto_start_show_on_failed,
                                parent=parent)
 
 class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
+    """An abstract base-class for all subprocess related dialogs.
 
-    def __init__(self, title,
+    It is expected that sub-classes of this will create their own UI, and while
+    doing so, will add the widgets returned by
+    self.make_default_layout_widgets()
+    """
+    def __init__(self, title=None,
                  name="genericsubprocess",
-                 desc="",
                  args=None,
                  dir=None,
                  default_size=None,
                  ui_mode=True,
                  dialog=True,
-                 default_layout=True,
                  auto_start_show_on_failed=False,
                  parent=None):        
-        QBzrDialog.__init__(self, [title], parent)
+        if title:
+            title = [title]
+        QBzrDialog.__init__(self, title, parent)
         self.__init_internal__(title,
                                name=name,
-                               desc=desc,
                                args=args,
                                dir=dir,
                                default_size=default_size,
                                ui_mode=ui_mode,
                                dialog=dialog,
-                               default_layout=default_layout,
                                auto_start_show_on_failed=auto_start_show_on_failed,
                                parent=parent)
+
+
+class SimpleSubProcessDialog(SubProcessDialog):
+    """A concrete helper class of SubProcessDialog, which has a single label
+    widget for displaying a simple description before executing a subprocess.
+    """
+    def __init__(self, title, desc,
+                 name="genericsubprocess",
+                 args=None,
+                 dir=None,
+                 default_size=None,
+                 ui_mode=True,
+                 dialog=True,
+                 auto_start_show_on_failed=False,
+                 parent=None):
+        super(SimpleSubProcessDialog, self).__init__(
+                               title,
+                               name=name,
+                               args=args,
+                               dir=dir,
+                               default_size=default_size,
+                               ui_mode=ui_mode,
+                               dialog=dialog,
+                               auto_start_show_on_failed=auto_start_show_on_failed,
+                               parent=parent)           
+        self.desc = desc
+        # create a layout to hold our one label and the subprocess widgets.
+        layout = QtGui.QVBoxLayout(self)
+        label = QtGui.QLabel(self.desc, self)
+        label.font().setBold(True)
+        layout.addWidget(label)
+        # and add the subprocess widgets.
+        for w in self.make_default_layout_widgets():
+            layout.addWidget(w)
 
 class SubProcessWidget(QtGui.QWidget):
 
@@ -238,6 +281,7 @@ class SubProcessWidget(QtGui.QWidget):
                self.process.state() == QtCore.QProcess.Starting
     
     def start(self, dir, *args):
+        QtGui.QApplication.processEvents() # make sure ui has caught up
         self.start_multi(((dir, args),))
     
     def start_multi(self, commands):
@@ -287,8 +331,6 @@ class SubProcessWidget(QtGui.QWidget):
         self.progressMessage.setText(text)
     
     def readStdout(self):
-        #if self.parent().show_on_output:
-        #    self.parent().show()
         data = str(self.process.readAllStandardOutput())
         for line in data.splitlines():
             if line.startswith("qbzr:PROGRESS:"):
@@ -301,8 +343,6 @@ class SubProcessWidget(QtGui.QWidget):
                     sys.stdout.write("\n")
 
     def readStderr(self):
-        #if self.parent().show_on_output:
-        #    self.parent().show()
         data = str(self.process.readAllStandardError())
         for line in data.splitlines():
             error = line.startswith("bzr: ERROR:")
