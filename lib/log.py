@@ -537,6 +537,8 @@ class LogWindow(QBzrWindow):
         if hasExtDiff():
             self.diffMenu = ExtDiffMenu(self)
             self.contextMenu.addMenu(self.diffMenu)
+            self.connect(self.diffMenu, QtCore.SIGNAL("triggered(QAction *)"),
+                         self.diff_pushed)
         else:
             self.show_diff_action = self.contextMenu.addAction(
                 gettext("Show &differences..."), self.diff_pushed)
@@ -647,7 +649,7 @@ class LogWindow(QBzrWindow):
     def diff_pushed(self, action = None):
         """Show differences of the selected range or of a single revision"""
         if action:
-            ext_diff = unicode(action.data())
+            ext_diff = unicode(action.data().toString())
         else:
             ext_diff = None
         
