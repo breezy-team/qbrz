@@ -36,7 +36,7 @@ from bzrlib.commit import ReportCommitToLog
 from bzrlib.workingtree import WorkingTree
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_branch import Ui_BranchForm
 from bzrlib.plugins.qbzr.lib.ui_pull import Ui_PullForm
 from bzrlib.plugins.qbzr.lib.ui_push import Ui_PushForm
@@ -57,32 +57,30 @@ from bzrlib.plugins.qbzr.lib.util import (
 )
 
 
-class QBzrPullWindow(SubProcessWindow):
+class QBzrPullWindow(SubProcessDialog):
 
-    TITLE = N_("Pull")
     NAME = "pull"
-    DEFAULT_SIZE = (500, 420)
 
     def __init__(self, branch, ui_mode=True, parent=None):
         self.branch = branch
-        SubProcessWindow.__init__(self,
-                                  self.TITLE,
-                                  name = self.NAME,
-                                  default_size = self.DEFAULT_SIZE,
-                                  ui_mode = ui_mode,
-                                  parent = parent)
+        super(QBzrPullWindow, self).__init__(name = self.NAME,
+                                             ui_mode = ui_mode,
+                                             parent = parent)
+        self.create_ui()
 
-    def create_ui(self, parent):
-        ui_widget = QtGui.QWidget(parent)
+    def create_ui(self):
         self.ui = Ui_PullForm()
-        self.ui.setupUi(ui_widget)
+        self.ui.setupUi(self)
+        # add the subprocess widgets.
+        for w in self.make_default_layout_widgets():
+            self.layout().addWidget(w)
+
         fill_pull_combo(self.ui.location, self.branch)
         # One directory picker for the pull location.
         hookup_directory_picker(self,
                                 self.ui.location_picker,
                                 self.ui.location,
                                 DIRECTORYPICKER_SOURCE)
-        return ui_widget
 
     def start(self):
         args = ['--directory', self.branch.base]
@@ -101,14 +99,14 @@ class QBzrPullWindow(SubProcessWindow):
 
 class QBzrPushWindow(QBzrPullWindow):
 
-    TITLE = N_("Push")
     NAME = "push"
-    DEFAULT_SIZE = (500, 420)
 
-    def create_ui(self, parent):
-        ui_widget = QtGui.QWidget(parent)
+    def create_ui(self):
         self.ui = Ui_PushForm()
-        self.ui.setupUi(ui_widget)
+        self.ui.setupUi(self)
+        # and add the subprocess widgets.
+        for w in self.make_default_layout_widgets():
+            self.layout().addWidget(w)
 
         df = urlutils.unescape_for_display(self.branch.get_push_location() or '', "utf-8")
         fill_combo_with(self.ui.location, df,
@@ -119,7 +117,6 @@ class QBzrPushWindow(QBzrPullWindow):
                                 self.ui.location_picker,
                                 self.ui.location,
                                 DIRECTORYPICKER_TARGET)
-        return ui_widget
 
     def start(self):
         args = ['--directory', self.branch.base]
@@ -137,14 +134,14 @@ class QBzrPushWindow(QBzrPullWindow):
 
 class QBzrBranchWindow(QBzrPullWindow):
 
-    TITLE = N_("Branch")
     NAME = "branch"
-    DEFAULT_SIZE = (500, 420)
 
-    def create_ui(self, parent):
-        ui_widget = QtGui.QWidget(parent)
+    def create_ui(self):
         self.ui = Ui_BranchForm()
-        self.ui.setupUi(ui_widget)
+        self.ui.setupUi(self)
+        # and add the subprocess widgets.
+        for w in self.make_default_layout_widgets():
+            self.layout().addWidget(w)
 
         fill_combo_with(self.ui.from_location,
                         u'',
@@ -161,8 +158,6 @@ class QBzrBranchWindow(QBzrPullWindow):
                                 self.ui.to_location,
                                 DIRECTORYPICKER_TARGET)
 
-        return ui_widget
-    
     def accept(self):
         args = []
         revision = str(self.ui.revision.text())
@@ -176,14 +171,15 @@ class QBzrBranchWindow(QBzrPullWindow):
 
 class QBzrMergeWindow(QBzrPullWindow):
 
-    TITLE = N_("Merge")
     NAME = "pull"
-    DEFAULT_SIZE = (500, 420)
 
-    def create_ui(self, parent):
-        ui_widget = QtGui.QWidget(parent)
+    def create_ui(self):
         self.ui = Ui_MergeForm()
-        self.ui.setupUi(ui_widget)
+        self.ui.setupUi(self)
+        # and add the subprocess widgets.
+        for w in self.make_default_layout_widgets():
+            self.layout().addWidget(w)
+
         fill_pull_combo(self.ui.location, self.branch)
             
         # One directory picker for the pull location.
@@ -191,8 +187,7 @@ class QBzrMergeWindow(QBzrPullWindow):
                                 self.ui.location_picker,
                                 self.ui.location,
                                 DIRECTORYPICKER_SOURCE)
-        return ui_widget
-    
+
     def accept(self):
         args = ['--directory', self.branch.base]
         if self.ui.remember.isChecked():

@@ -1,0 +1,84 @@
+Mini-tutorial on slots and signals
+**********************************
+
+	This mini-tutorial from Mark Hammond explains how to use QtDesigner
+	for editing signals-slots connections.
+
+On Figure 1 we have a screen-shot of one of our dialogs in QtDesigner 
+in "Edit Widgets" (ie, normal) mode, with a signal/slot editor to the right.  
+This little editor is generally in the tabbed window to the right 
+of the screen, right near the Property Editor.  
+Select "Tools->Signal/Slot Editor" to ensure it is visible.
+
+.. figure:: slot-signal-fig1.png
+
+	Figure 1
+
+
+Let's go through this list:
+
+* The first 2 elements in the list have a "Sender" as our 2 QLabel objects 
+  with the hyperlinks, and these objects are sending a linkActivated signal 
+  (which is builtin to QLabel objects).  The receiver of the signal 
+  is the form itself (InitForm), and it receives the signal into a slot 
+  also called 'linkActivated' - linkActivated is *not* builtin to dialogs, 
+  but I've previously told QtDesigner that this form has such a slot - 
+  it could have used any name.  As a result, we have linkActivated signals 
+  being 'forwarded' to our dialog.
+
+* The next 2 items in the list are showing the form itself as the sender 
+  of a signal called 'subprocessStarted(bool)' and the receiver of the events 
+  are groupboxes - but the slot is 'setDisabled'.  Thus, whenever the form 
+  sends a signal of 'subprocessStarted(True)', the groupbox 'setDisabled(True)' 
+  will be called (and vice-versa).  I've previously told QtDesigner 
+  that our form may send such a signal, and subprocess.py is where the actual 
+  emit() of the signal happens.  As a result, we have the 2 groupboxes 
+  being automatically disabled when the subprocess starts and renabled 
+  if things fail.
+
+* The next item in the list if a signal from the 'but_init' widget, 
+  which is the 'Create a new standalone tree' radio button.  
+  The toggled(bool) signal is attached to the checkbox directly under it 
+  via the setEnabled(bool) slot.  Thus, when the radio button is selected, 
+  it will send a toggled(True) signal, which will end up calling 
+  the checkbox's setEnabled(True) function.  Thus, that checkbox depends on 
+  the state of the radio above it.
+
+* The final item in the list is the second radio button connected to 
+  the second checkbox, as described above.
+
+Now - we will switch QtDesigner into "Edit Signals/Slots" mode - 
+select that mode from the Edit menu or press F4.  
+Suddenly we will see lots of colors, see figure 2 below.
+
+.. figure:: slot-signal-fig2.png
+
+	Figure 2
+
+
+Note how Qt is trying to show all these signal slot relationships.  
+Note that when a slot/signal is selected on the right, the connection is shown 
+in pink on the form itself.  It looks noisy, but it starts to make sense 
+after a short time.
+
+By way of example, let's say I wanted to add a new label to the form 
+with a new help link.  See below figure 3 - I've added a new 'TextLabel' 
+at the bottom of the form and selected it.
+
+.. figure:: slot-signal-fig3.png
+
+	Figure 3
+
+
+Now, I drag a line from that new widget to the dialog itself.  
+A Qt dialog pops up asking me what connection I want to make between the objects.  
+In this case, I want to connect the linkActivated signal from the label 
+with the linkActivated slot on our dialog - see figure 4:
+
+.. figure:: slot-signal-fig4.png
+
+	Figure 4
+
+
+If you select OK, the Signal/Slot editor panel we started with 
+will now show this new connection.

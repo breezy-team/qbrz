@@ -5,13 +5,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>253</width>
-    <height>124</height>
+    <width>355</width>
+    <height>133</height>
    </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Merge</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" >
    <property name="margin" >
-    <number>0</number>
+    <number>9</number>
    </property>
    <item>
     <widget class="QGroupBox" name="groupBox" >
@@ -88,5 +91,25 @@
   </layout>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>MergeForm</sender>
+   <signal>subprocessStarted(bool)</signal>
+   <receiver>groupBox</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>17</x>
+     <y>7</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>22</x>
+     <y>16</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <signal>subprocessStarted(bool)</signal>
+ </slots>
 </ui>

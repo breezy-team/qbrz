@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/update_branch.ui'
 #
-# Created: Mon Sep  8 16:11:40 2008
-#      by: PyQt4 UI code generator 4.4.3
+# Created: Fri Sep 19 16:13:35 2008
+#      by: PyQt4 UI code generator 4.4.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -16,7 +16,7 @@ class Ui_UpdateBranchForm(object):
         UpdateBranchForm.setObjectName("UpdateBranchForm")
         UpdateBranchForm.resize(407, 198)
         self.verticalLayout_3 = QtGui.QVBoxLayout(UpdateBranchForm)
-        self.verticalLayout_3.setMargin(0)
+        self.verticalLayout_3.setMargin(9)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
         self.label = QtGui.QLabel(UpdateBranchForm)
         self.label.setScaledContents(False)
@@ -70,9 +70,16 @@ class Ui_UpdateBranchForm(object):
         self.verticalLayout_3.addWidget(self.groupBox)
 
         self.retranslateUi(UpdateBranchForm)
+        QtCore.QObject.connect(self.but_pull, QtCore.SIGNAL("toggled(bool)"), self.but_pull_remember.setEnabled)
+        QtCore.QObject.connect(self.but_pull, QtCore.SIGNAL("toggled(bool)"), self.but_pull_overwrite.setEnabled)
+        QtCore.QObject.connect(self.but_pull, QtCore.SIGNAL("toggled(bool)"), self.location.setEnabled)
+        QtCore.QObject.connect(self.but_pull, QtCore.SIGNAL("toggled(bool)"), self.location_picker.setEnabled)
+        QtCore.QObject.connect(UpdateBranchForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.label.setDisabled)
+        QtCore.QObject.connect(UpdateBranchForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.groupBox.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(UpdateBranchForm)
 
     def retranslateUi(self, UpdateBranchForm):
+        UpdateBranchForm.setWindowTitle(gettext("Update Branch"))
         self.label.setText(gettext("This directory is a branch.  Please select what you would like to update"))
         self.groupBox.setTitle(gettext("Update source"))
         self.location_picker.setText(gettext("Browse..."))

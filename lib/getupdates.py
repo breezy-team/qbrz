@@ -25,7 +25,7 @@ import sys
 import os
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_update_branch import Ui_UpdateBranchForm
 from bzrlib.plugins.qbzr.lib.ui_update_checkout import Ui_UpdateCheckoutForm
 from bzrlib.plugins.qbzr.lib.util import (
@@ -41,34 +41,28 @@ from bzrlib.plugins.qbzr.lib.util import (
 from bzrlib import errors, urlutils
 
 
-class UpdateBranchWindow(SubProcessWindow):
+class UpdateBranchWindow(SubProcessDialog):
 
-    TITLE = N_("Update Branch")
     NAME = "update_branch"
-    DEFAULT_SIZE = (100, 100)
 
     def __init__(self, branch, ui_mode=True, parent=None):
         self.branch = branch
-        SubProcessWindow.__init__(self,
-                                  self.TITLE,
+        super(UpdateBranchWindow, self).__init__(
                                   name = self.NAME,
-                                  default_size = self.DEFAULT_SIZE,
                                   ui_mode = ui_mode,
                                   parent = parent)
 
-    def create_ui(self, parent):
-        ui_widget = QtGui.QWidget(parent)
         self.ui = Ui_UpdateBranchForm()
-        self.ui.setupUi(ui_widget)
+        self.ui.setupUi(self)
+        # and add the subprocess widgets.
+        for w in self.make_default_layout_widgets():
+            self.layout().addWidget(w)
         # nuke existing items in the combo.
         while self.ui.location.count():
             self.ui.location.removeItem(0)
 
         fill_pull_combo(self.ui.location, self.branch)
 
-        self.connect(self.ui.but_pull, QtCore.SIGNAL("toggled(bool)"),
-                     self.pull_toggled)
-                     
         # One directory picker for the pull location.
         hookup_directory_picker(self,
                                 self.ui.location_picker,
@@ -77,15 +71,6 @@ class UpdateBranchWindow(SubProcessWindow):
 
         self.ui.but_pull.setChecked(not not self.branch.get_parent())
 
-        return ui_widget
-
-    def pull_toggled(self, bool):
-        for w in [self.ui.location, self.ui.location_picker,
-                  self.ui.but_pull_remember, self.ui.but_pull_overwrite,
-                  ]:
-            w.setEnabled(bool)
-        # no widgets for 'update'!
-        
     def start(self):
         if self.ui.but_pull.isChecked():
             # its a 'pull'
@@ -105,25 +90,22 @@ class UpdateBranchWindow(SubProcessWindow):
             self.process_widget.start(None, 'update', self.branch.base)
 
 
-class UpdateCheckoutWindow(SubProcessWindow):
+class UpdateCheckoutWindow(SubProcessDialog):
 
-    TITLE = N_("Update Checkout")
     NAME = "update_checkout"
-    DEFAULT_SIZE = (100, 100)
 
     def __init__(self, branch, ui_mode=True, parent=None):
         self.branch = branch
-        SubProcessWindow.__init__(self,
-                                  self.TITLE,
+        super(UpdateCheckoutWindow, self).__init__(
                                   name = self.NAME,
-                                  default_size = self.DEFAULT_SIZE,
                                   ui_mode = ui_mode,
                                   parent = parent)
 
-    def create_ui(self, parent):
-        ui_widget = QtGui.QWidget(parent)
         self.ui = Ui_UpdateCheckoutForm()
-        self.ui.setupUi(ui_widget)
+        self.ui.setupUi(self)
+        # and add the subprocess widgets.
+        for w in self.make_default_layout_widgets():
+            self.layout().addWidget(w)
         # nuke existing items in the combo.
         while self.ui.location.count():
             self.ui.location.removeItem(0)
@@ -138,22 +120,12 @@ class UpdateCheckoutWindow(SubProcessWindow):
                                 self.ui.location,
                                 DIRECTORYPICKER_SOURCE)
 
-        self.connect(self.ui.but_pull, QtCore.SIGNAL("toggled(bool)"),
-                     self.pull_toggled)
-
         # Our 'label' object is ready to have the bound location specified.
         loc = urlutils.unescape_for_display(self.branch.get_bound_location(),
                                             'utf-8')
         self.ui.label.setText(unicode(self.ui.label.text()) % loc)
         self.ui.but_pull.setChecked(False)
-        return ui_widget
 
-    def pull_toggled(self, bool):
-        for w in [self.ui.location, self.ui.location_picker,
-                  self.ui.but_pull_overwrite]:
-            w.setEnabled(bool)
-        # no widgets for 'update'!
-        
     def start(self):
         if self.ui.but_pull.isChecked():
             args = ['--directory', self.branch.base]
