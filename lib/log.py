@@ -25,7 +25,11 @@ from bzrlib import (
     urlutils,
     )
 from bzrlib.plugins.qbzr.lib import logmodel
-from bzrlib.plugins.qbzr.lib.extdiff import showDiff
+from bzrlib.plugins.qbzr.lib.extdiff import (
+    showDiff,
+    hasExtDiff,
+    ExtDiffMenu,
+    )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
@@ -530,10 +534,15 @@ class LogWindow(QBzrWindow):
         self.connect(self.diffbutton, QtCore.SIGNAL("clicked(bool)"), self.diff_pushed)
 
         self.contextMenu = QtGui.QMenu(self)
-        self.show_diff_action = self.contextMenu.addAction(
-            gettext("Show &differences..."), self.diff_pushed)
+        if hasExtDiff():
+            self.diffMenu = ExtDiffMenu(self)
+            self.contextMenu.addMenu(self.diffMenu)
+        else:
+            self.show_diff_action = self.contextMenu.addAction(
+                gettext("Show &differences..."), self.diff_pushed)
+            self.contextMenu.setDefaultAction(self.show_diff_action)
+        
         self.contextMenu.addAction(gettext("Show &tree..."), self.show_revision_tree)
-        self.contextMenu.setDefaultAction(self.show_diff_action)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)
@@ -607,7 +616,7 @@ class LogWindow(QBzrWindow):
             self.message.setHtml(format_revision_html(rev, self.replace))
             self.revision_delta_timer.start(1)
 
-    def show_diff_window(self, rev1, rev2, specific_files=None):
+    def show_diff_window(self, rev1, rev2, specific_files=None, ext_diff = None):
         new_revid = rev1.revision_id
         if not rev2.parent_ids:
             old_revid = None
@@ -615,6 +624,7 @@ class LogWindow(QBzrWindow):
             old_revid = rev2.parent_ids[0]
         showDiff(old_revid, new_revid,
                  self.branch, self.branch,
+                 ext_diff = ext_diff,
                  specific_files=specific_files,
                  parent_window = self)
 
@@ -634,8 +644,13 @@ class LogWindow(QBzrWindow):
             rev = self.current_rev
             self.show_diff_window(rev, rev, [unicode(path)])
 
-    def diff_pushed(self):
+    def diff_pushed(self, action = None):
         """Show differences of the selected range or of a single revision"""
+        if action:
+            ext_diff = unicode(action.data())
+        else:
+            ext_diff = None
+        
         indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
         if not indexes:
             # the list is empty
@@ -644,7 +659,7 @@ class LogWindow(QBzrWindow):
         rev1 = self.changesModel.revision(revid1)
         revid2 = str(indexes[-1].data(logmodel.RevIdRole).toString())
         rev2 = self.changesModel.revision(revid2)
-        self.show_diff_window(rev1, rev2)
+        self.show_diff_window(rev1, rev2, ext_diff = ext_diff)
 
     def refresh(self):
         self.refresh_button.setDisabled(True)
@@ -751,9 +766,9 @@ class LogWindow(QBzrWindow):
         self.windows.append(window)
 
     def show_context_menu(self, pos):
-        index = self.changesList.indexAt(pos)
-        revid = str(index.data(logmodel.RevIdRole).toString())
-        rev = self.changesModel.revision(revid)
+        #index = self.changesList.indexAt(pos)
+        #revid = str(index.data(logmodel.RevIdRole).toString())
+        #rev = self.changesModel.revision(revid)
         #print index, item, rev
         self.contextMenu.popup(self.changesList.viewport().mapToGlobal(pos))
     

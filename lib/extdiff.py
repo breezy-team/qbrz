@@ -23,6 +23,7 @@ from bzrlib.plugins.qbzr.lib.util import (
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
+from PyQt4 import QtCore, QtGui
 
 
 qconfig = QBzrGlobalConfig()
@@ -30,9 +31,9 @@ qparser = qconfig._get_parser()
 default_diff = qconfig.get_user_option("default_diff")
 if default_diff is None:
     default_diff = ""
-ext_diffs = [(gettext("Builtin Diff"),""), ]
+ext_diffs = {gettext("Builtin Diff"):""}
 for name, command in qparser.get('EXTDIFF', {}).items():
-    ext_diffs.append((name, command))
+    ext_diffs[name] = command
 
 def showDiff(old_revid, new_revid, old_branch, new_branch, new_wt = None,
              specific_files=None, ext_diff=None, parent_window=None):
@@ -75,5 +76,22 @@ def showDiff(old_revid, new_revid, old_branch, new_branch, new_wt = None,
                                   parent=parent_window)
         window.process_widget.hide_progress()
         if parent_window:
-            parent_window.windows.append(window)        
+            parent_window.windows.append(window)
+
+def hasExtDiff():
+    return len(ext_diffs) > 1
+
+class ExtDiffMenu(QtGui.QMenu):
+    
+    def __init__ (self, parent = None):
+        QtGui.QMenu.__init__(self, gettext("Show &differences"), parent)
+        
+        for name, command in ext_diffs.items():
+            action = QtGui.QAction(name, self)
+            action.setData(QtCore.QVariant (command))
+            if command == default_diff:
+                self.setDefaultAction(action)
+            self.addAction(action)
+    
+
 
