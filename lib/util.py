@@ -604,12 +604,6 @@ def iter_branch_related_locations(branch):
         if location is not None:
             yield urlutils.unescape_for_display(location, 'utf-8')
 
-# Iterate the 'pull' locations we have previously saved for the user.
-def iter_saved_pull_locations():
-    # XXX - todo
-    return []
-
-
 # A helper to fill a 'pull' combo.
 def fill_pull_combo(combo, branch):
     if branch is None:
@@ -630,16 +624,54 @@ def fill_combo_with(combo, default, *iterables):
             done.add(item)
             combo.addItem(item)
 
-# Helper to optionally save the 'pull' location a user specified for
-# a branch.
+
+def iter_saved_pull_locations():
+    """ Iterate the 'pull' locations we have previously saved for the user.
+    """
+    config = QBzrConfig()
+    try:
+        sect = config.getSection('Pull Locations')
+    except KeyError:
+        return []
+    items = sorted(sect.items())
+    return [i[1] for i in items]
+
+
 def save_pull_location(branch, location):
-    # XXX - todo
-    # Intent here is first to check that the location isn't related to
-    # the branch (ie, if its the branch parent, do don't remember it).
-    # Otherwise, the location gets written to our user-prefs file, using
-    # an MRU scheme to avoid runaway growth in the saved locations and keeping
-    # the most relevant locations at the top.
-    pass
+    """ Helper to optionally save the 'pull' location a user specified for
+    a branch. Uses an MRU scheme to avoid runaway growth in the saved locations
+    and keeping the most relevant locations at the top.
+
+    The location is *not* saved if:
+
+    * It is related to a branch (ie, the parent)
+    * It is a directory
+    """
+    if branch is not None and location in iter_branch_related_locations(branch):
+        return
+    if os.path.isdir(location):
+        return
+    existing = list(iter_saved_pull_locations())
+    try:
+        existing.remove(location)
+    except ValueError:
+        pass
+    existing.insert(0, location)
+    # XXX - the number to save should itself be a preference???
+    max_items = 20
+    existing = existing[:max_items]
+
+    config = QBzrConfig()
+    # and save it to the ini
+    section = {}
+    for i, save_location in enumerate(existing):
+        # Use a 'sortable string' as the ID to save needing to do an int()
+        # before sorting (you never know what might end up there if the user
+        # edits it)
+        key = "%04d" % i
+        section[key] = save_location
+    config.setSection('Pull Locations', section)
+    config.save()
 
 
 have_pygments = True
