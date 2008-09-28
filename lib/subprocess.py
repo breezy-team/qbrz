@@ -39,7 +39,6 @@ class SubProcessWindowBase:
                           default_size=None,
                           ui_mode=True,
                           dialog=True,
-                          auto_start_show_on_failed=False,
                           parent=None):
         self.restoreSize(name, default_size)
         self.args = args
@@ -95,10 +94,6 @@ class SubProcessWindowBase:
         self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.accept)
         self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
         closeButton.setHidden(True) # but 'close' starts as hidden.
-        
-        self.auto_start_show_on_failed = auto_start_show_on_failed
-        if self.auto_start_show_on_failed:
-            self.start()
     
     def make_default_layout_widgets(self):
         status_group_box = QtGui.QGroupBox(gettext("Status"), self)
@@ -133,8 +128,6 @@ class SubProcessWindowBase:
             self.close()
 
     def failed(self):
-        if self.auto_start_show_on_failed:
-            self.show()
         self.emit(QtCore.SIGNAL("subprocessStarted(bool)"), False)
     
     def closeEvent(self, event):
@@ -153,7 +146,6 @@ class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
                  default_size=None,
                  ui_mode=True,
                  dialog=True,
-                 auto_start_show_on_failed=False,
                  parent=None):
         QBzrWindow.__init__(self, [title], parent)
         self.__init_internal__(title,
@@ -163,7 +155,6 @@ class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
                                default_size=default_size,
                                ui_mode=ui_mode,
                                dialog=dialog,
-                               auto_start_show_on_failed=auto_start_show_on_failed,
                                parent=parent)
 
 class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
@@ -180,7 +171,6 @@ class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
                  default_size=None,
                  ui_mode=True,
                  dialog=True,
-                 auto_start_show_on_failed=False,
                  parent=None):        
         if title:
             title = [title]
@@ -192,7 +182,6 @@ class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
                                default_size=default_size,
                                ui_mode=ui_mode,
                                dialog=dialog,
-                               auto_start_show_on_failed=auto_start_show_on_failed,
                                parent=parent)
 
 
@@ -217,7 +206,6 @@ class SimpleSubProcessDialog(SubProcessDialog):
                                default_size=default_size,
                                ui_mode=ui_mode,
                                dialog=dialog,
-                               auto_start_show_on_failed=auto_start_show_on_failed,
                                parent=parent)           
         self.desc = desc
         # create a layout to hold our one label and the subprocess widgets.
@@ -228,6 +216,14 @@ class SimpleSubProcessDialog(SubProcessDialog):
         # and add the subprocess widgets.
         for w in self.make_default_layout_widgets():
             layout.addWidget(w)
+        
+        self.auto_start_show_on_failed = auto_start_show_on_failed
+        if self.auto_start_show_on_failed:
+            self.start()
+            QtCore.QObject.connect(self,
+                                   QtCore.SIGNAL("subprocessStarted(bool)"),
+                                   self,
+                                   QtCore.SLOT("setHidden(bool)"))
 
 class SubProcessWidget(QtGui.QWidget):
 
