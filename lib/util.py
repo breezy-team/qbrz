@@ -185,11 +185,16 @@ class QBzrGlobalConfig(IniBasedConfig):
         self._get_parser().write(f)
         f.close()
 
+
 class _QBzrWindowBase:
     
-    def set_title_icon(self, title):
+    def set_title_and_icon(self, title=None):
+        """Set window title (from string or list) and bzr icon"""
         if title:
-            self.setWindowTitle(" - ".join(title))
+            if isinstance(title, basestring):
+                self.setWindowTitle(title)
+            elif isinstance(title, (list, tuple)):
+                self.setWindowTitle(" - ".join(title))
         icon = QtGui.QIcon()
         icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
         icon.addFile(":/bzr-32.png", QtCore.QSize(32, 32))
@@ -277,12 +282,13 @@ class _QBzrWindowBase:
         from bzrlib.plugins.qbzr.lib.help import show_help
         show_help(link, self)
 
+
 class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
 
-    def __init__(self, title=[], parent=None, centralwidget=None):
+    def __init__(self, title=None, parent=None, centralwidget=None):
         QtGui.QMainWindow.__init__(self, parent)
 
-        self.set_title_icon(title)
+        self.set_title_and_icon(title)
 
         if centralwidget is None:
             centralwidget = QtGui.QWidget(self)
@@ -290,12 +296,13 @@ class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
         self.setCentralWidget(self.centralwidget)
         self.windows = []
 
+
 class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
 
-    def __init__(self, title=[], parent=None):
+    def __init__(self, title=None, parent=None):
         QtGui.QDialog.__init__(self, parent)
         
-        self.set_title_icon(title)
+        self.set_title_and_icon(title)
         
         self.windows = []
 

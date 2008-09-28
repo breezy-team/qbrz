@@ -31,7 +31,10 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrDialog,
     StandardButton,
     )
+
+
 class SubProcessWindowBase:
+
     def __init_internal__(self, title,
                           name="genericsubprocess",
                           args=None,
@@ -137,6 +140,7 @@ class SubProcessWindowBase:
             self.process_widget.abort()
             event.ignore()
 
+
 class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
 
     def __init__(self, title,
@@ -147,7 +151,7 @@ class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
                  ui_mode=True,
                  dialog=True,
                  parent=None):
-        QBzrWindow.__init__(self, [title], parent)
+        QBzrWindow.__init__(self, title, parent)
         self.__init_internal__(title,
                                name=name,
                                args=args,
@@ -157,6 +161,7 @@ class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
                                dialog=dialog,
                                parent=parent)
 
+
 class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
     """An abstract base-class for all subprocess related dialogs.
 
@@ -164,6 +169,7 @@ class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
     doing so, will add the widgets returned by
     self.make_default_layout_widgets()
     """
+
     def __init__(self, title=None,
                  name="genericsubprocess",
                  args=None,
@@ -172,8 +178,6 @@ class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
                  ui_mode=True,
                  dialog=True,
                  parent=None):
-        if title:
-            title = [title]
         QBzrDialog.__init__(self, title, parent)
         self.__init_internal__(title,
                                name=name,
@@ -189,6 +193,7 @@ class SimpleSubProcessDialog(SubProcessDialog):
     """A concrete helper class of SubProcessDialog, which has a single label
     widget for displaying a simple description before executing a subprocess.
     """
+
     def __init__(self, title, desc,
                  name="genericsubprocess",
                  args=None,

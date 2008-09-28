@@ -155,6 +155,7 @@ class DiffViewHandle(QtGui.QSplitterHandle):
             painter.drawLine(0, ly2, w, ry2)
         del painter
 
+
 class SidebySideDiffView(QtGui.QSplitter):
     """Widget to show differences in side-by-side format."""
 
