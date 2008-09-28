@@ -61,14 +61,12 @@ class QBzrPullWindow(SubProcessDialog):
 
     NAME = "pull"
 
-    def __init__(self, branch, ui_mode=True, parent=None):
+    def __init__(self, branch, location=None, revision=None, remember=None,
+                 overwrite=None, ui_mode=True, parent=None):
         self.branch = branch
         super(QBzrPullWindow, self).__init__(name = self.NAME,
                                              ui_mode = ui_mode,
                                              parent = parent)
-        self.create_ui()
-
-    def create_ui(self):
         self.ui = Ui_PullForm()
         self.ui.setupUi(self)
         # add the subprocess widgets.
@@ -76,6 +74,13 @@ class QBzrPullWindow(SubProcessDialog):
             self.layout().addWidget(w)
 
         fill_pull_combo(self.ui.location, self.branch)
+        if location:
+            self.ui.location.setEditText(location)
+        # Tell our parent to hook up widgets to bzr options...
+        self.add_option_widget(self.ui.remember, 'remember', remember)
+        self.add_option_widget(self.ui.overwrite, 'overwrite', overwrite)
+        self.add_option_widget(self.ui.revision, 'revision', revision)
+
         # One directory picker for the pull location.
         hookup_directory_picker(self,
                                 self.ui.location_picker,
@@ -84,24 +89,25 @@ class QBzrPullWindow(SubProcessDialog):
 
     def start(self):
         args = ['--directory', self.branch.base]
-        if self.ui.overwrite.isChecked():
-            args.append('--overwrite')
-        if self.ui.remember.isChecked():
-            args.append('--remember')
-        revision = str(self.ui.revision.text())
-        if revision:
-            args.append('--revision')
-            args.append(revision)
+        args.extend(self.get_option_widget_args())
         location = str(self.ui.location.currentText())
         self.process_widget.start(None, 'pull', location, *args)
         save_pull_location(self.branch, location)
 
 
-class QBzrPushWindow(QBzrPullWindow):
+class QBzrPushWindow(SubProcessDialog):
 
     NAME = "push"
 
-    def create_ui(self):
+    def __init__(self, branch, location=None,
+                 create_prefix=None, use_existing_dir=None,
+                 remember=None, overwrite=None, ui_mode=True, parent=None):
+
+        self.branch = branch
+        super(QBzrPushWindow, self).__init__(name = self.NAME,
+                                             ui_mode = ui_mode,
+                                             parent = parent)
+
         self.ui = Ui_PushForm()
         self.ui.setupUi(self)
         # and add the subprocess widgets.
@@ -111,6 +117,16 @@ class QBzrPushWindow(QBzrPullWindow):
         df = urlutils.unescape_for_display(self.branch.get_push_location() or '', "utf-8")
         fill_combo_with(self.ui.location, df,
                         iter_branch_related_locations(self.branch))
+        if location:
+            self.ui.location.setEditText(location)
+
+        # Tell our parent to hook up widgets to bzr options...
+        self.add_option_widget(self.ui.remember, 'remember', remember)
+        self.add_option_widget(self.ui.overwrite, 'overwrite', overwrite)
+        self.add_option_widget(self.ui.create_prefix, 'create-prefix',
+                               create_prefix, cmd_name="push")
+        self.add_option_widget(self.ui.use_existing_dir, 'use-existing-dir',
+                               use_existing_dir, cmd_name="push")
 
         # One directory picker for the push location.
         hookup_directory_picker(self,
@@ -120,23 +136,21 @@ class QBzrPushWindow(QBzrPullWindow):
 
     def start(self):
         args = ['--directory', self.branch.base]
-        if self.ui.overwrite.isChecked():
-            args.append('--overwrite')
-        if self.ui.remember.isChecked():
-            args.append('--remember')
-        if self.ui.create_prefix.isChecked():
-            args.append('--create-prefix')
-        if self.ui.use_existing_dir.isChecked():
-            args.append('--use-existing-dir')
+        args.extend(self.get_option_widget_args())
         location = str(self.ui.location.currentText())
         self.process_widget.start(None, 'push', location, *args)
 
 
-class QBzrBranchWindow(QBzrPullWindow):
+class QBzrBranchWindow(SubProcessDialog):
 
     NAME = "branch"
 
-    def create_ui(self):
+    def __init__(self, from_location, to_location=None,
+                 revision=None, ui_mode=True, parent=None):
+        super(QBzrBranchWindow, self).__init__(name = self.NAME,
+                                             ui_mode = ui_mode,
+                                             parent = parent)
+
         self.ui = Ui_BranchForm()
         self.ui.setupUi(self)
         # and add the subprocess widgets.
@@ -146,6 +160,11 @@ class QBzrBranchWindow(QBzrPullWindow):
         fill_combo_with(self.ui.from_location,
                         u'',
                         iter_saved_pull_locations())
+        if from_location:
+            self.ui.from_location.setEditText(from_location)
+        if to_location:
+            self.ui.to_location.setEditText(to_location)
+        self.add_option_widget(self.ui.revision, 'revision', revision)
 
         # Our 2 directory pickers hook up to our combos.
         hookup_directory_picker(self,
@@ -159,21 +178,22 @@ class QBzrBranchWindow(QBzrPullWindow):
                                 DIRECTORYPICKER_TARGET)
 
     def accept(self):
-        args = []
-        revision = str(self.ui.revision.text())
-        if revision:
-            args.append('--revision')
-            args.append(revision)
+        args = self.get_option_widget_args()
         from_location = str(self.ui.from_location.currentText())
         to_location = str(self.ui.to_location.currentText())
         self.process_widget.start(None, 'branch', from_location, to_location, *args)
 
 
-class QBzrMergeWindow(QBzrPullWindow):
+class QBzrMergeWindow(SubProcessDialog):
 
-    NAME = "pull"
+    NAME = "merge"
 
-    def create_ui(self):
+    def __init__(self, branch, location=None, revision=None, remember=None,
+                 ui_mode=True, parent=None):
+        super(QBzrMergeWindow, self).__init__(name = self.NAME,
+                                             ui_mode = ui_mode,
+                                             parent = parent)
+        self.branch = branch
         self.ui = Ui_MergeForm()
         self.ui.setupUi(self)
         # and add the subprocess widgets.
@@ -181,7 +201,12 @@ class QBzrMergeWindow(QBzrPullWindow):
             self.layout().addWidget(w)
 
         fill_pull_combo(self.ui.location, self.branch)
-            
+        if location:
+            self.ui.location.setEditText(location)
+
+        self.add_option_widget(self.ui.remember, 'remember', remember)
+        self.add_option_widget(self.ui.revision, 'revision', revision)
+    
         # One directory picker for the pull location.
         hookup_directory_picker(self,
                                 self.ui.location_picker,
@@ -190,7 +215,7 @@ class QBzrMergeWindow(QBzrPullWindow):
 
     def accept(self):
         args = ['--directory', self.branch.base]
-        if self.ui.remember.isChecked():
-            args.append('--remember')
+        args.extend(self.get_option_widget_args())
+
         location = str(self.ui.location.currentText())
         self.process_widget.start(None, 'merge', location, *args)

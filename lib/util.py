@@ -258,6 +258,64 @@ class _QBzrWindowBase:
             self.setWindowState(QtCore.Qt.WindowMaximized)
         return config
 
+    def add_option_widget(self, widget, option_name, init_value=None,
+                          cmd_name=None):
+        """Registers a widget as managing a qbzr option.  The tooltip text for
+        the widget is set appropriately, and the values for the options can
+        be queried by calling get_option_widget_args()
+        """
+        try:
+            option_widgets = self.option_widgets
+        except AttributeError:
+            option_widgets = self.option_widgets = []
+
+        if cmd_name is None:
+            # no command-name specified - it must be a 'common option'.
+            from bzrlib.option import Option
+            opt = Option.OPTIONS[option_name]
+        else:
+            # A command was specified - need to go looking up the command and
+            # get the option from it.
+            from bzrlib.commands import get_cmd_object
+            cmd=get_cmd_object(cmd_name, False)
+            opt = cmd.options()[option_name]
+
+        if opt.help:
+            widget.setToolTip(opt.help)
+        if is_widget_checkbox(widget):
+            if init_value:
+                widget.setCheckState(QtCore.Qt.Checked)
+            else:
+                widget.setCheckState(QtCore.Qt.Unchecked)
+        elif is_widget_text(widget):
+            if init_value:
+                widget.setText(init_value)
+        else:
+            raise AssertionError(
+                "Don't know how to set initial value for %s" % widget)
+
+        option_widgets.append((opt, widget))
+
+    def get_option_widget_args(self):
+        """Return a list of arguments which represent the values for the
+        widgets previously registered via add_option_widget()
+        """
+        ret = []
+        for opt, widget in self.option_widgets:
+            arg = "--" + opt.name.replace('-', '_')
+            if is_widget_checkbox(widget):
+                if widget.checkState()==QtCore.Qt.Checked:
+                    ret.append(arg)
+            elif is_widget_text(widget):
+                text = widget.text()
+                if text:
+                    ret.append(arg)
+                    ret.append(text)
+            else:
+                raise AssertionError(
+                    "Don't know how to get value for %s" % widget)
+        return ret
+
     def closeEvent(self, event):
         self.saveSize()
         for window in self.windows:
@@ -669,3 +727,14 @@ def format_for_ttype(ttype, format):
         #if tstyle['border']: format.
         format.setFont(font)
     return format
+
+
+# Helpers to identify the type of common widgets at runtime.
+def is_widget_checkbox(widget):
+    return widget.inherits("QCheckBox")
+
+
+def is_widget_text(widget):
+    return (widget.inherits("QLineEdit") or
+            widget.inherits("QPlainTextEdit") or
+            widget.inherits("QLabel"))

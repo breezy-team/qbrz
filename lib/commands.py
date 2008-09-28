@@ -144,6 +144,33 @@ class QBzrCommand(Command):
 
 ui_mode_option = Option("ui-mode", help="Causes dialogs to wait after the operation is complete.")
 
+# A special option so 'revision' can be passed as a simple string, when we do
+# *not* wan't bzrlib's feature of parsing the revision string before passing it.
+# This is used when we just want a plain string to pass to our dialog for it to
+# display in the UI, and we will later pass it to bzr for parsing. If you want
+# bzrlib to parse and pass a revisionspec object, just pass the string
+# 'revision' as normal.
+simple_revision_option = Option("revision",
+                             short_name='r',
+                             type=unicode,
+                             # XXX - we should change this to something like
+                             help='See "help revisionspec" for details.')
+
+def bzr_option(cmd_name, opt_name):
+    """Helper so we can 'borrow' options from bzr itself without needing to
+    duplicate the help text etc.  Pass the builtin bzr command name and an
+    option name.
+
+    eg:
+      takes_options = [bzr_option("push", "create-prefix")]
+
+    would give a command the exact same '--create-prefix' option as bzr's
+    push command has, including help text, parsing, etc.
+    """
+    from bzrlib.commands import get_cmd_object
+    cmd=get_cmd_object(cmd_name, False)
+    return cmd.options()[opt_name]
+
 class cmd_qannotate(QBzrCommand):
     """Show the origin of each line in a file."""
     takes_args = ['filename']
@@ -431,13 +458,26 @@ class cmd_qcat(QBzrCommand):
 class cmd_qpull(QBzrCommand):
     """Turn this branch into a mirror of another branch."""
 
-    takes_options = [ui_mode_option]
-    takes_args = []
+    takes_options = [
+        'remember', 'overwrite',
+        simple_revision_option,
+        bzr_option('pull', 'directory')
+        ui_mode_option,
+        ]
+    takes_args = ['location?']
 
-    def _qbzr_run(self, ui_mode=False):
-        branch, relpath = Branch.open_containing('.')
+    def _qbzr_run(self, location=None, directory=None,
+                  remember=None, overwrite=None, revision=None, ui_mode=False):
+        if directory is None:
+            directory = u'.'
+        
+        branch, relpath = Branch.open_containing(directory)
         app = QtGui.QApplication(sys.argv)
-        window = QBzrPullWindow(branch, ui_mode=ui_mode)
+        window = QBzrPullWindow(branch, location,
+                                remember=remember,
+                                overwrite=overwrite,
+                                revision=revision,
+                                ui_mode=ui_mode)
         window.show()
         app.exec_()
 
@@ -446,13 +486,20 @@ class cmd_qpull(QBzrCommand):
 class cmd_qmerge(QBzrCommand):
     """Perform a three-way merge."""
 
-    takes_options = [ui_mode_option]
-    takes_args = []
+    takes_options = [ui_mode_option,
+                     simple_revision_option,
+                     bzr_option('merge', 'directory'),
+                     'remember']
+    takes_args = ['location?']
 
-    def _qbzr_run(self, ui_mode=False):
-        branch, relpath = Branch.open_containing('.')
+    def _qbzr_run(self, location=None, directory=None, revision=None,
+                  remember=None, ui_mode=False):
+        if directory is None:
+            directory = u'.'
+        branch, relpath = Branch.open_containing(directory)
         app = QtGui.QApplication(sys.argv)
-        window = QBzrMergeWindow(branch, ui_mode=ui_mode)
+        window = QBzrMergeWindow(branch, location, revision=revision,
+                                 remember=remember, ui_mode=ui_mode)
         window.show()
         app.exec_()
 
@@ -461,13 +508,29 @@ class cmd_qmerge(QBzrCommand):
 class cmd_qpush(QBzrCommand):
     """Update a mirror of this branch."""
 
-    takes_options = [ui_mode_option]
-    takes_args = []
+    takes_options = ['remember', 'overwrite',
+                     bzr_option("push", "create-prefix"),
+                     bzr_option("push", "use-existing-dir"),
+                     bzr_option("push", "directory"),
+                     ui_mode_option]
+    takes_args = ['location?']
 
-    def _qbzr_run(self, ui_mode=False):
-        branch, relpath = Branch.open_containing('.')
+    def _qbzr_run(self, location=None, directory=None,
+                  remember=None, overwrite=None,
+                  create_prefix=None, use_existing_dir=None,
+                  ui_mode=False):
+
+        if directory is None:
+            directory = u'.'
+        
+        branch, relpath = Branch.open_containing(directory)
         app = QtGui.QApplication(sys.argv)
-        window = QBzrPushWindow(branch, ui_mode=ui_mode, )
+        window = QBzrPushWindow(branch, location,
+                                create_prefix=create_prefix,
+                                use_existing_dir=use_existing_dir,
+                                remember=remember,
+                                overwrite=overwrite,
+                                ui_mode=ui_mode)
         window.show()
         app.exec_()
 
@@ -475,12 +538,15 @@ class cmd_qpush(QBzrCommand):
 class cmd_qbranch(QBzrCommand):
     """Create a new copy of a branch."""
 
-    takes_options = [ui_mode_option]
-    takes_args = []
+    takes_options = [simple_revision_option,
+                     ui_mode_option]
+    takes_args = ['from_location?', 'to_location?']
 
-    def _qbzr_run(self, ui_mode=False):
+    def _qbzr_run(self, from_location=None, to_location=None,
+                  revision=None, ui_mode=False):
         app = QtGui.QApplication(sys.argv)
-        window = QBzrBranchWindow(None, ui_mode=ui_mode)
+        window = QBzrBranchWindow(from_location, to_location,
+                                  revision=revision, ui_mode=ui_mode)
         window.show()
         app.exec_()
 
