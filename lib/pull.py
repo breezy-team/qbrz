@@ -167,6 +167,7 @@ class QBzrBranchWindow(QBzrPullWindow):
         from_location = str(self.ui.from_location.currentText())
         to_location = str(self.ui.to_location.currentText())
         self.process_widget.start(None, 'branch', from_location, to_location, *args)
+        save_pull_location(None, from_location)
 
 
 class QBzrMergeWindow(QBzrPullWindow):
@@ -194,3 +195,4 @@ class QBzrMergeWindow(QBzrPullWindow):
             args.append('--remember')
         location = str(self.ui.location.currentText())
         self.process_widget.start(None, 'merge', location, *args)
+        save_pull_location(None, location)
