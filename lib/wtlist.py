@@ -29,7 +29,11 @@ from bzrlib import (
     osutils,
     )
 
-from bzrlib.plugins.qbzr.lib.extdiff import showDiff
+from bzrlib.plugins.qbzr.lib.extdiff import (
+    showDiff,
+    hasExtDiff,
+    ExtDiffMenu,
+    )
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import (
@@ -52,7 +56,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         parent = self.parentWidget()
         parent.connect(self,
                        QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
-                       self.show_differences)
+                       self.itemDoubleClicked)
 
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         parent.connect(self,
@@ -63,15 +67,24 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
                        self.show_context_menu)
 
         self.context_menu = QtGui.QMenu(self)
-        self.show_diff_action = self.context_menu.addAction(
-            gettext("Show &differences..."), self.show_differences)
-        self.context_menu.setDefaultAction(self.show_diff_action)
+        if hasExtDiff():
+            self.diff_menu = ExtDiffMenu(self)
+            self.context_menu.addMenu(self.diff_menu)
+            self.connect(self.diff_menu, QtCore.SIGNAL("triggered(QAction *)"),
+                         self.show_differences)
+            self.show_diff_ui = self.diff_menu
+        else:
+            self.show_diff_action = self.context_menu.addAction(
+                gettext("Show &differences..."), self.show_differences)
+            self.context_menu.setDefaultAction(self.show_diff_action)
+            self.show_diff_ui = self.show_diff_action
+
         self.revert_action = self.context_menu.addAction(
             gettext("&Revert..."), self.revert_selected)
         # set all actions to disabled so it does the right thing with an empty
         # list (our itemSelectionChanged() will fire as soon as we select one)
         self.revert_action.setEnabled(False)
-        self.show_diff_action.setEnabled(False)
+        self.show_diff_ui.setEnabled(False)
 
     def fill(self, items_iter):
         self.setTextElideMode(QtCore.Qt.ElideMiddle)
@@ -193,7 +206,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
                 contains_non_versioned = True
                 break
         self.revert_action.setEnabled(not contains_non_versioned)
-        self.show_diff_action.setEnabled(not contains_non_versioned)
+        self.show_diff_ui.setEnabled(not contains_non_versioned)
 
     def revert_selected(self):
         """Revert the selected file."""
@@ -218,17 +231,26 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
                 index = self.indexOfTopLevelItem(item)
                 self.takeTopLevelItem(index)
 
-    def show_differences(self, items=None, column=None):
-        """Show differences between the working copy and the last revision."""
-        if not self.show_diff_action.isEnabled():
-            return
+    def itemDoubleClicked(self, items=None, column=None):
+        self.show_differences()
     
+    def show_differences(self, action=None):
+        """Show differences between the working copy and the last revision."""
+        if not self.show_diff_ui.isEnabled():
+            return
+        
+        if action:
+            ext_diff = unicode(action.data().toString())
+        else:
+            ext_diff = None
+        
         entries = [desc.path() for desc in self.iter_selection()]
         if entries:
             showDiff(self.tree.basis_tree().get_revision_id(), None,
                      self.tree.branch, self.tree.branch,
                      new_wt = self.tree,
                      specific_files=entries,
+                     ext_diff=ext_diff,
                      parent_window = self.topLevelWidget ())            
 
     def set_selectall_checkbox(self, checkbox):

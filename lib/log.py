@@ -531,15 +531,18 @@ class LogWindow(QBzrWindow):
         self.diffbutton = QtGui.QPushButton(gettext('Diff'),
             self.centralwidget)
         self.diffbutton.setEnabled(False)
-        self.connect(self.diffbutton, QtCore.SIGNAL("clicked(bool)"), self.diff_pushed)
 
         self.contextMenu = QtGui.QMenu(self)
         if hasExtDiff():
             self.diffMenu = ExtDiffMenu(self)
+            self.diffbutton.setMenu(self.diffMenu)
             self.contextMenu.addMenu(self.diffMenu)
             self.connect(self.diffMenu, QtCore.SIGNAL("triggered(QAction *)"),
                          self.diff_pushed)
         else:
+            self.connect(self.diffbutton, QtCore.SIGNAL("clicked(bool)"),
+                         self.diff_pushed)
+            
             self.show_diff_action = self.contextMenu.addAction(
                 gettext("Show &differences..."), self.diff_pushed)
             self.contextMenu.setDefaultAction(self.show_diff_action)
