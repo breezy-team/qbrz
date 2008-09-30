@@ -44,6 +44,7 @@ class SubProcessWindowBase:
                           dialog=True,
                           parent=None):
         self.restoreSize(name, default_size)
+        self._name = name
         self.args = args
         self.dir = dir
         self.ui_mode = ui_mode
@@ -119,10 +120,10 @@ class SubProcessWindowBase:
             return True
         QtGui.QMessageBox.critical(self, gettext('Internal Error'),
             gettext(
-                'Sorry, subprocess action (%s) cannot be started\n'
+                'Sorry, subprocess action "%s" cannot be started\n'
                 'because self.args is None.\n'
                 'Please, report bug at:\n'
-                'https://bugs.launchpad.net/qbzr/+filebug'),
+                'https://bugs.launchpad.net/qbzr/+filebug') % self._name,
             gettext('&Close'))
         return False
 
@@ -130,13 +131,16 @@ class SubProcessWindowBase:
         if self.process_widget.finished:
             self.close()
         else:
-            if not (self.validate() and self._check_args()):
+            if not self.validate():
                 return
             self.emit(QtCore.SIGNAL("subprocessStarted(bool)"), True)
             self.start()
     
     def start(self):
-        self.process_widget.start(self.dir, *self.args)
+        if self._check_args():
+            self.process_widget.start(self.dir, *self.args)
+        else:
+            self.failed()
     
     def reject(self):
         if self.process_widget.is_running():
