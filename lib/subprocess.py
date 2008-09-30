@@ -341,8 +341,8 @@ class SubProcessWidget(QtGui.QWidget):
             format = self.errorFormat
         else:
             format = self.messageFormat
-        cursor = self.console.textCursor()
-        cursor.insertText(message+"\n", format)
+        self.console.setCurrentCharFormat(format);
+        self.console.append(message);
         scrollbar = self.console.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
 
