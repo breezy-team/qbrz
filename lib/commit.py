@@ -203,7 +203,8 @@ class CommitWindow(SubProcessWindow):
                     builder = get_wordlist_builder(ext)
                     if builder is not None:
                         try:
-                            file = open(path, 'rt')
+                            abspath = os.path.join(self.tree.basedir, path)
+                            file = open(abspath, 'rt')
                             words.update(builder.iter_words(file))
                         except EnvironmentError:
                             pass
