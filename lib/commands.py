@@ -60,17 +60,18 @@ from bzrlib.plugins.qbzr.lib.getupdates import UpdateBranchWindow, UpdateCheckou
 from bzrlib.plugins.qbzr.lib.getnew import GetNewWorkingTreeWindow
 from bzrlib.plugins.qbzr.lib.help import show_help
 from bzrlib.plugins.qbzr.lib.log import LogWindow
-from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
 from bzrlib.plugins.qbzr.lib.info import QBzrInfoWindow
 from bzrlib.plugins.qbzr.lib.init import QBzrInitWindow
-from bzrlib.plugins.qbzr.lib.revert import RevertWindow
-from bzrlib.plugins.qbzr.lib.subprocess import SubprocessProgress
+from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
 from bzrlib.plugins.qbzr.lib.pull import (
     QBzrPullWindow,
     QBzrPushWindow,
     QBzrBranchWindow,
     QBzrMergeWindow,
     )
+from bzrlib.plugins.qbzr.lib.revert import RevertWindow
+from bzrlib.plugins.qbzr.lib.subprocess import SubprocessProgress
+from bzrlib.plugins.qbzr.lib.tag import TagWindow
 from bzrlib.plugins.qbzr.lib.util import (
     FilterOptions,
     get_branch_config,
@@ -643,4 +644,17 @@ class cmd_qhelp(QBzrCommand):
     def _qbzr_run(self, topic):
         app = QtGui.QApplication(sys.argv)
         window = show_help(topic)
+        app.exec_()
+
+
+class cmd_qtag(QBzrCommand):
+    """Edit tags."""
+
+    def _qbzr_run(self):
+        branch = Branch.open_containing('.')[0]
+        if not branch.tags.supports_tags():
+            raise errors.BzrError('This branch does not support tags')
+        app = QtGui.QApplication(sys.argv)
+        window = TagWindow(branch)
+        window.show()
         app.exec_()

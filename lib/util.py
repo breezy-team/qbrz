@@ -708,3 +708,12 @@ def format_for_ttype(ttype, format):
         #if tstyle['border']: format.
         format.setFont(font)
     return format
+
+
+def url_for_display(url):
+    """Return human-readable URL or local path for file:/// URLs.
+    Wrapper around bzrlib.urlutils.unescape_for_display
+    """
+    if not url:
+        return url
+    return urlutils.unescape_for_display(url, 'utf-8')
