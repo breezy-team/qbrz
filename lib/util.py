@@ -609,7 +609,7 @@ def iter_branch_related_locations(branch):
                      branch.get_submit_branch(),
                     ]:
         if location is not None:
-            yield url_for_display(location, 'utf-8')
+            yield url_for_display(location)
 
 # A helper to fill a 'pull' combo.
 def fill_pull_combo(combo, branch):
