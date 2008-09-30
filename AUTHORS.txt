@@ -1,14 +1,12 @@
-Most parts of the QBzr plugin were written by Lukáš Lalinský 
-<lalinsky at gmail dot com>.
-
-The idea of an UI for Bazaar commands comes from bzr-gtk plugin by 
-Jelmer Vernooij <jelmer at samba dot org>.
-
 Contributors:
  * Alexander Belchenko <bialix at ukr dot net>
  * Gary van der Merwe <garyvdm at gmail dot com>
  * Goffredo Baroncelli <kreijack at tiscalinet dot it>
+ * Lukáš Lalinský <lalinsky at gmail dot com>
  * Mark Hammond <mhammond at skippinet dot com au>
+
+The idea of an UI for Bazaar commands comes from bzr-gtk plugin by 
+Jelmer Vernooij <jelmer at samba dot org>.
 
 Used icons:
  * bzr-16.png and bzr-48.png
