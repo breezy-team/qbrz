@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/tag.ui'
 #
-# Created: Tue Sep 30 05:52:25 2008
+# Created: Tue Sep 30 06:05:25 2008
 #      by: PyQt4 UI code generator 4.3.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -95,6 +95,7 @@ class Ui_TagForm(object):
 
     def retranslateUi(self, TagForm):
         TagForm.setWindowTitle(gettext("Tag"))
+        self.tag_group.setTitle(gettext("Edit tag"))
         self.label_branch.setText(gettext("&Branch:"))
         self.branch_browse.setText(gettext("Browse..."))
         self.label_action.setText(gettext("&Action:"))
