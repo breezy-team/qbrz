@@ -45,6 +45,16 @@ class TagWindow(SubProcessDialog):
             self.layout().addWidget(w)
         self.process_widget.hide_progress()
 
+        # setup signals
+        QtCore.QObject.connect(self.ui.cb_action,
+            QtCore.SIGNAL("currentIndexChanged(int)"),
+            self.action_changed)
+        # groupbox gets disabled as we are executing.
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessStarted(bool)"),
+                               self.ui.tag_group,
+                               QtCore.SLOT("setDisabled(bool)"))
+
         self.set_branch(branch)
 
     def set_branch(self, branch):
@@ -54,6 +64,7 @@ class TagWindow(SubProcessDialog):
         self.ui.branch_location.setText(url_for_display(branch.base))
         self.ui.cb_tag.clear()
         self.ui.cb_tag.addItems(QtCore.QStringList(self.tags))
-        self.ui.cb_tag.setEditable(
-            self.IX_CREATE == self.ui.cb_action.currentIndex())
+        self.ui.cb_tag.setEditText("")
+
+    def action_changed(self, index):
         self.ui.cb_tag.setEditText("")

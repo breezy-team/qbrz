@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/tag.ui'
 #
-# Created: Tue Sep 30 06:05:25 2008
+# Created: Tue Sep 30 06:20:10 2008
 #      by: PyQt4 UI code generator 4.3.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -64,6 +64,7 @@ class Ui_TagForm(object):
         self.gridlayout.addWidget(self.label_tag_name,2,0,1,1)
 
         self.cb_tag = QtGui.QComboBox(self.gridLayout)
+        self.cb_tag.setEditable(True)
         self.cb_tag.setObjectName("cb_tag")
         self.gridlayout.addWidget(self.cb_tag,2,1,1,1)
 

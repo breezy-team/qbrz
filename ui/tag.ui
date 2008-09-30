@@ -112,7 +112,11 @@
         </widget>
        </item>
        <item row="2" column="1" >
-        <widget class="QComboBox" name="cb_tag" />
+        <widget class="QComboBox" name="cb_tag" >
+         <property name="editable" >
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
        <item row="3" column="0" >
         <widget class="QLabel" name="label_revision" >
