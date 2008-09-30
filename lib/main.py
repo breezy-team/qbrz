@@ -27,7 +27,6 @@ from bzrlib import (
     bugtracker,
     errors,
     osutils,
-    urlutils,
     )
 from bzrlib.workingtree import WorkingTree
 import bzrlib

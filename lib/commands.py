@@ -41,7 +41,6 @@ from bzrlib import (
     progress,
     ui,
     ui.text,
-    urlutils,
     )
 from bzrlib.util import bencode
 from bzrlib.branch import Branch

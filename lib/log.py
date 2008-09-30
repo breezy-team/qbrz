@@ -22,7 +22,6 @@ from bzrlib.bzrdir import BzrDir
 from bzrlib import (
     errors,
     osutils,
-    urlutils,
     )
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
@@ -36,6 +35,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     format_timestamp,
     open_browser,
     RevisionMessageBrowser,
+    url_for_display,
     )
 
 have_search = True
@@ -827,10 +827,8 @@ class LogWindow(QBzrWindow):
             if locations is None:
                 locations = [self.branch.base]
             if len(locations) > 1:
-                return (", ".join(
-                    urlutils.unescape_for_display(i, 'utf-8')
-                    for i in locations).rstrip(", "))
+                return (", ".join(url_for_display(i) for i in locations
+                                 ).rstrip(", "))
             else:
                 from bzrlib.directory_service import directories
-                return (urlutils.unescape_for_display(
-                    directories.dereference(locations[0]), 'utf-8'))
+                return (url_for_display(directories.dereference(locations[0])))
