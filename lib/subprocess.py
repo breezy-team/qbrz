@@ -44,6 +44,7 @@ class SubProcessWindowBase:
                           dialog=True,
                           parent=None):
         self.restoreSize(name, default_size)
+        self._name = name
         self.args = args
         self.dir = dir
         self.ui_mode = ui_mode
@@ -105,15 +106,41 @@ class SubProcessWindowBase:
         yield status_group_box
         yield self.buttonbox
 
+    def validate(self):
+        """Override this method in your class and do any validation there.
+        Return True if all parameters is OK and subprocess can be started.
+        """
+        return True
+
+    def _check_args(self):
+        """Check that self.args is not None and return True.
+        Otherwise show error dialog to the user and return False.
+        """
+        if self.args is not None:
+            return True
+        QtGui.QMessageBox.critical(self, gettext('Internal Error'),
+            gettext(
+                'Sorry, subprocess action "%s" cannot be started\n'
+                'because self.args is None.\n'
+                'Please, report bug at:\n'
+                'https://bugs.launchpad.net/qbzr/+filebug') % self._name,
+            gettext('&Close'))
+        return False
+
     def accept(self):
         if self.process_widget.finished:
             self.close()
         else:
+            if not self.validate():
+                return
             self.emit(QtCore.SIGNAL("subprocessStarted(bool)"), True)
             self.start()
     
     def start(self):
-        self.process_widget.start(self.dir, *self.args)
+        if self._check_args():
+            self.process_widget.start(self.dir, *self.args)
+        else:
+            self.failed()
     
     def reject(self):
         if self.process_widget.is_running():
@@ -341,8 +368,8 @@ class SubProcessWidget(QtGui.QWidget):
             format = self.errorFormat
         else:
             format = self.messageFormat
-        cursor = self.console.textCursor()
-        cursor.insertText(message+"\n", format)
+        self.console.setCurrentCharFormat(format);
+        self.console.append(message);
         scrollbar = self.console.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
 

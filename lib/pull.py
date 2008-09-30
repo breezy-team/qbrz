@@ -27,7 +27,6 @@ from bzrlib import (
     bugtracker,
     errors,
     osutils,
-    urlutils,
     )
 from bzrlib.errors import BzrError, NoSuchRevision
 from bzrlib.option import Option
@@ -54,7 +53,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     hookup_directory_picker,
     DIRECTORYPICKER_SOURCE,
     DIRECTORYPICKER_TARGET,
-)
+    url_for_display,
+    )
 
 
 class QBzrPullWindow(SubProcessDialog):
@@ -108,7 +108,7 @@ class QBzrPushWindow(QBzrPullWindow):
         for w in self.make_default_layout_widgets():
             self.layout().addWidget(w)
 
-        df = urlutils.unescape_for_display(self.branch.get_push_location() or '', "utf-8")
+        df = url_for_display(self.branch.get_push_location() or '')
         fill_combo_with(self.ui.location, df,
                         iter_branch_related_locations(self.branch))
 

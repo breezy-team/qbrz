@@ -24,6 +24,7 @@
 import sys
 import os
 from PyQt4 import QtCore, QtGui
+from bzrlib import errors
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_update_branch import Ui_UpdateBranchForm
@@ -37,8 +38,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     hookup_directory_picker,
     DIRECTORYPICKER_SOURCE,
     DIRECTORYPICKER_TARGET,
+    url_for_display,
     )
-from bzrlib import errors, urlutils
 
 
 class UpdateBranchWindow(SubProcessDialog):
@@ -121,8 +122,7 @@ class UpdateCheckoutWindow(SubProcessDialog):
                                 DIRECTORYPICKER_SOURCE)
 
         # Our 'label' object is ready to have the bound location specified.
-        loc = urlutils.unescape_for_display(self.branch.get_bound_location(),
-                                            'utf-8')
+        loc = url_for_display(self.branch.get_bound_location())
         self.ui.label.setText(unicode(self.ui.label.text()) % loc)
         self.ui.but_pull.setChecked(False)
 

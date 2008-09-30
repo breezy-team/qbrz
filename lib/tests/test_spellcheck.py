@@ -26,8 +26,10 @@ class _PyEnchantFeature(Feature):
 
     def _probe(self):
         try:
-            import bzrlib.plugins.qbzr.lib.spellcheck_enchant
+            from bzrlib.plugins.qbzr.lib.spellcheck_enchant import EnchantSpellChecker
         except ImportError:
+            return False
+        if "en-US" not in EnchantSpellChecker.list_languages():
             return False
         return True
 
@@ -41,7 +43,7 @@ class TestSpellcheck(TestCase):
     def setUp(self):
         def cleanup():
             del self.checker
-        self.checker = SpellChecker("en")
+        self.checker = SpellChecker("en-US")
         self.addCleanup(cleanup)
 
     def test_correct(self):

@@ -34,7 +34,7 @@ from bzrlib.config import (
 from bzrlib import (
     lazy_regex,
     osutils,
-    urlutils
+    urlutils,
     )
 from bzrlib.util.configobj import configobj
 
@@ -609,7 +609,7 @@ def iter_branch_related_locations(branch):
                      branch.get_submit_branch(),
                     ]:
         if location is not None:
-            yield urlutils.unescape_for_display(location, 'utf-8')
+            yield url_for_display(location)
 
 # A helper to fill a 'pull' combo.
 def fill_pull_combo(combo, branch):
@@ -617,7 +617,7 @@ def fill_pull_combo(combo, branch):
         p = u''
         related = []
     else:
-        p = urlutils.unescape_for_display(branch.get_parent() or '', 'utf-8')
+        p = url_for_display(branch.get_parent() or '')
         related = iter_branch_related_locations(branch)
     fill_combo_with(combo, p, related, iter_saved_pull_locations())
 
