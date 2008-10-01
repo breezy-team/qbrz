@@ -150,6 +150,8 @@ class TagWindow(SubProcessDialog):
             return False
         # create args to run subprocess
         args = ['tag']
+        args.append('--directory')
+        args.append(unicode(self.ui.branch_location.text()))
         if action != self.IX_CREATE:
             args.append({self.IX_REPLACE: '--force',
                          self.IX_DELETE: '--delete'
