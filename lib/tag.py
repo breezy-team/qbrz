@@ -204,3 +204,12 @@ class TagWindow(SubProcessDialog):
                     gettext('&Close'))
                 return
             self.set_branch(branch)
+
+    @staticmethod
+    def action_from_options(force=None, delete=None):
+        action = 'create'
+        if force:
+            action = 'replace'
+        if delete:
+            action = 'delete'
+        return action

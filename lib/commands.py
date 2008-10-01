@@ -672,11 +672,7 @@ class cmd_qtag(QBzrCommand):
         if not branch.tags.supports_tags():
             raise errors.BzrError('This branch does not support tags')
         # determine action based on given options
-        action = 'create'
-        if force:
-            action = 'replace'
-        if delete:
-            action = 'delete'
+        action = TagWindow.action_from_options(force=force, delete=delete)
         app = QtGui.QApplication(sys.argv)
         window = TagWindow(branch, tag_name=tag_name, action=action,
             revision=revision, ui_mode=ui_mode)
