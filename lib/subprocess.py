@@ -266,6 +266,7 @@ class SubProcessWidget(QtGui.QWidget):
         layout.addWidget(self.progressBar)
 
         self.console = QtGui.QTextBrowser(self)
+        self.console.setFocusPolicy(QtCore.Qt.ClickFocus)
         layout.addWidget(self.console)
 
         self.process = QtCore.QProcess()
