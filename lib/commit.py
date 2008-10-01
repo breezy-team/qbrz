@@ -203,7 +203,8 @@ class CommitWindow(SubProcessWindow):
                     builder = get_wordlist_builder(ext)
                     if builder is not None:
                         try:
-                            file = open(path, 'rt')
+                            abspath = os.path.join(self.tree.basedir, path)
+                            file = open(abspath, 'rt')
                             words.update(builder.iter_words(file))
                         except EnvironmentError:
                             pass
@@ -333,6 +334,7 @@ class CommitWindow(SubProcessWindow):
             selectall_checkbox.setEnabled(False)
             pendingMergesWidget = QtGui.QTreeWidget()
             self.tabWidget.addTab(pendingMergesWidget, gettext("Pending Merges"))
+            self.tabWidget.setCurrentWidget(pendingMergesWidget)
             
             pendingMergesWidget.setRootIsDecorated(False)
             pendingMergesWidget.setHeaderLabels(
@@ -405,7 +407,6 @@ class CommitWindow(SubProcessWindow):
             self.custom_author = self.author.text()
             self.author.setText(self.default_author)
 
-
     def get_saved_message(self):
         config = self.tree.branch.get_config()._get_branch_data_config()
         return config.get_user_option('qbzr_commit_message')
@@ -429,7 +430,6 @@ class CommitWindow(SubProcessWindow):
         config = self.tree.branch.get_config()
         # FIXME this should delete the config entry, not just set it to ''
         config.set_user_option('qbzr_commit_message', '')
-
 
     def start(self):
         args = ["commit"]

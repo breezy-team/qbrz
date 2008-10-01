@@ -537,7 +537,7 @@ class cmd_merge(bzrlib.builtins.cmd_merge):
         self._encoding = kw.get('encoding')
         if self._encoding:
             del kw['encoding']
-        bzrlib.builtins.cmd_merge.run(self, *args, **kw)
+        return bzrlib.builtins.cmd_merge.run(self, *args, **kw)
 
     @install_gettext
     @report_missing_pyqt
