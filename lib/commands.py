@@ -649,11 +649,36 @@ class cmd_qhelp(QBzrCommand):
 class cmd_qtag(QBzrCommand):
     """Edit tags."""
 
-    def _qbzr_run(self):
-        branch = Branch.open_containing('.')[0]
+    takes_args = ['tag_name?']
+    takes_options = [
+        ui_mode_option,
+        Option('delete',
+            help='Delete this tag rather than placing it.',
+            ),
+        Option('directory',
+            help='Branch in which to place the tag.',
+            short_name='d',
+            type=unicode,
+            ),
+        Option('force',
+            help='Replace existing tags.',
+            ),
+        'revision',
+        ]
+
+    def _qbzr_run(self, tag_name=None, delete=None, directory='.',
+        force=None, revision=None, ui_mode=False):
+        branch = Branch.open_containing(directory)[0]
         if not branch.tags.supports_tags():
             raise errors.BzrError('This branch does not support tags')
+        # determine action based on given options
+        action = 'create'
+        if force:
+            action = 'replace'
+        if delete:
+            action = 'delete'
         app = QtGui.QApplication(sys.argv)
-        window = TagWindow(branch)
+        window = TagWindow(branch, tag_name=tag_name, action=action,
+            revision=revision, ui_mode=ui_mode)
         window.show()
         app.exec_()

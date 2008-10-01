@@ -34,7 +34,9 @@ class TagWindow(SubProcessDialog):
 
     def __init__(self, branch, action=None, tag_name=None, revision=None,
         parent=None, ui_mode=False):
-
+        """Create tag edit window.
+        @param  action:     default action (create, replace, delete)
+        """
         super(TagWindow, self).__init__(name="tag", ui_mode=ui_mode,
             dialog=True, parent=parent)
 
@@ -46,8 +48,10 @@ class TagWindow(SubProcessDialog):
         for w in self.make_default_layout_widgets():
             self.layout().addWidget(w)
         self.process_widget.hide_progress()
+        self.ui.cb_tag.setFocus()
 
         self.set_branch(branch)
+        self.setup_initial_values(action, tag_name, revision)
 
         # setup signals
         QtCore.QObject.connect(self.ui.cb_action,
@@ -78,7 +82,18 @@ class TagWindow(SubProcessDialog):
         self.ui.cb_tag.setCurrentIndex(-1)
 
     def setup_initial_values(self, action=None, tag_name=None, revision=None):
-        pass
+        action_index = {'create': self.IX_CREATE, 'replace': self.IX_REPLACE,
+            'delete': self.IX_DELETE}.get(action)
+        if action_index is not None:
+            self.ui.cb_action.setCurrentIndex(action_index)
+            self.on_action_changed(action_index)
+        if tag_name:
+            if tag_name not in self.tags:
+                self.ui.cb_tag.setCurrentIndex(-1)
+            self.ui.cb_tag.setEditText(tag_name)
+            self.on_tag_changed()
+        if revision:
+            self.ui.rev_edit.setText(revision[0].user_spec)
 
     def on_action_changed(self, index):
         self.ui.cb_tag.setEditText("")
