@@ -315,7 +315,12 @@ DIRECTORYPICKER_SOURCE = N_("Select Source Directory")
 DIRECTORYPICKER_TARGET = N_("Select Target Directory")
 
 def hookup_directory_picker(dialog, chooser, target, chooser_type):
-    # an inline handler that serves as a 'link' between the widgets.
+    """An inline handler that serves as a 'link' between the widgets.
+    @param  dialog:     dialog window object
+    @param  chooser:    usually 'Browse' button in a dialog
+    @param  target:     QLineEdit or QComboBox where location will be shown
+    @param  chooser_type:   caption string for directory selector dialog
+    """
     caption = gettext(chooser_type)
     def click_handler(dlg=dialog, chooser=chooser, target=target, caption=caption):
         try:
