@@ -55,6 +55,9 @@ class TagWindow(SubProcessDialog):
         QtCore.QObject.connect(self.ui.cb_tag,
             QtCore.SIGNAL("currentIndexChanged(int)"),
             self.on_tag_changed)
+        QtCore.QObject.connect(self.ui.cb_tag.lineEdit(),
+            QtCore.SIGNAL("editingFinished()"),
+            self.on_tag_changed)
         # groupbox gets disabled as we are executing.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessStarted(bool)"),
@@ -71,9 +74,11 @@ class TagWindow(SubProcessDialog):
         self.ui.cb_tag.clear()
         self.ui.cb_tag.addItems(QtCore.QStringList(sorted(self.tags.keys())))
         self.ui.cb_tag.setEditText("")
+        self.ui.cb_tag.setCurrentIndex(-1)
 
     def on_action_changed(self, index):
-        #self.ui.cb_tag.setEditText("")
+        self.ui.cb_tag.setEditText("")
+        self.ui.cb_tag.setCurrentIndex(-1)
         self.rev_text[self.last_action] = self.ui.rev_edit.text()
         self.ui.rev_edit.setDisabled(index == self.IX_DELETE)
         self.ui.rev_edit.setText(self.rev_text.get(index, ''))
@@ -93,4 +98,6 @@ class TagWindow(SubProcessDialog):
                     rev_str = '.'.join(map(str, rt))
                 else:
                     rev_str = 'revid:'+revid
-                self.ui.rev_edit.setText(rev_str)
+            else:
+                rev_str = ''
+            self.ui.rev_edit.setText(rev_str)
