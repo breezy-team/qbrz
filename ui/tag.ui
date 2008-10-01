@@ -91,7 +91,7 @@
          </item>
          <item>
           <property name="text" >
-           <string>Move existing tag</string>
+           <string>Replace existing tag</string>
           </property>
          </item>
          <item>

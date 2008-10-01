@@ -17,8 +17,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore
+from PyQt4 import QtCore, QtGui
 
+from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_tag import Ui_TagForm
 from bzrlib.plugins.qbzr.lib.util import url_for_display
@@ -28,7 +29,7 @@ class TagWindow(SubProcessDialog):
 
     # indices of actions in action combo box
     IX_CREATE = 0
-    IX_MOVE = 1
+    IX_REPLACE = 1
     IX_DELETE = 2
 
     def __init__(self, branch, action=None, tag_name=None, revision=None,
@@ -76,6 +77,9 @@ class TagWindow(SubProcessDialog):
         self.ui.cb_tag.setEditText("")
         self.ui.cb_tag.setCurrentIndex(-1)
 
+    def setup_initial_values(self, action=None, tag_name=None, revision=None):
+        pass
+
     def on_action_changed(self, index):
         self.ui.cb_tag.setEditText("")
         self.ui.cb_tag.setCurrentIndex(-1)
@@ -101,3 +105,59 @@ class TagWindow(SubProcessDialog):
             else:
                 rev_str = ''
             self.ui.rev_edit.setText(rev_str)
+
+    def validate(self):
+        action = self.ui.cb_action.currentIndex()
+        title = self.ui.cb_action.currentText()
+        tag = unicode(self.ui.cb_tag.lineEdit().text())
+        has_tag = tag in self.tags
+        rev = unicode(self.ui.rev_edit.text())
+        if not tag:
+            QtGui.QMessageBox.critical(self, title,
+                gettext('You should specify tag name'),
+                gettext('&Close'))
+            return False
+        if action == self.IX_CREATE and has_tag:
+            btn = QtGui.QMessageBox.question(self, title,
+                gettext(
+                    'Tag "%s" already exists.\n'
+                    'Do you want to replace existing tag?'
+                    ) % tag,
+                gettext('&Replace'), gettext("&Cancel"), '',
+                0, 1)
+            if btn == 0:    # replace
+                action = self.IX_REPLACE
+                title = self.ui.cb_action.itemText(action)
+            else:   # cancel
+                return False
+        if action == self.IX_REPLACE and not has_tag:
+            btn = QtGui.QMessageBox.question(self, title,
+                gettext(
+                    'Tag "%s" does not exists yet.\n'
+                    'Do you want to create new tag?'
+                    ) % tag,
+                gettext('Cre&ate'), gettext("&Cancel"), '',
+                0, 1)
+            if btn == 0:    # create
+                action = self.IX_CREATE
+                title = self.ui.cb_action.itemText(action)
+            else:   # cancel
+                return False
+        if action == self.IX_DELETE and not has_tag:
+            QtGui.QMessageBox.critical(self, title,
+                gettext('Tag "%s" does not exists') % tag,
+                gettext('&Close'))
+            return False
+        # create args to run subprocess
+        args = ['tag']
+        if action != self.IX_CREATE:
+            args.append({self.IX_REPLACE: '--force',
+                         self.IX_DELETE: '--delete'
+                        }[action])
+        if action != self.IX_DELETE:
+            args.append('--revision')
+            args.append(rev or '-1')
+        args.append(tag)
+        self.args = args    # subprocess uses self.args to run command
+        # go!
+        return True

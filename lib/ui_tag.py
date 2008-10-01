@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/tag.ui'
 #
-# Created: Tue Sep 30 06:20:10 2008
+# Created: Wed Oct 01 11:04:31 2008
 #      by: PyQt4 UI code generator 4.3.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -101,7 +101,7 @@ class Ui_TagForm(object):
         self.branch_browse.setText(gettext("Browse..."))
         self.label_action.setText(gettext("&Action:"))
         self.cb_action.addItem(gettext("Create new tag"))
-        self.cb_action.addItem(gettext("Move existing tag"))
+        self.cb_action.addItem(gettext("Replace existing tag"))
         self.cb_action.addItem(gettext("Delete existing tag"))
         self.label_tag_name.setText(gettext("&Tag name:"))
         self.label_revision.setText(gettext("&Revision:"))
