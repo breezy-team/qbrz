@@ -310,9 +310,9 @@ class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
 # Helpers for directory pickers.
 # We use these items both as 'flags' and as titles!
 # A directory picker used to select a 'pull' location.
-DIRECTORYPICKER_SOURCE = "Select Source Directory"
+DIRECTORYPICKER_SOURCE = N_("Select Source Directory")
 # A directory picker used to select a destination
-DIRECTORYPICKER_TARGET = "Select Target Directory"
+DIRECTORYPICKER_TARGET = N_("Select Target Directory")
 
 def hookup_directory_picker(dialog, chooser, target, chooser_type):
     # an inline handler that serves as a 'link' between the widgets.
