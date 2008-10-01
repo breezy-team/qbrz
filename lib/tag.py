@@ -19,6 +19,11 @@
 
 from PyQt4 import QtCore, QtGui
 
+from bzrlib.branch import Branch
+from bzrlib import (
+    errors,
+    urlutils,
+    )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_tag import Ui_TagForm
@@ -63,6 +68,9 @@ class TagWindow(SubProcessDialog):
         QtCore.QObject.connect(self.ui.cb_tag.lineEdit(),
             QtCore.SIGNAL("editingFinished()"),
             self.on_tag_changed)
+        QtCore.QObject.connect(self.ui.branch_browse,
+            QtCore.SIGNAL("clicked()"),
+            self.on_browse)
         # groupbox gets disabled as we are executing.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessStarted(bool)"),
@@ -178,3 +186,21 @@ class TagWindow(SubProcessDialog):
         self.args = args    # subprocess uses self.args to run command
         # go!
         return True
+
+    def on_browse(self):
+        # browse button clicked
+        directory = QtGui.QFileDialog.getExistingDirectory(self,
+            gettext('Select branch location'),
+            self.ui.branch_location.text())
+        if directory:
+            # try to open new branch
+            url = urlutils.local_path_to_url(directory)
+            try:
+                branch = Branch.open_containing(url)[0]
+            except errors.NotBranchError:
+                QtGui.QMessageBox.critical(self,
+                    gettext('Error'),
+                    gettext('Directory is not a branch:\n%s') % directory,
+                    gettext('&Close'))
+                return
+            self.set_branch(branch)
