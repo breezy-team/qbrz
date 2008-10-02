@@ -47,7 +47,6 @@ class TagWindow(SubProcessDialog):
 
         self.ui = Ui_TagForm()
         self.ui.setupUi(self)
-        self.last_action = self.ui.cb_action.currentIndex()
 
         # and add the subprocess widgets.
         for w in self.make_default_layout_widgets():
@@ -81,7 +80,6 @@ class TagWindow(SubProcessDialog):
         self.branch = branch
         self.tags = branch.tags.get_tag_dict()
         self.revno_map = None
-        self.rev_text = {}
         # update ui
         self.ui.branch_location.setText(url_for_display(branch.base))
         self.ui.cb_tag.clear()
@@ -100,17 +98,14 @@ class TagWindow(SubProcessDialog):
                 self.ui.cb_tag.setCurrentIndex(-1)
             self.ui.cb_tag.setEditText(tag_name)
             self.on_tag_changed()
-        if revision:
+        if revision and action_index != self.IX_DELETE:
             self.ui.rev_edit.setText(revision[0].user_spec)
 
     def on_action_changed(self, index):
         self.ui.cb_tag.setEditText("")
         self.ui.cb_tag.setCurrentIndex(-1)
-        self.rev_text[self.last_action] = self.ui.rev_edit.text()
         self.ui.rev_edit.setDisabled(index == self.IX_DELETE)
-        self.ui.rev_edit.setText(self.rev_text.get(index, ''))
-        self.last_action = index
-        self.on_tag_changed()
+        self.ui.rev_edit.setText('')
 
     def on_tag_changed(self, index=None):
         if self.ui.cb_action.currentIndex() == self.IX_DELETE:
