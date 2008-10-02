@@ -111,10 +111,13 @@ class TagWindow(SubProcessDialog):
         if self.ui.cb_action.currentIndex() == self.IX_DELETE:
             tag = unicode(self.ui.cb_tag.currentText())
             revid = self.tags.get(tag)
+            rev_str = ''
             tooltip = ''
             if revid:
                 # get revno
                 if self.revno_map is None:
+                    # XXX perhaps we need to run this operation in a thread,
+                    # because it might take a while for big history
                     self.revno_map = self.branch.get_revision_id_to_revno_map()
                 rt = self.revno_map.get(revid)
                 if rt:
@@ -122,8 +125,6 @@ class TagWindow(SubProcessDialog):
                 else:
                     rev_str = 'revid:'+revid
                     tooltip = rev_str
-            else:
-                rev_str = ''
             self.ui.rev_edit.setText(rev_str)
             self.ui.rev_edit.setToolTip(tooltip)
 
