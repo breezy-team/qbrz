@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/tag.ui'
 #
-# Created: Wed Oct 01 20:31:21 2008
+# Created: Wed Oct 01 22:17:22 2008
 #      by: PyQt4 UI code generator 4.3.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -15,7 +15,7 @@ class Ui_TagForm(object):
     def setupUi(self, TagForm):
         TagForm.setObjectName("TagForm")
         TagForm.setWindowModality(QtCore.Qt.NonModal)
-        TagForm.resize(QtCore.QSize(QtCore.QRect(0,0,391,220).size()).expandedTo(TagForm.minimumSizeHint()))
+        TagForm.resize(QtCore.QSize(QtCore.QRect(0,0,340,220).size()).expandedTo(TagForm.minimumSizeHint()))
 
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred,QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
@@ -34,20 +34,16 @@ class Ui_TagForm(object):
         self.gridlayout = QtGui.QGridLayout(self.branch_group)
         self.gridlayout.setObjectName("gridlayout")
 
-        self.label_branch = QtGui.QLabel(self.branch_group)
-        self.label_branch.setObjectName("label_branch")
-        self.gridlayout.addWidget(self.label_branch,0,0,1,1)
-
         self.branch_location = QtGui.QLineEdit(self.branch_group)
         self.branch_location.setObjectName("branch_location")
-        self.gridlayout.addWidget(self.branch_location,0,1,1,2)
+        self.gridlayout.addWidget(self.branch_location,0,0,1,2)
 
-        spacerItem = QtGui.QSpacerItem(40,20,QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Minimum)
-        self.gridlayout.addItem(spacerItem,1,1,1,1)
+        spacerItem = QtGui.QSpacerItem(261,25,QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Minimum)
+        self.gridlayout.addItem(spacerItem,1,0,1,1)
 
         self.branch_browse = QtGui.QPushButton(self.branch_group)
         self.branch_browse.setObjectName("branch_browse")
-        self.gridlayout.addWidget(self.branch_browse,1,2,1,1)
+        self.gridlayout.addWidget(self.branch_browse,1,1,1,1)
         self.vboxlayout.addWidget(self.branch_group)
 
         self.tag_group = QtGui.QGroupBox(TagForm)
@@ -87,7 +83,6 @@ class Ui_TagForm(object):
         self.pick_rev.setObjectName("pick_rev")
         self.gridlayout1.addWidget(self.pick_rev,2,2,1,1)
         self.vboxlayout.addWidget(self.tag_group)
-        self.label_branch.setBuddy(self.branch_location)
         self.label_action.setBuddy(self.cb_action)
         self.label_tag_name.setBuddy(self.cb_tag)
         self.label_revision.setBuddy(self.rev_edit)
@@ -103,8 +98,7 @@ class Ui_TagForm(object):
     def retranslateUi(self, TagForm):
         TagForm.setWindowTitle(gettext("Edit tag"))
         self.branch_group.setTitle(gettext("Branch"))
-        self.label_branch.setText(gettext("&Branch:"))
-        self.branch_browse.setText(gettext("Browse..."))
+        self.branch_browse.setText(gettext("&Browse..."))
         self.tag_group.setTitle(gettext("Tag"))
         self.label_action.setText(gettext("&Action:"))
         self.cb_action.addItem(gettext("Create new tag"))
@@ -112,5 +106,5 @@ class Ui_TagForm(object):
         self.cb_action.addItem(gettext("Delete existing tag"))
         self.label_tag_name.setText(gettext("&Tag name:"))
         self.label_revision.setText(gettext("&Revision:"))
-        self.pick_rev.setText(gettext("Select..."))
+        self.pick_rev.setText(gettext("&Select..."))
 
