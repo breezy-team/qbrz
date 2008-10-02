@@ -32,7 +32,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     format_revision_html,
     format_timestamp,
     get_apparent_author,
-    get_branch_config,
     get_set_encoding,
     open_browser,
     RevisionMessageBrowser,
@@ -83,7 +82,7 @@ class AnnotateWindow(QBzrWindow):
             [gettext("Annotate"), path], parent)
         self.restoreSize("annotate", (780, 680))
 
-        self.encoding = get_set_encoding(encoding, get_branch_config(branch))
+        self.encoding = get_set_encoding(encoding, branch)
 
         self.windows = []
 

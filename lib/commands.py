@@ -72,7 +72,6 @@ from bzrlib.plugins.qbzr.lib.pull import (
     )
 from bzrlib.plugins.qbzr.lib.util import (
     FilterOptions,
-    get_branch_config,
     get_set_encoding,
     is_valid_encoding,
     )
@@ -420,7 +419,7 @@ class cmd_qcat(QBzrCommand):
             result = cat_to_native_app(tree, relpath)
             return int(not result)
 
-        encoding = get_set_encoding(encoding, get_branch_config(branch))
+        encoding = get_set_encoding(encoding, branch)
 
         app = QtGui.QApplication(sys.argv)
         tree.lock_read()
