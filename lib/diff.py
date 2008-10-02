@@ -100,6 +100,7 @@ def get_title_for_tree(tree, branch, other_branch):
     # XXX I don't know what other cases we need to handle    
     return ""
 
+
 class DiffWindow(QBzrWindow):
 
     def __init__(self,

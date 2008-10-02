@@ -187,9 +187,6 @@ class cmd_qannotate(QBzrCommand):
         finally:
             branch.unlock()
 
-        config = get_branch_config(branch)
-        encoding = get_set_encoding(encoding, config)
-
         app = QtGui.QApplication(sys.argv)
         win = AnnotateWindow(branch, tree, relpath, file_id, encoding)
         win.show()
@@ -422,6 +419,8 @@ class cmd_qcat(QBzrCommand):
         if native:
             result = cat_to_native_app(tree, relpath)
             return int(not result)
+
+        encoding = get_set_encoding(encoding, get_branch_config(branch))
 
         app = QtGui.QApplication(sys.argv)
         tree.lock_read()
