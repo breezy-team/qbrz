@@ -104,13 +104,14 @@ class TagWindow(SubProcessDialog):
     def on_action_changed(self, index):
         self.ui.cb_tag.setEditText("")
         self.ui.cb_tag.setCurrentIndex(-1)
-        self.ui.rev_edit.setDisabled(index == self.IX_DELETE)
+        self.ui.rev_edit.setReadOnly(index == self.IX_DELETE)
         self.ui.rev_edit.setText('')
 
     def on_tag_changed(self, index=None):
         if self.ui.cb_action.currentIndex() == self.IX_DELETE:
             tag = unicode(self.ui.cb_tag.currentText())
             revid = self.tags.get(tag)
+            tooltip = ''
             if revid:
                 # get revno
                 if self.revno_map is None:
@@ -120,9 +121,11 @@ class TagWindow(SubProcessDialog):
                     rev_str = '.'.join(map(str, rt))
                 else:
                     rev_str = 'revid:'+revid
+                    tooltip = rev_str
             else:
                 rev_str = ''
             self.ui.rev_edit.setText(rev_str)
+            self.ui.rev_edit.setToolTip(tooltip)
 
     def validate(self):
         action = self.ui.cb_action.currentIndex()
