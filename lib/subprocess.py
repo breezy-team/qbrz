@@ -18,10 +18,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import codecs
 import sys
 from PyQt4 import QtCore, QtGui
-from bzrlib import progress
+
+from bzrlib import osutils, progress
 from bzrlib.util import bencode
+
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
@@ -248,6 +251,7 @@ class SimpleSubProcessDialog(SubProcessDialog):
         for w in self.make_default_layout_widgets():
             layout.addWidget(w)
 
+
 class SubProcessWidget(QtGui.QWidget):
 
     def __init__(self, ui_mode, parent = None):
@@ -268,6 +272,10 @@ class SubProcessWidget(QtGui.QWidget):
         self.console = QtGui.QTextBrowser(self)
         self.console.setFocusPolicy(QtCore.Qt.ClickFocus)
         layout.addWidget(self.console)
+
+        self.encoding = osutils.get_user_encoding()
+        self.stdout = None
+        self.stderr = None
 
         self.process = QtCore.QProcess()
         self.connect(self.process,
@@ -317,12 +325,19 @@ class SubProcessWidget(QtGui.QWidget):
             dir = self.defaultWorkingDir
         
         self.process.setWorkingDirectory (dir)
+        self._setup_stdout_stderr()
         if getattr(sys, "frozen", None) is not None:
             self.process.start(
                 sys.argv[0], ['qsubprocess', args])
         else:
             self.process.start(
                 sys.executable, [sys.argv[0], 'qsubprocess', args])
+
+    def _setup_stdout_stderr(self):
+        if self.stdout is None:
+            writer = codecs.getwriter(osutils.get_terminal_encoding())
+            self.stdout = writer(sys.stdout, errors='replace')
+            self.stderr = writer(sys.stderr, errors='replace')
     
     def abort(self):
         if self.is_running():
@@ -344,7 +359,7 @@ class SubProcessWidget(QtGui.QWidget):
         self.progressMessage.setText(text)
     
     def readStdout(self):
-        data = str(self.process.readAllStandardOutput())
+        data = str(self.process.readAllStandardOutput()).decode(self.encoding)
         for line in data.splitlines():
             if line.startswith("qbzr:PROGRESS:"):
                 progress, messages = bencode.bdecode(line[14:])
@@ -352,17 +367,17 @@ class SubProcessWidget(QtGui.QWidget):
             else:
                 self.logMessage(line)
                 if not self.ui_mode:
-                    sys.stdout.write(line)
-                    sys.stdout.write("\n")
+                    self.stdout.write(line)
+                    self.stdout.write("\n")
 
     def readStderr(self):
-        data = str(self.process.readAllStandardError())
+        data = str(self.process.readAllStandardError()).decode(self.encoding)
         for line in data.splitlines():
             error = line.startswith("bzr: ERROR:")
             self.logMessage(line, error)
             if not self.ui_mode:
-                sys.stderr.write(line)
-                sys.stderr.write("\n")
+                self.stderr.write(line)
+                self.stderr.write("\n")
 
     def logMessage(self, message, error=False):
         if error:

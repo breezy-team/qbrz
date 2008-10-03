@@ -35,6 +35,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     extract_name,
     format_timestamp,
+    get_set_encoding,
     url_for_display,
     )
 
@@ -154,10 +155,11 @@ class BrowseWindow(QBzrWindow):
         path = self.get_current_path()
 
         tree = self.branch.repository.revision_tree(self.revision_id)
-
+        encoding = get_set_encoding(None, self.branch)
         tree.lock_read()
         try:
-            window = QBzrCatWindow.from_tree_and_path(tree, path, parent=self)
+            window = QBzrCatWindow.from_tree_and_path(tree, path, parent=self,
+                encoding=encoding)
         finally:
             tree.unlock()
         window.show()
