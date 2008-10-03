@@ -70,6 +70,9 @@ class TagWindow(SubProcessDialog):
         QtCore.QObject.connect(self.ui.branch_browse,
             QtCore.SIGNAL("clicked()"),
             self.on_browse)
+        QtCore.QObject.connect(self.ui.branch_location,
+            QtCore.SIGNAL("editingFinished()"),
+            self.on_editing_branch)
         # groupbox gets disabled as we are executing.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessStarted(bool)"),
@@ -191,15 +194,20 @@ class TagWindow(SubProcessDialog):
         directory = QtGui.QFileDialog.getExistingDirectory(self,
             gettext('Select branch location'),
             self.ui.branch_location.text())
-        if directory:
-            # try to open new branch
-            url = urlutils.local_path_to_url(directory)
+        self._try_to_open_branch(directory)
+
+    def on_editing_branch(self):
+        self._try_to_open_branch(self.ui.branch_location.text())
+
+    def _try_to_open_branch(self, location):
+        if location:
+            location = unicode(location)
             try:
-                branch = Branch.open_containing(url)[0]
+                branch = Branch.open_containing(location)[0]
             except errors.NotBranchError:
                 QtGui.QMessageBox.critical(self,
                     gettext('Error'),
-                    gettext('Directory is not a branch:\n%s') % directory,
+                    gettext('Not a branch:\n%s') % location,
                     gettext('&Close'))
                 return
             self.set_branch(branch)
