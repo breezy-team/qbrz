@@ -21,19 +21,9 @@
 
 import os
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.trace import log_exception_quietly
 
-from bzrlib.errors import BzrError
+from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.util import (
-    BTN_CANCEL,
-    BTN_OK,
-    QBzrWindow,
-    file_extension,
-    get_apparent_author,
-    get_global_config,
-    )
 from bzrlib.plugins.qbzr.lib.wtlist import (
     ChangeDesc,
     WorkingTreeFileList,
