@@ -263,6 +263,26 @@ class _QBzrWindowBase:
             self.setWindowState(QtCore.Qt.WindowMaximized)
         return config
 
+    def saveSplitterSizes(self):
+        name = self._window_name
+        config = QBzrGlobalConfig()
+        sizes = ':'.join(map(str, self.splitter.sizes()))
+        config.set_user_option(name + "_splitter_sizes", sizes)
+
+    def restoreSplitterSizes(self, default_sizes=None):
+        name = self._window_name
+        config = QBzrGlobalConfig()
+        sizes = config.get_user_option(name + "_splitter_sizes")
+        n = len(self.splitter.sizes())
+        if sizes:
+            sizes = map(int, sizes.split(':'))
+            if len(sizes) != n:
+                sizes = None
+        if not sizes and default_sizes and len(default_sizes) == n:
+            sizes = default_sizes
+        if sizes:
+            self.splitter.setSizes(sizes)
+
     def closeEvent(self, event):
         self.saveSize()
         for window in self.windows:

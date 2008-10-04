@@ -45,7 +45,8 @@ class SubProcessWindowBase:
                           default_size=None,
                           ui_mode=True,
                           dialog=True,
-                          parent=None):
+                          parent=None,
+                          hide_progress=False):
         self.restoreSize(name, default_size)
         self._name = name
         self.args = args
@@ -56,7 +57,7 @@ class SubProcessWindowBase:
             flags = (self.windowFlags() & ~QtCore.Qt.Window) | QtCore.Qt.Dialog
             self.setWindowFlags(flags)
 
-        self.process_widget = SubProcessWidget(self.ui_mode, self)
+        self.process_widget = SubProcessWidget(self.ui_mode, self, hide_progress)
         self.connect(self.process_widget,
             QtCore.SIGNAL("finished()"),
             self.finished)
@@ -102,11 +103,14 @@ class SubProcessWindowBase:
         self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
         closeButton.setHidden(True) # but 'close' starts as hidden.
 
-    def make_default_layout_widgets(self):
-        status_group_box = QtGui.QGroupBox(gettext("Status"), self)
+    def make_default_status_box(self):
+        status_group_box = QtGui.QGroupBox(gettext("Status"))
         status_layout = QtGui.QVBoxLayout(status_group_box)
         status_layout.addWidget(self.process_widget)
-        yield status_group_box
+        return status_group_box
+        
+    def make_default_layout_widgets(self):
+        yield self.make_default_status_box()
         yield self.buttonbox
 
     def validate(self):
@@ -180,7 +184,8 @@ class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
                  default_size=None,
                  ui_mode=True,
                  dialog=True,
-                 parent=None):
+                 parent=None,
+                 hide_progress=False):
         QBzrWindow.__init__(self, title, parent)
         self.__init_internal__(title,
                                name=name,
@@ -189,7 +194,8 @@ class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
                                default_size=default_size,
                                ui_mode=ui_mode,
                                dialog=dialog,
-                               parent=parent)
+                               parent=parent,
+                               hide_progress=hide_progress)
 
 
 class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
@@ -207,7 +213,8 @@ class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
                  default_size=None,
                  ui_mode=True,
                  dialog=True,
-                 parent=None):
+                 parent=None,
+                 hide_progress=False):
         QBzrDialog.__init__(self, title, parent)
         self.__init_internal__(title,
                                name=name,
@@ -216,7 +223,8 @@ class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
                                default_size=default_size,
                                ui_mode=ui_mode,
                                dialog=dialog,
-                               parent=parent)
+                               parent=parent,
+                               hide_progress=hide_progress)
 
 
 class SimpleSubProcessDialog(SubProcessDialog):
@@ -231,7 +239,8 @@ class SimpleSubProcessDialog(SubProcessDialog):
                  default_size=None,
                  ui_mode=True,
                  dialog=True,
-                 parent=None):
+                 parent=None,
+                 hide_progress=False):
         super(SimpleSubProcessDialog, self).__init__(
                                title,
                                name=name,
@@ -240,13 +249,17 @@ class SimpleSubProcessDialog(SubProcessDialog):
                                default_size=default_size,
                                ui_mode=ui_mode,
                                dialog=dialog,
-                               parent=parent)           
+                               parent=parent,
+                               hide_progress=hide_progress)
         self.desc = desc
         # create a layout to hold our one label and the subprocess widgets.
         layout = QtGui.QVBoxLayout(self)
-        label = QtGui.QLabel(self.desc, self)
+        groupbox = QtGui.QGroupBox(gettext('Description'))
+        v = QtGui.QVBoxLayout(groupbox)
+        label = QtGui.QLabel(self.desc)
         label.font().setBold(True)
-        layout.addWidget(label)
+        v.addWidget(label)
+        layout.addWidget(groupbox)
         # and add the subprocess widgets.
         for w in self.make_default_layout_widgets():
             layout.addWidget(w)
@@ -254,7 +267,7 @@ class SimpleSubProcessDialog(SubProcessDialog):
 
 class SubProcessWidget(QtGui.QWidget):
 
-    def __init__(self, ui_mode, parent = None):
+    def __init__(self, ui_mode, parent=None, hide_progress=False):
         QtGui.QGroupBox.__init__(self, parent)
         self.ui_mode = ui_mode
 
@@ -299,7 +312,10 @@ class SubProcessWidget(QtGui.QWidget):
         self.messageFormat = QtGui.QTextCharFormat()
         self.errorFormat = QtGui.QTextCharFormat()
         self.errorFormat.setForeground(QtGui.QColor('red'))
-    
+
+        if hide_progress:
+            self.hide_progress()
+
     def hide_progress(self):
         self.progressMessage.setHidden(True)
         self.progressBar.setHidden(True)
