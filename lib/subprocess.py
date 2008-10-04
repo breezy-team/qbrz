@@ -102,11 +102,14 @@ class SubProcessWindowBase:
         self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
         closeButton.setHidden(True) # but 'close' starts as hidden.
 
-    def make_default_layout_widgets(self):
-        status_group_box = QtGui.QGroupBox(gettext("Status"), self)
+    def make_default_status_box(self):
+        status_group_box = QtGui.QGroupBox(gettext("Status"))
         status_layout = QtGui.QVBoxLayout(status_group_box)
         status_layout.addWidget(self.process_widget)
-        yield status_group_box
+        return status_group_box
+        
+    def make_default_layout_widgets(self):
+        yield self.make_default_status_box()
         yield self.buttonbox
 
     def accept(self):
