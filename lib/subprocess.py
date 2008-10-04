@@ -227,9 +227,12 @@ class SimpleSubProcessDialog(SubProcessDialog):
         self.desc = desc
         # create a layout to hold our one label and the subprocess widgets.
         layout = QtGui.QVBoxLayout(self)
-        label = QtGui.QLabel(self.desc, self)
+        groupbox = QtGui.QGroupBox(gettext('Description'))
+        v = QtGui.QVBoxLayout(groupbox)
+        label = QtGui.QLabel(self.desc)
         label.font().setBold(True)
-        layout.addWidget(label)
+        v.addWidget(label)
+        layout.addWidget(groupbox)
         # and add the subprocess widgets.
         for w in self.make_default_layout_widgets():
             layout.addWidget(w)
