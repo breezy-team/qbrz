@@ -77,11 +77,15 @@ class RevertWindow(SubProcessDialog):
                                groupbox,
                                QtCore.SLOT("setDisabled(bool)"))
 
+        self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        self.splitter.addWidget(groupbox)
+        self.splitter.addWidget(self.make_default_status_box())
+        self.splitter.setStretchFactor(0, 10)
+        self.restoreSplitterSizes([150, 150])
+
         layout = QtGui.QVBoxLayout(self)
-        layout.addWidget(groupbox)
-        # and add the subprocess widgets.
-        for w in self.make_default_layout_widgets():
-            layout.addWidget(w)
+        layout.addWidget(self.splitter)
+        layout.addWidget(self.buttonbox)
 
     def iter_changes_and_state(self):
         """An iterator for the WorkingTreeFileList widget"""
@@ -102,3 +106,7 @@ class RevertWindow(SubProcessDialog):
             args.append(desc.path())
         
         self.process_widget.start(self.tree.basedir, *args)
+
+    def saveSize(self):
+        SubProcessDialog.saveSize(self)
+        self.saveSplitterSizes()
