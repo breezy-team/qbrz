@@ -29,7 +29,6 @@ from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     BTN_OK,
-    QBzrWindow,
     file_extension,
     get_apparent_author,
     get_global_config,
@@ -53,9 +52,9 @@ class AddWindow(SubProcessDialog):
                                   default_size = (400, 400),
                                   ui_mode = ui_mode,
                                   dialog = dialog,
-                                  parent = parent)
-        
-        self.process_widget.hide_progress()
+                                  parent = parent,
+                                  hide_progress=True,
+                                  )
     
         # Display the list of unversioned files
         groupbox = QtGui.QGroupBox(gettext("Unversioned Files"), self)

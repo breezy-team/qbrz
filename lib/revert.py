@@ -54,7 +54,8 @@ class RevertWindow(SubProcessDialog):
                                   default_size = (400, 400),
                                   ui_mode = ui_mode,
                                   dialog = dialog,
-                                  parent = parent)
+                                  parent = parent,
+                                  hide_progress=True)
         
         # Display the list of changed files
         groupbox = QtGui.QGroupBox(gettext("Changes"), self)
