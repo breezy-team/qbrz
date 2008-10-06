@@ -149,12 +149,11 @@ class cmd_qannotate(QBzrCommand):
     takes_args = ['filename']
     takes_options = ['revision',
                      Option('encoding', type=check_encoding,
-                     help='Encoding of files content (default: utf-8)'),
+                     help='Encoding of files content (default: utf-8).'),
                     ]
     aliases = ['qann', 'qblame']
 
     def _qbzr_run(self, filename=None, revision=None, encoding=None):
-        from bzrlib.annotate import _annotate_file
         wt, branch, relpath = \
             BzrDir.open_containing_tree_or_branch(filename)
         if wt is not None:
@@ -272,14 +271,14 @@ class cmd_qdiff(QBzrCommand):
     takes_args = ['file*']
     takes_options = [
         'revision',
-        Option('complete', help='Show complete files'),
+        Option('complete', help='Show complete files.'),
         Option('encoding', type=check_encoding,
-               help='Encoding of files content (default: utf-8)'),
-        Option('added', short_name='A', help='Show diff for added files'),
-        Option('deleted', short_name='D', help='Show diff for deleted files'),
+               help='Encoding of files content (default: utf-8).'),
+        Option('added', short_name='A', help='Show diff for added files.'),
+        Option('deleted', short_name='D', help='Show diff for deleted files.'),
         Option('modified', short_name='M',
-               help='Show diff for modified files'),
-        Option('renamed', short_name='R', help='Show diff for renamed files'),
+               help='Show diff for modified files.'),
+        Option('renamed', short_name='R', help='Show diff for renamed files.'),
         Option('old',
             help='Branch/tree to compare from.',
             type=unicode,
@@ -398,9 +397,9 @@ class cmd_qcat(QBzrCommand):
     takes_options = [
         'revision',
         Option('encoding', type=check_encoding,
-               help='Encoding of files content (default: utf-8)'),
+               help='Encoding of files content (default: utf-8).'),
         Option('native',
-               help='Show file with native application'),
+               help='Show file with native application.'),
         ]
     takes_args = ['filename']
 
@@ -524,7 +523,7 @@ class cmd_merge(bzrlib.builtins.cmd_merge):
                 'show a diff of the merge in a GUI window.'),
             Option('encoding', type=check_encoding,
                    help='Encoding of files content, used with --qpreview '
-                        '(default: utf-8)'),
+                        '(default: utf-8).'),
             ]
 
     def run(self, *args, **kw):
