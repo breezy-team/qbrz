@@ -59,17 +59,18 @@ from bzrlib.plugins.qbzr.lib.getupdates import UpdateBranchWindow, UpdateCheckou
 from bzrlib.plugins.qbzr.lib.getnew import GetNewWorkingTreeWindow
 from bzrlib.plugins.qbzr.lib.help import show_help
 from bzrlib.plugins.qbzr.lib.log import LogWindow
-from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
 from bzrlib.plugins.qbzr.lib.info import QBzrInfoWindow
 from bzrlib.plugins.qbzr.lib.init import QBzrInitWindow
-from bzrlib.plugins.qbzr.lib.revert import RevertWindow
-from bzrlib.plugins.qbzr.lib.subprocess import SubprocessProgress
+from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
 from bzrlib.plugins.qbzr.lib.pull import (
     QBzrPullWindow,
     QBzrPushWindow,
     QBzrBranchWindow,
     QBzrMergeWindow,
     )
+from bzrlib.plugins.qbzr.lib.revert import RevertWindow
+from bzrlib.plugins.qbzr.lib.subprocess import SubprocessProgress
+from bzrlib.plugins.qbzr.lib.tag import TagWindow
 from bzrlib.plugins.qbzr.lib.util import (
     FilterOptions,
     get_set_encoding,
@@ -640,4 +641,38 @@ class cmd_qhelp(QBzrCommand):
     def _qbzr_run(self, topic):
         app = QtGui.QApplication(sys.argv)
         window = show_help(topic)
+        app.exec_()
+
+
+class cmd_qtag(QBzrCommand):
+    """Edit tags."""
+
+    takes_args = ['tag_name?']
+    takes_options = [
+        ui_mode_option,
+        Option('delete',
+            help='Delete this tag rather than placing it.',
+            ),
+        Option('directory',
+            help='Branch in which to place the tag.',
+            short_name='d',
+            type=unicode,
+            ),
+        Option('force',
+            help='Replace existing tags.',
+            ),
+        'revision',
+        ]
+
+    def _qbzr_run(self, tag_name=None, delete=None, directory='.',
+        force=None, revision=None, ui_mode=False):
+        branch = Branch.open_containing(directory)[0]
+        if not branch.tags.supports_tags():
+            raise errors.BzrError('This branch does not support tags')
+        # determine action based on given options
+        action = TagWindow.action_from_options(force=force, delete=delete)
+        app = QtGui.QApplication(sys.argv)
+        window = TagWindow(branch, tag_name=tag_name, action=action,
+            revision=revision, ui_mode=ui_mode)
+        window.show()
         app.exec_()

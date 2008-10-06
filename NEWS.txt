@@ -4,6 +4,7 @@
  * qcat:
    * New command-line option `--native` to show file content in native
      application rather than in usual QCat window.
+ * qtag: new command to edit tags.
  * New translation added: Turkish
 
 
