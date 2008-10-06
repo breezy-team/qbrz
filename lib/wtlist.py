@@ -211,6 +211,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
                                          args=args,
                                          dir=self.tree.basedir,
                                          parent=self,
+                                         hide_progress=True,
                                         )
         res = revert_dialog.exec_()
         if res == QtGui.QDialog.Accepted:

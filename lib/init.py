@@ -39,7 +39,8 @@ class QBzrInitWindow(SubProcessDialog):
                                   name = "init",
                                   ui_mode = ui_mode,
                                   dialog = True,
-                                  parent = parent)
+                                  parent = parent,
+                                  hide_progress=True)
 
         self.ui = Ui_InitForm()
         self.ui.setupUi(self)
@@ -65,8 +66,6 @@ class QBzrInitWindow(SubProcessDialog):
         cmd = get_cmd_object('init-repo')
         opt = cmd.options()['no-trees']
         self.ui.but_no_trees.setToolTip(opt.help)
-
-        self.process_widget.hide_progress()
 
     def start(self):
         location = unicode(self.ui.location.text())
