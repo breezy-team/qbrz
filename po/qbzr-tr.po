@@ -1,39 +1,26 @@
-# Ukrainian translation for qbzr
-# Copyright (c) 2007 Rosetta Contributors and Canonical Ltd 2007
+# Turkish translation for qbzr
+# Copyright (c) 2008 Rosetta Contributors and Canonical Ltd 2008
 # This file is distributed under the same license as the qbzr package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2007.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2008.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
-"Report-Msgid-Bugs-To: \n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2008-10-01 15:33+0300\n"
-"PO-Revision-Date: 2008-07-25 20:37+0000\n"
-"Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
-"Language-Team: Ukrainian <uk@li.org>\n"
+"PO-Revision-Date: 2008-09-30 21:56+0000\n"
+"Last-Translator: Mert Dirik <mertdirik@gmail.com>\n"
+"Language-Team: Turkish <tr@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "X-Launchpad-Export-Date: 2008-10-03 05:36+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
-#~ msgid "Branch nick:"
-#~ msgstr "Назва гілки:"
-
-#~ msgid "Show &Differences..."
-#~ msgstr "Показати &різницю..."
-
-#~ msgid "Do you really want to revert the selected file(s)?"
-#~ msgstr "Ви насправді бажаєте повернути попередню версію відібраних файлів?"
-
-#~ msgid "Show tree..."
-#~ msgstr "Показати дерево файлів..."
-
 #: lib\add.py:51 lib\config.py:99 lib\config.py:120
 msgid "Add"
-msgstr "Додати"
+msgstr "Ekle"
 
 #: lib\add.py:61
 msgid "Unversioned Files"
@@ -41,122 +28,116 @@ msgstr ""
 
 #: lib\add.py:78
 msgid "Show ignored files"
-msgstr ""
+msgstr "Yok sayılan dosyaları göster"
 
 #: lib\annotate.py:79 lib\browse.py:88
 msgid "Annotate"
-msgstr "Анотація"
+msgstr ""
 
 #: lib\annotate.py:93
 msgid "Line"
-msgstr "Рядок"
+msgstr "Satır"
 
 #: lib\annotate.py:93 lib\annotate.py:109 lib\browse.py:82 lib\commit.py:341
 #: lib\logmodel.py:86
 msgid "Author"
-msgstr "Автор"
+msgstr ""
 
 #: lib\annotate.py:93 lib\logmodel.py:83
 msgid "Rev"
-msgstr "Версія"
+msgstr ""
 
 #: lib\annotate.py:109 lib\browse.py:81 lib\commit.py:341 lib\logmodel.py:85
 msgid "Date"
-msgstr "Дата"
+msgstr "Tarih"
 
 #: lib\annotate.py:109
 msgid "Summary"
-msgstr "Коротко"
+msgstr "Özet"
 
 #: lib\browse.py:60 lib\browse.py:202 lib\browse.py:237
 msgid "Browse"
-msgstr "Огляд"
+msgstr "Gözat"
 
 #: lib\browse.py:66
 msgid "Location:"
-msgstr "Місцезнаходження:"
+msgstr "Konum:"
 
 #: lib\browse.py:71 lib\ui_new_tree.py:160 lib\util.py:363
 msgid "Revision:"
-msgstr "Версія:"
+msgstr ""
 
 #: lib\browse.py:74
 msgid "Show"
-msgstr "Показати"
+msgstr "Göster"
 
 #: lib\browse.py:81 lib\main.py:358
 msgid "Name"
-msgstr "Ім’я"
+msgstr "Ad"
 
 #: lib\browse.py:82 lib\commit.py:235 lib\commit.py:341 lib\logmodel.py:84
 msgid "Message"
-msgstr "Коментар"
+msgstr "İleti"
 
 #: lib\browse.py:87
 msgid "Show log..."
-msgstr "Показати журнал..."
+msgstr "Günlüğü göster..."
 
 #: lib\browse.py:90
 msgid "View file"
-msgstr "Переглянути файл"
+msgstr "Dosyayı görüntüle"
 
 #: lib\cat.py:74
 msgid "View "
-msgstr ""
+msgstr "Görüntüle "
 
 #: lib\cat.py:154
 msgid "View File"
-msgstr "Переглянути файл"
+msgstr "Dosyayı Görüntüle"
 
 #: lib\cat.py:155
 #, python-format
 msgid "File \"%s\" not found in the specified revision."
-msgstr "Файл \"%s\" не знайдено у вказаній версії проекта."
+msgstr ""
 
 #: lib\commit.py:218 lib\commit.py:441
 msgid "Commit"
-msgstr "Фіксувати"
+msgstr ""
 
 #: lib\commit.py:243
 msgid "Show non-versioned files"
-msgstr "Показати невідомі файли"
+msgstr ""
 
 #: lib\commit.py:262
 msgid "Enter the commit message"
-msgstr "Надайте коментар до цієї версії"
+msgstr ""
 
 #: lib\commit.py:278
 msgid "&Fixed bugs:"
-msgstr "&Виправлені дефекти:"
+msgstr ""
 
 #: lib\commit.py:279
 msgid "Set the IDs of bugs fixed by this commit"
-msgstr "Вкажіть номери дефектів, що були виправлені у цієї версії"
+msgstr ""
 
 #: lib\commit.py:282
 msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
 msgstr ""
-"Надайте список номерів дефектів у форматі <i>tag:id</i>, кілька дефектів "
-"мають бути розподілені за допомогою пробела, наприклад: <i>project:123 "
-"project:765</i>"
 
 #: lib\commit.py:292
 msgid "&Author:"
-msgstr "&Автор:"
+msgstr ""
 
 #: lib\commit.py:293
 msgid "Set the author of this change, if it's different from the committer"
 msgstr ""
-"Ви можете вказати автора ціх змін, якщо він відрізняється від персони, що "
-"робить фіксацію версії"
 
 #: lib\commit.py:296
 msgid ""
 "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
-"Вкажіть ім'я автора, наприклад: <i>John Doe &lt;jdoe@example.com&gt;</i>"
 
 #: lib\commit.py:311
 msgid "&Local commit in a bound branch"
@@ -170,7 +151,7 @@ msgstr ""
 
 #: lib\commit.py:321 lib\revert.py:60
 msgid "Changes"
-msgstr "Зміни"
+msgstr "Değişiklikler"
 
 #: lib\commit.py:336
 msgid "Pending Merges"
@@ -178,15 +159,15 @@ msgstr ""
 
 #: lib\commit.py:368 lib\main.py:360 lib\subprocess.py:102 lib\wtlist.py:80
 msgid "Status"
-msgstr "Статус"
+msgstr "Durum"
 
 #: lib\commit.py:442
 msgid "Empty commit message. Do you really want to commit?"
-msgstr "Немає коментаря. Ви насправді бажаєте фіксувати?"
+msgstr ""
 
 #: lib\config.py:41
 msgid "Default"
-msgstr "Типово"
+msgstr "Öntanımlı"
 
 #: lib\config.py:42
 msgid "Thunderbird"
@@ -206,51 +187,51 @@ msgstr "Mutt"
 
 #: lib\config.py:46
 msgid "XDG e-mail client"
-msgstr "XDG e-mail клієнт"
+msgstr "XDG e-posta istemcisi"
 
 #: lib\config.py:47
 msgid "MAPI e-mail client"
-msgstr "MAPI e-mail клієнт"
+msgstr "MAPI e-posta istemcisi"
 
 #: lib\config.py:48
 msgid "Editor"
-msgstr "Редактор"
+msgstr "Düzenleyici"
 
 #: lib\config.py:57
 msgid "Configuration"
-msgstr "Налаштування"
+msgstr "Yapılandırma"
 
 #: lib\config.py:67 lib\ui_bookmark.py:50
 msgid "&Name:"
-msgstr "Ім’я:"
+msgstr "&Ad:"
 
 #: lib\config.py:73
 msgid "E-&mail:"
-msgstr "E-&mail:"
+msgstr "E-&posta:"
 
 #: lib\config.py:79
 msgid "&Editor:"
-msgstr "&Редактор:"
+msgstr "&Düzenleyici:"
 
 #: lib\config.py:87
 msgid "E-mail &client:"
-msgstr "E-mail &клієнт:"
+msgstr "E-posta &istemcisi:"
 
 #: lib\config.py:97
 msgid "Alias"
-msgstr "Псевдонім"
+msgstr ""
 
 #: lib\config.py:97
 msgid "Command"
-msgstr "Команда"
+msgstr "Komut"
 
 #: lib\config.py:102 lib\config.py:123
 msgid "Remove"
-msgstr "Видалити"
+msgstr ""
 
 #: lib\config.py:118
 msgid "Abbreviation"
-msgstr "Абревіатура"
+msgstr "Kısaltma"
 
 #: lib\config.py:118
 msgid "URL"
@@ -258,11 +239,11 @@ msgstr "URL"
 
 #: lib\config.py:137
 msgid "General"
-msgstr "Загальні"
+msgstr "Genel"
 
 #: lib\config.py:138
 msgid "Aliases"
-msgstr "Псевдоніми"
+msgstr ""
 
 #: lib\config.py:139
 msgid "Bug Trackers"
@@ -270,7 +251,7 @@ msgstr ""
 
 #: lib\config.py:140
 msgid "&User Interface"
-msgstr ""
+msgstr "K&ullanıcı Arayüzü"
 
 #: lib\config.py:165
 msgid "Spell check &language:"
@@ -283,7 +264,7 @@ msgstr ""
 
 #: lib\diff.py:66
 msgid "Working Tree"
-msgstr ""
+msgstr "Çalışma Ağacı"
 
 #: lib\diff.py:91
 #, python-format
@@ -307,23 +288,22 @@ msgstr ""
 
 #: lib\diff.py:115 lib\diff.py:313 lib\log.py:527
 msgid "Diff"
-msgstr "Різниця"
+msgstr "Fark"
 
 #: lib\diff.py:121
 #, python-format
 msgid "%d file"
 msgid_plural "%d files"
-msgstr[0] "%d файл"
-msgstr[1] "%d файли"
-msgstr[2] "%d файлів"
+msgstr[0] ""
+msgstr[1] ""
 
 #: lib\diff.py:153
 msgid "Side by side"
-msgstr ""
+msgstr "Taraf tarafa"
 
 #: lib\diff.py:160
 msgid "Unidiff"
-msgstr "Unidiff"
+msgstr ""
 
 #: lib\diff.py:165
 msgid "Complete"
@@ -331,23 +311,23 @@ msgstr ""
 
 #: lib\diff.py:256 lib\wtlist.py:116
 msgid "removed"
-msgstr "видалений"
+msgstr "silindi"
 
 #: lib\diff.py:258 lib\wtlist.py:112
 msgid "added"
-msgstr "доданий"
+msgstr "eklendi"
 
 #: lib\diff.py:260 lib\wtlist.py:127
 msgid "renamed and modified"
-msgstr "перейменований та змінений"
+msgstr ""
 
 #: lib\diff.py:262 lib\wtlist.py:129
 msgid "renamed"
-msgstr "перейменований"
+msgstr "adı değiştirildi"
 
 #: lib\diff.py:264 lib\wtlist.py:136
 msgid "modified"
-msgstr "змінений"
+msgstr "değiştirildi"
 
 #: lib\diff.py:314
 #, python-format
@@ -358,27 +338,27 @@ msgstr ""
 
 #: lib\diff.py:316 lib\util.py:69
 msgid "&Close"
-msgstr "&Закрити"
+msgstr "&Kapat"
 
 #: lib\diffview.py:212
 msgid "Last modified:"
-msgstr "Останні зміни"
+msgstr ""
 
 #: lib\diffview.py:213
 msgid "Status:"
-msgstr "Стан:"
+msgstr "Durum:"
 
 #: lib\diffview.py:214
 msgid "Kind:"
-msgstr "Тип:"
+msgstr "Tür:"
 
 #: lib\diffview.py:215
 msgid "Properties:"
-msgstr ""
+msgstr "Özellikler:"
 
 #: lib\diffview.py:463
 msgid "[binary file]"
-msgstr ""
+msgstr "[ikili dosya]"
 
 #: lib\diffview.py:622
 msgid "\\ No newline at end of file"
@@ -391,23 +371,23 @@ msgstr ""
 
 #: lib\help.py:110
 msgid "Help"
-msgstr ""
+msgstr "Yardım"
 
 #: lib\i18n.py:87
 msgid "file"
-msgstr "файл"
+msgstr "dosya"
 
 #: lib\i18n.py:88
 msgid "directory"
-msgstr "тека"
+msgstr "dizin"
 
 #: lib\i18n.py:89
 msgid "symlink"
-msgstr "символичний зв'язок"
+msgstr ""
 
 #: lib\i18n.py:91
 msgid "fixed"
-msgstr "полагоджен"
+msgstr ""
 
 #: lib\i18n.py:93
 msgid "View text file"
@@ -419,7 +399,7 @@ msgstr ""
 
 #: lib\i18n.py:95
 msgid "View binary file"
-msgstr ""
+msgstr "İkili dosya görüntüle"
 
 #: lib\i18n.py:96
 msgid "View symlink"
@@ -431,23 +411,23 @@ msgstr ""
 
 #: lib\info.py:41
 msgid "Info"
-msgstr ""
+msgstr "Bilgi"
 
 #: lib\init.py:38 lib\ui_init.py:118
 msgid "Initialize"
-msgstr ""
+msgstr "İlklendir"
 
 #: lib\init.py:74
 msgid "You must specify a location"
-msgstr ""
+msgstr "Bir konum belirtmelisiniz"
 
 #: lib\log.py:367
 msgid "Log"
-msgstr "Журнал"
+msgstr "Günlük"
 
 #: lib\log.py:395
 msgid "&Search:"
-msgstr "&Пошук:"
+msgstr "&Ara:"
 
 #: lib\log.py:417
 msgid "Messages and File text (indexed)"
@@ -455,60 +435,60 @@ msgstr ""
 
 #: lib\log.py:433
 msgid "Messages"
-msgstr "Коментар"
+msgstr "İletiler"
 
 #: lib\log.py:435
 msgid "Authors"
-msgstr "Автори"
+msgstr ""
 
 #: lib\log.py:437
 msgid "Revision IDs"
-msgstr "Revision IDs"
+msgstr ""
 
 #: lib\log.py:439
 msgid "Revision Numbers"
-msgstr "Номери версій"
+msgstr ""
 
 #: lib\log.py:534 lib\wtlist.py:67
 msgid "Show &differences..."
-msgstr ""
+msgstr "&Farkları göster..."
 
 #: lib\log.py:535
 msgid "Show &tree..."
-msgstr ""
+msgstr "&Ağacı göster..."
 
 #: lib\logmodel.py:893
 #, python-format
 msgid "bug #%s"
-msgstr "bug #%s"
+msgstr ""
 
 #: lib\main.py:125
 msgid "Computer"
-msgstr "Комп'ютер"
+msgstr "Bilgisayar"
 
 #: lib\main.py:154
 msgid "&Edit Bookmark..."
-msgstr ""
+msgstr "Yer İmini &Düzenle..."
 
 #: lib\main.py:155
 msgid "&Remove Bookmark..."
-msgstr ""
+msgstr "Yer İmini &Sil..."
 
 #: lib\main.py:170
 msgid "Bookmarks"
-msgstr "Закладки"
+msgstr "Yer İmleri"
 
 #: lib\main.py:279 lib\util.py:71
 msgid "&Refresh"
-msgstr "&Оновити"
+msgstr "&Tazele"
 
 #: lib\main.py:281
 msgid "Refresh the directory tree"
-msgstr ""
+msgstr "Dizin ağacını tazele"
 
 #: lib\main.py:285
 msgid "&Commit"
-msgstr "&Зафіксувати"
+msgstr ""
 
 #: lib\main.py:286
 msgid "Commit changes into a new revision"
@@ -520,7 +500,7 @@ msgstr ""
 
 #: lib\main.py:291
 msgid "Turn this branch into a mirror of another branch"
-msgstr ""
+msgstr "Bu dalı başka bir dalın yansısı yap"
 
 #: lib\main.py:295
 msgid "Pu&ll"
@@ -532,23 +512,23 @@ msgstr ""
 
 #: lib\main.py:299
 msgid "&Add Bookmark..."
-msgstr ""
+msgstr "Yer İmi &Ekle..."
 
 #: lib\main.py:306
 msgid "&File"
-msgstr "&Файл"
+msgstr "&Dosya"
 
 #: lib\main.py:307
 msgid "&Configure..."
-msgstr "&Налаштувати..."
+msgstr "&Yapılandır..."
 
 #: lib\main.py:309
 msgid "&Quit"
-msgstr "&Вихід"
+msgstr "&Çık"
 
 #: lib\main.py:310
 msgid "&View"
-msgstr ""
+msgstr "&Görüntüle"
 
 #: lib\main.py:312
 msgid "&Branch"
@@ -556,27 +536,27 @@ msgstr ""
 
 #: lib\main.py:316
 msgid "&Bookmarks"
-msgstr ""
+msgstr "&Yer İmleri"
 
 #: lib\main.py:318 lib\util.py:70
 msgid "&Help"
-msgstr "&Допомога"
+msgstr "Ya&rdım"
 
 #: lib\main.py:319
 msgid "&Help..."
-msgstr "&Довідка..."
+msgstr "Ya&rdım..."
 
 #: lib\main.py:321
 msgid "&About..."
-msgstr "&Про програму..."
+msgstr "&Hakkında..."
 
 #: lib\main.py:359
 msgid "Size"
-msgstr "Розмір"
+msgstr "Boyut"
 
 #: lib\main.py:411
 msgid "About QBzr"
-msgstr "Про QBzr"
+msgstr "QBzr Hakkında"
 
 #: lib\main.py:412
 #, python-format
@@ -589,39 +569,39 @@ msgstr ""
 
 #: lib\main.py:477
 msgid "Add Bookmark"
-msgstr "Додати закладку"
+msgstr "Yer İmi Ekle"
 
 #: lib\main.py:488
 msgid "Edit Bookmark"
-msgstr "Редагувати закладку"
+msgstr "Yer İmini Düzenle"
 
 #: lib\main.py:498
 msgid "Remove Bookmark"
-msgstr "Видалити закладку"
+msgstr "Yer İmini Sil"
 
 #: lib\main.py:499
 msgid "Do you really want to remove the selected bookmark?"
-msgstr ""
+msgstr "Seçilen yer imini silmek istediğinize emin misiniz?"
 
 #: lib\revert.py:52 lib\wtlist.py:209
 msgid "Revert"
-msgstr "Повернути"
+msgstr "Eski Durumuna Getir"
 
 #: lib\subprocess.py:234
 msgid "Stopped"
-msgstr "Зупинено"
+msgstr ""
 
 #: lib\subprocess.py:280
 msgid "Starting..."
-msgstr "Запуск..."
+msgstr "Başlatılıyor..."
 
 #: lib\subprocess.py:305
 msgid "Aborting..."
-msgstr "Припиняється..."
+msgstr "İptal ediliyor..."
 
 #: lib\subprocess.py:313
 msgid "Finished!"
-msgstr ""
+msgstr "Tamamlandı!"
 
 #: lib\subprocess.py:351 lib\subprocess.py:368
 msgid "Failed!"
@@ -629,50 +609,50 @@ msgstr ""
 
 #: lib\subprocess.py:353
 msgid "Failed to start bzr."
-msgstr ""
+msgstr "bzr başlatılamadı."
 
 #: lib\subprocess.py:355
 #, python-format
 msgid "Error while running bzr. (error code: %d)"
-msgstr ""
+msgstr "bzr çalıştırılırken bir sorunla karşılaşıldı. (hata kodu: %d)"
 
 #: lib\ui_bookmark.py:51 lib\ui_branch.py:67 lib\ui_merge.py:59
 #: lib\ui_pull.py:62 lib\ui_push.py:64
 msgid "&Location:"
-msgstr "&Розташування:"
+msgstr "&Konum:"
 
 #: lib\ui_branch.py:65 lib\ui_new_tree.py:130
 msgid "Branch"
-msgstr "Гілка"
+msgstr ""
 
 #: lib\ui_branch.py:66 lib\ui_merge.py:58 lib\ui_pull.py:61 lib\ui_push.py:63
 msgid "Options"
-msgstr "Параметри"
+msgstr "Seçenekler"
 
 #: lib\ui_branch.py:68 lib\ui_branch.py:71 lib\ui_init.py:120
 #: lib\ui_merge.py:60 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
 #: lib\ui_pull.py:63 lib\ui_push.py:65 lib\ui_update_branch.py:85
 #: lib\ui_update_checkout.py:79
 msgid "Browse..."
-msgstr ""
+msgstr "Gözat..."
 
 #: lib\ui_branch.py:69 lib\ui_merge.py:61 lib\ui_pull.py:64
 msgid "&Revision:"
-msgstr "&Версія:"
+msgstr ""
 
 #: lib\ui_branch.py:70
 msgid "&To:"
-msgstr "&Куди:"
+msgstr ""
 
 #: lib\ui_info.py:176
 msgid "Local location:"
-msgstr ""
+msgstr "Yerel Konum:"
 
 #: lib\ui_info.py:177 lib\ui_info.py:179 lib\ui_info.py:182 lib\ui_info.py:184
 #: lib\ui_info.py:186 lib\ui_info.py:189 lib\ui_info.py:191 lib\ui_info.py:193
 #: lib\ui_info.py:195
 msgid "..."
-msgstr ""
+msgstr "..."
 
 #: lib\ui_info.py:178
 msgid "Public branch location:"
@@ -680,7 +660,7 @@ msgstr ""
 
 #: lib\ui_info.py:180
 msgid "&Location"
-msgstr ""
+msgstr "&Konum"
 
 #: lib\ui_info.py:181
 msgid "Push branch:"
@@ -688,7 +668,7 @@ msgstr ""
 
 #: lib\ui_info.py:183
 msgid "Parent branch:"
-msgstr ""
+msgstr "Üst dal:"
 
 #: lib\ui_info.py:185
 msgid "Submit branch:"
@@ -696,15 +676,15 @@ msgstr ""
 
 #: lib\ui_info.py:187
 msgid "&Related Branches"
-msgstr ""
+msgstr "İ&lgili Dallar"
 
 #: lib\ui_info.py:188
 msgid "Working tree format:"
-msgstr ""
+msgstr "Çalışma ağacı biçimi:"
 
 #: lib\ui_info.py:190
 msgid "Branch format:"
-msgstr ""
+msgstr "Dal biçimi:"
 
 #: lib\ui_info.py:192
 msgid "Repository format:"
@@ -712,15 +692,15 @@ msgstr ""
 
 #: lib\ui_info.py:194
 msgid "Control directory format:"
-msgstr ""
+msgstr "Denetim dizini biçimi:"
 
 #: lib\ui_info.py:196
 msgid "&Format"
-msgstr ""
+msgstr "&Biçim"
 
 #: lib\ui_init.py:119
 msgid "Local Directory"
-msgstr ""
+msgstr "Yerel Dizin"
 
 #: lib\ui_init.py:121
 msgid "Repository"
@@ -728,7 +708,7 @@ msgstr ""
 
 #: lib\ui_init.py:122
 msgid "Create a new standalone tree"
-msgstr ""
+msgstr "Yeni bir kendibaşına ağaç oluştur"
 
 #: lib\ui_init.py:123
 msgid "Ensure all revisions are appended to the log"
@@ -748,19 +728,19 @@ msgstr ""
 
 #: lib\ui_init.py:132
 msgid "Description of format"
-msgstr ""
+msgstr "Biçimin açıklaması"
 
 #: lib\ui_merge.py:57
 msgid "Merge"
-msgstr ""
+msgstr "Birleştir"
 
 #: lib\ui_merge.py:62 lib\ui_pull.py:65 lib\ui_push.py:66
 msgid "Remember this location as a default"
-msgstr ""
+msgstr "Bu konumu öntanımlı olarak hatırla"
 
 #: lib\ui_new_tree.py:129
 msgid "Create a new Bazaar Working Tree"
-msgstr ""
+msgstr "Yeni bir Bazaar Çalışma Ağacı Yarat"
 
 #: lib\ui_new_tree.py:131
 msgid ""
@@ -770,11 +750,11 @@ msgstr ""
 
 #: lib\ui_new_tree.py:133
 msgid "Local directory where the working tree will be created"
-msgstr ""
+msgstr "Çalışma dizininin yaratılacağı yerel dizin"
 
 #: lib\ui_new_tree.py:135
 msgid "Working Tree Options"
-msgstr ""
+msgstr "Çalışma Ağacı Seçenekleri"
 
 #: lib\ui_new_tree.py:136
 msgid "Create a checkout"
@@ -786,7 +766,7 @@ msgstr ""
 
 #: lib\ui_new_tree.py:145
 msgid "Make a local copy of the branch"
-msgstr ""
+msgstr "Dalın yerel bir kopyasını yarat"
 
 #: lib\ui_new_tree.py:151
 msgid "Create a stacked branch referring to the source branch"
@@ -806,7 +786,7 @@ msgstr ""
 
 #: lib\ui_new_tree.py:161
 msgid "Show Log..."
-msgstr ""
+msgstr "Günlüğü Göster..."
 
 #: lib\ui_pull.py:60
 msgid "Pull"
@@ -815,7 +795,7 @@ msgstr ""
 #: lib\ui_pull.py:66 lib\ui_push.py:67 lib\ui_update_branch.py:88
 #: lib\ui_update_checkout.py:80
 msgid "Overwrite differences between branches"
-msgstr ""
+msgstr "Dallar arasındaki farklılıkların üzerine yaz"
 
 #: lib\ui_push.py:62
 msgid "Push"
@@ -823,7 +803,7 @@ msgstr ""
 
 #: lib\ui_push.py:68
 msgid "Use existing directory"
-msgstr "Використати існуючий каталог"
+msgstr "Mevcut dizini kullan"
 
 #: lib\ui_push.py:69
 msgid "Create the path up to the branch if it does not exist"
@@ -848,7 +828,7 @@ msgstr ""
 
 #: lib\ui_update_branch.py:87
 msgid "Remember this as the new parent branch"
-msgstr ""
+msgstr "Bu dalı yeni üst dal olarak hatırla"
 
 #: lib\ui_update_branch.py:89
 msgid "<Parent Branch shown here>"
@@ -856,7 +836,7 @@ msgstr ""
 
 #: lib\ui_update_branch.py:90
 msgid "Update working tree to the latest changes in the branch"
-msgstr ""
+msgstr "Çalışma ağacını dalın en yeni haline güncelle"
 
 #: lib\ui_update_checkout.py:74
 msgid "Update Checkout"
@@ -877,11 +857,11 @@ msgstr ""
 
 #: lib\util.py:67
 msgid "&OK"
-msgstr "&OK"
+msgstr "&Tamam"
 
 #: lib\util.py:68
 msgid "&Cancel"
-msgstr "&Скасувати"
+msgstr "&İptal"
 
 #: lib\util.py:313
 msgid "Select Source Directory"
@@ -901,19 +881,19 @@ msgstr ""
 
 #: lib\util.py:386
 msgid "Committer:"
-msgstr "Зафіксовано:"
+msgstr ""
 
 #: lib\util.py:389
 msgid "Author:"
-msgstr "Автор:"
+msgstr ""
 
 #: lib\util.py:393
 msgid "Branch:"
-msgstr ""
+msgstr "Dal:"
 
 #: lib\util.py:398
 msgid "Tags:"
-msgstr "Теги:"
+msgstr "Etiketler:"
 
 #: lib\util.py:407
 msgid "Bug:"
@@ -923,35 +903,35 @@ msgstr[1] ""
 
 #: lib\util.py:552
 msgid "deleted files"
-msgstr "видалені файли"
+msgstr "silinen dosyalar"
 
 #: lib\util.py:554
 msgid "added files"
-msgstr "додані файли"
+msgstr "eklenen dosyalar"
 
 #: lib\util.py:556
 msgid "renamed files"
-msgstr "перейменовані файли"
+msgstr "adı değiştirilen dosyalar"
 
 #: lib\util.py:558
 msgid "modified files"
-msgstr "змінені файли"
+msgstr "değiştirilen dosyalar"
 
 #: lib\wtlist.py:42
 msgid "Select / deselect all"
-msgstr ""
+msgstr "Tümünü seç / Hiçbirini seçme"
 
 #: lib\wtlist.py:70
 msgid "&Revert..."
-msgstr "&Повернути попередню версію..."
+msgstr ""
 
 #: lib\wtlist.py:80
 msgid "File"
-msgstr "Файл"
+msgstr "Dosya"
 
 #: lib\wtlist.py:80
 msgid "Extension"
-msgstr "Розширення"
+msgstr "Uzantı"
 
 #: lib\wtlist.py:106
 msgid "ignored"
@@ -959,11 +939,11 @@ msgstr ""
 
 #: lib\wtlist.py:108
 msgid "non-versioned"
-msgstr "невідомий"
+msgstr ""
 
 #: lib\wtlist.py:120
 msgid "missing"
-msgstr ""
+msgstr "eksik"
 
 #: lib\wtlist.py:208
 #, python-format

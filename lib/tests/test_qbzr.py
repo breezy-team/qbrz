@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 #
-# QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2008 Lukáš Lalinský <lalinsky@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
@@ -17,27 +16,24 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import os
-import sys
+"""Tests for QBzr plugin."""
 
-if hasattr(sys, "frozen"):
-    # "hack in" our PyQt4 binaries
-    sys.path.append(os.path.normpath(os.path.join(
-        os.path.dirname(__file__), '..', '..', '_lib')))
+from bzrlib.tests import TestCase
+from bzrlib.plugins.qbzr import LazyCommandProxy
 
 
-def load_tests(basic_tests, module, loader):
-    testmod_names = [
-        'test_autocomplete',
-        #'test_diffview', - broken by API changes
-        'test_extra_isignored',
-        'test_extra_isversioned',
-        'test_i18n',
-        'test_logmodel',
-        'test_qbzr',
-        'test_spellcheck',
-        'test_util',
-    ]
-    basic_tests.addTests(loader.loadTestsFromModuleNames(
-        ["%s.%s" % (__name__, name) for name in testmod_names]))
-    return basic_tests
+class FakeCommand(object):
+    hidden = True
+
+
+class TestLazyCommandProxy(TestCase):
+
+    def test_proxy_attrs(self):
+        """Test that the class proxies attributes."""
+        cmd = LazyCommandProxy('bzrlib.plugins.qbzr.lib.tests.test_qbzr', 'FakeCommand', [])
+        self.assertEquals(cmd.hidden, True)
+
+    def test_direct_aliases(self):
+        """Test that the class accesses aliases directly."""
+        cmd = LazyCommandProxy('bzrlib.plugins.qbzr.lib.tests.test_qbzr_doesnt_exist', 'FakeCommand', ['foo'])
+        self.assertEquals(cmd.aliases, ['foo'])

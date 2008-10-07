@@ -1,5 +1,5 @@
 ./build
-./docs/*.html
+./docs/**/*.html
 ./installer/_lib/*
 ./locale
 ./MANIFEST

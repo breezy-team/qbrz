@@ -43,7 +43,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     FilterOptions,
     QBzrWindow,
     StandardButton,
-    get_branch_config,
     get_set_encoding,
     )
 
@@ -100,6 +99,7 @@ def get_title_for_tree(tree, branch, other_branch):
     # XXX I don't know what other cases we need to handle    
     return ""
 
+
 class DiffWindow(QBzrWindow):
 
     def __init__(self,
@@ -125,8 +125,8 @@ class DiffWindow(QBzrWindow):
             if filter_options and not filter_options.is_all_enable():
                 title.append(filter_options.to_str())
 
-        self.encodings = (get_set_encoding(encoding, get_branch_config(branch1)),
-                          get_set_encoding(encoding, get_branch_config(branch2)))
+        self.encodings = (get_set_encoding(encoding, branch1),
+                          get_set_encoding(encoding, branch2))
         
         self.filter_options = filter_options
         if filter_options is None:

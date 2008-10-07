@@ -1,0 +1,163 @@
+<ui version="4.0" >
+ <class>TagForm</class>
+ <widget class="QDialog" name="TagForm" >
+  <property name="windowModality" >
+   <enum>Qt::NonModal</enum>
+  </property>
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>340</width>
+    <height>220</height>
+   </rect>
+  </property>
+  <property name="sizePolicy" >
+   <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize" >
+   <size>
+    <width>0</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="contextMenuPolicy" >
+   <enum>Qt::DefaultContextMenu</enum>
+  </property>
+  <property name="windowTitle" >
+   <string>Edit tag</string>
+  </property>
+  <layout class="QVBoxLayout" >
+   <item>
+    <widget class="QGroupBox" name="branch_group" >
+     <property name="title" >
+      <string>Branch</string>
+     </property>
+     <layout class="QGridLayout" >
+      <item row="0" column="0" colspan="2" >
+       <widget class="QLineEdit" name="branch_location" />
+      </item>
+      <item row="1" column="0" >
+       <spacer>
+        <property name="orientation" >
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" >
+         <size>
+          <width>261</width>
+          <height>25</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="1" column="1" >
+       <widget class="QPushButton" name="branch_browse" >
+        <property name="text" >
+         <string>&amp;Browse...</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="tag_group" >
+     <property name="minimumSize" >
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="title" >
+      <string>Tag</string>
+     </property>
+     <layout class="QGridLayout" >
+      <item row="0" column="0" >
+       <widget class="QLabel" name="label_action" >
+        <property name="text" >
+         <string>&amp;Action:</string>
+        </property>
+        <property name="buddy" >
+         <cstring>cb_action</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1" >
+       <widget class="QComboBox" name="cb_action" >
+        <item>
+         <property name="text" >
+          <string>Create new tag</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
+          <string>Replace existing tag</string>
+         </property>
+        </item>
+        <item>
+         <property name="text" >
+          <string>Delete existing tag</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="1" column="0" >
+       <widget class="QLabel" name="label_tag_name" >
+        <property name="text" >
+         <string>&amp;Tag name:</string>
+        </property>
+        <property name="buddy" >
+         <cstring>cb_tag</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1" >
+       <widget class="QComboBox" name="cb_tag" >
+        <property name="editable" >
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0" >
+       <widget class="QLabel" name="label_revision" >
+        <property name="text" >
+         <string>&amp;Revision:</string>
+        </property>
+        <property name="buddy" >
+         <cstring>rev_edit</cstring>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1" >
+       <widget class="QLineEdit" name="rev_edit" />
+      </item>
+      <item row="2" column="2" >
+       <widget class="QPushButton" name="pick_rev" >
+        <property name="enabled" >
+         <bool>false</bool>
+        </property>
+        <property name="text" >
+         <string>&amp;Select...</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <layoutdefault spacing="6" margin="9" />
+ <tabstops>
+  <tabstop>branch_location</tabstop>
+  <tabstop>branch_browse</tabstop>
+  <tabstop>cb_action</tabstop>
+  <tabstop>cb_tag</tabstop>
+  <tabstop>rev_edit</tabstop>
+  <tabstop>pick_rev</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

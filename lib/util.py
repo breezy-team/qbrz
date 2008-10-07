@@ -34,7 +34,7 @@ from bzrlib.config import (
 from bzrlib import (
     lazy_regex,
     osutils,
-    urlutils
+    urlutils,
     )
 from bzrlib.util.configobj import configobj
 
@@ -185,11 +185,16 @@ class QBzrGlobalConfig(IniBasedConfig):
         self._get_parser().write(f)
         f.close()
 
+
 class _QBzrWindowBase:
     
-    def set_title_icon(self, title):
+    def set_title_and_icon(self, title=None):
+        """Set window title (from string or list) and bzr icon"""
         if title:
-            self.setWindowTitle(" - ".join(title))
+            if isinstance(title, basestring):
+                self.setWindowTitle(title)
+            elif isinstance(title, (list, tuple)):
+                self.setWindowTitle(" - ".join(title))
         icon = QtGui.QIcon()
         icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
         icon.addFile(":/bzr-32.png", QtCore.QSize(32, 32))
@@ -316,6 +321,26 @@ class _QBzrWindowBase:
                     "Don't know how to get value for %s" % widget)
         return ret
 
+    def saveSplitterSizes(self):
+        name = self._window_name
+        config = QBzrGlobalConfig()
+        sizes = ':'.join(map(str, self.splitter.sizes()))
+        config.set_user_option(name + "_splitter_sizes", sizes)
+
+    def restoreSplitterSizes(self, default_sizes=None):
+        name = self._window_name
+        config = QBzrGlobalConfig()
+        sizes = config.get_user_option(name + "_splitter_sizes")
+        n = len(self.splitter.sizes())
+        if sizes:
+            sizes = map(int, sizes.split(':'))
+            if len(sizes) != n:
+                sizes = None
+        if not sizes and default_sizes and len(default_sizes) == n:
+            sizes = default_sizes
+        if sizes:
+            self.splitter.setSizes(sizes)
+
     def closeEvent(self, event):
         self.saveSize()
         for window in self.windows:
@@ -335,12 +360,13 @@ class _QBzrWindowBase:
         from bzrlib.plugins.qbzr.lib.help import show_help
         show_help(link, self)
 
+
 class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
 
-    def __init__(self, title=[], parent=None, centralwidget=None):
+    def __init__(self, title=None, parent=None, centralwidget=None):
         QtGui.QMainWindow.__init__(self, parent)
 
-        self.set_title_icon(title)
+        self.set_title_and_icon(title)
 
         if centralwidget is None:
             centralwidget = QtGui.QWidget(self)
@@ -348,12 +374,13 @@ class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
         self.setCentralWidget(self.centralwidget)
         self.windows = []
 
+
 class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
 
-    def __init__(self, title=[], parent=None):
+    def __init__(self, title=None, parent=None):
         QtGui.QDialog.__init__(self, parent)
         
-        self.set_title_icon(title)
+        self.set_title_and_icon(title)
         
         self.windows = []
 
@@ -361,12 +388,17 @@ class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
 # Helpers for directory pickers.
 # We use these items both as 'flags' and as titles!
 # A directory picker used to select a 'pull' location.
-DIRECTORYPICKER_SOURCE = "Select Source Directory"
+DIRECTORYPICKER_SOURCE = N_("Select Source Directory")
 # A directory picker used to select a destination
-DIRECTORYPICKER_TARGET = "Select Target Directory"
+DIRECTORYPICKER_TARGET = N_("Select Target Directory")
 
 def hookup_directory_picker(dialog, chooser, target, chooser_type):
-    # an inline handler that serves as a 'link' between the widgets.
+    """An inline handler that serves as a 'link' between the widgets.
+    @param  dialog:     dialog window object
+    @param  chooser:    usually 'Browse' button in a dialog
+    @param  target:     QLineEdit or QComboBox where location will be shown
+    @param  chooser_type:   caption string for directory selector dialog
+    """
     caption = gettext(chooser_type)
     def click_handler(dlg=dialog, chooser=chooser, target=target, caption=caption):
         try:
@@ -533,11 +565,12 @@ def is_valid_encoding(encoding):
     return True
 
 
-def get_set_encoding(encoding, config):
+def get_set_encoding(encoding, branch):
     """Return encoding value from branch config if encoding is None,
     otherwise store encoding value in branch config.
     """
     if encoding is None:
+        config = get_branch_config(branch)
         encoding = config.get_user_option("encoding") or 'utf-8'
         if not is_valid_encoding(encoding):
             from bzrlib.trace import note
@@ -545,8 +578,10 @@ def get_set_encoding(encoding, config):
                 'utf-8 will be used instead') % encoding)
             encoding = 'utf-8'
     else:
-        config.set_user_option("encoding", encoding)
+        if branch is not None:
+            branch.get_config().set_user_option("encoding", encoding)
     return encoding
+
 
 class RevisionMessageBrowser(QtGui.QTextBrowser):
 
@@ -660,13 +695,7 @@ def iter_branch_related_locations(branch):
                      branch.get_submit_branch(),
                     ]:
         if location is not None:
-            yield urlutils.unescape_for_display(location, 'utf-8')
-
-# Iterate the 'pull' locations we have previously saved for the user.
-def iter_saved_pull_locations():
-    # XXX - todo
-    return []
-
+            yield url_for_display(location)
 
 # A helper to fill a 'pull' combo.
 def fill_pull_combo(combo, branch):
@@ -674,7 +703,7 @@ def fill_pull_combo(combo, branch):
         p = u''
         related = []
     else:
-        p = urlutils.unescape_for_display(branch.get_parent() or '', 'utf-8')
+        p = url_for_display(branch.get_parent() or '')
         related = iter_branch_related_locations(branch)
     fill_combo_with(combo, p, related, iter_saved_pull_locations())
 
@@ -688,16 +717,54 @@ def fill_combo_with(combo, default, *iterables):
             done.add(item)
             combo.addItem(item)
 
-# Helper to optionally save the 'pull' location a user specified for
-# a branch.
+
+def iter_saved_pull_locations():
+    """ Iterate the 'pull' locations we have previously saved for the user.
+    """
+    config = QBzrConfig()
+    try:
+        sect = config.getSection('Pull Locations')
+    except KeyError:
+        return []
+    items = sorted(sect.items())
+    return [i[1] for i in items]
+
+
 def save_pull_location(branch, location):
-    # XXX - todo
-    # Intent here is first to check that the location isn't related to
-    # the branch (ie, if its the branch parent, do don't remember it).
-    # Otherwise, the location gets written to our user-prefs file, using
-    # an MRU scheme to avoid runaway growth in the saved locations and keeping
-    # the most relevant locations at the top.
-    pass
+    """ Helper to optionally save the 'pull' location a user specified for
+    a branch. Uses an MRU scheme to avoid runaway growth in the saved locations
+    and keeping the most relevant locations at the top.
+
+    The location is *not* saved if:
+
+    * It is related to a branch (ie, the parent)
+    * It is a directory
+    """
+    if branch is not None and location in iter_branch_related_locations(branch):
+        return
+    if os.path.isdir(location):
+        return
+    existing = list(iter_saved_pull_locations())
+    try:
+        existing.remove(location)
+    except ValueError:
+        pass
+    existing.insert(0, location)
+    # XXX - the number to save should itself be a preference???
+    max_items = 20
+    existing = existing[:max_items]
+
+    config = QBzrConfig()
+    # and save it to the ini
+    section = {}
+    for i, save_location in enumerate(existing):
+        # Use a 'sortable string' as the ID to save needing to do an int()
+        # before sorting (you never know what might end up there if the user
+        # edits it)
+        key = "%04d" % i
+        section[key] = save_location
+    config.setSection('Pull Locations', section)
+    config.save()
 
 
 have_pygments = True
@@ -738,3 +805,12 @@ def is_widget_text(widget):
     return (widget.inherits("QLineEdit") or
             widget.inherits("QPlainTextEdit") or
             widget.inherits("QLabel"))
+
+
+def url_for_display(url):
+    """Return human-readable URL or local path for file:/// URLs.
+    Wrapper around bzrlib.urlutils.unescape_for_display
+    """
+    if not url:
+        return url
+    return urlutils.unescape_for_display(url, 'utf-8')

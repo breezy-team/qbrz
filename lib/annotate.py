@@ -32,6 +32,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     format_revision_html,
     format_timestamp,
     get_apparent_author,
+    get_set_encoding,
     open_browser,
     RevisionMessageBrowser,
     split_tokens_at_lines,
@@ -45,6 +46,7 @@ try:
     from pygments.lexers import get_lexer_for_filename
 except ImportError:
     have_pygments = False
+
 
 class FormatedCodeItemDelegate(QtGui.QItemDelegate):
     
@@ -72,6 +74,7 @@ class FormatedCodeItemDelegate(QtGui.QItemDelegate):
             textPoint.setX(textPoint.x() + QtGui.QFontMetrics(painter.font()).width(text))
             painter.restore()
 
+
 class AnnotateWindow(QBzrWindow):
 
     def __init__(self, branch, tree, path, fileId, encoding=None, parent=None):
@@ -79,7 +82,7 @@ class AnnotateWindow(QBzrWindow):
             [gettext("Annotate"), path], parent)
         self.restoreSize("annotate", (780, 680))
 
-        self.encoding = encoding or 'utf-8'
+        self.encoding = get_set_encoding(encoding, branch)
 
         self.windows = []
 
