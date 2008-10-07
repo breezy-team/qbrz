@@ -184,7 +184,10 @@ class cmd_qannotate(QBzrCommand):
             #revision_ids = [o for o in revision_ids if repo.has_revision(o)]
             #revisions = branch.repository.get_revisions(revision_ids)
         finally:
-            branch.unlock()
+            if wt is not None:
+                wt.unlock()
+            else:
+                branch.unlock()
 
         app = QtGui.QApplication(sys.argv)
         win = AnnotateWindow(branch, tree, relpath, file_id, encoding)
