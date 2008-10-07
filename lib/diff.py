@@ -26,12 +26,13 @@ import time
 from PyQt4 import QtCore, QtGui
 
 from bzrlib.errors import BinaryFile, NoSuchRevision, PathsNotVersionedError
-from bzrlib.textfile import check_text_lines
-from bzrlib.workingtree import WorkingTree
-from bzrlib.revisiontree import RevisionTree
-from bzrlib.workingtree_4 import DirStateRevisionTree
 from bzrlib.mutabletree import MutableTree
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
+from bzrlib.revisiontree import RevisionTree
+from bzrlib.textfile import check_text_lines
+from bzrlib.transform import _PreviewTree
+from bzrlib.workingtree import WorkingTree
+from bzrlib.workingtree_4 import DirStateRevisionTree
 
 from bzrlib.plugins.qbzr.lib.diffview import (
     SidebySideDiffView,
@@ -55,7 +56,7 @@ def get_file_lines_from_tree(tree, file_id):
 
 def get_title_for_tree(tree, branch, other_branch):
     branch_title = ""
-    if branch.base!=other_branch.base:
+    if None not in (branch, other_branch) and branch.base != other_branch.base:
         branch_title = branch.nick
     
     if isinstance(tree, WorkingTree):
@@ -64,7 +65,7 @@ def get_title_for_tree(tree, branch, other_branch):
         else:
             return gettext("Working Tree")
     
-    if isinstance(tree, RevisionTree) or isinstance(tree, DirStateRevisionTree):
+    elif isinstance(tree, (RevisionTree, DirStateRevisionTree)):
         # revision_id_to_revno is faster, but only works on mainline rev
         revid = tree.get_revision_id()
         try:
@@ -96,8 +97,11 @@ def get_title_for_tree(tree, branch, other_branch):
             else:
                 return gettext("Revid: %s") % revid
 
+    elif isinstance(tree, _PreviewTree):
+        return gettext('Merge Preview')
+
     # XXX I don't know what other cases we need to handle    
-    return ""
+    return 'Unknown tree'
 
 
 class DiffWindow(QBzrWindow):
