@@ -76,10 +76,13 @@ class QBzrPullWindow(SubProcessDialog):
         fill_pull_combo(self.ui.location, self.branch)
         if location:
             self.ui.location.setEditText(location)
-        # Tell our parent to hook up widgets to bzr options...
-        self.add_option_widget(self.ui.remember, 'remember', remember)
-        self.add_option_widget(self.ui.overwrite, 'overwrite', overwrite)
-        self.add_option_widget(self.ui.revision, 'revision', revision)
+
+        if remember:
+            self.ui.remember.setCheckState(QtCore.Qt.Checked)
+        if overwrite:
+            self.ui.overwrite.setCheckState(QtCore.Qt.Checked)
+        if revision:
+            self.ui.revision.setText(revision)
 
         # One directory picker for the pull location.
         hookup_directory_picker(self,
@@ -89,7 +92,14 @@ class QBzrPullWindow(SubProcessDialog):
 
     def start(self):
         args = ['--directory', self.branch.base]
-        args.extend(self.get_option_widget_args())
+        if self.ui.overwrite.isChecked():
+            args.append('--overwrite')
+        if self.ui.remember.isChecked():
+            args.append('--remember')
+        revision = str(self.ui.revision.text())
+        if revision:
+            args.append('--revision')
+            args.append(revision)
         location = str(self.ui.location.currentText())
         self.process_widget.start(None, 'pull', location, *args)
         save_pull_location(self.branch, location)
@@ -120,13 +130,14 @@ class QBzrPushWindow(SubProcessDialog):
         if location:
             self.ui.location.setEditText(location)
 
-        # Tell our parent to hook up widgets to bzr options...
-        self.add_option_widget(self.ui.remember, 'remember', remember)
-        self.add_option_widget(self.ui.overwrite, 'overwrite', overwrite)
-        self.add_option_widget(self.ui.create_prefix, 'create-prefix',
-                               create_prefix, cmd_name="push")
-        self.add_option_widget(self.ui.use_existing_dir, 'use-existing-dir',
-                               use_existing_dir, cmd_name="push")
+        if remember:
+            self.ui.remember.setCheckState(QtCore.Qt.Checked)
+        if overwrite:
+            self.ui.overwrite.setCheckState(QtCore.Qt.Checked)
+        if create_prefix:
+            self.ui.create_prefix.setCheckState(QtCore.Qt.Checked)
+        if use_existing_dir:
+            self.ui.use_existing_dir.setCheckState(QtCore.Qt.Checked)
 
         # One directory picker for the push location.
         hookup_directory_picker(self,
@@ -136,7 +147,14 @@ class QBzrPushWindow(SubProcessDialog):
 
     def start(self):
         args = ['--directory', self.branch.base]
-        args.extend(self.get_option_widget_args())
+        if self.ui.overwrite.isChecked():
+            args.append('--overwrite')
+        if self.ui.remember.isChecked():
+            args.append('--remember')
+        if self.ui.create_prefix.isChecked():
+            args.append('--create-prefix')
+        if self.ui.use_existing_dir.isChecked():
+            args.append('--use-existing-dir')
         location = str(self.ui.location.currentText())
         self.process_widget.start(None, 'push', location, *args)
 
@@ -164,7 +182,8 @@ class QBzrBranchWindow(SubProcessDialog):
             self.ui.from_location.setEditText(from_location)
         if to_location:
             self.ui.to_location.setEditText(to_location)
-        self.add_option_widget(self.ui.revision, 'revision', revision)
+        if revision:
+            self.ui.revision.setText(revision)
 
         # Our 2 directory pickers hook up to our combos.
         hookup_directory_picker(self,
@@ -178,7 +197,11 @@ class QBzrBranchWindow(SubProcessDialog):
                                 DIRECTORYPICKER_TARGET)
 
     def accept(self):
-        args = self.get_option_widget_args()
+        args = []
+        revision = str(self.ui.revision.text())
+        if revision:
+            args.append('--revision')
+            args.append(revision)
         from_location = str(self.ui.from_location.currentText())
         to_location = str(self.ui.to_location.currentText())
         self.process_widget.start(None, 'branch', from_location, to_location, *args)
@@ -205,8 +228,10 @@ class QBzrMergeWindow(SubProcessDialog):
         if location:
             self.ui.location.setEditText(location)
 
-        self.add_option_widget(self.ui.remember, 'remember', remember)
-        self.add_option_widget(self.ui.revision, 'revision', revision)
+        if remember:
+            self.ui.remember.setCheckState(QtCore.Qt.Checked)
+        if revision:
+            self.ui.revision.setText(revision)
     
         # One directory picker for the pull location.
         hookup_directory_picker(self,
@@ -216,8 +241,8 @@ class QBzrMergeWindow(SubProcessDialog):
 
     def accept(self):
         args = ['--directory', self.branch.base]
-        args.extend(self.get_option_widget_args())
-
+        if self.ui.remember.isChecked():
+            args.append('--remember')
         location = str(self.ui.location.currentText())
         self.process_widget.start(None, 'merge', location, *args)
         save_pull_location(None, location)

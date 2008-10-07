@@ -152,7 +152,6 @@ ui_mode_option = Option("ui-mode", help="Causes dialogs to wait after the operat
 simple_revision_option = Option("revision",
                              short_name='r',
                              type=unicode,
-                             # XXX - we should change this to something like
                              help='See "help revisionspec" for details.')
 
 
@@ -274,14 +273,8 @@ class cmd_qcommit(QBzrCommand):
     """GUI for committing revisions."""
     takes_args = ['selected*']
     takes_options = [
-            Option('message', type=unicode,
-                   short_name='m',
-                   help="Description of the new revision."),
-            Option('local',
-                   help="Perform a local commit in a bound "
-                        "branch.  Local commits are not pushed to "
-                        "the master branch until a normal commit "
-                        "is performed."),
+            bzr_option('commit', 'message'),
+            bzr_option('commit', 'local'),
             ui_mode_option,
             ]
     aliases = ['qci']
@@ -469,7 +462,7 @@ class cmd_qpull(QBzrCommand):
     takes_options = [
         'remember', 'overwrite',
         simple_revision_option,
-        bzr_option('pull', 'directory')
+        bzr_option('pull', 'directory'),
         ui_mode_option,
         ]
     takes_args = ['location?']
@@ -719,17 +712,9 @@ class cmd_qtag(QBzrCommand):
     takes_args = ['tag_name?']
     takes_options = [
         ui_mode_option,
-        Option('delete',
-            help='Delete this tag rather than placing it.',
-            ),
-        Option('directory',
-            help='Branch in which to place the tag.',
-            short_name='d',
-            type=unicode,
-            ),
-        Option('force',
-            help='Replace existing tags.',
-            ),
+        bzr_option('tag', 'delete'),
+        bzr_option('tag', 'directory'),
+        bzr_option('tag', 'force'),
         'revision',
         ]
 
