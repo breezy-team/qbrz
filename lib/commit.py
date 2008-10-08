@@ -332,6 +332,7 @@ class CommitWindow(SubProcessWindow):
 
         # Display a list of pending merges
         if self.pending_merges:
+            selectall_checkbox.setCheckState(QtCore.Qt.Checked)
             selectall_checkbox.setEnabled(False)
             pendingMergesWidget = QtGui.QTreeWidget()
             self.tabWidget.addTab(pendingMergesWidget, gettext("Pending Merges"))
