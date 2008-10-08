@@ -109,7 +109,8 @@ class AnnotateWindow(QBzrWindow):
 
         self.changes = QtGui.QTreeWidget()
         self.changes.setHeaderLabels(
-            [gettext("Date"), gettext("Author"), gettext("Summary")])
+            [gettext("Rev"), gettext("Date"), gettext("Author"), gettext("Summary")])
+        self.changes.header().setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
  
         self.changes.setRootIsDecorated(False)
         self.changes.setUniformRowHeights(True)
@@ -192,13 +193,14 @@ class AnnotateWindow(QBzrWindow):
         self.itemToRev = {}
         items = []
         for rev in revisions:
-            item = QtGui.QTreeWidgetItem()
-            item.setText(0, format_timestamp(rev.timestamp))
-            item.setText(1, rev._author_name)
-            item.setText(2, rev.get_summary())
-            items.append(item)
             rev.revno = revnos[rev.revision_id]
             rev.tags = sorted(revid_to_tags.get(rev.revision_id, []))
+            item = QtGui.QTreeWidgetItem()
+            item.setText(0, rev.revno)
+            item.setText(1, format_timestamp(rev.timestamp))
+            item.setText(2, rev._author_name)
+            item.setText(3, rev.get_summary())
+            items.append(item)
             self.itemToRev[item] = rev
         self.changes.insertTopLevelItems(0, items)
         
@@ -216,7 +218,6 @@ class AnnotateWindow(QBzrWindow):
                 
             except ClassNotFound:
                 pass
-    
 
     def setRevisionByLine(self):
         items = self.browser.selectedItems()
@@ -226,7 +227,7 @@ class AnnotateWindow(QBzrWindow):
         for item, rev in self.itemToRev.iteritems():
             if rev.revision_id == revisionId:
                 self.changes.setCurrentItem(item)
-                self.message_doc.setHtml(format_revision_html(rev))
+                self.message_doc.setHtml(format_revision_html(rev,show_timestamp=True))
                 break
 
     def set_revision_by_item(self):
@@ -234,7 +235,7 @@ class AnnotateWindow(QBzrWindow):
         if len(items) == 1:
             for item, rev in self.itemToRev.iteritems():
                 if item == items[0]:
-                    self.message_doc.setHtml(format_revision_html(rev))
+                    self.message_doc.setHtml(format_revision_html(rev,show_timestamp=True))
                     break
 
     def show_revision_diff(self, index):
@@ -270,4 +271,3 @@ class AnnotateWindow(QBzrWindow):
         saturation = 0.5/((days/50) + 1)
         hue =  1-float(abs(hash(revision._author_name))) / sys.maxint 
         return QtGui.QColor.fromHsvF(hue, saturation, 1 )
-
