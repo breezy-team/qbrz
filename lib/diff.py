@@ -231,12 +231,16 @@ class DiffWindow(QBzrWindow):
                     if parent == (None, None):  # filter out TREE_ROOT (?)
                         continue
 
-                    renamed = (parent[0], name[0]) != (parent[1], name[1])
-
                     # check for manually deleted files (w/o using bzr rm commands)
-                    if versioned == (True, True) and kind[1] is None:
-                        versioned = (True, False)
-                        paths = (paths[0], None)
+                    if kind[1] is None:
+                        if versioned == (False, True):
+                            # added and missed
+                            continue
+                        if versioned == (True, True):
+                            versioned = (True, False)
+                            paths = (paths[0], None)
+
+                    renamed = (parent[0], name[0]) != (parent[1], name[1])
 
                     dates = [None, None]
                     for ix in range(2):

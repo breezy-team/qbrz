@@ -321,13 +321,25 @@ class ChangeDesc(tuple):
                 and (desc[4][0], desc[5][0]) != (desc[4][1], desc[5][1]))
 
     def is_tree_root(desc):
-        """Check is entry actually tree root."""
+        """Check if entry actually tree root."""
         if desc[3] != (False, False) and desc[4] == (None, None):
             # TREE_ROOT has not parents (desc[4]).
             # But because we could want to see unversioned files
             # we need to check for versioned flag (desc[3])
             return True
         return False
+
+    def is_missing(desc):
+        """Check if file was present in previous revision but now it's gone
+        (i.e. deleted manually, without invoking `bzr remove` command)
+        """
+        return (desc[3] == (True, True) and desc[6][1] is None)
+
+    def is_misadded(desc):
+        """Check if file was added to the working tree but then gone
+        (i.e. deleted manually, without invoking `bzr remove` command)
+        """
+        return (desc[3] == (False, True) and desc[6][1] is None)
 
 
 def closure_in_selected_list(selected_list):
