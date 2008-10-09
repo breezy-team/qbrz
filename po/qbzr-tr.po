@@ -1,21 +1,21 @@
 # Turkish translation for qbzr
 # Copyright (c) 2008 Rosetta Contributors and Canonical Ltd 2008
 # This file is distributed under the same license as the qbzr package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2008.
+# Mert Dirik <mertdirik@gmail.com>, 2008.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2008-10-01 15:33+0300\n"
-"PO-Revision-Date: 2008-09-30 21:56+0000\n"
+"PO-Revision-Date: 2008-10-03 16:10+0000\n"
 "Last-Translator: Mert Dirik <mertdirik@gmail.com>\n"
 "Language-Team: Turkish <tr@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2008-10-03 05:36+0000\n"
+"X-Launchpad-Export-Date: 2008-10-08 23:48+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:51 lib\config.py:99 lib\config.py:120
@@ -24,7 +24,7 @@ msgstr "Ekle"
 
 #: lib\add.py:61
 msgid "Unversioned Files"
-msgstr ""
+msgstr "Sürümlendirilmemiş Dosyalar"
 
 #: lib\add.py:78
 msgid "Show ignored files"
@@ -32,7 +32,7 @@ msgstr "Yok sayılan dosyaları göster"
 
 #: lib\annotate.py:79 lib\browse.py:88
 msgid "Annotate"
-msgstr ""
+msgstr "Açımla (Annotate)"
 
 #: lib\annotate.py:93
 msgid "Line"
@@ -41,11 +41,11 @@ msgstr "Satır"
 #: lib\annotate.py:93 lib\annotate.py:109 lib\browse.py:82 lib\commit.py:341
 #: lib\logmodel.py:86
 msgid "Author"
-msgstr ""
+msgstr "Yazar"
 
 #: lib\annotate.py:93 lib\logmodel.py:83
 msgid "Rev"
-msgstr ""
+msgstr "Düz"
 
 #: lib\annotate.py:109 lib\browse.py:81 lib\commit.py:341 lib\logmodel.py:85
 msgid "Date"
@@ -65,7 +65,7 @@ msgstr "Konum:"
 
 #: lib\browse.py:71 lib\ui_new_tree.py:160 lib\util.py:363
 msgid "Revision:"
-msgstr ""
+msgstr "Düzeltme:"
 
 #: lib\browse.py:74
 msgid "Show"
@@ -98,7 +98,7 @@ msgstr "Dosyayı Görüntüle"
 #: lib\cat.py:155
 #, python-format
 msgid "File \"%s\" not found in the specified revision."
-msgstr ""
+msgstr "Belirtilen düzeltmede\"%s\" adlı bir dosya yok."
 
 #: lib\commit.py:218 lib\commit.py:441
 msgid "Commit"
@@ -106,7 +106,7 @@ msgstr ""
 
 #: lib\commit.py:243
 msgid "Show non-versioned files"
-msgstr ""
+msgstr "Sürüm denetimi altında olmayan (sürümlendirilmemiş) dosyaları göster"
 
 #: lib\commit.py:262
 msgid "Enter the commit message"
@@ -114,7 +114,7 @@ msgstr ""
 
 #: lib\commit.py:278
 msgid "&Fixed bugs:"
-msgstr ""
+msgstr "&Giderilen hatalar:"
 
 #: lib\commit.py:279
 msgid "Set the IDs of bugs fixed by this commit"
@@ -128,7 +128,7 @@ msgstr ""
 
 #: lib\commit.py:292
 msgid "&Author:"
-msgstr ""
+msgstr "Y&azar:"
 
 #: lib\commit.py:293
 msgid "Set the author of this change, if it's different from the committer"
@@ -138,6 +138,8 @@ msgstr ""
 msgid ""
 "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
+"Yazarın adını girin, ör. <i>Sarı Çizmeli Mehmet Ağa "
+"&lt;cizmeh@ornek.com&gt;</i>"
 
 #: lib\commit.py:311
 msgid "&Local commit in a bound branch"
@@ -155,7 +157,7 @@ msgstr "Değişiklikler"
 
 #: lib\commit.py:336
 msgid "Pending Merges"
-msgstr ""
+msgstr "Bekleyen Birleştirmeler"
 
 #: lib\commit.py:368 lib\main.py:360 lib\subprocess.py:102 lib\wtlist.py:80
 msgid "Status"
@@ -219,7 +221,7 @@ msgstr "E-posta &istemcisi:"
 
 #: lib\config.py:97
 msgid "Alias"
-msgstr ""
+msgstr "Takma Ad"
 
 #: lib\config.py:97
 msgid "Command"
@@ -227,7 +229,7 @@ msgstr "Komut"
 
 #: lib\config.py:102 lib\config.py:123
 msgid "Remove"
-msgstr ""
+msgstr "Sil"
 
 #: lib\config.py:118
 msgid "Abbreviation"
@@ -243,11 +245,11 @@ msgstr "Genel"
 
 #: lib\config.py:138
 msgid "Aliases"
-msgstr ""
+msgstr "Takma Adlar"
 
 #: lib\config.py:139
 msgid "Bug Trackers"
-msgstr ""
+msgstr "Hata Takipçileri"
 
 #: lib\config.py:140
 msgid "&User Interface"
@@ -255,7 +257,7 @@ msgstr "K&ullanıcı Arayüzü"
 
 #: lib\config.py:165
 msgid "Spell check &language:"
-msgstr ""
+msgstr "Yazım denetimi &dili:"
 
 #: lib\diff.py:64
 #, python-format
@@ -274,7 +276,7 @@ msgstr ""
 #: lib\diff.py:93
 #, python-format
 msgid "Rev %s"
-msgstr ""
+msgstr "Düz %s"
 
 #: lib\diff.py:96
 #, python-format
@@ -303,11 +305,11 @@ msgstr "Taraf tarafa"
 
 #: lib\diff.py:160
 msgid "Unidiff"
-msgstr ""
+msgstr "Birleşmiş Fark (Unidiff)"
 
 #: lib\diff.py:165
 msgid "Complete"
-msgstr ""
+msgstr "Tamamı"
 
 #: lib\diff.py:256 lib\wtlist.py:116
 msgid "removed"
@@ -319,7 +321,7 @@ msgstr "eklendi"
 
 #: lib\diff.py:260 lib\wtlist.py:127
 msgid "renamed and modified"
-msgstr ""
+msgstr "adı ve içeriği değiştirildi"
 
 #: lib\diff.py:262 lib\wtlist.py:129
 msgid "renamed"
@@ -342,7 +344,7 @@ msgstr "&Kapat"
 
 #: lib\diffview.py:212
 msgid "Last modified:"
-msgstr ""
+msgstr "Son değiştirilme:"
 
 #: lib\diffview.py:213
 msgid "Status:"
@@ -362,12 +364,12 @@ msgstr "[ikili dosya]"
 
 #: lib\diffview.py:622
 msgid "\\ No newline at end of file"
-msgstr ""
+msgstr "\\ Dosyanın sonunda yeni satır yok"
 
 #: lib\help.py:60
 #, python-format
 msgid "No help can be found for <i>%s</i>"
-msgstr ""
+msgstr "<i>%s</i> için yardım bulunamadı"
 
 #: lib\help.py:110
 msgid "Help"
@@ -391,7 +393,7 @@ msgstr ""
 
 #: lib\i18n.py:93
 msgid "View text file"
-msgstr ""
+msgstr "Metin dosyası görüntüle"
 
 #: lib\i18n.py:94
 msgid "View image file"
@@ -407,7 +409,7 @@ msgstr ""
 
 #: lib\i18n.py:97
 msgid "View directory"
-msgstr ""
+msgstr "Dizin görüntüle"
 
 #: lib\info.py:41
 msgid "Info"
@@ -439,15 +441,15 @@ msgstr "İletiler"
 
 #: lib\log.py:435
 msgid "Authors"
-msgstr ""
+msgstr "Yazarlar"
 
 #: lib\log.py:437
 msgid "Revision IDs"
-msgstr ""
+msgstr "Düzeltme Kimlikleri"
 
 #: lib\log.py:439
 msgid "Revision Numbers"
-msgstr ""
+msgstr "Düzeltme Numaraları"
 
 #: lib\log.py:534 lib\wtlist.py:67
 msgid "Show &differences..."
@@ -460,7 +462,7 @@ msgstr "&Ağacı göster..."
 #: lib\logmodel.py:893
 #, python-format
 msgid "bug #%s"
-msgstr ""
+msgstr "hata no. %s"
 
 #: lib\main.py:125
 msgid "Computer"
@@ -508,7 +510,7 @@ msgstr ""
 
 #: lib\main.py:296
 msgid "Update a mirror of this branch"
-msgstr ""
+msgstr "Bu dalın yansısını güncelle"
 
 #: lib\main.py:299
 msgid "&Add Bookmark..."
@@ -566,6 +568,10 @@ msgid ""
 "2007 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
 "vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
+"<b>QBzr</b> — Bazaar için bir görsel kullanıcı arayüzü<br><small>Sürüm "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Telif Hakkı © "
+"2006-2007 Lukáš Lalinský ve diğerleri<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 
 #: lib\main.py:477
 msgid "Add Bookmark"
@@ -589,7 +595,7 @@ msgstr "Eski Durumuna Getir"
 
 #: lib\subprocess.py:234
 msgid "Stopped"
-msgstr ""
+msgstr "Durduruldu"
 
 #: lib\subprocess.py:280
 msgid "Starting..."
@@ -605,7 +611,7 @@ msgstr "Tamamlandı!"
 
 #: lib\subprocess.py:351 lib\subprocess.py:368
 msgid "Failed!"
-msgstr ""
+msgstr "Başarısız Oldu!"
 
 #: lib\subprocess.py:353
 msgid "Failed to start bzr."
@@ -638,7 +644,7 @@ msgstr "Gözat..."
 
 #: lib\ui_branch.py:69 lib\ui_merge.py:61 lib\ui_pull.py:64
 msgid "&Revision:"
-msgstr ""
+msgstr "&Düzeltme:"
 
 #: lib\ui_branch.py:70
 msgid "&To:"
@@ -656,7 +662,7 @@ msgstr "..."
 
 #: lib\ui_info.py:178
 msgid "Public branch location:"
-msgstr ""
+msgstr "Umumi dalın konumu:"
 
 #: lib\ui_info.py:180
 msgid "&Location"
@@ -688,7 +694,7 @@ msgstr "Dal biçimi:"
 
 #: lib\ui_info.py:192
 msgid "Repository format:"
-msgstr ""
+msgstr "Depo biçimi:"
 
 #: lib\ui_info.py:194
 msgid "Control directory format:"
@@ -704,7 +710,7 @@ msgstr "Yerel Dizin"
 
 #: lib\ui_init.py:121
 msgid "Repository"
-msgstr ""
+msgstr "Depo"
 
 #: lib\ui_init.py:122
 msgid "Create a new standalone tree"
@@ -716,15 +722,15 @@ msgstr ""
 
 #: lib\ui_init.py:124
 msgid "Create a new shared repository"
-msgstr ""
+msgstr "Yeni bir paylaşılan depo yarat"
 
 #: lib\ui_init.py:125
 msgid "Skip the creation of working trees in this repository"
-msgstr ""
+msgstr "Depoda çalışma ağacı yaratılmasın"
 
 #: lib\ui_init.py:131
 msgid "Repository Format:"
-msgstr ""
+msgstr "Depo Biçimi:"
 
 #: lib\ui_init.py:132
 msgid "Description of format"
@@ -770,7 +776,7 @@ msgstr "Dalın yerel bir kopyasını yarat"
 
 #: lib\ui_new_tree.py:151
 msgid "Create a stacked branch referring to the source branch"
-msgstr ""
+msgstr "Kaynak dala başvuran bir yığılmış dal oluştur"
 
 #: lib\ui_new_tree.py:152
 msgid "Click a link for more information about checkouts and branches."
@@ -778,11 +784,11 @@ msgstr ""
 
 #: lib\ui_new_tree.py:158
 msgid "Revision"
-msgstr ""
+msgstr "Düzeltme"
 
 #: lib\ui_new_tree.py:159
 msgid "Most recent (tip) revision"
-msgstr ""
+msgstr "En yeni düzeltme"
 
 #: lib\ui_new_tree.py:161
 msgid "Show Log..."
@@ -811,12 +817,12 @@ msgstr ""
 
 #: lib\ui_update_branch.py:82
 msgid "Update Branch"
-msgstr ""
+msgstr "Dalı Güncelle"
 
 #: lib\ui_update_branch.py:83
 msgid ""
 "This directory is a branch.  Please select what you would like to update"
-msgstr ""
+msgstr "Bu dizin bir dal. Lütfen neyi güncellemek istediğinizi seçin"
 
 #: lib\ui_update_branch.py:84 lib\ui_update_checkout.py:76
 msgid "Update source"
@@ -873,11 +879,11 @@ msgstr ""
 
 #: lib\util.py:380
 msgid "Parents:"
-msgstr ""
+msgstr "Üstleri:"
 
 #: lib\util.py:384
 msgid "Children:"
-msgstr ""
+msgstr "Altları:"
 
 #: lib\util.py:386
 msgid "Committer:"
@@ -885,7 +891,7 @@ msgstr ""
 
 #: lib\util.py:389
 msgid "Author:"
-msgstr ""
+msgstr "Yazar:"
 
 #: lib\util.py:393
 msgid "Branch:"
@@ -923,7 +929,7 @@ msgstr "Tümünü seç / Hiçbirini seçme"
 
 #: lib\wtlist.py:70
 msgid "&Revert..."
-msgstr ""
+msgstr "&Eski durumuna getir..."
 
 #: lib\wtlist.py:80
 msgid "File"
@@ -939,7 +945,7 @@ msgstr ""
 
 #: lib\wtlist.py:108
 msgid "non-versioned"
-msgstr ""
+msgstr "sürümlendirilmemiş"
 
 #: lib\wtlist.py:120
 msgid "missing"

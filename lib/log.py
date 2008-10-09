@@ -266,8 +266,18 @@ def load_locataions(locations_list):
         append_tag_to_revid(branch_last_revision, tag)
         
         if tree:
-            for revid in tree.get_parent_ids():
-                if revid!=branch_last_revision:
+            parent_ids = tree.get_parent_ids()
+            if parent_ids:
+                # first parent is last revision of the tree
+                revid = parent_ids[0]
+                if revid != branch_last_revision:
+                    # working tree is out of date
+                    if tag:
+                        append_tag_to_revid(revid, "%s - Working Tree" % tag)
+                    else:
+                        append_tag_to_revid(revid, "Working Tree")
+                # other parents are pending merges
+                for revid in parent_ids[1:]:
                     if tag:
                         append_tag_to_revid(revid, ("%s - Pending Merge" % tag))
                     else:

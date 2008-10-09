@@ -383,7 +383,7 @@ def quote_tag(tag):
     return tag
 
 
-def format_revision_html(rev, search_replace=None):
+def format_revision_html(rev, search_replace=None, show_timestamp=False):
     props = []
     props.append((gettext("Revision:"), "%s revid:%s" % (rev.revno, rev.revision_id)))
 
@@ -407,6 +407,9 @@ def format_revision_html(rev, search_replace=None):
     children = getattr(rev, 'children', None)
     if children:
         props.append((gettext("Children:"), revision_list_html(children)))
+
+    if show_timestamp:
+        props.append((gettext("Date:"), format_timestamp(rev.timestamp)))
 
     props.append((gettext("Committer:"), htmlize(rev.committer)))
     author = rev.properties.get('author')

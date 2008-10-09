@@ -177,7 +177,8 @@ class CommitWindow(SubProcessWindow):
                                            want_unversioned=True):
             desc = ChangeDesc(desc)
 
-            if desc.is_tree_root(): # skip TREE_ROOT
+            if desc.is_tree_root() or desc.is_misadded():
+                # skip uninteresting enties
                 continue
 
             is_versioned = desc.is_versioned()
@@ -331,6 +332,7 @@ class CommitWindow(SubProcessWindow):
 
         # Display a list of pending merges
         if self.pending_merges:
+            selectall_checkbox.setCheckState(QtCore.Qt.Checked)
             selectall_checkbox.setEnabled(False)
             pendingMergesWidget = QtGui.QTreeWidget()
             self.tabWidget.addTab(pendingMergesWidget, gettext("Pending Merges"))
