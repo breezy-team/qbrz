@@ -108,15 +108,15 @@ class Config(object):
         if section is None:
             section = 'DEFAULT'
         if section not in self._configobj:
-            self._configobj['DEFAULT'] = {}
-        self._configobj['DEFAULT'][name] = value
+            self._configobj[section] = {}
+        self._configobj[section][name] = value
 
-    def getOption(self, name, value, section=None):
+    def getOption(self, name, section=None):
         self._load()
         if section is None:
             section = 'DEFAULT'
         try:
-            return self._configobj['DEFAULT'][name]
+            return self._configobj[section][name]
         except KeyError:
             return None
 
