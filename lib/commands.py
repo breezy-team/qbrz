@@ -590,6 +590,7 @@ class cmd_qbzr(QBzrCommand):
         window.show()
         app.exec_()
 
+
 class cmd_qsubprocess(Command):
 
     takes_args = ['cmd']

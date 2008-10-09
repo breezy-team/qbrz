@@ -97,7 +97,7 @@ class DirectoryItem(SideBarItem):
     def __init__(self, fileInfo, parent, sidebar):
         self.path = fileInfo.filePath()
         self.icon = QtCore.QVariant(sidebar.window.icons['folder'])
-        self.text = QtCore.QVariant(fileInfo.fileName())
+        self.text = QtCore.QVariant(fileInfo.fileName() or fileInfo.path())
         self.parent = parent
         self.children = None
 
