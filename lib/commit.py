@@ -48,6 +48,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     format_timestamp,
     get_apparent_author,
     get_global_config,
+    url_for_display,
     )
 from bzrlib.plugins.qbzr.lib.wtlist import (
     ChangeDesc,
@@ -216,7 +217,7 @@ class CommitWindow(SubProcessWindow):
     def __init__(self, tree, selected_list, dialog=True, parent=None,
                  local=None, message=None, ui_mode=True):
         super(CommitWindow, self).__init__(
-                                  gettext("Commit"),
+                                  [gettext("Commit"), tree.branch.nick],
                                   name = "commit",
                                   default_size = (540, 540),
                                   ui_mode = ui_mode,
@@ -230,6 +231,38 @@ class CommitWindow(SubProcessWindow):
         self.connect(self.process_widget,
             QtCore.SIGNAL("failed()"),
             self.failed)
+
+        # commit to branch location
+        branch_groupbox = QtGui.QGroupBox(gettext("Branch"), self)
+        branch_layout = QtGui.QGridLayout(branch_groupbox)
+        self.branch_location = QtGui.QLineEdit()
+        self.branch_location.setReadOnly(True)
+        #
+        branch_base = url_for_display(tree.branch.base)
+        master_branch = url_for_display(tree.branch.get_bound_location())
+        if not master_branch:
+            self.branch_location.setText(branch_base)
+            branch_layout.addWidget(self.branch_location)
+        else:
+            self.local_checkbox = QtGui.QCheckBox(gettext(
+                "&Local commit"))
+            self.local_checkbox.setToolTip(gettext(
+                "Local commits are not pushed to the master branch "
+                "until a normal commit is performed"))
+            branch_layout.addWidget(self.local_checkbox, 0, 0, 1, 2)
+            branch_layout.addWidget(self.branch_location, 1, 0, 1, 2)
+            branch_layout.addWidget(QtGui.QLabel(gettext('Description:')), 2, 0,
+                QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+            self.commit_type_description = QtGui.QLabel()
+            self.commit_type_description.setWordWrap(True)
+            branch_layout.addWidget(self.commit_type_description, 2, 1)
+            branch_layout.setColumnStretch(1,10)
+            self.connect(self.local_checkbox,
+                QtCore.SIGNAL("stateChanged(int)"),
+                self.update_branch_groupbox)
+            if local:
+                self.local_checkbox.setChecked(True)
+            self.update_branch_groupbox()
 
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self)
 
@@ -307,16 +340,6 @@ class CommitWindow(SubProcessWindow):
         self.custom_author = ''
         self.author.setText(self.default_author)
 
-        if self.is_bound:
-            self.local_checkbox = QtGui.QCheckBox(gettext(
-                "&Local commit in a bound branch"))
-            self.local_checkbox.setToolTip(gettext(
-                "Local commits are not pushed to the master branch "
-                "until a normal commit is performed"))
-            grid.addWidget(self.local_checkbox, 3, 0, 1, 2)
-            if local:
-                self.local_checkbox.setChecked(True)
-
         # Display the list of changed files
         files_tab = QtGui.QWidget()
         self.tabWidget.addTab(files_tab, gettext("Changes"))
@@ -372,6 +395,7 @@ class CommitWindow(SubProcessWindow):
         splitter.setStretchFactor(0, 3)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox.addWidget(branch_groupbox)
         vbox.addWidget(splitter)
         vbox.addWidget(self.buttonbox)
 
@@ -506,3 +530,20 @@ class CommitWindow(SubProcessWindow):
             else:
                 self.save_message()
         return SubProcessWindow.closeEvent(self, event)
+
+    def update_branch_groupbox(self):
+        if not self.local_checkbox.isChecked():
+            # commit to master branch selected
+            loc = url_for_display(self.tree.branch.get_bound_location())
+            desc = gettext("A commit will be made directly to "
+                           "the master branch, keeping the local "
+                           "and master branches in sync.")
+        else:
+            # local commit selected
+            loc = url_for_display(self.tree.branch.base)
+            desc = gettext("A local commit to the branch will be performed. "
+                           "The master branch will not be updated until "
+                           "a non-local commit is made.")
+        # update GUI
+        self.branch_location.setText(loc)
+        self.commit_type_description.setText(desc)
