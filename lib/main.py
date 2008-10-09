@@ -412,7 +412,7 @@ class QBzrMainWindow(QBzrWindow):
             gettext(u"<b>QBzr</b> \u2014 A graphical user interface for Bazaar<br>"
                     u"<small>Version %(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br>"
                     u"<br>"
-                    u"Copyright \u00A9 2006-2007 Luk\xe1\u0161 Lalinsk\xfd and others<br>"
+                    u"Copyright \u00A9 2006-2008 Luk\xe1\u0161 Lalinsk\xfd and others<br>"
                     u"<br>"
                     u'<a href="http://bazaar-vcs.org/QBzr">http://bazaar-vcs.org/QBzr</a>') % tpl)
 
