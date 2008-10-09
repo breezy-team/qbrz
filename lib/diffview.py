@@ -41,10 +41,10 @@ except ImportError:
     have_pygments = False
 
 colors = {
-    'delete': (QtGui.QColor(255, 160, 180), QtGui.QColor(200, 60, 90)),
-    'insert': (QtGui.QColor(180, 255, 180), QtGui.QColor(80, 210, 80)),
-    'replace': (QtGui.QColor(206, 226, 250), QtGui.QColor(90, 130, 180)),
-    'blank': (QtGui.QColor(240, 240, 240), QtGui.QColor(171, 171, 171)),
+    'delete': [QtGui.QColor(255, 160, 180), QtGui.QColor(200, 60, 90)],
+    'insert': [QtGui.QColor(180, 255, 180), QtGui.QColor(80, 210, 80)],
+    'replace': [QtGui.QColor(206, 226, 250), QtGui.QColor(90, 130, 180)],
+    'blank': [QtGui.QColor(240, 240, 240), QtGui.QColor(171, 171, 171)],
 }
 
 brushes = {}
