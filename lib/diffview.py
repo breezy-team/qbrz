@@ -92,6 +92,10 @@ for key in colors.iterkeys():
                 #error handling.
                 pass
 
+#The background colour of the replacement text in a replacement group.
+replacement_text_background = QtGui.QColor(180, 210, 250)
+
+
 brushes = {}
 for kind, cols in colors.items():
     brushes[kind] = (QtGui.QBrush(cols[0]), QtGui.QBrush(cols[1]))
@@ -364,7 +368,7 @@ class SidebySideDiffView(QtGui.QSplitter):
             
             def modifyFormatForTag (format, tag):
                 if tag == "replace":
-                    format.setBackground(QtGui.QColor.fromRgb(180, 210, 250))
+                    format.setBackground(replacement_text_background)
                 elif not tag == "equal":
                     if self.show_intergroup_colors:
                         format.setBackground(brushes[tag][0])
