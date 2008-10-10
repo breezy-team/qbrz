@@ -30,6 +30,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     split_tokens_at_lines,
     format_for_ttype,
     QBzrGlobalConfig,
+		QBzrConfig,
     )
 
 have_pygments = True
@@ -46,6 +47,50 @@ colors = {
     'replace': [QtGui.QColor(206, 226, 250), QtGui.QColor(90, 130, 180)],
     'blank': [QtGui.QColor(240, 240, 240), QtGui.QColor(171, 171, 171)],
 }
+
+#load user-defined colour mapping from configuration file.
+#For each kind, there can be two entries in the configuration file,
+#under the [QDIFF COLOURS] section:
+#  kind_bound -- the colour of the boundary of the rectangle this kind refers to.
+#  kind_fill  -- the colour of the filling of that same rectangle.
+#The colors should be given in a R, G, B format. For example:
+#   [QDIFF COLOURS]
+#   delete_fill  = 255, 160, 180
+#   delete_bound = 200, 60, 90
+
+#Utility function:
+#  If val is a list of 3 strings, each one representing an integer less than 256, then the RGB colour they represent is returned.
+# Otherwise, ValueError is raised.
+def colour_value_to_RGB(val):
+  if list != type(val) or 3 != len(val) or not \
+    reduce(lambda x,y: x and y.isdigit(), val, True):
+        raise ValueError(
+            "Adhere to colour format: red, green, blue")
+    
+  #Being here guarantees that colour_value is a list
+  #of three elements that represent numbers.
+  colour_components = map(int, colour_value)
+  if not reduce(lambda x,y: x and y < 256, colour_components, True):
+      raise ValueError("Colour components are in the range 0..255 only. Given: " + str(colour_components))
+      
+  #Now we know the given colour is safe to use.
+  return apply(QtGui.QColor, colour_components)
+    
+config = QBzrConfig()
+component_dict = {0:'fill', 1:'bound'}
+for key in colors.iterkeys():
+    for comp in [0,1]:
+        colour_value = config.getOption(key + '_' + component_dict[comp],
+                                        'QDIFF COLOURS')
+        if None != colour_value:
+            # Check validity of input.
+            # I'm not sure which error handling policy we're using,
+            # so here's a generic framework.
+            try:
+                colors[key][comp] = colour_value_to_RGB(colour_value)
+            except ValueError:
+                #error handling.
+                pass
 
 brushes = {}
 for kind, cols in colors.items():
