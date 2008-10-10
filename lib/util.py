@@ -214,7 +214,7 @@ class QBzrConfig(Config):
               colour_range_err_msg(", ".join(val)))
             
         #Now we know the given colour is safe to use.
-        return apply(QtGui.QColor, colour_components)
+        return QtGui.QColor(*colour_components)
 
 
 class QBzrGlobalConfig(IniBasedConfig):
