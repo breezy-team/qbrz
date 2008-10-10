@@ -50,7 +50,7 @@ colors = {
     'blank': [QtGui.QColor(240, 240, 240), QtGui.QColor(171, 171, 171)],
 }
 #The background colour of the replacement text in a replacement group.
-replacement_text_background = QtGui.QColor(180, 210, 250)
+interline_changes_background = QtGui.QColor(180, 210, 250)
 
 #load user-defined colour mapping from configuration file.
 
@@ -76,10 +76,10 @@ for key in colors.iterkeys():
 
 #Get a user-defined replacement text background
 try:
-    new_rep_text_bg  = config.getColour('replacement_text_background',
+    new_interline_bg  = config.getColour('interline_changes_background',
                                         'QDIFF COLOURS')
-    if None != new_rep_text_bg:
-      replacement_text_background = new_rep_text_bg
+    if None != new_interline_bg:
+      interline_changes_background = new_interline_bg
 except ValueError, msg:
     mutter(str(msg))
 
@@ -355,7 +355,7 @@ class SidebySideDiffView(QtGui.QSplitter):
             
             def modifyFormatForTag (format, tag):
                 if tag == "replace":
-                    format.setBackground(replacement_text_background)
+                    format.setBackground(interline_changes_background)
                 elif not tag == "equal":
                     if self.show_intergroup_colors:
                         format.setBackground(brushes[tag][0])
