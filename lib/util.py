@@ -194,7 +194,7 @@ class QBzrConfig(Config):
             
         colour_range_err_msg = lambda given:\
             "Colour components for " + name_str +\
-            "should be in the range 0..255 only. Given: "+ given +"."
+            " should be in the range 0..255 only. Given: "+ given +"."
             
         val = self.getOption(name, section)
         if None == val:
