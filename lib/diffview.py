@@ -49,8 +49,11 @@ colors = {
     'replace': [QtGui.QColor(206, 226, 250), QtGui.QColor(90, 130, 180)],
     'blank': [QtGui.QColor(240, 240, 240), QtGui.QColor(171, 171, 171)],
 }
+#The background colour of the replacement text in a replacement group.
+replacement_text_background = QtGui.QColor(180, 210, 250)
 
 #load user-defined colour mapping from configuration file.
+
 #For each kind, there can be two entries in the configuration file,
 #under the [QDIFF COLOURS] section:
 #  kind_bound -- the colour of the boundary of the rectangle this kind refers to.
@@ -70,9 +73,6 @@ for key in colors.iterkeys():
         if None != colour:
             colors[key][comp] = colour
             
-
-#The background colour of the replacement text in a replacement group.
-replacement_text_background = QtGui.QColor(180, 210, 250)
 
 #Get a user-defined replacement text background
 try:
