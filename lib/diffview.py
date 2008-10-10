@@ -30,8 +30,10 @@ from bzrlib.plugins.qbzr.lib.util import (
     split_tokens_at_lines,
     format_for_ttype,
     QBzrGlobalConfig,
-		QBzrConfig,
+    QBzrConfig,
     )
+from bzrlib.trace import mutter
+
 
 have_pygments = True
 try:
@@ -64,7 +66,7 @@ for key in colors.iterkeys():
                                         'QDIFF COLOURS')
         except ValueError, msg:
             #error handling.
-            pass
+            mutter(str(msg))
         if None != colour:
             colors[key][comp] = colour
             
@@ -79,8 +81,7 @@ try:
     if None != new_rep_text_bg:
       replacement_text_background = new_rep_text_bg
 except ValueError, msg:
-    #error handling.
-    pass
+    mutter(str(msg))
 
 brushes = {}
 for kind, cols in colors.items():
