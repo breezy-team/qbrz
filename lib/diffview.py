@@ -95,6 +95,15 @@ for key in colors.iterkeys():
 #The background colour of the replacement text in a replacement group.
 replacement_text_background = QtGui.QColor(180, 210, 250)
 
+#Get a user-defined replacement text background
+colour_value = config.getOption('replacement_text_background', 
+                                'QDIFF COLOURS')
+if None != colour_value:
+    try:
+        replacement_text_background = colour_value_to_RGB(colour_value)
+    except ValueError:
+        #error handling.
+        pass
 
 brushes = {}
 for kind, cols in colors.items():
