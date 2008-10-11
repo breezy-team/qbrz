@@ -49,35 +49,35 @@ colors = {
     'replace': [QtGui.QColor(206, 226, 250), QtGui.QColor(90, 130, 180)],
     'blank': [QtGui.QColor(240, 240, 240), QtGui.QColor(171, 171, 171)],
 }
-#The background colour of the replacement text in a replacement group.
+#The background color of the replacement text in a replacement group.
 interline_changes_background = QtGui.QColor(180, 210, 250)
 
-#load user-defined colour mapping from configuration file.
+#load user-defined color mapping from configuration file.
 
 #For each kind, there can be two entries in the configuration file,
-#under the [QDIFF COLOURS] section:
-#  kind_bound -- the colour of the boundary of the rectangle this kind refers to.
-#  kind_fill  -- the colour of the filling of that same rectangle.
+#under the [QDIFF COLORS] section:
+#  kind_bound -- the color of the boundary of the rectangle this kind refers to.
+#  kind_fill  -- the color of the filling of that same rectangle.
 
 config = QBzrConfig()
 component_dict = {0:'fill', 1:'bound'}
 for key in colors.iterkeys():
     for comp in [0,1]:
-        colour = None
+        color = None
         try:
-            colour = config.getColour(key + '_' + component_dict[comp],
-                                        'QDIFF COLOURS')
+            color = config.getColor(key + '_' + component_dict[comp],
+                                        'QDIFF COLORS')
         except ValueError, msg:
             #error handling.
             mutter(str(msg))
-        if None != colour:
-            colors[key][comp] = colour
+        if None != color:
+            colors[key][comp] = color
             
 
 #Get a user-defined replacement text background
 try:
-    new_interline_bg  = config.getColour('interline_changes_background',
-                                        'QDIFF COLOURS')
+    new_interline_bg  = config.getColor('interline_changes_background',
+                                        'QDIFF COLORS')
     if None != new_interline_bg:
       interline_changes_background = new_interline_bg
 except ValueError, msg:

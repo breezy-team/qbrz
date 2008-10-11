@@ -168,14 +168,14 @@ class QBzrConfig(Config):
         bookmarks.append((name, location))
         self.setBookmarks(bookmarks)
         
-    def getColour(self, name, section=None):
+    def getColor(self, name, section=None):
         """
-          Get a colour entry from the config file.
-          Colour entries have the syntax:
+          Get a color entry from the config file.
+          Color entries have the syntax:
             name = R, G, B
-          Where the colour components are integers in the range 0..255.
+          Where the color components are integers in the range 0..255.
           
-          Colours are returned as QtGui.QColor.
+          Colors are returned as QtGui.QColor.
           
           If input is erroneous, ErrorValue exception is raised.
           
@@ -188,12 +188,12 @@ class QBzrConfig(Config):
         else:
           name_str = "[" + section + "]:" + name
           
-        colour_format_err_msg = lambda given:\
-            "Illegal colour format for " + name_str +\
+        color_format_err_msg = lambda given:\
+            "Illegal color format for " + name_str +\
             ". Given '"+ given + "' expected '<red>, <green>, <blue>'."
             
-        colour_range_err_msg = lambda given:\
-            "Colour components for " + name_str +\
+        color_range_err_msg = lambda given:\
+            "Color components for " + name_str +\
             " should be in the range 0..255 only. Given: "+ given +"."
             
         val = self.getOption(name, section)
@@ -201,20 +201,20 @@ class QBzrConfig(Config):
           return None
           
         if list != type(val):
-          raise ValueError(colour_format_err_msg(val))
+          raise ValueError(color_format_err_msg(val))
         if 3 != len(val) or not \
           reduce(lambda x,y: x and y.isdigit(), val, True):
-              raise ValueError(colour_format_err_msg(", ".join(val)))
+              raise ValueError(color_format_err_msg(", ".join(val)))
           
-        #Being here guarantees that colour_value is a list
+        #Being here guarantees that color_value is a list
         #of three elements that represent numbers.
-        colour_components = map(int, val)
-        if not reduce(lambda x,y: x and y < 256, colour_components, True):
+        color_components = map(int, val)
+        if not reduce(lambda x,y: x and y < 256, color_components, True):
             raise ValueError(
-              colour_range_err_msg(", ".join(val)))
+              color_range_err_msg(", ".join(val)))
             
-        #Now we know the given colour is safe to use.
-        return QtGui.QColor(*colour_components)
+        #Now we know the given color is safe to use.
+        return QtGui.QColor(*color_components)
 
 
 class QBzrGlobalConfig(IniBasedConfig):
