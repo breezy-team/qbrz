@@ -471,7 +471,7 @@ class CommitWindow(SubProcessWindow):
                 # don't commit, but don't close the window either
                 self.failed()
                 return
-        args.append(('-m %s' % message))
+        args.append(('-m%s' % message))
         
         if not self.pending_merges:
             for desc in self.filelist.iter_checked():
