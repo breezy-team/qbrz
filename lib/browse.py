@@ -53,6 +53,8 @@ class FileTreeWidget(QtGui.QTreeWidget):
 
 class BrowseWindow(QBzrWindow):
 
+    NAME, DATE, AUTHOR, REV, MESSAGE = range(5)     # indices of columns in the window
+
     def __init__(self, branch=None, revision=None, revision_id=None,
                  revision_spec=None, parent=None):
         self.branch = branch
@@ -78,11 +80,16 @@ class BrowseWindow(QBzrWindow):
         vbox.addLayout(hbox)
 
         self.file_tree = FileTreeWidget(self)
-        self.file_tree.setHeaderLabels(
-            [gettext("Name"), gettext("Date"),
-             gettext("Author"), gettext("Message")])
+        self.file_tree.setHeaderLabels([
+            gettext("Name"),
+            gettext("Date"),
+            gettext("Author"),
+            gettext("Rev"),
+            gettext("Message"),
+            ])
         header = self.file_tree.header()
-        header.setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
+        header.setResizeMode(self.NAME, QtGui.QHeaderView.ResizeToContents)
+        header.setResizeMode(self.REV, QtGui.QHeaderView.ResizeToContents)
 
         self.context_menu = QtGui.QMenu(self.file_tree)
         self.context_menu.addAction(gettext("Show log..."), self.show_file_log)
@@ -124,14 +131,14 @@ class BrowseWindow(QBzrWindow):
                 files.append(child)
         for child in dirs:
             item = QtGui.QTreeWidgetItem(parent_item)
-            item.setIcon(0, self.dir_icon)
-            item.setText(0, child.name)
+            item.setIcon(self.NAME, self.dir_icon)
+            item.setText(self.NAME, child.name)
             revs.update(self.load_file_tree(child, item))
             self.items.append((item, child.revision))
         for child in files:
             item = QtGui.QTreeWidgetItem(parent_item)
-            item.setIcon(0, self.file_icon)
-            item.setText(0, child.name)
+            item.setIcon(self.NAME, self.file_icon)
+            item.setText(self.NAME, child.name)
             self.items.append((item, child.revision))
         return revs
 
@@ -190,6 +197,7 @@ class BrowseWindow(QBzrWindow):
     def set_revision(self, revspec=None, revision_id=None, text=None):
         branch = self.branch
         branch.lock_read()
+        revno_map = branch.get_revision_id_to_revno_map()   # XXX make this operation lazy? how?
         try:
             if revision_id is None:
                 text = revspec.spec or ''
@@ -220,10 +228,15 @@ class BrowseWindow(QBzrWindow):
         self.revision_edit.setText(text)
         for item, revision_id in self.items:
             rev = revs[revision_id]
-            item.setText(1, format_timestamp(rev.timestamp))
+            revno = ''
+            rt = revno_map.get(revision_id)
+            if rt:
+                revno = '.'.join(map(str, rt))
+            item.setText(self.REV, revno)
+            item.setText(self.DATE, format_timestamp(rev.timestamp))
             author = rev.properties.get('author', rev.committer)
-            item.setText(2, extract_name(author))
-            item.setText(3, rev.get_summary())
+            item.setText(self.AUTHOR, extract_name(author))
+            item.setText(self.MESSAGE, rev.get_summary())
 
     def reload_tree(self):
         revstr = unicode(self.revision_edit.text())
