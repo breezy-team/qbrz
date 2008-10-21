@@ -498,7 +498,7 @@ def format_timestamp(timestamp):
 
 
 def htmlencode(string):
-    return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")
 
 
 def is_valid_encoding(encoding):

@@ -124,3 +124,6 @@ class TestUtil(TestCase):
         else:
             self.assertEquals('/home/work/qbzr/',
                 util.url_for_display('file:///home/work/qbzr/'))
+
+    def test_htmlencode(self):
+        self.assertEquals('&quot;&amp;&lt;&gt;', util.htmlencode('"&<>'))
