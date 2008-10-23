@@ -203,65 +203,28 @@ class GraphModel(QtCore.QAbstractTableModel):
             
             self.branch_ids.sort(branch_id_cmp)
             
-            # Work out for each revision, which revisions it merges.
-            self.msri_merges = {}
-            self.merged_by = {}
+            # Work out for each revision, which revisions it merges, and what
+            # revision it is merged by.
+            self.merge_info = []
+            current_merge_stack = [None]
             for (msri, (sequence_number,
                         revid,
                         merge_depth,
                         revno_sequence,
                         end_of_merge)) in enumerate(self.merge_sorted_revisions):
-                branch_id = revno_sequence[0:-1]
                 
-                merges = []
-                was_merge_by_branch_id = None
-                if msri in self.merged_by:
-                    was_merge_by_branch_id = self.merge_sorted_revisions[self.merged_by[msri]][3][0:-1]
+                if merge_depth == len(current_merge_stack):
+                    current_merge_stack.append(msri)
+                else:
+                    del current_merge_stack[merge_depth + 1:]
+                    current_merge_stack[-1] = msri
                 
-                for parent_revid in self.graph_parents[revid]:
-                    (parent_msri,
-                     parent_branch_id,
-                     parent_merge_depth) = self._msri_branch_id_merge_depth(parent_revid)
-                    if parent_merge_depth >= merge_depth and \
-                       branch_id <> parent_branch_id and\
-                       (was_merge_by_branch_id and was_merge_by_branch_id <>parent_branch_id or not was_merge_by_branch_id) and\
-                       not parent_branch_id in self.start_branch_ids:
-                        
-                        # We merge this parent. Work out which of the revisions
-                        # in its branch we merge.
-                        
-                        for grand_parent_msri in self.branch_lines[parent_branch_id][0]:
-                            if grand_parent_msri < msri:
-                                # Not merged by this revision.
-                                continue
-                            
-                            # Check that this was not merged by a previously
-                            # rev in this branch.
-                            grand_parent_revid = self.merge_sorted_revisions[grand_parent_msri][1]
-                            (grand_parent_msri,
-                             grand_parent_branch_id,
-                             grand_parent_merge_depth) = self._msri_branch_id_merge_depth(grand_parent_revid)
-                            ismerged = False
-                            for uncle_revid in self.graph_children[grand_parent_revid]:
-                                (uncle_msri,
-                                 uncle_branch_id,
-                                 uncle_merge_depth) = self._msri_branch_id_merge_depth(uncle_revid)
-                                if uncle_branch_id == branch_id and not revid==uncle_revid:
-                                    ismerged = True
-                                    break
-                            if ismerged:
-                                # None of the following rev in the parent branch
-                                # are merged by this rev.
-                                break
-                                
-                            merges.append(grand_parent_msri)
-                            self.merged_by[grand_parent_msri] = msri
-                            if not grand_parent_branch_id in self.branch_lines[branch_id][2]:
-                                self.branch_lines[branch_id][2].append(grand_parent_branch_id)
-                            if not branch_id in self.branch_lines[grand_parent_branch_id][3]:
-                                self.branch_lines[grand_parent_branch_id][3].append(branch_id)
-                            
-                self.msri_merges[msri] = merges
+                merged_by = None
+                if merge_depth>0:
+                    merged_by = current_merge_stack[-2]
+                    self.merge_info[merged_by][0].append(msri)
+                
+                self.merge_info.append(([],merged_by))
             
             if specific_fileids:
                 self.touches_file_msri = {}
@@ -334,11 +297,10 @@ class GraphModel(QtCore.QAbstractTableModel):
                             self.branch_lines[branch_id][1] = True
                         
                         # Hide the branches we merge
-                        if rev_msri in self.msri_merges:
-                            for merged_rev_msri in self.msri_merges[rev_msri]:
-                                merged_branch_id = self.merge_sorted_revisions[merged_rev_msri][3][0:-1]
-                                self.branch_lines[merged_branch_id][1] = False
-                                branches_that_are_merges[merged_branch_id] = True
+                        for merged_rev_msri in self.merge_info[rev_msri][0]:
+                            merged_branch_id = self.merge_sorted_revisions[merged_rev_msri][3][0:-1]
+                            self.branch_lines[merged_branch_id][1] = False
+                            branches_that_are_merges[merged_branch_id] = True
                         
                         self.graphFilterProxyModel.invalidateCacheRow(rev_msri)
                         index = self.createIndex (rev_msri, 0, QtCore.QModelIndex())
@@ -564,7 +526,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                     branch_rev_visible_parents[rev_msri]=rev_visible_parents
                     
                     # Find and add nessery twisties
-                    for parent_msri in self.msri_merges[rev_msri]:
+                    for parent_msri in self.merge_info[rev_msri][0]:
                         parent_branch_id = self.merge_sorted_revisions[parent_msri][3][0:-1]
                         parent_merge_depth = self.merge_sorted_revisions[parent_msri][2]
                         
@@ -629,28 +591,28 @@ class GraphModel(QtCore.QAbstractTableModel):
                         i += 1
                     
                     # This may be a sprout. Add line to first visible child
-                    if rev_msri in self.merged_by:
-                        merged_by_msri = self.merged_by[rev_msri]
-                        if not merged_by_msri in msri_index and\
-                           rev_msri == self.msri_merges[merged_by_msri][0]:
-                            # The revision that merges this revision is not
-                            # visible, and it is the first revision that is
-                            # merged by that revision. This is a sprout.
-                            #
-                            # XXX What if multiple merges with --force,
-                            # aka ocutpus merge?
-                            #
-                            # Search until we find a decendent that is visible.
-                            child_msri = self.merged_by[rev_msri]
-                            while not child_msri in msri_index and\
-                                  child_msri in self.merged_by:
-                                child_msri = self.merged_by[child_msri]
-                            # Ensure only one line to a decendent.
-                            if child_msri not in children_with_sprout_lines:
-                                children_with_sprout_lines[child_msri] = True
-                                if child_msri in msri_index:
-                                    child_index = msri_index[child_msri]
-                                    append_line(child_index, rev_index, False)
+                    merged_by_msri = self.merge_info[rev_msri][1]
+                    if merged_by_msri and\
+                       not merged_by_msri in msri_index and\
+                       rev_msri == self.merge_info[merged_by_msri][0][0]:
+                        # The revision that merges this revision is not
+                        # visible, and it is the first revision that is
+                        # merged by that revision. This is a sprout.
+                        #
+                        # XXX What if multiple merges with --force,
+                        # aka ocutpus merge?
+                        #
+                        # Search until we find a decendent that is visible.
+                        child_msri = self.merge_info[rev_msri][1]
+                        while not child_msri is None and \
+                              not child_msri in msri_index:
+                            child_msri = self.merge_info[child_msri][1]
+                        # Ensure only one line to a decendent.
+                        if child_msri not in children_with_sprout_lines:
+                            children_with_sprout_lines[child_msri] = True
+                            if child_msri in msri_index:
+                                child_index = msri_index[child_msri]
+                                append_line(child_index, rev_index, False)
                 
                 # Find a column for this branch.
                 #
@@ -1008,12 +970,9 @@ class GraphModel(QtCore.QAbstractTableModel):
         return self.createIndex (msri, 0, QtCore.QModelIndex())
     
     def findChildBranchMergeRevision (self, revid):
+        # This method can probably be removed.
         msri = self.revid_msri[revid]
-        if msri in self.merged_by:
-            merged_by_msri = self.merged_by[msri]
-            revid = self.merge_sorted_revisions[merged_by_msri][1]
-        else:
-            return None
+        return self.merge_info[msri][1]
     
 class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
     def __init__(self, parent = None):
@@ -1072,8 +1031,9 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
     def invalidateCacheRow (self, source_row):
         if source_row in self.cache:
             del self.cache[source_row]
-        if source_row in self.sm().merged_by:
-            self.invalidateCacheRow(self.sm().merged_by[source_row])
+        merged_by = self.sm().merge_info[source_row][1]
+        if merged_by:
+            self.invalidateCacheRow(merged_by)
     
     def filterAcceptsRow(self, source_row, source_parent):
         sm = self.sm()
@@ -1102,7 +1062,7 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
             if source_row not in sm.touches_file_msri:
                 return False
         
-        for parent_msri in sm.msri_merges[source_row]:
+        for parent_msri in sm.merge_info[source_row][0]:
             if self.filterAcceptsRowIfBranchVisible(parent_msri, source_parent):
                 return True
         
