@@ -237,78 +237,38 @@ class GraphModel(QtCore.QAbstractTableModel):
                     use_texts = True
                 except AttributeError:
                     use_texts = False
+                
+                if use_texts:
+                    chunk_size = 500
+                    for start in xrange(0, len(self.merge_sorted_revisions), chunk_size):
+                        text_keys = [(specific_fileid, revid) \
+                            for sequence_number,
+                                revid,
+                                merge_depth,
+                                revno_sequence,
+                                end_of_merge in self.merge_sorted_revisions[start:start + chunk_size] \
+                            for specific_fileid in specific_fileids]
+                        
+                        for fileid, revid in branch.repository.texts.get_parent_map(text_keys):
+                            rev_msri = self.revid_msri[revid]
+                            self.touches_file_msri[rev_msri] = True
+                            
+                            self.graphFilterProxyModel.invalidateCacheRow(rev_msri)
+                            index = self.createIndex (rev_msri, 0, QtCore.QModelIndex())
+                            self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                                      index,index)
+                        
+                        QtCore.QCoreApplication.processEvents()
+                    
+                else:
                     weave_modifed_revisions = set()
                     for specific_fileid in specific_fileids:
                         file_weave = branch.repository.weave_store.get_weave(specific_fileid,
                                             branch.repository.get_transaction())
-                        weave_modifed_revisions.update(set(file_weave.versions()))
-                
-                ancestry = {}
-                branches_that_are_merges = {}
-                
-                def is_merging_rev(r):
-                    parents = self.graph_parents[r]
-                    if len(parents) > 1:
-                        leftparent = parents[0]
-                        for rightparent in parents[1:]:
-                            if not ancestry[leftparent].issuperset(
-                                    ancestry[rightparent]):
-                                return True
-                    return False
-                
-                for i, (sequence_number,
-                        revid,
-                        merge_depth,
-                        revno_sequence,
-                        end_of_merge) in enumerate(reversed(self.merge_sorted_revisions)):
-                    if use_texts:
-                        text_keys = [(specific_fileid, revid) for specific_fileid in specific_fileids]
-                        modified_text_versions = branch.repository.texts.get_parent_map(text_keys)
-                        changed = modified_text_versions
-                    else:
-                        changed = revid in weave_modifed_revisions
-                    
-                    parents = self.graph_parents[revid]
-                    if not changed and len(parents) == 1:
-                        # We will not be adding anything new, so just use a reference to
-                        # the parent ancestry.
-                        rev_ancestry = ancestry[parents[0]]
-                    else:
-                        rev_ancestry = set()
-                        if changed:
-                            rev_ancestry.add(revid)
-                        for parent in parents:
-                            if parent not in ancestry:
-                                # parent is a Ghost, which won't be present in
-                                # sorted_rev_list, but we may access it later, so create an
-                                # empty node for it
-                                ancestry[parent] = set()
-                            rev_ancestry = rev_ancestry.union(ancestry[parent])
-                    ancestry[revid] = rev_ancestry
-                    
-                    if changed or is_merging_rev(revid):
-                        rev_msri = self.revid_msri[revid]
-                        self.touches_file_msri[rev_msri] = True
-                        # Make the branch visible. Later, if we find a rev
-                        # that merges it that also touches the file, then we
-                        # hide the branch.
-                        branch_id = revno_sequence[0:-1]
-                        if not branch_id in branches_that_are_merges:
-                            self.branch_lines[branch_id][1] = True
-                        
-                        # Hide the branches we merge
-                        for merged_rev_msri in self.merge_info[rev_msri][0]:
-                            merged_branch_id = self.merge_sorted_revisions[merged_rev_msri][3][0:-1]
-                            self.branch_lines[merged_branch_id][1] = False
-                            branches_that_are_merges[merged_branch_id] = True
-                        
-                        self.graphFilterProxyModel.invalidateCacheRow(rev_msri)
-                        index = self.createIndex (rev_msri, 0, QtCore.QModelIndex())
-                        self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                                  index,index)
-                    
-                    if i % 500 == 0 :
-                        QtCore.QCoreApplication.processEvents()
+                        for revid in file_weave.versions():
+                            rev_msri = self.revid_msri[revid]
+                            self.touches_file_msri[rev_msri] = True
+                            self.graphFilterProxyModel.invalidateCacheRow(rev_msri)
             
             self.compute_lines()
             QtCore.QCoreApplication.processEvents()
@@ -1058,13 +1018,13 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
     def _filterAcceptsRowIfBranchVisible(self, source_row, source_parent):
         sm = self.sm()
         
-        if sm.touches_file_msri is not None:
-            if source_row not in sm.touches_file_msri:
-                return False
-        
         for parent_msri in sm.merge_info[source_row][0]:
             if self.filterAcceptsRowIfBranchVisible(parent_msri, source_parent):
                 return True
+        
+        if sm.touches_file_msri is not None:
+            if source_row not in sm.touches_file_msri:
+                return False
         
         if self.search_matching_revid is not None:
             (sequence_number,
