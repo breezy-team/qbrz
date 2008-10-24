@@ -236,11 +236,9 @@ def load_locataions(locations_list):
         locations = locations_list
     
     file_ids = []
-    # First branch found. Used for get_config and to check that the same
-    # branch is specified when a file path is speciffied.
-    main_branch = None
     rev_ids = {}
-    paths_and_branches_err = "It is not possible to specify different file paths and different branchs at the same time."
+    paths_and_branches_err = "It is not possible to specify different file paths and different branches at the same time."
+    branches = []
     
     def append_tag_to_revid(revid, tag):
         if not revid in rev_ids:
@@ -248,19 +246,8 @@ def load_locataions(locations_list):
         if tag:
             rev_ids[revid][1].append (tag)
     
-    def append_location(tree, br, repo, fp, tag, main_branch):
-        if main_branch is None:
-            main_branch = br
-        
-        # XXX It would be nice to overcome this. The problem is how to
-        # combinded the results from  graph.iter_ancestry(start_revs)
-        # bzr-gtk doesn't check for this. It works if the revisions
-        # happend to be in the repo, but fails without warning if they
-        # are not.
-        # Maybe one way to solve this is to pull the missing revisions
-        # into the first branch.
-        if not main_branch.repository.base == br.repository.base:
-            raise errors.BzrCommandError("Branches must be in a shared repository.")
+    def append_location(tree, br, repo, fp, tag):
+        branches.append(br)
         
         branch_last_revision = br.last_revision()
         append_tag_to_revid(branch_last_revision, tag)
@@ -294,7 +281,6 @@ def load_locataions(locations_list):
             file_ids.append(file_id)
             if not main_branch.base == br.base:
                 raise errors.BzrCommandError(paths_and_branches_err)
-        return main_branch
     
     # This is copied stright from bzrlib/bzrdir.py. We can't just use the orig,
     # because that would mean we require bzr 1.6
@@ -325,20 +311,14 @@ def load_locataions(locations_list):
     for location in locations:
         tree, br, repo, fp = open_containing_tree_branch_or_repository(location)
         
-        if len(locations) == 1:
-            if br == None:
-                for br in repo.find_branches(using=True):
-                    tag = br.nick
-                    # We don't have ref to the working tree,
-                    # so we won't show pending merges.
-                    # XXX Get ref to working tree.
-                    main_branch = append_location(None, br, repo, '', tag,
-                                                  main_branch)
-                continue
-        
-        # We can only load one repo
         if br == None:
-            raise errors.NotBranchError(path=location)
+            for br in repo.find_branches(using=True):
+                tag = br.nick
+                # We don't have ref to the working tree,
+                # so we won't show pending merges.
+                # XXX Get ref to working tree.
+                append_location(None, br, repo, '', tag)
+            continue
         
         # If no locations were sepecified, don't do file_ids
         # Otherwise it gives you the history for the dir if you are
@@ -351,25 +331,25 @@ def load_locataions(locations_list):
         else:
             tag = br.nick
         
-        main_branch = append_location(tree, br, repo, fp, tag, main_branch)
+        append_location(tree, br, repo, fp, tag)
 
     
     if file_ids and len(file_ids)<>len(locations_list):
         raise errors.BzrCommandError(paths_and_branches_err)
     
-    return (main_branch, rev_ids, file_ids)
+    return (branches, rev_ids, file_ids)
 
 
 class LogWindow(QBzrWindow):
     
     def __init__(self, locations, branch, specific_fileids, parent=None):
         if branch:
-            self.branch = branch
+            self.branches = [branch]
             self.specific_fileids = specific_fileids
             self.start_revids = None
         else:
             self.locations = locations
-            (self.branch,
+            (self.branches,
              self.start_revids, 
              self.specific_fileids) = load_locataions(locations)
 
@@ -380,7 +360,7 @@ class LogWindow(QBzrWindow):
         QBzrWindow.__init__(self, title, parent)
         self.restoreSize("log", (710, 580))
 
-        config = self.branch.get_config()
+        config = self.branches[0].get_config()
         self.replace = config.get_user_option("qlog_replace")
         if self.replace:
             self.replace = self.replace.split("\n")
@@ -421,7 +401,7 @@ class LogWindow(QBzrWindow):
         self.index = None
         if have_search:
             try:
-                self.index = search_index.open_index_branch(self.branch)
+                self.index = search_index.open_index_branch(self.branches[0])
                 self.changesProxyModel.setSearchIndex(self.index)
                 self.searchType.insertItem(0,
                                            gettext("Messages and File text (indexed)"),
@@ -574,12 +554,12 @@ class LogWindow(QBzrWindow):
         rev = self.current_rev
         if not hasattr(rev, 'delta'):
             # TODO move this to a thread
-            self.branch.repository.lock_read()
+            rev.repository.lock_read()
             try:
-                rev.delta = self.branch.repository.get_deltas_for_revisions(
+                rev.delta = rev.repository.get_deltas_for_revisions(
                     [rev]).next()
             finally:
-                self.branch.repository.unlock()
+                rev.repository.unlock()
         if self.current_rev is not rev:
             # new update was requested, don't bother populating the list
             return
@@ -674,14 +654,14 @@ class LogWindow(QBzrWindow):
             self.changesModel.stop_revision_loading = True
             if "locations" in dir(self):
                 
-                # The new branch will be the same as self.branch, so don't
-                # change it, because doing so caused a UserWarning:
+                # The new branches will be the same as the old self.branches, so
+                # don't change it, because doing so causes a UserWarning:
                 # LockableFiles was gc'd while locked
-                (newbranch,
+                (newbranches,
                  self.start_revids, 
                  self.specific_fileids) = load_locataions(self.locations)
             
-            self.changesModel.loadBranch(self.branch,
+            self.changesModel.loadBranch(self.branches,
                                          start_revs = self.start_revids,
                                          specific_fileids = self.specific_fileids)
         finally:
@@ -691,7 +671,7 @@ class LogWindow(QBzrWindow):
         """Load branch history."""
         self.refresh_button.setDisabled(True)
         try:
-            self.changesModel.loadBranch(self.branch,
+            self.changesModel.loadBranch(self.branches,
                                          start_revs = self.start_revids,
                                          specific_fileids = self.specific_fileids)
         finally:
@@ -835,7 +815,7 @@ class LogWindow(QBzrWindow):
             return osutils.getcwd()
         else:
             if locations is None:
-                locations = [self.branch.base]
+                locations = [self.branch[0].base]
             if len(locations) > 1:
                 return (", ".join(url_for_display(i) for i in locations
                                  ).rstrip(", "))

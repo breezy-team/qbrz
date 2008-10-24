@@ -22,6 +22,7 @@ from time import (strftime, localtime)
 from bzrlib import lazy_regex
 from bzrlib.revision import NULL_REVISION
 from bzrlib.tsort import merge_sort
+from bzrlib.graph import (Graph, _StackedParentsProvider)
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
@@ -100,19 +101,37 @@ class GraphModel(QtCore.QAbstractTableModel):
         self.graphFilterProxyModel = graphFilterProxyModel
     
     
-    def loadBranch(self, branch, start_revs = None, specific_fileids = []):
-        self.branch = branch
+    def loadBranch(self, branches, start_revs = None, specific_fileids = []):
+        self.branches = branches
+        self.repos = {}
+        for branch in self.branches:
+            if branch.repository.base not in self.repos:
+                repo = branch.repository
+                repo.first_branch = branch
+                self.repos[repo.base] = repo
+        
         self.start_revs = start_revs
-        branch.lock_read()
+        for branch in self.branches:
+            branch.lock_read()
         try:
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
-            self.tags = branch.tags.get_reverse_tag_dict()  # revid to tags map
+            self.tags = {}
+            for branch in self.branches:
+                branch_tags = branch.tags.get_reverse_tag_dict()  # revid to tags map
+                for revid, tags in branch_tags.iteritems():
+                    if revid in self.tags:
+                        self.tags[revid].extend(tags)
+                    else:
+                        self.tags[revid] = (tags)
+            
             if self.start_revs is None:
-                self.start_revs = {branch.last_revision():(0, [])}
+                self.start_revs = {self.branches[0].last_revision():(0, [])}
             start_revs = [rev for rev in self.start_revs if not rev == NULL_REVISION]
             start_revs.sort(lambda x, y:cmp(self.start_revs[x][0], self.start_revs[y][0]))
             
-            graph = branch.repository.get_graph()
+            parents_providers = [repo._make_parents_provider() for repo in self.repos.itervalues()]
+            graph = Graph(_StackedParentsProvider(parents_providers))
+            
             self.graph_parents = {}
             ghosts = set()
             self.graph_children = {}
@@ -222,7 +241,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                 merged_by = None
                 if merge_depth>0:
                     merged_by = current_merge_stack[-2]
-                    self.merge_info[merged_by][0].append(msri)
+                    if merged_by:
+                        self.merge_info[merged_by][0].append(msri)
                 
                 self.merge_info.append(([],merged_by))
             
@@ -233,7 +253,7 @@ class GraphModel(QtCore.QAbstractTableModel):
             
             if specific_fileids:
                 try:
-                    branch.repository.texts.get_parent_map([])
+                    self.branches[0].repository.texts.get_parent_map([])
                     use_texts = True
                 except AttributeError:
                     use_texts = False
@@ -249,7 +269,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                                 end_of_merge in self.merge_sorted_revisions[start:start + chunk_size] \
                             for specific_fileid in specific_fileids]
                         
-                        for fileid, revid in branch.repository.texts.get_parent_map(text_keys):
+                        for fileid, revid in self.branches[0].repository.texts.get_parent_map(text_keys):
                             rev_msri = self.revid_msri[revid]
                             self.touches_file_msri[rev_msri] = True
                             
@@ -263,8 +283,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                 else:
                     weave_modifed_revisions = set()
                     for specific_fileid in specific_fileids:
-                        file_weave = branch.repository.weave_store.get_weave(specific_fileid,
-                                            branch.repository.get_transaction())
+                        file_weave = self.branches[0].repository.weave_store.get_weave(specific_fileid,
+                                            self.branches[0].repository.get_transaction())
                         for revid in file_weave.versions():
                             rev_msri = self.revid_msri[revid]
                             self.touches_file_msri[rev_msri] = True
@@ -277,7 +297,8 @@ class GraphModel(QtCore.QAbstractTableModel):
             self.stop_revision_loading = False
             self._loadNextRevision()
         finally:
-            branch.unlock
+            for branch in self.branches:
+                branch.unlock
         
     def compute_lines(self):
         
@@ -843,7 +864,14 @@ class GraphModel(QtCore.QAbstractTableModel):
     
     def _revision(self, revid):
         if revid not in self.revisions:
-            revision = self.branch.repository.get_revisions([revid])[0]
+            revision = None
+            for repo in self.repos.itervalues():
+                revision = repo.get_revisions([revid])[0]
+                if revision:
+                    revision.repository = repo
+                    revision.first_branch = repo.first_branch
+                    break
+            
             self.revisions[revid] = revision
             revno_sequence = self.merge_sorted_revisions[self.revid_msri[revid]][3]
             revision.revno = ".".join(["%d" % (revno)
@@ -881,7 +909,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                 notify_on_count = 10
                 revisionsChanged = []
                 try:
-                    self.branch.lock_read()
+                    for repo in self.repos:
+                        repo.lock_read()
                     try:
                         while self.searchMode and not self.closing:
                             nextRevId = self._nextRevisionToLoadGen.next()
@@ -892,7 +921,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                                 notifyChanges(revisionsChanged)
                                 notify_on_count = max(notify_on_count * 2, 200)
                     finally:
-                        self.branch.unlock()
+                        for repo in self.repos:
+                            repo.unlock()
                 except StopIteration, se:
                     self.graphFilterProxyModel.invalidateCache()
                     notifyChanges(revisionsChanged)
