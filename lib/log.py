@@ -598,23 +598,18 @@ class LogWindow(QBzrWindow):
             self.revision_delta_timer.start(1)
 
     def show_diff_window(self, rev1, rev2, specific_files=None):
-        self.branch.repository.lock_read()
-        try:
-            self._show_diff_window(rev1, rev2, specific_files)
-        finally:
-            self.branch.repository.unlock()
-
-    def _show_diff_window(self, rev1, rev2, specific_files=None):
-        # repository should be locked
         if not rev2.parent_ids:
-            revs = [rev1.revision_id]
-            tree = self.branch.repository.revision_tree(rev1.revision_id)
-            old_tree = self.branch.repository.revision_tree(None)
-        else:
+            tree = rev1.repository.revision_tree(rev1.revision_id)
+            old_tree = rev1.repository.revision_tree(None)
+        elif rev1.repository.base == rev2.repository.base:
             revs = [rev1.revision_id, rev2.parent_ids[0]]
-            tree, old_tree = self.branch.repository.revision_trees(revs)
+            tree, old_tree = rev1.repository.revision_trees(revs)
+        else:
+            tree = rev1.repository.revision_tree(rev1.revision_id)
+            old_tree = rev2.repository.revision_tree(rev2.parent_ids[0])
+        
         window = DiffWindow(old_tree, tree,
-                            self.branch, self.branch,
+                            rev1.first_branch, rev2.first_branch,
                             specific_files=specific_files)
         window.show()
         self.windows.append(window)
@@ -746,7 +741,7 @@ class LogWindow(QBzrWindow):
     def show_revision_tree(self):
         from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
         rev = self.current_rev
-        window = BrowseWindow(self.branch, revision_id=rev.revision_id,
+        window = BrowseWindow(rev.first_branch, revision_id=rev.revision_id,
                               revision_spec=rev.revno, parent=self)
         window.show()
         self.windows.append(window)
@@ -815,7 +810,7 @@ class LogWindow(QBzrWindow):
             return osutils.getcwd()
         else:
             if locations is None:
-                locations = [self.branch[0].base]
+                locations = [self.branches[0].base]
             if len(locations) > 1:
                 return (", ".join(url_for_display(i) for i in locations
                                  ).rstrip(", "))
