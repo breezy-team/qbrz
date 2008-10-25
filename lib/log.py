@@ -623,7 +623,7 @@ class LogWindow(QBzrWindow):
         rev2_head_info = self.changesModel.revisionHeadInfo(rev2.revision_id)
         
         window = DiffWindow(old_tree, tree,
-                            rev1_head_info[0][0], rev2_head_info[0][0],
+                            rev2_head_info[0][0], rev1_head_info[0][0],
                             specific_files=specific_files)
         window.show()
         self.windows.append(window)
