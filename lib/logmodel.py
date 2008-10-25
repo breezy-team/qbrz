@@ -118,9 +118,9 @@ class GraphModel(QtCore.QAbstractTableModel):
                 branch_tags = branch.tags.get_reverse_tag_dict()  # revid to tags map
                 for revid, tags in branch_tags.iteritems():
                     if revid in self.tags:
-                        self.tags[revid].extend(tags)
+                        self.tags[revid].update(set(tags))
                     else:
-                        self.tags[revid] = (tags)
+                        self.tags[revid] = set(tags)
             
             self.start_revs = [rev for rev in self.heads if not rev == NULL_REVISION]
             self.start_revs.sort(lambda x, y:cmp(self.heads[x][0], self.heads[y][0]))
@@ -806,7 +806,7 @@ class GraphModel(QtCore.QAbstractTableModel):
         if role == TagsRole:
             tags = []
             if revid in self.tags:
-                tags = self.tags[revid]
+                tags = list(self.tags[revid])
             return QtCore.QVariant(QtCore.QStringList(tags))
         
         if role == BranchTagsRole:
