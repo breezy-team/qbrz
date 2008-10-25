@@ -101,16 +101,14 @@ class GraphModel(QtCore.QAbstractTableModel):
         self.graphFilterProxyModel = graphFilterProxyModel
     
     
-    def loadBranch(self, branches, start_revs = None, specific_fileids = []):
+    def loadBranch(self, branches, heads, specific_fileids = []):
+        self.heads = heads
         self.branches = branches
         self.repos = {}
         for branch in self.branches:
             if branch.repository.base not in self.repos:
-                repo = branch.repository
-                repo.first_branch = branch
-                self.repos[repo.base] = repo
+                self.repos[branch.repository.base] = branch.repository
         
-        self.start_revs = start_revs
         for branch in self.branches:
             branch.lock_read()
         try:
@@ -124,10 +122,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                     else:
                         self.tags[revid] = (tags)
             
-            if self.start_revs is None:
-                self.start_revs = {self.branches[0].last_revision():(0, [])}
-            start_revs = [rev for rev in self.start_revs if not rev == NULL_REVISION]
-            start_revs.sort(lambda x, y:cmp(self.start_revs[x][0], self.start_revs[y][0]))
+            self.start_revs = [rev for rev in self.heads if not rev == NULL_REVISION]
+            self.start_revs.sort(lambda x, y:cmp(self.heads[x][0], self.heads[y][0]))
             
             parents_providers = [repo._make_parents_provider() for repo in self.repos.itervalues()]
             graph = Graph(_StackedParentsProvider(parents_providers))
@@ -135,7 +131,7 @@ class GraphModel(QtCore.QAbstractTableModel):
             self.graph_parents = {}
             ghosts = set()
             self.graph_children = {}
-            for (revid, parent_revids) in graph.iter_ancestry(start_revs):
+            for (revid, parent_revids) in graph.iter_ancestry(self.start_revs):
                 if parent_revids is None:
                     ghosts.add(revid)
                     continue
@@ -152,7 +148,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                 for ghost_child in self.graph_children[ghost]:
                     self.graph_parents[ghost_child] = [p for p in self.graph_parents[ghost_child]
                                                   if p not in ghosts]
-            self.graph_parents["top:"] = start_revs
+            self.graph_parents["top:"] = self.start_revs
         
             if len(self.graph_parents)>0:
                 self.merge_sorted_revisions = merge_sort(
@@ -164,6 +160,12 @@ class GraphModel(QtCore.QAbstractTableModel):
             
             assert self.merge_sorted_revisions[0][1] == "top:"
             self.merge_sorted_revisions = self.merge_sorted_revisions[1:]
+            
+            self.revid_head = {}
+            for i in xrange(1, len(self.start_revs)):
+                head_revid = self.start_revs[i]
+                for ancestor_revid in graph.find_unique_ancestors(head_revid, self.start_revs[:i-1]):
+                    self.revid_head[ancestor_revid] = head_revid
             
             # This will hold, for each "branch":
             # [a list of revision indexes in the branch,
@@ -194,7 +196,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                 
                 branch_line = None
                 if branch_id not in self.branch_lines:
-                    start_branch = revid in start_revs
+                    start_branch = revid in self.start_revs
                     branch_line = [[],
                                    start_branch,
                                    [],
@@ -809,8 +811,8 @@ class GraphModel(QtCore.QAbstractTableModel):
         
         if role == BranchTagsRole:
             tags = []
-            if revid in self.start_revs:
-                tags = self.start_revs[revid][1]
+            if revid in self.heads:
+                tags = [tag for (branch, tag, blr) in self.heads[revid][1]]
             return QtCore.QVariant(QtCore.QStringList(tags))
         
         if role == RevIdRole or role == FilterIdRole:
@@ -869,7 +871,6 @@ class GraphModel(QtCore.QAbstractTableModel):
                 revision = repo.get_revisions([revid])[0]
                 if revision:
                     revision.repository = repo
-                    revision.first_branch = repo.first_branch
                     break
             
             self.revisions[revid] = revision
@@ -963,6 +964,13 @@ class GraphModel(QtCore.QAbstractTableModel):
         # This method can probably be removed.
         msri = self.revid_msri[revid]
         return self.merge_info[msri][1]
+    
+    def revisionHeadInfo(self, revid):
+        if revid in self.revid_head:
+            head_revid = self.revid_head[revid]
+        else:
+            head_revid = self.start_revs[0]
+        return self.heads[head_revid][1]
     
 class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
     def __init__(self, parent = None):

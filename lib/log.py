@@ -19,6 +19,7 @@
 
 from PyQt4 import QtCore, QtGui
 from bzrlib.bzrdir import BzrDir
+from bzrlib.branch import Branch
 from bzrlib import (
     errors,
     osutils,
@@ -229,28 +230,24 @@ class Compleater(QtGui.QCompleter):
     def splitPath (self, path):
         return QtCore.QStringList([path.split(" ")[-1]])
 
-def load_locataions(locations_list):
-    if locations_list is None:
-        locations = ["."]
-    else:
-        locations = locations_list
-    
+def load_locataions(locations):
     file_ids = []
-    rev_ids = {}
+    heads = {}
+    branches = {}
     paths_and_branches_err = "It is not possible to specify different file paths and different branches at the same time."
-    branches = []
     
-    def append_tag_to_revid(revid, tag):
-        if not revid in rev_ids:
-            rev_ids[revid] = (len(rev_ids), [])
+    def append_head_info(revid, branch, tag, is_branch_last_revision):
+        if not revid in heads:
+            heads[revid] = (len(heads), [])
         if tag:
-            rev_ids[revid][1].append (tag)
+            heads[revid][1].append ((branch, tag, is_branch_last_revision))
     
     def append_location(tree, br, repo, fp, tag):
-        branches.append(br)
+        if br.base not in branches:
+            branches[br.base] = br
         
         branch_last_revision = br.last_revision()
-        append_tag_to_revid(branch_last_revision, tag)
+        append_head_info(branch_last_revision, br, tag, True)
         
         if tree:
             parent_ids = tree.get_parent_ids()
@@ -260,15 +257,15 @@ def load_locataions(locations_list):
                 if revid != branch_last_revision:
                     # working tree is out of date
                     if tag:
-                        append_tag_to_revid(revid, "%s - Working Tree" % tag)
+                        append_head_info(revid, br, "%s - Working Tree" % tag, False)
                     else:
-                        append_tag_to_revid(revid, "Working Tree")
+                        append_head_info(revid, br, "Working Tree", False)
                 # other parents are pending merges
                 for revid in parent_ids[1:]:
                     if tag:
-                        append_tag_to_revid(revid, ("%s - Pending Merge" % tag))
+                        append_head_info(revid, br, "%s - Pending Merge" % tag, False)
                     else:
-                        append_tag_to_revid(revid, "Pending Merge")
+                        append_head_info(revid, br, "Pending Merge", False)
         
         if fp != '' : 
             if tree is None:
@@ -309,15 +306,25 @@ def load_locataions(locations_list):
         return tree, branch, branch.repository, relpath
     
     for location in locations:
-        tree, br, repo, fp = open_containing_tree_branch_or_repository(location)
+        if isinstance(location, Branch):
+            br = location
+            repo = location.repository
+            try:
+                tree = location.bzrdir.open_workingtree()
+            except errors.NoWorkingTree:
+                tree = None
+            fp = None
+        else:
+            tree, br, repo, fp = open_containing_tree_branch_or_repository(location)
         
         if br == None:
             for br in repo.find_branches(using=True):
                 tag = br.nick
-                # We don't have ref to the working tree,
-                # so we won't show pending merges.
-                # XXX Get ref to working tree.
-                append_location(None, br, repo, '', tag)
+                try:
+                    tree = br.bzrdir.open_workingtree()
+                except errors.NoWorkingTree:
+                    tree = None
+                append_location(tree, br, repo, '', tag)
             continue
         
         # If no locations were sepecified, don't do file_ids
@@ -334,32 +341,36 @@ def load_locataions(locations_list):
         append_location(tree, br, repo, fp, tag)
 
     
-    if file_ids and len(file_ids)<>len(locations_list):
+    if file_ids and len(branches)>1:
         raise errors.BzrCommandError(paths_and_branches_err)
     
-    return (branches, rev_ids, file_ids)
+    return (branches.values(), heads, file_ids)
 
 
 class LogWindow(QBzrWindow):
     
     def __init__(self, locations, branch, specific_fileids, parent=None):
         if branch:
-            self.branches = [branch]
-            self.specific_fileids = specific_fileids
-            self.start_revids = None
+            self.locations = (branch)
         else:
             self.locations = locations
-            (self.branches,
-             self.start_revids, 
-             self.specific_fileids) = load_locataions(locations)
-
-        lt = self._locations_for_title(locations)
+            if self.locations is None:
+                self.locations = ["."]
+        
+        (self.branches,
+         self.heads,
+         self.specific_fileids) = load_locataions(self.locations)
+        
+        if specific_fileids:
+            self.specific_fileids = specific_fileids
+        
+        lt = self._locations_for_title(self.locations)
         title = [gettext("Log")]
         if lt:
             title.append(lt)
         QBzrWindow.__init__(self, title, parent)
         self.restoreSize("log", (710, 580))
-
+        
         config = self.branches[0].get_config()
         self.replace = config.get_user_option("qlog_replace")
         if self.replace:
@@ -608,8 +619,11 @@ class LogWindow(QBzrWindow):
             tree = rev1.repository.revision_tree(rev1.revision_id)
             old_tree = rev2.repository.revision_tree(rev2.parent_ids[0])
         
+        rev1_head_info = self.changesModel.revisionHeadInfo(rev1.revision_id)
+        rev2_head_info = self.changesModel.revisionHeadInfo(rev2.revision_id)
+        
         window = DiffWindow(old_tree, tree,
-                            rev1.first_branch, rev2.first_branch,
+                            rev1_head_info[0][0], rev2_head_info[0][0],
                             specific_files=specific_files)
         window.show()
         self.windows.append(window)
@@ -653,11 +667,11 @@ class LogWindow(QBzrWindow):
                 # don't change it, because doing so causes a UserWarning:
                 # LockableFiles was gc'd while locked
                 (newbranches,
-                 self.start_revids, 
+                 self.heads, 
                  self.specific_fileids) = load_locataions(self.locations)
             
             self.changesModel.loadBranch(self.branches,
-                                         start_revs = self.start_revids,
+                                         self.heads,
                                          specific_fileids = self.specific_fileids)
         finally:
             self.refresh_button.setDisabled(False)
@@ -667,7 +681,7 @@ class LogWindow(QBzrWindow):
         self.refresh_button.setDisabled(True)
         try:
             self.changesModel.loadBranch(self.branches,
-                                         start_revs = self.start_revids,
+                                         self.heads,
                                          specific_fileids = self.specific_fileids)
         finally:
             self.refresh_button.setDisabled(False)
@@ -809,11 +823,13 @@ class LogWindow(QBzrWindow):
         if locations == ['.']:
             return osutils.getcwd()
         else:
-            if locations is None:
-                locations = [self.branches[0].base]
             if len(locations) > 1:
                 return (", ".join(url_for_display(i) for i in locations
                                  ).rstrip(", "))
             else:
+                if isinstance(locations[0], Branch):
+                    location = locations[0].base
+                else:
+                    location = locations[0]
                 from bzrlib.directory_service import directories
-                return (url_for_display(directories.dereference(locations[0])))
+                return (url_for_display(directories.dereference(location)))
