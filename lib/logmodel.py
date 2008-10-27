@@ -979,7 +979,7 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
         QtGui.QSortFilterProxyModel.__init__(self, parent)
         self.cache = {}
         self.search_matching_revid = None
-        self.search_idx = None
+        self.search_indexes = []
         self.filter_str = u""
         self.filter_role = FilterMessageRole
         self._sourceModel = None
@@ -999,23 +999,24 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
             self.filter_str = unicode(str)
             self.filter_role = role
     
-    def setSearchIndex(self, search_idx):
-        self.search_idx = search_idx
+    def setSearchIndexes(self, indexes):
+        self.search_indexes = indexes
 
     def setFilterSearch(self, s):
-        if s == "" or self.search_idx is None or not have_search:
+        if s == "" or not self.search_indexes or not have_search:
             self.search_matching_revid = None
         else:
             s = str(s).strip()
             query = [(query_item,) for query_item in s.split(" ")]
             self.search_matching_revid = {}
-            for result in self.search_idx.search(query):
-                if isinstance(result, search_index.RevisionHit):
-                    self.search_matching_revid[result.revision_key[0]] = True
-                if isinstance(result, search_index.FileTextHit):
-                    self.search_matching_revid[result.text_key[1]] = True
-                if isinstance(result, search_index.PathHit):
-                    pass
+            for index in self.search_indexes:
+                for result in index.search(query):
+                    if isinstance(result, search_index.RevisionHit):
+                        self.search_matching_revid[result.revision_key[0]] = True
+                    if isinstance(result, search_index.FileTextHit):
+                        self.search_matching_revid[result.text_key[1]] = True
+                    if isinstance(result, search_index.PathHit):
+                        pass
     
     def sm(self):
         if not self._sourceModel:

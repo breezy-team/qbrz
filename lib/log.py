@@ -412,11 +412,17 @@ class LogWindow(QBzrWindow):
 
         self.searchType = QtGui.QComboBox()
             
-        self.index = None
+        self.indexes = []
         if have_search:
-            try:
-                self.index = search_index.open_index_branch(self.branches[0])
-                self.changesProxyModel.setSearchIndex(self.index)
+            for branch in self.branches:
+                try:
+                    index = search_index.open_index_branch(branch)
+                    self.indexes.append(index)
+                except search_errors.NoSearchIndex:
+                    pass
+            
+            if self.indexes:
+                self.changesProxyModel.setSearchIndexes(self.indexes)
                 self.searchType.insertItem(0,
                                            gettext("Messages and File text (indexed)"),
                                            QtCore.QVariant(logmodel.FilterSearchRole))
@@ -431,8 +437,6 @@ class LogWindow(QBzrWindow):
                 self.suggestion_last_first_letter = ""
                 self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
                              self.set_search_timer)
-            except search_errors.NoSearchIndex:
-                pass
         
         self.searchType.addItem(gettext("Messages"),
                                 QtCore.QVariant(logmodel.FilterMessageRole))
@@ -737,11 +741,13 @@ class LogWindow(QBzrWindow):
         if first_letter != self.suggestion_last_first_letter:
             self.suggestion_last_first_letter = first_letter
             if first_letter not in self.suggestion_letters_loaded:
-                suggestions = QtCore.QStringList() 
-                for s in self.index.suggest(((first_letter,),)): 
-                    #if suggestions.count() % 100 == 0: 
-                    #    QtCore.QCoreApplication.processEvents() 
-                    suggestions.append(s[0])
+                suggestions = set()
+                for index in self.indexes:
+                    for s in index.suggest(((first_letter,),)): 
+                        #if suggestions.count() % 100 == 0: 
+                        #    QtCore.QCoreApplication.processEvents() 
+                        suggestions.add(s[0])
+                suggestions = QtCore.QStringList(list(suggestions))
                 suggestions.sort()
                 self.suggestion_letters_loaded[first_letter] = suggestions
             else:
