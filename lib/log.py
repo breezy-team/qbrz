@@ -371,12 +371,15 @@ class LogWindow(QBzrWindow):
         QBzrWindow.__init__(self, title, parent)
         self.restoreSize("log", (710, 580))
         
-        config = self.branches[0].get_config()
-        self.replace = config.get_user_option("qlog_replace")
-        if self.replace:
-            self.replace = self.replace.split("\n")
-            self.replace = [tuple(self.replace[2*i:2*i+2])
-                            for i in range(len(self.replace) // 2)]
+        self.replace = {}
+        for branch in self.branches:
+            config = branch.get_config()
+            replace = config.get_user_option("qlog_replace")
+            if replace:
+                replace = replace.split("\n")
+                replace = [tuple(replace[2*i:2*i+2])
+                                for i in range(len(replace) // 2)]
+            self.replace[branch.base] = replace
 
         self.changesModel = logmodel.GraphModel()
 
@@ -605,7 +608,10 @@ class LogWindow(QBzrWindow):
             revid = str(index.data(logmodel.RevIdRole).toString())
             rev = self.changesModel.revision(revid)
             self.current_rev = rev
-            self.message.setHtml(format_revision_html(rev, self.replace))
+            head_info = self.changesModel.revisionHeadInfo(revid)
+            branch = head_info[0][0]
+            replace = self.replace[branch.base]
+            self.message.setHtml(format_revision_html(rev, replace))
             self.revision_delta_timer.start(1)
 
     def show_diff_window(self, rev1, rev2, specific_files=None):
