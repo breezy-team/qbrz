@@ -19,7 +19,7 @@
 
 from PyQt4 import QtCore, QtGui
 from time import (strftime, localtime)
-from bzrlib import lazy_regex
+from bzrlib import (lazy_regex, errors)
 from bzrlib.revision import NULL_REVISION
 from bzrlib.tsort import merge_sort
 from bzrlib.graph import (Graph, _StackedParentsProvider)
@@ -868,10 +868,12 @@ class GraphModel(QtCore.QAbstractTableModel):
         if revid not in self.revisions:
             revision = None
             for repo in self.repos.itervalues():
-                revision = repo.get_revisions([revid])[0]
-                if revision:
+                try:
+                    revision = repo.get_revisions([revid])[0]
                     revision.repository = repo
                     break
+                except errors.NoSuchRevision:
+                    pass
             
             self.revisions[revid] = revision
             revno_sequence = self.merge_sorted_revisions[self.revid_msri[revid]][3]
