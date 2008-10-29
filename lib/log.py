@@ -318,7 +318,23 @@ def load_locataions(locations):
             tree, br, repo, fp = open_containing_tree_branch_or_repository(location)
         
         if br == None:
-            for br in repo.find_branches(using=True):
+            trunk_names = ["trunk", "bzr.dev", "dev"]
+            repo_brs = repo.find_branches(using=True)
+            
+            def branch_cmp_trunk_first(x,y):
+                x_is_trunk = x.nick in trunk_names
+                y_is_trunk = y.nick in trunk_names
+                if x_is_trunk and y_is_trunk:
+                    return cmp(trunk_names.index(x.nick),
+                               trunk_names.index(y.nick))
+                if x_is_trunk:
+                    return -1
+                if y_is_trunk:
+                    return 1
+                return cmp(x.nick, y.nick)
+            repo_brs.sort(branch_cmp_trunk_first)
+            
+            for br in repo_brs:             
                 tag = br.nick
                 try:
                     tree = br.bzrdir.open_workingtree()
