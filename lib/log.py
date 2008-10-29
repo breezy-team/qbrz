@@ -239,8 +239,7 @@ def load_locataions(locations):
     def append_head_info(revid, branch, tag, is_branch_last_revision):
         if not revid in heads:
             heads[revid] = (len(heads), [])
-        if tag:
-            heads[revid][1].append ((branch, tag, is_branch_last_revision))
+        heads[revid][1].append ((branch, tag, is_branch_last_revision))
     
     def append_location(tree, br, repo, fp, tag):
         if br.base not in branches:

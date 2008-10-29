@@ -812,7 +812,7 @@ class GraphModel(QtCore.QAbstractTableModel):
         if role == BranchTagsRole:
             tags = []
             if revid in self.heads:
-                tags = [tag for (branch, tag, blr) in self.heads[revid][1]]
+                tags = [tag for (branch, tag, blr) in self.heads[revid][1] if tag]
             return QtCore.QVariant(QtCore.QStringList(tags))
         
         if role == RevIdRole or role == FilterIdRole:
