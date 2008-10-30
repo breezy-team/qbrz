@@ -222,7 +222,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                 merged_by = None
                 if merge_depth>0:
                     merged_by = current_merge_stack[-2]
-                    self.merge_info[merged_by][0].append(msri)
+                    if merged_by:
+                        self.merge_info[merged_by][0].append(msri)
                 
                 self.merge_info.append(([],merged_by))
             
