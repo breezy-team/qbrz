@@ -938,9 +938,12 @@ class GraphModel(QtCore.QAbstractTableModel):
         return self.createIndex (msri, 0, QtCore.QModelIndex())
     
     def findChildBranchMergeRevision (self, revid):
-        # This method can probably be removed.
         msri = self.revid_msri[revid]
-        return self.merge_info[msri][1]
+        merged_by_msri = self.merge_info[msri][1]
+        if merged_by_msri:
+            return self.merge_sorted_revisions[merged_by_msri][1]
+        else:
+            return None
     
 class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
     def __init__(self, parent = None):
