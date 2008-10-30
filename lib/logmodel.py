@@ -224,7 +224,14 @@ class GraphModel(QtCore.QAbstractTableModel):
                     merged_by = current_merge_stack[-2]
                     if merged_by:
                         self.merge_info[merged_by][0].append(msri)
-                
+                        branch_id = revno_sequence[0:-1]
+                        merged_by_branch_id = self.merge_sorted_revisions[merged_by][3][0:-1]
+                        
+                        if not branch_id in self.branch_lines[merged_by_branch_id][3]: 
+                            self.branch_lines[merged_by_branch_id][2].append(branch_id) 
+                        if not merged_by_branch_id in self.branch_lines[branch_id][2]: 
+                            self.branch_lines[branch_id][3].append(merged_by_branch_id) 
+                        
                 self.merge_info.append(([],merged_by))
             
             if specific_fileids:
