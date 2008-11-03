@@ -1,11 +1,17 @@
-0.9.5 - in development
+0.9.5 - 2008-11-03
 ----------------------
+Maintenance release: various bugfixes and bunch of small improvements.
+
+New features:
 
  * qcat:
    * New command-line option `--native` to show file content in native
-     application rather than in usual QCat window.
+     application rather than in usual QCat window. (experimental)
  * qtag: new command to edit tags.
  * New translation added: Turkish
+
+NOTES: when upgrading old installation (<0.9.2) of QBzr to 0.9.5,
+please uninstall or remove old files first.
 
 
 0.9.4 - 2008-09-20
