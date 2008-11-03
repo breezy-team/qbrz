@@ -25,11 +25,10 @@ import time
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.errors import BinaryFile, NoSuchRevision, PathsNotVersionedError
+from bzrlib.errors import NoSuchRevision, PathsNotVersionedError
 from bzrlib.mutabletree import MutableTree
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.revisiontree import RevisionTree
-from bzrlib.textfile import check_text_lines
 from bzrlib.transform import _PreviewTree
 from bzrlib.workingtree import WorkingTree
 from bzrlib.workingtree_4 import DirStateRevisionTree
@@ -45,6 +44,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     StandardButton,
     get_set_encoding,
+    is_binary_content,
     )
 
 
@@ -278,19 +278,14 @@ class DiffWindow(QBzrWindow):
                     if ((versioned[0] != versioned[1] or changed_content)
                         and (kind[0] == 'file' or kind[1] == 'file')):
                         lines = []
+                        binary = False
                         for ix, tree in enumerate(self.trees):
                             content = ()
                             if versioned[ix] and kind[ix] == 'file':
                                 content = get_file_lines_from_tree(tree, file_id)
                             lines.append(content)
-                        try:
-                            for l in lines:
-                                # XXX bzrlib's check_text_lines looks at first 1K
-                                #     and therefore produce false check in some
-                                #     cases (e.g. pdf files)
-                                # TODO: write our own function to check entire file
-                                check_text_lines(l)
-                            binary = False
+                            binary = binary or is_binary_content(content)
+                        if not binary:
                             if versioned == (True, False):
                                 groups = [[('delete', 0, len(lines[0]), 0, 0)]]
                             elif versioned == (False, True):
@@ -304,8 +299,7 @@ class DiffWindow(QBzrWindow):
                             lines = [[i.decode(encoding,'replace') for i in l]
                                      for l, encoding in zip(lines, self.encodings)]
                             data = ((),())
-                        except BinaryFile:
-                            binary = True
+                        else:
                             groups = []
                         data = [''.join(l) for l in lines]
                     else:

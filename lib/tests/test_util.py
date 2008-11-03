@@ -127,3 +127,9 @@ class TestUtil(TestCase):
 
     def test_htmlencode(self):
         self.assertEquals('&quot;&amp;&lt;&gt;', util.htmlencode('"&<>'))
+
+    def test_is_binary_content(self):
+        self.assertEquals(False, util.is_binary_content([]))
+        self.assertEquals(False, util.is_binary_content(['foo\n', 'bar\r\n', 'spam\r']))
+        self.assertEquals(True, util.is_binary_content(['\x00']))
+        self.assertEquals(True, util.is_binary_content(['a'*2048 + '\x00']))

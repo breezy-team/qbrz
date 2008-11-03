@@ -748,3 +748,14 @@ def url_for_display(url):
     if not url:
         return url
     return urlutils.unescape_for_display(url, 'utf-8')
+
+
+def is_binary_content(lines):
+    """Check list of lines for binary content
+    (i.e. presence of 0x00 byte there).
+    @return: True if 0x00 byte found.
+    """
+    for s in lines:
+        if '\x00' in s:
+            return True
+    return False
