@@ -473,12 +473,24 @@ class CommitWindow(SubProcessWindow):
                 return
         args.append(('-m%s' % message))
         
+        # starts with one because if pending changes are available the warning box will appear each time.
+        checkedFiles = 1 
         if not self.pending_merges:
+            checkedFiles = 0
             for desc in self.filelist.iter_checked():
+                checkedFiles = checkedFiles+1
                 path = desc.path()
                 if not desc.is_versioned():
                     files_to_add.append(path)
                 args.append(path)
+        
+        if checkedFiles == 0: # BUG: 295116
+            button = QtGui.QMessageBox.warning(self,
+                "QBzr - " + gettext("Commit"), 
+                gettext("No changes where selected, therefore nothing can be committed."),
+                QtGui.QMessageBox.Ok) 
+            self.failed()
+            return
         
         if self.bugsCheckBox.isChecked():
             for s in unicode(self.bugs.text()).split():
