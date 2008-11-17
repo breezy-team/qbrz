@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-11-17 16:12+0100\n"
+"POT-Creation-Date: 2008-11-17 16:27+0100\n"
 "PO-Revision-Date: 2008-11-10 02:30+0900\n"
 "Last-Translator: HAYASHI Kentaro <kenhys@gigo-ice.org>\n"
 "Language-Team: Japanese <ja@li.org>\n"
@@ -191,7 +191,7 @@ msgstr "作業ツリー"
 
 #: lib/diff.py:91
 #, python-format
-msgid "Rev %s for %s"
+msgid "Rev %(rev)s for %(branch)s"
 msgstr ""
 
 #: lib/diff.py:93
@@ -201,7 +201,7 @@ msgstr "リビジョン %s"
 
 #: lib/diff.py:96
 #, python-format
-msgid "Revid: %s for %s"
+msgid "Revid: %(rev)s for %(branch)s"
 msgstr ""
 
 #: lib/diff.py:98

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-11-17 16:22+0100\n"
+"POT-Creation-Date: 2008-11-17 16:27+0100\n"
 "PO-Revision-Date: 2008-08-02 23:24+0000\n"
 "Last-Translator: Johan Helin <Unknown>\n"
 "Language-Team: Swedish <sv@li.org>\n"
@@ -191,7 +191,7 @@ msgstr ""
 
 #: lib/diff.py:91
 #, python-format
-msgid "Rev %s for %s"
+msgid "Rev %(rev)s for %(branch)s"
 msgstr ""
 
 #: lib/diff.py:93
@@ -201,7 +201,7 @@ msgstr ""
 
 #: lib/diff.py:96
 #, python-format
-msgid "Revid: %s for %s"
+msgid "Revid: %(rev)s for %(branch)s"
 msgstr ""
 
 #: lib/diff.py:98

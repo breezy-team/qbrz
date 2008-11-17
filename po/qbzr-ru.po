@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: QBzr 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-11-17 16:22+0100\n"
+"POT-Creation-Date: 2008-11-17 16:27+0100\n"
 "PO-Revision-Date: 2008-10-16 15:50+0000\n"
 "Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
 "Language-Team: Russian\n"
@@ -190,8 +190,8 @@ msgstr "Рабочая копия"
 
 #: lib/diff.py:91
 #, python-format
-msgid "Rev %s for %s"
-msgstr "Версия %s в ветке %s"
+msgid "Rev %(rev)s for %(branch)s"
+msgstr "Версия %(rev)s в ветке %(branch)s"
 
 #: lib/diff.py:93
 #, python-format
@@ -200,8 +200,8 @@ msgstr "Версия %s"
 
 #: lib/diff.py:96
 #, python-format
-msgid "Revid: %s for %s"
-msgstr "Revid: %s в ветке %s"
+msgid "Revid: %(rev)s for %(branch)s"
+msgstr "Revid: %(rev)s в ветке %(branch)s"
 
 #: lib/diff.py:98
 #, python-format
