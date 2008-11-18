@@ -303,14 +303,8 @@ class cmd_qdiff(QBzrCommand):
         Option('modified', short_name='M',
                help='Show diff for modified files.'),
         Option('renamed', short_name='R', help='Show diff for renamed files.'),
-        Option('old',
-            help='Branch/tree to compare from.',
-            type=unicode,
-            ),
-        Option('new',
-            help='Branch/tree to compare to.',
-            type=unicode,
-            ),
+        bzr_option('diff', 'old'),
+        bzr_option('diff', 'new'),
         ]
     if 'change' in Option.OPTIONS:
         takes_options.append('change')
@@ -660,6 +654,7 @@ class cmd_qsubprocess(Command):
         ui.ui_factory = ui.text.TextUIFactory(SubprocessProgress)
         argv = [p.decode('utf8') for p in shlex.split(cmd.encode('utf8'))]
         commands.run_bzr(argv)
+
 
 class cmd_qgetupdates(QBzrCommand):
     """Fetches external changes into the working tree"""
