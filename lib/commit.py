@@ -463,14 +463,15 @@ class CommitWindow(SubProcessWindow):
         
         message = unicode(self.message.toPlainText()).strip() 
         if not message: 
-            button = QtGui.QMessageBox.warning(self, 
-                "QBzr - " + gettext("Commit"), 
-                gettext("Empty commit message. Do you really want to commit?"), 
-                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) 
-            if button == QtGui.QMessageBox.No: 
-                # don't commit, but don't close the window either
-                self.failed()
-                return
+            QtGui.QMessageBox.warning(self,
+                "QBzr - " + gettext("Commit"),
+                gettext("You should provide commit message."),
+                gettext('&OK'))
+            # don't commit, but don't close the window either
+            self.failed()
+            self.message.setFocus()
+            return
+
         args.append(('-m%s' % message))
         
         # starts with one because if pending changes are available the warning box will appear each time.
