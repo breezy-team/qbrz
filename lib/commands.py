@@ -275,7 +275,6 @@ class cmd_qcommit(QBzrCommand):
     takes_options = [
             bzr_option('commit', 'message'),
             bzr_option('commit', 'local'),
-            bzr_option('commit', 'unchanged'),
             ui_mode_option,
             ]
     aliases = ['qci']
