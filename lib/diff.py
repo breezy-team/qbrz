@@ -207,6 +207,7 @@ class DiffWindow(QBzrWindow):
                 return path
 
             try:
+                no_changes = True   # if there is no changes found we need to inform the user
                 for (file_id, paths, changed_content, versioned, parent, name, kind,
                      executable) in sorted(changes, key=changes_key):
                     # file_id         -> ascii string
@@ -305,6 +306,7 @@ class DiffWindow(QBzrWindow):
                         view.append_diff(list(paths), file_id, kind, status,
                                          dates, versioned, binary, lines, groups,
                                          data, properties_changed)
+                    no_changes = False
             except PathsNotVersionedError, e:
                     QtGui.QMessageBox.critical(self, gettext('Diff'),
                         gettext(u'File %s is not versioned.\n'
@@ -313,6 +315,10 @@ class DiffWindow(QBzrWindow):
                     self.close()
         finally:
             for tree in self.trees: tree.unlock()
+        if no_changes:
+            QtGui.QMessageBox.information(self, gettext('Diff'),
+                gettext('No changes found.'),
+                gettext('&OK'))
         self.refresh_button.setEnabled(self.can_refresh())
 
     def click_unidiff(self, checked):
