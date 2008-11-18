@@ -217,7 +217,7 @@ class CommitWindow(SubProcessWindow):
     def __init__(self, tree, selected_list, dialog=True, parent=None,
                  local=None, message=None, ui_mode=True):
         super(CommitWindow, self).__init__(
-                                  [gettext("Commit"), tree.branch.nick],
+                                  gettext("Commit"),
                                   name = "commit",
                                   default_size = (540, 540),
                                   ui_mode = ui_mode,
