@@ -299,7 +299,7 @@ class cmd_qdiff(QBzrCommand):
         Option('encoding', type=check_encoding,
                help='Encoding of files content (default: utf-8).'),
         Option('added', short_name='A', help='Show diff for added files.'),
-        Option('deleted', short_name='D', help='Show diff for deleted files.'),
+        Option('deleted', short_name='K', help='Show diff for deleted files.'),
         Option('modified', short_name='M',
                help='Show diff for modified files.'),
         Option('renamed', short_name='R', help='Show diff for renamed files.'),
