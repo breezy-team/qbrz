@@ -213,9 +213,10 @@ class CommitWindow(SubProcessWindow):
         words = list(words)
         words.sort(lambda a, b: cmp(a.lower(), b.lower()))
         self.completion_words = words
+        self.num_versioned_files = num_versioned_files  # save number of versioned files
 
     def __init__(self, tree, selected_list, dialog=True, parent=None,
-                 local=None, message=None, ui_mode=True):
+                 local=None, message=None, ui_mode=True, unchanged=False):
         super(CommitWindow, self).__init__(
                                   gettext("Commit"),
                                   name = "commit",
@@ -351,6 +352,11 @@ class CommitWindow(SubProcessWindow):
     
         vbox.addWidget(selectall_checkbox)
 
+        self.unchanged_checkbox = QtGui.QCheckBox(gettext("Commit unchanged tree"))
+        self.unchanged_checkbox.setChecked(bool(unchanged))
+        if self.num_versioned_files == 0:
+            vbox.addWidget(self.unchanged_checkbox)
+
         self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
 
         # Display a list of pending merges
@@ -472,7 +478,10 @@ class CommitWindow(SubProcessWindow):
             self.message.setFocus()
             return
 
-        args.append(('-m%s' % message))
+        args.append(('-m%s' % message))     # WARNING! message NEVER should be empty,
+                                            # otherwise first argument after this option
+                                            # will be used as commit message.
+                                            # See: https://launchpad.net/bugs/297606
         
         # starts with one because if pending changes are available the warning box will appear each time.
         checkedFiles = 1 
@@ -484,15 +493,18 @@ class CommitWindow(SubProcessWindow):
                 if not desc.is_versioned():
                     files_to_add.append(path)
                 args.append(path)
-        
-        if checkedFiles == 0: # BUG: 295116
+
+        if checkedFiles == 0 and not (self.num_versioned_files == 0 and self.unchanged_checkbox.isChecked()):
             button = QtGui.QMessageBox.warning(self,
                 "QBzr - " + gettext("Commit"), 
-                gettext("No changes where selected, therefore nothing can be committed."),
+                gettext("No changes to commit."),
                 QtGui.QMessageBox.Ok) 
             self.failed()
             return
-        
+
+        if self.unchanged_checkbox.isChecked():
+            args.append('--unchanged')
+
         if self.bugsCheckBox.isChecked():
             for s in unicode(self.bugs.text()).split():
                 args.append(("--fixes=%s" % s))
