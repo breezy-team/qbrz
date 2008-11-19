@@ -216,7 +216,7 @@ class CommitWindow(SubProcessWindow):
         self.num_versioned_files = num_versioned_files  # save number of versioned files
 
     def __init__(self, tree, selected_list, dialog=True, parent=None,
-                 local=None, message=None, ui_mode=True, unchanged=False):
+                 local=None, message=None, ui_mode=True):
         super(CommitWindow, self).__init__(
                                   gettext("Commit"),
                                   name = "commit",
@@ -351,11 +351,6 @@ class CommitWindow(SubProcessWindow):
         vbox.addWidget(self.show_nonversioned_checkbox)
     
         vbox.addWidget(selectall_checkbox)
-
-        self.unchanged_checkbox = QtGui.QCheckBox(gettext("Commit unchanged tree"))
-        self.unchanged_checkbox.setChecked(bool(unchanged))
-        if self.num_versioned_files == 0:
-            vbox.addWidget(self.unchanged_checkbox)
 
         self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
 
@@ -494,16 +489,13 @@ class CommitWindow(SubProcessWindow):
                     files_to_add.append(path)
                 args.append(path)
 
-        if checkedFiles == 0 and not (self.num_versioned_files == 0 and self.unchanged_checkbox.isChecked()):
+        if checkedFiles == 0:
             button = QtGui.QMessageBox.warning(self,
                 "QBzr - " + gettext("Commit"), 
                 gettext("No changes to commit."),
                 QtGui.QMessageBox.Ok) 
             self.failed()
             return
-
-        if self.unchanged_checkbox.isChecked():
-            args.append('--unchanged')
 
         if self.bugsCheckBox.isChecked():
             for s in unicode(self.bugs.text()).split():

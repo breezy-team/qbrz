@@ -279,14 +279,13 @@ class cmd_qcommit(QBzrCommand):
             ]
     aliases = ['qci']
 
-    def _qbzr_run(self, selected_list=None, message=None, local=False,
-        ui_mode=False, unchanged=False):
+    def _qbzr_run(self, selected_list=None, message=None, local=False, ui_mode=False):
         tree, selected_list = builtins.tree_files(selected_list)
         if selected_list == ['']:
             selected_list = []
         application = QtGui.QApplication(sys.argv)
         window = CommitWindow(tree, selected_list, dialog=False,
-            message=message, local=local, ui_mode=ui_mode, unchanged=unchanged)
+            message=message, local=local, ui_mode=ui_mode)
         window.show()
         application.exec_()
 
