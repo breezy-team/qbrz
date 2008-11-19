@@ -213,7 +213,6 @@ class CommitWindow(SubProcessWindow):
         words = list(words)
         words.sort(lambda a, b: cmp(a.lower(), b.lower()))
         self.completion_words = words
-        self.num_versioned_files = num_versioned_files  # save number of versioned files
 
     def __init__(self, tree, selected_list, dialog=True, parent=None,
                  local=None, message=None, ui_mode=True):
@@ -473,10 +472,7 @@ class CommitWindow(SubProcessWindow):
             self.message.setFocus()
             return
 
-        args.append(('-m%s' % message))     # WARNING! message NEVER should be empty,
-                                            # otherwise first argument after this option
-                                            # will be used as commit message.
-                                            # See: https://launchpad.net/bugs/297606
+        args.extend(['-m', message])    # keep them separated to avoid bug #297606
         
         # starts with one because if pending changes are available the warning box will appear each time.
         checkedFiles = 1 
@@ -488,14 +484,38 @@ class CommitWindow(SubProcessWindow):
                 if not desc.is_versioned():
                     files_to_add.append(path)
                 args.append(path)
-
-        if checkedFiles == 0:
-            button = QtGui.QMessageBox.warning(self,
-                "QBzr - " + gettext("Commit"), 
-                gettext("No changes to commit."),
-                QtGui.QMessageBox.Ok) 
-            self.failed()
-            return
+        
+        if checkedFiles == 0: # BUG: 295116
+            # check for availability of --exclude option for commit
+            # (this option was introduced in bzr 1.6)
+            from bzrlib.commands import get_cmd_object
+            kmd = get_cmd_object('commit', False)
+            if kmd.options().get('exclude', None) is None:
+                # bzr < 1.6 -- sorry but we can't allow empty commit
+                QtGui.QMessageBox.warning(self,
+                    "QBzr - " + gettext("Commit"), 
+                    gettext("No changes to commit."),
+                    QtGui.QMessageBox.Ok) 
+                self.failed()
+                return
+            else:
+                # bzr >= 1.6
+                button = QtGui.QMessageBox.question(self,
+                    "QBzr - " + gettext("Commit"), 
+                    gettext("No changes selected to commit.\n"
+                        "Do you want to commit anyway?"),
+                    QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+                if button == QtGui.QMessageBox.No:
+                    self.failed()
+                    return
+                else:
+                    # Possible [rare] problems:
+                    # 1. unicode tree root in non-user encoding
+                    #    may provoke UnicodeEncodeError in subprocess (@win32)
+                    # 2. if branch has no commits yet then operation may fail
+                    #    because of bug #299879
+                    args.extend(['--exclude', self.tree.basedir])
+                    args.append('--unchanged')
 
         if self.bugsCheckBox.isChecked():
             for s in unicode(self.bugs.text()).split():
