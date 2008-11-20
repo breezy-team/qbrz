@@ -1,6 +1,17 @@
 0.9.6 - in development
 ----------------------
 
+ * qcommit:
+   * Commit without message is forbidden (#297606).
+   * If no files selected to commit then user will be asked
+     for confirmation. Commit without files allowed only 
+     when bzr >= 1.6 is used. (#148165)
+ * qdiff:
+   * To detect binary files entire file content is analyzed, not only first 1K.
+   * Short option name for --deleted changed from -D to -K.
+   * If there is no changes in the tree or specified file list (file group)
+     then show info box with "No changes found" message (#295767).
+
 
 0.9.5 - 2008-11-03
 ----------------------
