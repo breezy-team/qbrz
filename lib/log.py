@@ -328,7 +328,7 @@ def load_locataions(locations_list):
         if len(locations) == 1:
             if br == None:
                 for br in repo.find_branches(using=True):
-                    tag = br.nick
+                    tag = truncate_string(br.nick, 20)
                     # We don't have ref to the working tree,
                     # so we won't show pending merges.
                     # XXX Get ref to working tree.
@@ -349,7 +349,7 @@ def load_locataions(locations_list):
         if len(locations) == 1:
             tag = None
         else:
-            tag = br.nick
+            tag = truncate_string(br.nick, 20)
         
         main_branch = append_location(tree, br, repo, fp, tag, main_branch)
 
@@ -358,6 +358,12 @@ def load_locataions(locations_list):
         raise errors.BzrCommandError(paths_and_branches_err)
     
     return (main_branch, rev_ids, file_ids)
+
+
+def truncate_string(s, max_len):
+    if len(s) <= max_len:
+        return s
+    return s[:max_len]+'...'
 
 
 class LogWindow(QBzrWindow):
