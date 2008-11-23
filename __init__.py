@@ -86,6 +86,7 @@ register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrevert', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsubprocess', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qtag', [])
 
+register_lazy_command('bzrlib.plugins.qbzr.lib.extra.bugurl', 'cmd_bug_url', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.extra.isignored', 'cmd_is_ignored', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.extra.isversioned', 'cmd_is_versioned', [])
 
