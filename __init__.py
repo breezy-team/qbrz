@@ -56,11 +56,11 @@ def register_lazy_command(module, name, aliases, decorate=False):
         of the same name; the old command is returned by this function.
         Otherwise it is an error to try to override an existing command.
     """
-    try:
-        # FIXME can't overwrite existing command
-        plugin_cmds.register_lazy(name, aliases, module)
-    except AttributeError:
-        register_command(LazyCommandProxy(module, name, aliases), decorate)
+    #try:
+        ## FIXME can't overwrite existing command
+        #plugin_cmds.register_lazy(name, aliases, module)
+    #except AttributeError:
+    register_command(LazyCommandProxy(module, name, aliases), decorate)
 
 
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_merge', [])  # provides merge --qpreview
