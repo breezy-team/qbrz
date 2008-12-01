@@ -63,7 +63,7 @@ def register_lazy_command(module, name, aliases, decorate=False):
     register_command(LazyCommandProxy(module, name, aliases), decorate)
 
 
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_merge', [])  # provides merge --qpreview
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_merge', [], decorate=True)  # provides merge --qpreview
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qadd', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qannotate', ['qann', 'qblame'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbranch', [])
