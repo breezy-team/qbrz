@@ -224,6 +224,21 @@ class AnnotateWindow(QBzrWindow):
             lastRevisionId = revisionId
             qt_process_events()
 
+        self.lines = None
+        if have_pygments:
+            try:
+                # A more correct way to do this would be to add the tokens as
+                # a data role to each respective tree item. But it is to much
+                # effort to wrap them as QVariants. We will just pass the line
+                # tokens to the delegate.
+                lines_tokens = list(split_tokens_at_lines(\
+                                  lex("".join(lines),
+                                  get_lexer_for_filename(path))))
+                self.browser.setItemDelegateForColumn(3,FormatedCodeItemDelegate(lines_tokens, self))
+                
+            except ClassNotFound:
+                pass
+
         # take care to insert the items after we are done fiddling with
         # them, else performance suffers drastically.
         self.browser.insertTopLevelItems(0, items)
@@ -247,21 +262,6 @@ class AnnotateWindow(QBzrWindow):
             qt_process_events()
         self.changes.insertTopLevelItems(0, items)
         
-        self.lines = None
-        if have_pygments:
-            try:
-                # A more correct way to do this would be to add the tokens as
-                # a data role to each respective tree item. But it is to much
-                # effort to wrap them as QVariants. We will just pass the line
-                # tokens to the delegate.
-                lines_tokens = list(split_tokens_at_lines(\
-                                  lex("".join(lines),
-                                  get_lexer_for_filename(path))))
-                self.browser.setItemDelegateForColumn(3,FormatedCodeItemDelegate(lines_tokens, self))
-                
-            except ClassNotFound:
-                pass
-
     def setRevisionByLine(self):
         items = self.browser.selectedItems()
         if not items:
