@@ -208,7 +208,8 @@ class cmd_qannotate(QBzrCommand):
                 raise errors.NotVersionedError(filename)
             entry = tree.inventory[file_id]
             if entry.kind != 'file':
-                return
+                raise errors.BzrCommandError(
+                        'bzr qannotate only works for files (got %r)' % entry.kind)
             #repo = branch.repository
             #w = repo.weave_store.get_weave(file_id, repo.get_transaction())
             #content = list(w.annotate_iter(entry.revision))
