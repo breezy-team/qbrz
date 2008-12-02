@@ -557,7 +557,7 @@ class CommitWindow(SubProcessWindow):
         state = not state
         for (tree_item, change_desc) in self.filelist.iter_treeitem_and_desc(True):
             if change_desc[3] == (False, False):
-                tree_item.setHidden(state)
+                self.filelist.set_item_hidden(tree_item, state)
         self.filelist.update_selectall_state(None, None)
 
     def closeEvent(self, event):
