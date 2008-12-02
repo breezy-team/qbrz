@@ -177,10 +177,15 @@ class cmd_qannotate(QBzrCommand):
     takes_options = ['revision',
                      Option('encoding', type=check_encoding,
                      help='Encoding of files content (default: utf-8).'),
+                     ui_mode_option,
                     ]
     aliases = ['qann', 'qblame']
 
-    def _qbzr_run(self, filename=None, revision=None, encoding=None):
+    def _load_branch(self, filename, revision):
+        """To assist in getting a UI up as soon as possible, the UI calls
+        back to this function to process the command-line args and convert
+        them into the branch and tree etc needed by the UI.
+        """
         wt, branch, relpath = \
             BzrDir.open_containing_tree_or_branch(filename)
         if wt is not None:
@@ -216,8 +221,15 @@ class cmd_qannotate(QBzrCommand):
             else:
                 branch.unlock()
 
+        return branch, tree, relpath, file_id
+
+    def _qbzr_run(self, filename=None, revision=None, encoding=None,
+                  ui_mode=False):
         app = QtGui.QApplication(sys.argv)
-        win = AnnotateWindow(branch, tree, relpath, file_id, encoding)
+        win = AnnotateWindow(None, None, None, None,
+                             encoding=encoding, ui_mode=ui_mode,
+                             loader=self._load_branch,
+                             loader_args=(filename, revision))
         win.show()
         app.exec_()
 
@@ -310,25 +322,19 @@ class cmd_qdiff(QBzrCommand):
         takes_options.append('change')
     aliases = ['qdi']
 
-    def _qbzr_run(self, revision=None, file_list=None, complete=False,
-            encoding=None,
-            added=None, deleted=None, modified=None, renamed=None,
-            old=None, new=None):
+    def _load_branches(self, revision, file_list, old, new):
+        """To assist in getting a UI up as soon as possible, the UI calls
+        back to this function to process the command-line args and convert
+        them into the branches and trees needed by the UI.
+
+        NOTE: called by a non-UI thread (but its still OK to raise exceptions)
+        """
         from bzrlib.builtins import internal_tree_files
         from bzrlib.diff import _get_trees_to_diff
 
-        if revision and len(revision) > 2:
-            raise errors.BzrCommandError('bzr qdiff --revision takes exactly'
-                                         ' one or two revision specifiers')
-        # changes filter
-        filter_options = FilterOptions(added=added, deleted=deleted,
-            modified=modified, renamed=renamed)
-        if not (added or deleted or modified or renamed):
-            # if no filter option used then turn all on
-            filter_options.all_enable()
-
         old_tree, new_tree, specific_files, extra_trees = \
                 _get_trees_to_diff(file_list, revision, old, new)
+        QtCore.QCoreApplication.processEvents()
         
         if file_list:
             default_location = file_list[0]
@@ -340,6 +346,7 @@ class cmd_qdiff(QBzrCommand):
             old = default_location
         wt, old_branch, rp = \
             BzrDir.open_containing_tree_or_branch(old)
+        QtCore.QCoreApplication.processEvents()
         if new is None:
             new = default_location
         if new != old :
@@ -347,16 +354,33 @@ class cmd_qdiff(QBzrCommand):
                 BzrDir.open_containing_tree_or_branch(new)
         else:
             new_branch = old_branch
+        QtCore.QCoreApplication.processEvents()
+        return old_tree, new_tree, old_branch, new_branch, specific_files
 
-        application = QtGui.QApplication(sys.argv)
-        window = DiffWindow(old_tree, new_tree,
-                            old_branch, new_branch,
+    def _qbzr_run(self, revision=None, file_list=None, complete=False,
+            encoding=None,
+            added=None, deleted=None, modified=None, renamed=None,
+            old=None, new=None, ui_mode=False):
+
+        if revision and len(revision) > 2:
+            raise errors.BzrCommandError('bzr qdiff --revision takes exactly'
+                                         ' one or two revision specifiers')
+        # changes filter
+        filter_options = FilterOptions(added=added, deleted=deleted,
+            modified=modified, renamed=renamed)
+        if not (added or deleted or modified or renamed):
+            # if no filter option used then turn all on
+            filter_options.all_enable()
+
+        app = QtGui.QApplication(sys.argv)
+        window = DiffWindow(loader=self._load_branches,
+                            loader_args=(revision, file_list, old, new),
                             complete=complete,
-                            specific_files=specific_files,
                             encoding=encoding,
-                            filter_options=filter_options)
+                            filter_options=filter_options,
+                            ui_mode=ui_mode)
         window.show()
-        application.exec_()
+        app.exec_()
 
 
 class cmd_qlog(QBzrCommand):
@@ -383,11 +407,11 @@ class cmd_qlog(QBzrCommand):
     """
 
     takes_args = ['locations*']
-    takes_options = []
+    takes_options = [ui_mode_option]
 
-    def _qbzr_run(self, locations_list):
+    def _qbzr_run(self, locations_list, ui_mode=False):
         app = QtGui.QApplication(sys.argv)
-        window = LogWindow(locations_list, None, None)
+        window = LogWindow(locations_list, None, None, ui_mode=ui_mode)
         window.show()
         app.exec_()
 

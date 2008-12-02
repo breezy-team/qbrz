@@ -30,6 +30,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     BTN_REFRESH,
     QBzrWindow,
+    ThrobberWindow,
     StandardButton,
     format_revision_html,
     format_timestamp,
@@ -229,7 +230,7 @@ class Compleater(QtGui.QCompleter):
     def splitPath (self, path):
         return QtCore.QStringList([path.split(" ")[-1]])
 
-def load_locataions(locations_list):
+def load_locations(locations_list):
     if locations_list is None:
         locations = ["."]
     else:
@@ -267,6 +268,7 @@ def load_locataions(locations_list):
         
         if tree:
             parent_ids = tree.get_parent_ids()
+            QtCore.QCoreApplication.processEvents()
             if parent_ids:
                 # first parent is last revision of the tree
                 revid = parent_ids[0]
@@ -282,6 +284,7 @@ def load_locataions(locations_list):
                         append_tag_to_revid(revid, ("%s - Pending Merge" % tag))
                     else:
                         append_tag_to_revid(revid, "Pending Merge")
+                    QtCore.QCoreApplication.processEvents()
         
         if fp != '' : 
             if tree is None:
@@ -356,7 +359,7 @@ def load_locataions(locations_list):
     
     if file_ids and len(file_ids)<>len(locations_list):
         raise errors.BzrCommandError(paths_and_branches_err)
-    
+
     return (main_branch, rev_ids, file_ids)
 
 
@@ -368,30 +371,20 @@ def truncate_string(s, max_len):
 
 class LogWindow(QBzrWindow):
     
-    def __init__(self, locations, branch, specific_fileids, parent=None):
+    def __init__(self, locations, branch, specific_fileids, parent=None,
+                 ui_mode=True):
         if branch:
-            self.branch = branch
-            self.specific_fileids = specific_fileids
-            self.start_revids = None
+            assert locations is None, "can't specify both branch and loc"
         else:
-            self.locations = locations
-            (self.branch,
-             self.start_revids, 
-             self.specific_fileids) = load_locataions(locations)
+            assert specific_fileids is None, "this is ignored if no branch"
+        self.locations = locations
+        self.branch = branch
+        self.start_branch = branch
+        self.specific_fileids = specific_fileids
 
-        lt = self._locations_for_title(locations)
-        title = [gettext("Log")]
-        if lt:
-            title.append(lt)
-        QBzrWindow.__init__(self, title, parent)
+        title = [gettext("Log"), gettext("Loading...")]
+        QBzrWindow.__init__(self, title, parent, ui_mode=ui_mode)
         self.restoreSize("log", (710, 580))
-
-        config = self.branch.get_config()
-        self.replace = config.get_user_option("qlog_replace")
-        if self.replace:
-            self.replace = self.replace.split("\n")
-            self.replace = [tuple(self.replace[2*i:2*i+2])
-                            for i in range(len(self.replace) // 2)]
 
         self.changesModel = logmodel.GraphModel()
 
@@ -401,7 +394,7 @@ class LogWindow(QBzrWindow):
         self.changesProxyModel.setFilterRole(logmodel.FilterMessageRole)
         self.changesProxyModel.setDynamicSortFilter(True)
         self.changesModel.setGraphFilterProxyModel(self.changesProxyModel)
-        
+
         logwidget = QtGui.QWidget()
         logbox = QtGui.QVBoxLayout(logwidget)
         logbox.setContentsMargins(0, 0, 0, 0)
@@ -426,25 +419,20 @@ class LogWindow(QBzrWindow):
             
         self.index = None
         if have_search:
-            try:
-                self.index = search_index.open_index_branch(self.branch)
-                self.changesProxyModel.setSearchIndex(self.index)
-                self.searchType.insertItem(0,
-                                           gettext("Messages and File text (indexed)"),
-                                           QtCore.QVariant(logmodel.FilterSearchRole))
-                
-                self.completer = Compleater(self)
-                self.completer_model = QtGui.QStringListModel(self)
-                self.completer.setModel(self.completer_model)
-                self.search_edit.setCompleter(self.completer)
-                self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
-                             self.update_search_completer)
-                self.suggestion_letters_loaded = {"":QtCore.QStringList()}
-                self.suggestion_last_first_letter = ""
-                self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
-                             self.set_search_timer)
-            except search_errors.NoSearchIndex:
-                pass
+            self.searchType.insertItem(0,
+                                       gettext("Messages and File text (indexed)"),
+                                       QtCore.QVariant(logmodel.FilterSearchRole))
+            
+            self.completer = Compleater(self)
+            self.completer_model = QtGui.QStringListModel(self)
+            self.completer.setModel(self.completer_model)
+            self.search_edit.setCompleter(self.completer)
+            self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
+                         self.update_search_completer)
+            self.suggestion_letters_loaded = {"":QtCore.QStringList()}
+            self.suggestion_last_first_letter = ""
+            self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
+                         self.set_search_timer)
         
         self.searchType.addItem(gettext("Messages"),
                                 QtCore.QVariant(logmodel.FilterMessageRole))
@@ -561,9 +549,63 @@ class LogWindow(QBzrWindow):
         # set focus on search edit widget
         self.changesList.setFocus()
 
+    def load_locations(self):
+        if self.start_branch:
+            self.branch = self.start_branch
+            self.start_revids = None
+        else:
+            # Load the locations
+            (branch,
+            self.start_revids, 
+            self.specific_fileids) = load_locations(self.locations)
+            # The new branch will be the same as self.branch, so don't
+            # change it, because doing so caused a UserWarning:
+            # LockableFiles was gc'd while locked
+            if self.branch is None:
+                self.branch = branch
+
+        QtCore.QCoreApplication.processEvents()
+        config = self.branch.get_config()
+        self.replace = config.get_user_option("qlog_replace")
+        if self.replace:
+            self.replace = self.replace.split("\n")
+            self.replace = [tuple(self.replace[2*i:2*i+2])
+                            for i in range(len(self.replace) // 2)]
+
+        if have_search:
+            try:
+                self.index = search_index.open_index_branch(self.branch)
+                self.changesProxyModel.setSearchIndex(self.index)
+            except search_errors.NoSearchIndex:
+                pass
+
+        # and finally the window title can be setup.
+        lt = self._locations_for_title(self.locations)
+        title = [gettext("Log")]
+        if lt:
+            title.append(lt)
+        self.set_title_and_icon(title)
+        QtCore.QCoreApplication.processEvents()
+
+    def initial_load(self):
+        """Called to perform the initial load of the form.  Enables a
+        throbber window, then loads the branches etc if they weren't specified
+        in our constructor.
+        """
+        try:
+            throbber = ThrobberWindow(self)
+            try:
+                self.load_locations()
+                self.load_history()
+            finally:
+                throbber.reject()
+        except Exception:
+            self.report_exception()
+
     def show(self):
+        # we show the bare form as soon as possible.
         QBzrWindow.show(self)
-        QtCore.QTimer.singleShot(1, self.load_history)
+        QtCore.QTimer.singleShot(1, self.initial_load)
 
     def link_clicked(self, url):
         scheme = unicode(url.scheme())

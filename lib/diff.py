@@ -42,6 +42,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE, BTN_REFRESH,
     FilterOptions,
     QBzrWindow,
+    ThrobberWindow,
     StandardButton,
     get_set_encoding,
     is_binary_content,
@@ -106,35 +107,19 @@ class DiffWindow(QBzrWindow):
                  specific_files=None,
                  parent=None,
                  complete=False, encoding=None,
-                 filter_options=None):
-        rev1_title = get_title_for_tree(tree1, branch1, branch2)
-        rev2_title = get_title_for_tree(tree2, branch2, branch1)
-        
-        title = [gettext("Diff"), "%s .. %s" % (rev1_title, rev2_title)]
-        
-        if specific_files:
-            nfiles = len(specific_files)
-            if nfiles > 2:
-                title.append(
-                    ngettext("%d file", "%d files", nfiles) % nfiles)
-            else:
-                title.append(", ".join(specific_files))
-        else:
-            if filter_options and not filter_options.is_all_enable():
-                title.append(filter_options.to_str())
+                 filter_options=None, ui_mode=True,
+                 loader=None, loader_args=None):
 
-        self.encodings = (get_set_encoding(encoding, branch1),
-                          get_set_encoding(encoding, branch2))
-        
+        title = [gettext("Diff"), gettext("Loading...")]
+        QBzrWindow.__init__(self, title, parent, ui_mode=ui_mode)
+        self.restoreSize("diff", (780, 580))
+
+        self.encoding = encoding
+        self.trees = None
+        self.specific_files = None
         self.filter_options = filter_options
         if filter_options is None:
             self.filter_options = FilterOptions(all_enable=True)
-
-        QBzrWindow.__init__(self, title, parent)
-        self.restoreSize("diff", (780, 580))
-
-        self.trees = (tree1, tree2)
-        self.specific_files = specific_files
         self.complete = complete
 
         self.diffview = SidebySideDiffView(self)
@@ -183,12 +168,72 @@ class DiffWindow(QBzrWindow):
         hbox.addWidget(complete)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
-        
+
+        # Save the init args if specified
+        self.init_args = (tree1, tree2, branch1, branch2, specific_files)
+        # and loader
+        self.loader_func = loader
+        self.loader_args = loader_args
 
     def show(self):
         QBzrWindow.show(self)
-        QtCore.QTimer.singleShot(1, self.load_diff)
-    
+        QtCore.QTimer.singleShot(1, self.initial_load)
+
+    def initial_load(self):
+        """Called to perform the initial load of the form.  Enables a
+        throbber window, then loads the branches etc if they weren't specified
+        in our constructor.
+        """
+        try:
+            # we only open the branch using the throbber
+            throbber = ThrobberWindow(self)
+            try:
+                self.load_branch_info()
+            finally:
+                throbber.reject()
+            # the throbber must now be dead as diff is able to be interacted
+            # with while loading.
+            self.load_diff()
+        except Exception:
+            self.report_exception()
+
+    def load_branch_info(self):
+        # If a loader func was specified, call it to get our trees/branches.
+        if self.loader_func is not None:
+            init_args = self.loader_func(*self.loader_args)
+            self.loader_func = self.loader_args = None # kill extra refs...
+        else:
+            # otherwise they better have been passed to our ctor!
+            init_args = self.init_args
+        tree1, tree2, branch1, branch2, specific_files = init_args
+        init_args = self.init_args = None # kill extra refs...
+
+        self.trees = (tree1, tree2)
+        self.specific_files = specific_files
+
+        rev1_title = get_title_for_tree(tree1, branch1, branch2)
+        rev2_title = get_title_for_tree(tree2, branch2, branch1)
+        
+        title = [gettext("Diff"), "%s..%s" % (rev1_title, rev2_title)]
+
+        if specific_files:
+            nfiles = len(specific_files)
+            if nfiles > 2:
+                title.append(
+                    ngettext("%d file", "%d files", nfiles) % nfiles)
+            else:
+                title.append(", ".join(specific_files))
+        else:
+            if self.filter_options and not self.filter_options.is_all_enable():
+                title.append(self.filter_options.to_str())
+
+        self.set_title_and_icon(title)
+        QtCore.QCoreApplication.processEvents()
+
+        self.encodings = (get_set_encoding(self.encoding, branch1),
+                          get_set_encoding(self.encoding, branch2))
+        QtCore.QCoreApplication.processEvents()
+
     def load_diff(self):
         self.refresh_button.setEnabled(False)
         # function to run after each loop
@@ -345,6 +390,8 @@ class DiffWindow(QBzrWindow):
 
     def can_refresh(self):
         """Does any of tree is Mutanble/Working tree."""
+        if self.trees is None: # we might still be loading...
+            return False
         tree1, tree2 = self.trees
         if isinstance(tree1, MutableTree) or isinstance(tree2, MutableTree):
             return True

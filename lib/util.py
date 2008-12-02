@@ -201,6 +201,35 @@ class _QBzrWindowBase:
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
 
+    def report_exception(self, exc_info=None):
+        """Report an exception.
+
+        The error is reported to the console using standard bzrlib.trace
+        functions.  If ui_mode is False, a message-box is also shown with
+        details of the error.  In all cases, the window is closed after the
+        error.
+        """
+        from cStringIO import StringIO
+        import traceback
+        from bzrlib.trace import report_exception
+
+        # always tell bzr to report it, so it ends up in the log.
+        if exc_info is None:
+            exc_info = sys.exc_info()
+        report_exception(exc_info, sys.stderr)
+        if self.ui_mode:
+            # and a version for the messagebox.
+            exc_type, exc_object, exc_tb = exc_info
+            err_file = StringIO()
+            err_file.write("%s.%s: %s\n" % (
+                exc_type.__module__, exc_type.__name__, exc_object))
+            err_file.write('\n')
+
+            QtGui.QMessageBox.warning(self, gettext("Error"), err_file.getvalue())
+        # And the window is always closed (this might need rethinking later,
+        # but currently this is called only during the window load process...)
+        self.close()
+
     def create_button_box(self, *buttons):
         """Create and return button box with pseudo-standard buttons
         @param  buttons:    any from BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP
@@ -305,8 +334,9 @@ class _QBzrWindowBase:
 
 class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
 
-    def __init__(self, title=None, parent=None, centralwidget=None):
+    def __init__(self, title=None, parent=None, centralwidget=None, ui_mode=True):
         QtGui.QMainWindow.__init__(self, parent)
+        self.ui_mode = ui_mode
 
         self.set_title_and_icon(title)
 
@@ -319,12 +349,49 @@ class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
 
 class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
 
-    def __init__(self, title=None, parent=None):
+    def __init__(self, title=None, parent=None, ui_mode=True):
+        self.ui_mode = ui_mode
         QtGui.QDialog.__init__(self, parent)
         
         self.set_title_and_icon(title)
         
         self.windows = []
+
+class ThrobberWindow(QtGui.QDialog):
+    """A window that displays a simple throbber over its parent."""
+
+    def __init__(self, parent, timeout=500):
+        self.is_done = False
+        flags = QtCore.Qt.FramelessWindowHint | QtCore.Qt.Tool
+        QtGui.QDialog.__init__(self, parent, flags)
+        self.create_ui()
+        self.is_shown = False
+
+        # create a timer that displays our window after the timeout.
+        QtCore.QTimer.singleShot(timeout, self.show)
+
+    def create_ui(self):
+        # a couple of widgets
+        layout = QtGui.QVBoxLayout(self)
+        layout.addWidget(QtGui.QLabel(gettext("Loading..."), self))
+        pb = QtGui.QProgressBar(self)
+        pb.setTextVisible(False)
+        pb.setMinimum(0)
+        pb.setMaximum(0)
+        layout.addWidget(pb)
+
+    def reject(self):
+        self.is_done = True
+        if self.is_shown:
+            QtGui.QApplication.restoreOverrideCursor()
+        QtGui.QDialog.reject(self)
+
+    def show(self):
+        if not self.is_done:
+            QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+            # and show ourselves.
+            QtGui.QDialog.show(self)
+            self.is_shown = True
 
 
 # Helpers for directory pickers.
