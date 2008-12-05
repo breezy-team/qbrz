@@ -17,12 +17,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import sys
-if hasattr(sys, "frozen"):
-    # "hack in" our PyQt4 binaries
-    import os
-    sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..', '_lib')))
-
 from bzrlib import commands, errors, trace, bugtracker
 from bzrlib.config import GlobalConfig
 from bzrlib.branch import Branch
