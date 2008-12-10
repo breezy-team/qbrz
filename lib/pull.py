@@ -68,7 +68,7 @@ class QBzrPullWindow(SubProcessDialog):
                                              ui_mode = ui_mode,
                                              parent = parent)
         self.ui = Ui_PullForm()
-        self.ui.setupUi(self)
+        self.setupUi(self.ui)
         # add the subprocess widgets.
         for w in self.make_default_layout_widgets():
             self.layout().addWidget(w)
@@ -119,7 +119,7 @@ class QBzrPushWindow(SubProcessDialog):
                                              parent = parent)
 
         self.ui = Ui_PushForm()
-        self.ui.setupUi(self)
+        self.setupUi(self.ui)
         # and add the subprocess widgets.
         for w in self.make_default_layout_widgets():
             self.layout().addWidget(w)
@@ -170,7 +170,7 @@ class QBzrBranchWindow(SubProcessDialog):
                                              parent = parent)
 
         self.ui = Ui_BranchForm()
-        self.ui.setupUi(self)
+        self.setupUi(self.ui)
         # and add the subprocess widgets.
         for w in self.make_default_layout_widgets():
             self.layout().addWidget(w)
@@ -219,7 +219,7 @@ class QBzrMergeWindow(SubProcessDialog):
                                              parent = parent)
         self.branch = branch
         self.ui = Ui_MergeForm()
-        self.ui.setupUi(self)
+        self.setupUi(self.ui)
         # and add the subprocess widgets.
         for w in self.make_default_layout_widgets():
             self.layout().addWidget(w)

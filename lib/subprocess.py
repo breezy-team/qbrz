@@ -49,6 +49,7 @@ class SubProcessWindowBase:
                           hide_progress=False):
         self.restoreSize(name, default_size)
         self._name = name
+        self._default_size = default_size
         self.args = args
         self.dir = dir
         self.ui_mode = ui_mode
@@ -173,6 +174,11 @@ class SubProcessWindowBase:
         else:
             self.process_widget.abort()
             event.ignore()
+
+    def setupUi(self, ui):
+        ui.setupUi(self)
+        if self._restore_size:
+            self.resize(self._restore_size)
 
 
 class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
