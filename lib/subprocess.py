@@ -107,6 +107,7 @@ class SubProcessWindowBase:
     def make_default_status_box(self):
         status_group_box = QtGui.QGroupBox(gettext("Status"))
         status_layout = QtGui.QVBoxLayout(status_group_box)
+        status_layout.setContentsMargins(0, 0, 0, 0)
         status_layout.addWidget(self.process_widget)
         return status_group_box
         
