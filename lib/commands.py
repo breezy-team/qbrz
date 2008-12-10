@@ -639,13 +639,31 @@ class cmd_qbzr(QBzrCommand):
         app.exec_()
 
 
+class SubprocessGUIFactory(ui.text.TextUIFactory):
+
+    def __init__(self):
+        super(SubprocessGUIFactory, self).__init__(SubprocessProgress)
+
+    def get_password(self, prompt='', **kwargs):
+        from bzrlib.util import bencode
+        prompt = prompt % kwargs
+        self.stdout.write('qbzr:GETPASS:' + bencode.bencode(prompt.encode('utf-8')) + '\n')
+        self.stdout.flush()
+        line = self.stdin.readline()
+        if line.startswith('qbzr:GETPASS:'):
+            passwd, accepted = bencode.bdecode(line[13:].rstrip('\r\n'))
+            if accepted:
+                return passwd
+        return ''
+
+
 class cmd_qsubprocess(Command):
 
     takes_args = ['cmd']
     hidden = True
 
     def run(self, cmd):
-        ui.ui_factory = ui.text.TextUIFactory(SubprocessProgress)
+        ui.ui_factory = SubprocessGUIFactory()
         argv = [p.decode('utf8') for p in shlex.split(cmd.encode('utf8'))]
         commands.run_bzr(argv)
 

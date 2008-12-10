@@ -380,6 +380,11 @@ class SubProcessWidget(QtGui.QWidget):
             if line.startswith("qbzr:PROGRESS:"):
                 progress, messages = bencode.bdecode(line[14:])
                 self.setProgress(progress, messages)
+            elif line.startswith("qbzr:GETPASS:"):
+                prompt = bencode.bdecode(line[13:]).decode('utf-8')
+                passwd = QtGui.QInputDialog.getText(self, gettext("Enter Password"), prompt, QtGui.QLineEdit.Password)
+                data = unicode(passwd[0]).encode('utf-8'), int(passwd[1])
+                self.process.write("qbzr:GETPASS:"+bencode.bencode(data)+"\n")
             else:
                 self.logMessage(line)
                 if not self.ui_mode:
