@@ -27,7 +27,7 @@ from bzrlib import registry
 from bzrlib.commands import register_command, plugin_cmds
 
 
-version_info = (0, 9, 5, 'dev', 0)
+version_info = (0, 9, 6, 'dev', 0)
 __version__ = '.'.join(map(str, version_info))
 
 
@@ -56,14 +56,14 @@ def register_lazy_command(module, name, aliases, decorate=False):
         of the same name; the old command is returned by this function.
         Otherwise it is an error to try to override an existing command.
     """
-    try:
-        # FIXME can't overwrite existing command
-        plugin_cmds.register_lazy(name, aliases, module)
-    except AttributeError:
-        register_command(LazyCommandProxy(module, name, aliases), decorate)
+    #try:
+        ## FIXME can't overwrite existing command
+        #plugin_cmds.register_lazy(name, aliases, module)
+    #except AttributeError:
+    register_command(LazyCommandProxy(module, name, aliases), decorate)
 
 
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_merge', [])  # provides merge --qpreview
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_merge', [], decorate=True)  # provides merge --qpreview
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qadd', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qannotate', ['qann', 'qblame'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbranch', [])
@@ -86,8 +86,19 @@ register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrevert', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsubprocess', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qtag', [])
 
+register_lazy_command('bzrlib.plugins.qbzr.lib.extra.bugurl', 'cmd_bug_url', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.extra.isignored', 'cmd_is_ignored', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.extra.isversioned', 'cmd_is_versioned', [])
+
+
+def post_uncommit_hook(local, master, old_revno, old_tip, new_revno, hook_new_tip):
+    branch = local or master
+    message = branch.repository.get_revision(old_tip).message
+    config = branch.get_config()
+    config.set_user_option('qbzr_commit_message', message.strip())
+
+from bzrlib.branch import Branch
+Branch.hooks.install_named_hook('post_uncommit', post_uncommit_hook, 'Remember uncomitted message for qcommit')
 
 
 def load_tests(basic_tests, module, loader):

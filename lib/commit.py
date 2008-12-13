@@ -217,7 +217,7 @@ class CommitWindow(SubProcessWindow):
     def __init__(self, tree, selected_list, dialog=True, parent=None,
                  local=None, message=None, ui_mode=True):
         super(CommitWindow, self).__init__(
-                                  [gettext("Commit"), tree.branch.nick],
+                                  gettext("Commit"),
                                   name = "commit",
                                   default_size = (540, 540),
                                   ui_mode = ui_mode,
@@ -463,23 +463,60 @@ class CommitWindow(SubProcessWindow):
         
         message = unicode(self.message.toPlainText()).strip() 
         if not message: 
-            button = QtGui.QMessageBox.warning(self, 
-                "QBzr - " + gettext("Commit"), 
-                gettext("Empty commit message. Do you really want to commit?"), 
-                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) 
-            if button == QtGui.QMessageBox.No: 
-                # don't commit, but don't close the window either
-                self.failed()
-                return
-        args.append(('-m%s' % message))
+            QtGui.QMessageBox.warning(self,
+                "QBzr - " + gettext("Commit"),
+                gettext("You should provide commit message."),
+                gettext('&OK'))
+            # don't commit, but don't close the window either
+            self.failed()
+            self.message.setFocus()
+            return
+
+        args.extend(['-m', message])    # keep them separated to avoid bug #297606
         
+        # starts with one because if pending changes are available the warning box will appear each time.
+        checkedFiles = 1 
         if not self.pending_merges:
+            checkedFiles = 0
             for desc in self.filelist.iter_checked():
+                checkedFiles = checkedFiles+1
                 path = desc.path()
                 if not desc.is_versioned():
                     files_to_add.append(path)
                 args.append(path)
         
+        if checkedFiles == 0: # BUG: 295116
+            # check for availability of --exclude option for commit
+            # (this option was introduced in bzr 1.6)
+            from bzrlib.commands import get_cmd_object
+            kmd = get_cmd_object('commit', False)
+            if kmd.options().get('exclude', None) is None:
+                # bzr < 1.6 -- sorry but we can't allow empty commit
+                QtGui.QMessageBox.warning(self,
+                    "QBzr - " + gettext("Commit"), 
+                    gettext("No changes to commit."),
+                    QtGui.QMessageBox.Ok) 
+                self.failed()
+                return
+            else:
+                # bzr >= 1.6
+                button = QtGui.QMessageBox.question(self,
+                    "QBzr - " + gettext("Commit"), 
+                    gettext("No changes selected to commit.\n"
+                        "Do you want to commit anyway?"),
+                    QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+                if button == QtGui.QMessageBox.No:
+                    self.failed()
+                    return
+                else:
+                    # Possible [rare] problems:
+                    # 1. unicode tree root in non-user encoding
+                    #    may provoke UnicodeEncodeError in subprocess (@win32)
+                    # 2. if branch has no commits yet then operation may fail
+                    #    because of bug #299879
+                    args.extend(['--exclude', self.tree.basedir])
+                    args.append('--unchanged')
+
         if self.bugsCheckBox.isChecked():
             for s in unicode(self.bugs.text()).split():
                 args.append(("--fixes=%s" % s))
@@ -520,7 +557,7 @@ class CommitWindow(SubProcessWindow):
         state = not state
         for (tree_item, change_desc) in self.filelist.iter_treeitem_and_desc(True):
             if change_desc[3] == (False, False):
-                tree_item.setHidden(state)
+                self.filelist.set_item_hidden(tree_item, state)
         self.filelist.update_selectall_state(None, None)
 
     def closeEvent(self, event):

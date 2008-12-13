@@ -72,6 +72,22 @@ void  foo_bar (void)
         words = list(get_wordlist_builder('.c').iter_words(StringIO(source)))
         self.assertIn('foo_bar', words)
 
+    def test_c_header_with_typedef(self):
+        source = """
+typedef struct Foo
+{
+    int i;
+} Foo;
+
+typedef union Bar {
+    int i;
+    float f;
+} Bar;
+"""
+        words = list(get_wordlist_builder('.h').iter_words(StringIO(source)))
+        self.assertIn('Foo', words)
+        self.assertIn('Bar', words)
+
     def test_java(self):
         source = '''
 package bar.foo;

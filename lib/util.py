@@ -257,7 +257,8 @@ class _QBzrWindowBase:
         if size:
             size = QtCore.QSize(size[0], size[1])
             self.resize(size.expandedTo(self.minimumSizeHint()))
-        
+        self._restore_size = size
+
         is_maximized = config.get_user_option(name + "_window_maximized")
         if is_maximized in ("True", "1"):
             self.setWindowState(QtCore.Qt.WindowMaximized)
@@ -748,3 +749,14 @@ def url_for_display(url):
     if not url:
         return url
     return urlutils.unescape_for_display(url, 'utf-8')
+
+
+def is_binary_content(lines):
+    """Check list of lines for binary content
+    (i.e. presence of 0x00 byte there).
+    @return: True if 0x00 byte found.
+    """
+    for s in lines:
+        if '\x00' in s:
+            return True
+    return False

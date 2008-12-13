@@ -18,13 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import os
 import sys
-
-if hasattr(sys, "frozen"):
-    # "hack in" our PyQt4 binaries
-    sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '_lib')))
-
 from bzrlib import errors
 from bzrlib.option import Option
 from bzrlib.commands import Command, register_command, get_cmd_object
@@ -299,18 +293,12 @@ class cmd_qdiff(QBzrCommand):
         Option('encoding', type=check_encoding,
                help='Encoding of files content (default: utf-8).'),
         Option('added', short_name='A', help='Show diff for added files.'),
-        Option('deleted', short_name='D', help='Show diff for deleted files.'),
+        Option('deleted', short_name='K', help='Show diff for deleted files.'),
         Option('modified', short_name='M',
                help='Show diff for modified files.'),
         Option('renamed', short_name='R', help='Show diff for renamed files.'),
-        Option('old',
-            help='Branch/tree to compare from.',
-            type=unicode,
-            ),
-        Option('new',
-            help='Branch/tree to compare to.',
-            type=unicode,
-            ),
+        bzr_option('diff', 'old'),
+        bzr_option('diff', 'new'),
         ]
     if 'change' in Option.OPTIONS:
         takes_options.append('change')
@@ -651,15 +639,34 @@ class cmd_qbzr(QBzrCommand):
         app.exec_()
 
 
+class SubprocessGUIFactory(ui.text.TextUIFactory):
+
+    def __init__(self):
+        super(SubprocessGUIFactory, self).__init__(SubprocessProgress)
+
+    def get_password(self, prompt='', **kwargs):
+        from bzrlib.util import bencode
+        prompt = prompt % kwargs
+        self.stdout.write('qbzr:GETPASS:' + bencode.bencode(prompt.encode('utf-8')) + '\n')
+        self.stdout.flush()
+        line = self.stdin.readline()
+        if line.startswith('qbzr:GETPASS:'):
+            passwd, accepted = bencode.bdecode(line[13:].rstrip('\r\n'))
+            if accepted:
+                return passwd
+        return ''
+
+
 class cmd_qsubprocess(Command):
 
     takes_args = ['cmd']
     hidden = True
 
     def run(self, cmd):
-        ui.ui_factory = ui.text.TextUIFactory(SubprocessProgress)
+        ui.ui_factory = SubprocessGUIFactory()
         argv = [p.decode('utf8') for p in shlex.split(cmd.encode('utf8'))]
         commands.run_bzr(argv)
+
 
 class cmd_qgetupdates(QBzrCommand):
     """Fetches external changes into the working tree"""

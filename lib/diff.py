@@ -25,11 +25,10 @@ import time
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.errors import BinaryFile, NoSuchRevision, PathsNotVersionedError
+from bzrlib.errors import NoSuchRevision, PathsNotVersionedError
 from bzrlib.mutabletree import MutableTree
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.revisiontree import RevisionTree
-from bzrlib.textfile import check_text_lines
 from bzrlib.transform import _PreviewTree
 from bzrlib.workingtree import WorkingTree
 from bzrlib.workingtree_4 import DirStateRevisionTree
@@ -45,6 +44,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     StandardButton,
     get_set_encoding,
+    is_binary_content,
     )
 
 
@@ -82,20 +82,14 @@ def get_title_for_tree(tree, branch, other_branch):
 
         if revno is not None:
             if branch_title:
-                # XXX [bialix] "Rev %s for %s" is bad for translations
-                #     because it requires keep sequence of parameters
-                #     and in translated string too. But other languages
-                #     may have other requirements for sentence stylistics.
-                #     Perhaps we need to use named parameters, i.e.
-                #     "Rev %(revno)s for %(branch)s"
-                return gettext("Rev %s for %s") % (revno, branch_title)
+                return gettext("Rev %(rev)s for %(branch)s") % (revno, branch_title)
             else:
                 return gettext("Rev %s") % revno
         else:
             if branch_title:
-                return gettext("Revid: %s for %s") % (revno, branch_title)
+                return gettext("Rev %(rev)s for %(branch)s") % (revno, branch_title)
             else:
-                return gettext("Revid: %s") % revno
+                return gettext("Rev %s") % revno
 
     elif isinstance(tree, _PreviewTree):
         return gettext('Merge Preview')
@@ -213,6 +207,7 @@ class DiffWindow(QBzrWindow):
                 return path
 
             try:
+                no_changes = True   # if there is no changes found we need to inform the user
                 for (file_id, paths, changed_content, versioned, parent, name, kind,
                      executable) in sorted(changes, key=changes_key):
                     # file_id         -> ascii string
@@ -278,19 +273,14 @@ class DiffWindow(QBzrWindow):
                     if ((versioned[0] != versioned[1] or changed_content)
                         and (kind[0] == 'file' or kind[1] == 'file')):
                         lines = []
+                        binary = False
                         for ix, tree in enumerate(self.trees):
                             content = ()
                             if versioned[ix] and kind[ix] == 'file':
                                 content = get_file_lines_from_tree(tree, file_id)
                             lines.append(content)
-                        try:
-                            for l in lines:
-                                # XXX bzrlib's check_text_lines looks at first 1K
-                                #     and therefore produce false check in some
-                                #     cases (e.g. pdf files)
-                                # TODO: write our own function to check entire file
-                                check_text_lines(l)
-                            binary = False
+                            binary = binary or is_binary_content(content)
+                        if not binary:
                             if versioned == (True, False):
                                 groups = [[('delete', 0, len(lines[0]), 0, 0)]]
                             elif versioned == (False, True):
@@ -304,8 +294,7 @@ class DiffWindow(QBzrWindow):
                             lines = [[i.decode(encoding,'replace') for i in l]
                                      for l, encoding in zip(lines, self.encodings)]
                             data = ((),())
-                        except BinaryFile:
-                            binary = True
+                        else:
                             groups = []
                         data = [''.join(l) for l in lines]
                     else:
@@ -317,6 +306,7 @@ class DiffWindow(QBzrWindow):
                         view.append_diff(list(paths), file_id, kind, status,
                                          dates, versioned, binary, lines, groups,
                                          data, properties_changed)
+                    no_changes = False
             except PathsNotVersionedError, e:
                     QtGui.QMessageBox.critical(self, gettext('Diff'),
                         gettext(u'File %s is not versioned.\n'
@@ -325,6 +315,10 @@ class DiffWindow(QBzrWindow):
                     self.close()
         finally:
             for tree in self.trees: tree.unlock()
+        if no_changes:
+            QtGui.QMessageBox.information(self, gettext('Diff'),
+                gettext('No changes found.'),
+                gettext('&OK'))
         self.refresh_button.setEnabled(self.can_refresh())
 
     def click_unidiff(self, checked):

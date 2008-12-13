@@ -125,7 +125,7 @@ class AddWindow(SubProcessDialog):
         for (tree_item, change_desc) in self.filelist.iter_treeitem_and_desc(True):
             path = change_desc.path()
             if self.tree.is_ignored(path):
-                tree_item.setHidden(state)
+                self.filelist.set_item_hidden(tree_item, state)
         self.filelist.update_selectall_state(None, None)
 
     def saveSize(self):

@@ -95,7 +95,6 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         # shown or not
         self.item_to_data = {}
         items = []
-        ivs = [] # work around the fact visibility seems to be ignored at creation
         for change_desc, visible, checked in items_iter:
             (file_id, (path_in_source, path_in_target),
              changed_content, versioned, parent, name, kind,
@@ -143,8 +142,8 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
             item.setText(0, name)
             item.setText(1, ext)
             item.setText(2, status)
-            items.append(item)
-            ivs.append((item, visible))
+            if visible:
+                items.append(item)
 
             if checked is None:
                 item.setCheckState(0, QtCore.Qt.PartiallyChecked)
@@ -153,21 +152,30 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
                 item.setCheckState(0, QtCore.Qt.Checked)
             else:
                 item.setCheckState(0, QtCore.Qt.Unchecked)
-            item.setHidden(not visible)
             self.item_to_data[item] = change_desc
         # add them all to the tree in one hit.
         self.insertTopLevelItems(0, items)
-        # for some reason the visibility doesn't work when added above??
-        for item, visible in ivs:
-            self.setItemHidden(item, not visible)
         self._ignore_select_all_changes = False
         if self.selectall_checkbox is not None:
             self.update_selectall_state(None, None)
 
+    def set_item_hidden(self, item, hide):
+        # Due to what seems a bug in Qt "hiding" an item isn't always
+        # reliable - so a "hidden" item is simply not added to the tree!
+        # See https://bugs.launchpad.net/qbzr/+bug/274295
+        index = self.indexOfTopLevelItem(item)
+        if index == -1 and not hide:
+            self.addTopLevelItem(item)
+        elif index != -1 and hide:
+            self.takeTopLevelItem(index)
+
+    def is_item_hidden(self, item):
+        return self.indexOfTopLevelItem(item) == -1
+
     def iter_treeitem_and_desc(self, include_hidden=False):
         """iterators to help work with the selection, checked items, etc"""
         for ti, desc in self.item_to_data.iteritems():
-            if include_hidden or not ti.isHidden():
+            if include_hidden or not self.is_item_hidden(ti):
                 yield ti, desc
 
     def iter_selection(self):
@@ -179,7 +187,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         # XXX   tree object at all!?
         for i in range(self.topLevelItemCount()):
             item = self.topLevelItem(i)
-            if not item.isHidden() and item.checkState(0) == QtCore.Qt.Checked:
+            if item.checkState(0) == QtCore.Qt.Checked:
                 yield self.item_to_data[item]
 
     def show_context_menu(self, pos):

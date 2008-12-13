@@ -334,7 +334,7 @@ def load_locataions(locations):
             repo_brs.sort(branch_cmp_trunk_first)
             
             for br in repo_brs:             
-                tag = br.nick
+                tag = truncate_string(br.nick, 20)
                 try:
                     tree = br.bzrdir.open_workingtree()
                 except errors.NoWorkingTree:
@@ -351,7 +351,7 @@ def load_locataions(locations):
         if len(locations) == 1:
             tag = None
         else:
-            tag = br.nick
+            tag = truncate_string(br.nick, 20)
         
         append_location(tree, br, repo, fp, tag)
 
@@ -360,6 +360,12 @@ def load_locataions(locations):
         raise errors.BzrCommandError(paths_and_branches_err)
     
     return (branches.values(), heads, file_ids)
+
+
+def truncate_string(s, max_len):
+    if len(s) <= max_len:
+        return s
+    return s[:max_len]+'...'
 
 
 class LogWindow(QBzrWindow):

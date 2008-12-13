@@ -183,9 +183,9 @@ def cat_to_native_app(tree, relpath):
     # make temp file
     import os
     import tempfile
-    qdir = os.path.join(tempfile.gettempdir(), 'QBzr')
+    qdir = os.path.join(tempfile.gettempdir(), 'QBzr', 'qcat')
     if not os.path.isdir(qdir):
-        os.mkdir(qdir)
+        os.makedirs(qdir)
     basename = os.path.basename(relpath)
     fname = os.path.join(qdir, basename)
     f = open(fname, 'wb')

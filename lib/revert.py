@@ -95,6 +95,8 @@ class RevertWindow(SubProcessDialog):
         for desc in self.tree.iter_changes(self.tree.basis_tree()):
             desc = ChangeDesc(desc)
             assert desc.is_modified(), "expecting only modified!"
+            if desc.is_tree_root():
+                continue
             path = desc.path()
             check_state = in_selected_list(path)
             yield desc, True, check_state

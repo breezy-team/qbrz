@@ -49,6 +49,7 @@ class SubProcessWindowBase:
                           hide_progress=False):
         self.restoreSize(name, default_size)
         self._name = name
+        self._default_size = default_size
         self.args = args
         self.dir = dir
         self.ui_mode = ui_mode
@@ -106,6 +107,7 @@ class SubProcessWindowBase:
     def make_default_status_box(self):
         status_group_box = QtGui.QGroupBox(gettext("Status"))
         status_layout = QtGui.QVBoxLayout(status_group_box)
+        status_layout.setContentsMargins(0, 0, 0, 0)
         status_layout.addWidget(self.process_widget)
         return status_group_box
         
@@ -173,6 +175,11 @@ class SubProcessWindowBase:
         else:
             self.process_widget.abort()
             event.ignore()
+
+    def setupUi(self, ui):
+        ui.setupUi(self)
+        if self._restore_size:
+            self.resize(self._restore_size)
 
 
 class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
@@ -380,6 +387,11 @@ class SubProcessWidget(QtGui.QWidget):
             if line.startswith("qbzr:PROGRESS:"):
                 progress, messages = bencode.bdecode(line[14:])
                 self.setProgress(progress, messages)
+            elif line.startswith("qbzr:GETPASS:"):
+                prompt = bencode.bdecode(line[13:]).decode('utf-8')
+                passwd = QtGui.QInputDialog.getText(self, gettext("Enter Password"), prompt, QtGui.QLineEdit.Password)
+                data = unicode(passwd[0]).encode('utf-8'), int(passwd[1])
+                self.process.write("qbzr:GETPASS:"+bencode.bencode(data)+"\n")
             else:
                 self.logMessage(line)
                 if not self.ui_mode:

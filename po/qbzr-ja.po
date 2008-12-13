@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-08-17 18:45+0300\n"
-"PO-Revision-Date: 2008-08-18 02:17+0900\n"
+"POT-Creation-Date: 2008-11-17 16:27+0100\n"
+"PO-Revision-Date: 2008-11-10 02:30+0900\n"
 "Last-Translator: HAYASHI Kentaro <kenhys@gigo-ice.org>\n"
 "Language-Team: Japanese <ja@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -18,683 +18,1110 @@ msgstr ""
 "X-Launchpad-Export-Date: 2008-08-17 14:40+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
-#: lib\annotate.py:45
-msgid "Annotate"
-msgstr "注釈"
-
-#: lib\annotate.py:59
-msgid "Line"
-msgstr "行"
-
-#: lib\annotate.py:59
-#: lib\annotate.py:75
-#: lib\browse.py:82
-#: lib\commit.py:330
-#: lib\logmodel.py:70
-msgid "Author"
-msgstr "著者"
-
-#: lib\annotate.py:59
-#: lib\logmodel.py:67
-msgid "Rev"
-msgstr "リビジョン"
-
-#: lib\annotate.py:75
-#: lib\browse.py:81
-#: lib\commit.py:330
-#: lib\logmodel.py:69
-msgid "Date"
-msgstr "日付"
-
-#: lib\annotate.py:75
-msgid "Summary"
-msgstr "要約"
-
-#: lib\browse.py:60
-#: lib\browse.py:199
-#: lib\browse.py:234
-msgid "Browse"
-msgstr "ブラウズ"
-
-#: lib\browse.py:66
-msgid "Location:"
-msgstr "ロケーション："
-
-#: lib\browse.py:71
-#: lib\util.py:370
-msgid "Revision:"
-msgstr "リビジョン："
-
-#: lib\browse.py:74
-msgid "Show"
-msgstr "表示"
-
-#: lib\browse.py:81
-#: lib\main.py:359
-msgid "Name"
-msgstr "名前"
-
-#: lib\browse.py:82
-#: lib\commit.py:265
-#: lib\commit.py:330
-#: lib\logmodel.py:68
-msgid "Message"
-msgstr "メッセージ"
-
-#: lib\browse.py:87
-msgid "Show log..."
-msgstr "ログを表示..."
-
-#: lib\browse.py:89
-msgid "View file"
-msgstr "ファイルを表示"
-
-#: lib\cat.py:73
-msgid "View "
-msgstr "表示 "
-
-#: lib\cat.py:155
-msgid "View File"
-msgstr "ファイルを表示"
-
-#: lib\cat.py:156
+#: lib/help.py:60
 #, python-format
-msgid "File \"%s\" not found in the specified revision."
-msgstr "ファイル \"%s\" はこのリビジョンには存在しません。"
+msgid "No help can be found for <i>%s</i>"
+msgstr "<i>%s</i>に該当するヘルプはありません"
 
-#: lib\commit.py:192
-#: lib\commit.py:503
-#: lib\commit.py:517
-#: lib\commit.py:555
-msgid "Commit"
-msgstr "コミット"
+#: lib/help.py:110
+msgid "Help"
+msgstr "ヘルプ"
 
-#: lib\commit.py:215
-#: lib\diff.py:192
-msgid "added"
-msgstr "追加された"
+#: lib/wtlist.py:42
+msgid "Select / deselect all"
+msgstr "全選択/非選択"
 
-#: lib\commit.py:219
-#: lib\diff.py:190
-msgid "removed"
-msgstr "削除された"
-
-#: lib\commit.py:225
-#: lib\diff.py:194
-msgid "renamed and modified"
-msgstr "名前の変更と修正された"
-
-#: lib\commit.py:227
-#: lib\diff.py:196
-msgid "renamed"
-msgstr "名前が変更"
-
-#: lib\commit.py:234
-#: lib\diff.py:198
-msgid "modified"
-msgstr "修正された"
-
-#: lib\commit.py:237
-msgid "non-versioned"
-msgstr "バージョン管理下にない"
-
-#: lib\commit.py:271
-msgid "Enter the commit message"
-msgstr "コミットメッセージを入力してください。"
-
-#: lib\commit.py:282
-msgid "&Fixed bugs:"
-msgstr "修正されたバグ(&F)："
-
-#: lib\commit.py:283
-msgid "Set the IDs of bugs fixed by this commit"
-msgstr "このコミットにより修正されるバグのIDを設定"
-
-#: lib\commit.py:286
-msgid "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. <i>project:123 project:765</i>"
-msgstr "バグIDのリストを入力する　フォーマットは <i>tag:id</i>でスペースで区切る。例 <i>project:123 project:765</i>"
-
-#: lib\commit.py:296
-msgid "&Author:"
-msgstr "著者(&A)："
-
-#: lib\commit.py:297
-msgid "Set the author of this change, if it's different from the committer"
-msgstr "コミットした人と修正者が異なる場合、この修正へ修正者名を設定"
-
-#: lib\commit.py:300
-msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
-msgstr "著者の名前を入力してください。(例：<i>John Doe &lt;jdoe@example.com&gt;</i>)"
-
-#: lib\commit.py:315
-msgid "&Local commit in a bound branch"
-msgstr "boundブランチでローカルコミット(&L)"
-
-#: lib\commit.py:317
-msgid "Local commits are not pushed to the master branch until a normal commit is performed"
-msgstr "通常のコミットが行われるまで、ローカルコミットはマスターブランチへと送られることはありません"
-
-#: lib\commit.py:325
-msgid "Pending Merges"
-msgstr "マージ保留"
-
-#: lib\commit.py:352
-msgid "Changes"
-msgstr "変更点"
-
-#: lib\commit.py:360
-msgid "File"
-msgstr "ファイル"
-
-#: lib\commit.py:360
-msgid "Extension"
-msgstr "拡張"
-
-#: lib\commit.py:360
-#: lib\main.py:361
-#: lib\ui_branch.py:90
-#: lib\ui_pull.py:90
-#: lib\ui_push.py:93
-msgid "Status"
-msgstr "状態"
-
-#: lib\commit.py:381
-#: lib\log.py:358
+#: lib/wtlist.py:67 lib/log.py:544
 msgid "Show &differences..."
 msgstr "差分を表示(&D)..."
 
-#: lib\commit.py:384
+#: lib/wtlist.py:70
 msgid "&Revert..."
 msgstr "元に戻す(&R)..."
 
-#: lib\commit.py:391
-msgid "Show non-versioned files"
-msgstr "バージョン管理下にないファイルを表示"
+#: lib/wtlist.py:80
+msgid "File"
+msgstr "ファイル"
 
-#: lib\commit.py:504
-msgid "Empty commit message. Do you really want to commit?"
-msgstr "コミットメッセージが空です。本当にコミットしますか？"
+#: lib/wtlist.py:80
+msgid "Extension"
+msgstr "拡張子"
 
-#: lib\commit.py:614
-#: lib\commit.py:623
+#: lib/wtlist.py:80 lib/subprocess.py:107 lib/main.py:360 lib/commit.py:393
+msgid "Status"
+msgstr "状態"
+
+#: lib/wtlist.py:106
+msgid "ignored"
+msgstr "無視"
+
+#: lib/wtlist.py:108
+msgid "non-versioned"
+msgstr "管理外"
+
+#: lib/wtlist.py:112 lib/diff.py:266
+msgid "added"
+msgstr "追加"
+
+#: lib/wtlist.py:116 lib/diff.py:264
+msgid "removed"
+msgstr "削除"
+
+#: lib/wtlist.py:120
+msgid "missing"
+msgstr "紛失"
+
+#: lib/wtlist.py:127 lib/diff.py:268
+msgid "renamed and modified"
+msgstr "名称変更/修正"
+
+#: lib/wtlist.py:129 lib/diff.py:270
+msgid "renamed"
+msgstr "名称変更"
+
+#: lib/wtlist.py:136 lib/diff.py:272
+msgid "modified"
+msgstr "修正"
+
+#: lib/wtlist.py:208
+#, python-format
+msgid "Revert %s to latest revision."
+msgstr "%sを最新のリビジョンに戻す"
+
+#: lib/wtlist.py:209 lib/revert.py:42
 msgid "Revert"
 msgstr "元に戻す"
 
-#: lib\commit.py:615
-msgid "Do you really want to revert the selected file(s)?"
-msgstr "選択したファイルを本当に元に戻しますか？"
+#: lib/subprocess.py:128
+msgid "Internal Error"
+msgstr "内部エラー"
 
-#: lib\config.py:40
-msgid "Default"
-msgstr "デフォルト"
+#: lib/subprocess.py:130
+#, python-format
+msgid "Sorry, subprocess action \"%s\" cannot be started\n"
+msgstr ""
 
-#: lib\config.py:41
-msgid "Thunderbird"
-msgstr "Thunderbird"
+#: lib/subprocess.py:134 lib/diff.py:318 lib/tag.py:143 lib/tag.py:174
+#: lib/tag.py:211 lib/util.py:69
+msgid "&Close"
+msgstr "閉じる(&C)"
 
-#: lib\config.py:42
-msgid "Evolution"
-msgstr "Evolution"
+#: lib/subprocess.py:257
+msgid "Description"
+msgstr "説明"
 
-#: lib\config.py:43
-msgid "KMail"
-msgstr "KMail"
+#: lib/subprocess.py:278
+msgid "Stopped"
+msgstr "停止"
 
-#: lib\config.py:44
-msgid "Mutt"
-msgstr "Mutt"
+#: lib/subprocess.py:332
+msgid "Starting..."
+msgstr "開始..."
 
-#: lib\config.py:45
-msgid "XDG e-mail client"
-msgstr "XDG Eメールクライアント"
+#: lib/subprocess.py:364
+msgid "Aborting..."
+msgstr "中止..."
 
-#: lib\config.py:46
-msgid "MAPI e-mail client"
-msgstr "MAPI　Eメールクライアント"
+#: lib/subprocess.py:372
+msgid "Finished!"
+msgstr "完了!"
 
-#: lib\config.py:47
-msgid "Editor"
-msgstr "エディタ"
+#: lib/subprocess.py:410 lib/subprocess.py:427
+msgid "Failed!"
+msgstr "失敗!"
 
-#: lib\config.py:56
-msgid "Configuration"
-msgstr "設定"
+#: lib/subprocess.py:412
+msgid "Failed to start bzr."
+msgstr "bzrの実行に失敗しました。"
 
-#: lib\config.py:66
-#: lib\ui_bookmark.py:58
-msgid "&Name:"
-msgstr "名前(&N)："
+#: lib/subprocess.py:414
+#, python-format
+msgid "Error while running bzr. (error code: %d)"
+msgstr "bzr実行中にエラーが発生しました。(エラーコード：%d)"
 
-#: lib\config.py:72
-msgid "E-&mail:"
-msgstr "Eメール(&E)："
+#: lib/ui_pull.py:60
+msgid "Pull"
+msgstr "プル"
 
-#: lib\config.py:78
-msgid "&Editor:"
-msgstr "エディタ(&E)："
+#: lib/ui_pull.py:61 lib/ui_merge.py:58 lib/ui_push.py:63 lib/ui_branch.py:66
+msgid "Options"
+msgstr "オプション"
 
-#: lib\config.py:86
-msgid "E-mail &client:"
-msgstr "Eメールクライアント(&C)："
+#: lib/ui_pull.py:62 lib/ui_merge.py:59 lib/ui_push.py:64
+#: lib/ui_bookmark.py:51 lib/ui_branch.py:67
+msgid "&Location:"
+msgstr "場所(&L)："
 
-#: lib\config.py:96
-msgid "Alias"
-msgstr "エイリアス"
+#: lib/ui_pull.py:63 lib/ui_merge.py:60 lib/ui_push.py:65
+#: lib/ui_update_branch.py:85 lib/ui_init.py:120 lib/ui_new_tree.py:132
+#: lib/ui_new_tree.py:134 lib/ui_branch.py:68 lib/ui_branch.py:71
+#: lib/ui_update_checkout.py:79
+msgid "Browse..."
+msgstr "参照..."
 
-#: lib\config.py:96
-msgid "Command"
-msgstr "コマンド"
+#: lib/ui_pull.py:64 lib/ui_merge.py:61 lib/ui_tag.py:108 lib/ui_branch.py:69
+msgid "&Revision:"
+msgstr "リビジョン(&R)："
 
-#: lib\config.py:98
-#: lib\config.py:119
-msgid "Add"
-msgstr "追加"
+#: lib/ui_pull.py:65 lib/ui_merge.py:62 lib/ui_push.py:66
+msgid "Remember this location as a default"
+msgstr "ロケーションをデフォルトとして保存"
 
-#: lib\config.py:101
-#: lib\config.py:122
-msgid "Remove"
-msgstr "削除"
+#: lib/ui_pull.py:66 lib/ui_push.py:67 lib/ui_update_branch.py:88
+#: lib/ui_update_checkout.py:80
+msgid "Overwrite differences between branches"
+msgstr "ブランチ間の差分を上書き"
 
-#: lib\config.py:117
-msgid "Abbreviation"
-msgstr "略記"
+#: lib/ui_merge.py:57
+msgid "Merge"
+msgstr "マージ"
 
-#: lib\config.py:117
-msgid "URL"
-msgstr "URL"
+#: lib/info.py:41
+msgid "Info"
+msgstr "情報"
 
-#: lib\config.py:136
-msgid "General"
-msgstr "一般"
+#: lib/diff.py:64
+#, python-format
+msgid "Working Tree for %s"
+msgstr "%s の作業ツリー"
 
-#: lib\config.py:137
-msgid "Aliases"
-msgstr "エイリアス"
+#: lib/diff.py:66
+msgid "Working Tree"
+msgstr "作業ツリー"
 
-#: lib\config.py:138
-msgid "Bug Trackers"
-msgstr "バグトラッカー"
+#: lib/diff.py:91
+#, python-format
+msgid "Rev %(rev)s for %(branch)s"
+msgstr ""
 
-#: lib\diff.py:61
-#: lib\log.py:351
+#: lib/diff.py:93
+#, python-format
+msgid "Rev %s"
+msgstr "リビジョン %s"
+
+#: lib/diff.py:96
+#, python-format
+msgid "Revid: %(rev)s for %(branch)s"
+msgstr ""
+
+#: lib/diff.py:98
+#, python-format
+msgid "Revid: %s"
+msgstr "リビジョンID： %s"
+
+#: lib/diff.py:101
+msgid "Merge Preview"
+msgstr "マージプレビュー"
+
+#: lib/diff.py:119 lib/diff.py:315 lib/log.py:537
 msgid "Diff"
 msgstr "差分"
 
-#: lib\diff.py:68
+#: lib/diff.py:125
 #, python-format
 msgid "%d file"
 msgid_plural "%d files"
 msgstr[0] "%dファイル"
 msgstr[1] "%dファイル"
 
-#: lib\diff.py:100
+#: lib/diff.py:157
 msgid "Side by side"
 msgstr "並べて表示"
 
-#: lib\diff.py:107
+#: lib/diff.py:164
 msgid "Unidiff"
 msgstr "Unified形式で表示"
 
-#: lib\diffview.py:215
-msgid "Last modified:"
-msgstr "最終更新："
+#: lib/diff.py:169
+msgid "Complete"
+msgstr "すべて"
 
-#: lib\diffview.py:216
-msgid "Status:"
-msgstr "状態："
-
-#: lib\diffview.py:217
-msgid "Kind:"
-msgstr "種類："
-
-#: lib\diffview.py:218
-msgid "Properties:"
-msgstr "プロパティ："
-
-#: lib\diffview.py:363
-msgid "[binary file]"
-msgstr "[バイナリファイル]"
-
-#: lib\diffview.py:516
-msgid "\\ No newline at end of file"
-msgstr "\\ ファイル終端に改行がない"
-
-#: lib\i18n.py:75
-msgid "file"
-msgstr "ファイル"
-
-#: lib\i18n.py:76
-msgid "directory"
-msgstr "ディレクトリ"
-
-#: lib\i18n.py:77
-msgid "symlink"
-msgstr "シンボリックリンク"
-
-#: lib\i18n.py:79
-msgid "fixed"
-msgstr "修正済み"
-
-#: lib\i18n.py:81
-msgid "View text file"
-msgstr "テキストファイルを表示"
-
-#: lib\i18n.py:82
-msgid "View image file"
-msgstr "画像を表示"
-
-#: lib\i18n.py:83
-msgid "View binary file"
-msgstr "バイナリファイルを表示"
-
-#: lib\i18n.py:84
-msgid "View symlink"
-msgstr "シンボリックリンクを表示"
-
-#: lib\i18n.py:85
-msgid "View directory"
-msgstr "ディレクトリを表示"
-
-#: lib\log.py:227
-msgid "Log"
-msgstr "ログ"
-
-#: lib\log.py:251
-msgid "&Search:"
-msgstr "検索(&S)："
-
-#: lib\log.py:266
-msgid "Messages"
-msgstr "メッセージ"
-
-#: lib\log.py:268
-msgid "Authors"
-msgstr "著者"
-
-#: lib\log.py:270
-msgid "Revision IDs"
-msgstr "リビジョンID"
-
-#: lib\log.py:272
-msgid "Revision Numbers"
-msgstr "リビジョン番号"
-
-#: lib\log.py:359
-msgid "Show &tree..."
-msgstr "ツリーを表示(&T)..."
-
-#: lib\logmodel.py:820
+#: lib/diff.py:316
 #, python-format
-msgid "bug #%s"
-msgstr "バグ #%s"
+msgid ""
+"File %s is not versioned.\n"
+"Operation aborted."
+msgstr ""
+"%s はバージョン管理外です。\n"
+"処理は中断しました。"
 
-#: lib\main.py:126
-msgid "Computer"
-msgstr "コンピュータ"
+#: lib/init.py:38 lib/ui_init.py:118
+msgid "Initialize"
+msgstr "初期化"
 
-#: lib\main.py:155
-msgid "&Edit Bookmark..."
-msgstr "ブックマークを編集(&E)..."
+#: lib/init.py:73
+msgid "You must specify a location"
+msgstr "場所を指定する必要があります"
 
-#: lib\main.py:156
-msgid "&Remove Bookmark..."
-msgstr "ブックマークを削除(&R)..."
+#: lib/tag.py:142
+msgid "You should specify tag name"
+msgstr "タグ名の指定が必要です"
 
-#: lib\main.py:171
-msgid "Bookmarks"
-msgstr "ブックマーク"
-
-#: lib\main.py:280
-#: lib\util.py:69
-msgid "&Refresh"
-msgstr "更新(&R)"
-
-#: lib\main.py:282
-msgid "Refresh the directory tree"
-msgstr "ディレクトリツリーを更新"
-
-#: lib\main.py:286
-msgid "&Commit"
-msgstr "コミット(&C)"
-
-#: lib\main.py:287
-msgid "Commit changes into a new revision"
-msgstr "新規リビジョンとして修正をコミット"
-
-#: lib\main.py:291
-msgid "&Push"
-msgstr "プッシュ(&P)"
-
-#: lib\main.py:292
-msgid "Turn this branch into a mirror of another branch"
-msgstr "このブランチを他のブランチのミラーに変える"
-
-#: lib\main.py:296
-msgid "Pu&ll"
-msgstr "プル(&U)"
-
-#: lib\main.py:297
-msgid "Update a mirror of this branch"
-msgstr "このブランチのミラーを更新"
-
-#: lib\main.py:300
-msgid "&Add Bookmark..."
-msgstr "ブックマークを追加(&A)..."
-
-#: lib\main.py:307
-msgid "&File"
-msgstr "ファイル(&F)"
-
-#: lib\main.py:308
-msgid "&Configure..."
-msgstr "設定(&C)"
-
-#: lib\main.py:310
-msgid "&Quit"
-msgstr "終了(&Q)"
-
-#: lib\main.py:311
-msgid "&View"
-msgstr "表示(&V)"
-
-#: lib\main.py:313
-msgid "&Branch"
-msgstr "ブランチ(&B)"
-
-#: lib\main.py:317
-msgid "&Bookmarks"
-msgstr "ブックマーク(&B)"
-
-#: lib\main.py:319
-#: lib\util.py:68
-msgid "&Help"
-msgstr "ヘルプ(&H)"
-
-#: lib\main.py:320
-msgid "&Help..."
-msgstr "ヘルプ(&H)..."
-
-#: lib\main.py:322
-msgid "&About..."
-msgstr "詳細(&A)..."
-
-#: lib\main.py:360
-msgid "Size"
-msgstr "サイズ"
-
-#: lib\main.py:412
-msgid "About QBzr"
-msgstr "QBzrについて"
-
-#: lib\main.py:413
+#: lib/tag.py:148
 #, python-format
-msgid "<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-2007 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
-msgstr "<b>QBzr</b> — Bazaarグラフィカルユーザインタフェース<br><small>バージョン %(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-2007 Lukáš Lalinský と仲間たち<br><br><a href=\"http://bazaar-vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
+msgid ""
+"Tag \"%s\" already exists.\n"
+"Do you want to replace existing tag?"
+msgstr ""
+"タグ \"%s\"は既に存在します。\n"
+"既存のタグを置き換えますか?"
 
-#: lib\main.py:478
-msgid "Add Bookmark"
-msgstr "ブックマークの追加"
+#: lib/tag.py:151
+msgid "&Replace"
+msgstr "置換(&R)"
 
-#: lib\main.py:489
-msgid "Edit Bookmark"
-msgstr "ブックマークの編集"
-
-#: lib\main.py:499
-msgid "Remove Bookmark"
-msgstr "ブックマークの削除"
-
-#: lib\main.py:500
-msgid "Do you really want to remove the selected bookmark?"
-msgstr "選択したブックマークを本当に削除しますか？"
-
-#: lib\pull.py:53
-msgid "Pull"
-msgstr "プル"
-
-#: lib\pull.py:114
-msgid "Starting..."
-msgstr "開始..."
-
-#: lib\pull.py:161
-msgid "Aborting..."
-msgstr "中止..."
-
-#: lib\pull.py:169
-msgid "Finished!"
-msgstr "完了!"
-
-#: lib\pull.py:208
-#: lib\pull.py:224
-msgid "Failed!"
-msgstr "失敗!"
-
-#: lib\pull.py:210
-msgid "Failed to start bzr."
-msgstr "bzrの実行に失敗しました。"
-
-#: lib\pull.py:212
-#, python-format
-msgid "Error while running bzr. (error code: %d)"
-msgstr "bzr実行中にエラーが発生しました。(エラーコード：%d)"
-
-#: lib\pull.py:230
-msgid "Push"
-msgstr "プッシュ"
-
-#: lib\pull.py:260
-msgid "Branch"
-msgstr "ブランチ"
-
-#: lib\ui_bookmark.py:59
-#: lib\ui_branch.py:87
-#: lib\ui_pull.py:86
-#: lib\ui_push.py:88
-msgid "&Location:"
-msgstr "ロケーション(&L)："
-
-#: lib\ui_branch.py:86
-#: lib\ui_pull.py:85
-#: lib\ui_push.py:87
-msgid "Options"
-msgstr "オプション"
-
-#: lib\ui_branch.py:88
-#: lib\ui_pull.py:87
-msgid "&Revision:"
-msgstr "リビジョン(&R)："
-
-#: lib\ui_branch.py:89
-msgid "&To:"
-msgstr "宛先(&T)："
-
-#: lib\ui_branch.py:91
-#: lib\ui_pull.py:91
-#: lib\ui_push.py:94
-msgid "Stopped"
-msgstr "停止"
-
-#: lib\ui_pull.py:88
-#: lib\ui_push.py:89
-msgid "Remember this location as a default"
-msgstr "ロケーションをデフォルトとして保存"
-
-#: lib\ui_pull.py:89
-#: lib\ui_push.py:90
-msgid "Overwrite differences between branches"
-msgstr "ブランチ間の差分を上書き"
-
-#: lib\ui_push.py:91
-msgid "Use existing directory"
-msgstr "すでにあるディレクトリを使用する"
-
-#: lib\ui_push.py:92
-msgid "Create the path up to the branch if it does not exist"
-msgstr "存在しなければブランチへのパスを生成する"
-
-#: lib\util.py:65
-msgid "&OK"
-msgstr "OK(&O)"
-
-#: lib\util.py:66
+#: lib/tag.py:151 lib/tag.py:164 lib/util.py:68
 msgid "&Cancel"
 msgstr "キャンセル(&C)"
 
-#: lib\util.py:67
-msgid "&Close"
-msgstr "閉じる(&C)"
+#: lib/tag.py:161
+#, python-format
+msgid ""
+"Tag \"%s\" does not exists yet.\n"
+"Do you want to create new tag?"
+msgstr ""
+"タグ \"%s\"はまだ存在しません。\n"
+"新しいタグを作成しますか?"
 
-#: lib\util.py:387
+#: lib/tag.py:164
+msgid "Cre&ate"
+msgstr "作成(&A)"
+
+#: lib/tag.py:173
+#, python-format
+msgid "Tag \"%s\" does not exists"
+msgstr "タグ \"%s\" は存在しません"
+
+#: lib/tag.py:195
+msgid "Select branch location"
+msgstr "ブランチの場所を選択"
+
+#: lib/tag.py:209
+msgid "Error"
+msgstr "エラー"
+
+#: lib/tag.py:210
+#, python-format
+msgid ""
+"Not a branch:\n"
+"%s"
+msgstr ""
+"ブランチではありません：\n"
+"%s"
+
+#: lib/ui_tag.py:99
+msgid "Edit tag"
+msgstr "タグを編集"
+
+#: lib/ui_tag.py:100 lib/ui_new_tree.py:130 lib/ui_branch.py:65
+#: lib/commit.py:236
+msgid "Branch"
+msgstr "ブランチ"
+
+#: lib/ui_tag.py:101
+msgid "&Browse..."
+msgstr "ブラウズ(&B)..."
+
+#: lib/ui_tag.py:102
+msgid "Tag"
+msgstr "タグ"
+
+#: lib/ui_tag.py:103
+msgid "&Action:"
+msgstr "アクション(&A)："
+
+#: lib/ui_tag.py:104
+msgid "Create new tag"
+msgstr "新規タグを作成"
+
+#: lib/ui_tag.py:105
+msgid "Replace existing tag"
+msgstr "既存のタグを置換"
+
+#: lib/ui_tag.py:106
+msgid "Delete existing tag"
+msgstr "既存のタグを削除"
+
+#: lib/ui_tag.py:107
+msgid "&Tag name:"
+msgstr "タグ名(&T)："
+
+#: lib/ui_tag.py:109
+msgid "&Select..."
+msgstr "選択(&S)..."
+
+#: lib/ui_push.py:62
+msgid "Push"
+msgstr "プッシュ"
+
+#: lib/ui_push.py:68
+msgid "Use existing directory"
+msgstr "すでにあるディレクトリを使用する"
+
+#: lib/ui_push.py:69
+msgid "Create the path up to the branch if it does not exist"
+msgstr "存在しなければブランチへのパスを生成する"
+
+#: lib/i18n.py:87
+msgid "file"
+msgstr "ファイル"
+
+#: lib/i18n.py:88
+msgid "directory"
+msgstr "ディレクトリ"
+
+#: lib/i18n.py:89
+msgid "symlink"
+msgstr "シンボリックリンク"
+
+#: lib/i18n.py:91
+msgid "fixed"
+msgstr "修正済み"
+
+#: lib/i18n.py:93
+msgid "View text file"
+msgstr "テキストファイルを表示"
+
+#: lib/i18n.py:94
+msgid "View image file"
+msgstr "画像を表示"
+
+#: lib/i18n.py:95
+msgid "View binary file"
+msgstr "バイナリファイルを表示"
+
+#: lib/i18n.py:96
+msgid "View symlink"
+msgstr "シンボリックリンクを表示"
+
+#: lib/i18n.py:97
+msgid "View directory"
+msgstr "ディレクトリを表示"
+
+#: lib/ui_update_branch.py:82
+msgid "Update Branch"
+msgstr "ブランチ更新"
+
+#: lib/ui_update_branch.py:83
+msgid ""
+"This directory is a branch.  Please select what you would like to update"
+msgstr "このディレクトリはブランチです。何を更新したいか選択してください。"
+
+#: lib/ui_update_branch.py:84 lib/ui_update_checkout.py:76
+msgid "Update source"
+msgstr "ソースを更新"
+
+#: lib/ui_update_branch.py:86
+msgid "Pull most recent changes from:"
+msgstr ""
+
+#: lib/ui_update_branch.py:87
+msgid "Remember this as the new parent branch"
+msgstr "新たな親ブランチとして記憶します"
+
+#: lib/ui_update_branch.py:89
+msgid "<Parent Branch shown here>"
+msgstr "<親のブランチをここに表示>"
+
+#: lib/ui_update_branch.py:90
+msgid "Update working tree to the latest changes in the branch"
+msgstr ""
+
+#: lib/main.py:125
+msgid "Computer"
+msgstr "コンピュータ"
+
+#: lib/main.py:154
+msgid "&Edit Bookmark..."
+msgstr "ブックマークを編集(&E)..."
+
+#: lib/main.py:155
+msgid "&Remove Bookmark..."
+msgstr "ブックマークを削除(&R)..."
+
+#: lib/main.py:170
+msgid "Bookmarks"
+msgstr "ブックマーク"
+
+#: lib/main.py:279 lib/util.py:71
+msgid "&Refresh"
+msgstr "更新(&R)"
+
+#: lib/main.py:281
+msgid "Refresh the directory tree"
+msgstr "ディレクトリツリーを更新"
+
+#: lib/main.py:285
+msgid "&Commit"
+msgstr "コミット(&C)"
+
+#: lib/main.py:286
+msgid "Commit changes into a new revision"
+msgstr "新規リビジョンとして修正をコミット"
+
+#: lib/main.py:290
+msgid "&Push"
+msgstr "プッシュ(&P)"
+
+#: lib/main.py:291
+msgid "Turn this branch into a mirror of another branch"
+msgstr "このブランチを他のブランチのミラーに切り替える"
+
+#: lib/main.py:295
+msgid "Pu&ll"
+msgstr "プル(&U)"
+
+#: lib/main.py:296
+msgid "Update a mirror of this branch"
+msgstr "このブランチのミラーを更新"
+
+#: lib/main.py:299
+msgid "&Add Bookmark..."
+msgstr "ブックマークを追加(&A)..."
+
+#: lib/main.py:306
+msgid "&File"
+msgstr "ファイル(&F)"
+
+#: lib/main.py:307
+msgid "&Configure..."
+msgstr "設定(&C)"
+
+#: lib/main.py:309
+msgid "&Quit"
+msgstr "終了(&Q)"
+
+#: lib/main.py:310
+msgid "&View"
+msgstr "表示(&V)"
+
+#: lib/main.py:312
+msgid "&Branch"
+msgstr "ブランチ(&B)"
+
+#: lib/main.py:316
+msgid "&Bookmarks"
+msgstr "ブックマーク(&B)"
+
+#: lib/main.py:318 lib/util.py:70
+msgid "&Help"
+msgstr "ヘルプ(&H)"
+
+#: lib/main.py:319
+msgid "&Help..."
+msgstr "ヘルプ(&H)..."
+
+#: lib/main.py:321
+msgid "&About..."
+msgstr "詳細(&A)..."
+
+#: lib/main.py:358 lib/browse.py:84
+msgid "Name"
+msgstr "名前"
+
+#: lib/main.py:359
+msgid "Size"
+msgstr "サイズ"
+
+#: lib/main.py:411
+msgid "About QBzr"
+msgstr "QBzrについて"
+
+#: lib/main.py:412
+#, fuzzy, python-format
+msgid ""
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
+"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
+"\">http://bazaar-vcs.org/QBzr</a>"
+msgstr ""
+"<b>QBzr</b> — Bazaarグラフィカルユーザインタフェース<br><small>バージョン %"
+"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2007 Lukáš Lalinský と仲間たち<br><br><a href=\"http://bazaar-vcs.org/QBzr"
+"\">http://bazaar-vcs.org/QBzr</a>"
+
+#: lib/main.py:477
+msgid "Add Bookmark"
+msgstr "ブックマークの追加"
+
+#: lib/main.py:488
+msgid "Edit Bookmark"
+msgstr "ブックマークの編集"
+
+#: lib/main.py:498
+msgid "Remove Bookmark"
+msgstr "ブックマークの削除"
+
+#: lib/main.py:499
+msgid "Do you really want to remove the selected bookmark?"
+msgstr "選択したブックマークを本当に削除しますか？"
+
+#: lib/util.py:67
+msgid "&OK"
+msgstr "OK(&O)"
+
+#: lib/util.py:333
+msgid "Select Source Directory"
+msgstr "ソースディレクトリを選択"
+
+#: lib/util.py:335
+msgid "Select Target Directory"
+msgstr "対象ディレクトリを選択"
+
+#: lib/util.py:388 lib/ui_new_tree.py:160 lib/browse.py:74
+msgid "Revision:"
+msgstr "リビジョン："
+
+#: lib/util.py:405
 msgid "Parents:"
 msgstr "親："
 
-#: lib\util.py:391
+#: lib/util.py:409
 msgid "Children:"
 msgstr "子供："
 
-#: lib\util.py:393
+#: lib/util.py:412
+msgid "Date:"
+msgstr "日付："
+
+#: lib/util.py:414
 msgid "Committer:"
 msgstr "コミッタ："
 
-#: lib\util.py:396
+#: lib/util.py:417
 msgid "Author:"
 msgstr "著者："
 
-#: lib\util.py:400
+#: lib/util.py:421
 msgid "Branch:"
-msgstr "ブランチ"
+msgstr "ブランチ："
 
-#: lib\util.py:405
+#: lib/util.py:426
 msgid "Tags:"
 msgstr "タグ："
 
-#: lib\util.py:414
+#: lib/util.py:435
 msgid "Bug:"
 msgid_plural "Bugs:"
 msgstr[0] "バグ："
 msgstr[1] "バグ："
 
-#: lib\util.py:570
+#: lib/util.py:583
 msgid "deleted files"
-msgstr "削除されたファイル"
+msgstr "削除"
 
-#: lib\util.py:572
+#: lib/util.py:585
 msgid "added files"
-msgstr "追加されたファイル"
+msgstr "追加"
 
-#: lib\util.py:574
+#: lib/util.py:587
 msgid "renamed files"
-msgstr "ファイル名変更"
+msgstr "名称変更"
 
-#: lib\util.py:576
+#: lib/util.py:589
 msgid "modified files"
-msgstr "修正されたファイル"
+msgstr "修正"
+
+#: lib/logmodel.py:83 lib/annotate.py:96 lib/annotate.py:112 lib/browse.py:87
+msgid "Rev"
+msgstr "リビジョン"
+
+#: lib/logmodel.py:84 lib/browse.py:88 lib/commit.py:269 lib/commit.py:366
+msgid "Message"
+msgstr "メッセージ"
+
+#: lib/logmodel.py:85 lib/annotate.py:112 lib/browse.py:85 lib/commit.py:366
+msgid "Date"
+msgstr "日付"
+
+#: lib/logmodel.py:86 lib/annotate.py:96 lib/annotate.py:112 lib/browse.py:86
+#: lib/commit.py:366
+msgid "Author"
+msgstr "著者"
+
+#: lib/logmodel.py:823
+#, python-format
+msgid "bug #%s"
+msgstr "バグ #%s"
+
+#: lib/ui_info.py:176
+msgid "Local location:"
+msgstr "ローカル配置："
+
+#: lib/ui_info.py:177 lib/ui_info.py:179 lib/ui_info.py:182 lib/ui_info.py:184
+#: lib/ui_info.py:186 lib/ui_info.py:189 lib/ui_info.py:191 lib/ui_info.py:193
+#: lib/ui_info.py:195
+msgid "..."
+msgstr "..."
+
+#: lib/ui_info.py:178
+msgid "Public branch location:"
+msgstr "公開ブランチの場所："
+
+#: lib/ui_info.py:180
+msgid "&Location"
+msgstr "ロケーション(&L)"
+
+#: lib/ui_info.py:181
+msgid "Push branch:"
+msgstr "プッシュ先ブランチ："
+
+#: lib/ui_info.py:183
+msgid "Parent branch:"
+msgstr "親ブランチ："
+
+#: lib/ui_info.py:185
+msgid "Submit branch:"
+msgstr "ブランチ送信先："
+
+#: lib/ui_info.py:187
+msgid "&Related Branches"
+msgstr "関連ブランチ(&R)"
+
+#: lib/ui_info.py:188
+msgid "Working tree format:"
+msgstr "作業ツリーフォーマット："
+
+#: lib/ui_info.py:190
+msgid "Branch format:"
+msgstr "ブランチフォーマット："
+
+#: lib/ui_info.py:192
+msgid "Repository format:"
+msgstr "リポジトリフォーマット："
+
+#: lib/ui_info.py:194
+msgid "Control directory format:"
+msgstr "管理ディレクトリフォーマット："
+
+#: lib/ui_info.py:196
+msgid "&Format"
+msgstr "フォーマット(&F)："
+
+#: lib/revert.py:51 lib/commit.py:345
+msgid "Changes"
+msgstr "変更点"
+
+#: lib/config.py:41
+msgid "Default"
+msgstr "デフォルト"
+
+#: lib/config.py:42
+msgid "Thunderbird"
+msgstr "Thunderbird"
+
+#: lib/config.py:43
+msgid "Evolution"
+msgstr "Evolution"
+
+#: lib/config.py:44
+msgid "KMail"
+msgstr "KMail"
+
+#: lib/config.py:45
+msgid "Mutt"
+msgstr "Mutt"
+
+#: lib/config.py:46
+msgid "XDG e-mail client"
+msgstr "XDG Eメールクライアント"
+
+#: lib/config.py:47
+msgid "MAPI e-mail client"
+msgstr "MAPI　Eメールクライアント"
+
+#: lib/config.py:48
+msgid "Editor"
+msgstr "エディタ"
+
+#: lib/config.py:57
+msgid "Configuration"
+msgstr "設定"
+
+#: lib/config.py:67 lib/ui_bookmark.py:50
+msgid "&Name:"
+msgstr "名前(&N)："
+
+#: lib/config.py:73
+msgid "E-&mail:"
+msgstr "Eメール(&E)："
+
+#: lib/config.py:79
+msgid "&Editor:"
+msgstr "エディタ(&E)："
+
+#: lib/config.py:87
+msgid "E-mail &client:"
+msgstr "Eメールクライアント(&C)："
+
+#: lib/config.py:97
+msgid "Alias"
+msgstr "エイリアス"
+
+#: lib/config.py:97
+msgid "Command"
+msgstr "コマンド"
+
+#: lib/config.py:99 lib/config.py:120 lib/add.py:41
+msgid "Add"
+msgstr "追加"
+
+#: lib/config.py:102 lib/config.py:123
+msgid "Remove"
+msgstr "削除"
+
+#: lib/config.py:118
+msgid "Abbreviation"
+msgstr "略記"
+
+#: lib/config.py:118
+msgid "URL"
+msgstr "URL"
+
+#: lib/config.py:137
+msgid "General"
+msgstr "一般"
+
+#: lib/config.py:138
+msgid "Aliases"
+msgstr "エイリアス"
+
+#: lib/config.py:139
+msgid "Bug Trackers"
+msgstr "バグトラッカー"
+
+#: lib/config.py:140
+msgid "&User Interface"
+msgstr "ユーザインタフェース(&U)"
+
+#: lib/config.py:165
+msgid "Spell check &language:"
+msgstr "スペルチェック言語(&L)："
+
+#: lib/log.py:377
+msgid "Log"
+msgstr "ログ"
+
+#: lib/log.py:405
+msgid "&Search:"
+msgstr "検索(&S)："
+
+#: lib/log.py:427
+msgid "Messages and File text (indexed)"
+msgstr ""
+
+#: lib/log.py:443
+msgid "Messages"
+msgstr "メッセージ"
+
+#: lib/log.py:445
+msgid "Authors"
+msgstr "著者"
+
+#: lib/log.py:447
+msgid "Revision IDs"
+msgstr "リビジョンID"
+
+#: lib/log.py:449
+msgid "Revision Numbers"
+msgstr "リビジョン番号"
+
+#: lib/log.py:545
+msgid "Show &tree..."
+msgstr "ツリーを表示(&T)..."
+
+#: lib/annotate.py:82 lib/browse.py:96
+msgid "Annotate"
+msgstr "注釈"
+
+#: lib/annotate.py:96
+msgid "Line"
+msgstr "行"
+
+#: lib/annotate.py:112
+msgid "Summary"
+msgstr "要約"
+
+#: lib/cat.py:74
+msgid "View "
+msgstr "表示 "
+
+#: lib/cat.py:154
+msgid "View File"
+msgstr "ファイルを表示"
+
+#: lib/cat.py:155
+#, python-format
+msgid "File \"%s\" not found in the specified revision."
+msgstr "ファイル \"%s\" はこのリビジョンには存在しません。"
+
+#: lib/add.py:51
+msgid "Unversioned Files"
+msgstr "バージョン管理外のファイル"
+
+#: lib/add.py:68
+msgid "Show ignored files"
+msgstr "無視したファイルを表示"
+
+#: lib/ui_init.py:119
+msgid "Local Directory"
+msgstr "ローカルディレクトリ"
+
+#: lib/ui_init.py:121
+msgid "Repository"
+msgstr "リポジトリ"
+
+#: lib/ui_init.py:122
+msgid "Create a new standalone tree"
+msgstr "新たな単体ツリーを作成"
+
+#: lib/ui_init.py:123
+msgid "Ensure all revisions are appended to the log"
+msgstr ""
+
+#: lib/ui_init.py:124
+msgid "Create a new shared repository"
+msgstr "新規共有リポジトリを作成"
+
+#: lib/ui_init.py:125
+msgid "Skip the creation of working trees in this repository"
+msgstr "リポジトリ内での作業ツリーの作成を行いません"
+
+#: lib/ui_init.py:131
+msgid "Repository Format:"
+msgstr "リポジトリフォーマット："
+
+#: lib/ui_init.py:132
+msgid "Description of format"
+msgstr "フォーマットの説明"
+
+#: lib/diffview.py:212
+msgid "Last modified:"
+msgstr "最終更新："
+
+#: lib/diffview.py:213
+msgid "Status:"
+msgstr "状態："
+
+#: lib/diffview.py:214
+msgid "Kind:"
+msgstr "種類："
+
+#: lib/diffview.py:215
+msgid "Properties:"
+msgstr "プロパティ："
+
+#: lib/diffview.py:463
+msgid "[binary file]"
+msgstr "[バイナリファイル]"
+
+#: lib/diffview.py:622
+msgid "\\ No newline at end of file"
+msgstr "\\ ファイル終端に改行がない"
+
+#: lib/ui_new_tree.py:129
+msgid "Create a new Bazaar Working Tree"
+msgstr "新たなBazzar作業ツリーを作成"
+
+#: lib/ui_new_tree.py:131
+msgid ""
+"Branch source (enter a URL or select a local directory with an exiting "
+"branch)"
+msgstr ""
+"ブランチ元(URLを入力するか、ブランチのあるディレクトリを選択してください)"
+
+#: lib/ui_new_tree.py:133
+msgid "Local directory where the working tree will be created"
+msgstr "作業ツリーを作成するローカルディレクトリ"
+
+#: lib/ui_new_tree.py:135
+msgid "Working Tree Options"
+msgstr "作業ツリーオプション"
+
+#: lib/ui_new_tree.py:136
+msgid "Create a checkout"
+msgstr "チェックアウトを作成"
+
+#: lib/ui_new_tree.py:144
+msgid "Light-weight checkout"
+msgstr "軽量チェックアウト"
+
+#: lib/ui_new_tree.py:145
+msgid "Make a local copy of the branch"
+msgstr "このブランチのローカルコピーを作成"
+
+#: lib/ui_new_tree.py:151
+msgid "Create a stacked branch referring to the source branch"
+msgstr "ソースブランチを参照する新たなスタックブランチを作成"
+
+#: lib/ui_new_tree.py:152
+msgid "Click a link for more information about checkouts and branches."
+msgstr ""
+"チェックアウトとブランチに関するより多くの情報を得るにはリックをクリックして"
+"ください。"
+
+#: lib/ui_new_tree.py:158
+msgid "Revision"
+msgstr "リビジョン"
+
+#: lib/ui_new_tree.py:159
+msgid "Most recent (tip) revision"
+msgstr ""
+
+#: lib/ui_new_tree.py:161
+#, fuzzy
+msgid "Show Log..."
+msgstr "ログを表示..."
+
+#: lib/ui_branch.py:70
+msgid "&To:"
+msgstr "宛先(&T)："
+
+#: lib/browse.py:63 lib/browse.py:212 lib/browse.py:252
+msgid "Browse"
+msgstr "参照"
+
+#: lib/browse.py:69
+msgid "Location:"
+msgstr "場所："
+
+#: lib/browse.py:77
+msgid "Show"
+msgstr "表示"
+
+#: lib/browse.py:95
+msgid "Show log..."
+msgstr "ログを表示..."
+
+#: lib/browse.py:98
+msgid "View file"
+msgstr "ファイルを表示"
+
+#: lib/ui_update_checkout.py:74
+msgid "Update Checkout"
+msgstr "チェックアウトを更新"
+
+#: lib/ui_update_checkout.py:75
+#, python-format
+msgid "This directory is a checkout of: %s"
+msgstr "このディレクトリのチェックアウト元： %s"
+
+#: lib/ui_update_checkout.py:77
+msgid "Update the working tree from the bound branch"
+msgstr ""
+
+#: lib/ui_update_checkout.py:78
+msgid "Pull a different branch"
+msgstr ""
+
+#: lib/commit.py:220 lib/commit.py:467 lib/commit.py:489
+msgid "Commit"
+msgstr "コミット"
+
+#: lib/commit.py:248
+msgid "&Local commit"
+msgstr "コミット(&L)"
+
+#: lib/commit.py:250
+msgid ""
+"Local commits are not pushed to the master branch until a normal commit is "
+"performed"
+msgstr ""
+"通常のコミットが行われるまで、ローカルコミットはマスターブランチへと送られる"
+"ことはありません"
+
+#: lib/commit.py:254
+msgid "Description:"
+msgstr "説明："
+
+#: lib/commit.py:277
+msgid "Show non-versioned files"
+msgstr "バージョン管理下にないファイルを表示"
+
+#: lib/commit.py:296
+msgid "Enter the commit message"
+msgstr "コミットメッセージを入力してください。"
+
+#: lib/commit.py:312
+msgid "&Fixed bugs:"
+msgstr "修正されたバグ(&F)："
+
+#: lib/commit.py:313
+msgid "Set the IDs of bugs fixed by this commit"
+msgstr "このコミットにより修正されるバグのIDを設定"
+
+#: lib/commit.py:316
+msgid ""
+"Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
+"<i>project:123 project:765</i>"
+msgstr ""
+"バグIDのリストを入力する　フォーマットは <i>tag:id</i>でスペースで区切る。例 "
+"<i>project:123 project:765</i>"
+
+#: lib/commit.py:326
+msgid "&Author:"
+msgstr "著者(&A)："
+
+#: lib/commit.py:327
+msgid "Set the author of this change, if it's different from the committer"
+msgstr "この変更の著者がコミッターと異なるなら、著者を設定"
+
+#: lib/commit.py:330
+msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
+msgstr ""
+"著者の名前を入力してください。(例：<i>John Doe &lt;jdoe@example.com&gt;</i>)"
+
+#: lib/commit.py:361
+msgid "Pending Merges"
+msgstr "マージ保留"
+
+#: lib/commit.py:468
+msgid "Empty commit message. Do you really want to commit?"
+msgstr "コミットメッセージが空です。本当にコミットしますか？"
+
+#: lib/commit.py:490
+msgid "No changes where selected, therefore nothing can be committed."
+msgstr ""
+
+#: lib/commit.py:550
+msgid ""
+"A commit will be made directly to the master branch, keeping the local and "
+"master branches in sync."
+msgstr ""
+"コミットはマスターブランチに送られ、ローカルとマスターブランチ間で同期します"
+
+#: lib/commit.py:556
+#, fuzzy
+msgid ""
+"A local commit to the branch will be performed. The master branch will not "
+"be updated until a non-local commit is made."
+msgstr ""
+"通常のコミットが行われるまで、ローカルコミットはマスターブランチへと送られる"
+"ことはありません"
+
+#~ msgid ""
+#~ "Sorry, subprocess action \"%s\" cannot be started\n"
+#~ "because self.args is None.\n"
+#~ "Please, report bug at:\n"
+#~ "https://bugs.launchpad.net/qbzr/+filebug"
+#~ msgstr ""
+#~ "サブプロセス処理 \"%s\" がself.argsがNoneのために開始されません。\n"
+#~ "https://bugs.launchpad.net/qbzr/+filebugにバグレポートをしてください。"
+
+#~ msgid "&Local commit in a bound branch"
+#~ msgstr "boundブランチでローカルコミット(&L)"
+
+#~ msgid "Do you really want to revert the selected file(s)?"
+#~ msgstr "選択したファイルを本当に元に戻しますか？"
 
 #~ msgid "Branch nick:"
 #~ msgstr "ブランチニックネーム："
+
 #~ msgid "Show &Differences..."
 #~ msgstr "差分を表示(&D)..."
+
 #~ msgid "Show tree..."
 #~ msgstr "ツリーを表示..."
+
 #~ msgid "Revision Id:"
 #~ msgstr "リビジョンID："
-
