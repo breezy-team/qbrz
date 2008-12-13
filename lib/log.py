@@ -275,7 +275,7 @@ def load_locataions(locations):
                     "Path does not have any revision history: %s" %
                     location)
             file_ids.append(file_id)
-            if not main_branch.base == br.base:
+            if not branches.keys()[0] == br.base:
                 raise errors.BzrCommandError(paths_and_branches_err)
     
     # This is copied stright from bzrlib/bzrdir.py. We can't just use the orig,
@@ -345,7 +345,7 @@ def load_locataions(locations):
         # If no locations were sepecified, don't do file_ids
         # Otherwise it gives you the history for the dir if you are
         # in a sub dir.
-        if fp != '' and not locations_list:
+        if fp != '' and locations==["."]:
             fp = ''
         
         if len(locations) == 1:
