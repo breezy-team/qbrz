@@ -78,7 +78,7 @@ def get_title_for_tree(tree, branch, other_branch):
             except KeyError:
                 # this can happens when you try to diff against other branch
                 # or pending merge
-                revno = None
+                revno = revid
 
         if revno is not None:
             if branch_title:
@@ -87,9 +87,9 @@ def get_title_for_tree(tree, branch, other_branch):
                 return gettext("Rev %s") % revno
         else:
             if branch_title:
-                return gettext("Revid: %(rev)s for %(branch)s") % (revid, branch_title)
+                return gettext("Rev %(rev)s for %(branch)s") % (revno, branch_title)
             else:
-                return gettext("Revid: %s") % revid
+                return gettext("Rev %s") % revno
 
     elif isinstance(tree, _PreviewTree):
         return gettext('Merge Preview')
