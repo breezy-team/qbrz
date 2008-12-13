@@ -17,3 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+import os, sys
+
+if hasattr(sys, "frozen"):
+    # Add our required extra libraries for the standalone bzr.exe to path
+    sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '_lib')))

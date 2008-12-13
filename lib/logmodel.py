@@ -19,9 +19,10 @@
 
 from PyQt4 import QtCore, QtGui
 from time import (strftime, localtime)
-from bzrlib import lazy_regex
+from bzrlib import (lazy_regex, errors)
 from bzrlib.revision import NULL_REVISION
 from bzrlib.tsort import merge_sort
+from bzrlib.graph import (Graph, _StackedParentsProvider)
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
@@ -100,23 +101,37 @@ class GraphModel(QtCore.QAbstractTableModel):
         self.graphFilterProxyModel = graphFilterProxyModel
     
     
-    def loadBranch(self, branch, start_revs = None, specific_fileids = []):
-        self.branch = branch
-        self.start_revs = start_revs
-        branch.lock_read()
+    def loadBranch(self, branches, heads, specific_fileids = []):
+        self.heads = heads
+        self.branches = branches
+        self.repos = {}
+        for branch in self.branches:
+            if branch.repository.base not in self.repos:
+                self.repos[branch.repository.base] = branch.repository
+        
+        for branch in self.branches:
+            branch.lock_read()
         try:
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
-            self.tags = branch.tags.get_reverse_tag_dict()  # revid to tags map
-            if self.start_revs is None:
-                self.start_revs = {branch.last_revision():(0, [])}
-            start_revs = [rev for rev in self.start_revs if not rev == NULL_REVISION]
-            start_revs.sort(lambda x, y:cmp(self.start_revs[x][0], self.start_revs[y][0]))
+            self.tags = {}
+            for branch in self.branches:
+                branch_tags = branch.tags.get_reverse_tag_dict()  # revid to tags map
+                for revid, tags in branch_tags.iteritems():
+                    if revid in self.tags:
+                        self.tags[revid].update(set(tags))
+                    else:
+                        self.tags[revid] = set(tags)
             
-            graph = branch.repository.get_graph()
+            self.start_revs = [rev for rev in self.heads if not rev == NULL_REVISION]
+            self.start_revs.sort(lambda x, y:cmp(self.heads[x][0], self.heads[y][0]))
+            
+            parents_providers = [repo._make_parents_provider() for repo in self.repos.itervalues()]
+            graph = Graph(_StackedParentsProvider(parents_providers))
+            
             self.graph_parents = {}
             ghosts = set()
             self.graph_children = {}
-            for (revid, parent_revids) in graph.iter_ancestry(start_revs):
+            for (revid, parent_revids) in graph.iter_ancestry(self.start_revs):
                 if parent_revids is None:
                     ghosts.add(revid)
                     continue
@@ -133,7 +148,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                 for ghost_child in self.graph_children[ghost]:
                     self.graph_parents[ghost_child] = [p for p in self.graph_parents[ghost_child]
                                                   if p not in ghosts]
-            self.graph_parents["top:"] = start_revs
+            self.graph_parents["top:"] = self.start_revs
         
             if len(self.graph_parents)>0:
                 self.merge_sorted_revisions = merge_sort(
@@ -145,6 +160,12 @@ class GraphModel(QtCore.QAbstractTableModel):
             
             assert self.merge_sorted_revisions[0][1] == "top:"
             self.merge_sorted_revisions = self.merge_sorted_revisions[1:]
+            
+            self.revid_head = {}
+            for i in xrange(1, len(self.start_revs)):
+                head_revid = self.start_revs[i]
+                for ancestor_revid in graph.find_unique_ancestors(head_revid, self.start_revs[:i-1]):
+                    self.revid_head[ancestor_revid] = head_revid
             
             # This will hold, for each "branch":
             # [a list of revision indexes in the branch,
@@ -175,7 +196,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                 
                 branch_line = None
                 if branch_id not in self.branch_lines:
-                    start_branch = revid in start_revs
+                    start_branch = revid in self.start_revs
                     branch_line = [[],
                                    start_branch,
                                    [],
@@ -241,7 +262,7 @@ class GraphModel(QtCore.QAbstractTableModel):
             
             if specific_fileids:
                 try:
-                    branch.repository.texts.get_parent_map([])
+                    self.branches[0].repository.texts.get_parent_map([])
                     use_texts = True
                 except AttributeError:
                     use_texts = False
@@ -257,7 +278,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                                 end_of_merge in self.merge_sorted_revisions[start:start + chunk_size] \
                             for specific_fileid in specific_fileids]
                         
-                        for fileid, revid in branch.repository.texts.get_parent_map(text_keys):
+                        for fileid, revid in self.branches[0].repository.texts.get_parent_map(text_keys):
                             rev_msri = self.revid_msri[revid]
                             self.touches_file_msri[rev_msri] = True
                             
@@ -271,8 +292,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                 else:
                     weave_modifed_revisions = set()
                     for specific_fileid in specific_fileids:
-                        file_weave = branch.repository.weave_store.get_weave(specific_fileid,
-                                            branch.repository.get_transaction())
+                        file_weave = self.branches[0].repository.weave_store.get_weave(specific_fileid,
+                                            self.branches[0].repository.get_transaction())
                         for revid in file_weave.versions():
                             rev_msri = self.revid_msri[revid]
                             self.touches_file_msri[rev_msri] = True
@@ -285,7 +306,8 @@ class GraphModel(QtCore.QAbstractTableModel):
             self.stop_revision_loading = False
             self._loadNextRevision()
         finally:
-            branch.unlock
+            for branch in self.branches:
+                branch.unlock
         
     def compute_lines(self):
         
@@ -791,13 +813,13 @@ class GraphModel(QtCore.QAbstractTableModel):
         if role == TagsRole:
             tags = []
             if revid in self.tags:
-                tags = self.tags[revid]
+                tags = list(self.tags[revid])
             return QtCore.QVariant(QtCore.QStringList(tags))
         
         if role == BranchTagsRole:
             tags = []
-            if revid in self.start_revs:
-                tags = self.start_revs[revid][1]
+            if revid in self.heads:
+                tags = [tag for (branch, tag, blr) in self.heads[revid][1] if tag]
             return QtCore.QVariant(QtCore.QStringList(tags))
         
         if role == RevIdRole or role == FilterIdRole:
@@ -851,7 +873,15 @@ class GraphModel(QtCore.QAbstractTableModel):
     
     def _revision(self, revid):
         if revid not in self.revisions:
-            revision = self.branch.repository.get_revisions([revid])[0]
+            revision = None
+            for repo in self.repos.itervalues():
+                try:
+                    revision = repo.get_revisions([revid])[0]
+                    revision.repository = repo
+                    break
+                except errors.NoSuchRevision:
+                    pass
+            
             self.revisions[revid] = revision
             revno_sequence = self.merge_sorted_revisions[self.revid_msri[revid]][3]
             revision.revno = ".".join(["%d" % (revno)
@@ -889,7 +919,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                 notify_on_count = 10
                 revisionsChanged = []
                 try:
-                    self.branch.lock_read()
+                    for repo in self.repos:
+                        repo.lock_read()
                     try:
                         while self.searchMode and not self.closing:
                             nextRevId = self._nextRevisionToLoadGen.next()
@@ -900,7 +931,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                                 notifyChanges(revisionsChanged)
                                 notify_on_count = max(notify_on_count * 2, 200)
                     finally:
-                        self.branch.unlock()
+                        for repo in self.repos:
+                            repo.unlock()
                 except StopIteration, se:
                     self.graphFilterProxyModel.invalidateCache()
                     notifyChanges(revisionsChanged)
@@ -945,6 +977,13 @@ class GraphModel(QtCore.QAbstractTableModel):
         else:
             return None
     
+    def revisionHeadInfo(self, revid):
+        if revid in self.revid_head:
+            head_revid = self.revid_head[revid]
+        else:
+            head_revid = self.start_revs[0]
+        return self.heads[head_revid][1]
+    
 class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
     def __init__(self, parent = None):
         self.old_filter_str = ""
@@ -952,7 +991,7 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
         QtGui.QSortFilterProxyModel.__init__(self, parent)
         self.cache = {}
         self.search_matching_revid = None
-        self.search_idx = None
+        self.search_indexes = []
         self.filter_str = u""
         self.filter_role = FilterMessageRole
         self._sourceModel = None
@@ -972,23 +1011,24 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
             self.filter_str = unicode(str)
             self.filter_role = role
     
-    def setSearchIndex(self, search_idx):
-        self.search_idx = search_idx
+    def setSearchIndexes(self, indexes):
+        self.search_indexes = indexes
 
     def setFilterSearch(self, s):
-        if s == "" or self.search_idx is None or not have_search:
+        if s == "" or not self.search_indexes or not have_search:
             self.search_matching_revid = None
         else:
             s = str(s).strip()
             query = [(query_item,) for query_item in s.split(" ")]
             self.search_matching_revid = {}
-            for result in self.search_idx.search(query):
-                if isinstance(result, search_index.RevisionHit):
-                    self.search_matching_revid[result.revision_key[0]] = True
-                if isinstance(result, search_index.FileTextHit):
-                    self.search_matching_revid[result.text_key[1]] = True
-                if isinstance(result, search_index.PathHit):
-                    pass
+            for index in self.search_indexes:
+                for result in index.search(query):
+                    if isinstance(result, search_index.RevisionHit):
+                        self.search_matching_revid[result.revision_key[0]] = True
+                    if isinstance(result, search_index.FileTextHit):
+                        self.search_matching_revid[result.text_key[1]] = True
+                    if isinstance(result, search_index.PathHit):
+                        pass
     
     def sm(self):
         if not self._sourceModel:

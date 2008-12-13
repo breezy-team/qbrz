@@ -19,6 +19,7 @@
 
 from PyQt4 import QtCore, QtGui
 from bzrlib.bzrdir import BzrDir
+from bzrlib.branch import Branch
 from bzrlib import (
     errors,
     osutils,
@@ -237,34 +238,21 @@ def load_locations(locations_list):
         locations = locations_list
     
     file_ids = []
-    # First branch found. Used for get_config and to check that the same
-    # branch is specified when a file path is speciffied.
-    main_branch = None
-    rev_ids = {}
-    paths_and_branches_err = "It is not possible to specify different file paths and different branchs at the same time."
+    heads = {}
+    branches = {}
+    paths_and_branches_err = "It is not possible to specify different file paths and different branches at the same time."
     
-    def append_tag_to_revid(revid, tag):
-        if not revid in rev_ids:
-            rev_ids[revid] = (len(rev_ids), [])
-        if tag:
-            rev_ids[revid][1].append (tag)
+    def append_head_info(revid, branch, tag, is_branch_last_revision):
+        if not revid in heads:
+            heads[revid] = (len(heads), [])
+        heads[revid][1].append ((branch, tag, is_branch_last_revision))
     
-    def append_location(tree, br, repo, fp, tag, main_branch):
-        if main_branch is None:
-            main_branch = br
-        
-        # XXX It would be nice to overcome this. The problem is how to
-        # combinded the results from  graph.iter_ancestry(start_revs)
-        # bzr-gtk doesn't check for this. It works if the revisions
-        # happend to be in the repo, but fails without warning if they
-        # are not.
-        # Maybe one way to solve this is to pull the missing revisions
-        # into the first branch.
-        if not main_branch.repository.base == br.repository.base:
-            raise errors.BzrCommandError("Branches must be in a shared repository.")
+    def append_location(tree, br, repo, fp, tag):
+        if br.base not in branches:
+            branches[br.base] = br
         
         branch_last_revision = br.last_revision()
-        append_tag_to_revid(branch_last_revision, tag)
+        append_head_info(branch_last_revision, br, tag, True)
         
         if tree:
             parent_ids = tree.get_parent_ids()
@@ -275,15 +263,15 @@ def load_locations(locations_list):
                 if revid != branch_last_revision:
                     # working tree is out of date
                     if tag:
-                        append_tag_to_revid(revid, "%s - Working Tree" % tag)
+                        append_head_info(revid, br, "%s - Working Tree" % tag, False)
                     else:
-                        append_tag_to_revid(revid, "Working Tree")
+                        append_head_info(revid, br, "Working Tree", False)
                 # other parents are pending merges
                 for revid in parent_ids[1:]:
                     if tag:
-                        append_tag_to_revid(revid, ("%s - Pending Merge" % tag))
+                        append_head_info(revid, br, "%s - Pending Merge" % tag, False)
                     else:
-                        append_tag_to_revid(revid, "Pending Merge")
+                        append_head_info(revid, br, "Pending Merge", False)
                     QtCore.QCoreApplication.processEvents()
         
         if fp != '' : 
@@ -295,9 +283,8 @@ def load_locations(locations_list):
                     "Path does not have any revision history: %s" %
                     location)
             file_ids.append(file_id)
-            if not main_branch.base == br.base:
+            if not branches.keys()[0] == br.base:
                 raise errors.BzrCommandError(paths_and_branches_err)
-        return main_branch
     
     # This is copied stright from bzrlib/bzrdir.py. We can't just use the orig,
     # because that would mean we require bzr 1.6
@@ -326,27 +313,47 @@ def load_locations(locations_list):
         return tree, branch, branch.repository, relpath
     
     for location in locations:
-        tree, br, repo, fp = open_containing_tree_branch_or_repository(location)
+        if isinstance(location, Branch):
+            br = location
+            repo = location.repository
+            try:
+                tree = location.bzrdir.open_workingtree()
+            except errors.NoWorkingTree:
+                tree = None
+            fp = ''
+        else:
+            tree, br, repo, fp = open_containing_tree_branch_or_repository(location)
         
-        if len(locations) == 1:
-            if br == None:
-                for br in repo.find_branches(using=True):
-                    tag = truncate_string(br.nick, 20)
-                    # We don't have ref to the working tree,
-                    # so we won't show pending merges.
-                    # XXX Get ref to working tree.
-                    main_branch = append_location(None, br, repo, '', tag,
-                                                  main_branch)
-                continue
-        
-        # We can only load one repo
         if br == None:
-            raise errors.NotBranchError(path=location)
+            trunk_names = ["trunk", "bzr.dev", "dev"]
+            repo_brs = repo.find_branches(using=True)
+            
+            def branch_cmp_trunk_first(x,y):
+                x_is_trunk = x.nick in trunk_names
+                y_is_trunk = y.nick in trunk_names
+                if x_is_trunk and y_is_trunk:
+                    return cmp(trunk_names.index(x.nick),
+                               trunk_names.index(y.nick))
+                if x_is_trunk:
+                    return -1
+                if y_is_trunk:
+                    return 1
+                return cmp(x.nick, y.nick)
+            repo_brs.sort(branch_cmp_trunk_first)
+            
+            for br in repo_brs:             
+                tag = truncate_string(br.nick, 20)
+                try:
+                    tree = br.bzrdir.open_workingtree()
+                except errors.NoWorkingTree:
+                    tree = None
+                append_location(tree, br, repo, '', tag)
+            continue
         
         # If no locations were sepecified, don't do file_ids
         # Otherwise it gives you the history for the dir if you are
         # in a sub dir.
-        if fp != '' and not locations_list:
+        if fp != '' and locations==["."]:
             fp = ''
         
         if len(locations) == 1:
@@ -354,13 +361,13 @@ def load_locations(locations_list):
         else:
             tag = truncate_string(br.nick, 20)
         
-        main_branch = append_location(tree, br, repo, fp, tag, main_branch)
+        append_location(tree, br, repo, fp, tag)
 
     
-    if file_ids and len(file_ids)<>len(locations_list):
+    if file_ids and len(branches)>1:
         raise errors.BzrCommandError(paths_and_branches_err)
-
-    return (main_branch, rev_ids, file_ids)
+    
+    return (branches.values(), heads, file_ids)
 
 
 def truncate_string(s, max_len):
@@ -374,13 +381,17 @@ class LogWindow(QBzrWindow):
     def __init__(self, locations, branch, specific_fileids, parent=None,
                  ui_mode=True):
         if branch:
+            self.locations = (branch,)
+            self.specific_fileids = specific_fileids
             assert locations is None, "can't specify both branch and loc"
         else:
+            self.locations = locations
+            if self.locations is None:
+                self.locations = ["."]
+            self.specific_fileids = None
             assert specific_fileids is None, "this is ignored if no branch"
-        self.locations = locations
-        self.branch = branch
-        self.start_branch = branch
-        self.specific_fileids = specific_fileids
+        
+        self.branches = None
 
         title = [gettext("Log"), gettext("Loading...")]
         QBzrWindow.__init__(self, title, parent, ui_mode=ui_mode)
@@ -417,22 +428,7 @@ class LogWindow(QBzrWindow):
 
         self.searchType = QtGui.QComboBox()
             
-        self.index = None
-        if have_search:
-            self.searchType.insertItem(0,
-                                       gettext("Messages and File text (indexed)"),
-                                       QtCore.QVariant(logmodel.FilterSearchRole))
-            
-            self.completer = Compleater(self)
-            self.completer_model = QtGui.QStringListModel(self)
-            self.completer.setModel(self.completer_model)
-            self.search_edit.setCompleter(self.completer)
-            self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
-                         self.update_search_completer)
-            self.suggestion_letters_loaded = {"":QtCore.QStringList()}
-            self.suggestion_last_first_letter = ""
-            self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
-                         self.set_search_timer)
+        self.indexes = []
         
         self.searchType.addItem(gettext("Messages"),
                                 QtCore.QVariant(logmodel.FilterMessageRole))
@@ -550,34 +546,37 @@ class LogWindow(QBzrWindow):
         self.changesList.setFocus()
 
     def load_locations(self):
-        if self.start_branch:
-            self.branch = self.start_branch
-            self.start_revids = None
-        else:
-            # Load the locations
-            (branch,
-            self.start_revids, 
-            self.specific_fileids) = load_locations(self.locations)
-            # The new branch will be the same as self.branch, so don't
-            # change it, because doing so caused a UserWarning:
-            # LockableFiles was gc'd while locked
-            if self.branch is None:
-                self.branch = branch
-
+        (branches,
+         self.heads,
+         specific_fileids) = load_locations(self.locations)
+        
+        # The new branch will be the same as self.branch, so don't
+        # change it, because doing so caused a UserWarning:
+        # LockableFiles was gc'd while locked
+        if self.branches is None:
+            self.branches = branches
+            
+            if self.specific_fileids is None:
+                self.specific_fileids = specific_fileids
+     
         QtCore.QCoreApplication.processEvents()
-        config = self.branch.get_config()
-        self.replace = config.get_user_option("qlog_replace")
-        if self.replace:
-            self.replace = self.replace.split("\n")
-            self.replace = [tuple(self.replace[2*i:2*i+2])
-                            for i in range(len(self.replace) // 2)]
+        self.replace = {}
+        for branch in self.branches:
+            config = branch.get_config()
+            replace = config.get_user_option("qlog_replace")
+            if replace:
+                replace = replace.split("\n")
+                replace = [tuple(replace[2*i:2*i+2])
+                                for i in range(len(replace) // 2)]
+            self.replace[branch.base] = replace
 
         if have_search:
-            try:
-                self.index = search_index.open_index_branch(self.branch)
-                self.changesProxyModel.setSearchIndex(self.index)
-            except search_errors.NoSearchIndex:
-                pass
+            for branch in self.branches:
+                try:
+                    index = search_index.open_index_branch(branch)
+                    self.indexes.append(index)
+                except search_errors.NoSearchIndex:
+                    pass
 
         # and finally the window title can be setup.
         lt = self._locations_for_title(self.locations)
@@ -597,6 +596,24 @@ class LogWindow(QBzrWindow):
             try:
                 self.load_locations()
                 self.load_history()
+                
+                if self.indexes:
+                    self.changesProxyModel.setSearchIndexes(self.indexes)
+                    self.searchType.insertItem(0,
+                                               gettext("Messages and File text (indexed)"),
+                                               QtCore.QVariant(logmodel.FilterSearchRole))
+                    self.searchType.setCurrentIndex(0)
+                    
+                    self.completer = Compleater(self)
+                    self.completer_model = QtGui.QStringListModel(self)
+                    self.completer.setModel(self.completer_model)
+                    self.search_edit.setCompleter(self.completer)
+                    self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
+                                 self.update_search_completer)
+                    self.suggestion_letters_loaded = {"":QtCore.QStringList()}
+                    self.suggestion_last_first_letter = ""
+                    self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
+                                 self.set_search_timer)
             finally:
                 throbber.reject()
         except Exception:
@@ -622,12 +639,12 @@ class LogWindow(QBzrWindow):
         rev = self.current_rev
         if not hasattr(rev, 'delta'):
             # TODO move this to a thread
-            self.branch.repository.lock_read()
+            rev.repository.lock_read()
             try:
-                rev.delta = self.branch.repository.get_deltas_for_revisions(
+                rev.delta = rev.repository.get_deltas_for_revisions(
                     [rev]).next()
             finally:
-                self.branch.repository.unlock()
+                rev.repository.unlock()
         if self.current_rev is not rev:
             # new update was requested, don't bother populating the list
             return
@@ -662,27 +679,28 @@ class LogWindow(QBzrWindow):
             revid = str(index.data(logmodel.RevIdRole).toString())
             rev = self.changesModel.revision(revid)
             self.current_rev = rev
-            self.message.setHtml(format_revision_html(rev, self.replace))
+            head_info = self.changesModel.revisionHeadInfo(revid)
+            branch = head_info[0][0]
+            replace = self.replace[branch.base]
+            self.message.setHtml(format_revision_html(rev, replace))
             self.revision_delta_timer.start(1)
 
     def show_diff_window(self, rev1, rev2, specific_files=None):
-        self.branch.repository.lock_read()
-        try:
-            self._show_diff_window(rev1, rev2, specific_files)
-        finally:
-            self.branch.repository.unlock()
-
-    def _show_diff_window(self, rev1, rev2, specific_files=None):
-        # repository should be locked
         if not rev2.parent_ids:
-            revs = [rev1.revision_id]
-            tree = self.branch.repository.revision_tree(rev1.revision_id)
-            old_tree = self.branch.repository.revision_tree(None)
-        else:
+            tree = rev1.repository.revision_tree(rev1.revision_id)
+            old_tree = rev1.repository.revision_tree(None)
+        elif rev1.repository.base == rev2.repository.base:
             revs = [rev1.revision_id, rev2.parent_ids[0]]
-            tree, old_tree = self.branch.repository.revision_trees(revs)
+            tree, old_tree = rev1.repository.revision_trees(revs)
+        else:
+            tree = rev1.repository.revision_tree(rev1.revision_id)
+            old_tree = rev2.repository.revision_tree(rev2.parent_ids[0])
+        
+        rev1_head_info = self.changesModel.revisionHeadInfo(rev1.revision_id)
+        rev2_head_info = self.changesModel.revisionHeadInfo(rev2.revision_id)
+        
         window = DiffWindow(old_tree, tree,
-                            self.branch, self.branch,
+                            rev2_head_info[0][0], rev1_head_info[0][0],
                             specific_files=specific_files)
         window.show()
         self.windows.append(window)
@@ -722,15 +740,15 @@ class LogWindow(QBzrWindow):
             self.changesModel.stop_revision_loading = True
             if "locations" in dir(self):
                 
-                # The new branch will be the same as self.branch, so don't
-                # change it, because doing so caused a UserWarning:
+                # The new branches will be the same as the old self.branches, so
+                # don't change it, because doing so causes a UserWarning:
                 # LockableFiles was gc'd while locked
-                (newbranch,
-                 self.start_revids, 
+                (newbranches,
+                 self.heads, 
                  self.specific_fileids) = load_locataions(self.locations)
             
-            self.changesModel.loadBranch(self.branch,
-                                         start_revs = self.start_revids,
+            self.changesModel.loadBranch(self.branches,
+                                         self.heads,
                                          specific_fileids = self.specific_fileids)
         finally:
             self.refresh_button.setDisabled(False)
@@ -739,8 +757,8 @@ class LogWindow(QBzrWindow):
         """Load branch history."""
         self.refresh_button.setDisabled(True)
         try:
-            self.changesModel.loadBranch(self.branch,
-                                         start_revs = self.start_revids,
+            self.changesModel.loadBranch(self.branches,
+                                         self.heads,
                                          specific_fileids = self.specific_fileids)
         finally:
             self.refresh_button.setDisabled(False)
@@ -790,11 +808,13 @@ class LogWindow(QBzrWindow):
         if first_letter != self.suggestion_last_first_letter:
             self.suggestion_last_first_letter = first_letter
             if first_letter not in self.suggestion_letters_loaded:
-                suggestions = QtCore.QStringList() 
-                for s in self.index.suggest(((first_letter,),)): 
-                    #if suggestions.count() % 100 == 0: 
-                    #    QtCore.QCoreApplication.processEvents() 
-                    suggestions.append(s[0])
+                suggestions = set()
+                for index in self.indexes:
+                    for s in index.suggest(((first_letter,),)): 
+                        #if suggestions.count() % 100 == 0: 
+                        #    QtCore.QCoreApplication.processEvents() 
+                        suggestions.add(s[0])
+                suggestions = QtCore.QStringList(list(suggestions))
                 suggestions.sort()
                 self.suggestion_letters_loaded[first_letter] = suggestions
             else:
@@ -814,7 +834,7 @@ class LogWindow(QBzrWindow):
     def show_revision_tree(self):
         from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
         rev = self.current_rev
-        window = BrowseWindow(self.branch, revision_id=rev.revision_id,
+        window = BrowseWindow(rev.first_branch, revision_id=rev.revision_id,
                               revision_spec=rev.revno, parent=self)
         window.show()
         self.windows.append(window)
@@ -882,11 +902,13 @@ class LogWindow(QBzrWindow):
         if locations == ['.']:
             return osutils.getcwd()
         else:
-            if locations is None:
-                locations = [self.branch.base]
             if len(locations) > 1:
                 return (", ".join(url_for_display(i) for i in locations
                                  ).rstrip(", "))
             else:
+                if isinstance(locations[0], Branch):
+                    location = locations[0].base
+                else:
+                    location = locations[0]
                 from bzrlib.directory_service import directories
-                return (url_for_display(directories.dereference(locations[0])))
+                return (url_for_display(directories.dereference(location)))
