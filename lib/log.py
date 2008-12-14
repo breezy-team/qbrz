@@ -31,7 +31,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     BTN_REFRESH,
     QBzrWindow,
-    ThrobberWindow,
+    ThrobberWidget,
     StandardButton,
     format_revision_html,
     format_timestamp,
@@ -405,7 +405,9 @@ class LogWindow(QBzrWindow):
         self.changesProxyModel.setFilterRole(logmodel.FilterMessageRole)
         self.changesProxyModel.setDynamicSortFilter(True)
         self.changesModel.setGraphFilterProxyModel(self.changesProxyModel)
-
+        
+        self.throbber = ThrobberWidget(self)
+        
         logwidget = QtGui.QWidget()
         logbox = QtGui.QVBoxLayout(logwidget)
         logbox.setContentsMargins(0, 0, 0, 0)
@@ -464,6 +466,7 @@ class LogWindow(QBzrWindow):
         header.resizeSection(logmodel.COL_DATE, 100)
         header.resizeSection(logmodel.COL_AUTHOR, 150)
 
+        logbox.addWidget(self.throbber)
         logbox.addWidget(self.changesList)
 
         self.revision_delta_timer = QtCore.QTimer(self)
@@ -592,7 +595,7 @@ class LogWindow(QBzrWindow):
         in our constructor.
         """
         try:
-            throbber = ThrobberWindow(self)
+            self.throbber.show()
             try:
                 self.load_locations()
                 self.load_history()
@@ -615,7 +618,7 @@ class LogWindow(QBzrWindow):
                     self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
                                  self.set_search_timer)
             finally:
-                throbber.reject()
+                self.throbber.hide()
         except Exception:
             self.report_exception()
 

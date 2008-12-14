@@ -358,40 +358,45 @@ class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
         
         self.windows = []
 
-class ThrobberWindow(QtGui.QDialog):
+throber_movie = None
+
+class ThrobberWidget(QtGui.QWidget):
     """A window that displays a simple throbber over its parent."""
 
     def __init__(self, parent, timeout=500):
         self.is_done = False
-        flags = QtCore.Qt.FramelessWindowHint | QtCore.Qt.Tool
-        QtGui.QDialog.__init__(self, parent, flags)
+        QtGui.QWidget.__init__(self, parent)
         self.create_ui()
         self.is_shown = False
-
+        
         # create a timer that displays our window after the timeout.
-        QtCore.QTimer.singleShot(timeout, self.show)
+        #QtCore.QTimer.singleShot(timeout, self.show)
 
     def create_ui(self):
         # a couple of widgets
-        layout = QtGui.QVBoxLayout(self)
-        layout.addWidget(QtGui.QLabel(gettext("Loading..."), self))
-        pb = QtGui.QProgressBar(self)
-        pb.setTextVisible(False)
-        pb.setMinimum(0)
-        pb.setMaximum(0)
-        layout.addWidget(pb)
+        layout = QtGui.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        label = QtGui.QLabel("", self)
+        
+        global throber_movie
+        if not throber_movie:
+            throber_movie = QtGui.QMovie(":/16x16/process-working.gif")
+            throber_movie.start()
+        label.setMovie(throber_movie)
+        layout.addWidget(label)
+        layout.addWidget(QtGui.QLabel(gettext("Loading..."), self), 1)
 
-    def reject(self):
+    def hide(self):
         self.is_done = True
         if self.is_shown:
             QtGui.QApplication.restoreOverrideCursor()
-        QtGui.QDialog.reject(self)
+        QtGui.QWidget.hide(self)
 
     def show(self):
         if not self.is_done:
             QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
             # and show ourselves.
-            QtGui.QDialog.show(self)
+            QtGui.QWidget.show(self)
             self.is_shown = True
 
 

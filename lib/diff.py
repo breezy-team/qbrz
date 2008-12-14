@@ -42,7 +42,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE, BTN_REFRESH,
     FilterOptions,
     QBzrWindow,
-    ThrobberWindow,
+    ThrobberWidget,
     StandardButton,
     get_set_encoding,
     is_binary_content,
@@ -122,6 +122,8 @@ class DiffWindow(QBzrWindow):
             self.filter_options = FilterOptions(all_enable=True)
         self.complete = complete
 
+        self.throbber = ThrobberWidget(self)
+        
         self.diffview = SidebySideDiffView(self)
         self.sdiffview = SimpleDiffView(self)
         self.views = (self.diffview, self.sdiffview)
@@ -131,6 +133,7 @@ class DiffWindow(QBzrWindow):
         self.stack.addWidget(self.sdiffview)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox.addWidget(self.throbber)
         vbox.addWidget(self.stack)
 
         diffsidebyside = QtGui.QRadioButton(gettext("Side by side"),
@@ -186,14 +189,12 @@ class DiffWindow(QBzrWindow):
         """
         try:
             # we only open the branch using the throbber
-            throbber = ThrobberWindow(self)
+            self.throbber.show()
             try:
                 self.load_branch_info()
+                self.load_diff()
             finally:
-                throbber.reject()
-            # the throbber must now be dead as diff is able to be interacted
-            # with while loading.
-            self.load_diff()
+                self.throbber.hide()
         except Exception:
             self.report_exception()
 

@@ -28,7 +28,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
-    ThrobberWindow,
+    ThrobberWidget,
     extract_name,
     format_revision_html,
     format_timestamp,
@@ -95,6 +95,8 @@ class AnnotateWindow(QBzrWindow):
         self.loader_func = loader
         self.loader_args = loader_args
 
+        self.throbber = ThrobberWidget(self)
+        
         self.browser = QtGui.QTreeWidget()
         self.browser.setRootIsDecorated(False)
         self.browser.setUniformRowHeights(True)
@@ -142,6 +144,7 @@ class AnnotateWindow(QBzrWindow):
         buttonbox = self.create_button_box(BTN_CLOSE)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox.addWidget(self.throbber)
         vbox.addWidget(splitter)
         vbox.addWidget(buttonbox)
 
@@ -155,7 +158,7 @@ class AnnotateWindow(QBzrWindow):
         in our constructor.
         """
         try:
-            throbber = ThrobberWindow(self)
+            self.throbber.show()
             try:
                 if self.loader_func is not None:
                     self.branch, self.tree, self.path, self.fileId = \
@@ -168,7 +171,7 @@ class AnnotateWindow(QBzrWindow):
                 finally:
                     self.branch.unlock()
             finally:
-                throbber.reject()
+                self.throbber.hide()
 
             # and once we are loaded we can hookup the signal handlers.
             # (our code currently can't handle items being clicked on until
