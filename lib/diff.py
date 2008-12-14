@@ -82,14 +82,14 @@ def get_title_for_tree(tree, branch, other_branch):
 
         if revno is not None:
             if branch_title:
-                return gettext("Rev %(rev)s for %(branch)s") % (revno, branch_title)
+                return gettext("Rev %(rev)s for %(branch)s") % {"rev": revno, "branch": branch_title}
             else:
                 return gettext("Rev %s") % revno
         else:
             if branch_title:
-                return gettext("Rev %(rev)s for %(branch)s") % (revno, branch_title)
+                return gettext("Revid: %(revid)s for %(branch)s") %  {"revid": revid, "branch": branch_title}
             else:
-                return gettext("Rev %s") % revno
+                return gettext("Revid: %s") % revid
 
     elif isinstance(tree, _PreviewTree):
         return gettext('Merge Preview')
