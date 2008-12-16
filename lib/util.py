@@ -364,7 +364,6 @@ class ThrobberWidget(QtGui.QWidget):
     """A window that displays a simple throbber over its parent."""
 
     def __init__(self, parent, timeout=500):
-        self.is_done = False
         QtGui.QWidget.__init__(self, parent)
         self.create_ui()
         self.is_shown = False
@@ -387,17 +386,16 @@ class ThrobberWidget(QtGui.QWidget):
         layout.addWidget(QtGui.QLabel(gettext("Loading..."), self), 1)
 
     def hide(self):
-        self.is_done = True
         if self.is_shown:
             QtGui.QApplication.restoreOverrideCursor()
+        self.is_shown = False
         QtGui.QWidget.hide(self)
 
     def show(self):
-        if not self.is_done:
-            QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-            # and show ourselves.
-            QtGui.QWidget.show(self)
-            self.is_shown = True
+        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        # and show ourselves.
+        QtGui.QWidget.show(self)
+        self.is_shown = True
 
 
 # Helpers for directory pickers.

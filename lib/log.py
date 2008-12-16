@@ -530,7 +530,7 @@ class LogWindow(QBzrWindow):
         buttonbox.addButton(self.refresh_button, QtGui.QDialogButtonBox.ActionRole)
         self.connect(self.refresh_button,
                      QtCore.SIGNAL("clicked()"),
-                     self.refresh)
+                     self.load)
 
         self.diffbutton = QtGui.QPushButton(gettext('Diff'),
             self.centralwidget)
@@ -589,17 +589,25 @@ class LogWindow(QBzrWindow):
         QtCore.QCoreApplication.processEvents()
 
     def initial_load(self):
+        self.load(True)
+
+    def load(self, initial=False):
         """Called to perform the initial load of the form.  Enables a
         throbber window, then loads the branches etc if they weren't specified
         in our constructor.
         """
         try:
             self.throbber.show()
+            self.refresh_button.setDisabled(True)            
+            QtCore.QCoreApplication.processEvents()
             try:
                 self.load_locations()
-                self.load_history()
                 
-                if self.indexes:
+                self.changesModel.loadBranch(self.branches,
+                                             self.heads,
+                                             specific_fileids = self.specific_fileids)
+                
+                if initial and self.indexes:
                     self.changesProxyModel.setSearchIndexes(self.indexes)
                     self.searchType.insertItem(0,
                                                gettext("Messages and File text (indexed)"),
@@ -618,6 +626,7 @@ class LogWindow(QBzrWindow):
                                  self.set_search_timer)
             finally:
                 self.throbber.hide()
+                self.refresh_button.setDisabled(False)
         except Exception:
             self.report_exception()
 
@@ -734,29 +743,6 @@ class LogWindow(QBzrWindow):
         revid2 = str(indexes[-1].data(logmodel.RevIdRole).toString())
         rev2 = self.changesModel.revision(revid2)
         self.show_diff_window(rev1, rev2)
-
-    def refresh(self):
-        self.refresh_button.setDisabled(True)
-        QtCore.QCoreApplication.processEvents()
-        try:
-            self.changesModel.stop_revision_loading = True
-            self.load_locations()
-            
-            self.changesModel.loadBranch(self.branches,
-                                         self.heads,
-                                         specific_fileids = self.specific_fileids)
-        finally:
-            self.refresh_button.setDisabled(False)
-    
-    def load_history(self):
-        """Load branch history."""
-        self.refresh_button.setDisabled(True)
-        try:
-            self.changesModel.loadBranch(self.branches,
-                                         self.heads,
-                                         specific_fileids = self.specific_fileids)
-        finally:
-            self.refresh_button.setDisabled(False)
 
     def update_search(self):
         # TODO in_paths = self.search_in_paths.isChecked()
