@@ -78,7 +78,7 @@ except AttributeError:
 
 class GraphModel(QtCore.QAbstractTableModel):
 
-    def __init__(self, parent=None):
+    def __init__(self, process_events_ptr, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         
         self.horizontalHeaderLabels = [gettext("Rev"),
@@ -96,6 +96,7 @@ class GraphModel(QtCore.QAbstractTableModel):
         self.msri_index = {}
         self.closing = False
         self.stop_revision_loading = False
+        self.processEvents = process_events_ptr
     
     def setGraphFilterProxyModel(self, graphFilterProxyModel):
         self.graphFilterProxyModel = graphFilterProxyModel
@@ -143,7 +144,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                     self.graph_children.setdefault(parent, []).append(revid)
                 self.graph_children.setdefault(revid, [])
                 if len(self.graph_parents) % 100 == 0 :
-                    QtCore.QCoreApplication.processEvents()
+                    self.processEvents()
             for ghost in ghosts:
                 for ghost_child in self.graph_children[ghost]:
                     self.graph_parents[ghost_child] = [p for p in self.graph_parents[ghost_child]
@@ -287,7 +288,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                             self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                                       index,index)
                         
-                        QtCore.QCoreApplication.processEvents()
+                        self.processEvents()
                     
                 else:
                     weave_modifed_revisions = set()
@@ -300,7 +301,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                             self.graphFilterProxyModel.invalidateCacheRow(rev_msri)
             
             self.compute_lines()
-            QtCore.QCoreApplication.processEvents()
+            self.processEvents()
             
             self._nextRevisionToLoadGen = self._nextRevisionToLoad()
             self.stop_revision_loading = False
@@ -913,7 +914,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                                   index,index)
                     revisionsChanged = []
-                    QtCore.QCoreApplication.processEvents()
+                    self.processEvents()
                     self.compute_lines()
                 
                 notify_on_count = 10
@@ -926,7 +927,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                             nextRevId = self._nextRevisionToLoadGen.next()
                             self._revision(nextRevId)
                             revisionsChanged.append(nextRevId)
-                            QtCore.QCoreApplication.processEvents()
+                            self.processEvents()
                             if len(revisionsChanged) >= notify_on_count:
                                 notifyChanges(revisionsChanged)
                                 notify_on_count = max(notify_on_count * 2, 200)

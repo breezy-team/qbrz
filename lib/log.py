@@ -231,7 +231,7 @@ class Compleater(QtGui.QCompleter):
     def splitPath (self, path):
         return QtCore.QStringList([path.split(" ")[-1]])
 
-def load_locations(locations_list):
+def load_locations(locations_list, process_events_ptr):
     if locations_list is None:
         locations = ["."]
     else:
@@ -256,7 +256,7 @@ def load_locations(locations_list):
         
         if tree:
             parent_ids = tree.get_parent_ids()
-            QtCore.QCoreApplication.processEvents()
+            process_events_ptr()
             if parent_ids:
                 # first parent is last revision of the tree
                 revid = parent_ids[0]
@@ -272,7 +272,7 @@ def load_locations(locations_list):
                         append_head_info(revid, br, "%s - Pending Merge" % tag, False)
                     else:
                         append_head_info(revid, br, "Pending Merge", False)
-                    QtCore.QCoreApplication.processEvents()
+                    process_events_ptr()
         
         if fp != '' : 
             if tree is None:
@@ -402,7 +402,7 @@ class LogWindow(QBzrWindow):
         
         self.branches = None
         
-        self.changesModel = logmodel.GraphModel()
+        self.changesModel = logmodel.GraphModel(self.processEvents)
         
         self.changesProxyModel = logmodel.GraphFilterProxyModel()
         self.changesProxyModel.setSourceModel(self.changesModel)
@@ -556,7 +556,7 @@ class LogWindow(QBzrWindow):
     def load_locations(self):
         (branches,
          self.heads,
-         specific_fileids) = load_locations(self.locations)
+         specific_fileids) = load_locations(self.locations, self.processEvents)
         
         # The new branch will be the same as self.branch, so don't
         # change it, because doing so caused a UserWarning:
@@ -567,7 +567,7 @@ class LogWindow(QBzrWindow):
             if self.specific_fileids is None:
                 self.specific_fileids = specific_fileids
      
-        QtCore.QCoreApplication.processEvents()
+        self.processEvents()
         self.replace = {}
         for branch in self.branches:
             config = branch.get_config()
@@ -579,14 +579,13 @@ class LogWindow(QBzrWindow):
             self.replace[branch.base] = replace
 
         if have_search:
+            self.processEvents()
             for branch in self.branches:
                 try:
                     index = search_index.open_index_branch(branch)
                     self.indexes.append(index)
                 except search_errors.NoSearchIndex:
                     pass
-        
-        QtCore.QCoreApplication.processEvents()
 
     def initial_load(self):
         self.load(True)
@@ -599,7 +598,7 @@ class LogWindow(QBzrWindow):
         try:
             self.throbber.show()
             self.refresh_button.setDisabled(True)            
-            QtCore.QCoreApplication.processEvents()
+            self.processEvents()
             try:
                 self.load_locations()
                 

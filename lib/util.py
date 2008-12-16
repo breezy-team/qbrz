@@ -185,7 +185,9 @@ class QBzrGlobalConfig(IniBasedConfig):
         self._get_parser().write(f)
         f.close()
 
-
+class WindowsClosingException(Exception):
+    pass
+    
 class _QBzrWindowBase:
     
     def set_title_and_icon(self, title=None):
@@ -213,9 +215,17 @@ class _QBzrWindowBase:
         import traceback
         from bzrlib.trace import report_exception
 
-        # always tell bzr to report it, so it ends up in the log.
         if exc_info is None:
             exc_info = sys.exc_info()
+        
+        exc_type, exc_object, exc_tb = exc_info
+        
+        # Don't show error for WindowsClosingException
+        if isinstance(exc_object, WindowsClosingException):
+            # Do we maybe want to log this?
+            return
+        
+        # always tell bzr to report it, so it ends up in the log.        
         report_exception(exc_info, sys.stderr)
         if self.ui_mode:
             # and a version for the messagebox.
@@ -314,6 +324,7 @@ class _QBzrWindowBase:
             self.splitter.setSizes(sizes)
 
     def closeEvent(self, event):
+        self.closing = True
         self.saveSize()
         for window in self.windows:
             if window.isVisible():
@@ -331,7 +342,11 @@ class _QBzrWindowBase:
             raise RuntimeError, "unknown scheme"
         from bzrlib.plugins.qbzr.lib.help import show_help
         show_help(link, self)
-
+    
+    def processEvents(self):
+        QtCore.QCoreApplication.processEvents()
+        if self.closing:
+            raise WindowsClosingException()
 
 class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
 
@@ -346,7 +361,7 @@ class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
         self.centralwidget = centralwidget
         self.setCentralWidget(self.centralwidget)
         self.windows = []
-
+        self.closing = False
 
 class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
 
@@ -357,6 +372,7 @@ class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
         self.set_title_and_icon(title)
         
         self.windows = []
+        self.closing = False
 
 throber_movie = None
 
