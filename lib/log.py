@@ -402,7 +402,8 @@ class LogWindow(QBzrWindow):
         
         self.branches = None
         
-        self.changesModel = logmodel.GraphModel(self.processEvents)
+        self.changesModel = logmodel.GraphModel(self.processEvents,
+                                                self.report_exception)
         
         self.changesProxyModel = logmodel.GraphFilterProxyModel()
         self.changesProxyModel.setSourceModel(self.changesModel)
@@ -646,36 +647,39 @@ class LogWindow(QBzrWindow):
             open_browser(str(url.toEncoded()))
 
     def update_revision_delta(self):
-        rev = self.current_rev
-        if not hasattr(rev, 'delta'):
-            # TODO move this to a thread
-            rev.repository.lock_read()
-            try:
-                rev.delta = rev.repository.get_deltas_for_revisions(
-                    [rev]).next()
-            finally:
-                rev.repository.unlock()
-        if self.current_rev is not rev:
-            # new update was requested, don't bother populating the list
-            return
-        delta = rev.delta
-
-        for path, id_, kind in delta.added:
-            item = QtGui.QListWidgetItem(path, self.fileList)
-            item.setTextColor(QtGui.QColor("blue"))
-
-        for path, id_, kind, text_modified, meta_modified in delta.modified:
-            item = QtGui.QListWidgetItem(path, self.fileList)
-
-        for path, id_, kind in delta.removed:
-            item = QtGui.QListWidgetItem(path, self.fileList)
-            item.setTextColor(QtGui.QColor("red"))
-
-        for (oldpath, newpath, id_, kind,
-            text_modified, meta_modified) in delta.renamed:
-            item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
-            item.setData(PathRole, QtCore.QVariant(newpath))
-            item.setTextColor(QtGui.QColor("purple"))
+        try:
+            rev = self.current_rev
+            if not hasattr(rev, 'delta'):
+                # TODO move this to a thread
+                rev.repository.lock_read()
+                try:
+                    rev.delta = rev.repository.get_deltas_for_revisions(
+                        [rev]).next()
+                finally:
+                    rev.repository.unlock()
+            if self.current_rev is not rev:
+                # new update was requested, don't bother populating the list
+                return
+            delta = rev.delta
+    
+            for path, id_, kind in delta.added:
+                item = QtGui.QListWidgetItem(path, self.fileList)
+                item.setTextColor(QtGui.QColor("blue"))
+    
+            for path, id_, kind, text_modified, meta_modified in delta.modified:
+                item = QtGui.QListWidgetItem(path, self.fileList)
+    
+            for path, id_, kind in delta.removed:
+                item = QtGui.QListWidgetItem(path, self.fileList)
+                item.setTextColor(QtGui.QColor("red"))
+    
+            for (oldpath, newpath, id_, kind,
+                text_modified, meta_modified) in delta.renamed:
+                item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
+                item.setData(PathRole, QtCore.QVariant(newpath))
+                item.setTextColor(QtGui.QColor("purple"))
+        except Exception:
+            self.report_exception()        
 
     def update_selection(self, selected, deselected):
         indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
@@ -744,38 +748,40 @@ class LogWindow(QBzrWindow):
         self.show_diff_window(rev1, rev2)
 
     def update_search(self):
-        # TODO in_paths = self.search_in_paths.isChecked()
-        role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
-        search_text = self.search_edit.text()
-        search_mode = not role == logmodel.FilterIdRole and \
-                      not role == logmodel.FilterRevnoRole and \
-                      not role == logmodel.FilterSearchRole and \
-                      search_text.length() > 0
-        self.changesModel.set_search_mode(search_mode)
-        if role == logmodel.FilterIdRole:
-            self.changesProxyModel.setFilter(u"", role)
-            search_text = str(search_text)
-            if self.changesModel.has_rev_id(search_text):
-                self.changesModel.ensure_rev_visible(search_text)
-                index = self.changesModel.indexFromRevId(search_text)
-                index = self.changesProxyModel.mapFromSource(index)
-                self.changesList.setCurrentIndex(index)
-        elif role == logmodel.FilterRevnoRole:
-            self.changesProxyModel.setFilter(u"", role)
-            try:
-                revno = tuple((int(number) for number in str(search_text).split('.')))
-            except ValueError:
-                revno = ()
-                # Not sure what to do if there is an error. Nothing for now
-            revid = self.changesModel.revid_from_revno(revno)
-            if revid:
-                self.changesModel.ensure_rev_visible(revid)
-                index = self.changesModel.indexFromRevId(revid)
-                index = self.changesProxyModel.mapFromSource(index)
-                self.changesList.setCurrentIndex(index)
-        else:
-            self.changesProxyModel.setFilter(self.search_edit.text(), role)
-    
+        try:
+            # TODO in_paths = self.search_in_paths.isChecked()
+            role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
+            search_text = self.search_edit.text()
+            search_mode = not role == logmodel.FilterIdRole and \
+                          not role == logmodel.FilterRevnoRole and \
+                          not role == logmodel.FilterSearchRole and \
+                          search_text.length() > 0
+            self.changesModel.set_search_mode(search_mode)
+            if role == logmodel.FilterIdRole:
+                self.changesProxyModel.setFilter(u"", role)
+                search_text = str(search_text)
+                if self.changesModel.has_rev_id(search_text):
+                    self.changesModel.ensure_rev_visible(search_text)
+                    index = self.changesModel.indexFromRevId(search_text)
+                    index = self.changesProxyModel.mapFromSource(index)
+                    self.changesList.setCurrentIndex(index)
+            elif role == logmodel.FilterRevnoRole:
+                self.changesProxyModel.setFilter(u"", role)
+                try:
+                    revno = tuple((int(number) for number in str(search_text).split('.')))
+                except ValueError:
+                    revno = ()
+                    # Not sure what to do if there is an error. Nothing for now
+                revid = self.changesModel.revid_from_revno(revno)
+                if revid:
+                    self.changesModel.ensure_rev_visible(revid)
+                    index = self.changesModel.indexFromRevId(revid)
+                    index = self.changesProxyModel.mapFromSource(index)
+                    self.changesList.setCurrentIndex(index)
+            else:
+                self.changesProxyModel.setFilter(self.search_edit.text(), role)
+        except Exception:
+            self.report_exception()
     
     def update_search_completer(self, text):
         # We only load the suggestions a letter at a time when needed.

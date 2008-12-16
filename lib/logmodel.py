@@ -78,7 +78,7 @@ except AttributeError:
 
 class GraphModel(QtCore.QAbstractTableModel):
 
-    def __init__(self, process_events_ptr, parent=None):
+    def __init__(self, process_events_ptr, report_exception_ptr, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         
         self.horizontalHeaderLabels = [gettext("Rev"),
@@ -97,6 +97,7 @@ class GraphModel(QtCore.QAbstractTableModel):
         self.closing = False
         self.stop_revision_loading = False
         self.processEvents = process_events_ptr
+        self.report_exception = report_exception_ptr
     
     def setGraphFilterProxyModel(self, graphFilterProxyModel):
         self.graphFilterProxyModel = graphFilterProxyModel
@@ -944,6 +945,8 @@ class GraphModel(QtCore.QAbstractTableModel):
             QtCore.QTimer.singleShot(5, self._loadNextRevision)
         except StopIteration:
             pass
+        except Exception:
+            self.report_exception()
     
     def _nextRevisionToLoad(self):
         if not self.searchMode:
