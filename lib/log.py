@@ -807,10 +807,6 @@ class LogWindow(QBzrWindow):
                 suggestions = self.suggestion_letters_loaded[first_letter]
             self.completer_model.setStringList(suggestions)
     
-    def closeEvent (self, QCloseEvent):
-        QBzrWindow.closeEvent(self, QCloseEvent)
-        self.changesModel.closing = True
-    
     def updateSearchType(self, index=None):
         self.update_search()
 

@@ -94,7 +94,6 @@ class GraphModel(QtCore.QAbstractTableModel):
         self.searchMode = False
         self.touches_file_msri = None
         self.msri_index = {}
-        self.closing = False
         self.stop_revision_loading = False
         self.processEvents = process_events_ptr
         self.report_exception = report_exception_ptr
@@ -908,7 +907,6 @@ class GraphModel(QtCore.QAbstractTableModel):
         try:
             if self.searchMode:
                 def notifyChanges(revisionsChanged):
-                    if self.closing: return
                     for revid in revisionsChanged:
                         index = self.indexFromRevId(revid)
                         self.graphFilterProxyModel.invalidateCacheRow(index.row())
@@ -924,7 +922,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                     for repo in self.repos.itervalues():
                         repo.lock_read()
                     try:
-                        while self.searchMode and not self.closing:
+                        while self.searchMode:
                             nextRevId = self._nextRevisionToLoadGen.next()
                             self._revision(nextRevId)
                             revisionsChanged.append(nextRevId)
