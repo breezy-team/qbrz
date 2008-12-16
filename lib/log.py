@@ -740,14 +740,7 @@ class LogWindow(QBzrWindow):
         QtCore.QCoreApplication.processEvents()
         try:
             self.changesModel.stop_revision_loading = True
-            if "locations" in dir(self):
-                
-                # The new branches will be the same as the old self.branches, so
-                # don't change it, because doing so causes a UserWarning:
-                # LockableFiles was gc'd while locked
-                (newbranches,
-                 self.heads, 
-                 self.specific_fileids) = load_locataions(self.locations)
+            self.load_locations()
             
             self.changesModel.loadBranch(self.branches,
                                          self.heads,
