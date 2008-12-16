@@ -185,7 +185,7 @@ class QBzrGlobalConfig(IniBasedConfig):
         self._get_parser().write(f)
         f.close()
 
-class WindowsClosingException(Exception):
+class StopException(Exception):
     pass
     
 class _QBzrWindowBase:
@@ -220,8 +220,8 @@ class _QBzrWindowBase:
         
         exc_type, exc_object, exc_tb = exc_info
         
-        # Don't show error for WindowsClosingException
-        if isinstance(exc_object, WindowsClosingException):
+        # Don't show error for StopException
+        if isinstance(exc_object, StopException):
             # Do we maybe want to log this?
             return
         
@@ -346,7 +346,7 @@ class _QBzrWindowBase:
     def processEvents(self):
         QtCore.QCoreApplication.processEvents()
         if self.closing:
-            raise WindowsClosingException()
+            raise StopException()
 
 class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
 
@@ -846,3 +846,34 @@ def is_binary_content(lines):
         if '\x00' in s:
             return True
     return False
+
+class BackgroundJob():
+    
+    def __init__(self, parent):
+        self.is_running = False
+        self.stop = False
+        self.parent = parent
+    
+    def run(self):
+        pass
+    
+    def run_wrapper(self):
+            try:
+                self.run()
+            except Exception:
+                self.parent.report_exception()
+            self.is_running = False
+    
+    def start(self, timeout=1):
+        if not self.is_running:
+            self.is_running = True
+            QtCore.QTimer.singleShot(timeout, self.run_wrapper)
+    
+    def stop(self):
+        self.stop = True
+
+    def processEvents(self):
+        self.parent.processEvents()
+        if self.stop:
+            self.stop = False
+            raise StopException()
