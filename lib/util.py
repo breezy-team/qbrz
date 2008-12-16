@@ -851,7 +851,7 @@ class BackgroundJob():
     
     def __init__(self, parent):
         self.is_running = False
-        self.stop = False
+        self.stoping = False
         self.parent = parent
     
     def run(self):
@@ -867,13 +867,14 @@ class BackgroundJob():
     def start(self, timeout=1):
         if not self.is_running:
             self.is_running = True
+            self.stoping = False
             QtCore.QTimer.singleShot(timeout, self.run_wrapper)
     
     def stop(self):
-        self.stop = True
+        self.stoping = True
 
     def processEvents(self):
         self.parent.processEvents()
-        if self.stop:
-            self.stop = False
+        if self.stoping:
+            self.stoping = False
             raise StopException()

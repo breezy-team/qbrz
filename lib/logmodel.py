@@ -958,7 +958,7 @@ class LoadAllRevisions(BackgroundJob):
         
         notify_on_count = 10
         revisionsChanged = []
-        for repo in self.repos.itervalues():
+        for repo in self.parent.repos.itervalues():
             repo.lock_read()
         try:
             for (sequence_number,
@@ -966,7 +966,7 @@ class LoadAllRevisions(BackgroundJob):
                  merge_depth,
                  revno_sequence,
                  end_of_merge) in self.parent.merge_sorted_revisions:
-                if revid not in self.parent._revisions:
+                if revid not in self.parent.revisions:
                     self.parent.revision(revid)
                     revisionsChanged.append(revid)
                     self.processEvents()
@@ -977,7 +977,7 @@ class LoadAllRevisions(BackgroundJob):
             
             notifyChanges(revisionsChanged)
         finally:
-            for repo in self.repos.itervalues():
+            for repo in self.parent.repos.itervalues():
                 repo.unlock()
 
     
