@@ -919,7 +919,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                 notify_on_count = 10
                 revisionsChanged = []
                 try:
-                    for repo in self.repos:
+                    for repo in self.repos.itervalues():
                         repo.lock_read()
                     try:
                         while self.searchMode and not self.closing:
@@ -931,7 +931,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                                 notifyChanges(revisionsChanged)
                                 notify_on_count = max(notify_on_count * 2, 200)
                     finally:
-                        for repo in self.repos:
+                        for repo in self.repos.itervalues():
                             repo.unlock()
                 except StopIteration, se:
                     self.graphFilterProxyModel.invalidateCache()
