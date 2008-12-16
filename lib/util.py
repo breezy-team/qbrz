@@ -864,7 +864,7 @@ class BackgroundJob():
                 self.parent.report_exception()
             self.is_running = False
     
-    def start(self, timeout=1):
+    def start(self, timeout=0):
         if not self.is_running:
             self.is_running = True
             self.stoping = False

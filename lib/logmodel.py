@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from time import (strftime, localtime)
+from time import (strftime, localtime, clock)
 from bzrlib import (lazy_regex, errors)
 from bzrlib.revision import NULL_REVISION
 from bzrlib.tsort import merge_sort
@@ -932,54 +932,67 @@ class GraphModel(QtCore.QAbstractTableModel):
             head_revid = self.start_revs[0]
         return self.heads[head_revid][1]
     
-class LoadQueuedRevisions(BackgroundJob):
+class LoadRevisionsBase(BackgroundJob):
     def run(self):
-        while len(self.parent.queue):
-            revid = self.parent.queue.pop(0)
-            if revid not in self.parent.revisions:
-                self.parent._revision(revid)
-                indexes = self.parent.indexFromRevId(revid, (COL_MESSAGE, COL_AUTHOR))
-                self.parent.graphFilterProxyModel.invalidateCacheRow(indexes[0].row())
-                self.parent.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                          indexes[0], indexes[1])
-                self.processEvents()
-
-class LoadAllRevisions(BackgroundJob):
-    def run(self):
-        def notifyChanges(revisionsChanged):
-            for revid in revisionsChanged:
-                indexes = self.parent.indexFromRevId(revid, (COL_MESSAGE, COL_AUTHOR))
-                self.parent.graphFilterProxyModel.invalidateCacheRow(indexes[0].row())
-                self.parent.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                          indexes[0], indexes[1])
-            revisionsChanged = []
-            self.processEvents()
-            self.parent.compute_lines()
-        
-        notify_on_count = 10
+        update_time = self.update_time_initial
+        start_time = clock()
         revisionsChanged = []
         for repo in self.parent.repos.itervalues():
             repo.lock_read()
         try:
-            for (sequence_number,
-                 revid,
-                 merge_depth,
-                 revno_sequence,
-                 end_of_merge) in self.parent.merge_sorted_revisions:
+            for revid in self.revision_generator():
                 if revid not in self.parent.revisions:
-                    self.parent.revision(revid)
+                    self.parent._revision(revid)
                     revisionsChanged.append(revid)
                     self.processEvents()
                 
-                if len(revisionsChanged) >= notify_on_count:
-                    notifyChanges(revisionsChanged)
-                    notify_on_count = max(notify_on_count * 2, 200)
+                current_time = clock()
+                print current_time - start_time
+                if update_time < current_time - start_time:
+                    self.notifyChanges(revisionsChanged)
+                    update_time = max(update_time + self.update_time_increment, self.update_time_max)
+                    self.processEvents()
+                    start_time = clock()
             
-            notifyChanges(revisionsChanged)
+            self.notifyChanges(revisionsChanged)
         finally:
             for repo in self.parent.repos.itervalues():
                 repo.unlock()
+    
+    def notifyChanges(self, revisionsChanged):
+        for revid in revisionsChanged:
+            indexes = self.parent.indexFromRevId(revid, (COL_MESSAGE, COL_AUTHOR))
+            self.parent.graphFilterProxyModel.invalidateCacheRow(indexes[0].row())
+            self.parent.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                      indexes[0], indexes[1])
+        revisionsChanged = []
 
+class LoadQueuedRevisions(LoadRevisionsBase):
+    update_time_initial = 0.05
+    update_time_increment = 0
+    update_time_max = 0.05
+    
+    def revision_generator(self):
+        while len(self.parent.queue):
+            yield self.parent.queue.pop(0)
+    
+class LoadAllRevisions(LoadRevisionsBase):
+    update_time_initial = 1
+    update_time_increment = 1
+    update_time_max = 10
+
+    def revision_generator(self):
+        for (sequence_number,
+             revid,
+             merge_depth,
+             revno_sequence,
+             end_of_merge) in self.parent.merge_sorted_revisions:
+            yield revid
+
+    def notifyChanges(self, revisionsChanged):
+        LoadRevisionsBase.notifyChanges(self, revisionsChanged)
+        self.parent.compute_lines()
+    
     
 class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
     def __init__(self, parent = None):
