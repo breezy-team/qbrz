@@ -379,7 +379,7 @@ def truncate_string(s, max_len):
 class LogWindow(QBzrWindow):
     
     def __init__(self, locations, branch, specific_fileids, parent=None,
-                 ui_mode=True):
+                 ui_mode=True):        
         if branch:
             self.locations = (branch,)
             self.specific_fileids = specific_fileids
@@ -391,14 +391,19 @@ class LogWindow(QBzrWindow):
             self.specific_fileids = None
             assert specific_fileids is None, "this is ignored if no branch"
         
-        self.branches = None
-
-        title = [gettext("Log"), gettext("Loading...")]
+        # Set window title. 
+        lt = self._locations_for_title(self.locations)
+        title = [gettext("Log")]
+        if lt:
+            title.append(lt)
+        
         QBzrWindow.__init__(self, title, parent, ui_mode=ui_mode)
         self.restoreSize("log", (710, 580))
-
+        
+        self.branches = None
+        
         self.changesModel = logmodel.GraphModel()
-
+        
         self.changesProxyModel = logmodel.GraphFilterProxyModel()
         self.changesProxyModel.setSourceModel(self.changesModel)
         self.changesProxyModel.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
@@ -580,13 +585,7 @@ class LogWindow(QBzrWindow):
                     self.indexes.append(index)
                 except search_errors.NoSearchIndex:
                     pass
-
-        # and finally the window title can be setup.
-        lt = self._locations_for_title(self.locations)
-        title = [gettext("Log")]
-        if lt:
-            title.append(lt)
-        self.set_title_and_icon(title)
+        
         QtCore.QCoreApplication.processEvents()
 
     def initial_load(self):
