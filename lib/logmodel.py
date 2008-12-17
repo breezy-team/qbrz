@@ -1127,6 +1127,14 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
             return revid in self.search_matching_revid
         
         if self.filter_str:
-            return QtGui.QSortFilterProxyModel.filterAcceptsRow(self, source_row, source_parent)
+            (sequence_number,
+             revid,
+             merge_depth,
+             revno_sequence,
+             end_of_merge) = sm.merge_sorted_revisions[source_row]
+            if revid in sm.revisions:
+                return QtGui.QSortFilterProxyModel.filterAcceptsRow(self, source_row, source_parent)
+            else:
+                return False
         
         return True
