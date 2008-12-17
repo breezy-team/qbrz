@@ -974,6 +974,12 @@ class LoadQueuedRevisions(LoadRevisionsBase):
     def revision_generator(self):
         while len(self.parent.queue):
             yield self.parent.queue.pop(0)
+
+    def notifyChanges(self, revisionsChanged):
+        # Clear the queue
+        self.parent.queue = self.parent.queue[0:1]
+        LoadRevisionsBase.notifyChanges(self, revisionsChanged)
+
     
 class LoadAllRevisions(LoadRevisionsBase):
     update_time_initial = 1
