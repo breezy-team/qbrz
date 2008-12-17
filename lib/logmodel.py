@@ -947,7 +947,6 @@ class LoadRevisionsBase(BackgroundJob):
                     self.processEvents()
                 
                 current_time = clock()
-                print current_time - start_time
                 if update_time < current_time - start_time:
                     self.notifyChanges(revisionsChanged)
                     update_time = max(update_time + self.update_time_increment, self.update_time_max)
