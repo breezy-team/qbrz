@@ -253,6 +253,7 @@ def load_locations(locations_list, process_events_ptr):
         
         branch_last_revision = br.last_revision()
         append_head_info(branch_last_revision, br, tag, True)
+        process_events_ptr()
         
         if tree:
             parent_ids = tree.get_parent_ids()
@@ -272,12 +273,13 @@ def load_locations(locations_list, process_events_ptr):
                         append_head_info(revid, br, "%s - Pending Merge" % tag, False)
                     else:
                         append_head_info(revid, br, "Pending Merge", False)
-                    process_events_ptr()
         
         if fp != '' : 
             if tree is None:
                 tree = br.basis_tree()
+                process_events_ptr()
             file_id = tree.path2id(fp)
+            process_events_ptr()
             if file_id is None:
                 raise errors.BzrCommandError(
                     "Path does not have any revision history: %s" %
@@ -302,11 +304,14 @@ def load_locations(locations_list, process_events_ptr):
         If no tree, branch or repository is found, a NotBranchError is raised.
         """
         bzrdir, relpath = BzrDir.open_containing(location)
+        process_events_ptr()
         try:
             tree, branch = bzrdir._get_tree_branch()
+            process_events_ptr()
         except errors.NotBranchError:
             try:
                 repo = bzrdir.find_repository()
+                process_events_ptr()    
                 return None, None, repo, relpath
             except (errors.NoRepositoryPresent):
                 raise errors.NotBranchError(location)
@@ -316,17 +321,21 @@ def load_locations(locations_list, process_events_ptr):
         if isinstance(location, Branch):
             br = location
             repo = location.repository
+            process_events_ptr()
             try:
                 tree = location.bzrdir.open_workingtree()
             except errors.NoWorkingTree:
                 tree = None
+            process_events_ptr()
             fp = ''
         else:
             tree, br, repo, fp = open_containing_tree_branch_or_repository(location)
+            process_events_ptr()
         
         if br == None:
             trunk_names = ["trunk", "bzr.dev", "dev"]
             repo_brs = repo.find_branches(using=True)
+            process_events_ptr()
             
             def branch_cmp_trunk_first(x,y):
                 x_is_trunk = x.nick in trunk_names
