@@ -937,6 +937,10 @@ class GraphModel(QtCore.QAbstractTableModel):
     
 class LoadRevisionsBase(BackgroundJob):
     def run(self):
+        self.update_time = self.update_time_initial
+        self.start_time = clock()
+        self.revisions_loaded = []
+        
         for repo in self.parent.repos.itervalues():
             repo.lock_read()
         try:
@@ -947,14 +951,12 @@ class LoadRevisionsBase(BackgroundJob):
                 if len(revision_ids)>50:
                     self.load_revisions(revision_ids)
             self.load_revisions(revision_ids)
+            self.notifyChanges()
         finally:
             for repo in self.parent.repos.itervalues():
                 repo.unlock()
     
     def load_revisions(self, revision_ids):
-        update_time = self.update_time_initial
-        start_time = clock()
-        revisions_loaded = []
         
         keys = [(key,) for key in revision_ids]
         
@@ -964,7 +966,7 @@ class LoadRevisionsBase(BackgroundJob):
             for record in stream:
                 if not record.storage_kind == 'absent':
                     revision_ids.remove(record.key[0])
-                    revisions_loaded.append(record.key[0])
+                    self.revisions_loaded.append(record.key[0])
                     text = record.get_bytes_as('fulltext')
                     rev = repo._serializer.read_revision_from_string(text)
                     rev.repository = repo
@@ -972,20 +974,20 @@ class LoadRevisionsBase(BackgroundJob):
                     self.processEvents()
                 
                 current_time = clock()
-                if update_time < current_time - start_time:
-                    self.notifyChanges(revisions_loaded)
-                    update_time = max(update_time + self.update_time_increment, self.update_time_max)
+                if self.update_time < current_time - self.start_time:
+                    self.notifyChanges()
+                    self.update_time = max(self.update_time + self.update_time_increment,
+                                           self.update_time_max)
                     self.processEvents()
-                    start_time = clock()
+                    self.start_time = clock()
         
-        self.notifyChanges(revisions_loaded)
         
         # This should never happen
         if len(revision_ids) > 0 :
             raise errors.NoSuchRevision(self, revision_ids[0])
     
-    def notifyChanges(self, revisions_loaded):
-        for revid in revisions_loaded:
+    def notifyChanges(self):
+        for revid in self.revisions_loaded:
             indexes = self.parent.indexFromRevId(revid, (COL_MESSAGE, COL_AUTHOR))
             self.parent.graphFilterProxyModel.invalidateCacheRow(indexes[0].row())
             self.parent.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
@@ -1001,10 +1003,10 @@ class LoadQueuedRevisions(LoadRevisionsBase):
         while len(self.parent.queue):
             yield self.parent.queue.pop(0)
 
-    def notifyChanges(self, revisionsChanged):
+    def notifyChanges(self):
         # Clear the queue
         self.parent.queue = self.parent.queue[0:1]
-        LoadRevisionsBase.notifyChanges(self, revisionsChanged)
+        LoadRevisionsBase.notifyChanges(self)
 
     
 class LoadAllRevisions(LoadRevisionsBase):
@@ -1020,8 +1022,8 @@ class LoadAllRevisions(LoadRevisionsBase):
              end_of_merge) in self.parent.merge_sorted_revisions:
             yield revid
 
-    def notifyChanges(self, revisionsChanged):
-        LoadRevisionsBase.notifyChanges(self, revisionsChanged)
+    def notifyChanges(self):
+        LoadRevisionsBase.notifyChanges(self)
         self.parent.compute_lines()
     
     
