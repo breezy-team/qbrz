@@ -957,10 +957,8 @@ class LoadRevisionsBase(BackgroundJob):
                 repo.unlock()
     
     def load_revisions(self, revision_ids):
-        
-        keys = [(key,) for key in revision_ids]
-        
         for repo in self.parent.repos.itervalues():
+            keys = [(key,) for key in revision_ids]
             stream = repo.revisions.get_record_stream(keys, 'unordered', True)
             self.processEvents()
             for record in stream:
