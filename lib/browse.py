@@ -203,12 +203,8 @@ class BrowseWindow(QBzrWindow):
 
         tree = self.branch.repository.revision_tree(self.revision_id)
         encoding = get_set_encoding(None, self.branch)
-        tree.lock_read()
-        try:
-            window = QBzrCatWindow.from_tree_and_path(tree, path, parent=self,
-                encoding=encoding)
-        finally:
-            tree.unlock()
+        window = QBzrCatWindow(filename = path, tree = tree, parent=self,
+            encoding=encoding)
         window.show()
         self.windows.append(window)
 

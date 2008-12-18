@@ -444,28 +444,22 @@ class cmd_qcat(QBzrCommand):
             raise errors.BzrCommandError("bzr qcat --revision takes exactly"
                                          " one revision specifier")
 
-        branch, relpath = Branch.open_containing(filename)
-        if revision is None:
-            tree = branch.basis_tree()
-        else:
-            revision_id = revision[0].in_branch(branch).rev_id
-            tree = branch.repository.revision_tree(revision_id)
-
         if native:
+            branch, relpath = Branch.open_containing(filename)
+            if revision is None:
+                tree = branch.basis_tree()
+            else:
+                revision_id = revision[0].in_branch(branch).rev_id
+                tree = branch.repository.revision_tree(revision_id)
             result = cat_to_native_app(tree, relpath)
             return int(not result)
 
-        encoding = get_set_encoding(encoding, branch)
 
         app = QtGui.QApplication(sys.argv)
-        tree.lock_read()
-        try:
-            window = QBzrCatWindow.from_tree_and_path(tree, relpath, encoding)
-        finally:
-            tree.unlock()
-        if window is not None:
-            window.show()
-            app.exec_()
+        window = QBzrCatWindow(filename = filename, revision = revision,
+                               encoding = encoding)
+        window.show()
+        app.exec_()
 
 
 class cmd_qpull(QBzrCommand):
