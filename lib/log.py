@@ -411,8 +411,12 @@ class LogWindow(QBzrWindow):
         
         self.branches = None
         
+        self.throbber = ThrobberWidget(self)
+        
         self.changesModel = logmodel.GraphModel(self.processEvents,
-                                                self.report_exception)
+                                                self.report_exception,
+                                                self.throbber.show,
+                                                self.throbber.hide)
         
         self.changesProxyModel = logmodel.GraphFilterProxyModel()
         self.changesProxyModel.setSourceModel(self.changesModel)
@@ -420,8 +424,6 @@ class LogWindow(QBzrWindow):
         self.changesProxyModel.setFilterRole(logmodel.FilterMessageRole)
         self.changesProxyModel.setDynamicSortFilter(True)
         self.changesModel.setGraphFilterProxyModel(self.changesProxyModel)
-        
-        self.throbber = ThrobberWidget(self)
         
         logwidget = QtGui.QWidget()
         logbox = QtGui.QVBoxLayout(logwidget)
@@ -634,7 +636,6 @@ class LogWindow(QBzrWindow):
                     self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
                                  self.set_search_timer)
             finally:
-                self.throbber.hide()
                 self.refresh_button.setDisabled(False)
         except Exception:
             self.report_exception()

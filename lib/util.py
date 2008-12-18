@@ -402,13 +402,13 @@ class ThrobberWidget(QtGui.QWidget):
         layout.addWidget(QtGui.QLabel(gettext("Loading..."), self), 1)
 
     def hide(self):
-        if self.is_shown:
-            QtGui.QApplication.restoreOverrideCursor()
+        #if self.is_shown:
+            #QtGui.QApplication.restoreOverrideCursor()
         self.is_shown = False
         QtGui.QWidget.hide(self)
 
     def show(self):
-        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        #QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         # and show ourselves.
         QtGui.QWidget.show(self)
         self.is_shown = True

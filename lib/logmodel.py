@@ -79,7 +79,8 @@ except AttributeError:
 
 class GraphModel(QtCore.QAbstractTableModel):
 
-    def __init__(self, process_events_ptr, report_exception_ptr, parent=None):
+    def __init__(self, process_events, report_exception,
+                 throbber_show, throbber_hide, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         
         self.horizontalHeaderLabels = [gettext("Rev"),
@@ -96,8 +97,10 @@ class GraphModel(QtCore.QAbstractTableModel):
         self.touches_file_msri = None
         self.msri_index = {}
         self.stop_revision_loading = False
-        self.processEvents = process_events_ptr
-        self.report_exception = report_exception_ptr
+        self.processEvents = process_events
+        self.report_exception = report_exception
+        self.throbber_show = throbber_show
+        self.throbber_hide = throbber_hide
         self.queue = []
         
         self.load_queued_revisions = LoadQueuedRevisions(self)
@@ -305,6 +308,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                             self.graphFilterProxyModel.invalidateCacheRow(rev_msri)
             
             self.compute_lines()
+            if len(self.merge_sorted_revisions) == 0:
+                self.throbber_hide()
         finally:
             for branch in self.branches:
                 branch.unlock
@@ -936,9 +941,12 @@ class GraphModel(QtCore.QAbstractTableModel):
         return self.heads[head_revid][1]
     
 class LoadRevisionsBase(BackgroundJob):
+    throbber_time = 0.5
+
     def run(self):
         self.update_time = self.update_time_initial
         self.start_time = clock()
+        self.last_update = clock()
         self.revisions_loaded = []
         
         for repo in self.parent.repos.itervalues():
@@ -955,6 +963,7 @@ class LoadRevisionsBase(BackgroundJob):
         finally:
             for repo in self.parent.repos.itervalues():
                 repo.unlock()
+            self.parent.throbber_hide()
     
     def load_revisions(self, revision_ids):
         for repo in self.parent.repos.itervalues():
@@ -972,12 +981,15 @@ class LoadRevisionsBase(BackgroundJob):
                     self.processEvents()
                 
                 current_time = clock()
-                if self.update_time < current_time - self.start_time:
+                if self.throbber_time < current_time - self.start_time:
+                    self.parent.throbber_show()
+                
+                if self.update_time < current_time - self.last_update:
                     self.notifyChanges()
                     self.update_time = max(self.update_time + self.update_time_increment,
                                            self.update_time_max)
                     self.processEvents()
-                    self.start_time = clock()
+                    self.last_update = clock()
         
         
         # This should never happen
