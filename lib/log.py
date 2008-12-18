@@ -662,11 +662,14 @@ class LogWindow(QBzrWindow):
             if not hasattr(rev, 'delta'):
                 # TODO move this to a thread
                 rev.repository.lock_read()
+                self.processEvents()
                 try:
                     rev.delta = rev.repository.get_deltas_for_revisions(
                         [rev]).next()
+                    self.processEvents()
                 finally:
                     rev.repository.unlock()
+                    self.processEvents()
             if self.current_rev is not rev:
                 # new update was requested, don't bother populating the list
                 return
