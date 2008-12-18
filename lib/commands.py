@@ -266,12 +266,11 @@ class cmd_qbrowse(QBzrCommand):
     aliases = ['qbw']
 
     def _qbzr_run(self, revision=None, location=None):
-        branch, path = Branch.open_containing(location)
         app = QtGui.QApplication(sys.argv)
         if revision is None:
-            win = BrowseWindow(branch)
+            win = BrowseWindow(location = location)
         else:
-            win = BrowseWindow(branch, revision[0])
+            win = BrowseWindow(location = location, revision = revision[0])
         win.show()
         app.exec_()
 
