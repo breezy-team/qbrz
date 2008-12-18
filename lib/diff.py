@@ -229,18 +229,16 @@ class DiffWindow(QBzrWindow):
                 title.append(self.filter_options.to_str())
 
         self.set_title_and_icon(title)
-        QtCore.QCoreApplication.processEvents()
+        self.processEvents()
 
         self.encodings = (get_set_encoding(self.encoding, branch1),
                           get_set_encoding(self.encoding, branch2))
-        QtCore.QCoreApplication.processEvents()
+        self.processEvents()
 
     def load_diff(self):
         self.refresh_button.setEnabled(False)
-        # function to run after each loop
-        qt_process_events = QtCore.QCoreApplication.processEvents
-        #
         for tree in self.trees: tree.lock_read()
+        self.processEvents()
         try:
             changes = self.trees[1].iter_changes(self.trees[0],
                                                  specific_files=self.specific_files,
@@ -267,7 +265,7 @@ class DiffWindow(QBzrWindow):
                     # NOTE: None value used for non-existing entry in corresponding
                     #       tree, e.g. for added/deleted file
 
-                    qt_process_events()
+                    self.processEvents()
 
                     if parent == (None, None):  # filter out TREE_ROOT (?)
                         continue
@@ -313,7 +311,6 @@ class DiffWindow(QBzrWindow):
                         status = N_('modified')
                     # check filter options
                     if not self.filter_options.check(status):
-                        qt_process_events()
                         continue
 
                     if ((versioned[0] != versioned[1] or changed_content)
@@ -326,6 +323,7 @@ class DiffWindow(QBzrWindow):
                                 content = get_file_lines_from_tree(tree, file_id)
                             lines.append(content)
                             binary = binary or is_binary_content(content)
+                            self.processEvents()
                         if not binary:
                             if versioned == (True, False):
                                 groups = [[('delete', 0, len(lines[0]), 0, 0)]]
@@ -333,6 +331,7 @@ class DiffWindow(QBzrWindow):
                                 groups = [[('insert', 0, 0, 0, len(lines[1]))]]
                             else:
                                 matcher = SequenceMatcher(None, lines[0], lines[1])
+                                self.processEvents()
                                 if self.complete:
                                     groups = list([matcher.get_opcodes()])
                                 else:
@@ -352,6 +351,7 @@ class DiffWindow(QBzrWindow):
                         view.append_diff(list(paths), file_id, kind, status,
                                          dates, versioned, binary, lines, groups,
                                          data, properties_changed)
+                        self.processEvents()
                     no_changes = False
             except PathsNotVersionedError, e:
                     QtGui.QMessageBox.critical(self, gettext('Diff'),
