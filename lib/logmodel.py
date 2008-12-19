@@ -312,7 +312,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                 self.throbber_hide()
         finally:
             for branch in self.branches:
-                branch.unlock
+                branch.unlock()
         
     def compute_lines(self):
         

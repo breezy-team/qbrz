@@ -566,18 +566,12 @@ class LogWindow(QBzrWindow):
         self.changesList.setFocus()
 
     def load_locations(self):
-        (branches,
+        (self.branches,
          self.heads,
          specific_fileids) = load_locations(self.locations, self.processEvents)
         
-        # The new branch will be the same as self.branch, so don't
-        # change it, because doing so caused a UserWarning:
-        # LockableFiles was gc'd while locked
-        if self.branches is None:
-            self.branches = branches
-            
-            if self.specific_fileids is None:
-                self.specific_fileids = specific_fileids
+        if self.specific_fileids is None:
+            self.specific_fileids = specific_fileids
      
         self.processEvents()
         self.replace = {}
