@@ -631,6 +631,8 @@ class LogWindow(QBzrWindow):
                                  self.set_search_timer)
             finally:
                 self.refresh_button.setDisabled(False)
+                if not initial:
+                    self.throbber.hide()
         except Exception:
             self.report_exception()
 
