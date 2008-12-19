@@ -694,10 +694,7 @@ class LogWindow(QBzrWindow):
             self.changesModel.stop_revision_loading = True
             if "locations" in dir(self):
                 
-                # The new branches will be the same as the old self.branches, so
-                # don't change it, because doing so causes a UserWarning:
-                # LockableFiles was gc'd while locked
-                (newbranches,
+                (self.branches,
                  self.heads, 
                  self.specific_fileids) = load_locataions(self.locations)
             

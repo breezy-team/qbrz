@@ -307,7 +307,7 @@ class GraphModel(QtCore.QAbstractTableModel):
             self._loadNextRevision()
         finally:
             for branch in self.branches:
-                branch.unlock
+                branch.unlock()
         
     def compute_lines(self):
         
