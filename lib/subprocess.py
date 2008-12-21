@@ -20,6 +20,7 @@
 
 import codecs
 import sys
+import os, signal
 from PyQt4 import QtCore, QtGui
 
 from bzrlib import osutils, progress
@@ -365,9 +366,9 @@ class SubProcessWidget(QtGui.QWidget):
     def abort(self):
         if self.is_running():
             if not self.aborting:
-                # be nice and try to use ^C
-                self.process.close()
                 self.aborting = True
+                # be nice and try to use ^C
+                os.kill(self.process.pid(), signal.SIGINT) 
                 self.setProgress(None, [gettext("Aborting...")])
             else:
                 self.process.terminate()
@@ -397,7 +398,7 @@ class SubProcessWidget(QtGui.QWidget):
                 if not self.ui_mode:
                     self.stdout.write(line)
                     self.stdout.write("\n")
-
+    
     def readStderr(self):
         data = str(self.process.readAllStandardError()).decode(self.encoding)
         for line in data.splitlines():
@@ -428,9 +429,12 @@ class SubProcessWidget(QtGui.QWidget):
         #self.emit(QtCore.SIGNAL("failed()"))
 
     def onFinished(self, exitCode, exitStatus):
-        self.aborting = False
-        if exitCode == 0:
-            if self.commands:
+        if self.aborting:
+            self.aborting = False
+            self.setProgress(1000000, [gettext("Aborted!")])
+            self.emit(QtCore.SIGNAL("failed()"))
+        elif exitCode == 0:
+            if self.commands and not self.aborting:
                 self._start_next()
             else:
                 self.finished = True

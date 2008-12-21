@@ -28,6 +28,7 @@ from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from PyQt4 import QtGui, QtCore
 import shlex
+import signal, exceptions
 from bzrlib import (
     builtins,
     commands,
@@ -663,10 +664,13 @@ class cmd_qsubprocess(Command):
     hidden = True
 
     def run(self, cmd):
+        signal.signal(signal.SIGINT, sigabrt_handler)
         ui.ui_factory = SubprocessGUIFactory()
         argv = [p.decode('utf8') for p in shlex.split(cmd.encode('utf8'))]
         commands.run_bzr(argv)
 
+def sigabrt_handler(signum, frame):
+    raise KeyboardInterrupt()
 
 class cmd_qgetupdates(QBzrCommand):
     """Fetches external changes into the working tree"""
