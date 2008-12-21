@@ -641,14 +641,28 @@ class LogWindow(QBzrWindow):
 
     def show_diff_window(self, rev1, rev2, specific_files=None):
         if not rev2.parent_ids:
-            tree = rev1.repository.revision_tree(rev1.revision_id)
-            old_tree = rev1.repository.revision_tree(None)
+            rev1.repository.lock_read()
+            try:
+                tree = rev1.repository.revision_tree(rev1.revision_id)
+                old_tree = rev1.repository.revision_tree(None)
+            finally:
+                rev1.repository.unlock()
         elif rev1.repository.base == rev2.repository.base:
-            revs = [rev1.revision_id, rev2.parent_ids[0]]
-            tree, old_tree = rev1.repository.revision_trees(revs)
+            rev1.repository.lock_read()
+            try:
+                revs = [rev1.revision_id, rev2.parent_ids[0]]
+                tree, old_tree = rev1.repository.revision_trees(revs)
+            finally:
+                rev1.repository.unlock()
         else:
-            tree = rev1.repository.revision_tree(rev1.revision_id)
-            old_tree = rev2.repository.revision_tree(rev2.parent_ids[0])
+            rev1.repository.lock_read()
+            rev2.repository.lock_read()
+            try:
+                tree = rev1.repository.revision_tree(rev1.revision_id)
+                old_tree = rev2.repository.revision_tree(rev2.parent_ids[0])
+            finally:
+                rev1.repository.unlock()
+                rev2.repository.unlock()
         
         rev1_head_info = self.changesModel.revisionHeadInfo(rev1.revision_id)
         rev2_head_info = self.changesModel.revisionHeadInfo(rev2.revision_id)
