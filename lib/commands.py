@@ -460,10 +460,14 @@ class cmd_qpull(QBzrCommand):
                   remember=None, overwrite=None, revision=None, ui_mode=False):
         if directory is None:
             directory = u'.'
-        
-        branch, relpath = Branch.open_containing(directory)
+        try:
+            tree_to = WorkingTree.open_containing(directory)[0]
+            branch_to = tree_to.branch
+        except errors.NoWorkingTree:
+            tree_to = None
+            branch_to = Branch.open_containing(directory)[0]
         app = QtGui.QApplication(sys.argv)
-        window = QBzrPullWindow(branch, location,
+        window = QBzrPullWindow(branch_to, tree_to, location,
                                 remember=remember,
                                 overwrite=overwrite,
                                 revision=revision,
@@ -486,13 +490,17 @@ class cmd_qmerge(QBzrCommand):
                   remember=None, ui_mode=False):
         if directory is None:
             directory = u'.'
-        branch, relpath = Branch.open_containing(directory)
+        try:
+            tree_to = WorkingTree.open_containing(directory)[0]
+            branch_to = tree_to.branch
+        except errors.NoWorkingTree:
+            tree_to = None
+            branch_to = Branch.open_containing(directory)[0]
         app = QtGui.QApplication(sys.argv)
-        window = QBzrMergeWindow(branch, location, revision=revision,
+        window = QBzrMergeWindow(branch_to, tree_to, location, revision=revision,
                                  remember=remember, ui_mode=ui_mode)
         window.show()
         app.exec_()
-
 
 
 class cmd_qpush(QBzrCommand):

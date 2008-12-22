@@ -61,9 +61,10 @@ class QBzrPullWindow(SubProcessDialog):
 
     NAME = "pull"
 
-    def __init__(self, branch, location=None, revision=None, remember=None,
+    def __init__(self, branch, tree=None, location=None, revision=None, remember=None,
                  overwrite=None, ui_mode=True, parent=None):
         self.branch = branch
+        self.tree = tree
         super(QBzrPullWindow, self).__init__(name = self.NAME,
                                              ui_mode = ui_mode,
                                              parent = parent)
@@ -91,7 +92,11 @@ class QBzrPullWindow(SubProcessDialog):
                                 DIRECTORYPICKER_SOURCE)
 
     def start(self):
-        args = ['--directory', self.branch.base]
+        if self.tree:
+            dest = self.tree.basedir
+        else:
+            dest = self.branch.base
+        args = ['--directory', dest]
         if self.ui.overwrite.isChecked():
             args.append('--overwrite')
         if self.ui.remember.isChecked():
@@ -212,12 +217,13 @@ class QBzrMergeWindow(SubProcessDialog):
 
     NAME = "merge"
 
-    def __init__(self, branch, location=None, revision=None, remember=None,
+    def __init__(self, branch, tree=None, location=None, revision=None, remember=None,
                  ui_mode=True, parent=None):
         super(QBzrMergeWindow, self).__init__(name = self.NAME,
                                              ui_mode = ui_mode,
                                              parent = parent)
         self.branch = branch
+        self.tree = tree
         self.ui = Ui_MergeForm()
         self.setupUi(self.ui)
         # and add the subprocess widgets.
@@ -240,7 +246,11 @@ class QBzrMergeWindow(SubProcessDialog):
                                 DIRECTORYPICKER_SOURCE)
 
     def accept(self):
-        args = ['--directory', self.branch.base]
+        if self.tree:
+            dest = self.tree.basedir
+        else:
+            dest = self.branch.base
+        args = ['--directory', dest]
         if self.ui.remember.isChecked():
             args.append('--remember')
         location = str(self.ui.location.currentText())
