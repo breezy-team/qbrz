@@ -185,7 +185,9 @@ class QBzrGlobalConfig(IniBasedConfig):
         self._get_parser().write(f)
         f.close()
 
-
+class StopException(Exception):
+    pass
+    
 class _QBzrWindowBase:
     
     def set_title_and_icon(self, title=None):
@@ -200,6 +202,43 @@ class _QBzrWindowBase:
         icon.addFile(":/bzr-32.png", QtCore.QSize(32, 32))
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
+
+    def report_exception(self, exc_info=None):
+        """Report an exception.
+
+        The error is reported to the console using standard bzrlib.trace
+        functions.  If ui_mode is False, a message-box is also shown with
+        details of the error.  In all cases, the window is closed after the
+        error.
+        """
+        from cStringIO import StringIO
+        import traceback
+        from bzrlib.trace import report_exception
+
+        if exc_info is None:
+            exc_info = sys.exc_info()
+        
+        exc_type, exc_object, exc_tb = exc_info
+        
+        # Don't show error for StopException
+        if isinstance(exc_object, StopException):
+            # Do we maybe want to log this?
+            return
+        
+        # always tell bzr to report it, so it ends up in the log.        
+        report_exception(exc_info, sys.stderr)
+        if self.ui_mode:
+            # and a version for the messagebox.
+            exc_type, exc_object, exc_tb = exc_info
+            err_file = StringIO()
+            err_file.write("%s.%s: %s\n" % (
+                exc_type.__module__, exc_type.__name__, exc_object))
+            err_file.write('\n')
+
+            QtGui.QMessageBox.warning(self, gettext("Error"), err_file.getvalue())
+        # And the window is always closed (this might need rethinking later,
+        # but currently this is called only during the window load process...)
+        self.close()
 
     def create_button_box(self, *buttons):
         """Create and return button box with pseudo-standard buttons
@@ -285,6 +324,7 @@ class _QBzrWindowBase:
             self.splitter.setSizes(sizes)
 
     def closeEvent(self, event):
+        self.closing = True
         self.saveSize()
         for window in self.windows:
             if window.isVisible():
@@ -302,12 +342,17 @@ class _QBzrWindowBase:
             raise RuntimeError, "unknown scheme"
         from bzrlib.plugins.qbzr.lib.help import show_help
         show_help(link, self)
-
+    
+    def processEvents(self):
+        QtCore.QCoreApplication.processEvents()
+        if self.closing:
+            raise StopException()
 
 class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
 
-    def __init__(self, title=None, parent=None, centralwidget=None):
+    def __init__(self, title=None, parent=None, centralwidget=None, ui_mode=True):
         QtGui.QMainWindow.__init__(self, parent)
+        self.ui_mode = ui_mode
 
         self.set_title_and_icon(title)
 
@@ -316,16 +361,57 @@ class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
         self.centralwidget = centralwidget
         self.setCentralWidget(self.centralwidget)
         self.windows = []
-
+        self.closing = False
 
 class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
 
-    def __init__(self, title=None, parent=None):
+    def __init__(self, title=None, parent=None, ui_mode=True):
+        self.ui_mode = ui_mode
         QtGui.QDialog.__init__(self, parent)
         
         self.set_title_and_icon(title)
         
         self.windows = []
+        self.closing = False
+
+throber_movie = None
+
+class ThrobberWidget(QtGui.QWidget):
+    """A window that displays a simple throbber over its parent."""
+
+    def __init__(self, parent, timeout=500):
+        QtGui.QWidget.__init__(self, parent)
+        self.create_ui()
+        self.is_shown = False
+        
+        # create a timer that displays our window after the timeout.
+        #QtCore.QTimer.singleShot(timeout, self.show)
+
+    def create_ui(self):
+        # a couple of widgets
+        layout = QtGui.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        label = QtGui.QLabel("", self)
+        
+        global throber_movie
+        if not throber_movie:
+            throber_movie = QtGui.QMovie(":/16x16/process-working.gif")
+            throber_movie.start()
+        label.setMovie(throber_movie)
+        layout.addWidget(label)
+        layout.addWidget(QtGui.QLabel(gettext("Loading..."), self), 1)
+
+    def hide(self):
+        #if self.is_shown:
+            #QtGui.QApplication.restoreOverrideCursor()
+        self.is_shown = False
+        QtGui.QWidget.hide(self)
+
+    def show(self):
+        #QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        # and show ourselves.
+        QtGui.QWidget.show(self)
+        self.is_shown = True
 
 
 # Helpers for directory pickers.
@@ -760,3 +846,35 @@ def is_binary_content(lines):
         if '\x00' in s:
             return True
     return False
+
+class BackgroundJob():
+    
+    def __init__(self, parent):
+        self.is_running = False
+        self.stoping = False
+        self.parent = parent
+    
+    def run(self):
+        pass
+    
+    def run_wrapper(self):
+            try:
+                self.run()
+            except Exception:
+                self.parent.report_exception()
+            self.is_running = False
+    
+    def start(self, timeout=0):
+        if not self.is_running:
+            self.is_running = True
+            self.stoping = False
+            QtCore.QTimer.singleShot(timeout, self.run_wrapper)
+    
+    def stop(self):
+        self.stoping = True
+
+    def processEvents(self):
+        self.parent.processEvents()
+        if self.stoping:
+            self.stoping = False
+            raise StopException()

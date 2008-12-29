@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from time import (strftime, localtime)
+from time import (strftime, localtime, clock)
 from bzrlib import (lazy_regex, errors)
 from bzrlib.revision import NULL_REVISION
 from bzrlib.tsort import merge_sort
@@ -26,6 +26,7 @@ from bzrlib.graph import (Graph, _StackedParentsProvider)
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
+    BackgroundJob,
     )
 
 have_search = True 
@@ -78,7 +79,8 @@ except AttributeError:
 
 class GraphModel(QtCore.QAbstractTableModel):
 
-    def __init__(self, parent=None):
+    def __init__(self, process_events, report_exception,
+                 throbber_show, throbber_hide, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         
         self.horizontalHeaderLabels = [gettext("Rev"),
@@ -94,12 +96,18 @@ class GraphModel(QtCore.QAbstractTableModel):
         self.searchMode = False
         self.touches_file_msri = None
         self.msri_index = {}
-        self.closing = False
         self.stop_revision_loading = False
-    
+        self.processEvents = process_events
+        self.report_exception = report_exception
+        self.throbber_show = throbber_show
+        self.throbber_hide = throbber_hide
+        self.queue = []
+        
+        self.load_queued_revisions = LoadQueuedRevisions(self)
+        self.load_all_revisions = LoadAllRevisions(self)
+   
     def setGraphFilterProxyModel(self, graphFilterProxyModel):
         self.graphFilterProxyModel = graphFilterProxyModel
-    
     
     def loadBranch(self, branches, heads, specific_fileids = []):
         self.heads = heads
@@ -143,7 +151,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                     self.graph_children.setdefault(parent, []).append(revid)
                 self.graph_children.setdefault(revid, [])
                 if len(self.graph_parents) % 100 == 0 :
-                    QtCore.QCoreApplication.processEvents()
+                    self.processEvents()
             for ghost in ghosts:
                 for ghost_child in self.graph_children[ghost]:
                     self.graph_parents[ghost_child] = [p for p in self.graph_parents[ghost_child]
@@ -287,7 +295,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                             self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                                       index,index)
                         
-                        QtCore.QCoreApplication.processEvents()
+                        self.processEvents()
                     
                 else:
                     weave_modifed_revisions = set()
@@ -300,11 +308,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                             self.graphFilterProxyModel.invalidateCacheRow(rev_msri)
             
             self.compute_lines()
-            QtCore.QCoreApplication.processEvents()
-            
-            self._nextRevisionToLoadGen = self._nextRevisionToLoad()
-            self.stop_revision_loading = False
-            self._loadNextRevision()
+            if len(self.merge_sorted_revisions) == 0:
+                self.throbber_hide()
         finally:
             for branch in self.branches:
                 branch.unlock()
@@ -749,7 +754,7 @@ class GraphModel(QtCore.QAbstractTableModel):
         
     def ensure_rev_visible(self, revid):
         if self.searchMode:
-            return
+            return # Why??
         rev_msri = self.revid_msri[revid]
         branch_id = self.merge_sorted_revisions[rev_msri][3][0:-1]
         has_change = self._set_branch_visible(branch_id, True, False)
@@ -762,7 +767,10 @@ class GraphModel(QtCore.QAbstractTableModel):
     def set_search_mode(self, searchMode):
         if not searchMode == self.searchMode:
             self.searchMode = searchMode
-            self._nextRevisionToLoadGen = self._nextRevisionToLoad()
+            if self.searchMode:
+                self.load_all_revisions.start()
+            else:
+                self.load_all_revisions.stop()
     
     def columnCount(self, parent):
         if parent.isValid():
@@ -825,14 +833,14 @@ class GraphModel(QtCore.QAbstractTableModel):
         if role == RevIdRole or role == FilterIdRole:
             return QtCore.QVariant(revid)
         
-        if role == FilterMessageRole or role == FilterAuthorRole:
-            if revid not in self.revisions:
-                return QtCore.QVariant()
-        
         #Everything from here foward will need to have the revision loaded.
         if not revid or revid == NULL_REVISION:
             return QtCore.QVariant()
-        revision = self._revision(revid)
+        
+        revision = self.revision_if_availible_else_queue(revid)
+        
+        if not revision:
+            return QtCore.QVariant()
         
         if role == QtCore.Qt.DisplayRole and index.column() == COL_DATE:
             return QtCore.QVariant(strftime("%Y-%m-%d %H:%M",
@@ -882,14 +890,17 @@ class GraphModel(QtCore.QAbstractTableModel):
                 except errors.NoSuchRevision:
                     pass
             
-            self.revisions[revid] = revision
-            revno_sequence = self.merge_sorted_revisions[self.revid_msri[revid]][3]
-            revision.revno = ".".join(["%d" % (revno)
-                                      for revno in revno_sequence])
-            revision.tags = sorted(self.tags.get(revision.revision_id, []))
+            self.post_revision_load(revision)
         else:
             revision = self.revisions[revid]
         return revision
+    
+    def post_revision_load(self, revision):
+        self.revisions[revision.revision_id] = revision
+        revno_sequence = self.merge_sorted_revisions[self.revid_msri[revision.revision_id]][3]
+        revision.revno = ".".join(["%d" % (revno)
+                                  for revno in revno_sequence])
+        revision.tags = sorted(self.tags.get(revision.revision_id, []))
     
     def revision(self, revid):
         revision = self._revision(revid)
@@ -898,75 +909,20 @@ class GraphModel(QtCore.QAbstractTableModel):
         if not hasattr(revision, 'children'):
             revision.children = [self._revision(i) for i in self.graph_children[revid]]
         return revision
-    
-    def _loadNextRevision(self):
-        if self.stop_revision_loading:
-            self.stop_revision_loading = False
-            return
-        try:
-            if self.searchMode:
-                def notifyChanges(revisionsChanged):
-                    if self.closing: return
-                    for revid in revisionsChanged:
-                        index = self.indexFromRevId(revid)
-                        self.graphFilterProxyModel.invalidateCacheRow(index.row())
-                        self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                                  index,index)
-                    revisionsChanged = []
-                    QtCore.QCoreApplication.processEvents()
-                    self.compute_lines()
-                
-                notify_on_count = 10
-                revisionsChanged = []
-                try:
-                    for repo in self.repos.itervalues():
-                        repo.lock_read()
-                    try:
-                        while self.searchMode and not self.closing:
-                            nextRevId = self._nextRevisionToLoadGen.next()
-                            self._revision(nextRevId)
-                            revisionsChanged.append(nextRevId)
-                            QtCore.QCoreApplication.processEvents()
-                            if len(revisionsChanged) >= notify_on_count:
-                                notifyChanges(revisionsChanged)
-                                notify_on_count = max(notify_on_count * 2, 200)
-                    finally:
-                        for repo in self.repos.itervalues():
-                            repo.unlock()
-                except StopIteration, se:
-                    self.graphFilterProxyModel.invalidateCache()
-                    notifyChanges(revisionsChanged)
-                    raise se
-            else:
-                nextRevId = self._nextRevisionToLoadGen.next()
-                self._revision(nextRevId)
-            QtCore.QTimer.singleShot(5, self._loadNextRevision)
-        except StopIteration:
-            pass
-    
-    def _nextRevisionToLoad(self):
-        if not self.searchMode:
-            for (msri, node, lines,
-                 twisty_state, twisty_branch_ids) in self.linegraphdata:
-                revid = self.merge_sorted_revisions[msri][1]
-                if revid not in self.revisions:
-                    yield revid
-        if self.touches_file_msri is not None:
-            for msri in self.touches_file_msri :
-                revid = self.merge_sorted_revisions[msri][1]
-                if revid not in self.revisions:
-                    yield revid
-        else:
-            for (sequence_number,
-                 revid,
-                 merge_depth,
-                 revno_sequence,
-                 end_of_merge) in self.merge_sorted_revisions:
-                if revid not in self.revisions:
-                    yield revid
 
-    def indexFromRevId(self, revid):
+    def revision_if_availible_else_queue(self, revid):
+        if revid not in self.revisions:
+            if revid not in self.queue:
+                self.queue.append(revid)
+                self.load_queued_revisions.start()
+            return None
+        return self._revision(revid)
+
+    def indexFromRevId(self, revid, columns=None):
         msri = self.revid_msri[revid]
+        if columns:
+            return [self.createIndex (msri, column, QtCore.QModelIndex())\
+                    for column in columns]
         return self.createIndex (msri, 0, QtCore.QModelIndex())
     
     def findChildBranchMergeRevision (self, revid):
@@ -983,6 +939,103 @@ class GraphModel(QtCore.QAbstractTableModel):
         else:
             head_revid = self.start_revs[0]
         return self.heads[head_revid][1]
+    
+class LoadRevisionsBase(BackgroundJob):
+    throbber_time = 0.5
+
+    def run(self):
+        self.update_time = self.update_time_initial
+        self.start_time = clock()
+        self.last_update = clock()
+        self.revisions_loaded = []
+        
+        for repo in self.parent.repos.itervalues():
+            repo.lock_read()
+        try:
+            revision_ids = []
+            for revid in self.revision_generator():
+                if revid not in self.parent.revisions:
+                    revision_ids.append(revid)
+                if len(revision_ids)>50:
+                    self.load_revisions(revision_ids)
+            self.load_revisions(revision_ids)
+            self.notifyChanges()
+        finally:
+            for repo in self.parent.repos.itervalues():
+                repo.unlock()
+            self.parent.throbber_hide()
+    
+    def load_revisions(self, revision_ids):
+        for repo in self.parent.repos.itervalues():
+            keys = [(key,) for key in revision_ids]
+            stream = repo.revisions.get_record_stream(keys, 'unordered', True)
+            self.processEvents()
+            for record in stream:
+                if not record.storage_kind == 'absent':
+                    revision_ids.remove(record.key[0])
+                    self.revisions_loaded.append(record.key[0])
+                    text = record.get_bytes_as('fulltext')
+                    rev = repo._serializer.read_revision_from_string(text)
+                    rev.repository = repo
+                    self.parent.post_revision_load(rev)
+                    self.processEvents()
+                
+                current_time = clock()
+                if self.throbber_time < current_time - self.start_time:
+                    self.parent.throbber_show()
+                
+                if self.update_time < current_time - self.last_update:
+                    self.notifyChanges()
+                    self.update_time = max(self.update_time + self.update_time_increment,
+                                           self.update_time_max)
+                    self.processEvents()
+                    self.last_update = clock()
+        
+        
+        # This should never happen
+        if len(revision_ids) > 0 :
+            raise errors.NoSuchRevision(self, revision_ids[0])
+    
+    def notifyChanges(self):
+        for revid in self.revisions_loaded:
+            indexes = self.parent.indexFromRevId(revid, (COL_MESSAGE, COL_AUTHOR))
+            self.parent.graphFilterProxyModel.invalidateCacheRow(indexes[0].row())
+            self.parent.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                      indexes[0], indexes[1])
+        revisionsChanged = []
+
+class LoadQueuedRevisions(LoadRevisionsBase):
+    update_time_initial = 0.05
+    update_time_increment = 0
+    update_time_max = 0.05
+    
+    def revision_generator(self):
+        while len(self.parent.queue):
+            yield self.parent.queue.pop(0)
+
+    def notifyChanges(self):
+        # Clear the queue
+        self.parent.queue = self.parent.queue[0:1]
+        LoadRevisionsBase.notifyChanges(self)
+
+    
+class LoadAllRevisions(LoadRevisionsBase):
+    update_time_initial = 1
+    update_time_increment = 5
+    update_time_max = 20
+
+    def revision_generator(self):
+        for (sequence_number,
+             revid,
+             merge_depth,
+             revno_sequence,
+             end_of_merge) in self.parent.merge_sorted_revisions:
+            yield revid
+
+    def notifyChanges(self):
+        LoadRevisionsBase.notifyChanges(self)
+        self.parent.compute_lines()
+    
     
 class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
     def __init__(self, parent = None):
@@ -1086,6 +1139,14 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
             return revid in self.search_matching_revid
         
         if self.filter_str:
-            return QtGui.QSortFilterProxyModel.filterAcceptsRow(self, source_row, source_parent)
+            (sequence_number,
+             revid,
+             merge_depth,
+             revno_sequence,
+             end_of_merge) = sm.merge_sorted_revisions[source_row]
+            if revid in sm.revisions:
+                return QtGui.QSortFilterProxyModel.filterAcceptsRow(self, source_row, source_parent)
+            else:
+                return False
         
         return True
