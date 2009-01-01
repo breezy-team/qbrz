@@ -605,9 +605,9 @@ class SimpleDiffView(QtGui.QTextBrowser):
                 dates[i] = EPOCH_DATE
         
         if not binary:
-            self.cursor.insertText('--- %s %s\n' % (paths[0], dates[0]),
+            self.cursor.insertText('--- %s\t%s\n' % (paths[0], dates[0]),
                                       self.monospacedBoldInsertFormat)
-            self.cursor.insertText('+++ %s %s\n' % (paths[1], dates[1]),
+            self.cursor.insertText('+++ %s\t%s\n' % (paths[1], dates[1]),
                                    self.monospacedBoldDeleteFormat)
 
             def fix_last_line(lines):
