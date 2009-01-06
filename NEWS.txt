@@ -11,6 +11,7 @@
    * Short option name for --deleted changed from -D to -K.
    * If there is no changes in the tree or specified file list (file group)
      then show info box with "No changes found" message (#295767).
+ * New translations added: Hebrew, Polish.
 
 
 0.9.5 - 2008-11-03
