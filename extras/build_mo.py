@@ -20,9 +20,11 @@
 
 """build_mo command for setup.py"""
 
+from distutils import log
 from distutils.command.build import build
 from distutils.core import Command
 from distutils.dep_util import newer
+from distutils.spawn import find_executable
 import os
 import re
 
@@ -75,6 +77,11 @@ class build_mo(Command):
         if not self.lang:
             return
 
+        if find_executable('msgfmt') is None:
+            log.warn("GNU gettext msgfmt utility not found!")
+            log.warn("Skip compiling po files.")
+            return
+
         basename = self.output_base
         if not basename.endswith('.mo'):
             basename += '.mo'
@@ -87,7 +94,7 @@ class build_mo(Command):
             self.mkpath(dir_)
             mo = os.path.join(dir_, basename)
             if self.force or newer(po, mo):
-                print 'Compile: %s -> %s' % (po, mo)
+                log.info('Compile: %s -> %s' % (po, mo))
                 self.spawn(['msgfmt', '-o', mo, po])
 
 
