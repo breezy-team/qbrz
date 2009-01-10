@@ -1,6 +1,16 @@
-0.9.6 - in development
+0.9.6 - 2009-01-10
 ----------------------
+New features in this release: throbber, interactive password prompt,
+post_uncommit hook, new bug-url command. Dozen of bugs fixed as well.
 
+ * Add post_uncommit hook to remember the uncomitted commit message.
+ * Add interactive prompt for password if access to the branch require it.
+ * Add throbber feature: user will see message "Loading..." and animation
+   when there is long operation in progress to indicate that qbzr window
+   is not hang.
+ * Command-line interface to QBzr commands now is much closer to
+   coresponding commands in bzr itself. Where possible commands
+   options are reused from bzr. (#272359)
  * qcommit:
    * Commit without message is forbidden (#297606).
    * If no files selected to commit then user will be asked
@@ -11,6 +21,12 @@
    * Short option name for --deleted changed from -D to -K.
    * If there is no changes in the tree or specified file list (file group)
      then show info box with "No changes found" message (#295767).
+   * Unidiff produce valid headers. (#308095)
+ * qlog: multiple improvements for showing common log of multiple branches.
+ * qpull and qmerge in lightweight checkouts now working for the tree, 
+   not for the master branch. (#310314)
+ * New command bug-url (console only) can show you full URL to bug number
+   and optionally open this URL in your browser.
  * New translations added: Hebrew, Polish.
 
 
@@ -33,7 +49,7 @@ please uninstall or remove old files first.
 0.9.4 - 2008-09-20
 ----------------------
 This release provide many new features and new commands,
-and many improvements and bugfixes to exisitng commands.
+and many improvements and bugfixes to existing commands.
 
 New commands, similar to standard bzr commands:
  qadd, qinfo, qinit, qmerge and qrevert
