@@ -1,3 +1,7 @@
+0.9.7 - in development
+----------------------
+
+
 0.9.6 - 2009-01-10
 ----------------------
 New features in this release: throbber, interactive password prompt,
