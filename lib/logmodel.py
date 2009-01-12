@@ -123,6 +123,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                     self.local_repos.append(branch.repository)
                 else:
                     self.remote_repos.append(branch.repository)
+                branch.repository.lock_read()
         
         for branch in self.branches:
             branch.lock_read()
@@ -315,7 +316,8 @@ class GraphModel(QtCore.QAbstractTableModel):
                             self.graphFilterProxyModel.invalidateCacheRow(rev_msri)
             
             self.compute_lines()
-            if len(self.queue) == 0:
+            self.processEvents()
+            if not self.load_queued_revisions.is_running:
                 self.throbber_hide()
         finally:
             for branch in self.branches:
@@ -932,7 +934,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                 
                 #revision not in local repo. Queue to load from remote.
                 self.queue.append(revid)
-                self.load_queued_revisions.start()
+                self.load_queued_revisions.start(3)
             return None
         return self._revision(revid)
 
@@ -967,20 +969,16 @@ class LoadRevisionsBase(BackgroundJob):
         self.last_update = clock()
         self.revisions_loaded = []
         
-        for repo in self.parent.repos.itervalues():
-            repo.lock_read()
         try:
             revision_ids = []
             for revid in self.revision_generator():
                 if revid not in self.parent.revisions:
                     revision_ids.append(revid)
-                if len(revision_ids)>50:
+                if len(revision_ids)>self.batch_size:
                     self.load_revisions(revision_ids)
             self.load_revisions(revision_ids)
             self.notifyChanges()
         finally:
-            for repo in self.parent.repos.itervalues():
-                repo.unlock()
             self.parent.throbber_hide()
     
     def load_revisions(self, revision_ids):
@@ -1027,6 +1025,8 @@ class LoadQueuedRevisions(LoadRevisionsBase):
     update_time_increment = 0
     update_time_max = 0.05
     
+    batch_size = 5
+    
     def revision_generator(self):
         while len(self.parent.queue):
             yield self.parent.queue.pop(0)
@@ -1041,6 +1041,8 @@ class LoadAllRevisions(LoadRevisionsBase):
     update_time_initial = 1
     update_time_increment = 5
     update_time_max = 20
+    
+    batch_size = 50
 
     def revision_generator(self):
         for (sequence_number,
