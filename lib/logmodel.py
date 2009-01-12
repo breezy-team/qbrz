@@ -20,6 +20,7 @@
 from PyQt4 import QtCore, QtGui
 from time import (strftime, localtime, clock)
 from bzrlib import (lazy_regex, errors)
+from bzrlib.transport.local import LocalTransport
 from bzrlib.revision import NULL_REVISION
 from bzrlib.tsort import merge_sort
 from bzrlib.graph import (Graph, _StackedParentsProvider)
@@ -113,9 +114,15 @@ class GraphModel(QtCore.QAbstractTableModel):
         self.heads = heads
         self.branches = branches
         self.repos = {}
+        self.local_repos = []
+        self.remote_repos = []
         for branch in self.branches:
             if branch.repository.base not in self.repos:
                 self.repos[branch.repository.base] = branch.repository
+                if isinstance(branch.repository.bzrdir.transport, LocalTransport):
+                    self.local_repos.append(branch.repository)
+                else:
+                    self.remote_repos.append(branch.repository)
         
         for branch in self.branches:
             branch.lock_read()
@@ -308,7 +315,7 @@ class GraphModel(QtCore.QAbstractTableModel):
                             self.graphFilterProxyModel.invalidateCacheRow(rev_msri)
             
             self.compute_lines()
-            if len(self.merge_sorted_revisions) == 0:
+            if len(self.queue) == 0:
                 self.throbber_hide()
         finally:
             for branch in self.branches:
@@ -913,6 +920,17 @@ class GraphModel(QtCore.QAbstractTableModel):
     def revision_if_availible_else_queue(self, revid):
         if revid not in self.revisions:
             if revid not in self.queue:
+                # Try load from local branches
+                for repo in self.local_repos:
+                    try:
+                        revision = repo.get_revisions([revid])[0]
+                        revision.repository = repo
+                        self.post_revision_load(revision)
+                        return revision
+                    except errors.NoSuchRevision:
+                        pass
+                
+                #revision not in local repo. Queue to load from remote.
                 self.queue.append(revid)
                 self.load_queued_revisions.start()
             return None
