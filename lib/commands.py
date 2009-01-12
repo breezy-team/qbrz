@@ -19,10 +19,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import sys
-from bzrlib import errors
+from bzrlib import errors, ui
 from bzrlib.option import Option
 from bzrlib.commands import Command, register_command, get_cmd_object
 import bzrlib.builtins
+import bzrlib.ui.text # make sure ui.text is available
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
@@ -34,8 +35,6 @@ from bzrlib import (
     commands,
     osutils,
     progress,
-    ui,
-    ui.text,
     )
 from bzrlib.util import bencode
 from bzrlib.branch import Branch
