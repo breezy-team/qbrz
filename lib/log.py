@@ -566,6 +566,7 @@ class LogWindow(QBzrWindow):
         self.changesList.setFocus()
 
     def load_locations(self):
+        self.changesModel.unlock()
         (self.branches,
          self.heads,
          specific_fileids) = load_locations(self.locations, self.processEvents)
@@ -829,6 +830,10 @@ class LogWindow(QBzrWindow):
             else:
                 suggestions = self.suggestion_letters_loaded[first_letter]
             self.completer_model.setStringList(suggestions)
+    
+    def closeEvent (self, QCloseEvent):
+        QBzrWindow.closeEvent(self, QCloseEvent)
+        self.changesModel.unlock()
     
     def updateSearchType(self, index=None):
         self.update_search()
