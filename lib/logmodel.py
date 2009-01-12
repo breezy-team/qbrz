@@ -103,6 +103,7 @@ class GraphModel(QtCore.QAbstractTableModel):
         self.throbber_show = throbber_show
         self.throbber_hide = throbber_hide
         self.queue = []
+        self.repos = {}
         
         self.load_queued_revisions = LoadQueuedRevisions(self)
         self.load_all_revisions = LoadAllRevisions(self)
@@ -960,6 +961,10 @@ class GraphModel(QtCore.QAbstractTableModel):
             head_revid = self.start_revs[0]
         return self.heads[head_revid][1]
     
+    def unlock(self):
+        for repo in self.repos.itervalues(): 
+            repo.unlock()
+
 class LoadRevisionsBase(BackgroundJob):
     throbber_time = 0.5
 
