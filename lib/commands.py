@@ -19,10 +19,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import sys
-from bzrlib import errors
+from bzrlib import errors, ui
 from bzrlib.option import Option
 from bzrlib.commands import Command, register_command, get_cmd_object
 import bzrlib.builtins
+import bzrlib.ui.text # make sure ui.text is available
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
@@ -34,8 +35,6 @@ from bzrlib import (
     commands,
     osutils,
     progress,
-    ui,
-    ui.text,
     )
 from bzrlib.util import bencode
 from bzrlib.branch import Branch
@@ -666,7 +665,7 @@ class cmd_qbzr(QBzrCommand):
         app.exec_()
 
 
-class SubprocessGUIFactory(ui.text.TextUIFactory):
+class SubprocessGUIFactory(bzrlib.ui.text.TextUIFactory):
 
     def __init__(self):
         super(SubprocessGUIFactory, self).__init__(SubprocessProgress)
@@ -695,8 +694,10 @@ class cmd_qsubprocess(Command):
         argv = [p.decode('utf8') for p in shlex.split(cmd.encode('utf8'))]
         commands.run_bzr(argv)
 
+
 def sigabrt_handler(signum, frame):
     raise KeyboardInterrupt()
+
 
 class cmd_qgetupdates(QBzrCommand):
     """Fetches external changes into the working tree"""
@@ -706,7 +707,6 @@ class cmd_qgetupdates(QBzrCommand):
     aliases = ['qgetu']
 
     def _qbzr_run(self, location=".", ui_mode=False):
-
         branch, relpath = Branch.open_containing(location)
         app = QtGui.QApplication(sys.argv)
         if branch.get_bound_location():
@@ -716,6 +716,7 @@ class cmd_qgetupdates(QBzrCommand):
 
         window.show()
         app.exec_()
+
 
 class cmd_qgetnew(QBzrCommand):
     """Creates a new working tree (either a checkout or full branch)"""
@@ -729,6 +730,7 @@ class cmd_qgetnew(QBzrCommand):
         window = GetNewWorkingTreeWindow(location, ui_mode=ui_mode)
         window.show()
         app.exec_()
+
 
 class cmd_qhelp(QBzrCommand):
     """Shows a help window"""
