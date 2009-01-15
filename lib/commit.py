@@ -443,14 +443,18 @@ class CommitWindow(SubProcessWindow):
             self.message.setText(message)
 
     def save_message(self):
-        message = unicode(self.message.toPlainText())
-        config = self.tree.branch.get_config()
-        if message.strip():
-            config.set_user_option('qbzr_commit_message', message)
+        if self.tree.branch.control_files.get_physical_lock_status():
+            from bzrlib.trace import warning
+            warning("Cannot save commit message because the branch is locked.")
         else:
-            if config.get_user_option('qbzr_commit_message'):
-                # FIXME this should delete the config entry, not just set it to ''
-                config.set_user_option('qbzr_commit_message', '')
+            message = unicode(self.message.toPlainText())
+            config = self.tree.branch.get_config()
+            if message.strip():
+                config.set_user_option('qbzr_commit_message', message)
+            else:
+                if config.get_user_option('qbzr_commit_message'):
+                    # FIXME this should delete the config entry, not just set it to ''
+                    config.set_user_option('qbzr_commit_message', '')
 
     def clear_saved_message(self):
         config = self.tree.branch.get_config()
