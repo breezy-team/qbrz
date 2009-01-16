@@ -24,7 +24,7 @@ import os, signal
 from PyQt4 import QtCore, QtGui
 
 from bzrlib import osutils, progress
-from bzrlib.ui.text import TextUIFactory
+from bzrlib.ui import text
 from bzrlib.util import bencode
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
@@ -388,7 +388,10 @@ class SubProcessWidget(QtGui.QWidget):
         if progress == 1000000 and not messages:
             text = gettext("Finished!")
         else:
-            text = " / ".join(messages)
+            if isinstance(messages, unicode):
+                text = messages
+            else:
+                text = " / ".join(messages)
         self.progressMessage.setText(text)
     
     def readStdout(self):
@@ -447,6 +450,7 @@ class SubProcessWidget(QtGui.QWidget):
                 self._start_next()
             else:
                 self.finished = True
+                self.setProgress(1000000, [gettext("Finished!")])
                 self.emit(QtCore.SIGNAL("finished()"))
         else:
             self.setProgress(1000000, [gettext("Failed!")])
@@ -512,10 +516,34 @@ class SubprocessProgress(SubprocessChildProgress):
     def finished(self):
         self._report(1.0)
 
-class SubprocessUIFactory(TextUIFactory):
+class SubprocessUIFactory(text.TextUIFactory):
 
     def __init__(self):
-        super(SubprocessUIFactory, self).__init__(SubprocessProgress)
+        if getattr(text, 'TextProgressView', None) is None:
+            # This is to be compatible with bzr < rev 3940
+            super(SubprocessUIFactory, self).__init__(SubprocessProgress)
+        else:
+            # This is the new way
+            super(SubprocessUIFactory, self).__init__()
+            
+            self._progress_view._repaint = self.progress_view_repaint
+
+    def progress_view_repaint(self):
+        pv = self._progress_view
+        if pv._last_task:
+            task_msg = pv._format_task(pv._last_task)
+            progress = int(pv._last_task._overall_completion_fraction() * 1000000)
+        else:
+            task_msg = ''
+            progress = 0
+        
+        trans = pv._last_transport_msg
+        if trans and task_msg:
+            trans += ' | '
+        
+        sys.stdout.write('qbzr:PROGRESS:' + bencode.bencode((progress,
+                         trans + task_msg)) + '\n')
+        sys.stdout.flush()
 
     def get_password(self, prompt='', **kwargs):
         from bzrlib.util import bencode
