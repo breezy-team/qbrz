@@ -3,6 +3,7 @@
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2006 Lukáš Lalinský <lalinsky@gmail.com>
 # Copyright (C) 2008 Alexander Belchenko
+# Copyright (C) 2008, 2009 QBzr Developers <qbzr@googlegroups.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,6 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import os
 import sys
 from bzrlib import errors, ui
 from bzrlib.option import Option
@@ -27,9 +29,10 @@ import bzrlib.ui.text # make sure ui.text is available
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
+import signal, shlex, thread
+
 from PyQt4 import QtGui, QtCore
-import shlex
-import signal, exceptions
+
 from bzrlib import (
     builtins,
     commands,
@@ -71,6 +74,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     is_valid_encoding,
     )
 ''')
+
+from bzrlib.plugins.qbzr.lib import MS_WINDOWS
 
 
 class InvalidEncodingOption(errors.BzrError):
@@ -493,7 +498,6 @@ class cmd_qpull(QBzrCommand):
         app.exec_()
 
 
-
 class cmd_qmerge(QBzrCommand):
     """Perform a three-way merge."""
 
@@ -688,8 +692,22 @@ class cmd_qsubprocess(Command):
     takes_args = ['cmd']
     hidden = True
 
+    if MS_WINDOWS:
+        def __win32_ctrl_c(self):
+            import win32event
+            from bzrlib.plugins.qbzr.lib.subprocess import get_event_name
+            ev = win32event.CreateEvent(None, 0, 0, get_event_name(os.getpid()))
+            try:
+                win32event.WaitForSingleObject(ev, win32event.INFINITE)
+            finally:
+                ev.Close()
+            thread.interrupt_main()
+
     def run(self, cmd):
-        signal.signal(signal.SIGINT, sigabrt_handler)
+        if MS_WINDOWS:
+            thread.start_new_thread(self.__win32_ctrl_c, ())
+        else:
+            signal.signal(signal.SIGINT, sigabrt_handler)
         ui.ui_factory = SubprocessGUIFactory()
         argv = [p.decode('utf8') for p in shlex.split(cmd.encode('utf8'))]
         commands.run_bzr(argv)
