@@ -804,6 +804,9 @@ class LogWindow(QBzrWindow):
                     self.changesList.setCurrentIndex(index)
             else:
                 self.changesProxyModel.setFilter(self.search_edit.text(), role)
+            
+            self.changesList.scrollTo(self.changesList.currentIndex())
+            # Scroll to ensure the selection is on screen.
         except Exception:
             self.report_exception()
     
