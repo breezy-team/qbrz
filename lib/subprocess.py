@@ -24,6 +24,7 @@ import os, signal
 from PyQt4 import QtCore, QtGui
 
 from bzrlib import osutils, progress
+from bzrlib.ui.text import TextUIFactory
 from bzrlib.util import bencode
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
@@ -510,3 +511,20 @@ class SubprocessProgress(SubprocessChildProgress):
 
     def finished(self):
         self._report(1.0)
+
+class SubprocessUIFactory(TextUIFactory):
+
+    def __init__(self):
+        super(SubprocessUIFactory, self).__init__(SubprocessProgress)
+
+    def get_password(self, prompt='', **kwargs):
+        from bzrlib.util import bencode
+        prompt = prompt % kwargs
+        self.stdout.write('qbzr:GETPASS:' + bencode.bencode(prompt.encode('utf-8')) + '\n')
+        self.stdout.flush()
+        line = self.stdin.readline()
+        if line.startswith('qbzr:GETPASS:'):
+            passwd, accepted = bencode.bdecode(line[13:].rstrip('\r\n'))
+            if accepted:
+                return passwd
+        return ''

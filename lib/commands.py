@@ -23,7 +23,6 @@ from bzrlib import errors, ui
 from bzrlib.option import Option
 from bzrlib.commands import Command, register_command, get_cmd_object
 import bzrlib.builtins
-import bzrlib.ui.text # make sure ui.text is available
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
@@ -63,7 +62,7 @@ from bzrlib.plugins.qbzr.lib.pull import (
     QBzrMergeWindow,
     )
 from bzrlib.plugins.qbzr.lib.revert import RevertWindow
-from bzrlib.plugins.qbzr.lib.subprocess import SubprocessProgress
+from bzrlib.plugins.qbzr.lib.subprocess import SubprocessUIFactory
 from bzrlib.plugins.qbzr.lib.tag import TagWindow
 from bzrlib.plugins.qbzr.lib.util import (
     FilterOptions,
@@ -664,25 +663,6 @@ class cmd_qbzr(QBzrCommand):
         window.show()
         app.exec_()
 
-
-class SubprocessGUIFactory(bzrlib.ui.text.TextUIFactory):
-
-    def __init__(self):
-        super(SubprocessGUIFactory, self).__init__(SubprocessProgress)
-
-    def get_password(self, prompt='', **kwargs):
-        from bzrlib.util import bencode
-        prompt = prompt % kwargs
-        self.stdout.write('qbzr:GETPASS:' + bencode.bencode(prompt.encode('utf-8')) + '\n')
-        self.stdout.flush()
-        line = self.stdin.readline()
-        if line.startswith('qbzr:GETPASS:'):
-            passwd, accepted = bencode.bdecode(line[13:].rstrip('\r\n'))
-            if accepted:
-                return passwd
-        return ''
-
-
 class cmd_qsubprocess(Command):
 
     takes_args = ['cmd']
@@ -690,7 +670,7 @@ class cmd_qsubprocess(Command):
 
     def run(self, cmd):
         signal.signal(signal.SIGINT, sigabrt_handler)
-        ui.ui_factory = SubprocessGUIFactory()
+        ui.ui_factory = SubprocessUIFactory()
         argv = [p.decode('utf8') for p in shlex.split(cmd.encode('utf8'))]
         commands.run_bzr(argv)
 
