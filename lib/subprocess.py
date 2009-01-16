@@ -26,6 +26,7 @@ from PyQt4 import QtCore, QtGui
 from bzrlib import osutils, progress
 from bzrlib.util import bencode
 
+from bzrlib.plugins.qbzr.lib import MS_WINDOWS
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
@@ -367,8 +368,15 @@ class SubProcessWidget(QtGui.QWidget):
         if self.is_running():
             if not self.aborting:
                 self.aborting = True
-                # be nice and try to use ^C
-                os.kill(self.process.pid(), signal.SIGINT) 
+                if MS_WINDOWS:
+                    self.process.kill()     # this uses TerminateProcess under the hood. not very nice :-/
+                else:
+                    # be nice and try to use ^C
+                    # [bialix] following code may be wrong:
+                    # because self.process.pid() returns sip.voidptr as result
+                    # at least it should be casted to int
+                    # but even in this case it provides different value than os.getpid() @ win32
+                    os.kill(self.process.pid(), signal.SIGINT) 
                 self.setProgress(None, [gettext("Aborting...")])
             else:
                 self.process.terminate()

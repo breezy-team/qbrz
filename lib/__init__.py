@@ -23,3 +23,7 @@ import os, sys
 if hasattr(sys, "frozen"):
     # Add our required extra libraries for the standalone bzr.exe to path
     sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '_lib')))
+
+
+# Special constant
+MS_WINDOWS = (sys.platform == 'win32')
