@@ -372,10 +372,6 @@ class SubProcessWidget(QtGui.QWidget):
                     self.process.kill()     # this uses TerminateProcess under the hood. not very nice :-/
                 else:
                     # be nice and try to use ^C
-                    # [bialix] following code may be wrong:
-                    # because self.process.pid() returns sip.voidptr as result
-                    # at least it should be casted to int
-                    # but even in this case it provides different value than os.getpid() @ win32
                     os.kill(self.process.pid(), signal.SIGINT) 
                 self.setProgress(None, [gettext("Aborting...")])
             else:
