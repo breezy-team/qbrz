@@ -708,6 +708,13 @@ class cmd_qsubprocess(Command):
         else:
             signal.signal(signal.SIGINT, sigabrt_handler)
         ui.ui_factory = SubprocessGUIFactory()
+        if cmd.startswith('@'):
+            fname = cmd[1:]
+            f = open(fname, 'rb')
+            try:
+                cmd = f.read()
+            finally:
+                f.close()
         argv = [p.decode('utf8') for p in shlex.split(cmd.encode('utf8'))]
         commands.run_bzr(argv)
 

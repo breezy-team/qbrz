@@ -20,8 +20,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import codecs
+import os
+import signal
 import sys
-import os, signal
+import tempfile
+
 from PyQt4 import QtCore, QtGui
 
 from bzrlib import osutils, progress
@@ -326,6 +329,8 @@ class SubProcessWidget(QtGui.QWidget):
         if hide_progress:
             self.hide_progress()
 
+        self._args_file = None  # temp file to pass arguments to qsubprocess
+
     def hide_progress(self):
         self.progressMessage.setHidden(True)
         self.progressBar.setHidden(True)
@@ -345,11 +350,19 @@ class SubProcessWidget(QtGui.QWidget):
         self._start_next()
     
     def _start_next(self):
+        self._delete_args_file()
         dir, args = self.commands.pop(0)
         args = ' '.join('"%s"' % a.replace('"', '\\"') for a in args)
+        if MS_WINDOWS:
+            # win32 has command-line length limit about 32K
+            if len(args) > 31000:
+                # save the args to the file
+                fname = self._create_args_file(args)
+                args = "@" + fname.replace('\\', '/')
+
         if dir is None:
             dir = self.defaultWorkingDir
-        
+
         self.process.setWorkingDirectory (dir)
         self._setup_stdout_stderr()
         if getattr(sys, "frozen", None) is not None:
@@ -364,7 +377,7 @@ class SubProcessWidget(QtGui.QWidget):
             writer = codecs.getwriter(osutils.get_terminal_encoding())
             self.stdout = writer(sys.stdout, errors='replace')
             self.stderr = writer(sys.stderr, errors='replace')
-    
+
     def abort(self):
         if self.is_running():
             if not self.aborting:
@@ -435,6 +448,7 @@ class SubProcessWidget(QtGui.QWidget):
         #self.emit(QtCore.SIGNAL("failed()"))
 
     def onFinished(self, exitCode, exitStatus):
+        self._delete_args_file()
         if self.aborting:
             self.aborting = False
             self.setProgress(1000000, [gettext("Aborted!")])
@@ -448,6 +462,30 @@ class SubProcessWidget(QtGui.QWidget):
         else:
             self.setProgress(1000000, [gettext("Failed!")])
             self.emit(QtCore.SIGNAL("failed()"))
+
+    def _create_args_file(self, text):
+        if self._args_file:
+            self._delete_args_file()
+        qdir = os.path.join(tempfile.gettempdir(), 'QBzr', 'qsubprocess')
+        if not os.path.isdir(qdir):
+            os.makedirs(qdir)
+        fd, fname = tempfile.mkstemp(dir=qdir)
+        f = os.fdopen(fd, "wb")
+        try:
+            f.write(text)
+        finally:
+            f.close()   # it closes fd as well
+        self._args_file = fname
+        return fname
+
+    def _delete_args_file(self):
+        if self._args_file:
+            try:
+                os.unlink(self._args_file)
+            except (IOError, OSError), e:
+                pass
+            else:
+                self._args_file = None
 
 
 class SubprocessChildProgress(progress._BaseProgressBar):
