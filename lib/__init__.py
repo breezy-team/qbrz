@@ -2,7 +2,7 @@
 #
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2006-2008 Lukáš Lalinský <lalinsky@gmail.com>
-# Copyright (C) 2008 Alexander Belchenko
+# Copyright (C) 2008, 2009 Alexander Belchenko
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@
 
 import os, sys
 
-if hasattr(sys, "frozen"):
+if getattr(sys, "frozen", None):
     # Add our required extra libraries for the standalone bzr.exe to path
     sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '_lib')))
 

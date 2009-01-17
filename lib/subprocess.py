@@ -3,6 +3,7 @@
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2006 Lukáš Lalinský <lalinsky@gmail.com>
 # Copyright (C) 2008 Gary van der Merwe <garyvdm@gmail.com>
+# Copyright (C) 2009 Alexander Belchenko
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -369,7 +370,8 @@ class SubProcessWidget(QtGui.QWidget):
             if not self.aborting:
                 self.aborting = True
                 if MS_WINDOWS:
-                    self.process.kill()     # this uses TerminateProcess under the hood. not very nice :-/
+                    # trying to send signal to our subprocess
+                    signal_event(get_child_pid(self.process.pid()))
                 else:
                     # be nice and try to use ^C
                     os.kill(self.process.pid(), signal.SIGINT) 
@@ -506,3 +508,36 @@ class SubprocessProgress(SubprocessChildProgress):
 
     def finished(self):
         self._report(1.0)
+
+
+if MS_WINDOWS:
+    import ctypes
+    if getattr(sys, "frozen", None):
+        # this is needed for custom bzr.exe builds (without TortoiseBzr inside)
+        ctypes.__path__.append(os.path.normpath(
+            os.path.join(os.path.dirname(__file__), '..', '_lib', 'ctypes')))
+    from ctypes import cast, POINTER, Structure
+    from ctypes.wintypes import DWORD, HANDLE
+
+    class PROCESS_INFORMATION(Structure):
+        _fields_ = [("hProcess", HANDLE),
+                    ("hThread", HANDLE),
+                    ("dwProcessID", DWORD),
+                    ("dwThreadID", DWORD)]
+    
+    LPPROCESS_INFORMATION = POINTER(PROCESS_INFORMATION)
+    
+    def get_child_pid(voidptr):
+        lp = cast(int(voidptr), LPPROCESS_INFORMATION)
+        return lp.contents.dwProcessID
+
+    def get_event_name(child_pid):
+        return 'qbzr-qsubprocess-%d' % child_pid
+
+    def signal_event(child_pid):
+        import win32event
+        ev = win32event.CreateEvent(None, 0, 0, get_event_name(child_pid))
+        try:
+            win32event.SetEvent(ev)
+        finally:
+            ev.Close()
