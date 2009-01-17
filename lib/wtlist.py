@@ -120,8 +120,10 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
                 ext = file_extension(path_in_source)
                 name = path_in_source + osutils.kind_marker(kind[0])
             else:
-                # versioned = True, True - so either renamed or modified.
-                if path_in_source != path_in_target:
+                # versioned = True, True - so either renamed or modified
+                # or properties changed (x-bit).
+                renamed = (parent[0], name[0]) != (parent[1], name[1])
+                if renamed:
                     if changed_content:
                         status = gettext("renamed and modified")
                     else:
@@ -133,6 +135,10 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
                     ext = file_extension(path_in_target)
                 elif changed_content:
                     status = gettext("modified")
+                    name = path_in_target +  osutils.kind_marker(kind[1])
+                    ext = file_extension(path_in_target)
+                elif executable[0] != executable[1]:
+                    status = gettext("modified (x-bit)")
                     name = path_in_target +  osutils.kind_marker(kind[1])
                     ext = file_extension(path_in_target)
                 else:
