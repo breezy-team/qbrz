@@ -2,8 +2,7 @@
 #
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2006-2008 Lukáš Lalinský <lalinsky@gmail.com>
-# Copyright (C) 2008 Alexander Belchenko
-# Copyright (C) 2008, 2009 QBzr Developers <qbzr@googlegroups.com>
+# Copyright (C) 2008, 2009 Alexander Belchenko
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
