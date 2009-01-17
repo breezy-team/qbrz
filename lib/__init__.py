@@ -20,7 +20,7 @@
 
 import os, sys
 
-if hasattr(sys, "frozen"):
+if getattr(sys, "frozen", None):
     # Add our required extra libraries for the standalone bzr.exe to path
     sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '_lib')))
 

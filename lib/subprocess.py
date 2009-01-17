@@ -512,7 +512,8 @@ class SubprocessProgress(SubprocessChildProgress):
 
 if MS_WINDOWS:
     import ctypes
-    if hasattr(sys, "frozen"):
+    if getattr(sys, "frozen", None):
+        # this is needed for custom bzr.exe builds (without TortoiseBzr inside)
         ctypes.__path__.append(os.path.normpath(
             os.path.join(os.path.dirname(__file__), '..', '_lib', 'ctypes')))
     from ctypes import cast, POINTER, Structure
