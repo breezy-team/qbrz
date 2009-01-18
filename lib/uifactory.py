@@ -18,9 +18,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
+import time
 
 from bzrlib import ui
-from bzrlib.ui import text
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.util import StopException
 
@@ -37,37 +37,59 @@ def ui_current_widget(f):
             return f(*args, **kargs)
     return decorate
 
-class QUIFactory(text.TextUIFactory):
+class QUIFactory(ui.UIFactory):
 
     def __init__(self):
         super(QUIFactory, self).__init__()
         self.current_widget_stack = []
+        
+        self._transport_update_time = 0
+        self._total_byte_count = 0
+        self._bytes_since_update = 0
+        self._transport_rate = None
     
     def current_widget(self):
         if self.current_widget_stack:
             return self.current_widget_stack[-1]
         return None
     
-    #    self._progress_view._repaint = self.progress_view_repaint
-    #
-    #def progress_view_repaint(self):
-    #    pv = self._progress_view
-    #    if pv._last_task:
-    #        task_msg = pv._format_task(pv._last_task)
-    #        progress_frac = pv._last_task._overall_completion_fraction()
-    #        if progress_frac is not None:
-    #            progress = int(progress_frac * 1000000)
-    #        else:
-    #            progress = 1
-    #    else:
-    #        task_msg = ''
-    #        progress = 0
-    #    
-    #    trans = pv._last_transport_msg
-    #    
-    #    sys.stdout.write('qbzr:PROGRESS:' + bencode.bencode((progress,
-    #                     trans, task_msg)) + '\n')
-    #    sys.stdout.flush()
+        self._progress_view._repaint = self.progress_view_repaint
+    
+    def report_transport_activity(self, transport, byte_count, direction):
+        """Called by transports as they do IO.
+        
+        This may update a progress bar, spinner, or similar display.
+        By default it does nothing.
+        """
+        
+        self._total_byte_count += byte_count
+        self._bytes_since_update += byte_count
+
+        current_widget = self.current_widget()
+        if current_widget and getattr(current_widget, 'throbber', None) is not None:
+            now = time.time()
+            if self._transport_update_time is None:
+                self._transport_update_time = now
+            elif now >= (self._transport_update_time + 0.2):
+                # guard against clock stepping backwards, and don't update too
+                # often
+                self._transport_rate  = self._bytes_since_update / (now - self._transport_update_time)
+                self._transport_update_time = now
+                self._bytes_since_update = 0
+            
+            if self._transport_rate:
+                msg = ("%6dkB @ %4dkB/s" %
+                    (self._total_byte_count>>10, int(self._transport_rate)>>10,))
+            else:
+                msg = ("%6dkB @         " %
+                    (self._total_byte_count>>10,))
+            
+            current_widget.throbber.transport.setText(msg)
+        
+        QtCore.QCoreApplication.processEvents()
+        if current_widget and getattr(current_widget, 'closing', None) is not None \
+            and current_widget.closing:
+            raise StopException()
 
     def get_password(self, prompt='', **kwargs):
         password, ok = QtGui.QInputDialog.getText(self.current_widget(),

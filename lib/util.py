@@ -391,15 +391,25 @@ class ThrobberWidget(QtGui.QWidget):
         # a couple of widgets
         layout = QtGui.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        label = QtGui.QLabel("", self)
         
+        self.spinner = QtGui.QLabel("", self)    
         global throber_movie
         if not throber_movie:
             throber_movie = QtGui.QMovie(":/16x16/process-working.gif")
             throber_movie.start()
-        label.setMovie(throber_movie)
-        layout.addWidget(label)
-        layout.addWidget(QtGui.QLabel(gettext("Loading..."), self), 1)
+        self.spinner.setMovie(throber_movie)
+        
+        self.message = QtGui.QLabel(gettext("Loading..."), self)
+        #self.progress = QtGui.QProgressBar(self)
+        #self.progress.setTextVisible (False)
+        #self.progress.hide()
+        #self.progress.setMaximum(sys.maxint)
+        self.transport = QtGui.QLabel("", self)
+        
+        layout.addWidget(self.spinner)
+        #layout.addWidget(self.progress)
+        layout.addWidget(self.message, 1)
+        layout.addWidget(self.transport)
 
     def hide(self):
         #if self.is_shown:
@@ -412,7 +422,6 @@ class ThrobberWidget(QtGui.QWidget):
         # and show ourselves.
         QtGui.QWidget.show(self)
         self.is_shown = True
-
 
 # Helpers for directory pickers.
 # We use these items both as 'flags' and as titles!
