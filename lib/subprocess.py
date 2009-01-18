@@ -422,9 +422,15 @@ class SubProcessWidget(QtGui.QWidget):
                 self.setProgress(progress, messages, transport_activity)
             elif line.startswith("qbzr:GETPASS:"):
                 prompt = bencode.bdecode(line[13:]).decode('utf-8')
-                passwd = QtGui.QInputDialog.getText(self, gettext("Enter Password"), prompt, QtGui.QLineEdit.Password)
-                data = unicode(passwd[0]).encode('utf-8'), int(passwd[1])
-                self.process.write("qbzr:GETPASS:"+bencode.bencode(data)+"\n")
+                passwd, ok = QtGui.QInputDialog.getText(self,
+                                                        gettext("Enter Password"),
+                                                        prompt,
+                                                        QtGui.QLineEdit.Password)
+                if ok:
+                    data = unicode(passwd).encode('utf-8'), 
+                    self.process.write("qbzr:GETPASS:"+bencode.bencode(data)+"\n")
+                else:
+                    self.abort()
             else:
                 self.logMessage(line)
                 if not self.ui_mode:
@@ -599,9 +605,8 @@ class SubprocessUIFactory(text.TextUIFactory):
         self.stdout.flush()
         line = self.stdin.readline()
         if line.startswith('qbzr:GETPASS:'):
-            passwd, accepted = bencode.bdecode(line[13:].rstrip('\r\n'))
-            if accepted:
-                return passwd
+            passwd, = bencode.bdecode(line[13:].rstrip('\r\n'))
+            return passwd
         return ''
 
 if MS_WINDOWS:
