@@ -71,6 +71,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_set_encoding,
     is_valid_encoding,
     )
+from bzrlib.plugins.qbzr.lib.uifactory import QUIFactory
 ''')
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
@@ -136,6 +137,7 @@ class QBzrCommand(Command):
     @install_gettext
     @report_missing_pyqt
     def run(self, *args, **kwargs):
+        ui.ui_factory = QUIFactory()
         return self._qbzr_run(*args, **kwargs)
 
 ui_mode_option = Option("ui-mode", help="Causes dialogs to wait after the operation is complete.")
