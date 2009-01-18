@@ -182,7 +182,7 @@ class AnnotateWindow(QBzrWindow):
             # and update the title to show we are done.
             self.set_title_and_icon([gettext("Annotate"), self.path])
 
-        except Exception:
+        except:
             self.report_exception()
 
     def annotate(self, tree, fileId, path):

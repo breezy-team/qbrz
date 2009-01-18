@@ -195,7 +195,7 @@ class DiffWindow(QBzrWindow):
                 self.load_diff()
             finally:
                 self.throbber.hide()
-        except Exception:
+        except:
             self.report_exception()
 
     def load_branch_info(self):

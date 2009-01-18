@@ -141,7 +141,7 @@ class QBzrCatWindow(QBzrWindow):
                 self.browser.setFocus()
             finally:
                 self.throbber.hide()
-        except Exception:
+        except:
             self.report_exception()
 
     def detect_content_type(self, relpath, text, kind='file'):

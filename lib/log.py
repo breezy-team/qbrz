@@ -634,7 +634,7 @@ class LogWindow(QBzrWindow):
                 self.refresh_button.setDisabled(False)
                 if not initial:
                     self.throbber.hide()
-        except Exception:
+        except:
             self.report_exception()
 
     def show(self):
@@ -688,7 +688,7 @@ class LogWindow(QBzrWindow):
                 item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
                 item.setData(PathRole, QtCore.QVariant(newpath))
                 item.setTextColor(QtGui.QColor("purple"))
-        except Exception:
+        except:
             self.report_exception()        
 
     def update_selection(self, selected, deselected):
@@ -807,7 +807,7 @@ class LogWindow(QBzrWindow):
             
             self.changesList.scrollTo(self.changesList.currentIndex())
             # Scroll to ensure the selection is on screen.
-        except Exception:
+        except:
             self.report_exception()
     
     def update_search_completer(self, text):

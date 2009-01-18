@@ -860,7 +860,7 @@ class BackgroundJob():
     def run_wrapper(self):
             try:
                 self.run()
-            except Exception:
+            except:
                 self.parent.report_exception()
             self.is_running = False
     

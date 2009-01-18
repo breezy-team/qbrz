@@ -151,7 +151,7 @@ class BrowseWindow(QBzrWindow):
                     self.set_revision(self.revision)
             finally:
                 self.throbber.hide()
-        except Exception:
+        except:
             self.report_exception()
     
     def load_file_tree(self, entry, parent_item):
