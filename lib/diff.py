@@ -47,6 +47,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_set_encoding,
     is_binary_content,
     )
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 
 def get_file_lines_from_tree(tree, file_id):
@@ -182,6 +183,7 @@ class DiffWindow(QBzrWindow):
         QBzrWindow.show(self)
         QtCore.QTimer.singleShot(1, self.initial_load)
 
+    @ui_current_widget
     def initial_load(self):
         """Called to perform the initial load of the form.  Enables a
         throbber window, then loads the branches etc if they weren't specified
@@ -235,6 +237,7 @@ class DiffWindow(QBzrWindow):
                           get_set_encoding(self.encoding, branch2))
         self.processEvents()
 
+    @ui_current_widget
     def load_diff(self):
         self.refresh_button.setEnabled(False)
         for tree in self.trees: tree.lock_read()

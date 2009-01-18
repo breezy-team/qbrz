@@ -39,6 +39,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     RevisionMessageBrowser,
     url_for_display,
     )
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 have_search = True
 try:
@@ -597,6 +598,7 @@ class LogWindow(QBzrWindow):
     def initial_load(self):
         self.load(True)
 
+    @ui_current_widget
     def load(self, initial=False):
         """Called to perform the initial load of the form.  Enables a
         throbber window, then loads the branches etc if they weren't specified
@@ -653,6 +655,7 @@ class LogWindow(QBzrWindow):
         else:
             open_browser(str(url.toEncoded()))
 
+    @ui_current_widget
     def update_revision_delta(self):
         try:
             rev = self.current_rev
@@ -709,6 +712,7 @@ class LogWindow(QBzrWindow):
             self.message.setHtml(format_revision_html(rev, replace))
             self.revision_delta_timer.start(1)
 
+    @ui_current_widget
     def show_diff_window(self, rev1, rev2, specific_files=None):
         if not rev2.parent_ids:
             rev1.repository.lock_read()
@@ -771,6 +775,7 @@ class LogWindow(QBzrWindow):
         rev2 = self.changesModel.revision(revid2)
         self.show_diff_window(rev1, rev2)
 
+    @ui_current_widget
     def update_search(self):
         try:
             # TODO in_paths = self.search_in_paths.isChecked()
@@ -810,6 +815,7 @@ class LogWindow(QBzrWindow):
         except:
             self.report_exception()
     
+    @ui_current_widget
     def update_search_completer(self, text):
         # We only load the suggestions a letter at a time when needed.
         term = str(text).split(" ")[-1]

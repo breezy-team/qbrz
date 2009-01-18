@@ -19,15 +19,35 @@
 
 from PyQt4 import QtCore, QtGui
 
+from bzrlib import ui
 from bzrlib.ui import text
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.util import StopException
+
+def ui_current_widget(f):
+    def decorate(*args, **kargs):
+        if isinstance(ui.ui_factory, QUIFactory):
+            ui.ui_factory.current_widget_stack.append(args[0])
+            try:
+                r = f(*args, **kargs)
+            finally:
+                del ui.ui_factory.current_widget_stack[-1]
+            return r
+        else:
+            return f(*args, **kargs)
+    return decorate
 
 class QUIFactory(text.TextUIFactory):
 
     def __init__(self):
         super(QUIFactory, self).__init__()
-        
+        self.current_widget_stack = []
+    
+    def current_widget(self):
+        if self.current_widget_stack:
+            return self.current_widget_stack[-1]
+        return None
+    
     #    self._progress_view._repaint = self.progress_view_repaint
     #
     #def progress_view_repaint(self):
@@ -50,7 +70,7 @@ class QUIFactory(text.TextUIFactory):
     #    sys.stdout.flush()
 
     def get_password(self, prompt='', **kwargs):
-        password, ok = QtGui.QInputDialog.getText(None,
+        password, ok = QtGui.QInputDialog.getText(self.current_widget(),
                                                   gettext("Enter Password"),
                                                   (prompt % kwargs),
                                                   QtGui.QLineEdit.Password)

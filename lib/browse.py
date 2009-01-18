@@ -41,6 +41,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_set_encoding,
     url_for_display,
     )
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 
 class FileTreeWidget(QtGui.QTreeWidget):
@@ -134,6 +135,7 @@ class BrowseWindow(QBzrWindow):
         QBzrWindow.show(self)
         QtCore.QTimer.singleShot(1, self.load)
    
+    @ui_current_widget
     def load(self):
         try:
             self.throbber.show()
@@ -197,6 +199,7 @@ class BrowseWindow(QBzrWindow):
         path_parts.reverse()
         return pathjoin(*path_parts)
     
+    @ui_current_widget
     def show_file_content(self):
         """Launch qcat for one selected file."""
         path = self.get_current_path()
@@ -208,6 +211,7 @@ class BrowseWindow(QBzrWindow):
         window.show()
         self.windows.append(window)
 
+    @ui_current_widget
     def show_file_log(self):
         """Show qlog for one selected file."""
         path = self.get_current_path()
@@ -219,6 +223,7 @@ class BrowseWindow(QBzrWindow):
         window.show()
         self.windows.append(window)
     
+    @ui_current_widget
     def show_file_annotate(self):
         """Show qannotate for selected file."""
         path = self.get_current_path()
@@ -230,6 +235,7 @@ class BrowseWindow(QBzrWindow):
         window.show()
         self.windows.append(window)
     
+    @ui_current_widget
     def set_revision(self, revspec=None, revision_id=None, text=None):
         branch = self.branch
         branch.lock_read()
@@ -278,6 +284,7 @@ class BrowseWindow(QBzrWindow):
             item.setText(self.AUTHOR, extract_name(author))
             item.setText(self.MESSAGE, rev.get_summary())
 
+    @ui_current_widget
     def reload_tree(self):
         revstr = unicode(self.revision_edit.text())
         if not revstr:

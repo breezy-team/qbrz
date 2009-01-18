@@ -31,6 +31,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     format_for_ttype,
     get_set_encoding,
     )
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 
 have_pygments = True
@@ -94,6 +95,7 @@ class QBzrCatWindow(QBzrWindow):
         QBzrWindow.show(self)
         QtCore.QTimer.singleShot(1, self.load)
     
+    @ui_current_widget
     def load(self):
         try:
             self.throbber.show()

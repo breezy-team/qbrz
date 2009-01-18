@@ -39,6 +39,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     split_tokens_at_lines,
     format_for_ttype,
     )
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 have_pygments = True
 try:
@@ -152,6 +153,7 @@ class AnnotateWindow(QBzrWindow):
         QBzrWindow.show(self)
         QtCore.QTimer.singleShot(1, self.initial_load)
 
+    @ui_current_widget
     def initial_load(self):
         """Called to perform the initial load of the form.  Enables a
         throbber window, then loads the branches etc if they weren't specified
@@ -284,6 +286,7 @@ class AnnotateWindow(QBzrWindow):
                     self.message_doc.setHtml(format_revision_html(rev,show_timestamp=True))
                     break
 
+    @ui_current_widget
     def show_revision_diff(self, index):
         item = self.changes.itemFromIndex(index)
         rev = self.itemToRev[item]

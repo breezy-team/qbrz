@@ -27,6 +27,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     url_for_display,
     )
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 
 def _set_location(edit, location):
@@ -46,6 +47,7 @@ class QBzrInfoWindow(QBzrWindow):
         self.ui.vboxlayout.addWidget(self.buttonbox)
         self.populate_tree_info(tree)
 
+    @ui_current_widget
     def populate_tree_info(self, tree):
         self.populate_branch_info(tree.branch)
         self.populate_bzrdir_info(tree.bzrdir)
