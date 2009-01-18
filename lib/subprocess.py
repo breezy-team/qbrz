@@ -283,10 +283,17 @@ class SubProcessWidget(QtGui.QWidget):
 
         layout = QtGui.QVBoxLayout(self)
 
+        message_layout = QtGui.QHBoxLayout()
+        
         self.progressMessage = QtGui.QLabel(self)
         #self.progressMessage.setWordWrap(True) -- this breaks minimal window size hint
         self.progressMessage.setText(gettext("Stopped"))
-        layout.addWidget(self.progressMessage)
+        message_layout.addWidget(self.progressMessage, 1)
+
+        self.transportActivity = QtGui.QLabel(self)
+        message_layout.addWidget(self.transportActivity)
+        
+        layout.addLayout(message_layout)
 
         self.progressBar = QtGui.QProgressBar(self)
         self.progressBar.setMaximum(1000000)
@@ -339,7 +346,7 @@ class SubProcessWidget(QtGui.QWidget):
         self.start_multi(((dir, args),))
     
     def start_multi(self, commands):
-        self.setProgress(0, [gettext("Starting...")])
+        self.setProgress(0, [gettext("Starting...")], "")
         self.console.setFocus(QtCore.Qt.OtherFocusReason)
         self.commands = list(commands)
         self._start_next()
@@ -382,7 +389,7 @@ class SubProcessWidget(QtGui.QWidget):
             else:
                 self.process.terminate()
     
-    def setProgress(self, progress, messages):
+    def setProgress(self, progress, messages, transport_activity=None):
         if progress is not None:
             self.progressBar.setValue(progress)
         if progress == 1000000 and not messages:
@@ -393,13 +400,15 @@ class SubProcessWidget(QtGui.QWidget):
             else:
                 text = " / ".join(messages)
         self.progressMessage.setText(text)
+        if transport_activity is not None:
+            self.transportActivity.setText(transport_activity)
     
     def readStdout(self):
         data = str(self.process.readAllStandardOutput()).decode(self.encoding)
         for line in data.splitlines():
             if line.startswith("qbzr:PROGRESS:"):
-                progress, messages = bencode.bdecode(line[14:])
-                self.setProgress(progress, messages)
+                progress, transport_activity, messages = bencode.bdecode(line[14:])
+                self.setProgress(progress, messages, transport_activity)
             elif line.startswith("qbzr:GETPASS:"):
                 prompt = bencode.bdecode(line[13:]).decode('utf-8')
                 passwd = QtGui.QInputDialog.getText(self, gettext("Enter Password"), prompt, QtGui.QLineEdit.Password)
@@ -506,7 +515,7 @@ class SubprocessProgress(SubprocessChildProgress):
         super(SubprocessProgress, self).__init__(**kwargs)
 
     def _report(self, progress, messages=()):
-        data = int(progress * 1000000), messages
+        data = int(progress * 1000000),"", messages
         sys.stdout.write('qbzr:PROGRESS:' + bencode.bencode(data) + '\n')
         sys.stdout.flush()
 
@@ -532,17 +541,19 @@ class SubprocessUIFactory(text.TextUIFactory):
         pv = self._progress_view
         if pv._last_task:
             task_msg = pv._format_task(pv._last_task)
-            progress = int(pv._last_task._overall_completion_fraction() * 1000000)
+            progress_frac = pv._last_task._overall_completion_fraction()
+            if progress_frac is not None:
+                progress = int(progress_frac * 1000000)
+            else:
+                progress = 1
         else:
             task_msg = ''
             progress = 0
         
         trans = pv._last_transport_msg
-        if trans and task_msg:
-            trans += ' | '
         
         sys.stdout.write('qbzr:PROGRESS:' + bencode.bencode((progress,
-                         trans + task_msg)) + '\n')
+                         trans, task_msg)) + '\n')
         sys.stdout.flush()
 
     def get_password(self, prompt='', **kwargs):
