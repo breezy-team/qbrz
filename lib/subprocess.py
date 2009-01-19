@@ -27,8 +27,7 @@ import tempfile
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import osutils, progress
-from bzrlib.ui import text
+from bzrlib import osutils, progress, ui
 from bzrlib.util import bencode
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
@@ -41,6 +40,13 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrDialog,
     StandardButton,
     )
+
+try:
+    # This is only availible from bzr rev 3940
+    from bzrlib.ui.text import TextProgressView
+    has_TextProgressView = True
+except ImportError:
+    has_TextProgressView = False
 
 
 class SubProcessWindowBase:
@@ -567,36 +573,73 @@ class SubprocessProgress(SubprocessChildProgress):
     def finished(self):
         self._report(1.0)
 
-class SubprocessUIFactory(text.TextUIFactory):
+if has_TextProgressView:
+    class SubprocessProgressView (TextProgressView):
+        
+        def _repaint(self):
+            if self._last_task:
+                task_msg = self._format_task(self._last_task)
+                progress_frac = self._last_task._overall_completion_fraction()
+                if progress_frac is not None:
+                    progress = int(progress_frac * 1000000)
+                else:
+                    progress = 1
+            else:
+                task_msg = ''
+                progress = 0
+            
+            trans = self._last_transport_msg
+            
+            sys.stdout.write('qbzr:PROGRESS:' + bencode.bencode((progress,
+                             trans, task_msg)) + '\n')
+            sys.stdout.flush()
+
+class SubprocessUIFactory(ui.CLIUIFactory):
 
     def __init__(self):
-        if getattr(text, 'TextProgressView', None) is None:
+        super(SubprocessUIFactory, self).__init__()
+        
+        if has_TextProgressView:
+            self._progress_view = SubprocessProgressView(self.stdout)
+        else:
+            self._progress_bar_stack = None 
+    
+    def nested_progress_bar(self): 
+        """Return a nested progress bar. 
+         
+        The actual bar type returned depends on the progress module which 
+        may return a tty or dots bar depending on the terminal. 
+        """
+        if has_TextProgressView:
+            return super(SubprocessUIFactory, self).nested_progress_bar()
+        else:
             # This is to be compatible with bzr < rev 3940
-            super(SubprocessUIFactory, self).__init__(SubprocessProgress)
-        else:
-            # This is the new way
-            super(SubprocessUIFactory, self).__init__()
-            
-            self._progress_view._repaint = self.progress_view_repaint
+            if self._progress_bar_stack is None: 
+                self._progress_bar_stack = progress.ProgressBarStack( 
+                    klass=SubprocessProgress) 
+            return self._progress_bar_stack.get_nested()
+    
+    def report_transport_activity(self, transport, byte_count, direction):
+        """Called by transports as they do IO.
+        
+        This may update a progress bar, spinner, or similar display.
+        By default it does nothing.
+        """
+        if has_TextProgressView:
+            self._progress_view.show_transport_activity(byte_count)
 
-    def progress_view_repaint(self):
-        pv = self._progress_view
-        if pv._last_task:
-            task_msg = pv._format_task(pv._last_task)
-            progress_frac = pv._last_task._overall_completion_fraction()
-            if progress_frac is not None:
-                progress = int(progress_frac * 1000000)
-            else:
-                progress = 1
-        else:
-            task_msg = ''
-            progress = 0
-        
-        trans = pv._last_transport_msg
-        
-        sys.stdout.write('qbzr:PROGRESS:' + bencode.bencode((progress,
-                         trans, task_msg)) + '\n')
-        sys.stdout.flush()
+    def show_progress(self, task):
+        """A task has been updated and wants to be displayed.
+        """
+        if has_TextProgressView:
+            self._progress_view.show_progress(task)
+    
+    def clear_term(self):
+        """Prepare the terminal for output.
+
+        This will, for example, clear text progress bars, and leave the
+        cursor at the leftmost position."""
+        pass
 
     def get_password(self, prompt='', **kwargs):
         from bzrlib.util import bencode
@@ -608,6 +651,7 @@ class SubprocessUIFactory(text.TextUIFactory):
             passwd, = bencode.bdecode(line[13:].rstrip('\r\n'))
             return passwd
         return ''
+    
 
 if MS_WINDOWS:
     import ctypes
