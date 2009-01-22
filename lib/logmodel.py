@@ -81,20 +81,17 @@ except AttributeError:
 
 class QLogGraphProvider(LogGraphProvider):
     
-    def __init__(self, process_events, report_exception,
-                 throbber_show, throbber_hide):
+    def __init__(self, processEvents, report_exception,
+                 throbber):
         LogGraphProvider.__init__(self)
         
-        self.processEvents = process_events
+        self.processEvents = processEvents
         self.report_exception = report_exception
-        self.throbber_show = throbber_show
-        self.throbber_hide = throbber_hide
+        self.throbber = throbber
 
-class GraphModel(QtCore.QAbstractTableModel):
+class LogModel(QtCore.QAbstractTableModel):
 
-    def __init__(self, process_events, report_exception,
-                 throbber_show, throbber_hide, graph_provider,
-                 parent=None):
+    def __init__(self, graph_provider, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         
         self.graph_provider = graph_provider
@@ -104,27 +101,6 @@ class GraphModel(QtCore.QAbstractTableModel):
                                        gettext("Date"),
                                        gettext("Author"),
                                        ]
-        
-        self.merge_sorted_revisions = []
-        self.columns_len = 0
-        self.revisions = {}
-        self.tags = {}
-        self.searchMode = False
-        self.touches_file_msri = None
-        self.msri_index = {}
-        self.stop_revision_loading = False
-        self.processEvents = process_events
-        self.report_exception = report_exception
-        self.throbber_show = throbber_show
-        self.throbber_hide = throbber_hide
-        self.queue = []
-        self.repos = {}
-        
-        self.load_queued_revisions = LoadQueuedRevisions(self)
-        self.load_all_revisions = LoadAllRevisions(self)
-   
-    def setGraphFilterProxyModel(self, graphFilterProxyModel):
-        self.graphFilterProxyModel = graphFilterProxyModel
     
     def loadBranch(self):
         try:
@@ -214,7 +190,7 @@ class GraphModel(QtCore.QAbstractTableModel):
         
         if role == TagsRole:
             tags = []
-            if revid in self.tags:
+            if revid in self.graph_provider.tags:
                 tags = list(self.graph_provider.tags[revid])
             return QtCore.QVariant(QtCore.QStringList(tags))
         
@@ -383,11 +359,12 @@ class LoadAllRevisions(LoadRevisionsBase):
         self.parent.compute_lines()
     
     
-class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
-    def __init__(self, parent = None):
+class LogFilterProxyModel(QtGui.QSortFilterProxyModel):
+    def __init__(self, graph_provider, parent = None):
+        QtGui.QSortFilterProxyModel.__init__(self, parent)
+        self.graph_provider = graph_provider
         self.old_filter_str = ""
         self.old_filter_role = 0
-        QtGui.QSortFilterProxyModel.__init__(self, parent)
         self.cache = {}
         self.search_matching_revid = None
         self.search_indexes = []
@@ -446,9 +423,7 @@ class GraphFilterProxyModel(QtGui.QSortFilterProxyModel):
             self.invalidateCacheRow(merged_by)
     
     def filterAcceptsRow(self, source_row, source_parent):
-        sm = self.sm()
-        
-        return sm.graph_provider.get_revision_visible(source_row)
+        return self.graph_provider.get_revision_visible(source_row)
     #    (sequence_number,
     #     revid,
     #     merge_depth,
