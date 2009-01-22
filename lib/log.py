@@ -232,173 +232,20 @@ class Compleater(QtGui.QCompleter):
     def splitPath (self, path):
         return QtCore.QStringList([path.split(" ")[-1]])
 
-def load_locations(locations_list, process_events_ptr):
-    if locations_list is None:
-        locations = ["."]
-    else:
-        locations = locations_list
-    
-    file_ids = []
-    heads = {}
-    branches = {}
-    paths_and_branches_err = "It is not possible to specify different file paths and different branches at the same time."
-    
-    def append_head_info(revid, branch, tag, is_branch_last_revision):
-        if not revid in heads:
-            heads[revid] = (len(heads), [])
-        heads[revid][1].append ((branch, tag, is_branch_last_revision))
-    
-    def append_location(tree, br, repo, fp, tag):
-        if br.base not in branches:
-            branches[br.base] = br
-        
-        branch_last_revision = br.last_revision()
-        append_head_info(branch_last_revision, br, tag, True)
-        process_events_ptr()
-        
-        if tree:
-            parent_ids = tree.get_parent_ids()
-            process_events_ptr()
-            if parent_ids:
-                # first parent is last revision of the tree
-                revid = parent_ids[0]
-                if revid != branch_last_revision:
-                    # working tree is out of date
-                    if tag:
-                        append_head_info(revid, br, "%s - Working Tree" % tag, False)
-                    else:
-                        append_head_info(revid, br, "Working Tree", False)
-                # other parents are pending merges
-                for revid in parent_ids[1:]:
-                    if tag:
-                        append_head_info(revid, br, "%s - Pending Merge" % tag, False)
-                    else:
-                        append_head_info(revid, br, "Pending Merge", False)
-        
-        if fp != '' : 
-            if tree is None:
-                tree = br.basis_tree()
-                process_events_ptr()
-            file_id = tree.path2id(fp)
-            process_events_ptr()
-            if file_id is None:
-                raise errors.BzrCommandError(
-                    "Path does not have any revision history: %s" %
-                    location)
-            file_ids.append(file_id)
-            if not branches.keys()[0] == br.base:
-                raise errors.BzrCommandError(paths_and_branches_err)
-    
-    # This is copied stright from bzrlib/bzrdir.py. We can't just use the orig,
-    # because that would mean we require bzr 1.6
-    def open_containing_tree_branch_or_repository(location):
-        """Return the working tree, branch and repo contained by a location.
-
-        Returns (tree, branch, repository, relpath).
-        If there is no tree containing the location, tree will be None.
-        If there is no branch containing the location, branch will be None.
-        If there is no repository containing the location, repository will be
-        None.
-        relpath is the portion of the path that is contained by the innermost
-        BzrDir.
-
-        If no tree, branch or repository is found, a NotBranchError is raised.
-        """
-        bzrdir, relpath = BzrDir.open_containing(location)
-        process_events_ptr()
-        try:
-            tree, branch = bzrdir._get_tree_branch()
-            process_events_ptr()
-        except errors.NotBranchError:
-            try:
-                repo = bzrdir.find_repository()
-                process_events_ptr()    
-                return None, None, repo, relpath
-            except (errors.NoRepositoryPresent):
-                raise errors.NotBranchError(location)
-        return tree, branch, branch.repository, relpath
-    
-    for location in locations:
-        if isinstance(location, Branch):
-            br = location
-            repo = location.repository
-            process_events_ptr()
-            try:
-                tree = location.bzrdir.open_workingtree()
-            except errors.NoWorkingTree:
-                tree = None
-            process_events_ptr()
-            fp = ''
-        else:
-            tree, br, repo, fp = open_containing_tree_branch_or_repository(location)
-            process_events_ptr()
-        
-        if br == None:
-            trunk_names = ["trunk", "bzr.dev", "dev"]
-            repo_brs = repo.find_branches(using=True)
-            process_events_ptr()
-            
-            def branch_cmp_trunk_first(x,y):
-                x_is_trunk = x.nick in trunk_names
-                y_is_trunk = y.nick in trunk_names
-                if x_is_trunk and y_is_trunk:
-                    return cmp(trunk_names.index(x.nick),
-                               trunk_names.index(y.nick))
-                if x_is_trunk:
-                    return -1
-                if y_is_trunk:
-                    return 1
-                return cmp(x.nick, y.nick)
-            repo_brs.sort(branch_cmp_trunk_first)
-            
-            for br in repo_brs:             
-                tag = truncate_string(br.nick, 20)
-                try:
-                    tree = br.bzrdir.open_workingtree()
-                except errors.NoWorkingTree:
-                    tree = None
-                append_location(tree, br, repo, '', tag)
-            continue
-        
-        # If no locations were sepecified, don't do file_ids
-        # Otherwise it gives you the history for the dir if you are
-        # in a sub dir.
-        if fp != '' and locations==["."]:
-            fp = ''
-        
-        if len(locations) == 1:
-            tag = None
-        else:
-            tag = truncate_string(br.nick, 20)
-        
-        append_location(tree, br, repo, fp, tag)
-
-    
-    if file_ids and len(branches)>1:
-        raise errors.BzrCommandError(paths_and_branches_err)
-    
-    return (branches.values(), heads, file_ids)
-
-
-def truncate_string(s, max_len):
-    if len(s) <= max_len:
-        return s
-    return s[:max_len]+'...'
-
-
 class LogWindow(QBzrWindow):
     
     def __init__(self, locations, branch, specific_fileids, parent=None,
                  ui_mode=True):        
         if branch:
+            self.branch = branch
             self.locations = (branch,)
             self.specific_fileids = specific_fileids
             assert locations is None, "can't specify both branch and loc"
         else:
+            self.branch = None
             self.locations = locations
             if self.locations is None:
                 self.locations = ["."]
-            self.specific_fileids = None
             assert specific_fileids is None, "this is ignored if no branch"
         
         # Set window title. 
@@ -414,10 +261,17 @@ class LogWindow(QBzrWindow):
         
         self.throbber = ThrobberWidget(self)
         
+        self.graph_provider = logmodel.QLogGraphProvider(self.processEvents,
+                                                         self.report_exception,
+                                                         self.throbber.show,
+                                                         self.throbber.hide)
+        
         self.changesModel = logmodel.GraphModel(self.processEvents,
                                                 self.report_exception,
                                                 self.throbber.show,
-                                                self.throbber.hide)
+                                                self.throbber.hide,
+                                                self.graph_provider
+                                                )
         
         self.changesProxyModel = logmodel.GraphFilterProxyModel()
         self.changesProxyModel.setSourceModel(self.changesModel)
@@ -566,35 +420,6 @@ class LogWindow(QBzrWindow):
         # set focus on search edit widget
         self.changesList.setFocus()
 
-    def load_locations(self):
-        self.changesModel.unlock()
-        (self.branches,
-         self.heads,
-         specific_fileids) = load_locations(self.locations, self.processEvents)
-        
-        if self.specific_fileids is None:
-            self.specific_fileids = specific_fileids
-     
-        self.processEvents()
-        self.replace = {}
-        for branch in self.branches:
-            config = branch.get_config()
-            replace = config.get_user_option("qlog_replace")
-            if replace:
-                replace = replace.split("\n")
-                replace = [tuple(replace[2*i:2*i+2])
-                                for i in range(len(replace) // 2)]
-            self.replace[branch.base] = replace
-
-        if have_search:
-            self.processEvents()
-            for branch in self.branches:
-                try:
-                    index = search_index.open_index_branch(branch)
-                    self.indexes.append(index)
-                except search_errors.NoSearchIndex:
-                    pass
-
     def initial_load(self):
         self.load(True)
 
@@ -609,11 +434,51 @@ class LogWindow(QBzrWindow):
             self.refresh_button.setDisabled(True)            
             self.processEvents()
             try:
-                self.load_locations()
+                if initial:
+                    if self.branch:
+                        self.graph_provider.open_branch(self.branch,
+                                                        self.specific_fileids)
+                    else:
+                        self.graph_provider.open_locations(self.locations)
+                    self.processEvents()
+                else:
+                    self.graph_provider.unlock_repos()
                 
-                self.changesModel.loadBranch(self.branches,
-                                             self.heads,
-                                             specific_fileids = self.specific_fileids)
+                
+                self.graph_provider.lock_read_branches()
+                try:
+                    self.graph_provider.load_branch_heads()
+                    self.graph_provider.load_tags()
+                    
+                    self.replace = {}
+                    for (tree, branch, repo) in self.graph_provider.branches:
+                        config = branch.get_config()
+                        replace = config.get_user_option("qlog_replace")
+                        if replace:
+                            replace = replace.split("\n")
+                            replace = [tuple(replace[2*i:2*i+2])
+                                            for i in range(len(replace) // 2)]
+                        self.replace[branch.base] = replace
+                finally:
+                    self.graph_provider.unlock_branches()
+                
+                self.graph_provider.lock_read_repos()
+                # And will remain locked until the window is closed our we refresh.
+                self.changesModel.loadBranch()
+            
+                self.graph_provider.compute_branch_lines()
+                self.graph_provider.compute_merge_info()
+                
+                self.changesModel.compute_lines()
+                
+                #if have_search:
+                #    self.processEvents()
+                #    for branch in self.branches:
+                #        try:
+                #            index = search_index.open_index_branch(branch)
+                #            self.indexes.append(index)
+                #        except search_errors.NoSearchIndex:
+                #            pass
                 
                 if initial and self.indexes:
                     self.changesProxyModel.setSearchIndexes(self.indexes)
@@ -704,7 +569,7 @@ class LogWindow(QBzrWindow):
             self.diffbutton.setEnabled(True)
             index = indexes[0]
             revid = str(index.data(logmodel.RevIdRole).toString())
-            rev = self.changesModel.revision(revid)
+            rev = self.graph_provider.revision(revid)
             self.current_rev = rev
             head_info = self.changesModel.revisionHeadInfo(revid)
             branch = head_info[0][0]
@@ -907,7 +772,8 @@ class LogWindow(QBzrWindow):
                     self.changesModel.colapse_expand_rev(revision_id, False)
                 else:
                     #find merge of child branch
-                    revision_id = self.changesModel.findChildBranchMergeRevision(revision_id)
+                    revision_id = self.graph_provider.\
+                                  find_child_branch_merge_revision(revision_id)
                     if revision_id is None:
                         return
             newindex = self.changesModel.indexFromRevId(revision_id)

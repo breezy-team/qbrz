@@ -17,6 +17,23 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+from time import clock
+
+from bzrlib import errors
+from bzrlib.transport.local import LocalTransport
+from bzrlib.revision import NULL_REVISION
+from bzrlib.tsort import merge_sort
+from bzrlib.graph import (Graph, _StackedParentsProvider)
+from bzrlib.bzrdir import BzrDir
+from bzrlib.branch import Branch
+
+have_search = True
+try:
+    from bzrlib.plugins.search import errors as search_errors
+    from bzrlib.plugins.search import index as search_index
+except ImportError:
+    have_search = False
+
 class LogGraphProvider():
     """Loads and computes revision and graph data for GUI log widgets."""
 
@@ -103,16 +120,11 @@ class LogGraphProvider():
         if file_id:
             self.file_ids.append(file_id)
     
-    def open_locations(self, locations_list):
+    def open_locations(self, locations):
         """Open branches or repositories and file-ids to be loaded from a list
         of locations strings, inputed by the user (such as at the command line.)
         
         """
-        
-        if locations_list is None:
-            locations = ["."]
-        else:
-            locations = locations_list
         
         paths_and_branches_err = "It is not possible to specify different file paths and different branches at the same time."
         
@@ -211,8 +223,8 @@ class LogGraphProvider():
                 if len(tag) < 20:
                     tag = tag[:max_len]+'...'
             
-            branch_last_revision = br.last_revision()
-            append_head_info(branch_last_revision, br, tag, True)
+            branch_last_revision = branch.last_revision()
+            self.append_head_info(branch_last_revision, branch, tag, True)
             self.update_ui()
             
             if tree:
@@ -257,15 +269,13 @@ class LogGraphProvider():
             if y_is_local and not x_is_local:
                 return -1
             return 0
-        return sorted([repo._make_parents_provider() 
+        return sorted([repo 
                        for repo in self.repos.itervalues()],
                        cmp)
 
     def load_graph_all_revisions(self):
-        self.head_revids = [rev for rev in self.heads \
-                           if not rev == NULL_REVISION]
-        
-        parents_providers = self.repos_sorted_local_first()
+        parents_providers = [repo._make_parents_provider() \
+                             for repo in self.repos_sorted_local_first()]
         graph = Graph(_StackedParentsProvider(parents_providers))
         self.graph_parents = {}
         self.graph_children = {}
@@ -307,14 +317,15 @@ class LogGraphProvider():
                 for ancestor_revid in graph.find_unique_ancestors(heads[i][0],
                                                                 heads[:i-1][0]):
                     map[ancestor_revid] = heads[i][1]
-            return nap
+            return map
         
         self.revid_head_revid = \
                 get_revid_head([(revid, revid) for revid in self.head_revids])
         
         head_revid_repo = sorted([(revid, branch.repository.base) \
-                                  for revid, (branch, tag, lr) in \
-                                  self.revid_head_info.iteritems()],
+                                  for revid, head_info in \
+                                  self.revid_head_info.iteritems()
+                                  for (branch, tag, lr) in head_info],
                                  lambda x: self.repos_sorted_local_first.cmp(x[1]))
         self.default_repo = head_revid_repo[0][1]
         self.revid_repo = get_revid_head(head_revid_repo)
@@ -475,6 +486,10 @@ class LogGraphProvider():
         if not self.branch_lines[branch_id][1]: # branch colapased
             return False
         
+        return self.get_revision_visible_if_branch_visible(msri)
+
+    
+    def get_revision_visible_if_branch_visible(self, msri):
         if self.filter_file_id is not None:
             if msri not in self.filter_file_id:
                 return False
@@ -486,7 +501,6 @@ class LogGraphProvider():
         """See self.graph_line_data"""
         msri_index = {}
         
-        source_parent = QtCore.QModelIndex()
         for msri in xrange(0,len(self.merge_sorted_revisions)):
             if self.get_revision_visible(msri):
                 index = len(graph_line_data)
@@ -676,8 +690,8 @@ class LogGraphProvider():
                         # Does this branch have any visible revisions
                         parent_branch_rev_msri = self.branch_lines[parent_branch_id][0]
                         for pb_rev_msri in parent_branch_rev_msri:
-                            visible = pb_rev_msri in msri_index or\
-                                      self.graphFilterProxyModel.filterAcceptsRowIfBranchVisible(pb_rev_msri, source_parent)
+                            visible = pb_rev_msri in msri_index or \
+                                self.get_revision_visible_if_branch_visible (pb_rev_msri)
                             if visible:
                                 graph_line_data[rev_index][4].append (parent_branch_id)
                                 break
@@ -910,6 +924,14 @@ class LogGraphProvider():
             has_change = self.set_branch_visible(branch_id, True, has_change)
         return has_change
 
+    def find_child_branch_merge_revision(self, revid):
+        msri = self.revid_msri[revid]
+        merged_by_msri = self.merge_info[msri][1]
+        if merged_by_msri:
+            return self.merge_sorted_revisions[merged_by_msri][1]
+        else:
+            return None        
+    
     def revision(self, revid):
         """Load and return a revision from a repository.
         
@@ -944,42 +966,12 @@ class LogGraphProvider():
         throbber_time = 0.5
         revisions_loaded = []
         
-        def _load_revisions(repo, revision_ids):
-            keys = [(key,) for key in revision_ids]
-            stream = repo.revisions.get_record_stream(keys, 'unordered', True)
-            
-            current_time = clock()
-            if self.throbber_time < current_time - self.start_time:
-                self.parent.throbber_show()
-            self.update_ui()
-            
-            for record in stream:
-                if not record.storage_kind == 'absent':
-                    revision_ids.remove(record.key[0])
-                    revisions_loaded.append(record.key[0])
-                    text = record.get_bytes_as('fulltext')
-                    rev = repo._serializer.read_revision_from_string(text)
-                    rev.repository = repo
-                    self.post_revision_load(rev)
-                    self.update_ui()
-                
-                current_time = clock()
-                if self.throbber_time < current_time - self.start_time:
-                    self.throbber_show()
-                
-                if self.update_time < current_time - self.last_update:
-                    self.revisions_loaded(revisions_loaded)
-                    self.update_time = max(self.update_time + self.update_time_increment,
-                                           self.update_time_max)
-                    self.update_ui()
-                    self.last_update = clock()
-        
         repo_revids = {}
         for repo_base in self.repos.iterkeys():
             repo_revids[repo_base] = []
         
         for revid in revids:
-            if revid not in self.parent.revisions:
+            if revid not in self.revisions:
                 if revid in self.revid_repo:
                     repo_base = self.revid_repo[revid]
                 else:
@@ -990,7 +982,37 @@ class LogGraphProvider():
             for repo in self.repos_sorted_local_first():
                 revids = repo_revids[repo.base]
                 for offset in range(0, len(revids), batch_size):
-                    _load_revisions(repo, revids[offset:offset+batch_size])
+                    keys = [(key,) for key in revids[offset:offset+batch_size]]
+                    stream = repo.revisions.get_record_stream(keys,
+                                                              'unordered',
+                                                              True)
+                    
+                    current_time = clock()
+                    if throbber_time < current_time - start_time:
+                        self.throbber_show()
+                    self.update_ui()
+                    
+                    for record in stream:
+                        if not record.storage_kind == 'absent':
+                            revision_ids.remove(record.key[0])
+                            revisions_loaded.append(record.key[0])
+                            text = record.get_bytes_as('fulltext')
+                            rev = repo._serializer.\
+                                  read_revision_from_string(text)
+                            rev.repository = repo
+                            self.post_revision_load(rev)
+                            self.update_ui()
+                        
+                        current_time = clock()
+                        if throbber_time < current_time - start_time:
+                            self.throbber_show()
+                        
+                        if update_time < current_time - last_update:
+                            self.revisions_loaded(revisions_loaded)
+                            update_time = max(update_time + update_time_increment,
+                                                   update_time_max)
+                            self.update_ui()
+                            last_update = current_time                    
         finally:
             self.throbber_hide()
     
