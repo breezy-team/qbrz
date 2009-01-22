@@ -185,13 +185,6 @@ class LogGraphProvider():
         if self.file_ids and len(self.branches)>1:
             raise errors.BzrCommandError(paths_and_branches_err)
 
-    def append_head_info(self, revid, branch, tag, is_branch_last_revision):
-        if not revid in self.head_revids:
-            self.head_revids.append(revid)
-            self.revid_head_info[revid] = []
-        self.revid_head_info[revid].append ((branch, tag,
-                                             is_branch_last_revision))
-    
     def lock_read_branches(self):
         for (tree, branch, repo) in self.branches:
             branch.lock_read()
@@ -207,6 +200,13 @@ class LogGraphProvider():
     def unlock_repos(self):
         for repo in self.repos.itervalues():
             repo.unlock()
+    
+    def append_head_info(self, revid, branch, tag, is_branch_last_revision):
+        if not revid in self.head_revids:
+            self.head_revids.append(revid)
+            self.revid_head_info[revid] = []
+        self.revid_head_info[revid].append ((branch, tag,
+                                             is_branch_last_revision))
     
     def load_branch_heads(self):
         """Load the tips, tips of the pending merges, and revision of the
@@ -881,6 +881,15 @@ class LogGraphProvider():
         self.branch_lines[branch_id][1] = visible
         return has_change
     
+    def ensure_rev_visible(self, revid):
+        rev_msri = self.revid_msri[revid]
+        branch_id = self.merge_sorted_revisions[rev_msri][3][0:-1]
+        has_change = self._set_branch_visible(branch_id, True, False)
+        while not branch_id in self.start_branch_ids and self.branch_lines[branch_id][3]:
+            branch_id = self.branch_lines[branch_id][3][0]
+            has_change = self.set_branch_visible(branch_id, True, has_change)
+        return has_change
+
     def has_visible_child(self, branch_id):
         for child_branch_id in self.branch_lines[branch_id][3]:
             if self.branch_lines[child_branch_id][1]:
@@ -915,15 +924,6 @@ class LogGraphProvider():
         msri = self.revno_msri[revno]
         return self.merge_sorted_revisions[msri][1]
         
-    def ensure_rev_visible(self, revid):
-        rev_msri = self.revid_msri[revid]
-        branch_id = self.merge_sorted_revisions[rev_msri][3][0:-1]
-        has_change = self._set_branch_visible(branch_id, True, False)
-        while not branch_id in self.start_branch_ids and self.branch_lines[branch_id][3]:
-            branch_id = self.branch_lines[branch_id][3][0]
-            has_change = self.set_branch_visible(branch_id, True, has_change)
-        return has_change
-
     def find_child_branch_merge_revision(self, revid):
         msri = self.revid_msri[revid]
         merged_by_msri = self.merge_info[msri][1]
