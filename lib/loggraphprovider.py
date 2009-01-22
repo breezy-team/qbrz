@@ -891,7 +891,7 @@ class LogGraphProvider():
         msri = self.revid_msri[revid]
         if msri not in self.msri_index: return
         index = self.msri_index[msri]
-        twisty_branch_ids = self.linegraphdata[index][4]
+        twisty_branch_ids = self.graph_line_data[index][4]
         has_change = False
         for branch_id in twisty_branch_ids:
             has_change = self.set_branch_visible(branch_id,
@@ -952,7 +952,7 @@ class LogGraphProvider():
                 self.load_queued_revisions()
             return None
         
-        return self.revisions(revid)
+        return self.revisions[revid]
         
     def load_revisions(self, revids, local_only=False,
                        update_time_initial=0.05,
@@ -976,7 +976,7 @@ class LogGraphProvider():
                     repo_base = self.revid_repo[revid]
                 else:
                     repo_base = self.default_repo
-                repo_revids[repo_base] = revid
+                repo_revids[repo_base].append(revid)
         
         try:
             for repo in self.repos_sorted_local_first():
@@ -994,7 +994,6 @@ class LogGraphProvider():
                     
                     for record in stream:
                         if not record.storage_kind == 'absent':
-                            revision_ids.remove(record.key[0])
                             revisions_loaded.append(record.key[0])
                             text = record.get_bytes_as('fulltext')
                             rev = repo._serializer.\
@@ -1022,8 +1021,13 @@ class LogGraphProvider():
         revision.revno = ".".join(["%d" % (revno)
                                   for revno in revno_sequence])
         revision.tags = sorted(self.tags.get(revision.revision_id, []))
-        revision.parents = self.graph_parents[revision.revision_id]
-        revision.children = self.graph_children[revision.revision_id]
+        revision.child_ids = self.graph_children[revision.revision_id]
+        
+        if revision.revision_id in self.revid_head_revid:
+            head_revid = self.revid_head_revid[revid]
+        else:
+            head_revid = self.head_revids[0]
+        revision.branch = self.revid_head_info[head_revid][0][0]
     
     def load_queued_revisions(self):
         """Loads the revisions in self.queue

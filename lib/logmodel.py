@@ -282,13 +282,6 @@ class GraphModel(QtCore.QAbstractTableModel):
                     for column in columns]
         return self.createIndex (msri, 0, QtCore.QModelIndex())
     
-    def revisionHeadInfo(self, revid):
-        if revid in self.revid_head:
-            head_revid = self.revid_head[revid]
-        else:
-            head_revid = self.start_revs[0]
-        return self.heads[head_revid][1]
-    
     def unlock(self):
         for repo in self.repos.itervalues(): 
             repo.unlock()

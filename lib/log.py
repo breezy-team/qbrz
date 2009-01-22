@@ -571,9 +571,7 @@ class LogWindow(QBzrWindow):
             revid = str(index.data(logmodel.RevIdRole).toString())
             rev = self.graph_provider.revision(revid)
             self.current_rev = rev
-            head_info = self.changesModel.revisionHeadInfo(revid)
-            branch = head_info[0][0]
-            replace = self.replace[branch.base]
+            replace = self.replace[rev.branch.base]
             self.message.setHtml(format_revision_html(rev, replace))
             self.revision_delta_timer.start(1)
 
