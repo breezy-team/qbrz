@@ -105,6 +105,13 @@ class QLogGraphProvider(LogGraphProvider):
         """
         LogGraphProvider.revisions_loaded(self, revisions)
         self.on_revisions_loaded(revisions)
+    
+    def delay(self, timeout):
+        QtCore.QTimer.singleShot(timeout, self.null)
+        self.processEvents(QtCore.QEventLoop.WaitForMoreEvents)
+    
+    def null(self):
+        pass
 
 class LogModel(QtCore.QAbstractTableModel):
 

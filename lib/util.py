@@ -343,8 +343,8 @@ class _QBzrWindowBase:
         from bzrlib.plugins.qbzr.lib.help import show_help
         show_help(link, self)
     
-    def processEvents(self):
-        QtCore.QCoreApplication.processEvents()
+    def processEvents(self, flags=QtCore.QEventLoop.AllEvents):
+        QtCore.QCoreApplication.processEvents(flags)
         if self.closing:
             raise StopException()
 
@@ -882,8 +882,8 @@ class BackgroundJob():
     def stop(self):
         self.stoping = True
 
-    def processEvents(self):
-        self.parent.processEvents()
+    def processEvents(self, flags=QtCore.QEventLoop.AllEvents):
+        self.parent.processEvents(flags)
         if self.stoping:
             self.stoping = False
             raise StopException()

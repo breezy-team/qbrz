@@ -1006,7 +1006,7 @@ class LogGraphProvider():
                         needs_update_ui = True
                         last_update = current_time
                     elif not repo.is_local:
-                        needs_update_ui = True
+                        self.delay(0.5)
                     
                     if needs_update_ui:
                         self.update_ui()
@@ -1048,4 +1048,7 @@ class LogGraphProvider():
         remember to call super.
         
         """
+        pass
+    
+    def delay(self,timeout):
         pass
