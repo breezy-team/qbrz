@@ -72,8 +72,6 @@ def get_bug_id(bug_url):
         return match.group(1)
     return None
 
-
-
 try:
     QVariant_fromList = QtCore.QVariant.fromList
 except AttributeError:
@@ -88,6 +86,41 @@ class QLogGraphProvider(LogGraphProvider):
         self.processEvents = processEvents
         self.report_exception = report_exception
         self.throbber = throbber
+        self.load_queued_revisions_bg_job = BackgroundJob(self)
+        self.load_queued_revisions_bg_job.run = self._load_queued_revisions
+    
+    def update_ui(self):
+        self.processEvents()
+    
+    def throbber_show(self):
+        self.throbber.show()
+    
+    def throbber_hide(self):
+        self.throbber.hide()
+    
+    def load_queued_revisions(self):
+        """Loads the revisions in self.queue
+        
+        Reimplement this method to run after period of time to allow the queue
+        to populate, so that the revisions can be loaded in batch."""
+        self.load_queued_revisions_bg_job.start()
+    
+    def _load_queued_revisions(self):
+        while len(self.queue) > 0:
+            self.processEvents()
+            queue = self.queue
+            self.queue = []
+            self.load_revisions(queue)
+    
+    def revisions_loaded(self, revisions):
+        """Runs after a batch of revisions have been loaded
+        
+        Reimplement to be notified that revisions have been loaded. But
+        remember to call super.
+        
+        """
+        LogGraphProvider.revisions_loaded(self, revisions)
+        self.on_revisions_loaded(revisions)
 
 class LogModel(QtCore.QAbstractTableModel):
 
@@ -95,6 +128,7 @@ class LogModel(QtCore.QAbstractTableModel):
         QtCore.QAbstractTableModel.__init__(self, parent)
         
         self.graph_provider = graph_provider
+        self.graph_provider.on_revisions_loaded = self.on_revisions_loaded
         
         self.horizontalHeaderLabels = [gettext("Rev"),
                                        gettext("Message"),
@@ -257,11 +291,13 @@ class LogModel(QtCore.QAbstractTableModel):
             return [self.createIndex (msri, column, QtCore.QModelIndex())\
                     for column in columns]
         return self.createIndex (msri, 0, QtCore.QModelIndex())
-    
-    def unlock(self):
-        for repo in self.repos.itervalues(): 
-            repo.unlock()
 
+    def on_revisions_loaded(self, revisions):
+        for revid in revisions:
+            indexes = self.indexFromRevId(revid, (COL_MESSAGE, COL_AUTHOR))
+            self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                      indexes[0], indexes[1])
+    
 class LoadRevisionsBase(BackgroundJob):
     throbber_time = 0.5
 

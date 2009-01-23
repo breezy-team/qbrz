@@ -328,9 +328,13 @@ class LogWindow(QBzrWindow):
             revid = str(index.data(logmodel.RevIdRole).toString())
             rev = self.log_list.graph_provider.revision(revid)
             self.current_rev = rev
-            replace = self.replace[rev.branch.base]
-            self.message.setHtml(format_revision_html(rev, replace))
-            self.revision_delta_timer.start(1)
+            if rev is not None:
+                replace = self.replace[rev.branch.base]
+                self.message.setHtml(format_revision_html(rev, replace))
+                self.revision_delta_timer.start(1)
+            else:
+                # XXX to do - notify me
+                pass
 
     @ui_current_widget
     def show_diff_window(self, rev1, rev2, specific_files=None):

@@ -103,6 +103,7 @@ class LogGraphProvider():
         pass
     
     def append_repo(self, repo):
+        repo.is_local = isinstance(repo.bzrdir.transport, LocalTransport)
         if repo.base not in self.repos:
             self.repos[repo.base] = repo
     
@@ -221,7 +222,7 @@ class LogGraphProvider():
             else:
                 tag = branch.nick
                 if len(tag) < 20:
-                    tag = tag[:max_len]+'...'
+                    tag = tag[:20]+'...'
             
             branch_last_revision = branch.last_revision()
             self.append_head_info(branch_last_revision, branch, tag, True)
@@ -262,11 +263,9 @@ class LogGraphProvider():
 
     def repos_sorted_local_first(self):
         def cmp(x, y):
-            x_is_local = isinstance(x, LocalTransport)
-            y_is_local = isinstance(y, LocalTransport)
-            if x_is_local and not y_is_local:
+            if x.is_local and not y.is_local:
                 return 1
-            if y_is_local and not x_is_local:
+            if y.is_local and not x.is_local:
                 return -1
             return 0
         return sorted([repo 
@@ -943,7 +942,9 @@ class LogGraphProvider():
         """
         if revid not in self.revisions:
             if revid not in self.queue:
-                self.load_revisions(revid, local_only=True)
+                repo = self.repos[self.get_revid_repo(revid)]
+                if repo.is_local:
+                    self.load_revisions([revid])
         
         if revid not in self.revisions:
             if revid not in self.queue:
@@ -953,8 +954,14 @@ class LogGraphProvider():
             return None
         
         return self.revisions[revid]
+    
+    def get_revid_repo(self, revid):
+        if revid in self.revid_repo:
+            return self.revid_repo[revid]
         
-    def load_revisions(self, revids, local_only=False,
+        return self.default_repo        
+    
+    def load_revisions(self, revids,
                        update_time_initial=0.05,
                        update_time_increment=0,
                        update_time_max=0.05,
@@ -972,10 +979,7 @@ class LogGraphProvider():
         
         for revid in revids:
             if revid not in self.revisions:
-                if revid in self.revid_repo:
-                    repo_base = self.revid_repo[revid]
-                else:
-                    repo_base = self.default_repo
+                repo_base = self.get_revid_repo(revid)
                 repo_revids[repo_base].append(revid)
         
         try:
@@ -990,7 +994,6 @@ class LogGraphProvider():
                     current_time = clock()
                     if throbber_time < current_time - start_time:
                         self.throbber_show()
-                    self.update_ui()
                     
                     for record in stream:
                         if not record.storage_kind == 'absent':
@@ -1002,16 +1005,14 @@ class LogGraphProvider():
                             self.post_revision_load(rev)
                             self.update_ui()
                         
-                        current_time = clock()
-                        if throbber_time < current_time - start_time:
-                            self.throbber_show()
-                        
-                        if update_time < current_time - last_update:
-                            self.revisions_loaded(revisions_loaded)
-                            update_time = max(update_time + update_time_increment,
-                                                   update_time_max)
-                            self.update_ui()
-                            last_update = current_time                    
+                    if update_time < current_time - last_update:
+                        self.revisions_loaded(revisions_loaded)
+                        revisions_loaded = []
+                        update_time = max(update_time + update_time_increment,
+                                               update_time_max)
+                        self.update_ui()
+                        last_update = current_time                    
+            self.revisions_loaded(revisions_loaded)
         finally:
             self.throbber_hide()
     
