@@ -1014,19 +1014,11 @@ class LogGraphProvider():
                     if current_call_count < self.load_revisions_call_count:
                         break
                     
-                    keys = [(key,) for key in revids[offset:offset+batch_size]]
-                    stream = repo.revisions.get_record_stream(keys,
-                                                              'unordered',
-                                                              True)
-                    
-                    for record in stream:
-                        if not record.storage_kind == 'absent':
-                            revisions_loaded.append(record.key[0])
-                            text = record.get_bytes_as('fulltext')
-                            rev = repo._serializer.\
-                                  read_revision_from_string(text)
-                            rev.repository = repo
-                            self.post_revision_load(rev)
+                    revisions = repo.get_revisions(revids[offset:offset+batch_size])
+                    for rev in revisions:
+                        revisions_loaded.append(rev.revision_id)
+                        rev.repository = repo
+                        self.post_revision_load(rev)
                         
             self.revisions_loaded(revisions_loaded)
         finally:
