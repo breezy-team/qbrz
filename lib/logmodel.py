@@ -86,8 +86,6 @@ class QLogGraphProvider(LogGraphProvider):
         self.processEvents = processEvents
         self.report_exception = report_exception
         self.throbber = throbber
-        self.load_queued_revisions_bg_job = BackgroundJob(self)
-        self.load_queued_revisions_bg_job.run = self._load_queued_revisions
     
     def update_ui(self):
         self.processEvents()
@@ -97,20 +95,6 @@ class QLogGraphProvider(LogGraphProvider):
     
     def throbber_hide(self):
         self.throbber.hide()
-    
-    def load_queued_revisions(self):
-        """Loads the revisions in self.queue
-        
-        Reimplement this method to run after period of time to allow the queue
-        to populate, so that the revisions can be loaded in batch."""
-        self.load_queued_revisions_bg_job.start()
-    
-    def _load_queued_revisions(self):
-        while len(self.queue) > 0:
-            self.processEvents()
-            queue = self.queue
-            self.queue = []
-            self.load_revisions(queue)
     
     def revisions_loaded(self, revisions):
         """Runs after a batch of revisions have been loaded
