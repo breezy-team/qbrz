@@ -35,6 +35,10 @@ try:
 except ImportError:
     have_search = False
 
+FILTER_MESSAGE = 0
+FILTER_AUTHOR = 1
+FILTER_SEARCH = 2
+
 class LogGraphProvider():
     """Loads and computes revision and graph data for GUI log widgets."""
 
