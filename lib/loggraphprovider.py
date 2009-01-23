@@ -958,7 +958,8 @@ class LogGraphProvider():
                        update_time_initial=0.1,
                        update_time_increment=0,
                        update_time_max=0.05,
-                       batch_size = 5):
+                       local_batch_size = 30,
+                       remote_batch_size = 5):
         
         if self.load_revisions_call_count == sys.maxint:
             self.throbber_start_time = clock()
@@ -986,6 +987,11 @@ class LogGraphProvider():
             for repo in self.repos_sorted_local_first():
                 if current_call_count < self.load_revisions_call_count:
                     break
+                    
+                if repo.is_local:
+                    batch_size = local_batch_size
+                else:
+                    batch_size = remote_batch_size
                 
                 revids = repo_revids[repo.base]
                 for offset in range(0, len(revids), batch_size):
