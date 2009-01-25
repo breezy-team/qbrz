@@ -78,8 +78,7 @@ class LogList(QtGui.QTreeView):
             self.processEvents()
             self.load()
         finally:
-            if len(self.graph_provider.merge_sorted_revisions) == 0:
-                self.throbber.hide()
+            self.throbber.hide()
     
     def load_locations(self, locations):
         self.throbber.show()
@@ -88,8 +87,7 @@ class LogList(QtGui.QTreeView):
             self.processEvents()
             self.load()
         finally:
-            if len(self.graph_provider.merge_sorted_revisions) == 0:
-                self.throbber.hide()
+            self.throbber.hide()
     
     def refresh(self):
         self.throbber.show()

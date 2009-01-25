@@ -1031,16 +1031,16 @@ class LogGraphProvider():
                        remote_batch_size = 5):
         
         if self.load_revisions_call_count == sys.maxint:
-            self.throbber_start_time = clock()
             self.load_revisions_call_count = 0
         
         self.load_revisions_call_count += 1
         current_call_count = self.load_revisions_call_count
         
+        self.throbber_show()
+        
         update_time = update_time_initial
         start_time = clock()
         last_update = clock()
-        throbber_time = 1.0
         revisions_loaded = []
         
         try:
@@ -1060,23 +1060,16 @@ class LogGraphProvider():
                         break
                     
                     current_time = clock()
-                    needs_update_ui = False
-                    if throbber_time < current_time - self.throbber_start_time:
-                        self.throbber_show()
-                        needs_update_ui = True
                     
                     if update_time < current_time - last_update:
                         self.revisions_loaded(revisions_loaded)
                         revisions_loaded = []
                         update_time = max(update_time + update_time_increment,
                                                update_time_max)
-                        needs_update_ui = True
+                        self.update_ui()
                         last_update = current_time
                     elif not repo.is_local:
                         self.delay(0.5)
-                    
-                    if needs_update_ui:
-                        self.update_ui()
                     
                     if current_call_count < self.load_revisions_call_count:
                         break
@@ -1089,10 +1082,7 @@ class LogGraphProvider():
                         
             self.revisions_loaded(revisions_loaded)
         finally:
-            if self.load_revisions_call_count == current_call_count:
-                # This is the last running method
-                self.throbber_hide()
-                self.load_revisions_call_count = sys.maxint
+            self.throbber_hide()
     
     def post_revision_load(self, revision):
         self.revisions[revision.revision_id] = revision

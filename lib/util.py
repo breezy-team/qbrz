@@ -382,7 +382,8 @@ class ThrobberWidget(QtGui.QWidget):
     def __init__(self, parent, timeout=500):
         QtGui.QWidget.__init__(self, parent)
         self.create_ui()
-        self.is_shown = False
+        self.num_show = 0
+        
         
         # create a timer that displays our window after the timeout.
         #QtCore.QTimer.singleShot(timeout, self.show)
@@ -414,14 +415,15 @@ class ThrobberWidget(QtGui.QWidget):
     def hide(self):
         #if self.is_shown:
             #QtGui.QApplication.restoreOverrideCursor()
-        self.is_shown = False
-        QtGui.QWidget.hide(self)
+        self.num_show -= 1
+        if self.num_show == 0:
+            QtGui.QWidget.hide(self)
 
     def show(self):
         #QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         # and show ourselves.
         QtGui.QWidget.show(self)
-        self.is_shown = True
+        self.num_show += 1
 
 # Helpers for directory pickers.
 # We use these items both as 'flags' and as titles!
