@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-01 10:29+0200\n"
+"POT-Creation-Date: 2009-01-25 13:30+0200\n"
 "PO-Revision-Date: 2008-12-02 13:39+0000\n"
 "Last-Translator: Nazo <lovesyao@gmail.com>\n"
 "Language-Team: Japanese <ja@li.org>\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2009-01-06 22:00+0000\n"
+"X-Launchpad-Export-Date: 2009-01-25 12:44+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:41 lib\config.py:99 lib\config.py:120
@@ -30,73 +30,73 @@ msgstr "バージョン管理外のファイル"
 msgid "Show ignored files"
 msgstr "無視したファイルを表示"
 
-#: lib\annotate.py:84 lib\annotate.py:183 lib\browse.py:113
+#: lib\annotate.py:85 lib\annotate.py:185 lib\browse.py:114
 msgid "Annotate"
 msgstr "注釈"
 
-#: lib\annotate.py:84 lib\diff.py:113 lib\util.py:402
+#: lib\annotate.py:85 lib\diff.py:114 lib\util.py:402
 msgid "Loading..."
 msgstr ""
 
-#: lib\annotate.py:103
+#: lib\annotate.py:104
 msgid "Line"
 msgstr "行"
 
-#: lib\annotate.py:103 lib\annotate.py:118 lib\browse.py:103 lib\commit.py:366
-#: lib\logmodel.py:89
+#: lib\annotate.py:104 lib\annotate.py:119 lib\browse.py:104 lib\commit.py:366
+#: lib\logmodel.py:90
 msgid "Author"
 msgstr "著者"
 
-#: lib\annotate.py:103 lib\annotate.py:118 lib\browse.py:104
-#: lib\logmodel.py:86
+#: lib\annotate.py:104 lib\annotate.py:119 lib\browse.py:105
+#: lib\logmodel.py:87
 msgid "Rev"
 msgstr "リビジョン"
 
-#: lib\annotate.py:118 lib\browse.py:102 lib\commit.py:366 lib\logmodel.py:88
+#: lib\annotate.py:119 lib\browse.py:103 lib\commit.py:366 lib\logmodel.py:89
 msgid "Date"
 msgstr "日付"
 
-#: lib\annotate.py:118
+#: lib\annotate.py:119
 msgid "Summary"
 msgstr "要約"
 
-#: lib\browse.py:77 lib\browse.py:250 lib\browse.py:292
+#: lib\browse.py:78 lib\browse.py:256 lib\browse.py:299
 msgid "Browse"
 msgstr "参照"
 
-#: lib\browse.py:86
+#: lib\browse.py:87
 msgid "Location:"
 msgstr "場所:"
 
-#: lib\browse.py:91 lib\ui_new_tree.py:160 lib\util.py:475
+#: lib\browse.py:92 lib\util.py:484 lib\ui_new_tree.py:160
 msgid "Revision:"
 msgstr "リビジョン："
 
-#: lib\browse.py:94
+#: lib\browse.py:95
 msgid "Show"
 msgstr "表示"
 
-#: lib\browse.py:101 lib\main.py:358
+#: lib\browse.py:102 lib\main.py:358
 msgid "Name"
 msgstr "名前"
 
-#: lib\browse.py:105 lib\commit.py:269 lib\commit.py:366 lib\logmodel.py:87
+#: lib\browse.py:106 lib\commit.py:269 lib\commit.py:366 lib\logmodel.py:88
 msgid "Message"
 msgstr "メッセージ"
 
-#: lib\browse.py:112
+#: lib\browse.py:113
 msgid "Show log..."
 msgstr "ログを表示..."
 
-#: lib\browse.py:115
+#: lib\browse.py:116
 msgid "View file"
 msgstr "ファイルを表示"
 
-#: lib\cat.py:81
+#: lib\cat.py:82
 msgid "View"
 msgstr ""
 
-#: lib\commit.py:220 lib\commit.py:467 lib\commit.py:496 lib\commit.py:504
+#: lib\commit.py:220 lib\commit.py:471 lib\commit.py:500 lib\commit.py:508
 msgid "Commit"
 msgstr "コミット"
 
@@ -163,39 +163,435 @@ msgstr "変更点"
 msgid "Pending Merges"
 msgstr "マージ保留"
 
-#: lib\commit.py:393 lib\main.py:360 lib\subprocess.py:109 lib\wtlist.py:80
+#: lib\commit.py:393 lib\wtlist.py:80 lib\subprocess.py:121 lib\main.py:360
 msgid "Status"
 msgstr "状態"
 
-#: lib\commit.py:468
+#: lib\commit.py:472
 msgid "You should provide commit message."
 msgstr ""
 
-#: lib\commit.py:469 lib\diff.py:367 lib\util.py:67
+#: lib\commit.py:473 lib\diff.py:370 lib\util.py:67
 msgid "&OK"
 msgstr "OK(&O)"
 
-#: lib\commit.py:497
+#: lib\commit.py:501
 msgid "No changes to commit."
 msgstr ""
 
-#: lib\commit.py:505
+#: lib\commit.py:509
 msgid ""
 "No changes selected to commit.\n"
 "Do you want to commit anyway?"
 msgstr ""
 
-#: lib\commit.py:575
+#: lib\commit.py:579
 msgid ""
 "A commit will be made directly to the master branch, keeping the local and "
 "master branches in sync."
 msgstr "コミットはマスターブランチに送られ、ローカルとマスターブランチ間で同期します"
 
-#: lib\commit.py:581
+#: lib\commit.py:585
 msgid ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
 msgstr ""
+
+#: lib\diff.py:66
+#, python-format
+msgid "Working Tree for %s"
+msgstr "%s の作業ツリー"
+
+#: lib\diff.py:68
+msgid "Working Tree"
+msgstr "作業ツリー"
+
+#: lib\diff.py:87
+#, python-format
+msgid "Rev %(rev)s for %(branch)s"
+msgstr ""
+
+#: lib\diff.py:89
+#, python-format
+msgid "Rev %s"
+msgstr "リビジョン %s"
+
+#: lib\diff.py:92
+#, python-format
+msgid "Revid: %(revid)s for %(branch)s"
+msgstr ""
+
+#: lib\diff.py:94
+#, python-format
+msgid "Revid: %s"
+msgstr "リビジョンID： %s"
+
+#: lib\diff.py:97
+msgid "Merge Preview"
+msgstr "マージプレビュー"
+
+#: lib\diff.py:114 lib\diff.py:220 lib\diff.py:360 lib\diff.py:368
+#: lib\log.py:548
+msgid "Diff"
+msgstr "差分"
+
+#: lib\diff.py:140
+msgid "Side by side"
+msgstr "並べて表示"
+
+#: lib\diff.py:147
+msgid "Unidiff"
+msgstr "Unified形式で表示"
+
+#: lib\diff.py:152
+msgid "Complete"
+msgstr "すべて"
+
+#: lib\diff.py:226
+#, python-format
+msgid "%d file"
+msgid_plural "%d files"
+msgstr[0] "%dファイル"
+
+#: lib\diff.py:306 lib\wtlist.py:115
+msgid "removed"
+msgstr "削除"
+
+#: lib\diff.py:308 lib\wtlist.py:111
+msgid "added"
+msgstr "追加"
+
+#: lib\diff.py:310 lib\wtlist.py:128
+msgid "renamed and modified"
+msgstr "名称変更/修正"
+
+#: lib\diff.py:312 lib\wtlist.py:130
+msgid "renamed"
+msgstr "名称変更"
+
+#: lib\diff.py:314 lib\wtlist.py:137
+msgid "modified"
+msgstr "変更された"
+
+#: lib\diff.py:361
+#, python-format
+msgid ""
+"File %s is not versioned.\n"
+"Operation aborted."
+msgstr ""
+"%s はバージョン管理外です。\n"
+"処理は中断しました。"
+
+#: lib\diff.py:363 lib\subprocess.py:149 lib\util.py:69 lib\tag.py:143
+#: lib\tag.py:174 lib\tag.py:211
+msgid "&Close"
+msgstr "閉じる(&C)"
+
+#: lib\diff.py:369
+msgid "No changes found."
+msgstr ""
+
+#: lib\diffview.py:212
+msgid "Last modified:"
+msgstr "最終更新:"
+
+#: lib\diffview.py:213
+msgid "Status:"
+msgstr "状態:"
+
+#: lib\diffview.py:214
+msgid "Kind:"
+msgstr "種類:"
+
+#: lib\diffview.py:215
+msgid "Properties:"
+msgstr "プロパティ:"
+
+#: lib\diffview.py:465
+msgid "[binary file]"
+msgstr "[バイナリファイル]"
+
+#: lib\diffview.py:624
+msgid "\\ No newline at end of file"
+msgstr "\\ ファイル終端に改行がない"
+
+#: lib\info.py:42
+msgid "Info"
+msgstr "情報"
+
+#: lib\revert.py:42 lib\wtlist.py:223
+msgid "Revert"
+msgstr "元に戻す"
+
+#: lib\wtlist.py:42
+msgid "Select / deselect all"
+msgstr "全選択/非選択"
+
+#: lib\wtlist.py:67 lib\log.py:555
+msgid "Show &differences..."
+msgstr "差分を表示(&D)..."
+
+#: lib\wtlist.py:70
+msgid "&Revert..."
+msgstr "元に戻す(&R)..."
+
+#: lib\wtlist.py:80
+msgid "File"
+msgstr "ファイル"
+
+#: lib\wtlist.py:80
+msgid "Extension"
+msgstr "拡張子"
+
+#: lib\wtlist.py:105
+msgid "ignored"
+msgstr "無視"
+
+#: lib\wtlist.py:107
+msgid "non-versioned"
+msgstr "管理外"
+
+#: lib\wtlist.py:119
+msgid "missing"
+msgstr "紛失"
+
+#: lib\wtlist.py:141
+msgid "modified (x-bit)"
+msgstr ""
+
+#: lib\wtlist.py:222
+#, python-format
+msgid "Revert %s to latest revision."
+msgstr "%sを最新のリビジョンに戻す"
+
+#: lib\logmodel.py:863
+#, python-format
+msgid "bug #%s"
+msgstr "バグ #%s"
+
+#: lib\log.py:406
+msgid "Log"
+msgstr "ログ"
+
+#: lib\log.py:435
+msgid "&Search:"
+msgstr "検索(&S):"
+
+#: lib\log.py:453
+msgid "Messages"
+msgstr "メッセージ"
+
+#: lib\log.py:455
+msgid "Authors"
+msgstr "著者"
+
+#: lib\log.py:457
+msgid "Revision IDs"
+msgstr "リビジョンID"
+
+#: lib\log.py:459
+msgid "Revision Numbers"
+msgstr "リビジョン番号"
+
+#: lib\log.py:556
+msgid "Show &tree..."
+msgstr "ツリーを表示(&T)..."
+
+#: lib\log.py:621
+msgid "Messages and File text (indexed)"
+msgstr ""
+
+#: lib\subprocess.py:143
+msgid "Internal Error"
+msgstr "内部エラー"
+
+#: lib\subprocess.py:145
+#, python-format
+msgid ""
+"Sorry, subprocess action \"%s\" cannot be started\n"
+"because self.args is None.\n"
+"Please, report bug at:\n"
+"https://bugs.launchpad.net/qbzr/+filebug"
+msgstr ""
+"サブプロセス処理 \"%s\" がself.argsがNoneのために開始されません。\n"
+"https://bugs.launchpad.net/qbzr/+filebugにバグレポートをしてください。"
+
+#: lib\subprocess.py:277
+msgid "Description"
+msgstr "説明"
+
+#: lib\subprocess.py:300
+msgid "Stopped"
+msgstr "停止"
+
+#: lib\subprocess.py:361
+msgid "Starting..."
+msgstr "開始..."
+
+#: lib\subprocess.py:405
+msgid "Aborting..."
+msgstr "中止..."
+
+#: lib\subprocess.py:413 lib\subprocess.py:486
+msgid "Finished!"
+msgstr "完了!"
+
+#: lib\subprocess.py:432 lib\uifactory.py:96
+msgid "Enter Password"
+msgstr ""
+
+#: lib\subprocess.py:467 lib\subprocess.py:489
+msgid "Failed!"
+msgstr "失敗!"
+
+#: lib\subprocess.py:469
+msgid "Failed to start bzr."
+msgstr "bzrの実行に失敗しました。"
+
+#: lib\subprocess.py:471
+#, python-format
+msgid "Error while running bzr. (error code: %d)"
+msgstr "bzr実行中にエラーが発生しました。(エラーコード: %d)"
+
+#: lib\subprocess.py:479
+msgid "Aborted!"
+msgstr ""
+
+#: lib\util.py:68 lib\tag.py:151 lib\tag.py:164
+msgid "&Cancel"
+msgstr "キャンセル(&C)"
+
+#: lib\util.py:70 lib\main.py:318
+msgid "&Help"
+msgstr "ヘルプ(&H)"
+
+#: lib\util.py:71 lib\main.py:279
+msgid "&Refresh"
+msgstr "更新(&R)"
+
+#: lib\util.py:238 lib\tag.py:209
+msgid "Error"
+msgstr "エラー"
+
+#: lib\util.py:429
+msgid "Select Source Directory"
+msgstr "ソースディレクトリを選択"
+
+#: lib\util.py:431
+msgid "Select Target Directory"
+msgstr "対象ディレクトリを選択"
+
+#: lib\util.py:501
+msgid "Parents:"
+msgstr "親:"
+
+#: lib\util.py:505
+msgid "Children:"
+msgstr "子供:"
+
+#: lib\util.py:508
+msgid "Date:"
+msgstr "日付："
+
+#: lib\util.py:510
+msgid "Committer:"
+msgstr "コミッタ:"
+
+#: lib\util.py:513
+msgid "Author:"
+msgstr "著者:"
+
+#: lib\util.py:517
+msgid "Branch:"
+msgstr "ブランチ："
+
+#: lib\util.py:522
+msgid "Tags:"
+msgstr "タグ:"
+
+#: lib\util.py:531
+msgid "Bug:"
+msgid_plural "Bugs:"
+msgstr[0] "バグ："
+
+#: lib\util.py:679
+msgid "deleted files"
+msgstr "削除"
+
+#: lib\util.py:681
+msgid "added files"
+msgstr "追加"
+
+#: lib\util.py:683
+msgid "renamed files"
+msgstr "名前が変更されたファイル"
+
+#: lib\util.py:685
+msgid "modified files"
+msgstr "変更されたファイル"
+
+#: lib\help.py:60
+#, python-format
+msgid "No help can be found for <i>%s</i>"
+msgstr "<i>%s</i>に該当するヘルプはありません"
+
+#: lib\help.py:110
+msgid "Help"
+msgstr "ヘルプ"
+
+#: lib\ui_info.py:176
+msgid "Local location:"
+msgstr "ローカル配置："
+
+#: lib\ui_info.py:177 lib\ui_info.py:179 lib\ui_info.py:182 lib\ui_info.py:184
+#: lib\ui_info.py:186 lib\ui_info.py:189 lib\ui_info.py:191 lib\ui_info.py:193
+#: lib\ui_info.py:195
+msgid "..."
+msgstr "..."
+
+#: lib\ui_info.py:178
+msgid "Public branch location:"
+msgstr "公開ブランチの場所："
+
+#: lib\ui_info.py:180
+msgid "&Location"
+msgstr "ロケーション(&L)"
+
+#: lib\ui_info.py:181
+msgid "Push branch:"
+msgstr "プッシュ先ブランチ："
+
+#: lib\ui_info.py:183
+msgid "Parent branch:"
+msgstr "親ブランチ："
+
+#: lib\ui_info.py:185
+msgid "Submit branch:"
+msgstr "ブランチ送信先："
+
+#: lib\ui_info.py:187
+msgid "&Related Branches"
+msgstr "関連ブランチ(&R)"
+
+#: lib\ui_info.py:188
+msgid "Working tree format:"
+msgstr "作業ツリーフォーマット："
+
+#: lib\ui_info.py:190
+msgid "Branch format:"
+msgstr "ブランチフォーマット："
+
+#: lib\ui_info.py:192
+msgid "Repository format:"
+msgstr "リポジトリフォーマット："
+
+#: lib\ui_info.py:194
+msgid "Control directory format:"
+msgstr "管理ディレクトリフォーマット："
+
+#: lib\ui_info.py:196
+msgid "&Format"
+msgstr "フォーマット(&F)："
 
 #: lib\config.py:41
 msgid "Default"
@@ -289,133 +685,6 @@ msgstr "ユーザインタフェース(&U)"
 msgid "Spell check &language:"
 msgstr "スペルチェック言語(&L)："
 
-#: lib\diff.py:65
-#, python-format
-msgid "Working Tree for %s"
-msgstr "%s の作業ツリー"
-
-#: lib\diff.py:67
-msgid "Working Tree"
-msgstr "作業ツリー"
-
-#: lib\diff.py:86
-#, python-format
-msgid "Rev %(rev)s for %(branch)s"
-msgstr ""
-
-#: lib\diff.py:88
-#, python-format
-msgid "Rev %s"
-msgstr "リビジョン %s"
-
-#: lib\diff.py:91
-#, python-format
-msgid "Revid: %(revid)s for %(branch)s"
-msgstr ""
-
-#: lib\diff.py:93
-#, python-format
-msgid "Revid: %s"
-msgstr "リビジョンID： %s"
-
-#: lib\diff.py:96
-msgid "Merge Preview"
-msgstr "マージプレビュー"
-
-#: lib\diff.py:113 lib\diff.py:218 lib\diff.py:357 lib\diff.py:365
-#: lib\log.py:547
-msgid "Diff"
-msgstr "差分"
-
-#: lib\diff.py:139
-msgid "Side by side"
-msgstr "並べて表示"
-
-#: lib\diff.py:146
-msgid "Unidiff"
-msgstr "Unified形式で表示"
-
-#: lib\diff.py:151
-msgid "Complete"
-msgstr "すべて"
-
-#: lib\diff.py:224
-#, python-format
-msgid "%d file"
-msgid_plural "%d files"
-msgstr[0] "%dファイル"
-
-#: lib\diff.py:303 lib\wtlist.py:115
-msgid "removed"
-msgstr "削除"
-
-#: lib\diff.py:305 lib\wtlist.py:111
-msgid "added"
-msgstr "追加"
-
-#: lib\diff.py:307 lib\wtlist.py:126
-msgid "renamed and modified"
-msgstr "名称変更/修正"
-
-#: lib\diff.py:309 lib\wtlist.py:128
-msgid "renamed"
-msgstr "名称変更"
-
-#: lib\diff.py:311 lib\wtlist.py:135
-msgid "modified"
-msgstr "変更された"
-
-#: lib\diff.py:358
-#, python-format
-msgid ""
-"File %s is not versioned.\n"
-"Operation aborted."
-msgstr ""
-"%s はバージョン管理外です。\n"
-"処理は中断しました。"
-
-#: lib\diff.py:360 lib\subprocess.py:137 lib\tag.py:143 lib\tag.py:174
-#: lib\tag.py:211 lib\util.py:69
-msgid "&Close"
-msgstr "閉じる(&C)"
-
-#: lib\diff.py:366
-msgid "No changes found."
-msgstr ""
-
-#: lib\diffview.py:212
-msgid "Last modified:"
-msgstr "最終更新:"
-
-#: lib\diffview.py:213
-msgid "Status:"
-msgstr "状態:"
-
-#: lib\diffview.py:214
-msgid "Kind:"
-msgstr "種類:"
-
-#: lib\diffview.py:215
-msgid "Properties:"
-msgstr "プロパティ:"
-
-#: lib\diffview.py:465
-msgid "[binary file]"
-msgstr "[バイナリファイル]"
-
-#: lib\diffview.py:624
-msgid "\\ No newline at end of file"
-msgstr "\\ ファイル終端に改行がない"
-
-#: lib\help.py:60
-#, python-format
-msgid "No help can be found for <i>%s</i>"
-msgstr "<i>%s</i>に該当するヘルプはありません"
-
-#: lib\help.py:110
-msgid "Help"
-msgstr "ヘルプ"
-
 #: lib\i18n.py:87
 msgid "file"
 msgstr "ファイル"
@@ -452,10 +721,6 @@ msgstr "シンボリックリンクを表示"
 msgid "View directory"
 msgstr "ディレクトリを表示"
 
-#: lib\info.py:41
-msgid "Info"
-msgstr "情報"
-
 #: lib\init.py:38 lib\ui_init.py:118
 msgid "Initialize"
 msgstr "初期化"
@@ -463,47 +728,6 @@ msgstr "初期化"
 #: lib\init.py:73
 msgid "You must specify a location"
 msgstr "場所を指定する必要があります"
-
-#: lib\log.py:405
-msgid "Log"
-msgstr "ログ"
-
-#: lib\log.py:434
-msgid "&Search:"
-msgstr "検索(&S):"
-
-#: lib\log.py:452
-msgid "Messages"
-msgstr "メッセージ"
-
-#: lib\log.py:454
-msgid "Authors"
-msgstr "著者"
-
-#: lib\log.py:456
-msgid "Revision IDs"
-msgstr "リビジョンID"
-
-#: lib\log.py:458
-msgid "Revision Numbers"
-msgstr "リビジョン番号"
-
-#: lib\log.py:554 lib\wtlist.py:67
-msgid "Show &differences..."
-msgstr "差分を表示(&D)..."
-
-#: lib\log.py:555
-msgid "Show &tree..."
-msgstr "ツリーを表示(&T)..."
-
-#: lib\log.py:618
-msgid "Messages and File text (indexed)"
-msgstr ""
-
-#: lib\logmodel.py:853
-#, python-format
-msgid "bug #%s"
-msgstr "バグ #%s"
 
 #: lib\main.py:125
 msgid "Computer"
@@ -520,10 +744,6 @@ msgstr "ブックマークを削除(&R)..."
 #: lib\main.py:170
 msgid "Bookmarks"
 msgstr "ブックマーク"
-
-#: lib\main.py:279 lib\util.py:71
-msgid "&Refresh"
-msgstr "更新(&R)"
 
 #: lib\main.py:281
 msgid "Refresh the directory tree"
@@ -581,10 +801,6 @@ msgstr "ブランチ(&B)"
 msgid "&Bookmarks"
 msgstr "ブックマーク(&B)"
 
-#: lib\main.py:318 lib\util.py:70
-msgid "&Help"
-msgstr "ヘルプ(&H)"
-
 #: lib\main.py:319
 msgid "&Help..."
 msgstr "ヘルプ(&H)..."
@@ -626,66 +842,6 @@ msgstr "ブックマークの削除"
 msgid "Do you really want to remove the selected bookmark?"
 msgstr "選択したブックマークを本当に削除しますか?"
 
-#: lib\revert.py:42 lib\wtlist.py:217
-msgid "Revert"
-msgstr "元に戻す"
-
-#: lib\subprocess.py:131
-msgid "Internal Error"
-msgstr "内部エラー"
-
-#: lib\subprocess.py:133
-#, python-format
-msgid ""
-"Sorry, subprocess action \"%s\" cannot be started\n"
-"because self.args is None.\n"
-"Please, report bug at:\n"
-"https://bugs.launchpad.net/qbzr/+filebug"
-msgstr ""
-"サブプロセス処理 \"%s\" がself.argsがNoneのために開始されません。\n"
-"https://bugs.launchpad.net/qbzr/+filebugにバグレポートをしてください。"
-
-#: lib\subprocess.py:265
-msgid "Description"
-msgstr "説明"
-
-#: lib\subprocess.py:286
-msgid "Stopped"
-msgstr "停止"
-
-#: lib\subprocess.py:340
-msgid "Starting..."
-msgstr "開始..."
-
-#: lib\subprocess.py:372
-msgid "Aborting..."
-msgstr "中止..."
-
-#: lib\subprocess.py:380
-msgid "Finished!"
-msgstr "完了!"
-
-#: lib\subprocess.py:393
-msgid "Enter Password"
-msgstr ""
-
-#: lib\subprocess.py:423 lib\subprocess.py:443
-msgid "Failed!"
-msgstr "失敗!"
-
-#: lib\subprocess.py:425
-msgid "Failed to start bzr."
-msgstr "bzrの実行に失敗しました。"
-
-#: lib\subprocess.py:427
-#, python-format
-msgid "Error while running bzr. (error code: %d)"
-msgstr "bzr実行中にエラーが発生しました。(エラーコード: %d)"
-
-#: lib\subprocess.py:434
-msgid "Aborted!"
-msgstr ""
-
 #: lib\tag.py:142
 msgid "You should specify tag name"
 msgstr "タグ名の指定が必要です"
@@ -702,10 +858,6 @@ msgstr ""
 #: lib\tag.py:151
 msgid "&Replace"
 msgstr "置換(&R)"
-
-#: lib\tag.py:151 lib\tag.py:164 lib\util.py:68
-msgid "&Cancel"
-msgstr "キャンセル(&C)"
 
 #: lib\tag.py:161
 #, python-format
@@ -728,10 +880,6 @@ msgstr "タグ \"%s\" は存在しません"
 #: lib\tag.py:195
 msgid "Select branch location"
 msgstr "ブランチの場所を選択"
-
-#: lib\tag.py:209 lib\util.py:238
-msgid "Error"
-msgstr "エラー"
 
 #: lib\tag.py:210
 #, python-format
@@ -765,60 +913,6 @@ msgstr "リビジョン(&R):"
 #: lib\ui_branch.py:70
 msgid "&To:"
 msgstr "宛先(&T)："
-
-#: lib\ui_info.py:176
-msgid "Local location:"
-msgstr "ローカル配置："
-
-#: lib\ui_info.py:177 lib\ui_info.py:179 lib\ui_info.py:182 lib\ui_info.py:184
-#: lib\ui_info.py:186 lib\ui_info.py:189 lib\ui_info.py:191 lib\ui_info.py:193
-#: lib\ui_info.py:195
-msgid "..."
-msgstr "..."
-
-#: lib\ui_info.py:178
-msgid "Public branch location:"
-msgstr "公開ブランチの場所："
-
-#: lib\ui_info.py:180
-msgid "&Location"
-msgstr "ロケーション(&L)"
-
-#: lib\ui_info.py:181
-msgid "Push branch:"
-msgstr "プッシュ先ブランチ："
-
-#: lib\ui_info.py:183
-msgid "Parent branch:"
-msgstr "親ブランチ："
-
-#: lib\ui_info.py:185
-msgid "Submit branch:"
-msgstr "ブランチ送信先："
-
-#: lib\ui_info.py:187
-msgid "&Related Branches"
-msgstr "関連ブランチ(&R)"
-
-#: lib\ui_info.py:188
-msgid "Working tree format:"
-msgstr "作業ツリーフォーマット："
-
-#: lib\ui_info.py:190
-msgid "Branch format:"
-msgstr "ブランチフォーマット："
-
-#: lib\ui_info.py:192
-msgid "Repository format:"
-msgstr "リポジトリフォーマット："
-
-#: lib\ui_info.py:194
-msgid "Control directory format:"
-msgstr "管理ディレクトリフォーマット："
-
-#: lib\ui_info.py:196
-msgid "&Format"
-msgstr "フォーマット(&F)："
 
 #: lib\ui_init.py:119
 msgid "Local Directory"
@@ -1012,96 +1106,6 @@ msgstr ""
 #: lib\ui_update_checkout.py:78
 msgid "Pull a different branch"
 msgstr "異なるブランチにプル"
-
-#: lib\util.py:420
-msgid "Select Source Directory"
-msgstr "ソースディレクトリを選択"
-
-#: lib\util.py:422
-msgid "Select Target Directory"
-msgstr "対象ディレクトリを選択"
-
-#: lib\util.py:492
-msgid "Parents:"
-msgstr "親:"
-
-#: lib\util.py:496
-msgid "Children:"
-msgstr "子供:"
-
-#: lib\util.py:499
-msgid "Date:"
-msgstr "日付："
-
-#: lib\util.py:501
-msgid "Committer:"
-msgstr "コミッタ:"
-
-#: lib\util.py:504
-msgid "Author:"
-msgstr "著者:"
-
-#: lib\util.py:508
-msgid "Branch:"
-msgstr "ブランチ："
-
-#: lib\util.py:513
-msgid "Tags:"
-msgstr "タグ:"
-
-#: lib\util.py:522
-msgid "Bug:"
-msgid_plural "Bugs:"
-msgstr[0] "バグ："
-
-#: lib\util.py:670
-msgid "deleted files"
-msgstr "削除"
-
-#: lib\util.py:672
-msgid "added files"
-msgstr "追加"
-
-#: lib\util.py:674
-msgid "renamed files"
-msgstr "名前が変更されたファイル"
-
-#: lib\util.py:676
-msgid "modified files"
-msgstr "変更されたファイル"
-
-#: lib\wtlist.py:42
-msgid "Select / deselect all"
-msgstr "全選択/非選択"
-
-#: lib\wtlist.py:70
-msgid "&Revert..."
-msgstr "元に戻す(&R)..."
-
-#: lib\wtlist.py:80
-msgid "File"
-msgstr "ファイル"
-
-#: lib\wtlist.py:80
-msgid "Extension"
-msgstr "拡張子"
-
-#: lib\wtlist.py:105
-msgid "ignored"
-msgstr "無視"
-
-#: lib\wtlist.py:107
-msgid "non-versioned"
-msgstr "管理外"
-
-#: lib\wtlist.py:119
-msgid "missing"
-msgstr "紛失"
-
-#: lib\wtlist.py:216
-#, python-format
-msgid "Revert %s to latest revision."
-msgstr "%sを最新のリビジョンに戻す"
 
 #~ msgid "Branch nick:"
 #~ msgstr "ブランチニックネーム："
