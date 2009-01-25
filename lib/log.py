@@ -488,7 +488,7 @@ class LogWindow(QBzrWindow):
     def show_context_menu(self, pos):
         index = self.log_list.indexAt(pos)
         revid = str(index.data(logmodel.RevIdRole).toString())
-        rev = self.changesModel.revision(revid)
+        rev = self.log_list.graph_provider.revision(revid)
         #print index, item, rev
         self.contextMenu.popup(self.log_list.viewport().mapToGlobal(pos))
 
