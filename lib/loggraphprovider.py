@@ -47,7 +47,7 @@ class LogGraphProvider():
         """List of unique repositories"""
         self.branches = []
         """List of tuple(tree, branch, repo )"""
-        self.file_ids = []
+        self.fileids = []
         
         self.repos = {}
         
@@ -71,8 +71,10 @@ class LogGraphProvider():
         
         self.filter_file_id = None
         """Filtered dict of msri's that are visible because they touch
-        self.file_ids
+        self.fileids
         """
+        
+        self.filter_cache = []
         
         self.graph_line_data = []
         """ list containing for visible revisions:
@@ -115,7 +117,7 @@ class LogGraphProvider():
             self.repos[repo.base] = repo
     
     def open_branch(self, branch, file_id):
-        """Open branch and file_ids to be loaded. """
+        """Open branch and fileids to be loaded. """
         
         repo = branch.repository
         try:
@@ -126,7 +128,8 @@ class LogGraphProvider():
         self.branches.append((tree, branch, repo))
         
         if file_id:
-            self.file_ids.append(file_id)
+            self.fileids.append(file_id)
+            self.filter_file_id = {}
     
     def open_locations(self, locations):
         """Open branches or repositories and file-ids to be loaded from a list
@@ -171,7 +174,7 @@ class LogGraphProvider():
                 self.append_repo(repo)
                 self.branches.append((tree, br, repo))
             
-            # If no locations were sepecified, don't do file_ids
+            # If no locations were sepecified, don't do fileids
             # Otherwise it gives you the history for the dir if you are
             # in a sub dir.
             if fp != '' and locations==["."]:
@@ -188,9 +191,10 @@ class LogGraphProvider():
                     raise errors.BzrCommandError(
                         "Path does not have any revision history: %s" %
                         location)
-                self.file_ids.append(file_id)
+                self.fileids.append(file_id)
+                self.filter_file_id = {}
         
-        if self.file_ids and len(self.branches)>1:
+        if self.fileids and len(self.branches)>1:
             raise errors.BzrCommandError(paths_and_branches_err)
 
     def lock_read_branches(self):
@@ -335,6 +339,8 @@ class LogGraphProvider():
                                  lambda x: self.repos_sorted_local_first.cmp(x[1]))
         self.default_repo = head_revid_repo[0][1]
         self.revid_repo = get_revid_head(head_revid_repo)
+        
+        self.invaladate_filter_cache()
     
     def compute_branch_lines(self):
         self.branch_lines = {}
@@ -435,50 +441,36 @@ class LogGraphProvider():
             self.merge_info.append(([],merged_by))
         
     def load_filter_file_id(self):
-        """Load with revisions affect the file_ids
+        """Load with revisions affect the fileids
         
         It requires that compute_merge_info has been run.
         
         """
         
-        if self.file_ids:
+        if self.fileids:
             self.filter_file_id = {}
-            try:
-                self.branches[0].repository.texts.get_parent_map([])
-                use_texts = True
-            except AttributeError:
-                use_texts = False
             
-            if use_texts:
-                chunk_size = 500
+            revids = [revid for (sequence_number,
+                                 revid,
+                                 merge_depth,
+                                 revno_sequence,
+                                 end_of_merge) in self.merge_sorted_revisions ]
+            repo_revids = self.get_repo_revids(revids)        
+            chunk_size = 500
+            for repo in self.repos_sorted_local_first():
                 for start in xrange(0, len(self.merge_sorted_revisions), chunk_size):
-                    text_keys = [(specific_fileid, revid) \
-                        for sequence_number,
-                            revid,
-                            merge_depth,
-                            revno_sequence,
-                            end_of_merge in self.merge_sorted_revisions[start:start + chunk_size] \
-                        for specific_fileid in specific_fileids]
+                    text_keys = [(fileid, revid) \
+                        for revid in repo_revids[repo.base][start:start + chunk_size] \
+                        for fileid in self.fileids]
                     
-                    for fileid, revid in self.branches[0].repository.texts.get_parent_map(text_keys):
+                    for fileid, revid in repo.texts.get_parent_map(text_keys):
                         rev_msri = self.revid_msri[revid]
                         self.filter_file_id[rev_msri] = True
-                        
-                        #self.graphFilterProxyModel.invalidateCacheRow(rev_msri)
-                        #index = self.createIndex (rev_msri, 0, QtCore.QModelIndex())
-                        #self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                        #          index,index)
                     self.update_ui()
-            else:
-                weave_modifed_revisions = set()
-                for specific_fileid in specific_fileids:
-                    file_weave = self.branches[0].repository.weave_store.get_weave(specific_fileid,
-                                        self.branches[0].repository.get_transaction())
-                    for revid in file_weave.versions():
-                        rev_msri = self.revid_msri[revid]
-                        self.touches_file_msri[rev_msri] = True
-                        #self.graphFilterProxyModel.invalidateCacheRow(rev_msri)
-
+            
+            self.invaladate_filter_cache()
+            self.revisions_filter_changed([])
+    
     def get_revision_visible(self, msri):
         """ Returns wether a revision is visible or not"""
         
@@ -492,15 +484,30 @@ class LogGraphProvider():
         if not self.branch_lines[branch_id][1]: # branch colapased
             return False
         
-        return self.get_revision_visible_if_branch_visible(msri)
+        return self.get_revision_visible_if_branch_visible_cached(msri)
 
+    def get_revision_visible_if_branch_visible_cached(self, msri):
+        cache = self.filter_cache[msri]
+        if cache is None:
+            cache = self.get_revision_visible_if_branch_visible(msri)
+            self.filter_cache[msri] =cache
+        return cache
     
     def get_revision_visible_if_branch_visible(self, msri):
+        
+        for merged_msri in self.merge_info[msri][0]:
+            if self.get_revision_visible_if_branch_visible_cached(merged_msri):
+                return True
+        
         if self.filter_file_id is not None:
             if msri not in self.filter_file_id:
                 return False
         
         return True
+
+    def invaladate_filter_cache(self):
+        self.filter_cache = [None for i in \
+                             xrange(len(self.merge_sorted_revisions))]
 
     def compute_graph_lines(self):
         graph_line_data = []
@@ -958,6 +965,19 @@ class LogGraphProvider():
         
         return self.default_repo
     
+    def get_repo_revids(self, revids):
+        """Returns dict maping repo to it revisions"""
+        repo_revids = {}
+        for repo_base in self.repos.iterkeys():
+            repo_revids[repo_base] = []
+        
+        for revid in revids:
+            if revid not in self.revisions:
+                repo_base = self.get_revid_repo(revid)
+                repo_revids[repo_base].append(revid)
+        
+        return repo_revids
+    
     def load_revisions(self, revids,
                        update_time_initial=0.1,
                        update_time_increment=0,
@@ -978,16 +998,8 @@ class LogGraphProvider():
         throbber_time = 1.0
         revisions_loaded = []
         
-        repo_revids = {}
-        for repo_base in self.repos.iterkeys():
-            repo_revids[repo_base] = []
-        
-        for revid in revids:
-            if revid not in self.revisions:
-                repo_base = self.get_revid_repo(revid)
-                repo_revids[repo_base].append(revid)
-        
         try:
+            repo_revids = self.get_repo_revids(revids)        
             for repo in self.repos_sorted_local_first():
                 if current_call_count < self.load_revisions_call_count:
                     break
@@ -1058,6 +1070,9 @@ class LogGraphProvider():
         remember to call super.
         
         """
+        pass
+    
+    def revisions_filter_changed(self, revisions):
         pass
     
     def delay(self,timeout):

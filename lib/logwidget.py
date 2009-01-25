@@ -56,6 +56,9 @@ class LogList(QtGui.QTreeView):
         self.filter_proxy_model.setDynamicSortFilter(True)
 
         self.setModel(self.filter_proxy_model)
+        self.connect(self.model,
+                     QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                     self.model_data_changed)
         
         header = self.header()
         header.setStretchLastSection(False)
@@ -113,7 +116,8 @@ class LogList(QtGui.QTreeView):
         
         self.model.compute_lines()
         
-        self.load_visible_revisions()
+        self.graph_provider.load_filter_file_id()
+        
         #if have_search:
         #    self.processEvents()
         #    for branch in self.branches:
@@ -145,11 +149,10 @@ class LogList(QtGui.QTreeView):
                         if twisty_state.isValid():
                             revision_id = str(index.data(logmodel.RevIdRole).toString())
                             self.model.colapse_expand_rev(revision_id, not twisty_state.toBool())
-                            self.load_visible_revisions()
                             e.accept ()
             QtGui.QTreeView.mouseReleaseEvent(self, e)
         except:
-            self.report_exception
+            self.report_exception()
     
     def keyPressEvent (self, e):
         try:
@@ -185,20 +188,29 @@ class LogList(QtGui.QTreeView):
             else:
                 QtGui.QTreeView.keyPressEvent(self, e)
         except:
-            self.report_exception
+            self.report_exception()
     
     def scroll_changed(self, value):
         try:
             self.load_visible_revisions()
         except:
-            self.report_exception
+            self.report_exception()
+    
+    def model_data_changed(self, start_index, end_index):
+        try:
+            self.load_visible_revisions()
+        except:
+            self.report_exception()
     
     def load_visible_revisions(self):
-        top_index = self.indexAt(self.viewport().rect().topLeft())
-        bottom_index = self.indexAt(self.viewport().rect().bottomLeft())
+        top_index = self.indexAt(self.viewport().rect().topLeft()).row()
+        bottom_index = self.indexAt(self.viewport().rect().bottomLeft()).row()
+        # The + 2 is so that the rev that is off screen due to the throbber
+        # is loaded.
+        bottom_index = min((bottom_index + 2,
+                            len(self.graph_provider.graph_line_data)-1))
         revids = []
-        for i in xrange(top_index.row(), bottom_index.row() + 2): # The + 2 is
-            # so that the rev that is off screen due to the throbber is loaded.
+        for i in xrange(top_index, bottom_index): 
             msri = self.graph_provider.graph_line_data[i][0]
             revid = self.graph_provider.merge_sorted_revisions[msri][1]
             revids.append(revid)

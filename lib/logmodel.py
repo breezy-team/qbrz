@@ -106,6 +106,9 @@ class QLogGraphProvider(LogGraphProvider):
         LogGraphProvider.revisions_loaded(self, revisions)
         self.on_revisions_loaded(revisions)
     
+    def revisions_filter_changed(self, revisions):
+        self.on_filter_changed(revisions)
+    
     def delay(self, timeout):
         QtCore.QTimer.singleShot(timeout, self.null)
         self.processEvents(QtCore.QEventLoop.WaitForMoreEvents)
@@ -120,6 +123,7 @@ class LogModel(QtCore.QAbstractTableModel):
         
         self.graph_provider = graph_provider
         self.graph_provider.on_revisions_loaded = self.on_revisions_loaded
+        self.graph_provider.on_filter_changed = self.on_filter_changed
         
         self.horizontalHeaderLabels = [gettext("Rev"),
                                        gettext("Message"),
@@ -288,6 +292,9 @@ class LogModel(QtCore.QAbstractTableModel):
             indexes = self.indexFromRevId(revid, (COL_MESSAGE, COL_AUTHOR))
             self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                       indexes[0], indexes[1])
+    
+    def on_filter_changed(self, revisions):
+        self.compute_lines()
     
 class LoadRevisionsBase(BackgroundJob):
     throbber_time = 0.5
