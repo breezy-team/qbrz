@@ -111,6 +111,8 @@ class LogList(QtGui.QTreeView):
         
         self.graph_provider.load_filter_file_id()
         
+        self.load_visible_revisions()
+        
         #if have_search:
         #    self.processEvents()
         #    for branch in self.branches:
