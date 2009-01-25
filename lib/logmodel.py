@@ -106,8 +106,8 @@ class QLogGraphProvider(LogGraphProvider):
         LogGraphProvider.revisions_loaded(self, revisions)
         self.on_revisions_loaded(revisions)
     
-    def revisions_filter_changed(self, revisions):
-        self.on_filter_changed(revisions)
+    def revisions_filter_changed(self):
+        self.on_filter_changed()
     
     def delay(self, timeout):
         QtCore.QTimer.singleShot(timeout, self.null)
@@ -293,7 +293,7 @@ class LogModel(QtCore.QAbstractTableModel):
             self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                       indexes[0], indexes[1])
     
-    def on_filter_changed(self, revisions):
+    def on_filter_changed(self):
         self.compute_lines()
     
 class LoadRevisionsBase(BackgroundJob):

@@ -81,6 +81,7 @@ class LogWindow(QBzrWindow):
         self.restoreSize("log", (710, 580))
         
         self.branches = None
+        self.replace = None
         
         self.throbber = ThrobberWidget(self)
         
@@ -214,7 +215,6 @@ class LogWindow(QBzrWindow):
                                                     self.specific_fileids)
                 else:
                     self.log_list.load_locations(self.locations)
-                self.load_branch_config()
                 #if initial and self.indexes:
                 #    self.changesProxyModel.setSearchIndexes(self.indexes)
                 #    self.searchType.insertItem(0,
@@ -260,6 +260,11 @@ class LogWindow(QBzrWindow):
                 replace = [tuple(replace[2*i:2*i+2])
                                 for i in range(len(replace) // 2)]
             self.replace[branch.base] = replace
+    
+    def replace_config(self, branch):
+        if not self.replace:
+            self.load_branch_config()
+        return self.replace[branch.base]
     
     def show(self):
         # we show the bare form as soon as possible.
@@ -329,7 +334,7 @@ class LogWindow(QBzrWindow):
             rev = self.log_list.graph_provider.revision(revid)
             self.current_rev = rev
             if rev is not None:
-                replace = self.replace[rev.branch.base]
+                replace = self.replace_config(rev.branch)
                 self.message.setHtml(format_revision_html(rev, replace))
                 self.revision_delta_timer.start(1)
             else:

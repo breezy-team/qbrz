@@ -110,11 +110,6 @@ class LogList(QtGui.QTreeView):
         self.graph_provider.lock_read_repos()
         # And will remain locked until the window is closed or we refresh.
         self.model.loadBranch()
-    
-        self.graph_provider.compute_branch_lines()
-        self.graph_provider.compute_merge_info()
-        
-        self.model.compute_lines()
         
         self.graph_provider.load_filter_file_id()
         
