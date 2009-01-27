@@ -100,9 +100,15 @@ class LogGraphProvider():
         
         """
         
-        self.search_str = None
-        self.search_field = None
-        self.search_revision_loading = False
+        self.sr_str = None
+        self.sr_field = None
+        self.sr_loading_revisions = False
+        
+        # ifcr = invaladate_filter_cache_revs and these fields are related to
+        # that method.
+        self.ifcr_pending_msris = []
+        self.ifcr_last_run_time = 0
+        self.ifcr_last_call_time = 0
     
     def update_ui(self):
         pass
@@ -477,19 +483,10 @@ class LogGraphProvider():
                         changed_msris.append(rev_msri)
                     
                     self.update_ui()
-                    # Only notify that there are changes every so often.
-                    # invaladate_filter_cache_revs causes compute_graph_lines to
-                    # run, and it runs slowly because it has to update the
-                    # filter cache. How often we update is bases on a ratio of
-                    # 10:1. If we spend 1 sec calling
-                    # invaladate_filter_cache_revs, don't call it again until we
-                    # have spent 10 sec in this method.
-                    if clock() - last_update > last_update_run_time * 10:
-                        start_time = clock()
-                        self.invaladate_filter_cache_revs(changed_msris)
-                        self.update_ui()
-                        last_update_run_time = clock() - start_time
-            self.invaladate_filter_cache_revs(changed_msris)
+                    self.invaladate_filter_cache_revs(changed_msris)
+                    
+                    self.update_ui()
+            self.invaladate_filter_cache_revs(changed_msris, last_call=True)
     
     def get_revision_visible(self, msri):
         """ Returns wether a revision is visible or not"""
@@ -530,31 +527,49 @@ class LogGraphProvider():
                              xrange(len(self.merge_sorted_revisions))]
         self.revisions_filter_changed()
     
-    def invaladate_filter_cache_revs(self, msris):
-        prev_cached_msris = []
+    def invaladate_filter_cache_revs(self, msris, last_call=False):
+        self.ifcr_pending_msris.extend(msris)
+        # Only notify that there are changes every so often.
+        # invaladate_filter_cache_revs causes compute_graph_lines to run, and it
+        # runs slowly because it has to update the filter cache. How often we
+        # update is bases on a ratio of 10:1. If we spend 1 sec calling
+        # invaladate_filter_cache_revs, don't call it again until we have spent
+        # 10 sec else where.
+        if last_call or \
+                clock() - self.ifcr_last_call_time > \
+                self.ifcr_last_run_time * 10:
+            
+            start_time = clock()        
+            prev_cached_msris = []
+            while self.ifcr_pending_msris:
+                msri = self.ifcr_pending_msris.pop(0)
+                
+                if self.filter_cache[msri] is not None:
+                    prev_cached_msris.append((msri, self.filter_cache[msri]))
+                self.filter_cache[msri] = None
+                
+                merged_by = self.merge_info[msri][1]
+                if merged_by:
+                    msris.append(merged_by)
+            
+            # Check if any visibilities have changes. If they have, call
+            # revisions_filter_changed
+            for msri, prev_visible in prev_cached_msris:
+                merged_by = self.merge_info[msri][1]
+                
+                if not merged_by or \
+                    self.get_revision_visible_if_branch_visible_cached(merged_by):
+                    visible = self.get_revision_visible_if_branch_visible_cached(msri)
+                    if visible <> prev_visible:
+                        self.revisions_filter_changed()
+                        break
+            
+            self.ifcr_last_run_time = clock() - start_time
+            self.ifcr_last_call_time = clock()
         
-        while msris:
-            msri = msris.pop(0)
-            
-            if self.filter_cache[msri] is not None:
-                prev_cached_msris.append((msri, self.filter_cache[msri]))
-            self.filter_cache[msri] = None
-            
-            merged_by = self.merge_info[msri][1]
-            if merged_by:
-                msris.append(merged_by)
-        
-        # Check if any visibilities have changes. If they have, call
-        # revisions_filter_changed
-        for msri, prev_visible in prev_cached_msris:
-            merged_by = self.merge_info[msri][1]
-            
-            if not merged_by or \
-                self.get_revision_visible_if_branch_visible_cached(merged_by):
-                visible = self.get_revision_visible_if_branch_visible_cached(msri)
-                if visible <> prev_visible:
-                    self.revisions_filter_changed()
-                    break
+        if last_call:
+            self.ifcr_last_run_time = 0
+            self.ifcr_last_call_time = 0
     
     def compute_graph_lines(self):
         graph_line_data = []
@@ -993,18 +1008,21 @@ class LogGraphProvider():
             return None
     
     def set_search(self, str, field):
-        self.search_field = field
-        self.search_str = str
+        self.sr_field = field
+        self.sr_str = str
         
-        if search_str:
-            if self.search_field == SEARCH_USING_SEARCH:
+        def revisions_loaded(revids):
+            pass
+        
+        if sr_str:
+            if self.sr_field == SEARCH_USING_SEARCH:
                 #Load Affected revids from index
                 pass
             
             self.invaladate_filter_cache()
             
-            if not self.search_field == SEARCH_USING_SEARCH\
-               and not self.search_revision_loading:
+            if not self.sr_field == SEARCH_USING_SEARCH\
+               and not self.sr_loading_revisions:
                 
                 revids = [revid for (sequence_number,
                                      revid,
@@ -1012,12 +1030,12 @@ class LogGraphProvider():
                                      revno_sequence,
                                      end_of_merge)\
                           in self.merge_sorted_revisions ]
+                
                 self.load_revisions(revids,
-                                    update_time_initial=0.5,
-                                    update_time_increment=0,
-                                    update_time_max=0.5,
-                                    local_batch_size = 30,
-                                    remote_batch_size = 5)
+                                    time_before_first_ui_update = 0,
+                                    local_batch_size = 100,
+                                    remote_batch_size = 10,
+                                    revisions_loaded = revisions_loaded)
     
     def revision(self, revid):
         """Load and return a revision from a repository.
