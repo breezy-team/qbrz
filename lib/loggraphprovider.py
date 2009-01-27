@@ -101,6 +101,7 @@ class LogGraphProvider():
         """
         
         self.load_revisions_call_count = sys.maxint
+        self.load_revisions_throbber_shown = False
     
     def update_ui(self):
         pass
@@ -1024,9 +1025,9 @@ class LogGraphProvider():
         return repo_revids
     
     def load_revisions(self, revids,
-                       update_time_initial=0.1,
+                       update_time_initial=0.5,
                        update_time_increment=0,
-                       update_time_max=0.05,
+                       update_time_max=0.5,
                        local_batch_size = 30,
                        remote_batch_size = 5):
         
@@ -1036,53 +1037,64 @@ class LogGraphProvider():
         self.load_revisions_call_count += 1
         current_call_count = self.load_revisions_call_count
         
-        self.throbber_show()
-        
         update_time = update_time_initial
         start_time = clock()
         last_update = clock()
-        revisions_loaded = []
         
         try:
-            repo_revids = self.get_repo_revids(revids)        
-            for repo in self.repos_sorted_local_first():
-                if current_call_count < self.load_revisions_call_count:
-                    break
-                    
-                if repo.is_local:
-                    batch_size = local_batch_size
-                else:
-                    batch_size = remote_batch_size
-                
-                revids = repo_revids[repo.base]
-                for offset in range(0, len(revids), batch_size):
+            revisions_loaded = []
+            revids = [revid for revid in revids if revid not in self.revisions]
+            if revids:
+                repo_revids = self.get_repo_revids(revids)        
+                for repo in self.repos_sorted_local_first():
                     if current_call_count < self.load_revisions_call_count:
                         break
-                    
-                    current_time = clock()
-                    
-                    if update_time < current_time - last_update:
-                        self.revisions_loaded(revisions_loaded)
-                        revisions_loaded = []
-                        update_time = max(update_time + update_time_increment,
-                                               update_time_max)
-                        self.update_ui()
-                        last_update = current_time
-                    elif not repo.is_local:
-                        self.delay(0.5)
-                    
-                    if current_call_count < self.load_revisions_call_count:
-                        break
-                    
-                    revisions = repo.get_revisions(revids[offset:offset+batch_size])
-                    for rev in revisions:
-                        revisions_loaded.append(rev.revision_id)
-                        rev.repository = repo
-                        self.post_revision_load(rev)
                         
-            self.revisions_loaded(revisions_loaded)
+                    if repo.is_local:
+                        batch_size = local_batch_size
+                    else:
+                        batch_size = remote_batch_size
+                    
+                    revids = repo_revids[repo.base]
+                    for offset in range(0, len(revids), batch_size):
+                        if current_call_count < self.load_revisions_call_count:
+                            break
+                        
+                        current_time = clock()
+                        
+                        if update_time < current_time - last_update:
+                            self.revisions_loaded(revisions_loaded)
+                            revisions_loaded = []
+                            update_time = max(update_time + update_time_increment,
+                                                   update_time_max)
+                            if not self.load_revisions_throbber_shown:
+                                self.throbber_show()
+                                self.load_revisions_throbber_shown = True
+                            self.update_ui()
+                            last_update = current_time
+                        elif not repo.is_local:
+                            if not self.load_revisions_throbber_shown:
+                                self.throbber_show()
+                                self.load_revisions_throbber_shown = True
+                            self.delay(0.5)
+                        
+                        if current_call_count < self.load_revisions_call_count:
+                            break
+                        
+                        revisions = repo.get_revisions(revids[offset:offset+batch_size])
+                        for rev in revisions:
+                            revisions_loaded.append(rev.revision_id)
+                            rev.repository = repo
+                            self.post_revision_load(rev)
+                            
+                self.revisions_loaded(revisions_loaded)
         finally:
-            self.throbber_hide()
+            if self.load_revisions_call_count == current_call_count:
+                # This is the last running method
+                if self.load_revisions_throbber_shown:
+                    self.load_revisions_throbber_shown = False
+                    self.throbber_hide()
+                self.load_revisions_call_count = sys.maxint
     
     def post_revision_load(self, revision):
         self.revisions[revision.revision_id] = revision
