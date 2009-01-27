@@ -536,7 +536,7 @@ class LogGraphProvider():
                 filtered_str = revision.get_apparent_author()
             
             if filtered_str is not None:
-                if self.sr_filter_re.match(filtered_str) is None:
+                if self.sr_filter_re.search(filtered_str) is None:
                     return False
         
         return True
