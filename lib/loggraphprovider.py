@@ -100,7 +100,7 @@ class LogGraphProvider():
         
         """
         
-        self.load_revisions_call_count = sys.maxint
+        self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
     
     def update_ui(self):
@@ -1031,8 +1031,6 @@ class LogGraphProvider():
                        local_batch_size = 30,
                        remote_batch_size = 5):
         
-        if self.load_revisions_call_count == sys.maxint:
-            self.load_revisions_call_count = 0
         
         self.load_revisions_call_count += 1
         current_call_count = self.load_revisions_call_count
@@ -1089,12 +1087,12 @@ class LogGraphProvider():
                             
                 self.revisions_loaded(revisions_loaded)
         finally:
-            if self.load_revisions_call_count == current_call_count:
+            self.load_revisions_call_count -=1
+            if self.load_revisions_call_count == 0:
                 # This is the last running method
                 if self.load_revisions_throbber_shown:
                     self.load_revisions_throbber_shown = False
                     self.throbber_hide()
-                self.load_revisions_call_count = sys.maxint
     
     def post_revision_load(self, revision):
         self.revisions[revision.revision_id] = revision
