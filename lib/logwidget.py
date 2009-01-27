@@ -218,7 +218,7 @@ class LogList(QtGui.QTreeView):
         
         def before_batch_load(repo, revids):
             if current_call_count < self.load_revisions_call_count:
-                raise StopException()
+                return True
             
             if not repo.is_local:
                 if not self.load_revisions_throbber_shown:
@@ -226,6 +226,8 @@ class LogList(QtGui.QTreeView):
                     self.load_revisions_throbber_shown = True
                 # Allow for more scrolling to happen.
                 self.delay(0.5)
+            
+            return False
         
         try:
             self.graph_provider.load_revisions(revids,
@@ -247,6 +249,9 @@ class LogList(QtGui.QTreeView):
         
         QtCore.QTimer.singleShot(timeout, null)
         self.processEvents(QtCore.QEventLoop.WaitForMoreEvents)
+    
+    def set_search(self, str, field):
+        self.graph_provider.set_search(str, field)
 
 class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
 

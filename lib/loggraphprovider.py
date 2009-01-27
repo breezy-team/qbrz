@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import sys
+import re
 from time import clock
 
 from bzrlib import errors
@@ -35,9 +36,6 @@ try:
 except ImportError:
     have_search = False
 
-SEARCH_FILTER_MESSAGE = 0
-SEARCH_FILTER_AUTHOR = 1
-SEARCH_USING_SEARCH = 2
 
 class LogGraphProvider():
     """Loads and computes revision and graph data for GUI log widgets."""
@@ -100,8 +98,8 @@ class LogGraphProvider():
         
         """
         
-        self.sr_str = None
         self.sr_field = None
+        self.sr_filter_re = None
         self.sr_loading_revisions = False
         
         # ifcr = invaladate_filter_cache_revs and these fields are related to
@@ -519,6 +517,27 @@ class LogGraphProvider():
         if self.filter_file_id is not None:
             if msri not in self.filter_file_id:
                 return False
+        
+        (sequence_number,
+         revid,
+         merge_depth,
+         revno_sequence,
+         end_of_merge) = self.merge_sorted_revisions[msri]
+        
+        if self.sr_filter_re:
+            revision = self.revision(revid)
+            if revision is None:
+                return False
+            
+            filtered_str = None
+            if self.sr_field == "message":
+                filtered_str = revision.message
+            elif self.sr_field == "author":
+                filtered_str = revision.get_apparent_author()
+            
+            if filtered_str is not None:
+                if self.sr_filter_re.match(filtered_str) is None:
+                    return False
         
         return True
 
@@ -1009,19 +1028,31 @@ class LogGraphProvider():
     
     def set_search(self, str, field):
         self.sr_field = field
-        self.sr_str = str
         
-        def revisions_loaded(revids):
-            pass
+        def revisions_loaded(revids, last_call):
+            msris = [self.revid_msri[revid] for revid in revids]
+            self.invaladate_filter_cache_revs(msris, last_call)
         
-        if sr_str:
-            if self.sr_field == SEARCH_USING_SEARCH:
+        def before_batch_load(repo, revids):
+            if self.sr_filter_re is None:
+                return True
+            return False
+        
+        if str is None or str == u"":
+            self.sr_filter_regex = None
+            # Clear index results
+            self.invaladate_filter_cache()
+        else:
+            if self.sr_field == "search":
+                self.sr_filter_regex = None
                 #Load Affected revids from index
                 pass
+            else:
+                self.sr_filter_re = re.compile(str, re.IGNORECASE)
             
             self.invaladate_filter_cache()
             
-            if not self.sr_field == SEARCH_USING_SEARCH\
+            if self.sr_filter_re is not None\
                and not self.sr_loading_revisions:
                 
                 revids = [revid for (sequence_number,
@@ -1035,6 +1066,7 @@ class LogGraphProvider():
                                     time_before_first_ui_update = 0,
                                     local_batch_size = 100,
                                     remote_batch_size = 10,
+                                    before_batch_load = before_batch_load,
                                     revisions_loaded = revisions_loaded)
     
     def revision(self, revid):
@@ -1099,7 +1131,7 @@ class LogGraphProvider():
                         
                         if time_before_first_ui_update < running_time:
                             if revisions_loaded is not None:
-                                revisions_loaded(revids_loaded)
+                                revisions_loaded(revids_loaded, False)
                                 revids_loaded = []
                             if not showed_throbber:
                                 self.throbber_show()
@@ -1109,7 +1141,9 @@ class LogGraphProvider():
                         batch_revids = revids[offset:offset+batch_size]
                         
                         if before_batch_load is not None:
-                            before_batch_load(repo, batch_revids)
+                            stop = before_batch_load(repo, batch_revids)
+                            if stop:
+                                break
                         
                         revisions = repo.get_revisions(batch_revids)
                         for rev in revisions:
@@ -1118,7 +1152,7 @@ class LogGraphProvider():
                             self.post_revision_load(rev)
                             
                 if revisions_loaded is not None:
-                    revisions_loaded(revids_loaded)
+                    revisions_loaded(revids_loaded, True)
         finally:
             if showed_throbber:
                 self.throbber_hide()

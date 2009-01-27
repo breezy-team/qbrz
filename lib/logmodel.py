@@ -269,7 +269,7 @@ class LogModel(QtCore.QAbstractTableModel):
                     for column in columns]
         return self.createIndex (msri, 0, QtCore.QModelIndex())
 
-    def on_revisions_loaded(self, revisions):
+    def on_revisions_loaded(self, revisions, last_call):
         for revid in revisions:
             indexes = self.indexFromRevId(revid, (COL_MESSAGE, COL_AUTHOR))
             self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),

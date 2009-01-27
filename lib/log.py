@@ -409,24 +409,20 @@ class LogWindow(QBzrWindow):
         try:
             # TODO in_paths = self.search_in_paths.isChecked()
             role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
-            search_text = self.search_edit.text()
-            search_mode = not role == logmodel.FilterIdRole and \
-                          not role == logmodel.FilterRevnoRole and \
-                          not role == logmodel.FilterSearchRole and \
-                          search_text.length() > 0
-            self.changesModel.set_search_mode(search_mode)
-            if role == logmodel.FilterIdRole:
-                self.changesProxyModel.setFilter(u"", role)
-                search_text = str(search_text)
+            search_text = unicode(self.search_edit.text())
+            if search_text == u"":
+                self.log_list.set_search(None, None)
+            elif role == logmodel.FilterIdRole:
+                self.log_list.set_search(None, None)
                 if self.changesModel.has_rev_id(search_text):
                     self.changesModel.ensure_rev_visible(search_text)
                     index = self.changesModel.indexFromRevId(search_text)
                     index = self.changesProxyModel.mapFromSource(index)
                     self.log_list.setCurrentIndex(index)
             elif role == logmodel.FilterRevnoRole:
-                self.changesProxyModel.setFilter(u"", role)
+                self.log_list.set_search(None, None)
                 try:
-                    revno = tuple((int(number) for number in str(search_text).split('.')))
+                    revno = tuple((int(number) for number in search_text.split('.')))
                 except ValueError:
                     revno = ()
                     # Not sure what to do if there is an error. Nothing for now
@@ -437,7 +433,14 @@ class LogWindow(QBzrWindow):
                     index = self.changesProxyModel.mapFromSource(index)
                     self.log_list.setCurrentIndex(index)
             else:
-                self.changesProxyModel.setFilter(self.search_edit.text(), role)
+                if role == logmodel.FilterMessageRole:
+                    field = "message"
+                elif role == logmodel.FilterAuthorRole:
+                    field = "author"
+                else:
+                    raise Exception("Not done")
+                
+                self.log_list.set_search(search_text, field)
             
             self.log_list.scrollTo(self.log_list.currentIndex())
             # Scroll to ensure the selection is on screen.
