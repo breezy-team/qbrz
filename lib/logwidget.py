@@ -19,6 +19,7 @@
 
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib import logmodel
+from bzrlib.plugins.qbzr.lib.util import StopException
 
 
 class LogList(QtGui.QTreeView):
@@ -68,8 +69,10 @@ class LogList(QtGui.QTreeView):
         header.setResizeMode(logmodel.COL_AUTHOR, QtGui.QHeaderView.Interactive)
         header.resizeSection(logmodel.COL_REV, 70)
         header.resizeSection(logmodel.COL_DATE, 100) # TODO - Make this dynamic
-        header.resizeSection(logmodel.COL_AUTHOR, 150)        
-
+        header.resizeSection(logmodel.COL_AUTHOR, 150)
+        
+        self.load_revisions_call_count = 0
+        self.load_revisions_throbber_shown = False
     
     def load_branch(self, branch, specific_fileids):
         self.throbber.show()
@@ -210,7 +213,40 @@ class LogList(QtGui.QTreeView):
             revid = self.graph_provider.merge_sorted_revisions[msri][1]
             revids.append(revid)
         
-        self.graph_provider.load_revisions(revids)
+        self.load_revisions_call_count += 1
+        current_call_count = self.load_revisions_call_count
+        
+        def before_batch_load(repo, revids):
+            if current_call_count < self.load_revisions_call_count:
+                raise StopException()
+            
+            if not repo.is_local:
+                if not self.load_revisions_throbber_shown:
+                    self.throbber.show()
+                    self.load_revisions_throbber_shown = True
+                # Allow for more scrolling to happen.
+                self.delay(0.5)
+        
+        try:
+            self.graph_provider.load_revisions(revids,
+                            revisions_loaded = self.model.on_revisions_loaded,
+                            before_batch_load = before_batch_load
+                            )
+        finally:
+            self.load_revisions_call_count -=1
+            if self.load_revisions_call_count == 0:
+                # This is the last running method
+                if self.load_revisions_throbber_shown:
+                    self.load_revisions_throbber_shown = False
+                    self.throbber.hide()
+    
+    def delay(self, timeout):
+        
+        def null():
+            pass
+        
+        QtCore.QTimer.singleShot(timeout, null)
+        self.processEvents(QtCore.QEventLoop.WaitForMoreEvents)
 
 class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
 

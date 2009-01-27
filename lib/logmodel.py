@@ -96,25 +96,8 @@ class QLogGraphProvider(LogGraphProvider):
     def throbber_hide(self):
         self.throbber.hide()
     
-    def revisions_loaded(self, revisions):
-        """Runs after a batch of revisions have been loaded
-        
-        Reimplement to be notified that revisions have been loaded. But
-        remember to call super.
-        
-        """
-        LogGraphProvider.revisions_loaded(self, revisions)
-        self.on_revisions_loaded(revisions)
-    
     def revisions_filter_changed(self):
         self.on_filter_changed()
-    
-    def delay(self, timeout):
-        QtCore.QTimer.singleShot(timeout, self.null)
-        self.processEvents(QtCore.QEventLoop.WaitForMoreEvents)
-    
-    def null(self):
-        pass
 
 class LogModel(QtCore.QAbstractTableModel):
 
@@ -122,7 +105,6 @@ class LogModel(QtCore.QAbstractTableModel):
         QtCore.QAbstractTableModel.__init__(self, parent)
         
         self.graph_provider = graph_provider
-        self.graph_provider.on_revisions_loaded = self.on_revisions_loaded
         self.graph_provider.on_filter_changed = self.on_filter_changed
         
         self.horizontalHeaderLabels = [gettext("Rev"),

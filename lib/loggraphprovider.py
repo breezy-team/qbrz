@@ -35,9 +35,9 @@ try:
 except ImportError:
     have_search = False
 
-FILTER_MESSAGE = 0
-FILTER_AUTHOR = 1
-FILTER_SEARCH = 2
+SEARCH_FILTER_MESSAGE = 0
+SEARCH_FILTER_AUTHOR = 1
+SEARCH_USING_SEARCH = 2
 
 class LogGraphProvider():
     """Loads and computes revision and graph data for GUI log widgets."""
@@ -100,8 +100,9 @@ class LogGraphProvider():
         
         """
         
-        self.load_revisions_call_count = 0
-        self.load_revisions_throbber_shown = False
+        self.search_str = None
+        self.search_field = None
+        self.search_revision_loading = False
     
     def update_ui(self):
         pass
@@ -989,7 +990,34 @@ class LogGraphProvider():
         if merged_by_msri:
             return self.merge_sorted_revisions[merged_by_msri][1]
         else:
-            return None        
+            return None
+    
+    def set_search(self, str, field):
+        self.search_field = field
+        self.search_str = str
+        
+        if search_str:
+            if self.search_field == SEARCH_USING_SEARCH:
+                #Load Affected revids from index
+                pass
+            
+            self.invaladate_filter_cache()
+            
+            if not self.search_field == SEARCH_USING_SEARCH\
+               and not self.search_revision_loading:
+                
+                revids = [revid for (sequence_number,
+                                     revid,
+                                     merge_depth,
+                                     revno_sequence,
+                                     end_of_merge)\
+                          in self.merge_sorted_revisions ]
+                self.load_revisions(revids,
+                                    update_time_initial=0.5,
+                                    update_time_increment=0,
+                                    update_time_max=0.5,
+                                    local_batch_size = 30,
+                                    remote_batch_size = 5)
     
     def revision(self, revid):
         """Load and return a revision from a repository.
@@ -1025,28 +1053,21 @@ class LogGraphProvider():
         return repo_revids
     
     def load_revisions(self, revids,
-                       update_time_initial=0.5,
-                       update_time_increment=0,
-                       update_time_max=0.5,
+                       time_before_first_ui_update = 0.5,
                        local_batch_size = 30,
-                       remote_batch_size = 5):
+                       remote_batch_size = 5,
+                       before_batch_load = None,
+                       revisions_loaded = None):
         
-        
-        self.load_revisions_call_count += 1
-        current_call_count = self.load_revisions_call_count
-        
-        update_time = update_time_initial
         start_time = clock()
-        last_update = clock()
+        showed_throbber = False
         
         try:
-            revisions_loaded = []
+            revids_loaded = []
             revids = [revid for revid in revids if revid not in self.revisions]
             if revids:
                 repo_revids = self.get_repo_revids(revids)        
                 for repo in self.repos_sorted_local_first():
-                    if current_call_count < self.load_revisions_call_count:
-                        break
                         
                     if repo.is_local:
                         batch_size = local_batch_size
@@ -1055,44 +1076,34 @@ class LogGraphProvider():
                     
                     revids = repo_revids[repo.base]
                     for offset in range(0, len(revids), batch_size):
-                        if current_call_count < self.load_revisions_call_count:
-                            break
                         
-                        current_time = clock()
+                        running_time = clock() - start_time
                         
-                        if update_time < current_time - last_update:
-                            self.revisions_loaded(revisions_loaded)
-                            revisions_loaded = []
-                            update_time = max(update_time + update_time_increment,
-                                                   update_time_max)
-                            if not self.load_revisions_throbber_shown:
+                        if time_before_first_ui_update < running_time:
+                            if revisions_loaded is not None:
+                                revisions_loaded(revids_loaded)
+                                revids_loaded = []
+                            if not showed_throbber:
                                 self.throbber_show()
-                                self.load_revisions_throbber_shown = True
+                                showed_throbber = True
                             self.update_ui()
-                            last_update = current_time
-                        elif not repo.is_local:
-                            if not self.load_revisions_throbber_shown:
-                                self.throbber_show()
-                                self.load_revisions_throbber_shown = True
-                            self.delay(0.5)
                         
-                        if current_call_count < self.load_revisions_call_count:
-                            break
+                        batch_revids = revids[offset:offset+batch_size]
                         
-                        revisions = repo.get_revisions(revids[offset:offset+batch_size])
+                        if before_batch_load is not None:
+                            before_batch_load(repo, batch_revids)
+                        
+                        revisions = repo.get_revisions(batch_revids)
                         for rev in revisions:
-                            revisions_loaded.append(rev.revision_id)
+                            revids_loaded.append(rev.revision_id)
                             rev.repository = repo
                             self.post_revision_load(rev)
                             
-                self.revisions_loaded(revisions_loaded)
+                if revisions_loaded is not None:
+                    revisions_loaded(revids_loaded)
         finally:
-            self.load_revisions_call_count -=1
-            if self.load_revisions_call_count == 0:
-                # This is the last running method
-                if self.load_revisions_throbber_shown:
-                    self.load_revisions_throbber_shown = False
-                    self.throbber_hide()
+            if showed_throbber:
+                self.throbber_hide()
     
     def post_revision_load(self, revision):
         self.revisions[revision.revision_id] = revision
@@ -1108,17 +1119,5 @@ class LogGraphProvider():
             head_revid = self.head_revids[0]
         revision.branch = self.revid_head_info[head_revid][0][0]
     
-    def revisions_loaded(self, revisions):
-        """Runs after a batch of revisions have been loaded
-        
-        Reimplement to be notified that revisions have been loaded. But
-        remember to call super.
-        
-        """
-        pass
-    
     def revisions_filter_changed(self):
-        pass
-    
-    def delay(self,timeout):
         pass
