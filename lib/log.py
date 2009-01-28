@@ -18,12 +18,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.bzrdir import BzrDir
 from bzrlib.branch import Branch
-from bzrlib import (
-    errors,
-    osutils,
-    )
+from bzrlib import osutils
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
@@ -49,6 +45,12 @@ class Compleater(QtGui.QCompleter):
         return QtCore.QStringList([path.split(" ")[-1]])
 
 class LogWindow(QBzrWindow):
+
+    FilterIdRole = QtCore.Qt.UserRole + 100
+    FilterMessageRole = QtCore.Qt.UserRole + 101
+    FilterAuthorRole = QtCore.Qt.UserRole + 102
+    FilterRevnoRole = QtCore.Qt.UserRole + 103
+    FilterSearchRole = QtCore.Qt.UserRole + 104
     
     def __init__(self, locations, branch, specific_fileids, parent=None,
                  ui_mode=True):        
@@ -101,13 +103,13 @@ class LogWindow(QBzrWindow):
         self.searchType = QtGui.QComboBox()
             
         self.searchType.addItem(gettext("Messages"),
-                                QtCore.QVariant(logmodel.FilterMessageRole))
+                                QtCore.QVariant(self.FilterMessageRole))
         self.searchType.addItem(gettext("Authors"),
-                                QtCore.QVariant(logmodel.FilterAuthorRole))
+                                QtCore.QVariant(self.FilterAuthorRole))
         self.searchType.addItem(gettext("Revision IDs"),
-                                QtCore.QVariant(logmodel.FilterIdRole))
+                                QtCore.QVariant(self.FilterIdRole))
         self.searchType.addItem(gettext("Revision Numbers"),
-                                QtCore.QVariant(logmodel.FilterRevnoRole))
+                                QtCore.QVariant(self.FilterRevnoRole))
         searchbox.addWidget(self.searchType)
         self.connect(self.searchType,
                      QtCore.SIGNAL("currentIndexChanged(int)"),
@@ -216,7 +218,7 @@ class LogWindow(QBzrWindow):
                 if indexes_availble:
                     self.searchType.insertItem(0,
                             gettext("Messages and File text (indexed)"),
-                            QtCore.QVariant(logmodel.FilterSearchRole))
+                            QtCore.QVariant(self.FilterSearchRole))
                     self.searchType.setCurrentIndex(0)
                     
                     self.completer = Compleater(self)
@@ -412,14 +414,14 @@ class LogWindow(QBzrWindow):
             search_text = unicode(self.search_edit.text())
             if search_text == u"":
                 self.log_list.set_search(None, None)
-            elif role == logmodel.FilterIdRole:
+            elif role == self.FilterIdRole:
                 self.log_list.set_search(None, None)
                 if self.changesModel.has_rev_id(search_text):
                     self.changesModel.ensure_rev_visible(search_text)
                     index = self.changesModel.indexFromRevId(search_text)
                     index = self.changesProxyModel.mapFromSource(index)
                     self.log_list.setCurrentIndex(index)
-            elif role == logmodel.FilterRevnoRole:
+            elif role == self.FilterRevnoRole:
                 self.log_list.set_search(None, None)
                 try:
                     revno = tuple((int(number) for number in search_text.split('.')))
@@ -433,11 +435,11 @@ class LogWindow(QBzrWindow):
                     index = self.changesProxyModel.mapFromSource(index)
                     self.log_list.setCurrentIndex(index)
             else:
-                if role == logmodel.FilterMessageRole:
+                if role == self.FilterMessageRole:
                     field = "message"
-                elif role == logmodel.FilterAuthorRole:
+                elif role == self.FilterAuthorRole:
                     field = "author"
-                elif role == logmodel.FilterSearchRole:
+                elif role == self.FilterSearchRole:
                     field = "index"
                 else:
                     raise Exception("Not done")

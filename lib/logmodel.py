@@ -31,13 +31,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
     BackgroundJob,
     )
-
-have_search = True 
-try: 
-    from bzrlib.plugins.search import errors as search_errors 
-    from bzrlib.plugins.search import index as search_index 
-except ImportError: 
-    have_search = False 
  
 TagsRole = QtCore.Qt.UserRole + 1
 BugIdsRole = QtCore.Qt.UserRole + 2
@@ -46,12 +39,6 @@ GraphNodeRole = QtCore.Qt.UserRole + 4
 GraphLinesRole = QtCore.Qt.UserRole + 5
 GraphTwistyStateRole = QtCore.Qt.UserRole + 6
 RevIdRole = QtCore.Qt.UserRole + 7
-
-FilterIdRole = QtCore.Qt.UserRole + 100
-FilterMessageRole = QtCore.Qt.UserRole + 101
-FilterAuthorRole = QtCore.Qt.UserRole + 102
-FilterRevnoRole = QtCore.Qt.UserRole + 103
-FilterSearchRole = QtCore.Qt.UserRole + 104
 
 COL_REV = 0
 COL_MESSAGE = 1
@@ -193,8 +180,7 @@ class LogModel(QtCore.QAbstractTableModel):
         (sequence_number, revid, merge_depth, revno_sequence, end_of_merge) = \
             self.graph_provider.merge_sorted_revisions[index.row()]
         
-        if (role == QtCore.Qt.DisplayRole and index.column() == COL_REV) or \
-                role == FilterRevnoRole:
+        if (role == QtCore.Qt.DisplayRole and index.column() == COL_REV) :
             revnos = ".".join(["%d" % (revno)
                                       for revno in revno_sequence])
             return QtCore.QVariant(revnos)
@@ -212,7 +198,7 @@ class LogModel(QtCore.QAbstractTableModel):
                         in self.graph_provider.heads[revid][1] if tag]
             return QtCore.QVariant(QtCore.QStringList(tags))
         
-        if role == RevIdRole or role == FilterIdRole:
+        if role == RevIdRole:
             return QtCore.QVariant(revid)
         
         #Everything from here foward will need to have the revision loaded.
@@ -242,12 +228,6 @@ class LogModel(QtCore.QAbstractTableModel):
                         bugs.append(bugtext % bug_id)
             return QtCore.QVariant(QtCore.QStringList(bugs))
         
-        if role == FilterMessageRole:
-            return QtCore.QVariant(revision.message)
-        if role == FilterAuthorRole:
-            return QtCore.QVariant(revision.get_apparent_author())
-        
-        #return QtCore.QVariant(item.data(index.column()))
         return QtCore.QVariant()
 
     def flags(self, index):
@@ -278,215 +258,10 @@ class LogModel(QtCore.QAbstractTableModel):
     def on_filter_changed(self):
         self.compute_lines()
     
-class LoadRevisionsBase(BackgroundJob):
-    throbber_time = 0.5
-
-    def run(self):
-        self.update_time = self.update_time_initial
-        self.start_time = clock()
-        self.last_update = clock()
-        self.revisions_loaded = []
-        
-        try:
-            revision_ids = []
-            for revid in self.revision_generator():
-                if revid not in self.parent.revisions:
-                    revision_ids.append(revid)
-                if len(revision_ids)>self.batch_size:
-                    self.load_revisions(revision_ids)
-            self.load_revisions(revision_ids)
-            self.notifyChanges()
-        finally:
-            self.parent.throbber_hide()
-    
-    def load_revisions(self, revision_ids):
-        for repo in self.parent.repos.itervalues():
-            keys = [(key,) for key in revision_ids]
-            stream = repo.revisions.get_record_stream(keys, 'unordered', True)
-            self.processEvents()
-            for record in stream:
-                if not record.storage_kind == 'absent':
-                    revision_ids.remove(record.key[0])
-                    self.revisions_loaded.append(record.key[0])
-                    text = record.get_bytes_as('fulltext')
-                    rev = repo._serializer.read_revision_from_string(text)
-                    rev.repository = repo
-                    self.parent.post_revision_load(rev)
-                    self.processEvents()
-                
-                current_time = clock()
-                if self.throbber_time < current_time - self.start_time:
-                    self.parent.throbber_show()
-                
-                if self.update_time < current_time - self.last_update:
-                    self.notifyChanges()
-                    self.update_time = max(self.update_time + self.update_time_increment,
-                                           self.update_time_max)
-                    self.processEvents()
-                    self.last_update = clock()
-        
-        
-        # This should never happen
-        if len(revision_ids) > 0 :
-            raise errors.NoSuchRevision(self, revision_ids[0])
-    
-    def notifyChanges(self):
-        for revid in self.revisions_loaded:
-            indexes = self.parent.indexFromRevId(revid, (COL_MESSAGE, COL_AUTHOR))
-            self.parent.graphFilterProxyModel.invalidateCacheRow(indexes[0].row())
-            self.parent.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                      indexes[0], indexes[1])
-        revisionsChanged = []
-
-class LoadQueuedRevisions(LoadRevisionsBase):
-    update_time_initial = 0.05
-    update_time_increment = 0
-    update_time_max = 0.05
-    
-    batch_size = 5
-    
-    def revision_generator(self):
-        while len(self.parent.queue):
-            yield self.parent.queue.pop(0)
-
-    def notifyChanges(self):
-        # Clear the queue
-        self.parent.queue = self.parent.queue[0:1]
-        LoadRevisionsBase.notifyChanges(self)
-
-    
-class LoadAllRevisions(LoadRevisionsBase):
-    update_time_initial = 1
-    update_time_increment = 5
-    update_time_max = 20
-    
-    batch_size = 50
-
-    def revision_generator(self):
-        for (sequence_number,
-             revid,
-             merge_depth,
-             revno_sequence,
-             end_of_merge) in self.parent.merge_sorted_revisions:
-            yield revid
-
-    def notifyChanges(self):
-        LoadRevisionsBase.notifyChanges(self)
-        self.parent.compute_lines()
-    
-    
 class LogFilterProxyModel(QtGui.QSortFilterProxyModel):
     def __init__(self, graph_provider, parent = None):
         QtGui.QSortFilterProxyModel.__init__(self, parent)
         self.graph_provider = graph_provider
-        self.old_filter_str = ""
-        self.old_filter_role = 0
-        self.cache = {}
-        self.search_matching_revid = None
-        self.search_indexes = []
-        self.filter_str = u""
-        self.filter_role = FilterMessageRole
-        self._sourceModel = None
-    
-    def setFilter(self, str, role):
-        if not unicode(str) == self.filter_str or not role == self.filter_role:
-            if role == FilterSearchRole:
-                self.setFilterSearch(str)
-                self.setFilterRegExp("")
-            else:
-                self.setFilterRegExp(str)
-                self.setFilterRole(role)
-                self.setFilterSearch("")
-            self.invalidateCache()
-            self.sm().compute_lines()
-            
-            self.filter_str = unicode(str)
-            self.filter_role = role
-    
-    def setSearchIndexes(self, indexes):
-        self.search_indexes = indexes
 
-    def setFilterSearch(self, s):
-        if s == "" or not self.search_indexes or not have_search:
-            self.search_matching_revid = None
-        else:
-            s = str(s).strip()
-            query = [(query_item,) for query_item in s.split(" ")]
-            self.search_matching_revid = {}
-            for index in self.search_indexes:
-                for result in index.search(query):
-                    if isinstance(result, search_index.RevisionHit):
-                        self.search_matching_revid[result.revision_key[0]] = True
-                    if isinstance(result, search_index.FileTextHit):
-                        self.search_matching_revid[result.text_key[1]] = True
-                    if isinstance(result, search_index.PathHit):
-                        pass
-    
-    def sm(self):
-        if not self._sourceModel:
-            self._sourceModel = self.sourceModel()
-        return self._sourceModel
-    
-    def invalidateCache (self):
-        self.cache = {}
-        self._sourceModel = None
-    
-    def invalidateCacheRow (self, source_row):
-        if source_row in self.cache:
-            del self.cache[source_row]
-        merged_by = self.sm().merge_info[source_row][1]
-        if merged_by:
-            self.invalidateCacheRow(merged_by)
-    
     def filterAcceptsRow(self, source_row, source_parent):
         return self.graph_provider.get_revision_visible(source_row)
-    #    (sequence_number,
-    #     revid,
-    #     merge_depth,
-    #     revno_sequence,
-    #     end_of_merge) = sm.graph_provider.merge_sorted_revisions[source_row]
-    #    
-    #    branch_id = revno_sequence[0:-1]
-    #    if not sm.branch_lines[branch_id][1]: # branch colapased
-    #        return False
-    #    
-    #    return self.filterAcceptsRowIfBranchVisible(source_row, source_parent)
-    #
-    #def filterAcceptsRowIfBranchVisible(self, source_row, source_parent):
-    #    if source_row not in self.cache:
-    #        self.cache[source_row] = self._filterAcceptsRowIfBranchVisible(source_row, source_parent)
-    #    return self.cache[source_row]
-    #    
-    #def _filterAcceptsRowIfBranchVisible(self, source_row, source_parent):
-    #    sm = self.sm()
-    #    
-    #    for parent_msri in sm.merge_info[source_row][0]:
-    #        if self.filterAcceptsRowIfBranchVisible(parent_msri, source_parent):
-    #            return True
-    #    
-    #    if sm.touches_file_msri is not None:
-    #        if source_row not in sm.touches_file_msri:
-    #            return False
-    #    
-    #    if self.search_matching_revid is not None:
-    #        (sequence_number,
-    #         revid,
-    #         merge_depth,
-    #         revno_sequence,
-    #         end_of_merge) = sm.merge_sorted_revisions[source_row]
-    #        return revid in self.search_matching_revid
-    #    
-    #    if self.filter_str:
-    #        (sequence_number,
-    #         revid,
-    #         merge_depth,
-    #         revno_sequence,
-    #         end_of_merge) = sm.merge_sorted_revisions[source_row]
-    #        if revid in sm.revisions:
-    #            return QtGui.QSortFilterProxyModel.filterAcceptsRow(self, source_row, source_parent)
-    #        else:
-    #            return False
-    #    
-    #    return True
-
- 

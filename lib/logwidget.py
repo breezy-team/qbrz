@@ -52,8 +52,6 @@ class LogList(QtGui.QTreeView):
         
         self.filter_proxy_model = logmodel.LogFilterProxyModel(self.graph_provider, self)
         self.filter_proxy_model.setSourceModel(self.model)
-        self.filter_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
-        self.filter_proxy_model.setFilterRole(logmodel.FilterMessageRole)
         self.filter_proxy_model.setDynamicSortFilter(True)
 
         self.setModel(self.filter_proxy_model)
@@ -115,15 +113,6 @@ class LogList(QtGui.QTreeView):
         self.graph_provider.load_filter_file_id()
         
         self.load_visible_revisions()
-        
-        #if have_search:
-        #    self.processEvents()
-        #    for branch in self.branches:
-        #        try:
-        #            index = search_index.open_index_branch(branch)
-        #            self.indexes.append(index)
-        #        except search_errors.NoSearchIndex:
-        #            pass
     
     def closeEvent (self, QCloseEvent):
         self.graph_provider.unlock_repos()
