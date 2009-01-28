@@ -127,7 +127,7 @@ class LogModel(QtCore.QAbstractTableModel):
         return self.graph_provider.revid_from_revno(revno)
         
     def ensure_rev_visible(self, revid):
-        has_change = self.graph_provider.ensure_rev_visible(revid, visible)
+        has_change = self.graph_provider.ensure_rev_visible(revid)
         if has_change:
             self.compute_lines()
     

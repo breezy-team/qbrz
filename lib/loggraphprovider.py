@@ -996,7 +996,7 @@ class LogGraphProvider():
     def ensure_rev_visible(self, revid):
         rev_msri = self.revid_msri[revid]
         branch_id = self.merge_sorted_revisions[rev_msri][3][0:-1]
-        has_change = self._set_branch_visible(branch_id, True, False)
+        has_change = self.set_branch_visible(branch_id, True, False)
         while not branch_id in self.start_branch_ids and self.branch_lines[branch_id][3]:
             branch_id = self.branch_lines[branch_id][3][0]
             has_change = self.set_branch_visible(branch_id, True, has_change)

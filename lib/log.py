@@ -416,10 +416,10 @@ class LogWindow(QBzrWindow):
                 self.log_list.set_search(None, None)
             elif role == self.FilterIdRole:
                 self.log_list.set_search(None, None)
-                if self.changesModel.has_rev_id(search_text):
-                    self.changesModel.ensure_rev_visible(search_text)
-                    index = self.changesModel.indexFromRevId(search_text)
-                    index = self.changesProxyModel.mapFromSource(index)
+                if self.log_list.graph_provider.has_rev_id(search_text):
+                    self.log_list.model.ensure_rev_visible(search_text)
+                    index = self.log_list.model.indexFromRevId(search_text)
+                    index = self.log_list.filter_proxy_model.mapFromSource(index)
                     self.log_list.setCurrentIndex(index)
             elif role == self.FilterRevnoRole:
                 self.log_list.set_search(None, None)
@@ -428,11 +428,11 @@ class LogWindow(QBzrWindow):
                 except ValueError:
                     revno = ()
                     # Not sure what to do if there is an error. Nothing for now
-                revid = self.changesModel.revid_from_revno(revno)
+                revid = self.log_list.graph_provider.revid_from_revno(revno)
                 if revid:
-                    self.changesModel.ensure_rev_visible(revid)
-                    index = self.changesModel.indexFromRevId(revid)
-                    index = self.changesProxyModel.mapFromSource(index)
+                    self.log_list.model.ensure_rev_visible(revid)
+                    index = self.log_list.model.indexFromRevId(revid)
+                    index = self.log_list.filter_proxy_model.mapFromSource(index)
                     self.log_list.setCurrentIndex(index)
             else:
                 if role == self.FilterMessageRole:
