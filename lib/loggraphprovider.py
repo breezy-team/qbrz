@@ -101,6 +101,7 @@ class LogGraphProvider():
         self.sr_field = None
         self.sr_filter_re = None
         self.sr_loading_revisions = False
+        self.sr_index_matched_revids = None
         
         # ifcr = invaladate_filter_cache_revs and these fields are related to
         # that method.
@@ -122,6 +123,15 @@ class LogGraphProvider():
         if repo.base not in self.repos:
             self.repos[repo.base] = repo
     
+    def open_search_index(self, branch):
+        if have_search:
+            try:
+                return search_index.open_index_branch(branch)
+            except search_errors.NoSearchIndex:
+                return None
+        else:
+            return None
+    
     def open_branch(self, branch, file_id):
         """Open branch and fileids to be loaded. """
         
@@ -131,7 +141,8 @@ class LogGraphProvider():
         except errors.NoWorkingTree:
             tree = None
         self.append_repo(repo)
-        self.branches.append((tree, branch, repo))
+        index = self.open_search_index(branch)
+        self.branches.append((tree, branch, repo, index))
         
         if file_id:
             self.fileids.append(file_id)
@@ -154,6 +165,8 @@ class LogGraphProvider():
                 repo_brs = repo.find_branches(using=True)
                 self.update_ui()
                 
+                self.append_repo(repo)
+                
                 # Sort the loaded branches so that the trunk is first.
                 trunk_names = ["trunk", "bzr.dev", "dev"]
                 def branch_cmp_trunk_first(x,y):
@@ -174,11 +187,12 @@ class LogGraphProvider():
                         tree = br.bzrdir.open_workingtree()
                     except errors.NoWorkingTree:
                         tree = None
-                    self.append_repo(repo)
-                    self.branches.append((tree, br, repo))
+                    index = self.open_search_index(br)
+                    self.branches.append((tree, br, repo, index))
             else:
                 self.append_repo(repo)
-                self.branches.append((tree, br, repo))
+                index = self.open_search_index(br)
+                self.branches.append((tree, br, repo, index))
             
             # If no locations were sepecified, don't do fileids
             # Otherwise it gives you the history for the dir if you are
@@ -204,11 +218,11 @@ class LogGraphProvider():
             raise errors.BzrCommandError(paths_and_branches_err)
 
     def lock_read_branches(self):
-        for (tree, branch, repo) in self.branches:
+        for (tree, branch, repo, index) in self.branches:
             branch.lock_read()
     
     def unlock_branches(self):
-        for (tree, branch, repo) in self.branches:
+        for (tree, branch, repo, index) in self.branches:
             branch.unlock()
     
     def lock_read_repos(self):
@@ -232,7 +246,7 @@ class LogGraphProvider():
         
         self.heads = {}
         
-        for (tree, branch, repo) in self.branches:
+        for (tree, branch, repo, index) in self.branches:
             
             if len(self.branches) == 1:
                 tag = None
@@ -270,7 +284,7 @@ class LogGraphProvider():
     
     def load_tags(self):
         self.tags = {}
-        for (tree, branch, repo) in self.branches:
+        for (tree, branch, repo, index) in self.branches:
             branch_tags = branch.tags.get_reverse_tag_dict()  # revid to tags map
             for revid, tags in branch_tags.iteritems():
                 if revid in self.tags:
@@ -538,6 +552,10 @@ class LogGraphProvider():
             if filtered_str is not None:
                 if self.sr_filter_re.search(filtered_str) is None:
                     return False
+        
+        if self.sr_index_matched_revids is not None:
+            if revid not in self.sr_index_matched_revids:
+                return False
         
         return True
 
@@ -1025,6 +1043,14 @@ class LogGraphProvider():
             return self.merge_sorted_revisions[merged_by_msri][1]
         else:
             return None
+
+    def search_indexes(self):
+        for (tree,
+             branch,
+             repo,
+             index) in self.branches:
+            if index is not None:
+                yield index
     
     def set_search(self, str, field):
         self.sr_field = field
@@ -1040,15 +1066,31 @@ class LogGraphProvider():
         
         if str is None or str == u"":
             self.sr_filter_regex = None
-            # Clear index results
+            self.sr_index_matched_revids = None
             self.invaladate_filter_cache()
         else:
-            if self.sr_field == "search":
+            if self.sr_field == "index":
                 self.sr_filter_regex = None
-                #Load Affected revids from index
-                pass
+                indexes = self.search_indexes()
+                if not indexes:
+                    self.sr_index_matched_revids = None
+                else:
+                    str = str.strip()
+                    query = [(query_item,) for query_item in str.split(" ")]
+                    self.sr_index_matched_revids = {}
+                    for index in indexes:
+                        for result in index.search(query):
+                            if isinstance(result, search_index.RevisionHit):
+                                self.sr_index_matched_revids\
+                                        [result.revision_key[0]] = True
+                            if isinstance(result, search_index.FileTextHit):
+                                self.sr_index_matched_revids\
+                                        [result.text_key[1]] = True
+                            if isinstance(result, search_index.PathHit):
+                                pass
             else:
                 self.sr_filter_re = re.compile(str, re.IGNORECASE)
+                self.sr_index_matched_revids = None
             
             self.invaladate_filter_cache()
             

@@ -42,13 +42,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
-have_search = True
-try:
-    from bzrlib.plugins.search import errors as search_errors
-    from bzrlib.plugins.search import index as search_index
-except ImportError:
-    have_search = False
-
 PathRole = QtCore.Qt.UserRole + 1
 
 class Compleater(QtGui.QCompleter):
@@ -107,8 +100,6 @@ class LogWindow(QBzrWindow):
 
         self.searchType = QtGui.QComboBox()
             
-        self.indexes = []
-        
         self.searchType.addItem(gettext("Messages"),
                                 QtCore.QVariant(logmodel.FilterMessageRole))
         self.searchType.addItem(gettext("Authors"),
@@ -215,23 +206,29 @@ class LogWindow(QBzrWindow):
                                                     self.specific_fileids)
                 else:
                     self.log_list.load_locations(self.locations)
-                #if initial and self.indexes:
-                #    self.changesProxyModel.setSearchIndexes(self.indexes)
-                #    self.searchType.insertItem(0,
-                #                               gettext("Messages and File text (indexed)"),
-                #                               QtCore.QVariant(logmodel.FilterSearchRole))
-                #    self.searchType.setCurrentIndex(0)
-                #    
-                #    self.completer = Compleater(self)
-                #    self.completer_model = QtGui.QStringListModel(self)
-                #    self.completer.setModel(self.completer_model)
-                #    self.search_edit.setCompleter(self.completer)
-                #    self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
-                #                 self.update_search_completer)
-                #    self.suggestion_letters_loaded = {"":QtCore.QStringList()}
-                #    self.suggestion_last_first_letter = ""
-                #    self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
-                #                 self.set_search_timer)
+                
+                for index in self.log_list.graph_provider.search_indexes():
+                    indexes_availble = True
+                    break
+                else:
+                    indexes_availble = False
+                
+                if indexes_availble:
+                    self.searchType.insertItem(0,
+                            gettext("Messages and File text (indexed)"),
+                            QtCore.QVariant(logmodel.FilterSearchRole))
+                    self.searchType.setCurrentIndex(0)
+                    
+                    self.completer = Compleater(self)
+                    self.completer_model = QtGui.QStringListModel(self)
+                    self.completer.setModel(self.completer_model)
+                    self.search_edit.setCompleter(self.completer)
+                    self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
+                                 self.update_search_completer)
+                    self.suggestion_letters_loaded = {"":QtCore.QStringList()}
+                    self.suggestion_last_first_letter = ""
+                    self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
+                                 self.set_search_timer)
             finally:
                 self.refresh_button.setDisabled(False)
         except:
@@ -252,7 +249,10 @@ class LogWindow(QBzrWindow):
 
     def load_branch_config(self):
         self.replace = {}
-        for (tree, branch, repo) in self.log_list.graph_provider.branches:
+        for (tree,
+             branch,
+             repo,
+             index) in self.log_list.graph_provider.branches:
             config = branch.get_config()
             replace = config.get_user_option("qlog_replace")
             if replace:
@@ -437,6 +437,8 @@ class LogWindow(QBzrWindow):
                     field = "message"
                 elif role == logmodel.FilterAuthorRole:
                     field = "author"
+                elif role == logmodel.FilterSearchRole:
+                    field = "index"
                 else:
                     raise Exception("Not done")
                 
@@ -460,7 +462,7 @@ class LogWindow(QBzrWindow):
             self.suggestion_last_first_letter = first_letter
             if first_letter not in self.suggestion_letters_loaded:
                 suggestions = set()
-                for index in self.indexes:
+                for index in self.log_list.graph_provider.search_indexes():
                     for s in index.suggest(((first_letter,),)): 
                         #if suggestions.count() % 100 == 0: 
                         #    QtCore.QCoreApplication.processEvents() 
