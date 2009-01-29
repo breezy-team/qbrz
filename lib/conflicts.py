@@ -75,7 +75,7 @@ class ConflictsWindow(QBzrWindow):
         self.program_edit = QtGui.QLineEdit(self)
         self.program_edit.setEnabled(False)
         config = QBzrGlobalConfig()
-        self.program_edit.setText(config.get_user_option("merge_tool").strip() or "meld")
+        self.program_edit.setText((config.get_user_option("merge_tool") or "").strip() or "meld")
         self.connect(
             self.program_edit,
             QtCore.SIGNAL("textChanged(QString)"),
@@ -111,7 +111,7 @@ class ConflictsWindow(QBzrWindow):
         QtCore.QTimer.singleShot(1, self.load)
 
     def load(self):
-        self.wt = wt = WorkingTree.open(self.wt_dir)
+        self.wt = wt = WorkingTree.open_containing(self.wt_dir)[0]
         self.set_title([gettext("Conflicts"), wt.basedir])
         conflicts = self.wt.conflicts()
         items = []
