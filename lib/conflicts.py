@@ -25,7 +25,7 @@ from bzrlib import (
     )
 from bzrlib.conflicts import resolve
 from bzrlib.workingtree import WorkingTree
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
+from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE, BTN_REFRESH,
     QBzrWindow,
@@ -101,7 +101,14 @@ class ConflictsWindow(QBzrWindow):
         buttonbox.addButton(refresh, QtGui.QDialogButtonBox.ActionRole)
         self.connect(refresh, QtCore.SIGNAL("clicked()"), self.refresh)
 
-        vbox.addWidget(buttonbox)
+        autobutton = QtGui.QPushButton(gettext('Auto-resolve'),
+            self.centralwidget)
+        self.connect(autobutton, QtCore.SIGNAL("clicked(bool)"), self.auto_resolve)
+
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(autobutton)
+        hbox.addWidget(buttonbox)
+        vbox.addLayout(hbox)
 
     def show(self):
         QBzrWindow.show(self)
@@ -124,6 +131,22 @@ class ConflictsWindow(QBzrWindow):
             items.append(item)
         self.conflicts_list.clear()
         self.conflicts_list.addTopLevelItems(items)
+
+    def auto_resolve(self):
+        un_resolved, resolved = self.wt.auto_resolve()
+        if len(un_resolved) > 0:
+            n = len(resolved)
+            QtGui.QMessageBox.information(self, gettext('Conflicts'),
+                ngettext('%d conflict auto-resolved.',
+                         '%d conflicts auto-resolved.',
+                         n) % n,
+                gettext('&OK'))
+            QtCore.QTimer.singleShot(1, self.load)
+        else:
+            QtGui.QMessageBox.information(self, gettext('Conflicts'),
+                gettext('All conflicts resolved.'),
+                gettext('&OK'))
+            self.close()
 
     def update_selection(self, selected, deselected):
         items = self.conflicts_list.selectedItems()
