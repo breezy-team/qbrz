@@ -189,14 +189,17 @@ class StopException(Exception):
     pass
     
 class _QBzrWindowBase:
-    
-    def set_title_and_icon(self, title=None):
-        """Set window title (from string or list) and bzr icon"""
+
+    def set_title(self, title=None):
         if title:
             if isinstance(title, basestring):
                 self.setWindowTitle(title)
             elif isinstance(title, (list, tuple)):
                 self.setWindowTitle(" - ".join(title))
+
+    def set_title_and_icon(self, title=None):
+        """Set window title (from string or list) and bzr icon"""
+        self.set_title(title)
         icon = QtGui.QIcon()
         icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
         icon.addFile(":/bzr-32.png", QtCore.QSize(32, 32))

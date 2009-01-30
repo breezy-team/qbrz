@@ -264,6 +264,19 @@ class cmd_qrevert(QBzrCommand):
         application.exec_()
 
 
+class cmd_qconflicts(QBzrCommand):
+    """Show conflicts."""
+    takes_args = []
+    takes_options = []
+
+    def _qbzr_run(self):
+        from bzrlib.plugins.qbzr.lib.conflicts import ConflictsWindow
+        application = QtGui.QApplication(sys.argv)
+        window = ConflictsWindow(u'.')
+        window.show()
+        application.exec_()
+
+
 class cmd_qbrowse(QBzrCommand):
     """Show inventory."""
     takes_args = ['location?']

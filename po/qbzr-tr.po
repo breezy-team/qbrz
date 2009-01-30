@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-01 10:29+0200\n"
+"POT-Creation-Date: 2009-01-25 13:30+0200\n"
 "PO-Revision-Date: 2008-11-22 15:33+0000\n"
 "Last-Translator: Mert Dirik <mertdirik@gmail.com>\n"
 "Language-Team: Turkish <tr@li.org>\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2009-01-06 22:00+0000\n"
+"X-Launchpad-Export-Date: 2009-01-25 12:44+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:41 lib\config.py:99 lib\config.py:120
@@ -30,73 +30,73 @@ msgstr "Sürümlendirilmemiş Dosyalar"
 msgid "Show ignored files"
 msgstr "Yok sayılan dosyaları göster"
 
-#: lib\annotate.py:84 lib\annotate.py:183 lib\browse.py:113
+#: lib\annotate.py:85 lib\annotate.py:185 lib\browse.py:114
 msgid "Annotate"
 msgstr "Açımla (Annotate)"
 
-#: lib\annotate.py:84 lib\diff.py:113 lib\util.py:402
+#: lib\annotate.py:85 lib\diff.py:114 lib\util.py:402
 msgid "Loading..."
 msgstr ""
 
-#: lib\annotate.py:103
+#: lib\annotate.py:104
 msgid "Line"
 msgstr "Satır"
 
-#: lib\annotate.py:103 lib\annotate.py:118 lib\browse.py:103 lib\commit.py:366
-#: lib\logmodel.py:89
+#: lib\annotate.py:104 lib\annotate.py:119 lib\browse.py:104 lib\commit.py:366
+#: lib\logmodel.py:90
 msgid "Author"
 msgstr "Yazar"
 
-#: lib\annotate.py:103 lib\annotate.py:118 lib\browse.py:104
-#: lib\logmodel.py:86
+#: lib\annotate.py:104 lib\annotate.py:119 lib\browse.py:105
+#: lib\logmodel.py:87
 msgid "Rev"
 msgstr "Düz"
 
-#: lib\annotate.py:118 lib\browse.py:102 lib\commit.py:366 lib\logmodel.py:88
+#: lib\annotate.py:119 lib\browse.py:103 lib\commit.py:366 lib\logmodel.py:89
 msgid "Date"
 msgstr "Tarih"
 
-#: lib\annotate.py:118
+#: lib\annotate.py:119
 msgid "Summary"
 msgstr "Özet"
 
-#: lib\browse.py:77 lib\browse.py:250 lib\browse.py:292
+#: lib\browse.py:78 lib\browse.py:256 lib\browse.py:299
 msgid "Browse"
 msgstr "Gözat"
 
-#: lib\browse.py:86
+#: lib\browse.py:87
 msgid "Location:"
 msgstr "Konum:"
 
-#: lib\browse.py:91 lib\ui_new_tree.py:160 lib\util.py:475
+#: lib\browse.py:92 lib\util.py:484 lib\ui_new_tree.py:160
 msgid "Revision:"
 msgstr "Düzeltme:"
 
-#: lib\browse.py:94
+#: lib\browse.py:95
 msgid "Show"
 msgstr "Göster"
 
-#: lib\browse.py:101 lib\main.py:358
+#: lib\browse.py:102 lib\main.py:358
 msgid "Name"
 msgstr "Ad"
 
-#: lib\browse.py:105 lib\commit.py:269 lib\commit.py:366 lib\logmodel.py:87
+#: lib\browse.py:106 lib\commit.py:269 lib\commit.py:366 lib\logmodel.py:88
 msgid "Message"
 msgstr "İleti"
 
-#: lib\browse.py:112
+#: lib\browse.py:113
 msgid "Show log..."
 msgstr "Günlüğü göster..."
 
-#: lib\browse.py:115
+#: lib\browse.py:116
 msgid "View file"
 msgstr "Dosyayı görüntüle"
 
-#: lib\cat.py:81
+#: lib\cat.py:82
 msgid "View"
 msgstr ""
 
-#: lib\commit.py:220 lib\commit.py:467 lib\commit.py:496 lib\commit.py:504
+#: lib\commit.py:220 lib\commit.py:471 lib\commit.py:500 lib\commit.py:508
 msgid "Commit"
 msgstr ""
 
@@ -164,39 +164,433 @@ msgstr "Değişiklikler"
 msgid "Pending Merges"
 msgstr "Bekleyen Birleştirmeler"
 
-#: lib\commit.py:393 lib\main.py:360 lib\subprocess.py:109 lib\wtlist.py:80
+#: lib\commit.py:393 lib\wtlist.py:80 lib\subprocess.py:121 lib\main.py:360
 msgid "Status"
 msgstr "Durum"
 
-#: lib\commit.py:468
+#: lib\commit.py:472
 msgid "You should provide commit message."
 msgstr ""
 
-#: lib\commit.py:469 lib\diff.py:367 lib\util.py:67
+#: lib\commit.py:473 lib\diff.py:370 lib\util.py:67
 msgid "&OK"
 msgstr "&Tamam"
 
-#: lib\commit.py:497
+#: lib\commit.py:501
 msgid "No changes to commit."
 msgstr ""
 
-#: lib\commit.py:505
+#: lib\commit.py:509
 msgid ""
 "No changes selected to commit.\n"
 "Do you want to commit anyway?"
 msgstr ""
 
-#: lib\commit.py:575
+#: lib\commit.py:579
 msgid ""
 "A commit will be made directly to the master branch, keeping the local and "
 "master branches in sync."
 msgstr ""
 
-#: lib\commit.py:581
+#: lib\commit.py:585
 msgid ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
 msgstr ""
+
+#: lib\diff.py:66
+#, python-format
+msgid "Working Tree for %s"
+msgstr ""
+
+#: lib\diff.py:68
+msgid "Working Tree"
+msgstr "Çalışma Ağacı"
+
+#: lib\diff.py:87
+#, python-format
+msgid "Rev %(rev)s for %(branch)s"
+msgstr ""
+
+#: lib\diff.py:89
+#, python-format
+msgid "Rev %s"
+msgstr "Düz %s"
+
+#: lib\diff.py:92
+#, python-format
+msgid "Revid: %(revid)s for %(branch)s"
+msgstr ""
+
+#: lib\diff.py:94
+#, python-format
+msgid "Revid: %s"
+msgstr ""
+
+#: lib\diff.py:97
+msgid "Merge Preview"
+msgstr ""
+
+#: lib\diff.py:114 lib\diff.py:220 lib\diff.py:360 lib\diff.py:368
+#: lib\log.py:548
+msgid "Diff"
+msgstr "Fark"
+
+#: lib\diff.py:140
+msgid "Side by side"
+msgstr "Taraf tarafa"
+
+#: lib\diff.py:147
+msgid "Unidiff"
+msgstr "Birleşmiş Fark (Unidiff)"
+
+#: lib\diff.py:152
+msgid "Complete"
+msgstr "Tamamı"
+
+#: lib\diff.py:226
+#, python-format
+msgid "%d file"
+msgid_plural "%d files"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib\diff.py:306 lib\wtlist.py:115
+msgid "removed"
+msgstr "silindi"
+
+#: lib\diff.py:308 lib\wtlist.py:111
+msgid "added"
+msgstr "eklendi"
+
+#: lib\diff.py:310 lib\wtlist.py:128
+msgid "renamed and modified"
+msgstr "adı ve içeriği değiştirildi"
+
+#: lib\diff.py:312 lib\wtlist.py:130
+msgid "renamed"
+msgstr "adı değiştirildi"
+
+#: lib\diff.py:314 lib\wtlist.py:137
+msgid "modified"
+msgstr "değiştirildi"
+
+#: lib\diff.py:361
+#, python-format
+msgid ""
+"File %s is not versioned.\n"
+"Operation aborted."
+msgstr ""
+
+#: lib\diff.py:363 lib\subprocess.py:149 lib\util.py:69 lib\tag.py:143
+#: lib\tag.py:174 lib\tag.py:211
+msgid "&Close"
+msgstr "&Kapat"
+
+#: lib\diff.py:369
+msgid "No changes found."
+msgstr ""
+
+#: lib\diffview.py:212
+msgid "Last modified:"
+msgstr "Son değiştirilme:"
+
+#: lib\diffview.py:213
+msgid "Status:"
+msgstr "Durum:"
+
+#: lib\diffview.py:214
+msgid "Kind:"
+msgstr "Tür:"
+
+#: lib\diffview.py:215
+msgid "Properties:"
+msgstr "Özellikler:"
+
+#: lib\diffview.py:465
+msgid "[binary file]"
+msgstr "[ikili dosya]"
+
+#: lib\diffview.py:624
+msgid "\\ No newline at end of file"
+msgstr "\\ Dosyanın sonunda yeni satır yok"
+
+#: lib\info.py:42
+msgid "Info"
+msgstr "Bilgi"
+
+#: lib\revert.py:42 lib\wtlist.py:223
+msgid "Revert"
+msgstr "Eski Durumuna Getir"
+
+#: lib\wtlist.py:42
+msgid "Select / deselect all"
+msgstr "Tümünü seç / Hiçbirini seçme"
+
+#: lib\wtlist.py:67 lib\log.py:555
+msgid "Show &differences..."
+msgstr "&Farkları göster..."
+
+#: lib\wtlist.py:70
+msgid "&Revert..."
+msgstr "&Eski durumuna getir..."
+
+#: lib\wtlist.py:80
+msgid "File"
+msgstr "Dosya"
+
+#: lib\wtlist.py:80
+msgid "Extension"
+msgstr "Uzantı"
+
+#: lib\wtlist.py:105
+msgid "ignored"
+msgstr ""
+
+#: lib\wtlist.py:107
+msgid "non-versioned"
+msgstr "sürümlendirilmemiş"
+
+#: lib\wtlist.py:119
+msgid "missing"
+msgstr "eksik"
+
+#: lib\wtlist.py:141
+msgid "modified (x-bit)"
+msgstr ""
+
+#: lib\wtlist.py:222
+#, python-format
+msgid "Revert %s to latest revision."
+msgstr ""
+
+#: lib\logmodel.py:863
+#, python-format
+msgid "bug #%s"
+msgstr "hata no. %s"
+
+#: lib\log.py:406
+msgid "Log"
+msgstr "Günlük"
+
+#: lib\log.py:435
+msgid "&Search:"
+msgstr "&Ara:"
+
+#: lib\log.py:453
+msgid "Messages"
+msgstr "İletiler"
+
+#: lib\log.py:455
+msgid "Authors"
+msgstr "Yazarlar"
+
+#: lib\log.py:457
+msgid "Revision IDs"
+msgstr "Düzeltme Kimlikleri"
+
+#: lib\log.py:459
+msgid "Revision Numbers"
+msgstr "Düzeltme Numaraları"
+
+#: lib\log.py:556
+msgid "Show &tree..."
+msgstr "&Ağacı göster..."
+
+#: lib\log.py:621
+msgid "Messages and File text (indexed)"
+msgstr ""
+
+#: lib\subprocess.py:143
+msgid "Internal Error"
+msgstr ""
+
+#: lib\subprocess.py:145
+#, python-format
+msgid ""
+"Sorry, subprocess action \"%s\" cannot be started\n"
+"because self.args is None.\n"
+"Please, report bug at:\n"
+"https://bugs.launchpad.net/qbzr/+filebug"
+msgstr ""
+
+#: lib\subprocess.py:277
+msgid "Description"
+msgstr ""
+
+#: lib\subprocess.py:300
+msgid "Stopped"
+msgstr "Durduruldu"
+
+#: lib\subprocess.py:361
+msgid "Starting..."
+msgstr "Başlatılıyor..."
+
+#: lib\subprocess.py:405
+msgid "Aborting..."
+msgstr "İptal ediliyor..."
+
+#: lib\subprocess.py:413 lib\subprocess.py:486
+msgid "Finished!"
+msgstr "Tamamlandı!"
+
+#: lib\subprocess.py:432 lib\uifactory.py:96
+msgid "Enter Password"
+msgstr ""
+
+#: lib\subprocess.py:467 lib\subprocess.py:489
+msgid "Failed!"
+msgstr "Başarısız Oldu!"
+
+#: lib\subprocess.py:469
+msgid "Failed to start bzr."
+msgstr "bzr başlatılamadı."
+
+#: lib\subprocess.py:471
+#, python-format
+msgid "Error while running bzr. (error code: %d)"
+msgstr "bzr çalıştırılırken bir sorunla karşılaşıldı. (hata kodu: %d)"
+
+#: lib\subprocess.py:479
+msgid "Aborted!"
+msgstr ""
+
+#: lib\util.py:68 lib\tag.py:151 lib\tag.py:164
+msgid "&Cancel"
+msgstr "&İptal"
+
+#: lib\util.py:70 lib\main.py:318
+msgid "&Help"
+msgstr "Ya&rdım"
+
+#: lib\util.py:71 lib\main.py:279
+msgid "&Refresh"
+msgstr "&Tazele"
+
+#: lib\util.py:238 lib\tag.py:209
+msgid "Error"
+msgstr ""
+
+#: lib\util.py:429
+msgid "Select Source Directory"
+msgstr ""
+
+#: lib\util.py:431
+msgid "Select Target Directory"
+msgstr ""
+
+#: lib\util.py:501
+msgid "Parents:"
+msgstr "Üstleri:"
+
+#: lib\util.py:505
+msgid "Children:"
+msgstr "Altları:"
+
+#: lib\util.py:508
+msgid "Date:"
+msgstr ""
+
+#: lib\util.py:510
+msgid "Committer:"
+msgstr ""
+
+#: lib\util.py:513
+msgid "Author:"
+msgstr "Yazar:"
+
+#: lib\util.py:517
+msgid "Branch:"
+msgstr "Dal:"
+
+#: lib\util.py:522
+msgid "Tags:"
+msgstr "Etiketler:"
+
+#: lib\util.py:531
+msgid "Bug:"
+msgid_plural "Bugs:"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib\util.py:679
+msgid "deleted files"
+msgstr "silinen dosyalar"
+
+#: lib\util.py:681
+msgid "added files"
+msgstr "eklenen dosyalar"
+
+#: lib\util.py:683
+msgid "renamed files"
+msgstr "adı değiştirilen dosyalar"
+
+#: lib\util.py:685
+msgid "modified files"
+msgstr "değiştirilen dosyalar"
+
+#: lib\help.py:60
+#, python-format
+msgid "No help can be found for <i>%s</i>"
+msgstr "<i>%s</i> için yardım bulunamadı"
+
+#: lib\help.py:110
+msgid "Help"
+msgstr "Yardım"
+
+#: lib\ui_info.py:176
+msgid "Local location:"
+msgstr "Yerel Konum:"
+
+#: lib\ui_info.py:177 lib\ui_info.py:179 lib\ui_info.py:182 lib\ui_info.py:184
+#: lib\ui_info.py:186 lib\ui_info.py:189 lib\ui_info.py:191 lib\ui_info.py:193
+#: lib\ui_info.py:195
+msgid "..."
+msgstr "..."
+
+#: lib\ui_info.py:178
+msgid "Public branch location:"
+msgstr "Umumi dalın konumu:"
+
+#: lib\ui_info.py:180
+msgid "&Location"
+msgstr "&Konum"
+
+#: lib\ui_info.py:181
+msgid "Push branch:"
+msgstr ""
+
+#: lib\ui_info.py:183
+msgid "Parent branch:"
+msgstr "Üst dal:"
+
+#: lib\ui_info.py:185
+msgid "Submit branch:"
+msgstr ""
+
+#: lib\ui_info.py:187
+msgid "&Related Branches"
+msgstr "İ&lgili Dallar"
+
+#: lib\ui_info.py:188
+msgid "Working tree format:"
+msgstr "Çalışma ağacı biçimi:"
+
+#: lib\ui_info.py:190
+msgid "Branch format:"
+msgstr "Dal biçimi:"
+
+#: lib\ui_info.py:192
+msgid "Repository format:"
+msgstr "Depo biçimi:"
+
+#: lib\ui_info.py:194
+msgid "Control directory format:"
+msgstr "Denetim dizini biçimi:"
+
+#: lib\ui_info.py:196
+msgid "&Format"
+msgstr "&Biçim"
 
 #: lib\config.py:41
 msgid "Default"
@@ -290,132 +684,6 @@ msgstr "K&ullanıcı Arayüzü"
 msgid "Spell check &language:"
 msgstr "Yazım denetimi &dili:"
 
-#: lib\diff.py:65
-#, python-format
-msgid "Working Tree for %s"
-msgstr ""
-
-#: lib\diff.py:67
-msgid "Working Tree"
-msgstr "Çalışma Ağacı"
-
-#: lib\diff.py:86
-#, python-format
-msgid "Rev %(rev)s for %(branch)s"
-msgstr ""
-
-#: lib\diff.py:88
-#, python-format
-msgid "Rev %s"
-msgstr "Düz %s"
-
-#: lib\diff.py:91
-#, python-format
-msgid "Revid: %(revid)s for %(branch)s"
-msgstr ""
-
-#: lib\diff.py:93
-#, python-format
-msgid "Revid: %s"
-msgstr ""
-
-#: lib\diff.py:96
-msgid "Merge Preview"
-msgstr ""
-
-#: lib\diff.py:113 lib\diff.py:218 lib\diff.py:357 lib\diff.py:365
-#: lib\log.py:547
-msgid "Diff"
-msgstr "Fark"
-
-#: lib\diff.py:139
-msgid "Side by side"
-msgstr "Taraf tarafa"
-
-#: lib\diff.py:146
-msgid "Unidiff"
-msgstr "Birleşmiş Fark (Unidiff)"
-
-#: lib\diff.py:151
-msgid "Complete"
-msgstr "Tamamı"
-
-#: lib\diff.py:224
-#, python-format
-msgid "%d file"
-msgid_plural "%d files"
-msgstr[0] ""
-msgstr[1] ""
-
-#: lib\diff.py:303 lib\wtlist.py:115
-msgid "removed"
-msgstr "silindi"
-
-#: lib\diff.py:305 lib\wtlist.py:111
-msgid "added"
-msgstr "eklendi"
-
-#: lib\diff.py:307 lib\wtlist.py:126
-msgid "renamed and modified"
-msgstr "adı ve içeriği değiştirildi"
-
-#: lib\diff.py:309 lib\wtlist.py:128
-msgid "renamed"
-msgstr "adı değiştirildi"
-
-#: lib\diff.py:311 lib\wtlist.py:135
-msgid "modified"
-msgstr "değiştirildi"
-
-#: lib\diff.py:358
-#, python-format
-msgid ""
-"File %s is not versioned.\n"
-"Operation aborted."
-msgstr ""
-
-#: lib\diff.py:360 lib\subprocess.py:137 lib\tag.py:143 lib\tag.py:174
-#: lib\tag.py:211 lib\util.py:69
-msgid "&Close"
-msgstr "&Kapat"
-
-#: lib\diff.py:366
-msgid "No changes found."
-msgstr ""
-
-#: lib\diffview.py:212
-msgid "Last modified:"
-msgstr "Son değiştirilme:"
-
-#: lib\diffview.py:213
-msgid "Status:"
-msgstr "Durum:"
-
-#: lib\diffview.py:214
-msgid "Kind:"
-msgstr "Tür:"
-
-#: lib\diffview.py:215
-msgid "Properties:"
-msgstr "Özellikler:"
-
-#: lib\diffview.py:465
-msgid "[binary file]"
-msgstr "[ikili dosya]"
-
-#: lib\diffview.py:624
-msgid "\\ No newline at end of file"
-msgstr "\\ Dosyanın sonunda yeni satır yok"
-
-#: lib\help.py:60
-#, python-format
-msgid "No help can be found for <i>%s</i>"
-msgstr "<i>%s</i> için yardım bulunamadı"
-
-#: lib\help.py:110
-msgid "Help"
-msgstr "Yardım"
-
 #: lib\i18n.py:87
 msgid "file"
 msgstr "dosya"
@@ -452,10 +720,6 @@ msgstr ""
 msgid "View directory"
 msgstr "Dizin görüntüle"
 
-#: lib\info.py:41
-msgid "Info"
-msgstr "Bilgi"
-
 #: lib\init.py:38 lib\ui_init.py:118
 msgid "Initialize"
 msgstr "İlklendir"
@@ -463,47 +727,6 @@ msgstr "İlklendir"
 #: lib\init.py:73
 msgid "You must specify a location"
 msgstr "Bir konum belirtmelisiniz"
-
-#: lib\log.py:405
-msgid "Log"
-msgstr "Günlük"
-
-#: lib\log.py:434
-msgid "&Search:"
-msgstr "&Ara:"
-
-#: lib\log.py:452
-msgid "Messages"
-msgstr "İletiler"
-
-#: lib\log.py:454
-msgid "Authors"
-msgstr "Yazarlar"
-
-#: lib\log.py:456
-msgid "Revision IDs"
-msgstr "Düzeltme Kimlikleri"
-
-#: lib\log.py:458
-msgid "Revision Numbers"
-msgstr "Düzeltme Numaraları"
-
-#: lib\log.py:554 lib\wtlist.py:67
-msgid "Show &differences..."
-msgstr "&Farkları göster..."
-
-#: lib\log.py:555
-msgid "Show &tree..."
-msgstr "&Ağacı göster..."
-
-#: lib\log.py:618
-msgid "Messages and File text (indexed)"
-msgstr ""
-
-#: lib\logmodel.py:853
-#, python-format
-msgid "bug #%s"
-msgstr "hata no. %s"
 
 #: lib\main.py:125
 msgid "Computer"
@@ -520,10 +743,6 @@ msgstr "Yer İmini &Sil..."
 #: lib\main.py:170
 msgid "Bookmarks"
 msgstr "Yer İmleri"
-
-#: lib\main.py:279 lib\util.py:71
-msgid "&Refresh"
-msgstr "&Tazele"
 
 #: lib\main.py:281
 msgid "Refresh the directory tree"
@@ -581,10 +800,6 @@ msgstr ""
 msgid "&Bookmarks"
 msgstr "&Yer İmleri"
 
-#: lib\main.py:318 lib\util.py:70
-msgid "&Help"
-msgstr "Ya&rdım"
-
 #: lib\main.py:319
 msgid "&Help..."
 msgstr "Ya&rdım..."
@@ -626,64 +841,6 @@ msgstr "Yer İmini Sil"
 msgid "Do you really want to remove the selected bookmark?"
 msgstr "Seçilen yer imini silmek istediğinize emin misiniz?"
 
-#: lib\revert.py:42 lib\wtlist.py:217
-msgid "Revert"
-msgstr "Eski Durumuna Getir"
-
-#: lib\subprocess.py:131
-msgid "Internal Error"
-msgstr ""
-
-#: lib\subprocess.py:133
-#, python-format
-msgid ""
-"Sorry, subprocess action \"%s\" cannot be started\n"
-"because self.args is None.\n"
-"Please, report bug at:\n"
-"https://bugs.launchpad.net/qbzr/+filebug"
-msgstr ""
-
-#: lib\subprocess.py:265
-msgid "Description"
-msgstr ""
-
-#: lib\subprocess.py:286
-msgid "Stopped"
-msgstr "Durduruldu"
-
-#: lib\subprocess.py:340
-msgid "Starting..."
-msgstr "Başlatılıyor..."
-
-#: lib\subprocess.py:372
-msgid "Aborting..."
-msgstr "İptal ediliyor..."
-
-#: lib\subprocess.py:380
-msgid "Finished!"
-msgstr "Tamamlandı!"
-
-#: lib\subprocess.py:393
-msgid "Enter Password"
-msgstr ""
-
-#: lib\subprocess.py:423 lib\subprocess.py:443
-msgid "Failed!"
-msgstr "Başarısız Oldu!"
-
-#: lib\subprocess.py:425
-msgid "Failed to start bzr."
-msgstr "bzr başlatılamadı."
-
-#: lib\subprocess.py:427
-#, python-format
-msgid "Error while running bzr. (error code: %d)"
-msgstr "bzr çalıştırılırken bir sorunla karşılaşıldı. (hata kodu: %d)"
-
-#: lib\subprocess.py:434
-msgid "Aborted!"
-msgstr ""
-
 #: lib\tag.py:142
 msgid "You should specify tag name"
 msgstr ""
@@ -698,10 +855,6 @@ msgstr ""
 #: lib\tag.py:151
 msgid "&Replace"
 msgstr ""
-
-#: lib\tag.py:151 lib\tag.py:164 lib\util.py:68
-msgid "&Cancel"
-msgstr "&İptal"
 
 #: lib\tag.py:161
 #, python-format
@@ -721,10 +874,6 @@ msgstr ""
 
 #: lib\tag.py:195
 msgid "Select branch location"
-msgstr ""
-
-#: lib\tag.py:209 lib\util.py:238
-msgid "Error"
 msgstr ""
 
 #: lib\tag.py:210
@@ -757,60 +906,6 @@ msgstr "&Düzeltme:"
 #: lib\ui_branch.py:70
 msgid "&To:"
 msgstr ""
-
-#: lib\ui_info.py:176
-msgid "Local location:"
-msgstr "Yerel Konum:"
-
-#: lib\ui_info.py:177 lib\ui_info.py:179 lib\ui_info.py:182 lib\ui_info.py:184
-#: lib\ui_info.py:186 lib\ui_info.py:189 lib\ui_info.py:191 lib\ui_info.py:193
-#: lib\ui_info.py:195
-msgid "..."
-msgstr "..."
-
-#: lib\ui_info.py:178
-msgid "Public branch location:"
-msgstr "Umumi dalın konumu:"
-
-#: lib\ui_info.py:180
-msgid "&Location"
-msgstr "&Konum"
-
-#: lib\ui_info.py:181
-msgid "Push branch:"
-msgstr ""
-
-#: lib\ui_info.py:183
-msgid "Parent branch:"
-msgstr "Üst dal:"
-
-#: lib\ui_info.py:185
-msgid "Submit branch:"
-msgstr ""
-
-#: lib\ui_info.py:187
-msgid "&Related Branches"
-msgstr "İ&lgili Dallar"
-
-#: lib\ui_info.py:188
-msgid "Working tree format:"
-msgstr "Çalışma ağacı biçimi:"
-
-#: lib\ui_info.py:190
-msgid "Branch format:"
-msgstr "Dal biçimi:"
-
-#: lib\ui_info.py:192
-msgid "Repository format:"
-msgstr "Depo biçimi:"
-
-#: lib\ui_info.py:194
-msgid "Control directory format:"
-msgstr "Denetim dizini biçimi:"
-
-#: lib\ui_info.py:196
-msgid "&Format"
-msgstr "&Biçim"
 
 #: lib\ui_init.py:119
 msgid "Local Directory"
@@ -1003,97 +1098,6 @@ msgstr ""
 
 #: lib\ui_update_checkout.py:78
 msgid "Pull a different branch"
-msgstr ""
-
-#: lib\util.py:420
-msgid "Select Source Directory"
-msgstr ""
-
-#: lib\util.py:422
-msgid "Select Target Directory"
-msgstr ""
-
-#: lib\util.py:492
-msgid "Parents:"
-msgstr "Üstleri:"
-
-#: lib\util.py:496
-msgid "Children:"
-msgstr "Altları:"
-
-#: lib\util.py:499
-msgid "Date:"
-msgstr ""
-
-#: lib\util.py:501
-msgid "Committer:"
-msgstr ""
-
-#: lib\util.py:504
-msgid "Author:"
-msgstr "Yazar:"
-
-#: lib\util.py:508
-msgid "Branch:"
-msgstr "Dal:"
-
-#: lib\util.py:513
-msgid "Tags:"
-msgstr "Etiketler:"
-
-#: lib\util.py:522
-msgid "Bug:"
-msgid_plural "Bugs:"
-msgstr[0] ""
-msgstr[1] ""
-
-#: lib\util.py:670
-msgid "deleted files"
-msgstr "silinen dosyalar"
-
-#: lib\util.py:672
-msgid "added files"
-msgstr "eklenen dosyalar"
-
-#: lib\util.py:674
-msgid "renamed files"
-msgstr "adı değiştirilen dosyalar"
-
-#: lib\util.py:676
-msgid "modified files"
-msgstr "değiştirilen dosyalar"
-
-#: lib\wtlist.py:42
-msgid "Select / deselect all"
-msgstr "Tümünü seç / Hiçbirini seçme"
-
-#: lib\wtlist.py:70
-msgid "&Revert..."
-msgstr "&Eski durumuna getir..."
-
-#: lib\wtlist.py:80
-msgid "File"
-msgstr "Dosya"
-
-#: lib\wtlist.py:80
-msgid "Extension"
-msgstr "Uzantı"
-
-#: lib\wtlist.py:105
-msgid "ignored"
-msgstr ""
-
-#: lib\wtlist.py:107
-msgid "non-versioned"
-msgstr "sürümlendirilmemiş"
-
-#: lib\wtlist.py:119
-msgid "missing"
-msgstr "eksik"
-
-#: lib\wtlist.py:216
-#, python-format
-msgid "Revert %s to latest revision."
 msgstr ""
 
 #~ msgid "View File"

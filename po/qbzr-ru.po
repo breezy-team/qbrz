@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: QBzr 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-01 10:29+0200\n"
+"POT-Creation-Date: 2009-01-25 13:30+0200\n"
 "PO-Revision-Date: 2009-01-01 22:02+0000\n"
 "Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
 "Language-Team: Russian\n"
@@ -14,7 +14,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Launchpad-Export-Date: 2009-01-06 22:00+0000\n"
+"X-Launchpad-Export-Date: 2009-01-25 12:44+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:41 lib\config.py:99 lib\config.py:120
@@ -29,73 +29,73 @@ msgstr "Неверсионированные файлы"
 msgid "Show ignored files"
 msgstr "Отображать игнорируемые файлы"
 
-#: lib\annotate.py:84 lib\annotate.py:183 lib\browse.py:113
+#: lib\annotate.py:85 lib\annotate.py:185 lib\browse.py:114
 msgid "Annotate"
 msgstr "Аннотация"
 
-#: lib\annotate.py:84 lib\diff.py:113 lib\util.py:402
+#: lib\annotate.py:85 lib\diff.py:114 lib\util.py:402
 msgid "Loading..."
 msgstr "Загрузка..."
 
-#: lib\annotate.py:103
+#: lib\annotate.py:104
 msgid "Line"
 msgstr "Строка"
 
-#: lib\annotate.py:103 lib\annotate.py:118 lib\browse.py:103 lib\commit.py:366
-#: lib\logmodel.py:89
+#: lib\annotate.py:104 lib\annotate.py:119 lib\browse.py:104 lib\commit.py:366
+#: lib\logmodel.py:90
 msgid "Author"
 msgstr "Автор"
 
-#: lib\annotate.py:103 lib\annotate.py:118 lib\browse.py:104
-#: lib\logmodel.py:86
+#: lib\annotate.py:104 lib\annotate.py:119 lib\browse.py:105
+#: lib\logmodel.py:87
 msgid "Rev"
 msgstr "Версия"
 
-#: lib\annotate.py:118 lib\browse.py:102 lib\commit.py:366 lib\logmodel.py:88
+#: lib\annotate.py:119 lib\browse.py:103 lib\commit.py:366 lib\logmodel.py:89
 msgid "Date"
 msgstr "Дата"
 
-#: lib\annotate.py:118
+#: lib\annotate.py:119
 msgid "Summary"
 msgstr "Кратко"
 
-#: lib\browse.py:77 lib\browse.py:250 lib\browse.py:292
+#: lib\browse.py:78 lib\browse.py:256 lib\browse.py:299
 msgid "Browse"
 msgstr "Обзор"
 
-#: lib\browse.py:86
+#: lib\browse.py:87
 msgid "Location:"
 msgstr "Расположение:"
 
-#: lib\browse.py:91 lib\ui_new_tree.py:160 lib\util.py:475
+#: lib\browse.py:92 lib\util.py:484 lib\ui_new_tree.py:160
 msgid "Revision:"
 msgstr "Версия:"
 
-#: lib\browse.py:94
+#: lib\browse.py:95
 msgid "Show"
 msgstr "Показать"
 
-#: lib\browse.py:101 lib\main.py:358
+#: lib\browse.py:102 lib\main.py:358
 msgid "Name"
 msgstr "Имя"
 
-#: lib\browse.py:105 lib\commit.py:269 lib\commit.py:366 lib\logmodel.py:87
+#: lib\browse.py:106 lib\commit.py:269 lib\commit.py:366 lib\logmodel.py:88
 msgid "Message"
 msgstr "Комментарий"
 
-#: lib\browse.py:112
+#: lib\browse.py:113
 msgid "Show log..."
 msgstr "Показать журнал..."
 
-#: lib\browse.py:115
+#: lib\browse.py:116
 msgid "View file"
 msgstr "Просмотр файла"
 
-#: lib\cat.py:81
+#: lib\cat.py:82
 msgid "View"
 msgstr ""
 
-#: lib\commit.py:220 lib\commit.py:467 lib\commit.py:496 lib\commit.py:504
+#: lib\commit.py:220 lib\commit.py:471 lib\commit.py:500 lib\commit.py:508
 msgid "Commit"
 msgstr "Зафиксировать"
 
@@ -168,23 +168,23 @@ msgstr "Изменения"
 msgid "Pending Merges"
 msgstr "Незаконченное объединение"
 
-#: lib\commit.py:393 lib\main.py:360 lib\subprocess.py:109 lib\wtlist.py:80
+#: lib\commit.py:393 lib\wtlist.py:80 lib\subprocess.py:121 lib\main.py:360
 msgid "Status"
 msgstr "Состояние"
 
-#: lib\commit.py:468
+#: lib\commit.py:472
 msgid "You should provide commit message."
 msgstr "Вы должны написать комментарий к фиксации"
 
-#: lib\commit.py:469 lib\diff.py:367 lib\util.py:67
+#: lib\commit.py:473 lib\diff.py:370 lib\util.py:67
 msgid "&OK"
 msgstr "&ОК"
 
-#: lib\commit.py:497
+#: lib\commit.py:501
 msgid "No changes to commit."
 msgstr "Нечего фиксировать."
 
-#: lib\commit.py:505
+#: lib\commit.py:509
 msgid ""
 "No changes selected to commit.\n"
 "Do you want to commit anyway?"
@@ -192,7 +192,7 @@ msgstr ""
 "Вы не отметили ни одного файла для фиксации.\n"
 "Вы хотите зафикисировать в таком виде?"
 
-#: lib\commit.py:575
+#: lib\commit.py:579
 msgid ""
 "A commit will be made directly to the master branch, keeping the local and "
 "master branches in sync."
@@ -200,13 +200,415 @@ msgstr ""
 "В результате фиксации новая ревизия будет помещена в главную и локальную "
 "ветки, таким образом обе ветки будут синхронизированы."
 
-#: lib\commit.py:581
+#: lib\commit.py:585
 msgid ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
 msgstr ""
 "Фиксация будет выполнена только в локальной ветке. Главная ветка не будет "
 "обновлена до тех пор, пока вы не сделаете обычную (не локальную) фиксацию."
+
+#: lib\diff.py:66
+#, python-format
+msgid "Working Tree for %s"
+msgstr "Рабочая копия ветки %s"
+
+#: lib\diff.py:68
+msgid "Working Tree"
+msgstr "Рабочая копия"
+
+#: lib\diff.py:87
+#, python-format
+msgid "Rev %(rev)s for %(branch)s"
+msgstr "Версия %(rev)s в ветке %(branch)s"
+
+#: lib\diff.py:89
+#, python-format
+msgid "Rev %s"
+msgstr "Версия %s"
+
+#: lib\diff.py:92
+#, python-format
+msgid "Revid: %(revid)s for %(branch)s"
+msgstr "Revid: %(revid)s для %(branch)s"
+
+#: lib\diff.py:94
+#, python-format
+msgid "Revid: %s"
+msgstr "Revid: %s"
+
+#: lib\diff.py:97
+msgid "Merge Preview"
+msgstr "Результат объединения"
+
+#: lib\diff.py:114 lib\diff.py:220 lib\diff.py:360 lib\diff.py:368
+#: lib\log.py:548
+msgid "Diff"
+msgstr "Различия"
+
+#: lib\diff.py:140
+msgid "Side by side"
+msgstr "Две панели рядом"
+
+#: lib\diff.py:147
+msgid "Unidiff"
+msgstr "Unidiff"
+
+#: lib\diff.py:152
+msgid "Complete"
+msgstr "Показывать файлы целиком"
+
+#: lib\diff.py:226
+#, python-format
+msgid "%d file"
+msgid_plural "%d files"
+msgstr[0] "%d файл"
+msgstr[1] "%d файла"
+msgstr[2] "%d файлов"
+
+#: lib\diff.py:306 lib\wtlist.py:115
+msgid "removed"
+msgstr "удален"
+
+#: lib\diff.py:308 lib\wtlist.py:111
+msgid "added"
+msgstr "добавлен"
+
+#: lib\diff.py:310 lib\wtlist.py:128
+msgid "renamed and modified"
+msgstr "переименован и изменен"
+
+#: lib\diff.py:312 lib\wtlist.py:130
+msgid "renamed"
+msgstr "переименован"
+
+#: lib\diff.py:314 lib\wtlist.py:137
+msgid "modified"
+msgstr "изменён"
+
+#: lib\diff.py:361
+#, python-format
+msgid ""
+"File %s is not versioned.\n"
+"Operation aborted."
+msgstr ""
+"Изменения в файле \"%s\" не отслеживаются.\n"
+"Операция прервана."
+
+#: lib\diff.py:363 lib\subprocess.py:149 lib\util.py:69 lib\tag.py:143
+#: lib\tag.py:174 lib\tag.py:211
+msgid "&Close"
+msgstr "&Закрыть"
+
+#: lib\diff.py:369
+msgid "No changes found."
+msgstr "Изменения не найдены."
+
+#: lib\diffview.py:212
+msgid "Last modified:"
+msgstr "Последние изменения:"
+
+#: lib\diffview.py:213
+msgid "Status:"
+msgstr "Состояние:"
+
+#: lib\diffview.py:214
+msgid "Kind:"
+msgstr "Тип:"
+
+#: lib\diffview.py:215
+msgid "Properties:"
+msgstr "Свойства:"
+
+#: lib\diffview.py:465
+msgid "[binary file]"
+msgstr "[бинарный файл]"
+
+#: lib\diffview.py:624
+msgid "\\ No newline at end of file"
+msgstr "\\ Нет символа перевода строки в конце файла"
+
+#: lib\info.py:42
+msgid "Info"
+msgstr "Сведения"
+
+#: lib\revert.py:42 lib\wtlist.py:223
+msgid "Revert"
+msgstr "Возврат к предыдущей версии"
+
+#: lib\wtlist.py:42
+msgid "Select / deselect all"
+msgstr "Выбрать все файлы"
+
+#: lib\wtlist.py:67 lib\log.py:555
+msgid "Show &differences..."
+msgstr "Показать &различия..."
+
+#: lib\wtlist.py:70
+msgid "&Revert..."
+msgstr "&Вернуть предыдущую версию..."
+
+#: lib\wtlist.py:80
+msgid "File"
+msgstr "Файл"
+
+#: lib\wtlist.py:80
+msgid "Extension"
+msgstr "Расширение"
+
+#: lib\wtlist.py:105
+msgid "ignored"
+msgstr "игнорируемый"
+
+#: lib\wtlist.py:107
+msgid "non-versioned"
+msgstr "неизвестный"
+
+#: lib\wtlist.py:119
+msgid "missing"
+msgstr "отсутствует"
+
+#: lib\wtlist.py:141
+msgid "modified (x-bit)"
+msgstr ""
+
+#: lib\wtlist.py:222
+#, python-format
+msgid "Revert %s to latest revision."
+msgstr "Вернуться к последней версии для %s"
+
+#: lib\logmodel.py:863
+#, python-format
+msgid "bug #%s"
+msgstr "bug #%s"
+
+#: lib\log.py:406
+msgid "Log"
+msgstr "Журнал"
+
+#: lib\log.py:435
+msgid "&Search:"
+msgstr "&Поиск:"
+
+#: lib\log.py:453
+msgid "Messages"
+msgstr "Комментарий"
+
+#: lib\log.py:455
+msgid "Authors"
+msgstr "Авторы"
+
+#: lib\log.py:457
+msgid "Revision IDs"
+msgstr "Revision IDs"
+
+#: lib\log.py:459
+msgid "Revision Numbers"
+msgstr "Номера версий"
+
+#: lib\log.py:556
+msgid "Show &tree..."
+msgstr "Дерево файлов"
+
+#: lib\log.py:621
+msgid "Messages and File text (indexed)"
+msgstr ""
+
+#: lib\subprocess.py:143
+msgid "Internal Error"
+msgstr "Внутренняя ошибка"
+
+#: lib\subprocess.py:145
+#, python-format
+msgid ""
+"Sorry, subprocess action \"%s\" cannot be started\n"
+"because self.args is None.\n"
+"Please, report bug at:\n"
+"https://bugs.launchpad.net/qbzr/+filebug"
+msgstr ""
+"Sorry, subprocess action \"%s\" cannot be started\n"
+"because self.args is None.\n"
+"Please, report bug at:\n"
+"https://bugs.launchpad.net/qbzr/+filebug"
+
+#: lib\subprocess.py:277
+msgid "Description"
+msgstr "Описание"
+
+#: lib\subprocess.py:300
+msgid "Stopped"
+msgstr "Остановлено"
+
+#: lib\subprocess.py:361
+msgid "Starting..."
+msgstr "Начинаем операцию..."
+
+#: lib\subprocess.py:405
+msgid "Aborting..."
+msgstr "Останавливаем операцию..."
+
+#: lib\subprocess.py:413 lib\subprocess.py:486
+msgid "Finished!"
+msgstr "Завершено!"
+
+#: lib\subprocess.py:432 lib\uifactory.py:96
+msgid "Enter Password"
+msgstr "Введите пароль"
+
+#: lib\subprocess.py:467 lib\subprocess.py:489
+msgid "Failed!"
+msgstr "Неудачно!"
+
+#: lib\subprocess.py:469
+msgid "Failed to start bzr."
+msgstr "Не могу запустить bzr."
+
+#: lib\subprocess.py:471
+#, python-format
+msgid "Error while running bzr. (error code: %d)"
+msgstr "Ошибка во время работы bzr. (код ошибки: %d)"
+
+#: lib\subprocess.py:479
+msgid "Aborted!"
+msgstr "Прервано!"
+
+#: lib\util.py:68 lib\tag.py:151 lib\tag.py:164
+msgid "&Cancel"
+msgstr "&Отмена"
+
+#: lib\util.py:70 lib\main.py:318
+msgid "&Help"
+msgstr "&Справка"
+
+#: lib\util.py:71 lib\main.py:279
+msgid "&Refresh"
+msgstr "&Обновить"
+
+#: lib\util.py:238 lib\tag.py:209
+msgid "Error"
+msgstr "Ошибка"
+
+#: lib\util.py:429
+msgid "Select Source Directory"
+msgstr ""
+
+#: lib\util.py:431
+msgid "Select Target Directory"
+msgstr ""
+
+#: lib\util.py:501
+msgid "Parents:"
+msgstr "Предыдущие версии:"
+
+#: lib\util.py:505
+msgid "Children:"
+msgstr "Следующие версии:"
+
+#: lib\util.py:508
+msgid "Date:"
+msgstr "Дата:"
+
+#: lib\util.py:510
+msgid "Committer:"
+msgstr "Зафиксировал:"
+
+#: lib\util.py:513
+msgid "Author:"
+msgstr "Автор:"
+
+#: lib\util.py:517
+msgid "Branch:"
+msgstr "Ветка:"
+
+#: lib\util.py:522
+msgid "Tags:"
+msgstr "Теги:"
+
+#: lib\util.py:531
+msgid "Bug:"
+msgid_plural "Bugs:"
+msgstr[0] "Ошибка:"
+msgstr[1] "Ошибки:"
+msgstr[2] "Ошибки:"
+
+#: lib\util.py:679
+msgid "deleted files"
+msgstr "удаленные файлы"
+
+#: lib\util.py:681
+msgid "added files"
+msgstr "добавленные файлы"
+
+#: lib\util.py:683
+msgid "renamed files"
+msgstr "переименованные файлы"
+
+#: lib\util.py:685
+msgid "modified files"
+msgstr "измененные файлы"
+
+#: lib\help.py:60
+#, python-format
+msgid "No help can be found for <i>%s</i>"
+msgstr "Нет справки для <i>%s<i>"
+
+#: lib\help.py:110
+msgid "Help"
+msgstr "Справка"
+
+#: lib\ui_info.py:176
+msgid "Local location:"
+msgstr "Расположение на диске"
+
+#: lib\ui_info.py:177 lib\ui_info.py:179 lib\ui_info.py:182 lib\ui_info.py:184
+#: lib\ui_info.py:186 lib\ui_info.py:189 lib\ui_info.py:191 lib\ui_info.py:193
+#: lib\ui_info.py:195
+msgid "..."
+msgstr "..."
+
+#: lib\ui_info.py:178
+msgid "Public branch location:"
+msgstr "Публичная ветка:"
+
+#: lib\ui_info.py:180
+msgid "&Location"
+msgstr "&Расположение"
+
+#: lib\ui_info.py:181
+msgid "Push branch:"
+msgstr ""
+
+#: lib\ui_info.py:183
+msgid "Parent branch:"
+msgstr "Родительская ветка:"
+
+#: lib\ui_info.py:185
+msgid "Submit branch:"
+msgstr ""
+
+#: lib\ui_info.py:187
+msgid "&Related Branches"
+msgstr "Родственные ветки"
+
+#: lib\ui_info.py:188
+msgid "Working tree format:"
+msgstr "Формат рабочей копии:"
+
+#: lib\ui_info.py:190
+msgid "Branch format:"
+msgstr "Формат ветки:"
+
+#: lib\ui_info.py:192
+msgid "Repository format:"
+msgstr "Формат репозитория:"
+
+#: lib\ui_info.py:194
+msgid "Control directory format:"
+msgstr "Формат bzr-каталога:"
+
+#: lib\ui_info.py:196
+msgid "&Format"
+msgstr "&Формат"
 
 #: lib\config.py:41
 msgid "Default"
@@ -300,135 +702,6 @@ msgstr "&Интерфейс"
 msgid "Spell check &language:"
 msgstr "Проверка орфографии:"
 
-#: lib\diff.py:65
-#, python-format
-msgid "Working Tree for %s"
-msgstr "Рабочая копия ветки %s"
-
-#: lib\diff.py:67
-msgid "Working Tree"
-msgstr "Рабочая копия"
-
-#: lib\diff.py:86
-#, python-format
-msgid "Rev %(rev)s for %(branch)s"
-msgstr "Версия %(rev)s в ветке %(branch)s"
-
-#: lib\diff.py:88
-#, python-format
-msgid "Rev %s"
-msgstr "Версия %s"
-
-#: lib\diff.py:91
-#, python-format
-msgid "Revid: %(revid)s for %(branch)s"
-msgstr "Revid: %(revid)s для %(branch)s"
-
-#: lib\diff.py:93
-#, python-format
-msgid "Revid: %s"
-msgstr "Revid: %s"
-
-#: lib\diff.py:96
-msgid "Merge Preview"
-msgstr "Результат объединения"
-
-#: lib\diff.py:113 lib\diff.py:218 lib\diff.py:357 lib\diff.py:365
-#: lib\log.py:547
-msgid "Diff"
-msgstr "Различия"
-
-#: lib\diff.py:139
-msgid "Side by side"
-msgstr "Две панели рядом"
-
-#: lib\diff.py:146
-msgid "Unidiff"
-msgstr "Unidiff"
-
-#: lib\diff.py:151
-msgid "Complete"
-msgstr "Показывать файлы целиком"
-
-#: lib\diff.py:224
-#, python-format
-msgid "%d file"
-msgid_plural "%d files"
-msgstr[0] "%d файл"
-msgstr[1] "%d файла"
-msgstr[2] "%d файлов"
-
-#: lib\diff.py:303 lib\wtlist.py:115
-msgid "removed"
-msgstr "удален"
-
-#: lib\diff.py:305 lib\wtlist.py:111
-msgid "added"
-msgstr "добавлен"
-
-#: lib\diff.py:307 lib\wtlist.py:126
-msgid "renamed and modified"
-msgstr "переименован и изменен"
-
-#: lib\diff.py:309 lib\wtlist.py:128
-msgid "renamed"
-msgstr "переименован"
-
-#: lib\diff.py:311 lib\wtlist.py:135
-msgid "modified"
-msgstr "изменён"
-
-#: lib\diff.py:358
-#, python-format
-msgid ""
-"File %s is not versioned.\n"
-"Operation aborted."
-msgstr ""
-"Изменения в файле \"%s\" не отслеживаются.\n"
-"Операция прервана."
-
-#: lib\diff.py:360 lib\subprocess.py:137 lib\tag.py:143 lib\tag.py:174
-#: lib\tag.py:211 lib\util.py:69
-msgid "&Close"
-msgstr "&Закрыть"
-
-#: lib\diff.py:366
-msgid "No changes found."
-msgstr "Изменения не найдены."
-
-#: lib\diffview.py:212
-msgid "Last modified:"
-msgstr "Последние изменения:"
-
-#: lib\diffview.py:213
-msgid "Status:"
-msgstr "Состояние:"
-
-#: lib\diffview.py:214
-msgid "Kind:"
-msgstr "Тип:"
-
-#: lib\diffview.py:215
-msgid "Properties:"
-msgstr "Свойства:"
-
-#: lib\diffview.py:465
-msgid "[binary file]"
-msgstr "[бинарный файл]"
-
-#: lib\diffview.py:624
-msgid "\\ No newline at end of file"
-msgstr "\\ Нет символа перевода строки в конце файла"
-
-#: lib\help.py:60
-#, python-format
-msgid "No help can be found for <i>%s</i>"
-msgstr "Нет справки для <i>%s<i>"
-
-#: lib\help.py:110
-msgid "Help"
-msgstr "Справка"
-
 #: lib\i18n.py:87
 msgid "file"
 msgstr "файл"
@@ -465,10 +738,6 @@ msgstr "Просмотр символьной ссылки"
 msgid "View directory"
 msgstr "Просмотр каталога"
 
-#: lib\info.py:41
-msgid "Info"
-msgstr "Сведения"
-
 #: lib\init.py:38 lib\ui_init.py:118
 msgid "Initialize"
 msgstr "Инициализировать"
@@ -476,47 +745,6 @@ msgstr "Инициализировать"
 #: lib\init.py:73
 msgid "You must specify a location"
 msgstr "Вы должны указать каталог"
-
-#: lib\log.py:405
-msgid "Log"
-msgstr "Журнал"
-
-#: lib\log.py:434
-msgid "&Search:"
-msgstr "&Поиск:"
-
-#: lib\log.py:452
-msgid "Messages"
-msgstr "Комментарий"
-
-#: lib\log.py:454
-msgid "Authors"
-msgstr "Авторы"
-
-#: lib\log.py:456
-msgid "Revision IDs"
-msgstr "Revision IDs"
-
-#: lib\log.py:458
-msgid "Revision Numbers"
-msgstr "Номера версий"
-
-#: lib\log.py:554 lib\wtlist.py:67
-msgid "Show &differences..."
-msgstr "Показать &различия..."
-
-#: lib\log.py:555
-msgid "Show &tree..."
-msgstr "Дерево файлов"
-
-#: lib\log.py:618
-msgid "Messages and File text (indexed)"
-msgstr ""
-
-#: lib\logmodel.py:853
-#, python-format
-msgid "bug #%s"
-msgstr "bug #%s"
 
 #: lib\main.py:125
 msgid "Computer"
@@ -533,10 +761,6 @@ msgstr "Удалить закладку..."
 #: lib\main.py:170
 msgid "Bookmarks"
 msgstr "Закладки"
-
-#: lib\main.py:279 lib\util.py:71
-msgid "&Refresh"
-msgstr "&Обновить"
 
 #: lib\main.py:281
 msgid "Refresh the directory tree"
@@ -594,10 +818,6 @@ msgstr "&Ветка"
 msgid "&Bookmarks"
 msgstr "&Закладки"
 
-#: lib\main.py:318 lib\util.py:70
-msgid "&Help"
-msgstr "&Справка"
-
 #: lib\main.py:319
 msgid "&Help..."
 msgstr "&Справка..."
@@ -644,68 +864,6 @@ msgstr "Удалить закладку"
 msgid "Do you really want to remove the selected bookmark?"
 msgstr "Вы действительно хотите удалить выбранную закладку?"
 
-#: lib\revert.py:42 lib\wtlist.py:217
-msgid "Revert"
-msgstr "Возврат к предыдущей версии"
-
-#: lib\subprocess.py:131
-msgid "Internal Error"
-msgstr "Внутренняя ошибка"
-
-#: lib\subprocess.py:133
-#, python-format
-msgid ""
-"Sorry, subprocess action \"%s\" cannot be started\n"
-"because self.args is None.\n"
-"Please, report bug at:\n"
-"https://bugs.launchpad.net/qbzr/+filebug"
-msgstr ""
-"Sorry, subprocess action \"%s\" cannot be started\n"
-"because self.args is None.\n"
-"Please, report bug at:\n"
-"https://bugs.launchpad.net/qbzr/+filebug"
-
-#: lib\subprocess.py:265
-msgid "Description"
-msgstr "Описание"
-
-#: lib\subprocess.py:286
-msgid "Stopped"
-msgstr "Остановлено"
-
-#: lib\subprocess.py:340
-msgid "Starting..."
-msgstr "Начинаем операцию..."
-
-#: lib\subprocess.py:372
-msgid "Aborting..."
-msgstr "Останавливаем операцию..."
-
-#: lib\subprocess.py:380
-msgid "Finished!"
-msgstr "Завершено!"
-
-#: lib\subprocess.py:393
-msgid "Enter Password"
-msgstr "Введите пароль"
-
-#: lib\subprocess.py:423 lib\subprocess.py:443
-msgid "Failed!"
-msgstr "Неудачно!"
-
-#: lib\subprocess.py:425
-msgid "Failed to start bzr."
-msgstr "Не могу запустить bzr."
-
-#: lib\subprocess.py:427
-#, python-format
-msgid "Error while running bzr. (error code: %d)"
-msgstr "Ошибка во время работы bzr. (код ошибки: %d)"
-
-#: lib\subprocess.py:434
-msgid "Aborted!"
-msgstr "Прервано!"
-
 #: lib\tag.py:142
 msgid "You should specify tag name"
 msgstr "Вы должны указать имя тега"
@@ -722,10 +880,6 @@ msgstr ""
 #: lib\tag.py:151
 msgid "&Replace"
 msgstr "И&зменить"
-
-#: lib\tag.py:151 lib\tag.py:164 lib\util.py:68
-msgid "&Cancel"
-msgstr "&Отмена"
 
 #: lib\tag.py:161
 #, python-format
@@ -748,10 +902,6 @@ msgstr "Тег \"%s\" не существует"
 #: lib\tag.py:195
 msgid "Select branch location"
 msgstr "Выбрать расположение ветки"
-
-#: lib\tag.py:209 lib\util.py:238
-msgid "Error"
-msgstr "Ошибка"
 
 #: lib\tag.py:210
 #, python-format
@@ -785,60 +935,6 @@ msgstr "&Версия:"
 #: lib\ui_branch.py:70
 msgid "&To:"
 msgstr "&Куда:"
-
-#: lib\ui_info.py:176
-msgid "Local location:"
-msgstr "Расположение на диске"
-
-#: lib\ui_info.py:177 lib\ui_info.py:179 lib\ui_info.py:182 lib\ui_info.py:184
-#: lib\ui_info.py:186 lib\ui_info.py:189 lib\ui_info.py:191 lib\ui_info.py:193
-#: lib\ui_info.py:195
-msgid "..."
-msgstr "..."
-
-#: lib\ui_info.py:178
-msgid "Public branch location:"
-msgstr "Публичная ветка:"
-
-#: lib\ui_info.py:180
-msgid "&Location"
-msgstr "&Расположение"
-
-#: lib\ui_info.py:181
-msgid "Push branch:"
-msgstr ""
-
-#: lib\ui_info.py:183
-msgid "Parent branch:"
-msgstr "Родительская ветка:"
-
-#: lib\ui_info.py:185
-msgid "Submit branch:"
-msgstr ""
-
-#: lib\ui_info.py:187
-msgid "&Related Branches"
-msgstr "Родственные ветки"
-
-#: lib\ui_info.py:188
-msgid "Working tree format:"
-msgstr "Формат рабочей копии:"
-
-#: lib\ui_info.py:190
-msgid "Branch format:"
-msgstr "Формат ветки:"
-
-#: lib\ui_info.py:192
-msgid "Repository format:"
-msgstr "Формат репозитория:"
-
-#: lib\ui_info.py:194
-msgid "Control directory format:"
-msgstr "Формат bzr-каталога:"
-
-#: lib\ui_info.py:196
-msgid "&Format"
-msgstr "&Формат"
 
 #: lib\ui_init.py:119
 msgid "Local Directory"
@@ -1032,98 +1128,6 @@ msgstr ""
 #: lib\ui_update_checkout.py:78
 msgid "Pull a different branch"
 msgstr ""
-
-#: lib\util.py:420
-msgid "Select Source Directory"
-msgstr ""
-
-#: lib\util.py:422
-msgid "Select Target Directory"
-msgstr ""
-
-#: lib\util.py:492
-msgid "Parents:"
-msgstr "Предыдущие версии:"
-
-#: lib\util.py:496
-msgid "Children:"
-msgstr "Следующие версии:"
-
-#: lib\util.py:499
-msgid "Date:"
-msgstr "Дата:"
-
-#: lib\util.py:501
-msgid "Committer:"
-msgstr "Зафиксировал:"
-
-#: lib\util.py:504
-msgid "Author:"
-msgstr "Автор:"
-
-#: lib\util.py:508
-msgid "Branch:"
-msgstr "Ветка:"
-
-#: lib\util.py:513
-msgid "Tags:"
-msgstr "Теги:"
-
-#: lib\util.py:522
-msgid "Bug:"
-msgid_plural "Bugs:"
-msgstr[0] "Ошибка:"
-msgstr[1] "Ошибки:"
-msgstr[2] "Ошибки:"
-
-#: lib\util.py:670
-msgid "deleted files"
-msgstr "удаленные файлы"
-
-#: lib\util.py:672
-msgid "added files"
-msgstr "добавленные файлы"
-
-#: lib\util.py:674
-msgid "renamed files"
-msgstr "переименованные файлы"
-
-#: lib\util.py:676
-msgid "modified files"
-msgstr "измененные файлы"
-
-#: lib\wtlist.py:42
-msgid "Select / deselect all"
-msgstr "Выбрать все файлы"
-
-#: lib\wtlist.py:70
-msgid "&Revert..."
-msgstr "&Вернуть предыдущую версию..."
-
-#: lib\wtlist.py:80
-msgid "File"
-msgstr "Файл"
-
-#: lib\wtlist.py:80
-msgid "Extension"
-msgstr "Расширение"
-
-#: lib\wtlist.py:105
-msgid "ignored"
-msgstr "игнорируемый"
-
-#: lib\wtlist.py:107
-msgid "non-versioned"
-msgstr "неизвестный"
-
-#: lib\wtlist.py:119
-msgid "missing"
-msgstr "отсутствует"
-
-#: lib\wtlist.py:216
-#, python-format
-msgid "Revert %s to latest revision."
-msgstr "Вернуться к последней версии для %s"
 
 #~ msgid "Parent revisions:"
 #~ msgstr "Предыдущая версия:"
