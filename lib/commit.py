@@ -37,7 +37,7 @@ from bzrlib.workingtree import WorkingTree
 
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
-from bzrlib.plugins.qbzr.lib.extdiff import showDiff
+from bzrlib.plugins.qbzr.lib.extdiff import show_diff
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
 from bzrlib.plugins.qbzr.lib.util import (
@@ -543,7 +543,7 @@ class CommitWindow(SubProcessWindow):
     def show_changeset(self, item=None, column=None):
         new_revid = str(item.data(0, self.RevisionIdRole).toString())
         old_revid = str(item.data(0, self.ParentIdRole).toString())
-        showDiff(old_revid, new_revid,
+        show_diff(old_revid, new_revid,
                  self.tree.branch, self.tree.branch,
                  parent_window = self)
 

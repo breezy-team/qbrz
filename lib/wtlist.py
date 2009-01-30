@@ -30,8 +30,8 @@ from bzrlib import (
     )
 
 from bzrlib.plugins.qbzr.lib.extdiff import (
-    showDiff,
-    hasExtDiff,
+    show_diff,
+    has_ext_diff,
     ExtDiffMenu,
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
@@ -67,7 +67,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
                        self.show_context_menu)
 
         self.context_menu = QtGui.QMenu(self)
-        if hasExtDiff():
+        if has_ext_diff():
             self.diff_menu = ExtDiffMenu(self)
             self.context_menu.addMenu(self.diff_menu)
             self.connect(self.diff_menu, QtCore.SIGNAL("triggered(QAction *)"),
@@ -261,7 +261,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         
         entries = [desc.path() for desc in self.iter_selection()]
         if entries:
-            showDiff(self.tree.basis_tree().get_revision_id(), None,
+            show_diff(self.tree.basis_tree().get_revision_id(), None,
                      self.tree.branch, self.tree.branch,
                      new_wt = self.tree,
                      specific_files=entries,

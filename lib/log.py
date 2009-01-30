@@ -26,8 +26,8 @@ from bzrlib import (
     )
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.extdiff import (
-    showDiff,
-    hasExtDiff,
+    show_diff,
+    has_ext_diff,
     ExtDiffMenu,
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -554,7 +554,7 @@ class LogWindow(QBzrWindow):
         self.diffbutton.setEnabled(False)
 
         self.contextMenu = QtGui.QMenu(self)
-        if hasExtDiff():
+        if has_ext_diff():
             self.diffMenu = ExtDiffMenu(self)
             self.diffbutton.setMenu(self.diffMenu)
             self.contextMenu.addMenu(self.diffMenu)
@@ -738,7 +738,7 @@ class LogWindow(QBzrWindow):
             old_revid = rev2.parent_ids[0]
             old_branch =  self.changesModel.revisionHeadInfo(old_revid)[0][0]
 
-        showDiff(old_revid, new_revid,
+        show_diff(old_revid, new_revid,
                  old_branch, new_branch,
                  ext_diff = ext_diff,
                  specific_files=specific_files,

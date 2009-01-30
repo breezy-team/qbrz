@@ -23,7 +23,7 @@
 
 import operator, sys, time
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib.extdiff import showDiff
+from bzrlib.plugins.qbzr.lib.extdiff import show_diff
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
@@ -299,7 +299,7 @@ class AnnotateWindow(QBzrWindow):
         tree = self.branch.basis_tree()
         file_path = tree.id2path(self.fileId)
         
-        showDiff(old_revid, new_revid,
+        show_diff(old_revid, new_revid,
                  self.branch, self.branch,
                  specific_files=[file_path],
                  parent_window = self)

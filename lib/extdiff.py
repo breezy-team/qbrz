@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib.plugins.qbzr.lib.util import (
+from bzrlib.plugins.qbzr.lib.util import ( 
     QBzrGlobalConfig,
     )
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
@@ -35,7 +35,7 @@ ext_diffs = {gettext("Builtin Diff"):""}
 for name, command in qparser.get('EXTDIFF', {}).items():
     ext_diffs[name] = command
 
-def showDiff(old_revid, new_revid, old_branch, new_branch, new_wt = None,
+def show_diff(old_revid, new_revid, old_branch, new_branch, new_wt = None,
              specific_files=None, ext_diff=None, parent_window=None):
     
     if ext_diff is None:
@@ -78,7 +78,7 @@ def showDiff(old_revid, new_revid, old_branch, new_branch, new_wt = None,
         if parent_window:
             parent_window.windows.append(window)
 
-def hasExtDiff():
+def has_ext_diff():
     return len(ext_diffs) > 1
 
 class ExtDiffMenu(QtGui.QMenu):
