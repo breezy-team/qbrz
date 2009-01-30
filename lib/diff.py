@@ -25,13 +25,13 @@ import time
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.errors import BinaryFile, NoSuchRevision, PathsNotVersionedError
-from bzrlib.textfile import check_text_lines
-from bzrlib.workingtree import WorkingTree
-from bzrlib.revisiontree import RevisionTree
-from bzrlib.workingtree_4 import DirStateRevisionTree
+from bzrlib.errors import NoSuchRevision, PathsNotVersionedError
 from bzrlib.mutabletree import MutableTree
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
+from bzrlib.revisiontree import RevisionTree
+from bzrlib.transform import _PreviewTree
+from bzrlib.workingtree import WorkingTree
+from bzrlib.workingtree_4 import DirStateRevisionTree
 
 from bzrlib.plugins.qbzr.lib.diffview import (
     SidebySideDiffView,
@@ -42,10 +42,12 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE, BTN_REFRESH,
     FilterOptions,
     QBzrWindow,
+    ThrobberWidget,
     StandardButton,
-    get_branch_config,
     get_set_encoding,
+    is_binary_content,
     )
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 
 def get_file_lines_from_tree(tree, file_id):
@@ -56,7 +58,7 @@ def get_file_lines_from_tree(tree, file_id):
 
 def get_title_for_tree(tree, branch, other_branch):
     branch_title = ""
-    if branch.base!=other_branch.base:
+    if None not in (branch, other_branch) and branch.base != other_branch.base:
         branch_title = branch.nick
     
     if isinstance(tree, WorkingTree):
@@ -65,7 +67,7 @@ def get_title_for_tree(tree, branch, other_branch):
         else:
             return gettext("Working Tree")
     
-    if isinstance(tree, RevisionTree) or isinstance(tree, DirStateRevisionTree):
+    elif isinstance(tree, (RevisionTree, DirStateRevisionTree)):
         # revision_id_to_revno is faster, but only works on mainline rev
         revid = tree.get_revision_id()
         try:
@@ -78,27 +80,25 @@ def get_title_for_tree(tree, branch, other_branch):
             except KeyError:
                 # this can happens when you try to diff against other branch
                 # or pending merge
-                revno = None
+                revno = revid
 
         if revno is not None:
             if branch_title:
-                # XXX [bialix] "Rev %s for %s" is bad for translations
-                #     because it requires keep sequence of parameters
-                #     and in translated string too. But other languages
-                #     may have other requirements for sentence stylistics.
-                #     Perhaps we need to use named parameters, i.e.
-                #     "Rev %(revno)s for %(branch)s"
-                return gettext("Rev %s for %s") % (revno, branch_title)
+                return gettext("Rev %(rev)s for %(branch)s") % {"rev": revno, "branch": branch_title}
             else:
                 return gettext("Rev %s") % revno
         else:
             if branch_title:
-                return gettext("Revid: %s for %s") % (revid, branch_title)
+                return gettext("Revid: %(revid)s for %(branch)s") %  {"revid": revid, "branch": branch_title}
             else:
                 return gettext("Revid: %s") % revid
 
+    elif isinstance(tree, _PreviewTree):
+        return gettext('Merge Preview')
+
     # XXX I don't know what other cases we need to handle    
-    return ""
+    return 'Unknown tree'
+
 
 class DiffWindow(QBzrWindow):
 
@@ -108,37 +108,23 @@ class DiffWindow(QBzrWindow):
                  specific_files=None,
                  parent=None,
                  complete=False, encoding=None,
-                 filter_options=None):
-        rev1_title = get_title_for_tree(tree1, branch1, branch2)
-        rev2_title = get_title_for_tree(tree2, branch2, branch1)
-        
-        title = [gettext("Diff"), "%s .. %s" % (rev1_title, rev2_title)]
-        
-        if specific_files:
-            nfiles = len(specific_files)
-            if nfiles > 2:
-                title.append(
-                    ngettext("%d file", "%d files", nfiles) % nfiles)
-            else:
-                title.append(", ".join(specific_files))
-        else:
-            if filter_options and not filter_options.is_all_enable():
-                title.append(filter_options.to_str())
+                 filter_options=None, ui_mode=True,
+                 loader=None, loader_args=None):
 
-        self.encodings = (get_set_encoding(encoding, get_branch_config(branch1)),
-                          get_set_encoding(encoding, get_branch_config(branch2)))
-        
+        title = [gettext("Diff"), gettext("Loading...")]
+        QBzrWindow.__init__(self, title, parent, ui_mode=ui_mode)
+        self.restoreSize("diff", (780, 580))
+
+        self.encoding = encoding
+        self.trees = None
+        self.specific_files = None
         self.filter_options = filter_options
         if filter_options is None:
             self.filter_options = FilterOptions(all_enable=True)
-
-        QBzrWindow.__init__(self, title, parent)
-        self.restoreSize("diff", (780, 580))
-
-        self.trees = (tree1, tree2)
-        self.specific_files = specific_files
         self.complete = complete
 
+        self.throbber = ThrobberWidget(self)
+        
         self.diffview = SidebySideDiffView(self)
         self.sdiffview = SimpleDiffView(self)
         self.views = (self.diffview, self.sdiffview)
@@ -148,6 +134,7 @@ class DiffWindow(QBzrWindow):
         self.stack.addWidget(self.sdiffview)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox.addWidget(self.throbber)
         vbox.addWidget(self.stack)
 
         diffsidebyside = QtGui.QRadioButton(gettext("Side by side"),
@@ -185,18 +172,76 @@ class DiffWindow(QBzrWindow):
         hbox.addWidget(complete)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
-        
+
+        # Save the init args if specified
+        self.init_args = (tree1, tree2, branch1, branch2, specific_files)
+        # and loader
+        self.loader_func = loader
+        self.loader_args = loader_args
 
     def show(self):
         QBzrWindow.show(self)
-        QtCore.QTimer.singleShot(1, self.load_diff)
-    
+        QtCore.QTimer.singleShot(1, self.initial_load)
+
+    @ui_current_widget
+    def initial_load(self):
+        """Called to perform the initial load of the form.  Enables a
+        throbber window, then loads the branches etc if they weren't specified
+        in our constructor.
+        """
+        try:
+            # we only open the branch using the throbber
+            self.throbber.show()
+            try:
+                self.load_branch_info()
+                self.load_diff()
+            finally:
+                self.throbber.hide()
+        except:
+            self.report_exception()
+
+    def load_branch_info(self):
+        # If a loader func was specified, call it to get our trees/branches.
+        if self.loader_func is not None:
+            init_args = self.loader_func(*self.loader_args)
+            self.loader_func = self.loader_args = None # kill extra refs...
+        else:
+            # otherwise they better have been passed to our ctor!
+            init_args = self.init_args
+        tree1, tree2, branch1, branch2, specific_files = init_args
+        init_args = self.init_args = None # kill extra refs...
+
+        self.trees = (tree1, tree2)
+        self.specific_files = specific_files
+
+        rev1_title = get_title_for_tree(tree1, branch1, branch2)
+        rev2_title = get_title_for_tree(tree2, branch2, branch1)
+        
+        title = [gettext("Diff"), "%s..%s" % (rev1_title, rev2_title)]
+
+        if specific_files:
+            nfiles = len(specific_files)
+            if nfiles > 2:
+                title.append(
+                    ngettext("%d file", "%d files", nfiles) % nfiles)
+            else:
+                title.append(", ".join(specific_files))
+        else:
+            if self.filter_options and not self.filter_options.is_all_enable():
+                title.append(self.filter_options.to_str())
+
+        self.set_title_and_icon(title)
+        self.processEvents()
+
+        self.encodings = (get_set_encoding(self.encoding, branch1),
+                          get_set_encoding(self.encoding, branch2))
+        self.processEvents()
+
+    @ui_current_widget
     def load_diff(self):
         self.refresh_button.setEnabled(False)
-        # function to run after each loop
-        qt_process_events = QtCore.QCoreApplication.processEvents
-        #
         for tree in self.trees: tree.lock_read()
+        self.processEvents()
         try:
             changes = self.trees[1].iter_changes(self.trees[0],
                                                  specific_files=self.specific_files,
@@ -209,6 +254,7 @@ class DiffWindow(QBzrWindow):
                 return path
 
             try:
+                no_changes = True   # if there is no changes found we need to inform the user
                 for (file_id, paths, changed_content, versioned, parent, name, kind,
                      executable) in sorted(changes, key=changes_key):
                     # file_id         -> ascii string
@@ -222,17 +268,21 @@ class DiffWindow(QBzrWindow):
                     # NOTE: None value used for non-existing entry in corresponding
                     #       tree, e.g. for added/deleted file
 
-                    qt_process_events()
+                    self.processEvents()
 
                     if parent == (None, None):  # filter out TREE_ROOT (?)
                         continue
 
-                    renamed = (parent[0], name[0]) != (parent[1], name[1])
-
                     # check for manually deleted files (w/o using bzr rm commands)
-                    if versioned == (True, True) and kind[1] is None:
-                        versioned = (True, False)
-                        paths = (paths[0], None)
+                    if kind[1] is None:
+                        if versioned == (False, True):
+                            # added and missed
+                            continue
+                        if versioned == (True, True):
+                            versioned = (True, False)
+                            paths = (paths[0], None)
+
+                    renamed = (parent[0], name[0]) != (parent[1], name[1])
 
                     dates = [None, None]
                     for ix in range(2):
@@ -264,31 +314,27 @@ class DiffWindow(QBzrWindow):
                         status = N_('modified')
                     # check filter options
                     if not self.filter_options.check(status):
-                        qt_process_events()
                         continue
 
                     if ((versioned[0] != versioned[1] or changed_content)
                         and (kind[0] == 'file' or kind[1] == 'file')):
                         lines = []
+                        binary = False
                         for ix, tree in enumerate(self.trees):
                             content = ()
                             if versioned[ix] and kind[ix] == 'file':
                                 content = get_file_lines_from_tree(tree, file_id)
                             lines.append(content)
-                        try:
-                            for l in lines:
-                                # XXX bzrlib's check_text_lines looks at first 1K
-                                #     and therefore produce false check in some
-                                #     cases (e.g. pdf files)
-                                # TODO: write our own function to check entire file
-                                check_text_lines(l)
-                            binary = False
+                            binary = binary or is_binary_content(content)
+                            self.processEvents()
+                        if not binary:
                             if versioned == (True, False):
                                 groups = [[('delete', 0, len(lines[0]), 0, 0)]]
                             elif versioned == (False, True):
                                 groups = [[('insert', 0, 0, 0, len(lines[1]))]]
                             else:
                                 matcher = SequenceMatcher(None, lines[0], lines[1])
+                                self.processEvents()
                                 if self.complete:
                                     groups = list([matcher.get_opcodes()])
                                 else:
@@ -296,8 +342,7 @@ class DiffWindow(QBzrWindow):
                             lines = [[i.decode(encoding,'replace') for i in l]
                                      for l, encoding in zip(lines, self.encodings)]
                             data = ((),())
-                        except BinaryFile:
-                            binary = True
+                        else:
                             groups = []
                         data = [''.join(l) for l in lines]
                     else:
@@ -309,6 +354,8 @@ class DiffWindow(QBzrWindow):
                         view.append_diff(list(paths), file_id, kind, status,
                                          dates, versioned, binary, lines, groups,
                                          data, properties_changed)
+                        self.processEvents()
+                    no_changes = False
             except PathsNotVersionedError, e:
                     QtGui.QMessageBox.critical(self, gettext('Diff'),
                         gettext(u'File %s is not versioned.\n'
@@ -317,6 +364,10 @@ class DiffWindow(QBzrWindow):
                     self.close()
         finally:
             for tree in self.trees: tree.unlock()
+        if no_changes:
+            QtGui.QMessageBox.information(self, gettext('Diff'),
+                gettext('No changes found.'),
+                gettext('&OK'))
         self.refresh_button.setEnabled(self.can_refresh())
 
     def click_unidiff(self, checked):
@@ -343,6 +394,8 @@ class DiffWindow(QBzrWindow):
 
     def can_refresh(self):
         """Does any of tree is Mutanble/Working tree."""
+        if self.trees is None: # we might still be loading...
+            return False
         tree1, tree2 = self.trees
         if isinstance(tree1, MutableTree) or isinstance(tree2, MutableTree):
             return True

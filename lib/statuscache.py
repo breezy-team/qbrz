@@ -17,6 +17,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import sys
+
 from bzrlib import (
     errors,
     osutils,
@@ -72,7 +74,9 @@ class StatusCache(QtCore.QObject):
         return entry
 
     def _cacheDirectoryStatus(self, path):
-        p = '/' + '/'.join(path)
+        p = '/'.join(path)
+        if sys.platform != 'win32':
+            p = '/' + p
         #print "caching", p
         try:
             # to stop bzr-svn from trying to give status on svn checkouts
@@ -117,6 +121,8 @@ class StatusCache(QtCore.QObject):
             if parentEntry.status == 'non-versioned':
                 return 'non-versioned'
             else:
+                if sys.platform == 'win32':
+                    return 'non-versioned'
                 print "NOW WHAT??"
         return entry.status
 

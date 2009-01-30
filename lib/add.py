@@ -21,19 +21,9 @@
 
 import os
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.trace import log_exception_quietly
 
-from bzrlib.errors import BzrError
+from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.util import (
-    BTN_CANCEL,
-    BTN_OK,
-    QBzrWindow,
-    file_extension,
-    get_apparent_author,
-    get_global_config,
-    )
 from bzrlib.plugins.qbzr.lib.wtlist import (
     ChangeDesc,
     WorkingTreeFileList,
@@ -53,9 +43,9 @@ class AddWindow(SubProcessDialog):
                                   default_size = (400, 400),
                                   ui_mode = ui_mode,
                                   dialog = dialog,
-                                  parent = parent)
-        
-        self.process_widget.hide_progress()
+                                  parent = parent,
+                                  hide_progress=True,
+                                  )
     
         # Display the list of unversioned files
         groupbox = QtGui.QGroupBox(gettext("Unversioned Files"), self)
@@ -92,11 +82,15 @@ class AddWindow(SubProcessDialog):
                                groupbox,
                                QtCore.SLOT("setDisabled(bool)"))
 
+        self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        self.splitter.addWidget(groupbox)
+        self.splitter.addWidget(self.make_default_status_box())
+        self.splitter.setStretchFactor(0, 10)
+        self.restoreSplitterSizes([150, 150])
+
         layout = QtGui.QVBoxLayout(self)
-        layout.addWidget(groupbox)
-        # and add the subprocess widgets.
-        for w in self.make_default_layout_widgets():
-            layout.addWidget(w)
+        layout.addWidget(self.splitter)
+        layout.addWidget(self.buttonbox)
 
     def iter_changes_and_state(self):
         """An iterator for the WorkingTreeFileList widget"""
@@ -131,5 +125,9 @@ class AddWindow(SubProcessDialog):
         for (tree_item, change_desc) in self.filelist.iter_treeitem_and_desc(True):
             path = change_desc.path()
             if self.tree.is_ignored(path):
-                tree_item.setHidden(state)
+                self.filelist.set_item_hidden(tree_item, state)
         self.filelist.update_selectall_state(None, None)
+
+    def saveSize(self):
+        SubProcessDialog.saveSize(self)
+        self.saveSplitterSizes()

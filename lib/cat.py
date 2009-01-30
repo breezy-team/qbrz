@@ -20,13 +20,18 @@
 import sys
 from PyQt4 import QtCore, QtGui
 
+from bzrlib import errors
 from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.branch import Branch
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
+    ThrobberWidget,
     file_extension,
     format_for_ttype,
+    get_set_encoding,
     )
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 
 have_pygments = True
@@ -60,29 +65,86 @@ def hexdump(data):
 
 class QBzrCatWindow(QBzrWindow):
 
-    def __init__(self, relpath, text, parent=None, encoding=None, kind='file'):
-        """Create qcat window.
-        @param  relpath:    file path relative to tree root.
-        @param  text:       file content (bytes).
-        @param  parent:     parent window.
-        @param  encoding:   file text encoding.
-        @param  kind:       inventory entry kind (file/directory/symlink).
-        """
-        type_, fview = self.detect_content_type(relpath, text, kind)
-
-        QBzrWindow.__init__(self, [gettext("View "+type_), relpath], parent)
+    def __init__(self, filename=None, revision=None,
+                 tree=None, file_id=None, encoding=None,
+                 parent=None):
+        """Create qcat window."""
+        
+        self.filename = filename
+        self.revision = revision
+        self.tree = tree
+        self.file_id = file_id
+        self.encoding = encoding
+        
+        if (not self.filename) and self.tree and self.file_id:
+            self.filename = self.tree.id2path(self.file_id)
+        
+        QBzrWindow.__init__(self, [gettext("View"), self.filename], parent)
         self.restoreSize("cat", (780, 580))
 
-        self.encoding = encoding
-        fview(relpath, text)
-
+        self.throbber = ThrobberWidget(self)
         self.buttonbox = self.create_button_box(BTN_CLOSE)
 
-        vbox = QtGui.QVBoxLayout(self.centralwidget)
-        vbox.addWidget(self.browser)
-        vbox.addWidget(self.buttonbox)
-        # set focus on content
-        self.browser.setFocus()
+        self.vbox = QtGui.QVBoxLayout(self.centralwidget)
+        self.vbox.addWidget(self.throbber)
+        self.vbox.addStretch()
+        self.vbox.addWidget(self.buttonbox)
+    
+    def show(self):
+        # we show the bare form as soon as possible.
+        QBzrWindow.show(self)
+        QtCore.QTimer.singleShot(1, self.load)
+    
+    @ui_current_widget
+    def load(self):
+        try:
+            self.throbber.show()
+            self.processEvents()
+            try:
+                if not self.tree:
+                    branch, relpath = Branch.open_containing(self.filename)
+                    
+                    self.encoding = get_set_encoding(self.encoding, branch)
+                    
+                    if self.revision is None:
+                        self.tree = branch.basis_tree()
+                    else:
+                        revision_id = self.revision[0].in_branch(branch).rev_id
+                        self.tree = branch.repository.revision_tree(revision_id)
+                    
+                    self.file_id = self.tree.path2id(relpath)
+                
+                if not self.file_id:
+                    self.file_id = self.tree.path2id(self.filename)
+                    
+                if not self.file_id:
+                    raise errors.BzrCommandError(
+                        "%r is not present in revision %s" % (
+                            self.filename, self.tree.get_revision_id()))
+                
+                self.tree.lock_read()
+                try:
+                    kind = self.tree.kind(self.file_id)
+                    if kind == 'file':
+                        text = self.tree.get_file_text(self.file_id)
+                    elif kind == 'symlink':
+                        text = self.tree.get_symlink_target(self.file_id)
+                    else:
+                        text = ''
+                finally:
+                    self.tree.unlock()
+                self.processEvents()
+                
+                type_, fview = self.detect_content_type(self.filename, text, kind)
+                fview(self.filename, text)
+                
+                self.vbox.insertWidget(1, self.browser, 1)
+                # set focus on content
+                self.browser.setFocus()
+            finally:
+                self.throbber.hide()
+        except:
+            self.report_exception()
 
     def detect_content_type(self, relpath, text, kind='file'):
         """Return (file_type, viewer_factory) based on kind, text and relpath.
@@ -145,21 +207,58 @@ class QBzrCatWindow(QBzrWindow):
         self.scene.addItem(self.item)
         self.browser = QtGui.QGraphicsView(self.scene)
 
-    @staticmethod
-    def from_tree_and_path(tree, relpath, encoding=None, parent=None):
-        file_id = tree.path2id(relpath)
-        if file_id is None:
-            QtGui.QMessageBox.warning(parent,
-                "QBzr - " + gettext("View File"),
-                gettext('File "%s" not found in the specified revision.') % (
-                    relpath,),
-                QtGui.QMessageBox.Ok)
-            return None
-        kind = tree.kind(file_id)
-        if kind == 'file':
-            text = tree.get_file_text(file_id)
-        elif kind == 'symlink':
-            text = tree.get_symlink_target(file_id)
-        else:
-            text = ''
-        return QBzrCatWindow(relpath, text, encoding=encoding, kind=kind)
+
+def cat_to_native_app(tree, relpath):
+    """Extract file content to temp directory and then launch
+    native application to open it.
+
+    @param  tree:   RevisionTree object.
+    @param  relpath:    path to file relative to tree root.
+    @raise  KindError:  if relpath entry has not file kind.
+    @return:    True if native application was launched.
+    """
+    file_id = tree.path2id(relpath)
+    kind = tree.kind(file_id)
+    if kind != 'file':
+        raise KindError('cat to native application is not supported '
+            'for entry of kind %r' % kind)
+    # make temp file
+    import os
+    import tempfile
+    qdir = os.path.join(tempfile.gettempdir(), 'QBzr', 'qcat')
+    if not os.path.isdir(qdir):
+        os.makedirs(qdir)
+    basename = os.path.basename(relpath)
+    fname = os.path.join(qdir, basename)
+    f = open(fname, 'wb')
+    tree.lock_read()
+    try:
+        f.write(tree.get_file_text(file_id))
+    finally:
+        tree.unlock()
+        f.close()
+    # open it
+    url = QtCore.QUrl(fname)
+    result = QtGui.QDesktopServices.openUrl(url)
+    # now application is about to start and user will work with file
+    # so we can do cleanup in "background"
+    import time
+    limit = time.time() - 60    # files older than 1 minute
+    files = os.listdir(qdir)
+    for i in files[:20]:
+        if i == basename:
+            continue
+        fname = os.path.join(qdir, i)
+        st = os.lstat(fname)
+        if st.st_mtime > limit:
+            continue
+        try:
+            os.unlink(fname)
+        except (OSError, IOError):
+            pass
+    #
+    return result
+
+
+class KindError(errors.BzrError):
+    pass

@@ -48,6 +48,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     format_timestamp,
     get_apparent_author,
     get_global_config,
+    url_for_display,
     )
 from bzrlib.plugins.qbzr.lib.wtlist import (
     ChangeDesc,
@@ -177,7 +178,8 @@ class CommitWindow(SubProcessWindow):
                                            want_unversioned=True):
             desc = ChangeDesc(desc)
 
-            if desc.is_tree_root(): # skip TREE_ROOT
+            if desc.is_tree_root() or desc.is_misadded():
+                # skip uninteresting enties
                 continue
 
             is_versioned = desc.is_versioned()
@@ -203,7 +205,8 @@ class CommitWindow(SubProcessWindow):
                     builder = get_wordlist_builder(ext)
                     if builder is not None:
                         try:
-                            file = open(path, 'rt')
+                            abspath = os.path.join(self.tree.basedir, path)
+                            file = open(abspath, 'rt')
                             words.update(builder.iter_words(file))
                         except EnvironmentError:
                             pass
@@ -228,6 +231,38 @@ class CommitWindow(SubProcessWindow):
         self.connect(self.process_widget,
             QtCore.SIGNAL("failed()"),
             self.failed)
+
+        # commit to branch location
+        branch_groupbox = QtGui.QGroupBox(gettext("Branch"), self)
+        branch_layout = QtGui.QGridLayout(branch_groupbox)
+        self.branch_location = QtGui.QLineEdit()
+        self.branch_location.setReadOnly(True)
+        #
+        branch_base = url_for_display(tree.branch.base)
+        master_branch = url_for_display(tree.branch.get_bound_location())
+        if not master_branch:
+            self.branch_location.setText(branch_base)
+            branch_layout.addWidget(self.branch_location)
+        else:
+            self.local_checkbox = QtGui.QCheckBox(gettext(
+                "&Local commit"))
+            self.local_checkbox.setToolTip(gettext(
+                "Local commits are not pushed to the master branch "
+                "until a normal commit is performed"))
+            branch_layout.addWidget(self.local_checkbox, 0, 0, 1, 2)
+            branch_layout.addWidget(self.branch_location, 1, 0, 1, 2)
+            branch_layout.addWidget(QtGui.QLabel(gettext('Description:')), 2, 0,
+                QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+            self.commit_type_description = QtGui.QLabel()
+            self.commit_type_description.setWordWrap(True)
+            branch_layout.addWidget(self.commit_type_description, 2, 1)
+            branch_layout.setColumnStretch(1,10)
+            self.connect(self.local_checkbox,
+                QtCore.SIGNAL("stateChanged(int)"),
+                self.update_branch_groupbox)
+            if local:
+                self.local_checkbox.setChecked(True)
+            self.update_branch_groupbox()
 
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self)
 
@@ -305,16 +340,6 @@ class CommitWindow(SubProcessWindow):
         self.custom_author = ''
         self.author.setText(self.default_author)
 
-        if self.is_bound:
-            self.local_checkbox = QtGui.QCheckBox(gettext(
-                "&Local commit in a bound branch"))
-            self.local_checkbox.setToolTip(gettext(
-                "Local commits are not pushed to the master branch "
-                "until a normal commit is performed"))
-            grid.addWidget(self.local_checkbox, 3, 0, 1, 2)
-            if local:
-                self.local_checkbox.setChecked(True)
-
         # Display the list of changed files
         files_tab = QtGui.QWidget()
         self.tabWidget.addTab(files_tab, gettext("Changes"))
@@ -330,9 +355,11 @@ class CommitWindow(SubProcessWindow):
 
         # Display a list of pending merges
         if self.pending_merges:
+            selectall_checkbox.setCheckState(QtCore.Qt.Checked)
             selectall_checkbox.setEnabled(False)
             pendingMergesWidget = QtGui.QTreeWidget()
             self.tabWidget.addTab(pendingMergesWidget, gettext("Pending Merges"))
+            self.tabWidget.setCurrentWidget(pendingMergesWidget)
             
             pendingMergesWidget.setRootIsDecorated(False)
             pendingMergesWidget.setHeaderLabels(
@@ -368,6 +395,7 @@ class CommitWindow(SubProcessWindow):
         splitter.setStretchFactor(0, 3)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox.addWidget(branch_groupbox)
         vbox.addWidget(splitter)
         vbox.addWidget(self.buttonbox)
 
@@ -405,7 +433,6 @@ class CommitWindow(SubProcessWindow):
             self.custom_author = self.author.text()
             self.author.setText(self.default_author)
 
-
     def get_saved_message(self):
         config = self.tree.branch.get_config()._get_branch_data_config()
         return config.get_user_option('qbzr_commit_message')
@@ -416,20 +443,23 @@ class CommitWindow(SubProcessWindow):
             self.message.setText(message)
 
     def save_message(self):
-        message = unicode(self.message.toPlainText())
-        config = self.tree.branch.get_config()
-        if message.strip():
-            config.set_user_option('qbzr_commit_message', message)
+        if self.tree.branch.control_files.get_physical_lock_status():
+            from bzrlib.trace import warning
+            warning("Cannot save commit message because the branch is locked.")
         else:
-            if config.get_user_option('qbzr_commit_message'):
-                # FIXME this should delete the config entry, not just set it to ''
-                config.set_user_option('qbzr_commit_message', '')
+            message = unicode(self.message.toPlainText())
+            config = self.tree.branch.get_config()
+            if message.strip():
+                config.set_user_option('qbzr_commit_message', message)
+            else:
+                if config.get_user_option('qbzr_commit_message'):
+                    # FIXME this should delete the config entry, not just set it to ''
+                    config.set_user_option('qbzr_commit_message', '')
 
     def clear_saved_message(self):
         config = self.tree.branch.get_config()
         # FIXME this should delete the config entry, not just set it to ''
         config.set_user_option('qbzr_commit_message', '')
-
 
     def start(self):
         args = ["commit"]
@@ -437,23 +467,60 @@ class CommitWindow(SubProcessWindow):
         
         message = unicode(self.message.toPlainText()).strip() 
         if not message: 
-            button = QtGui.QMessageBox.warning(self, 
-                "QBzr - " + gettext("Commit"), 
-                gettext("Empty commit message. Do you really want to commit?"), 
-                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No) 
-            if button == QtGui.QMessageBox.No: 
-                # don't commit, but don't close the window either
-                self.failed()
-                return
-        args.append(('-m %s' % message))
+            QtGui.QMessageBox.warning(self,
+                "QBzr - " + gettext("Commit"),
+                gettext("You should provide commit message."),
+                gettext('&OK'))
+            # don't commit, but don't close the window either
+            self.failed()
+            self.message.setFocus()
+            return
+
+        args.extend(['-m', message])    # keep them separated to avoid bug #297606
         
+        # starts with one because if pending changes are available the warning box will appear each time.
+        checkedFiles = 1 
         if not self.pending_merges:
+            checkedFiles = 0
             for desc in self.filelist.iter_checked():
+                checkedFiles = checkedFiles+1
                 path = desc.path()
                 if not desc.is_versioned():
                     files_to_add.append(path)
                 args.append(path)
         
+        if checkedFiles == 0: # BUG: 295116
+            # check for availability of --exclude option for commit
+            # (this option was introduced in bzr 1.6)
+            from bzrlib.commands import get_cmd_object
+            kmd = get_cmd_object('commit', False)
+            if kmd.options().get('exclude', None) is None:
+                # bzr < 1.6 -- sorry but we can't allow empty commit
+                QtGui.QMessageBox.warning(self,
+                    "QBzr - " + gettext("Commit"), 
+                    gettext("No changes to commit."),
+                    QtGui.QMessageBox.Ok) 
+                self.failed()
+                return
+            else:
+                # bzr >= 1.6
+                button = QtGui.QMessageBox.question(self,
+                    "QBzr - " + gettext("Commit"), 
+                    gettext("No changes selected to commit.\n"
+                        "Do you want to commit anyway?"),
+                    QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+                if button == QtGui.QMessageBox.No:
+                    self.failed()
+                    return
+                else:
+                    # Possible [rare] problems:
+                    # 1. unicode tree root in non-user encoding
+                    #    may provoke UnicodeEncodeError in subprocess (@win32)
+                    # 2. if branch has no commits yet then operation may fail
+                    #    because of bug #299879
+                    args.extend(['--exclude', self.tree.basedir])
+                    args.append('--unchanged')
+
         if self.bugsCheckBox.isChecked():
             for s in unicode(self.bugs.text()).split():
                 args.append(("--fixes=%s" % s))
@@ -485,7 +552,7 @@ class CommitWindow(SubProcessWindow):
         state = not state
         for (tree_item, change_desc) in self.filelist.iter_treeitem_and_desc(True):
             if change_desc[3] == (False, False):
-                tree_item.setHidden(state)
+                self.filelist.set_item_hidden(tree_item, state)
         self.filelist.update_selectall_state(None, None)
 
     def closeEvent(self, event):
@@ -495,3 +562,20 @@ class CommitWindow(SubProcessWindow):
             else:
                 self.save_message()
         return SubProcessWindow.closeEvent(self, event)
+
+    def update_branch_groupbox(self):
+        if not self.local_checkbox.isChecked():
+            # commit to master branch selected
+            loc = url_for_display(self.tree.branch.get_bound_location())
+            desc = gettext("A commit will be made directly to "
+                           "the master branch, keeping the local "
+                           "and master branches in sync.")
+        else:
+            # local commit selected
+            loc = url_for_display(self.tree.branch.base)
+            desc = gettext("A local commit to the branch will be performed. "
+                           "The master branch will not be updated until "
+                           "a non-local commit is made.")
+        # update GUI
+        self.branch_location.setText(loc)
+        self.commit_type_description.setText(desc)

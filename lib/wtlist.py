@@ -108,7 +108,6 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         # shown or not
         self.item_to_data = {}
         items = []
-        ivs = [] # work around the fact visibility seems to be ignored at creation
         for change_desc, visible, checked in items_iter:
             (file_id, (path_in_source, path_in_target),
              changed_content, versioned, parent, name, kind,
@@ -134,8 +133,10 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
                 ext = file_extension(path_in_source)
                 name = path_in_source + osutils.kind_marker(kind[0])
             else:
-                # versioned = True, True - so either renamed or modified.
-                if path_in_source != path_in_target:
+                # versioned = True, True - so either renamed or modified
+                # or properties changed (x-bit).
+                renamed = (parent[0], name[0]) != (parent[1], name[1])
+                if renamed:
                     if changed_content:
                         status = gettext("renamed and modified")
                     else:
@@ -149,6 +150,10 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
                     status = gettext("modified")
                     name = path_in_target +  osutils.kind_marker(kind[1])
                     ext = file_extension(path_in_target)
+                elif executable[0] != executable[1]:
+                    status = gettext("modified (x-bit)")
+                    name = path_in_target +  osutils.kind_marker(kind[1])
+                    ext = file_extension(path_in_target)
                 else:
                     raise RuntimeError, "what status am I missing??"
 
@@ -156,8 +161,8 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
             item.setText(0, name)
             item.setText(1, ext)
             item.setText(2, status)
-            items.append(item)
-            ivs.append((item, visible))
+            if visible:
+                items.append(item)
 
             if checked is None:
                 item.setCheckState(0, QtCore.Qt.PartiallyChecked)
@@ -166,21 +171,30 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
                 item.setCheckState(0, QtCore.Qt.Checked)
             else:
                 item.setCheckState(0, QtCore.Qt.Unchecked)
-            item.setHidden(not visible)
             self.item_to_data[item] = change_desc
         # add them all to the tree in one hit.
         self.insertTopLevelItems(0, items)
-        # for some reason the visibility doesn't work when added above??
-        for item, visible in ivs:
-            self.setItemHidden(item, not visible)
         self._ignore_select_all_changes = False
         if self.selectall_checkbox is not None:
             self.update_selectall_state(None, None)
 
+    def set_item_hidden(self, item, hide):
+        # Due to what seems a bug in Qt "hiding" an item isn't always
+        # reliable - so a "hidden" item is simply not added to the tree!
+        # See https://bugs.launchpad.net/qbzr/+bug/274295
+        index = self.indexOfTopLevelItem(item)
+        if index == -1 and not hide:
+            self.addTopLevelItem(item)
+        elif index != -1 and hide:
+            self.takeTopLevelItem(index)
+
+    def is_item_hidden(self, item):
+        return self.indexOfTopLevelItem(item) == -1
+
     def iter_treeitem_and_desc(self, include_hidden=False):
         """iterators to help work with the selection, checked items, etc"""
         for ti, desc in self.item_to_data.iteritems():
-            if include_hidden or not ti.isHidden():
+            if include_hidden or not self.is_item_hidden(ti):
                 yield ti, desc
 
     def iter_selection(self):
@@ -192,7 +206,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         # XXX   tree object at all!?
         for i in range(self.topLevelItemCount()):
             item = self.topLevelItem(i)
-            if not item.isHidden() and item.checkState(0) == QtCore.Qt.Checked:
+            if item.checkState(0) == QtCore.Qt.Checked:
                 yield self.item_to_data[item]
 
     def show_context_menu(self, pos):
@@ -224,6 +238,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
                                          args=args,
                                          dir=self.tree.basedir,
                                          parent=self,
+                                         hide_progress=True,
                                         )
         res = revert_dialog.exec_()
         if res == QtGui.QDialog.Accepted:
@@ -340,13 +355,25 @@ class ChangeDesc(tuple):
                 and (desc[4][0], desc[5][0]) != (desc[4][1], desc[5][1]))
 
     def is_tree_root(desc):
-        """Check is entry actually tree root."""
+        """Check if entry actually tree root."""
         if desc[3] != (False, False) and desc[4] == (None, None):
             # TREE_ROOT has not parents (desc[4]).
             # But because we could want to see unversioned files
             # we need to check for versioned flag (desc[3])
             return True
         return False
+
+    def is_missing(desc):
+        """Check if file was present in previous revision but now it's gone
+        (i.e. deleted manually, without invoking `bzr remove` command)
+        """
+        return (desc[3] == (True, True) and desc[6][1] is None)
+
+    def is_misadded(desc):
+        """Check if file was added to the working tree but then gone
+        (i.e. deleted manually, without invoking `bzr remove` command)
+        """
+        return (desc[3] == (False, True) and desc[6][1] is None)
 
 
 def closure_in_selected_list(selected_list):

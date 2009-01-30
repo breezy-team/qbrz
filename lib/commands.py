@@ -2,7 +2,7 @@
 #
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2006 Lukáš Lalinský <lalinsky@gmail.com>
-# Copyright (C) 2008 Alexander Belchenko
+# Copyright (C) 2008, 2009 Alexander Belchenko
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -18,30 +18,24 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import os.path
+import os
 import sys
-
-if hasattr(sys, "frozen"):
-    # "hack in" our PyQt4 binaries
-    sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '_lib')))
-
-from bzrlib import errors
+from bzrlib import errors, ui
 from bzrlib.option import Option
 from bzrlib.commands import Command, register_command, get_cmd_object
 import bzrlib.builtins
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
-from PyQt4 import QtGui
-import shlex
+import signal, shlex, thread
+
+from PyQt4 import QtGui, QtCore
+
 from bzrlib import (
     builtins,
     commands,
     osutils,
     progress,
-    ui,
-    ui.text,
-    urlutils,
     )
 from bzrlib.util import bencode
 from bzrlib.branch import Branch
@@ -52,7 +46,7 @@ from bzrlib.plugins.qbzr.lib import i18n
 from bzrlib.plugins.qbzr.lib.add import AddWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
-from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
+from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, cat_to_native_app
 from bzrlib.plugins.qbzr.lib.commit import CommitWindow
 from bzrlib.plugins.qbzr.lib.config import QBzrConfigWindow
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
@@ -60,24 +54,27 @@ from bzrlib.plugins.qbzr.lib.getupdates import UpdateBranchWindow, UpdateCheckou
 from bzrlib.plugins.qbzr.lib.getnew import GetNewWorkingTreeWindow
 from bzrlib.plugins.qbzr.lib.help import show_help
 from bzrlib.plugins.qbzr.lib.log import LogWindow
-from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
 from bzrlib.plugins.qbzr.lib.info import QBzrInfoWindow
 from bzrlib.plugins.qbzr.lib.init import QBzrInitWindow
-from bzrlib.plugins.qbzr.lib.revert import RevertWindow
-from bzrlib.plugins.qbzr.lib.subprocess import SubprocessProgress
+from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
 from bzrlib.plugins.qbzr.lib.pull import (
     QBzrPullWindow,
     QBzrPushWindow,
     QBzrBranchWindow,
     QBzrMergeWindow,
     )
+from bzrlib.plugins.qbzr.lib.revert import RevertWindow
+from bzrlib.plugins.qbzr.lib.subprocess import SubprocessUIFactory
+from bzrlib.plugins.qbzr.lib.tag import TagWindow
 from bzrlib.plugins.qbzr.lib.util import (
     FilterOptions,
-    get_branch_config,
     get_set_encoding,
     is_valid_encoding,
     )
+from bzrlib.plugins.qbzr.lib.uifactory import QUIFactory
 ''')
+
+from bzrlib.plugins.qbzr.lib import MS_WINDOWS
 
 
 class InvalidEncodingOption(errors.BzrError):
@@ -140,21 +137,54 @@ class QBzrCommand(Command):
     @install_gettext
     @report_missing_pyqt
     def run(self, *args, **kwargs):
+        ui.ui_factory = QUIFactory()
         return self._qbzr_run(*args, **kwargs)
 
 ui_mode_option = Option("ui-mode", help="Causes dialogs to wait after the operation is complete.")
+
+# A special option so 'revision' can be passed as a simple string, when we do
+# *not* wan't bzrlib's feature of parsing the revision string before passing it.
+# This is used when we just want a plain string to pass to our dialog for it to
+# display in the UI, and we will later pass it to bzr for parsing. If you want
+# bzrlib to parse and pass a revisionspec object, just pass the string
+# 'revision' as normal.
+simple_revision_option = Option("revision",
+                             short_name='r',
+                             type=unicode,
+                             help='See "help revisionspec" for details.')
+
+
+def bzr_option(cmd_name, opt_name):
+    """Helper so we can 'borrow' options from bzr itself without needing to
+    duplicate the help text etc.  Pass the builtin bzr command name and an
+    option name.
+
+    eg:
+      takes_options = [bzr_option("push", "create-prefix")]
+
+    would give a command the exact same '--create-prefix' option as bzr's
+    push command has, including help text, parsing, etc.
+    """
+    from bzrlib.commands import get_cmd_object
+    cmd=get_cmd_object(cmd_name, False)
+    return cmd.options()[opt_name]
+
 
 class cmd_qannotate(QBzrCommand):
     """Show the origin of each line in a file."""
     takes_args = ['filename']
     takes_options = ['revision',
                      Option('encoding', type=check_encoding,
-                     help='Encoding of files content (default: utf-8)'),
+                     help='Encoding of files content (default: utf-8).'),
+                     ui_mode_option,
                     ]
     aliases = ['qann', 'qblame']
 
-    def _qbzr_run(self, filename=None, revision=None, encoding=None):
-        from bzrlib.annotate import _annotate_file
+    def _load_branch(self, filename, revision):
+        """To assist in getting a UI up as soon as possible, the UI calls
+        back to this function to process the command-line args and convert
+        them into the branch and tree etc needed by the UI.
+        """
         wt, branch, relpath = \
             BzrDir.open_containing_tree_or_branch(filename)
         if wt is not None:
@@ -177,7 +207,8 @@ class cmd_qannotate(QBzrCommand):
                 raise errors.NotVersionedError(filename)
             entry = tree.inventory[file_id]
             if entry.kind != 'file':
-                return
+                raise errors.BzrCommandError(
+                        'bzr qannotate only works for files (got %r)' % entry.kind)
             #repo = branch.repository
             #w = repo.weave_store.get_weave(file_id, repo.get_transaction())
             #content = list(w.annotate_iter(entry.revision))
@@ -185,13 +216,20 @@ class cmd_qannotate(QBzrCommand):
             #revision_ids = [o for o in revision_ids if repo.has_revision(o)]
             #revisions = branch.repository.get_revisions(revision_ids)
         finally:
-            branch.unlock()
+            if wt is not None:
+                wt.unlock()
+            else:
+                branch.unlock()
 
-        config = get_branch_config(branch)
-        encoding = get_set_encoding(encoding, config)
+        return branch, tree, relpath, file_id
 
+    def _qbzr_run(self, filename=None, revision=None, encoding=None,
+                  ui_mode=False):
         app = QtGui.QApplication(sys.argv)
-        win = AnnotateWindow(branch, tree, relpath, file_id, encoding)
+        win = AnnotateWindow(None, None, None, None,
+                             encoding=encoding, ui_mode=ui_mode,
+                             loader=self._load_branch,
+                             loader_args=(filename, revision))
         win.show()
         app.exec_()
 
@@ -226,6 +264,19 @@ class cmd_qrevert(QBzrCommand):
         application.exec_()
 
 
+class cmd_qconflicts(QBzrCommand):
+    """Show conflicts."""
+    takes_args = []
+    takes_options = []
+
+    def _qbzr_run(self):
+        from bzrlib.plugins.qbzr.lib.conflicts import ConflictsWindow
+        application = QtGui.QApplication(sys.argv)
+        window = ConflictsWindow(u'.')
+        window.show()
+        application.exec_()
+
+
 class cmd_qbrowse(QBzrCommand):
     """Show inventory."""
     takes_args = ['location?']
@@ -233,12 +284,11 @@ class cmd_qbrowse(QBzrCommand):
     aliases = ['qbw']
 
     def _qbzr_run(self, revision=None, location=None):
-        branch, path = Branch.open_containing(location)
         app = QtGui.QApplication(sys.argv)
         if revision is None:
-            win = BrowseWindow(branch)
+            win = BrowseWindow(location = location)
         else:
-            win = BrowseWindow(branch, revision[0])
+            win = BrowseWindow(location = location, revision = revision[0])
         win.show()
         app.exec_()
 
@@ -247,14 +297,8 @@ class cmd_qcommit(QBzrCommand):
     """GUI for committing revisions."""
     takes_args = ['selected*']
     takes_options = [
-            Option('message', type=unicode,
-                   short_name='m',
-                   help="Description of the new revision."),
-            Option('local',
-                   help="Perform a local commit in a bound "
-                        "branch.  Local commits are not pushed to "
-                        "the master branch until a normal commit "
-                        "is performed."),
+            bzr_option('commit', 'message'),
+            bzr_option('commit', 'local'),
             ui_mode_option,
             ]
     aliases = ['qci']
@@ -275,46 +319,34 @@ class cmd_qdiff(QBzrCommand):
     takes_args = ['file*']
     takes_options = [
         'revision',
-        Option('complete', help='Show complete files'),
+        Option('complete', help='Show complete files.'),
         Option('encoding', type=check_encoding,
-               help='Encoding of files content (default: utf-8)'),
-        Option('added', short_name='A', help='Show diff for added files'),
-        Option('deleted', short_name='D', help='Show diff for deleted files'),
+               help='Encoding of files content (default: utf-8).'),
+        Option('added', short_name='A', help='Show diff for added files.'),
+        Option('deleted', short_name='K', help='Show diff for deleted files.'),
         Option('modified', short_name='M',
-               help='Show diff for modified files'),
-        Option('renamed', short_name='R', help='Show diff for renamed files'),
-        Option('old',
-            help='Branch/tree to compare from.',
-            type=unicode,
-            ),
-        Option('new',
-            help='Branch/tree to compare to.',
-            type=unicode,
-            ),
+               help='Show diff for modified files.'),
+        Option('renamed', short_name='R', help='Show diff for renamed files.'),
+        bzr_option('diff', 'old'),
+        bzr_option('diff', 'new'),
         ]
     if 'change' in Option.OPTIONS:
         takes_options.append('change')
     aliases = ['qdi']
 
-    def _qbzr_run(self, revision=None, file_list=None, complete=False,
-            encoding=None,
-            added=None, deleted=None, modified=None, renamed=None,
-            old=None, new=None):
+    def _load_branches(self, revision, file_list, old, new):
+        """To assist in getting a UI up as soon as possible, the UI calls
+        back to this function to process the command-line args and convert
+        them into the branches and trees needed by the UI.
+
+        NOTE: called by a non-UI thread (but its still OK to raise exceptions)
+        """
         from bzrlib.builtins import internal_tree_files
         from bzrlib.diff import _get_trees_to_diff
 
-        if revision and len(revision) > 2:
-            raise errors.BzrCommandError('bzr qdiff --revision takes exactly'
-                                         ' one or two revision specifiers')
-        # changes filter
-        filter_options = FilterOptions(added=added, deleted=deleted,
-            modified=modified, renamed=renamed)
-        if not (added or deleted or modified or renamed):
-            # if no filter option used then turn all on
-            filter_options.all_enable()
-
         old_tree, new_tree, specific_files, extra_trees = \
                 _get_trees_to_diff(file_list, revision, old, new)
+        QtCore.QCoreApplication.processEvents()
         
         if file_list:
             default_location = file_list[0]
@@ -326,6 +358,7 @@ class cmd_qdiff(QBzrCommand):
             old = default_location
         wt, old_branch, rp = \
             BzrDir.open_containing_tree_or_branch(old)
+        QtCore.QCoreApplication.processEvents()
         if new is None:
             new = default_location
         if new != old :
@@ -333,16 +366,33 @@ class cmd_qdiff(QBzrCommand):
                 BzrDir.open_containing_tree_or_branch(new)
         else:
             new_branch = old_branch
+        QtCore.QCoreApplication.processEvents()
+        return old_tree, new_tree, old_branch, new_branch, specific_files
 
-        application = QtGui.QApplication(sys.argv)
-        window = DiffWindow(old_tree, new_tree,
-                            old_branch, new_branch,
+    def _qbzr_run(self, revision=None, file_list=None, complete=False,
+            encoding=None,
+            added=None, deleted=None, modified=None, renamed=None,
+            old=None, new=None, ui_mode=False):
+
+        if revision and len(revision) > 2:
+            raise errors.BzrCommandError('bzr qdiff --revision takes exactly'
+                                         ' one or two revision specifiers')
+        # changes filter
+        filter_options = FilterOptions(added=added, deleted=deleted,
+            modified=modified, renamed=renamed)
+        if not (added or deleted or modified or renamed):
+            # if no filter option used then turn all on
+            filter_options.all_enable()
+
+        app = QtGui.QApplication(sys.argv)
+        window = DiffWindow(loader=self._load_branches,
+                            loader_args=(revision, file_list, old, new),
                             complete=complete,
-                            specific_files=specific_files,
                             encoding=encoding,
-                            filter_options=filter_options)
+                            filter_options=filter_options,
+                            ui_mode=ui_mode)
         window.show()
-        application.exec_()
+        app.exec_()
 
 
 class cmd_qlog(QBzrCommand):
@@ -369,11 +419,11 @@ class cmd_qlog(QBzrCommand):
     """
 
     takes_args = ['locations*']
-    takes_options = []
+    takes_options = [ui_mode_option]
 
-    def _qbzr_run(self, locations_list):
+    def _qbzr_run(self, locations_list, ui_mode=False):
         app = QtGui.QApplication(sys.argv)
-        window = LogWindow(locations_list, None, None)
+        window = LogWindow(locations_list, None, None, ui_mode=ui_mode)
         window.show()
         app.exec_()
 
@@ -401,73 +451,118 @@ class cmd_qcat(QBzrCommand):
     takes_options = [
         'revision',
         Option('encoding', type=check_encoding,
-               help='Encoding of files content (default: utf-8)'),
+               help='Encoding of files content (default: utf-8).'),
+        Option('native',
+               help='Show file with native application.'),
         ]
     takes_args = ['filename']
 
-    def _qbzr_run(self, filename, revision=None, encoding=None):
+    def _qbzr_run(self, filename, revision=None, encoding=None, native=None):
         if revision is not None and len(revision) != 1:
             raise errors.BzrCommandError("bzr qcat --revision takes exactly"
                                          " one revision specifier")
 
-        branch, relpath = Branch.open_containing(filename)
-        if revision is None:
-            tree = branch.basis_tree()
-        else:
-            revision_id = revision[0].in_branch(branch).rev_id
-            tree = branch.repository.revision_tree(revision_id)
+        if native:
+            branch, relpath = Branch.open_containing(filename)
+            if revision is None:
+                tree = branch.basis_tree()
+            else:
+                revision_id = revision[0].in_branch(branch).rev_id
+                tree = branch.repository.revision_tree(revision_id)
+            result = cat_to_native_app(tree, relpath)
+            return int(not result)
+
 
         app = QtGui.QApplication(sys.argv)
-        tree.lock_read()
-        try:
-            window = QBzrCatWindow.from_tree_and_path(tree, relpath, encoding)
-        finally:
-            tree.unlock()
-        if window is not None:
-            window.show()
-            app.exec_()
+        window = QBzrCatWindow(filename = filename, revision = revision,
+                               encoding = encoding)
+        window.show()
+        app.exec_()
 
 
 class cmd_qpull(QBzrCommand):
     """Turn this branch into a mirror of another branch."""
 
-    takes_options = [ui_mode_option]
-    takes_args = []
+    takes_options = [
+        'remember', 'overwrite',
+        simple_revision_option,
+        bzr_option('pull', 'directory'),
+        ui_mode_option,
+        ]
+    takes_args = ['location?']
 
-    def _qbzr_run(self, ui_mode=False):
-        branch, relpath = Branch.open_containing('.')
+    def _qbzr_run(self, location=None, directory=None,
+                  remember=None, overwrite=None, revision=None, ui_mode=False):
+        if directory is None:
+            directory = u'.'
+        try:
+            tree_to = WorkingTree.open_containing(directory)[0]
+            branch_to = tree_to.branch
+        except errors.NoWorkingTree:
+            tree_to = None
+            branch_to = Branch.open_containing(directory)[0]
         app = QtGui.QApplication(sys.argv)
-        window = QBzrPullWindow(branch, ui_mode=ui_mode)
+        window = QBzrPullWindow(branch_to, tree_to, location,
+                                remember=remember,
+                                overwrite=overwrite,
+                                revision=revision,
+                                ui_mode=ui_mode)
         window.show()
         app.exec_()
-
 
 
 class cmd_qmerge(QBzrCommand):
     """Perform a three-way merge."""
 
-    takes_options = [ui_mode_option]
-    takes_args = []
+    takes_options = [ui_mode_option,
+                     simple_revision_option,
+                     bzr_option('merge', 'directory'),
+                     'remember']
+    takes_args = ['location?']
 
-    def _qbzr_run(self, ui_mode=False):
-        branch, relpath = Branch.open_containing('.')
+    def _qbzr_run(self, location=None, directory=None, revision=None,
+                  remember=None, ui_mode=False):
+        if directory is None:
+            directory = u'.'
+        try:
+            tree_to = WorkingTree.open_containing(directory)[0]
+            branch_to = tree_to.branch
+        except errors.NoWorkingTree:
+            tree_to = None
+            branch_to = Branch.open_containing(directory)[0]
         app = QtGui.QApplication(sys.argv)
-        window = QBzrMergeWindow(branch, ui_mode=ui_mode)
+        window = QBzrMergeWindow(branch_to, tree_to, location, revision=revision,
+                                 remember=remember, ui_mode=ui_mode)
         window.show()
         app.exec_()
-
 
 
 class cmd_qpush(QBzrCommand):
     """Update a mirror of this branch."""
 
-    takes_options = [ui_mode_option]
-    takes_args = []
+    takes_options = ['remember', 'overwrite',
+                     bzr_option("push", "create-prefix"),
+                     bzr_option("push", "use-existing-dir"),
+                     bzr_option("push", "directory"),
+                     ui_mode_option]
+    takes_args = ['location?']
 
-    def _qbzr_run(self, ui_mode=False):
-        branch, relpath = Branch.open_containing('.')
+    def _qbzr_run(self, location=None, directory=None,
+                  remember=None, overwrite=None,
+                  create_prefix=None, use_existing_dir=None,
+                  ui_mode=False):
+
+        if directory is None:
+            directory = u'.'
+        
+        branch, relpath = Branch.open_containing(directory)
         app = QtGui.QApplication(sys.argv)
-        window = QBzrPushWindow(branch, ui_mode=ui_mode, )
+        window = QBzrPushWindow(branch, location,
+                                create_prefix=create_prefix,
+                                use_existing_dir=use_existing_dir,
+                                remember=remember,
+                                overwrite=overwrite,
+                                ui_mode=ui_mode)
         window.show()
         app.exec_()
 
@@ -475,12 +570,15 @@ class cmd_qpush(QBzrCommand):
 class cmd_qbranch(QBzrCommand):
     """Create a new copy of a branch."""
 
-    takes_options = [ui_mode_option]
-    takes_args = []
+    takes_options = [simple_revision_option,
+                     ui_mode_option]
+    takes_args = ['from_location?', 'to_location?']
 
-    def _qbzr_run(self, ui_mode=False):
+    def _qbzr_run(self, from_location=None, to_location=None,
+                  revision=None, ui_mode=False):
         app = QtGui.QApplication(sys.argv)
-        window = QBzrBranchWindow(None, ui_mode=ui_mode)
+        window = QBzrBranchWindow(from_location, to_location,
+                                  revision=revision, ui_mode=ui_mode)
         window.show()
         app.exec_()
 
@@ -519,7 +617,7 @@ class cmd_merge(bzrlib.builtins.cmd_merge):
                 'show a diff of the merge in a GUI window.'),
             Option('encoding', type=check_encoding,
                    help='Encoding of files content, used with --qpreview '
-                        '(default: utf-8)'),
+                        '(default: utf-8).'),
             ]
 
     def run(self, *args, **kw):
@@ -530,7 +628,7 @@ class cmd_merge(bzrlib.builtins.cmd_merge):
         self._encoding = kw.get('encoding')
         if self._encoding:
             del kw['encoding']
-        bzrlib.builtins.cmd_merge.run(self, *args, **kw)
+        return bzrlib.builtins.cmd_merge.run(self, *args, **kw)
 
     @install_gettext
     @report_missing_pyqt
@@ -588,10 +686,37 @@ class cmd_qsubprocess(Command):
     takes_args = ['cmd']
     hidden = True
 
+    if MS_WINDOWS:
+        def __win32_ctrl_c(self):
+            import win32event
+            from bzrlib.plugins.qbzr.lib.subprocess import get_event_name
+            ev = win32event.CreateEvent(None, 0, 0, get_event_name(os.getpid()))
+            try:
+                win32event.WaitForSingleObject(ev, win32event.INFINITE)
+            finally:
+                ev.Close()
+            thread.interrupt_main()
+
     def run(self, cmd):
-        ui.ui_factory = ui.text.TextUIFactory(SubprocessProgress)
+        if MS_WINDOWS:
+            thread.start_new_thread(self.__win32_ctrl_c, ())
+        else:
+            signal.signal(signal.SIGINT, sigabrt_handler)
+        ui.ui_factory = SubprocessUIFactory()
+        if cmd.startswith('@'):
+            fname = cmd[1:]
+            f = open(fname, 'rb')
+            try:
+                cmd = f.read()
+            finally:
+                f.close()
         argv = [p.decode('utf8') for p in shlex.split(cmd.encode('utf8'))]
         commands.run_bzr(argv)
+
+
+def sigabrt_handler(signum, frame):
+    raise KeyboardInterrupt()
+
 
 class cmd_qgetupdates(QBzrCommand):
     """Fetches external changes into the working tree"""
@@ -601,7 +726,6 @@ class cmd_qgetupdates(QBzrCommand):
     aliases = ['qgetu']
 
     def _qbzr_run(self, location=".", ui_mode=False):
-
         branch, relpath = Branch.open_containing(location)
         app = QtGui.QApplication(sys.argv)
         if branch.get_bound_location():
@@ -611,6 +735,7 @@ class cmd_qgetupdates(QBzrCommand):
 
         window.show()
         app.exec_()
+
 
 class cmd_qgetnew(QBzrCommand):
     """Creates a new working tree (either a checkout or full branch)"""
@@ -625,6 +750,7 @@ class cmd_qgetnew(QBzrCommand):
         window.show()
         app.exec_()
 
+
 class cmd_qhelp(QBzrCommand):
     """Shows a help window"""
 
@@ -636,4 +762,30 @@ class cmd_qhelp(QBzrCommand):
     def _qbzr_run(self, topic):
         app = QtGui.QApplication(sys.argv)
         window = show_help(topic)
+        app.exec_()
+
+
+class cmd_qtag(QBzrCommand):
+    """Edit tags."""
+
+    takes_args = ['tag_name?']
+    takes_options = [
+        ui_mode_option,
+        bzr_option('tag', 'delete'),
+        bzr_option('tag', 'directory'),
+        bzr_option('tag', 'force'),
+        'revision',
+        ]
+
+    def _qbzr_run(self, tag_name=None, delete=None, directory='.',
+        force=None, revision=None, ui_mode=False):
+        branch = Branch.open_containing(directory)[0]
+        if not branch.tags.supports_tags():
+            raise errors.BzrError('This branch does not support tags')
+        # determine action based on given options
+        action = TagWindow.action_from_options(force=force, delete=delete)
+        app = QtGui.QApplication(sys.argv)
+        window = TagWindow(branch, tag_name=tag_name, action=action,
+            revision=revision, ui_mode=ui_mode)
+        window.show()
         app.exec_()

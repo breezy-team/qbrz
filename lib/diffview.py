@@ -155,6 +155,7 @@ class DiffViewHandle(QtGui.QSplitterHandle):
             painter.drawLine(0, ly2, w, ry2)
         del painter
 
+
 class SidebySideDiffView(QtGui.QSplitter):
     """Widget to show differences in side-by-side format."""
 
@@ -282,7 +283,9 @@ class SidebySideDiffView(QtGui.QSplitter):
                         if not p:
                             return []
                         lexer = get_lexer_for_filename(path)
-                        return list(split_tokens_at_lines(lex(d, lexer)))
+                        tokens = list(split_tokens_at_lines(lex(d, lexer)))
+                        QtCore.QCoreApplication.processEvents() 
+                        return tokens
                     
                     display_lines = [getTokens(p, d, path)
                                      for p, d, path in zip(present,
@@ -602,9 +605,9 @@ class SimpleDiffView(QtGui.QTextBrowser):
                 dates[i] = EPOCH_DATE
         
         if not binary:
-            self.cursor.insertText('--- %s %s\n' % (paths[0], dates[0]),
+            self.cursor.insertText('--- %s\t%s\n' % (paths[0], dates[0]),
                                       self.monospacedBoldInsertFormat)
-            self.cursor.insertText('+++ %s %s\n' % (paths[1], dates[1]),
+            self.cursor.insertText('+++ %s\t%s\n' % (paths[1], dates[1]),
                                    self.monospacedBoldDeleteFormat)
 
             def fix_last_line(lines):

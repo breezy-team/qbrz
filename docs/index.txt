@@ -4,6 +4,9 @@ QBzr developers documentation catalog
 *General topics*
 
 * `Gettext usage in QBzr <gettext_usage.html>`_
+* `Mini-tutorial on slots and signals`__
+
+__ slot-signal-mini-tutorial/slot-signal-mini-tutorial.html
 
 
 *Release process*

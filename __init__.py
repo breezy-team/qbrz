@@ -23,54 +23,83 @@ Provided commands:
     qannotate, qbrowse, qcat, qcommit, qconfig, qdiff, qlog, qpull, qpush.
 """
 
-from bzrlib.commands import register_command
+from bzrlib import registry
+from bzrlib.commands import register_command, plugin_cmds
 
 
-version_info = (0, 9, 5, 'dev', 0)
+version_info = (0, 9, 7, 'dev', 0)
 __version__ = '.'.join(map(str, version_info))
 
 
-class LazyCommand(object):
+class LazyCommandProxy(registry._LazyObjectGetter):
 
     def __init__(self, module, name, aliases):
-        self._module = module
-        self._name = name
+        super(LazyCommandProxy, self).__init__(module, name)
         self.aliases = aliases
         self.__name__ = name
 
     def __call__(self, *args, **kwargs):
-        mod = __import__(self._module, globals(), locals(), [1])
-        return getattr(mod, self._name)(*args, **kwargs)
+        return self.get_obj()(*args, **kwargs)
+
+    def __getattr__(self, name):
+        return getattr(self.get_obj(), name)
 
 
-def register_command_lazy(module, name, aliases):
-    register_command(LazyCommand(module, name, aliases))
+def register_lazy_command(module, name, aliases, decorate=False):
+    """Lazily register a command.
+
+    :param module: Name of the module where is the command defined
+    :param name: Name of the command class; this Command subclass must
+        exist in `module`
+    :param aliases: List of command aliases
+    :param decorate: If true, allow overriding an existing command
+        of the same name; the old command is returned by this function.
+        Otherwise it is an error to try to override an existing command.
+    """
+    #try:
+        ## FIXME can't overwrite existing command
+        #plugin_cmds.register_lazy(name, aliases, module)
+    #except AttributeError:
+    register_command(LazyCommandProxy(module, name, aliases), decorate)
 
 
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_merge', [])  # provides merge --qpreview
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qadd', [])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qannotate', ['qann', 'qblame'])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbranch', [])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbrowse', ['qbw'])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbzr', [])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qcat', [])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qcommit', ['qci'])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qconfig', ['qconfigure'])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qdiff', ['qdi'])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetupdates', ['qgetu'])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetnew', ['qgetn'])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinfo', [])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinit', [])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qhelp', [])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qlog', [])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qmerge', [])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpull', [])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpush', [])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrevert', [])
-register_command_lazy('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsubprocess', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_merge', [], decorate=True)  # provides merge --qpreview
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qadd', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qannotate', ['qann', 'qblame'])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbranch', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbrowse', ['qbw'])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbzr', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qcat', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qcommit', ['qci'])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qconfig', ['qconfigure'])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qconflicts', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qdiff', ['qdi'])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetupdates', ['qgetu'])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetnew', ['qgetn'])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinfo', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinit', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qhelp', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qlog', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qmerge', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpull', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpush', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrevert', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsubprocess', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qtag', [])
 
-register_command_lazy('bzrlib.plugins.qbzr.lib.extra.isignored', 'cmd_is_ignored', [])
-register_command_lazy('bzrlib.plugins.qbzr.lib.extra.isversioned', 'cmd_is_versioned', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.extra.bugurl', 'cmd_bug_url', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.extra.isignored', 'cmd_is_ignored', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.extra.isversioned', 'cmd_is_versioned', [])
+
+
+def post_uncommit_hook(local, master, old_revno, old_tip, new_revno, hook_new_tip):
+    branch = local or master
+    message = branch.repository.get_revision(old_tip).message
+    config = branch.get_config()
+    config.set_user_option('qbzr_commit_message', message.strip())
+
+from bzrlib.branch import Branch
+Branch.hooks.install_named_hook('post_uncommit', post_uncommit_hook, 'Remember uncomitted message for qcommit')
 
 
 def load_tests(basic_tests, module, loader):

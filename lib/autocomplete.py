@@ -23,6 +23,8 @@ import re
 autolist = [
     (r'^\s*(?:class|typedef|struct|union|namespace)\s+([\w_]+)|\b([\w_]+)\s*\(',
      ('.h', '.hh', '.hpp', '.hxx')),
+    (r'(?<=typedef)\s+(?:struct|union)\s+([\w_]+)',
+     ('.h', '.hh', '.hpp', '.hxx', '.c')),
     (r'\b(([\w_]+)::([\w_]+))|\b([\w_]+)\s*\(',
      ('.cpp', '.cc', '.c', '.cxx')),
     (r'(?:(?:prototype\.|this\.)(\w+)\s*=\s*)?function\s*(?:(\w*)\s*)\(',

@@ -34,6 +34,7 @@ def load_tests(basic_tests, module, loader):
         'test_extra_isversioned',
         'test_i18n',
         'test_logmodel',
+        'test_qbzr',
         'test_spellcheck',
         'test_util',
     ]

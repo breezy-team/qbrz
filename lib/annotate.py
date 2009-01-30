@@ -28,15 +28,18 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
+    ThrobberWidget,
     extract_name,
     format_revision_html,
     format_timestamp,
     get_apparent_author,
+    get_set_encoding,
     open_browser,
     RevisionMessageBrowser,
     split_tokens_at_lines,
     format_for_ttype,
     )
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 have_pygments = True
 try:
@@ -45,6 +48,7 @@ try:
     from pygments.lexers import get_lexer_for_filename
 except ImportError:
     have_pygments = False
+
 
 class FormatedCodeItemDelegate(QtGui.QItemDelegate):
     
@@ -72,30 +76,36 @@ class FormatedCodeItemDelegate(QtGui.QItemDelegate):
             textPoint.setX(textPoint.x() + QtGui.QFontMetrics(painter.font()).width(text))
             painter.restore()
 
+
 class AnnotateWindow(QBzrWindow):
 
-    def __init__(self, branch, tree, path, fileId, encoding=None, parent=None):
+    def __init__(self, branch, tree, path, fileId, encoding=None, parent=None,
+                 ui_mode=True, loader=None, loader_args=None):
         QBzrWindow.__init__(self,
-            [gettext("Annotate"), path], parent)
+                            [gettext("Annotate"), gettext("Loading...")],
+                            parent, ui_mode=ui_mode)
         self.restoreSize("annotate", (780, 680))
-
-        self.encoding = encoding or 'utf-8'
 
         self.windows = []
 
         self.branch = branch
         self.tree = tree
         self.fileId = fileId
+        self.path = path
+        self.encoding = encoding
+        self.loader_func = loader
+        self.loader_args = loader_args
 
+        self.throbber = ThrobberWidget(self)
+        
         self.browser = QtGui.QTreeWidget()
         self.browser.setRootIsDecorated(False)
         self.browser.setUniformRowHeights(True)
         self.browser.setHeaderLabels([gettext("Line"), gettext("Author"), gettext("Rev"), ""])
         self.browser.header().setStretchLastSection(False)
-        self.browser.header().setResizeMode(QtGui.QHeaderView.ResizeToContents) 
-        self.connect(self.browser,
-            QtCore.SIGNAL("itemSelectionChanged()"),
-            self.setRevisionByLine)
+        self.browser.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        # We don't connect the browser's signals up yet, to avoid errors if
+        # the user clicks while loading - we hook them after initial load.
 
         self.message_doc = QtGui.QTextDocument()
         message = RevisionMessageBrowser()
@@ -106,7 +116,8 @@ class AnnotateWindow(QBzrWindow):
 
         self.changes = QtGui.QTreeWidget()
         self.changes.setHeaderLabels(
-            [gettext("Date"), gettext("Author"), gettext("Summary")])
+            [gettext("Rev"), gettext("Date"), gettext("Author"), gettext("Summary")])
+        self.changes.header().setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
  
         self.changes.setRootIsDecorated(False)
         self.changes.setUniformRowHeights(True)
@@ -134,16 +145,50 @@ class AnnotateWindow(QBzrWindow):
         buttonbox = self.create_button_box(BTN_CLOSE)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox.addWidget(self.throbber)
         vbox.addWidget(splitter)
         vbox.addWidget(buttonbox)
 
-        branch.lock_read()
+    def show(self):
+        QBzrWindow.show(self)
+        QtCore.QTimer.singleShot(1, self.initial_load)
+
+    @ui_current_widget
+    def initial_load(self):
+        """Called to perform the initial load of the form.  Enables a
+        throbber window, then loads the branches etc if they weren't specified
+        in our constructor.
+        """
         try:
-            self.annotate(tree, fileId, path)
-        finally:
-            branch.unlock()
+            self.throbber.show()
+            try:
+                if self.loader_func is not None:
+                    self.branch, self.tree, self.path, self.fileId = \
+                                            self.loader_func(*self.loader_args)
+                    self.loader_func = self.loader_args = None # kill extra refs...
+                    QtCore.QCoreApplication.processEvents()
+                self.branch.lock_read()
+                try:
+                    self.annotate(self.tree, self.fileId, self.path)
+                finally:
+                    self.branch.unlock()
+            finally:
+                self.throbber.hide()
+
+            # and once we are loaded we can hookup the signal handlers.
+            # (our code currently can't handle items being clicked on until
+            # the load is complete)
+            self.connect(self.browser,
+                QtCore.SIGNAL("itemSelectionChanged()"),
+                self.setRevisionByLine)
+            # and update the title to show we are done.
+            self.set_title_and_icon([gettext("Annotate"), self.path])
+
+        except:
+            self.report_exception()
 
     def annotate(self, tree, fileId, path):
+        qt_process_events = QtCore.QCoreApplication.processEvents
         revnos = self.branch.get_revision_id_to_revno_map()
         revnos = dict((k, '.'.join(map(str, v))) for k, v in revnos.iteritems())
         font = QtGui.QFont("Courier New,courier", self.browser.font().pointSize())
@@ -151,9 +196,10 @@ class AnnotateWindow(QBzrWindow):
         items = []
         item_revisions = []
         lastRevisionId = None
+        encoding = get_set_encoding(self.encoding, self.branch)
         lines = []
         for i, (origin, text) in enumerate(tree.annotate_iter(fileId)):
-            text = text.decode(self.encoding, 'replace')
+            text = text.decode(encoding, 'replace')
             lines.append(text)
             revisionIds.add(origin)
             item = QtGui.QTreeWidgetItem()
@@ -167,7 +213,7 @@ class AnnotateWindow(QBzrWindow):
             items.append(item)
             item_revisions.append(origin)
             lastRevisionId = origin
-        self.browser.insertTopLevelItems(0, items)
+            qt_process_events()
 
         revisionIds = list(revisionIds)
         revisions = self.branch.repository.get_revisions(revisionIds)
@@ -181,24 +227,8 @@ class AnnotateWindow(QBzrWindow):
                 item.setText(1, r._author_name)
             item.setBackground(3, self.get_color(r, now))
             lastRevisionId = revisionId
+            qt_process_events()
 
-        revisions.sort(key=operator.attrgetter('timestamp'), reverse=True)
-
-        revid_to_tags = self.branch.tags.get_reverse_tag_dict()
-
-        self.itemToRev = {}
-        items = []
-        for rev in revisions:
-            item = QtGui.QTreeWidgetItem()
-            item.setText(0, format_timestamp(rev.timestamp))
-            item.setText(1, rev._author_name)
-            item.setText(2, rev.get_summary())
-            items.append(item)
-            rev.revno = revnos[rev.revision_id]
-            rev.tags = sorted(revid_to_tags.get(rev.revision_id, []))
-            self.itemToRev[item] = rev
-        self.changes.insertTopLevelItems(0, items)
-        
         self.lines = None
         if have_pygments:
             try:
@@ -213,8 +243,30 @@ class AnnotateWindow(QBzrWindow):
                 
             except ClassNotFound:
                 pass
-    
 
+        # take care to insert the items after we are done fiddling with
+        # them, else performance suffers drastically.
+        self.browser.insertTopLevelItems(0, items)
+
+        revisions.sort(key=operator.attrgetter('timestamp'), reverse=True)
+
+        revid_to_tags = self.branch.tags.get_reverse_tag_dict()
+
+        self.itemToRev = {}
+        items = []
+        for rev in revisions:
+            rev.revno = revnos[rev.revision_id]
+            rev.tags = sorted(revid_to_tags.get(rev.revision_id, []))
+            item = QtGui.QTreeWidgetItem()
+            item.setText(0, rev.revno)
+            item.setText(1, format_timestamp(rev.timestamp))
+            item.setText(2, rev._author_name)
+            item.setText(3, rev.get_summary())
+            items.append(item)
+            self.itemToRev[item] = rev
+            qt_process_events()
+        self.changes.insertTopLevelItems(0, items)
+        
     def setRevisionByLine(self):
         items = self.browser.selectedItems()
         if not items:
@@ -223,7 +275,7 @@ class AnnotateWindow(QBzrWindow):
         for item, rev in self.itemToRev.iteritems():
             if rev.revision_id == revisionId:
                 self.changes.setCurrentItem(item)
-                self.message_doc.setHtml(format_revision_html(rev))
+                self.message_doc.setHtml(format_revision_html(rev,show_timestamp=True))
                 break
 
     def set_revision_by_item(self):
@@ -231,9 +283,10 @@ class AnnotateWindow(QBzrWindow):
         if len(items) == 1:
             for item, rev in self.itemToRev.iteritems():
                 if item == items[0]:
-                    self.message_doc.setHtml(format_revision_html(rev))
+                    self.message_doc.setHtml(format_revision_html(rev,show_timestamp=True))
                     break
 
+    @ui_current_widget
     def show_revision_diff(self, index):
         item = self.changes.itemFromIndex(index)
         rev = self.itemToRev[item]
@@ -263,4 +316,3 @@ class AnnotateWindow(QBzrWindow):
         saturation = 0.5/((days/50) + 1)
         hue =  1-float(abs(hash(revision._author_name))) / sys.maxint 
         return QtGui.QColor.fromHsvF(hue, saturation, 1 )
-

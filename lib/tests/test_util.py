@@ -18,8 +18,8 @@
 
 """Tests for QBzr plugin."""
 
+import sys
 from bzrlib.tests import TestCase
-
 from bzrlib.plugins.qbzr.lib import util
 
 
@@ -112,3 +112,24 @@ class TestUtil(TestCase):
         fo.all_enable()
         self.assertEquals(True, bool(fo))
         self.assertEquals(True, fo.is_all_enable())
+
+    def test_url_for_display(self):
+        self.assertEquals(None, util.url_for_display(None))
+        self.assertEquals('', util.url_for_display(''))
+        self.assertEquals('http://bazaar.launchpad.net/~qbzr-dev/qbzr/trunk',
+            util.url_for_display('http://bazaar.launchpad.net/%7Eqbzr-dev/qbzr/trunk'))
+        if sys.platform == 'win32':
+            self.assertEquals('C:/work/qbzr/',
+                util.url_for_display('file:///C:/work/qbzr/'))
+        else:
+            self.assertEquals('/home/work/qbzr/',
+                util.url_for_display('file:///home/work/qbzr/'))
+
+    def test_htmlencode(self):
+        self.assertEquals('&quot;&amp;&lt;&gt;', util.htmlencode('"&<>'))
+
+    def test_is_binary_content(self):
+        self.assertEquals(False, util.is_binary_content([]))
+        self.assertEquals(False, util.is_binary_content(['foo\n', 'bar\r\n', 'spam\r']))
+        self.assertEquals(True, util.is_binary_content(['\x00']))
+        self.assertEquals(True, util.is_binary_content(['a'*2048 + '\x00']))

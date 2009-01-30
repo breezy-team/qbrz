@@ -19,10 +19,10 @@
 
 from PyQt4 import QtCore, QtGui
 from bzrlib.bzrdir import BzrDir
+from bzrlib.branch import Branch
 from bzrlib import (
     errors,
     osutils,
-    urlutils,
     )
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.extdiff import (
@@ -35,12 +35,15 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     BTN_REFRESH,
     QBzrWindow,
+    ThrobberWidget,
     StandardButton,
     format_revision_html,
     format_timestamp,
     open_browser,
     RevisionMessageBrowser,
+    url_for_display,
     )
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 have_search = True
 try:
@@ -233,62 +236,62 @@ class Compleater(QtGui.QCompleter):
     def splitPath (self, path):
         return QtCore.QStringList([path.split(" ")[-1]])
 
-def load_locataions(locations_list):
+def load_locations(locations_list, process_events_ptr):
     if locations_list is None:
         locations = ["."]
     else:
         locations = locations_list
     
     file_ids = []
-    # First branch found. Used for get_config and to check that the same
-    # branch is specified when a file path is speciffied.
-    main_branch = None
-    rev_ids = {}
-    paths_and_branches_err = "It is not possible to specify different file paths and different branchs at the same time."
+    heads = {}
+    branches = {}
+    paths_and_branches_err = "It is not possible to specify different file paths and different branches at the same time."
     
-    def append_tag_to_revid(revid, tag):
-        if not revid in rev_ids:
-            rev_ids[revid] = (len(rev_ids), [])
-        if tag:
-            rev_ids[revid][1].append (tag)
+    def append_head_info(revid, branch, tag, is_branch_last_revision):
+        if not revid in heads:
+            heads[revid] = (len(heads), [])
+        heads[revid][1].append ((branch, tag, is_branch_last_revision))
     
-    def append_location(tree, br, repo, fp, tag, main_branch):
-        if main_branch is None:
-            main_branch = br
-        
-        # XXX It would be nice to overcome this. The problem is how to
-        # combinded the results from  graph.iter_ancestry(start_revs)
-        # bzr-gtk doesn't check for this. It works if the revisions
-        # happend to be in the repo, but fails without warning if they
-        # are not.
-        # Maybe one way to solve this is to pull the missing revisions
-        # into the first branch.
-        if not main_branch.repository.base == br.repository.base:
-            raise errors.BzrCommandError("Branches must be in a shared repository.")
+    def append_location(tree, br, repo, fp, tag):
+        if br.base not in branches:
+            branches[br.base] = br
         
         branch_last_revision = br.last_revision()
-        append_tag_to_revid(branch_last_revision, tag)
+        append_head_info(branch_last_revision, br, tag, True)
+        process_events_ptr()
         
         if tree:
-            for revid in tree.get_parent_ids():
-                if revid!=branch_last_revision:
+            parent_ids = tree.get_parent_ids()
+            process_events_ptr()
+            if parent_ids:
+                # first parent is last revision of the tree
+                revid = parent_ids[0]
+                if revid != branch_last_revision:
+                    # working tree is out of date
                     if tag:
-                        append_tag_to_revid(revid, ("%s - Pending Merge" % tag))
+                        append_head_info(revid, br, "%s - Working Tree" % tag, False)
                     else:
-                        append_tag_to_revid(revid, "Pending Merge")
+                        append_head_info(revid, br, "Working Tree", False)
+                # other parents are pending merges
+                for revid in parent_ids[1:]:
+                    if tag:
+                        append_head_info(revid, br, "%s - Pending Merge" % tag, False)
+                    else:
+                        append_head_info(revid, br, "Pending Merge", False)
         
         if fp != '' : 
             if tree is None:
                 tree = br.basis_tree()
+                process_events_ptr()
             file_id = tree.path2id(fp)
+            process_events_ptr()
             if file_id is None:
                 raise errors.BzrCommandError(
                     "Path does not have any revision history: %s" %
                     location)
             file_ids.append(file_id)
-            if not main_branch.base == br.base:
+            if not branches.keys()[0] == br.base:
                 raise errors.BzrCommandError(paths_and_branches_err)
-        return main_branch
     
     # This is copied stright from bzrlib/bzrdir.py. We can't just use the orig,
     # because that would mean we require bzr 1.6
@@ -306,83 +309,120 @@ def load_locataions(locations_list):
         If no tree, branch or repository is found, a NotBranchError is raised.
         """
         bzrdir, relpath = BzrDir.open_containing(location)
+        process_events_ptr()
         try:
             tree, branch = bzrdir._get_tree_branch()
+            process_events_ptr()
         except errors.NotBranchError:
             try:
                 repo = bzrdir.find_repository()
+                process_events_ptr()    
                 return None, None, repo, relpath
             except (errors.NoRepositoryPresent):
                 raise errors.NotBranchError(location)
         return tree, branch, branch.repository, relpath
     
     for location in locations:
-        tree, br, repo, fp = open_containing_tree_branch_or_repository(location)
+        if isinstance(location, Branch):
+            br = location
+            repo = location.repository
+            process_events_ptr()
+            try:
+                tree = location.bzrdir.open_workingtree()
+            except errors.NoWorkingTree:
+                tree = None
+            process_events_ptr()
+            fp = ''
+        else:
+            tree, br, repo, fp = open_containing_tree_branch_or_repository(location)
+            process_events_ptr()
         
-        if len(locations) == 1:
-            if br == None:
-                for br in repo.find_branches(using=True):
-                    tag = br.nick
-                    # We don't have ref to the working tree,
-                    # so we won't show pending merges.
-                    # XXX Get ref to working tree.
-                    main_branch = append_location(None, br, repo, '', tag,
-                                                  main_branch)
-                continue
-        
-        # We can only load one repo
         if br == None:
-            raise errors.NotBranchError(path=location)
+            trunk_names = ["trunk", "bzr.dev", "dev"]
+            repo_brs = repo.find_branches(using=True)
+            process_events_ptr()
+            
+            def branch_cmp_trunk_first(x,y):
+                x_is_trunk = x.nick in trunk_names
+                y_is_trunk = y.nick in trunk_names
+                if x_is_trunk and y_is_trunk:
+                    return cmp(trunk_names.index(x.nick),
+                               trunk_names.index(y.nick))
+                if x_is_trunk:
+                    return -1
+                if y_is_trunk:
+                    return 1
+                return cmp(x.nick, y.nick)
+            repo_brs.sort(branch_cmp_trunk_first)
+            
+            for br in repo_brs:             
+                tag = truncate_string(br.nick, 20)
+                try:
+                    tree = br.bzrdir.open_workingtree()
+                except errors.NoWorkingTree:
+                    tree = None
+                append_location(tree, br, repo, '', tag)
+            continue
         
         # If no locations were sepecified, don't do file_ids
         # Otherwise it gives you the history for the dir if you are
         # in a sub dir.
-        if fp != '' and not locations_list:
+        if fp != '' and locations==["."]:
             fp = ''
         
         if len(locations) == 1:
             tag = None
         else:
-            tag = br.nick
+            tag = truncate_string(br.nick, 20)
         
-        main_branch = append_location(tree, br, repo, fp, tag, main_branch)
+        append_location(tree, br, repo, fp, tag)
 
     
-    if file_ids and len(file_ids)<>len(locations_list):
+    if file_ids and len(branches)>1:
         raise errors.BzrCommandError(paths_and_branches_err)
     
-    return (main_branch, rev_ids, file_ids)
+    return (branches.values(), heads, file_ids)
+
+
+def truncate_string(s, max_len):
+    if len(s) <= max_len:
+        return s
+    return s[:max_len]+'...'
 
 
 class LogWindow(QBzrWindow):
     
-    def __init__(self, locations, branch, specific_fileids, parent=None):
+    def __init__(self, locations, branch, specific_fileids, parent=None,
+                 ui_mode=True):        
         if branch:
-            self.branch = branch
+            self.locations = (branch,)
             self.specific_fileids = specific_fileids
-            self.start_revids = None
+            assert locations is None, "can't specify both branch and loc"
         else:
             self.locations = locations
-            (self.branch,
-             self.start_revids, 
-             self.specific_fileids) = load_locataions(locations)
-
-        lt = self._locations_for_title(locations)
+            if self.locations is None:
+                self.locations = ["."]
+            self.specific_fileids = None
+            assert specific_fileids is None, "this is ignored if no branch"
+        
+        # Set window title. 
+        lt = self._locations_for_title(self.locations)
         title = [gettext("Log")]
         if lt:
             title.append(lt)
-        QBzrWindow.__init__(self, title, parent)
+        
+        QBzrWindow.__init__(self, title, parent, ui_mode=ui_mode)
         self.restoreSize("log", (710, 580))
-
-        config = self.branch.get_config()
-        self.replace = config.get_user_option("qlog_replace")
-        if self.replace:
-            self.replace = self.replace.split("\n")
-            self.replace = [tuple(self.replace[2*i:2*i+2])
-                            for i in range(len(self.replace) // 2)]
-
-        self.changesModel = logmodel.GraphModel()
-
+        
+        self.branches = None
+        
+        self.throbber = ThrobberWidget(self)
+        
+        self.changesModel = logmodel.GraphModel(self.processEvents,
+                                                self.report_exception,
+                                                self.throbber.show,
+                                                self.throbber.hide)
+        
         self.changesProxyModel = logmodel.GraphFilterProxyModel()
         self.changesProxyModel.setSourceModel(self.changesModel)
         self.changesProxyModel.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
@@ -412,27 +452,7 @@ class LogWindow(QBzrWindow):
 
         self.searchType = QtGui.QComboBox()
             
-        self.index = None
-        if have_search:
-            try:
-                self.index = search_index.open_index_branch(self.branch)
-                self.changesProxyModel.setSearchIndex(self.index)
-                self.searchType.insertItem(0,
-                                           gettext("Messages and File text (indexed)"),
-                                           QtCore.QVariant(logmodel.FilterSearchRole))
-                
-                self.completer = Compleater(self)
-                self.completer_model = QtGui.QStringListModel(self)
-                self.completer.setModel(self.completer_model)
-                self.search_edit.setCompleter(self.completer)
-                self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
-                             self.update_search_completer)
-                self.suggestion_letters_loaded = {"":QtCore.QStringList()}
-                self.suggestion_last_first_letter = ""
-                self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
-                             self.set_search_timer)
-            except search_errors.NoSearchIndex:
-                pass
+        self.indexes = []
         
         self.searchType.addItem(gettext("Messages"),
                                 QtCore.QVariant(logmodel.FilterMessageRole))
@@ -468,6 +488,7 @@ class LogWindow(QBzrWindow):
         header.resizeSection(logmodel.COL_DATE, 100)
         header.resizeSection(logmodel.COL_AUTHOR, 150)
 
+        logbox.addWidget(self.throbber)
         logbox.addWidget(self.changesList)
 
         self.revision_delta_timer = QtCore.QTimer(self)
@@ -526,7 +547,7 @@ class LogWindow(QBzrWindow):
         buttonbox.addButton(self.refresh_button, QtGui.QDialogButtonBox.ActionRole)
         self.connect(self.refresh_button,
                      QtCore.SIGNAL("clicked()"),
-                     self.refresh)
+                     self.load)
 
         self.diffbutton = QtGui.QPushButton(gettext('Diff'),
             self.centralwidget)
@@ -559,9 +580,83 @@ class LogWindow(QBzrWindow):
         # set focus on search edit widget
         self.changesList.setFocus()
 
+    def load_locations(self):
+        self.changesModel.unlock()
+        (self.branches,
+         self.heads,
+         specific_fileids) = load_locations(self.locations, self.processEvents)
+        
+        if self.specific_fileids is None:
+            self.specific_fileids = specific_fileids
+     
+        self.processEvents()
+        self.replace = {}
+        for branch in self.branches:
+            config = branch.get_config()
+            replace = config.get_user_option("qlog_replace")
+            if replace:
+                replace = replace.split("\n")
+                replace = [tuple(replace[2*i:2*i+2])
+                                for i in range(len(replace) // 2)]
+            self.replace[branch.base] = replace
+
+        if have_search:
+            self.processEvents()
+            for branch in self.branches:
+                try:
+                    index = search_index.open_index_branch(branch)
+                    self.indexes.append(index)
+                except search_errors.NoSearchIndex:
+                    pass
+
+    def initial_load(self):
+        self.load(True)
+
+    @ui_current_widget
+    def load(self, initial=False):
+        """Called to perform the initial load of the form.  Enables a
+        throbber window, then loads the branches etc if they weren't specified
+        in our constructor.
+        """
+        try:
+            self.throbber.show()
+            self.refresh_button.setDisabled(True)            
+            self.processEvents()
+            try:
+                self.load_locations()
+                
+                self.changesModel.loadBranch(self.branches,
+                                             self.heads,
+                                             specific_fileids = self.specific_fileids)
+                
+                if initial and self.indexes:
+                    self.changesProxyModel.setSearchIndexes(self.indexes)
+                    self.searchType.insertItem(0,
+                                               gettext("Messages and File text (indexed)"),
+                                               QtCore.QVariant(logmodel.FilterSearchRole))
+                    self.searchType.setCurrentIndex(0)
+                    
+                    self.completer = Compleater(self)
+                    self.completer_model = QtGui.QStringListModel(self)
+                    self.completer.setModel(self.completer_model)
+                    self.search_edit.setCompleter(self.completer)
+                    self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
+                                 self.update_search_completer)
+                    self.suggestion_letters_loaded = {"":QtCore.QStringList()}
+                    self.suggestion_last_first_letter = ""
+                    self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
+                                 self.set_search_timer)
+            finally:
+                self.refresh_button.setDisabled(False)
+                if not initial:
+                    self.throbber.hide()
+        except:
+            self.report_exception()
+
     def show(self):
+        # we show the bare form as soon as possible.
         QBzrWindow.show(self)
-        QtCore.QTimer.singleShot(1, self.load_history)
+        QtCore.QTimer.singleShot(1, self.initial_load)
 
     def link_clicked(self, url):
         scheme = unicode(url.scheme())
@@ -574,37 +669,44 @@ class LogWindow(QBzrWindow):
         else:
             open_browser(str(url.toEncoded()))
 
+    @ui_current_widget
     def update_revision_delta(self):
-        rev = self.current_rev
-        if not hasattr(rev, 'delta'):
-            # TODO move this to a thread
-            self.branch.repository.lock_read()
-            try:
-                rev.delta = self.branch.repository.get_deltas_for_revisions(
-                    [rev]).next()
-            finally:
-                self.branch.repository.unlock()
-        if self.current_rev is not rev:
-            # new update was requested, don't bother populating the list
-            return
-        delta = rev.delta
-
-        for path, id_, kind in delta.added:
-            item = QtGui.QListWidgetItem(path, self.fileList)
-            item.setTextColor(QtGui.QColor("blue"))
-
-        for path, id_, kind, text_modified, meta_modified in delta.modified:
-            item = QtGui.QListWidgetItem(path, self.fileList)
-
-        for path, id_, kind in delta.removed:
-            item = QtGui.QListWidgetItem(path, self.fileList)
-            item.setTextColor(QtGui.QColor("red"))
-
-        for (oldpath, newpath, id_, kind,
-            text_modified, meta_modified) in delta.renamed:
-            item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
-            item.setData(PathRole, QtCore.QVariant(newpath))
-            item.setTextColor(QtGui.QColor("purple"))
+        try:
+            rev = self.current_rev
+            if not hasattr(rev, 'delta'):
+                # TODO move this to a thread
+                rev.repository.lock_read()
+                self.processEvents()
+                try:
+                    rev.delta = rev.repository.get_deltas_for_revisions(
+                        [rev]).next()
+                    self.processEvents()
+                finally:
+                    rev.repository.unlock()
+                    self.processEvents()
+            if self.current_rev is not rev:
+                # new update was requested, don't bother populating the list
+                return
+            delta = rev.delta
+    
+            for path, id_, kind in delta.added:
+                item = QtGui.QListWidgetItem(path, self.fileList)
+                item.setTextColor(QtGui.QColor("blue"))
+    
+            for path, id_, kind, text_modified, meta_modified in delta.modified:
+                item = QtGui.QListWidgetItem(path, self.fileList)
+    
+            for path, id_, kind in delta.removed:
+                item = QtGui.QListWidgetItem(path, self.fileList)
+                item.setTextColor(QtGui.QColor("red"))
+    
+            for (oldpath, newpath, id_, kind,
+                text_modified, meta_modified) in delta.renamed:
+                item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
+                item.setData(PathRole, QtCore.QVariant(newpath))
+                item.setTextColor(QtGui.QColor("purple"))
+        except:
+            self.report_exception()        
 
     def update_selection(self, selected, deselected):
         indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
@@ -618,17 +720,26 @@ class LogWindow(QBzrWindow):
             revid = str(index.data(logmodel.RevIdRole).toString())
             rev = self.changesModel.revision(revid)
             self.current_rev = rev
-            self.message.setHtml(format_revision_html(rev, self.replace))
+            head_info = self.changesModel.revisionHeadInfo(revid)
+            branch = head_info[0][0]
+            replace = self.replace[branch.base]
+            self.message.setHtml(format_revision_html(rev, replace))
             self.revision_delta_timer.start(1)
 
+    @ui_current_widget
     def show_diff_window(self, rev1, rev2, specific_files=None, ext_diff = None):
         new_revid = rev1.revision_id
+        new_branch = self.changesModel.revisionHeadInfo(new_revid)[0][0]
+        
         if not rev2.parent_ids:
             old_revid = None
+            old_branch = new_branch
         else:
             old_revid = rev2.parent_ids[0]
+            old_branch =  self.changesModel.revisionHeadInfo(old_revid)[0][0]
+
         showDiff(old_revid, new_revid,
-                 self.branch, self.branch,
+                 old_branch, new_branch,
                  ext_diff = ext_diff,
                  specific_files=specific_files,
                  parent_window = self)
@@ -666,70 +777,47 @@ class LogWindow(QBzrWindow):
         rev2 = self.changesModel.revision(revid2)
         self.show_diff_window(rev1, rev2, ext_diff = ext_diff)
 
-    def refresh(self):
-        self.refresh_button.setDisabled(True)
-        QtCore.QCoreApplication.processEvents()
-        try:
-            self.changesModel.stop_revision_loading = True
-            if "locations" in dir(self):
-                
-                # The new branch will be the same as self.branch, so don't
-                # change it, because doing so caused a UserWarning:
-                # LockableFiles was gc'd while locked
-                (newbranch,
-                 self.start_revids, 
-                 self.specific_fileids) = load_locataions(self.locations)
-            
-            self.changesModel.loadBranch(self.branch,
-                                         start_revs = self.start_revids,
-                                         specific_fileids = self.specific_fileids)
-        finally:
-            self.refresh_button.setDisabled(False)
-    
-    def load_history(self):
-        """Load branch history."""
-        self.refresh_button.setDisabled(True)
-        try:
-            self.changesModel.loadBranch(self.branch,
-                                         start_revs = self.start_revids,
-                                         specific_fileids = self.specific_fileids)
-        finally:
-            self.refresh_button.setDisabled(False)
-
+    @ui_current_widget
     def update_search(self):
-        # TODO in_paths = self.search_in_paths.isChecked()
-        role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
-        search_text = self.search_edit.text()
-        search_mode = not role == logmodel.FilterIdRole and \
-                      not role == logmodel.FilterRevnoRole and \
-                      not role == logmodel.FilterSearchRole and \
-                      search_text.length() > 0
-        self.changesModel.set_search_mode(search_mode)
-        if role == logmodel.FilterIdRole:
-            self.changesProxyModel.setFilter(u"", role)
-            search_text = str(search_text)
-            if self.changesModel.has_rev_id(search_text):
-                self.changesModel.ensure_rev_visible(search_text)
-                index = self.changesModel.indexFromRevId(search_text)
-                index = self.changesProxyModel.mapFromSource(index)
-                self.changesList.setCurrentIndex(index)
-        elif role == logmodel.FilterRevnoRole:
-            self.changesProxyModel.setFilter(u"", role)
-            try:
-                revno = tuple((int(number) for number in str(search_text).split('.')))
-            except ValueError:
-                revno = ()
-                # Not sure what to do if there is an error. Nothing for now
-            revid = self.changesModel.revid_from_revno(revno)
-            if revid:
-                self.changesModel.ensure_rev_visible(revid)
-                index = self.changesModel.indexFromRevId(revid)
-                index = self.changesProxyModel.mapFromSource(index)
-                self.changesList.setCurrentIndex(index)
-        else:
-            self.changesProxyModel.setFilter(self.search_edit.text(), role)
+        try:
+            # TODO in_paths = self.search_in_paths.isChecked()
+            role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
+            search_text = self.search_edit.text()
+            search_mode = not role == logmodel.FilterIdRole and \
+                          not role == logmodel.FilterRevnoRole and \
+                          not role == logmodel.FilterSearchRole and \
+                          search_text.length() > 0
+            self.changesModel.set_search_mode(search_mode)
+            if role == logmodel.FilterIdRole:
+                self.changesProxyModel.setFilter(u"", role)
+                search_text = str(search_text)
+                if self.changesModel.has_rev_id(search_text):
+                    self.changesModel.ensure_rev_visible(search_text)
+                    index = self.changesModel.indexFromRevId(search_text)
+                    index = self.changesProxyModel.mapFromSource(index)
+                    self.changesList.setCurrentIndex(index)
+            elif role == logmodel.FilterRevnoRole:
+                self.changesProxyModel.setFilter(u"", role)
+                try:
+                    revno = tuple((int(number) for number in str(search_text).split('.')))
+                except ValueError:
+                    revno = ()
+                    # Not sure what to do if there is an error. Nothing for now
+                revid = self.changesModel.revid_from_revno(revno)
+                if revid:
+                    self.changesModel.ensure_rev_visible(revid)
+                    index = self.changesModel.indexFromRevId(revid)
+                    index = self.changesProxyModel.mapFromSource(index)
+                    self.changesList.setCurrentIndex(index)
+            else:
+                self.changesProxyModel.setFilter(self.search_edit.text(), role)
+            
+            self.changesList.scrollTo(self.changesList.currentIndex())
+            # Scroll to ensure the selection is on screen.
+        except:
+            self.report_exception()
     
-    
+    @ui_current_widget
     def update_search_completer(self, text):
         # We only load the suggestions a letter at a time when needed.
         term = str(text).split(" ")[-1]
@@ -741,11 +829,13 @@ class LogWindow(QBzrWindow):
         if first_letter != self.suggestion_last_first_letter:
             self.suggestion_last_first_letter = first_letter
             if first_letter not in self.suggestion_letters_loaded:
-                suggestions = QtCore.QStringList() 
-                for s in self.index.suggest(((first_letter,),)): 
-                    #if suggestions.count() % 100 == 0: 
-                    #    QtCore.QCoreApplication.processEvents() 
-                    suggestions.append(s[0])
+                suggestions = set()
+                for index in self.indexes:
+                    for s in index.suggest(((first_letter,),)): 
+                        #if suggestions.count() % 100 == 0: 
+                        #    QtCore.QCoreApplication.processEvents() 
+                        suggestions.add(s[0])
+                suggestions = QtCore.QStringList(list(suggestions))
                 suggestions.sort()
                 self.suggestion_letters_loaded[first_letter] = suggestions
             else:
@@ -754,7 +844,7 @@ class LogWindow(QBzrWindow):
     
     def closeEvent (self, QCloseEvent):
         QBzrWindow.closeEvent(self, QCloseEvent)
-        self.changesModel.closing = True
+        self.changesModel.unlock()
     
     def updateSearchType(self, index=None):
         self.update_search()
@@ -765,7 +855,9 @@ class LogWindow(QBzrWindow):
     def show_revision_tree(self):
         from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
         rev = self.current_rev
-        window = BrowseWindow(self.branch, revision_id=rev.revision_id,
+        branch = self.changesModel.revisionHeadInfo(rev.revision_id)[0][0]
+
+        window = BrowseWindow(branch, revision_id=rev.revision_id,
                               revision_spec=rev.revno, parent=self)
         window.show()
         self.windows.append(window)
@@ -833,13 +925,13 @@ class LogWindow(QBzrWindow):
         if locations == ['.']:
             return osutils.getcwd()
         else:
-            if locations is None:
-                locations = [self.branch.base]
             if len(locations) > 1:
-                return (", ".join(
-                    urlutils.unescape_for_display(i, 'utf-8')
-                    for i in locations).rstrip(", "))
+                return (", ".join(url_for_display(i) for i in locations
+                                 ).rstrip(", "))
             else:
+                if isinstance(locations[0], Branch):
+                    location = locations[0].base
+                else:
+                    location = locations[0]
                 from bzrlib.directory_service import directories
-                return (urlutils.unescape_for_display(
-                    directories.dereference(locations[0]), 'utf-8'))
+                return (url_for_display(directories.dereference(location)))

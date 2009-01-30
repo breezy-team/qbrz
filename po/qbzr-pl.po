@@ -1,181 +1,180 @@
-# Ukrainian translation for qbzr
-# Copyright (c) 2007 Rosetta Contributors and Canonical Ltd 2007
+# Polish translation for qbzr
+# Copyright (c) 2008 Rosetta Contributors and Canonical Ltd 2008
 # This file is distributed under the same license as the qbzr package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2007.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2008.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
-"Report-Msgid-Bugs-To: \n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2009-01-25 13:30+0200\n"
-"PO-Revision-Date: 2008-11-22 15:38+0000\n"
-"Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
-"Language-Team: Ukrainian <uk@li.org>\n"
+"PO-Revision-Date: 2009-01-10 11:33+0000\n"
+"Last-Translator: faw <Unknown>\n"
+"Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2;\n"
 "X-Launchpad-Export-Date: 2009-01-25 12:44+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:41 lib\config.py:99 lib\config.py:120
 msgid "Add"
-msgstr "Додати"
+msgstr "Dodaj"
 
 #: lib\add.py:51
 msgid "Unversioned Files"
-msgstr ""
+msgstr "Pliki niewersjonowane"
 
 #: lib\add.py:68
 msgid "Show ignored files"
-msgstr "Показати ігноровані файли"
+msgstr "Pokaż pliki ignorowane"
 
 #: lib\annotate.py:85 lib\annotate.py:185 lib\browse.py:114
 msgid "Annotate"
-msgstr "Анотація"
+msgstr "Objaśnienie"
 
 #: lib\annotate.py:85 lib\diff.py:114 lib\util.py:402
 msgid "Loading..."
-msgstr ""
+msgstr "Ładowanie..."
 
 #: lib\annotate.py:104
 msgid "Line"
-msgstr "Рядок"
+msgstr "Linia"
 
 #: lib\annotate.py:104 lib\annotate.py:119 lib\browse.py:104 lib\commit.py:366
 #: lib\logmodel.py:90
 msgid "Author"
-msgstr "Автор"
+msgstr "Autor"
 
 #: lib\annotate.py:104 lib\annotate.py:119 lib\browse.py:105
 #: lib\logmodel.py:87
 msgid "Rev"
-msgstr "Версія"
+msgstr "Rewizja"
 
 #: lib\annotate.py:119 lib\browse.py:103 lib\commit.py:366 lib\logmodel.py:89
 msgid "Date"
-msgstr "Дата"
+msgstr "Data"
 
 #: lib\annotate.py:119
 msgid "Summary"
-msgstr "Коротко"
+msgstr "Podsumowanie"
 
 #: lib\browse.py:78 lib\browse.py:256 lib\browse.py:299
 msgid "Browse"
-msgstr "Огляд"
+msgstr "Przeglądaj"
 
 #: lib\browse.py:87
 msgid "Location:"
-msgstr "Місцезнаходження:"
+msgstr "Lokalizacja:"
 
 #: lib\browse.py:92 lib\util.py:484 lib\ui_new_tree.py:160
 msgid "Revision:"
-msgstr "Версія:"
+msgstr "Rewizja:"
 
 #: lib\browse.py:95
 msgid "Show"
-msgstr "Показати"
+msgstr "Pokaż"
 
 #: lib\browse.py:102 lib\main.py:358
 msgid "Name"
-msgstr "Ім’я"
+msgstr "Nazwa"
 
 #: lib\browse.py:106 lib\commit.py:269 lib\commit.py:366 lib\logmodel.py:88
 msgid "Message"
-msgstr "Коментар"
+msgstr "Wiadomość"
 
 #: lib\browse.py:113
 msgid "Show log..."
-msgstr "Показати журнал..."
+msgstr "Pokaż historię..."
 
 #: lib\browse.py:116
 msgid "View file"
-msgstr "Переглянути файл"
+msgstr "Podgląd pliku"
 
 #: lib\cat.py:82
 msgid "View"
-msgstr ""
+msgstr "Widok"
 
 #: lib\commit.py:220 lib\commit.py:471 lib\commit.py:500 lib\commit.py:508
 msgid "Commit"
-msgstr "Фіксувати"
+msgstr "Wyślij"
 
 #: lib\commit.py:236 lib\ui_branch.py:65 lib\ui_new_tree.py:130
 #: lib\ui_tag.py:100
 msgid "Branch"
-msgstr "Гілка"
+msgstr "Gałąź"
 
 #: lib\commit.py:248
 msgid "&Local commit"
-msgstr "Локальна фіксація"
+msgstr "&Lokalne wysłanie"
 
 #: lib\commit.py:250
 msgid ""
 "Local commits are not pushed to the master branch until a normal commit is "
 "performed"
 msgstr ""
+"Lokalne zmiany nie są wysyłane do głównej gałęzi dopóki zwykłe wysłanie nie "
+"jest dokonane."
 
 #: lib\commit.py:254
 msgid "Description:"
-msgstr "Опис:"
+msgstr "Opis:"
 
 #: lib\commit.py:277
 msgid "Show non-versioned files"
-msgstr "Показати невідомі файли"
+msgstr "Pokaż niewersjonowane pliki"
 
 #: lib\commit.py:296
 msgid "Enter the commit message"
-msgstr "Надайте коментар до цієї версії"
+msgstr "Wprowadź opis zmiany"
 
 #: lib\commit.py:312
 msgid "&Fixed bugs:"
-msgstr "&Виправлені дефекти:"
+msgstr "&Naprawione błędy:"
 
 #: lib\commit.py:313
 msgid "Set the IDs of bugs fixed by this commit"
-msgstr "Вкажіть номери дефектів, що були виправлені у цієї версії"
+msgstr "Ustal ID błędów naprawionych w tej zmianie"
 
 #: lib\commit.py:316
 msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
 msgstr ""
-"Надайте список номерів дефектів у форматі <i>tag:id</i>, кілька дефектів "
-"мають бути розподілені за допомогою пробела, наприклад: <i>project:123 "
-"project:765</i>"
+"Wprowadź listę ID błędów w formacie <i>tag:id</i> oddzielnych spację, np. "
+"<i>project:123 project:765</i>"
 
 #: lib\commit.py:326
 msgid "&Author:"
-msgstr "&Автор:"
+msgstr "&Autor:"
 
 #: lib\commit.py:327
 msgid "Set the author of this change, if it's different from the committer"
-msgstr ""
-"Ви можете вказати автора ціх змін, якщо він відрізняється від персони, що "
-"робить фіксацію версії"
+msgstr "Ustal autora zmiany, jeśli jest inny niż wysyłający"
 
 #: lib\commit.py:330
 msgid ""
 "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
-"Вкажіть ім'я автора, наприклад: <i>John Doe &lt;jdoe@example.com&gt;</i>"
+"Wprowadź imię autora, np. <i>Jan Kowalski &lt;jkowalski@example.com&gt;</i>"
 
 #: lib\commit.py:345 lib\revert.py:51
 msgid "Changes"
-msgstr "Зміни"
+msgstr "Zmiany"
 
 #: lib\commit.py:361
 msgid "Pending Merges"
-msgstr ""
+msgstr "Oczekujące scalenia:"
 
 #: lib\commit.py:393 lib\wtlist.py:80 lib\subprocess.py:121 lib\main.py:360
 msgid "Status"
-msgstr "Статус"
+msgstr "Status"
 
 #: lib\commit.py:472
 msgid "You should provide commit message."
-msgstr ""
+msgstr "Powinieneś podać opis zmiany."
 
 #: lib\commit.py:473 lib\diff.py:370 lib\util.py:67
 msgid "&OK"
@@ -183,67 +182,73 @@ msgstr "&OK"
 
 #: lib\commit.py:501
 msgid "No changes to commit."
-msgstr ""
+msgstr "Brak zmian do wysłania."
 
 #: lib\commit.py:509
 msgid ""
 "No changes selected to commit.\n"
 "Do you want to commit anyway?"
 msgstr ""
+"Nie wybrano żadnych zmian do wysłania.\n"
+"Czy na pewno chcesz wysłać?"
 
 #: lib\commit.py:579
 msgid ""
 "A commit will be made directly to the master branch, keeping the local and "
 "master branches in sync."
 msgstr ""
+"Zmiana zostanie wysłana bezpośrednio do głównej gałęzi, zachowując lokalną i "
+"główną gałąź zsynchronizowane."
 
 #: lib\commit.py:585
 msgid ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
 msgstr ""
+"Lokalna zmiana w gałęzi zostanie dokonana. Główna gałąź nie zostanie "
+"zaktualizowana dopóki zwykła zmiana nie zostanie dokonana."
 
 #: lib\diff.py:66
 #, python-format
 msgid "Working Tree for %s"
-msgstr "Рабоча копія для %s"
+msgstr "Drzewo dla %s"
 
 #: lib\diff.py:68
 msgid "Working Tree"
-msgstr "Рабоча копія"
+msgstr "Drzewo"
 
 #: lib\diff.py:87
 #, python-format
 msgid "Rev %(rev)s for %(branch)s"
-msgstr "Ревізія %(rev)s для %(branch)s"
+msgstr "Rewizja %(rev)s for %(branch)s"
 
 #: lib\diff.py:89
 #, python-format
 msgid "Rev %s"
-msgstr "Ревізія %s"
+msgstr "Rewizja %s"
 
 #: lib\diff.py:92
 #, python-format
 msgid "Revid: %(revid)s for %(branch)s"
-msgstr ""
+msgstr "ID rewizji: %(revid)s dla %(branch)s"
 
 #: lib\diff.py:94
 #, python-format
 msgid "Revid: %s"
-msgstr "Revid: %s"
+msgstr "ID rewizji: %s"
 
 #: lib\diff.py:97
 msgid "Merge Preview"
-msgstr "Результат об'єднання"
+msgstr "Podgląd scalania"
 
 #: lib\diff.py:114 lib\diff.py:220 lib\diff.py:360 lib\diff.py:368
 #: lib\log.py:548
 msgid "Diff"
-msgstr "Різниця"
+msgstr "Różnice"
 
 #: lib\diff.py:140
 msgid "Side by side"
-msgstr "Дві панелі поруч"
+msgstr "Obok siebie"
 
 #: lib\diff.py:147
 msgid "Unidiff"
@@ -251,35 +256,35 @@ msgstr "Unidiff"
 
 #: lib\diff.py:152
 msgid "Complete"
-msgstr "Завершено"
+msgstr "Pełne"
 
 #: lib\diff.py:226
 #, python-format
 msgid "%d file"
 msgid_plural "%d files"
-msgstr[0] "%d файл"
-msgstr[1] "%d файли"
-msgstr[2] "%d файлів"
+msgstr[0] "%d plików"
+msgstr[1] "%d plik"
+msgstr[2] "%d plików"
 
 #: lib\diff.py:306 lib\wtlist.py:115
 msgid "removed"
-msgstr "видалений"
+msgstr "usunięto"
 
 #: lib\diff.py:308 lib\wtlist.py:111
 msgid "added"
-msgstr "доданий"
+msgstr "dodano"
 
 #: lib\diff.py:310 lib\wtlist.py:128
 msgid "renamed and modified"
-msgstr "перейменований та змінений"
+msgstr "przesunięto i zmodyfikowano"
 
 #: lib\diff.py:312 lib\wtlist.py:130
 msgid "renamed"
-msgstr "перейменований"
+msgstr "przesunięto"
 
 #: lib\diff.py:314 lib\wtlist.py:137
 msgid "modified"
-msgstr "змінений"
+msgstr "zmodyfikowano"
 
 #: lib\diff.py:361
 #, python-format
@@ -287,79 +292,81 @@ msgid ""
 "File %s is not versioned.\n"
 "Operation aborted."
 msgstr ""
+"Plik %s nie podlega wersjonowaniu.\n"
+"Operacja przerwana."
 
 #: lib\diff.py:363 lib\subprocess.py:149 lib\util.py:69 lib\tag.py:143
 #: lib\tag.py:174 lib\tag.py:211
 msgid "&Close"
-msgstr "&Закрити"
+msgstr "&Zakończ"
 
 #: lib\diff.py:369
 msgid "No changes found."
-msgstr ""
+msgstr "Brak zmian."
 
 #: lib\diffview.py:212
 msgid "Last modified:"
-msgstr "Останні зміни"
+msgstr "Ostatnio zmodyfikowany:"
 
 #: lib\diffview.py:213
 msgid "Status:"
-msgstr "Стан:"
+msgstr "Status:"
 
 #: lib\diffview.py:214
 msgid "Kind:"
-msgstr "Тип:"
+msgstr "Typ:"
 
 #: lib\diffview.py:215
 msgid "Properties:"
-msgstr "Властивості:"
+msgstr "Właściwości:"
 
 #: lib\diffview.py:465
 msgid "[binary file]"
-msgstr "[бінарний файл]"
+msgstr "[plik binarny]"
 
 #: lib\diffview.py:624
 msgid "\\ No newline at end of file"
-msgstr "\\ No newline at end of file"
+msgstr "\\ Brak pustej linii na końcu pliku"
 
 #: lib\info.py:42
 msgid "Info"
-msgstr "Інформація"
+msgstr "Informacje"
 
 #: lib\revert.py:42 lib\wtlist.py:223
 msgid "Revert"
-msgstr "Повернути"
+msgstr "Wycofaj"
 
 #: lib\wtlist.py:42
 msgid "Select / deselect all"
-msgstr ""
+msgstr "Zaznacz / odznacz wszystkie"
 
 #: lib\wtlist.py:67 lib\log.py:555
 msgid "Show &differences..."
-msgstr "Показати різницю"
+msgstr "Pokaż &różnice..."
 
 #: lib\wtlist.py:70
 msgid "&Revert..."
-msgstr "&Повернути попередню версію..."
+msgstr "&Wycofaj..."
 
 #: lib\wtlist.py:80
 msgid "File"
-msgstr "Файл"
+msgstr "Plik"
 
 #: lib\wtlist.py:80
 msgid "Extension"
-msgstr "Розширення"
+msgstr "Rozszerzenie"
 
 #: lib\wtlist.py:105
 msgid "ignored"
-msgstr ""
+msgstr "zignorowano"
 
 #: lib\wtlist.py:107
 msgid "non-versioned"
-msgstr "невідомий"
+msgstr "niewersjonowany"
 
 #: lib\wtlist.py:119
 msgid "missing"
-msgstr ""
+msgstr "brakujące"
 
 #: lib\wtlist.py:141
 msgid "modified (x-bit)"
@@ -368,48 +375,48 @@ msgstr ""
 #: lib\wtlist.py:222
 #, python-format
 msgid "Revert %s to latest revision."
-msgstr ""
+msgstr "Wycofaj %s do ostatniej rewizji."
 
 #: lib\logmodel.py:863
 #, python-format
 msgid "bug #%s"
-msgstr "bug #%s"
+msgstr "błąd #%s"
 
 #: lib\log.py:406
 msgid "Log"
-msgstr "Журнал"
+msgstr "Historia"
 
 #: lib\log.py:435
 msgid "&Search:"
-msgstr "&Пошук:"
+msgstr "&Szukaj:"
 
 #: lib\log.py:453
 msgid "Messages"
-msgstr "Коментар"
+msgstr "Wiadomości"
 
 #: lib\log.py:455
 msgid "Authors"
-msgstr "Автори"
+msgstr "Autorzy"
 
 #: lib\log.py:457
 msgid "Revision IDs"
-msgstr "Revision IDs"
+msgstr "ID rewizji"
 
 #: lib\log.py:459
 msgid "Revision Numbers"
-msgstr "Номери версій"
+msgstr "Numery rewizji"
 
 #: lib\log.py:556
 msgid "Show &tree..."
-msgstr "Показати файли"
+msgstr "Pokaż drzewo..."
 
 #: lib\log.py:621
 msgid "Messages and File text (indexed)"
-msgstr ""
+msgstr "Tekst wiadomości i plików (zindeksowanych)"
 
 #: lib\subprocess.py:143
 msgid "Internal Error"
-msgstr "Internal Error"
+msgstr "Błąd wewnętrzny"
 
 #: lib\subprocess.py:145
 #, python-format
@@ -419,192 +426,193 @@ msgid ""
 "Please, report bug at:\n"
 "https://bugs.launchpad.net/qbzr/+filebug"
 msgstr ""
-"Sorry, subprocess action \"%s\" cannot be started\n"
-"because self.args is None.\n"
-"Please, report bug at:\n"
+"Przepraszamy, subproces \"%s\" nie może zostać uruchomiony,\n"
+"ponieważ wartość self.args wynosi None.\n"
+"Proszę, zgłoś błąd na:\n"
 "https://bugs.launchpad.net/qbzr/+filebug"
 
 #: lib\subprocess.py:277
 msgid "Description"
-msgstr "Опис"
+msgstr "Opis"
 
 #: lib\subprocess.py:300
 msgid "Stopped"
-msgstr "Зупинено"
+msgstr "Zatrzymano"
 
 #: lib\subprocess.py:361
 msgid "Starting..."
-msgstr "Запуск..."
+msgstr "Uruchamianie..."
 
 #: lib\subprocess.py:405
 msgid "Aborting..."
-msgstr "Припиняється..."
+msgstr "Porzucanie..."
 
 #: lib\subprocess.py:413 lib\subprocess.py:486
 msgid "Finished!"
-msgstr ""
+msgstr "Zakończono!"
 
 #: lib\subprocess.py:432 lib\uifactory.py:96
 msgid "Enter Password"
-msgstr ""
+msgstr "Wprowadź hasło"
 
 #: lib\subprocess.py:467 lib\subprocess.py:489
 msgid "Failed!"
-msgstr ""
+msgstr "Błąd!"
 
 #: lib\subprocess.py:469
 msgid "Failed to start bzr."
-msgstr ""
+msgstr "Nie udało się uruchomić bzr."
 
 #: lib\subprocess.py:471
 #, python-format
 msgid "Error while running bzr. (error code: %d)"
-msgstr ""
+msgstr "Błąd w trakcie działania bzr. (error code: %d)"
 
 #: lib\subprocess.py:479
 msgid "Aborted!"
-msgstr ""
+msgstr "Przerwane!"
 
 #: lib\util.py:68 lib\tag.py:151 lib\tag.py:164
 msgid "&Cancel"
-msgstr "&Скасувати"
+msgstr "&Porzuć"
 
 #: lib\util.py:70 lib\main.py:318
 msgid "&Help"
-msgstr "&Допомога"
+msgstr "&Pomoc"
 
 #: lib\util.py:71 lib\main.py:279
 msgid "&Refresh"
-msgstr "&Оновити"
+msgstr "&Odśwież"
 
 #: lib\util.py:238 lib\tag.py:209
 msgid "Error"
-msgstr ""
+msgstr "Błąd"
 
 #: lib\util.py:429
 msgid "Select Source Directory"
-msgstr ""
+msgstr "Wybierz katalog źródłowy"
 
 #: lib\util.py:431
 msgid "Select Target Directory"
-msgstr ""
+msgstr "Wybierz katalog docelowy"
 
 #: lib\util.py:501
 msgid "Parents:"
-msgstr ""
+msgstr "Rodzice:"
 
 #: lib\util.py:505
 msgid "Children:"
-msgstr ""
+msgstr "Dzieci:"
 
 #: lib\util.py:508
 msgid "Date:"
-msgstr ""
+msgstr "Data:"
 
 #: lib\util.py:510
 msgid "Committer:"
-msgstr "Зафіксовано:"
+msgstr "Wysyłający:"
 
 #: lib\util.py:513
 msgid "Author:"
-msgstr "Автор:"
+msgstr "Autor:"
 
 #: lib\util.py:517
 msgid "Branch:"
-msgstr ""
+msgstr "Gałąź:"
 
 #: lib\util.py:522
 msgid "Tags:"
-msgstr "Теги:"
+msgstr "Tagi:"
 
 #: lib\util.py:531
 msgid "Bug:"
 msgid_plural "Bugs:"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Błędy:"
+msgstr[1] "Błąd:"
+msgstr[2] "Błędy:"
 
 #: lib\util.py:679
 msgid "deleted files"
-msgstr "видалені файли"
+msgstr "usunięte pliki"
 
 #: lib\util.py:681
 msgid "added files"
-msgstr "додані файли"
+msgstr "dodane pliki"
 
 #: lib\util.py:683
 msgid "renamed files"
-msgstr "перейменовані файли"
+msgstr "przesunięte pliki"
 
 #: lib\util.py:685
 msgid "modified files"
-msgstr "змінені файли"
+msgstr "zmodyfikowane pliki"
 
 #: lib\help.py:60
 #, python-format
 msgid "No help can be found for <i>%s</i>"
-msgstr "Довідка для <i>%s</i> не знайдена"
+msgstr "Nie znaleziono pomocy dla <i>%s</i>"
 
 #: lib\help.py:110
 msgid "Help"
-msgstr "Довідка"
+msgstr "Pomoc"
 
 #: lib\ui_info.py:176
 msgid "Local location:"
-msgstr ""
+msgstr "Lokalna lokalizacja:"
 
 #: lib\ui_info.py:177 lib\ui_info.py:179 lib\ui_info.py:182 lib\ui_info.py:184
 #: lib\ui_info.py:186 lib\ui_info.py:189 lib\ui_info.py:191 lib\ui_info.py:193
 #: lib\ui_info.py:195
 msgid "..."
-msgstr ""
+msgstr "..."
 
 #: lib\ui_info.py:178
 msgid "Public branch location:"
-msgstr ""
+msgstr "Publiczna lokalizacja gałęzi:"
 
 #: lib\ui_info.py:180
 msgid "&Location"
-msgstr ""
+msgstr "&Lokalizacja"
 
 #: lib\ui_info.py:181
 msgid "Push branch:"
-msgstr ""
+msgstr "Popchnij gałąź:"
 
 #: lib\ui_info.py:183
 msgid "Parent branch:"
-msgstr ""
+msgstr "Gałąź-rodzic"
 
 #: lib\ui_info.py:185
 msgid "Submit branch:"
-msgstr ""
+msgstr "Wyślij gałąź:"
 
 #: lib\ui_info.py:187
 msgid "&Related Branches"
-msgstr ""
+msgstr "&Powiązane gałęzie"
 
 #: lib\ui_info.py:188
 msgid "Working tree format:"
-msgstr ""
+msgstr "Format drzewa:"
 
 #: lib\ui_info.py:190
 msgid "Branch format:"
-msgstr ""
+msgstr "Format gałęzi:"
 
 #: lib\ui_info.py:192
 msgid "Repository format:"
-msgstr ""
+msgstr "Format repozytorium:"
 
 #: lib\ui_info.py:194
 msgid "Control directory format:"
-msgstr ""
+msgstr "Format katalogu kontrolnego:"
 
 #: lib\ui_info.py:196
 msgid "&Format"
-msgstr ""
+msgstr "&Formatuj"
 
 #: lib\config.py:41
 msgid "Default"
-msgstr "Типово"
+msgstr "Domyślnie"
 
 #: lib\config.py:42
 msgid "Thunderbird"
@@ -624,51 +632,51 @@ msgstr "Mutt"
 
 #: lib\config.py:46
 msgid "XDG e-mail client"
-msgstr "XDG e-mail клієнт"
+msgstr "XDG e-mail client"
 
 #: lib\config.py:47
 msgid "MAPI e-mail client"
-msgstr "MAPI e-mail клієнт"
+msgstr "MAPI e-mail client"
 
 #: lib\config.py:48
 msgid "Editor"
-msgstr "Редактор"
+msgstr "Edytor"
 
 #: lib\config.py:57
 msgid "Configuration"
-msgstr "Налаштування"
+msgstr "Konfiguracja"
 
 #: lib\config.py:67 lib\ui_bookmark.py:50
 msgid "&Name:"
-msgstr "Ім’я:"
+msgstr "&Nazwa:"
 
 #: lib\config.py:73
 msgid "E-&mail:"
-msgstr "E-&mail:"
+msgstr "&E-mail"
 
 #: lib\config.py:79
 msgid "&Editor:"
-msgstr "&Редактор:"
+msgstr "&Edytor:"
 
 #: lib\config.py:87
 msgid "E-mail &client:"
-msgstr "E-mail &клієнт:"
+msgstr "Klient &poczty:"
 
 #: lib\config.py:97
 msgid "Alias"
-msgstr "Псевдонім"
+msgstr "Alias"
 
 #: lib\config.py:97
 msgid "Command"
-msgstr "Команда"
+msgstr "Polecenie"
 
 #: lib\config.py:102 lib\config.py:123
 msgid "Remove"
-msgstr "Видалити"
+msgstr "Usuń"
 
 #: lib\config.py:118
 msgid "Abbreviation"
-msgstr "Абревіатура"
+msgstr "Skrót"
 
 #: lib\config.py:118
 msgid "URL"
@@ -676,155 +684,155 @@ msgstr "URL"
 
 #: lib\config.py:137
 msgid "General"
-msgstr "Загальні"
+msgstr "Ogólne"
 
 #: lib\config.py:138
 msgid "Aliases"
-msgstr "Псевдоніми"
+msgstr "Aliasy"
 
 #: lib\config.py:139
 msgid "Bug Trackers"
-msgstr ""
+msgstr "Bug trackers"
 
 #: lib\config.py:140
 msgid "&User Interface"
-msgstr "Інтерфейс користувача"
+msgstr "&Interfejs użytkownika"
 
 #: lib\config.py:165
 msgid "Spell check &language:"
-msgstr "Мова для перевірки орфографії"
+msgstr "Sprawdź poprawność pisownii:"
 
 #: lib\i18n.py:87
 msgid "file"
-msgstr "файл"
+msgstr "plik"
 
 #: lib\i18n.py:88
 msgid "directory"
-msgstr "тека"
+msgstr "katalog"
 
 #: lib\i18n.py:89
 msgid "symlink"
-msgstr "символичний зв'язок"
+msgstr "łącze symboliczne"
 
 #: lib\i18n.py:91
 msgid "fixed"
-msgstr "полагоджен"
+msgstr "ustalony"
 
 #: lib\i18n.py:93
 msgid "View text file"
-msgstr "Перегляд текстового файла"
+msgstr "Zobacz plik tekstowy"
 
 #: lib\i18n.py:94
 msgid "View image file"
-msgstr "Перегляд файла-зображення"
+msgstr "Zobacz obrazek"
 
 #: lib\i18n.py:95
 msgid "View binary file"
-msgstr "Перегляд бінарного файла"
+msgstr "Zobacz plik binarny"
 
 #: lib\i18n.py:96
 msgid "View symlink"
-msgstr "Перегляд сімвольного посилання"
+msgstr "Zobacz łącze symboliczne"
 
 #: lib\i18n.py:97
 msgid "View directory"
-msgstr "Перегляд теки"
+msgstr "Przeglądaj katalog"
 
 #: lib\init.py:38 lib\ui_init.py:118
 msgid "Initialize"
-msgstr ""
+msgstr "Inicjalizuj"
 
 #: lib\init.py:73
 msgid "You must specify a location"
-msgstr "Ви повинні вказати локацію"
+msgstr "Musisz podać lokalizację."
 
 #: lib\main.py:125
 msgid "Computer"
-msgstr "Комп'ютер"
+msgstr "Komputer"
 
 #: lib\main.py:154
 msgid "&Edit Bookmark..."
-msgstr "Редагувати закладки"
+msgstr "&Edytuj zakładkę..."
 
 #: lib\main.py:155
 msgid "&Remove Bookmark..."
-msgstr "Видалити закладку..."
+msgstr "&Usuń zakładkę..."
 
 #: lib\main.py:170
 msgid "Bookmarks"
-msgstr "Закладки"
+msgstr "Zakładki"
 
 #: lib\main.py:281
 msgid "Refresh the directory tree"
-msgstr ""
+msgstr "Odśwież drzewo"
 
 #: lib\main.py:285
 msgid "&Commit"
-msgstr "&Зафіксувати"
+msgstr "&Wyślij"
 
 #: lib\main.py:286
 msgid "Commit changes into a new revision"
-msgstr "Фіксувати зміни як нову ревізію"
+msgstr "Wyślij zmiany jako nową rewizję"
 
 #: lib\main.py:290
 msgid "&Push"
-msgstr "&Push"
+msgstr "&Popchnij"
 
 #: lib\main.py:291
 msgid "Turn this branch into a mirror of another branch"
-msgstr "Перетворити цю гілку на копію іншої гілки"
+msgstr "Uczyń tę gałąź wersją lustrzaną innej gałęzi"
 
 #: lib\main.py:295
 msgid "Pu&ll"
-msgstr "Pu&ll"
+msgstr "Wyciągnij"
 
 #: lib\main.py:296
 msgid "Update a mirror of this branch"
-msgstr ""
+msgstr "Zaktualizuj wersję lustrzaną tej gałęzi"
 
 #: lib\main.py:299
 msgid "&Add Bookmark..."
-msgstr "Додати закладку..."
+msgstr "&Dodaj zakładkę..."
 
 #: lib\main.py:306
 msgid "&File"
-msgstr "&Файл"
+msgstr "&Plik"
 
 #: lib\main.py:307
 msgid "&Configure..."
-msgstr "&Налаштувати..."
+msgstr "&Konfiguruj..."
 
 #: lib\main.py:309
 msgid "&Quit"
-msgstr "&Вихід"
+msgstr "&Zakończ"
 
 #: lib\main.py:310
 msgid "&View"
-msgstr ""
+msgstr "&Widok"
 
 #: lib\main.py:312
 msgid "&Branch"
-msgstr "Гілка"
+msgstr "&Gałąź"
 
 #: lib\main.py:316
 msgid "&Bookmarks"
-msgstr "Закладки"
+msgstr "&Zakładki"
 
 #: lib\main.py:319
 msgid "&Help..."
-msgstr "&Довідка..."
+msgstr "&Pomoc..."
 
 #: lib\main.py:321
 msgid "&About..."
-msgstr "&Про програму..."
+msgstr "&O programie..."
 
 #: lib\main.py:359
 msgid "Size"
-msgstr "Розмір"
+msgstr "Rozmiar"
 
 #: lib\main.py:411
 msgid "About QBzr"
-msgstr "Про QBzr"
+msgstr "O QBzr"
 
 #: lib\main.py:412
 #, python-format
@@ -834,26 +842,30 @@ msgid ""
 "2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
 "vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
+"<b>Qbzr</b> - Graficzny interfejs dla Bazaar<br /><small>Wersja "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br /><br />Copyright © "
+"2006-2008 Lukáš Lalinský and others<br /><br /><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 
 #: lib\main.py:477
 msgid "Add Bookmark"
-msgstr "Додати закладку"
+msgstr "Dodaj zakładkę"
 
 #: lib\main.py:488
 msgid "Edit Bookmark"
-msgstr "Редагувати закладку"
+msgstr "Edytuj zakładkę"
 
 #: lib\main.py:498
 msgid "Remove Bookmark"
-msgstr "Видалити закладку"
+msgstr "Usuń zakładkę"
 
 #: lib\main.py:499
 msgid "Do you really want to remove the selected bookmark?"
-msgstr "Ви бажаєте видалити цю закладку?"
+msgstr "Czy na pewno chcesz usunąć wybraną zakładkę?"
 
 #: lib\tag.py:142
 msgid "You should specify tag name"
-msgstr ""
+msgstr "Powinieneś podać nazwę tagu."
 
 #: lib\tag.py:148
 #, python-format
@@ -861,10 +873,12 @@ msgid ""
 "Tag \"%s\" already exists.\n"
 "Do you want to replace existing tag?"
 msgstr ""
+"Tag \"%s\" już istnieje.\n"
+"Chcesz podmienić istniejący tag?"
 
 #: lib\tag.py:151
 msgid "&Replace"
-msgstr ""
+msgstr "&Zamień"
 
 #: lib\tag.py:161
 #, python-format
@@ -872,19 +886,21 @@ msgid ""
 "Tag \"%s\" does not exists yet.\n"
 "Do you want to create new tag?"
 msgstr ""
+"Tag \"%s\" nie istnieje jeszcze.\n"
+"Chcesz utworzyć nowy tag?"
 
 #: lib\tag.py:164
 msgid "Cre&ate"
-msgstr ""
+msgstr "Utwórz"
 
 #: lib\tag.py:173
 #, python-format
 msgid "Tag \"%s\" does not exists"
-msgstr ""
+msgstr "Tag \"%s\" nie istnieje."
 
 #: lib\tag.py:195
 msgid "Select branch location"
-msgstr ""
+msgstr "Wybierz lokalizację gałęzi."
 
 #: lib\tag.py:210
 #, python-format
@@ -892,249 +908,224 @@ msgid ""
 "Not a branch:\n"
 "%s"
 msgstr ""
+"To nie jest gałąź:\n"
+"%s"
 
 #: lib\ui_bookmark.py:51 lib\ui_branch.py:67 lib\ui_merge.py:59
 #: lib\ui_pull.py:62 lib\ui_push.py:64
 msgid "&Location:"
-msgstr "&Розташування:"
+msgstr "&Lokalizacja:"
 
 #: lib\ui_branch.py:66 lib\ui_merge.py:58 lib\ui_pull.py:61 lib\ui_push.py:63
 msgid "Options"
-msgstr "Параметри"
+msgstr "Opcje"
 
 #: lib\ui_branch.py:68 lib\ui_branch.py:71 lib\ui_init.py:120
 #: lib\ui_merge.py:60 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
 #: lib\ui_pull.py:63 lib\ui_push.py:65 lib\ui_update_branch.py:85
 #: lib\ui_update_checkout.py:79
 msgid "Browse..."
-msgstr ""
+msgstr "Przeglądaj..."
 
 #: lib\ui_branch.py:69 lib\ui_merge.py:61 lib\ui_pull.py:64 lib\ui_tag.py:108
 msgid "&Revision:"
-msgstr "&Версія:"
+msgstr "&Rewizja:"
 
 #: lib\ui_branch.py:70
 msgid "&To:"
-msgstr "&Куди:"
+msgstr "&Do:"
 
 #: lib\ui_init.py:119
 msgid "Local Directory"
-msgstr ""
+msgstr "Lokalny katalog"
 
 #: lib\ui_init.py:121
 msgid "Repository"
-msgstr ""
+msgstr "Repozytorium"
 
 #: lib\ui_init.py:122
 msgid "Create a new standalone tree"
-msgstr ""
+msgstr "Stwórz nowe odrębne drzewo"
 
 #: lib\ui_init.py:123
 msgid "Ensure all revisions are appended to the log"
-msgstr ""
+msgstr "Sprawdź, czy wszystkie rewizje są umieszczone w historii"
 
 #: lib\ui_init.py:124
 msgid "Create a new shared repository"
-msgstr ""
+msgstr "Stwórz nowe wspóldzielone repozytorium"
 
 #: lib\ui_init.py:125
 msgid "Skip the creation of working trees in this repository"
-msgstr ""
+msgstr "Opuść tworzenie drzew w tym repozytorium"
 
 #: lib\ui_init.py:131
 msgid "Repository Format:"
-msgstr ""
+msgstr "Format repozytorium:"
 
 #: lib\ui_init.py:132
 msgid "Description of format"
-msgstr ""
+msgstr "Opis formatu"
 
 #: lib\ui_merge.py:57
 msgid "Merge"
-msgstr ""
+msgstr "Scal"
 
 #: lib\ui_merge.py:62 lib\ui_pull.py:65 lib\ui_push.py:66
 msgid "Remember this location as a default"
-msgstr ""
+msgstr "Zapamiętaj tę lokalizację jako domyślną"
 
 #: lib\ui_new_tree.py:129
 msgid "Create a new Bazaar Working Tree"
-msgstr ""
+msgstr "Stwórz nowe drzewo Bazaar"
 
 #: lib\ui_new_tree.py:131
 msgid ""
 "Branch source (enter a URL or select a local directory with an exiting "
 "branch)"
 msgstr ""
+"Gałąź źródłowa (wprowadź URL lub wybierz lokalny katalog z istniejącą "
+"gałęzią)"
 
 #: lib\ui_new_tree.py:133
 msgid "Local directory where the working tree will be created"
-msgstr ""
+msgstr "Lokalny katalog gdzie drzewo zostanie utworzone"
 
 #: lib\ui_new_tree.py:135
 msgid "Working Tree Options"
-msgstr ""
+msgstr "Opcje drzewa"
 
 #: lib\ui_new_tree.py:136
 msgid "Create a checkout"
-msgstr ""
+msgstr "Utwórz kopię gałęzi"
 
 #: lib\ui_new_tree.py:144
 msgid "Light-weight checkout"
-msgstr ""
+msgstr "Utwórz lekką kopię gałęzi"
 
 #: lib\ui_new_tree.py:145
 msgid "Make a local copy of the branch"
-msgstr ""
+msgstr "Stwórz lokalną kopię gałęzi"
 
 #: lib\ui_new_tree.py:151
 msgid "Create a stacked branch referring to the source branch"
-msgstr ""
+msgstr "Utwórz stosową gałąź odnoszącą się do gałęzi źródłowej"
 
 #: lib\ui_new_tree.py:152
 msgid "Click a link for more information about checkouts and branches."
-msgstr ""
+msgstr "Kliknij na łącze po więcej informacji o kopiach i gałęziach."
 
 #: lib\ui_new_tree.py:158
 msgid "Revision"
-msgstr ""
+msgstr "Rewizja"
 
 #: lib\ui_new_tree.py:159
 msgid "Most recent (tip) revision"
-msgstr ""
+msgstr "Ostatnia rewizja"
 
 #: lib\ui_new_tree.py:161
 msgid "Show Log..."
-msgstr ""
+msgstr "Pokaż historię..."
 
 #: lib\ui_pull.py:60
 msgid "Pull"
-msgstr ""
+msgstr "Wyciągnij"
 
 #: lib\ui_pull.py:66 lib\ui_push.py:67 lib\ui_update_branch.py:88
 #: lib\ui_update_checkout.py:80
 msgid "Overwrite differences between branches"
-msgstr ""
+msgstr "Nadpisz różnice między gałęziami"
 
 #: lib\ui_push.py:62
 msgid "Push"
-msgstr ""
+msgstr "Popchnij"
 
 #: lib\ui_push.py:68
 msgid "Use existing directory"
-msgstr "Використати існуючий каталог"
+msgstr "Użyj istniejącego katalogu"
 
 #: lib\ui_push.py:69
 msgid "Create the path up to the branch if it does not exist"
-msgstr ""
+msgstr "Utwórz wszystkie podkatalogi ścieżki gałęzi, jeśli nie istnieją."
 
 #: lib\ui_tag.py:99
 msgid "Edit tag"
-msgstr ""
+msgstr "Edytuj tag"
 
 #: lib\ui_tag.py:101
 msgid "&Browse..."
-msgstr ""
+msgstr "&Przeglądaj..."
 
 #: lib\ui_tag.py:102
 msgid "Tag"
-msgstr ""
+msgstr "Tag"
 
 #: lib\ui_tag.py:103
 msgid "&Action:"
-msgstr ""
+msgstr "&Akcja:"
 
 #: lib\ui_tag.py:104
 msgid "Create new tag"
-msgstr ""
+msgstr "Utwórz nowy tag"
 
 #: lib\ui_tag.py:105
 msgid "Replace existing tag"
-msgstr ""
+msgstr "Zastąp istniejący tag"
 
 #: lib\ui_tag.py:106
 msgid "Delete existing tag"
-msgstr ""
+msgstr "Usuń istniejący tag"
 
 #: lib\ui_tag.py:107
 msgid "&Tag name:"
-msgstr ""
+msgstr "&Nazwa tagu:"
 
 #: lib\ui_tag.py:109
 msgid "&Select..."
-msgstr ""
+msgstr "&Wybierz..."
 
 #: lib\ui_update_branch.py:82
 msgid "Update Branch"
-msgstr ""
+msgstr "Aktualizuj gałąź"
 
 #: lib\ui_update_branch.py:83
 msgid ""
 "This directory is a branch.  Please select what you would like to update"
-msgstr ""
+msgstr "Ten katalog jest gałęzią. Sprecyzuj co chciałbyś zaktualizować."
 
 #: lib\ui_update_branch.py:84 lib\ui_update_checkout.py:76
 msgid "Update source"
-msgstr ""
+msgstr "Źródło aktualizacji"
 
 #: lib\ui_update_branch.py:86
 msgid "Pull most recent changes from:"
-msgstr ""
+msgstr "Wyciągnij ostatnie zmiany z:"
 
 #: lib\ui_update_branch.py:87
 msgid "Remember this as the new parent branch"
-msgstr ""
+msgstr "Zapamiętaj to jako gałąź-rodzic."
 
 #: lib\ui_update_branch.py:89
 msgid "<Parent Branch shown here>"
-msgstr ""
+msgstr "<Gałąź-rodzic>"
 
 #: lib\ui_update_branch.py:90
 msgid "Update working tree to the latest changes in the branch"
-msgstr ""
+msgstr "Zaktualizuj drzewo do ostatnich zmian w gałęzi"
 
 #: lib\ui_update_checkout.py:74
 msgid "Update Checkout"
-msgstr ""
+msgstr "Zaktualizuj kopię"
 
 #: lib\ui_update_checkout.py:75
 #, python-format
 msgid "This directory is a checkout of: %s"
-msgstr ""
+msgstr "Ten katalog jest kopią: %s"
 
 #: lib\ui_update_checkout.py:77
 msgid "Update the working tree from the bound branch"
-msgstr ""
+msgstr "Zaktualizuj drzewo z powiązanej gałęzi"
 
 #: lib\ui_update_checkout.py:78
 msgid "Pull a different branch"
-msgstr ""
-
-#~ msgid "Branch nick:"
-#~ msgstr "Назва гілки:"
-
-#~ msgid "Show &Differences..."
-#~ msgstr "Показати &різницю..."
-
-#~ msgid "Do you really want to revert the selected file(s)?"
-#~ msgstr "Ви насправді бажаєте повернути попередню версію відібраних файлів?"
-
-#~ msgid "Empty commit message. Do you really want to commit?"
-#~ msgstr "Немає коментаря. Ви насправді бажаєте фіксувати?"
-
-#~ msgid "View File"
-#~ msgstr "Переглянути файл"
-
-#, python-format
-#~ msgid "File \"%s\" not found in the specified revision."
-#~ msgstr "Файл \"%s\" не знайдено у вказаній версії проекта."
-
-#~ msgid "Show tree..."
-#~ msgstr "Показати дерево файлів..."
-
-#~ msgid "View "
-#~ msgstr "Перегляд "
-
-#, python-format
-#~ msgid "Revid: %(rev)s for %(branch)s"
-#~ msgstr "Revid: %(branch)s для %(branch)s"
+msgstr "Wyciągnij inną gałąź"

@@ -20,18 +20,19 @@
 import sys
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import urlutils
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.ui_info import Ui_InfoForm
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
+    url_for_display,
     )
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 
 def _set_location(edit, location):
     location = location or u'-'
-    location = urlutils.unescape_for_display(location, 'utf-8')
+    location = url_for_display(location)
     edit.setText(location)
 
 
@@ -46,6 +47,7 @@ class QBzrInfoWindow(QBzrWindow):
         self.ui.vboxlayout.addWidget(self.buttonbox)
         self.populate_tree_info(tree)
 
+    @ui_current_widget
     def populate_tree_info(self, tree):
         self.populate_branch_info(tree.branch)
         self.populate_bzrdir_info(tree.bzrdir)
