@@ -32,6 +32,7 @@ from bzrlib.revisiontree import RevisionTree
 from bzrlib.transform import _PreviewTree
 from bzrlib.workingtree import WorkingTree
 from bzrlib.workingtree_4 import DirStateRevisionTree
+from bzrlib import trace
 
 from bzrlib.plugins.qbzr.lib.diffview import (
     SidebySideDiffView,
@@ -339,8 +340,12 @@ class DiffWindow(QBzrWindow):
                                     groups = list([matcher.get_opcodes()])
                                 else:
                                     groups = list(matcher.get_grouped_opcodes())
-                            lines = [[i.decode(encoding,'replace') for i in l]
-                                     for l, encoding in zip(lines, self.encodings)]
+                            try:
+                                lines = [[i.decode(encoding) for i in l]
+                                        for l, encoding in zip(lines, self.encodings)]
+                            except UnicodeDecodeError, e:
+                                trace.note('Failed to decode using %s, falling back to latin1' % e.encoding)
+                                lines = [[i.decode('latin1') for i in l] for l in lines]
                             data = ((),())
                         else:
                             groups = []
