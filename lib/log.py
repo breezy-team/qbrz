@@ -357,16 +357,16 @@ class LogWindow(QBzrWindow):
                 pass
 
     @ui_current_widget
-    def show_diff_window(self, rev1, rev2, specific_files=None, ext_diff = None):
-        new_revid = rev1.revision_id
-        new_branch = self.changesModel.revisionHeadInfo(new_revid)[0][0]
+    def show_diff_window(self, new_rev, old_rev, specific_files=None, ext_diff = None):
+        new_revid = new_rev.revision_id
+        new_branch = new_rev.branch
         
-        if not rev2.parent_ids:
+        if not old_rev.parent_ids:
             old_revid = None
             old_branch = new_branch
         else:
-            old_revid = rev2.parent_ids[0]
-            old_branch =  self.changesModel.revisionHeadInfo(old_revid)[0][0]
+            old_revid = old_rev.parent_ids[0]
+            old_branch =  old_rev.branch
 
         show_diff(old_revid, new_revid,
                  old_branch, new_branch,
@@ -400,9 +400,9 @@ class LogWindow(QBzrWindow):
             # the list is empty
             return
         revid1 = str(indexes[0].data(logmodel.RevIdRole).toString())
-        rev1 = self.changesModel.revision(revid1)
+        rev1 = self.log_list.graph_provider.revision(revid1)
         revid2 = str(indexes[-1].data(logmodel.RevIdRole).toString())
-        rev2 = self.changesModel.revision(revid2)
+        rev2 = self.log_list.graph_provider.revision(revid2)
         self.show_diff_window(rev1, rev2, ext_diff = ext_diff)
 
     @ui_current_widget
