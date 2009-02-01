@@ -61,10 +61,12 @@ def show_diff(old_revid, new_revid, old_branch, new_branch, new_wt = None,
         else:
             revspec = "-r revid:%s..revid:%s" % (old_revid, new_revid)
         
-        args=["diff", "--using=%s" % ext_diff,
-              revspec,
-              "--old=%s" % old_branch.base, 
-              "--new=%s" % new_branch.base]
+        args=["diff",
+              "--using=%s" % ext_diff,
+              revspec]
+        
+        if not old_branch.base == new_branch.base:
+            args.append("--old=%s" % old_branch.base)
         
         if specific_files:
             args.extend(specific_files)
@@ -72,6 +74,7 @@ def show_diff(old_revid, new_revid, old_branch, new_branch, new_wt = None,
         window = SimpleSubProcessDialog("External Diff",
                                         desc=ext_diff,
                                         args=args,
+                                        dir=new_branch.base,
                                         auto_start_show_on_failed=True,
                                         parent=parent_window)
         window.process_widget.hide_progress()
