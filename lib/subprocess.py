@@ -259,8 +259,10 @@ class SimpleSubProcessDialog(SubProcessDialog):
                  default_size=None,
                  ui_mode=True,
                  dialog=True,
+                 hide_progress=False,
+                 auto_start_show_on_failed=False,
                  parent=None,
-                 hide_progress=False):
+                 ):
         super(SimpleSubProcessDialog, self).__init__(
                                title,
                                name=name,
@@ -283,6 +285,14 @@ class SimpleSubProcessDialog(SubProcessDialog):
         # and add the subprocess widgets.
         for w in self.make_default_layout_widgets():
             layout.addWidget(w)
+        
+        self.auto_start_show_on_failed = auto_start_show_on_failed
+        if self.auto_start_show_on_failed:
+            self.start()
+            QtCore.QObject.connect(self,
+                                   QtCore.SIGNAL("subprocessStarted(bool)"),
+                                   self,
+                                   QtCore.SLOT("setHidden(bool)"))
 
 
 class SubProcessWidget(QtGui.QWidget):
@@ -366,7 +376,14 @@ class SubProcessWidget(QtGui.QWidget):
     def _start_next(self):
         self._delete_args_file()
         dir, args = self.commands.pop(0)
-        args = ' '.join('"%s"' % a.replace('"', '\\"') for a in args)
+        
+        def format_arg(a):
+            # Don't quote revision arg.
+            if a.startswith("-r"):
+                return a
+            return '"%s"' % a.replace('"', '\\"')
+        
+        args = ' '.join(format_arg(a) for a in args)
         if MS_WINDOWS:
             # win32 has command-line length limit about 32K
             if len(args) > 31000:
