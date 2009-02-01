@@ -70,7 +70,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         if has_ext_diff():
             self.diff_menu = ExtDiffMenu(self)
             self.context_menu.addMenu(self.diff_menu)
-            self.connect(self.diff_menu, QtCore.SIGNAL("triggered(QAction *)"),
+            self.connect(self.diff_menu, QtCore.SIGNAL("triggered(QString)"),
                          self.show_differences)
             self.show_diff_ui = self.diff_menu
         else:
@@ -249,15 +249,10 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
     def itemDoubleClicked(self, items=None, column=None):
         self.show_differences()
     
-    def show_differences(self, action=None):
+    def show_differences(self, ext_diff=None):
         """Show differences between the working copy and the last revision."""
         if not self.show_diff_ui.isEnabled():
             return
-        
-        if action:
-            ext_diff = unicode(action.data().toString())
-        else:
-            ext_diff = None
         
         entries = [desc.path() for desc in self.iter_selection()]
         if entries:

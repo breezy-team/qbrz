@@ -29,6 +29,7 @@ from bzrlib.plugins.qbzr.lib.extdiff import (
     show_diff,
     has_ext_diff,
     ExtDiffMenu,
+    DiffButtons,
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
@@ -549,31 +550,28 @@ class LogWindow(QBzrWindow):
                      QtCore.SIGNAL("clicked()"),
                      self.load)
 
-        self.diffbutton = QtGui.QPushButton(gettext('Diff'),
-            self.centralwidget)
-        self.diffbutton.setEnabled(False)
+        self.diffbuttons = DiffButtons(self.centralwidget)
+        self.diffbuttons.setEnabled(False)
+        self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
+                     self.diff_pushed)
 
         self.contextMenu = QtGui.QMenu(self)
         if has_ext_diff():
-            self.diffMenu = ExtDiffMenu(self)
-            self.diffbutton.setMenu(self.diffMenu)
-            self.contextMenu.addMenu(self.diffMenu)
-            self.connect(self.diffMenu, QtCore.SIGNAL("triggered(QAction *)"),
+            diffMenu = ExtDiffMenu(self)
+            self.contextMenu.addMenu(diffMenu)
+            self.connect(diffMenu, QtCore.SIGNAL("triggered(QString)"),
                          self.diff_pushed)
         else:
-            self.connect(self.diffbutton, QtCore.SIGNAL("clicked(bool)"),
-                         self.diff_pushed)
-            
-            self.show_diff_action = self.contextMenu.addAction(
+            show_diff_action = self.contextMenu.addAction(
                 gettext("Show &differences..."), self.diff_pushed)
-            self.contextMenu.setDefaultAction(self.show_diff_action)
+            self.contextMenu.setDefaultAction(show_diff_action)
         
         self.contextMenu.addAction(gettext("Show &tree..."), self.show_revision_tree)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)
         hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(self.diffbutton)
+        hbox.addWidget(self.diffbuttons)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
         self.windows = []
@@ -712,10 +710,10 @@ class LogWindow(QBzrWindow):
         indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
         self.fileList.clear()
         if not indexes:
-            self.diffbutton.setEnabled(False)
+            self.diffbuttons.setEnabled(False)
             self.message.setHtml("")
         else:
-            self.diffbutton.setEnabled(True)
+            self.diffbuttons.setEnabled(True)
             index = indexes[0]
             revid = str(index.data(logmodel.RevIdRole).toString())
             rev = self.changesModel.revision(revid)
@@ -760,13 +758,11 @@ class LogWindow(QBzrWindow):
             rev = self.current_rev
             self.show_diff_window(rev, rev, [unicode(path)])
 
-    def diff_pushed(self, action = None):
+    def diff_menu_item_pushed(self, action):
+        self.diff_pushed()
+    
+    def diff_pushed(self, ext_diff = None):
         """Show differences of the selected range or of a single revision"""
-        if action:
-            ext_diff = unicode(action.data().toString())
-        else:
-            ext_diff = None
-        
         indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
         if not indexes:
             # the list is empty

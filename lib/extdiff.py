@@ -95,6 +95,39 @@ class ExtDiffMenu(QtGui.QMenu):
             if command == default_diff:
                 self.setDefaultAction(action)
             self.addAction(action)
+        
+        self.connect(self, QtCore.SIGNAL("triggered(QAction *)"),
+                     self.triggered)
     
+    def triggered(self, action):
+        ext_diff = unicode(action.data().toString())
+        self.emit(QtCore.SIGNAL("triggered(QString)"), QtCore.QString(ext_diff))
+    
+class DiffButtons(QtGui.QWidget):
+    
+    def __init__(self, parent = None):
+        QtGui.QWidget.__init__(self, parent)
+        layout = QtGui.QHBoxLayout(self)
+        
+        self.default_button = QtGui.QPushButton(gettext('Diff'),
+                                                 self)
+        layout.addWidget(self.default_button)
+        layout.setSpacing(0)
+        self.connect(self.default_button,
+                     QtCore.SIGNAL("clicked()"),
+                     self.triggered)
+        
+        if has_ext_diff():
+            self.menu = ExtDiffMenu(self)
+            self.menu_button = QtGui.QPushButton("",
+                                                 self)
+            layout.addWidget(self.menu_button)
+            self.menu_button.setMenu(self.menu)
+            self.connect(self.menu, QtCore.SIGNAL("triggered(QString)"),
+                         self.triggered)
 
+    def triggered(self, ext_diff=None):
+        if ext_diff is None:
+            ext_diff = QtCore.QString(default_diff)
+        self.emit(QtCore.SIGNAL("triggered(QString)"), ext_diff)
 
