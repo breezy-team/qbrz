@@ -163,7 +163,7 @@ class DiffWindow(QBzrWindow):
         complete.setChecked(self.complete);
         
         if has_ext_diff():
-            self.menu = ExtDiffMenu()
+            self.menu = ExtDiffMenu(include_builtin = False)
             ext_diff_button = QtGui.QPushButton(gettext('Using'), self)
             ext_diff_button.setMenu(self.menu)
             self.connect(self.menu, QtCore.SIGNAL("triggered(QString)"),
