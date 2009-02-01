@@ -20,6 +20,15 @@ Requirements
    http://pyenchant.sourceforge.net/
 
 
+Other bzr plugins that improve QBzr
+===================================
+
+ * bzr-search (Makes searching in log faster)
+   https://launchpad.net/bzr-search
+
+ * bzr-difftools (Improves the usability of launching external diffs)
+   https://launchpad.net/bzr-difftools
+
 Provided Commands
 =================
 
