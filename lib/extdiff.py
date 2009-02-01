@@ -20,7 +20,6 @@
 from bzrlib.plugins.qbzr.lib.util import ( 
     QBzrGlobalConfig,
     )
-from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from PyQt4 import QtCore, QtGui
@@ -42,6 +41,10 @@ def show_diff(old_revid, new_revid, old_branch, new_branch, new_wt = None,
         ext_diff = default_diff
     
     if ext_diff == "":
+        
+        # We can't import this globaly becuse it ties to import us,
+        # which causes and Import Error.
+        from bzrlib.plugins.qbzr.lib.diff import DiffWindow
         old_tree = old_branch.repository.revision_tree(old_revid)
         if new_wt:
             new_tree = new_wt
