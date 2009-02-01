@@ -292,16 +292,17 @@ class LogGraphProvider():
                 else:
                     self.tags[revid] = set(tags)
 
+    def repos_cmp_local_higher(self, x, y):
+        if x.is_local and not y.is_local:
+            return 1
+        if y.is_local and not x.is_local:
+            return -1
+        return 0
+    
     def repos_sorted_local_first(self):
-        def cmp(x, y):
-            if x.is_local and not y.is_local:
-                return 1
-            if y.is_local and not x.is_local:
-                return -1
-            return 0
         return sorted([repo 
                        for repo in self.repos.itervalues()],
-                       cmp)
+                       self.repos_cmp_local_higher)
 
     def load_graph_all_revisions(self):
         parents_providers = [repo._make_parents_provider() \
@@ -344,19 +345,20 @@ class LogGraphProvider():
         def get_revid_head(heads):
             map = {}
             for i in xrange(1, len(heads)):
+                prev_revids = [revid for revid, head in heads[:i-1]]
                 for ancestor_revid in graph.find_unique_ancestors(heads[i][0],
-                                                                heads[:i-1][0]):
+                                                                prev_revids):
                     map[ancestor_revid] = heads[i][1]
             return map
         
         self.revid_head_revid = \
-                get_revid_head([(revid, revid) for revid in self.head_revids])
+                get_revid_head([(revid,revid) for revid in self.head_revids])
         
-        head_revid_repo = sorted([(revid, branch.repository.base) \
+        head_revid_repo = sorted([(revid, branch.repository) \
                                   for revid, head_info in \
                                   self.revid_head_info.iteritems()
                                   for (branch, tag, lr) in head_info],
-                                 lambda x: self.repos_sorted_local_first.cmp(x[1]))
+            lambda x, y: self.repos_cmp_local_higher(x[1], y[1]))
         self.default_repo = head_revid_repo[0][1]
         self.revid_repo = get_revid_head(head_revid_repo)
         
@@ -1139,8 +1141,8 @@ class LogGraphProvider():
         
         for revid in revids:
             if revid not in self.revisions:
-                repo_base = self.get_revid_repo(revid)
-                repo_revids[repo_base].append(revid)
+                repo = self.get_revid_repo(revid)
+                repo_revids[repo.base].append(revid)
         
         return repo_revids
     
@@ -1208,7 +1210,7 @@ class LogGraphProvider():
         revision.child_ids = self.graph_children[revision.revision_id]
         
         if revision.revision_id in self.revid_head_revid:
-            head_revid = self.revid_head_revid[revid]
+            head_revid = self.revid_head_revid[revision.revision_id]
         else:
             head_revid = self.head_revids[0]
         revision.branch = self.revid_head_info[head_revid][0][0]
