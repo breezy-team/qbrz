@@ -34,6 +34,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     QBzrDialog,
     extract_name,
+    QBzrGlobalConfig,
     )
 
 
@@ -50,6 +51,18 @@ _mail_clients = [
 
 _bug_tracker_re = re.compile('bugtracker_(.+?)_url')
 
+class QRadioCheckItemDelegate(QtGui.QItemDelegate):
+    
+    def drawCheck (self, painter, option, rect, state):
+        style = self.parent().style()
+        radioOption = QtGui.QStyleOptionButton()
+        radioOption.rect = option.rect
+        radioOption.state = option.state
+        if state:
+            radioOption.state = radioOption.state | QtGui.QStyle.State_On
+        style.drawControl(QtGui.QStyle.CE_RadioButton,
+                          radioOption,
+                          painter)
 
 class QBzrConfigWindow(QBzrDialog):
 
@@ -133,11 +146,44 @@ class QBzrConfigWindow(QBzrDialog):
         bugTrackersVBox = QtGui.QVBoxLayout(bugTrackersWidget)
         bugTrackersVBox.addWidget(self.bugTrackersList)
         bugTrackersVBox.addLayout(bugTrackersHBox)
+        
+        diffWidget = QtGui.QWidget()
 
+        self.diffShowIntergroupColors = QtGui.QCheckBox(gettext("Show inter-group inserts and deletes in green and red"), diffWidget)
+        
+        label = QtGui.QLabel(gettext("External Diff Apps:"))
+        self.extDiffList = QtGui.QTreeWidget(diffWidget)
+        self.extDiffList.setRootIsDecorated(False)
+        self.extDiffList.setHeaderLabels([gettext("Name"),
+                                          gettext("Command")])
+        self.extDiffList.setItemDelegateForColumn(0,
+            QRadioCheckItemDelegate(self.extDiffList))
+        self.connect(self.extDiffList, QtCore.SIGNAL("itemChanged (QTreeWidgetItem *,int)"),
+                     self.extDiffListItemChanged)        
+
+        addExtDiffButton = QtGui.QPushButton(gettext("Add"), diffWidget)
+        self.connect(addExtDiffButton, QtCore.SIGNAL("clicked()"),
+                     self.addExtDiff)
+        removeExtDiffButton = QtGui.QPushButton(gettext("Remove"), diffWidget)
+        self.connect(removeExtDiffButton, QtCore.SIGNAL("clicked()"),
+                     self.removeExtDiff)
+
+        extDiffButtonsLayout = QtGui.QHBoxLayout()
+        extDiffButtonsLayout.addWidget(addExtDiffButton)
+        extDiffButtonsLayout.addWidget(removeExtDiffButton)
+        extDiffButtonsLayout.addStretch()
+
+        diffLayout = QtGui.QVBoxLayout(diffWidget)
+        diffLayout.addWidget(self.diffShowIntergroupColors)
+        diffLayout.addWidget(label)
+        diffLayout.addWidget(self.extDiffList)
+        diffLayout.addLayout(extDiffButtonsLayout)
+        
         tabwidget.addTab(generalWidget, gettext("General"))
         tabwidget.addTab(aliasesWidget, gettext("Aliases"))
         tabwidget.addTab(bugTrackersWidget, gettext("Bug Trackers"))
         tabwidget.addTab(self.getGuiTabWidget(), gettext("&User Interface"))
+        tabwidget.addTab(diffWidget, gettext("&Diff"))
 
         buttonbox = self.create_button_box(BTN_OK, BTN_CANCEL)
 
@@ -174,6 +220,9 @@ class QBzrConfigWindow(QBzrDialog):
         """Load the configuration."""
         config = GlobalConfig()
         parser = config._get_parser()
+        
+        qconfig = QBzrGlobalConfig()
+        qparser = qconfig._get_parser()
 
         # Name & e-mail
         username = config.username()
@@ -227,11 +276,46 @@ class QBzrConfigWindow(QBzrDialog):
                           QtCore.Qt.ItemIsEnabled)
             item.setText(0, abbreviation)
             item.setText(1, value)
+        
+        # Diff
+        self.diffShowIntergroupColors.setChecked(qconfig.get_user_option("diff_show_intergroup_colors") in ("True", "1"))
+        defaultDiff = qconfig.get_user_option("default_diff")
+        if defaultDiff is None:
+            defaultDiff = ""
+
+        self.extDiffListIgnore = True
+        def create_ext_diff_item(name, command):
+            item = QtGui.QTreeWidgetItem(self.extDiffList)
+            item.setFlags(QtCore.Qt.ItemIsSelectable |
+                          QtCore.Qt.ItemIsEditable |
+                          QtCore.Qt.ItemIsEnabled |
+                          QtCore.Qt.ItemIsUserCheckable)
+            if command == defaultDiff:
+                item.setCheckState(0, QtCore.Qt.Checked)
+            else:
+                item.setCheckState(0, QtCore.Qt.Unchecked)
+            
+            item.setText(0, name)
+            item.setText(1, command)
+            return item
+            
+        builtin = create_ext_diff_item(gettext("Builtin Diff"),"")
+        builtin.setFlags(QtCore.Qt.ItemIsSelectable |
+                      QtCore.Qt.ItemIsEnabled |
+                      QtCore.Qt.ItemIsUserCheckable)        
+        
+        extDiffs = qparser.get('EXTDIFF', {})
+        for name, command in extDiffs.items():
+            create_ext_diff_item(name, command)
+        self.extDiffListIgnore = False
 
     def save(self):
         """Save the configuration."""
         config = GlobalConfig()
         parser = config._get_parser()
+
+        qconfig = QBzrGlobalConfig()
+        qparser = qconfig._get_parser()
 
         if 'DEFAULT' not in parser:
             parser['DEFAULT'] = {}
@@ -242,7 +326,7 @@ class QBzrConfigWindow(QBzrDialog):
             unicode(self.emailEdit.text()))
         parser['DEFAULT']['email'] = username
 
-        def set_or_delete_option(name, value):
+        def set_or_delete_option(parser, name, value):
             if value:
                 parser['DEFAULT'][name] = value
             else:
@@ -253,17 +337,17 @@ class QBzrConfigWindow(QBzrDialog):
 
         # Editor
         editor = unicode(self.editorEdit.text())
-        set_or_delete_option('editor', editor)
+        set_or_delete_option(parser, 'editor', editor)
 
         # E-mail client
         index = self.emailClientCombo.currentIndex()
         mail_client = unicode(self.emailClientCombo.itemData(index).toString())
-        set_or_delete_option('mail_client', mail_client)
+        set_or_delete_option(parser, 'mail_client', mail_client)
 
         # Spellcheck language
         index = self.spellcheck_language_combo.currentIndex()
         spellcheck_language = unicode(self.spellcheck_language_combo.itemData(index).toString())
-        set_or_delete_option('spellcheck_language', spellcheck_language)
+        set_or_delete_option(parser, 'spellcheck_language', spellcheck_language)
 
         # Aliases
         parser['ALIASES'] = {}
@@ -288,10 +372,31 @@ class QBzrConfigWindow(QBzrDialog):
             if abbrev and url:
                 parser['DEFAULT']['bugtracker_%s_url' % abbrev] = url
 
-        ensure_config_dir_exists(os.path.dirname(config._get_filename()))
-        f = open(config._get_filename(), 'wb')
-        parser.write(f)
-        f.close()
+        # Diff
+        set_or_delete_option(qparser, 'diff_show_intergroup_colors',
+                             self.diffShowIntergroupColors.isChecked())
+        defaultDiff = None
+        
+        qparser['EXTDIFF'] = {}
+        for index in range(1, self.extDiffList.topLevelItemCount()):
+            item = self.extDiffList.topLevelItem(index)
+            name = unicode(item.text(0))
+            command = unicode(item.text(1))
+            if item.checkState(0) == QtCore.Qt.Checked:
+                defaultDiff = command
+            if name and command:
+                qparser['EXTDIFF'][name] = command
+        set_or_delete_option(qparser, 'default_diff',
+                             defaultDiff)
+        
+        def save_config(config, parser):
+            ensure_config_dir_exists(os.path.dirname(config._get_filename()))
+            f = open(config._get_filename(), 'wb')
+            parser.write(f)
+            f.close()
+        
+        save_config(config, parser)
+        save_config(qconfig, qparser)
 
     def accept(self):
         """Save changes and close the window."""
@@ -329,3 +434,40 @@ class QBzrConfigWindow(QBzrDialog):
             index = self.bugTrackersList.indexOfTopLevelItem(item)
             if index >= 0:
                 self.bugTrackersList.takeTopLevelItem(index)
+
+    def addExtDiff(self):
+        item = QtGui.QTreeWidgetItem(self.extDiffList)
+        item.setFlags(QtCore.Qt.ItemIsSelectable |
+                      QtCore.Qt.ItemIsEditable |
+                      QtCore.Qt.ItemIsEnabled |
+                      QtCore.Qt.ItemIsUserCheckable)
+        item.setCheckState(0, QtCore.Qt.Unchecked)
+        self.extDiffList.setCurrentItem(item)
+        self.extDiffList.editItem(item, 0)
+
+    def removeExtDiff(self):
+        for item in self.extDiffList.selectedItems():
+            index = self.extDiffList.indexOfTopLevelItem(item)
+            if index >= 1: # You can't remove the builtin diff
+                self.extDiffList.takeTopLevelItem(index)
+    
+    def extDiffListItemChanged(self, changed_item, col):
+        if col == 0 and not self.extDiffListIgnore:
+            checked_count = 0
+            for index in range(self.extDiffList.topLevelItemCount()):
+                item = self.extDiffList.topLevelItem(index)
+                if item.checkState(0) == QtCore.Qt.Checked:
+                    checked_count += 1
+            
+            if checked_count == 0:
+                self.extDiffListIgnore = True
+                changed_item.setCheckState(0, QtCore.Qt.Checked)
+                self.extDiffListIgnore = False
+            elif checked_count > 1:
+                self.extDiffListIgnore = True
+                for index in range(self.extDiffList.topLevelItemCount()):
+                    item = self.extDiffList.topLevelItem(index)
+                    if item.checkState(0) == QtCore.Qt.Checked:
+                        item.setCheckState(0, QtCore.Qt.Unchecked)
+                changed_item.setCheckState(0, QtCore.Qt.Checked)
+                self.extDiffListIgnore = False

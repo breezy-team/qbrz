@@ -23,6 +23,12 @@ from bzrlib import osutils
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
+from bzrlib.plugins.qbzr.lib.extdiff import (
+    show_diff,
+    has_ext_diff,
+    ExtDiffMenu,
+    DiffButtons,
+    )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
@@ -176,21 +182,28 @@ class LogWindow(QBzrWindow):
                      QtCore.SIGNAL("clicked()"),
                      self.refresh)
 
-        self.diffbutton = QtGui.QPushButton(gettext('Diff'),
-            self.centralwidget)
-        self.diffbutton.setEnabled(False)
-        self.connect(self.diffbutton, QtCore.SIGNAL("clicked(bool)"), self.diff_pushed)
+        self.diffbuttons = DiffButtons(self.centralwidget)
+        self.diffbuttons.setEnabled(False)
+        self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
+                     self.diff_pushed)
 
         self.contextMenu = QtGui.QMenu(self)
-        self.show_diff_action = self.contextMenu.addAction(
-            gettext("Show &differences..."), self.diff_pushed)
+        if has_ext_diff():
+            diffMenu = ExtDiffMenu(self)
+            self.contextMenu.addMenu(diffMenu)
+            self.connect(diffMenu, QtCore.SIGNAL("triggered(QString)"),
+                         self.diff_pushed)
+        else:
+            show_diff_action = self.contextMenu.addAction(
+                gettext("Show &differences..."), self.diff_pushed)
+            self.contextMenu.setDefaultAction(show_diff_action)
+        
         self.contextMenu.addAction(gettext("Show &tree..."), self.show_revision_tree)
-        self.contextMenu.setDefaultAction(self.show_diff_action)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)
         hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(self.diffbutton)
+        hbox.addWidget(self.diffbuttons)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
         self.windows = []
@@ -327,10 +340,10 @@ class LogWindow(QBzrWindow):
         indexes = [index for index in self.log_list.selectedIndexes() if index.column()==0]
         self.fileList.clear()
         if not indexes:
-            self.diffbutton.setEnabled(False)
+            self.diffbuttons.setEnabled(False)
             self.message.setHtml("")
         else:
-            self.diffbutton.setEnabled(True)
+            self.diffbuttons.setEnabled(True)
             index = indexes[0]
             revid = str(index.data(logmodel.RevIdRole).toString())
             rev = self.log_list.graph_provider.revision(revid)
@@ -344,39 +357,22 @@ class LogWindow(QBzrWindow):
                 pass
 
     @ui_current_widget
-    def show_diff_window(self, rev1, rev2, specific_files=None):
+    def show_diff_window(self, rev1, rev2, specific_files=None, ext_diff = None):
+        new_revid = rev1.revision_id
+        new_branch = self.changesModel.revisionHeadInfo(new_revid)[0][0]
+        
         if not rev2.parent_ids:
-            rev1.repository.lock_read()
-            try:
-                tree = rev1.repository.revision_tree(rev1.revision_id)
-                old_tree = rev1.repository.revision_tree(None)
-            finally:
-                rev1.repository.unlock()
-        elif rev1.repository.base == rev2.repository.base:
-            rev1.repository.lock_read()
-            try:
-                revs = [rev1.revision_id, rev2.parent_ids[0]]
-                tree, old_tree = rev1.repository.revision_trees(revs)
-            finally:
-                rev1.repository.unlock()
+            old_revid = None
+            old_branch = new_branch
         else:
-            rev1.repository.lock_read()
-            rev2.repository.lock_read()
-            try:
-                tree = rev1.repository.revision_tree(rev1.revision_id)
-                old_tree = rev2.repository.revision_tree(rev2.parent_ids[0])
-            finally:
-                rev1.repository.unlock()
-                rev2.repository.unlock()
-        
-        rev1_head_info = self.changesModel.revisionHeadInfo(rev1.revision_id)
-        rev2_head_info = self.changesModel.revisionHeadInfo(rev2.revision_id)
-        
-        window = DiffWindow(old_tree, tree,
-                            rev2_head_info[0][0], rev1_head_info[0][0],
-                            specific_files=specific_files)
-        window.show()
-        self.windows.append(window)
+            old_revid = rev2.parent_ids[0]
+            old_branch =  self.changesModel.revisionHeadInfo(old_revid)[0][0]
+
+        show_diff(old_revid, new_revid,
+                 old_branch, new_branch,
+                 ext_diff = ext_diff,
+                 specific_files=specific_files,
+                 parent_window = self)
 
     def show_differences(self, index):
         """Show differences of a single revision"""
@@ -394,7 +390,10 @@ class LogWindow(QBzrWindow):
             rev = self.current_rev
             self.show_diff_window(rev, rev, [unicode(path)])
 
-    def diff_pushed(self):
+    def diff_menu_item_pushed(self, action):
+        self.diff_pushed()
+    
+    def diff_pushed(self, ext_diff = None):
         """Show differences of the selected range or of a single revision"""
         indexes = [index for index in self.log_list.selectedIndexes() if index.column()==0]
         if not indexes:
@@ -404,7 +403,7 @@ class LogWindow(QBzrWindow):
         rev1 = self.changesModel.revision(revid1)
         revid2 = str(indexes[-1].data(logmodel.RevIdRole).toString())
         rev2 = self.changesModel.revision(revid2)
-        self.show_diff_window(rev1, rev2)
+        self.show_diff_window(rev1, rev2, ext_diff = ext_diff)
 
     @ui_current_widget
     def update_search(self):
@@ -493,10 +492,6 @@ class LogWindow(QBzrWindow):
         self.windows.append(window)
 
     def show_context_menu(self, pos):
-        index = self.log_list.indexAt(pos)
-        revid = str(index.data(logmodel.RevIdRole).toString())
-        rev = self.log_list.graph_provider.revision(revid)
-        #print index, item, rev
         self.contextMenu.popup(self.log_list.viewport().mapToGlobal(pos))
 
     def _locations_for_title(self, locations):

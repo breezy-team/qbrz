@@ -23,7 +23,7 @@
 
 import operator, sys, time
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib.diff import DiffWindow
+from bzrlib.plugins.qbzr.lib.extdiff import show_diff
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
@@ -290,23 +290,19 @@ class AnnotateWindow(QBzrWindow):
     def show_revision_diff(self, index):
         item = self.changes.itemFromIndex(index)
         rev = self.itemToRev[item]
-        repo = self.branch.repository
-        repo.lock_read()
-        try:
-            if not rev.parent_ids:
-                revs = [rev.revision_id]
-                tree = repo.revision_tree(rev.revision_id)
-                old_tree = repo.revision_tree(None)
-            else:
-                revs = [rev.revision_id, rev.parent_ids[0]]
-                tree, old_tree = repo.revision_trees(revs)
-        finally:
-            repo.unlock()
-        window = DiffWindow(old_tree, tree,
-                            self.branch, self.branch,
-                            )
-        window.show()
-        self.windows.append(window)
+        new_revid = rev.revision_id
+        if not rev.parent_ids:
+            old_revid = None
+        else:
+            old_revid = rev.parent_ids[0]
+        
+        tree = self.branch.basis_tree()
+        file_path = tree.id2path(self.fileId)
+        
+        show_diff(old_revid, new_revid,
+                 self.branch, self.branch,
+                 specific_files=[file_path],
+                 parent_window = self)
 
     def linkClicked(self, url):
         open_browser(str(url.toEncoded()))

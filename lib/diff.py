@@ -32,11 +32,18 @@ from bzrlib.revisiontree import RevisionTree
 from bzrlib.transform import _PreviewTree
 from bzrlib.workingtree import WorkingTree
 from bzrlib.workingtree_4 import DirStateRevisionTree
+from bzrlib import trace
 
 from bzrlib.plugins.qbzr.lib.diffview import (
     SidebySideDiffView,
     SimpleDiffView,
     )
+from bzrlib.plugins.qbzr.lib.extdiff import (
+    show_diff,
+    has_ext_diff,
+    ExtDiffMenu,
+    )
+
 from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE, BTN_REFRESH,
@@ -155,6 +162,13 @@ class DiffWindow(QBzrWindow):
                      QtCore.SIGNAL("clicked(bool)"),
                      self.click_complete)
         complete.setChecked(self.complete);
+        
+        if has_ext_diff():
+            self.menu = ExtDiffMenu(include_builtin = False)
+            ext_diff_button = QtGui.QPushButton(gettext('Using'), self)
+            ext_diff_button.setMenu(self.menu)
+            self.connect(self.menu, QtCore.SIGNAL("triggered(QString)"),
+                         self.ext_diff_triggered)
 
         buttonbox = self.create_button_box(BTN_CLOSE)
 
@@ -170,6 +184,8 @@ class DiffWindow(QBzrWindow):
         hbox.addWidget(diffsidebyside)
         hbox.addWidget(unidiff)
         hbox.addWidget(complete)
+        if has_ext_diff():
+            hbox.addWidget(ext_diff_button)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
 
@@ -203,13 +219,11 @@ class DiffWindow(QBzrWindow):
     def load_branch_info(self):
         # If a loader func was specified, call it to get our trees/branches.
         if self.loader_func is not None:
-            init_args = self.loader_func(*self.loader_args)
+            self.init_args = self.loader_func(*self.loader_args)
             self.loader_func = self.loader_args = None # kill extra refs...
-        else:
-            # otherwise they better have been passed to our ctor!
-            init_args = self.init_args
-        tree1, tree2, branch1, branch2, specific_files = init_args
-        init_args = self.init_args = None # kill extra refs...
+        
+        # otherwise they better have been passed to our ctor!
+        tree1, tree2, branch1, branch2, specific_files = self.init_args
 
         self.trees = (tree1, tree2)
         self.specific_files = specific_files
@@ -339,8 +353,12 @@ class DiffWindow(QBzrWindow):
                                     groups = list([matcher.get_opcodes()])
                                 else:
                                     groups = list(matcher.get_grouped_opcodes())
-                            lines = [[i.decode(encoding,'replace') for i in l]
-                                     for l, encoding in zip(lines, self.encodings)]
+                            try:
+                                lines = [[i.decode(encoding) for i in l]
+                                        for l, encoding in zip(lines, self.encodings)]
+                            except UnicodeDecodeError, e:
+                                trace.note('Failed to decode using %s, falling back to latin1' % e.encoding)
+                                lines = [[i.decode('latin1') for i in l] for l in lines]
                             data = ((),())
                         else:
                             groups = []
@@ -400,3 +418,31 @@ class DiffWindow(QBzrWindow):
         if isinstance(tree1, MutableTree) or isinstance(tree2, MutableTree):
             return True
         return False
+    
+    def ext_diff_triggered(self, ext_diff):
+        (old_tree,
+         new_tree,
+         old_branch,
+         new_branch,
+         specific_files) = self.init_args
+        
+        if isinstance(old_tree, (RevisionTree, DirStateRevisionTree)):
+            old_revid = old_tree.get_revision_id()
+        else:
+            raise NotImplementedError("I don't know how to get the \
+                                      revision id for %s" % tree1)
+        
+        
+        if isinstance(new_tree, WorkingTree):
+            new_revid = None
+            new_wt = new_tree
+        elif isinstance(new_tree, (RevisionTree, DirStateRevisionTree)):
+            new_revid = new_tree.get_revision_id()
+            new_wt = None
+        else:
+            raise NotImplementedError("I don't know how to get the \
+                                      revision id for %s" % tree1)
+        
+        show_diff(old_revid, new_revid, old_branch, new_branch, new_wt = new_wt,
+                  specific_files=specific_files, ext_diff=ext_diff,
+                  parent_window = self)
