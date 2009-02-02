@@ -34,7 +34,7 @@ from bzrlib.plugins.qbzr.lib.wtlist import (
 class RevertWindow(SubProcessDialog):
 
     def __init__(self, tree, selected_list, dialog=True, parent=None,
-                 local=None, message=None, ui_mode=True):
+                 local=None, message=None, ui_mode=True, backup=True):
         self.tree = tree
         self.initial_selected_list = selected_list
         
@@ -68,6 +68,13 @@ class RevertWindow(SubProcessDialog):
         selectall_checkbox.setEnabled(True)
         self.filelist.set_selectall_checkbox(selectall_checkbox)
         vbox.addWidget(selectall_checkbox)
+
+        self.no_backup_checkbox = QtGui.QCheckBox(
+            gettext('Do not save backups of reverted files'))
+        if not backup:
+            self.no_backup_checkbox.setCheckState(QtCore.Qt.Checked)
+        self.no_backup_checkbox.setEnabled(True)
+        vbox.addWidget(self.no_backup_checkbox)
 
         self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
 
@@ -104,9 +111,10 @@ class RevertWindow(SubProcessDialog):
     def start(self):
         """Revert the files."""
         args = ["revert"]
+        if self.no_backup_checkbox.checkState():
+            args.append("--no-backup")
         for desc in self.filelist.iter_checked():
             args.append(desc.path())
-        
         self.process_widget.start(self.tree.basedir, *args)
 
     def saveSize(self):
