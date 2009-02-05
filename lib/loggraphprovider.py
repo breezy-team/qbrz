@@ -1113,7 +1113,7 @@ class LogGraphProvider():
                                     before_batch_load = before_batch_load,
                                     revisions_loaded = revisions_loaded)
     
-    def revision(self, revid):
+    def revision(self, revid, force_load=False):
         """Load and return a revision from a repository.
         
         If loading from a remote repository, this function will return None,
@@ -1123,7 +1123,10 @@ class LogGraphProvider():
         
         """
         if revid not in self.revisions:
-            return None
+            if force_load:
+                self.load_revisions([revid])
+            else:
+                return None
         
         return self.revisions[revid]
     

@@ -346,15 +346,12 @@ class LogWindow(QBzrWindow):
             self.diffbuttons.setEnabled(True)
             index = indexes[0]
             revid = str(index.data(logmodel.RevIdRole).toString())
-            rev = self.log_list.graph_provider.revision(revid)
+            rev = self.log_list.graph_provider.revision(revid, force_load=True)
             self.current_rev = rev
-            if rev is not None:
-                replace = self.replace_config(rev.branch)
-                self.message.setHtml(format_revision_html(rev, replace))
-                self.revision_delta_timer.start(1)
-            else:
-                # XXX to do - notify me
-                pass
+            
+            replace = self.replace_config(rev.branch)
+            self.message.setHtml(format_revision_html(rev, replace))
+            self.revision_delta_timer.start(1)
 
     @ui_current_widget
     def show_diff_window(self, new_rev, old_rev, specific_files=None, ext_diff = None):
@@ -377,7 +374,7 @@ class LogWindow(QBzrWindow):
     def show_differences(self, index):
         """Show differences of a single revision"""
         revid = str(index.data(logmodel.RevIdRole).toString())
-        rev = self.changesModel.revision(revid)
+        rev = self.log_list.graph_provider.revision(revid, force_load=True)
         self.show_diff_window(rev, rev)
 
     def show_file_differences(self, index):
