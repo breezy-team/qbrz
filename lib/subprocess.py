@@ -613,8 +613,15 @@ if has_TextProgressView:
 
 class SubprocessUIFactory(ui.CLIUIFactory):
 
-    def __init__(self):
-        super(SubprocessUIFactory, self).__init__()
+    def __init__(self, stdin=None, stdout=None, stderr=None):
+        
+        # To be compatible with bzr < rev 3940 (1.12), we reimplement
+        # ui.CLIUIFactory.__init__
+        #ui.CLIUIFactory.__init__(self, stdin=None, stdout=None, stderr=None)
+        ui.UIFactory.__init__(self) 
+        self.stdin = stdin or sys.stdin 
+        self.stdout = stdout or sys.stdout 
+        self.stderr = stderr or sys.stderr
         
         if has_TextProgressView:
             self._progress_view = SubprocessProgressView(self.stdout)
@@ -630,7 +637,7 @@ class SubprocessUIFactory(ui.CLIUIFactory):
         if has_TextProgressView:
             return super(SubprocessUIFactory, self).nested_progress_bar()
         else:
-            # This is to be compatible with bzr < rev 3940
+            # This is to be compatible with bzr < rev 3940 (1.12)
             if self._progress_bar_stack is None: 
                 self._progress_bar_stack = progress.ProgressBarStack( 
                     klass=SubprocessProgress) 
