@@ -82,7 +82,7 @@ class LogWindow(QBzrWindow):
         self.restoreSize("log", (710, 580))
         
         self.branches = None
-        self.replace = None
+        self.replace = {}
         
         self.throbber = ThrobberWidget(self)
         
@@ -255,19 +255,15 @@ class LogWindow(QBzrWindow):
             self.refresh_button.setDisabled(True)            
             self.processEvents()
             try:
+                self.replace = {}
                 self.log_list.refresh()
-                self.load_branch_config()
             finally:
                 self.refresh_button.setDisabled(False)
         except:
             self.report_exception()
 
-    def load_branch_config(self):
-        self.replace = {}
-        for (tree,
-             branch,
-             repo,
-             index) in self.log_list.graph_provider.branches:
+    def replace_config(self, branch):
+        if branch.base not in self.replace:
             config = branch.get_config()
             replace = config.get_user_option("qlog_replace")
             if replace:
@@ -275,10 +271,7 @@ class LogWindow(QBzrWindow):
                 replace = [tuple(replace[2*i:2*i+2])
                                 for i in range(len(replace) // 2)]
             self.replace[branch.base] = replace
-    
-    def replace_config(self, branch):
-        if not self.replace:
-            self.load_branch_config()
+        
         return self.replace[branch.base]
     
     def show(self):
