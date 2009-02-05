@@ -411,6 +411,7 @@ class SubProcessWidget(QtGui.QWidget):
 
     def abort(self):
         if self.is_running():
+            self.abort_futher_processes()
             if not self.aborting:
                 self.aborting = True
                 if MS_WINDOWS:
@@ -422,6 +423,9 @@ class SubProcessWidget(QtGui.QWidget):
                 self.setProgress(None, [gettext("Aborting...")])
             else:
                 self.process.terminate()
+    
+    def abort_futher_processes(self):
+        self.commands = []
     
     def setProgress(self, progress, messages, transport_activity=None):
         if progress is not None:
@@ -452,7 +456,7 @@ class SubProcessWidget(QtGui.QWidget):
                 data = unicode(passwd).encode('utf-8'), int(ok)
                 self.process.write("qbzr:GETPASS:"+bencode.bencode(data)+"\n")
                 if not ok:
-                    self.abort()
+                    self.abort_futher_processes()
             else:
                 self.logMessage(line)
                 if not self.ui_mode:
@@ -674,7 +678,9 @@ class SubprocessUIFactory(ui.CLIUIFactory):
             passwd, accepted = bencode.bdecode(line[13:].rstrip('\r\n'))
             if accepted:
                 return passwd
-        return ''
+            else:
+                raise KeyboardInterrupt()
+        raise Exception("Did not recive a password from the main process.")
     
 
 if MS_WINDOWS:
