@@ -449,10 +449,9 @@ class SubProcessWidget(QtGui.QWidget):
                                                         gettext("Enter Password"),
                                                         prompt,
                                                         QtGui.QLineEdit.Password)
-                if ok:
-                    data = unicode(passwd).encode('utf-8'), 
-                    self.process.write("qbzr:GETPASS:"+bencode.bencode(data)+"\n")
-                else:
+                data = unicode(passwd).encode('utf-8'), ok
+                self.process.write("qbzr:GETPASS:"+bencode.bencode(data)+"\n")
+                if not ok:
                     self.abort()
             else:
                 self.logMessage(line)
@@ -672,8 +671,9 @@ class SubprocessUIFactory(ui.CLIUIFactory):
         self.stdout.flush()
         line = self.stdin.readline()
         if line.startswith('qbzr:GETPASS:'):
-            passwd, = bencode.bdecode(line[13:].rstrip('\r\n'))
-            return passwd
+            passwd, accepted = bencode.bdecode(line[13:].rstrip('\r\n'))
+            if accepted:
+                return passwd
         return ''
     
 
