@@ -449,7 +449,7 @@ class SubProcessWidget(QtGui.QWidget):
                                                         gettext("Enter Password"),
                                                         prompt,
                                                         QtGui.QLineEdit.Password)
-                data = unicode(passwd).encode('utf-8'), ok
+                data = unicode(passwd).encode('utf-8'), int(ok)
                 self.process.write("qbzr:GETPASS:"+bencode.bencode(data)+"\n")
                 if not ok:
                     self.abort()
