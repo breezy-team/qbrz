@@ -24,6 +24,7 @@ from build_mo import build_mo
 from build_pot import build_pot
 from build_ui import build_ui
 from check_py24 import check_py24
+from check_utf8 import check_utf8
 
 
 cmdclass = {
@@ -33,4 +34,5 @@ cmdclass = {
     'build_pot': build_pot,
     'build_ui': build_ui,
     'check_py24': check_py24,
+    'check_utf8': check_utf8,
 }

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # QBzr - Qt frontend to Bazaar commands
-# Copyright (C) 2006-2007 Lukáš Lalinský <lalinsky@gmail.com>
+# Copyright (C) 2006-2007 LukÃ¡Å¡ LalinskÃ½ <lalinsky@gmail.com>
 # Copyright (C) 2006 Trolltech ASA
 # Copyright (C) 2006 Jelmer Vernooij <jelmer@samba.org>
 #

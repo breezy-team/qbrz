@@ -86,10 +86,8 @@ class QUIFactory(ui.UIFactory):
             
             current_widget.throbber.transport.setText(msg)
         
-        QtCore.QCoreApplication.processEvents()
-        if current_widget and getattr(current_widget, 'closing', None) is not None \
-            and current_widget.closing:
-            raise StopException()
+        QtCore.QCoreApplication.processEvents(\
+                                QtCore.QEventLoop.ExcludeUserInputEvents)
 
     def get_password(self, prompt='', **kwargs):
         password, ok = QtGui.QInputDialog.getText(self.current_widget(),

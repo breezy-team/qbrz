@@ -411,6 +411,7 @@ class SubProcessWidget(QtGui.QWidget):
 
     def abort(self):
         if self.is_running():
+            self.abort_futher_processes()
             if not self.aborting:
                 self.aborting = True
                 if MS_WINDOWS:
@@ -422,6 +423,9 @@ class SubProcessWidget(QtGui.QWidget):
                 self.setProgress(None, [gettext("Aborting...")])
             else:
                 self.process.terminate()
+    
+    def abort_futher_processes(self):
+        self.commands = []
     
     def setProgress(self, progress, messages, transport_activity=None):
         if progress is not None:
@@ -449,11 +453,10 @@ class SubProcessWidget(QtGui.QWidget):
                                                         gettext("Enter Password"),
                                                         prompt,
                                                         QtGui.QLineEdit.Password)
-                if ok:
-                    data = unicode(passwd).encode('utf-8'), 
-                    self.process.write("qbzr:GETPASS:"+bencode.bencode(data)+"\n")
-                else:
-                    self.abort()
+                data = unicode(passwd).encode('utf-8'), int(ok)
+                self.process.write("qbzr:GETPASS:"+bencode.bencode(data)+"\n")
+                if not ok:
+                    self.abort_futher_processes()
             else:
                 self.logMessage(line)
                 if not self.ui_mode:
@@ -613,8 +616,15 @@ if has_TextProgressView:
 
 class SubprocessUIFactory(ui.CLIUIFactory):
 
-    def __init__(self):
-        super(SubprocessUIFactory, self).__init__()
+    def __init__(self, stdin=None, stdout=None, stderr=None):
+        
+        # To be compatible with bzr < rev 3940 (1.12), we reimplement
+        # ui.CLIUIFactory.__init__
+        #ui.CLIUIFactory.__init__(self, stdin=None, stdout=None, stderr=None)
+        ui.UIFactory.__init__(self) 
+        self.stdin = stdin or sys.stdin 
+        self.stdout = stdout or sys.stdout 
+        self.stderr = stderr or sys.stderr
         
         if has_TextProgressView:
             self._progress_view = SubprocessProgressView(self.stdout)
@@ -630,7 +640,7 @@ class SubprocessUIFactory(ui.CLIUIFactory):
         if has_TextProgressView:
             return super(SubprocessUIFactory, self).nested_progress_bar()
         else:
-            # This is to be compatible with bzr < rev 3940
+            # This is to be compatible with bzr < rev 3940 (1.12)
             if self._progress_bar_stack is None: 
                 self._progress_bar_stack = progress.ProgressBarStack( 
                     klass=SubprocessProgress) 
@@ -665,9 +675,12 @@ class SubprocessUIFactory(ui.CLIUIFactory):
         self.stdout.flush()
         line = self.stdin.readline()
         if line.startswith('qbzr:GETPASS:'):
-            passwd, = bencode.bdecode(line[13:].rstrip('\r\n'))
-            return passwd
-        return ''
+            passwd, accepted = bencode.bdecode(line[13:].rstrip('\r\n'))
+            if accepted:
+                return passwd
+            else:
+                raise KeyboardInterrupt()
+        raise Exception("Did not recive a password from the main process.")
     
 
 if MS_WINDOWS:

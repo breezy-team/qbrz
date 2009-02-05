@@ -861,7 +861,7 @@ def is_binary_content(lines):
             return True
     return False
 
-class BackgroundJob():
+class BackgroundJob(object):
     
     def __init__(self, parent):
         self.is_running = False
