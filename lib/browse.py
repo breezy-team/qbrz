@@ -200,8 +200,11 @@ class BrowseWindow(QBzrWindow):
         return pathjoin(*path_parts)
     
     @ui_current_widget
-    def show_file_content(self):
+    def show_file_content(self, index=None):
         """Launch qcat for one selected file."""
+        # XXX - We just ignore index - which gets passed to us when the user
+        # dbl clicks on a file. We should be able to pass index to
+        # get_current_path to make this more reusable.
         path = self.get_current_path()
 
         tree = self.branch.repository.revision_tree(self.revision_id)
