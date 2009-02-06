@@ -339,7 +339,19 @@ class LogWindow(QBzrWindow):
             self.diffbuttons.setEnabled(True)
             index = indexes[0]
             revid = str(index.data(logmodel.RevIdRole).toString())
-            rev = self.log_list.graph_provider.revision(revid, force_load=True)
+            rev = self.log_list.graph_provider.revision(revid)
+            parents_ids = self.log_list.graph_provider.graph_parents[revid]
+            child_ids = self.log_list.graph_provider.graph_children[revid]
+            self.log_list.graph_provider.load_revisions([revid] + \
+                                    list(parents_ids) + list(child_ids))
+            rev = self.log_list.graph_provider.revision(revid)
+            
+            if not hasattr(rev, "children"):
+                rev.children = [self.log_list.graph_provider.revision(revid)
+                                for revid in child_ids]
+            if not hasattr(rev, "parents"):
+                rev.parents = [self.log_list.graph_provider.revision(revid)
+                                for revid in parents_ids]
             self.current_rev = rev
             
             replace = self.replace_config(rev.branch)
