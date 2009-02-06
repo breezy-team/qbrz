@@ -54,11 +54,18 @@ class LogGraphProvider():
         The order of the heads is mantianed in this list.
         """
         self.revid_head_info = {}
-        """Dict of revid to a list of head_infos. head_info is a tuple of:
+        """Dict with a keys of head revid and value of
+            (list of head_infos,
+             list of revids that are unique to this head)
+        head_info is a tuple of:
             (branch,
             tag,
             is_branch_last_revision)
         """
+        self.branch_tags = {}
+        """Dict of revid to a list of branch tags. Depends on which revisions
+        are visible."""
+        
         
         self.merge_sorted_revisions = []
         self.msri_index = {}
@@ -236,15 +243,13 @@ class LogGraphProvider():
     def append_head_info(self, revid, branch, tag, is_branch_last_revision):
         if not revid in self.head_revids:
             self.head_revids.append(revid)
-            self.revid_head_info[revid] = []
-        self.revid_head_info[revid].append ((branch, tag,
-                                             is_branch_last_revision))
+            self.revid_head_info[revid] = ([],[])
+        self.revid_head_info[revid][0].append ((branch, tag,
+                                                is_branch_last_revision))
     
     def load_branch_heads(self):
         """Load the tips, tips of the pending merges, and revision of the
         working tree for each branch."""
-        
-        self.heads = {}
         
         for (tree, branch, repo, index) in self.branches:
             
@@ -345,7 +350,7 @@ class LogGraphProvider():
         def get_revid_head(heads):
             map = {}
             for i in xrange(1, len(heads)):
-                prev_revids = [revid for revid, head in heads[:i-1]]
+                prev_revids = [revid for revid, head in heads[:i]]
                 for ancestor_revid in graph.find_unique_ancestors(heads[i][0],
                                                                 prev_revids):
                     map[ancestor_revid] = heads[i][1]
@@ -354,8 +359,20 @@ class LogGraphProvider():
         self.revid_head_revid = \
                 get_revid_head([(revid,revid) for revid in self.head_revids])
         
+        for (sequence_number,
+             revid,
+             merge_depth,
+             revno_sequence,
+             end_of_merge) in self.merge_sorted_revisions:\
+            
+            if revid in self.revid_head_revid:
+                head_revid = self.revid_head_revid[revid]
+            else:
+                head_revid = self.head_revids[0]
+            self.revid_head_info[head_revid][1].append(revid)
+        
         head_revid_repo = sorted([(revid, branch.repository) \
-                                  for revid, head_info in \
+                                  for revid, (head_info, ur) in \
                                   self.revid_head_info.iteritems()
                                   for (branch, tag, lr) in head_info],
             lambda x, y: self.repos_cmp_local_higher(x[1], y[1]))
@@ -979,7 +996,24 @@ class LogGraphProvider():
                      parent_col_index,
                      parent_color,
                      direct))
-
+        
+        self.branch_tags = {}
+        for (revid, (head_info,
+                     unique_revids)) in self.revid_head_info.iteritems():
+            top_visible_revid = None
+            
+            for unique_revid in unique_revids:
+                msri = self.revid_msri[unique_revid]
+                if msri in msri_index:
+                    top_visible_revid = unique_revid
+                    break
+            
+            if top_visible_revid:
+                self.branch_tags[top_visible_revid] = \
+                    [tag for (branch,
+                              tag,
+                              is_branch_last_revision) in head_info]
+        
         self.graph_line_data = graph_line_data
         self.msri_index = msri_index
 
@@ -1216,7 +1250,7 @@ class LogGraphProvider():
             head_revid = self.revid_head_revid[revision.revision_id]
         else:
             head_revid = self.head_revids[0]
-        revision.branch = self.revid_head_info[head_revid][0][0]
+        revision.branch = self.revid_head_info[head_revid][0][0][0]
     
     def revisions_filter_changed(self):
         pass

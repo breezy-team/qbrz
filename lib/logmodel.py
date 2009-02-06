@@ -193,9 +193,9 @@ class LogModel(QtCore.QAbstractTableModel):
         
         if role == BranchTagsRole:
             tags = []
-            if revid in self.graph_provider.heads:
-                tags = [tag for (branch, tag, blr) \
-                        in self.graph_provider.heads[revid][1] if tag]
+            if revid in self.graph_provider.branch_tags:
+                tags = [tag for tag \
+                        in self.graph_provider.branch_tags[revid] if tag]
             return QtCore.QVariant(QtCore.QStringList(tags))
         
         if role == RevIdRole:
