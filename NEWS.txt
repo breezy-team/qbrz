@@ -1,6 +1,13 @@
 0.9.7 - in development
 ----------------------
- * Add the ability to configer, and use external diff tools from QBzr.
+ * Add the ability to configure, and use external diff tools from QBzr
+   (user need to have difftools plugin installed).
+ * qcommit:
+    * handle situation with huge list of committed files on Windows (#277077).
+    * properly show changed files when only executable bit changed.
+ * qconflicts: new command and new window to view and resolve conflicts.
+ * Properly stop running action with Cancel button on Windows.
+
 
 0.9.6 - 2009-01-10
 ----------------------
