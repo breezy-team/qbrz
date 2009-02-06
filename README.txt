@@ -66,6 +66,10 @@ Help translate
 
 You can help to translate QBzr interface to other languages.
 
+You can use either Launchpad trnaslations interface (it's preferable way) 
+see https://translations.launchpad.net/qbzr,
+or you can translate it offline, see instructions below.
+
 First at all you need to download from 
 http://bazaar.launchpad.net/~qbzr-dev/qbzr/trunk/files
 either `po/qbzr-XX.po` (where XX is your language and country code) 
