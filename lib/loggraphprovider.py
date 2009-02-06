@@ -172,8 +172,6 @@ class LogGraphProvider():
                 repo_brs = repo.find_branches(using=True)
                 self.update_ui()
                 
-                self.append_repo(repo)
-                
                 # Sort the loaded branches so that the trunk is first.
                 trunk_names = ["trunk", "bzr.dev", "dev"]
                 def branch_cmp_trunk_first(x,y):
@@ -195,7 +193,8 @@ class LogGraphProvider():
                     except errors.NoWorkingTree:
                         tree = None
                     index = self.open_search_index(br)
-                    self.branches.append((tree, br, repo, index))
+                    self.branches.append((tree, br, br.repository, index))
+                    self.append_repo(br.repository)
             else:
                 self.append_repo(repo)
                 index = self.open_search_index(br)
