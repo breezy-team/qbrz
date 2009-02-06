@@ -267,18 +267,18 @@ class LogGraphProvider():
                     if revid != branch_last_revision:
                         # working tree is out of date
                         if tag:
-                            append_head_info(revid, branch,
+                            self.append_head_info(revid, branch,
                                              "%s - Working Tree" % tag, False)
                         else:
-                            append_head_info(revid, branch,
+                            self.append_head_info(revid, branch,
                                              "Working Tree", False)
                     # other parents are pending merges
                     for revid in parent_ids[1:]:
                         if tag:
-                            append_head_info(revid, branch,
+                            self.append_head_info(revid, branch,
                                              "%s - Pending Merge" % tag, False)
                         else:
-                            append_head_info(revid, branch,
+                            self.append_head_info(revid, branch,
                                              "Pending Merge", False)
                 self.update_ui()
     
