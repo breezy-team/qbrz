@@ -27,7 +27,7 @@ from bzrlib import registry
 from bzrlib.commands import register_command, plugin_cmds
 
 
-version_info = (0, 9, 7, 'dev', 0)
+version_info = (0, 9, 7, 'final', 0)
 __version__ = '.'.join(map(str, version_info))
 
 

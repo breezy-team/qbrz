@@ -1,4 +1,4 @@
-0.9.7 - in development
+0.9.7 - 2009-02-09
 ----------------------
  * qcommit:
     * handle situation with huge list of committed files on Windows (#277077).
@@ -22,6 +22,7 @@
  * Properly stop running action with Cancel button on Windows.
  * Transport activity is displayed next to the throbbers/progress bars.
  * Password prompts are now displaied in qlog, qbrowse, qcat, qdiff, qannotate.
+
 
 0.9.6 - 2009-01-10
 ----------------------
