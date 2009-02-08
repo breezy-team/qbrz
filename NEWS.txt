@@ -1,13 +1,27 @@
 0.9.7 - in development
 ----------------------
- * Add the ability to configure, and use external diff tools from QBzr
-   (user need to have difftools plugin installed).
  * qcommit:
     * handle situation with huge list of committed files on Windows (#277077).
     * properly show changed files when only executable bit changed.
+    * fixed a bug, where if there is a lock on a brach, you could not close
+      the window.
  * qconflicts: new command and new window to view and resolve conflicts.
+ * qlog:
+    * removed the delay when loading revision form local repositories.
+    * when the search is, scroll so that the selected revision is kepted in
+      view.
+ * qdiff:
+    * Don't use replace when decoding texts, fall back to latin1 instead.
+      (Bug #323543 - side-by-side shows wrong changes highlighting for files
+      with non-ascii characters)
+ * qrevert:
+    * added --no-backup option. 
+ * Add the ability to configure, and use external diff tools from QBzr.
+   If the user has bzr-difftools - the usability of this funcaility is
+   improved.
  * Properly stop running action with Cancel button on Windows.
-
+ * Transport activity is displayed next to the throbbers/progress bars.
+ * Password prompts are now displaied in qlog, qbrowse, qcat, qdiff, qannotate.
 
 0.9.6 - 2009-01-10
 ----------------------
