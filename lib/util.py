@@ -865,16 +865,24 @@ class BackgroundJob(object):
         self.is_running = False
         self.stoping = False
         self.parent = parent
+        self.restart_timeout = None
     
     def run(self):
         pass
     
     def run_wrapper(self):
-            try:
-                self.run()
-            except:
-                self.parent.report_exception()
-            self.is_running = False
+        try:
+            self.run()
+        except:
+            self.parent.report_exception()
+        self.is_running = False
+        
+        if self.restart_timeout:
+            self.start(self.restart_timeout)
+    
+    def restart(self, timeout=0):
+        self.restart_timeout = timeout
+        raise StopException()
     
     def start(self, timeout=0):
         if not self.is_running:

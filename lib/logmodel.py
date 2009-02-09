@@ -107,6 +107,9 @@ class GraphModel(QtCore.QAbstractTableModel):
         
         self.load_queued_revisions = LoadQueuedRevisions(self)
         self.load_all_revisions = LoadAllRevisions(self)
+        
+        # Used for qick fix for bug 325924
+        self.is_loading_somthing = False
    
     def setGraphFilterProxyModel(self, graphFilterProxyModel):
         self.graphFilterProxyModel = graphFilterProxyModel
@@ -892,14 +895,17 @@ class GraphModel(QtCore.QAbstractTableModel):
     def _revision(self, revid):
         if revid not in self.revisions:
             revision = None
-            for repo in self.repos.itervalues():
-                try:
-                    revision = repo.get_revisions([revid])[0]
-                    revision.repository = repo
-                    break
-                except errors.NoSuchRevision:
-                    pass
-            
+            self.is_loading_somthing = True
+            try:
+                for repo in self.repos.itervalues():
+                    try:
+                        revision = repo.get_revisions([revid])[0]
+                        revision.repository = repo
+                        break
+                    except errors.NoSuchRevision:
+                        pass
+            finally:
+                self.is_loading_somthing = False
             self.post_revision_load(revision)
         else:
             revision = self.revisions[revid]
@@ -969,6 +975,9 @@ class LoadRevisionsBase(BackgroundJob):
     throbber_time = 0.5
 
     def run(self):
+        if self.parent.is_loading_somthing:
+            self.restart(1)
+        
         self.update_time = self.update_time_initial
         self.start_time = clock()
         self.last_update = clock()
@@ -987,31 +996,34 @@ class LoadRevisionsBase(BackgroundJob):
             self.parent.throbber_hide()
     
     def load_revisions(self, revision_ids):
-        for repo in self.parent.repos.itervalues():
-            keys = [(key,) for key in revision_ids]
-            stream = repo.revisions.get_record_stream(keys, 'unordered', True)
-            self.processEvents()
-            for record in stream:
-                if not record.storage_kind == 'absent':
-                    revision_ids.remove(record.key[0])
-                    self.revisions_loaded.append(record.key[0])
-                    text = record.get_bytes_as('fulltext')
-                    rev = repo._serializer.read_revision_from_string(text)
-                    rev.repository = repo
-                    self.parent.post_revision_load(rev)
-                    self.processEvents()
-                
-                current_time = clock()
-                if self.throbber_time < current_time - self.start_time:
-                    self.parent.throbber_show()
-                
-                if self.update_time < current_time - self.last_update:
-                    self.notifyChanges()
-                    self.update_time = max(self.update_time + self.update_time_increment,
-                                           self.update_time_max)
-                    self.processEvents()
-                    self.last_update = clock()
-        
+        self.parent.is_loading_somthing = True
+        try:
+            for repo in self.parent.repos.itervalues():
+                keys = [(key,) for key in revision_ids]
+                stream = repo.revisions.get_record_stream(keys, 'unordered', True)
+                self.processEvents()
+                for record in stream:
+                    if not record.storage_kind == 'absent':
+                        revision_ids.remove(record.key[0])
+                        self.revisions_loaded.append(record.key[0])
+                        text = record.get_bytes_as('fulltext')
+                        rev = repo._serializer.read_revision_from_string(text)
+                        rev.repository = repo
+                        self.parent.post_revision_load(rev)
+                        self.processEvents()
+                    
+                    current_time = clock()
+                    if self.throbber_time < current_time - self.start_time:
+                        self.parent.throbber_show()
+                    
+                    if self.update_time < current_time - self.last_update:
+                        self.notifyChanges()
+                        self.update_time = max(self.update_time + self.update_time_increment,
+                                               self.update_time_max)
+                        self.processEvents()
+                        self.last_update = clock()
+        finally:
+            self.parent.is_loading_somthing = False
         
         # This should never happen
         if len(revision_ids) > 0 :
