@@ -293,39 +293,46 @@ class LogWindow(QBzrWindow):
     @ui_current_widget
     def update_revision_delta(self):
         try:
-            rev = self.current_rev
-            if not hasattr(rev, 'delta'):
-                # TODO move this to a thread
-                rev.repository.lock_read()
-                self.processEvents()
+            if self.changesModel.is_loading_somthing:
+                self.revision_delta_timer.start(1)
+            else:
+                self.changesModel.is_loading_somthing = True
                 try:
-                    rev.delta = rev.repository.get_deltas_for_revisions(
-                        [rev]).next()
-                    self.processEvents()
+                    rev = self.current_rev
+                    if not hasattr(rev, 'delta'):
+                        # TODO move this to a thread
+                        rev.repository.lock_read()
+                        self.processEvents()
+                        try:
+                            rev.delta = rev.repository.get_deltas_for_revisions(
+                                [rev]).next()
+                            self.processEvents()
+                        finally:
+                            rev.repository.unlock()
+                            self.processEvents()
+                    if self.current_rev is not rev:
+                        # new update was requested, don't bother populating the list
+                        return
+                    delta = rev.delta
+            
+                    for path, id_, kind in delta.added:
+                        item = QtGui.QListWidgetItem(path, self.fileList)
+                        item.setTextColor(QtGui.QColor("blue"))
+            
+                    for path, id_, kind, text_modified, meta_modified in delta.modified:
+                        item = QtGui.QListWidgetItem(path, self.fileList)
+            
+                    for path, id_, kind in delta.removed:
+                        item = QtGui.QListWidgetItem(path, self.fileList)
+                        item.setTextColor(QtGui.QColor("red"))
+            
+                    for (oldpath, newpath, id_, kind,
+                        text_modified, meta_modified) in delta.renamed:
+                        item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
+                        item.setData(PathRole, QtCore.QVariant(newpath))
+                        item.setTextColor(QtGui.QColor("purple"))
                 finally:
-                    rev.repository.unlock()
-                    self.processEvents()
-            if self.current_rev is not rev:
-                # new update was requested, don't bother populating the list
-                return
-            delta = rev.delta
-    
-            for path, id_, kind in delta.added:
-                item = QtGui.QListWidgetItem(path, self.fileList)
-                item.setTextColor(QtGui.QColor("blue"))
-    
-            for path, id_, kind, text_modified, meta_modified in delta.modified:
-                item = QtGui.QListWidgetItem(path, self.fileList)
-    
-            for path, id_, kind in delta.removed:
-                item = QtGui.QListWidgetItem(path, self.fileList)
-                item.setTextColor(QtGui.QColor("red"))
-    
-            for (oldpath, newpath, id_, kind,
-                text_modified, meta_modified) in delta.renamed:
-                item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
-                item.setData(PathRole, QtCore.QVariant(newpath))
-                item.setTextColor(QtGui.QColor("purple"))
+                    self.changesModel.is_loading_somthing = False
         except:
             self.report_exception()        
 
