@@ -455,7 +455,7 @@ class LogWindow(QBzrWindow):
     @ui_current_widget
     def update_search_completer(self, text):
         # We only load the suggestions a letter at a time when needed.
-        term = str(text).split(" ")[-1]
+        term = unicode(text).split(" ")[-1]
         if term:
             first_letter = term[0]
         else:
