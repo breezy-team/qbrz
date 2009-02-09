@@ -455,15 +455,20 @@ class LogGraphProvider():
     def compute_head_info(self):
         def get_revid_head(heads):
             map = {}
-            for i in xrange(1, len(heads)):
+            for i in xrange(len(heads)):
                 prev_revids = [revid for revid, head in heads[:i]]
                 for ancestor_revid in self.graph.find_unique_ancestors(heads[i][0],
                                                                 prev_revids):
                     map[ancestor_revid] = heads[i][1]
             return map
         
-        self.revid_head_revid = \
-                get_revid_head([(revid,revid) for revid in self.head_revids])
+        head_revid_branch = sorted([(revid, branch) \
+                                   for revid, (head_info, ur) in \
+                                   self.revid_head_info.iteritems()
+                                   for (branch, tag, lr) in head_info],
+            cmp = self.repos_cmp_local_higher,
+            key = lambda x: x[1].repository)
+        self.revid_branch = get_revid_head(head_revid_branch)        
         
         # Populate unique revisions for heads
         for revid, (head_info, ur) in self.revid_head_info.iteritems():
@@ -479,14 +484,6 @@ class LogGraphProvider():
                     if not other_revid == revid]
             ur.extend(self.graph.find_unique_ancestors(revid, other_revids))
             ur.sort(key=lambda x: self.revid_msri[x])
-        
-        head_revid_repo = sorted([(revid, branch.repository) \
-                                  for revid, (head_info, ur) in \
-                                  self.revid_head_info.iteritems()
-                                  for (branch, tag, lr) in head_info],
-            lambda x, y: self.repos_cmp_local_higher(x[1], y[1]))
-        self.default_repo = head_revid_repo[0][1]
-        self.revid_repo = get_revid_head(head_revid_repo)        
 
     def load_filter_file_id(self):
         """Load with revisions affect the fileids
@@ -1172,10 +1169,7 @@ class LogGraphProvider():
         return self.revisions[revid]
     
     def get_revid_repo(self, revid):
-        if revid in self.revid_repo:
-            return self.revid_repo[revid]
-        
-        return self.default_repo
+        return self.revid_branch[revid].repository
     
     def get_repo_revids(self, revids):
         """Returns dict maping repo to it revisions"""
@@ -1252,12 +1246,7 @@ class LogGraphProvider():
                                   for revno in revno_sequence])
         revision.tags = sorted(self.tags.get(revision.revision_id, []))
         revision.child_ids = self.graph_children[revision.revision_id]
-        
-        if revision.revision_id in self.revid_head_revid:
-            head_revid = self.revid_head_revid[revision.revision_id]
-        else:
-            head_revid = self.head_revids[0]
-        revision.branch = self.revid_head_info[head_revid][0][0][0]
+        revision.branch = self.revid_branch[revision.revision_id]
     
     def revisions_filter_changed(self):
         pass
