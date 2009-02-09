@@ -258,7 +258,7 @@ class LogGraphProvider():
                 tag = None
             else:
                 tag = branch.nick
-                if len(tag) < 20:
+                if len(tag) > 20:
                     tag = tag[:20]+'...'
             
             branch_last_revision = branch.last_revision()
