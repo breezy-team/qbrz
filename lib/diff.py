@@ -53,6 +53,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     StandardButton,
     get_set_encoding,
     is_binary_content,
+    run_in_loading_queue,
+    runs_in_loading_queue
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
@@ -199,6 +201,7 @@ class DiffWindow(QBzrWindow):
         QBzrWindow.show(self)
         QtCore.QTimer.singleShot(1, self.initial_load)
 
+    @runs_in_loading_queue
     @ui_current_widget
     def initial_load(self):
         """Called to perform the initial load of the form.  Enables a
@@ -251,7 +254,6 @@ class DiffWindow(QBzrWindow):
                           get_set_encoding(self.encoding, branch2))
         self.processEvents()
 
-    @ui_current_widget
     def load_diff(self):
         self.refresh_button.setEnabled(False)
         for tree in self.trees: tree.lock_read()
@@ -403,12 +405,12 @@ class DiffWindow(QBzrWindow):
         #Has the side effect of refreshing...
         self.diffview.clear()
         self.sdiffview.clear()
-        self.load_diff()
-    
+        run_in_loading_queue(self.load_diff)
+
     def click_refresh(self):
         self.diffview.clear()
         self.sdiffview.clear()
-        self.load_diff()
+        run_in_loading_queue(self.load_diff)
 
     def can_refresh(self):
         """Does any of tree is Mutanble/Working tree."""

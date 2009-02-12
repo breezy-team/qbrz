@@ -38,6 +38,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     RevisionMessageBrowser,
     split_tokens_at_lines,
     format_for_ttype,
+    runs_in_loading_queue,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
@@ -153,6 +154,7 @@ class AnnotateWindow(QBzrWindow):
         QBzrWindow.show(self)
         QtCore.QTimer.singleShot(1, self.initial_load)
 
+    @runs_in_loading_queue
     @ui_current_widget
     def initial_load(self):
         """Called to perform the initial load of the form.  Enables a
