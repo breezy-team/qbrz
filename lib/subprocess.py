@@ -378,6 +378,8 @@ class SubProcessWidget(QtGui.QWidget):
         dir, args = self.commands.pop(0)
         
         def format_arg(a):
+            # Some code passes us QStrings. Convert to python string.
+            a = unicode(a)
             # Don't quote revision arg.
             if a.startswith("-r"):
                 return a
