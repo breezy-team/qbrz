@@ -21,7 +21,6 @@ from bzrlib import commands, errors, trace, bugtracker
 from bzrlib.config import GlobalConfig
 from bzrlib.branch import Branch
 from bzrlib.option import Option
-from bzrlib.plugins.qbzr.lib.util import open_browser, url_for_display
 
 
 class FakeBranch(object):
@@ -42,6 +41,9 @@ class cmd_bug_url(commands.Command):
     ]
 
     def run(self, bug_id, open=False):
+        # we import from qbzr.lib.util here because that module
+        # has dependency on PyQt4 (see bug #327487)
+        from bzrlib.plugins.qbzr.lib.util import open_browser, url_for_display
         try:
             branch = Branch.open_containing(u'.')[0]
         except errors.NotBranchError:

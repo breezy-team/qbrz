@@ -18,13 +18,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.bzrdir import BzrDir
 from bzrlib.branch import Branch
-from bzrlib import (
-    errors,
-    osutils,
-    )
+from bzrlib import osutils
 from bzrlib.plugins.qbzr.lib import logmodel
+from bzrlib.plugins.qbzr.lib.logwidget import LogList
+from bzrlib.plugins.qbzr.lib.diff import DiffWindow
 from bzrlib.plugins.qbzr.lib.extdiff import (
     show_diff,
     has_ext_diff,
@@ -46,364 +44,32 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
-have_search = True
-try:
-    from bzrlib.plugins.search import errors as search_errors
-    from bzrlib.plugins.search import index as search_index
-except ImportError:
-    have_search = False
-
 PathRole = QtCore.Qt.UserRole + 1
-
-class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
-
-    _tagColor = QtGui.QColor(255, 255, 170)
-    _tagColorBorder = QtGui.QColor(255, 238, 0)
-
-    _bugColor = QtGui.QColor(255, 188, 188)
-    _bugColorBorder = QtGui.QColor(255, 79, 79)
-
-    _branchTagColor = QtGui.QColor(188, 188, 255)
-    _branchTagColorBorder = QtGui.QColor(79, 79, 255)
-
-    _twistyColor = QtCore.Qt.black
-
-    def paint(self, painter, option, index):
-        node = index.data(logmodel.GraphNodeRole)
-        if node.isValid():
-            self.drawGraph = True
-            self.node = node.toList()
-            self.lines = index.data(logmodel.GraphLinesRole).toList()
-            self.twisty_state = index.data(logmodel.GraphTwistyStateRole)
-            
-            prevIndex = index.sibling (index.row()-1, index.column())
-            if prevIndex.isValid ():
-                self.prevLines = prevIndex.data(logmodel.GraphLinesRole).toList()
-            else:
-                self.prevLines = []
-        else:
-            self.drawGraph = False
-        
-        self.labels = []
-        # collect branch tags
-        for tag in index.data(logmodel.BranchTagsRole).toStringList():
-            self.labels.append(
-                (tag, self._branchTagColor, self._branchTagColorBorder))
-        # collect tag names
-        for tag in index.data(logmodel.TagsRole).toStringList():
-            self.labels.append(
-                (tag, self._tagColor, self._tagColorBorder))
-        # collect bug ids
-        for bug in index.data(logmodel.BugIdsRole).toStringList():
-            self.labels.append(
-                (bug, self._bugColor, self._bugColorBorder))
-        QtGui.QItemDelegate.paint(self, painter, option, index)
-    
-    def get_color(self, color, back):
-        qcolor = QtGui.QColor()
-        if color == 0:
-            if back:
-                qcolor.setHsvF(0,0,0.8)
-            else:
-                qcolor.setHsvF(0,0,0)
-        else:
-            h = float(color % 6) / 6
-            if back:
-                qcolor.setHsvF(h,0.4,1)
-            else:
-                qcolor.setHsvF(h,1,0.7)
-        
-        return qcolor
-    
-    def drawLine(self, painter, pen, rect, boxsize, mid, height,
-                 start, end, color, direct):
-        pen.setColor(self.get_color(color,False))
-        if direct:
-            pen.setStyle(QtCore.Qt.SolidLine)
-        else:
-            pen.setStyle(QtCore.Qt.DotLine)            
-        painter.setPen(pen)
-        startx = rect.x() + boxsize * start + boxsize / 2 
-        endx = rect.x() + boxsize * end + boxsize / 2 
-        
-        path = QtGui.QPainterPath()
-        path.moveTo(QtCore.QPointF(startx, mid - height / 2))
-        
-        if start - end == 0 :
-            path.lineTo(QtCore.QPointF(endx, mid + height / 2)) 
-        else:
-            path.cubicTo(QtCore.QPointF(startx, mid - height / 5),
-                         QtCore.QPointF(startx, mid - height / 5),
-                         QtCore.QPointF(startx + (endx - startx) / 2, mid))
-
-            path.cubicTo(QtCore.QPointF(endx, mid + height / 5),
-                         QtCore.QPointF(endx, mid + height / 5),
-                         QtCore.QPointF(endx, mid + height / 2 + 1))
-        painter.drawPath(path)
-        pen.setStyle(QtCore.Qt.SolidLine)
-
-    def drawDisplay(self, painter, option, rect, text):
-        graphCols = 0
-        if self.drawGraph:
-            painter.save()
-            try:
-                painter.setRenderHint(QtGui.QPainter.Antialiasing)            
-                boxsize = float(rect.height())
-                dotsize = 0.7
-                pen = QtGui.QPen()
-                penwidth = 1
-                pen.setWidth(penwidth)
-                pen.setCapStyle(QtCore.Qt.FlatCap)
-                #this is to try get lines 1 pixel wide to actualy be 1 pixel wide.
-                painter.translate(0.5, 0.5)
-                
-                
-                # Draw lines into the cell
-                for line in self.prevLines:
-                    start, end, color = [linei.toInt()[0] for linei in line.toList()[0:3]]
-                    direct = line.toList()[3].toBool()
-                    self.drawLine (painter, pen, rect, boxsize,
-                                   rect.y(), boxsize,
-                                   start, end, color, direct)
-                    graphCols = max((graphCols, min(start, end)))
-        
-                # Draw lines out of the cell
-                for line in self.lines:
-                    start, end, color = [linei.toInt()[0] for linei in line.toList()[0:3]]
-                    direct = line.toList()[3].toBool()
-                    self.drawLine (painter, pen, rect,boxsize,
-                                   rect.y() + boxsize, boxsize,
-                                   start, end, color, direct)
-                    graphCols = max((graphCols, min(start, end)))
-                
-                # Draw the revision node in the right column
-                color = self.node[1].toInt()[0]
-                column = self.node[0].toInt()[0]
-                graphCols = max((graphCols, column))
-                pen.setColor(self.get_color(color,False))
-                painter.setPen(pen)
-                painter.setBrush(QtGui.QBrush(self.get_color(color,True)))
-                centerx = rect.x() + boxsize * (column + 0.5)
-                centery = rect.y() + boxsize * 0.5
-                painter.drawEllipse(
-                    QtCore.QRectF(centerx - (boxsize * dotsize * 0.5 ),
-                                  centery - (boxsize * dotsize * 0.5 ),
-                                 boxsize * dotsize, boxsize * dotsize))
-
-                # Draw twisty
-                if self.twisty_state.isValid():
-                    linesize = 0.35
-                    pen.setColor(self._twistyColor)
-                    painter.setPen(pen)
-                    painter.drawLine(QtCore.QLineF (centerx - boxsize * linesize / 2,
-                                                    centery,
-                                                    centerx + boxsize * linesize / 2,
-                                                    centery))
-                    if not self.twisty_state.toBool():
-                        painter.drawLine(QtCore.QLineF (centerx,
-                                                        centery - boxsize * linesize / 2,
-                                                        centerx,
-                                                        centery + boxsize * linesize / 2))
-                
-            finally:
-                painter.restore()
-            rect.adjust( (graphCols + 1.7) * boxsize, 0, 0, 0)
-        
-        painter.save()
-        try:
-            tagFont = QtGui.QFont(option.font)
-            tagFont.setPointSizeF(tagFont.pointSizeF() * 9 / 10)
-    
-            x = 0
-            for label, color, borderColor in self.labels:
-                tagRect = rect.adjusted(1, 1, -1, -1)
-                tagRect.setWidth(QtGui.QFontMetrics(tagFont).width(label) + 6)
-                tagRect.moveLeft(tagRect.x() + x)
-                painter.fillRect(tagRect.adjusted(1, 1, -1, -1), color)
-                painter.setPen(borderColor)
-                painter.drawRect(tagRect.adjusted(0, 0, -1, -1))
-                painter.setFont(tagFont)
-                painter.setPen(option.palette.text().color())
-                painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, label)
-                x += tagRect.width() + 3
-        finally:
-            painter.restore()
-        
-        rect.adjust( x, 0, 0, 0)
-        
-        return QtGui.QItemDelegate.drawDisplay(self, painter, option, rect, text)
 
 class Compleater(QtGui.QCompleter):
     def splitPath (self, path):
         return QtCore.QStringList([path.split(" ")[-1]])
 
-def load_locations(locations_list, process_events_ptr):
-    if locations_list is None:
-        locations = ["."]
-    else:
-        locations = locations_list
-    
-    file_ids = []
-    heads = {}
-    branches = {}
-    paths_and_branches_err = "It is not possible to specify different file paths and different branches at the same time."
-    
-    def append_head_info(revid, branch, tag, is_branch_last_revision):
-        if not revid in heads:
-            heads[revid] = (len(heads), [])
-        heads[revid][1].append ((branch, tag, is_branch_last_revision))
-    
-    def append_location(tree, br, repo, fp, tag):
-        if br.base not in branches:
-            branches[br.base] = br
-        
-        branch_last_revision = br.last_revision()
-        append_head_info(branch_last_revision, br, tag, True)
-        process_events_ptr()
-        
-        if tree:
-            parent_ids = tree.get_parent_ids()
-            process_events_ptr()
-            if parent_ids:
-                # first parent is last revision of the tree
-                revid = parent_ids[0]
-                if revid != branch_last_revision:
-                    # working tree is out of date
-                    if tag:
-                        append_head_info(revid, br, "%s - Working Tree" % tag, False)
-                    else:
-                        append_head_info(revid, br, "Working Tree", False)
-                # other parents are pending merges
-                for revid in parent_ids[1:]:
-                    if tag:
-                        append_head_info(revid, br, "%s - Pending Merge" % tag, False)
-                    else:
-                        append_head_info(revid, br, "Pending Merge", False)
-        
-        if fp != '' : 
-            if tree is None:
-                tree = br.basis_tree()
-                process_events_ptr()
-            file_id = tree.path2id(fp)
-            process_events_ptr()
-            if file_id is None:
-                raise errors.BzrCommandError(
-                    "Path does not have any revision history: %s" %
-                    location)
-            file_ids.append(file_id)
-            if not branches.keys()[0] == br.base:
-                raise errors.BzrCommandError(paths_and_branches_err)
-    
-    # This is copied stright from bzrlib/bzrdir.py. We can't just use the orig,
-    # because that would mean we require bzr 1.6
-    def open_containing_tree_branch_or_repository(location):
-        """Return the working tree, branch and repo contained by a location.
-
-        Returns (tree, branch, repository, relpath).
-        If there is no tree containing the location, tree will be None.
-        If there is no branch containing the location, branch will be None.
-        If there is no repository containing the location, repository will be
-        None.
-        relpath is the portion of the path that is contained by the innermost
-        BzrDir.
-
-        If no tree, branch or repository is found, a NotBranchError is raised.
-        """
-        bzrdir, relpath = BzrDir.open_containing(location)
-        process_events_ptr()
-        try:
-            tree, branch = bzrdir._get_tree_branch()
-            process_events_ptr()
-        except errors.NotBranchError:
-            try:
-                repo = bzrdir.find_repository()
-                process_events_ptr()    
-                return None, None, repo, relpath
-            except (errors.NoRepositoryPresent):
-                raise errors.NotBranchError(location)
-        return tree, branch, branch.repository, relpath
-    
-    for location in locations:
-        if isinstance(location, Branch):
-            br = location
-            repo = location.repository
-            process_events_ptr()
-            try:
-                tree = location.bzrdir.open_workingtree()
-            except errors.NoWorkingTree:
-                tree = None
-            process_events_ptr()
-            fp = ''
-        else:
-            tree, br, repo, fp = open_containing_tree_branch_or_repository(location)
-            process_events_ptr()
-        
-        if br == None:
-            trunk_names = ["trunk", "bzr.dev", "dev"]
-            repo_brs = repo.find_branches(using=True)
-            process_events_ptr()
-            
-            def branch_cmp_trunk_first(x,y):
-                x_is_trunk = x.nick in trunk_names
-                y_is_trunk = y.nick in trunk_names
-                if x_is_trunk and y_is_trunk:
-                    return cmp(trunk_names.index(x.nick),
-                               trunk_names.index(y.nick))
-                if x_is_trunk:
-                    return -1
-                if y_is_trunk:
-                    return 1
-                return cmp(x.nick, y.nick)
-            repo_brs.sort(branch_cmp_trunk_first)
-            
-            for br in repo_brs:             
-                tag = truncate_string(br.nick, 20)
-                try:
-                    tree = br.bzrdir.open_workingtree()
-                except errors.NoWorkingTree:
-                    tree = None
-                append_location(tree, br, repo, '', tag)
-            continue
-        
-        # If no locations were sepecified, don't do file_ids
-        # Otherwise it gives you the history for the dir if you are
-        # in a sub dir.
-        if fp != '' and locations==["."]:
-            fp = ''
-        
-        if len(locations) == 1:
-            tag = None
-        else:
-            tag = truncate_string(br.nick, 20)
-        
-        append_location(tree, br, repo, fp, tag)
-
-    
-    if file_ids and len(branches)>1:
-        raise errors.BzrCommandError(paths_and_branches_err)
-    
-    return (branches.values(), heads, file_ids)
-
-
-def truncate_string(s, max_len):
-    if len(s) <= max_len:
-        return s
-    return s[:max_len]+'...'
-
-
 class LogWindow(QBzrWindow):
+
+    FilterIdRole = QtCore.Qt.UserRole + 100
+    FilterMessageRole = QtCore.Qt.UserRole + 101
+    FilterAuthorRole = QtCore.Qt.UserRole + 102
+    FilterRevnoRole = QtCore.Qt.UserRole + 103
+    FilterSearchRole = QtCore.Qt.UserRole + 104
     
     def __init__(self, locations, branch, specific_fileids, parent=None,
                  ui_mode=True):        
         if branch:
+            self.branch = branch
             self.locations = (branch,)
             self.specific_fileids = specific_fileids
             assert locations is None, "can't specify both branch and loc"
         else:
+            self.branch = None
             self.locations = locations
             if self.locations is None:
                 self.locations = ["."]
-            self.specific_fileids = None
             assert specific_fileids is None, "this is ignored if no branch"
         
         # Set window title. 
@@ -416,20 +82,9 @@ class LogWindow(QBzrWindow):
         self.restoreSize("log", (710, 580))
         
         self.branches = None
+        self.replace = {}
         
         self.throbber = ThrobberWidget(self)
-        
-        self.changesModel = logmodel.GraphModel(self.processEvents,
-                                                self.report_exception,
-                                                self.throbber.show,
-                                                self.throbber.hide)
-        
-        self.changesProxyModel = logmodel.GraphFilterProxyModel()
-        self.changesProxyModel.setSourceModel(self.changesModel)
-        self.changesProxyModel.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
-        self.changesProxyModel.setFilterRole(logmodel.FilterMessageRole)
-        self.changesProxyModel.setDynamicSortFilter(True)
-        self.changesModel.setGraphFilterProxyModel(self.changesProxyModel)
         
         logwidget = QtGui.QWidget()
         logbox = QtGui.QVBoxLayout(logwidget)
@@ -453,16 +108,14 @@ class LogWindow(QBzrWindow):
 
         self.searchType = QtGui.QComboBox()
             
-        self.indexes = []
-        
         self.searchType.addItem(gettext("Messages"),
-                                QtCore.QVariant(logmodel.FilterMessageRole))
+                                QtCore.QVariant(self.FilterMessageRole))
         self.searchType.addItem(gettext("Authors"),
-                                QtCore.QVariant(logmodel.FilterAuthorRole))
+                                QtCore.QVariant(self.FilterAuthorRole))
         self.searchType.addItem(gettext("Revision IDs"),
-                                QtCore.QVariant(logmodel.FilterIdRole))
+                                QtCore.QVariant(self.FilterIdRole))
         self.searchType.addItem(gettext("Revision Numbers"),
-                                QtCore.QVariant(logmodel.FilterRevnoRole))
+                                QtCore.QVariant(self.FilterRevnoRole))
         searchbox.addWidget(self.searchType)
         self.connect(self.searchType,
                      QtCore.SIGNAL("currentIndexChanged(int)"),
@@ -470,27 +123,13 @@ class LogWindow(QBzrWindow):
 
         logbox.addLayout(searchbox)
 
-        self.changesList = QtGui.QTreeView()
-        self.changesList.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.changesList.setModel(self.changesProxyModel)
-        self.changesList.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
-        self.changesList.setUniformRowHeights(True)
-        if self.style().objectName() != 'gtk':
-            self.changesList.setAllColumnsShowFocus(True)
-        self.changesList.setRootIsDecorated (False)
-        self.changesList.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
-        header = self.changesList.header()
-        header.setStretchLastSection(False)
-        header.setResizeMode(logmodel.COL_REV, QtGui.QHeaderView.Interactive)
-        header.setResizeMode(logmodel.COL_MESSAGE, QtGui.QHeaderView.Stretch)
-        header.setResizeMode(logmodel.COL_DATE, QtGui.QHeaderView.Interactive)
-        header.setResizeMode(logmodel.COL_AUTHOR, QtGui.QHeaderView.Interactive)
-        header.resizeSection(logmodel.COL_REV, 70)
-        header.resizeSection(logmodel.COL_DATE, 100)
-        header.resizeSection(logmodel.COL_AUTHOR, 150)
+        self.log_list = LogList(self.processEvents,
+                                self.report_exception,
+                                self.throbber,
+                                self)
 
         logbox.addWidget(self.throbber)
-        logbox.addWidget(self.changesList)
+        logbox.addWidget(self.log_list)
 
         self.revision_delta_timer = QtCore.QTimer(self)
         self.revision_delta_timer.setSingleShot(True)
@@ -498,26 +137,19 @@ class LogWindow(QBzrWindow):
                      self.update_revision_delta)
 
         self.current_rev = None
-        self.connect(self.changesList.selectionModel(),
+        self.connect(self.log_list.selectionModel(),
                      QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
                      self.update_selection)
-        self.connect(self.changesList,
+        self.connect(self.log_list,
                      QtCore.SIGNAL("doubleClicked(QModelIndex)"),
                      self.show_differences)
-        self.connect(self.changesList,
+        self.connect(self.log_list,
                      QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
                      self.show_context_menu)
-        #self.connect(self.changesList,
+        #self.connect(self.log_list,
         #             QtCore.SIGNAL("clicked (QModelIndex)"),
         #             self.changesList_clicked)
-        self.changesList.mouseReleaseEvent  = self.changesList_mouseReleaseEvent
-        self.changesList.keyPressEvent  = self.changesList_keyPressEvent
-        
-        self.changesList.setItemDelegateForColumn(logmodel.COL_MESSAGE,
-                                                  GraphTagsBugsItemDelegate(self))
 
-        self.last_item = None
-        #self.merge_stack = [self.changesModel.invisibleRootItem()]
 
         self.message = QtGui.QTextDocument()
         self.message_browser = RevisionMessageBrowser()
@@ -548,7 +180,7 @@ class LogWindow(QBzrWindow):
         buttonbox.addButton(self.refresh_button, QtGui.QDialogButtonBox.ActionRole)
         self.connect(self.refresh_button,
                      QtCore.SIGNAL("clicked()"),
-                     self.load)
+                     self.refresh)
 
         self.diffbuttons = DiffButtons(self.centralwidget)
         self.diffbuttons.setEnabled(False)
@@ -576,62 +208,30 @@ class LogWindow(QBzrWindow):
         vbox.addLayout(hbox)
         self.windows = []
         # set focus on search edit widget
-        self.changesList.setFocus()
-
-    def load_locations(self):
-        self.changesModel.unlock()
-        (self.branches,
-         self.heads,
-         specific_fileids) = load_locations(self.locations, self.processEvents)
-        
-        if self.specific_fileids is None:
-            self.specific_fileids = specific_fileids
-     
-        self.processEvents()
-        self.replace = {}
-        for branch in self.branches:
-            config = branch.get_config()
-            replace = config.get_user_option("qlog_replace")
-            if replace:
-                replace = replace.split("\n")
-                replace = [tuple(replace[2*i:2*i+2])
-                                for i in range(len(replace) // 2)]
-            self.replace[branch.base] = replace
-
-        if have_search:
-            self.processEvents()
-            for branch in self.branches:
-                try:
-                    index = search_index.open_index_branch(branch)
-                    self.indexes.append(index)
-                except search_errors.NoSearchIndex:
-                    pass
-
-    def initial_load(self):
-        self.load(True)
+        self.log_list.setFocus()
 
     @ui_current_widget
-    def load(self, initial=False):
-        """Called to perform the initial load of the form.  Enables a
-        throbber window, then loads the branches etc if they weren't specified
-        in our constructor.
-        """
+    def load(self):
         try:
-            self.throbber.show()
             self.refresh_button.setDisabled(True)            
             self.processEvents()
             try:
-                self.load_locations()
+                if self.branch:
+                    self.log_list.load_branch(self.branch,
+                                                    self.specific_fileids)
+                else:
+                    self.log_list.load_locations(self.locations)
                 
-                self.changesModel.loadBranch(self.branches,
-                                             self.heads,
-                                             specific_fileids = self.specific_fileids)
+                for index in self.log_list.graph_provider.search_indexes():
+                    indexes_availble = True
+                    break
+                else:
+                    indexes_availble = False
                 
-                if initial and self.indexes:
-                    self.changesProxyModel.setSearchIndexes(self.indexes)
+                if indexes_availble:
                     self.searchType.insertItem(0,
-                                               gettext("Messages and File text (indexed)"),
-                                               QtCore.QVariant(logmodel.FilterSearchRole))
+                            gettext("Messages and File text (indexed)"),
+                            QtCore.QVariant(self.FilterSearchRole))
                     self.searchType.setCurrentIndex(0)
                     
                     self.completer = Compleater(self)
@@ -646,15 +246,38 @@ class LogWindow(QBzrWindow):
                                  self.set_search_timer)
             finally:
                 self.refresh_button.setDisabled(False)
-                if not initial:
-                    self.throbber.hide()
+        except:
+            self.report_exception()
+    
+    @ui_current_widget
+    def refresh(self):
+        try:
+            self.refresh_button.setDisabled(True)            
+            self.processEvents()
+            try:
+                self.replace = {}
+                self.log_list.refresh()
+            finally:
+                self.refresh_button.setDisabled(False)
         except:
             self.report_exception()
 
+    def replace_config(self, branch):
+        if branch.base not in self.replace:
+            config = branch.get_config()
+            replace = config.get_user_option("qlog_replace")
+            if replace:
+                replace = replace.split("\n")
+                replace = [tuple(replace[2*i:2*i+2])
+                                for i in range(len(replace) // 2)]
+            self.replace[branch.base] = replace
+        
+        return self.replace[branch.base]
+    
     def show(self):
         # we show the bare form as soon as possible.
         QBzrWindow.show(self)
-        QtCore.QTimer.singleShot(1, self.initial_load)
+        QtCore.QTimer.singleShot(1, self.load)
 
     def link_clicked(self, url):
         scheme = unicode(url.scheme())
@@ -663,90 +286,89 @@ class LogWindow(QBzrWindow):
             self.changesModel.ensure_rev_visible(revision_id)
             index = self.changesModel.indexFromRevId(revision_id)
             index = self.changesProxyModel.mapFromSource(index)
-            self.changesList.setCurrentIndex(index)
+            self.log_list.setCurrentIndex(index)
         else:
             open_browser(str(url.toEncoded()))
 
     @ui_current_widget
     def update_revision_delta(self):
         try:
-            if self.changesModel.is_loading_somthing:
-                self.revision_delta_timer.start(1)
-            else:
-                self.changesModel.is_loading_somthing = True
+            rev = self.current_rev
+            if not hasattr(rev, 'delta'):
+                # TODO move this to a thread
+                rev.repository.lock_read()
+                self.processEvents()
                 try:
-                    rev = self.current_rev
-                    if not hasattr(rev, 'delta'):
-                        # TODO move this to a thread
-                        rev.repository.lock_read()
-                        self.processEvents()
-                        try:
-                            rev.delta = rev.repository.get_deltas_for_revisions(
-                                [rev]).next()
-                            self.processEvents()
-                        finally:
-                            rev.repository.unlock()
-                            self.processEvents()
-                    if self.current_rev is not rev:
-                        # new update was requested, don't bother populating the list
-                        return
-                    delta = rev.delta
-            
-                    for path, id_, kind in delta.added:
-                        item = QtGui.QListWidgetItem(path, self.fileList)
-                        item.setTextColor(QtGui.QColor("blue"))
-            
-                    for path, id_, kind, text_modified, meta_modified in delta.modified:
-                        item = QtGui.QListWidgetItem(path, self.fileList)
-            
-                    for path, id_, kind in delta.removed:
-                        item = QtGui.QListWidgetItem(path, self.fileList)
-                        item.setTextColor(QtGui.QColor("red"))
-            
-                    for (oldpath, newpath, id_, kind,
-                        text_modified, meta_modified) in delta.renamed:
-                        item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
-                        item.setData(PathRole, QtCore.QVariant(newpath))
-                        item.setTextColor(QtGui.QColor("purple"))
+                    rev.delta = rev.repository.get_deltas_for_revisions(
+                        [rev]).next()
+                    self.processEvents()
                 finally:
-                    self.changesModel.is_loading_somthing = False
+                    rev.repository.unlock()
+                    self.processEvents()
+            if self.current_rev is not rev:
+                # new update was requested, don't bother populating the list
+                return
+            delta = rev.delta
+    
+            for path, id_, kind in delta.added:
+                item = QtGui.QListWidgetItem(path, self.fileList)
+                item.setTextColor(QtGui.QColor("blue"))
+    
+            for path, id_, kind, text_modified, meta_modified in delta.modified:
+                item = QtGui.QListWidgetItem(path, self.fileList)
+    
+            for path, id_, kind in delta.removed:
+                item = QtGui.QListWidgetItem(path, self.fileList)
+                item.setTextColor(QtGui.QColor("red"))
+    
+            for (oldpath, newpath, id_, kind,
+                text_modified, meta_modified) in delta.renamed:
+                item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
+                item.setData(PathRole, QtCore.QVariant(newpath))
+                item.setTextColor(QtGui.QColor("purple"))
         except:
             self.report_exception()        
 
     def update_selection(self, selected, deselected):
-        indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
+        indexes = [index for index in self.log_list.selectedIndexes() if index.column()==0]
         self.fileList.clear()
         if not indexes:
             self.diffbuttons.setEnabled(False)
             self.message.setHtml("")
         else:
-            if self.changesModel.is_loading_somthing:
-                self.message.setHtml("")
-                QtCore.QTimer.singleShot(1,
-                        lambda: self.update_selection(selected, deselected))
-            else:
-                self.diffbuttons.setEnabled(True)
-                index = indexes[0]
-                revid = str(index.data(logmodel.RevIdRole).toString())
-                rev = self.changesModel.revision(revid)
-                self.current_rev = rev
-                head_info = self.changesModel.revisionHeadInfo(revid)
-                branch = head_info[0][0]
-                replace = self.replace[branch.base]
-                self.message.setHtml(format_revision_html(rev, replace))
-                self.revision_delta_timer.start(1)
+            self.diffbuttons.setEnabled(True)
+            index = indexes[0]
+            revid = str(index.data(logmodel.RevIdRole).toString())
+            rev = self.log_list.graph_provider.revision(revid)
+            parents_ids = self.log_list.graph_provider.graph_parents[revid]
+            child_ids = self.log_list.graph_provider.graph_children[revid]
+            self.log_list.graph_provider.load_revisions([revid] + \
+                                    list(parents_ids) + list(child_ids))
+            rev = self.log_list.graph_provider.revision(revid)
+            
+            if not hasattr(rev, "children"):
+                rev.children = [self.log_list.graph_provider.revision(revid)
+                                for revid in child_ids]
+            if not hasattr(rev, "parents"):
+                rev.parents = [self.log_list.graph_provider.revision(revid)
+                                for revid in parents_ids]
+            self.current_rev = rev
+            
+            replace = self.replace_config(rev.branch)
+            self.message.setHtml(format_revision_html(rev, replace))
+            self.revision_delta_timer.start(1)
 
     @ui_current_widget
-    def show_diff_window(self, rev1, rev2, specific_files=None, ext_diff = None):
-        new_revid = rev1.revision_id
-        new_branch = self.changesModel.revisionHeadInfo(new_revid)[0][0]
+    def show_diff_window(self, new_rev, old_rev, specific_files=None, ext_diff = None):
+        new_revid = new_rev.revision_id
+        new_branch = new_rev.branch
         
-        if not rev2.parent_ids:
+        if not old_rev.parent_ids:
             old_revid = None
             old_branch = new_branch
         else:
-            old_revid = rev2.parent_ids[0]
-            old_branch =  self.changesModel.revisionHeadInfo(old_revid)[0][0]
+            old_revid = old_rev.parent_ids[0]
+            old_branch =  old_rev.branch
 
         show_diff(old_revid, new_revid,
                  old_branch, new_branch,
@@ -757,7 +379,7 @@ class LogWindow(QBzrWindow):
     def show_differences(self, index):
         """Show differences of a single revision"""
         revid = str(index.data(logmodel.RevIdRole).toString())
-        rev = self.changesModel.revision(revid)
+        rev = self.log_list.graph_provider.revision(revid, force_load=True)
         self.show_diff_window(rev, rev)
 
     def show_file_differences(self, index):
@@ -775,14 +397,14 @@ class LogWindow(QBzrWindow):
     
     def diff_pushed(self, ext_diff = None):
         """Show differences of the selected range or of a single revision"""
-        indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
+        indexes = [index for index in self.log_list.selectedIndexes() if index.column()==0]
         if not indexes:
             # the list is empty
             return
         revid1 = str(indexes[0].data(logmodel.RevIdRole).toString())
-        rev1 = self.changesModel.revision(revid1)
+        rev1 = self.log_list.graph_provider.revision(revid1)
         revid2 = str(indexes[-1].data(logmodel.RevIdRole).toString())
-        rev2 = self.changesModel.revision(revid2)
+        rev2 = self.log_list.graph_provider.revision(revid2)
         self.show_diff_window(rev1, rev2, ext_diff = ext_diff)
 
     @ui_current_widget
@@ -790,37 +412,42 @@ class LogWindow(QBzrWindow):
         try:
             # TODO in_paths = self.search_in_paths.isChecked()
             role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
-            search_text = self.search_edit.text()
-            search_mode = not role == logmodel.FilterIdRole and \
-                          not role == logmodel.FilterRevnoRole and \
-                          not role == logmodel.FilterSearchRole and \
-                          search_text.length() > 0
-            self.changesModel.set_search_mode(search_mode)
-            if role == logmodel.FilterIdRole:
-                self.changesProxyModel.setFilter(u"", role)
-                search_text = str(search_text)
-                if self.changesModel.has_rev_id(search_text):
-                    self.changesModel.ensure_rev_visible(search_text)
-                    index = self.changesModel.indexFromRevId(search_text)
-                    index = self.changesProxyModel.mapFromSource(index)
-                    self.changesList.setCurrentIndex(index)
-            elif role == logmodel.FilterRevnoRole:
-                self.changesProxyModel.setFilter(u"", role)
+            search_text = unicode(self.search_edit.text())
+            if search_text == u"":
+                self.log_list.set_search(None, None)
+            elif role == self.FilterIdRole:
+                self.log_list.set_search(None, None)
+                if self.log_list.graph_provider.has_rev_id(search_text):
+                    self.log_list.model.ensure_rev_visible(search_text)
+                    index = self.log_list.model.indexFromRevId(search_text)
+                    index = self.log_list.filter_proxy_model.mapFromSource(index)
+                    self.log_list.setCurrentIndex(index)
+            elif role == self.FilterRevnoRole:
+                self.log_list.set_search(None, None)
                 try:
-                    revno = tuple((int(number) for number in str(search_text).split('.')))
+                    revno = tuple((int(number) for number in search_text.split('.')))
                 except ValueError:
                     revno = ()
                     # Not sure what to do if there is an error. Nothing for now
-                revid = self.changesModel.revid_from_revno(revno)
+                revid = self.log_list.graph_provider.revid_from_revno(revno)
                 if revid:
-                    self.changesModel.ensure_rev_visible(revid)
-                    index = self.changesModel.indexFromRevId(revid)
-                    index = self.changesProxyModel.mapFromSource(index)
-                    self.changesList.setCurrentIndex(index)
+                    self.log_list.model.ensure_rev_visible(revid)
+                    index = self.log_list.model.indexFromRevId(revid)
+                    index = self.log_list.filter_proxy_model.mapFromSource(index)
+                    self.log_list.setCurrentIndex(index)
             else:
-                self.changesProxyModel.setFilter(self.search_edit.text(), role)
+                if role == self.FilterMessageRole:
+                    field = "message"
+                elif role == self.FilterAuthorRole:
+                    field = "author"
+                elif role == self.FilterSearchRole:
+                    field = "index"
+                else:
+                    raise Exception("Not done")
+                
+                self.log_list.set_search(search_text, field)
             
-            self.changesList.scrollTo(self.changesList.currentIndex())
+            self.log_list.scrollTo(self.log_list.currentIndex())
             # Scroll to ensure the selection is on screen.
         except:
             self.report_exception()
@@ -828,7 +455,7 @@ class LogWindow(QBzrWindow):
     @ui_current_widget
     def update_search_completer(self, text):
         # We only load the suggestions a letter at a time when needed.
-        term = str(text).split(" ")[-1]
+        term = unicode(text).split(" ")[-1]
         if term:
             first_letter = term[0]
         else:
@@ -838,7 +465,7 @@ class LogWindow(QBzrWindow):
             self.suggestion_last_first_letter = first_letter
             if first_letter not in self.suggestion_letters_loaded:
                 suggestions = set()
-                for index in self.indexes:
+                for index in self.log_list.graph_provider.search_indexes():
                     for s in index.suggest(((first_letter,),)): 
                         #if suggestions.count() % 100 == 0: 
                         #    QtCore.QCoreApplication.processEvents() 
@@ -849,10 +476,6 @@ class LogWindow(QBzrWindow):
             else:
                 suggestions = self.suggestion_letters_loaded[first_letter]
             self.completer_model.setStringList(suggestions)
-    
-    def closeEvent (self, QCloseEvent):
-        QBzrWindow.closeEvent(self, QCloseEvent)
-        self.changesModel.unlock()
     
     def updateSearchType(self, index=None):
         self.update_search()
@@ -871,63 +494,7 @@ class LogWindow(QBzrWindow):
         self.windows.append(window)
 
     def show_context_menu(self, pos):
-        #index = self.changesList.indexAt(pos)
-        #revid = str(index.data(logmodel.RevIdRole).toString())
-        #rev = self.changesModel.revision(revid)
-        #print index, item, rev
-        self.contextMenu.popup(self.changesList.viewport().mapToGlobal(pos))
-    
-    def changesList_mouseReleaseEvent (self, e):
-        if e.button() & QtCore.Qt.LeftButton:
-            pos = e.pos()
-            index = self.changesList.indexAt(pos)
-            rect = self.changesList.visualRect(index)
-            boxsize = rect.height()
-            node = index.data(logmodel.GraphNodeRole).toList()
-            if len(node)>0:
-                node_column = node[0].toInt()[0]
-                twistyRect = QtCore.QRect (rect.x() + boxsize * node_column,
-                                           rect.y() ,
-                                           boxsize,
-                                           boxsize)
-                if twistyRect.contains(pos):
-                    e.accept ()
-                    twisty_state = index.data(logmodel.GraphTwistyStateRole)
-                    if twisty_state.isValid():
-                        revision_id = str(index.data(logmodel.RevIdRole).toString())
-                        self.changesModel.colapse_expand_rev(revision_id, not twisty_state.toBool())
-        QtGui.QTreeView.mouseReleaseEvent(self.changesList, e)
-    
-    def changesList_keyPressEvent (self, e):
-        e_key = e.key()
-        if e_key in (QtCore.Qt.Key_Left, QtCore.Qt.Key_Right):
-            e.accept()
-            indexes = [index for index in self.changesList.selectedIndexes() if index.column()==0]
-            if not indexes:
-                return
-            index = indexes[0]
-            revision_id = str(index.data(logmodel.RevIdRole).toString())
-            twisty_state = index.data(logmodel.GraphTwistyStateRole)
-            if e.key() == QtCore.Qt.Key_Right \
-                    and twisty_state.isValid() \
-                    and not twisty_state.toBool():
-                self.changesModel.colapse_expand_rev(revision_id, True)
-            if e.key() == QtCore.Qt.Key_Left:
-                if twisty_state.isValid() and twisty_state.toBool():
-                    self.changesModel.colapse_expand_rev(revision_id, False)
-                else:
-                    #find merge of child branch
-                    revision_id = self.changesModel.findChildBranchMergeRevision(revision_id)
-                    if revision_id is None:
-                        return
-            newindex = self.changesModel.indexFromRevId(revision_id)
-            newindex = self.changesProxyModel.mapFromSource(newindex)
-            self.changesList.setCurrentIndex(newindex)
-        elif e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
-            e.accept()
-            self.diff_pushed()
-        else:
-            QtGui.QTreeView.keyPressEvent(self.changesList, e)
+        self.contextMenu.popup(self.log_list.viewport().mapToGlobal(pos))
 
     def _locations_for_title(self, locations):
         if locations == ['.']:
