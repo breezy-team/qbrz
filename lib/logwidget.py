@@ -23,10 +23,18 @@ from bzrlib.plugins.qbzr.lib.util import StopException
 
 
 class LogList(QtGui.QTreeView):
-    
+    """TreeView widget to show log with metadata and graph of revisions."""
+
     def __init__(self, processEvents, report_exception,
-                 throbber, parent=None):
+                 throbber, parent=None, func_diff_pushed=None):
+        """Costructing new widget.
+        @param  throbber:   throbber widget in parent window
+        @param  parent:     parent window
+        @param  func_diff_pushed:   callback function to show diff
+            on revision(s)
+        """
         QtGui.QTreeView.__init__(self, parent)
+        self.diff_pushed = func_diff_pushed or (lambda:None)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
         self.setUniformRowHeights(True)        
@@ -35,21 +43,20 @@ class LogList(QtGui.QTreeView):
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.connect(self.verticalScrollBar(), QtCore.SIGNAL("valueChanged (int)"),
                      self.scroll_changed)
-        
+
         self.setItemDelegateForColumn(logmodel.COL_MESSAGE,
                                         GraphTagsBugsItemDelegate(self))
-        
-        
+
         self.processEvents = processEvents
         self.throbber = throbber
         self.report_exception = report_exception
-        
+
         self.graph_provider = logmodel.QLogGraphProvider(self.processEvents,
                                                          self.report_exception,
                                                          self.throbber)
 
         self.model = logmodel.LogModel(self.graph_provider, self)
-        
+
         self.filter_proxy_model = logmodel.LogFilterProxyModel(self.graph_provider, self)
         self.filter_proxy_model.setSourceModel(self.model)
         self.filter_proxy_model.setDynamicSortFilter(True)
@@ -58,7 +65,7 @@ class LogList(QtGui.QTreeView):
         self.connect(self.model,
                      QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                      self.model_data_changed)
-        
+
         header = self.header()
         header.setStretchLastSection(False)
         header.setResizeMode(logmodel.COL_REV, QtGui.QHeaderView.Interactive)
@@ -68,10 +75,10 @@ class LogList(QtGui.QTreeView):
         header.resizeSection(logmodel.COL_REV, 70)
         header.resizeSection(logmodel.COL_DATE, 100) # TODO - Make this dynamic
         header.resizeSection(logmodel.COL_AUTHOR, 150)
-        
+
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
-    
+
     def load_branch(self, branch, specific_fileids):
         self.throbber.show()
         try:
@@ -140,7 +147,7 @@ class LogList(QtGui.QTreeView):
             QtGui.QTreeView.mouseReleaseEvent(self, e)
         except:
             self.report_exception()
-    
+
     def keyPressEvent (self, e):
         try:
             e_key = e.key()
