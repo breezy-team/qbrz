@@ -1,13 +1,23 @@
-0.9.8 - in development
-----------------------
+0.9.8 - in development 
+---------------------- 
+
+0.9.8 - 2009-02-13
+------------------
+
+This release is a minor regression fixing release, to be released in sync with
+bzr 1.12 finial.
+
+ * Fix bug where qinit was not working - correclty handle QString arguments
+   when starting a subprocess (Bug #327395)
 
 
 0.9.7 - 2009-02-09
 ----------------------
  * qcommit:
-    * handle situation with huge list of committed files on Windows (#277077).
+    * handle situation with huge list of committed files on Windows
+      (Bug #277077).
     * properly show changed files when only executable bit changed.
-    * fixed a bug, where if there is a lock on a brach, you could not close
+    * fixed a bug, where if there is a lock on a branch, you could not close
       the window.
  * qconflicts: new command and new window to view and resolve conflicts.
  * qlog:

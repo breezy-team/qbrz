@@ -47,9 +47,11 @@ from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 PathRole = QtCore.Qt.UserRole + 1
 
+
 class Compleater(QtGui.QCompleter):
     def splitPath (self, path):
         return QtCore.QStringList([path.split(" ")[-1]])
+
 
 class LogWindow(QBzrWindow):
 
@@ -127,7 +129,9 @@ class LogWindow(QBzrWindow):
         self.log_list = LogList(self.processEvents,
                                 self.report_exception,
                                 self.throbber,
-                                self)
+                                parent=self,
+                                func_diff_pushed=self.diff_pushed,
+                                )
 
         logbox.addWidget(self.throbber)
         logbox.addWidget(self.log_list)
@@ -400,7 +404,7 @@ class LogWindow(QBzrWindow):
 
     def diff_menu_item_pushed(self, action):
         self.diff_pushed()
-    
+
     def diff_pushed(self, ext_diff = None):
         """Show differences of the selected range or of a single revision"""
         indexes = [index for index in self.log_list.selectedIndexes() if index.column()==0]
