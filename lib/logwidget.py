@@ -199,6 +199,9 @@ class LogList(QtGui.QTreeView):
     def load_visible_revisions(self):
         top_index = self.indexAt(self.viewport().rect().topLeft()).row()
         bottom_index = self.indexAt(self.viewport().rect().bottomLeft()).row()
+        if top_index == -1:
+            #Nothing is visible
+            return
         if bottom_index == -1:
             bottom_index = len(self.graph_provider.graph_line_data)-1
         # The + 2 is so that the rev that is off screen due to the throbber
