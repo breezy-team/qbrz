@@ -484,7 +484,7 @@ class LogGraphProvider():
                     if not other_revid == revid]
             ur.extend([revid for revid \
                 in self.graph.find_unique_ancestors(revid, other_revids) \
-                if not revid == NULL_REVISION])
+                if not revid == NULL_REVISION and revid in self.revid_msri])
             ur.sort(key=lambda x: self.revid_msri[x])
 
     def load_filter_file_id(self):
