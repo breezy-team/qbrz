@@ -128,9 +128,9 @@ class LogWindow(QBzrWindow):
         self.log_list = LogList(self.processEvents,
                                 self.report_exception,
                                 self.throbber,
-                                parent=self,
-                                func_diff_pushed=self.diff_pushed,
-                                )
+                                self)
+        self.log_list.keyPressEvent  = self.log_list_keyPressEvent
+        
 
         logbox.addWidget(self.throbber)
         logbox.addWidget(self.log_list)
@@ -362,6 +362,17 @@ class LogWindow(QBzrWindow):
             self.message.setHtml(format_revision_html(rev, replace))
             self.revision_delta_timer.start(1)
 
+    def log_list_keyPressEvent (self, e):
+        try:
+            e_key = e.key()
+            if e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
+                e.accept()
+                self.diff_pushed()
+            else:
+                LogList.keyPressEvent(self.log_list, e)
+        except:
+            self.report_exception        
+    
     @ui_current_widget
     def show_diff_window(self, new_rev, old_rev, specific_files=None, ext_diff = None):
         new_revid = new_rev.revision_id

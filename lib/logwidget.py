@@ -26,15 +26,12 @@ class LogList(QtGui.QTreeView):
     """TreeView widget to show log with metadata and graph of revisions."""
 
     def __init__(self, processEvents, report_exception,
-                 throbber, parent=None, func_diff_pushed=None):
+                 throbber, parent=None):
         """Costructing new widget.
         @param  throbber:   throbber widget in parent window
         @param  parent:     parent window
-        @param  func_diff_pushed:   callback function to show diff
-            on revision(s)
         """
         QtGui.QTreeView.__init__(self, parent)
-        self.diff_pushed = func_diff_pushed or (lambda:None)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
         self.setUniformRowHeights(True)        
@@ -176,9 +173,6 @@ class LogList(QtGui.QTreeView):
                 newindex = self.filter_proxy_model.mapFromSource(newindex)
                 self.setCurrentIndex(newindex)
                 self.load_visible_revisions()
-            elif e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
-                e.accept()
-                self.diff_pushed()
             else:
                 QtGui.QTreeView.keyPressEvent(self, e)
         except:
