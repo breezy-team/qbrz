@@ -470,22 +470,23 @@ class LogGraphProvider():
             key = lambda x: x[1].repository)
         self.revid_branch = get_revid_head(head_revid_branch)        
         
-        # Populate unique revisions for heads
-        for revid, (head_info, ur) in self.revid_head_info.iteritems():
-            if revid in self.graph_children \
-                        and len(self.graph_children[revid])>0:
-                # This head has been merged.
-                other_revids = [other_revid for other_revid \
-                    in self.graph_parents[self.graph_children[revid][0]] \
-                    if not other_revid == revid]
-            else:
-                other_revids = [other_revid for other_revid \
-                    in self.revid_head_info.iterkeys() \
-                    if not other_revid == revid]
-            ur.extend([revid for revid \
-                in self.graph.find_unique_ancestors(revid, other_revids) \
-                if not revid == NULL_REVISION and revid in self.revid_msri])
-            ur.sort(key=lambda x: self.revid_msri[x])
+        if len(self.revid_head_info) > 1:
+            # Populate unique revisions for heads
+            for revid, (head_info, ur) in self.revid_head_info.iteritems():
+                if revid in self.graph_children \
+                            and len(self.graph_children[revid])>0:
+                    # This head has been merged.
+                    other_revids = [other_revid for other_revid \
+                        in self.graph_parents[self.graph_children[revid][0]] \
+                        if not other_revid == revid]
+                else:
+                    other_revids = [other_revid for other_revid \
+                        in self.revid_head_info.iterkeys() \
+                        if not other_revid == revid]
+                ur.extend([revid for revid \
+                    in self.graph.find_unique_ancestors(revid, other_revids) \
+                    if not revid == NULL_REVISION and revid in self.revid_msri])
+                ur.sort(key=lambda x: self.revid_msri[x])
 
     def load_filter_file_id(self):
         """Load with revisions affect the fileids
