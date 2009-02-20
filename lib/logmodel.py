@@ -50,6 +50,7 @@ _bug_id_re = lazy_regex.lazy_compile(r'(?:'
     r'|ticket/'                 # Trac bugs URL
     r'|show_bug\.cgi\?id='      # Bugzilla bugs URL
     r'|issues/show/'            # Redmine bugs URL
+    r'|DispForm.aspx\?ID='      # Microsoft SharePoint URL
     r')(\d+)(?:\b|$)')
 
 
