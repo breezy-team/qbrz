@@ -35,6 +35,7 @@ from bzrlib import (
     lazy_regex,
     osutils,
     urlutils,
+    errors,
     )
 from bzrlib.util.configobj import configobj
 
@@ -187,7 +188,36 @@ class QBzrGlobalConfig(IniBasedConfig):
 
 class StopException(Exception):
     pass
+
+REPORT_EXP_LOAD = 0
+"""The exception is beening reported from the main loading method.
+Causes the window to be closed.
+"""
+REPORT_EXP_SUB_LOAD = 1
+"""The exception is beening reported from the sub loading method.
+Does not cause the window to me closed. This is typicaly used when a user
+enters a branch location on one of our forms, and we try load that branch.
+"""
+REPORT_EXP_ITEM = 2
+"""The exception is beening reported from a method that is called per item.
+The user is allowed to ignore the error, or close the window.
+"""
+
+def report_exception(type=REPORT_EXP_LOAD):
+    """Exceptions raised from methods decorated by me will be reported.
+    """
+    def report_exception_decorator(f):
+        
+        def report_exception_decorate(self, *args, **kargs):
+            try:
+                return f(self, *args, **kargs)
+            except Exception:
+                self.report_exception()
+        
+        return report_exception_decorate
     
+    return report_exception_decorator
+
 class _QBzrWindowBase:
 
     def set_title(self, title=None):
@@ -206,13 +236,11 @@ class _QBzrWindowBase:
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
 
-    def report_exception(self, exc_info=None):
+    def report_exception(self, exc_info=None, type=REPORT_EXP_LOAD):
         """Report an exception.
 
-        The error is reported to the console using standard bzrlib.trace
-        functions.  If ui_mode is False, a message-box is also shown with
-        details of the error.  In all cases, the window is closed after the
-        error.
+        The error is reported to the console or a message box, depending
+        on the type. 
         """
         from cStringIO import StringIO
         import traceback
@@ -228,20 +256,49 @@ class _QBzrWindowBase:
             # Do we maybe want to log this?
             return
         
-        # always tell bzr to report it, so it ends up in the log.        
-        report_exception(exc_info, sys.stderr)
-        if self.ui_mode:
-            # and a version for the messagebox.
-            exc_type, exc_object, exc_tb = exc_info
+        msg_box = (type == REPORT_EXP_LOAD and self.ui_mode) \
+                  or not type == REPORT_EXP_LOAD
+        
+        if msg_box:
             err_file = StringIO()
-            err_file.write("%s.%s: %s\n" % (
-                exc_type.__module__, exc_type.__name__, exc_object))
-            err_file.write('\n')
-
-            QtGui.QMessageBox.warning(self, gettext("Error"), err_file.getvalue())
-        # And the window is always closed (this might need rethinking later,
-        # but currently this is called only during the window load process...)
-        self.close()
+        else:
+            err_file = sys.stderr
+        
+        # always tell bzr to report it, so it ends up in the log.        
+        error_type = report_exception(exc_info, err_file)
+        if msg_box:
+            if type == REPORT_EXP_LOAD:
+                buttons = QtGui.QMessageBox.Close
+            elif type == REPORT_EXP_SUB_LOAD:
+                buttons = QtGui.QMessageBox.Ok
+            elif type == REPORT_EXP_ITEM:
+                buttons == QtGui.QMessageBox.Close | QtGui.QMessageBox.Ignore
+            
+            if error_type == errors.EXIT_INTERNAL_ERROR:
+                icon = QtGui.QMessageBox.Critical
+            else:
+                icon = QtGui.QMessageBox.Warning
+            
+            msg_box = QtGui.QMessageBox(icon,
+                                        gettext("Error"),
+                                        err_file.getvalue(),
+                                        buttons)
+            
+            if error_type == errors.EXIT_INTERNAL_ERROR:
+                # We need to make the dialog wider, becuase we are probably
+                # showing a stack trace.
+                # TODO: resize the msg box. I have tried every thing I can
+                # think of - but can't get it to work. We might have to
+                # remplement the msgbox.
+                pass
+                # To do: make link to fill bug page.
+            
+            msg_box.exec_()
+            
+            if msg_box.result() == QtGui.QMessageBox.Close:
+                self.window().close()
+        else:
+            self.window().close()
 
     def create_button_box(self, *buttons):
         """Create and return button box with pseudo-standard buttons

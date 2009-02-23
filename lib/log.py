@@ -42,6 +42,10 @@ from bzrlib.plugins.qbzr.lib.util import (
     RevisionMessageBrowser,
     url_for_display,
     runs_in_loading_queue,
+    report_exception,
+    REPORT_EXP_LOAD,
+    REPORT_EXP_SUB_LOAD,
+    REPORT_EXP_ITEM,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
@@ -63,6 +67,10 @@ class LogWindow(QBzrWindow):
     
     def __init__(self, locations, branch, specific_fileids, parent=None,
                  ui_mode=True):        
+        self.title = [gettext("Log")]
+        QBzrWindow.__init__(self, self.title, parent, ui_mode=ui_mode)
+        self.restoreSize("log", (710, 580))
+        
         if branch:
             self.branch = branch
             self.locations = (branch,)
@@ -74,15 +82,6 @@ class LogWindow(QBzrWindow):
             if self.locations is None:
                 self.locations = ["."]
             assert specific_fileids is None, "this is ignored if no branch"
-        
-        # Set window title. 
-        lt = self._locations_for_title(self.locations)
-        title = [gettext("Log")]
-        if lt:
-            title.append(lt)
-        
-        QBzrWindow.__init__(self, title, parent, ui_mode=ui_mode)
-        self.restoreSize("log", (710, 580))
         
         self.branches = None
         self.replace = {}
@@ -217,57 +216,60 @@ class LogWindow(QBzrWindow):
 
     @runs_in_loading_queue
     @ui_current_widget
+    @report_exception(type = REPORT_EXP_LOAD)
     def load(self):
+        self.refresh_button.setDisabled(True)            
+        
+        # Set window title. 
+        lt = self._locations_for_title(self.locations)
+        if lt:
+            self.title.append(lt)
+        self.set_title (self.title)
+        
+        self.processEvents()
         try:
-            self.refresh_button.setDisabled(True)            
-            self.processEvents()
-            try:
-                if self.branch:
-                    self.log_list.load_branch(self.branch,
-                                                    self.specific_fileids)
-                else:
-                    self.log_list.load_locations(self.locations)
+            if self.branch:
+                self.log_list.load_branch(self.branch,
+                                                self.specific_fileids)
+            else:
+                self.log_list.load_locations(self.locations)
+            
+            for index in self.log_list.graph_provider.search_indexes():
+                indexes_availble = True
+                break
+            else:
+                indexes_availble = False
+            
+            if indexes_availble:
+                self.searchType.insertItem(0,
+                        gettext("Messages and File text (indexed)"),
+                        QtCore.QVariant(self.FilterSearchRole))
+                self.searchType.setCurrentIndex(0)
                 
-                for index in self.log_list.graph_provider.search_indexes():
-                    indexes_availble = True
-                    break
-                else:
-                    indexes_availble = False
-                
-                if indexes_availble:
-                    self.searchType.insertItem(0,
-                            gettext("Messages and File text (indexed)"),
-                            QtCore.QVariant(self.FilterSearchRole))
-                    self.searchType.setCurrentIndex(0)
-                    
-                    self.completer = Compleater(self)
-                    self.completer_model = QtGui.QStringListModel(self)
-                    self.completer.setModel(self.completer_model)
-                    self.search_edit.setCompleter(self.completer)
-                    self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
-                                 self.update_search_completer)
-                    self.suggestion_letters_loaded = {"":QtCore.QStringList()}
-                    self.suggestion_last_first_letter = ""
-                    self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
-                                 self.set_search_timer)
-            finally:
-                self.refresh_button.setDisabled(False)
-        except:
-            self.report_exception()
+                self.completer = Compleater(self)
+                self.completer_model = QtGui.QStringListModel(self)
+                self.completer.setModel(self.completer_model)
+                self.search_edit.setCompleter(self.completer)
+                self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
+                             self.update_search_completer)
+                self.suggestion_letters_loaded = {"":QtCore.QStringList()}
+                self.suggestion_last_first_letter = ""
+                self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
+                             self.set_search_timer)
+        finally:
+            self.refresh_button.setDisabled(False)
     
     @runs_in_loading_queue
     @ui_current_widget
+    @report_exception(type = REPORT_EXP_SUB_LOAD)
     def refresh(self):
+        self.refresh_button.setDisabled(True)            
+        self.processEvents()
         try:
-            self.refresh_button.setDisabled(True)            
-            self.processEvents()
-            try:
-                self.replace = {}
-                self.log_list.refresh()
-            finally:
-                self.refresh_button.setDisabled(False)
-        except:
-            self.report_exception()
+            self.replace = {}
+            self.log_list.refresh()
+        finally:
+            self.refresh_button.setDisabled(False)
 
     def replace_config(self, branch):
         if branch.base not in self.replace:
@@ -517,6 +519,7 @@ class LogWindow(QBzrWindow):
     def show_context_menu(self, pos):
         self.contextMenu.popup(self.log_list.viewport().mapToGlobal(pos))
 
+    @report_exception(type = REPORT_EXP_LOAD)
     def _locations_for_title(self, locations):
         if locations == ['.']:
             return osutils.getcwd()
