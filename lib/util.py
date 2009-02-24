@@ -38,6 +38,7 @@ from bzrlib import (
     )
 from bzrlib.util.configobj import configobj
 
+from bzrlib.plugins.qbzr.lib import trace
 from bzrlib.plugins.qbzr.lib import i18n
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
 import bzrlib.plugins.qbzr.lib.resources
@@ -185,9 +186,6 @@ class QBzrGlobalConfig(IniBasedConfig):
         self._get_parser().write(f)
         f.close()
 
-class StopException(Exception):
-    pass
-    
 class _QBzrWindowBase:
 
     def set_title(self, title=None):
@@ -206,42 +204,13 @@ class _QBzrWindowBase:
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
 
-    def report_exception(self, exc_info=None):
+    def report_exception(self, exc_info=None, type=trace.MAIN_LOAD_METHOD):
         """Report an exception.
 
-        The error is reported to the console using standard bzrlib.trace
-        functions.  If ui_mode is False, a message-box is also shown with
-        details of the error.  In all cases, the window is closed after the
-        error.
+        The error is reported to the console or a message box, depending
+        on the type. 
         """
-        from cStringIO import StringIO
-        import traceback
-        from bzrlib.trace import report_exception
-
-        if exc_info is None:
-            exc_info = sys.exc_info()
-        
-        exc_type, exc_object, exc_tb = exc_info
-        
-        # Don't show error for StopException
-        if isinstance(exc_object, StopException):
-            # Do we maybe want to log this?
-            return
-        
-        # always tell bzr to report it, so it ends up in the log.        
-        report_exception(exc_info, sys.stderr)
-        if self.ui_mode:
-            # and a version for the messagebox.
-            exc_type, exc_object, exc_tb = exc_info
-            err_file = StringIO()
-            err_file.write("%s.%s: %s\n" % (
-                exc_type.__module__, exc_type.__name__, exc_object))
-            err_file.write('\n')
-
-            QtGui.QMessageBox.warning(self, gettext("Error"), err_file.getvalue())
-        # And the window is always closed (this might need rethinking later,
-        # but currently this is called only during the window load process...)
-        self.close()
+        trace.report_exception(exc_info=exc_info, type=type, window=self.window())
 
     def create_button_box(self, *buttons):
         """Create and return button box with pseudo-standard buttons
@@ -349,7 +318,7 @@ class _QBzrWindowBase:
     def processEvents(self, flags=QtCore.QEventLoop.AllEvents):
         QtCore.QCoreApplication.processEvents(flags)
         if self.closing:
-            raise StopException()
+            raise trace.StopException()
 
 class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
 
@@ -884,7 +853,7 @@ class BackgroundJob(object):
     
     def restart(self, timeout=0):
         self.restart_timeout = timeout
-        raise StopException()
+        raise trace.StopException()
     
     def start(self, timeout=0):
         if not self.is_running:
@@ -899,7 +868,7 @@ class BackgroundJob(object):
         self.parent.processEvents(flags)
         if self.stoping:
             self.stoping = False
-            raise StopException()
+            raise trace.StopException()
 
 loading_queue = None
 

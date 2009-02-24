@@ -138,6 +138,11 @@ class QBzrCommand(Command):
     @report_missing_pyqt
     def run(self, *args, **kwargs):
         ui.ui_factory = QUIFactory()
+        
+        # Set up global execption handeling.
+        from bzrlib.plugins.qbzr.lib.trace import excepthook
+        sys.excepthook = excepthook
+        
         return self._qbzr_run(*args, **kwargs)
 
 ui_mode_option = Option("ui-mode", help="Causes dialogs to wait after the operation is complete.")

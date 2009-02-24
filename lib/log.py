@@ -43,6 +43,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     url_for_display,
     runs_in_loading_queue,
     )
+from bzrlib.plugins.qbzr.lib.trace import *
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 PathRole = QtCore.Qt.UserRole + 1
@@ -63,6 +64,10 @@ class LogWindow(QBzrWindow):
     
     def __init__(self, locations, branch, specific_fileids, parent=None,
                  ui_mode=True):        
+        self.title = [gettext("Log")]
+        QBzrWindow.__init__(self, self.title, parent, ui_mode=ui_mode)
+        self.restoreSize("log", (710, 580))
+        
         if branch:
             self.branch = branch
             self.locations = (branch,)
@@ -74,15 +79,6 @@ class LogWindow(QBzrWindow):
             if self.locations is None:
                 self.locations = ["."]
             assert specific_fileids is None, "this is ignored if no branch"
-        
-        # Set window title. 
-        lt = self._locations_for_title(self.locations)
-        title = [gettext("Log")]
-        if lt:
-            title.append(lt)
-        
-        QBzrWindow.__init__(self, title, parent, ui_mode=ui_mode)
-        self.restoreSize("log", (710, 580))
         
         self.branches = None
         self.replace = {}
@@ -217,57 +213,60 @@ class LogWindow(QBzrWindow):
 
     @runs_in_loading_queue
     @ui_current_widget
+    @reports_exception()
     def load(self):
+        self.refresh_button.setDisabled(True)            
+        
+        # Set window title. 
+        lt = self._locations_for_title(self.locations)
+        if lt:
+            self.title.append(lt)
+        self.set_title (self.title)
+        
+        self.processEvents()
         try:
-            self.refresh_button.setDisabled(True)            
-            self.processEvents()
-            try:
-                if self.branch:
-                    self.log_list.load_branch(self.branch,
-                                                    self.specific_fileids)
-                else:
-                    self.log_list.load_locations(self.locations)
+            if self.branch:
+                self.log_list.load_branch(self.branch,
+                                                self.specific_fileids)
+            else:
+                self.log_list.load_locations(self.locations)
+            
+            for index in self.log_list.graph_provider.search_indexes():
+                indexes_availble = True
+                break
+            else:
+                indexes_availble = False
+            
+            if indexes_availble:
+                self.searchType.insertItem(0,
+                        gettext("Messages and File text (indexed)"),
+                        QtCore.QVariant(self.FilterSearchRole))
+                self.searchType.setCurrentIndex(0)
                 
-                for index in self.log_list.graph_provider.search_indexes():
-                    indexes_availble = True
-                    break
-                else:
-                    indexes_availble = False
-                
-                if indexes_availble:
-                    self.searchType.insertItem(0,
-                            gettext("Messages and File text (indexed)"),
-                            QtCore.QVariant(self.FilterSearchRole))
-                    self.searchType.setCurrentIndex(0)
-                    
-                    self.completer = Compleater(self)
-                    self.completer_model = QtGui.QStringListModel(self)
-                    self.completer.setModel(self.completer_model)
-                    self.search_edit.setCompleter(self.completer)
-                    self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
-                                 self.update_search_completer)
-                    self.suggestion_letters_loaded = {"":QtCore.QStringList()}
-                    self.suggestion_last_first_letter = ""
-                    self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
-                                 self.set_search_timer)
-            finally:
-                self.refresh_button.setDisabled(False)
-        except:
-            self.report_exception()
+                self.completer = Compleater(self)
+                self.completer_model = QtGui.QStringListModel(self)
+                self.completer.setModel(self.completer_model)
+                self.search_edit.setCompleter(self.completer)
+                self.connect(self.search_edit, QtCore.SIGNAL("textChanged(QString)"),
+                             self.update_search_completer)
+                self.suggestion_letters_loaded = {"":QtCore.QStringList()}
+                self.suggestion_last_first_letter = ""
+                self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
+                             self.set_search_timer)
+        finally:
+            self.refresh_button.setDisabled(False)
     
     @runs_in_loading_queue
     @ui_current_widget
+    @reports_exception(type = SUB_LOAD_METHOD)
     def refresh(self):
+        self.refresh_button.setDisabled(True)            
+        self.processEvents()
         try:
-            self.refresh_button.setDisabled(True)            
-            self.processEvents()
-            try:
-                self.replace = {}
-                self.log_list.refresh()
-            finally:
-                self.refresh_button.setDisabled(False)
-        except:
-            self.report_exception()
+            self.replace = {}
+            self.log_list.refresh()
+        finally:
+            self.refresh_button.setDisabled(False)
 
     def replace_config(self, branch):
         if branch.base not in self.replace:
@@ -300,42 +299,39 @@ class LogWindow(QBzrWindow):
     @runs_in_loading_queue
     @ui_current_widget
     def update_revision_delta(self):
-        try:
-            rev = self.current_rev
-            if not hasattr(rev, 'delta'):
-                # TODO move this to a thread
-                rev.repository.lock_read()
+        rev = self.current_rev
+        if not hasattr(rev, 'delta'):
+            # TODO move this to a thread
+            rev.repository.lock_read()
+            self.processEvents()
+            try:
+                rev.delta = rev.repository.get_deltas_for_revisions(
+                    [rev]).next()
                 self.processEvents()
-                try:
-                    rev.delta = rev.repository.get_deltas_for_revisions(
-                        [rev]).next()
-                    self.processEvents()
-                finally:
-                    rev.repository.unlock()
-                    self.processEvents()
-            if self.current_rev is not rev:
-                # new update was requested, don't bother populating the list
-                return
-            delta = rev.delta
-    
-            for path, id_, kind in delta.added:
-                item = QtGui.QListWidgetItem(path, self.fileList)
-                item.setTextColor(QtGui.QColor("blue"))
-    
-            for path, id_, kind, text_modified, meta_modified in delta.modified:
-                item = QtGui.QListWidgetItem(path, self.fileList)
-    
-            for path, id_, kind in delta.removed:
-                item = QtGui.QListWidgetItem(path, self.fileList)
-                item.setTextColor(QtGui.QColor("red"))
-    
-            for (oldpath, newpath, id_, kind,
-                text_modified, meta_modified) in delta.renamed:
-                item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
-                item.setData(PathRole, QtCore.QVariant(newpath))
-                item.setTextColor(QtGui.QColor("purple"))
-        except:
-            self.report_exception()        
+            finally:
+                rev.repository.unlock()
+                self.processEvents()
+        if self.current_rev is not rev:
+            # new update was requested, don't bother populating the list
+            return
+        delta = rev.delta
+
+        for path, id_, kind in delta.added:
+            item = QtGui.QListWidgetItem(path, self.fileList)
+            item.setTextColor(QtGui.QColor("blue"))
+
+        for path, id_, kind, text_modified, meta_modified in delta.modified:
+            item = QtGui.QListWidgetItem(path, self.fileList)
+
+        for path, id_, kind in delta.removed:
+            item = QtGui.QListWidgetItem(path, self.fileList)
+            item.setTextColor(QtGui.QColor("red"))
+
+        for (oldpath, newpath, id_, kind,
+            text_modified, meta_modified) in delta.renamed:
+            item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
+            item.setData(PathRole, QtCore.QVariant(newpath))
+            item.setTextColor(QtGui.QColor("purple"))
 
     @runs_in_loading_queue
     @ui_current_widget
@@ -430,48 +426,45 @@ class LogWindow(QBzrWindow):
 
     @ui_current_widget
     def update_search(self):
-        try:
-            # TODO in_paths = self.search_in_paths.isChecked()
-            role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
-            search_text = unicode(self.search_edit.text())
-            if search_text == u"":
-                self.log_list.set_search(None, None)
-            elif role == self.FilterIdRole:
-                self.log_list.set_search(None, None)
-                if self.log_list.graph_provider.has_rev_id(search_text):
-                    self.log_list.model.ensure_rev_visible(search_text)
-                    index = self.log_list.model.indexFromRevId(search_text)
-                    index = self.log_list.filter_proxy_model.mapFromSource(index)
-                    self.log_list.setCurrentIndex(index)
-            elif role == self.FilterRevnoRole:
-                self.log_list.set_search(None, None)
-                try:
-                    revno = tuple((int(number) for number in search_text.split('.')))
-                except ValueError:
-                    revno = ()
-                    # Not sure what to do if there is an error. Nothing for now
-                revid = self.log_list.graph_provider.revid_from_revno(revno)
-                if revid:
-                    self.log_list.model.ensure_rev_visible(revid)
-                    index = self.log_list.model.indexFromRevId(revid)
-                    index = self.log_list.filter_proxy_model.mapFromSource(index)
-                    self.log_list.setCurrentIndex(index)
+        # TODO in_paths = self.search_in_paths.isChecked()
+        role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
+        search_text = unicode(self.search_edit.text())
+        if search_text == u"":
+            self.log_list.set_search(None, None)
+        elif role == self.FilterIdRole:
+            self.log_list.set_search(None, None)
+            if self.log_list.graph_provider.has_rev_id(search_text):
+                self.log_list.model.ensure_rev_visible(search_text)
+                index = self.log_list.model.indexFromRevId(search_text)
+                index = self.log_list.filter_proxy_model.mapFromSource(index)
+                self.log_list.setCurrentIndex(index)
+        elif role == self.FilterRevnoRole:
+            self.log_list.set_search(None, None)
+            try:
+                revno = tuple((int(number) for number in search_text.split('.')))
+            except ValueError:
+                revno = ()
+                # Not sure what to do if there is an error. Nothing for now
+            revid = self.log_list.graph_provider.revid_from_revno(revno)
+            if revid:
+                self.log_list.model.ensure_rev_visible(revid)
+                index = self.log_list.model.indexFromRevId(revid)
+                index = self.log_list.filter_proxy_model.mapFromSource(index)
+                self.log_list.setCurrentIndex(index)
+        else:
+            if role == self.FilterMessageRole:
+                field = "message"
+            elif role == self.FilterAuthorRole:
+                field = "author"
+            elif role == self.FilterSearchRole:
+                field = "index"
             else:
-                if role == self.FilterMessageRole:
-                    field = "message"
-                elif role == self.FilterAuthorRole:
-                    field = "author"
-                elif role == self.FilterSearchRole:
-                    field = "index"
-                else:
-                    raise Exception("Not done")
-                
-                self.log_list.set_search(search_text, field)
+                raise Exception("Not done")
             
-            self.log_list.scrollTo(self.log_list.currentIndex())
-            # Scroll to ensure the selection is on screen.
-        except:
-            self.report_exception()
+            self.log_list.set_search(search_text, field)
+        
+        self.log_list.scrollTo(self.log_list.currentIndex())
+        # Scroll to ensure the selection is on screen.
     
     @ui_current_widget
     def update_search_completer(self, text):

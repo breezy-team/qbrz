@@ -22,7 +22,6 @@ import time
 
 from bzrlib import ui
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
-from bzrlib.plugins.qbzr.lib.util import StopException
 
 def ui_current_widget(f):
     def decorate(*args, **kargs):
