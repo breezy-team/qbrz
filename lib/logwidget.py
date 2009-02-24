@@ -123,73 +123,61 @@ class LogList(QtGui.QTreeView):
         self.graph_provider.unlock_repos()
 
     def mouseReleaseEvent (self, e):
-        try:
-            if e.button() & QtCore.Qt.LeftButton:
-                pos = e.pos()
-                index = self.indexAt(pos)
-                rect = self.visualRect(index)
-                boxsize = rect.height()
-                node = index.data(logmodel.GraphNodeRole).toList()
-                if len(node)>0:
-                    node_column = node[0].toInt()[0]
-                    twistyRect = QtCore.QRect (rect.x() + boxsize * node_column,
-                                               rect.y() ,
-                                               boxsize,
-                                               boxsize)
-                    if twistyRect.contains(pos):
-                        twisty_state = index.data(logmodel.GraphTwistyStateRole)
-                        if twisty_state.isValid():
-                            revision_id = str(index.data(logmodel.RevIdRole).toString())
-                            self.model.colapse_expand_rev(revision_id, not twisty_state.toBool())
-                            e.accept ()
-            QtGui.QTreeView.mouseReleaseEvent(self, e)
-        except:
-            self.report_exception()
+        if e.button() & QtCore.Qt.LeftButton:
+            pos = e.pos()
+            index = self.indexAt(pos)
+            rect = self.visualRect(index)
+            boxsize = rect.height()
+            node = index.data(logmodel.GraphNodeRole).toList()
+            if len(node)>0:
+                node_column = node[0].toInt()[0]
+                twistyRect = QtCore.QRect (rect.x() + boxsize * node_column,
+                                           rect.y() ,
+                                           boxsize,
+                                           boxsize)
+                if twistyRect.contains(pos):
+                    twisty_state = index.data(logmodel.GraphTwistyStateRole)
+                    if twisty_state.isValid():
+                        revision_id = str(index.data(logmodel.RevIdRole).toString())
+                        self.model.colapse_expand_rev(revision_id, not twisty_state.toBool())
+                        e.accept ()
+        QtGui.QTreeView.mouseReleaseEvent(self, e)
 
     def keyPressEvent (self, e):
-        try:
-            e_key = e.key()
-            if e_key in (QtCore.Qt.Key_Left, QtCore.Qt.Key_Right):
-                e.accept()
-                indexes = [index for index in self.selectedIndexes() if index.column()==0]
-                if not indexes:
-                    return
-                index = indexes[0]
-                revision_id = str(index.data(logmodel.RevIdRole).toString())
-                twisty_state = index.data(logmodel.GraphTwistyStateRole)
-                if e.key() == QtCore.Qt.Key_Right \
-                        and twisty_state.isValid() \
-                        and not twisty_state.toBool():
-                    self.model.colapse_expand_rev(revision_id, True)
-                if e.key() == QtCore.Qt.Key_Left:
-                    if twisty_state.isValid() and twisty_state.toBool():
-                        self.model.colapse_expand_rev(revision_id, False)
-                    else:
-                        #find merge of child branch
-                        revision_id = self.graph_provider.\
-                                      find_child_branch_merge_revision(revision_id)
-                        if revision_id is None:
-                            return
-                newindex = self.model.indexFromRevId(revision_id)
-                newindex = self.filter_proxy_model.mapFromSource(newindex)
-                self.setCurrentIndex(newindex)
-                self.load_visible_revisions()
-            else:
-                QtGui.QTreeView.keyPressEvent(self, e)
-        except:
-            self.report_exception()
+        e_key = e.key()
+        if e_key in (QtCore.Qt.Key_Left, QtCore.Qt.Key_Right):
+            e.accept()
+            indexes = [index for index in self.selectedIndexes() if index.column()==0]
+            if not indexes:
+                return
+            index = indexes[0]
+            revision_id = str(index.data(logmodel.RevIdRole).toString())
+            twisty_state = index.data(logmodel.GraphTwistyStateRole)
+            if e.key() == QtCore.Qt.Key_Right \
+                    and twisty_state.isValid() \
+                    and not twisty_state.toBool():
+                self.model.colapse_expand_rev(revision_id, True)
+            if e.key() == QtCore.Qt.Key_Left:
+                if twisty_state.isValid() and twisty_state.toBool():
+                    self.model.colapse_expand_rev(revision_id, False)
+                else:
+                    #find merge of child branch
+                    revision_id = self.graph_provider.\
+                                  find_child_branch_merge_revision(revision_id)
+                    if revision_id is None:
+                        return
+            newindex = self.model.indexFromRevId(revision_id)
+            newindex = self.filter_proxy_model.mapFromSource(newindex)
+            self.setCurrentIndex(newindex)
+            self.load_visible_revisions()
+        else:
+            QtGui.QTreeView.keyPressEvent(self, e)
     
     def scroll_changed(self, value):
-        try:
-            self.load_visible_revisions()
-        except:
-            self.report_exception()
+        self.load_visible_revisions()
     
     def model_data_changed(self, start_index, end_index):
-        try:
-            self.load_visible_revisions()
-        except:
-            self.report_exception()
+        self.load_visible_revisions()
     
     @runs_in_loading_queue
     def load_visible_revisions(self):
