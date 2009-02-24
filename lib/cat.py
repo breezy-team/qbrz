@@ -95,6 +95,7 @@ class QBzrCatWindow(QBzrWindow):
         QBzrWindow.show(self)
         QtCore.QTimer.singleShot(1, self.load)
     
+    @runs_in_loading_queue
     @ui_current_widget
     def load(self):
         try:

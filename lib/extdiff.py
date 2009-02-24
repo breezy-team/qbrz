@@ -19,6 +19,7 @@
 
 from bzrlib.plugins.qbzr.lib.util import ( 
     QBzrGlobalConfig,
+    runs_in_loading_queue,
     )
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -34,6 +35,7 @@ ext_diffs = {gettext("Builtin Diff"):""}
 for name, command in qparser.get('EXTDIFF', {}).items():
     ext_diffs[name] = command
 
+@runs_in_loading_queue
 def show_diff(old_revid, new_revid, old_branch, new_branch, new_wt = None,
              specific_files=None, ext_diff=None, parent_window=None):
     

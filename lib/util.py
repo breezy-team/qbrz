@@ -900,3 +900,32 @@ class BackgroundJob(object):
         if self.stoping:
             self.stoping = False
             raise StopException()
+
+loading_queue = None
+
+def runs_in_loading_queue(f):
+    """Methods decorated with this will not run at the same time, but will be
+    queued. Methods decorated with this will not be able to return results,
+    but should rather update the ui themselfs. Methods decorated with this
+    should detect, and stop if their execution is no longer requires.
+    
+    """
+    
+    def decorate(*args, **kargs):
+        run_in_loading_queue(f, *args, **kargs)
+    
+    return decorate
+
+def run_in_loading_queue(cur_f, *cur_args, **cur_kargs):
+    global loading_queue
+    if loading_queue is None:
+        loading_queue = []
+        loading_queue.append((cur_f, cur_args, cur_kargs))
+        
+        while len(loading_queue):
+            f, args, kargs = loading_queue.pop(0)
+            f(*args, **kargs)
+        
+        loading_queue = None
+    else:
+        loading_queue.append((cur_f, cur_args, cur_kargs))

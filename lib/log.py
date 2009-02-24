@@ -41,6 +41,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     open_browser,
     RevisionMessageBrowser,
     url_for_display,
+    runs_in_loading_queue,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
@@ -214,6 +215,7 @@ class LogWindow(QBzrWindow):
         # set focus on search edit widget
         self.log_list.setFocus()
 
+    @runs_in_loading_queue
     @ui_current_widget
     def load(self):
         try:
@@ -253,6 +255,7 @@ class LogWindow(QBzrWindow):
         except:
             self.report_exception()
     
+    @runs_in_loading_queue
     @ui_current_widget
     def refresh(self):
         try:
@@ -294,6 +297,7 @@ class LogWindow(QBzrWindow):
         else:
             open_browser(str(url.toEncoded()))
 
+    @runs_in_loading_queue
     @ui_current_widget
     def update_revision_delta(self):
         try:
@@ -333,6 +337,8 @@ class LogWindow(QBzrWindow):
         except:
             self.report_exception()        
 
+    @runs_in_loading_queue
+    @ui_current_widget
     def update_selection(self, selected, deselected):
         indexes = [index for index in self.log_list.selectedIndexes() if index.column()==0]
         self.fileList.clear()

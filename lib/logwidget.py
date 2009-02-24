@@ -19,7 +19,10 @@
 
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib import logmodel
-from bzrlib.plugins.qbzr.lib.util import StopException
+from bzrlib.plugins.qbzr.lib.util import (
+    StopException,
+    runs_in_loading_queue,
+    )
 
 
 class LogList(QtGui.QTreeView):
@@ -115,8 +118,6 @@ class LogList(QtGui.QTreeView):
         self.model.loadBranch()
         
         self.graph_provider.load_filter_file_id()
-        
-        self.load_visible_revisions()
     
     def closeEvent (self, QCloseEvent):
         self.graph_provider.unlock_repos()
@@ -190,6 +191,7 @@ class LogList(QtGui.QTreeView):
         except:
             self.report_exception()
     
+    @runs_in_loading_queue
     def load_visible_revisions(self):
         top_index = self.indexAt(self.viewport().rect().topLeft()).row()
         bottom_index = self.indexAt(self.viewport().rect().bottomLeft()).row()

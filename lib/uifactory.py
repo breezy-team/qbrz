@@ -86,8 +86,7 @@ class QUIFactory(ui.UIFactory):
             
             current_widget.throbber.transport.setText(msg)
         
-        QtCore.QCoreApplication.processEvents(\
-                                QtCore.QEventLoop.ExcludeUserInputEvents)
+        QtCore.QCoreApplication.processEvents()
 
     def get_password(self, prompt='', **kwargs):
         password, ok = QtGui.QInputDialog.getText(self.current_widget(),

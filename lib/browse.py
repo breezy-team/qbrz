@@ -135,6 +135,7 @@ class BrowseWindow(QBzrWindow):
         QBzrWindow.show(self)
         QtCore.QTimer.singleShot(1, self.load)
    
+    @runs_in_loading_queue
     @ui_current_widget
     def load(self):
         try:
@@ -199,6 +200,7 @@ class BrowseWindow(QBzrWindow):
         path_parts.reverse()
         return pathjoin(*path_parts)
     
+    @runs_in_loading_queue
     @ui_current_widget
     def show_file_content(self, index=None):
         """Launch qcat for one selected file."""
