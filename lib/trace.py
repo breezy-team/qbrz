@@ -152,5 +152,3 @@ def excepthook(type, value, traceback):
     exc_info = (type, value, traceback)
     report_exception(exc_info=exc_info,
                      type=ITEM_OR_EVENT_METHOD)
-
-sys.excepthook = excepthook
