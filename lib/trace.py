@@ -46,14 +46,22 @@ ITEM_OR_EVENT_METHOD = 2
 The user is allowed to ignore the error, or close the window.
 """
 
+closing_due_to_error = False
+
 def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
     """Report an exception.
 
     The error is reported to the console or a message box, depending
     on the type. 
     """
+    
+    # We only want one error to show if the user chose Close
+    global closing_due_to_error
+    if closing_due_to_error or \
+        getattr(window, 'closing_due_to_error', False):
+        return
+    
     from cStringIO import StringIO
-    import traceback
     from bzrlib.trace import report_exception
 
     if exc_info is None:
@@ -113,8 +121,10 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
     
     if close:
         if window is None:
+            closing_due_to_error = True
             QtCore.QCoreApplication.instance().quit()
         else:
+            window.closing_due_to_error = True
             window.close()
 
 
