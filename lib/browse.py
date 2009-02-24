@@ -138,7 +138,7 @@ class BrowseWindow(QBzrWindow):
    
     @runs_in_loading_queue
     @ui_current_widget
-    @reports_exception
+    @reports_exception()
     def load(self):
         self.throbber.show()
         self.processEvents()

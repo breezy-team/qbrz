@@ -157,7 +157,7 @@ class AnnotateWindow(QBzrWindow):
 
     @runs_in_loading_queue
     @ui_current_widget
-    @reports_exception
+    @reports_exception()
     def initial_load(self):
         """Called to perform the initial load of the form.  Enables a
         throbber window, then loads the branches etc if they weren't specified

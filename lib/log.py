@@ -213,7 +213,7 @@ class LogWindow(QBzrWindow):
 
     @runs_in_loading_queue
     @ui_current_widget
-    @reports_exception(type = MAIN_LOAD_METHOD)
+    @reports_exception()
     def load(self):
         self.refresh_button.setDisabled(True)            
         
