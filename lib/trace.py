@@ -62,7 +62,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
         return
     
     from cStringIO import StringIO
-    from bzrlib.trace import report_exception
+    from bzrlib.trace import report_exception, print_exception
 
     if exc_info is None:
         exc_info = sys.exc_info()
@@ -87,36 +87,74 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
     
     close = True
     if msg_box:
-        if type == MAIN_LOAD_METHOD:
-            buttons = QtGui.QMessageBox.Close
-        elif type == SUB_LOAD_METHOD:
-            buttons = QtGui.QMessageBox.Ok
-        elif type == ITEM_OR_EVENT_METHOD:
-            buttons = QtGui.QMessageBox.Close | QtGui.QMessageBox.Ignore
-        
         if error_type == errors.EXIT_INTERNAL_ERROR:
-            icon = QtGui.QMessageBox.Critical
+            # this is a copy of bzrlib.trace.report_bug
+            # but we seperate the message, and the trace back,
+            # and addes a hyper link to the filebug page.
+            import os
+            import bzrlib            
+            from bzrlib import (
+                osutils,
+                plugin,
+                )
+            
+            message ="\
+Bazaar has encountered an internal error. Please report a bug at \
+<a href=\"https://bugs.launchpad.net/bzr/+filebug\">\
+https://bugs.launchpad.net/bzr/+filebug</a> including this traceback, and a \
+description of what you were doing when the error occurred."
+            
+            traceback_file = StringIO()
+            print_exception(exc_info, traceback_file)
+            traceback_file.write('\n')
+            traceback_file.write('bzr %s on python %s (%s)\n' % \
+                               (bzrlib.__version__,
+                                bzrlib._format_version_tuple(sys.version_info),
+                                sys.platform))
+            traceback_file.write('arguments: %r\n' % sys.argv)
+            traceback_file.write(
+                'encoding: %r, fsenc: %r, lang: %r\n' % (
+                    osutils.get_user_encoding(), sys.getfilesystemencoding(),
+                    os.environ.get('LANG')))
+            traceback_file.write("plugins:\n")
+            for name, a_plugin in sorted(plugin.plugins().items()):
+                traceback_file.write("  %-20s %s [%s]\n" %
+                    (name, a_plugin.path(), a_plugin.__version__))
+            
+            
+            # PyQt is stupid and thinks QMessageBox.StandardButton and
+            # QDialogButtonBox.StandardButton are different, so we have to
+            # duplicate this :-(
+            if type == MAIN_LOAD_METHOD:
+                buttons = QtGui.QDialogButtonBox.Close
+            elif type == SUB_LOAD_METHOD:
+                buttons = QtGui.QDialogButtonBox.Ok
+            elif type == ITEM_OR_EVENT_METHOD:
+                buttons = QtGui.QDialogButtonBox.Close | \
+                          QtGui.QDialogButtonBox.Ignore
+            
+            msg_box = ErrorReport(gettext("Error"),
+                                  message,
+                                  traceback_file.getvalue(),
+                                  buttons,
+                                  window)
         else:
-            icon = QtGui.QMessageBox.Warning
-        
-        msg_box = QtGui.QMessageBox(icon,
-                                    gettext("Error"),
-                                    err_file.getvalue(),
-                                    buttons,
-                                    window)
-        
-        if error_type == errors.EXIT_INTERNAL_ERROR:
-            # We need to make the dialog wider, becuase we are probably
-            # showing a stack trace.
-            # TODO: resize the msg box. I have tried every thing I can
-            # think of - but can't get it to work. We might have to
-            # remplement the msgbox.
-            pass
-            # To do: make link to fill bug page.
-        
+            if type == MAIN_LOAD_METHOD:
+                buttons = QtGui.QMessageBox.Close
+            elif type == SUB_LOAD_METHOD:
+                buttons = QtGui.QMessageBox.Ok
+            elif type == ITEM_OR_EVENT_METHOD:
+                buttons = QtGui.QMessageBox.Close | QtGui.QMessageBox.Ignore
+            
+            msg_box = QtGui.QMessageBox(QtGui.QMessageBox.Warning,
+                                        gettext("Error"),
+                                        err_file.getvalue(),
+                                        buttons,
+                                        window)
         msg_box.exec_()
         
-        if not msg_box.result() == QtGui.QMessageBox.Close:
+        if msg_box.result() == QtGui.QDialog.Accepted or \
+           not msg_box.result() == QtGui.QMessageBox.Close:
             close = False
     
     if close:
@@ -127,6 +165,53 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
             window.closing_due_to_error = True
             window.close()
 
+class ErrorReport(QtGui.QDialog):
+    def __init__(self, title, message, trace_back, buttons,
+                 parent=None):
+        QtGui.QDialog.__init__ (self, parent)
+        
+        label = QtGui.QLabel(message)
+        label.setWordWrap(True)
+        label.setAlignment(QtCore.Qt.AlignTop|QtCore.Qt.AlignLeft)
+
+        icon_label = QtGui.QLabel()
+        icon_label.setPixmap(self.style().standardPixmap(
+            QtGui.QStyle.SP_MessageBoxCritical))
+        
+        trace_back_label = QtGui.QPlainTextEdit()
+        trace_back_label.appendPlainText(trace_back)
+        trace_back_label.setReadOnly(True)
+        
+        buttonbox = QtGui.QDialogButtonBox(buttons)
+        self.connect(buttonbox,
+                     QtCore.SIGNAL("accepted ()"),
+                     self.accept)
+        self.connect(buttonbox,
+                     QtCore.SIGNAL("rejected ()"),
+                     self.reject)
+
+        layout = QtGui.QGridLayout()
+        layout.addWidget(icon_label, 0, 0)
+        layout.addWidget(label, 0, 1)
+        layout.setColumnStretch(1,1)
+        
+        layout.addWidget(trace_back_label, 1, 0, 2, 0)
+        layout.setRowStretch(1,1)
+        
+        layout.addWidget(buttonbox, 3, 0, 2, 0)
+        
+        self.setLayout(layout)
+        
+        self.setWindowTitle(title)
+        
+        icon = QtGui.QIcon()
+        icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
+        icon.addFile(":/bzr-32.png", QtCore.QSize(32, 32))
+        icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
+        self.setWindowIcon(icon)
+        
+        screen = QtGui.QApplication.desktop().screenGeometry()
+        self.resize (QtCore.QSize(screen.width()*0.8, screen.height()*0.8))
 
 def reports_exception(type=MAIN_LOAD_METHOD):
     """Decorator to report Exceptions raised from the called method
