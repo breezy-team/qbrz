@@ -84,7 +84,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
         elif type == SUB_LOAD_METHOD:
             buttons = QtGui.QMessageBox.Ok
         elif type == ITEM_OR_EVENT_METHOD:
-            buttons == QtGui.QMessageBox.Close | QtGui.QMessageBox.Ignore
+            buttons = QtGui.QMessageBox.Close | QtGui.QMessageBox.Ignore
         
         if error_type == errors.EXIT_INTERNAL_ERROR:
             icon = QtGui.QMessageBox.Critical
@@ -137,3 +137,10 @@ def reports_exception(type=MAIN_LOAD_METHOD):
         return reports_exception_decorate
     
     return reports_exception_decorator
+
+def excepthook(type, value, traceback):
+    exc_info = (type, value, traceback)
+    report_exception(exc_info=exc_info,
+                     type=ITEM_OR_EVENT_METHOD)
+
+sys.excepthook = excepthook
