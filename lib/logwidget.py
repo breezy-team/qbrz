@@ -19,8 +19,8 @@
 
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib import logmodel
+from bzrlib.plugins.qbzr.lib.trace import *
 from bzrlib.plugins.qbzr.lib.util import (
-    StopException,
     runs_in_loading_queue,
     )
 

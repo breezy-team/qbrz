@@ -42,11 +42,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     RevisionMessageBrowser,
     url_for_display,
     runs_in_loading_queue,
-    report_exception,
-    REPORT_EXP_LOAD,
-    REPORT_EXP_SUB_LOAD,
-    REPORT_EXP_ITEM,
     )
+from bzrlib.plugins.qbzr.lib.trace import *
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 PathRole = QtCore.Qt.UserRole + 1
@@ -216,7 +213,7 @@ class LogWindow(QBzrWindow):
 
     @runs_in_loading_queue
     @ui_current_widget
-    @report_exception(type = REPORT_EXP_LOAD)
+    @reports_exception(type = MAIN_LOAD_METHOD)
     def load(self):
         self.refresh_button.setDisabled(True)            
         
@@ -261,7 +258,7 @@ class LogWindow(QBzrWindow):
     
     @runs_in_loading_queue
     @ui_current_widget
-    @report_exception(type = REPORT_EXP_SUB_LOAD)
+    @reports_exception(type = SUB_LOAD_METHOD)
     def refresh(self):
         self.refresh_button.setDisabled(True)            
         self.processEvents()
@@ -519,7 +516,6 @@ class LogWindow(QBzrWindow):
     def show_context_menu(self, pos):
         self.contextMenu.popup(self.log_list.viewport().mapToGlobal(pos))
 
-    @report_exception(type = REPORT_EXP_LOAD)
     def _locations_for_title(self, locations):
         if locations == ['.']:
             return osutils.getcwd()
