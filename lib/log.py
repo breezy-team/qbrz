@@ -283,9 +283,9 @@ class LogWindow(QBzrWindow):
         scheme = unicode(url.scheme())
         if scheme == 'qlog-revid':
             revision_id = unicode(url.path())
-            self.changesModel.ensure_rev_visible(revision_id)
-            index = self.changesModel.indexFromRevId(revision_id)
-            index = self.changesProxyModel.mapFromSource(index)
+            self.log_list.model.ensure_rev_visible(revision_id)
+            index = self.log_list.model.indexFromRevId(revision_id)
+            index = self.log_list.filter_proxy_model.mapFromSource(index)
             self.log_list.setCurrentIndex(index)
         else:
             open_browser(str(url.toEncoded()))
