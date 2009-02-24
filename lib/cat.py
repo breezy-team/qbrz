@@ -32,6 +32,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_set_encoding,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.plugins.qbzr.lib.trace import reports_exception
 
 
 have_pygments = True
@@ -97,55 +98,53 @@ class QBzrCatWindow(QBzrWindow):
     
     @runs_in_loading_queue
     @ui_current_widget
+    @reports_exception
     def load(self):
+        self.throbber.show()
+        self.processEvents()
         try:
-            self.throbber.show()
-            self.processEvents()
+            if not self.tree:
+                branch, relpath = Branch.open_containing(self.filename)
+                
+                self.encoding = get_set_encoding(self.encoding, branch)
+                
+                if self.revision is None:
+                    self.tree = branch.basis_tree()
+                else:
+                    revision_id = self.revision[0].in_branch(branch).rev_id
+                    self.tree = branch.repository.revision_tree(revision_id)
+                
+                self.file_id = self.tree.path2id(relpath)
+            
+            if not self.file_id:
+                self.file_id = self.tree.path2id(self.filename)
+                
+            if not self.file_id:
+                raise errors.BzrCommandError(
+                    "%r is not present in revision %s" % (
+                        self.filename, self.tree.get_revision_id()))
+            
+            self.tree.lock_read()
             try:
-                if not self.tree:
-                    branch, relpath = Branch.open_containing(self.filename)
-                    
-                    self.encoding = get_set_encoding(self.encoding, branch)
-                    
-                    if self.revision is None:
-                        self.tree = branch.basis_tree()
-                    else:
-                        revision_id = self.revision[0].in_branch(branch).rev_id
-                        self.tree = branch.repository.revision_tree(revision_id)
-                    
-                    self.file_id = self.tree.path2id(relpath)
-                
-                if not self.file_id:
-                    self.file_id = self.tree.path2id(self.filename)
-                    
-                if not self.file_id:
-                    raise errors.BzrCommandError(
-                        "%r is not present in revision %s" % (
-                            self.filename, self.tree.get_revision_id()))
-                
-                self.tree.lock_read()
-                try:
-                    kind = self.tree.kind(self.file_id)
-                    if kind == 'file':
-                        text = self.tree.get_file_text(self.file_id)
-                    elif kind == 'symlink':
-                        text = self.tree.get_symlink_target(self.file_id)
-                    else:
-                        text = ''
-                finally:
-                    self.tree.unlock()
-                self.processEvents()
-                
-                type_, fview = self.detect_content_type(self.filename, text, kind)
-                fview(self.filename, text)
-                
-                self.vbox.insertWidget(1, self.browser, 1)
-                # set focus on content
-                self.browser.setFocus()
+                kind = self.tree.kind(self.file_id)
+                if kind == 'file':
+                    text = self.tree.get_file_text(self.file_id)
+                elif kind == 'symlink':
+                    text = self.tree.get_symlink_target(self.file_id)
+                else:
+                    text = ''
             finally:
-                self.throbber.hide()
-        except:
-            self.report_exception()
+                self.tree.unlock()
+            self.processEvents()
+            
+            type_, fview = self.detect_content_type(self.filename, text, kind)
+            fview(self.filename, text)
+            
+            self.vbox.insertWidget(1, self.browser, 1)
+            # set focus on content
+            self.browser.setFocus()
+        finally:
+            self.throbber.hide()
 
     def detect_content_type(self, relpath, text, kind='file'):
         """Return (file_type, viewer_factory) based on kind, text and relpath.

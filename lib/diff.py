@@ -57,6 +57,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     runs_in_loading_queue
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.plugins.qbzr.lib.trace import reports_exception
 
 
 def get_file_lines_from_tree(tree, file_id):
@@ -203,21 +204,19 @@ class DiffWindow(QBzrWindow):
 
     @runs_in_loading_queue
     @ui_current_widget
+    @reports_exception
     def initial_load(self):
         """Called to perform the initial load of the form.  Enables a
         throbber window, then loads the branches etc if they weren't specified
         in our constructor.
         """
+        # we only open the branch using the throbber
+        self.throbber.show()
         try:
-            # we only open the branch using the throbber
-            self.throbber.show()
-            try:
-                self.load_branch_info()
-                self.load_diff()
-            finally:
-                self.throbber.hide()
-        except:
-            self.report_exception()
+            self.load_branch_info()
+            self.load_diff()
+        finally:
+            self.throbber.hide()
 
     def load_branch_info(self):
         # If a loader func was specified, call it to get our trees/branches.
