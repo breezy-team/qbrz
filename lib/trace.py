@@ -153,7 +153,7 @@ description of what you were doing when the error occurred."
                                         window)
         msg_box.exec_()
         
-        if msg_box.result() == QtGui.QDialog.Accepted or \
+        if not msg_box.result() == QtGui.QDialog.Rejected and \
            not msg_box.result() == QtGui.QMessageBox.Close:
             close = False
     
