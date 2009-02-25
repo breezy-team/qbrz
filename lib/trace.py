@@ -178,8 +178,8 @@ class ErrorReport(QtGui.QDialog):
         icon_label.setPixmap(self.style().standardPixmap(
             QtGui.QStyle.SP_MessageBoxCritical))
         
-        trace_back_label = QtGui.QPlainTextEdit()
-        trace_back_label.appendPlainText(trace_back)
+        trace_back_label = QtGui.QTextEdit()
+        trace_back_label.setPlainText (trace_back)
         trace_back_label.setReadOnly(True)
         
         buttonbox = QtGui.QDialogButtonBox(buttons)
