@@ -30,6 +30,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     format_for_ttype,
     get_set_encoding,
+    runs_in_loading_queue,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
@@ -136,15 +137,27 @@ class QBzrCatWindow(QBzrWindow):
             finally:
                 self.tree.unlock()
             self.processEvents()
-            
-            type_, fview = self.detect_content_type(self.filename, text, kind)
-            fview(self.filename, text)
-            
-            self.vbox.insertWidget(1, self.browser, 1)
-            # set focus on content
-            self.browser.setFocus()
+
+            self._create_and_show_browser(self.filename, text, kind)
         finally:
             self.throbber.hide()
+
+    def _create_and_show_browser(self, filename, text, kind):
+        """Create browser object for given file and then attach it to GUI.
+
+        @param  filename:   filename used for differentiate between images
+                            and simply binary files.
+        @param  text:       raw file content.
+        @param  kind:       filesystem kind: file, symlink, directory
+        """
+        type_, fview = self.detect_content_type(filename, text, kind)
+        # update title
+        self.set_title([gettext("View "+type_), filename])
+        # create and show browser
+        self.browser = fview(filename, text)
+        self.vbox.insertWidget(1, self.browser, 1)
+        # set focus on content
+        self.browser.setFocus()
 
     def detect_content_type(self, relpath, text, kind='file'):
         """Return (file_type, viewer_factory) based on kind, text and relpath.
@@ -168,6 +181,7 @@ class QBzrCatWindow(QBzrWindow):
         self.browser = QtGui.QTextBrowser()
         self.doc = QtGui.QTextDocument()
         self.doc.setDefaultFont(QtGui.QFont("Courier New,courier", self.browser.font().pointSize()))
+        return self.browser
     
     def _create_text_view(self, relpath, text):
         self._create_text_browser()
@@ -188,16 +202,19 @@ class QBzrCatWindow(QBzrWindow):
             except ClassNotFound:
                 self.doc.setPlainText(text)
         self.browser.setDocument(self.doc)
+        return self.browser
 
     def _create_symlink_view(self, relpath, target):
         self._create_text_browser()
         self.doc.setPlainText('-> ' + target.decode('utf-8', 'replace'))
         self.browser.setDocument(self.doc)
+        return self.browser
 
     def _create_hexdump_view(self, relpath, data):
         self._create_text_browser()
         self.doc.setPlainText(hexdump(data))
         self.browser.setDocument(self.doc)
+        return self.browser
 
     def _create_image_view(self, relpath, data):
         self.pixmap = QtGui.QPixmap()
@@ -206,6 +223,7 @@ class QBzrCatWindow(QBzrWindow):
         self.scene = QtGui.QGraphicsScene(self.item.boundingRect())
         self.scene.addItem(self.item)
         self.browser = QtGui.QGraphicsView(self.scene)
+        return self.browser
 
 
 def cat_to_native_app(tree, relpath):
