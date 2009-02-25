@@ -40,8 +40,10 @@ except ImportError:
 class LogGraphProvider():
     """Loads and computes revision and graph data for GUI log widgets."""
 
-    def __init__(self):
+    def __init__(self, no_graph):
         
+        self.no_graph = no_graph
+
         """List of unique repositories"""
         self.branches = []
         """List of tuple(tree, branch, repo )"""
@@ -349,9 +351,21 @@ class LogGraphProvider():
         assert self.merge_sorted_revisions[0][1] == "top:"
         self.merge_sorted_revisions = self.merge_sorted_revisions[1:]
         
-        self.compute_branch_lines()
+        self.revid_msri = {}
+        self.revno_msri = {}
+        
+        for (rev_index, (sequence_number,
+                         revid,
+                         merge_depth,
+                         revno_sequence,
+                         end_of_merge)) in enumerate(self.merge_sorted_revisions):
+            self.revid_msri[revid] = rev_index
+            self.revno_msri[revno_sequence] = rev_index
+        
         self.compute_head_info()
-        self.compute_merge_info()
+        if not self.no_graph:
+            self.compute_branch_lines()
+            self.compute_merge_info()
         self.invaladate_filter_cache()
     
     def compute_branch_lines(self):
@@ -371,8 +385,6 @@ class LogGraphProvider():
         
         """
         
-        self.revid_msri = {}
-        self.revno_msri = {}
         self.start_branch_ids = []
         """Branch ids that should be initialy visible"""
         
@@ -382,9 +394,6 @@ class LogGraphProvider():
                          revno_sequence,
                          end_of_merge)) in enumerate(self.merge_sorted_revisions):
             branch_id = revno_sequence[0:-1]
-            
-            self.revid_msri[revid] = rev_index
-            self.revno_msri[revno_sequence] = rev_index
             
             branch_line = None
             if branch_id not in self.branch_lines:
@@ -536,7 +545,8 @@ class LogGraphProvider():
          end_of_merge) = self.merge_sorted_revisions[msri]
         
         branch_id = revno_sequence[0:-1]
-        if not self.branch_lines[branch_id][1]: # branch colapased
+        if not self.no_graph and \
+                not self.branch_lines[branch_id][1]: # branch colapased
             return False
         
         return self.get_revision_visible_if_branch_visible_cached(msri)
@@ -550,9 +560,10 @@ class LogGraphProvider():
     
     def get_revision_visible_if_branch_visible(self, msri):
         
-        for merged_msri in self.merge_info[msri][0]:
-            if self.get_revision_visible_if_branch_visible_cached(merged_msri):
-                return True
+        if not self.no_graph:
+            for merged_msri in self.merge_info[msri][0]:
+                if self.get_revision_visible_if_branch_visible_cached(merged_msri):
+                    return True
         
         if self.filter_file_id is not None:
             if msri not in self.filter_file_id:
@@ -611,14 +622,18 @@ class LogGraphProvider():
                     prev_cached_msris.append((msri, self.filter_cache[msri]))
                 self.filter_cache[msri] = None
                 
-                merged_by = self.merge_info[msri][1]
-                if merged_by:
-                    msris.append(merged_by)
+                if not self.no_graph:
+                    merged_by = self.merge_info[msri][1]
+                    if merged_by:
+                        msris.append(merged_by)
             
             # Check if any visibilities have changes. If they have, call
             # revisions_filter_changed
             for msri, prev_visible in prev_cached_msris:
-                merged_by = self.merge_info[msri][1]
+                if not self.no_graph:
+                    merged_by = self.merge_info[msri][1]
+                else:
+                    merged_by = None
                 
                 if not merged_by or \
                     self.get_revision_visible_if_branch_visible_cached(merged_by):
@@ -649,6 +664,11 @@ class LogGraphProvider():
                                         None,
                                         [],
                                         ])
+        
+        if self.no_graph:
+            self.graph_line_data = graph_line_data
+            self.msri_index = msri_index
+            return
         
         # This will hold a tuple of (child_index, parent_index, col_index,
         # direct) for each line that needs to be drawn. If col_index is not
@@ -1021,8 +1041,8 @@ class LogGraphProvider():
             if top_visible_revid:
                 self.branch_tags[top_visible_revid] = tags
         
-        self.graph_line_data = graph_line_data
         self.msri_index = msri_index
+        self.graph_line_data = graph_line_data
 
     def msri_branch_id_merge_depth (self, revid):
         msri = self.revid_msri[revid]
