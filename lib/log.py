@@ -486,9 +486,7 @@ class LogWindow(QBzrWindow):
     def show_revision_tree(self):
         from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
         rev = self.current_rev
-        branch = self.changesModel.revisionHeadInfo(rev.revision_id)[0][0]
-
-        window = BrowseWindow(branch, revision_id=rev.revision_id,
+        window = BrowseWindow(rev.branch, revision_id=rev.revision_id,
                               revision_spec=rev.revno, parent=self)
         window.show()
         self.windows.append(window)
