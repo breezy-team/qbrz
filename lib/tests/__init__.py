@@ -19,12 +19,7 @@
 
 import os
 import sys
-
-if hasattr(sys, "frozen"):
-    # "hack in" our PyQt4 binaries
-    sys.path.append(os.path.normpath(os.path.join(
-        os.path.dirname(__file__), '..', '..', '_lib')))
-
+from bzrlib import trace
 
 def load_tests(basic_tests, module, loader):
     testmod_names = [
@@ -38,6 +33,12 @@ def load_tests(basic_tests, module, loader):
         'test_spellcheck',
         'test_util',
     ]
-    basic_tests.addTests(loader.loadTestsFromModuleNames(
-        ["%s.%s" % (__name__, name) for name in testmod_names]))
+    for name in testmod_names:
+        m = "%s.%s" % (__name__, name)
+        try:
+            basic_tests.addTests(loader.loadTestsFromModuleName(m))
+        except ImportError, e:
+            if str(e).endswith('PyQt4'):
+                trace.note('QBzr: skip module %s '
+                    'because PyQt4 is not installed' % m)
     return basic_tests
