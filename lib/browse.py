@@ -39,6 +39,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
     format_timestamp,
     get_set_encoding,
+    runs_in_loading_queue,
     url_for_display,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
