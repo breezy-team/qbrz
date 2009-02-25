@@ -46,7 +46,11 @@ from bzrlib.plugins.qbzr.lib import i18n
 from bzrlib.plugins.qbzr.lib.add import AddWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
-from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, cat_to_native_app
+from bzrlib.plugins.qbzr.lib.cat import (
+    QBzrCatWindow,
+    QBzrViewWindow,
+    cat_to_native_app,
+    )
 from bzrlib.plugins.qbzr.lib.commit import CommitWindow
 from bzrlib.plugins.qbzr.lib.config import QBzrConfigWindow
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
@@ -793,5 +797,22 @@ class cmd_qtag(QBzrCommand):
         app = QtGui.QApplication(sys.argv)
         window = TagWindow(branch, tag_name=tag_name, action=action,
             revision=revision, ui_mode=ui_mode)
+        window.show()
+        app.exec_()
+
+
+class cmd_qview(QBzrCommand):
+    """Simple file viewer."""
+    aliases = ['qviewer']
+    takes_args = ['filename']
+    takes_options = [
+        Option('encoding', type=check_encoding,
+               help='Encoding of file content (default: utf-8).'),
+        ]
+    _see_also = ['qcat']
+
+    def _qbzr_run(self, filename, encoding=None):
+        app = QtGui.QApplication(sys.argv)
+        window = QBzrViewWindow(filename=filename, encoding=encoding)
         window.show()
         app.exec_()

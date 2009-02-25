@@ -17,12 +17,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import os
 import sys
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import errors
-from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib import errors, osutils
 from bzrlib.branch import Branch
+
+from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
@@ -66,6 +68,7 @@ def hexdump(data):
 
 
 class QBzrCatWindow(QBzrWindow):
+    """Show content of versioned file/symlink."""
 
     def __init__(self, filename=None, revision=None,
                  tree=None, file_id=None, encoding=None,
@@ -224,6 +227,42 @@ class QBzrCatWindow(QBzrWindow):
         self.scene.addItem(self.item)
         self.browser = QtGui.QGraphicsView(self.scene)
         return self.browser
+
+
+class QBzrViewWindow(QBzrCatWindow):
+    """Show content of file/symlink from the disk."""
+
+    def __init__(self, filename=None, encoding=None, parent=None):
+        """Construct GUI.
+
+        @param  filename:   filesystem object to view.
+        @param  encoding:   use this encoding to decode text file content
+                            to unicode.
+        @param  parent:     parent widget.
+        """
+        QBzrWindow.__init__(self, [gettext("View"), filename], parent)
+        self.restoreSize("cat", (780, 580))
+
+        self.filename = filename
+        self.encoding = encoding
+
+        self.buttonbox = self.create_button_box(BTN_CLOSE)
+        self.vbox = QtGui.QVBoxLayout(self.centralwidget)
+        self.vbox.addStretch()
+        self.vbox.addWidget(self.buttonbox)
+
+    def load(self):
+        kind = osutils.file_kind(self.filename)
+        text = ''
+        if kind == 'file':
+            f = open(self.filename, 'rb')
+            try:
+                text = f.read()
+            finally:
+                f.close()
+        elif kind == 'symlink':
+            text = os.readlink(self.filename)
+        self._create_and_show_browser(self.filename, text, kind)
 
 
 def cat_to_native_app(tree, relpath):
