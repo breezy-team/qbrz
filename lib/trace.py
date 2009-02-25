@@ -153,8 +153,7 @@ description of what you were doing when the error occurred."
                                         window)
         msg_box.exec_()
         
-        if not msg_box.result() == QtGui.QDialog.Rejected and \
-           not msg_box.result() == QtGui.QMessageBox.Close:
+        if not msg_box.result() == QtGui.QMessageBox.Close:
             close = False
     
     if close:
@@ -182,13 +181,10 @@ class ErrorReport(QtGui.QDialog):
         trace_back_label.setPlainText (trace_back)
         trace_back_label.setReadOnly(True)
         
-        buttonbox = QtGui.QDialogButtonBox(buttons)
-        self.connect(buttonbox,
-                     QtCore.SIGNAL("accepted ()"),
-                     self.accept)
-        self.connect(buttonbox,
-                     QtCore.SIGNAL("rejected ()"),
-                     self.reject)
+        self.buttonbox = QtGui.QDialogButtonBox(buttons)
+        self.connect(self.buttonbox,
+                     QtCore.SIGNAL("clicked (QAbstractButton *)"),
+                     self.clicked)
 
         layout = QtGui.QGridLayout()
         layout.addWidget(icon_label, 0, 0)
@@ -198,7 +194,7 @@ class ErrorReport(QtGui.QDialog):
         layout.addWidget(trace_back_label, 1, 0, 2, 0)
         layout.setRowStretch(1,1)
         
-        layout.addWidget(buttonbox, 3, 0, 2, 0)
+        layout.addWidget(self.buttonbox, 3, 0, 2, 0)
         
         self.setLayout(layout)
         
@@ -212,6 +208,9 @@ class ErrorReport(QtGui.QDialog):
         
         screen = QtGui.QApplication.desktop().screenGeometry()
         self.resize (QtCore.QSize(screen.width()*0.8, screen.height()*0.8))
+
+    def clicked(self, button):
+        self.done(int(self.buttonbox.standardButton(button)))
 
 def reports_exception(type=MAIN_LOAD_METHOD):
     """Decorator to report Exceptions raised from the called method
