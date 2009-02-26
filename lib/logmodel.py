@@ -101,7 +101,7 @@ class LogModel(QtCore.QAbstractTableModel):
                                        gettext("Date"),
                                        gettext("Author"),
                                        ]
-        self.clicked_row_index = None
+        self.clicked_row = None
     
     def loadBranch(self):
         try:
@@ -119,24 +119,23 @@ class LogModel(QtCore.QAbstractTableModel):
                                     COL_MESSAGE, QtCore.QModelIndex()))
     
     def colapse_expand_rev(self, revid, visible):
-        self.clicked_row_index = self.graph_provider.revid_msri[revid]
+        self.clicked_row = self.graph_provider.revid_msri[revid]
+        clicked_row_index = self.createIndex (self.clicked_row,
+                                              COL_MESSAGE,
+                                              QtCore.QModelIndex())
         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                  self.createIndex (self.clicked_row_index,
-                                    COL_MESSAGE, QtCore.QModelIndex()),
-                  self.createIndex (self.clicked_row_index,
-                                    COL_MESSAGE, QtCore.QModelIndex()))
+                  clicked_row_index,
+                  clicked_row_index)
         self.graph_provider.update_ui()
-        self.clicked_row_index = None
+        self.clicked_row = None
         has_change = self.graph_provider.colapse_expand_rev(revid, visible)
         
         if has_change:
             self.compute_lines()
         else:
             self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                    self.createIndex (self.clicked_row_index,
-                                      COL_MESSAGE, QtCore.QModelIndex()),
-                    self.createIndex (self.clicked_row_index,
-                                      COL_MESSAGE, QtCore.QModelIndex()))
+                      clicked_row_index,
+                      clicked_row_index)
             
     
     def has_rev_id(self, revid):
@@ -196,7 +195,7 @@ class LogModel(QtCore.QAbstractTableModel):
         if role == GraphTwistyStateRole:
             if twisty_state is None:
                 return QtCore.QVariant()
-            if index.row() == self.clicked_row_index:
+            if index.row() == self.clicked_row:
                 return QtCore.QVariant(-1)
             return QtCore.QVariant(twisty_state)
         
