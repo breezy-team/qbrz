@@ -273,7 +273,7 @@ class LogGraphProvider():
                                              "Pending Merge", False)
                 self.update_ui()
         
-        if len(self.head_revids)>1:
+        if len(self.branches)>1:
             self.load_revisions(self.head_revids)
             self.head_revids.sort(key=lambda x:self.revision(x).timestamp,
                                   reverse=True)
