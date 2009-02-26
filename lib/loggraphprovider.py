@@ -1039,8 +1039,12 @@ class LogGraphProvider():
 
     def msri_branch_id_merge_depth (self, revid):
         msri = self.revid_msri[revid]
-        branch_id = self.merge_sorted_revisions[msri][3][0:-1]
-        merge_depth = self.merge_sorted_revisions[msri][2]
+        (sequence_number,
+            revid,
+            merge_depth,
+            revno_sequence,
+            end_of_merge) = self.merge_sorted_revisions[msri]
+        branch_id = revno_sequence[0:-1]
         return (msri, branch_id, merge_depth)
     
     def set_branch_visible(self, branch_id, visible, has_change):
