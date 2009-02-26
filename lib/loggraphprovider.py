@@ -355,7 +355,14 @@ class LogGraphProvider():
         self.compute_branch_lines()
         self.compute_head_info()
         self.compute_merge_info()
-        self.invaladate_filter_cache()
+        if self.filter_file_id is None:
+            # All revisions start visible
+            self.filter_cache = [True for i in \
+                         xrange(len(self.merge_sorted_revisions))]
+            self.revisions_filter_changed()
+        else:
+            # Revision visibilaty unknown.
+            self.invaladate_filter_cache()
     
     def compute_branch_lines(self):
         self.branch_lines = {}
