@@ -69,8 +69,8 @@ except AttributeError:
 class QLogGraphProvider(LogGraphProvider):
     
     def __init__(self, processEvents, report_exception,
-                 throbber):
-        LogGraphProvider.__init__(self)
+                 throbber, no_graph):
+        LogGraphProvider.__init__(self, no_graph)
         
         self.processEvents = processEvents
         self.report_exception = report_exception
@@ -164,7 +164,9 @@ class LogModel(QtCore.QAbstractTableModel):
         if not index.isValid():
             return QtCore.QVariant()
         
-        if index.row() in self.graph_provider.msri_index:
+        if index.row() in self.graph_provider.msri_index \
+                and len(self.graph_provider.graph_line_data)> \
+                self.graph_provider.msri_index[index.row()]:
             (msri,
              node,
              lines,
