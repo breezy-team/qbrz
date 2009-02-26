@@ -38,6 +38,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
+    runs_in_loading_queue,
     )
 
 
@@ -86,6 +87,7 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         self.revert_action.setEnabled(False)
         self.show_diff_ui.setEnabled(False)
 
+    @runs_in_loading_queue
     def fill(self, items_iter):
         self.setTextElideMode(QtCore.Qt.ElideMiddle)
         self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)

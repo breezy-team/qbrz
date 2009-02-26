@@ -46,7 +46,11 @@ from bzrlib.plugins.qbzr.lib import i18n
 from bzrlib.plugins.qbzr.lib.add import AddWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
-from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, cat_to_native_app
+from bzrlib.plugins.qbzr.lib.cat import (
+    QBzrCatWindow,
+    QBzrViewWindow,
+    cat_to_native_app,
+    )
 from bzrlib.plugins.qbzr.lib.commit import CommitWindow
 from bzrlib.plugins.qbzr.lib.config import QBzrConfigWindow
 from bzrlib.plugins.qbzr.lib.diff import DiffWindow
@@ -138,6 +142,11 @@ class QBzrCommand(Command):
     @report_missing_pyqt
     def run(self, *args, **kwargs):
         ui.ui_factory = QUIFactory()
+        
+        # Set up global execption handeling.
+        from bzrlib.plugins.qbzr.lib.trace import excepthook
+        sys.excepthook = excepthook
+        
         return self._qbzr_run(*args, **kwargs)
 
 ui_mode_option = Option("ui-mode", help="Causes dialogs to wait after the operation is complete.")
@@ -788,5 +797,22 @@ class cmd_qtag(QBzrCommand):
         app = QtGui.QApplication(sys.argv)
         window = TagWindow(branch, tag_name=tag_name, action=action,
             revision=revision, ui_mode=ui_mode)
+        window.show()
+        app.exec_()
+
+
+class cmd_qview(QBzrCommand):
+    """Simple file viewer."""
+    aliases = ['qviewer']
+    takes_args = ['filename']
+    takes_options = [
+        Option('encoding', type=check_encoding,
+               help='Encoding of file content (default: utf-8).'),
+        ]
+    _see_also = ['qcat']
+
+    def _qbzr_run(self, filename, encoding=None):
+        app = QtGui.QApplication(sys.argv)
+        window = QBzrViewWindow(filename=filename, encoding=encoding)
         window.show()
         app.exec_()

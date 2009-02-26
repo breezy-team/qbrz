@@ -1,6 +1,8 @@
 0.9.8 - in development 
 ---------------------- 
 
+ * qview: new command to view content of any arbitrary file from disk
+
 0.9.8 - 2009-02-13
 ------------------
 
