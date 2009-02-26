@@ -169,25 +169,7 @@ class LogGraphProvider():
             self.update_ui()
             
             if br == None:
-                repo_brs = repo.find_branches(using=True)
-                self.update_ui()
-                
-                # Sort the loaded branches so that the trunk is first.
-                trunk_names = ["trunk", "bzr.dev", "dev"]
-                def branch_cmp_trunk_first(x,y):
-                    x_is_trunk = x.nick in trunk_names
-                    y_is_trunk = y.nick in trunk_names
-                    if x_is_trunk and y_is_trunk:
-                        return cmp(trunk_names.index(x.nick),
-                                   trunk_names.index(y.nick))
-                    if x_is_trunk:
-                        return -1
-                    if y_is_trunk:
-                        return 1
-                    return cmp(x.nick, y.nick)
-                repo_brs.sort(branch_cmp_trunk_first)
-                
-                for br in repo_brs:             
+                for br in repo.find_branches(using=True):             
                     try:
                         tree = br.bzrdir.open_workingtree()
                     except errors.NoWorkingTree:
@@ -195,6 +177,7 @@ class LogGraphProvider():
                     index = self.open_search_index(br)
                     self.branches.append((tree, br, br.repository, index))
                     self.append_repo(br.repository)
+                self.update_ui()
             else:
                 self.append_repo(repo)
                 index = self.open_search_index(br)
@@ -245,6 +228,7 @@ class LogGraphProvider():
             self.revid_head_info[revid] = ([],[])
         self.revid_head_info[revid][0].append ((branch, tag,
                                                 is_branch_last_revision))
+        self.revid_branch[revid] = branch
     
     def load_branch_heads(self):
         """Load the tips, tips of the pending merges, and revision of the
@@ -252,6 +236,7 @@ class LogGraphProvider():
         
         self.revid_head_info = {}
         self.head_revids = []
+        self.revid_branch = {}
         for (tree, branch, repo, index) in self.branches:
             
             if len(self.branches) == 1:
@@ -287,6 +272,11 @@ class LogGraphProvider():
                             self.append_head_info(revid, branch,
                                              "Pending Merge", False)
                 self.update_ui()
+        
+        if len(self.head_revids)>1:
+            self.load_revisions(self.head_revids)
+            self.head_revids.sort(key=lambda x:self.revision(x).timestamp,
+                                  reverse=True)
     
     def load_tags(self):
         self.tags = {}
@@ -355,6 +345,7 @@ class LogGraphProvider():
         self.compute_branch_lines()
         self.compute_head_info()
         self.compute_merge_info()
+        
         if self.filter_file_id is None:
             # All revisions start visible
             self.filter_cache = [True for i in \
@@ -363,6 +354,11 @@ class LogGraphProvider():
         else:
             # Revision visibilaty unknown.
             self.invaladate_filter_cache()
+        
+        # The revisions is self.revions would have been loaded before to sort
+        # the heads by date. Put them though self.post_revision_load again.
+        for rev in self.revisions.values():
+            self.post_revision_load(rev)
     
     def compute_branch_lines(self):
         self.branch_lines = {}
@@ -1266,12 +1262,13 @@ class LogGraphProvider():
     
     def post_revision_load(self, revision):
         self.revisions[revision.revision_id] = revision
-        revno_sequence = self.merge_sorted_revisions[self.revid_msri[revision.revision_id]][3]
-        revision.revno = ".".join(["%d" % (revno)
-                                  for revno in revno_sequence])
-        revision.tags = sorted(self.tags.get(revision.revision_id, []))
-        revision.child_ids = self.graph_children[revision.revision_id]
-        revision.branch = self.get_revid_branch(revision.revision_id)
+        if len(self.merge_sorted_revisions)>0:
+            revno_sequence = self.merge_sorted_revisions[self.revid_msri[revision.revision_id]][3]
+            revision.revno = ".".join(["%d" % (revno)
+                                      for revno in revno_sequence])
+            revision.tags = sorted(self.tags.get(revision.revision_id, []))
+            revision.child_ids = self.graph_children[revision.revision_id]
+            revision.branch = self.get_revid_branch(revision.revision_id)
     
     def revisions_filter_changed(self):
         pass
