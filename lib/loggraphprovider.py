@@ -311,9 +311,12 @@ class LogGraphProvider():
                        self.repos_cmp_local_higher)
 
     def load_graph_all_revisions(self):
-        parents_providers = [repo._make_parents_provider() \
-                             for repo in self.repos_sorted_local_first()]
-        self.graph = Graph(_StackedParentsProvider(parents_providers))
+        if len(self.repos)==1:
+            self.graph = self.repos.values()[0].get_graph()
+        else:
+            parents_providers = [repo._make_parents_provider() \
+                                 for repo in self.repos_sorted_local_first()]
+            self.graph = Graph(_StackedParentsProvider(parents_providers))
         self.graph_parents = {}
         self.graph_children = {}
         ghosts = set()
