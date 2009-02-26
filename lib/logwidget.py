@@ -19,13 +19,21 @@
 
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib import logmodel
-from bzrlib.plugins.qbzr.lib.util import StopException
+from bzrlib.plugins.qbzr.lib.trace import *
+from bzrlib.plugins.qbzr.lib.util import (
+    runs_in_loading_queue,
+    )
 
 
 class LogList(QtGui.QTreeView):
-    
+    """TreeView widget to show log with metadata and graph of revisions."""
+
     def __init__(self, processEvents, report_exception,
-                 throbber, parent=None):
+                 throbber, no_graph, parent=None):
+        """Costructing new widget.
+        @param  throbber:   throbber widget in parent window
+        @param  parent:     parent window
+        """
         QtGui.QTreeView.__init__(self, parent)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
@@ -35,21 +43,21 @@ class LogList(QtGui.QTreeView):
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.connect(self.verticalScrollBar(), QtCore.SIGNAL("valueChanged (int)"),
                      self.scroll_changed)
-        
+
         self.setItemDelegateForColumn(logmodel.COL_MESSAGE,
                                         GraphTagsBugsItemDelegate(self))
-        
-        
+
         self.processEvents = processEvents
         self.throbber = throbber
         self.report_exception = report_exception
-        
+
         self.graph_provider = logmodel.QLogGraphProvider(self.processEvents,
                                                          self.report_exception,
-                                                         self.throbber)
+                                                         self.throbber,
+                                                         no_graph)
 
         self.model = logmodel.LogModel(self.graph_provider, self)
-        
+
         self.filter_proxy_model = logmodel.LogFilterProxyModel(self.graph_provider, self)
         self.filter_proxy_model.setSourceModel(self.model)
         self.filter_proxy_model.setDynamicSortFilter(True)
@@ -58,7 +66,7 @@ class LogList(QtGui.QTreeView):
         self.connect(self.model,
                      QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                      self.model_data_changed)
-        
+
         header = self.header()
         header.setStretchLastSection(False)
         header.setResizeMode(logmodel.COL_REV, QtGui.QHeaderView.Interactive)
@@ -68,10 +76,10 @@ class LogList(QtGui.QTreeView):
         header.resizeSection(logmodel.COL_REV, 70)
         header.resizeSection(logmodel.COL_DATE, 100) # TODO - Make this dynamic
         header.resizeSection(logmodel.COL_AUTHOR, 150)
-        
+
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
-    
+
     def load_branch(self, branch, specific_fileids):
         self.throbber.show()
         try:
@@ -111,91 +119,78 @@ class LogList(QtGui.QTreeView):
         self.model.loadBranch()
         
         self.graph_provider.load_filter_file_id()
-        
-        self.load_visible_revisions()
     
     def closeEvent (self, QCloseEvent):
         self.graph_provider.unlock_repos()
 
     def mouseReleaseEvent (self, e):
-        try:
-            if e.button() & QtCore.Qt.LeftButton:
-                pos = e.pos()
-                index = self.indexAt(pos)
-                rect = self.visualRect(index)
-                boxsize = rect.height()
-                node = index.data(logmodel.GraphNodeRole).toList()
-                if len(node)>0:
-                    node_column = node[0].toInt()[0]
-                    twistyRect = QtCore.QRect (rect.x() + boxsize * node_column,
-                                               rect.y() ,
-                                               boxsize,
-                                               boxsize)
-                    if twistyRect.contains(pos):
-                        twisty_state = index.data(logmodel.GraphTwistyStateRole)
-                        if twisty_state.isValid():
-                            revision_id = str(index.data(logmodel.RevIdRole).toString())
-                            self.model.colapse_expand_rev(revision_id, not twisty_state.toBool())
-                            e.accept ()
-            QtGui.QTreeView.mouseReleaseEvent(self, e)
-        except:
-            self.report_exception()
-    
+        if e.button() & QtCore.Qt.LeftButton:
+            pos = e.pos()
+            index = self.indexAt(pos)
+            rect = self.visualRect(index)
+            boxsize = rect.height()
+            node = index.data(logmodel.GraphNodeRole).toList()
+            if len(node)>0:
+                node_column = node[0].toInt()[0]
+                twistyRect = QtCore.QRect (rect.x() + boxsize * node_column,
+                                           rect.y() ,
+                                           boxsize,
+                                           boxsize)
+                if twistyRect.contains(pos):
+                    twisty_state = index.data(logmodel.GraphTwistyStateRole)
+                    if twisty_state.isValid():
+                        revision_id = str(index.data(logmodel.RevIdRole).toString())
+                        self.model.colapse_expand_rev(revision_id, not twisty_state.toBool())
+                        e.accept ()
+        QtGui.QTreeView.mouseReleaseEvent(self, e)
+
     def keyPressEvent (self, e):
-        try:
-            e_key = e.key()
-            if e_key in (QtCore.Qt.Key_Left, QtCore.Qt.Key_Right):
-                e.accept()
-                indexes = [index for index in self.selectedIndexes() if index.column()==0]
-                if not indexes:
-                    return
-                index = indexes[0]
-                revision_id = str(index.data(logmodel.RevIdRole).toString())
-                twisty_state = index.data(logmodel.GraphTwistyStateRole)
-                if e.key() == QtCore.Qt.Key_Right \
-                        and twisty_state.isValid() \
-                        and not twisty_state.toBool():
-                    self.model.colapse_expand_rev(revision_id, True)
-                if e.key() == QtCore.Qt.Key_Left:
-                    if twisty_state.isValid() and twisty_state.toBool():
-                        self.model.colapse_expand_rev(revision_id, False)
-                    else:
-                        #find merge of child branch
-                        revision_id = self.graph_provider.\
-                                      find_child_branch_merge_revision(revision_id)
-                        if revision_id is None:
-                            return
-                newindex = self.model.indexFromRevId(revision_id)
-                newindex = self.filter_proxy_model.mapFromSource(newindex)
-                self.setCurrentIndex(newindex)
-                self.load_visible_revisions()
-            elif e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
-                e.accept()
-                self.diff_pushed()
-            else:
-                QtGui.QTreeView.keyPressEvent(self, e)
-        except:
-            self.report_exception()
+        e_key = e.key()
+        if e_key in (QtCore.Qt.Key_Left, QtCore.Qt.Key_Right):
+            e.accept()
+            indexes = [index for index in self.selectedIndexes() if index.column()==0]
+            if not indexes:
+                return
+            index = indexes[0]
+            revision_id = str(index.data(logmodel.RevIdRole).toString())
+            twisty_state = index.data(logmodel.GraphTwistyStateRole)
+            if e.key() == QtCore.Qt.Key_Right \
+                    and twisty_state.isValid() \
+                    and not twisty_state.toBool():
+                self.model.colapse_expand_rev(revision_id, True)
+            if e.key() == QtCore.Qt.Key_Left:
+                if twisty_state.isValid() and twisty_state.toBool():
+                    self.model.colapse_expand_rev(revision_id, False)
+                else:
+                    #find merge of child branch
+                    revision_id = self.graph_provider.\
+                                  find_child_branch_merge_revision(revision_id)
+                    if revision_id is None:
+                        return
+            newindex = self.model.indexFromRevId(revision_id)
+            newindex = self.filter_proxy_model.mapFromSource(newindex)
+            self.setCurrentIndex(newindex)
+            self.load_visible_revisions()
+        else:
+            QtGui.QTreeView.keyPressEvent(self, e)
     
     def scroll_changed(self, value):
-        try:
-            self.load_visible_revisions()
-        except:
-            self.report_exception()
+        self.load_visible_revisions()
     
     def model_data_changed(self, start_index, end_index):
-        try:
-            self.load_visible_revisions()
-        except:
-            self.report_exception()
+        self.load_visible_revisions()
     
     def resizeEvent(self, e):
         self.load_visible_revisions()
         QtGui.QTreeView.resizeEvent(self, e)
     
+    @runs_in_loading_queue
     def load_visible_revisions(self):
         top_index = self.indexAt(self.viewport().rect().topLeft()).row()
         bottom_index = self.indexAt(self.viewport().rect().bottomLeft()).row()
+        if top_index == -1:
+            #Nothing is visible
+            return
         if bottom_index == -1:
             bottom_index = len(self.graph_provider.graph_line_data)-1
         # The + 2 is so that the rev that is off screen due to the throbber
@@ -370,12 +365,19 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                     graphCols = max((graphCols, min(start, end)))
                 
                 # Draw the revision node in the right column
+                i, is_int = self.twisty_state.toInt()
+                is_clicked = (is_int and i == -1)
+                
                 color = self.node[1].toInt()[0]
                 column = self.node[0].toInt()[0]
                 graphCols = max((graphCols, column))
                 pen.setColor(self.get_color(color,False))
                 painter.setPen(pen)
-                painter.setBrush(QtGui.QBrush(self.get_color(color,True)))
+                if not is_clicked:
+                    painter.setBrush(QtGui.QBrush(self.get_color(color,True)))
+                else:
+                    painter.setBrush(QtGui.QBrush(QtCore.Qt.white))
+                    
                 centerx = rect.x() + boxsize * (column + 0.5)
                 centery = rect.y() + boxsize * 0.5
                 painter.drawEllipse(
@@ -384,19 +386,29 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                                  boxsize * dotsize, boxsize * dotsize))
 
                 # Draw twisty
-                if self.twisty_state.isValid():
+                if not is_clicked and self.twisty_state.isValid():
                     linesize = 0.35
                     pen.setColor(self._twistyColor)
                     painter.setPen(pen)
-                    painter.drawLine(QtCore.QLineF (centerx - boxsize * linesize / 2,
-                                                    centery,
-                                                    centerx + boxsize * linesize / 2,
-                                                    centery))
-                    if not self.twisty_state.toBool():
-                        painter.drawLine(QtCore.QLineF (centerx,
-                                                        centery - boxsize * linesize / 2,
-                                                        centerx,
-                                                        centery + boxsize * linesize / 2))
+                    i, is_int = self.twisty_state.toInt()
+                    if is_int and i == -1:
+                        painter.drawEllipse(
+                            QtCore.QRectF(centerx - (boxsize * dotsize * 0.25 ),
+                                          centery - (boxsize * dotsize * 0.25 ),
+                                          boxsize * dotsize * 0.5,
+                                          boxsize * dotsize * 0.5))
+                    else:
+                        painter.drawLine(QtCore.QLineF
+                                         (centerx - boxsize * linesize / 2,
+                                          centery,
+                                          centerx + boxsize * linesize / 2,
+                                          centery))
+                        if not self.twisty_state.toBool():
+                            painter.drawLine(QtCore.QLineF
+                                             (centerx,
+                                              centery - boxsize * linesize / 2,
+                                              centerx,
+                                              centery + boxsize * linesize / 2))
                 
             finally:
                 painter.restore()

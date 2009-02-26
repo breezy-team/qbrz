@@ -50,6 +50,9 @@ _bug_id_re = lazy_regex.lazy_compile(r'(?:'
     r'|ticket/'                 # Trac bugs URL
     r'|show_bug\.cgi\?id='      # Bugzilla bugs URL
     r'|issues/show/'            # Redmine bugs URL
+    r'|DispForm.aspx\?ID='      # Microsoft SharePoint URL
+    r'|default.asp\?'           # Fogbugz URL
+    r'|issue'                   # Roundup issue tracker URL
     r')(\d+)(?:\b|$)')
 
 
@@ -67,8 +70,8 @@ except AttributeError:
 class QLogGraphProvider(LogGraphProvider):
     
     def __init__(self, processEvents, report_exception,
-                 throbber):
-        LogGraphProvider.__init__(self)
+                 throbber, no_graph):
+        LogGraphProvider.__init__(self, no_graph)
         
         self.processEvents = processEvents
         self.report_exception = report_exception
@@ -99,6 +102,7 @@ class LogModel(QtCore.QAbstractTableModel):
                                        gettext("Date"),
                                        gettext("Author"),
                                        ]
+        self.clicked_row = None
     
     def loadBranch(self):
         try:
@@ -116,16 +120,31 @@ class LogModel(QtCore.QAbstractTableModel):
                                     COL_MESSAGE, QtCore.QModelIndex()))
     
     def colapse_expand_rev(self, revid, visible):
+        self.clicked_row = self.graph_provider.revid_msri[revid]
+        clicked_row_index = self.createIndex (self.clicked_row,
+                                              COL_MESSAGE,
+                                              QtCore.QModelIndex())
+        self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                  clicked_row_index,
+                  clicked_row_index)
+        self.graph_provider.update_ui()
+        self.clicked_row = None
         has_change = self.graph_provider.colapse_expand_rev(revid, visible)
+        
         if has_change:
             self.compute_lines()
+        else:
+            self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                      clicked_row_index,
+                      clicked_row_index)
+            
     
     def has_rev_id(self, revid):
         return self.graph_provider.has_revid(revid)
     
     def revid_from_revno(self, revno):
         return self.graph_provider.revid_from_revno(revno)
-        
+
     def ensure_rev_visible(self, revid):
         has_change = self.graph_provider.ensure_rev_visible(revid)
         if has_change:
@@ -145,7 +164,9 @@ class LogModel(QtCore.QAbstractTableModel):
         if not index.isValid():
             return QtCore.QVariant()
         
-        if index.row() in self.graph_provider.msri_index:
+        if index.row() in self.graph_provider.msri_index \
+                and len(self.graph_provider.graph_line_data)> \
+                self.graph_provider.msri_index[index.row()]:
             (msri,
              node,
              lines,
@@ -175,6 +196,8 @@ class LogModel(QtCore.QAbstractTableModel):
         if role == GraphTwistyStateRole:
             if twisty_state is None:
                 return QtCore.QVariant()
+            if index.row() == self.clicked_row:
+                return QtCore.QVariant(-1)
             return QtCore.QVariant(twisty_state)
         
         (sequence_number, revid, merge_depth, revno_sequence, end_of_merge) = \

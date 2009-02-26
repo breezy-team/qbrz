@@ -21,6 +21,7 @@
 """build_pot command for setup.py"""
 
 import glob
+from distutils import log
 from distutils.core import Command
 from distutils.errors import DistutilsOptionError
 
@@ -39,14 +40,16 @@ class build_pot(Command):
                     ('lang=', None, 'Comma-separated list of languages '
                                     'to update po-files'),
                     ('no-lang', 'N', "Don't update po-files"),
+                    ('english', 'E', 'Regenerate English PO file'),
                    ]
-    boolean_options = ['no-lang']
+    boolean_options = ['no-lang', 'english']
 
     def initialize_options(self):
         self.build_dir = None
         self.output = None
         self.lang = None
         self.no_lang = False
+        self.english = False
 
     def finalize_options(self):
         if self.build_dir is None:
@@ -82,9 +85,9 @@ class build_pot(Command):
             fullname = os.path.join(self.build_dir, self.output)
         else:
             fullname = self.output
-        print 'Generate POT file:', fullname
+        log.info('Generate POT file: ' + fullname)
         if not os.path.isdir(self.build_dir):
-            print 'Make directory:', self.build_dir
+            log.info('Make directory: ' + self.build_dir)
             os.makedirs(self.build_dir)
         self.spawn(['xgettext',
                     '--keyword=N_',
@@ -93,6 +96,15 @@ class build_pot(Command):
                     '__init__.py',
                     ] + glob.glob('lib/*.py'))
         self._force_LF(fullname)
+        # regenerate english PO
+        if self.english:
+            log.info('Regenerating English PO file...')
+            self.spawn(['msginit',
+                '--no-translator',
+                '-l', 'en',
+                '-i', os.path.join(self.build_dir, self.output),
+                '-o', os.path.join(self.build_dir, 'qbzr-en.po'),
+                ])
         # search and update all po-files
         if self.no_lang:
             return
@@ -107,6 +119,6 @@ class build_pot(Command):
             cmd = "msgmerge %s %s -o %s" % (po, fullname, new_po)
             self.spawn(cmd.split())
             # force LF line-endings
-            print "%s --> %s" % (new_po, po)
+            log.info("%s --> %s" % (new_po, po))
             self._force_LF(new_po, po)
             os.unlink(new_po)

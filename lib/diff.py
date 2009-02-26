@@ -53,8 +53,11 @@ from bzrlib.plugins.qbzr.lib.util import (
     StandardButton,
     get_set_encoding,
     is_binary_content,
+    run_in_loading_queue,
+    runs_in_loading_queue
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.plugins.qbzr.lib.trace import reports_exception
 
 
 def get_file_lines_from_tree(tree, file_id):
@@ -199,22 +202,21 @@ class DiffWindow(QBzrWindow):
         QBzrWindow.show(self)
         QtCore.QTimer.singleShot(1, self.initial_load)
 
+    @runs_in_loading_queue
     @ui_current_widget
+    @reports_exception()
     def initial_load(self):
         """Called to perform the initial load of the form.  Enables a
         throbber window, then loads the branches etc if they weren't specified
         in our constructor.
         """
+        # we only open the branch using the throbber
+        self.throbber.show()
         try:
-            # we only open the branch using the throbber
-            self.throbber.show()
-            try:
-                self.load_branch_info()
-                self.load_diff()
-            finally:
-                self.throbber.hide()
-        except:
-            self.report_exception()
+            self.load_branch_info()
+            self.load_diff()
+        finally:
+            self.throbber.hide()
 
     def load_branch_info(self):
         # If a loader func was specified, call it to get our trees/branches.
@@ -251,7 +253,6 @@ class DiffWindow(QBzrWindow):
                           get_set_encoding(self.encoding, branch2))
         self.processEvents()
 
-    @ui_current_widget
     def load_diff(self):
         self.refresh_button.setEnabled(False)
         for tree in self.trees: tree.lock_read()
@@ -403,12 +404,12 @@ class DiffWindow(QBzrWindow):
         #Has the side effect of refreshing...
         self.diffview.clear()
         self.sdiffview.clear()
-        self.load_diff()
-    
+        run_in_loading_queue(self.load_diff)
+
     def click_refresh(self):
         self.diffview.clear()
         self.sdiffview.clear()
-        self.load_diff()
+        run_in_loading_queue(self.load_diff)
 
     def can_refresh(self):
         """Does any of tree is Mutanble/Working tree."""

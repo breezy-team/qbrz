@@ -73,7 +73,7 @@ class build_mo(Command):
             self.lang = [i.strip() for i in self.lang.split(',') if i.strip()]
 
     def run(self):
-        """Run msgfmt.make() for each language"""
+        """Run msgfmt for each language"""
         if not self.lang:
             return
 
@@ -81,6 +81,18 @@ class build_mo(Command):
             log.warn("GNU gettext msgfmt utility not found!")
             log.warn("Skip compiling po files.")
             return
+
+        if find_executable('msginit') is None:
+            log.warn("GNU gettext msginit utility not found!")
+            log.warn("Skip creating English PO file.")
+        else:
+            log.info('Creating English PO file...')
+            self.spawn(['msginit',
+                '--no-translator',
+                '-l', 'en',
+                '-i', os.path.join(self.source_dir, 'qbzr.pot'),
+                '-o', os.path.join(self.source_dir, 'qbzr-en.po'),
+                ])
 
         basename = self.output_base
         if not basename.endswith('.mo'):

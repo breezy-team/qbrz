@@ -38,8 +38,10 @@ from bzrlib.plugins.qbzr.lib.util import (
     RevisionMessageBrowser,
     split_tokens_at_lines,
     format_for_ttype,
+    runs_in_loading_queue,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.plugins.qbzr.lib.trace import reports_exception
 
 have_pygments = True
 try:
@@ -153,39 +155,37 @@ class AnnotateWindow(QBzrWindow):
         QBzrWindow.show(self)
         QtCore.QTimer.singleShot(1, self.initial_load)
 
+    @runs_in_loading_queue
     @ui_current_widget
+    @reports_exception()
     def initial_load(self):
         """Called to perform the initial load of the form.  Enables a
         throbber window, then loads the branches etc if they weren't specified
         in our constructor.
         """
+        self.throbber.show()
         try:
-            self.throbber.show()
+            if self.loader_func is not None:
+                self.branch, self.tree, self.path, self.fileId = \
+                                        self.loader_func(*self.loader_args)
+                self.loader_func = self.loader_args = None # kill extra refs...
+                QtCore.QCoreApplication.processEvents()
+            self.branch.lock_read()
             try:
-                if self.loader_func is not None:
-                    self.branch, self.tree, self.path, self.fileId = \
-                                            self.loader_func(*self.loader_args)
-                    self.loader_func = self.loader_args = None # kill extra refs...
-                    QtCore.QCoreApplication.processEvents()
-                self.branch.lock_read()
-                try:
-                    self.annotate(self.tree, self.fileId, self.path)
-                finally:
-                    self.branch.unlock()
+                self.annotate(self.tree, self.fileId, self.path)
             finally:
-                self.throbber.hide()
+                self.branch.unlock()
+        finally:
+            self.throbber.hide()
 
-            # and once we are loaded we can hookup the signal handlers.
-            # (our code currently can't handle items being clicked on until
-            # the load is complete)
-            self.connect(self.browser,
-                QtCore.SIGNAL("itemSelectionChanged()"),
-                self.setRevisionByLine)
-            # and update the title to show we are done.
-            self.set_title_and_icon([gettext("Annotate"), self.path])
-
-        except:
-            self.report_exception()
+        # and once we are loaded we can hookup the signal handlers.
+        # (our code currently can't handle items being clicked on until
+        # the load is complete)
+        self.connect(self.browser,
+            QtCore.SIGNAL("itemSelectionChanged()"),
+            self.setRevisionByLine)
+        # and update the title to show we are done.
+        self.set_title_and_icon([gettext("Annotate"), self.path])
 
     def annotate(self, tree, fileId, path):
         qt_process_events = QtCore.QCoreApplication.processEvents

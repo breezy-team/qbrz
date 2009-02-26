@@ -3,7 +3,7 @@
 ./installer/_lib/*
 ./locale
 ./MANIFEST
-./tags
+tags
 # files from standalone QBzr installation
 ./_ext
 ./_lib

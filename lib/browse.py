@@ -39,9 +39,11 @@ from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
     format_timestamp,
     get_set_encoding,
+    runs_in_loading_queue,
     url_for_display,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.plugins.qbzr.lib.trace import reports_exception
 
 
 class FileTreeWidget(QtGui.QTreeWidget):
@@ -135,26 +137,25 @@ class BrowseWindow(QBzrWindow):
         QBzrWindow.show(self)
         QtCore.QTimer.singleShot(1, self.load)
    
+    @runs_in_loading_queue
     @ui_current_widget
+    @reports_exception()
     def load(self):
+        self.throbber.show()
+        self.processEvents()
         try:
-            self.throbber.show()
-            self.processEvents()
-            try:
-                if not self.branch:
-                    self.branch, path = Branch.open_containing(self.location) 
-                
-                if self.revision is None:
-                    if self.revision_id is None:
-                        revno, self.revision_id = self.branch.last_revision_info()
-                        self.revision_spec = str(revno)
-                    self.set_revision(revision_id=self.revision_id, text=self.revision_spec)
-                else:
-                    self.set_revision(self.revision)
-            finally:
-                self.throbber.hide()
-        except:
-            self.report_exception()
+            if not self.branch:
+                self.branch, path = Branch.open_containing(self.location) 
+            
+            if self.revision is None:
+                if self.revision_id is None:
+                    revno, self.revision_id = self.branch.last_revision_info()
+                    self.revision_spec = str(revno)
+                self.set_revision(revision_id=self.revision_id, text=self.revision_spec)
+            else:
+                self.set_revision(self.revision)
+        finally:
+            self.throbber.hide()
     
     def load_file_tree(self, entry, parent_item):
         files, dirs = [], []
@@ -199,6 +200,7 @@ class BrowseWindow(QBzrWindow):
         path_parts.reverse()
         return pathjoin(*path_parts)
     
+    @runs_in_loading_queue
     @ui_current_widget
     def show_file_content(self, index=None):
         """Launch qcat for one selected file."""
