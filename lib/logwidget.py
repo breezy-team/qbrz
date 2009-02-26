@@ -360,12 +360,19 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                     graphCols = max((graphCols, min(start, end)))
                 
                 # Draw the revision node in the right column
+                i, is_int = self.twisty_state.toInt()
+                is_clicked = (is_int and i == -1)
+                
                 color = self.node[1].toInt()[0]
                 column = self.node[0].toInt()[0]
                 graphCols = max((graphCols, column))
                 pen.setColor(self.get_color(color,False))
                 painter.setPen(pen)
-                painter.setBrush(QtGui.QBrush(self.get_color(color,True)))
+                if not is_clicked:
+                    painter.setBrush(QtGui.QBrush(self.get_color(color,True)))
+                else:
+                    painter.setBrush(QtGui.QBrush(QtCore.Qt.white))
+                    
                 centerx = rect.x() + boxsize * (column + 0.5)
                 centery = rect.y() + boxsize * 0.5
                 painter.drawEllipse(
@@ -374,19 +381,29 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                                  boxsize * dotsize, boxsize * dotsize))
 
                 # Draw twisty
-                if self.twisty_state.isValid():
+                if not is_clicked and self.twisty_state.isValid():
                     linesize = 0.35
                     pen.setColor(self._twistyColor)
                     painter.setPen(pen)
-                    painter.drawLine(QtCore.QLineF (centerx - boxsize * linesize / 2,
-                                                    centery,
-                                                    centerx + boxsize * linesize / 2,
-                                                    centery))
-                    if not self.twisty_state.toBool():
-                        painter.drawLine(QtCore.QLineF (centerx,
-                                                        centery - boxsize * linesize / 2,
-                                                        centerx,
-                                                        centery + boxsize * linesize / 2))
+                    i, is_int = self.twisty_state.toInt()
+                    if is_int and i == -1:
+                        painter.drawEllipse(
+                            QtCore.QRectF(centerx - (boxsize * dotsize * 0.25 ),
+                                          centery - (boxsize * dotsize * 0.25 ),
+                                          boxsize * dotsize * 0.5,
+                                          boxsize * dotsize * 0.5))
+                    else:
+                        painter.drawLine(QtCore.QLineF
+                                         (centerx - boxsize * linesize / 2,
+                                          centery,
+                                          centerx + boxsize * linesize / 2,
+                                          centery))
+                        if not self.twisty_state.toBool():
+                            painter.drawLine(QtCore.QLineF
+                                             (centerx,
+                                              centery - boxsize * linesize / 2,
+                                              centerx,
+                                              centery + boxsize * linesize / 2))
                 
             finally:
                 painter.restore()
