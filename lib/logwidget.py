@@ -192,11 +192,11 @@ class LogList(QtGui.QTreeView):
             #Nothing is visible
             return
         if bottom_index == -1:
-            bottom_index = len(self.graph_provider.graph_line_data)-1
+            bottom_index = len(self.graph_provider.graph_line_data)
         # The + 2 is so that the rev that is off screen due to the throbber
         # is loaded.
         bottom_index = min((bottom_index + 2,
-                            len(self.graph_provider.graph_line_data)-1))
+                            len(self.graph_provider.graph_line_data)))
         revids = []
         for i in xrange(top_index, bottom_index): 
             msri = self.graph_provider.graph_line_data[i][0]
