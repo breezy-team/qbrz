@@ -462,13 +462,16 @@ class LogGraphProvider():
                     map[ancestor_revid] = heads[i][1]
             return map
         
-        head_revid_branch = sorted([(revid, branch) \
-                                   for revid, (head_info, ur) in \
-                                   self.revid_head_info.iteritems()
-                                   for (branch, tag, lr) in head_info],
-            cmp = self.repos_cmp_local_higher,
-            key = lambda x: x[1].repository)
-        self.revid_branch = get_revid_head(head_revid_branch)        
+        if len(self.branches) > 1:
+            head_revid_branch = sorted([(revid, branch) \
+                                       for revid, (head_info, ur) in \
+                                       self.revid_head_info.iteritems()
+                                       for (branch, tag, lr) in head_info],
+                cmp = self.repos_cmp_local_higher,
+                key = lambda x: x[1].repository)
+            self.revid_branch = get_revid_head(head_revid_branch)
+        else:
+            self.revid_branch = {}
         
         if len(self.revid_head_info) > 1:
             # Populate unique revisions for heads
@@ -1171,8 +1174,13 @@ class LogGraphProvider():
         
         return self.revisions[revid]
     
+    def get_revid_branch(self, revid):
+        if len(self.branches)==1 and revid not in self.revid_branch:
+            return self.branches[0][1]
+        return self.revid_branch[revid]
+    
     def get_revid_repo(self, revid):
-        return self.revid_branch[revid].repository
+        return self.get_revid_branch(revid).repository
     
     def get_repo_revids(self, revids):
         """Returns dict maping repo to it revisions"""
@@ -1249,7 +1257,7 @@ class LogGraphProvider():
                                   for revno in revno_sequence])
         revision.tags = sorted(self.tags.get(revision.revision_id, []))
         revision.child_ids = self.graph_children[revision.revision_id]
-        revision.branch = self.revid_branch[revision.revision_id]
+        revision.branch = self.get_revid_branch(revision.revision_id)
     
     def revisions_filter_changed(self):
         pass
