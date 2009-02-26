@@ -189,6 +189,10 @@ class LogList(QtGui.QTreeView):
         except:
             self.report_exception()
     
+    def resizeEvent(self, e):
+        self.load_visible_revisions()
+        QtGui.QTreeView.resizeEvent(self, e)
+    
     def load_visible_revisions(self):
         top_index = self.indexAt(self.viewport().rect().topLeft()).row()
         bottom_index = self.indexAt(self.viewport().rect().bottomLeft()).row()
