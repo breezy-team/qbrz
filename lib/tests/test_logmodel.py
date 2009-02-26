@@ -38,6 +38,9 @@ class TestGetBugId(TestCase):
     def test_fogbugz(self):
         self.assertEquals('1234', get_bug_id('http://test.fogbugz.com/default.asp?1234'))
 
+    def test_roundup(self):
+        self.assertEquals('5243', get_bug_id('http://bugs.python.org/issue5243'))
+
 
 class TestQVariantFromList(TestCase):
 
