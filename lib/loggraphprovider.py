@@ -46,6 +46,7 @@ class LogGraphProvider():
 
         """List of unique repositories"""
         self.branches = []
+        
         """List of tuple(tree, branch, repo )"""
         self.fileids = []
         
@@ -156,13 +157,15 @@ class LogGraphProvider():
         if file_id:
             self.fileids.append(file_id)
             self.filter_file_id = {}
+        
+        if self.trunk_branch == None:
+            self.trunk_branch == branch
     
     def open_locations(self, locations):
         """Open branches or repositories and file-ids to be loaded from a list
         of locations strings, inputed by the user (such as at the command line.)
         
         """
-        
         paths_and_branches_err = "It is not possible to specify different file paths and different branches at the same time."
         
         for location in locations:
@@ -171,7 +174,8 @@ class LogGraphProvider():
             self.update_ui()
             
             if br == None:
-                for br in repo.find_branches(using=True):             
+                branches = repo.find_branches(using=True) 
+                for br in branches:
                     try:
                         tree = br.bzrdir.open_workingtree()
                     except errors.NoWorkingTree:
@@ -275,10 +279,32 @@ class LogGraphProvider():
                                              "Pending Merge", False)
                 self.update_ui()
         
-        if len(self.head_revids)>1:
+        if len(self.branches)>1:
+            # Work out which branch we think is trunk.
+            # TODO: Make config option.
+            trunk_names = "trunk,bzr.dev"
+            trunk_branch = None
+            for tree, branch, repo, index in self.branches:
+                if branch.nick in trunk_names:
+                    trunk_branch = branch
+                    break
+            
+            if trunk_branch == None:
+                trunk_branch = self.branches[0]
+            
+            trunk_tip = trunk_branch.last_revision()
+            
             self.load_revisions(self.head_revids)
-            self.head_revids.sort(key=lambda x:self.revision(x).timestamp,
-                                  reverse=True)
+            
+            def head_revids_cmp(x,y):
+                if x == trunk_tip:
+                    return -1
+                if y == trunk_tip:
+                    return 1
+                return 0-cmp(self.revision(x).timestamp,
+                             self.revision(y).timestamp)
+            
+            self.head_revids.sort(head_revids_cmp)
     
     def load_tags(self):
         self.tags = {}
