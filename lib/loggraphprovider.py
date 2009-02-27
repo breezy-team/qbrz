@@ -37,7 +37,7 @@ except ImportError:
     have_search = False
 
 
-class LogGraphProvider():
+class LogGraphProvider(object):
     """Loads and computes revision and graph data for GUI log widgets."""
 
     def __init__(self, no_graph):
