@@ -288,7 +288,7 @@ class LogGraphProvider():
                     break
             
             if trunk_branch == None:
-                trunk_branch = self.branches[0]
+                trunk_branch = self.branches[0][1]
             
             trunk_tip = trunk_branch.last_revision()
             
