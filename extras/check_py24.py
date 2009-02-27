@@ -53,7 +53,7 @@ class check_py24(Command):
                     if self.verbose:
                         log.info('checking ' + fullname)
                     if not self.dry_run:
-                        f = open(fullname, 'r')
+                        f = open(fullname, 'rU')    # rU automatically converts CRLF to LF
                         content = f.read()
                         f.close()
                         try:
