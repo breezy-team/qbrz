@@ -30,7 +30,10 @@ from bzrlib.plugins.qbzr.lib.util import (
     split_tokens_at_lines,
     format_for_ttype,
     QBzrGlobalConfig,
+    QBzrConfig,
     )
+from bzrlib.trace import mutter
+
 
 have_pygments = True
 try:
@@ -41,11 +44,44 @@ except ImportError:
     have_pygments = False
 
 colors = {
-    'delete': (QtGui.QColor(255, 160, 180), QtGui.QColor(200, 60, 90)),
-    'insert': (QtGui.QColor(180, 255, 180), QtGui.QColor(80, 210, 80)),
-    'replace': (QtGui.QColor(206, 226, 250), QtGui.QColor(90, 130, 180)),
-    'blank': (QtGui.QColor(240, 240, 240), QtGui.QColor(171, 171, 171)),
+    'delete': [QtGui.QColor(255, 160, 180), QtGui.QColor(200, 60, 90)],
+    'insert': [QtGui.QColor(180, 255, 180), QtGui.QColor(80, 210, 80)],
+    'replace': [QtGui.QColor(206, 226, 250), QtGui.QColor(90, 130, 180)],
+    'blank': [QtGui.QColor(240, 240, 240), QtGui.QColor(171, 171, 171)],
 }
+#The background color of the replacement text in a replacement group.
+interline_changes_background = QtGui.QColor(180, 210, 250)
+
+#load user-defined color mapping from configuration file.
+
+#For each kind, there can be two entries in the configuration file,
+#under the [QDIFF COLORS] section:
+#  kind_bound -- the color of the boundary of the rectangle this kind refers to.
+#  kind_fill  -- the color of the filling of that same rectangle.
+
+config = QBzrConfig()
+component_dict = {0:'fill', 1:'bound'}
+for key in colors.iterkeys():
+    for comp in [0,1]:
+        color = None
+        try:
+            color = config.getColor(key + '_' + component_dict[comp],
+                                        'QDIFF COLORS')
+        except ValueError, msg:
+            #error handling.
+            mutter(str(msg))
+        if None != color:
+            colors[key][comp] = color
+            
+
+#Get a user-defined replacement text background
+try:
+    new_interline_bg  = config.getColor('interline_changes_background',
+                                        'QDIFF COLORS')
+    if None != new_interline_bg:
+      interline_changes_background = new_interline_bg
+except ValueError, msg:
+    mutter(str(msg))
 
 brushes = {}
 for kind, cols in colors.items():
@@ -321,7 +357,7 @@ class SidebySideDiffView(QtGui.QSplitter):
             
             def modifyFormatForTag (format, tag):
                 if tag == "replace":
-                    format.setBackground(QtGui.QColor.fromRgb(180, 210, 250))
+                    format.setBackground(interline_changes_background)
                 elif not tag == "equal":
                     if self.show_intergroup_colors:
                         format.setBackground(brushes[tag][0])

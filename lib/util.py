@@ -168,6 +168,54 @@ class QBzrConfig(Config):
         bookmarks = list(self.getBookmarks())
         bookmarks.append((name, location))
         self.setBookmarks(bookmarks)
+        
+    def getColor(self, name, section=None):
+        """
+          Get a color entry from the config file.
+          Color entries have the syntax:
+            name = R, G, B
+          Where the color components are integers in the range 0..255.
+          
+          Colors are returned as QtGui.QColor.
+          
+          If input is erroneous, ErrorValue exception is raised.
+          
+          e.g.
+            replace_fill = 255, 0, 128
+        """
+        #utility functions.
+        if None == section:
+          name_str = '[DEFAULT]:' + name
+        else:
+          name_str = "[" + section + "]:" + name
+          
+        color_format_err_msg = lambda given:\
+            "Illegal color format for " + name_str +\
+            ". Given '"+ given + "' expected '<red>, <green>, <blue>'."
+            
+        color_range_err_msg = lambda given:\
+            "Color components for " + name_str +\
+            " should be in the range 0..255 only. Given: "+ given +"."
+            
+        val = self.getOption(name, section)
+        if None == val:
+          return None
+          
+        if list != type(val):
+          raise ValueError(color_format_err_msg(val))
+        if 3 != len(val) or not \
+          reduce(lambda x,y: x and y.isdigit(), val, True):
+              raise ValueError(color_format_err_msg(", ".join(val)))
+          
+        #Being here guarantees that color_value is a list
+        #of three elements that represent numbers.
+        color_components = map(int, val)
+        if not reduce(lambda x,y: x and y < 256, color_components, True):
+            raise ValueError(
+              color_range_err_msg(", ".join(val)))
+            
+        #Now we know the given color is safe to use.
+        return QtGui.QColor(*color_components)
 
 
 class QBzrGlobalConfig(IniBasedConfig):
