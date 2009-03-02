@@ -618,9 +618,10 @@ class CommitWindow(SubProcessWindow):
                      ext_diff=ext_diff,
                      parent_window=self)
         else:
+            msg = "No changes selected to " + dialog_action
             QtGui.QMessageBox.warning(self,
                 "QBzr - " + gettext("Diff"),
-                gettext("No changes selected to %s." % dialog_action),
+                gettext(msg),
                 QtGui.QMessageBox.Ok)
 
         if unversioned:

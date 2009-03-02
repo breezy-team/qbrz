@@ -95,3 +95,6 @@ if 0:
     N_('View binary file')
     N_('View symlink')
     N_('View directory')
+    #
+    N_("No changes selected to commit")
+    N_("No changes selected to revert")
