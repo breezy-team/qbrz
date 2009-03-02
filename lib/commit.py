@@ -404,6 +404,8 @@ class CommitWindow(SubProcessWindow):
 
         # Diff button to view changes in files selected to commit
         self.diffbuttons = DiffButtons(self.centralwidget)
+        self.diffbuttons.setToolTip(
+            gettext("View changes in files selected to commit"))
         self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
                      self.show_diff_for_selected_to_commit)
         hbox = QtGui.QHBoxLayout()

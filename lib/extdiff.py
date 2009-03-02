@@ -112,13 +112,13 @@ class ExtDiffMenu(QtGui.QMenu):
         ext_diff = unicode(action.data().toString())
         self.emit(QtCore.SIGNAL("triggered(QString)"), QtCore.QString(ext_diff))
 
-    
+
 class DiffButtons(QtGui.QWidget):
-    
+
     def __init__(self, parent = None):
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QHBoxLayout(self)
-        
+
         self.default_button = QtGui.QPushButton(gettext('Diff'),
                                                  self)
         layout.addWidget(self.default_button)
@@ -126,7 +126,7 @@ class DiffButtons(QtGui.QWidget):
         self.connect(self.default_button,
                      QtCore.SIGNAL("clicked()"),
                      self.triggered)
-        
+
         if has_ext_diff():
             self.menu = ExtDiffMenu(self)
             self.menu_button = QtGui.QPushButton("",
