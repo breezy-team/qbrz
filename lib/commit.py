@@ -407,7 +407,7 @@ class CommitWindow(SubProcessWindow):
         self.diffbuttons.setToolTip(
             gettext("View changes in files selected to commit"))
         self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
-                     self.show_diff_for_selected_to_commit)
+                     self.show_diff_for_checked)
         hbox = QtGui.QHBoxLayout()
         hbox.addWidget(self.diffbuttons)
         hbox.addWidget(self.buttonbox)
@@ -594,32 +594,35 @@ class CommitWindow(SubProcessWindow):
         self.branch_location.setText(loc)
         self.commit_type_description.setText(desc)
 
-    def show_diff_for_selected_to_commit(self):
-        # starts with one because if pending changes are available the warning box will appear each time.
-        selected = []
-        checked = 0
-        unversioned = 0
+    def show_diff_for_checked(self, ext_diff=None, dialog_action='commit'):
+        """Diff button clicked: show the diff for checked entries.
+
+        @param  ext_diff:       selected external diff tool (if any)
+        @param  dialog_action:  purpose of parent window (main action)
+        """
+        # XXX make this function universal for both qcommit and qrevert (?)
+        checked = []        # checked versioned
+        unversioned = []    # checked unversioned (supposed to be added)
         for desc in self.filelist.iter_checked():
-            checked += 1
             path = desc.path()
             if desc.is_versioned():
-                selected.append(path)
+                checked.append(path)
             else:
-                unversioned += 1
+                unversioned.append(path)
 
-        if checked != 0:
+        if checked:
             show_diff(self.tree.basis_tree().get_revision_id(), None,
                      self.tree.branch, self.tree.branch,
                      new_wt=self.tree,
-                     specific_files=selected,
-                     ext_diff=None,
+                     specific_files=checked,
+                     ext_diff=ext_diff,
                      parent_window=self)
         else:
             QtGui.QMessageBox.warning(self,
                 "QBzr - " + gettext("Diff"),
-                gettext("No changes selected to commit."),
+                gettext("No changes selected to %s." % dialog_action),
                 QtGui.QMessageBox.Ok)
 
-        if unversioned != 0:
+        if unversioned:
             # XXX show infobox with message that not all files shown in diff
             pass

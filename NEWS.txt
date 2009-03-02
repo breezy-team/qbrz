@@ -3,6 +3,8 @@
  
  * qcommit:
    * Added Diff button to view changes in files selected to commit
+ * qrevert:
+   * Added Diff button to view changes in files selected to revert
  * qview: new command to view content of any arbitrary file from disk
 
 0.9.8 - 2009-02-13

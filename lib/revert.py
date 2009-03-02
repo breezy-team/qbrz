@@ -22,6 +22,10 @@
 import os
 from PyQt4 import QtCore, QtGui
 
+from bzrlib.plugins.qbzr.lib.extdiff import (
+    DiffButtons,
+    show_diff,
+    )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.wtlist import (
@@ -92,7 +96,17 @@ class RevertWindow(SubProcessDialog):
 
         layout = QtGui.QVBoxLayout(self)
         layout.addWidget(self.splitter)
-        layout.addWidget(self.buttonbox)
+
+        # Diff button to view changes in files selected to revert
+        self.diffbuttons = DiffButtons(self)
+        self.diffbuttons.setToolTip(
+            gettext("View changes in files selected to revert"))
+        self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
+                     self.show_diff_for_checked)
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(self.diffbuttons)
+        hbox.addWidget(self.buttonbox)
+        layout.addLayout(hbox)
 
     def iter_changes_and_state(self):
         """An iterator for the WorkingTreeFileList widget"""
@@ -120,3 +134,28 @@ class RevertWindow(SubProcessDialog):
     def saveSize(self):
         SubProcessDialog.saveSize(self)
         self.saveSplitterSizes()
+
+    def show_diff_for_checked(self, ext_diff=None, dialog_action='revert'):
+        """Diff button clicked: show the diff for checked entries.
+
+        @param  ext_diff:       selected external diff tool (if any)
+        @param  dialog_action:  purpose of parent window (main action)
+        """
+        # XXX make this function universal for both qcommit and qrevert (?)
+        checked = []
+        for desc in self.filelist.iter_checked():
+            path = desc.path()
+            checked.append(path)
+
+        if checked:
+            show_diff(self.tree.basis_tree().get_revision_id(), None,
+                     self.tree.branch, self.tree.branch,
+                     new_wt=self.tree,
+                     specific_files=checked,
+                     ext_diff=ext_diff,
+                     parent_window=self)
+        else:
+            QtGui.QMessageBox.warning(self,
+                "QBzr - " + gettext("Diff"),
+                gettext("No changes selected to %s." % dialog_action),
+                QtGui.QMessageBox.Ok)
