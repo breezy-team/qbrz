@@ -63,7 +63,7 @@ class LogWindow(QBzrWindow):
     FilterSearchRole = QtCore.Qt.UserRole + 104
     
     def __init__(self, locations, branch, specific_fileids, parent=None,
-                 ui_mode=True):        
+                 ui_mode=True, no_graph=False):        
         self.title = [gettext("Log")]
         QBzrWindow.__init__(self, self.title, parent, ui_mode=ui_mode)
         self.restoreSize("log", (710, 580))
@@ -125,6 +125,7 @@ class LogWindow(QBzrWindow):
         self.log_list = LogList(self.processEvents,
                                 self.report_exception,
                                 self.throbber,
+                                no_graph,
                                 self)
         self.log_list.keyPressEvent  = self.log_list_keyPressEvent
         

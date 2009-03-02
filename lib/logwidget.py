@@ -29,7 +29,7 @@ class LogList(QtGui.QTreeView):
     """TreeView widget to show log with metadata and graph of revisions."""
 
     def __init__(self, processEvents, report_exception,
-                 throbber, parent=None):
+                 throbber, no_graph, parent=None):
         """Costructing new widget.
         @param  throbber:   throbber widget in parent window
         @param  parent:     parent window
@@ -53,7 +53,8 @@ class LogList(QtGui.QTreeView):
 
         self.graph_provider = logmodel.QLogGraphProvider(self.processEvents,
                                                          self.report_exception,
-                                                         self.throbber)
+                                                         self.throbber,
+                                                         no_graph)
 
         self.model = logmodel.LogModel(self.graph_provider, self)
 
@@ -179,6 +180,10 @@ class LogList(QtGui.QTreeView):
     def model_data_changed(self, start_index, end_index):
         self.load_visible_revisions()
     
+    def resizeEvent(self, e):
+        self.load_visible_revisions()
+        QtGui.QTreeView.resizeEvent(self, e)
+    
     @runs_in_loading_queue
     def load_visible_revisions(self):
         top_index = self.indexAt(self.viewport().rect().topLeft()).row()
@@ -187,11 +192,11 @@ class LogList(QtGui.QTreeView):
             #Nothing is visible
             return
         if bottom_index == -1:
-            bottom_index = len(self.graph_provider.graph_line_data)-1
+            bottom_index = len(self.graph_provider.graph_line_data)
         # The + 2 is so that the rev that is off screen due to the throbber
         # is loaded.
         bottom_index = min((bottom_index + 2,
-                            len(self.graph_provider.graph_line_data)-1))
+                            len(self.graph_provider.graph_line_data)))
         revids = []
         for i in xrange(top_index, bottom_index): 
             msri = self.graph_provider.graph_line_data[i][0]
