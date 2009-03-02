@@ -35,6 +35,7 @@ ext_diffs = {gettext("Builtin Diff"):""}
 for name, command in qparser.get('EXTDIFF', {}).items():
     ext_diffs[name] = command
 
+
 @runs_in_loading_queue
 def show_diff(old_revid, new_revid, old_branch, new_branch, new_wt = None,
              specific_files=None, ext_diff=None, parent_window=None):
@@ -86,8 +87,10 @@ def show_diff(old_revid, new_revid, old_branch, new_branch, new_wt = None,
         if parent_window:
             parent_window.windows.append(window)
 
+
 def has_ext_diff():
     return len(ext_diffs) > 1
+
 
 class ExtDiffMenu(QtGui.QMenu):
     
@@ -108,6 +111,7 @@ class ExtDiffMenu(QtGui.QMenu):
     def triggered(self, action):
         ext_diff = unicode(action.data().toString())
         self.emit(QtCore.SIGNAL("triggered(QString)"), QtCore.QString(ext_diff))
+
     
 class DiffButtons(QtGui.QWidget):
     

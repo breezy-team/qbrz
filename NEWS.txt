@@ -1,6 +1,8 @@
 0.9.8 - in development 
 ---------------------- 
-
+ 
+ * qcommit:
+   * Added Diff button to view changes in files selected to commit
  * qview: new command to view content of any arbitrary file from disk
 
 0.9.8 - 2009-02-13

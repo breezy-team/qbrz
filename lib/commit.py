@@ -37,7 +37,10 @@ from bzrlib.workingtree import WorkingTree
 
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
-from bzrlib.plugins.qbzr.lib.extdiff import show_diff
+from bzrlib.plugins.qbzr.lib.extdiff import (
+    DiffButtons,
+    show_diff,
+    )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
 from bzrlib.plugins.qbzr.lib.util import (
@@ -391,13 +394,22 @@ class CommitWindow(SubProcessWindow):
             pendingMergesWidget.insertTopLevelItems(0, items)
 
         self.tabWidget.addTab(self.process_widget, gettext("Status"))
-        
+
         splitter.setStretchFactor(0, 3)
+
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(branch_groupbox)
         vbox.addWidget(splitter)
-        vbox.addWidget(self.buttonbox)
+
+        # Diff button to view changes in files selected to commit
+        self.diffbuttons = DiffButtons(self.centralwidget)
+        self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
+                     self.show_diff_for_selected_to_commit)
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(self.diffbuttons)
+        hbox.addWidget(self.buttonbox)
+        vbox.addLayout(hbox)
 
         # groupbox and tabbox get disabled as we are executing.
         QtCore.QObject.connect(self,
@@ -579,3 +591,33 @@ class CommitWindow(SubProcessWindow):
         # update GUI
         self.branch_location.setText(loc)
         self.commit_type_description.setText(desc)
+
+    def show_diff_for_selected_to_commit(self):
+        # starts with one because if pending changes are available the warning box will appear each time.
+        selected = []
+        checked = 0
+        unversioned = 0
+        for desc in self.filelist.iter_checked():
+            checked += 1
+            path = desc.path()
+            if desc.is_versioned():
+                selected.append(path)
+            else:
+                unversioned += 1
+
+        if checked != 0:
+            show_diff(self.tree.basis_tree().get_revision_id(), None,
+                     self.tree.branch, self.tree.branch,
+                     new_wt=self.tree,
+                     specific_files=selected,
+                     ext_diff=None,
+                     parent_window=self)
+        else:
+            QtGui.QMessageBox.warning(self,
+                "QBzr - " + gettext("Diff"),
+                gettext("No changes selected to commit."),
+                QtGui.QMessageBox.Ok)
+
+        if unversioned != 0:
+            # XXX show infobox with message that not all files shown in diff
+            pass
