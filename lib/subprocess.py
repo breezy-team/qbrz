@@ -616,6 +616,7 @@ if has_TextProgressView:
                              trans, task_msg)) + '\n')
             sys.stdout.flush()
 
+
 class SubprocessUIFactory(ui.CLIUIFactory):
 
     def __init__(self, stdin=None, stdout=None, stderr=None):
@@ -683,7 +684,7 @@ class SubprocessUIFactory(ui.CLIUIFactory):
             else:
                 raise KeyboardInterrupt()
         raise Exception("Did not recive a password from the main process.")
-    
+
 
 if MS_WINDOWS:
     import ctypes

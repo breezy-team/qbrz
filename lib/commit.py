@@ -37,7 +37,10 @@ from bzrlib.workingtree import WorkingTree
 
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
-from bzrlib.plugins.qbzr.lib.extdiff import show_diff
+from bzrlib.plugins.qbzr.lib.extdiff import (
+    DiffButtons,
+    show_diff,
+    )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
 from bzrlib.plugins.qbzr.lib.util import (
@@ -391,13 +394,24 @@ class CommitWindow(SubProcessWindow):
             pendingMergesWidget.insertTopLevelItems(0, items)
 
         self.tabWidget.addTab(self.process_widget, gettext("Status"))
-        
+
         splitter.setStretchFactor(0, 3)
+
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(branch_groupbox)
         vbox.addWidget(splitter)
-        vbox.addWidget(self.buttonbox)
+
+        # Diff button to view changes in files selected to commit
+        self.diffbuttons = DiffButtons(self.centralwidget)
+        self.diffbuttons.setToolTip(
+            gettext("View changes in files selected to commit"))
+        self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
+                     self.show_diff_for_checked)
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(self.diffbuttons)
+        hbox.addWidget(self.buttonbox)
+        vbox.addLayout(hbox)
 
         # groupbox and tabbox get disabled as we are executing.
         QtCore.QObject.connect(self,
@@ -579,3 +593,37 @@ class CommitWindow(SubProcessWindow):
         # update GUI
         self.branch_location.setText(loc)
         self.commit_type_description.setText(desc)
+
+    def show_diff_for_checked(self, ext_diff=None, dialog_action='commit'):
+        """Diff button clicked: show the diff for checked entries.
+
+        @param  ext_diff:       selected external diff tool (if any)
+        @param  dialog_action:  purpose of parent window (main action)
+        """
+        # XXX make this function universal for both qcommit and qrevert (?)
+        checked = []        # checked versioned
+        unversioned = []    # checked unversioned (supposed to be added)
+        for desc in self.filelist.iter_checked():
+            path = desc.path()
+            if desc.is_versioned():
+                checked.append(path)
+            else:
+                unversioned.append(path)
+
+        if checked:
+            show_diff(self.tree.basis_tree().get_revision_id(), None,
+                     self.tree.branch, self.tree.branch,
+                     new_wt=self.tree,
+                     specific_files=checked,
+                     ext_diff=ext_diff,
+                     parent_window=self)
+        else:
+            msg = "No changes selected to " + dialog_action
+            QtGui.QMessageBox.warning(self,
+                "QBzr - " + gettext("Diff"),
+                gettext(msg),
+                QtGui.QMessageBox.Ok)
+
+        if unversioned:
+            # XXX show infobox with message that not all files shown in diff
+            pass

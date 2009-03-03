@@ -35,6 +35,7 @@ ext_diffs = {gettext("Builtin Diff"):""}
 for name, command in qparser.get('EXTDIFF', {}).items():
     ext_diffs[name] = command
 
+
 @runs_in_loading_queue
 def show_diff(old_revid, new_revid, old_branch, new_branch, new_wt = None,
              specific_files=None, ext_diff=None, parent_window=None):
@@ -86,8 +87,10 @@ def show_diff(old_revid, new_revid, old_branch, new_branch, new_wt = None,
         if parent_window:
             parent_window.windows.append(window)
 
+
 def has_ext_diff():
     return len(ext_diffs) > 1
+
 
 class ExtDiffMenu(QtGui.QMenu):
     
@@ -108,13 +111,14 @@ class ExtDiffMenu(QtGui.QMenu):
     def triggered(self, action):
         ext_diff = unicode(action.data().toString())
         self.emit(QtCore.SIGNAL("triggered(QString)"), QtCore.QString(ext_diff))
-    
+
+
 class DiffButtons(QtGui.QWidget):
-    
+
     def __init__(self, parent = None):
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QHBoxLayout(self)
-        
+
         self.default_button = QtGui.QPushButton(gettext('Diff'),
                                                  self)
         layout.addWidget(self.default_button)
@@ -122,7 +126,7 @@ class DiffButtons(QtGui.QWidget):
         self.connect(self.default_button,
                      QtCore.SIGNAL("clicked()"),
                      self.triggered)
-        
+
         if has_ext_diff():
             self.menu = ExtDiffMenu(self)
             self.menu_button = QtGui.QPushButton("",
