@@ -18,7 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import sys
-import exceptions
 from PyQt4 import QtCore, QtGui
 from bzrlib import (
     osutils,
@@ -268,12 +267,10 @@ class ConflictsWindow(QBzrWindow):
                 error_msg = gettext("Set up external_merge value in .bazaar.conf")
                 enabled = False
                 return enabled, error_msg
-            
-          error = self.is_extmerge_definition_valid(False)
-          if len(error) > 0:
-              enabled = False
-              error_msg = error
-
+            error = self.is_extmerge_definition_valid(False)
+            if len(error) > 0:
+                enabled = False
+                error_msg = error
         return enabled, error_msg
 
     def is_extmerge_definition_valid(self, showErrorDialog):
@@ -289,7 +286,7 @@ class ConflictsWindow(QBzrWindow):
             extmerge_tool.rindex('%t')
             flags = "%o"
             extmerge_tool.rindex('%o')
-        except exceptions.ValueError, e:
+        except ValueError, e:
             if showErrorDialog:
                 QtGui.QMessageBox.critical(self, gettext("Error"),
                     gettext("The extmerge tool definition in .bazaar.conf file:\n'"
