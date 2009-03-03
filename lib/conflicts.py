@@ -81,7 +81,7 @@ class ConflictsWindow(QBzrWindow):
             self.check_merge_tool_edit)
         self.program_extmerge_default_button = QtGui.QCheckBox(gettext("Use Configured Default"))
         self.program_extmerge_default_button.setToolTip(gettext(
-                "The merge tool configured in your '.bazaar.conf' file.\n"
+                "The merge tool configured in qconfig under Merge' file.\n"
                 "It follows the convention used in the bzr plugin: extmerge\n"
                 "external_merge = kdiff3 --output %r %b %t %o\n"
                 "%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."))
@@ -264,7 +264,7 @@ class ConflictsWindow(QBzrWindow):
             bzr_config = GlobalConfig()
             extmerge_tool = bzr_config.get_user_option("external_merge")
             if not extmerge_tool:
-                error_msg = gettext("Set up external_merge value in .bazaar.conf")
+                error_msg = gettext("Set up external_merge app in qconfig under the Merge tab")
                 enabled = False
                 return enabled, error_msg
             error = self.is_extmerge_definition_valid(False)
@@ -289,9 +289,8 @@ class ConflictsWindow(QBzrWindow):
         except ValueError, e:
             if showErrorDialog:
                 QtGui.QMessageBox.critical(self, gettext("Error"),
-                    gettext("The extmerge tool definition in .bazaar.conf file:\n"
-                    "'%s' is incomplete.\nMissing the flag: %s" % (extmerge_tool,flags)))
-            return gettext("Missing the flag: %s. For extmerge config definition in .bazaar.conf." % flags)
+                    gettext("The extmerge definition: '%s' is invalid.\nMissing the flag: %s. This must be fixed in qconflicts under the Merge tab." % (extmerge_tool,flags)))
+            return gettext("Missing the flag: %s. Configure in qconfig under the merge tab." % flags)
         return ""
 
     def update_program_edit_text(self, enabled, error_msg):
@@ -299,7 +298,7 @@ class ConflictsWindow(QBzrWindow):
             if enabled or (len(error_msg) <= 0):
                 config = GlobalConfig()
                 extmerge = config.get_user_option("external_merge")
-                self.program_edit.setText(gettext("%s (external_merge value in .bazaar.conf)" % extmerge))
+                self.program_edit.setText(gettext("%s (Configured external merge definition in qconfig)" % extmerge))
             else:
                 self.program_edit.setText(error_msg)
         else:

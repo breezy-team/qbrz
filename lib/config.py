@@ -179,11 +179,40 @@ class QBzrConfigWindow(QBzrDialog):
         diffLayout.addWidget(self.extDiffList)
         diffLayout.addLayout(extDiffButtonsLayout)
         
+        mergeWidget = QtGui.QWidget()
+
+        label = QtGui.QLabel(gettext("External Merge Apps:"))
+        self.extMergeList = QtGui.QTreeWidget(mergeWidget)
+        self.extMergeList.setRootIsDecorated(False)
+        self.extMergeList.setHeaderLabels([gettext("Definition")])
+        self.extMergeList.setItemDelegateForColumn(0,
+            QRadioCheckItemDelegate(self.extMergeList))
+        self.connect(self.extMergeList, QtCore.SIGNAL("itemChanged (QTreeWidgetItem *,int)"),
+                     self.extMergeListItemChanged)        
+
+        addExtMergeButton = QtGui.QPushButton(gettext("Add"), mergeWidget)
+        self.connect(addExtMergeButton, QtCore.SIGNAL("clicked()"),
+                     self.addExtMerge)
+        removeExtMergeButton = QtGui.QPushButton(gettext("Remove"), mergeWidget)
+        self.connect(removeExtMergeButton, QtCore.SIGNAL("clicked()"),
+                     self.removeExtMerge)
+
+        extMergeButtonsLayout = QtGui.QHBoxLayout()
+        extMergeButtonsLayout.addWidget(addExtMergeButton)
+        extMergeButtonsLayout.addWidget(removeExtMergeButton)
+        extMergeButtonsLayout.addStretch()
+
+        mergeLayout = QtGui.QVBoxLayout(mergeWidget)
+        mergeLayout.addWidget(label)
+        mergeLayout.addWidget(self.extMergeList)
+        mergeLayout.addLayout(extMergeButtonsLayout)
+        
         tabwidget.addTab(generalWidget, gettext("General"))
         tabwidget.addTab(aliasesWidget, gettext("Aliases"))
         tabwidget.addTab(bugTrackersWidget, gettext("Bug Trackers"))
         tabwidget.addTab(self.getGuiTabWidget(), gettext("&User Interface"))
         tabwidget.addTab(diffWidget, gettext("&Diff"))
+        tabwidget.addTab(mergeWidget, gettext("&Merge"))
 
         buttonbox = self.create_button_box(BTN_OK, BTN_CANCEL)
 
@@ -309,6 +338,32 @@ class QBzrConfigWindow(QBzrDialog):
             create_ext_diff_item(name, command)
         self.extDiffListIgnore = False
 
+        # Merge
+        bzr_config = GlobalConfig()
+        defaultMerge = bzr_config.get_user_option("external_merge")
+        if defaultMerge is None:
+            defaultMerge = ""
+        
+        self.extMergeListIgnore = True
+        def create_ext_merge_item(definition):
+            item = QtGui.QTreeWidgetItem(self.extMergeList)
+            item.setFlags(QtCore.Qt.ItemIsSelectable |
+                          QtCore.Qt.ItemIsEditable |
+                          QtCore.Qt.ItemIsEnabled |
+                          QtCore.Qt.ItemIsUserCheckable)
+            if definition == defaultMerge:
+                item.setCheckState(0, QtCore.Qt.Checked)
+            else:
+                item.setCheckState(0, QtCore.Qt.Unchecked)
+            
+            item.setText(0, definition)
+            return item
+
+        for name, value in parser.get('DEFAULT', {}).items():
+            if name == "external_merge":
+                create_ext_merge_item(value)
+        self.extMergeListIgnore = False
+
     def save(self):
         """Save the configuration."""
         config = GlobalConfig()
@@ -388,6 +443,16 @@ class QBzrConfigWindow(QBzrDialog):
                 qparser['EXTDIFF'][name] = command
         set_or_delete_option(qparser, 'default_diff',
                              defaultDiff)
+        # Merge        
+        defaultMerge = None
+        for index in range(self.extMergeList.topLevelItemCount()):
+            item = self.extMergeList.topLevelItem(index)
+            definition = unicode(item.text(0))
+            if item.checkState(0) == QtCore.Qt.Checked:
+                defaultMerge = definition            
+            
+        set_or_delete_option(parser, 'external_merge',
+                             defaultMerge)
         
         def save_config(config, parser):
             ensure_config_dir_exists(os.path.dirname(config._get_filename()))
@@ -471,3 +536,39 @@ class QBzrConfigWindow(QBzrDialog):
                         item.setCheckState(0, QtCore.Qt.Unchecked)
                 changed_item.setCheckState(0, QtCore.Qt.Checked)
                 self.extDiffListIgnore = False
+
+    def addExtMerge(self):
+        item = QtGui.QTreeWidgetItem(self.extMergeList)
+        item.setFlags(QtCore.Qt.ItemIsSelectable |
+                      QtCore.Qt.ItemIsEditable |
+                      QtCore.Qt.ItemIsEnabled |
+                      QtCore.Qt.ItemIsUserCheckable)
+        item.setCheckState(0, QtCore.Qt.Unchecked)
+        self.extMergeList.setCurrentItem(item)
+        self.extMergeList.editItem(item, 0)
+
+    def removeExtMerge(self):
+        for item in self.extMergeList.selectedItems():
+            index = self.extMergeList.indexOfTopLevelItem(item)
+            self.extMergeList.takeTopLevelItem(index)
+
+    def extMergeListItemChanged(self, changed_item, col):
+        if col == 0 and not self.extMergeListIgnore:
+            checked_count = 0
+            for index in range(self.extMergeList.topLevelItemCount()):
+                item = self.extMergeList.topLevelItem(index)
+                if item.checkState(0) == QtCore.Qt.Checked:
+                    checked_count += 1
+            
+            if checked_count == 0:
+                self.extMergeListIgnore = True
+                changed_item.setCheckState(0, QtCore.Qt.Checked)
+                self.extMergeListIgnore = False
+            elif checked_count > 1:
+                self.extMergeListIgnore = True
+                for index in range(self.extMergeList.topLevelItemCount()):
+                    item = self.extMergeList.topLevelItem(index)
+                    if item.checkState(0) == QtCore.Qt.Checked:
+                        item.setCheckState(0, QtCore.Qt.Unchecked)
+                changed_item.setCheckState(0, QtCore.Qt.Checked)
+                self.extMergeListIgnore = False
