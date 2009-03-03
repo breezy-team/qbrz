@@ -155,7 +155,8 @@ class QBzrCatWindow(QBzrWindow):
         """
         type_, fview = self.detect_content_type(filename, text, kind)
         # update title
-        self.set_title([gettext("View "+type_), filename])
+        title = "View " + type_
+        self.set_title([gettext(title), filename])
         # create and show browser
         self.browser = fview(filename, text)
         self.vbox.insertWidget(1, self.browser, 1)
