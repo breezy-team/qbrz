@@ -289,9 +289,9 @@ class ConflictsWindow(QBzrWindow):
         except ValueError, e:
             if showErrorDialog:
                 QtGui.QMessageBox.critical(self, gettext("Error"),
-                    gettext("The extmerge tool definition in .bazaar.conf file:\n'"
-                    +extmerge_tool + "' is incomplete.\nMissing the flag: "+flags))
-            return gettext("Missing the flag: "+flags+". For extmerge config definition in .bazaar.conf.")
+                    gettext("The extmerge tool definition in .bazaar.conf file:\n"
+                    "'%s' is incomplete.\nMissing the flag: %s" % (extmerge_tool,flags)))
+            return gettext("Missing the flag: %s. For extmerge config definition in .bazaar.conf." % flags)
         return ""
 
     def update_program_edit_text(self, enabled, error_msg):
@@ -299,7 +299,7 @@ class ConflictsWindow(QBzrWindow):
             if enabled or (len(error_msg) <= 0):
                 config = GlobalConfig()
                 extmerge = config.get_user_option("external_merge")
-                self.program_edit.setText(gettext(extmerge+" (external_merge value in .bazaar.conf)"))
+                self.program_edit.setText(gettext("%s (external_merge value in .bazaar.conf)" % extmerge))
             else:
                 self.program_edit.setText(error_msg)
         else:
