@@ -289,8 +289,11 @@ class ConflictsWindow(QBzrWindow):
         except ValueError, e:
             if showErrorDialog:
                 QtGui.QMessageBox.critical(self, gettext("Error"),
-                    gettext("The extmerge definition: '%s' is invalid.\nMissing the flag: %s. This must be fixed in qconflicts under the Merge tab." % (extmerge_tool,flags)))
-            return gettext("Missing the flag: %s. Configure in qconfig under the merge tab." % flags)
+                    gettext("The extmerge definition: '%(tool)s' is invalid.\nMissing the flag: %(flags)s. This must be fixed in qconflicts under the Merge tab.") % {
+                        'tool': extmerge_tool,
+                        'flags': flags,
+                    })
+            return gettext("Missing the flag: %s. Configure in qconfig under the merge tab.") % flags
         return ""
 
     def update_program_edit_text(self, enabled, error_msg):
@@ -298,7 +301,7 @@ class ConflictsWindow(QBzrWindow):
             if enabled or (len(error_msg) <= 0):
                 config = GlobalConfig()
                 extmerge = config.get_user_option("external_merge")
-                self.program_edit.setText(gettext("%s (Configured external merge definition in qconfig)" % extmerge))
+                self.program_edit.setText(gettext("%s (Configured external merge definition in qconfig)") % extmerge)
             else:
                 self.program_edit.setText(error_msg)
         else:
