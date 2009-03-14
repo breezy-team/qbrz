@@ -22,7 +22,7 @@ from time import (strftime, localtime, clock)
 
 from bzrlib import (lazy_regex, errors)
 from bzrlib.transport.local import LocalTransport
-from bzrlib.revision import NULL_REVISION
+from bzrlib.revision import NULL_REVISION, Revision
 from bzrlib.tsort import merge_sort
 from bzrlib.graph import (Graph, _StackedParentsProvider)
 from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
@@ -66,6 +66,19 @@ try:
     QVariant_fromList = QtCore.QVariant.fromList
 except AttributeError:
     QVariant_fromList = QtCore.QVariant
+
+
+def get_apparent_author_new(rev):
+    return ', '.join(rev.get_apparent_authors())
+
+def get_apparent_author_old(rev):
+    return rev.get_apparent_author()
+
+if hasattr(Revision, 'get_apparent_authors'):
+    get_apparent_author = get_apparent_author_new
+else:
+    get_apparent_author = get_apparent_author_old
+
 
 class QLogGraphProvider(LogGraphProvider):
     
@@ -237,7 +250,7 @@ class LogModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant(strftime("%Y-%m-%d %H:%M",
                                             localtime(revision.timestamp)))
         if role == QtCore.Qt.DisplayRole and index.column() == COL_AUTHOR:
-            return QtCore.QVariant(extract_name(revision.get_apparent_author()))
+            return QtCore.QVariant(extract_name(get_apparent_author(revision)))
         if role == QtCore.Qt.DisplayRole and index.column() == COL_MESSAGE:
             return QtCore.QVariant(revision.get_summary())
         if role == BugIdsRole:
