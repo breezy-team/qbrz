@@ -25,10 +25,12 @@ from bzrlib.plugins.qbzr.lib import i18n
 class TestI18n(TestCase):
 
     def setUp(self):
+        TestCase.setUp(self)
         i18n.uninstall()
 
     def tearDown(self):
         i18n.uninstall()
+        TestCase.tearDown(self)
 
     def test_gettext(self):
         # simple pass-through
