@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: QBzr 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-02-02 05:56+0200\n"
-"PO-Revision-Date: 2009-02-02 04:26+0000\n"
+"POT-Creation-Date: 2009-03-24 17:11+0200\n"
+"PO-Revision-Date: 2009-03-03 11:17+0000\n"
 "Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -14,10 +14,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Launchpad-Export-Date: 2009-02-06 08:56+0000\n"
+"X-Launchpad-Export-Date: 2009-03-24 15:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:41 lib\config.py:112 lib\config.py:133 lib\config.py:164
+#: lib\config.py:193
 msgid "Add"
 msgstr "Добавить"
 
@@ -29,86 +30,86 @@ msgstr "Неверсионированные файлы"
 msgid "Show ignored files"
 msgstr "Отображать игнорируемые файлы"
 
-#: lib\annotate.py:85 lib\annotate.py:185 lib\browse.py:114
+#: lib\annotate.py:87 lib\annotate.py:188 lib\browse.py:116
 msgid "Annotate"
 msgstr "Аннотация"
 
-#: lib\annotate.py:85 lib\diff.py:121 lib\util.py:405
+#: lib\annotate.py:87 lib\diff.py:124 lib\util.py:423
 msgid "Loading..."
 msgstr "Загрузка..."
 
-#: lib\annotate.py:104
+#: lib\annotate.py:106
 msgid "Line"
 msgstr "Строка"
 
-#: lib\annotate.py:104 lib\annotate.py:119 lib\browse.py:104 lib\commit.py:366
-#: lib\logmodel.py:90
+#: lib\annotate.py:106 lib\annotate.py:121 lib\browse.py:106 lib\commit.py:369
+#: lib\logmodel.py:116
 msgid "Author"
 msgstr "Автор"
 
-#: lib\annotate.py:104 lib\annotate.py:119 lib\browse.py:105
-#: lib\logmodel.py:87
+#: lib\annotate.py:106 lib\annotate.py:121 lib\browse.py:107
+#: lib\logmodel.py:113
 msgid "Rev"
 msgstr "Версия"
 
-#: lib\annotate.py:119 lib\browse.py:103 lib\commit.py:366 lib\logmodel.py:89
+#: lib\annotate.py:121 lib\browse.py:105 lib\commit.py:369 lib\logmodel.py:115
 msgid "Date"
 msgstr "Дата"
 
-#: lib\annotate.py:119
+#: lib\annotate.py:121
 msgid "Summary"
 msgstr "Кратко"
 
-#: lib\browse.py:78 lib\browse.py:256 lib\browse.py:299
+#: lib\browse.py:80 lib\browse.py:261 lib\browse.py:304
 msgid "Browse"
 msgstr "Обзор"
 
-#: lib\browse.py:87
+#: lib\browse.py:89
 msgid "Location:"
 msgstr "Расположение:"
 
-#: lib\browse.py:92 lib\ui_new_tree.py:160 lib\util.py:487
+#: lib\browse.py:94 lib\ui_new_tree.py:160 lib\util.py:506
 msgid "Revision:"
 msgstr "Версия:"
 
-#: lib\browse.py:95
+#: lib\browse.py:97
 msgid "Show"
 msgstr "Показать"
 
-#: lib\browse.py:102 lib\config.py:157 lib\main.py:358
+#: lib\browse.py:104 lib\config.py:157 lib\main.py:358
 msgid "Name"
 msgstr "Имя"
 
-#: lib\browse.py:106 lib\commit.py:269 lib\commit.py:366 lib\logmodel.py:88
+#: lib\browse.py:108 lib\commit.py:272 lib\commit.py:369 lib\logmodel.py:114
 msgid "Message"
 msgstr "Комментарий"
 
-#: lib\browse.py:113
+#: lib\browse.py:115
 msgid "Show log..."
 msgstr "Показать журнал..."
 
-#: lib\browse.py:116
+#: lib\browse.py:118
 msgid "View file"
 msgstr "Просмотр файла"
 
-#: lib\cat.py:82
+#: lib\cat.py:87 lib\cat.py:244
 msgid "View"
 msgstr "Просмотр"
 
-#: lib\commit.py:220 lib\commit.py:471 lib\commit.py:500 lib\commit.py:508
+#: lib\commit.py:223 lib\commit.py:485 lib\commit.py:514 lib\commit.py:522
 msgid "Commit"
 msgstr "Зафиксировать"
 
-#: lib\commit.py:236 lib\ui_branch.py:65 lib\ui_new_tree.py:130
+#: lib\commit.py:239 lib\ui_branch.py:65 lib\ui_new_tree.py:130
 #: lib\ui_tag.py:100
 msgid "Branch"
 msgstr "Ветка"
 
-#: lib\commit.py:248
+#: lib\commit.py:251
 msgid "&Local commit"
 msgstr "Локальная фиксация"
 
-#: lib\commit.py:250
+#: lib\commit.py:253
 msgid ""
 "Local commits are not pushed to the master branch until a normal commit is "
 "performed"
@@ -116,27 +117,27 @@ msgstr ""
 "Локальные фиксации не передаются в главную ветку до тех пор, пока не будет "
 "сделана обычная фиксация."
 
-#: lib\commit.py:254
+#: lib\commit.py:257
 msgid "Description:"
 msgstr "Описание:"
 
-#: lib\commit.py:277
+#: lib\commit.py:280
 msgid "Show non-versioned files"
 msgstr "Показать неизвестные файлы"
 
-#: lib\commit.py:296
+#: lib\commit.py:299
 msgid "Enter the commit message"
 msgstr "Введите комментарий к этой версии"
 
-#: lib\commit.py:312
+#: lib\commit.py:315
 msgid "&Fixed bugs:"
 msgstr "&Исправленные ошибки:"
 
-#: lib\commit.py:313
+#: lib\commit.py:316
 msgid "Set the IDs of bugs fixed by this commit"
 msgstr "Указать номера ошибок, исправленных в этой версии"
 
-#: lib\commit.py:316
+#: lib\commit.py:319
 msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
@@ -144,48 +145,52 @@ msgstr ""
 "Введите список номеров ошибок в формате <i>tag:id</i>, несколько ошибок "
 "разделяются пробелами, например: <i>project:123 project:765</i>"
 
-#: lib\commit.py:326
+#: lib\commit.py:329
 msgid "&Author:"
 msgstr "&Автор:"
 
-#: lib\commit.py:327
+#: lib\commit.py:330
 msgid "Set the author of this change, if it's different from the committer"
 msgstr ""
 "Указать автора этих изменений, если он отличается от того, кто делает "
 "фиксацию версии"
 
-#: lib\commit.py:330
+#: lib\commit.py:333
 msgid ""
 "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
 "Введите имя автора, например: <i>John Doe &lt;jdoe@example.com&gt;</i>"
 
-#: lib\commit.py:345 lib\revert.py:51
+#: lib\commit.py:348 lib\revert.py:55
 msgid "Changes"
 msgstr "Изменения"
 
-#: lib\commit.py:361
+#: lib\commit.py:364
 msgid "Pending Merges"
 msgstr "Незаконченное объединение"
 
-#: lib\commit.py:393 lib\main.py:360 lib\subprocess.py:121 lib\wtlist.py:93
+#: lib\commit.py:396 lib\main.py:360 lib\subprocess.py:121 lib\wtlist.py:95
 msgid "Status"
 msgstr "Состояние"
 
-#: lib\commit.py:472
+#: lib\commit.py:408
+msgid "View changes in files selected to commit"
+msgstr "Просмотр изменений в файлах, отобранных для фиксации"
+
+#: lib\commit.py:486
 msgid "You should provide commit message."
 msgstr "Вы должны написать комментарий к фиксации"
 
-#: lib\commit.py:473 lib\conflicts.py:143 lib\conflicts.py:148 lib\diff.py:388
-#: lib\util.py:67
+#: lib\commit.py:487 lib\conflicts.py:171 lib\conflicts.py:176 lib\diff.py:389
+#: lib\util.py:68
 msgid "&OK"
 msgstr "&ОК"
 
-#: lib\commit.py:501
+#: lib\commit.py:515
 msgid "No changes to commit."
 msgstr "Нечего фиксировать."
 
-#: lib\commit.py:509
+#: lib\commit.py:523
 msgid ""
 "No changes selected to commit.\n"
 "Do you want to commit anyway?"
@@ -193,7 +198,7 @@ msgstr ""
 "Вы не отметили ни одного файла для фиксации.\n"
 "Вы хотите зафикисировать в таком виде?"
 
-#: lib\commit.py:570
+#: lib\commit.py:584
 msgid ""
 "A commit will be made directly to the master branch, keeping the local and "
 "master branches in sync."
@@ -201,13 +206,18 @@ msgstr ""
 "В результате фиксации новая ревизия будет помещена в главную и локальную "
 "ветки, таким образом обе ветки будут синхронизированы."
 
-#: lib\commit.py:576
+#: lib\commit.py:590
 msgid ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
 msgstr ""
 "Фиксация будет выполнена только в локальной ветке. Главная ветка не будет "
 "обновлена до тех пор, пока вы не сделаете обычную (не локальную) фиксацию."
+
+#: lib\commit.py:623 lib\diff.py:124 lib\diff.py:236 lib\diff.py:379
+#: lib\diff.py:387 lib\extdiff.py:122 lib\revert.py:160
+msgid "Diff"
+msgstr "Различия"
 
 #: lib\config.py:42
 msgid "Default"
@@ -269,7 +279,7 @@ msgstr "Псевдоним"
 msgid "Command"
 msgstr "Команда"
 
-#: lib\config.py:115 lib\config.py:136 lib\config.py:167
+#: lib\config.py:115 lib\config.py:136 lib\config.py:167 lib\config.py:196
 msgid "Remove"
 msgstr "Удалить"
 
@@ -289,64 +299,88 @@ msgstr "Показывать вставку/удаления внутри стр
 msgid "External Diff Apps:"
 msgstr "Программы просмотра изменений:"
 
-#: lib\config.py:182
+#: lib\config.py:184
+msgid "External Merge Apps:"
+msgstr ""
+
+#: lib\config.py:187
+msgid "Definition"
+msgstr ""
+
+#: lib\config.py:210
 msgid "General"
 msgstr "Общие"
 
-#: lib\config.py:183
+#: lib\config.py:211
 msgid "Aliases"
 msgstr "Псевдонимы"
 
-#: lib\config.py:184
+#: lib\config.py:212
 msgid "Bug Trackers"
 msgstr "Баг трекеры"
 
-#: lib\config.py:185
+#: lib\config.py:213
 msgid "&User Interface"
 msgstr "&Интерфейс"
 
-#: lib\config.py:186
+#: lib\config.py:214
 msgid "&Diff"
 msgstr "Просмотр изменений"
 
-#: lib\config.py:211
+#: lib\config.py:215
+msgid "&Merge"
+msgstr ""
+
+#: lib\config.py:240
 msgid "Spell check &language:"
 msgstr "Проверка орфографии:"
 
-#: lib\config.py:302 lib\extdiff.py:33
+#: lib\config.py:331 lib\extdiff.py:34
 msgid "Builtin Diff"
 msgstr "Встроенный просмотрщик"
 
-#: lib\conflicts.py:46 lib\conflicts.py:122 lib\conflicts.py:139
-#: lib\conflicts.py:146
+#: lib\conflicts.py:47 lib\conflicts.py:150 lib\conflicts.py:167
+#: lib\conflicts.py:174
 msgid "Conflicts"
 msgstr "Конфликты"
 
-#: lib\conflicts.py:56 lib\wtlist.py:93
+#: lib\conflicts.py:57 lib\wtlist.py:95
 msgid "File"
 msgstr "Файл"
 
-#: lib\conflicts.py:57
+#: lib\conflicts.py:58
 msgid "Conflict"
 msgstr "Конфликт"
 
-#: lib\conflicts.py:83
+#: lib\conflicts.py:82
+msgid "Use Configured Default"
+msgstr ""
+
+#: lib\conflicts.py:84
+msgid ""
+"The merge tool configured in qconfig under Merge' file.\n"
+"It follows the convention used in the bzr plugin: extmerge\n"
+"external_merge = kdiff3 --output %r %b %t %o\n"
+"%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."
+msgstr ""
+
+#: lib\conflicts.py:92
 msgid "&Launch..."
 msgstr "Запустить..."
 
-#: lib\conflicts.py:89
+#: lib\conflicts.py:98
 msgid "M&erge tool:"
 msgstr "Программа для объединения изменений:"
 
-#: lib\conflicts.py:97
+#: lib\conflicts.py:107
 msgid "Mark as resolved"
 msgstr "Снять пометку о конфликте"
 
-#: lib\conflicts.py:104
+#: lib\conflicts.py:114
 msgid "Auto-resolve"
 msgstr "Автоматически"
 
-#: lib\conflicts.py:140
+#: lib\conflicts.py:168
 #, python-format
 msgid "%d conflict auto-resolved."
 msgid_plural "%d conflicts auto-resolved."
@@ -354,114 +388,132 @@ msgstr[0] "%d конфликт автоматически решены."
 msgstr[1] "%d конфликта автоматически решены."
 msgstr[2] "%d конфликтов автоматически решены."
 
-#: lib\conflicts.py:147
+#: lib\conflicts.py:175
 msgid "All conflicts resolved."
 msgstr "Все конфликты автоматически решены."
 
-#: lib\conflicts.py:184
+#: lib\conflicts.py:230
 #, python-format
 msgid "Error while running merge tool (code %d)"
 msgstr "Ошибка при попытке запуска программы (код %d)"
 
-#: lib\conflicts.py:185 lib\tag.py:209 lib\util.py:241
+#: lib\conflicts.py:231 lib\conflicts.py:291 lib\tag.py:209 lib\trace.py:136
+#: lib\trace.py:150
 msgid "Error"
 msgstr "Ошибка"
 
-#: lib\conflicts.py:201
+#: lib\conflicts.py:267
+msgid "Set up external_merge app in qconfig under the Merge tab"
+msgstr ""
+
+#: lib\conflicts.py:292
+#, python-format
+msgid ""
+"The extmerge definition: '%(tool)s' is invalid.\n"
+"Missing the flag: %(flags)s. This must be fixed in qconflicts under the "
+"Merge tab."
+msgstr ""
+
+#: lib\conflicts.py:296
+#, python-format
+msgid "Missing the flag: %s. Configure in qconfig under the merge tab."
+msgstr ""
+
+#: lib\conflicts.py:304
+#, python-format
+msgid "%s (Configured external merge definition in qconfig)"
+msgstr ""
+
+#: lib\conflicts.py:312
 msgid "path conflict"
 msgstr "конфликт путей"
 
-#: lib\conflicts.py:202
+#: lib\conflicts.py:313
 msgid "contents conflict"
 msgstr "конфликт содержания"
 
-#: lib\conflicts.py:203
+#: lib\conflicts.py:314
 msgid "text conflict"
 msgstr "текстовый конфликт"
 
-#: lib\conflicts.py:204
+#: lib\conflicts.py:315
 msgid "duplicate id"
 msgstr "совпадающий id"
 
-#: lib\conflicts.py:205
+#: lib\conflicts.py:316
 msgid "duplicate"
 msgstr "дубликат"
 
-#: lib\conflicts.py:206
+#: lib\conflicts.py:317
 msgid "parent loop"
 msgstr ""
 
-#: lib\conflicts.py:207
+#: lib\conflicts.py:318
 msgid "unversioned parent"
 msgstr ""
 
-#: lib\conflicts.py:208
+#: lib\conflicts.py:319
 msgid "missing parent"
 msgstr ""
 
-#: lib\conflicts.py:209
+#: lib\conflicts.py:320
 msgid "deleting parent"
 msgstr ""
 
-#: lib\conflicts.py:210
+#: lib\conflicts.py:321
 msgid "non-directory parent"
 msgstr ""
 
-#: lib\diff.py:73
+#: lib\diff.py:76
 #, python-format
 msgid "Working Tree for %s"
 msgstr "Рабочая копия ветки %s"
 
-#: lib\diff.py:75
+#: lib\diff.py:78
 msgid "Working Tree"
 msgstr "Рабочая копия"
 
-#: lib\diff.py:94
+#: lib\diff.py:97
 #, python-format
 msgid "Rev %(rev)s for %(branch)s"
 msgstr "Версия %(rev)s в ветке %(branch)s"
 
-#: lib\diff.py:96
+#: lib\diff.py:99
 #, python-format
 msgid "Rev %s"
 msgstr "Версия %s"
 
-#: lib\diff.py:99
+#: lib\diff.py:102
 #, python-format
 msgid "Revid: %(revid)s for %(branch)s"
 msgstr "Revid: %(revid)s для %(branch)s"
 
-#: lib\diff.py:101
+#: lib\diff.py:104
 #, python-format
 msgid "Revid: %s"
 msgstr "Revid: %s"
 
-#: lib\diff.py:104
+#: lib\diff.py:107
 msgid "Merge Preview"
 msgstr "Результат объединения"
 
-#: lib\diff.py:121 lib\diff.py:234 lib\diff.py:378 lib\diff.py:386
-#: lib\extdiff.py:116
-msgid "Diff"
-msgstr "Различия"
-
-#: lib\diff.py:147
+#: lib\diff.py:150
 msgid "Side by side"
 msgstr "Две панели рядом"
 
-#: lib\diff.py:154
+#: lib\diff.py:157
 msgid "Unidiff"
 msgstr "Unidiff"
 
-#: lib\diff.py:159
+#: lib\diff.py:162
 msgid "Complete"
 msgstr "Показывать файлы целиком"
 
-#: lib\diff.py:168
+#: lib\diff.py:171
 msgid "Using"
 msgstr ""
 
-#: lib\diff.py:240
+#: lib\diff.py:242
 #, python-format
 msgid "%d file"
 msgid_plural "%d files"
@@ -469,27 +521,27 @@ msgstr[0] "%d файл"
 msgstr[1] "%d файла"
 msgstr[2] "%d файлов"
 
-#: lib\diff.py:320 lib\wtlist.py:128
+#: lib\diff.py:321 lib\wtlist.py:130
 msgid "removed"
 msgstr "удален"
 
-#: lib\diff.py:322 lib\wtlist.py:124
+#: lib\diff.py:323 lib\wtlist.py:126
 msgid "added"
 msgstr "добавлен"
 
-#: lib\diff.py:324 lib\wtlist.py:141
+#: lib\diff.py:325 lib\wtlist.py:143
 msgid "renamed and modified"
 msgstr "переименован и изменен"
 
-#: lib\diff.py:326 lib\wtlist.py:143
+#: lib\diff.py:327 lib\wtlist.py:145
 msgid "renamed"
 msgstr "переименован"
 
-#: lib\diff.py:328 lib\wtlist.py:150
+#: lib\diff.py:329 lib\wtlist.py:152
 msgid "modified"
 msgstr "изменён"
 
-#: lib\diff.py:379
+#: lib\diff.py:380
 #, python-format
 msgid ""
 "File %s is not versioned.\n"
@@ -498,42 +550,42 @@ msgstr ""
 "Изменения в файле \"%s\" не отслеживаются.\n"
 "Операция прервана."
 
-#: lib\diff.py:381 lib\subprocess.py:149 lib\tag.py:143 lib\tag.py:174
-#: lib\tag.py:211 lib\util.py:69
+#: lib\diff.py:382 lib\subprocess.py:149 lib\tag.py:143 lib\tag.py:174
+#: lib\tag.py:211 lib\util.py:70
 msgid "&Close"
 msgstr "&Закрыть"
 
-#: lib\diff.py:387
+#: lib\diff.py:388
 msgid "No changes found."
 msgstr "Изменения не найдены."
 
-#: lib\diffview.py:212
+#: lib\diffview.py:248
 msgid "Last modified:"
 msgstr "Последние изменения:"
 
-#: lib\diffview.py:213
+#: lib\diffview.py:249
 msgid "Status:"
 msgstr "Состояние:"
 
-#: lib\diffview.py:214
+#: lib\diffview.py:250
 msgid "Kind:"
 msgstr "Тип:"
 
-#: lib\diffview.py:215
+#: lib\diffview.py:251
 msgid "Properties:"
 msgstr "Свойства:"
 
-#: lib\diffview.py:465
+#: lib\diffview.py:501
 msgid "[binary file]"
 msgstr "[бинарный файл]"
 
-#: lib\diffview.py:624
+#: lib\diffview.py:660
 msgid "\\ No newline at end of file"
 msgstr "\\ Нет символа перевода строки в конце файла"
 
-#: lib\extdiff.py:93
+#: lib\extdiff.py:98
 msgid "Show &differences"
-msgstr ""
+msgstr "Показать различия"
 
 #: lib\help.py:60
 #, python-format
@@ -580,6 +632,14 @@ msgstr "Просмотр символьной ссылки"
 msgid "View directory"
 msgstr "Просмотр каталога"
 
+#: lib\i18n.py:99
+msgid "No changes selected to commit"
+msgstr "Нет файлов для фиксации"
+
+#: lib\i18n.py:100
+msgid "No changes selected to revert"
+msgstr "Нет файлов для операции возврата к предыдущей версии"
+
 #: lib\info.py:42
 msgid "Info"
 msgstr "Сведения"
@@ -592,43 +652,43 @@ msgstr "Инициализировать"
 msgid "You must specify a location"
 msgstr "Вы должны указать каталог"
 
-#: lib\log.py:411
+#: lib\log.py:67
 msgid "Log"
 msgstr "Журнал"
 
-#: lib\log.py:440
+#: lib\log.py:94
 msgid "&Search:"
 msgstr "&Поиск:"
 
-#: lib\log.py:458
+#: lib\log.py:110
 msgid "Messages"
 msgstr "Комментарий"
 
-#: lib\log.py:460
+#: lib\log.py:112
 msgid "Authors"
 msgstr "Авторы"
 
-#: lib\log.py:462
+#: lib\log.py:114
 msgid "Revision IDs"
 msgstr "Revision IDs"
 
-#: lib\log.py:464
+#: lib\log.py:116
 msgid "Revision Numbers"
 msgstr "Номера версий"
 
-#: lib\log.py:566 lib\wtlist.py:78
+#: lib\log.py:200 lib\wtlist.py:79
 msgid "Show &differences..."
 msgstr "Показать &различия..."
 
-#: lib\log.py:569
+#: lib\log.py:203
 msgid "Show &tree..."
 msgstr "Дерево файлов"
 
-#: lib\log.py:633
+#: lib\log.py:243
 msgid "Messages and File text (indexed)"
 msgstr ""
 
-#: lib\logmodel.py:863
+#: lib\logmodel.py:257
 #, python-format
 msgid "bug #%s"
 msgstr "bug #%s"
@@ -649,7 +709,7 @@ msgstr "Удалить закладку..."
 msgid "Bookmarks"
 msgstr "Закладки"
 
-#: lib\main.py:279 lib\util.py:71
+#: lib\main.py:279 lib\util.py:72
 msgid "&Refresh"
 msgstr "&Обновить"
 
@@ -709,7 +769,7 @@ msgstr "&Ветка"
 msgid "&Bookmarks"
 msgstr "&Закладки"
 
-#: lib\main.py:318 lib\util.py:70
+#: lib\main.py:318 lib\util.py:71
 msgid "&Help"
 msgstr "&Справка"
 
@@ -759,13 +819,19 @@ msgstr "Удалить закладку"
 msgid "Do you really want to remove the selected bookmark?"
 msgstr "Вы действительно хотите удалить выбранную закладку?"
 
-#: lib\revert.py:42 lib\wtlist.py:236
+#: lib\revert.py:46 lib\wtlist.py:238
 msgid "Revert"
 msgstr "Возврат к предыдущей версии"
 
-#: lib\revert.py:73
+#: lib\revert.py:77
 msgid "Do not save backups of reverted files"
 msgstr "Не сохранять резервные копии для обрабатываемых файлов"
+
+#: lib\revert.py:103
+msgid "View changes in files selected to revert"
+msgstr ""
+"Просмотр изменений в файлах, которые необходимо возвратить к предыдущей "
+"версии"
 
 #: lib\subprocess.py:143
 msgid "Internal Error"
@@ -796,32 +862,32 @@ msgstr "Остановлено"
 msgid "Starting..."
 msgstr "Начинаем операцию..."
 
-#: lib\subprocess.py:422
+#: lib\subprocess.py:425
 msgid "Aborting..."
 msgstr "Останавливаем операцию..."
 
-#: lib\subprocess.py:430 lib\subprocess.py:503
+#: lib\subprocess.py:436 lib\subprocess.py:508
 msgid "Finished!"
 msgstr "Завершено!"
 
-#: lib\subprocess.py:449 lib\uifactory.py:96
+#: lib\subprocess.py:455 lib\uifactory.py:92
 msgid "Enter Password"
 msgstr "Введите пароль"
 
-#: lib\subprocess.py:484 lib\subprocess.py:506
+#: lib\subprocess.py:489 lib\subprocess.py:511
 msgid "Failed!"
 msgstr "Неудачно!"
 
-#: lib\subprocess.py:486
+#: lib\subprocess.py:491
 msgid "Failed to start bzr."
 msgstr "Не могу запустить bzr."
 
-#: lib\subprocess.py:488
+#: lib\subprocess.py:493
 #, python-format
 msgid "Error while running bzr. (error code: %d)"
 msgstr "Ошибка во время работы bzr. (код ошибки: %d)"
 
-#: lib\subprocess.py:496
+#: lib\subprocess.py:501
 msgid "Aborted!"
 msgstr "Прервано!"
 
@@ -842,7 +908,7 @@ msgstr ""
 msgid "&Replace"
 msgstr "И&зменить"
 
-#: lib\tag.py:151 lib\tag.py:164 lib\util.py:68
+#: lib\tag.py:151 lib\tag.py:164 lib\util.py:69
 msgid "&Cancel"
 msgstr "&Отмена"
 
@@ -1148,94 +1214,94 @@ msgstr ""
 msgid "Pull a different branch"
 msgstr ""
 
-#: lib\util.py:432
+#: lib\util.py:451
 msgid "Select Source Directory"
 msgstr ""
 
-#: lib\util.py:434
+#: lib\util.py:453
 msgid "Select Target Directory"
 msgstr ""
 
-#: lib\util.py:504
+#: lib\util.py:523
 msgid "Parents:"
 msgstr "Предыдущие версии:"
 
-#: lib\util.py:508
+#: lib\util.py:527
 msgid "Children:"
 msgstr "Следующие версии:"
 
-#: lib\util.py:511
+#: lib\util.py:530
 msgid "Date:"
 msgstr "Дата:"
 
-#: lib\util.py:513
+#: lib\util.py:532
 msgid "Committer:"
 msgstr "Зафиксировал:"
 
-#: lib\util.py:516
+#: lib\util.py:535
 msgid "Author:"
 msgstr "Автор:"
 
-#: lib\util.py:520
+#: lib\util.py:539
 msgid "Branch:"
 msgstr "Ветка:"
 
-#: lib\util.py:525
+#: lib\util.py:544
 msgid "Tags:"
 msgstr "Теги:"
 
-#: lib\util.py:534
+#: lib\util.py:553
 msgid "Bug:"
 msgid_plural "Bugs:"
 msgstr[0] "Ошибка:"
 msgstr[1] "Ошибки:"
 msgstr[2] "Ошибки:"
 
-#: lib\util.py:682
+#: lib\util.py:701
 msgid "deleted files"
 msgstr "удаленные файлы"
 
-#: lib\util.py:684
+#: lib\util.py:703
 msgid "added files"
 msgstr "добавленные файлы"
 
-#: lib\util.py:686
+#: lib\util.py:705
 msgid "renamed files"
 msgstr "переименованные файлы"
 
-#: lib\util.py:688
+#: lib\util.py:707
 msgid "modified files"
 msgstr "измененные файлы"
 
-#: lib\wtlist.py:46
+#: lib\wtlist.py:47
 msgid "Select / deselect all"
 msgstr "Выбрать все файлы"
 
-#: lib\wtlist.py:83
+#: lib\wtlist.py:84
 msgid "&Revert..."
 msgstr "&Вернуть предыдущую версию..."
 
-#: lib\wtlist.py:93
+#: lib\wtlist.py:95
 msgid "Extension"
 msgstr "Расширение"
 
-#: lib\wtlist.py:118
+#: lib\wtlist.py:120
 msgid "ignored"
 msgstr "игнорируемый"
 
-#: lib\wtlist.py:120
+#: lib\wtlist.py:122
 msgid "non-versioned"
 msgstr "неизвестный"
 
-#: lib\wtlist.py:132
+#: lib\wtlist.py:134
 msgid "missing"
 msgstr "отсутствует"
 
-#: lib\wtlist.py:154
+#: lib\wtlist.py:156
 msgid "modified (x-bit)"
 msgstr "изменён (x-bit)"
 
-#: lib\wtlist.py:235
+#: lib\wtlist.py:237
 #, python-format
 msgid "Revert %s to latest revision."
 msgstr "Вернуться к последней версии для %s"
