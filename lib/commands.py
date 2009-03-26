@@ -278,6 +278,7 @@ class cmd_qconflicts(QBzrCommand):
     """Show conflicts."""
     takes_args = []
     takes_options = []
+    aliases = ['qresolve']
 
     def _qbzr_run(self):
         from bzrlib.plugins.qbzr.lib.conflicts import ConflictsWindow
