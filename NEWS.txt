@@ -1,17 +1,36 @@
-0.9.8 - in development 
+0.9.9 - in development 
 ---------------------- 
- 
+Maintenance release: qlog improvements, bugfixes, configurable external
+merge to use with qconflicts, configurable colors for qdiff window,
+new qview command.
+
  * qcommit:
    * Added Diff button to view changes in files selected to commit
+ * qconfig:
+   * Added tab to configure external merge tools.
+ * qconflicts:
+   * Use extmerge if configured.
+ * qdiff:
+   * User can configure colors for diff view in qbzr.conf,
+     under the [QDIFF COLORS] section
+ * qlog:
+   * Added support for following bug trackers: Microsoft SharePoint,
+     FogBugz, Roundup.
+   * new --no-graph command line option to show plain log for one file.
  * qrevert:
    * Added Diff button to view changes in files selected to revert
  * qview: new command to view content of any arbitrary file from disk
+ * When some internal error occurs while q-command is running 
+   then user will see special information dialog with error message 
+   and prompt to file the bug report.
+ * Added special translation for English locale.
+
 
 0.9.8 - 2009-02-13
 ------------------
 
 This release is a minor regression fixing release, to be released in sync with
-bzr 1.12 finial.
+bzr 1.12 final.
 
  * Fix bug where qinit was not working - correclty handle QString arguments
    when starting a subprocess (Bug #327395)
