@@ -73,9 +73,14 @@ class LogList(QtGui.QTreeView):
         header.setResizeMode(logmodel.COL_MESSAGE, QtGui.QHeaderView.Stretch)
         header.setResizeMode(logmodel.COL_DATE, QtGui.QHeaderView.Interactive)
         header.setResizeMode(logmodel.COL_AUTHOR, QtGui.QHeaderView.Interactive)
-        header.resizeSection(logmodel.COL_REV, 70)
-        header.resizeSection(logmodel.COL_DATE, 100) # TODO - Make this dynamic
-        header.resizeSection(logmodel.COL_AUTHOR, 150)
+        fm = self.fontMetrics()
+        col_margin = 6
+        header.resizeSection(logmodel.COL_REV,
+                             fm.width("8888.8.888") + col_margin)
+        header.resizeSection(logmodel.COL_DATE,
+                             fm.width("88-88-8888 88:88") + col_margin)
+        header.resizeSection(logmodel.COL_AUTHOR,
+                             fm.width("Joe I have a Long Name") + col_margin)
 
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
