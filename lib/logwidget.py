@@ -25,9 +25,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 
 
-QT_4_5 = Qt.qVersion() >= '4.5'
-
-
 class LogList(QtGui.QTreeView):
     """TreeView widget to show log with metadata and graph of revisions."""
 
@@ -412,7 +409,10 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
             finally:
                 painter.restore()
             rect.adjust( (graphCols + 1.7) * boxsize, 0, 0, 0)
-        
+
+        if not hasattr(self, '_usingGtkStyle'):
+            self._usingGtkStyle = Qt.qApp.style().objectName() == 'gtk+'
+
         painter.save()
         try:
             tagFont = QtGui.QFont(option.font)
@@ -433,7 +433,8 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                 painter.drawLine(tl.x() + 1, br.y(), br.x() - 1, br.y())
                 painter.setFont(tagFont)
                 painter.setPen(self._labelColor)
-                if QT_4_5:
+                
+                if self._usingGtkStyle:
                     painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent(), label)
                 else:
                     painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, label)
