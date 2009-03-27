@@ -17,12 +17,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtCore, QtGui, Qt
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.trace import *
 from bzrlib.plugins.qbzr.lib.util import (
     runs_in_loading_queue,
     )
+
+
+QT_4_5 = Qt.qVersion() >= '4.5'
 
 
 class LogList(QtGui.QTreeView):
@@ -430,7 +433,10 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                 painter.drawLine(tl.x() + 1, br.y(), br.x() - 1, br.y())
                 painter.setFont(tagFont)
                 painter.setPen(self._labelColor)
-                painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, label)
+                if QT_4_5:
+                    painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent(), label)
+                else:
+                    painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, label)
                 x += tagRect.width() + 3
         finally:
             painter.restore()
