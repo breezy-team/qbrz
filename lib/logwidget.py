@@ -327,6 +327,11 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
         pen.setStyle(QtCore.Qt.SolidLine)
 
     def drawDisplay(self, painter, option, rect, text):
+
+        if not hasattr(self, '_usingGtkStyle'):
+            self._usingGtkStyle = Qt.qApp.style().objectName() == 'gtk+'
+            self._usingQt45 = Qt.qVersion() >= '4.5' 
+
         graphCols = 0
         if self.drawGraph:
             painter.save()
@@ -338,9 +343,9 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                 penwidth = 1
                 pen.setWidth(penwidth)
                 pen.setCapStyle(QtCore.Qt.FlatCap)
-                #this is to try get lines 1 pixel wide to actualy be 1 pixel wide.
-                painter.translate(0.5, 0.5)
-                
+                if not self._usingQt45:
+                    #this is to try get lines 1 pixel wide to actualy be 1 pixel wide.
+                    painter.translate(0.5, 0.5)
                 
                 # Draw lines into the cell
                 for line in self.prevLines:
@@ -410,9 +415,6 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                 painter.restore()
             rect.adjust( (graphCols + 1.7) * boxsize, 0, 0, 0)
 
-        if not hasattr(self, '_usingGtkStyle'):
-            self._usingGtkStyle = Qt.qApp.style().objectName() == 'gtk+'
-
         painter.save()
         try:
             tagFont = QtGui.QFont(option.font)
@@ -433,7 +435,6 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                 painter.drawLine(tl.x() + 1, br.y(), br.x() - 1, br.y())
                 painter.setFont(tagFont)
                 painter.setPen(self._labelColor)
-                
                 if self._usingGtkStyle:
                     painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent(), label)
                 else:
