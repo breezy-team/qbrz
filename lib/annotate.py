@@ -29,10 +29,9 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     ThrobberWidget,
-    extract_name,
     format_revision_html,
     format_timestamp,
-    get_apparent_author,
+    get_apparent_author_name,
     get_set_encoding,
     open_browser,
     RevisionMessageBrowser,
@@ -222,7 +221,7 @@ class AnnotateWindow(QBzrWindow):
         lastRevisionId = None
         for revisionId, item in zip(item_revisions, items):
             r = revisionDict[revisionId]
-            r._author_name = extract_name(get_apparent_author(r))
+            r._author_name = get_apparent_author_name(r)
             if lastRevisionId != revisionId:
                 item.setText(1, r._author_name)
             item.setBackground(3, self.get_color(r, now))

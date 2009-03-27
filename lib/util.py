@@ -590,10 +590,6 @@ def open_browser(url):
     open_func(url)
 
 
-def get_apparent_author(rev):
-    return rev.properties.get('author', rev.committer)
-
-
 _extract_name_re = lazy_regex.lazy_compile('(.*?) <.*?@.*?>')
 _extract_email_re = lazy_regex.lazy_compile('<(.*?@.*?)>')
 
@@ -958,7 +954,7 @@ def get_apparent_authors_new(rev):
     return rev.get_apparent_authors()
 
 def get_apparent_authors_old(rev):
-    return [rev.get_apparent_author()]
+    return [rev.properties.get('author', rev.committer)]
 
 if hasattr(Revision, 'get_apparent_authors'):
     get_apparent_authors = get_apparent_authors_new
@@ -968,3 +964,7 @@ else:
 
 def get_apparent_author(rev):
     return ', '.join(get_apparent_authors(rev))
+
+
+def get_apparent_author_name(rev):
+    return ', '.join(map(extract_name, get_apparent_authors(rev)))
