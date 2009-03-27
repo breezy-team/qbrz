@@ -245,14 +245,10 @@ class LogList(QtGui.QTreeView):
 
 class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
 
-    _tagColor = QtGui.QColor(255, 255, 170)
-    _tagColorBorder = QtGui.QColor(255, 238, 0)
-
-    _bugColor = QtGui.QColor(255, 188, 188)
-    _bugColorBorder = QtGui.QColor(255, 79, 79)
-
-    _branchTagColor = QtGui.QColor(188, 188, 255)
-    _branchTagColorBorder = QtGui.QColor(79, 79, 255)
+    _tagColor = QtGui.QColor(100, 153, 44)
+    _bugColor = QtGui.QColor(204, 0, 0)
+    _branchTagColor = QtGui.QColor(32, 108, 255)
+    _labelColor = QtCore.Qt.white
 
     _twistyColor = QtCore.Qt.black
 
@@ -276,15 +272,15 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
         # collect branch tags
         for tag in index.data(logmodel.BranchTagsRole).toStringList():
             self.labels.append(
-                (tag, self._branchTagColor, self._branchTagColorBorder))
+                (tag, self._branchTagColor))
         # collect tag names
         for tag in index.data(logmodel.TagsRole).toStringList():
             self.labels.append(
-                (tag, self._tagColor, self._tagColorBorder))
+                (tag, self._tagColor))
         # collect bug ids
         for bug in index.data(logmodel.BugIdsRole).toStringList():
             self.labels.append(
-                (bug, self._bugColor, self._bugColorBorder))
+                (bug, self._bugColor))
         QtGui.QItemDelegate.paint(self, painter, option, index)
     
     def get_color(self, color, back):
@@ -420,15 +416,20 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
             tagFont.setPointSizeF(tagFont.pointSizeF() * 9 / 10)
     
             x = 0
-            for label, color, borderColor in self.labels:
+            for label, color in self.labels:
                 tagRect = rect.adjusted(1, 1, -1, -1)
                 tagRect.setWidth(QtGui.QFontMetrics(tagFont).width(label) + 6)
                 tagRect.moveLeft(tagRect.x() + x)
                 painter.fillRect(tagRect.adjusted(1, 1, -1, -1), color)
-                painter.setPen(borderColor)
-                painter.drawRect(tagRect.adjusted(0, 0, -1, -1))
+                painter.setPen(color)
+                tl = tagRect.topLeft()
+                br = tagRect.bottomRight()
+                painter.drawLine(tl.x(), tl.y() + 1, tl.x(), br.y() - 1)
+                painter.drawLine(br.x(), tl.y() + 1, br.x(), br.y() - 1)
+                painter.drawLine(tl.x() + 1, tl.y(), br.x() - 1, tl.y())
+                painter.drawLine(tl.x() + 1, br.y(), br.x() - 1, br.y())
                 painter.setFont(tagFont)
-                painter.setPen(option.palette.text().color())
+                painter.setPen(self._labelColor)
                 painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, label)
                 x += tagRect.width() + 3
         finally:
