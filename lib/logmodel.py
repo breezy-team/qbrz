@@ -30,6 +30,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
     BackgroundJob,
+    get_apparent_author
     )
  
 TagsRole = QtCore.Qt.UserRole + 1
@@ -66,18 +67,6 @@ try:
     QVariant_fromList = QtCore.QVariant.fromList
 except AttributeError:
     QVariant_fromList = QtCore.QVariant
-
-
-def get_apparent_author_new(rev):
-    return ', '.join(rev.get_apparent_authors())
-
-def get_apparent_author_old(rev):
-    return rev.get_apparent_author()
-
-if hasattr(Revision, 'get_apparent_authors'):
-    get_apparent_author = get_apparent_author_new
-else:
-    get_apparent_author = get_apparent_author_old
 
 
 class QLogGraphProvider(LogGraphProvider):

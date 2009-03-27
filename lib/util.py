@@ -25,6 +25,7 @@ import itertools
 
 from PyQt4 import QtCore, QtGui
 
+from bzrlib.revision import Revision
 from bzrlib.config import (
     GlobalConfig,
     IniBasedConfig,
@@ -533,6 +534,11 @@ def format_revision_html(rev, search_replace=None, show_timestamp=False):
     author = rev.properties.get('author')
     if author:
         props.append((gettext("Author:"), htmlize(author)))
+    else:
+        authors = rev.properties.get('authors')
+        if authors:
+            for author in authors.split('\n'):
+                props.append((gettext("Author:"), htmlize(author)))
 
     branch_nick = rev.properties.get('branch-nick')
     if branch_nick:
@@ -946,3 +952,19 @@ def run_in_loading_queue(cur_f, *cur_args, **cur_kargs):
         loading_queue = None
     else:
         loading_queue.append((cur_f, cur_args, cur_kargs))
+
+
+def get_apparent_authors_new(rev):
+    return rev.get_apparent_authors()
+
+def get_apparent_authors_old(rev):
+    return [rev.get_apparent_author()]
+
+if hasattr(Revision, 'get_apparent_authors'):
+    get_apparent_authors = get_apparent_authors_new
+else:
+    get_apparent_authors = get_apparent_authors_old
+
+
+def get_apparent_author(rev):
+    return ', '.join(get_apparent_authors(rev))
