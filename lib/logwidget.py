@@ -243,11 +243,12 @@ class LogList(QtGui.QTreeView):
     def set_search(self, str, field):
         self.graph_provider.set_search(str, field)
 
+
 class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
 
-    _tagColor = QtGui.QColor(100, 153, 44)
-    _bugColor = QtGui.QColor(204, 0, 0)
-    _branchTagColor = QtGui.QColor(32, 108, 255)
+    _tagColor = QtGui.QColor(80, 128, 32)
+    _bugColor = QtGui.QColor(164, 0, 0)
+    _branchTagColor = QtGui.QColor(24, 80, 200)
     _labelColor = QtCore.Qt.white
 
     _twistyColor = QtCore.Qt.black
