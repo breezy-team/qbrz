@@ -656,8 +656,12 @@ class LogGraphProvider(object):
             
             start_time = clock()        
             prev_cached_msris = []
+            processed_msris = []
             while self.ifcr_pending_msris:
                 msri = self.ifcr_pending_msris.pop(0)
+                
+                if msri in processed_msris:
+                    continue
                 
                 if self.filter_cache[msri] is not None:
                     prev_cached_msris.append((msri, self.filter_cache[msri]))
@@ -666,7 +670,9 @@ class LogGraphProvider(object):
                 if not self.no_graph:
                     merged_by = self.merge_info[msri][1]
                     if merged_by:
-                        msris.append(merged_by)
+                        if merged_by not in self.ifcr_pending_msris and \
+                           merged_by not in processed_msris:
+                            self.ifcr_pending_msris.append(merged_by)
             
             # Check if any visibilities have changes. If they have, call
             # revisions_filter_changed
