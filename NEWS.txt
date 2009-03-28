@@ -1,4 +1,4 @@
-0.9.9 - in development 
+0.9.9 - 2009-03-28 
 ---------------------- 
 Maintenance release: qlog improvements, bugfixes, configurable external
 merge to use with qconflicts, configurable colors for qdiff window,
