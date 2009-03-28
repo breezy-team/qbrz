@@ -28,6 +28,7 @@ from bzrlib.tsort import merge_sort
 from bzrlib.graph import (Graph, _StackedParentsProvider)
 from bzrlib.bzrdir import BzrDir
 from bzrlib.branch import Branch
+from bzrlib.plugins.qbzr.lib.i18n import gettext
 
 have_search = True
 try:
@@ -69,6 +70,7 @@ class LogGraphProvider(object):
         """Dict of revid to a list of branch tags. Depends on which revisions
         are visible."""
         
+        self.trunk_branch = None
         
         self.merge_sorted_revisions = []
         self.msri_index = {}
@@ -158,8 +160,8 @@ class LogGraphProvider(object):
             self.fileids.append(file_id)
             self.filter_file_id = {}
         
-        if self.trunk_branch == None:
-            self.trunk_branch == branch
+        if len(self.branches)==1 and self.trunk_branch == None:
+            self.trunk_branch = branch
     
     def open_locations(self, locations):
         """Open branches or repositories and file-ids to be loaded from a list
@@ -188,6 +190,8 @@ class LogGraphProvider(object):
                 self.append_repo(repo)
                 index = self.open_search_index(br)
                 self.branches.append((tree, br, repo, index))
+                if len(self.branches)==1 and self.trunk_branch == None:
+                    self.trunk_branch = br
             
             # If no locations were sepecified, don't do fileids
             # Otherwise it gives you the history for the dir if you are
@@ -280,19 +284,19 @@ class LogGraphProvider(object):
                 self.update_ui()
         
         if len(self.branches)>1:
-            # Work out which branch we think is trunk.
-            # TODO: Make config option.
-            trunk_names = "trunk,bzr.dev"
-            trunk_branch = None
-            for tree, branch, repo, index in self.branches:
-                if branch.nick in trunk_names:
-                    trunk_branch = branch
-                    break
+            if self.trunk_branch == None:
+                # Work out which branch we think is trunk.
+                # TODO: Make config option.
+                trunk_names = gettext("trunk,bzr.dev").split(",")
+                for tree, branch, repo, index in self.branches:
+                    if branch.nick in trunk_names:
+                        self.trunk_branch = branch
+                        break
             
-            if trunk_branch == None:
-                trunk_branch = self.branches[0][1]
+            if self.trunk_branch == None:
+                self.trunk_branch = self.branches[0][1]
             
-            trunk_tip = trunk_branch.last_revision()
+            trunk_tip = self.trunk_branch.last_revision()
             
             self.load_revisions(self.head_revids)
             
