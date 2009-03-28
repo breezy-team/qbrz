@@ -5,7 +5,7 @@ merge to use with qconflicts, configurable colors for qdiff window,
 new qview command.
 
  * qcommit:
-   * Added Diff button to view changes in files selected to commit
+   * Added Diff button to view changes in files selected to commit.
  * qconfig:
    * Added tab to configure external merge tools.
  * qconflicts:
@@ -17,9 +17,10 @@ new qview command.
    * Added support for following bug trackers: Microsoft SharePoint,
      FogBugz, Roundup.
    * new --no-graph command line option to show plain log for one file.
+   * new style of labels for bugs/tags/branches.
  * qrevert:
-   * Added Diff button to view changes in files selected to revert
- * qview: new command to view content of any arbitrary file from disk
+   * Added Diff button to view changes in files selected to revert.
+ * qview: new command to view content of any arbitrary file from disk.
  * When some internal error occurs while q-command is running 
    then user will see special information dialog with error message 
    and prompt to file the bug report.
