@@ -794,8 +794,6 @@ class cmd_qtag(QBzrCommand):
     def _qbzr_run(self, tag_name=None, delete=None, directory='.',
         force=None, revision=None, ui_mode=False):
         branch = Branch.open_containing(directory)[0]
-        if not branch.tags.supports_tags():
-            raise errors.BzrError('This branch does not support tags')
         # determine action based on given options
         action = TagWindow.action_from_options(force=force, delete=delete)
         app = QtGui.QApplication(sys.argv)
