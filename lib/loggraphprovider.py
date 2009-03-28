@@ -233,12 +233,13 @@ class LogGraphProvider(object):
             repo.unlock()
     
     def append_head_info(self, revid, branch, tag, is_branch_last_revision):
-        if not revid in self.head_revids:
-            self.head_revids.append(revid)
-            self.revid_head_info[revid] = ([],[])
-        self.revid_head_info[revid][0].append ((branch, tag,
-                                                is_branch_last_revision))
-        self.revid_branch[revid] = branch
+        if not revid==NULL_REVISION:
+            if not revid in self.head_revids:
+                self.head_revids.append(revid)
+                self.revid_head_info[revid] = ([],[])
+            self.revid_head_info[revid][0].append ((branch, tag,
+                                                    is_branch_last_revision))
+            self.revid_branch[revid] = branch
     
     def load_branch_heads(self):
         """Load the tips, tips of the pending merges, and revision of the
