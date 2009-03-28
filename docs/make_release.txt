@@ -61,12 +61,27 @@ Build distribution files
 
 4. Make Windows Standalone installer::
 
-	python setup.py bdist_nsis
+	python setup.py bdist_nsis --copy-all
         
    This command will produce qbzr-setup-X.Y.Z.exe file in tree root directory.
    Sign this file with your GPG key::
    
    	gpg -ab qbzr-setup-X.Y.Z.exe
+
+   **Note**: if you have PyQt 4.3.x installed then you need to change one line
+   in qbzr-setup.nsi file::
+   
+       === modified file 'installer/qbzr-setup.nsi'
+       --- installer/qbzr-setup.nsi    2009-02-13 00:42:16 +0000
+       +++ installer/qbzr-setup.nsi    2009-03-28 09:19:15 +0000
+       @@ -74,7 +74,7 @@
+          SetOutPath "$INSTDIR\lib"
+          File /r "..\lib\*.py"
+          SetOutPath "$INSTDIR\_lib"
+       -  File /r "_lib\*.py" "_lib\*.pyd" "_lib\*.dll"
+       +  File /r "_lib\*.py" "_lib\*.pyd"
+          SetOutPath "$INSTDIR\locale"
+          File /r "..\locale\*.mo"   
 
 5. Upload tarball and installers with their gpg-signatures to Launchpad:
 
@@ -83,8 +98,10 @@ Update QBzr Wiki page
 
 Make announcement
 -----------------
-1. Send short e-mail with announcement to <bazaar-announce@lists.canonical.com>
-   and optionally to main Bazaar ML <bazaar@lists.canonical.com>
+1. Send short e-mail with announcement to:
+    * <bazaar-announce@lists.canonical.com>
+    * (optionally) <bazaar@lists.canonical.com>
+    * <qbzr@googlegroups.com>
 
 2. Optionally make announcement about release via Launchpad RSS:
 
@@ -102,4 +119,4 @@ Finishing stuff at Launchpad
 
 Create deb packages with Launchpad PPA
 --------------------------------------
-XXX
+Usually Lukas Lalinsky do the packages for Ubuntu.
