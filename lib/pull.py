@@ -77,6 +77,8 @@ class QBzrPullWindow(SubProcessDialog):
         fill_pull_combo(self.ui.location, self.branch)
         if location:
             self.ui.location.setEditText(location)
+        else:
+            self.ui.location.setFocus()
 
         if remember:
             self.ui.remember.setCheckState(QtCore.Qt.Checked)
@@ -134,6 +136,8 @@ class QBzrPushWindow(SubProcessDialog):
                         iter_branch_related_locations(self.branch))
         if location:
             self.ui.location.setEditText(location)
+        else:
+            self.ui.location.setFocus()
 
         if remember:
             self.ui.remember.setCheckState(QtCore.Qt.Checked)
@@ -233,6 +237,8 @@ class QBzrMergeWindow(SubProcessDialog):
         fill_pull_combo(self.ui.location, self.branch)
         if location:
             self.ui.location.setEditText(location)
+        else:
+            self.ui.location.setFocus()
 
         if remember:
             self.ui.remember.setCheckState(QtCore.Qt.Checked)
