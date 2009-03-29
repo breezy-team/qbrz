@@ -77,7 +77,7 @@ class LogGraphProvider(object):
         
         self.revisions = {}
         self.queue = []
-        self.tags = {}
+        self.tags = {}      # map revid -> tags set
         
         self.filter_file_id = None
         """Filtered dict of msri's that are visible because they touch
@@ -626,11 +626,6 @@ class LogGraphProvider(object):
                 filtered_str = revision.message
             elif self.sr_field == "author":
                 filtered_str = revision.get_apparent_author()
-            elif self.sr_field == "tag":
-                if revision.tags:
-                    filtered_str = ' '.join(revision.tags)
-                else:
-                    return False
             elif self.sr_field == "bug":
                 rbugs = revision.properties.get('bugs', '')
                 if rbugs:
@@ -1189,12 +1184,12 @@ class LogGraphProvider(object):
             return False
         
         if str is None or str == u"":
-            self.sr_filter_regex = None
+            self.sr_filter_re = None
             self.sr_index_matched_revids = None
             self.invaladate_filter_cache()
         else:
             if self.sr_field == "index":
-                self.sr_filter_regex = None
+                self.sr_filter_re = None
                 indexes = self.search_indexes()
                 if not indexes:
                     self.sr_index_matched_revids = None
@@ -1212,6 +1207,15 @@ class LogGraphProvider(object):
                                         [result.text_key[1]] = True
                             if isinstance(result, search_index.PathHit):
                                 pass
+            elif self.sr_field == "tag":
+                self.sr_filter_re = None
+                filter_re = re.compile(str, re.IGNORECASE)
+                self.sr_index_matched_revids = {}
+                for revid in self.tags:
+                    for t in self.tags[revid]:
+                        if filter_re.search(t):
+                            self.sr_index_matched_revids[revid] = True
+                            break
             else:
                 self.sr_filter_re = re.compile(str, re.IGNORECASE)
                 self.sr_index_matched_revids = None
