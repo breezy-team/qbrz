@@ -626,7 +626,9 @@ class LogGraphProvider(object):
                 filtered_str = revision.message
             elif self.sr_field == "author":
                 filtered_str = revision.get_apparent_author()
-            
+            elif self.sr_field == "tag":
+                filtered_str = ' '.join(revision.tags)
+
             if filtered_str is not None:
                 if self.sr_filter_re.search(filtered_str) is None:
                     return False
@@ -638,8 +640,7 @@ class LogGraphProvider(object):
         return True
 
     def invaladate_filter_cache(self):
-        self.filter_cache = [None for i in \
-                             xrange(len(self.merge_sorted_revisions))]
+        self.filter_cache = [None] * len(self.merge_sorted_revisions)
         self.revisions_filter_changed()
     
     def invaladate_filter_cache_revs(self, msris, last_call=False):

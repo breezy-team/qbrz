@@ -61,7 +61,9 @@ class LogWindow(QBzrWindow):
     FilterAuthorRole = QtCore.Qt.UserRole + 102
     FilterRevnoRole = QtCore.Qt.UserRole + 103
     FilterSearchRole = QtCore.Qt.UserRole + 104
-    
+    FilterTagRole = QtCore.Qt.UserRole + 105
+    FilterBugRole = QtCore.Qt.UserRole + 106
+
     def __init__(self, locations, branch, specific_fileids, parent=None,
                  ui_mode=True, no_graph=False):        
         self.title = [gettext("Log")]
@@ -115,6 +117,8 @@ class LogWindow(QBzrWindow):
                                 QtCore.QVariant(self.FilterIdRole))
         self.searchType.addItem(gettext("Revision Numbers"),
                                 QtCore.QVariant(self.FilterRevnoRole))
+        self.searchType.addItem(gettext("Tags"),
+                                QtCore.QVariant(self.FilterTagRole))
         searchbox.addWidget(self.searchType)
         self.connect(self.searchType,
                      QtCore.SIGNAL("currentIndexChanged(int)"),
@@ -459,6 +463,8 @@ class LogWindow(QBzrWindow):
                 field = "author"
             elif role == self.FilterSearchRole:
                 field = "index"
+            elif role == self.FilterTagRole:
+                field = 'tag'
             else:
                 raise Exception("Not done")
             
