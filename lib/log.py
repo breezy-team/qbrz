@@ -119,6 +119,8 @@ class LogWindow(QBzrWindow):
                                 QtCore.QVariant(self.FilterRevnoRole))
         self.searchType.addItem(gettext("Tags"),
                                 QtCore.QVariant(self.FilterTagRole))
+        self.searchType.addItem(gettext("Bugs"),
+                                QtCore.QVariant(self.FilterBugRole))
         searchbox.addWidget(self.searchType)
         self.connect(self.searchType,
                      QtCore.SIGNAL("currentIndexChanged(int)"),
@@ -465,6 +467,8 @@ class LogWindow(QBzrWindow):
                 field = "index"
             elif role == self.FilterTagRole:
                 field = 'tag'
+            elif role == self.FilterBugRole:
+                field = 'bug'
             else:
                 raise Exception("Not done")
             

@@ -627,7 +627,16 @@ class LogGraphProvider(object):
             elif self.sr_field == "author":
                 filtered_str = revision.get_apparent_author()
             elif self.sr_field == "tag":
-                filtered_str = ' '.join(revision.tags)
+                if revision.tags:
+                    filtered_str = ' '.join(revision.tags)
+                else:
+                    return False
+            elif self.sr_field == "bug":
+                rbugs = revision.properties.get('bugs', '')
+                if rbugs:
+                    filtered_str = rbugs.replace('\n', ' ')
+                else:
+                    return False
 
             if filtered_str is not None:
                 if self.sr_filter_re.search(filtered_str) is None:
