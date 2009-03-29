@@ -288,7 +288,7 @@ class LogGraphProvider(object):
             if self.trunk_branch == None:
                 # Work out which branch we think is trunk.
                 # TODO: Make config option.
-                trunk_names = gettext("trunk,bzr.dev").split(",")
+                trunk_names = "trunk,bzr.dev".split(",")
                 for tree, branch, repo, index in self.branches:
                     if branch.nick in trunk_names:
                         self.trunk_branch = branch
