@@ -74,6 +74,8 @@ class LogGraphProvider(object):
         
         self.merge_sorted_revisions = []
         self.msri_index = {}
+        self.revid_msri = {}
+        self.graph_children = {}
         
         self.revisions = {}
         self.queue = []
@@ -402,7 +404,8 @@ class LogGraphProvider(object):
             self.invaladate_filter_cache()
         
         # The revisions is self.revions would have been loaded before to sort
-        # the heads by date. Put them though self.post_revision_load again.
+        # the heads by date, or because we are refreshing. Put them though
+        # self.post_revision_load again.
         for rev in self.revisions.values():
             self.post_revision_load(rev)
 
@@ -1334,13 +1337,15 @@ class LogGraphProvider(object):
     
     def post_revision_load(self, revision):
         self.revisions[revision.revision_id] = revision
-        if len(self.merge_sorted_revisions)>0:
+        if revision.revision_id in self.revid_msri:
             revno_sequence = self.merge_sorted_revisions[self.revid_msri[revision.revision_id]][3]
             revision.revno = ".".join(["%d" % (revno)
                                       for revno in revno_sequence])
-            revision.tags = sorted(self.tags.get(revision.revision_id, []))
-            revision.child_ids = self.graph_children[revision.revision_id]
-            revision.branch = self.get_revid_branch(revision.revision_id)
+        else:
+            revision.revno = ""
+        revision.tags = sorted(self.tags.get(revision.revision_id, []))
+        revision.child_ids = self.graph_children.get(revision.revision_id, [])
+        revision.branch = self.get_revid_branch(revision.revision_id)
     
     def revisions_filter_changed(self):
         pass
