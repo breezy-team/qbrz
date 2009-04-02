@@ -18,6 +18,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui, Qt
+
+from bzrlib.bzrdir import BzrDir
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.trace import *
 from bzrlib.plugins.qbzr.lib.util import (
@@ -89,6 +91,7 @@ class LogList(QtGui.QTreeView):
         self.throbber.show()
         try:
             self.graph_provider.open_branch(branch, specific_fileids)
+            self.load_current_dir_repo_if_no_local_repos()
             self.processEvents()
             self.load()
         finally:
@@ -98,10 +101,31 @@ class LogList(QtGui.QTreeView):
         self.throbber.show()
         try:
             self.graph_provider.open_locations(locations)
+            self.load_current_dir_repo_if_no_local_repos()
             self.processEvents()
             self.load()
         finally:
             self.throbber.hide()
+    
+    def load_current_dir_repo_if_no_local_repos(self):
+        # There are no local repositories. Try open the repository
+        # of the current directory, and try load revsions data from
+        # this before trying from remote repositories. This makes
+        # the common use case of viewing a remote branch that is
+        # related to the current branch much faster, because most
+        # of the revision can be loaded from the local repoistory.
+        has_local_repo = False
+        for repo in self.graph_provider.repos.values():
+            if repo.is_local:
+                has_local_repo = True
+                break
+        if not has_local_repo:
+            try:
+                bzrdir, relpath = BzrDir.open_containing(".")
+                repo = bzrdir.find_repository()
+                self.graph_provider.append_repo(repo, local_copy = True)
+            except Exception:
+                pass
     
     def refresh(self):
         self.throbber.show()

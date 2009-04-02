@@ -45,13 +45,17 @@ class LogGraphProvider(object):
         
         self.no_graph = no_graph
 
-        """List of unique repositories"""
+        """List of unique branches"""
         self.branches = []
         
         """List of tuple(tree, branch, repo )"""
         self.fileids = []
         
         self.repos = {}
+        
+        self.local_repo_copies = []
+        """A list of repositories that revisions will be aptempted to be loaded        
+        from first."""
         
         self.head_revids = []
         """List of revids that are the heads of the graph.
@@ -132,10 +136,12 @@ class LogGraphProvider(object):
     def throbber_hide(self):
         pass
     
-    def append_repo(self, repo):
+    def append_repo(self, repo, local_copy = False):
         repo.is_local = isinstance(repo.bzrdir.transport, LocalTransport)
         if repo.base not in self.repos:
             self.repos[repo.base] = repo
+        if local_copy:
+            self.local_repo_copies.append(repo.base)
     
     def open_search_index(self, branch):
         if have_search:
@@ -325,15 +331,13 @@ class LogGraphProvider(object):
 
     def repos_cmp_local_higher(self, x, y):
         if x.is_local and not y.is_local:
-            return 1
-        if y.is_local and not x.is_local:
             return -1
+        if y.is_local and not x.is_local:
+            return 1
         return 0
     
     def repos_sorted_local_first(self):
-        return sorted([repo 
-                       for repo in self.repos.itervalues()],
-                       self.repos_cmp_local_higher)
+        return sorted(self.repos.itervalues(),self.repos_cmp_local_higher)
 
     def load_graph_all_revisions(self):
         if len(self.repos)==1:
@@ -1274,8 +1278,11 @@ class LogGraphProvider(object):
             repo_revids[repo_base] = []
         
         for revid in revids:
-            if revid not in self.revisions:
-                repo = self.get_revid_repo(revid)
+            for local_repo_copy in self.local_repo_copies:
+                repo_revids[local_repo_copy].append(revid)
+            
+            repo = self.get_revid_repo(revid)
+            if repo.base not in self.local_repo_copies:
                 repo_revids[repo.base].append(revid)
         
         return repo_revids
@@ -1289,6 +1296,7 @@ class LogGraphProvider(object):
         
         start_time = clock()
         showed_throbber = False
+        org_revids = revids
         
         try:
             revids_loaded = []
@@ -1302,35 +1310,46 @@ class LogGraphProvider(object):
                     else:
                         batch_size = remote_batch_size
                     
-                    revids = repo_revids[repo.base]
-                    for offset in range(0, len(revids), batch_size):
+                    revids = [revid for revid in repo_revids[repo.base]\
+                              if revid not in revids_loaded]
+                    if revids:
+                        revids = list(repo.has_revisions(revids))
                         
-                        running_time = clock() - start_time
-                        
-                        if time_before_first_ui_update < running_time:
-                            if revisions_loaded is not None:
-                                revisions_loaded(revids_loaded, False)
-                                revids_loaded = []
-                            if not showed_throbber:
-                                self.throbber_show()
-                                showed_throbber = True
+                        if not repo.is_local:
                             self.update_ui()
                         
-                        batch_revids = revids[offset:offset+batch_size]
-                        
-                        if before_batch_load is not None:
-                            stop = before_batch_load(repo, batch_revids)
-                            if stop:
-                                break
-                        
-                        revisions = repo.get_revisions(batch_revids)
-                        for rev in revisions:
-                            revids_loaded.append(rev.revision_id)
-                            rev.repository = repo
-                            self.post_revision_load(rev)
+                        for offset in range(0, len(revids), batch_size):
                             
+                            running_time = clock() - start_time
+                            
+                            if time_before_first_ui_update < running_time:
+                                if revisions_loaded is not None:
+                                    revisions_loaded(revids_loaded, False)
+                                    revids_loaded = []
+                                if not showed_throbber:
+                                    self.throbber_show()
+                                    showed_throbber = True
+                                self.update_ui()
+                            
+                            batch_revids = revids[offset:offset+batch_size]
+                            
+                            if before_batch_load is not None:
+                                stop = before_batch_load(repo, batch_revids)
+                                if stop:
+                                    break
+                            
+                            revisions = repo.get_revisions(batch_revids)
+                            for rev in revisions:
+                                revids_loaded.append(rev.revision_id)
+                                rev.repository = repo
+                                self.post_revision_load(rev)
+                
                 if revisions_loaded is not None:
                     revisions_loaded(revids_loaded, True)
+                
+                for revid in org_revids:
+                    if revid not in self.revisions:
+                        raise errors.NoSuchRevision(self, revid)
         finally:
             if showed_throbber:
                 self.throbber_hide()
