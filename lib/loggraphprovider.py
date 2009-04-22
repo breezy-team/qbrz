@@ -478,33 +478,41 @@ class LogGraphProvider(object):
         
         """
         
-        current_merge_stack = [None]
+        merged_by = [None for x in self.merge_sorted_revisions ]
         for (msri, (sequence_number,
                     revid,
                     merge_depth,
                     revno_sequence,
                     end_of_merge)) in enumerate(self.merge_sorted_revisions):
             
-            if merge_depth == len(current_merge_stack):
-                current_merge_stack.append(msri)
-            else:
-                del current_merge_stack[merge_depth + 1:]
-                current_merge_stack[-1] = msri
+            parent_msris = [self.revid_msri[parent]
+                            for parent in self.graph_parents[revid]]
             
-            merged_by = None
-            if merge_depth>0:
-                merged_by = current_merge_stack[-2]
-                if merged_by is not None:
-                    self.merge_info[merged_by][0].append(msri)
-                    branch_id = revno_sequence[0:-1]
-                    merged_by_branch_id = self.merge_sorted_revisions[merged_by][3][0:-1]
-                    
-                    if not branch_id in self.branch_lines[merged_by_branch_id][3]: 
-                        self.branch_lines[merged_by_branch_id][2].append(branch_id) 
-                    if not merged_by_branch_id in self.branch_lines[branch_id][2]: 
-                        self.branch_lines[branch_id][3].append(merged_by_branch_id) 
-                    
-            self.merge_info.append(([],merged_by))
+            if len(parent_msris) > 0:
+                parent_revno_sequence = \
+                            self.merge_sorted_revisions[parent_msris[0]][3]
+                if revno_sequence[0:-1] == parent_revno_sequence[0:-1]:
+                    merged_by[parent_msris[0]] = merged_by[msri]
+            
+            for parent_msri in parent_msris[1:]:
+                parent_merge_depth = self.merge_sorted_revisions[parent_msri][2]
+                if merge_depth<=parent_merge_depth:
+                    merged_by[parent_msri] = msri
+        
+        self.merge_info = [([], merged_by_msri) for merged_by_msri in merged_by]
+        
+        for msri, merged_by_msri in enumerate(merged_by):
+            if merged_by_msri is not None:
+                self.merge_info[merged_by_msri][0].append(msri)
+                
+                branch_id = self.merge_sorted_revisions[msri][3][0:-1]
+                merged_by_branch_id = \
+                        self.merge_sorted_revisions[merged_by_msri][3][0:-1]
+                
+                if not branch_id in self.branch_lines[merged_by_branch_id][3]:
+                    self.branch_lines[merged_by_branch_id][2].append(branch_id)
+                if not merged_by_branch_id in self.branch_lines[branch_id][2]:
+                    self.branch_lines[branch_id][3].append(merged_by_branch_id)
         
     def compute_head_info(self):
         def get_revid_head(heads):
