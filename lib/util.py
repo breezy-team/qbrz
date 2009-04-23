@@ -437,7 +437,8 @@ class ThrobberWidget(QtGui.QWidget):
         #if self.is_shown:
             #QtGui.QApplication.restoreOverrideCursor()
         self.num_show -= 1
-        if self.num_show == 0:
+        if self.num_show <= 0:
+            self.num_show = 0
             QtGui.QWidget.hide(self)
 
     def show(self):
