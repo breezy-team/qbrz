@@ -145,7 +145,7 @@ class LogList(QtGui.QTreeView):
         
         self.graph_provider.lock_read_repos()
         # And will remain locked until the window is closed or we refresh.
-        self.model.loadBranch()
+        self.model.load_graph_all_revisions()
         
         self.graph_provider.load_filter_file_id()
     

@@ -106,7 +106,7 @@ class LogModel(QtCore.QAbstractTableModel):
                                        ]
         self.clicked_row = None
     
-    def loadBranch(self):
+    def load_graph_all_revisions(self):
         try:
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
             self.graph_provider.load_graph_all_revisions()
