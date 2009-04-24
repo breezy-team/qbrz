@@ -149,9 +149,6 @@ class PendingMergesList(LogList):
         self.header().hideSection(0)
     
     def load(self):
-        self.graph_provider.lock_read_repos()
-        # And will remain locked until the window is closed or we refresh.
-        
         self.graph_provider.lock_read_branches()
         try:
             self.graph_provider.load_tags()
@@ -223,11 +220,16 @@ class CommitWindow(SubProcessWindow):
                                   dialog = dialog,
                                   parent = parent)
         self.tree = tree
-        self.basis_tree = self.tree.basis_tree()
-        self.is_bound = bool(tree.branch.get_bound_location())
+        tree.lock_read()
+        try:
+            self.basis_tree = self.tree.basis_tree()
+            self.is_bound = bool(tree.branch.get_bound_location())
+            self.has_pending_merges = len(tree.get_parent_ids())>1
+        finally:
+            tree.unlock()
+        
         self.windows = []
         self.initial_selected_list = selected_list
-        self.has_pending_merges = len(tree.get_parent_ids())>1
 
         self.connect(self.process_widget,
             QtCore.SIGNAL("failed()"),

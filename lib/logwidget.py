@@ -136,20 +136,13 @@ class LogList(QtGui.QTreeView):
             self.throbber.hide()
     
     def load(self):
-        self.graph_provider.lock_read_repos()
-        # And will remain locked until the window is closed or we refresh.
-
         self.graph_provider.lock_read_branches()
         try:
             self.graph_provider.load_tags()
             self.model.load_graph_all_revisions()
+            self.graph_provider.load_filter_file_id()
         finally:
             self.graph_provider.unlock_branches()
-        
-        self.graph_provider.load_filter_file_id()
-    
-    def closeEvent (self, QCloseEvent):
-        self.graph_provider.unlock_repos()
 
     def mouseReleaseEvent (self, e):
         if e.button() & QtCore.Qt.LeftButton:

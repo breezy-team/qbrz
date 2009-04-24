@@ -234,13 +234,13 @@ class LogGraphProvider(object):
         for (tree, branch, repo, index) in self.branches:
             branch.unlock()
     
-    def lock_read_repos(self):
-        for repo in self.repos.itervalues():
-            repo.lock_read()
-    
-    def unlock_repos(self):
-        for repo in self.repos.itervalues():
-            repo.unlock()
+    #def lock_read_repos(self):
+    #    for repo in self.repos.itervalues():
+    #        repo.lock_read()
+    #
+    #def unlock_repos(self):
+    #    for repo in self.repos.itervalues():
+    #        repo.unlock()
     
     def append_head_info(self, revid, branch, tag, is_branch_last_revision):
         if not revid==NULL_REVISION:
@@ -1399,7 +1399,7 @@ class LogGraphProvider(object):
             if revids:
                 repo_revids = self.get_repo_revids(revids)        
                 for repo in self.repos_sorted_local_first():
-                        
+                    
                     if repo.is_local:
                         batch_size = local_batch_size
                     else:
@@ -1408,36 +1408,40 @@ class LogGraphProvider(object):
                     revids = [revid for revid in repo_revids[repo.base]\
                               if revid not in revids_loaded]
                     if revids:
-                        revids = list(repo.has_revisions(revids))
-                        
-                        if not repo.is_local:
-                            self.update_ui()
-                        
-                        for offset in range(0, len(revids), batch_size):
+                        repo.lock_read()
+                        try:
+                            revids = list(repo.has_revisions(revids))
                             
-                            running_time = clock() - start_time
-                            
-                            if time_before_first_ui_update < running_time:
-                                if revisions_loaded is not None:
-                                    revisions_loaded(revids_loaded, False)
-                                    revids_loaded = []
-                                if not showed_throbber:
-                                    self.throbber_show()
-                                    showed_throbber = True
+                            if not repo.is_local:
                                 self.update_ui()
                             
-                            batch_revids = revids[offset:offset+batch_size]
-                            
-                            if before_batch_load is not None:
-                                stop = before_batch_load(repo, batch_revids)
-                                if stop:
-                                    break
-                            
-                            revisions = repo.get_revisions(batch_revids)
-                            for rev in revisions:
-                                revids_loaded.append(rev.revision_id)
-                                rev.repository = repo
-                                self.post_revision_load(rev)
+                            for offset in range(0, len(revids), batch_size):
+                                
+                                running_time = clock() - start_time
+                                
+                                if time_before_first_ui_update < running_time:
+                                    if revisions_loaded is not None:
+                                        revisions_loaded(revids_loaded, False)
+                                        revids_loaded = []
+                                    if not showed_throbber:
+                                        self.throbber_show()
+                                        showed_throbber = True
+                                    self.update_ui()
+                                
+                                batch_revids = revids[offset:offset+batch_size]
+                                
+                                if before_batch_load is not None:
+                                    stop = before_batch_load(repo, batch_revids)
+                                    if stop:
+                                        break
+                                
+                                revisions = repo.get_revisions(batch_revids)
+                                for rev in revisions:
+                                    revids_loaded.append(rev.revision_id)
+                                    rev.repository = repo
+                                    self.post_revision_load(rev)
+                        finally:
+                            repo.unlock()
                 
                 if revisions_loaded is not None:
                     revisions_loaded(revids_loaded, True)
