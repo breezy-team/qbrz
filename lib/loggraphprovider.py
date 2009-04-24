@@ -589,9 +589,9 @@ class LogGraphProvider(object):
                 merged_by_branch_id = \
                         self.merge_sorted_revisions[merged_by_msri][3][0:-1]
                 
-                if not branch_id in self.branch_lines[merged_by_branch_id][3]:
+                if not branch_id in self.branch_lines[merged_by_branch_id][2]:
                     self.branch_lines[merged_by_branch_id][2].append(branch_id)
-                if not merged_by_branch_id in self.branch_lines[branch_id][2]:
+                if not merged_by_branch_id in self.branch_lines[branch_id][3]:
                     self.branch_lines[branch_id][3].append(merged_by_branch_id)
         
     def compute_head_info(self):
@@ -959,6 +959,10 @@ class LogGraphProvider(object):
                                                         parent_merge_depth,
                                                         True))
                         else:
+                            if parent_msri in self.merge_info[rev_msri][0]:
+                                # We merge this revision directly. Don't
+                                # look for non directe parents.
+                                break
                             # The parent was not visible. Search for a ansestor
                             # that is. Stop searching if we make a hop, i.e. we
                             # go away for our branch, and we come back to it
@@ -1226,19 +1230,20 @@ class LogGraphProvider(object):
         msri = self.revid_msri[revid]
         if msri not in self.msri_index: return
         index = self.msri_index[msri]
-        twisty_branch_ids = self.graph_line_data[index][4]
+        branch_ids = self.graph_line_data[index][4]
+        processed_branch_ids = []
         has_change = False
-        for branch_id in twisty_branch_ids:
+        while branch_ids:
+            branch_id = branch_ids.pop()
+            processed_branch_ids.append(branch_id)
             has_change = self.set_branch_visible(branch_id,
                                                  visible,
                                                  has_change)
             if not visible:
                 for parent_branch_id in self.branch_lines[branch_id][2]:
-                    if not parent_branch_id in self.start_branch_ids and \
-                       not self.has_visible_child(parent_branch_id):
-                        has_change = self.set_branch_visible(parent_branch_id,
-                                                             visible,
-                                                             has_change)
+                    if parent_branch_id not in branch_ids and \
+                                parent_branch_id not in processed_branch_ids:
+                        branch_ids.append(parent_branch_id)
         return has_change
 
     def has_rev_id(self, revid):
