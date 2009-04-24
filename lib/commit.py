@@ -52,12 +52,17 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_apparent_author,
     get_global_config,
     url_for_display,
+    ThrobberWidget,
+    runs_in_loading_queue,
     )
 from bzrlib.plugins.qbzr.lib.wtlist import (
     ChangeDesc,
     WorkingTreeFileList,
     closure_in_selected_list,
     )
+from bzrlib.plugins.qbzr.lib.logwidget import LogList
+from bzrlib.plugins.qbzr.lib.trace import *
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 
 MAX_AUTOCOMPLETE_FILES = 20
@@ -133,40 +138,28 @@ class TextEdit(QtGui.QTextEdit):
         completer.setCaseSensitivity(QtCore.Qt.CaseSensitive)
         self.connect(completer, QtCore.SIGNAL("activated(QString)"), self.insertCompletion)
 
+class PendingMergesList(LogList):
+    def __init__(self, processEvents, report_exception,
+                 throbber, no_graph, parent=None):
+        super(PendingMergesList, self).__init__(processEvents,
+                                report_exception, throbber, no_graph, parent)
+        # The rev numbers are currently bogus. Hide that column.
+        # We could work out the revision numbers by loading whole graph, but
+        # that is going to make this much slower.
+        self.header().hideSection(0)
+    
+    def load(self):
+        self.graph_provider.lock_read_branches()
+        try:
+            self.graph_provider.load_tags()
+            self.model.load_graph_pending_merges()
+        finally:
+            self.graph_provider.unlock_branches()
 
 class CommitWindow(SubProcessWindow):
 
     RevisionIdRole = QtCore.Qt.UserRole + 1
     ParentIdRole = QtCore.Qt.UserRole + 2
-
-    def collect_info(self):
-        tree = self.tree
-        branch = tree.branch
-        repo = branch.repository
-        parents = tree.get_parent_ids()
-        pending_merges = []
-        if len(parents) > 1:
-            last_revision = parents[0]
-            if last_revision is not None:
-                try:
-                    ignore = set(branch.repository.get_ancestry(last_revision,
-                                                                topo_sorted=False))
-                except NoSuchRevision:
-                    ignore = set([None, last_revision])
-            else:
-                ignore = set([None])
-            for merge in parents[1:]:
-                ignore.add(merge)
-                pending_merges.append(merge)
-                inner_merges = repo.get_ancestry(merge)
-                inner_merges.pop(0)
-                for inner_merge in reversed(inner_merges):
-                    if inner_merge in ignore:
-                        continue
-                    ignore.add(inner_merge)
-                    pending_merges.append(inner_merge)
-        self.pending_merges = repo.get_revisions(pending_merges)
-        self.is_bound = bool(branch.get_bound_location())
 
     def iter_changes_and_state(self):
         """An iterator for the WorkingTreeFileList widget"""
@@ -193,7 +186,7 @@ class CommitWindow(SubProcessWindow):
 
             visible = is_versioned or show_nonversioned
             check_state = None
-            if not self.pending_merges:
+            if not self.has_pending_merges:
                 check_state = visible and is_versioned and in_selected_list(path)
             yield desc, visible, check_state
 
@@ -227,13 +220,22 @@ class CommitWindow(SubProcessWindow):
                                   dialog = dialog,
                                   parent = parent)
         self.tree = tree
-        self.basis_tree = self.tree.basis_tree()
+        tree.lock_read()
+        try:
+            self.basis_tree = self.tree.basis_tree()
+            self.is_bound = bool(tree.branch.get_bound_location())
+            self.has_pending_merges = len(tree.get_parent_ids())>1
+        finally:
+            tree.unlock()
+        
         self.windows = []
         self.initial_selected_list = selected_list
 
         self.connect(self.process_widget,
             QtCore.SIGNAL("failed()"),
             self.failed)
+
+        self.throbber = ThrobberWidget(self)
 
         # commit to branch location
         branch_groupbox = QtGui.QGroupBox(gettext("Branch"), self)
@@ -285,21 +287,11 @@ class CommitWindow(SubProcessWindow):
         selectall_checkbox.setCheckState(QtCore.Qt.Checked)
         self.filelist.set_selectall_checkbox(selectall_checkbox)
 
-        tree.lock_read()
-        try:
-            self.collect_info()
-            self.filelist.fill(self.iter_changes_and_state())
-        finally:
-            tree.unlock()
-
-        self.filelist.setup_actions()
-
         # Equivalent for 'bzr commit --message'
         self.message = TextEdit(message_groupbox, main_window=self)
         self.message.setToolTip(gettext("Enter the commit message"))
-        completer = QtGui.QCompleter()
-        completer.setModel(QtGui.QStringListModel(self.completion_words, completer))
-        self.message.setCompleter(completer)
+        self.completer = QtGui.QCompleter()
+        self.message.setCompleter(self.completer)
         self.message.setAcceptRichText(False)
 
         language = get_global_config().get_user_option('spellcheck_language') or 'en'
@@ -357,41 +349,26 @@ class CommitWindow(SubProcessWindow):
         self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
 
         # Display a list of pending merges
-        if self.pending_merges:
+        if self.has_pending_merges:
             selectall_checkbox.setCheckState(QtCore.Qt.Checked)
             selectall_checkbox.setEnabled(False)
-            pendingMergesWidget = QtGui.QTreeWidget()
-            self.tabWidget.addTab(pendingMergesWidget, gettext("Pending Merges"))
-            self.tabWidget.setCurrentWidget(pendingMergesWidget)
+            self.pending_merges_list = PendingMergesList(self.processEvents,
+                    self.report_exception,  self.throbber, False, self)
             
-            pendingMergesWidget.setRootIsDecorated(False)
-            pendingMergesWidget.setHeaderLabels(
-                [gettext("Date"), gettext("Author"), gettext("Message")])
-            header = pendingMergesWidget.header()
-            header.resizeSection(0, 120)
-            header.resizeSection(1, 190)
-            self.connect(pendingMergesWidget,
+            self.tabWidget.addTab(self.pending_merges_list,
+                                  gettext("Pending Merges"))
+            self.tabWidget.setCurrentWidget(self.pending_merges_list)
+            
+            self.connect(self.pending_merges_list,
                 QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
                 self.show_changeset)
             # Pending-merge widget gets disabled as we are executing.
             QtCore.QObject.connect(self,
                                    QtCore.SIGNAL("subprocessStarted(bool)"),
-                                   pendingMergesWidget,
+                                   self.pending_merges_list,
                                    QtCore.SLOT("setDisabled(bool)"))
-
-            items = []
-            for merge in self.pending_merges:
-                item = QtGui.QTreeWidgetItem()
-                item.setText(0, format_timestamp(merge.timestamp))
-                item.setText(1, get_apparent_author(merge))
-                item.setText(2, merge.get_summary())
-                item.setData(0, self.RevisionIdRole,
-                             QtCore.QVariant(merge.revision_id))
-                if merge.parent_ids:
-                    item.setData(0, self.ParentIdRole,
-                                 QtCore.QVariant(merge.parent_ids[0]))
-                items.append(item)
-            pendingMergesWidget.insertTopLevelItems(0, items)
+        else:
+            self.pending_merges_list = False
 
         self.tabWidget.addTab(self.process_widget, gettext("Status"))
 
@@ -399,6 +376,7 @@ class CommitWindow(SubProcessWindow):
 
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox.addWidget(self.throbber)
         vbox.addWidget(branch_groupbox)
         vbox.addWidget(splitter)
 
@@ -430,6 +408,30 @@ class CommitWindow(SubProcessWindow):
         else:
             self.message.setFocus()
 
+    def show(self):
+        # we show the bare form as soon as possible.
+        SubProcessWindow.show(self)
+        QtCore.QTimer.singleShot(1, self.load)
+    
+    @ui_current_widget
+    @reports_exception()
+    def load(self):
+        self.tree.lock_read()
+        try:
+            if self.pending_merges_list:
+                self.pending_merges_list.load_branch(self.tree.branch,
+                                                     None,
+                                                     self.tree)
+                self.pending_merges_list.load()
+            self.filelist.fill(self.iter_changes_and_state())
+        finally:
+            self.tree.unlock()
+ 
+        self.filelist.setup_actions()        
+        self.completer.setModel(QtGui.QStringListModel(self.completion_words,
+                                                       self.completer))
+        self.throbber.hide()
+    
     def enableBugs(self, state):
         if state == QtCore.Qt.Checked:
             self.bugs.setEnabled(True)
@@ -457,7 +459,9 @@ class CommitWindow(SubProcessWindow):
             self.message.setText(message)
 
     def save_message(self):
-        if self.tree.branch.control_files.get_physical_lock_status():
+        if self.tree.branch.control_files.get_physical_lock_status() or \
+           self.tree.branch.repository.control_files.get_physical_lock_status() or\
+           self.tree.branch.is_locked() or self.tree.branch.repository.is_locked():
             from bzrlib.trace import warning
             warning("Cannot save commit message because the branch is locked.")
         else:
@@ -494,7 +498,7 @@ class CommitWindow(SubProcessWindow):
         
         # starts with one because if pending changes are available the warning box will appear each time.
         checkedFiles = 1 
-        if not self.pending_merges:
+        if not self.has_pending_merges:
             checkedFiles = 0
             for desc in self.filelist.iter_checked():
                 checkedFiles = checkedFiles+1

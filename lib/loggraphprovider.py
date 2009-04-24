@@ -45,10 +45,11 @@ class LogGraphProvider(object):
         
         self.no_graph = no_graph
 
-        """List of unique branches"""
         self.branches = []
+        """List of unique branches
         
-        """List of tuple(tree, branch, repo )"""
+        Each item in the list is a of tuple(tree, branch, repo, search_index )"""
+        
         self.fileids = []
         
         self.repos = {}
@@ -152,14 +153,15 @@ class LogGraphProvider(object):
         else:
             return None
     
-    def open_branch(self, branch, file_id):
+    def open_branch(self, branch, file_id, tree=None):
         """Open branch and fileids to be loaded. """
         
         repo = branch.repository
-        try:
-            tree = branch.bzrdir.open_workingtree()
-        except errors.NoWorkingTree:
-            tree = None
+        if not tree:
+            try:
+                tree = branch.bzrdir.open_workingtree()
+            except errors.NoWorkingTree:
+                pass
         self.append_repo(repo)
         index = self.open_search_index(branch)
         self.branches.append((tree, branch, repo, index))
@@ -232,13 +234,13 @@ class LogGraphProvider(object):
         for (tree, branch, repo, index) in self.branches:
             branch.unlock()
     
-    def lock_read_repos(self):
-        for repo in self.repos.itervalues():
-            repo.lock_read()
-    
-    def unlock_repos(self):
-        for repo in self.repos.itervalues():
-            repo.unlock()
+    #def lock_read_repos(self):
+    #    for repo in self.repos.itervalues():
+    #        repo.lock_read()
+    #
+    #def unlock_repos(self):
+    #    for repo in self.repos.itervalues():
+    #        repo.unlock()
     
     def append_head_info(self, revid, branch, tag, is_branch_last_revision):
         if not revid==NULL_REVISION:
@@ -340,18 +342,70 @@ class LogGraphProvider(object):
         return sorted(self.repos.itervalues(),self.repos_cmp_local_higher)
 
     def load_graph_all_revisions(self):
+        self.load_branch_heads()
+        
         if len(self.repos)==1:
             self.graph = self.repos.values()[0].get_graph()
         else:
             parents_providers = [repo._make_parents_provider() \
                                  for repo in self.repos_sorted_local_first()]
             self.graph = Graph(_StackedParentsProvider(parents_providers))
+        
+        self.process_graph_parents(self.graph.iter_ancestry(self.head_revids))
+        
+        self.compute_loaded_graph()
+
+    
+    def load_graph_pending_merges(self):
+        if not len(self.branches) == 1 or not len(self.repos) == 1:
+            AssertionError("load_graph_pending_merges should only be called \
+                           when 1 branch and repo has been opened.")
+        
+        (tree, branch, repo, search_index ) = self.branches[0]
+        if tree is None:
+            AssertionError("load_graph_pending_merges must have a working tree.")
+            
+        self.graph = repo.get_graph()
+        tree_heads = tree.get_parent_ids()
+        other_revisions = [tree_heads[0],]
+        self.update_ui()
+
+        
+        self.revid_head_info = {}
+        self.head_revids = ["root:",]
+        self.revid_branch = {}
+        
+        pending_merges = []
+        for head in tree_heads[1:]:
+            self.append_head_info(head, branch, None, False)
+            pending_merges.extend(
+                self.graph.find_unique_ancestors(head,other_revisions))
+            other_revisions.append(head)
+            self.update_ui()
+        
+        graph_parents = self.graph.get_parent_map(pending_merges)
+        graph_parents["root:"] = ()
+        self.update_ui()
+        
+        for (revid, parents) in graph_parents.items():
+            new_parents = []
+            for index, parent in enumerate(parents):
+                if parent in graph_parents:
+                    new_parents.append(parent)
+                elif index == 0:
+                    new_parents.append("root:")
+            graph_parents[revid] = tuple(new_parents)
+        
+        self.process_graph_parents(graph_parents.items())
+        self.compute_loaded_graph()
+    
+    def process_graph_parents(self, graph_parents):
         self.graph_parents = {}
-        self.graph_children = {}
+        self.graph_children = {}        
         ghosts = set()
         
         for (revid, parent_revids) \
-                    in self.graph.iter_ancestry(self.head_revids):
+                    in graph_parents:
             if parent_revids is None:
                 ghosts.add(revid)
                 continue
@@ -368,6 +422,8 @@ class LogGraphProvider(object):
             for ghost_child in self.graph_children[ghost]:
                 self.graph_parents[ghost_child] = [p
                         for p in self.graph_parents[ghost_child] if p not in ghosts]
+    
+    def compute_loaded_graph(self):
         self.graph_parents["top:"] = self.head_revids
     
         if len(self.graph_parents)>0:
@@ -411,8 +467,8 @@ class LogGraphProvider(object):
         # the heads by date, or because we are refreshing. Put them though
         # self.post_revision_load again.
         for rev in self.revisions.values():
-            self.post_revision_load(rev)
-
+            self.post_revision_load(rev)        
+    
     def compute_branch_lines(self):
         self.branch_lines = {}
         """A list of each "branch", containing
@@ -1033,10 +1089,7 @@ class LogGraphProvider(object):
                 # Find the col_index for the direct parent branch. This will
                 # be the starting point when looking for a free column.
                 
-                if branch_id == ():
-                    parent_col_index = 0
-                else:
-                    parent_col_index = 1
+                parent_col_index = 0
                 parent_index = None
                 
                 if last_parent_msri:
@@ -1044,6 +1097,9 @@ class LogGraphProvider(object):
                     parent_node = graph_line_data[parent_index][1]
                     if parent_node:
                         parent_col_index = parent_node[0]
+                
+                if not branch_id == ():
+                    parent_col_index = max(parent_col_index, 1)
                 
                 col_search_order = branch_line_col_search_order(parent_col_index) 
                 cur_cont_line = []
@@ -1337,15 +1393,17 @@ class LogGraphProvider(object):
         
         start_time = clock()
         showed_throbber = False
+        revids = [revid for revid in revids if not revid == "root:"]
         org_revids = revids
         
         try:
             revids_loaded = []
-            revids = [revid for revid in revids if revid not in self.revisions]
+            revids = [revid for revid in revids if revid not in self.revisions\
+                      and not revid == "root:"]
             if revids:
                 repo_revids = self.get_repo_revids(revids)        
                 for repo in self.repos_sorted_local_first():
-                        
+                    
                     if repo.is_local:
                         batch_size = local_batch_size
                     else:
@@ -1354,36 +1412,40 @@ class LogGraphProvider(object):
                     revids = [revid for revid in repo_revids[repo.base]\
                               if revid not in revids_loaded]
                     if revids:
-                        revids = list(repo.has_revisions(revids))
-                        
-                        if not repo.is_local:
-                            self.update_ui()
-                        
-                        for offset in range(0, len(revids), batch_size):
+                        repo.lock_read()
+                        try:
+                            revids = list(repo.has_revisions(revids))
                             
-                            running_time = clock() - start_time
-                            
-                            if time_before_first_ui_update < running_time:
-                                if revisions_loaded is not None:
-                                    revisions_loaded(revids_loaded, False)
-                                    revids_loaded = []
-                                if not showed_throbber:
-                                    self.throbber_show()
-                                    showed_throbber = True
+                            if not repo.is_local:
                                 self.update_ui()
                             
-                            batch_revids = revids[offset:offset+batch_size]
-                            
-                            if before_batch_load is not None:
-                                stop = before_batch_load(repo, batch_revids)
-                                if stop:
-                                    break
-                            
-                            revisions = repo.get_revisions(batch_revids)
-                            for rev in revisions:
-                                revids_loaded.append(rev.revision_id)
-                                rev.repository = repo
-                                self.post_revision_load(rev)
+                            for offset in range(0, len(revids), batch_size):
+                                
+                                running_time = clock() - start_time
+                                
+                                if time_before_first_ui_update < running_time:
+                                    if revisions_loaded is not None:
+                                        revisions_loaded(revids_loaded, False)
+                                        revids_loaded = []
+                                    if not showed_throbber:
+                                        self.throbber_show()
+                                        showed_throbber = True
+                                    self.update_ui()
+                                
+                                batch_revids = revids[offset:offset+batch_size]
+                                
+                                if before_batch_load is not None:
+                                    stop = before_batch_load(repo, batch_revids)
+                                    if stop:
+                                        break
+                                
+                                revisions = repo.get_revisions(batch_revids)
+                                for rev in revisions:
+                                    revids_loaded.append(rev.revision_id)
+                                    rev.repository = repo
+                                    self.post_revision_load(rev)
+                        finally:
+                            repo.unlock()
                 
                 if revisions_loaded is not None:
                     revisions_loaded(revids_loaded, True)
