@@ -389,7 +389,6 @@ class LogGraphProvider(object):
         
         self.process_graph_parents(graph_parents.items())
         self.compute_loaded_graph()
-        self.branch_lines[()][1] = False
     
     def process_graph_parents(self, graph_parents):
         self.graph_parents = {}
@@ -1077,10 +1076,7 @@ class LogGraphProvider(object):
                 # Find the col_index for the direct parent branch. This will
                 # be the starting point when looking for a free column.
                 
-                if branch_id == ():
-                    parent_col_index = 0
-                else:
-                    parent_col_index = 1
+                parent_col_index = 0
                 parent_index = None
                 
                 if last_parent_msri:
@@ -1088,6 +1084,9 @@ class LogGraphProvider(object):
                     parent_node = graph_line_data[parent_index][1]
                     if parent_node:
                         parent_col_index = parent_node[0]
+                
+                if not branch_id == ():
+                    parent_col_index = max(parent_col_index, 1)
                 
                 col_search_order = branch_line_col_search_order(parent_col_index) 
                 cur_cont_line = []
