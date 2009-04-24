@@ -144,7 +144,9 @@ class PendingMergesList(LogList):
         super(PendingMergesList, self).__init__(processEvents,
                                 report_exception, throbber, no_graph, parent)
         # The rev numbers are currently bogus. Hide that column.
-        self.header().hideSection
+        # We could work out the revision numbers by loading whole graph, but
+        # that is going to make this much slower.
+        self.header().hideSection(0)
     
     def load(self):
         self.graph_provider.lock_read_repos()

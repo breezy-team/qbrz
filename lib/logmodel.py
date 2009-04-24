@@ -105,6 +105,7 @@ class LogModel(QtCore.QAbstractTableModel):
                                        gettext("Author"),
                                        ]
         self.clicked_row = None
+        self.last_rev_is_placeholder = False
     
     def load_graph_all_revisions(self):
         try:
@@ -114,6 +115,7 @@ class LogModel(QtCore.QAbstractTableModel):
             self.emit(QtCore.SIGNAL("layoutChanged()"))
 
     def load_graph_pending_merges(self):
+        self.last_rev_is_placeholder = True
         try:
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
             self.graph_provider.load_graph_pending_merges()
@@ -188,10 +190,6 @@ class LogModel(QtCore.QAbstractTableModel):
              twisty_state,
              twisty_branch_ids) = (index.row(), None, [], None, [])
         
-        if role == GraphNodeRole:
-            if node is None:
-                return QtCore.QVariant()
-            return QVariant_fromList([QtCore.QVariant(nodei) for nodei in node])
         if role == GraphLinesRole:
             qlines = []
             for start, end, color, direct in lines:
@@ -201,6 +199,18 @@ class LogModel(QtCore.QAbstractTableModel):
                      QtCore.QVariant(color),
                      QtCore.QVariant(direct)]))
             return QVariant_fromList(qlines)
+        
+        if self.last_rev_is_placeholder and \
+                msri == len(self.graph_provider.merge_sorted_revisions) - 1:
+            if role == GraphNodeRole:
+                return QVariant_fromList((QtCore.QVariant(-1), QtCore.QVariant(0)))
+            return QtCore.QVariant()
+
+        if role == GraphNodeRole:
+            if node is None:
+                return QtCore.QVariant()
+            return QVariant_fromList([QtCore.QVariant(nodei) for nodei in node])
+        
         if role == GraphTwistyStateRole:
             if twisty_state is None:
                 return QtCore.QVariant()

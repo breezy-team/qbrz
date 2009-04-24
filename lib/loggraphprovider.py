@@ -366,26 +366,31 @@ class LogGraphProvider(object):
             AssertionError("load_graph_pending_merges must have a working tree.")
             
         self.graph = repo.get_graph()
-        tree_tips = tree.get_parent_ids()
-        lca = self.graph.find_lca(*tree_tips)
+        tree_heads = tree.get_parent_ids()
+        other_revisions = [tree_heads[0],]
         
         self.revid_head_info = {}
-        self.head_revids = list(lca)
+        self.head_revids = ["root:",]
         self.revid_branch = {}
         
-        ansestors_to_lca = list(lca)
-        for tip in tree_tips[1:]:
-            self.append_head_info(tip, branch, None, False)
-            ansestors_to_lca.extend(
-                self.graph.find_unique_ancestors(tip, lca))
+        pending_merges = []
+        for head in tree_heads[1:]:
+            self.append_head_info(head, branch, None, False)
+            pending_merges.extend(
+                self.graph.find_unique_ancestors(head,other_revisions))
+            other_revisions.append(head)
         
-        graph_parents = self.graph.get_parent_map(ansestors_to_lca)
+        graph_parents = self.graph.get_parent_map(pending_merges)
+        graph_parents["root:"] = ()
+        
+        def replace_not_loaded_with_root(parent):
+            if parent not in graph_parents:
+                return "root:"
+            return parent
+        
         for (revid, parents) in graph_parents.items():
-            parents_list = list(parents)
-            for parent in parents:
-                if parent not in graph_parents:
-                    parents_list.remove(parent)
-            graph_parents[revid] = parents_list
+            graph_parents[revid] = tuple([replace_not_loaded_with_root(parent)
+                                          for parent in parents])
         
         self.process_graph_parents(graph_parents.items())
         self.compute_loaded_graph()
@@ -1379,11 +1384,13 @@ class LogGraphProvider(object):
         
         start_time = clock()
         showed_throbber = False
+        revids = [revid for revid in revids if not revid == "root:"]
         org_revids = revids
         
         try:
             revids_loaded = []
-            revids = [revid for revid in revids if revid not in self.revisions]
+            revids = [revid for revid in revids if revid not in self.revisions\
+                      and not revid == "root:"]
             if revids:
                 repo_revids = self.get_repo_revids(revids)        
                 for repo in self.repos_sorted_local_first():
