@@ -39,7 +39,7 @@ class LogList(QtGui.QTreeView):
         QtGui.QTreeView.__init__(self, parent)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
-        self.setUniformRowHeights(True)        
+        self.setUniformRowHeights(True)
         self.setAllColumnsShowFocus(True)
         self.setRootIsDecorated (False)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
@@ -87,10 +87,10 @@ class LogList(QtGui.QTreeView):
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
 
-    def load_branch(self, branch, specific_fileids):
+    def load_branch(self, branch, specific_fileids, tree=None):
         self.throbber.show()
         try:
-            self.graph_provider.open_branch(branch, specific_fileids)
+            self.graph_provider.open_branch(branch, specific_fileids, tree)
             self.load_current_dir_repo_if_no_local_repos()
             self.processEvents()
             self.load()
@@ -136,16 +136,15 @@ class LogList(QtGui.QTreeView):
             self.throbber.hide()
     
     def load(self):
-        self.graph_provider.lock_read_branches()
-        try:
-            self.graph_provider.load_branch_heads()
-            self.graph_provider.load_tags()
-        finally:
-            self.graph_provider.unlock_branches()
-        
         self.graph_provider.lock_read_repos()
         # And will remain locked until the window is closed or we refresh.
-        self.model.load_graph_all_revisions()
+
+        self.graph_provider.lock_read_branches()
+        try:
+            self.graph_provider.load_tags()
+            self.model.load_graph_all_revisions()
+        finally:
+            self.graph_provider.unlock_branches()
         
         self.graph_provider.load_filter_file_id()
     

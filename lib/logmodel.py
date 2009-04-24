@@ -113,7 +113,13 @@ class LogModel(QtCore.QAbstractTableModel):
         finally:
             self.emit(QtCore.SIGNAL("layoutChanged()"))
 
-        
+    def load_graph_pending_merges(self):
+        try:
+            self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+            self.graph_provider.load_graph_pending_merges()
+        finally:
+            self.emit(QtCore.SIGNAL("layoutChanged()"))
+
     def compute_lines(self):
         self.graph_provider.compute_graph_lines()
         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),

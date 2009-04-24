@@ -45,10 +45,11 @@ class LogGraphProvider(object):
         
         self.no_graph = no_graph
 
-        """List of unique branches"""
         self.branches = []
+        """List of unique branches
         
-        """List of tuple(tree, branch, repo )"""
+        Each item in the list is a of tuple(tree, branch, repo, search_index )"""
+        
         self.fileids = []
         
         self.repos = {}
@@ -152,14 +153,15 @@ class LogGraphProvider(object):
         else:
             return None
     
-    def open_branch(self, branch, file_id):
+    def open_branch(self, branch, file_id, tree=None):
         """Open branch and fileids to be loaded. """
         
         repo = branch.repository
-        try:
-            tree = branch.bzrdir.open_workingtree()
-        except errors.NoWorkingTree:
-            tree = None
+        if not tree:
+            try:
+                tree = branch.bzrdir.open_workingtree()
+            except errors.NoWorkingTree:
+                pass
         self.append_repo(repo)
         index = self.open_search_index(branch)
         self.branches.append((tree, branch, repo, index))
@@ -340,18 +342,64 @@ class LogGraphProvider(object):
         return sorted(self.repos.itervalues(),self.repos_cmp_local_higher)
 
     def load_graph_all_revisions(self):
+        self.load_branch_heads()
+        
         if len(self.repos)==1:
             self.graph = self.repos.values()[0].get_graph()
         else:
             parents_providers = [repo._make_parents_provider() \
                                  for repo in self.repos_sorted_local_first()]
             self.graph = Graph(_StackedParentsProvider(parents_providers))
+        
+        self.process_graph_parents(self.graph.iter_ancestry(self.head_revids))
+        
+        self.compute_loaded_graph()
+
+    
+    def load_graph_pending_merges(self):
+        if not len(self.branches) == 1 or not len(self.repos) == 1:
+            AssertionError("load_graph_pending_merges should only be called \
+                           when 1 branch and repo has been opened.")
+        
+        (tree, branch, repo, search_index ) = self.branches[0]
+        if tree is None:
+            AssertionError("load_graph_pending_merges must have a working tree.")
+            
+        self.graph = repo.get_graph()
+        tree_tips = tree.get_parent_ids()
+        pending_tips = tree_tips[1:]
+        other_revisions = [tree_tips[0]]
+        
+        all_pending = []
+
+        self.revid_head_info = {}
+        self.head_revids = []
+        self.revid_branch = {}
+
+        for pending_tip in pending_tips:
+            self.append_head_info(pending_tip, branch, None, False)
+            all_pending.extend(self.graph.find_unique_ancestors(pending_tip,
+                                                                other_revisions))
+            other_revisions.append(pending_tip)
+        
+        graph_parents = self.graph.get_parent_map(all_pending)
+        for (revid, parents) in graph_parents.items():
+            parents_list = list(parents)
+            for parent in parents:
+                if parent not in graph_parents:
+                    parents_list.remove(parent)
+            graph_parents[revid] = parents_list
+        
+        self.process_graph_parents(graph_parents.items())
+        self.compute_loaded_graph()
+    
+    def process_graph_parents(self, graph_parents):
         self.graph_parents = {}
-        self.graph_children = {}
+        self.graph_children = {}        
         ghosts = set()
         
         for (revid, parent_revids) \
-                    in self.graph.iter_ancestry(self.head_revids):
+                    in graph_parents:
             if parent_revids is None:
                 ghosts.add(revid)
                 continue
@@ -368,6 +416,8 @@ class LogGraphProvider(object):
             for ghost_child in self.graph_children[ghost]:
                 self.graph_parents[ghost_child] = [p
                         for p in self.graph_parents[ghost_child] if p not in ghosts]
+    
+    def compute_loaded_graph(self):
         self.graph_parents["top:"] = self.head_revids
     
         if len(self.graph_parents)>0:
@@ -411,8 +461,8 @@ class LogGraphProvider(object):
         # the heads by date, or because we are refreshing. Put them though
         # self.post_revision_load again.
         for rev in self.revisions.values():
-            self.post_revision_load(rev)
-
+            self.post_revision_load(rev)        
+    
     def compute_branch_lines(self):
         self.branch_lines = {}
         """A list of each "branch", containing
