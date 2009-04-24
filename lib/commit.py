@@ -136,13 +136,13 @@ class TextEdit(QtGui.QTextEdit):
         self.completer = completer
         completer.setWidget(self)
         completer.setCaseSensitivity(QtCore.Qt.CaseSensitive)
-        self.connect(completer, QtCore.SIGNAL("activated(QString)"), self.insertCompletion)
+        self.connect(completer, QtCore.SIGNAL("activated(QString)"),
+                     self.insertCompletion)
 
 class PendingMergesList(LogList):
-    def __init__(self, processEvents, report_exception,
-                 throbber, no_graph, parent=None):
+    def __init__(self, processEvents, throbber, no_graph, parent=None):
         super(PendingMergesList, self).__init__(processEvents,
-                                report_exception, throbber, no_graph, parent)
+                                        throbber, no_graph, parent)
         # The rev numbers are currently bogus. Hide that column.
         # We could work out the revision numbers by loading whole graph, but
         # that is going to make this much slower.
@@ -352,8 +352,8 @@ class CommitWindow(SubProcessWindow):
         if self.has_pending_merges:
             selectall_checkbox.setCheckState(QtCore.Qt.Checked)
             selectall_checkbox.setEnabled(False)
-            self.pending_merges_list = PendingMergesList(self.processEvents,
-                    self.report_exception,  self.throbber, False, self)
+            self.pending_merges_list = PendingMergesList(
+                self.processEvents, self.throbber, False, self)
             
             self.tabWidget.addTab(self.pending_merges_list,
                                   gettext("Pending Merges"))

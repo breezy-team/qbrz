@@ -30,8 +30,7 @@ from bzrlib.plugins.qbzr.lib.util import (
 class LogList(QtGui.QTreeView):
     """TreeView widget to show log with metadata and graph of revisions."""
 
-    def __init__(self, processEvents, report_exception,
-                 throbber, no_graph, parent=None):
+    def __init__(self, processEvents, throbber, no_graph, parent=None):
         """Costructing new widget.
         @param  throbber:   throbber widget in parent window
         @param  parent:     parent window
@@ -51,10 +50,8 @@ class LogList(QtGui.QTreeView):
 
         self.processEvents = processEvents
         self.throbber = throbber
-        self.report_exception = report_exception
 
         self.graph_provider = logmodel.QLogGraphProvider(self.processEvents,
-                                                         self.report_exception,
                                                          self.throbber,
                                                          no_graph)
 

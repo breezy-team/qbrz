@@ -221,10 +221,9 @@ def reports_exception(type=MAIN_LOAD_METHOD):
             try:
                 return f(*args, **kargs)
             except Exception:
-                # args[0] - typycaly self, may have it's own report_exception
-                # method.
-                if getattr(args[0], 'report_exception', None) is not None:
-                    args[0].report_exception(type=type)
+                # args[0] - typycaly self, may be a QWidget. Pass it's window
+                if isinstance(args[0], QtGui.QWidget):
+                    report_exception(type=type, window=args[0].window())
                 else:
                     report_exception(type=type)
         

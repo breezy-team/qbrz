@@ -71,12 +71,10 @@ except AttributeError:
 
 class QLogGraphProvider(LogGraphProvider):
     
-    def __init__(self, processEvents, report_exception,
-                 throbber, no_graph):
+    def __init__(self, processEvents,  throbber, no_graph):
         LogGraphProvider.__init__(self, no_graph)
         
         self.processEvents = processEvents
-        self.report_exception = report_exception
         self.throbber = throbber
     
     def update_ui(self):

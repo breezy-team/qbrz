@@ -253,14 +253,6 @@ class _QBzrWindowBase:
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
 
-    def report_exception(self, exc_info=None, type=trace.MAIN_LOAD_METHOD):
-        """Report an exception.
-
-        The error is reported to the console or a message box, depending
-        on the type. 
-        """
-        trace.report_exception(exc_info=exc_info, type=type, window=self.window())
-
     def create_button_box(self, *buttons):
         """Create and return button box with pseudo-standard buttons
         @param  buttons:    any from BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP

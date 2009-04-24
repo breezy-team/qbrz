@@ -129,7 +129,6 @@ class LogWindow(QBzrWindow):
         logbox.addLayout(searchbox)
 
         self.log_list = LogList(self.processEvents,
-                                self.report_exception,
                                 self.throbber,
                                 no_graph,
                                 self)
@@ -372,15 +371,12 @@ class LogWindow(QBzrWindow):
             self.revision_delta_timer.start(1)
 
     def log_list_keyPressEvent (self, e):
-        try:
-            e_key = e.key()
-            if e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
-                e.accept()
-                self.diff_pushed()
-            else:
-                LogList.keyPressEvent(self.log_list, e)
-        except:
-            self.report_exception        
+        e_key = e.key()
+        if e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
+            e.accept()
+            self.diff_pushed()
+        else:
+            LogList.keyPressEvent(self.log_list, e)
     
     @ui_current_widget
     def show_diff_window(self, new_rev, old_rev, specific_files=None, ext_diff = None):
