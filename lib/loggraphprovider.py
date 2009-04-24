@@ -367,22 +367,19 @@ class LogGraphProvider(object):
             
         self.graph = repo.get_graph()
         tree_tips = tree.get_parent_ids()
-        pending_tips = tree_tips[1:]
-        other_revisions = [tree_tips[0]]
+        lca = self.graph.find_lca(*tree_tips)
         
-        all_pending = []
-
         self.revid_head_info = {}
-        self.head_revids = []
+        self.head_revids = list(lca)
         self.revid_branch = {}
-
-        for pending_tip in pending_tips:
-            self.append_head_info(pending_tip, branch, None, False)
-            all_pending.extend(self.graph.find_unique_ancestors(pending_tip,
-                                                                other_revisions))
-            other_revisions.append(pending_tip)
         
-        graph_parents = self.graph.get_parent_map(all_pending)
+        ansestors_to_lca = list(lca)
+        for tip in tree_tips[1:]:
+            self.append_head_info(tip, branch, None, False)
+            ansestors_to_lca.extend(
+                self.graph.find_unique_ancestors(tip, lca))
+        
+        graph_parents = self.graph.get_parent_map(ansestors_to_lca)
         for (revid, parents) in graph_parents.items():
             parents_list = list(parents)
             for parent in parents:
@@ -392,6 +389,7 @@ class LogGraphProvider(object):
         
         self.process_graph_parents(graph_parents.items())
         self.compute_loaded_graph()
+        self.branch_lines[()][1] = False
     
     def process_graph_parents(self, graph_parents):
         self.graph_parents = {}
