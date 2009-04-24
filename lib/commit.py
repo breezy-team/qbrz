@@ -498,7 +498,7 @@ class CommitWindow(SubProcessWindow):
         
         # starts with one because if pending changes are available the warning box will appear each time.
         checkedFiles = 1 
-        if not self.pending_merges:
+        if not self.has_pending_merges:
             checkedFiles = 0
             for desc in self.filelist.iter_checked():
                 checkedFiles = checkedFiles+1
