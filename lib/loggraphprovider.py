@@ -368,6 +368,8 @@ class LogGraphProvider(object):
         self.graph = repo.get_graph()
         tree_heads = tree.get_parent_ids()
         other_revisions = [tree_heads[0],]
+        self.update_ui()
+
         
         self.revid_head_info = {}
         self.head_revids = ["root:",]
@@ -379,9 +381,11 @@ class LogGraphProvider(object):
             pending_merges.extend(
                 self.graph.find_unique_ancestors(head,other_revisions))
             other_revisions.append(head)
+            self.update_ui()
         
         graph_parents = self.graph.get_parent_map(pending_merges)
         graph_parents["root:"] = ()
+        self.update_ui()
         
         for (revid, parents) in graph_parents.items():
             new_parents = []

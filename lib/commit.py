@@ -418,12 +418,12 @@ class CommitWindow(SubProcessWindow):
     def load(self):
         self.tree.lock_read()
         try:
-            self.filelist.fill(self.iter_changes_and_state())
             if self.pending_merges_list:
                 self.pending_merges_list.load_branch(self.tree.branch,
                                                      None,
                                                      self.tree)
                 self.pending_merges_list.load()
+            self.filelist.fill(self.iter_changes_and_state())
         finally:
             self.tree.unlock()
  
