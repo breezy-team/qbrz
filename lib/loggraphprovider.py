@@ -383,14 +383,14 @@ class LogGraphProvider(object):
         graph_parents = self.graph.get_parent_map(pending_merges)
         graph_parents["root:"] = ()
         
-        def replace_not_loaded_with_root(parent):
-            if parent not in graph_parents:
-                return "root:"
-            return parent
-        
         for (revid, parents) in graph_parents.items():
-            graph_parents[revid] = tuple([replace_not_loaded_with_root(parent)
-                                          for parent in parents])
+            new_parents = []
+            for index, parent in enumerate(parents):
+                if parent in graph_parents:
+                    new_parents.append(parent)
+                elif index == 0:
+                    new_parents.append("root:")
+            graph_parents[revid] = tuple(new_parents)
         
         self.process_graph_parents(graph_parents.items())
         self.compute_loaded_graph()
