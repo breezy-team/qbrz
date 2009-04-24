@@ -153,7 +153,7 @@ class LogGraphProvider(object):
         else:
             return None
     
-    def open_branch(self, branch, file_id, tree=None):
+    def open_branch(self, branch, file_id=None, tree=None):
         """Open branch and fileids to be loaded. """
         
         repo = branch.repository
@@ -1389,7 +1389,8 @@ class LogGraphProvider(object):
                        local_batch_size = 30,
                        remote_batch_size = 5,
                        before_batch_load = None,
-                       revisions_loaded = None):
+                       revisions_loaded = None,
+                       pass_prev_loaded_rev = False):
         
         start_time = clock()
         showed_throbber = False
@@ -1397,6 +1398,10 @@ class LogGraphProvider(object):
         org_revids = revids
         
         try:
+            if pass_prev_loaded_rev and revisions_loaded is not None:
+                revisions_loaded([revid for revid in revids \
+                                  if revid in self.revisions], False)
+            
             revids_loaded = []
             revids = [revid for revid in revids if revid not in self.revisions\
                       and not revid == "root:"]

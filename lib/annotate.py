@@ -41,6 +41,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
+from bzrlib.plugins.qbzr.lib.logwidget import LogList
+from bzrlib.plugins.qbzr.lib.logmodel import COL_DATE, COL_AUTHOR, RevIdRole
 
 have_pygments = True
 try:
@@ -115,22 +117,19 @@ class AnnotateWindow(QBzrWindow):
                      QtCore.SIGNAL("anchorClicked(QUrl)"),
                      self.linkClicked)
 
-        self.changes = QtGui.QTreeWidget()
-        self.changes.setHeaderLabels(
-            [gettext("Rev"), gettext("Date"), gettext("Author"), gettext("Summary")])
-        self.changes.header().setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
- 
-        self.changes.setRootIsDecorated(False)
-        self.changes.setUniformRowHeights(True)
-        self.connect(self.changes,
-                     QtCore.SIGNAL("itemSelectionChanged()"),
-                     self.set_revision_by_item)
-        self.connect(self.changes,
+        self.log_list = LogList(self.processEvents, self.throbber, False, self)
+        self.log_list.header().hideSection(COL_DATE)
+        #self.log_list.header().hideSection(COL_AUTHOR)
+        
+        self.connect(self.log_list.selectionModel(),
+                     QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
+                     self.update_selection)
+        self.connect(self.log_list,
                      QtCore.SIGNAL("doubleClicked(QModelIndex)"),
                      self.show_revision_diff)
 
         hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
-        hsplitter.addWidget(self.changes)
+        hsplitter.addWidget(self.log_list)
         hsplitter.addWidget(message)
 
         hsplitter.setStretchFactor(0, 2)
@@ -171,6 +170,7 @@ class AnnotateWindow(QBzrWindow):
                 QtCore.QCoreApplication.processEvents()
             self.branch.lock_read()
             try:
+                self.log_list.load_branch(self.branch, self.fileId)
                 self.annotate(self.tree, self.fileId, self.path)
             finally:
                 self.branch.unlock()
@@ -187,47 +187,52 @@ class AnnotateWindow(QBzrWindow):
         self.set_title_and_icon([gettext("Annotate"), self.path])
 
     def annotate(self, tree, fileId, path):
-        qt_process_events = QtCore.QCoreApplication.processEvents
         revnos = self.branch.get_revision_id_to_revno_map()
         revnos = dict((k, '.'.join(map(str, v))) for k, v in revnos.iteritems())
         font = QtGui.QFont("Courier New,courier", self.browser.font().pointSize())
-        revisionIds = set()
         items = []
-        item_revisions = []
-        lastRevisionId = None
+        self.rev_items = {}
+        self.rev_top_items = {}
+        last_revid = None
         encoding = get_set_encoding(self.encoding, self.branch)
         lines = []
-        for i, (origin, text) in enumerate(tree.annotate_iter(fileId)):
+        for i, (revid, text) in enumerate(tree.annotate_iter(fileId)):
             text = text.decode(encoding, 'replace')
             lines.append(text)
-            revisionIds.add(origin)
             item = QtGui.QTreeWidgetItem()
-            item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(origin))
+            item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(revid))
             item.setText(0, QtCore.QString.number(i + 1))
-            if lastRevisionId != origin:
-                item.setText(2, revnos[origin])
+            
+            if revid not in self.rev_items:
+                self.rev_items[revid]=[]
+            self.rev_items[revid].append(item)
+
+            if last_revid != revid:
+                if revid not in self.rev_top_items:
+                    self.rev_top_items[revid]=[]
+                self.rev_top_items[revid].append(item)
+                item.setText(2, revnos[revid])
                 item.setTextAlignment(2, QtCore.Qt.AlignRight)
+            
             item.setText(3, text.rstrip())
             item.setFont(3, font)
             items.append(item)
-            item_revisions.append(origin)
-            lastRevisionId = origin
-            qt_process_events()
+            last_revid = revid
+            self.processEvents()
 
-        revisionIds = list(revisionIds)
-        revisions = self.branch.repository.get_revisions(revisionIds)
-        revisionDict = dict(zip(revisionIds, revisions))
-        now = time.time()
-        lastRevisionId = None
-        for revisionId, item in zip(item_revisions, items):
-            r = revisionDict[revisionId]
-            r._author_name = get_apparent_author_name(r)
-            if lastRevisionId != revisionId:
-                item.setText(1, r._author_name)
-            item.setBackground(3, self.get_color(r, now))
-            lastRevisionId = revisionId
-            qt_process_events()
-
+        self.now = time.time()
+        self.log_list.graph_provider.load_revisions(
+            self.rev_items.keys(),
+            revisions_loaded = self.revisions_loaded,
+            pass_prev_loaded_rev = True
+            )
+        
+        
+        # take care to insert the items after we are done fiddling with
+        # them, else performance suffers drastically.
+        self.browser.insertTopLevelItems(0, items)
+        self.processEvents()
+        
         self.lines = None
         if have_pygments:
             try:
@@ -242,54 +247,54 @@ class AnnotateWindow(QBzrWindow):
                 
             except ClassNotFound:
                 pass
-
-        # take care to insert the items after we are done fiddling with
-        # them, else performance suffers drastically.
-        self.browser.insertTopLevelItems(0, items)
-
-        revisions.sort(key=operator.attrgetter('timestamp'), reverse=True)
-
-        revid_to_tags = self.branch.tags.get_reverse_tag_dict()
-
-        self.itemToRev = {}
-        items = []
-        for rev in revisions:
-            rev.revno = revnos[rev.revision_id]
-            rev.tags = sorted(revid_to_tags.get(rev.revision_id, []))
-            item = QtGui.QTreeWidgetItem()
-            item.setText(0, rev.revno)
-            item.setText(1, format_timestamp(rev.timestamp))
-            item.setText(2, rev._author_name)
-            item.setText(3, rev.get_summary())
-            items.append(item)
-            self.itemToRev[item] = rev
-            qt_process_events()
-        self.changes.insertTopLevelItems(0, items)
-        
+    
+    def revisions_loaded(self, revisions, last_call):
+        self.log_list.model.on_revisions_loaded(revisions, last_call)
+        for revid in revisions:
+            rev = self.log_list.graph_provider.revision(revid)
+            author_name = get_apparent_author_name(rev)
+            for item in self.rev_top_items[revid]:
+                item.setText(1, author_name)
+            
+            if self.now < rev.timestamp:
+                days = 0
+            else:
+                days = (self.now - rev.timestamp) / (24 * 60 * 60)
+            
+            saturation = 0.5/((days/50) + 1)
+            hue =  1-float(abs(hash(author_name))) / sys.maxint 
+            color = QtGui.QColor.fromHsvF(hue, saturation, 1 )
+            
+            for item in self.rev_items[revid]:
+                item.setBackground(3, color)
+    
     def setRevisionByLine(self):
         items = self.browser.selectedItems()
         if not items:
             return
-        revisionId = str(items[0].data(0, QtCore.Qt.UserRole).toString())
-        for item, rev in self.itemToRev.iteritems():
-            if rev.revision_id == revisionId:
-                self.changes.setCurrentItem(item)
-                self.message_doc.setHtml(format_revision_html(rev,show_timestamp=True))
-                break
+        rev_id = str(items[0].data(0, QtCore.Qt.UserRole).toString())
+        if self.log_list.graph_provider.has_rev_id(rev_id):
+            self.log_list.model.ensure_rev_visible(rev_id)
+            index = self.log_list.model.indexFromRevId(rev_id)
+            index = self.log_list.filter_proxy_model.mapFromSource(index)
+            self.log_list.setCurrentIndex(index)
 
-    def set_revision_by_item(self):
-        items = self.changes.selectedItems()
-        if len(items) == 1:
-            for item, rev in self.itemToRev.iteritems():
-                if item == items[0]:
-                    self.message_doc.setHtml(format_revision_html(rev,show_timestamp=True))
-                    break
+    def update_selection(self, selected, deselected):
+        indexes = [index for index in self.log_list.selectedIndexes()
+                   if index.column()==0]
+        if not indexes:
+            self.message_doc.setHtml("")
+        else:
+            index = indexes[0]
+            revid = str(index.data(RevIdRole).toString())
+            rev = self.log_list.graph_provider.revision(revid, force_load=True)
+            self.message_doc.setHtml(format_revision_html(rev,
+                                                          show_timestamp=True))
 
     @ui_current_widget
     def show_revision_diff(self, index):
-        item = self.changes.itemFromIndex(index)
-        rev = self.itemToRev[item]
-        new_revid = rev.revision_id
+        new_revid = str(index.data(RevIdRole).toString())
+        rev = self.log_list.graph_provider.revision(new_revid, force_load=True)
         if not rev.parent_ids:
             old_revid = None
         else:
@@ -305,13 +310,3 @@ class AnnotateWindow(QBzrWindow):
 
     def linkClicked(self, url):
         open_browser(str(url.toEncoded()))
-
-    def get_color(self, revision, now):
-        if  now < revision.timestamp:
-            days = 0
-        else:
-            days = (now - revision.timestamp) / (24 * 60 * 60)
-        
-        saturation = 0.5/((days/50) + 1)
-        hue =  1-float(abs(hash(revision._author_name))) / sys.maxint 
-        return QtGui.QColor.fromHsvF(hue, saturation, 1 )
