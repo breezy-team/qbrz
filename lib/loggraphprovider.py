@@ -879,9 +879,11 @@ class LogGraphProvider(object):
                                                         parent_merge_depth,
                                                         True))
                         else:
-                            if parent_msri in self.merge_info[rev_msri][0]:
-                                # We merge this revision directly. Don't
-                                # look for non directe parents.
+                            if parent_msri in self.merge_info[rev_msri][0] and \
+                               self.get_revision_visible_if_branch_visible_cached(parent_msri):
+                                # We merge this revision directly, and it would
+                                # visible if the user expans it's branch. Don't
+                                # look for non direct parents.
                                 break
                             # The parent was not visible. Search for a ansestor
                             # that is. Stop searching if we make a hop, i.e. we
