@@ -489,6 +489,10 @@ class LogGraphProvider(object):
         self.start_branch_ids = []
         """Branch ids that should be initialy visible"""
         
+        self.branch_ids = []
+        """List of branch ids, sorted in the order that the branches will
+        be shown, from left to right on the graph."""
+        
         for (rev_index, (sequence_number,
                          revid,
                          merge_depth,
@@ -1053,7 +1057,7 @@ class LogGraphProvider(object):
                         if (rev_msri <> branch_rev_msri[-1] or i > 0 )and \
                            parent_branch_id <> branch_id and\
                            branch_id <> () and \
-                           parent_merge_depth <= merge_depth and\
+                           self.branch_ids.index(parent_branch_id) <= self.branch_ids.index(branch_id) and\
                            (last_parent_msri and not direct and last_parent_msri >= parent_msri or not last_parent_msri or direct):
                             
                             if parent_index - rev_index >1:
