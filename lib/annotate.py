@@ -23,7 +23,7 @@
 
 import operator, sys, time
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib.diff import show_diff
+from bzrlib.plugins.qbzr.lib.diff import show_diff, InternalDiffArgProvider
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
@@ -294,14 +294,10 @@ class AnnotateWindow(QBzrWindow):
             old_revid = None
         else:
             old_revid = rev.parent_ids[0]
-        
-        tree = self.branch.basis_tree()
-        file_path = tree.id2path(self.fileId)
-        
-        show_diff(old_revid, new_revid,
-                 self.branch, self.branch,
-                 specific_files=[file_path],
-                 parent_window = self)
+        arg_provider = InternalDiffArgProvider(old_revid, new_revid,
+                                               self.branch, self.branch,
+                                               specific_file_ids = [self.fileId])
+        show_diff(arg_provider, parent_window = self)
 
     def linkClicked(self, url):
         open_browser(str(url.toEncoded()))

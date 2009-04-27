@@ -79,7 +79,7 @@ from bzrlib.plugins.qbzr.lib.uifactory import QUIFactory
 ''')
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
-
+from bzrlib.plugins.qbzr.lib.diff import DiffArgProvider
 
 class InvalidEncodingOption(errors.BzrError):
 
@@ -325,7 +325,8 @@ class cmd_qcommit(QBzrCommand):
         application.exec_()
 
 
-class cmd_qdiff(QBzrCommand):
+
+class cmd_qdiff(QBzrCommand, DiffArgProvider):
     """Show differences in working tree in a GUI window."""
     takes_args = ['file*']
     takes_options = [
@@ -345,40 +346,54 @@ class cmd_qdiff(QBzrCommand):
         takes_options.append('change')
     aliases = ['qdi']
 
-    def _load_branches(self, revision, file_list, old, new):
-        """To assist in getting a UI up as soon as possible, the UI calls
-        back to this function to process the command-line args and convert
-        them into the branches and trees needed by the UI.
-
-        NOTE: called by a non-UI thread (but its still OK to raise exceptions)
-        """
+    def get_diff_window_args(self, processEvents):
         from bzrlib.builtins import internal_tree_files
         from bzrlib.diff import _get_trees_to_diff
 
         old_tree, new_tree, specific_files, extra_trees = \
-                _get_trees_to_diff(file_list, revision, old, new)
-        QtCore.QCoreApplication.processEvents()
+                _get_trees_to_diff(self.file_list, self.revision,
+                                   self.old, self.new)
+        processEvents()
         
-        if file_list:
-            default_location = file_list[0]
+        if self.file_list:
+            default_location = self.file_list[0]
         else:
             # If no path is given, the current working tree is used
             default_location = u'.'
         
-        if old is None:
-            old = default_location
+        if self.old is None:
+            self.old = default_location
         wt, old_branch, rp = \
-            BzrDir.open_containing_tree_or_branch(old)
-        QtCore.QCoreApplication.processEvents()
-        if new is None:
-            new = default_location
-        if new != old :
+            BzrDir.open_containing_tree_or_branch(self.old)
+        processEvents()
+        if self.new is None:
+            self.new = default_location
+        if self.new != self.old :
             wt, new_branch, rp = \
-                BzrDir.open_containing_tree_or_branch(new)
+                BzrDir.open_containing_tree_or_branch(self.new)
         else:
             new_branch = old_branch
-        QtCore.QCoreApplication.processEvents()
+        processEvents()
+        
         return old_tree, new_tree, old_branch, new_branch, specific_files
+    
+    def get_ext_diff_args(self, processEvents):
+        args = []
+        if self.revision and len(self.revision) == 1:
+            args.append("-r %s" % (self.revision[0].spec,))
+        elif self.revision and  len(self.revision) == 2:
+            args.append("-r %s..%s" % (self.revision[0].spec,
+                                                   self.revision[1].spec))
+        
+        if self.new:
+            args.append("--new=%s" % self.new)
+        if self.old:
+            args.append("--old=%s" % self.old)
+        
+        if self.file_list:
+            args.extend(self.file_list)
+        
+        return args    
 
     def _qbzr_run(self, revision=None, file_list=None, complete=False,
             encoding=None,
@@ -394,10 +409,14 @@ class cmd_qdiff(QBzrCommand):
         if not (added or deleted or modified or renamed):
             # if no filter option used then turn all on
             filter_options.all_enable()
+        
+        self.revision = revision
+        self.file_list = file_list
+        self.old = old
+        self.new = new
 
         app = QtGui.QApplication(sys.argv)
-        window = DiffWindow(loader=self._load_branches,
-                            loader_args=(revision, file_list, old, new),
+        window = DiffWindow(self,
                             complete=complete,
                             encoding=encoding,
                             filter_options=filter_options,
@@ -623,7 +642,7 @@ class cmd_qinit(QBzrCommand):
         app.exec_()
 
 
-class cmd_merge(bzrlib.builtins.cmd_merge):
+class cmd_merge(bzrlib.builtins.cmd_merge, DiffArgProvider):
     __doc__ = bzrlib.builtins.cmd_merge.__doc__
 
     takes_options = bzrlib.builtins.cmd_merge.takes_options + [
@@ -644,22 +663,28 @@ class cmd_merge(bzrlib.builtins.cmd_merge):
             del kw['encoding']
         return bzrlib.builtins.cmd_merge.run(self, *args, **kw)
 
+    def get_diff_window_args(self, processEvents):
+        tree_merger = self.merger.make_merger()
+        self.tt = tree_merger.make_preview_transform()
+        result_tree = self.tt.get_preview_tree()
+        return self.merger.this_tree, result_tree, None, None, None
+
     @install_gettext
     @report_missing_pyqt
     def _do_qpreview(self, merger):
-        from bzrlib.diff import show_diff_trees
-        tree_merger = merger.make_merger()
-        tt = tree_merger.make_preview_transform()
+        # Set up global execption handeling.
+        from bzrlib.plugins.qbzr.lib.trace import excepthook
+        sys.excepthook = excepthook
+        
+        self.merger = merger
         try:
-            result_tree = tt.get_preview_tree()
-            
             application = QtGui.QApplication(sys.argv)
-            window = DiffWindow(merger.this_tree, result_tree,
-                encoding=self._encoding)
+            window = DiffWindow(self, encoding=self._encoding)
             window.show()
             application.exec_()
         finally:
-            tt.finalize()
+            if self.tt:
+                self.tt.finalize()
 
     def _do_preview(self, merger):
         if self.qpreview:

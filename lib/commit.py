@@ -40,6 +40,8 @@ from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
 from bzrlib.plugins.qbzr.lib.diff import (
     DiffButtons,
     show_diff,
+    InternalWTDiffArgProvider,
+    InternalDiffArgProvider,
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
@@ -561,9 +563,11 @@ class CommitWindow(SubProcessWindow):
     def show_changeset(self, item=None, column=None):
         new_revid = str(item.data(0, self.RevisionIdRole).toString())
         old_revid = str(item.data(0, self.ParentIdRole).toString())
-        show_diff(old_revid, new_revid,
-                 self.tree.branch, self.tree.branch,
-                 parent_window = self)
+        arg_provider = InternalDiffArgProvider(old_revid, new_revid,
+                                               self.tree.branch,
+                                               self.tree.branch)
+
+        show_diff(arg_provider, parent_window = self)
 
     def show_nonversioned(self, state):
         """Show/hide non-versioned files."""
@@ -615,12 +619,12 @@ class CommitWindow(SubProcessWindow):
                 unversioned.append(path)
 
         if checked:
-            show_diff(self.tree.basis_tree().get_revision_id(), None,
-                     self.tree.branch, self.tree.branch,
-                     new_wt=self.tree,
-                     specific_files=checked,
-                     ext_diff=ext_diff,
-                     parent_window=self)
+            arg_provider = InternalWTDiffArgProvider(
+                self.tree.basis_tree().get_revision_id(), self.tree,
+                self.tree.branch, self.tree.branch,
+                specific_files=checked)
+            
+            show_diff(arg_provider, ext_diff=ext_diff, parent_window = self)
         else:
             msg = "No changes selected to " + dialog_action
             QtGui.QMessageBox.warning(self,

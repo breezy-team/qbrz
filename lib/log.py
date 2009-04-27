@@ -28,6 +28,7 @@ from bzrlib.plugins.qbzr.lib.diff import (
     has_ext_diff,
     ExtDiffMenu,
     DiffButtons,
+    InternalDiffArgProvider,
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
@@ -390,11 +391,10 @@ class LogWindow(QBzrWindow):
             old_revid = old_rev.parent_ids[0]
             old_branch =  old_rev.branch
 
-        show_diff(old_revid, new_revid,
-                 old_branch, new_branch,
-                 ext_diff = ext_diff,
-                 specific_files=specific_files,
-                 parent_window = self)
+        arg_provider = InternalDiffArgProvider(old_revid, new_revid,
+                                               old_branch, new_branch,
+                                               specific_files = specific_files)
+        show_diff(arg_provider, ext_diff = ext_diff, parent_window = self)
 
     def show_differences(self, index):
         """Show differences of a single revision"""

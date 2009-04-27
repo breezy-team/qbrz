@@ -112,22 +112,17 @@ def get_title_for_tree(tree, branch, other_branch):
 
 class DiffWindow(QBzrWindow):
 
-    def __init__(self,
-                 tree1=None, tree2=None,
-                 branch1=None, branch2=None,
-                 specific_files=None,
-                 parent=None,
+    def __init__(self, arg_provider, parent=None,
                  complete=False, encoding=None,
-                 filter_options=None, ui_mode=True,
-                 loader=None, loader_args=None):
+                 filter_options=None, ui_mode=True):
 
         title = [gettext("Diff"), gettext("Loading...")]
         QBzrWindow.__init__(self, title, parent, ui_mode=ui_mode)
         self.restoreSize("diff", (780, 580))
 
-        self.encoding = encoding
         self.trees = None
-        self.specific_files = None
+        self.encoding = encoding
+        self.arg_provider = arg_provider
         self.filter_options = filter_options
         if filter_options is None:
             self.filter_options = FilterOptions(all_enable=True)
@@ -192,12 +187,6 @@ class DiffWindow(QBzrWindow):
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
 
-        # Save the init args if specified
-        self.init_args = (tree1, tree2, branch1, branch2, specific_files)
-        # and loader
-        self.loader_func = loader
-        self.loader_args = loader_args
-
     def show(self):
         QBzrWindow.show(self)
         QtCore.QTimer.singleShot(1, self.initial_load)
@@ -219,14 +208,11 @@ class DiffWindow(QBzrWindow):
             self.throbber.hide()
 
     def load_branch_info(self):
-        # If a loader func was specified, call it to get our trees/branches.
-        if self.loader_func is not None:
-            self.init_args = self.loader_func(*self.loader_args)
-            self.loader_func = self.loader_args = None # kill extra refs...
         
-        # otherwise they better have been passed to our ctor!
-        tree1, tree2, branch1, branch2, specific_files = self.init_args
-
+        (tree1, tree2,
+         branch1, branch2,
+         specific_files) = self.arg_provider.get_diff_window_args(self.processEvents)
+        
         self.trees = (tree1, tree2)
         self.specific_files = specific_files
 
@@ -421,29 +407,4 @@ class DiffWindow(QBzrWindow):
         return False
     
     def ext_diff_triggered(self, ext_diff):
-        (old_tree,
-         new_tree,
-         old_branch,
-         new_branch,
-         specific_files) = self.init_args
-        
-        if isinstance(old_tree, (RevisionTree, DirStateRevisionTree)):
-            old_revid = old_tree.get_revision_id()
-        else:
-            raise NotImplementedError("I don't know how to get the \
-                                      revision id for %s" % tree1)
-        
-        
-        if isinstance(new_tree, WorkingTree):
-            new_revid = None
-            new_wt = new_tree
-        elif isinstance(new_tree, (RevisionTree, DirStateRevisionTree)):
-            new_revid = new_tree.get_revision_id()
-            new_wt = None
-        else:
-            raise NotImplementedError("I don't know how to get the \
-                                      revision id for %s" % tree1)
-        
-        show_diff(old_revid, new_revid, old_branch, new_branch, new_wt = new_wt,
-                  specific_files=specific_files, ext_diff=ext_diff,
-                  parent_window = self)
+        show_diff(self.arg_provider, ext_diff=ext_diff, parent_window = self)
