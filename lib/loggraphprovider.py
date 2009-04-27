@@ -1218,6 +1218,9 @@ class LogGraphProvider(object):
         return has_change
     
     def ensure_rev_visible(self, revid):
+        if self.no_graph:
+            return False
+        
         rev_msri = self.revid_msri[revid]
         branch_id = self.merge_sorted_revisions[rev_msri][3][0:-1]
         has_change = self.set_branch_visible(branch_id, True, False)

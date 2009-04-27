@@ -83,7 +83,7 @@ class FormatedCodeItemDelegate(QtGui.QItemDelegate):
 class AnnotateWindow(QBzrWindow):
 
     def __init__(self, branch, tree, path, fileId, encoding=None, parent=None,
-                 ui_mode=True, loader=None, loader_args=None):
+                 ui_mode=True, loader=None, loader_args=None, no_graph=False):
         QBzrWindow.__init__(self,
                             [gettext("Annotate"), gettext("Loading...")],
                             parent, ui_mode=ui_mode)
@@ -117,7 +117,7 @@ class AnnotateWindow(QBzrWindow):
                      QtCore.SIGNAL("anchorClicked(QUrl)"),
                      self.linkClicked)
 
-        self.log_list = LogList(self.processEvents, self.throbber, False, self)
+        self.log_list = LogList(self.processEvents, self.throbber, no_graph, self)
         self.log_list.header().hideSection(COL_DATE)
         #self.log_list.header().hideSection(COL_AUTHOR)
         
