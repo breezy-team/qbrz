@@ -186,6 +186,7 @@ class cmd_qannotate(QBzrCommand):
                      Option('encoding', type=check_encoding,
                      help='Encoding of files content (default: utf-8).'),
                      ui_mode_option,
+                     Option('no-graph', help="Shows the log with no graph."),
                     ]
     aliases = ['qann', 'qblame']
 
@@ -233,12 +234,13 @@ class cmd_qannotate(QBzrCommand):
         return branch, tree, relpath, file_id
 
     def _qbzr_run(self, filename=None, revision=None, encoding=None,
-                  ui_mode=False):
+                  ui_mode=False, no_graph=False):
         app = QtGui.QApplication(sys.argv)
         win = AnnotateWindow(None, None, None, None,
                              encoding=encoding, ui_mode=ui_mode,
                              loader=self._load_branch,
-                             loader_args=(filename, revision))
+                             loader_args=(filename, revision),
+                             no_graph=no_graph)
         win.show()
         app.exec_()
 
@@ -451,7 +453,7 @@ class cmd_qlog(QBzrCommand):
     takes_args = ['locations*']
     takes_options = [ui_mode_option,
                    	 Option('no-graph', help="Shows the log with no graph."),
-                     ]
+                    ]
 
     def _qbzr_run(self, locations_list, ui_mode=False, no_graph=False):
         app = QtGui.QApplication(sys.argv)

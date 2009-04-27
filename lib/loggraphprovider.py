@@ -153,7 +153,7 @@ class LogGraphProvider(object):
         else:
             return None
     
-    def open_branch(self, branch, file_id, tree=None):
+    def open_branch(self, branch, file_id=None, tree=None):
         """Open branch and fileids to be loaded. """
         
         repo = branch.repository
@@ -963,9 +963,11 @@ class LogGraphProvider(object):
                                                         parent_merge_depth,
                                                         True))
                         else:
-                            if parent_msri in self.merge_info[rev_msri][0]:
-                                # We merge this revision directly. Don't
-                                # look for non directe parents.
+                            if parent_msri in self.merge_info[rev_msri][0] and \
+                               self.get_revision_visible_if_branch_visible_cached(parent_msri):
+                                # We merge this revision directly, and it would
+                                # visible if the user expans it's branch. Don't
+                                # look for non direct parents.
                                 break
                             # The parent was not visible. Search for a ansestor
                             # that is. Stop searching if we make a hop, i.e. we
@@ -1216,6 +1218,9 @@ class LogGraphProvider(object):
         return has_change
     
     def ensure_rev_visible(self, revid):
+        if self.no_graph:
+            return False
+        
         rev_msri = self.revid_msri[revid]
         branch_id = self.merge_sorted_revisions[rev_msri][3][0:-1]
         has_change = self.set_branch_visible(branch_id, True, False)
@@ -1389,7 +1394,8 @@ class LogGraphProvider(object):
                        local_batch_size = 30,
                        remote_batch_size = 5,
                        before_batch_load = None,
-                       revisions_loaded = None):
+                       revisions_loaded = None,
+                       pass_prev_loaded_rev = False):
         
         start_time = clock()
         showed_throbber = False
@@ -1397,6 +1403,10 @@ class LogGraphProvider(object):
         org_revids = revids
         
         try:
+            if pass_prev_loaded_rev and revisions_loaded is not None:
+                revisions_loaded([revid for revid in revids \
+                                  if revid in self.revisions], False)
+            
             revids_loaded = []
             revids = [revid for revid in revids if revid not in self.revisions\
                       and not revid == "root:"]

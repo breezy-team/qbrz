@@ -84,10 +84,10 @@ class LogList(QtGui.QTreeView):
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
 
-    def load_branch(self, branch, specific_fileids, tree=None):
+    def load_branch(self, branch, fileid, tree=None):
         self.throbber.show()
         try:
-            self.graph_provider.open_branch(branch, specific_fileids, tree)
+            self.graph_provider.open_branch(branch, fileid, tree)
             self.load_current_dir_repo_if_no_local_repos()
             self.processEvents()
             self.load()
