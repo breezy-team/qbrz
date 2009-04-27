@@ -22,9 +22,10 @@
 import os
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.plugins.qbzr.lib.extdiff import (
+from bzrlib.plugins.qbzr.lib.diff import (
     DiffButtons,
     show_diff,
+    InternalWTDiffArgProvider,
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
@@ -148,12 +149,13 @@ class RevertWindow(SubProcessDialog):
             checked.append(path)
 
         if checked:
-            show_diff(self.tree.basis_tree().get_revision_id(), None,
-                     self.tree.branch, self.tree.branch,
-                     new_wt=self.tree,
-                     specific_files=checked,
-                     ext_diff=ext_diff,
-                     parent_window=self)
+            arg_provider = InternalWTDiffArgProvider(
+                self.tree.basis_tree().get_revision_id(), self.tree,
+                self.tree.branch, self.tree.branch,
+                specific_files=checked)
+            
+            show_diff(arg_provider, ext_diff=ext_diff, parent_window=self)
+
         else:
             msg = "No changes selected to " + dialog_action
             QtGui.QMessageBox.warning(self,

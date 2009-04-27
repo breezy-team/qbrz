@@ -306,11 +306,3 @@ class BrowseWindow(QBzrWindow):
                 return
             self.set_revision(revspec)
 
-
-def get_diff_trees(tree1, tree2, **kwargs):
-    """Return unified diff between two trees as a string."""
-    from bzrlib.diff import show_diff_trees
-    output = StringIO()
-    show_diff_trees(tree1, tree2, output, **kwargs)
-    # XXX more complicated encoding support needed
-    return output.getvalue().decode("UTF-8", "replace")

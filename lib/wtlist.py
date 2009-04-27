@@ -29,10 +29,11 @@ from bzrlib import (
     osutils,
     )
 
-from bzrlib.plugins.qbzr.lib.extdiff import (
+from bzrlib.plugins.qbzr.lib.diff import (
     show_diff,
     has_ext_diff,
     ExtDiffMenu,
+    InternalWTDiffArgProvider,
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
@@ -258,12 +259,13 @@ class WorkingTreeFileList(QtGui.QTreeWidget):
         
         entries = [desc.path() for desc in self.iter_selection()]
         if entries:
-            show_diff(self.tree.basis_tree().get_revision_id(), None,
-                     self.tree.branch, self.tree.branch,
-                     new_wt = self.tree,
-                     specific_files=entries,
-                     ext_diff=ext_diff,
-                     parent_window = self.topLevelWidget ())            
+            arg_provider = InternalWTDiffArgProvider(
+                self.tree.basis_tree().get_revision_id(), self.tree,
+                self.tree.branch, self.tree.branch,
+                specific_files=entries)
+            
+            show_diff(arg_provider, ext_diff=ext_diff,
+                      parent_window=self.topLevelWidget())
 
     def set_selectall_checkbox(self, checkbox):
         """Helpers for a 'show all' checkbox.  Parent widgets must create the
