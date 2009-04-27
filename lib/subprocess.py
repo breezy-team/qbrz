@@ -78,11 +78,15 @@ class SubProcessWindowBase:
         self.connect(self.process_widget,
             QtCore.SIGNAL("failed()"),
             self.failed)
+        self.connect(self.process_widget,
+            QtCore.SIGNAL("error()"),
+            self.error)
 
         closeButton = StandardButton(BTN_CLOSE)
         okButton = StandardButton(BTN_OK)
         cancelButton = StandardButton(BTN_CANCEL)
 
+        # ok button gets disabled when we start.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessStarted(bool)"),
                                okButton,
@@ -105,6 +109,14 @@ class SubProcessWindowBase:
                                QtCore.SIGNAL("subprocessFinished(bool)"),
                                cancelButton,
                                QtCore.SLOT("setDisabled(bool)"))
+        
+        # ok button gets enabled when we fail.
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessFailed(bool)"),
+                               okButton,
+                               QtCore.SLOT("setDisabled(bool)"))
+
+        
 
         self.buttonbox = QtGui.QDialogButtonBox(self)
         self.buttonbox.addButton(okButton,
@@ -180,7 +192,10 @@ class SubProcessWindowBase:
             self.close()
 
     def failed(self):
-        self.emit(QtCore.SIGNAL("subprocessStarted(bool)"), False)
+        self.emit(QtCore.SIGNAL("subprocessFailed(bool)"), False)
+    
+    def error(self):
+        self.emit(QtCore.SIGNAL("subprocessError(bool)"), False)
     
     def closeEvent(self, event):
         if not self.process_widget.is_running():
@@ -287,10 +302,17 @@ class SimpleSubProcessDialog(SubProcessDialog):
             layout.addWidget(w)
         
         self.auto_start_show_on_failed = auto_start_show_on_failed
+        QtCore.QTimer.singleShot(1, self.auto_start)
+    
+    def auto_start(self):
         if self.auto_start_show_on_failed:
             self.start()
             QtCore.QObject.connect(self,
-                                   QtCore.SIGNAL("subprocessStarted(bool)"),
+                                   QtCore.SIGNAL("subprocessFailed(bool)"),
+                                   self,
+                                   QtCore.SLOT("setHidden(bool)"))
+            QtCore.QObject.connect(self,
+                                   QtCore.SIGNAL("subprocessError(bool)"),
                                    self,
                                    QtCore.SLOT("setHidden(bool)"))
 
@@ -467,6 +489,9 @@ class SubProcessWidget(QtGui.QWidget):
     
     def readStderr(self):
         data = str(self.process.readAllStandardError()).decode(self.encoding)
+        if data:
+            self.emit(QtCore.SIGNAL("error()"))
+        
         for line in data.splitlines():
             error = line.startswith("bzr: ERROR:")
             self.logMessage(line, error)
