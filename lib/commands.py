@@ -433,8 +433,6 @@ class cmd_qlog(QBzrCommand):
     By default show the log of the branch containing the working directory.
     
     If multiple files are speciffied, they must be from the same branch.
-    Only one repository may be speciffied.
-    If multiple branches are speciffied, they must be from the same repository.
 
     :Examples:
         Log the current branch::
@@ -447,7 +445,7 @@ class cmd_qlog(QBzrCommand):
 
         Log from different branches::
 
-            bzr qlog ~/repo/branch1 ~/repo/branch2
+            bzr qlog ~/branch1 ~/branch2
     """
 
     takes_args = ['locations*']
