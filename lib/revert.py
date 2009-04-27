@@ -22,7 +22,7 @@
 import os
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.plugins.qbzr.lib.extdiff import (
+from bzrlib.plugins.qbzr.lib.diff import (
     DiffButtons,
     show_diff,
     )

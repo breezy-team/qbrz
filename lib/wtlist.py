@@ -29,7 +29,7 @@ from bzrlib import (
     osutils,
     )
 
-from bzrlib.plugins.qbzr.lib.extdiff import (
+from bzrlib.plugins.qbzr.lib.diff import (
     show_diff,
     has_ext_diff,
     ExtDiffMenu,

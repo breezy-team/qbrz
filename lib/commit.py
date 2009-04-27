@@ -37,7 +37,7 @@ from bzrlib.workingtree import WorkingTree
 
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
-from bzrlib.plugins.qbzr.lib.extdiff import (
+from bzrlib.plugins.qbzr.lib.diff import (
     DiffButtons,
     show_diff,
     )

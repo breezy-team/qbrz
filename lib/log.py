@@ -22,8 +22,8 @@ from bzrlib.branch import Branch
 from bzrlib import osutils
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
-from bzrlib.plugins.qbzr.lib.diff import DiffWindow
-from bzrlib.plugins.qbzr.lib.extdiff import (
+from bzrlib.plugins.qbzr.lib.diffwindow import DiffWindow
+from bzrlib.plugins.qbzr.lib.diff import (
     show_diff,
     has_ext_diff,
     ExtDiffMenu,
