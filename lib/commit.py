@@ -361,9 +361,6 @@ class CommitWindow(SubProcessWindow):
                                   gettext("Pending Merges"))
             self.tabWidget.setCurrentWidget(self.pending_merges_list)
             
-            self.connect(self.pending_merges_list,
-                QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
-                self.show_changeset)
             # Pending-merge widget gets disabled as we are executing.
             QtCore.QObject.connect(self,
                                    QtCore.SIGNAL("subprocessStarted(bool)"),
@@ -559,15 +556,7 @@ class CommitWindow(SubProcessWindow):
 
         self.tabWidget.setCurrentWidget(self.process_widget)
         self.process_widget.start_multi(commands)
-    
-    def show_changeset(self, item=None, column=None):
-        new_revid = str(item.data(0, self.RevisionIdRole).toString())
-        old_revid = str(item.data(0, self.ParentIdRole).toString())
-        arg_provider = InternalDiffArgProvider(old_revid, new_revid,
-                                               self.tree.branch,
-                                               self.tree.branch)
 
-        show_diff(arg_provider, parent_window = self)
 
     def show_nonversioned(self, state):
         """Show/hide non-versioned files."""

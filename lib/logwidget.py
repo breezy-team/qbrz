@@ -25,12 +25,13 @@ from bzrlib.plugins.qbzr.lib.trace import *
 from bzrlib.plugins.qbzr.lib.util import (
     runs_in_loading_queue,
     )
-
+from bzrlib.plugins.qbzr.lib import diff
 
 class LogList(QtGui.QTreeView):
     """TreeView widget to show log with metadata and graph of revisions."""
 
-    def __init__(self, processEvents, throbber, no_graph, parent=None):
+    def __init__(self, processEvents, throbber, no_graph, parent=None,
+                 view_commands=True, action_commands=False):
         """Costructing new widget.
         @param  throbber:   throbber widget in parent window
         @param  parent:     parent window
@@ -83,6 +84,33 @@ class LogList(QtGui.QTreeView):
 
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
+        
+        self.view_commands = view_commands
+        self.action_commands = action_commands
+        
+        if self.view_commands:
+            self.connect(self,
+                         QtCore.SIGNAL("doubleClicked(QModelIndex)"),
+                         self.show_diff_index)
+        if self.view_commands or self.action_commands:
+            self.context_menu = QtGui.QMenu(self)
+            if diff.has_ext_diff():
+                diff_menu = diff.ExtDiffMenu(self)
+                self.context_menu.addMenu(diff_menu)
+                self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"),
+                             self.show_diff_current_indexes)
+            else:
+                show_diff_action = self.contextMenu.addAction(
+                                            gettext("Show &differences..."),
+                                            self.show_diff_current_indexes)
+                self.context_menu.setDefaultAction(show_diff_action)
+
+            self.connect(self,
+                         QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
+                         self.show_context_menu)
+            
+            self.context_menu.addAction(gettext("Show &tree..."),
+                                        self.show_revision_tree)
 
     def load_branch(self, branch, fileid, tree=None):
         self.throbber.show()
@@ -164,7 +192,10 @@ class LogList(QtGui.QTreeView):
 
     def keyPressEvent (self, e):
         e_key = e.key()
-        if e_key in (QtCore.Qt.Key_Left, QtCore.Qt.Key_Right):
+        if e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return) and self.view_commands:
+            e.accept()
+            self.show_diff_current_indexes()
+        elif e_key in (QtCore.Qt.Key_Left, QtCore.Qt.Key_Right):
             e.accept()
             indexes = [index for index in self.selectedIndexes() if index.column()==0]
             if not indexes:
@@ -260,7 +291,60 @@ class LogList(QtGui.QTreeView):
     
     def set_search(self, str, field):
         self.graph_provider.set_search(str, field)
+    
+    def show_diff(self, new_rev, old_rev, specific_files=None, ext_diff=None):
+        new_revid = new_rev.revision_id
+        new_branch = new_rev.branch
+        
+        if not old_rev.parent_ids:
+            old_revid = None
+            old_branch = new_branch
+        else:
+            old_revid = old_rev.parent_ids[0]
+            old_branch =  old_rev.branch
 
+        arg_provider = diff.InternalDiffArgProvider(
+                                            old_revid, new_revid,
+                                            old_branch, new_branch,
+                                            specific_files = specific_files)
+        diff.show_diff(arg_provider, ext_diff = ext_diff,
+                       parent_window = self.window())
+
+    def show_diff_index(self, index):
+        """Show differences of a single revision from a index."""
+        revid = str(index.data(logmodel.RevIdRole).toString())
+        rev = self.graph_provider.revision(revid, force_load=True)
+        self.show_diff(rev, rev)
+    
+    def show_diff_current_indexes(self, ext_diff=None):
+        """Show differences of the selected range or of a single revision"""
+        # Find 1 index for each row.
+        rows = {}
+        for index in self.selectedIndexes():
+            if index.row() not in rows:
+                rows[index.row()] = index
+        indexes = rows.values()
+        if not indexes:
+            # the list is empty
+            return
+        revid1 = str(indexes[0].data(logmodel.RevIdRole).toString())
+        rev1 = self.graph_provider.revision(revid1)
+        revid2 = str(indexes[-1].data(logmodel.RevIdRole).toString())
+        rev2 = self.graph_provider.revision(revid2)
+        self.show_diff(rev1, rev2, ext_diff=ext_diff)
+    
+    def show_revision_tree(self):
+        from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
+        revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
+        rev = self.graph_provider.revision(revid)
+        window = BrowseWindow(rev.branch, revision_id=rev.revision_id,
+                              revision_spec=rev.revno, parent=self)
+        window.show()
+        self.window().windows.append(window)
+
+    def show_context_menu(self, pos):
+        self.context_menu.popup(self.viewport().mapToGlobal(pos))
+    
 
 class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
 

@@ -22,7 +22,6 @@ from bzrlib.branch import Branch
 from bzrlib import osutils
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
-from bzrlib.plugins.qbzr.lib.diffwindow import DiffWindow
 from bzrlib.plugins.qbzr.lib.diff import (
     show_diff,
     has_ext_diff,
@@ -133,7 +132,6 @@ class LogWindow(QBzrWindow):
                                 self.throbber,
                                 no_graph,
                                 self)
-        self.log_list.keyPressEvent  = self.log_list_keyPressEvent
         
 
         logbox.addWidget(self.throbber)
@@ -148,12 +146,6 @@ class LogWindow(QBzrWindow):
         self.connect(self.log_list.selectionModel(),
                      QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
                      self.update_selection)
-        self.connect(self.log_list,
-                     QtCore.SIGNAL("doubleClicked(QModelIndex)"),
-                     self.show_differences)
-        self.connect(self.log_list,
-                     QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
-                     self.show_context_menu)
         #self.connect(self.log_list,
         #             QtCore.SIGNAL("clicked (QModelIndex)"),
         #             self.changesList_clicked)
@@ -169,7 +161,7 @@ class LogWindow(QBzrWindow):
         self.fileList = QtGui.QListWidget()
         self.connect(self.fileList,
                      QtCore.SIGNAL("doubleClicked(QModelIndex)"),
-                     self.show_file_differences)
+                     self.show_diff_file)
 
         hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
         hsplitter.addWidget(self.message_browser)
@@ -193,20 +185,7 @@ class LogWindow(QBzrWindow):
         self.diffbuttons = DiffButtons(self.centralwidget)
         self.diffbuttons.setEnabled(False)
         self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
-                     self.diff_pushed)
-
-        self.contextMenu = QtGui.QMenu(self)
-        if has_ext_diff():
-            diffMenu = ExtDiffMenu(self)
-            self.contextMenu.addMenu(diffMenu)
-            self.connect(diffMenu, QtCore.SIGNAL("triggered(QString)"),
-                         self.diff_pushed)
-        else:
-            show_diff_action = self.contextMenu.addAction(
-                gettext("Show &differences..."), self.diff_pushed)
-            self.contextMenu.setDefaultAction(show_diff_action)
-        
-        self.contextMenu.addAction(gettext("Show &tree..."), self.show_revision_tree)
+                     self.log_list.show_diff_current_indexes)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)
@@ -371,38 +350,7 @@ class LogWindow(QBzrWindow):
             self.message.setHtml(format_revision_html(rev, replace))
             self.revision_delta_timer.start(1)
 
-    def log_list_keyPressEvent (self, e):
-        e_key = e.key()
-        if e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
-            e.accept()
-            self.diff_pushed()
-        else:
-            LogList.keyPressEvent(self.log_list, e)
-    
-    @ui_current_widget
-    def show_diff_window(self, new_rev, old_rev, specific_files=None, ext_diff = None):
-        new_revid = new_rev.revision_id
-        new_branch = new_rev.branch
-        
-        if not old_rev.parent_ids:
-            old_revid = None
-            old_branch = new_branch
-        else:
-            old_revid = old_rev.parent_ids[0]
-            old_branch =  old_rev.branch
-
-        arg_provider = InternalDiffArgProvider(old_revid, new_revid,
-                                               old_branch, new_branch,
-                                               specific_files = specific_files)
-        show_diff(arg_provider, ext_diff = ext_diff, parent_window = self)
-
-    def show_differences(self, index):
-        """Show differences of a single revision"""
-        revid = str(index.data(logmodel.RevIdRole).toString())
-        rev = self.log_list.graph_provider.revision(revid, force_load=True)
-        self.show_diff_window(rev, rev)
-
-    def show_file_differences(self, index):
+    def show_diff_file(self, index):
         """Show differences of a specific file in a single revision"""
         item = self.fileList.itemFromIndex(index)
         if item and self.current_rev:
@@ -410,22 +358,7 @@ class LogWindow(QBzrWindow):
             if path.isNull():
                 path = item.text()
             rev = self.current_rev
-            self.show_diff_window(rev, rev, [unicode(path)])
-
-    def diff_menu_item_pushed(self, action):
-        self.diff_pushed()
-
-    def diff_pushed(self, ext_diff = None):
-        """Show differences of the selected range or of a single revision"""
-        indexes = [index for index in self.log_list.selectedIndexes() if index.column()==0]
-        if not indexes:
-            # the list is empty
-            return
-        revid1 = str(indexes[0].data(logmodel.RevIdRole).toString())
-        rev1 = self.log_list.graph_provider.revision(revid1)
-        revid2 = str(indexes[-1].data(logmodel.RevIdRole).toString())
-        rev2 = self.log_list.graph_provider.revision(revid2)
-        self.show_diff_window(rev1, rev2, ext_diff = ext_diff)
+            self.log_list.show_diff(rev, rev, [unicode(path)])
 
     @ui_current_widget
     def update_search(self):
@@ -503,17 +436,6 @@ class LogWindow(QBzrWindow):
 
     def set_search_timer(self):
         self.search_timer.start(200)
-
-    def show_revision_tree(self):
-        from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
-        rev = self.current_rev
-        window = BrowseWindow(rev.branch, revision_id=rev.revision_id,
-                              revision_spec=rev.revno, parent=self)
-        window.show()
-        self.windows.append(window)
-
-    def show_context_menu(self, pos):
-        self.contextMenu.popup(self.log_list.viewport().mapToGlobal(pos))
 
     def _locations_for_title(self, locations):
         if locations == ['.']:

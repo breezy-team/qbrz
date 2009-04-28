@@ -124,9 +124,6 @@ class AnnotateWindow(QBzrWindow):
         self.connect(self.log_list.selectionModel(),
                      QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
                      self.update_selection)
-        self.connect(self.log_list,
-                     QtCore.SIGNAL("doubleClicked(QModelIndex)"),
-                     self.show_revision_diff)
 
         hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
         hsplitter.addWidget(self.log_list)
@@ -290,19 +287,6 @@ class AnnotateWindow(QBzrWindow):
             rev = self.log_list.graph_provider.revision(revid, force_load=True)
             self.message_doc.setHtml(format_revision_html(rev,
                                                           show_timestamp=True))
-
-    @ui_current_widget
-    def show_revision_diff(self, index):
-        new_revid = str(index.data(RevIdRole).toString())
-        rev = self.log_list.graph_provider.revision(new_revid, force_load=True)
-        if not rev.parent_ids:
-            old_revid = None
-        else:
-            old_revid = rev.parent_ids[0]
-        arg_provider = InternalDiffArgProvider(old_revid, new_revid,
-                                               self.branch, self.branch,
-                                               specific_file_ids = [self.fileId])
-        show_diff(arg_provider, parent_window = self)
 
     def linkClicked(self, url):
         open_browser(str(url.toEncoded()))
