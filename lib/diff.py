@@ -49,7 +49,7 @@ class DiffArgProvider (object):
     def get_ext_diff_args(self, processEvents):
         """Returns the command line arguments for running an ext diff window.
         
-        :return: List of command line arguments.
+        :return: (dir, List of command line arguments).
         """        
         raise NotImplementedError()
 
@@ -106,8 +106,8 @@ class InternalDiffArgProvider(DiffArgProvider):
         args = []
         args.append(self.get_revspec())
         
-        args.append("--new=%s" % self.new_branch.base)
-        args.append("--old=%s" % self.old_branch.base)
+        if not self.old_branch.base == self.new_branch.base: 
+            args.append("--old=%s" % self.old_branch.base)
         
         if self.need_to_load_paths():
             self.load_new_tree_and_paths()
@@ -115,7 +115,7 @@ class InternalDiffArgProvider(DiffArgProvider):
         if self.specific_files:
             args.extend(self.specific_files)
         
-        return args
+        return self.new_branch.base, args
 
 class InternalWTDiffArgProvider(InternalDiffArgProvider):
     """Use for passing arguments from internal source where the new tree is
@@ -162,11 +162,14 @@ def show_diff(arg_provider, ext_diff=None, parent_window=None):
         args=["diff",
               "--using=%s" % ext_diff]
         # This should be move to after the window has been shown.
-        args.extend(arg_provider.get_ext_diff_args(QtCore.QCoreApplication.processEvents))
+        dir, extra_args = arg_provider.get_ext_diff_args(
+                                        QtCore.QCoreApplication.processEvents)
+        args.extend(extra_args)
         
         window = SimpleSubProcessDialog("External Diff",
                                         desc=ext_diff,
                                         args=args,
+                                        dir=dir,
                                         auto_start_show_on_failed=True,
                                         parent=parent_window)
         window.process_widget.hide_progress()

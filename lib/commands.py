@@ -387,15 +387,15 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
             args.append("-r %s..%s" % (self.revision[0].spec,
                                                    self.revision[1].spec))
         
-        if self.new:
+        if self.new and not self.new==".":
             args.append("--new=%s" % self.new)
-        if self.old:
+        if self.old and not self.old==".":
             args.append("--old=%s" % self.old)
         
         if self.file_list:
             args.extend(self.file_list)
         
-        return args    
+        return None, args    
 
     def _qbzr_run(self, revision=None, file_list=None, complete=False,
             encoding=None,
