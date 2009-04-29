@@ -51,6 +51,7 @@ class LogGraphProvider(object):
         Each item in the list is a of tuple(tree, branch, repo, search_index )"""
         
         self.fileids = []
+        self.has_dir = False
         
         self.repos = {}
         
@@ -168,7 +169,13 @@ class LogGraphProvider(object):
         
         if file_id:
             self.fileids.append(file_id)
-            self.filter_file_id = {}
+            if not has_dir:
+                if tree is None:
+                    kind = branch.basis_tree().kind(file_id)
+                else:
+                    kind = tree.kind(file_id)
+                if kind in ('directory', 'tree-reference'):
+                    self.has_dir = True
         
         if len(self.branches)==1 and self.trunk_branch == None:
             self.trunk_branch = branch
@@ -212,8 +219,12 @@ class LogGraphProvider(object):
             if fp != '' : 
                 if tree is None:
                     file_id = br.basis_tree().path2id(fp)
+                    kind = br.basis_tree().kind(file_id)
                 else:
                     file_id = tree.path2id(fp)
+                    kind = tree.kind(file_id)
+                if kind in ('directory', 'tree-reference'):
+                    self.has_dir = True
                 self.update_ui()
                 
                 if file_id is None:
@@ -221,7 +232,6 @@ class LogGraphProvider(object):
                         "Path does not have any revision history: %s" %
                         location)
                 self.fileids.append(file_id)
-                self.filter_file_id = {}
         
         if self.fileids and len(self.branches)>1:
             raise errors.BzrCommandError(paths_and_branches_err)
@@ -452,11 +462,10 @@ class LogGraphProvider(object):
         if not self.no_graph:
             self.compute_branch_lines()
             self.compute_merge_info()
-        self.invaladate_filter_cache()
         
-        if self.filter_file_id is None:
+        if not self.fileids:
             # All revisions start visible
-            self.filter_cache = [True for i in \
+            self.filter_cache = [True for i in 
                          xrange(len(self.merge_sorted_revisions))]
             self.revisions_filter_changed()
         else:
@@ -647,37 +656,53 @@ class LogGraphProvider(object):
         It requires that compute_merge_info has been run.
         
         """
-        
-        last_update_run_time = 0
-        last_update = clock()
+        def check_text_keys(text_keys):
+            changed_msris = []
+            for fileid, revid in repo.texts.get_parent_map(text_keys):
+                rev_msri = self.revid_msri[revid]
+                self.filter_file_id[rev_msri] = True
+                changed_msris.append(rev_msri)
+            
+            self.update_ui()
+            self.invaladate_filter_cache_revs(changed_msris)
+            self.update_ui()            
         
         if self.fileids:
-            self.filter_file_id = {}
+            self.filter_file_id = [False for i in 
+                         xrange(len(self.merge_sorted_revisions))]
             
             revids = [revid for (sequence_number,
                                  revid,
                                  merge_depth,
                                  revno_sequence,
                                  end_of_merge) in self.merge_sorted_revisions ]
-            repo_revids = self.get_repo_revids(revids)        
-            chunk_size = 500
-            changed_msris = []
+            repo_revids = self.get_repo_revids(revids)
             for repo in self.repos_sorted_local_first():
-                for start in xrange(0, len(self.merge_sorted_revisions), chunk_size):
-                    text_keys = [(fileid, revid) \
-                        for revid in repo_revids[repo.base][start:start + chunk_size] \
-                        for fileid in self.fileids]
-                    
-                    for fileid, revid in repo.texts.get_parent_map(text_keys):
-                        rev_msri = self.revid_msri[revid]
-                        self.filter_file_id[rev_msri] = True
-                        changed_msris.append(rev_msri)
-                    
-                    self.update_ui()
-                    self.invaladate_filter_cache_revs(changed_msris)
-                    
-                    self.update_ui()
-            self.invaladate_filter_cache_revs(changed_msris, last_call=True)
+                revids = repo_revids[repo.base]
+                if not self.has_dir:
+                    chunk_size = 500
+                    for start in xrange(0, len(revids), chunk_size):
+                        text_keys = [(fileid, revid) 
+                            for revid in revids[start:start + chunk_size] 
+                            for fileid in self.fileids]
+                        check_text_keys(text_keys)
+                else:
+                    # We have to load the inventory for each revisions, to find
+                    # the children of any directoires.
+                    chunk_size = 50
+                    for start in xrange(0, len(revids), chunk_size):
+                        text_keys = []
+                        revids_chunk = revids[start:start + chunk_size]
+                        for inv, revid in zip(
+                                    repo.iter_inventories(revids_chunk),
+                                    revids_chunk):
+                            filterted_inv = inv.filter(self.fileids)
+                            for path, entry in filterted_inv.entries():
+                                text_keys.append((entry.file_id, revid))
+                        
+                        check_text_keys(text_keys)
+            
+            self.invaladate_filter_cache_revs((), last_call=True)
     
     def get_revision_visible(self, msri):
         """ Returns wether a revision is visible or not"""
@@ -709,8 +734,10 @@ class LogGraphProvider(object):
                 if self.get_revision_visible_if_branch_visible_cached(merged_msri):
                     return True
         
-        if self.filter_file_id is not None:
-            if msri not in self.filter_file_id:
+        if self.fileids:
+            if self.filter_file_id is None:
+                return False
+            if not self.filter_file_id[msri]:
                 return False
         
         (sequence_number,
