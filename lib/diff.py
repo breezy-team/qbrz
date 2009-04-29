@@ -86,9 +86,6 @@ class InternalDiffArgProvider(DiffArgProvider):
             self.specific_files = [self.new_tree.id2path(id) \
                                    for id in self.specific_file_ids]
 
-    def need_to_load_paths(self):
-        return False
-    
     def get_diff_window_args(self, processEvents):
         self.load_old_tree()
         processEvents()
@@ -141,7 +138,10 @@ class InternalWTDiffArgProvider(InternalDiffArgProvider):
 
     def get_revspec(self):
         return "-r revid:%s" % (self.old_revid,)
-
+    
+    def need_to_load_paths(self):
+        return False
+    
     
 def show_diff(arg_provider, ext_diff=None, parent_window=None):
     

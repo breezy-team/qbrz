@@ -239,6 +239,10 @@ class LogWindow(QBzrWindow):
                 self.suggestion_last_first_letter = ""
                 self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
                              self.set_search_timer)
+            
+            if len(self.log_list.graph_provider.fileids)==1 and \
+                    not self.log_list.graph_provider.has_dir:
+                self.fileList.hide()
         finally:
             self.refresh_button.setDisabled(False)
     
@@ -292,7 +296,7 @@ class LogWindow(QBzrWindow):
             self.processEvents()
             try:
                 rev.delta = rev.repository.get_deltas_for_revisions(
-                    [rev]).next()
+                    [rev], self.log_list.graph_provider.fileids).next()
                 self.processEvents()
             finally:
                 rev.repository.unlock()
