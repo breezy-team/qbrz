@@ -28,6 +28,7 @@ from bzrlib.tsort import merge_sort
 from bzrlib.graph import (Graph, _StackedParentsProvider)
 from bzrlib.bzrdir import BzrDir
 from bzrlib.branch import Branch
+from bzrlib.inventory import Inventory
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 
 have_search = True
@@ -169,7 +170,7 @@ class LogGraphProvider(object):
         
         if file_id:
             self.fileids.append(file_id)
-            if not has_dir:
+            if not self.has_dir:
                 if tree is None:
                     kind = branch.basis_tree().kind(file_id)
                 else:
@@ -679,7 +680,7 @@ class LogGraphProvider(object):
             repo_revids = self.get_repo_revids(revids)
             for repo in self.repos_sorted_local_first():
                 revids = repo_revids[repo.base]
-                if not self.has_dir:
+                if not self.has_dir or getattr(Inventory,"filter",None) is None:
                     chunk_size = 500
                     for start in xrange(0, len(revids), chunk_size):
                         text_keys = [(fileid, revid) 

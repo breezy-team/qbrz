@@ -295,8 +295,15 @@ class LogWindow(QBzrWindow):
             rev.repository.lock_read()
             self.processEvents()
             try:
-                rev.delta = rev.repository.get_deltas_for_revisions(
-                    [rev], self.log_list.graph_provider.fileids).next()
+                # If we are running bzr 1.4 - then filter the delta
+                import inspect
+                if "specific_fileids" in inspect.getargspec(
+                            rev.repository.get_deltas_for_revisions)[0]:
+                    rev.delta = rev.repository.get_deltas_for_revisions(
+                        [rev], self.log_list.graph_provider.fileids).next()
+                else:
+                    rev.delta = rev.repository.get_deltas_for_revisions(
+                        [rev]).next()
                 self.processEvents()
             finally:
                 rev.repository.unlock()
