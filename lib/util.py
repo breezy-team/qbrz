@@ -730,6 +730,7 @@ def split_tokens_at_lines(tokens):
             if v.endswith(('\n','\r')):
                 yield currentLine
                 currentLine = []
+    yield currentLine
 
 # Some helpers for combo-boxes.  Combos for different purposes (eg, push
 # vs pull) have quite different requirements for the combo:
