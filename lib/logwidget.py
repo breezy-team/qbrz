@@ -100,7 +100,7 @@ class LogList(QtGui.QTreeView):
                 self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"),
                              self.show_diff_current_indexes)
             else:
-                show_diff_action = self.contextMenu.addAction(
+                show_diff_action = self.context_menu.addAction(
                                             gettext("Show &differences..."),
                                             self.show_diff_current_indexes)
                 self.context_menu.setDefaultAction(show_diff_action)
