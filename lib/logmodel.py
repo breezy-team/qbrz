@@ -91,8 +91,8 @@ class QLogGraphProvider(LogGraphProvider):
         self.on_filter_changed()
 
     @runs_in_loading_queue
-    def load_filter_file_id_chunk(self, repo, revids, last_call=False):
-        LogGraphProvider.load_filter_file_id_chunk(self, repo, revids, last_call)
+    def load_filter_file_id_chunk(self, repo, revids):
+        LogGraphProvider.load_filter_file_id_chunk(self, repo, revids)
 
     @runs_in_loading_queue
     def load_filter_file_id_chunk_finished(self):

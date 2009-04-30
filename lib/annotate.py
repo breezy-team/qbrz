@@ -167,6 +167,11 @@ class AnnotateWindow(QBzrWindow):
                 QtCore.QCoreApplication.processEvents()
             self.branch.lock_read()
             try:
+                def do_nothing():
+                    pass
+                
+                self.log_list.graph_provider.load_filter_file_id = do_nothing
+                
                 self.log_list.load_branch(self.branch, self.fileId)
                 self.annotate(self.tree, self.fileId, self.path)
             finally:
@@ -223,6 +228,24 @@ class AnnotateWindow(QBzrWindow):
             revisions_loaded = self.revisions_loaded,
             pass_prev_loaded_rev = True
             )
+        
+        
+        self.log_list.graph_provider.filter_file_id = [False for i in 
+            xrange(len(self.log_list.graph_provider.merge_sorted_revisions))]
+        
+        changed_msris = []
+        for revid in self.rev_items.keys():
+            msri = self.log_list.graph_provider.revid_msri[revid]
+            self.log_list.graph_provider.filter_file_id[msri] = True
+            changed_msris.append(msri)
+            
+            if len(changed_msris) >=500:
+                 self.log_list.graph_provider.invaladate_filter_cache_revs(
+                                                                changed_msris)
+                 changed_msris = []
+        
+        self.log_list.graph_provider.invaladate_filter_cache_revs(
+                                                changed_msris, last_call=True)
         
         
         # take care to insert the items after we are done fiddling with

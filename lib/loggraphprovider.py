@@ -686,7 +686,7 @@ class LogGraphProvider(object):
             
             self.load_filter_file_id_chunk_finished()
     
-    def load_filter_file_id_chunk(self, repo, revids, last_call=False):
+    def load_filter_file_id_chunk(self, repo, revids):
         def check_text_keys(text_keys):
             changed_msris = []
             for fileid, revid in repo.texts.get_parent_map(text_keys):
