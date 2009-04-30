@@ -165,9 +165,11 @@ class LogList(QtGui.QTreeView):
         try:
             self.graph_provider.load_tags()
             self.model.load_graph_all_revisions()
-            self.graph_provider.load_filter_file_id()
         finally:
             self.graph_provider.unlock_branches()
+        
+        # Start later so that it does not run in the loading queue.
+        QtCore.QTimer.singleShot(1, self.graph_provider.load_filter_file_id)
 
     def mouseReleaseEvent (self, e):
         if e.button() & QtCore.Qt.LeftButton:

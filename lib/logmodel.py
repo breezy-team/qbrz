@@ -30,9 +30,10 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
     BackgroundJob,
-    get_apparent_author
+    get_apparent_author,
+    runs_in_loading_queue,
     )
- 
+
 TagsRole = QtCore.Qt.UserRole + 1
 BugIdsRole = QtCore.Qt.UserRole + 2
 BranchTagsRole = QtCore.Qt.UserRole + 3
@@ -88,6 +89,14 @@ class QLogGraphProvider(LogGraphProvider):
     
     def revisions_filter_changed(self):
         self.on_filter_changed()
+
+    @runs_in_loading_queue
+    def load_filter_file_id_chunk(self, repo, revids, last_call=False):
+        LogGraphProvider.load_filter_file_id_chunk(self, repo, revids, last_call)
+
+    @runs_in_loading_queue
+    def load_filter_file_id_chunk_finished(self):
+        LogGraphProvider.load_filter_file_id_chunk_finished(self)
 
 class LogModel(QtCore.QAbstractTableModel):
 

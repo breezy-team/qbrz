@@ -651,24 +651,18 @@ class LogGraphProvider(object):
                     if not revid == NULL_REVISION and revid in self.revid_msri])
                 ur.sort(key=lambda x: self.revid_msri[x])
 
+    def load_filter_file_id_uses_inventory(self):
+        return self.has_dir and getattr(Inventory,"filter",None) is not None
+    
     def load_filter_file_id(self):
         """Load with revisions affect the fileids
         
         It requires that compute_merge_info has been run.
         
         """
-        def check_text_keys(text_keys):
-            changed_msris = []
-            for fileid, revid in repo.texts.get_parent_map(text_keys):
-                rev_msri = self.revid_msri[revid]
-                self.filter_file_id[rev_msri] = True
-                changed_msris.append(rev_msri)
-            
-            self.update_ui()
-            self.invaladate_filter_cache_revs(changed_msris)
-            self.update_ui()            
-        
         if self.fileids:
+            self.throbber_show()
+            
             self.filter_file_id = [False for i in 
                          xrange(len(self.merge_sorted_revisions))]
             
@@ -680,30 +674,55 @@ class LogGraphProvider(object):
             repo_revids = self.get_repo_revids(revids)
             for repo in self.repos_sorted_local_first():
                 revids = repo_revids[repo.base]
-                if not self.has_dir or getattr(Inventory,"filter",None) is None:
+                if not self.load_filter_file_id_uses_inventory():
                     chunk_size = 500
-                    for start in xrange(0, len(revids), chunk_size):
-                        text_keys = [(fileid, revid) 
-                            for revid in revids[start:start + chunk_size] 
-                            for fileid in self.fileids]
-                        check_text_keys(text_keys)
                 else:
-                    # We have to load the inventory for each revisions, to find
-                    # the children of any directoires.
                     chunk_size = 50
-                    for start in xrange(0, len(revids), chunk_size):
-                        text_keys = []
-                        revids_chunk = revids[start:start + chunk_size]
-                        for inv, revid in zip(
-                                    repo.iter_inventories(revids_chunk),
-                                    revids_chunk):
-                            filterted_inv = inv.filter(self.fileids)
-                            for path, entry in filterted_inv.entries():
-                                text_keys.append((entry.file_id, revid))
-                        
-                        check_text_keys(text_keys)
+                
+                for start in xrange(0, len(revids), chunk_size):
+                    text_keys = []
+                    self.load_filter_file_id_chunk(repo, 
+                            revids[start:start + chunk_size])
             
-            self.invaladate_filter_cache_revs((), last_call=True)
+            self.load_filter_file_id_chunk_finished()
+    
+    def load_filter_file_id_chunk(self, repo, revids, last_call=False):
+        def check_text_keys(text_keys):
+            changed_msris = []
+            for fileid, revid in repo.texts.get_parent_map(text_keys):
+                rev_msri = self.revid_msri[revid]
+                self.filter_file_id[rev_msri] = True
+                changed_msris.append(rev_msri)
+            
+            self.update_ui()
+            self.invaladate_filter_cache_revs(changed_msris)
+            self.update_ui()
+        
+        repo.lock_read()
+        try:
+            if not self.load_filter_file_id_uses_inventory():
+                text_keys = [(fileid, revid) 
+                                for revid in revids
+                                for fileid in self.fileids]
+                check_text_keys(text_keys)
+            else:
+                text_keys = []
+                # We have to load the inventory for each revisions, to find
+                # the children of any directoires.
+                for inv, revid in zip(
+                            repo.iter_inventories(revids),
+                            revids):
+                    filterted_inv = inv.filter(self.fileids)
+                    for path, entry in filterted_inv.entries():
+                        text_keys.append((entry.file_id, revid))
+                
+                check_text_keys(text_keys)
+        finally:
+            repo.unlock()
+
+    def load_filter_file_id_chunk_finished(self):
+        self.invaladate_filter_cache_revs([], last_call=True)
+        self.throbber_hide()
     
     def get_revision_visible(self, msri):
         """ Returns wether a revision is visible or not"""
