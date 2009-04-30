@@ -189,8 +189,11 @@ class AnnotateWindow(QBzrWindow):
         self.set_title_and_icon([gettext("Annotate"), self.path])
 
     def annotate(self, tree, fileId, path):
-        revnos = self.branch.get_revision_id_to_revno_map()
-        revnos = dict((k, '.'.join(map(str, v))) for k, v in revnos.iteritems())
+        def revno(revid):
+            msri = self.log_list.graph_provider.revid_msri[revid]
+            revno_sequence = self.log_list.graph_provider.merge_sorted_revisions[msri][3]
+            return ".".join(["%d" % (revno) for revno in revno_sequence])
+        
         font = QtGui.QFont("Courier New,courier", self.browser.font().pointSize())
         items = []
         self.rev_items = {}
@@ -213,7 +216,7 @@ class AnnotateWindow(QBzrWindow):
                 if revid not in self.rev_top_items:
                     self.rev_top_items[revid]=[]
                 self.rev_top_items[revid].append(item)
-                item.setText(2, revnos[revid])
+                item.setText(2, revno(revid))
                 item.setTextAlignment(2, QtCore.Qt.AlignRight)
             
             item.setText(3, text.rstrip())
