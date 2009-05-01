@@ -309,7 +309,7 @@ class LogList(QtGui.QTreeView):
                                             old_revid, new_revid,
                                             old_branch, new_branch,
                                             specific_files = specific_files)
-        if specific_files is None:
+        if specific_files is None and self.graph_provider.fileids:
             arg_provider.specific_file_ids = self.graph_provider.fileids
 
         diff.show_diff(arg_provider, ext_diff = ext_diff,
