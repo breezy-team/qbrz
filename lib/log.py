@@ -295,9 +295,11 @@ class LogWindow(QBzrWindow):
             rev.repository.lock_read()
             self.processEvents()
             try:
-                # If we are running bzr 1.4 - then filter the delta
+                # If we are showing specific files, and running bzr 1.4 - then
+                # filter the delta.
                 import inspect
-                if "specific_fileids" in inspect.getargspec(
+                if self.log_list.graph_provider.fileids and \
+                    "specific_fileids" in inspect.getargspec(
                             rev.repository.get_deltas_for_revisions)[0]:
                     rev.delta = rev.repository.get_deltas_for_revisions(
                         [rev], self.log_list.graph_provider.fileids).next()
