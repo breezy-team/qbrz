@@ -240,10 +240,14 @@ class LogGraphProvider(object):
     def lock_read_branches(self):
         for (tree, branch, repo, index) in self.branches:
             branch.lock_read()
+        for repo in self.repos.itervalues():
+            repo.lock_read()
     
     def unlock_branches(self):
         for (tree, branch, repo, index) in self.branches:
             branch.unlock()
+        for repo in self.repos.itervalues():
+            repo.unlock()
     
     #def lock_read_repos(self):
     #    for repo in self.repos.itervalues():
