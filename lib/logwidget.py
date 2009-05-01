@@ -155,7 +155,6 @@ class LogList(QtGui.QTreeView):
     def refresh(self):
         self.throbber.show()
         try:
-            self.graph_provider.unlock_repos()
             self.load()
         finally:
             self.throbber.hide()
