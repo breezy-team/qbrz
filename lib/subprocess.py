@@ -306,7 +306,6 @@ class SimpleSubProcessDialog(SubProcessDialog):
     
     def auto_start(self):
         if self.auto_start_show_on_failed:
-            self.start()
             QtCore.QObject.connect(self,
                                    QtCore.SIGNAL("subprocessFailed(bool)"),
                                    self,
@@ -315,7 +314,7 @@ class SimpleSubProcessDialog(SubProcessDialog):
                                    QtCore.SIGNAL("subprocessError(bool)"),
                                    self,
                                    QtCore.SLOT("setHidden(bool)"))
-
+            self.start()
 
 class SubProcessWidget(QtGui.QWidget):
 
@@ -517,7 +516,7 @@ class SubProcessWidget(QtGui.QWidget):
         else:
             message = gettext("Error while running bzr. (error code: %d)" % error)
         self.logMessage(message, True)
-        #self.emit(QtCore.SIGNAL("failed()"))
+        self.emit(QtCore.SIGNAL("failed()"))
 
     def onFinished(self, exitCode, exitStatus):
         self._delete_args_file()
