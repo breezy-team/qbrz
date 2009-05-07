@@ -319,7 +319,9 @@ class SidebySideDiffView(QtGui.QSplitter):
                         if not p:
                             return []
                         lexer = get_lexer_for_filename(path)
-                        tokens = list(split_tokens_at_lines(lex(d, lexer)))
+                        tokens = list(split_tokens_at_lines(lex(d,
+                                                                lexer,
+                                                                stripnl=False)))
                         QtCore.QCoreApplication.processEvents() 
                         return tokens
                     

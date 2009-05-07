@@ -197,7 +197,7 @@ class QBzrCatWindow(QBzrWindow):
                 cursor = QtGui.QTextCursor(self.doc)
                 font = self.doc.defaultFont()
                 lexer = get_lexer_for_filename(relpath)
-                for ttype, value in lex(text, lexer):                    
+                for ttype, value in lex(text, lexer, stripnl=False):                    
                     format = QtGui.QTextCharFormat()
                     format.setFont(font)
                     format = format_for_ttype(ttype,format)
