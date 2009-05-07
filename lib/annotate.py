@@ -265,7 +265,7 @@ class AnnotateWindow(QBzrWindow):
                 # tokens to the delegate.
                 lines_tokens = list(split_tokens_at_lines(\
                                   lex("".join(lines),
-                                  get_lexer_for_filename(path))))
+                                  get_lexer_for_filename(path, stripnl=False))))
                 self.browser.setItemDelegateForColumn(3,FormatedCodeItemDelegate(lines_tokens, self))
                 
             except ClassNotFound:
