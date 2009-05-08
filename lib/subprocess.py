@@ -27,7 +27,7 @@ import tempfile
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import osutils, progress, ui, urlutils
+from bzrlib import osutils, progress, ui
 from bzrlib.util import bencode
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
@@ -416,10 +416,6 @@ class SubProcessWidget(QtGui.QWidget):
 
         if dir is None:
             dir = self.defaultWorkingDir
-        else:
-            dir = urlutils.local_path_from_url(dir)
-            if sys.platform == 'win32':
-                dir = dir.replace("/","\\")
 
         self.process.setWorkingDirectory (dir)
         self._setup_stdout_stderr()
