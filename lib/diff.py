@@ -17,6 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+from bzrlib import urlutils
 from bzrlib.plugins.qbzr.lib.util import ( 
     QBzrGlobalConfig,
     runs_in_loading_queue,
@@ -111,8 +112,9 @@ class InternalDiffArgProvider(DiffArgProvider):
             processEvents()
         if self.specific_files:
             args.extend(self.specific_files)
+        dir = urlutils.local_path_from_url(self.new_branch.base)
         
-        return self.new_branch.base, args
+        return dir, args
 
 class InternalWTDiffArgProvider(InternalDiffArgProvider):
     """Use for passing arguments from internal source where the new tree is
