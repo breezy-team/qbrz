@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-03-24 17:11+0200\n"
+"POT-Creation-Date: 2009-03-29 10:12+0300\n"
 "PO-Revision-Date: 2008-11-22 15:14+0000\n"
 "Last-Translator: Lukáš Lalinský <lalinsky@gmail.com>\n"
 "Language-Team: Slovak <sk@li.org>\n"
@@ -14,7 +14,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 1 : (n>=2 && n<=4) ? 2 : 0;\n"
-"X-Launchpad-Export-Date: 2009-03-24 15:56+0000\n"
+"X-Launchpad-Export-Date: 2009-05-12 10:36+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:41 lib\config.py:112 lib\config.py:133 lib\config.py:164
@@ -22,41 +22,25 @@ msgstr ""
 msgid "Add"
 msgstr "Pridať"
 
-#: lib\add.py:51
-msgid "Unversioned Files"
-msgstr ""
-
-#: lib\add.py:68
-msgid "Show ignored files"
-msgstr ""
-
-#: lib\annotate.py:87 lib\annotate.py:188 lib\browse.py:116
+#: lib\annotate.py:86 lib\annotate.py:187 lib\browse.py:116
 msgid "Annotate"
 msgstr "Anotovať"
 
-#: lib\annotate.py:87 lib\diff.py:124 lib\util.py:423
-msgid "Loading..."
-msgstr ""
-
-#: lib\annotate.py:106
-msgid "Line"
-msgstr ""
-
-#: lib\annotate.py:106 lib\annotate.py:121 lib\browse.py:106 lib\commit.py:369
-#: lib\logmodel.py:116
+#: lib\annotate.py:105 lib\annotate.py:120 lib\browse.py:106 lib\commit.py:369
+#: lib\logmodel.py:105
 msgid "Author"
 msgstr "Autor"
 
-#: lib\annotate.py:106 lib\annotate.py:121 lib\browse.py:107
-#: lib\logmodel.py:113
+#: lib\annotate.py:105 lib\annotate.py:120 lib\browse.py:107
+#: lib\logmodel.py:102
 msgid "Rev"
 msgstr "Rev"
 
-#: lib\annotate.py:121 lib\browse.py:105 lib\commit.py:369 lib\logmodel.py:115
+#: lib\annotate.py:120 lib\browse.py:105 lib\commit.py:369 lib\logmodel.py:104
 msgid "Date"
 msgstr "Dátum"
 
-#: lib\annotate.py:121
+#: lib\annotate.py:120
 msgid "Summary"
 msgstr "Zhrnutie"
 
@@ -68,7 +52,7 @@ msgstr "Prehliadať"
 msgid "Location:"
 msgstr "Umiestnenie:"
 
-#: lib\browse.py:94 lib\ui_new_tree.py:160 lib\util.py:506
+#: lib\browse.py:94 lib\ui_new_tree.py:160 lib\util.py:507
 msgid "Revision:"
 msgstr "Revízia:"
 
@@ -80,7 +64,7 @@ msgstr "Zobraziť"
 msgid "Name"
 msgstr "Názov"
 
-#: lib\browse.py:108 lib\commit.py:272 lib\commit.py:369 lib\logmodel.py:114
+#: lib\browse.py:108 lib\commit.py:272 lib\commit.py:369 lib\logmodel.py:103
 msgid "Message"
 msgstr "Správa"
 
@@ -88,36 +72,9 @@ msgstr "Správa"
 msgid "Show log..."
 msgstr "Zobraziť históriu..."
 
-#: lib\browse.py:118
-msgid "View file"
-msgstr ""
-
-#: lib\cat.py:87 lib\cat.py:244
-msgid "View"
-msgstr ""
-
 #: lib\commit.py:223 lib\commit.py:485 lib\commit.py:514 lib\commit.py:522
 msgid "Commit"
 msgstr "Odovzdať"
-
-#: lib\commit.py:239 lib\ui_branch.py:65 lib\ui_new_tree.py:130
-#: lib\ui_tag.py:100
-msgid "Branch"
-msgstr ""
-
-#: lib\commit.py:251
-msgid "&Local commit"
-msgstr ""
-
-#: lib\commit.py:253
-msgid ""
-"Local commits are not pushed to the master branch until a normal commit is "
-"performed"
-msgstr ""
-
-#: lib\commit.py:257
-msgid "Description:"
-msgstr ""
 
 #: lib\commit.py:280
 msgid "Show non-versioned files"
@@ -170,40 +127,10 @@ msgstr "Čakajúce zlúčenia"
 msgid "Status"
 msgstr "Stav"
 
-#: lib\commit.py:408
-msgid "View changes in files selected to commit"
-msgstr ""
-
-#: lib\commit.py:486
-msgid "You should provide commit message."
-msgstr ""
-
 #: lib\commit.py:487 lib\conflicts.py:171 lib\conflicts.py:176 lib\diff.py:389
-#: lib\util.py:68
+#: lib\util.py:69
 msgid "&OK"
 msgstr "&OK"
-
-#: lib\commit.py:515
-msgid "No changes to commit."
-msgstr ""
-
-#: lib\commit.py:523
-msgid ""
-"No changes selected to commit.\n"
-"Do you want to commit anyway?"
-msgstr ""
-
-#: lib\commit.py:584
-msgid ""
-"A commit will be made directly to the master branch, keeping the local and "
-"master branches in sync."
-msgstr ""
-
-#: lib\commit.py:590
-msgid ""
-"A local commit to the branch will be performed. The master branch will not "
-"be updated until a non-local commit is made."
-msgstr ""
 
 #: lib\commit.py:623 lib\diff.py:124 lib\diff.py:236 lib\diff.py:379
 #: lib\diff.py:387 lib\extdiff.py:122 lib\revert.py:160
@@ -238,10 +165,6 @@ msgstr "XDG e-mailový klient"
 msgid "MAPI e-mail client"
 msgstr "MAPI e-mailový klient"
 
-#: lib\config.py:49
-msgid "Editor"
-msgstr ""
-
 #: lib\config.py:70
 msgid "Configuration"
 msgstr "Nastavenie"
@@ -253,10 +176,6 @@ msgstr "Me&no:"
 #: lib\config.py:86
 msgid "E-&mail:"
 msgstr "E-&mail:"
-
-#: lib\config.py:92
-msgid "&Editor:"
-msgstr ""
 
 #: lib\config.py:100
 msgid "E-mail &client:"
@@ -273,6 +192,208 @@ msgstr "Príkaz"
 #: lib\config.py:115 lib\config.py:136 lib\config.py:167 lib\config.py:196
 msgid "Remove"
 msgstr "Odstrániť"
+
+#: lib\config.py:210
+msgid "General"
+msgstr "Všeobecné"
+
+#: lib\config.py:211
+msgid "Aliases"
+msgstr "Aliasy"
+
+#: lib\conflicts.py:57 lib\wtlist.py:95
+msgid "File"
+msgstr "Súbor"
+
+#: lib\diff.py:150
+msgid "Side by side"
+msgstr "Po stránách"
+
+#: lib\diff.py:157
+msgid "Unidiff"
+msgstr "Unifikované"
+
+#: lib\diff.py:242
+#, python-format
+msgid "%d file"
+msgid_plural "%d files"
+msgstr[0] "%d súborov"
+msgstr[1] "%d súbor"
+msgstr[2] "%d súbory"
+
+#: lib\diff.py:321 lib\wtlist.py:130
+msgid "removed"
+msgstr "vymazané"
+
+#: lib\diff.py:323 lib\wtlist.py:126
+msgid "added"
+msgstr "pridané"
+
+#: lib\diff.py:325 lib\wtlist.py:143
+msgid "renamed and modified"
+msgstr "premenované a zmeneé"
+
+#: lib\diff.py:327 lib\wtlist.py:145
+msgid "renamed"
+msgstr "premenované"
+
+#: lib\diff.py:329 lib\wtlist.py:152
+msgid "modified"
+msgstr "zmenené"
+
+#: lib\diff.py:382 lib\subprocess.py:149 lib\tag.py:143 lib\tag.py:174
+#: lib\tag.py:211 lib\util.py:71
+msgid "&Close"
+msgstr "&Zavrieť"
+
+#: lib\diffview.py:248
+msgid "Last modified:"
+msgstr "Naposledy zmenené:"
+
+#: lib\diffview.py:249
+msgid "Status:"
+msgstr "Stav:"
+
+#: lib\diffview.py:250
+msgid "Kind:"
+msgstr "Typ:"
+
+#: lib\i18n.py:87
+msgid "file"
+msgstr "súbor"
+
+#: lib\i18n.py:88
+msgid "directory"
+msgstr "adresár"
+
+#: lib\i18n.py:89
+msgid "symlink"
+msgstr "symbolický odkaz"
+
+#: lib\log.py:69
+msgid "Log"
+msgstr "História"
+
+#: lib\log.py:96
+msgid "&Search:"
+msgstr "&Vyhľadávanie:"
+
+#: lib\log.py:112
+msgid "Messages"
+msgstr "Správy"
+
+#: lib\main.py:318 lib\util.py:72
+msgid "&Help"
+msgstr "&Pomoc"
+
+#: lib\tag.py:151 lib\tag.py:164 lib\util.py:70
+msgid "&Cancel"
+msgstr "&Zrušiť"
+
+#: lib\util.py:533
+msgid "Committer:"
+msgstr "Odovzdávateľ:"
+
+#: lib\util.py:536 lib\util.py:541
+msgid "Author:"
+msgstr "Autor:"
+
+#: lib\util.py:550
+msgid "Tags:"
+msgstr "Značky:"
+
+#: lib\wtlist.py:84
+msgid "&Revert..."
+msgstr "&Revertovať..."
+
+#: lib\wtlist.py:95
+msgid "Extension"
+msgstr "Prípona"
+
+#: lib\wtlist.py:122
+msgid "non-versioned"
+msgstr "neverzované"
+
+#: lib\add.py:51
+msgid "Unversioned Files"
+msgstr ""
+
+#: lib\add.py:68
+msgid "Show ignored files"
+msgstr ""
+
+#: lib\annotate.py:86 lib\diff.py:124 lib\util.py:424
+msgid "Loading..."
+msgstr ""
+
+#: lib\annotate.py:105
+msgid "Line"
+msgstr ""
+
+#: lib\browse.py:118
+msgid "View file"
+msgstr ""
+
+#: lib\cat.py:87 lib\cat.py:244
+msgid "View"
+msgstr ""
+
+#: lib\commit.py:239 lib\ui_branch.py:65 lib\ui_new_tree.py:130
+#: lib\ui_tag.py:100
+msgid "Branch"
+msgstr ""
+
+#: lib\commit.py:251
+msgid "&Local commit"
+msgstr ""
+
+#: lib\commit.py:253
+msgid ""
+"Local commits are not pushed to the master branch until a normal commit is "
+"performed"
+msgstr ""
+
+#: lib\commit.py:257
+msgid "Description:"
+msgstr ""
+
+#: lib\commit.py:408
+msgid "View changes in files selected to commit"
+msgstr ""
+
+#: lib\commit.py:486
+msgid "You should provide commit message."
+msgstr ""
+
+#: lib\commit.py:515
+msgid "No changes to commit."
+msgstr ""
+
+#: lib\commit.py:523
+msgid ""
+"No changes selected to commit.\n"
+"Do you want to commit anyway?"
+msgstr ""
+
+#: lib\commit.py:584
+msgid ""
+"A commit will be made directly to the master branch, keeping the local and "
+"master branches in sync."
+msgstr ""
+
+#: lib\commit.py:590
+msgid ""
+"A local commit to the branch will be performed. The master branch will not "
+"be updated until a non-local commit is made."
+msgstr ""
+
+#: lib\config.py:49
+msgid "Editor"
+msgstr ""
+
+#: lib\config.py:92
+msgid "&Editor:"
+msgstr ""
 
 #: lib\config.py:131
 msgid "Abbreviation"
@@ -297,14 +418,6 @@ msgstr ""
 #: lib\config.py:187
 msgid "Definition"
 msgstr ""
-
-#: lib\config.py:210
-msgid "General"
-msgstr "Všeobecné"
-
-#: lib\config.py:211
-msgid "Aliases"
-msgstr "Aliasy"
 
 #: lib\config.py:212
 msgid "Bug Trackers"
@@ -334,10 +447,6 @@ msgstr ""
 #: lib\conflicts.py:174
 msgid "Conflicts"
 msgstr ""
-
-#: lib\conflicts.py:57 lib\wtlist.py:95
-msgid "File"
-msgstr "Súbor"
 
 #: lib\conflicts.py:58
 msgid "Conflict"
@@ -487,14 +596,6 @@ msgstr ""
 msgid "Merge Preview"
 msgstr ""
 
-#: lib\diff.py:150
-msgid "Side by side"
-msgstr "Po stránách"
-
-#: lib\diff.py:157
-msgid "Unidiff"
-msgstr "Unifikované"
-
 #: lib\diff.py:162
 msgid "Complete"
 msgstr ""
@@ -503,34 +604,6 @@ msgstr ""
 msgid "Using"
 msgstr ""
 
-#: lib\diff.py:242
-#, python-format
-msgid "%d file"
-msgid_plural "%d files"
-msgstr[0] "%d súborov"
-msgstr[1] "%d súbor"
-msgstr[2] "%d súbory"
-
-#: lib\diff.py:321 lib\wtlist.py:130
-msgid "removed"
-msgstr "vymazané"
-
-#: lib\diff.py:323 lib\wtlist.py:126
-msgid "added"
-msgstr "pridané"
-
-#: lib\diff.py:325 lib\wtlist.py:143
-msgid "renamed and modified"
-msgstr "premenované a zmeneé"
-
-#: lib\diff.py:327 lib\wtlist.py:145
-msgid "renamed"
-msgstr "premenované"
-
-#: lib\diff.py:329 lib\wtlist.py:152
-msgid "modified"
-msgstr "zmenené"
-
 #: lib\diff.py:380
 #, python-format
 msgid ""
@@ -538,26 +611,9 @@ msgid ""
 "Operation aborted."
 msgstr ""
 
-#: lib\diff.py:382 lib\subprocess.py:149 lib\tag.py:143 lib\tag.py:174
-#: lib\tag.py:211 lib\util.py:70
-msgid "&Close"
-msgstr "&Zavrieť"
-
 #: lib\diff.py:388
 msgid "No changes found."
 msgstr ""
-
-#: lib\diffview.py:248
-msgid "Last modified:"
-msgstr "Naposledy zmenené:"
-
-#: lib\diffview.py:249
-msgid "Status:"
-msgstr "Stav:"
-
-#: lib\diffview.py:250
-msgid "Kind:"
-msgstr "Typ:"
 
 #: lib\diffview.py:251
 msgid "Properties:"
@@ -583,18 +639,6 @@ msgstr ""
 #: lib\help.py:110
 msgid "Help"
 msgstr ""
-
-#: lib\i18n.py:87
-msgid "file"
-msgstr "súbor"
-
-#: lib\i18n.py:88
-msgid "directory"
-msgstr "adresár"
-
-#: lib\i18n.py:89
-msgid "symlink"
-msgstr "symbolický odkaz"
 
 #: lib\i18n.py:91
 msgid "fixed"
@@ -640,43 +684,39 @@ msgstr ""
 msgid "You must specify a location"
 msgstr ""
 
-#: lib\log.py:67
-msgid "Log"
-msgstr "História"
-
-#: lib\log.py:94
-msgid "&Search:"
-msgstr "&Vyhľadávanie:"
-
-#: lib\log.py:110
-msgid "Messages"
-msgstr "Správy"
-
-#: lib\log.py:112
+#: lib\log.py:114
 msgid "Authors"
 msgstr ""
 
-#: lib\log.py:114
+#: lib\log.py:116
 msgid "Revision IDs"
 msgstr ""
 
-#: lib\log.py:116
+#: lib\log.py:118
 msgid "Revision Numbers"
 msgstr ""
 
-#: lib\log.py:200 lib\wtlist.py:79
+#: lib\log.py:120
+msgid "Tags"
+msgstr ""
+
+#: lib\log.py:122
+msgid "Bugs"
+msgstr ""
+
+#: lib\log.py:206 lib\wtlist.py:79
 msgid "Show &differences..."
 msgstr ""
 
-#: lib\log.py:203
+#: lib\log.py:209
 msgid "Show &tree..."
 msgstr ""
 
-#: lib\log.py:243
+#: lib\log.py:249
 msgid "Messages and File text (indexed)"
 msgstr ""
 
-#: lib\logmodel.py:257
+#: lib\logmodel.py:246
 #, python-format
 msgid "bug #%s"
 msgstr ""
@@ -697,7 +737,7 @@ msgstr ""
 msgid "Bookmarks"
 msgstr ""
 
-#: lib\main.py:279 lib\util.py:72
+#: lib\main.py:279 lib\util.py:73
 msgid "&Refresh"
 msgstr ""
 
@@ -756,10 +796,6 @@ msgstr ""
 #: lib\main.py:316
 msgid "&Bookmarks"
 msgstr ""
-
-#: lib\main.py:318 lib\util.py:71
-msgid "&Help"
-msgstr "&Pomoc"
 
 #: lib\main.py:319
 msgid "&Help..."
@@ -882,10 +918,6 @@ msgstr ""
 #: lib\tag.py:151
 msgid "&Replace"
 msgstr ""
-
-#: lib\tag.py:151 lib\tag.py:164 lib\util.py:69
-msgid "&Cancel"
-msgstr "&Zrušiť"
 
 #: lib\tag.py:161
 #, python-format
@@ -1185,61 +1217,49 @@ msgstr ""
 msgid "Pull a different branch"
 msgstr ""
 
-#: lib\util.py:451
+#: lib\util.py:452
 msgid "Select Source Directory"
 msgstr ""
 
-#: lib\util.py:453
+#: lib\util.py:454
 msgid "Select Target Directory"
 msgstr ""
 
-#: lib\util.py:523
+#: lib\util.py:524
 msgid "Parents:"
 msgstr ""
 
-#: lib\util.py:527
+#: lib\util.py:528
 msgid "Children:"
 msgstr ""
 
-#: lib\util.py:530
+#: lib\util.py:531
 msgid "Date:"
 msgstr ""
 
-#: lib\util.py:532
-msgid "Committer:"
-msgstr "Odovzdávateľ:"
-
-#: lib\util.py:535
-msgid "Author:"
-msgstr "Autor:"
-
-#: lib\util.py:539
+#: lib\util.py:545
 msgid "Branch:"
 msgstr ""
 
-#: lib\util.py:544
-msgid "Tags:"
-msgstr "Značky:"
-
-#: lib\util.py:553
+#: lib\util.py:559
 msgid "Bug:"
 msgid_plural "Bugs:"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib\util.py:701
+#: lib\util.py:703
 msgid "deleted files"
 msgstr ""
 
-#: lib\util.py:703
+#: lib\util.py:705
 msgid "added files"
 msgstr ""
 
-#: lib\util.py:705
+#: lib\util.py:707
 msgid "renamed files"
 msgstr ""
 
-#: lib\util.py:707
+#: lib\util.py:709
 msgid "modified files"
 msgstr ""
 
@@ -1247,21 +1267,9 @@ msgstr ""
 msgid "Select / deselect all"
 msgstr ""
 
-#: lib\wtlist.py:84
-msgid "&Revert..."
-msgstr "&Revertovať..."
-
-#: lib\wtlist.py:95
-msgid "Extension"
-msgstr "Prípona"
-
 #: lib\wtlist.py:120
 msgid "ignored"
 msgstr ""
-
-#: lib\wtlist.py:122
-msgid "non-versioned"
-msgstr "neverzované"
 
 #: lib\wtlist.py:134
 msgid "missing"
@@ -1275,18 +1283,3 @@ msgstr ""
 #, python-format
 msgid "Revert %s to latest revision."
 msgstr ""
-
-#~ msgid "Parent revisions:"
-#~ msgstr "Rodičovské revízie:"
-
-#~ msgid "Branch nick:"
-#~ msgstr "Názov vetvy:"
-
-#~ msgid "Show &Differences..."
-#~ msgstr "Zobraziť roz&diely..."
-
-#~ msgid "Do you really want to revert the selected file(s)?"
-#~ msgstr "Naozaj chcete revertovať vybrané súbory?"
-
-#~ msgid "Paths"
-#~ msgstr "Cesty"

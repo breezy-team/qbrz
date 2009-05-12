@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-03-24 17:11+0200\n"
-"PO-Revision-Date: 2009-03-17 13:07+0000\n"
+"POT-Creation-Date: 2009-03-29 10:12+0300\n"
+"PO-Revision-Date: 2009-05-03 00:05+0000\n"
 "Last-Translator: Stefano Karapetsas <stefano@karapetsas.net>\n"
 "Language-Team: Italian <it@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2009-03-24 15:56+0000\n"
+"X-Launchpad-Export-Date: 2009-05-12 10:36+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:41 lib\config.py:112 lib\config.py:133 lib\config.py:164
@@ -31,33 +31,33 @@ msgstr "File non sotto il controllo di versione"
 msgid "Show ignored files"
 msgstr "Mostra file ignorati"
 
-#: lib\annotate.py:87 lib\annotate.py:188 lib\browse.py:116
+#: lib\annotate.py:86 lib\annotate.py:187 lib\browse.py:116
 msgid "Annotate"
 msgstr "Annota"
 
-#: lib\annotate.py:87 lib\diff.py:124 lib\util.py:423
+#: lib\annotate.py:86 lib\diff.py:124 lib\util.py:424
 msgid "Loading..."
 msgstr "Caricamento..."
 
-#: lib\annotate.py:106
+#: lib\annotate.py:105
 msgid "Line"
 msgstr "Riga"
 
-#: lib\annotate.py:106 lib\annotate.py:121 lib\browse.py:106 lib\commit.py:369
-#: lib\logmodel.py:116
+#: lib\annotate.py:105 lib\annotate.py:120 lib\browse.py:106 lib\commit.py:369
+#: lib\logmodel.py:105
 msgid "Author"
 msgstr "Autore"
 
-#: lib\annotate.py:106 lib\annotate.py:121 lib\browse.py:107
-#: lib\logmodel.py:113
+#: lib\annotate.py:105 lib\annotate.py:120 lib\browse.py:107
+#: lib\logmodel.py:102
 msgid "Rev"
 msgstr "Rev"
 
-#: lib\annotate.py:121 lib\browse.py:105 lib\commit.py:369 lib\logmodel.py:115
+#: lib\annotate.py:120 lib\browse.py:105 lib\commit.py:369 lib\logmodel.py:104
 msgid "Date"
 msgstr "Data"
 
-#: lib\annotate.py:121
+#: lib\annotate.py:120
 msgid "Summary"
 msgstr "Riepilogo"
 
@@ -69,7 +69,7 @@ msgstr "Esplora"
 msgid "Location:"
 msgstr "Indirizzo:"
 
-#: lib\browse.py:94 lib\ui_new_tree.py:160 lib\util.py:506
+#: lib\browse.py:94 lib\ui_new_tree.py:160 lib\util.py:507
 msgid "Revision:"
 msgstr "Revisione:"
 
@@ -81,7 +81,7 @@ msgstr "Mostra"
 msgid "Name"
 msgstr "Nome"
 
-#: lib\browse.py:108 lib\commit.py:272 lib\commit.py:369 lib\logmodel.py:114
+#: lib\browse.py:108 lib\commit.py:272 lib\commit.py:369 lib\logmodel.py:103
 msgid "Message"
 msgstr "Messaggio"
 
@@ -182,7 +182,7 @@ msgid "You should provide commit message."
 msgstr "Si dovrebbe inserire un messaggio per il commit."
 
 #: lib\commit.py:487 lib\conflicts.py:171 lib\conflicts.py:176 lib\diff.py:389
-#: lib\util.py:68
+#: lib\util.py:69
 msgid "&OK"
 msgstr "&OK"
 
@@ -291,21 +291,13 @@ msgstr "Abbreviazione"
 msgid "URL"
 msgstr "URL"
 
-#: lib\config.py:152
-msgid "Show inter-group inserts and deletes in green and red"
-msgstr ""
-
 #: lib\config.py:154
 msgid "External Diff Apps:"
 msgstr "Applicazioni Esterne per il Diff:"
 
-#: lib\config.py:184
-msgid "External Merge Apps:"
-msgstr ""
-
 #: lib\config.py:187
 msgid "Definition"
-msgstr ""
+msgstr "Definizione"
 
 #: lib\config.py:210
 msgid "General"
@@ -329,7 +321,7 @@ msgstr "&Diff"
 
 #: lib\config.py:215
 msgid "&Merge"
-msgstr ""
+msgstr "&Merge"
 
 #: lib\config.py:240
 msgid "Spell check &language:"
@@ -351,18 +343,6 @@ msgstr "File"
 #: lib\conflicts.py:58
 msgid "Conflict"
 msgstr "Conflitto"
-
-#: lib\conflicts.py:82
-msgid "Use Configured Default"
-msgstr ""
-
-#: lib\conflicts.py:84
-msgid ""
-"The merge tool configured in qconfig under Merge' file.\n"
-"It follows the convention used in the bzr plugin: extmerge\n"
-"external_merge = kdiff3 --output %r %b %t %o\n"
-"%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."
-msgstr ""
 
 #: lib\conflicts.py:92
 msgid "&Launch..."
@@ -401,28 +381,6 @@ msgstr "Errore durante l'esecuzione dello strumento merge (codice %d)"
 msgid "Error"
 msgstr "Errore"
 
-#: lib\conflicts.py:267
-msgid "Set up external_merge app in qconfig under the Merge tab"
-msgstr ""
-
-#: lib\conflicts.py:292
-#, python-format
-msgid ""
-"The extmerge definition: '%(tool)s' is invalid.\n"
-"Missing the flag: %(flags)s. This must be fixed in qconflicts under the "
-"Merge tab."
-msgstr ""
-
-#: lib\conflicts.py:296
-#, python-format
-msgid "Missing the flag: %s. Configure in qconfig under the merge tab."
-msgstr ""
-
-#: lib\conflicts.py:304
-#, python-format
-msgid "%s (Configured external merge definition in qconfig)"
-msgstr ""
-
 #: lib\conflicts.py:312
 msgid "path conflict"
 msgstr "conflitto di percorso"
@@ -443,10 +401,6 @@ msgstr "id duplicato"
 msgid "duplicate"
 msgstr "duplicato"
 
-#: lib\conflicts.py:317
-msgid "parent loop"
-msgstr ""
-
 #: lib\conflicts.py:318
 msgid "unversioned parent"
 msgstr "genitore non sotto il controllo di versione"
@@ -458,10 +412,6 @@ msgstr "genitore mancante"
 #: lib\conflicts.py:320
 msgid "deleting parent"
 msgstr "eliminazione genitore"
-
-#: lib\conflicts.py:321
-msgid "non-directory parent"
-msgstr ""
 
 #: lib\diff.py:76
 #, python-format
@@ -549,7 +499,7 @@ msgstr ""
 "Operazione abortita."
 
 #: lib\diff.py:382 lib\subprocess.py:149 lib\tag.py:143 lib\tag.py:174
-#: lib\tag.py:211 lib\util.py:70
+#: lib\tag.py:211 lib\util.py:71
 msgid "&Close"
 msgstr "&Chiudi"
 
@@ -650,43 +600,43 @@ msgstr "Inizializza"
 msgid "You must specify a location"
 msgstr "Occorre specificare una posizione"
 
-#: lib\log.py:67
+#: lib\log.py:69
 msgid "Log"
 msgstr "Log"
 
-#: lib\log.py:94
+#: lib\log.py:96
 msgid "&Search:"
 msgstr "&Cerca:"
 
-#: lib\log.py:110
+#: lib\log.py:112
 msgid "Messages"
 msgstr "Messaggi"
 
-#: lib\log.py:112
+#: lib\log.py:114
 msgid "Authors"
 msgstr "Autori"
 
-#: lib\log.py:114
+#: lib\log.py:116
 msgid "Revision IDs"
 msgstr "ID Revisione"
 
-#: lib\log.py:116
+#: lib\log.py:118
 msgid "Revision Numbers"
 msgstr "Numeri Revisione"
 
-#: lib\log.py:200 lib\wtlist.py:79
+#: lib\log.py:206 lib\wtlist.py:79
 msgid "Show &differences..."
 msgstr "Mostra le &differenze"
 
-#: lib\log.py:203
+#: lib\log.py:209
 msgid "Show &tree..."
 msgstr "Mos&tra albero..."
 
-#: lib\log.py:243
+#: lib\log.py:249
 msgid "Messages and File text (indexed)"
 msgstr "Testo Messaggi e File (indicizzato)"
 
-#: lib\logmodel.py:257
+#: lib\logmodel.py:246
 #, python-format
 msgid "bug #%s"
 msgstr "bug #%s"
@@ -707,7 +657,7 @@ msgstr "&Rimuovi Segnalibro..."
 msgid "Bookmarks"
 msgstr "Segnalibri"
 
-#: lib\main.py:279 lib\util.py:72
+#: lib\main.py:279 lib\util.py:73
 msgid "&Refresh"
 msgstr "Aggio&rna"
 
@@ -767,7 +717,7 @@ msgstr "&Branch"
 msgid "&Bookmarks"
 msgstr "&Segnalibri"
 
-#: lib\main.py:318 lib\util.py:71
+#: lib\main.py:318 lib\util.py:72
 msgid "&Help"
 msgstr "&Aiuto"
 
@@ -903,7 +853,7 @@ msgstr ""
 msgid "&Replace"
 msgstr "&Rimpiazza"
 
-#: lib\tag.py:151 lib\tag.py:164 lib\util.py:69
+#: lib\tag.py:151 lib\tag.py:164 lib\util.py:70
 msgid "&Cancel"
 msgstr "&Cancella"
 
@@ -1212,61 +1162,61 @@ msgstr "Aggiorna albero di lavoro dal branch legato"
 msgid "Pull a different branch"
 msgstr "Pull da un branch differente"
 
-#: lib\util.py:451
+#: lib\util.py:452
 msgid "Select Source Directory"
 msgstr "Seleziona Directory Sorgente"
 
-#: lib\util.py:453
+#: lib\util.py:454
 msgid "Select Target Directory"
 msgstr "Seleziona Directory Destinazione"
 
-#: lib\util.py:523
+#: lib\util.py:524
 msgid "Parents:"
 msgstr "Genitori:"
 
-#: lib\util.py:527
+#: lib\util.py:528
 msgid "Children:"
 msgstr "Figlio:"
 
-#: lib\util.py:530
+#: lib\util.py:531
 msgid "Date:"
 msgstr "Data:"
 
-#: lib\util.py:532
+#: lib\util.py:533
 msgid "Committer:"
 msgstr "Revisione creata da:"
 
-#: lib\util.py:535
+#: lib\util.py:536 lib\util.py:541
 msgid "Author:"
 msgstr "Autore:"
 
-#: lib\util.py:539
+#: lib\util.py:545
 msgid "Branch:"
 msgstr "Branch:"
 
-#: lib\util.py:544
+#: lib\util.py:550
 msgid "Tags:"
 msgstr "Tag:"
 
-#: lib\util.py:553
+#: lib\util.py:559
 msgid "Bug:"
 msgid_plural "Bugs:"
 msgstr[0] "Bug:"
 msgstr[1] "Bug:"
 
-#: lib\util.py:701
+#: lib\util.py:703
 msgid "deleted files"
 msgstr "file eliminati"
 
-#: lib\util.py:703
+#: lib\util.py:705
 msgid "added files"
 msgstr "file aggiunti"
 
-#: lib\util.py:705
+#: lib\util.py:707
 msgid "renamed files"
 msgstr "file rinominati"
 
-#: lib\util.py:707
+#: lib\util.py:709
 msgid "modified files"
 msgstr "file modificati"
 
@@ -1303,19 +1253,60 @@ msgstr "modificato (x-bit)"
 msgid "Revert %s to latest revision."
 msgstr "Ripristina %s all'ultima revisione."
 
-#~ msgid "Empty commit message. Do you really want to commit?"
-#~ msgstr "E' stato inserito un messaggio vuoto. Si vuole procedere comunque?"
+#: lib\config.py:152
+msgid "Show inter-group inserts and deletes in green and red"
+msgstr ""
 
-#~ msgid "View File"
-#~ msgstr "Visualizza il file"
+#: lib\config.py:184
+msgid "External Merge Apps:"
+msgstr ""
 
+#: lib\conflicts.py:82
+msgid "Use Configured Default"
+msgstr ""
+
+#: lib\conflicts.py:84
+msgid ""
+"The merge tool configured in qconfig under Merge' file.\n"
+"It follows the convention used in the bzr plugin: extmerge\n"
+"external_merge = kdiff3 --output %r %b %t %o\n"
+"%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."
+msgstr ""
+
+#: lib\conflicts.py:267
+msgid "Set up external_merge app in qconfig under the Merge tab"
+msgstr ""
+
+#: lib\conflicts.py:292
 #, python-format
-#~ msgid "File \"%s\" not found in the specified revision."
-#~ msgstr "Il file \"%s\" non è stato trovato nella revisione specificata"
+msgid ""
+"The extmerge definition: '%(tool)s' is invalid.\n"
+"Missing the flag: %(flags)s. This must be fixed in qconflicts under the "
+"Merge tab."
+msgstr ""
 
-#~ msgid "View "
-#~ msgstr "Mostra "
-
+#: lib\conflicts.py:296
 #, python-format
-#~ msgid "Revid: %(rev)s for %(branch)s"
-#~ msgstr "Revid: %s per %s"
+msgid "Missing the flag: %s. Configure in qconfig under the merge tab."
+msgstr ""
+
+#: lib\conflicts.py:304
+#, python-format
+msgid "%s (Configured external merge definition in qconfig)"
+msgstr ""
+
+#: lib\conflicts.py:317
+msgid "parent loop"
+msgstr ""
+
+#: lib\conflicts.py:321
+msgid "non-directory parent"
+msgstr ""
+
+#: lib\log.py:120
+msgid "Tags"
+msgstr "Tag"
+
+#: lib\log.py:122
+msgid "Bugs"
+msgstr "Bug"

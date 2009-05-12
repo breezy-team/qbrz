@@ -1,20 +1,17 @@
-# English translations for PACKAGE package.
-# Copyright (C) 2009 THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# Automatically generated, 2009.
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-03-25 14:59+0200\n"
-"PO-Revision-Date: 2009-03-25 14:59+0200\n"
+"POT-Creation-Date: 2009-03-29 10:12+0300\n"
+"PO-Revision-Date: 2009-03-29 10:12+0300\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Launchpad-Export-Date: 2009-05-12 10:36+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:41 lib\config.py:112 lib\config.py:133 lib\config.py:164
 #: lib\config.py:193
@@ -29,33 +26,33 @@ msgstr "Unversioned Files"
 msgid "Show ignored files"
 msgstr "Show ignored files"
 
-#: lib\annotate.py:87 lib\annotate.py:188 lib\browse.py:116
+#: lib\annotate.py:86 lib\annotate.py:187 lib\browse.py:116
 msgid "Annotate"
 msgstr "Annotate"
 
-#: lib\annotate.py:87 lib\diff.py:124 lib\util.py:423
+#: lib\annotate.py:86 lib\diff.py:124 lib\util.py:424
 msgid "Loading..."
 msgstr "Loading..."
 
-#: lib\annotate.py:106
+#: lib\annotate.py:105
 msgid "Line"
 msgstr "Line"
 
-#: lib\annotate.py:106 lib\annotate.py:121 lib\browse.py:106 lib\commit.py:369
-#: lib\logmodel.py:116
+#: lib\annotate.py:105 lib\annotate.py:120 lib\browse.py:106 lib\commit.py:369
+#: lib\logmodel.py:105
 msgid "Author"
 msgstr "Author"
 
-#: lib\annotate.py:106 lib\annotate.py:121 lib\browse.py:107
-#: lib\logmodel.py:113
+#: lib\annotate.py:105 lib\annotate.py:120 lib\browse.py:107
+#: lib\logmodel.py:102
 msgid "Rev"
 msgstr "Rev"
 
-#: lib\annotate.py:121 lib\browse.py:105 lib\commit.py:369 lib\logmodel.py:115
+#: lib\annotate.py:120 lib\browse.py:105 lib\commit.py:369 lib\logmodel.py:104
 msgid "Date"
 msgstr "Date"
 
-#: lib\annotate.py:121
+#: lib\annotate.py:120
 msgid "Summary"
 msgstr "Summary"
 
@@ -67,7 +64,7 @@ msgstr "Browse"
 msgid "Location:"
 msgstr "Location:"
 
-#: lib\browse.py:94 lib\ui_new_tree.py:160 lib\util.py:506
+#: lib\browse.py:94 lib\ui_new_tree.py:160 lib\util.py:507
 msgid "Revision:"
 msgstr "Revision:"
 
@@ -79,7 +76,7 @@ msgstr "Show"
 msgid "Name"
 msgstr "Name"
 
-#: lib\browse.py:108 lib\commit.py:272 lib\commit.py:369 lib\logmodel.py:114
+#: lib\browse.py:108 lib\commit.py:272 lib\commit.py:369 lib\logmodel.py:103
 msgid "Message"
 msgstr "Message"
 
@@ -177,7 +174,7 @@ msgid "You should provide commit message."
 msgstr "You should provide commit message."
 
 #: lib\commit.py:487 lib\conflicts.py:171 lib\conflicts.py:176 lib\diff.py:389
-#: lib\util.py:68
+#: lib\util.py:69
 msgid "&OK"
 msgstr "&OK"
 
@@ -551,7 +548,7 @@ msgstr ""
 "Operation aborted."
 
 #: lib\diff.py:382 lib\subprocess.py:149 lib\tag.py:143 lib\tag.py:174
-#: lib\tag.py:211 lib\util.py:70
+#: lib\tag.py:211 lib\util.py:71
 msgid "&Close"
 msgstr "&Close"
 
@@ -652,43 +649,51 @@ msgstr "Initialize"
 msgid "You must specify a location"
 msgstr "You must specify a location"
 
-#: lib\log.py:67
+#: lib\log.py:69
 msgid "Log"
 msgstr "Log"
 
-#: lib\log.py:94
+#: lib\log.py:96
 msgid "&Search:"
 msgstr "&Search:"
 
-#: lib\log.py:110
+#: lib\log.py:112
 msgid "Messages"
 msgstr "Messages"
 
-#: lib\log.py:112
+#: lib\log.py:114
 msgid "Authors"
 msgstr "Authors"
 
-#: lib\log.py:114
+#: lib\log.py:116
 msgid "Revision IDs"
 msgstr "Revision IDs"
 
-#: lib\log.py:116
+#: lib\log.py:118
 msgid "Revision Numbers"
 msgstr "Revision Numbers"
 
-#: lib\log.py:200 lib\wtlist.py:79
+#: lib\log.py:120
+msgid "Tags"
+msgstr "Tags"
+
+#: lib\log.py:122
+msgid "Bugs"
+msgstr "Bugs"
+
+#: lib\log.py:206 lib\wtlist.py:79
 msgid "Show &differences..."
 msgstr "Show &differences..."
 
-#: lib\log.py:203
+#: lib\log.py:209
 msgid "Show &tree..."
 msgstr "Show &tree..."
 
-#: lib\log.py:243
+#: lib\log.py:249
 msgid "Messages and File text (indexed)"
 msgstr "Messages and File text (indexed)"
 
-#: lib\logmodel.py:257
+#: lib\logmodel.py:246
 #, python-format
 msgid "bug #%s"
 msgstr "bug #%s"
@@ -709,7 +714,7 @@ msgstr "&Remove Bookmark..."
 msgid "Bookmarks"
 msgstr "Bookmarks"
 
-#: lib\main.py:279 lib\util.py:72
+#: lib\main.py:279 lib\util.py:73
 msgid "&Refresh"
 msgstr "&Refresh"
 
@@ -769,7 +774,7 @@ msgstr "&Branch"
 msgid "&Bookmarks"
 msgstr "&Bookmarks"
 
-#: lib\main.py:318 lib\util.py:71
+#: lib\main.py:318 lib\util.py:72
 msgid "&Help"
 msgstr "&Help"
 
@@ -905,7 +910,7 @@ msgstr ""
 msgid "&Replace"
 msgstr "&Replace"
 
-#: lib\tag.py:151 lib\tag.py:164 lib\util.py:69
+#: lib\tag.py:151 lib\tag.py:164 lib\util.py:70
 msgid "&Cancel"
 msgstr "&Cancel"
 
@@ -1214,61 +1219,61 @@ msgstr "Update the working tree from the bound branch"
 msgid "Pull a different branch"
 msgstr "Pull a different branch"
 
-#: lib\util.py:451
+#: lib\util.py:452
 msgid "Select Source Directory"
 msgstr "Select Source Directory"
 
-#: lib\util.py:453
+#: lib\util.py:454
 msgid "Select Target Directory"
 msgstr "Select Target Directory"
 
-#: lib\util.py:523
+#: lib\util.py:524
 msgid "Parents:"
 msgstr "Parents:"
 
-#: lib\util.py:527
+#: lib\util.py:528
 msgid "Children:"
 msgstr "Children:"
 
-#: lib\util.py:530
+#: lib\util.py:531
 msgid "Date:"
 msgstr "Date:"
 
-#: lib\util.py:532
+#: lib\util.py:533
 msgid "Committer:"
 msgstr "Committer:"
 
-#: lib\util.py:535
+#: lib\util.py:536 lib\util.py:541
 msgid "Author:"
 msgstr "Author:"
 
-#: lib\util.py:539
+#: lib\util.py:545
 msgid "Branch:"
 msgstr "Branch:"
 
-#: lib\util.py:544
+#: lib\util.py:550
 msgid "Tags:"
 msgstr "Tags:"
 
-#: lib\util.py:553
+#: lib\util.py:559
 msgid "Bug:"
 msgid_plural "Bugs:"
 msgstr[0] "Bug:"
 msgstr[1] "Bugs:"
 
-#: lib\util.py:701
+#: lib\util.py:703
 msgid "deleted files"
 msgstr "deleted files"
 
-#: lib\util.py:703
+#: lib\util.py:705
 msgid "added files"
 msgstr "added files"
 
-#: lib\util.py:705
+#: lib\util.py:707
 msgid "renamed files"
 msgstr "renamed files"
 
-#: lib\util.py:707
+#: lib\util.py:709
 msgid "modified files"
 msgstr "modified files"
 

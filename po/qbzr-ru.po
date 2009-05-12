@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: QBzr 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-03-24 17:11+0200\n"
+"POT-Creation-Date: 2009-03-29 10:12+0300\n"
 "PO-Revision-Date: 2009-03-03 11:17+0000\n"
 "Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
 "Language-Team: Russian\n"
@@ -14,7 +14,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Launchpad-Export-Date: 2009-03-24 15:56+0000\n"
+"X-Launchpad-Export-Date: 2009-05-12 10:36+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:41 lib\config.py:112 lib\config.py:133 lib\config.py:164
@@ -30,33 +30,33 @@ msgstr "Неверсионированные файлы"
 msgid "Show ignored files"
 msgstr "Отображать игнорируемые файлы"
 
-#: lib\annotate.py:87 lib\annotate.py:188 lib\browse.py:116
+#: lib\annotate.py:86 lib\annotate.py:187 lib\browse.py:116
 msgid "Annotate"
 msgstr "Аннотация"
 
-#: lib\annotate.py:87 lib\diff.py:124 lib\util.py:423
+#: lib\annotate.py:86 lib\diff.py:124 lib\util.py:424
 msgid "Loading..."
 msgstr "Загрузка..."
 
-#: lib\annotate.py:106
+#: lib\annotate.py:105
 msgid "Line"
 msgstr "Строка"
 
-#: lib\annotate.py:106 lib\annotate.py:121 lib\browse.py:106 lib\commit.py:369
-#: lib\logmodel.py:116
+#: lib\annotate.py:105 lib\annotate.py:120 lib\browse.py:106 lib\commit.py:369
+#: lib\logmodel.py:105
 msgid "Author"
 msgstr "Автор"
 
-#: lib\annotate.py:106 lib\annotate.py:121 lib\browse.py:107
-#: lib\logmodel.py:113
+#: lib\annotate.py:105 lib\annotate.py:120 lib\browse.py:107
+#: lib\logmodel.py:102
 msgid "Rev"
 msgstr "Версия"
 
-#: lib\annotate.py:121 lib\browse.py:105 lib\commit.py:369 lib\logmodel.py:115
+#: lib\annotate.py:120 lib\browse.py:105 lib\commit.py:369 lib\logmodel.py:104
 msgid "Date"
 msgstr "Дата"
 
-#: lib\annotate.py:121
+#: lib\annotate.py:120
 msgid "Summary"
 msgstr "Кратко"
 
@@ -68,7 +68,7 @@ msgstr "Обзор"
 msgid "Location:"
 msgstr "Расположение:"
 
-#: lib\browse.py:94 lib\ui_new_tree.py:160 lib\util.py:506
+#: lib\browse.py:94 lib\ui_new_tree.py:160 lib\util.py:507
 msgid "Revision:"
 msgstr "Версия:"
 
@@ -80,7 +80,7 @@ msgstr "Показать"
 msgid "Name"
 msgstr "Имя"
 
-#: lib\browse.py:108 lib\commit.py:272 lib\commit.py:369 lib\logmodel.py:114
+#: lib\browse.py:108 lib\commit.py:272 lib\commit.py:369 lib\logmodel.py:103
 msgid "Message"
 msgstr "Комментарий"
 
@@ -182,7 +182,7 @@ msgid "You should provide commit message."
 msgstr "Вы должны написать комментарий к фиксации"
 
 #: lib\commit.py:487 lib\conflicts.py:171 lib\conflicts.py:176 lib\diff.py:389
-#: lib\util.py:68
+#: lib\util.py:69
 msgid "&OK"
 msgstr "&ОК"
 
@@ -299,14 +299,6 @@ msgstr "Показывать вставку/удаления внутри стр
 msgid "External Diff Apps:"
 msgstr "Программы просмотра изменений:"
 
-#: lib\config.py:184
-msgid "External Merge Apps:"
-msgstr ""
-
-#: lib\config.py:187
-msgid "Definition"
-msgstr ""
-
 #: lib\config.py:210
 msgid "General"
 msgstr "Общие"
@@ -326,10 +318,6 @@ msgstr "&Интерфейс"
 #: lib\config.py:214
 msgid "&Diff"
 msgstr "Просмотр изменений"
-
-#: lib\config.py:215
-msgid "&Merge"
-msgstr ""
 
 #: lib\config.py:240
 msgid "Spell check &language:"
@@ -351,18 +339,6 @@ msgstr "Файл"
 #: lib\conflicts.py:58
 msgid "Conflict"
 msgstr "Конфликт"
-
-#: lib\conflicts.py:82
-msgid "Use Configured Default"
-msgstr ""
-
-#: lib\conflicts.py:84
-msgid ""
-"The merge tool configured in qconfig under Merge' file.\n"
-"It follows the convention used in the bzr plugin: extmerge\n"
-"external_merge = kdiff3 --output %r %b %t %o\n"
-"%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."
-msgstr ""
 
 #: lib\conflicts.py:92
 msgid "&Launch..."
@@ -402,28 +378,6 @@ msgstr "Ошибка при попытке запуска программы (к
 msgid "Error"
 msgstr "Ошибка"
 
-#: lib\conflicts.py:267
-msgid "Set up external_merge app in qconfig under the Merge tab"
-msgstr ""
-
-#: lib\conflicts.py:292
-#, python-format
-msgid ""
-"The extmerge definition: '%(tool)s' is invalid.\n"
-"Missing the flag: %(flags)s. This must be fixed in qconflicts under the "
-"Merge tab."
-msgstr ""
-
-#: lib\conflicts.py:296
-#, python-format
-msgid "Missing the flag: %s. Configure in qconfig under the merge tab."
-msgstr ""
-
-#: lib\conflicts.py:304
-#, python-format
-msgid "%s (Configured external merge definition in qconfig)"
-msgstr ""
-
 #: lib\conflicts.py:312
 msgid "path conflict"
 msgstr "конфликт путей"
@@ -443,26 +397,6 @@ msgstr "совпадающий id"
 #: lib\conflicts.py:316
 msgid "duplicate"
 msgstr "дубликат"
-
-#: lib\conflicts.py:317
-msgid "parent loop"
-msgstr ""
-
-#: lib\conflicts.py:318
-msgid "unversioned parent"
-msgstr ""
-
-#: lib\conflicts.py:319
-msgid "missing parent"
-msgstr ""
-
-#: lib\conflicts.py:320
-msgid "deleting parent"
-msgstr ""
-
-#: lib\conflicts.py:321
-msgid "non-directory parent"
-msgstr ""
 
 #: lib\diff.py:76
 #, python-format
@@ -509,10 +443,6 @@ msgstr "Unidiff"
 msgid "Complete"
 msgstr "Показывать файлы целиком"
 
-#: lib\diff.py:171
-msgid "Using"
-msgstr ""
-
 #: lib\diff.py:242
 #, python-format
 msgid "%d file"
@@ -551,7 +481,7 @@ msgstr ""
 "Операция прервана."
 
 #: lib\diff.py:382 lib\subprocess.py:149 lib\tag.py:143 lib\tag.py:174
-#: lib\tag.py:211 lib\util.py:70
+#: lib\tag.py:211 lib\util.py:71
 msgid "&Close"
 msgstr "&Закрыть"
 
@@ -652,43 +582,39 @@ msgstr "Инициализировать"
 msgid "You must specify a location"
 msgstr "Вы должны указать каталог"
 
-#: lib\log.py:67
+#: lib\log.py:69
 msgid "Log"
 msgstr "Журнал"
 
-#: lib\log.py:94
+#: lib\log.py:96
 msgid "&Search:"
 msgstr "&Поиск:"
 
-#: lib\log.py:110
+#: lib\log.py:112
 msgid "Messages"
 msgstr "Комментарий"
 
-#: lib\log.py:112
+#: lib\log.py:114
 msgid "Authors"
 msgstr "Авторы"
 
-#: lib\log.py:114
+#: lib\log.py:116
 msgid "Revision IDs"
 msgstr "Revision IDs"
 
-#: lib\log.py:116
+#: lib\log.py:118
 msgid "Revision Numbers"
 msgstr "Номера версий"
 
-#: lib\log.py:200 lib\wtlist.py:79
+#: lib\log.py:206 lib\wtlist.py:79
 msgid "Show &differences..."
 msgstr "Показать &различия..."
 
-#: lib\log.py:203
+#: lib\log.py:209
 msgid "Show &tree..."
 msgstr "Дерево файлов"
 
-#: lib\log.py:243
-msgid "Messages and File text (indexed)"
-msgstr ""
-
-#: lib\logmodel.py:257
+#: lib\logmodel.py:246
 #, python-format
 msgid "bug #%s"
 msgstr "bug #%s"
@@ -709,7 +635,7 @@ msgstr "Удалить закладку..."
 msgid "Bookmarks"
 msgstr "Закладки"
 
-#: lib\main.py:279 lib\util.py:72
+#: lib\main.py:279 lib\util.py:73
 msgid "&Refresh"
 msgstr "&Обновить"
 
@@ -769,7 +695,7 @@ msgstr "&Ветка"
 msgid "&Bookmarks"
 msgstr "&Закладки"
 
-#: lib\main.py:318 lib\util.py:71
+#: lib\main.py:318 lib\util.py:72
 msgid "&Help"
 msgstr "&Справка"
 
@@ -908,7 +834,7 @@ msgstr ""
 msgid "&Replace"
 msgstr "И&зменить"
 
-#: lib\tag.py:151 lib\tag.py:164 lib\util.py:69
+#: lib\tag.py:151 lib\tag.py:164 lib\util.py:70
 msgid "&Cancel"
 msgstr "&Отмена"
 
@@ -985,17 +911,9 @@ msgstr "Публичная ветка:"
 msgid "&Location"
 msgstr "&Расположение"
 
-#: lib\ui_info.py:181
-msgid "Push branch:"
-msgstr ""
-
 #: lib\ui_info.py:183
 msgid "Parent branch:"
 msgstr "Родительская ветка:"
-
-#: lib\ui_info.py:185
-msgid "Submit branch:"
-msgstr ""
 
 #: lib\ui_info.py:187
 msgid "&Related Branches"
@@ -1037,10 +955,6 @@ msgstr "Создать самостоятельную ветку"
 msgid "Ensure all revisions are appended to the log"
 msgstr "Убедиться, что все версии добавлены в журнал"
 
-#: lib\ui_init.py:124
-msgid "Create a new shared repository"
-msgstr ""
-
 #: lib\ui_init.py:125
 msgid "Skip the creation of working trees in this repository"
 msgstr "Новые ветки в репозитории создаются без рабочей копии"
@@ -1060,44 +974,6 @@ msgstr "Объединить"
 #: lib\ui_merge.py:62 lib\ui_pull.py:65 lib\ui_push.py:66
 msgid "Remember this location as a default"
 msgstr "Запомнить этот URL в качестве значения по умолчанию."
-
-#: lib\ui_new_tree.py:129
-msgid "Create a new Bazaar Working Tree"
-msgstr ""
-
-#: lib\ui_new_tree.py:131
-msgid ""
-"Branch source (enter a URL or select a local directory with an exiting "
-"branch)"
-msgstr ""
-
-#: lib\ui_new_tree.py:133
-msgid "Local directory where the working tree will be created"
-msgstr ""
-
-#: lib\ui_new_tree.py:135
-msgid "Working Tree Options"
-msgstr ""
-
-#: lib\ui_new_tree.py:136
-msgid "Create a checkout"
-msgstr ""
-
-#: lib\ui_new_tree.py:144
-msgid "Light-weight checkout"
-msgstr ""
-
-#: lib\ui_new_tree.py:145
-msgid "Make a local copy of the branch"
-msgstr ""
-
-#: lib\ui_new_tree.py:151
-msgid "Create a stacked branch referring to the source branch"
-msgstr ""
-
-#: lib\ui_new_tree.py:152
-msgid "Click a link for more information about checkouts and branches."
-msgstr ""
 
 #: lib\ui_new_tree.py:158
 msgid "Revision"
@@ -1201,75 +1077,54 @@ msgstr "Обновить рабочие файлы последними изме
 msgid "Update Checkout"
 msgstr "Обновить рабочую копию"
 
-#: lib\ui_update_checkout.py:75
-#, python-format
-msgid "This directory is a checkout of: %s"
-msgstr ""
-
-#: lib\ui_update_checkout.py:77
-msgid "Update the working tree from the bound branch"
-msgstr ""
-
-#: lib\ui_update_checkout.py:78
-msgid "Pull a different branch"
-msgstr ""
-
-#: lib\util.py:451
-msgid "Select Source Directory"
-msgstr ""
-
-#: lib\util.py:453
-msgid "Select Target Directory"
-msgstr ""
-
-#: lib\util.py:523
+#: lib\util.py:524
 msgid "Parents:"
 msgstr "Предыдущие версии:"
 
-#: lib\util.py:527
+#: lib\util.py:528
 msgid "Children:"
 msgstr "Следующие версии:"
 
-#: lib\util.py:530
+#: lib\util.py:531
 msgid "Date:"
 msgstr "Дата:"
 
-#: lib\util.py:532
+#: lib\util.py:533
 msgid "Committer:"
 msgstr "Зафиксировал:"
 
-#: lib\util.py:535
+#: lib\util.py:536 lib\util.py:541
 msgid "Author:"
 msgstr "Автор:"
 
-#: lib\util.py:539
+#: lib\util.py:545
 msgid "Branch:"
 msgstr "Ветка:"
 
-#: lib\util.py:544
+#: lib\util.py:550
 msgid "Tags:"
 msgstr "Теги:"
 
-#: lib\util.py:553
+#: lib\util.py:559
 msgid "Bug:"
 msgid_plural "Bugs:"
 msgstr[0] "Ошибка:"
 msgstr[1] "Ошибки:"
 msgstr[2] "Ошибки:"
 
-#: lib\util.py:701
+#: lib\util.py:703
 msgid "deleted files"
 msgstr "удаленные файлы"
 
-#: lib\util.py:703
+#: lib\util.py:705
 msgid "added files"
 msgstr "добавленные файлы"
 
-#: lib\util.py:705
+#: lib\util.py:707
 msgid "renamed files"
 msgstr "переименованные файлы"
 
-#: lib\util.py:707
+#: lib\util.py:709
 msgid "modified files"
 msgstr "измененные файлы"
 
@@ -1306,41 +1161,155 @@ msgstr "изменён (x-bit)"
 msgid "Revert %s to latest revision."
 msgstr "Вернуться к последней версии для %s"
 
-#~ msgid "Parent revisions:"
-#~ msgstr "Предыдущая версия:"
+#: lib\config.py:184
+msgid "External Merge Apps:"
+msgstr ""
 
-#~ msgid "Branch nick:"
-#~ msgstr "Название ветки:"
+#: lib\config.py:187
+msgid "Definition"
+msgstr ""
 
-#~ msgid "Show &Differences..."
-#~ msgstr "Показать &различия..."
+#: lib\config.py:215
+msgid "&Merge"
+msgstr ""
 
-#~ msgid "Do you really want to revert the selected file(s)?"
-#~ msgstr ""
-#~ "Вы уверены, что хотите вернуться к предыдущей версии выделенных файлов?"
+#: lib\conflicts.py:82
+msgid "Use Configured Default"
+msgstr ""
 
-#~ msgid "Empty commit message. Do you really want to commit?"
-#~ msgstr "Отсутствует комментарий. Вы уверены, что хотите зафиксировать?"
+#: lib\conflicts.py:84
+msgid ""
+"The merge tool configured in qconfig under Merge' file.\n"
+"It follows the convention used in the bzr plugin: extmerge\n"
+"external_merge = kdiff3 --output %r %b %t %o\n"
+"%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."
+msgstr ""
 
-#~ msgid "View File"
-#~ msgstr "Просмотр файла"
+#: lib\conflicts.py:267
+msgid "Set up external_merge app in qconfig under the Merge tab"
+msgstr ""
 
+#: lib\conflicts.py:292
 #, python-format
-#~ msgid "File \"%s\" not found in the specified revision."
-#~ msgstr "Файл \"%s\" не найден в указанной версии проекта."
+msgid ""
+"The extmerge definition: '%(tool)s' is invalid.\n"
+"Missing the flag: %(flags)s. This must be fixed in qconflicts under the "
+"Merge tab."
+msgstr ""
 
-#~ msgid "&Local commit in a bound branch"
-#~ msgstr "Локальная фиксация (если ветка привязана к серверу)."
-
-#~ msgid "Show tree..."
-#~ msgstr "Показать дерево файлов..."
-
-#~ msgid "View "
-#~ msgstr "Просмотр "
-
-#~ msgid "Revision Id:"
-#~ msgstr "Revision Id:"
-
+#: lib\conflicts.py:296
 #, python-format
-#~ msgid "Revid: %(rev)s for %(branch)s"
-#~ msgstr "Revid: %(rev)s в ветке %(branch)s"
+msgid "Missing the flag: %s. Configure in qconfig under the merge tab."
+msgstr ""
+
+#: lib\conflicts.py:304
+#, python-format
+msgid "%s (Configured external merge definition in qconfig)"
+msgstr ""
+
+#: lib\conflicts.py:317
+msgid "parent loop"
+msgstr ""
+
+#: lib\conflicts.py:318
+msgid "unversioned parent"
+msgstr ""
+
+#: lib\conflicts.py:319
+msgid "missing parent"
+msgstr ""
+
+#: lib\conflicts.py:320
+msgid "deleting parent"
+msgstr ""
+
+#: lib\conflicts.py:321
+msgid "non-directory parent"
+msgstr ""
+
+#: lib\diff.py:171
+msgid "Using"
+msgstr ""
+
+#: lib\log.py:120
+msgid "Tags"
+msgstr ""
+
+#: lib\log.py:122
+msgid "Bugs"
+msgstr ""
+
+#: lib\log.py:249
+msgid "Messages and File text (indexed)"
+msgstr ""
+
+#: lib\ui_info.py:181
+msgid "Push branch:"
+msgstr ""
+
+#: lib\ui_info.py:185
+msgid "Submit branch:"
+msgstr ""
+
+#: lib\ui_init.py:124
+msgid "Create a new shared repository"
+msgstr ""
+
+#: lib\ui_new_tree.py:129
+msgid "Create a new Bazaar Working Tree"
+msgstr ""
+
+#: lib\ui_new_tree.py:131
+msgid ""
+"Branch source (enter a URL or select a local directory with an exiting "
+"branch)"
+msgstr ""
+
+#: lib\ui_new_tree.py:133
+msgid "Local directory where the working tree will be created"
+msgstr ""
+
+#: lib\ui_new_tree.py:135
+msgid "Working Tree Options"
+msgstr ""
+
+#: lib\ui_new_tree.py:136
+msgid "Create a checkout"
+msgstr ""
+
+#: lib\ui_new_tree.py:144
+msgid "Light-weight checkout"
+msgstr ""
+
+#: lib\ui_new_tree.py:145
+msgid "Make a local copy of the branch"
+msgstr ""
+
+#: lib\ui_new_tree.py:151
+msgid "Create a stacked branch referring to the source branch"
+msgstr ""
+
+#: lib\ui_new_tree.py:152
+msgid "Click a link for more information about checkouts and branches."
+msgstr ""
+
+#: lib\ui_update_checkout.py:75
+#, python-format
+msgid "This directory is a checkout of: %s"
+msgstr ""
+
+#: lib\ui_update_checkout.py:77
+msgid "Update the working tree from the bound branch"
+msgstr ""
+
+#: lib\ui_update_checkout.py:78
+msgid "Pull a different branch"
+msgstr ""
+
+#: lib\util.py:452
+msgid "Select Source Directory"
+msgstr ""
+
+#: lib\util.py:454
+msgid "Select Target Directory"
+msgstr ""

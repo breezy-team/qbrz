@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-03-24 17:11+0200\n"
+"POT-Creation-Date: 2009-03-29 10:12+0300\n"
 "PO-Revision-Date: 2008-11-22 15:21+0000\n"
 "Last-Translator: Lukáš Lalinský <lalinsky@gmail.com>\n"
 "Language-Team: Swedish <sv@li.org>\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2009-03-24 15:56+0000\n"
+"X-Launchpad-Export-Date: 2009-05-12 10:36+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:41 lib\config.py:112 lib\config.py:133 lib\config.py:164
@@ -23,41 +23,29 @@ msgstr ""
 msgid "Add"
 msgstr "Lägg till"
 
-#: lib\add.py:51
-msgid "Unversioned Files"
-msgstr ""
-
-#: lib\add.py:68
-msgid "Show ignored files"
-msgstr ""
-
-#: lib\annotate.py:87 lib\annotate.py:188 lib\browse.py:116
+#: lib\annotate.py:86 lib\annotate.py:187 lib\browse.py:116
 msgid "Annotate"
 msgstr "Anteckning"
 
-#: lib\annotate.py:87 lib\diff.py:124 lib\util.py:423
-msgid "Loading..."
-msgstr ""
-
-#: lib\annotate.py:106
+#: lib\annotate.py:105
 msgid "Line"
 msgstr "Linje"
 
-#: lib\annotate.py:106 lib\annotate.py:121 lib\browse.py:106 lib\commit.py:369
-#: lib\logmodel.py:116
+#: lib\annotate.py:105 lib\annotate.py:120 lib\browse.py:106 lib\commit.py:369
+#: lib\logmodel.py:105
 msgid "Author"
 msgstr "Upphovsman"
 
-#: lib\annotate.py:106 lib\annotate.py:121 lib\browse.py:107
-#: lib\logmodel.py:113
+#: lib\annotate.py:105 lib\annotate.py:120 lib\browse.py:107
+#: lib\logmodel.py:102
 msgid "Rev"
 msgstr "Rev"
 
-#: lib\annotate.py:121 lib\browse.py:105 lib\commit.py:369 lib\logmodel.py:115
+#: lib\annotate.py:120 lib\browse.py:105 lib\commit.py:369 lib\logmodel.py:104
 msgid "Date"
 msgstr "Datum"
 
-#: lib\annotate.py:121
+#: lib\annotate.py:120
 msgid "Summary"
 msgstr "Sammanfattning"
 
@@ -69,7 +57,7 @@ msgstr "Bläddra"
 msgid "Location:"
 msgstr "Plats:"
 
-#: lib\browse.py:94 lib\ui_new_tree.py:160 lib\util.py:506
+#: lib\browse.py:94 lib\ui_new_tree.py:160 lib\util.py:507
 msgid "Revision:"
 msgstr "Revision:"
 
@@ -81,21 +69,13 @@ msgstr "Visa"
 msgid "Name"
 msgstr "Namn"
 
-#: lib\browse.py:108 lib\commit.py:272 lib\commit.py:369 lib\logmodel.py:114
+#: lib\browse.py:108 lib\commit.py:272 lib\commit.py:369 lib\logmodel.py:103
 msgid "Message"
 msgstr "Meddelande"
 
 #: lib\browse.py:115
 msgid "Show log..."
 msgstr "Visa logg..."
-
-#: lib\browse.py:118
-msgid "View file"
-msgstr ""
-
-#: lib\cat.py:87 lib\cat.py:244
-msgid "View"
-msgstr ""
 
 #: lib\commit.py:223 lib\commit.py:485 lib\commit.py:514 lib\commit.py:522
 msgid "Commit"
@@ -106,101 +86,26 @@ msgstr "Verkställ"
 msgid "Branch"
 msgstr "Gren"
 
-#: lib\commit.py:251
-msgid "&Local commit"
-msgstr ""
-
-#: lib\commit.py:253
-msgid ""
-"Local commits are not pushed to the master branch until a normal commit is "
-"performed"
-msgstr ""
-
-#: lib\commit.py:257
-msgid "Description:"
-msgstr ""
-
-#: lib\commit.py:280
-msgid "Show non-versioned files"
-msgstr ""
-
-#: lib\commit.py:299
-msgid "Enter the commit message"
-msgstr ""
-
 #: lib\commit.py:315
 msgid "&Fixed bugs:"
 msgstr "%Fixade buggar:"
-
-#: lib\commit.py:316
-msgid "Set the IDs of bugs fixed by this commit"
-msgstr ""
-
-#: lib\commit.py:319
-msgid ""
-"Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
-"<i>project:123 project:765</i>"
-msgstr ""
 
 #: lib\commit.py:329
 msgid "&Author:"
 msgstr "&Upphovsman:"
 
-#: lib\commit.py:330
-msgid "Set the author of this change, if it's different from the committer"
-msgstr ""
-
-#: lib\commit.py:333
-msgid ""
-"Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
-msgstr ""
-
 #: lib\commit.py:348 lib\revert.py:55
 msgid "Changes"
 msgstr "Ändringar"
-
-#: lib\commit.py:364
-msgid "Pending Merges"
-msgstr ""
 
 #: lib\commit.py:396 lib\main.py:360 lib\subprocess.py:121 lib\wtlist.py:95
 msgid "Status"
 msgstr "Status"
 
-#: lib\commit.py:408
-msgid "View changes in files selected to commit"
-msgstr ""
-
-#: lib\commit.py:486
-msgid "You should provide commit message."
-msgstr ""
-
 #: lib\commit.py:487 lib\conflicts.py:171 lib\conflicts.py:176 lib\diff.py:389
-#: lib\util.py:68
+#: lib\util.py:69
 msgid "&OK"
 msgstr "&OK"
-
-#: lib\commit.py:515
-msgid "No changes to commit."
-msgstr ""
-
-#: lib\commit.py:523
-msgid ""
-"No changes selected to commit.\n"
-"Do you want to commit anyway?"
-msgstr ""
-
-#: lib\commit.py:584
-msgid ""
-"A commit will be made directly to the master branch, keeping the local and "
-"master branches in sync."
-msgstr ""
-
-#: lib\commit.py:590
-msgid ""
-"A local commit to the branch will be performed. The master branch will not "
-"be updated until a non-local commit is made."
-msgstr ""
 
 #: lib\commit.py:623 lib\diff.py:124 lib\diff.py:236 lib\diff.py:379
 #: lib\diff.py:387 lib\extdiff.py:122 lib\revert.py:160
@@ -222,18 +127,6 @@ msgstr "Evolution"
 #: lib\config.py:45
 msgid "KMail"
 msgstr "KMail"
-
-#: lib\config.py:46
-msgid "Mutt"
-msgstr ""
-
-#: lib\config.py:47
-msgid "XDG e-mail client"
-msgstr ""
-
-#: lib\config.py:48
-msgid "MAPI e-mail client"
-msgstr ""
 
 #: lib\config.py:49
 msgid "Editor"
@@ -279,6 +172,332 @@ msgstr "Förkortning"
 msgid "URL"
 msgstr "URL"
 
+#: lib\config.py:210
+msgid "General"
+msgstr "Allmänt"
+
+#: lib\config.py:211
+msgid "Aliases"
+msgstr "Alias"
+
+#: lib\conflicts.py:57 lib\wtlist.py:95
+msgid "File"
+msgstr "Fil"
+
+#: lib\diff.py:150
+msgid "Side by side"
+msgstr "Sida vid sida"
+
+#: lib\diff.py:242
+#, python-format
+msgid "%d file"
+msgid_plural "%d files"
+msgstr[0] "%d fil"
+msgstr[1] "%d filer"
+
+#: lib\diff.py:321 lib\wtlist.py:130
+msgid "removed"
+msgstr "borttagen"
+
+#: lib\diff.py:323 lib\wtlist.py:126
+msgid "added"
+msgstr "tillagd"
+
+#: lib\diff.py:325 lib\wtlist.py:143
+msgid "renamed and modified"
+msgstr "omdöpt och ändrad"
+
+#: lib\diff.py:327 lib\wtlist.py:145
+msgid "renamed"
+msgstr "omdöpt"
+
+#: lib\diff.py:329 lib\wtlist.py:152
+msgid "modified"
+msgstr "ändrad"
+
+#: lib\diff.py:382 lib\subprocess.py:149 lib\tag.py:143 lib\tag.py:174
+#: lib\tag.py:211 lib\util.py:71
+msgid "&Close"
+msgstr "&Stäng"
+
+#: lib\diffview.py:248
+msgid "Last modified:"
+msgstr "Senast ändrad:"
+
+#: lib\diffview.py:249
+msgid "Status:"
+msgstr "Status:"
+
+#: lib\diffview.py:250
+msgid "Kind:"
+msgstr "Sort:"
+
+#: lib\diffview.py:251
+msgid "Properties:"
+msgstr "Egenskaper:"
+
+#: lib\i18n.py:87
+msgid "file"
+msgstr "fil"
+
+#: lib\i18n.py:88
+msgid "directory"
+msgstr "katalog"
+
+#: lib\i18n.py:91
+msgid "fixed"
+msgstr "fixad"
+
+#: lib\log.py:69
+msgid "Log"
+msgstr "Logg"
+
+#: lib\log.py:96
+msgid "&Search:"
+msgstr "&Sök:"
+
+#: lib\log.py:112
+msgid "Messages"
+msgstr "Meddelanden"
+
+#: lib\main.py:125
+msgid "Computer"
+msgstr "Dator"
+
+#: lib\main.py:170
+msgid "Bookmarks"
+msgstr "Bokmärken"
+
+#: lib\main.py:279 lib\util.py:73
+msgid "&Refresh"
+msgstr "&Uppdatera"
+
+#: lib\main.py:306
+msgid "&File"
+msgstr "&Fil"
+
+#: lib\main.py:307
+msgid "&Configure..."
+msgstr "&Konfigurera..."
+
+#: lib\main.py:309
+msgid "&Quit"
+msgstr "&Avsluta"
+
+#: lib\main.py:310
+msgid "&View"
+msgstr "&Visa"
+
+#: lib\main.py:316
+msgid "&Bookmarks"
+msgstr "&Bokmärken"
+
+#: lib\main.py:318 lib\util.py:72
+msgid "&Help"
+msgstr "&Hjälp"
+
+#: lib\main.py:319
+msgid "&Help..."
+msgstr "&Hjälp..."
+
+#: lib\main.py:321
+msgid "&About..."
+msgstr "&Om..."
+
+#: lib\main.py:359
+msgid "Size"
+msgstr "Storlek"
+
+#: lib\main.py:411
+msgid "About QBzr"
+msgstr "Om QBzr"
+
+#: lib\main.py:477
+msgid "Add Bookmark"
+msgstr "Lägg till bokmärke"
+
+#: lib\main.py:488
+msgid "Edit Bookmark"
+msgstr "Redigera bokmärke"
+
+#: lib\main.py:498
+msgid "Remove Bookmark"
+msgstr "Ta bort bokmärke"
+
+#: lib\revert.py:46 lib\wtlist.py:238
+msgid "Revert"
+msgstr "Återgå"
+
+#: lib\subprocess.py:310
+msgid "Stopped"
+msgstr "Stoppad"
+
+#: lib\subprocess.py:371
+msgid "Starting..."
+msgstr "Startar..."
+
+#: lib\subprocess.py:425
+msgid "Aborting..."
+msgstr "Avbryter..."
+
+#: lib\subprocess.py:436 lib\subprocess.py:508
+msgid "Finished!"
+msgstr "Färdig!"
+
+#: lib\tag.py:151 lib\tag.py:164 lib\util.py:70
+msgid "&Cancel"
+msgstr "&Avbryt"
+
+#: lib\ui_bookmark.py:51 lib\ui_branch.py:67 lib\ui_merge.py:59
+#: lib\ui_pull.py:62 lib\ui_push.py:64
+msgid "&Location:"
+msgstr "&Plats:"
+
+#: lib\ui_branch.py:66 lib\ui_merge.py:58 lib\ui_pull.py:61 lib\ui_push.py:63
+msgid "Options"
+msgstr "Alternativ"
+
+#: lib\ui_branch.py:70
+msgid "&To:"
+msgstr "&Till:"
+
+#: lib\ui_pull.py:60
+msgid "Pull"
+msgstr "Dra in"
+
+#: lib\ui_push.py:62
+msgid "Push"
+msgstr "Sänd"
+
+#: lib\util.py:536 lib\util.py:541
+msgid "Author:"
+msgstr "Upphovsman:"
+
+#: lib\util.py:550
+msgid "Tags:"
+msgstr "Taggar:"
+
+#: lib\util.py:559
+msgid "Bug:"
+msgid_plural "Bugs:"
+msgstr[0] "Bugg:"
+msgstr[1] "Buggar:"
+
+#: lib\wtlist.py:84
+msgid "&Revert..."
+msgstr "&Återgå..."
+
+#: lib\wtlist.py:95
+msgid "Extension"
+msgstr "Tillägg"
+
+#: lib\add.py:51
+msgid "Unversioned Files"
+msgstr ""
+
+#: lib\add.py:68
+msgid "Show ignored files"
+msgstr ""
+
+#: lib\annotate.py:86 lib\diff.py:124 lib\util.py:424
+msgid "Loading..."
+msgstr ""
+
+#: lib\browse.py:118
+msgid "View file"
+msgstr ""
+
+#: lib\cat.py:87 lib\cat.py:244
+msgid "View"
+msgstr ""
+
+#: lib\commit.py:251
+msgid "&Local commit"
+msgstr ""
+
+#: lib\commit.py:253
+msgid ""
+"Local commits are not pushed to the master branch until a normal commit is "
+"performed"
+msgstr ""
+
+#: lib\commit.py:257
+msgid "Description:"
+msgstr ""
+
+#: lib\commit.py:280
+msgid "Show non-versioned files"
+msgstr ""
+
+#: lib\commit.py:299
+msgid "Enter the commit message"
+msgstr ""
+
+#: lib\commit.py:316
+msgid "Set the IDs of bugs fixed by this commit"
+msgstr ""
+
+#: lib\commit.py:319
+msgid ""
+"Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
+"<i>project:123 project:765</i>"
+msgstr ""
+
+#: lib\commit.py:330
+msgid "Set the author of this change, if it's different from the committer"
+msgstr ""
+
+#: lib\commit.py:333
+msgid ""
+"Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
+msgstr ""
+
+#: lib\commit.py:364
+msgid "Pending Merges"
+msgstr ""
+
+#: lib\commit.py:408
+msgid "View changes in files selected to commit"
+msgstr ""
+
+#: lib\commit.py:486
+msgid "You should provide commit message."
+msgstr ""
+
+#: lib\commit.py:515
+msgid "No changes to commit."
+msgstr ""
+
+#: lib\commit.py:523
+msgid ""
+"No changes selected to commit.\n"
+"Do you want to commit anyway?"
+msgstr ""
+
+#: lib\commit.py:584
+msgid ""
+"A commit will be made directly to the master branch, keeping the local and "
+"master branches in sync."
+msgstr ""
+
+#: lib\commit.py:590
+msgid ""
+"A local commit to the branch will be performed. The master branch will not "
+"be updated until a non-local commit is made."
+msgstr ""
+
+#: lib\config.py:46
+msgid "Mutt"
+msgstr ""
+
+#: lib\config.py:47
+msgid "XDG e-mail client"
+msgstr ""
+
+#: lib\config.py:48
+msgid "MAPI e-mail client"
+msgstr ""
+
 #: lib\config.py:152
 msgid "Show inter-group inserts and deletes in green and red"
 msgstr ""
@@ -294,14 +513,6 @@ msgstr ""
 #: lib\config.py:187
 msgid "Definition"
 msgstr ""
-
-#: lib\config.py:210
-msgid "General"
-msgstr "Allmänt"
-
-#: lib\config.py:211
-msgid "Aliases"
-msgstr "Alias"
 
 #: lib\config.py:212
 msgid "Bug Trackers"
@@ -331,10 +542,6 @@ msgstr ""
 #: lib\conflicts.py:174
 msgid "Conflicts"
 msgstr ""
-
-#: lib\conflicts.py:57 lib\wtlist.py:95
-msgid "File"
-msgstr "Fil"
 
 #: lib\conflicts.py:58
 msgid "Conflict"
@@ -484,10 +691,6 @@ msgstr ""
 msgid "Merge Preview"
 msgstr ""
 
-#: lib\diff.py:150
-msgid "Side by side"
-msgstr "Sida vid sida"
-
 #: lib\diff.py:157
 msgid "Unidiff"
 msgstr ""
@@ -500,33 +703,6 @@ msgstr ""
 msgid "Using"
 msgstr ""
 
-#: lib\diff.py:242
-#, python-format
-msgid "%d file"
-msgid_plural "%d files"
-msgstr[0] "%d fil"
-msgstr[1] "%d filer"
-
-#: lib\diff.py:321 lib\wtlist.py:130
-msgid "removed"
-msgstr "borttagen"
-
-#: lib\diff.py:323 lib\wtlist.py:126
-msgid "added"
-msgstr "tillagd"
-
-#: lib\diff.py:325 lib\wtlist.py:143
-msgid "renamed and modified"
-msgstr "omdöpt och ändrad"
-
-#: lib\diff.py:327 lib\wtlist.py:145
-msgid "renamed"
-msgstr "omdöpt"
-
-#: lib\diff.py:329 lib\wtlist.py:152
-msgid "modified"
-msgstr "ändrad"
-
 #: lib\diff.py:380
 #, python-format
 msgid ""
@@ -534,30 +710,9 @@ msgid ""
 "Operation aborted."
 msgstr ""
 
-#: lib\diff.py:382 lib\subprocess.py:149 lib\tag.py:143 lib\tag.py:174
-#: lib\tag.py:211 lib\util.py:70
-msgid "&Close"
-msgstr "&Stäng"
-
 #: lib\diff.py:388
 msgid "No changes found."
 msgstr ""
-
-#: lib\diffview.py:248
-msgid "Last modified:"
-msgstr "Senast ändrad:"
-
-#: lib\diffview.py:249
-msgid "Status:"
-msgstr "Status:"
-
-#: lib\diffview.py:250
-msgid "Kind:"
-msgstr "Sort:"
-
-#: lib\diffview.py:251
-msgid "Properties:"
-msgstr "Egenskaper:"
 
 #: lib\diffview.py:501
 msgid "[binary file]"
@@ -580,21 +735,9 @@ msgstr ""
 msgid "Help"
 msgstr ""
 
-#: lib\i18n.py:87
-msgid "file"
-msgstr "fil"
-
-#: lib\i18n.py:88
-msgid "directory"
-msgstr "katalog"
-
 #: lib\i18n.py:89
 msgid "symlink"
 msgstr ""
-
-#: lib\i18n.py:91
-msgid "fixed"
-msgstr "fixad"
 
 #: lib\i18n.py:93
 msgid "View text file"
@@ -636,50 +779,42 @@ msgstr ""
 msgid "You must specify a location"
 msgstr ""
 
-#: lib\log.py:67
-msgid "Log"
-msgstr "Logg"
-
-#: lib\log.py:94
-msgid "&Search:"
-msgstr "&Sök:"
-
-#: lib\log.py:110
-msgid "Messages"
-msgstr "Meddelanden"
-
-#: lib\log.py:112
+#: lib\log.py:114
 msgid "Authors"
 msgstr ""
 
-#: lib\log.py:114
+#: lib\log.py:116
 msgid "Revision IDs"
 msgstr ""
 
-#: lib\log.py:116
+#: lib\log.py:118
 msgid "Revision Numbers"
 msgstr ""
 
-#: lib\log.py:200 lib\wtlist.py:79
+#: lib\log.py:120
+msgid "Tags"
+msgstr ""
+
+#: lib\log.py:122
+msgid "Bugs"
+msgstr ""
+
+#: lib\log.py:206 lib\wtlist.py:79
 msgid "Show &differences..."
 msgstr ""
 
-#: lib\log.py:203
+#: lib\log.py:209
 msgid "Show &tree..."
 msgstr ""
 
-#: lib\log.py:243
+#: lib\log.py:249
 msgid "Messages and File text (indexed)"
 msgstr ""
 
-#: lib\logmodel.py:257
+#: lib\logmodel.py:246
 #, python-format
 msgid "bug #%s"
 msgstr ""
-
-#: lib\main.py:125
-msgid "Computer"
-msgstr "Dator"
 
 #: lib\main.py:154
 msgid "&Edit Bookmark..."
@@ -688,14 +823,6 @@ msgstr ""
 #: lib\main.py:155
 msgid "&Remove Bookmark..."
 msgstr ""
-
-#: lib\main.py:170
-msgid "Bookmarks"
-msgstr "Bokmärken"
-
-#: lib\main.py:279 lib\util.py:72
-msgid "&Refresh"
-msgstr "&Uppdatera"
 
 #: lib\main.py:281
 msgid "Refresh the directory tree"
@@ -729,49 +856,9 @@ msgstr ""
 msgid "&Add Bookmark..."
 msgstr ""
 
-#: lib\main.py:306
-msgid "&File"
-msgstr "&Fil"
-
-#: lib\main.py:307
-msgid "&Configure..."
-msgstr "&Konfigurera..."
-
-#: lib\main.py:309
-msgid "&Quit"
-msgstr "&Avsluta"
-
-#: lib\main.py:310
-msgid "&View"
-msgstr "&Visa"
-
 #: lib\main.py:312
 msgid "&Branch"
 msgstr ""
-
-#: lib\main.py:316
-msgid "&Bookmarks"
-msgstr "&Bokmärken"
-
-#: lib\main.py:318 lib\util.py:71
-msgid "&Help"
-msgstr "&Hjälp"
-
-#: lib\main.py:319
-msgid "&Help..."
-msgstr "&Hjälp..."
-
-#: lib\main.py:321
-msgid "&About..."
-msgstr "&Om..."
-
-#: lib\main.py:359
-msgid "Size"
-msgstr "Storlek"
-
-#: lib\main.py:411
-msgid "About QBzr"
-msgstr "Om QBzr"
 
 #: lib\main.py:412
 #, python-format
@@ -782,25 +869,9 @@ msgid ""
 "vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
 
-#: lib\main.py:477
-msgid "Add Bookmark"
-msgstr "Lägg till bokmärke"
-
-#: lib\main.py:488
-msgid "Edit Bookmark"
-msgstr "Redigera bokmärke"
-
-#: lib\main.py:498
-msgid "Remove Bookmark"
-msgstr "Ta bort bokmärke"
-
 #: lib\main.py:499
 msgid "Do you really want to remove the selected bookmark?"
 msgstr ""
-
-#: lib\revert.py:46 lib\wtlist.py:238
-msgid "Revert"
-msgstr "Återgå"
 
 #: lib\revert.py:77
 msgid "Do not save backups of reverted files"
@@ -826,22 +897,6 @@ msgstr ""
 #: lib\subprocess.py:279
 msgid "Description"
 msgstr ""
-
-#: lib\subprocess.py:310
-msgid "Stopped"
-msgstr "Stoppad"
-
-#: lib\subprocess.py:371
-msgid "Starting..."
-msgstr "Startar..."
-
-#: lib\subprocess.py:425
-msgid "Aborting..."
-msgstr "Avbryter..."
-
-#: lib\subprocess.py:436 lib\subprocess.py:508
-msgid "Finished!"
-msgstr "Färdig!"
 
 #: lib\subprocess.py:455 lib\uifactory.py:92
 msgid "Enter Password"
@@ -879,10 +934,6 @@ msgstr ""
 msgid "&Replace"
 msgstr ""
 
-#: lib\tag.py:151 lib\tag.py:164 lib\util.py:69
-msgid "&Cancel"
-msgstr "&Avbryt"
-
 #: lib\tag.py:161
 #, python-format
 msgid ""
@@ -910,15 +961,6 @@ msgid ""
 "%s"
 msgstr ""
 
-#: lib\ui_bookmark.py:51 lib\ui_branch.py:67 lib\ui_merge.py:59
-#: lib\ui_pull.py:62 lib\ui_push.py:64
-msgid "&Location:"
-msgstr "&Plats:"
-
-#: lib\ui_branch.py:66 lib\ui_merge.py:58 lib\ui_pull.py:61 lib\ui_push.py:63
-msgid "Options"
-msgstr "Alternativ"
-
 #: lib\ui_branch.py:68 lib\ui_branch.py:71 lib\ui_init.py:120
 #: lib\ui_merge.py:60 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
 #: lib\ui_pull.py:63 lib\ui_push.py:65 lib\ui_update_branch.py:85
@@ -929,10 +971,6 @@ msgstr ""
 #: lib\ui_branch.py:69 lib\ui_merge.py:61 lib\ui_pull.py:64 lib\ui_tag.py:108
 msgid "&Revision:"
 msgstr ""
-
-#: lib\ui_branch.py:70
-msgid "&To:"
-msgstr "&Till:"
 
 #: lib\ui_info.py:176
 msgid "Local location:"
@@ -1078,18 +1116,10 @@ msgstr ""
 msgid "Show Log..."
 msgstr ""
 
-#: lib\ui_pull.py:60
-msgid "Pull"
-msgstr "Dra in"
-
 #: lib\ui_pull.py:66 lib\ui_push.py:67 lib\ui_update_branch.py:88
 #: lib\ui_update_checkout.py:80
 msgid "Overwrite differences between branches"
 msgstr ""
-
-#: lib\ui_push.py:62
-msgid "Push"
-msgstr "Sänd"
 
 #: lib\ui_push.py:68
 msgid "Use existing directory"
@@ -1181,75 +1211,53 @@ msgstr ""
 msgid "Pull a different branch"
 msgstr ""
 
-#: lib\util.py:451
+#: lib\util.py:452
 msgid "Select Source Directory"
 msgstr ""
 
-#: lib\util.py:453
+#: lib\util.py:454
 msgid "Select Target Directory"
 msgstr ""
 
-#: lib\util.py:523
+#: lib\util.py:524
 msgid "Parents:"
 msgstr ""
 
-#: lib\util.py:527
+#: lib\util.py:528
 msgid "Children:"
 msgstr ""
 
-#: lib\util.py:530
+#: lib\util.py:531
 msgid "Date:"
 msgstr ""
 
-#: lib\util.py:532
+#: lib\util.py:533
 msgid "Committer:"
 msgstr ""
 
-#: lib\util.py:535
-msgid "Author:"
-msgstr "Upphovsman:"
-
-#: lib\util.py:539
+#: lib\util.py:545
 msgid "Branch:"
 msgstr ""
 
-#: lib\util.py:544
-msgid "Tags:"
-msgstr "Taggar:"
-
-#: lib\util.py:553
-msgid "Bug:"
-msgid_plural "Bugs:"
-msgstr[0] "Bugg:"
-msgstr[1] "Buggar:"
-
-#: lib\util.py:701
+#: lib\util.py:703
 msgid "deleted files"
 msgstr ""
 
-#: lib\util.py:703
+#: lib\util.py:705
 msgid "added files"
 msgstr ""
 
-#: lib\util.py:705
+#: lib\util.py:707
 msgid "renamed files"
 msgstr ""
 
-#: lib\util.py:707
+#: lib\util.py:709
 msgid "modified files"
 msgstr ""
 
 #: lib\wtlist.py:47
 msgid "Select / deselect all"
 msgstr ""
-
-#: lib\wtlist.py:84
-msgid "&Revert..."
-msgstr "&Återgå..."
-
-#: lib\wtlist.py:95
-msgid "Extension"
-msgstr "Tillägg"
 
 #: lib\wtlist.py:120
 msgid "ignored"
@@ -1271,9 +1279,3 @@ msgstr ""
 #, python-format
 msgid "Revert %s to latest revision."
 msgstr ""
-
-#~ msgid "View File"
-#~ msgstr "Visa fil"
-
-#~ msgid "View "
-#~ msgstr "Visa "

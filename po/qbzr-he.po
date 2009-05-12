@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2009-03-24 17:11+0200\n"
+"POT-Creation-Date: 2009-03-29 10:12+0300\n"
 "PO-Revision-Date: 2008-11-21 23:51+0000\n"
 "Last-Translator: Yaron <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <he@li.org>\n"
@@ -15,8 +15,441 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2009-03-24 15:56+0000\n"
+"X-Launchpad-Export-Date: 2009-05-12 10:36+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
+
+#: lib\commit.py:239 lib\ui_branch.py:65 lib\ui_new_tree.py:130
+#: lib\ui_tag.py:100
+msgid "Branch"
+msgstr "ענף"
+
+#: lib\commit.py:396 lib\main.py:360 lib\subprocess.py:121 lib\wtlist.py:95
+msgid "Status"
+msgstr "מצב"
+
+#: lib\commit.py:623 lib\diff.py:124 lib\diff.py:236 lib\diff.py:379
+#: lib\diff.py:387 lib\extdiff.py:122 lib\revert.py:160
+msgid "Diff"
+msgstr "שוני"
+
+#: lib\conflicts.py:57 lib\wtlist.py:95
+msgid "File"
+msgstr "קובץ"
+
+#: lib\conflicts.py:231 lib\conflicts.py:291 lib\tag.py:209 lib\trace.py:136
+#: lib\trace.py:150
+msgid "Error"
+msgstr "שגיאה"
+
+#: lib\diff.py:76
+#, python-format
+msgid "Working Tree for %s"
+msgstr "עץ העבודה עבור %s"
+
+#: lib\diff.py:78
+msgid "Working Tree"
+msgstr "עץ העבודה"
+
+#: lib\diff.py:97
+#, python-format
+msgid "Rev %(rev)s for %(branch)s"
+msgstr "מהדורה %(rev)s עבור %(branch)s"
+
+#: lib\diff.py:99
+#, python-format
+msgid "Rev %s"
+msgstr "מהדורה %s"
+
+#: lib\diff.py:104
+#, python-format
+msgid "Revid: %s"
+msgstr "מזהה מהדורה: %s"
+
+#: lib\diff.py:107
+msgid "Merge Preview"
+msgstr "תצוגה מקדימה של המיזוג"
+
+#: lib\diff.py:150
+msgid "Side by side"
+msgstr "זה לצד זה"
+
+#: lib\diff.py:157
+msgid "Unidiff"
+msgstr "שינויי אחידות"
+
+#: lib\diff.py:162
+msgid "Complete"
+msgstr "הסתיים"
+
+#: lib\diff.py:242
+#, python-format
+msgid "%d file"
+msgid_plural "%d files"
+msgstr[0] "קובץ %d"
+msgstr[1] "%d קבצים"
+
+#: lib\diff.py:321 lib\wtlist.py:130
+msgid "removed"
+msgstr "הוסר"
+
+#: lib\diff.py:323 lib\wtlist.py:126
+msgid "added"
+msgstr "נוסף"
+
+#: lib\diff.py:325 lib\wtlist.py:143
+msgid "renamed and modified"
+msgstr "שונה שמו או ששונה"
+
+#: lib\diff.py:327 lib\wtlist.py:145
+msgid "renamed"
+msgstr "שונה שמו"
+
+#: lib\diff.py:329 lib\wtlist.py:152
+msgid "modified"
+msgstr "עודכן"
+
+#: lib\diff.py:380
+#, python-format
+msgid ""
+"File %s is not versioned.\n"
+"Operation aborted."
+msgstr ""
+"הקובץ %s אינו מכיל גירסה.\n"
+"הפעולה בוטלה."
+
+#: lib\diff.py:382 lib\subprocess.py:149 lib\tag.py:143 lib\tag.py:174
+#: lib\tag.py:211 lib\util.py:71
+msgid "&Close"
+msgstr "ס&גור"
+
+#: lib\help.py:60
+#, python-format
+msgid "No help can be found for <i>%s</i>"
+msgstr "לא ניתן למצוא עזרה עבור <i>%s</i>"
+
+#: lib\help.py:110
+msgid "Help"
+msgstr "עזרה"
+
+#: lib\i18n.py:87
+msgid "file"
+msgstr "קובץ"
+
+#: lib\i18n.py:88
+msgid "directory"
+msgstr "תיקייה"
+
+#: lib\i18n.py:89
+msgid "symlink"
+msgstr "קישור סמלי"
+
+#: lib\i18n.py:91
+msgid "fixed"
+msgstr "קבוע"
+
+#: lib\i18n.py:93
+msgid "View text file"
+msgstr "צפיה בקובץ טקסט"
+
+#: lib\i18n.py:94
+msgid "View image file"
+msgstr "צפיה בקובץ תמונה"
+
+#: lib\i18n.py:95
+msgid "View binary file"
+msgstr "צפיה בקובץ בינארי"
+
+#: lib\i18n.py:96
+msgid "View symlink"
+msgstr "צפיה בקישור סמלי"
+
+#: lib\i18n.py:97
+msgid "View directory"
+msgstr "צפיה בתיקייה"
+
+#: lib\info.py:42
+msgid "Info"
+msgstr "מידע"
+
+#: lib\init.py:38 lib\ui_init.py:118
+msgid "Initialize"
+msgstr "הפעל"
+
+#: lib\init.py:73
+msgid "You must specify a location"
+msgstr "עליך לציין מיקום"
+
+#: lib\log.py:206 lib\wtlist.py:79
+msgid "Show &differences..."
+msgstr "הצג &שינויים..."
+
+#: lib\main.py:125
+msgid "Computer"
+msgstr "מחשב"
+
+#: lib\main.py:154
+msgid "&Edit Bookmark..."
+msgstr "&ערוך סימנייה..."
+
+#: lib\main.py:155
+msgid "&Remove Bookmark..."
+msgstr "ה&סר סימנייה..."
+
+#: lib\main.py:170
+msgid "Bookmarks"
+msgstr "סימניות"
+
+#: lib\main.py:279 lib\util.py:73
+msgid "&Refresh"
+msgstr "רע&נן"
+
+#: lib\main.py:281
+msgid "Refresh the directory tree"
+msgstr "רענן את עץ התיקיות"
+
+#: lib\main.py:285
+msgid "&Commit"
+msgstr "מ&סור"
+
+#: lib\main.py:286
+msgid "Commit changes into a new revision"
+msgstr "מסור את השינויים למהדורה חדשה"
+
+#: lib\revert.py:46 lib\wtlist.py:238
+msgid "Revert"
+msgstr "ה&חזר"
+
+#: lib\subprocess.py:143
+msgid "Internal Error"
+msgstr "שגיאה פנימית"
+
+#: lib\subprocess.py:279
+msgid "Description"
+msgstr "תיאור"
+
+#: lib\subprocess.py:310
+msgid "Stopped"
+msgstr "נעצר"
+
+#: lib\subprocess.py:371
+msgid "Starting..."
+msgstr "מתחיל..."
+
+#: lib\subprocess.py:425
+msgid "Aborting..."
+msgstr "מבטל..."
+
+#: lib\subprocess.py:436 lib\subprocess.py:508
+msgid "Finished!"
+msgstr "הסתיים!"
+
+#: lib\subprocess.py:489 lib\subprocess.py:511
+msgid "Failed!"
+msgstr "נכשל!"
+
+#: lib\subprocess.py:491
+msgid "Failed to start bzr."
+msgstr "כשל בהפעלת bzr."
+
+#: lib\subprocess.py:493
+#, python-format
+msgid "Error while running bzr. (error code: %d)"
+msgstr "שגיאה בעת הרצת bzr. (קוד השגיאה: %d)"
+
+#: lib\tag.py:142
+msgid "You should specify tag name"
+msgstr "עליך לציין שם תגית"
+
+#: lib\tag.py:148
+#, python-format
+msgid ""
+"Tag \"%s\" already exists.\n"
+"Do you want to replace existing tag?"
+msgstr ""
+"התגית \"%s\" כבר קיימת.\n"
+"האם ברצונך להחליף תגית קיימת?"
+
+#: lib\tag.py:151
+msgid "&Replace"
+msgstr "ה&חלף"
+
+#: lib\tag.py:151 lib\tag.py:164 lib\util.py:70
+msgid "&Cancel"
+msgstr "&ביטול"
+
+#: lib\tag.py:161
+#, python-format
+msgid ""
+"Tag \"%s\" does not exists yet.\n"
+"Do you want to create new tag?"
+msgstr ""
+"התגית \"%s\" אינה קיימת עדיין.\n"
+"האם ברצונך ליצור תגית חדשה?"
+
+#: lib\tag.py:164
+msgid "Cre&ate"
+msgstr "&צור"
+
+#: lib\tag.py:173
+#, python-format
+msgid "Tag \"%s\" does not exists"
+msgstr "התגית \"%s\" אינה קיימת"
+
+#: lib\tag.py:195
+msgid "Select branch location"
+msgstr "בחר את מיקום הענף"
+
+#: lib\tag.py:210
+#, python-format
+msgid ""
+"Not a branch:\n"
+"%s"
+msgstr ""
+"אינו ענף:\n"
+"%s"
+
+#: lib\ui_bookmark.py:51 lib\ui_branch.py:67 lib\ui_merge.py:59
+#: lib\ui_pull.py:62 lib\ui_push.py:64
+msgid "&Location:"
+msgstr "מ&יקום:"
+
+#: lib\ui_branch.py:66 lib\ui_merge.py:58 lib\ui_pull.py:61 lib\ui_push.py:63
+msgid "Options"
+msgstr "אפשרויות"
+
+#: lib\ui_branch.py:68 lib\ui_branch.py:71 lib\ui_init.py:120
+#: lib\ui_merge.py:60 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
+#: lib\ui_pull.py:63 lib\ui_push.py:65 lib\ui_update_branch.py:85
+#: lib\ui_update_checkout.py:79
+msgid "Browse..."
+msgstr "עיון..."
+
+#: lib\ui_branch.py:69 lib\ui_merge.py:61 lib\ui_pull.py:64 lib\ui_tag.py:108
+msgid "&Revision:"
+msgstr "&מהדורה:"
+
+#: lib\ui_merge.py:57
+msgid "Merge"
+msgstr "מזג"
+
+#: lib\ui_merge.py:62 lib\ui_pull.py:65 lib\ui_push.py:66
+msgid "Remember this location as a default"
+msgstr "זכור מיקום זה כברירת מחדל"
+
+#: lib\ui_pull.py:60
+msgid "Pull"
+msgstr "משוך"
+
+#: lib\ui_pull.py:66 lib\ui_push.py:67 lib\ui_update_branch.py:88
+#: lib\ui_update_checkout.py:80
+msgid "Overwrite differences between branches"
+msgstr "שכתב על השינויים בין הענפים"
+
+#: lib\ui_push.py:62
+msgid "Push"
+msgstr "דחיפה"
+
+#: lib\ui_push.py:68
+msgid "Use existing directory"
+msgstr "השתמש בתיקייה קיימת"
+
+#: lib\ui_push.py:69
+msgid "Create the path up to the branch if it does not exist"
+msgstr "צור את הנתיב עד לענף במידה ואינו קיים"
+
+#: lib\ui_tag.py:99
+msgid "Edit tag"
+msgstr "ערוך תגית"
+
+#: lib\ui_tag.py:101
+msgid "&Browse..."
+msgstr "&עיון..."
+
+#: lib\ui_tag.py:102
+msgid "Tag"
+msgstr "תגית"
+
+#: lib\ui_tag.py:103
+msgid "&Action:"
+msgstr "&פעולה:"
+
+#: lib\ui_tag.py:104
+msgid "Create new tag"
+msgstr "צור תגית חדשה"
+
+#: lib\ui_tag.py:105
+msgid "Replace existing tag"
+msgstr "החלף תגית קיימת"
+
+#: lib\ui_tag.py:106
+msgid "Delete existing tag"
+msgstr "מחק תגית קיימת"
+
+#: lib\ui_tag.py:107
+msgid "&Tag name:"
+msgstr "&שם התגית:"
+
+#: lib\ui_tag.py:109
+msgid "&Select..."
+msgstr "&בחירה..."
+
+#: lib\ui_update_branch.py:82
+msgid "Update Branch"
+msgstr "עדכן ענף"
+
+#: lib\ui_update_branch.py:83
+msgid ""
+"This directory is a branch.  Please select what you would like to update"
+msgstr "תיקייה זו הינה ענף. אנא בחר מה ברצונך לעדכן"
+
+#: lib\ui_update_branch.py:84 lib\ui_update_checkout.py:76
+msgid "Update source"
+msgstr "מקור העדכון"
+
+#: lib\ui_update_branch.py:86
+msgid "Pull most recent changes from:"
+msgstr "משוך את השינויים האחרונים מהמיקום:"
+
+#: lib\ui_update_branch.py:87
+msgid "Remember this as the new parent branch"
+msgstr "זכור זאת כענף האב החדש"
+
+#: lib\ui_update_branch.py:89
+msgid "<Parent Branch shown here>"
+msgstr "<ענף האב מופיע כאן>"
+
+#: lib\ui_update_branch.py:90
+msgid "Update working tree to the latest changes in the branch"
+msgstr "עדכן את עץ העבודה לשינויים האחרונים בענף"
+
+#: lib\wtlist.py:47
+msgid "Select / deselect all"
+msgstr "בחר / בטל בחירת הכל"
+
+#: lib\wtlist.py:84
+msgid "&Revert..."
+msgstr "ה&חזר..."
+
+#: lib\wtlist.py:95
+msgid "Extension"
+msgstr "הרחבה"
+
+#: lib\wtlist.py:120
+msgid "ignored"
+msgstr "בהתעלמות"
+
+#: lib\wtlist.py:122
+msgid "non-versioned"
+msgstr "ללא גירסה"
+
+#: lib\wtlist.py:134
+msgid "missing"
+msgstr "חסר"
+
+#: lib\wtlist.py:237
+#, python-format
+msgid "Revert %s to latest revision."
+msgstr "החזר את %s למהדורה האחרונה."
 
 #: lib\add.py:41 lib\config.py:112 lib\config.py:133 lib\config.py:164
 #: lib\config.py:193
@@ -31,33 +464,33 @@ msgstr ""
 msgid "Show ignored files"
 msgstr ""
 
-#: lib\annotate.py:87 lib\annotate.py:188 lib\browse.py:116
+#: lib\annotate.py:86 lib\annotate.py:187 lib\browse.py:116
 msgid "Annotate"
 msgstr ""
 
-#: lib\annotate.py:87 lib\diff.py:124 lib\util.py:423
+#: lib\annotate.py:86 lib\diff.py:124 lib\util.py:424
 msgid "Loading..."
 msgstr ""
 
-#: lib\annotate.py:106
+#: lib\annotate.py:105
 msgid "Line"
 msgstr ""
 
-#: lib\annotate.py:106 lib\annotate.py:121 lib\browse.py:106 lib\commit.py:369
-#: lib\logmodel.py:116
+#: lib\annotate.py:105 lib\annotate.py:120 lib\browse.py:106 lib\commit.py:369
+#: lib\logmodel.py:105
 msgid "Author"
 msgstr ""
 
-#: lib\annotate.py:106 lib\annotate.py:121 lib\browse.py:107
-#: lib\logmodel.py:113
+#: lib\annotate.py:105 lib\annotate.py:120 lib\browse.py:107
+#: lib\logmodel.py:102
 msgid "Rev"
 msgstr ""
 
-#: lib\annotate.py:121 lib\browse.py:105 lib\commit.py:369 lib\logmodel.py:115
+#: lib\annotate.py:120 lib\browse.py:105 lib\commit.py:369 lib\logmodel.py:104
 msgid "Date"
 msgstr ""
 
-#: lib\annotate.py:121
+#: lib\annotate.py:120
 msgid "Summary"
 msgstr ""
 
@@ -69,7 +502,7 @@ msgstr ""
 msgid "Location:"
 msgstr ""
 
-#: lib\browse.py:94 lib\ui_new_tree.py:160 lib\util.py:506
+#: lib\browse.py:94 lib\ui_new_tree.py:160 lib\util.py:507
 msgid "Revision:"
 msgstr ""
 
@@ -81,7 +514,7 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
-#: lib\browse.py:108 lib\commit.py:272 lib\commit.py:369 lib\logmodel.py:114
+#: lib\browse.py:108 lib\commit.py:272 lib\commit.py:369 lib\logmodel.py:103
 msgid "Message"
 msgstr ""
 
@@ -100,11 +533,6 @@ msgstr ""
 #: lib\commit.py:223 lib\commit.py:485 lib\commit.py:514 lib\commit.py:522
 msgid "Commit"
 msgstr ""
-
-#: lib\commit.py:239 lib\ui_branch.py:65 lib\ui_new_tree.py:130
-#: lib\ui_tag.py:100
-msgid "Branch"
-msgstr "ענף"
 
 #: lib\commit.py:251
 msgid "&Local commit"
@@ -163,10 +591,6 @@ msgstr ""
 msgid "Pending Merges"
 msgstr ""
 
-#: lib\commit.py:396 lib\main.py:360 lib\subprocess.py:121 lib\wtlist.py:95
-msgid "Status"
-msgstr "מצב"
-
 #: lib\commit.py:408
 msgid "View changes in files selected to commit"
 msgstr ""
@@ -176,7 +600,7 @@ msgid "You should provide commit message."
 msgstr ""
 
 #: lib\commit.py:487 lib\conflicts.py:171 lib\conflicts.py:176 lib\diff.py:389
-#: lib\util.py:68
+#: lib\util.py:69
 msgid "&OK"
 msgstr ""
 
@@ -201,11 +625,6 @@ msgid ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
 msgstr ""
-
-#: lib\commit.py:623 lib\diff.py:124 lib\diff.py:236 lib\diff.py:379
-#: lib\diff.py:387 lib\extdiff.py:122 lib\revert.py:160
-msgid "Diff"
-msgstr "שוני"
 
 #: lib\config.py:42
 msgid "Default"
@@ -332,10 +751,6 @@ msgstr ""
 msgid "Conflicts"
 msgstr ""
 
-#: lib\conflicts.py:57 lib\wtlist.py:95
-msgid "File"
-msgstr "קובץ"
-
 #: lib\conflicts.py:58
 msgid "Conflict"
 msgstr ""
@@ -383,11 +798,6 @@ msgstr ""
 #, python-format
 msgid "Error while running merge tool (code %d)"
 msgstr ""
-
-#: lib\conflicts.py:231 lib\conflicts.py:291 lib\tag.py:209 lib\trace.py:136
-#: lib\trace.py:150
-msgid "Error"
-msgstr "שגיאה"
 
 #: lib\conflicts.py:267
 msgid "Set up external_merge app in qconfig under the Merge tab"
@@ -451,95 +861,14 @@ msgstr ""
 msgid "non-directory parent"
 msgstr ""
 
-#: lib\diff.py:76
-#, python-format
-msgid "Working Tree for %s"
-msgstr "עץ העבודה עבור %s"
-
-#: lib\diff.py:78
-msgid "Working Tree"
-msgstr "עץ העבודה"
-
-#: lib\diff.py:97
-#, python-format
-msgid "Rev %(rev)s for %(branch)s"
-msgstr "מהדורה %(rev)s עבור %(branch)s"
-
-#: lib\diff.py:99
-#, python-format
-msgid "Rev %s"
-msgstr "מהדורה %s"
-
 #: lib\diff.py:102
 #, python-format
 msgid "Revid: %(revid)s for %(branch)s"
 msgstr ""
 
-#: lib\diff.py:104
-#, python-format
-msgid "Revid: %s"
-msgstr "מזהה מהדורה: %s"
-
-#: lib\diff.py:107
-msgid "Merge Preview"
-msgstr "תצוגה מקדימה של המיזוג"
-
-#: lib\diff.py:150
-msgid "Side by side"
-msgstr "זה לצד זה"
-
-#: lib\diff.py:157
-msgid "Unidiff"
-msgstr "שינויי אחידות"
-
-#: lib\diff.py:162
-msgid "Complete"
-msgstr "הסתיים"
-
 #: lib\diff.py:171
 msgid "Using"
 msgstr ""
-
-#: lib\diff.py:242
-#, python-format
-msgid "%d file"
-msgid_plural "%d files"
-msgstr[0] "קובץ %d"
-msgstr[1] "%d קבצים"
-
-#: lib\diff.py:321 lib\wtlist.py:130
-msgid "removed"
-msgstr "הוסר"
-
-#: lib\diff.py:323 lib\wtlist.py:126
-msgid "added"
-msgstr "נוסף"
-
-#: lib\diff.py:325 lib\wtlist.py:143
-msgid "renamed and modified"
-msgstr "שונה שמו או ששונה"
-
-#: lib\diff.py:327 lib\wtlist.py:145
-msgid "renamed"
-msgstr "שונה שמו"
-
-#: lib\diff.py:329 lib\wtlist.py:152
-msgid "modified"
-msgstr "עודכן"
-
-#: lib\diff.py:380
-#, python-format
-msgid ""
-"File %s is not versioned.\n"
-"Operation aborted."
-msgstr ""
-"הקובץ %s אינו מכיל גירסה.\n"
-"הפעולה בוטלה."
-
-#: lib\diff.py:382 lib\subprocess.py:149 lib\tag.py:143 lib\tag.py:174
-#: lib\tag.py:211 lib\util.py:70
-msgid "&Close"
-msgstr "ס&גור"
 
 #: lib\diff.py:388
 msgid "No changes found."
@@ -573,51 +902,6 @@ msgstr ""
 msgid "Show &differences"
 msgstr ""
 
-#: lib\help.py:60
-#, python-format
-msgid "No help can be found for <i>%s</i>"
-msgstr "לא ניתן למצוא עזרה עבור <i>%s</i>"
-
-#: lib\help.py:110
-msgid "Help"
-msgstr "עזרה"
-
-#: lib\i18n.py:87
-msgid "file"
-msgstr "קובץ"
-
-#: lib\i18n.py:88
-msgid "directory"
-msgstr "תיקייה"
-
-#: lib\i18n.py:89
-msgid "symlink"
-msgstr "קישור סמלי"
-
-#: lib\i18n.py:91
-msgid "fixed"
-msgstr "קבוע"
-
-#: lib\i18n.py:93
-msgid "View text file"
-msgstr "צפיה בקובץ טקסט"
-
-#: lib\i18n.py:94
-msgid "View image file"
-msgstr "צפיה בקובץ תמונה"
-
-#: lib\i18n.py:95
-msgid "View binary file"
-msgstr "צפיה בקובץ בינארי"
-
-#: lib\i18n.py:96
-msgid "View symlink"
-msgstr "צפיה בקישור סמלי"
-
-#: lib\i18n.py:97
-msgid "View directory"
-msgstr "צפיה בתיקייה"
-
 #: lib\i18n.py:99
 msgid "No changes selected to commit"
 msgstr ""
@@ -626,90 +910,50 @@ msgstr ""
 msgid "No changes selected to revert"
 msgstr ""
 
-#: lib\info.py:42
-msgid "Info"
-msgstr "מידע"
-
-#: lib\init.py:38 lib\ui_init.py:118
-msgid "Initialize"
-msgstr "הפעל"
-
-#: lib\init.py:73
-msgid "You must specify a location"
-msgstr "עליך לציין מיקום"
-
-#: lib\log.py:67
+#: lib\log.py:69
 msgid "Log"
 msgstr ""
 
-#: lib\log.py:94
+#: lib\log.py:96
 msgid "&Search:"
 msgstr ""
 
-#: lib\log.py:110
+#: lib\log.py:112
 msgid "Messages"
 msgstr ""
 
-#: lib\log.py:112
+#: lib\log.py:114
 msgid "Authors"
 msgstr ""
 
-#: lib\log.py:114
+#: lib\log.py:116
 msgid "Revision IDs"
 msgstr ""
 
-#: lib\log.py:116
+#: lib\log.py:118
 msgid "Revision Numbers"
 msgstr ""
 
-#: lib\log.py:200 lib\wtlist.py:79
-msgid "Show &differences..."
-msgstr "הצג &שינויים..."
+#: lib\log.py:120
+msgid "Tags"
+msgstr ""
 
-#: lib\log.py:203
+#: lib\log.py:122
+msgid "Bugs"
+msgstr ""
+
+#: lib\log.py:209
 msgid "Show &tree..."
 msgstr ""
 
-#: lib\log.py:243
+#: lib\log.py:249
 msgid "Messages and File text (indexed)"
 msgstr ""
 
-#: lib\logmodel.py:257
+#: lib\logmodel.py:246
 #, python-format
 msgid "bug #%s"
 msgstr ""
-
-#: lib\main.py:125
-msgid "Computer"
-msgstr "מחשב"
-
-#: lib\main.py:154
-msgid "&Edit Bookmark..."
-msgstr "&ערוך סימנייה..."
-
-#: lib\main.py:155
-msgid "&Remove Bookmark..."
-msgstr "ה&סר סימנייה..."
-
-#: lib\main.py:170
-msgid "Bookmarks"
-msgstr "סימניות"
-
-#: lib\main.py:279 lib\util.py:72
-msgid "&Refresh"
-msgstr "רע&נן"
-
-#: lib\main.py:281
-msgid "Refresh the directory tree"
-msgstr "רענן את עץ התיקיות"
-
-#: lib\main.py:285
-msgid "&Commit"
-msgstr "מ&סור"
-
-#: lib\main.py:286
-msgid "Commit changes into a new revision"
-msgstr "מסור את השינויים למהדורה חדשה"
 
 #: lib\main.py:290
 msgid "&Push"
@@ -755,7 +999,7 @@ msgstr ""
 msgid "&Bookmarks"
 msgstr ""
 
-#: lib\main.py:318 lib\util.py:71
+#: lib\main.py:318 lib\util.py:72
 msgid "&Help"
 msgstr ""
 
@@ -800,10 +1044,6 @@ msgstr ""
 msgid "Do you really want to remove the selected bookmark?"
 msgstr ""
 
-#: lib\revert.py:46 lib\wtlist.py:238
-msgid "Revert"
-msgstr "ה&חזר"
-
 #: lib\revert.py:77
 msgid "Do not save backups of reverted files"
 msgstr ""
@@ -811,10 +1051,6 @@ msgstr ""
 #: lib\revert.py:103
 msgid "View changes in files selected to revert"
 msgstr ""
-
-#: lib\subprocess.py:143
-msgid "Internal Error"
-msgstr "שגיאה פנימית"
 
 #: lib\subprocess.py:145
 #, python-format
@@ -825,118 +1061,13 @@ msgid ""
 "https://bugs.launchpad.net/qbzr/+filebug"
 msgstr ""
 
-#: lib\subprocess.py:279
-msgid "Description"
-msgstr "תיאור"
-
-#: lib\subprocess.py:310
-msgid "Stopped"
-msgstr "נעצר"
-
-#: lib\subprocess.py:371
-msgid "Starting..."
-msgstr "מתחיל..."
-
-#: lib\subprocess.py:425
-msgid "Aborting..."
-msgstr "מבטל..."
-
-#: lib\subprocess.py:436 lib\subprocess.py:508
-msgid "Finished!"
-msgstr "הסתיים!"
-
 #: lib\subprocess.py:455 lib\uifactory.py:92
 msgid "Enter Password"
 msgstr ""
 
-#: lib\subprocess.py:489 lib\subprocess.py:511
-msgid "Failed!"
-msgstr "נכשל!"
-
-#: lib\subprocess.py:491
-msgid "Failed to start bzr."
-msgstr "כשל בהפעלת bzr."
-
-#: lib\subprocess.py:493
-#, python-format
-msgid "Error while running bzr. (error code: %d)"
-msgstr "שגיאה בעת הרצת bzr. (קוד השגיאה: %d)"
-
 #: lib\subprocess.py:501
 msgid "Aborted!"
 msgstr ""
-
-#: lib\tag.py:142
-msgid "You should specify tag name"
-msgstr "עליך לציין שם תגית"
-
-#: lib\tag.py:148
-#, python-format
-msgid ""
-"Tag \"%s\" already exists.\n"
-"Do you want to replace existing tag?"
-msgstr ""
-"התגית \"%s\" כבר קיימת.\n"
-"האם ברצונך להחליף תגית קיימת?"
-
-#: lib\tag.py:151
-msgid "&Replace"
-msgstr "ה&חלף"
-
-#: lib\tag.py:151 lib\tag.py:164 lib\util.py:69
-msgid "&Cancel"
-msgstr "&ביטול"
-
-#: lib\tag.py:161
-#, python-format
-msgid ""
-"Tag \"%s\" does not exists yet.\n"
-"Do you want to create new tag?"
-msgstr ""
-"התגית \"%s\" אינה קיימת עדיין.\n"
-"האם ברצונך ליצור תגית חדשה?"
-
-#: lib\tag.py:164
-msgid "Cre&ate"
-msgstr "&צור"
-
-#: lib\tag.py:173
-#, python-format
-msgid "Tag \"%s\" does not exists"
-msgstr "התגית \"%s\" אינה קיימת"
-
-#: lib\tag.py:195
-msgid "Select branch location"
-msgstr "בחר את מיקום הענף"
-
-#: lib\tag.py:210
-#, python-format
-msgid ""
-"Not a branch:\n"
-"%s"
-msgstr ""
-"אינו ענף:\n"
-"%s"
-
-#: lib\ui_bookmark.py:51 lib\ui_branch.py:67 lib\ui_merge.py:59
-#: lib\ui_pull.py:62 lib\ui_push.py:64
-msgid "&Location:"
-msgstr "מ&יקום:"
-
-#: lib\ui_branch.py:66 lib\ui_merge.py:58 lib\ui_pull.py:61 lib\ui_push.py:63
-msgid "Options"
-msgstr "אפשרויות"
-
-#: lib\ui_branch.py:68 lib\ui_branch.py:71 lib\ui_init.py:120
-#: lib\ui_merge.py:60 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
-#: lib\ui_pull.py:63 lib\ui_push.py:65 lib\ui_update_branch.py:85
-#: lib\ui_update_checkout.py:79
-msgid "Browse..."
-msgstr "עיון..."
-
-#: lib\ui_branch.py:69 lib\ui_merge.py:61 lib\ui_pull.py:64 lib\ui_tag.py:108
-msgid "&Revision:"
-msgstr "&מהדורה:"
 
 #: lib\ui_branch.py:70
 msgid "&To:"
@@ -1028,14 +1159,6 @@ msgstr ""
 msgid "Description of format"
 msgstr ""
 
-#: lib\ui_merge.py:57
-msgid "Merge"
-msgstr "מזג"
-
-#: lib\ui_merge.py:62 lib\ui_pull.py:65 lib\ui_push.py:66
-msgid "Remember this location as a default"
-msgstr "זכור מיקום זה כברירת מחדל"
-
 #: lib\ui_new_tree.py:129
 msgid "Create a new Bazaar Working Tree"
 msgstr ""
@@ -1086,92 +1209,6 @@ msgstr ""
 msgid "Show Log..."
 msgstr ""
 
-#: lib\ui_pull.py:60
-msgid "Pull"
-msgstr "משוך"
-
-#: lib\ui_pull.py:66 lib\ui_push.py:67 lib\ui_update_branch.py:88
-#: lib\ui_update_checkout.py:80
-msgid "Overwrite differences between branches"
-msgstr "שכתב על השינויים בין הענפים"
-
-#: lib\ui_push.py:62
-msgid "Push"
-msgstr "דחיפה"
-
-#: lib\ui_push.py:68
-msgid "Use existing directory"
-msgstr "השתמש בתיקייה קיימת"
-
-#: lib\ui_push.py:69
-msgid "Create the path up to the branch if it does not exist"
-msgstr "צור את הנתיב עד לענף במידה ואינו קיים"
-
-#: lib\ui_tag.py:99
-msgid "Edit tag"
-msgstr "ערוך תגית"
-
-#: lib\ui_tag.py:101
-msgid "&Browse..."
-msgstr "&עיון..."
-
-#: lib\ui_tag.py:102
-msgid "Tag"
-msgstr "תגית"
-
-#: lib\ui_tag.py:103
-msgid "&Action:"
-msgstr "&פעולה:"
-
-#: lib\ui_tag.py:104
-msgid "Create new tag"
-msgstr "צור תגית חדשה"
-
-#: lib\ui_tag.py:105
-msgid "Replace existing tag"
-msgstr "החלף תגית קיימת"
-
-#: lib\ui_tag.py:106
-msgid "Delete existing tag"
-msgstr "מחק תגית קיימת"
-
-#: lib\ui_tag.py:107
-msgid "&Tag name:"
-msgstr "&שם התגית:"
-
-#: lib\ui_tag.py:109
-msgid "&Select..."
-msgstr "&בחירה..."
-
-#: lib\ui_update_branch.py:82
-msgid "Update Branch"
-msgstr "עדכן ענף"
-
-#: lib\ui_update_branch.py:83
-msgid ""
-"This directory is a branch.  Please select what you would like to update"
-msgstr "תיקייה זו הינה ענף. אנא בחר מה ברצונך לעדכן"
-
-#: lib\ui_update_branch.py:84 lib\ui_update_checkout.py:76
-msgid "Update source"
-msgstr "מקור העדכון"
-
-#: lib\ui_update_branch.py:86
-msgid "Pull most recent changes from:"
-msgstr "משוך את השינויים האחרונים מהמיקום:"
-
-#: lib\ui_update_branch.py:87
-msgid "Remember this as the new parent branch"
-msgstr "זכור זאת כענף האב החדש"
-
-#: lib\ui_update_branch.py:89
-msgid "<Parent Branch shown here>"
-msgstr "<ענף האב מופיע כאן>"
-
-#: lib\ui_update_branch.py:90
-msgid "Update working tree to the latest changes in the branch"
-msgstr "עדכן את עץ העבודה לשינויים האחרונים בענף"
-
 #: lib\ui_update_checkout.py:74
 msgid "Update Checkout"
 msgstr ""
@@ -1189,93 +1226,64 @@ msgstr ""
 msgid "Pull a different branch"
 msgstr ""
 
-#: lib\util.py:451
+#: lib\util.py:452
 msgid "Select Source Directory"
 msgstr ""
 
-#: lib\util.py:453
+#: lib\util.py:454
 msgid "Select Target Directory"
 msgstr ""
 
-#: lib\util.py:523
+#: lib\util.py:524
 msgid "Parents:"
 msgstr ""
 
-#: lib\util.py:527
+#: lib\util.py:528
 msgid "Children:"
 msgstr ""
 
-#: lib\util.py:530
+#: lib\util.py:531
 msgid "Date:"
 msgstr ""
 
-#: lib\util.py:532
+#: lib\util.py:533
 msgid "Committer:"
 msgstr ""
 
-#: lib\util.py:535
+#: lib\util.py:536 lib\util.py:541
 msgid "Author:"
 msgstr ""
 
-#: lib\util.py:539
+#: lib\util.py:545
 msgid "Branch:"
 msgstr ""
 
-#: lib\util.py:544
+#: lib\util.py:550
 msgid "Tags:"
 msgstr ""
 
-#: lib\util.py:553
+#: lib\util.py:559
 msgid "Bug:"
 msgid_plural "Bugs:"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib\util.py:701
+#: lib\util.py:703
 msgid "deleted files"
 msgstr ""
 
-#: lib\util.py:703
+#: lib\util.py:705
 msgid "added files"
 msgstr ""
 
-#: lib\util.py:705
+#: lib\util.py:707
 msgid "renamed files"
 msgstr ""
 
-#: lib\util.py:707
+#: lib\util.py:709
 msgid "modified files"
 msgstr ""
-
-#: lib\wtlist.py:47
-msgid "Select / deselect all"
-msgstr "בחר / בטל בחירת הכל"
-
-#: lib\wtlist.py:84
-msgid "&Revert..."
-msgstr "ה&חזר..."
-
-#: lib\wtlist.py:95
-msgid "Extension"
-msgstr "הרחבה"
-
-#: lib\wtlist.py:120
-msgid "ignored"
-msgstr "בהתעלמות"
-
-#: lib\wtlist.py:122
-msgid "non-versioned"
-msgstr "ללא גירסה"
-
-#: lib\wtlist.py:134
-msgid "missing"
-msgstr "חסר"
 
 #: lib\wtlist.py:156
 msgid "modified (x-bit)"
 msgstr ""
-
-#: lib\wtlist.py:237
-#, python-format
-msgid "Revert %s to latest revision."
-msgstr "החזר את %s למהדורה האחרונה."

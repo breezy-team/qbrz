@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-03-24 17:11+0200\n"
-"PO-Revision-Date: 2009-02-14 08:11+0000\n"
-"Last-Translator: Regen <Unknown>\n"
+"POT-Creation-Date: 2009-03-29 10:12+0300\n"
+"PO-Revision-Date: 2009-04-17 18:28+0000\n"
+"Last-Translator: INADA Naoki <Unknown>\n"
 "Language-Team: Japanese <ja@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2009-03-24 15:56+0000\n"
+"X-Launchpad-Export-Date: 2009-05-12 10:36+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:41 lib\config.py:112 lib\config.py:133 lib\config.py:164
@@ -31,33 +31,33 @@ msgstr "バージョン管理外のファイル"
 msgid "Show ignored files"
 msgstr "無視したファイルを表示"
 
-#: lib\annotate.py:87 lib\annotate.py:188 lib\browse.py:116
+#: lib\annotate.py:86 lib\annotate.py:187 lib\browse.py:116
 msgid "Annotate"
 msgstr "注釈"
 
-#: lib\annotate.py:87 lib\diff.py:124 lib\util.py:423
+#: lib\annotate.py:86 lib\diff.py:124 lib\util.py:424
 msgid "Loading..."
-msgstr ""
+msgstr "読み込み中..."
 
-#: lib\annotate.py:106
+#: lib\annotate.py:105
 msgid "Line"
 msgstr "行"
 
-#: lib\annotate.py:106 lib\annotate.py:121 lib\browse.py:106 lib\commit.py:369
-#: lib\logmodel.py:116
+#: lib\annotate.py:105 lib\annotate.py:120 lib\browse.py:106 lib\commit.py:369
+#: lib\logmodel.py:105
 msgid "Author"
 msgstr "著者"
 
-#: lib\annotate.py:106 lib\annotate.py:121 lib\browse.py:107
-#: lib\logmodel.py:113
+#: lib\annotate.py:105 lib\annotate.py:120 lib\browse.py:107
+#: lib\logmodel.py:102
 msgid "Rev"
 msgstr "リビジョン"
 
-#: lib\annotate.py:121 lib\browse.py:105 lib\commit.py:369 lib\logmodel.py:115
+#: lib\annotate.py:120 lib\browse.py:105 lib\commit.py:369 lib\logmodel.py:104
 msgid "Date"
 msgstr "日付"
 
-#: lib\annotate.py:121
+#: lib\annotate.py:120
 msgid "Summary"
 msgstr "要約"
 
@@ -69,7 +69,7 @@ msgstr "参照"
 msgid "Location:"
 msgstr "場所:"
 
-#: lib\browse.py:94 lib\ui_new_tree.py:160 lib\util.py:506
+#: lib\browse.py:94 lib\ui_new_tree.py:160 lib\util.py:507
 msgid "Revision:"
 msgstr "リビジョン："
 
@@ -81,7 +81,7 @@ msgstr "表示"
 msgid "Name"
 msgstr "名前"
 
-#: lib\browse.py:108 lib\commit.py:272 lib\commit.py:369 lib\logmodel.py:114
+#: lib\browse.py:108 lib\commit.py:272 lib\commit.py:369 lib\logmodel.py:103
 msgid "Message"
 msgstr "メッセージ"
 
@@ -95,7 +95,7 @@ msgstr "ファイルを表示"
 
 #: lib\cat.py:87 lib\cat.py:244
 msgid "View"
-msgstr ""
+msgstr "表示"
 
 #: lib\commit.py:223 lib\commit.py:485 lib\commit.py:514 lib\commit.py:522
 msgid "Commit"
@@ -170,26 +170,28 @@ msgstr "状態"
 
 #: lib\commit.py:408
 msgid "View changes in files selected to commit"
-msgstr ""
+msgstr "選択されたファイルの変更点を見る"
 
 #: lib\commit.py:486
 msgid "You should provide commit message."
-msgstr ""
+msgstr "コミットメッセージを入力すべきです。"
 
 #: lib\commit.py:487 lib\conflicts.py:171 lib\conflicts.py:176 lib\diff.py:389
-#: lib\util.py:68
+#: lib\util.py:69
 msgid "&OK"
 msgstr "OK(&O)"
 
 #: lib\commit.py:515
 msgid "No changes to commit."
-msgstr ""
+msgstr "コミットする変更がありません。"
 
 #: lib\commit.py:523
 msgid ""
 "No changes selected to commit.\n"
 "Do you want to commit anyway?"
 msgstr ""
+"コミットする変更が選択されていません。\n"
+"どうしてもコミットしたいですか?"
 
 #: lib\commit.py:584
 msgid ""
@@ -201,7 +203,7 @@ msgstr "コミットはマスターブランチに送られ、ローカルとマ
 msgid ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
-msgstr ""
+msgstr "ブランチへのローカルコミットが行われます。ローカルコミットでないコミットをしない限り、マスターブランチは更新されません。"
 
 #: lib\commit.py:623 lib\diff.py:124 lib\diff.py:236 lib\diff.py:379
 #: lib\diff.py:387 lib\extdiff.py:122 lib\revert.py:160
@@ -280,21 +282,13 @@ msgstr "略記"
 msgid "URL"
 msgstr "URL"
 
-#: lib\config.py:152
-msgid "Show inter-group inserts and deletes in green and red"
-msgstr ""
-
 #: lib\config.py:154
 msgid "External Diff Apps:"
-msgstr ""
+msgstr "外部の diff プログラム"
 
 #: lib\config.py:184
 msgid "External Merge Apps:"
-msgstr ""
-
-#: lib\config.py:187
-msgid "Definition"
-msgstr ""
+msgstr "外部の merge プログラム"
 
 #: lib\config.py:210
 msgid "General"
@@ -312,21 +306,9 @@ msgstr "バグトラッカー"
 msgid "&User Interface"
 msgstr "ユーザインタフェース(&U)"
 
-#: lib\config.py:214
-msgid "&Diff"
-msgstr ""
-
-#: lib\config.py:215
-msgid "&Merge"
-msgstr ""
-
 #: lib\config.py:240
 msgid "Spell check &language:"
 msgstr "スペルチェック言語(&L)："
-
-#: lib\config.py:331 lib\extdiff.py:34
-msgid "Builtin Diff"
-msgstr ""
 
 #: lib\conflicts.py:47 lib\conflicts.py:150 lib\conflicts.py:167
 #: lib\conflicts.py:174
@@ -337,53 +319,14 @@ msgstr "競合"
 msgid "File"
 msgstr "ファイル"
 
-#: lib\conflicts.py:58
-msgid "Conflict"
-msgstr ""
-
-#: lib\conflicts.py:82
-msgid "Use Configured Default"
-msgstr ""
-
-#: lib\conflicts.py:84
-msgid ""
-"The merge tool configured in qconfig under Merge' file.\n"
-"It follows the convention used in the bzr plugin: extmerge\n"
-"external_merge = kdiff3 --output %r %b %t %o\n"
-"%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."
-msgstr ""
-
-#: lib\conflicts.py:92
-msgid "&Launch..."
-msgstr ""
-
-#: lib\conflicts.py:98
-msgid "M&erge tool:"
-msgstr ""
-
-#: lib\conflicts.py:107
-msgid "Mark as resolved"
-msgstr ""
-
-#: lib\conflicts.py:114
-msgid "Auto-resolve"
-msgstr ""
-
-#: lib\conflicts.py:168
-#, python-format
-msgid "%d conflict auto-resolved."
-msgid_plural "%d conflicts auto-resolved."
-msgstr[0] ""
-msgstr[1] ""
-
 #: lib\conflicts.py:175
 msgid "All conflicts resolved."
-msgstr ""
+msgstr "全ての競合は解決されました。"
 
 #: lib\conflicts.py:230
 #, python-format
 msgid "Error while running merge tool (code %d)"
-msgstr ""
+msgstr "merge ツールの実行中にエラーが発生しました (コード %d)"
 
 #: lib\conflicts.py:231 lib\conflicts.py:291 lib\tag.py:209 lib\trace.py:136
 #: lib\trace.py:150
@@ -392,65 +335,24 @@ msgstr "エラー"
 
 #: lib\conflicts.py:267
 msgid "Set up external_merge app in qconfig under the Merge tab"
-msgstr ""
-
-#: lib\conflicts.py:292
-#, python-format
-msgid ""
-"The extmerge definition: '%(tool)s' is invalid.\n"
-"Missing the flag: %(flags)s. This must be fixed in qconflicts under the "
-"Merge tab."
-msgstr ""
+msgstr "qconfig の merge タブで外部のマージプログラムを設定してください"
 
 #: lib\conflicts.py:296
 #, python-format
 msgid "Missing the flag: %s. Configure in qconfig under the merge tab."
-msgstr ""
-
-#: lib\conflicts.py:304
-#, python-format
-msgid "%s (Configured external merge definition in qconfig)"
-msgstr ""
+msgstr "%s フラグがありません。 qconfig の merge タブで設定してください"
 
 #: lib\conflicts.py:312
 msgid "path conflict"
-msgstr ""
+msgstr "パスの競合"
 
 #: lib\conflicts.py:313
 msgid "contents conflict"
-msgstr ""
+msgstr "内容の競合"
 
 #: lib\conflicts.py:314
 msgid "text conflict"
-msgstr ""
-
-#: lib\conflicts.py:315
-msgid "duplicate id"
-msgstr ""
-
-#: lib\conflicts.py:316
-msgid "duplicate"
-msgstr ""
-
-#: lib\conflicts.py:317
-msgid "parent loop"
-msgstr ""
-
-#: lib\conflicts.py:318
-msgid "unversioned parent"
-msgstr ""
-
-#: lib\conflicts.py:319
-msgid "missing parent"
-msgstr ""
-
-#: lib\conflicts.py:320
-msgid "deleting parent"
-msgstr ""
-
-#: lib\conflicts.py:321
-msgid "non-directory parent"
-msgstr ""
+msgstr "テキストの競合"
 
 #: lib\diff.py:76
 #, python-format
@@ -461,20 +363,10 @@ msgstr "%s の作業ツリー"
 msgid "Working Tree"
 msgstr "作業ツリー"
 
-#: lib\diff.py:97
-#, python-format
-msgid "Rev %(rev)s for %(branch)s"
-msgstr ""
-
 #: lib\diff.py:99
 #, python-format
 msgid "Rev %s"
 msgstr "リビジョン %s"
-
-#: lib\diff.py:102
-#, python-format
-msgid "Revid: %(revid)s for %(branch)s"
-msgstr ""
 
 #: lib\diff.py:104
 #, python-format
@@ -496,10 +388,6 @@ msgstr "Unified形式で表示"
 #: lib\diff.py:162
 msgid "Complete"
 msgstr "すべて"
-
-#: lib\diff.py:171
-msgid "Using"
-msgstr ""
 
 #: lib\diff.py:242
 #, python-format
@@ -537,13 +425,13 @@ msgstr ""
 "処理は中断しました。"
 
 #: lib\diff.py:382 lib\subprocess.py:149 lib\tag.py:143 lib\tag.py:174
-#: lib\tag.py:211 lib\util.py:70
+#: lib\tag.py:211 lib\util.py:71
 msgid "&Close"
 msgstr "閉じる(&C)"
 
 #: lib\diff.py:388
 msgid "No changes found."
-msgstr ""
+msgstr "変更が見つかりません。"
 
 #: lib\diffview.py:248
 msgid "Last modified:"
@@ -571,7 +459,7 @@ msgstr "\\ ファイル終端に改行がない"
 
 #: lib\extdiff.py:98
 msgid "Show &differences"
-msgstr ""
+msgstr "差異を表示(&D)"
 
 #: lib\help.py:60
 #, python-format
@@ -620,11 +508,11 @@ msgstr "ディレクトリを表示"
 
 #: lib\i18n.py:99
 msgid "No changes selected to commit"
-msgstr ""
+msgstr "commit する変更が選択されていません"
 
 #: lib\i18n.py:100
 msgid "No changes selected to revert"
-msgstr ""
+msgstr "revert する変更が選択されていません"
 
 #: lib\info.py:42
 msgid "Info"
@@ -638,43 +526,47 @@ msgstr "初期化"
 msgid "You must specify a location"
 msgstr "場所を指定する必要があります"
 
-#: lib\log.py:67
+#: lib\log.py:69
 msgid "Log"
 msgstr "ログ"
 
-#: lib\log.py:94
+#: lib\log.py:96
 msgid "&Search:"
 msgstr "検索(&S):"
 
-#: lib\log.py:110
+#: lib\log.py:112
 msgid "Messages"
 msgstr "メッセージ"
 
-#: lib\log.py:112
+#: lib\log.py:114
 msgid "Authors"
 msgstr "著者"
 
-#: lib\log.py:114
+#: lib\log.py:116
 msgid "Revision IDs"
 msgstr "リビジョンID"
 
-#: lib\log.py:116
+#: lib\log.py:118
 msgid "Revision Numbers"
 msgstr "リビジョン番号"
 
-#: lib\log.py:200 lib\wtlist.py:79
+#: lib\log.py:120
+msgid "Tags"
+msgstr "Tags"
+
+#: lib\log.py:122
+msgid "Bugs"
+msgstr "バグ"
+
+#: lib\log.py:206 lib\wtlist.py:79
 msgid "Show &differences..."
 msgstr "差分を表示(&D)..."
 
-#: lib\log.py:203
+#: lib\log.py:209
 msgid "Show &tree..."
 msgstr "ツリーを表示(&T)..."
 
-#: lib\log.py:243
-msgid "Messages and File text (indexed)"
-msgstr ""
-
-#: lib\logmodel.py:257
+#: lib\logmodel.py:246
 #, python-format
 msgid "bug #%s"
 msgstr "バグ #%s"
@@ -695,7 +587,7 @@ msgstr "ブックマークを削除(&R)..."
 msgid "Bookmarks"
 msgstr "ブックマーク"
 
-#: lib\main.py:279 lib\util.py:72
+#: lib\main.py:279 lib\util.py:73
 msgid "&Refresh"
 msgstr "更新(&R)"
 
@@ -755,7 +647,7 @@ msgstr "ブランチ(&B)"
 msgid "&Bookmarks"
 msgstr "ブックマーク(&B)"
 
-#: lib\main.py:318 lib\util.py:71
+#: lib\main.py:318 lib\util.py:72
 msgid "&Help"
 msgstr "ヘルプ(&H)"
 
@@ -783,6 +675,10 @@ msgid ""
 "2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
 "vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
+"<b>QBzr</b> — Bazaarのグラフィカルインターフェース<br><small>バージョン %(qbzr_version)s (bzrlib "
+"%(bzrlib_version)s)</small><br><br>Copyright © 2006-2008 Lukáš Lalinský "
+"とその他の方々<br><br><a href=\"http://bazaar-vcs.org/QBzr\">http://bazaar-"
+"vcs.org/QBzr</a>"
 
 #: lib\main.py:477
 msgid "Add Bookmark"
@@ -806,11 +702,11 @@ msgstr "元に戻す"
 
 #: lib\revert.py:77
 msgid "Do not save backups of reverted files"
-msgstr ""
+msgstr "revert されるファイルのバックアップを作らない"
 
 #: lib\revert.py:103
 msgid "View changes in files selected to revert"
-msgstr ""
+msgstr "revert するように選択されているファイルの変更点を確認する"
 
 #: lib\subprocess.py:143
 msgid "Internal Error"
@@ -849,7 +745,7 @@ msgstr "完了!"
 
 #: lib\subprocess.py:455 lib\uifactory.py:92
 msgid "Enter Password"
-msgstr ""
+msgstr "パスワードを入力して下さい"
 
 #: lib\subprocess.py:489 lib\subprocess.py:511
 msgid "Failed!"
@@ -866,7 +762,7 @@ msgstr "bzr実行中にエラーが発生しました。(エラーコード: %d)
 
 #: lib\subprocess.py:501
 msgid "Aborted!"
-msgstr ""
+msgstr "中断しました！"
 
 #: lib\tag.py:142
 msgid "You should specify tag name"
@@ -885,7 +781,7 @@ msgstr ""
 msgid "&Replace"
 msgstr "置換(&R)"
 
-#: lib\tag.py:151 lib\tag.py:164 lib\util.py:69
+#: lib\tag.py:151 lib\tag.py:164 lib\util.py:70
 msgid "&Cancel"
 msgstr "キャンセル(&C)"
 
@@ -1010,10 +906,6 @@ msgstr "リポジトリ"
 msgid "Create a new standalone tree"
 msgstr "新たな単体ツリーを作成"
 
-#: lib\ui_init.py:123
-msgid "Ensure all revisions are appended to the log"
-msgstr ""
-
 #: lib\ui_init.py:124
 msgid "Create a new shared repository"
 msgstr "新規共有リポジトリを作成"
@@ -1082,7 +974,7 @@ msgstr "リビジョン"
 
 #: lib\ui_new_tree.py:159
 msgid "Most recent (tip) revision"
-msgstr ""
+msgstr "最新の (tip) revision"
 
 #: lib\ui_new_tree.py:161
 msgid "Show Log..."
@@ -1158,10 +1050,6 @@ msgstr "このディレクトリはブランチです。何を更新したいか
 msgid "Update source"
 msgstr "ソースを更新"
 
-#: lib\ui_update_branch.py:86
-msgid "Pull most recent changes from:"
-msgstr ""
-
 #: lib\ui_update_branch.py:87
 msgid "Remember this as the new parent branch"
 msgstr "新たな親ブランチとして記憶します"
@@ -1172,7 +1060,7 @@ msgstr "<親のブランチをここに表示>"
 
 #: lib\ui_update_branch.py:90
 msgid "Update working tree to the latest changes in the branch"
-msgstr ""
+msgstr "作業ツリー(working tree)を branch の最新の状態に update する"
 
 #: lib\ui_update_checkout.py:74
 msgid "Update Checkout"
@@ -1183,68 +1071,64 @@ msgstr "チェックアウトを更新"
 msgid "This directory is a checkout of: %s"
 msgstr "このディレクトリのチェックアウト元： %s"
 
-#: lib\ui_update_checkout.py:77
-msgid "Update the working tree from the bound branch"
-msgstr ""
-
 #: lib\ui_update_checkout.py:78
 msgid "Pull a different branch"
 msgstr "異なるブランチにプル"
 
-#: lib\util.py:451
+#: lib\util.py:452
 msgid "Select Source Directory"
 msgstr "ソースディレクトリを選択"
 
-#: lib\util.py:453
+#: lib\util.py:454
 msgid "Select Target Directory"
 msgstr "対象ディレクトリを選択"
 
-#: lib\util.py:523
+#: lib\util.py:524
 msgid "Parents:"
 msgstr "親:"
 
-#: lib\util.py:527
+#: lib\util.py:528
 msgid "Children:"
 msgstr "子供:"
 
-#: lib\util.py:530
+#: lib\util.py:531
 msgid "Date:"
 msgstr "日付："
 
-#: lib\util.py:532
+#: lib\util.py:533
 msgid "Committer:"
 msgstr "コミッタ:"
 
-#: lib\util.py:535
+#: lib\util.py:536 lib\util.py:541
 msgid "Author:"
 msgstr "著者:"
 
-#: lib\util.py:539
+#: lib\util.py:545
 msgid "Branch:"
 msgstr "ブランチ："
 
-#: lib\util.py:544
+#: lib\util.py:550
 msgid "Tags:"
 msgstr "タグ:"
 
-#: lib\util.py:553
+#: lib\util.py:559
 msgid "Bug:"
 msgid_plural "Bugs:"
 msgstr[0] "バグ："
 
-#: lib\util.py:701
+#: lib\util.py:703
 msgid "deleted files"
 msgstr "削除"
 
-#: lib\util.py:703
+#: lib\util.py:705
 msgid "added files"
 msgstr "追加"
 
-#: lib\util.py:705
+#: lib\util.py:707
 msgid "renamed files"
 msgstr "名前が変更されたファイル"
 
-#: lib\util.py:707
+#: lib\util.py:709
 msgid "modified files"
 msgstr "変更されたファイル"
 
@@ -1272,42 +1156,141 @@ msgstr "管理外"
 msgid "missing"
 msgstr "紛失"
 
-#: lib\wtlist.py:156
-msgid "modified (x-bit)"
-msgstr ""
-
 #: lib\wtlist.py:237
 #, python-format
 msgid "Revert %s to latest revision."
 msgstr "%sを最新のリビジョンに戻す"
 
-#~ msgid "Branch nick:"
-#~ msgstr "ブランチニックネーム："
+#: lib\config.py:152
+msgid "Show inter-group inserts and deletes in green and red"
+msgstr ""
 
-#~ msgid "Show &Differences..."
-#~ msgstr "差分を表示(&D)..."
+#: lib\config.py:187
+msgid "Definition"
+msgstr ""
 
-#~ msgid "Do you really want to revert the selected file(s)?"
-#~ msgstr "選択したファイルを本当に元に戻しますか？"
+#: lib\config.py:214
+msgid "&Diff"
+msgstr ""
 
-#~ msgid "Empty commit message. Do you really want to commit?"
-#~ msgstr "コミットメッセージが空です。本当にコミットしますか？"
+#: lib\config.py:215
+msgid "&Merge"
+msgstr ""
 
-#~ msgid "View File"
-#~ msgstr "ファイルを表示"
+#: lib\config.py:331 lib\extdiff.py:34
+msgid "Builtin Diff"
+msgstr ""
 
+#: lib\conflicts.py:58
+msgid "Conflict"
+msgstr ""
+
+#: lib\conflicts.py:82
+msgid "Use Configured Default"
+msgstr ""
+
+#: lib\conflicts.py:84
+msgid ""
+"The merge tool configured in qconfig under Merge' file.\n"
+"It follows the convention used in the bzr plugin: extmerge\n"
+"external_merge = kdiff3 --output %r %b %t %o\n"
+"%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."
+msgstr ""
+
+#: lib\conflicts.py:92
+msgid "&Launch..."
+msgstr ""
+
+#: lib\conflicts.py:98
+msgid "M&erge tool:"
+msgstr ""
+
+#: lib\conflicts.py:107
+msgid "Mark as resolved"
+msgstr ""
+
+#: lib\conflicts.py:114
+msgid "Auto-resolve"
+msgstr ""
+
+#: lib\conflicts.py:168
 #, python-format
-#~ msgid "File \"%s\" not found in the specified revision."
-#~ msgstr "ファイル \"%s\" はこのリビジョンには存在しません。"
+msgid "%d conflict auto-resolved."
+msgid_plural "%d conflicts auto-resolved."
+msgstr[0] ""
+msgstr[1] ""
 
-#~ msgid "&Local commit in a bound branch"
-#~ msgstr "boundブランチでローカルコミット(&L)"
+#: lib\conflicts.py:292
+#, python-format
+msgid ""
+"The extmerge definition: '%(tool)s' is invalid.\n"
+"Missing the flag: %(flags)s. This must be fixed in qconflicts under the "
+"Merge tab."
+msgstr ""
 
-#~ msgid "Show tree..."
-#~ msgstr "ツリーを表示..."
+#: lib\conflicts.py:304
+#, python-format
+msgid "%s (Configured external merge definition in qconfig)"
+msgstr ""
 
-#~ msgid "View "
-#~ msgstr "表示 "
+#: lib\conflicts.py:315
+msgid "duplicate id"
+msgstr ""
 
-#~ msgid "Revision Id:"
-#~ msgstr "リビジョンID："
+#: lib\conflicts.py:316
+msgid "duplicate"
+msgstr ""
+
+#: lib\conflicts.py:317
+msgid "parent loop"
+msgstr ""
+
+#: lib\conflicts.py:318
+msgid "unversioned parent"
+msgstr ""
+
+#: lib\conflicts.py:319
+msgid "missing parent"
+msgstr ""
+
+#: lib\conflicts.py:320
+msgid "deleting parent"
+msgstr ""
+
+#: lib\conflicts.py:321
+msgid "non-directory parent"
+msgstr ""
+
+#: lib\diff.py:97
+#, python-format
+msgid "Rev %(rev)s for %(branch)s"
+msgstr ""
+
+#: lib\diff.py:102
+#, python-format
+msgid "Revid: %(revid)s for %(branch)s"
+msgstr ""
+
+#: lib\diff.py:171
+msgid "Using"
+msgstr ""
+
+#: lib\log.py:249
+msgid "Messages and File text (indexed)"
+msgstr ""
+
+#: lib\ui_init.py:123
+msgid "Ensure all revisions are appended to the log"
+msgstr ""
+
+#: lib\ui_update_branch.py:86
+msgid "Pull most recent changes from:"
+msgstr ""
+
+#: lib\ui_update_checkout.py:77
+msgid "Update the working tree from the bound branch"
+msgstr ""
+
+#: lib\wtlist.py:156
+msgid "modified (x-bit)"
+msgstr ""
