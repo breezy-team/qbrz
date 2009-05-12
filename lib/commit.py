@@ -390,15 +390,16 @@ class CommitWindow(SubProcessWindow):
         hbox.addWidget(self.buttonbox)
         vbox.addLayout(hbox)
 
-        # groupbox and tabbox get disabled as we are executing.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessStarted(bool)"),
-                               message_groupbox,
-                               QtCore.SLOT("setDisabled(bool)"))
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessStarted(bool)"),
-                               files_tab,
-                               QtCore.SLOT("setDisabled(bool)"))
+        # groupbox and tabbox signals handling.
+        for w in (message_groupbox, files_tab):
+            # when operation started we need to disable widgets
+            # if operation failed we need to re-enable widgets
+            for s in ("subprocessStarted(bool)",
+                      "subprocessFailed(bool)"):
+                QtCore.QObject.connect(self,
+                    QtCore.SIGNAL(s),
+                    w,
+                    QtCore.SLOT("setDisabled(bool)"))
         
         # Try to be smart: if there is no saved message
         # then set focus on Edit Area; otherwise on OK button.
