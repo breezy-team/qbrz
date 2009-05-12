@@ -254,7 +254,7 @@ class ConflictsWindow(QBzrWindow):
 
     def is_merge_tool_launchable(self):
         items = self.conflicts_list.selectedItems()
-	error_msg = ""
+        error_msg = ""
         enabled = True
         if len(items) != 1 or items[0].data(1, QtCore.Qt.UserRole).toString() != "text conflict":
             enabled = False
