@@ -210,7 +210,7 @@ class LogModel(QtCore.QAbstractTableModel):
         if self.last_rev_is_placeholder and \
                 msri == len(self.graph_provider.merge_sorted_revisions) - 1:
             if role == GraphNodeRole:
-                return QVariant_fromList((QtCore.QVariant(-1), QtCore.QVariant(0)))
+                return QVariant_fromList([QtCore.QVariant(-1), QtCore.QVariant(0)])
             return QtCore.QVariant()
 
         if role == GraphNodeRole:
