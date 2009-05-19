@@ -43,6 +43,7 @@ from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.plugins.qbzr.lib.logmodel import COL_DATE, COL_AUTHOR, RevIdRole
+from bzrlib.revisiontree import RevisionTree
 
 have_pygments = True
 try:
@@ -120,6 +121,9 @@ class AnnotateWindow(QBzrWindow):
         self.log_list = LogList(self.processEvents, self.throbber, no_graph, self)
         self.log_list.header().hideSection(COL_DATE)
         #self.log_list.header().hideSection(COL_AUTHOR)
+        self.log_list.context_menu.addAction(
+            gettext("&Annotate this revision."),
+            self.set_annotate_revision)
         
         self.connect(self.log_list.selectionModel(),
                      QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
@@ -173,6 +177,8 @@ class AnnotateWindow(QBzrWindow):
                 self.log_list.graph_provider.load_filter_file_id = do_nothing
                 
                 self.log_list.load_branch(self.branch, self.fileId)
+                self.set_annotate_title()
+                self.processEvents()
                 self.annotate(self.tree, self.fileId, self.path)
             finally:
                 self.branch.unlock()
@@ -185,15 +191,22 @@ class AnnotateWindow(QBzrWindow):
         self.connect(self.browser,
             QtCore.SIGNAL("itemSelectionChanged()"),
             self.setRevisionByLine)
+    
+    def set_annotate_title(self):
         # and update the title to show we are done.
-        self.set_title_and_icon([gettext("Annotate"), self.path])
+        if isinstance(self.tree, RevisionTree):
+            revno = self.get_revno(self.tree.get_revision_id())
+            self.set_title_and_icon([gettext("Annotate"), self.path,
+                                     gettext("Revision %s") % revno])
+        else:
+            self.set_title_and_icon([gettext("Annotate"), self.path])
 
+    def get_revno(self, revid):
+        msri = self.log_list.graph_provider.revid_msri[revid]
+        revno_sequence = self.log_list.graph_provider.merge_sorted_revisions[msri][3]
+        return ".".join(["%d" % (revno) for revno in revno_sequence])
+    
     def annotate(self, tree, fileId, path):
-        def revno(revid):
-            msri = self.log_list.graph_provider.revid_msri[revid]
-            revno_sequence = self.log_list.graph_provider.merge_sorted_revisions[msri][3]
-            return ".".join(["%d" % (revno) for revno in revno_sequence])
-        
         font = QtGui.QFont("Courier New,courier", self.browser.font().pointSize())
         items = []
         self.rev_items = {}
@@ -216,7 +229,7 @@ class AnnotateWindow(QBzrWindow):
                 if revid not in self.rev_top_items:
                     self.rev_top_items[revid]=[]
                 self.rev_top_items[revid].append(item)
-                item.setText(2, revno(revid))
+                item.setText(2, self.get_revno(revid))
                 item.setTextAlignment(2, QtCore.Qt.AlignRight)
             
             item.setText(3, text.rstrip())
@@ -316,3 +329,21 @@ class AnnotateWindow(QBzrWindow):
 
     def linkClicked(self, url):
         open_browser(str(url.toEncoded()))
+    
+    @runs_in_loading_queue
+    def set_annotate_revision(self):
+        self.throbber.show()
+        try:
+            self.branch.lock_read()
+            try:
+                revid = str(self.log_list.currentIndex().data(RevIdRole).toString())
+                self.tree = self.branch.repository.revision_tree(revid)
+                self.path = self.tree.id2path(self.fileId)
+                self.browser.clear()
+                self.set_annotate_title()
+                self.processEvents()
+                self.annotate(self.tree, self.fileId, self.path)
+            finally:
+                self.branch.unlock()
+        finally:
+            self.throbber.hide()
