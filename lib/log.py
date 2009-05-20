@@ -42,9 +42,13 @@ from bzrlib.plugins.qbzr.lib.util import (
     RevisionMessageBrowser,
     url_for_display,
     runs_in_loading_queue,
+    get_set_encoding,
     )
 from bzrlib.plugins.qbzr.lib.trace import *
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
+from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
+
 
 PathRole = QtCore.Qt.UserRole + 1
 
@@ -162,6 +166,28 @@ class LogWindow(QBzrWindow):
         self.connect(self.fileList,
                      QtCore.SIGNAL("doubleClicked(QModelIndex)"),
                      self.show_diff_file)
+        self.fileList.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)        
+        self.file_list_context_menu = QtGui.QMenu(self)
+        if has_ext_diff():
+            diff_menu = ExtDiffMenu(self)
+            self.file_list_context_menu.addMenu(diff_menu)
+            self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"),
+                         self.show_diff_file_menu)
+        else:
+            show_diff_action = self.file_list_context_menu.addAction(
+                                        gettext("Show &differences..."),
+                                        self.show_diff_file_menu)
+            self.file_list_context_menu.setDefaultAction(show_diff_action)
+        
+        self.file_list_context_menu.addAction(gettext("Annotate"),
+                                              self.show_file_annotate)
+        self.file_list_context_menu.addAction(gettext("View file"),
+                                              self.show_file_content)
+
+        self.fileList.connect(
+            self.fileList,
+            QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
+            self.show_file_list_context_menu)
 
         hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
         hsplitter.addWidget(self.message_browser)
@@ -363,16 +389,61 @@ class LogWindow(QBzrWindow):
             self.message.setHtml(format_revision_html(rev, replace))
             self.revision_delta_timer.start(1)
 
-    def show_diff_file(self, index):
-        """Show differences of a specific file in a single revision"""
-        item = self.fileList.itemFromIndex(index)
-        if item and self.current_rev:
+    def show_file_list_context_menu(self, pos):
+        self.file_list_context_menu.popup(
+            self.fileList.viewport().mapToGlobal(pos))
+    
+    def get_current_rev_and_path(self, file_index=None):
+        if not file_index:
+            file_index = self.fileList.currentIndex()
+        item = self.fileList.itemFromIndex(file_index)
+        path = None
+        if item:
             path = item.data(PathRole).toString()
             if path.isNull():
                 path = item.text()
-            rev = self.current_rev
-            self.log_list.show_diff(rev, rev, [unicode(path)])
+            path = unicode(path)
+        rev = self.current_rev
+        return rev, path
 
+    
+    @ui_current_widget
+    def show_diff_file(self, index, ext_diff=None):
+        """Show differences of a specific file in a single revision"""
+        rev, path = self.get_current_rev_and_path(index)
+        if rev and path:
+            self.log_list.show_diff(rev, rev, [unicode(path)], ext_diff)
+    
+    @ui_current_widget
+    def show_diff_file_menu(self, ext_diff=None):
+        """Show differences of a specific file in a single revision"""
+        self.show_diff_file(None, ext_diff)
+    
+    @runs_in_loading_queue
+    @ui_current_widget
+    def show_file_content(self):
+        """Launch qcat for one selected file."""
+        rev, path = self.get_current_rev_and_path()
+        if rev and path:
+            tree = rev.branch.repository.revision_tree(rev.revision_id)
+            encoding = get_set_encoding(None, rev.branch)
+            window = QBzrCatWindow(filename = path, tree = tree, parent=self,
+                encoding=encoding)
+            window.show()
+            self.windows.append(window)
+
+    @ui_current_widget
+    def show_file_annotate(self):
+        """Show qannotate for selected file."""
+        rev, path = self.get_current_rev_and_path()
+        if rev and path:
+            branch = rev.branch
+            tree = rev.branch.repository.revision_tree(rev.revision_id)
+            file_id = tree.path2id(path)
+            window = AnnotateWindow(branch, tree, path, file_id)
+            window.show()
+            self.windows.append(window)
+    
     @ui_current_widget
     def update_search(self):
         # TODO in_paths = self.search_in_paths.isChecked()
