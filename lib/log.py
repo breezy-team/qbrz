@@ -266,9 +266,9 @@ class LogWindow(QBzrWindow):
                 self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
                              self.set_search_timer)
             
-            if len(self.log_list.graph_provider.fileids)==1 and \
-                    not self.log_list.graph_provider.has_dir:
-                self.fileList.hide()
+            #if len(self.log_list.graph_provider.fileids)==1 and \
+            #        not self.log_list.graph_provider.has_dir:
+            #    self.fileList.hide()
         finally:
             self.refresh_button.setDisabled(False)
     
