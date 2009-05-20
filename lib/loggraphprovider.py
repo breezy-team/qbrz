@@ -217,13 +217,17 @@ class LogGraphProvider(object):
             if fp != '' and locations==["."]:
                 fp = ''
 
-            if fp != '' : 
+            if fp != '' :
                 if tree is None:
-                    file_id = br.basis_tree().path2id(fp)
-                    kind = br.basis_tree().kind(file_id)
-                else:
-                    file_id = tree.path2id(fp)
-                    kind = tree.kind(file_id)
+                    tree = br.basis_tree()
+                
+                file_id = tree.path2id(fp)
+                if file_id is None:
+                    raise errors.BzrCommandError(
+                        "Path not versioned: %s" %
+                        fp)
+                
+                kind = tree.kind(file_id)
                 if kind in ('directory', 'tree-reference'):
                     self.has_dir = True
                 self.update_ui()
