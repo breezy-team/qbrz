@@ -194,6 +194,9 @@ class LogGraphProvider(object):
             self.update_ui()
             
             if br == None:
+                if fp:
+                    raise errors.NotBranchError(fp)
+                
                 branches = repo.find_branches(using=True) 
                 for br in branches:
                     try:
