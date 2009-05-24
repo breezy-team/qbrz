@@ -382,10 +382,10 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
     def get_ext_diff_args(self, processEvents):
         args = []
         if self.revision and len(self.revision) == 1:
-            args.append("-r %s" % (self.revision[0].spec,))
+            args.append("-r %s" % (self.revision[0].user_spec,))
         elif self.revision and  len(self.revision) == 2:
-            args.append("-r %s..%s" % (self.revision[0].spec,
-                                                   self.revision[1].spec))
+            args.append("-r %s..%s" % (self.revision[0].user_spec,
+                                       self.revision[1].user_spec))
         
         if self.new and not self.new==".":
             args.append("--new=%s" % self.new)
