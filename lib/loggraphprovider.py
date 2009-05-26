@@ -29,7 +29,6 @@ from bzrlib.graph import (Graph, _StackedParentsProvider)
 from bzrlib.bzrdir import BzrDir
 from bzrlib.branch import Branch
 from bzrlib.inventory import Inventory
-from bzrlib.plugins.qbzr.lib.i18n import gettext
 
 have_search = True
 try:
