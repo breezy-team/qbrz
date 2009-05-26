@@ -321,17 +321,8 @@ class LogWindow(QBzrWindow):
             rev.repository.lock_read()
             self.processEvents()
             try:
-                # If we are showing specific files, and running bzr 1.4 - then
-                # filter the delta.
-                import inspect
-                if self.log_list.graph_provider.fileids and \
-                    "specific_fileids" in inspect.getargspec(
-                            rev.repository.get_deltas_for_revisions)[0]:
-                    rev.delta = rev.repository.get_deltas_for_revisions(
-                        [rev], self.log_list.graph_provider.fileids).next()
-                else:
-                    rev.delta = rev.repository.get_deltas_for_revisions(
-                        [rev]).next()
+                rev.delta = rev.repository.get_deltas_for_revisions(
+                                                                [rev]).next()
                 self.processEvents()
             finally:
                 rev.repository.unlock()
@@ -341,22 +332,38 @@ class LogWindow(QBzrWindow):
             return
         delta = rev.delta
 
-        for path, id_, kind in delta.added:
-            item = QtGui.QListWidgetItem(path, self.fileList)
-            item.setTextColor(QtGui.QColor("blue"))
+        items = []
+        specific_fileids = self.log_list.graph_provider.fileids
+        
+        for path, id, kind in delta.added:
+            items.append((id not in specific_fileids,
+                          path,
+                          "blue"))
 
-        for path, id_, kind, text_modified, meta_modified in delta.modified:
-            item = QtGui.QListWidgetItem(path, self.fileList)
+        for path, id, kind, text_modified, meta_modified in delta.modified:
+            items.append((id not in specific_fileids,
+                          path,
+                          None))
 
-        for path, id_, kind in delta.removed:
-            item = QtGui.QListWidgetItem(path, self.fileList)
-            item.setTextColor(QtGui.QColor("red"))
+        for path, id, kind in delta.removed:
+            items.append((id not in specific_fileids,
+                          path,
+                          "red"))
 
-        for (oldpath, newpath, id_, kind,
+        for (oldpath, newpath, id, kind,
             text_modified, meta_modified) in delta.renamed:
-            item = QtGui.QListWidgetItem("%s => %s" % (oldpath, newpath), self.fileList)
-            item.setData(PathRole, QtCore.QVariant(newpath))
-            item.setTextColor(QtGui.QColor("purple"))
+            items.append((id not in specific_fileids,
+                          "%s => %s" % (oldpath, newpath),
+                          "purple"))
+        
+        for (is_not_specific_fileid, path, color) in sorted(items):
+            item = QtGui.QListWidgetItem(path, self.fileList)
+            if color:
+                item.setTextColor(QtGui.QColor(color))
+            if not is_not_specific_fileid:
+                f = item.font()
+                f.setBold(True)
+                item.setFont(f)
 
     @runs_in_loading_queue
     @ui_current_widget
