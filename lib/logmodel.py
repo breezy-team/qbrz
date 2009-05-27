@@ -21,10 +21,7 @@ from PyQt4 import QtCore, QtGui
 from time import (strftime, localtime, clock)
 
 from bzrlib import (lazy_regex, errors)
-from bzrlib.transport.local import LocalTransport
-from bzrlib.revision import NULL_REVISION, Revision
-from bzrlib.tsort import merge_sort
-from bzrlib.graph import (Graph, _StackedParentsProvider)
+from bzrlib.revision import NULL_REVISION
 from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
