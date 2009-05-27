@@ -92,30 +92,56 @@ class LogList(QtGui.QTreeView):
             self.connect(self,
                          QtCore.SIGNAL("doubleClicked(QModelIndex)"),
                          self.show_diff_index)
+        self.context_menu = QtGui.QMenu(self)
+
+    def create_context_menu(self):
+        self.context_menu = QtGui.QMenu(self)
         if self.view_commands or self.action_commands:
-            self.context_menu = QtGui.QMenu(self)
-            if diff.has_ext_diff():
-                diff_menu = diff.ExtDiffMenu(self)
-                self.context_menu.addMenu(diff_menu)
-                self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"),
-                             self.show_diff_current_indexes)
+            if self.graph_provider.fileids:
+                if diff.has_ext_diff():
+                    diff_menu = diff.ExtDiffMenu(self)
+                    diff_menu.setTitle(gettext("Show file &differences"))
+                    self.context_menu.addMenu(diff_menu)
+                    self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"),
+                                 self.show_diff_current_indexes)
+                    
+                    all_diff_menu = diff.ExtDiffMenu(self, set_default=False)
+                    all_diff_menu.setTitle(gettext("Show all &differences"))
+                    self.context_menu.addMenu(all_diff_menu)
+                    self.connect(all_diff_menu, QtCore.SIGNAL("triggered(QString)"),
+                                 self.show_diff_current_indexes_all_files)
+                else:
+                    show_diff_action = self.context_menu.addAction(
+                                        gettext("Show file &differences..."),
+                                        self.show_diff_current_indexes)
+                    self.context_menu.setDefaultAction(show_diff_action)
+                    self.context_menu.addAction(
+                                        gettext("Show all &differences..."),
+                                        self.show_diff_current_indexes_all_files)
             else:
-                show_diff_action = self.context_menu.addAction(
-                                            gettext("Show &differences..."),
-                                            self.show_diff_current_indexes)
-                self.context_menu.setDefaultAction(show_diff_action)
+                if diff.has_ext_diff():
+                    diff_menu = diff.ExtDiffMenu(self)
+                    self.context_menu.addMenu(diff_menu)
+                    self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"),
+                                 self.show_diff_current_indexes)
+                else:
+                    show_diff_action = self.context_menu.addAction(
+                                        gettext("Show &differences..."),
+                                        self.show_diff_current_indexes)
+                    self.context_menu.setDefaultAction(show_diff_action)
 
             self.connect(self,
                          QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
                          self.show_context_menu)
             
             self.context_menu.addAction(gettext("Show &tree..."),
-                                        self.show_revision_tree)
+                                        self.show_revision_tree)        
 
     def load_branch(self, branch, fileid, tree=None):
         self.throbber.show()
         try:
             self.graph_provider.open_branch(branch, fileid, tree)
+            self.create_context_menu()
             self.load_current_dir_repo_if_no_local_repos()
             self.processEvents()
             self.load()
@@ -126,6 +152,7 @@ class LogList(QtGui.QTreeView):
         self.throbber.show()
         try:
             self.graph_provider.open_locations(locations)
+            self.create_context_menu()
             self.load_current_dir_repo_if_no_local_repos()
             self.processEvents()
             self.load()
@@ -293,7 +320,9 @@ class LogList(QtGui.QTreeView):
     def set_search(self, str, field):
         self.graph_provider.set_search(str, field)
     
-    def show_diff(self, new_rev, old_rev, specific_files=None, ext_diff=None):
+    def show_diff(self, new_rev, old_rev,
+                  specific_files=None, specific_file_ids=None,
+                  ext_diff=None):
         new_revid = new_rev.revision_id
         new_branch = new_rev.branch
         
@@ -305,12 +334,11 @@ class LogList(QtGui.QTreeView):
             old_branch =  old_rev.branch
         
         arg_provider = diff.InternalDiffArgProvider(
-                                            old_revid, new_revid,
-                                            old_branch, new_branch,
-                                            specific_files = specific_files)
-        if specific_files is None and self.graph_provider.fileids:
-            arg_provider.specific_file_ids = self.graph_provider.fileids
-
+                                        old_revid, new_revid,
+                                        old_branch, new_branch,
+                                        specific_files = specific_files,
+                                        specific_file_ids = specific_file_ids)
+        
         diff.show_diff(arg_provider, ext_diff = ext_diff,
                        parent_window = self.window())
 
@@ -318,9 +346,14 @@ class LogList(QtGui.QTreeView):
         """Show differences of a single revision from a index."""
         revid = str(index.data(logmodel.RevIdRole).toString())
         rev = self.graph_provider.revision(revid, force_load=True)
-        self.show_diff(rev, rev)
+        if self.graph_provider.fileids:
+            self.show_diff(rev, rev,
+                           specific_file_ids=self.graph_provider.fileids)
+        else:
+            self.show_diff(rev, rev)
     
-    def show_diff_current_indexes(self, ext_diff=None):
+    def show_diff_current_indexes(self, ext_diff=None,
+                                  only_specified_files=True):
         """Show differences of the selected range or of a single revision"""
         # Find 1 index for each row.
         rows = {}
@@ -335,7 +368,15 @@ class LogList(QtGui.QTreeView):
         rev1 = self.graph_provider.revision(revid1)
         revid2 = str(indexes[-1].data(logmodel.RevIdRole).toString())
         rev2 = self.graph_provider.revision(revid2)
-        self.show_diff(rev1, rev2, ext_diff=ext_diff)
+        if only_specified_files and self.graph_provider.fileids:
+            self.show_diff(rev1, rev2, ext_diff=ext_diff,
+                           specific_file_ids = self.graph_provider.fileids)
+        else:
+            self.show_diff(rev1, rev2, ext_diff=ext_diff)
+    
+    def show_diff_current_indexes_all_files(self, ext_diff=None):
+        self.show_diff_current_indexes(ext_diff=ext_diff,
+                                       only_specified_files=False)
     
     def show_revision_tree(self):
         from bzrlib.plugins.qbzr.lib.browse import BrowseWindow

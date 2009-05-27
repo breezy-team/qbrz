@@ -185,14 +185,14 @@ def has_ext_diff():
 
 class ExtDiffMenu(QtGui.QMenu):
     
-    def __init__ (self, parent = None, include_builtin = True):
+    def __init__ (self, parent=None, include_builtin=True, set_default=True):
         QtGui.QMenu.__init__(self, gettext("Show &differences"), parent)
         
         for name, command in ext_diffs.items():
             if command == "" and include_builtin or not command == "":
                 action = QtGui.QAction(name, self)
                 action.setData(QtCore.QVariant (command))
-                if command == default_diff:
+                if command == default_diff and set_default:
                     self.setDefaultAction(action)
                 self.addAction(action)
         
