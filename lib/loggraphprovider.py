@@ -25,7 +25,12 @@ from bzrlib import errors
 from bzrlib.transport.local import LocalTransport
 from bzrlib.revision import NULL_REVISION
 from bzrlib.tsort import merge_sort
-from bzrlib.graph import (Graph, _StackedParentsProvider)
+try:
+    from bzrlib.graph import (Graph, StackedParentsProvider)
+except ImportError:
+    from bzrlib.graph import (Graph,
+                    _StackedParentsProvider as StackedParentsProvider)
+    
 from bzrlib.bzrdir import BzrDir
 from bzrlib.branch import Branch
 from bzrlib.inventory import Inventory
@@ -370,7 +375,7 @@ class LogGraphProvider(object):
         else:
             parents_providers = [repo._make_parents_provider() \
                                  for repo in self.repos_sorted_local_first()]
-            self.graph = Graph(_StackedParentsProvider(parents_providers))
+            self.graph = Graph(StackedParentsProvider(parents_providers))
         
         self.process_graph_parents(self.graph.iter_ancestry(self.head_revids))
         
