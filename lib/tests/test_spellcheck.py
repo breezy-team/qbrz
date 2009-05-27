@@ -41,6 +41,7 @@ class TestSpellcheck(TestCase):
     _test_needs_features = [PyEnchantFeature]
 
     def setUp(self):
+        super(TestSpellcheck, self).setUp()
         def cleanup():
             del self.checker
         self.checker = SpellChecker("en-US")
