@@ -149,6 +149,7 @@ class AnnotateWindow(QBzrWindow):
         vbox.addWidget(self.throbber)
         vbox.addWidget(splitter)
         vbox.addWidget(buttonbox)
+        self.browser.setFocus()
 
     def show(self):
         QBzrWindow.show(self)

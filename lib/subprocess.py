@@ -116,8 +116,6 @@ class SubProcessWindowBase:
                                okButton,
                                QtCore.SLOT("setDisabled(bool)"))
 
-        
-
         self.buttonbox = QtGui.QDialogButtonBox(self)
         self.buttonbox.addButton(okButton,
             QtGui.QDialogButtonBox.AcceptRole)
