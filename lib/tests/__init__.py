@@ -32,6 +32,7 @@ def load_tests(basic_tests, module, loader):
         'test_qbzr',
         'test_spellcheck',
         'test_util',
+        'test_loggraphprovider',
     ]
     for name in testmod_names:
         m = "%s.%s" % (__name__, name)

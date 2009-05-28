@@ -50,10 +50,10 @@ class LogGraphProvider(object):
         
         self.no_graph = no_graph
 
-        self.branches = {}
+        self._branches = {}
         """Dict of branches. The base of the branch is the key.
         
-        Each value is a of tuple(tree, branch, repo, search_index )"""
+        Each value is a of tuple(tree, branch, search_index )"""
         
         self.fileids = []
         self.has_dir = False
@@ -150,6 +150,14 @@ class LogGraphProvider(object):
         if local_copy:
             self.local_repo_copies.append(repo.base)
     
+    def append_branch(self, tree, branch):
+        if branch.base not in self._branches:
+            search_index = self.open_search_index(branch)
+            self._branches[branch.base] = (tree, branch, search_index)
+    
+    def branches(self):
+        return self._branches.values()
+    
     def open_search_index(self, branch):
         if have_search:
             try:
@@ -169,8 +177,7 @@ class LogGraphProvider(object):
             except errors.NoWorkingTree:
                 pass
         self.append_repo(repo)
-        index = self.open_search_index(branch)
-        self.branches[branch.base] = (tree, branch, repo, index)
+        self.append_branch(tree, branch)
         
         if file_id:
             self.fileids.append(file_id)
@@ -182,7 +189,7 @@ class LogGraphProvider(object):
                 if kind in ('directory', 'tree-reference'):
                     self.has_dir = True
         
-        if len(self.branches)==1 and self.trunk_branch == None:
+        if len(self.branches())==1 and self.trunk_branch == None:
             self.trunk_branch = branch
     
     def open_locations(self, locations):
@@ -207,15 +214,13 @@ class LogGraphProvider(object):
                         tree = br.bzrdir.open_workingtree()
                     except errors.NoWorkingTree:
                         tree = None
-                    index = self.open_search_index(br)
-                    self.branches[br.base] = (tree, br, br.repository, index)
+                    self.append_branch(tree, br)
                     self.append_repo(br.repository)
                 self.update_ui()
             else:
                 self.append_repo(repo)
-                index = self.open_search_index(br)
-                self.branches[br.base] = (tree, br, repo, index)
-                if len(self.branches)==1 and self.trunk_branch == None:
+                self.append_branch(tree, br)
+                if len(self.branches())==1 and self.trunk_branch == None:
                     self.trunk_branch = br
             
             # If no locations were sepecified, don't do fileids
@@ -245,17 +250,17 @@ class LogGraphProvider(object):
                         location)
                 self.fileids.append(file_id)
         
-        if self.fileids and len(self.branches)>1:
+        if self.fileids and len(self.branches())>1:
             raise errors.BzrCommandError(paths_and_branches_err)
 
     def lock_read_branches(self):
-        for (tree, branch, repo, index) in self.branches.itervalues():
+        for (tree, branch, index) in self.branches():
             branch.lock_read()
         for repo in self.repos.itervalues():
             repo.lock_read()
     
     def unlock_branches(self):
-        for (tree, branch, repo, index) in self.branches.itervalues():
+        for (tree, branch, index) in self.branches():
             branch.unlock()
         for repo in self.repos.itervalues():
             repo.unlock()
@@ -284,9 +289,9 @@ class LogGraphProvider(object):
         self.revid_head_info = {}
         self.head_revids = []
         self.revid_branch = {}
-        for (tree, branch, repo, index) in self.branches.itervalues():
+        for (tree, branch, index) in self.branches():
             
-            if len(self.branches) == 1:
+            if len(self.branches()) == 1:
                 tag = None
             else:
                 tag = branch.nick
@@ -320,18 +325,18 @@ class LogGraphProvider(object):
                                              "Pending Merge", False)
                 self.update_ui()
         
-        if len(self.branches)>1:
+        if len(self.branches())>1:
             if self.trunk_branch == None:
                 # Work out which branch we think is trunk.
                 # TODO: Make config option.
                 trunk_names = "trunk,bzr.dev".split(",")
-                for tree, branch, repo, index in self.branches.itervalues():
+                for tree, branch, index in self.branches():
                     if branch.nick in trunk_names:
                         self.trunk_branch = branch
                         break
             
             if self.trunk_branch == None:
-                self.trunk_branch = self.branches.values()[0][1]
+                self.trunk_branch = self.branches()[0][1]
             
             trunk_tip = self.trunk_branch.last_revision()
             
@@ -349,7 +354,7 @@ class LogGraphProvider(object):
     
     def load_tags(self):
         self.tags = {}
-        for (tree, branch, repo, index) in self.branches.itervalues():
+        for (tree, branch, index) in self.branches():
             branch_tags = branch.tags.get_reverse_tag_dict()  # revid to tags map
             for revid, tags in branch_tags.iteritems():
                 if revid in self.tags:
@@ -383,11 +388,11 @@ class LogGraphProvider(object):
 
     
     def load_graph_pending_merges(self):
-        if not len(self.branches) == 1 or not len(self.repos) == 1:
+        if not len(self.branches()) == 1 or not len(self.repos) == 1:
             AssertionError("load_graph_pending_merges should only be called \
                            when 1 branch and repo has been opened.")
         
-        (tree, branch, repo, search_index ) = self.branches.values()[0]
+        (tree, branch, search_index ) = self.branches()[0]
         if tree is None:
             AssertionError("load_graph_pending_merges must have a working tree.")
             
@@ -637,7 +642,7 @@ class LogGraphProvider(object):
                     map[ancestor_revid] = heads[i][1]
             return map
         
-        if len(self.branches) > 1:
+        if len(self.branches()) > 1:
             head_revid_branch = sorted([(revid, branch) \
                                        for revid, (head_info, ur) in \
                                        self.revid_head_info.iteritems()
@@ -1341,8 +1346,7 @@ class LogGraphProvider(object):
     def search_indexes(self):
         for (tree,
              branch,
-             repo,
-             index) in self.branches.itervalues():
+             index) in self.branches():
             if index is not None:
                 yield index
     
@@ -1432,8 +1436,8 @@ class LogGraphProvider(object):
         return self.revisions[revid]
     
     def get_revid_branch(self, revid):
-        if len(self.branches)==1 and revid not in self.revid_branch:
-            return self.branches.values()[0][1]
+        if len(self.branches())==1 and revid not in self.revid_branch:
+            return self.branches()[0][1]
         return self.revid_branch[revid]
     
     def get_revid_repo(self, revid):
