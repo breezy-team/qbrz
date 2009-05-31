@@ -197,7 +197,8 @@ class LogList(QtGui.QTreeView):
         # Start later so that it does not run in the loading queue.
         QtCore.QTimer.singleShot(1, self.graph_provider.load_filter_file_id)
 
-    def mouseReleaseEvent (self, e):
+    def mousePressEvent (self, e):
+        self.colapse_expand_click = False
         if e.button() & QtCore.Qt.LeftButton:
             pos = e.pos()
             index = self.indexAt(pos)
@@ -213,10 +214,12 @@ class LogList(QtGui.QTreeView):
                 if twistyRect.contains(pos):
                     twisty_state = index.data(logmodel.GraphTwistyStateRole)
                     if twisty_state.isValid():
+                        self.colapse_expand_click = True
                         revision_id = str(index.data(logmodel.RevIdRole).toString())
                         self.model.colapse_expand_rev(revision_id, not twisty_state.toBool())
                         e.accept ()
-        QtGui.QTreeView.mouseReleaseEvent(self, e)
+        if not self.colapse_expand_click:
+            QtGui.QTreeView.mousePressEvent(self, e)
 
     def keyPressEvent (self, e):
         e_key = e.key()
