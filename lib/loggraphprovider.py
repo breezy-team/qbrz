@@ -879,8 +879,21 @@ class LogGraphProvider(object):
         """See self.graph_line_data"""
         msri_index = {}
         
-        for msri in xrange(0,len(self.merge_sorted_revisions)):
-            if self.get_revision_visible(msri):
+        # This is a performance hack. The code will work without it, but will be
+        # slower.
+        msri_whos_branch_is_visible = []
+        for branch_line in self.branch_lines.itervalues():
+            if branch_line[1]:
+                msri_whos_branch_is_visible.extend(branch_line[0])
+        msri_whos_branch_is_visible.sort()
+        
+        # The following commented line would be use without the above
+        # performance hack.
+        #for msri in xrange(0,len(self.merge_sorted_revisions)):
+        for msri in msri_whos_branch_is_visible:
+            # The following would use just get_revision_visible without the
+            # above performance hack.
+            if self.get_revision_visible_if_branch_visible_cached(msri): 
                 index = len(graph_line_data)
                 msri_index[msri] = index
                 graph_line_data.append([msri,
