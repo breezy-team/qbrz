@@ -204,7 +204,7 @@ class LogGraphProvider(object):
                     BzrDir.open_containing_tree_branch_or_repository(location)
             self.update_ui()
             
-            if br == None:
+            if br is None:
                 if fp:
                     raise errors.NotBranchError(fp)
                 
@@ -226,6 +226,13 @@ class LogGraphProvider(object):
             # If no locations were sepecified, don't do fileids
             # Otherwise it gives you the history for the dir if you are
             # in a sub dir.
+            #
+            # XXX - There is a case where this does not behave correctly.
+            # If we are in subdir and we do "bzr qlog ." then we should filter
+            # on subdir. but if we do "bzr qlog" then we should not. To be able
+            # to do this, we need to move the implication the no location
+            # argument means '.' down in to the method, rather than where it is
+            # now. - GaryvdM 29 May 2009
             if fp != '' and locations==["."]:
                 fp = ''
 
@@ -236,18 +243,14 @@ class LogGraphProvider(object):
                 file_id = tree.path2id(fp)
                 if file_id is None:
                     raise errors.BzrCommandError(
-                        "Path not versioned: %s" %
-                        fp)
+                        "Path does not have any revision history: %s" %
+                        location)
                 
                 kind = tree.kind(file_id)
                 if kind in ('directory', 'tree-reference'):
                     self.has_dir = True
                 self.update_ui()
                 
-                if file_id is None:
-                    raise errors.BzrCommandError(
-                        "Path does not have any revision history: %s" %
-                        location)
                 self.fileids.append(file_id)
         
         if self.fileids and len(self.branches())>1:
