@@ -983,7 +983,7 @@ class LogGraphProvider(object):
                 lines_by_column.append([])
             return col_index
         
-        def append_line (child_index, parent_index, direct):
+        def append_line (child_index, parent_index, direct, line_col_index=None):
             parent_node = graph_line_data[parent_index][1]
             if parent_node:
                 parent_col_index = parent_node[0]
@@ -995,13 +995,15 @@ class LogGraphProvider(object):
                 child_col_index = child_node[0]
             else:
                 child_col_index = None
-                
-            line_col_index = child_col_index
-            if parent_index - child_index >1:
-                col_search_order = line_col_search_order(parent_col_index,
-                                                         child_col_index)
-                line_col_index = find_free_column(col_search_order,
-                                                  child_index, parent_index)
+            
+            if line_col_index is None:
+                line_col_index = child_col_index
+                if parent_index - child_index >1:
+                    col_search_order = line_col_search_order(parent_col_index,
+                                                             child_col_index)
+                    line_col_index = find_free_column(col_search_order,
+                                                      child_index, parent_index)
+            
             lines.append((child_index,
                           parent_index,
                           line_col_index,
@@ -1221,7 +1223,7 @@ class LogGraphProvider(object):
                     rev_index = msri_index[rev_msri]
                     graph_line_data[rev_index][1] = node
                 
-                append_line(first_rev_index, last_rev_index, True)
+                append_line(first_rev_index, last_rev_index, True, col_index)
                 
                 # In this loop:
                 # * Append the remaining lines to parents.
