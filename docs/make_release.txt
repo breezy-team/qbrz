@@ -31,8 +31,8 @@ Register release at Launchpad
 
 	https://launchpad.net/qbzr/trunk/+addrelease
         
-2. Put info about release from ./NEWS.txt to Description section.
-   You can leave Summary and Changelog sections empty.
+2. Put info about release from ./NEWS.txt to "Release notes" section.
+   You can leave Changelog section empty.
 
 
 Build distribution files
@@ -110,11 +110,7 @@ Make announcement
 
 Finishing stuff at Launchpad
 ----------------------------
-1. Mark all bugs targeted to X.Y.Z milestone as Fix Released.
-
-2. Mark corresponding milestone X.Y.Z as inactive:
-
-	https://launchpad.net/qbzr/+milestone/X.Y.Z/+edit
+* Mark all bugs targeted to X.Y.Z milestone as Fix Released.
 
 
 Create deb packages with Launchpad PPA
