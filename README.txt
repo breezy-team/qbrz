@@ -13,7 +13,7 @@ Requirements
    http://www.riverbankcomputing.co.uk/pyqt/
    http://www.trolltech.com/products/qt
 
- * Pygments (optional, needed for syntax highlighting in qcat)
+ * Pygments v.1.0 or higher (optional, needed for syntax highlighting)
    http://pygments.pocoo.org/
 
  * PyEnchant (optional, needed for spellchecking in qcommit)
