@@ -1,4 +1,4 @@
-0.10.0 - in development 
+0.10.0 - 2009-06-02
 -----------------------
 Maintenance release: log widget with revisions graph used in qannotate, 
 and qcommit (to show pending merges); you can search for tags and bugs
