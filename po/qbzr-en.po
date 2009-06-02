@@ -2,15 +2,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-03-29 10:12+0300\n"
-"PO-Revision-Date: 2009-03-29 10:12+0300\n"
+"POT-Creation-Date: 2009-05-29 18:26+0300\n"
+"PO-Revision-Date: 2009-05-29 18:26+0300\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Launchpad-Export-Date: 2009-05-12 10:36+0000\n"
+"X-Launchpad-Export-Date: 2009-06-02 15:16+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:41 lib\config.py:112 lib\config.py:133 lib\config.py:164
@@ -26,35 +26,35 @@ msgstr "Unversioned Files"
 msgid "Show ignored files"
 msgstr "Show ignored files"
 
-#: lib\annotate.py:86 lib\annotate.py:187 lib\browse.py:116
+#: lib\annotate.py:89 lib\annotate.py:200 lib\annotate.py:203
+#: lib\browse.py:116 lib\log.py:182
 msgid "Annotate"
 msgstr "Annotate"
 
-#: lib\annotate.py:86 lib\diff.py:124 lib\util.py:424
+#: lib\annotate.py:89 lib\diffwindow.py:119 lib\util.py:416
 msgid "Loading..."
 msgstr "Loading..."
 
-#: lib\annotate.py:105
+#: lib\annotate.py:108
 msgid "Line"
 msgstr "Line"
 
-#: lib\annotate.py:105 lib\annotate.py:120 lib\browse.py:106 lib\commit.py:369
-#: lib\logmodel.py:105
+#: lib\annotate.py:108 lib\browse.py:106 lib\logmodel.py:109
 msgid "Author"
 msgstr "Author"
 
-#: lib\annotate.py:105 lib\annotate.py:120 lib\browse.py:107
-#: lib\logmodel.py:102
+#: lib\annotate.py:108 lib\browse.py:107 lib\logmodel.py:106
 msgid "Rev"
 msgstr "Rev"
 
-#: lib\annotate.py:120 lib\browse.py:105 lib\commit.py:369 lib\logmodel.py:104
-msgid "Date"
-msgstr "Date"
+#: lib\annotate.py:125
+msgid "&Annotate this revision."
+msgstr "&Annotate this revision."
 
-#: lib\annotate.py:120
-msgid "Summary"
-msgstr "Summary"
+#: lib\annotate.py:201
+#, python-format
+msgid "Revision %s"
+msgstr "Revision %s"
 
 #: lib\browse.py:80 lib\browse.py:261 lib\browse.py:304
 msgid "Browse"
@@ -64,7 +64,7 @@ msgstr "Browse"
 msgid "Location:"
 msgstr "Location:"
 
-#: lib\browse.py:94 lib\ui_new_tree.py:160 lib\util.py:507
+#: lib\browse.py:94 lib\ui_new_tree.py:160 lib\util.py:500
 msgid "Revision:"
 msgstr "Revision:"
 
@@ -76,7 +76,11 @@ msgstr "Show"
 msgid "Name"
 msgstr "Name"
 
-#: lib\browse.py:108 lib\commit.py:272 lib\commit.py:369 lib\logmodel.py:103
+#: lib\browse.py:105 lib\logmodel.py:108
+msgid "Date"
+msgstr "Date"
+
+#: lib\browse.py:108 lib\commit.py:276 lib\logmodel.py:107
 msgid "Message"
 msgstr "Message"
 
@@ -84,7 +88,7 @@ msgstr "Message"
 msgid "Show log..."
 msgstr "Show log..."
 
-#: lib\browse.py:118
+#: lib\browse.py:118 lib\log.py:184
 msgid "View file"
 msgstr "View file"
 
@@ -92,20 +96,20 @@ msgstr "View file"
 msgid "View"
 msgstr "View"
 
-#: lib\commit.py:223 lib\commit.py:485 lib\commit.py:514 lib\commit.py:522
+#: lib\commit.py:218 lib\commit.py:489 lib\commit.py:518 lib\commit.py:526
 msgid "Commit"
 msgstr "Commit"
 
-#: lib\commit.py:239 lib\ui_branch.py:65 lib\ui_new_tree.py:130
+#: lib\commit.py:243 lib\ui_branch.py:65 lib\ui_new_tree.py:130
 #: lib\ui_tag.py:100
 msgid "Branch"
 msgstr "Branch"
 
-#: lib\commit.py:251
+#: lib\commit.py:255
 msgid "&Local commit"
 msgstr "&Local commit"
 
-#: lib\commit.py:253
+#: lib\commit.py:257
 msgid ""
 "Local commits are not pushed to the master branch until a normal commit is "
 "performed"
@@ -113,27 +117,27 @@ msgstr ""
 "Local commits are not pushed to the master branch until a normal commit is "
 "performed"
 
-#: lib\commit.py:257
+#: lib\commit.py:261
 msgid "Description:"
 msgstr "Description:"
 
-#: lib\commit.py:280
+#: lib\commit.py:284
 msgid "Show non-versioned files"
 msgstr "Show non-versioned files"
 
-#: lib\commit.py:299
+#: lib\commit.py:294
 msgid "Enter the commit message"
 msgstr "Enter the commit message"
 
-#: lib\commit.py:315
+#: lib\commit.py:309
 msgid "&Fixed bugs:"
 msgstr "&Fixed bugs:"
 
-#: lib\commit.py:316
+#: lib\commit.py:310
 msgid "Set the IDs of bugs fixed by this commit"
 msgstr "Set the IDs of bugs fixed by this commit"
 
-#: lib\commit.py:319
+#: lib\commit.py:313
 msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
@@ -141,48 +145,48 @@ msgstr ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
 
-#: lib\commit.py:329
+#: lib\commit.py:323
 msgid "&Author:"
 msgstr "&Author:"
 
-#: lib\commit.py:330
+#: lib\commit.py:324
 msgid "Set the author of this change, if it's different from the committer"
 msgstr "Set the author of this change, if it's different from the committer"
 
-#: lib\commit.py:333
+#: lib\commit.py:327
 msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 
-#: lib\commit.py:348 lib\revert.py:55
+#: lib\commit.py:342 lib\revert.py:56
 msgid "Changes"
 msgstr "Changes"
 
-#: lib\commit.py:364
+#: lib\commit.py:361
 msgid "Pending Merges"
 msgstr "Pending Merges"
 
-#: lib\commit.py:396 lib\main.py:360 lib\subprocess.py:121 lib\wtlist.py:95
+#: lib\commit.py:372 lib\main.py:360 lib\subprocess.py:131 lib\wtlist.py:96
 msgid "Status"
 msgstr "Status"
 
-#: lib\commit.py:408
+#: lib\commit.py:385
 msgid "View changes in files selected to commit"
 msgstr "View changes in files selected to commit"
 
-#: lib\commit.py:486
+#: lib\commit.py:490
 msgid "You should provide commit message."
 msgstr "You should provide commit message."
 
-#: lib\commit.py:487 lib\conflicts.py:171 lib\conflicts.py:176 lib\diff.py:389
-#: lib\util.py:69
+#: lib\commit.py:491 lib\conflicts.py:171 lib\conflicts.py:176
+#: lib\diffwindow.py:375 lib\util.py:69
 msgid "&OK"
 msgstr "&OK"
 
-#: lib\commit.py:515
+#: lib\commit.py:519
 msgid "No changes to commit."
 msgstr "No changes to commit."
 
-#: lib\commit.py:523
+#: lib\commit.py:527
 msgid ""
 "No changes selected to commit.\n"
 "Do you want to commit anyway?"
@@ -190,7 +194,7 @@ msgstr ""
 "No changes selected to commit.\n"
 "Do you want to commit anyway?"
 
-#: lib\commit.py:584
+#: lib\commit.py:582
 msgid ""
 "A commit will be made directly to the master branch, keeping the local and "
 "master branches in sync."
@@ -198,7 +202,7 @@ msgstr ""
 "A commit will be made directly to the master branch, keeping the local and "
 "master branches in sync."
 
-#: lib\commit.py:590
+#: lib\commit.py:588
 msgid ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
@@ -206,8 +210,9 @@ msgstr ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
 
-#: lib\commit.py:623 lib\diff.py:124 lib\diff.py:236 lib\diff.py:379
-#: lib\diff.py:387 lib\extdiff.py:122 lib\revert.py:160
+#: lib\commit.py:621 lib\diff.py:213 lib\diffwindow.py:119
+#: lib\diffwindow.py:222 lib\diffwindow.py:365 lib\diffwindow.py:373
+#: lib\revert.py:162
 msgid "Diff"
 msgstr "Diff"
 
@@ -327,7 +332,7 @@ msgstr "&Merge"
 msgid "Spell check &language:"
 msgstr "Spell check &language:"
 
-#: lib\config.py:331 lib\extdiff.py:34
+#: lib\config.py:331 lib\diff.py:35
 msgid "Builtin Diff"
 msgstr "Builtin Diff"
 
@@ -336,7 +341,7 @@ msgstr "Builtin Diff"
 msgid "Conflicts"
 msgstr "Conflicts"
 
-#: lib\conflicts.py:57 lib\wtlist.py:95
+#: lib\conflicts.py:57 lib\wtlist.py:96
 msgid "File"
 msgstr "File"
 
@@ -462,99 +467,9 @@ msgstr "deleting parent"
 msgid "non-directory parent"
 msgstr "non-directory parent"
 
-#: lib\diff.py:76
-#, python-format
-msgid "Working Tree for %s"
-msgstr "Working Tree for %s"
-
-#: lib\diff.py:78
-msgid "Working Tree"
-msgstr "Working Tree"
-
-#: lib\diff.py:97
-#, python-format
-msgid "Rev %(rev)s for %(branch)s"
-msgstr "Rev %(rev)s for %(branch)s"
-
-#: lib\diff.py:99
-#, python-format
-msgid "Rev %s"
-msgstr "Rev %s"
-
-#: lib\diff.py:102
-#, python-format
-msgid "Revid: %(revid)s for %(branch)s"
-msgstr "Revid: %(revid)s for %(branch)s"
-
-#: lib\diff.py:104
-#, python-format
-msgid "Revid: %s"
-msgstr "Revid: %s"
-
-#: lib\diff.py:107
-msgid "Merge Preview"
-msgstr "Merge Preview"
-
-#: lib\diff.py:150
-msgid "Side by side"
-msgstr "Side by side"
-
-#: lib\diff.py:157
-msgid "Unidiff"
-msgstr "Unidiff"
-
-#: lib\diff.py:162
-msgid "Complete"
-msgstr "Complete"
-
-#: lib\diff.py:171
-msgid "Using"
-msgstr "Using"
-
-#: lib\diff.py:242
-#, python-format
-msgid "%d file"
-msgid_plural "%d files"
-msgstr[0] "%d file"
-msgstr[1] "%d files"
-
-#: lib\diff.py:321 lib\wtlist.py:130
-msgid "removed"
-msgstr "removed"
-
-#: lib\diff.py:323 lib\wtlist.py:126
-msgid "added"
-msgstr "added"
-
-#: lib\diff.py:325 lib\wtlist.py:143
-msgid "renamed and modified"
-msgstr "renamed and modified"
-
-#: lib\diff.py:327 lib\wtlist.py:145
-msgid "renamed"
-msgstr "renamed"
-
-#: lib\diff.py:329 lib\wtlist.py:152
-msgid "modified"
-msgstr "modified"
-
-#: lib\diff.py:380
-#, python-format
-msgid ""
-"File %s is not versioned.\n"
-"Operation aborted."
-msgstr ""
-"File %s is not versioned.\n"
-"Operation aborted."
-
-#: lib\diff.py:382 lib\subprocess.py:149 lib\tag.py:143 lib\tag.py:174
-#: lib\tag.py:211 lib\util.py:71
-msgid "&Close"
-msgstr "&Close"
-
-#: lib\diff.py:388
-msgid "No changes found."
-msgstr "No changes found."
+#: lib\diff.py:189
+msgid "Show &differences"
+msgstr "Show &differences"
 
 #: lib\diffview.py:248
 msgid "Last modified:"
@@ -580,9 +495,99 @@ msgstr "[binary file]"
 msgid "\\ No newline at end of file"
 msgstr "\\ No newline at end of file"
 
-#: lib\extdiff.py:98
-msgid "Show &differences"
-msgstr "Show &differences"
+#: lib\diffwindow.py:76
+#, python-format
+msgid "Working Tree for %s"
+msgstr "Working Tree for %s"
+
+#: lib\diffwindow.py:78
+msgid "Working Tree"
+msgstr "Working Tree"
+
+#: lib\diffwindow.py:97
+#, python-format
+msgid "Rev %(rev)s for %(branch)s"
+msgstr "Rev %(rev)s for %(branch)s"
+
+#: lib\diffwindow.py:99
+#, python-format
+msgid "Rev %s"
+msgstr "Rev %s"
+
+#: lib\diffwindow.py:102
+#, python-format
+msgid "Revid: %(revid)s for %(branch)s"
+msgstr "Revid: %(revid)s for %(branch)s"
+
+#: lib\diffwindow.py:104
+#, python-format
+msgid "Revid: %s"
+msgstr "Revid: %s"
+
+#: lib\diffwindow.py:107
+msgid "Merge Preview"
+msgstr "Merge Preview"
+
+#: lib\diffwindow.py:145
+msgid "Side by side"
+msgstr "Side by side"
+
+#: lib\diffwindow.py:152
+msgid "Unidiff"
+msgstr "Unidiff"
+
+#: lib\diffwindow.py:157
+msgid "Complete"
+msgstr "Complete"
+
+#: lib\diffwindow.py:166
+msgid "Using"
+msgstr "Using"
+
+#: lib\diffwindow.py:228
+#, python-format
+msgid "%d file"
+msgid_plural "%d files"
+msgstr[0] "%d file"
+msgstr[1] "%d files"
+
+#: lib\diffwindow.py:307 lib\wtlist.py:131
+msgid "removed"
+msgstr "removed"
+
+#: lib\diffwindow.py:309 lib\wtlist.py:127
+msgid "added"
+msgstr "added"
+
+#: lib\diffwindow.py:311 lib\wtlist.py:144
+msgid "renamed and modified"
+msgstr "renamed and modified"
+
+#: lib\diffwindow.py:313 lib\wtlist.py:146
+msgid "renamed"
+msgstr "renamed"
+
+#: lib\diffwindow.py:315 lib\wtlist.py:153
+msgid "modified"
+msgstr "modified"
+
+#: lib\diffwindow.py:366
+#, python-format
+msgid ""
+"File %s is not versioned.\n"
+"Operation aborted."
+msgstr ""
+"File %s is not versioned.\n"
+"Operation aborted."
+
+#: lib\diffwindow.py:368 lib\subprocess.py:159 lib\tag.py:143 lib\tag.py:174
+#: lib\tag.py:211 lib\util.py:71
+msgid "&Close"
+msgstr "&Close"
+
+#: lib\diffwindow.py:374
+msgid "No changes found."
+msgstr "No changes found."
 
 #: lib\help.py:60
 #, python-format
@@ -649,54 +654,70 @@ msgstr "Initialize"
 msgid "You must specify a location"
 msgstr "You must specify a location"
 
-#: lib\log.py:69
+#: lib\log.py:73
 msgid "Log"
 msgstr "Log"
 
-#: lib\log.py:96
+#: lib\log.py:100
 msgid "&Search:"
 msgstr "&Search:"
 
-#: lib\log.py:112
+#: lib\log.py:116
 msgid "Messages"
 msgstr "Messages"
 
-#: lib\log.py:114
+#: lib\log.py:118
 msgid "Authors"
 msgstr "Authors"
 
-#: lib\log.py:116
+#: lib\log.py:120
 msgid "Revision IDs"
 msgstr "Revision IDs"
 
-#: lib\log.py:118
+#: lib\log.py:122
 msgid "Revision Numbers"
 msgstr "Revision Numbers"
 
-#: lib\log.py:120
+#: lib\log.py:124
 msgid "Tags"
 msgstr "Tags"
 
-#: lib\log.py:122
+#: lib\log.py:126
 msgid "Bugs"
 msgstr "Bugs"
 
-#: lib\log.py:206 lib\wtlist.py:79
+#: lib\log.py:178 lib\logwidget.py:129 lib\wtlist.py:80
 msgid "Show &differences..."
 msgstr "Show &differences..."
 
-#: lib\log.py:209
-msgid "Show &tree..."
-msgstr "Show &tree..."
-
-#: lib\log.py:249
+#: lib\log.py:254
 msgid "Messages and File text (indexed)"
 msgstr "Messages and File text (indexed)"
 
-#: lib\logmodel.py:246
+#: lib\logmodel.py:266
 #, python-format
 msgid "bug #%s"
 msgstr "bug #%s"
+
+#: lib\logwidget.py:103
+msgid "Show file &differences"
+msgstr "Show file &differences"
+
+#: lib\logwidget.py:109
+msgid "Show all &differences"
+msgstr "Show all &differences"
+
+#: lib\logwidget.py:115
+msgid "Show file &differences..."
+msgstr "Show file &differences..."
+
+#: lib\logwidget.py:119
+msgid "Show all &differences..."
+msgstr "Show all &differences..."
+
+#: lib\logwidget.py:137
+msgid "Show &tree..."
+msgstr "Show &tree..."
 
 #: lib\main.py:125
 msgid "Computer"
@@ -823,23 +844,23 @@ msgstr "Remove Bookmark"
 msgid "Do you really want to remove the selected bookmark?"
 msgstr "Do you really want to remove the selected bookmark?"
 
-#: lib\revert.py:46 lib\wtlist.py:238
+#: lib\revert.py:47 lib\wtlist.py:239
 msgid "Revert"
 msgstr "Revert"
 
-#: lib\revert.py:77
+#: lib\revert.py:78
 msgid "Do not save backups of reverted files"
 msgstr "Do not save backups of reverted files"
 
-#: lib\revert.py:103
+#: lib\revert.py:104
 msgid "View changes in files selected to revert"
 msgstr "View changes in files selected to revert"
 
-#: lib\subprocess.py:143
+#: lib\subprocess.py:153
 msgid "Internal Error"
 msgstr "Internal Error"
 
-#: lib\subprocess.py:145
+#: lib\subprocess.py:155
 #, python-format
 msgid ""
 "Sorry, subprocess action \"%s\" cannot be started\n"
@@ -852,44 +873,44 @@ msgstr ""
 "Please, report bug at:\n"
 "https://bugs.launchpad.net/qbzr/+filebug"
 
-#: lib\subprocess.py:279
+#: lib\subprocess.py:292
 msgid "Description"
 msgstr "Description"
 
-#: lib\subprocess.py:310
+#: lib\subprocess.py:329
 msgid "Stopped"
 msgstr "Stopped"
 
-#: lib\subprocess.py:371
+#: lib\subprocess.py:390
 msgid "Starting..."
 msgstr "Starting..."
 
-#: lib\subprocess.py:425
+#: lib\subprocess.py:444
 msgid "Aborting..."
 msgstr "Aborting..."
 
-#: lib\subprocess.py:436 lib\subprocess.py:508
+#: lib\subprocess.py:455 lib\subprocess.py:530
 msgid "Finished!"
 msgstr "Finished!"
 
-#: lib\subprocess.py:455 lib\uifactory.py:92
+#: lib\subprocess.py:474 lib\uifactory.py:92
 msgid "Enter Password"
 msgstr "Enter Password"
 
-#: lib\subprocess.py:489 lib\subprocess.py:511
+#: lib\subprocess.py:511 lib\subprocess.py:533
 msgid "Failed!"
 msgstr "Failed!"
 
-#: lib\subprocess.py:491
+#: lib\subprocess.py:513
 msgid "Failed to start bzr."
 msgstr "Failed to start bzr."
 
-#: lib\subprocess.py:493
+#: lib\subprocess.py:515
 #, python-format
 msgid "Error while running bzr. (error code: %d)"
 msgstr "Error while running bzr. (error code: %d)"
 
-#: lib\subprocess.py:501
+#: lib\subprocess.py:523
 msgid "Aborted!"
 msgstr "Aborted!"
 
@@ -1219,93 +1240,93 @@ msgstr "Update the working tree from the bound branch"
 msgid "Pull a different branch"
 msgstr "Pull a different branch"
 
-#: lib\util.py:452
+#: lib\util.py:445
 msgid "Select Source Directory"
 msgstr "Select Source Directory"
 
-#: lib\util.py:454
+#: lib\util.py:447
 msgid "Select Target Directory"
 msgstr "Select Target Directory"
 
-#: lib\util.py:524
+#: lib\util.py:517
 msgid "Parents:"
 msgstr "Parents:"
 
-#: lib\util.py:528
+#: lib\util.py:521
 msgid "Children:"
 msgstr "Children:"
 
-#: lib\util.py:531
+#: lib\util.py:524
 msgid "Date:"
 msgstr "Date:"
 
-#: lib\util.py:533
+#: lib\util.py:526
 msgid "Committer:"
 msgstr "Committer:"
 
-#: lib\util.py:536 lib\util.py:541
+#: lib\util.py:529 lib\util.py:534
 msgid "Author:"
 msgstr "Author:"
 
-#: lib\util.py:545
+#: lib\util.py:538
 msgid "Branch:"
 msgstr "Branch:"
 
-#: lib\util.py:550
+#: lib\util.py:543
 msgid "Tags:"
 msgstr "Tags:"
 
-#: lib\util.py:559
+#: lib\util.py:552
 msgid "Bug:"
 msgid_plural "Bugs:"
 msgstr[0] "Bug:"
 msgstr[1] "Bugs:"
 
-#: lib\util.py:703
+#: lib\util.py:696
 msgid "deleted files"
 msgstr "deleted files"
 
-#: lib\util.py:705
+#: lib\util.py:698
 msgid "added files"
 msgstr "added files"
 
-#: lib\util.py:707
+#: lib\util.py:700
 msgid "renamed files"
 msgstr "renamed files"
 
-#: lib\util.py:709
+#: lib\util.py:702
 msgid "modified files"
 msgstr "modified files"
 
-#: lib\wtlist.py:47
+#: lib\wtlist.py:48
 msgid "Select / deselect all"
 msgstr "Select / deselect all"
 
-#: lib\wtlist.py:84
+#: lib\wtlist.py:85
 msgid "&Revert..."
 msgstr "&Revert..."
 
-#: lib\wtlist.py:95
+#: lib\wtlist.py:96
 msgid "Extension"
 msgstr "Extension"
 
-#: lib\wtlist.py:120
+#: lib\wtlist.py:121
 msgid "ignored"
 msgstr "ignored"
 
-#: lib\wtlist.py:122
+#: lib\wtlist.py:123
 msgid "non-versioned"
 msgstr "non-versioned"
 
-#: lib\wtlist.py:134
+#: lib\wtlist.py:135
 msgid "missing"
 msgstr "missing"
 
-#: lib\wtlist.py:156
+#: lib\wtlist.py:157
 msgid "modified (x-bit)"
 msgstr "modified (x-bit)"
 
-#: lib\wtlist.py:237
+#: lib\wtlist.py:238
 #, python-format
 msgid "Revert %s to latest revision."
 msgstr "Revert %s to latest revision."
