@@ -4,5 +4,4 @@ TODO List
  - allow changing of revision and location in qbrowse
  - tabbed (per file) qdiff view
  - more information in qblame (like gblame)
- - graphical progress bar for operations like revert
  - pluggable API for adding pages to qconfig from other plugins
