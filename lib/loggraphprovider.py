@@ -396,7 +396,7 @@ class LogGraphProvider(object):
         if tree is None:
             AssertionError("load_graph_pending_merges must have a working tree.")
             
-        self.graph = repo.get_graph()
+        self.graph = branch.repository.get_graph()
         tree_heads = tree.get_parent_ids()
         other_revisions = [tree_heads[0],]
         self.update_ui()
