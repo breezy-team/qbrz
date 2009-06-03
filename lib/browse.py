@@ -41,6 +41,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_set_encoding,
     runs_in_loading_queue,
     url_for_display,
+    get_summary,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
@@ -287,7 +288,7 @@ class BrowseWindow(QBzrWindow):
             item.setText(self.DATE, format_timestamp(rev.timestamp))
             author = rev.properties.get('author', rev.committer)
             item.setText(self.AUTHOR, extract_name(author))
-            item.setText(self.MESSAGE, rev.get_summary())
+            item.setText(self.MESSAGE, get_summary(rev))
 
     @ui_current_widget
     def reload_tree(self):

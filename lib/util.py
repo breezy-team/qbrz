@@ -508,9 +508,9 @@ def format_revision_html(rev, search_replace=None, show_timestamp=False):
     def revision_list_html(revisions):
         return ', '.join('<a href="qlog-revid:%s" title="%s">%s: %s</a>' % (
             (r.revision_id,
-             htmlencode(r.get_summary()),
+             htmlencode(get_summary(r)),
              short_text(r.revno, 10),
-             htmlencode(short_text(r.get_summary(), 60)))) for r in revisions)
+             htmlencode(short_text(get_summary(r), 60)))) for r in revisions)
 
     parents = getattr(rev, 'parents', None)
     if parents:
@@ -562,7 +562,7 @@ def format_revision_html(rev, search_replace=None, show_timestamp=False):
     text.append('</table>')
     text.append('</td></tr></table>')
 
-    message = htmlize(rev.message)
+    message = htmlize(get_message(rev))
     if search_replace:
         for search, replace in search_replace:
             message = re.sub(search, replace, message)
@@ -962,3 +962,12 @@ def get_apparent_author(rev):
 
 def get_apparent_author_name(rev):
     return ', '.join(map(extract_name, get_apparent_authors(rev)))
+
+def get_summary(rev):
+    if rev.message is None:
+        return gettext('(no message)')
+    return rev.get_summary() or gettext('(no message)')
+
+def get_message(rev):
+    return rev.message or gettext('(no message)')
+
