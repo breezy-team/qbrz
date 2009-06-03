@@ -562,7 +562,7 @@ def format_revision_html(rev, search_replace=None, show_timestamp=False):
     text.append('</table>')
     text.append('</td></tr></table>')
 
-    message = htmlize(rev.message)
+    message = htmlize(get_message(rev))
     if search_replace:
         for search, replace in search_replace:
             message = re.sub(search, replace, message)
@@ -967,4 +967,7 @@ def get_summary(rev):
     if rev.message is None:
         return '(no message)'
     return rev.get_summary() or '(no message)'
+
+def get_message(rev):
+    return rev.message or '(no message)'
 
