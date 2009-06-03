@@ -225,7 +225,7 @@ class BrowseWindow(QBzrWindow):
         branch = self.branch
         file_id = branch.basis_tree().path2id(path)
 
-        window = LogWindow(None, branch, [file_id])
+        window = LogWindow(None, branch, file_id)
         window.show()
         self.windows.append(window)
     
