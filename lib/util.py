@@ -965,9 +965,9 @@ def get_apparent_author_name(rev):
 
 def get_summary(rev):
     if rev.message is None:
-        return '(no message)'
-    return rev.get_summary() or '(no message)'
+        return gettext('(no message)')
+    return rev.get_summary() or gettext('(no message)')
 
 def get_message(rev):
-    return rev.message or '(no message)'
+    return rev.message or gettext('(no message)')
 
