@@ -1,5 +1,7 @@
 0.11.0 - in development
 -----------------------
+ * qbrowse:
+    * Fix problem with opening the log for file/directory. (#383192)
 
 
 0.10.0 - 2009-06-02
