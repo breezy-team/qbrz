@@ -916,6 +916,7 @@ class LogGraphProvider(object):
         # are 1 row apart.
         lines = []
         lines_by_column = []
+        lines_by_parent_can_overlap = {}
         
         def branch_line_col_search_order(parent_col_index):
             for col_index in range(parent_col_index, len(lines_by_column)):
@@ -952,30 +953,38 @@ class LogGraphProvider(object):
                 #    yield min_index - i
                 i += 1
         
+        def is_col_free_for_range(col_index, child_index, parent_index,
+                                  ignore_to_same_parent=False):
+            col_lines = lines_by_column[col_index]
+            has_overlaping_line = False
+            for (line_child_index, line_parent_index) in col_lines:
+                if parent_index == line_parent_index and ignore_to_same_parent:
+                    continue
+                
+                # child_index is in between or
+                # parent_index is in between or
+                # we compleatly overlap.
+                if (
+                        child_index > line_child_index
+                    and
+                        child_index < line_parent_index
+                   ) or (
+                        parent_index > line_child_index
+                    and
+                        parent_index < line_parent_index
+                   ) or (
+                        child_index <= line_child_index
+                    and
+                        parent_index >= line_parent_index
+                   ):
+                    has_overlaping_line = True
+                    break
+            return not has_overlaping_line
+        
         def find_free_column(col_search_order, child_index, parent_index):
             for col_index in col_search_order:
-                col_lines = lines_by_column[col_index]
-                has_overlaping_line = False
-                for (line_child_index, line_parent_index) in col_lines:
-                    # child_index is in between or
-                    # parent_index is in between or
-                    # we compleatly overlap.
-                    if (
-                            child_index > line_child_index
-                        and
-                            child_index < line_parent_index
-                       ) or (
-                            parent_index > line_child_index
-                        and
-                            parent_index < line_parent_index
-                       ) or (
-                            child_index < line_child_index
-                        and
-                            parent_index >= line_parent_index
-                       ):
-                        has_overlaping_line = True
-                        break
-                if not has_overlaping_line:
+                if is_col_free_for_range(col_index,
+                                             child_index, parent_index):
                     break
             else:
                 # No free columns found. Add an empty one on the end.
@@ -983,7 +992,12 @@ class LogGraphProvider(object):
                 lines_by_column.append([])
             return col_index
         
-        def append_line (child_index, parent_index, direct, line_col_index=None):
+        def append_line (child_index, parent_index, direct, branch_col_index=None):
+            
+            line_length = parent_index - child_index
+            can_overlap = (branch_col_index is None or not direct) \
+                            and line_length > 1
+            
             parent_node = graph_line_data[parent_index][1]
             if parent_node:
                 parent_col_index = parent_node[0]
@@ -996,9 +1010,27 @@ class LogGraphProvider(object):
             else:
                 child_col_index = None
             
+            line_col_index = None
+            if branch_col_index is not None:
+                line_col_index = branch_col_index
+            # Try find a line to a parent that we can overlap on.
+            elif (not direct or branch_col_index is None) \
+                        and parent_index in lines_by_parent_can_overlap:
+                # ol = overlaping line
+                for (ol_child_index,
+                     ol_col_index,
+                     ol_direct) in lines_by_parent_can_overlap[parent_index]:
+                    if ol_direct == direct \
+                            and is_col_free_for_range(ol_col_index,
+                                                      child_index,
+                                                      parent_index,
+                                                      True):
+                        line_col_index = ol_col_index
+                        break
+            #else:
             if line_col_index is None:
                 line_col_index = child_col_index
-                if parent_index - child_index >1:
+                if line_length > 1:
                     col_search_order = line_col_search_order(parent_col_index,
                                                              child_col_index)
                     line_col_index = find_free_column(col_search_order,
@@ -1008,8 +1040,16 @@ class LogGraphProvider(object):
                           parent_index,
                           line_col_index,
                           direct,
-                          ))            
-            lines_by_column[line_col_index].append((child_index, parent_index))
+                          ))
+            if line_col_index is not None:
+                lines_by_column[line_col_index].append(
+                                            (child_index, parent_index))
+            if can_overlap:
+                if parent_index not in lines_by_parent_can_overlap:
+                    lines_by_parent_can_overlap[parent_index] = []
+                lines_by_parent_can_overlap[parent_index].append((child_index,
+                                                                  line_col_index,
+                                                                  direct ))
         
         for branch_id in self.branch_ids:
             (branch_rev_msri,
@@ -1121,8 +1161,10 @@ class LogGraphProvider(object):
                 
                 last_parent_msri = None
                 last_rev_msri = branch_rev_msri[-1]
-                if branch_rev_visible_parents[last_rev_msri]: 
-                    last_parent_msri = branch_rev_visible_parents[last_rev_msri][0][1]
+                if branch_rev_visible_parents[last_rev_msri]:
+                    last_parent = branch_rev_visible_parents[last_rev_msri][0]
+                    last_parent_msri = last_parent[1]
+                    branch_rev_visible_parents[last_rev_msri].pop(0)
                 
                 children_with_sprout_lines = {}
                 # In this loop:
@@ -1224,6 +1266,9 @@ class LogGraphProvider(object):
                     graph_line_data[rev_index][1] = node
                 
                 append_line(first_rev_index, last_rev_index, True, col_index)
+                if last_parent_msri:
+                    append_line(last_rev_index, parent_index,
+                                last_parent[4], col_index)
                 
                 # In this loop:
                 # * Append the remaining lines to parents.
