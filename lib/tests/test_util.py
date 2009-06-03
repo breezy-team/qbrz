@@ -133,3 +133,15 @@ class TestUtil(TestCase):
         self.assertEquals(False, util.is_binary_content(['foo\n', 'bar\r\n', 'spam\r']))
         self.assertEquals(True, util.is_binary_content(['\x00']))
         self.assertEquals(True, util.is_binary_content(['a'*2048 + '\x00']))
+
+    def test_get_summary(self):
+        import bzrlib.revision
+        
+        r = bzrlib.revision.Revision('1')
+
+        r.message = None
+        self.assertEquals('(no message)', util.get_summary(r))
+
+        r.message = ''
+        self.assertEquals('(no message)', util.get_summary(r))
+
