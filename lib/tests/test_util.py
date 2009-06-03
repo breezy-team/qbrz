@@ -145,6 +145,9 @@ class TestUtil(TestCase):
         r.message = ''
         self.assertEquals('(no message)', util.get_summary(r))
 
+        r.message = 'message'
+        self.assertEquals('message', util.get_summary(r))
+
     def test_get_message(self):
         import bzrlib.revision
         
