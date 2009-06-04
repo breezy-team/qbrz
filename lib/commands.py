@@ -845,8 +845,8 @@ class cmd_qview(QBzrCommand):
         app.exec_()
 
 
-class cmd_qsysinfo(QBzrCommand):
-    """Show system information."""
+class cmd_qversion(QBzrCommand):
+    """Show version/system information."""
     takes_args = []
     takes_options = []
     aliases = []
