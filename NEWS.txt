@@ -1,6 +1,8 @@
 0.11.0 - in development
 -----------------------
 
+ * qversion: new command to display Bazaar & Python installation information
+
 
 0.10.0 - 2009-06-02
 -----------------------
