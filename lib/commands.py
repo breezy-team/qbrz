@@ -843,3 +843,17 @@ class cmd_qview(QBzrCommand):
         window = QBzrViewWindow(filename=filename, encoding=encoding)
         window.show()
         app.exec_()
+
+
+class cmd_qsysinfo(QBzrCommand):
+    """Show system information."""
+    takes_args = []
+    takes_options = []
+    aliases = []
+
+    def _qbzr_run(self):
+        from bzrlib.plugins.qbzr.lib.sysinfo import QBzrSysInfoWindow
+        application = QtGui.QApplication(sys.argv)
+        window = QBzrSysInfoWindow(u'.')
+        window.show()
+        application.exec_()
