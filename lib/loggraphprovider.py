@@ -750,18 +750,20 @@ class LogGraphProvider(object):
     def get_revision_visible(self, msri):
         """ Returns wether a revision is visible or not"""
         
-        (sequence_number,
-         revid,
-         merge_depth,
-         revno_sequence,
-         end_of_merge) = self.merge_sorted_revisions[msri]
         
-        branch_id = revno_sequence[0:-1]
-        if not self.no_graph and \
-                not self.branch_lines[branch_id][1]: # branch colapased
-            return False
-        
-        return self.get_revision_visible_if_branch_visible_cached(msri)
+        return msri in self.msri_index
+        #(sequence_number,
+        # revid,
+        # merge_depth,
+        # revno_sequence,
+        # end_of_merge) = self.merge_sorted_revisions[msri]
+        #
+        #branch_id = revno_sequence[0:-1]
+        #if not self.no_graph and \
+        #        not self.branch_lines[branch_id][1]: # branch colapased
+        #    return False
+        #
+        #return self.get_revision_visible_if_branch_visible_cached(msri)
 
     def get_revision_visible_if_branch_visible_cached(self, msri):
         cache = self.filter_cache[msri]
