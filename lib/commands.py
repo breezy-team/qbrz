@@ -617,6 +617,7 @@ class cmd_qbranch(QBzrCommand):
 
 
 class cmd_qinfo(QBzrCommand):
+    """Shows information about the current location."""
 
     takes_options = []
     takes_args = []
