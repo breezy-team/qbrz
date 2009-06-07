@@ -1529,13 +1529,14 @@ class LogGraphProvider(object):
         for repo_base in self.repos.iterkeys():
             repo_revids[repo_base] = []
         
-        for revid in revids:
-            for local_repo_copy in self.local_repo_copies:
+        for local_repo_copy in self.local_repo_copies:
+            for revid in self.repos[local_repo_copy].has_revisions(revids):
+                revids.remove(revid)
                 repo_revids[local_repo_copy].append(revid)
-            
+        
+        for revid in revids:
             repo = self.get_revid_repo(revid)
-            if repo.base not in self.local_repo_copies:
-                repo_revids[repo.base].append(revid)
+            repo_revids[repo.base].append(revid)
         
         return repo_revids
     
@@ -1574,8 +1575,6 @@ class LogGraphProvider(object):
                     if revids:
                         repo.lock_read()
                         try:
-                            revids = list(repo.has_revisions(revids))
-                            
                             if not repo.is_local:
                                 self.update_ui()
                             
@@ -1609,10 +1608,6 @@ class LogGraphProvider(object):
                 
                 if revisions_loaded is not None:
                     revisions_loaded(revids_loaded, True)
-                
-                for revid in org_revids:
-                    if revid not in self.revisions:
-                        raise errors.NoSuchRevision(self, revid)
         finally:
             if showed_throbber:
                 self.throbber_hide()
