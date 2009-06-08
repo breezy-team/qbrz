@@ -34,18 +34,23 @@ class build_ui(Command):
     description = "build Qt UI files"
     user_options = [
         ('force', 'f', 'Force creation of ui files'),
+        ('module=', 'm', 'Specify UI module to (re)build'),
         ]
     boolean_options = ['force']
 
     def initialize_options(self):
         self.force = None
+        self.module = None
 
     def finalize_options(self):
-        pass
+        if not self.module:
+            self.module = glob.glob("ui/*.ui")
+        else:
+            self.module = ['ui/%s.ui' % self.module]
 
     def run(self):
         from PyQt4 import uic
-        for uifile in glob.glob("ui/*.ui"):
+        for uifile in self.module:
             uifile = uifile.replace('\\', '/')
             pyfile = "lib/ui_%s.py" % os.path.splitext(os.path.basename(uifile))[0]
             if self.force or newer(uifile, pyfile):
