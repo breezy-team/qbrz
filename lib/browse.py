@@ -161,6 +161,18 @@ class BrowseWindow(QBzrWindow):
         finally:
             self.throbber.hide()
     
+    def get_current_file_id(self):
+        '''Gets the file_id for the currently selected item, or returns
+        the root_file_id if nothing is currently selected.'''
+
+        item = self.file_tree.currentItem()
+        if item == None:
+            file_id = self.root_file_id
+        else:
+            file_id = unicode(item.data(self.NAME, self.FILEID).toString())
+
+        return file_id
+
     def load_file_tree(self, entry, parent_item):
         files, dirs = [], []
         revs = set()
@@ -223,15 +235,9 @@ class BrowseWindow(QBzrWindow):
     @ui_current_widget
     def show_file_log(self):
         """Show qlog for one selected file."""
-        path = self.get_current_path()
-
         branch = self.branch
         
-        item = self.file_tree.currentItem()
-        if item == None:
-            file_id = self.root_file_id
-        else:
-            file_id = unicode(item.data(self.NAME, self.FILEID).toString())
+        file_id = self.get_current_file_id()
 
         window = LogWindow(None, branch, file_id)
         window.show()
@@ -244,7 +250,7 @@ class BrowseWindow(QBzrWindow):
 
         branch = self.branch
         tree = self.branch.repository.revision_tree(self.revision_id)
-        file_id = tree.path2id(path)
+        file_id = self.get_current_file_id()
         window = AnnotateWindow(branch, tree, path, file_id)
         window.show()
         self.windows.append(window)
