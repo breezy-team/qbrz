@@ -469,7 +469,9 @@ class SubProcessWidget(QtGui.QWidget):
             self.transportActivity.setText(transport_activity)
     
     def readStdout(self):
-        data = str(self.process.readAllStandardOutput()).decode(self.encoding)
+        # ensure we read from subprocess plain string
+        data = str(self.process.readAllStandardOutput())
+        # we need unicode for all strings except bencoded streams
         for line in data.splitlines():
             if line.startswith("qbzr:PROGRESS:"):
                 progress, transport_activity, messages = bencode.bdecode(line[14:])
@@ -485,6 +487,7 @@ class SubProcessWidget(QtGui.QWidget):
                 if not ok:
                     self.abort_futher_processes()
             else:
+                line = line.decode(self.encoding)
                 self.logMessage(line)
                 if not self.ui_mode:
                     self.stdout.write(line)
