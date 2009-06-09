@@ -40,11 +40,12 @@ from bzrlib.plugins.qbzr.lib import MS_WINDOWS
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
-    BTN_OK,
     BTN_CLOSE,
-    QBzrWindow,
+    BTN_OK,
     QBzrDialog,
+    QBzrWindow,
     StandardButton,
+    ensure_unicode,
     )
 
 try:
@@ -474,7 +475,8 @@ class SubProcessWidget(QtGui.QWidget):
         # we need unicode for all strings except bencoded streams
         for line in data.splitlines():
             if line.startswith("qbzr:PROGRESS:"):
-                progress, transport_activity, messages = bencode.bdecode(line[14:])
+                # but we have to ensure we have unicode after bdecode
+                progress, transport_activity, messages = map(ensure_unicode, bencode.bdecode(line[14:]))
                 self.setProgress(progress, messages, transport_activity)
             elif line.startswith("qbzr:GETPASS:"):
                 prompt = bencode.bdecode(line[13:]).decode('utf-8')

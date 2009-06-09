@@ -977,3 +977,13 @@ def get_summary(rev):
 def get_message(rev):
     return rev.message or gettext('(no message)')
 
+def ensure_unicode(s, encoding='ascii'):
+    """Convert s to unicode if s is plain string.
+    Using encoding for unicode decode.
+
+    In the case when s is not string, return it
+    without any changes.
+    """
+    if isinstance(s, str):
+        return s.decode(encoding)
+    return s

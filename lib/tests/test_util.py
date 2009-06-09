@@ -159,3 +159,8 @@ class TestUtil(TestCase):
         r.message = 'message'
         self.assertEquals('message', util.get_message(r))
 
+    def test_ensure_unicode(self):
+        self.assertEqual(u'foo', util.ensure_unicode('foo'))
+        self.assertEqual(u'foo', util.ensure_unicode(u'foo'))
+        self.assertEqual(u'\u1234', util.ensure_unicode(u'\u1234'))
+        self.assertEqual(1, util.ensure_unicode(1))
