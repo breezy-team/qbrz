@@ -22,7 +22,6 @@ import re
 import sys
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.util import bencode
 from bzrlib import (
     bugtracker,
     errors,

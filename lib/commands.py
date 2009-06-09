@@ -37,7 +37,6 @@ from bzrlib import (
     osutils,
     progress,
     )
-from bzrlib.util import bencode
 from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
 from bzrlib.workingtree import WorkingTree

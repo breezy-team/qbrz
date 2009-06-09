@@ -28,7 +28,13 @@ import tempfile
 from PyQt4 import QtCore, QtGui
 
 from bzrlib import osutils, progress, ui
-from bzrlib.util import bencode
+
+try:
+    # this works with bzr 1.16+
+    from bzrlib import bencode
+except ImportError:
+    # this works with bzr 1.15-
+    from bzrlib.util import bencode
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
@@ -708,7 +714,6 @@ class SubprocessUIFactory(ui.CLIUIFactory):
         pass
 
     def get_password(self, prompt='', **kwargs):
-        from bzrlib.util import bencode
         prompt = prompt % kwargs
         self.stdout.write('qbzr:GETPASS:' + bencode.bencode(prompt.encode('utf-8')) + '\n')
         self.stdout.flush()
