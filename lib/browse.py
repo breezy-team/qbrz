@@ -62,6 +62,8 @@ class BrowseWindow(QBzrWindow):
 
     NAME, DATE, AUTHOR, REV, MESSAGE = range(5)     # indices of columns in the window
 
+    FILEID = QtCore.Qt.UserRole + 1
+
     def __init__(self, branch=None, location=None, revision=None,
                  revision_id=None, revision_spec=None, parent=None):
         if branch:
@@ -76,7 +78,8 @@ class BrowseWindow(QBzrWindow):
         self.revision_id = revision_id
         self.revision_spec = revision_spec
         self.revision = revision
-        
+        self.root_file_id = None
+
         QBzrWindow.__init__(self,
             [gettext("Browse"), self.location], parent)
         self.restoreSize("browse", (780, 580))
@@ -178,12 +181,12 @@ class BrowseWindow(QBzrWindow):
             item.setIcon(self.NAME, self.dir_icon)
             item.setText(self.NAME, child.name)
             revs.update(self.load_file_tree(child, item))
-            self.items.append((item, child.revision))
+            self.items.append((item, child.revision, child.file_id))
         for child in files:
             item = QtGui.QTreeWidgetItem(parent_item)
             item.setIcon(self.NAME, self.file_icon)
             item.setText(self.NAME, child.name)
-            self.items.append((item, child.revision))
+            self.items.append((item, child.revision, child.file_id))
         return revs
 
     def get_current_path(self):
@@ -223,7 +226,12 @@ class BrowseWindow(QBzrWindow):
         path = self.get_current_path()
 
         branch = self.branch
-        file_id = branch.basis_tree().path2id(path)
+        
+        item = self.file_tree.currentItem()
+        if item == None:
+            file_id = self.root_file_id
+        else:
+            file_id = unicode(item.data(self.NAME, self.FILEID).toString())
 
         window = LogWindow(None, branch, file_id)
         window.show()
@@ -278,7 +286,7 @@ class BrowseWindow(QBzrWindow):
         finally:
             branch.unlock()
         self.revision_edit.setText(text)
-        for item, revision_id in self.items:
+        for item, revision_id, file_id in self.items:
             rev = revs[revision_id]
             revno = ''
             rt = revno_map.get(revision_id)
@@ -289,6 +297,7 @@ class BrowseWindow(QBzrWindow):
             author = rev.properties.get('author', rev.committer)
             item.setText(self.AUTHOR, extract_name(author))
             item.setText(self.MESSAGE, get_summary(rev))
+            item.setData(self.NAME, self.FILEID, QtCore.QVariant(file_id))
 
     @ui_current_widget
     def reload_tree(self):
