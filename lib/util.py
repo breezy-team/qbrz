@@ -838,6 +838,12 @@ if have_pygments:
 def format_for_ttype(ttype, format):
     if have_pygments and ttype:
         font = format.font()
+        
+        # I don't understand this, but I copied it for pygments rtf formater.
+        # It fixes bug 347333 - GaryvdM
+        while not style.styles_token(ttype) and ttype.parent:
+            ttype = ttype.parent
+        
         tstyle = style.style_for_token(ttype)
         if tstyle['color']:
             if isinstance(format, QtGui.QPainter):
