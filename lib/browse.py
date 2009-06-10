@@ -192,13 +192,17 @@ class BrowseWindow(QBzrWindow):
             item = QtGui.QTreeWidgetItem(parent_item)
             item.setIcon(self.NAME, self.dir_icon)
             item.setText(self.NAME, child.name)
+            item.setData(self.NAME, self.FILEID,
+                                        QtCore.QVariant(child.file_id))
             revs.update(self.load_file_tree(child, item))
-            self.items.append((item, child.revision, child.file_id))
+            self.items.append((item, child.revision))
         for child in files:
             item = QtGui.QTreeWidgetItem(parent_item)
             item.setIcon(self.NAME, self.file_icon)
             item.setText(self.NAME, child.name)
-            self.items.append((item, child.revision, child.file_id))
+            item.setData(self.NAME, self.FILEID,
+                                        QtCore.QVariant(child.file_id))
+            self.items.append((item, child.revision))
         return revs
 
     def get_current_path(self):
@@ -292,7 +296,7 @@ class BrowseWindow(QBzrWindow):
         finally:
             branch.unlock()
         self.revision_edit.setText(text)
-        for item, revision_id, file_id in self.items:
+        for item, revision_id in self.items:
             rev = revs[revision_id]
             revno = ''
             rt = revno_map.get(revision_id)
@@ -303,7 +307,6 @@ class BrowseWindow(QBzrWindow):
             author = rev.properties.get('author', rev.committer)
             item.setText(self.AUTHOR, extract_name(author))
             item.setText(self.MESSAGE, get_summary(rev))
-            item.setData(self.NAME, self.FILEID, QtCore.QVariant(file_id))
 
     @ui_current_widget
     def reload_tree(self):
