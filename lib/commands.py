@@ -854,6 +854,6 @@ class cmd_qversion(QBzrCommand):
     def _qbzr_run(self):
         from bzrlib.plugins.qbzr.lib.sysinfo import QBzrSysInfoWindow
         application = QtGui.QApplication(sys.argv)
-        window = QBzrSysInfoWindow(u'.')
+        window = QBzrSysInfoWindow()
         window.show()
         application.exec_()

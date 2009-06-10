@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>475</width>
-    <height>455</height>
+    <width>467</width>
+    <height>361</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -32,7 +32,7 @@
        <property name="flat">
         <bool>false</bool>
        </property>
-       <layout class="QFormLayout" name="formLayout">
+       <layout class="QGridLayout" name="gridLayout">
         <item row="0" column="0">
          <widget class="QLabel" name="label">
           <property name="text">
@@ -56,6 +56,12 @@
         </item>
         <item row="1" column="1">
          <widget class="QLabel" name="bzr_lib_path">
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="text">
            <string>(bzr-lib-path)</string>
           </property>
@@ -69,7 +75,7 @@
        <property name="title">
         <string>Bazaar Configuration</string>
        </property>
-       <layout class="QFormLayout" name="formLayout_2">
+       <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="0">
          <widget class="QLabel" name="label_2">
           <property name="text">
@@ -93,6 +99,12 @@
         </item>
         <item row="1" column="1">
          <widget class="QLabel" name="bzr_log_file">
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="text">
            <string>(bzr-log-file)</string>
           </property>
@@ -105,14 +117,14 @@
       <widget class="QGroupBox" name="python_interpreter">
        <property name="minimumSize">
         <size>
-         <width>329</width>
+         <width>0</width>
          <height>0</height>
         </size>
        </property>
        <property name="title">
         <string>Python Interpreter</string>
        </property>
-       <layout class="QFormLayout" name="formLayout_3">
+       <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
          <widget class="QLabel" name="label_5">
           <property name="text">
@@ -150,6 +162,12 @@
         </item>
         <item row="2" column="1">
          <widget class="QLabel" name="python_lib_dir">
+          <property name="minimumSize">
+           <size>
+            <width>300</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="text">
            <string>(python-lib-dir)</string>
           </property>
@@ -166,7 +184,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>475</width>
+     <width>467</width>
      <height>25</height>
     </rect>
    </property>

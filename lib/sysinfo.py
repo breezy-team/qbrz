@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # QBzr - Qt frontend to Bazaar commands
-# Copyright (C) 2009 Lukáš Lalinský <lalinsky@gmail.com>
+# Copyright (C) 2009 Canonical Ltd
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -30,7 +30,7 @@ from bzrlib.plugins.qbzr.lib.util import (
 
 class QBzrSysInfoWindow(QBzrWindow):
 
-    def __init__(self, tree, parent=None):
+    def __init__(self, parent=None):
         QBzrWindow.__init__(self, [], parent)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
