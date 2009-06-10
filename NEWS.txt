@@ -4,6 +4,8 @@
     * Fix problem with opening the log for file/directory. (#383192)
  * qinfo:
     * Add a basic help string (#384632)
+ * qview command renamed to qviewer (previously qviewer was alias for qview)
+   to avoid confusion with bzr views feature. (#385225)
 
 
 0.10.0 - 2009-06-02

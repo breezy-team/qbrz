@@ -828,9 +828,9 @@ class cmd_qtag(QBzrCommand):
         app.exec_()
 
 
-class cmd_qview(QBzrCommand):
+class cmd_qviewer(QBzrCommand):
     """Simple file viewer."""
-    aliases = ['qviewer']
+    aliases = []
     takes_args = ['filename']
     takes_options = [
         Option('encoding', type=check_encoding,
