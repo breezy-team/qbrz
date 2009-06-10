@@ -849,7 +849,7 @@ class LogGraphProvider(object):
                 
                 if not self.no_graph:
                     merged_by = self.merge_info[msri][1]
-                    if merged_by:
+                    if merged_by is not None:
                         if merged_by not in self.ifcr_pending_msris and \
                            merged_by not in processed_msris:
                             self.ifcr_pending_msris.append(merged_by)
