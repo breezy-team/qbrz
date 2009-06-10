@@ -421,6 +421,7 @@ class SubProcessWidget(QtGui.QWidget):
             self.process.start(
                 sys.argv[0], ['qsubprocess', args])
         else:
+            print [sys.argv[0], 'qsubprocess', args]
             self.process.start(
                 sys.executable, [sys.argv[0], 'qsubprocess', args])
 
