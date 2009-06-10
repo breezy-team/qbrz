@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file '../ui/sysinfo.ui'
 #
-# Created: Wed Jun 10 20:30:12 2009
+# Created: Wed Jun 10 20:42:32 2009
 #      by: PyQt4 UI code generator 4.4.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,15 +12,15 @@ from PyQt4 import QtCore, QtGui
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(502, 361)
+        MainWindow.resize(426, 375)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-        self.layoutWidget = QtGui.QWidget(self.centralwidget)
-        self.layoutWidget.setGeometry(QtCore.QRect(20, 20, 471, 272))
-        self.layoutWidget.setObjectName("layoutWidget")
-        self.verticalLayout = QtGui.QVBoxLayout(self.layoutWidget)
+        self.widget = QtGui.QWidget(self.centralwidget)
+        self.widget.setGeometry(QtCore.QRect(21, 21, 391, 312))
+        self.widget.setObjectName("widget")
+        self.verticalLayout = QtGui.QVBoxLayout(self.widget)
         self.verticalLayout.setObjectName("verticalLayout")
-        self.bazaar_library = QtGui.QGroupBox(self.layoutWidget)
+        self.bazaar_library = QtGui.QGroupBox(self.widget)
         self.bazaar_library.setFlat(False)
         self.bazaar_library.setObjectName("bazaar_library")
         self.gridLayout = QtGui.QGridLayout(self.bazaar_library)
@@ -35,10 +35,11 @@ class Ui_MainWindow(object):
         self.label_3.setObjectName("label_3")
         self.gridLayout.addWidget(self.label_3, 1, 0, 1, 1)
         self.bzr_lib_path = QtGui.QLabel(self.bazaar_library)
+        self.bzr_lib_path.setMinimumSize(QtCore.QSize(300, 0))
         self.bzr_lib_path.setObjectName("bzr_lib_path")
         self.gridLayout.addWidget(self.bzr_lib_path, 1, 1, 1, 1)
         self.verticalLayout.addWidget(self.bazaar_library)
-        self.bazaar_configuration = QtGui.QGroupBox(self.layoutWidget)
+        self.bazaar_configuration = QtGui.QGroupBox(self.widget)
         self.bazaar_configuration.setObjectName("bazaar_configuration")
         self.gridLayout_2 = QtGui.QGridLayout(self.bazaar_configuration)
         self.gridLayout_2.setObjectName("gridLayout_2")
@@ -52,11 +53,12 @@ class Ui_MainWindow(object):
         self.label_4.setObjectName("label_4")
         self.gridLayout_2.addWidget(self.label_4, 1, 0, 1, 1)
         self.bzr_log_file = QtGui.QLabel(self.bazaar_configuration)
+        self.bzr_log_file.setMinimumSize(QtCore.QSize(300, 0))
         self.bzr_log_file.setObjectName("bzr_log_file")
         self.gridLayout_2.addWidget(self.bzr_log_file, 1, 1, 1, 1)
         self.verticalLayout.addWidget(self.bazaar_configuration)
-        self.python_interpreter = QtGui.QGroupBox(self.layoutWidget)
-        self.python_interpreter.setMinimumSize(QtCore.QSize(329, 0))
+        self.python_interpreter = QtGui.QGroupBox(self.widget)
+        self.python_interpreter.setMinimumSize(QtCore.QSize(0, 0))
         self.python_interpreter.setObjectName("python_interpreter")
         self.gridLayout_3 = QtGui.QGridLayout(self.python_interpreter)
         self.gridLayout_3.setObjectName("gridLayout_3")
@@ -76,23 +78,25 @@ class Ui_MainWindow(object):
         self.label_7.setObjectName("label_7")
         self.gridLayout_3.addWidget(self.label_7, 2, 0, 1, 1)
         self.python_lib_dir = QtGui.QLabel(self.python_interpreter)
+        self.python_lib_dir.setMinimumSize(QtCore.QSize(300, 0))
         self.python_lib_dir.setObjectName("python_lib_dir")
         self.gridLayout_3.addWidget(self.python_lib_dir, 2, 1, 1, 1)
         self.verticalLayout.addWidget(self.python_interpreter)
+        self.buttonBox = QtGui.QDialogButtonBox(self.widget)
+        self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Close)
+        self.buttonBox.setObjectName("buttonBox")
+        self.verticalLayout.addWidget(self.buttonBox)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 502, 25))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 426, 25))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtGui.QStatusBar(MainWindow)
-        self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
+        MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "System Information", None, QtGui.QApplication.UnicodeUTF8))
         self.bazaar_library.setTitle(QtGui.QApplication.translate("MainWindow", "Bazaar Library", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("MainWindow", "Version:", None, QtGui.QApplication.UnicodeUTF8))
         self.bzr_version.setText(QtGui.QApplication.translate("MainWindow", "(bzr-version)", None, QtGui.QApplication.UnicodeUTF8))
