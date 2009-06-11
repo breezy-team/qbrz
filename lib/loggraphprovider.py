@@ -785,9 +785,9 @@ class LogGraphProvider(object):
          end_of_merge) = self.merge_sorted_revisions[msri]
         
         if self.sr_filter_re:
-            revision = cached_revisions[revid]
-            if revision is None:
+            if revid not in cached_revisions:
                 return False
+            revision = cached_revisions[revid]
             
             filtered_str = None
             if self.sr_field == "message":
@@ -1430,8 +1430,8 @@ class LogGraphProvider(object):
     def set_search(self, str, field):
         self.sr_field = field
         
-        def revisions_loaded(revids, last_call):
-            msris = [self.revid_msri[revid] for revid in revids]
+        def revisions_loaded(revisions, last_call):
+            msris = [self.revid_msri[revid] for revid in revisions.iterkeys()]
             self.invaladate_filter_cache_revs(msris, last_call)
         
         def before_batch_load(repo, revids):

@@ -23,8 +23,7 @@ from time import (strftime, localtime, clock)
 from bzrlib import (lazy_regex, errors)
 from bzrlib.revision import NULL_REVISION
 from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
-from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
-                                                         cached_revisions)
+from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
@@ -295,7 +294,7 @@ class LogModel(QtCore.QAbstractTableModel):
         return self.createIndex (msri, 0, QtCore.QModelIndex())
 
     def on_revisions_loaded(self, revisions, last_call):
-        for revid in revisions:
+        for revid in revisions.iterkeys():
             indexes = self.indexFromRevId(revid, (COL_MESSAGE, COL_AUTHOR))
             self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                       indexes[0], indexes[1])

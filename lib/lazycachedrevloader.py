@@ -46,13 +46,13 @@ def load_revisions(revids, repo,
     
     try:
         if pass_prev_loaded_rev:
-            prev_loaded = [revid for revid in revids if revid in cached_revisions]
-            if revisions_loaded is not None:
-                revisions_loaded(prev_loaded, False)
-            for revid in prev_loaded:
+            for revid in [revid for revid in revids
+                          if revid in cached_revisions]:
                 return_revisions[revid] = cached_revisions[revid]
+            if revisions_loaded is not None:
+                revisions_loaded(return_revisions, False)
         
-        revids_loaded = []
+        revs_loaded = {}
         revids = [revid for revid in revids if revid not in cached_revisions]
         if revids:
             if isinstance(repo, Repository):
@@ -79,8 +79,8 @@ def load_revisions(revids, repo,
                             
                             if time_before_first_ui_update < running_time:
                                 if revisions_loaded is not None:
-                                    revisions_loaded(revids_loaded, False)
-                                    revids_loaded = []
+                                    revisions_loaded(revs_loaded, False)
+                                    revs_loaded = {}
                                 if not showed_throbber:
                                     if throbber:
                                         throbber.show()
@@ -97,13 +97,13 @@ def load_revisions(revids, repo,
                             for rev in repo.get_revisions(batch_revids):
                                 cached_revisions[rev.revision_id] = rev
                                 return_revisions[rev.revision_id] = rev
+                                revs_loaded[rev.revision_id] = rev
                                 rev.repository = repo
-                                revids_loaded.append(rev.revision_id)
                     finally:
                         repo.unlock()
             
             if revisions_loaded is not None:
-                revisions_loaded(revids_loaded, True)
+                revisions_loaded(revs_loaded, True)
     finally:
         if showed_throbber:
             throbber.hide()
