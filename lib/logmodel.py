@@ -23,6 +23,8 @@ from time import (strftime, localtime, clock)
 from bzrlib import (lazy_regex, errors)
 from bzrlib.revision import NULL_REVISION
 from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
+from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
+                                                         cached_revisions)
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
@@ -248,13 +250,10 @@ class LogModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant(revid)
         
         #Everything from here foward will need to have the revision loaded.
-        if not revid or revid == NULL_REVISION:
+        if not revid or revid not in cached_revisions:
             return QtCore.QVariant()
         
-        revision = self.graph_provider.revision(revid)
-        
-        if not revision:
-            return QtCore.QVariant()
+        revision = cached_revisions[revid]
         
         if role == QtCore.Qt.DisplayRole and index.column() == COL_DATE:
             return QtCore.QVariant(strftime("%Y-%m-%d %H:%M",

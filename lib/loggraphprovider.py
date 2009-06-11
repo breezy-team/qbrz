@@ -34,6 +34,8 @@ except ImportError:
 from bzrlib.bzrdir import BzrDir
 from bzrlib.branch import Branch
 from bzrlib.inventory import Inventory
+from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
+                                                         cached_revisions)
 
 have_search = True
 try:
@@ -88,7 +90,6 @@ class LogGraphProvider(object):
         self.revid_msri = {}
         self.graph_children = {}
         
-        self.revisions = {}
         self.queue = []
         self.tags = {}      # map revid -> tags set
         
@@ -343,15 +344,15 @@ class LogGraphProvider(object):
             
             trunk_tip = self.trunk_branch.last_revision()
             
-            self.load_revisions(self.head_revids)
+            head_revs = load_revisions(self.head_revids)
             
             def head_revids_cmp(x,y):
                 if x == trunk_tip:
                     return -1
                 if y == trunk_tip:
                     return 1
-                return 0-cmp(self.revision(x).timestamp,
-                             self.revision(y).timestamp)
+                return 0-cmp(head_revs(x).timestamp,
+                             head_revs(y).timestamp)
             
             self.head_revids.sort(head_revids_cmp)
     
@@ -496,12 +497,6 @@ class LogGraphProvider(object):
             # Revision visibilaty unknown.
             self.invaladate_filter_cache()
         
-        # The revisions is self.revions would have been loaded before to sort
-        # the heads by date, or because we are refreshing. Put them though
-        # self.post_revision_load again.
-        for rev in self.revisions.values():
-            self.post_revision_load(rev)        
-    
     def compute_branch_lines(self):
         self.branch_lines = {}
         """A list of each "branch", containing
@@ -694,9 +689,7 @@ class LogGraphProvider(object):
                                  merge_depth,
                                  revno_sequence,
                                  end_of_merge) in self.merge_sorted_revisions ]
-            repo_revids = self.get_repo_revids(revids)
-            for repo in self.repos_sorted_local_first():
-                revids = repo_revids[repo.base]
+            for repo, revids in self.get_repo_revids(revids):
                 if not self.load_filter_file_id_uses_inventory():
                     chunk_size = 500
                 else:
@@ -792,7 +785,7 @@ class LogGraphProvider(object):
          end_of_merge) = self.merge_sorted_revisions[msri]
         
         if self.sr_filter_re:
-            revision = self.revision(revid)
+            revision = cached_revisions[revid]
             if revision is None:
                 return False
             
@@ -1502,23 +1495,6 @@ class LogGraphProvider(object):
                                     before_batch_load = before_batch_load,
                                     revisions_loaded = revisions_loaded)
     
-    def revision(self, revid, force_load=False):
-        """Load and return a revision from a repository.
-        
-        If loading from a remote repository, this function will return None,
-        and you will be notified when the revision has been loaded by
-        revisions_loaded. At which point, you can call this function again.
-        This is to allow you not to block your ui.
-        
-        """
-        if revid not in self.revisions:
-            if force_load:
-                self.load_revisions([revid])
-            else:
-                return None
-        
-        return self.revisions[revid]
-    
     def get_revid_branch(self, revid):
         if len(self.branches())==1 and revid not in self.revid_branch:
             return self.branches()[0][1]
@@ -1528,7 +1504,7 @@ class LogGraphProvider(object):
         return self.get_revid_branch(revid).repository
     
     def get_repo_revids(self, revids):
-        """Returns dict maping repo to it revisions"""
+        """Returns list of typle of (repo, revids)"""
         repo_revids = {}
         for repo_base in self.repos.iterkeys():
             repo_revids[repo_base] = []
@@ -1542,79 +1518,13 @@ class LogGraphProvider(object):
             repo = self.get_revid_repo(revid)
             repo_revids[repo.base].append(revid)
         
-        return repo_revids
+        return [(repo, repo_revids[repo.base])
+                        for repo in self.repos_sorted_local_first()]
     
     def load_revisions(self, revids,
-                       time_before_first_ui_update = 0.5,
-                       local_batch_size = 30,
-                       remote_batch_size = 5,
-                       before_batch_load = None,
-                       revisions_loaded = None,
-                       pass_prev_loaded_rev = False):
-        
-        start_time = clock()
-        showed_throbber = False
-        revids = [revid for revid in revids if not revid == "root:"]
-        org_revids = revids
-        
-        try:
-            if pass_prev_loaded_rev and revisions_loaded is not None:
-                revisions_loaded([revid for revid in revids \
-                                  if revid in self.revisions], False)
-            
-            revids_loaded = []
-            revids = [revid for revid in revids if revid not in self.revisions\
-                      and not revid == "root:"]
-            if revids:
-                repo_revids = self.get_repo_revids(revids)        
-                for repo in self.repos_sorted_local_first():
-                    
-                    if repo.is_local:
-                        batch_size = local_batch_size
-                    else:
-                        batch_size = remote_batch_size
-                    
-                    revids = [revid for revid in repo_revids[repo.base]\
-                              if revid not in revids_loaded]
-                    if revids:
-                        repo.lock_read()
-                        try:
-                            if not repo.is_local:
-                                self.update_ui()
-                            
-                            for offset in range(0, len(revids), batch_size):
-                                
-                                running_time = clock() - start_time
-                                
-                                if time_before_first_ui_update < running_time:
-                                    if revisions_loaded is not None:
-                                        revisions_loaded(revids_loaded, False)
-                                        revids_loaded = []
-                                    if not showed_throbber:
-                                        self.throbber_show()
-                                        showed_throbber = True
-                                    self.update_ui()
-                                
-                                batch_revids = revids[offset:offset+batch_size]
-                                
-                                if before_batch_load is not None:
-                                    stop = before_batch_load(repo, batch_revids)
-                                    if stop:
-                                        break
-                                
-                                revisions = repo.get_revisions(batch_revids)
-                                for rev in revisions:
-                                    revids_loaded.append(rev.revision_id)
-                                    rev.repository = repo
-                                    self.post_revision_load(rev)
-                        finally:
-                            repo.unlock()
-                
-                if revisions_loaded is not None:
-                    revisions_loaded(revids_loaded, True)
-        finally:
-            if showed_throbber:
-                self.throbber_hide()
+                      *args, **kargs):
+        return load_revisions(revids, self.get_repo_revids,
+                              *args, **kargs)
     
     def post_revision_load(self, revision):
         self.revisions[revision.revision_id] = revision
