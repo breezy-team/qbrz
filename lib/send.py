@@ -20,6 +20,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os
+import re
 from PyQt4 import QtCore, QtGui
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -60,6 +61,10 @@ class SendWindow(SubProcessDialog):
         
         target_branch_label = QtGui.QLabel(gettext("Target Branch:"))
         target_branch_combo = QtGui.QComboBox()
+        submitbranch = branch.get_submit_branch()
+        if submitbranch != None:
+            target_branch_combo.addItem(submitbranch)
+            
         self.target_branch_combo = target_branch_combo
         target_branch_combo.setEditable(True)
         target_hbox.addWidget(target_branch_label)
@@ -170,13 +175,27 @@ class SendWindow(SubProcessDialog):
         target_branch = str(self.target_branch_combo.currentText())
         location = str(self.submit_location_edit.text())
         
+        error = []
+        
         if target_branch == '':
-            pass
-            # error
+            error.append("Please fill in target branch")
         
         if location == '':
-            pass
-            # error
+            error.append("Please fill in target location")
+        else:
+            if self.submit_email_radio.isChecked():
+                if re.match("^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$", location) == None:
+                    error.append("Please enter a valid email address")
+            
+        if len(error) > 0:            
+            msgBox = QtGui.QMessageBox(self)
+            msgBox.setText("There are erros in your request.")
+            msgBox.setInformativeText("\n".join(error))
+            msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
+            msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
+            msgBox.setIcon(QtGui.QMessageBox.Critical)
+            ret = msgBox.exec_()
+            return
             
             
         mylocation =  url_for_display(self.branch.base)    

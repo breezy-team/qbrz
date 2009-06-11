@@ -312,6 +312,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                         lines = lines[:-1] + [last+'\n']
                 return lines
             
+            lines = [fix_last_line(l) for l in lines]
             if have_pygments:
                 use_pygments = True
                 try:
@@ -329,10 +330,10 @@ class SidebySideDiffView(QtGui.QSplitter):
                                                            paths)]
                 except ClassNotFound:
                     use_pygments = False
-                    display_lines = [fix_last_line(l) for l in lines]
+                    display_lines = lines
             else:
                 use_pygments = False
-                display_lines = [fix_last_line(l) for l in lines]
+                display_lines = lines
             
             def insertLine(cursor, line):
                 if use_pygments:

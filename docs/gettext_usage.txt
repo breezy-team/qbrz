@@ -74,6 +74,7 @@ Simple rules:
 
    - use N_() at import time, that is, for global and class definitions
    - use gettext() inside functions
+   - in the tests gettext() always returns original (non-translated) string
 
 Always call gettext() for strings that will appear [verbatim] in GUI forms.
 

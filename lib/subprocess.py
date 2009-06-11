@@ -28,17 +28,24 @@ import tempfile
 from PyQt4 import QtCore, QtGui
 
 from bzrlib import osutils, progress, ui
-from bzrlib.util import bencode
+
+try:
+    # this works with bzr 1.16+
+    from bzrlib import bencode
+except ImportError:
+    # this works with bzr 1.15-
+    from bzrlib.util import bencode
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
-    BTN_OK,
     BTN_CLOSE,
-    QBzrWindow,
+    BTN_OK,
     QBzrDialog,
+    QBzrWindow,
     StandardButton,
+    ensure_unicode,
     )
 
 try:
@@ -421,7 +428,6 @@ class SubProcessWidget(QtGui.QWidget):
             self.process.start(
                 sys.argv[0], ['qsubprocess', args])
         else:
-            print [sys.argv[0], 'qsubprocess', args]
             self.process.start(
                 sys.executable, [sys.argv[0], 'qsubprocess', args])
 
@@ -464,10 +470,13 @@ class SubProcessWidget(QtGui.QWidget):
             self.transportActivity.setText(transport_activity)
     
     def readStdout(self):
-        data = str(self.process.readAllStandardOutput()).decode(self.encoding)
+        # ensure we read from subprocess plain string
+        data = str(self.process.readAllStandardOutput())
+        # we need unicode for all strings except bencoded streams
         for line in data.splitlines():
             if line.startswith("qbzr:PROGRESS:"):
-                progress, transport_activity, messages = bencode.bdecode(line[14:])
+                # but we have to ensure we have unicode after bdecode
+                progress, transport_activity, messages = map(ensure_unicode, bencode.bdecode(line[14:]))
                 self.setProgress(progress, messages, transport_activity)
             elif line.startswith("qbzr:GETPASS:"):
                 prompt = bencode.bdecode(line[13:]).decode('utf-8')
@@ -480,6 +489,7 @@ class SubProcessWidget(QtGui.QWidget):
                 if not ok:
                     self.abort_futher_processes()
             else:
+                line = line.decode(self.encoding)
                 self.logMessage(line)
                 if not self.ui_mode:
                     self.stdout.write(line)
@@ -709,7 +719,6 @@ class SubprocessUIFactory(ui.CLIUIFactory):
         pass
 
     def get_password(self, prompt='', **kwargs):
-        from bzrlib.util import bencode
         prompt = prompt % kwargs
         self.stdout.write('qbzr:GETPASS:' + bencode.bencode(prompt.encode('utf-8')) + '\n')
         self.stdout.flush()

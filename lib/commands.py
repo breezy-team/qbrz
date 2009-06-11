@@ -37,7 +37,6 @@ from bzrlib import (
     osutils,
     progress,
     )
-from bzrlib.util import bencode
 from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
 from bzrlib.workingtree import WorkingTree
@@ -80,7 +79,7 @@ from bzrlib.plugins.qbzr.lib.send import SendWindow
 ''')
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
-from bzrlib.plugins.qbzr.lib.diff import DiffArgProvider
+from bzrlib.plugins.qbzr.lib.diff_arg import DiffArgProvider
 
 class InvalidEncodingOption(errors.BzrError):
 
@@ -618,6 +617,7 @@ class cmd_qbranch(QBzrCommand):
 
 
 class cmd_qinfo(QBzrCommand):
+    """Shows information about the current location."""
 
     takes_options = []
     takes_args = []
@@ -829,9 +829,9 @@ class cmd_qtag(QBzrCommand):
         app.exec_()
 
 
-class cmd_qview(QBzrCommand):
+class cmd_qviewer(QBzrCommand):
     """Simple file viewer."""
-    aliases = ['qviewer']
+    aliases = []
     takes_args = ['filename']
     takes_options = [
         Option('encoding', type=check_encoding,

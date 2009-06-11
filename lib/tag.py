@@ -22,7 +22,6 @@ from PyQt4 import QtCore, QtGui
 from bzrlib.branch import Branch
 from bzrlib import (
     errors,
-    urlutils,
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog

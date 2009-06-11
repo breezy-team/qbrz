@@ -460,8 +460,7 @@ class CommitWindow(SubProcessWindow):
 
     def save_message(self):
         if self.tree.branch.control_files.get_physical_lock_status() or \
-           self.tree.branch.repository.control_files.get_physical_lock_status() or\
-           self.tree.branch.is_locked() or self.tree.branch.repository.is_locked():
+           self.tree.branch.is_locked():
             from bzrlib.trace import warning
             warning("Cannot save commit message because the branch is locked.")
         else:

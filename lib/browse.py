@@ -41,6 +41,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_set_encoding,
     runs_in_loading_queue,
     url_for_display,
+    get_summary,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
@@ -61,6 +62,8 @@ class BrowseWindow(QBzrWindow):
 
     NAME, DATE, AUTHOR, REV, MESSAGE = range(5)     # indices of columns in the window
 
+    FILEID = QtCore.Qt.UserRole + 1
+
     def __init__(self, branch=None, location=None, revision=None,
                  revision_id=None, revision_spec=None, parent=None):
         if branch:
@@ -75,7 +78,8 @@ class BrowseWindow(QBzrWindow):
         self.revision_id = revision_id
         self.revision_spec = revision_spec
         self.revision = revision
-        
+        self.root_file_id = None
+
         QBzrWindow.__init__(self,
             [gettext("Browse"), self.location], parent)
         self.restoreSize("browse", (780, 580))
@@ -157,6 +161,18 @@ class BrowseWindow(QBzrWindow):
         finally:
             self.throbber.hide()
     
+    def get_current_file_id(self):
+        '''Gets the file_id for the currently selected item, or returns
+        the root_file_id if nothing is currently selected.'''
+
+        item = self.file_tree.currentItem()
+        if item == None:
+            file_id = self.root_file_id
+        else:
+            file_id = unicode(item.data(self.NAME, self.FILEID).toString())
+
+        return file_id
+
     def load_file_tree(self, entry, parent_item):
         files, dirs = [], []
         revs = set()
@@ -176,12 +192,16 @@ class BrowseWindow(QBzrWindow):
             item = QtGui.QTreeWidgetItem(parent_item)
             item.setIcon(self.NAME, self.dir_icon)
             item.setText(self.NAME, child.name)
+            item.setData(self.NAME, self.FILEID,
+                                        QtCore.QVariant(child.file_id))
             revs.update(self.load_file_tree(child, item))
             self.items.append((item, child.revision))
         for child in files:
             item = QtGui.QTreeWidgetItem(parent_item)
             item.setIcon(self.NAME, self.file_icon)
             item.setText(self.NAME, child.name)
+            item.setData(self.NAME, self.FILEID,
+                                        QtCore.QVariant(child.file_id))
             self.items.append((item, child.revision))
         return revs
 
@@ -219,12 +239,11 @@ class BrowseWindow(QBzrWindow):
     @ui_current_widget
     def show_file_log(self):
         """Show qlog for one selected file."""
-        path = self.get_current_path()
-
         branch = self.branch
-        file_id = branch.basis_tree().path2id(path)
+        
+        file_id = self.get_current_file_id()
 
-        window = LogWindow(None, branch, [file_id])
+        window = LogWindow(None, branch, file_id)
         window.show()
         self.windows.append(window)
     
@@ -235,7 +254,7 @@ class BrowseWindow(QBzrWindow):
 
         branch = self.branch
         tree = self.branch.repository.revision_tree(self.revision_id)
-        file_id = tree.path2id(path)
+        file_id = self.get_current_file_id()
         window = AnnotateWindow(branch, tree, path, file_id)
         window.show()
         self.windows.append(window)
@@ -287,7 +306,7 @@ class BrowseWindow(QBzrWindow):
             item.setText(self.DATE, format_timestamp(rev.timestamp))
             author = rev.properties.get('author', rev.committer)
             item.setText(self.AUTHOR, extract_name(author))
-            item.setText(self.MESSAGE, rev.get_summary())
+            item.setText(self.MESSAGE, get_summary(rev))
 
     @ui_current_widget
     def reload_tree(self):

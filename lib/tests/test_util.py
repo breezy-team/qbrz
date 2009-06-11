@@ -133,3 +133,34 @@ class TestUtil(TestCase):
         self.assertEquals(False, util.is_binary_content(['foo\n', 'bar\r\n', 'spam\r']))
         self.assertEquals(True, util.is_binary_content(['\x00']))
         self.assertEquals(True, util.is_binary_content(['a'*2048 + '\x00']))
+
+    def test_get_summary(self):
+        import bzrlib.revision
+        
+        r = bzrlib.revision.Revision('1')
+
+        r.message = None
+        self.assertEquals('(no message)', util.get_summary(r))
+
+        r.message = ''
+        self.assertEquals('(no message)', util.get_summary(r))
+
+        r.message = 'message'
+        self.assertEquals('message', util.get_summary(r))
+
+    def test_get_message(self):
+        import bzrlib.revision
+        
+        r = bzrlib.revision.Revision('1')
+
+        r.message = None
+        self.assertEquals('(no message)', util.get_message(r))
+
+        r.message = 'message'
+        self.assertEquals('message', util.get_message(r))
+
+    def test_ensure_unicode(self):
+        self.assertEqual(u'foo', util.ensure_unicode('foo'))
+        self.assertEqual(u'foo', util.ensure_unicode(u'foo'))
+        self.assertEqual(u'\u1234', util.ensure_unicode(u'\u1234'))
+        self.assertEqual(1, util.ensure_unicode(1))

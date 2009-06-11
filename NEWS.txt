@@ -1,5 +1,19 @@
-0.10.0 - in development 
+0.11.0 - in development
 -----------------------
+ * qbrowse:
+    * Fix problem with opening the log for file/directory. (#383192)
+ * qinfo:
+    * Add a basic help string (#384632)
+ * qview command renamed to qviewer (previously qviewer was alias for qview)
+   to avoid confusion with bzr views feature. (#385225)
+
+
+0.10.0 - 2009-06-02
+-----------------------
+Maintenance release: log widget with revisions graph used in qannotate, 
+and qcommit (to show pending merges); you can search for tags and bugs
+in qlog; improvements to show qlog for multiple files or for dir content;
+more context menus; various bugfixes.
 
  * qlog:
     * Added search for tags and bugs.
@@ -15,23 +29,25 @@
     * When running qlog DIR, revisions that change the children of the directory
       are also displayed. This only works if you are using bzr 1.14.
       (Bug #314528)
-    * When running qlog FILE, the file list is not shown. When runing
-      qlog FILE1 FILE2 or qlog DIR, only changes to the specified files are
-      displayed in the file changes list, and when launching diff.
+    * When runing qlog FILE1 FILE2 or qlog DIR, changes to the specified files are
+      displayed in bold. By default diff will show changes only to selected
+      items. Full diff could be invoked via context menu.
+    * Add context menu to file list.
  * qannotate:
     * Use the log widget to display the revision list with a folding graph. The
       graph can be disabled by using the --no-graph command line argument.
       (Bug #328595)
     * Fixed a bug where qannotate crashes if you scroll to the bottom of the
       file and the file's last line is blank. (Bug #340956)
+    * Add option to the log context menu to select a revision to annotate.
  * qcommit:
     * Use the log widget to display the pending merges list with a folding
       graph. (Bug #328592)
  * qdiff:
     * Fixed a bug with the error reporting when launching external diffs.
- * qpull/qpush/qmerge: If there is no default saved location then set focus on
-                       URL combobox
- 
+ * qpull/qpush/qmerge: 
+    * If there is no default saved location then set focus on URL combobox
+
 
 0.9.9 - 2009-03-28 
 ---------------------- 

@@ -29,6 +29,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     BackgroundJob,
     get_apparent_author,
     runs_in_loading_queue,
+    get_summary,
     )
 
 TagsRole = QtCore.Qt.UserRole + 1
@@ -261,7 +262,7 @@ class LogModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.DisplayRole and index.column() == COL_AUTHOR:
             return QtCore.QVariant(extract_name(get_apparent_author(revision)))
         if role == QtCore.Qt.DisplayRole and index.column() == COL_MESSAGE:
-            return QtCore.QVariant(revision.get_summary())
+            return QtCore.QVariant(get_summary(revision))
         if role == BugIdsRole:
             bugtext = gettext("bug #%s")
             bugs = []

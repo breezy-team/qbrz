@@ -68,8 +68,32 @@ class LogWindow(QBzrWindow):
     FilterTagRole = QtCore.Qt.UserRole + 105
     FilterBugRole = QtCore.Qt.UserRole + 106
 
-    def __init__(self, locations, branch, specific_fileids, parent=None,
-                 ui_mode=True, no_graph=False):        
+    def __init__(self, locations, branch, specific_fileid=None, parent=None,
+                 ui_mode=True, no_graph=False):
+        """Create qlog window.
+
+        Note: you must use either locations or branch+specific_fileid
+        arguments, but not both.
+
+        @param  locations:  list of locations to show log
+            (either list of URL/paths for several branches,
+            or list of filenames from one branch).
+            This list used when branch argument is None.
+
+        @param  branch: branch object to show the log.
+            Could be None, in this case locations list will be used
+            to open branch(es).
+
+        @param  specific_fileid:    file id from the branch to filter
+            the log.
+
+        @param  parent: parent widget.
+
+        @param  ui_mode:    for compatibility with TortoiseBzr.
+
+        @param  no_graph:   don't show the graph of revisions (make sense
+            for `bzr qlog FILE` to force plain log a-la `bzr log`).
+        """
         self.title = [gettext("Log")]
         QBzrWindow.__init__(self, self.title, parent, ui_mode=ui_mode)
         self.restoreSize("log", (710, 580))
@@ -77,14 +101,14 @@ class LogWindow(QBzrWindow):
         if branch:
             self.branch = branch
             self.locations = (branch,)
-            self.specific_fileids = specific_fileids
-            assert locations is None, "can't specify both branch and loc"
+            self.specific_fileid = specific_fileid
+            assert locations is None, "can't specify both branch and locations"
         else:
             self.branch = None
             self.locations = locations
             if self.locations is None:
                 self.locations = ["."]
-            assert specific_fileids is None, "this is ignored if no branch"
+            assert specific_fileid is None, "specific_fileid is ignored if branch is None"
         
         self.branches = None
         self.replace = {}
@@ -238,8 +262,7 @@ class LogWindow(QBzrWindow):
         self.processEvents()
         try:
             if self.branch:
-                self.log_list.load_branch(self.branch,
-                                                self.specific_fileids)
+                self.log_list.load_branch(self.branch, self.specific_fileid)
             else:
                 self.log_list.load_locations(self.locations)
             
