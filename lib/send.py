@@ -144,7 +144,7 @@ class SendWindow(SubProcessDialog):
 
         self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
         self.splitter.addWidget(groupbox)
-        #self.splitter.addWidget(self.make_default_status_box())
+        self.splitter.addWidget(self.make_default_status_box())
         
         self.splitter.setStretchFactor(0, 10)
         self.restoreSplitterSizes([150, 150])
@@ -167,11 +167,6 @@ class SendWindow(SubProcessDialog):
         self.submit_location_edit.setText(fileName)
         
     def start(self):        
-        
-        
-        
-     
-     
         target_branch = str(self.target_branch_combo.currentText())
         location = str(self.submit_location_edit.text())
         
