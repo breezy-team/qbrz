@@ -1,4 +1,4 @@
-0.11.0 - in development
+0.11.0 - 2009-06-11
 -----------------------
 Maintenance release: compatibility with bzr 1.16 (bencode releated changes),
 improved performance of qlog, more fixes for side-by-side qdiff, a dozen of
