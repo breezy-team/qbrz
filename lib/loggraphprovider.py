@@ -44,7 +44,6 @@ try:
 except ImportError:
     have_search = False
 
-
 class LogGraphProvider(object):
     """Loads and computes revision and graph data for GUI log widgets."""
 
@@ -1525,18 +1524,6 @@ class LogGraphProvider(object):
                       *args, **kargs):
         return load_revisions(revids, self.get_repo_revids,
                               *args, **kargs)
-    
-    def post_revision_load(self, revision):
-        self.revisions[revision.revision_id] = revision
-        if revision.revision_id in self.revid_msri:
-            revno_sequence = self.merge_sorted_revisions[self.revid_msri[revision.revision_id]][3]
-            revision.revno = ".".join(["%d" % (revno)
-                                      for revno in revno_sequence])
-        else:
-            revision.revno = ""
-        revision.tags = sorted(self.tags.get(revision.revision_id, []))
-        revision.child_ids = self.graph_children.get(revision.revision_id, [])
-        revision.branch = self.get_revid_branch(revision.revision_id)
     
     def revisions_filter_changed(self):
         pass

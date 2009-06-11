@@ -287,10 +287,9 @@ class AnnotateWindow(QBzrWindow):
     
     def revisions_loaded(self, revisions, last_call):
         self.log_list.model.on_revisions_loaded(revisions, last_call)
-        for revid in revisions:
-            rev = self.log_list.graph_provider.revision(revid)
+        for rev in revisions.itervalues():
             author_name = get_apparent_author_name(rev)
-            for item in self.rev_top_items[revid]:
+            for item in self.rev_top_items[rev.revision_id]:
                 item.setText(1, author_name)
             
             if self.now < rev.timestamp:
@@ -302,7 +301,7 @@ class AnnotateWindow(QBzrWindow):
             hue =  1-float(abs(hash(author_name))) / sys.maxint 
             color = QtGui.QColor.fromHsvF(hue, saturation, 1 )
             
-            for item in self.rev_items[revid]:
+            for item in self.rev_items[rev.revision_id]:
                 item.setBackground(3, color)
     
     def setRevisionByLine(self):
@@ -316,6 +315,7 @@ class AnnotateWindow(QBzrWindow):
             index = self.log_list.filter_proxy_model.mapFromSource(index)
             self.log_list.setCurrentIndex(index)
 
+    # XXX this method should be common with the same method in log.py
     def update_selection(self, selected, deselected):
         indexes = [index for index in self.log_list.selectedIndexes()
                    if index.column()==0]
@@ -324,7 +324,16 @@ class AnnotateWindow(QBzrWindow):
         else:
             index = indexes[0]
             revid = str(index.data(RevIdRole).toString())
-            rev = self.log_list.graph_provider.revision(revid, force_load=True)
+            gp = self.log_list.graph_provider
+            rev  = gp.load_revisions([revid], pass_prev_loaded_rev = True)[revid]
+            if not hasattr(rev, "revno"):
+                if rev.revision_id in gp.revid_msri:
+                    revno_sequence = gp.merge_sorted_revisions[\
+                                        gp.revid_msri[rev.revision_id]][3]
+                    rev.revno = ".".join(["%d" % (revno)
+                                              for revno in revno_sequence])
+                else:
+                    rev.revno = ""
             self.message_doc.setHtml(format_revision_html(rev,
                                                           show_timestamp=True))
 
