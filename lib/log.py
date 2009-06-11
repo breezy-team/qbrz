@@ -23,11 +23,9 @@ from bzrlib import osutils
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.plugins.qbzr.lib.diff import (
-    show_diff,
     has_ext_diff,
     ExtDiffMenu,
     DiffButtons,
-    InternalDiffArgProvider,
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
@@ -37,7 +35,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     ThrobberWidget,
     StandardButton,
     format_revision_html,
-    format_timestamp,
     open_browser,
     RevisionMessageBrowser,
     url_for_display,

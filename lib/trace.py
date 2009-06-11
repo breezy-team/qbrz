@@ -25,7 +25,7 @@ from PyQt4 import QtCore, QtGui
 
 from bzrlib import errors
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
+from bzrlib.plugins.qbzr.lib.i18n import gettext
 
 class StopException(Exception):
     """A exception that is ignored in our error reporting, which can be used

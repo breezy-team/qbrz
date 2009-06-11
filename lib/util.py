@@ -42,8 +42,6 @@ from bzrlib.util.configobj import configobj
 from bzrlib.plugins.qbzr.lib import trace
 from bzrlib.plugins.qbzr.lib import i18n
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
-import bzrlib.plugins.qbzr.lib.resources
-
 
 _email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)', re.IGNORECASE)
 _link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])', re.IGNORECASE)

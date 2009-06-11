@@ -21,23 +21,17 @@
 # that examines the tree being updated and displays one of 2 dialogs
 # depending on if the tree is bound (ie, a checkout) or not.
 
-import sys
-import os
 from PyQt4 import QtCore, QtGui
-from bzrlib import errors
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_update_branch import Ui_UpdateBranchForm
 from bzrlib.plugins.qbzr.lib.ui_update_checkout import Ui_UpdateCheckoutForm
 from bzrlib.plugins.qbzr.lib.util import (
-    iter_branch_related_locations,
     iter_saved_pull_locations,
     save_pull_location,
     fill_combo_with,
     fill_pull_combo,
     hookup_directory_picker,
     DIRECTORYPICKER_SOURCE,
-    DIRECTORYPICKER_TARGET,
     url_for_display,
     )
 

@@ -26,7 +26,6 @@ from bzrlib.plugins.qbzr.lib.ui_init import Ui_InitForm
 
 from bzrlib.plugins.qbzr.lib.util import (
     hookup_directory_picker,
-    DIRECTORYPICKER_SOURCE,
     DIRECTORYPICKER_TARGET,
     )
 

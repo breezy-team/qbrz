@@ -37,7 +37,7 @@ except ImportError:
     from bzrlib.util import bencode
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
+from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     BTN_CLOSE,

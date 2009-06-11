@@ -22,7 +22,7 @@ import os
 import sys
 from bzrlib import errors, ui
 from bzrlib.option import Option
-from bzrlib.commands import Command, register_command, get_cmd_object
+from bzrlib.commands import Command
 import bzrlib.builtins
 
 from bzrlib.lazy_import import lazy_import
@@ -35,7 +35,6 @@ from bzrlib import (
     builtins,
     commands,
     osutils,
-    progress,
     )
 from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
@@ -71,14 +70,13 @@ from bzrlib.plugins.qbzr.lib.subprocess import SubprocessUIFactory
 from bzrlib.plugins.qbzr.lib.tag import TagWindow
 from bzrlib.plugins.qbzr.lib.util import (
     FilterOptions,
-    get_set_encoding,
     is_valid_encoding,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import QUIFactory
 ''')
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
-from bzrlib.plugins.qbzr.lib.diff import DiffArgProvider
+from bzrlib.plugins.qbzr.lib.diff_arg import DiffArgProvider
 
 class InvalidEncodingOption(errors.BzrError):
 
@@ -348,7 +346,6 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
     aliases = ['qdi']
 
     def get_diff_window_args(self, processEvents):
-        from bzrlib.builtins import internal_tree_files
         from bzrlib.diff import _get_trees_to_diff
 
         old_tree, new_tree, specific_files, extra_trees = \

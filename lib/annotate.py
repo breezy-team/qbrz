@@ -21,16 +21,14 @@
 # TODO:
 #  - better annotate algorithm on packs
 
-import operator, sys, time
+import sys, time
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib.diff import show_diff, InternalDiffArgProvider
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     ThrobberWidget,
     format_revision_html,
-    format_timestamp,
     get_apparent_author_name,
     get_set_encoding,
     open_browser,
@@ -42,9 +40,8 @@ from bzrlib.plugins.qbzr.lib.util import (
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
-from bzrlib.plugins.qbzr.lib.logmodel import COL_DATE, COL_AUTHOR, RevIdRole
+from bzrlib.plugins.qbzr.lib.logmodel import COL_DATE, RevIdRole
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
-                                                         cached_revisions)
 from bzrlib.revisiontree import RevisionTree
 
 have_pygments = True

@@ -17,33 +17,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import os.path
-import re
-import sys
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import (
-    bugtracker,
-    errors,
-    osutils,
-    )
-from bzrlib.errors import BzrError, NoSuchRevision
-from bzrlib.option import Option
-from bzrlib.commands import Command, register_command
-from bzrlib.commit import ReportCommitToLog
-from bzrlib.workingtree import WorkingTree
-
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_branch import Ui_BranchForm
 from bzrlib.plugins.qbzr.lib.ui_pull import Ui_PullForm
 from bzrlib.plugins.qbzr.lib.ui_push import Ui_PushForm
 from bzrlib.plugins.qbzr.lib.ui_merge import Ui_MergeForm
 from bzrlib.plugins.qbzr.lib.util import (
-    BTN_CANCEL,
-    BTN_OK,
-    QBzrWindow,
-    StandardButton,
     iter_branch_related_locations,
     iter_saved_pull_locations,
     save_pull_location,
