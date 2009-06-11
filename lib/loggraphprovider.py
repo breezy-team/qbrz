@@ -45,7 +45,20 @@ except ImportError:
 
 class LogGraphProvider(object):
     """Loads and computes revision and graph data for GUI log widgets."""
-
+    
+    # Most list/dicts related to revisions are unfiltered. When we do a graph
+    # layout, we filter these revisions. A revision may be filter out because:
+    # * It's branch is hidden (or colapsed).
+    # * We have a sepcified file_id(s), and the revision does not touch the
+    #   file_id(s).
+    # * We have a search, and the revision does not match the search.
+    #
+    # The main list of unfiltered revisions is merge_sorted_revisions. A
+    # revisions index in merge_sorted_revisions are normaly called msri
+    # (merge_sorted_revisions_index). The main list of filtered revisions
+    # is graph_line_data. Revision indexes in this list are called just index.
+    # To get a index from a msir, use msri_index.
+    
     def __init__(self, no_graph):
         
         self.no_graph = no_graph
