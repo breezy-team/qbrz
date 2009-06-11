@@ -19,8 +19,6 @@
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import urlutils
-
 from bzrlib.plugins.qbzr.lib.diff_arg import *   # import DiffArgProvider classes
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog

@@ -90,6 +90,8 @@ class InternalDiffArgProvider(DiffArgProvider):
         return "-r revid:%s..revid:%s" % (self.old_revid, self.new_revid)
     
     def get_ext_diff_args(self, processEvents):
+        from bzrlib import urlutils
+
         args = []
         args.append(self.get_revspec())
         
