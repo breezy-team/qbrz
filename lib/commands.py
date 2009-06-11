@@ -78,7 +78,7 @@ from bzrlib.plugins.qbzr.lib.uifactory import QUIFactory
 ''')
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
-from bzrlib.plugins.qbzr.lib.diff import DiffArgProvider
+from bzrlib.plugins.qbzr.lib.diff_arg import DiffArgProvider
 
 class InvalidEncodingOption(errors.BzrError):
 
