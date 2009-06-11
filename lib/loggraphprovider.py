@@ -17,7 +17,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import sys
 import re
 from time import clock
 
@@ -32,7 +31,6 @@ except ImportError:
                     _StackedParentsProvider as StackedParentsProvider)
     
 from bzrlib.bzrdir import BzrDir
-from bzrlib.branch import Branch
 from bzrlib.inventory import Inventory
 
 have_search = True

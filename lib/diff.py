@@ -24,7 +24,6 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import ( 
     QBzrGlobalConfig,
-    runs_in_loading_queue,
     )
 
 

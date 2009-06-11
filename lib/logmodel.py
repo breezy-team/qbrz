@@ -18,15 +18,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from time import (strftime, localtime, clock)
+from time import (strftime, localtime)
 
-from bzrlib import (lazy_regex, errors)
+from bzrlib import lazy_regex
 from bzrlib.revision import NULL_REVISION
 from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
-    BackgroundJob,
     get_apparent_author,
     runs_in_loading_queue,
     get_summary,

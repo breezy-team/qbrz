@@ -18,7 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os
-import sys
 from PyQt4 import QtCore, QtGui
 
 from bzrlib import errors, osutils

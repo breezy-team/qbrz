@@ -24,10 +24,7 @@ context menu."""
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.errors import BzrError
-from bzrlib import (
-    osutils,
-    )
+from bzrlib import osutils
 
 from bzrlib.plugins.qbzr.lib.diff import (
     show_diff,

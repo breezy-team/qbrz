@@ -23,7 +23,6 @@ import re
 from bzrlib import timestamp
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.util import htmlencode
 from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     format_timestamp,
