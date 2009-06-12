@@ -134,7 +134,7 @@ class PendingMergesList(LogList):
         self.graph_provider.lock_read_branches()
         try:
             self.graph_provider.load_tags()
-            self.model.load_graph_pending_merges()
+            self.log_model.load_graph_pending_merges()
         finally:
             self.graph_provider.unlock_branches()
 
