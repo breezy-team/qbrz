@@ -328,11 +328,7 @@ class AnnotateWindow(QBzrWindow):
         self.set_title_and_icon([gettext("Annotate"), self.path])
 
     def get_revno(self, revid):
-        if revid not in self.log_list.graph_provider.revid_msri:
-            return None
-        msri = self.log_list.graph_provider.revid_msri[revid]
-        revno_sequence = self.log_list.graph_provider.merge_sorted_revisions[msri][3]
-        return ".".join(["%d" % (revno) for revno in revno_sequence])
+        return self.log_list.graph_provider.revno_from_revid(revid)
     
     def annotate(self, tree, fileId, path):
         self.rev_indexes = {}
@@ -452,7 +448,7 @@ class AnnotateWindow(QBzrWindow):
             index = indexes[0]
             revid = str(index.data(RevIdRole).toString())
             gp = self.log_list.graph_provider
-            rev  = gp.load_revisions([revid], pass_prev_loaded_rev = True)[revid]
+            rev  = gp.load_revisions([revid])[revid]
             if not hasattr(rev, "revno"):
                 if rev.revision_id in gp.revid_msri:
                     revno_sequence = gp.merge_sorted_revisions[\

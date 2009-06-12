@@ -1421,7 +1421,14 @@ class LogGraphProvider(object):
             return None
         msri = self.revno_msri[revno]
         return self.merge_sorted_revisions[msri][1]
-        
+    
+    def revno_from_revid(self, revid):
+        if revid not in self.revid_msri:
+            return None
+        msri = self.revid_msri[revid]
+        revno_sequence = self.merge_sorted_revisions[msri][3]
+        return ".".join(["%d" % (revno) for revno in revno_sequence])    
+    
     def find_child_branch_merge_revision(self, revid):
         msri = self.revid_msri[revid]
         merged_by_msri = self.merge_info[msri][1]
