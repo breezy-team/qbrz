@@ -41,6 +41,9 @@ from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.plugins.qbzr.lib.logmodel import COL_DATE, RevIdRole
+from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
+                                                         cached_revisions)
+from bzrlib.plugins.qbzr.lib.revtreeview import RevisionTreeView
 from bzrlib.revisiontree import RevisionTree
 
 have_pygments = True
@@ -78,6 +81,116 @@ class FormatedCodeItemDelegate(QtGui.QItemDelegate):
             textPoint.setX(textPoint.x() + QtGui.QFontMetrics(painter.font()).width(text))
             painter.restore()
 
+class AnnotateModel(QtCore.QAbstractTableModel):
+
+    LINE_NO, AUTHOR, REVNO, TEXT = range(4)
+    REVID = QtCore.Qt.UserRole + 1
+    
+    def __init__(self, get_revno, font, parent=None):
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        
+        self.horizontalHeaderLabels = [gettext("Line"),
+                                       gettext("Author"),
+                                       gettext("Rev"),
+                                       "",
+                                       ]
+        
+        self.get_revno = get_revno
+        self.font = font
+        self.annotate = []
+        self.revid_indexes = {}
+    
+    def set_annotate(self, annotate, revid_indexes):
+        try:
+            self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+            self.annotate = annotate
+            self.revid_indexes = revid_indexes
+            self.now = time.time()
+        finally:
+            self.emit(QtCore.SIGNAL("layoutChanged()"))
+    
+    def columnCount(self, parent):
+        if parent.isValid():
+            return 0
+        return len(self.horizontalHeaderLabels)
+
+    def rowCount(self, parent):
+        if parent.isValid():
+            return 0
+        return len(self.annotate)
+    
+    def data(self, index, role):
+        if not index.isValid():
+            return QtCore.QVariant()
+        
+        revid, text, is_top = self.annotate[index.row()]
+        
+        if role == self.REVID:
+            return QtCore.QVariant(revid)
+        
+        if revid in cached_revisions:
+            rev = cached_revisions[revid]
+        else:
+            rev = None
+
+        column = index.column()
+        if column == self.LINE_NO:
+            if role == QtCore.Qt.DisplayRole:
+                return QtCore.QVariant(index.row() + 1)
+            if role == QtCore.Qt.TextAlignmentRole:
+                return QtCore.QVariant(QtCore.Qt.AlignRight)
+        
+        if column == self.AUTHOR:
+            if role == QtCore.Qt.DisplayRole:
+                if is_top and rev:
+                    return QtCore.QVariant(get_apparent_author_name(rev))
+        
+        if column == self.REVNO:
+            if role == QtCore.Qt.DisplayRole:
+                if is_top:
+                    return QtCore.QVariant(self.get_revno(revid))
+            if role == QtCore.Qt.TextAlignmentRole:
+                return QtCore.QVariant(QtCore.Qt.AlignRight)
+
+        if column == self.TEXT:
+            if role == QtCore.Qt.DisplayRole:
+                return QtCore.QVariant(text)
+            if role == QtCore.Qt.FontRole:
+                return QtCore.QVariant(self.font)
+        
+        if column == self.TEXT and role == QtCore.Qt.BackgroundRole and rev:
+            if self.now < rev.timestamp:
+                days = 0
+            else:
+                days = (self.now - rev.timestamp) / (24 * 60 * 60)
+            
+            saturation = 0.5/((days/50) + 1)
+            hue =  1-float(abs(hash(get_apparent_author_name(rev)))) / sys.maxint 
+            return QtCore.QVariant(QtGui.QColor.fromHsvF(hue, saturation, 1 ))
+        
+        return QtCore.QVariant()
+    
+    def get_revid(self, row):
+        return self.annotate[row][0]
+
+    def flags(self, index):
+        if not index.isValid():
+            return QtCore.Qt.ItemIsEnabled
+
+        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+            return QtCore.QVariant(self.horizontalHeaderLabels[section])
+        return QtCore.QVariant()
+    
+    def on_revisions_loaded(self, revisions, last_call):
+        for revid in revisions.iterkeys():
+            for row in self.revid_indexes[revid]:
+                self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                          self.createIndex (row, 0, QtCore.QModelIndex()),
+                          self.createIndex (row, 4, QtCore.QModelIndex()))
+
 
 class AnnotateWindow(QBzrWindow):
 
@@ -100,15 +213,36 @@ class AnnotateWindow(QBzrWindow):
 
         self.throbber = ThrobberWidget(self)
         
-        self.browser = QtGui.QTreeWidget()
-        self.browser.setRootIsDecorated(False)
-        self.browser.setUniformRowHeights(True)
-        self.browser.setHeaderLabels([gettext("Line"), gettext("Author"), gettext("Rev"), ""])
-        self.browser.header().setStretchLastSection(False)
-        self.browser.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
-        # We don't connect the browser's signals up yet, to avoid errors if
-        # the user clicks while loading - we hook them after initial load.
+        
+        self.browser = RevisionTreeView()
 
+        font = QtGui.QFont("Courier New,courier",
+                           self.browser.font().pointSize())
+        self.model = AnnotateModel(self.get_revno, font)
+        self.browser.setModel(self.model)
+        self.browser.throbber = self.throbber
+        self.browser.set_rev_tree_model(self.model)
+        self.browser.get_repo = self.browser_get_repo
+        self.browser.on_revisions_loaded = self.browser_on_revisions_loaded
+
+        self.browser.setRootIsDecorated(False)
+        header = self.browser.header()
+        fm = self.fontMetrics()
+        # XXX Make this dynamic.
+        col_margin = 6
+        header.resizeSection(self.model.LINE_NO,
+                             fm.width("8888") + col_margin)
+        header.resizeSection(self.model.AUTHOR,
+                             fm.width("Joe I have a Long Name") + col_margin)
+        header.resizeSection(self.model.REVNO,
+                             fm.width("8888.8.888") + col_margin)
+
+        self.browser.setUniformRowHeights(True)
+        self.connect(self.browser.selectionModel(),
+                     QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
+                     self.setRevisionByLine)
+
+        
         self.message_doc = QtGui.QTextDocument()
         message = RevisionMessageBrowser()
         message.setDocument(self.message_doc)
@@ -122,6 +256,7 @@ class AnnotateWindow(QBzrWindow):
         self.log_list.context_menu.addAction(
             gettext("&Annotate this revision."),
             self.set_annotate_revision)
+        self.log_branch_loaded = False
         
         self.connect(self.log_list.selectionModel(),
                      QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
@@ -173,83 +308,82 @@ class AnnotateWindow(QBzrWindow):
                 def do_nothing():
                     pass
                 
-                self.log_list.graph_provider.load_filter_file_id = do_nothing
-                
-                self.log_list.load_branch(self.branch, self.fileId)
+                self.log_list.graph_provider.load_filter_file_id = do_nothing                
                 self.set_annotate_title()
-                self.processEvents()
                 self.annotate(self.tree, self.fileId, self.path)
             finally:
                 self.branch.unlock()
         finally:
             self.throbber.hide()
-
-        # and once we are loaded we can hookup the signal handlers.
-        # (our code currently can't handle items being clicked on until
-        # the load is complete)
-        self.connect(self.browser,
-            QtCore.SIGNAL("itemSelectionChanged()"),
-            self.setRevisionByLine)
     
     def set_annotate_title(self):
         # and update the title to show we are done.
         if isinstance(self.tree, RevisionTree):
             revno = self.get_revno(self.tree.get_revision_id())
-            self.set_title_and_icon([gettext("Annotate"), self.path,
-                                     gettext("Revision %s") % revno])
-        else:
-            self.set_title_and_icon([gettext("Annotate"), self.path])
+            if revno:
+                self.set_title_and_icon([gettext("Annotate"), self.path,
+                                         gettext("Revision %s") % revno])
+                return
+        
+        self.set_title_and_icon([gettext("Annotate"), self.path])
 
     def get_revno(self, revid):
+        if revid not in self.log_list.graph_provider.revid_msri:
+            return None
         msri = self.log_list.graph_provider.revid_msri[revid]
         revno_sequence = self.log_list.graph_provider.merge_sorted_revisions[msri][3]
         return ".".join(["%d" % (revno) for revno in revno_sequence])
     
     def annotate(self, tree, fileId, path):
-        font = QtGui.QFont("Courier New,courier", self.browser.font().pointSize())
-        items = []
-        self.rev_items = {}
-        self.rev_top_items = {}
+        self.rev_indexes = {}
         last_revid = None
         encoding = get_set_encoding(self.encoding, self.branch)
         lines = []
-        for i, (revid, text) in enumerate(tree.annotate_iter(fileId)):
+        annotate = []
+        text_max_len = 0
+        self.processEvents()
+        for revid, text in tree.annotate_iter(fileId):
             text = text.decode(encoding, 'replace')
+            
             lines.append(text)
-            item = QtGui.QTreeWidgetItem()
-            item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(revid))
-            item.setText(0, QtCore.QString.number(i + 1))
             
-            if revid not in self.rev_items:
-                self.rev_items[revid]=[]
-            self.rev_items[revid].append(item)
-
-            if last_revid != revid:
-                if revid not in self.rev_top_items:
-                    self.rev_top_items[revid]=[]
-                self.rev_top_items[revid].append(item)
-                item.setText(2, self.get_revno(revid))
-                item.setTextAlignment(2, QtCore.Qt.AlignRight)
+            text = text.rstrip()
+            text_max_len = max(len(text), text_max_len)
+            if revid not in self.rev_indexes:
+                self.rev_indexes[revid]=[]
+            self.rev_indexes[revid].append(len(annotate))
             
-            item.setText(3, text.rstrip())
-            item.setFont(3, font)
-            items.append(item)
+            is_top = last_revid != revid
             last_revid = revid
-            self.processEvents()
-
-        self.now = time.time()
-        self.log_list.graph_provider.load_revisions(
-            self.rev_items.keys(),
-            revisions_loaded = self.revisions_loaded,
-            pass_prev_loaded_rev = True
-            )
+            
+            annotate.append((revid, text, is_top))
+            if len(annotate) % 100 == 0:
+                self.processEvents()
         
+        header = self.browser.header()
+        fm = self.fontMetrics()
+        # XXX Make this dynamic.
+        col_margin = 6
+        line_no_max_digts = len("%d"%len(annotate))
+        if line_no_max_digts>4:
+            header.resizeSection(self.model.LINE_NO,
+                            fm.width("8"*line_no_max_digts) + col_margin)
+        header.setStretchLastSection(False)
+        header.resizeSection(self.model.TEXT,
+                        fm.width("8"*text_max_len) + col_margin)
+        
+        self.model.set_annotate(annotate, self.rev_indexes)
+        self.processEvents()
+
+        if not self.log_branch_loaded:
+            self.log_branch_loaded = True
+            self.log_list.load_branch(self.branch, self.fileId)
         
         self.log_list.graph_provider.filter_file_id = [False for i in 
             xrange(len(self.log_list.graph_provider.merge_sorted_revisions))]
         
         changed_msris = []
-        for revid in self.rev_items.keys():
+        for revid in self.rev_indexes.keys():
             msri = self.log_list.graph_provider.revid_msri[revid]
             self.log_list.graph_provider.filter_file_id[msri] = True
             changed_msris.append(msri)
@@ -262,13 +396,8 @@ class AnnotateWindow(QBzrWindow):
         self.log_list.graph_provider.invaladate_filter_cache_revs(
                                                 changed_msris, last_call=True)
         
-        
-        # take care to insert the items after we are done fiddling with
-        # them, else performance suffers drastically.
-        self.browser.insertTopLevelItems(0, items)
         self.processEvents()
         
-        self.lines = None
         if have_pygments:
             try:
                 # A more correct way to do this would be to add the tokens as
@@ -285,10 +414,9 @@ class AnnotateWindow(QBzrWindow):
     
     def revisions_loaded(self, revisions, last_call):
         self.log_list.model.on_revisions_loaded(revisions, last_call)
-        for revid in revisions:
-            rev = self.log_list.graph_provider.revision(revid)
+        for rev in revisions.itervalues():
             author_name = get_apparent_author_name(rev)
-            for item in self.rev_top_items[revid]:
+            for item in self.rev_top_items[rev.revision_id]:
                 item.setText(1, author_name)
             
             if self.now < rev.timestamp:
@@ -300,20 +428,21 @@ class AnnotateWindow(QBzrWindow):
             hue =  1-float(abs(hash(author_name))) / sys.maxint 
             color = QtGui.QColor.fromHsvF(hue, saturation, 1 )
             
-            for item in self.rev_items[revid]:
+            for item in self.rev_indexes[rev.revision_id]:
                 item.setBackground(3, color)
     
-    def setRevisionByLine(self):
-        items = self.browser.selectedItems()
-        if not items:
+    def setRevisionByLine(self, selected, deselected):
+        indexes = self.browser.selectedIndexes()
+        if not indexes:
             return
-        rev_id = str(items[0].data(0, QtCore.Qt.UserRole).toString())
+        rev_id = str(indexes[0].data(self.model.REVID).toString())
         if self.log_list.graph_provider.has_rev_id(rev_id):
-            self.log_list.model.ensure_rev_visible(rev_id)
-            index = self.log_list.model.indexFromRevId(rev_id)
+            self.log_list.log_model.ensure_rev_visible(rev_id)
+            index = self.log_list.log_model.indexFromRevId(rev_id)
             index = self.log_list.filter_proxy_model.mapFromSource(index)
             self.log_list.setCurrentIndex(index)
 
+    # XXX this method should be common with the same method in log.py
     def update_selection(self, selected, deselected):
         indexes = [index for index in self.log_list.selectedIndexes()
                    if index.column()==0]
@@ -322,7 +451,16 @@ class AnnotateWindow(QBzrWindow):
         else:
             index = indexes[0]
             revid = str(index.data(RevIdRole).toString())
-            rev = self.log_list.graph_provider.revision(revid, force_load=True)
+            gp = self.log_list.graph_provider
+            rev  = gp.load_revisions([revid], pass_prev_loaded_rev = True)[revid]
+            if not hasattr(rev, "revno"):
+                if rev.revision_id in gp.revid_msri:
+                    revno_sequence = gp.merge_sorted_revisions[\
+                                        gp.revid_msri[rev.revision_id]][3]
+                    rev.revno = ".".join(["%d" % (revno)
+                                              for revno in revno_sequence])
+                else:
+                    rev.revno = ""
             self.message_doc.setHtml(format_revision_html(rev,
                                                           show_timestamp=True))
 
@@ -346,3 +484,9 @@ class AnnotateWindow(QBzrWindow):
                 self.branch.unlock()
         finally:
             self.throbber.hide()
+
+    def browser_get_repo(self):
+        return self.branch.repository
+    
+    def browser_on_revisions_loaded(self, revisions, last_call):
+        self.model.on_revisions_loaded(revisions, last_call)

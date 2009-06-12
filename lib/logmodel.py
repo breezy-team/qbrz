@@ -23,6 +23,8 @@ from time import (strftime, localtime)
 from bzrlib import lazy_regex
 from bzrlib.revision import NULL_REVISION
 from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
+from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
+from bzrlib.plugins.qbzr.lib.revtreeview import RevIdRole as im_RevIdRole
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
@@ -31,18 +33,20 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_summary,
     )
 
-TagsRole = QtCore.Qt.UserRole + 1
-BugIdsRole = QtCore.Qt.UserRole + 2
-BranchTagsRole = QtCore.Qt.UserRole + 3
-GraphNodeRole = QtCore.Qt.UserRole + 4
-GraphLinesRole = QtCore.Qt.UserRole + 5
-GraphTwistyStateRole = QtCore.Qt.UserRole + 6
-RevIdRole = QtCore.Qt.UserRole + 7
+RevIdRole = im_RevIdRole
+(TagsRole,
+ BugIdsRole,
+ BranchTagsRole,
+ GraphNodeRole,
+ GraphLinesRole,
+ GraphTwistyStateRole,
+) = range(QtCore.Qt.UserRole + 2, QtCore.Qt.UserRole + 8)
 
-COL_REV = 0
-COL_MESSAGE = 1
-COL_DATE = 2
-COL_AUTHOR = 3
+(COL_REV,
+ COL_MESSAGE,
+ COL_DATE,
+ COL_AUTHOR,
+) = range(4)
 
 _bug_id_re = lazy_regex.lazy_compile(r'(?:'
     r'bugs/'                    # Launchpad bugs URL
@@ -247,13 +251,10 @@ class LogModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant(revid)
         
         #Everything from here foward will need to have the revision loaded.
-        if not revid or revid == NULL_REVISION:
+        if not revid or revid not in cached_revisions:
             return QtCore.QVariant()
         
-        revision = self.graph_provider.revision(revid)
-        
-        if not revision:
-            return QtCore.QVariant()
+        revision = cached_revisions[revid]
         
         if role == QtCore.Qt.DisplayRole and index.column() == COL_DATE:
             return QtCore.QVariant(strftime("%Y-%m-%d %H:%M",
@@ -295,13 +296,17 @@ class LogModel(QtCore.QAbstractTableModel):
         return self.createIndex (msri, 0, QtCore.QModelIndex())
 
     def on_revisions_loaded(self, revisions, last_call):
-        for revid in revisions:
+        for revid in revisions.iterkeys():
             indexes = self.indexFromRevId(revid, (COL_MESSAGE, COL_AUTHOR))
             self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                       indexes[0], indexes[1])
     
     def on_filter_changed(self):
         self.compute_lines()
+    
+    def get_revid(self, row):
+        msri = self.graph_provider.graph_line_data[row][0]
+        return self.graph_provider.merge_sorted_revisions[msri][1]
     
 class LogFilterProxyModel(QtGui.QSortFilterProxyModel):
     def __init__(self, graph_provider, parent = None):

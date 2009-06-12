@@ -36,6 +36,17 @@ def ui_current_widget(f):
             return f(*args, **kargs)
     return decorate
 
+def quifactory():
+    if isinstance(ui.ui_factory, QUIFactory):
+        return ui.ui_factory
+    return None
+
+def current_throbber():
+    ui = quifactory()
+    if ui:
+        return ui.throbber()
+    return None
+
 class QUIFactory(ui.UIFactory):
 
     def __init__(self):
@@ -54,6 +65,12 @@ class QUIFactory(ui.UIFactory):
     
         self._progress_view._repaint = self.progress_view_repaint
     
+    def throbber(self):
+        current_widget = self.current_widget()
+        if current_widget and getattr(current_widget, 'throbber', None) is not None:
+            return current_widget.throbber
+        return None
+    
     def report_transport_activity(self, transport, byte_count, direction):
         """Called by transports as they do IO.
         
@@ -64,8 +81,8 @@ class QUIFactory(ui.UIFactory):
         self._total_byte_count += byte_count
         self._bytes_since_update += byte_count
 
-        current_widget = self.current_widget()
-        if current_widget and getattr(current_widget, 'throbber', None) is not None:
+        throbber = self.throbber()
+        if throbber:
             now = time.time()
             if self._transport_update_time is None:
                 self._transport_update_time = now
@@ -83,7 +100,7 @@ class QUIFactory(ui.UIFactory):
                 msg = ("%6dkB @         " %
                     (self._total_byte_count>>10,))
             
-            current_widget.throbber.transport.setText(msg)
+            throbber.transport.setText(msg)
         
         QtCore.QCoreApplication.processEvents()
 

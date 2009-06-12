@@ -397,19 +397,33 @@ class LogWindow(QBzrWindow):
             self.diffbuttons.setEnabled(True)
             index = indexes[0]
             revid = str(index.data(logmodel.RevIdRole).toString())
-            rev = self.log_list.graph_provider.revision(revid)
-            parents_ids = self.log_list.graph_provider.graph_parents[revid]
-            child_ids = self.log_list.graph_provider.graph_children[revid]
-            self.log_list.graph_provider.load_revisions([revid] + \
-                                    list(parents_ids) + list(child_ids))
-            rev = self.log_list.graph_provider.revision(revid)
+            gp = self.log_list.graph_provider
+            parents_ids = gp.graph_parents[revid]
+            child_ids = gp.graph_children[revid]
+            revisions = gp.load_revisions([revid] + 
+                                          list(parents_ids) +
+                                          list(child_ids),
+                                          pass_prev_loaded_rev = True)
+            for rev in revisions.itervalues():
+                if not hasattr(rev, "revno"):
+                    if rev.revision_id in gp.revid_msri:
+                        revno_sequence = gp.merge_sorted_revisions[\
+                                            gp.revid_msri[rev.revision_id]][3]
+                        rev.revno = ".".join(["%d" % (revno)
+                                                  for revno in revno_sequence])
+                    else:
+                        rev.revno = ""
+            
+            rev = revisions[revid]
             
             if not hasattr(rev, "children"):
-                rev.children = [self.log_list.graph_provider.revision(revid)
-                                for revid in child_ids]
+                rev.children = [revisions[revid] for revid in child_ids]
             if not hasattr(rev, "parents"):
-                rev.parents = [self.log_list.graph_provider.revision(revid)
-                                for revid in parents_ids]
+                rev.parents = [revisions[revid] for revid in parents_ids]
+            if not hasattr(rev, "branch"):
+                rev.branch = gp.get_revid_branch(rev.revision_id)
+            if not hasattr(rev, "tags"):
+                rev.tags = sorted(gp.tags.get(rev.revision_id, []))
             self.current_rev = rev
             
             replace = self.replace_config(rev.branch)
