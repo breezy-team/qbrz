@@ -320,10 +320,12 @@ class AnnotateWindow(QBzrWindow):
         # and update the title to show we are done.
         if isinstance(self.tree, RevisionTree):
             revno = self.get_revno(self.tree.get_revision_id())
-            self.set_title_and_icon([gettext("Annotate"), self.path,
-                                     gettext("Revision %s") % revno])
-        else:
-            self.set_title_and_icon([gettext("Annotate"), self.path])
+            if revno:
+                self.set_title_and_icon([gettext("Annotate"), self.path,
+                                         gettext("Revision %s") % revno])
+                return
+        
+        self.set_title_and_icon([gettext("Annotate"), self.path])
 
     def get_revno(self, revid):
         if revid not in self.log_list.graph_provider.revid_msri:
@@ -339,6 +341,7 @@ class AnnotateWindow(QBzrWindow):
         lines = []
         annotate = []
         text_max_len = 0
+        self.processEvents()
         for revid, text in tree.annotate_iter(fileId):
             text = text.decode(encoding, 'replace')
             
