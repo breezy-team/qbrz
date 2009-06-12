@@ -43,6 +43,10 @@ from bzrlib.plugins.qbzr.lib import trace
 from bzrlib.plugins.qbzr.lib import i18n
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
 
+# pyflakes says this is not needed, but it is.
+import bzrlib.plugins.qbzr.lib.resources
+
+
 _email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)', re.IGNORECASE)
 _link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])', re.IGNORECASE)
 _link2_re = lazy_regex.lazy_compile(r'(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)', re.IGNORECASE)
