@@ -220,6 +220,7 @@ class AnnotateWindow(QBzrWindow):
                            self.browser.font().pointSize())
         self.model = AnnotateModel(self.get_revno, font)
         self.browser.setModel(self.model)
+        self.browser.throbber = self.throbber
         self.browser.set_rev_tree_model(self.model)
         self.browser.get_repo = self.browser_get_repo
         self.browser.on_revisions_loaded = self.browser_on_revisions_loaded
