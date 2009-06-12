@@ -225,9 +225,18 @@ class AnnotateWindow(QBzrWindow):
         self.browser.on_revisions_loaded = self.browser_on_revisions_loaded
 
         self.browser.setRootIsDecorated(False)
+        header = self.browser.header()
+        fm = self.fontMetrics()
+        # XXX Make this dynamic.
+        col_margin = 6
+        header.resizeSection(self.model.LINE_NO,
+                             fm.width("8888") + col_margin)
+        header.resizeSection(self.model.AUTHOR,
+                             fm.width("Joe I have a Long Name") + col_margin)
+        header.resizeSection(self.model.REVNO,
+                             fm.width("8888.8.888") + col_margin)
+
         self.browser.setUniformRowHeights(True)
-        #self.browser.header().setStretchLastSection(False)
-        #self.browser.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
         self.connect(self.browser,
             QtCore.SIGNAL("itemSelectionChanged()"),
             self.setRevisionByLine)
@@ -305,7 +314,6 @@ class AnnotateWindow(QBzrWindow):
                 self.branch.unlock()
         finally:
             self.throbber.hide()
-        #self.close()
     
     def set_annotate_title(self):
         # and update the title to show we are done.
@@ -329,12 +337,14 @@ class AnnotateWindow(QBzrWindow):
         encoding = get_set_encoding(self.encoding, self.branch)
         lines = []
         annotate = []
+        text_max_len = 0
         for revid, text in tree.annotate_iter(fileId):
             text = text.decode(encoding, 'replace')
             
             lines.append(text)
             
             text = text.rstrip()
+            text_max_len = max(len(text), text_max_len)
             if revid not in self.rev_indexes:
                 self.rev_indexes[revid]=[]
             self.rev_indexes[revid].append(len(annotate))
@@ -346,14 +356,21 @@ class AnnotateWindow(QBzrWindow):
             if len(annotate) % 100 == 0:
                 self.processEvents()
         
+        header = self.browser.header()
+        fm = self.fontMetrics()
+        # XXX Make this dynamic.
+        col_margin = 6
+        line_no_max_digts = len("%d"%len(annotate))
+        if line_no_max_digts>4:
+            header.resizeSection(self.model.LINE_NO,
+                            fm.width("8"*line_no_max_digts) + col_margin)
+        header.setStretchLastSection(False)
+        header.resizeSection(self.model.TEXT,
+                        fm.width("8"*text_max_len) + col_margin)
+        
         self.model.set_annotate(annotate, self.rev_indexes)
         self.processEvents()
-        
-        #load_revisions(
-        #    self.rev_indexes.keys(), self.branch.repository,
-        #    revisions_loaded = self.model.on_revisions_loaded,
-        #    pass_prev_loaded_rev = True
-        #    )
+
         if not self.log_branch_loaded:
             self.log_branch_loaded = True
             self.log_list.load_branch(self.branch, self.fileId)
