@@ -238,9 +238,9 @@ class AnnotateWindow(QBzrWindow):
                              fm.width("8888.8.888") + col_margin)
 
         self.browser.setUniformRowHeights(True)
-        self.connect(self.browser,
-            QtCore.SIGNAL("itemSelectionChanged()"),
-            self.setRevisionByLine)
+        self.connect(self.browser.selectionModel(),
+                     QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
+                     self.setRevisionByLine)
 
         
         self.message_doc = QtGui.QTextDocument()
@@ -431,14 +431,14 @@ class AnnotateWindow(QBzrWindow):
             for item in self.rev_indexes[rev.revision_id]:
                 item.setBackground(3, color)
     
-    def setRevisionByLine(self):
-        items = self.browser.selectedItems()
-        if not items:
+    def setRevisionByLine(self, selected, deselected):
+        indexes = self.browser.selectedIndexes()
+        if not indexes:
             return
-        rev_id = str(items[0].data(0, QtCore.Qt.UserRole).toString())
+        rev_id = str(indexes[0].data(self.model.REVID).toString())
         if self.log_list.graph_provider.has_rev_id(rev_id):
-            self.log_list.model.ensure_rev_visible(rev_id)
-            index = self.log_list.model.indexFromRevId(rev_id)
+            self.log_list.log_model.ensure_rev_visible(rev_id)
+            index = self.log_list.log_model.indexFromRevId(rev_id)
             index = self.log_list.filter_proxy_model.mapFromSource(index)
             self.log_list.setCurrentIndex(index)
 
