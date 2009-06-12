@@ -21,6 +21,7 @@ from PyQt4 import QtCore, QtGui
 
 from bzrlib.plugins.qbzr.lib.util import runs_in_loading_queue
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import load_revisions
+from bzrlib.transport.local import LocalTransport
 
 RevIdRole = QtCore.Qt.UserRole + 1
 
@@ -35,12 +36,13 @@ class RevisionTreeView(QtGui.QTreeView):
                      self.scroll_changed)
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
+        self.rev_tree_rev_tree_model = None
     
-    def setModel(self, model):
-        QtGui.QTreeView.setModel(self, model)
-        model.connect(model,
-                     QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                     self.model_data_changed)
+    def set_rev_tree_model(self, rev_tree_model):
+        self.rev_tree_model = rev_tree_model
+        rev_tree_model.connect(rev_tree_model,
+            QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+            self.model_data_changed)
     
     def scroll_changed(self, value):
         self.load_visible_revisions()
@@ -59,33 +61,32 @@ class RevisionTreeView(QtGui.QTreeView):
     def on_revisions_loaded(self, revisions, last_call):
         """Called once revisions are availible
         
-        Typicaly you will want to pass this on to your model so that it can
+        Typicaly you will want to pass this on to your rev_tree_model so that it can
         emit a dataChanged signal.
         """
         pass
     
     def get_row_revid(self, row):
         """Get the revision id for a row"""
-
     
     @runs_in_loading_queue
     def load_visible_revisions(self):
-        model = self.model()
+        rev_tree_model = self.rev_tree_model
         top_index = self.indexAt(self.viewport().rect().topLeft()).row()
         bottom_index = self.indexAt(self.viewport().rect().bottomLeft()).row()
+        row_count = rev_tree_model.rowCount(QtCore.QModelIndex())
         if top_index == -1:
             #Nothing is visible
             return
         if bottom_index == -1:
-            bottom_index = model.rowCount()
+            bottom_index = row_count
         # The + 2 is so that the rev that is off screen due to the throbber
         # is loaded.
-        bottom_index = min((bottom_index + 2, model.rowCount()))
-        revids = []
+        bottom_index = min((bottom_index + 2, row_count))
+        revids = set()
         for row in xrange(top_index, bottom_index):
-            index = self.model().index(row, 0, QtCore.QModelIndex())
-            revid = unicode(index.data(RevIdRole).toString())
-            revids.append(revid)
+            revids.add(rev_tree_model.get_revid(row))
+        revids = list(revids)
         
         self.load_revisions_call_count += 1
         current_call_count = self.load_revisions_call_count
@@ -94,7 +95,8 @@ class RevisionTreeView(QtGui.QTreeView):
             if current_call_count < self.load_revisions_call_count:
                 return True
             
-            if not repo.is_local:
+            repo_is_local = isinstance(repo.bzrdir.transport, LocalTransport)
+            if not repo_is_local:
                 if not self.load_revisions_throbber_shown \
                             and hasattr(self, "throbber"):
                     self.throbber.show()
@@ -122,4 +124,5 @@ class RevisionTreeView(QtGui.QTreeView):
             pass
         
         QtCore.QTimer.singleShot(timeout, null)
-        self.processEvents(QtCore.QEventLoop.WaitForMoreEvents)
+        QtCore.QCoreApplication.processEvents(
+                            QtCore.QEventLoop.WaitForMoreEvents)

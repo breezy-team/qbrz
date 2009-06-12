@@ -24,6 +24,7 @@ from PyQt4 import QtCore
 
 from bzrlib.transport.local import LocalTransport
 from bzrlib.repository import Repository
+from bzrlib.remote import RemoteRepository
 from bzrlib.plugins.qbzr.lib.uifactory import current_throbber
 
 cached_revisions = {} #weakref.WeakValueDictionary()
@@ -55,7 +56,7 @@ def load_revisions(revids, repo,
         revs_loaded = {}
         revids = [revid for revid in revids if revid not in cached_revisions]
         if revids:
-            if isinstance(repo, Repository):
+            if isinstance(repo, Repository) or isinstance(repo, RemoteRepository):
                 repo_revids=((repo, revids),)
             else:
                 repo_revids = repo(revids)

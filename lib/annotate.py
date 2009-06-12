@@ -43,6 +43,7 @@ from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.plugins.qbzr.lib.logmodel import COL_DATE, RevIdRole
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
                                                          cached_revisions)
+from bzrlib.plugins.qbzr.lib.revtreeview import RevisionTreeView
 from bzrlib.revisiontree import RevisionTree
 
 have_pygments = True
@@ -168,6 +169,9 @@ class AnnotateModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant(QtGui.QColor.fromHsvF(hue, saturation, 1 ))
         
         return QtCore.QVariant()
+    
+    def get_revid(self, row):
+        return self.annotate[row][0]
 
     def flags(self, index):
         if not index.isValid():
@@ -210,17 +214,20 @@ class AnnotateWindow(QBzrWindow):
         self.throbber = ThrobberWidget(self)
         
         
-        self.browser = QtGui.QTreeView()
+        self.browser = RevisionTreeView()
 
         font = QtGui.QFont("Courier New,courier",
                            self.browser.font().pointSize())
         self.model = AnnotateModel(self.get_revno, font)
         self.browser.setModel(self.model)
+        self.browser.set_rev_tree_model(self.model)
+        self.browser.get_repo = self.browser_get_repo
+        self.browser.on_revisions_loaded = self.browser_on_revisions_loaded
 
         self.browser.setRootIsDecorated(False)
         self.browser.setUniformRowHeights(True)
-        self.browser.header().setStretchLastSection(False)
-        self.browser.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        #self.browser.header().setStretchLastSection(False)
+        #self.browser.header().setResizeMode(QtGui.QHeaderView.ResizeToContents)
         self.connect(self.browser,
             QtCore.SIGNAL("itemSelectionChanged()"),
             self.setRevisionByLine)
@@ -239,6 +246,7 @@ class AnnotateWindow(QBzrWindow):
         self.log_list.context_menu.addAction(
             gettext("&Annotate this revision."),
             self.set_annotate_revision)
+        self.log_branch_loaded = False
         
         self.connect(self.log_list.selectionModel(),
                      QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
@@ -290,16 +298,14 @@ class AnnotateWindow(QBzrWindow):
                 def do_nothing():
                     pass
                 
-                self.log_list.graph_provider.load_filter_file_id = do_nothing
-                
-                self.log_list.load_branch(self.branch, self.fileId)
+                self.log_list.graph_provider.load_filter_file_id = do_nothing                
                 self.set_annotate_title()
-                self.processEvents()
                 self.annotate(self.tree, self.fileId, self.path)
             finally:
                 self.branch.unlock()
         finally:
             self.throbber.hide()
+        #self.close()
     
     def set_annotate_title(self):
         # and update the title to show we are done.
@@ -311,6 +317,8 @@ class AnnotateWindow(QBzrWindow):
             self.set_title_and_icon([gettext("Annotate"), self.path])
 
     def get_revno(self, revid):
+        if revid not in self.log_list.graph_provider.revid_msri:
+            return None
         msri = self.log_list.graph_provider.revid_msri[revid]
         revno_sequence = self.log_list.graph_provider.merge_sorted_revisions[msri][3]
         return ".".join(["%d" % (revno) for revno in revno_sequence])
@@ -335,17 +343,20 @@ class AnnotateWindow(QBzrWindow):
             last_revid = revid
             
             annotate.append((revid, text, is_top))
-            if len(annotate) % 10 == 0:
+            if len(annotate) % 100 == 0:
                 self.processEvents()
         
         self.model.set_annotate(annotate, self.rev_indexes)
         self.processEvents()
         
-        load_revisions(
-            self.rev_indexes.keys(), self.branch.repository,
-            revisions_loaded = self.model.on_revisions_loaded,
-            pass_prev_loaded_rev = True
-            )
+        #load_revisions(
+        #    self.rev_indexes.keys(), self.branch.repository,
+        #    revisions_loaded = self.model.on_revisions_loaded,
+        #    pass_prev_loaded_rev = True
+        #    )
+        if not self.log_branch_loaded:
+            self.log_branch_loaded = True
+            self.log_list.load_branch(self.branch, self.fileId)
         
         self.log_list.graph_provider.filter_file_id = [False for i in 
             xrange(len(self.log_list.graph_provider.merge_sorted_revisions))]
@@ -452,3 +463,9 @@ class AnnotateWindow(QBzrWindow):
                 self.branch.unlock()
         finally:
             self.throbber.hide()
+
+    def browser_get_repo(self):
+        return self.branch.repository
+    
+    def browser_on_revisions_loaded(self, revisions, last_call):
+        self.model.on_revisions_loaded(revisions, last_call)

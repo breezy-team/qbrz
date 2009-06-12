@@ -64,10 +64,8 @@ class LogList(RevisionTreeView):
         # Avoid RevisionTreeView.setModel because we want connect to the
         # log_model signal, not the filter_proxy_model signal.
         #self.setModel(self.filter_proxy_model)
-        QtGui.QTreeView.setModel(self, self.filter_proxy_model)
-        self.log_model.connect(self.log_model,
-                               QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                               self.model_data_changed)
+        self.setModel(self.filter_proxy_model)
+        self.set_rev_tree_model(self.log_model)
         
         header = self.header()
         header.setStretchLastSection(False)
