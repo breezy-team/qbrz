@@ -42,6 +42,7 @@ from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.plugins.qbzr.lib.logmodel import COL_DATE, RevIdRole
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
+                                                         cached_revisions)
 from bzrlib.revisiontree import RevisionTree
 
 have_pygments = True
