@@ -354,15 +354,15 @@ class LogGraphProvider(object):
             
             trunk_tip = self.trunk_branch.last_revision()
             
-            head_revs = load_revisions(self.head_revids)
+            head_revs = self.load_revisions(self.head_revids)
             
             def head_revids_cmp(x,y):
                 if x == trunk_tip:
                     return -1
                 if y == trunk_tip:
                     return 1
-                return 0-cmp(head_revs(x).timestamp,
-                             head_revs(y).timestamp)
+                return 0-cmp(head_revs[x].timestamp,
+                             head_revs[y].timestamp)
             
             self.head_revids.sort(head_revids_cmp)
     
