@@ -21,17 +21,12 @@
 # that examines the tree being updated and displays one of 2 dialogs
 # depending on if the tree is bound (ie, a checkout) or not.
 
-import sys
 import os
 import re
 from PyQt4 import QtCore, QtGui
-from bzrlib import errors
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_new_tree import Ui_NewWorkingTreeForm
-from bzrlib.plugins.qbzr.lib.help import show_help
 from bzrlib.plugins.qbzr.lib.util import (
-    iter_saved_pull_locations,
     save_pull_location,
     fill_pull_combo,
     hookup_directory_picker,

@@ -24,6 +24,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.sysinfo_data import get_sys_info
 from bzrlib.plugins.qbzr.lib.ui_sysinfo import Ui_MainWindow
 from bzrlib.plugins.qbzr.lib.util import (
+    BTN_CLOSE,
     QBzrWindow,
     )
 
@@ -35,7 +36,9 @@ class QBzrSysInfoWindow(QBzrWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.set_title(gettext("System Information"))
-        self.restoreSize("sysinfo", (500, 300))
+        self.restoreSize("sysinfo", (400,256))
+        btns = self.create_button_box(BTN_CLOSE)
+        self.ui.vboxlayout.addWidget(btns)
         self.display_sys_info(get_sys_info())
 
     def display_sys_info(self, props):

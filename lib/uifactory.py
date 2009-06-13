@@ -21,7 +21,7 @@ from PyQt4 import QtCore, QtGui
 import time
 
 from bzrlib import ui
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
+from bzrlib.plugins.qbzr.lib.i18n import gettext
 
 def ui_current_widget(f):
     def decorate(*args, **kargs):

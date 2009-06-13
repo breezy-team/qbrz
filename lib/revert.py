@@ -19,7 +19,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import os
 from PyQt4 import QtCore, QtGui
 
 from bzrlib.plugins.qbzr.lib.diff import (
@@ -116,7 +115,6 @@ class RevertWindow(SubProcessDialog):
 
         for desc in self.tree.iter_changes(self.tree.basis_tree()):
             desc = ChangeDesc(desc)
-            assert desc.is_modified(), "expecting only modified!"
             if desc.is_tree_root():
                 continue
             path = desc.path()

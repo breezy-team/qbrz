@@ -19,12 +19,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import sys
+import os
 
 from PyQt4 import QtCore, QtGui
 
 from bzrlib import errors
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
+from bzrlib.plugins.qbzr.lib.i18n import gettext
 
 class StopException(Exception):
     """A exception that is ignored in our error reporting, which can be used
@@ -76,6 +77,9 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
     
     msg_box = (type == MAIN_LOAD_METHOD and window and window.ui_mode) \
               or not type == MAIN_LOAD_METHOD
+    pdb = os.environ.get('BZR_PDB')
+    if pdb:
+        msg_box = False
     
     if msg_box:
         err_file = StringIO()
@@ -85,13 +89,40 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
     # always tell bzr to report it, so it ends up in the log.        
     error_type = report_exception(exc_info, err_file)
     
+    
+    # XXX This is very similar to bzrlib.commands.exception_to_return_code.
+    # We shoud get bzr to refactor so that that this is reuseable.
+    if pdb:
+        print '**** entering debugger'
+        tb = exc_info[2]
+        import pdb
+        if sys.version_info[:2] < (2, 6):
+            # XXX: we want to do
+            #    pdb.post_mortem(tb)
+            # but because pdb.post_mortem gives bad results for tracebacks
+            # from inside generators, we do it manually.
+            # (http://bugs.python.org/issue4150, fixed in Python 2.6)
+
+            # Setup pdb on the traceback
+            p = pdb.Pdb()
+            p.reset()
+            p.setup(tb.tb_frame, tb)
+            # Point the debugger at the deepest frame of the stack
+            p.curindex = len(p.stack) - 1
+            p.curframe = p.stack[p.curindex][0]
+            # Start the pdb prompt.
+            p.print_stack_entry(p.stack[p.curindex])
+            p.execRcLines()
+            p.cmdloop()
+        else:
+            pdb.post_mortem(tb)
+    
     close = True
     if msg_box:
         if error_type == errors.EXIT_INTERNAL_ERROR:
             # this is a copy of bzrlib.trace.report_bug
             # but we seperate the message, and the trace back,
             # and addes a hyper link to the filebug page.
-            import os
             import bzrlib            
             from bzrlib import (
                 osutils,

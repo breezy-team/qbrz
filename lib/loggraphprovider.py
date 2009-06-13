@@ -17,7 +17,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import sys
 import re
 from time import clock
 
@@ -32,7 +31,6 @@ except ImportError:
                     _StackedParentsProvider as StackedParentsProvider)
     
 from bzrlib.bzrdir import BzrDir
-from bzrlib.branch import Branch
 from bzrlib.inventory import Inventory
 
 have_search = True
@@ -45,7 +43,20 @@ except ImportError:
 
 class LogGraphProvider(object):
     """Loads and computes revision and graph data for GUI log widgets."""
-
+    
+    # Most list/dicts related to revisions are unfiltered. When we do a graph
+    # layout, we filter these revisions. A revision may be filter out because:
+    # * It's branch is hidden (or colapsed).
+    # * We have a sepcified file_id(s), and the revision does not touch the
+    #   file_id(s).
+    # * We have a search, and the revision does not match the search.
+    #
+    # The main list of unfiltered revisions is merge_sorted_revisions. A
+    # revisions index in merge_sorted_revisions are normaly called msri
+    # (merge_sorted_revisions_index). The main list of filtered revisions
+    # is graph_line_data. Revision indexes in this list are called just index.
+    # To get a index from a msir, use msri_index.
+    
     def __init__(self, no_graph):
         
         self.no_graph = no_graph
@@ -204,7 +215,7 @@ class LogGraphProvider(object):
                     BzrDir.open_containing_tree_branch_or_repository(location)
             self.update_ui()
             
-            if br == None:
+            if br is None:
                 if fp:
                     raise errors.NotBranchError(fp)
                 
@@ -226,6 +237,13 @@ class LogGraphProvider(object):
             # If no locations were sepecified, don't do fileids
             # Otherwise it gives you the history for the dir if you are
             # in a sub dir.
+            #
+            # XXX - There is a case where this does not behave correctly.
+            # If we are in subdir and we do "bzr qlog ." then we should filter
+            # on subdir. but if we do "bzr qlog" then we should not. To be able
+            # to do this, we need to move the implication the no location
+            # argument means '.' down in to the method, rather than where it is
+            # now. - GaryvdM 29 May 2009
             if fp != '' and locations==["."]:
                 fp = ''
 
@@ -236,18 +254,14 @@ class LogGraphProvider(object):
                 file_id = tree.path2id(fp)
                 if file_id is None:
                     raise errors.BzrCommandError(
-                        "Path not versioned: %s" %
-                        fp)
+                        "Path does not have any revision history: %s" %
+                        location)
                 
                 kind = tree.kind(file_id)
                 if kind in ('directory', 'tree-reference'):
                     self.has_dir = True
                 self.update_ui()
                 
-                if file_id is None:
-                    raise errors.BzrCommandError(
-                        "Path does not have any revision history: %s" %
-                        location)
                 self.fileids.append(file_id)
         
         if self.fileids and len(self.branches())>1:
@@ -747,18 +761,20 @@ class LogGraphProvider(object):
     def get_revision_visible(self, msri):
         """ Returns wether a revision is visible or not"""
         
-        (sequence_number,
-         revid,
-         merge_depth,
-         revno_sequence,
-         end_of_merge) = self.merge_sorted_revisions[msri]
         
-        branch_id = revno_sequence[0:-1]
-        if not self.no_graph and \
-                not self.branch_lines[branch_id][1]: # branch colapased
-            return False
-        
-        return self.get_revision_visible_if_branch_visible_cached(msri)
+        return msri in self.msri_index
+        #(sequence_number,
+        # revid,
+        # merge_depth,
+        # revno_sequence,
+        # end_of_merge) = self.merge_sorted_revisions[msri]
+        #
+        #branch_id = revno_sequence[0:-1]
+        #if not self.no_graph and \
+        #        not self.branch_lines[branch_id][1]: # branch colapased
+        #    return False
+        #
+        #return self.get_revision_visible_if_branch_visible_cached(msri)
 
     def get_revision_visible_if_branch_visible_cached(self, msri):
         cache = self.filter_cache[msri]
@@ -844,7 +860,7 @@ class LogGraphProvider(object):
                 
                 if not self.no_graph:
                     merged_by = self.merge_info[msri][1]
-                    if merged_by:
+                    if merged_by is not None:
                         if merged_by not in self.ifcr_pending_msris and \
                            merged_by not in processed_msris:
                             self.ifcr_pending_msris.append(merged_by)
@@ -876,8 +892,25 @@ class LogGraphProvider(object):
         """See self.graph_line_data"""
         msri_index = {}
         
-        for msri in xrange(0,len(self.merge_sorted_revisions)):
-            if self.get_revision_visible(msri):
+        # This is a performance hack. The code will work without it, but will be
+        # slower.
+        if self.no_graph:
+            msri_whos_branch_is_visible = xrange(
+                                        len(self.merge_sorted_revisions))
+        else:
+            msri_whos_branch_is_visible = []
+            for branch_line in self.branch_lines.itervalues():
+                if branch_line[1]:
+                    msri_whos_branch_is_visible.extend(branch_line[0])
+            msri_whos_branch_is_visible.sort()
+        
+        # The following commented line would be use without the above
+        # performance hack.
+        #for msri in xrange(0,len(self.merge_sorted_revisions)):
+        for msri in msri_whos_branch_is_visible:
+            # The following would use just get_revision_visible without the
+            # above performance hack.
+            if self.get_revision_visible_if_branch_visible_cached(msri): 
                 index = len(graph_line_data)
                 msri_index[msri] = index
                 graph_line_data.append([msri,
@@ -899,15 +932,11 @@ class LogGraphProvider(object):
         # child and parent are in the same branch line, or the child and parent
         # are 1 row apart.
         lines = []
-        empty_column = [False for i in range(len(graph_line_data))]
-        # This will hold a bit map for each cell. If the cell is true, then
-        # the cell allready contains a node or line. This use when deciding
-        # what column to place a branch line or line in, without it
-        # overlaping something else.
-        columns = [list(empty_column)]
+        lines_by_column = []
+        lines_by_parent_can_overlap = {}
         
         def branch_line_col_search_order(parent_col_index):
-            for col_index in range(parent_col_index, len(columns)):
+            for col_index in range(parent_col_index, len(lines_by_column)):
                 yield col_index
             #for col_index in range(parent_col_index-1, -1, -1):
             #    yield col_index
@@ -933,37 +962,59 @@ class LogGraphProvider(object):
                 yield 0
             i = 1
             # then yield the columns on either side.
-            while max_index + i < len(columns) or \
+            while max_index + i < len(lines_by_column) or \
                   min_index - i > -1:
-                if max_index + i < len(columns):
+                if max_index + i < len(lines_by_column):
                     yield max_index + i
                 #if min_index - i > -1:
                 #    yield min_index - i
                 i += 1
         
-        def find_free_column(col_search_order, line_range):
+        def is_col_free_for_range(col_index, child_index, parent_index,
+                                  ignore_to_same_parent=False):
+            col_lines = lines_by_column[col_index]
+            has_overlaping_line = False
+            for (line_child_index, line_parent_index) in col_lines:
+                if parent_index == line_parent_index and ignore_to_same_parent:
+                    continue
+                
+                # child_index is in between or
+                # parent_index is in between or
+                # we compleatly overlap.
+                if (
+                        child_index > line_child_index
+                    and
+                        child_index < line_parent_index
+                   ) or (
+                        parent_index > line_child_index
+                    and
+                        parent_index < line_parent_index
+                   ) or (
+                        child_index <= line_child_index
+                    and
+                        parent_index >= line_parent_index
+                   ):
+                    has_overlaping_line = True
+                    break
+            return not has_overlaping_line
+        
+        def find_free_column(col_search_order, child_index, parent_index):
             for col_index in col_search_order:
-                column = columns[col_index]
-                has_overlaping_line = False
-                for row_index in line_range:
-                    if column[row_index]:
-                        has_overlaping_line = True
-                        break
-                if not has_overlaping_line:
+                if is_col_free_for_range(col_index,
+                                             child_index, parent_index):
                     break
             else:
                 # No free columns found. Add an empty one on the end.
-                col_index = len(columns)
-                column = list(empty_column)
-                columns.append(column)
+                col_index = len(lines_by_column)
+                lines_by_column.append([])
             return col_index
         
-        def mark_column_as_used(col_index, line_range):
-            column = columns[col_index]
-            for row_index in line_range:
-                column[row_index] = True
-        
-        def append_line (child_index, parent_index, direct):
+        def append_line (child_index, parent_index, direct, branch_col_index=None):
+            
+            line_length = parent_index - child_index
+            can_overlap = (branch_col_index is None or not direct) \
+                            and line_length > 1
+            
             parent_node = graph_line_data[parent_index][1]
             if parent_node:
                 parent_col_index = parent_node[0]
@@ -975,23 +1026,47 @@ class LogGraphProvider(object):
                 child_col_index = child_node[0]
             else:
                 child_col_index = None
-                
-            line_col_index = child_col_index
-            if parent_index - child_index >1:
-                line_range = range(child_index + 1, parent_index)
-                col_search_order = \
-                        line_col_search_order(parent_col_index,
-                                               child_col_index)
-                line_col_index = \
-                    find_free_column(col_search_order,
-                                      line_range)
-                mark_column_as_used(line_col_index,
-                                     line_range)
+            
+            line_col_index = None
+            if branch_col_index is not None:
+                line_col_index = branch_col_index
+            # Try find a line to a parent that we can overlap on.
+            elif (not direct or branch_col_index is None) \
+                        and parent_index in lines_by_parent_can_overlap:
+                # ol = overlaping line
+                for (ol_child_index,
+                     ol_col_index,
+                     ol_direct) in lines_by_parent_can_overlap[parent_index]:
+                    if ol_direct == direct \
+                            and is_col_free_for_range(ol_col_index,
+                                                      child_index,
+                                                      parent_index,
+                                                      True):
+                        line_col_index = ol_col_index
+                        break
+            #else:
+            if line_col_index is None:
+                line_col_index = child_col_index
+                if line_length > 1:
+                    col_search_order = line_col_search_order(parent_col_index,
+                                                             child_col_index)
+                    line_col_index = find_free_column(col_search_order,
+                                                      child_index, parent_index)
+            
             lines.append((child_index,
                           parent_index,
                           line_col_index,
                           direct,
-                          ))            
+                          ))
+            if line_col_index is not None:
+                lines_by_column[line_col_index].append(
+                                            (child_index, parent_index))
+            if can_overlap:
+                if parent_index not in lines_by_parent_can_overlap:
+                    lines_by_parent_can_overlap[parent_index] = []
+                lines_by_parent_can_overlap[parent_index].append((child_index,
+                                                                  line_col_index,
+                                                                  direct ))
         
         for branch_id in self.branch_ids:
             (branch_rev_msri,
@@ -1023,7 +1098,14 @@ class LogGraphProvider(object):
                     
                     # Find parents that are currently visible
                     rev_visible_parents = []
-                    for parent_revid in self.graph_parents[revid]:
+                    parents = self.graph_parents[revid]
+                    # Don't include left hand parents (unless this is the last
+                    # revision of the branch.) All of these parents in the
+                    # branch can be drawn with one line.
+                    if not rev_msri == branch_rev_msri[-1]:
+                        parents = parents[1:]
+                    
+                    for parent_revid in parents:
                         (parent_msri,
                          parent_branch_id,
                          parent_merge_depth) = self.msri_branch_id_merge_depth(parent_revid)
@@ -1037,12 +1119,12 @@ class LogGraphProvider(object):
                             if parent_msri in self.merge_info[rev_msri][0] and \
                                self.get_revision_visible_if_branch_visible_cached(parent_msri):
                                 # We merge this revision directly, and it would
-                                # visible if the user expans it's branch. Don't
-                                # look for non direct parents.
+                                # be visible if the user expans it's branch.
+                                # Don't look for non direct parents.
                                 break
                             # The parent was not visible. Search for a ansestor
                             # that is. Stop searching if we make a hop, i.e. we
-                            # go away for our branch, and we come back to it
+                            # go away from our branch, and we come back to it.
                             has_seen_different_branch = False
                             if not parent_branch_id == branch_id:
                                 has_seen_different_branch = True
@@ -1058,6 +1140,8 @@ class LogGraphProvider(object):
                                 if not parent_branch_id == branch_id:
                                     has_seen_different_branch = True
                                 if has_seen_different_branch and parent_branch_id == branch_id:
+                                    # We have gone away and come back to our
+                                    # branch. Stop.
                                     parent_revid = None
                                     break
                             if parent_revid:
@@ -1065,7 +1149,7 @@ class LogGraphProvider(object):
                                                             parent_msri,
                                                             parent_branch_id,
                                                             parent_merge_depth,
-                                                            False))
+                                                            False)) # Not Direct
                     branch_rev_visible_parents[rev_msri]=rev_visible_parents
                     
                     # Find and add nessery twisties
@@ -1093,8 +1177,11 @@ class LogGraphProvider(object):
                         graph_line_data[rev_index][3] = twisty_state
                 
                 last_parent_msri = None
-                if branch_rev_visible_parents[branch_rev_msri[-1]]: 
-                    last_parent_msri = branch_rev_visible_parents[branch_rev_msri[-1]][0][1]
+                last_rev_msri = branch_rev_msri[-1]
+                if branch_rev_visible_parents[last_rev_msri]:
+                    last_parent = branch_rev_visible_parents[last_rev_msri][0]
+                    last_parent_msri = last_parent[1]
+                    branch_rev_visible_parents[last_rev_msri].pop(0)
                 
                 children_with_sprout_lines = {}
                 # In this loop:
@@ -1121,8 +1208,7 @@ class LogGraphProvider(object):
                          direct) = rev_visible_parents[i]
                         
                         parent_index = msri_index[parent_msri]
-                        if (rev_msri <> branch_rev_msri[-1] or i > 0 )and \
-                           parent_branch_id <> branch_id and\
+                        if (rev_msri <> last_rev_msri or i > 0 )and \
                            branch_id <> () and \
                            self.branch_ids.index(parent_branch_id) <= self.branch_ids.index(branch_id) and\
                            (last_parent_msri and not direct and last_parent_msri >= parent_msri or not last_parent_msri or direct):
@@ -1184,17 +1270,22 @@ class LogGraphProvider(object):
                 line_range = range(first_rev_index, last_rev_index+1)
                 
                 if parent_index:
-                    line_range.extend(range(last_rev_index+1, parent_index))
-                
-                col_index = find_free_column(col_search_order,
-                                              line_range)
+                    col_index = find_free_column(col_search_order,
+                                                 first_rev_index, parent_index)
+                else:
+                    col_index = find_free_column(col_search_order,
+                                                 first_rev_index, last_rev_index)
                 node = (col_index, color)
                 # Free column for this branch found. Set node for all
                 # revision in this branch.
                 for rev_msri in branch_rev_msri:
                     rev_index = msri_index[rev_msri]
                     graph_line_data[rev_index][1] = node
-                    columns[col_index][rev_index] = True
+                
+                append_line(first_rev_index, last_rev_index, True, col_index)
+                if last_parent_msri:
+                    append_line(last_rev_index, parent_index,
+                                last_parent[4], col_index)
                 
                 # In this loop:
                 # * Append the remaining lines to parents.
@@ -1225,7 +1316,11 @@ class LogGraphProvider(object):
             (child_col_index, child_color) = graph_line_data[child_index][1]
             (parent_col_index, parent_color) = graph_line_data[parent_index][1]
             
-            if parent_index - child_index == 1:
+            line_length = parent_index - child_index
+            if line_length == 0:
+                # Nothing to do
+                pass
+            elif line_length == 1:
                 graph_line_data[child_index][2].append(
                     (child_col_index,
                      parent_col_index,
@@ -1449,13 +1544,14 @@ class LogGraphProvider(object):
         for repo_base in self.repos.iterkeys():
             repo_revids[repo_base] = []
         
-        for revid in revids:
-            for local_repo_copy in self.local_repo_copies:
+        for local_repo_copy in self.local_repo_copies:
+            for revid in self.repos[local_repo_copy].has_revisions(revids):
+                revids.remove(revid)
                 repo_revids[local_repo_copy].append(revid)
-            
+        
+        for revid in revids:
             repo = self.get_revid_repo(revid)
-            if repo.base not in self.local_repo_copies:
-                repo_revids[repo.base].append(revid)
+            repo_revids[repo.base].append(revid)
         
         return repo_revids
     
@@ -1494,8 +1590,6 @@ class LogGraphProvider(object):
                     if revids:
                         repo.lock_read()
                         try:
-                            revids = list(repo.has_revisions(revids))
-                            
                             if not repo.is_local:
                                 self.update_ui()
                             
@@ -1529,10 +1623,6 @@ class LogGraphProvider(object):
                 
                 if revisions_loaded is not None:
                     revisions_loaded(revids_loaded, True)
-                
-                for revid in org_revids:
-                    if revid not in self.revisions:
-                        raise errors.NoSuchRevision(self, revid)
         finally:
             if showed_throbber:
                 self.throbber_hide()

@@ -20,20 +20,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os.path
-import re
-import sys
 from PyQt4 import QtCore, QtGui
-
-from bzrlib import (
-    bugtracker,
-    errors,
-    osutils,
-    )
-from bzrlib.errors import BzrError, NoSuchRevision
-from bzrlib.option import Option
-from bzrlib.commands import Command, register_command
-from bzrlib.commit import ReportCommitToLog
-from bzrlib.workingtree import WorkingTree
 
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
@@ -41,21 +28,14 @@ from bzrlib.plugins.qbzr.lib.diff import (
     DiffButtons,
     show_diff,
     InternalWTDiffArgProvider,
-    InternalDiffArgProvider,
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
 from bzrlib.plugins.qbzr.lib.util import (
-    BTN_CANCEL,
-    BTN_OK,
-    QBzrWindow,
     file_extension,
-    format_timestamp,
-    get_apparent_author,
     get_global_config,
     url_for_display,
     ThrobberWidget,
-    runs_in_loading_queue,
     )
 from bzrlib.plugins.qbzr.lib.wtlist import (
     ChangeDesc,
@@ -460,8 +440,7 @@ class CommitWindow(SubProcessWindow):
 
     def save_message(self):
         if self.tree.branch.control_files.get_physical_lock_status() or \
-           self.tree.branch.repository.control_files.get_physical_lock_status() or\
-           self.tree.branch.is_locked() or self.tree.branch.repository.is_locked():
+           self.tree.branch.is_locked():
             from bzrlib.trace import warning
             warning("Cannot save commit message because the branch is locked.")
         else:

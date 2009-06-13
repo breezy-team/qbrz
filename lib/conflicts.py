@@ -17,12 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import sys
 from PyQt4 import QtCore, QtGui
-from bzrlib import (
-    osutils,
-    errors,
-    )
 from bzrlib.config import GlobalConfig
 from bzrlib.conflicts import resolve
 from bzrlib.workingtree import WorkingTree
@@ -32,10 +27,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     QBzrGlobalConfig,
     StandardButton,
-    extract_name,
-    format_timestamp,
-    get_set_encoding,
-    url_for_display,
     )
 
 

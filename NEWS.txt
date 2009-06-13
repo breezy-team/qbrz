@@ -1,5 +1,27 @@
-0.11.0 - in development
+0.12 - in development
 -----------------------
+
+
+0.11.0 - 2009-06-11
+-----------------------
+Maintenance release: compatibility with bzr 1.16 (bencode releated changes),
+improved performance of qlog, more fixes for side-by-side qdiff, a dozen of
+various bugfixes.
+
+Windows standalone installer for QBzr now built with Inno Setup.
+Now user can install only main QBzr files without additional libraries
+(e.g. PyQt4). So this installer now can be used to upgrade copy of QBzr plugin
+installed as part of standalone bzr.exe installer.
+
+ * qbrowse:
+    * Fix problem with opening the log for file/directory. (#383192)
+ * qinfo:
+    * Add a basic help string (#384632)
+ * qview command renamed to qviewer (previously qviewer was alias for qview)
+   to avoid confusion with bzr views feature. (#385225)
+
+NOTES: when upgrading your standalone installation of qbzr (on Windows) 
+you should uninstall old QBzr first, and then re-install it from new installer.
 
  * qversion: new command to display Bazaar & Python installation information
 

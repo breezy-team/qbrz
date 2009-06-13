@@ -23,7 +23,6 @@ import re
 from bzrlib import timestamp
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.util import htmlencode
 from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     format_timestamp,
@@ -312,6 +311,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                         lines = lines[:-1] + [last+'\n']
                 return lines
             
+            lines = [fix_last_line(l) for l in lines]
             if have_pygments:
                 use_pygments = True
                 try:
@@ -329,10 +329,10 @@ class SidebySideDiffView(QtGui.QSplitter):
                                                            paths)]
                 except ClassNotFound:
                     use_pygments = False
-                    display_lines = [fix_last_line(l) for l in lines]
+                    display_lines = lines
             else:
                 use_pygments = False
-                display_lines = [fix_last_line(l) for l in lines]
+                display_lines = lines
             
             def insertLine(cursor, line):
                 if use_pygments:
