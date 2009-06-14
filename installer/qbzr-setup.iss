@@ -79,6 +79,8 @@ Source: "locale\*.*";  DestDir: {app}\locale; Flags: recursesubdirs; Components:
 Source: "installer\_lib\*.*"; DestDir: {app}\_lib; Flags: recursesubdirs; Components: libs
 
 [UninstallDelete]
+; TODO: create special uninstall function in Code section to recursively delete pyc/pyo files
+;       using FindFile API
 Type: files; Name: {app}\*.pyc
 Type: files; Name: {app}\lib\*.pyc
 Type: files; Name: {app}\lib\extra\*.pyc

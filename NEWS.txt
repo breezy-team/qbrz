@@ -1,5 +1,7 @@
 0.12 - in development
 -----------------------
+ * Universal installer for Windows: one installer for both standalone bzr.exe
+   version and for python-based version.
 
 
 0.11.0 - 2009-06-11
