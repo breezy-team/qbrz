@@ -78,11 +78,60 @@ Source: "*.txt"; DestDir: {app}; Components: main
 Source: "locale\*.*";  DestDir: {app}\locale; Flags: recursesubdirs; Components: main
 Source: "installer\_lib\*.*"; DestDir: {app}\_lib; Flags: recursesubdirs; Components: libs
 
+[UninstallDelete]
+Type: files; Name: {app}\*.pyc
+Type: files; Name: {app}\lib\*.pyc
+Type: files; Name: {app}\lib\extra\*.pyc
+Type: files; Name: {app}\lib\tests\*.pyc
+Type: files; Name: {app}\*.pyo
+Type: files; Name: {app}\lib\*.pyo
+Type: files; Name: {app}\lib\extra\*.pyo
+Type: files; Name: {app}\lib\tests\*.pyo
+
 [Registry]
 Root: HKLM; Subkey: "Software\QBzr"; Flags: uninsdeletekey
 Root: HKLM; Subkey: "Software\QBzr"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"
 
 [Code]
+{Function detects system-wide installation of bzr: either bzr.exe or python-based}
+function GetBzrPath(): String;
+var
+  BzrPath: String;
+  PythonVersions: TArrayOfString;
+  Ix: Integer;
+  PythonKey: String;
+  PythonPath: String;
+  BzrlibPath: String;
+  Path: String;
+begin
+  {Check bzr.exe presence}
+  if RegQueryStringValue(HKEY_LOCAL_MACHINE, 'Software\Bazaar', 'InstallPath', BzrPath) then begin
+    Result := BzrPath;
+  end else begin
+    BzrlibPath := '';
+    {Get list of all installed python versions}
+    if RegGetSubkeyNames(HKEY_LOCAL_MACHINE, 'Software\Python\PythonCore', PythonVersions) then begin
+      {Iterate over installed pythons and check if there is installed bzrlib}
+      for Ix := 0 to GetArrayLength(PythonVersions)-1 do begin
+        PythonKey := 'Software\Python\PythonCore\' + PythonVersions[Ix] + '\InstallPath'
+        if RegQueryStringValue(HKEY_LOCAL_MACHINE, PythonKey, '', PythonPath) then begin
+          Path := AddBackslash(PythonPath) + 'Lib\site-packages\bzrlib'
+          if DirExists(Path) then begin
+            BzrlibPath := Path;
+            break;
+          end;
+        end;
+      end;
+    end;
+    Result := BzrlibPath;
+  end;
+end;
+
+{Function determines best possible PATH to install QBzr.
+  At first it tries to find system-wide installation (either bzr.exe or python-based)
+  then checks BZR_PLUGIN_PATH,
+  if all above fails then it suggests install to %APPDATA%\bazaar\2.0
+}
 function GetDirName(Param: String): String;
 var
   Path: String;
@@ -91,7 +140,8 @@ var
   Ix: Integer;
 begin
   Path := ExpandConstant('{userappdata}\bazaar\2.0\plugins\qbzr');
-  if RegQueryStringValue(HKEY_LOCAL_MACHINE, 'Software\Bazaar', 'InstallPath', BzrPath) then begin
+  BzrPath := GetBzrPath();
+  if BzrPath <> '' then begin
      Path := AddBackslash(BzrPath) + 'plugins\qbzr';
   end else begin
       EnvBzrPluginPath := GetEnv('BZR_PLUGIN_PATH')
