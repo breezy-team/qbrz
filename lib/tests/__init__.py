@@ -23,6 +23,7 @@ from bzrlib import trace
 
 def load_tests(basic_tests, module, loader):
     testmod_names = [
+        'mock',
         'test_autocomplete',
         #'test_diffview', - broken by API changes
         'test_extra_isignored',
