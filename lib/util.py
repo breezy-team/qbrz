@@ -46,6 +46,12 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
 # pyflakes says this is not needed, but it is.
 import bzrlib.plugins.qbzr.lib.resources
 
+from bzrlib.lazy_import import lazy_import
+lazy_import(globals(), '''
+from bzrlib import errors
+from bzrlib.workingtree import WorkingTree
+''')
+
 
 _email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)', re.IGNORECASE)
 _link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])', re.IGNORECASE)
@@ -989,3 +995,41 @@ def ensure_unicode(s, encoding='ascii'):
     if isinstance(s, str):
         return s.decode(encoding)
     return s
+
+
+def open_tree(directory, ui_mode=False,
+    _critical_dialog=QtGui.QMessageBox.critical):
+    """Open working tree at specified directory.
+    If there is no working tree and ui_mode is True then show GUI dialog
+    with error message and None will be returned. Otherwise NoWorkingTree
+    error will be propagated to caller.
+
+    If directory is None then current directory will be used.
+
+    @param _critical_dialog: could be used to provide mock object for testing.
+    """
+    # TODO write unit tests with mock object instead _critical_dialog
+    if directory is None:
+        directory = u'.'
+    try:
+        return WorkingTree.open_containing(directory)[0]
+    except errors.NotBranchError:
+        if ui_mode:
+            _critical_dialog(None,
+                gettext("Error"),
+                gettext('Not a branch "%s"'
+                    ) % os.path.abspath(directory),
+                gettext('&Close'))
+            return None
+        else:
+            raise
+    except errors.NoWorkingTree:
+        if ui_mode:
+            _critical_dialog(None,
+                gettext("Error"),
+                gettext('No working tree exists for "%s"'
+                    ) % os.path.abspath(directory),
+                gettext('&Close'))
+            return None
+        else:
+            raise

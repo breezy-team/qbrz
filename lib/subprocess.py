@@ -321,6 +321,7 @@ class SimpleSubProcessDialog(SubProcessDialog):
                                    QtCore.SLOT("setHidden(bool)"))
             self.start()
 
+
 class SubProcessWidget(QtGui.QWidget):
 
     def __init__(self, ui_mode, parent=None, hide_progress=False):
