@@ -93,6 +93,10 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
     # XXX This is very similar to bzrlib.commands.exception_to_return_code.
     # We shoud get bzr to refactor so that that this is reuseable.
     if pdb:
+        # With out this - pyQt shows lot of warnings. see:
+        # http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/pyqt4ref.html#using-pyqt-from-the-python-shell
+        QtCore.pyqtRemoveInputHook()
+        
         print '**** entering debugger'
         tb = exc_info[2]
         import pdb
@@ -102,7 +106,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
             # but because pdb.post_mortem gives bad results for tracebacks
             # from inside generators, we do it manually.
             # (http://bugs.python.org/issue4150, fixed in Python 2.6)
-
+            
             # Setup pdb on the traceback
             p = pdb.Pdb()
             p.reset()

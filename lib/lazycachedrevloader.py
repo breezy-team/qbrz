@@ -46,10 +46,10 @@ def load_revisions(revids, repo,
     throbber = current_throbber()
     
     try:
+        for revid in [revid for revid in revids
+                      if revid in cached_revisions]:
+            return_revisions[revid] = cached_revisions[revid]
         if pass_prev_loaded_rev:
-            for revid in [revid for revid in revids
-                          if revid in cached_revisions]:
-                return_revisions[revid] = cached_revisions[revid]
             if revisions_loaded is not None:
                 revisions_loaded(return_revisions, False)
         

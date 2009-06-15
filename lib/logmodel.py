@@ -303,10 +303,7 @@ class LogModel(QtCore.QAbstractTableModel):
     
     def on_filter_changed(self):
         self.compute_lines()
-    
-    def get_revid(self, row):
-        msri = self.graph_provider.graph_line_data[row][0]
-        return self.graph_provider.merge_sorted_revisions[msri][1]
+
     
 class LogFilterProxyModel(QtGui.QSortFilterProxyModel):
     def __init__(self, graph_provider, parent = None):
@@ -315,3 +312,13 @@ class LogFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def filterAcceptsRow(self, source_row, source_parent):
         return self.graph_provider.get_revision_visible(source_row)
+    
+    def on_revisions_loaded(self, revisions, last_call):
+        self.sourceModel().on_revisions_loaded(revisions, last_call)    
+    
+    def get_repo(self):
+        return self.graph_provider.get_repo_revids
+    
+    def get_revid(self, row):
+        msri = self.graph_provider.graph_line_data[row][0]
+        return self.graph_provider.merge_sorted_revisions[msri][1]

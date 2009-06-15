@@ -99,12 +99,14 @@ class AnnotateModel(QtCore.QAbstractTableModel):
         self.font = font
         self.annotate = []
         self.revid_indexes = {}
+        self.branch = None
     
-    def set_annotate(self, annotate, revid_indexes):
+    def set_annotate(self, annotate, revid_indexes, branch):
         try:
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
             self.annotate = annotate
             self.revid_indexes = revid_indexes
+            self.branch = branch
             self.now = time.time()
         finally:
             self.emit(QtCore.SIGNAL("layoutChanged()"))
@@ -148,7 +150,10 @@ class AnnotateModel(QtCore.QAbstractTableModel):
         if column == self.REVNO:
             if role == QtCore.Qt.DisplayRole:
                 if is_top:
-                    return QtCore.QVariant(self.get_revno(revid))
+                    revno = self.get_revno(revid)
+                    if revno is None:
+                        revno = ""
+                    return QtCore.QVariant(revno)
             if role == QtCore.Qt.TextAlignmentRole:
                 return QtCore.QVariant(QtCore.Qt.AlignRight)
 
@@ -191,6 +196,9 @@ class AnnotateModel(QtCore.QAbstractTableModel):
                           self.createIndex (row, 0, QtCore.QModelIndex()),
                           self.createIndex (row, 4, QtCore.QModelIndex()))
 
+    def get_repo(self):
+        return self.branch.repository
+
 
 class AnnotateWindow(QBzrWindow):
 
@@ -221,9 +229,6 @@ class AnnotateWindow(QBzrWindow):
         self.model = AnnotateModel(self.get_revno, font)
         self.browser.setModel(self.model)
         self.browser.throbber = self.throbber
-        self.browser.set_rev_tree_model(self.model)
-        self.browser.get_repo = self.browser_get_repo
-        self.browser.on_revisions_loaded = self.browser_on_revisions_loaded
 
         self.browser.setRootIsDecorated(False)
         header = self.browser.header()
@@ -328,11 +333,7 @@ class AnnotateWindow(QBzrWindow):
         self.set_title_and_icon([gettext("Annotate"), self.path])
 
     def get_revno(self, revid):
-        if revid not in self.log_list.graph_provider.revid_msri:
-            return None
-        msri = self.log_list.graph_provider.revid_msri[revid]
-        revno_sequence = self.log_list.graph_provider.merge_sorted_revisions[msri][3]
-        return ".".join(["%d" % (revno) for revno in revno_sequence])
+        return self.log_list.graph_provider.revno_from_revid(revid)
     
     def annotate(self, tree, fileId, path):
         self.rev_indexes = {}
@@ -372,7 +373,7 @@ class AnnotateWindow(QBzrWindow):
         header.resizeSection(self.model.TEXT,
                         fm.width("8"*text_max_len) + col_margin)
         
-        self.model.set_annotate(annotate, self.rev_indexes)
+        self.model.set_annotate(annotate, self.rev_indexes, self.branch)
         self.processEvents()
 
         if not self.log_branch_loaded:
@@ -452,7 +453,7 @@ class AnnotateWindow(QBzrWindow):
             index = indexes[0]
             revid = str(index.data(RevIdRole).toString())
             gp = self.log_list.graph_provider
-            rev  = gp.load_revisions([revid], pass_prev_loaded_rev = True)[revid]
+            rev  = gp.load_revisions([revid])[revid]
             if not hasattr(rev, "revno"):
                 if rev.revision_id in gp.revid_msri:
                     revno_sequence = gp.merge_sorted_revisions[\
@@ -485,8 +486,5 @@ class AnnotateWindow(QBzrWindow):
         finally:
             self.throbber.hide()
 
-    def browser_get_repo(self):
-        return self.branch.repository
-    
     def browser_on_revisions_loaded(self, revisions, last_call):
         self.model.on_revisions_loaded(revisions, last_call)

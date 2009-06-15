@@ -402,8 +402,7 @@ class LogWindow(QBzrWindow):
             child_ids = gp.graph_children[revid]
             revisions = gp.load_revisions([revid] + 
                                           list(parents_ids) +
-                                          list(child_ids),
-                                          pass_prev_loaded_rev = True)
+                                          list(child_ids))
             for rev in revisions.itervalues():
                 if not hasattr(rev, "revno"):
                     if rev.revision_id in gp.revid_msri:

@@ -61,11 +61,7 @@ class LogList(RevisionTreeView):
         self.filter_proxy_model.setSourceModel(self.log_model)
         self.filter_proxy_model.setDynamicSortFilter(True)
 
-        # Avoid RevisionTreeView.setModel because we want connect to the
-        # log_model signal, not the filter_proxy_model signal.
-        #self.setModel(self.filter_proxy_model)
         self.setModel(self.filter_proxy_model)
-        self.set_rev_tree_model(self.log_model)
         
         header = self.header()
         header.setStretchLastSection(False)
@@ -280,14 +276,14 @@ class LogList(RevisionTreeView):
                   specific_files=None, specific_file_ids=None,
                   ext_diff=None):
         new_revid = new_rev.revision_id
-        new_branch = new_rev.branch
+        new_branch = self.graph_provider.get_revid_branch(new_revid)
         
         if not old_rev.parent_ids:
             old_revid = None
             old_branch = new_branch
         else:
             old_revid = old_rev.parent_ids[0]
-            old_branch =  old_rev.branch
+            old_branch =  self.graph_provider.get_revid_branch(old_revid)
         
         arg_provider = diff.InternalDiffArgProvider(
                                         old_revid, new_revid,
@@ -301,7 +297,7 @@ class LogList(RevisionTreeView):
     def show_diff_index(self, index):
         """Show differences of a single revision from a index."""
         revid = str(index.data(logmodel.RevIdRole).toString())
-        rev = self.graph_provider.revision(revid, force_load=True)
+        rev = self.graph_provider.load_revisions([revid])[revid]
         if self.graph_provider.fileids:
             self.show_diff(rev, rev,
                            specific_file_ids=self.graph_provider.fileids)
@@ -321,9 +317,10 @@ class LogList(RevisionTreeView):
             # the list is empty
             return
         revid1 = str(indexes[0].data(logmodel.RevIdRole).toString())
-        rev1 = self.graph_provider.revision(revid1)
         revid2 = str(indexes[-1].data(logmodel.RevIdRole).toString())
-        rev2 = self.graph_provider.revision(revid2)
+        revs = self.graph_provider.load_revisions([revid1, revid2])
+        rev1 = revs[revid1]
+        rev2 = revs[revid2]
         if only_specified_files and self.graph_provider.fileids:
             self.show_diff(rev1, rev2, ext_diff=ext_diff,
                            specific_file_ids = self.graph_provider.fileids)
@@ -337,20 +334,16 @@ class LogList(RevisionTreeView):
     def show_revision_tree(self):
         from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
         revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
-        rev = self.graph_provider.revision(revid)
-        window = BrowseWindow(rev.branch, revision_id=rev.revision_id,
-                              revision_spec=rev.revno, parent=self)
+        revno = self.graph_provider.revno_from_revid(revid)
+        branch = self.graph_provider.get_revid_branch(revid)
+        window = BrowseWindow(branch, revision_id=revid,
+                              revision_spec=revno, parent=self)
         window.show()
         self.window().windows.append(window)
 
     def show_context_menu(self, pos):
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
-    
-    def get_repo(self):
-        return self.graph_provider.get_repo_revids
-    
-    def on_revisions_loaded(self, revisions, last_call):
-        self.log_model.on_revisions_loaded(revisions, last_call)
+
     
 class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
 
