@@ -999,16 +999,16 @@ def ensure_unicode(s, encoding='ascii'):
 
 def open_tree(directory, ui_mode=False,
     _critical_dialog=QtGui.QMessageBox.critical):
-    """Open working tree at specified directory.
+    """Open working tree with its root at specified directory or above
+    (similar to WorkingTree.open_containing).
     If there is no working tree and ui_mode is True then show GUI dialog
-    with error message and None will be returned. Otherwise NoWorkingTree
-    error will be propagated to caller.
+    with error message and None will be returned. Otherwise errors
+    (NotBranchError or NoWorkingTree) will be propagated to caller.
 
     If directory is None then current directory will be used.
 
     @param _critical_dialog: could be used to provide mock object for testing.
     """
-    # TODO write unit tests with mock object instead _critical_dialog
     if directory is None:
         directory = u'.'
     try:

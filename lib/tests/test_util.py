@@ -19,8 +19,12 @@
 """Tests for QBzr plugin."""
 
 import sys
-from bzrlib.tests import TestCase
+
+from bzrlib import errors
+from bzrlib.tests import TestCase, TestCaseWithTransport
+
 from bzrlib.plugins.qbzr.lib import util
+from bzrlib.plugins.qbzr.lib.tests import mock
 
 
 class TestUtil(TestCase):
@@ -164,3 +168,40 @@ class TestUtil(TestCase):
         self.assertEqual(u'foo', util.ensure_unicode(u'foo'))
         self.assertEqual(u'\u1234', util.ensure_unicode(u'\u1234'))
         self.assertEqual(1, util.ensure_unicode(1))
+
+
+class TestOpenTree(TestCaseWithTransport):
+
+    def test_no_ui_mode(self):
+        mf = mock.MockFunction()
+        self.assertRaises(errors.NotBranchError,
+            util.open_tree, '/non/existent/path', ui_mode=False, _critical_dialog=mf)
+        self.assertEqual(0, mf.count)
+        #
+        self.make_branch('a')
+        self.assertRaises(errors.NoWorkingTree,
+            util.open_tree, 'a', ui_mode=False, _critical_dialog=mf)
+        self.assertEqual(0, mf.count)
+        #
+        self.make_branch_and_tree('b')
+        tree = util.open_tree('b', ui_mode=False, _critical_dialog=mf)
+        self.assertNotEqual(None, tree)
+        self.assertEqual(0, mf.count)
+
+    def test_ui_mode(self):
+        mf = mock.MockFunction()
+        tree = util.open_tree('/non/existent/path', ui_mode=True, _critical_dialog=mf)
+        self.assertEqual(None, tree)
+        self.assertEqual(1, mf.count)
+        #
+        self.make_branch('a')
+        mf = mock.MockFunction()
+        tree = util.open_tree('a', ui_mode=True, _critical_dialog=mf)
+        self.assertEqual(None, tree)
+        self.assertEqual(1, mf.count)
+        #
+        self.make_branch_and_tree('b')
+        mf = mock.MockFunction()
+        tree = util.open_tree('b', ui_mode=False, _critical_dialog=mf)
+        self.assertNotEqual(None, tree)
+        self.assertEqual(0, mf.count)
