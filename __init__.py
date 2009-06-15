@@ -20,7 +20,8 @@
 """QBzr - Qt-based frontend for Bazaar
 
 Provided commands:
-    qannotate, qbrowse, qcat, qcommit, qconfig, qdiff, qlog, qpull, qpush.
+    qannotate, qbrowse, qcat, qcommit, qconfig, qdiff, qlog, qpull, qpush
+    and more, see output of `bzr help commands | grep qbzr` for full list.
 """
 
 from bzrlib import registry
@@ -75,7 +76,7 @@ register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qconfig', ['qconf
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qconflicts', ['qresolve'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qdiff', ['qdi'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetnew', ['qgetn'])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetupdates', ['qgetu'])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetupdates', ['qgetu', 'qgetup'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qhelp', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinfo', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinit', [])
