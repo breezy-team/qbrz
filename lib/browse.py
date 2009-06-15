@@ -99,8 +99,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         return ix
     
     def columnCount(self, parent):
-        if parent.isValid():
-            return 0
         return len(self.horizontalHeaderLabels)
 
     def rowCount(self, parent):
@@ -134,7 +132,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             return QtCore.QModelIndex()
         item_id = self.parent_ids[child_id]
         if item_id == 0 :
-            return self.createIndex(0, 0, item_id)
+            return QtCore.QModelIndex()
         
         parent_id = self.parent_ids[item_id]
         row = self.dir_children_ids[parent_id].index(item_id)

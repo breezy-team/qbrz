@@ -112,8 +112,6 @@ class AnnotateModel(QtCore.QAbstractTableModel):
             self.emit(QtCore.SIGNAL("layoutChanged()"))
     
     def columnCount(self, parent):
-        if parent.isValid():
-            return 0
         return len(self.horizontalHeaderLabels)
 
     def rowCount(self, parent):

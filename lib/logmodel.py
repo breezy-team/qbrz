@@ -174,8 +174,6 @@ class LogModel(QtCore.QAbstractTableModel):
         return len(self.horizontalHeaderLabels)
 
     def rowCount(self, parent):
-        if parent.isValid():
-            return 0
         return len(self.graph_provider.merge_sorted_revisions)
     
     def data(self, index, role):
