@@ -99,12 +99,14 @@ class AnnotateModel(QtCore.QAbstractTableModel):
         self.font = font
         self.annotate = []
         self.revid_indexes = {}
+        self.branch = None
     
-    def set_annotate(self, annotate, revid_indexes):
+    def set_annotate(self, annotate, revid_indexes, branch):
         try:
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
             self.annotate = annotate
             self.revid_indexes = revid_indexes
+            self.branch = branch
             self.now = time.time()
         finally:
             self.emit(QtCore.SIGNAL("layoutChanged()"))
@@ -191,6 +193,9 @@ class AnnotateModel(QtCore.QAbstractTableModel):
                           self.createIndex (row, 0, QtCore.QModelIndex()),
                           self.createIndex (row, 4, QtCore.QModelIndex()))
 
+    def get_repo(self):
+        return self.branch.repository
+
 
 class AnnotateWindow(QBzrWindow):
 
@@ -221,9 +226,6 @@ class AnnotateWindow(QBzrWindow):
         self.model = AnnotateModel(self.get_revno, font)
         self.browser.setModel(self.model)
         self.browser.throbber = self.throbber
-        self.browser.set_rev_tree_model(self.model)
-        self.browser.get_repo = self.browser_get_repo
-        self.browser.on_revisions_loaded = self.browser_on_revisions_loaded
 
         self.browser.setRootIsDecorated(False)
         header = self.browser.header()
@@ -368,7 +370,7 @@ class AnnotateWindow(QBzrWindow):
         header.resizeSection(self.model.TEXT,
                         fm.width("8"*text_max_len) + col_margin)
         
-        self.model.set_annotate(annotate, self.rev_indexes)
+        self.model.set_annotate(annotate, self.rev_indexes, self.branch)
         self.processEvents()
 
         if not self.log_branch_loaded:
@@ -481,8 +483,5 @@ class AnnotateWindow(QBzrWindow):
         finally:
             self.throbber.hide()
 
-    def browser_get_repo(self):
-        return self.branch.repository
-    
     def browser_on_revisions_loaded(self, revisions, last_call):
         self.model.on_revisions_loaded(revisions, last_call)

@@ -28,7 +28,13 @@ RevIdRole = QtCore.Qt.UserRole + 1
 class RevisionTreeView(QtGui.QTreeView):
     """TreeView widget to shows revisions.
     
-    Only revisions that are visible on screen are loaded."""
+    Only revisions that are visible on screen are loaded.
+    
+    The model for this tree view must have the following methods:
+    def on_revisions_loaded(self, revisions, last_call)
+    def get_revid(self, index)
+    def get_repo(self)
+    """
 
     def __init__(self, parent=None):
         QtGui.QTreeView.__init__(self, parent)
@@ -36,11 +42,21 @@ class RevisionTreeView(QtGui.QTreeView):
                      self.scroll_changed)
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
-        self.rev_tree_rev_tree_model = None
+        self._model = None
     
-    def set_rev_tree_model(self, rev_tree_model):
-        self.rev_tree_model = rev_tree_model
-        rev_tree_model.connect(rev_tree_model,
+    def setModel(self, model):
+        QtGui.QTreeView.setModel(self, model)
+        
+        # Keep this in a local var, because .model() is slow.
+        # XXX - Investigate why. 
+        self._model = model
+        
+        if isinstance(model, QtGui.QAbstractProxyModel):
+            # Connecting the below signal has funny results when we connect to
+            # to a ProxyModel, so connect to the source model.
+            model = model.sourceModel()
+            
+        model.connect(model,
             QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
             self.model_data_changed)
     
@@ -54,27 +70,12 @@ class RevisionTreeView(QtGui.QTreeView):
         self.load_visible_revisions()
         QtGui.QTreeView.resizeEvent(self, e)
     
-    def get_repo(self):
-        """Returns a repository to be passed to load_revisions"""
-        raise NotImplementedError()
-    
-    def on_revisions_loaded(self, revisions, last_call):
-        """Called once revisions are availible
-        
-        Typicaly you will want to pass this on to your rev_tree_model so that it can
-        emit a dataChanged signal.
-        """
-        pass
-    
-    def get_row_revid(self, row):
-        """Get the revision id for a row"""
-    
     @runs_in_loading_queue
     def load_visible_revisions(self):
-        rev_tree_model = self.rev_tree_model
+        model = self._model
         top_index = self.indexAt(self.viewport().rect().topLeft()).row()
         bottom_index = self.indexAt(self.viewport().rect().bottomLeft()).row()
-        row_count = rev_tree_model.rowCount(QtCore.QModelIndex())
+        row_count = model.rowCount(QtCore.QModelIndex())
         if top_index == -1:
             #Nothing is visible
             return
@@ -85,7 +86,7 @@ class RevisionTreeView(QtGui.QTreeView):
         bottom_index = min((bottom_index + 2, row_count))
         revids = set()
         for row in xrange(top_index, bottom_index):
-            revids.add(rev_tree_model.get_revid(row))
+            revids.add(model.get_revid(row))
         revids = list(revids)
         
         self.load_revisions_call_count += 1
@@ -107,8 +108,8 @@ class RevisionTreeView(QtGui.QTreeView):
             return False
 
         try:
-            load_revisions(revids, self.get_repo(),
-                           revisions_loaded = self.on_revisions_loaded,
+            load_revisions(revids, model.get_repo(),
+                           revisions_loaded = model.on_revisions_loaded,
                            before_batch_load = before_batch_load)
         finally:
             self.load_revisions_call_count -=1

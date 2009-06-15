@@ -61,11 +61,7 @@ class LogList(RevisionTreeView):
         self.filter_proxy_model.setSourceModel(self.log_model)
         self.filter_proxy_model.setDynamicSortFilter(True)
 
-        # Avoid RevisionTreeView.setModel because we want connect to the
-        # log_model signal, not the filter_proxy_model signal.
-        #self.setModel(self.filter_proxy_model)
         self.setModel(self.filter_proxy_model)
-        self.set_rev_tree_model(self.log_model)
         
         header = self.header()
         header.setStretchLastSection(False)
@@ -347,12 +343,7 @@ class LogList(RevisionTreeView):
 
     def show_context_menu(self, pos):
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
-    
-    def get_repo(self):
-        return self.graph_provider.get_repo_revids
-    
-    def on_revisions_loaded(self, revisions, last_call):
-        self.log_model.on_revisions_loaded(revisions, last_call)
+
     
 class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
 
