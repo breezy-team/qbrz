@@ -46,7 +46,197 @@ from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 
 
-class FileTreeWidget(QtGui.QTreeWidget):
+class TreeModel(QtCore.QAbstractItemModel):
+    #NAME, AUTHOR, REVNO, TEXT = range(4)
+    NAME = 0
+    REVID = QtCore.Qt.UserRole + 1
+    FILEID = QtCore.Qt.UserRole + 2
+    
+    def __init__(self, file_icon, dir_icon, get_revno=None, parent=None):
+        QtCore.QAbstractTableModel.__init__(self, parent)
+        
+        self.horizontalHeaderLabels = [gettext("File Name"),]
+
+        self.get_revno = get_revno
+        self.file_icon = file_icon
+        self.dir_icon = dir_icon
+        self.tree = None
+    
+    def set_tree(self, tree, branch):
+        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+        self.tree = tree
+        self.id2fileid = []
+        self.fileid2id = {}
+        self.dir_children_ids = {}
+        self.parent_ids = []
+        
+        # Create internal ids for all items in the tree for use in
+        # ModelIndex's.
+        root_fileid = tree.path2id('.')
+        self.append_fileid(root_fileid, None)
+        remaining_dirs = [root_fileid,]
+        while remaining_dirs:
+            dir_fileid = remaining_dirs.pop(0)
+            dir_id = self.fileid2id[dir_fileid]
+            dir_children_ids = []
+            for name, child in tree.inventory[dir_fileid].sorted_children():
+                id = self.append_fileid(child.file_id, dir_id)
+                dir_children_ids.append(id)
+                if child.kind == "directory":
+                    remaining_dirs.append(child.file_id)
+                
+                if len(self.id2fileid) % 100 == 0:
+                    QtCore.QCoreApplication.processEvents()
+            self.dir_children_ids[dir_id] = dir_children_ids
+        
+        self.emit(QtCore.SIGNAL("layoutChanged()"))
+    
+    def append_fileid(self, fileid, parent_id):
+        ix = len(self.id2fileid)
+        self.id2fileid.append(fileid)
+        self.parent_ids.append(parent_id)
+        self.fileid2id[fileid] = ix
+        return ix
+    
+    def columnCount(self, parent):
+        if parent.isValid():
+            return 0
+        return len(self.horizontalHeaderLabels)
+
+    def rowCount(self, parent):
+        if self.tree is None:
+            return 0
+        parent_id = parent.internalId()
+        if parent_id not in self.dir_children_ids:
+            return 0
+        return len(self.dir_children_ids[parent_id])
+
+    def _index(self, row, column, parent_id):
+        item_id = self.dir_children_ids[parent_id][row]
+        return self.createIndex(row, column, item_id)
+    
+    def index(self, row, column, parent = QtCore.QModelIndex()):
+        if self.tree is None:
+            return self.createIndex(row, column, 0)
+        parent_id = parent.internalId()
+        return self._index(row, column, parent_id)
+    
+    def sibling(self, row, column, index):
+        sibling_id = child.internalId()
+        if sibling_id == 0:
+            return QtCore.QModelIndex()
+        parent_id = self.parent_ids[child_id]
+        return self._index(row, column, parent_id)
+    
+    def parent(self, child):
+        child_id = child.internalId()
+        if child_id == 0:
+            return QtCore.QModelIndex()
+        item_id = self.parent_ids[child_id]
+        if item_id == 0 :
+            return self.createIndex(0, 0, item_id)
+        
+        parent_id = self.parent_ids[item_id]
+        row = self.dir_children_ids[parent_id].index(item_id)
+        return self.createIndex(row, 0, item_id)
+
+    def hasChildren(self, parent):
+        if self.tree is None:
+            return False
+        
+        parent_id = parent.internalId()
+        return parent_id in self.dir_children_ids
+    
+    def data(self, index, role):
+        if not index.isValid():
+            return QtCore.QVariant()
+        
+        fileid = self.id2fileid[index.internalId()]
+        
+        if role == self.FILEID:
+            return QtCore.QVariant(fileid)
+        
+        item = self.tree.inventory[fileid]
+        
+        if role == self.REVID:
+            return QtCore.QVariant(item.revision)
+        
+        
+        #if revid in cached_revisions:
+        #    rev = cached_revisions[revid]
+        #else:
+        #    rev = None
+
+        column = index.column()
+        if column == self.NAME:
+            if role == QtCore.Qt.DisplayRole:
+                return QtCore.QVariant(item.name)
+            if role == QtCore.Qt.DecorationRole:
+                if item.kind == "file":
+                    return QtCore.QVariant(self.file_icon)
+                if item.kind == "directory":
+                    return QtCore.QVariant(self.dir_icon)
+                # XXX Simlink
+                return QtCore.QVariant()
+        
+        #if column == self.AUTHOR:
+        #    if role == QtCore.Qt.DisplayRole:
+        #        if is_top and rev:
+        #            return QtCore.QVariant(get_apparent_author_name(rev))
+        #
+        #if column == self.REVNO:
+        #    if role == QtCore.Qt.DisplayRole:
+        #        if is_top:
+        #            revno = self.get_revno(revid)
+        #            if revno is None:
+        #                revno = ""
+        #            return QtCore.QVariant(revno)
+        #    if role == QtCore.Qt.TextAlignmentRole:
+        #        return QtCore.QVariant(QtCore.Qt.AlignRight)
+        #
+        #if column == self.TEXT:
+        #    if role == QtCore.Qt.DisplayRole:
+        #        return QtCore.QVariant(text)
+        #    if role == QtCore.Qt.FontRole:
+        #        return QtCore.QVariant(self.font)
+        #
+        #if column == self.TEXT and role == QtCore.Qt.BackgroundRole and rev:
+        #    if self.now < rev.timestamp:
+        #        days = 0
+        #    else:
+        #        days = (self.now - rev.timestamp) / (24 * 60 * 60)
+        #    
+        #    saturation = 0.5/((days/50) + 1)
+        #    hue =  1-float(abs(hash(get_apparent_author_name(rev)))) / sys.maxint 
+        #    return QtCore.QVariant(QtGui.QColor.fromHsvF(hue, saturation, 1 ))
+        
+        return QtCore.QVariant()
+    
+    def get_revid(self, row):
+        return self.annotate[row][0]
+
+    def flags(self, index):
+        if not index.isValid():
+            return QtCore.Qt.ItemIsEnabled
+
+        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+            return QtCore.QVariant(self.horizontalHeaderLabels[section])
+        return QtCore.QVariant()
+    
+    def on_revisions_loaded(self, revisions, last_call):
+        for revid in revisions.iterkeys():
+            for row in self.revid_indexes[revid]:
+                self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                          self.createIndex (row, 0, QtCore.QModelIndex()),
+                          self.createIndex (row, 4, QtCore.QModelIndex()))
+
+    def get_repo(self):
+        return self.branch.repository
+
+class FileTreeWidget(QtGui.QTreeView):
 
     def __init__(self, window, *args):
         QtGui.QTreeWidget.__init__(self, *args)
@@ -101,15 +291,22 @@ class BrowseWindow(QBzrWindow):
         self.connect(self.show_button, QtCore.SIGNAL("clicked()"), self.reload_tree)
         hbox.addWidget(self.show_button, 0)
         vbox.addLayout(hbox)
+        
+        file_icon = self.style().standardIcon(QtGui.QStyle.SP_FileIcon)
+        dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
 
         self.file_tree = FileTreeWidget(self)
-        self.file_tree.setHeaderLabels([
-            gettext("Name"),
-            gettext("Date"),
-            gettext("Author"),
-            gettext("Rev"),
-            gettext("Message"),
-            ])
+        #self.file_tree.setHeaderLabels([
+        #    gettext("Name"),
+        #    gettext("Date"),
+        #    gettext("Author"),
+        #    gettext("Rev"),
+        #    gettext("Message"),
+        #    ])
+
+        self.file_tree_model = TreeModel(file_icon, dir_icon)
+        self.file_tree.setModel(self.file_tree_model)
+        
         header = self.file_tree.header()
         header.setResizeMode(self.NAME, QtGui.QHeaderView.ResizeToContents)
         header.setResizeMode(self.REV, QtGui.QHeaderView.ResizeToContents)
@@ -124,9 +321,6 @@ class BrowseWindow(QBzrWindow):
         self.connect(self.file_tree,
                      QtCore.SIGNAL("doubleClicked(QModelIndex)"),
                      self.show_file_content)
-
-        self.dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
-        self.file_icon = self.style().standardIcon(QtGui.QStyle.SP_FileIcon)
 
         vbox.addWidget(self.file_tree)
 
@@ -263,7 +457,7 @@ class BrowseWindow(QBzrWindow):
         branch = self.branch
         branch.lock_read()
         self.processEvents()
-        revno_map = branch.get_revision_id_to_revno_map()   # XXX make this operation lazy? how?
+        #revno_map = branch.get_revision_id_to_revno_map()   # XXX make this operation lazy? how?
         self.processEvents()
         try:
             if revision_id is None:
@@ -279,33 +473,24 @@ class BrowseWindow(QBzrWindow):
                         "QBzr - " + gettext("Browse"), str(e),
                         QtGui.QMessageBox.Ok)
                     return
-            self.items = []
-            self.file_tree.invisibleRootItem().takeChildren()
             self.revision_id = revision_id
-            tree = branch.repository.revision_tree(revision_id)
+            self.tree = branch.repository.revision_tree(revision_id)
             self.processEvents()
-            root_file_id = tree.path2id('.')
-            if root_file_id is not None:
-                self.start_time = clock()
-                revs = self.load_file_tree(tree.inventory[root_file_id],
-                                           self.file_tree)
-                revs = dict(zip(revs, branch.repository.get_revisions(list(revs))))
-            else:
-                revs = {}
+            self.file_tree_model.set_tree(self.tree, self.branch)
         finally:
             branch.unlock()
         self.revision_edit.setText(text)
-        for item, revision_id in self.items:
-            rev = revs[revision_id]
-            revno = ''
-            rt = revno_map.get(revision_id)
-            if rt:
-                revno = '.'.join(map(str, rt))
-            item.setText(self.REV, revno)
-            item.setText(self.DATE, format_timestamp(rev.timestamp))
-            author = rev.properties.get('author', rev.committer)
-            item.setText(self.AUTHOR, extract_name(author))
-            item.setText(self.MESSAGE, get_summary(rev))
+        #for item, revision_id in self.items:
+        #    rev = revs[revision_id]
+        #    revno = ''
+        #    rt = revno_map.get(revision_id)
+        #    if rt:
+        #        revno = '.'.join(map(str, rt))
+        #    item.setText(self.REV, revno)
+        #    item.setText(self.DATE, format_timestamp(rev.timestamp))
+        #    author = rev.properties.get('author', rev.committer)
+        #    item.setText(self.AUTHOR, extract_name(author))
+        #    item.setText(self.MESSAGE, get_summary(rev))
 
     @ui_current_widget
     def reload_tree(self):
