@@ -1,5 +1,6 @@
 0.12 - in development
 -----------------------
+ * qversion: new command to display Bazaar & Python installation information
  * Universal installer for Windows: one installer for both standalone bzr.exe
    version and for python-based version.
 
