@@ -150,7 +150,10 @@ class AnnotateModel(QtCore.QAbstractTableModel):
         if column == self.REVNO:
             if role == QtCore.Qt.DisplayRole:
                 if is_top:
-                    return QtCore.QVariant(self.get_revno(revid))
+                    revno = self.get_revno(revid)
+                    if revno is None:
+                        revno = ""
+                    return QtCore.QVariant(revno)
             if role == QtCore.Qt.TextAlignmentRole:
                 return QtCore.QVariant(QtCore.Qt.AlignRight)
 
