@@ -59,6 +59,7 @@ class TreeModel(QtCore.QAbstractItemModel):
 
     REVID = QtCore.Qt.UserRole + 1
     FILEID = QtCore.Qt.UserRole + 2
+    PATH = QtCore.Qt.UserRole + 3
     
     def __init__(self, file_icon, dir_icon, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
@@ -227,6 +228,9 @@ class TreeModel(QtCore.QAbstractItemModel):
                 if column == self.DATE:
                     return QtCore.QVariant(strftime("%Y-%m-%d %H:%M",   
                                                     localtime(rev.timestamp)))
+        
+        if role == self.PATH:
+            return QtCore.QVariant(self.tree.inventory.id2path(fileid))
         
         return QtCore.QVariant()
     
@@ -412,70 +416,42 @@ class BrowseWindow(QBzrWindow):
             branch.unlock()
         self.revision_edit.setText(text)
 
-    
-    def get_current_file_id(self):
-        '''Gets the file_id for the currently selected item, or returns
-        the root_file_id if nothing is currently selected.'''
 
-        item = self.file_tree.currentItem()
-        if item == None:
-            file_id = self.root_file_id
-        else:
-            file_id = unicode(item.data(self.NAME, self.FILEID).toString())
-
-        return file_id
-
-    def get_current_path(self):
-        # Get selected item.
-        item = self.file_tree.currentItem()
-        if item == None: return
-
-        # Build full item path.
-        path_parts = [unicode(item.text(0))]
-        parent = item.parent()
-        while parent is not None:
-            path_parts.append(unicode(parent.text(0)))
-            parent = parent.parent()
-        #path_parts.append('.')      # IMO with leading ./ path looks better
-        path_parts.reverse()
-        return pathjoin(*path_parts)
-    
-    @runs_in_loading_queue
     @ui_current_widget
     def show_file_content(self, index=None):
         """Launch qcat for one selected file."""
-        # XXX - We just ignore index - which gets passed to us when the user
-        # dbl clicks on a file. We should be able to pass index to
-        # get_current_path to make this more reusable.
-        path = self.get_current_path()
+        
+        if index is None:
+            index = self.file_tree.currentIndex()
+        path = unicode(index.data(self.file_tree_model.PATH).toString())
 
-        tree = self.branch.repository.revision_tree(self.revision_id)
         encoding = get_set_encoding(None, self.branch)
-        window = QBzrCatWindow(filename = path, tree = tree, parent=self,
-            encoding=encoding)
+        window = QBzrCatWindow(filename = path,
+                               tree = self.tree,
+                               parent=self,
+                               encoding=encoding)
         window.show()
         self.windows.append(window)
 
     @ui_current_widget
     def show_file_log(self):
         """Show qlog for one selected file."""
-        branch = self.branch
         
-        file_id = self.get_current_file_id()
+        index = self.file_tree.currentIndex()
+        file_id = unicode(index.data(self.file_tree_model.FILEID).toString())
 
-        window = LogWindow(None, branch, file_id)
+        window = LogWindow(None, self.branch, file_id)
         window.show()
         self.windows.append(window)
     
     @ui_current_widget
     def show_file_annotate(self):
         """Show qannotate for selected file."""
-        path = self.get_current_path()
+        index = self.file_tree.currentIndex()
+        file_id = unicode(index.data(self.file_tree_model.FILEID).toString())
+        path = unicode(index.data(self.file_tree_model.PATH).toString())
 
-        branch = self.branch
-        tree = self.branch.repository.revision_tree(self.revision_id)
-        file_id = self.get_current_file_id()
-        window = AnnotateWindow(branch, tree, path, file_id)
+        window = AnnotateWindow(self.branch, self.tree, path, file_id)
         window.show()
         self.windows.append(window)
 
