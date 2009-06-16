@@ -38,8 +38,18 @@ class RevisionTreeView(QtGui.QTreeView):
 
     def __init__(self, parent=None):
         QtGui.QTreeView.__init__(self, parent)
-        self.connect(self.verticalScrollBar(), QtCore.SIGNAL("valueChanged (int)"),
+        self.connect(self.verticalScrollBar(),
+                     QtCore.SIGNAL("valueChanged (int)"),
                      self.scroll_changed)
+            
+        self.connect(self,
+                     QtCore.SIGNAL("collapsed (QModelIndex)"),
+                     self.colapsed_expanded)
+        
+        self.connect(self,
+                     QtCore.SIGNAL("expanded (QModelIndex)"),
+                     self.colapsed_expanded)
+        
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
     
@@ -52,13 +62,16 @@ class RevisionTreeView(QtGui.QTreeView):
             model = model.sourceModel()
             
         model.connect(model,
-            QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-            self.model_data_changed)
+                      QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                      self.data_changed)
     
     def scroll_changed(self, value):
         self.load_visible_revisions()
     
-    def model_data_changed(self, start_index, end_index):
+    def data_changed(self, start_index, end_index):
+        self.load_visible_revisions()
+    
+    def colapsed_expanded(self, index):
         self.load_visible_revisions()
     
     def resizeEvent(self, e):
