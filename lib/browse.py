@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from time import (strftime, localtime, clock)
+from time import (strftime, localtime)
 from PyQt4 import QtCore, QtGui
 from bzrlib import (
     osutils,
@@ -32,13 +32,11 @@ from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.log import LogWindow
 from bzrlib.plugins.qbzr.lib.revtreeview import RevisionTreeView
-from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
-                                                         cached_revisions)
+from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     ThrobberWidget,
-    extract_name,
     format_timestamp,
     get_set_encoding,
     runs_in_loading_queue,
@@ -141,10 +139,10 @@ class TreeModel(QtCore.QAbstractItemModel):
         return self._index(row, column, parent_id)
     
     def sibling(self, row, column, index):
-        sibling_id = child.internalId()
+        sibling_id = index.internalId()
         if sibling_id == 0:
             return QtCore.QModelIndex()
-        parent_id = self.parent_ids[child_id]
+        parent_id = self.parent_ids[sibling_id]
         return self._index(row, column, parent_id)
     
     def parent(self, child):
@@ -341,6 +339,7 @@ class BrowseWindow(QBzrWindow):
         self.throbber.show()
         self.processEvents()
         try:
+            self.revno_map = None
             if not self.branch:
                 self.branch, path = Branch.open_containing(self.location) 
             
@@ -359,6 +358,34 @@ class BrowseWindow(QBzrWindow):
             
         finally:
             self.throbber.hide()
+
+    
+    @ui_current_widget
+    def set_revision(self, revspec=None, revision_id=None, text=None):
+        branch = self.branch
+        branch.lock_read()
+        self.processEvents()
+        self.processEvents()
+        try:
+            if revision_id is None:
+                text = revspec.spec or ''
+                if revspec.in_branch == revspec.in_history:
+                    args = [branch]
+                else:
+                    args = [branch, False]
+                
+                revision_id = revspec.in_branch(*args).rev_id
+
+            self.revision_id = revision_id
+            self.tree = branch.repository.revision_tree(revision_id)
+            self.processEvents()
+            self.file_tree_model.set_tree(self.tree, self.branch)
+            if self.revno_map is not None:
+                self.file_tree_model.set_revno_map(self.revno_map)
+        finally:
+            branch.unlock()
+        self.revision_edit.setText(text)
+
     
     def get_current_file_id(self):
         '''Gets the file_id for the currently selected item, or returns
@@ -371,38 +398,6 @@ class BrowseWindow(QBzrWindow):
             file_id = unicode(item.data(self.NAME, self.FILEID).toString())
 
         return file_id
-
-    def load_file_tree(self, entry, parent_item):
-        files, dirs = [], []
-        revs = set()
-        for name, child in entry.sorted_children():
-            revs.add(child.revision)
-            if child.kind == "directory":
-                dirs.append(child)
-            else:
-                files.append(child)
-            
-            current_time = clock()
-            if 0.1 < current_time - self.start_time:
-                self.processEvents()
-                self.start_time = clock()
-            
-        for child in dirs:
-            item = QtGui.QTreeWidgetItem(parent_item)
-            item.setIcon(self.NAME, self.dir_icon)
-            item.setText(self.NAME, child.name)
-            item.setData(self.NAME, self.FILEID,
-                                        QtCore.QVariant(child.file_id))
-            revs.update(self.load_file_tree(child, item))
-            self.items.append((item, child.revision))
-        for child in files:
-            item = QtGui.QTreeWidgetItem(parent_item)
-            item.setIcon(self.NAME, self.file_icon)
-            item.setText(self.NAME, child.name)
-            item.setData(self.NAME, self.FILEID,
-                                        QtCore.QVariant(child.file_id))
-            self.items.append((item, child.revision))
-        return revs
 
     def get_current_path(self):
         # Get selected item.
@@ -457,46 +452,6 @@ class BrowseWindow(QBzrWindow):
         window = AnnotateWindow(branch, tree, path, file_id)
         window.show()
         self.windows.append(window)
-    
-    @ui_current_widget
-    def set_revision(self, revspec=None, revision_id=None, text=None):
-        branch = self.branch
-        branch.lock_read()
-        self.processEvents()
-        #revno_map = branch.get_revision_id_to_revno_map()   # XXX make this operation lazy? how?
-        self.processEvents()
-        try:
-            if revision_id is None:
-                text = revspec.spec or ''
-                if revspec.in_branch == revspec.in_history:
-                    args = [branch]
-                else:
-                    args = [branch, False]
-                try:
-                    revision_id = revspec.in_branch(*args).rev_id
-                except errors.InvalidRevisionSpec, e:
-                    QtGui.QMessageBox.warning(self,
-                        "QBzr - " + gettext("Browse"), str(e),
-                        QtGui.QMessageBox.Ok)
-                    return
-            self.revision_id = revision_id
-            self.tree = branch.repository.revision_tree(revision_id)
-            self.processEvents()
-            self.file_tree_model.set_tree(self.tree, self.branch)
-        finally:
-            branch.unlock()
-        self.revision_edit.setText(text)
-        #for item, revision_id in self.items:
-        #    rev = revs[revision_id]
-        #    revno = ''
-        #    rt = revno_map.get(revision_id)
-        #    if rt:
-        #        revno = '.'.join(map(str, rt))
-        #    item.setText(self.REV, revno)
-        #    item.setText(self.DATE, format_timestamp(rev.timestamp))
-        #    author = rev.properties.get('author', rev.committer)
-        #    item.setText(self.AUTHOR, extract_name(author))
-        #    item.setText(self.MESSAGE, get_summary(rev))
 
     @ui_current_widget
     def reload_tree(self):
