@@ -81,12 +81,15 @@ class TreeModel(QtCore.QAbstractItemModel):
         # ModelIndex's.
         root_fileid = tree.path2id('.')
         self.append_fileid(root_fileid, None)
-        remaining_dirs = [root_fileid,]
+        remaining_dirs = [root_fileid,]        
         while remaining_dirs:
             dir_fileid = remaining_dirs.pop(0)
             dir_id = self.fileid2id[dir_fileid]
             dir_children_ids = []
-            for name, child in tree.inventory[dir_fileid].sorted_children():
+            
+            children = sorted(tree.inventory[dir_fileid].children.itervalues(),
+                              self.inventory_dirs_first_cmp)
+            for child in children:
                 id = self.append_fileid(child.file_id, dir_id)
                 dir_children_ids.append(id)
                 if child.kind == "directory":
@@ -97,6 +100,15 @@ class TreeModel(QtCore.QAbstractItemModel):
             self.dir_children_ids[dir_id] = dir_children_ids
         
         self.emit(QtCore.SIGNAL("layoutChanged()"))
+    
+    def inventory_dirs_first_cmp(self, x, y):
+        x_is_dir = x.kind =="directory"
+        y_is_dir = y.kind =="directory"
+        if x_is_dir and not y_is_dir:
+            return -1
+        if y_is_dir and not x_is_dir:
+            return 1
+        return cmp(x.name, y.name)
     
     def set_revno_map(self, revno_map):
         self.revno_map = revno_map
