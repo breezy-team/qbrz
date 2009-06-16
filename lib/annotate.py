@@ -173,9 +173,6 @@ class AnnotateModel(QtCore.QAbstractTableModel):
         
         return QtCore.QVariant()
     
-    def get_revid(self, row):
-        return self.annotate[row][0]
-
     def flags(self, index):
         if not index.isValid():
             return QtCore.Qt.ItemIsEnabled
@@ -191,8 +188,8 @@ class AnnotateModel(QtCore.QAbstractTableModel):
         for revid in revisions.iterkeys():
             for row in self.revid_indexes[revid]:
                 self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                          self.createIndex (row, 0, QtCore.QModelIndex()),
-                          self.createIndex (row, 4, QtCore.QModelIndex()))
+                          self.index (row, 0, QtCore.QModelIndex()),
+                          self.index (row, 4, QtCore.QModelIndex()))
 
     def get_repo(self):
         return self.branch.repository

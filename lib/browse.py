@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from time import clock
+from time import (strftime, localtime, clock)
 from PyQt4 import QtCore, QtGui
 from bzrlib import (
     osutils,
@@ -31,6 +31,9 @@ from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.log import LogWindow
+from bzrlib.plugins.qbzr.lib.revtreeview import RevisionTreeView
+from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
+                                                         cached_revisions)
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
@@ -41,23 +44,27 @@ from bzrlib.plugins.qbzr.lib.util import (
     runs_in_loading_queue,
     url_for_display,
     get_summary,
+    get_apparent_author_name,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 
 
 class TreeModel(QtCore.QAbstractItemModel):
-    #NAME, AUTHOR, REVNO, TEXT = range(4)
-    NAME = 0
+    
+    HEADER_LABELS = [gettext("File Name"),
+                     gettext("Date"),
+                     gettext("Rev"),
+                     gettext("Message"),
+                     gettext("Author"),]
+    NAME, DATE, REVNO, MESSAGE, AUTHOR = range(len(HEADER_LABELS))
+
     REVID = QtCore.Qt.UserRole + 1
     FILEID = QtCore.Qt.UserRole + 2
     
-    def __init__(self, file_icon, dir_icon, get_revno=None, parent=None):
+    def __init__(self, file_icon, dir_icon, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
-        
-        self.horizontalHeaderLabels = [gettext("File Name"),]
 
-        self.get_revno = get_revno
         self.file_icon = file_icon
         self.dir_icon = dir_icon
         self.tree = None
@@ -65,6 +72,8 @@ class TreeModel(QtCore.QAbstractItemModel):
     def set_tree(self, tree, branch):
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
         self.tree = tree
+        self.branch = branch
+        self.revno_map = None
         self.id2fileid = []
         self.fileid2id = {}
         self.dir_children_ids = {}
@@ -91,6 +100,18 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         self.emit(QtCore.SIGNAL("layoutChanged()"))
     
+    def set_revno_map(self, revno_map):
+        self.revno_map = revno_map
+        inventory = self.tree.inventory
+        for fileid in inventory:
+            id = self.fileid2id[fileid]
+            if id > 0:
+                parent_id = self.parent_ids[id]
+                row = self.dir_children_ids[parent_id].index(id)
+                index = self.createIndex (row, self.REVNO, id)
+                self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                          index,index)        
+    
     def append_fileid(self, fileid, parent_id):
         ix = len(self.id2fileid)
         self.id2fileid.append(fileid)
@@ -99,7 +120,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         return ix
     
     def columnCount(self, parent):
-        return len(self.horizontalHeaderLabels)
+         return len(self.HEADER_LABELS)
 
     def rowCount(self, parent):
         if self.tree is None:
@@ -156,14 +177,9 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         item = self.tree.inventory[fileid]
         
+        revid = item.revision
         if role == self.REVID:
-            return QtCore.QVariant(item.revision)
-        
-        
-        #if revid in cached_revisions:
-        #    rev = cached_revisions[revid]
-        #else:
-        #    rev = None
+            return QtCore.QVariant(revid)
 
         column = index.column()
         if column == self.NAME:
@@ -177,42 +193,33 @@ class TreeModel(QtCore.QAbstractItemModel):
                 # XXX Simlink
                 return QtCore.QVariant()
         
-        #if column == self.AUTHOR:
-        #    if role == QtCore.Qt.DisplayRole:
-        #        if is_top and rev:
-        #            return QtCore.QVariant(get_apparent_author_name(rev))
-        #
-        #if column == self.REVNO:
-        #    if role == QtCore.Qt.DisplayRole:
-        #        if is_top:
-        #            revno = self.get_revno(revid)
-        #            if revno is None:
-        #                revno = ""
-        #            return QtCore.QVariant(revno)
-        #    if role == QtCore.Qt.TextAlignmentRole:
-        #        return QtCore.QVariant(QtCore.Qt.AlignRight)
-        #
-        #if column == self.TEXT:
-        #    if role == QtCore.Qt.DisplayRole:
-        #        return QtCore.QVariant(text)
-        #    if role == QtCore.Qt.FontRole:
-        #        return QtCore.QVariant(self.font)
-        #
-        #if column == self.TEXT and role == QtCore.Qt.BackgroundRole and rev:
-        #    if self.now < rev.timestamp:
-        #        days = 0
-        #    else:
-        #        days = (self.now - rev.timestamp) / (24 * 60 * 60)
-        #    
-        #    saturation = 0.5/((days/50) + 1)
-        #    hue =  1-float(abs(hash(get_apparent_author_name(rev)))) / sys.maxint 
-        #    return QtCore.QVariant(QtGui.QColor.fromHsvF(hue, saturation, 1 ))
+        if column == self.REVNO:
+            if role == QtCore.Qt.DisplayRole:
+                if self.revno_map is not None:
+                    revno_sequence = self.revno_map[revid]
+                    return QtCore.QVariant(
+                        ".".join(["%d" % (revno) for revno in revno_sequence]))
+                else:
+                    return QtCore.QVariant()
+            if role == QtCore.Qt.TextAlignmentRole:
+                return QtCore.QVariant(QtCore.Qt.AlignRight)
+
+        if role == QtCore.Qt.DisplayRole:
+            if revid in cached_revisions:
+                rev = cached_revisions[revid]
+                
+                if column == self.AUTHOR:
+                    return QtCore.QVariant(get_apparent_author_name(rev))
+
+                if column == self.MESSAGE:
+                    return QtCore.QVariant(get_summary(rev))
+        
+                if column == self.DATE:
+                    return QtCore.QVariant(strftime("%Y-%m-%d %H:%M",   
+                                                    localtime(rev.timestamp)))
         
         return QtCore.QVariant()
     
-    def get_revid(self, row):
-        return self.annotate[row][0]
-
     def flags(self, index):
         if not index.isValid():
             return QtCore.Qt.ItemIsEnabled
@@ -221,23 +228,29 @@ class TreeModel(QtCore.QAbstractItemModel):
 
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
-            return QtCore.QVariant(self.horizontalHeaderLabels[section])
+            return QtCore.QVariant(self.HEADER_LABELS[section])
         return QtCore.QVariant()
     
     def on_revisions_loaded(self, revisions, last_call):
-        for revid in revisions.iterkeys():
-            for row in self.revid_indexes[revid]:
-                self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                          self.createIndex (row, 0, QtCore.QModelIndex()),
-                          self.createIndex (row, 4, QtCore.QModelIndex()))
+        inventory = self.tree.inventory
+        for fileid in inventory:
+            revid = inventory[fileid].revision
+            if revid in revisions:
+                id = self.fileid2id[fileid]
+                if id > 0:
+                    parent_id = self.parent_ids[id]
+                    row = self.dir_children_ids[parent_id].index(id)
+                    self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                              self.createIndex (row, self.DATE, id),
+                              self.createIndex (row, self.AUTHOR,id))
 
     def get_repo(self):
         return self.branch.repository
 
-class FileTreeWidget(QtGui.QTreeView):
+class FileTreeWidget(RevisionTreeView):
 
     def __init__(self, window, *args):
-        QtGui.QTreeWidget.__init__(self, *args)
+        RevisionTreeView.__init__(self, *args)
         self.window = window
 
     def contextMenuEvent(self, event):
@@ -246,10 +259,6 @@ class FileTreeWidget(QtGui.QTreeView):
 
 
 class BrowseWindow(QBzrWindow):
-
-    NAME, DATE, AUTHOR, REV, MESSAGE = range(5)     # indices of columns in the window
-
-    FILEID = QtCore.Qt.UserRole + 1
 
     def __init__(self, branch=None, location=None, revision=None,
                  revision_id=None, revision_spec=None, parent=None):
@@ -294,20 +303,13 @@ class BrowseWindow(QBzrWindow):
         dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
 
         self.file_tree = FileTreeWidget(self)
-        #self.file_tree.setHeaderLabels([
-        #    gettext("Name"),
-        #    gettext("Date"),
-        #    gettext("Author"),
-        #    gettext("Rev"),
-        #    gettext("Message"),
-        #    ])
 
         self.file_tree_model = TreeModel(file_icon, dir_icon)
         self.file_tree.setModel(self.file_tree_model)
         
         header = self.file_tree.header()
-        header.setResizeMode(self.NAME, QtGui.QHeaderView.ResizeToContents)
-        header.setResizeMode(self.REV, QtGui.QHeaderView.ResizeToContents)
+        header.setResizeMode(self.file_tree_model.NAME, QtGui.QHeaderView.ResizeToContents)
+        #header.setResizeMode(self.file_tree_model.REVNO, QtGui.QHeaderView.ResizeToContents)
 
         self.context_menu = QtGui.QMenu(self.file_tree)
         self.context_menu.addAction(gettext("Show log..."), self.show_file_log)
@@ -349,6 +351,12 @@ class BrowseWindow(QBzrWindow):
                 self.set_revision(revision_id=self.revision_id, text=self.revision_spec)
             else:
                 self.set_revision(self.revision)
+            
+            self.processEvents()
+            # XXX make this operation lazy? how?
+            self.revno_map = self.branch.get_revision_id_to_revno_map()
+            self.file_tree_model.set_revno_map(self.revno_map)
+            
         finally:
             self.throbber.hide()
     

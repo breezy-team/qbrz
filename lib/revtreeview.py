@@ -42,14 +42,9 @@ class RevisionTreeView(QtGui.QTreeView):
                      self.scroll_changed)
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
-        self._model = None
     
     def setModel(self, model):
         QtGui.QTreeView.setModel(self, model)
-        
-        # Keep this in a local var, because .model() is slow.
-        # XXX - Investigate why. 
-        self._model = model
         
         if isinstance(model, QtGui.QAbstractProxyModel):
             # Connecting the below signal has funny results when we connect to
@@ -72,21 +67,26 @@ class RevisionTreeView(QtGui.QTreeView):
     
     @runs_in_loading_queue
     def load_visible_revisions(self):
-        model = self._model
-        top_index = self.indexAt(self.viewport().rect().topLeft()).row()
-        bottom_index = self.indexAt(self.viewport().rect().bottomLeft()).row()
-        row_count = model.rowCount(QtCore.QModelIndex())
-        if top_index == -1:
-            #Nothing is visible
+        model = self.model()
+        
+        index = self.indexAt(self.viewport().rect().topLeft())
+        if not index.isValid():
             return
-        if bottom_index == -1:
-            bottom_index = row_count
-        # The + 2 is so that the rev that is off screen due to the throbber
-        # is loaded.
-        bottom_index = min((bottom_index + 2, row_count))
+        
+        #if self.throbber is not None:
+        #    throbber_height = self.throbber.   etc...        
+        bottom_index = self.indexAt(self.viewport().rect().bottomLeft()) # + throbber_height
+        
         revids = set()
-        for row in xrange(top_index, bottom_index):
-            revids.add(model.get_revid(row))
+        while True:
+            revid = unicode(index.data(RevIdRole).toString())
+            revids.add(revid)
+            if index == bottom_index:
+                break
+            index = self.indexBelow(index)
+            if not index.isValid():
+                break
+        
         revids = list(revids)
         
         self.load_revisions_call_count += 1
