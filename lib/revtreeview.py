@@ -38,18 +38,23 @@ class RevisionTreeView(QtGui.QTreeView):
 
     def __init__(self, parent=None):
         QtGui.QTreeView.__init__(self, parent)
-        self.connect(self.verticalScrollBar(), QtCore.SIGNAL("valueChanged (int)"),
+        self.connect(self.verticalScrollBar(),
+                     QtCore.SIGNAL("valueChanged (int)"),
                      self.scroll_changed)
+            
+        self.connect(self,
+                     QtCore.SIGNAL("collapsed (QModelIndex)"),
+                     self.colapsed_expanded)
+        
+        self.connect(self,
+                     QtCore.SIGNAL("expanded (QModelIndex)"),
+                     self.colapsed_expanded)
+        
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
-        self._model = None
     
     def setModel(self, model):
         QtGui.QTreeView.setModel(self, model)
-        
-        # Keep this in a local var, because .model() is slow.
-        # XXX - Investigate why. 
-        self._model = model
         
         if isinstance(model, QtGui.QAbstractProxyModel):
             # Connecting the below signal has funny results when we connect to
@@ -57,13 +62,16 @@ class RevisionTreeView(QtGui.QTreeView):
             model = model.sourceModel()
             
         model.connect(model,
-            QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-            self.model_data_changed)
+                      QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                      self.data_changed)
     
     def scroll_changed(self, value):
         self.load_visible_revisions()
     
-    def model_data_changed(self, start_index, end_index):
+    def data_changed(self, start_index, end_index):
+        self.load_visible_revisions()
+    
+    def colapsed_expanded(self, index):
         self.load_visible_revisions()
     
     def resizeEvent(self, e):
@@ -72,21 +80,27 @@ class RevisionTreeView(QtGui.QTreeView):
     
     @runs_in_loading_queue
     def load_visible_revisions(self):
-        model = self._model
-        top_index = self.indexAt(self.viewport().rect().topLeft()).row()
-        bottom_index = self.indexAt(self.viewport().rect().bottomLeft()).row()
-        row_count = model.rowCount(QtCore.QModelIndex())
-        if top_index == -1:
-            #Nothing is visible
+        model = self.model()
+        
+        index = self.indexAt(self.viewport().rect().topLeft())
+        if not index.isValid():
             return
-        if bottom_index == -1:
-            bottom_index = row_count
-        # The + 2 is so that the rev that is off screen due to the throbber
-        # is loaded.
-        bottom_index = min((bottom_index + 2, row_count))
+        
+        #if self.throbber is not None:
+        #    throbber_height = self.throbber.   etc...        
+        bottom_index = self.indexAt(self.viewport().rect().bottomLeft()) # + throbber_height
+        
         revids = set()
-        for row in xrange(top_index, bottom_index):
-            revids.add(model.get_revid(row))
+        while True:
+            revid = index.data(RevIdRole)
+            if not revid.isNull():
+                revids.add(unicode(revid.toString()))
+            if index == bottom_index:
+                break
+            index = self.indexBelow(index)
+            if not index.isValid():
+                break
+        
         revids = list(revids)
         
         self.load_revisions_call_count += 1
@@ -127,3 +141,52 @@ class RevisionTreeView(QtGui.QTreeView):
         QtCore.QTimer.singleShot(timeout, null)
         QtCore.QCoreApplication.processEvents(
                             QtCore.QEventLoop.WaitForMoreEvents)
+
+class RevNoItemDelegate(QtGui.QItemDelegate):
+    BORDER = 1
+    
+    def __init__ (self, max_mainline_digits = 4, parent = None):    
+        QtGui.QItemDelegate.__init__ (self, parent)
+        self.max_mainline_digits = max_mainline_digits
+    
+    def drawDisplay(self, painter, option, rect, text):
+        painter.save()
+        try:
+            if option.state & QtGui.QStyle.State_Selected:
+                fill = QtCore.QRect(rect.x() - self.BORDER,
+                                    rect.y() - self.BORDER,
+                                    rect.width() + self.BORDER * 2,
+                                    rect.height() + self.BORDER * 2)
+                painter.fillRect(fill, option.palette.highlight())
+                painter.setBrush(option.palette.highlightedText())
+            else :
+                painter.setBrush(option.palette.text())
+            
+            painter.setFont(option.font);
+            
+            mainline, dot, therest = str(text).partition(".")
+            therest = dot + therest
+            
+            fm = painter.fontMetrics()
+            mainline_width = fm.width("8"*self.max_mainline_digits)
+            therest_width = fm.width(therest)
+            
+            if mainline_width + therest_width > rect.width():
+                if fm.width(text) > rect.width():
+                    text = QtGui.QAbstractItemDelegate.elidedText(
+                        fm, rect.width(), QtCore.Qt.ElideRight, text)
+                painter.drawText(rect, QtCore.Qt.AlignRight, text);
+            else:
+                mainline_rect = QtCore.QRect(rect.x(),
+                                             rect.y(),
+                                             mainline_width,
+                                             rect.height())
+                therest_rect = QtCore.QRect(rect.x() + mainline_width,
+                                            rect.y(),
+                                            rect.width() - mainline_width,
+                                            rect.height())
+                painter.drawText(mainline_rect, QtCore.Qt.AlignRight, mainline)
+                painter.drawText(therest_rect, QtCore.Qt.AlignLeft, therest)
+        finally:
+            painter.restore()
+

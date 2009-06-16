@@ -174,8 +174,6 @@ class LogModel(QtCore.QAbstractTableModel):
         return len(self.horizontalHeaderLabels)
 
     def rowCount(self, parent):
-        if parent.isValid():
-            return 0
         return len(self.graph_provider.merge_sorted_revisions)
     
     def data(self, index, role):
@@ -291,9 +289,9 @@ class LogModel(QtCore.QAbstractTableModel):
     def indexFromRevId(self, revid, columns=None):
         msri = self.graph_provider.revid_msri[revid]
         if columns:
-            return [self.createIndex (msri, column, QtCore.QModelIndex())\
+            return [self.index (msri, column, QtCore.QModelIndex())\
                     for column in columns]
-        return self.createIndex (msri, 0, QtCore.QModelIndex())
+        return self.index (msri, 0, QtCore.QModelIndex())
 
     def on_revisions_loaded(self, revisions, last_call):
         for revid in revisions.iterkeys():
@@ -318,7 +316,3 @@ class LogFilterProxyModel(QtGui.QSortFilterProxyModel):
     
     def get_repo(self):
         return self.graph_provider.get_repo_revids
-    
-    def get_revid(self, row):
-        msri = self.graph_provider.graph_line_data[row][0]
-        return self.graph_provider.merge_sorted_revisions[msri][1]

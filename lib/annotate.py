@@ -43,7 +43,8 @@ from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.plugins.qbzr.lib.logmodel import COL_DATE, RevIdRole
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
                                                          cached_revisions)
-from bzrlib.plugins.qbzr.lib.revtreeview import RevisionTreeView
+from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
+                                                 RevNoItemDelegate)
 from bzrlib.revisiontree import RevisionTree
 
 have_pygments = True
@@ -112,8 +113,6 @@ class AnnotateModel(QtCore.QAbstractTableModel):
             self.emit(QtCore.SIGNAL("layoutChanged()"))
     
     def columnCount(self, parent):
-        if parent.isValid():
-            return 0
         return len(self.horizontalHeaderLabels)
 
     def rowCount(self, parent):
@@ -154,8 +153,6 @@ class AnnotateModel(QtCore.QAbstractTableModel):
                     if revno is None:
                         revno = ""
                     return QtCore.QVariant(revno)
-            if role == QtCore.Qt.TextAlignmentRole:
-                return QtCore.QVariant(QtCore.Qt.AlignRight)
 
         if column == self.TEXT:
             if role == QtCore.Qt.DisplayRole:
@@ -175,9 +172,6 @@ class AnnotateModel(QtCore.QAbstractTableModel):
         
         return QtCore.QVariant()
     
-    def get_revid(self, row):
-        return self.annotate[row][0]
-
     def flags(self, index):
         if not index.isValid():
             return QtCore.Qt.ItemIsEnabled
@@ -193,8 +187,8 @@ class AnnotateModel(QtCore.QAbstractTableModel):
         for revid in revisions.iterkeys():
             for row in self.revid_indexes[revid]:
                 self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                          self.createIndex (row, 0, QtCore.QModelIndex()),
-                          self.createIndex (row, 4, QtCore.QModelIndex()))
+                          self.index (row, 0, QtCore.QModelIndex()),
+                          self.index (row, 4, QtCore.QModelIndex()))
 
     def get_repo(self):
         return self.branch.repository
@@ -231,6 +225,9 @@ class AnnotateWindow(QBzrWindow):
         self.browser.throbber = self.throbber
 
         self.browser.setRootIsDecorated(False)
+
+        self.browser.setItemDelegateForColumn(self.model.REVNO,
+                                              RevNoItemDelegate(parent=self))
         header = self.browser.header()
         fm = self.fontMetrics()
         # XXX Make this dynamic.

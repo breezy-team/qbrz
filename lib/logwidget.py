@@ -20,7 +20,8 @@
 from PyQt4 import QtCore, QtGui, Qt
 
 from bzrlib.bzrdir import BzrDir
-from bzrlib.plugins.qbzr.lib.revtreeview import RevisionTreeView
+from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
+                                                 RevNoItemDelegate)
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.trace import *
 from bzrlib.plugins.qbzr.lib.util import (
@@ -46,8 +47,9 @@ class LogList(RevisionTreeView):
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
 
         self.setItemDelegateForColumn(logmodel.COL_MESSAGE,
-                                        GraphTagsBugsItemDelegate(self))
-
+                                      GraphTagsBugsItemDelegate(self))
+        self.setItemDelegateForColumn(logmodel.COL_REV,
+                                      RevNoItemDelegate(parent=self))
         self.processEvents = processEvents
         self.throbber = throbber
 
