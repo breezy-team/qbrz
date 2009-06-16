@@ -92,8 +92,9 @@ class RevisionTreeView(QtGui.QTreeView):
         
         revids = set()
         while True:
-            revid = unicode(index.data(RevIdRole).toString())
-            revids.add(revid)
+            revid = index.data(RevIdRole)
+            if not revid.isNull():
+                revids.add(unicode(revid.toString()))
             if index == bottom_index:
                 break
             index = self.indexBelow(index)
