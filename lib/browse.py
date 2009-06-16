@@ -307,8 +307,21 @@ class BrowseWindow(QBzrWindow):
         self.file_tree.setModel(self.file_tree_model)
         
         header = self.file_tree.header()
+        header.setStretchLastSection(False)
         header.setResizeMode(self.file_tree_model.NAME, QtGui.QHeaderView.ResizeToContents)
-        #header.setResizeMode(self.file_tree_model.REVNO, QtGui.QHeaderView.ResizeToContents)
+        header.setResizeMode(self.file_tree_model.DATE, QtGui.QHeaderView.Interactive)
+        header.setResizeMode(self.file_tree_model.REVNO, QtGui.QHeaderView.Interactive)
+        header.setResizeMode(self.file_tree_model.MESSAGE, QtGui.QHeaderView.Stretch)
+        header.setResizeMode(self.file_tree_model.AUTHOR, QtGui.QHeaderView.Interactive)
+        fm = self.fontMetrics()
+        # XXX Make this dynamic.
+        col_margin = 6
+        header.resizeSection(self.file_tree_model.REVNO,
+                             fm.width("8888.8.888") + col_margin)
+        header.resizeSection(self.file_tree_model.DATE,
+                             fm.width("88-88-8888 88:88") + col_margin)
+        header.resizeSection(self.file_tree_model.AUTHOR,
+                             fm.width("Joe I have a Long Name") + col_margin)
 
         self.context_menu = QtGui.QMenu(self.file_tree)
         self.context_menu.addAction(gettext("Show log..."), self.show_file_log)
