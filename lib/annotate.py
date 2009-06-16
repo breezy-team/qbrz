@@ -43,7 +43,8 @@ from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.plugins.qbzr.lib.logmodel import COL_DATE, RevIdRole
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
                                                          cached_revisions)
-from bzrlib.plugins.qbzr.lib.revtreeview import RevisionTreeView
+from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
+                                                 RevNoItemDelegate)
 from bzrlib.revisiontree import RevisionTree
 
 have_pygments = True
@@ -152,8 +153,6 @@ class AnnotateModel(QtCore.QAbstractTableModel):
                     if revno is None:
                         revno = ""
                     return QtCore.QVariant(revno)
-            if role == QtCore.Qt.TextAlignmentRole:
-                return QtCore.QVariant(QtCore.Qt.AlignRight)
 
         if column == self.TEXT:
             if role == QtCore.Qt.DisplayRole:
@@ -226,6 +225,9 @@ class AnnotateWindow(QBzrWindow):
         self.browser.throbber = self.throbber
 
         self.browser.setRootIsDecorated(False)
+
+        self.browser.setItemDelegateForColumn(self.model.REVNO,
+                                              RevNoItemDelegate(parent=self))
         header = self.browser.header()
         fm = self.fontMetrics()
         # XXX Make this dynamic.

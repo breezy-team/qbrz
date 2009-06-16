@@ -31,7 +31,10 @@ from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.log import LogWindow
-from bzrlib.plugins.qbzr.lib.revtreeview import RevisionTreeView
+from bzrlib.plugins.qbzr.lib.revtreeview import (
+    RevisionTreeView,
+    RevNoItemDelegate,
+    )
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
@@ -212,8 +215,6 @@ class TreeModel(QtCore.QAbstractItemModel):
                         ".".join(["%d" % (revno) for revno in revno_sequence]))
                 else:
                     return QtCore.QVariant()
-            if role == QtCore.Qt.TextAlignmentRole:
-                return QtCore.QVariant(QtCore.Qt.AlignRight)
 
         if role == QtCore.Qt.DisplayRole:
             if revid in cached_revisions:
@@ -321,7 +322,9 @@ class BrowseWindow(QBzrWindow):
 
         self.file_tree_model = TreeModel(file_icon, dir_icon)
         self.file_tree.setModel(self.file_tree_model)
-        
+
+        self.file_tree.setItemDelegateForColumn(self.file_tree_model.REVNO,
+                                                RevNoItemDelegate(parent=self))
         header = self.file_tree.header()
         header.setStretchLastSection(False)
         header.setResizeMode(self.file_tree_model.NAME, QtGui.QHeaderView.ResizeToContents)
