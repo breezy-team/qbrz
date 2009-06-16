@@ -301,6 +301,7 @@ class BrowseWindow(QBzrWindow):
         dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
 
         self.file_tree = FileTreeWidget(self)
+        self.file_tree.throbber = self.throbber
 
         self.file_tree_model = TreeModel(file_icon, dir_icon)
         self.file_tree.setModel(self.file_tree_model)
