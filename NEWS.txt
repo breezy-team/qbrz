@@ -1,5 +1,6 @@
 0.12 - in development
 -----------------------
+ * qmerge: revision no more ignored.
  * qupdate: new command as simple front-end for stadard `bzr update`
  * qversion: new command to display Bazaar & Python installation information
  * Universal installer for Windows: one installer for both standalone bzr.exe

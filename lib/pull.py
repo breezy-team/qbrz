@@ -239,6 +239,9 @@ class QBzrMergeWindow(SubProcessDialog):
         args = ['--directory', dest]
         if self.ui.remember.isChecked():
             args.append('--remember')
-        location = str(self.ui.location.currentText())
+        rev = unicode(self.ui.revision.text()).strip()
+        if rev:
+            args.extend(['--revision', rev])
+        location = unicode(self.ui.location.currentText())
         self.process_widget.start(None, 'merge', location, *args)
         save_pull_location(None, location)
