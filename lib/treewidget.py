@@ -81,26 +81,30 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.unver_by_parent = {}
 
         if isinstance(self.tree, WorkingTree):
-            for change in self.tree.iter_changes(self.tree.basis_tree(),
-                                               want_unversioned=True):
-                change = ChangeDesc(change)
-                path = change.path()
-                is_ignored = self.tree.is_ignored(path)
-                change = ChangeDesc(change+(is_ignored,))
-                
-                if change.fileid() is not None:
-                    self.changes[change.fileid()] = change
-                else:
-                    (dir_path, slash, name) = path.rpartition('/')
-                    dir_fileid = self.tree.path2id(dir_path)
+            tree.lock_read()
+            try:
+                for change in self.tree.iter_changes(self.tree.basis_tree(),
+                                                   want_unversioned=True):
+                    change = ChangeDesc(change)
+                    path = change.path()
+                    is_ignored = self.tree.is_ignored(path)
+                    change = ChangeDesc(change+(is_ignored,))
                     
-                    if dir_fileid not in self.unver_by_parent:
-                        self.unver_by_parent[dir_fileid] = []
-                    self.unver_by_parent[dir_fileid].append((
-                                    UnversionedItem(name, path, change.kind()),
-                                    change))
-            
-            self.process_inventory(self.working_tree_get_children)
+                    if change.fileid() is not None:
+                        self.changes[change.fileid()] = change
+                    else:
+                        (dir_path, slash, name) = path.rpartition('/')
+                        dir_fileid = self.tree.path2id(dir_path)
+                        
+                        if dir_fileid not in self.unver_by_parent:
+                            self.unver_by_parent[dir_fileid] = []
+                        self.unver_by_parent[dir_fileid].append((
+                                        UnversionedItem(name, path, change.kind()),
+                                        change))
+                
+                self.process_inventory(self.working_tree_get_children)
+            finally:
+                tree.unlock()
         else:
             self.process_inventory(self.get_children)
     
@@ -110,7 +114,11 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def working_tree_get_children(self, item):
         if item.children is not None:
+            #Because we create copies, we have to get the real item.
+            item = self.tree.inventory[item.file_id]
             for child in item.children.itervalues():
+                # Create a copy so that we don't have to hold a lock of the wt.
+                child = child.copy()
                 if child.file_id in self.changes:
                     change = self.changes[child.file_id]
                 else:
@@ -168,7 +176,6 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def set_revno_map(self, revno_map):
         self.revno_map = revno_map
-        inventory = self.tree.inventory
         for id in xrange(1, len(self.inventory_items)):
             parent_id = self.parent_ids[id]
             row = self.dir_children_ids[parent_id].index(id)
@@ -473,21 +480,13 @@ class TreeWidget(RevisionTreeView):
         self.branch = None        
     
     def set_tree(self, tree, branch):
-        if isinstance(self.tree, WorkingTree):
-            self.tree.unlock()
         self.tree = tree
         self.branch = branch
-        if isinstance(self.tree, WorkingTree):
-            self.tree.lock_read()
         self.tree_model.set_tree(self.tree, self.branch)
 
     def contextMenuEvent(self, event):
         self.context_menu.popup(event.globalPos())
         event.accept()
-    
-    def closeEvent(self, event):
-        if isinstance(self.tree, WorkingTree):
-            self.tree.unlock()        
     
     @ui_current_widget
     def show_file_content(self, index=None):
