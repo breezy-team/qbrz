@@ -313,6 +313,59 @@ class TreeModel(QtCore.QAbstractItemModel):
     def get_repo(self):
         return self.branch.repository
 
+class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
+    source_model = None
+    
+    filters = [True, True, True, False]
+    (UNCHANGED, CHANGED, UNVERSIONED, IGNORED) = range(4)
+    
+    def setSourceModel (self, source_model):
+        self.source_model = source_model
+        QtGui.QSortFilterProxyModel.setSourceModel(self, source_model)
+    
+    def setFilter(filter, value):
+        self.filters[filter] = value
+        self.invalidateFilter()
+    
+    def setFilters(filters):
+        def iff(b, x, y):
+            if b:
+                return x
+            else:
+                return Y
+        self.filters = [iff(f is not None, f, old_f)
+                        for f, old_f in zip(filters, self.filters)]
+        self.invalidateFilter()
+
+    def filterAcceptsRow(self, source_row, source_parent):
+        if all(self.filters):
+            return True
+        (unchanged, changed, unversioned, ignored) = self.filters
+        
+        model = self.source_model
+        parent_id = source_parent.internalId()
+        id = model.dir_children_ids[parent_id][source_row]
+        item, change = model.inventory_items[id]
+        
+        if change is None and unchanged: return True
+        
+        is_versioned = not isinstance(item, UnversionedItem)
+        
+        if is_versioned and change is not None and changed: return True
+        
+        if not is_versioned and unversioned:
+            is_ignored = change.is_ignored()
+            if not is_ignored: return True
+            if is_ignored and ignored: return True
+        
+        return False
+    
+    def on_revisions_loaded(self, revisions, last_call):
+        self.source_model.on_revisions_loaded(revisions, last_call)
+    
+    def get_repo(self):
+        return self.source_model.get_repo()
+
 class TreeWidget(RevisionTreeView):
 
     def __init__(self, *args):
@@ -322,7 +375,9 @@ class TreeWidget(RevisionTreeView):
         dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
         
         self.tree_model = TreeModel(file_icon, dir_icon)
-        self.setModel(self.tree_model)
+        self.tree_filter_model = TreeFilterProxyModel()
+        self.tree_filter_model.setSourceModel(self.tree_model)
+        self.setModel(self.tree_filter_model)
 
         self.setItemDelegateForColumn(self.tree_model.REVNO,
                                       RevNoItemDelegate(parent=self))
