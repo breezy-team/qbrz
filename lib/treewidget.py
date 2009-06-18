@@ -62,34 +62,38 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.tree = tree
         self.branch = branch
         self.revno_map = None
-        self.id2fileid = []
-        self.fileid2id = {}
+        self.inventory_items = []
         self.dir_children_ids = {}
         self.parent_ids = []
         
         # Create internal ids for all items in the tree for use in
         # ModelIndex's.
-        root_fileid = tree.path2id('.')
-        self.append_fileid(root_fileid, None)
-        remaining_dirs = [root_fileid,]        
+        root_item = tree.inventory[tree.path2id('.')]
+        root_id = self.append_item(root_item, None)
+        remaining_dirs = [(root_item, root_id)]
         while remaining_dirs:
-            dir_fileid = remaining_dirs.pop(0)
-            dir_id = self.fileid2id[dir_fileid]
+            (dir_item, dir_id) = remaining_dirs.pop(0)
             dir_children_ids = []
             
-            children = sorted(tree.inventory[dir_fileid].children.itervalues(),
+            children = sorted(dir_item.children.itervalues(),
                               self.inventory_dirs_first_cmp)
             for child in children:
-                id = self.append_fileid(child.file_id, dir_id)
-                dir_children_ids.append(id)
+                child_id = self.append_item(child, dir_id)
+                dir_children_ids.append(child_id)
                 if child.kind == "directory":
-                    remaining_dirs.append(child.file_id)
+                    remaining_dirs.append((child, child_id))
                 
-                if len(self.id2fileid) % 100 == 0:
+                if len(self.inventory_items) % 100 == 0:
                     QtCore.QCoreApplication.processEvents()
             self.dir_children_ids[dir_id] = dir_children_ids
         
         self.emit(QtCore.SIGNAL("layoutChanged()"))
+    
+    def append_item(self, item, parent_id):
+        id = len(self.inventory_items)
+        self.inventory_items.append(item)
+        self.parent_ids.append(parent_id)
+        return id
     
     def inventory_dirs_first_cmp(self, x, y):
         x_is_dir = x.kind =="directory"
@@ -103,21 +107,12 @@ class TreeModel(QtCore.QAbstractItemModel):
     def set_revno_map(self, revno_map):
         self.revno_map = revno_map
         inventory = self.tree.inventory
-        for fileid in inventory:
-            id = self.fileid2id[fileid]
-            if id > 0:
-                parent_id = self.parent_ids[id]
-                row = self.dir_children_ids[parent_id].index(id)
-                index = self.createIndex (row, self.REVNO, id)
-                self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                          index,index)        
-    
-    def append_fileid(self, fileid, parent_id):
-        ix = len(self.id2fileid)
-        self.id2fileid.append(fileid)
-        self.parent_ids.append(parent_id)
-        self.fileid2id[fileid] = ix
-        return ix
+        for id in xrange(1, len(self.inventory_items)):
+            parent_id = self.parent_ids[id]
+            row = self.dir_children_ids[parent_id].index(id)
+            index = self.createIndex (row, self.REVNO, id)
+            self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                      index,index)        
     
     def columnCount(self, parent):
          return len(self.HEADER_LABELS)
@@ -170,12 +165,10 @@ class TreeModel(QtCore.QAbstractItemModel):
         if not index.isValid():
             return QtCore.QVariant()
         
-        fileid = self.id2fileid[index.internalId()]
+        item = self.inventory_items[index.internalId()]
         
         if role == self.FILEID:
-            return QtCore.QVariant(fileid)
-        
-        item = self.tree.inventory[fileid]
+            return QtCore.QVariant(item.fileid)
         
         revid = item.revision
         if role == self.REVID:
@@ -234,16 +227,16 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def on_revisions_loaded(self, revisions, last_call):
         inventory = self.tree.inventory
-        for fileid in inventory:
-            revid = inventory[fileid].revision
-            if revid in revisions:
-                id = self.fileid2id[fileid]
-                if id > 0:
-                    parent_id = self.parent_ids[id]
-                    row = self.dir_children_ids[parent_id].index(id)
-                    self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                              self.createIndex (row, self.DATE, id),
-                              self.createIndex (row, self.AUTHOR,id))
+        for id, item in enumerate(self.inventory_items):
+            if id == 0:
+                continue
+            
+            if item.revision in revisions:
+                parent_id = self.parent_ids[id]
+                row = self.dir_children_ids[parent_id].index(id)
+                self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                          self.createIndex (row, self.DATE, id),
+                          self.createIndex (row, self.AUTHOR,id))
 
     def get_repo(self):
         return self.branch.repository
