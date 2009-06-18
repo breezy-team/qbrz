@@ -386,7 +386,50 @@ class ChangeDesc(tuple):
         return (desc[3] == (False, True) and desc[6][1] is None)
     
     def is_ignored(desc):
-        return desc[8]
+        if len(desc) >= 8: 
+            return desc[8]
+        else:
+            return None
+    
+    def status(desc):
+        if len(desc) == 8:
+            (file_id, (path_in_source, path_in_target),
+             changed_content, versioned, parent, name, kind,
+             executable) = desc
+            is_ignored = None
+        elif len(desc) == 9:
+            (file_id, (path_in_source, path_in_target),
+             changed_content, versioned, parent, name, kind,
+             executable, is_ignored) = desc
+        else:
+            raise RuntimeError, "Unkown number of items to unpack."
+            
+        if versioned == (False, False):
+            if is_ignored:
+                return gettext("ignored")
+            else:
+                return gettext("non-versioned")
+        elif versioned == (False, True):
+            return gettext("added")
+        elif versioned == (True, False):
+            return gettext("removed")
+        elif kind[0] is not None and kind[1] is None:
+            return gettext("missing")
+        else:
+            # versioned = True, True - so either renamed or modified
+            # or properties changed (x-bit).
+            renamed = (parent[0], name[0]) != (parent[1], name[1])
+            if renamed:
+                if changed_content:
+                    return gettext("renamed and modified")
+                else:
+                    return gettext("renamed")
+            elif changed_content:
+                return gettext("modified")
+            elif executable[0] != executable[1]:
+                return gettext("modified (x-bit)")
+            else:
+                raise RuntimeError, "what status am I missing??"
 
 
 def closure_in_selected_list(selected_list):

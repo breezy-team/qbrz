@@ -56,8 +56,9 @@ class TreeModel(QtCore.QAbstractItemModel):
                      gettext("Date"),
                      gettext("Rev"),
                      gettext("Message"),
-                     gettext("Author"),]
-    NAME, DATE, REVNO, MESSAGE, AUTHOR = range(len(HEADER_LABELS))
+                     gettext("Author"),
+                     gettext("Status")]
+    NAME, DATE, REVNO, MESSAGE, AUTHOR, STATUS = range(len(HEADER_LABELS))
 
     REVID = QtCore.Qt.UserRole + 1
     FILEID = QtCore.Qt.UserRole + 2
@@ -75,12 +76,11 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.tree = tree
         self.branch = branch
         self.revno_map = None
-        self.inventory = tree.inventory
         
         self.changes = {}
         self.unver_by_parent = {}
 
-        if isinstance(self.tree, WorkingTree):        
+        if isinstance(self.tree, WorkingTree):
             for change in self.tree.iter_changes(self.tree.basis_tree(),
                                                want_unversioned=True):
                 change = ChangeDesc(change)
@@ -96,20 +96,29 @@ class TreeModel(QtCore.QAbstractItemModel):
                     
                     if dir_fileid not in self.unver_by_parent:
                         self.unver_by_parent[dir_fileid] = []
-                    self.unver_by_parent[dir_fileid].append(
-                                    UnversionedItem(name, path, change.kind()))
+                    self.unver_by_parent[dir_fileid].append((
+                                    UnversionedItem(name, path, change.kind()),
+                                    change))
             
             self.process_inventory(self.working_tree_get_children)
         else:
-            self.process_inventory(lambda i: i.children.itervalues())
+            self.process_inventory(self.get_children)
+    
+    def get_children(self, item):
+        for child in item.children.itervalues():
+            yield (child, None)
     
     def working_tree_get_children(self, item):
         if item.children is not None:
             for child in item.children.itervalues():
-                yield child
+                if child.file_id in self.changes:
+                    change = self.changes[child.file_id]
+                else:
+                    change = None
+                yield (child, change)
         if item.file_id in self.unver_by_parent:
-            for child in self.unver_by_parent[item.file_id]:
-                yield child
+            for (child, change) in self.unver_by_parent[item.file_id]:
+                yield (child, change)
     
     def process_inventory(self, get_children):
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
@@ -121,16 +130,17 @@ class TreeModel(QtCore.QAbstractItemModel):
             # Create internal ids for all items in the tree for use in
             # ModelIndex's.
             root_item = self.tree.inventory[self.tree.get_root_id()]
-            root_id = self.append_item(root_item, None)
+            root_id = self.append_item(root_item, None, None)
             remaining_dirs = [(root_item, root_id)]
             while remaining_dirs:
                 (dir_item, dir_id) = remaining_dirs.pop(0)
                 dir_children_ids = []
                 
                 children = sorted(get_children(dir_item),
-                                  self.inventory_dirs_first_cmp)
-                for child in children:
-                    child_id = self.append_item(child, dir_id)
+                                  self.inventory_dirs_first_cmp,
+                                  lambda x: x[0])
+                for (child, change) in children:
+                    child_id = self.append_item(child, change, dir_id)
                     dir_children_ids.append(child_id)
                     if child.kind == "directory":
                         remaining_dirs.append((child, child_id))
@@ -141,9 +151,9 @@ class TreeModel(QtCore.QAbstractItemModel):
         finally:
             self.emit(QtCore.SIGNAL("layoutChanged()"))
     
-    def append_item(self, item, parent_id):
+    def append_item(self, item, change, parent_id):
         id = len(self.inventory_items)
-        self.inventory_items.append(item)
+        self.inventory_items.append((item, change))
         self.parent_ids.append(parent_id)
         return id
     
@@ -217,7 +227,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         if not index.isValid():
             return QtCore.QVariant()
         
-        item = self.inventory_items[index.internalId()]
+        (item, change) = self.inventory_items[index.internalId()]
         
         if role == self.FILEID:
             return QtCore.QVariant(item.fileid)
@@ -240,6 +250,13 @@ class TreeModel(QtCore.QAbstractItemModel):
                     return QtCore.QVariant(self.dir_icon)
                 # XXX Simlink
                 return QtCore.QVariant()
+        
+        if column == self.STATUS:
+            if role == QtCore.Qt.DisplayRole:
+                if change is not None:
+                    return QtCore.QVariant(change.status())
+                else:
+                    return QtCore.QVariant()
         
         if column == self.REVNO:
             if role == QtCore.Qt.DisplayRole:
@@ -282,7 +299,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def on_revisions_loaded(self, revisions, last_call):
         inventory = self.tree.inventory
-        for id, item in enumerate(self.inventory_items):
+        for id, (item, change) in enumerate(self.inventory_items):
             if id == 0:
                 continue
             
