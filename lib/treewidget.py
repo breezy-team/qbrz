@@ -322,9 +322,15 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     filters = [True, True, True, False]
     (UNCHANGED, CHANGED, UNVERSIONED, IGNORED) = range(4)
     
+    filter_cache = {}
+    
     def setSourceModel (self, source_model):
         self.source_model = source_model
         QtGui.QSortFilterProxyModel.setSourceModel(self, source_model)
+    
+    def invalidateFilter(self):
+        self.filter_cache = {}
+        QtGui.QSortFilterProxyModel.invalidateFilter(self)
     
     def setFilter(self, filter, value):
         self.filters[filter] = value
@@ -343,11 +349,24 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     def filterAcceptsRow(self, source_row, source_parent):
         if all(self.filters):
             return True
-        (unchanged, changed, unversioned, ignored) = self.filters
         
         model = self.source_model
         parent_id = source_parent.internalId()
         id = model.dir_children_ids[parent_id][source_row]
+        return self.filter_id_cached(id)
+    
+    def filter_id_cached(self, id):
+        if id in self.filter_cache:
+            return self.filter_cache[id]
+        else:
+            result = self.filter_id(id)
+            self.filter_cache[id] = result
+            return result
+    
+    def filter_id(self, id):
+        (unchanged, changed, unversioned, ignored) = self.filters
+
+        model = self.source_model
         item, change = model.inventory_items[id]
         
         if change is None and unchanged: return True
@@ -361,7 +380,14 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
             if not is_ignored: return True
             if is_ignored and ignored: return True
         
+        if id in model.dir_children_ids:
+            for child_id in model.dir_children_ids[id]:
+                if self.filter_id_cached(child_id):
+                    return True
+        
         return False
+    
+    
     
     def on_revisions_loaded(self, revisions, last_call):
         self.source_model.on_revisions_loaded(revisions, last_call)
