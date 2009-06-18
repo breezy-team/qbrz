@@ -19,6 +19,7 @@
 
 from time import (strftime, localtime)
 from PyQt4 import QtCore, QtGui
+from bzrlib.workingtree import WorkingTree
 
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
@@ -35,7 +36,19 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_apparent_author_name,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.plugins.qbzr.lib.wtlist import ChangeDesc
 
+
+class UnversionedItem():
+    __slots__  = ["name", "path", "kind", "children"]
+    def __init__(self, name, path, kind):
+        self.name = name
+        self.path = path
+        self.kind = kind
+        self.children = None
+    
+    revision = property(lambda self:None)
+    file_id = property(lambda self:None)
 
 class TreeModel(QtCore.QAbstractItemModel):
     
@@ -56,38 +69,77 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.file_icon = file_icon
         self.dir_icon = dir_icon
         self.tree = None
+        self.dir_children_ids = {}
     
     def set_tree(self, tree, branch):
-        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
         self.tree = tree
         self.branch = branch
         self.revno_map = None
-        self.inventory_items = []
-        self.dir_children_ids = {}
-        self.parent_ids = []
+        self.inventory = tree.inventory
         
-        # Create internal ids for all items in the tree for use in
-        # ModelIndex's.
-        root_item = tree.inventory[tree.path2id('.')]
-        root_id = self.append_item(root_item, None)
-        remaining_dirs = [(root_item, root_id)]
-        while remaining_dirs:
-            (dir_item, dir_id) = remaining_dirs.pop(0)
-            dir_children_ids = []
-            
-            children = sorted(dir_item.children.itervalues(),
-                              self.inventory_dirs_first_cmp)
-            for child in children:
-                child_id = self.append_item(child, dir_id)
-                dir_children_ids.append(child_id)
-                if child.kind == "directory":
-                    remaining_dirs.append((child, child_id))
+        self.changes = {}
+        self.unver_by_parent = {}
+
+        if isinstance(self.tree, WorkingTree):        
+            for change in self.tree.iter_changes(self.tree.basis_tree(),
+                                               want_unversioned=True):
+                change = ChangeDesc(change)
+                path = change.path()
+                is_ignored = self.tree.is_ignored(path)
+                change = ChangeDesc(change+(is_ignored,))
                 
-                if len(self.inventory_items) % 100 == 0:
-                    QtCore.QCoreApplication.processEvents()
-            self.dir_children_ids[dir_id] = dir_children_ids
-        
-        self.emit(QtCore.SIGNAL("layoutChanged()"))
+                if change.fileid() is not None:
+                    self.changes[change.fileid()] = change
+                else:
+                    (dir_path, slash, name) = path.rpartition('/')
+                    dir_fileid = self.tree.path2id(dir_path)
+                    
+                    if dir_fileid not in self.unver_by_parent:
+                        self.unver_by_parent[dir_fileid] = []
+                    self.unver_by_parent[dir_fileid].append(
+                                    UnversionedItem(name, path, change.kind()))
+            
+            self.process_inventory(self.working_tree_get_children)
+        else:
+            self.process_inventory(lambda i: i.children.itervalues())
+    
+    def working_tree_get_children(self, item):
+        if item.children is not None:
+            for child in item.children.itervalues():
+                yield child
+        if item.file_id in self.unver_by_parent:
+            for child in self.unver_by_parent[item.file_id]:
+                yield child
+    
+    def process_inventory(self, get_children):
+        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+        try:
+            self.inventory_items = []
+            self.dir_children_ids = {}
+            self.parent_ids = []
+            
+            # Create internal ids for all items in the tree for use in
+            # ModelIndex's.
+            root_item = self.tree.inventory[self.tree.get_root_id()]
+            root_id = self.append_item(root_item, None)
+            remaining_dirs = [(root_item, root_id)]
+            while remaining_dirs:
+                (dir_item, dir_id) = remaining_dirs.pop(0)
+                dir_children_ids = []
+                
+                children = sorted(get_children(dir_item),
+                                  self.inventory_dirs_first_cmp)
+                for child in children:
+                    child_id = self.append_item(child, dir_id)
+                    dir_children_ids.append(child_id)
+                    if child.kind == "directory":
+                        remaining_dirs.append((child, child_id))
+                    
+                    if len(self.inventory_items) % 100 == 0:
+                        QtCore.QCoreApplication.processEvents()
+                self.dir_children_ids[dir_id] = dir_children_ids
+        finally:
+            self.emit(QtCore.SIGNAL("layoutChanged()"))
     
     def append_item(self, item, parent_id):
         id = len(self.inventory_items)
@@ -172,7 +224,10 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         revid = item.revision
         if role == self.REVID:
-            return QtCore.QVariant(revid)
+            if revid is None:
+                return QtCore.QVariant()
+            else:
+                return QtCore.QVariant(revid)
 
         column = index.column()
         if column == self.NAME:
@@ -188,7 +243,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         if column == self.REVNO:
             if role == QtCore.Qt.DisplayRole:
-                if self.revno_map is not None:
+                if self.revno_map is not None and revid in self.revno_map:
                     revno_sequence = self.revno_map[revid]
                     return QtCore.QVariant(
                         ".".join(["%d" % (revno) for revno in revno_sequence]))
@@ -282,16 +337,26 @@ class TreeWidget(RevisionTreeView):
         self.connect(self,
                      QtCore.SIGNAL("doubleClicked(QModelIndex)"),
                      self.show_file_content)
+        self.tree = None
+        self.branch = None        
     
     def set_tree(self, tree, branch):
+        if isinstance(self.tree, WorkingTree):
+            self.tree.unlock()
         self.tree = tree
         self.branch = branch
-        self.tree_model.set_tree(tree, branch)
+        if isinstance(self.tree, WorkingTree):
+            self.tree.lock_read()
+        self.tree_model.set_tree(self.tree, self.branch)
 
     def contextMenuEvent(self, event):
         self.context_menu.popup(event.globalPos())
         event.accept()
-
+    
+    def closeEvent(self, event):
+        if isinstance(self.tree, WorkingTree):
+            self.tree.unlock()        
+    
     @ui_current_widget
     def show_file_content(self, index=None):
         """Launch qcat for one selected file."""

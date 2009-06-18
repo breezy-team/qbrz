@@ -22,7 +22,7 @@ from bzrlib import (
     osutils,
     errors,
     )
-from bzrlib.branch import Branch
+from bzrlib.bzrdir import BzrDir
 from bzrlib.revisionspec import RevisionSpec
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -51,6 +51,7 @@ class BrowseWindow(QBzrWindow):
                 location = osutils.getcwd()
             self.location = location
         
+        self.workingtree = None
         self.revision_id = revision_id
         self.revision_spec = revision_spec
         self.revision = revision
@@ -102,12 +103,17 @@ class BrowseWindow(QBzrWindow):
         try:
             self.revno_map = None
             if not self.branch:
-                self.branch, path = Branch.open_containing(self.location) 
+                (self.workingtree,
+                 self.branch,
+                 repo, path) = BzrDir.open_containing_tree_branch_or_repository(self.location)
             
             if self.revision is None:
                 if self.revision_id is None:
-                    revno, self.revision_id = self.branch.last_revision_info()
-                    self.revision_spec = str(revno)
+                    if self.workingtree is not None:
+                        self.revision_spec = "wt:"
+                    else:
+                        revno, self.revision_id = self.branch.last_revision_info()
+                        self.revision_spec = str(revno)
                 self.set_revision(revision_id=self.revision_id, text=self.revision_spec)
             else:
                 self.set_revision(self.revision)
@@ -123,28 +129,35 @@ class BrowseWindow(QBzrWindow):
     
     @ui_current_widget
     def set_revision(self, revspec=None, revision_id=None, text=None):
-        branch = self.branch
-        branch.lock_read()
-        self.processEvents()
-        self.processEvents()
-        try:
-            if revision_id is None:
-                text = revspec.spec or ''
-                if revspec.in_branch == revspec.in_history:
-                    args = [branch]
-                else:
-                    args = [branch, False]
-                
-                revision_id = revspec.in_branch(*args).rev_id
-
-            self.revision_id = revision_id
-            self.tree = branch.repository.revision_tree(revision_id)
+        if text=="wt:":
+            self.workingtree.lock_read()
+            try:
+                self.tree = self.workingtree
+                self.file_tree.set_tree(self.workingtree, self.branch)
+            finally:
+                self.workingtree.unlock()
+        else:
+            branch = self.branch
+            branch.lock_read()
             self.processEvents()
-            self.file_tree.set_tree(self.tree, self.branch)
-            if self.revno_map is not None:
-                self.file_tree.tree_model.set_revno_map(self.revno_map)
-        finally:
-            branch.unlock()
+            try:
+                if revision_id is None:
+                    text = revspec.spec or ''
+                    if revspec.in_branch == revspec.in_history:
+                        args = [branch]
+                    else:
+                        args = [branch, False]
+                    
+                    revision_id = revspec.in_branch(*args).rev_id
+    
+                self.revision_id = revision_id
+                self.tree = branch.repository.revision_tree(revision_id)
+                self.processEvents()
+                self.file_tree.set_tree(self.tree, self.branch)
+                if self.revno_map is not None:
+                    self.file_tree.tree_model.set_revno_map(self.revno_map)
+            finally:
+                branch.unlock()
         self.revision_edit.setText(text)
 
 
@@ -152,16 +165,24 @@ class BrowseWindow(QBzrWindow):
     def reload_tree(self):
         revstr = unicode(self.revision_edit.text())
         if not revstr:
-            revno, revision_id = self.branch.last_revision_info()
-            revision_spec = str(revno)
+            if self.workingtree is not None:
+                revision_spec = "wt:"
+                revision_id = None
+            else:
+                revno, revision_id = self.branch.last_revision_info()
+                self.revision_spec = str(revno)
             self.set_revision(revision_id=revision_id, text=revision_spec)
         else:
-            try:
-                revspec = RevisionSpec.from_string(revstr)
-            except errors.NoSuchRevisionSpec, e:
-                QtGui.QMessageBox.warning(self,
-                    gettext("Browse"), str(e),
-                    QtGui.QMessageBox.Ok)
-                return
-            self.set_revision(revspec)
-
+            if revstr == "wt:":
+                revision_spec = "wt:"
+                revision_id = None                
+                self.set_revision(revision_id=revision_id, text=revision_spec)
+            else:
+                try:
+                    revspec = RevisionSpec.from_string(revstr)
+                except errors.NoSuchRevisionSpec, e:
+                    QtGui.QMessageBox.warning(self,
+                        gettext("Browse"), str(e),
+                        QtGui.QMessageBox.Ok)
+                    return
+                self.set_revision(revspec)

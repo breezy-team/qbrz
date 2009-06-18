@@ -326,10 +326,20 @@ class ChangeDesc(tuple):
     [5]: name            -> 2-tuple (old_name, new_name) utf-8?/None
     [6]: kind            -> 2-tuple (string/None, string/None)
     [7]: executable      -> 2-tuple (bool/None, bool/None)
-
+    
+    --optional--
+    [8]: is_ignored      -> If the file is ignored, pattern which caused it to
+                            be ignored, otherwise None.
+    
     NOTE: None value used for non-existing entry in corresponding
           tree, e.g. for added/deleted/ignored/unversioned
     """
+    
+    # XXX We should may be try get this into bzrlib.
+    # XXX We should use this in qdiff.
+    
+    def fileid(desc):
+        return desc[0]
 
     def path(desc):
         """Return a suitable entry for a 'specific_files' param to bzr functions."""
@@ -339,6 +349,10 @@ class ChangeDesc(tuple):
     def oldpath(desc):
         """Return oldpath for renames."""
         return desc[1][0]
+
+    def kind(desc):
+        oldkind, newkind = desc[6]
+        return newkind or oldkind        
 
     def is_versioned(desc):
         return desc[3] != (False, False)
@@ -370,6 +384,9 @@ class ChangeDesc(tuple):
         (i.e. deleted manually, without invoking `bzr remove` command)
         """
         return (desc[3] == (False, True) and desc[6][1] is None)
+    
+    def is_ignored(desc):
+        return desc[8]
 
 
 def closure_in_selected_list(selected_list):
