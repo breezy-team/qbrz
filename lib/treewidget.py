@@ -188,7 +188,10 @@ class TreeModel(QtCore.QAbstractItemModel):
         return len(self.dir_children_ids[parent_id])
 
     def _index(self, row, column, parent_id):
-        item_id = self.dir_children_ids[parent_id][row]
+        dir_children_ids = self.dir_children_ids[parent_id]
+        if row >= len(dir_children_ids):
+            return QtCore.QModelIndex()
+        item_id = dir_children_ids[row]
         return self.createIndex(row, column, item_id)
     
     def index(self, row, column, parent = QtCore.QModelIndex()):
@@ -323,11 +326,11 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         self.source_model = source_model
         QtGui.QSortFilterProxyModel.setSourceModel(self, source_model)
     
-    def setFilter(filter, value):
+    def setFilter(self, filter, value):
         self.filters[filter] = value
         self.invalidateFilter()
     
-    def setFilters(filters):
+    def setFilters(self, filters):
         def iff(b, x, y):
             if b:
                 return x
@@ -365,6 +368,37 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     
     def get_repo(self):
         return self.source_model.get_repo()
+
+class TreeFilterMenu(QtGui.QMenu):
+    
+    def __init__ (self, parent=None):
+        QtGui.QMenu.__init__(self, gettext("&Filter"), parent)
+        
+        filters = (gettext("Unchanged"),
+                   gettext("Changed"),
+                   gettext("Unversioned"),
+                   gettext("Ignored"))
+        
+        self.actions = []
+        for i, text in enumerate(filters):
+            action = QtGui.QAction(text, self)
+            action.setData(QtCore.QVariant (i))
+            action.setCheckable(True)
+            self.addAction(action)
+            self.actions.append(action)
+        
+        self.connect(self, QtCore.SIGNAL("triggered(QAction *)"),
+                     self.triggered)
+    
+    def triggered(self, action):
+        filter = action.data().toInt()[0]
+        checked = action.isChecked()
+        self.emit(QtCore.SIGNAL("triggered(int, bool)"), filter, checked)
+    
+    def set_filters(self, filters):
+        for checked, action in zip(filters, self.actions):
+            action.setChecked(checked)
+
 
 class TreeWidget(RevisionTreeView):
 

@@ -26,7 +26,7 @@ from bzrlib.bzrdir import BzrDir
 from bzrlib.revisionspec import RevisionSpec
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.treewidget import TreeWidget
+from bzrlib.plugins.qbzr.lib.treewidget import TreeWidget, TreeFilterMenu
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
@@ -78,11 +78,21 @@ class BrowseWindow(QBzrWindow):
         self.show_button = QtGui.QPushButton(gettext("Show"))
         self.connect(self.show_button, QtCore.SIGNAL("clicked()"), self.reload_tree)
         hbox.addWidget(self.show_button, 0)
+        
+        self.filter_menu = TreeFilterMenu(self)
+        self.filter_button = QtGui.QPushButton(gettext("&Filter"))
+        self.filter_button.setMenu(self.filter_menu)
+        hbox.addWidget(self.filter_button, 0)
+        self.connect(self.filter_menu,
+                     QtCore.SIGNAL("triggered(int, bool)"),
+                     self.filter_triggered)
+        
         vbox.addLayout(hbox)
         
         self.file_tree = TreeWidget(self)
         self.file_tree.throbber = self.throbber
         vbox.addWidget(self.file_tree)
+        self.filter_menu.set_filters(self.file_tree.tree_filter_model.filters)
 
         buttonbox = self.create_button_box(BTN_CLOSE)
         vbox.addWidget(buttonbox)
@@ -132,10 +142,17 @@ class BrowseWindow(QBzrWindow):
         if text=="wt:":
             self.tree = self.workingtree
             self.file_tree.set_tree(self.workingtree, self.branch)
+            self.filter_button.setEnabled(True)
         else:
             branch = self.branch
             branch.lock_read()
             self.processEvents()
+            
+            self.filter_button.setEnabled(False)
+            fmodel = self.file_tree.tree_filter_model
+            fmodel.setFilter(fmodel.UNCHANGED, True)
+            self.filter_menu.set_filters(fmodel.filters)            
+            
             try:
                 if revision_id is None:
                     text = revspec.spec or ''
@@ -182,3 +199,6 @@ class BrowseWindow(QBzrWindow):
                         QtGui.QMessageBox.Ok)
                     return
                 self.set_revision(revspec)
+
+    def filter_triggered(self, filter, checked):
+        self.file_tree.tree_filter_model.setFilter(filter, checked)
