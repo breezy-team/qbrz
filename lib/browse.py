@@ -130,12 +130,8 @@ class BrowseWindow(QBzrWindow):
     @ui_current_widget
     def set_revision(self, revspec=None, revision_id=None, text=None):
         if text=="wt:":
-            self.workingtree.lock_read()
-            try:
-                self.tree = self.workingtree
-                self.file_tree.set_tree(self.workingtree, self.branch)
-            finally:
-                self.workingtree.unlock()
+            self.tree = self.workingtree
+            self.file_tree.set_tree(self.workingtree, self.branch)
         else:
             branch = self.branch
             branch.lock_read()
