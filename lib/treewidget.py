@@ -106,9 +106,9 @@ class TreeModel(QtCore.QAbstractItemModel):
             finally:
                 tree.unlock()
         else:
-            self.process_inventory(self.get_children)
+            self.process_inventory(self.revision_tree_get_children)
     
-    def get_children(self, item):
+    def revision_tree_get_children(self, item):
         for child in item.children.itervalues():
             yield (child, None)
     
@@ -128,36 +128,47 @@ class TreeModel(QtCore.QAbstractItemModel):
             for (child, change) in self.unver_by_parent[item.file_id]:
                 yield (child, change)
     
-    def process_inventory(self, get_children):
-        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+    def load_dir(self, dir_id):
+        if isinstance(self.tree, WorkingTree):
+            self.tree.lock_read()
         try:
-            self.inventory_items = []
-            self.dir_children_ids = {}
-            self.parent_ids = []
+            dir_item, dir_change = self.inventory_items[dir_id]
+            dir_children_ids = []
+            children = sorted(self.get_children(dir_item),
+                              self.inventory_dirs_first_cmp,
+                              lambda x: x[0])
             
-            # Create internal ids for all items in the tree for use in
-            # ModelIndex's.
-            root_item = self.tree.inventory[self.tree.get_root_id()]
-            root_id = self.append_item(root_item, None, None)
-            remaining_dirs = [(root_item, root_id)]
-            while remaining_dirs:
-                (dir_item, dir_id) = remaining_dirs.pop(0)
-                dir_children_ids = []
-                
-                children = sorted(get_children(dir_item),
-                                  self.inventory_dirs_first_cmp,
-                                  lambda x: x[0])
+            parent_model_index = self._index_from_id(dir_id, 0)
+            self.beginInsertRows(parent_model_index, 0, len(children)-1)
+            try:
                 for (child, change) in children:
                     child_id = self.append_item(child, change, dir_id)
                     dir_children_ids.append(child_id)
                     if child.kind == "directory":
-                        remaining_dirs.append((child, child_id))
+                        self.dir_children_ids[child_id] = None
                     
-                    if len(self.inventory_items) % 100 == 0:
+                    if len(dir_children_ids) % 100 == 0:
                         QtCore.QCoreApplication.processEvents()
                 self.dir_children_ids[dir_id] = dir_children_ids
+            finally:
+                self.endInsertRows();
         finally:
-            self.emit(QtCore.SIGNAL("layoutChanged()"))
+            if isinstance(self.tree, WorkingTree):
+                self.tree.unlock()
+    
+    def process_inventory(self, get_children):
+        self.get_children = get_children
+        
+        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+        self.inventory_items = []
+        self.dir_children_ids = {}
+        self.parent_ids = []
+        self.emit(QtCore.SIGNAL("layoutChanged()"))
+            
+        root_item = self.tree.inventory[self.tree.get_root_id()]
+        root_id = self.append_item(root_item, None, None)
+        self.dir_children_ids[root_id] = None
+        self.load_dir(root_id)
     
     def append_item(self, item, change, parent_id):
         id = len(self.inventory_items)
@@ -192,7 +203,18 @@ class TreeModel(QtCore.QAbstractItemModel):
         parent_id = parent.internalId()
         if parent_id not in self.dir_children_ids:
             return 0
-        return len(self.dir_children_ids[parent_id])
+        dir_children_ids = self.dir_children_ids[parent_id]
+        if dir_children_ids is None:
+            return 0
+        return len(dir_children_ids)
+    
+    def canFetchMore(self, parent):
+        parent_id = parent.internalId()
+        return parent_id in self.dir_children_ids \
+               and self.dir_children_ids[parent_id] is None
+    
+    def fetchMore(self, parent):
+        self.load_dir(parent.internalId())
 
     def _index(self, row, column, parent_id):
         dir_children_ids = self.dir_children_ids[parent_id]
@@ -200,6 +222,13 @@ class TreeModel(QtCore.QAbstractItemModel):
             return QtCore.QModelIndex()
         item_id = dir_children_ids[row]
         return self.createIndex(row, column, item_id)
+    
+    def _index_from_id(self, item_id, column):
+        parent_id = self.parent_ids[item_id]
+        if parent_id is None:
+            return QtCore.QModelIndex()
+        row = self.dir_children_ids[parent_id].index(item_id)
+        return self.createIndex(row, column, item_id)    
     
     def index(self, row, column, parent = QtCore.QModelIndex()):
         if self.tree is None:
@@ -222,9 +251,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         if item_id == 0 :
             return QtCore.QModelIndex()
         
-        parent_id = self.parent_ids[item_id]
-        row = self.dir_children_ids[parent_id].index(item_id)
-        return self.createIndex(row, 0, item_id)
+        return self._index_from_id(item_id, 0)
 
     def hasChildren(self, parent):
         if self.tree is None:
@@ -388,7 +415,12 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
             if is_ignored and ignored: return True
         
         if id in model.dir_children_ids:
-            for child_id in model.dir_children_ids[id]:
+            dir_children_ids = model.dir_children_ids[id]
+            if dir_children_ids is None:
+                model.load_dir(id)
+                dir_children_ids = model.dir_children_ids[id]
+            
+            for child_id in dir_children_ids:
                 if self.filter_id_cached(child_id):
                     return True
         
@@ -401,6 +433,10 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     
     def get_repo(self):
         return self.source_model.get_repo()
+    
+    def hasChildren(self, parent):
+        return self.source_model.hasChildren(self.mapToSource(parent))
+
 
 class TreeFilterMenu(QtGui.QMenu):
     
@@ -445,6 +481,7 @@ class TreeWidget(RevisionTreeView):
         self.tree_filter_model = TreeFilterProxyModel()
         self.tree_filter_model.setSourceModel(self.tree_model)
         self.setModel(self.tree_filter_model)
+        #self.setModel(self.tree_model)
 
         self.setItemDelegateForColumn(self.tree_model.REVNO,
                                       RevNoItemDelegate(parent=self))
