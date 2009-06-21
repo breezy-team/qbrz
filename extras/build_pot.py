@@ -77,9 +77,11 @@ class build_pot(Command):
             f.close()
 
     def run(self):
-        """Run xgettext for QBzr sources"""
+        """Run xgettext for project sources"""
         import glob
         import os
+        # project name based on `name` argument in setup() call
+        prj_name = self.distribution.get_name()
         # output file
         if self.build_dir != '.':
             fullname = os.path.join(self.build_dir, self.output)
@@ -99,11 +101,15 @@ class build_pot(Command):
         # regenerate english PO
         if self.english:
             log.info('Regenerating English PO file...')
+            if prj_name:
+                en_po = prj_name + '-' + 'en.po'
+            else:
+                en_po = 'en.po'
             self.spawn(['msginit',
                 '--no-translator',
                 '-l', 'en',
                 '-i', os.path.join(self.build_dir, self.output),
-                '-o', os.path.join(self.build_dir, 'qbzr-en.po'),
+                '-o', os.path.join(self.build_dir, en_po),
                 ])
         # search and update all po-files
         if self.no_lang:
@@ -111,7 +117,7 @@ class build_pot(Command):
         for po in glob.glob(os.path.join(self.build_dir,'*.po')):
             if self.lang is not None:
                 po_lang = os.path.splitext(os.path.basename(po))[0]
-                if po_lang.startswith('qbzr-'):
+                if prj_name and po_lang.startswith(prj_name+'-'):
                     po_lang = po_lang[5:]
                 if po_lang not in self.lang:
                     continue
