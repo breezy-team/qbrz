@@ -2,6 +2,7 @@
 #
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2007 Lukáš Lalinský <lalinsky@gmail.com>
+# Copyright (C) 2009 Alexander Belchenko <bialix@ukr.net>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -50,6 +51,9 @@ class build_ui(Command):
 
     def run(self):
         from PyQt4 import uic
+        # project name based on `name` argument in setup() call
+        prj_name = self.distribution.get_name() or '?'
+
         for uifile in self.module:
             uifile = uifile.replace('\\', '/')
             pyfile = "lib/ui_%s.py" % os.path.splitext(os.path.basename(uifile))[0]
@@ -60,7 +64,7 @@ class build_ui(Command):
                 source = _translate_re.sub(r'gettext(\1)', tmp.getvalue())
                 source = source.replace("from PyQt4 import QtCore, QtGui",
                     "from PyQt4 import QtCore, QtGui\n"
-                    "from bzrlib.plugins.qbzr.lib.i18n import gettext\n")
+                    "from bzrlib.plugins.%s.lib.i18n import gettext\n" % prj_name)
                 f = open(pyfile, "wb")
                 f.write(source)
                 f.close()
