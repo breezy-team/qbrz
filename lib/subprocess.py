@@ -48,12 +48,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     ensure_unicode,
     )
 
-try:
-    # This is only availible from bzr rev 3940
-    from bzrlib.ui.text import TextProgressView
-    has_TextProgressView = True
-except ImportError:
-    has_TextProgressView = False
+from bzrlib.ui.text import TextProgressView, TextUIFactory
+
 
 
 class SubProcessWindowBase:
@@ -570,141 +566,55 @@ class SubProcessWidget(QtGui.QWidget):
                 self._args_file = None
 
 
-class SubprocessChildProgress(progress._BaseProgressBar):
-
-    def __init__(self, _stack, **kwargs):
-        super(SubprocessChildProgress, self).__init__(_stack=_stack, **kwargs)
-        self.parent = _stack.top()
-        self.message = None
-        self.current = 0
-        self.total = 0
-
-    def tick(self, messages, progress):
-        self.parent.child_update(messages, progress)
-
-    def child_update(self, messages, progress):
-        if self.current is not None and self.total:
-            progress = (self.current + progress) / self.total
-        else:
-            progress = 0.0
-        if self.message:
-            messages = [self.message] + messages
-        self.tick(messages, progress)
-
-    def update(self, message, current=None, total=None):
-        if current is not None:
-            if total is not None:
-                self.message = '%s (%s/%s)' % (message, current, total)
+class SubprocessProgressView (TextProgressView):
+    
+    def _repaint(self):
+        if self._last_task:
+            task_msg = self._format_task(self._last_task)
+            progress_frac = self._last_task._overall_completion_fraction()
+            if progress_frac is not None:
+                progress = int(progress_frac * 1000000)
             else:
-                self.message = '%s (%s)' % (message, current)
+                progress = 1
         else:
-            self.message = message
-        self.current = current
-        self.total = total
-        self.child_update([], 0.0)
-
-    def clear(self):
-        pass
-
-    def note(self, *args, **kwargs):
-        self.parent.note(*args, **kwargs)
-
-    def child_progress(self, **kwargs):
-        return SubprocessChildProgress(**kwargs)
-
-
-class SubprocessProgress(SubprocessChildProgress):
-
-    def __init__(self, **kwargs):
-        super(SubprocessProgress, self).__init__(**kwargs)
-
-    def _report(self, progress, messages=()):
-        data = int(progress * 1000000),"", messages
-        sys.stdout.write('qbzr:PROGRESS:' + bencode.bencode(data) + '\n')
-        sys.stdout.flush()
-
-    def tick(self, messages, progress):
-        self._report(progress, messages)
-
-    def finished(self):
-        self._report(1.0)
-
-if has_TextProgressView:
-    class SubprocessProgressView (TextProgressView):
+            task_msg = ''
+            progress = 0
         
-        def _repaint(self):
-            if self._last_task:
-                task_msg = self._format_task(self._last_task)
-                progress_frac = self._last_task._overall_completion_fraction()
-                if progress_frac is not None:
-                    progress = int(progress_frac * 1000000)
-                else:
-                    progress = 1
-            else:
-                task_msg = ''
-                progress = 0
-            
-            trans = self._last_transport_msg
-            
-            sys.stdout.write('qbzr:PROGRESS:' + bencode.bencode((progress,
-                             trans, task_msg)) + '\n')
-            sys.stdout.flush()
+        trans = self._last_transport_msg
+        
+        self._term_file.write('qbzr:PROGRESS:' + bencode.bencode((progress,
+                              trans, task_msg)) + '\n')
+        self._term_file.flush()
 
 
 class SubprocessUIFactory(ui.CLIUIFactory):
 
     def __init__(self, stdin=None, stdout=None, stderr=None):
         
-        # To be compatible with bzr < rev 3940 (1.12), we reimplement
-        # ui.CLIUIFactory.__init__
-        #ui.CLIUIFactory.__init__(self, stdin=None, stdout=None, stderr=None)
-        ui.UIFactory.__init__(self) 
-        self.stdin = stdin or sys.stdin 
-        self.stdout = stdout or sys.stdout 
-        self.stderr = stderr or sys.stderr
+        ui.CLIUIFactory.__init__(self, stdin=None, stdout=None, stderr=None)
         
-        if has_TextProgressView:
-            self._progress_view = SubprocessProgressView(self.stdout)
-        else:
-            self._progress_bar_stack = None 
-    
-    def nested_progress_bar(self): 
-        """Return a nested progress bar. 
-         
-        The actual bar type returned depends on the progress module which 
-        may return a tty or dots bar depending on the terminal. 
-        """
-        if has_TextProgressView:
-            return super(SubprocessUIFactory, self).nested_progress_bar()
-        else:
-            # This is to be compatible with bzr < rev 3940 (1.12)
-            if self._progress_bar_stack is None: 
-                self._progress_bar_stack = progress.ProgressBarStack( 
-                    klass=SubprocessProgress) 
-            return self._progress_bar_stack.get_nested()
+        self._progress_view = SubprocessProgressView(self.stdout)
     
     def report_transport_activity(self, transport, byte_count, direction):
         """Called by transports as they do IO.
-        
+
         This may update a progress bar, spinner, or similar display.
         By default it does nothing.
         """
-        if has_TextProgressView:
-            if getattr(self._progress_view,
-                       "show_transport_activity",
-                       None) is not None:
-                self._progress_view.show_transport_activity(transport, 
-                    direction, byte_count)
-            else:
-                # This is to be compatable with bzr < rev 4454
-                self._progress_view._show_transport_activity(transport, 
-                    direction, byte_count)
+        if getattr(self._progress_view,
+                   "show_transport_activity",
+                   None) is not None:
+            self._progress_view.show_transport_activity(transport, 
+                direction, byte_count)
+        else:
+            # This is to be compatable with bzr < rev 4454
+            self._progress_view._show_transport_activity(transport, 
+                direction, byte_count)
 
     def _progress_updated(self, task):
         """A task has been updated and wants to be displayed.
         """
-        if has_TextProgressView:
-            self._progress_view.show_progress(task)
+        self._progress_view.show_progress(task)
     
     def clear_term(self):
         """Prepare the terminal for output.
