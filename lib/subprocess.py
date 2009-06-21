@@ -691,21 +691,15 @@ class SubprocessUIFactory(ui.CLIUIFactory):
         """
         if has_TextProgressView:
             if getattr(self._progress_view,
-                       "_show_transport_activity",
+                       "show_transport_activity",
                        None) is not None:
-                self._progress_view._show_transport_activity(transport, 
+                self._progress_view.show_transport_activity(transport, 
                     direction, byte_count)
             else:
-                # This is to be compatable with bzr < rev 4144
-                self._progress_view.show_transport_activity(byte_count)
+                # This is to be compatable with bzr < rev 4454
+                self._progress_view._show_transport_activity(transport, 
+                    direction, byte_count)
 
-    # This is to be compatable with bzr < rev 3956
-    def show_progress(self, task):
-        """A task has been updated and wants to be displayed.
-        """
-        if has_TextProgressView:
-            self._progress_view.show_progress(task)
-    
     def _progress_updated(self, task):
         """A task has been updated and wants to be displayed.
         """
