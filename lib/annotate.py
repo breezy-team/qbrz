@@ -375,7 +375,7 @@ class AnnotateWindow(QBzrWindow):
 
         if not self.log_branch_loaded:
             self.log_branch_loaded = True
-            self.log_list.load_branch(self.branch, self.fileId)
+            self.log_list.load_branch(self.branch, [self.fileId])
         
         self.log_list.graph_provider.filter_file_id = [False for i in 
             xrange(len(self.log_list.graph_provider.merge_sorted_revisions))]

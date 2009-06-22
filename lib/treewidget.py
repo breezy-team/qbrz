@@ -636,12 +636,13 @@ class TreeWidget(RevisionTreeView):
 
     @ui_current_widget
     def show_file_log(self):
-        """Show qlog for one selected file."""
+        """Show qlog for one selected file(s)."""
         
-        index = self.currentIndex()
-        file_id = unicode(index.data(self.tree_model.FILEID).toString())
-
-        window = LogWindow(None, self.branch, file_id)
+        items = self.get_selection_items()
+        fileids = [item[0].file_id for item in items
+                   if item[0].file_id is not None]
+        
+        window = LogWindow(None, self.branch, fileids)
         window.show()
         self.window().windows.append(window)
     
