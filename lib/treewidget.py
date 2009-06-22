@@ -292,7 +292,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         (item, change) = self.inventory_items[index.internalId()]
         
         if role == self.FILEID:
-            return QtCore.QVariant(item.fileid)
+            return QtCore.QVariant(item.file_id)
         
         revid = item.revision
         if role == self.REVID:
@@ -344,7 +344,17 @@ class TreeModel(QtCore.QAbstractItemModel):
                                                     localtime(rev.timestamp)))
         
         if role == self.PATH:
-            return QtCore.QVariant(self.tree.inventory.id2path(fileid))
+            if isinstance(item, UnversionedItem):
+                path = item.path
+            else:
+                if isinstance(self.tree, WorkingTree):
+                    self.tree.lock_read()
+                try:
+                    path = self.tree.id2path(item.file_id)
+                finally:
+                    if isinstance(self.tree, WorkingTree):
+                        self.tree.unlock()
+            return QtCore.QVariant(path)
         
         return QtCore.QVariant()
     
