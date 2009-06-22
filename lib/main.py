@@ -516,9 +516,15 @@ class QBzrMainWindow(QBzrWindow):
 
     def onFileActivated(self, item, column):
         path = item.data(0, QtCore.Qt.UserRole).toString()
-        if not path:
-            return
-        self.setDirectory(unicode(path))
+        if path:
+            # directory
+            self.setDirectory(unicode(path))
+        else:
+            # file
+            basename = unicode(item.text(0))
+            filepath = osutils.pathjoin(self.currentDirectory, basename)
+            url = QtCore.QUrl(filepath)
+            result = QtGui.QDesktopServices.openUrl(url)
 
     def refresh(self):
         if self.currentDirectory:
