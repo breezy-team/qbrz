@@ -113,15 +113,6 @@ class TreeModel(QtCore.QAbstractItemModel):
             yield (child, None)
     
     def working_tree_get_children(self, item):
-    #[0]: file_id         -> ascii string
-    #[1]: paths           -> 2-tuple (old, new) fullpaths unicode/None
-    #[2]: changed_content -> bool
-    #[3]: versioned       -> 2-tuple (bool, bool)
-    #[4]: parent          -> 2-tuple
-    #[5]: name            -> 2-tuple (old_name, new_name) utf-8?/None
-    #[6]: kind            -> 2-tuple (string/None, string/None)
-    #[7]: executable      -> 2-tuple (bool/None, bool/None)
-
         if isinstance(item, UnversionedItem):
             abspath = self.tree.abspath(item.path)
             
@@ -129,7 +120,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 path = item.path+"/"+name
                 (kind,
                  executable,
-                 stat_value) = tree._comparison_data(None, path)
+                 stat_value) = self.tree._comparison_data(None, path)
                 item = UnversionedItem(name, path, kind)
                 is_ignored = self.tree.is_ignored(path)
                 change = ChangeDesc((None,
