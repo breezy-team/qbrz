@@ -238,6 +238,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.load_dir(parent.internalId())
 
     def _index(self, row, column, parent_id):
+        if parent_id not in self.dir_children_ids:
+            return QtCore.QModelIndex()
         dir_children_ids = self.dir_children_ids[parent_id]
         if row >= len(dir_children_ids):
             return QtCore.QModelIndex()
@@ -267,6 +269,8 @@ class TreeModel(QtCore.QAbstractItemModel):
     def parent(self, child):
         child_id = child.internalId()
         if child_id == 0:
+            return QtCore.QModelIndex()
+        if child_id not in self.parent_ids:
             return QtCore.QModelIndex()
         item_id = self.parent_ids[child_id]
         if item_id == 0 :
@@ -448,7 +452,6 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         return False
     
     
-    
     def on_revisions_loaded(self, revisions, last_call):
         self.source_model.on_revisions_loaded(revisions, last_call)
     
@@ -541,6 +544,26 @@ class TreeWidget(RevisionTreeView):
         self.tree = tree
         self.branch = branch
         self.tree_model.set_tree(self.tree, self.branch)
+        header = self.header()
+        if isinstance(self.tree, WorkingTree):
+            header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.Stretch)
+            # We currently have to hide the revision columns, because the
+            # revision property is not availible from the WorkingTree.inventory.
+            # We may be able to get this by looking at the revision tree for
+            # the revision of the basis tree.
+            header.hideSection(self.tree_model.DATE)
+            header.hideSection(self.tree_model.REVNO)
+            header.hideSection(self.tree_model.MESSAGE)
+            header.hideSection(self.tree_model.AUTHOR)
+            header.showSection(self.tree_model.STATUS)
+        else:
+            header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.ResizeToContents)
+            header.showSection(self.tree_model.DATE)
+            header.showSection(self.tree_model.REVNO)
+            header.showSection(self.tree_model.MESSAGE)
+            header.showSection(self.tree_model.AUTHOR)
+            header.hideSection(self.tree_model.STATUS)
+        
 
     def contextMenuEvent(self, event):
         self.context_menu.popup(event.globalPos())
