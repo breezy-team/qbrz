@@ -38,6 +38,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.wtlist import ChangeDesc
+from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
+
 
 
 class UnversionedItem():
@@ -410,7 +412,7 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
             if b:
                 return x
             else:
-                return Y
+                return y
         self.filters = [iff(f is not None, f, old_f)
                         for f, old_f in zip(filters, self.filters)]
         self.invalidateFilter()
@@ -550,20 +552,28 @@ class TreeWidget(RevisionTreeView):
     def create_context_menu(self):
         self.context_menu = QtGui.QMenu(self)
         self.action_show_log = self.context_menu.addAction(
-                                    gettext("Show log..."),
+                                    gettext("&Log"),
                                     self.show_file_log)
         self.action_show_annotate = self.context_menu.addAction(
-                                    gettext("Annotate"), 
+                                    gettext("&Annotate"), 
                                     self.show_file_annotate)
         self.action_show_file = self.context_menu.addAction(
-                                    gettext("View file"),
+                                    gettext("&View"),
                                     self.show_file_content)
+        self.context_menu.addSeparator()
+        self.action_add = self.context_menu.addAction(
+                                    gettext("&Add"),
+                                    self.add)
+        self.action_revert = self.context_menu.addAction(
+                                    gettext("&Revert"),
+                                    self.revert)
         self.context_menu.setDefaultAction(self.action_show_file)
     
     def set_tree(self, tree, branch):
         self.tree = tree
         self.branch = branch
         self.tree_model.set_tree(self.tree, self.branch)
+        self.tree_filter_model.invalidateFilter()
         header = self.header()
         if isinstance(self.tree, WorkingTree):
             header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.Stretch)
@@ -583,6 +593,10 @@ class TreeWidget(RevisionTreeView):
             header.showSection(self.tree_model.MESSAGE)
             header.showSection(self.tree_model.AUTHOR)
             header.hideSection(self.tree_model.STATUS)
+    
+    def refresh(self):
+        self.tree_model.set_tree(self.tree, self.branch)
+        self.tree_filter_model.invalidateFilter()
 
     def contextMenuEvent(self, event):
         self.filter_context_menu()
@@ -605,9 +619,12 @@ class TreeWidget(RevisionTreeView):
         return items
 
     def filter_context_menu(self):
+        is_working_tree = isinstance(self.tree, WorkingTree)
         items = self.get_selection_items()
         versioned = [not isinstance(item[0], UnversionedItem)
                      for item in items]
+        changed = [item[1] is not None
+                   for item in items]
         selection_len = len(items)
         
         single_versioned_file = (selection_len == 1 and versioned[0] and
@@ -616,6 +633,11 @@ class TreeWidget(RevisionTreeView):
         self.action_show_annotate.setEnabled(single_versioned_file)
         self.action_show_file.setEnabled(single_versioned_file)
         self.action_show_log.setEnabled(any(versioned))
+        
+        self.action_add.setVisible(is_working_tree)
+        self.action_add.setDisabled(all(versioned))
+        self.action_revert.setVisible(is_working_tree)
+        self.action_revert.setEnabled(any(changed))
     
 
     @ui_current_widget
@@ -656,3 +678,57 @@ class TreeWidget(RevisionTreeView):
         window = AnnotateWindow(self.branch, self.tree, path, file_id)
         window.show()
         self.window().windows.append(window)
+
+
+    @ui_current_widget
+    def add(self):
+        """Add selected file(s)."""
+        
+        items = self.get_selection_items()
+        
+        # Only paths that are not versioned.
+        paths = [item[0].path
+                 for item in items
+                 if isinstance(item[0], UnversionedItem)]
+        
+        args = ["add"]
+        args.extend(paths)
+        desc = (gettext("Add %s to the tree.") % ", ".join(paths))
+        revert_dialog = SimpleSubProcessDialog(gettext("Add"),
+                                               desc=desc,
+                                               args=args,
+                                               dir=self.tree.basedir,
+                                               parent=self,
+                                               hide_progress=True,)
+        res = revert_dialog.exec_()
+        if res == QtGui.QDialog.Accepted:
+            self.refresh()
+
+    @ui_current_widget
+    def revert(self):
+        """Revert selected file(s)."""
+        
+        items = self.get_selection_items()
+        
+        self.tree.lock_read()
+        try:
+            # Only paths that have changes.
+            paths = [self.tree.id2path(item[0].file_id)
+                     for item in items
+                     if item[1] is not None]
+        finally:
+            self.tree.unlock()
+        
+        args = ["revert"]
+        args.extend(paths)
+        desc = (gettext("Revert %s to latest revision.") % ", ".join(paths))
+        revert_dialog = SimpleSubProcessDialog(gettext("Revert"),
+                                         desc=desc,
+                                         args=args,
+                                         dir=self.tree.basedir,
+                                         parent=self,
+                                         hide_progress=True,)
+        res = revert_dialog.exec_()
+        if res == QtGui.QDialog.Accepted:
+            self.refresh()
+ 
