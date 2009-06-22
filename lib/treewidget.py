@@ -508,6 +508,8 @@ class TreeWidget(RevisionTreeView):
     def __init__(self, *args):
         RevisionTreeView.__init__(self, *args)
         
+        self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        
         file_icon = self.style().standardIcon(QtGui.QStyle.SP_FileIcon)
         dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
         
@@ -536,19 +538,27 @@ class TreeWidget(RevisionTreeView):
                              fm.width("88-88-8888 88:88") + col_margin)
         header.resizeSection(self.tree_model.AUTHOR,
                              fm.width("Joe I have a Long Name") + col_margin)
-
-        self.context_menu = QtGui.QMenu(self)
-        self.context_menu.addAction(gettext("Show log..."), self.show_file_log)
-        self.context_menu.addAction(gettext("Annotate"), self.show_file_annotate)
-        self.context_menu.setDefaultAction(
-            self.context_menu.addAction(gettext("View file"),
-                                        self.show_file_content))
+        
+        self.create_context_menu()
         
         self.connect(self,
                      QtCore.SIGNAL("doubleClicked(QModelIndex)"),
                      self.show_file_content)
         self.tree = None
-        self.branch = None        
+        self.branch = None
+    
+    def create_context_menu(self):
+        self.context_menu = QtGui.QMenu(self)
+        self.action_show_log = self.context_menu.addAction(
+                                    gettext("Show log..."),
+                                    self.show_file_log)
+        self.action_show_annotate = self.context_menu.addAction(
+                                    gettext("Annotate"), 
+                                    self.show_file_annotate)
+        self.action_show_file = self.context_menu.addAction(
+                                    gettext("View file"),
+                                    self.show_file_content)
+        self.context_menu.setDefaultAction(self.action_show_file)
     
     def set_tree(self, tree, branch):
         self.tree = tree
@@ -573,12 +583,41 @@ class TreeWidget(RevisionTreeView):
             header.showSection(self.tree_model.MESSAGE)
             header.showSection(self.tree_model.AUTHOR)
             header.hideSection(self.tree_model.STATUS)
-        
 
     def contextMenuEvent(self, event):
+        self.filter_context_menu()
         self.context_menu.popup(event.globalPos())
         event.accept()
     
+    def get_selection_indexes(self):
+        rows = {}
+        for index in self.selectedIndexes():
+            if index.row() not in rows:
+                rows[index.row()] = index
+        return rows.values()
+    
+    def get_selection_items(self):
+        items = []
+        for index in self.get_selection_indexes():
+            source_index = self.tree_filter_model.mapToSource(index)
+            items.append(self.tree_model.inventory_items[
+                                                    source_index.internalId()])
+        return items
+
+    def filter_context_menu(self):
+        items = self.get_selection_items()
+        versioned = [not isinstance(item[0], UnversionedItem)
+                     for item in items]
+        selection_len = len(items)
+        
+        single_versioned_file = (selection_len == 1 and versioned[0] and
+                                 items[0][0].kind == "file")
+        
+        self.action_show_annotate.setEnabled(single_versioned_file)
+        self.action_show_file.setEnabled(single_versioned_file)
+        self.action_show_log.setEnabled(any(versioned))
+    
+
     @ui_current_widget
     def show_file_content(self, index=None):
         """Launch qcat for one selected file."""
