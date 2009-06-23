@@ -255,9 +255,6 @@ class AnnotateWindow(QBzrWindow):
         self.log_list = LogList(self.processEvents, self.throbber, no_graph, self)
         self.log_list.header().hideSection(COL_DATE)
         #self.log_list.header().hideSection(COL_AUTHOR)
-        self.log_list.context_menu.addAction(
-            gettext("&Annotate this revision."),
-            self.set_annotate_revision)
         self.log_branch_loaded = False
         
         self.connect(self.log_list.selectionModel(),
@@ -376,6 +373,10 @@ class AnnotateWindow(QBzrWindow):
         if not self.log_branch_loaded:
             self.log_branch_loaded = True
             self.log_list.load_branch(self.branch, [self.fileId])
+            self.log_list.context_menu.addAction(
+                                    gettext("&Annotate this revision."),
+                                    self.set_annotate_revision)
+
         
         self.log_list.graph_provider.filter_file_id = [False for i in 
             xrange(len(self.log_list.graph_provider.merge_sorted_revisions))]
@@ -474,7 +475,6 @@ class AnnotateWindow(QBzrWindow):
                 revid = str(self.log_list.currentIndex().data(RevIdRole).toString())
                 self.tree = self.branch.repository.revision_tree(revid)
                 self.path = self.tree.id2path(self.fileId)
-                self.browser.clear()
                 self.set_annotate_title()
                 self.processEvents()
                 self.annotate(self.tree, self.fileId, self.path)

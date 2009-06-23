@@ -71,6 +71,7 @@ from bzrlib.plugins.qbzr.lib.tag import TagWindow
 from bzrlib.plugins.qbzr.lib.util import (
     FilterOptions,
     is_valid_encoding,
+    open_tree,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import QUIFactory
 ''')
@@ -852,5 +853,22 @@ class cmd_qversion(QBzrCommand):
         from bzrlib.plugins.qbzr.lib.sysinfo import QBzrSysInfoWindow
         application = QtGui.QApplication(sys.argv)
         window = QBzrSysInfoWindow()
+        window.show()
+        application.exec_()
+
+
+class cmd_qupdate(QBzrCommand):
+    """Update working tree with latest changes in the branch."""
+    aliases = ['qup']
+    takes_args = ['directory?']
+    takes_options = [ui_mode_option]
+
+    def _qbzr_run(self, directory=None, ui_mode=False):
+        from bzrlib.plugins.qbzr.lib.update import QBzrUpdateWindow
+        application = QtGui.QApplication(sys.argv)
+        tree = open_tree(directory, ui_mode)
+        if tree is None:
+            return
+        window = QBzrUpdateWindow(tree, ui_mode)
         window.show()
         application.exec_()

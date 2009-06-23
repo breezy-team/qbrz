@@ -150,43 +150,27 @@ class RevNoItemDelegate(QtGui.QItemDelegate):
         self.max_mainline_digits = max_mainline_digits
     
     def drawDisplay(self, painter, option, rect, text):
-        painter.save()
-        try:
-            if option.state & QtGui.QStyle.State_Selected:
-                fill = QtCore.QRect(rect.x() - self.BORDER,
-                                    rect.y() - self.BORDER,
-                                    rect.width() + self.BORDER * 2,
-                                    rect.height() + self.BORDER * 2)
-                painter.fillRect(fill, option.palette.highlight())
-                painter.setBrush(option.palette.highlightedText())
-            else :
-                painter.setBrush(option.palette.text())
-            
-            painter.setFont(option.font);
-            
-            mainline, dot, therest = str(text).partition(".")
-            therest = dot + therest
-            
-            fm = painter.fontMetrics()
-            mainline_width = fm.width("8"*self.max_mainline_digits)
-            therest_width = fm.width(therest)
-            
-            if mainline_width + therest_width > rect.width():
-                if fm.width(text) > rect.width():
-                    text = QtGui.QAbstractItemDelegate.elidedText(
-                        fm, rect.width(), QtCore.Qt.ElideRight, text)
-                painter.drawText(rect, QtCore.Qt.AlignRight, text);
-            else:
-                mainline_rect = QtCore.QRect(rect.x(),
-                                             rect.y(),
-                                             mainline_width,
-                                             rect.height())
-                therest_rect = QtCore.QRect(rect.x() + mainline_width,
-                                            rect.y(),
-                                            rect.width() - mainline_width,
-                                            rect.height())
-                painter.drawText(mainline_rect, QtCore.Qt.AlignRight, mainline)
-                painter.drawText(therest_rect, QtCore.Qt.AlignLeft, therest)
-        finally:
-            painter.restore()
+        mainline, dot, therest = str(text).partition(".")
+        therest = dot + therest
+        
+        fm = painter.fontMetrics()
+        mainline_width = fm.width("8"*self.max_mainline_digits)
+        therest_width = fm.width(therest)
+        
+        if mainline_width + therest_width > rect.width():
+            if fm.width(text) > rect.width():
+                text = QtGui.QAbstractItemDelegate.elidedText(
+                    fm, rect.width(), QtCore.Qt.ElideRight, text)
+            painter.drawText(rect, QtCore.Qt.AlignRight, text);
+        else:
+            mainline_rect = QtCore.QRect(rect.x(),
+                                         rect.y(),
+                                         mainline_width,
+                                         rect.height())
+            therest_rect = QtCore.QRect(rect.x() + mainline_width,
+                                        rect.y(),
+                                        rect.width() - mainline_width,
+                                        rect.height())
+            painter.drawText(mainline_rect, QtCore.Qt.AlignRight, mainline)
+            painter.drawText(therest_rect, QtCore.Qt.AlignLeft, therest)
 

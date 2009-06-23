@@ -325,8 +325,8 @@ class LogWindow(QBzrWindow):
         scheme = unicode(url.scheme())
         if scheme == 'qlog-revid':
             revision_id = unicode(url.path())
-            self.log_list.model.ensure_rev_visible(revision_id)
-            index = self.log_list.model.indexFromRevId(revision_id)
+            self.log_list.log_model.ensure_rev_visible(revision_id)
+            index = self.log_list.log_model.indexFromRevId(revision_id)
             index = self.log_list.filter_proxy_model.mapFromSource(index)
             self.log_list.setCurrentIndex(index)
         else:
@@ -494,8 +494,8 @@ class LogWindow(QBzrWindow):
         elif role == self.FilterIdRole:
             self.log_list.set_search(None, None)
             if self.log_list.graph_provider.has_rev_id(search_text):
-                self.log_list.model.ensure_rev_visible(search_text)
-                index = self.log_list.model.indexFromRevId(search_text)
+                self.log_list.log_model.ensure_rev_visible(search_text)
+                index = self.log_list.log_model.indexFromRevId(search_text)
                 index = self.log_list.filter_proxy_model.mapFromSource(index)
                 self.log_list.setCurrentIndex(index)
         elif role == self.FilterRevnoRole:
@@ -507,8 +507,8 @@ class LogWindow(QBzrWindow):
                 # Not sure what to do if there is an error. Nothing for now
             revid = self.log_list.graph_provider.revid_from_revno(revno)
             if revid:
-                self.log_list.model.ensure_rev_visible(revid)
-                index = self.log_list.model.indexFromRevId(revid)
+                self.log_list.log_model.ensure_rev_visible(revid)
+                index = self.log_list.log_model.indexFromRevId(revid)
                 index = self.log_list.filter_proxy_model.mapFromSource(index)
                 self.log_list.setCurrentIndex(index)
         else:

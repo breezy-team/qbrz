@@ -185,7 +185,7 @@ class QBzrBranchWindow(SubProcessDialog):
                                 self.ui.to_location,
                                 DIRECTORYPICKER_TARGET)
 
-    def accept(self):
+    def start(self):
         args = []
         revision = str(self.ui.revision.text())
         if revision:
@@ -195,7 +195,6 @@ class QBzrBranchWindow(SubProcessDialog):
         to_location = str(self.ui.to_location.currentText())
         self.process_widget.start(None, 'branch', from_location, to_location, *args)
         save_pull_location(None, from_location)
-
 
 class QBzrMergeWindow(SubProcessDialog):
 
@@ -231,7 +230,7 @@ class QBzrMergeWindow(SubProcessDialog):
                                 self.ui.location,
                                 DIRECTORYPICKER_SOURCE)
 
-    def accept(self):
+    def start(self):
         if self.tree:
             dest = self.tree.basedir
         else:
@@ -239,6 +238,9 @@ class QBzrMergeWindow(SubProcessDialog):
         args = ['--directory', dest]
         if self.ui.remember.isChecked():
             args.append('--remember')
-        location = str(self.ui.location.currentText())
+        rev = unicode(self.ui.revision.text()).strip()
+        if rev:
+            args.extend(['--revision', rev])
+        location = unicode(self.ui.location.currentText())
         self.process_widget.start(None, 'merge', location, *args)
         save_pull_location(None, location)

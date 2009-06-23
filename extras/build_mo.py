@@ -2,7 +2,7 @@
 #
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2007 Lukáš Lalinský <lalinsky@gmail.com>
-# Copyright (C) 2007 Alexander Belchenko <bialix@ukr.net>
+# Copyright (C) 2007,2009 Alexander Belchenko <bialix@ukr.net>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -64,9 +64,14 @@ class build_mo(Command):
         if self.source_dir is None:
             self.source_dir = 'po'
         if self.lang is None:
+            self.prj_name = self.distribution.get_name()
+            if self.prj_name:
+                re_po = re.compile(r'^(?:%s-)?([a-zA-Z_]+)\.po$' % self.prj_name)
+            else:
+                re_po = re.compile(r'^([a-zA-Z_]+)\.po$')
             self.lang = []
             for i in os.listdir(self.source_dir):
-                mo = re.match(r'^(?:qbzr-)?([a-zA-Z_]+)\.po$', i)
+                mo = re_po.match(i)
                 if mo:
                     self.lang.append(mo.group(1))
         else:
@@ -87,21 +92,29 @@ class build_mo(Command):
             log.warn("Skip creating English PO file.")
         else:
             log.info('Creating English PO file...')
+            pot = (self.prj_name or 'messages') + '.pot'
+            if self.prj_name:
+                en_po = '%s-en.po' % self.prj_name
+            else:
+                en_po = 'en.po'
             self.spawn(['msginit',
                 '--no-translator',
                 '-l', 'en',
-                '-i', os.path.join(self.source_dir, 'qbzr.pot'),
-                '-o', os.path.join(self.source_dir, 'qbzr-en.po'),
+                '-i', os.path.join(self.source_dir, pot),
+                '-o', os.path.join(self.source_dir, en_po),
                 ])
 
         basename = self.output_base
         if not basename.endswith('.mo'):
             basename += '.mo'
 
+        po_prefix = ''
+        if self.prj_name:
+            po_prefix = self.prj_name + '-'
         for lang in self.lang:
             po = os.path.join('po', lang + '.po')
             if not os.path.isfile(po):
-                po = os.path.join('po', 'qbzr-' + lang + '.po')
+                po = os.path.join('po', po_prefix + lang + '.po')
             dir_ = os.path.join(self.build_dir, lang, 'LC_MESSAGES')
             self.mkpath(dir_)
             mo = os.path.join(dir_, basename)

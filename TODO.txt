@@ -1,7 +1,22 @@
 TODO List
 =========
+Todo items, feature requests, wishes, and wild ideas.
 
- - allow changing of revision and location in qbrowse
+ - allow changing of location in qbrowse -- is it really needed? [bialix]
  - tabbed (per file) qdiff view
- - more information in qblame (like gblame)
+ - more information in qblame (like gblame) -- needs more details [bialix]
  - pluggable API for adding pages to qconfig from other plugins
+
+ - faster qdiff on big binary files: provide small optimization re binary
+   files:
+     
+     1) try to get content of binary file from working tree first
+     2) if it's really binary file and it's not image file then skip
+        reading its content from revision tree/repository
+     3) support for binary settings in rules file (global/local does not
+        matter), e.g. 
+        
+         * rule name: ``binary``, 
+         * possible values: ``auto`` (default, require content check),
+           ``yes`` (force binary mode, no need to check content),
+           ``no`` (force text mode, no need to check content)

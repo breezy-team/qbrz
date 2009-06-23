@@ -63,8 +63,6 @@ class QUIFactory(ui.UIFactory):
             return self.current_widget_stack[-1]
         return None
     
-        self._progress_view._repaint = self.progress_view_repaint
-    
     def throbber(self):
         current_widget = self.current_widget()
         if current_widget and getattr(current_widget, 'throbber', None) is not None:
