@@ -74,9 +74,12 @@ class BrowseWindow(QBzrWindow):
         hbox.addWidget(self.location_edit, 7)
         hbox.addWidget(QtGui.QLabel(gettext("Revision:")))
         self.revision_edit = QtGui.QLineEdit()
+        self.connect(self.revision_edit,
+                     QtCore.SIGNAL("returnPressed()"), self.reload_tree)
         hbox.addWidget(self.revision_edit, 1)
         self.show_button = QtGui.QPushButton(gettext("Show"))
-        self.connect(self.show_button, QtCore.SIGNAL("clicked()"), self.reload_tree)
+        self.connect(self.show_button,
+                     QtCore.SIGNAL("clicked()"), self.reload_tree)
         hbox.addWidget(self.show_button, 0)
         
         self.filter_menu = TreeFilterMenu(self)
