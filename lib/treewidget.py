@@ -39,6 +39,12 @@ from bzrlib.plugins.qbzr.lib.util import (
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.wtlist import ChangeDesc
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
+from bzrlib.plugins.qbzr.lib.diff import (
+    show_diff,
+    has_ext_diff,
+    ExtDiffMenu,
+    InternalWTDiffArgProvider,
+    )
 
 
 
@@ -552,14 +558,25 @@ class TreeWidget(RevisionTreeView):
     def create_context_menu(self):
         self.context_menu = QtGui.QMenu(self)
         self.action_show_log = self.context_menu.addAction(
-                                    gettext("&Log"),
+                                    gettext("Show &log"),
                                     self.show_file_log)
         self.action_show_annotate = self.context_menu.addAction(
-                                    gettext("&Annotate"), 
+                                    gettext("Show &annotate"), 
                                     self.show_file_annotate)
         self.action_show_file = self.context_menu.addAction(
                                     gettext("&View"),
                                     self.show_file_content)
+        if has_ext_diff():
+            diff_menu = ExtDiffMenu(self)
+            self.action_show_diff = self.context_menu.addMenu(diff_menu)
+            self.connect(diff_menu,
+                         QtCore.SIGNAL("triggered(QString)"),
+                         self.show_differences)
+        else:
+            self.action_show_diff = self.context_menu.addAction(
+                                    gettext("Show &differences"),
+                                    self.show_differences)
+        
         self.context_menu.addSeparator()
         self.action_add = self.context_menu.addAction(
                                     gettext("&Add"),
@@ -633,6 +650,8 @@ class TreeWidget(RevisionTreeView):
         self.action_show_annotate.setEnabled(single_versioned_file)
         self.action_show_file.setEnabled(single_versioned_file)
         self.action_show_log.setEnabled(any(versioned))
+        self.action_show_diff.setVisible(is_working_tree)
+        self.action_show_diff.setEnabled(any(changed))
         
         self.action_add.setVisible(is_working_tree)
         self.action_add.setDisabled(all(versioned))
@@ -678,6 +697,28 @@ class TreeWidget(RevisionTreeView):
         window = AnnotateWindow(self.branch, self.tree, path, file_id)
         window.show()
         self.window().windows.append(window)
+
+    @ui_current_widget
+    def show_differences(self, ext_diff=None):
+        """Show differences for selected file(s)."""
+        
+        items = self.get_selection_items()
+        self.tree.lock_read()
+        try:
+            # Only paths that have changes.
+            paths = [self.tree.id2path(item[0].file_id)
+                     for item in items
+                     if item[1] is not None]
+        finally:
+            self.tree.unlock()
+        
+        arg_provider = InternalWTDiffArgProvider(
+            None, self.tree,
+            self.tree.branch, self.tree.branch,
+            specific_files=paths)
+        
+        show_diff(arg_provider, ext_diff=ext_diff,
+                  parent_window=self.window())
 
 
     @ui_current_widget
