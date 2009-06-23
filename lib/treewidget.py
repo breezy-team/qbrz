@@ -703,14 +703,18 @@ class TreeWidget(RevisionTreeView):
         """Show differences for selected file(s)."""
         
         items = self.get_selection_items()
-        self.tree.lock_read()
-        try:
-            # Only paths that have changes.
-            paths = [self.tree.id2path(item[0].file_id)
-                     for item in items
-                     if item[1] is not None]
-        finally:
-            self.tree.unlock()
+        if len(items) > 0:
+            self.tree.lock_read()
+            try:
+                # Only paths that have changes.
+                paths = [self.tree.id2path(item[0].file_id)
+                         for item in items
+                         if item[1] is not None]
+            finally:
+                self.tree.unlock()
+        else:
+            # Show all.
+            paths = None
         
         arg_provider = InternalWTDiffArgProvider(
             None, self.tree,

@@ -29,6 +29,8 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.treewidget import TreeWidget, TreeFilterMenu
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
+    BTN_REFRESH,
+    StandardButton,
     QBzrWindow,
     ThrobberWidget,
     runs_in_loading_queue,
@@ -36,7 +38,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
-
+from bzrlib.plugins.qbzr.lib.diff import DiffButtons
 
 class BrowseWindow(QBzrWindow):
 
@@ -95,10 +97,25 @@ class BrowseWindow(QBzrWindow):
         self.file_tree = TreeWidget(self)
         self.file_tree.throbber = self.throbber
         vbox.addWidget(self.file_tree)
+        
         self.filter_menu.set_filters(self.file_tree.tree_filter_model.filters)
-
+        
         buttonbox = self.create_button_box(BTN_CLOSE)
-        vbox.addWidget(buttonbox)
+        
+        self.refresh_button = StandardButton(BTN_REFRESH)
+        buttonbox.addButton(self.refresh_button, QtGui.QDialogButtonBox.ActionRole)
+        self.connect(self.refresh_button,
+                     QtCore.SIGNAL("clicked()"),
+                     self.file_tree.refresh)
+
+        self.diffbuttons = DiffButtons(self.centralwidget)
+        self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
+                     self.file_tree.show_differences)
+        
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(self.diffbuttons)
+        hbox.addWidget(buttonbox)
+        vbox.addLayout(hbox)
 
         self.windows = []
 
@@ -142,16 +159,21 @@ class BrowseWindow(QBzrWindow):
     
     @ui_current_widget
     def set_revision(self, revspec=None, revision_id=None, text=None):
+        buttons = (self.filter_button,
+                   self.diffbuttons,
+                   self.refresh_button)
         if text=="wt:":
             self.tree = self.workingtree
             self.file_tree.set_tree(self.workingtree, self.branch)
-            self.filter_button.setEnabled(True)
+            for button in buttons:
+                button.setEnabled(True)
         else:
             branch = self.branch
             branch.lock_read()
             self.processEvents()
             
-            self.filter_button.setEnabled(False)
+            for button in buttons:
+                button.setEnabled(False)
             fmodel = self.file_tree.tree_filter_model
             fmodel.setFilter(fmodel.UNCHANGED, True)
             self.filter_menu.set_filters(fmodel.filters)            
