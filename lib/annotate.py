@@ -327,7 +327,9 @@ class AnnotateWindow(QBzrWindow):
         self.set_title_and_icon([gettext("Annotate"), self.path])
 
     def get_revno(self, revid):
-        return self.log_list.graph_provider.revno_from_revid(revid)
+        if revid in self.log_list.graph_provider.revid_rev:
+            return self.log_list.graph_provider.revid_rev[revid].revno_str
+        return ""
     
     def annotate(self, tree, fileId, path):
         self.rev_indexes = {}
@@ -378,22 +380,20 @@ class AnnotateWindow(QBzrWindow):
                                     self.set_annotate_revision)
 
         
-        self.log_list.graph_provider.filter_file_id = [False for i in 
-            xrange(len(self.log_list.graph_provider.merge_sorted_revisions))]
+        gp = self.log_list.graph_provider
+        gp.filter_file_id = [False for i in xrange(len(gp.revisions))]
         
-        changed_msris = []
+        changed_indexes = []
         for revid in self.rev_indexes.keys():
-            msri = self.log_list.graph_provider.revid_msri[revid]
-            self.log_list.graph_provider.filter_file_id[msri] = True
-            changed_msris.append(msri)
+            index = gp.revid_rev[revid].index
+            gp.filter_file_id[index] = True
+            changed_indexes.append(index)
             
-            if len(changed_msris) >=500:
-                 self.log_list.graph_provider.invaladate_filter_cache_revs(
-                                                                changed_msris)
-                 changed_msris = []
+            if len(changed_indexes) >=500:
+                 gp.invaladate_filter_cache_revs(changed_indexes)
+                 changed_indexes = []
         
-        self.log_list.graph_provider.invaladate_filter_cache_revs(
-                                                changed_msris, last_call=True)
+        gp.invaladate_filter_cache_revs(changed_indexes, last_call=True)
         
         self.processEvents()
         
@@ -453,11 +453,8 @@ class AnnotateWindow(QBzrWindow):
             gp = self.log_list.graph_provider
             rev  = gp.load_revisions([revid])[revid]
             if not hasattr(rev, "revno"):
-                if rev.revision_id in gp.revid_msri:
-                    revno_sequence = gp.merge_sorted_revisions[\
-                                        gp.revid_msri[rev.revision_id]][3]
-                    rev.revno = ".".join(["%d" % (revno)
-                                              for revno in revno_sequence])
+                if rev.revision_id in gp.revid_rev:
+                    rev.revno = gp.revid_rev[rev.revision_id].revno_str
                 else:
                     rev.revno = ""
             self.message_doc.setHtml(format_revision_html(rev,

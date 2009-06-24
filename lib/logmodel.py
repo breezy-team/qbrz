@@ -134,11 +134,11 @@ class LogModel(QtCore.QAbstractTableModel):
         self.graph_provider.compute_graph_lines()
         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                   self.createIndex (0, COL_MESSAGE, QtCore.QModelIndex()),
-                  self.createIndex (len(self.graph_provider.merge_sorted_revisions),
+                  self.createIndex (len(self.graph_provider.revisions),
                                     COL_MESSAGE, QtCore.QModelIndex()))
     
     def colapse_expand_rev(self, revid, visible):
-        self.clicked_row = self.graph_provider.revid_msri[revid]
+        self.clicked_row = self.graph_provider.revid_rev[revid].index
         clicked_row_index = self.createIndex (self.clicked_row,
                                               COL_MESSAGE,
                                               QtCore.QModelIndex())
@@ -174,27 +174,31 @@ class LogModel(QtCore.QAbstractTableModel):
         return len(self.horizontalHeaderLabels)
 
     def rowCount(self, parent):
-        return len(self.graph_provider.merge_sorted_revisions)
+        return len(self.graph_provider.revisions)
     
     def data(self, index, role):
+        gp = self.graph_provider
+        
         if not index.isValid():
             return QtCore.QVariant()
         
-        if index.row() in self.graph_provider.msri_index \
-                and len(self.graph_provider.graph_line_data)> \
-                self.graph_provider.msri_index[index.row()]:
-            (msri,
-             node,
-             lines,
-             twisty_state,
-             twisty_branch_ids) = self.graph_provider.graph_line_data\
-                                  [self.graph_provider.msri_index[index.row()]]
+        rev_index = index.row()
+        if rev_index in gp.index_filtered_index:
+            f_index = gp.index_filtered_index[rev_index]
         else:
-            (msri,
+            f_index = None
+        
+        if f_index is not None and len(gp.graph_line_data)>f_index:
+            (rev_index,
              node,
              lines,
              twisty_state,
-             twisty_branch_ids) = (index.row(), None, [], None, [])
+             twisty_branch_ids) = gp.graph_line_data[f_index]
+        else:
+            node = None
+            lines = []
+            twisty_state = None
+            twisty_branch_ids = []
         
         if role == GraphLinesRole:
             qlines = []
@@ -207,7 +211,7 @@ class LogModel(QtCore.QAbstractTableModel):
             return QVariant_fromList(qlines)
         
         if self.last_rev_is_placeholder and \
-                msri == len(self.graph_provider.merge_sorted_revisions) - 1:
+                rev_index == len(gp.revisions) - 1:
             if role == GraphNodeRole:
                 return QVariant_fromList([QtCore.QVariant(-1), QtCore.QVariant(0)])
             return QtCore.QVariant()
@@ -224,35 +228,32 @@ class LogModel(QtCore.QAbstractTableModel):
                 return QtCore.QVariant(-1)
             return QtCore.QVariant(twisty_state)
         
-        (sequence_number, revid, merge_depth, revno_sequence, end_of_merge) = \
-            self.graph_provider.merge_sorted_revisions[index.row()]
+        rev = gp.revisions[rev_index]
         
         if (role == QtCore.Qt.DisplayRole and index.column() == COL_REV) :
-            revnos = ".".join(["%d" % (revno)
-                                      for revno in revno_sequence])
-            return QtCore.QVariant(revnos)
+            return QtCore.QVariant(rev.revno_str)
         
         if role == TagsRole:
             tags = []
-            if revid in self.graph_provider.tags:
-                tags = list(self.graph_provider.tags[revid])
+            if rev.revid in gp.tags:
+                tags = list(gp.tags[rev.revid])
             return QtCore.QVariant(QtCore.QStringList(tags))
         
         if role == BranchTagsRole:
             tags = []
-            if revid in self.graph_provider.branch_tags:
+            if rev.revid in gp.branch_tags:
                 tags = [tag for tag \
-                        in self.graph_provider.branch_tags[revid] if tag]
+                        in gp.branch_tags[rev.revid] if tag]
             return QtCore.QVariant(QtCore.QStringList(tags))
         
         if role == RevIdRole:
-            return QtCore.QVariant(revid)
+            return QtCore.QVariant(rev.revid)
         
         #Everything from here foward will need to have the revision loaded.
-        if not revid or revid not in cached_revisions:
+        if rev.revid not in cached_revisions:
             return QtCore.QVariant()
         
-        revision = cached_revisions[revid]
+        revision = cached_revisions[rev.revid]
         
         if role == QtCore.Qt.DisplayRole and index.column() == COL_DATE:
             return QtCore.QVariant(strftime("%Y-%m-%d %H:%M",
@@ -287,11 +288,11 @@ class LogModel(QtCore.QAbstractTableModel):
     
 
     def indexFromRevId(self, revid, columns=None):
-        msri = self.graph_provider.revid_msri[revid]
+        rev = self.graph_provider.revid_rev[revid]
         if columns:
-            return [self.index (msri, column, QtCore.QModelIndex())\
+            return [self.index (rev.index, column, QtCore.QModelIndex())\
                     for column in columns]
-        return self.index (msri, 0, QtCore.QModelIndex())
+        return self.index (rev.index, 0, QtCore.QModelIndex())
 
     def on_revisions_loaded(self, revisions, last_call):
         for revid in revisions.iterkeys():

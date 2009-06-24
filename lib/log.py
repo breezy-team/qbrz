@@ -405,11 +405,8 @@ class LogWindow(QBzrWindow):
                                           list(child_ids))
             for rev in revisions.itervalues():
                 if not hasattr(rev, "revno"):
-                    if rev.revision_id in gp.revid_msri:
-                        revno_sequence = gp.merge_sorted_revisions[\
-                                            gp.revid_msri[rev.revision_id]][3]
-                        rev.revno = ".".join(["%d" % (revno)
-                                                  for revno in revno_sequence])
+                    if rev.revision_id in gp.revid_rev:
+                        rev.revno = gp.revid_rev[rev.revision_id].revno_str
                     else:
                         rev.revno = ""
             
