@@ -72,11 +72,12 @@ class TreeModel(QtCore.QAbstractItemModel):
     FILEID = QtCore.Qt.UserRole + 2
     PATH = QtCore.Qt.UserRole + 3
     
-    def __init__(self, file_icon, dir_icon, parent=None):
+    def __init__(self, file_icon, dir_icon, symlink_icon, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
 
         self.file_icon = file_icon
         self.dir_icon = dir_icon
+        self.symlink_icon = symlink_icon
         self.tree = None
         self.dir_children_ids = {}
     
@@ -318,7 +319,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                     return QtCore.QVariant(self.file_icon)
                 if item.kind == "directory":
                     return QtCore.QVariant(self.dir_icon)
-                # XXX Simlink
+                if item.kind == "symlink":
+                    return QtCore.QVariant(self.symlink_icon)
                 return QtCore.QVariant()
         
         if column == self.STATUS:
@@ -520,8 +522,9 @@ class TreeWidget(RevisionTreeView):
         
         file_icon = self.style().standardIcon(QtGui.QStyle.SP_FileIcon)
         dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
+        symlink_icon = self.style().standardIcon(QtGui.QStyle.SP_FileLinkIcon)
         
-        self.tree_model = TreeModel(file_icon, dir_icon)
+        self.tree_model = TreeModel(file_icon, dir_icon, symlink_icon)
         self.tree_filter_model = TreeFilterProxyModel()
         self.tree_filter_model.setSourceModel(self.tree_model)
         self.setModel(self.tree_filter_model)
