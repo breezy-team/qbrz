@@ -88,7 +88,19 @@ class RevisionInfo(object):
     def __repr__(self):
         return "%s <%s %s>" % (self.__class__.__name__, self.revno_str,
                               self.revid)
+
+class BranchLine(object):
+    __slots__ = ["branch_id", "revs", "visible", "merges", "merged_by"]
     
+    def __init__(self, branch_id, visible):
+        self.branch_id = branch_id
+        self.visible = visible
+        self.revs = []
+        self.merges = []
+        self.merged_by = []
+
+    def __repr__(self):
+        return "%s <%s>" % (self.__class__.__name__, self.branch_id)
     
 class LogGraphProvider(object):
     """Loads and computes revision and graph data for GUI log widgets."""
@@ -555,11 +567,7 @@ class LogGraphProvider(object):
         
     def compute_branch_lines(self):
         self.branch_lines = {}
-        """A list of each "branch", containing
-            [a list of revs in the branch,
-             is the branch visible,
-             merges,
-             merged_by].
+        """A list of branch lines (aka merge lines).
         
         For a revisions, the revsion number less the least significant
         digit is the branch_id, and used as the key for the dict. Hence
@@ -582,17 +590,14 @@ class LogGraphProvider(object):
             branch_line = None
             if rev.branch_id not in self.branch_lines:
                 start_branch = rev.revid in self.head_revids
-                branch_line = [[],
-                               start_branch,
-                               [],
-                               []]
+                branch_line = BranchLine(rev.branch_id, start_branch)
                 if start_branch:
                     self.start_branch_ids.append(rev.branch_id)
                 self.branch_lines[rev.branch_id] = branch_line
             else:
                 branch_line = self.branch_lines[rev.branch_id]
             
-            branch_line[0].append(rev)
+            branch_line.revs.append(rev)
         
         self.branch_ids = self.branch_lines.keys()
         
@@ -607,8 +612,8 @@ class LogGraphProvider(object):
             
             # Branch line that have a smaller merge depth should be to the left
             # of those with bigger merge depths.
-            merge_depth_x = self.revisions[self.branch_lines[x][0][0].index].merge_depth
-            merge_depth_y = self.revisions[self.branch_lines[y][0][0].index].merge_depth
+            merge_depth_x = self.branch_lines[x].revs[0].merge_depth
+            merge_depth_y = self.branch_lines[y].revs[0].merge_depth
             if not merge_depth_x == merge_depth_y:
                 return cmp(merge_depth_x, merge_depth_y)
             
@@ -631,7 +636,7 @@ class LogGraphProvider(object):
             if len(x) == 2 and len(y) == 2 and x[0] == y[0]:
                 return cmp(x[1], y[1])
             
-            # Otherwise, thoughs with a greater mainline parent revno should
+            # Otherwise, thoes with a greater mainline parent revno should
             # appear to the left.
             return -cmp(x, y)
 
@@ -670,10 +675,10 @@ class LogGraphProvider(object):
                 merged_by_branch_id = \
                         self.revisions[merged_by_index].branch_id
                 
-                if not branch_id in self.branch_lines[merged_by_branch_id][2]:
-                    self.branch_lines[merged_by_branch_id][2].append(branch_id)
-                if not merged_by_branch_id in self.branch_lines[branch_id][3]:
-                    self.branch_lines[branch_id][3].append(merged_by_branch_id)
+                if not branch_id in self.branch_lines[merged_by_branch_id].merges:
+                    self.branch_lines[merged_by_branch_id].merges.append(branch_id)
+                if not merged_by_branch_id in self.branch_lines[branch_id].merged_by:
+                    self.branch_lines[branch_id].merged_by.append(merged_by_branch_id)
         
     def compute_head_info(self):
         def get_revid_head(heads):
@@ -787,15 +792,10 @@ class LogGraphProvider(object):
         
         
         return index in self.index_filtered_index
-        #(sequence_number,
-        # revid,
-        # merge_depth,
-        # revno_sequence,
-        # end_of_merge) = self.revisions[index]
+        #branch_id = self.revisions[index].branch_id
         #
-        #branch_id = revno_sequence[0:-1]
         #if not self.no_graph and \
-        #        not self.branch_lines[branch_id][1]: # branch colapased
+        #        not self.branch_lines[branch_id].visible: # branch colapased
         #    return False
         #
         #return self.get_revision_visible_if_branch_visible_cached(index)
@@ -920,8 +920,8 @@ class LogGraphProvider(object):
         else:
             indexes_whos_branch_is_visible = []
             for branch_line in self.branch_lines.itervalues():
-                if branch_line[1]:
-                    branch_indexes = [rev.index for rev in branch_line[0]]
+                if branch_line.visible:
+                    branch_indexes = [rev.index for rev in branch_line.revs]
                     indexes_whos_branch_is_visible.extend(branch_indexes)
             indexes_whos_branch_is_visible.sort()
         
@@ -1095,13 +1095,10 @@ class LogGraphProvider(object):
                     direct ))
         
         for branch_id in self.branch_ids:
-            (branch_revs,
-             branch_visible,
-             branch_merges,
-             branch_merged_by) = self.branch_lines[branch_id]
+            branch_line = self.branch_lines[branch_id]
             
-            if branch_visible:
-                branch_revs = [rev for rev in branch_revs
+            if branch_line.visible:
+                branch_revs = [rev for rev in branch_line.revs
                                     if rev.index in index_filtered_index]
             else:
                 branch_revs = []
@@ -1170,7 +1167,7 @@ class LogGraphProvider(object):
                         parent = self.revisions[parent_index]
                         
                         # Does this branch have any visible revisions
-                        parent_branch_revs = self.branch_lines[parent.branch_id][0]
+                        parent_branch_revs = self.branch_lines[parent.branch_id].revs
                         for pb_rev in parent_branch_revs:
                             visible = pb_rev.index in index_filtered_index or \
                                 self.get_revision_visible_if_branch_visible_cached (pb_rev.index)
@@ -1183,7 +1180,7 @@ class LogGraphProvider(object):
                     if len (graph_line_data[f_index][4])>0:
                         twisty_state = True
                         for twisty_branch_id in graph_line_data[f_index][4]:
-                            if not self.branch_lines[twisty_branch_id][1]:
+                            if not self.branch_lines[twisty_branch_id].visible:
                                 twisty_state = False
                                 break
                         graph_line_data[f_index][3] = twisty_state
@@ -1362,9 +1359,9 @@ class LogGraphProvider(object):
         self.graph_line_data = graph_line_data
     
     def set_branch_visible(self, branch_id, visible, has_change):
-        if not self.branch_lines[branch_id][1] == visible:
+        if not self.branch_lines[branch_id].visible == visible:
             has_change = True
-        self.branch_lines[branch_id][1] = visible
+        self.branch_lines[branch_id].visible = visible
         return has_change
     
     def ensure_rev_visible(self, revid):
@@ -1374,14 +1371,14 @@ class LogGraphProvider(object):
         branch_id = self.revid_rev[revid].branch_id
         has_change = self.set_branch_visible(branch_id, True, False)
         while (not branch_id in self.start_branch_ids and
-               self.branch_lines[branch_id][3]):
-            branch_id = self.branch_lines[branch_id][3][0]
+               self.branch_lines[branch_id].merged_by):
+            branch_id = self.branch_lines[branch_id].merged_by[0]
             has_change = self.set_branch_visible(branch_id, True, has_change)
         return has_change
 
     def has_visible_child(self, branch_id):
-        for child_branch_id in self.branch_lines[branch_id][3]:
-            if self.branch_lines[child_branch_id][1]:
+        for child_branch_id in self.branch_lines[branch_id].merged_by:
+            if self.branch_lines[child_branch_id].visible:
                 return True
         return False
 
@@ -1399,7 +1396,7 @@ class LogGraphProvider(object):
                                                  visible,
                                                  has_change)
             if not visible:
-                for parent_branch_id in self.branch_lines[branch_id][2]:
+                for parent_branch_id in self.branch_lines[branch_id].merges:
                     if parent_branch_id not in branch_ids and \
                                 parent_branch_id not in processed_branch_ids:
                         branch_ids.append(parent_branch_id)
