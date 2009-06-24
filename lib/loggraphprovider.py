@@ -67,7 +67,7 @@ class RevisionInfo(object):
     # Instance of this object are typicaly named "rev".
     
     __slots__ = ["index", "revid", "merge_depth", "revno_sequence",
-                 "end_of_merge", "branch_id", "_revno_str"]
+                 "end_of_merge", "branch_id", "_revno_str", "filter_cache"]
     
     def __init__ (self, index, revid, merge_depth, revno_sequence, end_of_merge):
         self.index = index
@@ -77,6 +77,7 @@ class RevisionInfo(object):
         self.end_of_merge = end_of_merge
         self.branch_id = self.revno_sequence[0:-1]
         self._revno_str = None
+        self.filter_cache = True
     
     def get_revno_str(self):
         if self._revno_str is None:
@@ -167,8 +168,6 @@ class LogGraphProvider(object):
         """Filtered dict of index's that are visible because they touch
         self.fileids
         """
-        
-        self.filter_cache = []
         
         self.graph_line_data = []
         """ list containing for visible revisions:
@@ -558,8 +557,8 @@ class LogGraphProvider(object):
         
         if not self.fileids:
             # All revisions start visible
-            self.filter_cache = [True for i in 
-                         xrange(len(self.revisions))]
+            for rev in self.revisions:
+                rev.filter_cache = True
             self.revisions_filter_changed()
         else:
             # Revision visibilaty unknown.
@@ -567,6 +566,7 @@ class LogGraphProvider(object):
         
     def compute_branch_lines(self):
         self.branch_lines = {}
+        
         """A list of branch lines (aka merge lines).
         
         For a revisions, the revsion number less the least significant
@@ -801,11 +801,10 @@ class LogGraphProvider(object):
         #return self.get_revision_visible_if_branch_visible_cached(index)
 
     def get_revision_visible_if_branch_visible_cached(self, index):
-        cache = self.filter_cache[index]
-        if cache is None:
-            cache = self.get_revision_visible_if_branch_visible(index)
-            self.filter_cache[index] =cache
-        return cache
+        rev = self.revisions[index]
+        if rev.filter_cache is None:
+            rev.filter_cache = self.get_revision_visible_if_branch_visible(index)
+        return rev.filter_cache
     
     def get_revision_visible_if_branch_visible(self, index):
         
@@ -851,7 +850,8 @@ class LogGraphProvider(object):
         return True
 
     def invaladate_filter_cache(self):
-        self.filter_cache = [None] * len(self.revisions)
+        for rev in self.revisions:
+            rev.filter_cache = None
         self.revisions_filter_changed()
     
     def invaladate_filter_cache_revs(self, indexes, last_call=False):
@@ -874,10 +874,11 @@ class LogGraphProvider(object):
                 
                 if index in processed_indexes:
                     continue
+                rev = self.revisions[index]
                 
-                if self.filter_cache[index] is not None:
-                    prev_cached_indexes.append((index, self.filter_cache[index]))
-                self.filter_cache[index] = None
+                if rev.filter_cache is not None:
+                    prev_cached_indexes.append((index, rev.filter_cache))
+                rev.filter_cache = None
                 
                 if not self.no_graph:
                     merged_by = self.merge_info[index][1]
