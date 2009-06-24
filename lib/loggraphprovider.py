@@ -67,7 +67,8 @@ class RevisionInfo(object):
     # Instance of this object are typicaly named "rev".
     
     __slots__ = ["index", "revid", "merge_depth", "revno_sequence",
-                 "end_of_merge", "branch_id", "_revno_str", "filter_cache"]
+                 "end_of_merge", "branch_id", "_revno_str", "filter_cache",
+                 "merges", "merged_by"]
     
     def __init__ (self, index, revid, merge_depth, revno_sequence, end_of_merge):
         self.index = index
@@ -78,6 +79,8 @@ class RevisionInfo(object):
         self.branch_id = self.revno_sequence[0:-1]
         self._revno_str = None
         self.filter_cache = True
+        self.merges = []
+        self.merged_by = None
     
     def get_revno_str(self):
         if self._revno_str is None:
@@ -643,14 +646,19 @@ class LogGraphProvider(object):
         self.branch_ids.sort(branch_id_cmp)
     
     def compute_merge_info(self):
-        self.merge_info = []
-        """List containing for each revision:
-            (which revisions it merges,
-            (revision it is merged by).
         
-        """
+        def set_merged_by(rev, merged_by):
+            if merged_by is not None:
+                rev.merged_by = merged_by
+                self.revisions[merged_by].merges.append(rev.index)
+                branch_id = rev.branch_id
+                merged_by_branch_id = self.revisions[merged_by].branch_id
+                
+                if not branch_id in self.branch_lines[merged_by_branch_id].merges:
+                    self.branch_lines[merged_by_branch_id].merges.append(branch_id)
+                if not merged_by_branch_id in self.branch_lines[branch_id].merged_by:
+                    self.branch_lines[branch_id].merged_by.append(merged_by_branch_id)
         
-        merged_by = [None for x in self.revisions ]
         for rev in self.revisions:
             
             parents = [self.revid_rev[parent]
@@ -658,27 +666,11 @@ class LogGraphProvider(object):
             
             if len(parents) > 0:
                 if rev.branch_id == parents[0].branch_id:
-                    merged_by[parents[0].index] = merged_by[rev.index]
+                    set_merged_by(parents[0], rev.merged_by)
             
             for parent in parents[1:]:
                 if rev.merge_depth<=parent.merge_depth:
-                    merged_by[parent.index] = rev.index
-        
-        self.merge_info = [([], merged_by_index)
-                           for merged_by_index in merged_by]
-        
-        for index, merged_by_index in enumerate(merged_by):
-            if merged_by_index is not None:
-                self.merge_info[merged_by_index][0].append(index)
-                
-                branch_id = self.revisions[index].branch_id
-                merged_by_branch_id = \
-                        self.revisions[merged_by_index].branch_id
-                
-                if not branch_id in self.branch_lines[merged_by_branch_id].merges:
-                    self.branch_lines[merged_by_branch_id].merges.append(branch_id)
-                if not merged_by_branch_id in self.branch_lines[branch_id].merged_by:
-                    self.branch_lines[branch_id].merged_by.append(merged_by_branch_id)
+                    set_merged_by(parent, rev.index)
         
     def compute_head_info(self):
         def get_revid_head(heads):
@@ -809,7 +801,8 @@ class LogGraphProvider(object):
     def get_revision_visible_if_branch_visible(self, index):
         
         if not self.no_graph:
-            for merged_index in self.merge_info[index][0]:
+            rev = self.revisions[index]
+            for merged_index in rev.merges:
                 if self.get_revision_visible_if_branch_visible_cached(
                                                             merged_index):
                     return True
@@ -881,17 +874,16 @@ class LogGraphProvider(object):
                 rev.filter_cache = None
                 
                 if not self.no_graph:
-                    merged_by = self.merge_info[index][1]
-                    if merged_by is not None:
-                        if merged_by not in self.ifcr_pending_indexes and \
-                           merged_by not in processed_indexes:
-                            self.ifcr_pending_indexes.append(merged_by)
+                    if rev.merged_by is not None:
+                        if rev.merged_by not in self.ifcr_pending_indexes and \
+                           rev.merged_by not in processed_indexes:
+                            self.ifcr_pending_indexes.append(rev.merged_by)
             
             # Check if any visibilities have changes. If they have, call
             # revisions_filter_changed
             for index, prev_visible in prev_cached_indexes:
                 if not self.no_graph:
-                    merged_by = self.merge_info[index][1]
+                    merged_by = self.revisions[index].merged_by
                 else:
                     merged_by = None
                 
@@ -1131,7 +1123,7 @@ class LogGraphProvider(object):
                         if parent.index in index_filtered_index:
                             rev_visible_parents.append((parent, True))
                         else:
-                            if parent.index in self.merge_info[rev.index][0] and \
+                            if parent.index in rev.merges and \
                                self.get_revision_visible_if_branch_visible_cached(parent.index):
                                 # We merge this revision directly, and it would
                                 # be visible if the user expans it's branch.
@@ -1164,7 +1156,7 @@ class LogGraphProvider(object):
                     branch_rev_visible_parents[rev.index]=rev_visible_parents
                     
                     # Find and add nessery twisties
-                    for parent_index in self.merge_info[rev.index][0]:
+                    for parent_index in rev.merges:
                         parent = self.revisions[parent_index]
                         
                         # Does this branch have any visible revisions
@@ -1222,10 +1214,10 @@ class LogGraphProvider(object):
                         i += 1
                     
                     # This may be a sprout. Add line to first visible child
-                    merged_by_index = self.merge_info[rev.index][1]
+                    merged_by_index = rev.merged_by
                     if merged_by_index and\
                        not merged_by_index in index_filtered_index and\
-                       rev.index == self.merge_info[merged_by_index][0][0]:
+                       rev.index == self.revisions[merged_by_index].merges[0]:
                         # The revision that merges this revision is not
                         # visible, and it is the first revision that is
                         # merged by that revision. This is a sprout.
@@ -1234,10 +1226,10 @@ class LogGraphProvider(object):
                         # aka ocutpus merge?
                         #
                         # Search until we find a decendent that is visible.
-                        child_index = self.merge_info[rev.index][1]
+                        child_index = merged_by_index
                         while not child_index is None and \
                               not child_index in index_filtered_index:
-                            child_index = self.merge_info[child_index][1]
+                            child_index = self.revisions[child_index].merged_by
                         # Ensure only one line to a decendent.
                         if child_index not in children_with_sprout_lines:
                             children_with_sprout_lines[child_index] = True
@@ -1414,9 +1406,8 @@ class LogGraphProvider(object):
     
     def find_child_branch_merge_revision(self, revid):
         rev = self.revid_rev[revid]
-        merged_by_index = self.merge_info[rev.index][1]
-        if merged_by_index:
-            return self.revisions[merged_by_index].revid
+        if rev.merged_by:
+            return self.revisions[rev.merged_by].revid
         else:
             return None
 
