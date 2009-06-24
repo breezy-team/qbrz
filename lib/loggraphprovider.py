@@ -105,7 +105,19 @@ class BranchLine(object):
 
     def __repr__(self):
         return "%s <%s>" % (self.__class__.__name__, self.branch_id)
+
+class GraphLineData(object):
+    __slots__ = ["rev", "node", "lines", "twisty_state", "twisty_branch_ids"]
     
+    def __init__(self, rev):
+        self.rev = rev
+        self.node = None
+        self.lines = []
+        self.twisty_state = None
+        self.twisty_branch_ids = []
+
+empty_graph_line_data = GraphLineData(None)
+
 class LogGraphProvider(object):
     """Loads and computes revision and graph data for GUI log widgets."""
     
@@ -909,31 +921,24 @@ class LogGraphProvider(object):
         # This is a performance hack. The code will work without it, but will be
         # slower.
         if self.no_graph:
-            indexes_whos_branch_is_visible = xrange(len(self.revisions))
+            rev_whos_branch_is_visible = self.revisions
         else:
-            indexes_whos_branch_is_visible = []
+            rev_whos_branch_is_visible = []
             for branch_line in self.branch_lines.itervalues():
                 if branch_line.visible:
-                    branch_indexes = [rev.index for rev in branch_line.revs]
-                    indexes_whos_branch_is_visible.extend(branch_indexes)
-            indexes_whos_branch_is_visible.sort()
+                    rev_whos_branch_is_visible.extend(branch_line.revs)
+            rev_whos_branch_is_visible.sort(key=lambda rev: rev.index)
         
         # The following commented line would be use without the above
         # performance hack.
         #for index in xrange(0,len(self.revisions)):
-        for index in indexes_whos_branch_is_visible:
+        for rev in rev_whos_branch_is_visible:
             # The following would use just get_revision_visible without the
             # above performance hack.
-            if self.get_revision_visible_if_branch_visible_cached(index): 
+            if self.get_revision_visible_if_branch_visible_cached(rev.index): 
                 f_index = len(graph_line_data)
-                index_filtered_index[index] = f_index
-                graph_line_data.append([index,
-                                        None,
-                                        [],
-                                        None,
-                                        [],
-                                        ])
-        del index
+                index_filtered_index[rev.index] = f_index
+                graph_line_data.append(GraphLineData(rev))
         
         if self.no_graph:
             self.graph_line_data = graph_line_data
@@ -1032,13 +1037,13 @@ class LogGraphProvider(object):
             can_overlap = (branch_col_index is None or not direct) \
                             and line_length > 1
             
-            parent_node = graph_line_data[parent_f_index][1]
+            parent_node = graph_line_data[parent_f_index].node
             if parent_node:
                 parent_col_index = parent_node[0]
             else:
                 parent_col_index = None
             
-            child_node = graph_line_data[child_f_index][1]
+            child_node = graph_line_data[child_f_index].node
             if child_node:
                 child_col_index = child_node[0]
             else:
@@ -1165,18 +1170,19 @@ class LogGraphProvider(object):
                             visible = pb_rev.index in index_filtered_index or \
                                 self.get_revision_visible_if_branch_visible_cached (pb_rev.index)
                             if visible:
-                                graph_line_data[f_index][4].append (parent.branch_id)
+                                graph_line_data[f_index].twisty_branch_ids.append (parent.branch_id)
                                 break
                     
                     # Work out if the twisty needs to show a + or -. If all
                     # twisty_branch_ids are visible, show - else +.
-                    if len (graph_line_data[f_index][4])>0:
+                    twisty_branch_ids = graph_line_data[f_index].twisty_branch_ids
+                    if len (twisty_branch_ids)>0:
                         twisty_state = True
-                        for twisty_branch_id in graph_line_data[f_index][4]:
+                        for twisty_branch_id in twisty_branch_ids:
                             if not self.branch_lines[twisty_branch_id].visible:
                                 twisty_state = False
                                 break
-                        graph_line_data[f_index][3] = twisty_state
+                        graph_line_data[f_index].twisty_state = twisty_state
                 
                 
                 # Find the first parent of the last rev in the branch line
@@ -1247,7 +1253,7 @@ class LogGraphProvider(object):
                 
                 if last_parent:
                     parent_f_index = index_filtered_index[last_parent[0].index]
-                    parent_node = graph_line_data[parent_f_index][1]
+                    parent_node = graph_line_data[parent_f_index].node
                     if parent_node:
                         parent_col_index = parent_node[0]
                 
@@ -1274,7 +1280,7 @@ class LogGraphProvider(object):
                 # revision in this branch.
                 for rev in branch_revs:
                     f_index = index_filtered_index[rev.index]
-                    graph_line_data[f_index][1] = node
+                    graph_line_data[f_index].node = node
                 
                 append_line(first_rev_f_index, last_rev_f_index, True, col_index)
                 if last_parent:
@@ -1297,35 +1303,35 @@ class LogGraphProvider(object):
              direct,
              ) in lines:
             
-            (child_col_index, child_color) = graph_line_data[child_f_index][1]
-            (parent_col_index, parent_color) = graph_line_data[parent_f_index][1]
+            (child_col_index, child_color) = graph_line_data[child_f_index].node
+            (parent_col_index, parent_color) = graph_line_data[parent_f_index].node
             
             line_length = parent_f_index - child_f_index
             if line_length == 0:
                 # Nothing to do
                 pass
             elif line_length == 1:
-                graph_line_data[child_f_index][2].append(
+                graph_line_data[child_f_index].lines.append(
                     (child_col_index,
                      parent_col_index,
                      parent_color,
                      direct))
             else:
                 # line from the child's column to the lines column
-                graph_line_data[child_f_index][2].append(
+                graph_line_data[child_f_index].lines.append(
                     (child_col_index,
                      line_col_index,
                      parent_color,
                      direct))
                 # lines down the line's column
                 for line_part_f_index in range(child_f_index+1, parent_f_index-1):
-                    graph_line_data[line_part_f_index][2].append(
+                    graph_line_data[line_part_f_index].lines.append(
                         (line_col_index,   
                          line_col_index,
                          parent_color,
                          direct))
                 # line from the line's column to the parent's column
-                graph_line_data[parent_f_index-1][2].append(
+                graph_line_data[parent_f_index-1].lines.append(
                     (line_col_index,
                      parent_col_index,
                      parent_color,
@@ -1379,7 +1385,7 @@ class LogGraphProvider(object):
         rev = self.revid_rev[revid]
         if rev.index not in self.index_filtered_index: return
         f_index = self.index_filtered_index[rev.index]
-        branch_ids = self.graph_line_data[f_index][4]
+        branch_ids = self.graph_line_data[f_index].twisty_branch_ids
         processed_branch_ids = []
         has_change = False
         while branch_ids:
