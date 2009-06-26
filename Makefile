@@ -1,8 +1,12 @@
 all:
 	@echo Targets:
-	@echo   test - run tests
-	@echo   pot  - regenerate qbzr.pot translations template
-	@echo   mo   - build binary translations
+	@echo   test  - run tests
+	@echo   pot   - regenerate qbzr.pot translations template
+	@echo   mo    - build binary translations
+	@echo   clean - remove build products
+	@echo   tags  - collect tags with ctags utility
+
+.PHONY: test pot mo clean tags
 
 test:
 	bzr selftest -s bp.qbzr
@@ -32,3 +36,6 @@ release: tarball py-inst inno
 
 clean:
 	python setup.py clean -a
+
+tags:
+	ctags *.py lib/*.py lib/extra/*.py lib/tests/*.py
