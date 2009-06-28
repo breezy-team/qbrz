@@ -71,25 +71,14 @@ class RevisionInfo(object):
                  "merges", "merged_by", "f_index", "color",
                  "col_index", "lines", "twisty_state", "twisty_branch_ids"]
 
-    #Node is a tuple of (column, color) with column being a
-    #zero-indexed column number of the graph that this revision
-    #represents and color being a zero-indexed color (which doesn't
-    #specify any actual color in particular) to draw the node in.
-    #
-    #Lines is a list of tuples which represent lines you should draw
-    #away from the revision, if you also need to draw lines into the
-    #revision you should use the lines list from the previous
-    #iteration. Each tuples in the list is in the form (start, end,
-    #color, direct) with start and end being zero-indexed column
-    #numbers and color as in node.
-    #
-    #twisties are +- buttons to show/hide branches. list branch_ids
-    #
-    #"""
-
-    
     def __init__ (self, index, revid, merge_depth, revno_sequence, end_of_merge):
         self.index = index
+        """Index in LogGraphProvider.revisions"""
+        self.f_index = None
+        """Index in LogGraphProvider.filtered_revs.
+        
+        If None, then this revision is not visible
+        """
         self.revid = revid
         self.merge_depth = merge_depth
         self.revno_sequence = revno_sequence
@@ -97,14 +86,34 @@ class RevisionInfo(object):
         self.branch_id = self.revno_sequence[0:-1]
         self._revno_str = None
         self.filter_cache = True
+        """Cache of if this revision is  visible if it's branch is visible"""
         self.merges = []
+        """Revision indexes that this revision merges"""
         self.merged_by = None
-        self.f_index = None
+        """Revision index that merges this revision."""
         self.color = 0
+        """Number that repesents a color for the node."""
         self.col_index = None
+        """Column index for the node of this revision."""
         self.lines = []
+        """Lines that need to be drawn on the same line as this revisions.
+        
+        List of typle (start, end, color, direct)
+        """
+        
+        # Twisties are the +- buttons to expand and colapes branches.
         self.twisty_state = None
+        """Sate of the twisty
+        
+        If None, then there is no twisty. If False, there a branched that are
+        not visilble, and so a + must be shown. If True, all branchs are
+        visible, and we need to show a -.
+        """
         self.twisty_branch_ids = []
+        """Branches that will be expanded/colapsed when the twisty is
+        clicked on.
+        
+        """
     
     def get_revno_str(self):
         if self._revno_str is None:
@@ -144,9 +153,7 @@ class LogGraphProvider(object):
     #
     # The main list of unfiltered revisions is self.revisions. A revisions index
     # in revisions are normaly called index. The main list of filtered revisions
-    # is graph_line_data. Revision indexes in this list are called
-    # filtered_index, or f_index. To get a filtered_index from a index, use
-    # index_filtered_index.
+    # is filtered_revs. Revision indexes in this list are called f_index.
     
     def __init__(self, no_graph):
         
