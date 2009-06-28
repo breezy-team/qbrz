@@ -1354,8 +1354,10 @@ class LogGraphProvider(object):
                                                  has_change)
             if not visible:
                 for parent_branch_id in self.branch_lines[branch_id].merges:
-                    if parent_branch_id not in branch_ids and \
-                                parent_branch_id not in processed_branch_ids:
+                    parent = self.branch_lines[parent_branch_id]
+                    if (parent.visible and 
+                            parent_branch_id not in branch_ids and 
+                            parent_branch_id not in processed_branch_ids):
                         branch_ids.append(parent_branch_id)
         return has_change
 
