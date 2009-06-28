@@ -22,9 +22,7 @@ from time import (strftime, localtime)
 
 from bzrlib import lazy_regex
 from bzrlib.revision import NULL_REVISION
-from bzrlib.plugins.qbzr.lib.loggraphprovider import (
-    LogGraphProvider,
-    empty_graph_line_data)
+from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
 from bzrlib.plugins.qbzr.lib.revtreeview import RevIdRole as im_RevIdRole
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -184,20 +182,11 @@ class LogModel(QtCore.QAbstractTableModel):
         if not index.isValid():
             return QtCore.QVariant()
         
-        rev_index = index.row()
-        if rev_index in gp.index_filtered_index:
-            f_index = gp.index_filtered_index[rev_index]
-        else:
-            f_index = None
-        
-        if f_index is not None and len(gp.graph_line_data)>f_index:
-            graph_line_data = gp.graph_line_data[f_index]
-        else:
-            graph_line_data = empty_graph_line_data
+        rev = gp.revisions[index.row()]
         
         if role == GraphLinesRole:
             qlines = []
-            for start, end, color, direct in graph_line_data.lines:
+            for start, end, color, direct in rev.lines:
                 qlines.append(QVariant_fromList(
                     [QtCore.QVariant(start),
                      QtCore.QVariant(end),
@@ -208,20 +197,20 @@ class LogModel(QtCore.QAbstractTableModel):
         if role == GraphNodeRole:
             if self.last_rev_is_placeholder and \
                     rev_index == len(gp.revisions) - 1:
-                return QVariant_fromList([QtCore.QVariant(-1), QtCore.QVariant(0)])
+                return QVariant_fromList([QtCore.QVariant(-1),
+                                          QtCore.QVariant(0)])
             
-            if graph_line_data.node is None:
+            if rev.col_index is None:
                 return QtCore.QVariant()
-            return QVariant_fromList([QtCore.QVariant(nodei) for nodei in graph_line_data.node])
+            return QVariant_fromList([QtCore.QVariant(rev.col_index),
+                                      QtCore.QVariant(rev.color)])
         
         if role == GraphTwistyStateRole:
-            if graph_line_data.twisty_state is None:
+            if rev.twisty_state is None:
                 return QtCore.QVariant()
             if index.row() == self.clicked_row:
                 return QtCore.QVariant(-1)
-            return QtCore.QVariant(graph_line_data.twisty_state)
-        
-        rev = gp.revisions[rev_index]
+            return QtCore.QVariant(rev.twisty_state)
         
         if (role == QtCore.Qt.DisplayRole and index.column() == COL_REV) :
             return QtCore.QVariant(rev.revno_str)
