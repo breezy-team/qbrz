@@ -83,7 +83,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         # Create internal ids for all items in the tree for use in
         # ModelIndex's.
-        root_fileid = tree.path2id('.')
+        root_fileid = tree.path2id(u'.')
         self.append_fileid(root_fileid, None)
         remaining_dirs = [root_fileid,]        
         while remaining_dirs:
