@@ -37,11 +37,11 @@ from bzrlib.branch import Branch
 class SendWindow(SubProcessDialog):
 
     def __init__(self, branch):#tree, selected_list, dialog=True, ui_mode=True, parent=None, local=None, message=None):
-        """self.tree = tree
-        self.initial_selected_list = selected_list"""
         
+        
+        title = "%s: %s" % (gettext("Send"), url_for_display(branch.base))
         super(SendWindow, self).__init__(
-                                  gettext("Send"),
+                                  title,
                                   name = "send",
                                   default_size = (400, 400),
                                   ui_mode = None,
