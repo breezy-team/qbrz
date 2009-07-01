@@ -130,7 +130,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 (kind,
                  executable,
                  stat_value) = self.tree._comparison_data(None, path)
-                item = UnversionedItem(name, path, kind)
+                child = UnversionedItem(name, path, kind)
                 is_ignored = self.tree.is_ignored(path)
                 change = ChangeDesc((None,
                                      (None, path),
@@ -141,7 +141,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                                      (None, kind),
                                      (None, executable),
                                      is_ignored))
-                yield (item, change)
+                yield (child, change)
         
         elif item.children is not None:
             #Because we create copies, we have to get the real item.
