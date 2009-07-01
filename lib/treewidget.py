@@ -540,6 +540,7 @@ class TreeWidget(RevisionTreeView):
         header.setResizeMode(self.tree_model.REVNO, QtGui.QHeaderView.Interactive)
         header.setResizeMode(self.tree_model.MESSAGE, QtGui.QHeaderView.Stretch)
         header.setResizeMode(self.tree_model.AUTHOR, QtGui.QHeaderView.Interactive)        
+        header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.ResizeToContents)        
         fm = self.fontMetrics()
         # XXX Make this dynamic.
         col_margin = 6
@@ -596,7 +597,6 @@ class TreeWidget(RevisionTreeView):
         self.tree_filter_model.invalidateFilter()
         header = self.header()
         if isinstance(self.tree, WorkingTree):
-            header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.Stretch)
             # We currently have to hide the revision columns, because the
             # revision property is not availible from the WorkingTree.inventory.
             # We may be able to get this by looking at the revision tree for
@@ -607,7 +607,6 @@ class TreeWidget(RevisionTreeView):
             header.hideSection(self.tree_model.AUTHOR)
             header.showSection(self.tree_model.STATUS)
         else:
-            header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.ResizeToContents)
             header.showSection(self.tree_model.DATE)
             header.showSection(self.tree_model.REVNO)
             header.showSection(self.tree_model.MESSAGE)
