@@ -198,20 +198,13 @@ class SubProcessWindowBase:
     def on_error(self):
         self.emit(QtCore.SIGNAL("subprocessError(bool)"), False)
     
-    def closeEvent(self, event):
-        if not self.process_widget.is_running():
-            QBzrWindow.closeEvent(self, event)
-        else:
-            self.process_widget.abort()
-            event.ignore()
-
     def setupUi(self, ui):
         ui.setupUi(self)
         if self._restore_size:
             self.resize(self._restore_size)
 
 
-class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
+class SubProcessWindow(SubProcessWindowBase, QBzrWindow):
 
     def __init__(self, title,
                  name="genericsubprocess",
@@ -233,8 +226,15 @@ class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
                                parent=parent,
                                hide_progress=hide_progress)
 
+    def closeEvent(self, event):
+        if not self.process_widget.is_running():
+            QBzrWindow.closeEvent(self, event)
+        else:
+            self.process_widget.abort()
+            event.ignore()
 
-class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
+
+class SubProcessDialog(SubProcessWindowBase, QBzrDialog):
     """An abstract base-class for all subprocess related dialogs.
 
     It is expected that sub-classes of this will create their own UI, and while
@@ -261,6 +261,14 @@ class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
                                dialog=dialog,
                                parent=parent,
                                hide_progress=hide_progress)
+
+    def closeEvent(self, event):
+        if not self.process_widget.is_running():
+            QBzrDialog.closeEvent(self, event)
+        else:
+            self.process_widget.abort()
+            event.ignore()
+
 
 
 class SimpleSubProcessDialog(SubProcessDialog):
