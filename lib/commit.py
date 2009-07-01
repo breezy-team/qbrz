@@ -72,7 +72,7 @@ class TextEdit(QtGui.QTextEdit):
                 e.ignore()
                 # FIXME probably this is ugly hack and main qcommit window
                 # should explicitly catch Ctrl+Enter by self
-                self.main_window.accept()
+                self.main_window.do_accept()
                 return
 
         isShortcut = e.modifiers() & QtCore.Qt.ControlModifier and e.key() == QtCore.Qt.Key_E
@@ -215,7 +215,7 @@ class CommitWindow(SubProcessWindow):
 
         self.connect(self.process_widget,
             QtCore.SIGNAL("failed()"),
-            self.failed)
+            self.on_failed)
 
         self.throbber = ThrobberWidget(self)
 
@@ -458,7 +458,7 @@ class CommitWindow(SubProcessWindow):
         # FIXME this should delete the config entry, not just set it to ''
         config.set_user_option('qbzr_commit_message', '')
 
-    def start(self):
+    def do_start(self):
         args = ["commit"]
         files_to_add = ["add"]
         
@@ -469,7 +469,7 @@ class CommitWindow(SubProcessWindow):
                 gettext("You should provide commit message."),
                 gettext('&OK'))
             # don't commit, but don't close the window either
-            self.failed()
+            self.on_failed()
             self.message.setFocus()
             return
 
@@ -497,7 +497,7 @@ class CommitWindow(SubProcessWindow):
                     "QBzr - " + gettext("Commit"), 
                     gettext("No changes to commit."),
                     QtGui.QMessageBox.Ok) 
-                self.failed()
+                self.on_failed()
                 return
             else:
                 # bzr >= 1.6
@@ -507,7 +507,7 @@ class CommitWindow(SubProcessWindow):
                         "Do you want to commit anyway?"),
                     QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
                 if button == QtGui.QMessageBox.No:
-                    self.failed()
+                    self.on_failed()
                     return
                 else:
                     # Possible [rare] problems:

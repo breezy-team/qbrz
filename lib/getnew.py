@@ -79,7 +79,7 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
             new_val = os.path.join(new_val, tail)
         self.ui.to_location.setText(new_val)
 
-    def start(self):
+    def do_start(self):
         from_location = unicode(self.ui.from_location.currentText())
         to_location = unicode(self.ui.to_location.text())
         if not from_location or not to_location:
@@ -104,5 +104,5 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
             args.append(from_location)
             args.append(to_location)
 
-        self.process_widget.start(None, *args)
+        self.process_widget.do_start(None, *args)
         save_pull_location(None, from_location)

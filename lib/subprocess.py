@@ -173,9 +173,9 @@ class SubProcessWindowBase:
     
     def do_start(self):
         if self._check_args():
-            self.process_widget.start(self.dir, *self.args)
+            self.process_widget.do_start(self.dir, *self.args)
         else:
-            self.failed()
+            self.on_failed()
     
     def do_reject(self):
         if self.process_widget.is_running():

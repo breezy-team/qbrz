@@ -75,7 +75,7 @@ class QBzrPullWindow(SubProcessDialog):
                                 self.ui.location,
                                 DIRECTORYPICKER_SOURCE)
 
-    def start(self):
+    def do_start(self):
         if self.tree:
             dest = self.tree.basedir
         else:
@@ -90,7 +90,7 @@ class QBzrPullWindow(SubProcessDialog):
             args.append('--revision')
             args.append(revision)
         location = str(self.ui.location.currentText())
-        self.process_widget.start(None, 'pull', location, *args)
+        self.process_widget.do_start(None, 'pull', location, *args)
         save_pull_location(self.branch, location)
 
 
@@ -136,7 +136,7 @@ class QBzrPushWindow(SubProcessDialog):
                                 self.ui.location,
                                 DIRECTORYPICKER_TARGET)
 
-    def start(self):
+    def do_start(self):
         args = ['--directory', self.branch.base]
         if self.ui.overwrite.isChecked():
             args.append('--overwrite')
@@ -147,7 +147,7 @@ class QBzrPushWindow(SubProcessDialog):
         if self.ui.use_existing_dir.isChecked():
             args.append('--use-existing-dir')
         location = str(self.ui.location.currentText())
-        self.process_widget.start(None, 'push', location, *args)
+        self.process_widget.do_start(None, 'push', location, *args)
 
 
 class QBzrBranchWindow(SubProcessDialog):
@@ -187,7 +187,7 @@ class QBzrBranchWindow(SubProcessDialog):
                                 self.ui.to_location,
                                 DIRECTORYPICKER_TARGET)
 
-    def start(self):
+    def do_start(self):
         args = []
         revision = str(self.ui.revision.text())
         if revision:
@@ -199,7 +199,7 @@ class QBzrBranchWindow(SubProcessDialog):
         if 'use-existing-dir' in cmd_branch.options():
             # always use this options because it should be mostly harmless
             args.append('--use-existing-dir')
-        self.process_widget.start(None, 'branch', from_location, to_location, *args)
+        self.process_widget.do_start(None, 'branch', from_location, to_location, *args)
         save_pull_location(None, from_location)
 
 
@@ -237,7 +237,7 @@ class QBzrMergeWindow(SubProcessDialog):
                                 self.ui.location,
                                 DIRECTORYPICKER_SOURCE)
 
-    def start(self):
+    def do_start(self):
         if self.tree:
             dest = self.tree.basedir
         else:
@@ -249,5 +249,5 @@ class QBzrMergeWindow(SubProcessDialog):
         if rev:
             args.extend(['--revision', rev])
         location = unicode(self.ui.location.currentText())
-        self.process_widget.start(None, 'merge', location, *args)
+        self.process_widget.do_start(None, 'merge', location, *args)
         save_pull_location(None, location)

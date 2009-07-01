@@ -121,14 +121,14 @@ class RevertWindow(SubProcessDialog):
             check_state = in_selected_list(path)
             yield desc, True, check_state
 
-    def start(self):
+    def do_start(self):
         """Revert the files."""
         args = ["revert"]
         if self.no_backup_checkbox.checkState():
             args.append("--no-backup")
         for desc in self.filelist.iter_checked():
             args.append(desc.path())
-        self.process_widget.start(self.tree.basedir, *args)
+        self.process_widget.do_start(self.tree.basedir, *args)
 
     def saveSize(self):
         SubProcessDialog.saveSize(self)

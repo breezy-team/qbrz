@@ -110,13 +110,13 @@ class AddWindow(SubProcessDialog):
             check_state = visible and in_selected_list(pit)
             yield desc, visible, check_state
 
-    def start(self):
+    def do_start(self):
         """Add the files."""
         files = []
         for desc in self.filelist.iter_checked():
             files.append(desc.path())
         
-        self.process_widget.start(self.tree.basedir, "add", *files)
+        self.process_widget.do_start(self.tree.basedir, "add", *files)
 
     def show_ignored(self, state):
         """Show/hide ignored files."""
