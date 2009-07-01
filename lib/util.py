@@ -268,11 +268,11 @@ class _QBzrWindowBase:
         """
         ROLES = {
             BTN_OK: (QtGui.QDialogButtonBox.AcceptRole,
-                "accepted()", "accept"),
+                "accepted()", "do_accept"),
             BTN_CANCEL: (QtGui.QDialogButtonBox.RejectRole,
-                "rejected()", "reject"),
+                "rejected()", "do_reject"),
             BTN_CLOSE: (QtGui.QDialogButtonBox.RejectRole,
-                "rejected()", "close"),
+                "rejected()", "do_close"),
             # XXX support for HelpRole
             }
         buttonbox = QtGui.QDialogButtonBox(self)
@@ -369,6 +369,9 @@ class _QBzrWindowBase:
         if self.closing:
             raise trace.StopException()
 
+    def do_close(self):
+        self.close()
+
 class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
 
     def __init__(self, title=None, parent=None, centralwidget=None, ui_mode=True):
@@ -394,6 +397,12 @@ class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
         
         self.windows = []
         self.closing = False
+
+    def do_accept(self):
+        self.accept()
+
+    def do_reject(self):
+        self.reject()
 
 throber_movie = None
 
