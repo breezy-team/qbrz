@@ -874,7 +874,7 @@ class cmd_qupdate(QBzrCommand):
         application.exec_()
 
 class cmd_qsend(QBzrCommand):
-    """Dialog for creating and sending patchs and bundles"""
+    """Dialog for creating and sending patches and bundles"""
     
     encoding_type = 'exact'
 
