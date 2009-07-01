@@ -77,13 +77,13 @@ class SubProcessWindowBase:
         self.process_widget = SubProcessWidget(self.ui_mode, self, hide_progress)
         self.connect(self.process_widget,
             QtCore.SIGNAL("finished()"),
-            self.finished)
+            self.on_finished)
         self.connect(self.process_widget,
             QtCore.SIGNAL("failed()"),
-            self.failed)
+            self.on_failed)
         self.connect(self.process_widget,
             QtCore.SIGNAL("error()"),
-            self.error)
+            self.on_error)
 
         closeButton = StandardButton(BTN_CLOSE)
         okButton = StandardButton(BTN_OK)
@@ -126,8 +126,8 @@ class SubProcessWindowBase:
             QtGui.QDialogButtonBox.AcceptRole)
         self.buttonbox.addButton(cancelButton,
             QtGui.QDialogButtonBox.RejectRole)
-        self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.accept)
-        self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
+        self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.do_accept)
+        self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.do_reject)
         closeButton.setHidden(True) # but 'close' starts as hidden.
 
     def make_default_status_box(self):
@@ -162,28 +162,28 @@ class SubProcessWindowBase:
             gettext('&Close'))
         return False
 
-    def accept(self):
+    def do_accept(self):
         if self.process_widget.finished:
             self.close()
         else:
             if not self.validate():
                 return
             self.emit(QtCore.SIGNAL("subprocessStarted(bool)"), True)
-            self.start()
+            self.do_start()
     
-    def start(self):
+    def do_start(self):
         if self._check_args():
             self.process_widget.start(self.dir, *self.args)
         else:
             self.failed()
     
-    def reject(self):
+    def do_reject(self):
         if self.process_widget.is_running():
             self.process_widget.abort()
         else:
             self.close()
 
-    def finished(self):
+    def on_finished(self):
         if hasattr(self, 'setResult'):
             self.setResult(QtGui.QDialog.Accepted)
         
@@ -192,10 +192,10 @@ class SubProcessWindowBase:
         if not self.ui_mode:
             self.close()
 
-    def failed(self):
+    def on_failed(self):
         self.emit(QtCore.SIGNAL("subprocessFailed(bool)"), False)
     
-    def error(self):
+    def on_error(self):
         self.emit(QtCore.SIGNAL("subprocessError(bool)"), False)
     
     def closeEvent(self, event):
@@ -315,7 +315,7 @@ class SimpleSubProcessDialog(SubProcessDialog):
                                    QtCore.SIGNAL("subprocessError(bool)"),
                                    self,
                                    QtCore.SLOT("setHidden(bool)"))
-            self.start()
+            self.do_start()
 
 
 class SubProcessWidget(QtGui.QWidget):
@@ -386,7 +386,7 @@ class SubProcessWidget(QtGui.QWidget):
         return self.process.state() == QtCore.QProcess.Running or\
                self.process.state() == QtCore.QProcess.Starting
     
-    def start(self, dir, *args):
+    def do_start(self, dir, *args):
         QtGui.QApplication.processEvents() # make sure ui has caught up
         self.start_multi(((dir, args),))
     
