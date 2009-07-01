@@ -658,7 +658,7 @@ class TreeWidget(RevisionTreeView):
         self.action_add.setVisible(is_working_tree)
         self.action_add.setDisabled(all(versioned))
         self.action_revert.setVisible(is_working_tree)
-        self.action_revert.setEnabled(any(changed))
+        self.action_revert.setEnabled(any(changed) and any(versioned))
     
 
     @ui_current_widget
@@ -738,6 +738,9 @@ class TreeWidget(RevisionTreeView):
                  for item in items
                  if isinstance(item[0], UnversionedItem)]
         
+        if len(paths) == 0:
+            return
+        
         args = ["add"]
         args.extend(paths)
         desc = (gettext("Add %s to the tree.") % ", ".join(paths))
@@ -762,9 +765,13 @@ class TreeWidget(RevisionTreeView):
             # Only paths that have changes.
             paths = [self.tree.id2path(item[0].file_id)
                      for item in items
-                     if item[1] is not None]
+                     if item[1] is not None and
+                        not isinstance(item[0], UnversionedItem)]
         finally:
             self.tree.unlock()
+        
+        if len(paths) == 0:
+            return
         
         args = ["revert"]
         args.extend(paths)
