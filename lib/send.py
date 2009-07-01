@@ -50,113 +50,138 @@ class SendWindow(SubProcessDialog):
                                   hide_progress=False,
                                   )
             
-        groupbox = QtGui.QGroupBox(gettext("Branch to submit:")+str(branch), self)
-        vbox = QtGui.QVBoxLayout(groupbox)
-        vbox.addStrut(0)
-    
-        
+            
+            
+            
         self.branch = branch
         
-        target_hbox = QtGui.QHBoxLayout()
         
-        target_branch_label = QtGui.QLabel(gettext("Target Branch:"))
-        target_branch_combo = QtGui.QComboBox()
+        gbMergeDirective = QtGui.QGroupBox(gettext("Merge Directive"), self)
+        vboxMergeDirective = QtGui.QVBoxLayout(gbMergeDirective)
+        vboxMergeDirective.addStrut(0)
+        
+        submit_hbox = QtGui.QHBoxLayout()
+        
+        submit_branch_label = QtGui.QLabel(gettext("Submit Branch:"))
+        submit_branch_combo = QtGui.QComboBox()   
+        submit_branch_combo.setEditable(True)
+        
         submitbranch = branch.get_submit_branch()
         if submitbranch != None:
-            target_branch_combo.addItem(submitbranch)
+            submit_branch_combo.addItem(submitbranch)
             
-        self.target_branch_combo = target_branch_combo
-        target_branch_combo.setEditable(True)
-        target_hbox.addWidget(target_branch_label)
-        target_hbox.addWidget(target_branch_combo)
-        
-        target_hbox.setStretchFactor(target_branch_combo,1)
-        
-        vbox.addLayout(target_hbox)
-        
-        
-        groupbox_submit = QtGui.QGroupBox(gettext("Enter submit location:"))
-        hbox_submit = QtGui.QHBoxLayout(groupbox_submit)
-        vbox.addWidget(groupbox_submit)
+        self.submit_branch_combo = submit_branch_combo # to allow access from another function     
+        browse_submit_button = QtGui.QPushButton(gettext("Browse"))
+        QtCore.QObject.connect(browse_submit_button, QtCore.SIGNAL("clicked(bool)"), self.browse_submit_clicked)
+                    
+        submit_hbox.addWidget(submit_branch_label)
+        submit_hbox.addWidget(submit_branch_combo)
+        submit_hbox.addWidget(browse_submit_button)
         
         
-        submit_email_radio = QtGui.QRadioButton("Send to email")
-        self.submit_email_radio = submit_email_radio
+        submit_hbox.setStretchFactor(submit_branch_label,0)
+        submit_hbox.setStretchFactor(submit_branch_combo,1)
+        submit_hbox.setStretchFactor(browse_submit_button,0)
+        
+        vboxMergeDirective.addLayout(submit_hbox)
+        
+        
+        public_hbox = QtGui.QHBoxLayout()
+        
+        public_branch_label = QtGui.QLabel(gettext("Public Branch:"))
+        public_branch_combo = QtGui.QComboBox()   
+        public_branch_combo.setEditable(True)
+        
+        publicbranch = branch.get_public_branch()
+        if publicbranch != None:
+            public_branch_combo.addItem(publicbranch)
+                
+        self.public_branch_combo = public_branch_combo # to allow access from another function      
+        browse_public_button = QtGui.QPushButton(gettext("Browse"))
+        QtCore.QObject.connect(browse_public_button, QtCore.SIGNAL("clicked(bool)"), self.browse_public_clicked)
+                    
+        public_hbox.addWidget(public_branch_label)
+        public_hbox.addWidget(public_branch_combo)
+        public_hbox.addWidget(browse_public_button)
+        
+        public_hbox.setStretchFactor(public_branch_label,0)
+        public_hbox.setStretchFactor(public_branch_combo,1)
+        public_hbox.setStretchFactor(browse_public_button,0)
+        
+        vboxMergeDirective.addLayout(public_hbox)
+        
+        
+        remember_check = QtGui.QCheckBox(gettext("Remember these locations as defaults"))
+        vboxMergeDirective.addWidget(remember_check)
+        
+        
+        revisions_hbox = QtGui.QHBoxLayout()
+        revisions_label = QtGui.QLabel(gettext("Send revisions:"))
+        revisions_edit = QtGui.QLineEdit()
+        
+        revisions_hbox.addWidget(revisions_label)
+        revisions_hbox.addWidget(revisions_edit)
+        
+        vboxMergeDirective.addLayout(revisions_hbox)
+        
+        nobundle_check = QtGui.QCheckBox(gettext("Do not include a bundle in the merge directive"))
+        vboxMergeDirective.addWidget(nobundle_check)
+        nopatch_check = QtGui.QCheckBox(gettext("Do not include a preview patch in the merge directive"))
+        vboxMergeDirective.addWidget(nopatch_check)
+        
+        ####
+        
+        gbAction = QtGui.QGroupBox(gettext("Action"), self)
+        vboxAction = QtGui.QVBoxLayout(gbAction)
+        
+        submit_email_radio = QtGui.QRadioButton("Send e-mail")
         submit_email_radio.toggle()
+        vboxAction.addWidget(submit_email_radio)
         
         
-        location_save_radio = QtGui.QRadioButton("Save to location")
-        self.location_save_radio = location_save_radio
+        mailto_hbox = QtGui.QHBoxLayout()
+        
+        mailto_label = QtGui.QLabel(gettext("Mail to address:"))
+        mailto_edit = QtGui.QLineEdit()
+        mailto_hbox.insertSpacing(0,50)
+        mailto_hbox.addWidget(mailto_label)
+        mailto_hbox.addWidget(mailto_edit)
+        
+        vboxAction.addLayout(mailto_hbox)
         
         
+        save_file_radio = QtGui.QRadioButton("Save to file")
+        vboxAction.addWidget(save_file_radio)
         
-        hbox_submit.addWidget(submit_email_radio)
-        hbox_submit.addWidget(location_save_radio)
-        hbox_submit.setStretchFactor(submit_email_radio,0)
-        hbox_submit.setStretchFactor(location_save_radio,1)
-        
-        
-        hbox_location_edit = QtGui.QHBoxLayout()
-        
-        submit_location_edit = QtGui.QLineEdit()
-        hbox_location_edit.addWidget(submit_location_edit)
-        self.browse_location_button = QtGui.QPushButton("Browse")
-        
-        self.sendtype_presed() # to set the browse button disabled as default
-        
-        hbox_location_edit.addWidget(self.browse_location_button)
-        
-        self.submit_location_edit = submit_location_edit
-
-        vbox.addLayout(hbox_location_edit)
-        
-        label_message = QtGui.QLabel(gettext("Message:"))
-        vbox.addWidget(label_message)
-        self.message_edit = QtGui.QLineEdit()
-        vbox.addWidget(self.message_edit)
+        savefile_hbox = QtGui.QHBoxLayout()
         
         
+        savefile_label = QtGui.QLabel(gettext("Filename:"))
+        savefile_edit = QtGui.QLineEdit()
+        self.savefile_edit = savefile_edit # to allow access from callback function
+        savefile_button = QtGui.QPushButton(gettext("Browse"))
+        QtCore.QObject.connect(savefile_button, QtCore.SIGNAL("clicked(bool)"), self.savefile_button_clicked)
+        
+        savefile_hbox.insertSpacing(0,50)
+        savefile_hbox.addWidget(savefile_label)
+        savefile_hbox.addWidget(savefile_edit)
+        savefile_hbox.addWidget(savefile_button)
+        
+        vboxAction.addLayout(savefile_hbox)
+                
+        
+        layout = QtGui.QVBoxLayout(self)
         
         
-        
-        options_group = QtGui.QGroupBox("Options")
-        vbox.addWidget(options_group)
-        options_vbox = QtGui.QHBoxLayout(options_group)
-        
-        self.remember_check = QtGui.QCheckBox("Remember")
-        options_vbox.addWidget(self.remember_check)
-        options_vbox.setStretchFactor(self.remember_check,0)
-
-        self.nobundle_check = QtGui.QCheckBox("No bundle")
-        options_vbox.addWidget(self.nobundle_check)
-        options_vbox.setStretchFactor(self.nobundle_check,0)
-        
-        self.nopatch_check = QtGui.QCheckBox("No patch")
-        options_vbox.addWidget(self.nopatch_check)
-        options_vbox.setStretchFactor(self.nopatch_check,1)
-
-        # groupbox gets disabled as we are executing.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessStarted(bool)"),
-                               vbox,
-                               QtCore.SLOT("setDisabled(bool)"))
-        
-        # connect submit type to enable/disable browse button.
-        QtCore.QObject.connect(self.submit_email_radio, QtCore.SIGNAL("toggled(bool)"), self.sendtype_presed)
-        
-        # connect "browse" button with dialog
-        QtCore.QObject.connect(self.browse_location_button, QtCore.SIGNAL("clicked(bool)"), self.browse_location_clicked)
-
         self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
-        self.splitter.addWidget(groupbox)
+        self.splitter.addWidget(gbAction)
+        self.splitter.addWidget(gbMergeDirective)
+        
         self.splitter.addWidget(self.make_default_status_box())
         
         self.splitter.setStretchFactor(0, 10)
         self.restoreSplitterSizes([150, 150])
         
-        
-        layout = QtGui.QVBoxLayout(self)
-        #layout.addWidget(vbox)
         layout.addWidget(self.splitter)
         layout.addWidget(self.buttonbox)
 
@@ -167,10 +192,24 @@ class SendWindow(SubProcessDialog):
         else:
             self.browse_location_button.setDisabled(False)
         
-    def browse_location_clicked(self):
-        fileName = QtGui.QFileDialog.getSaveFileName(self, ("Select destination"));
-        self.submit_location_edit.setText(fileName)
         
+        
+    def savefile_button_clicked(self):
+        fileName = QtGui.QFileDialog.getSaveFileName(self, ("Select save location"));
+        self.savefile_edit.setText(fileName)
+                
+    def browse_submit_clicked(self):
+        fileName = QtGui.QFileDialog.getExistingDirectory(self, ("Select Submit branch"));
+        self.submit_branch_combo.insertItem(0,fileName)
+        self.submit_branch_combo.setCurrentIndex(0)        
+
+
+    def browse_public_clicked(self):
+        fileName = QtGui.QFileDialog.getExistingDirectory(self, ("Select Public branch"));
+        self.public_branch_combo.insertItem(0,fileName)
+        self.public_branch_combo.setCurrentIndex(0)
+        
+                
     def start(self):        
         target_branch = str(self.target_branch_combo.currentText())
         location = str(self.submit_location_edit.text())
