@@ -112,12 +112,14 @@ class SendWindow(SubProcessDialog):
         
         
         remember_check = QtGui.QCheckBox(gettext("Remember these locations as defaults"))
+        self.remember_check = remember_check
         vboxMergeDirective.addWidget(remember_check)
         
         
         revisions_hbox = QtGui.QHBoxLayout()
         revisions_label = QtGui.QLabel(gettext("Send revisions:"))
         revisions_edit = QtGui.QLineEdit()
+        self.revisions_edit = revisions_edit
         
         revisions_hbox.addWidget(revisions_label)
         revisions_hbox.addWidget(revisions_edit)
@@ -125,9 +127,21 @@ class SendWindow(SubProcessDialog):
         vboxMergeDirective.addLayout(revisions_hbox)
         
         nobundle_check = QtGui.QCheckBox(gettext("Do not include a bundle in the merge directive"))
+        self.nobundle_check = nobundle_check
         vboxMergeDirective.addWidget(nobundle_check)
         nopatch_check = QtGui.QCheckBox(gettext("Do not include a preview patch in the merge directive"))
+        self.nopatch_check = nopatch_check
         vboxMergeDirective.addWidget(nopatch_check)
+        
+        message_hbox = QtGui.QHBoxLayout()
+        message_label = QtGui.QLabel(gettext("Message:"))
+        message_edit = QtGui.QLineEdit()
+        self.message_edit = message_edit
+        
+        message_hbox.addWidget(message_label)
+        message_hbox.addWidget(message_edit)
+        
+        vboxMergeDirective.addLayout(message_hbox)
         
         ####
         
@@ -136,6 +150,7 @@ class SendWindow(SubProcessDialog):
         
         submit_email_radio = QtGui.QRadioButton("Send e-mail")
         submit_email_radio.toggle()
+        self.submit_email_radio = submit_email_radio
         vboxAction.addWidget(submit_email_radio)
         
         
@@ -143,6 +158,7 @@ class SendWindow(SubProcessDialog):
         
         mailto_label = QtGui.QLabel(gettext("Mail to address:"))
         mailto_edit = QtGui.QLineEdit()
+        self.mailto_edit = mailto_edit
         mailto_hbox.insertSpacing(0,50)
         mailto_hbox.addWidget(mailto_label)
         mailto_hbox.addWidget(mailto_edit)
@@ -151,6 +167,8 @@ class SendWindow(SubProcessDialog):
         
         
         save_file_radio = QtGui.QRadioButton("Save to file")
+        self.save_file_radio = save_file_radio
+        
         vboxAction.addWidget(save_file_radio)
         
         savefile_hbox = QtGui.QHBoxLayout()
@@ -184,14 +202,7 @@ class SendWindow(SubProcessDialog):
         
         layout.addWidget(self.splitter)
         layout.addWidget(self.buttonbox)
-
-    
-    def sendtype_presed(self):
-        if self.submit_email_radio.isChecked():
-            self.browse_location_button.setDisabled(True)
-        else:
-            self.browse_location_button.setDisabled(False)
-        
+       
         
         
     def savefile_button_clicked(self):
@@ -211,35 +222,50 @@ class SendWindow(SubProcessDialog):
         
                 
     def start(self):        
-        target_branch = str(self.target_branch_combo.currentText())
-        location = str(self.submit_location_edit.text())
+        
+        
         
         error = []
         
-        if target_branch == '':
-            error.append("Please fill in target branch")
         
-        if location == '':
-            error.append("Please fill in target location")
-        else:
-            if self.submit_email_radio.isChecked():
-                if re.match("^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$", location) == None:
-                    error.append("Please enter a valid email address")
+        args = []
+        submit_branch = str(self.submit_branch_combo.currentText())
+        public_branch = str(self.public_branch_combo.currentText())
+        
+        if(submit_branch == ''):
+            error.append("Fill in submit branch")
+        #else:
+        #    args.append(submit_branch)
             
+        if public_branch != '':
+            args.append(public_branch)
+            
+        mylocation =  url_for_display(self.branch.base)     
+        args.append("-f")
+        args.append(mylocation)
+
+        
+        if self.submit_email_radio.isChecked():
+            location = str(self.mailto_edit.text())
+            if location == '' or re.match("^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$", location) == None:
+                error.append("Enter a valid email address")
+        else:
+            location = str(self.savefile_edit.text())
+            if location == '':
+                error.append("Enter a valid filename to save.")
+                            
         if len(error) > 0:            
             msgBox = QtGui.QMessageBox(self)
-            msgBox.setText("There are erros in your request.")
+            msgBox.setText("There are errors.\nPlease do the following actions in order to fix them.")
             msgBox.setInformativeText("\n".join(error))
             msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
             msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
             msgBox.setIcon(QtGui.QMessageBox.Critical)
             ret = msgBox.exec_()
-            return
+            return False
             
             
-        mylocation =  url_for_display(self.branch.base)    
         
-        args = ["-f", mylocation]
         
         
         if self.submit_email_radio.isChecked():
@@ -260,14 +286,18 @@ class SendWindow(SubProcessDialog):
                     
         if self.message_edit.text() != '':
             args.append("--message=%s" % str(self.message_edit.text()))
+        
+        
+        revision = str(self.revisions_edit.text())
+        if revision == '':
+            args.append("--revision=-1")
+        else:
+            args.append("--revision=%s" % revision)
             
-        args.append("--revision=-1")
-        
-            
         
         
         
-        self.process_widget.start(None, 'send', target_branch, *args)
+        self.process_widget.start(None, 'send', submit_branch, *args)
         
 
     def saveSize(self):
