@@ -149,9 +149,6 @@ class BrowseWindow(QBzrWindow):
                 self.set_revision(self.revision)
             
             self.processEvents()
-            # XXX make this operation lazy? how?
-            self.revno_map = self.branch.get_revision_id_to_revno_map()
-            self.file_tree.tree_model.set_revno_map(self.revno_map)
             
         finally:
             self.throbber.hide()
@@ -159,45 +156,51 @@ class BrowseWindow(QBzrWindow):
     
     @ui_current_widget
     def set_revision(self, revspec=None, revision_id=None, text=None):
-        buttons = (self.filter_button,
-                   self.diffbuttons,
-                   self.refresh_button)
-        if text=="wt:":
-            self.tree = self.workingtree
-            self.file_tree.set_tree(self.workingtree, self.branch)
-            for button in buttons:
-                button.setEnabled(True)
-        else:
-            branch = self.branch
-            branch.lock_read()
-            self.processEvents()
-            
-            for button in buttons:
-                button.setEnabled(False)
-            fmodel = self.file_tree.tree_filter_model
-            fmodel.setFilter(fmodel.UNCHANGED, True)
-            self.filter_menu.set_filters(fmodel.filters)            
-            
-            try:
-                if revision_id is None:
-                    text = revspec.spec or ''
-                    if revspec.in_branch == revspec.in_history:
-                        args = [branch]
-                    else:
-                        args = [branch, False]
-                    
-                    revision_id = revspec.in_branch(*args).rev_id
-    
-                self.revision_id = revision_id
-                self.tree = branch.repository.revision_tree(revision_id)
+        self.throbber.show()
+        try:
+            buttons = (self.filter_button,
+                       self.diffbuttons,
+                       self.refresh_button)
+            if text=="wt:":
+                self.tree = self.workingtree
+                self.file_tree.set_tree(self.workingtree, self.branch)
+                for button in buttons:
+                    button.setEnabled(True)
+            else:
+                branch = self.branch
+                branch.lock_read()
                 self.processEvents()
-                self.file_tree.set_tree(self.tree, self.branch)
-                if self.revno_map is not None:
+                
+                for button in buttons:
+                    button.setEnabled(False)
+                fmodel = self.file_tree.tree_filter_model
+                fmodel.setFilter(fmodel.UNCHANGED, True)
+                self.filter_menu.set_filters(fmodel.filters)            
+                
+                try:
+                    if revision_id is None:
+                        text = revspec.spec or ''
+                        if revspec.in_branch == revspec.in_history:
+                            args = [branch]
+                        else:
+                            args = [branch, False]
+                        
+                        revision_id = revspec.in_branch(*args).rev_id
+                    
+                    self.revision_id = revision_id
+                    self.tree = branch.repository.revision_tree(revision_id)
+                    self.processEvents()
+                    self.file_tree.set_tree(self.tree, self.branch)
+                    if self.revno_map is None:
+                        self.processEvents()
+                        # XXX make this operation lazy? how?
+                        self.revno_map = self.branch.get_revision_id_to_revno_map()
                     self.file_tree.tree_model.set_revno_map(self.revno_map)
-            finally:
-                branch.unlock()
-        self.revision_edit.setText(text)
-
+                finally:
+                    branch.unlock()
+            self.revision_edit.setText(text)
+        finally:
+            self.throbber.hide()
 
     @ui_current_widget
     def reload_tree(self):
