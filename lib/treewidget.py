@@ -458,6 +458,7 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
             is_ignored = change.is_ignored()
             if not is_ignored: return True
             if is_ignored and ignored: return True
+            if is_ignored and not ignored: return False
         
         if id in model.dir_children_ids:
             dir_children_ids = model.dir_children_ids[id]
