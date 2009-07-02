@@ -529,10 +529,21 @@ class TreeWidget(RevisionTreeView):
         self.tree_filter_model.setSourceModel(self.tree_model)
         self.setModel(self.tree_filter_model)
         #self.setModel(self.tree_model)
+        
+        self.set_header_width_settings()
 
         self.setItemDelegateForColumn(self.tree_model.REVNO,
                                       RevNoItemDelegate(parent=self))
 
+        self.create_context_menu()
+        
+        self.connect(self,
+                     QtCore.SIGNAL("doubleClicked(QModelIndex)"),
+                     self.show_file_content)
+        self.tree = None
+        self.branch = None
+    
+    def set_header_width_settings(self):
         header = self.header()
         header.setStretchLastSection(False)
         header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.ResizeToContents)
@@ -549,15 +560,7 @@ class TreeWidget(RevisionTreeView):
         header.resizeSection(self.tree_model.DATE,
                              fm.width("88-88-8888 88:88") + col_margin)
         header.resizeSection(self.tree_model.AUTHOR,
-                             fm.width("Joe I have a Long Name") + col_margin)
-        
-        self.create_context_menu()
-        
-        self.connect(self,
-                     QtCore.SIGNAL("doubleClicked(QModelIndex)"),
-                     self.show_file_content)
-        self.tree = None
-        self.branch = None
+                             fm.width("Joe I have a Long Name") + col_margin)        
     
     def create_context_menu(self):
         self.context_menu = QtGui.QMenu(self)
@@ -595,6 +598,15 @@ class TreeWidget(RevisionTreeView):
         self.branch = branch
         self.tree_model.set_tree(self.tree, self.branch)
         self.tree_filter_model.invalidateFilter()
+        
+        if str(QtCore.QT_VERSION_STR).startswith("4.4"):
+            # 4.4.x have a bug where if you do a layoutChanged when using
+            # a QSortFilterProxyModel, it loses all header width settings.
+            # So if you are using 4.4, we have to reset the width settings
+            # after every time we do a layout changed. The issue is similar to 
+            # http://www.qtsoftware.com/developer/task-tracker/index_html?method=entry&id=236755
+            self.set_header_width_settings()
+        
         header = self.header()
         if isinstance(self.tree, WorkingTree):
             # We currently have to hide the revision columns, because the
