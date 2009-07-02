@@ -326,10 +326,20 @@ class ChangeDesc(tuple):
     [5]: name            -> 2-tuple (old_name, new_name) utf-8?/None
     [6]: kind            -> 2-tuple (string/None, string/None)
     [7]: executable      -> 2-tuple (bool/None, bool/None)
-
+    
+    --optional--
+    [8]: is_ignored      -> If the file is ignored, pattern which caused it to
+                            be ignored, otherwise None.
+    
     NOTE: None value used for non-existing entry in corresponding
           tree, e.g. for added/deleted/ignored/unversioned
     """
+    
+    # XXX We should may be try get this into bzrlib.
+    # XXX We should use this in qdiff.
+    
+    def fileid(desc):
+        return desc[0]
 
     def path(desc):
         """Return a suitable entry for a 'specific_files' param to bzr functions."""
@@ -339,6 +349,10 @@ class ChangeDesc(tuple):
     def oldpath(desc):
         """Return oldpath for renames."""
         return desc[1][0]
+
+    def kind(desc):
+        oldkind, newkind = desc[6]
+        return newkind or oldkind        
 
     def is_versioned(desc):
         return desc[3] != (False, False)
@@ -370,6 +384,52 @@ class ChangeDesc(tuple):
         (i.e. deleted manually, without invoking `bzr remove` command)
         """
         return (desc[3] == (False, True) and desc[6][1] is None)
+    
+    def is_ignored(desc):
+        if len(desc) >= 8: 
+            return desc[8]
+        else:
+            return None
+    
+    def status(desc):
+        if len(desc) == 8:
+            (file_id, (path_in_source, path_in_target),
+             changed_content, versioned, parent, name, kind,
+             executable) = desc
+            is_ignored = None
+        elif len(desc) == 9:
+            (file_id, (path_in_source, path_in_target),
+             changed_content, versioned, parent, name, kind,
+             executable, is_ignored) = desc
+        else:
+            raise RuntimeError, "Unkown number of items to unpack."
+            
+        if versioned == (False, False):
+            if is_ignored:
+                return gettext("ignored")
+            else:
+                return gettext("non-versioned")
+        elif versioned == (False, True):
+            return gettext("added")
+        elif versioned == (True, False):
+            return gettext("removed")
+        elif kind[0] is not None and kind[1] is None:
+            return gettext("missing")
+        else:
+            # versioned = True, True - so either renamed or modified
+            # or properties changed (x-bit).
+            renamed = (parent[0], name[0]) != (parent[1], name[1])
+            if renamed:
+                if changed_content:
+                    return gettext("renamed and modified")
+                else:
+                    return gettext("renamed")
+            elif changed_content:
+                return gettext("modified")
+            elif executable[0] != executable[1]:
+                return gettext("modified (x-bit)")
+            else:
+                raise RuntimeError, "what status am I missing??"
 
 
 def closure_in_selected_list(selected_list):

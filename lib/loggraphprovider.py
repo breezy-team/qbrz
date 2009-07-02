@@ -178,7 +178,7 @@ class LogGraphProvider(object):
         else:
             return None
     
-    def open_branch(self, branch, file_id=None, tree=None):
+    def open_branch(self, branch, file_ids=None, tree=None):
         """Open branch and fileids to be loaded. """
         
         repo = branch.repository
@@ -190,15 +190,17 @@ class LogGraphProvider(object):
         self.append_repo(repo)
         self.append_branch(tree, branch)
         
-        if file_id:
-            self.fileids.append(file_id)
+        if file_ids:
+            self.fileids.extend(file_ids)
             if not self.has_dir:
-                if tree is None:
-                    kind = branch.basis_tree().kind(file_id)
-                else:
-                    kind = tree.kind(file_id)
-                if kind in ('directory', 'tree-reference'):
-                    self.has_dir = True
+                for file_id in file_ids:
+                    if tree is None:
+                        kind = branch.basis_tree().kind(file_id)
+                    else:
+                        kind = tree.kind(file_id)
+                    if kind in ('directory', 'tree-reference'):
+                        self.has_dir = True
+                        break
         
         if len(self.branches())==1 and self.trunk_branch == None:
             self.trunk_branch = branch
