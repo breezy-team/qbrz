@@ -19,6 +19,8 @@
 
 from PyQt4 import QtCore, QtGui
 
+from bzrlib.commands import get_cmd_object
+
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_branch import Ui_BranchForm
 from bzrlib.plugins.qbzr.lib.ui_pull import Ui_PullForm
@@ -193,8 +195,13 @@ class QBzrBranchWindow(SubProcessDialog):
             args.append(revision)
         from_location = str(self.ui.from_location.currentText())
         to_location = str(self.ui.to_location.currentText())
+        cmd_branch = get_cmd_object('branch')
+        if 'use-existing-dir' in cmd_branch.options():
+            # always use this options because it should be mostly harmless
+            args.append('--use-existing-dir')
         self.process_widget.start(None, 'branch', from_location, to_location, *args)
         save_pull_location(None, from_location)
+
 
 class QBzrMergeWindow(SubProcessDialog):
 

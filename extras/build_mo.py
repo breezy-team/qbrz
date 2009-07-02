@@ -57,14 +57,14 @@ class build_mo(Command):
 
     def finalize_options(self):
         self.set_undefined_options('build', ('force', 'force'))
+        self.prj_name = self.distribution.get_name()
         if self.build_dir is None:
             self.build_dir = 'locale'
         if not self.output_base:
-            self.output_base = self.distribution.get_name() or 'messages'
+            self.output_base = self.prj_name or 'messages'
         if self.source_dir is None:
             self.source_dir = 'po'
         if self.lang is None:
-            self.prj_name = self.distribution.get_name()
             if self.prj_name:
                 re_po = re.compile(r'^(?:%s-)?([a-zA-Z_]+)\.po$' % self.prj_name)
             else:
@@ -87,22 +87,23 @@ class build_mo(Command):
             log.warn("Skip compiling po files.")
             return
 
-        if find_executable('msginit') is None:
-            log.warn("GNU gettext msginit utility not found!")
-            log.warn("Skip creating English PO file.")
-        else:
-            log.info('Creating English PO file...')
-            pot = (self.prj_name or 'messages') + '.pot'
-            if self.prj_name:
-                en_po = '%s-en.po' % self.prj_name
+        if 'en' in self.lang:
+            if find_executable('msginit') is None:
+                log.warn("GNU gettext msginit utility not found!")
+                log.warn("Skip creating English PO file.")
             else:
-                en_po = 'en.po'
-            self.spawn(['msginit',
-                '--no-translator',
-                '-l', 'en',
-                '-i', os.path.join(self.source_dir, pot),
-                '-o', os.path.join(self.source_dir, en_po),
-                ])
+                log.info('Creating English PO file...')
+                pot = (self.prj_name or 'messages') + '.pot'
+                if self.prj_name:
+                    en_po = '%s-en.po' % self.prj_name
+                else:
+                    en_po = 'en.po'
+                self.spawn(['msginit',
+                    '--no-translator',
+                    '-l', 'en',
+                    '-i', os.path.join(self.source_dir, pot),
+                    '-o', os.path.join(self.source_dir, en_po),
+                    ])
 
         basename = self.output_base
         if not basename.endswith('.mo'):

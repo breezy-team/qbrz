@@ -122,6 +122,13 @@ class InternalWTDiffArgProvider(InternalDiffArgProvider):
         
         self.old_tree = None
 
+    def load_old_tree(self):
+        if self.old_revid is None and self.old_tree is None:
+            self.old_tree = self.new_tree.basis_tree()
+            self.old_revid = self.old_tree.get_revision_id()
+        else:
+            InternalDiffArgProvider.load_old_tree(self)
+
     def get_diff_window_args(self, processEvents):
         self.load_old_tree()
         processEvents()

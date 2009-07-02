@@ -24,7 +24,7 @@ from distutils.core import Command
 
 
 class import_po(Command):
-    """Distutils command build_pot"""
+    """Distutils command for import PO files."""
 
     description = 'import PO-files from launchpad-export.tar.gz'
 
@@ -56,18 +56,15 @@ class import_po(Command):
         t = tarfile.open(self.tarball)
         names = t.getnames()
         # filter names
-        # names could have 'qbzr/' or '/' prefix,
+        # names could have '$PROJECT/' or '/' prefix,
         # also there is some strange entries as './' (wtf lp?)
         # see https://bugs.launchpad.net/rosetta/+bug/148271
         entries = []    # 2-tuple (archive name, output file name)
         for n in names:
-            fn = n
             if n == './':
                 continue
-            elif n.startswith('/'):
-                fn = n[1:]
-            elif n.startswith('qbzr/'):
-                fn = n[5:]
+            parts = os.path.split(n)
+            fn = parts[-1]
             if not fn:
                 continue
             entries.append((n, os.path.join(self.output_dir, fn)))

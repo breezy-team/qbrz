@@ -71,7 +71,7 @@ class TestLogGraphProvider(tests.TestCaseWithTransport):
     def check_open_branch_files(self, tree, branch):
         gp = LogGraphProvider(False)
         
-        gp.open_branch(branch, tree=tree, file_id = 'file1-id')
+        gp.open_branch(branch, tree=tree, file_ids = ['file1-id'])
         self.assertLength(1, gp.branches)
         bi = gp.branches[0]
         self.assertEqual(tree, bi.tree)
@@ -81,14 +81,14 @@ class TestLogGraphProvider(tests.TestCaseWithTransport):
         self.assertEqual(['file1-id'], gp.fileids)
         self.assertFalse(gp.has_dir)
         
-        gp.open_branch(branch, tree=tree, file_id = 'dir-id')        
+        gp.open_branch(branch, tree=tree, file_ids = ['dir-id'])        
         self.assertEqual(['file1-id', 'dir-id'], gp.fileids)
         self.assertTrue(gp.has_dir)
         
         # Check that a new branch has not been added.
         self.assertLength(1, gp.branches)
         
-        gp.open_branch(branch, tree=tree, file_id = 'file3-id')
+        gp.open_branch(branch, tree=tree, file_ids = ['file3-id'])
         self.assertEqual(['file1-id', 'dir-id','file3-id'], gp.fileids)
         self.assertTrue(gp.has_dir)
         

@@ -620,7 +620,7 @@ class cmd_qinfo(QBzrCommand):
     takes_args = []
 
     def _qbzr_run(self):
-        tree, relpath = WorkingTree.open_containing('.')
+        tree, relpath = WorkingTree.open_containing(u'.')
         app = QtGui.QApplication(sys.argv)
         window = QBzrInfoWindow(tree)
         window.show()
@@ -633,7 +633,7 @@ class cmd_qinit(QBzrCommand):
     takes_options = [ui_mode_option]
     takes_args = ['location?']
 
-    def _qbzr_run(self, location='.', ui_mode=False):
+    def _qbzr_run(self, location=u'.', ui_mode=False):
         app = QtGui.QApplication(sys.argv)
         window = QBzrInitWindow(location, ui_mode=ui_mode)
         window.show()
@@ -814,7 +814,7 @@ class cmd_qtag(QBzrCommand):
         'revision',
         ]
 
-    def _qbzr_run(self, tag_name=None, delete=None, directory='.',
+    def _qbzr_run(self, tag_name=None, delete=None, directory=u'.',
         force=None, revision=None, ui_mode=False):
         branch = Branch.open_containing(directory)[0]
         # determine action based on given options
