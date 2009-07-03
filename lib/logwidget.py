@@ -169,7 +169,7 @@ class LogList(RevisionTreeView):
                 break
         if not has_local_repo:
             try:
-                bzrdir, relpath = BzrDir.open_containing(".")
+                bzrdir, relpath = BzrDir.open_containing(u".")
                 repo = bzrdir.find_repository()
                 self.graph_provider.append_repo(repo, local_copy = True)
             except Exception:

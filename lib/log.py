@@ -104,7 +104,7 @@ class LogWindow(QBzrWindow):
             self.branch = None
             self.locations = locations
             if self.locations is None:
-                self.locations = ["."]
+                self.locations = [u"."]
             assert specific_fileids is None, "specific_fileids is ignored if branch is None"
         
         self.branches = None
