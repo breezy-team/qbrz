@@ -639,7 +639,7 @@ class TreeWidget(RevisionTreeView):
         rows = {}
         for index in self.selectedIndexes():
             if index.row() not in rows:
-                rows[index.row()] = index
+                rows[index.internalId()] = index
         return rows.values()
     
     def get_selection_items(self):
