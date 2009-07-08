@@ -157,6 +157,10 @@ class RevNoItemDelegate(QtGui.QItemDelegate):
         mainline_width = fm.width("8"*self.max_mainline_digits)
         therest_width = fm.width(therest)
         
+        if option.state & QtGui.QStyle.State_Selected:
+            painter.setPen(option.palette.color(QtGui.QPalette.HighlightedText))
+        else:
+            painter.setPen(option.palette.color(QtGui.QPalette.Text))
         if mainline_width + therest_width > rect.width():
             if fm.width(text) > rect.width():
                 text = QtGui.QAbstractItemDelegate.elidedText(
