@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-05-29 18:26+0300\n"
-"PO-Revision-Date: 2009-02-27 15:54+0000\n"
-"Last-Translator: B. Sygnat <Unknown>\n"
+"PO-Revision-Date: 2009-06-10 20:51+0000\n"
+"Last-Translator: mikeL <Unknown>\n"
 "Language-Team: German <de@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2009-06-02 15:16+0000\n"
+"X-Launchpad-Export-Date: 2009-07-08 19:04+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:41 lib\config.py:112 lib\config.py:133 lib\config.py:164
@@ -491,7 +491,7 @@ msgstr "Aktualisiere ein Spiegelbild dieses Astes"
 
 #: lib\main.py:299
 msgid "&Add Bookmark..."
-msgstr "Füge ein Lesezeichen hinzu..."
+msgstr "&Füge ein Lesezeichen hinzu..."
 
 #: lib\main.py:307
 msgid "&Configure..."
@@ -503,7 +503,7 @@ msgstr "Beenden"
 
 #: lib\main.py:316
 msgid "&Bookmarks"
-msgstr "Lesezeichen"
+msgstr "&Lesezeichen"
 
 #: lib\main.py:318 lib\util.py:72
 msgid "&Help"
@@ -515,7 +515,7 @@ msgstr "&Hilfe..."
 
 #: lib\main.py:321
 msgid "&About..."
-msgstr "Über..."
+msgstr "&Über..."
 
 #: lib\main.py:359
 msgid "Size"
@@ -592,7 +592,7 @@ msgstr "Abgebrochen!"
 
 #: lib\tag.py:151
 msgid "&Replace"
-msgstr "Ersetzen"
+msgstr "&Ersetzen"
 
 #: lib\tag.py:151 lib\tag.py:164 lib\util.py:70
 msgid "&Cancel"
@@ -609,7 +609,7 @@ msgstr "Wähle Ort des Astes"
 #: lib\ui_bookmark.py:51 lib\ui_branch.py:67 lib\ui_merge.py:59
 #: lib\ui_pull.py:62 lib\ui_push.py:64
 msgid "&Location:"
-msgstr "Ort"
+msgstr "&Ort"
 
 #: lib\ui_branch.py:66 lib\ui_merge.py:58 lib\ui_pull.py:61 lib\ui_push.py:63
 msgid "Options"
@@ -765,7 +765,7 @@ msgstr "Markierungsname:"
 
 #: lib\ui_tag.py:109
 msgid "&Select..."
-msgstr "Auswählen..."
+msgstr "&Auswählen"
 
 #: lib\ui_update_branch.py:82
 msgid "Update Branch"
@@ -971,7 +971,7 @@ msgstr ""
 
 #: lib\config.py:214
 msgid "&Diff"
-msgstr ""
+msgstr "&Diff"
 
 #: lib\config.py:215
 msgid "&Merge"
@@ -1156,7 +1156,7 @@ msgstr ""
 
 #: lib\main.py:306
 msgid "&File"
-msgstr ""
+msgstr "&Datei"
 
 #: lib\main.py:310
 msgid "&View"
