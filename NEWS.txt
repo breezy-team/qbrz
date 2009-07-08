@@ -33,6 +33,10 @@ commands); branching into exisiting directory (with qbranch) works now
  * Universal installer for Windows: one installer for both standalone bzr.exe
    version and for python-based version.
 
+NOTES: this is last release with tested PyQt 4.3.x support. 
+All further releases will be tested against PyQt 4.4 as minimum supported
+version.
+
 
 0.11.0 - 2009-06-11
 -----------------------
