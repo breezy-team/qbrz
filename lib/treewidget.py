@@ -689,6 +689,15 @@ class TreeWidget(RevisionTreeView):
         self.action_revert.setEnabled(any(changed) and any(versioned))
     
     def do_default_action(self, index=None):
+        indexes = self.get_selection_indexes([index])
+        if not len(indexes) == 1:
+            return
+        
+        item = self.get_selection_items(indexes)[0]
+        if item[0].kind == "directory":
+            # Don't do anything, so that the directory can be expanded.
+            return
+        
         self.default_action(index)
 
     @ui_current_widget
