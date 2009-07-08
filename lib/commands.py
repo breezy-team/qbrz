@@ -760,7 +760,7 @@ class cmd_qgetupdates(QBzrCommand):
 
     takes_args = ['location?']
     takes_options = [ui_mode_option]
-    aliases = ['qgetu']
+    aliases = ['qgetu', 'qgetup']
 
     def _qbzr_run(self, location=u".", ui_mode=False):
         branch, relpath = Branch.open_containing(location)

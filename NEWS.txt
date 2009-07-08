@@ -1,5 +1,12 @@
 0.12 - in development
 -----------------------
+Maintenance release: compatibility with bzr 1.17 (progress indicator for
+commands); branching into exisiting directory (with qbranch) works now
+(require bzr 1.17); better support of unicode paths in various commands.
+
+ * New universal working tree/revision tree widget
+ * qbranch: now it's possible to branch into newly created empty directory.
+ * qgetupdates: new alias: qgetup
  * qmerge: revision no more ignored.
  * qupdate: new command as simple front-end for stadard `bzr update`
  * qversion: new command to display Bazaar & Python installation information
