@@ -753,8 +753,15 @@ class TreeWidget(RevisionTreeView):
         index = self.currentIndex()
         file_id = unicode(index.data(self.tree_model.FILEID).toString())
         path = unicode(index.data(self.tree_model.PATH).toString())
+        
+        tree = self.tree
+        # Temporary fix for Bug 395937. The correct fix would be to make
+        # qannotate be able to annotate a working tree.
+        if isinstance(tree, WorkingTree):
+            revno, revid = self.branch.last_revision_info()
+            tree = self.branch.repository.revision_tree(revid)
 
-        window = AnnotateWindow(self.branch, self.tree, path, file_id)
+        window = AnnotateWindow(self.branch, tree, path, file_id)
         window.show()
         self.window().windows.append(window)
 
