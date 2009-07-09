@@ -16,10 +16,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib.tests import TestCase
+from bzrlib.tests import TestCase, TestCaseWithTransport
 from PyQt4 import QtCore
-from bzrlib.plugins.qbzr.lib.logmodel import get_bug_id, QVariant_fromList
+from bzrlib.plugins.qbzr.lib.logmodel import (
+    get_bug_id,
+    QVariant_fromList,
+    LogModel,
+    )
+from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
 
+from bzrlib.plugins.qbzr.lib.tests.modeltest import ModelTest
 
 class TestGetBugId(TestCase):
 
@@ -50,3 +56,48 @@ class TestQVariantFromList(TestCase):
         lst = var.toList()
         self.assertEquals("a", lst[0].toString())
         self.assertEquals("b", lst[1].toString())
+
+class TestModel(TestCaseWithTransport):
+    
+    def _test(self, wt):
+        graph_provider = LogGraphProvider(False)
+        log_model = LogModel(graph_provider)
+        graph_provider.open_branch(wt.branch, None, wt)
+        log_model.load_graph_all_revisions()
+        modeltest = ModelTest(log_model, None);
+    
+    def test_empty_branch(self):
+        wt = self.make_branch_and_tree('.')
+        self._test(wt)
+
+    def _prepare_tree_with_merges(self, with_tags=False):
+        wt = self.make_branch_and_memory_tree('.')
+        wt.lock_write()
+        self.addCleanup(wt.unlock)
+        wt.add('')
+        wt.commit('rev-1', rev_id='rev-1',
+                  timestamp=1132586655, timezone=36000,
+                  committer='Joe Foo <joe@foo.com>')
+        wt.commit('rev-merged', rev_id='rev-2a',
+                  timestamp=1132586700, timezone=36000,
+                  committer='Joe Foo <joe@foo.com>')
+        wt.set_parent_ids(['rev-1', 'rev-2a'])
+        wt.branch.set_last_revision_info(1, 'rev-1')
+        wt.commit('rev-2', rev_id='rev-2b',
+                  timestamp=1132586800, timezone=36000,
+                  committer='Joe Foo <joe@foo.com>')
+        if with_tags:
+            branch = wt.branch
+            branch.tags.set_tag('v0.2', 'rev-2b')
+            wt.commit('rev-3', rev_id='rev-3',
+                      timestamp=1132586900, timezone=36000,
+                      committer='Jane Foo <jane@foo.com>')
+            branch.tags.set_tag('v1.0rc1', 'rev-3')
+            branch.tags.set_tag('v1.0', 'rev-3')
+        return wt
+
+    def test_merges(self):
+        wt = self._prepare_tree_with_merges()
+        self._test(wt)
+
+
