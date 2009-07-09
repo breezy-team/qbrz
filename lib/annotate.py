@@ -170,6 +170,8 @@ class AnnotateModel(QtCore.QAbstractTableModel):
             hue =  1-float(abs(hash(get_apparent_author_name(rev)))) / sys.maxint 
             return QtCore.QVariant(QtGui.QColor.fromHsvF(hue, saturation, 1 ))
         
+        if role == QtCore.Qt.DisplayRole: 
+            return QtCore.QVariant("")
         return QtCore.QVariant()
     
     def flags(self, index):
