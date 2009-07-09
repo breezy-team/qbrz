@@ -35,6 +35,7 @@ def load_tests(basic_tests, module, loader):
         'test_util',
         'test_loggraphprovider',
         'test_annotate',
+        'test_treewidget',
     ]
     for name in testmod_names:
         m = "%s.%s" % (__name__, name)

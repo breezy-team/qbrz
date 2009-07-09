@@ -250,6 +250,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         if parent_id not in self.dir_children_ids:
             return QtCore.QModelIndex()
         dir_children_ids = self.dir_children_ids[parent_id]
+        if dir_children_ids is None:
+            return QtCore.QModelIndex()
         if row >= len(dir_children_ids):
             return QtCore.QModelIndex()
         item_id = dir_children_ids[row]
