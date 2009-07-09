@@ -20,8 +20,9 @@ from bzrlib.tests import TestCase, TestCaseWithTransport
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.treewidget import TreeModel
 from bzrlib.plugins.qbzr.lib.tests.modeltest import ModelTest
+from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
 
-class TestTreeModel(TestCaseWithTransport):
+class TestTreeModel(TestWatchExceptHook, TestCaseWithTransport):
     
     def test_model_working_tree(self):
 

@@ -26,6 +26,7 @@ from bzrlib.plugins.qbzr.lib.logmodel import (
 from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
 
 from bzrlib.plugins.qbzr.lib.tests.modeltest import ModelTest
+from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
 
 class TestGetBugId(TestCase):
 
@@ -57,7 +58,7 @@ class TestQVariantFromList(TestCase):
         self.assertEquals("a", lst[0].toString())
         self.assertEquals("b", lst[1].toString())
 
-class TestModel(TestCaseWithTransport):
+class TestModel(TestWatchExceptHook, TestCaseWithTransport):
     
     def _test(self, wt):
         graph_provider = LogGraphProvider(False)
