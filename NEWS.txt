@@ -1,4 +1,4 @@
-0.12 - in development
+0.12 - 2009-07-08
 -----------------------
 Maintenance release: compatibility with bzr 1.17 (progress indicator for
 commands); branching into exisiting directory (with qbranch) works now
@@ -32,6 +32,10 @@ commands); branching into exisiting directory (with qbranch) works now
                             8
  * Universal installer for Windows: one installer for both standalone bzr.exe
    version and for python-based version.
+
+NOTES: this is last release with tested PyQt 4.3.x support. 
+All further releases will be tested against PyQt 4.4 as minimum supported
+version.
 
 
 0.11.0 - 2009-06-11
