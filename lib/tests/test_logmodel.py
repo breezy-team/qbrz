@@ -70,6 +70,7 @@ class TestModel(TestCaseWithTransport):
         wt = self.make_branch_and_tree('.')
         self._test(wt)
 
+    # Copied for bzrlib/tests/test_log.py
     def _prepare_tree_with_merges(self, with_tags=False):
         wt = self.make_branch_and_memory_tree('.')
         wt.lock_write()
