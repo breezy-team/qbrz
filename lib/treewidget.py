@@ -79,7 +79,9 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.dir_icon = dir_icon
         self.symlink_icon = symlink_icon
         self.tree = None
+        self.inventory_items = []
         self.dir_children_ids = {}
+        self.parent_ids = []
     
     def set_tree(self, tree, branch):
         self.tree = tree
@@ -162,6 +164,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         if isinstance(self.tree, WorkingTree):
             self.tree.lock_read()
         try:
+            if dir_id>=len(self.inventory_items):
+                return
             dir_item, dir_change = self.inventory_items[dir_id]
             dir_children_ids = []
             children = sorted(self.get_children(dir_item),
@@ -228,8 +232,6 @@ class TreeModel(QtCore.QAbstractItemModel):
          return len(self.HEADER_LABELS)
 
     def rowCount(self, parent):
-        if self.tree is None:
-            return 0
         parent_id = parent.internalId()
         if parent_id not in self.dir_children_ids:
             return 0
@@ -250,6 +252,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         if parent_id not in self.dir_children_ids:
             return QtCore.QModelIndex()
         dir_children_ids = self.dir_children_ids[parent_id]
+        if dir_children_ids is None:
+            return QtCore.QModelIndex()
         if row >= len(dir_children_ids):
             return QtCore.QModelIndex()
         item_id = dir_children_ids[row]
@@ -263,8 +267,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         return self.createIndex(row, column, item_id)    
     
     def index(self, row, column, parent = QtCore.QModelIndex()):
-        if self.tree is None:
-            return self.createIndex(row, column, 0)
         parent_id = parent.internalId()
         return self._index(row, column, parent_id)
     
@@ -288,9 +290,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         return self._index_from_id(item_id, 0)
 
     def hasChildren(self, parent):
-        if self.tree is None:
-            return False
-        
         parent_id = parent.internalId()
         return parent_id in self.dir_children_ids
     
