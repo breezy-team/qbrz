@@ -44,9 +44,10 @@ class QBzrBindWindow(QBzrWindow):
         
         self._window_name = "bind"
         
-        title = "%s: %s" % (gettext("Switch Checkout"), url_for_display(branch.base))
+        title = "%s: %s" % (gettext("Bind branch"), url_for_display(branch.base))
         QBzrWindow.__init__(self, title)
         
+        self.resize(500,-1)
 
         
         self.buttonbox = self.create_button_box(BTN_CLOSE, BTN_OK)
@@ -56,7 +57,7 @@ class QBzrBindWindow(QBzrWindow):
         
         self.branch = branch
         
-        gbBind = QtGui.QGroupBox(gettext("Switch Checkout To"), self)
+        gbBind = QtGui.QGroupBox(gettext("Bind branch"), self)
         
         bind_hbox = QtGui.QHBoxLayout(gbBind)
         
@@ -68,14 +69,14 @@ class QBzrBindWindow(QBzrWindow):
         
         repo = branch.bzrdir.find_repository()
         
-        boundloc = branch.get_bound_location()
+        boundloc = branch.get_old_bound_location()
         if boundloc != None:
             branch_combo.addItem(url_for_display(boundloc))
             
-        if repo != None:
+        """if repo != None:
             branches = repo.find_branches()
             for br in branches:
-                branch_combo.addItem(url_for_display(br.base))
+                branch_combo.addItem(url_for_display(br.base))"""
                 
         if boundloc == None:
             branch_combo.clearEditText()
@@ -103,36 +104,16 @@ class QBzrBindWindow(QBzrWindow):
         self.branch_combo.setCurrentIndex(0)
         
                 
-    def start(self):        
-
-        error = []
-        
+    def accept(self):        
+        error = []      
         
         args = []
-        submit_branch = str(self.submit_branch_combo.currentText())
-        public_branch = str(self.public_branch_combo.currentText())
+        location = str(self.branch_combo.currentText())
         
-        if(submit_branch == ''):
-            error.append("Fill in submit branch")
-        #else:
-        #    args.append(submit_branch)
+        if(location == ''):
+            error.append("Fill in branch location")
             
-        if public_branch != '':
-            args.append(public_branch)
-            
-        mylocation =  url_for_display(self.branch.base)     
-        args.append("-f")
-        args.append(mylocation)
-
-        
-        if self.submit_email_radio.isChecked():
-            location = str(self.mailto_edit.text())
-            if location == '' or re.match("^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$", location) == None:
-                error.append("Enter a valid email address")
-        else:
-            location = str(self.savefile_edit.text())
-            if location == '':
-                error.append("Enter a valid filename to save.")
+        mylocation =  url_for_display(self.branch.base)
                             
         if len(error) > 0:            
             msgBox = QtGui.QMessageBox(self)
@@ -144,33 +125,27 @@ class QBzrBindWindow(QBzrWindow):
             ret = msgBox.exec_()
             return False
 
-        if self.submit_email_radio.isChecked():
-            args.append("--mail-to=%s" % location)
-        else:
-            args.append("-o")
-            args.append(location)
-            
         
-        if self.remember_check.isChecked():
-            args.append("--remember")
+        b, relpath = Branch.open_containing(mylocation)
+        b_other = Branch.open(location)
+        try:
+            b.bind(b_other)
+        except errors.DivergedBranches:
+            msgBox = QtGui.QMessageBox(self)
+            msgBox.setText('These branches have diverged.'
+                           ' Try merging, and then bind again.')
+            msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
+            msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
+            msgBox.setIcon(QtGui.QMessageBox.Critical)
+            ret = msgBox.exec_()
+            return False
 
-        if self.nopatch_check.isChecked():
-            args.append("--no-patch")
+        if b.get_config().has_explicit_nickname():
+            b.nick = b_other.nick
             
-        if self.nobundle_check.isChecked():
-            args.append("--no-bundle")
-                    
-        if self.message_edit.text() != '':
-            args.append("--message=%s" % str(self.message_edit.text()))
-        
-        
-        revision = str(self.revisions_edit.text())
-        if revision == '':
-            args.append("--revision=-1")
-        else:
-            args.append("--revision=%s" % revision)
+            
+        self.close()
 
-        self.process_widget.start(None, 'send', submit_branch, *args)
-        
+                
 
 
