@@ -25,11 +25,11 @@ from PyQt4 import QtCore, QtGui
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 
-from bzrlib.plugins.qbzr.lib.util import url_for_display, QBzrWindow, BTN_CLOSE, BTN_OK
+from bzrlib.plugins.qbzr.lib.util import url_for_display, QBzrDialog, BTN_CLOSE, BTN_OK
 
 from bzrlib.branch import Branch
 
-class QBzrBindWindow(QBzrWindow):
+class QBzrBindDialog(QBzrDialog):
 
     
     def accept(self):
@@ -40,13 +40,13 @@ class QBzrBindWindow(QBzrWindow):
         self._window_name = "bind"
         
         title = "%s: %s" % (gettext("Bind branch"), url_for_display(branch.base))
-        QBzrWindow.__init__(self, title)
+        QBzrDialog.__init__(self, title)
         
         self.resize(500,-1)
 
         self.buttonbox = self.create_button_box(BTN_CLOSE, BTN_OK)
 
-        self.vbox = QtGui.QVBoxLayout(self.centralwidget)
+        self.vbox = QtGui.QVBoxLayout(self)
         
         
         self.branch = branch
