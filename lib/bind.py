@@ -25,11 +25,6 @@ from PyQt4 import QtCore, QtGui
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 
-from bzrlib.plugins.qbzr.lib.wtlist import (
-    ChangeDesc,
-    WorkingTreeFileList,
-    closure_in_selected_list,
-    )
 from bzrlib.plugins.qbzr.lib.util import url_for_display, QBzrWindow, BTN_CLOSE, BTN_OK
 
 from bzrlib.branch import Branch
@@ -40,7 +35,7 @@ class QBzrBindWindow(QBzrWindow):
     def accept(self):
         pass
     
-    def __init__(self, branch, ui_mode=False):#tree, selected_list, dialog=True, ui_mode=True, parent=None, local=None, message=None):
+    def __init__(self, branch, ui_mode=False):
         
         self._window_name = "bind"
         
@@ -49,7 +44,6 @@ class QBzrBindWindow(QBzrWindow):
         
         self.resize(500,-1)
 
-        
         self.buttonbox = self.create_button_box(BTN_CLOSE, BTN_OK)
 
         self.vbox = QtGui.QVBoxLayout(self.centralwidget)
@@ -72,11 +66,6 @@ class QBzrBindWindow(QBzrWindow):
         boundloc = branch.get_old_bound_location()
         if boundloc != None:
             branch_combo.addItem(url_for_display(boundloc))
-            
-        """if repo != None:
-            branches = repo.find_branches()
-            for br in branches:
-                branch_combo.addItem(url_for_display(br.base))"""
                 
         if boundloc == None:
             branch_combo.clearEditText()
@@ -111,13 +100,13 @@ class QBzrBindWindow(QBzrWindow):
         location = str(self.branch_combo.currentText())
         
         if(location == ''):
-            error.append("Fill in branch location")
+            error.append(gettext("Fill in branch location"))
             
         mylocation =  url_for_display(self.branch.base)
                             
         if len(error) > 0:            
             msgBox = QtGui.QMessageBox(self)
-            msgBox.setText("There are errors.\nPlease do the following actions in order to fix them.")
+            msgBox.setText(gettext("There are errors.\nPlease do the following actions in order to fix them."))
             msgBox.setInformativeText("\n".join(error))
             msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
             msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
@@ -132,8 +121,8 @@ class QBzrBindWindow(QBzrWindow):
             b.bind(b_other)
         except errors.DivergedBranches:
             msgBox = QtGui.QMessageBox(self)
-            msgBox.setText('These branches have diverged.'
-                           ' Try merging, and then bind again.')
+            msgBox.setText(gettext('These branches have diverged.'
+                           ' Try merging, and then bind again.'))
             msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
             msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
             msgBox.setIcon(QtGui.QMessageBox.Critical)
@@ -145,7 +134,3 @@ class QBzrBindWindow(QBzrWindow):
             
             
         self.close()
-
-                
-
-
