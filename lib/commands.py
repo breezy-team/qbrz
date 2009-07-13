@@ -880,12 +880,12 @@ class cmd_qbind(QBzrCommand):
     takes_options = [ui_mode_option]
     
     def _qbzr_run(self, location=None, ui_mode=False):
-        from bzrlib.plugins.qbzr.lib.bind import QBzrBindWindow
+        from bzrlib.plugins.qbzr.lib.bind import QBzrBindDialog
         
         application = QtGui.QApplication(sys.argv)
         branch = Branch.open_containing(location)[0]
         
-        window = QBzrBindWindow(branch, ui_mode)
+        window = QBzrBindDialog(branch, ui_mode)
         window.show()
         application.exec_()        
     
