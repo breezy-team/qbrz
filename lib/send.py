@@ -3,7 +3,7 @@
 # QBzr - Qt frontend to Bazaar commands
 #
 # Contributors:
-#  Mark Hammond <mhammond@skippinet.com.au>
+#  Javier Derderian <javierder@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
