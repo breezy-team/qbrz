@@ -1,10 +1,45 @@
-0.12 - in development
+0.13 - in development
 -----------------------
- * qmerge: revision no more ignored.
+
+
+0.12 - 2009-07-08
+-----------------------
+Maintenance release: compatibility with bzr 1.17 (progress indicator for
+commands); branching into exisiting directory (with qbranch) works now
+(require bzr 1.17); better support of unicode paths in various commands.
+
+ * qbranch: now it's possible to branch into newly created empty directory.
+ * qgetupdates: new alias: qgetup
+ * qmerge: the revision argument is no longer ignored.
  * qupdate: new command as simple front-end for stadard `bzr update`
  * qversion: new command to display Bazaar & Python installation information
+ * qannotate:
+   * Revisions are loaded lazily (only when they appear on screen.) This
+     greatly reduces the load time when annotating a file from a remote branch.
+     (The code for this is reused from qlog.)
+   * Add a item to the revision list context menu to annotate a older revision.
+ * qbrowse:
+   * It is now possible to browse a working tree. The change status of file is
+     shown.
+   * Trees are loaded lazily (sub directories are only loaded when you expand
+     them.)
+   * Revisions are loaded lazily (only when they appear on screen.) This
+     greatly reduces the load time when browseing a remote branch.
+     (The code for this is reused from qlog.)
+ * qlog/qannotate/qbrowse: revision numbers are right aligned on the mainline
+                           number. E.g:
+                           
+                           10
+                            9
+                            8.2
+                            8.1
+                            8
  * Universal installer for Windows: one installer for both standalone bzr.exe
    version and for python-based version.
+
+NOTES: this is last release with tested PyQt 4.3.x support. 
+All further releases will be tested against PyQt 4.4 as minimum supported
+version.
 
 
 0.11.0 - 2009-06-11

@@ -116,6 +116,13 @@ class DiffButtons(QtGui.QWidget):
                                                  self)
             layout.addWidget(self.menu_button)
             self.menu_button.setMenu(self.menu)
+            #QStyle.PM_MenuButtonIndicator
+            self.menu_button.setFixedWidth(
+                self.menu_button.style().pixelMetric(
+                    QtGui.QStyle.PM_MenuButtonIndicator) +
+                self.menu_button.style().pixelMetric(
+                    QtGui.QStyle.PM_ButtonMargin)
+                )
             self.connect(self.menu, QtCore.SIGNAL("triggered(QString)"),
                          self.triggered)
 

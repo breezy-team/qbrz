@@ -5,11 +5,11 @@
 Requirements
 ============
 
- * Python 2.4 or 2.5
-
+ * Python 2.4, 2.5 or 2.6
+              
  * Bazaar VCS itself
 
- * PyQt 4.1 with Qt 4.2
+ * PyQt 4.3 with Qt 4.3 or later
    http://www.riverbankcomputing.co.uk/pyqt/
    http://www.trolltech.com/products/qt
 

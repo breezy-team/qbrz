@@ -133,10 +133,10 @@ class LogList(RevisionTreeView):
             self.context_menu.addAction(gettext("Show &tree..."),
                                         self.show_revision_tree)        
 
-    def load_branch(self, branch, fileid, tree=None):
+    def load_branch(self, branch, fileids, tree=None):
         self.throbber.show()
         try:
-            self.graph_provider.open_branch(branch, fileid, tree)
+            self.graph_provider.open_branch(branch, fileids, tree)
             self.create_context_menu()
             self.load_current_dir_repo_if_no_local_repos()
             self.processEvents()
@@ -169,7 +169,7 @@ class LogList(RevisionTreeView):
                 break
         if not has_local_repo:
             try:
-                bzrdir, relpath = BzrDir.open_containing(".")
+                bzrdir, relpath = BzrDir.open_containing(u".")
                 repo = bzrdir.find_repository()
                 self.graph_provider.append_repo(repo, local_copy = True)
             except Exception:

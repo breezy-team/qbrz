@@ -761,9 +761,9 @@ class cmd_qgetupdates(QBzrCommand):
 
     takes_args = ['location?']
     takes_options = [ui_mode_option]
-    aliases = ['qgetu']
+    aliases = ['qgetu', 'qgetup']
 
-    def _qbzr_run(self, location=".", ui_mode=False):
+    def _qbzr_run(self, location=u".", ui_mode=False):
         branch, relpath = Branch.open_containing(location)
         app = QtGui.QApplication(sys.argv)
         if branch.get_bound_location():
@@ -782,7 +782,7 @@ class cmd_qgetnew(QBzrCommand):
     takes_options = [ui_mode_option]
     aliases = ['qgetn']
 
-    def _qbzr_run(self, location=".", ui_mode=False):
+    def _qbzr_run(self, location=u".", ui_mode=False):
         app = QtGui.QApplication(sys.argv)
         window = GetNewWorkingTreeWindow(location, ui_mode=ui_mode)
         window.show()

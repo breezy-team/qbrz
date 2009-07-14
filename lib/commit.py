@@ -30,7 +30,7 @@ from bzrlib.plugins.qbzr.lib.diff import (
     InternalWTDiffArgProvider,
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     get_global_config,
@@ -138,7 +138,7 @@ class PendingMergesList(LogList):
         finally:
             self.graph_provider.unlock_branches()
 
-class CommitWindow(SubProcessWindow):
+class CommitWindow(SubProcessDialog):
 
     RevisionIdRole = QtCore.Qt.UserRole + 1
     ParentIdRole = QtCore.Qt.UserRole + 2
@@ -354,13 +354,13 @@ class CommitWindow(SubProcessWindow):
         splitter.setStretchFactor(0, 3)
 
 
-        vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox = QtGui.QVBoxLayout(self)
         vbox.addWidget(self.throbber)
         vbox.addWidget(branch_groupbox)
         vbox.addWidget(splitter)
 
         # Diff button to view changes in files selected to commit
-        self.diffbuttons = DiffButtons(self.centralwidget)
+        self.diffbuttons = DiffButtons(self)
         self.diffbuttons.setToolTip(
             gettext("View changes in files selected to commit"))
         self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
@@ -390,7 +390,7 @@ class CommitWindow(SubProcessWindow):
 
     def show(self):
         # we show the bare form as soon as possible.
-        SubProcessWindow.show(self)
+        SubProcessDialog.show(self)
         QtCore.QTimer.singleShot(1, self.load)
     
     @ui_current_widget
@@ -552,7 +552,7 @@ class CommitWindow(SubProcessWindow):
                 self.clear_saved_message()
             else:
                 self.save_message()
-        return SubProcessWindow.closeEvent(self, event)
+        return SubProcessDialog.closeEvent(self, event)
 
     def update_branch_groupbox(self):
         if not self.local_checkbox.isChecked():

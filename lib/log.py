@@ -65,7 +65,7 @@ class LogWindow(QBzrWindow):
     FilterTagRole = QtCore.Qt.UserRole + 105
     FilterBugRole = QtCore.Qt.UserRole + 106
 
-    def __init__(self, locations, branch, specific_fileid=None, parent=None,
+    def __init__(self, locations, branch, specific_fileids=None, parent=None,
                  ui_mode=True, no_graph=False):
         """Create qlog window.
 
@@ -81,7 +81,7 @@ class LogWindow(QBzrWindow):
             Could be None, in this case locations list will be used
             to open branch(es).
 
-        @param  specific_fileid:    file id from the branch to filter
+        @param  specific_fileids:    file ids from the branch to filter
             the log.
 
         @param  parent: parent widget.
@@ -98,14 +98,14 @@ class LogWindow(QBzrWindow):
         if branch:
             self.branch = branch
             self.locations = (branch,)
-            self.specific_fileid = specific_fileid
+            self.specific_fileids = specific_fileids
             assert locations is None, "can't specify both branch and locations"
         else:
             self.branch = None
             self.locations = locations
             if self.locations is None:
-                self.locations = ["."]
-            assert specific_fileid is None, "specific_fileid is ignored if branch is None"
+                self.locations = [u"."]
+            assert specific_fileids is None, "specific_fileids is ignored if branch is None"
         
         self.branches = None
         self.replace = {}
@@ -259,7 +259,7 @@ class LogWindow(QBzrWindow):
         self.processEvents()
         try:
             if self.branch:
-                self.log_list.load_branch(self.branch, self.specific_fileid)
+                self.log_list.load_branch(self.branch, self.specific_fileids)
             else:
                 self.log_list.load_locations(self.locations)
             

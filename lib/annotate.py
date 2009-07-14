@@ -170,6 +170,8 @@ class AnnotateModel(QtCore.QAbstractTableModel):
             hue =  1-float(abs(hash(get_apparent_author_name(rev)))) / sys.maxint 
             return QtCore.QVariant(QtGui.QColor.fromHsvF(hue, saturation, 1 ))
         
+        if role == QtCore.Qt.DisplayRole: 
+            return QtCore.QVariant("")
         return QtCore.QVariant()
     
     def flags(self, index):
@@ -372,7 +374,7 @@ class AnnotateWindow(QBzrWindow):
 
         if not self.log_branch_loaded:
             self.log_branch_loaded = True
-            self.log_list.load_branch(self.branch, self.fileId)
+            self.log_list.load_branch(self.branch, [self.fileId])
             self.log_list.context_menu.addAction(
                                     gettext("&Annotate this revision."),
                                     self.set_annotate_revision)
