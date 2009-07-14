@@ -22,6 +22,7 @@
 import re
 from PyQt4 import QtCore, QtGui
 
+from bzrlib import errors
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import url_for_display
@@ -212,23 +213,33 @@ class SendWindow(SubProcessDialog):
         self.public_branch_combo.insertItem(0,fileName)
         self.public_branch_combo.setCurrentIndex(0)
         
-                
-    def start(self):        
+    
+    def validate(self):
+        if self.submit_email_radio.isChecked():
+            location = str(self.mailto_edit.text())
+            if location == '' :
+                self.mailto_edit.setFocus()
+                raise errors.BzrCommandError("Email address not entered.")
+            if re.match("^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$", location) == None:
+                self.mailto_edit.setFocus()
+                raise errors.BzrCommandError("Email address is not valid.")
+        else:
+            location = str(self.savefile_edit.text())
+            if location == '':
+                self.savefile_edit.setFocus()
+                raise errors.BzrCommandError("Filename not entered.")
         
-        
-        
-        error = []
-        
-        
+        submit_branch = str(self.submit_branch_combo.currentText())
+        if(submit_branch == ''):
+            self.submit_branch_combo.setFocus()
+            raise errors.BzrCommandError("No submit branch entered.")
+        return True
+    
+    def start(self):
         args = []
         submit_branch = str(self.submit_branch_combo.currentText())
         public_branch = str(self.public_branch_combo.currentText())
         
-        if(submit_branch == ''):
-            error.append("Fill in submit branch")
-        #else:
-        #    args.append(submit_branch)
-            
         if public_branch != '':
             args.append(public_branch)
             
@@ -236,33 +247,11 @@ class SendWindow(SubProcessDialog):
         args.append("-f")
         args.append(mylocation)
 
-        
         if self.submit_email_radio.isChecked():
             location = str(self.mailto_edit.text())
-            if location == '' or re.match("^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$", location) == None:
-                error.append("Enter a valid email address")
-        else:
-            location = str(self.savefile_edit.text())
-            if location == '':
-                error.append("Enter a valid filename to save.")
-                            
-        if len(error) > 0:            
-            msgBox = QtGui.QMessageBox(self)
-            msgBox.setText("There are errors.\nPlease do the following actions in order to fix them.")
-            msgBox.setInformativeText("\n".join(error))
-            msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
-            msgBox.setDefaultButton(QtGui.QMessageBox.Ok)
-            msgBox.setIcon(QtGui.QMessageBox.Critical)
-            ret = msgBox.exec_()
-            return False
-            
-            
-        
-        
-        
-        if self.submit_email_radio.isChecked():
             args.append("--mail-to=%s" % location)
         else:
+            location = str(self.savefile_edit.text())
             args.append("-o")
             args.append(location)
             
@@ -286,11 +275,7 @@ class SendWindow(SubProcessDialog):
         else:
             args.append("--revision=%s" % revision)
             
-        
-        
-        
         self.process_widget.start(None, 'send', submit_branch, *args)
-        
 
     def saveSize(self):
         SubProcessDialog.saveSize(self)
