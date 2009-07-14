@@ -28,7 +28,7 @@ from bzrlib.plugins.qbzr.lib.util import url_for_display
 
 class SendWindow(SubProcessDialog):
 
-    def __init__(self, branch):#tree, selected_list, dialog=True, ui_mode=True, parent=None, local=None, message=None):
+    def __init__(self, branch):
         
         
         title = "%s: %s" % (gettext("Send"), url_for_display(branch.base))
