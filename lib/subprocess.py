@@ -27,7 +27,7 @@ import tempfile
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import osutils, progress, ui
+from bzrlib import osutils, progress, ui, errors
 
 try:
     # this works with bzr 1.16+
@@ -47,6 +47,10 @@ from bzrlib.plugins.qbzr.lib.util import (
     StandardButton,
     ensure_unicode,
     )
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.plugins.qbzr.lib.trace import (
+   report_exception,
+   SUB_LOAD_METHOD)
 
 from bzrlib.ui.text import TextProgressView, TextUIFactory
 
@@ -151,23 +155,21 @@ class SubProcessWindowBase:
         """Check that self.args is not None and return True.
         Otherwise show error dialog to the user and return False.
         """
-        if self.args is not None:
-            return True
-        QtGui.QMessageBox.critical(self, gettext('Internal Error'),
-            gettext(
-                'Sorry, subprocess action "%s" cannot be started\n'
-                'because self.args is None.\n'
-                'Please, report bug at:\n'
-                'https://bugs.launchpad.net/qbzr/+filebug') % self._name,
-            gettext('&Close'))
-        return False
+        if self.args is None:
+            raise RuntimeError('Subprocess action "%s" cannot be started\n'
+                               'because self.args is None.' % self._name)
 
     def accept(self):
         if self.process_widget.finished:
             self.close()
         else:
-            if not self.validate():
+            try:
+                if not self.validate():
+                    return
+            except:
+                report_exception(type=SUB_LOAD_METHOD, window=self.window())
                 return
+            
             self.emit(QtCore.SIGNAL("subprocessStarted(bool)"), True)
             self.start()
     

@@ -74,6 +74,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     open_tree,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import QUIFactory
+from bzrlib.plugins.qbzr.lib.send import SendWindow
 ''')
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
@@ -842,7 +843,6 @@ class cmd_qviewer(QBzrCommand):
         window.show()
         app.exec_()
 
-
 class cmd_qversion(QBzrCommand):
     """Show version/system information."""
     takes_args = []
@@ -872,3 +872,20 @@ class cmd_qupdate(QBzrCommand):
         window = QBzrUpdateWindow(tree, ui_mode)
         window.show()
         application.exec_()
+
+class cmd_qsend(QBzrCommand):
+    """Dialog for creating and sending patches and bundles"""
+    
+    encoding_type = 'exact'
+
+    takes_args = ['submit_branch?', 'public_branch?']
+    
+    
+    def _qbzr_run(self, submit_branch=".", public_branch=None):
+        branch = Branch.open_containing(submit_branch)[0]
+        
+        app = QtGui.QApplication(sys.argv)
+        window = SendWindow(branch)
+        window.show()
+        app.exec_()
+
