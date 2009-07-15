@@ -52,9 +52,10 @@ MAX_AUTOCOMPLETE_FILES = 20
 
 class TextEdit(QtGui.QTextEdit):
 
-    def __init__(self, parent=None, main_window=None):
+    def __init__(self, spell_checker, parent=None, main_window=None):
         QtGui.QTextEdit.__init__(self, parent)
         self.completer = None
+        self.spell_checker = spell_checker
         self.eow = QtCore.QString("~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-=")
         self.main_window = main_window
 
@@ -120,6 +121,34 @@ class TextEdit(QtGui.QTextEdit):
         completer.setCaseSensitivity(QtCore.Qt.CaseSensitive)
         self.connect(completer, QtCore.SIGNAL("activated(QString)"),
                      self.insertCompletion)
+
+    def contextMenuEvent(self, event):
+        menu = self.createStandardContextMenu(event.globalPos())
+        
+        self.context_tc = self.cursorForPosition(event.pos())
+        self.context_tc.movePosition(QtGui.QTextCursor.StartOfWord)
+        self.context_tc.movePosition(QtGui.QTextCursor.EndOfWord,
+                                     QtGui.QTextCursor.KeepAnchor)
+        text = unicode(self.context_tc.selectedText())
+        if list(self.spell_checker.check(text)):
+            suggestions = self.spell_checker.suggest(text)
+            first_action = menu.actions()[0]
+            for suggestion in suggestions:
+                action = QtGui.QAction(suggestion, self)
+                self.connect(action, QtCore.SIGNAL("triggered(bool)"),
+                             self.suggestion_selected(suggestion))
+                menu.insertAction(first_action, action)
+            if suggestions:
+                menu.insertSeparator(first_action)
+        
+        menu.exec_(event.globalPos())
+        event.accept()
+    
+    def suggestion_selected(self, text):
+        def _suggestion_selected(b):
+            self.context_tc.insertText(text);
+        return _suggestion_selected
+
 
 class PendingMergesList(LogList):
     def __init__(self, processEvents, throbber, no_graph, parent=None):
@@ -269,16 +298,18 @@ class CommitWindow(SubProcessDialog):
         selectall_checkbox.setCheckState(QtCore.Qt.Checked)
         self.filelist.set_selectall_checkbox(selectall_checkbox)
 
+        language = get_global_config().get_user_option('spellcheck_language') or 'en'
+        spell_checker = SpellChecker(language)
+        
         # Equivalent for 'bzr commit --message'
-        self.message = TextEdit(message_groupbox, main_window=self)
+        self.message = TextEdit(spell_checker, message_groupbox, main_window=self)
         self.message.setToolTip(gettext("Enter the commit message"))
         self.completer = QtGui.QCompleter()
         self.message.setCompleter(self.completer)
         self.message.setAcceptRichText(False)
 
-        language = get_global_config().get_user_option('spellcheck_language') or 'en'
-        spell_checker = SpellChecker(language)
-        spell_highlighter = SpellCheckHighlighter(self.message.document(), spell_checker)
+        spell_highlighter = SpellCheckHighlighter(self.message.document(),
+                                                  spell_checker)
 
         self.restore_message()
         if message:

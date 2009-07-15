@@ -49,6 +49,7 @@ class EnchantSpellChecker(object):
 
     def __init__(self, language):
         try:
+            self.dict = enchant.Dict(language)
             self.checker = SpellChecker(language, filters=[EmailFilter, URLFilter, CamelCaseFilter])
         except enchant.DictNotFoundError:
             self.checker = None
@@ -59,6 +60,9 @@ class EnchantSpellChecker(object):
         self.checker.set_text(text)
         for err in self.checker:
             yield err.wordpos, len(err.word)
+    
+    def suggest(self, text):
+        return self.dict.suggest(text)
 
     @classmethod
     def list_languages(cls):
