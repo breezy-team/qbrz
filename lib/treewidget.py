@@ -68,10 +68,6 @@ class TreeModel(QtCore.QAbstractItemModel):
                      gettext("Status")]
     NAME, DATE, REVNO, MESSAGE, AUTHOR, STATUS = range(len(HEADER_LABELS))
 
-    REVID = QtCore.Qt.UserRole + 1
-    FILEID = QtCore.Qt.UserRole + 2
-    PATH = QtCore.Qt.UserRole + 3
-    
     def __init__(self, file_icon, dir_icon, symlink_icon, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
 
@@ -296,6 +292,10 @@ class TreeModel(QtCore.QAbstractItemModel):
     def hasChildren(self, parent):
         parent_id = parent.internalId()
         return parent_id in self.dir_children_ids
+    
+    REVID = QtCore.Qt.UserRole + 1
+    FILEID = QtCore.Qt.UserRole + 2
+    PATH = QtCore.Qt.UserRole + 3
     
     def data(self, index, role):
         if not index.isValid():
