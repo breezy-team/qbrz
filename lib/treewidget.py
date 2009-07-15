@@ -95,10 +95,12 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.inventory_data_by_path = {}
         self.inventory_data_by_id = {} # Will not contain unversioned items.
     
-    def set_tree(self, tree, branch):
+    def set_tree(self, tree, branch=None, 
+                 changes_mode=False, want_unversioned=True):
         self.tree = tree
         self.branch = branch
         self.revno_map = None
+        self.changes_mode = changes_mode
         
         self.changes = {}
         self.unver_by_parent = {}
@@ -110,7 +112,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             try:
                 root_id = self.tree.get_root_id()
                 for change in self.tree.iter_changes(self.tree.basis_tree(),
-                                                   want_unversioned=True):
+                                            want_unversioned=want_unversioned):
                     change = ChangeDesc(change)
                     path = change.path()
                     fileid = change.fileid() 
@@ -121,13 +123,47 @@ class TreeModel(QtCore.QAbstractItemModel):
                         is_ignored = self.tree.is_ignored(path)
                     change = ChangeDesc(change+(is_ignored,))
                     
-                    if fileid is not None:
+                    if fileid is not None and not changes_mode:
                         self.changes[change.fileid()] = change
                     else:
-                        (dir_path, slash, name) = path.rpartition('/')
-                        dir_fileid = self.tree.path2id(dir_path)
+                        if changes_mode:
+                            dir_path = path
+                            dir_fileid = None
+                            relpath = ""
+                            while dir_path:
+                                (dir_path, slash, name) = dir_path.rpartition('/')
+                                relpath = slash + name + relpath
+                                if dir_path in self.inventory_data_by_path:
+                                    dir_item = self.inventory_data_by_path[
+                                                                     dir_path]
+                                    dir_fileid = dir_item.item.file_id
+                                    break
+                            if dir_fileid is None:
+                                dir_fileid = root_id
+                                dir_path = ""
+                            
+                            name = relpath.lstrip("/")
+                            if change.is_renamed():
+                                oldpath = change.oldpath()
+                                if oldpath.startswith(dir_path):
+                                    oldpath = oldpath[len(dir_path):]
+                                else:
+                                    # The file was mv from a difirent path. 
+                                    oldpath = '/' + oldpath
+                                name = "%s => %s" % (oldpath, name)
+                        else:
+                            (dir_path, slash, name) = path.rpartition('/')
+                            dir_fileid = self.tree.path2id(dir_path)
                         
-                        item = UnversionedItem(name, change.kind())
+                        if change.is_versioned():
+                            if changes_mode:
+                                item = InternalItem(name, change.kind(),
+                                                    change.fileid())
+                            else:
+                                item = self.tree.inventory[change.fileid()]
+                        else:
+                            item = UnversionedItem(name, change.kind())
+                        
                         item_data = ModelItemData(item, change, path)
                         
                         if dir_fileid not in self.unver_by_parent:
@@ -170,7 +206,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 yield ModelItemData(child, change, path)
         
         if (not isinstance(item, InternalItem) and
-            item.children is not None):
+            item.children is not None and not self.changes_mode):
             #Because we create copies, we have to get the real item.
             item = self.tree.inventory[item.file_id]
             for child in item.children.itervalues():
@@ -252,8 +288,24 @@ class TreeModel(QtCore.QAbstractItemModel):
     def inventory_dirs_first_cmp(self, x, y):
         (x_name, x_kind) = x
         (y_name, y_kind) = y
+        x_a = x_name
+        y_a = y_name
         x_is_dir = x_kind =="directory"
         y_is_dir = y_kind =="directory"
+        while True:
+            x_b, sep, x_a_t = x_a.partition("/")
+            y_b, sep, y_a_t = y_a.partition("/")
+            if x_a_t == "" and y_a_t == "":
+                break
+            if (x_is_dir or not x_a_t == "") and not (y_is_dir or not y_a_t == ""):
+                return -1
+            if (y_is_dir or not y_a_t == "") and not (x_is_dir or not x_a_t == ""):
+                return 1
+            cmp_r = cmp(x_b, y_b)
+            if not cmp_r == 0:
+                return cmp_r
+            x_a = x_a_t
+            y_a = y_a_t
         if x_is_dir and not y_is_dir:
             return -1
         if y_is_dir and not x_is_dir:
@@ -638,13 +690,34 @@ class TreeWidget(RevisionTreeView):
                                     gettext("&Revert"),
                                     self.revert)
     
-    def set_tree(self, tree, branch):
+    def set_tree(self, tree, branch=None,
+                 changes_mode=False, want_unversioned=True):
+        """Causes a tree to be loaded, and displayed in the widget.
+
+        @param changes_mode: If in changes mode, a list of changes, and
+                             unversioned items, rather than a tree, is diplayed.
+                             e.g., when not in changes mode, one will get:
+                             
+                             dir1
+                                file1              changed
+                             file2                 changed
+                             
+                             but when in changes mode, one will get:
+                             
+                             dir1/file1             changed
+                             file2                  changed
+                             
+                             When in changes mode, no unchanged items are shown.
+        """
         self.tree = tree
         if isinstance(tree, RevisionTree) and branch is None:
             raise AttributeError("A branch must be provided if the tree is a "
                                  "RevisionTree")
         self.branch = branch
-        self.tree_model.set_tree(self.tree, self.branch)
+        self.changes_mode = changes_mode
+        self.want_unversioned = want_unversioned
+        self.tree_model.set_tree(self.tree, self.branch,
+                                 changes_mode, want_unversioned)
         self.tree_filter_model.invalidateFilter()
         
         if str(QtCore.QT_VERSION_STR).startswith("4.4"):
@@ -676,7 +749,6 @@ class TreeWidget(RevisionTreeView):
             header.hideSection(self.tree_model.STATUS)
             
             self.context_menu.setDefaultAction(self.action_show_file)
-            self.default_action = self.show_file_content
     
     def refresh(self):
         self.tree_model.set_tree(self.tree, self.branch)
