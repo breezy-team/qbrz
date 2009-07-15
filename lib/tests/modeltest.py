@@ -431,7 +431,8 @@ class ModelTest(QtCore.QObject):
 
                 # Check that we can get back our real parent
                 p = self.model.parent( index )
-                assert( self.model.parent( index ) == parent )
+                assert( p.internalId() == parent.internalId() )
+                assert( p.row() == parent.row() )
 
                 # recursively go down the children
                 if self.model.hasChildren(index) and depth < 10:
