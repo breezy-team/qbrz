@@ -1067,9 +1067,64 @@ class TreeWidget(RevisionTreeView):
             
             self.context_menu.setDefaultAction(self.action_show_file)
     
+    def iter_expanded_indexes(self):
+        parents_to_check = [QtCore.QModelIndex()]
+        while parents_to_check:
+            parent = parents_to_check.pop(0)
+            for row in xrange(self.tree_filter_model.rowCount(parent)):
+                child = self.tree_filter_model.index(row, 0, parent)
+                if self.isExpanded(child):
+                    parents_to_check.append(child)
+                    yield self.tree_filter_model.mapToSource(child)
+    
+    def set_expanded_indexes(self, indexes):
+        for index in indexes:
+            self.expand(self.tree_filter_model.mapFromSource(index))
+    
+    def get_state(self):
+        if self.tree_model.checkable:
+            checked = list(self.tree_model.iter_checked())
+        else:
+            checked = []
+        expanded = self.tree_model.indexes2refs(
+                                            self.iter_expanded_indexes())
+        selected = self.tree_model.indexes2refs(
+            self.get_selection_indexes())
+        return (checked, expanded, selected)
+    
+    def restore_state(self, state):
+        (checked, expanded, selected) = state
+        self.tree.lock_read()
+        try:
+            if self.tree_model.checkable:
+                self.tree_model.set_checked_items(checked,
+                                                  ignore_no_file_error=True)
+            self.set_expanded_indexes(
+                self.tree_model.refs2indexes(expanded,
+                                             ignore_no_file_error=True))
+            
+            for index in self.tree_model.refs2indexes(selected,
+                                                    ignore_no_file_error=True):
+                # XXX This does not work for sub items. I can't figure out why.
+                # GaryvdM - 14/07/2009
+                self.selectionModel().select(
+                    self.tree_filter_model.mapFromSource(index),
+                    QtGui.QItemSelectionModel.SelectCurrent |
+                    QtGui.QItemSelectionModel.Rows)
+        finally:
+            self.tree.unlock()
+
     def refresh(self):
-        self.tree_model.set_tree(self.tree, self.branch)
-        self.tree_filter_model.invalidateFilter()
+        self.tree.lock_read()
+        try:
+            state = self.get_state()
+            self.tree_model.set_tree(self.tree, self.branch,
+                                     self.changes_mode, self.want_unversioned)
+            self.restore_state(state)
+            self.tree_filter_model.invalidateFilter()
+
+        finally:
+            self.tree.unlock()
 
     def contextMenuEvent(self, event):
         self.filter_context_menu()
