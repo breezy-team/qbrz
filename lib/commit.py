@@ -32,11 +32,13 @@ from bzrlib.plugins.qbzr.lib.diff import (
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import (
+    BTN_REFRESH,
     file_extension,
     get_global_config,
     url_for_display,
     ThrobberWidget,
     runs_in_loading_queue,
+    StandardButton,
     )
 
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
@@ -353,7 +355,14 @@ class CommitWindow(SubProcessDialog):
             gettext("View changes in files selected to commit"))
         self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
                      self.show_diff_for_checked)
+
+        self.refresh_button = StandardButton(BTN_REFRESH)
+        self.connect(self.refresh_button,
+                     QtCore.SIGNAL("clicked()"),
+                     self.refresh)
+
         hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(self.refresh_button)
         hbox.addWidget(self.diffbuttons)
         hbox.addWidget(self.buttonbox)
         vbox.addLayout(hbox)
@@ -384,27 +393,38 @@ class CommitWindow(SubProcessDialog):
     @runs_in_loading_queue
     @ui_current_widget
     @reports_exception()
-    def load(self):
-        self.tree.lock_read()
+    def load(self, refresh=False):
+        if refresh:
+            self.throbber.show()
+        self.refresh_button.setDisabled(True)
         try:
-            if self.pending_merges_list:
-                self.pending_merges_list.load_branch(self.tree.branch,
-                                                     None,
-                                                     self.tree)
-                self.pending_merges_list.load()
+            self.tree.lock_read()
+            try:
+                if self.pending_merges_list:
+                    self.pending_merges_list.load_branch(self.tree.branch,
+                                                         None,
+                                                         self.tree)
+                    self.pending_merges_list.load()
+                    self.processEvents()
+                
+                self.filelist.tree_model.checkable = not self.pending_merges_list
+                if not refresh:
+                    fmodel = self.filelist.tree_filter_model
+                    fmodel.setFilter(fmodel.UNVERSIONED, False)
+                    self.filelist.set_tree(self.tree, changes_mode = True,
+                                initial_checked_paths = self.initial_selected_list)
+                else:
+                    self.filelist.refresh()
                 self.processEvents()
-            
-            self.filelist.tree_model.checkable = not self.pending_merges_list
-            fmodel = self.filelist.tree_filter_model
-            fmodel.setFilter(fmodel.UNVERSIONED, False)
-            self.filelist.set_tree(self.tree, changes_mode = True,
-                        initial_checked_paths = self.initial_selected_list)
-            self.processEvents()
-            self.update_compleater_words()
+                self.update_compleater_words()
+            finally:
+                self.tree.unlock()
         finally:
-            self.tree.unlock()
- 
-        self.throbber.hide()
+            self.throbber.hide()
+            self.refresh_button.setDisabled(False)
+
+    def refresh(self):
+        self.load(True)
 
     def on_filelist_data_changed(self, start_index, end_index):
         self.update_compleater_words()
