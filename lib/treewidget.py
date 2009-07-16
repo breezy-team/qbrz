@@ -62,13 +62,18 @@ class UnversionedItem(InternalItem):
         InternalItem.__init__(self, name, kind, None)
 
 class ModelItemData():
-    __slots__ = ["id", "item", "change", "children_ids",
+    __slots__ = ["id", "item", "change", "checked", "children_ids",
                  "parent_id", "row", "path"]
     
     def __init__(self, item, change, path):
         self.item = item
         self.change = change
         self.path = path
+        if change is not None and change.is_ignored() is None:
+            self.checked = QtCore.Qt.Checked
+        else:
+            self.checked = QtCore.Qt.Unchecked
+            
         self.children_ids = None
         self.parent_id = None
         self.id = None
@@ -103,9 +108,11 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.inventory_data = []
         self.inventory_data_by_path = {}
         self.inventory_data_by_id = {} # Will not contain unversioned items.
+        self.checkable = False
     
     def set_tree(self, tree, branch=None, 
-                 changes_mode=False, want_unversioned=True):
+                 changes_mode=False, want_unversioned=True,
+                 initial_selected_paths=None):
         self.tree = tree
         self.branch = branch
         self.revno_map = None
@@ -284,8 +291,13 @@ class TreeModel(QtCore.QAbstractItemModel):
         item_data.id = len(self.inventory_data)
         if parent_id is not None:
             parent_data = self.inventory_data[parent_id]
+            if self.is_item_in_select_all(item_data):
+                item_data.checked = parent_data.checked
+            else:
+                item_data.checked = False
             item_data.row = len(parent_data.children_ids)
         else:
+            item_data.checked = QtCore.Qt.Checked
             item_data.row = 0
         item_data.parent_id = parent_id
         self.inventory_data.append(item_data)
@@ -400,6 +412,76 @@ class TreeModel(QtCore.QAbstractItemModel):
         item_data = self.inventory_data[parent.internalId()]
         return item_data.item.kind == "directory"
     
+    is_item_in_select_all = lambda self, item: True
+    """Returns wether an item is changed when select all is clicked."""
+    
+    def setData(self, index, value, role):
+        
+        
+        def set_checked(item_data, checked):
+            old_checked = item_data.checked
+            item_data.checked = checked
+            if not old_checked == checked:
+                index = self.createIndex (item_data.row, self.NAME, item_data.id)
+                self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                          index,index)        
+            
+        if index.column() == self.NAME and role == QtCore.Qt.CheckStateRole:
+            value = value.toInt()[0]
+            if index.internalId() >= len(self.inventory_data):
+                return False
+            
+            item_data = self.inventory_data[index.internalId()]
+            set_checked(item_data, value)
+            
+            # Recursively set all children to checked.
+            if item_data.children_ids is not None:
+                children_ids = list(item_data.children_ids)
+                while children_ids:
+                    child = self.inventory_data[children_ids.pop(0)]
+                    
+                    # If unchecking, uncheck everything, but if checking,
+                    # only check those in "select_all" get checked.
+                    if (self.is_item_in_select_all(child) or
+                        value == QtCore.Qt.Unchecked):
+                        
+                        set_checked(child, value)
+                        if child.children_ids is not None:
+                            children_ids.extend(child.children_ids)
+            
+            # Walk up the tree, and update every dir
+            parent_data = item_data
+            while parent_data.parent_id is not None:
+                parent_data = self.inventory_data[parent_data.parent_id]
+                has_checked = False
+                has_unchecked = False
+                for child_id in parent_data.children_ids:
+                    child = self.inventory_data[child_id]
+                    
+                    if child.checked == QtCore.Qt.Checked:
+                        has_checked = True
+                    elif (child.checked == QtCore.Qt.Unchecked and
+                          self.is_item_in_select_all(child)):
+                        has_unchecked = True
+                    elif child.checked == QtCore.Qt.PartiallyChecked:
+                        has_checked = True
+                        if self.is_item_in_select_all(child):
+                            has_unchecked = True
+                    
+                    if has_checked and has_unchecked:
+                        break
+                
+                if has_checked and has_unchecked:
+                    set_checked(parent_data, QtCore.Qt.PartiallyChecked)
+                elif has_checked:
+                    set_checked(parent_data, QtCore.Qt.Checked)
+                else:
+                    set_checked(parent_data, QtCore.Qt.Unchecked)
+            
+            return True
+        
+        return False
+    
     REVID = QtCore.Qt.UserRole + 1
     FILEID = QtCore.Qt.UserRole + 2
     PATH = QtCore.Qt.UserRole + 3
@@ -433,6 +515,11 @@ class TreeModel(QtCore.QAbstractItemModel):
                 if item.kind == "symlink":
                     return QtCore.QVariant(self.symlink_icon)
                 return QtCore.QVariant()
+            if role ==  QtCore.Qt.CheckStateRole:
+                if not self.checkable:
+                    return QtCore.QVariant()
+                else:
+                    return QtCore.QVariant(item_data.checked)
         
         if column == self.STATUS:
             if role == QtCore.Qt.DisplayRole:
@@ -475,7 +562,13 @@ class TreeModel(QtCore.QAbstractItemModel):
         #if not index.isValid():
         #    return QtCore.Qt.ItemIsEnabled
 
-        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+        if self.checkable and index.column() == self.NAME:
+            return (QtCore.Qt.ItemIsEnabled |
+                    QtCore.Qt.ItemIsSelectable |
+                    QtCore.Qt.ItemIsUserCheckable)
+        else:
+            return (QtCore.Qt.ItemIsEnabled |
+                    QtCore.Qt.ItemIsSelectable)
 
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
@@ -558,6 +651,28 @@ class TreeModel(QtCore.QAbstractItemModel):
                 if not ignore_no_file_error:
                     raise
         return indexes
+    
+    def iter_checked(self):
+        return [self._item2ref(item_data)
+                for item_data in sorted(
+                    [item_data for item_data in self.inventory_data[1:]
+                     if item_data.checked == QtCore.Qt.Checked],
+                    self.inventory_dirs_first_cmp,
+                    lambda x: (x.change.path(), x.item.kind))]
+
+    def set_checked_items(self, refs, ignore_no_file_error=False):
+        # set every thing off
+        root_index = self._index_from_id(0, self.NAME)
+        self.setData(root_index, QtCore.QVariant(QtCore.Qt.Unchecked),
+                     QtCore.Qt.CheckStateRole)
+        
+        for index in self.refs2indexes(refs, ignore_no_file_error):
+            self.setData(index, QtCore.QVariant(QtCore.Qt.Checked),
+                         QtCore.Qt.CheckStateRole)
+
+    def set_checked_paths(self, paths):
+        return self.set_checked_items([PersistantItemReference(None, path)
+                                       for path in paths])
 
 class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     source_model = None
@@ -599,6 +714,9 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         if len(children_ids)<=source_row:
             return False
         id = children_ids[source_row]
+        if (model.checkable and
+            not model.inventory_data[id].checked == QtCore.Qt.Unchecked):
+            return True
         return self.filter_id_cached(id)
     
     def filter_id_cached(self, id):
@@ -763,7 +881,8 @@ class TreeWidget(RevisionTreeView):
                                     self.revert)
     
     def set_tree(self, tree, branch=None,
-                 changes_mode=False, want_unversioned=True):
+                 changes_mode=False, want_unversioned=True,
+                 initial_checked_paths=None):
         """Causes a tree to be loaded, and displayed in the widget.
 
         @param changes_mode: If in changes mode, a list of changes, and
@@ -790,6 +909,12 @@ class TreeWidget(RevisionTreeView):
         self.want_unversioned = want_unversioned
         self.tree_model.set_tree(self.tree, self.branch,
                                  changes_mode, want_unversioned)
+        if initial_checked_paths is not None and not self.tree_model.checkable:
+            raise AttributeError("You can't have a initial_selection if "
+                                 "tree_model.checkable is not True.")
+        if initial_checked_paths is not None:
+            self.tree_model.set_checked_paths(initial_checked_paths)
+        
         self.tree_filter_model.invalidateFilter()
         
         if str(QtCore.QT_VERSION_STR).startswith("4.4"):
@@ -1029,4 +1154,39 @@ class TreeWidget(RevisionTreeView):
         res = revert_dialog.exec_()
         if res == QtGui.QDialog.Accepted:
             self.refresh()
- 
+
+class SelectAllCheckBox(QtGui.QCheckBox):
+    
+    def __init__(self, tree_widget, parent=None):
+        QtGui.QCheckBox.__init__(self, gettext("Select / deselect all"), parent)
+        
+        self.tree_widget = tree_widget
+        #self.setTristate(True)
+        
+        self.connect(tree_widget.tree_model,
+                     QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                     self.on_data_changed)
+        
+        self.connect(self, QtCore.SIGNAL("clicked(bool)"),
+                     self.clicked)
+    
+    def on_data_changed(self, start_index, end_index):
+        self.update_state()
+    
+    def update_state(self):
+        model = self.tree_widget.tree_model
+        root_index = model._index_from_id(0, model.NAME)
+        
+        state = model.data(root_index, QtCore.Qt.CheckStateRole)
+        self.setCheckState(state.toInt()[0])
+    
+    def clicked(self, state):
+        model = self.tree_widget.tree_model
+        root_index = model._index_from_id(0, model.NAME)
+        if state:
+            state = QtCore.QVariant(QtCore.Qt.Checked)
+        else:
+            state = QtCore.QVariant(QtCore.Qt.Unchecked)
+        
+        model.setData(root_index, QtCore.QVariant(state),
+                      QtCore.Qt.CheckStateRole)
