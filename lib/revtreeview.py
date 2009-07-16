@@ -102,6 +102,8 @@ class RevisionTreeView(QtGui.QTreeView):
                 break
         
         revids = list(revids)
+        if len(revids) == 0:
+            return
         
         self.load_revisions_call_count += 1
         current_call_count = self.load_revisions_call_count

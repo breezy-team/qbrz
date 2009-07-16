@@ -28,11 +28,16 @@ from bzrlib.plugins.qbzr.lib.diff import (
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.wtlist import (
-    ChangeDesc,
-    WorkingTreeFileList,
-    closure_in_selected_list,
+from bzrlib.plugins.qbzr.lib.treewidget import (
+    TreeWidget,
+    SelectAllCheckBox,
     )
+from bzrlib.plugins.qbzr.lib.util import (
+    ThrobberWidget,
+    runs_in_loading_queue,
+    )
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.plugins.qbzr.lib.trace import reports_exception
 
 
 class RevertWindow(SubProcessDialog):
@@ -51,26 +56,27 @@ class RevertWindow(SubProcessDialog):
                                   parent = parent,
                                   hide_progress=True)
         
+        self.throbber = ThrobberWidget(self) 
+
         # Display the list of changed files
         groupbox = QtGui.QGroupBox(gettext("Changes"), self)
 
-        self.filelist = WorkingTreeFileList(groupbox, self.tree)
-
-        self.tree.lock_read()
-        try:
-            self.filelist.fill(self.iter_changes_and_state())
-        finally:
-            self.tree.unlock()
-
-        self.filelist.setup_actions()
+        self.filelist = TreeWidget(groupbox)
+        self.filelist.throbber = self.throbber 
+        self.filelist.tree_model.is_item_in_select_all = lambda item: ( 
+            item.change is not None and item.change.is_versioned())
+        self.filelist.setRootIsDecorated(False)
+        def filter_context_menu():
+            TreeWidget.filter_context_menu(self.filelist)
+            self.filelist.action_add.setVisible(False)
+            self.filelist.action_revert.setVisible(False)
+        self.filelist.filter_context_menu = filter_context_menu
 
         vbox = QtGui.QVBoxLayout(groupbox)
         vbox.addWidget(self.filelist)
-        selectall_checkbox = QtGui.QCheckBox(
-            gettext(self.filelist.SELECTALL_MESSAGE))
+        selectall_checkbox = SelectAllCheckBox(self.filelist, groupbox)
         selectall_checkbox.setCheckState(QtCore.Qt.Checked)
         selectall_checkbox.setEnabled(True)
-        self.filelist.set_selectall_checkbox(selectall_checkbox)
         vbox.addWidget(selectall_checkbox)
 
         self.no_backup_checkbox = QtGui.QCheckBox(
@@ -79,8 +85,6 @@ class RevertWindow(SubProcessDialog):
             self.no_backup_checkbox.setCheckState(QtCore.Qt.Checked)
         self.no_backup_checkbox.setEnabled(True)
         vbox.addWidget(self.no_backup_checkbox)
-
-        self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
 
         # groupbox gets disabled as we are executing.
         QtCore.QObject.connect(self,
@@ -95,6 +99,7 @@ class RevertWindow(SubProcessDialog):
         self.restoreSplitterSizes([150, 150])
 
         layout = QtGui.QVBoxLayout(self)
+        layout.addWidget(self.throbber)
         layout.addWidget(self.splitter)
 
         # Diff button to view changes in files selected to revert
@@ -107,27 +112,32 @@ class RevertWindow(SubProcessDialog):
         hbox.addWidget(self.diffbuttons)
         hbox.addWidget(self.buttonbox)
         layout.addLayout(hbox)
+        self.throbber.show()
 
-    def iter_changes_and_state(self):
-        """An iterator for the WorkingTreeFileList widget"""
 
-        in_selected_list = closure_in_selected_list(self.initial_selected_list)
-
-        for desc in self.tree.iter_changes(self.tree.basis_tree()):
-            desc = ChangeDesc(desc)
-            if desc.is_tree_root():
-                continue
-            path = desc.path()
-            check_state = in_selected_list(path)
-            yield desc, True, check_state
+    def show(self): 
+        SubProcessDialog.show(self) 
+        QtCore.QTimer.singleShot(1, self.initial_load) 
+ 
+    @runs_in_loading_queue 
+    @ui_current_widget 
+    @reports_exception() 
+    def initial_load(self): 
+        self.filelist.tree_model.checkable = True 
+        fmodel = self.filelist.tree_filter_model 
+        #fmodel.setFilter(fmodel.UNVERSIONED, False) 
+        self.filelist.set_tree(self.tree, changes_mode=True,
+                               want_unversioned=False,
+                               initial_checked_paths=self.initial_selected_list) 
+        self.throbber.hide()
 
     def start(self):
         """Revert the files."""
         args = ["revert"]
         if self.no_backup_checkbox.checkState():
             args.append("--no-backup")
-        for desc in self.filelist.iter_checked():
-            args.append(desc.path())
+        args.extend([ref.path
+                     for ref in self.filelist.tree_model.iter_checked()])
         self.process_widget.start(self.tree.basedir, *args)
 
     def saveSize(self):
@@ -141,10 +151,7 @@ class RevertWindow(SubProcessDialog):
         @param  dialog_action:  purpose of parent window (main action)
         """
         # XXX make this function universal for both qcommit and qrevert (?)
-        checked = []
-        for desc in self.filelist.iter_checked():
-            path = desc.path()
-            checked.append(path)
+        checked = [ref.path for ref in self.filelist.iter_checked()]
 
         if checked:
             arg_provider = InternalWTDiffArgProvider(

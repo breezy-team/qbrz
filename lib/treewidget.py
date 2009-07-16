@@ -20,7 +20,9 @@
 import os
 from time import (strftime, localtime)
 from PyQt4 import QtCore, QtGui
+from bzrlib import errors
 from bzrlib.workingtree import WorkingTree
+from bzrlib.revisiontree import RevisionTree
 
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
@@ -47,16 +49,164 @@ from bzrlib.plugins.qbzr.lib.diff import (
     )
 
 
-
-class UnversionedItem():
-    __slots__  = ["name", "path", "kind"]
-    def __init__(self, name, path, kind):
+class InternalItem():
+    __slots__  = ["name", "kind", "file_id"]
+    def __init__(self, name, kind, file_id):
         self.name = name
-        self.path = path
         self.kind = kind
+        self.file_id = file_id
     
     revision = property(lambda self:None)
-    file_id = property(lambda self:None)
+
+class UnversionedItem(InternalItem):
+    def __init__(self, name, kind):
+        InternalItem.__init__(self, name, kind, None)
+
+class ModelItemData():
+    __slots__ = ["id", "item", "change", "checked", "children_ids",
+                 "parent_id", "row", "path"]
+    
+    def __init__(self, item, change, path):
+        self.item = item
+        self.change = change
+        self.path = path
+        if change is not None and change.is_ignored() is None:
+            self.checked = QtCore.Qt.Checked
+        else:
+            self.checked = QtCore.Qt.Unchecked
+            
+        self.children_ids = None
+        self.parent_id = None
+        self.id = None
+        self.row = None
+
+class PersistantItemReference(object):
+    """This is use to stores a reference to a item that is persisted when we
+    refresh the model."""
+    __slots__ = ["file_id", "path"]
+    
+    def __init__(self, file_id, path):
+        self.file_id = file_id
+        self.path = path
+
+class ChangeDesc(tuple):
+    """Helper class that "knows" about internals of iter_changes' changed entry
+    description tuple, and provides additional helper methods.
+
+    iter_changes return tuple with info about changed entry:
+    [0]: file_id         -> ascii string
+    [1]: paths           -> 2-tuple (old, new) fullpaths unicode/None
+    [2]: changed_content -> bool
+    [3]: versioned       -> 2-tuple (bool, bool)
+    [4]: parent          -> 2-tuple
+    [5]: name            -> 2-tuple (old_name, new_name) utf-8?/None
+    [6]: kind            -> 2-tuple (string/None, string/None)
+    [7]: executable      -> 2-tuple (bool/None, bool/None)
+    
+    --optional--
+    [8]: is_ignored      -> If the file is ignored, pattern which caused it to
+                            be ignored, otherwise None.
+    
+    NOTE: None value used for non-existing entry in corresponding
+          tree, e.g. for added/deleted/ignored/unversioned
+    """
+    
+    # XXX We should may be try get this into bzrlib.
+    # XXX We should use this in qdiff.
+    
+    def fileid(desc):
+        return desc[0]
+
+    def path(desc):
+        """Return a suitable entry for a 'specific_files' param to bzr functions."""
+        oldpath, newpath = desc[1]
+        return newpath or oldpath
+
+    def oldpath(desc):
+        """Return oldpath for renames."""
+        return desc[1][0]
+
+    def kind(desc):
+        oldkind, newkind = desc[6]
+        return newkind or oldkind        
+
+    def is_versioned(desc):
+        return desc[3] != (False, False)
+
+    def is_modified(desc):
+        return (desc[3] != (False, False) and desc[2])
+
+    def is_renamed(desc):
+        return (desc[3] == (True, True)
+                and (desc[4][0], desc[5][0]) != (desc[4][1], desc[5][1]))
+
+    def is_tree_root(desc):
+        """Check if entry actually tree root."""
+        if desc[3] != (False, False) and desc[4] == (None, None):
+            # TREE_ROOT has not parents (desc[4]).
+            # But because we could want to see unversioned files
+            # we need to check for versioned flag (desc[3])
+            return True
+        return False
+
+    def is_missing(desc):
+        """Check if file was present in previous revision but now it's gone
+        (i.e. deleted manually, without invoking `bzr remove` command)
+        """
+        return (desc[3] == (True, True) and desc[6][1] is None)
+
+    def is_misadded(desc):
+        """Check if file was added to the working tree but then gone
+        (i.e. deleted manually, without invoking `bzr remove` command)
+        """
+        return (desc[3] == (False, True) and desc[6][1] is None)
+    
+    def is_ignored(desc):
+        if len(desc) >= 8: 
+            return desc[8]
+        else:
+            return None
+    
+    def status(desc):
+        if len(desc) == 8:
+            (file_id, (path_in_source, path_in_target),
+             changed_content, versioned, parent, name, kind,
+             executable) = desc
+            is_ignored = None
+        elif len(desc) == 9:
+            (file_id, (path_in_source, path_in_target),
+             changed_content, versioned, parent, name, kind,
+             executable, is_ignored) = desc
+        else:
+            raise RuntimeError, "Unkown number of items to unpack."
+            
+        if versioned == (False, False):
+            if is_ignored:
+                return gettext("ignored")
+            else:
+                return gettext("non-versioned")
+        elif versioned == (False, True):
+            return gettext("added")
+        elif versioned == (True, False):
+            return gettext("removed")
+        elif kind[0] is not None and kind[1] is None:
+            return gettext("missing")
+        else:
+            # versioned = True, True - so either renamed or modified
+            # or properties changed (x-bit).
+            renamed = (parent[0], name[0]) != (parent[1], name[1])
+            if renamed:
+                if changed_content:
+                    return gettext("renamed and modified")
+                else:
+                    return gettext("renamed")
+            elif changed_content:
+                return gettext("modified")
+            elif executable[0] != executable[1]:
+                return gettext("modified (x-bit)")
+            else:
+                raise RuntimeError, "what status am I missing??"
+
 
 class TreeModel(QtCore.QAbstractItemModel):
     
@@ -68,10 +218,6 @@ class TreeModel(QtCore.QAbstractItemModel):
                      gettext("Status")]
     NAME, DATE, REVNO, MESSAGE, AUTHOR, STATUS = range(len(HEADER_LABELS))
 
-    REVID = QtCore.Qt.UserRole + 1
-    FILEID = QtCore.Qt.UserRole + 2
-    PATH = QtCore.Qt.UserRole + 3
-    
     def __init__(self, file_icon, dir_icon, symlink_icon, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
 
@@ -79,25 +225,33 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.dir_icon = dir_icon
         self.symlink_icon = symlink_icon
         self.tree = None
-        self.inventory_items = []
-        self.dir_children_ids = {}
-        self.parent_ids = []
+        self.inventory_data = []
+        self.inventory_data_by_path = {}
+        self.inventory_data_by_id = {} # Will not contain unversioned items.
+        self.checkable = False
     
-    def set_tree(self, tree, branch):
+    def set_tree(self, tree, branch=None, 
+                 changes_mode=False, want_unversioned=True,
+                 initial_selected_paths=None):
         self.tree = tree
         self.branch = branch
         self.revno_map = None
+        self.changes_mode = changes_mode
         
         self.changes = {}
         self.unver_by_parent = {}
-
+        self.inventory_data_by_path = {}
+        self.inventory_data_by_id = {}
+        
         if isinstance(self.tree, WorkingTree):
             tree.lock_read()
             try:
+                root_id = self.tree.get_root_id()
                 for change in self.tree.iter_changes(self.tree.basis_tree(),
-                                                   want_unversioned=True):
+                                            want_unversioned=want_unversioned):
                     change = ChangeDesc(change)
                     path = change.path()
+                    fileid = change.fileid() 
                     if not path:
                         # e.g. the tree root on a blank branch.
                         is_ignored = False
@@ -105,17 +259,53 @@ class TreeModel(QtCore.QAbstractItemModel):
                         is_ignored = self.tree.is_ignored(path)
                     change = ChangeDesc(change+(is_ignored,))
                     
-                    if change.fileid() is not None:
+                    if fileid is not None and not changes_mode:
                         self.changes[change.fileid()] = change
                     else:
-                        (dir_path, slash, name) = path.rpartition('/')
-                        dir_fileid = self.tree.path2id(dir_path)
+                        if changes_mode:
+                            dir_path = path
+                            dir_fileid = None
+                            relpath = ""
+                            while dir_path:
+                                (dir_path, slash, name) = dir_path.rpartition('/')
+                                relpath = slash + name + relpath
+                                if dir_path in self.inventory_data_by_path:
+                                    dir_item = self.inventory_data_by_path[
+                                                                     dir_path]
+                                    dir_fileid = dir_item.item.file_id
+                                    break
+                            if dir_fileid is None:
+                                dir_fileid = root_id
+                                dir_path = ""
+                            
+                            name = relpath.lstrip("/")
+                            if change.is_renamed():
+                                oldpath = change.oldpath()
+                                if oldpath.startswith(dir_path):
+                                    oldpath = oldpath[len(dir_path):]
+                                else:
+                                    # The file was mv from a difirent path. 
+                                    oldpath = '/' + oldpath
+                                name = "%s => %s" % (oldpath, name)
+                        else:
+                            (dir_path, slash, name) = path.rpartition('/')
+                            dir_fileid = self.tree.path2id(dir_path)
+                        
+                        if change.is_versioned():
+                            if changes_mode:
+                                item = InternalItem(name, change.kind(),
+                                                    change.fileid())
+                            else:
+                                item = self.tree.inventory[change.fileid()]
+                        else:
+                            item = UnversionedItem(name, change.kind())
+                        
+                        item_data = ModelItemData(item, change, path)
                         
                         if dir_fileid not in self.unver_by_parent:
                             self.unver_by_parent[dir_fileid] = []
-                        self.unver_by_parent[dir_fileid].append((
-                                        UnversionedItem(name, path, change.kind()),
-                                        change))
+                        self.unver_by_parent[dir_fileid].append(item_data)
+                        self.inventory_data_by_path[path] = item_data
                 
                 self.process_inventory(self.working_tree_get_children)
             finally:
@@ -123,20 +313,22 @@ class TreeModel(QtCore.QAbstractItemModel):
         else:
             self.process_inventory(self.revision_tree_get_children)
     
-    def revision_tree_get_children(self, item):
-        for child in item.children.itervalues():
-            yield (child, None)
+    def revision_tree_get_children(self, item_data):
+        for child in item_data.item.children.itervalues():
+            path = self.tree.id2path(child.file_id)
+            yield ModelItemData(child, None, path)
     
-    def working_tree_get_children(self, item):
+    def working_tree_get_children(self, item_data):
+        item = item_data.item
         if isinstance(item, UnversionedItem):
-            abspath = self.tree.abspath(item.path)
+            abspath = self.tree.abspath(item_data.path)
             
             for name in os.listdir(abspath):
-                path = item.path+"/"+name
+                path = item_data.path+"/"+name
                 (kind,
                  executable,
                  stat_value) = self.tree._comparison_data(None, path)
-                child = UnversionedItem(name, path, kind)
+                child = UnversionedItem(name, kind)
                 is_ignored = self.tree.is_ignored(path)
                 change = ChangeDesc((None,
                                      (None, path),
@@ -147,9 +339,10 @@ class TreeModel(QtCore.QAbstractItemModel):
                                      (None, kind),
                                      (None, executable),
                                      is_ignored))
-                yield (child, change)
+                yield ModelItemData(child, change, path)
         
-        elif item.children is not None:
+        if (not isinstance(item, InternalItem) and
+            item.children is not None and not self.changes_mode):
             #Because we create copies, we have to get the real item.
             item = self.tree.inventory[item.file_id]
             for child in item.children.itervalues():
@@ -159,35 +352,36 @@ class TreeModel(QtCore.QAbstractItemModel):
                     change = self.changes[child.file_id]
                 else:
                     change = None
-                yield (child, change)
+                path = self.tree.id2path(child.file_id)
+                yield ModelItemData(child, change, path)
         if item.file_id in self.unver_by_parent:
-            for (child, change) in self.unver_by_parent[item.file_id]:
-                yield (child, change)
+            for item_data in self.unver_by_parent[item.file_id]:
+                yield item_data
     
     def load_dir(self, dir_id):
+        if dir_id>=len(self.inventory_data):
+            return
+        dir_item = self.inventory_data[dir_id]
+        if dir_item.children_ids is not None:
+            return 
+        
         if isinstance(self.tree, WorkingTree):
             self.tree.lock_read()
         try:
-            if dir_id>=len(self.inventory_items):
-                return
-            dir_item, dir_change = self.inventory_items[dir_id]
-            dir_children_ids = []
+            dir_item.children_ids = []
             children = sorted(self.get_children(dir_item),
                               self.inventory_dirs_first_cmp,
-                              lambda x: x[0])
+                              lambda x: (x.item.name, x.item.kind))
             
             parent_model_index = self._index_from_id(dir_id, 0)
             self.beginInsertRows(parent_model_index, 0, len(children)-1)
             try:
-                for (child, change) in children:
-                    child_id = self.append_item(child, change, dir_id)
-                    dir_children_ids.append(child_id)
-                    if child.kind == "directory":
-                        self.dir_children_ids[child_id] = None
+                for child in children:
+                    child_id = self.append_item(child, dir_id)
+                    dir_item.children_ids.append(child_id)
                     
-                    if len(dir_children_ids) % 100 == 0:
+                    if len(dir_item.children_ids) % 100 == 0:
                         QtCore.QCoreApplication.processEvents()
-                self.dir_children_ids[dir_id] = dir_children_ids
             finally:
                 self.endInsertRows();
         finally:
@@ -198,37 +392,71 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.get_children = get_children
         
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
-        self.inventory_items = []
-        self.dir_children_ids = {}
-        self.parent_ids = []
-        self.emit(QtCore.SIGNAL("layoutChanged()"))
+        
+        is_refresh = len(self.inventory_data)>0
+        if is_refresh:
+            self.beginRemoveRows(QtCore.QModelIndex(), 0,
+                                 len(self.inventory_data[0].children_ids)-1)
+        self.inventory_data = []
+        if is_refresh:
+            self.endRemoveRows()
             
-        root_item = self.tree.inventory[self.tree.get_root_id()]
-        root_id = self.append_item(root_item, None, None)
-        self.dir_children_ids[root_id] = None
+        root_item = ModelItemData(self.tree.inventory[self.tree.get_root_id()],
+                                  None, '')
+        root_id = self.append_item(root_item, None)
         self.load_dir(root_id)
+        self.emit(QtCore.SIGNAL("layoutChanged()"))
     
-    def append_item(self, item, change, parent_id):
-        id = len(self.inventory_items)
-        self.inventory_items.append((item, change))
-        self.parent_ids.append(parent_id)
-        return id
+    def append_item(self, item_data, parent_id):
+        item_data.id = len(self.inventory_data)
+        if parent_id is not None:
+            parent_data = self.inventory_data[parent_id]
+            if self.is_item_in_select_all(item_data):
+                item_data.checked = parent_data.checked
+            else:
+                item_data.checked = False
+            item_data.row = len(parent_data.children_ids)
+        else:
+            item_data.checked = QtCore.Qt.Checked
+            item_data.row = 0
+        item_data.parent_id = parent_id
+        self.inventory_data.append(item_data)
+        self.inventory_data_by_path[item_data.path] = item_data
+        if not isinstance(item_data.item, UnversionedItem):
+            self.inventory_data_by_id[item_data.item.file_id] = item_data
+        return item_data.id
     
     def inventory_dirs_first_cmp(self, x, y):
-        x_is_dir = x.kind =="directory"
-        y_is_dir = y.kind =="directory"
+        (x_name, x_kind) = x
+        (y_name, y_kind) = y
+        x_a = x_name
+        y_a = y_name
+        x_is_dir = x_kind =="directory"
+        y_is_dir = y_kind =="directory"
+        while True:
+            x_b, sep, x_a_t = x_a.partition("/")
+            y_b, sep, y_a_t = y_a.partition("/")
+            if x_a_t == "" and y_a_t == "":
+                break
+            if (x_is_dir or not x_a_t == "") and not (y_is_dir or not y_a_t == ""):
+                return -1
+            if (y_is_dir or not y_a_t == "") and not (x_is_dir or not x_a_t == ""):
+                return 1
+            cmp_r = cmp(x_b, y_b)
+            if not cmp_r == 0:
+                return cmp_r
+            x_a = x_a_t
+            y_a = y_a_t
         if x_is_dir and not y_is_dir:
             return -1
         if y_is_dir and not x_is_dir:
             return 1
-        return cmp(x.name, y.name)
+        return cmp(x_name, y_name)
     
     def set_revno_map(self, revno_map):
         self.revno_map = revno_map
-        for id in xrange(1, len(self.inventory_items)):
-            parent_id = self.parent_ids[id]
-            row = self.dir_children_ids[parent_id].index(id)
-            index = self.createIndex (row, self.REVNO, id)
+        for item_data in self.inventory_data[1:0]:
+            index = self.createIndex (item_data.row, self.REVNO, item_data.id)
             self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                       index,index)        
     
@@ -236,77 +464,159 @@ class TreeModel(QtCore.QAbstractItemModel):
          return len(self.HEADER_LABELS)
 
     def rowCount(self, parent):
-        parent_id = parent.internalId()
-        if parent_id not in self.dir_children_ids:
+        if parent.internalId()>=len(self.inventory_data):
             return 0
-        dir_children_ids = self.dir_children_ids[parent_id]
-        if dir_children_ids is None:
+        parent_data = self.inventory_data[parent.internalId()]
+        if parent_data.children_ids is None:
             return 0
-        return len(dir_children_ids)
+        return len(parent_data.children_ids)
     
     def canFetchMore(self, parent):
-        parent_id = parent.internalId()
-        return parent_id in self.dir_children_ids \
-               and self.dir_children_ids[parent_id] is None
+        if parent.internalId()>=len(self.inventory_data):
+            return False
+        parent_data = self.inventory_data[parent.internalId()]
+        return (parent_data.children_ids is None and
+                parent_data.item.kind == "directory")
     
     def fetchMore(self, parent):
         self.load_dir(parent.internalId())
 
     def _index(self, row, column, parent_id):
-        if parent_id not in self.dir_children_ids:
+        if parent_id>=len(self.inventory_data):
             return QtCore.QModelIndex()
-        dir_children_ids = self.dir_children_ids[parent_id]
-        if dir_children_ids is None:
+        
+        parent_data = self.inventory_data[parent_id]
+        if parent_data.children_ids is None:
             return QtCore.QModelIndex()
-        if row >= len(dir_children_ids):
+        
+        if (row < 0 or
+            row >= len(parent_data.children_ids) or
+            column < 0 or
+            column >= len(self.HEADER_LABELS)):
             return QtCore.QModelIndex()
-        item_id = dir_children_ids[row]
+        item_id = parent_data.children_ids[row]
         return self.createIndex(row, column, item_id)
     
     def _index_from_id(self, item_id, column):
-        parent_id = self.parent_ids[item_id]
-        if parent_id is None:
+        if item_id >= len(self.inventory_data):
             return QtCore.QModelIndex()
-        row = self.dir_children_ids[parent_id].index(item_id)
-        return self.createIndex(row, column, item_id)    
+        
+        item_data = self.inventory_data[item_id]
+        return self.createIndex(item_data.row, column, item_id) 
     
     def index(self, row, column, parent = QtCore.QModelIndex()):
-        parent_id = parent.internalId()
-        return self._index(row, column, parent_id)
+        return self._index(row, column, parent.internalId())
     
     def sibling(self, row, column, index):
         sibling_id = index.internalId()
         if sibling_id == 0:
             return QtCore.QModelIndex()
-        parent_id = self.parent_ids[sibling_id]
-        return self._index(row, column, parent_id)
+        item_data = self.inventory_data[sibling_id]
+        return self._index(row, column, item_data.parent_id)
     
     def parent(self, child):
         child_id = child.internalId()
         if child_id == 0:
             return QtCore.QModelIndex()
-        if child_id not in self.parent_ids:
-            return QtCore.QModelIndex()
-        item_id = self.parent_ids[child_id]
-        if item_id == 0 :
+        item_data = self.inventory_data[child_id]
+        if item_data.parent_id == 0 :
             return QtCore.QModelIndex()
         
-        return self._index_from_id(item_id, 0)
+        return self._index_from_id(item_data.parent_id, 0)
 
     def hasChildren(self, parent):
-        parent_id = parent.internalId()
-        return parent_id in self.dir_children_ids
+        if self.tree is None:
+            return False
+        if parent.internalId() == 0:
+            return True
+        item_data = self.inventory_data[parent.internalId()]
+        return item_data.item.kind == "directory"
+    
+    is_item_in_select_all = lambda self, item: True
+    """Returns wether an item is changed when select all is clicked."""
+    
+    def setData(self, index, value, role):
+        
+        
+        def set_checked(item_data, checked):
+            old_checked = item_data.checked
+            item_data.checked = checked
+            if not old_checked == checked:
+                index = self.createIndex (item_data.row, self.NAME, item_data.id)
+                self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                          index,index)        
+            
+        if index.column() == self.NAME and role == QtCore.Qt.CheckStateRole:
+            value = value.toInt()[0]
+            if index.internalId() >= len(self.inventory_data):
+                return False
+            
+            item_data = self.inventory_data[index.internalId()]
+            set_checked(item_data, value)
+            
+            # Recursively set all children to checked.
+            if item_data.children_ids is not None:
+                children_ids = list(item_data.children_ids)
+                while children_ids:
+                    child = self.inventory_data[children_ids.pop(0)]
+                    
+                    # If unchecking, uncheck everything, but if checking,
+                    # only check those in "select_all" get checked.
+                    if (self.is_item_in_select_all(child) or
+                        value == QtCore.Qt.Unchecked):
+                        
+                        set_checked(child, value)
+                        if child.children_ids is not None:
+                            children_ids.extend(child.children_ids)
+            
+            # Walk up the tree, and update every dir
+            parent_data = item_data
+            while parent_data.parent_id is not None:
+                parent_data = self.inventory_data[parent_data.parent_id]
+                has_checked = False
+                has_unchecked = False
+                for child_id in parent_data.children_ids:
+                    child = self.inventory_data[child_id]
+                    
+                    if child.checked == QtCore.Qt.Checked:
+                        has_checked = True
+                    elif (child.checked == QtCore.Qt.Unchecked and
+                          self.is_item_in_select_all(child)):
+                        has_unchecked = True
+                    elif child.checked == QtCore.Qt.PartiallyChecked:
+                        has_checked = True
+                        if self.is_item_in_select_all(child):
+                            has_unchecked = True
+                    
+                    if has_checked and has_unchecked:
+                        break
+                
+                if has_checked and has_unchecked:
+                    set_checked(parent_data, QtCore.Qt.PartiallyChecked)
+                elif has_checked:
+                    set_checked(parent_data, QtCore.Qt.Checked)
+                else:
+                    set_checked(parent_data, QtCore.Qt.Unchecked)
+            
+            return True
+        
+        return False
+    
+    REVID = QtCore.Qt.UserRole + 1
+    FILEID = QtCore.Qt.UserRole + 2
+    PATH = QtCore.Qt.UserRole + 3
     
     def data(self, index, role):
         if not index.isValid():
             return QtCore.QVariant()
         
-        (item, change) = self.inventory_items[index.internalId()]
+        item_data = self.inventory_data[index.internalId()]
+        item = item_data.item
         
         if role == self.FILEID:
             return QtCore.QVariant(item.file_id)
         
-        revid = item.revision
+        revid = item_data.item.revision
         if role == self.REVID:
             if revid is None:
                 return QtCore.QVariant()
@@ -325,13 +635,18 @@ class TreeModel(QtCore.QAbstractItemModel):
                 if item.kind == "symlink":
                     return QtCore.QVariant(self.symlink_icon)
                 return QtCore.QVariant()
+            if role ==  QtCore.Qt.CheckStateRole:
+                if not self.checkable:
+                    return QtCore.QVariant()
+                else:
+                    return QtCore.QVariant(item_data.checked)
         
         if column == self.STATUS:
             if role == QtCore.Qt.DisplayRole:
-                if change is not None:
-                    return QtCore.QVariant(change.status())
+                if item_data.change is not None:
+                    return QtCore.QVariant(item_data.change.status())
                 else:
-                    return QtCore.QVariant()
+                    return QtCore.QVariant("")
         
         if column == self.REVNO:
             if role == QtCore.Qt.DisplayRole:
@@ -340,7 +655,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                     return QtCore.QVariant(
                         ".".join(["%d" % (revno) for revno in revno_sequence]))
                 else:
-                    return QtCore.QVariant()
+                    return QtCore.QVariant("")
 
         if role == QtCore.Qt.DisplayRole:
             if revid in cached_revisions:
@@ -357,25 +672,23 @@ class TreeModel(QtCore.QAbstractItemModel):
                                                     localtime(rev.timestamp)))
         
         if role == self.PATH:
-            if isinstance(item, UnversionedItem):
-                path = item.path
-            else:
-                if isinstance(self.tree, WorkingTree):
-                    self.tree.lock_read()
-                try:
-                    path = self.tree.id2path(item.file_id)
-                finally:
-                    if isinstance(self.tree, WorkingTree):
-                        self.tree.unlock()
-            return QtCore.QVariant(path)
+            return QtCore.QVariant(item_data.path)
         
+        if role == QtCore.Qt.DisplayRole:
+            return QtCore.QVariant("")
         return QtCore.QVariant()
     
     def flags(self, index):
-        if not index.isValid():
-            return QtCore.Qt.ItemIsEnabled
+        #if not index.isValid():
+        #    return QtCore.Qt.ItemIsEnabled
 
-        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+        if self.checkable and index.column() == self.NAME:
+            return (QtCore.Qt.ItemIsEnabled |
+                    QtCore.Qt.ItemIsSelectable |
+                    QtCore.Qt.ItemIsUserCheckable)
+        else:
+            return (QtCore.Qt.ItemIsEnabled |
+                    QtCore.Qt.ItemIsSelectable)
 
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
@@ -384,19 +697,102 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def on_revisions_loaded(self, revisions, last_call):
         inventory = self.tree.inventory
-        for id, (item, change) in enumerate(self.inventory_items):
-            if id == 0:
+        for item_data in self.inventory_data:
+            if item_data.id == 0:
                 continue
             
-            if item.revision in revisions:
-                parent_id = self.parent_ids[id]
-                row = self.dir_children_ids[parent_id].index(id)
+            if item_data.item.revision in revisions:
                 self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                          self.createIndex (row, self.DATE, id),
-                          self.createIndex (row, self.AUTHOR,id))
+                          self.createIndex (item_data.row, self.DATE, item_data.id),
+                          self.createIndex (item_data.row, self.AUTHOR, item_data.id))
 
     def get_repo(self):
         return self.branch.repository
+    
+    def _item2ref(self, item_data):
+        if isinstance(item_data.item, UnversionedItem):
+            file_id = None
+        else:
+            file_id = item_data.item.file_id
+        return PersistantItemReference(file_id, item_data.path)
+    
+    def index2ref(self, index):
+        item_data = self.inventory_data[index.internalId()]
+        return self._item2ref(item_data)
+    
+    def indexes2refs(self, indexes):
+        refs = []
+        for index in indexes:
+            refs.append(self.index2ref(index))
+        return refs
+    
+    def ref2index(self, ref):
+        if ref.file_id is not None:
+            key = ref.file_id
+            dict = self.inventory_data_by_id
+            def iter_parents():
+                parent_id = ref.file_id
+                parent_ids = []
+                while parent_id is not None:
+                    parent_id = self.tree.inventory[parent_id].parent_id
+                    parent_ids.append(parent_id)
+                return reversed(parent_ids)
+        else:
+            key = ref.path
+            dict = self.inventory_data_by_path
+            def iter_parents():
+                path_split = ref.path.split("/")
+                parent_dir_path = None
+                for parent_name in ref.path.split("/")[:-1]:
+                    if parent_dir_path is None:\
+                        parent_dir_path = parent_name
+                    else:
+                        parent_dir_path += "/" + parent_name
+                    yield parent_dir_path
+        
+        if key not in dict:
+            # Try loading the parents
+            for parent_key in iter_parents():
+                if parent_key not in dict:
+                    break
+                self.load_dir(dict[parent_key].id)
+        
+        if key not in dict:
+            raise errors.NoSuchFile(ref.path)
+        
+        return self._index_from_id(dict[key].id, self.NAME)
+    
+    def refs2indexes(self, refs, ignore_no_file_error=False):
+        indexes = []
+        for ref in refs:
+            try:
+                indexes.append(self.ref2index(ref))
+            except (errors.NoSuchId, errors.NoSuchFile):
+                if not ignore_no_file_error:
+                    raise
+        return indexes
+    
+    def iter_checked(self):
+        return [self._item2ref(item_data)
+                for item_data in sorted(
+                    [item_data for item_data in self.inventory_data[1:]
+                     if item_data.checked == QtCore.Qt.Checked],
+                    self.inventory_dirs_first_cmp,
+                    lambda x: (x.change.path(), x.item.kind))]
+
+    def set_checked_items(self, refs, ignore_no_file_error=False):
+        # set every thing off
+        root_index = self._index_from_id(0, self.NAME)
+        self.setData(root_index, QtCore.QVariant(QtCore.Qt.Unchecked),
+                     QtCore.Qt.CheckStateRole)
+        
+        for index in self.refs2indexes(refs, ignore_no_file_error):
+            self.setData(index, QtCore.QVariant(QtCore.Qt.Checked),
+                         QtCore.Qt.CheckStateRole)
+
+    def set_checked_paths(self, paths):
+        return self.set_checked_items([PersistantItemReference(None, path)
+                                       for path in paths])
 
 class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     source_model = None
@@ -434,7 +830,13 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         
         model = self.source_model
         parent_id = source_parent.internalId()
-        id = model.dir_children_ids[parent_id][source_row]
+        children_ids = model.inventory_data[parent_id].children_ids
+        if len(children_ids)<=source_row:
+            return False
+        id = children_ids[source_row]
+        if (model.checkable and
+            not model.inventory_data[id].checked == QtCore.Qt.Unchecked):
+            return True
         return self.filter_id_cached(id)
     
     def filter_id_cached(self, id):
@@ -449,27 +851,26 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         (unchanged, changed, unversioned, ignored) = self.filters
 
         model = self.source_model
-        item, change = model.inventory_items[id]
+        item_data = model.inventory_data[id]
         
-        if change is None and unchanged: return True
+        if item_data.change is None and unchanged: return True
         
-        is_versioned = not isinstance(item, UnversionedItem)
+        is_versioned = not isinstance(item_data.item, UnversionedItem)
         
-        if is_versioned and change is not None and changed: return True
+        if is_versioned and item_data.change is not None and changed:
+            return True
         
         if not is_versioned and unversioned:
-            is_ignored = change.is_ignored()
+            is_ignored = item_data.change.is_ignored()
             if not is_ignored: return True
             if is_ignored and ignored: return True
             if is_ignored and not ignored: return False
         
-        if id in model.dir_children_ids:
-            dir_children_ids = model.dir_children_ids[id]
-            if dir_children_ids is None:
+        if item_data.item.kind == "directory":
+            if item_data.children_ids is None:
                 model.load_dir(id)
-                dir_children_ids = model.dir_children_ids[id]
             
-            for child_id in dir_children_ids:
+            for child_id in item_data.children_ids:
                 if self.filter_id_cached(child_id):
                     return True
         
@@ -544,7 +945,6 @@ class TreeWidget(RevisionTreeView):
         self.connect(self,
                      QtCore.SIGNAL("doubleClicked(QModelIndex)"),
                      self.do_default_action)
-        self.default_action = self.show_file_content
         self.tree = None
         self.branch = None
     
@@ -556,7 +956,7 @@ class TreeWidget(RevisionTreeView):
         header.setResizeMode(self.tree_model.REVNO, QtGui.QHeaderView.Interactive)
         header.setResizeMode(self.tree_model.MESSAGE, QtGui.QHeaderView.Stretch)
         header.setResizeMode(self.tree_model.AUTHOR, QtGui.QHeaderView.Interactive)        
-        header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.ResizeToContents)        
+        header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.Stretch)        
         fm = self.fontMetrics()
         # XXX Make this dynamic.
         col_margin = 6
@@ -600,10 +1000,41 @@ class TreeWidget(RevisionTreeView):
                                     gettext("&Revert"),
                                     self.revert)
     
-    def set_tree(self, tree, branch):
+    def set_tree(self, tree, branch=None,
+                 changes_mode=False, want_unversioned=True,
+                 initial_checked_paths=None):
+        """Causes a tree to be loaded, and displayed in the widget.
+
+        @param changes_mode: If in changes mode, a list of changes, and
+                             unversioned items, rather than a tree, is diplayed.
+                             e.g., when not in changes mode, one will get:
+                             
+                             dir1
+                                file1              changed
+                             file2                 changed
+                             
+                             but when in changes mode, one will get:
+                             
+                             dir1/file1             changed
+                             file2                  changed
+                             
+                             When in changes mode, no unchanged items are shown.
+        """
         self.tree = tree
+        if isinstance(tree, RevisionTree) and branch is None:
+            raise AttributeError("A branch must be provided if the tree is a "
+                                 "RevisionTree")
         self.branch = branch
-        self.tree_model.set_tree(self.tree, self.branch)
+        self.changes_mode = changes_mode
+        self.want_unversioned = want_unversioned
+        self.tree_model.set_tree(self.tree, self.branch,
+                                 changes_mode, want_unversioned)
+        if initial_checked_paths is not None and not self.tree_model.checkable:
+            raise AttributeError("You can't have a initial_selection if "
+                                 "tree_model.checkable is not True.")
+        if initial_checked_paths is not None:
+            self.tree_model.set_checked_paths(initial_checked_paths)
+        
         self.tree_filter_model.invalidateFilter()
         
         if str(QtCore.QT_VERSION_STR).startswith("4.4"):
@@ -627,7 +1058,6 @@ class TreeWidget(RevisionTreeView):
             header.showSection(self.tree_model.STATUS)
             
             self.context_menu.setDefaultAction(self.action_open_file)
-            self.default_action = self.open_file
         else:
             header.showSection(self.tree_model.DATE)
             header.showSection(self.tree_model.REVNO)
@@ -636,11 +1066,65 @@ class TreeWidget(RevisionTreeView):
             header.hideSection(self.tree_model.STATUS)
             
             self.context_menu.setDefaultAction(self.action_show_file)
-            self.default_action = self.show_file_content
     
+    def iter_expanded_indexes(self):
+        parents_to_check = [QtCore.QModelIndex()]
+        while parents_to_check:
+            parent = parents_to_check.pop(0)
+            for row in xrange(self.tree_filter_model.rowCount(parent)):
+                child = self.tree_filter_model.index(row, 0, parent)
+                if self.isExpanded(child):
+                    parents_to_check.append(child)
+                    yield self.tree_filter_model.mapToSource(child)
+    
+    def set_expanded_indexes(self, indexes):
+        for index in indexes:
+            self.expand(self.tree_filter_model.mapFromSource(index))
+    
+    def get_state(self):
+        if self.tree_model.checkable:
+            checked = list(self.tree_model.iter_checked())
+        else:
+            checked = []
+        expanded = self.tree_model.indexes2refs(
+                                            self.iter_expanded_indexes())
+        selected = self.tree_model.indexes2refs(
+            self.get_selection_indexes())
+        return (checked, expanded, selected)
+    
+    def restore_state(self, state):
+        (checked, expanded, selected) = state
+        self.tree.lock_read()
+        try:
+            if self.tree_model.checkable:
+                self.tree_model.set_checked_items(checked,
+                                                  ignore_no_file_error=True)
+            self.set_expanded_indexes(
+                self.tree_model.refs2indexes(expanded,
+                                             ignore_no_file_error=True))
+            
+            for index in self.tree_model.refs2indexes(selected,
+                                                    ignore_no_file_error=True):
+                # XXX This does not work for sub items. I can't figure out why.
+                # GaryvdM - 14/07/2009
+                self.selectionModel().select(
+                    self.tree_filter_model.mapFromSource(index),
+                    QtGui.QItemSelectionModel.SelectCurrent |
+                    QtGui.QItemSelectionModel.Rows)
+        finally:
+            self.tree.unlock()
+
     def refresh(self):
-        self.tree_model.set_tree(self.tree, self.branch)
-        self.tree_filter_model.invalidateFilter()
+        self.tree.lock_read()
+        try:
+            state = self.get_state()
+            self.tree_model.set_tree(self.tree, self.branch,
+                                     self.changes_mode, self.want_unversioned)
+            self.restore_state(state)
+            self.tree_filter_model.invalidateFilter()
+
+        finally:
+            self.tree.unlock()
 
     def contextMenuEvent(self, event):
         self.filter_context_menu()
@@ -648,35 +1132,30 @@ class TreeWidget(RevisionTreeView):
         event.accept()
     
     def get_selection_indexes(self, indexes=None):
-        if indexes == None:
-            indexes = self.selectedIndexes()
-        rows = {}
-        for index in self.selectedIndexes():
-            if index.row() not in rows:
-                rows[index.internalId()] = index
-        return rows.values()
+        if indexes is None or (len(indexes) == 1 and indexes[0] is None):
+            indexes = self.selectionModel().selectedRows(0)
+        return [self.tree_filter_model.mapToSource(index) for index in indexes]
     
     def get_selection_items(self, indexes=None):
         items = []
-        if indexes is None:
-            indexes = self.get_selection_indexes(indexes) 
+        indexes = self.get_selection_indexes(indexes) 
         for index in indexes:
-            source_index = self.tree_filter_model.mapToSource(index)
-            items.append(self.tree_model.inventory_items[
-                                                    source_index.internalId()])
+            items.append(self.tree_model.inventory_data[index.internalId()])
         return items
 
     def filter_context_menu(self):
         is_working_tree = isinstance(self.tree, WorkingTree)
         items = self.get_selection_items()
-        versioned = [not isinstance(item[0], UnversionedItem)
+        versioned = [not isinstance(item.item, UnversionedItem)
                      for item in items]
-        changed = [item[1] is not None
+        changed = [item.change is not None
                    for item in items]
+        versioned_changed = [ver and ch for ver,ch in zip(versioned, changed)]
+        
         selection_len = len(items)
         
         single_versioned_file = (selection_len == 1 and versioned[0] and
-                                 items[0][0].kind == "file")
+                                 items[0].item.kind == "file")
         
         self.action_open_file.setEnabled(is_working_tree)
         self.action_open_file.setVisible(is_working_tree)
@@ -684,43 +1163,44 @@ class TreeWidget(RevisionTreeView):
         self.action_show_annotate.setEnabled(single_versioned_file)
         self.action_show_log.setEnabled(any(versioned))
         self.action_show_diff.setVisible(is_working_tree)
-        self.action_show_diff.setEnabled(any(changed))
+        self.action_show_diff.setEnabled(any(versioned_changed))
         
         self.action_add.setVisible(is_working_tree)
         self.action_add.setDisabled(all(versioned))
         self.action_revert.setVisible(is_working_tree)
-        self.action_revert.setEnabled(any(changed) and any(versioned))
-    
-    def do_default_action(self, index=None):
-        indexes = self.get_selection_indexes([index])
-        if not len(indexes) == 1:
-            return
+        self.action_revert.setEnabled(any(versioned_changed))
         
-        item = self.get_selection_items(indexes)[0]
-        if item[0].kind == "directory":
+        if is_working_tree:
+            if any(versioned_changed):
+                self.context_menu.setDefaultAction(self.action_show_diff)
+            else:
+                self.context_menu.setDefaultAction(self.action_open_file)
+            
+    
+    def do_default_action(self, index):
+        item_data = self.get_selection_items([index])[0]
+        if item_data.item.kind == "directory":
             # Don't do anything, so that the directory can be expanded.
             return
         
-        self.default_action(index)
+        if isinstance(self.tree, WorkingTree):
+            if item_data.change is not None and item_data.change.is_versioned():
+                self.show_differences(index=index)
+            else:
+                self.open_file(index)
+        else:
+            self.show_file_content(index)
 
     @ui_current_widget
     def show_file_content(self, index=None):
         """Launch qcat for one selected file."""
-        
-        indexes = self.get_selection_indexes([index])
-        if not len(indexes) == 1:
+        items = self.get_selection_items([index])
+        if not len(items) == 1:
             return
+        item = items[0]
         
-        item = self.get_selection_items(indexes)[0]
-        if isinstance(item[0], UnversionedItem):
-            return
-        
-        index = indexes[0]
-        
-        path = unicode(index.data(self.tree_model.PATH).toString())
-
         encoding = get_set_encoding(None, self.branch)
-        window = QBzrCatWindow(filename = path,
+        window = QBzrCatWindow(filename = item.path,
                                tree = self.tree,
                                parent=self,
                                encoding=encoding)
@@ -734,15 +1214,13 @@ class TreeWidget(RevisionTreeView):
         if not isinstance(self.tree, WorkingTree):
             raise RuntimeException("Tree must be a working tree to open a file.")
             
-        if index is None:
-            index = self.currentIndex()
+        items = self.get_selection_items([index])
+        if not len(items) == 1:
+            return
+        item = items[0]
         
         self.tree.lock_read()
-        try:
-            path = unicode(index.data(self.tree_model.PATH).toString())
-            abspath = self.tree.abspath(path)
-        finally:
-            self.tree.unlock()
+        abspath = self.tree.abspath(item.path)
         
         url = QtCore.QUrl.fromLocalFile(abspath)
         result = QtGui.QDesktopServices.openUrl(url)
@@ -752,8 +1230,8 @@ class TreeWidget(RevisionTreeView):
         """Show qlog for one selected file(s)."""
         
         items = self.get_selection_items()
-        fileids = [item[0].file_id for item in items
-                   if item[0].file_id is not None]
+        fileids = [item.item.file_id for item in items
+                   if item.item.file_id is not None]
         
         window = LogWindow(None, self.branch, fileids)
         window.show()
@@ -771,19 +1249,15 @@ class TreeWidget(RevisionTreeView):
         self.window().windows.append(window)
 
     @ui_current_widget
-    def show_differences(self, ext_diff=None):
+    def show_differences(self, ext_diff=None, index=None):
         """Show differences for selected file(s)."""
         
-        items = self.get_selection_items()
+        items = self.get_selection_items([index])
         if len(items) > 0:
-            self.tree.lock_read()
-            try:
-                # Only paths that have changes.
-                paths = [self.tree.id2path(item[0].file_id)
-                         for item in items
-                         if item[1] is not None]
-            finally:
-                self.tree.unlock()
+            # Only paths that have changes.
+            paths = [item.path
+                     for item in items
+                     if item.change is not None]
         else:
             # Show all.
             paths = None
@@ -804,9 +1278,9 @@ class TreeWidget(RevisionTreeView):
         items = self.get_selection_items()
         
         # Only paths that are not versioned.
-        paths = [item[0].path
+        paths = [item.path
                  for item in items
-                 if isinstance(item[0], UnversionedItem)]
+                 if isinstance(item.item, UnversionedItem)]
         
         if len(paths) == 0:
             return
@@ -833,10 +1307,10 @@ class TreeWidget(RevisionTreeView):
         self.tree.lock_read()
         try:
             # Only paths that have changes.
-            paths = [self.tree.id2path(item[0].file_id)
+            paths = [item.path
                      for item in items
-                     if item[1] is not None and
-                        not isinstance(item[0], UnversionedItem)]
+                     if item.change is not None and
+                        not isinstance(item.item, UnversionedItem)]
         finally:
             self.tree.unlock()
         
@@ -855,4 +1329,39 @@ class TreeWidget(RevisionTreeView):
         res = revert_dialog.exec_()
         if res == QtGui.QDialog.Accepted:
             self.refresh()
- 
+
+class SelectAllCheckBox(QtGui.QCheckBox):
+    
+    def __init__(self, tree_widget, parent=None):
+        QtGui.QCheckBox.__init__(self, gettext("Select / deselect all"), parent)
+        
+        self.tree_widget = tree_widget
+        #self.setTristate(True)
+        
+        self.connect(tree_widget.tree_model,
+                     QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                     self.on_data_changed)
+        
+        self.connect(self, QtCore.SIGNAL("clicked(bool)"),
+                     self.clicked)
+    
+    def on_data_changed(self, start_index, end_index):
+        self.update_state()
+    
+    def update_state(self):
+        model = self.tree_widget.tree_model
+        root_index = model._index_from_id(0, model.NAME)
+        
+        state = model.data(root_index, QtCore.Qt.CheckStateRole)
+        self.setCheckState(state.toInt()[0])
+    
+    def clicked(self, state):
+        model = self.tree_widget.tree_model
+        root_index = model._index_from_id(0, model.NAME)
+        if state:
+            state = QtCore.QVariant(QtCore.Qt.Checked)
+        else:
+            state = QtCore.QVariant(QtCore.Qt.Unchecked)
+        
+        model.setData(root_index, QtCore.QVariant(state),
+                      QtCore.Qt.CheckStateRole)

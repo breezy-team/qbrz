@@ -161,9 +161,15 @@ class BrowseWindow(QBzrWindow):
             buttons = (self.filter_button,
                        self.diffbuttons,
                        self.refresh_button)
+            state = self.file_tree.get_state()
             if text=="wt:":
                 self.tree = self.workingtree
-                self.file_tree.set_tree(self.workingtree, self.branch)
+                self.tree.lock_read()
+                try:
+                    self.file_tree.set_tree(self.workingtree, self.branch)
+                    self.file_tree.restore_state(state)
+                finally:
+                    self.tree.unlock()
                 for button in buttons:
                     button.setEnabled(True)
             else:
@@ -191,6 +197,7 @@ class BrowseWindow(QBzrWindow):
                     self.tree = branch.repository.revision_tree(revision_id)
                     self.processEvents()
                     self.file_tree.set_tree(self.tree, self.branch)
+                    self.file_tree.restore_state(state)
                     if self.revno_map is None:
                         self.processEvents()
                         # XXX make this operation lazy? how?
