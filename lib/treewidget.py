@@ -74,6 +74,15 @@ class ModelItemData():
         self.id = None
         self.row = None
 
+class PersistantItemReference(object):
+    """This is use to stores a reference to a item that is persisted when we
+    refresh the model."""
+    __slots__ = ["file_id", "path"]
+    
+    def __init__(self, file_id, path):
+        self.file_id = file_id
+        self.path = path
+
 class TreeModel(QtCore.QAbstractItemModel):
     
     HEADER_LABELS = [gettext("File Name"),
@@ -486,6 +495,69 @@ class TreeModel(QtCore.QAbstractItemModel):
 
     def get_repo(self):
         return self.branch.repository
+    
+    def _item2ref(self, item_data):
+        if isinstance(item_data.item, UnversionedItem):
+            file_id = None
+        else:
+            file_id = item_data.item.file_id
+        return PersistantItemReference(file_id, item_data.path)
+    
+    def index2ref(self, index):
+        item_data = self.inventory_data[index.internalId()]
+        return self._item2ref(item_data)
+    
+    def indexes2refs(self, indexes):
+        refs = []
+        for index in indexes:
+            refs.append(self.index2ref(index))
+        return refs
+    
+    def ref2index(self, ref):
+        if ref.file_id is not None:
+            key = ref.file_id
+            dict = self.inventory_data_by_id
+            def iter_parents():
+                parent_id = ref.file_id
+                parent_ids = []
+                while parent_id is not None:
+                    parent_id = self.tree.inventory[parent_id].parent_id
+                    parent_ids.append(parent_id)
+                return reversed(parent_ids)
+        else:
+            key = ref.path
+            dict = self.inventory_data_by_path
+            def iter_parents():
+                path_split = ref.path.split("/")
+                parent_dir_path = None
+                for parent_name in ref.path.split("/")[:-1]:
+                    if parent_dir_path is None:\
+                        parent_dir_path = parent_name
+                    else:
+                        parent_dir_path += "/" + parent_name
+                    yield parent_dir_path
+        
+        if key not in dict:
+            # Try loading the parents
+            for parent_key in iter_parents():
+                if parent_key not in dict:
+                    break
+                self.load_dir(dict[parent_key].id)
+        
+        if key not in dict:
+            raise errors.NoSuchFile(ref.path)
+        
+        return self._index_from_id(dict[key].id, self.NAME)
+    
+    def refs2indexes(self, refs, ignore_no_file_error=False):
+        indexes = []
+        for ref in refs:
+            try:
+                indexes.append(self.ref2index(ref))
+            except (errors.NoSuchId, errors.NoSuchFile):
+                if not ignore_no_file_error:
+                    raise
+        return indexes
 
 class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     source_model = None
