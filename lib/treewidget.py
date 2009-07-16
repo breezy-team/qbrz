@@ -20,6 +20,7 @@
 import os
 from time import (strftime, localtime)
 from PyQt4 import QtCore, QtGui
+from bzrlib import errors
 from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
 
@@ -87,6 +88,125 @@ class PersistantItemReference(object):
     def __init__(self, file_id, path):
         self.file_id = file_id
         self.path = path
+
+class ChangeDesc(tuple):
+    """Helper class that "knows" about internals of iter_changes' changed entry
+    description tuple, and provides additional helper methods.
+
+    iter_changes return tuple with info about changed entry:
+    [0]: file_id         -> ascii string
+    [1]: paths           -> 2-tuple (old, new) fullpaths unicode/None
+    [2]: changed_content -> bool
+    [3]: versioned       -> 2-tuple (bool, bool)
+    [4]: parent          -> 2-tuple
+    [5]: name            -> 2-tuple (old_name, new_name) utf-8?/None
+    [6]: kind            -> 2-tuple (string/None, string/None)
+    [7]: executable      -> 2-tuple (bool/None, bool/None)
+    
+    --optional--
+    [8]: is_ignored      -> If the file is ignored, pattern which caused it to
+                            be ignored, otherwise None.
+    
+    NOTE: None value used for non-existing entry in corresponding
+          tree, e.g. for added/deleted/ignored/unversioned
+    """
+    
+    # XXX We should may be try get this into bzrlib.
+    # XXX We should use this in qdiff.
+    
+    def fileid(desc):
+        return desc[0]
+
+    def path(desc):
+        """Return a suitable entry for a 'specific_files' param to bzr functions."""
+        oldpath, newpath = desc[1]
+        return newpath or oldpath
+
+    def oldpath(desc):
+        """Return oldpath for renames."""
+        return desc[1][0]
+
+    def kind(desc):
+        oldkind, newkind = desc[6]
+        return newkind or oldkind        
+
+    def is_versioned(desc):
+        return desc[3] != (False, False)
+
+    def is_modified(desc):
+        return (desc[3] != (False, False) and desc[2])
+
+    def is_renamed(desc):
+        return (desc[3] == (True, True)
+                and (desc[4][0], desc[5][0]) != (desc[4][1], desc[5][1]))
+
+    def is_tree_root(desc):
+        """Check if entry actually tree root."""
+        if desc[3] != (False, False) and desc[4] == (None, None):
+            # TREE_ROOT has not parents (desc[4]).
+            # But because we could want to see unversioned files
+            # we need to check for versioned flag (desc[3])
+            return True
+        return False
+
+    def is_missing(desc):
+        """Check if file was present in previous revision but now it's gone
+        (i.e. deleted manually, without invoking `bzr remove` command)
+        """
+        return (desc[3] == (True, True) and desc[6][1] is None)
+
+    def is_misadded(desc):
+        """Check if file was added to the working tree but then gone
+        (i.e. deleted manually, without invoking `bzr remove` command)
+        """
+        return (desc[3] == (False, True) and desc[6][1] is None)
+    
+    def is_ignored(desc):
+        if len(desc) >= 8: 
+            return desc[8]
+        else:
+            return None
+    
+    def status(desc):
+        if len(desc) == 8:
+            (file_id, (path_in_source, path_in_target),
+             changed_content, versioned, parent, name, kind,
+             executable) = desc
+            is_ignored = None
+        elif len(desc) == 9:
+            (file_id, (path_in_source, path_in_target),
+             changed_content, versioned, parent, name, kind,
+             executable, is_ignored) = desc
+        else:
+            raise RuntimeError, "Unkown number of items to unpack."
+            
+        if versioned == (False, False):
+            if is_ignored:
+                return gettext("ignored")
+            else:
+                return gettext("non-versioned")
+        elif versioned == (False, True):
+            return gettext("added")
+        elif versioned == (True, False):
+            return gettext("removed")
+        elif kind[0] is not None and kind[1] is None:
+            return gettext("missing")
+        else:
+            # versioned = True, True - so either renamed or modified
+            # or properties changed (x-bit).
+            renamed = (parent[0], name[0]) != (parent[1], name[1])
+            if renamed:
+                if changed_content:
+                    return gettext("renamed and modified")
+                else:
+                    return gettext("renamed")
+            elif changed_content:
+                return gettext("modified")
+            elif executable[0] != executable[1]:
+                return gettext("modified (x-bit)")
+            else:
+                raise RuntimeError, "what status am I missing??"
+
 
 class TreeModel(QtCore.QAbstractItemModel):
     
@@ -836,7 +956,7 @@ class TreeWidget(RevisionTreeView):
         header.setResizeMode(self.tree_model.REVNO, QtGui.QHeaderView.Interactive)
         header.setResizeMode(self.tree_model.MESSAGE, QtGui.QHeaderView.Stretch)
         header.setResizeMode(self.tree_model.AUTHOR, QtGui.QHeaderView.Interactive)        
-        header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.ResizeToContents)        
+        header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.Stretch)        
         fm = self.fontMetrics()
         # XXX Make this dynamic.
         col_margin = 6
