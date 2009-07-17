@@ -337,7 +337,7 @@ class AnnotateWindow(QBzrWindow):
         encoding = get_set_encoding(self.encoding, self.branch)
         lines = []
         annotate = []
-        text_max_len = 0
+        text_max_len = 80
         self.processEvents()
         for revid, text in tree.annotate_iter(fileId):
             text = text.decode(encoding, 'replace')
