@@ -158,6 +158,7 @@ class SubProcessWindowBase:
         if self.args is None:
             raise RuntimeError('Subprocess action "%s" cannot be started\n'
                                'because self.args is None.' % self._name)
+        return True
 
     def accept(self):
         if self.process_widget.finished:
