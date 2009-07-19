@@ -34,6 +34,7 @@ from bzrlib.bzrdir import BzrDir
 from bzrlib.inventory import Inventory
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
                                                          cached_revisions)
+from bzrlib.plugins.qbzr.lib.util import get_apparent_author
 
 have_search = True
 try:
@@ -805,7 +806,7 @@ class LogGraphProvider(object):
             if self.sr_field == "message":
                 filtered_str = revision.message
             elif self.sr_field == "author":
-                filtered_str = revision.get_apparent_author()
+                filtered_str = get_apparent_author(revision)
             elif self.sr_field == "bug":
                 rbugs = revision.properties.get('bugs', '')
                 if rbugs:
