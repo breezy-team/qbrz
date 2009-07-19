@@ -39,7 +39,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_apparent_author_name,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.plugins.qbzr.lib.wtlist import ChangeDesc
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
 from bzrlib.plugins.qbzr.lib.diff import (
     show_diff,
