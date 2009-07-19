@@ -772,6 +772,16 @@ class TreeModel(QtCore.QAbstractItemModel):
         return indexes
     
     def iter_checked(self):
+        # We have to recurse and load all dirs, because we use --no-recurse
+        # for add, and commit and revert don't recurse.
+        i = 0
+        while i<len(self.inventory_data):
+            item_data = self.inventory_data[i]
+            if (item_data.children_ids is None and
+                item_data.item.kind == "directory"):
+                self.load_dir(item_data.id)
+            i += 1
+        
         return [self._item2ref(item_data)
                 for item_data in sorted(
                     [item_data for item_data in self.inventory_data[1:]
