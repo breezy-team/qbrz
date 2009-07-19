@@ -68,7 +68,6 @@ class RevertWindow(SubProcessDialog):
         self.filelist.throbber = self.throbber 
         self.filelist.tree_model.is_item_in_select_all = lambda item: ( 
             item.change is not None and item.change.is_versioned())
-        self.filelist.setRootIsDecorated(False)
         def filter_context_menu():
             TreeWidget.filter_context_menu(self.filelist)
             self.filelist.action_add.setVisible(False)
