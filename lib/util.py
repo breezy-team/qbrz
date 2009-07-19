@@ -505,7 +505,10 @@ def quote_tag(tag):
 
 def format_revision_html(rev, search_replace=None, show_timestamp=False):
     props = []
-    props.append((gettext("Revision:"), "%s revid:%s" % (rev.revno, rev.revision_id)))
+    if hasattr(rev, "revno"):
+        props.append((gettext("Revision:"), "%s revid:%s" % (rev.revno, rev.revision_id)))
+    else:
+        props.append((gettext("Revision:"), "revid:%s" % (rev.revision_id)))
 
     def short_text(summary, length):
         if len(summary) > length:

@@ -42,6 +42,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
+from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.trace import *
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.treewidget import (
@@ -49,6 +50,7 @@ from bzrlib.plugins.qbzr.lib.treewidget import (
     SelectAllCheckBox,
     )
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
+from bzrlib.plugins.qbzr.lib.revisionview import RevisionView
 
 
 MAX_AUTOCOMPLETE_FILES = 20
@@ -170,6 +172,34 @@ class PendingMergesList(LogList):
             self.log_model.load_graph_pending_merges()
         finally:
             self.graph_provider.unlock_branches()
+
+    def create_context_menu(self):
+        super(PendingMergesList, self).create_context_menu()
+        showinfo = QtGui.QAction("Show &infomation...", self)
+        self.context_menu.insertAction(self.context_menu.actions()[0],
+                                       showinfo)
+        self.context_menu.setDefaultAction(showinfo)
+        self.connect(showinfo,
+                     QtCore.SIGNAL("triggered(bool)"),
+                     self.show_info_menu)
+
+    def show_info_menu(self, b=False):
+        self.default_action()
+
+    def default_action(self, index=None):
+        """Show information of a single revision from a index."""
+        
+        if index is None:
+            index = self.currentIndex()
+        
+        revid = str(index.data(logmodel.RevIdRole).toString())
+        branch = self.graph_provider.get_revid_branch(revid)
+        rev = self.graph_provider.load_revisions([revid])[revid]
+        parent_window = self.window()
+        window = RevisionView(rev, branch, parent=parent_window)
+        window.show()
+        parent_window.windows.append(window)
+    
 
 class CommitWindow(SubProcessDialog):
 
