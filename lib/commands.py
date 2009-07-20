@@ -876,7 +876,6 @@ class cmd_qupdate(QBzrCommand):
         window = QBzrUpdateWindow(tree, ui_mode)
         window.show()
         application.exec_()
-
 class cmd_qsend(QBzrCommand):
     """Dialog for creating and sending patches and bundles"""
     
@@ -884,12 +883,26 @@ class cmd_qsend(QBzrCommand):
 
     takes_args = ['submit_branch?', 'public_branch?']
     
-    
     def _qbzr_run(self, submit_branch=".", public_branch=None):
         branch = Branch.open_containing(submit_branch)[0]
         
         app = QtGui.QApplication(sys.argv)
         window = SendWindow(branch)
+
         window.show()
+
         app.exec_()
 
+class cmd_qswitch(QBzrCommand):
+    takes_args = ['location?']
+    takes_options = [ui_mode_option]
+    
+    def _qbzr_run(self, location=None, ui_mode=False):
+        from bzrlib.plugins.qbzr.lib.switch import QBzrSwitchWindow
+        
+        application = QtGui.QApplication(sys.argv)
+        branch = Branch.open_containing(location)[0]
+        
+        window = QBzrSwitchWindow(branch, ui_mode)
+        window.show()
+        application.exec_() 
