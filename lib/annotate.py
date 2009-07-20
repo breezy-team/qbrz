@@ -304,6 +304,7 @@ class AnnotateWindow(QBzrWindow):
                                         self.loader_func(*self.loader_args)
                 self.loader_func = self.loader_args = None # kill extra refs...
                 QtCore.QCoreApplication.processEvents()
+            self.encoding = get_set_encoding(self.encoding, self.branch)
             self.branch.lock_read()
             try:
                 def do_nothing():
@@ -334,13 +335,12 @@ class AnnotateWindow(QBzrWindow):
     def annotate(self, tree, fileId, path):
         self.rev_indexes = {}
         last_revid = None
-        encoding = get_set_encoding(self.encoding, self.branch)
         lines = []
         annotate = []
         text_max_len = 80
         self.processEvents()
         for revid, text in tree.annotate_iter(fileId):
-            text = text.decode(encoding, 'replace')
+            text = text.decode(self.encoding, 'replace')
             
             lines.append(text)
             
