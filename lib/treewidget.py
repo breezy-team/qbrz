@@ -778,7 +778,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         while i<len(self.inventory_data):
             item_data = self.inventory_data[i]
             if (item_data.children_ids is None and
-                item_data.item.kind == "directory"):
+                item_data.item.kind == "directory" and
+                item_data.checked):
                 self.load_dir(item_data.id)
             i += 1
         
