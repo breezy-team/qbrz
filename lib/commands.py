@@ -745,10 +745,14 @@ class cmd_qsubprocess(Command):
             fname = cmd[1:]
             f = open(fname, 'rb')
             try:
-                cmd = f.read()
+                cmd_utf8 = f.read()
             finally:
                 f.close()
-        argv = [p.decode('utf8') for p in shlex.split(cmd.encode('utf8'))]
+        else:
+            cmd_utf8 = cmd.encode('utf8')
+        # XXX use bencode to avoid shlex, because it does not like backslashes
+        #     and therefore problematic on Windows.
+        argv = [p.decode('utf8') for p in shlex.split(cmd_utf8)]
         commands.run_bzr(argv)
 
 

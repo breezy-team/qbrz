@@ -545,6 +545,9 @@ class SubProcessWidget(QtGui.QWidget):
             self.emit(QtCore.SIGNAL("failed()"))
 
     def _create_args_file(self, text):
+        """@param text: text to write into temp file,
+                        it should be unicode string
+        """
         if self._args_file:
             self._delete_args_file()
         qdir = os.path.join(tempfile.gettempdir(), 'QBzr', 'qsubprocess')
@@ -553,7 +556,7 @@ class SubProcessWidget(QtGui.QWidget):
         fd, fname = tempfile.mkstemp(dir=qdir)
         f = os.fdopen(fd, "wb")
         try:
-            f.write(text)
+            f.write(text.encode('utf8'))
         finally:
             f.close()   # it closes fd as well
         self._args_file = fname
