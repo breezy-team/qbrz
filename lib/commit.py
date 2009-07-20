@@ -440,9 +440,11 @@ class CommitWindow(SubProcessDialog):
                 self.filelist.tree_model.checkable = not self.pending_merges_list
                 if not refresh:
                     fmodel = self.filelist.tree_filter_model
-                    fmodel.setFilter(fmodel.UNVERSIONED, False)
-                    self.filelist.set_tree(self.tree, changes_mode = True,
-                                initial_checked_paths = self.initial_selected_list)
+                    #fmodel.setFilter(fmodel.UNVERSIONED, False)
+                    self.filelist.set_tree(
+                        self.tree, changes_mode = True,
+                        want_unversioned=self.show_nonversioned_checkbox.isChecked(),
+                        initial_checked_paths=self.initial_selected_list)
                 else:
                     self.filelist.refresh()
                 self.processEvents()
@@ -622,6 +624,12 @@ class CommitWindow(SubProcessDialog):
 
     def show_nonversioned(self, state):
         """Show/hide non-versioned files."""
+        if state and not self.filelist.want_unversioned:
+            state = self.filelist.get_state()
+            self.filelist.set_tree(self.tree, changes_mode=True,
+                                   want_unversioned=True)
+            self.filelist.restore_state(state)
+        
         fmodel = self.filelist.tree_filter_model
         fmodel.setFilter(fmodel.UNVERSIONED, state)
 
