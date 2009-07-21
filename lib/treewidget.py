@@ -1130,7 +1130,13 @@ class TreeWidget(RevisionTreeView):
                                      self.changes_mode, self.want_unversioned)
             self.restore_state(state)
             self.tree_filter_model.invalidateFilter()
-
+            if str(QtCore.QT_VERSION_STR).startswith("4.4"):
+                # 4.4.x have a bug where if you do a layoutChanged when using
+                # a QSortFilterProxyModel, it loses all header width settings.
+                # So if you are using 4.4, we have to reset the width settings
+                # after every time we do a layout changed. The issue is similar to 
+                # http://www.qtsoftware.com/developer/task-tracker/index_html?method=entry&id=236755
+                self.set_header_width_settings()
         finally:
             self.tree.unlock()
 
