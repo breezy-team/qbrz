@@ -1361,7 +1361,7 @@ class SelectAllCheckBox(QtGui.QCheckBox):
         root_index = model._index_from_id(0, model.NAME)
         
         state = model.data(root_index, QtCore.Qt.CheckStateRole)
-        self.setCheckState(state.toInt()[0])
+        self.setCheckState(QtCore.Qt.CheckState(state.toInt()[0]))
     
     def clicked(self, state):
         model = self.tree_widget.tree_model
