@@ -250,12 +250,10 @@ class TreeModel(QtCore.QAbstractItemModel):
                                             want_unversioned=want_unversioned):
                     change = ChangeDesc(change)
                     path = change.path()
-                    fileid = change.fileid() 
-                    if not path:
-                        # e.g. the tree root on a blank branch.
-                        is_ignored = False
-                    else:
-                        is_ignored = self.tree.is_ignored(path)
+                    fileid = change.fileid()
+                    if fileid == root_id:
+                        continue
+                    is_ignored = self.tree.is_ignored(path)
                     change = ChangeDesc(change+(is_ignored,))
                     
                     if fileid is not None and not changes_mode:
