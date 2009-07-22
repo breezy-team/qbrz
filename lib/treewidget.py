@@ -246,64 +246,71 @@ class TreeModel(QtCore.QAbstractItemModel):
             tree.lock_read()
             try:
                 root_id = self.tree.get_root_id()
-                for change in self.tree.iter_changes(self.tree.basis_tree(),
-                                            want_unversioned=want_unversioned):
-                    change = ChangeDesc(change)
-                    path = change.path()
-                    fileid = change.fileid()
-                    if fileid == root_id:
-                        continue
-                    is_ignored = self.tree.is_ignored(path)
-                    change = ChangeDesc(change+(is_ignored,))
-                    
-                    if fileid is not None and not changes_mode:
-                        self.changes[change.fileid()] = change
-                    else:
-                        if changes_mode:
-                            dir_path = path
-                            dir_fileid = None
-                            relpath = ""
-                            while dir_path:
-                                (dir_path, slash, name) = dir_path.rpartition('/')
-                                relpath = slash + name + relpath
-                                if dir_path in self.inventory_data_by_path:
-                                    dir_item = self.inventory_data_by_path[
-                                                                     dir_path]
-                                    dir_fileid = dir_item.item.file_id
-                                    break
-                            if dir_fileid is None:
-                                dir_fileid = root_id
-                                dir_path = ""
-                            
-                            name = relpath.lstrip("/")
-                            if change.is_renamed():
-                                oldpath = change.oldpath()
-                                if oldpath.startswith(dir_path):
-                                    oldpath = oldpath[len(dir_path):]
-                                else:
-                                    # The file was mv from a difirent path. 
-                                    oldpath = '/' + oldpath
-                                name = "%s => %s" % (oldpath, name)
-                        else:
-                            (dir_path, slash, name) = path.rpartition('/')
-                            dir_fileid = self.tree.path2id(dir_path)
+                basis_tree = self.tree.basis_tree()
+                basis_tree.lock_read()
+                try:
+                    for change in self.tree.iter_changes(basis_tree,
+                                                want_unversioned=want_unversioned):
+                        change = ChangeDesc(change)
+                        path = change.path()
+                        fileid = change.fileid()
+                        if fileid == root_id:
+                            continue
+                        is_ignored = self.tree.is_ignored(path)
+                        change = ChangeDesc(change+(is_ignored,))
                         
-                        if change.is_versioned():
+                        if fileid is not None and not changes_mode:
+                            self.changes[change.fileid()] = change
+                        else:
                             if changes_mode:
-                                item = InternalItem(name, change.kind(),
-                                                    change.fileid())
+                                dir_path = path
+                                dir_fileid = None
+                                relpath = ""
+                                while dir_path:
+                                    (dir_path, slash, name) = dir_path.rpartition('/')
+                                    relpath = slash + name + relpath
+                                    if dir_path in self.inventory_data_by_path:
+                                        dir_item = self.inventory_data_by_path[
+                                                                         dir_path]
+                                        dir_fileid = dir_item.item.file_id
+                                        break
+                                if dir_fileid is None:
+                                    dir_fileid = root_id
+                                    dir_path = ""
+                                
+                                name = relpath.lstrip("/")
+                                if change.is_renamed():
+                                    old_inventory_item = basis_tree.inventory[fileid]
+                                    old_names = [old_inventory_item.name]
+                                    while old_inventory_item.parent_id:
+                                        old_inventory_item = basis_tree.inventory[old_inventory_item.parent_id]
+                                        if old_inventory_item.parent_id == dir_fileid:
+                                            break
+                                        old_names.append(old_inventory_item.name)
+                                    old_names.reverse()
+                                    old_path = "/".join(old_names)
+                                    name = "%s => %s" % (old_path, name)
                             else:
-                                item = self.tree.inventory[change.fileid()]
-                        else:
-                            item = UnversionedItem(name, change.kind())
-                        
-                        item_data = ModelItemData(item, change, path)
-                        
-                        if dir_fileid not in self.unver_by_parent:
-                            self.unver_by_parent[dir_fileid] = []
-                        self.unver_by_parent[dir_fileid].append(item_data)
-                        self.inventory_data_by_path[path] = item_data
-                
+                                (dir_path, slash, name) = path.rpartition('/')
+                                dir_fileid = self.tree.path2id(dir_path)
+                            
+                            if change.is_versioned():
+                                if changes_mode:
+                                    item = InternalItem(name, change.kind(),
+                                                        change.fileid())
+                                else:
+                                    item = self.tree.inventory[change.fileid()]
+                            else:
+                                item = UnversionedItem(name, change.kind())
+                            
+                            item_data = ModelItemData(item, change, path)
+                            
+                            if dir_fileid not in self.unver_by_parent:
+                                self.unver_by_parent[dir_fileid] = []
+                            self.unver_by_parent[dir_fileid].append(item_data)
+                            self.inventory_data_by_path[path] = item_data
+                finally:
+                    basis_tree.unlock()
                 self.process_inventory(self.working_tree_get_children)
             finally:
                 tree.unlock()
