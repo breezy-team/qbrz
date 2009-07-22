@@ -937,6 +937,9 @@ class TreeWidget(RevisionTreeView):
         dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
         symlink_icon = self.style().standardIcon(QtGui.QStyle.SP_FileLinkIcon)
         
+        self.tree = None
+        self.branch = None
+        
         self.tree_model = TreeModel(file_icon, dir_icon, symlink_icon)
         self.tree_filter_model = TreeFilterProxyModel()
         self.tree_filter_model.setSourceModel(self.tree_model)
@@ -953,8 +956,6 @@ class TreeWidget(RevisionTreeView):
         self.connect(self,
                      QtCore.SIGNAL("doubleClicked(QModelIndex)"),
                      self.do_default_action)
-        self.tree = None
-        self.branch = None
     
     def set_header_width_settings(self):
         header = self.header()
@@ -974,6 +975,10 @@ class TreeWidget(RevisionTreeView):
                              fm.width("88-88-8888 88:88") + col_margin)
         header.resizeSection(self.tree_model.AUTHOR,
                              fm.width("Joe I have a Long Name") + col_margin)        
+        if self.tree and isinstance(self.tree, WorkingTree):
+            header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.Stretch)
+            header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.ResizeToContents)        
+            
     
     def create_context_menu(self):
         self.context_menu = QtGui.QMenu(self)
@@ -1064,6 +1069,8 @@ class TreeWidget(RevisionTreeView):
             header.hideSection(self.tree_model.MESSAGE)
             header.hideSection(self.tree_model.AUTHOR)
             header.showSection(self.tree_model.STATUS)
+            header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.Stretch)
+            header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.ResizeToContents)        
             
             self.context_menu.setDefaultAction(self.action_open_file)
         else:
@@ -1072,6 +1079,8 @@ class TreeWidget(RevisionTreeView):
             header.showSection(self.tree_model.MESSAGE)
             header.showSection(self.tree_model.AUTHOR)
             header.hideSection(self.tree_model.STATUS)
+            header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.ResizeToContents)
+            header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.Stretch)        
             
             self.context_menu.setDefaultAction(self.action_show_file)
     
