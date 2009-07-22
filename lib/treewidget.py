@@ -534,7 +534,6 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def setData(self, index, value, role):
         
-        
         def set_checked(item_data, checked):
             old_checked = item_data.checked
             item_data.checked = checked
@@ -569,6 +568,10 @@ class TreeModel(QtCore.QAbstractItemModel):
             # Walk up the tree, and update every dir
             parent_data = item_data
             while parent_data.parent_id is not None:
+                if (not self.is_item_in_select_all(parent_data) and
+                        value == QtCore.Qt.Unchecked):
+                    # Don't uncheck parents if not in "select_all".
+                    break
                 parent_data = self.inventory_data[parent_data.parent_id]
                 has_checked = False
                 has_unchecked = False
@@ -706,7 +709,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     def get_repo(self):
         return self.branch.repository
     
-    def _item2ref(self, item_data):
+    def item2ref(self, item_data):
         if isinstance(item_data.item, UnversionedItem):
             file_id = None
         else:
@@ -715,7 +718,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def index2ref(self, index):
         item_data = self.inventory_data[index.internalId()]
-        return self._item2ref(item_data)
+        return self.item2ref(item_data)
     
     def indexes2refs(self, indexes):
         refs = []
@@ -747,7 +750,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                         parent_dir_path += "/" + parent_name
                     yield parent_dir_path
         
-        if key not in dict:
+        if key not in dict or dict[key].id is None:
             # Try loading the parents
             for parent_key in iter_parents():
                 if parent_key not in dict:
@@ -781,7 +784,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 self.load_dir(item_data.id)
             i += 1
         
-        return [self._item2ref(item_data)
+        return [self.item2ref(item_data)
                 for item_data in sorted(
                     [item_data for item_data in self.inventory_data[1:]
                      if item_data.checked == QtCore.Qt.Checked],
@@ -1116,9 +1119,10 @@ class TreeWidget(RevisionTreeView):
     
     def get_state(self):
         if self.tree_model.checkable:
-            checked = list(self.tree_model.iter_checked())
+            checked = [(self.tree_model.item2ref(item_data), item_data.checked)
+                       for item_data in self.tree_model.inventory_data[1:]]
         else:
-            checked = []
+            checked = None
         expanded = self.tree_model.indexes2refs(
                                             self.iter_expanded_indexes())
         selected = self.tree_model.indexes2refs(
@@ -1129,9 +1133,17 @@ class TreeWidget(RevisionTreeView):
         (checked, expanded, selected) = state
         self.tree.lock_read()
         try:
-            if self.tree_model.checkable:
-                self.tree_model.set_checked_items(checked,
-                                                  ignore_no_file_error=True)
+            if self.tree_model.checkable and checked is not None:
+                for (ref, state) in checked:
+                    if not state == QtCore.Qt.PartiallyChecked:
+                        try:
+                            index = self.tree_model.ref2index(ref)
+                            self.tree_model.setData(index,
+                                                    QtCore.QVariant(state),
+                                                    QtCore.Qt.CheckStateRole)
+                        except (errors.NoSuchId, errors.NoSuchFile):
+                            pass
+            
             self.set_expanded_indexes(
                 self.tree_model.refs2indexes(expanded,
                                              ignore_no_file_error=True))
