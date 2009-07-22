@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import os
+import os, sys
 from time import (strftime, localtime)
 from PyQt4 import QtCore, QtGui
 from bzrlib import errors
@@ -1083,6 +1083,22 @@ class TreeWidget(RevisionTreeView):
             header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.Stretch)        
             
             self.context_menu.setDefaultAction(self.action_show_file)
+        
+        if sys.platform.startswith("win"):
+            # This is to fix Bug 402276, where the treewidget does not get
+            # repainted when you scroll.
+            # (https://bugs.launchpad.net/qbzr/+bug/402276)
+            # I think that this is a bug with qt, and so this is just a work-
+            # arround. We should check when we bump the min qt version to 4.5 if
+            # we can take this out. I think it only happens on windows. This may
+            # need to be checked.
+            for row in range(len(
+                            self.tree_model.inventory_data[0].children_ids)):
+                index = self.tree_model.createIndex(row, self.tree_model.NAME,
+                                                    0)
+                self.tree_model.emit(
+                    QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                    index, index)
     
     def iter_expanded_indexes(self):
         parents_to_check = [QtCore.QModelIndex()]
