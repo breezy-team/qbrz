@@ -392,8 +392,8 @@ class CommitWindow(SubProcessDialog):
                      self.refresh)
 
         hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(self.refresh_button)
         hbox.addWidget(self.diffbuttons)
+        hbox.addWidget(self.refresh_button)
         hbox.addWidget(self.buttonbox)
         vbox.addLayout(hbox)
 
