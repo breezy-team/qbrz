@@ -586,9 +586,14 @@ class cmd_qpush(QBzrCommand):
         if directory is None:
             directory = u'.'
         
-        branch, relpath = Branch.open_containing(directory)
+        try:
+            tree_to = WorkingTree.open_containing(directory)[0]
+            branch_to = tree_to.branch
+        except errors.NoWorkingTree:
+            tree_to = None
+            branch_to = Branch.open_containing(directory)[0]
         app = QtGui.QApplication(sys.argv)
-        window = QBzrPushWindow(branch, location,
+        window = QBzrPushWindow(branch_to, tree_to, location=location,
                                 create_prefix=create_prefix,
                                 use_existing_dir=use_existing_dir,
                                 remember=remember,
