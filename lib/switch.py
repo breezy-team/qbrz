@@ -103,16 +103,8 @@ class QBzrSwitchWindow(SubProcessDialog):
         
         layout = QtGui.QVBoxLayout(self)
         
-        
-        self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
-        self.splitter.addWidget(gbSwitch)
-        
-        self.splitter.addWidget(self.make_default_status_box())
-        
-        self.splitter.setStretchFactor(0, 10)
-        self.restoreSplitterSizes([150, 150])
-        
-        layout.addWidget(self.splitter)
+        layout.addWidget(gbSwitch)
+        layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
        
         
@@ -145,4 +137,4 @@ class QBzrSwitchWindow(SubProcessDialog):
 
     def saveSize(self):
         SubProcessDialog.saveSize(self)
-        self.saveSplitterSizes()
+        #self.saveSplitterSizes()
