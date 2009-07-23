@@ -22,31 +22,24 @@
 
 from PyQt4 import QtCore, QtGui
 
+from bzrlib import errors
+
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-
 from bzrlib.plugins.qbzr.lib.util import (
     url_for_display,
     QBzrDialog,
     runs_in_loading_queue,
     ThrobberWidget
     )
-    
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-
 from bzrlib.plugins.qbzr.lib.trace import (
-
    reports_exception,
-
    SUB_LOAD_METHOD)
-
-from bzrlib import errors
 
 class QBzrSwitchWindow(SubProcessDialog):
 
-    def __init__(self, branch, ui_mode = None):#tree, selected_list, dialog=True, ui_mode=True, parent=None, local=None, message=None):
-        
-        
+    def __init__(self, branch, ui_mode = None):
         
         super(QBzrSwitchWindow, self).__init__(
                                   gettext("Switch Checkout to"),
@@ -100,8 +93,10 @@ class QBzrSwitchWindow(SubProcessDialog):
         
         layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
-        
-        
+
+    def show(self):
+        QBzrDialog.show(self)
+        QtCore.QTimer.singleShot(1000, self.initial_load)
 
     @runs_in_loading_queue
     @ui_current_widget
@@ -139,20 +134,11 @@ class QBzrSwitchWindow(SubProcessDialog):
             raise errors.BzrCommandError("Branch location not entered.")
         
         return True
-            
+    
     def start(self):        
-
         args = []
         
         location = str(self.branch_combo.currentText())
         mylocation =  url_for_display(self.branch.base)     
                             
         self.process_widget.start(None, 'switch', location, *args)
-        
-
-    def saveSize(self):
-        SubProcessDialog.saveSize(self)
-
-    def show(self):
-        QBzrDialog.show(self)
-        QtCore.QTimer.singleShot(1000, self.initial_load)
