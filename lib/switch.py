@@ -19,20 +19,20 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import os
-import re
+
 from PyQt4 import QtCore, QtGui
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.wtlist import (
-    ChangeDesc,
-    WorkingTreeFileList,
-    closure_in_selected_list,
-    )
-from bzrlib.plugins.qbzr.lib.util import url_for_display
 
-from bzrlib.branch import Branch
+from bzrlib.plugins.qbzr.lib.util import (
+    url_for_display,
+    QBzrDialog,
+    runs_in_loading_queue,
+    ThrobberWidget
+    )
+    
+from bzrlib.plugins.qbzr.lib.trace import reports_exception
 
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
@@ -42,7 +42,7 @@ from bzrlib.plugins.qbzr.lib.trace import (
 
    SUB_LOAD_METHOD)
 
-from bzrlib import errors, osutils
+from bzrlib import errors
 
 class QBzrSwitchWindow(SubProcessDialog):
 
@@ -66,28 +66,22 @@ class QBzrSwitchWindow(SubProcessDialog):
         
         switch_hbox = QtGui.QHBoxLayout(gbSwitch)
         
+        self.throbber = ThrobberWidget(self)
+        
         branch_label = QtGui.QLabel(gettext("Branch:"))
         branch_combo = QtGui.QComboBox()   
         branch_combo.setEditable(True)
+        branch_combo.hide()
         
         self.branch_combo = branch_combo
         
         repo = branch.bzrdir.find_repository()
-
-
-        repo = branch.bzrdir.find_repository()
         
         boundloc = branch.get_bound_location()
+        self.boundloc = boundloc
         if boundloc != None:
             branch_combo.addItem(url_for_display(boundloc))
-            
-        if repo != None:
-            branches = repo.find_branches()
-            for br in branches:
-                branch_combo.addItem(url_for_display(br.base))
-             
-        if boundloc == None:
-            branch_combo.clearEditText()
+
 
         browse_button = QtGui.QPushButton(gettext("Browse"))
         QtCore.QObject.connect(browse_button, QtCore.SIGNAL("clicked(bool)"), self.browse_clicked)
@@ -95,6 +89,7 @@ class QBzrSwitchWindow(SubProcessDialog):
                 
         switch_hbox.addWidget(branch_label)
         switch_hbox.addWidget(branch_combo)
+        switch_hbox.addWidget(self.throbber)
         switch_hbox.addWidget(browse_button)
         
         switch_hbox.setStretchFactor(branch_label,0)
@@ -103,49 +98,63 @@ class QBzrSwitchWindow(SubProcessDialog):
         
         layout = QtGui.QVBoxLayout(self)
         
+        layout.addWidget(gbSwitch)
         
-        self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
-        self.splitter.addWidget(gbSwitch)
-        
-        self.splitter.addWidget(self.make_default_status_box())
-        
-        self.splitter.setStretchFactor(0, 10)
-        self.restoreSplitterSizes([150, 150])
-        
-        layout.addWidget(self.splitter)
+        layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
-       
         
+        
+
+    @runs_in_loading_queue
+    @ui_current_widget
+    @reports_exception()
+    def initial_load(self):
+        
+        self.throbber.show()
+        branch_combo = self.branch_combo
+
+        repo = self.branch.bzrdir.find_repository()
+        
+        if repo != None:
+            branches = repo.find_branches()
+            for br in branches:
+                branch_combo.addItem(url_for_display(br.base))
+                
+        self.throbber.hide()
+        self.branch_combo.show()
+             
+        if self.boundloc == None:
+            branch_combo.clearEditText()
+
     def browse_clicked(self):
         fileName = QtGui.QFileDialog.getExistingDirectory(self, gettext("Select branch location"));
-        self.branch_combo.insertItem(0,fileName)
-        self.branch_combo.setCurrentIndex(0)
+        if fileName != '':
+            self.branch_combo.insertItem(0,fileName)
+            self.branch_combo.setCurrentIndex(0)
         
     @reports_exception(type=SUB_LOAD_METHOD)
     @ui_current_widget   
-    def start(self):        
-        error = []
-        
-        args = []
+    def validate(self):
         location = str(self.branch_combo.currentText())
        
         if(location == ''):
-            error.append("Fill in branch location")
-
+            raise errors.BzrCommandError("Branch location not entered.")
+        
+        return True
             
+    def start(self):        
+
+        args = []
+        
+        location = str(self.branch_combo.currentText())
         mylocation =  url_for_display(self.branch.base)     
                             
-        if len(error) > 0:            
-            msgBox = QtGui.QMessageBox(self)
-            text = "There are errors.\nPlease do the following actions in order to fix them."
-            text2 = "\n".join(error)
-            
-            raise errors.BzrCommandError("%s.\n%s" % (text,text2)
-                )
-            
         self.process_widget.start(None, 'switch', location, *args)
         
 
     def saveSize(self):
         SubProcessDialog.saveSize(self)
-        self.saveSplitterSizes()
+
+    def show(self):
+        QBzrDialog.show(self)
+        QtCore.QTimer.singleShot(1000, self.initial_load)
