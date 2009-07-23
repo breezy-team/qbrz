@@ -118,8 +118,9 @@ class QBzrSwitchWindow(SubProcessDialog):
         
     def browse_clicked(self):
         fileName = QtGui.QFileDialog.getExistingDirectory(self, gettext("Select branch location"));
-        self.branch_combo.insertItem(0,fileName)
-        self.branch_combo.setCurrentIndex(0)
+        if fileName != '':
+            self.branch_combo.insertItem(0,fileName)
+            self.branch_combo.setCurrentIndex(0)
         
     @reports_exception(type=SUB_LOAD_METHOD)
     @ui_current_widget   
