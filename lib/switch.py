@@ -19,20 +19,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import os
-import re
+
 from PyQt4 import QtCore, QtGui
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.wtlist import (
-    ChangeDesc,
-    WorkingTreeFileList,
-    closure_in_selected_list,
-    )
-from bzrlib.plugins.qbzr.lib.util import url_for_display
 
-from bzrlib.branch import Branch
+from bzrlib.plugins.qbzr.lib.util import url_for_display
 
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
@@ -42,7 +35,7 @@ from bzrlib.plugins.qbzr.lib.trace import (
 
    SUB_LOAD_METHOD)
 
-from bzrlib import errors, osutils
+from bzrlib import errors
 
 class QBzrSwitchWindow(SubProcessDialog):
 
@@ -126,7 +119,6 @@ class QBzrSwitchWindow(SubProcessDialog):
             
     def start(self):        
 
-        
         args = []
         
         location = str(self.branch_combo.currentText())
@@ -137,4 +129,3 @@ class QBzrSwitchWindow(SubProcessDialog):
 
     def saveSize(self):
         SubProcessDialog.saveSize(self)
-        #self.saveSplitterSizes()
