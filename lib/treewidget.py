@@ -24,7 +24,7 @@ from bzrlib import errors
 from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
 
-from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
+from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, QBzrViewWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.log import LogWindow
@@ -1212,12 +1212,12 @@ class TreeWidget(RevisionTreeView):
         
         selection_len = len(items)
         
-        single_versioned_file = (selection_len == 1 and versioned[0] and
-                                 items[0].item.kind == "file")
+        single_file = (selection_len == 1 and items[0].item.kind == "file")
+        single_versioned_file = (single_file and versioned[0])
         
         self.action_open_file.setEnabled(is_working_tree)
         self.action_open_file.setVisible(is_working_tree)
-        self.action_show_file.setEnabled(single_versioned_file)
+        self.action_show_file.setEnabled(single_file)
         self.action_show_annotate.setEnabled(single_versioned_file)
         self.action_show_log.setEnabled(any(versioned))
         self.action_show_diff.setVisible(is_working_tree)
@@ -1258,10 +1258,15 @@ class TreeWidget(RevisionTreeView):
         item = items[0]
         
         encoding = get_set_encoding(None, self.branch)
-        window = QBzrCatWindow(filename = item.path,
-                               tree = self.tree,
-                               parent=self,
-                               encoding=encoding)
+        if not isinstance(item.item, UnversionedItem):
+            window = QBzrCatWindow(filename = item.path,
+                                   tree = self.tree,
+                                   parent=self,
+                                   encoding=encoding)
+        else:
+            window = QBzrViewWindow(filename=item.path,
+                                    encoding=encoding,
+                                    parent=self)
         window.show()
         self.window().windows.append(window)
 

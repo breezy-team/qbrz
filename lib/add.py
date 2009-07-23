@@ -65,9 +65,13 @@ class AddWindow(SubProcessDialog):
             not item.change.is_versioned())
         
         def filter_context_menu():
+            items = self.filelist.get_selection_items()
+            single_file = (len(items) == 1 and items[0].item.kind == "file")
+            
             self.filelist.action_open_file.setEnabled(True)
             self.filelist.action_open_file.setVisible(True)
-            self.filelist.action_show_file.setVisible(False)
+            self.filelist.action_show_file.setEnabled(single_file)
+            self.filelist.action_show_file.setVisible(True)
             self.filelist.action_show_annotate.setVisible(False)
             self.filelist.action_show_log.setVisible(False)
             self.filelist.action_show_diff.setVisible(False)
