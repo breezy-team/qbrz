@@ -63,7 +63,7 @@ class UnversionedItem(InternalItem):
 
 class ModelItemData():
     __slots__ = ["id", "item", "change", "checked", "children_ids",
-                 "parent_id", "row", "path"]
+                 "parent_id", "row", "path", "icon"]
     
     def __init__(self, item, change, path):
         self.item = item
@@ -78,6 +78,7 @@ class ModelItemData():
         self.parent_id = None
         self.id = None
         self.row = None
+        self.icon = None
 
 class PersistantItemReference(object):
     """This is use to stores a reference to a item that is persisted when we
@@ -217,17 +218,19 @@ class TreeModel(QtCore.QAbstractItemModel):
                      gettext("Status")]
     NAME, DATE, REVNO, MESSAGE, AUTHOR, STATUS = range(len(HEADER_LABELS))
 
-    def __init__(self, file_icon, dir_icon, symlink_icon, parent=None):
+    def __init__(self, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
 
-        self.file_icon = file_icon
-        self.dir_icon = dir_icon
-        self.symlink_icon = symlink_icon
+        style = parent.style()
+        self.file_icon = style.standardIcon(QtGui.QStyle.SP_FileIcon)
+        self.dir_icon = style.standardIcon(QtGui.QStyle.SP_DirIcon)
+        self.symlink_icon = style.standardIcon(QtGui.QStyle.SP_FileLinkIcon)
         self.tree = None
         self.inventory_data = []
         self.inventory_data_by_path = {}
         self.inventory_data_by_id = {} # Will not contain unversioned items.
         self.checkable = False
+        self.icon_provider = QtGui.QFileIconProvider()
     
     def set_tree(self, tree, branch=None, 
                  changes_mode=False, want_unversioned=True,
@@ -635,13 +638,21 @@ class TreeModel(QtCore.QAbstractItemModel):
             if role == QtCore.Qt.DisplayRole:
                 return QtCore.QVariant(item.name)
             if role == QtCore.Qt.DecorationRole:
-                if item.kind == "file":
-                    return QtCore.QVariant(self.file_icon)
-                if item.kind == "directory":
-                    return QtCore.QVariant(self.dir_icon)
-                if item.kind == "symlink":
-                    return QtCore.QVariant(self.symlink_icon)
-                return QtCore.QVariant()
+                if isinstance(self.tree, WorkingTree):
+                    if item_data.icon is None:
+                        abspath = self.tree.abspath(item_data.path)
+                        info = QtCore.QFileInfo(abspath)
+                        item_data.icon = self.icon_provider.icon(info)
+                    return QtCore.QVariant(item_data.icon)
+                else:
+                    if item.kind == "file":
+                        return QtCore.QVariant(self.file_icon)
+                    if item.kind == "directory":
+                        return QtCore.QVariant(self.dir_icon)
+                    if item.kind == "symlink":
+                        return QtCore.QVariant(self.symlink_icon)
+                    return QtCore.QVariant()
+            
             if role ==  QtCore.Qt.CheckStateRole:
                 if not self.checkable:
                     return QtCore.QVariant()
@@ -943,14 +954,10 @@ class TreeWidget(RevisionTreeView):
         
         self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         
-        file_icon = self.style().standardIcon(QtGui.QStyle.SP_FileIcon)
-        dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
-        symlink_icon = self.style().standardIcon(QtGui.QStyle.SP_FileLinkIcon)
-        
         self.tree = None
         self.branch = None
         
-        self.tree_model = TreeModel(file_icon, dir_icon, symlink_icon)
+        self.tree_model = TreeModel(self)
         self.tree_filter_model = TreeFilterProxyModel()
         self.tree_filter_model.setSourceModel(self.tree_model)
         self.setModel(self.tree_filter_model)
