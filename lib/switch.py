@@ -32,8 +32,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     ThrobberWidget
     )
     
-from bzrlib.plugins.qbzr.lib.trace import reports_exception
-
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 from bzrlib.plugins.qbzr.lib.trace import (
