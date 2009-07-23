@@ -123,26 +123,22 @@ class QBzrSwitchWindow(SubProcessDialog):
         
     @reports_exception(type=SUB_LOAD_METHOD)
     @ui_current_widget   
-    def start(self):        
-        error = []
-        
-        args = []
+    def validate(self):
         location = str(self.branch_combo.currentText())
        
         if(location == ''):
-            error.append("Fill in branch location")
-
+            raise errors.BzrCommandError("Branch location not entered.")
+        
+        return True
             
+    def start(self):        
+
+        
+        args = []
+        
+        location = str(self.branch_combo.currentText())
         mylocation =  url_for_display(self.branch.base)     
                             
-        if len(error) > 0:            
-            msgBox = QtGui.QMessageBox(self)
-            text = "There are errors.\nPlease do the following actions in order to fix them."
-            text2 = "\n".join(error)
-            
-            raise errors.BzrCommandError("%s.\n%s" % (text,text2)
-                )
-            
         self.process_widget.start(None, 'switch', location, *args)
         
 
