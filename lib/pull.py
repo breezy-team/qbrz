@@ -98,11 +98,12 @@ class QBzrPushWindow(SubProcessDialog):
 
     NAME = "push"
 
-    def __init__(self, branch, location=None,
+    def __init__(self, branch, tree=None, location=None,
                  create_prefix=None, use_existing_dir=None,
                  remember=None, overwrite=None, ui_mode=True, parent=None):
 
         self.branch = branch
+        self.tree = tree
         super(QBzrPushWindow, self).__init__(name = self.NAME,
                                              ui_mode = ui_mode,
                                              parent = parent)
@@ -137,7 +138,11 @@ class QBzrPushWindow(SubProcessDialog):
                                 DIRECTORYPICKER_TARGET)
 
     def start(self):
-        args = ['--directory', self.branch.base]
+        if self.tree:
+            dest = self.tree.basedir
+        else:
+            dest = self.branch.base
+        args = ['--directory', dest]
         if self.ui.overwrite.isChecked():
             args.append('--overwrite')
         if self.ui.remember.isChecked():
