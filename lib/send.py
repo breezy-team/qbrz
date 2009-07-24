@@ -109,15 +109,8 @@ class SendWindow(SubProcessDialog):
         vboxMergeDirective.addWidget(remember_check)
         
         
-        revisions_hbox = QtGui.QHBoxLayout()
-        revisions_label = QtGui.QLabel(gettext("Revisions:"))
-        revisions_edit = QtGui.QLineEdit()
-        self.revisions_edit = revisions_edit
         
-        revisions_hbox.addWidget(revisions_label)
-        revisions_hbox.addWidget(revisions_edit)
-        
-        vboxMergeDirective.addLayout(revisions_hbox)
+        #vboxMergeDirective.addLayout(revisions_hbox)
         
         bundle_check = QtGui.QCheckBox(gettext("Include a bundle in the merge directive"))
         bundle_check.setChecked(True)
@@ -185,6 +178,16 @@ class SendWindow(SubProcessDialog):
         
         vboxAction.addLayout(savefile_hbox)
                 
+        
+        revisions_hbox = QtGui.QHBoxLayout()
+        revisions_label = QtGui.QLabel(gettext("Revisions:"))
+        revisions_edit = QtGui.QLineEdit()
+        self.revisions_edit = revisions_edit
+        
+        revisions_hbox.addWidget(revisions_label)
+        revisions_hbox.addWidget(revisions_edit)
+
+        vboxAction.addLayout(revisions_hbox)
         
         layout = QtGui.QVBoxLayout(self)
         
