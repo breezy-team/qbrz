@@ -101,8 +101,8 @@ def check_encoding(encoding):
 
 class PyQt4NotInstalled(errors.BzrError):
 
-    _fmt = ('QBzr require at least PyQt 4.1 and '
-            'Qt 4.2 to run. Please check your install')
+    _fmt = ('QBzr require at least PyQt 4.4 and '
+            'Qt 4.4 to run. Please check your install')
 
 
 def report_missing_pyqt(unbound):
