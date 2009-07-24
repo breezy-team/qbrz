@@ -745,7 +745,7 @@ class cmd_qsubprocess(Command):
             thread.start_new_thread(self.__win32_ctrl_c, ())
         else:
             signal.signal(signal.SIGINT, sigabrt_handler)
-        ui.ui_factory = SubprocessUIFactory()
+        ui.ui_factory = SubprocessUIFactory(sys.stdin, sys.stdout, sys.stderr)
         if cmd.startswith('@'):
             fname = cmd[1:]
             f = open(fname, 'rb')

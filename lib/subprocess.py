@@ -27,7 +27,7 @@ import tempfile
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import osutils, progress, ui, errors
+from bzrlib import osutils, progress, errors
 
 try:
     # this works with bzr 1.16+
@@ -574,6 +574,14 @@ class SubProcessWidget(QtGui.QWidget):
 
 class SubprocessProgressView (TextProgressView):
     
+    def __init__(self, term_file):
+        TextProgressView.__init__(self, term_file)
+        # The TextProgressView does not show the transport activity untill
+        # there was a progress update. This changed becuse showing the
+        # transport activity before a progress update would cause artifactes to
+        # remain on the screen. We don't have to worry about that
+        self._have_output = True
+    
     def _repaint(self):
         if self._last_task:
             task_msg = self._format_task(self._last_task)
@@ -591,37 +599,24 @@ class SubprocessProgressView (TextProgressView):
         self._term_file.write('qbzr:PROGRESS:' + bencode.bencode((progress,
                               trans, task_msg)) + '\n')
         self._term_file.flush()
+    
+    def clear(self):
+        pass
 
 
-class SubprocessUIFactory(ui.CLIUIFactory):
+class SubprocessUIFactory(TextUIFactory):
 
     def __init__(self, stdin=None, stdout=None, stderr=None):
         
-        ui.CLIUIFactory.__init__(self, stdin=None, stdout=None, stderr=None)
+        TextUIFactory.__init__(self, stdin=stdin, stdout=stdout, stderr=stderr)
         
-        self._progress_view = SubprocessProgressView(self.stdout)
+        # This is to be compatabile with bzr < rev 4558
+        if not hasattr(TextUIFactory, "make_progress_view"):
+            self._progress_view = SubprocessProgressView(self.stdout)
     
-    def report_transport_activity(self, transport, byte_count, direction):
-        """Called by transports as they do IO.
+    def make_progress_view(self):
+        return SubprocessProgressView(self.stdout)
 
-        This may update a progress bar, spinner, or similar display.
-        By default it does nothing.
-        """
-        if getattr(self._progress_view,
-                   "show_transport_activity",
-                   None) is not None:
-            self._progress_view.show_transport_activity(transport, 
-                direction, byte_count)
-        else:
-            # This is to be compatable with bzr < rev 4454
-            self._progress_view._show_transport_activity(transport, 
-                direction, byte_count)
-
-    def _progress_updated(self, task):
-        """A task has been updated and wants to be displayed.
-        """
-        self._progress_view.show_progress(task)
-    
     def clear_term(self):
         """Prepare the terminal for output.
 
