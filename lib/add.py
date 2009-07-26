@@ -126,12 +126,12 @@ class AddWindow(SubProcessDialog):
             initial_checked_paths=self.initial_selected_list) 
         self.throbber.hide()
 
-    def start(self):
+    def do_start(self):
         """Add the files."""
         files = [ref.path for ref in self.filelist.tree_model.iter_checked()]
         
-        self.process_widget.start(self.tree.basedir, "add", "--no-recurse",
-                                  *files)
+        self.process_widget.do_start(self.tree.basedir, "add", "--no-recurse",
+            *files)
 
     def show_ignored(self, state):
         """Show/hide ignored files."""

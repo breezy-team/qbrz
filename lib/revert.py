@@ -252,7 +252,7 @@ class RevertWindow(SubProcessDialog):
                 "You have not selected anything to revert.")
         return True
     
-    def start(self):
+    def do_start(self):
         """Revert the files."""
         args = ["revert"]
         if (not self.has_pending_merges or
@@ -268,7 +268,7 @@ class RevertWindow(SubProcessDialog):
         
         if self.no_backup_checkbox.checkState():
             args.append("--no-backup")
-        self.process_widget.start(self.tree.basedir, *args)
+        self.process_widget.do_start(self.tree.basedir, *args)
 
     def saveSize(self):
         SubProcessDialog.saveSize(self)
