@@ -503,7 +503,7 @@ class SubProcessWidget(QtGui.QWidget):
                     self.stdout.write("\n")
     
     def readStderr(self):
-        data = str(self.process.readAllStandardError()).decode(self.encoding)
+        data = str(self.process.readAllStandardError()).decode(self.encoding, 'replace')
         if data:
             self.emit(QtCore.SIGNAL("error()"))
         
