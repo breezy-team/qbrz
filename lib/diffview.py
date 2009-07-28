@@ -362,7 +362,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                     if self.show_intergroup_colors:
                         format.setBackground(brushes[tag][0])
                     else:
-                        format.setBackground(QtGui.QColor.fromRgb(180, 210, 250))
+                        format.setBackground(interline_changes_background)
             
             split_words = re.compile(r"\w+|\n\r|\r\n|\W")
             def insertIxsWithChangesHighlighted(ixs):

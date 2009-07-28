@@ -37,13 +37,13 @@ from bzrlib.plugins.qbzr.lib.trace import (
    reports_exception,
    SUB_LOAD_METHOD)
 
-class QBzrBindDialog(SubProcessDialog):
+class QBzrSwitchWindow(SubProcessDialog):
 
     def __init__(self, branch, ui_mode = None):
         
-        super(QBzrBindDialog, self).__init__(
-                                  gettext("Bind branch"),
-                                  name = "bind",
+        super(QBzrSwitchWindow, self).__init__(
+                                  gettext("Switch Checkout to"),
+                                  name = "switch",
                                   default_size = (400, 400),
                                   ui_mode = ui_mode,
                                   dialog = True,
@@ -53,46 +53,71 @@ class QBzrBindDialog(SubProcessDialog):
             
         self.branch = branch
         
-        gbBind = QtGui.QGroupBox(gettext("Bind branch"), self)
+        gbSwitch = QtGui.QGroupBox(gettext("Switch Checkout to"), self)
         
-        bind_hbox = QtGui.QHBoxLayout(gbBind)
+        switch_hbox = QtGui.QHBoxLayout(gbSwitch)
         
-        branch_label = QtGui.QLabel(gettext("Bind to:"))
+        self.throbber = ThrobberWidget(self)
+        
+        branch_label = QtGui.QLabel(gettext("Branch:"))
         branch_combo = QtGui.QComboBox()   
         branch_combo.setEditable(True)
+        branch_combo.hide()
         
         self.branch_combo = branch_combo
         
         repo = branch.bzrdir.find_repository()
         
-        boundloc = branch.get_old_bound_location()
+        boundloc = branch.get_bound_location()
+        self.boundloc = boundloc
         if boundloc != None:
             branch_combo.addItem(url_for_display(boundloc))
-                
-        if boundloc == None:
-            branch_combo.clearEditText()
-            
-        
+
+
         browse_button = QtGui.QPushButton(gettext("Browse"))
         QtCore.QObject.connect(browse_button, QtCore.SIGNAL("clicked(bool)"), self.browse_clicked)
         
                 
-        bind_hbox.addWidget(branch_label)
-        bind_hbox.addWidget(branch_combo)
-        bind_hbox.addWidget(browse_button)
+        switch_hbox.addWidget(branch_label)
+        switch_hbox.addWidget(branch_combo)
+        switch_hbox.addWidget(self.throbber)
+        switch_hbox.addWidget(browse_button)
         
-        bind_hbox.setStretchFactor(branch_label,0)
-        bind_hbox.setStretchFactor(branch_combo,1)
-        bind_hbox.setStretchFactor(browse_button,0)
+        switch_hbox.setStretchFactor(branch_label,0)
+        switch_hbox.setStretchFactor(branch_combo,1)
+        switch_hbox.setStretchFactor(browse_button,0)
         
         layout = QtGui.QVBoxLayout(self)
         
-        layout.addWidget(gbBind)
+        layout.addWidget(gbSwitch)
         
         layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
 
+    def show(self):
+        QBzrDialog.show(self)
+        QtCore.QTimer.singleShot(1000, self.initial_load)
 
+    @runs_in_loading_queue
+    @ui_current_widget
+    @reports_exception()
+    def initial_load(self):
+        
+        self.throbber.show()
+        branch_combo = self.branch_combo
+
+        repo = self.branch.bzrdir.find_repository()
+        
+        if repo != None:
+            branches = repo.find_branches()
+            for br in branches:
+                branch_combo.addItem(url_for_display(br.base))
+                
+        self.throbber.hide()
+        self.branch_combo.show()
+             
+        if self.boundloc == None:
+            branch_combo.clearEditText()
 
     def browse_clicked(self):
         fileName = QtGui.QFileDialog.getExistingDirectory(self, gettext("Select branch location"));
@@ -110,10 +135,10 @@ class QBzrBindDialog(SubProcessDialog):
         
         return True
     
-    def do_start(self):        
+    def start(self):        
         args = []
         
         location = str(self.branch_combo.currentText())
         mylocation =  url_for_display(self.branch.base)     
                             
-        self.process_widget.do_start(None, 'bind', location, *args)
+        self.process_widget.start(None, 'switch', location, *args)

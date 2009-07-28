@@ -45,6 +45,9 @@ class DummySpellChecker(object):
 
     def check(self, text):
         return []
+    
+    def suggest(self, text):
+        return []
 
     @classmethod
     def list_languages(cls):

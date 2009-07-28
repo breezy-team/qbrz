@@ -243,6 +243,7 @@ class QBzrGlobalConfig(IniBasedConfig):
         self._get_parser().write(f)
         f.close()
 
+
 class _QBzrWindowBase:
 
     def set_title(self, title=None):
@@ -268,11 +269,11 @@ class _QBzrWindowBase:
         """
         ROLES = {
             BTN_OK: (QtGui.QDialogButtonBox.AcceptRole,
-                "accepted()", "accept"),
+                "accepted()", "do_accept"),
             BTN_CANCEL: (QtGui.QDialogButtonBox.RejectRole,
-                "rejected()", "reject"),
+                "rejected()", "do_reject"),
             BTN_CLOSE: (QtGui.QDialogButtonBox.RejectRole,
-                "rejected()", "close"),
+                "rejected()", "do_close"),
             # XXX support for HelpRole
             }
         buttonbox = QtGui.QDialogButtonBox(self)
@@ -369,6 +370,10 @@ class _QBzrWindowBase:
         if self.closing:
             raise trace.StopException()
 
+    def do_close(self):
+        self.close()
+
+
 class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
 
     def __init__(self, title=None, parent=None, centralwidget=None, ui_mode=True):
@@ -384,6 +389,7 @@ class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
         self.windows = []
         self.closing = False
 
+
 class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
 
     def __init__(self, title=None, parent=None, ui_mode=True):
@@ -395,6 +401,13 @@ class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
         self.windows = []
         self.closing = False
 
+    def do_accept(self):
+        self.accept()
+
+    def do_reject(self):
+        self.reject()
+
+
 throber_movie = None
 
 class ThrobberWidget(QtGui.QWidget):
@@ -404,7 +417,6 @@ class ThrobberWidget(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         self.create_ui()
         self.num_show = 0
-        
         
         # create a timer that displays our window after the timeout.
         #QtCore.QTimer.singleShot(timeout, self.show)
@@ -446,6 +458,7 @@ class ThrobberWidget(QtGui.QWidget):
         # and show ourselves.
         QtGui.QWidget.show(self)
         self.num_show += 1
+
 
 # Helpers for directory pickers.
 # We use these items both as 'flags' and as titles!
@@ -505,7 +518,10 @@ def quote_tag(tag):
 
 def format_revision_html(rev, search_replace=None, show_timestamp=False):
     props = []
-    props.append((gettext("Revision:"), "%s revid:%s" % (rev.revno, rev.revision_id)))
+    if hasattr(rev, "revno"):
+        props.append((gettext("Revision:"), "%s revid:%s" % (rev.revno, rev.revision_id)))
+    else:
+        props.append((gettext("Revision:"), "revid:%s" % (rev.revision_id)))
 
     def short_text(summary, length):
         if len(summary) > length:
@@ -553,7 +569,7 @@ def format_revision_html(rev, search_replace=None, show_timestamp=False):
     bugs = []
     for bug in rev.properties.get('bugs', '').split('\n'):
         if bug:
-            url, status = bug.split(' ')
+            url, space, status = bug.partition(' ')
             bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
                 dict(url=url, status=gettext(status))))
     if bugs:
@@ -888,6 +904,7 @@ def is_binary_content(lines):
             return True
     return False
 
+
 class BackgroundJob(object):
     
     def __init__(self, parent):
@@ -927,6 +944,7 @@ class BackgroundJob(object):
         if self.stoping:
             self.stoping = False
             raise trace.StopException()
+
 
 loading_queue = None
 

@@ -74,6 +74,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     open_tree,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import QUIFactory
+from bzrlib.plugins.qbzr.lib.send import SendWindow
 ''')
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
@@ -100,8 +101,8 @@ def check_encoding(encoding):
 
 class PyQt4NotInstalled(errors.BzrError):
 
-    _fmt = ('QBzr require at least PyQt 4.1 and '
-            'Qt 4.2 to run. Please check your install')
+    _fmt = ('QBzr require at least PyQt 4.4 and '
+            'Qt 4.4 to run. Please check your install')
 
 
 def report_missing_pyqt(unbound):
@@ -585,9 +586,14 @@ class cmd_qpush(QBzrCommand):
         if directory is None:
             directory = u'.'
         
-        branch, relpath = Branch.open_containing(directory)
+        try:
+            tree_to = WorkingTree.open_containing(directory)[0]
+            branch_to = tree_to.branch
+        except errors.NoWorkingTree:
+            tree_to = None
+            branch_to = Branch.open_containing(directory)[0]
         app = QtGui.QApplication(sys.argv)
-        window = QBzrPushWindow(branch, location,
+        window = QBzrPushWindow(branch_to, tree_to, location=location,
                                 create_prefix=create_prefix,
                                 use_existing_dir=use_existing_dir,
                                 remember=remember,
@@ -739,15 +745,19 @@ class cmd_qsubprocess(Command):
             thread.start_new_thread(self.__win32_ctrl_c, ())
         else:
             signal.signal(signal.SIGINT, sigabrt_handler)
-        ui.ui_factory = SubprocessUIFactory()
+        ui.ui_factory = SubprocessUIFactory(sys.stdin, sys.stdout, sys.stderr)
         if cmd.startswith('@'):
             fname = cmd[1:]
             f = open(fname, 'rb')
             try:
-                cmd = f.read()
+                cmd_utf8 = f.read()
             finally:
                 f.close()
-        argv = [p.decode('utf8') for p in shlex.split(cmd.encode('utf8'))]
+        else:
+            cmd_utf8 = cmd.encode('utf8')
+        # XXX use bencode to avoid shlex, because it does not like backslashes
+        #     and therefore problematic on Windows.
+        argv = [p.decode('utf8') for p in shlex.split(cmd_utf8)]
         commands.run_bzr(argv)
 
 
@@ -842,7 +852,6 @@ class cmd_qviewer(QBzrCommand):
         window.show()
         app.exec_()
 
-
 class cmd_qversion(QBzrCommand):
     """Show version/system information."""
     takes_args = []
@@ -873,6 +882,37 @@ class cmd_qupdate(QBzrCommand):
         window.show()
         application.exec_()
 
+class cmd_qsend(QBzrCommand):
+    """Dialog for creating and sending patches and bundles"""
+    
+    encoding_type = 'exact'
+
+    takes_args = ['submit_branch?', 'public_branch?']
+    
+    def _qbzr_run(self, submit_branch=".", public_branch=None):
+        branch = Branch.open_containing(submit_branch)[0]
+        
+        app = QtGui.QApplication(sys.argv)
+        window = SendWindow(branch)
+
+        window.show()
+
+        app.exec_()
+
+class cmd_qswitch(QBzrCommand):
+    takes_args = ['location?']
+    takes_options = [ui_mode_option]
+    
+    def _qbzr_run(self, location=None, ui_mode=False):
+        from bzrlib.plugins.qbzr.lib.switch import QBzrSwitchWindow
+        
+        application = QtGui.QApplication(sys.argv)
+        branch = Branch.open_containing(location)[0]
+        
+        window = QBzrSwitchWindow(branch, ui_mode)
+        window.show()
+        application.exec_() 
+
 class cmd_qbind(QBzrCommand):
     """Convert the current branch into a checkout of the supplied branch."""
     
@@ -889,4 +929,4 @@ class cmd_qbind(QBzrCommand):
         window.show()
         application.exec_()        
     
-    
+
