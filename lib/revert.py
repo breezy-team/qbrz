@@ -281,7 +281,7 @@ class RevertWindow(SubProcessDialog):
         @param  dialog_action:  purpose of parent window (main action)
         """
         # XXX make this function universal for both qcommit and qrevert (?)
-        checked = [ref.path for ref in self.filelist.iter_checked()]
+        checked = [ref.path for ref in self.filelist.tree_model.iter_checked()]
 
         if checked:
             arg_provider = InternalWTDiffArgProvider(

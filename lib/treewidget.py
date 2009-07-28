@@ -57,9 +57,11 @@ class InternalItem():
     
     revision = property(lambda self:None)
 
+
 class UnversionedItem(InternalItem):
     def __init__(self, name, kind):
         InternalItem.__init__(self, name, kind, None)
+
 
 class ModelItemData():
     __slots__ = ["id", "item", "change", "checked", "children_ids",
@@ -80,6 +82,7 @@ class ModelItemData():
         self.row = None
         self.icon = None
 
+
 class PersistantItemReference(object):
     """This is use to stores a reference to a item that is persisted when we
     refresh the model."""
@@ -88,6 +91,7 @@ class PersistantItemReference(object):
     def __init__(self, file_id, path):
         self.file_id = file_id
         self.path = path
+
 
 class ChangeDesc(tuple):
     """Helper class that "knows" about internals of iter_changes' changed entry
@@ -823,6 +827,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         return self.set_checked_items([PersistantItemReference(None, path)
                                        for path in paths])
 
+
 class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     source_model = None
     
@@ -904,7 +909,6 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
                     return True
         
         return False
-    
     
     def on_revisions_loaded(self, revisions, last_call):
         self.source_model.on_revisions_loaded(revisions, last_call)
