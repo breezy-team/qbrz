@@ -135,10 +135,10 @@ class QBzrSwitchWindow(SubProcessDialog):
         
         return True
     
-    def start(self):        
+    def do_start(self):        
         args = []
         
         location = str(self.branch_combo.currentText())
         mylocation =  url_for_display(self.branch.base)     
                             
-        self.process_widget.start(None, 'switch', location, *args)
+        self.process_widget.do_start(None, 'switch', location, *args)

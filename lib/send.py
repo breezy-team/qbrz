@@ -235,7 +235,7 @@ class SendWindow(SubProcessDialog):
             raise errors.BzrCommandError("No submit branch entered.")
         return True
     
-    def start(self):
+    def do_start(self):
         args = []
         submit_branch = str(self.submit_branch_combo.currentText())
         public_branch = str(self.public_branch_combo.currentText())
@@ -275,7 +275,7 @@ class SendWindow(SubProcessDialog):
         else:
             args.append("--revision=%s" % revision)
             
-        self.process_widget.start(None, 'send', submit_branch, *args)
+        self.process_widget.do_start(None, 'send', submit_branch, *args)
 
     def saveSize(self):
         SubProcessDialog.saveSize(self)
