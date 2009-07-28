@@ -911,3 +911,17 @@ class cmd_qswitch(QBzrCommand):
         window = QBzrSwitchWindow(branch, ui_mode)
         window.show()
         application.exec_() 
+
+class cmd_qexport(QBzrCommand):
+    takes_args = ['dest?','location?']
+    takes_options = [ui_mode_option]
+    
+    def _qbzr_run(self, dest=None, location=None, ui_mode=False):
+        from bzrlib.plugins.qbzr.lib.export import QBzrExportDialog
+        
+        application = QtGui.QApplication(sys.argv)
+        branch = Branch.open_containing(location)[0]
+        
+        window = QBzrExportDialog(dest, branch, ui_mode)
+        window.show()
+        application.exec_() 
