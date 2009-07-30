@@ -690,11 +690,11 @@ class cmd_merge(bzrlib.builtins.cmd_merge, DiffArgProvider):
             if self.tt:
                 self.tt.finalize()
 
-    def _do_preview(self, merger):
+    def _do_preview(self, merger, *args, **kw):
         if self.qpreview:
             self._do_qpreview(merger)
         else:
-            bzrlib.builtins.cmd_merge._do_preview(self, merger)
+            bzrlib.builtins.cmd_merge._do_preview(self, merger, *args, **kw)
 
 
 class cmd_qbzr(QBzrCommand):
