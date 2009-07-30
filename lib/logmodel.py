@@ -56,6 +56,7 @@ _bug_id_re = lazy_regex.lazy_compile(r'(?:'
     r'|DispForm.aspx\?ID='      # Microsoft SharePoint URL
     r'|default.asp\?'           # Fogbugz URL
     r'|issue'                   # Roundup issue tracker URL
+    r'|bugs/view.php\?id='      # Mantis bug tracker URL
     r')(\d+)(?:\b|$)')
 
 
