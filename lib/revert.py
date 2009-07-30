@@ -121,7 +121,7 @@ class RevertWindow(SubProcessDialog):
         
         # groupbox gets disabled as we are executing.
         QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessStarted(bool)"),
+                               QtCore.SIGNAL("disableUi(bool)"),
                                self.file_groupbox,
                                QtCore.SLOT("setDisabled(bool)"))
 

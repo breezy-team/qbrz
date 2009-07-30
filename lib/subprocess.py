@@ -171,6 +171,7 @@ class SubProcessWindowBase:
                 return
             
             self.emit(QtCore.SIGNAL("subprocessStarted(bool)"), True)
+            self.emit(QtCore.SIGNAL("disableUi(bool)"), True)
             self.do_start()
     
     def do_start(self):
@@ -190,16 +191,19 @@ class SubProcessWindowBase:
             self.setResult(QtGui.QDialog.Accepted)
         
         self.emit(QtCore.SIGNAL("subprocessFinished(bool)"), True)
+        self.emit(QtCore.SIGNAL("disableUi(bool)"), False)
 
         if not self.ui_mode:
             self.close()
 
     def on_failed(self):
         self.emit(QtCore.SIGNAL("subprocessFailed(bool)"), False)
-    
+        self.emit(QtCore.SIGNAL("disableUi(bool)"), False)
+
     def on_error(self):
         self.emit(QtCore.SIGNAL("subprocessError(bool)"), False)
-    
+        self.emit(QtCore.SIGNAL("disableUi(bool)"), False)
+
     def setupUi(self, ui):
         ui.setupUi(self)
         if self._restore_size:

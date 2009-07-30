@@ -88,6 +88,7 @@ class QBzrInitWindow(SubProcessDialog):
 
         self.process_widget.do_start(None, *args)
 
+
 # TODO: Move this to the 'utils' module - but let's wait until we have another
 # user for this function, and we can see if it makes more sense to just
 # pass the command and option names rather than the option object itself?

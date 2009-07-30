@@ -94,7 +94,7 @@ class AddWindow(SubProcessDialog):
         
         # groupbox gets disabled as we are executing.
         QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessStarted(bool)"),
+                               QtCore.SIGNAL("disableUi(bool)"),
                                groupbox,
                                QtCore.SLOT("setDisabled(bool)"))
 

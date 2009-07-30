@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/pull.ui'
 #
-# Created: Fri Sep 19 16:13:35 2008
-#      by: PyQt4 UI code generator 4.4.2
+# Created: Thu Jul 30 12:04:45 2009
+#      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -53,7 +53,7 @@ class Ui_PullForm(object):
         self.label_3.setBuddy(self.revision)
 
         self.retranslateUi(PullForm)
-        QtCore.QObject.connect(PullForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.groupBox.setDisabled)
+        QtCore.QObject.connect(PullForm, QtCore.SIGNAL("disableUi(bool)"), self.groupBox.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(PullForm)
 
     def retranslateUi(self, PullForm):
