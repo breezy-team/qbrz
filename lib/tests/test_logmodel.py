@@ -50,6 +50,7 @@ class TestGetBugId(TestCase):
 
     def test_mantis(self):
         self.assertEquals('7721', get_bug_id('http://www.mantisbt.org/bugs/view.php?id=7721'))
+        self.assertEquals('123', get_bug_id('http://localhost/view.php?id=123'))
 
 
 class TestQVariantFromList(TestCase):
