@@ -19,7 +19,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import re
 from PyQt4 import QtCore, QtGui
 
 from bzrlib import errors
@@ -28,7 +27,7 @@ from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import url_for_display
 
 class QBzrExportDialog(SubProcessDialog):
-
+    
     def __init__(self, dest, branch, ui_mode):
         
         
@@ -49,146 +48,167 @@ class QBzrExportDialog(SubProcessDialog):
         self.branch = branch
         
         
-        gbExportDestination = QtGui.QGroupBox(gettext("Export destination"), self)
+        gbExportDestination = QtGui.QGroupBox(gettext("Export"), self)
         vboxExportDestination = QtGui.QVBoxLayout(gbExportDestination)
         vboxExportDestination.addStrut(0)
         
-        location_hbox = QtGui.QHBoxLayout()
+        info_hbox = QtGui.QHBoxLayout()
+        info_label = QtGui.QLabel(gettext("Branch: %s") % url_for_display(branch.base))
+        info_hbox.addWidget(info_label)
         
-        location_label = QtGui.QLabel(gettext("Location:"))
-        location_edit = QtGui.QLineEdit()
-           
-        
-        
-        #submitbranch = branch.get_submit_branch()
-        #if submitbranch != None:
-        #    submit_branch_combo.addItem(submitbranch)
-            
-        self.location_edit = location_edit # to allow access from another function     
-        browse_button = QtGui.QPushButton(gettext("Browse"))
-        QtCore.QObject.connect(browse_button, QtCore.SIGNAL("clicked(bool)"), self.browse_submit_clicked)
-                    
-        location_hbox.addWidget(location_label)
-        location_hbox.addWidget(location_edit)
-        location_hbox.addWidget(browse_button)
+        vboxExportDestination.addLayout(info_hbox)
         
         
-        location_hbox.setStretchFactor(location_label,0)
-        location_hbox.setStretchFactor(location_edit,1)
-        location_hbox.setStretchFactor(browse_button,0)
+        exportarch_radio = QtGui.QRadioButton("Export as archive")
+        exportarch_radio.setChecked(True)
+        self.exportarch_radio = exportarch_radio 
+        vboxExportDestination.addWidget(exportarch_radio)
+        locationfil_hbox = QtGui.QHBoxLayout()        
+        locationfil_label = QtGui.QLabel(gettext("Location:"))
+        locationfil_edit = QtGui.QLineEdit()
         
-        vboxExportDestination.addLayout(location_hbox)
+        
+        self.locationfil_edit = locationfil_edit
+        self.locationfil_edit = locationfil_edit # to allow access from another function     
+        browsefil_button = QtGui.QPushButton(gettext("Browse"))
+        QtCore.QObject.connect(browsefil_button, QtCore.SIGNAL("clicked(bool)"), self.browsefil_clicked)
+        QtCore.QObject.connect(locationfil_edit, QtCore.SIGNAL("editingFinished()"), self.updateformat)
         
         
+        locationfil_hbox.addSpacing(25)
+        locationfil_hbox.addWidget(locationfil_label)
+        locationfil_hbox.addWidget(locationfil_edit)
+        locationfil_hbox.addWidget(browsefil_button)
+        
+        locationfil_hbox.setStretchFactor(locationfil_label,0)
+        locationfil_hbox.setStretchFactor(locationfil_edit,1)
+        locationfil_hbox.setStretchFactor(browsefil_button,0)
+        
+        vboxExportDestination.addLayout(locationfil_hbox)
+        
+        folder_hbox = QtGui.QHBoxLayout()
+        folder_hbox.addSpacing(25)
+        folder_label = QtGui.QLabel(gettext("Root directory name"))
+        folder_edit = QtGui.QLineEdit()
+        self.folder_edit = folder_edit
+        
+        folder_hbox.addWidget(folder_label)
+        folder_hbox.addWidget(folder_edit)
+        
+        vboxExportDestination.addLayout(folder_hbox)
+
+
         format_hbox = QtGui.QHBoxLayout()
+        format_label = QtGui.QLabel(gettext("Archive type"))
+        format_combo = QtGui.QComboBox()
         
-        format_label = QtGui.QLabel(gettext("Format:"))
-        format_combo = QtGui.QComboBox()   
-        format_combo.addItem("dir")
-        format_combo.addItem("tar")
-        format_combo.addItem("tbz2")
-        format_combo.addItem("tgz")
-        format_combo.addItem("zip")
+        format_combo.insertItem(-1,"tar")
+        format_combo.insertItem(-1,"tbz2")
+        format_combo.insertItem(-1,"tgz")
+        format_combo.insertItem(-1,"zip")
+        self.format_combo = format_combo
         
-        
-        """publicbranch = branch.get_public_branch()
-        if publicbranch != None:
-            public_branch_combo.addItem(publicbranch)"""
-                
-        self.format_combo = format_combo # to allow access from another function      
-                    
+        format_hbox.addSpacing(25)
         format_hbox.addWidget(format_label)
         format_hbox.addWidget(format_combo)
-        
         format_hbox.setStretchFactor(format_label,0)
-        format_hbox.setStretchFactor(format_combo,0)
+        format_hbox.setStretchFactor(format_combo,1)
         
         vboxExportDestination.addLayout(format_hbox)
         
         
-        remember_check = QtGui.QCheckBox(gettext("Remember these locations as defaults"))
-        self.remember_check = remember_check
-        vboxExportDestination.addWidget(remember_check)
+
+        exportdir_radio = QtGui.QRadioButton("Export as directory")
+        self.exportdir_radio = exportdir_radio
+        vboxExportDestination.addWidget(exportdir_radio)
+        
+        locationdir_hbox = QtGui.QHBoxLayout()        
+        locationdir_edit = QtGui.QLineEdit()
+        self.locationdir_edit = locationdir_edit
+        self.locationdir_edit = locationdir_edit # to allow access from another function     
+        browsedir_button = QtGui.QPushButton(gettext("Browse"))
+        QtCore.QObject.connect(browsedir_button, QtCore.SIGNAL("clicked(bool)"), self.browsedir_clicked)
+                    
+        locationdir_hbox.addSpacing(25)
+        locationdir_hbox.addWidget(locationdir_edit)
+        locationdir_hbox.addWidget(browsedir_button)
+        
+
+        locationdir_hbox.setStretchFactor(locationdir_edit,1)
+        locationdir_hbox.setStretchFactor(browsedir_button,0)
+        
+        vboxExportDestination.addLayout(locationdir_hbox)
+
+        
+
+        gbExportOptions = QtGui.QGroupBox(gettext("Options"), self)
+        
+        vbxExportOptions = QtGui.QVBoxLayout(gbExportOptions)
         
         
         revisions_hbox = QtGui.QHBoxLayout()
-        revisions_label = QtGui.QLabel(gettext("Send revisions:"))
+        revisions_label = QtGui.QLabel(gettext("Revision"))
+        revisions_tip = QtGui.QRadioButton("Branch tip")
+        revisions_tip.setChecked(True)
+        self.revisions_tip = revisions_tip
+        
+        
+        revisions_hbox.addWidget(revisions_label)
+        revisions_hbox.addWidget(revisions_tip)
+        
+        revisions_hbox.setStretchFactor(revisions_label,0)
+        revisions_hbox.setStretchFactor(revisions_tip,1)
+        
+        vbxExportOptions.addLayout(revisions_hbox)
+        
+        revisions_hbox2 = QtGui.QHBoxLayout()
+        
+        revisions_other = QtGui.QRadioButton("Other")
+        self.revisions_other = revisions_other
         revisions_edit = QtGui.QLineEdit()
         self.revisions_edit = revisions_edit
         
-        revisions_hbox.addWidget(revisions_label)
-        revisions_hbox.addWidget(revisions_edit)
-        
-        vboxExportDestination.addLayout(revisions_hbox)
-        
-        nobundle_check = QtGui.QCheckBox(gettext("Do not include a bundle in the merge directive"))
-        self.nobundle_check = nobundle_check
-        vboxExportDestination.addWidget(nobundle_check)
-        nopatch_check = QtGui.QCheckBox(gettext("Do not include a preview patch in the merge directive"))
-        self.nopatch_check = nopatch_check
-        vboxExportDestination.addWidget(nopatch_check)
-        
-        message_hbox = QtGui.QHBoxLayout()
-        message_label = QtGui.QLabel(gettext("Message:"))
-        message_edit = QtGui.QLineEdit()
-        self.message_edit = message_edit
-        
-        message_hbox.addWidget(message_label)
-        message_hbox.addWidget(message_edit)
-        
-        vboxExportDestination.addLayout(message_hbox)
-        
-        ####
-        
-        gbAction = QtGui.QGroupBox(gettext("Action"), self)
-        vboxAction = QtGui.QVBoxLayout(gbAction)
-        
-        submit_email_radio = QtGui.QRadioButton("Send e-mail")
-        submit_email_radio.toggle()
-        self.submit_email_radio = submit_email_radio
-        vboxAction.addWidget(submit_email_radio)
+        revisions_hbox2.addSpacing(58)
+        revisions_hbox2.addWidget(revisions_other)
+        revisions_hbox2.addWidget(revisions_edit)
+        vbxExportOptions.addLayout(revisions_hbox2)
         
         
-        mailto_hbox = QtGui.QHBoxLayout()
-        
-        mailto_label = QtGui.QLabel(gettext("Mail to address:"))
-        mailto_edit = QtGui.QLineEdit()
-        self.mailto_edit = mailto_edit
-        mailto_hbox.insertSpacing(0,50)
-        mailto_hbox.addWidget(mailto_label)
-        mailto_hbox.addWidget(mailto_edit)
-        
-        vboxAction.addLayout(mailto_hbox)
         
         
-        save_file_radio = QtGui.QRadioButton("Save to file")
-        self.save_file_radio = save_file_radio
+        format_hbox = QtGui.QHBoxLayout()
+        format_label = QtGui.QLabel(gettext("File contents"))
+        format_canonical = QtGui.QRadioButton("Canonical form")
+        self.format_canonical = format_canonical
+        format_canonical.setChecked(True)
+
+        format_hbox.addWidget(format_label)
+        format_hbox.addWidget(format_canonical)
+        format_hbox.setStretchFactor(format_label,0)
+        format_hbox.setStretchFactor(format_canonical,1)
         
-        vboxAction.addWidget(save_file_radio)
+        vbxExportOptions.addLayout(format_hbox)
         
-        savefile_hbox = QtGui.QHBoxLayout()
+        format_hbox2 = QtGui.QHBoxLayout()
+        
+        format_other = QtGui.QRadioButton("Filtered form")
+        self.format_other = format_other
+        
+        format_hbox2.addSpacing(86)
+        format_hbox2.addWidget(format_other)
+        vbxExportOptions.addLayout(format_hbox2)
         
         
-        savefile_label = QtGui.QLabel(gettext("Filename:"))
-        savefile_edit = QtGui.QLineEdit()
-        self.savefile_edit = savefile_edit # to allow access from callback function
-        savefile_button = QtGui.QPushButton(gettext("Browse"))
-        QtCore.QObject.connect(savefile_button, QtCore.SIGNAL("clicked(bool)"), self.savefile_button_clicked)
-        
-        savefile_hbox.insertSpacing(0,50)
-        savefile_hbox.addWidget(savefile_label)
-        savefile_hbox.addWidget(savefile_edit)
-        savefile_hbox.addWidget(savefile_button)
-        
-        vboxAction.addLayout(savefile_hbox)
                 
         
         layout = QtGui.QVBoxLayout(self)
         
         
         self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
-        self.splitter.addWidget(gbAction)
+        
         self.splitter.addWidget(gbExportDestination)
+        self.splitter.addWidget(gbExportOptions)
+        
         
         self.splitter.addWidget(self.make_default_status_box())
         
@@ -198,86 +218,109 @@ class QBzrExportDialog(SubProcessDialog):
         layout.addWidget(self.splitter)
         layout.addWidget(self.buttonbox)
        
+     
+     
+    def updateformat(self):
+        
+        extensions = {}
+        extensions['tar'] = 'tar'
+        extensions['tar.bz2'] = 'tbz2'
+        extensions['tbz2'] = 'tar'
+        extensions['tar.gz'] = 'tgz'
+        extensions['tgz'] = 'tgz'
+        extensions['zip'] = 'zip'
+        
+        path = self.locationfil_edit.text()
+        format = ""
+        for ex in extensions:
+
+            if str(path).endswith(ex):
+                format = extensions[ex]
+                path = str(path)
+                try:
+                    foldername = path.split(ex)[-2].split("/")[-1][0:-1]
+                except:
+                    pass
+                else:
+                    self.folder_edit.setText(foldername)
+                break
+            
+        if format == 'tar':
+            self.format_combo.setCurrentIndex(3)
+        elif format == 'tbz2':
+            self.format_combo.setCurrentIndex(2)
+        elif format == 'tgz':
+            self.format_combo.setCurrentIndex(1)
+        elif format == 'zip':
+            self.format_combo.setCurrentIndex(0)
+
         
         
-    def savefile_button_clicked(self):
+        
+    def browsedir_clicked(self):
+        fileName = QtGui.QFileDialog.getExistingDirectory(self, ("Select save location"));
+        if fileName != None:
+            self.locationdir_edit.setText(fileName)
+            
+            
+            
+
+              
+    def browsefil_clicked(self):
         fileName = QtGui.QFileDialog.getSaveFileName(self, ("Select save location"));
-        self.savefile_edit.setText(fileName)
-                
-    def browse_submit_clicked(self):
-        fileName = QtGui.QFileDialog.getExistingDirectory(self, ("Select Submit branch"));
-        self.submit_branch_combo.insertItem(0,fileName)
-        self.submit_branch_combo.setCurrentIndex(0)        
-
-
-    def browse_public_clicked(self):
-        fileName = QtGui.QFileDialog.getExistingDirectory(self, ("Select Public branch"));
-        self.public_branch_combo.insertItem(0,fileName)
-        self.public_branch_combo.setCurrentIndex(0)
+        if fileName != None:
+            self.locationfil_edit.setText(fileName)   
+            self.updateformat()
+        
+        
         
     
     def validate(self):
-        if self.submit_email_radio.isChecked():
-            location = str(self.mailto_edit.text())
-            if location == '' :
-                self.mailto_edit.setFocus()
-                raise errors.BzrCommandError("Email address not entered.")
-            if re.match("^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$", location) == None:
-                self.mailto_edit.setFocus()
-                raise errors.BzrCommandError("Email address is not valid.")
-        else:
-            location = str(self.savefile_edit.text())
-            if location == '':
-                self.savefile_edit.setFocus()
-                raise errors.BzrCommandError("Filename not entered.")
         
-        submit_branch = str(self.submit_branch_combo.currentText())
-        if(submit_branch == ''):
-            self.submit_branch_combo.setFocus()
-            raise errors.BzrCommandError("No submit branch entered.")
+        if self.exportarch_radio.isChecked():
+            location = str(self.locationfil_edit.text())
+            if location == "":
+                raise errors.BzrCommandError("Export location is invalid")
+        elif self.exportdir_radio.isChecked():
+            location = str(self.locationdir_edit.text())
+            if location == "":
+                raise errors.BzrCommandError("Export location is invalid")        
+        
+        if self.revisions_other.isChecked():
+            if str(self.revisions_edit.text()) == "":
+                raise errors.BzrCommandError("Export revision is invalid")
         return True
+            
     
-    def start(self):
+    def do_start(self):
         args = []
-        submit_branch = str(self.submit_branch_combo.currentText())
-        public_branch = str(self.public_branch_combo.currentText())
         
-        if public_branch != '':
-            args.append(public_branch)
-            
-        mylocation =  url_for_display(self.branch.base)     
-        args.append("-f")
-        args.append(mylocation)
-
-        if self.submit_email_radio.isChecked():
-            location = str(self.mailto_edit.text())
-            args.append("--mail-to=%s" % location)
-        else:
-            location = str(self.savefile_edit.text())
-            args.append("-o")
+        mylocation = url_for_display(self.branch.base)
+        print mylocation 
+        
+        if self.exportarch_radio.isChecked():
+            location = str(self.locationfil_edit.text())
             args.append(location)
-            
-        
-        if self.remember_check.isChecked():
-            args.append("--remember")
+            format = str(self.format_combo.currentText())
+            args.append("--format=%s" % format)
+        else:
+            location = str(self.locationdir_edit.text())
+            args.append(location)
+            format = str(self.format_combo.currentText())
+            args.append("--format=dir")
 
-        if self.nopatch_check.isChecked():
-            args.append("--no-patch")
-            
-        if self.nobundle_check.isChecked():
-            args.append("--no-bundle")
-                    
-        if self.message_edit.text() != '':
-            args.append("--message=%s" % str(self.message_edit.text()))
         
         
-        revision = str(self.revisions_edit.text())
-        if revision == '':
+        if str(self.folder_edit.text()) != '':
+            args.append("--root=%s" % str(self.folder_edit.text()))
+        
+        if self.revisions_tip.isChecked():
             args.append("--revision=-1")
         else:
+            revision = str(self.revisions_edit.text())
             args.append("--revision=%s" % revision)
             
-        self.process_widget.start(None, 'send', submit_branch, *args)
+        self.process_widget.do_start(None, 'export', None, *args)
 
     def saveSize(self):
         SubProcessDialog.saveSize(self)

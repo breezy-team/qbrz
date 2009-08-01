@@ -398,6 +398,9 @@ class SubProcessWidget(QtGui.QWidget):
     
     def do_start(self, dir, *args):
         QtGui.QApplication.processEvents() # make sure ui has caught up
+        print "hola"
+        print dir
+        print args
         self.start_multi(((dir, args),))
     
     def start_multi(self, commands):
