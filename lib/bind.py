@@ -30,7 +30,9 @@ from bzrlib.plugins.qbzr.lib.util import (
     url_for_display,
     QBzrDialog,
     runs_in_loading_queue,
-    ThrobberWidget
+    ThrobberWidget,
+    StandardButton,
+    BTN_CANCEL
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import (
@@ -39,7 +41,9 @@ from bzrlib.plugins.qbzr.lib.trace import (
 
 class QBzrBindDialog(SubProcessDialog):
 
-    def __init__(self, branch, ui_mode = None):
+    actionButton = None
+    
+    def __init__(self, branch, ui_mode = None, unbind=False):
         
         super(QBzrBindDialog, self).__init__(
                                   gettext("Bind/Unbind branch"),
@@ -63,19 +67,19 @@ class QBzrBindDialog(SubProcessDialog):
         
         self.branch_combo = branch_combo
         
+        QtCore.QObject.connect(branch_combo, QtCore.SIGNAL("textChanged(QString)"), self.combo_changed)
+        
         repo = branch.bzrdir.find_repository()
         
         currboundloc = branch.get_bound_location()
-        if currboundloc == None:
+        
+        if unbind and currboundloc != None:
+            branch_combo.addItem(url_for_display(currboundloc))
+        elif unbind == False:
             boundloc = branch.get_old_bound_location()
             if boundloc != None:
                 branch_combo.addItem(url_for_display(boundloc))
-        else:
-            boundloc = None
-            branch_combo.addItem(url_for_display(currboundloc))
             
-        if boundloc == None and currboundloc == None:
-            branch_combo.clearEditText()
             
         
         browse_button = QtGui.QPushButton(gettext("Browse"))
@@ -97,8 +101,42 @@ class QBzrBindDialog(SubProcessDialog):
         layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
 
+        for but in self.buttonbox.buttons(): 
+            self.buttonbox.removeButton(but)
+            
+        cancelButton = StandardButton(BTN_CANCEL)
+        
+        
+        
+        
+        
+        
+        if unbind:
+            self.actionButton = QtGui.QPushButton("Unbind")
+        else:
+            self.actionButton = QtGui.QPushButton("Bind")
 
 
+        self.buttonbox.addButton(self.actionButton,
+                                 QtGui.QDialogButtonBox.AcceptRole)
+                
+        self.buttonbox.addButton(cancelButton,
+                                 QtGui.QDialogButtonBox.RejectRole)
+
+        
+        self.combo_changed(branch_combo.currentText())
+        """self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.do_accept)
+        self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.do_reject)"""
+
+        
+
+    def combo_changed(self, stri):
+        if self.actionButton != None:
+            if str(stri) == "":
+                self.actionButton.setText("Unbind")
+            else:
+                self.actionButton.setText("Bind")
+        
     def browse_clicked(self):
         fileName = QtGui.QFileDialog.getExistingDirectory(self, gettext("Select branch location"));
         if fileName != '':
