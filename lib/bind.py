@@ -42,7 +42,7 @@ class QBzrBindDialog(SubProcessDialog):
     def __init__(self, branch, ui_mode = None):
         
         super(QBzrBindDialog, self).__init__(
-                                  gettext("Bind branch"),
+                                  gettext("Bind/Unbind branch"),
                                   name = "bind",
                                   default_size = (400, 400),
                                   ui_mode = ui_mode,
@@ -53,7 +53,7 @@ class QBzrBindDialog(SubProcessDialog):
             
         self.branch = branch
         
-        gbBind = QtGui.QGroupBox(gettext("Bind branch"), self)
+        gbBind = QtGui.QGroupBox(gettext("Bind/Unbind branch"), self)
         
         bind_hbox = QtGui.QHBoxLayout(gbBind)
         
@@ -65,11 +65,16 @@ class QBzrBindDialog(SubProcessDialog):
         
         repo = branch.bzrdir.find_repository()
         
-        boundloc = branch.get_old_bound_location()
-        if boundloc != None:
-            branch_combo.addItem(url_for_display(boundloc))
-                
-        if boundloc == None:
+        currboundloc = branch.get_bound_location()
+        if currboundloc == None:
+            boundloc = branch.get_old_bound_location()
+            if boundloc != None:
+                branch_combo.addItem(url_for_display(boundloc))
+        else:
+            boundloc = None
+            branch_combo.addItem(url_for_display(currboundloc))
+            
+        if boundloc == None and currboundloc == None:
             branch_combo.clearEditText()
             
         
@@ -103,6 +108,7 @@ class QBzrBindDialog(SubProcessDialog):
     @reports_exception(type=SUB_LOAD_METHOD)
     @ui_current_widget   
     def validate(self):
+        return True
         location = str(self.branch_combo.currentText())
        
         if(location == ''):
@@ -115,5 +121,9 @@ class QBzrBindDialog(SubProcessDialog):
         
         location = str(self.branch_combo.currentText())
         mylocation =  url_for_display(self.branch.base)     
-                            
-        self.process_widget.do_start(None, 'bind', location, *args)
+        
+        if location == "":
+            self.process_widget.do_start(None, 'unbind')
+        else:
+            self.process_widget.do_start(None, 'bind', location, *args)
+        
