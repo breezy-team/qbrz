@@ -337,16 +337,9 @@ class SidebySideDiffView(QtGui.QSplitter):
             def insertLine(cursor, line):
                 if use_pygments:
                     for ttype, value in line:
-                        cursor.insertText(value.rstrip('\n'),
+                        cursor.insertText(value,
                                           format_for_ttype(ttype,
                                                            QtGui.QTextCharFormat(self.monospacedFormat)))
-                    
-                    # Use this format for the new line char, so that all line
-                    # heights are the same.
-                    format = QtGui.QTextCharFormat()
-                    format.setFont(self.monospacedFont)
-                    format.setFontItalic (True)
-                    cursor.insertText(" \n",format)
                 else:
                     cursor.insertText(line)
             
@@ -391,14 +384,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                                                 QtGui.QTextCharFormat(self.monospacedFormat))
                                     modifyFormatForTag(format, tag)
                                     t = value[0:n]
-                                    cursor.insertText(t.rstrip('\n'), format)
-                                    if t.endswith('\n'):
-                                        # Use this format for the new line char, so that all line
-                                        # heights are the same.
-                                        format = QtGui.QTextCharFormat()
-                                        format.setFont(self.monospacedFont)
-                                        format.setFontItalic (True)
-                                        cursor.insertText(" \n",format)
+                                    cursor.insertText(t, format)
                                     value = value[len(t):]
                                     n -= len(t)
                                     if n<=0:
@@ -463,10 +449,6 @@ class SidebySideDiffView(QtGui.QSplitter):
                     exlines = display_lines[1][j0:j1]
                     linediff = linediff - len(exlines)
                     cursor = cursors[1]
-                if use_pygments:
-                    exlines.extend([((None,"\n"),)] * linediff)
-                else:
-                    exlines.extend(["\n"] * linediff)
                 for l in exlines:
                     insertLine(cursor, l)
             
@@ -483,7 +465,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                         is_images[i] = True
                         image = QtGui.QImage()
                         image.loadFromData(data[i])
-                        heights[i] = image.height() + 4 # QTextDocument seems to add 1 pixel when layouting the text
+                        heights[i] = image.height()
                         self.docs[i].addResource(QtGui.QTextDocument.ImageResource,
                                         QtCore.QUrl(file_id),
                                         QtCore.QVariant(image))
@@ -491,28 +473,35 @@ class SidebySideDiffView(QtGui.QSplitter):
             max_height = max(heights)
             for i, cursor in enumerate(self.cursors):
                 format = QtGui.QTextBlockFormat()
-                format.setBottomMargin(max_height - heights[i])
-                cursor.setBlockFormat(format)
+                format.setBottomMargin((max_height - heights[i])/2)
+                format.setTopMargin((max_height - heights[i])/2)
+                cursor.insertBlock(format)
                 if present[i]:
                     if is_images[i]:
-                        cursor.insertText("\n")
                         cursor.insertImage(file_id)
                     else:
                         cursor.insertText(gettext('[binary file]'))
                 else:
                     cursor.insertText(" ")
-                cursor.insertBlock(QtGui.QTextBlockFormat())
-        
-        for cursor in self.cursors:
-            cursor.insertText("\n")
+            #cursor.insertBlock(QtGui.QTextBlockFormat())
+
+        for cursor in cursors:
             cursor.endEditBlock()
+            cursor.insertText("\n")
+        maxy = max([c.block().layout().position().y() for c in cursors])
+        for cursor in cursors:
+            format = QtGui.QTextBlockFormat()
+            format.setBottomMargin(maxy-cursor.block().layout().position().y())
+            cursor.setBlockFormat(format)
+            cursor.insertBlock(QtGui.QTextBlockFormat())
+        
         # check horizontal scrollbars and force both if scrollbar visible only at one side
         if (self.browsers[0].horizontalScrollBar().isVisible()
             or self.browsers[1].horizontalScrollBar().isVisible()):
             self.browsers[0].setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
             self.browsers[1].setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.update()
-
+    
     def rewind(self):
         if not self.rewinded:
             self.rewinded = True
