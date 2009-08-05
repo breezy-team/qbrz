@@ -438,7 +438,9 @@ class CommitWindow(SubProcessDialog):
                     fmodel = self.filelist.tree_filter_model
                     #fmodel.setFilter(fmodel.UNVERSIONED, False)
                     self.filelist.set_tree(
-                        self.tree, changes_mode = True,
+                        self.tree,
+                        branch=self.tree.branch,
+                        changes_mode=True,
                         want_unversioned=self.show_nonversioned_checkbox.isChecked(),
                         initial_checked_paths=self.initial_selected_list)
                 else:
@@ -636,6 +638,11 @@ class CommitWindow(SubProcessDialog):
             else:
                 self.save_message()
         return SubProcessDialog.closeEvent(self, event)
+    
+    def reject(self):
+        if not self.process_widget.is_running():
+            self.save_message()
+        return SubProcessDialog.reject(self)
 
     def update_branch_groupbox(self):
         if not self.local_checkbox.isChecked():

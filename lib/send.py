@@ -49,7 +49,7 @@ class SendWindow(SubProcessDialog):
         self.branch = branch
         
         
-        gbMergeDirective = QtGui.QGroupBox(gettext("Merge Directive"), self)
+        gbMergeDirective = QtGui.QGroupBox(gettext("Merge Directive Options"), self)
         vboxMergeDirective = QtGui.QVBoxLayout(gbMergeDirective)
         vboxMergeDirective.addStrut(0)
         
@@ -109,32 +109,20 @@ class SendWindow(SubProcessDialog):
         vboxMergeDirective.addWidget(remember_check)
         
         
-        revisions_hbox = QtGui.QHBoxLayout()
-        revisions_label = QtGui.QLabel(gettext("Send revisions:"))
-        revisions_edit = QtGui.QLineEdit()
-        self.revisions_edit = revisions_edit
         
-        revisions_hbox.addWidget(revisions_label)
-        revisions_hbox.addWidget(revisions_edit)
+        #vboxMergeDirective.addLayout(revisions_hbox)
         
-        vboxMergeDirective.addLayout(revisions_hbox)
+        bundle_check = QtGui.QCheckBox(gettext("Include a bundle in the merge directive"))
+        bundle_check.setChecked(True)
+        self.bundle_check = bundle_check
+        vboxMergeDirective.addWidget(bundle_check)
+        patch_check = QtGui.QCheckBox(gettext("Include a preview patch in the merge directive"))
+        patch_check.setChecked(True)
+        self.patch_check = patch_check
+        vboxMergeDirective.addWidget(patch_check)
         
-        nobundle_check = QtGui.QCheckBox(gettext("Do not include a bundle in the merge directive"))
-        self.nobundle_check = nobundle_check
-        vboxMergeDirective.addWidget(nobundle_check)
-        nopatch_check = QtGui.QCheckBox(gettext("Do not include a preview patch in the merge directive"))
-        self.nopatch_check = nopatch_check
-        vboxMergeDirective.addWidget(nopatch_check)
         
-        message_hbox = QtGui.QHBoxLayout()
-        message_label = QtGui.QLabel(gettext("Message:"))
-        message_edit = QtGui.QLineEdit()
-        self.message_edit = message_edit
-        
-        message_hbox.addWidget(message_label)
-        message_hbox.addWidget(message_edit)
-        
-        vboxMergeDirective.addLayout(message_hbox)
+        #vboxMergeDirective.addLayout(message_hbox)
         
         ####
         
@@ -149,7 +137,7 @@ class SendWindow(SubProcessDialog):
         
         mailto_hbox = QtGui.QHBoxLayout()
         
-        mailto_label = QtGui.QLabel(gettext("Mail to address:"))
+        mailto_label = QtGui.QLabel(gettext("Address:"))
         mailto_edit = QtGui.QLineEdit()
         self.mailto_edit = mailto_edit
         mailto_hbox.insertSpacing(0,50)
@@ -158,6 +146,16 @@ class SendWindow(SubProcessDialog):
         
         vboxAction.addLayout(mailto_hbox)
         
+        message_hbox = QtGui.QHBoxLayout()
+        message_label = QtGui.QLabel(gettext("Message:"))
+        message_edit = QtGui.QLineEdit()
+        self.message_edit = message_edit
+        
+        message_hbox.insertSpacing(0,50)
+        message_hbox.addWidget(message_label)
+        message_hbox.addWidget(message_edit)
+
+        vboxAction.addLayout(message_hbox)
         
         save_file_radio = QtGui.QRadioButton("Save to file")
         self.save_file_radio = save_file_radio
@@ -180,6 +178,16 @@ class SendWindow(SubProcessDialog):
         
         vboxAction.addLayout(savefile_hbox)
                 
+        
+        revisions_hbox = QtGui.QHBoxLayout()
+        revisions_label = QtGui.QLabel(gettext("Revisions:"))
+        revisions_edit = QtGui.QLineEdit()
+        self.revisions_edit = revisions_edit
+        
+        revisions_hbox.addWidget(revisions_label)
+        revisions_hbox.addWidget(revisions_edit)
+
+        vboxAction.addLayout(revisions_hbox)
         
         layout = QtGui.QVBoxLayout(self)
         
@@ -259,10 +267,10 @@ class SendWindow(SubProcessDialog):
         if self.remember_check.isChecked():
             args.append("--remember")
 
-        if self.nopatch_check.isChecked():
+        if not self.patch_check.isChecked():
             args.append("--no-patch")
             
-        if self.nobundle_check.isChecked():
+        if not self.bundle_check.isChecked():
             args.append("--no-bundle")
                     
         if self.message_edit.text() != '':

@@ -48,7 +48,7 @@ from bzrlib.plugins.qbzr.lib.diff import (
     )
 
 
-class InternalItem():
+class InternalItem(object):
     __slots__  = ["name", "kind", "file_id"]
     def __init__(self, name, kind, file_id):
         self.name = name
@@ -63,7 +63,7 @@ class UnversionedItem(InternalItem):
         InternalItem.__init__(self, name, kind, None)
 
 
-class ModelItemData():
+class ModelItemData(object):
     __slots__ = ["id", "item", "change", "checked", "children_ids",
                  "parent_id", "row", "path", "icon"]
     
@@ -223,12 +223,21 @@ class TreeModel(QtCore.QAbstractItemModel):
     NAME, DATE, REVNO, MESSAGE, AUTHOR, STATUS = range(len(HEADER_LABELS))
 
     def __init__(self, parent=None):
+        # XXX parent object: instance of what class it supposed to be?
         QtCore.QAbstractTableModel.__init__(self, parent)
 
-        style = parent.style()
-        self.file_icon = style.standardIcon(QtGui.QStyle.SP_FileIcon)
-        self.dir_icon = style.standardIcon(QtGui.QStyle.SP_DirIcon)
-        self.symlink_icon = style.standardIcon(QtGui.QStyle.SP_FileLinkIcon)
+        if parent is not None:
+            # TreeModel is subclass of QtCore.QAbstractItemModel,
+            # the latter can have parent in constructor
+            # as instance of QModelIndex and the latter does not have style()
+            style = parent.style()
+            self.file_icon = style.standardIcon(QtGui.QStyle.SP_FileIcon)
+            self.dir_icon = style.standardIcon(QtGui.QStyle.SP_DirIcon)
+            self.symlink_icon = style.standardIcon(QtGui.QStyle.SP_FileLinkIcon)
+        else:
+            self.file_icon = QtGui.QIcon()
+            self.dir_icon = QtGui.QIcon()
+            self.symlink_icon = QtGui.QIcon()
         self.tree = None
         self.inventory_data = []
         self.inventory_data_by_path = {}
@@ -813,7 +822,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                     self.inventory_dirs_first_cmp,
                     lambda x: (x.change.path(), x.item.kind))]
 
-    def set_checked_items(self, refs, ignore_no_file_error=False):
+    def set_checked_items(self, refs, ignore_no_file_error=True):
         # set every thing off
         root_index = self._index_from_id(0, self.NAME)
         self.setData(root_index, QtCore.QVariant(QtCore.Qt.Unchecked),
@@ -1223,10 +1232,12 @@ class TreeWidget(RevisionTreeView):
         
         selection_len = len(items)
         
-        single_file = (selection_len == 1 and items[0].item.kind == "file")
+        single_item_in_tree = (selection_len == 1 and
+            (items[0].change is None or items[0].change[6][1] is not None))
+        single_file = (single_item_in_tree and items[0].item.kind == "file")
         single_versioned_file = (single_file and versioned[0])
         
-        self.action_open_file.setEnabled(is_working_tree)
+        self.action_open_file.setEnabled(single_item_in_tree)
         self.action_open_file.setVisible(is_working_tree)
         self.action_show_file.setEnabled(single_file)
         self.action_show_annotate.setEnabled(single_versioned_file)
@@ -1378,15 +1389,11 @@ class TreeWidget(RevisionTreeView):
         
         items = self.get_selection_items()
         
-        self.tree.lock_read()
-        try:
-            # Only paths that have changes.
-            paths = [item.path
-                     for item in items
-                     if item.change is not None and
-                        not isinstance(item.item, UnversionedItem)]
-        finally:
-            self.tree.unlock()
+        # Only paths that have changes.
+        paths = [item.path
+                 for item in items
+                 if item.change is not None and
+                    not isinstance(item.item, UnversionedItem)]
         
         if len(paths) == 0:
             return
