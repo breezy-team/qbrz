@@ -128,57 +128,58 @@ class QBzrExportDialog(SubProcessDialog):
         
         vboxExportDestination.addLayout(locationdir_hbox)
 
+
         gbExportOptions = QtGui.QGroupBox(gettext("Options"), self)
         
         vbxExportOptions = QtGui.QVBoxLayout(gbExportOptions)
         
-        revisions_hbox = QtGui.QHBoxLayout()
+        
+        revisions_box = QtGui.QGridLayout()
+               
+        
         revisions_label = QtGui.QLabel(gettext("Revision"))
         revisions_tip = QtGui.QRadioButton("Branch tip")
         revisions_tip.setChecked(True)
         self.revisions_tip = revisions_tip
+        revisions_box.addWidget(revisions_label,0,0)
+        revisions_box.addWidget(revisions_tip,0,1)
         
-        revisions_hbox.addWidget(revisions_label)
-        revisions_hbox.addWidget(revisions_tip)
-        
-        revisions_hbox.setStretchFactor(revisions_label,0)
-        revisions_hbox.setStretchFactor(revisions_tip,1)
-        
-        vbxExportOptions.addLayout(revisions_hbox)
-        
-        revisions_hbox2 = QtGui.QHBoxLayout()
         
         revisions_other = QtGui.QRadioButton("Other")
-        self.revisions_other = revisions_other
+        
+        
         revisions_edit = QtGui.QLineEdit()
         self.revisions_edit = revisions_edit
         
-        revisions_hbox2.addSpacing(58)
-        revisions_hbox2.addWidget(revisions_other)
-        revisions_hbox2.addWidget(revisions_edit)
-        vbxExportOptions.addLayout(revisions_hbox2)
+        revisions_box.addWidget(revisions_other,1,1)
+        revisions_box.addWidget(revisions_edit,1,2)
         
-        format_hbox = QtGui.QHBoxLayout()
-        format_label = QtGui.QLabel(gettext("File contents"))
-        format_canonical = QtGui.QRadioButton("Canonical form")
-        self.format_canonical = format_canonical
-        format_canonical.setChecked(True)
+        vbxExportOptions.addLayout(revisions_box)
+        
+        
+        format_box = QtGui.QGridLayout()
+        
 
-        format_hbox.addWidget(format_label)
-        format_hbox.addWidget(format_canonical)
-        format_hbox.setStretchFactor(format_label,0)
-        format_hbox.setStretchFactor(format_canonical,1)
+
+        format_canonical = QtGui.QCheckBox("Apply content filters")
+        self.format_canonical = format_canonical
         
-        vbxExportOptions.addLayout(format_hbox)
+        #format_box.addWidget(format_label,0,0)
+        format_box.addWidget(format_canonical,0,0)
+        #format_box.setColumnStretch(0,0)
+        #format_box.setColumnStretch(1,1)
         
-        format_hbox2 = QtGui.QHBoxLayout()
         
-        format_other = QtGui.QRadioButton("Filtered form")
-        self.format_other = format_other
         
-        format_hbox2.addSpacing(86)
-        format_hbox2.addWidget(format_other)
-        vbxExportOptions.addLayout(format_hbox2)
+        #format_other = QtGui.QRadioButton("Filtered form")
+        #self.format_other = format_other
+
+        
+        #format_box.addWidget(format_other,1,1)
+        
+        vbxExportOptions.addLayout(format_box)
+        
+
 
         layout = QtGui.QVBoxLayout(self)
 
@@ -280,6 +281,9 @@ class QBzrExportDialog(SubProcessDialog):
         else:
             revision = str(self.revisions_edit.text())
             args.append("--revision=%s" % revision)
+            
+        if self.format_canonical.isChecked():
+            args.append("--filters")
             
         self.process_widget.do_start(None, 'export', None, *args)
 
