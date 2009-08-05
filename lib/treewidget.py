@@ -1232,10 +1232,12 @@ class TreeWidget(RevisionTreeView):
         
         selection_len = len(items)
         
-        single_file = (selection_len == 1 and items[0].item.kind == "file")
+        single_item_in_tree = (selection_len == 1 and
+            (items[0].change is None or items[0].change[6][1] is not None))
+        single_file = (single_item_in_tree and items[0].item.kind == "file")
         single_versioned_file = (single_file and versioned[0])
         
-        self.action_open_file.setEnabled(is_working_tree)
+        self.action_open_file.setEnabled(single_item_in_tree)
         self.action_open_file.setVisible(is_working_tree)
         self.action_show_file.setEnabled(single_file)
         self.action_show_annotate.setEnabled(single_versioned_file)
@@ -1387,15 +1389,11 @@ class TreeWidget(RevisionTreeView):
         
         items = self.get_selection_items()
         
-        self.tree.lock_read()
-        try:
-            # Only paths that have changes.
-            paths = [item.path
-                     for item in items
-                     if item.change is not None and
-                        not isinstance(item.item, UnversionedItem)]
-        finally:
-            self.tree.unlock()
+        # Only paths that have changes.
+        paths = [item.path
+                 for item in items
+                 if item.change is not None and
+                    not isinstance(item.item, UnversionedItem)]
         
         if len(paths) == 0:
             return
