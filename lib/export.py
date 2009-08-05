@@ -155,7 +155,7 @@ class QBzrExportDialog(SubProcessDialog):
 
         format_box = QtGui.QGridLayout()
 
-        format_canonical = QtGui.QCheckBox("Apply content filters")
+        format_canonical = QtGui.QCheckBox("Apply content filters to files")
         self.format_canonical = format_canonical
         format_box.addWidget(format_canonical,0,0)
         
