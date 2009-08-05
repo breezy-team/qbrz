@@ -223,12 +223,21 @@ class TreeModel(QtCore.QAbstractItemModel):
     NAME, DATE, REVNO, MESSAGE, AUTHOR, STATUS = range(len(HEADER_LABELS))
 
     def __init__(self, parent=None):
+        # XXX parent object: instance of what class it supposed to be?
         QtCore.QAbstractTableModel.__init__(self, parent)
 
-        style = parent.style()
-        self.file_icon = style.standardIcon(QtGui.QStyle.SP_FileIcon)
-        self.dir_icon = style.standardIcon(QtGui.QStyle.SP_DirIcon)
-        self.symlink_icon = style.standardIcon(QtGui.QStyle.SP_FileLinkIcon)
+        if parent is not None:
+            # TreeModel is subclass of QtCore.QAbstractItemModel,
+            # the latter can have parent in constructor
+            # as instance of QModelIndex and the latter does not have style()
+            style = parent.style()
+            self.file_icon = style.standardIcon(QtGui.QStyle.SP_FileIcon)
+            self.dir_icon = style.standardIcon(QtGui.QStyle.SP_DirIcon)
+            self.symlink_icon = style.standardIcon(QtGui.QStyle.SP_FileLinkIcon)
+        else:
+            self.file_icon = QtGui.QIcon()
+            self.dir_icon = QtGui.QIcon()
+            self.symlink_icon = QtGui.QIcon()
         self.tree = None
         self.inventory_data = []
         self.inventory_data_by_path = {}
