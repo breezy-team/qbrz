@@ -751,7 +751,7 @@ def split_tokens_at_lines(tokens):
         vsplit = value.splitlines(True)
         for v in vsplit:
             currentLine.append((ttype, v))
-            if v.endswith(('\n','\r')):
+            if v[-1:] in ('\n','\r'):
                 yield currentLine
                 currentLine = []
     yield currentLine
