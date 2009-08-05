@@ -28,7 +28,7 @@ from bzrlib.plugins.qbzr.lib.util import url_for_display
 
 class QBzrExportDialog(SubProcessDialog):
     
-    def __init__(self, dest, branch, ui_mode):
+    def __init__(self, branch, ui_mode):
         
         
         title = "%s: %s" % (gettext("Export"), url_for_display(branch.base))
