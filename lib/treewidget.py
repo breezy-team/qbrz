@@ -48,7 +48,7 @@ from bzrlib.plugins.qbzr.lib.diff import (
     )
 
 
-class InternalItem():
+class InternalItem(object):
     __slots__  = ["name", "kind", "file_id"]
     def __init__(self, name, kind, file_id):
         self.name = name
@@ -63,7 +63,7 @@ class UnversionedItem(InternalItem):
         InternalItem.__init__(self, name, kind, None)
 
 
-class ModelItemData():
+class ModelItemData(object):
     __slots__ = ["id", "item", "change", "checked", "children_ids",
                  "parent_id", "row", "path", "icon"]
     
