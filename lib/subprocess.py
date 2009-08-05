@@ -344,7 +344,7 @@ class SubProcessWidget(QtGui.QWidget):
         
         self.progressMessage = QtGui.QLabel(self)
         #self.progressMessage.setWordWrap(True) -- this breaks minimal window size hint
-        self.progressMessage.setText(gettext("Stopped"))
+        self.progressMessage.setText(gettext("Ready"))
         message_layout.addWidget(self.progressMessage, 1)
 
         self.transportActivity = QtGui.QLabel(self)
@@ -402,9 +402,6 @@ class SubProcessWidget(QtGui.QWidget):
     
     def do_start(self, dir, *args):
         QtGui.QApplication.processEvents() # make sure ui has caught up
-        print "hola"
-        print dir
-        print args
         self.start_multi(((dir, args),))
     
     def start_multi(self, commands):

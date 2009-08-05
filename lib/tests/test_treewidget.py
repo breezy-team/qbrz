@@ -39,9 +39,9 @@ class TestTreeModel(TestWatchExceptHook, TestCaseWithTransport):
                      committer="joe@foo.com",
                      timestamp=1166046000.00, timezone=0)
 
-        model = TreeModel(None, None, None)
+        model = TreeModel(parent=None)
         modeltest = ModelTest(model, None)
-        
+
         model.set_tree(tree, tree.branch)
 
     #def test_model_revision_tree(self):
