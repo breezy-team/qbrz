@@ -636,6 +636,11 @@ class CommitWindow(SubProcessDialog):
             else:
                 self.save_message()
         return SubProcessDialog.closeEvent(self, event)
+    
+    def reject(self):
+        if not self.process_widget.is_running():
+            self.save_message()
+        return SubProcessDialog.reject(self)
 
     def update_branch_groupbox(self):
         if not self.local_checkbox.isChecked():
