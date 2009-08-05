@@ -822,7 +822,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                     self.inventory_dirs_first_cmp,
                     lambda x: (x.change.path(), x.item.kind))]
 
-    def set_checked_items(self, refs, ignore_no_file_error=False):
+    def set_checked_items(self, refs, ignore_no_file_error=True):
         # set every thing off
         root_index = self._index_from_id(0, self.NAME)
         self.setData(root_index, QtCore.QVariant(QtCore.Qt.Unchecked),
