@@ -913,6 +913,7 @@ class cmd_qswitch(QBzrCommand):
         application.exec_() 
 
 class cmd_qexport(QBzrCommand):
+    """Export current or past revision to a destination directory or archive"""
     takes_args = ['dest?','location?']
     takes_options = [ui_mode_option]
     

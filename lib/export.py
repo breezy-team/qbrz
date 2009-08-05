@@ -41,12 +41,8 @@ class QBzrExportDialog(SubProcessDialog):
                                   parent = None,
                                   hide_progress=False,
                                   )
-            
-            
-            
-            
+
         self.branch = branch
-        
         
         gbExportDestination = QtGui.QGroupBox(gettext("Export"), self)
         vboxExportDestination = QtGui.QVBoxLayout(gbExportDestination)
@@ -58,7 +54,6 @@ class QBzrExportDialog(SubProcessDialog):
         
         vboxExportDestination.addLayout(info_hbox)
         
-        
         exportarch_radio = QtGui.QRadioButton("Export as archive")
         exportarch_radio.setChecked(True)
         self.exportarch_radio = exportarch_radio 
@@ -67,13 +62,11 @@ class QBzrExportDialog(SubProcessDialog):
         locationfil_label = QtGui.QLabel(gettext("Location:"))
         locationfil_edit = QtGui.QLineEdit()
         
-        
         self.locationfil_edit = locationfil_edit
         self.locationfil_edit = locationfil_edit # to allow access from another function     
         browsefil_button = QtGui.QPushButton(gettext("Browse"))
         QtCore.QObject.connect(browsefil_button, QtCore.SIGNAL("clicked(bool)"), self.browsefil_clicked)
         QtCore.QObject.connect(locationfil_edit, QtCore.SIGNAL("editingFinished()"), self.updateformat)
-        
         
         locationfil_hbox.addSpacing(25)
         locationfil_hbox.addWidget(locationfil_label)
@@ -96,8 +89,7 @@ class QBzrExportDialog(SubProcessDialog):
         folder_hbox.addWidget(folder_edit)
         
         vboxExportDestination.addLayout(folder_hbox)
-
-
+        
         format_hbox = QtGui.QHBoxLayout()
         format_label = QtGui.QLabel(gettext("Archive type"))
         format_combo = QtGui.QComboBox()
@@ -116,8 +108,6 @@ class QBzrExportDialog(SubProcessDialog):
         
         vboxExportDestination.addLayout(format_hbox)
         
-        
-
         exportdir_radio = QtGui.QRadioButton("Export as directory")
         self.exportdir_radio = exportdir_radio
         vboxExportDestination.addWidget(exportdir_radio)
@@ -132,26 +122,21 @@ class QBzrExportDialog(SubProcessDialog):
         locationdir_hbox.addSpacing(25)
         locationdir_hbox.addWidget(locationdir_edit)
         locationdir_hbox.addWidget(browsedir_button)
-        
-
+    
         locationdir_hbox.setStretchFactor(locationdir_edit,1)
         locationdir_hbox.setStretchFactor(browsedir_button,0)
         
         vboxExportDestination.addLayout(locationdir_hbox)
 
-        
-
         gbExportOptions = QtGui.QGroupBox(gettext("Options"), self)
         
         vbxExportOptions = QtGui.QVBoxLayout(gbExportOptions)
-        
         
         revisions_hbox = QtGui.QHBoxLayout()
         revisions_label = QtGui.QLabel(gettext("Revision"))
         revisions_tip = QtGui.QRadioButton("Branch tip")
         revisions_tip.setChecked(True)
         self.revisions_tip = revisions_tip
-        
         
         revisions_hbox.addWidget(revisions_label)
         revisions_hbox.addWidget(revisions_tip)
@@ -172,9 +157,6 @@ class QBzrExportDialog(SubProcessDialog):
         revisions_hbox2.addWidget(revisions_other)
         revisions_hbox2.addWidget(revisions_edit)
         vbxExportOptions.addLayout(revisions_hbox2)
-        
-        
-        
         
         format_hbox = QtGui.QHBoxLayout()
         format_label = QtGui.QLabel(gettext("File contents"))
@@ -197,19 +179,14 @@ class QBzrExportDialog(SubProcessDialog):
         format_hbox2.addSpacing(86)
         format_hbox2.addWidget(format_other)
         vbxExportOptions.addLayout(format_hbox2)
-        
-        
-                
-        
+
         layout = QtGui.QVBoxLayout(self)
-        
-        
+
         self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
         
         self.splitter.addWidget(gbExportDestination)
         self.splitter.addWidget(gbExportOptions)
-        
-        
+
         self.splitter.addWidget(self.make_default_status_box())
         
         self.splitter.setStretchFactor(0, 10)
@@ -217,9 +194,7 @@ class QBzrExportDialog(SubProcessDialog):
         
         layout.addWidget(self.splitter)
         layout.addWidget(self.buttonbox)
-       
-     
-     
+
     def updateformat(self):
         
         extensions = {}
@@ -254,27 +229,17 @@ class QBzrExportDialog(SubProcessDialog):
         elif format == 'zip':
             self.format_combo.setCurrentIndex(0)
 
-        
-        
-        
     def browsedir_clicked(self):
         fileName = QtGui.QFileDialog.getExistingDirectory(self, ("Select save location"));
         if fileName != None:
             self.locationdir_edit.setText(fileName)
-            
-            
-            
-
-              
+                
     def browsefil_clicked(self):
         fileName = QtGui.QFileDialog.getSaveFileName(self, ("Select save location"));
         if fileName != None:
             self.locationfil_edit.setText(fileName)   
             self.updateformat()
-        
-        
-        
-    
+
     def validate(self):
         
         if self.exportarch_radio.isChecked():
@@ -290,13 +255,11 @@ class QBzrExportDialog(SubProcessDialog):
             if str(self.revisions_edit.text()) == "":
                 raise errors.BzrCommandError("Export revision is invalid")
         return True
-            
-    
+
     def do_start(self):
         args = []
         
-        mylocation = url_for_display(self.branch.base)
-        print mylocation 
+        mylocation = url_for_display(self.branch.base) 
         
         if self.exportarch_radio.isChecked():
             location = str(self.locationfil_edit.text())
@@ -309,8 +272,6 @@ class QBzrExportDialog(SubProcessDialog):
             format = str(self.format_combo.currentText())
             args.append("--format=dir")
 
-        
-        
         if str(self.folder_edit.text()) != '':
             args.append("--root=%s" % str(self.folder_edit.text()))
         
