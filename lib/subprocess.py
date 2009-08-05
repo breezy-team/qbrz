@@ -344,7 +344,7 @@ class SubProcessWidget(QtGui.QWidget):
         
         self.progressMessage = QtGui.QLabel(self)
         #self.progressMessage.setWordWrap(True) -- this breaks minimal window size hint
-        self.progressMessage.setText(gettext("Stopped"))
+        self.progressMessage.setText(gettext("Ready"))
         message_layout.addWidget(self.progressMessage, 1)
 
         self.transportActivity = QtGui.QLabel(self)
