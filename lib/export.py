@@ -128,25 +128,22 @@ class QBzrExportDialog(SubProcessDialog):
         
         vboxExportDestination.addLayout(locationdir_hbox)
 
-
         gbExportOptions = QtGui.QGroupBox(gettext("Options"), self)
         
         vbxExportOptions = QtGui.QVBoxLayout(gbExportOptions)
         
         
         revisions_box = QtGui.QGridLayout()
-               
-        
+
         revisions_label = QtGui.QLabel(gettext("Revision"))
         revisions_tip = QtGui.QRadioButton("Branch tip")
         revisions_tip.setChecked(True)
         self.revisions_tip = revisions_tip
         revisions_box.addWidget(revisions_label,0,0)
         revisions_box.addWidget(revisions_tip,0,1)
-        
-        
+
         revisions_other = QtGui.QRadioButton("Other")
-        
+        self.revisions_other = revisions_other
         
         revisions_edit = QtGui.QLineEdit()
         self.revisions_edit = revisions_edit
@@ -155,31 +152,14 @@ class QBzrExportDialog(SubProcessDialog):
         revisions_box.addWidget(revisions_edit,1,2)
         
         vbxExportOptions.addLayout(revisions_box)
-        
-        
-        format_box = QtGui.QGridLayout()
-        
 
+        format_box = QtGui.QGridLayout()
 
         format_canonical = QtGui.QCheckBox("Apply content filters")
         self.format_canonical = format_canonical
-        
-        #format_box.addWidget(format_label,0,0)
         format_box.addWidget(format_canonical,0,0)
-        #format_box.setColumnStretch(0,0)
-        #format_box.setColumnStretch(1,1)
-        
-        
-        
-        #format_other = QtGui.QRadioButton("Filtered form")
-        #self.format_other = format_other
-
-        
-        #format_box.addWidget(format_other,1,1)
         
         vbxExportOptions.addLayout(format_box)
-        
-
 
         layout = QtGui.QVBoxLayout(self)
 
@@ -209,7 +189,6 @@ class QBzrExportDialog(SubProcessDialog):
         path = self.locationfil_edit.text()
         format = ""
         for ex in extensions:
-
             if str(path).endswith(ex):
                 format = extensions[ex]
                 path = str(path)
@@ -242,7 +221,6 @@ class QBzrExportDialog(SubProcessDialog):
             self.updateformat()
 
     def validate(self):
-        
         if self.exportarch_radio.isChecked():
             location = str(self.locationfil_edit.text())
             if location == "":
@@ -261,15 +239,15 @@ class QBzrExportDialog(SubProcessDialog):
         args = []
         
         mylocation = url_for_display(self.branch.base) 
+        args.append(mylocation)
         
         if self.exportarch_radio.isChecked():
             location = str(self.locationfil_edit.text())
-            args.append(location)
+            
             format = str(self.format_combo.currentText())
             args.append("--format=%s" % format)
         else:
             location = str(self.locationdir_edit.text())
-            args.append(location)
             format = str(self.format_combo.currentText())
             args.append("--format=dir")
 
@@ -285,7 +263,7 @@ class QBzrExportDialog(SubProcessDialog):
         if self.format_canonical.isChecked():
             args.append("--filters")
             
-        self.process_widget.do_start(None, 'export', None, *args)
+        self.process_widget.do_start(None, 'export', location, *args)
 
     def saveSize(self):
         SubProcessDialog.saveSize(self)
