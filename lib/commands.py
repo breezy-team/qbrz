@@ -925,24 +925,7 @@ class cmd_qbind(QBzrCommand):
         application = QtGui.QApplication(sys.argv)
         branch = Branch.open_containing(location)[0]
         
-        window = QBzrBindDialog(branch, ui_mode, False)
-        window.show()
-        application.exec_()        
-    
-
-class cmd_qunbind(QBzrCommand):
-    """Convert the current branch into a checkout of the supplied branch."""
-    
-    takes_args = ['location?']
-    takes_options = [ui_mode_option]
-    
-    def _qbzr_run(self, location=None, ui_mode=False):
-        from bzrlib.plugins.qbzr.lib.bind import QBzrBindDialog
-        
-        application = QtGui.QApplication(sys.argv)
-        branch = Branch.open_containing(location)[0]
-        
-        window = QBzrBindDialog(branch, ui_mode, True)
+        window = QBzrBindDialog(branch, ui_mode)
         window.show()
         application.exec_()        
     
