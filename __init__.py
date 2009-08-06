@@ -67,6 +67,7 @@ def register_lazy_command(module, name, aliases, decorate=False):
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_merge', [], decorate=True)  # provides merge --qpreview
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qadd', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qannotate', ['qann', 'qblame'])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbind', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbranch', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbrowse', ['qbw'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbzr', [])
@@ -92,7 +93,6 @@ register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qversion', ['qsys
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qviewer', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsend', ['qsend'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qswitch', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbind', [])
 
 register_lazy_command('bzrlib.plugins.qbzr.lib.extra.bugurl', 'cmd_bug_url', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.extra.isignored', 'cmd_is_ignored', [])
