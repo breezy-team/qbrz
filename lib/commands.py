@@ -881,6 +881,7 @@ class cmd_qupdate(QBzrCommand):
         window = QBzrUpdateWindow(tree, ui_mode)
         window.show()
         application.exec_()
+        
 class cmd_qsend(QBzrCommand):
     """Dialog for creating and sending patches and bundles"""
     
@@ -909,5 +910,21 @@ class cmd_qswitch(QBzrCommand):
         branch = Branch.open_containing(location)[0]
         
         window = QBzrSwitchWindow(branch, ui_mode)
+        window.show()
+        application.exec_() 
+
+class cmd_qunbind(QBzrCommand):
+    """Convert the current checkout into a regular branch."""
+    takes_options = [ui_mode_option]
+    
+    def _qbzr_run(self, ui_mode=False):
+        from bzrlib.plugins.qbzr.lib.unbind import QBzrUnbindDialog
+        
+        application = QtGui.QApplication(sys.argv)
+        branch = Branch.open_containing(".")[0]
+        if branch.get_bound_location() == None:
+            raise errors.BzrCommandError("This branch is not bound.")
+        
+        window = QBzrUnbindDialog(branch, ui_mode)
         window.show()
         application.exec_() 
