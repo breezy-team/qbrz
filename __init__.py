@@ -93,7 +93,6 @@ register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qviewer', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsend', ['qsend'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qswitch', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbind', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qunbind', [])
 
 register_lazy_command('bzrlib.plugins.qbzr.lib.extra.bugurl', 'cmd_bug_url', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.extra.isignored', 'cmd_is_ignored', [])

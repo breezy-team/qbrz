@@ -41,12 +41,10 @@ from bzrlib.plugins.qbzr.lib.trace import (
 
 class QBzrBindDialog(SubProcessDialog):
 
-    actionButton = None
-    
-    def __init__(self, branch, ui_mode = None, unbind=False):
+    def __init__(self, branch, ui_mode = None):
         
         super(QBzrBindDialog, self).__init__(
-                                  gettext("Bind/Unbind branch"),
+                                  gettext("Bind branch"),
                                   name = "bind",
                                   default_size = (400, 400),
                                   ui_mode = ui_mode,
@@ -57,9 +55,11 @@ class QBzrBindDialog(SubProcessDialog):
             
         self.branch = branch
         
-        gbBind = QtGui.QGroupBox(gettext("Bind/Unbind branch"), self)
+        gbBind = QtGui.QGroupBox(gettext("Bind branch %s") % url_for_display(branch.base), self)
         
-        bind_hbox = QtGui.QHBoxLayout(gbBind)
+        bind_vbox = QtGui.QVBoxLayout(gbBind)
+        
+        bind_hbox = QtGui.QHBoxLayout()
         
         branch_label = QtGui.QLabel(gettext("Bind to:"))
         branch_combo = QtGui.QComboBox()   
@@ -67,18 +67,23 @@ class QBzrBindDialog(SubProcessDialog):
         
         self.branch_combo = branch_combo
         
-        QtCore.QObject.connect(branch_combo, QtCore.SIGNAL("textChanged(QString)"), self.combo_changed)
-        
         repo = branch.bzrdir.find_repository()
         
-        currboundloc = branch.get_bound_location()
+        self.currbound = branch.get_bound_location()
+        if self.currbound != None:
+            curr_hbox = QtGui.QHBoxLayout()
+            
+            curr_label = QtGui.QLabel(gettext("Currently bound to: %s") % url_for_display(self.currbound))
+                    
+            curr_hbox.addWidget(curr_label)
+            bind_vbox.addLayout(curr_hbox)    
+            
+            branch_combo.addItem(url_for_display(self.currbound))        
+                                       
         
-        if unbind and currboundloc != None:
-            branch_combo.addItem(url_for_display(currboundloc))
-        elif unbind == False:
-            boundloc = branch.get_old_bound_location()
-            if boundloc != None:
-                branch_combo.addItem(url_for_display(boundloc))
+        boundloc = branch.get_old_bound_location()
+        if boundloc != None:
+            branch_combo.addItem(url_for_display(boundloc))
             
             
         
@@ -94,48 +99,42 @@ class QBzrBindDialog(SubProcessDialog):
         bind_hbox.setStretchFactor(branch_combo,1)
         bind_hbox.setStretchFactor(browse_button,0)
         
+        bind_vbox.addLayout(bind_hbox)
+        
         layout = QtGui.QVBoxLayout(self)
         
         layout.addWidget(gbBind)
         
-        layout.addWidget(self.make_default_status_box())
-        layout.addWidget(self.buttonbox)
-
-        for but in self.buttonbox.buttons(): 
-            self.buttonbox.removeButton(but)
-            
+        self.buttonbox.clear()
+        
+        
         cancelButton = StandardButton(BTN_CANCEL)
         
-        
-        
-        
-        
-        
-        if unbind:
-            self.actionButton = QtGui.QPushButton("Unbind")
-        else:
-            self.actionButton = QtGui.QPushButton("Bind")
-
-
-        self.buttonbox.addButton(self.actionButton,
+        self.bindButton = QtGui.QPushButton(gettext("Bind"))
+        self.buttonbox.addButton(self.bindButton,
                                  QtGui.QDialogButtonBox.AcceptRole)
-                
+        
+        if self.currbound != None:
+            self.unbindButton = QtGui.QPushButton(gettext("Unbind"))
+            self.buttonbox.addButton(self.unbindButton,
+                                     QtGui.QDialogButtonBox.ActionRole)     
+            self.connect(self.unbindButton, QtCore.SIGNAL("clicked()"), self.do_clicked)       
+        
         self.buttonbox.addButton(cancelButton,
                                  QtGui.QDialogButtonBox.RejectRole)
-
+                
+        layout.addWidget(self.make_default_status_box())
+        layout.addWidget(self.buttonbox)
         
-        self.combo_changed(branch_combo.currentText())
-        """self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.do_accept)
-        self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.do_reject)"""
-
         
 
-    def combo_changed(self, stri):
-        if self.actionButton != None:
-            if str(stri) == "":
-                self.actionButton.setText("Unbind")
-            else:
-                self.actionButton.setText("Bind")
+    def do_clicked(self):
+        args = []
+        
+        location = str(self.branch_combo.currentText())
+        mylocation =  url_for_display(self.branch.base)     
+                            
+        self.process_widget.do_start(None, 'unbind')
         
     def browse_clicked(self):
         fileName = QtGui.QFileDialog.getExistingDirectory(self, gettext("Select branch location"));
@@ -146,11 +145,10 @@ class QBzrBindDialog(SubProcessDialog):
     @reports_exception(type=SUB_LOAD_METHOD)
     @ui_current_widget   
     def validate(self):
-        return True
         location = str(self.branch_combo.currentText())
        
         if(location == ''):
-            raise errors.BzrCommandError("Branch location not entered.")
+            raise errors.BzrCommandError(gettext("Branch location not entered."))
         
         return True
     
@@ -159,9 +157,5 @@ class QBzrBindDialog(SubProcessDialog):
         
         location = str(self.branch_combo.currentText())
         mylocation =  url_for_display(self.branch.base)     
-        
-        if location == "":
-            self.process_widget.do_start(None, 'unbind')
-        else:
-            self.process_widget.do_start(None, 'bind', location, *args)
-        
+                            
+        self.process_widget.do_start(None, 'bind', location, *args)
