@@ -400,7 +400,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                     child_id = self.append_item(child, dir_id)
                     dir_item.children_ids.append(child_id)
                     
-                    if len(dir_item.children_ids) % 100 == 0:
+                    if len(self.inventory_data) % 100 == 0:
                         QtCore.QCoreApplication.processEvents()
             finally:
                 self.endInsertRows();
@@ -639,32 +639,27 @@ class TreeModel(QtCore.QAbstractItemModel):
         if role == self.FILEID:
             return QtCore.QVariant(item.file_id)
         
-        revid = item_data.item.revision
-        if role == self.REVID:
-            if revid is None:
-                return QtCore.QVariant()
-            else:
-                return QtCore.QVariant(revid)
-
         column = index.column()
         if column == self.NAME:
             if role == QtCore.Qt.DisplayRole:
                 return QtCore.QVariant(item.name)
             if role == QtCore.Qt.DecorationRole:
-                if isinstance(self.tree, WorkingTree):
-                    if item_data.icon is None:
+                if item_data.icon is None:
+                    if isinstance(self.tree, WorkingTree):
                         abspath = self.tree.abspath(item_data.path)
                         info = QtCore.QFileInfo(abspath)
-                        item_data.icon = self.icon_provider.icon(info)
-                    return QtCore.QVariant(item_data.icon)
-                else:
-                    if item.kind == "file":
-                        return QtCore.QVariant(self.file_icon)
-                    if item.kind == "directory":
-                        return QtCore.QVariant(self.dir_icon)
-                    if item.kind == "symlink":
-                        return QtCore.QVariant(self.symlink_icon)
-                    return QtCore.QVariant()
+                        item_data.icon = \
+                                QtCore.QVariant(self.icon_provider.icon(info))
+                    else:
+                        if item.kind == "file":
+                            item_data.icon = QtCore.QVariant(self.file_icon)
+                        if item.kind == "directory":
+                            item_data.icon = QtCore.QVariant(self.dir_icon)
+                        if item.kind == "symlink":
+                            item_data.icon = QtCore.QVariant(self.symlink_icon)
+                if item_data.icon is None:
+                    item_data.icon = QtCore.QVariant()
+                return item_data.icon
             
             if role ==  QtCore.Qt.CheckStateRole:
                 if not self.checkable:
@@ -678,6 +673,13 @@ class TreeModel(QtCore.QAbstractItemModel):
                     return QtCore.QVariant(item_data.change.status())
                 else:
                     return QtCore.QVariant("")
+        
+        revid = item_data.item.revision
+        if role == self.REVID:
+            if revid is None:
+                return QtCore.QVariant()
+            else:
+                return QtCore.QVariant(revid)
         
         if column == self.REVNO:
             if role == QtCore.Qt.DisplayRole:
@@ -815,12 +817,9 @@ class TreeModel(QtCore.QAbstractItemModel):
                 self.load_dir(item_data.id)
             i += 1
         
-        return [self.item2ref(item_data)
-                for item_data in sorted(
-                    [item_data for item_data in self.inventory_data[1:]
-                     if item_data.checked == QtCore.Qt.Checked],
-                    self.inventory_dirs_first_cmp,
-                    lambda x: (x.change.path(), x.item.kind))]
+        for item_data in self.inventory_data[1:]:
+            if item_data.checked == QtCore.Qt.Checked:
+                yield self.item2ref(item_data)
 
     def set_checked_items(self, refs, ignore_no_file_error=True):
         # set every thing off
@@ -1070,15 +1069,6 @@ class TreeWidget(RevisionTreeView):
         self.branch = branch
         self.changes_mode = changes_mode
         self.want_unversioned = want_unversioned
-        self.tree_model.set_tree(self.tree, self.branch,
-                                 changes_mode, want_unversioned)
-        if initial_checked_paths is not None and not self.tree_model.checkable:
-            raise AttributeError("You can't have a initial_selection if "
-                                 "tree_model.checkable is not True.")
-        if initial_checked_paths is not None:
-            self.tree_model.set_checked_paths(initial_checked_paths)
-        
-        self.tree_filter_model.invalidateFilter()
         
         if str(QtCore.QT_VERSION_STR).startswith("4.4"):
             # 4.4.x have a bug where if you do a layoutChanged when using
@@ -1113,6 +1103,19 @@ class TreeWidget(RevisionTreeView):
             header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.Stretch)        
             
             self.context_menu.setDefaultAction(self.action_show_file)
+        QtCore.QCoreApplication.processEvents()
+        
+        self.tree_model.set_tree(self.tree, self.branch,
+                                 changes_mode, want_unversioned)
+        if initial_checked_paths is not None and not self.tree_model.checkable:
+            raise AttributeError("You can't have a initial_selection if "
+                                 "tree_model.checkable is not True.")
+        QtCore.QCoreApplication.processEvents()
+        if initial_checked_paths is not None:
+            self.tree_model.set_checked_paths(initial_checked_paths)
+        
+        self.tree_filter_model.invalidateFilter()
+
         
         if sys.platform.startswith("win"):
             # This is to fix Bug 402276, where the treewidget does not get
