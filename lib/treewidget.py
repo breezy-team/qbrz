@@ -1007,8 +1007,7 @@ class TreeWidget(RevisionTreeView):
         if self.tree and isinstance(self.tree, WorkingTree):
             header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.Stretch)
             header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.ResizeToContents)        
-            
-    
+
     def create_context_menu(self):
         self.context_menu = QtGui.QMenu(self)
         self.action_open_file = self.context_menu.addAction(
@@ -1258,8 +1257,7 @@ class TreeWidget(RevisionTreeView):
                 self.context_menu.setDefaultAction(self.action_show_diff)
             else:
                 self.context_menu.setDefaultAction(self.action_open_file)
-            
-    
+
     def do_default_action(self, index):
         item_data = self.get_selection_items([index])[0]
         if item_data.item.kind == "directory":
@@ -1308,8 +1306,10 @@ class TreeWidget(RevisionTreeView):
         item = items[0]
         
         self.tree.lock_read()
-        abspath = self.tree.abspath(item.path)
-        
+        try:
+            abspath = self.tree.abspath(item.path)
+        finally:
+            self.tree.unlock()
         url = QtCore.QUrl.fromLocalFile(abspath)
         result = QtGui.QDesktopServices.openUrl(url)
 
