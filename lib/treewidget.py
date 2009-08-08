@@ -1006,7 +1006,34 @@ class TreeWidget(RevisionTreeView):
                              fm.width("Joe I have a Long Name") + col_margin)        
         if self.tree and isinstance(self.tree, WorkingTree):
             header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.Stretch)
+            header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.ResizeToContents)
+    
+    def set_visible_headers(self):
+        header = self.header()
+        if isinstance(self.tree, WorkingTree):
+            # We currently have to hide the revision columns, because the
+            # revision property is not availible from the WorkingTree.inventory.
+            # We may be able to get this by looking at the revision tree for
+            # the revision of the basis tree.
+            header.hideSection(self.tree_model.DATE)
+            header.hideSection(self.tree_model.REVNO)
+            header.hideSection(self.tree_model.MESSAGE)
+            header.hideSection(self.tree_model.AUTHOR)
+            header.showSection(self.tree_model.STATUS)
+            header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.Stretch)
             header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.ResizeToContents)        
+            
+            self.context_menu.setDefaultAction(self.action_open_file)
+        else:
+            header.showSection(self.tree_model.DATE)
+            header.showSection(self.tree_model.REVNO)
+            header.showSection(self.tree_model.MESSAGE)
+            header.showSection(self.tree_model.AUTHOR)
+            header.hideSection(self.tree_model.STATUS)
+            header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.ResizeToContents)
+            header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.Stretch)        
+            
+            self.context_menu.setDefaultAction(self.action_show_file)
 
     def create_context_menu(self):
         self.context_menu = QtGui.QMenu(self)
@@ -1076,32 +1103,7 @@ class TreeWidget(RevisionTreeView):
             # after every time we do a layout changed. The issue is similar to 
             # http://www.qtsoftware.com/developer/task-tracker/index_html?method=entry&id=236755
             self.set_header_width_settings()
-        
-        header = self.header()
-        if isinstance(self.tree, WorkingTree):
-            # We currently have to hide the revision columns, because the
-            # revision property is not availible from the WorkingTree.inventory.
-            # We may be able to get this by looking at the revision tree for
-            # the revision of the basis tree.
-            header.hideSection(self.tree_model.DATE)
-            header.hideSection(self.tree_model.REVNO)
-            header.hideSection(self.tree_model.MESSAGE)
-            header.hideSection(self.tree_model.AUTHOR)
-            header.showSection(self.tree_model.STATUS)
-            header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.Stretch)
-            header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.ResizeToContents)        
-            
-            self.context_menu.setDefaultAction(self.action_open_file)
-        else:
-            header.showSection(self.tree_model.DATE)
-            header.showSection(self.tree_model.REVNO)
-            header.showSection(self.tree_model.MESSAGE)
-            header.showSection(self.tree_model.AUTHOR)
-            header.hideSection(self.tree_model.STATUS)
-            header.setResizeMode(self.tree_model.NAME, QtGui.QHeaderView.ResizeToContents)
-            header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.Stretch)        
-            
-            self.context_menu.setDefaultAction(self.action_show_file)
+        self.set_visible_headers()
         QtCore.QCoreApplication.processEvents()
         
         self.tree_model.set_tree(self.tree, self.branch,
@@ -1109,6 +1111,16 @@ class TreeWidget(RevisionTreeView):
         if initial_checked_paths is not None and not self.tree_model.checkable:
             raise AttributeError("You can't have a initial_selection if "
                                  "tree_model.checkable is not True.")
+        
+        if str(QtCore.QT_VERSION_STR).startswith("4.4"):
+            # 4.4.x have a bug where if you do a layoutChanged when using
+            # a QSortFilterProxyModel, it loses all header width settings.
+            # So if you are using 4.4, we have to reset the width settings
+            # after every time we do a layout changed. The issue is similar to 
+            # http://www.qtsoftware.com/developer/task-tracker/index_html?method=entry&id=236755
+            self.set_header_width_settings()
+            self.set_visible_headers()
+        
         QtCore.QCoreApplication.processEvents()
         if initial_checked_paths is not None:
             self.tree_model.set_checked_paths(initial_checked_paths)
