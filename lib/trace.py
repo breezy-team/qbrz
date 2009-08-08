@@ -47,6 +47,11 @@ ITEM_OR_EVENT_METHOD = 2
 The user is allowed to ignore the error, or close the window.
 """
 
+_file_bugs_url = "https://bugs.launchpad.net/qbzr/+filebug"
+
+def set_file_bugs_url(url):
+    _file_bugs_url = url
+
 closing_due_to_error = False
 
 def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
@@ -133,11 +138,11 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
                 plugin,
                 )
             
-            message ="\
-Bazaar has encountered an internal error. Please report a bug at \
-<a href=\"https://bugs.launchpad.net/bzr/+filebug\">\
-https://bugs.launchpad.net/bzr/+filebug</a> including this traceback, and a \
-description of what you were doing when the error occurred."
+            message = ('Bazaar has encountered an internal error. Please ' 
+                       'report a bug at <a href="%s">%s</a> including this ' 
+                       'traceback, and a description of what you were doing ' 
+                       'when the error occurred.'
+                       % (_file_bugs_url, _file_bugs_url))
             
             traceback_file = StringIO()
             print_exception(exc_info, traceback_file)
