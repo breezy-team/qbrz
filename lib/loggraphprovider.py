@@ -17,6 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import fnmatch
 import re
 from time import clock
 
@@ -756,7 +757,6 @@ class LogGraphProvider(object):
     def get_revision_visible(self, msri):
         """ Returns wether a revision is visible or not"""
         
-        
         return msri in self.msri_index
         #(sequence_number,
         # revid,
@@ -1448,6 +1448,21 @@ class LogGraphProvider(object):
                 yield index
     
     def set_search(self, str, field):
+        """Set search string for specified kind of data.
+        @param  str:    string to search (interpreted based on field value)
+        @param  field:  kind of data to search, based on some field
+            of revision metadata. Possible values:
+                - message
+                - index (require bzr-search plugin)
+                - author
+                - tag
+                - bug
+
+        Value of `str` interpreted based on field value. For index it's used
+        as input value for bzr-search engine.
+        For message, author, tag and bug it's used as shell pattern
+        (glob pattern) to search in corresponding metadata of revisions.
+        """
         self.sr_field = field
         
         def revisions_loaded(revisions, last_call):
@@ -1458,6 +1473,10 @@ class LogGraphProvider(object):
             if self.sr_filter_re is None:
                 return True
             return False
+
+        def wildcard2regex(wildcard):
+            """Translate shel pattern to regexp."""
+            return fnmatch.translate(wildcard).rstrip('$')
         
         if str is None or str == u"":
             self.sr_filter_re = None
@@ -1485,7 +1504,7 @@ class LogGraphProvider(object):
                                 pass
             elif self.sr_field == "tag":
                 self.sr_filter_re = None
-                filter_re = re.compile(str, re.IGNORECASE)
+                filter_re = re.compile(wildcard2regex(str), re.IGNORECASE)
                 self.sr_index_matched_revids = {}
                 for revid in self.tags:
                     for t in self.tags[revid]:
@@ -1493,7 +1512,8 @@ class LogGraphProvider(object):
                             self.sr_index_matched_revids[revid] = True
                             break
             else:
-                self.sr_filter_re = re.compile(str, re.IGNORECASE)
+                self.sr_filter_re = re.compile(wildcard2regex(str),
+                    re.IGNORECASE)
                 self.sr_index_matched_revids = None
             
             self.invaladate_filter_cache()

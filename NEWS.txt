@@ -1,6 +1,11 @@
 0.13 - in development
 -----------------------
 
+ * qlog:
+   * Wildcards now supported to search for message, author, tags and bugs.
+     You can see all revisions with tags or bugs by selecting corresponding
+     search filter and type * in the search entry.
+
  * Added Estonian translation.
 
 
