@@ -202,16 +202,19 @@ class cmd_qannotate(QBzrCommand):
             branch.lock_read()
         try:
             if revision is None:
-                revision_id = branch.last_revision()
+                if wt is not None:
+                    tree = wt
+                else:
+                    tree = branch.repository.revision_tree(
+                                                    branch.last_revision())
             elif len(revision) != 1:
-                raise errors.BzrCommandError('bzr qannotate --revision takes exactly 1 argument')
+                raise errors.BzrCommandError(
+                    'bzr qannotate --revision takes exactly 1 argument')
             else:
-                revision_id = revision[0].in_history(branch).rev_id
-            tree = branch.repository.revision_tree(revision_id)
-            if wt is not None:
-                file_id = wt.path2id(relpath)
-            else:
-                file_id = tree.path2id(relpath)
+                tree = branch.repository.revision_tree(
+                        revision_id = revision[0].in_history(branch).rev_id)
+            
+            file_id = tree.path2id(relpath)
             if file_id is None:
                 raise errors.NotVersionedError(filename)
             entry = tree.inventory[file_id]
