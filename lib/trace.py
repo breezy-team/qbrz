@@ -212,6 +212,9 @@ class ErrorReport(QtGui.QDialog):
         label = QtGui.QLabel(message)
         label.setWordWrap(True)
         label.setAlignment(QtCore.Qt.AlignTop|QtCore.Qt.AlignLeft)
+        self.connect(label,
+                     QtCore.SIGNAL("linkActivated(QString)"),
+                     self.link_clicked)
 
         icon_label = QtGui.QLabel()
         icon_label.setPixmap(self.style().standardPixmap(
@@ -248,9 +251,16 @@ class ErrorReport(QtGui.QDialog):
         
         screen = QtGui.QApplication.desktop().screenGeometry()
         self.resize (QtCore.QSize(screen.width()*0.8, screen.height()*0.8))
-
+        
     def clicked(self, button):
         self.done(int(self.buttonbox.standardButton(button)))
+
+    def link_clicked(self, url):
+        # We can't import this at the top of the file because util imports
+        # this file. XXX - The is probably a sign that util is to big, and
+        # we need to split it up.
+        from bzrlib.plugins.qbzr.lib.util import open_browser
+        open_browser(str(url))
 
 def reports_exception(type=MAIN_LOAD_METHOD):
     """Decorator to report Exceptions raised from the called method
