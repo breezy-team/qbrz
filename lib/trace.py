@@ -50,6 +50,7 @@ The user is allowed to ignore the error, or close the window.
 _file_bugs_url = "https://bugs.launchpad.net/qbzr/+filebug"
 
 def set_file_bugs_url(url):
+    global _file_bugs_url
     _file_bugs_url = url
 
 closing_due_to_error = False
