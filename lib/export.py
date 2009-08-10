@@ -179,6 +179,15 @@ class QBzrExportDialog(SubProcessDialog):
         layout.addWidget(self.buttonbox)
 
 
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("disableUi(bool)"),
+                               gbExportDestination,
+                               QtCore.SLOT("setDisabled(bool)"))
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("disableUi(bool)"),
+                               gbExportOptions,
+                               QtCore.SLOT("setDisabled(bool)"))
+            
         if dest != None:
             if path.isdir(dest):
                 locationdir_edit.setText(path.abspath(dest))
@@ -276,7 +285,6 @@ class QBzrExportDialog(SubProcessDialog):
             args.append("--root=%s" % str(self.folder_edit.text()))
         else:
             args.append("--root=")
-        print args
         
         if self.revisions_tip.isChecked():
             args.append("--revision=-1")
