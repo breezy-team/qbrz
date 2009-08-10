@@ -161,7 +161,9 @@ class AnnotateModel(QtCore.QAbstractTableModel):
                 return QtCore.QVariant(self.font)
         
         if column == self.TEXT and role == QtCore.Qt.BackgroundRole and rev:
-            if self.now < rev.timestamp:
+            if rev.timestamp is None:
+                days = sys.maxint
+            elif self.now < rev.timestamp:
                 days = 0
             else:
                 days = (self.now - rev.timestamp) / (24 * 60 * 60)
@@ -385,6 +387,8 @@ class AnnotateWindow(QBzrWindow):
         
         changed_msris = []
         for revid in self.rev_indexes.keys():
+            if revid == 'current:':
+                continue
             msri = self.log_list.graph_provider.revid_msri[revid]
             self.log_list.graph_provider.filter_file_id[msri] = True
             changed_msris.append(msri)

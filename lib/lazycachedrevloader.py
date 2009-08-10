@@ -30,6 +30,14 @@ from bzrlib.plugins.qbzr.lib.uifactory import current_throbber
 cached_revisions = {} #weakref.WeakValueDictionary()
 """Global cache of revisions."""
 
+class CurrentWTFakeRevision(object):
+    def get_apparent_authors(self):
+        return ""
+    
+    timestamp = None
+
+cached_revisions['current:'] = CurrentWTFakeRevision()
+
 def load_revisions(revids, repo,
                    time_before_first_ui_update = 0.5,
                    local_batch_size = 30,
