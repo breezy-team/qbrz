@@ -180,7 +180,7 @@ class QBzrExportDialog(SubProcessDialog):
         extensions = {}
         extensions['tar'] = 'tar'
         extensions['tar.bz2'] = 'tbz2'
-        extensions['tbz2'] = 'tar'
+        extensions['tbz2'] = 'tbz2'
         extensions['tar.gz'] = 'tgz'
         extensions['tgz'] = 'tgz'
         extensions['zip'] = 'zip'
@@ -200,13 +200,13 @@ class QBzrExportDialog(SubProcessDialog):
                 break
             
         if format == 'tar':
-            self.format_combo.setCurrentIndex(3)
-        elif format == 'tbz2':
-            self.format_combo.setCurrentIndex(2)
-        elif format == 'tgz':
-            self.format_combo.setCurrentIndex(1)
-        elif format == 'zip':
             self.format_combo.setCurrentIndex(0)
+        elif format == 'tbz2':
+            self.format_combo.setCurrentIndex(1)
+        elif format == 'tgz':
+            self.format_combo.setCurrentIndex(2)
+        elif format == 'zip':
+            self.format_combo.setCurrentIndex(3)
 
     def browsedir_clicked(self):
         fileName = QtGui.QFileDialog.getExistingDirectory(self, ("Select save location"));
@@ -254,6 +254,9 @@ class QBzrExportDialog(SubProcessDialog):
 
         if str(self.folder_edit.text()) != '':
             args.append("--root=%s" % str(self.folder_edit.text()))
+        else:
+            args.append("--root=")
+        print args
         
         if self.revisions_tip.isChecked():
             args.append("--revision=-1")
