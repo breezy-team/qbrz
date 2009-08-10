@@ -202,7 +202,6 @@ class SubProcessWindowBase:
 
     def on_error(self):
         self.emit(QtCore.SIGNAL("subprocessError(bool)"), False)
-        self.emit(QtCore.SIGNAL("disableUi(bool)"), False)
 
     def setupUi(self, ui):
         ui.setupUi(self)

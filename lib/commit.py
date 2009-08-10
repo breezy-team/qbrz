@@ -434,6 +434,7 @@ class CommitWindow(SubProcessDialog):
                     self.processEvents()
                 
                 self.filelist.tree_model.checkable = not self.pending_merges_list
+                self.is_loading = True
                 if not refresh:
                     fmodel = self.filelist.tree_filter_model
                     #fmodel.setFilter(fmodel.UNVERSIONED, False)
@@ -445,6 +446,7 @@ class CommitWindow(SubProcessDialog):
                         initial_checked_paths=self.initial_selected_list)
                 else:
                     self.filelist.refresh()
+                self.is_loading = False
                 self.processEvents()
                 self.update_compleater_words()
             finally:
@@ -460,6 +462,9 @@ class CommitWindow(SubProcessDialog):
         self.update_compleater_words()
     
     def update_compleater_words(self):
+        if self.is_loading:
+            return
+        
         num_files_loaded = 0
         
         words = set()
@@ -492,7 +497,7 @@ class CommitWindow(SubProcessDialog):
                 file_words = self.file_words[path]
             words.update(file_words)
         words = list(words)
-        words.sort(lambda a, b: cmp(a.lower(), b.lower()))
+        words.sort(key=lambda x: x.lower())
         self.completer_model.setStringList(words)
     
     def enableBugs(self, state):
@@ -631,17 +636,19 @@ class CommitWindow(SubProcessDialog):
         fmodel = self.filelist.tree_filter_model
         fmodel.setFilter(fmodel.UNVERSIONED, state)
 
-    def closeEvent(self, event):
+    def _save_or_clear_message(self):
         if not self.process_widget.is_running():
             if self.process_widget.finished:
                 self.clear_saved_message()
             else:
                 self.save_message()
+
+    def closeEvent(self, event):
+        self._save_or_clear_message()
         return SubProcessDialog.closeEvent(self, event)
-    
+
     def reject(self):
-        if not self.process_widget.is_running():
-            self.save_message()
+        self._save_or_clear_message()
         return SubProcessDialog.reject(self)
 
     def update_branch_groupbox(self):
