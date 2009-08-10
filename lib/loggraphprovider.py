@@ -23,7 +23,7 @@ from time import clock
 
 from bzrlib import errors
 from bzrlib.transport.local import LocalTransport
-from bzrlib.revision import NULL_REVISION
+from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.tsort import merge_sort
 try:
     from bzrlib.graph import (Graph, StackedParentsProvider)
@@ -186,6 +186,9 @@ class LogGraphProvider(object):
         repo = branch.repository
         if not tree:
             try:
+                # XXX - This dose not work if you have a light weight checkout
+                # We should rather make sure that every thing correctly pass
+                # us the wt if there is one.
                 tree = branch.bzrdir.open_workingtree()
             except errors.NoWorkingTree:
                 pass
@@ -404,6 +407,45 @@ class LogGraphProvider(object):
         
         self.compute_loaded_graph()
 
+    def load_graph_all_revisions_for_annotate(self):
+        if not len(self.branches()) == 1 or not len(self.repos) == 1:
+            AssertionError("load_graph_pending_merges should only be called \
+                           when 1 branch and repo has been opened.")        
+        
+        self.revid_head_info = {}
+        self.head_revids = []
+        self.revid_branch = {}
+        tree, branch, index = self.branches()[0]
+        self.trunk_branch = branch
+        
+        if tree:
+            branch_last_revision = CURRENT_REVISION
+            current_parents = tree.get_parent_ids()
+        else:
+            branch_last_revision = branch.last_revision()
+        
+        self.append_head_info(branch_last_revision, branch, None, True)
+        self.update_ui()
+        
+        if len(self.repos)==1:
+            self.graph = self.repos.values()[0].get_graph()
+        else:
+            parents_providers = [repo._make_parents_provider() \
+                                 for repo in self.repos_sorted_local_first()]
+            self.graph = Graph(StackedParentsProvider(parents_providers))
+        
+        def parents():
+            if branch_last_revision == CURRENT_REVISION:
+                yield (CURRENT_REVISION, current_parents)
+                heads = current_parents
+            else:
+                heads = self.head_revids
+            for p in self.graph.iter_ancestry(heads):
+                yield p
+        
+        self.process_graph_parents(parents())
+        
+        self.compute_loaded_graph()
     
     def load_graph_pending_merges(self):
         if not len(self.branches()) == 1 or not len(self.repos) == 1:
@@ -1430,7 +1472,11 @@ class LogGraphProvider(object):
             return None
         msri = self.revid_msri[revid]
         revno_sequence = self.merge_sorted_revisions[msri][3]
-        return ".".join(["%d" % (revno) for revno in revno_sequence])    
+        if revid == CURRENT_REVISION:
+            return ".".join(["%d" % (revno) for revno in revno_sequence]) + " ?"
+        else:
+            return ".".join(["%d" % (revno) for revno in revno_sequence])
+
     
     def find_child_branch_merge_revision(self, revid):
         msri = self.revid_msri[revid]
