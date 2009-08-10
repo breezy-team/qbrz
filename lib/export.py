@@ -94,10 +94,10 @@ class QBzrExportDialog(SubProcessDialog):
         format_label = QtGui.QLabel(gettext("Archive type"))
         format_combo = QtGui.QComboBox()
         
-        format_combo.insertItem(-1,"tar")
-        format_combo.insertItem(-1,"tbz2")
-        format_combo.insertItem(-1,"tgz")
-        format_combo.insertItem(-1,"zip")
+        format_combo.insertItem(0,"tar")
+        format_combo.insertItem(1,"tbz2")
+        format_combo.insertItem(2,"tgz")
+        format_combo.insertItem(3,"zip")
         self.format_combo = format_combo
         
         format_hbox.addSpacing(25)
