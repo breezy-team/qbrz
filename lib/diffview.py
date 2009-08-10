@@ -27,7 +27,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     format_timestamp,
     split_tokens_at_lines,
-    format_for_ttype,
+    CachedTTypeFormater,
     QBzrGlobalConfig,
     QBzrConfig,
     )
@@ -211,6 +211,10 @@ class SidebySideDiffView(QtGui.QSplitter):
     
         self.monospacedFormat = QtGui.QTextCharFormat()
         self.monospacedFormat.setFont(self.monospacedFont)
+        self.ttype_formater = CachedTTypeFormater(
+                                QtGui.QTextCharFormat(self.monospacedFormat))
+        self.background = self.monospacedFormat.background()
+        
         self.titleFormat = QtGui.QTextCharFormat()
         self.titleFormat.setFont(titleFont)
         self.metadataFormat = QtGui.QTextCharFormat()
@@ -337,9 +341,9 @@ class SidebySideDiffView(QtGui.QSplitter):
             def insertLine(cursor, line):
                 if use_pygments:
                     for ttype, value in line:
-                        cursor.insertText(value,
-                                          format_for_ttype(ttype,
-                                                           QtGui.QTextCharFormat(self.monospacedFormat)))
+                        format = self.ttype_formater.format(ttype)
+                        modifyFormatForTag(format, "equal")
+                        cursor.insertText(value, format)
                 else:
                     cursor.insertText(line)
             
@@ -351,11 +355,12 @@ class SidebySideDiffView(QtGui.QSplitter):
             def modifyFormatForTag (format, tag):
                 if tag == "replace":
                     format.setBackground(interline_changes_background)
-                elif not tag == "equal":
-                    if self.show_intergroup_colors:
-                        format.setBackground(brushes[tag][0])
-                    else:
-                        format.setBackground(interline_changes_background)
+                elif tag == "equal":
+                    format.setBackground(self.background)
+                elif self.show_intergroup_colors:
+                    format.setBackground(brushes[tag][0])
+                else:
+                    format.setBackground(interline_changes_background)
             
             split_words = re.compile(r"\w+|\n\r|\r\n|\W")
             def insertIxsWithChangesHighlighted(ixs):
@@ -380,8 +385,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                         for l in ls[ix[0]:ix[1]]:
                             for ttype, value in l:
                                 while value:
-                                    format = format_for_ttype(ttype,
-                                                QtGui.QTextCharFormat(self.monospacedFormat))
+                                    format = self.ttype_formater.format(ttype)
                                     modifyFormatForTag(format, tag)
                                     t = value[0:n]
                                     cursor.insertText(t, format)

@@ -867,7 +867,7 @@ def format_for_ttype(ttype, format):
     if have_pygments and ttype:
         font = format.font()
         
-        # I don't understand this, but I copied it for pygments rtf formater.
+        # If there is no style, use the parent type's style.
         # It fixes bug 347333 - GaryvdM
         while not style.styles_token(ttype) and ttype.parent:
             ttype = ttype.parent
@@ -885,8 +885,31 @@ def format_for_ttype(ttype, format):
         if tstyle['bgcolor']: format.setBackground (QtGui.QColor("#"+tstyle['bgcolor']))
         # No way to set this for a QTextCharFormat
         #if tstyle['border']: format.
-        format.setFont(font)
     return format
+
+class CachedTTypeFormater(object):
+    def __init__(self, base_format):
+        self.base_format = base_format
+        self._cache = {}
+    
+    def format(self, ttype):
+        if not have_pygments or not ttype:
+            return self.base_format
+        if ttype in self._cache:
+            format = self._cache[ttype]
+        else:
+            format = QtGui.QTextCharFormat(self.base_format)
+            self._cache[ttype] = format
+            
+            # If there is no style, use the parent type's style.
+            # It fixes bug 347333 - GaryvdM
+            while not style.styles_token(ttype) and ttype.parent:
+                ttype = ttype.parent
+                self._cache[ttype] = format
+            
+            format_for_ttype(ttype, format)
+        
+        return format
 
 
 def url_for_display(url):
