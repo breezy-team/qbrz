@@ -62,6 +62,7 @@ class QBzrExportDialog(SubProcessDialog):
         locationfil_label = QtGui.QLabel(gettext("Location:"))
         locationfil_edit = QtGui.QLineEdit()
         
+        
         self.locationfil_edit = locationfil_edit
         self.locationfil_edit = locationfil_edit # to allow access from another function     
         browsefil_button = QtGui.QPushButton(gettext("Browse"))
@@ -175,6 +176,8 @@ class QBzrExportDialog(SubProcessDialog):
         layout.addWidget(self.splitter)
         layout.addWidget(self.buttonbox)
 
+        locationfil_edit.setFocus()
+        
     def updateformat(self):
         
         extensions = {}
