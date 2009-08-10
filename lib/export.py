@@ -21,6 +21,8 @@
 
 from PyQt4 import QtCore, QtGui
 
+from os import path
+
 from bzrlib import errors
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
@@ -28,7 +30,7 @@ from bzrlib.plugins.qbzr.lib.util import url_for_display
 
 class QBzrExportDialog(SubProcessDialog):
     
-    def __init__(self, branch, ui_mode):
+    def __init__(self, dest, branch, ui_mode):
         
         
         title = "%s: %s" % (gettext("Export"), url_for_display(branch.base))
@@ -62,7 +64,7 @@ class QBzrExportDialog(SubProcessDialog):
         locationfil_label = QtGui.QLabel(gettext("Location:"))
         locationfil_edit = QtGui.QLineEdit()
         
-        
+                    
         self.locationfil_edit = locationfil_edit
         self.locationfil_edit = locationfil_edit # to allow access from another function     
         browsefil_button = QtGui.QPushButton(gettext("Browse"))
@@ -176,7 +178,22 @@ class QBzrExportDialog(SubProcessDialog):
         layout.addWidget(self.splitter)
         layout.addWidget(self.buttonbox)
 
-        locationfil_edit.setFocus()
+
+        if dest != None:
+            if path.isdir(dest):
+                locationdir_edit.setText(path.abspath(dest))
+                locationdir_edit.setFocus()
+                self.updateformat()
+                exportdir_radio.setChecked(True)   
+                             
+            else:
+                locationfil_edit.setText(path.abspath(dest))
+                locationfil_edit.setFocus()
+                self.updateformat()
+                exportarch_radio.setChecked(True)
+        
+            
+        
         
     def updateformat(self):
         
