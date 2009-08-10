@@ -21,6 +21,8 @@
 
 from PyQt4 import QtCore, QtGui
 
+from os import path
+
 from bzrlib import errors
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
@@ -28,7 +30,7 @@ from bzrlib.plugins.qbzr.lib.util import url_for_display
 
 class QBzrExportDialog(SubProcessDialog):
     
-    def __init__(self, branch, ui_mode):
+    def __init__(self, dest, branch, ui_mode):
         
         
         title = "%s: %s" % (gettext("Export"), url_for_display(branch.base))
@@ -62,6 +64,7 @@ class QBzrExportDialog(SubProcessDialog):
         locationfil_label = QtGui.QLabel(gettext("Location:"))
         locationfil_edit = QtGui.QLineEdit()
         
+                    
         self.locationfil_edit = locationfil_edit
         self.locationfil_edit = locationfil_edit # to allow access from another function     
         browsefil_button = QtGui.QPushButton(gettext("Browse"))
@@ -94,10 +97,10 @@ class QBzrExportDialog(SubProcessDialog):
         format_label = QtGui.QLabel(gettext("Archive type"))
         format_combo = QtGui.QComboBox()
         
-        format_combo.insertItem(-1,"tar")
-        format_combo.insertItem(-1,"tbz2")
-        format_combo.insertItem(-1,"tgz")
-        format_combo.insertItem(-1,"zip")
+        format_combo.insertItem(0,"tar")
+        format_combo.insertItem(1,"tbz2")
+        format_combo.insertItem(2,"tgz")
+        format_combo.insertItem(3,"zip")
         self.format_combo = format_combo
         
         format_hbox.addSpacing(25)
@@ -131,7 +134,6 @@ class QBzrExportDialog(SubProcessDialog):
         gbExportOptions = QtGui.QGroupBox(gettext("Options"), self)
         
         vbxExportOptions = QtGui.QVBoxLayout(gbExportOptions)
-        
         
         revisions_box = QtGui.QGridLayout()
 
@@ -176,12 +178,38 @@ class QBzrExportDialog(SubProcessDialog):
         layout.addWidget(self.splitter)
         layout.addWidget(self.buttonbox)
 
+
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("disableUi(bool)"),
+                               gbExportDestination,
+                               QtCore.SLOT("setDisabled(bool)"))
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("disableUi(bool)"),
+                               gbExportOptions,
+                               QtCore.SLOT("setDisabled(bool)"))
+            
+        if dest != None:
+            if path.isdir(dest):
+                locationdir_edit.setText(path.abspath(dest))
+                locationdir_edit.setFocus()
+                self.updateformat()
+                exportdir_radio.setChecked(True)   
+                             
+            else:
+                locationfil_edit.setText(path.abspath(dest))
+                locationfil_edit.setFocus()
+                self.updateformat()
+                exportarch_radio.setChecked(True)
+        
+            
+        
+        
     def updateformat(self):
         
         extensions = {}
         extensions['tar'] = 'tar'
         extensions['tar.bz2'] = 'tbz2'
-        extensions['tbz2'] = 'tar'
+        extensions['tbz2'] = 'tbz2'
         extensions['tar.gz'] = 'tgz'
         extensions['tgz'] = 'tgz'
         extensions['zip'] = 'zip'
@@ -201,24 +229,26 @@ class QBzrExportDialog(SubProcessDialog):
                 break
             
         if format == 'tar':
-            self.format_combo.setCurrentIndex(3)
-        elif format == 'tbz2':
-            self.format_combo.setCurrentIndex(2)
-        elif format == 'tgz':
-            self.format_combo.setCurrentIndex(1)
-        elif format == 'zip':
             self.format_combo.setCurrentIndex(0)
+        elif format == 'tbz2':
+            self.format_combo.setCurrentIndex(1)
+        elif format == 'tgz':
+            self.format_combo.setCurrentIndex(2)
+        elif format == 'zip':
+            self.format_combo.setCurrentIndex(3)
 
     def browsedir_clicked(self):
         fileName = QtGui.QFileDialog.getExistingDirectory(self, ("Select save location"));
         if fileName != None:
             self.locationdir_edit.setText(fileName)
+            self.exportdir_radio.setChecked(True)
                 
     def browsefil_clicked(self):
         fileName = QtGui.QFileDialog.getSaveFileName(self, ("Select save location"));
         if fileName != None:
             self.locationfil_edit.setText(fileName)   
             self.updateformat()
+            self.exportarch_radio.setChecked(True)
 
     def validate(self):
         if self.exportarch_radio.isChecked():
@@ -253,6 +283,8 @@ class QBzrExportDialog(SubProcessDialog):
 
         if str(self.folder_edit.text()) != '':
             args.append("--root=%s" % str(self.folder_edit.text()))
+        else:
+            args.append("--root=")
         
         if self.revisions_tip.isChecked():
             args.append("--revision=-1")
