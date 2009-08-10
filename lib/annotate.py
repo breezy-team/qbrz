@@ -23,6 +23,10 @@
 
 import sys, time
 from PyQt4 import QtCore, QtGui
+from bzrlib.workingtree import WorkingTree
+from bzrlib.revisiontree import RevisionTree
+from bzrlib.revision import CURRENT_REVISION
+
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
@@ -45,7 +49,6 @@ from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
                                                          cached_revisions)
 from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
                                                  RevNoItemDelegate)
-from bzrlib.revisiontree import RevisionTree
 
 have_pygments = True
 try:
@@ -161,7 +164,9 @@ class AnnotateModel(QtCore.QAbstractTableModel):
                 return QtCore.QVariant(self.font)
         
         if column == self.TEXT and role == QtCore.Qt.BackgroundRole and rev:
-            if self.now < rev.timestamp:
+            if rev.timestamp is None:
+                days = sys.maxint
+            elif self.now < rev.timestamp:
                 days = 0
             else:
                 days = (self.now - rev.timestamp) / (24 * 60 * 60)
@@ -209,6 +214,11 @@ class AnnotateWindow(QBzrWindow):
 
         self.branch = branch
         self.tree = tree
+        if isinstance(tree, WorkingTree):
+            self.working_tree = tree
+        else:
+            self.working_tree = None
+        
         self.fileId = fileId
         self.path = path
         self.encoding = encoding
@@ -255,6 +265,7 @@ class AnnotateWindow(QBzrWindow):
                      self.linkClicked)
 
         self.log_list = LogList(self.processEvents, self.throbber, no_graph, self)
+        self.log_list.load = self.log_list_load
         self.log_list.header().hideSection(COL_DATE)
         #self.log_list.header().hideSection(COL_AUTHOR)
         self.log_branch_loaded = False
@@ -300,23 +311,31 @@ class AnnotateWindow(QBzrWindow):
         self.throbber.show()
         try:
             if self.loader_func is not None:
-                self.branch, self.tree, self.path, self.fileId = \
-                                        self.loader_func(*self.loader_args)
+                (self.branch,
+                 self.tree,
+                 self.working_tree,
+                 self.path, self.fileId) = self.loader_func(*self.loader_args)
                 self.loader_func = self.loader_args = None # kill extra refs...
                 QtCore.QCoreApplication.processEvents()
             self.encoding = get_set_encoding(self.encoding, self.branch)
             self.branch.lock_read()
             try:
-                def do_nothing():
-                    pass
-                
-                self.log_list.graph_provider.load_filter_file_id = do_nothing                
                 self.set_annotate_title()
                 self.annotate(self.tree, self.fileId, self.path)
             finally:
                 self.branch.unlock()
         finally:
             self.throbber.hide()
+    
+    def log_list_load(self):
+        gp = self.log_list.graph_provider
+        gp.lock_read_branches()
+        try:
+            gp.load_tags()
+            self.log_list.log_model.load_graph(
+                gp.load_graph_all_revisions_for_annotate)
+        finally:
+            gp.unlock_branches()
     
     def set_annotate_title(self):
         # and update the title to show we are done.
@@ -374,9 +393,13 @@ class AnnotateWindow(QBzrWindow):
 
         if not self.log_branch_loaded:
             self.log_branch_loaded = True
-            self.log_list.load_branch(self.branch, [self.fileId])
+            if isinstance(tree, WorkingTree):
+                self.log_list.load_branch(self.branch, [self.fileId], tree)
+            else:
+                self.log_list.load_branch(self.branch, [self.fileId])
+            
             self.log_list.context_menu.addAction(
-                                    gettext("&Annotate this revision."),
+                                    gettext("&Annotate this revision"),
                                     self.set_annotate_revision)
 
         
@@ -460,6 +483,8 @@ class AnnotateWindow(QBzrWindow):
                                         gp.revid_msri[rev.revision_id]][3]
                     rev.revno = ".".join(["%d" % (revno)
                                               for revno in revno_sequence])
+                    if revid == CURRENT_REVISION:
+                        rev.revno += " ?"
                 else:
                     rev.revno = ""
             self.message_doc.setHtml(format_revision_html(rev,
@@ -475,7 +500,10 @@ class AnnotateWindow(QBzrWindow):
             self.branch.lock_read()
             try:
                 revid = str(self.log_list.currentIndex().data(RevIdRole).toString())
-                self.tree = self.branch.repository.revision_tree(revid)
+                if revid == CURRENT_REVISION:
+                    self.tree = self.working_tree
+                else:
+                    self.tree = self.branch.repository.revision_tree(revid)
                 self.path = self.tree.id2path(self.fileId)
                 self.set_annotate_title()
                 self.processEvents()

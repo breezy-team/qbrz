@@ -25,7 +25,7 @@ import itertools
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.revision import Revision
+from bzrlib.revision import Revision, CURRENT_REVISION
 from bzrlib.config import (
     GlobalConfig,
     IniBasedConfig,
@@ -544,36 +544,37 @@ def format_revision_html(rev, search_replace=None, show_timestamp=False):
     if children:
         props.append((gettext("Children:"), revision_list_html(children)))
 
-    if show_timestamp:
-        props.append((gettext("Date:"), format_timestamp(rev.timestamp)))
-
-    props.append((gettext("Committer:"), htmlize(rev.committer)))
-    author = rev.properties.get('author')
-    if author:
-        props.append((gettext("Author:"), htmlize(author)))
-    else:
-        authors = rev.properties.get('authors')
-        if authors:
-            for author in authors.split('\n'):
-                props.append((gettext("Author:"), htmlize(author)))
-
-    branch_nick = rev.properties.get('branch-nick')
-    if branch_nick:
-        props.append((gettext("Branch:"), htmlize(branch_nick)))
-
-    tags = getattr(rev, 'tags', None)
-    if tags:
-        tags = map(quote_tag, tags)
-        props.append((gettext("Tags:"), ", ".join(tags)))
-
-    bugs = []
-    for bug in rev.properties.get('bugs', '').split('\n'):
-        if bug:
-            url, space, status = bug.partition(' ')
-            bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
-                dict(url=url, status=gettext(status))))
-    if bugs:
-        props.append((ngettext("Bug:", "Bugs:", len(bugs)), ", ".join(bugs)))
+    if not rev.revision_id == CURRENT_REVISION:
+        if show_timestamp and rev.timestamp is not None:
+            props.append((gettext("Date:"), format_timestamp(rev.timestamp)))
+    
+        props.append((gettext("Committer:"), htmlize(rev.committer)))
+        author = rev.properties.get('author')
+        if author:
+            props.append((gettext("Author:"), htmlize(author)))
+        else:
+            authors = rev.properties.get('authors')
+            if authors:
+                for author in authors.split('\n'):
+                    props.append((gettext("Author:"), htmlize(author)))
+    
+        branch_nick = rev.properties.get('branch-nick')
+        if branch_nick:
+            props.append((gettext("Branch:"), htmlize(branch_nick)))
+    
+        tags = getattr(rev, 'tags', None)
+        if tags:
+            tags = map(quote_tag, tags)
+            props.append((gettext("Tags:"), ", ".join(tags)))
+    
+        bugs = []
+        for bug in rev.properties.get('bugs', '').split('\n'):
+            if bug:
+                url, space, status = bug.partition(' ')
+                bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
+                    dict(url=url, status=gettext(status))))
+        if bugs:
+            props.append((ngettext("Bug:", "Bugs:", len(bugs)), ", ".join(bugs)))
 
     text = []
     text.append('<table style="background:#EDEDED;" width="100%" cellspacing="0" cellpadding="0"><tr><td>')
@@ -586,7 +587,10 @@ def format_revision_html(rev, search_replace=None, show_timestamp=False):
     text.append('</table>')
     text.append('</td></tr></table>')
 
-    message = htmlize(get_message(rev))
+    if rev.revision_id == CURRENT_REVISION:
+        message = gettext("Uncommited Working Tree Changes")
+    else:
+        message = htmlize(get_message(rev))
     if search_replace:
         for search, replace in search_replace:
             message = re.sub(search, replace, message)
@@ -863,7 +867,7 @@ def format_for_ttype(ttype, format):
     if have_pygments and ttype:
         font = format.font()
         
-        # I don't understand this, but I copied it for pygments rtf formater.
+        # If there is no style, use the parent type's style.
         # It fixes bug 347333 - GaryvdM
         while not style.styles_token(ttype) and ttype.parent:
             ttype = ttype.parent
@@ -881,8 +885,31 @@ def format_for_ttype(ttype, format):
         if tstyle['bgcolor']: format.setBackground (QtGui.QColor("#"+tstyle['bgcolor']))
         # No way to set this for a QTextCharFormat
         #if tstyle['border']: format.
-        format.setFont(font)
     return format
+
+class CachedTTypeFormater(object):
+    def __init__(self, base_format):
+        self.base_format = base_format
+        self._cache = {}
+    
+    def format(self, ttype):
+        if not have_pygments or not ttype:
+            return self.base_format
+        if ttype in self._cache:
+            format = self._cache[ttype]
+        else:
+            format = QtGui.QTextCharFormat(self.base_format)
+            self._cache[ttype] = format
+            
+            # If there is no style, use the parent type's style.
+            # It fixes bug 347333 - GaryvdM
+            while not style.styles_token(ttype) and ttype.parent:
+                ttype = ttype.parent
+                self._cache[ttype] = format
+            
+            format_for_ttype(ttype, format)
+        
+        return format
 
 
 def url_for_display(url):

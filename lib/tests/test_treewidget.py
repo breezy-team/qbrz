@@ -64,4 +64,30 @@ class TestTreeModel(TestWatchExceptHook, TestCaseWithTransport):
     #    widget.set_tree(revtree, branch)
     #    modeltest = ModelTest(model, None)
 
+class TestDirsFirstCmp (TestCase):
+    
+    def test_inventory_dirs_first_cmp(self):
+        tree_model = TreeModel(parent=None)
+        sorted_list = sorted([("a", "file"),
+                              ("b", "directory"),
+                              ("c", "file"),],
+                             cmp = tree_model.inventory_dirs_first_cmp)
+        self.assertEqual([("b", "directory"),
+                          ("a", "file"),
+                          ("c", "file"),],
+                         sorted_list)
 
+        sorted_list = sorted([("a", "file"),
+                              ("b", "directory"),
+                              ("b/y", "directory"),
+                              ("b/y/z", "file"),
+                              ("b/x", "file"),
+                              ("c", "file"),],
+                             cmp = tree_model.inventory_dirs_first_cmp)
+        self.assertEqual([('b', 'directory'),
+                          ('b/y', 'directory'),
+                          ('b/y/z', 'file'),
+                          ('b/x', 'file'),
+                          ('a', 'file'),
+                          ('c', 'file')],
+                         sorted_list)
