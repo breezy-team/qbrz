@@ -1,8 +1,8 @@
-0.13 - in development
+0.13 - 2009-08-10
 -----------------------
- * Bzr 1.18 compatabily fixes.
+ * Bzr 1.18 compatabily fixes. (#397615) (#402022) (#404269)
  * Support for PyQT 4.5 (#394125)
- * New dialogs for qsend, qswitch
+ * New dialogs for qsend(#174504), qswitch (#385116)
  * External diff buttons are now the correct width when using the qgtkstyle.
  * Added Estonian translation.
  * Bug reports now point to https://bugs.launchpad.net/qbzr/+filebug rather
@@ -10,14 +10,14 @@
    on this link.
  * qcommit:
    * Pressing escape cancels the dialog.
-   * Spelling suggestions are shown in the message context menu.
+   * Spelling suggestions are shown in the message context menu. (#395895)
    * If you dbl click on a pending merge, it will show the revision message,
      which is usefull if you want to copy it.
    * When the arguments are written to a file, thay are now encoded. (#398750)
-   * Added a refresh button to reload changes.
+   * Added a refresh button to reload changes. (#253777)
  * qcommit, qadd, and qrevert now reuse the widget from qbrowse. This means
    that there are more context menu items, and you can expand unversioned
-   directories. On Windows and Mac, system file icons are shown.
+   directories. (#258929) On Windows and Mac, system file icons are shown.
  * qrevert: You can now control if you want to revert pending merges.(#388469)
  * qlog:
    * Support for Mantis BT bug urls.
