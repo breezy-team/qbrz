@@ -26,17 +26,19 @@ from bzrlib.transport.local import LocalTransport
 from bzrlib.repository import Repository
 from bzrlib.remote import RemoteRepository
 from bzrlib.plugins.qbzr.lib.uifactory import current_throbber
+from bzrlib.revision import CURRENT_REVISION
 
 cached_revisions = {} #weakref.WeakValueDictionary()
 """Global cache of revisions."""
 
-class CurrentWTFakeRevision(object):
-    def get_apparent_authors(self):
-        return ""
-    
-    timestamp = None
+current_rev = Revision(CURRENT_REVISION)
+#current_rev.parent_ids = tree.get_parent_ids()
+current_rev.committer = tree.branch.get_config().username()
+current_rev.message = "?"
+current_rev.timestamp = None
+#current_rev.timezone = osutils.local_time_offset()
 
-cached_revisions['current:'] = CurrentWTFakeRevision()
+cached_revisions[CURRENT_REVISION] = current_rev
 
 def load_revisions(revids, repo,
                    time_before_first_ui_update = 0.5,
