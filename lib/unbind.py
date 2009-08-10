@@ -46,18 +46,21 @@ class QBzrUnbindDialog(SubProcessDialog):
         
         self.branch = branch
         
-        gbBind = QtGui.QGroupBox(gettext("Unbind branch %s") % url_for_display(branch.base), self)
+        gbBind = QtGui.QGroupBox(gettext("Unbind"), self)
         
-        bind_vbox = QtGui.QVBoxLayout(gbBind)
-        
+        bind_box = QtGui.QFormLayout(gbBind)
+                
+        info_label = QtGui.QLabel(url_for_display(branch.base))
+                
+        bind_box.addRow(gettext("Branch:"), info_label)
+            
+
         self.currbound = branch.get_bound_location()
         if self.currbound != None:
-            curr_hbox = QtGui.QHBoxLayout()
+            curr_label = QtGui.QLabel(url_for_display(self.currbound))
             
-            curr_label = QtGui.QLabel(gettext("Currently bound to: %s") % url_for_display(self.currbound))
-                    
-            curr_hbox.addWidget(curr_label)
-            bind_vbox.addLayout(curr_hbox)    
+            bind_box.addRow(gettext("Bound to:"), curr_label)  
+
                     
         layout = QtGui.QVBoxLayout(self)
         
