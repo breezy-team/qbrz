@@ -636,17 +636,19 @@ class CommitWindow(SubProcessDialog):
         fmodel = self.filelist.tree_filter_model
         fmodel.setFilter(fmodel.UNVERSIONED, state)
 
-    def closeEvent(self, event):
+    def _save_or_clear_message(self):
         if not self.process_widget.is_running():
             if self.process_widget.finished:
                 self.clear_saved_message()
             else:
                 self.save_message()
+
+    def closeEvent(self, event):
+        self._save_or_clear_message()
         return SubProcessDialog.closeEvent(self, event)
-    
+
     def reject(self):
-        if not self.process_widget.is_running():
-            self.save_message()
+        self._save_or_clear_message()
         return SubProcessDialog.reject(self)
 
     def update_branch_groupbox(self):
