@@ -214,6 +214,11 @@ class AnnotateWindow(QBzrWindow):
 
         self.branch = branch
         self.tree = tree
+        if isinstance(tree, WorkingTree):
+            self.working_tree = tree
+        else:
+            self.working_tree = None
+        
         self.fileId = fileId
         self.path = path
         self.encoding = encoding
@@ -306,8 +311,10 @@ class AnnotateWindow(QBzrWindow):
         self.throbber.show()
         try:
             if self.loader_func is not None:
-                self.branch, self.tree, self.path, self.fileId = \
-                                        self.loader_func(*self.loader_args)
+                (self.branch,
+                 self.tree,
+                 self.working_tree,
+                 self.path, self.fileId) = self.loader_func(*self.loader_args)
                 self.loader_func = self.loader_args = None # kill extra refs...
                 QtCore.QCoreApplication.processEvents()
             self.encoding = get_set_encoding(self.encoding, self.branch)
@@ -493,7 +500,10 @@ class AnnotateWindow(QBzrWindow):
             self.branch.lock_read()
             try:
                 revid = str(self.log_list.currentIndex().data(RevIdRole).toString())
-                self.tree = self.branch.repository.revision_tree(revid)
+                if revid == CURRENT_REVISION:
+                    self.tree = self.working_tree
+                else:
+                    self.tree = self.branch.repository.revision_tree(revid)
                 self.path = self.tree.id2path(self.fileId)
                 self.set_annotate_title()
                 self.processEvents()

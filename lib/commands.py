@@ -233,7 +233,7 @@ class cmd_qannotate(QBzrCommand):
             else:
                 branch.unlock()
 
-        return branch, tree, relpath, file_id
+        return branch, tree, wt, relpath, file_id
 
     def _qbzr_run(self, filename=None, revision=None, encoding=None,
                   ui_mode=False, no_graph=False):
