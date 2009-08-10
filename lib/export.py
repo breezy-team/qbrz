@@ -132,7 +132,6 @@ class QBzrExportDialog(SubProcessDialog):
         
         vbxExportOptions = QtGui.QVBoxLayout(gbExportOptions)
         
-        
         revisions_box = QtGui.QGridLayout()
 
         revisions_label = QtGui.QLabel(gettext("Revision"))
@@ -213,12 +212,14 @@ class QBzrExportDialog(SubProcessDialog):
         fileName = QtGui.QFileDialog.getExistingDirectory(self, ("Select save location"));
         if fileName != None:
             self.locationdir_edit.setText(fileName)
+            self.exportdir_radio.setChecked(True)
                 
     def browsefil_clicked(self):
         fileName = QtGui.QFileDialog.getSaveFileName(self, ("Select save location"));
         if fileName != None:
             self.locationfil_edit.setText(fileName)   
             self.updateformat()
+            self.exportarch_radio.setChecked(True)
 
     def validate(self):
         if self.exportarch_radio.isChecked():
