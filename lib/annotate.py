@@ -399,7 +399,7 @@ class AnnotateWindow(QBzrWindow):
                 self.log_list.load_branch(self.branch, [self.fileId])
             
             self.log_list.context_menu.addAction(
-                                    gettext("&Annotate this revision."),
+                                    gettext("&Annotate this revision"),
                                     self.set_annotate_revision)
 
         
