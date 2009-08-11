@@ -1,8 +1,9 @@
 0.14 - in development
 -----------------------
 
- * New dialog: qunbind (Javier Derderian)
+ * New dialogs: qexport, qunbind (Javier Derderian)
  * Renamed the command qbzr to qmain.
+
 
 0.13.1 - 2009-08-11
 -----------------------
