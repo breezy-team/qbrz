@@ -121,6 +121,8 @@ class RevisionInfo(object):
         if self._revno_str is None:
             self._revno_str = ".".join(["%d" % (revno)
                                 for revno in self.revno_sequence])
+            if self.revid == CURRENT_REVISION:
+                self._revno_str += " ?"
         return self._revno_str
     revno_str = property(get_revno_str)
     
