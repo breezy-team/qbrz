@@ -1181,6 +1181,7 @@ class LogGraphProvider(object):
                             # The parent was not visible. Search for a ansestor
                             # that is. Stop searching if we make a hop, i.e. we
                             # go away from our branch, and we come back to it.
+                            has_seen_different_branch = False
                             while parent.f_index is None:
                                 if not parent.branch_id == branch_id:
                                     has_seen_different_branch = True
