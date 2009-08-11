@@ -3,6 +3,11 @@
 
  * New dialog: qunbind (Javier Derderian)
 
+0.13.1 - 2009-08-11
+-----------------------
+
+ * qdiff: Fix for critical regression when viewing diffs with images. (#411811)
+
 
 0.13 - 2009-08-10
 -----------------------

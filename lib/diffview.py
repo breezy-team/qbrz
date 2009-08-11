@@ -291,12 +291,12 @@ class SidebySideDiffView(QtGui.QSplitter):
         
         infoBlocks = (cursors[0].block().layout(),
                       cursors[1].block().layout())
+        changes = []
             
         if not binary:
             for cursor in cursors:
                 cursor.setCharFormat(self.monospacedFormat)
                 cursor.insertBlock()
-            changes = []
             
             def fix_last_line(lines):
                 """Fix last line if there is no new line.
