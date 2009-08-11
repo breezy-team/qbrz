@@ -915,26 +915,3 @@ class cmd_qswitch(QBzrCommand):
         window.show()
         application.exec_() 
 
-class cmd_qexport(QBzrCommand):
-    """Export current or past revision to a destination directory or archive.
-      
-      DEST is the destination file or dir where the branch will be exported.
-      If BRANCH_OR_SUBDIR is omitted then the branch containing the current working
-      directory will be used.
-    """
-    
-    takes_args = ['dest?','branch_or_subdir?']
-    takes_options = [ui_mode_option]
-    
-    def _qbzr_run(self, dest=None, branch_or_subdir=None, ui_mode=False):
-        from bzrlib.plugins.qbzr.lib.export import QBzrExportDialog
-        
-        application = QtGui.QApplication(sys.argv)
-        if branch_or_subdir == None:
-            branch = Branch.open_containing(".")[0]
-        else:
-            branch = Branch.open_containing(branch_or_subdir)[0]
-        
-        window = QBzrExportDialog(dest, branch, ui_mode)
-        window.show()
-        application.exec_() 
