@@ -1278,7 +1278,7 @@ class LogGraphProvider(object):
                 parent_col_index = 0
                 parent_f_index = None
                 
-                if last_parent:
+                if last_parent and last_parent[0].col_index is not None:
                     parent_col_index = last_parent[0].col_index
                 
                 if not branch_id == ():
