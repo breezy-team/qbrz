@@ -244,7 +244,7 @@ class LogModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant(rev_info.revid)
         
         #Everything from here foward will need to have the revision loaded.
-        if not revid or revid not in cached_revisions:
+        if rev_info.revid not in cached_revisions:
             if role == QtCore.Qt.DisplayRole:
                 return QtCore.QVariant("")
             return QtCore.QVariant()
