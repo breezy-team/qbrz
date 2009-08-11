@@ -914,7 +914,12 @@ class cmd_qswitch(QBzrCommand):
         application.exec_() 
 
 class cmd_qbind(QBzrCommand):
-    """Convert the current branch into a checkout of the supplied branch."""
+    """Convert the current branch into a checkout of the supplied branch.
+    
+    DIRECTORY is the current branch you want to use. If none is suplied
+    current dir is used.
+
+    """
     
     takes_args = ['directory?']
     takes_options = [ui_mode_option]
