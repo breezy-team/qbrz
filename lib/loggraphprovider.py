@@ -959,7 +959,20 @@ class LogGraphProvider(object):
             self.ifcr_last_call_time = 0
 	
     def compute_graph_lines(self):
-        """See self.graph_line_data"""
+        """Recompute the layout of the graph, and store the results in
+        self.revision"""
+        
+        # Overview:
+        # Clear the old data from self.revisions.
+        # Work out which revision need to be displayed.
+        # Assign columns for branches, and lines that go between branches.
+        #   These are intermingled, because some of the lines need to come
+        #   before it's branch, and others need to come after. Other lines
+        #   (such a the line from the last rev in a branch) are treated a
+        #   special cases.
+        # The calcated data is then copied into self.revisions in a format
+        #  that is easy for the TreeView to display.
+        
         for rev in self.filtered_revs:
             rev.f_index = None
             rev.col_index = None
