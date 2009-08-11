@@ -1397,10 +1397,10 @@ class LogGraphProvider(object):
         
         branch_id = self.revid_rev[revid].branch_id
         has_change = self.set_branch_visible(branch_id, True, False)
-        while (not branch_id in self.start_branch_ids and
-               self.branch_lines[branch_id].merged_by):
-            branch_id = self.branch_lines[branch_id].merged_by[0]
-            has_change = self.set_branch_visible(branch_id, True, has_change)
+        #while (not branch_id in self.start_branch_ids and
+        #       self.branch_lines[branch_id].merged_by):
+        #    branch_id = self.branch_lines[branch_id].merged_by[0]
+        #    has_change = self.set_branch_visible(branch_id, True, has_change)
         return has_change
 
     def has_visible_child(self, branch_id):
