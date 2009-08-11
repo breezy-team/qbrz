@@ -2,6 +2,7 @@
 -----------------------
 
  * New dialog: qunbind (Javier Derderian)
+ * Renamed the command qbzr to qmain.
 
 0.13.1 - 2009-08-11
 -----------------------

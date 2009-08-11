@@ -699,8 +699,8 @@ class cmd_merge(bzrlib.builtins.cmd_merge, DiffArgProvider):
             bzrlib.builtins.cmd_merge._do_preview(self, merger, *args, **kw)
 
 
-class cmd_qbzr(QBzrCommand):
-    """The QBzr application.
+class cmd_qmain(QBzrCommand):
+    """The QBzr main application.
 
     Not finished -- DON'T USE
     """
