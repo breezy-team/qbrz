@@ -479,23 +479,23 @@ class LogGraphProvider(object):
         self.compute_loaded_graph()
 
     def load_graph_all_revisions_for_annotate(self):
-        if not len(self.branches()) == 1 or not len(self.repos) == 1:
+        if not len(self.branches) == 1:
             AssertionError("load_graph_pending_merges should only be called \
                            when 1 branch and repo has been opened.")        
         
         self.revid_head_info = {}
         self.head_revids = []
         self.revid_branch = {}
-        tree, branch, index = self.branches()[0]
-        self.trunk_branch = branch
+        bi = self.branches[0]
+        self.trunk_branch = bi.branch
         
-        if tree:
+        if bi.tree:
             branch_last_revision = CURRENT_REVISION
-            current_parents = tree.get_parent_ids()
+            current_parents = bi.tree.get_parent_ids()
         else:
             branch_last_revision = branch.last_revision()
         
-        self.append_head_info(branch_last_revision, branch, None, True)
+        self.append_head_info(branch_last_revision, bi.branch, None, True)
         self.update_ui()
         
         if len(self.repos)==1:
@@ -1417,7 +1417,7 @@ class LogGraphProvider(object):
         return has_change
 
     def has_rev_id(self, revid):
-        return revid in self.revid_index
+        return revid in self.revid_rev
     
     def revid_from_revno(self, revno):
         if revno not in self.revno_index:
