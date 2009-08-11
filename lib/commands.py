@@ -329,7 +329,6 @@ class cmd_qcommit(QBzrCommand):
         application.exec_()
 
 
-
 class cmd_qdiff(QBzrCommand, DiffArgProvider):
     """Show differences in working tree in a GUI window."""
     takes_args = ['file*']
@@ -727,6 +726,7 @@ class cmd_qbzr(QBzrCommand):
         window.show()
         app.exec_()
 
+
 class cmd_qsubprocess(Command):
 
     takes_args = ['cmd']
@@ -855,6 +855,7 @@ class cmd_qviewer(QBzrCommand):
         window.show()
         app.exec_()
 
+
 class cmd_qversion(QBzrCommand):
     """Show version/system information."""
     takes_args = []
@@ -884,6 +885,8 @@ class cmd_qupdate(QBzrCommand):
         window = QBzrUpdateWindow(tree, ui_mode)
         window.show()
         application.exec_()
+
+
 class cmd_qsend(QBzrCommand):
     """Dialog for creating and sending patches and bundles"""
     
@@ -901,6 +904,7 @@ class cmd_qsend(QBzrCommand):
 
         app.exec_()
 
+
 class cmd_qswitch(QBzrCommand):
     takes_args = ['location?']
     takes_options = [ui_mode_option]
@@ -912,5 +916,22 @@ class cmd_qswitch(QBzrCommand):
         branch = Branch.open_containing(location)[0]
         
         window = QBzrSwitchWindow(branch, ui_mode)
+        window.show()
+        application.exec_() 
+
+
+class cmd_qunbind(QBzrCommand):
+    """Convert the current checkout into a regular branch."""
+    takes_options = [ui_mode_option]
+    
+    def _qbzr_run(self, ui_mode=False):
+        from bzrlib.plugins.qbzr.lib.unbind import QBzrUnbindDialog
+        
+        application = QtGui.QApplication(sys.argv)
+        branch = Branch.open_containing(".")[0]
+        if branch.get_bound_location() == None:
+            raise errors.BzrCommandError("This branch is not bound.")
+        
+        window = QBzrUnbindDialog(branch, ui_mode)
         window.show()
         application.exec_() 

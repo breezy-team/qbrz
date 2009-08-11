@@ -1,3 +1,9 @@
+0.14 - in development
+-----------------------
+
+ * New dialog: qunbind (Javier Derderian)
+
+
 0.13 - 2009-08-10
 -----------------------
  * Bazaar 1.18 compatibility fixes. (#397615) (#402022) (#404269)
