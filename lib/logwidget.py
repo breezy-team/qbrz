@@ -342,7 +342,7 @@ class LogList(RevisionTreeView):
     def show_revision_tree(self):
         from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
         revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
-        revno = self.graph_provider.revno_from_revid(revid)
+        revno = self.graph_provider.revid_rev[revid].revno_str
         branch = self.graph_provider.get_revid_branch(revid)
         window = BrowseWindow(branch, revision_id=revid,
                               revision_spec=revno, parent=self)

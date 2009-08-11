@@ -28,10 +28,12 @@ class TestLogGraphProvider(tests.TestCaseWithTransport):
         gp = LogGraphProvider(False)
         gp.open_branch(tree.branch, tree=tree)
         
-        self.assertEqual([(tree,
-                          tree.branch,
-                          None)],
-                         gp.branches())
+        self.assertLength(1, gp.branches)
+        bi = gp.branches[0]
+        self.assertEqual(tree, bi.tree)
+        self.assertEqual(tree.branch, bi.branch)
+        self.assertEqual(None, bi.index)
+        
         self.assertLength(1, gp.repos)
         self.assertEqual({tree.branch.repository.base: tree.branch.repository},
                          gp.repos)
@@ -43,19 +45,19 @@ class TestLogGraphProvider(tests.TestCaseWithTransport):
         # If we don't pass the tree, it should open it.
         gp.open_branch(tree.branch)
         
-        opened_tree = gp.branches()[0][0]
-        self.assertEqual(tree.basedir,
-                         opened_tree.basedir)
+        self.assertEqual(tree.basedir, gp.branches[0].tree.basedir)
 
     def test_open_branch_without_tree(self):
         branch = self.make_branch("branch")
         
         gp = LogGraphProvider(False)
-        # If we don't pass the tree, it should open it.
+        
         gp.open_branch(branch)
         
-        self.assertEqual([(None, branch, None)],
-                         gp.branches())
+        bi = gp.branches[0]
+        self.assertEqual(None, bi.tree)
+        self.assertEqual(branch, bi.branch)
+        self.assertEqual(None, bi.index)
 
     def make_branch_and_tree_with_files_and_dir(self):
         tree = self.make_branch_and_tree("branch")
@@ -69,29 +71,29 @@ class TestLogGraphProvider(tests.TestCaseWithTransport):
     def check_open_branch_files(self, tree, branch):
         gp = LogGraphProvider(False)
         
-        gp.open_branch(branch, tree=tree, file_ids=['file1-id'])
-        self.assertEqual([(tree,
-                          branch,
-                          None)],
-                         gp.branches())
+        gp.open_branch(branch, tree=tree, file_ids = ['file1-id'])
+        self.assertLength(1, gp.branches)
+        bi = gp.branches[0]
+        self.assertEqual(tree, bi.tree)
+        self.assertEqual(branch, bi.branch)
+        self.assertEqual(None, bi.index)
+
         self.assertEqual(['file1-id'], gp.fileids)
         self.assertFalse(gp.has_dir)
         
-        gp.open_branch(branch, tree=tree, file_ids=['dir-id'])
-        self.assertEqual([(tree,
-                          branch,
-                          None)],
-                         gp.branches())
+        gp.open_branch(branch, tree=tree, file_ids = ['dir-id'])        
         self.assertEqual(['file1-id', 'dir-id'], gp.fileids)
         self.assertTrue(gp.has_dir)
         
-        gp.open_branch(branch, tree=tree, file_ids=['file3-id'])
-        self.assertEqual([(tree,
-                          branch,
-                          None)],
-                         gp.branches())
+        # Check that a new branch has not been added.
+        self.assertLength(1, gp.branches)
+        
+        gp.open_branch(branch, tree=tree, file_ids = ['file3-id'])
         self.assertEqual(['file1-id', 'dir-id','file3-id'], gp.fileids)
         self.assertTrue(gp.has_dir)
+        
+        # Check that a new branch has not been added.
+        self.assertLength(1, gp.branches)
     
     def test_open_branch_files(self):
         tree = self.make_branch_and_tree_with_files_and_dir()
@@ -104,11 +106,11 @@ class TestLogGraphProvider(tests.TestCaseWithTransport):
         self.check_open_branch_files(None, branch)
     
     def branches_to_base(self, branches):
-        for tree, branch, index in branches:
-            if tree is None:
-                yield (None, branch.base, index)
+        for bi in branches:
+            if  bi.tree is None:
+                yield (None, bi.branch.base, bi.index)
             else:
-                yield (tree.basedir, branch.base, index)
+                yield (bi.tree.basedir, bi.branch.base, bi.index)
     
     def test_open_locations_standalone_branches(self):
         branch1 = self.make_branch("branch1")
@@ -117,11 +119,11 @@ class TestLogGraphProvider(tests.TestCaseWithTransport):
         gp = LogGraphProvider(False)
         gp.open_locations(["branch1", "branch2"])
         
-        branches = gp.branches()
+        branches = gp.branches
         
         self.assertEqual(set(((None,          branch1.base, None),
                               (tree2.basedir, tree2.branch.base, None) )),
-                         set(self.branches_to_base(gp.branches())))
+                         set(self.branches_to_base(gp.branches)))
         
         self.assertLength(2, gp.repos)
         self.assertEqual(branch1.repository.base,
@@ -145,7 +147,7 @@ class TestLogGraphProvider(tests.TestCaseWithTransport):
         
         self.assertEqual(set(((None, branch1.base, None),
                           (tree2.basedir, tree2.branch.base, None))),
-                         set(self.branches_to_base(gp.branches())))
+                         set(self.branches_to_base(gp.branches)))
     
     def test_open_locations_raise_not_a_branch(self):
         repo = self.make_repository("repo", shared=True)
