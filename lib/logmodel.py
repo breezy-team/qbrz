@@ -21,7 +21,7 @@ from PyQt4 import QtCore, QtGui
 from time import (strftime, localtime)
 
 from bzrlib import lazy_regex
-from bzrlib.revision import NULL_REVISION
+from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
 from bzrlib.plugins.qbzr.lib.revtreeview import RevIdRole as im_RevIdRole
@@ -56,6 +56,7 @@ _bug_id_re = lazy_regex.lazy_compile(r'(?:'
     r'|DispForm.aspx\?ID='      # Microsoft SharePoint URL
     r'|default.asp\?'           # Fogbugz URL
     r'|issue'                   # Roundup issue tracker URL
+    r'|view.php\?id='           # Mantis bug tracker URL
     r')(\d+)(?:\b|$)')
 
 
@@ -115,20 +116,19 @@ class LogModel(QtCore.QAbstractTableModel):
         self.clicked_row = None
         self.last_rev_is_placeholder = False
     
-    def load_graph_all_revisions(self):
+    def load_graph(self, gp_loader_func):
         try:
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
-            self.graph_provider.load_graph_all_revisions()
+            gp_loader_func()
         finally:
             self.emit(QtCore.SIGNAL("layoutChanged()"))
-
+    
+    def load_graph_all_revisions(self):
+        self.load_graph(self.graph_provider.load_graph_all_revisions)
+    
     def load_graph_pending_merges(self):
         self.last_rev_is_placeholder = True
-        try:
-            self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
-            self.graph_provider.load_graph_pending_merges()
-        finally:
-            self.emit(QtCore.SIGNAL("layoutChanged()"))
+        self.load_graph(self.graph_provider.load_graph_pending_merges)
 
     def compute_lines(self):
         self.graph_provider.compute_graph_lines()
@@ -263,7 +263,7 @@ class LogModel(QtCore.QAbstractTableModel):
             bugs = []
             for bug in revision.properties.get('bugs', '').split('\n'):
                 if bug:
-                    url, status = bug.split(' ')
+                    url, space, status = bug.partition(' ')
                     bug_id = get_bug_id(url)
                     if bug_id:
                         bugs.append(bugtext % bug_id)

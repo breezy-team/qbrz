@@ -39,9 +39,9 @@ class TestTreeModel(TestWatchExceptHook, TestCaseWithTransport):
                      committer="joe@foo.com",
                      timestamp=1166046000.00, timezone=0)
 
-        model = TreeModel(None, None, None)
+        model = TreeModel(parent=None)
         modeltest = ModelTest(model, None)
-        
+
         model.set_tree(tree, tree.branch)
 
     #def test_model_revision_tree(self):
@@ -64,4 +64,30 @@ class TestTreeModel(TestWatchExceptHook, TestCaseWithTransport):
     #    widget.set_tree(revtree, branch)
     #    modeltest = ModelTest(model, None)
 
+class TestDirsFirstCmp (TestCase):
+    
+    def test_inventory_dirs_first_cmp(self):
+        tree_model = TreeModel(parent=None)
+        sorted_list = sorted([("a", "file"),
+                              ("b", "directory"),
+                              ("c", "file"),],
+                             cmp = tree_model.inventory_dirs_first_cmp)
+        self.assertEqual([("b", "directory"),
+                          ("a", "file"),
+                          ("c", "file"),],
+                         sorted_list)
 
+        sorted_list = sorted([("a", "file"),
+                              ("b", "directory"),
+                              ("b/y", "directory"),
+                              ("b/y/z", "file"),
+                              ("b/x", "file"),
+                              ("c", "file"),],
+                             cmp = tree_model.inventory_dirs_first_cmp)
+        self.assertEqual([('b', 'directory'),
+                          ('b/y', 'directory'),
+                          ('b/y/z', 'file'),
+                          ('b/x', 'file'),
+                          ('a', 'file'),
+                          ('c', 'file')],
+                         sorted_list)

@@ -81,7 +81,7 @@
          <string>Remember this location as a default</string>
         </property>
         <property name="checked" >
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
        </widget>
       </item>
@@ -101,7 +101,7 @@
  <connections>
   <connection>
    <sender>PullForm</sender>
-   <signal>subprocessStarted(bool)</signal>
+   <signal>disableUi(bool)</signal>
    <receiver>groupBox</receiver>
    <slot>setDisabled(bool)</slot>
    <hints>
@@ -117,6 +117,6 @@
   </connection>
  </connections>
  <slots>
-  <signal>subprocessStarted(bool)</signal>
+  <signal>disableUi(bool)</signal>
  </slots>
 </ui>

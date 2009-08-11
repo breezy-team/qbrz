@@ -102,6 +102,8 @@ class RevisionTreeView(QtGui.QTreeView):
                 break
         
         revids = list(revids)
+        if len(revids) == 0:
+            return
         
         self.load_revisions_call_count += 1
         current_call_count = self.load_revisions_call_count
@@ -152,6 +154,10 @@ class RevNoItemDelegate(QtGui.QItemDelegate):
     def drawDisplay(self, painter, option, rect, text):
         mainline, dot, therest = str(text).partition(".")
         therest = dot + therest
+        
+        if mainline.endswith(" ?"):
+            mainline = mainline[:-2]
+            therest = " ?"
         
         fm = painter.fontMetrics()
         mainline_width = fm.width("8"*self.max_mainline_digits)

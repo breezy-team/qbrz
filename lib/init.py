@@ -66,12 +66,12 @@ class QBzrInitWindow(SubProcessDialog):
         opt = cmd.options()['no-trees']
         self.ui.but_no_trees.setToolTip(opt.help)
 
-    def start(self):
+    def do_start(self):
         location = unicode(self.ui.location.text())
         if not location:
             self.process_widget.logMessage(gettext("You must specify a location"),
                                            error=True)
-            self.failed()
+            self.on_failed()
             return
 
         if self.ui.but_init.isChecked():
@@ -86,7 +86,8 @@ class QBzrInitWindow(SubProcessDialog):
 
         args.append(location)
 
-        self.process_widget.start(None, *args)
+        self.process_widget.do_start(None, *args)
+
 
 # TODO: Move this to the 'utils' module - but let's wait until we have another
 # user for this function, and we can see if it makes more sense to just

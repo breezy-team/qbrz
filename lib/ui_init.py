@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/init.ui'
 #
-# Created: Fri Sep 19 17:17:53 2008
-#      by: PyQt4 UI code generator 4.4.2
+# Created: Thu Jul 30 12:22:19 2009
+#      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -108,8 +108,8 @@ class Ui_InitForm(object):
         self.retranslateUi(InitForm)
         QtCore.QObject.connect(self.link_help, QtCore.SIGNAL("linkActivated(QString)"), InitForm.linkActivated)
         QtCore.QObject.connect(self.link_help_formats, QtCore.SIGNAL("linkActivated(QString)"), InitForm.linkActivated)
-        QtCore.QObject.connect(InitForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.groupBox_3.setDisabled)
-        QtCore.QObject.connect(InitForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.groupBox.setDisabled)
+        QtCore.QObject.connect(InitForm, QtCore.SIGNAL("disableUi(bool)"), self.groupBox_3.setDisabled)
+        QtCore.QObject.connect(InitForm, QtCore.SIGNAL("disableUi(bool)"), self.groupBox.setDisabled)
         QtCore.QObject.connect(self.but_init, QtCore.SIGNAL("toggled(bool)"), self.but_append_only.setEnabled)
         QtCore.QObject.connect(self.radioButton_2, QtCore.SIGNAL("toggled(bool)"), self.but_no_trees.setEnabled)
         QtCore.QMetaObject.connectSlotsByName(InitForm)

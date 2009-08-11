@@ -21,6 +21,7 @@ from PyQt4 import QtCore, QtGui
 
 from bzrlib.commands import get_cmd_object
 
+from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_branch import Ui_BranchForm
 from bzrlib.plugins.qbzr.lib.ui_pull import Ui_PullForm
@@ -75,7 +76,7 @@ class QBzrPullWindow(SubProcessDialog):
                                 self.ui.location,
                                 DIRECTORYPICKER_SOURCE)
 
-    def start(self):
+    def do_start(self):
         if self.tree:
             dest = self.tree.basedir
         else:
@@ -90,7 +91,7 @@ class QBzrPullWindow(SubProcessDialog):
             args.append('--revision')
             args.append(revision)
         location = unicode(self.ui.location.currentText())
-        self.process_widget.start(None, 'pull', location, *args)
+        self.process_widget.do_start(None, 'pull', location, *args)
         save_pull_location(self.branch, location)
 
 
@@ -98,11 +99,13 @@ class QBzrPushWindow(SubProcessDialog):
 
     NAME = "push"
 
-    def __init__(self, branch, location=None,
+    def __init__(self, branch, tree=None, location=None,
                  create_prefix=None, use_existing_dir=None,
                  remember=None, overwrite=None, ui_mode=True, parent=None):
 
         self.branch = branch
+        self.tree = tree
+        self._no_strict = None
         super(QBzrPushWindow, self).__init__(name = self.NAME,
                                              ui_mode = ui_mode,
                                              parent = parent)
@@ -136,8 +139,12 @@ class QBzrPushWindow(SubProcessDialog):
                                 self.ui.location,
                                 DIRECTORYPICKER_TARGET)
 
-    def start(self):
-        args = ['--directory', self.branch.base]
+    def do_start(self):
+        if self.tree:
+            dest = self.tree.basedir
+        else:
+            dest = self.branch.base
+        args = ['--directory', dest]
         if self.ui.overwrite.isChecked():
             args.append('--overwrite')
         if self.ui.remember.isChecked():
@@ -146,8 +153,56 @@ class QBzrPushWindow(SubProcessDialog):
             args.append('--create-prefix')
         if self.ui.use_existing_dir.isChecked():
             args.append('--use-existing-dir')
+        if 'strict' in get_cmd_object('push').options():
+            # force --no-strict because we checking blocking conditions
+            # in validate method (see below).
+            args.append('--no-strict')
         location = unicode(self.ui.location.currentText())
-        self.process_widget.start(None, 'push', location, *args)
+        self.process_widget.do_start(None, 'push', location, *args)
+
+    def validate(self):
+        """Check working tree for blocking conditions (such as uncommitted
+        changes or out of date) and return True if we can push anyway
+        or False if push operation should be aborted.
+        """
+        if self._no_strict:
+            return True
+        # check blocking conditions in the tree
+        if self.tree is None:
+            return True     # no tree - no check
+        cfg = self.branch.get_config()
+        strict = cfg.get_user_option('push_strict')
+        if strict is not None:
+            bools = dict(yes=True, no=False, on=True, off=False,
+                         true=True, false=False)
+            strict = bools.get(strict.lower(), None)
+        if strict == False:
+            return True     # don't check blocking conditions
+        # the code below based on check in from bzrlib/builtins.py: cmd_push
+        tree = self.tree
+        blocker = None
+        if (tree.has_changes(tree.basis_tree())
+            or len(tree.get_parent_ids()) > 1):
+                blocker = gettext('Working tree has uncommitted changes.')
+        if tree.last_revision() != tree.branch.last_revision():
+            # The tree has lost sync with its branch, there is little
+            # chance that the user is aware of it but he can still force
+            # the push with --no-strict
+            blocker = gettext("Working tree is out of date, "
+                "please run 'bzr update'.")
+        #
+        if blocker is None:
+            return True
+        btn = QtGui.QMessageBox.warning(self,
+            "QBzr - " + gettext("Push"),
+            blocker + "\n\n" +
+            gettext("Do you want to continue anyway?"),
+            gettext("&Yes"), gettext("&No"), '',
+            0, 1)
+        if btn == 0: # QtGui.QMessageBox.Yes:
+            self._no_strict = True
+            return True
+        return False
 
 
 class QBzrBranchWindow(SubProcessDialog):
@@ -187,7 +242,7 @@ class QBzrBranchWindow(SubProcessDialog):
                                 self.ui.to_location,
                                 DIRECTORYPICKER_TARGET)
 
-    def start(self):
+    def do_start(self):
         args = []
         revision = str(self.ui.revision.text())
         if revision:
@@ -199,7 +254,7 @@ class QBzrBranchWindow(SubProcessDialog):
         if 'use-existing-dir' in cmd_branch.options():
             # always use this options because it should be mostly harmless
             args.append('--use-existing-dir')
-        self.process_widget.start(None, 'branch', from_location, to_location, *args)
+        self.process_widget.do_start(None, 'branch', from_location, to_location, *args)
         save_pull_location(None, from_location)
 
 
@@ -237,7 +292,7 @@ class QBzrMergeWindow(SubProcessDialog):
                                 self.ui.location,
                                 DIRECTORYPICKER_SOURCE)
 
-    def start(self):
+    def do_start(self):
         if self.tree:
             dest = self.tree.basedir
         else:
@@ -249,5 +304,5 @@ class QBzrMergeWindow(SubProcessDialog):
         if rev:
             args.extend(['--revision', rev])
         location = unicode(self.ui.location.currentText())
-        self.process_widget.start(None, 'merge', location, *args)
+        self.process_widget.do_start(None, 'merge', location, *args)
         save_pull_location(None, location)

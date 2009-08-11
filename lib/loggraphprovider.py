@@ -17,12 +17,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import fnmatch
 import re
 from time import clock
 
 from bzrlib import errors
 from bzrlib.transport.local import LocalTransport
-from bzrlib.revision import NULL_REVISION
+from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.tsort import merge_sort
 try:
     from bzrlib.graph import (Graph, StackedParentsProvider)
@@ -34,6 +35,7 @@ from bzrlib.bzrdir import BzrDir
 from bzrlib.inventory import Inventory
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
                                                          cached_revisions)
+from bzrlib.plugins.qbzr.lib.util import get_apparent_author
 
 have_search = True
 try:
@@ -253,6 +255,9 @@ class LogGraphProvider(object):
         repo = branch.repository
         if not tree:
             try:
+                # XXX - This dose not work if you have a light weight checkout
+                # We should rather make sure that every thing correctly pass
+                # us the wt if there is one.
                 tree = branch.bzrdir.open_workingtree()
             except errors.NoWorkingTree:
                 pass
@@ -471,6 +476,45 @@ class LogGraphProvider(object):
         
         self.compute_loaded_graph()
 
+    def load_graph_all_revisions_for_annotate(self):
+        if not len(self.branches()) == 1 or not len(self.repos) == 1:
+            AssertionError("load_graph_pending_merges should only be called \
+                           when 1 branch and repo has been opened.")        
+        
+        self.revid_head_info = {}
+        self.head_revids = []
+        self.revid_branch = {}
+        tree, branch, index = self.branches()[0]
+        self.trunk_branch = branch
+        
+        if tree:
+            branch_last_revision = CURRENT_REVISION
+            current_parents = tree.get_parent_ids()
+        else:
+            branch_last_revision = branch.last_revision()
+        
+        self.append_head_info(branch_last_revision, branch, None, True)
+        self.update_ui()
+        
+        if len(self.repos)==1:
+            self.graph = self.repos.values()[0].get_graph()
+        else:
+            parents_providers = [repo._make_parents_provider() \
+                                 for repo in self.repos_sorted_local_first()]
+            self.graph = Graph(StackedParentsProvider(parents_providers))
+        
+        def parents():
+            if branch_last_revision == CURRENT_REVISION:
+                yield (CURRENT_REVISION, current_parents)
+                heads = current_parents
+            else:
+                heads = self.head_revids
+            for p in self.graph.iter_ancestry(heads):
+                yield p
+        
+        self.process_graph_parents(parents())
+        
+        self.compute_loaded_graph()
     
     def load_graph_pending_merges(self):
         if not len(self.branches) == 1 or not len(self.repos) == 1:
@@ -835,7 +879,7 @@ class LogGraphProvider(object):
             if self.sr_field == "message":
                 filtered_str = revision.message
             elif self.sr_field == "author":
-                filtered_str = revision.get_apparent_author()
+                filtered_str = get_apparent_author(revision)
             elif self.sr_field == "bug":
                 rbugs = revision.properties.get('bugs', '')
                 if rbugs:
@@ -1392,6 +1436,21 @@ class LogGraphProvider(object):
                 yield bi.index
     
     def set_search(self, str, field):
+        """Set search string for specified kind of data.
+        @param  str:    string to search (interpreted based on field value)
+        @param  field:  kind of data to search, based on some field
+            of revision metadata. Possible values:
+                - message
+                - index (require bzr-search plugin)
+                - author
+                - tag
+                - bug
+
+        Value of `str` interpreted based on field value. For index it's used
+        as input value for bzr-search engine.
+        For message, author, tag and bug it's used as shell pattern
+        (glob pattern) to search in corresponding metadata of revisions.
+        """
         self.sr_field = field
         
         def revisions_loaded(revisions, last_call):
@@ -1403,6 +1462,10 @@ class LogGraphProvider(object):
             if self.sr_filter_re is None:
                 return True
             return False
+
+        def wildcard2regex(wildcard):
+            """Translate shel pattern to regexp."""
+            return fnmatch.translate(wildcard).rstrip('$')
         
         if str is None or str == u"":
             self.sr_filter_re = None
@@ -1430,7 +1493,7 @@ class LogGraphProvider(object):
                                 pass
             elif self.sr_field == "tag":
                 self.sr_filter_re = None
-                filter_re = re.compile(str, re.IGNORECASE)
+                filter_re = re.compile(wildcard2regex(str), re.IGNORECASE)
                 self.sr_index_matched_revids = {}
                 for revid in self.tags:
                     for t in self.tags[revid]:
@@ -1438,7 +1501,8 @@ class LogGraphProvider(object):
                             self.sr_index_matched_revids[revid] = True
                             break
             else:
-                self.sr_filter_re = re.compile(str, re.IGNORECASE)
+                self.sr_filter_re = re.compile(wildcard2regex(str),
+                    re.IGNORECASE)
                 self.sr_index_matched_revids = None
             
             self.invaladate_filter_cache()

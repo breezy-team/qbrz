@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/new_tree.ui'
 #
-# Created: Fri Sep 19 16:03:49 2008
-#      by: PyQt4 UI code generator 4.4.2
+# Created: Thu Jul 30 12:22:19 2009
+#      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -120,9 +120,9 @@ class Ui_NewWorkingTreeForm(object):
         QtCore.QObject.connect(self.but_checkout, QtCore.SIGNAL("toggled(bool)"), self.but_lightweight.setEnabled)
         QtCore.QObject.connect(self.but_branch, QtCore.SIGNAL("toggled(bool)"), self.but_stacked.setEnabled)
         QtCore.QObject.connect(self.but_rev_specific, QtCore.SIGNAL("toggled(bool)"), self.revision.setEnabled)
-        QtCore.QObject.connect(NewWorkingTreeForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.groupBox.setDisabled)
-        QtCore.QObject.connect(NewWorkingTreeForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.groupBox_3.setDisabled)
-        QtCore.QObject.connect(NewWorkingTreeForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.groupBox_2.setDisabled)
+        QtCore.QObject.connect(NewWorkingTreeForm, QtCore.SIGNAL("disableUi(bool)"), self.groupBox.setDisabled)
+        QtCore.QObject.connect(NewWorkingTreeForm, QtCore.SIGNAL("disableUi(bool)"), self.groupBox_3.setDisabled)
+        QtCore.QObject.connect(NewWorkingTreeForm, QtCore.SIGNAL("disableUi(bool)"), self.groupBox_2.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(NewWorkingTreeForm)
 
     def retranslateUi(self, NewWorkingTreeForm):

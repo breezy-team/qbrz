@@ -463,12 +463,12 @@ class QBzrConfigWindow(QBzrDialog):
         save_config(config, parser)
         save_config(qconfig, qparser)
 
-    def accept(self):
+    def do_accept(self):
         """Save changes and close the window."""
         self.save()
         self.close()
 
-    def reject(self):
+    def do_reject(self):
         """Close the window."""
         self.close()
 

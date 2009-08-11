@@ -28,7 +28,7 @@ from bzrlib import registry
 from bzrlib.commands import register_command, plugin_cmds
 
 
-version_info = (0, 13, 0, 'dev', 0)
+version_info = (0, 14, 0, 'dev', 0)
 __version__ = '.'.join(map(str, version_info))
 
 
@@ -90,6 +90,9 @@ register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qtag', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qupdate', ['qup'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qversion', ['qsysinfo'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qviewer', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsend', ['qsend'])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qswitch', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qunbind', [])
 
 register_lazy_command('bzrlib.plugins.qbzr.lib.extra.bugurl', 'cmd_bug_url', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.extra.isignored', 'cmd_is_ignored', [])

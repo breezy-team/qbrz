@@ -93,7 +93,9 @@ class InternalDiffArgProvider(DiffArgProvider):
         from bzrlib import urlutils
 
         args = []
-        args.append(self.get_revspec())
+        revspec = self.get_revspec()
+        if revspec:
+            args.append(revspec)
         
         if not self.old_branch.base == self.new_branch.base: 
             args.append("--old=%s" % self.old_branch.base)
@@ -138,7 +140,10 @@ class InternalWTDiffArgProvider(InternalDiffArgProvider):
                 self.specific_files)
 
     def get_revspec(self):
-        return "-r revid:%s" % (self.old_revid,)
+        if self.old_revid is not None:
+            return "-r revid:%s" % (self.old_revid,)
+        else:
+            return None
     
     def need_to_load_paths(self):
         return False

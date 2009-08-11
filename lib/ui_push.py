@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/push.ui'
 #
-# Created: Fri Sep 19 16:13:35 2008
-#      by: PyQt4 UI code generator 4.4.2
+# Created: Thu Jul 30 12:02:52 2009
+#      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -55,7 +55,7 @@ class Ui_PushForm(object):
         self.label_2.setBuddy(self.location)
 
         self.retranslateUi(PushForm)
-        QtCore.QObject.connect(PushForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.groupBox.setDisabled)
+        QtCore.QObject.connect(PushForm, QtCore.SIGNAL("disableUi(bool)"), self.groupBox.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(PushForm)
 
     def retranslateUi(self, PushForm):

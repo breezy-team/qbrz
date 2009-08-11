@@ -94,7 +94,7 @@
  <connections>
   <connection>
    <sender>MergeForm</sender>
-   <signal>subprocessStarted(bool)</signal>
+   <signal>disableUi(bool)</signal>
    <receiver>groupBox</receiver>
    <slot>setDisabled(bool)</slot>
    <hints>
@@ -110,6 +110,6 @@
   </connection>
  </connections>
  <slots>
-  <signal>subprocessStarted(bool)</signal>
+  <signal>disableUi(bool)</signal>
  </slots>
 </ui>
