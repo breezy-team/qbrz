@@ -399,9 +399,14 @@ class SubProcessWidget(QtGui.QWidget):
         return self.process.state() == QtCore.QProcess.Running or\
                self.process.state() == QtCore.QProcess.Starting
     
-    def do_start(self, dir, *args):
+    def do_start(self, workdir, *args):
+        """Launch one bzr command.
+        @param  workdir:    working directory for command.
+                            Could be None to use self.defaultWorkingDir
+        @param  args:   bzr command and its arguments
+        """
         QtGui.QApplication.processEvents() # make sure ui has caught up
-        self.start_multi(((dir, args),))
+        self.start_multi(((workdir, args),))
     
     def start_multi(self, commands):
         self.setProgress(0, [gettext("Starting...")], "")

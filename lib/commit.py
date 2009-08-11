@@ -624,7 +624,6 @@ class CommitWindow(SubProcessDialog):
         self.tabWidget.setCurrentWidget(self.process_widget)
         self.process_widget.start_multi(commands)
 
-
     def show_nonversioned(self, state):
         """Show/hide non-versioned files."""
         if state and not self.filelist.want_unversioned:
