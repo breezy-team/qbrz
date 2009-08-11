@@ -155,6 +155,10 @@ class RevNoItemDelegate(QtGui.QItemDelegate):
         mainline, dot, therest = str(text).partition(".")
         therest = dot + therest
         
+        if mainline.endswith(" ?"):
+            mainline = mainline[:-2]
+            therest = " ?"
+        
         fm = painter.fontMetrics()
         mainline_width = fm.width("8"*self.max_mainline_digits)
         therest_width = fm.width(therest)

@@ -27,7 +27,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     format_timestamp,
     split_tokens_at_lines,
-    format_for_ttype,
+    CachedTTypeFormater,
     QBzrGlobalConfig,
     QBzrConfig,
     )
@@ -103,39 +103,33 @@ class DiffSourceView(QtGui.QTextBrowser):
         y = self.verticalScrollBar().value()
         painter = QtGui.QPainter(self.viewport())
         painter.setClipRect(event.rect())
+        bot = event.rect().bottom()
+        top = event.rect().top()
         pen = QtGui.QPen(QtCore.Qt.black)
         pen.setWidth(2)
         painter.setPen(pen)
-        for block in self.infoBlocks:
-            block_y = block.position().y() - y
+        for block_y in self.infoBlocks:
+            block_y = block_y - y
+            if block_y < top:
+                continue
+            if block_y > bot:
+                break
             painter.drawLine(0, block_y, w, block_y)
-            
-        for block0, block1, kind in self.changes:
-            y1 = block0.position().y()
-            y2 = block1.position().y()
-            if y1 <= 0 or y2 <= 0:
+        
+        pen.setWidth(1)
+        for y_top, y_bot, kind in self.changes:
+            y_top -= y
+            y_bot -= y
+            if y_top < top and y_bot < top:
                 continue
-            y1 -= y
-            y2 -= y
-            painter.fillRect(0, y1, w, y2 - y1, brushes[kind][0])
-        del painter
-        QtGui.QTextBrowser.paintEvent(self, event)        
-
-        painter = QtGui.QPainter(self.viewport())
-        painter.setClipRect(event.rect())
-        for block0, block1, kind in self.changes:
-            y1 = block0.position().y()
-            y2 = block1.position().y()
-            if y1 <= 0 or y2 <= 0:
-                continue
-            y1 -= y
-            y2 -= y
+            if y_top > bot and y_bot > bot:
+                break
+            painter.fillRect(0,  y_top, w, y_bot - y_top, brushes[kind][0])
             painter.setPen(colors[kind][1])
-            painter.drawLine(0, y1, w, y1)
-            if y1 != y2:
-                painter.drawLine(0, y2 - 1, w, y2 - 1)
-       
-
+            painter.drawLine(0, y_top, w, y_top)
+            painter.drawLine(0, y_bot - 1, w, y_bot - 1)
+        del painter
+        QtGui.QTextBrowser.paintEvent(self, event) 
 
 class DiffViewHandle(QtGui.QSplitterHandle):
 
@@ -152,42 +146,45 @@ class DiffViewHandle(QtGui.QSplitterHandle):
         painter = QtGui.QPainter(self)
         painter.setClipRect(event.rect())
         frame = QtGui.QApplication.style().pixelMetric(QtGui.QStyle.PM_DefaultFrameWidth)
-        value1 = self.view.browsers[0].verticalScrollBar().value() - frame
-        value2 = self.view.browsers[1].verticalScrollBar().value() - frame
+        ly = self.view.browsers[0].verticalScrollBar().value() - frame
+        ry = self.view.browsers[1].verticalScrollBar().value() - frame
         w = self.width()
+        h = self.height()
         
         pen = QtGui.QPen(QtCore.Qt.black)
         pen.setWidth(2)
         painter.setPen(pen)
-        for block0, block1 in self.infoBlocks:
-            block0_y = block0.position().y() - value1
-            block1_y = block1.position().y() - value2
-            painter.drawLine(0, block0_y, w, block1_y)
-
-        for blocka0, blockb0, blocka1, blockb1, kind in self.changes:
-            ly1 = blocka0.position().y()
-            ly2 = blocka1.position().y()
-            ry1 = blockb0.position().y()
-            ry2 = blockb1.position().y()
-            if ly1 <= 0 or ly2 <= 0 or ry1 <= 0 or ry2 <= 0:
+        for block_ly, block_ry in self.infoBlocks:
+            block_ly -= ly
+            block_ry -= ry
+            if block_ly < 0 and block_ry < 0:
                 continue
+            if block_ly > h and block_ry > h:
+                break
+            painter.drawLine(0, block_ly, w, block_ry)
 
-            ly1 -= value1
-            ly2 -= value1 + 1
-            ry1 -= value2
-            ry2 -= value2 + 1
+        for ly_top, ly_bot, ry_top, ry_bot, kind in self.changes:
+            ly_top -= ly
+            ly_bot -= ly + 1
+            ry_top -= ry
+            ry_bot -= ry + 1
+            
+            if ly_top < 0 and ly_bot < 0 and ry_top < 0 and ry_bot < 0:
+                continue
+            if ly_top > h and ly_bot > h and ry_top > h and ry_bot > h:
+                break
 
             polygon = QtGui.QPolygon(4)
-            polygon.setPoints(0, ly1, w, ry1, w, ry2, 0, ly2)
+            polygon.setPoints(0, ly_top, w, ry_top, w, ry_bot, 0, ly_bot)
             painter.setPen(QtCore.Qt.NoPen)
             painter.setBrush(brushes[kind][0])
             painter.drawConvexPolygon(polygon)
 
             painter.setPen(colors[kind][1])
-            painter.setRenderHints(QtGui.QPainter.Antialiasing, ly1 != ry1)
-            painter.drawLine(0, ly1, w, ry1)
-            painter.setRenderHints(QtGui.QPainter.Antialiasing, ly2 != ry2)
-            painter.drawLine(0, ly2, w, ry2)
+            painter.setRenderHints(QtGui.QPainter.Antialiasing, ly_top != ry_top)
+            painter.drawLine(0, ly_top, w, ry_top)
+            painter.setRenderHints(QtGui.QPainter.Antialiasing, ly_bot != ry_bot)
+            painter.drawLine(0, ly_bot, w, ry_bot)
         del painter
 
 
@@ -211,6 +208,10 @@ class SidebySideDiffView(QtGui.QSplitter):
     
         self.monospacedFormat = QtGui.QTextCharFormat()
         self.monospacedFormat.setFont(self.monospacedFont)
+        self.ttype_formater = CachedTTypeFormater(
+                                QtGui.QTextCharFormat(self.monospacedFormat))
+        self.background = self.monospacedFormat.background()
+        
         self.titleFormat = QtGui.QTextCharFormat()
         self.titleFormat.setFont(titleFont)
         self.metadataFormat = QtGui.QTextCharFormat()
@@ -287,16 +288,15 @@ class SidebySideDiffView(QtGui.QSplitter):
             else:
                 cursor.insertText(" ", self.metadataFormat)
             cursor.insertBlock()
-            self.browsers[i].infoBlocks.append(cursor.block().layout())
         
-        self.handle(1).infoBlocks.append((cursors[0].block().layout(),
-                                          cursors[1].block().layout()))
+        infoBlocks = (cursors[0].block().layout(),
+                      cursors[1].block().layout())
+        changes = []
             
         if not binary:
             for cursor in cursors:
                 cursor.setCharFormat(self.monospacedFormat)
                 cursor.insertBlock()
-            changes = []
             
             def fix_last_line(lines):
                 """Fix last line if there is no new line.
@@ -337,16 +337,9 @@ class SidebySideDiffView(QtGui.QSplitter):
             def insertLine(cursor, line):
                 if use_pygments:
                     for ttype, value in line:
-                        cursor.insertText(value.rstrip('\n'),
-                                          format_for_ttype(ttype,
-                                                           QtGui.QTextCharFormat(self.monospacedFormat)))
-                    
-                    # Use this format for the new line char, so that all line
-                    # heights are the same.
-                    format = QtGui.QTextCharFormat()
-                    format.setFont(self.monospacedFont)
-                    format.setFontItalic (True)
-                    cursor.insertText(" \n",format)
+                        format = self.ttype_formater.format(ttype)
+                        modifyFormatForTag(format, "equal")
+                        cursor.insertText(value, format)
                 else:
                     cursor.insertText(line)
             
@@ -358,11 +351,12 @@ class SidebySideDiffView(QtGui.QSplitter):
             def modifyFormatForTag (format, tag):
                 if tag == "replace":
                     format.setBackground(interline_changes_background)
-                elif not tag == "equal":
-                    if self.show_intergroup_colors:
-                        format.setBackground(brushes[tag][0])
-                    else:
-                        format.setBackground(interline_changes_background)
+                elif tag == "equal":
+                    format.setBackground(self.background)
+                elif self.show_intergroup_colors:
+                    format.setBackground(brushes[tag][0])
+                else:
+                    format.setBackground(interline_changes_background)
             
             split_words = re.compile(r"\w+|\n\r|\r\n|\W")
             def insertIxsWithChangesHighlighted(ixs):
@@ -387,18 +381,10 @@ class SidebySideDiffView(QtGui.QSplitter):
                         for l in ls[ix[0]:ix[1]]:
                             for ttype, value in l:
                                 while value:
-                                    format = format_for_ttype(ttype,
-                                                QtGui.QTextCharFormat(self.monospacedFormat))
+                                    format = self.ttype_formater.format(ttype)
                                     modifyFormatForTag(format, tag)
                                     t = value[0:n]
-                                    cursor.insertText(t.rstrip('\n'), format)
-                                    if t.endswith('\n'):
-                                        # Use this format for the new line char, so that all line
-                                        # heights are the same.
-                                        format = QtGui.QTextCharFormat()
-                                        format.setFont(self.monospacedFont)
-                                        format.setFontItalic (True)
-                                        cursor.insertText(" \n",format)
+                                    cursor.insertText(t, format)
                                     value = value[len(t):]
                                     n -= len(t)
                                     if n<=0:
@@ -426,11 +412,11 @@ class SidebySideDiffView(QtGui.QSplitter):
             
             for i, group in enumerate(groups):
                 if i > 0:
-                    block0 = [cursor.block().layout() for cursor in self.cursors]
+                    y_top = [cursor.block().layout() for cursor in self.cursors]
                     for cursor in cursors:
                         cursor.insertBlock()
-                    block1 = [cursor.block().layout() for cursor in self.cursors]
-                    changes.append((block0[0], block0[1], block1[0], block1[1], 'blank'))
+                    t_bot = [cursor.block().layout() for cursor in self.cursors]
+                    changes.append((y_top[0], t_bot[0], y_top[1], t_bot[1], 'blank'))
                 linediff = 0
                 for g in group:
                     tag = g[0]
@@ -440,14 +426,14 @@ class SidebySideDiffView(QtGui.QSplitter):
                     if tag == "equal":
                         insertIxs(ixs)
                     else:
-                        block0 = [cursor.block().layout() for cursor in self.cursors]
+                        y_top = [cursor.block().layout() for cursor in self.cursors]
                         if tag == "replace":
                             insertIxsWithChangesHighlighted(ixs)
                         else:
                             insertIxs(ixs)
                         linediff += n[0] - n[1]
-                        block1 = [cursor.block().layout() for cursor in self.cursors]
-                        changes.append((block0[0], block0[1], block1[0], block1[1], tag))
+                        y_bot = [cursor.block().layout() for cursor in self.cursors]
+                        changes.append((y_top[0], y_bot[0], y_top[1], y_bot[1], tag))
                 
                 if linediff == 0:
                     continue
@@ -463,16 +449,8 @@ class SidebySideDiffView(QtGui.QSplitter):
                     exlines = display_lines[1][j0:j1]
                     linediff = linediff - len(exlines)
                     cursor = cursors[1]
-                if use_pygments:
-                    exlines.extend([((None,"\n"),)] * linediff)
-                else:
-                    exlines.extend(["\n"] * linediff)
                 for l in exlines:
                     insertLine(cursor, l)
-            
-            self.browsers[0].changes.extend([(line[0], line[2], line[4]) for line in changes])
-            self.browsers[1].changes.extend([(line[1], line[3], line[4]) for line in changes])
-            self.handle(1).changes.extend(changes)
         else:
             heights = [0,0]
             is_images = [False, False]
@@ -483,7 +461,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                         is_images[i] = True
                         image = QtGui.QImage()
                         image.loadFromData(data[i])
-                        heights[i] = image.height() + 4 # QTextDocument seems to add 1 pixel when layouting the text
+                        heights[i] = image.height()
                         self.docs[i].addResource(QtGui.QTextDocument.ImageResource,
                                         QtCore.QUrl(file_id),
                                         QtCore.QVariant(image))
@@ -491,28 +469,50 @@ class SidebySideDiffView(QtGui.QSplitter):
             max_height = max(heights)
             for i, cursor in enumerate(self.cursors):
                 format = QtGui.QTextBlockFormat()
-                format.setBottomMargin(max_height - heights[i])
-                cursor.setBlockFormat(format)
+                format.setBottomMargin((max_height - heights[i])/2)
+                format.setTopMargin((max_height - heights[i])/2)
+                cursor.insertBlock(format)
                 if present[i]:
                     if is_images[i]:
-                        cursor.insertText("\n")
                         cursor.insertImage(file_id)
                     else:
                         cursor.insertText(gettext('[binary file]'))
                 else:
                     cursor.insertText(" ")
-                cursor.insertBlock(QtGui.QTextBlockFormat())
-        
-        for cursor in self.cursors:
-            cursor.insertText("\n")
+            #cursor.insertBlock(QtGui.QTextBlockFormat())
+
+        for cursor in cursors:
             cursor.endEditBlock()
+            cursor.insertText("\n")
+        maxy = max([c.block().layout().position().y() for c in cursors])
+        for cursor in cursors:
+            format = QtGui.QTextBlockFormat()
+            format.setBottomMargin(maxy-cursor.block().layout().position().y())
+            cursor.setBlockFormat(format)
+            cursor.insertBlock(QtGui.QTextBlockFormat())
+        
+        l_block = infoBlocks[0].position().y()
+        r_block = infoBlocks[1].position().y()
+        self.browsers[0].infoBlocks.append(l_block)
+        self.browsers[1].infoBlocks.append(r_block)
+        self.handle(1).infoBlocks.append((l_block, r_block))
+        
+        for (ly_top, ly_bot, ry_top, ry_bot, kind) in changes:
+            ly_top = ly_top.position().y() - 1
+            ly_bot = ly_bot.position().y() + 1
+            ry_top = ry_top.position().y() - 1
+            ry_bot = ry_bot.position().y() + 1
+            self.browsers[0].changes.append((ly_top, ly_bot, kind))
+            self.browsers[1].changes.append((ry_top, ry_bot, kind))
+            self.handle(1).changes.append((ly_top, ly_bot, ry_top, ry_bot, kind))
+        
         # check horizontal scrollbars and force both if scrollbar visible only at one side
         if (self.browsers[0].horizontalScrollBar().isVisible()
             or self.browsers[1].horizontalScrollBar().isVisible()):
             self.browsers[0].setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
             self.browsers[1].setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.update()
-
+    
     def rewind(self):
         if not self.rewinded:
             self.rewinded = True
