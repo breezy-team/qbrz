@@ -936,6 +936,7 @@ class cmd_qunbind(QBzrCommand):
         window.show()
         application.exec_() 
 
+
 class cmd_qexport(QBzrCommand):
     """Export current or past revision to a destination directory or archive.
       

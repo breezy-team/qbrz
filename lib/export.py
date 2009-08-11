@@ -19,28 +19,44 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import os
 from PyQt4 import QtCore, QtGui
 
-from os import path
-
-from bzrlib import errors
+from bzrlib import (
+    errors,
+    export,
+    osutils,
+    )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import url_for_display
 
+
 class QBzrExportDialog(SubProcessDialog):
-    
-    def __init__(self, dest, branch, ui_mode):
-        
-        
-        title = "%s: %s" % (gettext("Export"), url_for_display(branch.base))
+
+    FORMATS = { # key is archive format, value is tuple of accepted extensions
+        'tar': ('tar',),
+        'tbz2': ('tar.bz2', 'tbz2'),
+        'tgz': ('tar.gz', 'tgz'),
+        'zip': ('zip',),
+        }
+
+    def __init__(self, dest=None, branch=None, ui_mode=False, parent=None):
+        """Create export dialog.
+        @param  dest:   path to export to (either archive name or directory).
+        @param  branch: exported branch.
+        @param  ui_mode:    does dialog should stay on the screen after
+            operation completed successfully.
+        @param  parent: parent window.
+        """
+        title = gettext("Export")
         super(QBzrExportDialog, self).__init__(
                                   title,
                                   name = "export",
                                   default_size = (400, 400),
                                   ui_mode = ui_mode,
                                   dialog = True,
-                                  parent = None,
+                                  parent = parent,
                                   hide_progress=False,
                                   )
 
@@ -64,12 +80,15 @@ class QBzrExportDialog(SubProcessDialog):
         locationfil_label = QtGui.QLabel(gettext("Location:"))
         locationfil_edit = QtGui.QLineEdit()
         
-                    
         self.locationfil_edit = locationfil_edit
         self.locationfil_edit = locationfil_edit # to allow access from another function     
         browsefil_button = QtGui.QPushButton(gettext("Browse"))
-        QtCore.QObject.connect(browsefil_button, QtCore.SIGNAL("clicked(bool)"), self.browsefil_clicked)
-        QtCore.QObject.connect(locationfil_edit, QtCore.SIGNAL("editingFinished()"), self.updateformat)
+        QtCore.QObject.connect(browsefil_button,
+                               QtCore.SIGNAL("clicked(bool)"),
+                               self.browsefil_clicked)
+        QtCore.QObject.connect(locationfil_edit,
+                               QtCore.SIGNAL("editingFinished()"),
+                               self.update_root_n_format)
         
         locationfil_hbox.addSpacing(25)
         locationfil_hbox.addWidget(locationfil_label)
@@ -84,7 +103,7 @@ class QBzrExportDialog(SubProcessDialog):
         
         folder_hbox = QtGui.QHBoxLayout()
         folder_hbox.addSpacing(25)
-        folder_label = QtGui.QLabel(gettext("Root directory name"))
+        folder_label = QtGui.QLabel(gettext("Root directory name:"))
         folder_edit = QtGui.QLineEdit()
         self.folder_edit = folder_edit
         
@@ -94,13 +113,11 @@ class QBzrExportDialog(SubProcessDialog):
         vboxExportDestination.addLayout(folder_hbox)
         
         format_hbox = QtGui.QHBoxLayout()
-        format_label = QtGui.QLabel(gettext("Archive type"))
+        format_label = QtGui.QLabel(gettext("Archive type:"))
         format_combo = QtGui.QComboBox()
-        
-        format_combo.insertItem(0,"tar")
-        format_combo.insertItem(1,"tbz2")
-        format_combo.insertItem(2,"tgz")
-        format_combo.insertItem(3,"zip")
+
+        for ix, k in enumerate(sorted(self.FORMATS.keys())):
+            format_combo.insertItem(ix, k)
         self.format_combo = format_combo
         
         format_hbox.addSpacing(25)
@@ -137,7 +154,7 @@ class QBzrExportDialog(SubProcessDialog):
         
         revisions_box = QtGui.QGridLayout()
 
-        revisions_label = QtGui.QLabel(gettext("Revision"))
+        revisions_label = QtGui.QLabel(gettext("Revision:"))
         revisions_tip = QtGui.QRadioButton("Branch tip")
         revisions_tip.setChecked(True)
         self.revisions_tip = revisions_tip
@@ -178,7 +195,6 @@ class QBzrExportDialog(SubProcessDialog):
         layout.addWidget(self.splitter)
         layout.addWidget(self.buttonbox)
 
-
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("disableUi(bool)"),
                                gbExportDestination,
@@ -187,55 +203,33 @@ class QBzrExportDialog(SubProcessDialog):
                                QtCore.SIGNAL("disableUi(bool)"),
                                gbExportOptions,
                                QtCore.SLOT("setDisabled(bool)"))
-            
-        if dest != None:
-            if path.isdir(dest):
-                locationdir_edit.setText(path.abspath(dest))
+
+        locationfil_edit.setFocus()
+        if dest is not None:
+            if os.path.isdir(dest) or self.detect_format(dest) is None:
+                locationdir_edit.setText(osutils.abspath(dest))
                 locationdir_edit.setFocus()
-                self.updateformat()
                 exportdir_radio.setChecked(True)   
-                             
             else:
-                locationfil_edit.setText(path.abspath(dest))
-                locationfil_edit.setFocus()
-                self.updateformat()
+                locationfil_edit.setText(osutils.abspath(dest))
+                self.update_root_n_format()
                 exportarch_radio.setChecked(True)
-        
-            
-        
-        
-    def updateformat(self):
-        
-        extensions = {}
-        extensions['tar'] = 'tar'
-        extensions['tar.bz2'] = 'tbz2'
-        extensions['tbz2'] = 'tbz2'
-        extensions['tar.gz'] = 'tgz'
-        extensions['tgz'] = 'tgz'
-        extensions['zip'] = 'zip'
-        
-        path = self.locationfil_edit.text()
-        format = ""
-        for ex in extensions:
-            if str(path).endswith(ex):
-                format = extensions[ex]
-                path = str(path)
-                try:
-                    foldername = path.split(ex)[-2].split("/")[-1][0:-1]
-                except:
-                    pass
-                else:
-                    self.folder_edit.setText(foldername)
-                break
-            
-        if format == 'tar':
-            self.format_combo.setCurrentIndex(0)
-        elif format == 'tbz2':
-            self.format_combo.setCurrentIndex(1)
-        elif format == 'tgz':
-            self.format_combo.setCurrentIndex(2)
-        elif format == 'zip':
-            self.format_combo.setCurrentIndex(3)
+
+    def detect_format(self, path):
+        """Return archive type or None."""
+        for k, v in self.FORMATS.iteritems():
+            for i in v:
+                if path.endswith(i):
+                    return k
+        return None
+
+    def update_root_n_format(self):
+        path = unicode(self.locationfil_edit.text())
+        format = self.detect_format(path)
+        if format is not None:
+            ix = sorted(self.FORMATS.keys()).index(format)
+            self.format_combo.setCurrentIndex(ix)
+        self.folder_edit.setText(export.get_root_name(path))
 
     def browsedir_clicked(self):
         fileName = QtGui.QFileDialog.getExistingDirectory(self, ("Select save location"));
@@ -247,16 +241,16 @@ class QBzrExportDialog(SubProcessDialog):
         fileName = QtGui.QFileDialog.getSaveFileName(self, ("Select save location"));
         if fileName != None:
             self.locationfil_edit.setText(fileName)   
-            self.updateformat()
+            self.update_root_n_format()
             self.exportarch_radio.setChecked(True)
 
     def validate(self):
         if self.exportarch_radio.isChecked():
-            location = str(self.locationfil_edit.text())
+            location = unicode(self.locationfil_edit.text())
             if location == "":
                 raise errors.BzrCommandError("Export location is invalid")
         elif self.exportdir_radio.isChecked():
-            location = str(self.locationdir_edit.text())
+            location = unicode(self.locationdir_edit.text())
             if location == "":
                 raise errors.BzrCommandError("Export location is invalid")        
         
@@ -266,36 +260,35 @@ class QBzrExportDialog(SubProcessDialog):
         return True
 
     def do_start(self):
-        args = []
-        
-        mylocation = url_for_display(self.branch.base) 
-        args.append(mylocation)
-        
-        if self.exportarch_radio.isChecked():
-            location = str(self.locationfil_edit.text())
-            
-            format = str(self.format_combo.currentText())
-            args.append("--format=%s" % format)
-        else:
-            location = str(self.locationdir_edit.text())
-            format = str(self.format_combo.currentText())
-            args.append("--format=dir")
+        args = ['export']
 
-        if str(self.folder_edit.text()) != '':
-            args.append("--root=%s" % str(self.folder_edit.text()))
+        if self.exportarch_radio.isChecked():
+            location = unicode(self.locationfil_edit.text())
+            format = str(self.format_combo.currentText())
+            root = unicode(self.folder_edit.text())
+            if root:
+                args.append("--root=%s" % root)
+            else:
+                args.append("--root=")
         else:
-            args.append("--root=")
-        
+            location = unicode(self.locationdir_edit.text())
+            format = 'dir'
+        args.append(location)
+        args.append("--format=%s" % format)
+
+        branch_location = url_for_display(self.branch.base)
+        args.append(branch_location)
+
         if self.revisions_tip.isChecked():
             args.append("--revision=-1")
         else:
-            revision = str(self.revisions_edit.text())
+            revision = unicode(self.revisions_edit.text())
             args.append("--revision=%s" % revision)
-            
+
         if self.format_canonical.isChecked():
             args.append("--filters")
-            
-        self.process_widget.do_start(None, 'export', location, *args)
+
+        self.process_widget.do_start(None, *args)
 
     def saveSize(self):
         SubProcessDialog.saveSize(self)
