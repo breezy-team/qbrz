@@ -1,38 +1,51 @@
-0.13 - in development
+0.14 - in development
 -----------------------
- * Bzr 1.18 compatabily fixes.
+
+ * New dialog: qunbind (Javier Derderian)
+ * New dialog: qexport (Javier Derderian)
+
+0.13.1 - 2009-08-11
+-----------------------
+
+ * qdiff: Fix for critical regression when viewing diffs with images. (#411811)
+
+
+0.13 - 2009-08-10
+-----------------------
+ * Bazaar 1.18 compatibility fixes. (#397615) (#402022) (#404269)
  * Support for PyQT 4.5 (#394125)
- * New dialogs for qsend, qswitch
+ * New dialogs for qsend (#174504), qswitch (#385116)
  * External diff buttons are now the correct width when using the qgtkstyle.
  * Added Estonian translation.
  * Bug reports now point to https://bugs.launchpad.net/qbzr/+filebug rather
    than https://bugs.launchpad.net/bzr/+filebug. It is now possilble to click
    on this link.
  * qcommit:
-   * Pressing escape cancels the dialog.
-   * Spelling suggestions are shown in the message context menu.
+   * Pressing Escape cancels the dialog.
+   * Spelling suggestions are shown in the message context menu. (#395895)
    * If you dbl click on a pending merge, it will show the revision message,
      which is usefull if you want to copy it.
    * When the arguments are written to a file, thay are now encoded. (#398750)
-   * Added a refresh button to reload changes.
+   * Added a refresh button to reload changes. (#253777)
  * qcommit, qadd, and qrevert now reuse the widget from qbrowse. This means
    that there are more context menu items, and you can expand unversioned
-   directories. On Windows and Mac, system file icons are shown.
- * qrevert: You can now control if you want to revert pending merges.(#388469)
+   directories (#258929). On Windows and Mac, system file icons are shown.
+ * qrevert: You can now control if you want to revert pending merges. (#388469)
  * qlog:
-   * Support for Mantis BT bug urls.
+   * Support for Mantis BugTracker bug urls.
    * Wildcards now supported to search for message, author, tags and bugs.
      You can see all revisions with tags or bugs by selecting corresponding
      search filter and type * in the search entry.
  * qannotate:
    * It is now possible to annotate the working tree.
    * Branch encoding setting is now correcly loaded. (#397753)
-   * A mimimum of 80 chars is now shown (#397756)
+   * A minimum of 80 chars is now shown (#397756)
  * qdiff:
    * Use configured color for interline_changes_background.
-   * Files now correctly align. There is now longer a " " at the end of each
+   * Files now correctly aligned. There is no longer a space at the end of each
      line. (#271178)
-   * Performance imporvement for loading and scrolling. (#411367)
+   * Performance improvement for loading and scrolling. (#411367)
+
 
 0.12 - 2009-07-08
 -----------------------

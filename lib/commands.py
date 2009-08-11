@@ -329,7 +329,6 @@ class cmd_qcommit(QBzrCommand):
         application.exec_()
 
 
-
 class cmd_qdiff(QBzrCommand, DiffArgProvider):
     """Show differences in working tree in a GUI window."""
     takes_args = ['file*']
@@ -727,6 +726,7 @@ class cmd_qbzr(QBzrCommand):
         window.show()
         app.exec_()
 
+
 class cmd_qsubprocess(Command):
 
     takes_args = ['cmd']
@@ -855,6 +855,7 @@ class cmd_qviewer(QBzrCommand):
         window.show()
         app.exec_()
 
+
 class cmd_qversion(QBzrCommand):
     """Show version/system information."""
     takes_args = []
@@ -884,6 +885,8 @@ class cmd_qupdate(QBzrCommand):
         window = QBzrUpdateWindow(tree, ui_mode)
         window.show()
         application.exec_()
+
+
 class cmd_qsend(QBzrCommand):
     """Dialog for creating and sending patches and bundles"""
     
@@ -901,6 +904,7 @@ class cmd_qsend(QBzrCommand):
 
         app.exec_()
 
+
 class cmd_qswitch(QBzrCommand):
     takes_args = ['location?']
     takes_options = [ui_mode_option]
@@ -915,3 +919,43 @@ class cmd_qswitch(QBzrCommand):
         window.show()
         application.exec_() 
 
+
+class cmd_qunbind(QBzrCommand):
+    """Convert the current checkout into a regular branch."""
+    takes_options = [ui_mode_option]
+    
+    def _qbzr_run(self, ui_mode=False):
+        from bzrlib.plugins.qbzr.lib.unbind import QBzrUnbindDialog
+        
+        application = QtGui.QApplication(sys.argv)
+        branch = Branch.open_containing(".")[0]
+        if branch.get_bound_location() == None:
+            raise errors.BzrCommandError("This branch is not bound.")
+        
+        window = QBzrUnbindDialog(branch, ui_mode)
+        window.show()
+        application.exec_() 
+
+class cmd_qexport(QBzrCommand):
+    """Export current or past revision to a destination directory or archive.
+      
+      DEST is the destination file or dir where the branch will be exported.
+      If BRANCH_OR_SUBDIR is omitted then the branch containing the current working
+      directory will be used.
+    """
+    
+    takes_args = ['dest?','branch_or_subdir?']
+    takes_options = [ui_mode_option]
+    
+    def _qbzr_run(self, dest=None, branch_or_subdir=None, ui_mode=False):
+        from bzrlib.plugins.qbzr.lib.export import QBzrExportDialog
+        
+        application = QtGui.QApplication(sys.argv)
+        if branch_or_subdir == None:
+            branch = Branch.open_containing(".")[0]
+        else:
+            branch = Branch.open_containing(branch_or_subdir)[0]
+        
+        window = QBzrExportDialog(dest, branch, ui_mode)
+        window.show()
+        application.exec_() 
