@@ -174,6 +174,8 @@ class LogModel(QtCore.QAbstractTableModel):
         return len(self.horizontalHeaderLabels)
 
     def rowCount(self, parent):
+        if parent.isValid():
+            return 0
         return len(self.graph_provider.revisions)
     
     def data(self, index, role):
@@ -201,6 +203,14 @@ class LogModel(QtCore.QAbstractTableModel):
                      QtCore.QVariant(direct)]))
             return QVariant_fromList(qlines)
         
+        if self.last_rev_is_placeholder and \
+                msri == len(self.graph_provider.merge_sorted_revisions) - 1:
+            if role == GraphNodeRole:
+                return QVariant_fromList([QtCore.QVariant(-1), QtCore.QVariant(0)])
+            if role == QtCore.Qt.DisplayRole:
+                return QtCore.QVariant("")
+            return QtCore.QVariant()
+
         if role == GraphNodeRole:
             if rev_info.col_index is None:
                 return QtCore.QVariant()
@@ -234,7 +244,9 @@ class LogModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant(rev_info.revid)
         
         #Everything from here foward will need to have the revision loaded.
-        if rev_info.revid not in cached_revisions:
+        if not revid or revid not in cached_revisions:
+            if role == QtCore.Qt.DisplayRole:
+                return QtCore.QVariant("")
             return QtCore.QVariant()
         
         revision = cached_revisions[rev_info.revid]
@@ -257,6 +269,8 @@ class LogModel(QtCore.QAbstractTableModel):
                         bugs.append(bugtext % bug_id)
             return QtCore.QVariant(QtCore.QStringList(bugs))
         
+        if role == QtCore.Qt.DisplayRole:
+            return QtCore.QVariant("")
         return QtCore.QVariant()
 
     def flags(self, index):

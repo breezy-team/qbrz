@@ -74,7 +74,7 @@ class UpdateBranchWindow(SubProcessDialog):
                 args.append('--overwrite')
             if self.ui.but_pull_remember.isChecked():
                 args.append('--remember')
-            location = str(self.ui.location.currentText())
+            location = unicode(self.ui.location.currentText())
             if not location:
                 return
 
@@ -127,7 +127,7 @@ class UpdateCheckoutWindow(SubProcessDialog):
                 args.append('--overwrite')
             #if self.ui.but_pull_remember.isChecked():
             #    args.append('--remember')
-            location = str(self.ui.location.currentText())
+            location = unicode(self.ui.location.currentText())
             if not location:
                 return
             self.process_widget.start(None, 'pull', location, *args)

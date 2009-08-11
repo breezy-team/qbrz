@@ -89,7 +89,7 @@ class QBzrPullWindow(SubProcessDialog):
         if revision:
             args.append('--revision')
             args.append(revision)
-        location = str(self.ui.location.currentText())
+        location = unicode(self.ui.location.currentText())
         self.process_widget.start(None, 'pull', location, *args)
         save_pull_location(self.branch, location)
 
@@ -146,7 +146,7 @@ class QBzrPushWindow(SubProcessDialog):
             args.append('--create-prefix')
         if self.ui.use_existing_dir.isChecked():
             args.append('--use-existing-dir')
-        location = str(self.ui.location.currentText())
+        location = unicode(self.ui.location.currentText())
         self.process_widget.start(None, 'push', location, *args)
 
 
@@ -193,8 +193,8 @@ class QBzrBranchWindow(SubProcessDialog):
         if revision:
             args.append('--revision')
             args.append(revision)
-        from_location = str(self.ui.from_location.currentText())
-        to_location = str(self.ui.to_location.currentText())
+        from_location = unicode(self.ui.from_location.currentText())
+        to_location = unicode(self.ui.to_location.currentText())
         cmd_branch = get_cmd_object('branch')
         if 'use-existing-dir' in cmd_branch.options():
             # always use this options because it should be mostly harmless

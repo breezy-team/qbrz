@@ -79,7 +79,9 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.dir_icon = dir_icon
         self.symlink_icon = symlink_icon
         self.tree = None
+        self.inventory_items = []
         self.dir_children_ids = {}
+        self.parent_ids = []
     
     def set_tree(self, tree, branch):
         self.tree = tree
@@ -162,6 +164,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         if isinstance(self.tree, WorkingTree):
             self.tree.lock_read()
         try:
+            if dir_id>=len(self.inventory_items):
+                return
             dir_item, dir_change = self.inventory_items[dir_id]
             dir_children_ids = []
             children = sorted(self.get_children(dir_item),
@@ -228,8 +232,6 @@ class TreeModel(QtCore.QAbstractItemModel):
          return len(self.HEADER_LABELS)
 
     def rowCount(self, parent):
-        if self.tree is None:
-            return 0
         parent_id = parent.internalId()
         if parent_id not in self.dir_children_ids:
             return 0
@@ -250,6 +252,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         if parent_id not in self.dir_children_ids:
             return QtCore.QModelIndex()
         dir_children_ids = self.dir_children_ids[parent_id]
+        if dir_children_ids is None:
+            return QtCore.QModelIndex()
         if row >= len(dir_children_ids):
             return QtCore.QModelIndex()
         item_id = dir_children_ids[row]
@@ -263,8 +267,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         return self.createIndex(row, column, item_id)    
     
     def index(self, row, column, parent = QtCore.QModelIndex()):
-        if self.tree is None:
-            return self.createIndex(row, column, 0)
         parent_id = parent.internalId()
         return self._index(row, column, parent_id)
     
@@ -288,9 +290,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         return self._index_from_id(item_id, 0)
 
     def hasChildren(self, parent):
-        if self.tree is None:
-            return False
-        
         parent_id = parent.internalId()
         return parent_id in self.dir_children_ids
     
@@ -458,6 +457,7 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
             is_ignored = change.is_ignored()
             if not is_ignored: return True
             if is_ignored and ignored: return True
+            if is_ignored and not ignored: return False
         
         if id in model.dir_children_ids:
             dir_children_ids = model.dir_children_ids[id]
@@ -539,7 +539,8 @@ class TreeWidget(RevisionTreeView):
         
         self.connect(self,
                      QtCore.SIGNAL("doubleClicked(QModelIndex)"),
-                     self.show_file_content)
+                     self.do_default_action)
+        self.default_action = self.show_file_content
         self.tree = None
         self.branch = None
     
@@ -564,15 +565,18 @@ class TreeWidget(RevisionTreeView):
     
     def create_context_menu(self):
         self.context_menu = QtGui.QMenu(self)
-        self.action_show_log = self.context_menu.addAction(
-                                    gettext("Show &log"),
-                                    self.show_file_log)
-        self.action_show_annotate = self.context_menu.addAction(
-                                    gettext("Show &annotate"), 
-                                    self.show_file_annotate)
+        self.action_open_file = self.context_menu.addAction(
+                                    gettext("&Open"),
+                                    self.open_file)
         self.action_show_file = self.context_menu.addAction(
                                     gettext("&View"),
                                     self.show_file_content)
+        self.action_show_annotate = self.context_menu.addAction(
+                                    gettext("Show &annotate"), 
+                                    self.show_file_annotate)
+        self.action_show_log = self.context_menu.addAction(
+                                    gettext("Show &log"),
+                                    self.show_file_log)
         if has_ext_diff():
             diff_menu = ExtDiffMenu(self)
             self.action_show_diff = self.context_menu.addMenu(diff_menu)
@@ -591,7 +595,6 @@ class TreeWidget(RevisionTreeView):
         self.action_revert = self.context_menu.addAction(
                                     gettext("&Revert"),
                                     self.revert)
-        self.context_menu.setDefaultAction(self.action_show_file)
     
     def set_tree(self, tree, branch):
         self.tree = tree
@@ -618,12 +621,18 @@ class TreeWidget(RevisionTreeView):
             header.hideSection(self.tree_model.MESSAGE)
             header.hideSection(self.tree_model.AUTHOR)
             header.showSection(self.tree_model.STATUS)
+            
+            self.context_menu.setDefaultAction(self.action_open_file)
+            self.default_action = self.open_file
         else:
             header.showSection(self.tree_model.DATE)
             header.showSection(self.tree_model.REVNO)
             header.showSection(self.tree_model.MESSAGE)
             header.showSection(self.tree_model.AUTHOR)
             header.hideSection(self.tree_model.STATUS)
+            
+            self.context_menu.setDefaultAction(self.action_show_file)
+            self.default_action = self.show_file_content
     
     def refresh(self):
         self.tree_model.set_tree(self.tree, self.branch)
@@ -634,16 +643,20 @@ class TreeWidget(RevisionTreeView):
         self.context_menu.popup(event.globalPos())
         event.accept()
     
-    def get_selection_indexes(self):
+    def get_selection_indexes(self, indexes=None):
+        if indexes == None:
+            indexes = self.selectedIndexes()
         rows = {}
         for index in self.selectedIndexes():
             if index.row() not in rows:
-                rows[index.row()] = index
+                rows[index.internalId()] = index
         return rows.values()
     
-    def get_selection_items(self):
+    def get_selection_items(self, indexes=None):
         items = []
-        for index in self.get_selection_indexes():
+        if indexes is None:
+            indexes = self.get_selection_indexes(indexes) 
+        for index in indexes:
             source_index = self.tree_filter_model.mapToSource(index)
             items.append(self.tree_model.inventory_items[
                                                     source_index.internalId()])
@@ -661,8 +674,10 @@ class TreeWidget(RevisionTreeView):
         single_versioned_file = (selection_len == 1 and versioned[0] and
                                  items[0][0].kind == "file")
         
-        self.action_show_annotate.setEnabled(single_versioned_file)
+        self.action_open_file.setEnabled(is_working_tree)
+        self.action_open_file.setVisible(is_working_tree)
         self.action_show_file.setEnabled(single_versioned_file)
+        self.action_show_annotate.setEnabled(single_versioned_file)
         self.action_show_log.setEnabled(any(versioned))
         self.action_show_diff.setVisible(is_working_tree)
         self.action_show_diff.setEnabled(any(changed))
@@ -672,13 +687,32 @@ class TreeWidget(RevisionTreeView):
         self.action_revert.setVisible(is_working_tree)
         self.action_revert.setEnabled(any(changed) and any(versioned))
     
+    def do_default_action(self, index=None):
+        indexes = self.get_selection_indexes([index])
+        if not len(indexes) == 1:
+            return
+        
+        item = self.get_selection_items(indexes)[0]
+        if item[0].kind == "directory":
+            # Don't do anything, so that the directory can be expanded.
+            return
+        
+        self.default_action(index)
 
     @ui_current_widget
     def show_file_content(self, index=None):
         """Launch qcat for one selected file."""
         
-        if index is None:
-            index = self.currentIndex()
+        indexes = self.get_selection_indexes([index])
+        if not len(indexes) == 1:
+            return
+        
+        item = self.get_selection_items(indexes)[0]
+        if isinstance(item[0], UnversionedItem):
+            return
+        
+        index = indexes[0]
+        
         path = unicode(index.data(self.tree_model.PATH).toString())
 
         encoding = get_set_encoding(None, self.branch)
@@ -688,6 +722,26 @@ class TreeWidget(RevisionTreeView):
                                encoding=encoding)
         window.show()
         self.window().windows.append(window)
+
+    @ui_current_widget
+    def open_file(self, index=None):
+        """Open the file in the os specified editor."""
+        
+        if not isinstance(self.tree, WorkingTree):
+            raise RuntimeException("Tree must be a working tree to open a file.")
+            
+        if index is None:
+            index = self.currentIndex()
+        
+        self.tree.lock_read()
+        try:
+            path = unicode(index.data(self.tree_model.PATH).toString())
+            abspath = self.tree.abspath(path)
+        finally:
+            self.tree.unlock()
+        
+        url = QtCore.QUrl.fromLocalFile(abspath)
+        result = QtGui.QDesktopServices.openUrl(url)
 
     @ui_current_widget
     def show_file_log(self):

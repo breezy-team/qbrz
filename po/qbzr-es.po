@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-05-29 18:26+0300\n"
-"PO-Revision-Date: 2009-04-10 22:55+0000\n"
+"PO-Revision-Date: 2009-06-25 18:48+0000\n"
 "Last-Translator: DiegoJ <diegojromerolopez@gmail.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2009-06-02 15:16+0000\n"
+"X-Launchpad-Export-Date: 2009-07-08 19:04+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:41 lib\config.py:112 lib\config.py:133 lib\config.py:164
@@ -1272,16 +1272,16 @@ msgstr "Revertir %s a la última revisión."
 
 #: lib\annotate.py:125
 msgid "&Annotate this revision."
-msgstr ""
+msgstr "&Anotar esta revisión."
 
 #: lib\annotate.py:201
 #, python-format
 msgid "Revision %s"
-msgstr ""
+msgstr "Revisión %s"
 
 #: lib\config.py:184
 msgid "External Merge Apps:"
-msgstr ""
+msgstr "Aplicaciones externas de mezcla:"
 
 #: lib\conflicts.py:84
 msgid ""
@@ -1315,16 +1315,16 @@ msgstr ""
 
 #: lib\logwidget.py:103
 msgid "Show file &differences"
-msgstr ""
+msgstr "Mostrar &diferencias del archivo"
 
 #: lib\logwidget.py:109
 msgid "Show all &differences"
-msgstr ""
+msgstr "Mostrar todas las &diferencias"
 
 #: lib\logwidget.py:115
 msgid "Show file &differences..."
-msgstr ""
+msgstr "Mostrar &diferencias del archivo..."
 
 #: lib\logwidget.py:119
 msgid "Show all &differences..."
-msgstr ""
+msgstr "Mostrar todas las &diferencias..."

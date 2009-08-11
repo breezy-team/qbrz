@@ -315,7 +315,7 @@ class LogGraphProvider(object):
             # to do this, we need to move the implication the no location
             # argument means '.' down in to the method, rather than where it is
             # now. - GaryvdM 29 May 2009
-            if fp != '' and locations==["."]:
+            if fp != '' and locations == [u"."]:
                 fp = ''
 
             if fp != '' :
