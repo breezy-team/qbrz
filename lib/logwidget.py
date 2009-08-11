@@ -213,11 +213,14 @@ class LogList(RevisionTreeView):
                         colapse_expand_click = True
                         revision_id = str(index.data(logmodel.RevIdRole).toString())
                         self.log_model.colapse_expand_rev(revision_id, not twisty_state.toBool())
+                        self.scrollTo(self.currentIndex())
                         e.accept ()
         if not colapse_expand_click:
             QtGui.QTreeView.mousePressEvent(self, e)
     
     def mouseMoveEvent (self, e):
+        # This prevents the selection from changing when the mouse is over
+        # a twisty.
         colapse_expand_click = False
         pos = e.pos()
         index = self.indexAt(pos)
@@ -262,12 +265,11 @@ class LogList(RevisionTreeView):
                     #find merge of child branch
                     revision_id = self.graph_provider.\
                                   find_child_branch_merge_revision(revision_id)
-                    if revision_id is None:
-                        return
-            newindex = self.log_model.indexFromRevId(revision_id)
-            newindex = self.filter_proxy_model.mapFromSource(newindex)
-            self.setCurrentIndex(newindex)
-            self.load_visible_revisions()
+                    if revision_id is not None:
+                        newindex = self.log_model.indexFromRevId(revision_id)
+                        newindex = self.filter_proxy_model.mapFromSource(newindex)
+                        self.setCurrentIndex(newindex)
+            self.scrollTo(self.currentIndex())
         else:
             QtGui.QTreeView.keyPressEvent(self, e)
     
