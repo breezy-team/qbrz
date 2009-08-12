@@ -55,6 +55,9 @@ class InternalItem(object):
         self.kind = kind
         self.file_id = file_id
     
+    def __repr__(self):
+        return "<%s %r %s>" % (self.__class__.__name__, self.name, self.kind)
+    
     revision = property(lambda self:None)
 
 
@@ -81,6 +84,24 @@ class ModelItemData(object):
         self.id = None
         self.row = None
         self.icon = None
+
+    def dirs_first_sort_key(self):
+        """
+        Gives a string key that will sort directories before files
+        
+        This works by annotating each path segment with either 'D' or 'F', so
+        that directories compare smaller than files on the same level.
+        """
+        item = self.item
+        if item.kind == "directory":
+            return "D" + item.name.replace("/", "/D")
+        if "/" not in item.name:
+            return "F" + item.name
+        path, f = item.name.rsplit("/", 1)
+        return "D" + path.replace("/", "/D") + "/F" + f
+
+    def __repr__(self):
+        return "<ModelItemData %r>" % (self.item,)
 
 
 class PersistantItemReference(object):
@@ -390,8 +411,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         try:
             dir_item.children_ids = []
             children = sorted(self.get_children(dir_item),
-                              self.inventory_dirs_first_cmp,
-                              lambda x: (x.item.name, x.item.kind))
+                              key=ModelItemData.dirs_first_sort_key)
             
             parent_model_index = self._index_from_id(dir_id, 0)
             self.beginInsertRows(parent_model_index, 0, len(children)-1)
@@ -445,35 +465,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         if not isinstance(item_data.item, UnversionedItem):
             self.inventory_data_by_id[item_data.item.file_id] = item_data
         return item_data.id
-    
-    def inventory_dirs_first_cmp(self, x, y):
-        # GZ 2009-08-05: This seems far too complicated. Writing in terms of
-        #                key= rather than cmp= may be an improvement?
-        (x_name, x_kind) = x
-        (y_name, y_kind) = y
-        x_a = x_name
-        y_a = y_name
-        x_is_dir = x_kind =="directory"
-        y_is_dir = y_kind =="directory"
-        while True:
-            x_b, x_a_t = "/" in x_a and x_a.split("/", 1) or (x_a, "")
-            y_b, y_a_t = "/" in y_a and y_a.split("/", 1) or (y_a, "")
-            if x_a_t == "" and y_a_t == "":
-                break
-            if (x_is_dir or not x_a_t == "") and not (y_is_dir or not y_a_t == ""):
-                return -1
-            if (y_is_dir or not y_a_t == "") and not (x_is_dir or not x_a_t == ""):
-                return 1
-            cmp_r = cmp(x_b, y_b)
-            if not cmp_r == 0:
-                return cmp_r
-            x_a = x_a_t
-            y_a = y_a_t
-        if x_is_dir and not y_is_dir:
-            return -1
-        if y_is_dir and not x_is_dir:
-            return 1
-        return cmp(x_name, y_name)
     
     def set_revno_map(self, revno_map):
         self.revno_map = revno_map
