@@ -32,3 +32,24 @@ class TestCommitDataBase(TestCase):
         self.assertFalse(bool(d))
         self.assertEqual(None, d['message'])
         self.assertEqual({}, d.as_dict())
+
+    def test_set_data(self):
+        d = CommitData()
+        d.set_data({'message': 'foo bar'})
+        self.assertTrue(bool(d))
+        self.assertEqual('foo bar', d['message'])
+        self.assertEqual({'message': 'foo bar'}, d.as_dict())
+        #
+        d = CommitData()
+        d.set_data(message='foo bar')
+        self.assertTrue(bool(d))
+        self.assertEqual('foo bar', d['message'])
+        self.assertEqual({'message': 'foo bar'}, d.as_dict())
+        #
+        d = CommitData()
+        d.set_data({'fixes': 'lp:123456'}, message='foo bar')
+        self.assertTrue(bool(d))
+        self.assertEqual('foo bar', d['message'])
+        self.assertEqual({'message': 'foo bar',
+                          'fixes': 'lp:123456',
+                         }, d.as_dict())

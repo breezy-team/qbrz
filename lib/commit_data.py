@@ -78,7 +78,10 @@ class CommitData(object):
         @param data: dictionary with new data.
         @param kw: pairs name=value to insert.
         """
-        raise NotImplementedError
+        if data:
+            self._data.update(data)
+        for key, value in kw.iteritems():
+            self._data[key] = value
 
     def set_data_on_uncommit(self, old_revid, new_revid):
         """Set data from post_uncommit hook.
