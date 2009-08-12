@@ -22,7 +22,7 @@
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import errors
+from bzrlib import errors, osutils
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
@@ -38,7 +38,7 @@ from bzrlib.plugins.qbzr.lib.trace import (
 
 class QBzrBindDialog(SubProcessDialog):
 
-    def __init__(self, branch, ui_mode = None):
+    def __init__(self, branch, location=None, ui_mode = None):
         
         super(QBzrBindDialog, self).__init__(
                                   gettext("Bind branch"),
@@ -52,9 +52,11 @@ class QBzrBindDialog(SubProcessDialog):
             
         self.branch = branch
         
-        gbBind = QtGui.QGroupBox(gettext("Bind branch %s") % url_for_display(branch.base), self)
+        gbBind = QtGui.QGroupBox(gettext("Bind"), self)
         
-        bind_vbox = QtGui.QVBoxLayout(gbBind)
+        bind_box = QtGui.QFormLayout(gbBind)
+        
+        bind_box.addRow(gettext("Branch location:"),QtGui.QLabel(url_for_display(branch.base)))
         
         bind_hbox = QtGui.QHBoxLayout()
         
@@ -66,24 +68,18 @@ class QBzrBindDialog(SubProcessDialog):
         
         repo = branch.bzrdir.find_repository()
         
+        if location != None:
+            branch_combo.addItem(osutils.abspath(location))
+            
         self.currbound = branch.get_bound_location()
         if self.currbound != None:
-            curr_hbox = QtGui.QHBoxLayout()
-            
-            curr_label = QtGui.QLabel(gettext("Currently bound to: %s") % url_for_display(self.currbound))
-                    
-            curr_hbox.addWidget(curr_label)
-            bind_vbox.addLayout(curr_hbox)    
-            
-            branch_combo.addItem(url_for_display(self.currbound))        
-                                       
+            bind_box.addRow(gettext("Currently bound to:"),QtGui.QLabel(url_for_display(self.currbound)))
+                     
         
         boundloc = branch.get_old_bound_location()
         if boundloc != None:
             branch_combo.addItem(url_for_display(boundloc))
             
-            
-        
         browse_button = QtGui.QPushButton(gettext("Browse"))
         QtCore.QObject.connect(browse_button, QtCore.SIGNAL("clicked(bool)"), self.browse_clicked)
         
@@ -95,8 +91,7 @@ class QBzrBindDialog(SubProcessDialog):
         bind_hbox.setStretchFactor(branch_label,0)
         bind_hbox.setStretchFactor(branch_combo,1)
         bind_hbox.setStretchFactor(browse_button,0)
-        
-        bind_vbox.addLayout(bind_hbox)
+        bind_box.addRow(bind_hbox)
         
         layout = QtGui.QVBoxLayout(self)
         
@@ -104,18 +99,11 @@ class QBzrBindDialog(SubProcessDialog):
         
         self.buttonbox.clear()
         
-        
         cancelButton = StandardButton(BTN_CANCEL)
         
         self.bindButton = QtGui.QPushButton(gettext("Bind"))
         self.buttonbox.addButton(self.bindButton,
-                                 QtGui.QDialogButtonBox.AcceptRole)
-        
-        if self.currbound != None:
-            self.unbindButton = QtGui.QPushButton(gettext("Unbind"))
-            self.buttonbox.addButton(self.unbindButton,
-                                     QtGui.QDialogButtonBox.ActionRole)     
-            self.connect(self.unbindButton, QtCore.SIGNAL("clicked()"), self.do_clicked)       
+                                 QtGui.QDialogButtonBox.AcceptRole)      
         
         self.buttonbox.addButton(cancelButton,
                                  QtGui.QDialogButtonBox.RejectRole)
@@ -123,15 +111,6 @@ class QBzrBindDialog(SubProcessDialog):
         layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
         
-        
-
-    def do_clicked(self):
-        args = []
-        
-        location = str(self.branch_combo.currentText())
-        mylocation =  url_for_display(self.branch.base)     
-                            
-        self.process_widget.do_start(None, 'unbind')
         
     def browse_clicked(self):
         fileName = QtGui.QFileDialog.getExistingDirectory(self, gettext("Select branch location"));
@@ -145,7 +124,7 @@ class QBzrBindDialog(SubProcessDialog):
         location = str(self.branch_combo.currentText())
        
         if(location == ''):
-            raise errors.BzrCommandError(gettext("Branch location not entered."))
+            raise errors.BzrCommandError(gettext("Master branch location not specified."))
         
         return True
     
