@@ -86,9 +86,18 @@ class CommitData(object):
     def set_data_on_uncommit(self, old_revid, new_revid):
         """Set data from post_uncommit hook.
         @param old_revid: old tip revid (before uncommit)
-        @param new_revid: new tip revid (after uncommit)
+        @param new_revid: new tip revid (after uncommit). Could be None.
         """
-        raise NotImplementedError
+        branch = self._get_branch()
+        revision = branch.repository.get_revision(old_revid)
+        # remember revids
+        self._data['old_revid'] = old_revid
+        if new_revid is None:
+            from bzrlib.revision import NULL_REVISION
+            new_revid = NULL_REVISION
+        self._data['new_revid'] = new_revid
+        # set data from revision
+        self._data['message'] = revision.message
 
     def load(self):
         """Load saved data from branch/tree."""
@@ -97,3 +106,15 @@ class CommitData(object):
     def save(self):
         """Save data to the branch/tree."""
         raise NotImplementedError
+
+    def _get_branch(self):
+        """Return branch object if either branch or tree was specified on init.
+        Raise BzrInternalError otherwise.
+        """
+        if self._branch:
+            return self._branch
+        if self._tree:
+            return self._tree.branch
+        # too bad
+        from bzrlib import errors
+        raise errors.BzrInternalError("CommitData has no saved branch or tree.")
