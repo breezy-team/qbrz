@@ -31,3 +31,4 @@ class TestCommitDataBase(TestCase):
         d = CommitData()
         self.assertFalse(bool(d))
         self.assertEqual(None, d['message'])
+        self.assertEqual({}, d.as_dict())

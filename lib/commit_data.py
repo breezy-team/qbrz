@@ -70,6 +70,9 @@ class CommitData(object):
         """Delete key from dictionary."""
         del self._data[key]
 
+    def as_dict(self):
+        return self._data.copy()
+
     def set_data(self, data=None, **kw):
         """Set new data to dictionary (e.g. to save data from commit dialog).
         @param data: dictionary with new data.
