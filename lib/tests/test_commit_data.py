@@ -28,7 +28,6 @@ from bzrlib.plugins.qbzr.lib.commit_data import (
 class TestCommitDataBase(TestCase):
 
     def test_empty(self):
-        d = CommitData(tree=None)
+        d = CommitData()
         self.assertFalse(bool(d))
         self.assertEqual(None, d['message'])
-        self.assertEqual(None, d.message)

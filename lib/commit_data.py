@@ -23,29 +23,30 @@
 class CommitData(object):
     """Class to manipulate with commit data.
 
-    Hold the data as dictionary; almost all values are lists
-    of strings (to use universal interface).
+    Hold the data as dictionary and provide dict-like interface.
     All strings saved internally as unicode.
 
     Known items for data dict:
-        message: list of strings (texts) - main commit message(s)
+        message: main commit message.
         bugs: list of 'id:number' strings for fixed bugs
         authors: list of strings with name(s) of patch author(s)
         file_message: dict for per-file commit messages (MySQL),
             keys in this dict are filenames/fileids,
-            values are again lists of messages.
+            values are specific commit messages.
+        old_revid: old tip revid (before uncommit)
+        new_revid: new tip revid (after uncommit)
 
-    Bencode used to serialize/deserialize data.
-
-    Serialized data saved in tree.conf (as .bzr/checkout/tree.conf
-    where .bzr/checkout/ is base of tree object)
+    [bialix 20090812] Data saved in branch.conf in [commit_data] section
+    as plain dict.
     """
 
-    def __init__(self, tree):
+    def __init__(self, branch=None, tree=None):
         """Initialize data object attached to some tree.
-        @param tree: tree object where commit data saved.
+        @param tree: working tree object for commit/uncommit.
+        @param branch:  branch object for commit/uncommit.
         """
         self._tree = tree
+        self._branch = branch
         self._data = {}
 
     def __nonzero__(self):
@@ -61,39 +62,32 @@ class CommitData(object):
         """
         return self._data.get(key)
 
-    def __getattr__(self, key):
-        """Provides access to data dictionary via attributes lookup interface,
-        e.g. a.key
-        @param key: key in data dictionary.
-        @return: value or None if there is no such key.
-        """
-        return self._data.get(key)
+    def __setitem__(self, key, value):
+        """Set new value for specified key."""
+        self._data[key] = value
 
-    def insert_data(self, data=None, **kw):
-        """Insert new data to dictionary.
+    def __delitem__(self, key):
+        """Delete key from dictionary."""
+        del self._data[key]
+
+    def set_data(self, data=None, **kw):
+        """Set new data to dictionary (e.g. to save data from commit dialog).
         @param data: dictionary with new data.
         @param kw: pairs name=value to insert.
         """
         raise NotImplementedError
 
-    def insert_from_revision(self, rev):
-        """Insert data from revision.
-        @param rev: revision object.
+    def set_data_on_uncommit(self, old_revid, new_revid):
+        """Set data from post_uncommit hook.
+        @param old_revid: old tip revid (before uncommit)
+        @param new_revid: new tip revid (after uncommit)
         """
         raise NotImplementedError
 
-    def serialize_utf8(self):
-        """Serialize data dict as utf-8 string."""
-        raise NotImplementedError
-
-    def deserialize_utf8(self, src):
-        """Deserialize data dict from utf-8 string."""
-        raise NotImplementedError
-
     def load(self):
-        """Load saved data from tree."""
+        """Load saved data from branch/tree."""
         raise NotImplementedError
 
     def save(self):
-        """Save data to the tree."""
+        """Save data to the branch/tree."""
         raise NotImplementedError
