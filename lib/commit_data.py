@@ -104,19 +104,31 @@ class CommitData(object):
         branch = self._get_branch()
         config = branch.get_config()
         data = config.get_user_option('commit_data')
-        self.set_data(data)
+        if data:
+            self.set_data(data)
+        else:
+            # backward compatibility
+            old_data = config.get_user_option('qbzr_commit_message')
+            if old_data:
+                self.set_data(message=old_data)
 
     def save(self):
         """Save data to the branch/tree."""
         branch = self._get_branch()
         config = branch.get_config()
         config.set_user_option('commit_data', self._data)
+        # clear old data
+        if config.get_user_option('qbzr_commit_message'):
+            config.set_user_option('qbzr_commit_message', '')
 
     def wipe(self):
         """Delete saved data from branch/tree config."""
         branch = self._get_branch()
         config = branch.get_config()
         config.set_user_option('commit_data', {})
+        # clear old data
+        if config.get_user_option('qbzr_commit_message'):
+            config.set_user_option('qbzr_commit_message', '')
 
     def _get_branch(self):
         """Return branch object if either branch or tree was specified on init.
