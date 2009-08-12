@@ -283,8 +283,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                                 dir_fileid = None
                                 relpath = ""
                                 while dir_path:
-                                    (dir_path, slash, name) = dir_path.rpartition('/')
-                                    relpath = slash + name + relpath
+                                    dir_path, name = os.path.split(dir_path)
+                                    relpath = '/' + name + relpath
                                     if dir_path in self.inventory_data_by_path:
                                         dir_item = self.inventory_data_by_path[
                                                                          dir_path]
@@ -307,7 +307,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                                     old_path = "/".join(old_names)
                                     name = "%s => %s" % (old_path, name)
                             else:
-                                (dir_path, slash, name) = path.rpartition('/')
+                                dir_path, name = os.path.split(path)
                                 dir_fileid = self.tree.path2id(dir_path)
                             
                             if change.is_versioned():
@@ -447,6 +447,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         return item_data.id
     
     def inventory_dirs_first_cmp(self, x, y):
+        # GZ 2009-08-05: This seems far too complicated. Writing in terms of
+        #                key= rather than cmp= may be an improvement?
         (x_name, x_kind) = x
         (y_name, y_kind) = y
         x_a = x_name
@@ -454,8 +456,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         x_is_dir = x_kind =="directory"
         y_is_dir = y_kind =="directory"
         while True:
-            x_b, sep, x_a_t = x_a.partition("/")
-            y_b, sep, y_a_t = y_a.partition("/")
+            x_b, x_a_t = "/" in x_a and x_a.split("/", 1) or (x_a, "")
+            y_b, y_a_t = "/" in y_a and y_a.split("/", 1) or (y_a, "")
             if x_a_t == "" and y_a_t == "":
                 break
             if (x_is_dir or not x_a_t == "") and not (y_is_dir or not y_a_t == ""):
