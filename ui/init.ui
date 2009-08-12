@@ -247,7 +247,7 @@ p, li { white-space: pre-wrap; }
   </connection>
   <connection>
    <sender>InitForm</sender>
-   <signal>subprocessStarted(bool)</signal>
+   <signal>disableUi(bool)</signal>
    <receiver>groupBox_3</receiver>
    <slot>setDisabled(bool)</slot>
    <hints>
@@ -263,7 +263,7 @@ p, li { white-space: pre-wrap; }
   </connection>
   <connection>
    <sender>InitForm</sender>
-   <signal>subprocessStarted(bool)</signal>
+   <signal>disableUi(bool)</signal>
    <receiver>groupBox</receiver>
    <slot>setDisabled(bool)</slot>
    <hints>
@@ -312,6 +312,6 @@ p, li { white-space: pre-wrap; }
  </connections>
  <slots>
   <slot>linkActivated(QString)</slot>
-  <signal>subprocessStarted(bool)</signal>
+  <signal>disableUi(bool)</signal>
  </slots>
 </ui>

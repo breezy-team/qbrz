@@ -27,7 +27,7 @@ import tempfile
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import osutils, progress, ui
+from bzrlib import osutils, progress, errors
 
 try:
     # this works with bzr 1.16+
@@ -47,13 +47,12 @@ from bzrlib.plugins.qbzr.lib.util import (
     StandardButton,
     ensure_unicode,
     )
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.plugins.qbzr.lib.trace import (
+   report_exception,
+   SUB_LOAD_METHOD)
 
-try:
-    # This is only availible from bzr rev 3940
-    from bzrlib.ui.text import TextProgressView
-    has_TextProgressView = True
-except ImportError:
-    has_TextProgressView = False
+from bzrlib.ui.text import TextProgressView, TextUIFactory
 
 
 class SubProcessWindowBase:
@@ -81,13 +80,13 @@ class SubProcessWindowBase:
         self.process_widget = SubProcessWidget(self.ui_mode, self, hide_progress)
         self.connect(self.process_widget,
             QtCore.SIGNAL("finished()"),
-            self.finished)
+            self.on_finished)
         self.connect(self.process_widget,
             QtCore.SIGNAL("failed()"),
-            self.failed)
+            self.on_failed)
         self.connect(self.process_widget,
             QtCore.SIGNAL("error()"),
-            self.error)
+            self.on_error)
 
         closeButton = StandardButton(BTN_CLOSE)
         okButton = StandardButton(BTN_OK)
@@ -130,8 +129,8 @@ class SubProcessWindowBase:
             QtGui.QDialogButtonBox.AcceptRole)
         self.buttonbox.addButton(cancelButton,
             QtGui.QDialogButtonBox.RejectRole)
-        self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.accept)
-        self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.reject)
+        self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.do_accept)
+        self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.do_reject)
         closeButton.setHidden(True) # but 'close' starts as hidden.
 
     def make_default_status_box(self):
@@ -155,59 +154,54 @@ class SubProcessWindowBase:
         """Check that self.args is not None and return True.
         Otherwise show error dialog to the user and return False.
         """
-        if self.args is not None:
-            return True
-        QtGui.QMessageBox.critical(self, gettext('Internal Error'),
-            gettext(
-                'Sorry, subprocess action "%s" cannot be started\n'
-                'because self.args is None.\n'
-                'Please, report bug at:\n'
-                'https://bugs.launchpad.net/qbzr/+filebug') % self._name,
-            gettext('&Close'))
-        return False
+        if self.args is None:
+            raise RuntimeError('Subprocess action "%s" cannot be started\n'
+                               'because self.args is None.' % self._name)
+        return True
 
-    def accept(self):
+    def do_accept(self):
         if self.process_widget.finished:
             self.close()
         else:
-            if not self.validate():
+            try:
+                if not self.validate():
+                    return
+            except:
+                report_exception(type=SUB_LOAD_METHOD, window=self.window())
                 return
+            
             self.emit(QtCore.SIGNAL("subprocessStarted(bool)"), True)
-            self.start()
+            self.emit(QtCore.SIGNAL("disableUi(bool)"), True)
+            self.do_start()
     
-    def start(self):
+    def do_start(self):
         if self._check_args():
-            self.process_widget.start(self.dir, *self.args)
+            self.process_widget.do_start(self.dir, *self.args)
         else:
-            self.failed()
+            self.on_failed()
     
-    def reject(self):
+    def do_reject(self):
         if self.process_widget.is_running():
             self.process_widget.abort()
         else:
             self.close()
 
-    def finished(self):
+    def on_finished(self):
         if hasattr(self, 'setResult'):
             self.setResult(QtGui.QDialog.Accepted)
         
         self.emit(QtCore.SIGNAL("subprocessFinished(bool)"), True)
+        self.emit(QtCore.SIGNAL("disableUi(bool)"), False)
 
         if not self.ui_mode:
             self.close()
 
-    def failed(self):
+    def on_failed(self):
         self.emit(QtCore.SIGNAL("subprocessFailed(bool)"), False)
-    
-    def error(self):
+        self.emit(QtCore.SIGNAL("disableUi(bool)"), False)
+
+    def on_error(self):
         self.emit(QtCore.SIGNAL("subprocessError(bool)"), False)
-    
-    def closeEvent(self, event):
-        if not self.process_widget.is_running():
-            QBzrWindow.closeEvent(self, event)
-        else:
-            self.process_widget.abort()
-            event.ignore()
 
     def setupUi(self, ui):
         ui.setupUi(self)
@@ -215,7 +209,7 @@ class SubProcessWindowBase:
             self.resize(self._restore_size)
 
 
-class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
+class SubProcessWindow(SubProcessWindowBase, QBzrWindow):
 
     def __init__(self, title,
                  name="genericsubprocess",
@@ -237,8 +231,15 @@ class SubProcessWindow(QBzrWindow, SubProcessWindowBase):
                                parent=parent,
                                hide_progress=hide_progress)
 
+    def closeEvent(self, event):
+        if not self.process_widget.is_running():
+            QBzrWindow.closeEvent(self, event)
+        else:
+            self.process_widget.abort()
+            event.ignore()
 
-class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
+
+class SubProcessDialog(SubProcessWindowBase, QBzrDialog):
     """An abstract base-class for all subprocess related dialogs.
 
     It is expected that sub-classes of this will create their own UI, and while
@@ -265,6 +266,14 @@ class SubProcessDialog(QBzrDialog, SubProcessWindowBase):
                                dialog=dialog,
                                parent=parent,
                                hide_progress=hide_progress)
+
+    def closeEvent(self, event):
+        if not self.process_widget.is_running():
+            QBzrDialog.closeEvent(self, event)
+        else:
+            self.process_widget.abort()
+            event.ignore()
+
 
 
 class SimpleSubProcessDialog(SubProcessDialog):
@@ -319,7 +328,8 @@ class SimpleSubProcessDialog(SubProcessDialog):
                                    QtCore.SIGNAL("subprocessError(bool)"),
                                    self,
                                    QtCore.SLOT("setHidden(bool)"))
-            self.start()
+            self.do_start()
+
 
 class SubProcessWidget(QtGui.QWidget):
 
@@ -333,7 +343,7 @@ class SubProcessWidget(QtGui.QWidget):
         
         self.progressMessage = QtGui.QLabel(self)
         #self.progressMessage.setWordWrap(True) -- this breaks minimal window size hint
-        self.progressMessage.setText(gettext("Stopped"))
+        self.progressMessage.setText(gettext("Ready"))
         message_layout.addWidget(self.progressMessage, 1)
 
         self.transportActivity = QtGui.QLabel(self)
@@ -389,9 +399,14 @@ class SubProcessWidget(QtGui.QWidget):
         return self.process.state() == QtCore.QProcess.Running or\
                self.process.state() == QtCore.QProcess.Starting
     
-    def start(self, dir, *args):
+    def do_start(self, workdir, *args):
+        """Launch one bzr command.
+        @param  workdir:    working directory for command.
+                            Could be None to use self.defaultWorkingDir
+        @param  args:   bzr command and its arguments
+        """
         QtGui.QApplication.processEvents() # make sure ui has caught up
-        self.start_multi(((dir, args),))
+        self.start_multi(((workdir, args),))
     
     def start_multi(self, commands):
         self.setProgress(0, [gettext("Starting...")], "")
@@ -496,7 +511,7 @@ class SubProcessWidget(QtGui.QWidget):
                     self.stdout.write("\n")
     
     def readStderr(self):
-        data = str(self.process.readAllStandardError()).decode(self.encoding)
+        data = str(self.process.readAllStandardError()).decode(self.encoding, 'replace')
         if data:
             self.emit(QtCore.SIGNAL("error()"))
         
@@ -545,6 +560,9 @@ class SubProcessWidget(QtGui.QWidget):
             self.emit(QtCore.SIGNAL("failed()"))
 
     def _create_args_file(self, text):
+        """@param text: text to write into temp file,
+                        it should be unicode string
+        """
         if self._args_file:
             self._delete_args_file()
         qdir = os.path.join(tempfile.gettempdir(), 'QBzr', 'qsubprocess')
@@ -553,7 +571,7 @@ class SubProcessWidget(QtGui.QWidget):
         fd, fname = tempfile.mkstemp(dir=qdir)
         f = os.fdopen(fd, "wb")
         try:
-            f.write(text)
+            f.write(text.encode('utf8'))
         finally:
             f.close()   # it closes fd as well
         self._args_file = fname
@@ -569,148 +587,51 @@ class SubProcessWidget(QtGui.QWidget):
                 self._args_file = None
 
 
-class SubprocessChildProgress(progress._BaseProgressBar):
-
-    def __init__(self, _stack, **kwargs):
-        super(SubprocessChildProgress, self).__init__(_stack=_stack, **kwargs)
-        self.parent = _stack.top()
-        self.message = None
-        self.current = 0
-        self.total = 0
-
-    def tick(self, messages, progress):
-        self.parent.child_update(messages, progress)
-
-    def child_update(self, messages, progress):
-        if self.current is not None and self.total:
-            progress = (self.current + progress) / self.total
-        else:
-            progress = 0.0
-        if self.message:
-            messages = [self.message] + messages
-        self.tick(messages, progress)
-
-    def update(self, message, current=None, total=None):
-        if current is not None:
-            if total is not None:
-                self.message = '%s (%s/%s)' % (message, current, total)
+class SubprocessProgressView (TextProgressView):
+    
+    def __init__(self, term_file):
+        TextProgressView.__init__(self, term_file)
+        # The TextProgressView does not show the transport activity untill
+        # there was a progress update. This changed becuse showing the
+        # transport activity before a progress update would cause artifactes to
+        # remain on the screen. We don't have to worry about that
+        self._have_output = True
+    
+    def _repaint(self):
+        if self._last_task:
+            task_msg = self._format_task(self._last_task)
+            progress_frac = self._last_task._overall_completion_fraction()
+            if progress_frac is not None:
+                progress = int(progress_frac * 1000000)
             else:
-                self.message = '%s (%s)' % (message, current)
+                progress = 1
         else:
-            self.message = message
-        self.current = current
-        self.total = total
-        self.child_update([], 0.0)
-
+            task_msg = ''
+            progress = 0
+        
+        trans = self._last_transport_msg
+        
+        self._term_file.write('qbzr:PROGRESS:' + bencode.bencode((progress,
+                              trans, task_msg)) + '\n')
+        self._term_file.flush()
+    
     def clear(self):
         pass
 
-    def note(self, *args, **kwargs):
-        self.parent.note(*args, **kwargs)
 
-    def child_progress(self, **kwargs):
-        return SubprocessChildProgress(**kwargs)
-
-
-class SubprocessProgress(SubprocessChildProgress):
-
-    def __init__(self, **kwargs):
-        super(SubprocessProgress, self).__init__(**kwargs)
-
-    def _report(self, progress, messages=()):
-        data = int(progress * 1000000),"", messages
-        sys.stdout.write('qbzr:PROGRESS:' + bencode.bencode(data) + '\n')
-        sys.stdout.flush()
-
-    def tick(self, messages, progress):
-        self._report(progress, messages)
-
-    def finished(self):
-        self._report(1.0)
-
-if has_TextProgressView:
-    class SubprocessProgressView (TextProgressView):
-        
-        def _repaint(self):
-            if self._last_task:
-                task_msg = self._format_task(self._last_task)
-                progress_frac = self._last_task._overall_completion_fraction()
-                if progress_frac is not None:
-                    progress = int(progress_frac * 1000000)
-                else:
-                    progress = 1
-            else:
-                task_msg = ''
-                progress = 0
-            
-            trans = self._last_transport_msg
-            
-            sys.stdout.write('qbzr:PROGRESS:' + bencode.bencode((progress,
-                             trans, task_msg)) + '\n')
-            sys.stdout.flush()
-
-
-class SubprocessUIFactory(ui.CLIUIFactory):
+class SubprocessUIFactory(TextUIFactory):
 
     def __init__(self, stdin=None, stdout=None, stderr=None):
         
-        # To be compatible with bzr < rev 3940 (1.12), we reimplement
-        # ui.CLIUIFactory.__init__
-        #ui.CLIUIFactory.__init__(self, stdin=None, stdout=None, stderr=None)
-        ui.UIFactory.__init__(self) 
-        self.stdin = stdin or sys.stdin 
-        self.stdout = stdout or sys.stdout 
-        self.stderr = stderr or sys.stderr
+        TextUIFactory.__init__(self, stdin=stdin, stdout=stdout, stderr=stderr)
         
-        if has_TextProgressView:
+        # This is to be compatabile with bzr < rev 4558
+        if not hasattr(TextUIFactory, "make_progress_view"):
             self._progress_view = SubprocessProgressView(self.stdout)
-        else:
-            self._progress_bar_stack = None 
     
-    def nested_progress_bar(self): 
-        """Return a nested progress bar. 
-         
-        The actual bar type returned depends on the progress module which 
-        may return a tty or dots bar depending on the terminal. 
-        """
-        if has_TextProgressView:
-            return super(SubprocessUIFactory, self).nested_progress_bar()
-        else:
-            # This is to be compatible with bzr < rev 3940 (1.12)
-            if self._progress_bar_stack is None: 
-                self._progress_bar_stack = progress.ProgressBarStack( 
-                    klass=SubprocessProgress) 
-            return self._progress_bar_stack.get_nested()
-    
-    def report_transport_activity(self, transport, byte_count, direction):
-        """Called by transports as they do IO.
-        
-        This may update a progress bar, spinner, or similar display.
-        By default it does nothing.
-        """
-        if has_TextProgressView:
-            if getattr(self._progress_view,
-                       "_show_transport_activity",
-                       None) is not None:
-                self._progress_view._show_transport_activity(transport, 
-                    direction, byte_count)
-            else:
-                # This is to be compatable with bzr < rev 4144
-                self._progress_view.show_transport_activity(byte_count)
+    def make_progress_view(self):
+        return SubprocessProgressView(self.stdout)
 
-    # This is to be compatable with bzr < rev 3956
-    def show_progress(self, task):
-        """A task has been updated and wants to be displayed.
-        """
-        if has_TextProgressView:
-            self._progress_view.show_progress(task)
-    
-    def _progress_updated(self, task):
-        """A task has been updated and wants to be displayed.
-        """
-        if has_TextProgressView:
-            self._progress_view.show_progress(task)
-    
     def clear_term(self):
         """Prepare the terminal for output.
 

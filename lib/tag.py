@@ -72,11 +72,6 @@ class TagWindow(SubProcessDialog):
         QtCore.QObject.connect(self.ui.branch_location,
             QtCore.SIGNAL("editingFinished()"),
             self.on_editing_branch)
-        # groupbox gets disabled as we are executing.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessStarted(bool)"),
-                               self.ui.tag_group,
-                               QtCore.SLOT("setDisabled(bool)"))
 
     def set_branch(self, branch):
         self.branch = branch

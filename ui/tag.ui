@@ -45,7 +45,7 @@
         <property name="orientation" >
          <enum>Qt::Horizontal</enum>
         </property>
-        <property name="sizeHint" >
+        <property name="sizeHint" stdset="0" >
          <size>
           <width>261</width>
           <height>25</height>
@@ -159,5 +159,41 @@
   <tabstop>pick_rev</tabstop>
  </tabstops>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>TagForm</sender>
+   <signal>disableUi(bool)</signal>
+   <receiver>tag_group</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>12</x>
+     <y>217</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>23</x>
+     <y>204</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>TagForm</sender>
+   <signal>disableUi(bool)</signal>
+   <receiver>branch_group</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>5</x>
+     <y>71</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>19</x>
+     <y>71</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <signal>disableUi(bool)</signal>
+ </slots>
 </ui>

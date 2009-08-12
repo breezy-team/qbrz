@@ -30,21 +30,27 @@ from bzrlib.plugins.qbzr.lib.diff import (
     InternalWTDiffArgProvider,
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessWindow
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import (
+    BTN_REFRESH,
     file_extension,
     get_global_config,
     url_for_display,
     ThrobberWidget,
+    runs_in_loading_queue,
+    StandardButton,
     )
-from bzrlib.plugins.qbzr.lib.wtlist import (
-    ChangeDesc,
-    WorkingTreeFileList,
-    closure_in_selected_list,
-    )
+
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
+from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.trace import *
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.plugins.qbzr.lib.treewidget import (
+    TreeWidget,
+    SelectAllCheckBox,
+    )
+from bzrlib.plugins.qbzr.lib.trace import reports_exception
+from bzrlib.plugins.qbzr.lib.revisionview import RevisionView
 
 
 MAX_AUTOCOMPLETE_FILES = 20
@@ -52,9 +58,10 @@ MAX_AUTOCOMPLETE_FILES = 20
 
 class TextEdit(QtGui.QTextEdit):
 
-    def __init__(self, parent=None, main_window=None):
+    def __init__(self, spell_checker, parent=None, main_window=None):
         QtGui.QTextEdit.__init__(self, parent)
         self.completer = None
+        self.spell_checker = spell_checker
         self.eow = QtCore.QString("~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-=")
         self.main_window = main_window
 
@@ -72,7 +79,7 @@ class TextEdit(QtGui.QTextEdit):
                 e.ignore()
                 # FIXME probably this is ugly hack and main qcommit window
                 # should explicitly catch Ctrl+Enter by self
-                self.main_window.accept()
+                self.main_window.do_accept()
                 return
 
         isShortcut = e.modifiers() & QtCore.Qt.ControlModifier and e.key() == QtCore.Qt.Key_E
@@ -121,6 +128,34 @@ class TextEdit(QtGui.QTextEdit):
         self.connect(completer, QtCore.SIGNAL("activated(QString)"),
                      self.insertCompletion)
 
+    def contextMenuEvent(self, event):
+        menu = self.createStandardContextMenu(event.globalPos())
+        
+        self.context_tc = self.cursorForPosition(event.pos())
+        self.context_tc.movePosition(QtGui.QTextCursor.StartOfWord)
+        self.context_tc.movePosition(QtGui.QTextCursor.EndOfWord,
+                                     QtGui.QTextCursor.KeepAnchor)
+        text = unicode(self.context_tc.selectedText())
+        if list(self.spell_checker.check(text)):
+            suggestions = self.spell_checker.suggest(text)
+            first_action = menu.actions()[0]
+            for suggestion in suggestions:
+                action = QtGui.QAction(suggestion, self)
+                self.connect(action, QtCore.SIGNAL("triggered(bool)"),
+                             self.suggestion_selected(suggestion))
+                menu.insertAction(first_action, action)
+            if suggestions:
+                menu.insertSeparator(first_action)
+        
+        menu.exec_(event.globalPos())
+        event.accept()
+    
+    def suggestion_selected(self, text):
+        def _suggestion_selected(b):
+            self.context_tc.insertText(text);
+        return _suggestion_selected
+
+
 class PendingMergesList(LogList):
     def __init__(self, processEvents, throbber, no_graph, parent=None):
         super(PendingMergesList, self).__init__(processEvents,
@@ -134,63 +169,42 @@ class PendingMergesList(LogList):
         self.graph_provider.lock_read_branches()
         try:
             self.graph_provider.load_tags()
-            self.model.load_graph_pending_merges()
+            self.log_model.load_graph_pending_merges()
         finally:
             self.graph_provider.unlock_branches()
 
-class CommitWindow(SubProcessWindow):
+    def create_context_menu(self):
+        super(PendingMergesList, self).create_context_menu()
+        showinfo = QtGui.QAction("Show &infomation...", self)
+        self.context_menu.insertAction(self.context_menu.actions()[0],
+                                       showinfo)
+        self.context_menu.setDefaultAction(showinfo)
+        self.connect(showinfo,
+                     QtCore.SIGNAL("triggered(bool)"),
+                     self.show_info_menu)
+
+    def show_info_menu(self, b=False):
+        self.default_action()
+
+    def default_action(self, index=None):
+        """Show information of a single revision from a index."""
+        
+        if index is None:
+            index = self.currentIndex()
+        
+        revid = str(index.data(logmodel.RevIdRole).toString())
+        branch = self.graph_provider.get_revid_branch(revid)
+        rev = self.graph_provider.load_revisions([revid])[revid]
+        parent_window = self.window()
+        window = RevisionView(rev, branch, parent=parent_window)
+        window.show()
+        parent_window.windows.append(window)
+    
+
+class CommitWindow(SubProcessDialog):
 
     RevisionIdRole = QtCore.Qt.UserRole + 1
     ParentIdRole = QtCore.Qt.UserRole + 2
-
-    def iter_changes_and_state(self):
-        """An iterator for the WorkingTreeFileList widget"""
-        # a word list for message completer
-        words = set()
-        show_nonversioned = self.show_nonversioned_checkbox.isChecked()
-
-        in_selected_list = closure_in_selected_list(self.initial_selected_list)
-
-        num_versioned_files = 0
-        for desc in self.tree.iter_changes(self.tree.basis_tree(),
-                                           want_unversioned=True):
-            desc = ChangeDesc(desc)
-
-            if desc.is_tree_root() or desc.is_misadded():
-                # skip uninteresting enties
-                continue
-
-            is_versioned = desc.is_versioned()
-            path = desc.path()
-
-            if not is_versioned and self.tree.is_ignored(path):
-                continue
-
-            visible = is_versioned or show_nonversioned
-            check_state = None
-            if not self.has_pending_merges:
-                check_state = visible and is_versioned and in_selected_list(path)
-            yield desc, visible, check_state
-
-            if is_versioned:
-                num_versioned_files += 1
-
-                words.update(os.path.split(path))
-                if desc.is_renamed():
-                    words.update(os.path.split(desc.oldpath()))
-                if num_versioned_files < MAX_AUTOCOMPLETE_FILES:
-                    ext = file_extension(path)
-                    builder = get_wordlist_builder(ext)
-                    if builder is not None:
-                        try:
-                            abspath = os.path.join(self.tree.basedir, path)
-                            file = open(abspath, 'rt')
-                            words.update(builder.iter_words(file))
-                        except EnvironmentError:
-                            pass
-        words = list(words)
-        words.sort(lambda a, b: cmp(a.lower(), b.lower()))
-        self.completion_words = words
 
     def __init__(self, tree, selected_list, dialog=True, parent=None,
                  local=None, message=None, ui_mode=True):
@@ -202,20 +216,15 @@ class CommitWindow(SubProcessWindow):
                                   dialog = dialog,
                                   parent = parent)
         self.tree = tree
-        tree.lock_read()
-        try:
-            self.basis_tree = self.tree.basis_tree()
-            self.is_bound = bool(tree.branch.get_bound_location())
-            self.has_pending_merges = len(tree.get_parent_ids())>1
-        finally:
-            tree.unlock()
+        self.is_bound = bool(tree.branch.get_bound_location())
+        self.has_pending_merges = len(tree.get_parent_ids())>1
         
         self.windows = []
         self.initial_selected_list = selected_list
 
         self.connect(self.process_widget,
             QtCore.SIGNAL("failed()"),
-            self.failed)
+            self.on_failed)
 
         self.throbber = ThrobberWidget(self)
 
@@ -263,22 +272,34 @@ class CommitWindow(SubProcessWindow):
         self.show_nonversioned_checkbox = QtGui.QCheckBox(
             gettext("Show non-versioned files"))
 
-        self.filelist = WorkingTreeFileList(message_groupbox, self.tree)
-        selectall_checkbox = QtGui.QCheckBox(
-                                gettext(self.filelist.SELECTALL_MESSAGE))
+        self.filelist = TreeWidget(self)
+        self.filelist.throbber = self.throbber
+        self.filelist.tree_model.is_item_in_select_all = lambda item: (
+            item.change is not None and
+            item.change.is_versioned())
+        
+        self.file_words = {}
+        self.connect(self.filelist.tree_model,
+                     QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                     self.on_filelist_data_changed)
+        
+        selectall_checkbox = SelectAllCheckBox(self.filelist, self)
         selectall_checkbox.setCheckState(QtCore.Qt.Checked)
-        self.filelist.set_selectall_checkbox(selectall_checkbox)
-
-        # Equivalent for 'bzr commit --message'
-        self.message = TextEdit(message_groupbox, main_window=self)
-        self.message.setToolTip(gettext("Enter the commit message"))
-        self.completer = QtGui.QCompleter()
-        self.message.setCompleter(self.completer)
-        self.message.setAcceptRichText(False)
 
         language = get_global_config().get_user_option('spellcheck_language') or 'en'
         spell_checker = SpellChecker(language)
-        spell_highlighter = SpellCheckHighlighter(self.message.document(), spell_checker)
+        
+        # Equivalent for 'bzr commit --message'
+        self.message = TextEdit(spell_checker, message_groupbox, main_window=self)
+        self.message.setToolTip(gettext("Enter the commit message"))
+        self.completer = QtGui.QCompleter()
+        self.completer_model = QtGui.QStringListModel(self.completer)
+        self.completer.setModel(self.completer_model)
+        self.message.setCompleter(self.completer)
+        self.message.setAcceptRichText(False)
+
+        spell_highlighter = SpellCheckHighlighter(self.message.document(),
+                                                  spell_checker)
 
         self.restore_message()
         if message:
@@ -328,8 +349,6 @@ class CommitWindow(SubProcessWindow):
     
         vbox.addWidget(selectall_checkbox)
 
-        self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
-
         # Display a list of pending merges
         if self.has_pending_merges:
             selectall_checkbox.setCheckState(QtCore.Qt.Checked)
@@ -343,7 +362,7 @@ class CommitWindow(SubProcessWindow):
             
             # Pending-merge widget gets disabled as we are executing.
             QtCore.QObject.connect(self,
-                                   QtCore.SIGNAL("subprocessStarted(bool)"),
+                                   QtCore.SIGNAL("disableUi(bool)"),
                                    self.pending_merges_list,
                                    QtCore.SLOT("setDisabled(bool)"))
         else:
@@ -354,32 +373,36 @@ class CommitWindow(SubProcessWindow):
         splitter.setStretchFactor(0, 3)
 
 
-        vbox = QtGui.QVBoxLayout(self.centralwidget)
+        vbox = QtGui.QVBoxLayout(self)
         vbox.addWidget(self.throbber)
         vbox.addWidget(branch_groupbox)
         vbox.addWidget(splitter)
 
         # Diff button to view changes in files selected to commit
-        self.diffbuttons = DiffButtons(self.centralwidget)
+        self.diffbuttons = DiffButtons(self)
         self.diffbuttons.setToolTip(
             gettext("View changes in files selected to commit"))
         self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
                      self.show_diff_for_checked)
+
+        self.refresh_button = StandardButton(BTN_REFRESH)
+        self.connect(self.refresh_button,
+                     QtCore.SIGNAL("clicked()"),
+                     self.refresh)
+
         hbox = QtGui.QHBoxLayout()
         hbox.addWidget(self.diffbuttons)
+        hbox.addWidget(self.refresh_button)
         hbox.addWidget(self.buttonbox)
         vbox.addLayout(hbox)
 
         # groupbox and tabbox signals handling.
         for w in (message_groupbox, files_tab):
             # when operation started we need to disable widgets
-            # if operation failed we need to re-enable widgets
-            for s in ("subprocessStarted(bool)",
-                      "subprocessFailed(bool)"):
-                QtCore.QObject.connect(self,
-                    QtCore.SIGNAL(s),
-                    w,
-                    QtCore.SLOT("setDisabled(bool)"))
+            QtCore.QObject.connect(self,
+                QtCore.SIGNAL("disableUi(bool)"),
+                w,
+                QtCore.SLOT("setDisabled(bool)"))
         
         # Try to be smart: if there is no saved message
         # then set focus on Edit Area; otherwise on OK button.
@@ -390,27 +413,92 @@ class CommitWindow(SubProcessWindow):
 
     def show(self):
         # we show the bare form as soon as possible.
-        SubProcessWindow.show(self)
+        SubProcessDialog.show(self)
         QtCore.QTimer.singleShot(1, self.load)
-    
+
+    @runs_in_loading_queue
     @ui_current_widget
     @reports_exception()
-    def load(self):
-        self.tree.lock_read()
+    def load(self, refresh=False):
+        if refresh:
+            self.throbber.show()
+        self.refresh_button.setDisabled(True)
         try:
-            if self.pending_merges_list:
-                self.pending_merges_list.load_branch(self.tree.branch,
-                                                     None,
-                                                     self.tree)
-                self.pending_merges_list.load()
-            self.filelist.fill(self.iter_changes_and_state())
+            self.tree.lock_read()
+            try:
+                if self.pending_merges_list:
+                    self.pending_merges_list.load_branch(self.tree.branch,
+                                                         None,
+                                                         self.tree)
+                    self.pending_merges_list.load()
+                    self.processEvents()
+                
+                self.filelist.tree_model.checkable = not self.pending_merges_list
+                self.is_loading = True
+                if not refresh:
+                    fmodel = self.filelist.tree_filter_model
+                    #fmodel.setFilter(fmodel.UNVERSIONED, False)
+                    self.filelist.set_tree(
+                        self.tree,
+                        branch=self.tree.branch,
+                        changes_mode=True,
+                        want_unversioned=self.show_nonversioned_checkbox.isChecked(),
+                        initial_checked_paths=self.initial_selected_list)
+                else:
+                    self.filelist.refresh()
+                self.is_loading = False
+                self.processEvents()
+                self.update_compleater_words()
+            finally:
+                self.tree.unlock()
         finally:
-            self.tree.unlock()
- 
-        self.filelist.setup_actions()        
-        self.completer.setModel(QtGui.QStringListModel(self.completion_words,
-                                                       self.completer))
-        self.throbber.hide()
+            self.throbber.hide()
+            self.refresh_button.setDisabled(False)
+
+    def refresh(self):
+        self.load(True)
+
+    def on_filelist_data_changed(self, start_index, end_index):
+        self.update_compleater_words()
+    
+    def update_compleater_words(self):
+        if self.is_loading:
+            return
+        
+        num_files_loaded = 0
+        
+        words = set()
+        for ref in self.filelist.tree_model.iter_checked():
+            path = ref.path
+            if path not in self.file_words:
+                file_words = set()
+                if num_files_loaded < MAX_AUTOCOMPLETE_FILES:
+                    file_words.add(path)
+                    file_words.add(os.path.split(path)[-1])
+                    change = self.filelist.tree_model.inventory_data_by_path[
+                                                               ref.path].change
+                    if change.is_renamed():
+                        file_words.add(change.oldpath())
+                        file_words.add(os.path.split(change.oldpath())[-1])
+                    #if num_versioned_files < MAX_AUTOCOMPLETE_FILES:
+                    ext = file_extension(path)
+                    builder = get_wordlist_builder(ext)
+                    if builder is not None:
+                        try:
+                            abspath = os.path.join(self.tree.basedir, path)
+                            file = open(abspath, 'rt')
+                            file_words.update(builder.iter_words(file))
+                            self.processEvents()
+                        except EnvironmentError:
+                            pass
+                    self.file_words[path] = file_words
+                    num_files_loaded += 1
+            else:
+                file_words = self.file_words[path]
+            words.update(file_words)
+        words = list(words)
+        words.sort(key=lambda x: x.lower())
+        self.completer_model.setStringList(words)
     
     def enableBugs(self, state):
         if state == QtCore.Qt.Checked:
@@ -458,9 +546,9 @@ class CommitWindow(SubProcessWindow):
         # FIXME this should delete the config entry, not just set it to ''
         config.set_user_option('qbzr_commit_message', '')
 
-    def start(self):
+    def do_start(self):
         args = ["commit"]
-        files_to_add = ["add"]
+        files_to_add = ["add", "--no-recurse"]
         
         message = unicode(self.message.toPlainText()).strip() 
         if not message: 
@@ -469,7 +557,7 @@ class CommitWindow(SubProcessWindow):
                 gettext("You should provide commit message."),
                 gettext('&OK'))
             # don't commit, but don't close the window either
-            self.failed()
+            self.on_failed()
             self.message.setFocus()
             return
 
@@ -479,12 +567,11 @@ class CommitWindow(SubProcessWindow):
         checkedFiles = 1 
         if not self.has_pending_merges:
             checkedFiles = 0
-            for desc in self.filelist.iter_checked():
+            for ref in self.filelist.tree_model.iter_checked():
                 checkedFiles = checkedFiles+1
-                path = desc.path()
-                if not desc.is_versioned():
-                    files_to_add.append(path)
-                args.append(path)
+                if ref.file_id is None:
+                    files_to_add.append(ref.path)
+                args.append(ref.path)
         
         if checkedFiles == 0: # BUG: 295116
             # check for availability of --exclude option for commit
@@ -497,7 +584,7 @@ class CommitWindow(SubProcessWindow):
                     "QBzr - " + gettext("Commit"), 
                     gettext("No changes to commit."),
                     QtGui.QMessageBox.Ok) 
-                self.failed()
+                self.on_failed()
                 return
             else:
                 # bzr >= 1.6
@@ -507,7 +594,7 @@ class CommitWindow(SubProcessWindow):
                         "Do you want to commit anyway?"),
                     QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
                 if button == QtGui.QMessageBox.No:
-                    self.failed()
+                    self.on_failed()
                     return
                 else:
                     # Possible [rare] problems:
@@ -537,22 +624,31 @@ class CommitWindow(SubProcessWindow):
         self.tabWidget.setCurrentWidget(self.process_widget)
         self.process_widget.start_multi(commands)
 
-
     def show_nonversioned(self, state):
         """Show/hide non-versioned files."""
-        state = not state
-        for (tree_item, change_desc) in self.filelist.iter_treeitem_and_desc(True):
-            if change_desc[3] == (False, False):
-                self.filelist.set_item_hidden(tree_item, state)
-        self.filelist.update_selectall_state(None, None)
+        if state and not self.filelist.want_unversioned:
+            state = self.filelist.get_state()
+            self.filelist.set_tree(self.tree, changes_mode=True,
+                                   want_unversioned=True)
+            self.filelist.restore_state(state)
+        
+        fmodel = self.filelist.tree_filter_model
+        fmodel.setFilter(fmodel.UNVERSIONED, state)
 
-    def closeEvent(self, event):
+    def _save_or_clear_message(self):
         if not self.process_widget.is_running():
             if self.process_widget.finished:
                 self.clear_saved_message()
             else:
                 self.save_message()
-        return SubProcessWindow.closeEvent(self, event)
+
+    def closeEvent(self, event):
+        self._save_or_clear_message()
+        return SubProcessDialog.closeEvent(self, event)
+
+    def reject(self):
+        self._save_or_clear_message()
+        return SubProcessDialog.reject(self)
 
     def update_branch_groupbox(self):
         if not self.local_checkbox.isChecked():
@@ -580,12 +676,11 @@ class CommitWindow(SubProcessWindow):
         # XXX make this function universal for both qcommit and qrevert (?)
         checked = []        # checked versioned
         unversioned = []    # checked unversioned (supposed to be added)
-        for desc in self.filelist.iter_checked():
-            path = desc.path()
-            if desc.is_versioned():
-                checked.append(path)
+        for ref in self.filelist.tree_model.iter_checked():
+            if ref.file_id:
+                checked.append(ref.path)
             else:
-                unversioned.append(path)
+                unversioned.append(ref.path)
 
         if checked:
             arg_provider = InternalWTDiffArgProvider(

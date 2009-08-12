@@ -21,6 +21,7 @@
 
 from PyQt4 import QtCore, QtGui
 
+from bzrlib import errors
 from bzrlib.plugins.qbzr.lib.diff import (
     DiffButtons,
     show_diff,
@@ -28,11 +29,17 @@ from bzrlib.plugins.qbzr.lib.diff import (
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.wtlist import (
-    ChangeDesc,
-    WorkingTreeFileList,
-    closure_in_selected_list,
+from bzrlib.plugins.qbzr.lib.treewidget import (
+    TreeWidget,
+    SelectAllCheckBox,
     )
+from bzrlib.plugins.qbzr.lib.util import (
+    ThrobberWidget,
+    runs_in_loading_queue,
+    )
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.plugins.qbzr.lib.trace import reports_exception
+from bzrlib.plugins.qbzr.lib.commit import PendingMergesList
 
 
 class RevertWindow(SubProcessDialog):
@@ -40,6 +47,7 @@ class RevertWindow(SubProcessDialog):
     def __init__(self, tree, selected_list, dialog=True, parent=None,
                  local=None, message=None, ui_mode=True, backup=True):
         self.tree = tree
+        self.has_pending_merges = len(tree.get_parent_ids())>1
         self.initial_selected_list = selected_list
         
         SubProcessDialog.__init__(self,
@@ -51,50 +59,83 @@ class RevertWindow(SubProcessDialog):
                                   parent = parent,
                                   hide_progress=True)
         
+        self.throbber = ThrobberWidget(self) 
+
         # Display the list of changed files
-        groupbox = QtGui.QGroupBox(gettext("Changes"), self)
+        self.file_groupbox = QtGui.QGroupBox(gettext("Changes"), self)
 
-        self.filelist = WorkingTreeFileList(groupbox, self.tree)
+        self.filelist = TreeWidget(self.file_groupbox)
+        self.filelist.throbber = self.throbber 
+        self.filelist.tree_model.is_item_in_select_all = lambda item: ( 
+            item.change is not None and item.change.is_versioned())
+        def filter_context_menu():
+            TreeWidget.filter_context_menu(self.filelist)
+            self.filelist.action_add.setVisible(False)
+            self.filelist.action_revert.setVisible(False)
+        self.filelist.filter_context_menu = filter_context_menu
 
-        self.tree.lock_read()
-        try:
-            self.filelist.fill(self.iter_changes_and_state())
-        finally:
-            self.tree.unlock()
-
-        self.filelist.setup_actions()
-
-        vbox = QtGui.QVBoxLayout(groupbox)
-        vbox.addWidget(self.filelist)
-        selectall_checkbox = QtGui.QCheckBox(
-            gettext(self.filelist.SELECTALL_MESSAGE))
-        selectall_checkbox.setCheckState(QtCore.Qt.Checked)
-        selectall_checkbox.setEnabled(True)
-        self.filelist.set_selectall_checkbox(selectall_checkbox)
-        vbox.addWidget(selectall_checkbox)
+        self.selectall_checkbox = SelectAllCheckBox(self.filelist, self.file_groupbox)
+        self.selectall_checkbox.setCheckState(QtCore.Qt.Checked)
+        self.selectall_checkbox.setEnabled(True)
 
         self.no_backup_checkbox = QtGui.QCheckBox(
             gettext('Do not save backups of reverted files'))
         if not backup:
             self.no_backup_checkbox.setCheckState(QtCore.Qt.Checked)
         self.no_backup_checkbox.setEnabled(True)
-        vbox.addWidget(self.no_backup_checkbox)
 
-        self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
-
+        filesbox = QtGui.QVBoxLayout(self.file_groupbox)
+        filesbox.addWidget(self.filelist)
+        filesbox.addWidget(self.selectall_checkbox)
+        filesbox.addWidget(self.no_backup_checkbox)
+        
+        if self.has_pending_merges:
+            self.file_groupbox.setCheckable(True)
+            self.merges_groupbox = QtGui.QGroupBox(gettext("Pending Merges"))
+            self.merges_groupbox.setCheckable(True)
+            
+            # This keeps track of what the merges_groupbox was before the
+            # select all changes it, so that it can put it back to the state
+            # it was.
+            self.merges_base_checked = True
+            self.pending_merges = PendingMergesList(self.processEvents,
+                                                    self.throbber,
+                                                    False,
+                                                    self)
+            merges_box = QtGui.QVBoxLayout(self.merges_groupbox)
+            merges_box.addWidget(self.pending_merges)
+            
+            self.connect(self.selectall_checkbox,
+                         QtCore.SIGNAL("stateChanged(int)"),
+                         self.selectall_state_changed)
+            self.connect(self.merges_groupbox,
+                         QtCore.SIGNAL("clicked(bool)"),
+                         self.merges_clicked)
+            self.connect(self.file_groupbox,
+                         QtCore.SIGNAL("clicked(bool)"),
+                         self.file_groupbox_clicked)
+            self.connect(self.filelist.tree_model,
+                         QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                         self.filelist_data_changed)
+            
+        
         # groupbox gets disabled as we are executing.
         QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessStarted(bool)"),
-                               groupbox,
+                               QtCore.SIGNAL("disableUi(bool)"),
+                               self.file_groupbox,
                                QtCore.SLOT("setDisabled(bool)"))
 
         self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
-        self.splitter.addWidget(groupbox)
+        self.splitter.addWidget(self.file_groupbox)
+        if self.has_pending_merges:
+            self.splitter.addWidget(self.merges_groupbox)
+        
         self.splitter.addWidget(self.make_default_status_box())
         self.splitter.setStretchFactor(0, 10)
         self.restoreSplitterSizes([150, 150])
 
         layout = QtGui.QVBoxLayout(self)
+        layout.addWidget(self.throbber)
         layout.addWidget(self.splitter)
 
         # Diff button to view changes in files selected to revert
@@ -107,28 +148,127 @@ class RevertWindow(SubProcessDialog):
         hbox.addWidget(self.diffbuttons)
         hbox.addWidget(self.buttonbox)
         layout.addLayout(hbox)
+        self.throbber.show()
 
-    def iter_changes_and_state(self):
-        """An iterator for the WorkingTreeFileList widget"""
 
-        in_selected_list = closure_in_selected_list(self.initial_selected_list)
+    def show(self): 
+        SubProcessDialog.show(self) 
+        QtCore.QTimer.singleShot(1, self.initial_load) 
+ 
+    @runs_in_loading_queue 
+    @ui_current_widget 
+    @reports_exception() 
+    def initial_load(self):
+        self.filelist.tree_model.checkable = True 
+        fmodel = self.filelist.tree_filter_model 
+        #fmodel.setFilter(fmodel.UNVERSIONED, False) 
+        self.filelist.set_tree(self.tree, changes_mode=True,
+                               want_unversioned=False,
+                               initial_checked_paths=self.initial_selected_list)
+        self.filelist_checked_base = list(
+            self.filelist.tree_model.iter_checked())
+        self.processEvents()
+        
+        if self.has_pending_merges:
+            self.pending_merges.load_branch(self.tree.branch,
+                                                 None,
+                                                 self.tree)
+            self.pending_merges.load()
+            self.processEvents()
+        
+        self.throbber.hide()
 
-        for desc in self.tree.iter_changes(self.tree.basis_tree()):
-            desc = ChangeDesc(desc)
-            if desc.is_tree_root():
-                continue
-            path = desc.path()
-            check_state = in_selected_list(path)
-            yield desc, True, check_state
 
-    def start(self):
+    
+    # The logic for the next 4 methods is like this:
+    # * Either file_groupbox or merges_groupbox or both must be checked,
+    #   never neither.
+    # * If merges_groupbox is checked, all files must be checked. If a file is
+    #   unchecked, merges_groupbox must be unchecked.
+    # Unless:
+    # * file_groupbox is unchecked - then all files are unchecked.
+    #
+    # We keep a recored of what was checked, so that we we change something,
+    # and then later we go back to a state where that change was not necessary,
+    # we can return to what it was. This is stored in merges_base_checked, and
+    # filelist_checked_base.
+    
+    def selectall_state_changed(self, state):
+        if state == QtCore.Qt.Checked:
+            self.merges_groupbox.setChecked(self.merges_base_checked)
+        elif self.file_groupbox.isChecked():
+            self.merges_groupbox.setChecked(False)
+    
+    def merges_clicked(self, state):
+        self.merges_base_checked = state
+        
+        if state:
+            if self.file_groupbox.isChecked():
+                self.selectall_checkbox.clicked(QtCore.Qt.Checked)
+            else:
+                self.selectall_checkbox.clicked(QtCore.Qt.Unchecked)
+        
+        if not state:
+            self.file_groupbox.setChecked(True)
+            self.filelist.tree_model.set_checked_items(
+                self.filelist_checked_base,
+                ignore_no_file_error=True)
+    
+    def file_groupbox_clicked(self, state):
+        if not state:
+            self.merges_groupbox.setChecked(True)
+            self.selectall_checkbox.clicked(QtCore.Qt.Unchecked)
+        if state:
+            if not self.merges_base_checked:
+                self.filelist.tree_model.set_checked_items(
+                    self.filelist_checked_base,
+                    ignore_no_file_error=True)
+            else:
+                self.selectall_checkbox.clicked(QtCore.Qt.Checked)
+    
+    def filelist_data_changed(self, start, end):
+        if (self.file_groupbox.isChecked() and
+            not self.merges_groupbox.isChecked()):
+            self.filelist_checked_base = list(
+                self.filelist.tree_model.iter_checked())
+
+    def validate(self):
+        if (self.has_pending_merges and
+            not self.merges_groupbox.isChecked() and
+            self.selectall_checkbox.checkState() == QtCore.Qt.Checked):
+            
+            button = QtGui.QMessageBox.question(self,
+                self.windowTitle(), 
+                gettext("You are reverting all changed paths without also "
+                        "reverting pending merges. Do you want to continue?"),
+                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+            if button == QtGui.QMessageBox.No:
+                return False
+        
+        if ((not self.has_pending_merges or
+             not self.merges_groupbox.isChecked()) and
+            self.selectall_checkbox.checkState() == QtCore.Qt.Unchecked):
+            raise errors.BzrCommandError(
+                "You have not selected anything to revert.")
+        return True
+    
+    def do_start(self):
         """Revert the files."""
         args = ["revert"]
+        if (not self.has_pending_merges or
+            (self.has_pending_merges and
+             self.file_groupbox.isChecked() and
+             not self.merges_groupbox.isChecked())):
+            args.extend([ref.path
+                         for ref in self.filelist.tree_model.iter_checked()])
+        if (self.has_pending_merges and
+            self.merges_groupbox.isChecked() and
+            not self.file_groupbox.isChecked()):
+            args.append("--forget-merges")
+        
         if self.no_backup_checkbox.checkState():
             args.append("--no-backup")
-        for desc in self.filelist.iter_checked():
-            args.append(desc.path())
-        self.process_widget.start(self.tree.basedir, *args)
+        self.process_widget.do_start(self.tree.basedir, *args)
 
     def saveSize(self):
         SubProcessDialog.saveSize(self)
@@ -141,10 +281,7 @@ class RevertWindow(SubProcessDialog):
         @param  dialog_action:  purpose of parent window (main action)
         """
         # XXX make this function universal for both qcommit and qrevert (?)
-        checked = []
-        for desc in self.filelist.iter_checked():
-            path = desc.path()
-            checked.append(path)
+        checked = [ref.path for ref in self.filelist.tree_model.iter_checked()]
 
         if checked:
             arg_provider = InternalWTDiffArgProvider(

@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/update_branch.ui'
 #
-# Created: Fri Sep 19 16:13:35 2008
-#      by: PyQt4 UI code generator 4.4.2
+# Created: Thu Jul 30 12:22:19 2009
+#      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -74,8 +74,8 @@ class Ui_UpdateBranchForm(object):
         QtCore.QObject.connect(self.but_pull, QtCore.SIGNAL("toggled(bool)"), self.but_pull_overwrite.setEnabled)
         QtCore.QObject.connect(self.but_pull, QtCore.SIGNAL("toggled(bool)"), self.location.setEnabled)
         QtCore.QObject.connect(self.but_pull, QtCore.SIGNAL("toggled(bool)"), self.location_picker.setEnabled)
-        QtCore.QObject.connect(UpdateBranchForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.label.setDisabled)
-        QtCore.QObject.connect(UpdateBranchForm, QtCore.SIGNAL("subprocessStarted(bool)"), self.groupBox.setDisabled)
+        QtCore.QObject.connect(UpdateBranchForm, QtCore.SIGNAL("disableUi(bool)"), self.label.setDisabled)
+        QtCore.QObject.connect(UpdateBranchForm, QtCore.SIGNAL("disableUi(bool)"), self.groupBox.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(UpdateBranchForm)
 
     def retranslateUi(self, UpdateBranchForm):

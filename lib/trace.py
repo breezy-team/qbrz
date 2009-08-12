@@ -47,6 +47,12 @@ ITEM_OR_EVENT_METHOD = 2
 The user is allowed to ignore the error, or close the window.
 """
 
+_file_bugs_url = "https://bugs.launchpad.net/qbzr/+filebug"
+
+def set_file_bugs_url(url):
+    global _file_bugs_url
+    _file_bugs_url = url
+
 closing_due_to_error = False
 
 def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
@@ -93,6 +99,10 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
     # XXX This is very similar to bzrlib.commands.exception_to_return_code.
     # We shoud get bzr to refactor so that that this is reuseable.
     if pdb:
+        # With out this - pyQt shows lot of warnings. see:
+        # http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/pyqt4ref.html#using-pyqt-from-the-python-shell
+        QtCore.pyqtRemoveInputHook()
+        
         print '**** entering debugger'
         tb = exc_info[2]
         import pdb
@@ -102,7 +112,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
             # but because pdb.post_mortem gives bad results for tracebacks
             # from inside generators, we do it manually.
             # (http://bugs.python.org/issue4150, fixed in Python 2.6)
-
+            
             # Setup pdb on the traceback
             p = pdb.Pdb()
             p.reset()
@@ -129,11 +139,11 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
                 plugin,
                 )
             
-            message ="\
-Bazaar has encountered an internal error. Please report a bug at \
-<a href=\"https://bugs.launchpad.net/bzr/+filebug\">\
-https://bugs.launchpad.net/bzr/+filebug</a> including this traceback, and a \
-description of what you were doing when the error occurred."
+            message = ('Bazaar has encountered an internal error. Please ' 
+                       'report a bug at <a href="%s">%s</a> including this ' 
+                       'traceback, and a description of what you were doing ' 
+                       'when the error occurred.'
+                       % (_file_bugs_url, _file_bugs_url))
             
             traceback_file = StringIO()
             print_exception(exc_info, traceback_file)
@@ -203,6 +213,9 @@ class ErrorReport(QtGui.QDialog):
         label = QtGui.QLabel(message)
         label.setWordWrap(True)
         label.setAlignment(QtCore.Qt.AlignTop|QtCore.Qt.AlignLeft)
+        self.connect(label,
+                     QtCore.SIGNAL("linkActivated(QString)"),
+                     self.link_clicked)
 
         icon_label = QtGui.QLabel()
         icon_label.setPixmap(self.style().standardPixmap(
@@ -239,9 +252,16 @@ class ErrorReport(QtGui.QDialog):
         
         screen = QtGui.QApplication.desktop().screenGeometry()
         self.resize (QtCore.QSize(screen.width()*0.8, screen.height()*0.8))
-
+        
     def clicked(self, button):
         self.done(int(self.buttonbox.standardButton(button)))
+
+    def link_clicked(self, url):
+        # We can't import this at the top of the file because util imports
+        # this file. XXX - The is probably a sign that util is to big, and
+        # we need to split it up.
+        from bzrlib.plugins.qbzr.lib.util import open_browser
+        open_browser(str(url))
 
 def reports_exception(type=MAIN_LOAD_METHOD):
     """Decorator to report Exceptions raised from the called method

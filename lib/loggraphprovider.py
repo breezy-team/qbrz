@@ -17,12 +17,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import fnmatch
 import re
 from time import clock
 
 from bzrlib import errors
 from bzrlib.transport.local import LocalTransport
-from bzrlib.revision import NULL_REVISION
+from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.tsort import merge_sort
 try:
     from bzrlib.graph import (Graph, StackedParentsProvider)
@@ -32,6 +33,9 @@ except ImportError:
     
 from bzrlib.bzrdir import BzrDir
 from bzrlib.inventory import Inventory
+from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
+                                                         cached_revisions)
+from bzrlib.plugins.qbzr.lib.util import get_apparent_author
 
 have_search = True
 try:
@@ -40,6 +44,106 @@ try:
 except ImportError:
     have_search = False
 
+class BranchInfo(object):
+    """Holds a branch and related information"""
+    
+    # Instance of this object are typicaly named "bi".
+    
+    __slots__ = ["tree", "branch", "index"]
+    def __init__ (self, tree, branch, index):
+        self.tree = tree
+        self.branch = branch
+        self.index = index
+    
+    def __hash__(self):
+        return self.branch.base.__hash__()
+
+    def __eq__(self, other):
+        if isinstance(other, BranchInfo):
+            return self.branch.base.__eq__(other.branch.base)
+        return False
+
+class RevisionInfo(object):
+    """Holds information about a revision."""
+    
+    # Instance of this object are typicaly named "rev".
+    
+    __slots__ = ["index", "revid", "merge_depth", "revno_sequence",
+                 "end_of_merge", "branch_id", "_revno_str", "filter_cache",
+                 "merges", "merged_by", "f_index", "color",
+                 "col_index", "lines", "twisty_state", "twisty_branch_ids"]
+
+    def __init__ (self, index, revid, merge_depth, revno_sequence, end_of_merge):
+        self.index = index
+        """Index in LogGraphProvider.revisions"""
+        self.f_index = None
+        """Index in LogGraphProvider.filtered_revs.
+        
+        If None, then this revision is not visible
+        """
+        self.revid = revid
+        self.merge_depth = merge_depth
+        self.revno_sequence = revno_sequence
+        self.end_of_merge = end_of_merge
+        self.branch_id = self.revno_sequence[0:-1]
+        self._revno_str = None
+        self.filter_cache = True
+        """Cache of if this revision is  visible if it's branch is visible"""
+        self.merges = []
+        """Revision indexes that this revision merges"""
+        self.merged_by = None
+        """Revision index that merges this revision."""
+        self.color = 0
+        """Number that repesents a color for the node."""
+        self.col_index = None
+        """Column index for the node of this revision."""
+        self.lines = []
+        """Lines that need to be drawn on the same line as this revisions.
+        
+        List of typle (start, end, color, direct)
+        """
+        
+        # Twisties are the +- buttons to expand and colapes branches.
+        self.twisty_state = None
+        """Sate of the twisty
+        
+        If None, then there is no twisty. If False, there a branched that are
+        not visilble, and so a + must be shown. If True, all branchs are
+        visible, and we need to show a -.
+        """
+        self.twisty_branch_ids = []
+        """Branches that will be expanded/colapsed when the twisty is
+        clicked on.
+        
+        """
+    
+    def get_revno_str(self):
+        if self._revno_str is None:
+            self._revno_str = ".".join(["%d" % (revno)
+                                for revno in self.revno_sequence])
+            if self.revid == CURRENT_REVISION:
+                self._revno_str += " ?"
+        return self._revno_str
+    revno_str = property(get_revno_str)
+    
+    def __repr__(self):
+        return "%s <%s %s>" % (self.__class__.__name__, self.revno_str,
+                              self.revid)
+
+class BranchLine(object):
+    __slots__ = ["branch_id", "revs", "visible", "merges", "merged_by",
+                 "color"]
+    
+    def __init__(self, branch_id, visible):
+        self.branch_id = branch_id
+        self.visible = visible
+        self.revs = []
+        self.merges = []
+        self.merged_by = []
+        self.color = reduce(lambda x, y: x+y, self.branch_id, 0)
+
+    def __repr__(self):
+        return "%s <%s>" % (self.__class__.__name__, self.branch_id)
 
 class LogGraphProvider(object):
     """Loads and computes revision and graph data for GUI log widgets."""
@@ -51,20 +155,16 @@ class LogGraphProvider(object):
     #   file_id(s).
     # * We have a search, and the revision does not match the search.
     #
-    # The main list of unfiltered revisions is merge_sorted_revisions. A
-    # revisions index in merge_sorted_revisions are normaly called msri
-    # (merge_sorted_revisions_index). The main list of filtered revisions
-    # is graph_line_data. Revision indexes in this list are called just index.
-    # To get a index from a msir, use msri_index.
+    # The main list of unfiltered revisions is self.revisions. A revisions index
+    # in revisions are normaly called index. The main list of filtered revisions
+    # is filtered_revs. Revision indexes in this list are called f_index.
     
     def __init__(self, no_graph):
         
         self.no_graph = no_graph
 
-        self._branches = {}
-        """Dict of branches. The base of the branch is the key.
-        
-        Each value is a of tuple(tree, branch, search_index )"""
+        self.branches = []
+        """List of BranchInfo for each branch."""
         
         self.fileids = []
         self.has_dir = False
@@ -94,44 +194,19 @@ class LogGraphProvider(object):
         
         self.trunk_branch = None
         
-        self.merge_sorted_revisions = []
-        self.msri_index = {}
-        self.revid_msri = {}
+        self.revisions = []
+        """List of RevisionInfo from merge_sort."""
+        
+        self.filtered_revs = []
+        self.revid_rev = {}
         self.graph_children = {}
         
-        self.revisions = {}
         self.queue = []
         self.tags = {}      # map revid -> tags set
         
         self.filter_file_id = None
-        """Filtered dict of msri's that are visible because they touch
+        """Filtered dict of index's that are visible because they touch
         self.fileids
-        """
-        
-        self.filter_cache = []
-        
-        self.graph_line_data = []
-        """ list containing for visible revisions:
-                [msri,
-                 node,
-                 lines,
-                 twisty_state,
-                 twisty_branch_ids].
-        
-        Node is a tuple of (column, color) with column being a
-        zero-indexed column number of the graph that this revision
-        represents and color being a zero-indexed color (which doesn't
-        specify any actual color in particular) to draw the node in.
-        
-        Lines is a list of tuples which represent lines you should draw
-        away from the revision, if you also need to draw lines into the
-        revision you should use the lines list from the previous
-        iteration. Each tuples in the list is in the form (start, end,
-        color, direct) with start and end being zero-indexed column
-        numbers and color as in node.
-        
-        twisties are +- buttons to show/hide branches. list branch_ids
-        
         """
         
         self.sr_field = None
@@ -141,7 +216,7 @@ class LogGraphProvider(object):
         
         # ifcr = invaladate_filter_cache_revs and these fields are related to
         # that method.
-        self.ifcr_pending_msris = []
+        self.ifcr_pending_indexes = []
         self.ifcr_last_run_time = 0
         self.ifcr_last_call_time = 0
     
@@ -162,12 +237,10 @@ class LogGraphProvider(object):
             self.local_repo_copies.append(repo.base)
     
     def append_branch(self, tree, branch):
-        if branch.base not in self._branches:
-            search_index = self.open_search_index(branch)
-            self._branches[branch.base] = (tree, branch, search_index)
-    
-    def branches(self):
-        return self._branches.values()
+        bi = BranchInfo(tree, branch, None)
+        if bi not in self.branches:
+            bi.index = self.open_search_index(branch)
+            self.branches.append(bi)
     
     def open_search_index(self, branch):
         if have_search:
@@ -178,29 +251,34 @@ class LogGraphProvider(object):
         else:
             return None
     
-    def open_branch(self, branch, file_id=None, tree=None):
+    def open_branch(self, branch, file_ids=None, tree=None):
         """Open branch and fileids to be loaded. """
         
         repo = branch.repository
         if not tree:
             try:
+                # XXX - This dose not work if you have a light weight checkout
+                # We should rather make sure that every thing correctly pass
+                # us the wt if there is one.
                 tree = branch.bzrdir.open_workingtree()
             except errors.NoWorkingTree:
                 pass
         self.append_repo(repo)
         self.append_branch(tree, branch)
         
-        if file_id:
-            self.fileids.append(file_id)
+        if file_ids:
+            self.fileids.extend(file_ids)
             if not self.has_dir:
-                if tree is None:
-                    kind = branch.basis_tree().kind(file_id)
-                else:
-                    kind = tree.kind(file_id)
-                if kind in ('directory', 'tree-reference'):
-                    self.has_dir = True
+                for file_id in file_ids:
+                    if tree is None:
+                        kind = branch.basis_tree().kind(file_id)
+                    else:
+                        kind = tree.kind(file_id)
+                    if kind in ('directory', 'tree-reference'):
+                        self.has_dir = True
+                        break
         
-        if len(self.branches())==1 and self.trunk_branch == None:
+        if len(self.branches)==1 and self.trunk_branch == None:
             self.trunk_branch = branch
     
     def open_locations(self, locations):
@@ -231,7 +309,7 @@ class LogGraphProvider(object):
             else:
                 self.append_repo(repo)
                 self.append_branch(tree, br)
-                if len(self.branches())==1 and self.trunk_branch == None:
+                if len(self.branches)==1 and self.trunk_branch == None:
                     self.trunk_branch = br
             
             # If no locations were sepecified, don't do fileids
@@ -244,7 +322,7 @@ class LogGraphProvider(object):
             # to do this, we need to move the implication the no location
             # argument means '.' down in to the method, rather than where it is
             # now. - GaryvdM 29 May 2009
-            if fp != '' and locations==["."]:
+            if fp != '' and locations == [u"."]:
                 fp = ''
 
             if fp != '' :
@@ -264,18 +342,18 @@ class LogGraphProvider(object):
                 
                 self.fileids.append(file_id)
         
-        if self.fileids and len(self.branches())>1:
+        if self.fileids and len(self.branches)>1:
             raise errors.BzrCommandError(paths_and_branches_err)
 
     def lock_read_branches(self):
-        for (tree, branch, index) in self.branches():
-            branch.lock_read()
+        for bi in self.branches:
+            bi.branch.lock_read()
         for repo in self.repos.itervalues():
             repo.lock_read()
     
     def unlock_branches(self):
-        for (tree, branch, index) in self.branches():
-            branch.unlock()
+        for bi in self.branches:
+            bi.branch.unlock()
         for repo in self.repos.itervalues():
             repo.unlock()
     
@@ -303,73 +381,73 @@ class LogGraphProvider(object):
         self.revid_head_info = {}
         self.head_revids = []
         self.revid_branch = {}
-        for (tree, branch, index) in self.branches():
+        for bi in self.branches:
             
-            if len(self.branches()) == 1:
+            if len(self.branches) == 1:
                 tag = None
             else:
-                tag = branch.nick
+                tag = bi.branch.nick
                 if len(tag) > 20:
                     tag = tag[:20]+'...'
             
-            branch_last_revision = branch.last_revision()
-            self.append_head_info(branch_last_revision, branch, tag, True)
+            branch_last_revision = bi.branch.last_revision()
+            self.append_head_info(branch_last_revision, bi.branch, tag, True)
             self.update_ui()
             
-            if tree:
-                parent_ids = tree.get_parent_ids()
+            if bi.tree:
+                parent_ids = bi.tree.get_parent_ids()
                 if parent_ids:
                     # first parent is last revision of the tree
                     revid = parent_ids[0]
                     if revid != branch_last_revision:
                         # working tree is out of date
                         if tag:
-                            self.append_head_info(revid, branch,
+                            self.append_head_info(revid, bi.branch,
                                              "%s - Working Tree" % tag, False)
                         else:
-                            self.append_head_info(revid, branch,
+                            self.append_head_info(revid, bi.branch,
                                              "Working Tree", False)
                     # other parents are pending merges
                     for revid in parent_ids[1:]:
                         if tag:
-                            self.append_head_info(revid, branch,
+                            self.append_head_info(revid, bi.branch,
                                              "%s - Pending Merge" % tag, False)
                         else:
-                            self.append_head_info(revid, branch,
+                            self.append_head_info(revid, bi.branch,
                                              "Pending Merge", False)
                 self.update_ui()
         
-        if len(self.branches())>1:
+        if len(self.branches)>1:
             if self.trunk_branch == None:
                 # Work out which branch we think is trunk.
                 # TODO: Make config option.
                 trunk_names = "trunk,bzr.dev".split(",")
-                for tree, branch, index in self.branches():
-                    if branch.nick in trunk_names:
-                        self.trunk_branch = branch
+                for bi in self.branches:
+                    if bi.branch.nick in trunk_names:
+                        self.trunk_branch = bi.branch
                         break
             
             if self.trunk_branch == None:
-                self.trunk_branch = self.branches()[0][1]
+                self.trunk_branch = self.branches[0].branch
             
             trunk_tip = self.trunk_branch.last_revision()
             
-            self.load_revisions(self.head_revids)
+            head_revs = self.load_revisions(self.head_revids)
             
             def head_revids_cmp(x,y):
                 if x == trunk_tip:
                     return -1
                 if y == trunk_tip:
                     return 1
-                return 0-cmp(self.revision(x).timestamp,
-                             self.revision(y).timestamp)
+                return 0-cmp(head_revs[x].timestamp,
+                             head_revs[y].timestamp)
             
             self.head_revids.sort(head_revids_cmp)
     
     def load_tags(self):
         self.tags = {}
-        for (tree, branch, index) in self.branches():
-            branch_tags = branch.tags.get_reverse_tag_dict()  # revid to tags map
+        for bi in self.branches:
+            branch_tags = bi.branch.tags.get_reverse_tag_dict()  # revid to tags map
             for revid, tags in branch_tags.iteritems():
                 if revid in self.tags:
                     self.tags[revid].update(set(tags))
@@ -400,18 +478,57 @@ class LogGraphProvider(object):
         
         self.compute_loaded_graph()
 
+    def load_graph_all_revisions_for_annotate(self):
+        if not len(self.branches) == 1:
+            AssertionError("load_graph_pending_merges should only be called \
+                           when 1 branch and repo has been opened.")        
+        
+        self.revid_head_info = {}
+        self.head_revids = []
+        self.revid_branch = {}
+        bi = self.branches[0]
+        self.trunk_branch = bi.branch
+        
+        if bi.tree:
+            branch_last_revision = CURRENT_REVISION
+            current_parents = bi.tree.get_parent_ids()
+        else:
+            branch_last_revision = branch.last_revision()
+        
+        self.append_head_info(branch_last_revision, bi.branch, None, True)
+        self.update_ui()
+        
+        if len(self.repos)==1:
+            self.graph = self.repos.values()[0].get_graph()
+        else:
+            parents_providers = [repo._make_parents_provider() \
+                                 for repo in self.repos_sorted_local_first()]
+            self.graph = Graph(StackedParentsProvider(parents_providers))
+        
+        def parents():
+            if branch_last_revision == CURRENT_REVISION:
+                yield (CURRENT_REVISION, current_parents)
+                heads = current_parents
+            else:
+                heads = self.head_revids
+            for p in self.graph.iter_ancestry(heads):
+                yield p
+        
+        self.process_graph_parents(parents())
+        
+        self.compute_loaded_graph()
     
     def load_graph_pending_merges(self):
-        if not len(self.branches()) == 1 or not len(self.repos) == 1:
+        if not len(self.branches) == 1 or not len(self.repos) == 1:
             AssertionError("load_graph_pending_merges should only be called \
                            when 1 branch and repo has been opened.")
         
-        (tree, branch, search_index ) = self.branches()[0]
-        if tree is None:
+        bi = self.branches[0]
+        if bi.tree is None:
             AssertionError("load_graph_pending_merges must have a working tree.")
             
-        self.graph = branch.repository.get_graph()
-        tree_heads = tree.get_parent_ids()
+        self.graph = bi.branch.repository.get_graph()
+        tree_heads = bi.tree.get_parent_ids()
         other_revisions = [tree_heads[0],]
         self.update_ui()
 
@@ -422,7 +539,7 @@ class LogGraphProvider(object):
         
         pending_merges = []
         for head in tree_heads[1:]:
-            self.append_head_info(head, branch, None, False)
+            self.append_head_info(head, bi.branch, None, False)
             pending_merges.extend(
                 self.graph.find_unique_ancestors(head,other_revisions))
             other_revisions.append(head)
@@ -472,26 +589,25 @@ class LogGraphProvider(object):
         self.graph_parents["top:"] = self.head_revids
     
         if len(self.graph_parents)>0:
-            self.merge_sorted_revisions = merge_sort(
-                self.graph_parents,
-                "top:",
-                generate_revno=True)
+            merge_sorted_revisions = merge_sort(self.graph_parents,
+                                                "top:",
+                                                generate_revno=True)
+            assert merge_sorted_revisions[0][1] == "top:"
+            self.revisions = \
+                [RevisionInfo(index, revid, merge_depth,
+                              revno_sequence, end_of_merge)
+                 for (index, (seq, revid, merge_depth,
+                              revno_sequence, end_of_merge)) in
+                       enumerate(merge_sorted_revisions[1:])]
         else:
-            self.merge_sorted_revisions = ()
+            self.revisions = ()
         
-        assert self.merge_sorted_revisions[0][1] == "top:"
-        self.merge_sorted_revisions = self.merge_sorted_revisions[1:]
+        self.revid_rev = {}
+        self.revno_rev = {}
         
-        self.revid_msri = {}
-        self.revno_msri = {}
-        
-        for (rev_index, (sequence_number,
-                         revid,
-                         merge_depth,
-                         revno_sequence,
-                         end_of_merge)) in enumerate(self.merge_sorted_revisions):
-            self.revid_msri[revid] = rev_index
-            self.revno_msri[revno_sequence] = rev_index
+        for rev in self.revisions:
+            self.revid_rev[rev.revid] = rev
+            self.revno_rev[rev.revno_sequence] = rev
         
         self.compute_head_info()
         if not self.no_graph:
@@ -500,26 +616,17 @@ class LogGraphProvider(object):
         
         if not self.fileids:
             # All revisions start visible
-            self.filter_cache = [True for i in 
-                         xrange(len(self.merge_sorted_revisions))]
+            for rev in self.revisions:
+                rev.filter_cache = True
             self.revisions_filter_changed()
         else:
             # Revision visibilaty unknown.
             self.invaladate_filter_cache()
         
-        # The revisions is self.revions would have been loaded before to sort
-        # the heads by date, or because we are refreshing. Put them though
-        # self.post_revision_load again.
-        for rev in self.revisions.values():
-            self.post_revision_load(rev)        
-    
     def compute_branch_lines(self):
         self.branch_lines = {}
-        """A list of each "branch", containing
-            [a list of revision indexes in the branch,
-             is the branch visible,
-             merges,
-             merged_by].
+        
+        """A list of branch lines (aka merge lines).
         
         For a revisions, the revsion number less the least significant
         digit is the branch_id, and used as the key for the dict. Hence
@@ -537,27 +644,20 @@ class LogGraphProvider(object):
         """List of branch ids, sorted in the order that the branches will
         be shown, from left to right on the graph."""
         
-        for (rev_index, (sequence_number,
-                         revid,
-                         merge_depth,
-                         revno_sequence,
-                         end_of_merge)) in enumerate(self.merge_sorted_revisions):
-            branch_id = revno_sequence[0:-1]
+        for rev in self.revisions:
             
             branch_line = None
-            if branch_id not in self.branch_lines:
-                start_branch = revid in self.head_revids
-                branch_line = [[],
-                               start_branch,
-                               [],
-                               []]
+            if rev.branch_id not in self.branch_lines:
+                start_branch = rev.revid in self.head_revids
+                branch_line = BranchLine(rev.branch_id, start_branch)
                 if start_branch:
-                    self.start_branch_ids.append(branch_id)
-                self.branch_lines[branch_id] = branch_line
+                    self.start_branch_ids.append(rev.branch_id)
+                self.branch_lines[rev.branch_id] = branch_line
             else:
-                branch_line = self.branch_lines[branch_id]
+                branch_line = self.branch_lines[rev.branch_id]
             
-            branch_line[0].append(rev_index)
+            branch_line.revs.append(rev)
+            rev.color = branch_line.color
         
         self.branch_ids = self.branch_lines.keys()
         
@@ -572,8 +672,8 @@ class LogGraphProvider(object):
             
             # Branch line that have a smaller merge depth should be to the left
             # of those with bigger merge depths.
-            merge_depth_x = self.merge_sorted_revisions[self.branch_lines[x][0][0]][2]
-            merge_depth_y = self.merge_sorted_revisions[self.branch_lines[y][0][0]][2]
+            merge_depth_x = self.branch_lines[x].revs[0].merge_depth
+            merge_depth_y = self.branch_lines[y].revs[0].merge_depth
             if not merge_depth_x == merge_depth_y:
                 return cmp(merge_depth_x, merge_depth_y)
             
@@ -596,55 +696,38 @@ class LogGraphProvider(object):
             if len(x) == 2 and len(y) == 2 and x[0] == y[0]:
                 return cmp(x[1], y[1])
             
-            # Otherwise, thoughs with a greater mainline parent revno should
+            # Otherwise, thoes with a greater mainline parent revno should
             # appear to the left.
             return -cmp(x, y)
 
         self.branch_ids.sort(branch_id_cmp)
     
     def compute_merge_info(self):
-        self.merge_info = []
-        """List containing for each revision:
-            (which revisions it merges,
-            (revision it is merged by).
         
-        """
-        
-        merged_by = [None for x in self.merge_sorted_revisions ]
-        for (msri, (sequence_number,
-                    revid,
-                    merge_depth,
-                    revno_sequence,
-                    end_of_merge)) in enumerate(self.merge_sorted_revisions):
-            
-            parent_msris = [self.revid_msri[parent]
-                            for parent in self.graph_parents[revid]]
-            
-            if len(parent_msris) > 0:
-                parent_revno_sequence = \
-                            self.merge_sorted_revisions[parent_msris[0]][3]
-                if revno_sequence[0:-1] == parent_revno_sequence[0:-1]:
-                    merged_by[parent_msris[0]] = merged_by[msri]
-            
-            for parent_msri in parent_msris[1:]:
-                parent_merge_depth = self.merge_sorted_revisions[parent_msri][2]
-                if merge_depth<=parent_merge_depth:
-                    merged_by[parent_msri] = msri
-        
-        self.merge_info = [([], merged_by_msri) for merged_by_msri in merged_by]
-        
-        for msri, merged_by_msri in enumerate(merged_by):
-            if merged_by_msri is not None:
-                self.merge_info[merged_by_msri][0].append(msri)
+        def set_merged_by(rev, merged_by):
+            if merged_by is not None:
+                rev.merged_by = merged_by
+                self.revisions[merged_by].merges.append(rev.index)
+                branch_id = rev.branch_id
+                merged_by_branch_id = self.revisions[merged_by].branch_id
                 
-                branch_id = self.merge_sorted_revisions[msri][3][0:-1]
-                merged_by_branch_id = \
-                        self.merge_sorted_revisions[merged_by_msri][3][0:-1]
-                
-                if not branch_id in self.branch_lines[merged_by_branch_id][2]:
-                    self.branch_lines[merged_by_branch_id][2].append(branch_id)
-                if not merged_by_branch_id in self.branch_lines[branch_id][3]:
-                    self.branch_lines[branch_id][3].append(merged_by_branch_id)
+                if not branch_id in self.branch_lines[merged_by_branch_id].merges:
+                    self.branch_lines[merged_by_branch_id].merges.append(branch_id)
+                if not merged_by_branch_id in self.branch_lines[branch_id].merged_by:
+                    self.branch_lines[branch_id].merged_by.append(merged_by_branch_id)
+        
+        for rev in self.revisions:
+            
+            parents = [self.revid_rev[parent]
+                       for parent in self.graph_parents[rev.revid]]
+            
+            if len(parents) > 0:
+                if rev.branch_id == parents[0].branch_id:
+                    set_merged_by(parents[0], rev.merged_by)
+            
+            for parent in parents[1:]:
+                if rev.merge_depth<=parent.merge_depth:
+                    set_merged_by(parent, rev.index)
         
     def compute_head_info(self):
         def get_revid_head(heads):
@@ -656,7 +739,7 @@ class LogGraphProvider(object):
                     map[ancestor_revid] = heads[i][1]
             return map
         
-        if len(self.branches()) > 1:
+        if len(self.branches) > 1:
             head_revid_branch = sorted([(revid, branch) \
                                        for revid, (head_info, ur) in \
                                        self.revid_head_info.iteritems()
@@ -682,8 +765,8 @@ class LogGraphProvider(object):
                         if not other_revid == revid]
                 ur.extend([revid for revid \
                     in self.graph.find_unique_ancestors(revid, other_revids) \
-                    if not revid == NULL_REVISION and revid in self.revid_msri])
-                ur.sort(key=lambda x: self.revid_msri[x])
+                    if not revid == NULL_REVISION and revid in self.revid_rev])
+                ur.sort(key=lambda x: self.revid_rev[x].index)
 
     def load_filter_file_id_uses_inventory(self):
         return self.has_dir and getattr(Inventory,"filter",None) is not None
@@ -698,16 +781,11 @@ class LogGraphProvider(object):
             self.throbber_show()
             
             self.filter_file_id = [False for i in 
-                         xrange(len(self.merge_sorted_revisions))]
+                         xrange(len(self.revisions))]
             
-            revids = [revid for (sequence_number,
-                                 revid,
-                                 merge_depth,
-                                 revno_sequence,
-                                 end_of_merge) in self.merge_sorted_revisions ]
-            repo_revids = self.get_repo_revids(revids)
-            for repo in self.repos_sorted_local_first():
-                revids = repo_revids[repo.base]
+            revids = [rev.revid for rev in self.revisions]
+            
+            for repo, revids in self.get_repo_revids(revids):
                 if not self.load_filter_file_id_uses_inventory():
                     chunk_size = 500
                 else:
@@ -722,14 +800,14 @@ class LogGraphProvider(object):
     
     def load_filter_file_id_chunk(self, repo, revids):
         def check_text_keys(text_keys):
-            changed_msris = []
+            changed_indexes = []
             for fileid, revid in repo.texts.get_parent_map(text_keys):
-                rev_msri = self.revid_msri[revid]
-                self.filter_file_id[rev_msri] = True
-                changed_msris.append(rev_msri)
+                rev = self.revid_rev[revid]
+                self.filter_file_id[rev.index] = True
+                changed_indexes.append(rev.index)
             
             self.update_ui()
-            self.invaladate_filter_cache_revs(changed_msris)
+            self.invaladate_filter_cache_revs(changed_indexes)
             self.update_ui()
         
         repo.lock_read()
@@ -758,60 +836,52 @@ class LogGraphProvider(object):
         self.invaladate_filter_cache_revs([], last_call=True)
         self.throbber_hide()
     
-    def get_revision_visible(self, msri):
+    def get_revision_visible(self, index):
         """ Returns wether a revision is visible or not"""
         
         
-        return msri in self.msri_index
-        #(sequence_number,
-        # revid,
-        # merge_depth,
-        # revno_sequence,
-        # end_of_merge) = self.merge_sorted_revisions[msri]
+        return self.revisions[index].f_index is not None
+        #branch_id = self.revisions[index].branch_id
         #
-        #branch_id = revno_sequence[0:-1]
         #if not self.no_graph and \
-        #        not self.branch_lines[branch_id][1]: # branch colapased
+        #        not self.branch_lines[branch_id].visible: # branch colapased
         #    return False
         #
-        #return self.get_revision_visible_if_branch_visible_cached(msri)
+        #return self.get_revision_visible_if_branch_visible_cached(index)
 
-    def get_revision_visible_if_branch_visible_cached(self, msri):
-        cache = self.filter_cache[msri]
-        if cache is None:
-            cache = self.get_revision_visible_if_branch_visible(msri)
-            self.filter_cache[msri] =cache
-        return cache
+    def get_revision_visible_if_branch_visible_cached(self, index):
+        rev = self.revisions[index]
+        if rev.filter_cache is None:
+            rev.filter_cache = self.get_revision_visible_if_branch_visible(index)
+        return rev.filter_cache
     
-    def get_revision_visible_if_branch_visible(self, msri):
+    def get_revision_visible_if_branch_visible(self, index):
         
         if not self.no_graph:
-            for merged_msri in self.merge_info[msri][0]:
-                if self.get_revision_visible_if_branch_visible_cached(merged_msri):
+            rev = self.revisions[index]
+            for merged_index in rev.merges:
+                if self.get_revision_visible_if_branch_visible_cached(
+                                                            merged_index):
                     return True
         
         if self.fileids:
             if self.filter_file_id is None:
                 return False
-            if not self.filter_file_id[msri]:
+            if not self.filter_file_id[index]:
                 return False
         
-        (sequence_number,
-         revid,
-         merge_depth,
-         revno_sequence,
-         end_of_merge) = self.merge_sorted_revisions[msri]
+        revid = self.revisions[index].revid
         
         if self.sr_filter_re:
-            revision = self.revision(revid)
-            if revision is None:
+            if revid not in cached_revisions:
                 return False
+            revision = cached_revisions[revid]
             
             filtered_str = None
             if self.sr_field == "message":
                 filtered_str = revision.message
             elif self.sr_field == "author":
-                filtered_str = revision.get_apparent_author()
+                filtered_str = get_apparent_author(revision)
             elif self.sr_field == "bug":
                 rbugs = revision.properties.get('bugs', '')
                 if rbugs:
@@ -830,11 +900,12 @@ class LogGraphProvider(object):
         return True
 
     def invaladate_filter_cache(self):
-        self.filter_cache = [None] * len(self.merge_sorted_revisions)
+        for rev in self.revisions:
+            rev.filter_cache = None
         self.revisions_filter_changed()
     
-    def invaladate_filter_cache_revs(self, msris, last_call=False):
-        self.ifcr_pending_msris.extend(msris)
+    def invaladate_filter_cache_revs(self, indexes, last_call=False):
+        self.ifcr_pending_indexes.extend(indexes)
         # Only notify that there are changes every so often.
         # invaladate_filter_cache_revs causes compute_graph_lines to run, and it
         # runs slowly because it has to update the filter cache. How often we
@@ -846,36 +917,36 @@ class LogGraphProvider(object):
                 self.ifcr_last_run_time * 10:
             
             start_time = clock()        
-            prev_cached_msris = []
-            processed_msris = []
-            while self.ifcr_pending_msris:
-                msri = self.ifcr_pending_msris.pop(0)
+            prev_cached_indexes = []
+            processed_indexes = []
+            while self.ifcr_pending_indexes:
+                index = self.ifcr_pending_indexes.pop(0)
                 
-                if msri in processed_msris:
+                if index in processed_indexes:
                     continue
+                rev = self.revisions[index]
                 
-                if self.filter_cache[msri] is not None:
-                    prev_cached_msris.append((msri, self.filter_cache[msri]))
-                self.filter_cache[msri] = None
+                if rev.filter_cache is not None:
+                    prev_cached_indexes.append((index, rev.filter_cache))
+                rev.filter_cache = None
                 
                 if not self.no_graph:
-                    merged_by = self.merge_info[msri][1]
-                    if merged_by is not None:
-                        if merged_by not in self.ifcr_pending_msris and \
-                           merged_by not in processed_msris:
-                            self.ifcr_pending_msris.append(merged_by)
+                    if rev.merged_by is not None:
+                        if rev.merged_by not in self.ifcr_pending_indexes and \
+                           rev.merged_by not in processed_indexes:
+                            self.ifcr_pending_indexes.append(rev.merged_by)
             
             # Check if any visibilities have changes. If they have, call
             # revisions_filter_changed
-            for msri, prev_visible in prev_cached_msris:
+            for index, prev_visible in prev_cached_indexes:
                 if not self.no_graph:
-                    merged_by = self.merge_info[msri][1]
+                    merged_by = self.revisions[index].merged_by
                 else:
                     merged_by = None
                 
                 if not merged_by or \
                     self.get_revision_visible_if_branch_visible_cached(merged_by):
-                    visible = self.get_revision_visible_if_branch_visible_cached(msri)
+                    visible = self.get_revision_visible_if_branch_visible_cached(index)
                     if visible <> prev_visible:
                         self.revisions_filter_changed()
                         break
@@ -886,43 +957,53 @@ class LogGraphProvider(object):
         if last_call:
             self.ifcr_last_run_time = 0
             self.ifcr_last_call_time = 0
-    
+	
     def compute_graph_lines(self):
-        graph_line_data = []
-        """See self.graph_line_data"""
-        msri_index = {}
+        """Recompute the layout of the graph, and store the results in
+        self.revision"""
+        
+        # Overview:
+        # Clear the old data from self.revisions.
+        # Work out which revision need to be displayed.
+        # Assign columns for branches, and lines that go between branches.
+        #   These are intermingled, because some of the lines need to come
+        #   before it's branch, and others need to come after. Other lines
+        #   (such a the line from the last rev in a branch) are treated a
+        #   special cases.
+        # The calcated data is then copied into self.revisions in a format
+        #  that is easy for the TreeView to display.
+        
+        for rev in self.filtered_revs:
+            rev.f_index = None
+            rev.col_index = None
+            rev.lines = []
+            rev.twisty_state = None
+            rev.twisty_branch_ids = []
+        
+        self.filtered_revs = []
         
         # This is a performance hack. The code will work without it, but will be
         # slower.
         if self.no_graph:
-            msri_whos_branch_is_visible = xrange(
-                                        len(self.merge_sorted_revisions))
+            rev_whos_branch_is_visible = self.revisions
         else:
-            msri_whos_branch_is_visible = []
+            rev_whos_branch_is_visible = []
             for branch_line in self.branch_lines.itervalues():
-                if branch_line[1]:
-                    msri_whos_branch_is_visible.extend(branch_line[0])
-            msri_whos_branch_is_visible.sort()
+                if branch_line.visible:
+                    rev_whos_branch_is_visible.extend(branch_line.revs)
+            rev_whos_branch_is_visible.sort(key=lambda rev: rev.index)
         
         # The following commented line would be use without the above
         # performance hack.
-        #for msri in xrange(0,len(self.merge_sorted_revisions)):
-        for msri in msri_whos_branch_is_visible:
+        #for index in xrange(0,len(self.revisions)):
+        for rev in rev_whos_branch_is_visible:
             # The following would use just get_revision_visible without the
             # above performance hack.
-            if self.get_revision_visible_if_branch_visible_cached(msri): 
-                index = len(graph_line_data)
-                msri_index[msri] = index
-                graph_line_data.append([msri,
-                                        None,
-                                        [],
-                                        None,
-                                        [],
-                                        ])
+            if self.get_revision_visible_if_branch_visible_cached(rev.index): 
+                rev.f_index = len(self.filtered_revs)
+                self.filtered_revs.append(rev)
         
         if self.no_graph:
-            self.graph_line_data = graph_line_data
-            self.msri_index = msri_index
             return
         
         # This will hold a tuple of (child_index, parent_index, col_index,
@@ -970,38 +1051,39 @@ class LogGraphProvider(object):
                 #    yield min_index - i
                 i += 1
         
-        def is_col_free_for_range(col_index, child_index, parent_index,
+        def is_col_free_for_range(col_index, child_f_index, parent_f_index,
                                   ignore_to_same_parent=False):
             col_lines = lines_by_column[col_index]
             has_overlaping_line = False
-            for (line_child_index, line_parent_index) in col_lines:
-                if parent_index == line_parent_index and ignore_to_same_parent:
+            for (line_child_f_index, line_parent_f_index) in col_lines:
+                if (parent_f_index == line_parent_f_index
+                                        and ignore_to_same_parent):
                     continue
                 
-                # child_index is in between or
-                # parent_index is in between or
+                # child_f_index is in between or
+                # parent_f_index is in between or
                 # we compleatly overlap.
                 if (
-                        child_index > line_child_index
+                        child_f_index > line_child_f_index
                     and
-                        child_index < line_parent_index
+                        child_f_index < line_parent_f_index
                    ) or (
-                        parent_index > line_child_index
+                        parent_f_index > line_child_f_index
                     and
-                        parent_index < line_parent_index
+                        parent_f_index < line_parent_f_index
                    ) or (
-                        child_index <= line_child_index
+                        child_f_index <= line_child_f_index
                     and
-                        parent_index >= line_parent_index
+                        parent_f_index >= line_parent_f_index
                    ):
                     has_overlaping_line = True
                     break
             return not has_overlaping_line
         
-        def find_free_column(col_search_order, child_index, parent_index):
+        def find_free_column(col_search_order, child_f_index, parent_f_index):
             for col_index in col_search_order:
                 if is_col_free_for_range(col_index,
-                                             child_index, parent_index):
+                                             child_f_index, parent_f_index):
                     break
             else:
                 # No free columns found. Add an empty one on the end.
@@ -1009,115 +1091,89 @@ class LogGraphProvider(object):
                 lines_by_column.append([])
             return col_index
         
-        def append_line (child_index, parent_index, direct, branch_col_index=None):
+        def append_line (child, parent, direct, col_index=None):
             
-            line_length = parent_index - child_index
-            can_overlap = (branch_col_index is None or not direct) \
+            line_length = parent.f_index - child.f_index
+            can_overlap = (col_index is None or not direct) \
                             and line_length > 1
             
-            parent_node = graph_line_data[parent_index][1]
-            if parent_node:
-                parent_col_index = parent_node[0]
-            else:
-                parent_col_index = None
-            
-            child_node = graph_line_data[child_index][1]
-            if child_node:
-                child_col_index = child_node[0]
-            else:
-                child_col_index = None
-            
             line_col_index = None
-            if branch_col_index is not None:
-                line_col_index = branch_col_index
+            if col_index is not None:
+                line_col_index = col_index
             # Try find a line to a parent that we can overlap on.
-            elif (not direct or branch_col_index is None) \
-                        and parent_index in lines_by_parent_can_overlap:
+            elif (not direct or col_index is None) \
+                        and parent_f_index in lines_by_parent_can_overlap:
                 # ol = overlaping line
-                for (ol_child_index,
+                for (ol_child_f_index,
                      ol_col_index,
-                     ol_direct) in lines_by_parent_can_overlap[parent_index]:
+                     ol_direct) in lines_by_parent_can_overlap[parent_f_index]:
                     if ol_direct == direct \
                             and is_col_free_for_range(ol_col_index,
-                                                      child_index,
-                                                      parent_index,
+                                                      child_f_index,
+                                                      parent_f_index,
                                                       True):
                         line_col_index = ol_col_index
                         break
             #else:
             if line_col_index is None:
-                line_col_index = child_col_index
+                line_col_index = child.col_index
                 if line_length > 1:
-                    col_search_order = line_col_search_order(parent_col_index,
-                                                             child_col_index)
+                    col_search_order = line_col_search_order(parent.col_index,
+                                                             child.col_index)
                     line_col_index = find_free_column(col_search_order,
-                                                      child_index, parent_index)
+                                                      child.f_index,
+                                                      parent.f_index)
             
-            lines.append((child_index,
-                          parent_index,
+            lines.append((child.f_index,
+                          parent.f_index,
                           line_col_index,
                           direct,
                           ))
             if line_col_index is not None:
                 lines_by_column[line_col_index].append(
-                                            (child_index, parent_index))
+                                            (child.f_index, parent.f_index))
             if can_overlap:
-                if parent_index not in lines_by_parent_can_overlap:
-                    lines_by_parent_can_overlap[parent_index] = []
-                lines_by_parent_can_overlap[parent_index].append((child_index,
-                                                                  line_col_index,
-                                                                  direct ))
+                if parent.f_index not in lines_by_parent_can_overlap:
+                    lines_by_parent_can_overlap[parent.f_index] = []
+                lines_by_parent_can_overlap[parent.f_index].append(
+                    (child.f_index,
+                    line_col_index,
+                    direct ))
         
         for branch_id in self.branch_ids:
-            (branch_rev_msri,
-             branch_visible,
-             branch_merges,
-             branch_merged_by) = self.branch_lines[branch_id]
+            branch_line = self.branch_lines[branch_id]
             
-            if branch_visible:
-                branch_rev_msri = [rev_msri for rev_msri in branch_rev_msri
-                                   if rev_msri in msri_index]
+            if branch_line.visible:
+                branch_revs = [rev for rev in branch_line.revs
+                                    if rev.f_index is not None]
             else:
-                branch_rev_msri = []
+                branch_revs = []
                 
-            if branch_rev_msri:
-                color = reduce(lambda x, y: x+y, branch_id, 0)
-                
+            if branch_revs:
                 # In this loop:
                 # * Find visible parents.
                 # * Populate twisty_branch_ids and twisty_state
                 branch_rev_visible_parents = {}
                 
-                for rev_msri in branch_rev_msri:
-                    rev_index = msri_index[rev_msri]
-                    (sequence_number,
-                         revid,
-                         merge_depth,
-                         revno_sequence,
-                         end_of_merge) = self.merge_sorted_revisions[rev_msri]
-                    
+                for rev in branch_revs:
                     # Find parents that are currently visible
-                    rev_visible_parents = []
-                    parents = self.graph_parents[revid]
+                    rev_visible_parents = [] # List of (parent_rev, is_direct)
+                    
+                    
+                    parents = [self.revid_rev[parent_revid]
+                               for parent_revid in self.graph_parents[rev.revid]]
                     # Don't include left hand parents (unless this is the last
                     # revision of the branch.) All of these parents in the
                     # branch can be drawn with one line.
-                    if not rev_msri == branch_rev_msri[-1]:
+                    if not rev.index == branch_revs[-1].index:
                         parents = parents[1:]
                     
-                    for parent_revid in parents:
-                        (parent_msri,
-                         parent_branch_id,
-                         parent_merge_depth) = self.msri_branch_id_merge_depth(parent_revid)
-                        if parent_msri in msri_index:
-                            rev_visible_parents.append((parent_revid,
-                                                        parent_msri,
-                                                        parent_branch_id,
-                                                        parent_merge_depth,
-                                                        True))
+                    for parent in parents:
+                        if parent.f_index is not None:
+                            rev_visible_parents.append((parent, True))
                         else:
-                            if parent_msri in self.merge_info[rev_msri][0] and \
-                               self.get_revision_visible_if_branch_visible_cached(parent_msri):
+                            if parent.index in rev.merges and \
+                               self.get_revision_visible_if_branch_visible_cached(parent.index):
                                 # We merge this revision directly, and it would
                                 # be visible if the user expans it's branch.
                                 # Don't look for non direct parents.
@@ -1126,62 +1182,55 @@ class LogGraphProvider(object):
                             # that is. Stop searching if we make a hop, i.e. we
                             # go away from our branch, and we come back to it.
                             has_seen_different_branch = False
-                            if not parent_branch_id == branch_id:
-                                has_seen_different_branch = True
-                            while parent_revid and parent_msri not in msri_index:
-                                parents = self.graph_parents[parent_revid]
-                                if len(parents) == 0:
-                                    parent_revid = None
-                                else:
-                                    parent_revid = parents[0]
-                                    (parent_msri,
-                                     parent_branch_id,
-                                     parent_merge_depth) = self.msri_branch_id_merge_depth(parent_revid)
-                                if not parent_branch_id == branch_id:
+                            while parent.f_index is None:
+                                if not parent.branch_id == branch_id:
                                     has_seen_different_branch = True
-                                if has_seen_different_branch and parent_branch_id == branch_id:
+                                # find grand parent.
+                                g_parent_ids = self.graph_parents[parent.revid]
+                                
+                                if len(g_parent_ids) == 0:
+                                    parent = None
+                                    break
+                                else:
+                                    parent = self.revid_rev[g_parent_ids[0]]
+                                
+                                if has_seen_different_branch and parent.branch_id == branch_id:
                                     # We have gone away and come back to our
                                     # branch. Stop.
-                                    parent_revid = None
+                                    parent = None
                                     break
-                            if parent_revid:
-                                rev_visible_parents.append((parent_revid,
-                                                            parent_msri,
-                                                            parent_branch_id,
-                                                            parent_merge_depth,
-                                                            False)) # Not Direct
-                    branch_rev_visible_parents[rev_msri]=rev_visible_parents
+                            if parent:
+                                rev_visible_parents.append((parent, False)) # Not Direct
+                    branch_rev_visible_parents[rev.index]=rev_visible_parents
                     
                     # Find and add nessery twisties
-                    for parent_msri in self.merge_info[rev_msri][0]:
-                        parent_branch_id = self.merge_sorted_revisions[parent_msri][3][0:-1]
-                        parent_merge_depth = self.merge_sorted_revisions[parent_msri][2]
+                    for parent_index in rev.merges:
+                        parent = self.revisions[parent_index]
                         
                         # Does this branch have any visible revisions
-                        parent_branch_rev_msri = self.branch_lines[parent_branch_id][0]
-                        for pb_rev_msri in parent_branch_rev_msri:
-                            visible = pb_rev_msri in msri_index or \
-                                self.get_revision_visible_if_branch_visible_cached (pb_rev_msri)
+                        parent_branch_revs = self.branch_lines[parent.branch_id].revs
+                        for pb_rev in parent_branch_revs:
+                            visible = pb_rev.f_index is not None or \
+                                self.get_revision_visible_if_branch_visible_cached (pb_rev.index)
                             if visible:
-                                graph_line_data[rev_index][4].append (parent_branch_id)
+                                rev.twisty_branch_ids.append (parent.branch_id)
                                 break
                     
                     # Work out if the twisty needs to show a + or -. If all
                     # twisty_branch_ids are visible, show - else +.
-                    if len (graph_line_data[rev_index][4])>0:
-                        twisty_state = True
-                        for twisty_branch_id in graph_line_data[rev_index][4]:
-                            if not self.branch_lines[twisty_branch_id][1]:
-                                twisty_state = False
+                    if len (rev.twisty_branch_ids)>0:
+                        rev.twisty_state = True
+                        for twisty_branch_id in rev.twisty_branch_ids:
+                            if not self.branch_lines[twisty_branch_id].visible:
+                                rev.twisty_state = False
                                 break
-                        graph_line_data[rev_index][3] = twisty_state
                 
-                last_parent_msri = None
-                last_rev_msri = branch_rev_msri[-1]
-                if branch_rev_visible_parents[last_rev_msri]:
-                    last_parent = branch_rev_visible_parents[last_rev_msri][0]
-                    last_parent_msri = last_parent[1]
-                    branch_rev_visible_parents[last_rev_msri].pop(0)
+                # Find the first parent of the last rev in the branch line
+                last_parent = None
+                last_rev = branch_revs[-1]
+                if branch_rev_visible_parents[last_rev.index]:
+                    last_parent = branch_rev_visible_parents[last_rev.index][0]
+                    branch_rev_visible_parents[last_rev.index].pop(0)
                 
                 children_with_sprout_lines = {}
                 # In this loop:
@@ -1190,58 +1239,50 @@ class LogGraphProvider(object):
                 #   ones we append from rev_visible_parents so they don't get
                 #   added again later on.
                 # * Append lines to chilren for sprouts.
-                for rev_msri in branch_rev_msri:
-                    rev_index = msri_index[rev_msri]
-                    (sequence_number,
-                         revid,
-                         merge_depth,
-                         revno_sequence,
-                         end_of_merge) = self.merge_sorted_revisions[rev_msri]
-                    
-                    rev_visible_parents = branch_rev_visible_parents[rev_msri]
+                for rev in branch_revs:
+                    rev_visible_parents = branch_rev_visible_parents[rev.index]
                     i = 0
                     while i < len(rev_visible_parents):
-                        (parent_revid,
-                         parent_msri,
-                         parent_branch_id,
-                         parent_merge_depth,
-                         direct) = rev_visible_parents[i]
+                        (parent, direct) = rev_visible_parents[i]
                         
-                        parent_index = msri_index[parent_msri]
-                        if (rev_msri <> last_rev_msri or i > 0 )and \
+                        if (rev.index <> last_rev.index or i > 0 )and \
                            branch_id <> () and \
-                           self.branch_ids.index(parent_branch_id) <= self.branch_ids.index(branch_id) and\
-                           (last_parent_msri and not direct and last_parent_msri >= parent_msri or not last_parent_msri or direct):
+                           self.branch_ids.index(parent.branch_id) <= self.branch_ids.index(branch_id) and\
+                           (last_parent and not direct and last_parent.index >= parent_index or not last_parent or direct):
                             
-                            if parent_index - rev_index >1:
+                            if parent.f_index - rev.f_index >1:
                                 rev_visible_parents.pop(i)
                                 i -= 1
-                                append_line(rev_index, parent_index, direct)
+                                append_line(rev, parent, direct)
                         i += 1
                     
                     # This may be a sprout. Add line to first visible child
-                    merged_by_msri = self.merge_info[rev_msri][1]
-                    if merged_by_msri and\
-                       not merged_by_msri in msri_index and\
-                       rev_msri == self.merge_info[merged_by_msri][0][0]:
-                        # The revision that merges this revision is not
-                        # visible, and it is the first revision that is
-                        # merged by that revision. This is a sprout.
-                        #
-                        # XXX What if multiple merges with --force,
-                        # aka ocutpus merge?
-                        #
-                        # Search until we find a decendent that is visible.
-                        child_msri = self.merge_info[rev_msri][1]
-                        while not child_msri is None and \
-                              not child_msri in msri_index:
-                            child_msri = self.merge_info[child_msri][1]
-                        # Ensure only one line to a decendent.
-                        if child_msri not in children_with_sprout_lines:
-                            children_with_sprout_lines[child_msri] = True
-                            if child_msri in msri_index:
-                                child_index = msri_index[child_msri]
-                                append_line(child_index, rev_index, False)
+                    if rev.merged_by is not None:
+                        merged_by = self.revisions[rev.merged_by]
+                        if merged_by.f_index is None and\
+                           rev.index == merged_by.merges[0]:
+                            # The revision that merges this revision is not
+                            # visible, and it is the first revision that is
+                            # merged by that revision. This is a sprout.
+                            #
+                            # XXX What if multiple merges with --force,
+                            # aka ocutpus merge?
+                            #
+                            # Search until we find a decendent that is visible.
+                            
+                            while merged_by is not None and \
+                                  merged_by.f_index is None:
+                                if merged_by.merged_by is not None:
+                                    merged_by = self.revisions[merged_by.merged_by]
+                                else:
+                                    merged_by = None
+                            
+                            if merged_by is not None:
+                                # Ensure only one line to a decendent.
+                                if merged_by.index not in children_with_sprout_lines:
+                                    children_with_sprout_lines[merged_by.index] = True
+                                    if merged_by.f_index is not None:
+                                        append_line(merged_by, rev, False)
                 
                 # Find a column for this branch.
                 #
@@ -1249,13 +1290,10 @@ class LogGraphProvider(object):
                 # be the starting point when looking for a free column.
                 
                 parent_col_index = 0
-                parent_index = None
+                parent_f_index = None
                 
-                if last_parent_msri:
-                    parent_index = msri_index[last_parent_msri]
-                    parent_node = graph_line_data[parent_index][1]
-                    if parent_node:
-                        parent_col_index = parent_node[0]
+                if last_parent and last_parent[0].col_index is not None:
+                    parent_col_index = last_parent[0].col_index
                 
                 if not branch_id == ():
                     parent_col_index = max(parent_col_index, 1)
@@ -1263,88 +1301,71 @@ class LogGraphProvider(object):
                 col_search_order = branch_line_col_search_order(parent_col_index) 
                 cur_cont_line = []
                 
-                # Work out what rows this branch spans
-                line_range = []
-                first_rev_index = msri_index[branch_rev_msri[0]]
-                last_rev_index = msri_index[branch_rev_msri[-1]]
-                line_range = range(first_rev_index, last_rev_index+1)
-                
-                if parent_index:
+                if last_parent:
                     col_index = find_free_column(col_search_order,
-                                                 first_rev_index, parent_index)
+                                                 branch_revs[0].f_index,
+                                                 last_parent[0].f_index)
                 else:
                     col_index = find_free_column(col_search_order,
-                                                 first_rev_index, last_rev_index)
-                node = (col_index, color)
+                                                 branch_revs[0].f_index,
+                                                 branch_revs[-1].f_index)
+                
                 # Free column for this branch found. Set node for all
                 # revision in this branch.
-                for rev_msri in branch_rev_msri:
-                    rev_index = msri_index[rev_msri]
-                    graph_line_data[rev_index][1] = node
+                for rev in branch_revs:
+                    rev.col_index = col_index
                 
-                append_line(first_rev_index, last_rev_index, True, col_index)
-                if last_parent_msri:
-                    append_line(last_rev_index, parent_index,
-                                last_parent[4], col_index)
+                append_line(branch_revs[0], branch_revs[-1], True, col_index)
+                if last_parent:
+                    append_line(branch_revs[-1], last_parent[0],
+                                last_parent[1], col_index)
                 
                 # In this loop:
                 # * Append the remaining lines to parents.
-                for rev_msri in reversed(branch_rev_msri):
-                    rev_index = msri_index[rev_msri]
-                    (sequence_number,
-                         revid,
-                         merge_depth,
-                         revno_sequence,
-                         end_of_merge) = self.merge_sorted_revisions[rev_msri]
-                    for (parent_revid,
-                         parent_msri,
-                         parent_branch_id,
-                         parent_merge_depth,
-                         direct) in branch_rev_visible_parents[rev_msri]:
-                        
-                        parent_index = msri_index[parent_msri]
-                        append_line(rev_index, parent_index, direct)
+                for rev in reversed(branch_revs):
+                    for (parent, direct) in branch_rev_visible_parents[rev.index]:
+                        append_line(rev, parent, direct)
         
         # It has now been calculated which column a line must go into. Now
         # copy the lines in to graph_line_data.
-        for (child_index,
-             parent_index,
+        for (child_f_index,
+             parent_f_index,
              line_col_index,
              direct,
              ) in lines:
             
-            (child_col_index, child_color) = graph_line_data[child_index][1]
-            (parent_col_index, parent_color) = graph_line_data[parent_index][1]
+            child = self.filtered_revs[child_f_index]
+            parent = self.filtered_revs[parent_f_index]
             
-            line_length = parent_index - child_index
+            line_length = parent_f_index - child_f_index
             if line_length == 0:
                 # Nothing to do
                 pass
             elif line_length == 1:
-                graph_line_data[child_index][2].append(
-                    (child_col_index,
-                     parent_col_index,
-                     parent_color,
+                child.lines.append(
+                    (child.col_index,
+                     parent.col_index,
+                     parent.color,
                      direct))
             else:
                 # line from the child's column to the lines column
-                graph_line_data[child_index][2].append(
-                    (child_col_index,
+                child.lines.append(
+                    (child.col_index,
                      line_col_index,
-                     parent_color,
+                     parent.color,
                      direct))
                 # lines down the line's column
-                for line_part_index in range(child_index+1, parent_index-1):
-                    graph_line_data[line_part_index][2].append(
-                        (line_col_index,   
+                for line_part_f_index in range(child_f_index+1, parent_f_index-1):
+                    self.filtered_revs[line_part_f_index].lines.append(
+                        (line_col_index,
                          line_col_index,
-                         parent_color,
+                         parent.color,
                          direct))
                 # line from the line's column to the parent's column
-                graph_line_data[parent_index-1][2].append(
+                self.filtered_revs[parent.f_index-1].lines.append(
                     (line_col_index,
-                     parent_col_index,
-                     parent_color,
+                     parent.col_index,
+                     parent.color,
                      direct))
         
         self.branch_tags = {}
@@ -1353,8 +1374,8 @@ class LogGraphProvider(object):
             top_visible_revid = None
             
             for unique_revid in unique_revids:
-                msri = self.revid_msri[unique_revid]
-                if msri in msri_index:
+                rev = self.revid_rev[unique_revid]
+                if rev.f_index is not None:
                     top_visible_revid = unique_revid
                     break
             
@@ -1363,49 +1384,35 @@ class LogGraphProvider(object):
                               is_branch_last_revision) in head_info]
             if top_visible_revid:
                 self.branch_tags[top_visible_revid] = tags
-        
-        self.msri_index = msri_index
-        self.graph_line_data = graph_line_data
-
-    def msri_branch_id_merge_depth (self, revid):
-        msri = self.revid_msri[revid]
-        (sequence_number,
-            revid,
-            merge_depth,
-            revno_sequence,
-            end_of_merge) = self.merge_sorted_revisions[msri]
-        branch_id = revno_sequence[0:-1]
-        return (msri, branch_id, merge_depth)
     
     def set_branch_visible(self, branch_id, visible, has_change):
-        if not self.branch_lines[branch_id][1] == visible:
+        if not self.branch_lines[branch_id].visible == visible:
             has_change = True
-        self.branch_lines[branch_id][1] = visible
+        self.branch_lines[branch_id].visible = visible
         return has_change
     
     def ensure_rev_visible(self, revid):
         if self.no_graph:
             return False
         
-        rev_msri = self.revid_msri[revid]
-        branch_id = self.merge_sorted_revisions[rev_msri][3][0:-1]
+        branch_id = self.revid_rev[revid].branch_id
         has_change = self.set_branch_visible(branch_id, True, False)
-        while not branch_id in self.start_branch_ids and self.branch_lines[branch_id][3]:
-            branch_id = self.branch_lines[branch_id][3][0]
-            has_change = self.set_branch_visible(branch_id, True, has_change)
+        #while (not branch_id in self.start_branch_ids and
+        #       self.branch_lines[branch_id].merged_by):
+        #    branch_id = self.branch_lines[branch_id].merged_by[0]
+        #    has_change = self.set_branch_visible(branch_id, True, has_change)
         return has_change
 
     def has_visible_child(self, branch_id):
-        for child_branch_id in self.branch_lines[branch_id][3]:
-            if self.branch_lines[child_branch_id][1]:
+        for child_branch_id in self.branch_lines[branch_id].merged_by:
+            if self.branch_lines[child_branch_id].visible:
                 return True
         return False
 
     def colapse_expand_rev(self, revid, visible):
-        msri = self.revid_msri[revid]
-        if msri not in self.msri_index: return
-        index = self.msri_index[msri]
-        branch_ids = self.graph_line_data[index][4]
+        rev = self.revid_rev[revid]
+        #if rev.f_index is not None: return
+        branch_ids = list(rev.twisty_branch_ids)
         processed_branch_ids = []
         has_change = False
         while branch_ids:
@@ -1415,47 +1422,66 @@ class LogGraphProvider(object):
                                                  visible,
                                                  has_change)
             if not visible:
-                for parent_branch_id in self.branch_lines[branch_id][2]:
-                    if parent_branch_id not in branch_ids and \
-                                parent_branch_id not in processed_branch_ids:
+                for parent_branch_id in self.branch_lines[branch_id].merges:
+                    parent = self.branch_lines[parent_branch_id]
+                    if (parent.visible and 
+                            parent_branch_id not in branch_ids and 
+                            parent_branch_id not in processed_branch_ids):
                         branch_ids.append(parent_branch_id)
         return has_change
 
     def has_rev_id(self, revid):
-        return revid in self.revid_msri
+        return revid in self.revid_rev
     
     def revid_from_revno(self, revno):
-        if revno not in self.revno_msri:
+        if revno not in self.revno_index:
             return None
-        msri = self.revno_msri[revno]
-        return self.merge_sorted_revisions[msri][1]
-        
+        rev = self.revno_rev[revno]
+        return rev.revid
+    
     def find_child_branch_merge_revision(self, revid):
-        msri = self.revid_msri[revid]
-        merged_by_msri = self.merge_info[msri][1]
-        if merged_by_msri:
-            return self.merge_sorted_revisions[merged_by_msri][1]
+        rev = self.revid_rev[revid]
+        if rev.merged_by:
+            return self.revisions[rev.merged_by].revid
         else:
             return None
 
     def search_indexes(self):
-        for (tree,
-             branch,
-             index) in self.branches():
-            if index is not None:
-                yield index
+        for bi in self.branches:
+            if bi.index is not None:
+                yield bi.index
     
     def set_search(self, str, field):
+        """Set search string for specified kind of data.
+        @param  str:    string to search (interpreted based on field value)
+        @param  field:  kind of data to search, based on some field
+            of revision metadata. Possible values:
+                - message
+                - index (require bzr-search plugin)
+                - author
+                - tag
+                - bug
+
+        Value of `str` interpreted based on field value. For index it's used
+        as input value for bzr-search engine.
+        For message, author, tag and bug it's used as shell pattern
+        (glob pattern) to search in corresponding metadata of revisions.
+        """
         self.sr_field = field
         
-        def revisions_loaded(revids, last_call):
-            msris = [self.revid_msri[revid] for revid in revids]
-            self.invaladate_filter_cache_revs(msris, last_call)
+        def revisions_loaded(revisions, last_call):
+            indexes = [self.revid_rev[revid].index
+                       for revid in revisions.iterkeys()]
+            self.invaladate_filter_cache_revs(indexes, last_call)
         
         def before_batch_load(repo, revids):
             if self.sr_filter_re is None:
                 return True
             return False
+
+        def wildcard2regex(wildcard):
+            """Translate shel pattern to regexp."""
+            return fnmatch.translate(wildcard).rstrip('$')
         
         if str is None or str == u"":
             self.sr_filter_re = None
@@ -1483,7 +1509,7 @@ class LogGraphProvider(object):
                                 pass
             elif self.sr_field == "tag":
                 self.sr_filter_re = None
-                filter_re = re.compile(str, re.IGNORECASE)
+                filter_re = re.compile(wildcard2regex(str), re.IGNORECASE)
                 self.sr_index_matched_revids = {}
                 for revid in self.tags:
                     for t in self.tags[revid]:
@@ -1491,7 +1517,8 @@ class LogGraphProvider(object):
                             self.sr_index_matched_revids[revid] = True
                             break
             else:
-                self.sr_filter_re = re.compile(str, re.IGNORECASE)
+                self.sr_filter_re = re.compile(wildcard2regex(str),
+                    re.IGNORECASE)
                 self.sr_index_matched_revids = None
             
             self.invaladate_filter_cache()
@@ -1499,12 +1526,7 @@ class LogGraphProvider(object):
             if self.sr_filter_re is not None\
                and not self.sr_loading_revisions:
                 
-                revids = [revid for (sequence_number,
-                                     revid,
-                                     merge_depth,
-                                     revno_sequence,
-                                     end_of_merge)\
-                          in self.merge_sorted_revisions ]
+                revids = [rev.revid for rev in self.revisions ]
                 
                 self.load_revisions(revids,
                                     time_before_first_ui_update = 0,
@@ -1513,33 +1535,16 @@ class LogGraphProvider(object):
                                     before_batch_load = before_batch_load,
                                     revisions_loaded = revisions_loaded)
     
-    def revision(self, revid, force_load=False):
-        """Load and return a revision from a repository.
-        
-        If loading from a remote repository, this function will return None,
-        and you will be notified when the revision has been loaded by
-        revisions_loaded. At which point, you can call this function again.
-        This is to allow you not to block your ui.
-        
-        """
-        if revid not in self.revisions:
-            if force_load:
-                self.load_revisions([revid])
-            else:
-                return None
-        
-        return self.revisions[revid]
-    
     def get_revid_branch(self, revid):
-        if len(self.branches())==1 and revid not in self.revid_branch:
-            return self.branches()[0][1]
+        if len(self.branches)==1 and revid not in self.revid_branch:
+            return self.branches[0].branch
         return self.revid_branch[revid]
     
     def get_revid_repo(self, revid):
         return self.get_revid_branch(revid).repository
     
     def get_repo_revids(self, revids):
-        """Returns dict maping repo to it revisions"""
+        """Returns list of typle of (repo, revids)"""
         repo_revids = {}
         for repo_base in self.repos.iterkeys():
             repo_revids[repo_base] = []
@@ -1553,91 +1558,13 @@ class LogGraphProvider(object):
             repo = self.get_revid_repo(revid)
             repo_revids[repo.base].append(revid)
         
-        return repo_revids
+        return [(repo, repo_revids[repo.base])
+                        for repo in self.repos_sorted_local_first()]
     
     def load_revisions(self, revids,
-                       time_before_first_ui_update = 0.5,
-                       local_batch_size = 30,
-                       remote_batch_size = 5,
-                       before_batch_load = None,
-                       revisions_loaded = None,
-                       pass_prev_loaded_rev = False):
-        
-        start_time = clock()
-        showed_throbber = False
-        revids = [revid for revid in revids if not revid == "root:"]
-        org_revids = revids
-        
-        try:
-            if pass_prev_loaded_rev and revisions_loaded is not None:
-                revisions_loaded([revid for revid in revids \
-                                  if revid in self.revisions], False)
-            
-            revids_loaded = []
-            revids = [revid for revid in revids if revid not in self.revisions\
-                      and not revid == "root:"]
-            if revids:
-                repo_revids = self.get_repo_revids(revids)        
-                for repo in self.repos_sorted_local_first():
-                    
-                    if repo.is_local:
-                        batch_size = local_batch_size
-                    else:
-                        batch_size = remote_batch_size
-                    
-                    revids = [revid for revid in repo_revids[repo.base]\
-                              if revid not in revids_loaded]
-                    if revids:
-                        repo.lock_read()
-                        try:
-                            if not repo.is_local:
-                                self.update_ui()
-                            
-                            for offset in range(0, len(revids), batch_size):
-                                
-                                running_time = clock() - start_time
-                                
-                                if time_before_first_ui_update < running_time:
-                                    if revisions_loaded is not None:
-                                        revisions_loaded(revids_loaded, False)
-                                        revids_loaded = []
-                                    if not showed_throbber:
-                                        self.throbber_show()
-                                        showed_throbber = True
-                                    self.update_ui()
-                                
-                                batch_revids = revids[offset:offset+batch_size]
-                                
-                                if before_batch_load is not None:
-                                    stop = before_batch_load(repo, batch_revids)
-                                    if stop:
-                                        break
-                                
-                                revisions = repo.get_revisions(batch_revids)
-                                for rev in revisions:
-                                    revids_loaded.append(rev.revision_id)
-                                    rev.repository = repo
-                                    self.post_revision_load(rev)
-                        finally:
-                            repo.unlock()
-                
-                if revisions_loaded is not None:
-                    revisions_loaded(revids_loaded, True)
-        finally:
-            if showed_throbber:
-                self.throbber_hide()
-    
-    def post_revision_load(self, revision):
-        self.revisions[revision.revision_id] = revision
-        if revision.revision_id in self.revid_msri:
-            revno_sequence = self.merge_sorted_revisions[self.revid_msri[revision.revision_id]][3]
-            revision.revno = ".".join(["%d" % (revno)
-                                      for revno in revno_sequence])
-        else:
-            revision.revno = ""
-        revision.tags = sorted(self.tags.get(revision.revision_id, []))
-        revision.child_ids = self.graph_children.get(revision.revision_id, [])
-        revision.branch = self.get_revid_branch(revision.revision_id)
+                      *args, **kargs):
+        return load_revisions(revids, self.get_repo_revids,
+                              *args, **kargs)
     
     def revisions_filter_changed(self):
         pass

@@ -23,11 +23,16 @@ from PyQt4 import QtCore, QtGui
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.wtlist import (
-    ChangeDesc,
-    WorkingTreeFileList,
-    closure_in_selected_list,
+from bzrlib.plugins.qbzr.lib.treewidget import (
+    TreeWidget,
+    SelectAllCheckBox,
     )
+from bzrlib.plugins.qbzr.lib.util import (
+    ThrobberWidget,
+    runs_in_loading_queue,
+    )
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.plugins.qbzr.lib.trace import reports_exception
 
 
 class AddWindow(SubProcessDialog):
@@ -46,22 +51,40 @@ class AddWindow(SubProcessDialog):
                                   hide_progress=True,
                                   )
     
+        self.throbber = ThrobberWidget(self)
+
         # Display the list of unversioned files
         groupbox = QtGui.QGroupBox(gettext("Unversioned Files"), self)
         vbox = QtGui.QVBoxLayout(groupbox)
 
-        self.filelist = WorkingTreeFileList(groupbox, self.tree)
-        vbox.addWidget(self.filelist)
-        self.filelist.sortItems(0, QtCore.Qt.AscendingOrder)
-        self.filelist.setup_actions()
+        self.filelist = TreeWidget(groupbox)
+        self.filelist.throbber = self.throbber
+        self.filelist.tree_model.is_item_in_select_all = lambda item: (
+            item.change is not None and
+            item.change.is_ignored() is None and
+            not item.change.is_versioned())
         
-        selectall_checkbox = QtGui.QCheckBox(
-            gettext(self.filelist.SELECTALL_MESSAGE),
-            groupbox)
+        def filter_context_menu():
+            items = self.filelist.get_selection_items()
+            single_file = (len(items) == 1 and items[0].item.kind == "file")
+            
+            self.filelist.action_open_file.setEnabled(True)
+            self.filelist.action_open_file.setVisible(True)
+            self.filelist.action_show_file.setEnabled(single_file)
+            self.filelist.action_show_file.setVisible(True)
+            self.filelist.action_show_annotate.setVisible(False)
+            self.filelist.action_show_log.setVisible(False)
+            self.filelist.action_show_diff.setVisible(False)
+            self.filelist.action_add.setVisible(False)
+            self.filelist.action_revert.setVisible(False)
+        self.filelist.filter_context_menu = filter_context_menu
+        
+        vbox.addWidget(self.filelist)
+        
+        selectall_checkbox = SelectAllCheckBox(self.filelist, groupbox)
         vbox.addWidget(selectall_checkbox)
         selectall_checkbox.setCheckState(QtCore.Qt.Checked)
         selectall_checkbox.setEnabled(True)
-        self.filelist.set_selectall_checkbox(selectall_checkbox)
 
         self.show_ignored_checkbox = QtGui.QCheckBox(
             gettext("Show ignored files"),
@@ -69,15 +92,9 @@ class AddWindow(SubProcessDialog):
         vbox.addWidget(self.show_ignored_checkbox)
         self.connect(self.show_ignored_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_ignored)
         
-        self.tree.lock_read()
-        try:
-            self.filelist.fill(self.iter_changes_and_state())
-        finally:
-            self.tree.unlock()
-
         # groupbox gets disabled as we are executing.
         QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessStarted(bool)"),
+                               QtCore.SIGNAL("disableUi(bool)"),
                                groupbox,
                                QtCore.SLOT("setDisabled(bool)"))
 
@@ -88,44 +105,39 @@ class AddWindow(SubProcessDialog):
         self.restoreSplitterSizes([150, 150])
 
         layout = QtGui.QVBoxLayout(self)
+        layout.addWidget(self.throbber)
         layout.addWidget(self.splitter)
         layout.addWidget(self.buttonbox)
+        self.throbber.show()
 
-    def iter_changes_and_state(self):
-        """An iterator for the WorkingTreeFileList widget"""
 
-        in_selected_list = closure_in_selected_list(self.initial_selected_list)
+    def show(self):
+        SubProcessDialog.show(self)
+        QtCore.QTimer.singleShot(1, self.initial_load)
 
-        show_ignored = self.show_ignored_checkbox.isChecked()
+    @runs_in_loading_queue
+    @ui_current_widget
+    @reports_exception()
+    def initial_load(self):
+        self.filelist.tree_model.checkable = True
+        fmodel = self.filelist.tree_filter_model
+        fmodel.setFilter(fmodel.CHANGED, False)
+        self.filelist.set_tree(self.tree, changes_mode = True,
+            initial_checked_paths=self.initial_selected_list) 
+        self.throbber.hide()
 
-        for desc in self.tree.iter_changes(self.tree.basis_tree(),
-                                           want_unversioned=True):
-
-            desc = ChangeDesc(desc)
-            if desc.is_versioned():
-                continue
-
-            pit = desc.path()
-            visible = show_ignored or not self.tree.is_ignored(pit)
-            check_state = visible and in_selected_list(pit)
-            yield desc, visible, check_state
-
-    def start(self):
+    def do_start(self):
         """Add the files."""
-        files = []
-        for desc in self.filelist.iter_checked():
-            files.append(desc.path())
+        files = [ref.path for ref in self.filelist.tree_model.iter_checked()]
         
-        self.process_widget.start(self.tree.basedir, "add", *files)
+        self.process_widget.do_start(self.tree.basedir, "add", "--no-recurse",
+            *files)
 
     def show_ignored(self, state):
         """Show/hide ignored files."""
-        state = not state
-        for (tree_item, change_desc) in self.filelist.iter_treeitem_and_desc(True):
-            path = change_desc.path()
-            if self.tree.is_ignored(path):
-                self.filelist.set_item_hidden(tree_item, state)
-        self.filelist.update_selectall_state(None, None)
+        fmodel = self.filelist.tree_filter_model
+        fmodel.setFilter(fmodel.IGNORED, state)
+        #self.filelist.update_selectall_state(None, None)
 
     def saveSize(self):
         SubProcessDialog.saveSize(self)

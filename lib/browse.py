@@ -17,51 +17,30 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from time import clock
 from PyQt4 import QtCore, QtGui
 from bzrlib import (
     osutils,
     errors,
     )
-from bzrlib.branch import Branch
-from bzrlib.osutils import pathjoin
+from bzrlib.bzrdir import BzrDir
 from bzrlib.revisionspec import RevisionSpec
 
-from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
-from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.log import LogWindow
+from bzrlib.plugins.qbzr.lib.treewidget import TreeWidget, TreeFilterMenu
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
+    BTN_REFRESH,
+    StandardButton,
     QBzrWindow,
     ThrobberWidget,
-    extract_name,
-    format_timestamp,
-    get_set_encoding,
     runs_in_loading_queue,
     url_for_display,
-    get_summary,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
-
-
-class FileTreeWidget(QtGui.QTreeWidget):
-
-    def __init__(self, window, *args):
-        QtGui.QTreeWidget.__init__(self, *args)
-        self.window = window
-
-    def contextMenuEvent(self, event):
-        self.window.context_menu.popup(event.globalPos())
-        event.accept()
-
+from bzrlib.plugins.qbzr.lib.diff import DiffButtons
 
 class BrowseWindow(QBzrWindow):
-
-    NAME, DATE, AUTHOR, REV, MESSAGE = range(5)     # indices of columns in the window
-
-    FILEID = QtCore.Qt.UserRole + 1
 
     def __init__(self, branch=None, location=None, revision=None,
                  revision_id=None, revision_spec=None, parent=None):
@@ -74,6 +53,7 @@ class BrowseWindow(QBzrWindow):
                 location = osutils.getcwd()
             self.location = location
         
+        self.workingtree = None
         self.revision_id = revision_id
         self.revision_spec = revision_spec
         self.revision = revision
@@ -96,42 +76,46 @@ class BrowseWindow(QBzrWindow):
         hbox.addWidget(self.location_edit, 7)
         hbox.addWidget(QtGui.QLabel(gettext("Revision:")))
         self.revision_edit = QtGui.QLineEdit()
+        self.connect(self.revision_edit,
+                     QtCore.SIGNAL("returnPressed()"), self.reload_tree)
         hbox.addWidget(self.revision_edit, 1)
         self.show_button = QtGui.QPushButton(gettext("Show"))
-        self.connect(self.show_button, QtCore.SIGNAL("clicked()"), self.reload_tree)
+        self.connect(self.show_button,
+                     QtCore.SIGNAL("clicked()"), self.reload_tree)
         hbox.addWidget(self.show_button, 0)
+        
+        self.filter_menu = TreeFilterMenu(self)
+        self.filter_button = QtGui.QPushButton(gettext("&Filter"))
+        self.filter_button.setMenu(self.filter_menu)
+        hbox.addWidget(self.filter_button, 0)
+        self.connect(self.filter_menu,
+                     QtCore.SIGNAL("triggered(int, bool)"),
+                     self.filter_triggered)
+        
         vbox.addLayout(hbox)
-
-        self.file_tree = FileTreeWidget(self)
-        self.file_tree.setHeaderLabels([
-            gettext("Name"),
-            gettext("Date"),
-            gettext("Author"),
-            gettext("Rev"),
-            gettext("Message"),
-            ])
-        header = self.file_tree.header()
-        header.setResizeMode(self.NAME, QtGui.QHeaderView.ResizeToContents)
-        header.setResizeMode(self.REV, QtGui.QHeaderView.ResizeToContents)
-
-        self.context_menu = QtGui.QMenu(self.file_tree)
-        self.context_menu.addAction(gettext("Show log..."), self.show_file_log)
-        self.context_menu.addAction(gettext("Annotate"), self.show_file_annotate)
-        self.context_menu.setDefaultAction(
-            self.context_menu.addAction(gettext("View file"),
-                                        self.show_file_content))
-
-        self.connect(self.file_tree,
-                     QtCore.SIGNAL("doubleClicked(QModelIndex)"),
-                     self.show_file_content)
-
-        self.dir_icon = self.style().standardIcon(QtGui.QStyle.SP_DirIcon)
-        self.file_icon = self.style().standardIcon(QtGui.QStyle.SP_FileIcon)
-
+        
+        self.file_tree = TreeWidget(self)
+        self.file_tree.throbber = self.throbber
         vbox.addWidget(self.file_tree)
-
+        
+        self.filter_menu.set_filters(self.file_tree.tree_filter_model.filters)
+        
         buttonbox = self.create_button_box(BTN_CLOSE)
-        vbox.addWidget(buttonbox)
+        
+        self.refresh_button = StandardButton(BTN_REFRESH)
+        buttonbox.addButton(self.refresh_button, QtGui.QDialogButtonBox.ActionRole)
+        self.connect(self.refresh_button,
+                     QtCore.SIGNAL("clicked()"),
+                     self.file_tree.refresh)
+
+        self.diffbuttons = DiffButtons(self.centralwidget)
+        self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
+                     self.file_tree.show_differences)
+        
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(self.diffbuttons)
+        hbox.addWidget(buttonbox)
+        vbox.addLayout(hbox)
 
         self.windows = []
 
@@ -147,180 +131,109 @@ class BrowseWindow(QBzrWindow):
         self.throbber.show()
         self.processEvents()
         try:
+            self.revno_map = None
             if not self.branch:
-                self.branch, path = Branch.open_containing(self.location) 
+                (self.workingtree,
+                 self.branch,
+                 repo, path) = BzrDir.open_containing_tree_branch_or_repository(self.location)
             
             if self.revision is None:
                 if self.revision_id is None:
-                    revno, self.revision_id = self.branch.last_revision_info()
-                    self.revision_spec = str(revno)
+                    if self.workingtree is not None:
+                        self.revision_spec = "wt:"
+                    else:
+                        revno, self.revision_id = self.branch.last_revision_info()
+                        self.revision_spec = str(revno)
                 self.set_revision(revision_id=self.revision_id, text=self.revision_spec)
             else:
                 self.set_revision(self.revision)
+            
+            self.processEvents()
+            
         finally:
             self.throbber.hide()
-    
-    def get_current_file_id(self):
-        '''Gets the file_id for the currently selected item, or returns
-        the root_file_id if nothing is currently selected.'''
 
-        item = self.file_tree.currentItem()
-        if item == None:
-            file_id = self.root_file_id
-        else:
-            file_id = unicode(item.data(self.NAME, self.FILEID).toString())
-
-        return file_id
-
-    def load_file_tree(self, entry, parent_item):
-        files, dirs = [], []
-        revs = set()
-        for name, child in entry.sorted_children():
-            revs.add(child.revision)
-            if child.kind == "directory":
-                dirs.append(child)
-            else:
-                files.append(child)
-            
-            current_time = clock()
-            if 0.1 < current_time - self.start_time:
-                self.processEvents()
-                self.start_time = clock()
-            
-        for child in dirs:
-            item = QtGui.QTreeWidgetItem(parent_item)
-            item.setIcon(self.NAME, self.dir_icon)
-            item.setText(self.NAME, child.name)
-            item.setData(self.NAME, self.FILEID,
-                                        QtCore.QVariant(child.file_id))
-            revs.update(self.load_file_tree(child, item))
-            self.items.append((item, child.revision))
-        for child in files:
-            item = QtGui.QTreeWidgetItem(parent_item)
-            item.setIcon(self.NAME, self.file_icon)
-            item.setText(self.NAME, child.name)
-            item.setData(self.NAME, self.FILEID,
-                                        QtCore.QVariant(child.file_id))
-            self.items.append((item, child.revision))
-        return revs
-
-    def get_current_path(self):
-        # Get selected item.
-        item = self.file_tree.currentItem()
-        if item == None: return
-
-        # Build full item path.
-        path_parts = [unicode(item.text(0))]
-        parent = item.parent()
-        while parent is not None:
-            path_parts.append(unicode(parent.text(0)))
-            parent = parent.parent()
-        #path_parts.append('.')      # IMO with leading ./ path looks better
-        path_parts.reverse()
-        return pathjoin(*path_parts)
-    
-    @runs_in_loading_queue
-    @ui_current_widget
-    def show_file_content(self, index=None):
-        """Launch qcat for one selected file."""
-        # XXX - We just ignore index - which gets passed to us when the user
-        # dbl clicks on a file. We should be able to pass index to
-        # get_current_path to make this more reusable.
-        path = self.get_current_path()
-
-        tree = self.branch.repository.revision_tree(self.revision_id)
-        encoding = get_set_encoding(None, self.branch)
-        window = QBzrCatWindow(filename = path, tree = tree, parent=self,
-            encoding=encoding)
-        window.show()
-        self.windows.append(window)
-
-    @ui_current_widget
-    def show_file_log(self):
-        """Show qlog for one selected file."""
-        branch = self.branch
-        
-        file_id = self.get_current_file_id()
-
-        window = LogWindow(None, branch, file_id)
-        window.show()
-        self.windows.append(window)
-    
-    @ui_current_widget
-    def show_file_annotate(self):
-        """Show qannotate for selected file."""
-        path = self.get_current_path()
-
-        branch = self.branch
-        tree = self.branch.repository.revision_tree(self.revision_id)
-        file_id = self.get_current_file_id()
-        window = AnnotateWindow(branch, tree, path, file_id)
-        window.show()
-        self.windows.append(window)
     
     @ui_current_widget
     def set_revision(self, revspec=None, revision_id=None, text=None):
-        branch = self.branch
-        branch.lock_read()
-        self.processEvents()
-        revno_map = branch.get_revision_id_to_revno_map()   # XXX make this operation lazy? how?
-        self.processEvents()
+        self.throbber.show()
         try:
-            if revision_id is None:
-                text = revspec.spec or ''
-                if revspec.in_branch == revspec.in_history:
-                    args = [branch]
-                else:
-                    args = [branch, False]
+            buttons = (self.filter_button,
+                       self.diffbuttons,
+                       self.refresh_button)
+            state = self.file_tree.get_state()
+            if text=="wt:":
+                self.tree = self.workingtree
+                self.tree.lock_read()
                 try:
-                    revision_id = revspec.in_branch(*args).rev_id
-                except errors.InvalidRevisionSpec, e:
-                    QtGui.QMessageBox.warning(self,
-                        "QBzr - " + gettext("Browse"), str(e),
-                        QtGui.QMessageBox.Ok)
-                    return
-            self.items = []
-            self.file_tree.invisibleRootItem().takeChildren()
-            self.revision_id = revision_id
-            tree = branch.repository.revision_tree(revision_id)
-            self.processEvents()
-            root_file_id = tree.path2id('.')
-            if root_file_id is not None:
-                self.start_time = clock()
-                revs = self.load_file_tree(tree.inventory[root_file_id],
-                                           self.file_tree)
-                revs = dict(zip(revs, branch.repository.get_revisions(list(revs))))
+                    self.file_tree.set_tree(self.workingtree, self.branch)
+                    self.file_tree.restore_state(state)
+                finally:
+                    self.tree.unlock()
+                for button in buttons:
+                    button.setEnabled(True)
             else:
-                revs = {}
+                branch = self.branch
+                branch.lock_read()
+                self.processEvents()
+                
+                for button in buttons:
+                    button.setEnabled(False)
+                fmodel = self.file_tree.tree_filter_model
+                fmodel.setFilter(fmodel.UNCHANGED, True)
+                self.filter_menu.set_filters(fmodel.filters)            
+                
+                try:
+                    if revision_id is None:
+                        text = revspec.spec or ''
+                        if revspec.in_branch == revspec.in_history:
+                            args = [branch]
+                        else:
+                            args = [branch, False]
+                        
+                        revision_id = revspec.in_branch(*args).rev_id
+                    
+                    self.revision_id = revision_id
+                    self.tree = branch.repository.revision_tree(revision_id)
+                    self.processEvents()
+                    self.file_tree.set_tree(self.tree, self.branch)
+                    self.file_tree.restore_state(state)
+                    if self.revno_map is None:
+                        self.processEvents()
+                        # XXX make this operation lazy? how?
+                        self.revno_map = self.branch.get_revision_id_to_revno_map()
+                    self.file_tree.tree_model.set_revno_map(self.revno_map)
+                finally:
+                    branch.unlock()
+            self.revision_edit.setText(text)
         finally:
-            branch.unlock()
-        self.revision_edit.setText(text)
-        for item, revision_id in self.items:
-            rev = revs[revision_id]
-            revno = ''
-            rt = revno_map.get(revision_id)
-            if rt:
-                revno = '.'.join(map(str, rt))
-            item.setText(self.REV, revno)
-            item.setText(self.DATE, format_timestamp(rev.timestamp))
-            author = rev.properties.get('author', rev.committer)
-            item.setText(self.AUTHOR, extract_name(author))
-            item.setText(self.MESSAGE, get_summary(rev))
+            self.throbber.hide()
 
     @ui_current_widget
     def reload_tree(self):
         revstr = unicode(self.revision_edit.text())
         if not revstr:
-            revno, revision_id = self.branch.last_revision_info()
-            revision_spec = str(revno)
+            if self.workingtree is not None:
+                revision_spec = "wt:"
+                revision_id = None
+            else:
+                revno, revision_id = self.branch.last_revision_info()
+                self.revision_spec = str(revno)
             self.set_revision(revision_id=revision_id, text=revision_spec)
         else:
-            try:
-                revspec = RevisionSpec.from_string(revstr)
-            except errors.NoSuchRevisionSpec, e:
-                QtGui.QMessageBox.warning(self,
-                    "QBzr - " + gettext("Browse"), str(e),
-                    QtGui.QMessageBox.Ok)
-                return
-            self.set_revision(revspec)
+            if revstr == "wt:":
+                revision_spec = "wt:"
+                revision_id = None                
+                self.set_revision(revision_id=revision_id, text=revision_spec)
+            else:
+                try:
+                    revspec = RevisionSpec.from_string(revstr)
+                except errors.NoSuchRevisionSpec, e:
+                    QtGui.QMessageBox.warning(self,
+                        gettext("Browse"), str(e),
+                        QtGui.QMessageBox.Ok)
+                    return
+                self.set_revision(revspec)
 
+    def filter_triggered(self, filter, checked):
+        self.file_tree.tree_filter_model.setFilter(filter, checked)

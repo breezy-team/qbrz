@@ -214,30 +214,36 @@ class DiffWindow(QBzrWindow):
          specific_files) = self.arg_provider.get_diff_window_args(self.processEvents)
         
         self.trees = (tree1, tree2)
+        self.branches = (branch1, branch2)
         self.specific_files = specific_files
-
-        rev1_title = get_title_for_tree(tree1, branch1, branch2)
-        rev2_title = get_title_for_tree(tree2, branch2, branch1)
+        
+        self.set_diff_title()
+        
+        self.encodings = (get_set_encoding(self.encoding, branch1),
+                          get_set_encoding(self.encoding, branch2))
+        self.processEvents()
+    
+    def set_diff_title(self):
+        rev1_title = get_title_for_tree(self.trees[0], self.branches[0],
+                                        self.branches[1])
+        rev2_title = get_title_for_tree(self.trees[1], self.branches[1],
+                                        self.branches[0])
         
         title = [gettext("Diff"), "%s..%s" % (rev1_title, rev2_title)]
 
-        if specific_files:
-            nfiles = len(specific_files)
+        if self.specific_files:
+            nfiles = len(self.specific_files)
             if nfiles > 2:
                 title.append(
                     ngettext("%d file", "%d files", nfiles) % nfiles)
             else:
-                title.append(", ".join(specific_files))
+                title.append(", ".join(self.specific_files))
         else:
             if self.filter_options and not self.filter_options.is_all_enable():
                 title.append(self.filter_options.to_str())
 
         self.set_title_and_icon(title)
-        self.processEvents()
-
-        self.encodings = (get_set_encoding(self.encoding, branch1),
-                          get_set_encoding(self.encoding, branch2))
-        self.processEvents()
+        self.processEvents()        
 
     def load_diff(self):
         self.refresh_button.setEnabled(False)

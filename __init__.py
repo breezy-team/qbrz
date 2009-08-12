@@ -20,14 +20,15 @@
 """QBzr - Qt-based frontend for Bazaar
 
 Provided commands:
-    qannotate, qbrowse, qcat, qcommit, qconfig, qdiff, qlog, qpull, qpush.
+    qannotate, qbrowse, qcat, qcommit, qconfig, qdiff, qlog, qpull, qpush
+    and more, see output of `bzr help commands | grep qbzr` for full list.
 """
 
 from bzrlib import registry
 from bzrlib.commands import register_command, plugin_cmds
 
 
-version_info = (0, 12, 0, 'dev', 0)
+version_info = (0, 14, 0, 'dev', 0)
 __version__ = '.'.join(map(str, version_info))
 
 
@@ -68,14 +69,15 @@ register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qadd', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qannotate', ['qann', 'qblame'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbranch', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbrowse', ['qbw'])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbzr', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qmain', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qcat', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qcommit', ['qci'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qconfig', ['qconfigure'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qconflicts', ['qresolve'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qdiff', ['qdi'])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qexport', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetnew', ['qgetn'])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetupdates', ['qgetu'])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetupdates', ['qgetu', 'qgetup'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qhelp', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinfo', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinit', [])
@@ -86,7 +88,12 @@ register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpush', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrevert', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsubprocess', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qtag', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qupdate', ['qup'])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qversion', ['qsysinfo'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qviewer', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsend', ['qsend'])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qswitch', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qunbind', [])
 
 register_lazy_command('bzrlib.plugins.qbzr.lib.extra.bugurl', 'cmd_bug_url', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.extra.isignored', 'cmd_is_ignored', [])

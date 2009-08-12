@@ -66,7 +66,7 @@ class UpdateBranchWindow(SubProcessDialog):
 
         self.ui.but_pull.setChecked(not not self.branch.get_parent())
 
-    def start(self):
+    def do_start(self):
         if self.ui.but_pull.isChecked():
             # its a 'pull'
             args = ['--directory', self.branch.base]
@@ -74,15 +74,15 @@ class UpdateBranchWindow(SubProcessDialog):
                 args.append('--overwrite')
             if self.ui.but_pull_remember.isChecked():
                 args.append('--remember')
-            location = str(self.ui.location.currentText())
+            location = unicode(self.ui.location.currentText())
             if not location:
                 return
 
-            self.process_widget.start(None, 'pull', location, *args)
+            self.process_widget.do_start(None, 'pull', location, *args)
             save_pull_location(self.branch, location)
         else:
             # its an 'update'.
-            self.process_widget.start(None, 'update', self.branch.base)
+            self.process_widget.do_start(None, 'update', self.branch.base)
 
 
 class UpdateCheckoutWindow(SubProcessDialog):
@@ -120,17 +120,17 @@ class UpdateCheckoutWindow(SubProcessDialog):
         self.ui.label.setText(unicode(self.ui.label.text()) % loc)
         self.ui.but_pull.setChecked(False)
 
-    def start(self):
+    def do_start(self):
         if self.ui.but_pull.isChecked():
             args = ['--directory', self.branch.base]
             if self.ui.but_pull_overwrite.isChecked():
                 args.append('--overwrite')
             #if self.ui.but_pull_remember.isChecked():
             #    args.append('--remember')
-            location = str(self.ui.location.currentText())
+            location = unicode(self.ui.location.currentText())
             if not location:
                 return
-            self.process_widget.start(None, 'pull', location, *args)
+            self.process_widget.do_start(None, 'pull', location, *args)
         else:
             # its an update.
-            self.process_widget.start(None, 'update', self.branch.base)
+            self.process_widget.do_start(None, 'update', self.branch.base)

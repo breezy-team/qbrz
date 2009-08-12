@@ -65,7 +65,7 @@ class LogWindow(QBzrWindow):
     FilterTagRole = QtCore.Qt.UserRole + 105
     FilterBugRole = QtCore.Qt.UserRole + 106
 
-    def __init__(self, locations, branch, specific_fileid=None, parent=None,
+    def __init__(self, locations, branch, specific_fileids=None, parent=None,
                  ui_mode=True, no_graph=False):
         """Create qlog window.
 
@@ -81,7 +81,7 @@ class LogWindow(QBzrWindow):
             Could be None, in this case locations list will be used
             to open branch(es).
 
-        @param  specific_fileid:    file id from the branch to filter
+        @param  specific_fileids:    file ids from the branch to filter
             the log.
 
         @param  parent: parent widget.
@@ -98,14 +98,14 @@ class LogWindow(QBzrWindow):
         if branch:
             self.branch = branch
             self.locations = (branch,)
-            self.specific_fileid = specific_fileid
+            self.specific_fileids = specific_fileids
             assert locations is None, "can't specify both branch and locations"
         else:
             self.branch = None
             self.locations = locations
             if self.locations is None:
-                self.locations = ["."]
-            assert specific_fileid is None, "specific_fileid is ignored if branch is None"
+                self.locations = [u"."]
+            assert specific_fileids is None, "specific_fileids is ignored if branch is None"
         
         self.branches = None
         self.replace = {}
@@ -259,7 +259,7 @@ class LogWindow(QBzrWindow):
         self.processEvents()
         try:
             if self.branch:
-                self.log_list.load_branch(self.branch, self.specific_fileid)
+                self.log_list.load_branch(self.branch, self.specific_fileids)
             else:
                 self.log_list.load_locations(self.locations)
             
@@ -325,8 +325,8 @@ class LogWindow(QBzrWindow):
         scheme = unicode(url.scheme())
         if scheme == 'qlog-revid':
             revision_id = unicode(url.path())
-            self.log_list.model.ensure_rev_visible(revision_id)
-            index = self.log_list.model.indexFromRevId(revision_id)
+            self.log_list.log_model.ensure_rev_visible(revision_id)
+            index = self.log_list.log_model.indexFromRevId(revision_id)
             index = self.log_list.filter_proxy_model.mapFromSource(index)
             self.log_list.setCurrentIndex(index)
         else:
@@ -397,19 +397,29 @@ class LogWindow(QBzrWindow):
             self.diffbuttons.setEnabled(True)
             index = indexes[0]
             revid = str(index.data(logmodel.RevIdRole).toString())
-            rev = self.log_list.graph_provider.revision(revid)
-            parents_ids = self.log_list.graph_provider.graph_parents[revid]
-            child_ids = self.log_list.graph_provider.graph_children[revid]
-            self.log_list.graph_provider.load_revisions([revid] + \
-                                    list(parents_ids) + list(child_ids))
-            rev = self.log_list.graph_provider.revision(revid)
+            gp = self.log_list.graph_provider
+            parents_ids = gp.graph_parents[revid]
+            child_ids = gp.graph_children[revid]
+            revisions = gp.load_revisions([revid] + 
+                                          list(parents_ids) +
+                                          list(child_ids))
+            for rev in revisions.itervalues():
+                if not hasattr(rev, "revno"):
+                    if rev.revision_id in gp.revid_rev:
+                        rev.revno = gp.revid_rev[rev.revision_id].revno_str
+                    else:
+                        rev.revno = ""
+            
+            rev = revisions[revid]
             
             if not hasattr(rev, "children"):
-                rev.children = [self.log_list.graph_provider.revision(revid)
-                                for revid in child_ids]
+                rev.children = [revisions[revid] for revid in child_ids]
             if not hasattr(rev, "parents"):
-                rev.parents = [self.log_list.graph_provider.revision(revid)
-                                for revid in parents_ids]
+                rev.parents = [revisions[revid] for revid in parents_ids]
+            if not hasattr(rev, "branch"):
+                rev.branch = gp.get_revid_branch(rev.revision_id)
+            if not hasattr(rev, "tags"):
+                rev.tags = sorted(gp.tags.get(rev.revision_id, []))
             self.current_rev = rev
             
             replace = self.replace_config(rev.branch)
@@ -481,8 +491,8 @@ class LogWindow(QBzrWindow):
         elif role == self.FilterIdRole:
             self.log_list.set_search(None, None)
             if self.log_list.graph_provider.has_rev_id(search_text):
-                self.log_list.model.ensure_rev_visible(search_text)
-                index = self.log_list.model.indexFromRevId(search_text)
+                self.log_list.log_model.ensure_rev_visible(search_text)
+                index = self.log_list.log_model.indexFromRevId(search_text)
                 index = self.log_list.filter_proxy_model.mapFromSource(index)
                 self.log_list.setCurrentIndex(index)
         elif role == self.FilterRevnoRole:
@@ -494,8 +504,8 @@ class LogWindow(QBzrWindow):
                 # Not sure what to do if there is an error. Nothing for now
             revid = self.log_list.graph_provider.revid_from_revno(revno)
             if revid:
-                self.log_list.model.ensure_rev_visible(revid)
-                index = self.log_list.model.indexFromRevId(revid)
+                self.log_list.log_model.ensure_rev_visible(revid)
+                index = self.log_list.log_model.indexFromRevId(revid)
                 index = self.log_list.filter_proxy_model.mapFromSource(index)
                 self.log_list.setCurrentIndex(index)
         else:

@@ -21,8 +21,10 @@ from PyQt4 import QtCore, QtGui
 from time import (strftime, localtime)
 
 from bzrlib import lazy_regex
-from bzrlib.revision import NULL_REVISION
+from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
+from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
+from bzrlib.plugins.qbzr.lib.revtreeview import RevIdRole as im_RevIdRole
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
@@ -31,18 +33,20 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_summary,
     )
 
-TagsRole = QtCore.Qt.UserRole + 1
-BugIdsRole = QtCore.Qt.UserRole + 2
-BranchTagsRole = QtCore.Qt.UserRole + 3
-GraphNodeRole = QtCore.Qt.UserRole + 4
-GraphLinesRole = QtCore.Qt.UserRole + 5
-GraphTwistyStateRole = QtCore.Qt.UserRole + 6
-RevIdRole = QtCore.Qt.UserRole + 7
+RevIdRole = im_RevIdRole
+(TagsRole,
+ BugIdsRole,
+ BranchTagsRole,
+ GraphNodeRole,
+ GraphLinesRole,
+ GraphTwistyStateRole,
+) = range(QtCore.Qt.UserRole + 2, QtCore.Qt.UserRole + 8)
 
-COL_REV = 0
-COL_MESSAGE = 1
-COL_DATE = 2
-COL_AUTHOR = 3
+(COL_REV,
+ COL_MESSAGE,
+ COL_DATE,
+ COL_AUTHOR,
+) = range(4)
 
 _bug_id_re = lazy_regex.lazy_compile(r'(?:'
     r'bugs/'                    # Launchpad bugs URL
@@ -52,6 +56,7 @@ _bug_id_re = lazy_regex.lazy_compile(r'(?:'
     r'|DispForm.aspx\?ID='      # Microsoft SharePoint URL
     r'|default.asp\?'           # Fogbugz URL
     r'|issue'                   # Roundup issue tracker URL
+    r'|view.php\?id='           # Mantis bug tracker URL
     r')(\d+)(?:\b|$)')
 
 
@@ -111,30 +116,29 @@ class LogModel(QtCore.QAbstractTableModel):
         self.clicked_row = None
         self.last_rev_is_placeholder = False
     
-    def load_graph_all_revisions(self):
+    def load_graph(self, gp_loader_func):
         try:
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
-            self.graph_provider.load_graph_all_revisions()
+            gp_loader_func()
         finally:
             self.emit(QtCore.SIGNAL("layoutChanged()"))
-
+    
+    def load_graph_all_revisions(self):
+        self.load_graph(self.graph_provider.load_graph_all_revisions)
+    
     def load_graph_pending_merges(self):
         self.last_rev_is_placeholder = True
-        try:
-            self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
-            self.graph_provider.load_graph_pending_merges()
-        finally:
-            self.emit(QtCore.SIGNAL("layoutChanged()"))
+        self.load_graph(self.graph_provider.load_graph_pending_merges)
 
     def compute_lines(self):
         self.graph_provider.compute_graph_lines()
         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                   self.createIndex (0, COL_MESSAGE, QtCore.QModelIndex()),
-                  self.createIndex (len(self.graph_provider.merge_sorted_revisions),
+                  self.createIndex (len(self.graph_provider.revisions),
                                     COL_MESSAGE, QtCore.QModelIndex()))
     
     def colapse_expand_rev(self, revid, visible):
-        self.clicked_row = self.graph_provider.revid_msri[revid]
+        self.clicked_row = self.graph_provider.revid_rev[revid].index
         clicked_row_index = self.createIndex (self.clicked_row,
                                               COL_MESSAGE,
                                               QtCore.QModelIndex())
@@ -172,31 +176,26 @@ class LogModel(QtCore.QAbstractTableModel):
     def rowCount(self, parent):
         if parent.isValid():
             return 0
-        return len(self.graph_provider.merge_sorted_revisions)
+        return len(self.graph_provider.revisions)
     
     def data(self, index, role):
         if not index.isValid():
             return QtCore.QVariant()
         
-        if index.row() in self.graph_provider.msri_index \
-                and len(self.graph_provider.graph_line_data)> \
-                self.graph_provider.msri_index[index.row()]:
-            (msri,
-             node,
-             lines,
-             twisty_state,
-             twisty_branch_ids) = self.graph_provider.graph_line_data\
-                                  [self.graph_provider.msri_index[index.row()]]
-        else:
-            (msri,
-             node,
-             lines,
-             twisty_state,
-             twisty_branch_ids) = (index.row(), None, [], None, [])
+        
+        gp = self.graph_provider
+        if self.last_rev_is_placeholder and \
+                index.row() == len(gp.revisions) - 1:
+            if role == GraphNodeRole:
+                return QVariant_fromList([QtCore.QVariant(-1),
+                                          QtCore.QVariant(0)])
+            return QtCore.QVariant()
+        
+        rev_info = gp.revisions[index.row()]
         
         if role == GraphLinesRole:
             qlines = []
-            for start, end, color, direct in lines:
+            for start, end, color, direct in rev_info.lines:
                 qlines.append(QVariant_fromList(
                     [QtCore.QVariant(start),
                      QtCore.QVariant(end),
@@ -205,55 +204,52 @@ class LogModel(QtCore.QAbstractTableModel):
             return QVariant_fromList(qlines)
         
         if self.last_rev_is_placeholder and \
-                msri == len(self.graph_provider.merge_sorted_revisions) - 1:
+                rev_info.index == len(self.graph_provider.revisions) - 1:
             if role == GraphNodeRole:
                 return QVariant_fromList([QtCore.QVariant(-1), QtCore.QVariant(0)])
+            if role == QtCore.Qt.DisplayRole:
+                return QtCore.QVariant("")
             return QtCore.QVariant()
 
         if role == GraphNodeRole:
-            if node is None:
+            if rev_info.col_index is None:
                 return QtCore.QVariant()
-            return QVariant_fromList([QtCore.QVariant(nodei) for nodei in node])
+            return QVariant_fromList([QtCore.QVariant(rev_info.col_index),
+                                      QtCore.QVariant(rev_info.color)])
         
         if role == GraphTwistyStateRole:
-            if twisty_state is None:
+            if rev_info.twisty_state is None:
                 return QtCore.QVariant()
             if index.row() == self.clicked_row:
                 return QtCore.QVariant(-1)
-            return QtCore.QVariant(twisty_state)
-        
-        (sequence_number, revid, merge_depth, revno_sequence, end_of_merge) = \
-            self.graph_provider.merge_sorted_revisions[index.row()]
+            return QtCore.QVariant(rev_info.twisty_state)
         
         if (role == QtCore.Qt.DisplayRole and index.column() == COL_REV) :
-            revnos = ".".join(["%d" % (revno)
-                                      for revno in revno_sequence])
-            return QtCore.QVariant(revnos)
+            return QtCore.QVariant(rev_info.revno_str)
         
         if role == TagsRole:
             tags = []
-            if revid in self.graph_provider.tags:
-                tags = list(self.graph_provider.tags[revid])
+            if rev_info.revid in gp.tags:
+                tags = list(gp.tags[rev_info.revid])
             return QtCore.QVariant(QtCore.QStringList(tags))
         
         if role == BranchTagsRole:
             tags = []
-            if revid in self.graph_provider.branch_tags:
+            if rev_info.revid in gp.branch_tags:
                 tags = [tag for tag \
-                        in self.graph_provider.branch_tags[revid] if tag]
+                        in gp.branch_tags[rev_info.revid] if tag]
             return QtCore.QVariant(QtCore.QStringList(tags))
         
         if role == RevIdRole:
-            return QtCore.QVariant(revid)
+            return QtCore.QVariant(rev_info.revid)
         
         #Everything from here foward will need to have the revision loaded.
-        if not revid or revid == NULL_REVISION:
+        if rev_info.revid not in cached_revisions:
+            if role == QtCore.Qt.DisplayRole:
+                return QtCore.QVariant("")
             return QtCore.QVariant()
         
-        revision = self.graph_provider.revision(revid)
-        
-        if not revision:
-            return QtCore.QVariant()
+        revision = cached_revisions[rev_info.revid]
         
         if role == QtCore.Qt.DisplayRole and index.column() == COL_DATE:
             return QtCore.QVariant(strftime("%Y-%m-%d %H:%M",
@@ -267,12 +263,14 @@ class LogModel(QtCore.QAbstractTableModel):
             bugs = []
             for bug in revision.properties.get('bugs', '').split('\n'):
                 if bug:
-                    url, status = bug.split(' ')
+                    url, space, status = bug.partition(' ')
                     bug_id = get_bug_id(url)
                     if bug_id:
                         bugs.append(bugtext % bug_id)
             return QtCore.QVariant(QtCore.QStringList(bugs))
         
+        if role == QtCore.Qt.DisplayRole:
+            return QtCore.QVariant("")
         return QtCore.QVariant()
 
     def flags(self, index):
@@ -288,20 +286,21 @@ class LogModel(QtCore.QAbstractTableModel):
     
 
     def indexFromRevId(self, revid, columns=None):
-        msri = self.graph_provider.revid_msri[revid]
+        rev = self.graph_provider.revid_rev[revid]
         if columns:
-            return [self.createIndex (msri, column, QtCore.QModelIndex())\
+            return [self.index (rev.index, column, QtCore.QModelIndex())\
                     for column in columns]
-        return self.createIndex (msri, 0, QtCore.QModelIndex())
+        return self.index (rev.index, 0, QtCore.QModelIndex())
 
     def on_revisions_loaded(self, revisions, last_call):
-        for revid in revisions:
+        for revid in revisions.iterkeys():
             indexes = self.indexFromRevId(revid, (COL_MESSAGE, COL_AUTHOR))
             self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                       indexes[0], indexes[1])
     
     def on_filter_changed(self):
         self.compute_lines()
+
     
 class LogFilterProxyModel(QtGui.QSortFilterProxyModel):
     def __init__(self, graph_provider, parent = None):
@@ -310,3 +309,9 @@ class LogFilterProxyModel(QtGui.QSortFilterProxyModel):
 
     def filterAcceptsRow(self, source_row, source_parent):
         return self.graph_provider.get_revision_visible(source_row)
+    
+    def on_revisions_loaded(self, revisions, last_call):
+        self.sourceModel().on_revisions_loaded(revisions, last_call)    
+    
+    def get_repo(self):
+        return self.graph_provider.get_repo_revids

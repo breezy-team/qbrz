@@ -23,6 +23,7 @@ from bzrlib import trace
 
 def load_tests(basic_tests, module, loader):
     testmod_names = [
+        'mock',
         'test_autocomplete',
         #'test_diffview', - broken by API changes
         'test_commit_data',
@@ -34,6 +35,8 @@ def load_tests(basic_tests, module, loader):
         'test_spellcheck',
         'test_util',
         'test_loggraphprovider',
+        'test_annotate',
+        'test_treewidget',
     ]
     for name in testmod_names:
         m = "%s.%s" % (__name__, name)

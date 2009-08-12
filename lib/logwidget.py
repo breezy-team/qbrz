@@ -20,6 +20,8 @@
 from PyQt4 import QtCore, QtGui, Qt
 
 from bzrlib.bzrdir import BzrDir
+from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
+                                                 RevNoItemDelegate)
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.trace import *
 from bzrlib.plugins.qbzr.lib.util import (
@@ -27,7 +29,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib import diff
 
-class LogList(QtGui.QTreeView):
+class LogList(RevisionTreeView):
     """TreeView widget to show log with metadata and graph of revisions."""
 
     def __init__(self, processEvents, throbber, no_graph, parent=None,
@@ -36,19 +38,18 @@ class LogList(QtGui.QTreeView):
         @param  throbber:   throbber widget in parent window
         @param  parent:     parent window
         """
-        QtGui.QTreeView.__init__(self, parent)
+        RevisionTreeView.__init__(self, parent)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.setSelectionMode(QtGui.QAbstractItemView.ContiguousSelection)
         self.setUniformRowHeights(True)
         self.setAllColumnsShowFocus(True)
         self.setRootIsDecorated (False)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
-        self.connect(self.verticalScrollBar(), QtCore.SIGNAL("valueChanged (int)"),
-                     self.scroll_changed)
 
         self.setItemDelegateForColumn(logmodel.COL_MESSAGE,
-                                        GraphTagsBugsItemDelegate(self))
-
+                                      GraphTagsBugsItemDelegate(self))
+        self.setItemDelegateForColumn(logmodel.COL_REV,
+                                      RevNoItemDelegate(parent=self))
         self.processEvents = processEvents
         self.throbber = throbber
 
@@ -56,17 +57,14 @@ class LogList(QtGui.QTreeView):
                                                          self.throbber,
                                                          no_graph)
 
-        self.model = logmodel.LogModel(self.graph_provider, self)
+        self.log_model = logmodel.LogModel(self.graph_provider, self)
 
         self.filter_proxy_model = logmodel.LogFilterProxyModel(self.graph_provider, self)
-        self.filter_proxy_model.setSourceModel(self.model)
+        self.filter_proxy_model.setSourceModel(self.log_model)
         self.filter_proxy_model.setDynamicSortFilter(True)
 
         self.setModel(self.filter_proxy_model)
-        self.connect(self.model,
-                     QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                     self.model_data_changed)
-
+        
         header = self.header()
         header.setStretchLastSection(False)
         header.setResizeMode(logmodel.COL_REV, QtGui.QHeaderView.Interactive)
@@ -74,6 +72,7 @@ class LogList(QtGui.QTreeView):
         header.setResizeMode(logmodel.COL_DATE, QtGui.QHeaderView.Interactive)
         header.setResizeMode(logmodel.COL_AUTHOR, QtGui.QHeaderView.Interactive)
         fm = self.fontMetrics()
+        # XXX Make this dynamic.
         col_margin = 6
         header.resizeSection(logmodel.COL_REV,
                              fm.width("8888.8.888") + col_margin)
@@ -82,16 +81,13 @@ class LogList(QtGui.QTreeView):
         header.resizeSection(logmodel.COL_AUTHOR,
                              fm.width("Joe I have a Long Name") + col_margin)
 
-        self.load_revisions_call_count = 0
-        self.load_revisions_throbber_shown = False
-        
         self.view_commands = view_commands
         self.action_commands = action_commands
         
         if self.view_commands:
             self.connect(self,
                          QtCore.SIGNAL("doubleClicked(QModelIndex)"),
-                         self.show_diff_index)
+                         self.default_action)
         self.context_menu = QtGui.QMenu(self)
 
     def create_context_menu(self):
@@ -137,10 +133,10 @@ class LogList(QtGui.QTreeView):
             self.context_menu.addAction(gettext("Show &tree..."),
                                         self.show_revision_tree)        
 
-    def load_branch(self, branch, fileid, tree=None):
+    def load_branch(self, branch, fileids, tree=None):
         self.throbber.show()
         try:
-            self.graph_provider.open_branch(branch, fileid, tree)
+            self.graph_provider.open_branch(branch, fileids, tree)
             self.create_context_menu()
             self.load_current_dir_repo_if_no_local_repos()
             self.processEvents()
@@ -173,7 +169,7 @@ class LogList(QtGui.QTreeView):
                 break
         if not has_local_repo:
             try:
-                bzrdir, relpath = BzrDir.open_containing(".")
+                bzrdir, relpath = BzrDir.open_containing(u".")
                 repo = bzrdir.find_repository()
                 self.graph_provider.append_repo(repo, local_copy = True)
             except Exception:
@@ -190,7 +186,7 @@ class LogList(QtGui.QTreeView):
         self.graph_provider.lock_read_branches()
         try:
             self.graph_provider.load_tags()
-            self.model.load_graph_all_revisions()
+            self.log_model.load_graph_all_revisions()
         finally:
             self.graph_provider.unlock_branches()
         
@@ -216,12 +212,15 @@ class LogList(QtGui.QTreeView):
                     if twisty_state.isValid():
                         colapse_expand_click = True
                         revision_id = str(index.data(logmodel.RevIdRole).toString())
-                        self.model.colapse_expand_rev(revision_id, not twisty_state.toBool())
+                        self.log_model.colapse_expand_rev(revision_id, not twisty_state.toBool())
+                        self.scrollTo(self.currentIndex())
                         e.accept ()
         if not colapse_expand_click:
             QtGui.QTreeView.mousePressEvent(self, e)
     
     def mouseMoveEvent (self, e):
+        # This prevents the selection from changing when the mouse is over
+        # a twisty.
         colapse_expand_click = False
         pos = e.pos()
         index = self.indexAt(pos)
@@ -246,7 +245,7 @@ class LogList(QtGui.QTreeView):
         e_key = e.key()
         if e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return) and self.view_commands:
             e.accept()
-            self.show_diff_current_indexes()
+            self.default_action()
         elif e_key in (QtCore.Qt.Key_Left, QtCore.Qt.Key_Right):
             e.accept()
             indexes = [index for index in self.selectedIndexes() if index.column()==0]
@@ -258,104 +257,43 @@ class LogList(QtGui.QTreeView):
             if e.key() == QtCore.Qt.Key_Right \
                     and twisty_state.isValid() \
                     and not twisty_state.toBool():
-                self.model.colapse_expand_rev(revision_id, True)
+                self.log_model.colapse_expand_rev(revision_id, True)
             if e.key() == QtCore.Qt.Key_Left:
                 if twisty_state.isValid() and twisty_state.toBool():
-                    self.model.colapse_expand_rev(revision_id, False)
+                    self.log_model.colapse_expand_rev(revision_id, False)
                 else:
                     #find merge of child branch
                     revision_id = self.graph_provider.\
                                   find_child_branch_merge_revision(revision_id)
-                    if revision_id is None:
-                        return
-            newindex = self.model.indexFromRevId(revision_id)
-            newindex = self.filter_proxy_model.mapFromSource(newindex)
-            self.setCurrentIndex(newindex)
-            self.load_visible_revisions()
+                    if revision_id is not None:
+                        newindex = self.log_model.indexFromRevId(revision_id)
+                        newindex = self.filter_proxy_model.mapFromSource(newindex)
+                        self.setCurrentIndex(newindex)
+            self.scrollTo(self.currentIndex())
         else:
             QtGui.QTreeView.keyPressEvent(self, e)
     
-    def scroll_changed(self, value):
-        self.load_visible_revisions()
-    
-    def model_data_changed(self, start_index, end_index):
-        self.load_visible_revisions()
-    
-    def resizeEvent(self, e):
-        self.load_visible_revisions()
-        QtGui.QTreeView.resizeEvent(self, e)
-    
-    @runs_in_loading_queue
-    def load_visible_revisions(self):
-        top_index = self.indexAt(self.viewport().rect().topLeft()).row()
-        bottom_index = self.indexAt(self.viewport().rect().bottomLeft()).row()
-        if top_index == -1:
-            #Nothing is visible
-            return
-        if bottom_index == -1:
-            bottom_index = len(self.graph_provider.graph_line_data)
-        # The + 2 is so that the rev that is off screen due to the throbber
-        # is loaded.
-        bottom_index = min((bottom_index + 2,
-                            len(self.graph_provider.graph_line_data)))
-        revids = []
-        for i in xrange(top_index, bottom_index): 
-            msri = self.graph_provider.graph_line_data[i][0]
-            revid = self.graph_provider.merge_sorted_revisions[msri][1]
-            revids.append(revid)
-        
-        self.load_revisions_call_count += 1
-        current_call_count = self.load_revisions_call_count
-        
-        def before_batch_load(repo, revids):
-            if current_call_count < self.load_revisions_call_count:
-                return True
-            
-            if not repo.is_local:
-                if not self.load_revisions_throbber_shown:
-                    self.throbber.show()
-                    self.load_revisions_throbber_shown = True
-                # Allow for more scrolling to happen.
-                self.delay(0.5)
-            
-            return False
-        
-        try:
-            self.graph_provider.load_revisions(revids,
-                            revisions_loaded = self.model.on_revisions_loaded,
-                            before_batch_load = before_batch_load
-                            )
-        finally:
-            self.load_revisions_call_count -=1
-            if self.load_revisions_call_count == 0:
-                # This is the last running method
-                if self.load_revisions_throbber_shown:
-                    self.load_revisions_throbber_shown = False
-                    self.throbber.hide()
-    
-    def delay(self, timeout):
-        
-        def null():
-            pass
-        
-        QtCore.QTimer.singleShot(timeout, null)
-        self.processEvents(QtCore.QEventLoop.WaitForMoreEvents)
-    
     def set_search(self, str, field):
         self.graph_provider.set_search(str, field)
+    
+    def default_action(self, index=None):
+        if index is None:
+            self.show_diff_current_indexes()
+        else:
+            self.show_diff_index(index)
     
     def show_diff(self, new_rev, old_rev,
                   specific_files=None, specific_file_ids=None,
                   ext_diff=None):
         new_revid = new_rev.revision_id
-        new_branch = new_rev.branch
+        new_branch = self.graph_provider.get_revid_branch(new_revid)
         
         if not old_rev.parent_ids:
             old_revid = None
             old_branch = new_branch
         else:
             old_revid = old_rev.parent_ids[0]
-            old_branch =  old_rev.branch
+            old_branch =  self.graph_provider.get_revid_branch(old_revid)
         
         arg_provider = diff.InternalDiffArgProvider(
                                         old_revid, new_revid,
@@ -369,7 +307,7 @@ class LogList(QtGui.QTreeView):
     def show_diff_index(self, index):
         """Show differences of a single revision from a index."""
         revid = str(index.data(logmodel.RevIdRole).toString())
-        rev = self.graph_provider.revision(revid, force_load=True)
+        rev = self.graph_provider.load_revisions([revid])[revid]
         if self.graph_provider.fileids:
             self.show_diff(rev, rev,
                            specific_file_ids=self.graph_provider.fileids)
@@ -389,9 +327,10 @@ class LogList(QtGui.QTreeView):
             # the list is empty
             return
         revid1 = str(indexes[0].data(logmodel.RevIdRole).toString())
-        rev1 = self.graph_provider.revision(revid1)
         revid2 = str(indexes[-1].data(logmodel.RevIdRole).toString())
-        rev2 = self.graph_provider.revision(revid2)
+        revs = self.graph_provider.load_revisions([revid1, revid2])
+        rev1 = revs[revid1]
+        rev2 = revs[revid2]
         if only_specified_files and self.graph_provider.fileids:
             self.show_diff(rev1, rev2, ext_diff=ext_diff,
                            specific_file_ids = self.graph_provider.fileids)
@@ -405,16 +344,17 @@ class LogList(QtGui.QTreeView):
     def show_revision_tree(self):
         from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
         revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
-        rev = self.graph_provider.revision(revid)
-        window = BrowseWindow(rev.branch, revision_id=rev.revision_id,
-                              revision_spec=rev.revno, parent=self)
+        revno = self.graph_provider.revid_rev[revid].revno_str
+        branch = self.graph_provider.get_revid_branch(revid)
+        window = BrowseWindow(branch, revision_id=revid,
+                              revision_spec=revno, parent=self)
         window.show()
         self.window().windows.append(window)
 
     def show_context_menu(self, pos):
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
-    
 
+    
 class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
 
     _tagColor = QtGui.QColor(80, 128, 32)
