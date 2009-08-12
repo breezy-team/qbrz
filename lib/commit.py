@@ -24,6 +24,7 @@ from PyQt4 import QtCore, QtGui
 
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
+from bzrlib.plugins.qbzr.lib.commit_data import CommitData
 from bzrlib.plugins.qbzr.lib.diff import (
     DiffButtons,
     show_diff,
@@ -216,6 +217,9 @@ class CommitWindow(SubProcessDialog):
                                   dialog = dialog,
                                   parent = parent)
         self.tree = tree
+        self.ci_data = CommitData(tree=tree)
+        self.ci_data.load()
+
         self.is_bound = bool(tree.branch.get_bound_location())
         self.has_pending_merges = len(tree.get_parent_ids())>1
         
@@ -301,7 +305,7 @@ class CommitWindow(SubProcessDialog):
         spell_highlighter = SpellCheckHighlighter(self.message.document(),
                                                   spell_checker)
 
-        self.restore_message()
+        self.restore_commit_data()
         if message:
             self.message.setText(message)
         grid.addWidget(self.message, 0, 0, 1, 2)
@@ -406,7 +410,7 @@ class CommitWindow(SubProcessDialog):
         
         # Try to be smart: if there is no saved message
         # then set focus on Edit Area; otherwise on OK button.
-        if self.get_saved_message():
+        if self.ci_data['message']:
             self.buttonbox.setFocus()
         else:
             self.message.setFocus()
@@ -517,34 +521,20 @@ class CommitWindow(SubProcessDialog):
             self.custom_author = self.author.text()
             self.author.setText(self.default_author)
 
-    def get_saved_message(self):
-        config = self.tree.branch.get_config()._get_branch_data_config()
-        return config.get_user_option('qbzr_commit_message')
-
-    def restore_message(self):
-        message = self.get_saved_message()
+    def restore_commit_data(self):
+        message = self.ci_data['message']
         if message:
             self.message.setText(message)
 
-    def save_message(self):
-        if self.tree.branch.control_files.get_physical_lock_status() or \
-           self.tree.branch.is_locked():
-            from bzrlib.trace import warning
-            warning("Cannot save commit message because the branch is locked.")
-        else:
-            message = unicode(self.message.toPlainText())
-            config = self.tree.branch.get_config()
-            if message.strip():
-                config.set_user_option('qbzr_commit_message', message)
-            else:
-                if config.get_user_option('qbzr_commit_message'):
-                    # FIXME this should delete the config entry, not just set it to ''
-                    config.set_user_option('qbzr_commit_message', '')
+    def save_commit_data(self):
+        message = unicode(self.message.toPlainText()).strip()
+        ci_data = CommitData(tree=self.tree)
+        ci_data.set_data(message=message)
+        ci_data.save()
 
-    def clear_saved_message(self):
-        config = self.tree.branch.get_config()
-        # FIXME this should delete the config entry, not just set it to ''
-        config.set_user_option('qbzr_commit_message', '')
+    def wipe_commit_data(self):
+        ci_data = CommitData(tree=self.tree)
+        ci_data.wipe()
 
     def do_start(self):
         args = ["commit"]
@@ -635,19 +625,19 @@ class CommitWindow(SubProcessDialog):
         fmodel = self.filelist.tree_filter_model
         fmodel.setFilter(fmodel.UNVERSIONED, state)
 
-    def _save_or_clear_message(self):
+    def _save_or_wipe_commit_data(self):
         if not self.process_widget.is_running():
             if self.process_widget.finished:
-                self.clear_saved_message()
+                self.wipe_commit_data()
             else:
-                self.save_message()
+                self.save_commit_data()
 
     def closeEvent(self, event):
-        self._save_or_clear_message()
+        self._save_or_wipe_commit_data()
         return SubProcessDialog.closeEvent(self, event)
 
     def reject(self):
-        self._save_or_clear_message()
+        self._save_or_wipe_commit_data()
         return SubProcessDialog.reject(self)
 
     def update_branch_groupbox(self):
