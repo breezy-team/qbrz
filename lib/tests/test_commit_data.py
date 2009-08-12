@@ -76,3 +76,36 @@ class TestCommitDataWithTree(TestCaseWithTransport):
                           'old_revid': revid2,
                           'new_revid': revid1,
                          }, d.as_dict())
+
+    def test_io(self):
+        wt = self.make_branch_and_tree('.')
+        # load nothing
+        d = CommitData(tree=wt)
+        d.load()
+        self.assertEqual({}, d.as_dict())
+        #
+        # save data
+        d = CommitData(tree=wt)
+        d.set_data(message='spam', old_revid='foo', new_revid='bar')
+        d.save()
+        # check branch.conf
+        cfg = wt.branch.get_config()
+        self.assertEqual({'message': 'spam',
+                          'old_revid': 'foo',
+                          'new_revid': 'bar',
+                          }, cfg.get_user_option('commit_data'))
+        #
+        # load data later
+        d = CommitData(tree=wt)
+        d.load()
+        self.assertEqual({'message': 'spam',
+                          'old_revid': 'foo',
+                          'new_revid': 'bar',
+                          }, d.as_dict())
+        #
+        # wipe the data in the end
+        d = CommitData(tree=wt)
+        d.wipe()
+        # check branch.conf
+        cfg = wt.branch.get_config()
+        self.assertEqual({}, cfg.get_user_option('commit_data'))

@@ -101,11 +101,22 @@ class CommitData(object):
 
     def load(self):
         """Load saved data from branch/tree."""
-        raise NotImplementedError
+        branch = self._get_branch()
+        config = branch.get_config()
+        data = config.get_user_option('commit_data')
+        self.set_data(data)
 
     def save(self):
         """Save data to the branch/tree."""
-        raise NotImplementedError
+        branch = self._get_branch()
+        config = branch.get_config()
+        config.set_user_option('commit_data', self._data)
+
+    def wipe(self):
+        """Delete saved data from branch/tree config."""
+        branch = self._get_branch()
+        config = branch.get_config()
+        config.set_user_option('commit_data', {})
 
     def _get_branch(self):
         """Return branch object if either branch or tree was specified on init.
