@@ -916,15 +916,17 @@ class cmd_qswitch(QBzrCommand):
 class cmd_qbind(QBzrCommand):
     """Convert the current branch into a checkout of the supplied branch.
     
+    LOCATION is the branch where you want to bind your current branch.
+    
     DIRECTORY is the current branch you want to use. If none is suplied
     current dir is used.
 
     """
     
-    takes_args = ['directory?']
+    takes_args = ['location?', 'directory?']
     takes_options = [ui_mode_option]
     
-    def _qbzr_run(self, directory=None, ui_mode=False):
+    def _qbzr_run(self, location=None, directory=None, ui_mode=False):
         from bzrlib.plugins.qbzr.lib.bind import QBzrBindDialog
         
         application = QtGui.QApplication(sys.argv)
@@ -933,7 +935,7 @@ class cmd_qbind(QBzrCommand):
         else:
             branch = Branch.open_containing(".")[0]
         
-        window = QBzrBindDialog(branch, ui_mode)
+        window = QBzrBindDialog(branch, location, ui_mode)
         window.show()
         application.exec_()        
     
