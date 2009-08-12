@@ -116,7 +116,6 @@ class CommitData(object):
         """Save data to the branch/tree."""
         # XXX save should wipe if self._data is empty
         branch = self._get_branch()
-        self._check_branch_lock(branch)
         config = branch.get_config()
         config.set_user_option('commit_data', self._data)
         # clear old data
@@ -126,7 +125,6 @@ class CommitData(object):
     def wipe(self):
         """Delete saved data from branch/tree config."""
         branch = self._get_branch()
-        self._check_branch_lock(branch)
         config = branch.get_config()
         config.set_user_option('commit_data', {})
         # clear old data
@@ -144,10 +142,3 @@ class CommitData(object):
         # too bad
         from bzrlib import errors
         raise errors.BzrInternalError("CommitData has no saved branch or tree.")
-
-    def _check_branch_lock(self, branch):
-        if (branch.control_files.get_physical_lock_status()
-            or branch.is_locked()):
-            # XXX maybe show this in a GUI MessageBox (information box)???
-            from bzrlib.trace import warning
-            warning("Cannot save commit data because the branch is locked.")

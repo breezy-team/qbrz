@@ -101,13 +101,15 @@ register_lazy_command('bzrlib.plugins.qbzr.lib.extra.isversioned', 'cmd_is_versi
 
 
 def post_uncommit_hook(local, master, old_revno, old_tip, new_revno, hook_new_tip):
+    from bzrlib.plugins.qbzr.lib.commit_data import CommitData
     branch = local or master
-    message = branch.repository.get_revision(old_tip).message
-    config = branch.get_config()
-    config.set_user_option('qbzr_commit_message', message.strip())
+    ci_data = CommitData(branch=branch)
+    ci_data.set_data_on_uncommit(old_tip, hook_new_tip)
+    ci_data.save()
 
 from bzrlib.branch import Branch
-Branch.hooks.install_named_hook('post_uncommit', post_uncommit_hook, 'Remember uncomitted message for qcommit')
+Branch.hooks.install_named_hook('post_uncommit', post_uncommit_hook,
+    'Remember uncomitted revision data for qcommit')
 
 
 def load_tests(basic_tests, module, loader):
