@@ -22,7 +22,7 @@
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import errors
+from bzrlib import errors, osutils
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
@@ -39,7 +39,7 @@ from bzrlib.plugins.qbzr.lib.trace import (
 
 class QBzrSwitchWindow(SubProcessDialog):
 
-    def __init__(self, branch, ui_mode = None):
+    def __init__(self, branch, location, ui_mode = None):
         
         super(QBzrSwitchWindow, self).__init__(
                                   gettext("Switch Checkout to"),
@@ -65,6 +65,9 @@ class QBzrSwitchWindow(SubProcessDialog):
         branch_combo.hide()
         
         self.branch_combo = branch_combo
+        
+        if location != None:
+            branch_combo.addItem(osutils.abspath(location))
         
         repo = branch.bzrdir.find_repository()
         

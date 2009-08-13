@@ -932,9 +932,9 @@ class cmd_qswitch(QBzrCommand):
         from bzrlib.plugins.qbzr.lib.switch import QBzrSwitchWindow
         
         application = QtGui.QApplication(sys.argv)
-        branch = Branch.open_containing(location)[0]
+        branch = Branch.open_containing(".")[0]
         
-        self.main_window = QBzrSwitchWindow(branch, ui_mode)
+        self.main_window = QBzrSwitchWindow(branch, location, ui_mode)
         self.main_window.show()
         application.exec_() 
 
