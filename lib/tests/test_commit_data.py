@@ -149,3 +149,13 @@ class TestCommitDataWithTree(TestCaseWithTransport):
         cfg = wt.branch.get_config()
         self.assertEqual('', cfg.get_user_option('qbzr_commit_message'))
         self.assertEqual({}, cfg.get_user_option('commit_data'))
+
+    def test_io_filter_out_empty_data(self):
+        wt = self.make_branch_and_tree('.')
+        d = CommitData(tree=wt)
+        d.set_data({'message': '', 'foo': 'bar'})
+        d.save()
+        #
+        d = CommitData(tree=wt)
+        d.load()
+        self.assertEqual({'foo': 'bar'}, d.as_dict())

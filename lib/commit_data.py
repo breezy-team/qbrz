@@ -49,11 +49,22 @@ class CommitData(object):
         self._branch = branch
         self._data = {}
 
+    def _filtered_data(self):
+        """Return copy of internal data dictionary without
+        keys with "empty" values (i.e. those equal to empty
+        string or None).
+        """
+        d = {}
+        for k,v in self._data.iteritems():
+            if v not in (None, ''):
+                d[k] = v
+        return d
+
     def __nonzero__(self):
         """Check if there is some data actually.
         @return: True if data dictionary is not empty.
         """
-        return bool(self._data)
+        return bool(self._filtered_data())
 
     def __getitem__(self, key):
         """Read the value of specified key via dict-like interface, e.g. a[key].
@@ -117,7 +128,7 @@ class CommitData(object):
         # XXX save should wipe if self._data is empty
         branch = self._get_branch()
         config = branch.get_config()
-        config.set_user_option('commit_data', self._data)
+        config.set_user_option('commit_data', self._filtered_data())
         # clear old data
         if config.get_user_option('qbzr_commit_message'):
             config.set_user_option('qbzr_commit_message', '')
