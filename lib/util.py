@@ -570,7 +570,7 @@ def format_revision_html(rev, search_replace=None, show_timestamp=False):
         bugs = []
         for bug in rev.properties.get('bugs', '').split('\n'):
             if bug:
-                url, space, status = bug.partition(' ')
+                url, status = bug.split(' ', 1)
                 bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
                     dict(url=url, status=gettext(status))))
         if bugs:

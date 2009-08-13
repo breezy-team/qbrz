@@ -18,7 +18,8 @@
 
 from bzrlib.tests import TestCase, TestCaseWithTransport
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib.treewidget import TreeModel
+from bzrlib.plugins.qbzr.lib.treewidget import (TreeModel, ModelItemData,
+                                                UnversionedItem)
 from bzrlib.plugins.qbzr.lib.tests.modeltest import ModelTest
 from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
 
@@ -64,30 +65,36 @@ class TestTreeModel(TestWatchExceptHook, TestCaseWithTransport):
     #    widget.set_tree(revtree, branch)
     #    modeltest = ModelTest(model, None)
 
-class TestDirsFirstCmp (TestCase):
-    
-    def test_inventory_dirs_first_cmp(self):
-        tree_model = TreeModel(parent=None)
-        sorted_list = sorted([("a", "file"),
-                              ("b", "directory"),
-                              ("c", "file"),],
-                             cmp = tree_model.inventory_dirs_first_cmp)
-        self.assertEqual([("b", "directory"),
-                          ("a", "file"),
-                          ("c", "file"),],
-                         sorted_list)
+class TestModelItemData(TestCase):
 
-        sorted_list = sorted([("a", "file"),
-                              ("b", "directory"),
-                              ("b/y", "directory"),
-                              ("b/y/z", "file"),
-                              ("b/x", "file"),
-                              ("c", "file"),],
-                             cmp = tree_model.inventory_dirs_first_cmp)
-        self.assertEqual([('b', 'directory'),
-                          ('b/y', 'directory'),
-                          ('b/y/z', 'file'),
-                          ('b/x', 'file'),
-                          ('a', 'file'),
-                          ('c', 'file')],
-                         sorted_list)
+    def _make_unversioned_model_list(self, iterable):
+        return [ModelItemData(UnversionedItem(name, kind), None, name)
+            for name, kind in iterable]
+
+    def test_sort_key_one_dir(self):
+        models = self._make_unversioned_model_list((
+            ("b", "directory"),
+            ("d", "directory"),
+            ("a", "file"),
+            ("c", "file")))
+        self.assertEqual(models, sorted(reversed(models),
+            key=ModelItemData.dirs_first_sort_key))
+
+    def test_sort_key_sub_dirs(self):
+        models = self._make_unversioned_model_list((
+            ('a', 'directory'),
+            ('a/f', 'file'),
+            ('b', 'directory'),
+            ('b/f', 'file')))
+        self.assertEqual(models, sorted(reversed(models),
+            key=ModelItemData.dirs_first_sort_key))
+
+        models = self._make_unversioned_model_list((
+            ('b', 'directory'),
+            ('b/y', 'directory'),
+            ('b/y/z', 'file'),
+            ('b/x', 'file'),
+            ('a', 'file'),
+            ('c', 'file')))
+        self.assertEqual(models, sorted(reversed(models),
+            key=ModelItemData.dirs_first_sort_key))
