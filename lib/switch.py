@@ -39,7 +39,7 @@ from bzrlib.plugins.qbzr.lib.trace import (
 
 class QBzrSwitchWindow(SubProcessDialog):
 
-    def __init__(self, branch, location, ui_mode = None):
+    def __init__(self, branch, bzrdir, location, ui_mode = None):
         
         super(QBzrSwitchWindow, self).__init__(
                                   gettext("Switch Checkout to"),
@@ -53,15 +53,33 @@ class QBzrSwitchWindow(SubProcessDialog):
             
         self.branch = branch
         
+        boundloc = branch.get_bound_location()
+        self.boundloc = boundloc
         gbSwitch = QtGui.QGroupBox(gettext("Switch Checkout to"), self)
+                
+        switch_box = QtGui.QFormLayout(gbSwitch)
         
-        switch_vbox = QtGui.QVBoxLayout(gbSwitch)
+        type = None
+        branchbase = None
+        
+        if boundloc != None:
+            type = "Heavyweight"
+            branchbase = branch.base
+        else:
+            if bzrdir.root_transport.base != branch.bzrdir.root_transport.base:
+                type = "Lightweight"
+                boundloc = branch.bzrdir.root_transport.base
+                branchbase = bzrdir.root_transport.base
+            
+        if type != None:
+            switch_box.addRow(gettext("%s checkout:" % type),QtGui.QLabel(url_for_display(branchbase)))
+            switch_box.addRow(gettext("Checkout of Branch:"),QtGui.QLabel(url_for_display(boundloc)))
         
         throb_hbox = QtGui.QHBoxLayout()
         
         self.throbber = ThrobberWidget(self)
         throb_hbox.addWidget(self.throbber)
-        switch_vbox.addLayout(throb_hbox)
+        switch_box.addRow(throb_hbox)
         
         switch_hbox = QtGui.QHBoxLayout()
         
@@ -73,13 +91,10 @@ class QBzrSwitchWindow(SubProcessDialog):
         
         if location != None:
             branch_combo.addItem(osutils.abspath(location))
-        
-        repo = branch.bzrdir.find_repository()
-        
-        boundloc = branch.get_bound_location()
-        self.boundloc = boundloc
+
         if boundloc != None:
             branch_combo.addItem(url_for_display(boundloc))
+            
         browse_button = QtGui.QPushButton(gettext("Browse"))
         QtCore.QObject.connect(browse_button, QtCore.SIGNAL("clicked(bool)"), self.browse_clicked)
         
@@ -91,7 +106,7 @@ class QBzrSwitchWindow(SubProcessDialog):
         switch_hbox.setStretchFactor(branch_combo,1)
         switch_hbox.setStretchFactor(browse_button,0)
         
-        switch_vbox.addLayout(switch_hbox)
+        switch_box.addRow(switch_hbox)
         
         layout = QtGui.QVBoxLayout(self)
         
@@ -101,8 +116,9 @@ class QBzrSwitchWindow(SubProcessDialog):
         layout.addWidget(self.buttonbox)
 
     def show(self):
-        QBzrDialog.show(self)
-        QtCore.QTimer.singleShot(1000, self.initial_load)
+        QBzrDialog.show(self) 
+        # FIX ME: Next line disabled until find_branches variation is found
+        #QtCore.QTimer.singleShot(1000, self.initial_load)
 
     @runs_in_loading_queue
     @ui_current_widget
