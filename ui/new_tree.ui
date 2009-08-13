@@ -25,7 +25,7 @@
       <item row="0" column="0" colspan="2" >
        <widget class="QLabel" name="label_4" >
         <property name="text" >
-         <string>Branch source (enter a URL or select a local directory with an exiting branch)</string>
+         <string>Branch source (enter a URL or select a local directory with an existing branch)</string>
         </property>
        </widget>
       </item>

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/new_tree.ui'
 #
-# Created: Thu Jul 30 12:22:19 2009
+# Created: Thu Aug 13 20:49:03 2009
 #      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -128,7 +128,7 @@ class Ui_NewWorkingTreeForm(object):
     def retranslateUi(self, NewWorkingTreeForm):
         NewWorkingTreeForm.setWindowTitle(gettext("Create a new Bazaar Working Tree"))
         self.groupBox.setTitle(gettext("Branch"))
-        self.label_4.setText(gettext("Branch source (enter a URL or select a local directory with an exiting branch)"))
+        self.label_4.setText(gettext("Branch source (enter a URL or select a local directory with an existing branch)"))
         self.from_picker.setText(gettext("Browse..."))
         self.label.setText(gettext("Local directory where the working tree will be created"))
         self.to_picker.setText(gettext("Browse..."))

@@ -53,7 +53,6 @@ from bzrlib.plugins.qbzr.lib.commit import CommitWindow
 from bzrlib.plugins.qbzr.lib.config import QBzrConfigWindow
 from bzrlib.plugins.qbzr.lib.diffwindow import DiffWindow
 from bzrlib.plugins.qbzr.lib.getupdates import UpdateBranchWindow, UpdateCheckoutWindow
-from bzrlib.plugins.qbzr.lib.getnew import GetNewWorkingTreeWindow
 from bzrlib.plugins.qbzr.lib.help import show_help
 from bzrlib.plugins.qbzr.lib.log import LogWindow
 from bzrlib.plugins.qbzr.lib.info import QBzrInfoWindow
@@ -811,6 +810,7 @@ class cmd_qgetnew(QBzrCommand):
     aliases = ['qgetn']
 
     def _qbzr_run(self, location=u".", ui_mode=False):
+        from bzrlib.plugins.qbzr.lib.getnew import GetNewWorkingTreeWindow
         app = QtGui.QApplication(sys.argv)
         self.main_window = GetNewWorkingTreeWindow(location, ui_mode=ui_mode)
         self.main_window.show()
