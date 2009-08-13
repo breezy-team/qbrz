@@ -933,8 +933,9 @@ class cmd_qswitch(QBzrCommand):
         
         application = QtGui.QApplication(sys.argv)
         branch = Branch.open_containing(".")[0]
-        
-        self.main_window = QBzrSwitchWindow(branch, location, ui_mode)
+        bzrdir = BzrDir.open_containing(".")[0]
+         
+        self.main_window = QBzrSwitchWindow(branch, bzrdir, location, ui_mode)
         self.main_window.show()
         application.exec_() 
 
