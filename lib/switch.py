@@ -74,8 +74,6 @@ class QBzrSwitchWindow(SubProcessDialog):
         if location != None:
             branch_combo.addItem(osutils.abspath(location))
         
-        repo = branch.bzrdir.find_repository()
-        
         boundloc = branch.get_bound_location()
         self.boundloc = boundloc
         if boundloc != None:
@@ -99,10 +97,11 @@ class QBzrSwitchWindow(SubProcessDialog):
         
         layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
+        self.branch_combo.setFocus()
 
     def show(self):
         QBzrDialog.show(self)
-        QtCore.QTimer.singleShot(1000, self.initial_load)
+        QtCore.QTimer.singleShot(0, self.initial_load)
 
     @runs_in_loading_queue
     @ui_current_widget
@@ -115,10 +114,10 @@ class QBzrSwitchWindow(SubProcessDialog):
         repo = self.branch.bzrdir.find_repository()
         
         if repo != None:
-            branches = repo.find_branches()
-            for br in branches:
+            for br in repo.find_branches():
+                self.processEvents()
                 branch_combo.addItem(url_for_display(br.base))
-                
+        
         self.throbber.hide()
              
         if self.boundloc == None:
