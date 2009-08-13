@@ -1,14 +1,35 @@
 Contributors:
+
+ * Alessandro Renieri <are at sensordynamics dot cc>
  * Alexander Belchenko <bialix at ukr dot net>
+ * Alexey Borzenkov <snaury at gmail dot com>
+ * Alexey Stukalov <astukalov at gmail dot com>
+ * B. Sygnat <b dot sygnat at gawab dot com>
+ * Craig Hewetson <craighewetson at gmail dot com>
  * Gary van der Merwe <garyvdm at gmail dot com>
  * Goffredo Baroncelli <kreijack at tiscalinet dot it>
+ * HAYASHI Kentaro <kenhys at gigo-ice dot org>
+ * Ian Clatworthy <ian dot clatworthy at canonical dot com>
+ * INADA Naoki <songofacandy at gmail dot com>
+ * Javier Derderian <javierder at gmail dot com>
+ * John Arbash Meinel <john at arbash-meinel dot com>
+ * John Szakmeister <john at szakmeister dot net>
  * Lukáš Lalinský <lalinsky at gmail dot com>
+ * Mario del Pozo <mariodpros at gmail dot com>
  * Mark Hammond <mhammond at skippinet dot com au>
+ * Martin <gzlist at googlemail dot com>
+ * Neil Martinsen-Burrell <nmb at wartburg dot edu>
+ * Nicholas Allen <nick dot allen at onlinehome dot de>
+ * Ohad Kammar <ohad dot kammar at gmail dot com>
+ * Robert Widhopf-Fenk <hack at robf dot de>
+ * Vincent Ladeuil <v dot ladeuil+lp at free dot fr>
+
 
 The idea of an UI for Bazaar commands comes from bzr-gtk plugin by 
 Jelmer Vernooij <jelmer at samba dot org>.
 
 Used icons:
+
  * bzr-16.png and bzr-48.png
      The official Bazaar icons
      http://bazaar-vcs.org/LogoOptions
