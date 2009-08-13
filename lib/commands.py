@@ -922,16 +922,19 @@ class cmd_qsend(QBzrCommand):
 
 
 class cmd_qswitch(QBzrCommand):
+    """Set the branch of a checkout and update."""
+    
     takes_args = ['location?']
     takes_options = [ui_mode_option]
     
     def _qbzr_run(self, location=None, ui_mode=False):
+            
         from bzrlib.plugins.qbzr.lib.switch import QBzrSwitchWindow
         
         application = QtGui.QApplication(sys.argv)
-        branch = Branch.open_containing(location)[0]
+        branch = Branch.open_containing(".")[0]
         
-        self.main_window = QBzrSwitchWindow(branch, ui_mode)
+        self.main_window = QBzrSwitchWindow(branch, location, ui_mode)
         self.main_window.show()
         application.exec_() 
 
