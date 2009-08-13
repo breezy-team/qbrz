@@ -372,7 +372,6 @@ class CommitWindow(SubProcessDialog):
 
         splitter.setStretchFactor(0, 3)
 
-
         vbox = QtGui.QVBoxLayout(self)
         vbox.addWidget(self.throbber)
         vbox.addWidget(branch_groupbox)

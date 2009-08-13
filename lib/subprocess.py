@@ -73,6 +73,8 @@ class SubProcessWindowBase:
         self.dir = dir
         self.ui_mode = ui_mode
 
+        self.return_code = 1
+
         if dialog:
             flags = (self.windowFlags() & ~QtCore.Qt.Window) | QtCore.Qt.Dialog
             self.setWindowFlags(flags)
@@ -192,6 +194,8 @@ class SubProcessWindowBase:
         
         self.emit(QtCore.SIGNAL("subprocessFinished(bool)"), True)
         self.emit(QtCore.SIGNAL("disableUi(bool)"), False)
+
+        self.return_code = 0
 
         if not self.ui_mode:
             self.close()
