@@ -60,7 +60,7 @@ class ConflictsWindow(QBzrWindow):
         header = self.conflicts_list.header()
         header.setStretchLastSection(False)
         header.setResizeMode(0, QtGui.QHeaderView.Stretch)
-        header.setResizeMode(1, QtGui.QHeaderView.Interactive)
+        header.setResizeMode(1, QtGui.QHeaderView.ResizeToContents)
         vbox.addWidget(self.conflicts_list)
 
         hbox = QtGui.QHBoxLayout()
