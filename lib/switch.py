@@ -79,6 +79,7 @@ class QBzrSwitchWindow(SubProcessDialog):
         
         self.throbber = ThrobberWidget(self)
         throb_hbox.addWidget(self.throbber)
+        self.throbber.hide()
         switch_box.addRow(throb_hbox)
         
         switch_hbox = QtGui.QHBoxLayout()
@@ -117,8 +118,7 @@ class QBzrSwitchWindow(SubProcessDialog):
 
     def show(self):
         QBzrDialog.show(self) 
-        # FIX ME: Next line disabled until find_branches variation is found
-        #QtCore.QTimer.singleShot(1000, self.initial_load)
+        QtCore.QTimer.singleShot(1000, self.initial_load)
 
     @runs_in_loading_queue
     @ui_current_widget
@@ -130,15 +130,12 @@ class QBzrSwitchWindow(SubProcessDialog):
 
         repo = self.branch.bzrdir.find_repository()
         
-        if repo != None:
-            branches = repo.find_branches()
-            for br in branches:
-                branch_combo.addItem(url_for_display(br.base))
-                
+        if repo is not None:
+            if getattr(repo, "iter_branches", None):
+                for br in repo.iter_branches():
+                    branch_combo.addItem(url_for_display(br.base))
+                    
         self.throbber.hide()
-             
-        if self.boundloc == None:
-            branch_combo.clearEditText()
 
     def browse_clicked(self):
         fileName = QtGui.QFileDialog.getExistingDirectory(self, gettext("Select branch location"));
