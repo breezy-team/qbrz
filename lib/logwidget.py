@@ -213,7 +213,9 @@ class LogList(RevisionTreeView):
                         colapse_expand_click = True
                         revision_id = str(index.data(logmodel.RevIdRole).toString())
                         self.log_model.colapse_expand_rev(revision_id, not twisty_state.toBool())
-                        self.scrollTo(self.currentIndex())
+                        index_b = self.log_model.indexFromRevId(revision_id)
+                        index_b = self.filter_proxy_model.mapFromSource(index_b)
+                        self.scrollTo(index_b)
                         e.accept ()
         if not colapse_expand_click:
             QtGui.QTreeView.mousePressEvent(self, e)

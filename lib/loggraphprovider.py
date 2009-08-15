@@ -1434,7 +1434,7 @@ class LogGraphProvider(object):
         return revid in self.revid_rev
     
     def revid_from_revno(self, revno):
-        if revno not in self.revno_index:
+        if revno not in self.revno_rev:
             return None
         rev = self.revno_rev[revno]
         return rev.revid

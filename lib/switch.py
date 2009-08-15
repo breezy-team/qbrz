@@ -19,10 +19,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-
+import os
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import errors
+from bzrlib import errors, osutils
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
@@ -39,10 +39,10 @@ from bzrlib.plugins.qbzr.lib.trace import (
 
 class QBzrSwitchWindow(SubProcessDialog):
 
-    def __init__(self, branch, ui_mode = None):
+    def __init__(self, branch, bzrdir, location, ui_mode = None):
         
         super(QBzrSwitchWindow, self).__init__(
-                                  gettext("Switch Checkout to"),
+                                  gettext("Switch"),
                                   name = "switch",
                                   default_size = (400, 400),
                                   ui_mode = ui_mode,
@@ -53,39 +53,61 @@ class QBzrSwitchWindow(SubProcessDialog):
             
         self.branch = branch
         
-        gbSwitch = QtGui.QGroupBox(gettext("Switch Checkout to"), self)
+        gbSwitch = QtGui.QGroupBox(gettext("Switch checkout"), self)
+
+        switch_box = QtGui.QFormLayout(gbSwitch)
         
-        switch_hbox = QtGui.QHBoxLayout(gbSwitch)
+        branchbase = None
+        
+        boundloc = branch.get_bound_location()
+        if boundloc is not None:
+            label = gettext("Heavyweight checkout:")
+            branchbase = branch.base
+        else:
+            if bzrdir.root_transport.base != branch.bzrdir.root_transport.base:
+                label = gettext("Lightweight checkout:")
+                boundloc = branch.bzrdir.root_transport.base
+                branchbase = bzrdir.root_transport.base
+            else:
+                raise errors.BzrError("This branch is not checkout.")
+
+        switch_box.addRow(label, QtGui.QLabel(url_for_display(branchbase)))
+        switch_box.addRow(gettext("Checkout of branch:"),
+                          QtGui.QLabel(url_for_display(boundloc)))
+        self.boundloc = url_for_display(boundloc)
+        
+        throb_hbox = QtGui.QHBoxLayout()
         
         self.throbber = ThrobberWidget(self)
+        throb_hbox.addWidget(self.throbber)
+        self.throbber.hide()
+        switch_box.addRow(throb_hbox)
+        
+        switch_hbox = QtGui.QHBoxLayout()
         
         branch_label = QtGui.QLabel(gettext("Branch:"))
         branch_combo = QtGui.QComboBox()   
         branch_combo.setEditable(True)
-        branch_combo.hide()
         
         self.branch_combo = branch_combo
         
-        repo = branch.bzrdir.find_repository()
-        
-        boundloc = branch.get_bound_location()
-        self.boundloc = boundloc
-        if boundloc != None:
+        if location is not None:
+            branch_combo.addItem(osutils.abspath(location))
+        elif boundloc is not None:
             branch_combo.addItem(url_for_display(boundloc))
-
-
+            
         browse_button = QtGui.QPushButton(gettext("Browse"))
         QtCore.QObject.connect(browse_button, QtCore.SIGNAL("clicked(bool)"), self.browse_clicked)
         
-                
         switch_hbox.addWidget(branch_label)
         switch_hbox.addWidget(branch_combo)
-        switch_hbox.addWidget(self.throbber)
         switch_hbox.addWidget(browse_button)
         
         switch_hbox.setStretchFactor(branch_label,0)
         switch_hbox.setStretchFactor(branch_combo,1)
         switch_hbox.setStretchFactor(browse_button,0)
+        
+        switch_box.addRow(switch_hbox)
         
         layout = QtGui.QVBoxLayout(self)
         
@@ -93,14 +115,15 @@ class QBzrSwitchWindow(SubProcessDialog):
         
         layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
+        self.branch_combo.setFocus()
 
     def show(self):
         QBzrDialog.show(self)
-        QtCore.QTimer.singleShot(1000, self.initial_load)
+        QtCore.QTimer.singleShot(0, self.initial_load)
 
     @runs_in_loading_queue
     @ui_current_widget
-    @reports_exception()
+    @reports_exception(type=SUB_LOAD_METHOD)   
     def initial_load(self):
         
         self.throbber.show()
@@ -108,20 +131,24 @@ class QBzrSwitchWindow(SubProcessDialog):
 
         repo = self.branch.bzrdir.find_repository()
         
-        if repo != None:
-            branches = repo.find_branches()
-            for br in branches:
-                branch_combo.addItem(url_for_display(br.base))
-                
+        if repo is not None:
+            if getattr(repo, "iter_branches", None):
+                for br in repo.iter_branches():
+                    self.processEvents()
+                    branch_combo.addItem(url_for_display(br.base))
+                    
         self.throbber.hide()
-        self.branch_combo.show()
-             
-        if self.boundloc == None:
-            branch_combo.clearEditText()
 
     def browse_clicked(self):
-        fileName = QtGui.QFileDialog.getExistingDirectory(self, gettext("Select branch location"));
-        if fileName != '':
+        if os.path.exists(self.boundloc):
+            directory = self.boundloc
+        else:
+            directory = os.getcwdu()
+        fileName = QtGui.QFileDialog.getExistingDirectory(self,
+            gettext("Select branch location"),
+            directory,
+            )
+        if fileName:
             self.branch_combo.insertItem(0,fileName)
             self.branch_combo.setCurrentIndex(0)
         
@@ -131,14 +158,10 @@ class QBzrSwitchWindow(SubProcessDialog):
         location = str(self.branch_combo.currentText())
        
         if(location == ''):
-            raise errors.BzrCommandError("Branch location not entered.")
+            raise errors.BzrCommandError("Branch location not specified.")
         
         return True
     
     def do_start(self):        
-        args = []
-        
         location = str(self.branch_combo.currentText())
-        mylocation =  url_for_display(self.branch.base)     
-                            
-        self.process_widget.do_start(None, 'switch', location, *args)
+        self.process_widget.do_start(None, 'switch', location)
