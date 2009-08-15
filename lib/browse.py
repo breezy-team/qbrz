@@ -214,17 +214,17 @@ class BrowseWindow(QBzrWindow):
         revstr = unicode(self.revision_edit.text())
         if not revstr:
             if self.workingtree is not None:
-                revision_spec = "wt:"
+                self.revision_spec = "wt:"
                 revision_id = None
             else:
                 revno, revision_id = self.branch.last_revision_info()
                 self.revision_spec = str(revno)
-            self.set_revision(revision_id=revision_id, text=revision_spec)
+            self.set_revision(revision_id=revision_id, text=self.revision_spec)
         else:
             if revstr == "wt:":
-                revision_spec = "wt:"
+                self.revision_spec = "wt:"
                 revision_id = None                
-                self.set_revision(revision_id=revision_id, text=revision_spec)
+                self.set_revision(revision_id=revision_id, text=self.revision_spec)
             else:
                 try:
                     revspec = RevisionSpec.from_string(revstr)
