@@ -29,25 +29,31 @@ class TestCommitDataBase(TestCase):
 
     def test_empty(self):
         d = CommitData()
+        # CommitData instance has bool value False if there is no data inside
         self.assertFalse(bool(d))
         self.assertEqual(None, d['message'])
         self.assertEqual({}, d.as_dict())
 
-    def test_set_data(self):
+    def test_set_data_dict(self):
         d = CommitData()
         d.set_data({'message': 'foo bar'})
+        # CommitData instance has bool value True if there is some data inside
         self.assertTrue(bool(d))
         self.assertEqual('foo bar', d['message'])
         self.assertEqual({'message': 'foo bar'}, d.as_dict())
-        #
+
+    def test_set_data_kw(self):
         d = CommitData()
         d.set_data(message='foo bar')
+        # CommitData instance has bool value True if there is some data inside
         self.assertTrue(bool(d))
         self.assertEqual('foo bar', d['message'])
         self.assertEqual({'message': 'foo bar'}, d.as_dict())
-        #
+
+    def test_set_data_dict_and_kw(self):
         d = CommitData()
         d.set_data({'fixes': 'lp:123456'}, message='foo bar')
+        # CommitData instance has bool value True if there is some data inside
         self.assertTrue(bool(d))
         self.assertEqual('foo bar', d['message'])
         self.assertEqual({'message': 'foo bar',
@@ -77,14 +83,14 @@ class TestCommitDataWithTree(TestCaseWithTransport):
                           'new_revid': revid1,
                          }, d.as_dict())
 
-    def test_io(self):
+    def test_load_nothing(self):
         wt = self.make_branch_and_tree('.')
-        # load nothing
         d = CommitData(tree=wt)
         d.load()
         self.assertEqual({}, d.as_dict())
-        #
-        # save data
+
+    def test_save_data(self):
+        wt = self.make_branch_and_tree('.')
         d = CommitData(tree=wt)
         d.set_data(message='spam', old_revid='foo', new_revid='bar')
         d.save()
@@ -94,16 +100,39 @@ class TestCommitDataWithTree(TestCaseWithTransport):
                           'old_revid': 'foo',
                           'new_revid': 'bar',
                           }, cfg.get_user_option('commit_data'))
-        #
-        # load data later
+
+    def test_save_filter_out_empty_data(self):
+        wt = self.make_branch_and_tree('.')
+        d = CommitData(tree=wt)
+        d.set_data({'message': '', 'foo': 'bar'})
+        d.save()
+        # check branch.conf
+        cfg = wt.branch.get_config()
+        self.assertEqual({'foo': 'bar'}, cfg.get_user_option('commit_data'))
+
+    def test_load_saved_data(self):
+        wt = self.make_branch_and_tree('.')
+        cfg = wt.branch.get_config()
+        cfg.set_user_option('commit_data',
+            {'message': 'spam',
+             'old_revid': 'foo',
+             'new_revid': 'bar',
+             })
         d = CommitData(tree=wt)
         d.load()
         self.assertEqual({'message': 'spam',
                           'old_revid': 'foo',
                           'new_revid': 'bar',
                           }, d.as_dict())
-        #
-        # wipe the data in the end
+
+    def test_wipe_saved_data(self):
+        wt = self.make_branch_and_tree('.')
+        cfg = wt.branch.get_config()
+        cfg.set_user_option('commit_data',
+            {'message': 'spam',
+             'old_revid': 'foo',
+             'new_revid': 'bar',
+             })
         d = CommitData(tree=wt)
         d.wipe()
         # check branch.conf
@@ -149,13 +178,3 @@ class TestCommitDataWithTree(TestCaseWithTransport):
         cfg = wt.branch.get_config()
         self.assertEqual('', cfg.get_user_option('qbzr_commit_message'))
         self.assertEqual({}, cfg.get_user_option('commit_data'))
-
-    def test_io_filter_out_empty_data(self):
-        wt = self.make_branch_and_tree('.')
-        d = CommitData(tree=wt)
-        d.set_data({'message': '', 'foo': 'bar'})
-        d.save()
-        #
-        d = CommitData(tree=wt)
-        d.load()
-        self.assertEqual({'foo': 'bar'}, d.as_dict())
