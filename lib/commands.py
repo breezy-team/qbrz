@@ -307,7 +307,7 @@ class cmd_qconflicts(QBzrCommand):
 
 
 class cmd_qbrowse(QBzrCommand):
-    """Show inventory."""
+    """Show inventory or working tree."""
     takes_args = ['location?']
     takes_options = ['revision']
     aliases = ['qbw']
@@ -476,7 +476,7 @@ class cmd_qlog(QBzrCommand):
 
 
 class cmd_qconfig(QBzrCommand):
-    """Configure Bazaar."""
+    """Configure Bazaar and QBzr."""
 
     takes_args = []
     takes_options = []
@@ -651,7 +651,7 @@ class cmd_qinfo(QBzrCommand):
 
 
 class cmd_qinit(QBzrCommand):
-    """Initializes a new (possibly shared) repository."""
+    """Initializes a new branch or shared repository."""
 
     takes_options = [ui_mode_option]
     takes_args = ['location?']
@@ -784,7 +784,7 @@ def sigabrt_handler(signum, frame):
 
 
 class cmd_qgetupdates(QBzrCommand):
-    """Fetches external changes into the working tree"""
+    """Fetches external changes into the working tree."""
 
     takes_args = ['location?']
     takes_options = [ui_mode_option]
@@ -803,7 +803,7 @@ class cmd_qgetupdates(QBzrCommand):
 
 
 class cmd_qgetnew(QBzrCommand):
-    """Creates a new working tree (either a checkout or full branch)"""
+    """Creates a new working tree (either a checkout or full branch)."""
 
     takes_args = ['location?']
     takes_options = [ui_mode_option]
@@ -904,20 +904,15 @@ class cmd_qupdate(QBzrCommand):
 
 
 class cmd_qsend(QBzrCommand):
-    """Dialog for creating and sending patches and bundles"""
-    
-    encoding_type = 'exact'
+    """Mail or create a merge-directive for submitting changes."""
 
     takes_args = ['submit_branch?', 'public_branch?']
     
     def _qbzr_run(self, submit_branch=".", public_branch=None):
         branch = Branch.open_containing(submit_branch)[0]
-        
         app = QtGui.QApplication(sys.argv)
         window = SendWindow(branch)
-
         window.show()
-
         app.exec_()
 
 

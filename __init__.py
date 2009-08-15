@@ -19,9 +19,49 @@
 
 """QBzr - Qt-based frontend for Bazaar
 
-Provided commands:
-    qannotate, qbrowse, qcat, qcommit, qconfig, qdiff, qlog, qpull, qpush
-    and more, see output of `bzr help commands | grep qbzr` for full list.
+QBzr provided GUI frontend for many core bzr commands and several universal
+dialogs and helper commands. Equivalents for core bzr commands
+has the same names as CLI commands but with prefix "q".
+
+Basic q-commands:
+
+ * qadd - GUI for adding files or directories.
+ * qannotate - Show the origin of each line in a file.
+ * qbind - Convert the current branch into a checkout of the supplied branch.
+ * qbranch - Create a new copy of a branch.
+ * qcat - View the contents of a file as of a given revision.
+ * qcommit - GUI for committing revisions.
+ * qconflicts - Show conflicts.
+ * qdiff - Show differences in working tree in a GUI window.
+ * qexport - Export current or past revision to a destination directory or archive.
+ * qinfo - Shows information about the current location.
+ * qinit - Initializes a new branch or shared repository.
+ * qlog - Show log of a repository, branch, file, or directory in a Qt window.
+ * qmerge - Perform a three-way merge.
+ * qpull - Turn this branch into a mirror of another branch.
+ * qpush - Update a mirror of this branch.
+ * qrevert - Revert changes files.
+ * qsend - Mail or create a merge-directive for submitting changes.
+ * qswitch - Set the branch of a checkout and update.
+ * qtag - Edit tags.
+ * qunbind - Convert the current checkout into a regular branch.
+ * qupdate - Update working tree with latest changes in the branch.
+ * qversion - Show version/system information.
+
+Hybrid dialogs:
+
+ * qgetnew - Creates a new working tree (either a checkout or full branch).
+ * qgetupdates - Fetches external changes into the working tree.
+
+Additional commands:
+
+ * qbrowse - Show inventory or working tree.
+ * qconfig - Configure Bazaar and QBzr.
+ * qviewer - Simple file viewer.
+
+Miscellaneous:
+
+ * bug-url - print full URL to a specific bug, or open it in your browser.
 """
 
 from bzrlib import registry
