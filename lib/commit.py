@@ -24,7 +24,7 @@ from PyQt4 import QtCore, QtGui
 
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
-from bzrlib.plugins.qbzr.lib.commit_data import CommitData
+from bzrlib.plugins.qbzr.lib.commit_data import QBzrCommitData
 from bzrlib.plugins.qbzr.lib.diff import (
     DiffButtons,
     show_diff,
@@ -217,7 +217,7 @@ class CommitWindow(SubProcessDialog):
                                   dialog = dialog,
                                   parent = parent)
         self.tree = tree
-        self.ci_data = CommitData(tree=tree)
+        self.ci_data = QBzrCommitData(tree=tree)
         self.ci_data.load()
 
         self.is_bound = bool(tree.branch.get_bound_location())
@@ -534,7 +534,7 @@ class CommitWindow(SubProcessDialog):
             warning("Cannot save commit data because the branch is locked.")
             return
         message = unicode(self.message.toPlainText()).strip()
-        ci_data = CommitData(tree=self.tree)
+        ci_data = QBzrCommitData(tree=self.tree)
         ci_data.set_data(message=message)
         ci_data.save()
 
@@ -545,7 +545,7 @@ class CommitWindow(SubProcessDialog):
             from bzrlib.trace import warning
             warning("Cannot wipe commit data because the branch is locked.")
             return
-        ci_data = CommitData(tree=self.tree)
+        ci_data = QBzrCommitData(tree=self.tree)
         ci_data.wipe()
 
     def do_start(self):

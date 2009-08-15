@@ -28,13 +28,19 @@ class CommitData(object):
 
     Known items for data dict:
         message: main commit message.
-        bugs: list of 'id:number' strings for fixed bugs
-        authors: list of strings with name(s) of patch author(s)
-        file_message: dict for per-file commit messages (MySQL),
+        bugs: string with space separated fixed bugs ids
+            in the form 'id:number'
+        authors: string with name(s) of patch author(s)
+        file_message: dict for per-file commit messages (used e.g. in MySQL),
             keys in this dict are filenames/fileids,
             values are specific commit messages.
         old_revid: old tip revid (before uncommit)
         new_revid: new tip revid (after uncommit)
+
+    Pair of revision ids (old_revid and new_revid) could be used
+    to get all revision messages from uncommitted chain.
+    XXX provide some helper API to get uncommitted chain of revisions
+    and/or graph and/or revisions data.
 
     [bialix 20090812] Data saved in branch.conf in [commit_data] section
     as plain dict.
@@ -110,37 +116,38 @@ class CommitData(object):
         # set data from revision
         self._data['message'] = revision.message
 
+    def _load_old_data(self):
+        """Load saved data in old format."""
+        return
+
     def load(self):
         """Load saved data from branch/tree."""
-        branch = self._get_branch()
-        config = branch.get_config()
+        config = self._get_branch_config()
         data = config.get_user_option('commit_data')
         if data:
             self.set_data(data)
         else:
-            # backward compatibility
-            old_data = config.get_user_option('qbzr_commit_message')
-            if old_data:
-                self.set_data(message=old_data)
+            # for backward compatibility
+            self._load_old_data()
 
     def save(self):
         """Save data to the branch/tree."""
         # XXX save should wipe if self._data is empty
-        branch = self._get_branch()
-        config = branch.get_config()
+        config = self._get_branch_config()
         config.set_user_option('commit_data', self._filtered_data())
         # clear old data
-        if config.get_user_option('qbzr_commit_message'):
-            config.set_user_option('qbzr_commit_message', '')
+        self._wipe_old_data()
+
+    def _wipe_old_data(self):
+        """Wipe saved data in old format."""
+        return
 
     def wipe(self):
         """Delete saved data from branch/tree config."""
-        branch = self._get_branch()
-        config = branch.get_config()
+        config = self._get_branch_config()
         config.set_user_option('commit_data', {})
         # clear old data
-        if config.get_user_option('qbzr_commit_message'):
-            config.set_user_option('qbzr_commit_message', '')
+        self._wipe_old_data()
 
     def _get_branch(self):
         """Return branch object if either branch or tree was specified on init.
@@ -153,3 +160,28 @@ class CommitData(object):
         # too bad
         from bzrlib import errors
         raise errors.BzrInternalError("CommitData has no saved branch or tree.")
+
+    def _get_branch_config(self):
+        return self._get_branch().get_config()
+
+
+class QBzrCommitData(CommitData):
+    """CommitData variant with backward compatibility support.
+    This class knows about old data saved as qbzr_commit_message
+    and can provide automatic migration of data.
+    """
+
+    def _load_old_data(self):
+        config = self._get_branch_config()
+        old_data = config.get_user_option('qbzr_commit_message')
+        if old_data:
+            self.set_data(message=old_data)
+
+    def _wipe_old_data(self):
+        config = self._get_branch_config()
+        if config.get_user_option('qbzr_commit_message'):
+            config.set_user_option('qbzr_commit_message', '')
+
+
+# in similar way to QBzrCommitData it's possible to implement
+# class for bzr-gtk.

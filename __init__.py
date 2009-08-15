@@ -101,9 +101,9 @@ register_lazy_command('bzrlib.plugins.qbzr.lib.extra.isversioned', 'cmd_is_versi
 
 
 def post_uncommit_hook(local, master, old_revno, old_tip, new_revno, hook_new_tip):
-    from bzrlib.plugins.qbzr.lib.commit_data import CommitData
+    from bzrlib.plugins.qbzr.lib.commit_data import QBzrCommitData
     branch = local or master
-    ci_data = CommitData(branch=branch)
+    ci_data = QBzrCommitData(branch=branch)
     ci_data.set_data_on_uncommit(old_tip, hook_new_tip)
     ci_data.save()
 

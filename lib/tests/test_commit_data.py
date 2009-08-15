@@ -22,6 +22,7 @@
 from bzrlib.tests import TestCase, TestCaseWithTransport
 from bzrlib.plugins.qbzr.lib.commit_data import (
     CommitData,
+    QBzrCommitData,
     )
 
 
@@ -139,26 +140,30 @@ class TestCommitDataWithTree(TestCaseWithTransport):
         cfg = wt.branch.get_config()
         self.assertEqual({}, cfg.get_user_option('commit_data'))
 
+
+
+class TestQBzrCommitData(TestCaseWithTransport):
+
     def test_io_old_data_transition(self):
         # we should handle old data (i.e. qbzr_commit_message) gracefully
         wt = self.make_branch_and_tree('.')
         cfg = wt.branch.get_config()
         cfg.set_user_option('qbzr_commit_message', 'spam')
         # load
-        d = CommitData(tree=wt)
+        d = QBzrCommitData(tree=wt)
         d.load()
         self.assertEqual({'message': 'spam',
                           }, d.as_dict())
         #
         # if here both old and new then prefer new
         cfg.set_user_option('commit_data', {'foo': 'bar'})
-        d = CommitData(tree=wt)
+        d = QBzrCommitData(tree=wt)
         d.load()
         self.assertEqual({'foo': 'bar',
                           }, d.as_dict())
         #
         # on save we should clear old data
-        d = CommitData(tree=wt)
+        d = QBzrCommitData(tree=wt)
         d.set_data(message='eggs', old_revid='foo', new_revid='bar')
         d.save()
         # check branch.conf
@@ -172,7 +177,7 @@ class TestCommitDataWithTree(TestCaseWithTransport):
         # on wipe we should clear old data too
         cfg = wt.branch.get_config()
         cfg.set_user_option('qbzr_commit_message', 'spam')
-        d = CommitData(tree=wt)
+        d = QBzrCommitData(tree=wt)
         d.wipe()
         # check branch.conf
         cfg = wt.branch.get_config()
