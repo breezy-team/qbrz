@@ -49,6 +49,7 @@ _mail_clients = [
     ('editor', N_('Editor')),
 ]
 
+# XXX use special function from bugs.py instead
 _bug_tracker_re = re.compile('bugtracker_(.+?)_url')
 
 class QRadioCheckItemDelegate(QtGui.QItemDelegate):
@@ -294,6 +295,7 @@ class QBzrConfigWindow(QBzrDialog):
             item.setText(1, command)
 
         # Bug trackers
+        # XXX use special function from bugs.py
         for name, value in parser.get('DEFAULT', {}).items():
             m = _bug_tracker_re.match(name)
             if not m:

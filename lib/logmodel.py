@@ -22,6 +22,8 @@ from time import (strftime, localtime)
 
 from bzrlib import lazy_regex
 from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
+
+from bzrlib.plugins.qbzr.lib.bugs import get_bug_id
 from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
 from bzrlib.plugins.qbzr.lib.revtreeview import RevIdRole as im_RevIdRole
@@ -48,23 +50,6 @@ RevIdRole = im_RevIdRole
  COL_AUTHOR,
 ) = range(4)
 
-_bug_id_re = lazy_regex.lazy_compile(r'(?:'
-    r'bugs/'                    # Launchpad bugs URL
-    r'|ticket/'                 # Trac bugs URL
-    r'|show_bug\.cgi\?id='      # Bugzilla bugs URL
-    r'|issues/show/'            # Redmine bugs URL
-    r'|DispForm.aspx\?ID='      # Microsoft SharePoint URL
-    r'|default.asp\?'           # Fogbugz URL
-    r'|issue'                   # Roundup issue tracker URL
-    r'|view.php\?id='           # Mantis bug tracker URL
-    r')(\d+)(?:\b|$)')
-
-
-def get_bug_id(bug_url):
-    match = _bug_id_re.search(bug_url)
-    if match:
-        return match.group(1)
-    return None
 
 try:
     QVariant_fromList = QtCore.QVariant.fromList

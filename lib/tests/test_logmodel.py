@@ -19,7 +19,6 @@
 from bzrlib.tests import TestCase, TestCaseWithTransport
 from PyQt4 import QtCore
 from bzrlib.plugins.qbzr.lib.logmodel import (
-    get_bug_id,
     QVariant_fromList,
     LogModel,
     )
@@ -27,30 +26,6 @@ from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
 
 from bzrlib.plugins.qbzr.lib.tests.modeltest import ModelTest
 from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
-
-class TestGetBugId(TestCase):
-
-    def test_launchpad(self):
-        self.assertEquals('261234', get_bug_id('https://launchpad.net/bugs/261234'))
-
-    def test_trac(self):
-        self.assertEquals('3852', get_bug_id('http://bugs.musicbrainz.org/ticket/3852'))
-
-    def test_bugzilla(self):
-        self.assertEquals('169104', get_bug_id('http://bugs.kde.org/show_bug.cgi?id=169104'))
-
-    def test_redmine(self):
-        self.assertEquals('1832', get_bug_id('http://www.redmine.org/issues/show/1832'))
-
-    def test_fogbugz(self):
-        self.assertEquals('1234', get_bug_id('http://test.fogbugz.com/default.asp?1234'))
-
-    def test_roundup(self):
-        self.assertEquals('5243', get_bug_id('http://bugs.python.org/issue5243'))
-
-    def test_mantis(self):
-        self.assertEquals('7721', get_bug_id('http://www.mantisbt.org/bugs/view.php?id=7721'))
-        self.assertEquals('123', get_bug_id('http://localhost/view.php?id=123'))
 
 
 class TestQVariantFromList(TestCase):
@@ -105,5 +80,3 @@ class TestModel(TestWatchExceptHook, TestCaseWithTransport):
     def test_merges(self):
         wt = self._prepare_tree_with_merges()
         self._test(wt)
-
-
