@@ -34,6 +34,7 @@ class TestCommitDataBase(TestCase):
         self.assertFalse(bool(d))
         self.assertEqual(None, d['message'])
         self.assertEqual({}, d.as_dict())
+        self.assertEqual([], d.keys())
 
     def test_set_data_dict(self):
         d = CommitData()
@@ -42,6 +43,7 @@ class TestCommitDataBase(TestCase):
         self.assertTrue(bool(d))
         self.assertEqual('foo bar', d['message'])
         self.assertEqual({'message': 'foo bar'}, d.as_dict())
+        self.assertEqual(['message'], d.keys())
 
     def test_set_data_kw(self):
         d = CommitData()
@@ -50,6 +52,7 @@ class TestCommitDataBase(TestCase):
         self.assertTrue(bool(d))
         self.assertEqual('foo bar', d['message'])
         self.assertEqual({'message': 'foo bar'}, d.as_dict())
+        self.assertEqual(['message'], d.keys())
 
     def test_set_data_dict_and_kw(self):
         d = CommitData()
@@ -60,6 +63,32 @@ class TestCommitDataBase(TestCase):
         self.assertEqual({'message': 'foo bar',
                           'fixes': 'lp:123456',
                          }, d.as_dict())
+        self.assertEqual(set(['message', 'fixes']), set(d.keys()))
+
+    def test_init_with_data(self):
+        d = CommitData(data={'fixes': 'lp:123456', 'message': 'foo bar'})
+        # CommitData instance has bool value True if there is some data inside
+        self.assertTrue(bool(d))
+        self.assertEqual('foo bar', d['message'])
+        self.assertEqual({'message': 'foo bar',
+                          'fixes': 'lp:123456',
+                         }, d.as_dict())
+        self.assertEqual(set(['message', 'fixes']), set(d.keys()))
+
+    def test_compare_data(self):
+        this = CommitData(data={'fixes': 'lp:123456', 'message': 'foo bar'})
+        self.assertTrue(this.compare_data(
+            CommitData(data={'fixes': 'lp:123456',
+                             'message': 'foo bar'})))
+        self.assertTrue(this.compare_data({'fixes': 'lp:123456',
+                                           'message': 'foo bar'}))
+        other = CommitData(data={'fixes': 'lp:123456',
+                                 'message': 'foo bar',
+                                 'old_revid': 'xxx',
+                                 'new_revid': 'yyy',
+                                 })
+        self.assertFalse(this.compare_data(other))
+        self.assertTrue(this.compare_data(other, all_keys=False))
 
 
 class TestCommitDataWithTree(TestCaseWithTransport):

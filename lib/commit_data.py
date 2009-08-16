@@ -46,14 +46,17 @@ class CommitData(object):
     as plain dict.
     """
 
-    def __init__(self, branch=None, tree=None):
+    def __init__(self, branch=None, tree=None, data=None):
         """Initialize data object attached to some tree.
         @param tree: working tree object for commit/uncommit.
-        @param branch:  branch object for commit/uncommit.
+        @param branch: branch object for commit/uncommit.
+        @param data: initial data values (dictionary).
         """
         self._tree = tree
         self._branch = branch
         self._data = {}
+        if data:
+            self._data.update(data)
 
     def _filtered_data(self):
         """Return copy of internal data dictionary without
@@ -87,6 +90,10 @@ class CommitData(object):
         """Delete key from dictionary."""
         del self._data[key]
 
+    def keys(self):
+        """Return keys of internal dict."""
+        return self._data.keys()
+
     def as_dict(self):
         return self._data.copy()
 
@@ -115,6 +122,26 @@ class CommitData(object):
         self._data['new_revid'] = new_revid
         # set data from revision
         self._data['message'] = revision.message
+
+    def compare_data(self, other, all_keys=True):
+        """Compare this data with other data.
+        @return:    True if data equals.
+        @param other: other object (dict or instance of CommitData).
+        @param all_keys: if True all keys in both objects
+            are compared. If False then only keys in this
+            instance compared with corresponding keys in other
+            instance.
+        """
+        try:
+            for k,v in self._data.iteritems():
+                if v != other[k]:
+                    return False
+        except KeyError:
+            return False
+        if all_keys:
+            if set(self._data.keys()) != set(other.keys()):
+                return False
+        return True
 
     def _load_old_data(self):
         """Load saved data in old format."""

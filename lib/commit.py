@@ -409,7 +409,7 @@ class CommitWindow(SubProcessDialog):
         
         # Try to be smart: if there is no saved message
         # then set focus on Edit Area; otherwise on OK button.
-        if self.ci_data['message']:
+        if unicode(self.message.toPlainText()).strip():
             self.buttonbox.setFocus()
         else:
             self.message.setFocus()
@@ -535,7 +535,8 @@ class CommitWindow(SubProcessDialog):
         message = unicode(self.message.toPlainText()).strip()
         ci_data = QBzrCommitData(tree=self.tree)
         ci_data.set_data(message=message)
-        ci_data.save()
+        if not ci_data.compare_data(self.ci_data, all_keys=False):
+            ci_data.save()
 
     def wipe_commit_data(self):
         if (self.tree.branch.control_files.get_physical_lock_status()
@@ -544,8 +545,7 @@ class CommitWindow(SubProcessDialog):
             from bzrlib.trace import warning
             warning("Cannot wipe commit data because the branch is locked.")
             return
-        ci_data = QBzrCommitData(tree=self.tree)
-        ci_data.wipe()
+        self.ci_data.wipe()
 
     def do_start(self):
         args = ["commit"]
