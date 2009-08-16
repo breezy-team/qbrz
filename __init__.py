@@ -64,12 +64,12 @@ Miscellaneous:
  * bug-url - print full URL to a specific bug, or open it in your browser.
 """
 
-from bzrlib import registry
-from bzrlib.commands import register_command, plugin_cmds
-
-
 version_info = (0, 14, 0, 'dev', 0)
 __version__ = '.'.join(map(str, version_info))
+
+
+from bzrlib import registry
+from bzrlib.commands import register_command, plugin_cmds
 
 
 class LazyCommandProxy(registry._LazyObjectGetter):
