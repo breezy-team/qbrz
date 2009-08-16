@@ -3,6 +3,11 @@
 
  * New dialogs: qbind, qexport, qunbind (Javier Derderian)
  * Renamed the command qbzr to qmain.
+ * Most q-commands those change state of the branch or working tree
+   (e.g qcommit, qadd, qpull etc.) now return exit code 0 when operation 
+   finished successfully, and exit code 1 when dialog/operation was canceled. 
+   Commands those only show information about branch/tree or the bzr itself
+   (e.g. qlog, qdiff, qversion) always return exit code 0.
 
 
 0.13.1 - 2009-08-11
