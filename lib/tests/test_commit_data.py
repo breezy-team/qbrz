@@ -113,6 +113,18 @@ class TestCommitDataWithTree(TestCaseWithTransport):
                           'new_revid': revid1,
                          }, d.as_dict())
 
+    def test_set_data_on_uncommit_bugids(self):
+        wt = self.make_branch_and_tree('.')
+        self.run_bzr('commit --unchanged -m foo --fixes lp:12345 --fixes lp:67890')
+        revid1 = wt.last_revision()
+        d = CommitData(branch=wt.branch)
+        d.set_data_on_uncommit(revid1, None)
+        self.assertEqual({'message': 'foo',
+                          'bugs': 'lp:12345 lp:67890',
+                          'old_revid': revid1,
+                          'new_revid': 'null:',
+                         }, d.as_dict())
+
     def test_load_nothing(self):
         wt = self.make_branch_and_tree('.')
         d = CommitData(tree=wt)

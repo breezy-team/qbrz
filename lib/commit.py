@@ -305,9 +305,6 @@ class CommitWindow(SubProcessDialog):
         spell_highlighter = SpellCheckHighlighter(self.message.document(),
                                                   spell_checker)
 
-        self.restore_commit_data()
-        if message:
-            self.message.setText(message)
         grid.addWidget(self.message, 0, 0, 1, 2)
 
         # Equivalent for 'bzr commit --fixes'
@@ -406,7 +403,11 @@ class CommitWindow(SubProcessDialog):
                 QtCore.SIGNAL("disableUi(bool)"),
                 w,
                 QtCore.SLOT("setDisabled(bool)"))
-        
+
+        self.restore_commit_data()
+        if message:
+            self.message.setText(message)
+
         # Try to be smart: if there is no saved message
         # then set focus on Edit Area; otherwise on OK button.
         if unicode(self.message.toPlainText()).strip():
@@ -524,6 +525,11 @@ class CommitWindow(SubProcessDialog):
         message = self.ci_data['message']
         if message:
             self.message.setText(message)
+        bug = self.ci_data['bugs']
+        if bug:
+            self.bugs.setText(bug)
+            self.bugs.setEnabled(True)
+            self.bugsCheckBox.setChecked(True)
 
     def save_commit_data(self):
         if (self.tree.branch.control_files.get_physical_lock_status()
@@ -532,9 +538,17 @@ class CommitWindow(SubProcessDialog):
             from bzrlib.trace import warning
             warning("Cannot save commit data because the branch is locked.")
             return
-        message = unicode(self.message.toPlainText()).strip()
+        # collect data
         ci_data = QBzrCommitData(tree=self.tree)
-        ci_data.set_data(message=message)
+        message = unicode(self.message.toPlainText()).strip()
+        if message:
+            ci_data['message'] = message
+        bug_str = ''
+        if self.bugsCheckBox.isChecked():
+            bug_str = unicode(self.bugs.text()).strip()
+        if bug_str:
+            ci_data['bugs'] = bug_str
+        # save only if data different
         if not ci_data.compare_data(self.ci_data, all_keys=False):
             ci_data.save()
 

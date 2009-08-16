@@ -112,6 +112,7 @@ class CommitData(object):
         @param old_revid: old tip revid (before uncommit)
         @param new_revid: new tip revid (after uncommit). Could be None.
         """
+        from bzrlib.plugins.qbzr.lib.bugs import bug_urls_to_ids
         branch = self._get_branch()
         revision = branch.repository.get_revision(old_revid)
         # remember revids
@@ -121,7 +122,10 @@ class CommitData(object):
             new_revid = NULL_REVISION
         self._data['new_revid'] = new_revid
         # set data from revision
-        self._data['message'] = revision.message
+        self._data['message'] = revision.message or ''
+        bug_urls = revision.properties.get('bugs', None)
+        if bug_urls:
+            self._data['bugs'] = ' '.join(bug_urls_to_ids(bug_urls.split('\n')))
 
     def compare_data(self, other, all_keys=True):
         """Compare this data with other data.
