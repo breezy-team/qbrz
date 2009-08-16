@@ -136,6 +136,7 @@ class LogModel(QtCore.QAbstractTableModel):
                   self.createIndex (0, COL_MESSAGE, QtCore.QModelIndex()),
                   self.createIndex (len(self.graph_provider.revisions),
                                     COL_MESSAGE, QtCore.QModelIndex()))
+        self.emit(QtCore.SIGNAL("linesUpdated()"))
     
     def colapse_expand_rev(self, revid, visible):
         self.clicked_row = self.graph_provider.revid_rev[revid].index

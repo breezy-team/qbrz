@@ -89,6 +89,9 @@ class LogList(RevisionTreeView):
                          QtCore.SIGNAL("doubleClicked(QModelIndex)"),
                          self.default_action)
         self.context_menu = QtGui.QMenu(self)
+        self.connect(self.log_model,
+                     QtCore.SIGNAL("linesUpdated()"),
+                     self.make_selection_continuous)
 
     def create_context_menu(self):
         self.context_menu = QtGui.QMenu(self)
@@ -274,6 +277,15 @@ class LogList(RevisionTreeView):
             self.scrollTo(self.currentIndex())
         else:
             QtGui.QTreeView.keyPressEvent(self, e)
+    
+    def make_selection_continuous(self):
+        rows = self.selectionModel().selectedRows()
+        if len(rows)>2:
+            selection = QtGui.QItemSelection(rows[0], rows[-1])
+            self.selectionModel().select(selection,
+                                         (QtGui.QItemSelectionModel.Clear |
+                                          QtGui.QItemSelectionModel.Select |
+                                          QtGui.QItemSelectionModel.Rows))
     
     def set_search(self, str, field):
         self.graph_provider.set_search(str, field)
