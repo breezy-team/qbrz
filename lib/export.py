@@ -20,12 +20,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os
+import sys
 from PyQt4 import QtCore, QtGui
 
 from bzrlib import (
     errors,
     export,
     osutils,
+    bzrdir
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
@@ -35,10 +37,17 @@ from bzrlib.plugins.qbzr.lib.util import url_for_display
 class QBzrExportDialog(SubProcessDialog):
 
     FORMATS = { # key is archive format, value is tuple of accepted extensions
-        'tar': ('tar',),
+        'tar': ('tar'),
         'tbz2': ('tar.bz2', 'tbz2'),
         'tgz': ('tar.gz', 'tgz'),
         'zip': ('zip',),
+        }
+    
+    FORMAT_NAMES = { # key is shown name , value is format  
+        'tar': 'tar',
+        'tar.bz2': 'tbz2',
+        'tar.gz': 'tgz',
+        'zip': 'zip',
         }
 
     def __init__(self, dest=None, branch=None, ui_mode=False, parent=None):
@@ -76,6 +85,23 @@ class QBzrExportDialog(SubProcessDialog):
         exportarch_radio.setChecked(True)
         self.exportarch_radio = exportarch_radio 
         vboxExportDestination.addWidget(exportarch_radio)
+        
+        format_hbox = QtGui.QHBoxLayout()
+        format_label = QtGui.QLabel(gettext("Archive type:"))
+        format_combo = QtGui.QComboBox()
+        self.format_combo = format_combo
+        
+        for ix, k in enumerate(sorted(self.FORMAT_NAMES.keys())):
+            format_combo.insertItem(ix, k)
+            
+        format_hbox.addSpacing(25)
+        format_hbox.addWidget(format_label)
+        format_hbox.addWidget(format_combo)
+        format_hbox.setStretchFactor(format_label,0)
+        format_hbox.setStretchFactor(format_combo,1)
+        
+        vboxExportDestination.addLayout(format_hbox)
+        
         locationfil_hbox = QtGui.QHBoxLayout()        
         locationfil_label = QtGui.QLabel(gettext("Location:"))
         locationfil_edit = QtGui.QLineEdit()
@@ -111,22 +137,6 @@ class QBzrExportDialog(SubProcessDialog):
         folder_hbox.addWidget(folder_edit)
         
         vboxExportDestination.addLayout(folder_hbox)
-        
-        format_hbox = QtGui.QHBoxLayout()
-        format_label = QtGui.QLabel(gettext("Archive type:"))
-        format_combo = QtGui.QComboBox()
-
-        for ix, k in enumerate(sorted(self.FORMATS.keys())):
-            format_combo.insertItem(ix, k)
-        self.format_combo = format_combo
-        
-        format_hbox.addSpacing(25)
-        format_hbox.addWidget(format_label)
-        format_hbox.addWidget(format_combo)
-        format_hbox.setStretchFactor(format_label,0)
-        format_hbox.setStretchFactor(format_combo,1)
-        
-        vboxExportDestination.addLayout(format_hbox)
         
         exportdir_radio = QtGui.QRadioButton("Export as directory")
         self.exportdir_radio = exportdir_radio
@@ -205,6 +215,14 @@ class QBzrExportDialog(SubProcessDialog):
                                QtCore.SLOT("setDisabled(bool)"))
 
         locationfil_edit.setFocus()
+        
+        if sys.platform == 'win32': # set zip as default if we're in windows
+            indx = format_combo.findText("zip")
+        else:
+            indx = format_combo.findText("tar.gz")
+            
+        format_combo.setCurrentIndex(indx)
+        
         if dest is not None:
             if os.path.isdir(dest) or self.detect_format(dest) is None:
                 locationdir_edit.setText(osutils.abspath(dest))
@@ -214,7 +232,38 @@ class QBzrExportDialog(SubProcessDialog):
                 locationfil_edit.setText(osutils.abspath(dest))
                 self.update_root_n_format()
                 exportarch_radio.setChecked(True)
+        else:
+            base = url_for_display(self.branch.base)
+            
+            if base[-1] == '/' or base[-1] == '\\':
+                base = base[0:-1]
+            base = os.path.split(base)
+            
+            format = str(self.format_combo.currentText())
+            export_name = "%s/%s.%s" % (base[0],base[1],format)
+            try:
+                basedir = bzrdir.BzrDir.open(base[0])
+            except errors.NotBranchError: #this is not even a bzr dir
+                pass
+            else:
+                try:
+                    base_branch = basedir.open_branch()
+                except: #this is a shared repo. name "repo-dir"
+                    base_sp = os.path.split(base[0])
+                    export_name = "%s/%s-%s.%s" % (base_sp[0],base_sp[1],base[1],format)
 
+            locationfil_edit.setText(export_name)
+
+        
+        QtCore.QObject.connect(format_combo,
+                               QtCore.SIGNAL("currentIndexChanged(int)"),
+                               self.format_changed)
+        
+    def get_current_format(self):
+        format_name = str(self.format_combo.currentText())
+        format = self.FORMAT_NAMES[format_name]
+        return format
+            
     def detect_format(self, path):
         """Return archive type or None."""
         for k, v in self.FORMATS.iteritems():
@@ -243,7 +292,19 @@ class QBzrExportDialog(SubProcessDialog):
             self.locationfil_edit.setText(fileName)   
             self.update_root_n_format()
             self.exportarch_radio.setChecked(True)
-
+            
+    def format_changed(self, index):
+        
+        sel_format = str(self.format_combo.currentText())
+        
+        currfil = str(self.locationfil_edit.text())
+        path = os.path.split(currfil)
+        name = path[1]
+        path = path[0]
+        
+        name = name.split(".")[0]
+        self.locationfil_edit.setText("%s/%s.%s" % (path,name,sel_format))
+        
     def validate(self):
         if self.exportarch_radio.isChecked():
             location = unicode(self.locationfil_edit.text())
@@ -264,7 +325,8 @@ class QBzrExportDialog(SubProcessDialog):
 
         if self.exportarch_radio.isChecked():
             location = unicode(self.locationfil_edit.text())
-            format = str(self.format_combo.currentText())
+            format = self.get_current_format()
+
             root = unicode(self.folder_edit.text())
             if root:
                 args.append("--root=%s" % root)
