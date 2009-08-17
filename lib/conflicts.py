@@ -225,8 +225,12 @@ class ConflictsWindow(QBzrWindow):
         items = self.conflicts_list.selectedItems()
         file_names = []
         for item in items:
-            file_id = str(item.data(0, QtCore.Qt.UserRole).toString())
-            file_names.append(self.wt.id2path(file_id))
+            # XXX why we need to use file_id -> path conversion if we already have filename???
+            # this conversion fails in the case when user removed file or directory
+            # which marked as conflicted (e.g. in missing parent conflict case).
+            #~file_id = str(item.data(0, QtCore.Qt.UserRole).toString())
+            #~file_names.append(self.wt.id2path(file_id))
+            file_names.append(unicode(item.text(0)))
         resolve(self.wt, file_names)
         self.refresh()
 
