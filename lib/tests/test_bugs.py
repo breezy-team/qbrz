@@ -131,7 +131,7 @@ class TestBugUrlsToIds(TestCaseWithTransport):
         cfg.set_user_option('bugzilla_kde_url',
             'http://bugs.kde.org/')
         cfg.set_user_option('trac_mbz_url',
-            'http://bugs.musicbrainz.org/ticket/')
+            'http://bugs.musicbrainz.org/')
         self.assertEqual(['lp:261234', 'py:5243'], bug_urls_to_ids(bug_urls))
 
     def test_w_branch(self):
