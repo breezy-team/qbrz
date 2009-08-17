@@ -907,11 +907,12 @@ class cmd_qsend(QBzrCommand):
     """Mail or create a merge-directive for submitting changes."""
 
     takes_args = ['submit_branch?', 'public_branch?']
+    takes_options = [ui_mode_option]
     
-    def _qbzr_run(self, submit_branch=".", public_branch=None):
+    def _qbzr_run(self, submit_branch=".", public_branch=None, ui_mode=False):
         branch = Branch.open_containing(submit_branch)[0]
         app = QtGui.QApplication(sys.argv)
-        window = SendWindow(branch)
+        window = SendWindow(branch, ui_mode)
         window.show()
         app.exec_()
 
