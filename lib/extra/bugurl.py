@@ -22,14 +22,7 @@ from bzrlib.config import GlobalConfig
 from bzrlib.branch import Branch
 from bzrlib.option import Option
 
-
-class FakeBranch(object):
-
-    def __init__(self):
-        self._config = GlobalConfig()
-
-    def get_config(self):
-        return self._config
+from bzrlib.plugins.qbzr.lib.bugs import FakeBranch
 
 
 class cmd_bug_url(commands.Command):

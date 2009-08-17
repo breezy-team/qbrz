@@ -8,6 +8,11 @@
    finished successfully, and exit code 1 when dialog/operation was canceled. 
    Commands those only show information about branch/tree or the bzr itself
    (e.g. qlog, qdiff, qversion) always return exit code 0.
+ * Now QBzr can save and restore bug ids information on qcommit cancel
+   and in uncommit hook (#380896, #328636). On uncommit it also saves
+   beginning and end revision ids of uncommitted chain of revisions
+   in addition to old tip revision message and bug ids. All data saved
+   as dictionary in "commit_data" section of branch.conf.
 
 
 0.13.1 - 2009-08-11

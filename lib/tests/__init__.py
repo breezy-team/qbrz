@@ -26,6 +26,8 @@ def load_tests(basic_tests, module, loader):
         'mock',
         'test_autocomplete',
         #'test_diffview', - broken by API changes
+        'test_commit_data',
+        'test_bugs',
         'test_extra_isignored',
         'test_extra_isversioned',
         'test_i18n',
