@@ -37,7 +37,7 @@ from bzrlib.plugins.qbzr.lib.util import url_for_display
 class QBzrExportDialog(SubProcessDialog):
 
     FORMATS = { # key is archive format, value is tuple of accepted extensions
-        'tar': ('tar'),
+        'tar': ('tar',),
         'tbz2': ('tar.bz2', 'tbz2'),
         'tgz': ('tar.gz', 'tgz'),
         'zip': ('zip',),
