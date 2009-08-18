@@ -249,7 +249,7 @@ class LogModel(QtCore.QAbstractTableModel):
             bugs = []
             for bug in revision.properties.get('bugs', '').split('\n'):
                 if bug:
-                    url, space, status = bug.partition(' ')
+                    url = bug.split(' ', 1)[0]
                     bug_id = get_bug_id(url)
                     if bug_id:
                         bugs.append(bugtext % bug_id)

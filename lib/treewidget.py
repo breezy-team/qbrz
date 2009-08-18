@@ -55,6 +55,9 @@ class InternalItem(object):
         self.kind = kind
         self.file_id = file_id
     
+    def __repr__(self):
+        return "<%s %r %s>" % (self.__class__.__name__, self.name, self.kind)
+    
     revision = property(lambda self:None)
 
 
@@ -81,6 +84,24 @@ class ModelItemData(object):
         self.id = None
         self.row = None
         self.icon = None
+
+    def dirs_first_sort_key(self):
+        """
+        Gives a string key that will sort directories before files
+        
+        This works by annotating each path segment with either 'D' or 'F', so
+        that directories compare smaller than files on the same level.
+        """
+        item = self.item
+        if item.kind == "directory":
+            return "D" + item.name.replace("/", "/D")
+        if "/" not in item.name:
+            return "F" + item.name
+        path, f = item.name.rsplit("/", 1)
+        return "D" + path.replace("/", "/D") + "/F" + f
+
+    def __repr__(self):
+        return "<ModelItemData %r>" % (self.item,)
 
 
 class PersistantItemReference(object):
@@ -283,8 +304,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                                 dir_fileid = None
                                 relpath = ""
                                 while dir_path:
-                                    (dir_path, slash, name) = dir_path.rpartition('/')
-                                    relpath = slash + name + relpath
+                                    dir_path, name = os.path.split(dir_path)
+                                    relpath = '/' + name + relpath
                                     if dir_path in self.inventory_data_by_path:
                                         dir_item = self.inventory_data_by_path[
                                                                          dir_path]
@@ -307,7 +328,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                                     old_path = "/".join(old_names)
                                     name = "%s => %s" % (old_path, name)
                             else:
-                                (dir_path, slash, name) = path.rpartition('/')
+                                dir_path, name = os.path.split(path)
                                 dir_fileid = self.tree.path2id(dir_path)
                             
                             if change.is_versioned():
@@ -390,8 +411,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         try:
             dir_item.children_ids = []
             children = sorted(self.get_children(dir_item),
-                              self.inventory_dirs_first_cmp,
-                              lambda x: (x.item.name, x.item.kind))
+                              key=ModelItemData.dirs_first_sort_key)
             
             parent_model_index = self._index_from_id(dir_id, 0)
             self.beginInsertRows(parent_model_index, 0, len(children)-1)
@@ -445,33 +465,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         if not isinstance(item_data.item, UnversionedItem):
             self.inventory_data_by_id[item_data.item.file_id] = item_data
         return item_data.id
-    
-    def inventory_dirs_first_cmp(self, x, y):
-        (x_name, x_kind) = x
-        (y_name, y_kind) = y
-        x_a = x_name
-        y_a = y_name
-        x_is_dir = x_kind =="directory"
-        y_is_dir = y_kind =="directory"
-        while True:
-            x_b, sep, x_a_t = x_a.partition("/")
-            y_b, sep, y_a_t = y_a.partition("/")
-            if x_a_t == "" and y_a_t == "":
-                break
-            if (x_is_dir or not x_a_t == "") and not (y_is_dir or not y_a_t == ""):
-                return -1
-            if (y_is_dir or not y_a_t == "") and not (x_is_dir or not x_a_t == ""):
-                return 1
-            cmp_r = cmp(x_b, y_b)
-            if not cmp_r == 0:
-                return cmp_r
-            x_a = x_a_t
-            y_a = y_a_t
-        if x_is_dir and not y_is_dir:
-            return -1
-        if y_is_dir and not x_is_dir:
-            return 1
-        return cmp(x_name, y_name)
     
     def set_revno_map(self, revno_map):
         self.revno_map = revno_map

@@ -152,10 +152,12 @@ class RevNoItemDelegate(QtGui.QItemDelegate):
         self.max_mainline_digits = max_mainline_digits
     
     def drawDisplay(self, painter, option, rect, text):
-        mainline, dot, therest = str(text).partition(".")
-        therest = dot + therest
+        splitpoint = text.indexOf(".")
+        if splitpoint == -1:
+            splitpoint = len(text)
+        mainline, therest = text[:splitpoint], text[splitpoint:]
         
-        if mainline.endswith(" ?"):
+        if mainline.endsWith(" ?"):
             mainline = mainline[:-2]
             therest = " ?"
         
