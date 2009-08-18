@@ -13,6 +13,7 @@
    beginning and end revision ids of uncommitted chain of revisions
    in addition to old tip revision message and bug ids. All data saved
    as dictionary in "commit_data" section of branch.conf.
+ * Disabled decoration of merge command with --qpreview option (#395817).
 
 
 0.13.1 - 2009-08-11
