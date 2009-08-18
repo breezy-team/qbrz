@@ -24,10 +24,10 @@ import sys
 from PyQt4 import QtCore, QtGui
 
 from bzrlib import (
+    bzrdir,
     errors,
     export,
     osutils,
-    bzrdir
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
@@ -49,7 +49,7 @@ class QBzrExportDialog(SubProcessDialog):
         'tar.gz': 'tgz',
         'zip': 'zip',
         }
-
+    
     def __init__(self, dest=None, branch=None, ui_mode=False, parent=None):
         """Create export dialog.
         @param  dest:   path to export to (either archive name or directory).
@@ -81,10 +81,26 @@ class QBzrExportDialog(SubProcessDialog):
         
         vboxExportDestination.addLayout(info_hbox)
         
+        
         exportarch_radio = QtGui.QRadioButton("Export as archive")
         exportarch_radio.setChecked(True)
         self.exportarch_radio = exportarch_radio 
         vboxExportDestination.addWidget(exportarch_radio)
+        
+        folder_hbox = QtGui.QHBoxLayout()
+        folder_hbox.addSpacing(25)
+        folder_label = QtGui.QLabel(gettext("Root directory name:"))
+        folder_edit = QtGui.QLineEdit()
+        self.folder_edit = folder_edit
+        
+        QtCore.QObject.connect(folder_edit,
+                               QtCore.SIGNAL("editingFinished()"),
+                               self.update_export_path)
+        
+        folder_hbox.addWidget(folder_label)
+        folder_hbox.addWidget(folder_edit)
+        
+        vboxExportDestination.addLayout(folder_hbox)
         
         format_hbox = QtGui.QHBoxLayout()
         format_label = QtGui.QLabel(gettext("Archive type:"))
@@ -114,7 +130,7 @@ class QBzrExportDialog(SubProcessDialog):
                                self.browsefil_clicked)
         QtCore.QObject.connect(locationfil_edit,
                                QtCore.SIGNAL("editingFinished()"),
-                               self.update_root_n_format)
+                               self.update_root_n_format)        
         
         locationfil_hbox.addSpacing(25)
         locationfil_hbox.addWidget(locationfil_label)
@@ -126,17 +142,6 @@ class QBzrExportDialog(SubProcessDialog):
         locationfil_hbox.setStretchFactor(browsefil_button,0)
         
         vboxExportDestination.addLayout(locationfil_hbox)
-        
-        folder_hbox = QtGui.QHBoxLayout()
-        folder_hbox.addSpacing(25)
-        folder_label = QtGui.QLabel(gettext("Root directory name:"))
-        folder_edit = QtGui.QLineEdit()
-        self.folder_edit = folder_edit
-        
-        folder_hbox.addWidget(folder_label)
-        folder_hbox.addWidget(folder_edit)
-        
-        vboxExportDestination.addLayout(folder_hbox)
         
         exportdir_radio = QtGui.QRadioButton("Export as directory")
         self.exportdir_radio = exportdir_radio
@@ -168,8 +173,8 @@ class QBzrExportDialog(SubProcessDialog):
         revisions_tip = QtGui.QRadioButton("Branch tip")
         revisions_tip.setChecked(True)
         self.revisions_tip = revisions_tip
-        revisions_box.addWidget(revisions_label,0,0)
-        revisions_box.addWidget(revisions_tip,0,1)
+        revisions_box.addWidget(revisions_label, 0, 0)
+        revisions_box.addWidget(revisions_tip, 0, 1)
 
         revisions_other = QtGui.QRadioButton("Other")
         self.revisions_other = revisions_other
@@ -177,8 +182,8 @@ class QBzrExportDialog(SubProcessDialog):
         revisions_edit = QtGui.QLineEdit()
         self.revisions_edit = revisions_edit
         
-        revisions_box.addWidget(revisions_other,1,1)
-        revisions_box.addWidget(revisions_edit,1,2)
+        revisions_box.addWidget(revisions_other, 1, 1)
+        revisions_box.addWidget(revisions_edit, 1, 2)
         
         vbxExportOptions.addLayout(revisions_box)
 
@@ -186,7 +191,7 @@ class QBzrExportDialog(SubProcessDialog):
 
         format_canonical = QtGui.QCheckBox("Apply content filters to files")
         self.format_canonical = format_canonical
-        format_box.addWidget(format_canonical,0,0)
+        format_box.addWidget(format_canonical, 0, 0)
         
         vbxExportOptions.addLayout(format_box)
 
@@ -240,7 +245,7 @@ class QBzrExportDialog(SubProcessDialog):
             base = os.path.split(base)
             
             format = str(self.format_combo.currentText())
-            export_name = "%s/%s.%s" % (base[0],base[1],format)
+            export_name = "%s/%s.%s" % (base[0], base[1], format)
             try:
                 basedir = bzrdir.BzrDir.open(base[0])
             except errors.NotBranchError: #this is not even a bzr dir
@@ -248,16 +253,45 @@ class QBzrExportDialog(SubProcessDialog):
             else:
                 try:
                     base_branch = basedir.open_branch()
-                except: #this is a shared repo. name "repo-dir"
+                except errors.NotBranchError: #this is a shared repo. name "repo-dir"
                     base_sp = os.path.split(base[0])
-                    export_name = "%s/%s-%s.%s" % (base_sp[0],base_sp[1],base[1],format)
+                    export_name = "%s/%s/%s-%s.%s" % (base_sp[0], base_sp[1],
+                                                      base_sp[1], base[1], format)
 
             locationfil_edit.setText(export_name)
+            self.update_root_n_format()
 
         
         QtCore.QObject.connect(format_combo,
                                QtCore.SIGNAL("currentIndexChanged(int)"),
                                self.format_changed)
+        
+    def update_export_path(self):
+        
+        root_folder = self.folder_edit.text()
+        
+        base = url_for_display(self.branch.base)
+        
+        if base[-1] == '/' or base[-1] == '\\':
+            base = base[0:-1]
+        base = os.path.split(base)
+        
+        format = str(self.format_combo.currentText())
+        export_name = "%s/%s.%s" % (base[0], root_folder, format)
+        try:
+            basedir = bzrdir.BzrDir.open(base[0])
+        except errors.NotBranchError: #this is not even a bzr dir
+            pass
+        else:
+            try:
+                base_branch = basedir.open_branch()
+            except errors.NotBranchError: #this is a shared repo. name "repo-dir"
+                base_sp = os.path.split(base[0])
+                export_name = "%s/%s/%s.%s" % (base_sp[0], base_sp[1],
+                                                  root_folder, format)
+
+        self.locationfil_edit.setText(export_name)
+        
         
     def get_current_format(self):
         format_name = str(self.format_combo.currentText())
@@ -278,17 +312,19 @@ class QBzrExportDialog(SubProcessDialog):
         if format is not None:
             ix = sorted(self.FORMATS.keys()).index(format)
             self.format_combo.setCurrentIndex(ix)
+        
         self.folder_edit.setText(export.get_root_name(path))
 
     def browsedir_clicked(self):
         fileName = QtGui.QFileDialog.getExistingDirectory(self, ("Select save location"));
-        if fileName != None:
+        if fileName != None and fileName != '':
             self.locationdir_edit.setText(fileName)
             self.exportdir_radio.setChecked(True)
                 
     def browsefil_clicked(self):
         fileName = QtGui.QFileDialog.getSaveFileName(self, ("Select save location"));
-        if fileName != None:
+        
+        if fileName != None and fileName != '':
             self.locationfil_edit.setText(fileName)   
             self.update_root_n_format()
             self.exportarch_radio.setChecked(True)
