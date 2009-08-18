@@ -1,73 +1,74 @@
-<ui version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>MergeForm</class>
- <widget class="QWidget" name="MergeForm" >
-  <property name="geometry" >
+ <widget class="QWidget" name="MergeForm">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>355</width>
-    <height>133</height>
+    <width>448</width>
+    <height>248</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>Merge</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" >
-   <property name="margin" >
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="margin">
     <number>9</number>
    </property>
    <item>
-    <widget class="QGroupBox" name="groupBox" >
-     <property name="title" >
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
       <string>Options</string>
      </property>
-     <layout class="QGridLayout" name="gridLayout" >
-      <item row="0" column="0" >
-       <widget class="QLabel" name="label_4" >
-        <property name="text" >
+     <layout class="QGridLayout" name="gridLayout">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="text">
          <string>&amp;Location:</string>
         </property>
-        <property name="buddy" >
+        <property name="buddy">
          <cstring>revision</cstring>
         </property>
        </widget>
       </item>
-      <item row="0" column="1" colspan="2" >
-       <widget class="QComboBox" name="location" >
-        <property name="editable" >
+      <item row="0" column="1" colspan="2">
+       <widget class="QComboBox" name="location">
+        <property name="editable">
          <bool>true</bool>
         </property>
-        <property name="sizeAdjustPolicy" >
+        <property name="sizeAdjustPolicy">
          <enum>QComboBox::AdjustToMinimumContentsLength</enum>
         </property>
        </widget>
       </item>
-      <item row="0" column="3" >
-       <widget class="QPushButton" name="location_picker" >
-        <property name="text" >
+      <item row="0" column="3">
+       <widget class="QPushButton" name="location_picker">
+        <property name="text">
          <string>Browse...</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="0" >
-       <widget class="QLabel" name="label_3" >
-        <property name="text" >
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="text">
          <string>&amp;Revision:</string>
         </property>
-        <property name="buddy" >
+        <property name="buddy">
          <cstring>revision</cstring>
         </property>
        </widget>
       </item>
-      <item row="1" column="1" >
-       <widget class="QLineEdit" name="revision" />
+      <item row="1" column="1">
+       <widget class="QLineEdit" name="revision"/>
       </item>
-      <item row="1" column="2" colspan="2" >
-       <spacer name="spacer" >
-        <property name="orientation" >
+      <item row="1" column="2" colspan="2">
+       <spacer name="spacer">
+        <property name="orientation">
          <enum>Qt::Horizontal</enum>
         </property>
-        <property name="sizeHint" stdset="0" >
+        <property name="sizeHint" stdset="0">
          <size>
           <width>107</width>
           <height>20</height>
@@ -75,13 +76,24 @@
         </property>
        </spacer>
       </item>
-      <item row="2" column="0" colspan="4" >
-       <widget class="QCheckBox" name="remember" >
-        <property name="text" >
+      <item row="2" column="0" colspan="4">
+       <widget class="QCheckBox" name="remember">
+        <property name="text">
          <string>Remember this location as a default</string>
         </property>
-        <property name="checked" >
-         <bool>true</bool>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="4">
+       <widget class="QCheckBox" name="force">
+        <property name="text">
+         <string>Merge even if the working tree has uncommitted changes</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0" colspan="4">
+       <widget class="QCheckBox" name="uncommitted">
+        <property name="text">
+         <string>Merge uncommitted changes instead of committed ones</string>
         </property>
        </widget>
       </item>
@@ -98,11 +110,11 @@
    <receiver>groupBox</receiver>
    <slot>setDisabled(bool)</slot>
    <hints>
-    <hint type="sourcelabel" >
+    <hint type="sourcelabel">
      <x>17</x>
      <y>7</y>
     </hint>
-    <hint type="destinationlabel" >
+    <hint type="destinationlabel">
      <x>22</x>
      <y>16</y>
     </hint>

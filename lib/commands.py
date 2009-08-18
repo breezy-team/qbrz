@@ -564,11 +564,13 @@ class cmd_qmerge(QBzrCommand):
     takes_options = [ui_mode_option,
                      simple_revision_option,
                      bzr_option('merge', 'directory'),
+                     bzr_option('merge', 'force'),
+                     bzr_option('merge', 'uncommitted'),
                      'remember']
     takes_args = ['location?']
 
     def _qbzr_run(self, location=None, directory=None, revision=None,
-                  remember=None, ui_mode=False):
+                  remember=None, force=None, uncommitted=None, ui_mode=False):
         if directory is None:
             directory = u'.'
         try:
@@ -579,7 +581,8 @@ class cmd_qmerge(QBzrCommand):
             branch_to = Branch.open_containing(directory)[0]
         app = QtGui.QApplication(sys.argv)
         self.main_window = QBzrMergeWindow(branch_to, tree_to, location,
-            revision=revision, remember=remember, ui_mode=ui_mode)
+            revision=revision, remember=remember, force=force,
+            uncommitted=uncommitted, ui_mode=ui_mode)
         self.main_window.show()
         app.exec_()
 
