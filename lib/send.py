@@ -185,18 +185,21 @@ class SendWindow(SubProcessDialog):
        
     def savefile_button_clicked(self):
         fileName = QtGui.QFileDialog.getSaveFileName(self, ("Select save location"));
-        self.savefile_edit.setText(fileName)
+        if fileName != '':
+	        self.savefile_edit.setText(fileName)
                 
     def browse_submit_clicked(self):
         fileName = QtGui.QFileDialog.getExistingDirectory(self, ("Select Submit branch"));
-        self.submit_branch_combo.insertItem(0,fileName)
-        self.submit_branch_combo.setCurrentIndex(0)        
+        if fileName != '':
+	        self.submit_branch_combo.insertItem(0,fileName)
+	        self.submit_branch_combo.setCurrentIndex(0)        
 
     def browse_public_clicked(self):
         fileName = QtGui.QFileDialog.getExistingDirectory(self, ("Select Public branch"));
-        self.public_branch_combo.insertItem(0,fileName)
-        self.public_branch_combo.setCurrentIndex(0)
-        
+        if fileName != '':
+            self.public_branch_combo.insertItem(0,fileName)
+            self.public_branch_combo.setCurrentIndex(0)
+    
     def validate(self):
         if self.submit_email_radio.isChecked():
             location = str(self.mailto_edit.text())
