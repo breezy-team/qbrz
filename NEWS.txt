@@ -14,6 +14,8 @@
    in addition to old tip revision message and bug ids. All data saved
    as dictionary in "commit_data" section of branch.conf.
  * Disabled decoration of merge command with --qpreview option (#395817).
+ * qmerge now supports forced merging and merging of uncommitted changes.
+   (#400062, #409865)
 
 
 0.13.1 - 2009-08-11
