@@ -38,6 +38,7 @@ Basic q-commands:
  * qinit - Initializes a new branch or shared repository.
  * qlog - Show log of a repository, branch, file, or directory in a Qt window.
  * qmerge - Perform a three-way merge.
+ * qplugins - Display information about installed plugins.
  * qpull - Turn this branch into a mirror of another branch.
  * qpush - Update a mirror of this branch.
  * qrevert - Revert changes files.
@@ -125,6 +126,7 @@ register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinfo', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinit', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qlog', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qmerge', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qplugins', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpull', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpush', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrevert', [])

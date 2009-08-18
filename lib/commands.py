@@ -889,6 +889,21 @@ class cmd_qversion(QBzrCommand):
         application.exec_()
 
 
+class cmd_qplugins(QBzrCommand):
+    """Show information about installed plugins."""
+
+    takes_args = []
+    takes_options = []
+    aliases = []
+
+    def _qbzr_run(self):
+        from bzrlib.plugins.qbzr.lib.plugins import QBzrPluginsWindow
+        app = QtGui.QApplication(sys.argv)
+        window = QBzrPluginsWindow()
+        window.show()
+        app.exec_()
+
+
 class cmd_qupdate(QBzrCommand):
     """Update working tree with latest changes in the branch."""
     aliases = ['qup']
