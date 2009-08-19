@@ -29,25 +29,20 @@ from bzrlib.plugins.qbzr.lib.util import url_for_display
 
 class SendWindow(SubProcessDialog):
 
-    def __init__(self, branch):
-        
+    def __init__(self, branch, ui_mode=False, parent=None):
         
         title = "%s: %s" % (gettext("Send"), url_for_display(branch.base))
         super(SendWindow, self).__init__(
                                   title,
                                   name = "send",
                                   default_size = (400, 400),
-                                  ui_mode = None,
+                                  ui_mode = ui_mode,
                                   dialog = True,
-                                  parent = None,
+                                  parent = parent,
                                   hide_progress=False,
                                   )
-            
-            
-            
-            
+
         self.branch = branch
-        
         
         gbMergeDirective = QtGui.QGroupBox(gettext("Merge Directive Options"), self)
         vboxMergeDirective = QtGui.QVBoxLayout(gbMergeDirective)
@@ -71,13 +66,11 @@ class SendWindow(SubProcessDialog):
         submit_hbox.addWidget(submit_branch_combo)
         submit_hbox.addWidget(browse_submit_button)
         
-        
         submit_hbox.setStretchFactor(submit_branch_label,0)
         submit_hbox.setStretchFactor(submit_branch_combo,1)
         submit_hbox.setStretchFactor(browse_submit_button,0)
         
         vboxMergeDirective.addLayout(submit_hbox)
-        
         
         public_hbox = QtGui.QHBoxLayout()
         
@@ -103,15 +96,10 @@ class SendWindow(SubProcessDialog):
         
         vboxMergeDirective.addLayout(public_hbox)
         
-        
         remember_check = QtGui.QCheckBox(gettext("Remember these locations as defaults"))
         self.remember_check = remember_check
         vboxMergeDirective.addWidget(remember_check)
-        
-        
-        
-        #vboxMergeDirective.addLayout(revisions_hbox)
-        
+
         bundle_check = QtGui.QCheckBox(gettext("Include a bundle in the merge directive"))
         bundle_check.setChecked(True)
         self.bundle_check = bundle_check
@@ -121,11 +109,6 @@ class SendWindow(SubProcessDialog):
         self.patch_check = patch_check
         vboxMergeDirective.addWidget(patch_check)
         
-        
-        #vboxMergeDirective.addLayout(message_hbox)
-        
-        ####
-        
         gbAction = QtGui.QGroupBox(gettext("Action"), self)
         vboxAction = QtGui.QVBoxLayout(gbAction)
         
@@ -133,7 +116,6 @@ class SendWindow(SubProcessDialog):
         submit_email_radio.toggle()
         self.submit_email_radio = submit_email_radio
         vboxAction.addWidget(submit_email_radio)
-        
         
         mailto_hbox = QtGui.QHBoxLayout()
         
@@ -164,7 +146,6 @@ class SendWindow(SubProcessDialog):
         
         savefile_hbox = QtGui.QHBoxLayout()
         
-        
         savefile_label = QtGui.QLabel(gettext("Filename:"))
         savefile_edit = QtGui.QLineEdit()
         self.savefile_edit = savefile_edit # to allow access from callback function
@@ -178,7 +159,6 @@ class SendWindow(SubProcessDialog):
         
         vboxAction.addLayout(savefile_hbox)
                 
-        
         revisions_hbox = QtGui.QHBoxLayout()
         revisions_label = QtGui.QLabel(gettext("Revisions:"))
         revisions_edit = QtGui.QLineEdit()
@@ -190,7 +170,6 @@ class SendWindow(SubProcessDialog):
         vboxAction.addLayout(revisions_hbox)
         
         layout = QtGui.QVBoxLayout(self)
-        
         
         self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
         self.splitter.addWidget(gbAction)
@@ -204,24 +183,23 @@ class SendWindow(SubProcessDialog):
         layout.addWidget(self.splitter)
         layout.addWidget(self.buttonbox)
        
-        
-        
     def savefile_button_clicked(self):
         fileName = QtGui.QFileDialog.getSaveFileName(self, ("Select save location"));
-        self.savefile_edit.setText(fileName)
+        if fileName != '':
+            self.savefile_edit.setText(fileName)
                 
     def browse_submit_clicked(self):
         fileName = QtGui.QFileDialog.getExistingDirectory(self, ("Select Submit branch"));
-        self.submit_branch_combo.insertItem(0,fileName)
-        self.submit_branch_combo.setCurrentIndex(0)        
-
+        if fileName != '':
+            self.submit_branch_combo.insertItem(0,fileName)
+            self.submit_branch_combo.setCurrentIndex(0)        
 
     def browse_public_clicked(self):
         fileName = QtGui.QFileDialog.getExistingDirectory(self, ("Select Public branch"));
-        self.public_branch_combo.insertItem(0,fileName)
-        self.public_branch_combo.setCurrentIndex(0)
+        if fileName != '':
+            self.public_branch_combo.insertItem(0,fileName)
+            self.public_branch_combo.setCurrentIndex(0)
         
-    
     def validate(self):
         if self.submit_email_radio.isChecked():
             location = str(self.mailto_edit.text())
@@ -263,7 +241,6 @@ class SendWindow(SubProcessDialog):
             args.append("-o")
             args.append(location)
             
-        
         if self.remember_check.isChecked():
             args.append("--remember")
 
@@ -275,7 +252,6 @@ class SendWindow(SubProcessDialog):
                     
         if self.message_edit.text() != '':
             args.append("--message=%s" % str(self.message_edit.text()))
-        
         
         revision = str(self.revisions_edit.text())
         if revision == '':

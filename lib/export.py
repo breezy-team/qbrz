@@ -81,7 +81,6 @@ class QBzrExportDialog(SubProcessDialog):
         
         vboxExportDestination.addLayout(info_hbox)
         
-        
         exportarch_radio = QtGui.QRadioButton("Export as archive")
         exportarch_radio.setChecked(True)
         self.exportarch_radio = exportarch_radio 
@@ -95,7 +94,7 @@ class QBzrExportDialog(SubProcessDialog):
         
         QtCore.QObject.connect(folder_edit,
                                QtCore.SIGNAL("editingFinished()"),
-                               self.update_export_path)
+                               self.rootfolder_editingfinished)
         
         folder_hbox.addWidget(folder_label)
         folder_hbox.addWidget(folder_edit)
@@ -238,38 +237,18 @@ class QBzrExportDialog(SubProcessDialog):
                 self.update_root_n_format()
                 exportarch_radio.setChecked(True)
         else:
-            base = url_for_display(self.branch.base)
-            
-            if base[-1] == '/' or base[-1] == '\\':
-                base = base[0:-1]
-            base = os.path.split(base)
-            
-            format = str(self.format_combo.currentText())
-            export_name = "%s/%s.%s" % (base[0], base[1], format)
-            try:
-                basedir = bzrdir.BzrDir.open(base[0])
-            except errors.NotBranchError: #this is not even a bzr dir
-                pass
-            else:
-                try:
-                    base_branch = basedir.open_branch()
-                except errors.NotBranchError: #this is a shared repo. name "repo-dir"
-                    base_sp = os.path.split(base[0])
-                    export_name = "%s/%s/%s-%s.%s" % (base_sp[0], base_sp[1],
-                                                      base_sp[1], base[1], format)
-
-            locationfil_edit.setText(export_name)
+            self.update_export_path(use_parent=True)
             self.update_root_n_format()
 
-        
         QtCore.QObject.connect(format_combo,
                                QtCore.SIGNAL("currentIndexChanged(int)"),
                                self.format_changed)
-        
-    def update_export_path(self):
-        
+    
+    def rootfolder_editingfinished(self):
         root_folder = self.folder_edit.text()
-        
+        self.update_export_path(root_folder=root_folder)
+    
+    def update_export_path(self, root_folder=None, use_parent=False):
         base = url_for_display(self.branch.base)
         
         if base[-1] == '/' or base[-1] == '\\':
@@ -277,7 +256,10 @@ class QBzrExportDialog(SubProcessDialog):
         base = os.path.split(base)
         
         format = str(self.format_combo.currentText())
-        export_name = "%s/%s.%s" % (base[0], root_folder, format)
+        if root_folder == None:
+            export_name = "%s/%s.%s" % (base[0], base[1], format)
+        else:
+            export_name = "%s/%s.%s" % (base[0], root_folder, format)
         try:
             basedir = bzrdir.BzrDir.open(base[0])
         except errors.NotBranchError: #this is not even a bzr dir
@@ -287,11 +269,14 @@ class QBzrExportDialog(SubProcessDialog):
                 base_branch = basedir.open_branch()
             except errors.NotBranchError: #this is a shared repo. name "repo-dir"
                 base_sp = os.path.split(base[0])
-                export_name = "%s/%s/%s.%s" % (base_sp[0], base_sp[1],
+                if use_parent:
+                    export_name = "%s/%s/%s-%s.%s" % (base_sp[0], base_sp[1],
+                                                      base_sp[1], base[1], format)
+                else:
+                    export_name = "%s/%s/%s.%s" % (base_sp[0], base_sp[1],
                                                   root_folder, format)
-
+                    
         self.locationfil_edit.setText(export_name)
-        
         
     def get_current_format(self):
         format_name = str(self.format_combo.currentText())
