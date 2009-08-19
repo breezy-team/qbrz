@@ -16,6 +16,7 @@
  * Disabled decoration of merge command with --qpreview option (#395817).
  * qmerge now supports forced merging and merging of uncommitted changes.
    (#400062, #409865)
+ * qinfo now works on shared repositories (#385105)
 
 
 0.13.1 - 2009-08-11

@@ -41,7 +41,7 @@ class QBzrInfoWindow(QBzrWindow):
 
     def __init__(self, location, parent=None):
         QBzrWindow.__init__(self, [gettext("Info")], parent)
-        self.restoreSize("info", (500, 300))
+        self.restoreSize("info", (580, 250))
         self.buttonbox = self.create_button_box(BTN_CLOSE)
         self.ui = Ui_InfoForm()
         self.ui.setupUi(self.centralwidget)
@@ -74,12 +74,8 @@ class QBzrInfoWindow(QBzrWindow):
             _set_location(self.ui.public_branch_location, branch.get_public_branch())
             format = branch._format.get_format_description()
         else:
-            # TODO: Hide Related branches tab
-            na_value = gettext("Not applicable")
-            _set_location(self.ui.push_branch, na_value)
-            _set_location(self.ui.submit_branch, na_value)
-            _set_location(self.ui.parent_branch, na_value)
-            _set_location(self.ui.public_branch_location, na_value)
+            # Hide the Related branches tab
+            self.ui.tabWidget.removeTab(0)
             format = gettext("Location has no branch")
         self.ui.branch_format.setText(format)
 
