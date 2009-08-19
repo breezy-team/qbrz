@@ -67,6 +67,7 @@ from bzrlib.plugins.qbzr.lib.pull import (
 from bzrlib.plugins.qbzr.lib.revert import RevertWindow
 from bzrlib.plugins.qbzr.lib.subprocess import SubprocessUIFactory
 from bzrlib.plugins.qbzr.lib.tag import TagWindow
+from bzrlib.plugins.qbzr.lib.uncommit import QBzrUncommitWindow
 from bzrlib.plugins.qbzr.lib.util import (
     FilterOptions,
     is_valid_encoding,
@@ -855,6 +856,22 @@ class cmd_qtag(QBzrCommand):
         self.main_window = TagWindow(branch, tag_name=tag_name, action=action,
             revision=revision, ui_mode=ui_mode)
         self.main_window.show()
+        app.exec_()
+
+
+class cmd_quncommit(QBzrCommand):
+    """Move the tip of a branch to an earlier revision."""
+
+    takes_options = [
+        ui_mode_option,
+        ]
+    takes_args = ["location?"]
+
+    def _qbzr_run(self, location='.', ui_mode=False):
+        branch = Branch.open_containing(location)[0]
+        app = QtGui.QApplication(sys.argv)
+        window = QBzrUncommitWindow(branch, ui_mode=ui_mode)
+        window.show()
         app.exec_()
 
 
