@@ -1034,7 +1034,7 @@ class TreeWidget(RevisionTreeView):
                                     gettext("&Open"),
                                     self.open_file)
         self.action_show_file = self.context_menu.addAction(
-                                    gettext("&View"),
+                                    gettext("&View file"),
                                     self.show_file_content)
         self.action_show_annotate = self.context_menu.addAction(
                                     gettext("Show &annotate"), 
