@@ -12,7 +12,7 @@ test:
 	bzr selftest -s bp.qbzr
 
 pot:
-	python setup.py build_pot -N
+	python setup.py build_pot -N -d.
 
 mo:
 	python setup.py build_mo -f
