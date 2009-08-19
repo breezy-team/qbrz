@@ -23,6 +23,7 @@ from PyQt4 import QtCore, QtGui
 
 from bzrlib import (
     _format_version_tuple,
+    osutils,
     plugin as mod_plugin,
     )
 
@@ -42,37 +43,49 @@ class QBzrPluginsWindow(QBzrWindow):
         QBzrWindow.__init__(self, [], parent)
         self.set_title(gettext("Plugins"))
         self.restoreSize("plugins", (400,256))
-        self._view = self.build_view()
+        view = self.build_view()
         btns = self.create_button_box(BTN_CLOSE)
         layout = QtGui.QVBoxLayout(self.centralWidget())
-        layout.addWidget(self._view)
+        layout.addWidget(view)
         layout.addWidget(btns)
         self.refresh_view()
 
     def build_view(self):
         """Build and return the widget displaying the data."""
-        headers = [
+        summary_headers = [
             gettext("Name"),
             gettext("Version"),
             gettext("Description"),
             ]
+        locations_headers = [
+            gettext("Name"),
+            gettext("Directory"),
+            ]
         footer = gettext("Plugins installed: %(rows)d")
-        # TODO: add a details pane showing the installed path
-        # Should this only be on in verbose mode ala the CLI? Or always?
         details = None
-        data_viewer = QBzrConditionalDataView("tree", headers, footer, details)
-        return data_viewer
+        self._summary_viewer = QBzrConditionalDataView("tree",
+            summary_headers, footer, details)
+        self._locations_viewer = QBzrConditionalDataView("tree",
+            locations_headers, footer, details)
+        tabs = QtGui.QTabWidget()
+        tabs.addTab(self._summary_viewer, gettext("Summary"))
+        tabs.addTab(self._locations_viewer, gettext("Locations"))
+        return tabs
 
     def refresh_view(self):
         """Update the data in the view."""
         plugins = mod_plugin.plugins()
-        data = []
+        summary_data = []
+        locations_data = []
         for name in sorted(plugins):
             plugin = plugins[name]
             version = format_plugin_version(plugin)
             description = format_plugin_description(plugin)
-            data.append((name, version, description))
-        self._view.setData(data)
+            directory = osutils.dirname(plugin.path())
+            summary_data.append((name, version, description))
+            locations_data.append((name, directory))
+        self._summary_viewer.setData(summary_data)
+        self._locations_viewer.setData(locations_data)
 
 
 def format_plugin_version(plugin):
@@ -84,8 +97,9 @@ def format_plugin_version(plugin):
         try:
             result = _format_version_tuple(version_info)
         except ValueError:
-            # Version info fails the expected rules
-            result = "%s" % (version_info,)
+            # Version info fails the expected rules.
+            # Format it nicely anyhow.
+            result = ".".join([str(part) for part in version_info])
     return result
 
 
