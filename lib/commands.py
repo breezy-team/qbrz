@@ -643,12 +643,11 @@ class cmd_qinfo(QBzrCommand):
     """Shows information about the current location."""
 
     takes_options = []
-    takes_args = []
+    takes_args = ['location?']
 
-    def _qbzr_run(self):
-        tree, relpath = WorkingTree.open_containing(u'.')
+    def _qbzr_run(self, location=u'.'):
         app = QtGui.QApplication(sys.argv)
-        window = QBzrInfoWindow(tree)
+        window = QBzrInfoWindow(location)
         window.show()
         app.exec_()
 

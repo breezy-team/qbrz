@@ -19,6 +19,8 @@
 
 from PyQt4 import QtCore, QtGui
 
+from bzrlib import bzrdir, osutils
+
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.ui_info import Ui_InfoForm
 from bzrlib.plugins.qbzr.lib.util import (
@@ -37,32 +39,54 @@ def _set_location(edit, location):
 
 class QBzrInfoWindow(QBzrWindow):
 
-    def __init__(self, tree, parent=None):
+    def __init__(self, location, parent=None):
         QBzrWindow.__init__(self, [gettext("Info")], parent)
         self.restoreSize("info", (500, 300))
         self.buttonbox = self.create_button_box(BTN_CLOSE)
         self.ui = Ui_InfoForm()
         self.ui.setupUi(self.centralwidget)
         self.ui.vboxlayout.addWidget(self.buttonbox)
+        self.refresh_view(location)
+
+    def refresh_view(self, location):
+        (tree, branch, repository, relpath) = \
+            bzrdir.BzrDir.open_containing_tree_branch_or_repository(location)
+        path_to_display = osutils.abspath(location)
+        _set_location(self.ui.local_location, path_to_display)
         self.populate_tree_info(tree)
+        self.populate_branch_info(branch)
+        self.populate_repository_info(repository)
+        self.populate_bzrdir_info(repository.bzrdir)
 
     @ui_current_widget
     def populate_tree_info(self, tree):
-        self.populate_branch_info(tree.branch)
-        self.populate_bzrdir_info(tree.bzrdir)
-        _set_location(self.ui.local_location, tree.bzrdir.root_transport.base)
-        self.ui.tree_format.setText(tree._format.get_format_description())
+        if tree:
+            format = tree._format.get_format_description()
+        else:
+            format = gettext("Location has no working tree")
+        self.ui.tree_format.setText(format)
 
     def populate_branch_info(self, branch):
-        _set_location(self.ui.push_branch, branch.get_push_location())
-        _set_location(self.ui.submit_branch, branch.get_submit_branch())
-        _set_location(self.ui.parent_branch, branch.get_parent())
-        _set_location(self.ui.public_branch_location, branch.get_public_branch())
-        self.ui.branch_format.setText(branch._format.get_format_description())
-        self.populate_repository_info(branch.repository)
+        if branch:
+            _set_location(self.ui.push_branch, branch.get_push_location())
+            _set_location(self.ui.submit_branch, branch.get_submit_branch())
+            _set_location(self.ui.parent_branch, branch.get_parent())
+            _set_location(self.ui.public_branch_location, branch.get_public_branch())
+            format = branch._format.get_format_description()
+        else:
+            # TODO: Hide Related branches tab
+            na_value = gettext("Not applicable")
+            _set_location(self.ui.push_branch, na_value)
+            _set_location(self.ui.submit_branch, na_value)
+            _set_location(self.ui.parent_branch, na_value)
+            _set_location(self.ui.public_branch_location, na_value)
+            format = gettext("Location has no branch")
+        self.ui.branch_format.setText(format)
 
     def populate_repository_info(self, repo):
-        self.ui.repository_format.setText(repo._format.get_format_description())
+        format = repo._format.get_format_description()
+        self.ui.repository_format.setText(format)
 
-    def populate_bzrdir_info(self, bzrdir):
-        self.ui.bzrdir_format.setText(bzrdir._format.get_format_description())
+    def populate_bzrdir_info(self, control):
+        format = control._format.get_format_description()
+        self.ui.bzrdir_format.setText(format)
