@@ -70,18 +70,17 @@ class QBzrExportDialog(SubProcessDialog):
                                   )
         self.branch = branch
  
+        # Create the branch information panel
+        info_hbox = QtGui.QHBoxLayout()
+        branch_info = gettext("Branch: %s") % url_for_display(branch.base)
+        info_label = QtGui.QLabel(branch_info)
+        info_hbox.addWidget(info_label)
+ 
         # Create the export group box
         gbExportDestination = QtGui.QGroupBox(gettext("Export"), self)
         vboxExportDestination = QtGui.QVBoxLayout(gbExportDestination)
         vboxExportDestination.addStrut(0)
 
-        # Add the branch information to it
-        info_hbox = QtGui.QHBoxLayout()
-        branch_info = gettext("Branch: %s") % url_for_display(branch.base)
-        info_label = QtGui.QLabel(branch_info)
-        info_hbox.addWidget(info_label)
-        vboxExportDestination.addLayout(info_hbox)
- 
         # Build export as archive section
         exportarch_radio = QtGui.QRadioButton("Export as archive")
         exportarch_radio.setChecked(True)
@@ -103,15 +102,11 @@ class QBzrExportDialog(SubProcessDialog):
 
         # Put the form together
         layout = QtGui.QVBoxLayout(self)
-        self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
-        self.splitter.addWidget(gbExportDestination)
-        self.splitter.addWidget(gbExportOptions)
-        self.splitter.addWidget(self.make_default_status_box())
-        self.splitter.setStretchFactor(0, 10)
-        self.restoreSplitterSizes([150, 150])
-        layout.addWidget(self.splitter)
+        layout.addLayout(info_hbox)
+        layout.addWidget(gbExportDestination)
+        layout.addWidget(gbExportOptions)
+        layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
-        self.locationfil_edit.setFocus()
 
         # Initialise the locations with sensible defaults
         if dest is not None:
@@ -119,10 +114,12 @@ class QBzrExportDialog(SubProcessDialog):
                 locationdir_edit.setText(osutils.abspath(dest))
                 locationdir_edit.setFocus()
                 exportdir_radio.setChecked(True)   
+                self.locationdir_edit.setFocus()
             else:
                 locationfil_edit.setText(osutils.abspath(dest))
                 self.update_root_n_format()
                 exportarch_radio.setChecked(True)
+                self.locationfil_edit.setFocus()
         else:
             self.update_export_path(use_parent=True)
             self.update_root_n_format()
@@ -364,7 +361,3 @@ class QBzrExportDialog(SubProcessDialog):
         args.append(branch_location)
 
         self.process_widget.do_start(None, *args)
-
-    def saveSize(self):
-        SubProcessDialog.saveSize(self)
-        self.saveSplitterSizes()
