@@ -45,8 +45,9 @@ class QBzrInfoWindow(QBzrWindow):
         self.buttonbox = self.create_button_box(BTN_CLOSE)
         self.ui = Ui_InfoForm()
         self.ui.setupUi(self.centralwidget)
-        self.ui.vboxlayout.addWidget(self.buttonbox)
+        self.ui.verticalLayout.addWidget(self.buttonbox)
         self.refresh_view(location)
+        self.ui.tabWidget.setCurrentIndex(0)
 
     def refresh_view(self, location):
         (tree, branch, repository, relpath) = \
