@@ -30,6 +30,7 @@ from bzrlib.plugins.qbzr.lib.trace import (
    reports_exception,
    SUB_LOAD_METHOD,
    )
+from bzrlib.plugins.qbzr.lib.util import url_for_display
 
 
 class QBzrUncommitWindow(SubProcessDialog):
@@ -46,7 +47,11 @@ class QBzrUncommitWindow(SubProcessDialog):
                                   hide_progress=True,
                                   )
         self.tree, self.branch = bzrdir.BzrDir.open_tree_or_branch(location)
-    
+ 
+        # Display the branch
+        branch_label = QtGui.QLabel(gettext("Branch: %s") %
+            url_for_display(self.branch.base))
+
         # Display the revision selection section. We nearly always
         # want to just uncommit the last revision (to tweak the
         # commit message say) so we make that the default.
@@ -77,6 +82,7 @@ class QBzrUncommitWindow(SubProcessDialog):
 
         # Put the form together
         layout = QtGui.QVBoxLayout(self)
+        layout.addWidget(branch_label)
         layout.addWidget(groupbox)
         layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
@@ -125,9 +131,7 @@ class QBzrUncommitWindow(SubProcessDialog):
         return False
 
     def do_start(self):
-        # Note: --quiet ought to tell uncommit not to display the log.
-        # A patch to core bzr is pending for that if it isn't done already.
-        args = ['--force', '--quiet']
+        args = ['--force']
         revision = self._revision_identifier()
         if revision:
             args.append('--revision')
