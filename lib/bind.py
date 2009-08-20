@@ -41,7 +41,7 @@ from bzrlib.plugins.qbzr.lib.trace import (
 class QBzrBindDialog(SubProcessDialog):
 
     def __init__(self, branch, location=None, ui_mode = None):
-        
+        self.branch = branch
         super(QBzrBindDialog, self).__init__(
                                   gettext("Bind branch"),
                                   name = "bind",
@@ -51,61 +51,50 @@ class QBzrBindDialog(SubProcessDialog):
                                   parent = None,
                                   hide_progress=False,
                                   )
-            
-        self.branch = branch
-        
+ 
+        # Display information fields
         gbBind = QtGui.QGroupBox(gettext("Bind"), self)
-        
         bind_box = QtGui.QFormLayout(gbBind)
-        
         bind_box.addRow(gettext("Branch location:"),QtGui.QLabel(url_for_display(branch.base)))
-        
-        bind_hbox = QtGui.QHBoxLayout()
-        
-        branch_label = QtGui.QLabel(gettext("Bind to:"))
-        branch_combo = QtGui.QComboBox()   
-        branch_combo.setEditable(True)
-        
-        self.branch_combo = branch_combo
-        
-        if location != None:
-            branch_combo.addItem(osutils.abspath(location))
-            
         self.currbound = branch.get_bound_location()
         if self.currbound != None:
             bind_box.addRow(gettext("Currently bound to:"),QtGui.QLabel(url_for_display(self.currbound)))
-        
+ 
+        # Build the "Bind to" widgets
+        branch_label = QtGui.QLabel(gettext("Bind to:"))
+        branch_combo = QtGui.QComboBox()   
+        branch_combo.setEditable(True)
+        if location != None:
+            branch_combo.addItem(osutils.abspath(location))
         boundloc = branch.get_old_bound_location()
         if boundloc != None:
             branch_combo.addItem(url_for_display(boundloc))
-            
+        self.branch_combo = branch_combo
         browse_button = QtGui.QPushButton(gettext("Browse"))
         QtCore.QObject.connect(browse_button, QtCore.SIGNAL("clicked(bool)"), self.browse_clicked)
-        
+ 
+        # Build the "Bind to" row/panel
+        bind_hbox = QtGui.QHBoxLayout()
         bind_hbox.addWidget(branch_label)
         bind_hbox.addWidget(branch_combo)
         bind_hbox.addWidget(browse_button)
-        
         bind_hbox.setStretchFactor(branch_label,0)
         bind_hbox.setStretchFactor(branch_combo,1)
         bind_hbox.setStretchFactor(browse_button,0)
         bind_box.addRow(bind_hbox)
-        
-        layout = QtGui.QVBoxLayout(self)
-        
-        layout.addWidget(gbBind)
-        
+ 
+        # Build the button box
         self.buttonbox.clear()
-        
-        cancelButton = StandardButton(BTN_CANCEL)
-        
         self.bindButton = QtGui.QPushButton(gettext("Bind"))
         self.buttonbox.addButton(self.bindButton,
                                  QtGui.QDialogButtonBox.AcceptRole)      
-        
+        cancelButton = StandardButton(BTN_CANCEL)
         self.buttonbox.addButton(cancelButton,
                                  QtGui.QDialogButtonBox.RejectRole)
-                
+ 
+        # Put the form together
+        layout = QtGui.QVBoxLayout(self)
+        layout.addWidget(gbBind)
         layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
         
