@@ -132,7 +132,7 @@ class RevisionInfo(object):
 
 class BranchLine(object):
     __slots__ = ["branch_id", "revs", "visible", "merges", "merged_by",
-                 "color"]
+                 "color", "merge_depth"]
     
     def __init__(self, branch_id, visible):
         self.branch_id = branch_id
@@ -141,6 +141,7 @@ class BranchLine(object):
         self.merges = []
         self.merged_by = []
         self.color = reduce(lambda x, y: x+y, self.branch_id, 0)
+        self.merge_depth = 0
 
     def __repr__(self):
         return "%s <%s>" % (self.__class__.__name__, self.branch_id)
@@ -657,6 +658,7 @@ class LogGraphProvider(object):
                 branch_line = self.branch_lines[rev.branch_id]
             
             branch_line.revs.append(rev)
+            branch_line.merge_depth = max(rev.merge_depth, branch_line.merge_depth)
             rev.color = branch_line.color
         
         self.branch_ids = self.branch_lines.keys()
@@ -672,8 +674,8 @@ class LogGraphProvider(object):
             
             # Branch line that have a smaller merge depth should be to the left
             # of those with bigger merge depths.
-            merge_depth_x = self.branch_lines[x].revs[0].merge_depth
-            merge_depth_y = self.branch_lines[y].revs[0].merge_depth
+            merge_depth_x = self.branch_lines[x].merge_depth
+            merge_depth_y = self.branch_lines[y].merge_depth
             if not merge_depth_x == merge_depth_y:
                 return cmp(merge_depth_x, merge_depth_y)
             
