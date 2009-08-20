@@ -187,7 +187,7 @@ class ChangeDesc(tuple):
         return (desc[3] == (False, True) and desc[6][1] is None)
     
     def is_ignored(desc):
-        if len(desc) >= 8: 
+        if len(desc) > 8:
             return desc[8]
         else:
             return None
