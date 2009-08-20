@@ -132,7 +132,7 @@ class RevisionInfo(object):
 
 class BranchLine(object):
     __slots__ = ["branch_id", "revs", "visible", "merges", "merged_by",
-                 "color"]
+                 "color", "merge_depth", "expanded_by"]
     
     def __init__(self, branch_id, visible):
         self.branch_id = branch_id
@@ -141,6 +141,8 @@ class BranchLine(object):
         self.merges = []
         self.merged_by = []
         self.color = reduce(lambda x, y: x+y, self.branch_id, 0)
+        self.merge_depth = 0
+        self.expanded_by=None
 
     def __repr__(self):
         return "%s <%s>" % (self.__class__.__name__, self.branch_id)
@@ -657,6 +659,7 @@ class LogGraphProvider(object):
                 branch_line = self.branch_lines[rev.branch_id]
             
             branch_line.revs.append(rev)
+            branch_line.merge_depth = max(rev.merge_depth, branch_line.merge_depth)
             rev.color = branch_line.color
         
         self.branch_ids = self.branch_lines.keys()
@@ -672,8 +675,8 @@ class LogGraphProvider(object):
             
             # Branch line that have a smaller merge depth should be to the left
             # of those with bigger merge depths.
-            merge_depth_x = self.branch_lines[x].revs[0].merge_depth
-            merge_depth_y = self.branch_lines[y].revs[0].merge_depth
+            merge_depth_x = self.branch_lines[x].merge_depth
+            merge_depth_y = self.branch_lines[y].merge_depth
             if not merge_depth_x == merge_depth_y:
                 return cmp(merge_depth_x, merge_depth_y)
             
@@ -1159,25 +1162,50 @@ class LogGraphProvider(object):
                     # Find parents that are currently visible
                     rev_visible_parents = [] # List of (parent_rev, is_direct)
                     
-                    
                     parents = [self.revid_rev[parent_revid]
                                for parent_revid in self.graph_parents[rev.revid]]
                     # Don't include left hand parents (unless this is the last
                     # revision of the branch.) All of these parents in the
                     # branch can be drawn with one line.
-                    if not rev.index == branch_revs[-1].index:
+                    last_in_branch = rev.index == branch_revs[-1].index
+                    if not last_in_branch:
                         parents = parents[1:]
                     
+                    twisty_parents = []
+                    # Find and add nessery twisties
                     for parent in parents:
+                        if parent.branch_id == ():
+                            continue
+                        if parent.branch_id in branch_line.merged_by:
+                            continue
+                        parent_branch = self.branch_lines[parent.branch_id]
+                        # Does this branch have any visible revisions
+                        for pb_rev in parent_branch.revs:
+                            visible = pb_rev.f_index is not None or \
+                                self.get_revision_visible_if_branch_visible_cached (pb_rev.index)
+                            if visible:
+                                rev.twisty_branch_ids.append (parent.branch_id)
+                                twisty_parents.append(parent.index)
+                                break
+                    
+                    # Work out if the twisty needs to show a + or -. If all
+                    # twisty_branch_ids are visible, show - else +.
+                    if len (rev.twisty_branch_ids)>0:
+                        rev.twisty_state = True
+                        for twisty_branch_id in rev.twisty_branch_ids:
+                            if not self.branch_lines[twisty_branch_id].visible:
+                                rev.twisty_state = False
+                                break
+                    
+                    for i, parent in enumerate(parents):
                         if parent.f_index is not None:
                             rev_visible_parents.append((parent, True))
                         else:
-                            if parent.index in rev.merges and \
-                               self.get_revision_visible_if_branch_visible_cached(parent.index):
-                                # We merge this revision directly, and it would
-                                # be visible if the user expans it's branch.
-                                # Don't look for non direct parents.
-                                break
+                            if (parent.index in twisty_parents and
+                                not (i==0 and last_in_branch)):
+                                # no need to draw a line if there is a twisty,
+                                # except if this is the last in the branch.
+                                continue
                             # The parent was not visible. Search for a ansestor
                             # that is. Stop searching if we make a hop, i.e. we
                             # go away from our branch, and we come back to it.
@@ -1202,28 +1230,6 @@ class LogGraphProvider(object):
                             if parent:
                                 rev_visible_parents.append((parent, False)) # Not Direct
                     branch_rev_visible_parents[rev.index]=rev_visible_parents
-                    
-                    # Find and add nessery twisties
-                    for parent_index in rev.merges:
-                        parent = self.revisions[parent_index]
-                        
-                        # Does this branch have any visible revisions
-                        parent_branch_revs = self.branch_lines[parent.branch_id].revs
-                        for pb_rev in parent_branch_revs:
-                            visible = pb_rev.f_index is not None or \
-                                self.get_revision_visible_if_branch_visible_cached (pb_rev.index)
-                            if visible:
-                                rev.twisty_branch_ids.append (parent.branch_id)
-                                break
-                    
-                    # Work out if the twisty needs to show a + or -. If all
-                    # twisty_branch_ids are visible, show - else +.
-                    if len (rev.twisty_branch_ids)>0:
-                        rev.twisty_state = True
-                        for twisty_branch_id in rev.twisty_branch_ids:
-                            if not self.branch_lines[twisty_branch_id].visible:
-                                rev.twisty_state = False
-                                break
                 
                 # Find the first parent of the last rev in the branch line
                 last_parent = None
@@ -1248,7 +1254,7 @@ class LogGraphProvider(object):
                         if (rev.index <> last_rev.index or i > 0 )and \
                            branch_id <> () and \
                            self.branch_ids.index(parent.branch_id) <= self.branch_ids.index(branch_id) and\
-                           (last_parent and not direct and last_parent.index >= parent_index or not last_parent or direct):
+                           (last_parent and not direct and last_parent.index >= parent.index or not last_parent or direct):
                             
                             if parent.f_index - rev.f_index >1:
                                 rev_visible_parents.pop(i)
@@ -1412,22 +1418,40 @@ class LogGraphProvider(object):
     def colapse_expand_rev(self, revid, visible):
         rev = self.revid_rev[revid]
         #if rev.f_index is not None: return
-        branch_ids = list(rev.twisty_branch_ids)
+        branch_ids = zip(rev.twisty_branch_ids,
+                         [rev.branch_id]* len(rev.twisty_branch_ids))
         processed_branch_ids = []
         has_change = False
         while branch_ids:
-            branch_id = branch_ids.pop()
+            branch_id, expanded_by = branch_ids.pop()
             processed_branch_ids.append(branch_id)
             has_change = self.set_branch_visible(branch_id,
                                                  visible,
                                                  has_change)
             if not visible:
+                self.branch_lines[branch_id].expanded_by = None
                 for parent_branch_id in self.branch_lines[branch_id].merges:
                     parent = self.branch_lines[parent_branch_id]
-                    if (parent.visible and 
-                            parent_branch_id not in branch_ids and 
-                            parent_branch_id not in processed_branch_ids):
-                        branch_ids.append(parent_branch_id)
+                    if (not parent.visible or 
+                        parent_branch_id in branch_ids or 
+                        parent_branch_id in processed_branch_ids):
+                        continue
+                    
+                    collapse_parent = False
+                    if parent.expanded_by == branch_id:
+                        branch_ids.append((parent_branch_id, branch_id))
+                    else:
+                        # Check if this parent has any other visible branches
+                        # that merge it.
+                        has_visible = False
+                        for merged_by_branch_id in parent.merged_by:
+                            if self.branch_lines[merged_by_branch_id].visible:
+                                has_visible = True
+                                break
+                        if not has_visible:
+                            branch_ids.append((parent_branch_id, branch_id))
+            else:
+                self.branch_lines[branch_id].expanded_by = expanded_by
         return has_change
 
     def has_rev_id(self, revid):
