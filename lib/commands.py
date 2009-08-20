@@ -867,10 +867,9 @@ class cmd_quncommit(QBzrCommand):
         ]
     takes_args = ["location?"]
 
-    def _qbzr_run(self, location='.', ui_mode=False):
-        branch = Branch.open_containing(location)[0]
+    def _qbzr_run(self, location=u'.', ui_mode=False):
         app = QtGui.QApplication(sys.argv)
-        window = QBzrUncommitWindow(branch, ui_mode=ui_mode)
+        window = QBzrUncommitWindow(location, ui_mode=ui_mode)
         window.show()
         app.exec_()
 
