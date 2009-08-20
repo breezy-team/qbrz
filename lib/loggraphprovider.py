@@ -132,7 +132,7 @@ class RevisionInfo(object):
 
 class BranchLine(object):
     __slots__ = ["branch_id", "revs", "visible", "merges", "merged_by",
-                 "color", "merge_depth"]
+                 "color", "merge_depth", "expanded_by"]
     
     def __init__(self, branch_id, visible):
         self.branch_id = branch_id
@@ -142,6 +142,7 @@ class BranchLine(object):
         self.merged_by = []
         self.color = reduce(lambda x, y: x+y, self.branch_id, 0)
         self.merge_depth = 0
+        self.expanded_by=None
 
     def __repr__(self):
         return "%s <%s>" % (self.__class__.__name__, self.branch_id)
@@ -1167,7 +1168,8 @@ class LogGraphProvider(object):
                     # Don't include left hand parents (unless this is the last
                     # revision of the branch.) All of these parents in the
                     # branch can be drawn with one line.
-                    if not rev.index == branch_revs[-1].index:
+                    last_in_branch = rev.index == branch_revs[-1].index
+                    if not last_in_branch:
                         parents = parents[1:]
                     
                     for parent in parents:
@@ -1414,22 +1416,27 @@ class LogGraphProvider(object):
     def colapse_expand_rev(self, revid, visible):
         rev = self.revid_rev[revid]
         #if rev.f_index is not None: return
-        branch_ids = list(rev.twisty_branch_ids)
+        branch_ids = zip(rev.twisty_branch_ids,
+                         [rev.branch_id]* len(rev.twisty_branch_ids))
         processed_branch_ids = []
         has_change = False
         while branch_ids:
-            branch_id = branch_ids.pop()
+            branch_id, expanded_by = branch_ids.pop()
             processed_branch_ids.append(branch_id)
             has_change = self.set_branch_visible(branch_id,
                                                  visible,
                                                  has_change)
             if not visible:
+                self.branch_lines[branch_id].expanded_by = None
                 for parent_branch_id in self.branch_lines[branch_id].merges:
                     parent = self.branch_lines[parent_branch_id]
-                    if (parent.visible and 
-                            parent_branch_id not in branch_ids and 
-                            parent_branch_id not in processed_branch_ids):
-                        branch_ids.append(parent_branch_id)
+                    if (parent.expanded_by == branch_id and
+                        parent.visible and 
+                        parent_branch_id not in branch_ids and 
+                        parent_branch_id not in processed_branch_ids):
+                        branch_ids.append((parent_branch_id, branch_id))
+            else:
+                self.branch_lines[branch_id].expanded_by = expanded_by
         return has_change
 
     def has_rev_id(self, revid):
