@@ -565,7 +565,7 @@ def format_revision_html(rev, search_replace=None, show_timestamp=False):
         tags = getattr(rev, 'tags', None)
         if tags:
             tags = map(quote_tag, tags)
-            props.append((gettext("Tags:"), ", ".join(tags)))
+            props.append((gettext("Tags:"), htmlencode(", ".join(tags))))
     
         bugs = []
         for bug in rev.properties.get('bugs', '').split('\n'):
