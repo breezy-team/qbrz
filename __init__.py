@@ -46,6 +46,7 @@ Basic q-commands:
  * qswitch - Set the branch of a checkout and update.
  * qtag - Edit tags.
  * qunbind - Convert the current checkout into a regular branch.
+ * quncommit - Move the tip of a branch to an earlier revision.
  * qupdate - Update working tree with latest changes in the branch.
  * qversion - Show version/system information.
 
@@ -132,6 +133,7 @@ register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpush', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrevert', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsubprocess', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qtag', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_quncommit', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qupdate', ['qup'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qversion', ['qsysinfo'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qviewer', [])
