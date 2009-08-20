@@ -62,6 +62,12 @@ class QBzrUncommitWindow(SubProcessDialog):
         vbox = QtGui.QVBoxLayout(groupbox)
         vbox.addWidget(self.last_radio)
         vbox.addLayout(other)
+ 
+        # If the user starts entering a value in the 'other revision' field,
+        # set the matching radio button implicitly
+        QtCore.QObject.connect(self.other_revision,
+                               QtCore.SIGNAL("textChanged(QString)"),
+                               self.do_other_revision_changed)
         
         # groupbox gets disabled as we are executing.
         QtCore.QObject.connect(self,
@@ -74,6 +80,10 @@ class QBzrUncommitWindow(SubProcessDialog):
         layout.addWidget(groupbox)
         layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
+
+    def do_other_revision_changed(self, text):
+        if text and not self.other_radio.isChecked():
+            self.other_radio.setChecked(True)
 
     def _revision_identifier(self):
         """What revision did the user select?
