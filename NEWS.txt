@@ -1,9 +1,26 @@
-0.14 - in development
------------------------
+0.14 "Eucalyptus" - 2009-08-21
+-------------------------------
+What's new in this release: 
 
- * New dialogs: qbind, qexport, qunbind (Javier Derderian)
- * New quncommit dialog
- * Renamed the command qbzr to qmain.
+ * we have 4 new dialogs (qbind, qunbind, qexport and quncommit).
+ * better help for plugin itself (now `bzr help qbzr` gives you
+   useful info).
+ * qcommit and uncommit hook now can store revision message and
+   information about bugfixes for revision, this information automatically
+   restored on next qcommit run in this branch.
+ * most q-commands now able to return exit code 0 when operation 
+   finished successfully, and exit code 1 when dialog/operation was canceled.
+ * `merge --qpreview` feature has disabled.
+ * Dozen bugfixes and small improvements.
+
+Detailed changelog:
+
+ * New dialogs: 
+    * qbind, qexport, qunbind (Javier Derderian)
+    * quncommit (Ian Clatworthy)
+ * Renamed [hidden] command qbzr to qmain.
+ * Better help for plugin itself.
+ * Full list of all contributors added to AUTHORS.txt.
  * Most q-commands those change state of the branch or working tree
    (e.g qcommit, qadd, qpull etc.) now return exit code 0 when operation 
    finished successfully, and exit code 1 when dialog/operation was canceled. 
