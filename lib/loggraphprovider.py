@@ -1432,11 +1432,24 @@ class LogGraphProvider(object):
                 self.branch_lines[branch_id].expanded_by = None
                 for parent_branch_id in self.branch_lines[branch_id].merges:
                     parent = self.branch_lines[parent_branch_id]
-                    if (parent.expanded_by == branch_id and
-                        parent.visible and 
-                        parent_branch_id not in branch_ids and 
-                        parent_branch_id not in processed_branch_ids):
+                    if (not parent.visible or 
+                        parent_branch_id in branch_ids or 
+                        parent_branch_id in processed_branch_ids):
+                        continue
+                    
+                    collapse_parent = False
+                    if parent.expanded_by == branch_id:
                         branch_ids.append((parent_branch_id, branch_id))
+                    else:
+                        # Check if this parent has any other visible branches
+                        # that merge it.
+                        has_visible = False
+                        for merged_by_branch_id in parent.merged_by:
+                            if self.branch_lines[merged_by_branch_id].visible:
+                                has_visible = True
+                                break
+                        if not has_visible:
+                            branch_ids.append((parent_branch_id, branch_id))
             else:
                 self.branch_lines[branch_id].expanded_by = expanded_by
         return has_change
