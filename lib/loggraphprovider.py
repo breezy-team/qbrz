@@ -1162,7 +1162,6 @@ class LogGraphProvider(object):
                     # Find parents that are currently visible
                     rev_visible_parents = [] # List of (parent_rev, is_direct)
                     
-                    
                     parents = [self.revid_rev[parent_revid]
                                for parent_revid in self.graph_parents[rev.revid]]
                     # Don't include left hand parents (unless this is the last
@@ -1172,16 +1171,41 @@ class LogGraphProvider(object):
                     if not last_in_branch:
                         parents = parents[1:]
                     
+                    twisty_parents = []
+                    # Find and add nessery twisties
                     for parent in parents:
+                        if parent.branch_id == ():
+                            continue
+                        if parent.branch_id in branch_line.merged_by:
+                            continue
+                        parent_branch = self.branch_lines[parent.branch_id]
+                        # Does this branch have any visible revisions
+                        for pb_rev in parent_branch.revs:
+                            visible = pb_rev.f_index is not None or \
+                                self.get_revision_visible_if_branch_visible_cached (pb_rev.index)
+                            if visible:
+                                rev.twisty_branch_ids.append (parent.branch_id)
+                                twisty_parents.append(parent.index)
+                                break
+                    
+                    # Work out if the twisty needs to show a + or -. If all
+                    # twisty_branch_ids are visible, show - else +.
+                    if len (rev.twisty_branch_ids)>0:
+                        rev.twisty_state = True
+                        for twisty_branch_id in rev.twisty_branch_ids:
+                            if not self.branch_lines[twisty_branch_id].visible:
+                                rev.twisty_state = False
+                                break
+                    
+                    for i, parent in enumerate(parents):
                         if parent.f_index is not None:
                             rev_visible_parents.append((parent, True))
                         else:
-                            if parent.index in rev.merges and \
-                               self.get_revision_visible_if_branch_visible_cached(parent.index):
-                                # We merge this revision directly, and it would
-                                # be visible if the user expans it's branch.
-                                # Don't look for non direct parents.
-                                break
+                            if (parent.index in twisty_parents and
+                                not (i==0 and last_in_branch)):
+                                # no need to draw a line if there is a twisty,
+                                # except if this is the last in the branch.
+                                continue
                             # The parent was not visible. Search for a ansestor
                             # that is. Stop searching if we make a hop, i.e. we
                             # go away from our branch, and we come back to it.
@@ -1206,28 +1230,6 @@ class LogGraphProvider(object):
                             if parent:
                                 rev_visible_parents.append((parent, False)) # Not Direct
                     branch_rev_visible_parents[rev.index]=rev_visible_parents
-                    
-                    # Find and add nessery twisties
-                    for parent_index in rev.merges:
-                        parent = self.revisions[parent_index]
-                        
-                        # Does this branch have any visible revisions
-                        parent_branch_revs = self.branch_lines[parent.branch_id].revs
-                        for pb_rev in parent_branch_revs:
-                            visible = pb_rev.f_index is not None or \
-                                self.get_revision_visible_if_branch_visible_cached (pb_rev.index)
-                            if visible:
-                                rev.twisty_branch_ids.append (parent.branch_id)
-                                break
-                    
-                    # Work out if the twisty needs to show a + or -. If all
-                    # twisty_branch_ids are visible, show - else +.
-                    if len (rev.twisty_branch_ids)>0:
-                        rev.twisty_state = True
-                        for twisty_branch_id in rev.twisty_branch_ids:
-                            if not self.branch_lines[twisty_branch_id].visible:
-                                rev.twisty_state = False
-                                break
                 
                 # Find the first parent of the last rev in the branch line
                 last_parent = None
@@ -1252,7 +1254,7 @@ class LogGraphProvider(object):
                         if (rev.index <> last_rev.index or i > 0 )and \
                            branch_id <> () and \
                            self.branch_ids.index(parent.branch_id) <= self.branch_ids.index(branch_id) and\
-                           (last_parent and not direct and last_parent.index >= parent_index or not last_parent or direct):
+                           (last_parent and not direct and last_parent.index >= parent.index or not last_parent or direct):
                             
                             if parent.f_index - rev.f_index >1:
                                 rev_visible_parents.pop(i)
