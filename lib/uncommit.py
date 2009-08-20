@@ -65,14 +65,9 @@ class QBzrUncommitWindow(SubProcessDialog):
                                groupbox,
                                QtCore.SLOT("setDisabled(bool)"))
 
-        self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
-        self.splitter.addWidget(groupbox)
-        self.splitter.addWidget(self.make_default_status_box())
-        self.splitter.setStretchFactor(0, 10)
-        self.restoreSplitterSizes([150, 150])
-
         layout = QtGui.QVBoxLayout(self)
-        layout.addWidget(self.splitter)
+        layout.addWidget(groupbox)
+        layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
 
     def _revision_identifier(self):
@@ -131,7 +126,3 @@ class QBzrUncommitWindow(SubProcessDialog):
         if cwd != dest:
             args.append(dest)
         self.process_widget.do_start(None, 'uncommit', *args)
-
-    def saveSize(self):
-        SubProcessDialog.saveSize(self)
-        self.saveSplitterSizes()
