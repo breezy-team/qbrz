@@ -664,22 +664,21 @@ class LogGraphProvider(object):
         
         self.branch_ids = self.branch_lines.keys()
         
-        # Note: This greatly affects the layout of the graph.
-        def branch_id_cmp(x, y):
+        def branch_id_sort_key(x):
+            if x in self.start_branch_ids:
+                is_start = 0
+            else:
+                is_start = 1
+            merge_depth = self.branch_lines[x].merge_depth
+            
+            # Note: This greatly affects the layout of the graph.
+            #
             # Branch lines that have a tip (e.g. () - the main line) should be
             # to the left of other branch lines.
-            is_start_x = x in self.start_branch_ids
-            is_start_y = y in self.start_branch_ids
-            if not is_start_x == is_start_y:
-                return -cmp(is_start_x, is_start_y)
-            
+            #
             # Branch line that have a smaller merge depth should be to the left
             # of those with bigger merge depths.
-            merge_depth_x = self.branch_lines[x].merge_depth
-            merge_depth_y = self.branch_lines[y].merge_depth
-            if not merge_depth_x == merge_depth_y:
-                return cmp(merge_depth_x, merge_depth_y)
-            
+            #
             # For branch lines that have the same parent in the mainline -
             # those with bigger branch numbers to be to the rights. E.g. for
             # the following dag, you want the graph to appear as on the left,
@@ -696,14 +695,16 @@ class LogGraphProvider(object):
             # 1.1.1 | B      |   B
             #       |/       | /
             # 1     A        A
-            if len(x) == 2 and len(y) == 2 and x[0] == y[0]:
-                return cmp(x[1], y[1])
-            
+            #
             # Otherwise, thoes with a greater mainline parent revno should
             # appear to the left.
-            return -cmp(x, y)
-
-        self.branch_ids.sort(branch_id_cmp)
+            
+            if len(x)==0:
+                return (is_start, merge_depth)
+            else:
+                return (is_start, merge_depth, -x[0], x[1])
+        
+        self.branch_ids.sort(key=branch_id_sort_key)
     
     def compute_merge_info(self):
         
