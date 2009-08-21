@@ -2,7 +2,7 @@
 -------------------------------
 What's new in this release: 
 
- * we have 4 new dialogs (qbind, qunbind, qexport and quncommit).
+ * we have 5 new dialogs (qbind, qunbind, qexport, qplugins and quncommit).
  * better help for plugin itself (now `bzr help qbzr` gives you
    useful info).
  * qcommit and uncommit hook now can store revision message and
@@ -11,13 +11,14 @@ What's new in this release:
  * most q-commands now able to return exit code 0 when operation 
    finished successfully, and exit code 1 when dialog/operation was canceled.
  * `merge --qpreview` feature has disabled.
+ * qmerge now supports uncommitted and forced merging.
  * Dozen bugfixes and small improvements.
 
 Detailed changelog:
 
  * New dialogs: 
     * qbind, qexport, qunbind (Javier Derderian)
-    * quncommit (Ian Clatworthy)
+    * qplugins, quncommit (Ian Clatworthy)
  * Renamed [hidden] command qbzr to qmain.
  * Better help for plugin itself.
  * Full list of all contributors added to AUTHORS.txt.
