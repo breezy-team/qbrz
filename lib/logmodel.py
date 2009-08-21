@@ -227,7 +227,7 @@ class LogModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant(QtCore.QStringList(tags))
         
         if role == RevIdRole:
-            return QtCore.QVariant(rev_info.revid)
+            return QtCore.QVariant(QtCore.QByteArray(rev_info.revid))
         
         #Everything from here foward will need to have the revision loaded.
         if rev_info.revid not in cached_revisions:
