@@ -319,8 +319,11 @@ class SidebySideDiffView(QtGui.QSplitter):
                         if not p:
                             return []
                         lexer = get_lexer_for_filename(path, stripnl=False)
-                        tokens = list(split_tokens_at_lines(lex(d, lexer)))
-                        QtCore.QCoreApplication.processEvents() 
+                        tokens = []
+                        for token in split_tokens_at_lines(lex(d, lexer)):
+                            tokens.append(token)
+                            if len(token) % 100 == 0:
+                                QtCore.QCoreApplication.processEvents()
                         return tokens
 
                     display_lines = [getTokens(p, d, path)
@@ -451,6 +454,9 @@ class SidebySideDiffView(QtGui.QSplitter):
                     cursor = cursors[1]
                 for l in exlines:
                     insertLine(cursor, l)
+                
+                if i % 100 == 0:
+                    QtCore.QCoreApplication.processEvents()
         else:
             heights = [0,0]
             is_images = [False, False]
