@@ -78,13 +78,7 @@ def get_help_topic_as_html(topic):
         text = topic.get_help_text(plain=True)
         bits = ['''<p><small>(Please install the Python <i>docutils</i> package for
                 improved formatting)</p></small>''']
-        for line in text.splitlines():
-            if not line:
-                bits.append("<br/>")
-            else:
-                if line[:1].isspace():
-                    bits.append("<br/>")
-                bits.append(line)
+        bits.append('<pre>%s</pre>' % text)
         html = ' '.join(bits)
     return html
 
