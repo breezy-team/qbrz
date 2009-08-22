@@ -6,7 +6,7 @@ all:
 	@echo   clean - remove build products
 	@echo   tags  - collect tags with ctags utility
 
-.PHONY: test pot mo clean tags
+.PHONY: test pot mo clean tags ui
 
 test:
 	bzr selftest -s bp.qbzr
@@ -39,3 +39,6 @@ clean:
 
 tags:
 	ctags *.py lib/*.py lib/extra/*.py lib/tests/*.py
+
+ui:
+	python setup.py build_ui
