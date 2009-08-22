@@ -19,9 +19,11 @@
 
 """QBzr - Qt-based frontend for Bazaar
 
-QBzr provided GUI frontend for many core bzr commands and several universal
-dialogs and helper commands. Equivalents for core bzr commands
-has the same names as CLI commands but with prefix "q".
+QBzr is a cross platform, Qt-based front-end for Bazaar, providing GUI
+applications for many core bzr commands. In addition, it provides several
+special dialogs and helper commands. Equivalents for core bzr commands have
+the same names as CLI commands but with a prefix of "q".
+QBzr requires Qt/PyQt 4.4.x or later to be installed.
 
 Basic q-commands:
 
