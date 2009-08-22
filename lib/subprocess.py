@@ -279,7 +279,6 @@ class SubProcessDialog(SubProcessWindowBase, QBzrDialog):
             event.ignore()
 
 
-
 class SimpleSubProcessDialog(SubProcessDialog):
     """A concrete helper class of SubProcessDialog, which has a single label
     widget for displaying a simple description before executing a subprocess.
