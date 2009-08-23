@@ -25,6 +25,7 @@ from PyQt4 import QtCore, QtGui
 
 from bzrlib import osutils
 
+from bzrlib.plugins.qbzr.lib.help import get_help_topic_as_html
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_run import Ui_RunDialog
@@ -46,7 +47,7 @@ class QBzrRunDialog(SubProcessDialog):
         self.collect_command_names()
         self.set_cmd_combobox()
         # set help_browser with some default text
-        self._set_default_help()
+        self.set_default_help()
         # and add the subprocess widgets
         for w in self.make_default_layout_widgets():
             self.ui.splitter.addWidget(w)
@@ -55,10 +56,16 @@ class QBzrRunDialog(SubProcessDialog):
         QtCore.QObject.connect(self.ui.hidden_checkbox,
             QtCore.SIGNAL("stateChanged(int)"),
             self.set_cmd_combobox)
+        QtCore.QObject.connect(self.ui.cmd_combobox,
+            QtCore.SIGNAL("currentIndexChanged(const QString&)"),
+            self.set_cmd_help)
+        QtCore.QObject.connect(self.ui.cmd_combobox,
+            QtCore.SIGNAL("editTextChanged(const QString&)"),
+            self.set_cmd_help)
         # ready to go
         self.ui.cmd_combobox.setFocus()
 
-    def _set_default_help(self):
+    def set_default_help(self):
         self.ui.help_browser.setHtml("<i><small>%s</small></i>" % 
             gettext("Help for command"))
 
@@ -80,6 +87,15 @@ class QBzrRunDialog(SubProcessDialog):
         else:
             cb.addItems(self.public_cmds)
         cb.setCurrentIndex(-1)    
+
+    def set_cmd_help(self, cmd_name):
+        cmd_name = unicode(cmd_name)
+        cmd_object = self.cmds_dict.get(cmd_name)
+        if cmd_object:
+            self.ui.help_browser.setHtml(
+                get_help_topic_as_html("commands/"+cmd_name))
+        else:
+            self.set_default_help()
 
     def validate(self):
         return False
