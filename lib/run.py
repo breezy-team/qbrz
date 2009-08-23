@@ -40,13 +40,46 @@ class QBzrRunDialog(SubProcessDialog):
         if location is None:
             location = osutils.getcwd()
         self.ui.wd_edit.setText(location)
+        # cmd_combobox should fill all available space
+        self.ui.cmd_layout.setColumnStretch(1, 2)  
         # fill cmd_combobox with available commands
-        # XXX
+        self.collect_command_names()
+        self.set_cmd_combobox()
         # set help_browser with some default text
-        # XXX
+        self._set_default_help()
         # and add the subprocess widgets
-        vbox = QtGui.QVBoxLayout(self)
         for w in self.make_default_layout_widgets():
             self.ui.splitter.addWidget(w)
         self.process_widget.hide_progress()
+        # setup signals
+        QtCore.QObject.connect(self.ui.hidden_checkbox,
+            QtCore.SIGNAL("stateChanged(int)"),
+            self.set_cmd_combobox)
+        # ready to go
         self.ui.cmd_combobox.setFocus()
+
+    def _set_default_help(self):
+        self.ui.help_browser.setHtml("<i><small>%s</small></i>" % 
+            gettext("Help for command"))
+
+    def collect_command_names(self):
+        from bzrlib import commands as _mod_commands
+        names = list(_mod_commands.all_command_names())
+        self.cmds_dict = dict((n, _mod_commands.get_cmd_object(n)) 
+                              for n in names)
+        self.all_cmds = sorted(names)
+        self.public_cmds = sorted([n 
+                                   for n,o in self.cmds_dict.iteritems()
+                                   if not o.hidden])
+
+    def set_cmd_combobox(self, all=False):
+        cb = self.ui.cmd_combobox
+        cb.clear()
+        if all:
+            cb.addItems(self.all_cmds)
+        else:
+            cb.addItems(self.public_cmds)
+        cb.setCurrentIndex(-1)    
+
+    def validate(self):
+        return False
