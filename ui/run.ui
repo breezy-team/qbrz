@@ -121,9 +121,9 @@
        <item>
         <layout class="QHBoxLayout" name="opt_arg_btn_layout" >
          <item>
-          <widget class="QPushButton" name="path_button" >
+          <widget class="QPushButton" name="directory_button" >
            <property name="text" >
-            <string>Insert &amp;path...</string>
+            <string>Insert &amp;directory...</string>
            </property>
           </widget>
          </item>
@@ -170,7 +170,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>hidden_checkbox</tabstop>
   <tabstop>cmd_combobox</tabstop>
   <tabstop>opt_arg_edit</tabstop>
-  <tabstop>path_button</tabstop>
+  <tabstop>directory_button</tabstop>
   <tabstop>filenames_button</tabstop>
   <tabstop>help_browser</tabstop>
  </tabstops>
