@@ -117,7 +117,7 @@ class SubProcessWindowBase:
                                QtCore.SIGNAL("subprocessFinished(bool)"),
                                cancelButton,
                                QtCore.SLOT("setDisabled(bool)"))
-        
+
         # ok button gets enabled when we fail.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessFailed(bool)"),
@@ -141,7 +141,7 @@ class SubProcessWindowBase:
         status_layout.setContentsMargins(0, 0, 0, 0)
         status_layout.addWidget(self.process_widget)
         return status_group_box
-        
+
     def make_default_layout_widgets(self):
         yield self.make_default_status_box()
         yield self.buttonbox
@@ -171,17 +171,17 @@ class SubProcessWindowBase:
             except:
                 report_exception(type=SUB_LOAD_METHOD, window=self.window())
                 return
-            
+
             self.emit(QtCore.SIGNAL("subprocessStarted(bool)"), True)
             self.emit(QtCore.SIGNAL("disableUi(bool)"), True)
             self.do_start()
-    
+
     def do_start(self):
         if self._check_args():
             self.process_widget.do_start(self.dir, *self.args)
         else:
             self.on_failed()
-    
+
     def do_reject(self):
         if self.process_widget.is_running():
             self.process_widget.abort()
@@ -191,7 +191,7 @@ class SubProcessWindowBase:
     def on_finished(self):
         if hasattr(self, 'setResult'):
             self.setResult(QtGui.QDialog.Accepted)
-        
+
         self.emit(QtCore.SIGNAL("subprocessFinished(bool)"), True)
         self.emit(QtCore.SIGNAL("disableUi(bool)"), False)
 
@@ -318,10 +318,10 @@ class SimpleSubProcessDialog(SubProcessDialog):
         # and add the subprocess widgets.
         for w in self.make_default_layout_widgets():
             layout.addWidget(w)
-        
+
         self.auto_start_show_on_failed = auto_start_show_on_failed
         QtCore.QTimer.singleShot(1, self.auto_start)
-    
+
     def auto_start(self):
         if self.auto_start_show_on_failed:
             QtCore.QObject.connect(self,
@@ -344,7 +344,7 @@ class SubProcessWidget(QtGui.QWidget):
         layout = QtGui.QVBoxLayout(self)
 
         message_layout = QtGui.QHBoxLayout()
-        
+
         self.progressMessage = QtGui.QLabel(self)
         #self.progressMessage.setWordWrap(True) -- this breaks minimal window size hint
         self.progressMessage.setText(gettext("Ready"))
@@ -352,7 +352,7 @@ class SubProcessWidget(QtGui.QWidget):
 
         self.transportActivity = QtGui.QLabel(self)
         message_layout.addWidget(self.transportActivity)
-        
+
         layout.addLayout(message_layout)
 
         self.progressBar = QtGui.QProgressBar(self)
@@ -380,12 +380,12 @@ class SubProcessWidget(QtGui.QWidget):
         self.connect(self.process,
             QtCore.SIGNAL("finished(int, QProcess::ExitStatus)"),
             self.onFinished)
-        
+
         self.defaultWorkingDir = self.process.workingDirectory ()
-        
+
         self.finished = False
         self.aborting = False
-        
+
         self.messageFormat = QtGui.QTextCharFormat()
         self.errorFormat = QtGui.QTextCharFormat()
         self.errorFormat.setForeground(QtGui.QColor('red'))
@@ -398,39 +398,35 @@ class SubProcessWidget(QtGui.QWidget):
     def hide_progress(self):
         self.progressMessage.setHidden(True)
         self.progressBar.setHidden(True)
-    
+
     def is_running(self):
         return self.process.state() == QtCore.QProcess.Running or\
                self.process.state() == QtCore.QProcess.Starting
-    
+
     def do_start(self, workdir, *args):
         """Launch one bzr command.
         @param  workdir:    working directory for command.
                             Could be None to use self.defaultWorkingDir
         @param  args:   bzr command and its arguments
+        @type   args:   all arguments should be unicode strings (or ascii-only).
         """
         QtGui.QApplication.processEvents() # make sure ui has caught up
         self.start_multi(((workdir, args),))
-    
+
     def start_multi(self, commands):
         self.setProgress(0, [gettext("Starting...")], "")
         self.console.setFocus(QtCore.Qt.OtherFocusReason)
         self.commands = list(commands)
         self._start_next()
-    
+
     def _start_next(self):
+        """Start first command from self.commands queue."""
         self._delete_args_file()
         dir, args = self.commands.pop(0)
-        
-        def format_arg(a):
-            # Some code passes us QStrings. Convert to python string.
-            a = unicode(a)
-            # Don't quote revision arg.
-            if a.startswith("-r"):
-                return a
-            return '"%s"' % a.replace('"', '\\"')
-        
-        args = ' '.join(format_arg(a) for a in args)
+
+        args_utf8 = bencode.bencode([unicode(a).encode('utf-8') for a in args])
+        args = unicode(args_utf8, 'utf-8')
+
         if MS_WINDOWS:
             # win32 has command-line length limit about 32K
             if len(args) > 31000:
@@ -445,10 +441,10 @@ class SubProcessWidget(QtGui.QWidget):
         self._setup_stdout_stderr()
         if getattr(sys, "frozen", None) is not None:
             self.process.start(
-                sys.argv[0], ['qsubprocess', args])
+                sys.argv[0], ['qsubprocess', '--bencode', args])
         else:
             self.process.start(
-                sys.executable, [sys.argv[0], 'qsubprocess', args])
+                sys.executable, [sys.argv[0], 'qsubprocess', '--bencode', args])
 
     def _setup_stdout_stderr(self):
         if self.stdout is None:
@@ -470,10 +466,10 @@ class SubProcessWidget(QtGui.QWidget):
                 self.setProgress(None, [gettext("Aborting...")])
             else:
                 self.process.terminate()
-    
+
     def abort_futher_processes(self):
         self.commands = []
-    
+
     def setProgress(self, progress, messages, transport_activity=None):
         if progress is not None:
             self.progressBar.setValue(progress)
@@ -487,7 +483,7 @@ class SubProcessWidget(QtGui.QWidget):
         self.progressMessage.setText(text)
         if transport_activity is not None:
             self.transportActivity.setText(transport_activity)
-    
+
     def readStdout(self):
         # ensure we read from subprocess plain string
         data = str(self.process.readAllStandardOutput())
@@ -513,12 +509,12 @@ class SubProcessWidget(QtGui.QWidget):
                 if not self.ui_mode:
                     self.stdout.write(line)
                     self.stdout.write("\n")
-    
+
     def readStderr(self):
         data = str(self.process.readAllStandardError()).decode(self.encoding, 'replace')
         if data:
             self.emit(QtCore.SIGNAL("error()"))
-        
+
         for line in data.splitlines():
             error = line.startswith("bzr: ERROR:")
             self.logMessage(line, error)
@@ -592,7 +588,7 @@ class SubProcessWidget(QtGui.QWidget):
 
 
 class SubprocessProgressView (TextProgressView):
-    
+
     def __init__(self, term_file):
         TextProgressView.__init__(self, term_file)
         # The TextProgressView does not show the transport activity untill
@@ -600,7 +596,7 @@ class SubprocessProgressView (TextProgressView):
         # transport activity before a progress update would cause artifactes to
         # remain on the screen. We don't have to worry about that
         self._have_output = True
-    
+
     def _repaint(self):
         if self._last_task:
             task_msg = self._format_task(self._last_task)
@@ -612,13 +608,13 @@ class SubprocessProgressView (TextProgressView):
         else:
             task_msg = ''
             progress = 0
-        
+
         trans = self._last_transport_msg
-        
+
         self._term_file.write('qbzr:PROGRESS:' + bencode.bencode((progress,
                               trans, task_msg)) + '\n')
         self._term_file.flush()
-    
+
     def clear(self):
         pass
 
@@ -626,13 +622,13 @@ class SubprocessProgressView (TextProgressView):
 class SubprocessUIFactory(TextUIFactory):
 
     def __init__(self, stdin=None, stdout=None, stderr=None):
-        
+
         TextUIFactory.__init__(self, stdin=stdin, stdout=stdout, stderr=stderr)
-        
+
         # This is to be compatabile with bzr < rev 4558
         if not hasattr(TextUIFactory, "make_progress_view"):
             self._progress_view = SubprocessProgressView(self.stdout)
-    
+
     def make_progress_view(self):
         return SubprocessProgressView(self.stdout)
 
@@ -671,9 +667,9 @@ if MS_WINDOWS:
                     ("hThread", HANDLE),
                     ("dwProcessID", DWORD),
                     ("dwThreadID", DWORD)]
-    
+
     LPPROCESS_INFORMATION = POINTER(PROCESS_INFORMATION)
-    
+
     def get_child_pid(voidptr):
         lp = cast(int(voidptr), LPPROCESS_INFORMATION)
         return lp.contents.dwProcessID
@@ -689,3 +685,9 @@ if MS_WINDOWS:
         finally:
             ev.Close()
 
+def bencode_unicode(args):
+    """Bencode list of unicode strings as list of utf-8 strings and converting
+    resulting string to unicode.
+    """
+    args_utf8 = bencode.bencode([unicode(a).encode('utf-8') for a in args])
+    return unicode(args_utf8, 'utf-8')
