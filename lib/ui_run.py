@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/run.ui'
 #
-# Created: Sun Aug 23 09:46:43 2009
+# Created: Sun Aug 23 10:53:11 2009
 #      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -87,7 +87,15 @@ class Ui_RunDialog(object):
         self.opt_arg_label.setBuddy(self.opt_arg_edit)
 
         self.retranslateUi(RunDialog)
+        QtCore.QObject.connect(RunDialog, QtCore.SIGNAL("disableUi(bool)"), self.frame.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(RunDialog)
+        RunDialog.setTabOrder(self.wd_edit, self.browse_button)
+        RunDialog.setTabOrder(self.browse_button, self.hidden_checkbox)
+        RunDialog.setTabOrder(self.hidden_checkbox, self.cmd_combobox)
+        RunDialog.setTabOrder(self.cmd_combobox, self.opt_arg_edit)
+        RunDialog.setTabOrder(self.opt_arg_edit, self.path_button)
+        RunDialog.setTabOrder(self.path_button, self.filename_button)
+        RunDialog.setTabOrder(self.filename_button, self.help_browser)
 
     def retranslateUi(self, RunDialog):
         RunDialog.setWindowTitle(gettext("Run bzr command"))

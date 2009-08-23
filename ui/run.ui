@@ -164,6 +164,36 @@ p, li { white-space: pre-wrap; }
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>wd_edit</tabstop>
+  <tabstop>browse_button</tabstop>
+  <tabstop>hidden_checkbox</tabstop>
+  <tabstop>cmd_combobox</tabstop>
+  <tabstop>opt_arg_edit</tabstop>
+  <tabstop>path_button</tabstop>
+  <tabstop>filename_button</tabstop>
+  <tabstop>help_browser</tabstop>
+ </tabstops>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>RunDialog</sender>
+   <signal>disableUi(bool)</signal>
+   <receiver>frame</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel" >
+     <x>271</x>
+     <y>362</y>
+    </hint>
+    <hint type="destinationlabel" >
+     <x>344</x>
+     <y>135</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <signal>disableUi(bool)</signal>
+ </slots>
 </ui>
