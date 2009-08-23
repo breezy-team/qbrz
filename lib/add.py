@@ -110,7 +110,6 @@ class AddWindow(SubProcessDialog):
         layout.addWidget(self.buttonbox)
         self.throbber.show()
 
-
     def show(self):
         SubProcessDialog.show(self)
         QtCore.QTimer.singleShot(1, self.initial_load)

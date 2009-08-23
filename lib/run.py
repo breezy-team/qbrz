@@ -51,16 +51,21 @@ class QBzrRunDialog(SubProcessDialog):
             workdir = osutils.getcwd()
         self.ui.wd_edit.setText(workdir)
         # cmd_combobox should fill all available space
-        self.ui.cmd_layout.setColumnStretch(1, 2)  
+        self.ui.cmd_layout.setColumnStretch(1, 1)
+        self.ui.cmd_layout.setColumnStretch(2, 1)
         # fill cmd_combobox with available commands
         self.collect_command_names()
         self.set_cmd_combobox()
         # set help_browser with some default text
         self.set_default_help()
         # and add the subprocess widgets
+        self.splitter = self.ui.splitter
         for w in self.make_default_layout_widgets():
-            self.ui.splitter.addWidget(w)
+            self.splitter.addWidget(w)
         self.process_widget.hide_progress()
+        # restore the sizes
+        self.restoreSize("run", None)
+        self.restoreSplitterSizes()
         # setup signals
         QtCore.QObject.connect(self.ui.hidden_checkbox,
             QtCore.SIGNAL("stateChanged(int)"),
@@ -186,3 +191,7 @@ class QBzrRunDialog(SubProcessDialog):
         self.process_widget.logMessageEx("Run command: "+' '.join(cmd_line), 
             "cmdline")
         self.process_widget.do_start(cwd, *args)
+
+    def saveSize(self):
+        SubProcessDialog.saveSize(self)
+        self.saveSplitterSizes()
