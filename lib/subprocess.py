@@ -141,8 +141,13 @@ class SubProcessWindowBase:
         status_layout.setContentsMargins(0, 0, 0, 0)
         status_layout.addWidget(self.process_widget)
         return status_group_box
-        
+
     def make_default_layout_widgets(self):
+        """Yields widgets to add to main dialog layout: status and button boxes.
+        Status box has progress bar and console area.
+        Button box has 2 buttons: OK and Cancel (after successfull command 
+        execution there will be Close and Cancel).
+        """
         yield self.make_default_status_box()
         yield self.buttonbox
 
