@@ -1033,12 +1033,18 @@ class cmd_qbind(QBzrCommand):
 class cmd_qrun(QBzrCommand):
     """Run arbitrary bzr command."""
     takes_args = []
-    takes_options = [ui_mode_option]
+    takes_options = [ui_mode_option,
+        Option('directory',
+            help='Working directory.',
+            short_name='d',
+            type=unicode,
+            ),
+        ]
     aliases = ['qcmd']
 
-    def _qbzr_run(self, ui_mode=False):
+    def _qbzr_run(self, ui_mode=False, directory=None):
         from bzrlib.plugins.qbzr.lib.run import QBzrRunDialog
         app = QtGui.QApplication(sys.argv)
-        window = QBzrRunDialog(ui_mode=ui_mode)
+        window = QBzrRunDialog(workdir=directory, ui_mode=ui_mode)
         window.show()
         app.exec_()
