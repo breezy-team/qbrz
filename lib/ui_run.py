@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/run.ui'
 #
-# Created: Sun Aug 23 10:53:11 2009
+# Created: Sun Aug 23 11:32:41 2009
 #      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -73,9 +73,9 @@ class Ui_RunDialog(object):
         self.path_button = QtGui.QPushButton(self.frame)
         self.path_button.setObjectName("path_button")
         self.opt_arg_btn_layout.addWidget(self.path_button)
-        self.filename_button = QtGui.QPushButton(self.frame)
-        self.filename_button.setObjectName("filename_button")
-        self.opt_arg_btn_layout.addWidget(self.filename_button)
+        self.filenames_button = QtGui.QPushButton(self.frame)
+        self.filenames_button.setObjectName("filenames_button")
+        self.opt_arg_btn_layout.addWidget(self.filenames_button)
         spacerItem = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.opt_arg_btn_layout.addItem(spacerItem)
         self.frame_layout.addLayout(self.opt_arg_btn_layout)
@@ -94,8 +94,8 @@ class Ui_RunDialog(object):
         RunDialog.setTabOrder(self.hidden_checkbox, self.cmd_combobox)
         RunDialog.setTabOrder(self.cmd_combobox, self.opt_arg_edit)
         RunDialog.setTabOrder(self.opt_arg_edit, self.path_button)
-        RunDialog.setTabOrder(self.path_button, self.filename_button)
-        RunDialog.setTabOrder(self.filename_button, self.help_browser)
+        RunDialog.setTabOrder(self.path_button, self.filenames_button)
+        RunDialog.setTabOrder(self.filenames_button, self.help_browser)
 
     def retranslateUi(self, RunDialog):
         RunDialog.setWindowTitle(gettext("Run bzr command"))
@@ -105,7 +105,7 @@ class Ui_RunDialog(object):
         self.hidden_checkbox.setText(gettext("&Show hidden commands"))
         self.opt_arg_label.setText(gettext("&Options and arguments for command:"))
         self.path_button.setText(gettext("Insert &path..."))
-        self.filename_button.setText(gettext("Insert &filename..."))
+        self.filenames_button.setText(gettext("Insert &filenames..."))
         self.help_browser.setHtml(QtGui.QApplication.translate("RunDialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"

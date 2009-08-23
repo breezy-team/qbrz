@@ -128,9 +128,9 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="filename_button" >
+          <widget class="QPushButton" name="filenames_button" >
            <property name="text" >
-            <string>Insert &amp;filename...</string>
+            <string>Insert &amp;filenames...</string>
            </property>
           </widget>
          </item>
@@ -171,7 +171,7 @@ p, li { white-space: pre-wrap; }
   <tabstop>cmd_combobox</tabstop>
   <tabstop>opt_arg_edit</tabstop>
   <tabstop>path_button</tabstop>
-  <tabstop>filename_button</tabstop>
+  <tabstop>filenames_button</tabstop>
   <tabstop>help_browser</tabstop>
  </tabstops>
  <resources/>

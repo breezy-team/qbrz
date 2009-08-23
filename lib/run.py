@@ -21,6 +21,8 @@
 
 """Dialog to run arbitrary bzr command."""
 
+import os
+
 from PyQt4 import QtCore, QtGui
 
 from bzrlib import osutils
@@ -65,6 +67,12 @@ class QBzrRunDialog(SubProcessDialog):
             self.set_cmd_help)
         hookup_directory_picker(self, self.ui.browse_button, 
             self.ui.wd_edit, gettext("Select working directory"))
+        QtCore.QObject.connect(self.ui.path_button,
+            QtCore.SIGNAL("clicked()"),
+            self.insert_path)
+        QtCore.QObject.connect(self.ui.filenames_button,
+            QtCore.SIGNAL("clicked()"),
+            self.insert_filenames)
         # ready to go
         self.ui.cmd_combobox.setFocus()
 
@@ -99,6 +107,26 @@ class QBzrRunDialog(SubProcessDialog):
                 get_help_topic_as_html("commands/"+cmd_name))
         else:
             self.set_default_help()
+
+    def insert_path(self):
+        cwd = unicode(self.ui.wd_edit.text())
+        if not os.path.isdir(cwd):
+            cwd = ''
+        path = QtGui.QFileDialog.getExistingDirectory(self,
+            gettext("Select path to insert"),
+            cwd)
+        if path:
+            self.ui.opt_arg_edit.insert(path+" ")
+
+    def insert_filenames(self):
+        cwd = unicode(self.ui.wd_edit.text())
+        if not os.path.isdir(cwd):
+            cwd = ''
+        filenames = QtGui.QFileDialog.getOpenFileNames(self,
+            gettext("Select files to insert"),
+            cwd)
+        for i in filenames:
+            self.ui.opt_arg_edit.insert(i+" ")
 
     def validate(self):
         return False
