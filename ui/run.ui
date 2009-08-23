@@ -12,22 +12,40 @@
   <property name="windowTitle" >
    <string>Run bzr command</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_3" >
+  <layout class="QVBoxLayout" name="main_v_layout" >
    <item>
     <widget class="QSplitter" name="splitter" >
      <property name="orientation" >
       <enum>Qt::Vertical</enum>
      </property>
+     <property name="opaqueResize" >
+      <bool>false</bool>
+     </property>
+     <property name="childrenCollapsible" >
+      <bool>false</bool>
+     </property>
      <widget class="QFrame" name="frame" >
+      <property name="sizePolicy" >
+       <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="frameShape" >
        <enum>QFrame::StyledPanel</enum>
       </property>
       <property name="frameShadow" >
        <enum>QFrame::Raised</enum>
       </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2" >
+      <property name="lineWidth" >
+       <number>0</number>
+      </property>
+      <layout class="QVBoxLayout" name="frame_layout" >
+       <property name="margin" >
+        <number>0</number>
+       </property>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_4" >
+        <layout class="QHBoxLayout" name="wd_layout" >
          <item>
           <widget class="QLabel" name="wd_label" >
            <property name="text" >
@@ -51,7 +69,7 @@
         </layout>
        </item>
        <item>
-        <layout class="QGridLayout" name="gridLayout_4" >
+        <layout class="QGridLayout" name="cmd_layout" >
          <item row="0" column="0" >
           <widget class="QLabel" name="cmd_label" >
            <property name="text" >
@@ -86,6 +104,9 @@
        </item>
        <item>
         <widget class="QLabel" name="opt_arg_label" >
+         <property name="lineWidth" >
+          <number>0</number>
+         </property>
          <property name="text" >
           <string>&amp;Options and arguments for command:</string>
          </property>
@@ -98,7 +119,7 @@
         <widget class="QLineEdit" name="opt_arg_edit" />
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_7" >
+        <layout class="QHBoxLayout" name="opt_arg_btn_layout" >
          <item>
           <widget class="QPushButton" name="path_button" >
            <property name="text" >
