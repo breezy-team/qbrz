@@ -101,6 +101,7 @@ class QBzrRunDialog(SubProcessDialog):
 
     def set_cmd_help(self, cmd_name):
         cmd_name = unicode(cmd_name)
+        # XXX handle command aliases???
         cmd_object = self.cmds_dict.get(cmd_name)
         if cmd_object:
             self.ui.help_browser.setHtml(
@@ -108,10 +109,14 @@ class QBzrRunDialog(SubProcessDialog):
         else:
             self.set_default_help()
 
-    def insert_path(self):
+    def _get_cwd(self, default=None):
         cwd = unicode(self.ui.wd_edit.text())
         if not os.path.isdir(cwd):
-            cwd = ''
+            cwd = default
+        return cwd
+
+    def insert_path(self):
+        cwd = self._get_cwd("")
         path = QtGui.QFileDialog.getExistingDirectory(self,
             gettext("Select path to insert"),
             cwd)
@@ -119,9 +124,7 @@ class QBzrRunDialog(SubProcessDialog):
             self.ui.opt_arg_edit.insert(path+" ")
 
     def insert_filenames(self):
-        cwd = unicode(self.ui.wd_edit.text())
-        if not os.path.isdir(cwd):
-            cwd = ''
+        cwd = self._get_cwd("")
         filenames = QtGui.QFileDialog.getOpenFileNames(self,
             gettext("Select files to insert"),
             cwd)
@@ -129,4 +132,13 @@ class QBzrRunDialog(SubProcessDialog):
             self.ui.opt_arg_edit.insert(i+" ")
 
     def validate(self):
+        # start command only if there is one
+        if unicode(self.ui.cmd_combobox.currentText()).strip():
+            return True
         return False
+
+    def do_start(self):
+        cwd = self._get_cwd()
+        args = [unicode(self.ui.cmd_combobox.currentText())]
+        args.extend(unicode(self.ui.opt_arg_edit.text()).split())
+        self.process_widget.do_start(cwd, *args)
