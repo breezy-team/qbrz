@@ -1,5 +1,7 @@
 0.15 - in development
 ---------------------
+ * New dialog:
+    * qrun (Alexander Belchenko)
 
 
 0.14 "Eucalyptus" - 2009-08-21

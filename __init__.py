@@ -61,6 +61,7 @@ Additional commands:
 
  * qbrowse - Show inventory or working tree.
  * qconfig - Configure Bazaar and QBzr.
+ * qrun - Run arbitrary bzr command.
  * qviewer - Simple file viewer.
 
 Miscellaneous:
