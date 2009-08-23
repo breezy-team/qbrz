@@ -29,6 +29,7 @@ from bzrlib.plugins.qbzr.lib.help import get_help_topic_as_html
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_run import Ui_RunDialog
+from bzrlib.plugins.qbzr.lib.util import hookup_directory_picker
 
 
 class QBzrRunDialog(SubProcessDialog):
@@ -62,6 +63,8 @@ class QBzrRunDialog(SubProcessDialog):
         QtCore.QObject.connect(self.ui.cmd_combobox,
             QtCore.SIGNAL("editTextChanged(const QString&)"),
             self.set_cmd_help)
+        hookup_directory_picker(self, self.ui.browse_button, 
+            self.ui.wd_edit, gettext("Select working directory"))
         # ready to go
         self.ui.cmd_combobox.setFocus()
 
