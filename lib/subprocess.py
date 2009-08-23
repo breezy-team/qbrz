@@ -388,6 +388,8 @@ class SubProcessWidget(QtGui.QWidget):
         self.messageFormat = QtGui.QTextCharFormat()
         self.errorFormat = QtGui.QTextCharFormat()
         self.errorFormat.setForeground(QtGui.QColor('red'))
+        self.cmdlineFormat = QtGui.QTextCharFormat()
+        self.cmdlineFormat.setForeground(QtGui.QColor('blue'))
 
         if hide_progress:
             self.hide_progress()
@@ -532,6 +534,25 @@ class SubProcessWidget(QtGui.QWidget):
             format = self.messageFormat
         self.console.setCurrentCharFormat(format);
         self.console.append(message);
+        scrollbar = self.console.verticalScrollBar()
+        scrollbar.setValue(scrollbar.maximum())
+
+    def logMessageEx(self, message, kind="plain"):
+        """Write message to console area.
+        @param kind: kind of message used for selecting style of formatting.
+            Possible kind values:
+                * plain = usual message, written in default style;
+                * error = error message, written in red;
+                * cmdline = show actual command-line, written in blue.
+        """
+        if kind == 'error':
+            format = self.errorFormat
+        elif kind == 'cmdline':
+            format = self.cmdlineFormat
+        else:
+            format = self.messageFormat
+        self.console.setCurrentCharFormat(format)
+        self.console.append(message)
         scrollbar = self.console.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
 
