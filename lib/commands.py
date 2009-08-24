@@ -397,9 +397,9 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
     def get_ext_diff_args(self, processEvents):
         args = []
         if self.revision and len(self.revision) == 1:
-            args.append("-r %s" % (self.revision[0].user_spec,))
+            args.append("-r%s" % (self.revision[0].user_spec,))
         elif self.revision and  len(self.revision) == 2:
-            args.append("-r %s..%s" % (self.revision[0].user_spec,
+            args.append("-r%s..%s" % (self.revision[0].user_spec,
                                        self.revision[1].user_spec))
         
         if self.new and not self.new==".":
@@ -746,8 +746,17 @@ class cmd_qmain(QBzrCommand):
 
 
 class cmd_qsubprocess(Command):
-
+    """Run some bzr command as subprocess. 
+    Used with most of subprocess-based dialogs of QBzr.
+    
+    If CMD argument starts with @ characters then it used as name of file with
+    actual cmd string (in utf-8).
+    
+    With --bencode option cmd string interpreted as bencoded list of utf-8
+    strings. This is the recommended way to launch qsubprocess.
+    """
     takes_args = ['cmd']
+    takes_options = [Option("bencode", help="Pass command as bencoded string.")]
     hidden = True
 
     if MS_WINDOWS:
@@ -761,7 +770,7 @@ class cmd_qsubprocess(Command):
                 ev.Close()
             thread.interrupt_main()
 
-    def run(self, cmd):
+    def run(self, cmd, bencode=False):
         if MS_WINDOWS:
             thread.start_new_thread(self.__win32_ctrl_c, ())
         else:
@@ -776,9 +785,11 @@ class cmd_qsubprocess(Command):
                 f.close()
         else:
             cmd_utf8 = cmd.encode('utf8')
-        # XXX use bencode to avoid shlex, because it does not like backslashes
-        #     and therefore problematic on Windows.
-        argv = [p.decode('utf8') for p in shlex.split(cmd_utf8)]
+        if not bencode:
+            argv = [unicode(p, 'utf-8') for p in shlex.split(cmd_utf8)]
+        else:
+            from bzrlib.plugins.qbzr.lib.subprocess import bencode
+            argv = [unicode(p, 'utf-8') for p in bencode.bdecode(cmd_utf8)]
         commands.run_bzr(argv)
 
 
