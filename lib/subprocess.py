@@ -424,8 +424,7 @@ class SubProcessWidget(QtGui.QWidget):
         self._delete_args_file()
         dir, args = self.commands.pop(0)
 
-        args_utf8 = bencode.bencode([unicode(a).encode('utf-8') for a in args])
-        args = unicode(args_utf8, 'utf-8')
+        args = bencode_unicode(args)
 
         if MS_WINDOWS:
             # win32 has command-line length limit about 32K
