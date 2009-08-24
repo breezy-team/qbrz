@@ -18,7 +18,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bdist_nsis import bdist_nsis
 from build_docs import build_docs
 from build_mo import build_mo
 from build_pot import build_pot
@@ -29,7 +28,6 @@ from import_po import import_po
 
 
 cmdclass = {
-    'bdist_nsis': bdist_nsis,
     'build_docs': build_docs,
     'build_mo': build_mo,
     'build_pot': build_pot,
