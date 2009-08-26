@@ -5,6 +5,7 @@ all:
 	@echo   mo    - build binary translations
 	@echo   clean - remove build products
 	@echo   tags  - collect tags with ctags utility
+	@echo   epydoc - build API docs with epydoc
 	@echo To build release run:
 	@echo    make release RELEASE=X.Y.Z
 
@@ -37,3 +38,6 @@ clean:
 
 tags:
 	ctags *.py lib/*.py lib/extra/*.py lib/tests/*.py
+
+epydoc:
+	epydoc.py -o api -v lib
