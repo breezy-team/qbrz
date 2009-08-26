@@ -495,7 +495,7 @@ class LogGraphProvider(object):
             branch_last_revision = CURRENT_REVISION
             current_parents = bi.tree.get_parent_ids()
         else:
-            branch_last_revision = branch.last_revision()
+            branch_last_revision = bi.branch.last_revision()
         
         self.append_head_info(branch_last_revision, bi.branch, None, True)
         self.update_ui()

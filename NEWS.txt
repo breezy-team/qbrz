@@ -1,3 +1,13 @@
+0.14.1 - in development
+-----------------------
+Maintenance release:
+
+ * qannotate:
+   * Fixed a bug when annotating a file in a branch with no working tree.
+     (Bug 419477)
+
+
+
 0.14 "Eucalyptus" - 2009-08-21
 -------------------------------
 What's new in this release: 
