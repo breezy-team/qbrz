@@ -5,11 +5,12 @@ all:
 	@echo   mo    - build binary translations
 	@echo   clean - remove build products
 	@echo   tags  - collect tags with ctags utility
+	@echo   docs  - build htmls for texts in docs/ directory
 	@echo   epydoc - build API docs with epydoc
 	@echo To build release run:
 	@echo    make release RELEASE=X.Y.Z
 
-.PHONY: test pot mo clean tags
+.PHONY: test pot mo clean tags docs
 
 test:
 	bzr selftest -s bp.qbzr
@@ -41,3 +42,6 @@ tags:
 
 epydoc:
 	epydoc.py -o api -v lib
+
+docs:
+	$(MAKE) -C docs
