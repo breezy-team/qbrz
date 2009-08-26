@@ -4,6 +4,19 @@
    (#392920, Alexander Belchenko)
 
 
+0.14.1 - in development
+-----------------------
+Maintenance release:
+
+ * qannotate:
+   * Fixed a bug when annotating a file in a branch with no working tree.
+     (Bug 419477)
+ * qlog:
+   * Fixed a bug where it was not possible to do any file list context menu
+     actions on a file that was renamed in the revision that you were viewing.
+     (Bug 418340)
+
+
 0.14 "Eucalyptus" - 2009-08-21
 -------------------------------
 What's new in this release: 
