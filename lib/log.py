@@ -48,6 +48,7 @@ from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 
 
 PathRole = QtCore.Qt.UserRole + 1
+FileIdRole = QtCore.Qt.UserRole + 2
 
 
 class Compleater(QtGui.QCompleter):
@@ -356,28 +357,40 @@ class LogWindow(QBzrWindow):
         specific_fileids = self.log_list.graph_provider.fileids
         
         for path, id, kind in delta.added:
-            items.append((id not in specific_fileids,
+            items.append((id,
+                          path,
+                          id not in specific_fileids,
                           path,
                           "blue"))
 
         for path, id, kind, text_modified, meta_modified in delta.modified:
-            items.append((id not in specific_fileids,
+            items.append((id,
+                          path,
+                          id not in specific_fileids,
                           path,
                           None))
 
         for path, id, kind in delta.removed:
-            items.append((id not in specific_fileids,
+            items.append((id,
+                          path,
+                          id not in specific_fileids,
                           path,
                           "red"))
 
         for (oldpath, newpath, id, kind,
             text_modified, meta_modified) in delta.renamed:
-            items.append((id not in specific_fileids,
+            items.append((id,
+                          path,
+                          id not in specific_fileids,
                           "%s => %s" % (oldpath, newpath),
                           "purple"))
         
-        for (is_not_specific_fileid, path, color) in sorted(items):
-            item = QtGui.QListWidgetItem(path, self.fileList)
+        for (id, path,
+             is_not_specific_fileid,
+             display, color) in sorted(items, key = lambda x: (x[2],x[1])):
+            item = QtGui.QListWidgetItem(display, self.fileList)
+            item.setData(PathRole, QtCore.QVariant(path))
+            item.setData(FileIdRole, QtCore.QVariant(id))
             if color:
                 item.setTextColor(QtGui.QColor(color))
             if not is_not_specific_fileid:
@@ -430,26 +443,23 @@ class LogWindow(QBzrWindow):
         self.file_list_context_menu.popup(
             self.fileList.viewport().mapToGlobal(pos))
     
-    def get_current_rev_and_path(self, file_index=None):
+    def get_current_rev_path_and_id(self, file_index=None):
         if not file_index:
             file_index = self.fileList.currentIndex()
         item = self.fileList.itemFromIndex(file_index)
         path = None
         if item:
-            path = item.data(PathRole).toString()
-            if path.isNull():
-                path = item.text()
-            path = unicode(path)
+            path = unicode(item.data(PathRole).toString())
+            id = str(item.data(FileIdRole).toString())
         rev = self.current_rev
-        return rev, path
-
+        return rev, path, id
     
     @ui_current_widget
     def show_diff_file(self, index, ext_diff=None):
         """Show differences of a specific file in a single revision"""
-        rev, path = self.get_current_rev_and_path(index)
+        rev, path, id = self.get_current_rev_path_and_id(index)
         if rev and path:
-            self.log_list.show_diff(rev, rev, [unicode(path)], ext_diff)
+            self.log_list.show_diff(rev, rev, [path], ext_diff)
     
     @ui_current_widget
     def show_diff_file_menu(self, ext_diff=None):
@@ -460,7 +470,7 @@ class LogWindow(QBzrWindow):
     @ui_current_widget
     def show_file_content(self):
         """Launch qcat for one selected file."""
-        rev, path = self.get_current_rev_and_path()
+        rev, path, id = self.get_current_rev_path_and_id()
         if rev and path:
             tree = rev.branch.repository.revision_tree(rev.revision_id)
             encoding = get_set_encoding(None, rev.branch)
@@ -472,11 +482,10 @@ class LogWindow(QBzrWindow):
     @ui_current_widget
     def show_file_annotate(self):
         """Show qannotate for selected file."""
-        rev, path = self.get_current_rev_and_path()
+        rev, path, file_id = self.get_current_rev_path_and_id()
         if rev and path:
             branch = rev.branch
             tree = rev.branch.repository.revision_tree(rev.revision_id)
-            file_id = tree.path2id(path)
             window = AnnotateWindow(branch, tree, path, file_id)
             window.show()
             self.windows.append(window)
