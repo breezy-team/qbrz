@@ -1171,7 +1171,7 @@ class LogGraphProvider(object):
                     if not last_in_branch:
                         parents = parents[1:]
                     
-                    twisty_parents = []
+                    twisty_hidden_parents = []
                     # Find and add nessery twisties
                     for parent in parents:
                         if parent.branch_id == ():
@@ -1185,7 +1185,9 @@ class LogGraphProvider(object):
                                 self.get_revision_visible_if_branch_visible_cached (pb_rev.index)
                             if visible:
                                 rev.twisty_branch_ids.append (parent.branch_id)
-                                twisty_parents.append(parent.index)
+                                parent_branch = self.branch_lines[parent.branch_id]
+                                if not parent_branch.visible:
+                                    twisty_hidden_parents.append(parent.index)
                                 break
                     
                     # Work out if the twisty needs to show a + or -. If all
@@ -1201,7 +1203,7 @@ class LogGraphProvider(object):
                         if parent.f_index is not None:
                             rev_visible_parents.append((parent, True))
                         else:
-                            if (parent.index in twisty_parents and
+                            if (parent.index in twisty_hidden_parents and
                                 not (i==0 and last_in_branch)):
                                 # no need to draw a line if there is a twisty,
                                 # except if this is the last in the branch.
