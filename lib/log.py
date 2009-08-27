@@ -380,7 +380,7 @@ class LogWindow(QBzrWindow):
         for (oldpath, newpath, id, kind,
             text_modified, meta_modified) in delta.renamed:
             items.append((id,
-                          path,
+                          newpath,
                           id not in specific_fileids,
                           "%s => %s" % (oldpath, newpath),
                           "purple"))
