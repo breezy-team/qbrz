@@ -1235,8 +1235,7 @@ class LogGraphProvider(object):
                 last_parent = None
                 last_rev = branch_revs[-1]
                 if branch_rev_visible_parents[last_rev.index]:
-                    last_parent = branch_rev_visible_parents[last_rev.index][0]
-                    branch_rev_visible_parents[last_rev.index].pop(0)
+                    last_parent = branch_rev_visible_parents[last_rev.index].pop(0)
                 
                 children_with_sprout_lines = {}
                 # In this loop:
@@ -1254,7 +1253,7 @@ class LogGraphProvider(object):
                         if (rev.index <> last_rev.index or i > 0 )and \
                            branch_id <> () and \
                            self.branch_ids.index(parent.branch_id) <= self.branch_ids.index(branch_id) and\
-                           (last_parent and not direct and last_parent.index >= parent.index or not last_parent or direct):
+                           (last_parent and not direct and last_parent[0].index >= parent.index or not last_parent or direct):
                             
                             if parent.f_index - rev.f_index >1:
                                 rev_visible_parents.pop(i)
