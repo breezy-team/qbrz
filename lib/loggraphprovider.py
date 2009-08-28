@@ -709,17 +709,21 @@ class LogGraphProvider(object):
     
     def compute_merge_info(self):
         
-        def set_merged_by(rev, merged_by):
+        def set_merged_by(rev, merged_by, merged_by_rev, do_branches=False):
             if merged_by is not None:
+                if merged_by_rev is None:
+                    merged_by_rev = self.revisions[merged_by]
                 rev.merged_by = merged_by
-                self.revisions[merged_by].merges.append(rev.index)
-                branch_id = rev.branch_id
-                merged_by_branch_id = self.revisions[merged_by].branch_id
+                merged_by_rev.merges.append(rev.index)
                 
-                if not branch_id in self.branch_lines[merged_by_branch_id].merges:
-                    self.branch_lines[merged_by_branch_id].merges.append(branch_id)
-                if not merged_by_branch_id in self.branch_lines[branch_id].merged_by:
-                    self.branch_lines[branch_id].merged_by.append(merged_by_branch_id)
+                if do_branches:
+                    branch_id = rev.branch_id
+                    merged_by_branch_id = self.revisions[merged_by].branch_id
+                    
+                    if not branch_id in self.branch_lines[merged_by_branch_id].merges:
+                        self.branch_lines[merged_by_branch_id].merges.append(branch_id)
+                    if not merged_by_branch_id in self.branch_lines[branch_id].merged_by:
+                        self.branch_lines[branch_id].merged_by.append(merged_by_branch_id)
         
         for rev in self.revisions:
             
@@ -728,11 +732,11 @@ class LogGraphProvider(object):
             
             if len(parents) > 0:
                 if rev.branch_id == parents[0].branch_id:
-                    set_merged_by(parents[0], rev.merged_by)
+                    set_merged_by(parents[0], rev.merged_by, None)
             
             for parent in parents[1:]:
                 if rev.merge_depth<=parent.merge_depth:
-                    set_merged_by(parent, rev.index)
+                    set_merged_by(parent, rev.index, rev, do_branches=True)
         
     def compute_head_info(self):
         def get_revid_head(heads):
