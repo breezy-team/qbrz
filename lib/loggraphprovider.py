@@ -76,7 +76,6 @@ class RevisionInfo(object):
         If None, then this revision is not visible
         """
         self._merge_sort_node = _merge_sort_node
-        print self.revid
         self.branch_id = self.revno_sequence[0:-1]
         self._revno_str = None
         self.filter_cache = True
@@ -561,7 +560,10 @@ class LogGraphProvider(object):
         for (revid, parent_revids) in graph_parents_iter:
             if revid == NULL_REVISION:
                 continue
-            if parent_revids == (NULL_REVISION,):
+            if parent_revids is None:
+                #Ghost
+                graph_parents[revid] = ()
+            elif parent_revids == (NULL_REVISION,):
                 graph_parents[revid] = ()
             else:
                 graph_parents[revid] = parent_revids
