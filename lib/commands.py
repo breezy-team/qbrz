@@ -154,12 +154,17 @@ class QBzrCommand(Command):
         from bzrlib.plugins.qbzr.lib.trace import excepthook
         sys.excepthook = excepthook
         
-        ret_code = self._qbzr_run(*args, **kwargs)
-        if ret_code is None:
-            main_window = getattr(self, "main_window", None)
-            if main_window is not None:
-                ret_code = getattr(main_window, "return_code", None)
-        return ret_code
+        try:
+            ret_code = self._qbzr_run(*args, **kwargs)
+            if ret_code is None:
+                main_window = getattr(self, "main_window", None)
+                if main_window is not None:
+                    ret_code = getattr(main_window, "return_code", None)
+            return ret_code
+        except Exception:
+            ui_mode = ("ui_mode" in kwargs and kwargs["ui_mode"])
+            from bzrlib.plugins.qbzr.lib.trace import report_exception
+            return report_exception(ui_mode=ui_mode)
 
 
 ui_mode_option = Option("ui-mode", help="Causes dialogs to wait after the operation is complete.")
