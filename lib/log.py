@@ -292,6 +292,7 @@ class LogWindow(QBzrWindow):
             #    self.fileList.hide()
         finally:
             self.refresh_button.setDisabled(False)
+
     
     @runs_in_loading_queue
     @ui_current_widget
@@ -411,8 +412,10 @@ class LogWindow(QBzrWindow):
             index = indexes[0]
             revid = str(index.data(logmodel.RevIdRole).toString())
             gp = self.log_list.graph_provider
-            parents_ids = gp.graph_parents[revid]
-            child_ids = gp.graph_children[revid]
+            parents_ids = gp.known_graph.get_parent_keys(revid)
+            child_ids = [child for
+                         child in gp.known_graph.get_child_keys(revid)
+                         if not child == "top:"]
             revisions = gp.load_revisions([revid] + 
                                           list(parents_ids) +
                                           list(child_ids))
