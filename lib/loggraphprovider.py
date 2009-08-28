@@ -1174,6 +1174,8 @@ class LogGraphProvider(object):
                     twisty_hidden_parents = []
                     # Find and add nessery twisties
                     for parent in parents:
+                        if parent.branch_id == branch_id:
+                            continue
                         if parent.branch_id == ():
                             continue
                         if parent.branch_id in branch_line.merged_by:
