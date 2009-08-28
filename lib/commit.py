@@ -223,6 +223,9 @@ class CommitWindow(SubProcessDialog):
         self.is_bound = bool(tree.branch.get_bound_location())
         self.has_pending_merges = len(tree.get_parent_ids())>1
         
+        if self.has_pending_merges and selected_list:
+            raise errors.CannotCommitSelectedFileMerge(selected_list)
+        
         self.windows = []
         self.initial_selected_list = selected_list
 

@@ -11,10 +11,23 @@ Maintenance release:
  * qannotate:
    * Fixed a bug when annotating a file in a branch with no working tree.
      (Bug 419477)
+   * Fixed a bug were the logwidget would crash trying to render some graphs.
+     (Bug 417895)
+   * Fixed a bug were it was not possible to annotate files that have been
+     deleted. (Bug 419790)
  * qlog:
    * Fixed a bug where it was not possible to do any file list context menu
      actions on a file that was renamed in the revision that you were viewing.
      (Bug 418340)
+   * Fixed a graph layout bug, where if the first revions of a brach was
+     filter, there was no non direct line to it. (Bug 417895)
+   * Removed superfluous twisties at the end of a filterted branch line.
+     (Bug 419784)
+ * qcommit:
+   * Show a friendly error message when tring to commit a specific file,
+     and there are pending merges. (Bug 417210)
+ * Handle errors raised from _qbzr_run methods and the __init__ methods that
+   they call, so that ui-mode is honoured when they are reported. (Bug 420534)
 
 
 0.14 "Eucalyptus" - 2009-08-21

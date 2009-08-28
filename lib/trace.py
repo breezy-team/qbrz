@@ -55,7 +55,8 @@ def set_file_bugs_url(url):
 
 closing_due_to_error = False
 
-def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
+def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
+                     ui_mode=False):
     """Report an exception.
 
     The error is reported to the console or a message box, depending
@@ -81,8 +82,9 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
         # Do we maybe want to log this?
         return
     
-    msg_box = (type == MAIN_LOAD_METHOD and window and window.ui_mode) \
-              or not type == MAIN_LOAD_METHOD
+    msg_box = ((type == MAIN_LOAD_METHOD and
+                (window and window.ui_mode or ui_mode)) 
+               or not type == MAIN_LOAD_METHOD)
     pdb = os.environ.get('BZR_PDB')
     if pdb:
         msg_box = False
@@ -95,6 +97,8 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
     # always tell bzr to report it, so it ends up in the log.        
     error_type = report_exception(exc_info, err_file)
     
+    if (type == MAIN_LOAD_METHOD and window):
+        window.ret_code = error_type
     
     # XXX This is very similar to bzrlib.commands.exception_to_return_code.
     # We shoud get bzr to refactor so that that this is reuseable.
@@ -192,6 +196,14 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
                                         err_file.getvalue(),
                                         buttons,
                                         window)
+        if window is None:
+            import bzrlib.plugins.qbzr.lib.resources
+            icon = QtGui.QIcon()
+            icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
+            icon.addFile(":/bzr-32.png", QtCore.QSize(32, 32))
+            icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
+            msg_box.setWindowIcon(icon)
+        
         msg_box.exec_()
         
         if not msg_box.result() == QtGui.QMessageBox.Close:
@@ -204,6 +216,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None):
         else:
             window.closing_due_to_error = True
             window.close()
+    return error_type
 
 class ErrorReport(QtGui.QDialog):
     def __init__(self, title, message, trace_back, buttons,
