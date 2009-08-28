@@ -33,6 +33,7 @@ except ImportError:
     
 from bzrlib.bzrdir import BzrDir
 from bzrlib.inventory import Inventory
+from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
                                                          cached_revisions)
 from bzrlib.plugins.qbzr.lib.util import get_apparent_author
@@ -491,7 +492,7 @@ class LogGraphProvider(object):
         bi = self.branches[0]
         self.trunk_branch = bi.branch
         
-        if bi.tree:
+        if bi.tree and isinstance(bi.tree, WorkingTree):
             branch_last_revision = CURRENT_REVISION
             current_parents = bi.tree.get_parent_ids()
         else:
