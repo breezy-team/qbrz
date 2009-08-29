@@ -67,7 +67,9 @@ from bzrlib.plugins.qbzr.lib.pull import (
 from bzrlib.plugins.qbzr.lib.revert import RevertWindow
 from bzrlib.plugins.qbzr.lib.subprocess import SubprocessUIFactory
 from bzrlib.plugins.qbzr.lib.tag import TagWindow
+from bzrlib.plugins.qbzr.lib.tree_branch import TreeBranch
 from bzrlib.plugins.qbzr.lib.uncommit import QBzrUncommitWindow
+from bzrlib.plugins.qbzr.lib.update import QBzrUpdateWindow
 from bzrlib.plugins.qbzr.lib.util import (
     FilterOptions,
     is_valid_encoding,
@@ -812,10 +814,15 @@ class cmd_qgetupdates(QBzrCommand):
     def _qbzr_run(self, location=u".", ui_mode=False):
         branch, relpath = Branch.open_containing(location)
         app = QtGui.QApplication(sys.argv)
-        if branch.get_bound_location():
-            window = UpdateCheckoutWindow(branch, ui_mode=ui_mode)
+        tb = TreeBranch.open_containing(location, ui_mode=ui_mode)
+        if tb is None:
+            return errors.EXIT_ERROR
+        if tb.is_light_co():
+            window = QBzrUpdateWindow(tb.tree, ui_mode)
+        elif tb.is_bound():
+            window = UpdateCheckoutWindow(tb.branch, ui_mode=ui_mode)
         else:
-            window = UpdateBranchWindow(branch, ui_mode=ui_mode)
+            window = UpdateBranchWindow(tb.branch, ui_mode=ui_mode)
         self.main_window = window
         self.main_window.show()
         app.exec_()
@@ -942,7 +949,6 @@ class cmd_qupdate(QBzrCommand):
     takes_options = [ui_mode_option]
 
     def _qbzr_run(self, directory=None, ui_mode=False):
-        from bzrlib.plugins.qbzr.lib.update import QBzrUpdateWindow
         application = QtGui.QApplication(sys.argv)
         tree = open_tree(directory, ui_mode)
         if tree is None:
