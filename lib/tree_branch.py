@@ -36,7 +36,7 @@ class TreeBranch(object):
     """Universal tree and/or branch wrapper object."""
 
     __slots__ = ['location', 'tree', 'branch', 'relpath']
-    
+
     def __init__(self, location, tree, branch, relpath):
         """Use open_containg method to create the object."""
         self.location = location
@@ -49,9 +49,9 @@ class TreeBranch(object):
         _critical_dialog=QtGui.QMessageBox.critical):
         """Open the branch and tree at location (or in current directory).
 
-        @return: initialized TreeBranch if opened successfully, 
+        @return: initialized TreeBranch if opened successfully,
             None if branch or tree not found.
-        
+
         @param location: URL or local path, if None then current working
             directory will be used.
         @param require_tree: if True then NoWorkingTree error will be
@@ -64,8 +64,8 @@ class TreeBranch(object):
         if location is None:
             location = osutils.getcwd()
         try:
-            (tree, 
-             branch, 
+            (tree,
+             branch,
              relpath
             ) = bzrdir.BzrDir.open_containing_tree_or_branch(location)
 
@@ -79,11 +79,12 @@ class TreeBranch(object):
         return TreeBranch(location, tree, branch, relpath)
 
     @staticmethod
-    def _report_error(location, err, 
+    def _report_error(location, err,
         _critical_dialog=QtGui.QMessageBox.critical):
         """Report error in GUI dialog.
         @param location: valid location for which error is reported.
-        @param err: error object (NotBranchError or NoWorkingTree)
+        @param err: error object (NotBranchError or NoWorkingTree).
+        @param _critical_dialog: callable to show error dialog.
         """
         if isinstance(err, errors.NotBranchError):
             text = gettext('Not a branch "%s"') % location
