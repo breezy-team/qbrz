@@ -21,7 +21,7 @@
 
 """Tests for TreeBranch wrapper object."""
 
-from bzrlib import errors
+from bzrlib import errors, osutils
 from bzrlib.tests import TestCase, TestCaseWithTransport
 
 from bzrlib.plugins.qbzr.lib import tree_branch
@@ -96,7 +96,7 @@ class TestTreeBranch(TestCaseWithTransport):
         tb = tree_branch.TreeBranch.open_containing('a',
             require_tree=False, ui_mode=False, _critical_dialog=mf)
         self.assertEqual('branch', tb.get_type())
-        # 
+        #
         self.make_branch_and_tree('master')
         tb = tree_branch.TreeBranch.open_containing('master',
             require_tree=True, ui_mode=False, _critical_dialog=mf)
@@ -104,8 +104,31 @@ class TestTreeBranch(TestCaseWithTransport):
         self.run_bzr('checkout master slave')
         tb = tree_branch.TreeBranch.open_containing('slave',
             require_tree=True, ui_mode=False, _critical_dialog=mf)
-        self.assertEqual('bound', tb.get_type())        
+        self.assertEqual('bound', tb.get_type())
         self.run_bzr('checkout --lightweight master light')
         tb = tree_branch.TreeBranch.open_containing('light',
             require_tree=True, ui_mode=False, _critical_dialog=mf)
-        self.assertEqual('light-checkout', tb.get_type())        
+        self.assertEqual('light-checkout', tb.get_type())
+
+    def test_get_root(self):
+        mf = mock.MockFunction()
+        self.make_branch('a')
+        tb = tree_branch.TreeBranch.open_containing('a',
+            require_tree=False, ui_mode=False, _critical_dialog=mf)
+        self.assertEqual(osutils.abspath('a')+'/', tb.get_root())
+        #
+        self.make_branch_and_tree('b')
+        root = osutils.abspath('b')
+        tb = tree_branch.TreeBranch.open_containing('b',
+            require_tree=True, ui_mode=False, _critical_dialog=mf)
+        self.assertEqual(root, tb.get_root())
+        #
+        self.build_tree(['b/dir/'])
+        tb = tree_branch.TreeBranch.open_containing('b/dir',
+            require_tree=True, ui_mode=False, _critical_dialog=mf)
+        self.assertEqual(root, tb.get_root())
+        #
+        self.run_bzr('checkout --lightweight b c')
+        tb = tree_branch.TreeBranch.open_containing('c',
+            require_tree=True, ui_mode=False, _critical_dialog=mf)
+        self.assertEqual(osutils.abspath('c'), tb.get_root())

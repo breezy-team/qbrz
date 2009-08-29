@@ -27,6 +27,7 @@ from bzrlib import (
     bzrdir,
     errors,
     osutils,
+    urlutils,
     )
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -126,4 +127,11 @@ class TreeBranch(object):
                 return 'branch'
 
     def get_root(self):
-        raise NotImplementedError
+        """Return root working directory (or URL for treeless remote branch)."""
+        if self.tree:
+            return self.tree.basedir
+        else:
+            url = self.branch.base
+            if url.startswith('file://'):
+                return urlutils.local_path_from_url(url)
+            return url
