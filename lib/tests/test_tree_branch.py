@@ -53,7 +53,7 @@ class TestTreeBranch(TestCaseWithTransport):
         #
         self.make_branch('a')
         mf = mock.MockFunction()
-        tb = tree_branch.TreeBranch.open_containing('/non/existent/path',
+        tb = tree_branch.TreeBranch.open_containing('a',
             require_tree=True, ui_mode=True, _critical_dialog=mf)
         self.assertEqual(None, tb)
         self.assertEqual(1, mf.count)

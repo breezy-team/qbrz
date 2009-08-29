@@ -88,7 +88,7 @@ class TreeBranch(object):
         """
         if isinstance(err, errors.NotBranchError):
             text = gettext('Not a branch "%s"') % location
-        elif isinstance(err, error.NoWorkingTree):
+        elif isinstance(err, errors.NoWorkingTree):
             text = gettext('No working tree exists for "%s"') % location
         _critical_dialog(None,
             gettext("Error"),
