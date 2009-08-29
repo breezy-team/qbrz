@@ -42,7 +42,7 @@ class TreeBranch(object):
         self.location = location
         self.tree = tree
         self.branch = branch
-        self.relptah = relpath
+        self.relpath = relpath
 
     @staticmethod
     def open_containing(location=None, require_tree=False, ui_mode=False,

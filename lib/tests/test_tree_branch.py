@@ -57,3 +57,35 @@ class TestTreeBranch(TestCaseWithTransport):
             require_tree=True, ui_mode=True, _critical_dialog=mf)
         self.assertEqual(None, tb)
         self.assertEqual(1, mf.count)
+
+    def test_open(self):
+        self.make_branch('a')
+        mf = mock.MockFunction()
+        tb = tree_branch.TreeBranch.open_containing('a',
+            require_tree=False, ui_mode=False, _critical_dialog=mf)
+        self.assertNotEqual(None, tb)
+        self.assertEqual('a', tb.location)
+        self.assertNotEqual(None, tb.branch)
+        self.assertEqual(None, tb.tree)
+        self.assertEqual('', tb.relpath)
+        self.assertEqual(0, mf.count)
+        #
+        self.make_branch_and_tree('b')
+        tb = tree_branch.TreeBranch.open_containing('b',
+            require_tree=True, ui_mode=False, _critical_dialog=mf)
+        self.assertNotEqual(None, tb)
+        self.assertEqual('b', tb.location)
+        self.assertNotEqual(None, tb.branch)
+        self.assertNotEqual(None, tb.tree)
+        self.assertEqual('', tb.relpath)
+        self.assertEqual(0, mf.count)
+        #
+        self.build_tree(['b/dir/'])
+        tb = tree_branch.TreeBranch.open_containing('b/dir',
+            require_tree=True, ui_mode=False, _critical_dialog=mf)
+        self.assertNotEqual(None, tb)
+        self.assertEqual('b/dir', tb.location)
+        self.assertNotEqual(None, tb.branch)
+        self.assertNotEqual(None, tb.tree)
+        self.assertEqual('dir', tb.relpath)
+        self.assertEqual(0, mf.count)
