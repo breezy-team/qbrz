@@ -89,3 +89,23 @@ class TestTreeBranch(TestCaseWithTransport):
         self.assertNotEqual(None, tb.tree)
         self.assertEqual('dir', tb.relpath)
         self.assertEqual(0, mf.count)
+
+    def test_get_type(self):
+        self.make_branch('a')
+        mf = mock.MockFunction()
+        tb = tree_branch.TreeBranch.open_containing('a',
+            require_tree=False, ui_mode=False, _critical_dialog=mf)
+        self.assertEqual('branch', tb.get_type())
+        # 
+        self.make_branch_and_tree('master')
+        tb = tree_branch.TreeBranch.open_containing('master',
+            require_tree=True, ui_mode=False, _critical_dialog=mf)
+        self.assertEqual('tree', tb.get_type())
+        self.run_bzr('checkout master slave')
+        tb = tree_branch.TreeBranch.open_containing('slave',
+            require_tree=True, ui_mode=False, _critical_dialog=mf)
+        self.assertEqual('bound', tb.get_type())        
+        self.run_bzr('checkout --lightweight master light')
+        tb = tree_branch.TreeBranch.open_containing('light',
+            require_tree=True, ui_mode=False, _critical_dialog=mf)
+        self.assertEqual('light-checkout', tb.get_type())        

@@ -97,17 +97,33 @@ class TreeBranch(object):
 
     def is_light_co(self):
         """Return True if location is lightweight checkout."""
-        raise NotImplementedError
+        if (self.tree and self.tree.bzrdir.root_transport.base !=
+            self.branch.bzrdir.root_transport.base):
+            return True
+        return False
 
     def is_bound(self):
         """Return True if location is bound branch."""
-        raise NotImplementedError
+        if self.branch.get_bound_location():
+            return True
+        return False
 
     def get_type(self):
         """Return type of the object as string.
-        @return: type of object (tree, branch, checkout, bound or None)
+        @return: type of object ('tree', 'branch', 'light-checkout', 'bound'
+            or None)
         """
-        raise NotImplementedError
+        if self.branch is None:
+            return None
+        if self.is_light_co():
+            return 'light-checkout'
+        elif self.is_bound():
+            return 'bound'
+        else:
+            if self.tree:
+                return 'tree'
+            else:
+                return 'branch'
 
     def get_root(self):
         raise NotImplementedError
