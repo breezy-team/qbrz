@@ -61,6 +61,7 @@ Additional commands:
 
  * qbrowse - Show inventory or working tree.
  * qconfig - Configure Bazaar and QBzr.
+ * qrun - Run arbitrary bzr command.
  * qviewer - Simple file viewer.
 
 Miscellaneous:
@@ -133,6 +134,7 @@ register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qplugins', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpull', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpush', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrevert', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrun', ['qcmd'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsubprocess', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qtag', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_quncommit', [])

@@ -143,6 +143,11 @@ class SubProcessWindowBase:
         return status_group_box
 
     def make_default_layout_widgets(self):
+        """Yields widgets to add to main dialog layout: status and button boxes.
+        Status box has progress bar and console area.
+        Button box has 2 buttons: OK and Cancel (after successfull command 
+        execution there will be Close and Cancel).
+        """
         yield self.make_default_status_box()
         yield self.buttonbox
 
@@ -279,7 +284,6 @@ class SubProcessDialog(SubProcessWindowBase, QBzrDialog):
             event.ignore()
 
 
-
 class SimpleSubProcessDialog(SubProcessDialog):
     """A concrete helper class of SubProcessDialog, which has a single label
     widget for displaying a simple description before executing a subprocess.
@@ -389,6 +393,8 @@ class SubProcessWidget(QtGui.QWidget):
         self.messageFormat = QtGui.QTextCharFormat()
         self.errorFormat = QtGui.QTextCharFormat()
         self.errorFormat.setForeground(QtGui.QColor('red'))
+        self.cmdlineFormat = QtGui.QTextCharFormat()
+        self.cmdlineFormat.setForeground(QtGui.QColor('blue'))
 
         if hide_progress:
             self.hide_progress()
@@ -532,6 +538,25 @@ class SubProcessWidget(QtGui.QWidget):
             format = self.messageFormat
         self.console.setCurrentCharFormat(format);
         self.console.append(message);
+        scrollbar = self.console.verticalScrollBar()
+        scrollbar.setValue(scrollbar.maximum())
+
+    def logMessageEx(self, message, kind="plain"):
+        """Write message to console area.
+        @param kind: kind of message used for selecting style of formatting.
+            Possible kind values:
+                * plain = usual message, written in default style;
+                * error = error message, written in red;
+                * cmdline = show actual command-line, written in blue.
+        """
+        if kind == 'error':
+            format = self.errorFormat
+        elif kind == 'cmdline':
+            format = self.cmdlineFormat
+        else:
+            format = self.messageFormat
+        self.console.setCurrentCharFormat(format)
+        self.console.append(message)
         scrollbar = self.console.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
 

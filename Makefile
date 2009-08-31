@@ -10,7 +10,7 @@ all:
 	@echo To build release run:
 	@echo    make release RELEASE=X.Y.Z
 
-.PHONY: test pot mo clean tags docs
+.PHONY: test pot mo clean tags docs ui
 
 test:
 	bzr selftest -s bp.qbzr
@@ -45,3 +45,6 @@ epydoc:
 
 docs:
 	$(MAKE) -C docs
+
+ui:
+	python setup.py build_ui
