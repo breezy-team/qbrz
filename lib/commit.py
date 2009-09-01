@@ -438,10 +438,16 @@ class CommitWindow(SubProcessDialog):
                                                          None,
                                                          self.tree)
                     self.pending_merges_list.load()
+                    # Force the loading of the revisions, before we start
+                    # loading the file list.
+                    self.pending_merges_list._load_visible_revisions()
                     self.processEvents()
                 
                 self.filelist.tree_model.checkable = not self.pending_merges_list
                 self.is_loading = True
+                # XXX Would be nice if we could only load the files when the
+                # user clicks on the changes tab, but that would mean that
+                # we can't load the words list.
                 if not refresh:
                     fmodel = self.filelist.tree_filter_model
                     #fmodel.setFilter(fmodel.UNVERSIONED, False)
@@ -461,7 +467,7 @@ class CommitWindow(SubProcessDialog):
         finally:
             self.throbber.hide()
             self.refresh_button.setDisabled(False)
-
+    
     def refresh(self):
         self.load(True)
 

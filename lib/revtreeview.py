@@ -19,7 +19,7 @@
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.plugins.qbzr.lib.util import runs_in_loading_queue
+from bzrlib.plugins.qbzr.lib.util import run_in_loading_queue
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import load_revisions
 from bzrlib.transport.local import LocalTransport
 
@@ -78,8 +78,10 @@ class RevisionTreeView(QtGui.QTreeView):
         self.load_visible_revisions()
         QtGui.QTreeView.resizeEvent(self, e)
     
-    @runs_in_loading_queue
     def load_visible_revisions(self):
+        run_in_loading_queue(self._load_visible_revisions)
+    
+    def _load_visible_revisions(self):
         model = self.model()
         
         index = self.indexAt(self.viewport().rect().topLeft())
