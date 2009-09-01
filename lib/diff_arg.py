@@ -91,21 +91,43 @@ class InternalDiffArgProvider(DiffArgProvider):
     
     def get_ext_diff_args(self, processEvents):
         from bzrlib import urlutils
+        from bzrlib import errors
 
         args = []
         revspec = self.get_revspec()
         if revspec:
             args.append(revspec)
         
-        if not self.old_branch.base == self.new_branch.base: 
-            args.append("--old=%s" % self.old_branch.base)
+        def get_base(branch, tree):
+            if tree:
+                return urlutils.local_path_to_url(tree.basedir)
+            return branch.base
+        
+        old_base = get_base(self.old_branch, self.old_tree)
+        new_base = get_base(self.new_branch, self.new_tree)
+        
+        # We need to avoid using --new and --old because diff tools
+        # does not support it. There are however some cases where
+        # this is not possilble.
+        need_old = False
+        if not old_base == new_base:
+            need_old = True
+        
+        try:
+            dir = urlutils.local_path_from_url(new_base)
+        except errors.InvalidURL:
+            dir = ""
+            args.append("--new=%s" % new_base)
+            need_old = True
+        
+        if need_old:
+            args.append("--old=%s" % old_base)
         
         if self.need_to_load_paths():
             self.load_new_tree_and_paths()
             processEvents()
         if self.specific_files:
             args.extend(self.specific_files)
-        dir = urlutils.local_path_from_url(self.new_branch.base)
         
         return dir, args
 
