@@ -449,8 +449,14 @@ class SubProcessWidget(QtGui.QWidget):
         self.process.setWorkingDirectory (dir)
         self._setup_stdout_stderr()
         if getattr(sys, "frozen", None) is not None:
+            bzr_exe = sys.argv[0]
+            if sys.frozen == 'windows_exe':
+                # bzrw.exe
+                exe = os.path.join(os.path.dirname(sys.argv[0]), 'bzr.exe')
+                if os.path.isfile(exe):
+                    bzr_exe = exe
             self.process.start(
-                sys.argv[0], ['qsubprocess', '--bencode', args])
+                bzr_exe, ['qsubprocess', '--bencode', args])
         else:
             self.process.start(
                 sys.executable, [sys.argv[0], 'qsubprocess', '--bencode', args])
