@@ -91,7 +91,7 @@ class Ui_TagForm(object):
         self.tag_group.setTitle(gettext("Tag"))
         self.label_action.setText(gettext("&Action:"))
         self.cb_action.setItemText(0, gettext("Create new tag"))
-        self.cb_action.setItemText(1, gettext("Replace existing tag"))
+        self.cb_action.setItemText(1, gettext("Move existing tag"))
         self.cb_action.setItemText(2, gettext("Delete existing tag"))
         self.label_tag_name.setText(gettext("&Tag name:"))
         self.label_revision.setText(gettext("&Revision:"))
