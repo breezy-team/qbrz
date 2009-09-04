@@ -612,10 +612,10 @@ class LogGraphProvider(object):
             self.revid_rev[rev.revid] = rev
             self.revno_rev[rev.revno_sequence] = rev
         
-        self.compute_head_info()
         if not self.no_graph:
             self.compute_branch_lines()
             self.compute_merge_info()
+        self.compute_head_info()
         
         if not self.fileids:
             # All revisions start visible
@@ -762,12 +762,20 @@ class LogGraphProvider(object):
         if len(self.revid_head_info) > 1:
             # Populate unique revisions for heads
             for revid, (head_info, ur) in self.revid_head_info.iteritems():
-                if revid in self.graph_children \
-                            and len(self.graph_children[revid])>0:
+                rev = None
+                if revid in self.revid_rev:
+                    rev = self.revid_rev[revid]
+                if rev and rev.merged_by:
                     # This head has been merged.
-                    other_revids = [other_revid for other_revid \
-                        in self.graph_parents[self.graph_children[revid][0]] \
-                        if not other_revid == revid]
+                    # d
+                    # |\
+                    # b c
+                    # |/
+                    # a
+                    # if revid == c,then we want other_revids = [b]
+                    
+                    merged_by_revid = self.revisions[rev.merged_by].revid
+                    other_revids = [self.graph_parents[merged_by_revid][0]]
                 else:
                     other_revids = [other_revid for other_revid \
                         in self.revid_head_info.iterkeys() \
