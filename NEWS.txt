@@ -28,6 +28,9 @@ Maintenance release:
  * qcommit:
    * Show a friendly error message when tring to commit a specific file,
      and there are pending merges. (Bug 417210)
+ * qbrowse:
+   * Fixed a bug where the window would crash with a ObjectNotLocked error
+     when expanded a folder in a 2a branch. (Bug 424258)
  * Handle errors raised from _qbzr_run methods and the __init__ methods that
    they call, so that ui-mode is honoured when they are reported. (Bug 420534)
 

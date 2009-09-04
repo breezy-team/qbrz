@@ -406,8 +406,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         if dir_item.children_ids is not None:
             return 
         
-        if isinstance(self.tree, WorkingTree):
-            self.tree.lock_read()
+        self.tree.lock_read()
         try:
             dir_item.children_ids = []
             children = sorted(self.get_children(dir_item),
@@ -425,8 +424,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             finally:
                 self.endInsertRows();
         finally:
-            if isinstance(self.tree, WorkingTree):
-                self.tree.unlock()
+            self.tree.unlock()
     
     def process_inventory(self, get_children):
         self.get_children = get_children
