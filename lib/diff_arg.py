@@ -110,7 +110,7 @@ class InternalDiffArgProvider(DiffArgProvider):
         # does not support it. There are however some cases where
         # this is not possilble.
         need_old = False
-        if not old_base == new_base:
+        if not self.old_branch.base == self.new_branch.base:
             need_old = True
         
         try:
@@ -128,6 +128,8 @@ class InternalDiffArgProvider(DiffArgProvider):
             processEvents()
         if self.specific_files:
             args.extend(self.specific_files)
+        print dir
+        print args
         
         return dir, args
 
