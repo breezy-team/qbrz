@@ -80,13 +80,8 @@ class TagWindow(SubProcessDialog):
         # update ui
         self.ui.branch_location.setText(url_for_display(branch.base))
         self.ui.cb_tag.clear()
-        sorted_tags = []
-        loco = locale.getpreferredencoding(False)
-        for val in self.tags.keys():
-            sorted_tags.append(val.encode(loco,'ignore'))
-
-        self.ui.cb_tag.addItems(QtCore.QStringList(sorted(sorted_tags,
-                                                           key=str.lower)))
+        self.ui.cb_tag.addItems(QtCore.QStringList(sorted(self.tags.keys(),
+                                                          key=unicode.lower)))
         self.ui.cb_tag.setEditText("")
         self.ui.cb_tag.setCurrentIndex(-1)
 
