@@ -44,6 +44,7 @@ class ConflictsWindow(QBzrWindow):
         self.conflicts_list.setRootIsDecorated(False)
         self.conflicts_list.setUniformRowHeights(True)
         self.conflicts_list.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.conflicts_list.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.conflicts_list.setHeaderLabels([
             gettext("File"),
             gettext("Conflict"),
@@ -57,6 +58,8 @@ class ConflictsWindow(QBzrWindow):
             QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
             self.show_context_menu)
         self.conflicts_list.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.conflicts_list.setSortingEnabled(True)
+        self.conflicts_list.sortByColumn(0, QtCore.Qt.AscendingOrder)
         header = self.conflicts_list.header()
         header.setStretchLastSection(False)
         header.setResizeMode(0, QtGui.QHeaderView.Stretch)
@@ -94,8 +97,7 @@ class ConflictsWindow(QBzrWindow):
         hbox.addWidget(self.program_launch_button)
         vbox.addLayout(hbox)
 
-        self.context_menu = QtGui.QMenu(self.conflicts_list)
-        self.context_menu.addAction(gettext("Mark as resolved"), self.mark_item_as_resolved)
+        self.create_context_menu()
 
         buttonbox = self.create_button_box(BTN_CLOSE)
         refresh = StandardButton(BTN_REFRESH)
@@ -128,6 +130,14 @@ class ConflictsWindow(QBzrWindow):
             if not extmerge_tool:
                 self.program_extmerge_default_button.setCheckState(QtCore.Qt.Unchecked)
                 self.update_program_edit_text(False, "")
+
+    def create_context_menu(self, merge_action_enabled=False):
+        self.context_menu = QtGui.QMenu(self.conflicts_list)
+        if merge_action_enabled:
+            self.context_menu.addAction(gettext("&Merge conflict"),
+                                        self.launch_merge_tool)
+        self.context_menu.addAction(gettext("Mark as &resolved"),
+                                    self.mark_item_as_resolved)
 
     def show(self):
         QBzrWindow.show(self)
@@ -174,6 +184,7 @@ class ConflictsWindow(QBzrWindow):
         self.update_program_edit_text(enabled, error_msg)
         if enabled and self.program_extmerge_default_button.isChecked():
             self.program_edit.setEnabled(False)
+        self.create_context_menu(enabled)
 
     def check_merge_tool_edit(self, text):
         enabled, error_msg = self.is_merge_tool_launchable()
