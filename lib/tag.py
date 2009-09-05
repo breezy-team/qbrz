@@ -18,7 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-
 from bzrlib.branch import Branch
 from bzrlib import (
     errors,
@@ -80,7 +79,8 @@ class TagWindow(SubProcessDialog):
         # update ui
         self.ui.branch_location.setText(url_for_display(branch.base))
         self.ui.cb_tag.clear()
-        self.ui.cb_tag.addItems(QtCore.QStringList(sorted(self.tags.keys())))
+        self.ui.cb_tag.addItems(QtCore.QStringList(sorted(self.tags.keys(),
+                                                          key=unicode.lower)))
         self.ui.cb_tag.setEditText("")
         self.ui.cb_tag.setCurrentIndex(-1)
 

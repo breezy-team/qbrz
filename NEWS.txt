@@ -1,10 +1,10 @@
 0.15 - in development
 ---------------------
- * qsubprocess: new command-line option --bencode to use bencoded command list.
-   (#392920, Alexander Belchenko)
  * New dialog:
     * qrun (Alexander Belchenko)
-
+ * qsubprocess: new command-line option --bencode to use bencoded command list.
+   (#392920, Alexander Belchenko)
+ * qtag: sort tags alphabeticaly and case-insensitive. (#423075, Craig Hewetson)
 
 0.14.1 - in development
 -----------------------
