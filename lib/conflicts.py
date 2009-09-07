@@ -33,6 +33,7 @@ from bzrlib.plugins.qbzr.lib.util import (
 class ConflictsWindow(QBzrWindow):
 
     def __init__(self, wt_dir, parent=None):
+        self.merge_action = None
         self.wt_dir = wt_dir
         QBzrWindow.__init__(self,
             [gettext("Conflicts")], parent)
@@ -131,13 +132,15 @@ class ConflictsWindow(QBzrWindow):
                 self.program_extmerge_default_button.setCheckState(QtCore.Qt.Unchecked)
                 self.update_program_edit_text(False, "")
 
-    def create_context_menu(self, merge_action_enabled=False):
+    def create_context_menu(self):
         self.context_menu = QtGui.QMenu(self.conflicts_list)
-        if merge_action_enabled:
-            self.context_menu.addAction(gettext("&Merge conflict"),
-                                        self.launch_merge_tool)
+        self.merge_action = QtGui.QAction(gettext("&Merge conflict"),
+                                     self.context_menu)
+        self.connect(self.merge_action, QtCore.SIGNAL("triggered(bool)"),
+                     self.launch_merge_tool)
+        self.context_menu.addAction(self.merge_action)
         self.context_menu.addAction(gettext("Mark as &resolved"),
-                                    self.mark_item_as_resolved)
+                                   self.mark_item_as_resolved)
 
     def show(self):
         QBzrWindow.show(self)
@@ -184,7 +187,7 @@ class ConflictsWindow(QBzrWindow):
         self.update_program_edit_text(enabled, error_msg)
         if enabled and self.program_extmerge_default_button.isChecked():
             self.program_edit.setEnabled(False)
-        self.create_context_menu(enabled)
+        self.merge_action.setEnabled(enabled)
 
     def check_merge_tool_edit(self, text):
         enabled, error_msg = self.is_merge_tool_launchable()
