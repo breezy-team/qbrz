@@ -28,7 +28,7 @@ tarball:
 copy-libs:
 	python installer/copy_libs.py
 
-inno: mo copy-libs
+inno: mo
 	iscc installer/qbzr-setup.iss
 	gpg -ab qbzr-setup-$(RELEASE).exe
 

@@ -73,8 +73,12 @@ class InternalDiffArgProvider(DiffArgProvider):
                     self.new_branch.repository.revision_tree(self.new_revid)
         
         if self.need_to_load_paths():
-            self.specific_files = [self.new_tree.id2path(id) \
-                                   for id in self.specific_file_ids]
+            self.new_tree.lock_read()
+            try:
+                self.specific_files = [self.new_tree.id2path(id) \
+                                       for id in self.specific_file_ids]
+            finally:
+                self.new_tree.unlock()
 
     def get_diff_window_args(self, processEvents):
         self.load_old_tree()

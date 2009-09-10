@@ -6,8 +6,11 @@
     * qrun (Alexander Belchenko)
 
 
-0.14.1 - in development
+0.14.2 - in development
 -----------------------
+
+0.14.1 - 2009-09-10
+-------------------
 Maintenance release:
 
  * qannotate:
@@ -17,6 +20,8 @@ Maintenance release:
      (Bug 417895)
    * Fixed a bug were it was not possible to annotate files that have been
      deleted. (Bug 419790)
+   * Fixed a bug where opening a per file diff would crash with a
+     ObjectNotLocked error in a 2a branch. (Bug 426688)
  * qlog:
    * Fixed a bug where it was not possible to do any file list context menu
      actions on a file that was renamed in the revision that you were viewing.
@@ -25,6 +30,8 @@ Maintenance release:
      filter, there was no non direct line to it. (Bug 417895)
    * Removed superfluous twisties at the end of a filterted branch line.
      (Bug 419784)
+   * Fixed a bug where branch lables would show on the wrong revisions.
+     (Bug 423201)
  * qcommit:
    * Show a friendly error message when tring to commit a specific file,
      and there are pending merges. (Bug 417210)
