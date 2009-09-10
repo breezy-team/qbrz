@@ -9,6 +9,8 @@ Maintenance release:
      (Bug 417895)
    * Fixed a bug were it was not possible to annotate files that have been
      deleted. (Bug 419790)
+   * Fixed a bug where opening a per file diff would crash with a
+     ObjectNotLocked error in a 2a branch. (Bug 426688)
  * qlog:
    * Fixed a bug where it was not possible to do any file list context menu
      actions on a file that was renamed in the revision that you were viewing.
