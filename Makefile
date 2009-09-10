@@ -28,7 +28,7 @@ py-inst: mo
 	python setup.py bdist_wininst -d.
 	gpg -ab qbzr-$(RELEASE).win32.exe
 
-inno: mo copy-libs
+inno: mo
 	iscc installer/qbzr-setup.iss
 	gpg -ab qbzr-setup-$(RELEASE).exe
 
