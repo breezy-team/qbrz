@@ -17,6 +17,8 @@ Maintenance release:
      filter, there was no non direct line to it. (Bug 417895)
    * Removed superfluous twisties at the end of a filterted branch line.
      (Bug 419784)
+   * Fixed a bug where branch lables would show on the wrong revisions.
+     (Bug 423201)
  * qcommit:
    * Show a friendly error message when tring to commit a specific file,
      and there are pending merges. (Bug 417210)
