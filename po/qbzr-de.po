@@ -7,19 +7,19 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-19 12:01+0300\n"
-"PO-Revision-Date: 2009-07-17 10:04+0000\n"
-"Last-Translator: 816_8055 <Unknown>\n"
+"POT-Creation-Date: 2009-09-07 08:14+0300\n"
+"PO-Revision-Date: 2009-08-26 00:36+0000\n"
+"Last-Translator: Christian Faulhammer <Unknown>\n"
 "Language-Team: German <de@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2009-08-20 11:04+0000\n"
+"X-Launchpad-Export-Date: 2009-09-10 15:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:113 lib\config.py:134 lib\config.py:165
-#: lib\config.py:194 lib\treewidget.py:1384
+#: lib\config.py:194 lib\treewidget.py:1382
 msgid "Add"
 msgstr "Hinzufügen"
 
@@ -43,7 +43,7 @@ msgstr "Autor"
 msgid "Rev"
 msgstr "Rev"
 
-#: lib\annotate.py:209 lib\annotate.py:345 lib\annotate.py:349 lib\log.py:203
+#: lib\annotate.py:209 lib\annotate.py:345 lib\annotate.py:349 lib\log.py:204
 msgid "Annotate"
 msgstr "Beschreibe"
 
@@ -51,17 +51,50 @@ msgstr "Beschreibe"
 msgid "Loading..."
 msgstr "Lade..."
 
-#: lib\bind.py:82 lib\browse.py:63 lib\browse.py:233 lib\export.py:85
+#: lib\annotate.py:346
+#, python-format
+msgid "Revision %s"
+msgstr ""
+
+#: lib\annotate.py:401
+msgid "&Annotate this revision"
+msgstr ""
+
+#: lib\bind.py:46
+msgid "Bind branch"
+msgstr ""
+
+#: lib\bind.py:56 lib\bind.py:105
+msgid "Bind"
+msgstr ""
+
+#: lib\bind.py:58
+msgid "Branch location:"
+msgstr ""
+
+#: lib\bind.py:62
+msgid "Currently bound to:"
+msgstr ""
+
+#: lib\bind.py:66
+msgid "Bind to:"
+msgstr ""
+
+#: lib\bind.py:70 lib\browse.py:63 lib\browse.py:233 lib\export.py:85
 #: lib\export.py:139 lib\send.py:62 lib\send.py:86 lib\send.py:152
 #: lib\switch.py:99
 msgid "Browse"
 msgstr "Durchsuchen"
 
-#: lib\bind.py:113 lib\switch.py:148 lib\tag.py:189
+#: lib\bind.py:120 lib\switch.py:148 lib\tag.py:189
 msgid "Select branch location"
 msgstr "Wähle Ort des Astes"
 
-#: lib\browse.py:72 lib\export.py:80
+#: lib\bind.py:131
+msgid "Master branch location not specified."
+msgstr ""
+
+#: lib\browse.py:72 lib\export.py:80 lib\ui_info.py:146
 msgid "Location:"
 msgstr "Speicherort:"
 
@@ -74,70 +107,127 @@ msgstr "Revision:"
 msgid "Show"
 msgstr "Anzeigen"
 
+#: lib\browse.py:88 lib\treewidget.py:925
+msgid "&Filter"
+msgstr "&Filtern"
+
 #: lib\cat.py:86 lib\cat.py:243
 msgid "View"
 msgstr "Ansicht"
 
-#: lib\commit.py:213 lib\commit.py:571 lib\commit.py:599 lib\commit.py:607
+#: lib\commit.py:213 lib\commit.py:580 lib\commit.py:608 lib\commit.py:616
 msgid "Commit"
 msgstr "Übertragen"
 
-#: lib\commit.py:236 lib\ui_branch.py:65 lib\ui_new_tree.py:130
+#: lib\commit.py:239 lib\ui_branch.py:65 lib\ui_new_tree.py:130
 #: lib\ui_tag.py:89
 msgid "Branch"
 msgstr "Ast"
 
-#: lib\commit.py:248
+#: lib\commit.py:251
 msgid "&Local commit"
 msgstr "&Lokale Übertragung"
 
-#: lib\commit.py:254
+#: lib\commit.py:253
+msgid ""
+"Local commits are not pushed to the master branch until a normal commit is "
+"performed"
+msgstr ""
+
+#: lib\commit.py:257
 msgid "Description:"
 msgstr "Beschreibung:"
 
-#: lib\commit.py:269 lib\logmodel.py:97 lib\treewidget.py:241
+#: lib\commit.py:272 lib\logmodel.py:97 lib\treewidget.py:241
 msgid "Message"
 msgstr "Nachricht"
 
-#: lib\commit.py:277
+#: lib\commit.py:280
 msgid "Show non-versioned files"
 msgstr "Zeige nicht versionierte Dateien"
 
-#: lib\commit.py:298
+#: lib\commit.py:301
 msgid "Enter the commit message"
 msgstr "Trage die Übertragungsnachricht ein"
 
-#: lib\commit.py:311
+#: lib\commit.py:314
 msgid "&Fixed bugs:"
 msgstr "Behobene Fehler:"
 
-#: lib\commit.py:325
+#: lib\commit.py:315
+msgid "Set the IDs of bugs fixed by this commit"
+msgstr ""
+
+#: lib\commit.py:318
+msgid ""
+"Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
+"<i>project:123 project:765</i>"
+msgstr ""
+
+#: lib\commit.py:328
 msgid "&Author:"
 msgstr "&Autor:"
 
-#: lib\commit.py:344 lib\revert.py:65
+#: lib\commit.py:329
+msgid "Set the author of this change, if it's different from the committer"
+msgstr ""
+
+#: lib\commit.py:332
+msgid ""
+"Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
+msgstr ""
+
+#: lib\commit.py:347 lib\revert.py:65
 msgid "Changes"
 msgstr "Änderungen"
 
-#: lib\commit.py:361 lib\revert.py:94
+#: lib\commit.py:364 lib\revert.py:94
 msgid "Pending Merges"
 msgstr "Ausstehende Zusammenführungen"
 
-#: lib\commit.py:372 lib\main.py:359 lib\subprocess.py:139
+#: lib\commit.py:375 lib\main.py:359 lib\subprocess.py:139
 #: lib\treewidget.py:243
 msgid "Status"
 msgstr "Status"
 
-#: lib\commit.py:573 lib\conflicts.py:162 lib\conflicts.py:167
+#: lib\commit.py:387
+msgid "View changes in files selected to commit"
+msgstr ""
+
+#: lib\commit.py:581
+msgid "You should provide commit message."
+msgstr ""
+
+#: lib\commit.py:582 lib\conflicts.py:162 lib\conflicts.py:167
 #: lib\diffwindow.py:381 lib\util.py:77
 msgid "&OK"
 msgstr "&OK"
 
-#: lib\commit.py:600
+#: lib\commit.py:609
 msgid "No changes to commit."
 msgstr "Keine Änderungen zu übertragen."
 
-#: lib\commit.py:710 lib\diff.py:105 lib\diffwindow.py:119
+#: lib\commit.py:617
+msgid ""
+"No changes selected to commit.\n"
+"Do you want to commit anyway?"
+msgstr ""
+"Keine Änderungen zum Übertragen ausgewählt.\n"
+"Soll sie dennoch durchgeführt werden?"
+
+#: lib\commit.py:681
+msgid ""
+"A commit will be made directly to the master branch, keeping the local and "
+"master branches in sync."
+msgstr ""
+
+#: lib\commit.py:687
+msgid ""
+"A local commit to the branch will be performed. The master branch will not "
+"be updated until a non-local commit is made."
+msgstr ""
+
+#: lib\commit.py:719 lib\diff.py:105 lib\diffwindow.py:119
 #: lib\diffwindow.py:232 lib\diffwindow.py:371 lib\diffwindow.py:379
 #: lib\revert.py:297
 msgid "Diff"
@@ -215,9 +305,25 @@ msgstr "Abkürzung"
 msgid "URL"
 msgstr "URL"
 
+#: lib\config.py:153
+msgid "Show inter-group inserts and deletes in green and red"
+msgstr ""
+
+#: lib\config.py:155
+msgid "External Diff Apps:"
+msgstr ""
+
 #: lib\config.py:158 lib\main.py:357 lib\plugins.py:56 lib\plugins.py:61
 msgid "Name"
 msgstr "Name"
+
+#: lib\config.py:185
+msgid "External Merge Apps:"
+msgstr ""
+
+#: lib\config.py:188
+msgid "Definition"
+msgstr "Definition"
 
 #: lib\config.py:211
 msgid "General"
@@ -227,9 +333,29 @@ msgstr "Allgemein"
 msgid "Aliases"
 msgstr "Aliase"
 
+#: lib\config.py:213
+msgid "Bug Trackers"
+msgstr "Bug-Tracker"
+
 #: lib\config.py:214
 msgid "&User Interface"
 msgstr "Benutzeroberfläche"
+
+#: lib\config.py:215
+msgid "&Diff"
+msgstr "&Diff"
+
+#: lib\config.py:216
+msgid "&Merge"
+msgstr ""
+
+#: lib\config.py:241
+msgid "Spell check &language:"
+msgstr ""
+
+#: lib\config.py:333 lib\diff.py:35
+msgid "Builtin Diff"
+msgstr ""
 
 #: lib\conflicts.py:38 lib\conflicts.py:141 lib\conflicts.py:158
 #: lib\conflicts.py:165
@@ -244,10 +370,120 @@ msgstr "Datei"
 msgid "Conflict"
 msgstr "Konflikt"
 
-#: lib\conflicts.py:222 lib\conflicts.py:286 lib\tag.py:203 lib\trace.py:177
-#: lib\trace.py:191 lib\util.py:1064 lib\util.py:1074
+#: lib\conflicts.py:73
+msgid "Use Configured Default"
+msgstr ""
+
+#: lib\conflicts.py:75
+msgid ""
+"The merge tool configured in qconfig under Merge' file.\n"
+"It follows the convention used in the bzr plugin: extmerge\n"
+"external_merge = kdiff3 --output %r %b %t %o\n"
+"%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."
+msgstr ""
+
+#: lib\conflicts.py:83
+msgid "&Launch..."
+msgstr "&Starten..."
+
+#: lib\conflicts.py:89
+msgid "M&erge tool:"
+msgstr ""
+
+#: lib\conflicts.py:98
+msgid "Mark as resolved"
+msgstr ""
+
+#: lib\conflicts.py:105
+msgid "Auto-resolve"
+msgstr ""
+
+#: lib\conflicts.py:159
+#, python-format
+msgid "%d conflict auto-resolved."
+msgid_plural "%d conflicts auto-resolved."
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib\conflicts.py:166
+msgid "All conflicts resolved."
+msgstr "Alle Konflikte gelöst"
+
+#: lib\conflicts.py:221
+#, python-format
+msgid "Error while running merge tool (code %d)"
+msgstr ""
+
+#: lib\conflicts.py:222 lib\conflicts.py:286 lib\tag.py:203 lib\trace.py:181
+#: lib\trace.py:195 lib\tree_branch.py:95 lib\util.py:1064 lib\util.py:1074
 msgid "Error"
 msgstr "Fehler"
+
+#: lib\conflicts.py:262
+msgid "Set up external_merge app in qconfig under the Merge tab"
+msgstr ""
+
+#: lib\conflicts.py:287
+#, python-format
+msgid ""
+"The extmerge definition: '%(tool)s' is invalid.\n"
+"Missing the flag: %(flags)s. This must be fixed in qconflicts under the "
+"Merge tab."
+msgstr ""
+
+#: lib\conflicts.py:291
+#, python-format
+msgid "Missing the flag: %s. Configure in qconfig under the merge tab."
+msgstr ""
+
+#: lib\conflicts.py:299
+#, python-format
+msgid "%s (Configured external merge definition in qconfig)"
+msgstr ""
+
+#: lib\conflicts.py:307
+msgid "path conflict"
+msgstr "Pfadkonflikt"
+
+#: lib\conflicts.py:308
+msgid "contents conflict"
+msgstr "Inhaltskonflikt"
+
+#: lib\conflicts.py:309
+msgid "text conflict"
+msgstr "Textkonflikt"
+
+#: lib\conflicts.py:310
+msgid "duplicate id"
+msgstr "Doppelte ID"
+
+#: lib\conflicts.py:311
+msgid "duplicate"
+msgstr "Duplikat"
+
+#: lib\conflicts.py:312
+msgid "parent loop"
+msgstr ""
+
+#: lib\conflicts.py:313
+msgid "unversioned parent"
+msgstr ""
+
+#: lib\conflicts.py:314
+msgid "missing parent"
+msgstr ""
+
+#: lib\conflicts.py:315
+msgid "deleting parent"
+msgstr ""
+
+#: lib\conflicts.py:316
+msgid "non-directory parent"
+msgstr ""
+
+#: lib\diff.py:81 lib\treewidget.py:1051
+msgid "Show &differences"
+msgstr "Unterschie&de zeigen"
 
 #: lib\diffview.py:248
 msgid "Last modified:"
@@ -265,9 +501,13 @@ msgstr "Art:"
 msgid "Properties:"
 msgstr "Eigenschaften:"
 
-#: lib\diffview.py:479
+#: lib\diffview.py:485
 msgid "[binary file]"
 msgstr "[Binärdatei]"
+
+#: lib\diffview.py:666
+msgid "\\ No newline at end of file"
+msgstr ""
 
 #: lib\diffwindow.py:76
 #, python-format
@@ -314,6 +554,10 @@ msgstr "Unidiff"
 msgid "Complete"
 msgstr "Vollständig"
 
+#: lib\diffwindow.py:166
+msgid "Using"
+msgstr "Verwende"
+
 #: lib\diffwindow.py:238
 #, python-format
 msgid "%d file"
@@ -341,14 +585,39 @@ msgstr "umbenannt"
 msgid "modified"
 msgstr "verändert"
 
+#: lib\diffwindow.py:372
+#, python-format
+msgid ""
+"File %s is not versioned.\n"
+"Operation aborted."
+msgstr ""
+
 #: lib\diffwindow.py:374 lib\tag.py:137 lib\tag.py:168 lib\tag.py:205
-#: lib\update.py:52 lib\util.py:79 lib\util.py:1067 lib\util.py:1077
+#: lib\tree_branch.py:97 lib\update.py:52 lib\util.py:79 lib\util.py:1067
+#: lib\util.py:1077
 msgid "&Close"
 msgstr "&Schließen"
 
 #: lib\diffwindow.py:380
 msgid "No changes found."
 msgstr "Keine Änderungen gefunden."
+
+#: lib\export.py:52 lib\export.py:65
+msgid "Export"
+msgstr "Exportieren"
+
+#: lib\export.py:70 lib\uncommit.py:52
+#, python-format
+msgid "Branch: %s"
+msgstr ""
+
+#: lib\export.py:106
+msgid "Root directory name:"
+msgstr ""
+
+#: lib\export.py:116
+msgid "Archive type:"
+msgstr "Archivtyp:"
 
 #: lib\export.py:151 lib\ui_branch.py:66 lib\ui_merge.py:63 lib\ui_pull.py:61
 #: lib\ui_push.py:63
@@ -360,7 +629,7 @@ msgstr "Optionen"
 msgid "No help can be found for <i>%s</i>"
 msgstr "Es kann keine Hilfe für <i>%s</i> gefunden werden"
 
-#: lib\help.py:109
+#: lib\help.py:103
 msgid "Help"
 msgstr "Hilfe"
 
@@ -400,9 +669,25 @@ msgstr "Zeige Symlink"
 msgid "View directory"
 msgstr "Zeige Verzeichnis"
 
-#: lib\info.py:41
+#: lib\i18n.py:99
+msgid "No changes selected to commit"
+msgstr ""
+
+#: lib\i18n.py:100
+msgid "No changes selected to revert"
+msgstr "Keine Änderungen zum Zurücksetzen ausgewählt."
+
+#: lib\info.py:43
 msgid "Info"
 msgstr "Info"
+
+#: lib\info.py:67
+msgid "Location has no working tree"
+msgstr ""
+
+#: lib\info.py:80
+msgid "Location has no branch"
+msgstr ""
 
 #: lib\init.py:37 lib\ui_init.py:118
 msgid "Initialize"
@@ -412,37 +697,49 @@ msgstr "Initialisieren"
 msgid "You must specify a location"
 msgstr "Es muss ein Ort angegeben werden"
 
-#: lib\log.py:94
+#: lib\log.py:95
 msgid "Log"
 msgstr "Log"
 
-#: lib\log.py:121
+#: lib\log.py:122
 msgid "&Search:"
 msgstr "&Suchen:"
 
-#: lib\log.py:137
+#: lib\log.py:138
 msgid "Messages"
 msgstr "Nachrichten"
 
-#: lib\log.py:139
+#: lib\log.py:140
 msgid "Authors"
 msgstr "Autoren"
 
-#: lib\log.py:141
+#: lib\log.py:142
 msgid "Revision IDs"
 msgstr "Revisions-IDs"
 
-#: lib\log.py:143
+#: lib\log.py:144
 msgid "Revision Numbers"
 msgstr "Revisionsnummern"
 
-#: lib\log.py:199 lib\logwidget.py:128
+#: lib\log.py:146
+msgid "Tags"
+msgstr "Stichworte"
+
+#: lib\log.py:148
+msgid "Bugs"
+msgstr ""
+
+#: lib\log.py:200 lib\logwidget.py:128
 msgid "Show &differences..."
 msgstr "Zeige Unterschiede..."
 
-#: lib\log.py:205
+#: lib\log.py:206
 msgid "View file"
 msgstr "Zeige Datei"
+
+#: lib\log.py:275
+msgid "Messages and File text (indexed)"
+msgstr ""
 
 #: lib\logmodel.py:98 lib\treewidget.py:239
 msgid "Date"
@@ -452,6 +749,22 @@ msgstr "Datum"
 #, python-format
 msgid "bug #%s"
 msgstr "Fehler #%s"
+
+#: lib\logwidget.py:102
+msgid "Show file &differences"
+msgstr "Zeige Unterschie&de in Datei"
+
+#: lib\logwidget.py:108
+msgid "Show all &differences"
+msgstr "Zeige alle Unterschie&de"
+
+#: lib\logwidget.py:114
+msgid "Show file &differences..."
+msgstr "Zeige Unterschie&de in Datei"
+
+#: lib\logwidget.py:118
+msgid "Show all &differences..."
+msgstr "Zeige Unterschie&de in Datei"
 
 #: lib\logwidget.py:136
 msgid "Show &tree..."
@@ -489,9 +802,17 @@ msgstr "Übertrage"
 msgid "Commit changes into a new revision"
 msgstr "Übertrage die Änderungen in eine neue Revision"
 
+#: lib\main.py:289
+msgid "&Push"
+msgstr ""
+
 #: lib\main.py:290
 msgid "Turn this branch into a mirror of another branch"
 msgstr "Verwandle diesen Ast in ein Spiegelbild eines anderen Astes"
+
+#: lib\main.py:294
+msgid "Pu&ll"
+msgstr ""
 
 #: lib\main.py:295
 msgid "Update a mirror of this branch"
@@ -501,6 +822,10 @@ msgstr "Aktualisiere ein Spiegelbild dieses Astes"
 msgid "&Add Bookmark..."
 msgstr "&Füge ein Lesezeichen hinzu..."
 
+#: lib\main.py:305
+msgid "&File"
+msgstr "&Datei"
+
 #: lib\main.py:306
 msgid "&Configure..."
 msgstr "Konfigurieren..."
@@ -508,6 +833,14 @@ msgstr "Konfigurieren..."
 #: lib\main.py:308
 msgid "&Quit"
 msgstr "Beenden"
+
+#: lib\main.py:309
+msgid "&View"
+msgstr "&Anzeigen"
+
+#: lib\main.py:311
+msgid "&Branch"
+msgstr ""
 
 #: lib\main.py:315
 msgid "&Bookmarks"
@@ -533,6 +866,15 @@ msgstr "Größe"
 msgid "About QBzr"
 msgstr "Über QBzr"
 
+#: lib\main.py:411
+#, python-format
+msgid ""
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
+msgstr ""
+
 #: lib\main.py:476
 msgid "Add Bookmark"
 msgstr "Füge Lesezeichen hinzu"
@@ -549,693 +891,30 @@ msgstr "Entferne Lesezeichen"
 msgid "Do you really want to remove the selected bookmark?"
 msgstr "Wollen Sie wirklich das ausgewählte Lesezeichen entfernen?"
 
-#: lib\plugins.py:58 lib\subprocess.py:312
-msgid "Description"
-msgstr "Beschreibung"
-
-#: lib\plugins.py:71
-msgid "Summary"
-msgstr "Zusammenfassung"
-
-#: lib\revert.py:54 lib\treewidget.py:1412
-msgid "Revert"
-msgstr "Zurücksetzen"
-
-#: lib\revisionview.py:60 lib\ui_new_tree.py:158
-msgid "Revision"
-msgstr "Revision"
-
-#: lib\subprocess.py:416
-msgid "Starting..."
-msgstr "Startet..."
-
-#: lib\subprocess.py:470
-msgid "Aborting..."
-msgstr "Bricht ab..."
-
-#: lib\subprocess.py:481 lib\subprocess.py:560
-msgid "Finished!"
-msgstr "Fertig!"
-
-#: lib\subprocess.py:503 lib\uifactory.py:107
-msgid "Enter Password"
-msgstr "Trage Passwort ein"
-
-#: lib\subprocess.py:541 lib\subprocess.py:563
-msgid "Failed!"
-msgstr "Misserfolg!"
-
-#: lib\subprocess.py:543
-msgid "Failed to start bzr."
-msgstr "Bzr konnte nicht gestartet werden"
-
-#: lib\subprocess.py:545
-#, python-format
-msgid "Error while running bzr. (error code: %d)"
-msgstr "Fehler bei der Ausführung von bzr. (Fehler-Code: %d)"
-
-#: lib\subprocess.py:553
-msgid "Aborted!"
-msgstr "Abgebrochen!"
-
-#: lib\switch.py:88 lib\unbind.py:55 lib\util.py:563
-msgid "Branch:"
-msgstr "Ast:"
-
-#: lib\tag.py:145
-msgid "&Replace"
-msgstr "&Ersetzen"
-
-#: lib\tag.py:145 lib\tag.py:158 lib\util.py:78
-msgid "&Cancel"
-msgstr "&Abbrechen"
-
-#: lib\tag.py:158
-msgid "Cre&ate"
-msgstr "Erstellen"
-
-#: lib\treewidget.py:210
-msgid "ignored"
-msgstr "ignoriert"
-
-#: lib\treewidget.py:212
-msgid "non-versioned"
-msgstr "nicht versioniert"
-
-#: lib\treewidget.py:218
-msgid "missing"
-msgstr "fehlend"
-
-#: lib\treewidget.py:231
-msgid "modified (x-bit)"
-msgstr "modifiziert (x-bit)"
-
-#: lib\treewidget.py:1411
-#, python-format
-msgid "Revert %s to latest revision."
-msgstr "Setze %s zur letzten Revision zurück"
-
-#: lib\treewidget.py:1425
-msgid "Select / deselect all"
-msgstr "Alle an- / abwählen"
-
-#: lib\ui_bookmark.py:51 lib\ui_branch.py:67 lib\ui_merge.py:64
-#: lib\ui_pull.py:62 lib\ui_push.py:64
-msgid "&Location:"
-msgstr "&Ort"
-
-#: lib\ui_branch.py:68 lib\ui_branch.py:71 lib\ui_init.py:120
-#: lib\ui_merge.py:65 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
-#: lib\ui_pull.py:63 lib\ui_push.py:65 lib\ui_update_branch.py:85
-#: lib\ui_update_checkout.py:79
-msgid "Browse..."
-msgstr "Durchsuchen..."
-
-#: lib\ui_branch.py:69 lib\ui_merge.py:66 lib\ui_pull.py:64 lib\ui_tag.py:97
-msgid "&Revision:"
-msgstr "&Revision:"
-
-#: lib\ui_info.py:176
-msgid "Local location:"
-msgstr "Lokaler Ort:"
-
-#: lib\ui_info.py:177 lib\ui_info.py:179 lib\ui_info.py:182 lib\ui_info.py:184
-#: lib\ui_info.py:186 lib\ui_info.py:189 lib\ui_info.py:191 lib\ui_info.py:193
-#: lib\ui_info.py:195
-msgid "..."
-msgstr "..."
-
-#: lib\ui_info.py:178
-msgid "Public branch location:"
-msgstr "Öffentlicher Ort des Astes"
-
-#: lib\ui_info.py:180
-msgid "&Location"
-msgstr "Ort"
-
-#: lib\ui_info.py:183
-msgid "Parent branch:"
-msgstr "Eltern-Ast"
-
-#: lib\ui_info.py:187
-msgid "&Related Branches"
-msgstr "Verwandte Äste"
-
-#: lib\ui_info.py:188
-msgid "Working tree format:"
-msgstr "Arbeitsbaum-Format"
-
-#: lib\ui_info.py:190
-msgid "Branch format:"
-msgstr "Ast-Format"
-
-#: lib\ui_info.py:192
-msgid "Repository format:"
-msgstr "Projektarchiv-Format"
-
-#: lib\ui_info.py:194
-msgid "Control directory format:"
-msgstr "Kontrollverzeichnis-Format:"
-
-#: lib\ui_info.py:196
-msgid "&Format"
-msgstr "&Format"
-
-#: lib\ui_init.py:119
-msgid "Local Directory"
-msgstr "Lokales Verzeichnis"
-
-#: lib\ui_init.py:121
-msgid "Repository"
-msgstr "Projektarchiv"
-
-#: lib\ui_init.py:122
-msgid "Create a new standalone tree"
-msgstr "Erstelle einen neuen eigenständigen Baum"
-
-#: lib\ui_init.py:124
-msgid "Create a new shared repository"
-msgstr "Erstelle ein neues gemeinsames Projektarchiv"
-
-#: lib\ui_init.py:125
-msgid "Skip the creation of working trees in this repository"
-msgstr "Überspringe die Erstellung von Arbeitsbäumen in diesem Projektarchiv"
-
-#: lib\ui_init.py:131
-msgid "Repository Format:"
-msgstr "Projektarchiv-Format:"
-
-#: lib\ui_merge.py:62
-msgid "Merge"
-msgstr "Zusammenführen"
-
-#: lib\ui_new_tree.py:129
-msgid "Create a new Bazaar Working Tree"
-msgstr "Erstelle einen neuen Bazaar-Arbeitsbaum"
-
-#: lib\ui_new_tree.py:133
-msgid "Local directory where the working tree will be created"
-msgstr "Lokales Verzeichnis in dem der Arbeitsbaum erstellt wird"
-
-#: lib\ui_new_tree.py:135
-msgid "Working Tree Options"
-msgstr "Arbeitsbaum-Optionen"
-
-#: lib\ui_new_tree.py:136
-msgid "Create a checkout"
-msgstr "Erstelle einen Checkout"
-
-#: lib\ui_new_tree.py:144
-msgid "Light-weight checkout"
-msgstr "Leichtgewichtiger Checkout"
-
-#: lib\ui_new_tree.py:145
-msgid "Make a local copy of the branch"
-msgstr "Erstelle eine lokale Kopie des Astes"
-
-#: lib\ui_new_tree.py:152
-msgid "Click a link for more information about checkouts and branches."
-msgstr ""
-"Klicke einen Link an um mehr Informationen über Checkouts und Äste zu "
-"erhalten."
-
-#: lib\ui_new_tree.py:159
-msgid "Most recent (tip) revision"
-msgstr "Letzte revision (tip)"
-
-#: lib\ui_new_tree.py:161
-msgid "Show Log..."
-msgstr "Zeige Log..."
-
-#: lib\ui_pull.py:66 lib\ui_push.py:67 lib\ui_update_branch.py:88
-#: lib\ui_update_checkout.py:80
-msgid "Overwrite differences between branches"
-msgstr "Überschreibe Unterschiede zwischen Ästen"
-
-#: lib\ui_push.py:68
-msgid "Use existing directory"
-msgstr "Benutze vorhandenes Verzeichnis"
-
-#: lib\ui_push.py:69
-msgid "Create the path up to the branch if it does not exist"
-msgstr "Erstelle den Pfad zum Ast wenn er nicht existiert"
-
-#: lib\ui_tag.py:90
-msgid "&Browse..."
-msgstr "Durchsuchen..."
-
-#: lib\ui_tag.py:96
-msgid "&Tag name:"
-msgstr "Markierungsname:"
-
-#: lib\ui_tag.py:98
-msgid "&Select..."
-msgstr "&Auswählen"
-
-#: lib\ui_update_branch.py:82
-msgid "Update Branch"
-msgstr "Aktualisiere Ast"
-
-#: lib\ui_update_branch.py:83
-msgid ""
-"This directory is a branch.  Please select what you would like to update"
-msgstr ""
-"Dieses Verzeichnis ist ein Ast. Bitte wählen Sie, was Sie aktualisieren "
-"möchten."
-
-#: lib\ui_update_branch.py:84 lib\ui_update_checkout.py:76
-msgid "Update source"
-msgstr "Aktualisiere Quelle"
-
-#: lib\ui_update_branch.py:89
-msgid "<Parent Branch shown here>"
-msgstr "<Eltern-Ast wird hier angezeigt>"
-
-#: lib\ui_update_checkout.py:74
-msgid "Update Checkout"
-msgstr "Aktualisiere Checkout"
-
-#: lib\ui_update_checkout.py:75
-#, python-format
-msgid "This directory is a checkout of: %s"
-msgstr "Dieses Verzeichnis ist ein Checkout von: %s"
-
-#: lib\util.py:466
-msgid "Select Source Directory"
-msgstr "Wähle Quellverzeichnis"
-
-#: lib\util.py:468
-msgid "Select Target Directory"
-msgstr "Wähle Zielverzeichnis"
-
-#: lib\util.py:541
-msgid "Parents:"
-msgstr "Eltern:"
-
-#: lib\util.py:545
-msgid "Children:"
-msgstr "Kinder:"
-
-#: lib\util.py:549
-msgid "Date:"
-msgstr "Datum:"
-
-#: lib\util.py:551
-msgid "Committer:"
-msgstr "Beitragender:"
-
-#: lib\util.py:554 lib\util.py:559
-msgid "Author:"
-msgstr "Autor:"
-
-#: lib\util.py:568
-msgid "Tags:"
-msgstr "Markierungen:"
-
-#: lib\util.py:577
-msgid "Bug:"
-msgid_plural "Bugs:"
-msgstr[0] "Bug:"
-msgstr[1] "Bugs:"
-
-#: lib\util.py:724
-msgid "deleted files"
-msgstr "gelöschte Dateien"
-
-#: lib\util.py:726
-msgid "added files"
-msgstr "hinzugefügte Dateien"
-
-#: lib\util.py:728
-msgid "renamed files"
-msgstr "umbenannte Dateien"
-
-#: lib\util.py:730
-msgid "modified files"
-msgstr "geänderte Dateien"
-
-#~ msgid "Extension"
-#~ msgstr "Erweiterung"
-
-#~ msgid "Show log..."
-#~ msgstr "Zeige Log..."
-
-#~ msgid "&Revert..."
-#~ msgstr "&Rückgängig..."
-
-#~ msgid "Internal Error"
-#~ msgstr "Interner Fehler"
-
-#~ msgid "Stopped"
-#~ msgstr "Angehalten"
-
-#: lib\annotate.py:346
-#, python-format
-msgid "Revision %s"
-msgstr ""
-
-#: lib\annotate.py:404
-msgid "&Annotate this revision"
-msgstr ""
-
-#: lib\bind.py:46
-msgid "Bind branch"
-msgstr ""
-
-#: lib\bind.py:57 lib\bind.py:102
-msgid "Bind"
-msgstr ""
-
-#: lib\bind.py:61
-msgid "Branch location:"
-msgstr ""
-
-#: lib\bind.py:65
-msgid "Bind to:"
-msgstr ""
-
-#: lib\bind.py:76
-msgid "Currently bound to:"
-msgstr ""
-
-#: lib\bind.py:124
-msgid "Master branch location not specified."
-msgstr ""
-
-#: lib\browse.py:88 lib\treewidget.py:927
-msgid "&Filter"
-msgstr ""
-
-#: lib\commit.py:250
-msgid ""
-"Local commits are not pushed to the master branch until a normal commit is "
-"performed"
-msgstr ""
-
-#: lib\commit.py:312
-msgid "Set the IDs of bugs fixed by this commit"
-msgstr ""
-
-#: lib\commit.py:315
-msgid ""
-"Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
-"<i>project:123 project:765</i>"
-msgstr ""
-
-#: lib\commit.py:326
-msgid "Set the author of this change, if it's different from the committer"
-msgstr ""
-
-#: lib\commit.py:329
-msgid ""
-"Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
-msgstr ""
-
-#: lib\commit.py:384
-msgid "View changes in files selected to commit"
-msgstr ""
-
-#: lib\commit.py:572
-msgid "You should provide commit message."
-msgstr ""
-
-#: lib\commit.py:608
-msgid ""
-"No changes selected to commit.\n"
-"Do you want to commit anyway?"
-msgstr ""
-
-#: lib\commit.py:672
-msgid ""
-"A commit will be made directly to the master branch, keeping the local and "
-"master branches in sync."
-msgstr ""
-
-#: lib\commit.py:678
-msgid ""
-"A local commit to the branch will be performed. The master branch will not "
-"be updated until a non-local commit is made."
-msgstr ""
-
-#: lib\config.py:153
-msgid "Show inter-group inserts and deletes in green and red"
-msgstr ""
-
-#: lib\config.py:155
-msgid "External Diff Apps:"
-msgstr ""
-
-#: lib\config.py:185
-msgid "External Merge Apps:"
-msgstr ""
-
-#: lib\config.py:188
-msgid "Definition"
-msgstr ""
-
-#: lib\config.py:213
-msgid "Bug Trackers"
-msgstr ""
-
-#: lib\config.py:215
-msgid "&Diff"
-msgstr "&Diff"
-
-#: lib\config.py:216
-msgid "&Merge"
-msgstr ""
-
-#: lib\config.py:241
-msgid "Spell check &language:"
-msgstr ""
-
-#: lib\config.py:333 lib\diff.py:35
-msgid "Builtin Diff"
-msgstr ""
-
-#: lib\conflicts.py:73
-msgid "Use Configured Default"
-msgstr ""
-
-#: lib\conflicts.py:75
-msgid ""
-"The merge tool configured in qconfig under Merge' file.\n"
-"It follows the convention used in the bzr plugin: extmerge\n"
-"external_merge = kdiff3 --output %r %b %t %o\n"
-"%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."
-msgstr ""
-
-#: lib\conflicts.py:83
-msgid "&Launch..."
-msgstr ""
-
-#: lib\conflicts.py:89
-msgid "M&erge tool:"
-msgstr ""
-
-#: lib\conflicts.py:98
-msgid "Mark as resolved"
-msgstr ""
-
-#: lib\conflicts.py:105
-msgid "Auto-resolve"
-msgstr ""
-
-#: lib\conflicts.py:159
-#, python-format
-msgid "%d conflict auto-resolved."
-msgid_plural "%d conflicts auto-resolved."
-msgstr[0] ""
-msgstr[1] ""
-
-#: lib\conflicts.py:166
-msgid "All conflicts resolved."
-msgstr ""
-
-#: lib\conflicts.py:221
-#, python-format
-msgid "Error while running merge tool (code %d)"
-msgstr ""
-
-#: lib\conflicts.py:262
-msgid "Set up external_merge app in qconfig under the Merge tab"
-msgstr ""
-
-#: lib\conflicts.py:287
-#, python-format
-msgid ""
-"The extmerge definition: '%(tool)s' is invalid.\n"
-"Missing the flag: %(flags)s. This must be fixed in qconflicts under the "
-"Merge tab."
-msgstr ""
-
-#: lib\conflicts.py:291
-#, python-format
-msgid "Missing the flag: %s. Configure in qconfig under the merge tab."
-msgstr ""
-
-#: lib\conflicts.py:299
-#, python-format
-msgid "%s (Configured external merge definition in qconfig)"
-msgstr ""
-
-#: lib\conflicts.py:307
-msgid "path conflict"
-msgstr ""
-
-#: lib\conflicts.py:308
-msgid "contents conflict"
-msgstr ""
-
-#: lib\conflicts.py:309
-msgid "text conflict"
-msgstr ""
-
-#: lib\conflicts.py:310
-msgid "duplicate id"
-msgstr ""
-
-#: lib\conflicts.py:311
-msgid "duplicate"
-msgstr ""
-
-#: lib\conflicts.py:312
-msgid "parent loop"
-msgstr ""
-
-#: lib\conflicts.py:313
-msgid "unversioned parent"
-msgstr ""
-
-#: lib\conflicts.py:314
-msgid "missing parent"
-msgstr ""
-
-#: lib\conflicts.py:315
-msgid "deleting parent"
-msgstr ""
-
-#: lib\conflicts.py:316
-msgid "non-directory parent"
-msgstr ""
-
-#: lib\diff.py:81 lib\treewidget.py:1053
-msgid "Show &differences"
-msgstr ""
-
-#: lib\diffview.py:660
-msgid "\\ No newline at end of file"
-msgstr ""
-
-#: lib\diffwindow.py:166
-msgid "Using"
-msgstr ""
-
-#: lib\diffwindow.py:372
-#, python-format
-msgid ""
-"File %s is not versioned.\n"
-"Operation aborted."
-msgstr ""
-
-#: lib\export.py:52 lib\export.py:65
-msgid "Export"
-msgstr ""
-
-#: lib\export.py:70
-#, python-format
-msgid "Branch: %s"
-msgstr ""
-
-#: lib\export.py:106
-msgid "Root directory name:"
-msgstr ""
-
-#: lib\export.py:116
-msgid "Archive type:"
-msgstr ""
-
-#: lib\i18n.py:99
-msgid "No changes selected to commit"
-msgstr ""
-
-#: lib\i18n.py:100
-msgid "No changes selected to revert"
-msgstr "Keine Änderungen zum Zurücksetzen ausgewählt."
-
-#: lib\log.py:145
-msgid "Tags"
-msgstr ""
-
-#: lib\log.py:147
-msgid "Bugs"
-msgstr ""
-
-#: lib\log.py:274
-msgid "Messages and File text (indexed)"
-msgstr ""
-
-#: lib\logwidget.py:102
-msgid "Show file &differences"
-msgstr ""
-
-#: lib\logwidget.py:108
-msgid "Show all &differences"
-msgstr ""
-
-#: lib\logwidget.py:114
-msgid "Show file &differences..."
-msgstr ""
-
-#: lib\logwidget.py:118
-msgid "Show all &differences..."
-msgstr ""
-
-#: lib\main.py:289
-msgid "&Push"
-msgstr ""
-
-#: lib\main.py:294
-msgid "Pu&ll"
-msgstr ""
-
-#: lib\main.py:305
-msgid "&File"
-msgstr "&Datei"
-
-#: lib\main.py:309
-msgid "&View"
-msgstr ""
-
-#: lib\main.py:311
-msgid "&Branch"
-msgstr ""
-
-#: lib\main.py:411
-#, python-format
-msgid ""
-"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
-"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
-"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
-msgstr ""
-
 #: lib\plugins.py:44
 msgid "Plugins"
-msgstr ""
+msgstr "Erweiterungen"
 
 #: lib\plugins.py:57
 msgid "Version"
-msgstr ""
+msgstr "Version"
+
+#: lib\plugins.py:58 lib\subprocess.py:316
+msgid "Description"
+msgstr "Beschreibung"
 
 #: lib\plugins.py:62
 msgid "Directory"
-msgstr ""
+msgstr "Verzeichnis"
 
 #: lib\plugins.py:64
 #, python-format
 msgid "Plugins installed: %(rows)d"
-msgstr ""
+msgstr "Installierte Erweiterungen: %(rows)d"
+
+#: lib\plugins.py:71
+msgid "Summary"
+msgstr "Zusammenfassung"
 
 #: lib\plugins.py:72
 msgid "Locations"
@@ -1261,13 +940,17 @@ msgstr ""
 msgid "Do you want to continue anyway?"
 msgstr ""
 
-#: lib\pull.py:200
+#: lib\pull.py:200 lib\uncommit.py:127
 msgid "&Yes"
 msgstr ""
 
-#: lib\pull.py:200
+#: lib\pull.py:200 lib\uncommit.py:127
 msgid "&No"
 msgstr ""
+
+#: lib\revert.py:54 lib\treewidget.py:1410
+msgid "Revert"
+msgstr "Zurücksetzen"
 
 #: lib\revert.py:82
 msgid "Do not save backups of reverted files"
@@ -1283,9 +966,29 @@ msgid ""
 "Do you want to continue?"
 msgstr ""
 
+#: lib\revisionview.py:60 lib\ui_new_tree.py:158
+msgid "Revision"
+msgstr "Revision"
+
+#: lib\run.py:80
+msgid "Select working directory"
+msgstr ""
+
+#: lib\run.py:93
+msgid "Help for command"
+msgstr ""
+
+#: lib\run.py:157
+msgid "Select path to insert"
+msgstr ""
+
+#: lib\run.py:167
+msgid "Select files to insert"
+msgstr ""
+
 #: lib\send.py:34
 msgid "Send"
-msgstr ""
+msgstr "Senden"
 
 #: lib\send.py:47
 msgid "Merge Directive Options"
@@ -1301,7 +1004,7 @@ msgstr ""
 
 #: lib\send.py:99
 msgid "Remember these locations as defaults"
-msgstr ""
+msgstr "Diese Orte als Standard merken"
 
 #: lib\send.py:103
 msgid "Include a bundle in the merge directive"
@@ -1331,9 +1034,42 @@ msgstr ""
 msgid "Revisions:"
 msgstr ""
 
-#: lib\subprocess.py:350
+#: lib\subprocess.py:354
 msgid "Ready"
 msgstr ""
+
+#: lib\subprocess.py:423
+msgid "Starting..."
+msgstr "Startet..."
+
+#: lib\subprocess.py:481
+msgid "Aborting..."
+msgstr "Bricht ab..."
+
+#: lib\subprocess.py:492 lib\subprocess.py:590
+msgid "Finished!"
+msgstr "Fertig!"
+
+#: lib\subprocess.py:514 lib\uifactory.py:107
+msgid "Enter Password"
+msgstr "Trage Passwort ein"
+
+#: lib\subprocess.py:571 lib\subprocess.py:593
+msgid "Failed!"
+msgstr "Misserfolg!"
+
+#: lib\subprocess.py:573
+msgid "Failed to start bzr."
+msgstr "Bzr konnte nicht gestartet werden"
+
+#: lib\subprocess.py:575
+#, python-format
+msgid "Error while running bzr. (error code: %d)"
+msgstr "Fehler bei der Ausführung von bzr. (Fehler-Code: %d)"
+
+#: lib\subprocess.py:583
+msgid "Aborted!"
+msgstr "Abgebrochen!"
 
 #: lib\switch.py:45
 msgid "Switch"
@@ -1355,6 +1091,10 @@ msgstr ""
 msgid "Checkout of branch:"
 msgstr ""
 
+#: lib\switch.py:88
+msgid "Switch to branch:"
+msgstr ""
+
 #: lib\sysinfo.py:38 lib\ui_sysinfo.py:112
 msgid "System Information"
 msgstr ""
@@ -1367,8 +1107,16 @@ msgstr ""
 #, python-format
 msgid ""
 "Tag \"%s\" already exists.\n"
-"Do you want to replace existing tag?"
+"Do you want to move existing tag?"
 msgstr ""
+
+#: lib\tag.py:145
+msgid "&Move"
+msgstr ""
+
+#: lib\tag.py:145 lib\tag.py:158 lib\util.py:78
+msgid "&Cancel"
+msgstr "&Abbrechen"
 
 #: lib\tag.py:155
 #, python-format
@@ -1376,6 +1124,10 @@ msgid ""
 "Tag \"%s\" does not exists yet.\n"
 "Do you want to create new tag?"
 msgstr ""
+
+#: lib\tag.py:158
+msgid "Cre&ate"
+msgstr "Erstellen"
 
 #: lib\tag.py:167
 #, python-format
@@ -1389,74 +1141,191 @@ msgid ""
 "%s"
 msgstr ""
 
+#: lib\treewidget.py:210
+msgid "ignored"
+msgstr "ignoriert"
+
+#: lib\treewidget.py:212
+msgid "non-versioned"
+msgstr "nicht versioniert"
+
+#: lib\treewidget.py:218
+msgid "missing"
+msgstr "fehlend"
+
+#: lib\treewidget.py:231
+msgid "modified (x-bit)"
+msgstr "modifiziert (x-bit)"
+
 #: lib\treewidget.py:238
 msgid "File Name"
 msgstr ""
 
-#: lib\treewidget.py:929
+#: lib\treewidget.py:927
 msgid "Unchanged"
 msgstr ""
 
-#: lib\treewidget.py:930
+#: lib\treewidget.py:928
 msgid "Changed"
 msgstr ""
 
-#: lib\treewidget.py:931
+#: lib\treewidget.py:929
 msgid "Unversioned"
 msgstr ""
 
-#: lib\treewidget.py:932
+#: lib\treewidget.py:930
 msgid "Ignored"
 msgstr ""
 
-#: lib\treewidget.py:1034
+#: lib\treewidget.py:1032
 msgid "&Open"
 msgstr ""
 
-#: lib\treewidget.py:1037
+#: lib\treewidget.py:1035
 msgid "&View file"
 msgstr ""
 
-#: lib\treewidget.py:1040
+#: lib\treewidget.py:1038
 msgid "Show &annotate"
 msgstr ""
 
-#: lib\treewidget.py:1043
+#: lib\treewidget.py:1041
 msgid "Show &log"
 msgstr ""
 
-#: lib\treewidget.py:1058
+#: lib\treewidget.py:1056
 msgid "&Add"
 msgstr ""
 
-#: lib\treewidget.py:1061
+#: lib\treewidget.py:1059
 msgid "&Revert"
 msgstr ""
 
-#: lib\treewidget.py:1383
+#: lib\treewidget.py:1381
 #, python-format
 msgid "Add %s to the tree."
 msgstr ""
+
+#: lib\treewidget.py:1409
+#, python-format
+msgid "Revert %s to latest revision."
+msgstr "Setze %s zur letzten Revision zurück"
+
+#: lib\treewidget.py:1423
+msgid "Select / deselect all"
+msgstr "Alle an- / abwählen"
+
+#: lib\tree_branch.py:91 lib\util.py:1065
+#, python-format
+msgid "Not a branch \"%s\""
+msgstr ""
+
+#: lib\tree_branch.py:93 lib\util.py:1075
+#, python-format
+msgid "No working tree exists for \"%s\""
+msgstr ""
+
+#: lib\ui_bookmark.py:51 lib\ui_branch.py:67 lib\ui_merge.py:64
+#: lib\ui_pull.py:62 lib\ui_push.py:64
+msgid "&Location:"
+msgstr "&Ort"
+
+#: lib\ui_branch.py:68 lib\ui_branch.py:71 lib\ui_init.py:120
+#: lib\ui_merge.py:65 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
+#: lib\ui_pull.py:63 lib\ui_push.py:65 lib\ui_update_branch.py:85
+#: lib\ui_update_checkout.py:79
+msgid "Browse..."
+msgstr "Durchsuchen..."
+
+#: lib\ui_branch.py:69 lib\ui_merge.py:66 lib\ui_pull.py:64 lib\ui_tag.py:97
+msgid "&Revision:"
+msgstr "&Revision:"
 
 #: lib\ui_branch.py:70
 msgid "&To:"
 msgstr ""
 
-#: lib\ui_info.py:181
+#: lib\ui_info.py:147 lib\ui_info.py:149 lib\ui_info.py:151 lib\ui_info.py:153
+#: lib\ui_info.py:155 lib\ui_info.py:158 lib\ui_info.py:160 lib\ui_info.py:162
+#: lib\ui_info.py:164
+msgid "..."
+msgstr "..."
+
+#: lib\ui_info.py:148
+msgid "Parent branch:"
+msgstr "Eltern-Ast"
+
+#: lib\ui_info.py:150
 msgid "Push branch:"
 msgstr ""
 
-#: lib\ui_info.py:185
+#: lib\ui_info.py:152
 msgid "Submit branch:"
 msgstr ""
+
+#: lib\ui_info.py:154
+msgid "Public branch:"
+msgstr ""
+
+#: lib\ui_info.py:156
+msgid "&Related Branches"
+msgstr "Verwandte Äste"
+
+#: lib\ui_info.py:157
+msgid "Working tree format:"
+msgstr "Arbeitsbaum-Format"
+
+#: lib\ui_info.py:159
+msgid "Branch format:"
+msgstr "Ast-Format"
+
+#: lib\ui_info.py:161
+msgid "Repository format:"
+msgstr "Projektarchiv-Format"
+
+#: lib\ui_info.py:163
+msgid "Control directory format:"
+msgstr "Kontrollverzeichnis-Format:"
+
+#: lib\ui_info.py:165
+msgid "&Format"
+msgstr "&Format"
+
+#: lib\ui_init.py:119
+msgid "Local Directory"
+msgstr "Lokales Verzeichnis"
+
+#: lib\ui_init.py:121
+msgid "Repository"
+msgstr "Projektarchiv"
+
+#: lib\ui_init.py:122
+msgid "Create a new standalone tree"
+msgstr "Erstelle einen neuen eigenständigen Baum"
 
 #: lib\ui_init.py:123
 msgid "Ensure all revisions are appended to the log"
 msgstr ""
 
+#: lib\ui_init.py:124
+msgid "Create a new shared repository"
+msgstr "Erstelle ein neues gemeinsames Projektarchiv"
+
+#: lib\ui_init.py:125
+msgid "Skip the creation of working trees in this repository"
+msgstr "Überspringe die Erstellung von Arbeitsbäumen in diesem Projektarchiv"
+
+#: lib\ui_init.py:131
+msgid "Repository Format:"
+msgstr "Projektarchiv-Format:"
+
 #: lib\ui_init.py:132
 msgid "Description of format"
 msgstr ""
+
+#: lib\ui_merge.py:62
+msgid "Merge"
+msgstr "Zusammenführen"
 
 #: lib\ui_merge.py:67 lib\ui_pull.py:65 lib\ui_push.py:66
 msgid "Remember this location as a default"
@@ -1470,18 +1339,101 @@ msgstr ""
 msgid "Merge uncommitted changes instead of committed ones"
 msgstr ""
 
+#: lib\ui_new_tree.py:129
+msgid "Create a new Bazaar Working Tree"
+msgstr "Erstelle einen neuen Bazaar-Arbeitsbaum"
+
 #: lib\ui_new_tree.py:131
 msgid ""
 "Branch source (enter a URL or select a local directory with an existing "
 "branch)"
 msgstr ""
 
+#: lib\ui_new_tree.py:133
+msgid "Local directory where the working tree will be created"
+msgstr "Lokales Verzeichnis in dem der Arbeitsbaum erstellt wird"
+
+#: lib\ui_new_tree.py:135
+msgid "Working Tree Options"
+msgstr "Arbeitsbaum-Optionen"
+
+#: lib\ui_new_tree.py:136
+msgid "Create a checkout"
+msgstr "Erstelle einen Checkout"
+
+#: lib\ui_new_tree.py:144
+msgid "Light-weight checkout"
+msgstr "Leichtgewichtiger Checkout"
+
+#: lib\ui_new_tree.py:145
+msgid "Make a local copy of the branch"
+msgstr "Erstelle eine lokale Kopie des Astes"
+
 #: lib\ui_new_tree.py:151
 msgid "Create a stacked branch referring to the source branch"
 msgstr ""
 
+#: lib\ui_new_tree.py:152
+msgid "Click a link for more information about checkouts and branches."
+msgstr ""
+"Klicke einen Link an um mehr Informationen über Checkouts und Äste zu "
+"erhalten."
+
+#: lib\ui_new_tree.py:159
+msgid "Most recent (tip) revision"
+msgstr "Letzte revision (tip)"
+
+#: lib\ui_new_tree.py:161
+msgid "Show Log..."
+msgstr "Zeige Log..."
+
 #: lib\ui_pull.py:60
 msgid "Pull"
+msgstr ""
+
+#: lib\ui_pull.py:66 lib\ui_push.py:67 lib\ui_update_branch.py:88
+#: lib\ui_update_checkout.py:80
+msgid "Overwrite differences between branches"
+msgstr "Überschreibe Unterschiede zwischen Ästen"
+
+#: lib\ui_push.py:68
+msgid "Use existing directory"
+msgstr "Benutze vorhandenes Verzeichnis"
+
+#: lib\ui_push.py:69
+msgid "Create the path up to the branch if it does not exist"
+msgstr "Erstelle den Pfad zum Ast wenn er nicht existiert"
+
+#: lib\ui_run.py:101
+msgid "Run bzr command"
+msgstr ""
+
+#: lib\ui_run.py:102
+msgid "&Working directory:"
+msgstr ""
+
+#: lib\ui_run.py:103 lib\ui_tag.py:90
+msgid "&Browse..."
+msgstr "Durchsuchen..."
+
+#: lib\ui_run.py:104
+msgid "&Command:"
+msgstr ""
+
+#: lib\ui_run.py:105
+msgid "&Show hidden commands"
+msgstr ""
+
+#: lib\ui_run.py:106
+msgid "&Options and arguments for command:"
+msgstr ""
+
+#: lib\ui_run.py:107
+msgid "Insert &directory..."
+msgstr ""
+
+#: lib\ui_run.py:108
+msgid "Insert &filenames..."
 msgstr ""
 
 #: lib\ui_sysinfo.py:113
@@ -1561,12 +1513,35 @@ msgid "Create new tag"
 msgstr ""
 
 #: lib\ui_tag.py:94
-msgid "Replace existing tag"
+msgid "Move existing tag"
 msgstr ""
 
 #: lib\ui_tag.py:95
 msgid "Delete existing tag"
 msgstr ""
+
+#: lib\ui_tag.py:96
+msgid "&Tag name:"
+msgstr "Markierungsname:"
+
+#: lib\ui_tag.py:98
+msgid "&Select..."
+msgstr "&Auswählen"
+
+#: lib\ui_update_branch.py:82
+msgid "Update Branch"
+msgstr "Aktualisiere Ast"
+
+#: lib\ui_update_branch.py:83
+msgid ""
+"This directory is a branch.  Please select what you would like to update"
+msgstr ""
+"Dieses Verzeichnis ist ein Ast. Bitte wählen Sie, was Sie aktualisieren "
+"möchten."
+
+#: lib\ui_update_branch.py:84 lib\ui_update_checkout.py:76
+msgid "Update source"
+msgstr "Aktualisiere Quelle"
 
 #: lib\ui_update_branch.py:86
 msgid "Pull most recent changes from:"
@@ -1576,9 +1551,22 @@ msgstr ""
 msgid "Remember this as the new parent branch"
 msgstr ""
 
+#: lib\ui_update_branch.py:89
+msgid "<Parent Branch shown here>"
+msgstr "<Eltern-Ast wird hier angezeigt>"
+
 #: lib\ui_update_branch.py:90
 msgid "Update working tree to the latest changes in the branch"
 msgstr ""
+
+#: lib\ui_update_checkout.py:74
+msgid "Update Checkout"
+msgstr "Aktualisiere Checkout"
+
+#: lib\ui_update_checkout.py:75
+#, python-format
+msgid "This directory is a checkout of: %s"
+msgstr "Dieses Verzeichnis ist ein Checkout von: %s"
 
 #: lib\ui_update_checkout.py:77
 msgid "Update the working tree from the bound branch"
@@ -1596,8 +1584,36 @@ msgstr ""
 msgid "Unbind"
 msgstr ""
 
+#: lib\unbind.py:55 lib\util.py:563
+msgid "Branch:"
+msgstr "Ast:"
+
 #: lib\unbind.py:62
 msgid "Bound to:"
+msgstr ""
+
+#: lib\uncommit.py:41 lib\uncommit.py:125
+msgid "Uncommit"
+msgstr ""
+
+#: lib\uncommit.py:58
+msgid "Move tip to"
+msgstr ""
+
+#: lib\uncommit.py:60
+msgid "Parent of current tip revision"
+msgstr ""
+
+#: lib\uncommit.py:62
+msgid "Other revision:"
+msgstr ""
+
+#: lib\uncommit.py:105
+msgid "No other revision specified."
+msgstr ""
+
+#: lib\uncommit.py:123
+msgid "Do you really want to uncommit these revisions?"
 msgstr ""
 
 #: lib\update.py:35
@@ -1618,20 +1634,88 @@ msgstr ""
 msgid "Tree is up to date at revision %s."
 msgstr ""
 
+#: lib\util.py:466
+msgid "Select Source Directory"
+msgstr "Wähle Quellverzeichnis"
+
+#: lib\util.py:468
+msgid "Select Target Directory"
+msgstr "Wähle Zielverzeichnis"
+
+#: lib\util.py:541
+msgid "Parents:"
+msgstr "Eltern:"
+
+#: lib\util.py:545
+msgid "Children:"
+msgstr "Kinder:"
+
+#: lib\util.py:549
+msgid "Date:"
+msgstr "Datum:"
+
+#: lib\util.py:551
+msgid "Committer:"
+msgstr "Beitragender:"
+
+#: lib\util.py:554 lib\util.py:559
+msgid "Author:"
+msgstr "Autor:"
+
+#: lib\util.py:568
+msgid "Tags:"
+msgstr "Markierungen:"
+
+#: lib\util.py:577
+msgid "Bug:"
+msgid_plural "Bugs:"
+msgstr[0] "Bug:"
+msgstr[1] "Bugs:"
+
 #: lib\util.py:591
 msgid "Uncommited Working Tree Changes"
 msgstr ""
+
+#: lib\util.py:724
+msgid "deleted files"
+msgstr "gelöschte Dateien"
+
+#: lib\util.py:726
+msgid "added files"
+msgstr "hinzugefügte Dateien"
+
+#: lib\util.py:728
+msgid "renamed files"
+msgstr "umbenannte Dateien"
+
+#: lib\util.py:730
+msgid "modified files"
+msgstr "geänderte Dateien"
 
 #: lib\util.py:1027 lib\util.py:1028 lib\util.py:1031
 msgid "(no message)"
 msgstr ""
 
-#: lib\util.py:1065
-#, python-format
-msgid "Not a branch \"%s\""
-msgstr ""
+#~ msgid "Extension"
+#~ msgstr "Erweiterung"
 
-#: lib\util.py:1075
-#, python-format
-msgid "No working tree exists for \"%s\""
-msgstr ""
+#~ msgid "Show log..."
+#~ msgstr "Zeige Log..."
+
+#~ msgid "&Revert..."
+#~ msgstr "&Rückgängig..."
+
+#~ msgid "Internal Error"
+#~ msgstr "Interner Fehler"
+
+#~ msgid "Stopped"
+#~ msgstr "Angehalten"
+
+#~ msgid "Local location:"
+#~ msgstr "Lokaler Ort:"
+
+#~ msgid "Public branch location:"
+#~ msgstr "Öffentlicher Ort des Astes"
+
+#~ msgid "&Location"
+#~ msgstr "Ort"

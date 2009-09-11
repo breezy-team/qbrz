@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-19 12:01+0300\n"
+"POT-Creation-Date: 2009-09-07 08:14+0300\n"
 "PO-Revision-Date: 2009-07-04 09:57+0000\n"
 "Last-Translator: Mert Dirik <mertdirik@gmail.com>\n"
 "Language-Team: Turkish <tr@li.org>\n"
@@ -15,11 +15,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2009-08-20 11:04+0000\n"
+"X-Launchpad-Export-Date: 2009-09-10 15:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:113 lib\config.py:134 lib\config.py:165
-#: lib\config.py:194 lib\treewidget.py:1384
+#: lib\config.py:194 lib\treewidget.py:1382
 msgid "Add"
 msgstr "Ekle"
 
@@ -43,17 +43,58 @@ msgstr "Yazar"
 msgid "Rev"
 msgstr "Düz"
 
-#: lib\annotate.py:209 lib\annotate.py:345 lib\annotate.py:349 lib\log.py:203
+#: lib\annotate.py:209 lib\annotate.py:345 lib\annotate.py:349 lib\log.py:204
 msgid "Annotate"
 msgstr "Açımla (Annotate)"
 
-#: lib\bind.py:82 lib\browse.py:63 lib\browse.py:233 lib\export.py:85
+#: lib\annotate.py:209 lib\diffwindow.py:119 lib\util.py:436
+msgid "Loading..."
+msgstr "Yükleniyor..."
+
+#: lib\annotate.py:346
+#, python-format
+msgid "Revision %s"
+msgstr ""
+
+#: lib\annotate.py:401
+msgid "&Annotate this revision"
+msgstr ""
+
+#: lib\bind.py:46
+msgid "Bind branch"
+msgstr ""
+
+#: lib\bind.py:56 lib\bind.py:105
+msgid "Bind"
+msgstr ""
+
+#: lib\bind.py:58
+msgid "Branch location:"
+msgstr ""
+
+#: lib\bind.py:62
+msgid "Currently bound to:"
+msgstr ""
+
+#: lib\bind.py:66
+msgid "Bind to:"
+msgstr ""
+
+#: lib\bind.py:70 lib\browse.py:63 lib\browse.py:233 lib\export.py:85
 #: lib\export.py:139 lib\send.py:62 lib\send.py:86 lib\send.py:152
 #: lib\switch.py:99
 msgid "Browse"
 msgstr "Gözat"
 
-#: lib\browse.py:72 lib\export.py:80
+#: lib\bind.py:120 lib\switch.py:148 lib\tag.py:189
+msgid "Select branch location"
+msgstr ""
+
+#: lib\bind.py:131
+msgid "Master branch location not specified."
+msgstr ""
+
+#: lib\browse.py:72 lib\export.py:80 lib\ui_info.py:146
 msgid "Location:"
 msgstr "Konum:"
 
@@ -66,48 +107,127 @@ msgstr "Düzeltme:"
 msgid "Show"
 msgstr "Göster"
 
-#: lib\commit.py:269 lib\logmodel.py:97 lib\treewidget.py:241
+#: lib\browse.py:88 lib\treewidget.py:925
+msgid "&Filter"
+msgstr ""
+
+#: lib\cat.py:86 lib\cat.py:243
+msgid "View"
+msgstr ""
+
+#: lib\commit.py:213 lib\commit.py:580 lib\commit.py:608 lib\commit.py:616
+msgid "Commit"
+msgstr ""
+
+#: lib\commit.py:239 lib\ui_branch.py:65 lib\ui_new_tree.py:130
+#: lib\ui_tag.py:89
+msgid "Branch"
+msgstr ""
+
+#: lib\commit.py:251
+msgid "&Local commit"
+msgstr ""
+
+#: lib\commit.py:253
+msgid ""
+"Local commits are not pushed to the master branch until a normal commit is "
+"performed"
+msgstr ""
+
+#: lib\commit.py:257
+msgid "Description:"
+msgstr "Açıklama:"
+
+#: lib\commit.py:272 lib\logmodel.py:97 lib\treewidget.py:241
 msgid "Message"
 msgstr "İleti"
 
-#: lib\commit.py:277
+#: lib\commit.py:280
 msgid "Show non-versioned files"
 msgstr "Sürüm denetimi altında olmayan (sürümlendirilmemiş) dosyaları göster"
 
-#: lib\commit.py:311
+#: lib\commit.py:301
+msgid "Enter the commit message"
+msgstr ""
+
+#: lib\commit.py:314
 msgid "&Fixed bugs:"
 msgstr "&Giderilen hatalar:"
 
-#: lib\commit.py:325
+#: lib\commit.py:315
+msgid "Set the IDs of bugs fixed by this commit"
+msgstr ""
+
+#: lib\commit.py:318
+msgid ""
+"Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
+"<i>project:123 project:765</i>"
+msgstr ""
+
+#: lib\commit.py:328
 msgid "&Author:"
 msgstr "Y&azar:"
 
 #: lib\commit.py:329
+msgid "Set the author of this change, if it's different from the committer"
+msgstr ""
+
+#: lib\commit.py:332
 msgid ""
 "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
 "Yazarın adını girin, ör. <i>Sarı Çizmeli Mehmet Ağa "
 "&lt;cizmeh@ornek.com&gt;</i>"
 
-#: lib\commit.py:344 lib\revert.py:65
+#: lib\commit.py:347 lib\revert.py:65
 msgid "Changes"
 msgstr "Değişiklikler"
 
-#: lib\commit.py:361 lib\revert.py:94
+#: lib\commit.py:364 lib\revert.py:94
 msgid "Pending Merges"
 msgstr "Bekleyen Birleştirmeler"
 
-#: lib\commit.py:372 lib\main.py:359 lib\subprocess.py:139
+#: lib\commit.py:375 lib\main.py:359 lib\subprocess.py:139
 #: lib\treewidget.py:243
 msgid "Status"
 msgstr "Durum"
 
-#: lib\commit.py:573 lib\conflicts.py:162 lib\conflicts.py:167
+#: lib\commit.py:387
+msgid "View changes in files selected to commit"
+msgstr ""
+
+#: lib\commit.py:581
+msgid "You should provide commit message."
+msgstr ""
+
+#: lib\commit.py:582 lib\conflicts.py:162 lib\conflicts.py:167
 #: lib\diffwindow.py:381 lib\util.py:77
 msgid "&OK"
 msgstr "&Tamam"
 
-#: lib\commit.py:710 lib\diff.py:105 lib\diffwindow.py:119
+#: lib\commit.py:609
+msgid "No changes to commit."
+msgstr ""
+
+#: lib\commit.py:617
+msgid ""
+"No changes selected to commit.\n"
+"Do you want to commit anyway?"
+msgstr ""
+
+#: lib\commit.py:681
+msgid ""
+"A commit will be made directly to the master branch, keeping the local and "
+"master branches in sync."
+msgstr ""
+
+#: lib\commit.py:687
+msgid ""
+"A local commit to the branch will be performed. The master branch will not "
+"be updated until a non-local commit is made."
+msgstr ""
+
+#: lib\commit.py:719 lib\diff.py:105 lib\diffwindow.py:119
 #: lib\diffwindow.py:232 lib\diffwindow.py:371 lib\diffwindow.py:379
 #: lib\revert.py:297
 msgid "Diff"
@@ -185,9 +305,25 @@ msgstr "Kısaltma"
 msgid "URL"
 msgstr "URL"
 
+#: lib\config.py:153
+msgid "Show inter-group inserts and deletes in green and red"
+msgstr ""
+
+#: lib\config.py:155
+msgid "External Diff Apps:"
+msgstr ""
+
 #: lib\config.py:158 lib\main.py:357 lib\plugins.py:56 lib\plugins.py:61
 msgid "Name"
 msgstr "Ad"
+
+#: lib\config.py:185
+msgid "External Merge Apps:"
+msgstr ""
+
+#: lib\config.py:188
+msgid "Definition"
+msgstr ""
 
 #: lib\config.py:211
 msgid "General"
@@ -205,656 +341,6 @@ msgstr "Hata Takipçileri"
 msgid "&User Interface"
 msgstr "K&ullanıcı Arayüzü"
 
-#: lib\config.py:241
-msgid "Spell check &language:"
-msgstr "Yazım denetimi &dili:"
-
-#: lib\conflicts.py:48
-msgid "File"
-msgstr "Dosya"
-
-#: lib\diffview.py:248
-msgid "Last modified:"
-msgstr "Son değiştirilme:"
-
-#: lib\diffview.py:249
-msgid "Status:"
-msgstr "Durum:"
-
-#: lib\diffview.py:250
-msgid "Kind:"
-msgstr "Tür:"
-
-#: lib\diffview.py:251
-msgid "Properties:"
-msgstr "Özellikler:"
-
-#: lib\diffview.py:479
-msgid "[binary file]"
-msgstr "[ikili dosya]"
-
-#: lib\diffview.py:660
-msgid "\\ No newline at end of file"
-msgstr "\\ Dosyanın sonunda yeni satır yok"
-
-#: lib\diffwindow.py:78
-msgid "Working Tree"
-msgstr "Çalışma Ağacı"
-
-#: lib\diffwindow.py:99
-#, python-format
-msgid "Rev %s"
-msgstr "Düz %s"
-
-#: lib\diffwindow.py:145
-msgid "Side by side"
-msgstr "Taraf tarafa"
-
-#: lib\diffwindow.py:152
-msgid "Unidiff"
-msgstr "Birleşmiş Fark (Unidiff)"
-
-#: lib\diffwindow.py:157
-msgid "Complete"
-msgstr "Tamamı"
-
-#: lib\diffwindow.py:313 lib\treewidget.py:216
-msgid "removed"
-msgstr "silindi"
-
-#: lib\diffwindow.py:315 lib\treewidget.py:214
-msgid "added"
-msgstr "eklendi"
-
-#: lib\diffwindow.py:317 lib\treewidget.py:225
-msgid "renamed and modified"
-msgstr "adı ve içeriği değiştirildi"
-
-#: lib\diffwindow.py:319 lib\treewidget.py:227
-msgid "renamed"
-msgstr "adı değiştirildi"
-
-#: lib\diffwindow.py:321 lib\treewidget.py:229
-msgid "modified"
-msgstr "değiştirildi"
-
-#: lib\diffwindow.py:374 lib\tag.py:137 lib\tag.py:168 lib\tag.py:205
-#: lib\update.py:52 lib\util.py:79 lib\util.py:1067 lib\util.py:1077
-msgid "&Close"
-msgstr "&Kapat"
-
-#: lib\export.py:151 lib\ui_branch.py:66 lib\ui_merge.py:63 lib\ui_pull.py:61
-#: lib\ui_push.py:63
-msgid "Options"
-msgstr "Seçenekler"
-
-#: lib\help.py:59
-#, python-format
-msgid "No help can be found for <i>%s</i>"
-msgstr "<i>%s</i> için yardım bulunamadı"
-
-#: lib\help.py:109
-msgid "Help"
-msgstr "Yardım"
-
-#: lib\i18n.py:87
-msgid "file"
-msgstr "dosya"
-
-#: lib\i18n.py:88
-msgid "directory"
-msgstr "dizin"
-
-#: lib\i18n.py:93
-msgid "View text file"
-msgstr "Metin dosyası görüntüle"
-
-#: lib\i18n.py:95
-msgid "View binary file"
-msgstr "İkili dosya görüntüle"
-
-#: lib\i18n.py:97
-msgid "View directory"
-msgstr "Dizin görüntüle"
-
-#: lib\info.py:41
-msgid "Info"
-msgstr "Bilgi"
-
-#: lib\init.py:37 lib\ui_init.py:118
-msgid "Initialize"
-msgstr "İlklendir"
-
-#: lib\init.py:72
-msgid "You must specify a location"
-msgstr "Bir konum belirtmelisiniz"
-
-#: lib\log.py:94
-msgid "Log"
-msgstr "Günlük"
-
-#: lib\log.py:121
-msgid "&Search:"
-msgstr "&Ara:"
-
-#: lib\log.py:137
-msgid "Messages"
-msgstr "İletiler"
-
-#: lib\log.py:139
-msgid "Authors"
-msgstr "Yazarlar"
-
-#: lib\log.py:141
-msgid "Revision IDs"
-msgstr "Düzeltme Kimlikleri"
-
-#: lib\log.py:143
-msgid "Revision Numbers"
-msgstr "Düzeltme Numaraları"
-
-#: lib\log.py:199 lib\logwidget.py:128
-msgid "Show &differences..."
-msgstr "&Farkları göster..."
-
-#: lib\log.py:205
-msgid "View file"
-msgstr "Dosyayı görüntüle"
-
-#: lib\logmodel.py:98 lib\treewidget.py:239
-msgid "Date"
-msgstr "Tarih"
-
-#: lib\logmodel.py:248
-#, python-format
-msgid "bug #%s"
-msgstr "hata no. %s"
-
-#: lib\logwidget.py:136
-msgid "Show &tree..."
-msgstr "&Ağacı göster..."
-
-#: lib\main.py:124
-msgid "Computer"
-msgstr "Bilgisayar"
-
-#: lib\main.py:153
-msgid "&Edit Bookmark..."
-msgstr "Yer İmini &Düzenle..."
-
-#: lib\main.py:154
-msgid "&Remove Bookmark..."
-msgstr "Yer İmini &Sil..."
-
-#: lib\main.py:169
-msgid "Bookmarks"
-msgstr "Yer İmleri"
-
-#: lib\main.py:278 lib\util.py:81
-msgid "&Refresh"
-msgstr "&Tazele"
-
-#: lib\main.py:280
-msgid "Refresh the directory tree"
-msgstr "Dizin ağacını tazele"
-
-#: lib\main.py:290
-msgid "Turn this branch into a mirror of another branch"
-msgstr "Bu dalı başka bir dalın yansısı yap"
-
-#: lib\main.py:295
-msgid "Update a mirror of this branch"
-msgstr "Bu dalın yansısını güncelle"
-
-#: lib\main.py:298
-msgid "&Add Bookmark..."
-msgstr "Yer İmi &Ekle..."
-
-#: lib\main.py:305
-msgid "&File"
-msgstr "&Dosya"
-
-#: lib\main.py:306
-msgid "&Configure..."
-msgstr "&Yapılandır..."
-
-#: lib\main.py:308
-msgid "&Quit"
-msgstr "&Çık"
-
-#: lib\main.py:309
-msgid "&View"
-msgstr "&Görüntüle"
-
-#: lib\main.py:315
-msgid "&Bookmarks"
-msgstr "&Yer İmleri"
-
-#: lib\main.py:317 lib\util.py:80
-msgid "&Help"
-msgstr "Ya&rdım"
-
-#: lib\main.py:318
-msgid "&Help..."
-msgstr "Ya&rdım..."
-
-#: lib\main.py:320
-msgid "&About..."
-msgstr "&Hakkında..."
-
-#: lib\main.py:358
-msgid "Size"
-msgstr "Boyut"
-
-#: lib\main.py:410
-msgid "About QBzr"
-msgstr "QBzr Hakkında"
-
-#: lib\main.py:476
-msgid "Add Bookmark"
-msgstr "Yer İmi Ekle"
-
-#: lib\main.py:487
-msgid "Edit Bookmark"
-msgstr "Yer İmini Düzenle"
-
-#: lib\main.py:497
-msgid "Remove Bookmark"
-msgstr "Yer İmini Sil"
-
-#: lib\main.py:498
-msgid "Do you really want to remove the selected bookmark?"
-msgstr "Seçilen yer imini silmek istediğinize emin misiniz?"
-
-#: lib\plugins.py:71
-msgid "Summary"
-msgstr "Özet"
-
-#: lib\revert.py:54 lib\treewidget.py:1412
-msgid "Revert"
-msgstr "Eski Durumuna Getir"
-
-#: lib\revisionview.py:60 lib\ui_new_tree.py:158
-msgid "Revision"
-msgstr "Düzeltme"
-
-#: lib\subprocess.py:416
-msgid "Starting..."
-msgstr "Başlatılıyor..."
-
-#: lib\subprocess.py:470
-msgid "Aborting..."
-msgstr "İptal ediliyor..."
-
-#: lib\subprocess.py:481 lib\subprocess.py:560
-msgid "Finished!"
-msgstr "Tamamlandı!"
-
-#: lib\subprocess.py:541 lib\subprocess.py:563
-msgid "Failed!"
-msgstr "Başarısız Oldu!"
-
-#: lib\subprocess.py:543
-msgid "Failed to start bzr."
-msgstr "bzr başlatılamadı."
-
-#: lib\subprocess.py:545
-#, python-format
-msgid "Error while running bzr. (error code: %d)"
-msgstr "bzr çalıştırılırken bir sorunla karşılaşıldı. (hata kodu: %d)"
-
-#: lib\switch.py:88 lib\unbind.py:55 lib\util.py:563
-msgid "Branch:"
-msgstr "Dal:"
-
-#: lib\tag.py:145 lib\tag.py:158 lib\util.py:78
-msgid "&Cancel"
-msgstr "&İptal"
-
-#: lib\treewidget.py:212
-msgid "non-versioned"
-msgstr "sürümlendirilmemiş"
-
-#: lib\treewidget.py:218
-msgid "missing"
-msgstr "eksik"
-
-#: lib\treewidget.py:1425
-msgid "Select / deselect all"
-msgstr "Tümünü seç / Hiçbirini seçme"
-
-#: lib\ui_bookmark.py:51 lib\ui_branch.py:67 lib\ui_merge.py:64
-#: lib\ui_pull.py:62 lib\ui_push.py:64
-msgid "&Location:"
-msgstr "&Konum:"
-
-#: lib\ui_branch.py:68 lib\ui_branch.py:71 lib\ui_init.py:120
-#: lib\ui_merge.py:65 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
-#: lib\ui_pull.py:63 lib\ui_push.py:65 lib\ui_update_branch.py:85
-#: lib\ui_update_checkout.py:79
-msgid "Browse..."
-msgstr "Gözat..."
-
-#: lib\ui_branch.py:69 lib\ui_merge.py:66 lib\ui_pull.py:64 lib\ui_tag.py:97
-msgid "&Revision:"
-msgstr "&Düzeltme:"
-
-#: lib\ui_info.py:176
-msgid "Local location:"
-msgstr "Yerel Konum:"
-
-#: lib\ui_info.py:177 lib\ui_info.py:179 lib\ui_info.py:182 lib\ui_info.py:184
-#: lib\ui_info.py:186 lib\ui_info.py:189 lib\ui_info.py:191 lib\ui_info.py:193
-#: lib\ui_info.py:195
-msgid "..."
-msgstr "..."
-
-#: lib\ui_info.py:178
-msgid "Public branch location:"
-msgstr "Umumi dalın konumu:"
-
-#: lib\ui_info.py:180
-msgid "&Location"
-msgstr "&Konum"
-
-#: lib\ui_info.py:183
-msgid "Parent branch:"
-msgstr "Üst dal:"
-
-#: lib\ui_info.py:187
-msgid "&Related Branches"
-msgstr "İ&lgili Dallar"
-
-#: lib\ui_info.py:188
-msgid "Working tree format:"
-msgstr "Çalışma ağacı biçimi:"
-
-#: lib\ui_info.py:190
-msgid "Branch format:"
-msgstr "Dal biçimi:"
-
-#: lib\ui_info.py:192
-msgid "Repository format:"
-msgstr "Depo biçimi:"
-
-#: lib\ui_info.py:194
-msgid "Control directory format:"
-msgstr "Denetim dizini biçimi:"
-
-#: lib\ui_info.py:196
-msgid "&Format"
-msgstr "&Biçim"
-
-#: lib\ui_init.py:119
-msgid "Local Directory"
-msgstr "Yerel Dizin"
-
-#: lib\ui_init.py:121
-msgid "Repository"
-msgstr "Depo"
-
-#: lib\ui_init.py:122
-msgid "Create a new standalone tree"
-msgstr "Yeni bir kendibaşına ağaç oluştur"
-
-#: lib\ui_init.py:124
-msgid "Create a new shared repository"
-msgstr "Yeni bir paylaşılan depo yarat"
-
-#: lib\ui_init.py:125
-msgid "Skip the creation of working trees in this repository"
-msgstr "Depoda çalışma ağacı yaratılmasın"
-
-#: lib\ui_init.py:131
-msgid "Repository Format:"
-msgstr "Depo Biçimi:"
-
-#: lib\ui_init.py:132
-msgid "Description of format"
-msgstr "Biçimin açıklaması"
-
-#: lib\ui_merge.py:62
-msgid "Merge"
-msgstr "Birleştir"
-
-#: lib\ui_merge.py:67 lib\ui_pull.py:65 lib\ui_push.py:66
-msgid "Remember this location as a default"
-msgstr "Bu konumu öntanımlı olarak hatırla"
-
-#: lib\ui_new_tree.py:129
-msgid "Create a new Bazaar Working Tree"
-msgstr "Yeni bir Bazaar Çalışma Ağacı Yarat"
-
-#: lib\ui_new_tree.py:133
-msgid "Local directory where the working tree will be created"
-msgstr "Çalışma dizininin yaratılacağı yerel dizin"
-
-#: lib\ui_new_tree.py:135
-msgid "Working Tree Options"
-msgstr "Çalışma Ağacı Seçenekleri"
-
-#: lib\ui_new_tree.py:145
-msgid "Make a local copy of the branch"
-msgstr "Dalın yerel bir kopyasını yarat"
-
-#: lib\ui_new_tree.py:151
-msgid "Create a stacked branch referring to the source branch"
-msgstr "Kaynak dala başvuran bir yığılmış dal oluştur"
-
-#: lib\ui_new_tree.py:159
-msgid "Most recent (tip) revision"
-msgstr "En yeni düzeltme"
-
-#: lib\ui_new_tree.py:161
-msgid "Show Log..."
-msgstr "Günlüğü Göster..."
-
-#: lib\ui_pull.py:66 lib\ui_push.py:67 lib\ui_update_branch.py:88
-#: lib\ui_update_checkout.py:80
-msgid "Overwrite differences between branches"
-msgstr "Dallar arasındaki farklılıkların üzerine yaz"
-
-#: lib\ui_push.py:68
-msgid "Use existing directory"
-msgstr "Mevcut dizini kullan"
-
-#: lib\ui_update_branch.py:82
-msgid "Update Branch"
-msgstr "Dalı Güncelle"
-
-#: lib\ui_update_branch.py:83
-msgid ""
-"This directory is a branch.  Please select what you would like to update"
-msgstr "Bu dizin bir dal. Lütfen neyi güncellemek istediğinizi seçin"
-
-#: lib\ui_update_branch.py:87
-msgid "Remember this as the new parent branch"
-msgstr "Bu dalı yeni üst dal olarak hatırla"
-
-#: lib\ui_update_branch.py:90
-msgid "Update working tree to the latest changes in the branch"
-msgstr "Çalışma ağacını dalın en yeni haline güncelle"
-
-#: lib\util.py:541
-msgid "Parents:"
-msgstr "Üstleri:"
-
-#: lib\util.py:545
-msgid "Children:"
-msgstr "Altları:"
-
-#: lib\util.py:554 lib\util.py:559
-msgid "Author:"
-msgstr "Yazar:"
-
-#: lib\util.py:568
-msgid "Tags:"
-msgstr "Etiketler:"
-
-#: lib\util.py:724
-msgid "deleted files"
-msgstr "silinen dosyalar"
-
-#: lib\util.py:726
-msgid "added files"
-msgstr "eklenen dosyalar"
-
-#: lib\util.py:728
-msgid "renamed files"
-msgstr "adı değiştirilen dosyalar"
-
-#: lib\util.py:730
-msgid "modified files"
-msgstr "değiştirilen dosyalar"
-
-#~ msgid "Extension"
-#~ msgstr "Uzantı"
-
-#~ msgid "Show log..."
-#~ msgstr "Günlüğü göster..."
-
-#~ msgid "Stopped"
-#~ msgstr "Durduruldu"
-
-#~ msgid "&Revert..."
-#~ msgstr "&Eski durumuna getir..."
-
-#: lib\annotate.py:209 lib\diffwindow.py:119 lib\util.py:436
-msgid "Loading..."
-msgstr "Yükleniyor..."
-
-#: lib\annotate.py:346
-#, python-format
-msgid "Revision %s"
-msgstr ""
-
-#: lib\annotate.py:404
-msgid "&Annotate this revision"
-msgstr ""
-
-#: lib\bind.py:46
-msgid "Bind branch"
-msgstr ""
-
-#: lib\bind.py:57 lib\bind.py:102
-msgid "Bind"
-msgstr ""
-
-#: lib\bind.py:61
-msgid "Branch location:"
-msgstr ""
-
-#: lib\bind.py:65
-msgid "Bind to:"
-msgstr ""
-
-#: lib\bind.py:76
-msgid "Currently bound to:"
-msgstr ""
-
-#: lib\bind.py:113 lib\switch.py:148 lib\tag.py:189
-msgid "Select branch location"
-msgstr ""
-
-#: lib\bind.py:124
-msgid "Master branch location not specified."
-msgstr ""
-
-#: lib\browse.py:88 lib\treewidget.py:927
-msgid "&Filter"
-msgstr ""
-
-#: lib\cat.py:86 lib\cat.py:243
-msgid "View"
-msgstr ""
-
-#: lib\commit.py:213 lib\commit.py:571 lib\commit.py:599 lib\commit.py:607
-msgid "Commit"
-msgstr ""
-
-#: lib\commit.py:236 lib\ui_branch.py:65 lib\ui_new_tree.py:130
-#: lib\ui_tag.py:89
-msgid "Branch"
-msgstr ""
-
-#: lib\commit.py:248
-msgid "&Local commit"
-msgstr ""
-
-#: lib\commit.py:250
-msgid ""
-"Local commits are not pushed to the master branch until a normal commit is "
-"performed"
-msgstr ""
-
-#: lib\commit.py:254
-msgid "Description:"
-msgstr "Açıklama:"
-
-#: lib\commit.py:298
-msgid "Enter the commit message"
-msgstr ""
-
-#: lib\commit.py:312
-msgid "Set the IDs of bugs fixed by this commit"
-msgstr ""
-
-#: lib\commit.py:315
-msgid ""
-"Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
-"<i>project:123 project:765</i>"
-msgstr ""
-
-#: lib\commit.py:326
-msgid "Set the author of this change, if it's different from the committer"
-msgstr ""
-
-#: lib\commit.py:384
-msgid "View changes in files selected to commit"
-msgstr ""
-
-#: lib\commit.py:572
-msgid "You should provide commit message."
-msgstr ""
-
-#: lib\commit.py:600
-msgid "No changes to commit."
-msgstr ""
-
-#: lib\commit.py:608
-msgid ""
-"No changes selected to commit.\n"
-"Do you want to commit anyway?"
-msgstr ""
-
-#: lib\commit.py:672
-msgid ""
-"A commit will be made directly to the master branch, keeping the local and "
-"master branches in sync."
-msgstr ""
-
-#: lib\commit.py:678
-msgid ""
-"A local commit to the branch will be performed. The master branch will not "
-"be updated until a non-local commit is made."
-msgstr ""
-
-#: lib\config.py:153
-msgid "Show inter-group inserts and deletes in green and red"
-msgstr ""
-
-#: lib\config.py:155
-msgid "External Diff Apps:"
-msgstr ""
-
-#: lib\config.py:185
-msgid "External Merge Apps:"
-msgstr ""
-
-#: lib\config.py:188
-msgid "Definition"
-msgstr ""
-
 #: lib\config.py:215
 msgid "&Diff"
 msgstr ""
@@ -862,6 +348,10 @@ msgstr ""
 #: lib\config.py:216
 msgid "&Merge"
 msgstr ""
+
+#: lib\config.py:241
+msgid "Spell check &language:"
+msgstr "Yazım denetimi &dili:"
 
 #: lib\config.py:333 lib\diff.py:35
 msgid "Builtin Diff"
@@ -871,6 +361,10 @@ msgstr ""
 #: lib\conflicts.py:165
 msgid "Conflicts"
 msgstr ""
+
+#: lib\conflicts.py:48
+msgid "File"
+msgstr "Dosya"
 
 #: lib\conflicts.py:49
 msgid "Conflict"
@@ -920,8 +414,8 @@ msgstr ""
 msgid "Error while running merge tool (code %d)"
 msgstr ""
 
-#: lib\conflicts.py:222 lib\conflicts.py:286 lib\tag.py:203 lib\trace.py:177
-#: lib\trace.py:191 lib\util.py:1064 lib\util.py:1074
+#: lib\conflicts.py:222 lib\conflicts.py:286 lib\tag.py:203 lib\trace.py:181
+#: lib\trace.py:195 lib\tree_branch.py:95 lib\util.py:1064 lib\util.py:1074
 msgid "Error"
 msgstr ""
 
@@ -987,19 +481,52 @@ msgstr ""
 msgid "non-directory parent"
 msgstr ""
 
-#: lib\diff.py:81 lib\treewidget.py:1053
+#: lib\diff.py:81 lib\treewidget.py:1051
 msgid "Show &differences"
 msgstr ""
+
+#: lib\diffview.py:248
+msgid "Last modified:"
+msgstr "Son değiştirilme:"
+
+#: lib\diffview.py:249
+msgid "Status:"
+msgstr "Durum:"
+
+#: lib\diffview.py:250
+msgid "Kind:"
+msgstr "Tür:"
+
+#: lib\diffview.py:251
+msgid "Properties:"
+msgstr "Özellikler:"
+
+#: lib\diffview.py:485
+msgid "[binary file]"
+msgstr "[ikili dosya]"
+
+#: lib\diffview.py:666
+msgid "\\ No newline at end of file"
+msgstr "\\ Dosyanın sonunda yeni satır yok"
 
 #: lib\diffwindow.py:76
 #, python-format
 msgid "Working Tree for %s"
 msgstr ""
 
+#: lib\diffwindow.py:78
+msgid "Working Tree"
+msgstr "Çalışma Ağacı"
+
 #: lib\diffwindow.py:97
 #, python-format
 msgid "Rev %(rev)s for %(branch)s"
 msgstr ""
+
+#: lib\diffwindow.py:99
+#, python-format
+msgid "Rev %s"
+msgstr "Düz %s"
 
 #: lib\diffwindow.py:102
 #, python-format
@@ -1015,6 +542,18 @@ msgstr ""
 msgid "Merge Preview"
 msgstr ""
 
+#: lib\diffwindow.py:145
+msgid "Side by side"
+msgstr "Taraf tarafa"
+
+#: lib\diffwindow.py:152
+msgid "Unidiff"
+msgstr "Birleşmiş Fark (Unidiff)"
+
+#: lib\diffwindow.py:157
+msgid "Complete"
+msgstr "Tamamı"
+
 #: lib\diffwindow.py:166
 msgid "Using"
 msgstr ""
@@ -1026,12 +565,38 @@ msgid_plural "%d files"
 msgstr[0] ""
 msgstr[1] ""
 
+#: lib\diffwindow.py:313 lib\treewidget.py:216
+msgid "removed"
+msgstr "silindi"
+
+#: lib\diffwindow.py:315 lib\treewidget.py:214
+msgid "added"
+msgstr "eklendi"
+
+#: lib\diffwindow.py:317 lib\treewidget.py:225
+msgid "renamed and modified"
+msgstr "adı ve içeriği değiştirildi"
+
+#: lib\diffwindow.py:319 lib\treewidget.py:227
+msgid "renamed"
+msgstr "adı değiştirildi"
+
+#: lib\diffwindow.py:321 lib\treewidget.py:229
+msgid "modified"
+msgstr "değiştirildi"
+
 #: lib\diffwindow.py:372
 #, python-format
 msgid ""
 "File %s is not versioned.\n"
 "Operation aborted."
 msgstr ""
+
+#: lib\diffwindow.py:374 lib\tag.py:137 lib\tag.py:168 lib\tag.py:205
+#: lib\tree_branch.py:97 lib\update.py:52 lib\util.py:79 lib\util.py:1067
+#: lib\util.py:1077
+msgid "&Close"
+msgstr "&Kapat"
 
 #: lib\diffwindow.py:380
 msgid "No changes found."
@@ -1041,7 +606,7 @@ msgstr ""
 msgid "Export"
 msgstr ""
 
-#: lib\export.py:70
+#: lib\export.py:70 lib\uncommit.py:52
 #, python-format
 msgid "Branch: %s"
 msgstr ""
@@ -1054,6 +619,28 @@ msgstr ""
 msgid "Archive type:"
 msgstr ""
 
+#: lib\export.py:151 lib\ui_branch.py:66 lib\ui_merge.py:63 lib\ui_pull.py:61
+#: lib\ui_push.py:63
+msgid "Options"
+msgstr "Seçenekler"
+
+#: lib\help.py:59
+#, python-format
+msgid "No help can be found for <i>%s</i>"
+msgstr "<i>%s</i> için yardım bulunamadı"
+
+#: lib\help.py:103
+msgid "Help"
+msgstr "Yardım"
+
+#: lib\i18n.py:87
+msgid "file"
+msgstr "dosya"
+
+#: lib\i18n.py:88
+msgid "directory"
+msgstr "dizin"
+
 #: lib\i18n.py:89
 msgid "symlink"
 msgstr ""
@@ -1062,13 +649,25 @@ msgstr ""
 msgid "fixed"
 msgstr ""
 
+#: lib\i18n.py:93
+msgid "View text file"
+msgstr "Metin dosyası görüntüle"
+
 #: lib\i18n.py:94
 msgid "View image file"
 msgstr ""
 
+#: lib\i18n.py:95
+msgid "View binary file"
+msgstr "İkili dosya görüntüle"
+
 #: lib\i18n.py:96
 msgid "View symlink"
 msgstr ""
+
+#: lib\i18n.py:97
+msgid "View directory"
+msgstr "Dizin görüntüle"
 
 #: lib\i18n.py:99
 msgid "No changes selected to commit"
@@ -1078,17 +677,78 @@ msgstr ""
 msgid "No changes selected to revert"
 msgstr ""
 
-#: lib\log.py:145
+#: lib\info.py:43
+msgid "Info"
+msgstr "Bilgi"
+
+#: lib\info.py:67
+msgid "Location has no working tree"
+msgstr ""
+
+#: lib\info.py:80
+msgid "Location has no branch"
+msgstr ""
+
+#: lib\init.py:37 lib\ui_init.py:118
+msgid "Initialize"
+msgstr "İlklendir"
+
+#: lib\init.py:72
+msgid "You must specify a location"
+msgstr "Bir konum belirtmelisiniz"
+
+#: lib\log.py:95
+msgid "Log"
+msgstr "Günlük"
+
+#: lib\log.py:122
+msgid "&Search:"
+msgstr "&Ara:"
+
+#: lib\log.py:138
+msgid "Messages"
+msgstr "İletiler"
+
+#: lib\log.py:140
+msgid "Authors"
+msgstr "Yazarlar"
+
+#: lib\log.py:142
+msgid "Revision IDs"
+msgstr "Düzeltme Kimlikleri"
+
+#: lib\log.py:144
+msgid "Revision Numbers"
+msgstr "Düzeltme Numaraları"
+
+#: lib\log.py:146
 msgid "Tags"
 msgstr ""
 
-#: lib\log.py:147
+#: lib\log.py:148
 msgid "Bugs"
 msgstr ""
 
-#: lib\log.py:274
+#: lib\log.py:200 lib\logwidget.py:128
+msgid "Show &differences..."
+msgstr "&Farkları göster..."
+
+#: lib\log.py:206
+msgid "View file"
+msgstr "Dosyayı görüntüle"
+
+#: lib\log.py:275
 msgid "Messages and File text (indexed)"
 msgstr ""
+
+#: lib\logmodel.py:98 lib\treewidget.py:239
+msgid "Date"
+msgstr "Tarih"
+
+#: lib\logmodel.py:248
+#, python-format
+msgid "bug #%s"
+msgstr "hata no. %s"
 
 #: lib\logwidget.py:102
 msgid "Show file &differences"
@@ -1106,6 +766,34 @@ msgstr ""
 msgid "Show all &differences..."
 msgstr ""
 
+#: lib\logwidget.py:136
+msgid "Show &tree..."
+msgstr "&Ağacı göster..."
+
+#: lib\main.py:124
+msgid "Computer"
+msgstr "Bilgisayar"
+
+#: lib\main.py:153
+msgid "&Edit Bookmark..."
+msgstr "Yer İmini &Düzenle..."
+
+#: lib\main.py:154
+msgid "&Remove Bookmark..."
+msgstr "Yer İmini &Sil..."
+
+#: lib\main.py:169
+msgid "Bookmarks"
+msgstr "Yer İmleri"
+
+#: lib\main.py:278 lib\util.py:81
+msgid "&Refresh"
+msgstr "&Tazele"
+
+#: lib\main.py:280
+msgid "Refresh the directory tree"
+msgstr "Dizin ağacını tazele"
+
 #: lib\main.py:284
 msgid "&Commit"
 msgstr ""
@@ -1118,13 +806,65 @@ msgstr ""
 msgid "&Push"
 msgstr ""
 
+#: lib\main.py:290
+msgid "Turn this branch into a mirror of another branch"
+msgstr "Bu dalı başka bir dalın yansısı yap"
+
 #: lib\main.py:294
 msgid "Pu&ll"
 msgstr ""
 
+#: lib\main.py:295
+msgid "Update a mirror of this branch"
+msgstr "Bu dalın yansısını güncelle"
+
+#: lib\main.py:298
+msgid "&Add Bookmark..."
+msgstr "Yer İmi &Ekle..."
+
+#: lib\main.py:305
+msgid "&File"
+msgstr "&Dosya"
+
+#: lib\main.py:306
+msgid "&Configure..."
+msgstr "&Yapılandır..."
+
+#: lib\main.py:308
+msgid "&Quit"
+msgstr "&Çık"
+
+#: lib\main.py:309
+msgid "&View"
+msgstr "&Görüntüle"
+
 #: lib\main.py:311
 msgid "&Branch"
 msgstr ""
+
+#: lib\main.py:315
+msgid "&Bookmarks"
+msgstr "&Yer İmleri"
+
+#: lib\main.py:317 lib\util.py:80
+msgid "&Help"
+msgstr "Ya&rdım"
+
+#: lib\main.py:318
+msgid "&Help..."
+msgstr "Ya&rdım..."
+
+#: lib\main.py:320
+msgid "&About..."
+msgstr "&Hakkında..."
+
+#: lib\main.py:358
+msgid "Size"
+msgstr "Boyut"
+
+#: lib\main.py:410
+msgid "About QBzr"
+msgstr "QBzr Hakkında"
 
 #: lib\main.py:411
 #, python-format
@@ -1135,6 +875,22 @@ msgid ""
 "vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
 
+#: lib\main.py:476
+msgid "Add Bookmark"
+msgstr "Yer İmi Ekle"
+
+#: lib\main.py:487
+msgid "Edit Bookmark"
+msgstr "Yer İmini Düzenle"
+
+#: lib\main.py:497
+msgid "Remove Bookmark"
+msgstr "Yer İmini Sil"
+
+#: lib\main.py:498
+msgid "Do you really want to remove the selected bookmark?"
+msgstr "Seçilen yer imini silmek istediğinize emin misiniz?"
+
 #: lib\plugins.py:44
 msgid "Plugins"
 msgstr ""
@@ -1143,7 +899,7 @@ msgstr ""
 msgid "Version"
 msgstr ""
 
-#: lib\plugins.py:58 lib\subprocess.py:312
+#: lib\plugins.py:58 lib\subprocess.py:316
 msgid "Description"
 msgstr ""
 
@@ -1155,6 +911,10 @@ msgstr ""
 #, python-format
 msgid "Plugins installed: %(rows)d"
 msgstr ""
+
+#: lib\plugins.py:71
+msgid "Summary"
+msgstr "Özet"
 
 #: lib\plugins.py:72
 msgid "Locations"
@@ -1180,13 +940,17 @@ msgstr ""
 msgid "Do you want to continue anyway?"
 msgstr ""
 
-#: lib\pull.py:200
+#: lib\pull.py:200 lib\uncommit.py:127
 msgid "&Yes"
 msgstr ""
 
-#: lib\pull.py:200
+#: lib\pull.py:200 lib\uncommit.py:127
 msgid "&No"
 msgstr ""
+
+#: lib\revert.py:54 lib\treewidget.py:1410
+msgid "Revert"
+msgstr "Eski Durumuna Getir"
 
 #: lib\revert.py:82
 msgid "Do not save backups of reverted files"
@@ -1200,6 +964,26 @@ msgstr ""
 msgid ""
 "You are reverting all changed paths without also reverting pending merges. "
 "Do you want to continue?"
+msgstr ""
+
+#: lib\revisionview.py:60 lib\ui_new_tree.py:158
+msgid "Revision"
+msgstr "Düzeltme"
+
+#: lib\run.py:80
+msgid "Select working directory"
+msgstr ""
+
+#: lib\run.py:93
+msgid "Help for command"
+msgstr ""
+
+#: lib\run.py:157
+msgid "Select path to insert"
+msgstr ""
+
+#: lib\run.py:167
+msgid "Select files to insert"
 msgstr ""
 
 #: lib\send.py:34
@@ -1250,15 +1034,40 @@ msgstr ""
 msgid "Revisions:"
 msgstr ""
 
-#: lib\subprocess.py:350
+#: lib\subprocess.py:354
 msgid "Ready"
 msgstr ""
 
-#: lib\subprocess.py:503 lib\uifactory.py:107
+#: lib\subprocess.py:423
+msgid "Starting..."
+msgstr "Başlatılıyor..."
+
+#: lib\subprocess.py:481
+msgid "Aborting..."
+msgstr "İptal ediliyor..."
+
+#: lib\subprocess.py:492 lib\subprocess.py:590
+msgid "Finished!"
+msgstr "Tamamlandı!"
+
+#: lib\subprocess.py:514 lib\uifactory.py:107
 msgid "Enter Password"
 msgstr ""
 
-#: lib\subprocess.py:553
+#: lib\subprocess.py:571 lib\subprocess.py:593
+msgid "Failed!"
+msgstr "Başarısız Oldu!"
+
+#: lib\subprocess.py:573
+msgid "Failed to start bzr."
+msgstr "bzr başlatılamadı."
+
+#: lib\subprocess.py:575
+#, python-format
+msgid "Error while running bzr. (error code: %d)"
+msgstr "bzr çalıştırılırken bir sorunla karşılaşıldı. (hata kodu: %d)"
+
+#: lib\subprocess.py:583
 msgid "Aborted!"
 msgstr ""
 
@@ -1282,6 +1091,10 @@ msgstr ""
 msgid "Checkout of branch:"
 msgstr ""
 
+#: lib\switch.py:88
+msgid "Switch to branch:"
+msgstr ""
+
 #: lib\sysinfo.py:38 lib\ui_sysinfo.py:112
 msgid "System Information"
 msgstr ""
@@ -1294,12 +1107,16 @@ msgstr ""
 #, python-format
 msgid ""
 "Tag \"%s\" already exists.\n"
-"Do you want to replace existing tag?"
+"Do you want to move existing tag?"
 msgstr ""
 
 #: lib\tag.py:145
-msgid "&Replace"
+msgid "&Move"
 msgstr ""
+
+#: lib\tag.py:145 lib\tag.py:158 lib\util.py:78
+msgid "&Cancel"
+msgstr "&İptal"
 
 #: lib\tag.py:155
 #, python-format
@@ -1328,6 +1145,14 @@ msgstr ""
 msgid "ignored"
 msgstr ""
 
+#: lib\treewidget.py:212
+msgid "non-versioned"
+msgstr "sürümlendirilmemiş"
+
+#: lib\treewidget.py:218
+msgid "missing"
+msgstr "eksik"
+
 #: lib\treewidget.py:231
 msgid "modified (x-bit)"
 msgstr ""
@@ -1336,71 +1161,175 @@ msgstr ""
 msgid "File Name"
 msgstr ""
 
-#: lib\treewidget.py:929
+#: lib\treewidget.py:927
 msgid "Unchanged"
 msgstr ""
 
-#: lib\treewidget.py:930
+#: lib\treewidget.py:928
 msgid "Changed"
 msgstr ""
 
-#: lib\treewidget.py:931
+#: lib\treewidget.py:929
 msgid "Unversioned"
 msgstr ""
 
-#: lib\treewidget.py:932
+#: lib\treewidget.py:930
 msgid "Ignored"
 msgstr ""
 
-#: lib\treewidget.py:1034
+#: lib\treewidget.py:1032
 msgid "&Open"
 msgstr ""
 
-#: lib\treewidget.py:1037
+#: lib\treewidget.py:1035
 msgid "&View file"
 msgstr ""
 
-#: lib\treewidget.py:1040
+#: lib\treewidget.py:1038
 msgid "Show &annotate"
 msgstr ""
 
-#: lib\treewidget.py:1043
+#: lib\treewidget.py:1041
 msgid "Show &log"
 msgstr ""
 
-#: lib\treewidget.py:1058
+#: lib\treewidget.py:1056
 msgid "&Add"
 msgstr ""
 
-#: lib\treewidget.py:1061
+#: lib\treewidget.py:1059
 msgid "&Revert"
 msgstr ""
 
-#: lib\treewidget.py:1383
+#: lib\treewidget.py:1381
 #, python-format
 msgid "Add %s to the tree."
 msgstr ""
 
-#: lib\treewidget.py:1411
+#: lib\treewidget.py:1409
 #, python-format
 msgid "Revert %s to latest revision."
 msgstr ""
+
+#: lib\treewidget.py:1423
+msgid "Select / deselect all"
+msgstr "Tümünü seç / Hiçbirini seçme"
+
+#: lib\tree_branch.py:91 lib\util.py:1065
+#, python-format
+msgid "Not a branch \"%s\""
+msgstr ""
+
+#: lib\tree_branch.py:93 lib\util.py:1075
+#, python-format
+msgid "No working tree exists for \"%s\""
+msgstr ""
+
+#: lib\ui_bookmark.py:51 lib\ui_branch.py:67 lib\ui_merge.py:64
+#: lib\ui_pull.py:62 lib\ui_push.py:64
+msgid "&Location:"
+msgstr "&Konum:"
+
+#: lib\ui_branch.py:68 lib\ui_branch.py:71 lib\ui_init.py:120
+#: lib\ui_merge.py:65 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
+#: lib\ui_pull.py:63 lib\ui_push.py:65 lib\ui_update_branch.py:85
+#: lib\ui_update_checkout.py:79
+msgid "Browse..."
+msgstr "Gözat..."
+
+#: lib\ui_branch.py:69 lib\ui_merge.py:66 lib\ui_pull.py:64 lib\ui_tag.py:97
+msgid "&Revision:"
+msgstr "&Düzeltme:"
 
 #: lib\ui_branch.py:70
 msgid "&To:"
 msgstr ""
 
-#: lib\ui_info.py:181
+#: lib\ui_info.py:147 lib\ui_info.py:149 lib\ui_info.py:151 lib\ui_info.py:153
+#: lib\ui_info.py:155 lib\ui_info.py:158 lib\ui_info.py:160 lib\ui_info.py:162
+#: lib\ui_info.py:164
+msgid "..."
+msgstr "..."
+
+#: lib\ui_info.py:148
+msgid "Parent branch:"
+msgstr "Üst dal:"
+
+#: lib\ui_info.py:150
 msgid "Push branch:"
 msgstr ""
 
-#: lib\ui_info.py:185
+#: lib\ui_info.py:152
 msgid "Submit branch:"
 msgstr ""
+
+#: lib\ui_info.py:154
+msgid "Public branch:"
+msgstr ""
+
+#: lib\ui_info.py:156
+msgid "&Related Branches"
+msgstr "İ&lgili Dallar"
+
+#: lib\ui_info.py:157
+msgid "Working tree format:"
+msgstr "Çalışma ağacı biçimi:"
+
+#: lib\ui_info.py:159
+msgid "Branch format:"
+msgstr "Dal biçimi:"
+
+#: lib\ui_info.py:161
+msgid "Repository format:"
+msgstr "Depo biçimi:"
+
+#: lib\ui_info.py:163
+msgid "Control directory format:"
+msgstr "Denetim dizini biçimi:"
+
+#: lib\ui_info.py:165
+msgid "&Format"
+msgstr "&Biçim"
+
+#: lib\ui_init.py:119
+msgid "Local Directory"
+msgstr "Yerel Dizin"
+
+#: lib\ui_init.py:121
+msgid "Repository"
+msgstr "Depo"
+
+#: lib\ui_init.py:122
+msgid "Create a new standalone tree"
+msgstr "Yeni bir kendibaşına ağaç oluştur"
 
 #: lib\ui_init.py:123
 msgid "Ensure all revisions are appended to the log"
 msgstr ""
+
+#: lib\ui_init.py:124
+msgid "Create a new shared repository"
+msgstr "Yeni bir paylaşılan depo yarat"
+
+#: lib\ui_init.py:125
+msgid "Skip the creation of working trees in this repository"
+msgstr "Depoda çalışma ağacı yaratılmasın"
+
+#: lib\ui_init.py:131
+msgid "Repository Format:"
+msgstr "Depo Biçimi:"
+
+#: lib\ui_init.py:132
+msgid "Description of format"
+msgstr "Biçimin açıklaması"
+
+#: lib\ui_merge.py:62
+msgid "Merge"
+msgstr "Birleştir"
+
+#: lib\ui_merge.py:67 lib\ui_pull.py:65 lib\ui_push.py:66
+msgid "Remember this location as a default"
+msgstr "Bu konumu öntanımlı olarak hatırla"
 
 #: lib\ui_merge.py:68
 msgid "Merge even if the working tree has uncommitted changes"
@@ -1410,11 +1339,23 @@ msgstr ""
 msgid "Merge uncommitted changes instead of committed ones"
 msgstr ""
 
+#: lib\ui_new_tree.py:129
+msgid "Create a new Bazaar Working Tree"
+msgstr "Yeni bir Bazaar Çalışma Ağacı Yarat"
+
 #: lib\ui_new_tree.py:131
 msgid ""
 "Branch source (enter a URL or select a local directory with an existing "
 "branch)"
 msgstr ""
+
+#: lib\ui_new_tree.py:133
+msgid "Local directory where the working tree will be created"
+msgstr "Çalışma dizininin yaratılacağı yerel dizin"
+
+#: lib\ui_new_tree.py:135
+msgid "Working Tree Options"
+msgstr "Çalışma Ağacı Seçenekleri"
 
 #: lib\ui_new_tree.py:136
 msgid "Create a checkout"
@@ -1424,16 +1365,73 @@ msgstr ""
 msgid "Light-weight checkout"
 msgstr ""
 
+#: lib\ui_new_tree.py:145
+msgid "Make a local copy of the branch"
+msgstr "Dalın yerel bir kopyasını yarat"
+
+#: lib\ui_new_tree.py:151
+msgid "Create a stacked branch referring to the source branch"
+msgstr "Kaynak dala başvuran bir yığılmış dal oluştur"
+
 #: lib\ui_new_tree.py:152
 msgid "Click a link for more information about checkouts and branches."
 msgstr ""
+
+#: lib\ui_new_tree.py:159
+msgid "Most recent (tip) revision"
+msgstr "En yeni düzeltme"
+
+#: lib\ui_new_tree.py:161
+msgid "Show Log..."
+msgstr "Günlüğü Göster..."
 
 #: lib\ui_pull.py:60
 msgid "Pull"
 msgstr ""
 
+#: lib\ui_pull.py:66 lib\ui_push.py:67 lib\ui_update_branch.py:88
+#: lib\ui_update_checkout.py:80
+msgid "Overwrite differences between branches"
+msgstr "Dallar arasındaki farklılıkların üzerine yaz"
+
+#: lib\ui_push.py:68
+msgid "Use existing directory"
+msgstr "Mevcut dizini kullan"
+
 #: lib\ui_push.py:69
 msgid "Create the path up to the branch if it does not exist"
+msgstr ""
+
+#: lib\ui_run.py:101
+msgid "Run bzr command"
+msgstr ""
+
+#: lib\ui_run.py:102
+msgid "&Working directory:"
+msgstr ""
+
+#: lib\ui_run.py:103 lib\ui_tag.py:90
+msgid "&Browse..."
+msgstr ""
+
+#: lib\ui_run.py:104
+msgid "&Command:"
+msgstr ""
+
+#: lib\ui_run.py:105
+msgid "&Show hidden commands"
+msgstr ""
+
+#: lib\ui_run.py:106
+msgid "&Options and arguments for command:"
+msgstr ""
+
+#: lib\ui_run.py:107
+msgid "Insert &directory..."
+msgstr ""
+
+#: lib\ui_run.py:108
+msgid "Insert &filenames..."
 msgstr ""
 
 #: lib\ui_sysinfo.py:113
@@ -1500,10 +1498,6 @@ msgstr ""
 msgid "Edit tag"
 msgstr ""
 
-#: lib\ui_tag.py:90
-msgid "&Browse..."
-msgstr ""
-
 #: lib\ui_tag.py:91
 msgid "Tag"
 msgstr ""
@@ -1517,7 +1511,7 @@ msgid "Create new tag"
 msgstr ""
 
 #: lib\ui_tag.py:94
-msgid "Replace existing tag"
+msgid "Move existing tag"
 msgstr ""
 
 #: lib\ui_tag.py:95
@@ -1532,6 +1526,15 @@ msgstr ""
 msgid "&Select..."
 msgstr ""
 
+#: lib\ui_update_branch.py:82
+msgid "Update Branch"
+msgstr "Dalı Güncelle"
+
+#: lib\ui_update_branch.py:83
+msgid ""
+"This directory is a branch.  Please select what you would like to update"
+msgstr "Bu dizin bir dal. Lütfen neyi güncellemek istediğinizi seçin"
+
 #: lib\ui_update_branch.py:84 lib\ui_update_checkout.py:76
 msgid "Update source"
 msgstr ""
@@ -1540,9 +1543,17 @@ msgstr ""
 msgid "Pull most recent changes from:"
 msgstr ""
 
+#: lib\ui_update_branch.py:87
+msgid "Remember this as the new parent branch"
+msgstr "Bu dalı yeni üst dal olarak hatırla"
+
 #: lib\ui_update_branch.py:89
 msgid "<Parent Branch shown here>"
 msgstr ""
+
+#: lib\ui_update_branch.py:90
+msgid "Update working tree to the latest changes in the branch"
+msgstr "Çalışma ağacını dalın en yeni haline güncelle"
 
 #: lib\ui_update_checkout.py:74
 msgid "Update Checkout"
@@ -1569,8 +1580,36 @@ msgstr ""
 msgid "Unbind"
 msgstr ""
 
+#: lib\unbind.py:55 lib\util.py:563
+msgid "Branch:"
+msgstr "Dal:"
+
 #: lib\unbind.py:62
 msgid "Bound to:"
+msgstr ""
+
+#: lib\uncommit.py:41 lib\uncommit.py:125
+msgid "Uncommit"
+msgstr ""
+
+#: lib\uncommit.py:58
+msgid "Move tip to"
+msgstr ""
+
+#: lib\uncommit.py:60
+msgid "Parent of current tip revision"
+msgstr ""
+
+#: lib\uncommit.py:62
+msgid "Other revision:"
+msgstr ""
+
+#: lib\uncommit.py:105
+msgid "No other revision specified."
+msgstr ""
+
+#: lib\uncommit.py:123
+msgid "Do you really want to uncommit these revisions?"
 msgstr ""
 
 #: lib\update.py:35
@@ -1599,6 +1638,14 @@ msgstr ""
 msgid "Select Target Directory"
 msgstr ""
 
+#: lib\util.py:541
+msgid "Parents:"
+msgstr "Üstleri:"
+
+#: lib\util.py:545
+msgid "Children:"
+msgstr "Altları:"
+
 #: lib\util.py:549
 msgid "Date:"
 msgstr ""
@@ -1606,6 +1653,14 @@ msgstr ""
 #: lib\util.py:551
 msgid "Committer:"
 msgstr ""
+
+#: lib\util.py:554 lib\util.py:559
+msgid "Author:"
+msgstr "Yazar:"
+
+#: lib\util.py:568
+msgid "Tags:"
+msgstr "Etiketler:"
 
 #: lib\util.py:577
 msgid "Bug:"
@@ -1617,16 +1672,43 @@ msgstr[1] ""
 msgid "Uncommited Working Tree Changes"
 msgstr ""
 
+#: lib\util.py:724
+msgid "deleted files"
+msgstr "silinen dosyalar"
+
+#: lib\util.py:726
+msgid "added files"
+msgstr "eklenen dosyalar"
+
+#: lib\util.py:728
+msgid "renamed files"
+msgstr "adı değiştirilen dosyalar"
+
+#: lib\util.py:730
+msgid "modified files"
+msgstr "değiştirilen dosyalar"
+
 #: lib\util.py:1027 lib\util.py:1028 lib\util.py:1031
 msgid "(no message)"
 msgstr ""
 
-#: lib\util.py:1065
-#, python-format
-msgid "Not a branch \"%s\""
-msgstr ""
+#~ msgid "&Location"
+#~ msgstr "&Konum"
 
-#: lib\util.py:1075
-#, python-format
-msgid "No working tree exists for \"%s\""
-msgstr ""
+#~ msgid "Local location:"
+#~ msgstr "Yerel Konum:"
+
+#~ msgid "Extension"
+#~ msgstr "Uzantı"
+
+#~ msgid "Show log..."
+#~ msgstr "Günlüğü göster..."
+
+#~ msgid "Stopped"
+#~ msgstr "Durduruldu"
+
+#~ msgid "Public branch location:"
+#~ msgstr "Umumi dalın konumu:"
+
+#~ msgid "&Revert..."
+#~ msgstr "&Eski durumuna getir..."

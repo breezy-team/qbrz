@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: QBzr 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-19 12:01+0300\n"
+"POT-Creation-Date: 2009-09-07 08:14+0300\n"
 "PO-Revision-Date: 2009-08-19 10:17+0000\n"
 "Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
 "Language-Team: Russian\n"
@@ -14,11 +14,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Launchpad-Export-Date: 2009-08-20 11:04+0000\n"
+"X-Launchpad-Export-Date: 2009-09-10 15:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:113 lib\config.py:134 lib\config.py:165
-#: lib\config.py:194 lib\treewidget.py:1384
+#: lib\config.py:194 lib\treewidget.py:1382
 msgid "Add"
 msgstr "Добавить"
 
@@ -42,7 +42,7 @@ msgstr "Автор"
 msgid "Rev"
 msgstr "Версия"
 
-#: lib\annotate.py:209 lib\annotate.py:345 lib\annotate.py:349 lib\log.py:203
+#: lib\annotate.py:209 lib\annotate.py:345 lib\annotate.py:349 lib\log.py:204
 msgid "Annotate"
 msgstr "Аннотация"
 
@@ -50,17 +50,50 @@ msgstr "Аннотация"
 msgid "Loading..."
 msgstr "Загрузка..."
 
-#: lib\bind.py:82 lib\browse.py:63 lib\browse.py:233 lib\export.py:85
+#: lib\annotate.py:346
+#, python-format
+msgid "Revision %s"
+msgstr "Ревизия %s"
+
+#: lib\annotate.py:401
+msgid "&Annotate this revision"
+msgstr "Аннотация для этой ревизии"
+
+#: lib\bind.py:46
+msgid "Bind branch"
+msgstr ""
+
+#: lib\bind.py:56 lib\bind.py:105
+msgid "Bind"
+msgstr ""
+
+#: lib\bind.py:58
+msgid "Branch location:"
+msgstr "Расположение ветки:"
+
+#: lib\bind.py:62
+msgid "Currently bound to:"
+msgstr ""
+
+#: lib\bind.py:66
+msgid "Bind to:"
+msgstr ""
+
+#: lib\bind.py:70 lib\browse.py:63 lib\browse.py:233 lib\export.py:85
 #: lib\export.py:139 lib\send.py:62 lib\send.py:86 lib\send.py:152
 #: lib\switch.py:99
 msgid "Browse"
 msgstr "Обзор"
 
-#: lib\bind.py:113 lib\switch.py:148 lib\tag.py:189
+#: lib\bind.py:120 lib\switch.py:148 lib\tag.py:189
 msgid "Select branch location"
 msgstr "Выбрать расположение ветки"
 
-#: lib\browse.py:72 lib\export.py:80
+#: lib\bind.py:131
+msgid "Master branch location not specified."
+msgstr ""
+
+#: lib\browse.py:72 lib\export.py:80 lib\ui_info.py:146
 msgid "Location:"
 msgstr "Расположение:"
 
@@ -73,24 +106,28 @@ msgstr "Версия:"
 msgid "Show"
 msgstr "Показать"
 
+#: lib\browse.py:88 lib\treewidget.py:925
+msgid "&Filter"
+msgstr "&Фильтр"
+
 #: lib\cat.py:86 lib\cat.py:243
 msgid "View"
 msgstr "Просмотр"
 
-#: lib\commit.py:213 lib\commit.py:571 lib\commit.py:599 lib\commit.py:607
+#: lib\commit.py:213 lib\commit.py:580 lib\commit.py:608 lib\commit.py:616
 msgid "Commit"
 msgstr "Зафиксировать"
 
-#: lib\commit.py:236 lib\ui_branch.py:65 lib\ui_new_tree.py:130
+#: lib\commit.py:239 lib\ui_branch.py:65 lib\ui_new_tree.py:130
 #: lib\ui_tag.py:89
 msgid "Branch"
 msgstr "Ветка"
 
-#: lib\commit.py:248
+#: lib\commit.py:251
 msgid "&Local commit"
 msgstr "Локальная фиксация"
 
-#: lib\commit.py:250
+#: lib\commit.py:253
 msgid ""
 "Local commits are not pushed to the master branch until a normal commit is "
 "performed"
@@ -98,31 +135,31 @@ msgstr ""
 "Локальные фиксации не передаются в главную ветку до тех пор, пока не будет "
 "сделана обычная фиксация."
 
-#: lib\commit.py:254
+#: lib\commit.py:257
 msgid "Description:"
 msgstr "Описание:"
 
-#: lib\commit.py:269 lib\logmodel.py:97 lib\treewidget.py:241
+#: lib\commit.py:272 lib\logmodel.py:97 lib\treewidget.py:241
 msgid "Message"
 msgstr "Комментарий"
 
-#: lib\commit.py:277
+#: lib\commit.py:280
 msgid "Show non-versioned files"
 msgstr "Показать неизвестные файлы"
 
-#: lib\commit.py:298
+#: lib\commit.py:301
 msgid "Enter the commit message"
 msgstr "Введите комментарий к этой версии"
 
-#: lib\commit.py:311
+#: lib\commit.py:314
 msgid "&Fixed bugs:"
 msgstr "&Исправленные ошибки:"
 
-#: lib\commit.py:312
+#: lib\commit.py:315
 msgid "Set the IDs of bugs fixed by this commit"
 msgstr "Указать номера ошибок, исправленных в этой версии"
 
-#: lib\commit.py:315
+#: lib\commit.py:318
 msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
@@ -130,53 +167,53 @@ msgstr ""
 "Введите список номеров ошибок в формате <i>tag:id</i>, несколько ошибок "
 "разделяются пробелами, например: <i>project:123 project:765</i>"
 
-#: lib\commit.py:325
+#: lib\commit.py:328
 msgid "&Author:"
 msgstr "&Автор:"
 
-#: lib\commit.py:326
+#: lib\commit.py:329
 msgid "Set the author of this change, if it's different from the committer"
 msgstr ""
 "Указать автора этих изменений, если он отличается от того, кто делает "
 "фиксацию версии"
 
-#: lib\commit.py:329
+#: lib\commit.py:332
 msgid ""
 "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
 "Введите имя автора, например: <i>John Doe &lt;jdoe@example.com&gt;</i>"
 
-#: lib\commit.py:344 lib\revert.py:65
+#: lib\commit.py:347 lib\revert.py:65
 msgid "Changes"
 msgstr "Изменения"
 
-#: lib\commit.py:361 lib\revert.py:94
+#: lib\commit.py:364 lib\revert.py:94
 msgid "Pending Merges"
 msgstr "Незаконченное объединение"
 
-#: lib\commit.py:372 lib\main.py:359 lib\subprocess.py:139
+#: lib\commit.py:375 lib\main.py:359 lib\subprocess.py:139
 #: lib\treewidget.py:243
 msgid "Status"
 msgstr "Состояние"
 
-#: lib\commit.py:384
+#: lib\commit.py:387
 msgid "View changes in files selected to commit"
 msgstr "Просмотр изменений в файлах, отобранных для фиксации"
 
-#: lib\commit.py:572
+#: lib\commit.py:581
 msgid "You should provide commit message."
 msgstr "Вы должны написать комментарий к фиксации"
 
-#: lib\commit.py:573 lib\conflicts.py:162 lib\conflicts.py:167
+#: lib\commit.py:582 lib\conflicts.py:162 lib\conflicts.py:167
 #: lib\diffwindow.py:381 lib\util.py:77
 msgid "&OK"
 msgstr "&ОК"
 
-#: lib\commit.py:600
+#: lib\commit.py:609
 msgid "No changes to commit."
 msgstr "Нечего фиксировать."
 
-#: lib\commit.py:608
+#: lib\commit.py:617
 msgid ""
 "No changes selected to commit.\n"
 "Do you want to commit anyway?"
@@ -184,7 +221,7 @@ msgstr ""
 "Вы не отметили ни одного файла для фиксации.\n"
 "Вы хотите зафикисировать в таком виде?"
 
-#: lib\commit.py:672
+#: lib\commit.py:681
 msgid ""
 "A commit will be made directly to the master branch, keeping the local and "
 "master branches in sync."
@@ -192,7 +229,7 @@ msgstr ""
 "В результате фиксации новая ревизия будет помещена в главную и локальную "
 "ветки, таким образом обе ветки будут синхронизированы."
 
-#: lib\commit.py:678
+#: lib\commit.py:687
 msgid ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
@@ -200,7 +237,7 @@ msgstr ""
 "Фиксация будет выполнена только в локальной ветке. Главная ветка не будет "
 "обновлена до тех пор, пока вы не сделаете обычную (не локальную) фиксацию."
 
-#: lib\commit.py:710 lib\diff.py:105 lib\diffwindow.py:119
+#: lib\commit.py:719 lib\diff.py:105 lib\diffwindow.py:119
 #: lib\diffwindow.py:232 lib\diffwindow.py:371 lib\diffwindow.py:379
 #: lib\revert.py:297
 msgid "Diff"
@@ -290,6 +327,14 @@ msgstr "Программы просмотра изменений:"
 msgid "Name"
 msgstr "Имя"
 
+#: lib\config.py:185
+msgid "External Merge Apps:"
+msgstr "Внешние программы объединения:"
+
+#: lib\config.py:188
+msgid "Definition"
+msgstr "Определение"
+
 #: lib\config.py:211
 msgid "General"
 msgstr "Общие"
@@ -309,6 +354,10 @@ msgstr "&Интерфейс"
 #: lib\config.py:215
 msgid "&Diff"
 msgstr "Просмотр изменений"
+
+#: lib\config.py:216
+msgid "&Merge"
+msgstr "Объединение"
 
 #: lib\config.py:241
 msgid "Spell check &language:"
@@ -330,6 +379,18 @@ msgstr "Файл"
 #: lib\conflicts.py:49
 msgid "Conflict"
 msgstr "Конфликт"
+
+#: lib\conflicts.py:73
+msgid "Use Configured Default"
+msgstr ""
+
+#: lib\conflicts.py:75
+msgid ""
+"The merge tool configured in qconfig under Merge' file.\n"
+"It follows the convention used in the bzr plugin: extmerge\n"
+"external_merge = kdiff3 --output %r %b %t %o\n"
+"%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."
+msgstr ""
 
 #: lib\conflicts.py:83
 msgid "&Launch..."
@@ -364,10 +425,32 @@ msgstr "Все конфликты автоматически решены."
 msgid "Error while running merge tool (code %d)"
 msgstr "Ошибка при попытке запуска программы (код %d)"
 
-#: lib\conflicts.py:222 lib\conflicts.py:286 lib\tag.py:203 lib\trace.py:177
-#: lib\trace.py:191 lib\util.py:1064 lib\util.py:1074
+#: lib\conflicts.py:222 lib\conflicts.py:286 lib\tag.py:203 lib\trace.py:181
+#: lib\trace.py:195 lib\tree_branch.py:95 lib\util.py:1064 lib\util.py:1074
 msgid "Error"
 msgstr "Ошибка"
+
+#: lib\conflicts.py:262
+msgid "Set up external_merge app in qconfig under the Merge tab"
+msgstr ""
+
+#: lib\conflicts.py:287
+#, python-format
+msgid ""
+"The extmerge definition: '%(tool)s' is invalid.\n"
+"Missing the flag: %(flags)s. This must be fixed in qconflicts under the "
+"Merge tab."
+msgstr ""
+
+#: lib\conflicts.py:291
+#, python-format
+msgid "Missing the flag: %s. Configure in qconfig under the merge tab."
+msgstr ""
+
+#: lib\conflicts.py:299
+#, python-format
+msgid "%s (Configured external merge definition in qconfig)"
+msgstr ""
 
 #: lib\conflicts.py:307
 msgid "path conflict"
@@ -389,7 +472,27 @@ msgstr "совпадающий id"
 msgid "duplicate"
 msgstr "дубликат"
 
-#: lib\diff.py:81 lib\treewidget.py:1053
+#: lib\conflicts.py:312
+msgid "parent loop"
+msgstr ""
+
+#: lib\conflicts.py:313
+msgid "unversioned parent"
+msgstr ""
+
+#: lib\conflicts.py:314
+msgid "missing parent"
+msgstr ""
+
+#: lib\conflicts.py:315
+msgid "deleting parent"
+msgstr ""
+
+#: lib\conflicts.py:316
+msgid "non-directory parent"
+msgstr ""
+
+#: lib\diff.py:81 lib\treewidget.py:1051
 msgid "Show &differences"
 msgstr "Показать различия"
 
@@ -409,11 +512,11 @@ msgstr "Тип:"
 msgid "Properties:"
 msgstr "Свойства:"
 
-#: lib\diffview.py:479
+#: lib\diffview.py:485
 msgid "[binary file]"
 msgstr "[бинарный файл]"
 
-#: lib\diffview.py:660
+#: lib\diffview.py:666
 msgid "\\ No newline at end of file"
 msgstr "\\ Нет символа перевода строки в конце файла"
 
@@ -462,6 +565,10 @@ msgstr "Unidiff"
 msgid "Complete"
 msgstr "Показывать файлы целиком"
 
+#: lib\diffwindow.py:166
+msgid "Using"
+msgstr ""
+
 #: lib\diffwindow.py:238
 #, python-format
 msgid "%d file"
@@ -500,13 +607,31 @@ msgstr ""
 "Операция прервана."
 
 #: lib\diffwindow.py:374 lib\tag.py:137 lib\tag.py:168 lib\tag.py:205
-#: lib\update.py:52 lib\util.py:79 lib\util.py:1067 lib\util.py:1077
+#: lib\tree_branch.py:97 lib\update.py:52 lib\util.py:79 lib\util.py:1067
+#: lib\util.py:1077
 msgid "&Close"
 msgstr "&Закрыть"
 
 #: lib\diffwindow.py:380
 msgid "No changes found."
 msgstr "Изменения не найдены."
+
+#: lib\export.py:52 lib\export.py:65
+msgid "Export"
+msgstr "Экспорт"
+
+#: lib\export.py:70 lib\uncommit.py:52
+#, python-format
+msgid "Branch: %s"
+msgstr "Ветка: %s"
+
+#: lib\export.py:106
+msgid "Root directory name:"
+msgstr "Имя корневого каталога:"
+
+#: lib\export.py:116
+msgid "Archive type:"
+msgstr "Тип архива:"
 
 #: lib\export.py:151 lib\ui_branch.py:66 lib\ui_merge.py:63 lib\ui_pull.py:61
 #: lib\ui_push.py:63
@@ -518,7 +643,7 @@ msgstr "Параметры"
 msgid "No help can be found for <i>%s</i>"
 msgstr "Нет справки для <i>%s<i>"
 
-#: lib\help.py:109
+#: lib\help.py:103
 msgid "Help"
 msgstr "Справка"
 
@@ -566,9 +691,17 @@ msgstr "Нет файлов для фиксации"
 msgid "No changes selected to revert"
 msgstr "Нет файлов для операции возврата к предыдущей версии"
 
-#: lib\info.py:41
+#: lib\info.py:43
 msgid "Info"
 msgstr "Сведения"
+
+#: lib\info.py:67
+msgid "Location has no working tree"
+msgstr ""
+
+#: lib\info.py:80
+msgid "Location has no branch"
+msgstr ""
 
 #: lib\init.py:37 lib\ui_init.py:118
 msgid "Initialize"
@@ -578,37 +711,49 @@ msgstr "Инициализировать"
 msgid "You must specify a location"
 msgstr "Вы должны указать каталог"
 
-#: lib\log.py:94
+#: lib\log.py:95
 msgid "Log"
 msgstr "Журнал"
 
-#: lib\log.py:121
+#: lib\log.py:122
 msgid "&Search:"
 msgstr "&Поиск:"
 
-#: lib\log.py:137
+#: lib\log.py:138
 msgid "Messages"
 msgstr "Комментарий"
 
-#: lib\log.py:139
+#: lib\log.py:140
 msgid "Authors"
 msgstr "Авторы"
 
-#: lib\log.py:141
+#: lib\log.py:142
 msgid "Revision IDs"
 msgstr "Revision IDs"
 
-#: lib\log.py:143
+#: lib\log.py:144
 msgid "Revision Numbers"
 msgstr "Номера версий"
 
-#: lib\log.py:199 lib\logwidget.py:128
+#: lib\log.py:146
+msgid "Tags"
+msgstr "Теги"
+
+#: lib\log.py:148
+msgid "Bugs"
+msgstr "Номера ошибок"
+
+#: lib\log.py:200 lib\logwidget.py:128
 msgid "Show &differences..."
 msgstr "Показать &различия..."
 
-#: lib\log.py:205
+#: lib\log.py:206
 msgid "View file"
 msgstr "Просмотр файла"
+
+#: lib\log.py:275
+msgid "Messages and File text (indexed)"
+msgstr ""
 
 #: lib\logmodel.py:98 lib\treewidget.py:239
 msgid "Date"
@@ -618,6 +763,22 @@ msgstr "Дата"
 #, python-format
 msgid "bug #%s"
 msgstr "bug #%s"
+
+#: lib\logwidget.py:102
+msgid "Show file &differences"
+msgstr "Показать различия для файла"
+
+#: lib\logwidget.py:108
+msgid "Show all &differences"
+msgstr "Показать различия для всех файлов"
+
+#: lib\logwidget.py:114
+msgid "Show file &differences..."
+msgstr "Показать различия для файла..."
+
+#: lib\logwidget.py:118
+msgid "Show all &differences..."
+msgstr "Показать различия для всех файлов..."
 
 #: lib\logwidget.py:136
 msgid "Show &tree..."
@@ -749,568 +910,6 @@ msgstr "Удалить закладку"
 msgid "Do you really want to remove the selected bookmark?"
 msgstr "Вы действительно хотите удалить выбранную закладку?"
 
-#: lib\plugins.py:58 lib\subprocess.py:312
-msgid "Description"
-msgstr "Описание"
-
-#: lib\plugins.py:71
-msgid "Summary"
-msgstr "Кратко"
-
-#: lib\pull.py:197 lib\ui_push.py:62
-msgid "Push"
-msgstr "Отправить новые данные"
-
-#: lib\revert.py:54 lib\treewidget.py:1412
-msgid "Revert"
-msgstr "Возврат к предыдущей версии"
-
-#: lib\revert.py:82
-msgid "Do not save backups of reverted files"
-msgstr "Не сохранять резервные копии для обрабатываемых файлов"
-
-#: lib\revert.py:144
-msgid "View changes in files selected to revert"
-msgstr ""
-"Просмотр изменений в файлах, которые необходимо возвратить к предыдущей "
-"версии"
-
-#: lib\revisionview.py:60 lib\ui_new_tree.py:158
-msgid "Revision"
-msgstr "Версия"
-
-#: lib\subprocess.py:416
-msgid "Starting..."
-msgstr "Начинаем операцию..."
-
-#: lib\subprocess.py:470
-msgid "Aborting..."
-msgstr "Останавливаем операцию..."
-
-#: lib\subprocess.py:481 lib\subprocess.py:560
-msgid "Finished!"
-msgstr "Завершено!"
-
-#: lib\subprocess.py:503 lib\uifactory.py:107
-msgid "Enter Password"
-msgstr "Введите пароль"
-
-#: lib\subprocess.py:541 lib\subprocess.py:563
-msgid "Failed!"
-msgstr "Неудачно!"
-
-#: lib\subprocess.py:543
-msgid "Failed to start bzr."
-msgstr "Не могу запустить bzr."
-
-#: lib\subprocess.py:545
-#, python-format
-msgid "Error while running bzr. (error code: %d)"
-msgstr "Ошибка во время работы bzr. (код ошибки: %d)"
-
-#: lib\subprocess.py:553
-msgid "Aborted!"
-msgstr "Прервано!"
-
-#: lib\switch.py:88 lib\unbind.py:55 lib\util.py:563
-msgid "Branch:"
-msgstr "Ветка:"
-
-#: lib\tag.py:136
-msgid "You should specify tag name"
-msgstr "Вы должны указать имя тега"
-
-#: lib\tag.py:142
-#, python-format
-msgid ""
-"Tag \"%s\" already exists.\n"
-"Do you want to replace existing tag?"
-msgstr ""
-"Тег \"%s\" уже существует.\n"
-"Хотите его изменить?"
-
-#: lib\tag.py:145
-msgid "&Replace"
-msgstr "И&зменить"
-
-#: lib\tag.py:145 lib\tag.py:158 lib\util.py:78
-msgid "&Cancel"
-msgstr "&Отмена"
-
-#: lib\tag.py:155
-#, python-format
-msgid ""
-"Tag \"%s\" does not exists yet.\n"
-"Do you want to create new tag?"
-msgstr ""
-"Тег \"%s\" еще не существует.\n"
-"Хотите создать новый тег?"
-
-#: lib\tag.py:158
-msgid "Cre&ate"
-msgstr "&Создать"
-
-#: lib\tag.py:167
-#, python-format
-msgid "Tag \"%s\" does not exists"
-msgstr "Тег \"%s\" не существует"
-
-#: lib\tag.py:204
-#, python-format
-msgid ""
-"Not a branch:\n"
-"%s"
-msgstr ""
-"Это не ветка:\n"
-"%s"
-
-#: lib\treewidget.py:210
-msgid "ignored"
-msgstr "игнорируемый"
-
-#: lib\treewidget.py:212
-msgid "non-versioned"
-msgstr "неизвестный"
-
-#: lib\treewidget.py:218
-msgid "missing"
-msgstr "отсутствует"
-
-#: lib\treewidget.py:231
-msgid "modified (x-bit)"
-msgstr "изменён (x-bit)"
-
-#: lib\treewidget.py:1411
-#, python-format
-msgid "Revert %s to latest revision."
-msgstr "Вернуться к последней версии для %s"
-
-#: lib\treewidget.py:1425
-msgid "Select / deselect all"
-msgstr "Выбрать все файлы"
-
-#: lib\ui_bookmark.py:51 lib\ui_branch.py:67 lib\ui_merge.py:64
-#: lib\ui_pull.py:62 lib\ui_push.py:64
-msgid "&Location:"
-msgstr "&Расположение:"
-
-#: lib\ui_branch.py:68 lib\ui_branch.py:71 lib\ui_init.py:120
-#: lib\ui_merge.py:65 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
-#: lib\ui_pull.py:63 lib\ui_push.py:65 lib\ui_update_branch.py:85
-#: lib\ui_update_checkout.py:79
-msgid "Browse..."
-msgstr "Обзор..."
-
-#: lib\ui_branch.py:69 lib\ui_merge.py:66 lib\ui_pull.py:64 lib\ui_tag.py:97
-msgid "&Revision:"
-msgstr "&Версия:"
-
-#: lib\ui_branch.py:70
-msgid "&To:"
-msgstr "&Куда:"
-
-#: lib\ui_info.py:176
-msgid "Local location:"
-msgstr "Расположение на диске"
-
-#: lib\ui_info.py:177 lib\ui_info.py:179 lib\ui_info.py:182 lib\ui_info.py:184
-#: lib\ui_info.py:186 lib\ui_info.py:189 lib\ui_info.py:191 lib\ui_info.py:193
-#: lib\ui_info.py:195
-msgid "..."
-msgstr "..."
-
-#: lib\ui_info.py:178
-msgid "Public branch location:"
-msgstr "Публичная ветка:"
-
-#: lib\ui_info.py:180
-msgid "&Location"
-msgstr "&Расположение"
-
-#: lib\ui_info.py:183
-msgid "Parent branch:"
-msgstr "Родительская ветка:"
-
-#: lib\ui_info.py:187
-msgid "&Related Branches"
-msgstr "Родственные ветки"
-
-#: lib\ui_info.py:188
-msgid "Working tree format:"
-msgstr "Формат рабочей копии:"
-
-#: lib\ui_info.py:190
-msgid "Branch format:"
-msgstr "Формат ветки:"
-
-#: lib\ui_info.py:192
-msgid "Repository format:"
-msgstr "Формат репозитория:"
-
-#: lib\ui_info.py:194
-msgid "Control directory format:"
-msgstr "Формат bzr-каталога:"
-
-#: lib\ui_info.py:196
-msgid "&Format"
-msgstr "&Формат"
-
-#: lib\ui_init.py:119
-msgid "Local Directory"
-msgstr "Локальный каталог"
-
-#: lib\ui_init.py:121
-msgid "Repository"
-msgstr "Репозиторий"
-
-#: lib\ui_init.py:122
-msgid "Create a new standalone tree"
-msgstr "Создать самостоятельную ветку"
-
-#: lib\ui_init.py:123
-msgid "Ensure all revisions are appended to the log"
-msgstr "Убедиться, что все версии добавлены в журнал"
-
-#: lib\ui_init.py:125
-msgid "Skip the creation of working trees in this repository"
-msgstr "Новые ветки в репозитории создаются без рабочей копии"
-
-#: lib\ui_init.py:131
-msgid "Repository Format:"
-msgstr "Формат репозитория:"
-
-#: lib\ui_init.py:132
-msgid "Description of format"
-msgstr "Описание формата"
-
-#: lib\ui_merge.py:62
-msgid "Merge"
-msgstr "Объединить"
-
-#: lib\ui_merge.py:67 lib\ui_pull.py:65 lib\ui_push.py:66
-msgid "Remember this location as a default"
-msgstr "Запомнить этот URL в качестве значения по умолчанию."
-
-#: lib\ui_new_tree.py:159
-msgid "Most recent (tip) revision"
-msgstr "Самая последняя версия (верхушка)"
-
-#: lib\ui_new_tree.py:161
-msgid "Show Log..."
-msgstr "Посмотреть журнал"
-
-#: lib\ui_pull.py:60
-msgid "Pull"
-msgstr "Загрузить новые данные"
-
-#: lib\ui_pull.py:66 lib\ui_push.py:67 lib\ui_update_branch.py:88
-#: lib\ui_update_checkout.py:80
-msgid "Overwrite differences between branches"
-msgstr "Переписать различия между ветками"
-
-#: lib\ui_push.py:68
-msgid "Use existing directory"
-msgstr "Использовать существующий каталог"
-
-#: lib\ui_push.py:69
-msgid "Create the path up to the branch if it does not exist"
-msgstr "Создать все недостающие каталоги вплоть до каталога с новой веткой"
-
-#: lib\ui_tag.py:88
-msgid "Edit tag"
-msgstr "Редактирование тега"
-
-#: lib\ui_tag.py:90
-msgid "&Browse..."
-msgstr "Обзор..."
-
-#: lib\ui_tag.py:91
-msgid "Tag"
-msgstr "Тег"
-
-#: lib\ui_tag.py:92
-msgid "&Action:"
-msgstr "Действие:"
-
-#: lib\ui_tag.py:93
-msgid "Create new tag"
-msgstr "Создать новый тег"
-
-#: lib\ui_tag.py:94
-msgid "Replace existing tag"
-msgstr "Изменить существующий тег"
-
-#: lib\ui_tag.py:95
-msgid "Delete existing tag"
-msgstr "Удалить тег"
-
-#: lib\ui_tag.py:96
-msgid "&Tag name:"
-msgstr "Имя тега:"
-
-#: lib\ui_tag.py:98
-msgid "&Select..."
-msgstr "&Выбрать..."
-
-#: lib\ui_update_branch.py:82
-msgid "Update Branch"
-msgstr "Обновить ветку"
-
-#: lib\ui_update_branch.py:83
-msgid ""
-"This directory is a branch.  Please select what you would like to update"
-msgstr "Этот каталог является веткой. Укажите, что вы желаете обновить"
-
-#: lib\ui_update_branch.py:84 lib\ui_update_checkout.py:76
-msgid "Update source"
-msgstr "Обновить"
-
-#: lib\ui_update_branch.py:86
-msgid "Pull most recent changes from:"
-msgstr "Получить последние изменения из:"
-
-#: lib\ui_update_branch.py:87
-msgid "Remember this as the new parent branch"
-msgstr "Запомнить этот путь в качестве новой родительской ветки"
-
-#: lib\ui_update_branch.py:89
-msgid "<Parent Branch shown here>"
-msgstr "<Parent Branch shown here>"
-
-#: lib\ui_update_branch.py:90
-msgid "Update working tree to the latest changes in the branch"
-msgstr "Обновить рабочие файлы последними изменениями в ветке"
-
-#: lib\ui_update_checkout.py:74
-msgid "Update Checkout"
-msgstr "Обновить рабочую копию"
-
-#: lib\util.py:541
-msgid "Parents:"
-msgstr "Предыдущие версии:"
-
-#: lib\util.py:545
-msgid "Children:"
-msgstr "Следующие версии:"
-
-#: lib\util.py:549
-msgid "Date:"
-msgstr "Дата:"
-
-#: lib\util.py:551
-msgid "Committer:"
-msgstr "Зафиксировал:"
-
-#: lib\util.py:554 lib\util.py:559
-msgid "Author:"
-msgstr "Автор:"
-
-#: lib\util.py:568
-msgid "Tags:"
-msgstr "Теги:"
-
-#: lib\util.py:577
-msgid "Bug:"
-msgid_plural "Bugs:"
-msgstr[0] "Ошибка:"
-msgstr[1] "Ошибки:"
-msgstr[2] "Ошибки:"
-
-#: lib\util.py:724
-msgid "deleted files"
-msgstr "удаленные файлы"
-
-#: lib\util.py:726
-msgid "added files"
-msgstr "добавленные файлы"
-
-#: lib\util.py:728
-msgid "renamed files"
-msgstr "переименованные файлы"
-
-#: lib\util.py:730
-msgid "modified files"
-msgstr "измененные файлы"
-
-#~ msgid "Extension"
-#~ msgstr "Расширение"
-
-#~ msgid "&Revert..."
-#~ msgstr "&Вернуть предыдущую версию..."
-
-#~ msgid "Show log..."
-#~ msgstr "Показать журнал..."
-
-#~ msgid "Stopped"
-#~ msgstr "Остановлено"
-
-#~ msgid "Internal Error"
-#~ msgstr "Внутренняя ошибка"
-
-#, python-format
-#~ msgid ""
-#~ "Sorry, subprocess action \"%s\" cannot be started\n"
-#~ "because self.args is None.\n"
-#~ "Please, report bug at:\n"
-#~ "https://bugs.launchpad.net/qbzr/+filebug"
-#~ msgstr ""
-#~ "Sorry, subprocess action \"%s\" cannot be started\n"
-#~ "because self.args is None.\n"
-#~ "Please, report bug at:\n"
-#~ "https://bugs.launchpad.net/qbzr/+filebug"
-
-#: lib\annotate.py:346
-#, python-format
-msgid "Revision %s"
-msgstr "Ревизия %s"
-
-#: lib\annotate.py:404
-msgid "&Annotate this revision"
-msgstr "Аннотация для этой ревизии"
-
-#: lib\bind.py:46
-msgid "Bind branch"
-msgstr ""
-
-#: lib\bind.py:57 lib\bind.py:102
-msgid "Bind"
-msgstr ""
-
-#: lib\bind.py:61
-msgid "Branch location:"
-msgstr "Расположение ветки:"
-
-#: lib\bind.py:65
-msgid "Bind to:"
-msgstr ""
-
-#: lib\bind.py:76
-msgid "Currently bound to:"
-msgstr ""
-
-#: lib\bind.py:124
-msgid "Master branch location not specified."
-msgstr ""
-
-#: lib\browse.py:88 lib\treewidget.py:927
-msgid "&Filter"
-msgstr "&Фильтр"
-
-#: lib\config.py:185
-msgid "External Merge Apps:"
-msgstr "Внешние программы объединения:"
-
-#: lib\config.py:188
-msgid "Definition"
-msgstr "Определение"
-
-#: lib\config.py:216
-msgid "&Merge"
-msgstr "Объединение"
-
-#: lib\conflicts.py:73
-msgid "Use Configured Default"
-msgstr ""
-
-#: lib\conflicts.py:75
-msgid ""
-"The merge tool configured in qconfig under Merge' file.\n"
-"It follows the convention used in the bzr plugin: extmerge\n"
-"external_merge = kdiff3 --output %r %b %t %o\n"
-"%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."
-msgstr ""
-
-#: lib\conflicts.py:262
-msgid "Set up external_merge app in qconfig under the Merge tab"
-msgstr ""
-
-#: lib\conflicts.py:287
-#, python-format
-msgid ""
-"The extmerge definition: '%(tool)s' is invalid.\n"
-"Missing the flag: %(flags)s. This must be fixed in qconflicts under the "
-"Merge tab."
-msgstr ""
-
-#: lib\conflicts.py:291
-#, python-format
-msgid "Missing the flag: %s. Configure in qconfig under the merge tab."
-msgstr ""
-
-#: lib\conflicts.py:299
-#, python-format
-msgid "%s (Configured external merge definition in qconfig)"
-msgstr ""
-
-#: lib\conflicts.py:312
-msgid "parent loop"
-msgstr ""
-
-#: lib\conflicts.py:313
-msgid "unversioned parent"
-msgstr ""
-
-#: lib\conflicts.py:314
-msgid "missing parent"
-msgstr ""
-
-#: lib\conflicts.py:315
-msgid "deleting parent"
-msgstr ""
-
-#: lib\conflicts.py:316
-msgid "non-directory parent"
-msgstr ""
-
-#: lib\diffwindow.py:166
-msgid "Using"
-msgstr ""
-
-#: lib\export.py:52 lib\export.py:65
-msgid "Export"
-msgstr "Экспорт"
-
-#: lib\export.py:70
-#, python-format
-msgid "Branch: %s"
-msgstr "Ветка: %s"
-
-#: lib\export.py:106
-msgid "Root directory name:"
-msgstr "Имя корневого каталога:"
-
-#: lib\export.py:116
-msgid "Archive type:"
-msgstr "Тип архива:"
-
-#: lib\log.py:145
-msgid "Tags"
-msgstr "Теги"
-
-#: lib\log.py:147
-msgid "Bugs"
-msgstr "Номера ошибок"
-
-#: lib\log.py:274
-msgid "Messages and File text (indexed)"
-msgstr ""
-
-#: lib\logwidget.py:102
-msgid "Show file &differences"
-msgstr "Показать различия для файла"
-
-#: lib\logwidget.py:108
-msgid "Show all &differences"
-msgstr "Показать различия для всех файлов"
-
-#: lib\logwidget.py:114
-msgid "Show file &differences..."
-msgstr "Показать различия для файла..."
-
-#: lib\logwidget.py:118
-msgid "Show all &differences..."
-msgstr "Показать различия для всех файлов..."
-
 #: lib\plugins.py:44
 msgid "Plugins"
 msgstr ""
@@ -1318,6 +917,10 @@ msgstr ""
 #: lib\plugins.py:57
 msgid "Version"
 msgstr ""
+
+#: lib\plugins.py:58 lib\subprocess.py:316
+msgid "Description"
+msgstr "Описание"
 
 #: lib\plugins.py:62
 msgid "Directory"
@@ -1327,6 +930,10 @@ msgstr "Каталог"
 #, python-format
 msgid "Plugins installed: %(rows)d"
 msgstr ""
+
+#: lib\plugins.py:71
+msgid "Summary"
+msgstr "Кратко"
 
 #: lib\plugins.py:72
 msgid "Locations"
@@ -1346,17 +953,35 @@ msgstr ""
 "Рабочая копия не синхронизирована с главной веткой, запустите команду bzr "
 "update."
 
+#: lib\pull.py:197 lib\ui_push.py:62
+msgid "Push"
+msgstr "Отправить новые данные"
+
 #: lib\pull.py:199
 msgid "Do you want to continue anyway?"
 msgstr "Хотите продолжить в любом случае?"
 
-#: lib\pull.py:200
+#: lib\pull.py:200 lib\uncommit.py:127
 msgid "&Yes"
 msgstr "&Да"
 
-#: lib\pull.py:200
+#: lib\pull.py:200 lib\uncommit.py:127
 msgid "&No"
 msgstr "&Нет"
+
+#: lib\revert.py:54 lib\treewidget.py:1410
+msgid "Revert"
+msgstr "Возврат к предыдущей версии"
+
+#: lib\revert.py:82
+msgid "Do not save backups of reverted files"
+msgstr "Не сохранять резервные копии для обрабатываемых файлов"
+
+#: lib\revert.py:144
+msgid "View changes in files selected to revert"
+msgstr ""
+"Просмотр изменений в файлах, которые необходимо возвратить к предыдущей "
+"версии"
 
 #: lib\revert.py:242
 msgid ""
@@ -1365,6 +990,26 @@ msgid ""
 msgstr ""
 "Вы собираетесь отменить изменения во всех файлах, но оставить незаконченное "
 "объединение. Вы уверены, что хотите продолжить?"
+
+#: lib\revisionview.py:60 lib\ui_new_tree.py:158
+msgid "Revision"
+msgstr "Версия"
+
+#: lib\run.py:80
+msgid "Select working directory"
+msgstr ""
+
+#: lib\run.py:93
+msgid "Help for command"
+msgstr ""
+
+#: lib\run.py:157
+msgid "Select path to insert"
+msgstr ""
+
+#: lib\run.py:167
+msgid "Select files to insert"
+msgstr ""
 
 #: lib\send.py:34
 msgid "Send"
@@ -1414,9 +1059,42 @@ msgstr "Файл:"
 msgid "Revisions:"
 msgstr "Ревизии:"
 
-#: lib\subprocess.py:350
+#: lib\subprocess.py:354
 msgid "Ready"
 msgstr "Готов"
+
+#: lib\subprocess.py:423
+msgid "Starting..."
+msgstr "Начинаем операцию..."
+
+#: lib\subprocess.py:481
+msgid "Aborting..."
+msgstr "Останавливаем операцию..."
+
+#: lib\subprocess.py:492 lib\subprocess.py:590
+msgid "Finished!"
+msgstr "Завершено!"
+
+#: lib\subprocess.py:514 lib\uifactory.py:107
+msgid "Enter Password"
+msgstr "Введите пароль"
+
+#: lib\subprocess.py:571 lib\subprocess.py:593
+msgid "Failed!"
+msgstr "Неудачно!"
+
+#: lib\subprocess.py:573
+msgid "Failed to start bzr."
+msgstr "Не могу запустить bzr."
+
+#: lib\subprocess.py:575
+#, python-format
+msgid "Error while running bzr. (error code: %d)"
+msgstr "Ошибка во время работы bzr. (код ошибки: %d)"
+
+#: lib\subprocess.py:583
+msgid "Aborted!"
+msgstr "Прервано!"
 
 #: lib\switch.py:45
 msgid "Switch"
@@ -1438,70 +1116,249 @@ msgstr "Легковесная рабочая копия:"
 msgid "Checkout of branch:"
 msgstr "Рабочая копия для ветки:"
 
+#: lib\switch.py:88
+msgid "Switch to branch:"
+msgstr ""
+
 #: lib\sysinfo.py:38 lib\ui_sysinfo.py:112
 msgid "System Information"
 msgstr "Информация о системе"
+
+#: lib\tag.py:136
+msgid "You should specify tag name"
+msgstr "Вы должны указать имя тега"
+
+#: lib\tag.py:142
+#, python-format
+msgid ""
+"Tag \"%s\" already exists.\n"
+"Do you want to move existing tag?"
+msgstr ""
+
+#: lib\tag.py:145
+msgid "&Move"
+msgstr ""
+
+#: lib\tag.py:145 lib\tag.py:158 lib\util.py:78
+msgid "&Cancel"
+msgstr "&Отмена"
+
+#: lib\tag.py:155
+#, python-format
+msgid ""
+"Tag \"%s\" does not exists yet.\n"
+"Do you want to create new tag?"
+msgstr ""
+"Тег \"%s\" еще не существует.\n"
+"Хотите создать новый тег?"
+
+#: lib\tag.py:158
+msgid "Cre&ate"
+msgstr "&Создать"
+
+#: lib\tag.py:167
+#, python-format
+msgid "Tag \"%s\" does not exists"
+msgstr "Тег \"%s\" не существует"
+
+#: lib\tag.py:204
+#, python-format
+msgid ""
+"Not a branch:\n"
+"%s"
+msgstr ""
+"Это не ветка:\n"
+"%s"
+
+#: lib\treewidget.py:210
+msgid "ignored"
+msgstr "игнорируемый"
+
+#: lib\treewidget.py:212
+msgid "non-versioned"
+msgstr "неизвестный"
+
+#: lib\treewidget.py:218
+msgid "missing"
+msgstr "отсутствует"
+
+#: lib\treewidget.py:231
+msgid "modified (x-bit)"
+msgstr "изменён (x-bit)"
 
 #: lib\treewidget.py:238
 msgid "File Name"
 msgstr "Имя файла"
 
-#: lib\treewidget.py:929
+#: lib\treewidget.py:927
 msgid "Unchanged"
 msgstr "Не изменен"
 
-#: lib\treewidget.py:930
+#: lib\treewidget.py:928
 msgid "Changed"
 msgstr "Изменен"
 
-#: lib\treewidget.py:931
+#: lib\treewidget.py:929
 msgid "Unversioned"
 msgstr "Не версионирован"
 
-#: lib\treewidget.py:932
+#: lib\treewidget.py:930
 msgid "Ignored"
 msgstr "Игнорируется"
 
-#: lib\treewidget.py:1034
+#: lib\treewidget.py:1032
 msgid "&Open"
 msgstr "&Открыть"
 
-#: lib\treewidget.py:1037
+#: lib\treewidget.py:1035
 msgid "&View file"
 msgstr "&Просмотр файла"
 
-#: lib\treewidget.py:1040
+#: lib\treewidget.py:1038
 msgid "Show &annotate"
 msgstr "Показать &аннотацию"
 
-#: lib\treewidget.py:1043
+#: lib\treewidget.py:1041
 msgid "Show &log"
 msgstr "Показать &журнал"
 
-#: lib\treewidget.py:1058
+#: lib\treewidget.py:1056
 msgid "&Add"
 msgstr "&Добавить"
 
-#: lib\treewidget.py:1061
+#: lib\treewidget.py:1059
 msgid "&Revert"
 msgstr "&Отменить изменения"
 
-#: lib\treewidget.py:1383
+#: lib\treewidget.py:1381
 #, python-format
 msgid "Add %s to the tree."
 msgstr ""
 
-#: lib\ui_info.py:181
+#: lib\treewidget.py:1409
+#, python-format
+msgid "Revert %s to latest revision."
+msgstr "Вернуться к последней версии для %s"
+
+#: lib\treewidget.py:1423
+msgid "Select / deselect all"
+msgstr "Выбрать все файлы"
+
+#: lib\tree_branch.py:91 lib\util.py:1065
+#, python-format
+msgid "Not a branch \"%s\""
+msgstr "Это не ветка: \"%s\""
+
+#: lib\tree_branch.py:93 lib\util.py:1075
+#, python-format
+msgid "No working tree exists for \"%s\""
+msgstr "Отсутствует рабочая копия для ветки \"%s\""
+
+#: lib\ui_bookmark.py:51 lib\ui_branch.py:67 lib\ui_merge.py:64
+#: lib\ui_pull.py:62 lib\ui_push.py:64
+msgid "&Location:"
+msgstr "&Расположение:"
+
+#: lib\ui_branch.py:68 lib\ui_branch.py:71 lib\ui_init.py:120
+#: lib\ui_merge.py:65 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
+#: lib\ui_pull.py:63 lib\ui_push.py:65 lib\ui_update_branch.py:85
+#: lib\ui_update_checkout.py:79
+msgid "Browse..."
+msgstr "Обзор..."
+
+#: lib\ui_branch.py:69 lib\ui_merge.py:66 lib\ui_pull.py:64 lib\ui_tag.py:97
+msgid "&Revision:"
+msgstr "&Версия:"
+
+#: lib\ui_branch.py:70
+msgid "&To:"
+msgstr "&Куда:"
+
+#: lib\ui_info.py:147 lib\ui_info.py:149 lib\ui_info.py:151 lib\ui_info.py:153
+#: lib\ui_info.py:155 lib\ui_info.py:158 lib\ui_info.py:160 lib\ui_info.py:162
+#: lib\ui_info.py:164
+msgid "..."
+msgstr "..."
+
+#: lib\ui_info.py:148
+msgid "Parent branch:"
+msgstr "Родительская ветка:"
+
+#: lib\ui_info.py:150
 msgid "Push branch:"
 msgstr ""
 
-#: lib\ui_info.py:185
+#: lib\ui_info.py:152
 msgid "Submit branch:"
 msgstr ""
+
+#: lib\ui_info.py:154
+msgid "Public branch:"
+msgstr ""
+
+#: lib\ui_info.py:156
+msgid "&Related Branches"
+msgstr "Родственные ветки"
+
+#: lib\ui_info.py:157
+msgid "Working tree format:"
+msgstr "Формат рабочей копии:"
+
+#: lib\ui_info.py:159
+msgid "Branch format:"
+msgstr "Формат ветки:"
+
+#: lib\ui_info.py:161
+msgid "Repository format:"
+msgstr "Формат репозитория:"
+
+#: lib\ui_info.py:163
+msgid "Control directory format:"
+msgstr "Формат bzr-каталога:"
+
+#: lib\ui_info.py:165
+msgid "&Format"
+msgstr "&Формат"
+
+#: lib\ui_init.py:119
+msgid "Local Directory"
+msgstr "Локальный каталог"
+
+#: lib\ui_init.py:121
+msgid "Repository"
+msgstr "Репозиторий"
+
+#: lib\ui_init.py:122
+msgid "Create a new standalone tree"
+msgstr "Создать самостоятельную ветку"
+
+#: lib\ui_init.py:123
+msgid "Ensure all revisions are appended to the log"
+msgstr "Убедиться, что все версии добавлены в журнал"
 
 #: lib\ui_init.py:124
 msgid "Create a new shared repository"
 msgstr ""
+
+#: lib\ui_init.py:125
+msgid "Skip the creation of working trees in this repository"
+msgstr "Новые ветки в репозитории создаются без рабочей копии"
+
+#: lib\ui_init.py:131
+msgid "Repository Format:"
+msgstr "Формат репозитория:"
+
+#: lib\ui_init.py:132
+msgid "Description of format"
+msgstr "Описание формата"
+
+#: lib\ui_merge.py:62
+msgid "Merge"
+msgstr "Объединить"
+
+#: lib\ui_merge.py:67 lib\ui_pull.py:65 lib\ui_push.py:66
+msgid "Remember this location as a default"
+msgstr "Запомнить этот URL в качестве значения по умолчанию."
 
 #: lib\ui_merge.py:68
 msgid "Merge even if the working tree has uncommitted changes"
@@ -1550,6 +1407,63 @@ msgid "Click a link for more information about checkouts and branches."
 msgstr ""
 "Щелкните по ссылке для получения дополнительной информации о рабочих копиях "
 "и ветках."
+
+#: lib\ui_new_tree.py:159
+msgid "Most recent (tip) revision"
+msgstr "Самая последняя версия (верхушка)"
+
+#: lib\ui_new_tree.py:161
+msgid "Show Log..."
+msgstr "Посмотреть журнал"
+
+#: lib\ui_pull.py:60
+msgid "Pull"
+msgstr "Загрузить новые данные"
+
+#: lib\ui_pull.py:66 lib\ui_push.py:67 lib\ui_update_branch.py:88
+#: lib\ui_update_checkout.py:80
+msgid "Overwrite differences between branches"
+msgstr "Переписать различия между ветками"
+
+#: lib\ui_push.py:68
+msgid "Use existing directory"
+msgstr "Использовать существующий каталог"
+
+#: lib\ui_push.py:69
+msgid "Create the path up to the branch if it does not exist"
+msgstr "Создать все недостающие каталоги вплоть до каталога с новой веткой"
+
+#: lib\ui_run.py:101
+msgid "Run bzr command"
+msgstr ""
+
+#: lib\ui_run.py:102
+msgid "&Working directory:"
+msgstr ""
+
+#: lib\ui_run.py:103 lib\ui_tag.py:90
+msgid "&Browse..."
+msgstr "Обзор..."
+
+#: lib\ui_run.py:104
+msgid "&Command:"
+msgstr ""
+
+#: lib\ui_run.py:105
+msgid "&Show hidden commands"
+msgstr ""
+
+#: lib\ui_run.py:106
+msgid "&Options and arguments for command:"
+msgstr ""
+
+#: lib\ui_run.py:107
+msgid "Insert &directory..."
+msgstr ""
+
+#: lib\ui_run.py:108
+msgid "Insert &filenames..."
+msgstr ""
 
 #: lib\ui_sysinfo.py:113
 msgid "Bazaar Library"
@@ -1611,6 +1525,71 @@ msgstr "Библиотека:"
 msgid "(python-lib-dir)"
 msgstr "(python-lib-dir)"
 
+#: lib\ui_tag.py:88
+msgid "Edit tag"
+msgstr "Редактирование тега"
+
+#: lib\ui_tag.py:91
+msgid "Tag"
+msgstr "Тег"
+
+#: lib\ui_tag.py:92
+msgid "&Action:"
+msgstr "Действие:"
+
+#: lib\ui_tag.py:93
+msgid "Create new tag"
+msgstr "Создать новый тег"
+
+#: lib\ui_tag.py:94
+msgid "Move existing tag"
+msgstr ""
+
+#: lib\ui_tag.py:95
+msgid "Delete existing tag"
+msgstr "Удалить тег"
+
+#: lib\ui_tag.py:96
+msgid "&Tag name:"
+msgstr "Имя тега:"
+
+#: lib\ui_tag.py:98
+msgid "&Select..."
+msgstr "&Выбрать..."
+
+#: lib\ui_update_branch.py:82
+msgid "Update Branch"
+msgstr "Обновить ветку"
+
+#: lib\ui_update_branch.py:83
+msgid ""
+"This directory is a branch.  Please select what you would like to update"
+msgstr "Этот каталог является веткой. Укажите, что вы желаете обновить"
+
+#: lib\ui_update_branch.py:84 lib\ui_update_checkout.py:76
+msgid "Update source"
+msgstr "Обновить"
+
+#: lib\ui_update_branch.py:86
+msgid "Pull most recent changes from:"
+msgstr "Получить последние изменения из:"
+
+#: lib\ui_update_branch.py:87
+msgid "Remember this as the new parent branch"
+msgstr "Запомнить этот путь в качестве новой родительской ветки"
+
+#: lib\ui_update_branch.py:89
+msgid "<Parent Branch shown here>"
+msgstr "<Parent Branch shown here>"
+
+#: lib\ui_update_branch.py:90
+msgid "Update working tree to the latest changes in the branch"
+msgstr "Обновить рабочие файлы последними изменениями в ветке"
+
+#: lib\ui_update_checkout.py:74
+msgid "Update Checkout"
+msgstr "Обновить рабочую копию"
+
 #: lib\ui_update_checkout.py:75
 #, python-format
 msgid "This directory is a checkout of: %s"
@@ -1632,8 +1611,36 @@ msgstr ""
 msgid "Unbind"
 msgstr ""
 
+#: lib\unbind.py:55 lib\util.py:563
+msgid "Branch:"
+msgstr "Ветка:"
+
 #: lib\unbind.py:62
 msgid "Bound to:"
+msgstr ""
+
+#: lib\uncommit.py:41 lib\uncommit.py:125
+msgid "Uncommit"
+msgstr ""
+
+#: lib\uncommit.py:58
+msgid "Move tip to"
+msgstr ""
+
+#: lib\uncommit.py:60
+msgid "Parent of current tip revision"
+msgstr ""
+
+#: lib\uncommit.py:62
+msgid "Other revision:"
+msgstr ""
+
+#: lib\uncommit.py:105
+msgid "No other revision specified."
+msgstr ""
+
+#: lib\uncommit.py:123
+msgid "Do you really want to uncommit these revisions?"
 msgstr ""
 
 #: lib\update.py:35
@@ -1662,20 +1669,107 @@ msgstr "Выберите каталог-источник"
 msgid "Select Target Directory"
 msgstr "Выберите целевой каталог"
 
+#: lib\util.py:541
+msgid "Parents:"
+msgstr "Предыдущие версии:"
+
+#: lib\util.py:545
+msgid "Children:"
+msgstr "Следующие версии:"
+
+#: lib\util.py:549
+msgid "Date:"
+msgstr "Дата:"
+
+#: lib\util.py:551
+msgid "Committer:"
+msgstr "Зафиксировал:"
+
+#: lib\util.py:554 lib\util.py:559
+msgid "Author:"
+msgstr "Автор:"
+
+#: lib\util.py:568
+msgid "Tags:"
+msgstr "Теги:"
+
+#: lib\util.py:577
+msgid "Bug:"
+msgid_plural "Bugs:"
+msgstr[0] "Ошибка:"
+msgstr[1] "Ошибки:"
+msgstr[2] "Ошибки:"
+
 #: lib\util.py:591
 msgid "Uncommited Working Tree Changes"
 msgstr "Незафиксированные изменения в рабочих файлах"
+
+#: lib\util.py:724
+msgid "deleted files"
+msgstr "удаленные файлы"
+
+#: lib\util.py:726
+msgid "added files"
+msgstr "добавленные файлы"
+
+#: lib\util.py:728
+msgid "renamed files"
+msgstr "переименованные файлы"
+
+#: lib\util.py:730
+msgid "modified files"
+msgstr "измененные файлы"
 
 #: lib\util.py:1027 lib\util.py:1028 lib\util.py:1031
 msgid "(no message)"
 msgstr "(нет комментария)"
 
-#: lib\util.py:1065
-#, python-format
-msgid "Not a branch \"%s\""
-msgstr "Это не ветка: \"%s\""
+#~ msgid "Extension"
+#~ msgstr "Расширение"
 
-#: lib\util.py:1075
+#~ msgid "&Revert..."
+#~ msgstr "&Вернуть предыдущую версию..."
+
+#~ msgid "Show log..."
+#~ msgstr "Показать журнал..."
+
+#~ msgid "Stopped"
+#~ msgstr "Остановлено"
+
+#~ msgid "Local location:"
+#~ msgstr "Расположение на диске"
+
+#~ msgid "&Location"
+#~ msgstr "&Расположение"
+
+#~ msgid "Public branch location:"
+#~ msgstr "Публичная ветка:"
+
+#~ msgid "Internal Error"
+#~ msgstr "Внутренняя ошибка"
+
 #, python-format
-msgid "No working tree exists for \"%s\""
-msgstr "Отсутствует рабочая копия для ветки \"%s\""
+#~ msgid ""
+#~ "Tag \"%s\" already exists.\n"
+#~ "Do you want to replace existing tag?"
+#~ msgstr ""
+#~ "Тег \"%s\" уже существует.\n"
+#~ "Хотите его изменить?"
+
+#~ msgid "Replace existing tag"
+#~ msgstr "Изменить существующий тег"
+
+#, python-format
+#~ msgid ""
+#~ "Sorry, subprocess action \"%s\" cannot be started\n"
+#~ "because self.args is None.\n"
+#~ "Please, report bug at:\n"
+#~ "https://bugs.launchpad.net/qbzr/+filebug"
+#~ msgstr ""
+#~ "Sorry, subprocess action \"%s\" cannot be started\n"
+#~ "because self.args is None.\n"
+#~ "Please, report bug at:\n"
+#~ "https://bugs.launchpad.net/qbzr/+filebug"
+
+#~ msgid "&Replace"
+#~ msgstr "И&зменить"
