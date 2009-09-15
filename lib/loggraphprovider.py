@@ -135,9 +135,9 @@ class BranchLine(object):
     __slots__ = ["branch_id", "revs", "visible", "merges", "merged_by",
                  "color", "merge_depth", "expanded_by"]
     
-    def __init__(self, branch_id, visible):
+    def __init__(self, branch_id):
         self.branch_id = branch_id
-        self.visible = visible
+        self.visible = False
         self.revs = []
         self.merges = []
         self.merged_by = []
@@ -651,13 +651,14 @@ class LogGraphProvider(object):
             
             branch_line = None
             if rev.branch_id not in self.branch_lines:
-                start_branch = rev.revid in self.head_revids
-                branch_line = BranchLine(rev.branch_id, start_branch)
-                if start_branch:
-                    self.start_branch_ids.append(rev.branch_id)
+                branch_line = BranchLine(rev.branch_id)
                 self.branch_lines[rev.branch_id] = branch_line
             else:
                 branch_line = self.branch_lines[rev.branch_id]
+            
+            if rev.revid in self.head_revids:
+                self.start_branch_ids.append(rev.branch_id)
+                branch_line.visible = True
             
             branch_line.revs.append(rev)
             branch_line.merge_depth = max(rev.merge_depth, branch_line.merge_depth)
@@ -780,6 +781,7 @@ class LogGraphProvider(object):
                     other_revids = [other_revid for other_revid \
                         in self.revid_head_info.iterkeys() \
                         if not other_revid == revid]
+                ur.append(revid)
                 ur.extend([revid for revid \
                     in self.graph.find_unique_ancestors(revid, other_revids) \
                     if not revid == NULL_REVISION and revid in self.revid_rev])
