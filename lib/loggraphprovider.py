@@ -775,6 +775,7 @@ class LogGraphProvider(object):
                     other_revids = [other_revid for other_revid \
                         in self.revid_head_info.iterkeys() \
                         if not other_revid == revid]
+                ur.append(revid)
                 ur.extend([revid for revid \
                     in self.graph.find_unique_ancestors(revid, other_revids) \
                     if not revid == NULL_REVISION and revid in self.revid_rev])
