@@ -1,6 +1,14 @@
 0.14.2 - in development
 -----------------------
 
+ * qmerge, qcommit, ...:
+   * Fixed a bug where we create the QApp after opening a Branch, but we had
+     already installed the QUIFactory(). A branch can be a lightweight checkout
+     of a remote location which requires a password. Which wants to open a UI
+     dialog, which causes a crash because QApp has not been created yet.
+     (#430232, John Arbash Meinel)
+
+
 0.14.1 - 2009-09-10
 -------------------
 Maintenance release:
