@@ -640,9 +640,6 @@ class LogGraphProvider(object):
         
         """
         
-        self.start_branch_ids = []
-        """Branch ids that should be initialy visible"""
-        
         self.branch_ids = []
         """List of branch ids, sorted in the order that the branches will
         be shown, from left to right on the graph."""
@@ -657,7 +654,6 @@ class LogGraphProvider(object):
                 branch_line = self.branch_lines[rev.branch_id]
             
             if rev.revid in self.head_revids:
-                self.start_branch_ids.append(rev.branch_id)
                 branch_line.visible = True
             
             branch_line.revs.append(rev)
@@ -667,16 +663,9 @@ class LogGraphProvider(object):
         self.branch_ids = self.branch_lines.keys()
         
         def branch_id_sort_key(x):
-            if x in self.start_branch_ids:
-                is_start = 0
-            else:
-                is_start = 1
             merge_depth = self.branch_lines[x].merge_depth
             
             # Note: This greatly affects the layout of the graph.
-            #
-            # Branch lines that have a tip (e.g. () - the main line) should be
-            # to the left of other branch lines.
             #
             # Branch line that have a smaller merge depth should be to the left
             # of those with bigger merge depths.
@@ -702,9 +691,9 @@ class LogGraphProvider(object):
             # appear to the left.
             
             if len(x)==0:
-                return (is_start, merge_depth)
+                return (merge_depth)
             else:
-                return (is_start, merge_depth, -x[0], x[1])
+                return (merge_depth, -x[0], x[1])
         
         self.branch_ids.sort(key=branch_id_sort_key)
     
