@@ -1,6 +1,9 @@
-0.14.2 - in development
+0.14.2 - 2009-09-16
 -----------------------
 
+ * qlog:
+    * Fixed couple of problems with proper rendering of branch labels
+      when inspecting log for several branches (e.g. in shared repo).
  * qmerge, qcommit, ...:
    * Fixed a bug where we create the QApp after opening a Branch, but we had
      already installed the QUIFactory(). A branch can be a lightweight checkout
