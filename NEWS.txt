@@ -6,9 +6,14 @@
    (#392920, Alexander Belchenko)
  * qtag: sort tags alphabeticaly and case-insensitive. (#423075, Craig Hewetson)
 
-0.14.2 - in development
+
+0.14.2 - 2009-09-16
 -----------------------
 
+ * qlog:
+    * Fixed couple of problems with proper rendering of branch labels
+      when inspecting log for several branches (e.g. in shared repo).
+      (Gary van der Merwe)
  * qmerge, qcommit, ...:
    * Fixed a bug where we create the QApp after opening a Branch, but we had
      already installed the QUIFactory(). A branch can be a lightweight checkout
