@@ -835,6 +835,7 @@ class LogGraphProvider(object):
                     filterted_inv = inv.filter(self.fileids)
                     for path, entry in filterted_inv.entries():
                         text_keys.append((entry.file_id, revid))
+                    self.update_ui()
                 
                 check_text_keys(text_keys)
         finally:
