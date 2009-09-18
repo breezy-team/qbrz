@@ -271,7 +271,8 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def set_tree(self, tree, branch=None, 
                  changes_mode=False, want_unversioned=True,
-                 initial_selected_paths=None):
+                 initial_selected_paths=None,
+                 change_load_filter=None):
         self.tree = tree
         self.branch = branch
         self.revno_map = None
@@ -298,6 +299,10 @@ class TreeModel(QtCore.QAbstractItemModel):
                             continue
                         is_ignored = self.tree.is_ignored(path)
                         change = ChangeDesc(change+(is_ignored,))
+                        
+                        if (change_load_filter is not None and
+                            not change_load_filter(change)):
+                            continue
                         
                         if fileid is not None and not changes_mode:
                             self.changes[change.fileid()] = change
@@ -1064,7 +1069,8 @@ class TreeWidget(RevisionTreeView):
     
     def set_tree(self, tree, branch=None,
                  changes_mode=False, want_unversioned=True,
-                 initial_checked_paths=None):
+                 initial_checked_paths=None,
+                 change_load_filter=None):
         """Causes a tree to be loaded, and displayed in the widget.
 
         @param changes_mode: If in changes mode, a list of changes, and
@@ -1089,6 +1095,7 @@ class TreeWidget(RevisionTreeView):
         self.branch = branch
         self.changes_mode = changes_mode
         self.want_unversioned = want_unversioned
+        self.change_load_filter = change_load_filter
         
         if str(QtCore.QT_VERSION_STR).startswith("4.4"):
             # 4.4.x have a bug where if you do a layoutChanged when using
@@ -1101,7 +1108,8 @@ class TreeWidget(RevisionTreeView):
         QtCore.QCoreApplication.processEvents()
         
         self.tree_model.set_tree(self.tree, self.branch,
-                                 changes_mode, want_unversioned)
+                                 changes_mode, want_unversioned,
+                                 change_load_filter=self.change_load_filter)
         if initial_checked_paths is not None and not self.tree_model.checkable:
             raise AttributeError("You can't have a initial_selection if "
                                  "tree_model.checkable is not True.")
@@ -1199,7 +1207,8 @@ class TreeWidget(RevisionTreeView):
         try:
             state = self.get_state()
             self.tree_model.set_tree(self.tree, self.branch,
-                                     self.changes_mode, self.want_unversioned)
+                                     self.changes_mode, self.want_unversioned,
+                                     change_load_filter=self.change_load_filter)
             self.restore_state(state)
             self.tree_filter_model.invalidateFilter()
             if str(QtCore.QT_VERSION_STR).startswith("4.4"):
