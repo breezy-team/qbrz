@@ -777,7 +777,7 @@ class LogGraphProvider(object):
                 ur.sort(key=lambda x: self.revid_rev[x].index)
 
     def load_filter_file_id_uses_inventory(self):
-        return self.has_dir and getattr(Inventory,"filter",None) is not None
+        return self.has_dir
     
     def load_filter_file_id(self):
         """Load with revisions affect the fileids
@@ -797,7 +797,7 @@ class LogGraphProvider(object):
                 if not self.load_filter_file_id_uses_inventory():
                     chunk_size = 500
                 else:
-                    chunk_size = 50
+                    chunk_size = 500
                 
                 for start in xrange(0, len(revids), chunk_size):
                     text_keys = []
@@ -832,9 +832,13 @@ class LogGraphProvider(object):
                 for inv, revid in zip(
                             repo.iter_inventories(revids),
                             revids):
-                    filterted_inv = inv.filter(self.fileids)
-                    for path, entry in filterted_inv.entries():
+                    for path, entry in inv.iter_entries_by_dir(
+                                            specific_file_ids = self.fileids):
                         text_keys.append((entry.file_id, revid))
+                        if entry.kind == "directory":
+                            for rc_path, rc_entry in inv.iter_entries(from_dir = entry):
+                                text_keys.append((rc_entry.file_id, revid))
+                    
                     self.update_ui()
                 
                 check_text_keys(text_keys)
