@@ -211,7 +211,10 @@ class ChangeDesc(tuple):
             else:
                 return gettext("non-versioned")
         elif versioned == (False, True):
-            return gettext("added")
+            if kind[1] is None:
+                return gettext("added, missing")
+            else:
+                return gettext("added")
         elif versioned == (True, False):
             return gettext("removed")
         elif kind[0] is not None and kind[1] is None:
