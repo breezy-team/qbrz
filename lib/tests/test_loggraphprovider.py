@@ -16,9 +16,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib import tests
+from bzrlib import (
+    errors,
+    tests,
+    )
+from bzrlib.transport import memory
 from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
-from bzrlib import errors
+
 
 class TestLogGraphProvider(tests.TestCaseWithTransport):
 
@@ -149,14 +153,18 @@ class TestLogGraphProvider(tests.TestCaseWithTransport):
                           (tree2.basedir, tree2.branch.base, None))),
                          set(self.branches_to_base(gp.branches)))
     
-    def test_open_locations_raise_not_a_branch(self):
+    def test_open_locations_in_shared_reporaise_not_a_branch(self):
         repo = self.make_repository("repo", shared=True)
         gp = LogGraphProvider(False)
         self.assertRaises(errors.NotBranchError,
                           gp.open_locations, ["repo/non_existant_branch"])
-        self.permit_dir('/')
+
+    def test_open_locations_raise_not_a_branch(self):
+        self.vfs_transport_factory = memory.MemoryServer
+        gp = LogGraphProvider(False)
         self.assertRaises(errors.NotBranchError,
-                          gp.open_locations, ["/non_existant_branch"])
+                          gp.open_locations,
+                          [self.get_url("non_existant_branch")])
 
     def check_open_location_files(self):
         gp = LogGraphProvider(False)
