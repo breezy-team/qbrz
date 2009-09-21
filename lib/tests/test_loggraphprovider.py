@@ -154,6 +154,7 @@ class TestLogGraphProvider(tests.TestCaseWithTransport):
         gp = LogGraphProvider(False)
         self.assertRaises(errors.NotBranchError,
                           gp.open_locations, ["repo/non_existant_branch"])
+        self.permit_dir('/')
         self.assertRaises(errors.NotBranchError,
                           gp.open_locations, ["/non_existant_branch"])
 

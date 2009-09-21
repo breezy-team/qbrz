@@ -172,12 +172,16 @@ class TestUtil(TestCase):
 
 class TestOpenTree(TestCaseWithTransport):
 
+    def test_no_ui_mode_no_branch(self):
+        mf = mock.MockFunction()
+        self.permit_dir('/')
+        self.assertRaises(errors.NotBranchError,
+                          util.open_tree, '/non/existent/path', ui_mode=False,
+                          _critical_dialog=mf)
+        self.assertEqual(0, mf.count)
+
     def test_no_ui_mode(self):
         mf = mock.MockFunction()
-        self.assertRaises(errors.NotBranchError,
-            util.open_tree, '/non/existent/path', ui_mode=False, _critical_dialog=mf)
-        self.assertEqual(0, mf.count)
-        #
         self.make_branch('a')
         self.assertRaises(errors.NoWorkingTree,
             util.open_tree, 'a', ui_mode=False, _critical_dialog=mf)
@@ -188,12 +192,16 @@ class TestOpenTree(TestCaseWithTransport):
         self.assertNotEqual(None, tree)
         self.assertEqual(0, mf.count)
 
-    def test_ui_mode(self):
+    def test_ui_mode_no_branch(self):
         mf = mock.MockFunction()
-        tree = util.open_tree('/non/existent/path', ui_mode=True, _critical_dialog=mf)
+        self.permit_dir('/')
+        tree = util.open_tree('/non/existent/path', ui_mode=True,
+                              _critical_dialog=mf)
         self.assertEqual(None, tree)
         self.assertEqual(1, mf.count)
-        #
+
+    def test_ui_mode(self):
+        mf = mock.MockFunction()
         self.make_branch('a')
         mf = mock.MockFunction()
         tree = util.open_tree('a', ui_mode=True, _critical_dialog=mf)
