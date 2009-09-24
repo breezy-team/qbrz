@@ -369,7 +369,7 @@ class LogList(RevisionTreeView):
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
     
-class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
+class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
 
     _tagColor = QtGui.QColor(80, 128, 32)
     _bugColor = QtGui.QColor(164, 0, 0)
@@ -381,7 +381,7 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
     def paint(self, painter, option, index):
         node = index.data(logmodel.GraphNodeRole)
         if node.isValid():
-            self.drawGraph = True
+            draw_graph = True
             self.node = node.toList()
             self.lines = index.data(logmodel.GraphLinesRole).toList()
             self.twisty_state = index.data(logmodel.GraphTwistyStateRole)
@@ -392,7 +392,7 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
             else:
                 self.prevLines = []
         else:
-            self.drawGraph = False
+            draw_graph = False
         
         self.labels = []
         # collect branch tags
@@ -407,59 +407,24 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
         for bug in index.data(logmodel.BugIdsRole).toStringList():
             self.labels.append(
                 (bug, self._bugColor))
-        QtGui.QItemDelegate.paint(self, painter, option, index)
-    
-    def get_color(self, color, back):
-        qcolor = QtGui.QColor()
-        if color == 0:
-            if back:
-                qcolor.setHsvF(0,0,0.8)
-            else:
-                qcolor.setHsvF(0,0,0)
-        else:
-            h = float(color % 6) / 6
-            if back:
-                qcolor.setHsvF(h,0.4,1)
-            else:
-                qcolor.setHsvF(h,1,0.7)
         
-        return qcolor
-    
-    def drawLine(self, painter, pen, rect, boxsize, mid, height,
-                 start, end, color, direct):
-        pen.setColor(self.get_color(color,False))
-        if direct:
-            pen.setStyle(QtCore.Qt.SolidLine)
-        else:
-            pen.setStyle(QtCore.Qt.DotLine)            
-        painter.setPen(pen)
-        startx = rect.x() + boxsize * start + boxsize / 2 
-        endx = rect.x() + boxsize * end + boxsize / 2 
+        option = QtGui.QStyleOptionViewItemV4(option)
+        self.initStyleOption(option, index)
+        widget = self.parent()
+        style = widget.style()
         
-        path = QtGui.QPainterPath()
-        path.moveTo(QtCore.QPointF(startx, mid - height / 2))
-        
-        if start - end == 0 :
-            path.lineTo(QtCore.QPointF(endx, mid + height / 2)) 
-        else:
-            path.cubicTo(QtCore.QPointF(startx, mid - height / 5),
-                         QtCore.QPointF(startx, mid - height / 5),
-                         QtCore.QPointF(startx + (endx - startx) / 2, mid))
-
-            path.cubicTo(QtCore.QPointF(endx, mid + height / 5),
-                         QtCore.QPointF(endx, mid + height / 5),
-                         QtCore.QPointF(endx, mid + height / 2 + 1))
-        painter.drawPath(path)
-        pen.setStyle(QtCore.Qt.SolidLine)
-
-    def drawDisplay(self, painter, option, rect, text):
-
         if not hasattr(self, '_usingGtkStyle'):
-            self._usingGtkStyle = Qt.qApp.style().objectName() == 'gtk+'
-            self._usingQt45 = Qt.qVersion() >= '4.5' 
-
+            self._usingGtkStyle = style.objectName() == 'gtk+'
+            self._usingQt45 = Qt.qVersion() >= '4.5'
+        
+        painter.save()
+        painter.setClipRect(option.rect)
+        style.drawPrimitive(QtGui.QStyle.PE_PanelItemViewItem,
+                            option, painter, widget)
+        
         graphCols = 0
-        if self.drawGraph:
+        if draw_graph:
+            rect = option.rect
             painter.save()
             try:
                 painter.setRenderHint(QtGui.QPainter.Antialiasing)            
@@ -539,14 +504,14 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                 
             finally:
                 painter.restore()
-            rect.adjust( (graphCols + 1.7) * boxsize, 0, 0, 0)
-
+            rect.adjust( (graphCols + 1.7) * boxsize, 0, 0, 0)        
         painter.save()
+        
+        x = 0
         try:
             tagFont = QtGui.QFont(option.font)
             tagFont.setPointSizeF(tagFont.pointSizeF() * 9 / 10)
     
-            x = 0
             for label, color in self.labels:
                 tagRect = rect.adjusted(1, 1, -1, -1)
                 tagRect.setWidth(QtGui.QFontMetrics(tagFont).width(label) + 6)
@@ -568,7 +533,65 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                 x += tagRect.width() + 3
         finally:
             painter.restore()
-        
         rect.adjust( x, 0, 0, 0)
         
-        return QtGui.QItemDelegate.drawDisplay(self, painter, option, rect, text)
+        if not option.text.isEmpty():
+            if option.state & QtGui.QStyle.State_Enabled:
+                if option.state & QtGui.QStyle.State_Active:
+                    cg = QtGui.QPalette.Active
+                else:
+                    cg = QtGui.QPalette.Inactive
+            else:
+                cg = QtGui.QPalette.Disabled
+            
+            if option.state & QtGui.QStyle.Selected:
+                painter.setPen(option.palette.color(cg, QtGui.QPalette.HighlightedText))
+            else:
+                painter.setPen(option.palette.color(cg, QtGui.QPalette.Text))
+            text_rect = style.subElementRect(QtGui.QStyle.SE_ItemViewItemText,
+                                             option, widget)
+        
+        painter.restore()
+    
+    def get_color(self, color, back):
+        qcolor = QtGui.QColor()
+        if color == 0:
+            if back:
+                qcolor.setHsvF(0,0,0.8)
+            else:
+                qcolor.setHsvF(0,0,0)
+        else:
+            h = float(color % 6) / 6
+            if back:
+                qcolor.setHsvF(h,0.4,1)
+            else:
+                qcolor.setHsvF(h,1,0.7)
+        
+        return qcolor
+    
+    def drawLine(self, painter, pen, rect, boxsize, mid, height,
+                 start, end, color, direct):
+        pen.setColor(self.get_color(color,False))
+        if direct:
+            pen.setStyle(QtCore.Qt.SolidLine)
+        else:
+            pen.setStyle(QtCore.Qt.DotLine)            
+        painter.setPen(pen)
+        startx = rect.x() + boxsize * start + boxsize / 2 
+        endx = rect.x() + boxsize * end + boxsize / 2 
+        
+        path = QtGui.QPainterPath()
+        path.moveTo(QtCore.QPointF(startx, mid - height / 2))
+        
+        if start - end == 0 :
+            path.lineTo(QtCore.QPointF(endx, mid + height / 2)) 
+        else:
+            path.cubicTo(QtCore.QPointF(startx, mid - height / 5),
+                         QtCore.QPointF(startx, mid - height / 5),
+                         QtCore.QPointF(startx + (endx - startx) / 2, mid))
+
+            path.cubicTo(QtCore.QPointF(endx, mid + height / 5),
+                         QtCore.QPointF(endx, mid + height / 5),
+                         QtCore.QPointF(endx, mid + height / 2 + 1))
+        painter.drawPath(path)
+        pen.setStyle(QtCore.Qt.SolidLine)
