@@ -996,7 +996,9 @@ class TreeWidget(RevisionTreeView):
         header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.Stretch)        
         fm = self.fontMetrics()
         # XXX Make this dynamic.
-        col_margin = 6
+        col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
+                                               None, self) + 1) *2
+        
         header.resizeSection(self.tree_model.REVNO,
                              fm.width("8888.8.888") + col_margin)
         header.resizeSection(self.tree_model.DATE,

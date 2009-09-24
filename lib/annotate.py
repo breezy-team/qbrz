@@ -242,8 +242,9 @@ class AnnotateWindow(QBzrWindow):
                                               RevNoItemDelegate(parent=self))
         header = self.browser.header()
         fm = self.fontMetrics()
-        # XXX Make this dynamic.
-        col_margin = 6
+        
+        col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
+                                               None, self) + 1) *2
         header.resizeSection(self.model.LINE_NO,
                              fm.width("8888") + col_margin)
         header.resizeSection(self.model.AUTHOR,
@@ -380,8 +381,9 @@ class AnnotateWindow(QBzrWindow):
         
         header = self.browser.header()
         fm = self.fontMetrics()
-        # XXX Make this dynamic.
-        col_margin = 6
+        
+        col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
+                                               None, self) + 1) *2
         line_no_max_digts = len("%d"%len(annotate))
         if line_no_max_digts>4:
             header.resizeSection(self.model.LINE_NO,

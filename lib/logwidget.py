@@ -73,8 +73,9 @@ class LogList(RevisionTreeView):
         header.setResizeMode(logmodel.COL_DATE, QtGui.QHeaderView.Interactive)
         header.setResizeMode(logmodel.COL_AUTHOR, QtGui.QHeaderView.Interactive)
         fm = self.fontMetrics()
-        # XXX Make this dynamic.
-        col_margin = 6
+        
+        col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
+                                               None, self) + 1) *2
         header.resizeSection(logmodel.COL_REV,
                              fm.width("8888.8.888") + col_margin)
         header.resizeSection(logmodel.COL_DATE,
