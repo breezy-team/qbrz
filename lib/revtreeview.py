@@ -198,8 +198,8 @@ class RevNoItemDelegate(StyledItemDelegate):
             
             if mainline_width + therest_width > option.rect.width():
                 if fm.width(text) > option.rect.width():
-                    text = QtGui.QAbstractItemDelegate.elidedText(
-                        fm, option.rect.width(), QtCore.Qt.ElideRight, text)
+                    text = self.elidedText(fm, option.rect.width(),
+                                           QtCore.Qt.ElideRight, text)
                 painter.drawText(option.rect, QtCore.Qt.AlignRight, text);
             else:
                 mainline_rect = QtCore.QRect(option.rect.x(),
