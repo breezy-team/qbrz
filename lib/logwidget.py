@@ -89,7 +89,7 @@ class LogList(RevisionTreeView):
         if self.view_commands:
             self.connect(self,
                          QtCore.SIGNAL("doubleClicked(QModelIndex)"),
-                         self.default_action)
+                         self.show_diff)
         self.context_menu = QtGui.QMenu(self)
         self.connect(self.log_model,
                      QtCore.SIGNAL("linesUpdated()"),
@@ -104,31 +104,31 @@ class LogList(RevisionTreeView):
                     diff_menu.setTitle(gettext("Show file &differences"))
                     self.context_menu.addMenu(diff_menu)
                     self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"),
-                                 self.show_diff_current_indexes)
+                                 self.show_diff_specified_files_ext)
                     
                     all_diff_menu = diff.ExtDiffMenu(self, set_default=False)
                     all_diff_menu.setTitle(gettext("Show all &differences"))
                     self.context_menu.addMenu(all_diff_menu)
                     self.connect(all_diff_menu, QtCore.SIGNAL("triggered(QString)"),
-                                 self.show_diff_current_indexes_all_files)
+                                 self.show_diff_ext)
                 else:
                     show_diff_action = self.context_menu.addAction(
                                         gettext("Show file &differences..."),
-                                        self.show_diff_current_indexes)
+                                        self.show_diff_specified_files)
                     self.context_menu.setDefaultAction(show_diff_action)
                     self.context_menu.addAction(
                                         gettext("Show all &differences..."),
-                                        self.show_diff_current_indexes_all_files)
+                                        self.show_diff)
             else:
                 if diff.has_ext_diff():
                     diff_menu = diff.ExtDiffMenu(self)
                     self.context_menu.addMenu(diff_menu)
                     self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"),
-                                 self.show_diff_current_indexes)
+                                 self.show_diff_ext)
                 else:
                     show_diff_action = self.context_menu.addAction(
                                         gettext("Show &differences..."),
-                                        self.show_diff_current_indexes)
+                                        self.show_diff)
                     self.context_menu.setDefaultAction(show_diff_action)
 
             self.connect(self,
@@ -252,7 +252,7 @@ class LogList(RevisionTreeView):
         e_key = e.key()
         if e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return) and self.view_commands:
             e.accept()
-            self.default_action()
+            self.show_diff()
         elif e_key in (QtCore.Qt.Key_Left, QtCore.Qt.Key_Right):
             e.accept()
             indexes = [index for index in self.selectedIndexes() if index.column()==0]
@@ -288,28 +288,38 @@ class LogList(RevisionTreeView):
                                          (QtGui.QItemSelectionModel.Clear |
                                           QtGui.QItemSelectionModel.Select |
                                           QtGui.QItemSelectionModel.Rows))
+
+    def get_selection_indexes(self, index=None):
+        if index is None:
+            return self.selectionModel().selectedRows(0)
+        else:
+            return [index]
+    
+    def get_selection_top_and_parent_revids(self, index=None):
+        indexes = self.get_selection_indexes(index)
+        top_revid = str(indexes[0].data(logmodel.RevIdRole).toString())
+        bot_revid = str(indexes[-1].data(logmodel.RevIdRole).toString())
+        # We need a ui to select which parent.
+        parent_revid = self.graph_provider.graph_parents[bot_revid][0]
+        return top_revid, parent_revid
+    
+    def get_selection_revs(self, index=None):
+        indexes = self.get_selection_indexes(index)
+        revids = [str(index.data(logmodel.RevIdRole).toString())
+                  for index in indexes]
+        revs = self.graph_provider.load_revisions(revids)[revid]
+        return [revs[revid] for revid in revids]
     
     def set_search(self, str, field):
         self.graph_provider.set_search(str, field)
     
-    def default_action(self, index=None):
-        if index is None:
-            self.show_diff_current_indexes()
-        else:
-            self.show_diff_index(index)
-    
-    def show_diff(self, new_rev, old_rev,
+    def show_diff(self, index=None,
                   specific_files=None, specific_file_ids=None,
                   ext_diff=None):
-        new_revid = new_rev.revision_id
-        new_branch = self.graph_provider.get_revid_branch(new_revid)
         
-        if not old_rev.parent_ids:
-            old_revid = None
-            old_branch = new_branch
-        else:
-            old_revid = old_rev.parent_ids[0]
-            old_branch =  self.graph_provider.get_revid_branch(old_revid)
+        new_revid, old_revid = self.get_selection_top_and_parent_revids(index)
+        new_branch = self.graph_provider.get_revid_branch(new_revid)
+        old_branch =  self.graph_provider.get_revid_branch(old_revid)
         
         arg_provider = diff.InternalDiffArgProvider(
                                         old_revid, new_revid,
@@ -319,43 +329,16 @@ class LogList(RevisionTreeView):
         
         diff.show_diff(arg_provider, ext_diff = ext_diff,
                        parent_window = self.window())
+    
+    def show_diff_specified_files(self, ext_diff=None):
+        self.show_diff(ext_diff=ext_diff,
+                       specific_file_ids = self.graph_provider.fileids)
+    
+    def show_diff_ext(self, ext_diff):
+        self.show_diff(ext_diff=ext_diff)
 
-    def show_diff_index(self, index):
-        """Show differences of a single revision from a index."""
-        revid = str(index.data(logmodel.RevIdRole).toString())
-        rev = self.graph_provider.load_revisions([revid])[revid]
-        if self.graph_provider.fileids:
-            self.show_diff(rev, rev,
-                           specific_file_ids=self.graph_provider.fileids)
-        else:
-            self.show_diff(rev, rev)
-    
-    def show_diff_current_indexes(self, ext_diff=None,
-                                  only_specified_files=True):
-        """Show differences of the selected range or of a single revision"""
-        # Find 1 index for each row.
-        rows = {}
-        for index in self.selectedIndexes():
-            if index.row() not in rows:
-                rows[index.row()] = index
-        indexes = rows.values()
-        if not indexes:
-            # the list is empty
-            return
-        revid1 = str(indexes[0].data(logmodel.RevIdRole).toString())
-        revid2 = str(indexes[-1].data(logmodel.RevIdRole).toString())
-        revs = self.graph_provider.load_revisions([revid1, revid2])
-        rev1 = revs[revid1]
-        rev2 = revs[revid2]
-        if only_specified_files and self.graph_provider.fileids:
-            self.show_diff(rev1, rev2, ext_diff=ext_diff,
-                           specific_file_ids = self.graph_provider.fileids)
-        else:
-            self.show_diff(rev1, rev2, ext_diff=ext_diff)
-    
-    def show_diff_current_indexes_all_files(self, ext_diff=None):
-        self.show_diff_current_indexes(ext_diff=ext_diff,
-                                       only_specified_files=False)
+    def show_diff_specified_files_ext(self, ext_diff=None):
+        self.show_diff_specified_files(ext_diff=ext_diff)
     
     def show_revision_tree(self):
         from bzrlib.plugins.qbzr.lib.browse import BrowseWindow

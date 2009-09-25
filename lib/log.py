@@ -187,14 +187,14 @@ class LogWindow(QBzrWindow):
         self.fileList = QtGui.QListWidget()
         self.connect(self.fileList,
                      QtCore.SIGNAL("doubleClicked(QModelIndex)"),
-                     self.show_diff_file)
+                     self.show_diff_files)
         self.fileList.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)        
         self.file_list_context_menu = QtGui.QMenu(self)
         if has_ext_diff():
             diff_menu = ExtDiffMenu(self)
             self.file_list_context_menu.addMenu(diff_menu)
             self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"),
-                         self.show_diff_file_menu)
+                         self.show_diff_files_ext)
         else:
             show_diff_action = self.file_list_context_menu.addAction(
                                         gettext("Show &differences..."),
@@ -233,7 +233,7 @@ class LogWindow(QBzrWindow):
         self.diffbuttons = DiffButtons(self.centralwidget)
         self.diffbuttons.setEnabled(False)
         self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
-                     self.log_list.show_diff_current_indexes)
+                     self.log_list.show_diff_specified_files_ext)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)
@@ -443,28 +443,35 @@ class LogWindow(QBzrWindow):
         self.file_list_context_menu.popup(
             self.fileList.viewport().mapToGlobal(pos))
     
-    def get_current_rev_path_and_id(self, file_index=None):
-        if not file_index:
-            file_index = self.fileList.currentIndex()
-        item = self.fileList.itemFromIndex(file_index)
-        path = None
-        if item:
-            path = unicode(item.data(PathRole).toString())
-            id = str(item.data(FileIdRole).toString())
-        rev = self.current_rev
-        return rev, path, id
+    def get_file_selection_indexes(self, index=None):
+        if index is None:
+            return self.fileList.selectionModel().selectedRows(0)
+        else:
+            return [index]
+    
+    def get_file_selection_paths_and_ids(self, index=None):
+        indexes = self.get_file_selection_indexes(index)
+        
+        paths = []
+        ids = []
+        
+        for index in indexes:
+            item = self.fileList.itemFromIndex(index)
+            paths.append(unicode(item.data(PathRole).toString()))
+            ids.append(str(item.data(FileIdRole).toString()))
+        return paths, ids
     
     @ui_current_widget
-    def show_diff_file(self, index, ext_diff=None):
+    def show_diff_files(self, index=None, ext_diff=None):
         """Show differences of a specific file in a single revision"""
-        rev, path, id = self.get_current_rev_path_and_id(index)
-        if rev and path:
-            self.log_list.show_diff(rev, rev, [path], ext_diff)
+        paths, ids = self.get_file_selection_paths_and_ids(index)
+        self.log_list.show_diff(specific_files=paths, specific_file_ids=ids,
+                                ext_diff=ext_diff)
     
     @ui_current_widget
-    def show_diff_file_menu(self, ext_diff=None):
+    def show_diff_files_ext(self, ext_diff=None):
         """Show differences of a specific file in a single revision"""
-        self.show_diff_file(None, ext_diff)
+        self.show_diff_files(ext_diff=ext_diff)
     
     @runs_in_loading_queue
     @ui_current_widget
