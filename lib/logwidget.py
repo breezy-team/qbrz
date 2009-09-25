@@ -303,13 +303,6 @@ class LogList(RevisionTreeView):
         parent_revid = self.graph_provider.graph_parents[bot_revid][0]
         return top_revid, parent_revid
     
-    def get_selection_revs(self, index=None):
-        indexes = self.get_selection_indexes(index)
-        revids = [str(index.data(logmodel.RevIdRole).toString())
-                  for index in indexes]
-        revs = self.graph_provider.load_revisions(revids)[revid]
-        return [revs[revid] for revid in revids]
-    
     def set_search(self, str, field):
         self.graph_provider.set_search(str, field)
     

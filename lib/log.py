@@ -175,8 +175,7 @@ class LogWindow(QBzrWindow):
         #self.connect(self.log_list,
         #             QtCore.SIGNAL("clicked (QModelIndex)"),
         #             self.changesList_clicked)
-
-
+        
         self.message = QtGui.QTextDocument()
         self.message_browser = RevisionMessageBrowser()
         self.message_browser.setDocument(self.message)
@@ -244,6 +243,9 @@ class LogWindow(QBzrWindow):
         self.windows = []
         # set focus on search edit widget
         self.log_list.setFocus()
+        
+        self.tree_cache = {}
+        self.delta_cache = {}
 
     @runs_in_loading_queue
     @ui_current_widget
@@ -336,23 +338,33 @@ class LogWindow(QBzrWindow):
     @runs_in_loading_queue
     @ui_current_widget
     def update_revision_delta(self):
-        rev = self.current_rev
-        if not hasattr(rev, 'delta'):
-            # TODO move this to a thread
-            rev.repository.lock_read()
+        revids = self.log_list.get_selection_top_and_parent_revids()
+        
+        if revids not in self.delta_cache:
+            trees = []
+            gp = self.log_list.graph_provider
+            gp.lock_read_branches()
             self.processEvents()
             try:
-                rev.delta = rev.repository.get_deltas_for_revisions(
-                                                                [rev]).next()
-                self.processEvents()
+                for revid in revids:
+                    if revid not in self.tree_cache:
+                        branch = gp.get_revid_branch(revid)
+                        # XXX if the branch is the same, we should load both trees
+                        # at once.
+                        tree = branch.repository.revision_tree(revid)
+                        self.tree_cache[revid] = tree
+                        trees.append(tree)
+                        self.processEvents()
+                    else:
+                        trees.append(self.tree_cache[revid])
+                delta = trees[0].changes_from(trees[1])
+                self.delta_cache[revids] = delta
             finally:
-                rev.repository.unlock()
+                gp.unlock_branches()
                 self.processEvents()
-        if self.current_rev is not rev:
-            # new update was requested, don't bother populating the list
-            return
-        delta = rev.delta
-
+        else:
+            delta = self.delta_cache[revids]
+        
         items = []
         specific_fileids = self.log_list.graph_provider.fileids
         
@@ -401,42 +413,49 @@ class LogWindow(QBzrWindow):
     @runs_in_loading_queue
     @ui_current_widget
     def update_selection(self, selected, deselected):
-        indexes = [index for index in self.log_list.selectedIndexes() if index.column()==0]
         self.fileList.clear()
+        
+        indexes = self.log_list.get_selection_indexes()
         if not indexes:
             self.diffbuttons.setEnabled(False)
             self.message.setHtml("")
         else:
             self.diffbuttons.setEnabled(True)
-            index = indexes[0]
-            revid = str(index.data(logmodel.RevIdRole).toString())
+            
             gp = self.log_list.graph_provider
-            parents_ids = gp.graph_parents[revid]
-            child_ids = gp.graph_children[revid]
-            revisions = gp.load_revisions([revid] + 
-                                          list(parents_ids) +
-                                          list(child_ids))
-            for rev in revisions.itervalues():
+            revids = [str(index.data(logmodel.RevIdRole).toString())
+                      for index in indexes]
+            all_revids = set(revids)
+            for revid in revids:
+                all_revids.update(set(gp.graph_parents[revid]))
+                all_revids.update(set(gp.graph_children[revid]))
+            
+            all_revs = gp.load_revisions(all_revids)
+            
+            for rev in all_revs.itervalues():
                 if not hasattr(rev, "revno"):
                     if rev.revision_id in gp.revid_rev:
                         rev.revno = gp.revid_rev[rev.revision_id].revno_str
                     else:
                         rev.revno = ""
             
-            rev = revisions[revid]
+            html = []
+            for revid in revids:
+                rev = all_revs[revid]
+                
+                if not hasattr(rev, "children"): 
+                    rev.children = [all_revs[parent] for parent in gp.graph_children[revid]]
+                if not hasattr(rev, "parents"):
+                    rev.parents = [all_revs[child] for child in gp.graph_parents[revid]]
+                if not hasattr(rev, "branch"):
+                    rev.branch = gp.get_revid_branch(revid)
+                if not hasattr(rev, "tags"):
+                    rev.tags = sorted(gp.tags.get(revid, []))
+                
+                replace = self.replace_config(rev.branch)
+                html.append(format_revision_html(rev, replace))
+            self.message.setHtml("<br>".join(html))
             
-            if not hasattr(rev, "children"):
-                rev.children = [revisions[revid] for revid in child_ids]
-            if not hasattr(rev, "parents"):
-                rev.parents = [revisions[revid] for revid in parents_ids]
-            if not hasattr(rev, "branch"):
-                rev.branch = gp.get_revid_branch(rev.revision_id)
-            if not hasattr(rev, "tags"):
-                rev.tags = sorted(gp.tags.get(rev.revision_id, []))
-            self.current_rev = rev
-            
-            replace = self.replace_config(rev.branch)
-            self.message.setHtml(format_revision_html(rev, replace))
             self.revision_delta_timer.start(1)
 
     def show_file_list_context_menu(self, pos):
