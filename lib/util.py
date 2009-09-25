@@ -570,9 +570,13 @@ def format_revision_html(rev, search_replace=None, show_timestamp=False):
         bugs = []
         for bug in rev.properties.get('bugs', '').split('\n'):
             if bug:
-                url, status = bug.split(' ', 1)
-                bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
-                    dict(url=url, status=gettext(status))))
+                try:
+                    url, status = bug.split(' ', 1)
+                    bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
+                                   dict(url=url, status=gettext(status))))
+                except ValueError:
+                    bugs.append(bug)# just how what what it is
+                
         if bugs:
             props.append((ngettext("Bug:", "Bugs:", len(bugs)), ", ".join(bugs)))
 
