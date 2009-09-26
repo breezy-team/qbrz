@@ -15,6 +15,7 @@ class Ui_TagForm(object):
     def setupUi(self, TagForm):
         TagForm.setObjectName("TagForm")
         TagForm.setWindowModality(QtCore.Qt.NonModal)
+        TagForm.resize(340, 220)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
