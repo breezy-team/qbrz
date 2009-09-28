@@ -73,6 +73,14 @@ version_info = (0, 15, 0, 'dev', 0)
 __version__ = '.'.join(map(str, version_info))
 
 
+import bzrlib.api
+
+COMPATIBLE_BZR_VERSIONS = [(1, 17, 0),
+                           (2, 1, 0),
+                           ]
+
+bzrlib.api.require_any_api(bzrlib, COMPATIBLE_BZR_VERSIONS)
+
 from bzrlib import registry
 from bzrlib.commands import register_command, plugin_cmds
 
