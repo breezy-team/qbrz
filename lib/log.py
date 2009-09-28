@@ -197,7 +197,7 @@ class LogWindow(QBzrWindow):
         else:
             show_diff_action = self.file_list_context_menu.addAction(
                                         gettext("Show &differences..."),
-                                        self.show_diff_file_menu)
+                                        self.show_diff_files)
             self.file_list_context_menu.setDefaultAction(show_diff_action)
         
         self.file_list_context_menu.addAction(gettext("Annotate"),
