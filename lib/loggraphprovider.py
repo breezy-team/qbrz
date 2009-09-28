@@ -269,17 +269,7 @@ class LogGraphProvider(object):
         self.append_repo(repo)
         self.append_branch(tree, branch)
         
-        if file_ids:
-            self.fileids.extend(file_ids)
-            if not self.has_dir:
-                for file_id in file_ids:
-                    if tree is None:
-                        kind = branch.basis_tree().kind(file_id)
-                    else:
-                        kind = tree.kind(file_id)
-                    if kind in ('directory', 'tree-reference'):
-                        self.has_dir = True
-                        break
+        self.fileids.extend(file_ids)
         
         if len(self.branches)==1 and self.trunk_branch == None:
             self.trunk_branch = branch
@@ -338,9 +328,6 @@ class LogGraphProvider(object):
                         "Path does not have any revision history: %s" %
                         location)
                 
-                kind = tree.kind(file_id)
-                if kind in ('directory', 'tree-reference'):
-                    self.has_dir = True
                 self.update_ui()
                 
                 self.fileids.append(file_id)
@@ -793,6 +780,20 @@ class LogGraphProvider(object):
         """
         if self.fileids:
             self.throbber_show()
+            
+            if len(self.branches)>1:
+                raise errors.BzrCommandError(paths_and_branches_err)
+            
+            bi = self.branches[0]
+            tree = bi.tree
+            if tree is None:
+                tree = bi.branch.basis_tree()
+            
+            self.has_dir = False
+            for fileid in self.fileids:
+                if tree.kind(fileid) in ('directory', 'tree-reference'):
+                    self.has_dir = True
+                    break
             
             self.filter_file_id = [False for i in 
                          xrange(len(self.revisions))]

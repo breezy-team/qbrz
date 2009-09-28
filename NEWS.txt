@@ -1,6 +1,9 @@
 0.14.3 - In developement
 ------------------------
 
+ * qlog:
+    * Ensure that tree objects correctly locked when checking for directories.
+      (Bug 436467)
 
 0.14.2 - 2009-09-16
 -------------------
