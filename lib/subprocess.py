@@ -655,17 +655,12 @@ class SubprocessProgressView (TextProgressView):
 
 class SubprocessUIFactory(TextUIFactory):
 
-    def __init__(self, stdin=None, stdout=None, stderr=None):
-
-        TextUIFactory.__init__(self, stdin=stdin, stdout=stdout, stderr=stderr)
-
-        # This is to be compatabile with bzr < rev 4558
-        if not hasattr(TextUIFactory, "make_progress_view"):
-            self._progress_view = SubprocessProgressView(self.stdout)
-
     def make_progress_view(self):
         return SubprocessProgressView(self.stdout)
-
+    
+    # This is to be compatabile with bzr < rev 4558
+    _make_progress_view = make_progress_view
+    
     def clear_term(self):
         """Prepare the terminal for output.
 
