@@ -73,13 +73,29 @@ version_info = (0, 15, 0, 'dev', 0)
 __version__ = '.'.join(map(str, version_info))
 
 
-import bzrlib.api
+import bzrlib
+from bzrlib import api
 
-COMPATIBLE_BZR_VERSIONS = [(1, 17, 0),
-                           (2, 1, 0),
-                           ]
+def require_mimimum_api(object_with_api, wanted_mimimum_api):
+    """Check if object_with_api supports the mimimum api version
+    wanted_mimimum_api.
 
-bzrlib.api.require_any_api(bzrlib, COMPATIBLE_BZR_VERSIONS)
+    :param object_with_api: An object which exports an API minimum and current
+        version. See get_minimum_api_version and get_current_api_version for
+        details.
+    :param wanted_mimimum_api: The API version for which support is required.
+    :return: None
+    :raises IncompatibleAPI: When the wanted_api is not supported by
+        object_with_api.
+    """
+    current = api.get_current_api_version(object_with_api)
+    minimum = api.get_minimum_api_version(object_with_api)
+    if wanted_mimimum_api > minimum:
+        from bzrlib.errors import IncompatibleAPI
+        raise IncompatibleAPI(object_with_api, wanted_mimimum_api,
+                              minimum, current)
+
+require_mimimum_api(bzrlib, (1, 17, 0))
 
 from bzrlib import registry
 from bzrlib.commands import register_command, plugin_cmds
