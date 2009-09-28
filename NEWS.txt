@@ -8,9 +8,15 @@
    * sort tags alphabeticaly and case-insensitive. (#423075, Craig Hewetson)
    * save/restore the size of dialog. (#435859, Craig Hewetson)
 
+0.14.3 - In developement
+------------------------
+
+ * qlog:
+    * Ensure that tree objects correctly locked when checking for directories.
+      (Bug 436467)
 
 0.14.2 - 2009-09-16
------------------------
+-------------------
 
  * qlog:
     * Fixed couple of problems with proper rendering of branch labels
