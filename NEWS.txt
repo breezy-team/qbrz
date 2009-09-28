@@ -4,7 +4,9 @@
     * qrun (Alexander Belchenko)
  * qsubprocess: new command-line option --bencode to use bencoded command list.
    (#392920, Alexander Belchenko)
- * qtag: sort tags alphabeticaly and case-insensitive. (#423075, Craig Hewetson)
+ * qtag: 
+   * sort tags alphabeticaly and case-insensitive. (#423075, Craig Hewetson)
+   * save/restore the size of dialog. (#435859, Craig Hewetson)
 
 
 0.14.2 - 2009-09-16

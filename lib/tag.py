@@ -45,7 +45,8 @@ class TagWindow(SubProcessDialog):
 
         self.ui = Ui_TagForm()
         self.ui.setupUi(self)
-
+        # keep this after self.ui.setupUi
+        self.restoreSize("tag", (340, 220))
         # and add the subprocess widgets.
         for w in self.make_default_layout_widgets():
             self.layout().addWidget(w)
