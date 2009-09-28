@@ -25,11 +25,7 @@ from bzrlib import errors
 from bzrlib.transport.local import LocalTransport
 from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.tsort import merge_sort
-try:
-    from bzrlib.graph import (Graph, StackedParentsProvider)
-except ImportError:
-    from bzrlib.graph import (Graph,
-                    _StackedParentsProvider as StackedParentsProvider)
+from bzrlib.graph import (Graph, StackedParentsProvider)
     
 from bzrlib.bzrdir import BzrDir
 from bzrlib.inventory import Inventory

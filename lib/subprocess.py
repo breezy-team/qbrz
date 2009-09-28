@@ -29,12 +29,7 @@ from PyQt4 import QtCore, QtGui
 
 from bzrlib import osutils, progress, errors
 
-try:
-    # this works with bzr 1.16+
-    from bzrlib import bencode
-except ImportError:
-    # this works with bzr 1.15-
-    from bzrlib.util import bencode
+from bzrlib import bencode
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
 from bzrlib.plugins.qbzr.lib.i18n import gettext
