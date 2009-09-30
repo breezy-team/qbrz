@@ -44,7 +44,8 @@ class QBzrUpdateWindow(SimpleSubProcessDialog):
 
     def auto_start(self):
         """Check if wt out of date actually."""
-        if self.tree.last_revision() == self.tree.branch.last_revision():
+        master = self.tree.branch.get_bound_location()
+        if not master and self.tree.last_revision() == self.tree.branch.last_revision():
             revno = self.tree.branch.revno()
             QtGui.QMessageBox.critical(self,
                 gettext("Up to date"),
