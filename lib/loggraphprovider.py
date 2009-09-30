@@ -264,8 +264,9 @@ class LogGraphProvider(object):
                 pass
         self.append_repo(repo)
         self.append_branch(tree, branch)
-        
-        self.fileids.extend(file_ids)
+
+        if file_ids:
+            self.fileids.extend(file_ids)
         
         if len(self.branches)==1 and self.trunk_branch == None:
             self.trunk_branch = branch
