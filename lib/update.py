@@ -41,13 +41,3 @@ class QBzrUpdateWindow(SimpleSubProcessDialog):
             ui_mode=ui_mode,
             parent=parent,
             )
-
-    def auto_start(self):
-        """Check if wt out of date actually."""
-        if self.tree.last_revision() == self.tree.branch.last_revision():
-            revno = self.tree.branch.revno()
-            QtGui.QMessageBox.critical(self,
-                gettext("Up to date"),
-                gettext("Tree is up to date at revision %s.") % revno,
-                gettext('&Close'))
-            self.close()
