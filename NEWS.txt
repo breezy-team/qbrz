@@ -1,12 +1,17 @@
 0.14.3 - In developement
 ------------------------
+Bugfixes.
 
+ * qcommit:
+    * Fixed bug with inability of run qcommit /path/to/tree/root after merge.
+      (#433137, Alexander Belchenko)
  * qlog:
     * Ensure that tree objects correctly locked when checking for directories.
-      (Bug 436467)
+      (#436467, Gary van der Merwe)
 
 0.14.2 - 2009-09-16
 -------------------
+Bugfixes.
 
  * qlog:
     * Fixed couple of problems with proper rendering of branch labels
