@@ -1089,6 +1089,10 @@ class TreeWidget(RevisionTreeView):
                              file2                  changed
                              
                              When in changes mode, no unchanged items are shown.
+
+        @param initial_checked_paths: list of specific filenames
+            which should be selected in the widget. By default all items
+            selected. Value None or empty list means: all selected.
         """
         self.tree = tree
         if isinstance(tree, RevisionTree) and branch is None:
@@ -1112,7 +1116,7 @@ class TreeWidget(RevisionTreeView):
         self.tree_model.set_tree(self.tree, self.branch,
                                  changes_mode, want_unversioned,
                                  change_load_filter=self.change_load_filter)
-        if initial_checked_paths is not None and not self.tree_model.checkable:
+        if initial_checked_paths and not self.tree_model.checkable:
             raise AttributeError("You can't have a initial_selection if "
                                  "tree_model.checkable is not True.")
         
@@ -1126,7 +1130,7 @@ class TreeWidget(RevisionTreeView):
             self.set_visible_headers()
         
         QtCore.QCoreApplication.processEvents()
-        if initial_checked_paths is not None:
+        if initial_checked_paths:
             self.tree_model.set_checked_paths(initial_checked_paths)
         
         self.tree_filter_model.invalidateFilter()
