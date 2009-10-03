@@ -8,9 +8,10 @@
    * sort tags alphabeticaly and case-insensitive. (#423075, Craig Hewetson)
    * save/restore the size of dialog. (#435859, Craig Hewetson)
 
-0.14.3 - In developement
-------------------------
-Bugfixes.
+
+0.14.3 - 2009-10-02
+-------------------
+Bugfixes release.
 
  * qcommit:
     * Fixed bug with inability of run qcommit /path/to/tree/root after merge.
@@ -18,6 +19,7 @@ Bugfixes.
  * qlog:
     * Ensure that tree objects correctly locked when checking for directories.
       (#436467, Gary van der Merwe)
+
 
 0.14.2 - 2009-09-16
 -------------------
