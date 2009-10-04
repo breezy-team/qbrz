@@ -21,36 +21,47 @@
 
 """Tests for TreeBranch wrapper object."""
 
-from bzrlib import errors, osutils
-from bzrlib.tests import TestCase, TestCaseWithTransport
-
+from bzrlib import (
+    errors,
+    osutils,
+    tests,
+    )
+from bzrlib.transport import memory
 from bzrlib.plugins.qbzr.lib import tree_branch
 from bzrlib.plugins.qbzr.lib.tests import mock
 
 
-class TestTreeBranch(TestCaseWithTransport):
+class TestTreeBranch(tests.TestCaseWithTransport):
 
-    def test_errors_no_ui_mode(self):
-        # no branch
+    def test_errors_no_ui_mode_no_branch(self):
+        self.vfs_transport_factory = memory.MemoryServer
         mf = mock.MockFunction()
         self.assertRaises(errors.NotBranchError,
-            tree_branch.TreeBranch.open_containing, '/non/existent/path',
-            ui_mode=False, _critical_dialog=mf)
+                          tree_branch.TreeBranch.open_containing,
+                          self.get_url('non/existent/path'),
+                          ui_mode=False, _critical_dialog=mf)
         self.assertEqual(0, mf.count)
-        # no tree
+
+    def test_errors_no_ui_mode_no_tree(self):
+        mf = mock.MockFunction()
         self.make_branch('a')
         self.assertRaises(errors.NoWorkingTree,
             tree_branch.TreeBranch.open_containing, 'a', require_tree=True,
             ui_mode=False, _critical_dialog=mf)
         self.assertEqual(0, mf.count)
 
-    def test_errors_ui_mode(self):
+    def test_errors_ui_mode_no_branch(self):
+        self.vfs_transport_factory = memory.MemoryServer
         mf = mock.MockFunction()
-        tb = tree_branch.TreeBranch.open_containing('/non/existent/path',
+        tb = tree_branch.TreeBranch.open_containing(
+            self.get_url('non/existent/path'),
             ui_mode=True, _critical_dialog=mf)
         self.assertEqual(None, tb)
         self.assertEqual(1, mf.count)
-        #
+
+
+    def test_errors_ui_mode_no_tree(self):
+        mf = mock.MockFunction()
         self.make_branch('a')
         mf = mock.MockFunction()
         tb = tree_branch.TreeBranch.open_containing('a',
