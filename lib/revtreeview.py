@@ -116,10 +116,12 @@ class RevisionTreeView(QtGui.QTreeView):
             
             repo_is_local = isinstance(repo.bzrdir.transport, LocalTransport)
             if not repo_is_local:
-                if not self.load_revisions_throbber_shown \
-                            and hasattr(self, "throbber"):
-                    self.throbber.show()
-                    self.load_revisions_throbber_shown = True
+                # Disable this until we have thobber that does not irratate
+                # users when we show and hide quickly.
+                #if not self.load_revisions_throbber_shown \
+                #            and hasattr(self, "throbber"):
+                #    self.throbber.show()
+                #    self.load_revisions_throbber_shown = True
                 # Allow for more scrolling to happen.
                 self.delay(0.5)
             
