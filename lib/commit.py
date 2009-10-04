@@ -437,7 +437,6 @@ class CommitWindow(SubProcessDialog):
                     self.pending_merges_list.load_branch(self.tree.branch,
                                                          None,
                                                          self.tree)
-                    self.pending_merges_list.load()
                     # Force the loading of the revisions, before we start
                     # loading the file list.
                     self.pending_merges_list._load_visible_revisions()
