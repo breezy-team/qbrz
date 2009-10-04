@@ -24,7 +24,7 @@ class EncodingSelector(QtGui.QWidget):
             initial_encoding = "UTF-8"
         self.chooser.setEditText(QtCore.QString(initial_encoding))
         self.connect(self.chooser, QtCore.SIGNAL("activated(QString)"),
-                lambda x: self.onChanged(x))
+                lambda x: self.onChanged(str(x)))
         layout.addWidget(self.chooser)
 
         # default encoding should be changed in Config window?

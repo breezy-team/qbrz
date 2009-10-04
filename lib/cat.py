@@ -35,6 +35,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
+from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingSelector
 
 
 have_pygments = True
@@ -88,12 +89,18 @@ class QBzrCatWindow(QBzrWindow):
 
         self.throbber = ThrobberWidget(self)
         self.buttonbox = self.create_button_box(BTN_CLOSE)
+        self.encoding_selector = EncodingSelector(self.encoding, gettext('Encoding: '))
+        self.encoding_selector.onChanged = self._on_change_encoding
 
         self.vbox = QtGui.QVBoxLayout(self.centralwidget)
         self.vbox.addWidget(self.throbber)
         self.vbox.addStretch()
-        self.vbox.addWidget(self.buttonbox)
-    
+
+        hbox = QtGui.QHBoxLayout(self.centralwidget)
+        hbox.addWidget(self.encoding_selector)
+        hbox.addWidget(self.buttonbox)
+        self.vbox.addLayout(hbox)
+
     def show(self):
         # we show the bare form as soon as possible.
         QBzrWindow.show(self)
@@ -140,6 +147,8 @@ class QBzrCatWindow(QBzrWindow):
                 self.tree.unlock()
             self.processEvents()
 
+            self.text = text
+            self.kind = kind
             self._create_and_show_browser(self.filename, text, kind)
         finally:
             self.throbber.hide()
@@ -185,10 +194,15 @@ class QBzrCatWindow(QBzrWindow):
         self.doc = QtGui.QTextDocument()
         self.doc.setDefaultFont(QtGui.QFont("Courier New,courier", self.browser.font().pointSize()))
         return self.browser
-    
-    def _create_text_view(self, relpath, text):
-        self._create_text_browser()
-        text = text.decode(self.encoding or 'utf-8', 'replace')
+
+    def _set_document(self, relpath, text):
+        """
+        :param text: unicode text
+        """
+        doc = getattr(self, 'doc', None)
+        if doc is None:
+            return
+        doc.clear()
         if not have_pygments:
             self.doc.setPlainText(text)
         else:
@@ -204,8 +218,18 @@ class QBzrCatWindow(QBzrWindow):
                 cursor.movePosition (QtGui.QTextCursor.Start)
             except ClassNotFound:
                 self.doc.setPlainText(text)
+
+    def _create_text_view(self, relpath, text):
+        self._create_text_browser()
+        text = text.decode(self.encoding or 'utf-8', 'replace')
+        self._set_document(relpath, text)
         self.browser.setDocument(self.doc)
         return self.browser
+
+    def _on_change_encoding(self, encoding):
+        self.encoding = encoding
+        text = self.text.decode(self.encoding or 'utf-8', 'replace')
+        self._set_document(self.filename, text)
 
     def _create_symlink_view(self, relpath, target):
         self._create_text_browser()
