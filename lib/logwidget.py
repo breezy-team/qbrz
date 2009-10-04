@@ -304,6 +304,10 @@ class LogList(RevisionTreeView):
         if parents:
             # We need a ui to select which parent.
             parent_revid = parents[0]
+            
+            # This is ugly. It is for the PendingMergesList in commit/revert.
+            if parent_revid == "root:":
+                parent_revid = self.graph_provider.graph.get_parent_map([bot_revid])[bot_revid][0]
         else:
             parent_revid = NULL_REVISION
         return top_revid, parent_revid
