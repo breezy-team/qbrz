@@ -229,8 +229,8 @@ class DiffWindow(QBzrWindow):
         
         self.set_diff_title()
         
-        self.encodings = (get_set_encoding(self.encoding, branch1),
-                          get_set_encoding(self.encoding, branch2))
+        self.encodings = [get_set_encoding(self.encoding, branch1),
+                          get_set_encoding(self.encoding, branch2)]
         self.processEvents()
     
     def set_diff_title(self):
@@ -253,9 +253,6 @@ class DiffWindow(QBzrWindow):
                 title.append(self.filter_options.to_str())
 
         self.set_title_and_icon(title)
-
-        self.encodings = [get_set_encoding(self.encoding, branch1),
-                          get_set_encoding(self.encoding, branch2)]
         self.processEvents()
 
     def load_diff(self):
