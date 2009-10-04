@@ -20,6 +20,7 @@
 from PyQt4 import QtCore, QtGui, Qt
 
 from bzrlib.bzrdir import BzrDir
+from bzrlib.revision import NULL_REVISION
 from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
                                                  RevNoItemDelegate,
                                                  StyledItemDelegate)
@@ -299,8 +300,12 @@ class LogList(RevisionTreeView):
         indexes = self.get_selection_indexes(index)
         top_revid = str(indexes[0].data(logmodel.RevIdRole).toString())
         bot_revid = str(indexes[-1].data(logmodel.RevIdRole).toString())
-        # We need a ui to select which parent.
-        parent_revid = self.graph_provider.graph_parents[bot_revid][0]
+        parents = self.graph_provider.graph_parents[bot_revid]
+        if parents:
+            # We need a ui to select which parent.
+            parent_revid = parents[0]
+        else:
+            parent_revid = NULL_REVISION
         return top_revid, parent_revid
     
     def set_search(self, str, field):
