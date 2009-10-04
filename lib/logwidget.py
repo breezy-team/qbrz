@@ -90,7 +90,7 @@ class LogList(RevisionTreeView):
         if self.view_commands:
             self.connect(self,
                          QtCore.SIGNAL("doubleClicked(QModelIndex)"),
-                         self.show_diff)
+                         self.default_action)
         self.context_menu = QtGui.QMenu(self)
         self.connect(self.log_model,
                      QtCore.SIGNAL("linesUpdated()"),
@@ -253,7 +253,7 @@ class LogList(RevisionTreeView):
         e_key = e.key()
         if e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return) and self.view_commands:
             e.accept()
-            self.show_diff()
+            self.default_action()
         elif e_key in (QtCore.Qt.Key_Left, QtCore.Qt.Key_Right):
             e.accept()
             indexes = [index for index in self.selectedIndexes() if index.column()==0]
@@ -314,6 +314,9 @@ class LogList(RevisionTreeView):
     
     def set_search(self, str, field):
         self.graph_provider.set_search(str, field)
+    
+    def default_action(self, index=None):
+        self.show_diff(index)
     
     def show_diff(self, index=None,
                   specific_files=None, specific_file_ids=None,

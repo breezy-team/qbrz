@@ -193,6 +193,8 @@ class PendingMergesList(LogList):
         if index is None:
             index = self.currentIndex()
         
+        # XXX We should make this show all selected revsions...
+        
         revid = str(index.data(logmodel.RevIdRole).toString())
         branch = self.graph_provider.get_revid_branch(revid)
         rev = self.graph_provider.load_revisions([revid])[revid]
