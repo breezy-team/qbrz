@@ -437,7 +437,6 @@ class CommitWindow(SubProcessDialog):
                     self.pending_merges_list.load_branch(self.tree.branch,
                                                          None,
                                                          self.tree)
-                    self.pending_merges_list.load()
                     self.processEvents()
                 
                 self.filelist.tree_model.checkable = not self.pending_merges_list
