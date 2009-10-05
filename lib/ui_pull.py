@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/pull.ui'
 #
-# Created: Thu Jul 30 12:04:45 2009
+# Created: Mon Oct 05 19:41:19 2009
 #      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -42,7 +42,7 @@ class Ui_PullForm(object):
         spacerItem = QtGui.QSpacerItem(211, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridLayout.addItem(spacerItem, 1, 2, 1, 2)
         self.remember = QtGui.QCheckBox(self.groupBox)
-        self.remember.setChecked(True)
+        self.remember.setChecked(False)
         self.remember.setObjectName("remember")
         self.gridLayout.addWidget(self.remember, 2, 0, 1, 4)
         self.overwrite = QtGui.QCheckBox(self.groupBox)
