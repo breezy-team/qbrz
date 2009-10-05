@@ -395,7 +395,6 @@ class DiffWindow(QBzrWindow):
 
     def encoding_selected(self, which, encoding):
         self.encodings[which] = encoding
-        print self.encodings
         self.click_refresh()
 
     def encoding_selected_left(self, encoding):
