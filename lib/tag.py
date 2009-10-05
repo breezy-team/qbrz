@@ -215,3 +215,14 @@ class TagWindow(SubProcessDialog):
         if delete:
             action = 'delete'
         return action
+
+class InternalTagWindow(TagWindow):
+    def __init__(self, branch, closing_function, action=None, tag_name=None, revision=None,
+        parent=None, ui_mode=False):
+        super(InternalTagWindow, self).__init__(branch, action=action, tag_name=tag_name, revision=revision,
+        parent=parent, ui_mode=ui_mode)
+        self.closing_function=closing_function
+    
+    def closeEvent(self, event):
+        super(InternalTagWindow, self).closeEvent(event);
+        self.closing_function()
