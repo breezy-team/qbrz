@@ -356,12 +356,14 @@ class DiffWindow(QBzrWindow):
                                     groups = list([matcher.get_opcodes()])
                                 else:
                                     groups = list(matcher.get_grouped_opcodes())
-                            try:
-                                lines = [[i.decode(encoding) for i in l]
-                                        for l, encoding in zip(lines, self.encodings)]
-                            except UnicodeDecodeError, e:
-                                trace.note('Failed to decode using %s, falling back to latin1' % e.encoding)
-                                lines = [[i.decode('latin1') for i in l] for l in lines]
+                            ulines = []
+                            for l, encoding in zip(lines, self.encodings):
+                                try:
+                                    ulines.append([i.decode(encoding) for i in l])
+                                except UnicodeDecodeError, e:
+                                    trace.note('Failed to decode using %s, falling back to latin1', e.encoding)
+                                    ulines.append([i.decode('latin1') for i in l])
+                            lines = ulines
                             data = ((),())
                         else:
                             groups = []
@@ -392,8 +394,8 @@ class DiffWindow(QBzrWindow):
         self.refresh_button.setEnabled(self.can_refresh())
 
     def encoding_selected(self, which, encoding):
-        encoding = str(encoding) #QString=>str
         self.encodings[which] = encoding
+        print self.encodings
         self.click_refresh()
 
     def encoding_selected_left(self, encoding):
