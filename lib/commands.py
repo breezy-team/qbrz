@@ -371,33 +371,46 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
     aliases = ['qdi']
 
     def get_diff_window_args(self, processEvents):
-        from bzrlib.diff import _get_trees_to_diff
-
-        old_tree, new_tree, specific_files, extra_trees = \
-                _get_trees_to_diff(self.file_list, self.revision,
-                                   self.old, self.new)
-        processEvents()
         
-        if self.file_list:
-            default_location = self.file_list[0]
+        try:
+            from bzrlib.diff import get_trees_and_branches_to_diff
+            has_get_trees_and_branches_to_diff = True
+        except ImportError:
+            from bzrlib.diff import _get_trees_to_diff
+            has_get_trees_and_branches_to_diff = False
+        
+        if has_get_trees_and_branches_to_diff:
+            (old_tree, new_tree,
+             old_branch, new_branch,
+             specific_files, extra_trees) = \
+               get_trees_and_branches_to_diff(self.file_list, self.revision,
+                                              self.old, self.new)
         else:
-            # If no path is given, the current working tree is used
-            default_location = u'.'
-        
-        if self.old is None:
-            self.old = default_location
-        wt, old_branch, rp = \
-            BzrDir.open_containing_tree_or_branch(self.old)
-        processEvents()
-        if self.new is None:
-            self.new = default_location
-        if self.new != self.old :
-            wt, new_branch, rp = \
-                BzrDir.open_containing_tree_or_branch(self.new)
-        else:
-            new_branch = old_branch
-        processEvents()
-        
+            old_tree, new_tree, specific_files, extra_trees = \
+                    _get_trees_to_diff(self.file_list, self.revision,
+                                       self.old, self.new)
+            processEvents()
+            
+            if self.file_list:
+                default_location = self.file_list[0]
+            else:
+                # If no path is given, the current working tree is used
+                default_location = u'.'
+            
+            if self.old is None:
+                self.old = default_location
+            wt, old_branch, rp = \
+                BzrDir.open_containing_tree_or_branch(self.old)
+            processEvents()
+            if self.new is None:
+                self.new = default_location
+            if self.new != self.old :
+                wt, new_branch, rp = \
+                    BzrDir.open_containing_tree_or_branch(self.new)
+            else:
+                new_branch = old_branch
+            processEvents()
+            
         return old_tree, new_tree, old_branch, new_branch, specific_files
     
     def get_ext_diff_args(self, processEvents):
