@@ -473,7 +473,7 @@ class cmd_qlog(QBzrCommand):
                    	 Option('no-graph', help="Shows the log with no graph."),
                     ]
 
-    def _qbzr_run(self, locations_list, ui_mode=False, no_graph=False):
+    def _qbzr_run(self, locations_list=None, ui_mode=False, no_graph=False):
         window = LogWindow(locations_list, None, None, ui_mode=ui_mode,
                            no_graph=no_graph)
         window.show()
