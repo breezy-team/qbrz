@@ -299,6 +299,8 @@ class LogList(RevisionTreeView):
     
     def get_selection_top_and_parent_revids(self, index=None):
         indexes = self.get_selection_indexes(index)
+        if len(indexes) == 0:
+            return None, None
         top_revid = str(indexes[0].data(logmodel.RevIdRole).toString())
         bot_revid = str(indexes[-1].data(logmodel.RevIdRole).toString())
         parents = self.graph_provider.graph_parents[bot_revid]
@@ -324,6 +326,9 @@ class LogList(RevisionTreeView):
                   ext_diff=None):
         
         new_revid, old_revid = self.get_selection_top_and_parent_revids(index)
+        if new_revid is None and old_revid is None:
+            # No revision selection.
+            return
         new_branch = self.graph_provider.get_revid_branch(new_revid)
         old_branch =  self.graph_provider.get_revid_branch(old_revid)
         
