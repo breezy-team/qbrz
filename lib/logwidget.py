@@ -292,7 +292,8 @@ class LogList(RevisionTreeView):
 
     def get_selection_indexes(self, index=None):
         if index is None:
-            return self.selectionModel().selectedRows(0)
+            return sorted(self.selectionModel().selectedRows(0), 
+                          key=lambda x: x.row())
         else:
             return [index]
     
