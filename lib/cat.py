@@ -29,7 +29,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     ThrobberWidget,
     file_extension,
-    format_for_ttype,
+    CachedTTypeFormater,
     get_set_encoding,
     runs_in_loading_queue,
     )
@@ -195,11 +195,12 @@ class QBzrCatWindow(QBzrWindow):
             try:
                 cursor = QtGui.QTextCursor(self.doc)
                 font = self.doc.defaultFont()
+                format = QtGui.QTextCharFormat()
+                format.setFont(font)
+                formatter = CachedTTypeFormater(format)
                 lexer = get_lexer_for_filename(relpath, stripnl=False)
                 for ttype, value in lex(text, lexer):                    
-                    format = QtGui.QTextCharFormat()
-                    format.setFont(font)
-                    format = format_for_ttype(ttype,format)
+                    format = formatter.format(ttype)
                     cursor.insertText(value, format)
                 cursor.movePosition (QtGui.QTextCursor.Start)
             except ClassNotFound:

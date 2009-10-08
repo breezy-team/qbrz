@@ -2,6 +2,8 @@
 ---------------------
  * New dialog:
     * qrun (Alexander Belchenko)
+ * qcat:
+   * Improve speed of syntax highlighting. (#442965, Atsuo Ishimoto)
  * qsubprocess: new command-line option --bencode to use bencoded command list.
    (#392920, Alexander Belchenko)
  * qtag: 
