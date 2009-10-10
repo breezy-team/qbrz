@@ -25,7 +25,7 @@ from bzrlib.revisionspec import RevisionSpec
 from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
                                                  RevNoItemDelegate,
                                                  StyledItemDelegate)
-from bzrlib.plugins.qbzr.lib.tag import TagWindow, InternalTagWindow
+from bzrlib.plugins.qbzr.lib.tag import TagWindow, CallBackTagWindow
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.trace import *
 from bzrlib.plugins.qbzr.lib.util import (
@@ -203,6 +203,13 @@ class LogList(RevisionTreeView):
         # Start later so that it does not run in the loading queue.
         QtCore.QTimer.singleShot(1, self.graph_provider.load_filter_file_id)
 
+    def refresh_tags(self):
+        self.graph_provider.lock_read_branches()
+        try:
+            self.graph_provider.load_tags()
+        finally:
+            self.graph_provider.unlock_branches()
+
     def mousePressEvent (self, e):
         colapse_expand_click = False
         if e.button() & QtCore.Qt.LeftButton:
@@ -328,7 +335,7 @@ class LogList(RevisionTreeView):
         revs = [RevisionSpec.from_string(revno)]
         branch = self.graph_provider.get_revid_branch(revid)
         action = TagWindow.action_from_options(force=False, delete=False)
-        window = InternalTagWindow(branch,self.refresh,action=action,revision=revs)
+        window = CallBackTagWindow(branch,self.refresh_tags,action=action,revision=revs)
         window.show()
         self.window().windows.append(window)
     
