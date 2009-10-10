@@ -425,8 +425,8 @@ class GraphTagsBugsItemDelegate(StyledItemDelegate):
                             option, painter, widget)
         
         graphCols = 0
+        rect = option.rect
         if draw_graph:
-            rect = option.rect
             painter.save()
             try:
                 painter.setRenderHint(QtGui.QPainter.Antialiasing)            
