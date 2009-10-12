@@ -7,6 +7,8 @@
  * qconflicts:
    * Enable multiple selections of conflict items to resolve or launch merge
      tool for them. (#415393, Craig Hewetson)
+ * qlog:
+   * Fixed regression with --no-graph feature. (#448232, Craig Hewetson)
  * qsubprocess: new command-line option --bencode to use bencoded command list.
    (#392920, Alexander Belchenko)
  * qtag: 
