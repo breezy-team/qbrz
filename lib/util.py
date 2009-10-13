@@ -50,6 +50,7 @@ from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from bzrlib import errors
 from bzrlib.workingtree import WorkingTree
+from bzrlib import foreign
 ''')
 
 
@@ -575,6 +576,33 @@ def format_revision_html(rev, search_replace=None, show_timestamp=False):
                     dict(url=url, status=gettext(status))))
         if bugs:
             props.append((ngettext("Bug:", "Bugs:", len(bugs)), ", ".join(bugs)))
+
+        if isinstance(rev, foreign.ForeignRevision):
+            foreign_attribs = \
+                rev.mapping.vcs.show_foreign_revid(rev.foreign_revid)
+
+            keys = foreign_attribs.keys()
+            keys.sort()
+            for key in keys:
+                props.append((key, foreign_attribs[key]))
+
+        elif ":" in rev.revision_id:
+            try:
+                foreign_revid, mapping = \
+                    foreign.foreign_vcs_registry.parse_revision_id(
+                        rev.revision_id)
+                
+                foreign_attribs = \
+                    mapping.vcs.show_foreign_revid(foreign_revid)
+                
+                keys = foreign_attribs.keys()
+                keys.sort()
+                for key in keys:
+                    props.append((key + ":", foreign_attribs[key]))
+
+            except errors.InvalidRevisionId:
+                pass
+
 
     text = []
     text.append('<table style="background:#EDEDED;" width="100%" cellspacing="0" cellpadding="0"><tr><td>')
