@@ -584,7 +584,7 @@ def format_revision_html(rev, search_replace=None, show_timestamp=False):
             keys = foreign_attribs.keys()
             keys.sort()
             for key in keys:
-                props.append((key, foreign_attribs[key]))
+                props.append((key + ":", foreign_attribs[key]))
 
         elif ":" in rev.revision_id:
             try:
