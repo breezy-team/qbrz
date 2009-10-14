@@ -50,8 +50,9 @@ class LogList(RevisionTreeView):
 
         self.setItemDelegateForColumn(logmodel.COL_MESSAGE,
                                       GraphTagsBugsItemDelegate(self))
+        self.rev_no_item_delegate = RevNoItemDelegate(parent=self)
         self.setItemDelegateForColumn(logmodel.COL_REV,
-                                      RevNoItemDelegate(parent=self))
+                                      self.rev_no_item_delegate)
         self.processEvents = processEvents
         self.throbber = throbber
 
@@ -193,6 +194,17 @@ class LogList(RevisionTreeView):
         try:
             self.graph_provider.load_tags()
             self.log_model.load_graph_all_revisions()
+            
+            # Resize the rev no col.
+            main_line_tip = self.graph_provider.branch_lines[()].revs[0]
+            main_line_digets = max(len(main_line_tip.revno_str), 4)
+            self.rev_no_item_delegate.max_mainline_digits = main_line_digets
+            header = self.header()
+            fm = self.fontMetrics()
+            col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
+                                                   None, self) + 1) *2
+            header.resizeSection(logmodel.COL_REV,
+                                 fm.width(("8"*main_line_digets)+".8.888") + col_margin)
         finally:
             self.graph_provider.unlock_branches()
         
