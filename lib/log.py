@@ -200,10 +200,12 @@ class LogWindow(QBzrWindow):
                                         self.show_diff_files)
             self.file_list_context_menu.setDefaultAction(show_diff_action)
         
-        self.file_list_context_menu.addAction(gettext("Annotate"),
-                                              self.show_file_annotate)
-        self.file_list_context_menu.addAction(gettext("View file"),
-                                              self.show_file_content)
+        self.file_list_context_menu_annotate = \
+            self.file_list_context_menu.addAction(gettext("Annotate"),
+                                                  self.show_file_annotate)
+        self.file_list_context_menu_cat = \
+            self.file_list_context_menu.addAction(gettext("View file"),
+                                                  self.show_file_content)
 
         self.fileList.connect(
             self.fileList,
@@ -459,6 +461,13 @@ class LogWindow(QBzrWindow):
             self.revision_delta_timer.start(1)
 
     def show_file_list_context_menu(self, pos):
+        # XXX - We should also check that the selected file is a file, and 
+        # not a dir
+        paths, file_ids = self.get_file_selection_paths_and_ids()
+        is_single_file = len(paths) == 1
+        self.file_list_context_menu_annotate.setEnabled(is_single_file)
+        self.file_list_context_menu_cat.setEnabled(is_single_file)
+        
         self.file_list_context_menu.popup(
             self.fileList.viewport().mapToGlobal(pos))
     
@@ -496,25 +505,28 @@ class LogWindow(QBzrWindow):
     @ui_current_widget
     def show_file_content(self):
         """Launch qcat for one selected file."""
-        rev, path, id = self.get_current_rev_path_and_id()
-        if rev and path:
-            tree = rev.branch.repository.revision_tree(rev.revision_id)
-            encoding = get_set_encoding(None, rev.branch)
-            window = QBzrCatWindow(filename = path, tree = tree, parent=self,
-                encoding=encoding)
-            window.show()
-            self.windows.append(window)
+        paths, file_ids = self.get_file_selection_paths_and_ids()
+        top_revid, old_revid = self.log_list.get_selection_top_and_parent_revids()
+        
+        branch = self.log_list.graph_provider.get_revid_branch(top_revid)
+        tree = branch.repository.revision_tree(top_revid)
+        encoding = get_set_encoding(None, branch)
+        window = QBzrCatWindow(filename = paths[0], tree = tree, parent=self,
+            encoding=encoding)
+        window.show()
+        self.windows.append(window)
 
     @ui_current_widget
     def show_file_annotate(self):
         """Show qannotate for selected file."""
-        rev, path, file_id = self.get_current_rev_path_and_id()
-        if rev and path:
-            branch = rev.branch
-            tree = rev.branch.repository.revision_tree(rev.revision_id)
-            window = AnnotateWindow(branch, tree, path, file_id)
-            window.show()
-            self.windows.append(window)
+        paths, file_ids = self.get_file_selection_paths_and_ids()
+        top_revid, old_revid = self.log_list.get_selection_top_and_parent_revids()
+        
+        branch = self.log_list.graph_provider.get_revid_branch(top_revid)
+        tree = branch.repository.revision_tree(top_revid)
+        window = AnnotateWindow(branch, tree, paths[0], file_ids[0])
+        window.show()
+        self.windows.append(window)
     
     @ui_current_widget
     def update_search(self):
