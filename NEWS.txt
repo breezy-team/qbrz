@@ -2,6 +2,8 @@
 ---------------------
  * New dialog:
     * qrun (Alexander Belchenko)
+ * qbind/qunbind:
+   * Show Close, not Ok/Cancel, on completion. (#449489, Ian Clatworthy)
  * qcat:
    * Improve speed of syntax highlighting. (#442965, Atsuo Ishimoto)
  * qconflicts:
