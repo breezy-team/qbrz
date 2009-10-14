@@ -263,7 +263,7 @@ class QBzrMergeWindow(SubProcessDialog):
     NAME = "merge"
 
     def __init__(self, branch, tree=None, location=None, revision=None, remember=None,
-                 ui_mode=True, parent=None):
+                 force=None, uncommitted=None, ui_mode=True, parent=None):
         super(QBzrMergeWindow, self).__init__(name = self.NAME,
                                              ui_mode = ui_mode,
                                              parent = parent)
@@ -283,6 +283,10 @@ class QBzrMergeWindow(SubProcessDialog):
 
         if remember:
             self.ui.remember.setCheckState(QtCore.Qt.Checked)
+        if force:
+            self.ui.force.setCheckState(QtCore.Qt.Checked)
+        if uncommitted:
+            self.ui.uncommitted.setCheckState(QtCore.Qt.Checked)
         if revision:
             self.ui.revision.setText(revision)
     
@@ -300,6 +304,10 @@ class QBzrMergeWindow(SubProcessDialog):
         args = ['--directory', dest]
         if self.ui.remember.isChecked():
             args.append('--remember')
+        if self.ui.force.isChecked():
+            args.append('--force')
+        if self.ui.uncommitted.isChecked():
+            args.append('--uncommitted')
         rev = unicode(self.ui.revision.text()).strip()
         if rev:
             args.extend(['--revision', rev])

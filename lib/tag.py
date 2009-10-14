@@ -18,7 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-
 from bzrlib.branch import Branch
 from bzrlib import (
     errors,
@@ -33,20 +32,21 @@ class TagWindow(SubProcessDialog):
 
     # indices of actions in action combo box
     IX_CREATE = 0
-    IX_REPLACE = 1
+    IX_MOVE = 1
     IX_DELETE = 2
 
     def __init__(self, branch, action=None, tag_name=None, revision=None,
         parent=None, ui_mode=False):
         """Create tag edit window.
-        @param  action:     default action (create, replace, delete)
+        @param  action:     default action (create, move, delete)
         """
         super(TagWindow, self).__init__(name="tag", ui_mode=ui_mode,
             dialog=True, parent=parent)
 
         self.ui = Ui_TagForm()
         self.ui.setupUi(self)
-
+        # keep this after self.ui.setupUi
+        self.restoreSize("tag", (340, 220))
         # and add the subprocess widgets.
         for w in self.make_default_layout_widgets():
             self.layout().addWidget(w)
@@ -80,12 +80,13 @@ class TagWindow(SubProcessDialog):
         # update ui
         self.ui.branch_location.setText(url_for_display(branch.base))
         self.ui.cb_tag.clear()
-        self.ui.cb_tag.addItems(QtCore.QStringList(sorted(self.tags.keys())))
+        self.ui.cb_tag.addItems(QtCore.QStringList(sorted(self.tags.keys(),
+                                                          key=unicode.lower)))
         self.ui.cb_tag.setEditText("")
         self.ui.cb_tag.setCurrentIndex(-1)
 
     def setup_initial_values(self, action=None, tag_name=None, revision=None):
-        action_index = {'create': self.IX_CREATE, 'replace': self.IX_REPLACE,
+        action_index = {'create': self.IX_CREATE, 'move': self.IX_MOVE,
             'delete': self.IX_DELETE}.get(action)
         if action_index is not None:
             self.ui.cb_action.setCurrentIndex(action_index)
@@ -140,16 +141,16 @@ class TagWindow(SubProcessDialog):
             btn = QtGui.QMessageBox.question(self, title,
                 gettext(
                     'Tag "%s" already exists.\n'
-                    'Do you want to replace existing tag?'
+                    'Do you want to move existing tag?'
                     ) % tag,
-                gettext('&Replace'), gettext("&Cancel"), '',
+                gettext('&Move'), gettext("&Cancel"), '',
                 0, 1)
-            if btn == 0:    # replace
-                action = self.IX_REPLACE
+            if btn == 0:    # move
+                action = self.IX_MOVE
                 title = self.ui.cb_action.itemText(action)
             else:   # cancel
                 return False
-        if action == self.IX_REPLACE and not has_tag:
+        if action == self.IX_MOVE and not has_tag:
             btn = QtGui.QMessageBox.question(self, title,
                 gettext(
                     'Tag "%s" does not exists yet.\n'
@@ -172,7 +173,7 @@ class TagWindow(SubProcessDialog):
         args.append('--directory')
         args.append(unicode(self.ui.branch_location.text()))
         if action != self.IX_CREATE:
-            args.append({self.IX_REPLACE: '--force',
+            args.append({self.IX_MOVE: '--force',
                          self.IX_DELETE: '--delete'
                         }[action])
         if action != self.IX_DELETE:
@@ -210,7 +211,7 @@ class TagWindow(SubProcessDialog):
     def action_from_options(force=None, delete=None):
         action = 'create'
         if force:
-            action = 'replace'
+            action = 'move'
         if delete:
             action = 'delete'
         return action

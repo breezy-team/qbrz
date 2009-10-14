@@ -85,7 +85,7 @@ class QBzrSwitchWindow(SubProcessDialog):
         
         switch_hbox = QtGui.QHBoxLayout()
         
-        branch_label = QtGui.QLabel(gettext("Branch:"))
+        branch_label = QtGui.QLabel(gettext("Switch to branch:"))
         branch_combo = QtGui.QComboBox()   
         branch_combo.setEditable(True)
         

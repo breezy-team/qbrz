@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/merge.ui'
 #
-# Created: Thu Jul 30 12:02:52 2009
-#      by: PyQt4 UI code generator 4.4.3
+# Created: Tue Aug 18 15:10:52 2009
+#      by: PyQt4 UI code generator 4.4.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -14,7 +14,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 class Ui_MergeForm(object):
     def setupUi(self, MergeForm):
         MergeForm.setObjectName("MergeForm")
-        MergeForm.resize(355, 133)
+        MergeForm.resize(448, 248)
         self.verticalLayout = QtGui.QVBoxLayout(MergeForm)
         self.verticalLayout.setMargin(9)
         self.verticalLayout.setObjectName("verticalLayout")
@@ -42,9 +42,14 @@ class Ui_MergeForm(object):
         spacerItem = QtGui.QSpacerItem(107, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.gridLayout.addItem(spacerItem, 1, 2, 1, 2)
         self.remember = QtGui.QCheckBox(self.groupBox)
-        self.remember.setChecked(True)
         self.remember.setObjectName("remember")
         self.gridLayout.addWidget(self.remember, 2, 0, 1, 4)
+        self.force = QtGui.QCheckBox(self.groupBox)
+        self.force.setObjectName("force")
+        self.gridLayout.addWidget(self.force, 3, 0, 1, 4)
+        self.uncommitted = QtGui.QCheckBox(self.groupBox)
+        self.uncommitted.setObjectName("uncommitted")
+        self.gridLayout.addWidget(self.uncommitted, 4, 0, 1, 4)
         self.verticalLayout.addWidget(self.groupBox)
         self.label_4.setBuddy(self.revision)
         self.label_3.setBuddy(self.revision)
@@ -60,4 +65,6 @@ class Ui_MergeForm(object):
         self.location_picker.setText(gettext("Browse..."))
         self.label_3.setText(gettext("&Revision:"))
         self.remember.setText(gettext("Remember this location as a default"))
+        self.force.setText(gettext("Merge even if the working tree has uncommitted changes"))
+        self.uncommitted.setText(gettext("Merge uncommitted changes instead of committed ones"))
 

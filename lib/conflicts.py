@@ -33,6 +33,7 @@ from bzrlib.plugins.qbzr.lib.util import (
 class ConflictsWindow(QBzrWindow):
 
     def __init__(self, wt_dir, parent=None):
+        self.merge_action = None
         self.wt_dir = wt_dir
         QBzrWindow.__init__(self,
             [gettext("Conflicts")], parent)
@@ -44,6 +45,7 @@ class ConflictsWindow(QBzrWindow):
         self.conflicts_list.setRootIsDecorated(False)
         self.conflicts_list.setUniformRowHeights(True)
         self.conflicts_list.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.conflicts_list.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.conflicts_list.setHeaderLabels([
             gettext("File"),
             gettext("Conflict"),
@@ -57,10 +59,12 @@ class ConflictsWindow(QBzrWindow):
             QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
             self.show_context_menu)
         self.conflicts_list.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.conflicts_list.setSortingEnabled(True)
+        self.conflicts_list.sortByColumn(0, QtCore.Qt.AscendingOrder)
         header = self.conflicts_list.header()
         header.setStretchLastSection(False)
         header.setResizeMode(0, QtGui.QHeaderView.Stretch)
-        header.setResizeMode(1, QtGui.QHeaderView.Interactive)
+        header.setResizeMode(1, QtGui.QHeaderView.ResizeToContents)
         vbox.addWidget(self.conflicts_list)
 
         hbox = QtGui.QHBoxLayout()
@@ -94,8 +98,7 @@ class ConflictsWindow(QBzrWindow):
         hbox.addWidget(self.program_launch_button)
         vbox.addLayout(hbox)
 
-        self.context_menu = QtGui.QMenu(self.conflicts_list)
-        self.context_menu.addAction(gettext("Mark as resolved"), self.mark_item_as_resolved)
+        self.create_context_menu()
 
         buttonbox = self.create_button_box(BTN_CLOSE)
         refresh = StandardButton(BTN_REFRESH)
@@ -128,6 +131,16 @@ class ConflictsWindow(QBzrWindow):
             if not extmerge_tool:
                 self.program_extmerge_default_button.setCheckState(QtCore.Qt.Unchecked)
                 self.update_program_edit_text(False, "")
+
+    def create_context_menu(self):
+        self.context_menu = QtGui.QMenu(self.conflicts_list)
+        self.merge_action = QtGui.QAction(gettext("&Merge conflict"),
+                                     self.context_menu)
+        self.connect(self.merge_action, QtCore.SIGNAL("triggered(bool)"),
+                     self.launch_merge_tool)
+        self.context_menu.addAction(self.merge_action)
+        self.context_menu.addAction(gettext("Mark as &resolved"),
+                                   self.mark_item_as_resolved)
 
     def show(self):
         QBzrWindow.show(self)
@@ -174,6 +187,7 @@ class ConflictsWindow(QBzrWindow):
         self.update_program_edit_text(enabled, error_msg)
         if enabled and self.program_extmerge_default_button.isChecked():
             self.program_edit.setEnabled(False)
+        self.merge_action.setEnabled(enabled)
 
     def check_merge_tool_edit(self, text):
         enabled, error_msg = self.is_merge_tool_launchable()
@@ -225,8 +239,12 @@ class ConflictsWindow(QBzrWindow):
         items = self.conflicts_list.selectedItems()
         file_names = []
         for item in items:
-            file_id = str(item.data(0, QtCore.Qt.UserRole).toString())
-            file_names.append(self.wt.id2path(file_id))
+            # XXX why we need to use file_id -> path conversion if we already have filename???
+            # this conversion fails in the case when user removed file or directory
+            # which marked as conflicted (e.g. in missing parent conflict case).
+            #~file_id = str(item.data(0, QtCore.Qt.UserRole).toString())
+            #~file_names.append(self.wt.id2path(file_id))
+            file_names.append(unicode(item.text(0)))
         resolve(self.wt, file_names)
         self.refresh()
 

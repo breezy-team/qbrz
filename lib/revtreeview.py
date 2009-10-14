@@ -19,7 +19,7 @@
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.plugins.qbzr.lib.util import runs_in_loading_queue
+from bzrlib.plugins.qbzr.lib.util import run_in_loading_queue
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import load_revisions
 from bzrlib.transport.local import LocalTransport
 
@@ -78,8 +78,10 @@ class RevisionTreeView(QtGui.QTreeView):
         self.load_visible_revisions()
         QtGui.QTreeView.resizeEvent(self, e)
     
-    @runs_in_loading_queue
     def load_visible_revisions(self):
+        run_in_loading_queue(self._load_visible_revisions)
+    
+    def _load_visible_revisions(self):
         model = self.model()
         
         index = self.indexAt(self.viewport().rect().topLeft())
@@ -94,7 +96,7 @@ class RevisionTreeView(QtGui.QTreeView):
         while True:
             revid = index.data(RevIdRole)
             if not revid.isNull():
-                revids.add(unicode(revid.toString()))
+                revids.add(str(revid.toByteArray()))
             if index == bottom_index:
                 break
             index = self.indexBelow(index)
@@ -114,10 +116,12 @@ class RevisionTreeView(QtGui.QTreeView):
             
             repo_is_local = isinstance(repo.bzrdir.transport, LocalTransport)
             if not repo_is_local:
-                if not self.load_revisions_throbber_shown \
-                            and hasattr(self, "throbber"):
-                    self.throbber.show()
-                    self.load_revisions_throbber_shown = True
+                # Disable this until we have thobber that does not irratate
+                # users when we show and hide quickly.
+                #if not self.load_revisions_throbber_shown \
+                #            and hasattr(self, "throbber"):
+                #    self.throbber.show()
+                #    self.load_revisions_throbber_shown = True
                 # Allow for more scrolling to happen.
                 self.delay(0.5)
             
@@ -144,43 +148,70 @@ class RevisionTreeView(QtGui.QTreeView):
         QtCore.QCoreApplication.processEvents(
                             QtCore.QEventLoop.WaitForMoreEvents)
 
-class RevNoItemDelegate(QtGui.QItemDelegate):
-    BORDER = 1
+class StyledItemDelegate(QtGui.QStyledItemDelegate):
     
+    def get_text_color (self, option):
+        if option.state & QtGui.QStyle.State_Enabled:
+            if option.state & QtGui.QStyle.State_Active:
+                cg = QtGui.QPalette.Active
+            else:
+                cg = QtGui.QPalette.Inactive
+        else:
+            cg = QtGui.QPalette.Disabled
+        
+        if option.state & QtGui.QStyle.State_Selected:
+            return option.palette.color(cg, QtGui.QPalette.HighlightedText)
+        else:
+            return option.palette.color(cg, QtGui.QPalette.Text)
+
+
+class RevNoItemDelegate(StyledItemDelegate):
     def __init__ (self, max_mainline_digits = 4, parent = None):    
         QtGui.QItemDelegate.__init__ (self, parent)
         self.max_mainline_digits = max_mainline_digits
     
-    def drawDisplay(self, painter, option, rect, text):
-        mainline, dot, therest = str(text).partition(".")
-        therest = dot + therest
+    def paint(self, painter, option, index):
+        option = QtGui.QStyleOptionViewItemV4(option)
+        self.initStyleOption(option, index)
+        widget = option.widget
+        style = widget.style()
         
-        if mainline.endswith(" ?"):
-            mainline = mainline[:-2]
-            therest = " ?"
+        painter.save()
+        painter.setClipRect(option.rect)
+        style.drawPrimitive(QtGui.QStyle.PE_PanelItemViewItem,
+                            option, painter, widget)
         
-        fm = painter.fontMetrics()
-        mainline_width = fm.width("8"*self.max_mainline_digits)
-        therest_width = fm.width(therest)
-        
-        if option.state & QtGui.QStyle.State_Selected:
-            painter.setPen(option.palette.color(QtGui.QPalette.HighlightedText))
-        else:
-            painter.setPen(option.palette.color(QtGui.QPalette.Text))
-        if mainline_width + therest_width > rect.width():
-            if fm.width(text) > rect.width():
-                text = QtGui.QAbstractItemDelegate.elidedText(
-                    fm, rect.width(), QtCore.Qt.ElideRight, text)
-            painter.drawText(rect, QtCore.Qt.AlignRight, text);
-        else:
-            mainline_rect = QtCore.QRect(rect.x(),
-                                         rect.y(),
-                                         mainline_width,
-                                         rect.height())
-            therest_rect = QtCore.QRect(rect.x() + mainline_width,
-                                        rect.y(),
-                                        rect.width() - mainline_width,
-                                        rect.height())
-            painter.drawText(mainline_rect, QtCore.Qt.AlignRight, mainline)
-            painter.drawText(therest_rect, QtCore.Qt.AlignLeft, therest)
-
+        if not option.text.isEmpty():
+            text = option.text
+            splitpoint = text.indexOf(".")
+            if splitpoint == -1:
+                splitpoint = len(text)
+            mainline, therest = text[:splitpoint], text[splitpoint:]
+            
+            if mainline.endsWith(" ?"):
+                mainline = mainline[:-2]
+                therest = " ?"
+            
+            fm = painter.fontMetrics()
+            mainline_width = fm.width("8"*self.max_mainline_digits)
+            therest_width = fm.width(therest)
+            
+            painter.setPen(self.get_text_color(option))
+            
+            if mainline_width + therest_width > option.rect.width():
+                if fm.width(text) > option.rect.width():
+                    text = self.elidedText(fm, option.rect.width(),
+                                           QtCore.Qt.ElideRight, text)
+                painter.drawText(option.rect, QtCore.Qt.AlignRight, text);
+            else:
+                mainline_rect = QtCore.QRect(option.rect.x(),
+                                             option.rect.y(),
+                                             mainline_width,
+                                             option.rect.height())
+                therest_rect = QtCore.QRect(option.rect.x() + mainline_width,
+                                            option.rect.y(),
+                                            option.rect.width() - mainline_width,
+                                            option.rect.height())
+                painter.drawText(mainline_rect, QtCore.Qt.AlignRight, mainline)
+                painter.drawText(therest_rect, QtCore.Qt.AlignLeft, therest)
+        painter.restore()

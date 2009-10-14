@@ -55,6 +55,9 @@ class InternalItem(object):
         self.kind = kind
         self.file_id = file_id
     
+    def __repr__(self):
+        return "<%s %r %s>" % (self.__class__.__name__, self.name, self.kind)
+    
     revision = property(lambda self:None)
 
 
@@ -81,6 +84,24 @@ class ModelItemData(object):
         self.id = None
         self.row = None
         self.icon = None
+
+    def dirs_first_sort_key(self):
+        """
+        Gives a string key that will sort directories before files
+        
+        This works by annotating each path segment with either 'D' or 'F', so
+        that directories compare smaller than files on the same level.
+        """
+        item = self.item
+        if item.kind == "directory":
+            return "D" + item.name.replace("/", "/D")
+        if "/" not in item.name:
+            return "F" + item.name
+        path, f = item.name.rsplit("/", 1)
+        return "D" + path.replace("/", "/D") + "/F" + f
+
+    def __repr__(self):
+        return "<ModelItemData %r>" % (self.item,)
 
 
 class PersistantItemReference(object):
@@ -166,7 +187,7 @@ class ChangeDesc(tuple):
         return (desc[3] == (False, True) and desc[6][1] is None)
     
     def is_ignored(desc):
-        if len(desc) >= 8: 
+        if len(desc) > 8:
             return desc[8]
         else:
             return None
@@ -190,7 +211,10 @@ class ChangeDesc(tuple):
             else:
                 return gettext("non-versioned")
         elif versioned == (False, True):
-            return gettext("added")
+            if kind[1] is None:
+                return gettext("added, missing")
+            else:
+                return gettext("added")
         elif versioned == (True, False):
             return gettext("removed")
         elif kind[0] is not None and kind[1] is None:
@@ -247,7 +271,8 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def set_tree(self, tree, branch=None, 
                  changes_mode=False, want_unversioned=True,
-                 initial_selected_paths=None):
+                 initial_selected_paths=None,
+                 change_load_filter=None):
         self.tree = tree
         self.branch = branch
         self.revno_map = None
@@ -275,6 +300,10 @@ class TreeModel(QtCore.QAbstractItemModel):
                         is_ignored = self.tree.is_ignored(path)
                         change = ChangeDesc(change+(is_ignored,))
                         
+                        if (change_load_filter is not None and
+                            not change_load_filter(change)):
+                            continue
+                        
                         if fileid is not None and not changes_mode:
                             self.changes[change.fileid()] = change
                         else:
@@ -283,8 +312,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                                 dir_fileid = None
                                 relpath = ""
                                 while dir_path:
-                                    (dir_path, slash, name) = dir_path.rpartition('/')
-                                    relpath = slash + name + relpath
+                                    dir_path, name = os.path.split(dir_path)
+                                    relpath = '/' + name + relpath
                                     if dir_path in self.inventory_data_by_path:
                                         dir_item = self.inventory_data_by_path[
                                                                          dir_path]
@@ -307,7 +336,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                                     old_path = "/".join(old_names)
                                     name = "%s => %s" % (old_path, name)
                             else:
-                                (dir_path, slash, name) = path.rpartition('/')
+                                dir_path, name = os.path.split(path)
                                 dir_fileid = self.tree.path2id(dir_path)
                             
                             if change.is_versioned():
@@ -385,13 +414,11 @@ class TreeModel(QtCore.QAbstractItemModel):
         if dir_item.children_ids is not None:
             return 
         
-        if isinstance(self.tree, WorkingTree):
-            self.tree.lock_read()
+        self.tree.lock_read()
         try:
             dir_item.children_ids = []
             children = sorted(self.get_children(dir_item),
-                              self.inventory_dirs_first_cmp,
-                              lambda x: (x.item.name, x.item.kind))
+                              key=ModelItemData.dirs_first_sort_key)
             
             parent_model_index = self._index_from_id(dir_id, 0)
             self.beginInsertRows(parent_model_index, 0, len(children)-1)
@@ -405,8 +432,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             finally:
                 self.endInsertRows();
         finally:
-            if isinstance(self.tree, WorkingTree):
-                self.tree.unlock()
+            self.tree.unlock()
     
     def process_inventory(self, get_children):
         self.get_children = get_children
@@ -445,33 +471,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         if not isinstance(item_data.item, UnversionedItem):
             self.inventory_data_by_id[item_data.item.file_id] = item_data
         return item_data.id
-    
-    def inventory_dirs_first_cmp(self, x, y):
-        (x_name, x_kind) = x
-        (y_name, y_kind) = y
-        x_a = x_name
-        y_a = y_name
-        x_is_dir = x_kind =="directory"
-        y_is_dir = y_kind =="directory"
-        while True:
-            x_b, sep, x_a_t = x_a.partition("/")
-            y_b, sep, y_a_t = y_a.partition("/")
-            if x_a_t == "" and y_a_t == "":
-                break
-            if (x_is_dir or not x_a_t == "") and not (y_is_dir or not y_a_t == ""):
-                return -1
-            if (y_is_dir or not y_a_t == "") and not (x_is_dir or not x_a_t == ""):
-                return 1
-            cmp_r = cmp(x_b, y_b)
-            if not cmp_r == 0:
-                return cmp_r
-            x_a = x_a_t
-            y_a = y_a_t
-        if x_is_dir and not y_is_dir:
-            return -1
-        if y_is_dir and not x_is_dir:
-            return 1
-        return cmp(x_name, y_name)
     
     def set_revno_map(self, revno_map):
         self.revno_map = revno_map
@@ -997,7 +996,9 @@ class TreeWidget(RevisionTreeView):
         header.setResizeMode(self.tree_model.STATUS, QtGui.QHeaderView.Stretch)        
         fm = self.fontMetrics()
         # XXX Make this dynamic.
-        col_margin = 6
+        col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
+                                               None, self) + 1) *2
+        
         header.resizeSection(self.tree_model.REVNO,
                              fm.width("8888.8.888") + col_margin)
         header.resizeSection(self.tree_model.DATE,
@@ -1041,7 +1042,7 @@ class TreeWidget(RevisionTreeView):
                                     gettext("&Open"),
                                     self.open_file)
         self.action_show_file = self.context_menu.addAction(
-                                    gettext("&View"),
+                                    gettext("&View file"),
                                     self.show_file_content)
         self.action_show_annotate = self.context_menu.addAction(
                                     gettext("Show &annotate"), 
@@ -1070,7 +1071,8 @@ class TreeWidget(RevisionTreeView):
     
     def set_tree(self, tree, branch=None,
                  changes_mode=False, want_unversioned=True,
-                 initial_checked_paths=None):
+                 initial_checked_paths=None,
+                 change_load_filter=None):
         """Causes a tree to be loaded, and displayed in the widget.
 
         @param changes_mode: If in changes mode, a list of changes, and
@@ -1087,6 +1089,10 @@ class TreeWidget(RevisionTreeView):
                              file2                  changed
                              
                              When in changes mode, no unchanged items are shown.
+
+        @param initial_checked_paths: list of specific filenames
+            which should be selected in the widget. By default all items
+            selected. Value None or empty list means: all selected.
         """
         self.tree = tree
         if isinstance(tree, RevisionTree) and branch is None:
@@ -1095,6 +1101,7 @@ class TreeWidget(RevisionTreeView):
         self.branch = branch
         self.changes_mode = changes_mode
         self.want_unversioned = want_unversioned
+        self.change_load_filter = change_load_filter
         
         if str(QtCore.QT_VERSION_STR).startswith("4.4"):
             # 4.4.x have a bug where if you do a layoutChanged when using
@@ -1107,8 +1114,9 @@ class TreeWidget(RevisionTreeView):
         QtCore.QCoreApplication.processEvents()
         
         self.tree_model.set_tree(self.tree, self.branch,
-                                 changes_mode, want_unversioned)
-        if initial_checked_paths is not None and not self.tree_model.checkable:
+                                 changes_mode, want_unversioned,
+                                 change_load_filter=self.change_load_filter)
+        if initial_checked_paths and not self.tree_model.checkable:
             raise AttributeError("You can't have a initial_selection if "
                                  "tree_model.checkable is not True.")
         
@@ -1122,7 +1130,7 @@ class TreeWidget(RevisionTreeView):
             self.set_visible_headers()
         
         QtCore.QCoreApplication.processEvents()
-        if initial_checked_paths is not None:
+        if initial_checked_paths:
             self.tree_model.set_checked_paths(initial_checked_paths)
         
         self.tree_filter_model.invalidateFilter()
@@ -1205,7 +1213,8 @@ class TreeWidget(RevisionTreeView):
         try:
             state = self.get_state()
             self.tree_model.set_tree(self.tree, self.branch,
-                                     self.changes_mode, self.want_unversioned)
+                                     self.changes_mode, self.want_unversioned,
+                                     change_load_filter=self.change_load_filter)
             self.restore_state(state)
             self.tree_filter_model.invalidateFilter()
             if str(QtCore.QT_VERSION_STR).startswith("4.4"):

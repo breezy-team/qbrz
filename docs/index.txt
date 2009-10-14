@@ -12,6 +12,3 @@ __ slot-signal-mini-tutorial/slot-signal-mini-tutorial.html
 *Release process*
 
 * `Short checklist and instructions how to make release <make_release.html>`_
-
-* `Building NSIS installer for using QBzr with standalone bzr.exe
-  <nsis-installer.html>`_

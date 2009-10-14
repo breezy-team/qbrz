@@ -48,6 +48,7 @@ from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 
 
 PathRole = QtCore.Qt.UserRole + 1
+FileIdRole = QtCore.Qt.UserRole + 2
 
 
 class Compleater(QtGui.QCompleter):
@@ -174,8 +175,7 @@ class LogWindow(QBzrWindow):
         #self.connect(self.log_list,
         #             QtCore.SIGNAL("clicked (QModelIndex)"),
         #             self.changesList_clicked)
-
-
+        
         self.message = QtGui.QTextDocument()
         self.message_browser = RevisionMessageBrowser()
         self.message_browser.setDocument(self.message)
@@ -186,24 +186,26 @@ class LogWindow(QBzrWindow):
         self.fileList = QtGui.QListWidget()
         self.connect(self.fileList,
                      QtCore.SIGNAL("doubleClicked(QModelIndex)"),
-                     self.show_diff_file)
+                     self.show_diff_files)
         self.fileList.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)        
         self.file_list_context_menu = QtGui.QMenu(self)
         if has_ext_diff():
             diff_menu = ExtDiffMenu(self)
             self.file_list_context_menu.addMenu(diff_menu)
             self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"),
-                         self.show_diff_file_menu)
+                         self.show_diff_files_ext)
         else:
             show_diff_action = self.file_list_context_menu.addAction(
                                         gettext("Show &differences..."),
-                                        self.show_diff_file_menu)
+                                        self.show_diff_files)
             self.file_list_context_menu.setDefaultAction(show_diff_action)
         
-        self.file_list_context_menu.addAction(gettext("Annotate"),
-                                              self.show_file_annotate)
-        self.file_list_context_menu.addAction(gettext("View file"),
-                                              self.show_file_content)
+        self.file_list_context_menu_annotate = \
+            self.file_list_context_menu.addAction(gettext("Annotate"),
+                                                  self.show_file_annotate)
+        self.file_list_context_menu_cat = \
+            self.file_list_context_menu.addAction(gettext("View file"),
+                                                  self.show_file_content)
 
         self.fileList.connect(
             self.fileList,
@@ -232,7 +234,7 @@ class LogWindow(QBzrWindow):
         self.diffbuttons = DiffButtons(self.centralwidget)
         self.diffbuttons.setEnabled(False)
         self.connect(self.diffbuttons, QtCore.SIGNAL("triggered(QString)"),
-                     self.log_list.show_diff_current_indexes)
+                     self.log_list.show_diff_specified_files_ext)
 
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(splitter)
@@ -243,6 +245,9 @@ class LogWindow(QBzrWindow):
         self.windows = []
         # set focus on search edit widget
         self.log_list.setFocus()
+        
+        self.tree_cache = {}
+        self.delta_cache = {}
 
     @runs_in_loading_queue
     @ui_current_widget
@@ -335,49 +340,71 @@ class LogWindow(QBzrWindow):
     @runs_in_loading_queue
     @ui_current_widget
     def update_revision_delta(self):
-        rev = self.current_rev
-        if not hasattr(rev, 'delta'):
-            # TODO move this to a thread
-            rev.repository.lock_read()
+        revids = self.log_list.get_selection_top_and_parent_revids()
+        
+        if revids not in self.delta_cache:
+            trees = []
+            gp = self.log_list.graph_provider
+            gp.lock_read_branches()
             self.processEvents()
             try:
-                rev.delta = rev.repository.get_deltas_for_revisions(
-                                                                [rev]).next()
-                self.processEvents()
+                for revid in revids:
+                    if revid not in self.tree_cache:
+                        branch = gp.get_revid_branch(revid)
+                        # XXX if the branch is the same, we should load both trees
+                        # at once.
+                        tree = branch.repository.revision_tree(revid)
+                        self.tree_cache[revid] = tree
+                        trees.append(tree)
+                        self.processEvents()
+                    else:
+                        trees.append(self.tree_cache[revid])
+                delta = trees[0].changes_from(trees[1])
+                self.delta_cache[revids] = delta
             finally:
-                rev.repository.unlock()
+                gp.unlock_branches()
                 self.processEvents()
-        if self.current_rev is not rev:
-            # new update was requested, don't bother populating the list
-            return
-        delta = rev.delta
-
+        else:
+            delta = self.delta_cache[revids]
+        
         items = []
         specific_fileids = self.log_list.graph_provider.fileids
         
         for path, id, kind in delta.added:
-            items.append((id not in specific_fileids,
+            items.append((id,
+                          path,
+                          id not in specific_fileids,
                           path,
                           "blue"))
 
         for path, id, kind, text_modified, meta_modified in delta.modified:
-            items.append((id not in specific_fileids,
+            items.append((id,
+                          path,
+                          id not in specific_fileids,
                           path,
                           None))
 
         for path, id, kind in delta.removed:
-            items.append((id not in specific_fileids,
+            items.append((id,
+                          path,
+                          id not in specific_fileids,
                           path,
                           "red"))
 
         for (oldpath, newpath, id, kind,
             text_modified, meta_modified) in delta.renamed:
-            items.append((id not in specific_fileids,
+            items.append((id,
+                          newpath,
+                          id not in specific_fileids,
                           "%s => %s" % (oldpath, newpath),
                           "purple"))
         
-        for (is_not_specific_fileid, path, color) in sorted(items):
-            item = QtGui.QListWidgetItem(path, self.fileList)
+        for (id, path,
+             is_not_specific_fileid,
+             display, color) in sorted(items, key = lambda x: (x[2],x[1])):
+            item = QtGui.QListWidgetItem(display, self.fileList)
+            item.setData(PathRole, QtCore.QVariant(path))
+            item.setData(FileIdRole, QtCore.QVariant(id))
             if color:
                 item.setTextColor(QtGui.QColor(color))
             if not is_not_specific_fileid:
@@ -388,98 +415,118 @@ class LogWindow(QBzrWindow):
     @runs_in_loading_queue
     @ui_current_widget
     def update_selection(self, selected, deselected):
-        indexes = [index for index in self.log_list.selectedIndexes() if index.column()==0]
         self.fileList.clear()
+        
+        indexes = self.log_list.get_selection_indexes()
         if not indexes:
             self.diffbuttons.setEnabled(False)
             self.message.setHtml("")
         else:
             self.diffbuttons.setEnabled(True)
-            index = indexes[0]
-            revid = str(index.data(logmodel.RevIdRole).toString())
+            
             gp = self.log_list.graph_provider
-            parents_ids = gp.graph_parents[revid]
-            child_ids = gp.graph_children[revid]
-            revisions = gp.load_revisions([revid] + 
-                                          list(parents_ids) +
-                                          list(child_ids))
-            for rev in revisions.itervalues():
+            revids = [str(index.data(logmodel.RevIdRole).toString())
+                      for index in indexes]
+            all_revids = set(revids)
+            for revid in revids:
+                all_revids.update(set(gp.graph_parents[revid]))
+                all_revids.update(set(gp.graph_children[revid]))
+            
+            all_revs = gp.load_revisions(all_revids)
+            
+            for rev in all_revs.itervalues():
                 if not hasattr(rev, "revno"):
                     if rev.revision_id in gp.revid_rev:
                         rev.revno = gp.revid_rev[rev.revision_id].revno_str
                     else:
                         rev.revno = ""
             
-            rev = revisions[revid]
+            html = []
+            for revid in revids:
+                rev = all_revs[revid]
+                
+                if not hasattr(rev, "children"): 
+                    rev.children = [all_revs[parent] for parent in gp.graph_children[revid]]
+                if not hasattr(rev, "parents"):
+                    rev.parents = [all_revs[child] for child in gp.graph_parents[revid]]
+                if not hasattr(rev, "branch"):
+                    rev.branch = gp.get_revid_branch(revid)
+                if not hasattr(rev, "tags"):
+                    rev.tags = sorted(gp.tags.get(revid, []))
+                
+                replace = self.replace_config(rev.branch)
+                html.append(format_revision_html(rev, replace))
+            self.message.setHtml("<br>".join(html))
             
-            if not hasattr(rev, "children"):
-                rev.children = [revisions[revid] for revid in child_ids]
-            if not hasattr(rev, "parents"):
-                rev.parents = [revisions[revid] for revid in parents_ids]
-            if not hasattr(rev, "branch"):
-                rev.branch = gp.get_revid_branch(rev.revision_id)
-            if not hasattr(rev, "tags"):
-                rev.tags = sorted(gp.tags.get(rev.revision_id, []))
-            self.current_rev = rev
-            
-            replace = self.replace_config(rev.branch)
-            self.message.setHtml(format_revision_html(rev, replace))
             self.revision_delta_timer.start(1)
 
     def show_file_list_context_menu(self, pos):
+        # XXX - We should also check that the selected file is a file, and 
+        # not a dir
+        paths, file_ids = self.get_file_selection_paths_and_ids()
+        is_single_file = len(paths) == 1
+        self.file_list_context_menu_annotate.setEnabled(is_single_file)
+        self.file_list_context_menu_cat.setEnabled(is_single_file)
+        
         self.file_list_context_menu.popup(
             self.fileList.viewport().mapToGlobal(pos))
     
-    def get_current_rev_and_path(self, file_index=None):
-        if not file_index:
-            file_index = self.fileList.currentIndex()
-        item = self.fileList.itemFromIndex(file_index)
-        path = None
-        if item:
-            path = item.data(PathRole).toString()
-            if path.isNull():
-                path = item.text()
-            path = unicode(path)
-        rev = self.current_rev
-        return rev, path
-
+    def get_file_selection_indexes(self, index=None):
+        if index is None:
+            return self.fileList.selectionModel().selectedRows(0)
+        else:
+            return [index]
+    
+    def get_file_selection_paths_and_ids(self, index=None):
+        indexes = self.get_file_selection_indexes(index)
+        
+        paths = []
+        ids = []
+        
+        for index in indexes:
+            item = self.fileList.itemFromIndex(index)
+            paths.append(unicode(item.data(PathRole).toString()))
+            ids.append(str(item.data(FileIdRole).toString()))
+        return paths, ids
     
     @ui_current_widget
-    def show_diff_file(self, index, ext_diff=None):
+    def show_diff_files(self, index=None, ext_diff=None):
         """Show differences of a specific file in a single revision"""
-        rev, path = self.get_current_rev_and_path(index)
-        if rev and path:
-            self.log_list.show_diff(rev, rev, [unicode(path)], ext_diff)
+        paths, ids = self.get_file_selection_paths_and_ids(index)
+        self.log_list.show_diff(specific_files=paths, specific_file_ids=ids,
+                                ext_diff=ext_diff)
     
     @ui_current_widget
-    def show_diff_file_menu(self, ext_diff=None):
+    def show_diff_files_ext(self, ext_diff=None):
         """Show differences of a specific file in a single revision"""
-        self.show_diff_file(None, ext_diff)
+        self.show_diff_files(ext_diff=ext_diff)
     
     @runs_in_loading_queue
     @ui_current_widget
     def show_file_content(self):
         """Launch qcat for one selected file."""
-        rev, path = self.get_current_rev_and_path()
-        if rev and path:
-            tree = rev.branch.repository.revision_tree(rev.revision_id)
-            encoding = get_set_encoding(None, rev.branch)
-            window = QBzrCatWindow(filename = path, tree = tree, parent=self,
-                encoding=encoding)
-            window.show()
-            self.windows.append(window)
+        paths, file_ids = self.get_file_selection_paths_and_ids()
+        top_revid, old_revid = self.log_list.get_selection_top_and_parent_revids()
+        
+        branch = self.log_list.graph_provider.get_revid_branch(top_revid)
+        tree = branch.repository.revision_tree(top_revid)
+        encoding = get_set_encoding(None, branch)
+        window = QBzrCatWindow(filename = paths[0], tree = tree, parent=self,
+            encoding=encoding)
+        window.show()
+        self.windows.append(window)
 
     @ui_current_widget
     def show_file_annotate(self):
         """Show qannotate for selected file."""
-        rev, path = self.get_current_rev_and_path()
-        if rev and path:
-            branch = rev.branch
-            tree = rev.branch.repository.revision_tree(rev.revision_id)
-            file_id = tree.path2id(path)
-            window = AnnotateWindow(branch, tree, path, file_id)
-            window.show()
-            self.windows.append(window)
+        paths, file_ids = self.get_file_selection_paths_and_ids()
+        top_revid, old_revid = self.log_list.get_selection_top_and_parent_revids()
+        
+        branch = self.log_list.graph_provider.get_revid_branch(top_revid)
+        tree = branch.repository.revision_tree(top_revid)
+        window = AnnotateWindow(branch, tree, paths[0], file_ids[0])
+        window.show()
+        self.windows.append(window)
     
     @ui_current_widget
     def update_search(self):

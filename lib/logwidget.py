@@ -20,8 +20,10 @@
 from PyQt4 import QtCore, QtGui, Qt
 
 from bzrlib.bzrdir import BzrDir
+from bzrlib.revision import NULL_REVISION
 from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
-                                                 RevNoItemDelegate)
+                                                 RevNoItemDelegate,
+                                                 StyledItemDelegate)
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.trace import *
 from bzrlib.plugins.qbzr.lib.util import (
@@ -48,8 +50,9 @@ class LogList(RevisionTreeView):
 
         self.setItemDelegateForColumn(logmodel.COL_MESSAGE,
                                       GraphTagsBugsItemDelegate(self))
+        self.rev_no_item_delegate = RevNoItemDelegate(parent=self)
         self.setItemDelegateForColumn(logmodel.COL_REV,
-                                      RevNoItemDelegate(parent=self))
+                                      self.rev_no_item_delegate)
         self.processEvents = processEvents
         self.throbber = throbber
 
@@ -72,8 +75,9 @@ class LogList(RevisionTreeView):
         header.setResizeMode(logmodel.COL_DATE, QtGui.QHeaderView.Interactive)
         header.setResizeMode(logmodel.COL_AUTHOR, QtGui.QHeaderView.Interactive)
         fm = self.fontMetrics()
-        # XXX Make this dynamic.
-        col_margin = 6
+        
+        col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
+                                               None, self) + 1) *2
         header.resizeSection(logmodel.COL_REV,
                              fm.width("8888.8.888") + col_margin)
         header.resizeSection(logmodel.COL_DATE,
@@ -102,31 +106,31 @@ class LogList(RevisionTreeView):
                     diff_menu.setTitle(gettext("Show file &differences"))
                     self.context_menu.addMenu(diff_menu)
                     self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"),
-                                 self.show_diff_current_indexes)
+                                 self.show_diff_specified_files_ext)
                     
                     all_diff_menu = diff.ExtDiffMenu(self, set_default=False)
                     all_diff_menu.setTitle(gettext("Show all &differences"))
                     self.context_menu.addMenu(all_diff_menu)
                     self.connect(all_diff_menu, QtCore.SIGNAL("triggered(QString)"),
-                                 self.show_diff_current_indexes_all_files)
+                                 self.show_diff_ext)
                 else:
                     show_diff_action = self.context_menu.addAction(
                                         gettext("Show file &differences..."),
-                                        self.show_diff_current_indexes)
+                                        self.show_diff_specified_files)
                     self.context_menu.setDefaultAction(show_diff_action)
                     self.context_menu.addAction(
                                         gettext("Show all &differences..."),
-                                        self.show_diff_current_indexes_all_files)
+                                        self.show_diff)
             else:
                 if diff.has_ext_diff():
                     diff_menu = diff.ExtDiffMenu(self)
                     self.context_menu.addMenu(diff_menu)
                     self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"),
-                                 self.show_diff_current_indexes)
+                                 self.show_diff_ext)
                 else:
                     show_diff_action = self.context_menu.addAction(
                                         gettext("Show &differences..."),
-                                        self.show_diff_current_indexes)
+                                        self.show_diff)
                     self.context_menu.setDefaultAction(show_diff_action)
 
             self.connect(self,
@@ -190,6 +194,17 @@ class LogList(RevisionTreeView):
         try:
             self.graph_provider.load_tags()
             self.log_model.load_graph_all_revisions()
+            
+            # Resize the rev no col.
+            main_line_tip = self.graph_provider.branch_lines[()].revs[0]
+            main_line_digets = max(len(main_line_tip.revno_str), 4)
+            self.rev_no_item_delegate.max_mainline_digits = main_line_digets
+            header = self.header()
+            fm = self.fontMetrics()
+            col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
+                                                   None, self) + 1) *2
+            header.resizeSection(logmodel.COL_REV,
+                                 fm.width(("8"*main_line_digets)+".8.888") + col_margin)
         finally:
             self.graph_provider.unlock_branches()
         
@@ -286,28 +301,48 @@ class LogList(RevisionTreeView):
                                          (QtGui.QItemSelectionModel.Clear |
                                           QtGui.QItemSelectionModel.Select |
                                           QtGui.QItemSelectionModel.Rows))
+
+    def get_selection_indexes(self, index=None):
+        if index is None:
+            return sorted(self.selectionModel().selectedRows(0), 
+                          key=lambda x: x.row())
+        else:
+            return [index]
+    
+    def get_selection_top_and_parent_revids(self, index=None):
+        indexes = self.get_selection_indexes(index)
+        if len(indexes) == 0:
+            return None, None
+        top_revid = str(indexes[0].data(logmodel.RevIdRole).toString())
+        bot_revid = str(indexes[-1].data(logmodel.RevIdRole).toString())
+        parents = self.graph_provider.graph_parents[bot_revid]
+        if parents:
+            # We need a ui to select which parent.
+            parent_revid = parents[0]
+            
+            # This is ugly. It is for the PendingMergesList in commit/revert.
+            if parent_revid == "root:":
+                parent_revid = self.graph_provider.graph.get_parent_map([bot_revid])[bot_revid][0]
+        else:
+            parent_revid = NULL_REVISION
+        return top_revid, parent_revid
     
     def set_search(self, str, field):
         self.graph_provider.set_search(str, field)
     
     def default_action(self, index=None):
-        if index is None:
-            self.show_diff_current_indexes()
-        else:
-            self.show_diff_index(index)
+        self.show_diff(index)
     
-    def show_diff(self, new_rev, old_rev,
+    def show_diff(self, index=None,
                   specific_files=None, specific_file_ids=None,
                   ext_diff=None):
-        new_revid = new_rev.revision_id
-        new_branch = self.graph_provider.get_revid_branch(new_revid)
         
-        if not old_rev.parent_ids:
-            old_revid = None
-            old_branch = new_branch
-        else:
-            old_revid = old_rev.parent_ids[0]
-            old_branch =  self.graph_provider.get_revid_branch(old_revid)
+        new_revid, old_revid = self.get_selection_top_and_parent_revids(index)
+        if new_revid is None and old_revid is None:
+            # No revision selection.
+            return
+        new_branch = self.graph_provider.get_revid_branch(new_revid)
+        old_branch =  self.graph_provider.get_revid_branch(old_revid)
         
         arg_provider = diff.InternalDiffArgProvider(
                                         old_revid, new_revid,
@@ -317,43 +352,19 @@ class LogList(RevisionTreeView):
         
         diff.show_diff(arg_provider, ext_diff = ext_diff,
                        parent_window = self.window())
-
-    def show_diff_index(self, index):
-        """Show differences of a single revision from a index."""
-        revid = str(index.data(logmodel.RevIdRole).toString())
-        rev = self.graph_provider.load_revisions([revid])[revid]
-        if self.graph_provider.fileids:
-            self.show_diff(rev, rev,
-                           specific_file_ids=self.graph_provider.fileids)
-        else:
-            self.show_diff(rev, rev)
     
-    def show_diff_current_indexes(self, ext_diff=None,
-                                  only_specified_files=True):
-        """Show differences of the selected range or of a single revision"""
-        # Find 1 index for each row.
-        rows = {}
-        for index in self.selectedIndexes():
-            if index.row() not in rows:
-                rows[index.row()] = index
-        indexes = rows.values()
-        if not indexes:
-            # the list is empty
-            return
-        revid1 = str(indexes[0].data(logmodel.RevIdRole).toString())
-        revid2 = str(indexes[-1].data(logmodel.RevIdRole).toString())
-        revs = self.graph_provider.load_revisions([revid1, revid2])
-        rev1 = revs[revid1]
-        rev2 = revs[revid2]
-        if only_specified_files and self.graph_provider.fileids:
-            self.show_diff(rev1, rev2, ext_diff=ext_diff,
+    def show_diff_specified_files(self, ext_diff=None):
+        if self.graph_provider.fileids:
+            self.show_diff(ext_diff=ext_diff,
                            specific_file_ids = self.graph_provider.fileids)
         else:
-            self.show_diff(rev1, rev2, ext_diff=ext_diff)
+            self.show_diff(ext_diff=ext_diff)
     
-    def show_diff_current_indexes_all_files(self, ext_diff=None):
-        self.show_diff_current_indexes(ext_diff=ext_diff,
-                                       only_specified_files=False)
+    def show_diff_ext(self, ext_diff):
+        self.show_diff(ext_diff=ext_diff)
+
+    def show_diff_specified_files_ext(self, ext_diff=None):
+        self.show_diff_specified_files(ext_diff=ext_diff)
     
     def show_revision_tree(self):
         from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
@@ -369,7 +380,7 @@ class LogList(RevisionTreeView):
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
     
-class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
+class GraphTagsBugsItemDelegate(StyledItemDelegate):
 
     _tagColor = QtGui.QColor(80, 128, 32)
     _bugColor = QtGui.QColor(164, 0, 0)
@@ -381,7 +392,7 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
     def paint(self, painter, option, index):
         node = index.data(logmodel.GraphNodeRole)
         if node.isValid():
-            self.drawGraph = True
+            draw_graph = True
             self.node = node.toList()
             self.lines = index.data(logmodel.GraphLinesRole).toList()
             self.twisty_state = index.data(logmodel.GraphTwistyStateRole)
@@ -392,7 +403,7 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
             else:
                 self.prevLines = []
         else:
-            self.drawGraph = False
+            draw_graph = False
         
         self.labels = []
         # collect branch tags
@@ -407,59 +418,27 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
         for bug in index.data(logmodel.BugIdsRole).toStringList():
             self.labels.append(
                 (bug, self._bugColor))
-        QtGui.QItemDelegate.paint(self, painter, option, index)
-    
-    def get_color(self, color, back):
-        qcolor = QtGui.QColor()
-        if color == 0:
-            if back:
-                qcolor.setHsvF(0,0,0.8)
-            else:
-                qcolor.setHsvF(0,0,0)
-        else:
-            h = float(color % 6) / 6
-            if back:
-                qcolor.setHsvF(h,0.4,1)
-            else:
-                qcolor.setHsvF(h,1,0.7)
         
-        return qcolor
-    
-    def drawLine(self, painter, pen, rect, boxsize, mid, height,
-                 start, end, color, direct):
-        pen.setColor(self.get_color(color,False))
-        if direct:
-            pen.setStyle(QtCore.Qt.SolidLine)
-        else:
-            pen.setStyle(QtCore.Qt.DotLine)            
-        painter.setPen(pen)
-        startx = rect.x() + boxsize * start + boxsize / 2 
-        endx = rect.x() + boxsize * end + boxsize / 2 
+        option = QtGui.QStyleOptionViewItemV4(option)
+        self.initStyleOption(option, index)
+        widget = self.parent()
+        style = widget.style()
         
-        path = QtGui.QPainterPath()
-        path.moveTo(QtCore.QPointF(startx, mid - height / 2))
+        text_margin = style.pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
+                                        None, widget) + 1
         
-        if start - end == 0 :
-            path.lineTo(QtCore.QPointF(endx, mid + height / 2)) 
-        else:
-            path.cubicTo(QtCore.QPointF(startx, mid - height / 5),
-                         QtCore.QPointF(startx, mid - height / 5),
-                         QtCore.QPointF(startx + (endx - startx) / 2, mid))
-
-            path.cubicTo(QtCore.QPointF(endx, mid + height / 5),
-                         QtCore.QPointF(endx, mid + height / 5),
-                         QtCore.QPointF(endx, mid + height / 2 + 1))
-        painter.drawPath(path)
-        pen.setStyle(QtCore.Qt.SolidLine)
-
-    def drawDisplay(self, painter, option, rect, text):
-
         if not hasattr(self, '_usingGtkStyle'):
-            self._usingGtkStyle = Qt.qApp.style().objectName() == 'gtk+'
-            self._usingQt45 = Qt.qVersion() >= '4.5' 
-
+            self._usingGtkStyle = style.objectName() == 'gtk+'
+            self._usingQt45 = Qt.qVersion() >= '4.5'
+        
+        painter.save()
+        painter.setClipRect(option.rect)
+        style.drawPrimitive(QtGui.QStyle.PE_PanelItemViewItem,
+                            option, painter, widget)
+        
         graphCols = 0
-        if self.drawGraph:
+        rect = option.rect
+        if draw_graph:
             painter.save()
             try:
                 painter.setRenderHint(QtGui.QPainter.Antialiasing)            
@@ -539,14 +518,14 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                 
             finally:
                 painter.restore()
-            rect.adjust( (graphCols + 1.7) * boxsize, 0, 0, 0)
-
+            rect.adjust( (graphCols + 1.5) * boxsize, 0, 0, 0)        
         painter.save()
+        
+        x = 0
         try:
             tagFont = QtGui.QFont(option.font)
             tagFont.setPointSizeF(tagFont.pointSizeF() * 9 / 10)
     
-            x = 0
             for label, color in self.labels:
                 tagRect = rect.adjusted(1, 1, -1, -1)
                 tagRect.setWidth(QtGui.QFontMetrics(tagFont).width(label) + 6)
@@ -565,10 +544,65 @@ class GraphTagsBugsItemDelegate(QtGui.QItemDelegate):
                     painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent(), label)
                 else:
                     painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, label)
-                x += tagRect.width() + 3
+                x += tagRect.width() + text_margin
         finally:
             painter.restore()
+        rect.adjust(x, 0, 0, 0)
         
-        rect.adjust( x, 0, 0, 0)
+        if not option.text.isEmpty():
+            painter.setPen(self.get_text_color(option))
+            text_rect = rect.adjusted(0, 0, -text_margin, 0)
+            painter.setFont(option.font)
+            fm = painter.fontMetrics()
+            text_width = fm.width(option.text)
+            text = option.text
+            if text_width > text_rect.width():
+                text = self.elidedText(fm, text_rect.width(),
+                                       QtCore.Qt.ElideRight, text)
+            
+            painter.drawText(text_rect, QtCore.Qt.AlignLeft, text)
         
-        return QtGui.QItemDelegate.drawDisplay(self, painter, option, rect, text)
+        painter.restore()
+    
+    def get_color(self, color, back):
+        qcolor = QtGui.QColor()
+        if color == 0:
+            if back:
+                qcolor.setHsvF(0,0,0.8)
+            else:
+                qcolor.setHsvF(0,0,0)
+        else:
+            h = float(color % 6) / 6
+            if back:
+                qcolor.setHsvF(h,0.4,1)
+            else:
+                qcolor.setHsvF(h,1,0.7)
+        
+        return qcolor
+    
+    def drawLine(self, painter, pen, rect, boxsize, mid, height,
+                 start, end, color, direct):
+        pen.setColor(self.get_color(color,False))
+        if direct:
+            pen.setStyle(QtCore.Qt.SolidLine)
+        else:
+            pen.setStyle(QtCore.Qt.DotLine)            
+        painter.setPen(pen)
+        startx = rect.x() + boxsize * start + boxsize / 2 
+        endx = rect.x() + boxsize * end + boxsize / 2 
+        
+        path = QtGui.QPainterPath()
+        path.moveTo(QtCore.QPointF(startx, mid - height / 2))
+        
+        if start - end == 0 :
+            path.lineTo(QtCore.QPointF(endx, mid + height / 2)) 
+        else:
+            path.cubicTo(QtCore.QPointF(startx, mid - height / 5),
+                         QtCore.QPointF(startx, mid - height / 5),
+                         QtCore.QPointF(startx + (endx - startx) / 2, mid))
+
+            path.cubicTo(QtCore.QPointF(endx, mid + height / 5),
+                         QtCore.QPointF(endx, mid + height / 5),
+                         QtCore.QPointF(endx, mid + height / 2 + 1))
+        painter.drawPath(path)
+        pen.setStyle(QtCore.Qt.SolidLine)

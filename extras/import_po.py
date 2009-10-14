@@ -21,6 +21,7 @@
 
 from distutils import log
 from distutils.core import Command
+from distutils.spawn import find_executable
 
 
 class import_po(Command):
@@ -60,6 +61,7 @@ class import_po(Command):
         # also there is some strange entries as './' (wtf lp?)
         # see https://bugs.launchpad.net/rosetta/+bug/148271
         entries = []    # 2-tuple (archive name, output file name)
+        pot_file = None
         for n in names:
             if n == './':
                 continue
@@ -68,6 +70,9 @@ class import_po(Command):
             if not fn:
                 continue
             entries.append((n, os.path.join(self.output_dir, fn)))
+            if fn.endswith('.pot'):
+                assert pot_file is None, "There is 2 POT files in archive!"
+                pot_file = fn
         log.info('Extracting...')
         for n, fn in entries:
             log.info('  %s -> %s' % (n, fn))
@@ -77,4 +82,21 @@ class import_po(Command):
                 fd.write(ft.read())
             finally:
                 fd.close()
+        if pot_file:
+            if find_executable('msginit') is None:
+                log.warn("GNU gettext msginit utility not found!")
+                log.warn("Skip creating English PO file.")
+            else:
+                log.info('Re-creating English PO file...')
+                prj_name = os.path.splitext(pot_file)[0]
+                if prj_name != 'messages':
+                    en_po = '%s-en.po' % prj_name
+                else:
+                    en_po = 'en.po'
+                self.spawn(['msginit',
+                    '--no-translator',
+                    '-l', 'en',
+                    '-i', os.path.join(self.output_dir, pot_file),
+                    '-o', os.path.join(self.output_dir, en_po),
+                    ])
         log.info('Done.')

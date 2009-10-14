@@ -5,37 +5,46 @@ all:
 	@echo   mo    - build binary translations
 	@echo   clean - remove build products
 	@echo   tags  - collect tags with ctags utility
+	@echo   docs  - build htmls for texts in docs/ directory
+	@echo   epydoc - build API docs with epydoc
+	@echo To build release run:
+	@echo    make release RELEASE=X.Y.Z
 
-.PHONY: test pot mo clean tags
+.PHONY: test pot mo clean tags docs ui
 
 test:
 	bzr selftest -s bp.qbzr
 
 pot:
-	python setup.py build_pot -N
+	python setup.py build_pot -N -d.
 
 mo:
 	python setup.py build_mo -f
-
-copy-libs:
-	python setup.py bdist_nsis --copy-all --dry-run
 
 tarball:
 	bzr export --root=qbzr qbzr-$(RELEASE).tar.gz
 	gpg -ab qbzr-$(RELEASE).tar.gz
 
-py-inst: mo
-	python setup.py bdist_wininst -d.
-	gpg -ab qbzr-$(RELEASE).win32.exe
+copy-libs:
+	python installer/copy_libs.py
 
-inno: mo copy-libs
+inno: mo
 	iscc installer/qbzr-setup.iss
 	gpg -ab qbzr-setup-$(RELEASE).exe
 
-release: tarball py-inst inno
+release: tarball inno
 
 clean:
 	python setup.py clean -a
 
 tags:
 	ctags *.py lib/*.py lib/extra/*.py lib/tests/*.py
+
+epydoc:
+	epydoc.py -o api -v lib
+
+docs:
+	$(MAKE) -C docs
+
+ui:
+	python setup.py build_ui

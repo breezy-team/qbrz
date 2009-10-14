@@ -193,6 +193,8 @@ class PendingMergesList(LogList):
         if index is None:
             index = self.currentIndex()
         
+        # XXX We should make this show all selected revsions...
+        
         revid = str(index.data(logmodel.RevIdRole).toString())
         branch = self.graph_provider.get_revid_branch(revid)
         rev = self.graph_provider.load_revisions([revid])[revid]
@@ -222,6 +224,9 @@ class CommitWindow(SubProcessDialog):
 
         self.is_bound = bool(tree.branch.get_bound_location())
         self.has_pending_merges = len(tree.get_parent_ids())>1
+        
+        if self.has_pending_merges and selected_list:
+            raise errors.CannotCommitSelectedFileMerge(selected_list)
         
         self.windows = []
         self.initial_selected_list = selected_list
@@ -434,11 +439,16 @@ class CommitWindow(SubProcessDialog):
                     self.pending_merges_list.load_branch(self.tree.branch,
                                                          None,
                                                          self.tree)
-                    self.pending_merges_list.load()
+                    # Force the loading of the revisions, before we start
+                    # loading the file list.
+                    self.pending_merges_list._load_visible_revisions()
                     self.processEvents()
                 
                 self.filelist.tree_model.checkable = not self.pending_merges_list
                 self.is_loading = True
+                # XXX Would be nice if we could only load the files when the
+                # user clicks on the changes tab, but that would mean that
+                # we can't load the words list.
                 if not refresh:
                     fmodel = self.filelist.tree_filter_model
                     #fmodel.setFilter(fmodel.UNVERSIONED, False)
@@ -458,7 +468,7 @@ class CommitWindow(SubProcessDialog):
         finally:
             self.throbber.hide()
             self.refresh_button.setDisabled(False)
-
+    
     def refresh(self):
         self.load(True)
 

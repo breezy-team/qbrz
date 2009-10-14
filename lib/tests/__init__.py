@@ -24,20 +24,22 @@ from bzrlib import trace
 def load_tests(basic_tests, module, loader):
     testmod_names = [
         'mock',
+        'test_annotate',
         'test_autocomplete',
-        #'test_diffview', - broken by API changes
-        'test_commit_data',
         'test_bugs',
+        'test_commit_data',
+        #'test_diffview', - broken by API changes
         'test_extra_isignored',
         'test_extra_isversioned',
         'test_i18n',
+        'test_loggraphprovider',
         'test_logmodel',
         'test_qbzr',
         'test_spellcheck',
-        'test_util',
-        'test_loggraphprovider',
-        'test_annotate',
+        'test_subprocess',
+        'test_tree_branch',
         'test_treewidget',
+        'test_util',
     ]
     for name in testmod_names:
         m = "%s.%s" % (__name__, name)
@@ -47,4 +49,6 @@ def load_tests(basic_tests, module, loader):
             if str(e).endswith('PyQt4'):
                 trace.note('QBzr: skip module %s '
                     'because PyQt4 is not installed' % m)
+            else:
+                raise
     return basic_tests

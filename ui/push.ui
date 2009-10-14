@@ -61,7 +61,7 @@
          <string>Remember this location as a default</string>
         </property>
         <property name="checked" >
-         <bool>true</bool>
+         <bool>false</bool>
         </property>
        </widget>
       </item>

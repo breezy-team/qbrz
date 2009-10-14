@@ -73,8 +73,12 @@ class InternalDiffArgProvider(DiffArgProvider):
                     self.new_branch.repository.revision_tree(self.new_revid)
         
         if self.need_to_load_paths():
-            self.specific_files = [self.new_tree.id2path(id) \
-                                   for id in self.specific_file_ids]
+            self.new_tree.lock_read()
+            try:
+                self.specific_files = [self.new_tree.id2path(id) \
+                                       for id in self.specific_file_ids]
+            finally:
+                self.new_tree.unlock()
 
     def get_diff_window_args(self, processEvents):
         self.load_old_tree()
@@ -87,25 +91,49 @@ class InternalDiffArgProvider(DiffArgProvider):
                 self.specific_files)
         
     def get_revspec(self):
-        return "-r revid:%s..revid:%s" % (self.old_revid, self.new_revid)
+        return "-rrevid:%s..revid:%s" % (self.old_revid, self.new_revid)
     
     def get_ext_diff_args(self, processEvents):
         from bzrlib import urlutils
+        from bzrlib import errors
 
         args = []
         revspec = self.get_revspec()
         if revspec:
             args.append(revspec)
         
-        if not self.old_branch.base == self.new_branch.base: 
-            args.append("--old=%s" % self.old_branch.base)
+        def get_base(branch, tree):
+            if tree:
+                return urlutils.local_path_to_url(tree.basedir)
+            return branch.base
+        
+        old_base = get_base(self.old_branch, self.old_tree)
+        new_base = get_base(self.new_branch, self.new_tree)
+        
+        # We need to avoid using --new and --old because diff tools
+        # does not support it. There are however some cases where
+        # this is not possilble.
+        need_old = False
+        if not self.old_branch.base == self.new_branch.base:
+            need_old = True
+        
+        try:
+            dir = urlutils.local_path_from_url(new_base)
+        except errors.InvalidURL:
+            dir = ""
+            args.append("--new=%s" % new_base)
+            need_old = True
+        
+        if need_old:
+            args.append("--old=%s" % old_base)
         
         if self.need_to_load_paths():
             self.load_new_tree_and_paths()
             processEvents()
         if self.specific_files:
             args.extend(self.specific_files)
-        dir = urlutils.local_path_from_url(self.new_branch.base)
+        print dir
+        print args
         
         return dir, args
 
@@ -141,7 +169,7 @@ class InternalWTDiffArgProvider(InternalDiffArgProvider):
 
     def get_revspec(self):
         if self.old_revid is not None:
-            return "-r revid:%s" % (self.old_revid,)
+            return "-rrevid:%s" % (self.old_revid,)
         else:
             return None
     

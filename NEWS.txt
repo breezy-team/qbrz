@@ -1,8 +1,115 @@
-0.14 - in development
------------------------
+0.15 - in development
+---------------------
+ * New dialog:
+    * qrun (Alexander Belchenko)
+ * qbind/qunbind:
+   * Show Close, not Ok/Cancel, on completion. (#449489, Ian Clatworthy)
+ * qcat:
+   * Improve speed of syntax highlighting. (#442965, Atsuo Ishimoto)
+ * qconflicts:
+   * Enable multiple selections of conflict items to resolve or launch merge
+     tool for them. (#415393, Craig Hewetson)
+ * qlog:
+   * Fixed regression with --no-graph feature. (#448232, Craig Hewetson)
+ * qsubprocess: new command-line option --bencode to use bencoded command list.
+   (#392920, Alexander Belchenko)
+ * qtag: 
+   * sort tags alphabeticaly and case-insensitive. (#423075, Craig Hewetson)
+   * save/restore the size of dialog. (#435859, Craig Hewetson)
 
- * New dialogs: qbind, qexport, qunbind (Javier Derderian)
- * Renamed the command qbzr to qmain.
+
+0.14.4 - In Devlopment
+----------------------
+
+* qcommit/qrevert: Fixed a bug were the pending merges graph was being loaded
+                   twice. (Gary van der Merwe)
+
+
+0.14.3 - 2009-10-02
+-------------------
+Bugfixes release.
+
+ * qcommit:
+    * Fixed bug with inability of run qcommit /path/to/tree/root after merge.
+      (#433137, Alexander Belchenko)
+ * qlog:
+    * Ensure that tree objects correctly locked when checking for directories.
+      (#436467, Gary van der Merwe)
+
+
+0.14.2 - 2009-09-16
+-------------------
+Bugfixes.
+
+ * qlog:
+    * Fixed couple of problems with proper rendering of branch labels
+      when inspecting log for several branches (e.g. in shared repo).
+      (Gary van der Merwe)
+ * qmerge, qcommit, ...:
+   * Fixed a bug where we create the QApp after opening a Branch, but we had
+     already installed the QUIFactory(). A branch can be a lightweight checkout
+     of a remote location which requires a password. Which wants to open a UI
+     dialog, which causes a crash because QApp has not been created yet.
+     (#430232, John Arbash Meinel)
+
+
+0.14.1 - 2009-09-10
+-------------------
+Maintenance release:
+
+ * qannotate:
+   * Fixed a bug when annotating a file in a branch with no working tree.
+     (Bug 419477)
+   * Fixed a bug were the logwidget would crash trying to render some graphs.
+     (Bug 417895)
+   * Fixed a bug were it was not possible to annotate files that have been
+     deleted. (Bug 419790)
+   * Fixed a bug where opening a per file diff would crash with a
+     ObjectNotLocked error in a 2a branch. (Bug 426688)
+ * qlog:
+   * Fixed a bug where it was not possible to do any file list context menu
+     actions on a file that was renamed in the revision that you were viewing.
+     (Bug 418340)
+   * Fixed a graph layout bug, where if the first revions of a brach was
+     filter, there was no non direct line to it. (Bug 417895)
+   * Removed superfluous twisties at the end of a filterted branch line.
+     (Bug 419784)
+   * Fixed a bug where branch lables would show on the wrong revisions.
+     (Bug 423201)
+ * qcommit:
+   * Show a friendly error message when tring to commit a specific file,
+     and there are pending merges. (Bug 417210)
+ * qbrowse:
+   * Fixed a bug where the window would crash with a ObjectNotLocked error
+     when expanded a folder in a 2a branch. (Bug 424258)
+ * Handle errors raised from _qbzr_run methods and the __init__ methods that
+   they call, so that ui-mode is honoured when they are reported. (Bug 420534)
+
+
+0.14 "Eucalyptus" - 2009-08-21
+-------------------------------
+What's new in this release: 
+
+ * we have 5 new dialogs (qbind, qunbind, qexport, qplugins and quncommit).
+ * better help for plugin itself (now `bzr help qbzr` gives you
+   useful info).
+ * qcommit and uncommit hook now can store revision message and
+   information about bugfixes for revision, this information automatically
+   restored on next qcommit run in this branch.
+ * most q-commands now able to return exit code 0 when operation 
+   finished successfully, and exit code 1 when dialog/operation was canceled.
+ * `merge --qpreview` feature has disabled.
+ * qmerge now supports uncommitted and forced merging.
+ * Dozen bugfixes and small improvements.
+
+Detailed changelog:
+
+ * New dialogs: 
+    * qbind, qexport, qunbind (Javier Derderian)
+    * qplugins, quncommit (Ian Clatworthy)
+ * Renamed [hidden] command qbzr to qmain.
+ * Better help for plugin itself.
+ * Full list of all contributors added to AUTHORS.txt.
  * Most q-commands those change state of the branch or working tree
    (e.g qcommit, qadd, qpull etc.) now return exit code 0 when operation 
    finished successfully, and exit code 1 when dialog/operation was canceled. 
@@ -13,6 +120,10 @@
    beginning and end revision ids of uncommitted chain of revisions
    in addition to old tip revision message and bug ids. All data saved
    as dictionary in "commit_data" section of branch.conf.
+ * Disabled decoration of merge command with --qpreview option (#395817).
+ * qmerge now supports forced merging and merging of uncommitted changes.
+   (#400062, #409865)
+ * qinfo now works on shared repositories (#385105)
 
 
 0.13.1 - 2009-08-11

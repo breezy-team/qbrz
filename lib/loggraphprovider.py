@@ -25,14 +25,11 @@ from bzrlib import errors
 from bzrlib.transport.local import LocalTransport
 from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.tsort import merge_sort
-try:
-    from bzrlib.graph import (Graph, StackedParentsProvider)
-except ImportError:
-    from bzrlib.graph import (Graph,
-                    _StackedParentsProvider as StackedParentsProvider)
+from bzrlib.graph import (Graph, StackedParentsProvider)
     
 from bzrlib.bzrdir import BzrDir
 from bzrlib.inventory import Inventory
+from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
                                                          cached_revisions)
 from bzrlib.plugins.qbzr.lib.util import get_apparent_author
@@ -132,15 +129,17 @@ class RevisionInfo(object):
 
 class BranchLine(object):
     __slots__ = ["branch_id", "revs", "visible", "merges", "merged_by",
-                 "color"]
+                 "color", "merge_depth", "expanded_by"]
     
-    def __init__(self, branch_id, visible):
+    def __init__(self, branch_id):
         self.branch_id = branch_id
-        self.visible = visible
+        self.visible = False
         self.revs = []
         self.merges = []
         self.merged_by = []
         self.color = reduce(lambda x, y: x+y, self.branch_id, 0)
+        self.merge_depth = 0
+        self.expanded_by=None
 
     def __repr__(self):
         return "%s <%s>" % (self.__class__.__name__, self.branch_id)
@@ -265,18 +264,9 @@ class LogGraphProvider(object):
                 pass
         self.append_repo(repo)
         self.append_branch(tree, branch)
-        
+
         if file_ids:
             self.fileids.extend(file_ids)
-            if not self.has_dir:
-                for file_id in file_ids:
-                    if tree is None:
-                        kind = branch.basis_tree().kind(file_id)
-                    else:
-                        kind = tree.kind(file_id)
-                    if kind in ('directory', 'tree-reference'):
-                        self.has_dir = True
-                        break
         
         if len(self.branches)==1 and self.trunk_branch == None:
             self.trunk_branch = branch
@@ -335,9 +325,6 @@ class LogGraphProvider(object):
                         "Path does not have any revision history: %s" %
                         location)
                 
-                kind = tree.kind(file_id)
-                if kind in ('directory', 'tree-reference'):
-                    self.has_dir = True
                 self.update_ui()
                 
                 self.fileids.append(file_id)
@@ -489,11 +476,11 @@ class LogGraphProvider(object):
         bi = self.branches[0]
         self.trunk_branch = bi.branch
         
-        if bi.tree:
+        if bi.tree and isinstance(bi.tree, WorkingTree):
             branch_last_revision = CURRENT_REVISION
             current_parents = bi.tree.get_parent_ids()
         else:
-            branch_last_revision = branch.last_revision()
+            branch_last_revision = bi.branch.last_revision()
         
         self.append_head_info(branch_last_revision, bi.branch, None, True)
         self.update_ui()
@@ -609,10 +596,10 @@ class LogGraphProvider(object):
             self.revid_rev[rev.revid] = rev
             self.revno_rev[rev.revno_sequence] = rev
         
-        self.compute_head_info()
         if not self.no_graph:
             self.compute_branch_lines()
             self.compute_merge_info()
+        self.compute_head_info()
         
         if not self.fileids:
             # All revisions start visible
@@ -637,9 +624,6 @@ class LogGraphProvider(object):
         
         """
         
-        self.start_branch_ids = []
-        """Branch ids that should be initialy visible"""
-        
         self.branch_ids = []
         """List of branch ids, sorted in the order that the branches will
         be shown, from left to right on the graph."""
@@ -648,35 +632,28 @@ class LogGraphProvider(object):
             
             branch_line = None
             if rev.branch_id not in self.branch_lines:
-                start_branch = rev.revid in self.head_revids
-                branch_line = BranchLine(rev.branch_id, start_branch)
-                if start_branch:
-                    self.start_branch_ids.append(rev.branch_id)
+                branch_line = BranchLine(rev.branch_id)
                 self.branch_lines[rev.branch_id] = branch_line
             else:
                 branch_line = self.branch_lines[rev.branch_id]
             
+            if rev.revid in self.head_revids:
+                branch_line.visible = True
+            
             branch_line.revs.append(rev)
+            branch_line.merge_depth = max(rev.merge_depth, branch_line.merge_depth)
             rev.color = branch_line.color
         
         self.branch_ids = self.branch_lines.keys()
         
-        # Note: This greatly affects the layout of the graph.
-        def branch_id_cmp(x, y):
-            # Branch lines that have a tip (e.g. () - the main line) should be
-            # to the left of other branch lines.
-            is_start_x = x in self.start_branch_ids
-            is_start_y = y in self.start_branch_ids
-            if not is_start_x == is_start_y:
-                return -cmp(is_start_x, is_start_y)
+        def branch_id_sort_key(x):
+            merge_depth = self.branch_lines[x].merge_depth
             
+            # Note: This greatly affects the layout of the graph.
+            #
             # Branch line that have a smaller merge depth should be to the left
             # of those with bigger merge depths.
-            merge_depth_x = self.branch_lines[x].revs[0].merge_depth
-            merge_depth_y = self.branch_lines[y].revs[0].merge_depth
-            if not merge_depth_x == merge_depth_y:
-                return cmp(merge_depth_x, merge_depth_y)
-            
+            #
             # For branch lines that have the same parent in the mainline -
             # those with bigger branch numbers to be to the rights. E.g. for
             # the following dag, you want the graph to appear as on the left,
@@ -693,28 +670,34 @@ class LogGraphProvider(object):
             # 1.1.1 | B      |   B
             #       |/       | /
             # 1     A        A
-            if len(x) == 2 and len(y) == 2 and x[0] == y[0]:
-                return cmp(x[1], y[1])
-            
+            #
             # Otherwise, thoes with a greater mainline parent revno should
             # appear to the left.
-            return -cmp(x, y)
-
-        self.branch_ids.sort(branch_id_cmp)
+            
+            if len(x)==0:
+                return (merge_depth)
+            else:
+                return (merge_depth, -x[0], x[1])
+        
+        self.branch_ids.sort(key=branch_id_sort_key)
     
     def compute_merge_info(self):
         
-        def set_merged_by(rev, merged_by):
+        def set_merged_by(rev, merged_by, merged_by_rev, do_branches=False):
             if merged_by is not None:
+                if merged_by_rev is None:
+                    merged_by_rev = self.revisions[merged_by]
                 rev.merged_by = merged_by
-                self.revisions[merged_by].merges.append(rev.index)
-                branch_id = rev.branch_id
-                merged_by_branch_id = self.revisions[merged_by].branch_id
+                merged_by_rev.merges.append(rev.index)
                 
-                if not branch_id in self.branch_lines[merged_by_branch_id].merges:
-                    self.branch_lines[merged_by_branch_id].merges.append(branch_id)
-                if not merged_by_branch_id in self.branch_lines[branch_id].merged_by:
-                    self.branch_lines[branch_id].merged_by.append(merged_by_branch_id)
+                if do_branches:
+                    branch_id = rev.branch_id
+                    merged_by_branch_id = self.revisions[merged_by].branch_id
+                    
+                    if not branch_id in self.branch_lines[merged_by_branch_id].merges:
+                        self.branch_lines[merged_by_branch_id].merges.append(branch_id)
+                    if not merged_by_branch_id in self.branch_lines[branch_id].merged_by:
+                        self.branch_lines[branch_id].merged_by.append(merged_by_branch_id)
         
         for rev in self.revisions:
             
@@ -723,11 +706,11 @@ class LogGraphProvider(object):
             
             if len(parents) > 0:
                 if rev.branch_id == parents[0].branch_id:
-                    set_merged_by(parents[0], rev.merged_by)
+                    set_merged_by(parents[0], rev.merged_by, None)
             
             for parent in parents[1:]:
                 if rev.merge_depth<=parent.merge_depth:
-                    set_merged_by(parent, rev.index)
+                    set_merged_by(parent, rev.index, rev, do_branches=True)
         
     def compute_head_info(self):
         def get_revid_head(heads):
@@ -753,23 +736,32 @@ class LogGraphProvider(object):
         if len(self.revid_head_info) > 1:
             # Populate unique revisions for heads
             for revid, (head_info, ur) in self.revid_head_info.iteritems():
-                if revid in self.graph_children \
-                            and len(self.graph_children[revid])>0:
+                rev = None
+                if revid in self.revid_rev:
+                    rev = self.revid_rev[revid]
+                if rev and rev.merged_by:
                     # This head has been merged.
-                    other_revids = [other_revid for other_revid \
-                        in self.graph_parents[self.graph_children[revid][0]] \
-                        if not other_revid == revid]
+                    # d
+                    # |\
+                    # b c
+                    # |/
+                    # a
+                    # if revid == c,then we want other_revids = [b]
+                    
+                    merged_by_revid = self.revisions[rev.merged_by].revid
+                    other_revids = [self.graph_parents[merged_by_revid][0]]
                 else:
                     other_revids = [other_revid for other_revid \
                         in self.revid_head_info.iterkeys() \
                         if not other_revid == revid]
+                ur.append(revid)
                 ur.extend([revid for revid \
                     in self.graph.find_unique_ancestors(revid, other_revids) \
                     if not revid == NULL_REVISION and revid in self.revid_rev])
                 ur.sort(key=lambda x: self.revid_rev[x].index)
 
     def load_filter_file_id_uses_inventory(self):
-        return self.has_dir and getattr(Inventory,"filter",None) is not None
+        return self.has_dir
     
     def load_filter_file_id(self):
         """Load with revisions affect the fileids
@@ -780,6 +772,20 @@ class LogGraphProvider(object):
         if self.fileids:
             self.throbber_show()
             
+            if len(self.branches)>1:
+                raise errors.BzrCommandError(paths_and_branches_err)
+            
+            bi = self.branches[0]
+            tree = bi.tree
+            if tree is None:
+                tree = bi.branch.basis_tree()
+            
+            self.has_dir = False
+            for fileid in self.fileids:
+                if tree.kind(fileid) in ('directory', 'tree-reference'):
+                    self.has_dir = True
+                    break
+            
             self.filter_file_id = [False for i in 
                          xrange(len(self.revisions))]
             
@@ -789,7 +795,7 @@ class LogGraphProvider(object):
                 if not self.load_filter_file_id_uses_inventory():
                     chunk_size = 500
                 else:
-                    chunk_size = 50
+                    chunk_size = 500
                 
                 for start in xrange(0, len(revids), chunk_size):
                     text_keys = []
@@ -824,9 +830,14 @@ class LogGraphProvider(object):
                 for inv, revid in zip(
                             repo.iter_inventories(revids),
                             revids):
-                    filterted_inv = inv.filter(self.fileids)
-                    for path, entry in filterted_inv.entries():
+                    for path, entry in inv.iter_entries_by_dir(
+                                            specific_file_ids = self.fileids):
                         text_keys.append((entry.file_id, revid))
+                        if entry.kind == "directory":
+                            for rc_path, rc_entry in inv.iter_entries(from_dir = entry):
+                                text_keys.append((rc_entry.file_id, revid))
+                    
+                    self.update_ui()
                 
                 check_text_keys(text_keys)
         finally:
@@ -1159,25 +1170,54 @@ class LogGraphProvider(object):
                     # Find parents that are currently visible
                     rev_visible_parents = [] # List of (parent_rev, is_direct)
                     
-                    
                     parents = [self.revid_rev[parent_revid]
                                for parent_revid in self.graph_parents[rev.revid]]
                     # Don't include left hand parents (unless this is the last
                     # revision of the branch.) All of these parents in the
                     # branch can be drawn with one line.
-                    if not rev.index == branch_revs[-1].index:
+                    last_in_branch = rev.index == branch_revs[-1].index
+                    if not last_in_branch:
                         parents = parents[1:]
                     
+                    twisty_hidden_parents = []
+                    # Find and add nessery twisties
                     for parent in parents:
+                        if parent.branch_id == branch_id:
+                            continue
+                        if parent.branch_id == ():
+                            continue
+                        if parent.branch_id in branch_line.merged_by:
+                            continue
+                        parent_branch = self.branch_lines[parent.branch_id]
+                        # Does this branch have any visible revisions
+                        for pb_rev in parent_branch.revs:
+                            visible = pb_rev.f_index is not None or \
+                                self.get_revision_visible_if_branch_visible_cached (pb_rev.index)
+                            if visible:
+                                rev.twisty_branch_ids.append (parent.branch_id)
+                                parent_branch = self.branch_lines[parent.branch_id]
+                                if not parent_branch.visible:
+                                    twisty_hidden_parents.append(parent.index)
+                                break
+                    
+                    # Work out if the twisty needs to show a + or -. If all
+                    # twisty_branch_ids are visible, show - else +.
+                    if len (rev.twisty_branch_ids)>0:
+                        rev.twisty_state = True
+                        for twisty_branch_id in rev.twisty_branch_ids:
+                            if not self.branch_lines[twisty_branch_id].visible:
+                                rev.twisty_state = False
+                                break
+                    
+                    for i, parent in enumerate(parents):
                         if parent.f_index is not None:
                             rev_visible_parents.append((parent, True))
                         else:
-                            if parent.index in rev.merges and \
-                               self.get_revision_visible_if_branch_visible_cached(parent.index):
-                                # We merge this revision directly, and it would
-                                # be visible if the user expans it's branch.
-                                # Don't look for non direct parents.
-                                break
+                            if (parent.index in twisty_hidden_parents and
+                                not (i==0 and last_in_branch)):
+                                # no need to draw a line if there is a twisty,
+                                # except if this is the last in the branch.
+                                continue
                             # The parent was not visible. Search for a ansestor
                             # that is. Stop searching if we make a hop, i.e. we
                             # go away from our branch, and we come back to it.
@@ -1202,35 +1242,12 @@ class LogGraphProvider(object):
                             if parent:
                                 rev_visible_parents.append((parent, False)) # Not Direct
                     branch_rev_visible_parents[rev.index]=rev_visible_parents
-                    
-                    # Find and add nessery twisties
-                    for parent_index in rev.merges:
-                        parent = self.revisions[parent_index]
-                        
-                        # Does this branch have any visible revisions
-                        parent_branch_revs = self.branch_lines[parent.branch_id].revs
-                        for pb_rev in parent_branch_revs:
-                            visible = pb_rev.f_index is not None or \
-                                self.get_revision_visible_if_branch_visible_cached (pb_rev.index)
-                            if visible:
-                                rev.twisty_branch_ids.append (parent.branch_id)
-                                break
-                    
-                    # Work out if the twisty needs to show a + or -. If all
-                    # twisty_branch_ids are visible, show - else +.
-                    if len (rev.twisty_branch_ids)>0:
-                        rev.twisty_state = True
-                        for twisty_branch_id in rev.twisty_branch_ids:
-                            if not self.branch_lines[twisty_branch_id].visible:
-                                rev.twisty_state = False
-                                break
                 
                 # Find the first parent of the last rev in the branch line
                 last_parent = None
                 last_rev = branch_revs[-1]
                 if branch_rev_visible_parents[last_rev.index]:
-                    last_parent = branch_rev_visible_parents[last_rev.index][0]
-                    branch_rev_visible_parents[last_rev.index].pop(0)
+                    last_parent = branch_rev_visible_parents[last_rev.index].pop(0)
                 
                 children_with_sprout_lines = {}
                 # In this loop:
@@ -1248,7 +1265,7 @@ class LogGraphProvider(object):
                         if (rev.index <> last_rev.index or i > 0 )and \
                            branch_id <> () and \
                            self.branch_ids.index(parent.branch_id) <= self.branch_ids.index(branch_id) and\
-                           (last_parent and not direct and last_parent.index >= parent_index or not last_parent or direct):
+                           (last_parent and not direct and last_parent[0].index >= parent.index or not last_parent or direct):
                             
                             if parent.f_index - rev.f_index >1:
                                 rev_visible_parents.pop(i)
@@ -1412,22 +1429,40 @@ class LogGraphProvider(object):
     def colapse_expand_rev(self, revid, visible):
         rev = self.revid_rev[revid]
         #if rev.f_index is not None: return
-        branch_ids = list(rev.twisty_branch_ids)
+        branch_ids = zip(rev.twisty_branch_ids,
+                         [rev.branch_id]* len(rev.twisty_branch_ids))
         processed_branch_ids = []
         has_change = False
         while branch_ids:
-            branch_id = branch_ids.pop()
+            branch_id, expanded_by = branch_ids.pop()
             processed_branch_ids.append(branch_id)
             has_change = self.set_branch_visible(branch_id,
                                                  visible,
                                                  has_change)
             if not visible:
+                self.branch_lines[branch_id].expanded_by = None
                 for parent_branch_id in self.branch_lines[branch_id].merges:
                     parent = self.branch_lines[parent_branch_id]
-                    if (parent.visible and 
-                            parent_branch_id not in branch_ids and 
-                            parent_branch_id not in processed_branch_ids):
-                        branch_ids.append(parent_branch_id)
+                    if (not parent.visible or 
+                        parent_branch_id in branch_ids or 
+                        parent_branch_id in processed_branch_ids):
+                        continue
+                    
+                    collapse_parent = False
+                    if parent.expanded_by == branch_id:
+                        branch_ids.append((parent_branch_id, branch_id))
+                    else:
+                        # Check if this parent has any other visible branches
+                        # that merge it.
+                        has_visible = False
+                        for merged_by_branch_id in parent.merged_by:
+                            if self.branch_lines[merged_by_branch_id].visible:
+                                has_visible = True
+                                break
+                        if not has_visible:
+                            branch_ids.append((parent_branch_id, branch_id))
+            else:
+                self.branch_lines[branch_id].expanded_by = expanded_by
         return has_change
 
     def has_rev_id(self, revid):

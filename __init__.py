@@ -19,9 +19,11 @@
 
 """QBzr - Qt-based frontend for Bazaar
 
-QBzr provided GUI frontend for many core bzr commands and several universal
-dialogs and helper commands. Equivalents for core bzr commands
-has the same names as CLI commands but with prefix "q".
+QBzr is a cross platform, Qt-based front-end for Bazaar, providing GUI
+applications for many core bzr commands. In addition, it provides several
+special dialogs and helper commands. Equivalents for core bzr commands have
+the same names as CLI commands but with a prefix of "q".
+QBzr requires Qt/PyQt 4.4.x or later to be installed.
 
 Basic q-commands:
 
@@ -38,6 +40,7 @@ Basic q-commands:
  * qinit - Initializes a new branch or shared repository.
  * qlog - Show log of a repository, branch, file, or directory in a Qt window.
  * qmerge - Perform a three-way merge.
+ * qplugins - Display information about installed plugins.
  * qpull - Turn this branch into a mirror of another branch.
  * qpush - Update a mirror of this branch.
  * qrevert - Revert changes files.
@@ -45,6 +48,7 @@ Basic q-commands:
  * qswitch - Set the branch of a checkout and update.
  * qtag - Edit tags.
  * qunbind - Convert the current checkout into a regular branch.
+ * quncommit - Move the tip of a branch to an earlier revision.
  * qupdate - Update working tree with latest changes in the branch.
  * qversion - Show version/system information.
 
@@ -57,6 +61,7 @@ Additional commands:
 
  * qbrowse - Show inventory or working tree.
  * qconfig - Configure Bazaar and QBzr.
+ * qrun - Run arbitrary bzr command.
  * qviewer - Simple file viewer.
 
 Miscellaneous:
@@ -64,9 +69,33 @@ Miscellaneous:
  * bug-url - print full URL to a specific bug, or open it in your browser.
 """
 
-version_info = (0, 14, 0, 'dev', 0)
+version_info = (0, 15, 0, 'dev', 0)
 __version__ = '.'.join(map(str, version_info))
 
+
+import bzrlib
+from bzrlib import api
+
+def require_mimimum_api(object_with_api, wanted_mimimum_api):
+    """Check if object_with_api supports the mimimum api version
+    wanted_mimimum_api.
+
+    :param object_with_api: An object which exports an API minimum and current
+        version. See get_minimum_api_version and get_current_api_version for
+        details.
+    :param wanted_mimimum_api: The API version for which support is required.
+    :return: None
+    :raises IncompatibleAPI: When the wanted_api is not supported by
+        object_with_api.
+    """
+    current = api.get_current_api_version(object_with_api)
+    minimum = api.get_minimum_api_version(object_with_api)
+    if wanted_mimimum_api > minimum:
+        from bzrlib.errors import IncompatibleAPI
+        raise IncompatibleAPI(object_with_api, wanted_mimimum_api,
+                              minimum, current)
+
+require_mimimum_api(bzrlib, (1, 17, 0))
 
 from bzrlib import registry
 from bzrlib.commands import register_command, plugin_cmds
@@ -103,8 +132,9 @@ def register_lazy_command(module, name, aliases, decorate=False):
     #except AttributeError:
     register_command(LazyCommandProxy(module, name, aliases), decorate)
 
-
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_merge', [], decorate=True)  # provides merge --qpreview
+# merge --qpreview disabled for 0.14 because it makes qbzr incompatible with bzr-pipeline plugin
+# see bug https://bugs.launchpad.net/bugs/395817
+#register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_merge', [], decorate=True)  # provides merge --qpreview
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qadd', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qannotate', ['qann', 'qblame'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbind', [])
@@ -124,11 +154,14 @@ register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinfo', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinit', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qlog', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qmerge', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qplugins', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpull', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpush', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrevert', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrun', ['qcmd'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsubprocess', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qtag', [])
+register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_quncommit', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qupdate', ['qup'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qversion', ['qsysinfo'])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qviewer', [])

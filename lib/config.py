@@ -90,10 +90,17 @@ class QBzrConfigWindow(QBzrDialog):
         generalGrid.addWidget(self.emailEdit, 1, 1)
 
         self.editorEdit = QtGui.QLineEdit()
+        btnEditorBrowse = QtGui.QPushButton(gettext('&Browse...'))
+        self.connect(btnEditorBrowse,
+            QtCore.SIGNAL("clicked()"),
+            self.browseEditor)
+        editorHBox = QtGui.QHBoxLayout()
+        editorHBox.addWidget(self.editorEdit)
+        editorHBox.addWidget(btnEditorBrowse)
         label = QtGui.QLabel(gettext("&Editor:"))
         label.setBuddy(self.editorEdit)
         generalGrid.addWidget(label, 2, 0)
-        generalGrid.addWidget(self.editorEdit, 2, 1)
+        generalGrid.addLayout(editorHBox, 2, 1)
 
         self.emailClientCombo = QtGui.QComboBox()
         for name, label in _mail_clients:
@@ -574,3 +581,12 @@ class QBzrConfigWindow(QBzrDialog):
                         item.setCheckState(0, QtCore.Qt.Unchecked)
                 changed_item.setCheckState(0, QtCore.Qt.Checked)
                 self.extMergeListIgnore = False
+
+    def browseEditor(self):
+        filename = QtGui.QFileDialog.getOpenFileName(self,
+            gettext('Select editor executable'),
+            '/')
+        if filename:
+            if ' ' in filename:
+                filename = '"%s"' % unicode(filename)
+            self.editorEdit.setText(filename)

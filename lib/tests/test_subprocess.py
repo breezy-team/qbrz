@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 #
 # QBzr - Qt frontend to Bazaar commands
-# Copyright (C) 2009 Alexander Belchenko
+#
+# Contributors:
+#   Alexander Belchenko, 2009
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -17,27 +19,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-"""Simple GUI for `bzr update` command for updating out-of-date working tree
-of a branch.
-"""
-
-from PyQt4 import QtGui
-
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
+from bzrlib.tests import TestCase
+from bzrlib.plugins.qbzr.lib.subprocess import bencode_unicode
 
 
-class QBzrUpdateWindow(SimpleSubProcessDialog):
+class TestBencode(TestCase):
 
-    def __init__(self, tree, ui_mode=True, parent=None):
-        self.tree = tree
-        super(QBzrUpdateWindow, self).__init__(
-            title=gettext("Update working tree"),
-            desc=gettext("Update tree %s") % tree.basedir,
-            name="update",
-            args=["update"],
-            dir=self.tree.basedir,
-            default_size=(256, 256),
-            ui_mode=ui_mode,
-            parent=parent,
-            )
+    def test_bencode_unicode(self):
+        self.assertEqual(u"l7:versione", bencode_unicode(["version"]))
+        self.assertEqual(u"l3:add3:\u1234e", 
+            bencode_unicode([u"add", u"\u1234"]))

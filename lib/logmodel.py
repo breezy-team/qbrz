@@ -227,7 +227,7 @@ class LogModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant(QtCore.QStringList(tags))
         
         if role == RevIdRole:
-            return QtCore.QVariant(rev_info.revid)
+            return QtCore.QVariant(QtCore.QByteArray(rev_info.revid))
         
         #Everything from here foward will need to have the revision loaded.
         if rev_info.revid not in cached_revisions:
@@ -249,7 +249,7 @@ class LogModel(QtCore.QAbstractTableModel):
             bugs = []
             for bug in revision.properties.get('bugs', '').split('\n'):
                 if bug:
-                    url, space, status = bug.partition(' ')
+                    url = bug.split(' ', 1)[0]
                     bug_id = get_bug_id(url)
                     if bug_id:
                         bugs.append(bugtext % bug_id)
