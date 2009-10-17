@@ -22,9 +22,9 @@ Compatible with bzr 2.0.x and 2.1.x series.
    * save/restore the size of dialog. (#435859, Craig Hewetson)
 
 
-0.14.4 - In Devlopment
-----------------------
-Bugfixes.
+0.14.4 "Kenny" - 2009-10-17
+---------------------------
+Critical Koala bugfixes.
 
  * Internal: get rid of old-style classes to be compatible with PyQt 4.6.
    (#447214)
@@ -33,7 +33,6 @@ Bugfixes.
  * qcommit/qrevert: 
    * Fixed a bug were the pending merges graph was being loaded
      twice. (Gary van der Merwe)
-
 
 
 0.14.3 - 2009-10-02
