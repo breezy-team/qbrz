@@ -1,8 +1,13 @@
 0.14.4 - In Devlopment
 ----------------------
+Bugfixes.
 
-* qcommit/qrevert: Fixed a bug were the pending merges graph was being loaded
-                   twice. (Gary van der Merwe)
+ * qlog:
+   * handle revids as plain strings, not unicode. (#452235)
+ * qcommit/qrevert: 
+   * Fixed a bug were the pending merges graph was being loaded
+     twice. (Gary van der Merwe)
+
 
 0.14.3 - 2009-10-02
 -------------------
