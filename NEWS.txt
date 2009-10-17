@@ -1,25 +1,64 @@
 0.15 - in development
 ---------------------
-Compatible with bzr 2.0.x and 2.1.x series.
 
- * Internal: get rid of old-style classes to be compatible with PyQt 4.6.
-   (#447214)
+Detailed changelog:
+
+ * Compatible with bzr >= 1.17 (works fine with 2.0.x and 2.1.x series).
+ * Internal: 
+   * Install QUIFactory after we have properly initialize QApplication.
+     (#430232, John Arbash Meinel)
+   * Better compatibility of qbzr test suite with bzr 2.1.
+     (#433843, Vincent Ladeuil)
+   * Use unicode('.') everywhere as current directory marker. (Naoki INADA)
+   * Don't bundle PyQt4 and Pygments libs to Windows installer anymore.
+     (Alexander Belchenko)
+   * Get rid of old-style classes to be compatible with PyQt 4.6.
+     (#447214)
  * New dialog:
     * qrun (Alexander Belchenko)
+ * qadd:
+   * Properly support adding unversioned files to newly added directory.
+     (#418520, Gary van der Merwe)
  * qbind/qunbind:
    * Show Close, not Ok/Cancel, on completion. (#449489, Ian Clatworthy)
  * qcat:
    * Improve speed of syntax highlighting. (#442965, Atsuo Ishimoto)
+ * qconfig:
+   * Added Browse button for editor selection. (#430192, Alexander Belchenko)
  * qconflicts:
    * Enable multiple selections of conflict items to resolve or launch merge
      tool for them. (#415393, Craig Hewetson)
+ * qdiff:
+   * More responsive dialog during diff loading. (Gary van der Merwe)
+   * Better support for external diff tools. 
+     (#422688, #423221, Gary van der Merwe)
+ * qgetupdates:
+   * Now able to update lightweight checkouts. (Alexander Belchenko)
  * qlog:
+   * More responsive dialog during revision loading. (Gary van der Merwe)
+   * Faster qlog on directory. (Gary van der Merwe)
+   * Show the revision html, and file delta for all selected revisions.
+     (#412029, Gary van der Merwe)
+   * Don't show the throbber when loading revisions from a remote repo
+     to avoid weird behavior. (#412894, Gary van der Merwe)
    * Fixed regression with --no-graph feature. (#448232, Craig Hewetson)
- * qsubprocess: new command-line option --bencode to use bencoded command list.
-   (#392920, Alexander Belchenko)
+   * Display foreign revision info if available. 
+     (John Szakmeister, Gary van der Merwe)
+   * Auto-adjust revno column to the number of digits in latest revno
+     on mainline. (#450179, Gary van der Merwe)
+ * qpull/qpush:
+   * Don't remember location by default. (Alexander Belchenko)
+ * qsubprocess: 
+   * New command-line option --bencode to use bencoded command list.
+     (#392920, Alexander Belchenko)
+   * Very long command-line passed to qsubprocess via temp file 
+     regardless of platform. (#387320, Alexander Belchenko)
  * qtag: 
-   * sort tags alphabeticaly and case-insensitive. (#423075, Craig Hewetson)
-   * save/restore the size of dialog. (#435859, Craig Hewetson)
+   * Sort tags alphabeticaly and case-insensitive. (#423075, Craig Hewetson)
+   * Save/restore the size of dialog. (#435859, Craig Hewetson)
+ * qupdate:
+   * Now working for bound branches (aka heavyweight checkouts).
+     (#422649, Craig Hewetson)
 
 
 0.14.4 "Kenny" - 2009-10-17
