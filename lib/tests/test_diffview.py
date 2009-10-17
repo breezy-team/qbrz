@@ -22,7 +22,7 @@ from bzrlib.tests import TestCase
 from bzrlib.plugins.qbzr.lib.diffview import insert_intraline_changes
 
 
-class FakeCursor:
+class FakeCursor(object):
 
     def __init__(self):
         self.text = ''

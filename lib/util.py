@@ -244,7 +244,7 @@ class QBzrGlobalConfig(IniBasedConfig):
         f.close()
 
 
-class _QBzrWindowBase:
+class _QBzrWindowBase(object):
 
     def set_title(self, title=None):
         if title:

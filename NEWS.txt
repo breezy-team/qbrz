@@ -2,6 +2,8 @@
 ----------------------
 Bugfixes.
 
+ * Internal: get rid of old-style classes to be compatible with PyQt 4.6.
+   (#447214)
  * qlog:
    * handle revids as plain strings, not unicode. (#452235)
  * qcommit/qrevert: 
