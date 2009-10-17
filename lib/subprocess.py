@@ -50,7 +50,7 @@ from bzrlib.plugins.qbzr.lib.trace import (
 from bzrlib.ui.text import TextProgressView, TextUIFactory
 
 
-class SubProcessWindowBase:
+class SubProcessWindowBase(object):
 
     def __init_internal__(self, title,
                           name="genericsubprocess",

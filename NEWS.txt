@@ -1,5 +1,9 @@
 0.15 - in development
 ---------------------
+Compatible with bzr 2.0.x and 2.1.x series.
+
+ * Internal: get rid of old-style classes to be compatible with PyQt 4.6.
+   (#447214)
  * New dialog:
     * qrun (Alexander Belchenko)
  * qbind/qunbind:
@@ -20,9 +24,16 @@
 
 0.14.4 - In Devlopment
 ----------------------
+Bugfixes.
 
-* qcommit/qrevert: Fixed a bug were the pending merges graph was being loaded
-                   twice. (Gary van der Merwe)
+ * Internal: get rid of old-style classes to be compatible with PyQt 4.6.
+   (#447214)
+ * qlog:
+   * handle revids as plain strings, not unicode. (#452235)
+ * qcommit/qrevert: 
+   * Fixed a bug were the pending merges graph was being loaded
+     twice. (Gary van der Merwe)
+
 
 
 0.14.3 - 2009-10-02
