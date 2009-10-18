@@ -106,7 +106,7 @@ public class ClassName1 extends ClassName2
 
     def test_python(self):
         source = '''
-class ClassName:
+class ClassName(object):
 
     def function(self):
         self.var = 1
