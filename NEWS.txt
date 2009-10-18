@@ -14,6 +14,9 @@ What's new in this release:
    * update lightweight checkout
  * qlog can display foreign revision info if available.
  * Sort tags alphabeticaly and case-insensitive in qtag dialog.
+ * qexport now has sensible defaults and more user-friendly archive
+   types (e.g. tar.gz instead of tgz) displayed in the combo box.
+   On windows, the default archive type is now zip as well.
  * And more than 37 bugfixes (plus all critical bugfixes from 0.14.x releases).
 
 Detailed changelog:
