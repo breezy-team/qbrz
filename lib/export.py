@@ -86,9 +86,9 @@ class QBzrExportDialog(SubProcessDialog):
         exportarch_radio.setChecked(True)
         self.exportarch_radio = exportarch_radio 
         vboxExportDestination.addWidget(exportarch_radio)
-        vboxExportDestination.addLayout(self._build_archive_type_layout())
         vboxExportDestination.addLayout(self._build_archive_location_layout())
         vboxExportDestination.addLayout(self._build_archive_root_layout())
+        vboxExportDestination.addLayout(self._build_archive_type_layout())
  
         # Build export as directory section
         exportdir_radio = QtGui.QRadioButton("Export as directory")
