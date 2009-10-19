@@ -181,6 +181,10 @@ class RevNoItemDelegate(StyledItemDelegate):
         style.drawPrimitive(QtGui.QStyle.PE_PanelItemViewItem,
                             option, painter, widget)
         
+        text_margin = style.pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
+                                        None, widget) + 1
+        text_rect = option.rect.adjusted(text_margin, 0, -text_margin, 0)
+        
         if not option.text.isEmpty():
             text = option.text
             splitpoint = text.indexOf(".")
@@ -198,20 +202,20 @@ class RevNoItemDelegate(StyledItemDelegate):
             
             painter.setPen(self.get_text_color(option))
             
-            if mainline_width + therest_width > option.rect.width():
-                if fm.width(text) > option.rect.width():
-                    text = self.elidedText(fm, option.rect.width(),
+            if mainline_width + therest_width > text_rect.width():
+                if fm.width(text) > text_rect.width():
+                    text = self.elidedText(fm, text_rect.width(),
                                            QtCore.Qt.ElideRight, text)
-                painter.drawText(option.rect, QtCore.Qt.AlignRight, text);
+                painter.drawText(text_rect, QtCore.Qt.AlignRight, text);
             else:
-                mainline_rect = QtCore.QRect(option.rect.x(),
-                                             option.rect.y(),
+                mainline_rect = QtCore.QRect(text_rect.x(),
+                                             text_rect.y(),
                                              mainline_width,
-                                             option.rect.height())
-                therest_rect = QtCore.QRect(option.rect.x() + mainline_width,
-                                            option.rect.y(),
-                                            option.rect.width() - mainline_width,
-                                            option.rect.height())
+                                             text_rect.height())
+                therest_rect = QtCore.QRect(text_rect.x() + mainline_width,
+                                            text_rect.y(),
+                                            text_rect.width() - mainline_width,
+                                            text_rect.height())
                 painter.drawText(mainline_rect, QtCore.Qt.AlignRight, mainline)
                 painter.drawText(therest_rect, QtCore.Qt.AlignLeft, therest)
         painter.restore()
