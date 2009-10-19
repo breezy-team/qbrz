@@ -8,7 +8,7 @@ What's new in this release:
  * Added Browse button for editor selection in qconfig.
  * qconflicts: Enable multiple selections of conflict items to resolve 
    or launch merge tool for them.
- * qgetupdates and qupdate dialogs now properly supports all 3 cases:
+ * qgetupdates and qupdate dialogs now properly support all 3 cases:
    * update tree
    * update bound branch
    * update lightweight checkout
