@@ -343,27 +343,35 @@ class LogWindow(QBzrWindow):
         revids = self.log_list.get_selection_top_and_parent_revids()
         
         if revids not in self.delta_cache:
-            trees = []
             gp = self.log_list.graph_provider
-            gp.lock_read_branches()
-            self.processEvents()
-            try:
-                for revid in revids:
-                    if revid not in self.tree_cache:
-                        branch = gp.get_revid_branch(revid)
-                        # XXX if the branch is the same, we should load both trees
-                        # at once.
-                        tree = branch.repository.revision_tree(revid)
-                        self.tree_cache[revid] = tree
-                        trees.append(tree)
-                        self.processEvents()
-                    else:
-                        trees.append(self.tree_cache[revid])
-                delta = trees[0].changes_from(trees[1])
-                self.delta_cache[revids] = delta
-            finally:
-                gp.unlock_branches()
+            revids_load = [revid for revid in revids 
+                           if revid not in self.tree_cache]
+            branches = [gp.get_revid_branch(revid) for revid in revids_load]
+            
+            if (len(branches)==2 and
+                branches[0].repository.base == branches[1].repository.base):
+                # Both revids are from the same repository. Load together.
+                repos_revids = [(branches[0].repository, revids_load)]
+            else:
+                repos_revids = [(branch.repository, [revid])
+                               for revid, branch in zip(revids_load, branches)]
+            
+            for repo, repo_revids in repos_revids:
+                repo.lock_read()
                 self.processEvents()
+                try:
+                    trees = repo.revision_trees(repo_revids)
+                    for revid, tree in zip(repo_revids, trees):
+                        self.tree_cache[revid] = tree
+                    self.processEvents()
+                finally:
+                    repo.unlock()
+                self.processEvents()
+            
+            delta = self.tree_cache[revids[0]].changes_from(
+                                                     self.tree_cache[revids[1]])
+            self.delta_cache[revids] = delta
+            self.processEvents()
         else:
             delta = self.delta_cache[revids]
         
