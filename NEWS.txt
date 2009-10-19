@@ -4,6 +4,9 @@
    * Get the max main_line digets in a different way so that we don't break 
      --no-graph. (Bug 455867, Gary van der Merwe)
    * Corrected the margin for the revision number column. (Gary van der Merwe)
+   * When loading the file list delta, only lock the repositories that are
+     being used. If the 2 trees are from the same repositories, load them 
+     together. (Bug 450225, Gary van der Merwe)
 
 0.15 "Yellow and green" - 2009-10-19
 ------------------------------------
