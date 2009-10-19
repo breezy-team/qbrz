@@ -592,7 +592,11 @@ class LogGraphProvider(object):
         self.revid_rev = {}
         self.revno_rev = {}
         
+        self.max_mainline_revno = 0
+        
         for rev in self.revisions:
+            self.max_mainline_revno = max(self.max_mainline_revno, 
+                                          rev.revno_sequence[0])
             self.revid_rev[rev.revid] = rev
             self.revno_rev[rev.revno_sequence] = rev
         
