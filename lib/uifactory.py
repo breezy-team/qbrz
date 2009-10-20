@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # QBzr - Qt frontend to Bazaar commands
@@ -112,6 +113,13 @@ class QUIFactory(ui.UIFactory):
             return str(password)
         else:
             raise KeyboardInterrupt()
+    
+    def get_boolean(self, prompt):
+        button = QtGui.QMessageBox.question(
+            self.current_widget(), "Bazaar", prompt,
+            QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+        
+        return button == QtGui.QMessageBox.Yes
 
     def clear_term(self):
         """Prepare the terminal for output.
@@ -120,4 +128,12 @@ class QUIFactory(ui.UIFactory):
         cursor at the leftmost position."""
         pass
     
-    # TODO: Implement get_boolean
+
+# You can run this file to test the ui factory. This is not in the test suit
+# because it actualy open the ui, and so user interaction is required to run
+# the test.
+if __name__ == "__main__":
+    application = QtGui.QApplication([])
+    ui_factory = QUIFactory()
+    # print ui_factory.get_password("Enter password 123")
+    print ui_factory.get_boolean("Question?")
