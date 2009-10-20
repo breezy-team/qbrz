@@ -408,6 +408,9 @@ class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
     def do_reject(self):
         self.reject()
 
+    def reject(self):
+        self.saveSize()
+        QtGui.QDialog.reject(self)
 
 throber_movie = None
 
