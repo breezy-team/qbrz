@@ -8,9 +8,9 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId=QBzr
 AppName=QBzr
-AppVerName=QBzr 0.14.4
+AppVerName=QBzr 0.14.5
 
-OutputBaseFilename=qbzr-setup-0.14.4
+OutputBaseFilename=qbzr-setup-0.14.5
 SourceDir="..\"
 OutputDir="."
 OutputManifestFile=qbzr-setup-iss.log

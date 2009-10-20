@@ -1,9 +1,11 @@
-0.14.5 - In devlopment
-----------------------
+0.14.5 - In development
+-----------------------
+Bugfixes and backported bugfixes.
 
  * qlog:
    * Avoid a deprecation warning when diffing the first rev in a branch.
      (John Szakmeister)
+
 
 0.14.4 "Kenny" - 2009-10-17
 ---------------------------
