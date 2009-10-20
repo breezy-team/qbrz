@@ -113,6 +113,16 @@ class QUIFactory(ui.UIFactory):
             return str(password)
         else:
             raise KeyboardInterrupt()
+
+    def get_username(self, prompt='', **kwargs):
+        username, ok = QtGui.QInputDialog.getText(self.current_widget(),
+                                                  gettext("Enter Username"),
+                                                  (prompt % kwargs))
+        
+        if ok:
+            return str(username)
+        else:
+            raise KeyboardInterrupt()
     
     def get_boolean(self, prompt):
         button = QtGui.QMessageBox.question(
@@ -135,5 +145,5 @@ class QUIFactory(ui.UIFactory):
 if __name__ == "__main__":
     application = QtGui.QApplication([])
     ui_factory = QUIFactory()
-    # print ui_factory.get_password("Enter password 123")
-    print ui_factory.get_boolean("Question?")
+    print ui_factory.get_username("Enter password 123")
+    #print ui_factory.get_boolean("Question?")
