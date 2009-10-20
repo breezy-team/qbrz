@@ -20,6 +20,7 @@
 from PyQt4 import QtCore, QtGui, Qt
 
 from bzrlib.bzrdir import BzrDir
+from bzrlib.revision import NULL_REVISION
 from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
                                                  RevNoItemDelegate)
 from bzrlib.plugins.qbzr.lib import logmodel
@@ -303,7 +304,7 @@ class LogList(RevisionTreeView):
         new_branch = self.graph_provider.get_revid_branch(new_revid)
         
         if not old_rev.parent_ids:
-            old_revid = None
+            old_revid = NULL_REVISION
             old_branch = new_branch
         else:
             old_revid = old_rev.parent_ids[0]
