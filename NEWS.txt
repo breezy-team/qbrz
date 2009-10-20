@@ -1,6 +1,7 @@
 0.16 - in development
 ---------------------
-
+ * SubprocessUIFactory and QUIFactory now both support get_username, and
+   get_boolean. (Bug 421851, Gary van der Merwe)
 
 0.15 "Yellow and green" - 2009-10-19
 ------------------------------------
