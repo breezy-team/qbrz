@@ -196,8 +196,8 @@ class LogList(RevisionTreeView):
             self.log_model.load_graph_all_revisions()
             
             # Resize the rev no col.
-            main_line_tip = self.graph_provider.branch_lines[()].revs[0]
-            main_line_digets = max(len(main_line_tip.revno_str), 4)
+            main_line_digets = len("%d" % self.graph_provider.max_mainline_revno)
+            main_line_digets = max(main_line_digets, 4)
             self.rev_no_item_delegate.max_mainline_digits = main_line_digets
             header = self.header()
             fm = self.fontMetrics()
