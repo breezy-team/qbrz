@@ -513,6 +513,23 @@ class SubProcessWidget(QtGui.QWidget):
                 self.process.write("qbzr:GETPASS:"+bencode.bencode(data)+"\n")
                 if not ok:
                     self.abort_futher_processes()
+            elif line.startswith("qbzr:GETUSER:"):
+                prompt = bencode.bdecode(line[13:]).decode('utf-8')
+                passwd, ok = QtGui.QInputDialog.getText(self,
+                                                        gettext("Enter Username"),
+                                                        prompt)
+                data = unicode(passwd).encode('utf-8'), int(ok)
+                self.process.write("qbzr:GETUSER:"+bencode.bencode(data)+"\n")
+                if not ok:
+                    self.abort_futher_processes()
+            elif line.startswith("qbzr:GETBOOL:"):
+                prompt = bencode.bdecode(line[13:]).decode('utf-8')
+                button = QtGui.QMessageBox.question(
+                    self.current_widget(), "Bazaar", prompt,
+                    QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+                
+                data = (button == QtGui.QMessageBox.Yes)
+                self.process.write("qbzr:GETBOOL:"+bencode.bencode(data)+"\n")
             else:
                 line = line.decode(self.encoding)
                 self.logMessage(line)
@@ -663,19 +680,35 @@ class SubprocessUIFactory(TextUIFactory):
         cursor at the leftmost position."""
         pass
 
-    def get_password(self, prompt='', **kwargs):
-        prompt = prompt % kwargs
-        self.stdout.write('qbzr:GETPASS:' + bencode.bencode(prompt.encode('utf-8')) + '\n')
+    def _get_answer_from_main(self, name, arg):
+        self.stdout.write(name + bencode.bencode(arg) + '\n')
         self.stdout.flush()
         line = self.stdin.readline()
-        if line.startswith('qbzr:GETPASS:'):
-            passwd, accepted = bencode.bdecode(line[13:].rstrip('\r\n'))
-            if accepted:
-                return passwd
-            else:
-                raise KeyboardInterrupt()
-        raise Exception("Did not recive a password from the main process.")
+        if line.startswith(name):
+            return bencode.bdecode(line[len(name):].rstrip('\r\n'))
+        raise Exception("Did not recive a answer from the main process.")
+    
+    def get_password(self, prompt='', **kwargs):
+        prompt = prompt % kwargs
+        passwd, accepted = self._get_answer_from_main('qbzr:GETPASS:',
+                                                      prompt.encode('utf-8'))
+        if accepted:
+            return passwd
+        else:
+            raise KeyboardInterrupt()
+    
+    def get_username(self, prompt='', **kwargs):
+        prompt = prompt % kwargs
+        username, accepted = self._get_answer_from_main('qbzr:GETUSER:',
+                                                        prompt.encode('utf-8'))
+        if accepted:
+            return username
+        else:
+            raise KeyboardInterrupt()
 
+    def get_boolean(self, prompt):
+        return self._get_answer_from_main('qbzr:GETBOOL:',
+                                                      prompt.encode('utf-8'))
 
 if MS_WINDOWS:
     import ctypes

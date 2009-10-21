@@ -1,5 +1,9 @@
 0.16 - in development
 ---------------------
+ * SubprocessUIFactory and QUIFactory now both support get_username, and
+   get_boolean. (Bug 421851, Gary van der Merwe)
+ * Save the size of Dialogs when the user press Esc. (Bug 417809,
+   Gary van der Merwe)
  * qlog:
    * Get the max main_line digets in a different way so that we don't break 
      --no-graph. (Bug 455867, Gary van der Merwe)
