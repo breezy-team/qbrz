@@ -309,7 +309,7 @@ class LogList(RevisionTreeView):
         else:
             return [index]
     
-    def get_selection_top_and_parent_revids(self, index=None):
+    def get_selection_top_and_parent_revids_and_count(self, index=None):
         indexes = self.get_selection_indexes(index)
         if len(indexes) == 0:
             return None, None
@@ -325,7 +325,7 @@ class LogList(RevisionTreeView):
                 parent_revid = self.graph_provider.graph.get_parent_map([bot_revid])[bot_revid][0]
         else:
             parent_revid = NULL_REVISION
-        return top_revid, parent_revid
+        return (top_revid, parent_revid), len(indexes)
     
     def set_search(self, str, field):
         self.graph_provider.set_search(str, field)
@@ -337,7 +337,8 @@ class LogList(RevisionTreeView):
                   specific_files=None, specific_file_ids=None,
                   ext_diff=None):
         
-        new_revid, old_revid = self.get_selection_top_and_parent_revids(index)
+        (new_revid, old_revid), count = \
+            self.get_selection_top_and_parent_revids_and_count(index)
         if new_revid is None and old_revid is None:
             # No revision selection.
             return
