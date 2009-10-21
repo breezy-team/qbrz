@@ -46,6 +46,12 @@ from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 
+try:
+    from bzrlib.plugins.svn.repository import SvnRepository
+    has_svn = True
+except ImportError:
+    has_svn = False
+
 
 PathRole = QtCore.Qt.UserRole + 1
 FileIdRole = QtCore.Qt.UserRole + 2
@@ -340,85 +346,99 @@ class LogWindow(QBzrWindow):
     @runs_in_loading_queue
     @ui_current_widget
     def update_revision_delta(self):
-        revids = self.log_list.get_selection_top_and_parent_revids()
+        revids, count = \
+            self.log_list.get_selection_top_and_parent_revids_and_count()
         
         if revids not in self.delta_cache:
             gp = self.log_list.graph_provider
-            revids_load = [revid for revid in revids 
-                           if revid not in self.tree_cache]
-            branches = [gp.get_revid_branch(revid) for revid in revids_load]
-            
-            if (len(branches)==2 and
-                branches[0].repository.base == branches[1].repository.base):
-                # Both revids are from the same repository. Load together.
-                repos_revids = [(branches[0].repository, revids_load)]
+            repos = [gp.get_revid_branch(revid).repository for revid in revids]
+            if has_svn and (isinstance(repos[0], SvnRepository) or
+                            isinstance(repos[1], SvnRepository)):
+                # Loading trees from a remote svn repo is unusably slow.
+                # See https://bugs.launchpad.net/qbzr/+bug/450225
+                # If only 1 revision is selected, use a optimized svn method
+                # which actualy gets the server to do the delta,
+                # else, don't do any delta.
+                if count == 1:
+                    delta = repos[0].get_revision_delta(revids[0])
+                else:
+                    delta = None
             else:
-                repos_revids = [(branch.repository, [revid])
-                               for revid, branch in zip(revids_load, branches)]
-            
-            for repo, repo_revids in repos_revids:
-                repo.lock_read()
-                self.processEvents()
-                try:
-                    trees = repo.revision_trees(repo_revids)
-                    for revid, tree in zip(repo_revids, trees):
-                        self.tree_cache[revid] = tree
+                if (len(repos)==2 and
+                    repos[0].base == repos[1].base):
+                    # Both revids are from the same repository. Load together.
+                    repos_revids = [(repos[0], revids)]
+                else:
+                    repos_revids = [(repo, [revid])
+                            for revid, repo in zip(revids_load, repos)]
+                
+                for repo, repo_revids in repos_revids:
+                    repo_revids = [revid for revid in repo_revids 
+                                   if revid not in self.tree_cache]
+                    if repo_revids:
+                        repo.lock_read()
+                        self.processEvents()
+                        try:
+                            trees = repo.revision_trees(repo_revids)
+                            for revid, tree in zip(repo_revids, trees):
+                                self.tree_cache[revid] = tree
+                            self.processEvents()
+                        finally:
+                            repo.unlock()
                     self.processEvents()
-                finally:
-                    repo.unlock()
-                self.processEvents()
-            
-            delta = self.tree_cache[revids[0]].changes_from(
-                                                     self.tree_cache[revids[1]])
+                
+                delta = self.tree_cache[revids[0]].changes_from(
+                                                self.tree_cache[revids[1]])
             self.delta_cache[revids] = delta
             self.processEvents()
         else:
             delta = self.delta_cache[revids]
         
-        items = []
-        specific_fileids = self.log_list.graph_provider.fileids
-        
-        for path, id, kind in delta.added:
-            items.append((id,
-                          path,
-                          id not in specific_fileids,
-                          path,
-                          "blue"))
-
-        for path, id, kind, text_modified, meta_modified in delta.modified:
-            items.append((id,
-                          path,
-                          id not in specific_fileids,
-                          path,
-                          None))
-
-        for path, id, kind in delta.removed:
-            items.append((id,
-                          path,
-                          id not in specific_fileids,
-                          path,
-                          "red"))
-
-        for (oldpath, newpath, id, kind,
-            text_modified, meta_modified) in delta.renamed:
-            items.append((id,
-                          newpath,
-                          id not in specific_fileids,
-                          "%s => %s" % (oldpath, newpath),
-                          "purple"))
-        
-        for (id, path,
-             is_not_specific_fileid,
-             display, color) in sorted(items, key = lambda x: (x[2],x[1])):
-            item = QtGui.QListWidgetItem(display, self.fileList)
-            item.setData(PathRole, QtCore.QVariant(path))
-            item.setData(FileIdRole, QtCore.QVariant(id))
-            if color:
-                item.setTextColor(QtGui.QColor(color))
-            if not is_not_specific_fileid:
-                f = item.font()
-                f.setBold(True)
-                item.setFont(f)
+        if delta:
+            items = []
+            specific_fileids = self.log_list.graph_provider.fileids
+            
+            for path, id, kind in delta.added:
+                items.append((id,
+                              path,
+                              id not in specific_fileids,
+                              path,
+                              "blue"))
+    
+            for path, id, kind, text_modified, meta_modified in delta.modified:
+                items.append((id,
+                              path,
+                              id not in specific_fileids,
+                              path,
+                              None))
+    
+            for path, id, kind in delta.removed:
+                items.append((id,
+                              path,
+                              id not in specific_fileids,
+                              path,
+                              "red"))
+    
+            for (oldpath, newpath, id, kind,
+                text_modified, meta_modified) in delta.renamed:
+                items.append((id,
+                              newpath,
+                              id not in specific_fileids,
+                              "%s => %s" % (oldpath, newpath),
+                              "purple"))
+            
+            for (id, path,
+                 is_not_specific_fileid,
+                 display, color) in sorted(items, key = lambda x: (x[2],x[1])):
+                item = QtGui.QListWidgetItem(display, self.fileList)
+                item.setData(PathRole, QtCore.QVariant(path))
+                item.setData(FileIdRole, QtCore.QVariant(id))
+                if color:
+                    item.setTextColor(QtGui.QColor(color))
+                if not is_not_specific_fileid:
+                    f = item.font()
+                    f.setBold(True)
+                    item.setFont(f)
 
     @runs_in_loading_queue
     @ui_current_widget
@@ -514,7 +534,8 @@ class LogWindow(QBzrWindow):
     def show_file_content(self):
         """Launch qcat for one selected file."""
         paths, file_ids = self.get_file_selection_paths_and_ids()
-        top_revid, old_revid = self.log_list.get_selection_top_and_parent_revids()
+        (top_revid, old_revid), count = \
+            self.log_list.get_selection_top_and_parent_revids_and_count()
         
         branch = self.log_list.graph_provider.get_revid_branch(top_revid)
         tree = branch.repository.revision_tree(top_revid)
@@ -528,7 +549,8 @@ class LogWindow(QBzrWindow):
     def show_file_annotate(self):
         """Show qannotate for selected file."""
         paths, file_ids = self.get_file_selection_paths_and_ids()
-        top_revid, old_revid = self.log_list.get_selection_top_and_parent_revids()
+        (top_revid, old_revid), count = \
+            self.log_list.get_selection_top_and_parent_revids_and_count()
         
         branch = self.log_list.graph_provider.get_revid_branch(top_revid)
         tree = branch.repository.revision_tree(top_revid)
