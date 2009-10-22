@@ -551,7 +551,7 @@ class GraphTagsBugsItemDelegate(StyledItemDelegate):
         rect.adjust(x, 0, 0, 0)
         
         if not option.text.isEmpty():
-            painter.setPen(self.get_text_color(option))
+            painter.setPen(self.get_text_color(option, style))
             text_rect = rect.adjusted(0, 0, -text_margin, 0)
             painter.setFont(option.font)
             fm = painter.fontMetrics()

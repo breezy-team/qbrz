@@ -148,9 +148,11 @@ class RevisionTreeView(QtGui.QTreeView):
         QtCore.QCoreApplication.processEvents(
                             QtCore.QEventLoop.WaitForMoreEvents)
 
+has_vista_style = hasattr(QtGui, "QWindowsVistaStyle")
+
 class StyledItemDelegate(QtGui.QStyledItemDelegate):
     
-    def get_text_color (self, option):
+    def get_text_color (self, option, style):
         if option.state & QtGui.QStyle.State_Enabled:
             if option.state & QtGui.QStyle.State_Active:
                 cg = QtGui.QPalette.Active
@@ -160,6 +162,13 @@ class StyledItemDelegate(QtGui.QStyledItemDelegate):
             cg = QtGui.QPalette.Disabled
         
         if option.state & QtGui.QStyle.State_Selected:
+            if has_vista_style and isinstance(style, QtGui.QWindowsVistaStyle):
+                # QWindowsVistaStyle normaly modifies it palette,
+                # but as we can't reuse that code, we have to reproduce
+                # what it does here.
+                # https://bugs.edge.launchpad.net/qbzr/+bug/457895
+                return option.palette.color(cg, QtGui.QPalette.Text)
+            
             return option.palette.color(cg, QtGui.QPalette.HighlightedText)
         else:
             return option.palette.color(cg, QtGui.QPalette.Text)
@@ -200,7 +209,7 @@ class RevNoItemDelegate(StyledItemDelegate):
             mainline_width = fm.width("8"*self.max_mainline_digits)
             therest_width = fm.width(therest)
             
-            painter.setPen(self.get_text_color(option))
+            painter.setPen(self.get_text_color(option, style))
             
             if mainline_width + therest_width > text_rect.width():
                 if fm.width(text) > text_rect.width():
