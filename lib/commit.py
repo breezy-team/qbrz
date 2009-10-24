@@ -451,12 +451,22 @@ class CommitWindow(SubProcessDialog):
                 # we can't load the words list.
                 if not refresh:
                     fmodel = self.filelist.tree_filter_model
-                    #fmodel.setFilter(fmodel.UNVERSIONED, False)
+                    
+                    want_unversioned = self.show_nonversioned_checkbox.isChecked()
+                    fmodel.setFilter(fmodel.UNVERSIONED, want_unversioned)
+                    if not want_unversioned and self.initial_selected_list:
+                        # if there are any paths from the command line that
+                        # are not versioned, we want_unversioned.
+                        for path in self.initial_selected_list:
+                            if not self.tree.path2id(path):
+                                want_unversioned = True
+                                break
+                    
                     self.filelist.set_tree(
                         self.tree,
                         branch=self.tree.branch,
                         changes_mode=True,
-                        want_unversioned=self.show_nonversioned_checkbox.isChecked(),
+                        want_unversioned=want_unversioned,
                         initial_checked_paths=self.initial_selected_list,
                         change_load_filter=lambda c:not c.is_ignored())
                 else:
