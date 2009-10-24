@@ -457,7 +457,8 @@ class CommitWindow(SubProcessDialog):
                         branch=self.tree.branch,
                         changes_mode=True,
                         want_unversioned=self.show_nonversioned_checkbox.isChecked(),
-                        initial_checked_paths=self.initial_selected_list)
+                        initial_checked_paths=self.initial_selected_list,
+                        change_load_filter=lambda c:not c.is_ignored())
                 else:
                     self.filelist.refresh()
                 self.is_loading = False
