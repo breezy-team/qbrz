@@ -47,6 +47,69 @@ from bzrlib.plugins.qbzr.lib.diff import (
     InternalWTDiffArgProvider,
     )
 
+def group_large_dirs(paths):
+    
+    # XXX - check the performance of this method with lots of paths, and
+    # deep paths.
+    
+    all_paths_expanded = {}
+    """Dict of all paths expaned, and thier depth, and a set of decendents
+    they contain.
+    
+    The key is the path
+    The value is a tuple of (path, depths, decendents)
+    """
+    
+    for path in paths:
+        parent_paths = []
+        dir_path = path
+        while dir_path:
+            dir_path, name = os.path.split(dir_path)
+            parent_paths.append(dir_path)
+        
+        lp = len(parent_paths)
+        for i, dir_path in enumerate(parent_paths):
+            depth = lp - i
+            if dir_path in all_paths_expanded:
+                all_paths_expanded[dir_path][2].add(path)
+            else:
+                all_paths_expanded[dir_path] = [dir_path, depth, set((path,))]
+    
+    container_dirs = {}
+    """Dict of a container dir path, with a set of it's decendents"""
+    
+    def set_dir_as_container(path):
+        decendents = all_paths_expanded[path][2]
+        container_dirs[path] = decendents
+        dir_path = path
+        while dir_path:
+            dir_path, name = os.path.split(dir_path)
+            ans_decendents = all_paths_expanded[dir_path][2]
+            ans_decendents.difference_update(decendents)
+            ans_decendents.add(path)
+    
+    # directories included in the original paths container.
+    for path, depth, decendents in all_paths_expanded.itervalues():
+        if len(decendents)>0 and (path in paths):
+            set_dir_as_container(path)
+    
+    for path, depth, decendents in sorted(all_paths_expanded.itervalues(),
+                                          key=lambda x: x[1]):
+        len_decendents = len(decendents)
+        # Config?
+        if len_decendents>=4:
+            has_ansestor_with_others = False
+            dir_path = path
+            while dir_path:
+                dir_path, name = os.path.split(dir_path)
+                if len_decendents<len(all_paths_expanded[dir_path][2]):
+                    has_ansestor_with_others = True
+                    break
+            if has_ansestor_with_others:
+                set_dir_as_container(path)
+    
+    set_dir_as_container('')
+    return container_dirs
 
 class InternalItem(object):
     __slots__  = ["name", "kind", "file_id"]
