@@ -47,6 +47,12 @@ from bzrlib.plugins.qbzr.lib.diff import (
     InternalWTDiffArgProvider,
     )
 
+def dict_set_add(dict, key, value):
+    if key in dict:
+        dict[key].add(value)
+    else:
+        dict[key] = set((value,))
+
 def group_large_dirs(paths):
     
     # XXX - check the performance of this method with lots of paths, and
@@ -159,7 +165,7 @@ class ModelItemData(object):
         return "D" + path.replace("/", "/D") + "/F" + f
 
     def __repr__(self):
-        return "<ModelItemData %r>" % (self.item,)
+        return "<ModelItemData %s, %r>" % (self.path, self.item,)
 
 
 class PersistantItemReference(object):
@@ -171,6 +177,8 @@ class PersistantItemReference(object):
         self.file_id = file_id
         self.path = path
 
+    def __repr__(self):
+        return "<%s %s %s>" % (self.__class__.__name__, self.path, self.file_id)
 
 class ChangeDesc(tuple):
     """Helper class that "knows" about internals of iter_changes' changed entry
@@ -336,7 +344,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.revno_map = None
         self.changes_mode = changes_mode
         
-        self.changes = {}
         self.unver_by_parent = {}
         self.inventory_data_by_path = {}
         self.inventory_data_by_id = {}
@@ -349,7 +356,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 basis_tree.lock_read()
                 try:
                     for change in self.tree.iter_changes(basis_tree,
-                                                want_unversioned=want_unversioned):
+                                            want_unversioned=want_unversioned):
                         change = ChangeDesc(change)
                         path = change.path()
                         fileid = change.fileid()
@@ -362,50 +369,70 @@ class TreeModel(QtCore.QAbstractItemModel):
                             not change_load_filter(change)):
                             continue
                         
-                        if fileid is not None and not changes_mode:
-                            self.changes[change.fileid()] = change
+                        item = InternalItem("", change.kind(), fileid)
+                        item_data = ModelItemData(path, change=change, item=item)
+                        
+                        self.inventory_data_by_path[path] = item_data
+                        if fileid:
+                            self.inventory_data_by_id[fileid] = item_data
+                    
+                    def get_name(dir_fileid, dir_path, path, change):
+                        if dir_path:
+                            name = path[len(dir_path)+1:]
                         else:
-                            if changes_mode:
-                                dir_path = path
-                                dir_fileid = None
-                                relpath = ""
-                                while dir_path:
-                                    dir_path, name = os.path.split(dir_path)
-                                    relpath = '/' + name + relpath
-                                    if dir_path in self.inventory_data_by_path:
-                                        dir_item = self.inventory_data_by_path[
-                                                                         dir_path]
-                                        dir_fileid = dir_item.item.file_id
-                                        break
-                                if dir_fileid is None:
-                                    dir_fileid = root_id
-                                    dir_path = ""
-                                
-                                name = relpath.lstrip("/")
-                                if change.is_renamed():
-                                    old_inventory_item = basis_tree.inventory[fileid]
-                                    old_names = [old_inventory_item.name]
-                                    while old_inventory_item.parent_id:
-                                        old_inventory_item = basis_tree.inventory[old_inventory_item.parent_id]
-                                        if old_inventory_item.parent_id == dir_fileid:
-                                            break
-                                        old_names.append(old_inventory_item.name)
-                                    old_names.reverse()
-                                    old_path = "/".join(old_names)
-                                    name = "%s => %s" % (old_path, name)
-                            else:
-                                dir_path, name = os.path.split(path)
-                                dir_fileid = self.tree.path2id(dir_path)
-                            
-                            item = InternalItem(name, change.kind(),
-                                                change.fileid())
-                            
-                            item_data = ModelItemData(path, item=item, change=change)
-                            
-                            if dir_fileid not in self.unver_by_parent:
-                                self.unver_by_parent[dir_fileid] = []
-                            self.unver_by_parent[dir_fileid].append(item_data)
-                            self.inventory_data_by_path[path] = item_data
+                            name = path
+                        if change and change.is_renamed():
+                            old_inventory_item = basis_tree.inventory[fileid]
+                            old_names = [old_inventory_item.name]
+                            while old_inventory_item.parent_id:
+                                old_inventory_item = basis_tree.inventory[old_inventory_item.parent_id]
+                                if old_inventory_item.parent_id == dir_fileid:
+                                    break
+                                old_names.append(old_inventory_item.name)
+                            old_names.reverse()
+                            old_path = "/".join(old_names)
+                            name = "%s => %s" % (old_path, name)
+                        return name
+                    
+                    if changes_mode:
+                        self.unver_by_parent = group_large_dirs(
+                            frozenset(self.inventory_data_by_path.iterkeys()))
+                        
+                        # Add items for directories added
+                        for path in self.unver_by_parent.iterkeys():
+                            if path not in self.inventory_data_by_path:
+                                kind = "directory"
+                                file_id = self.tree.path2id(path)
+                                item = InternalItem("", kind, file_id)
+                                item_data = ModelItemData(path, item=item)
+                                self.inventory_data_by_path[path] = item_data
+                                self.inventory_data_by_id[fileid] = item_data
+                        
+                        # Name setting
+                        for dir_path, decendents in \
+                                self.unver_by_parent.iteritems():
+                            dir_fileid = self.tree.path2id(dir_path)
+                            for path in decendents:
+                                item_data = self.inventory_data_by_path[path]
+                                item_data.item.name = get_name(
+                                    dir_fileid, dir_path, path,
+                                    item_data.change)
+                    else:
+                        # record the unversioned items
+                        for item_data in self.inventory_data_by_path.itervalues():
+                            if item_data.change and not item_data.change.is_versioned():
+                                parent_path, name = os.path.split(item_data.path)
+                                dict_set_add(self.unver_by_parent, parent_path,
+                                             item_data.path)
+                        
+                        # Name setting
+                        for item_data in self.inventory_data_by_path.itervalues():
+                            dir_path, name = os.path.split(item_data.path)
+                            dir_fileid = self.tree.path2id(dir_path)
+                            item_data.item.name = get_name(
+                                dir_fileid, dir_path, item_data.path,
+                                item_data.change)
+                    
                 finally:
                     basis_tree.unlock()
                 self.process_inventory(self.working_tree_get_children)
@@ -449,15 +476,18 @@ class TreeModel(QtCore.QAbstractItemModel):
             for child in item.children.itervalues():
                 # Create a copy so that we don't have to hold a lock of the wt.
                 child = child.copy()
-                if child.file_id in self.changes:
-                    change = self.changes[child.file_id]
+                if child.file_id in self.inventory_data_by_id:
+                    child_item_data = self.inventory_data_by_id[child.file_id]
                 else:
-                    change = None
-                path = self.tree.id2path(child.file_id)
-                yield ModelItemData(path, item=child, change=change)
-        if item.file_id in self.unver_by_parent:
-            for item_data in self.unver_by_parent[item.file_id]:
-                yield item_data
+                    path = self.tree.id2path(child.file_id)
+                    child_item_data = ModelItemData(path)
+                
+                child_item_data.item = child
+                yield child_item_data
+        
+        if item_data.path in self.unver_by_parent:
+            for path in self.unver_by_parent[item_data.path]:
+                yield self.inventory_data_by_path[path]
     
     def load_dir(self, dir_id):
         if dir_id>=len(self.inventory_data):
@@ -813,11 +843,11 @@ class TreeModel(QtCore.QAbstractItemModel):
             key = ref.file_id
             dict = self.inventory_data_by_id
             def iter_parents():
-                parent_id = ref.file_id
+                parent_id = self.tree.inventory[ref.file_id].parent_id
                 parent_ids = []
                 while parent_id is not None:
-                    parent_id = self.tree.inventory[parent_id].parent_id
                     parent_ids.append(parent_id)
+                    parent_id = self.tree.inventory[parent_id].parent_id
                 return reversed(parent_ids)
         else:
             key = ref.path
