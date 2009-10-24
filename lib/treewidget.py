@@ -124,11 +124,6 @@ class InternalItem(object):
     revision = property(lambda self:None)
 
 
-class UnversionedItem(InternalItem):
-    def __init__(self, name, kind):
-        InternalItem.__init__(self, name, kind, None)
-
-
 class ModelItemData(object):
     __slots__ = ["id", "item", "change", "checked", "children_ids",
                  "parent_id", "row", "path", "icon"]
@@ -402,14 +397,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                                 dir_path, name = os.path.split(path)
                                 dir_fileid = self.tree.path2id(dir_path)
                             
-                            if change.is_versioned():
-                                if changes_mode:
-                                    item = InternalItem(name, change.kind(),
-                                                        change.fileid())
-                                else:
-                                    item = self.tree.inventory[change.fileid()]
-                            else:
-                                item = UnversionedItem(name, change.kind())
+                            item = InternalItem(name, change.kind(),
+                                                change.fileid())
                             
                             item_data = ModelItemData(path, item=item, change=change)
                             
@@ -432,7 +421,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def working_tree_get_children(self, item_data):
         item = item_data.item
-        if isinstance(item, UnversionedItem):
+        if item.file_id is None:
             abspath = self.tree.abspath(item_data.path)
             
             for name in os.listdir(abspath):
@@ -440,7 +429,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 (kind,
                  executable,
                  stat_value) = self.tree._comparison_data(None, path)
-                child = UnversionedItem(name, kind)
+                child = InternalItem(name, kind, None)
                 is_ignored = self.tree.is_ignored(path)
                 change = ChangeDesc((None,
                                      (None, path),
@@ -532,7 +521,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         item_data.parent_id = parent_id
         self.inventory_data.append(item_data)
         self.inventory_data_by_path[item_data.path] = item_data
-        if not isinstance(item_data.item, UnversionedItem):
+        if item_data.item.file_id is not None:
             self.inventory_data_by_id[item_data.item.file_id] = item_data
         return item_data.id
     
@@ -806,11 +795,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         return self.branch.repository
     
     def item2ref(self, item_data):
-        if isinstance(item_data.item, UnversionedItem):
-            file_id = None
-        else:
-            file_id = item_data.item.file_id
-        return PersistantItemReference(file_id, item_data.path)
+        return PersistantItemReference(item_data.item.file_id,
+                                       item_data.path)
     
     def index2ref(self, index):
         item_data = self.inventory_data[index.internalId()]
@@ -960,7 +946,7 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         
         if item_data.change is None and unchanged: return True
         
-        is_versioned = not isinstance(item_data.item, UnversionedItem)
+        is_versioned = item_data.item.file_id is not None
         
         if is_versioned and item_data.change is not None and changed:
             return True
@@ -1311,7 +1297,7 @@ class TreeWidget(RevisionTreeView):
     def filter_context_menu(self):
         is_working_tree = isinstance(self.tree, WorkingTree)
         items = self.get_selection_items()
-        versioned = [not isinstance(item.item, UnversionedItem)
+        versioned = [item.item.file_id is not None
                      for item in items]
         changed = [item.change is not None
                    for item in items]
@@ -1366,7 +1352,7 @@ class TreeWidget(RevisionTreeView):
         item = items[0]
         
         encoding = get_set_encoding(None, self.branch)
-        if not isinstance(item.item, UnversionedItem):
+        if item.item.file_id is not None:
             window = QBzrCatWindow(filename = item.path,
                                    tree = self.tree,
                                    parent=self,
@@ -1453,7 +1439,7 @@ class TreeWidget(RevisionTreeView):
         # Only paths that are not versioned.
         paths = [item.path
                  for item in items
-                 if isinstance(item.item, UnversionedItem)]
+                 if item.item.file_id is None]
         
         if len(paths) == 0:
             return
@@ -1481,7 +1467,7 @@ class TreeWidget(RevisionTreeView):
         paths = [item.path
                  for item in items
                  if item.change is not None and
-                    not isinstance(item.item, UnversionedItem)]
+                    item.item.file_id is not None]
         
         if len(paths) == 0:
             return

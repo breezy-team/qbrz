@@ -21,7 +21,7 @@ from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.treewidget import (
     TreeModel,
     ModelItemData,
-    UnversionedItem,
+    InternalItem,
     group_large_dirs,
     )
 from bzrlib.plugins.qbzr.lib.tests.modeltest import ModelTest
@@ -72,8 +72,8 @@ class TestTreeModel(TestWatchExceptHook, TestCaseWithTransport):
 class TestModelItemData(TestCase):
 
     def _make_unversioned_model_list(self, iterable):
-        return [ModelItemData(UnversionedItem(name, kind), None, name)
-            for name, kind in iterable]
+        return [ModelItemData(path, InternalItem(path, kind, None))
+            for path, kind in iterable]
 
     def test_sort_key_one_dir(self):
         models = self._make_unversioned_model_list((
