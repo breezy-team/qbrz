@@ -70,10 +70,10 @@ class ModelItemData(object):
     __slots__ = ["id", "item", "change", "checked", "children_ids",
                  "parent_id", "row", "path", "icon"]
     
-    def __init__(self, item, change, path):
+    def __init__(self, path, item=None, change=None, ):
+        self.path = path
         self.item = item
         self.change = change
-        self.path = path
         if change is not None and change.is_ignored() is None:
             self.checked = QtCore.Qt.Checked
         else:
@@ -348,7 +348,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                             else:
                                 item = UnversionedItem(name, change.kind())
                             
-                            item_data = ModelItemData(item, change, path)
+                            item_data = ModelItemData(path, item=item, change=change)
                             
                             if dir_fileid not in self.unver_by_parent:
                                 self.unver_by_parent[dir_fileid] = []
@@ -365,7 +365,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     def revision_tree_get_children(self, item_data):
         for child in item_data.item.children.itervalues():
             path = self.tree.id2path(child.file_id)
-            yield ModelItemData(child, None, path)
+            yield ModelItemData(path, item=child)
     
     def working_tree_get_children(self, item_data):
         item = item_data.item
@@ -388,7 +388,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                                      (None, kind),
                                      (None, executable),
                                      is_ignored))
-                yield ModelItemData(child, change, path)
+                yield ModelItemData(path, item=child, change=change)
         
         if (not isinstance(item, InternalItem) and
             item.children is not None and not self.changes_mode):
@@ -402,7 +402,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 else:
                     change = None
                 path = self.tree.id2path(child.file_id)
-                yield ModelItemData(child, change, path)
+                yield ModelItemData(path, item=child, change=change)
         if item.file_id in self.unver_by_parent:
             for item_data in self.unver_by_parent[item.file_id]:
                 yield item_data
@@ -447,8 +447,9 @@ class TreeModel(QtCore.QAbstractItemModel):
         if is_refresh:
             self.endRemoveRows()
             
-        root_item = ModelItemData(self.tree.inventory[self.tree.get_root_id()],
-                                  None, '')
+        root_item = ModelItemData(
+            '', item=self.tree.inventory[self.tree.get_root_id()])
+        
         root_id = self.append_item(root_item, None)
         self.load_dir(root_id)
         self.emit(QtCore.SIGNAL("layoutChanged()"))
