@@ -23,6 +23,7 @@ from PyQt4 import QtCore, QtGui
 from bzrlib import errors
 from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
+from bzrlib.osutils import file_kind
 
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, QBzrViewWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
@@ -375,6 +376,19 @@ class TreeModel(QtCore.QAbstractItemModel):
                         if fileid:
                             self.inventory_data_by_id[fileid] = item_data
                     
+                    if self.initial_checked_paths:
+                        # Add directories so that we can easily check them.
+                        for path in self.initial_checked_paths:
+                            # Should we rather be using self.tree.kind ?
+                            kind = file_kind(self.tree.abspath(path))
+                            if kind == "directory":
+                                fileid = self.tree.path2id(path)
+                                item = InternalItem("", kind, fileid)
+                                item_data = ModelItemData(path, change=change, item=item)
+                                self.inventory_data_by_path[path] = item_data
+                                if fileid:
+                                    self.inventory_data_by_id[fileid] = item_data
+                    
                     def get_name(dir_fileid, dir_path, path, change):
                         if dir_path:
                             name = path[len(dir_path)+1:]
@@ -384,14 +398,11 @@ class TreeModel(QtCore.QAbstractItemModel):
                             root_id = basis_tree.get_root_id()
                             old_inventory_item = basis_tree.inventory[change.fileid()]
                             old_names = [old_inventory_item.name]
-                            print (dir_path, dir_fileid, root_id)
                             while old_inventory_item.parent_id:
                                 if old_inventory_item.parent_id == dir_fileid:
                                     break
                                 old_inventory_item = basis_tree.inventory[old_inventory_item.parent_id]
-                                print old_inventory_item.file_id
                                 old_names.append(old_inventory_item.name)
-                            print old_names
                             old_names.reverse()
                             old_path = "/".join(old_names)
                             name = "%s => %s" % (old_path, name)
@@ -400,6 +411,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                     if changes_mode:
                         self.unver_by_parent = group_large_dirs(
                             frozenset(self.inventory_data_by_path.iterkeys()))
+                        print self.unver_by_parent
                         
                         # Add items for directories added
                         for path in self.unver_by_parent.iterkeys():
@@ -488,6 +500,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 child_item_data.item = child
                 yield child_item_data
         
+        print item_data.path
         if item_data.path in self.unver_by_parent:
             for path in self.unver_by_parent[item_data.path]:
                 yield self.inventory_data_by_path[path]
@@ -548,7 +561,6 @@ class TreeModel(QtCore.QAbstractItemModel):
                 item_data.checked = QtCore.Qt.Checked
             elif self.is_item_in_select_all(item_data):
                 item_data.checked = parent_data.checked
-                print parent_data.checked
             else:
                 item_data.checked = QtCore.Qt.Unchecked
             item_data.row = len(parent_data.children_ids)
