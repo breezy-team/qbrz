@@ -138,10 +138,7 @@ class ModelItemData(object):
         self.path = path
         self.item = item
         self.change = change
-        if change is not None and change.is_ignored() is None:
-            self.checked = QtCore.Qt.Checked
-        else:
-            self.checked = QtCore.Qt.Unchecked
+        self.checked = QtCore.Qt.Unchecked
             
         self.children_ids = None
         self.parent_id = None
@@ -333,16 +330,18 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.inventory_data_by_path = {}
         self.inventory_data_by_id = {} # Will not contain unversioned items.
         self.checkable = False
+        self.initial_checked_paths = None
         self.icon_provider = QtGui.QFileIconProvider()
     
     def set_tree(self, tree, branch=None, 
                  changes_mode=False, want_unversioned=True,
-                 initial_selected_paths=None,
+                 initial_checked_paths=None,
                  change_load_filter=None):
         self.tree = tree
         self.branch = branch
         self.revno_map = None
         self.changes_mode = changes_mode
+        self.initial_checked_paths = initial_checked_paths
         
         self.unver_by_parent = {}
         self.inventory_data_by_path = {}
@@ -544,13 +543,21 @@ class TreeModel(QtCore.QAbstractItemModel):
         item_data.id = len(self.inventory_data)
         if parent_id is not None:
             parent_data = self.inventory_data[parent_id]
-            if self.is_item_in_select_all(item_data):
+            if self.initial_checked_paths and \
+                    item_data.path in self.initial_checked_paths:
+                item_data.checked = QtCore.Qt.Checked
+            elif self.is_item_in_select_all(item_data):
                 item_data.checked = parent_data.checked
+                print parent_data.checked
             else:
-                item_data.checked = False
+                item_data.checked = QtCore.Qt.Unchecked
             item_data.row = len(parent_data.children_ids)
         else:
-            item_data.checked = QtCore.Qt.Checked
+            # Root Item
+            if self.initial_checked_paths:
+                item_data.checked = QtCore.Qt.Unchecked
+            else:
+                item_data.checked = QtCore.Qt.Checked
             item_data.row = 0
         item_data.parent_id = parent_id
         self.inventory_data.append(item_data)
@@ -1199,7 +1206,8 @@ class TreeWidget(RevisionTreeView):
         
         self.tree_model.set_tree(self.tree, self.branch,
                                  changes_mode, want_unversioned,
-                                 change_load_filter=self.change_load_filter)
+                                 change_load_filter=self.change_load_filter,
+                                 initial_checked_paths=initial_checked_paths)
         if initial_checked_paths and not self.tree_model.checkable:
             raise AttributeError("You can't have a initial_selection if "
                                  "tree_model.checkable is not True.")
@@ -1213,12 +1221,6 @@ class TreeWidget(RevisionTreeView):
             self.set_header_width_settings()
             self.set_visible_headers()
         
-        QtCore.QCoreApplication.processEvents()
-        if initial_checked_paths:
-            self.tree_model.set_checked_paths(initial_checked_paths)
-        
-        self.tree_filter_model.invalidateFilter()
-
         
         if sys.platform.startswith("win"):
             # This is to fix Bug 402276, where the treewidget does not get
