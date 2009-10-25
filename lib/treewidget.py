@@ -377,16 +377,16 @@ class TreeModel(QtCore.QAbstractItemModel):
                             self.inventory_data_by_id[fileid] = item_data
                     
                     if self.initial_checked_paths:
-                        # Add directories so that we can easily check them.
+                        # Add versioned directories so that we can easily check
+                        # them.
                         for path in self.initial_checked_paths:
-                            # Should we rather be using self.tree.kind ?
-                            kind = file_kind(self.tree.abspath(path))
-                            if kind == "directory":
-                                fileid = self.tree.path2id(path)
-                                item = InternalItem("", kind, fileid)
-                                item_data = ModelItemData(path, change=change, item=item)
-                                self.inventory_data_by_path[path] = item_data
-                                if fileid:
+                            fileid = self.tree.path2id(path)
+                            if fileid:
+                                kind = self.tree.kind(fileid)
+                                if kind == "directory":
+                                    item = InternalItem("", kind, fileid)
+                                    item_data = ModelItemData(path, change=change, item=item)
+                                    self.inventory_data_by_path[path] = item_data
                                     self.inventory_data_by_id[fileid] = item_data
                     
                     def get_name(dir_fileid, dir_path, path, change):
@@ -411,7 +411,6 @@ class TreeModel(QtCore.QAbstractItemModel):
                     if changes_mode:
                         self.unver_by_parent = group_large_dirs(
                             frozenset(self.inventory_data_by_path.iterkeys()))
-                        print self.unver_by_parent
                         
                         # Add items for directories added
                         for path in self.unver_by_parent.iterkeys():
@@ -500,7 +499,6 @@ class TreeModel(QtCore.QAbstractItemModel):
                 child_item_data.item = child
                 yield child_item_data
         
-        print item_data.path
         if item_data.path in self.unver_by_parent:
             for path in self.unver_by_parent[item_data.path]:
                 yield self.inventory_data_by_path[path]
