@@ -133,12 +133,16 @@ class InternalItem(object):
 
 class ModelItemData(object):
     __slots__ = ["id", "item", "change", "checked", "children_ids",
-                 "parent_id", "row", "path", "icon"]
+                 "parent_id", "row", "path", "icon", "conflicts"]
     
-    def __init__(self, path, item=None, change=None, ):
+    def __init__(self, path, item=None, change=None, conflicts=None):
         self.path = path
         self.item = item
         self.change = change
+        if conflicts is None:
+            self.conflicts = []
+        else:
+            self.conflicts = conflicts
         self.checked = QtCore.Qt.Unchecked
             
         self.children_ids = None
@@ -376,6 +380,23 @@ class TreeModel(QtCore.QAbstractItemModel):
                         if fileid:
                             self.inventory_data_by_id[fileid] = item_data
                     
+                    for conflict in self.tree.conflicts():
+                        path = conflict.path
+                        if path in self.inventory_data_by_path:
+                            self.inventory_data_by_path[path].\
+                                conflicts.append(conflict)
+                        else:
+                            item_data = ModelItemData(path,
+                                                      conflicts=[conflict])
+                            fileid = conflict.file_id
+                            kind = self.tree.kind(fileid)
+                            item_data.item = InternalItem("", change.kind(),
+                                                          fileid)
+                            self.inventory_data_by_path[path] = item_data
+                            if fileid:
+                                self.inventory_data_by_id[fileid] \
+                                    = item_data
+                    
                     if self.initial_checked_paths:
                         # Add versioned directories so that we can easily check
                         # them.
@@ -446,7 +467,6 @@ class TreeModel(QtCore.QAbstractItemModel):
                             item_data.item.name = get_name(
                                 dir_fileid, dir_path, item_data.path,
                                 item_data.change)
-                    
                 finally:
                     basis_tree.unlock()
                 self.process_inventory(self.working_tree_get_children)
@@ -771,10 +791,12 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         if column == self.STATUS:
             if role == QtCore.Qt.DisplayRole:
+                status = []
                 if item_data.change is not None:
-                    return QtCore.QVariant(item_data.change.status())
-                else:
-                    return QtCore.QVariant("")
+                    status.append(item_data.change.status())
+                for conflict in item_data.conflicts:
+                    status.append(conflict.typestring)
+                return QtCore.QVariant(", ".join(status))
         
         revid = item_data.item.revision
         if role == self.REVID:
