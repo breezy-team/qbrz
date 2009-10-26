@@ -1414,7 +1414,8 @@ class TreeWidget(RevisionTreeView):
                                    parent=self,
                                    encoding=encoding)
         else:
-            window = QBzrViewWindow(filename=item.path,
+            abspath = os.path.join(self.tree.basedir, item.path)
+            window = QBzrViewWindow(filename=abspath,
                                     encoding=encoding,
                                     parent=self)
         window.show()
