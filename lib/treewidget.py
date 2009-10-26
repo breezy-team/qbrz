@@ -1221,6 +1221,11 @@ class TreeWidget(RevisionTreeView):
             raise AttributeError("You can't have a initial_selection if "
                                  "tree_model.checkable is not True.")
         
+        if self.tree_model.checkable:
+            refs = self.tree_model.iter_checked()
+            indexes = self.tree_model.refs2indexes(refs)
+            self.expanded_to_indexes(indexes)        
+        
         if str(QtCore.QT_VERSION_STR).startswith("4.4"):
             # 4.4.x have a bug where if you do a layoutChanged when using
             # a QSortFilterProxyModel, it loses all header width settings.

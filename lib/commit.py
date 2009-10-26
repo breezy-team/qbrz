@@ -470,15 +470,6 @@ class CommitWindow(SubProcessDialog):
                         want_unversioned=want_unversioned,
                         initial_checked_paths=self.initial_selected_list,
                         change_load_filter=lambda c:not c.is_ignored())
-                    
-                    if self.initial_selected_list:
-                        # expand to selected items.
-                        refs = [PersistantItemReference(None, path)
-                                for path in self.initial_selected_list]
-                        indexes = self.filelist.tree_model.refs2indexes(refs)
-                        self.filelist.expanded_to_indexes(indexes)
-                    else:
-                        self.filelist.expandAll()
                 else:
                     self.filelist.refresh()
                 self.is_loading = False
@@ -677,12 +668,6 @@ class CommitWindow(SubProcessDialog):
             self.filelist.set_tree(
                 self.tree, changes_mode=True, want_unversioned=True,
                 change_load_filter=lambda c:not c.is_ignored())
-            if self.initial_selected_list:
-                # expand to selected items.
-                refs = [PersistantItemReference(None, path)
-                        for path in self.initial_selected_list]
-                indexes = self.filelist.tree_model.refs2indexes(refs)
-                self.filelist.expanded_to_indexes(indexes)
             self.filelist.restore_state(state)
         
         fmodel = self.filelist.tree_filter_model
