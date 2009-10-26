@@ -859,7 +859,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         return refs
     
     def ref2index(self, ref):
-        print ref
         if ref.file_id is not None:
             key = ref.file_id
             dict = self.inventory_data_by_id
@@ -1265,7 +1264,6 @@ class TreeWidget(RevisionTreeView):
     def expanded_to_indexes(self, indexes):
         for index in indexes:
             while index.internalId():
-                print unicode(index.data(self.tree_model.PATH).toString())
                 self.expand(self.tree_filter_model.mapFromSource(index))
                 index = self.tree_model.parent(index)
     
