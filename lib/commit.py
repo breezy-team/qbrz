@@ -49,6 +49,7 @@ from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.treewidget import (
     TreeWidget,
     SelectAllCheckBox,
+    PersistantItemReference,
     )
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.revisionview import RevisionView
@@ -469,6 +470,21 @@ class CommitWindow(SubProcessDialog):
                         want_unversioned=want_unversioned,
                         initial_checked_paths=self.initial_selected_list,
                         change_load_filter=lambda c:not c.is_ignored())
+                    
+                    if self.initial_selected_list:
+                        # expand to selected items.
+                        expand_paths = set()
+                        for path in self.initial_selected_list:
+                            while path:
+                                expand_paths.add(path)
+                                path, name = os.path.split(path)
+                        
+                        refs = [PersistantItemReference(None, path)
+                                for path in expand_paths]
+                        indexes = self.filelist.tree_model.refs2indexes(refs)
+                        self.filelist.set_expanded_indexes(indexes)
+                    else:
+                        self.filelist.expandAll()
                 else:
                     self.filelist.refresh()
                 self.is_loading = False
