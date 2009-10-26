@@ -557,6 +557,17 @@ class TreeModel(QtCore.QAbstractItemModel):
             if self.initial_checked_paths and \
                     item_data.path in self.initial_checked_paths:
                 item_data.checked = QtCore.Qt.Checked
+                # make sure that parents are also checked.
+                id = parent_id
+                while id:
+                    p_data = self.inventory_data[id]
+                    if p_data.checked == QtCore.Qt.Unchecked:
+                        # XXX - this should decide if it should be
+                        # PartiallyChecked, or Checked
+                        p_data.checked = QtCore.Qt.PartiallyChecked
+                    else:
+                        break
+                    id = p_data.parent_id
             elif self.is_item_in_select_all(item_data):
                 item_data.checked = parent_data.checked
             else:
