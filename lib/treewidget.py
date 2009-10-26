@@ -382,13 +382,17 @@ class TreeModel(QtCore.QAbstractItemModel):
                         else:
                             name = path
                         if change and change.is_renamed():
-                            old_inventory_item = basis_tree.inventory[fileid]
+                            root_id = basis_tree.get_root_id()
+                            old_inventory_item = basis_tree.inventory[change.fileid()]
                             old_names = [old_inventory_item.name]
+                            print (dir_path, dir_fileid, root_id)
                             while old_inventory_item.parent_id:
-                                old_inventory_item = basis_tree.inventory[old_inventory_item.parent_id]
                                 if old_inventory_item.parent_id == dir_fileid:
                                     break
+                                old_inventory_item = basis_tree.inventory[old_inventory_item.parent_id]
+                                print old_inventory_item.file_id
                                 old_names.append(old_inventory_item.name)
+                            print old_names
                             old_names.reverse()
                             old_path = "/".join(old_names)
                             name = "%s => %s" % (old_path, name)
