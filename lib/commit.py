@@ -473,16 +473,10 @@ class CommitWindow(SubProcessDialog):
                     
                     if self.initial_selected_list:
                         # expand to selected items.
-                        expand_paths = set()
-                        for path in self.initial_selected_list:
-                            while path:
-                                expand_paths.add(path)
-                                path, name = os.path.split(path)
-                        
                         refs = [PersistantItemReference(None, path)
-                                for path in expand_paths]
+                                for path in self.initial_selected_list]
                         indexes = self.filelist.tree_model.refs2indexes(refs)
-                        self.filelist.set_expanded_indexes(indexes)
+                        self.filelist.expanded_to_indexes(indexes)
                     else:
                         self.filelist.expandAll()
                 else:

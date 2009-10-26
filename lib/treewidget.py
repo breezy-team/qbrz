@@ -1272,6 +1272,13 @@ class TreeWidget(RevisionTreeView):
     def set_expanded_indexes(self, indexes):
         for index in indexes:
             self.expand(self.tree_filter_model.mapFromSource(index))
+
+    def expanded_to_indexes(self, indexes):
+        for index in indexes:
+            while index.internalId():
+                print unicode(index.data(self.tree_model.PATH).toString())
+                self.expand(self.tree_filter_model.mapFromSource(index))
+                index = self.tree_model.parent(index)
     
     def get_state(self):
         if self.tree_model.checkable:
