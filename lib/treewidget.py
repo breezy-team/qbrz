@@ -548,27 +548,15 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         root_id = self.append_item(root_item, None)
         self.load_dir(root_id)
+        if self.initial_checked_paths:
+            self.set_checked_paths(self.initial_checked_paths)
         self.emit(QtCore.SIGNAL("layoutChanged()"))
     
     def append_item(self, item_data, parent_id):
         item_data.id = len(self.inventory_data)
         if parent_id is not None:
             parent_data = self.inventory_data[parent_id]
-            if self.initial_checked_paths and \
-                    item_data.path in self.initial_checked_paths:
-                item_data.checked = QtCore.Qt.Checked
-                # make sure that parents are also checked.
-                id = parent_id
-                while id:
-                    p_data = self.inventory_data[id]
-                    if p_data.checked == QtCore.Qt.Unchecked:
-                        # XXX - this should decide if it should be
-                        # PartiallyChecked, or Checked
-                        p_data.checked = QtCore.Qt.PartiallyChecked
-                    else:
-                        break
-                    id = p_data.parent_id
-            elif self.is_item_in_select_all(item_data):
+            if self.is_item_in_select_all(item_data):
                 item_data.checked = parent_data.checked
             else:
                 item_data.checked = QtCore.Qt.Unchecked
@@ -871,6 +859,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         return refs
     
     def ref2index(self, ref):
+        print ref
         if ref.file_id is not None:
             key = ref.file_id
             dict = self.inventory_data_by_id
