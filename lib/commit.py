@@ -284,7 +284,7 @@ class CommitWindow(SubProcessDialog):
         self.filelist = TreeWidget(self)
         self.filelist.throbber = self.throbber
         self.filelist.tree_model.is_item_in_select_all = lambda item: (
-            item.change is not None and
+            item.change is None or
             item.change.is_versioned())
         
         self.file_words = {}
@@ -491,7 +491,7 @@ class CommitWindow(SubProcessDialog):
                     file_words.add(os.path.split(path)[-1])
                     change = self.filelist.tree_model.inventory_data_by_path[
                                                                ref.path].change
-                    if change.is_renamed():
+                    if change and change.is_renamed():
                         file_words.add(change.oldpath())
                         file_words.add(os.path.split(change.oldpath())[-1])
                     #if num_versioned_files < MAX_AUTOCOMPLETE_FILES:
@@ -653,8 +653,9 @@ class CommitWindow(SubProcessDialog):
         """Show/hide non-versioned files."""
         if state and not self.filelist.want_unversioned:
             state = self.filelist.get_state()
-            self.filelist.set_tree(self.tree, changes_mode=True,
-                                   want_unversioned=True)
+            self.filelist.set_tree(
+                self.tree, changes_mode=True, want_unversioned=True,
+                change_load_filter=lambda c:not c.is_ignored())
             self.filelist.restore_state(state)
         
         fmodel = self.filelist.tree_filter_model

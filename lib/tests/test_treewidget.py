@@ -18,8 +18,12 @@
 
 from bzrlib.tests import TestCase, TestCaseWithTransport
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib.treewidget import (TreeModel, ModelItemData,
-                                                UnversionedItem)
+from bzrlib.plugins.qbzr.lib.treewidget import (
+    TreeModel,
+    ModelItemData,
+    InternalItem,
+    group_large_dirs,
+    )
 from bzrlib.plugins.qbzr.lib.tests.modeltest import ModelTest
 from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
 
@@ -68,8 +72,8 @@ class TestTreeModel(TestWatchExceptHook, TestCaseWithTransport):
 class TestModelItemData(TestCase):
 
     def _make_unversioned_model_list(self, iterable):
-        return [ModelItemData(UnversionedItem(name, kind), None, name)
-            for name, kind in iterable]
+        return [ModelItemData(path, InternalItem(path, kind, None))
+            for path, kind in iterable]
 
     def test_sort_key_one_dir(self):
         models = self._make_unversioned_model_list((
@@ -98,3 +102,25 @@ class TestModelItemData(TestCase):
             ('c', 'file')))
         self.assertEqual(models, sorted(reversed(models),
             key=ModelItemData.dirs_first_sort_key))
+
+class TestGroupLargeDirs(TestCase):
+    
+    def test_no_group_small(self):
+        paths = frozenset(("a/1", "a/2", "a/3", "b"))
+        self.assertEqual(group_large_dirs(paths), {"":paths})
+
+    def test_no_group_no_parents_with_others(self):
+        paths = frozenset(("a/1", "a/2", "a/3", "a/4"))
+        self.assertEqual(group_large_dirs(paths), {"":paths})
+
+    def test_group_large_and_parents_with_others(self):
+        paths = frozenset(("a/1", "a/2", "a/3", "a/4", "b"))
+        self.assertEqual(group_large_dirs(paths),
+                         {'': set(['a', 'b']),
+                          'a': set(['a/1', 'a/2', 'a/3', 'a/4'])})
+
+    def test_group_container(self):
+        paths = frozenset(("a/1", "a/2", "a/3", "a", ))
+        self.assertEqual(group_large_dirs(paths),
+                          {'': set(['a']),
+                           'a': set(['a/1', 'a/2', 'a/3'])})
