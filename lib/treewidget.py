@@ -23,6 +23,7 @@ from PyQt4 import QtCore, QtGui
 from bzrlib import errors
 from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
+from bzrlib.osutils import file_kind
 
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, QBzrViewWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
@@ -138,10 +139,7 @@ class ModelItemData(object):
         self.path = path
         self.item = item
         self.change = change
-        if change is not None and change.is_ignored() is None:
-            self.checked = QtCore.Qt.Checked
-        else:
-            self.checked = QtCore.Qt.Unchecked
+        self.checked = QtCore.Qt.Unchecked
             
         self.children_ids = None
         self.parent_id = None
@@ -333,16 +331,18 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.inventory_data_by_path = {}
         self.inventory_data_by_id = {} # Will not contain unversioned items.
         self.checkable = False
+        self.initial_checked_paths = None
         self.icon_provider = QtGui.QFileIconProvider()
     
     def set_tree(self, tree, branch=None, 
                  changes_mode=False, want_unversioned=True,
-                 initial_selected_paths=None,
+                 initial_checked_paths=None,
                  change_load_filter=None):
         self.tree = tree
         self.branch = branch
         self.revno_map = None
         self.changes_mode = changes_mode
+        self.initial_checked_paths = initial_checked_paths
         
         self.unver_by_parent = {}
         self.inventory_data_by_path = {}
@@ -376,6 +376,19 @@ class TreeModel(QtCore.QAbstractItemModel):
                         if fileid:
                             self.inventory_data_by_id[fileid] = item_data
                     
+                    if self.initial_checked_paths:
+                        # Add versioned directories so that we can easily check
+                        # them.
+                        for path in self.initial_checked_paths:
+                            fileid = self.tree.path2id(path)
+                            if fileid:
+                                kind = self.tree.kind(fileid)
+                                if kind == "directory":
+                                    item = InternalItem("", kind, fileid)
+                                    item_data = ModelItemData(path, change=change, item=item)
+                                    self.inventory_data_by_path[path] = item_data
+                                    self.inventory_data_by_id[fileid] = item_data
+                    
                     def get_name(dir_fileid, dir_path, path, change):
                         if dir_path:
                             name = path[len(dir_path)+1:]
@@ -385,14 +398,11 @@ class TreeModel(QtCore.QAbstractItemModel):
                             root_id = basis_tree.get_root_id()
                             old_inventory_item = basis_tree.inventory[change.fileid()]
                             old_names = [old_inventory_item.name]
-                            print (dir_path, dir_fileid, root_id)
                             while old_inventory_item.parent_id:
                                 if old_inventory_item.parent_id == dir_fileid:
                                     break
                                 old_inventory_item = basis_tree.inventory[old_inventory_item.parent_id]
-                                print old_inventory_item.file_id
                                 old_names.append(old_inventory_item.name)
-                            print old_names
                             old_names.reverse()
                             old_path = "/".join(old_names)
                             name = "%s => %s" % (old_path, name)
@@ -538,6 +548,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         root_id = self.append_item(root_item, None)
         self.load_dir(root_id)
+        if self.initial_checked_paths:
+            self.set_checked_paths(self.initial_checked_paths)
         self.emit(QtCore.SIGNAL("layoutChanged()"))
     
     def append_item(self, item_data, parent_id):
@@ -547,10 +559,14 @@ class TreeModel(QtCore.QAbstractItemModel):
             if self.is_item_in_select_all(item_data):
                 item_data.checked = parent_data.checked
             else:
-                item_data.checked = False
+                item_data.checked = QtCore.Qt.Unchecked
             item_data.row = len(parent_data.children_ids)
         else:
-            item_data.checked = QtCore.Qt.Checked
+            # Root Item
+            if self.initial_checked_paths:
+                item_data.checked = QtCore.Qt.Unchecked
+            else:
+                item_data.checked = QtCore.Qt.Checked
             item_data.row = 0
         item_data.parent_id = parent_id
         self.inventory_data.append(item_data)
@@ -1199,10 +1215,16 @@ class TreeWidget(RevisionTreeView):
         
         self.tree_model.set_tree(self.tree, self.branch,
                                  changes_mode, want_unversioned,
-                                 change_load_filter=self.change_load_filter)
+                                 change_load_filter=self.change_load_filter,
+                                 initial_checked_paths=initial_checked_paths)
         if initial_checked_paths and not self.tree_model.checkable:
             raise AttributeError("You can't have a initial_selection if "
                                  "tree_model.checkable is not True.")
+        
+        if self.tree_model.checkable:
+            refs = self.tree_model.iter_checked()
+            indexes = self.tree_model.refs2indexes(refs)
+            self.expanded_to_indexes(indexes)        
         
         if str(QtCore.QT_VERSION_STR).startswith("4.4"):
             # 4.4.x have a bug where if you do a layoutChanged when using
@@ -1213,12 +1235,6 @@ class TreeWidget(RevisionTreeView):
             self.set_header_width_settings()
             self.set_visible_headers()
         
-        QtCore.QCoreApplication.processEvents()
-        if initial_checked_paths:
-            self.tree_model.set_checked_paths(initial_checked_paths)
-        
-        self.tree_filter_model.invalidateFilter()
-
         
         if sys.platform.startswith("win"):
             # This is to fix Bug 402276, where the treewidget does not get
@@ -1249,6 +1265,12 @@ class TreeWidget(RevisionTreeView):
     def set_expanded_indexes(self, indexes):
         for index in indexes:
             self.expand(self.tree_filter_model.mapFromSource(index))
+
+    def expanded_to_indexes(self, indexes):
+        for index in indexes:
+            while index.internalId():
+                self.expand(self.tree_filter_model.mapFromSource(index))
+                index = self.tree_model.parent(index)
     
     def get_state(self):
         if self.tree_model.checkable:
