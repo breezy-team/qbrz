@@ -24,6 +24,7 @@ from bzrlib import errors
 from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
 from bzrlib.osutils import file_kind
+from bzrlib.conflicts import TextConflict
 
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, QBzrViewWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
@@ -1184,6 +1185,14 @@ class TreeWidget(RevisionTreeView):
                                     self.show_differences)
         
         self.context_menu.addSeparator()
+        self.action_merge = self.context_menu.addAction(
+                                    gettext("&Merge conflict"),
+                                    self.merge)
+        self.action_resolve = self.context_menu.addAction(
+                                    gettext("Mark conflict &resolved"),
+                                    self.resolve)
+        
+        self.context_menu.addSeparator()
         self.action_add = self.context_menu.addAction(
                                     gettext("&Add"),
                                     self.add)
@@ -1380,7 +1389,12 @@ class TreeWidget(RevisionTreeView):
         changed = [item.change is not None
                    for item in items]
         versioned_changed = [ver and ch for ver,ch in zip(versioned, changed)]
-        
+        conflicts = [len(item.conflicts)>0
+                     for item in items]
+        text_conflicts = [len([conflicts
+                               for conflict in item.conflicts
+                               if isinstance(conflict, TextConflict)])>0
+                          for item in items]
         selection_len = len(items)
         
         single_item_in_tree = (selection_len == 1 and
@@ -1395,6 +1409,11 @@ class TreeWidget(RevisionTreeView):
         self.action_show_log.setEnabled(any(versioned))
         self.action_show_diff.setVisible(is_working_tree)
         self.action_show_diff.setEnabled(any(versioned_changed))
+        
+        self.action_merge.setVisible(is_working_tree)
+        self.action_merge.setEnabled(any(text_conflicts))
+        self.action_resolve.setVisible(is_working_tree)
+        self.action_resolve.setEnabled(any(conflicts))
         
         self.action_add.setVisible(is_working_tree)
         self.action_add.setDisabled(all(versioned))
@@ -1561,6 +1580,61 @@ class TreeWidget(RevisionTreeView):
                                          parent=self,
                                          hide_progress=True,)
         res = revert_dialog.exec_()
+        if res == QtGui.QDialog.Accepted:
+            self.refresh()
+    
+    @ui_current_widget
+    def merge(self):
+        """Merge conflicting file in external merge app"""
+        
+        items = self.get_selection_items()
+        
+        # Only paths that have text conflicts.
+        paths = [item.path
+                 for item in items
+                 if len([conflict
+                         for conflict in item.conflicts
+                         if isinstance(conflict, TextConflict)])>0]
+        
+        if len(paths) == 0:
+            return
+        
+        args = ["extmerge"]
+        args.extend(paths)
+        desc = " ".join(args)
+        window = SimpleSubProcessDialog(gettext("External Merge"),
+                                         desc=desc,
+                                         args=args,
+                                         dir=self.tree.basedir,
+                                         parent=self,
+                                         auto_start_show_on_failed=True,
+                                         hide_progress=True,)
+        # We don't refesh the tree, because it is very unlikley to have
+        # changed.
+
+    def resolve(self):
+        """Mark selected file(s) as resolved."""
+        
+        items = self.get_selection_items()
+        
+        # Only paths that have changes.
+        paths = [item.path
+                 for item in items
+                 if len(item.conflicts)>0]
+        
+        if len(paths) == 0:
+            return
+        
+        args = ["resolve"]
+        args.extend(paths)
+        desc = (gettext("Resolve %s to latest revision.") % ", ".join(paths))
+        resolve_dialog = SimpleSubProcessDialog(gettext("Resolve"),
+                                         desc=desc,
+                                         args=args,
+                                         dir=self.tree.basedir,
+                                         parent=self,
+                                         hide_progress=True,)
+        res = resolve_dialog.exec_()
         if res == QtGui.QDialog.Accepted:
             self.refresh()
 
