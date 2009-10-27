@@ -541,8 +541,8 @@ class FileListContainer(QtGui.QWidget):
                         repo.lock_read()
                         self.processEvents()
                         try:
-                            trees = repo.revision_trees(repo_revids)
-                            for revid, tree in zip(repo_revids, trees):
+                            for revid in repo_revids:
+                                tree = repo.revision_tree(revid)
                                 self.tree_cache[revid] = tree
                             self.processEvents()
                         finally:
