@@ -424,8 +424,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                                 item = InternalItem("", kind, file_id)
                                 item_data = ModelItemData(path, item=item)
                                 self.inventory_data_by_path[path] = item_data
-                                if fileid: 
-                                    self.inventory_data_by_id[fileid] = item_data
+                                if file_id: 
+                                    self.inventory_data_by_id[file_id] = item_data
                         
                         # Name setting
                         for dir_path, decendents in \
