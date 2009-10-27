@@ -24,6 +24,7 @@ from bzrlib import errors
 from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
 from bzrlib.osutils import file_kind
+from bzrlib.conflicts import TextConflict
 
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, QBzrViewWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
@@ -137,12 +138,16 @@ class InternalItem(object):
 
 class ModelItemData(object):
     __slots__ = ["id", "item", "change", "checked", "children_ids",
-                 "parent_id", "row", "path", "icon"]
+                 "parent_id", "row", "path", "icon", "conflicts"]
     
-    def __init__(self, path, item=None, change=None, ):
+    def __init__(self, path, item=None, change=None, conflicts=None):
         self.path = path
         self.item = item
         self.change = change
+        if conflicts is None:
+            self.conflicts = []
+        else:
+            self.conflicts = conflicts
         self.checked = QtCore.Qt.Unchecked
             
         self.children_ids = None
@@ -380,6 +385,23 @@ class TreeModel(QtCore.QAbstractItemModel):
                         if fileid:
                             self.inventory_data_by_id[fileid] = item_data
                     
+                    for conflict in self.tree.conflicts():
+                        path = conflict.path
+                        if path in self.inventory_data_by_path:
+                            self.inventory_data_by_path[path].\
+                                conflicts.append(conflict)
+                        else:
+                            item_data = ModelItemData(path,
+                                                      conflicts=[conflict])
+                            fileid = conflict.file_id
+                            kind = self.tree.kind(fileid)
+                            item_data.item = InternalItem("", change.kind(),
+                                                          fileid)
+                            self.inventory_data_by_path[path] = item_data
+                            if fileid:
+                                self.inventory_data_by_id[fileid] \
+                                    = item_data
+                    
                     if self.initial_checked_paths:
                         # Add versioned directories so that we can easily check
                         # them.
@@ -451,7 +473,6 @@ class TreeModel(QtCore.QAbstractItemModel):
                             item_data.item.name = get_name(
                                 dir_fileid, dir_path, item_data.path,
                                 item_data.change)
-                    
                 finally:
                     basis_tree.unlock()
                 self.process_inventory(self.working_tree_get_children)
@@ -776,10 +797,12 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         if column == self.STATUS:
             if role == QtCore.Qt.DisplayRole:
+                status = []
                 if item_data.change is not None:
-                    return QtCore.QVariant(item_data.change.status())
-                else:
-                    return QtCore.QVariant("")
+                    status.append(item_data.change.status())
+                for conflict in item_data.conflicts:
+                    status.append(conflict.typestring)
+                return QtCore.QVariant(", ".join(status))
         
         revid = item_data.item.revision
         if role == self.REVID:
@@ -1167,6 +1190,14 @@ class TreeWidget(RevisionTreeView):
                                     self.show_differences)
         
         self.context_menu.addSeparator()
+        self.action_merge = self.context_menu.addAction(
+                                    gettext("&Merge conflict"),
+                                    self.merge)
+        self.action_resolve = self.context_menu.addAction(
+                                    gettext("Mark conflict &resolved"),
+                                    self.resolve)
+        
+        self.context_menu.addSeparator()
         self.action_add = self.context_menu.addAction(
                                     gettext("&Add"),
                                     self.add)
@@ -1363,7 +1394,12 @@ class TreeWidget(RevisionTreeView):
         changed = [item.change is not None
                    for item in items]
         versioned_changed = [ver and ch for ver,ch in zip(versioned, changed)]
-        
+        conflicts = [len(item.conflicts)>0
+                     for item in items]
+        text_conflicts = [len([conflicts
+                               for conflict in item.conflicts
+                               if isinstance(conflict, TextConflict)])>0
+                          for item in items]
         selection_len = len(items)
         
         single_item_in_tree = (selection_len == 1 and
@@ -1378,6 +1414,11 @@ class TreeWidget(RevisionTreeView):
         self.action_show_log.setEnabled(any(versioned))
         self.action_show_diff.setVisible(is_working_tree)
         self.action_show_diff.setEnabled(any(versioned_changed))
+        
+        self.action_merge.setVisible(is_working_tree)
+        self.action_merge.setEnabled(any(text_conflicts))
+        self.action_resolve.setVisible(is_working_tree)
+        self.action_resolve.setEnabled(any(conflicts))
         
         self.action_add.setVisible(is_working_tree)
         self.action_add.setDisabled(all(versioned))
@@ -1544,6 +1585,61 @@ class TreeWidget(RevisionTreeView):
                                          parent=self,
                                          hide_progress=True,)
         res = revert_dialog.exec_()
+        if res == QtGui.QDialog.Accepted:
+            self.refresh()
+    
+    @ui_current_widget
+    def merge(self):
+        """Merge conflicting file in external merge app"""
+        
+        items = self.get_selection_items()
+        
+        # Only paths that have text conflicts.
+        paths = [item.path
+                 for item in items
+                 if len([conflict
+                         for conflict in item.conflicts
+                         if isinstance(conflict, TextConflict)])>0]
+        
+        if len(paths) == 0:
+            return
+        
+        args = ["extmerge"]
+        args.extend(paths)
+        desc = " ".join(args)
+        window = SimpleSubProcessDialog(gettext("External Merge"),
+                                         desc=desc,
+                                         args=args,
+                                         dir=self.tree.basedir,
+                                         parent=self,
+                                         auto_start_show_on_failed=True,
+                                         hide_progress=True,)
+        # We don't refesh the tree, because it is very unlikley to have
+        # changed.
+
+    def resolve(self):
+        """Mark selected file(s) as resolved."""
+        
+        items = self.get_selection_items()
+        
+        # Only paths that have changes.
+        paths = [item.path
+                 for item in items
+                 if len(item.conflicts)>0]
+        
+        if len(paths) == 0:
+            return
+        
+        args = ["resolve"]
+        args.extend(paths)
+        desc = (gettext("Resolve %s to latest revision.") % ", ".join(paths))
+        resolve_dialog = SimpleSubProcessDialog(gettext("Resolve"),
+                                         desc=desc,
+                                         args=args,
+                                         dir=self.tree.basedir,
+                                         parent=self,
+                                         hide_progress=True,)
+        res = resolve_dialog.exec_()
         if res == QtGui.QDialog.Accepted:
             self.refresh()
 

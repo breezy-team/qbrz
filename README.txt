@@ -34,6 +34,10 @@ Other bzr plugins that improve QBzr
  * bzr-difftools (Improves the usability of launching external diffs)
    https://launchpad.net/bzr-difftools
 
+ * bzr-extmerge (Required to lauch external merge applications to resolve
+   conficts.)
+   https://launchpad.net/bzr-extmerge
+
 Provided Commands
 =================
 
