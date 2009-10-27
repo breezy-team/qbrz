@@ -30,6 +30,10 @@ What's new in this release:
     * Automaticly expand to the check items on load. (Gary van der Merwe)
     * Fix View for unversoined files when run from a sub directory of the
       working tree. (Gary van der Merwe)
+  * qcommit/qbrowse:
+    * Conflicts are shown in the status column. External merge applications
+      can be launched to resolve these conflicts, and the conflicts can be
+      marked as merged. (Bug 174509, Gary van der Merwe)
 
 0.15 "Yellow and green" - 2009-10-19
 ------------------------------------
