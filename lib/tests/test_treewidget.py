@@ -124,3 +124,8 @@ class TestGroupLargeDirs(TestCase):
         self.assertEqual(group_large_dirs(paths),
                           {'': set(['a']),
                            'a': set(['a/1', 'a/2', 'a/3'])})
+
+    def test_no_paths(self):
+        paths = frozenset()
+        self.assertEqual(group_large_dirs(paths),
+                         {'': set([''])})

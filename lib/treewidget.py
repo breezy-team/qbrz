@@ -66,13 +66,17 @@ def group_large_dirs(paths):
     The key is the path
     The value is a tuple of (path, depths, decendents)
     """
+    if not paths:
+        paths = frozenset(('',))
     
     for path in paths:
         parent_paths = []
         dir_path = path
-        while dir_path:
+        while True:
             dir_path, name = os.path.split(dir_path)
             parent_paths.append(dir_path)
+            if not dir_path:
+                break
         
         lp = len(parent_paths)
         for i, dir_path in enumerate(parent_paths):
