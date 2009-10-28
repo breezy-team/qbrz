@@ -106,7 +106,7 @@ def group_large_dirs(paths):
             set_dir_as_container(path)
     
     for path, depth, decendents in sorted(all_paths_expanded.itervalues(),
-                                          key=lambda x: x[1]):
+                                          key=lambda x: -x[1]):
         len_decendents = len(decendents)
         # Config?
         if len_decendents>=4:

@@ -129,3 +129,9 @@ class TestGroupLargeDirs(TestCase):
         paths = frozenset()
         self.assertEqual(group_large_dirs(paths),
                          {'': set([''])})
+    
+    def test_group_deeper_dir(self):
+        paths = frozenset(("a/b/1", "a/b/2", "a/b/3", "a/b/4", "c"))
+        self.assertEqual(group_large_dirs(paths),
+                         {'': set(['a/b', 'c']),
+                          'a/b': set(['a/b/1', 'a/b/2', 'a/b/3', 'a/b/4'])}) 
