@@ -345,7 +345,8 @@ class TreeModel(QtCore.QAbstractItemModel):
     def set_tree(self, tree, branch=None, 
                  changes_mode=False, want_unversioned=True,
                  initial_checked_paths=None,
-                 change_load_filter=None):
+                 change_load_filter=None,
+                 load_dirs=None):
         self.tree = tree
         self.branch = branch
         self.revno_map = None
@@ -474,12 +475,12 @@ class TreeModel(QtCore.QAbstractItemModel):
                 finally:
                     basis_tree.unlock()
                 self.process_inventory(self.working_tree_get_children,
-                                       initial_checked_paths)
+                                       initial_checked_paths, load_dirs)
             finally:
                 tree.unlock()
         else:
             self.process_inventory(self.revision_tree_get_children,
-                                   initial_checked_paths)
+                                   initial_checked_paths, load_dirs)
     
     def revision_tree_get_children(self, item_data):
         for child in item_data.item.children.itervalues():
@@ -556,7 +557,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         finally:
             self.tree.unlock()
     
-    def process_inventory(self, get_children, initial_checked_paths):
+    def process_inventory(self, get_children, initial_checked_paths, load_dirs):
         self.get_children = get_children
         
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
@@ -578,6 +579,12 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         root_id = self.append_item(root_item, None)
         self.load_dir(root_id)
+        
+        if load_dirs:
+            # refs2indexes will load the parents if nesseary.
+            for index in self.refs2indexes(load_dirs):
+                self.load_dir(index.internalId())
+        
         if initial_checked_paths:
             self.set_checked_paths(initial_checked_paths)
         self.emit(QtCore.SIGNAL("layoutChanged()"))
@@ -1357,7 +1364,8 @@ class TreeWidget(RevisionTreeView):
             state = self.get_state()
             self.tree_model.set_tree(self.tree, self.branch,
                                      self.changes_mode, self.want_unversioned,
-                                     change_load_filter=self.change_load_filter)
+                                     change_load_filter=self.change_load_filter,
+                                     load_dirs=state[1])
             self.restore_state(state)
             self.tree_filter_model.invalidateFilter()
             if str(QtCore.QT_VERSION_STR).startswith("4.4"):
