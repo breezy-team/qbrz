@@ -1249,13 +1249,14 @@ class TreeWidget(RevisionTreeView):
         self.set_visible_headers()
         QtCore.QCoreApplication.processEvents()
         
+        if initial_checked_paths and not self.tree_model.checkable:
+            raise AttributeError("You can't have a initial_selection if "
+                                 "tree_model.checkable is not True.")
+        
         self.tree_model.set_tree(self.tree, self.branch,
                                  changes_mode, want_unversioned,
                                  change_load_filter=self.change_load_filter,
                                  initial_checked_paths=initial_checked_paths)
-        if initial_checked_paths and not self.tree_model.checkable:
-            raise AttributeError("You can't have a initial_selection if "
-                                 "tree_model.checkable is not True.")
         
         if self.tree_model.checkable:
             refs = self.tree_model.iter_checked()
