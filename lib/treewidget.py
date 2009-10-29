@@ -1099,6 +1099,7 @@ class TreeWidget(RevisionTreeView):
         RevisionTreeView.__init__(self, *args)
         
         self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.setUniformRowHeights(True)
         
         self.tree = None
         self.branch = None
