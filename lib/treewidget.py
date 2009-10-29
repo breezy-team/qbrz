@@ -340,7 +340,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.inventory_data_by_path = {}
         self.inventory_data_by_id = {} # Will not contain unversioned items.
         self.checkable = False
-        self.initial_checked_paths = None
         self.icon_provider = QtGui.QFileIconProvider()
     
     def set_tree(self, tree, branch=None, 
@@ -351,7 +350,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.branch = branch
         self.revno_map = None
         self.changes_mode = changes_mode
-        self.initial_checked_paths = initial_checked_paths
         
         self.unver_by_parent = {}
         self.inventory_data_by_path = {}
@@ -402,10 +400,10 @@ class TreeModel(QtCore.QAbstractItemModel):
                                 self.inventory_data_by_id[fileid] \
                                     = item_data
                     
-                    if self.initial_checked_paths:
+                    if initial_checked_paths:
                         # Add versioned directories so that we can easily check
                         # them.
-                        for path in self.initial_checked_paths:
+                        for path in initial_checked_paths:
                             fileid = self.tree.path2id(path)
                             if fileid:
                                 kind = self.tree.kind(fileid)
@@ -475,11 +473,13 @@ class TreeModel(QtCore.QAbstractItemModel):
                                 item_data.change)
                 finally:
                     basis_tree.unlock()
-                self.process_inventory(self.working_tree_get_children)
+                self.process_inventory(self.working_tree_get_children,
+                                       initial_checked_paths)
             finally:
                 tree.unlock()
         else:
-            self.process_inventory(self.revision_tree_get_children)
+            self.process_inventory(self.revision_tree_get_children,
+                                   initial_checked_paths)
     
     def revision_tree_get_children(self, item_data):
         for child in item_data.item.children.itervalues():
@@ -556,7 +556,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         finally:
             self.tree.unlock()
     
-    def process_inventory(self, get_children):
+    def process_inventory(self, get_children, initial_checked_paths):
         self.get_children = get_children
         
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
@@ -571,11 +571,15 @@ class TreeModel(QtCore.QAbstractItemModel):
             
         root_item = ModelItemData(
             '', item=self.tree.inventory[self.tree.get_root_id()])
+        if initial_checked_paths:
+            root_item.checked = QtCore.Qt.Unchecked
+        else:
+            root_item.checked = QtCore.Qt.Checked
         
         root_id = self.append_item(root_item, None)
         self.load_dir(root_id)
-        if self.initial_checked_paths:
-            self.set_checked_paths(self.initial_checked_paths)
+        if initial_checked_paths:
+            self.set_checked_paths(initial_checked_paths)
         self.emit(QtCore.SIGNAL("layoutChanged()"))
     
     def append_item(self, item_data, parent_id):
@@ -589,10 +593,6 @@ class TreeModel(QtCore.QAbstractItemModel):
             item_data.row = len(parent_data.children_ids)
         else:
             # Root Item
-            if self.initial_checked_paths:
-                item_data.checked = QtCore.Qt.Unchecked
-            else:
-                item_data.checked = QtCore.Qt.Checked
             item_data.row = 0
         item_data.parent_id = parent_id
         self.inventory_data.append(item_data)
