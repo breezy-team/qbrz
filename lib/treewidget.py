@@ -1546,19 +1546,10 @@ class TreeWidget(RevisionTreeView):
         
         if len(paths) == 0:
             return
+        self.tree.add(paths)
         
-        args = ["add"]
-        args.extend(paths)
-        desc = (gettext("Add %s to the tree.") % ", ".join(paths))
-        revert_dialog = SimpleSubProcessDialog(gettext("Add"),
-                                               desc=desc,
-                                               args=args,
-                                               dir=self.tree.basedir,
-                                               parent=self,
-                                               hide_progress=True,)
-        res = revert_dialog.exec_()
-        if res == QtGui.QDialog.Accepted:
-            self.refresh()
+        # XXX - it would be good it we could just refresh the selected items
+        self.refresh()
 
     @ui_current_widget
     def revert(self):
@@ -1575,17 +1566,13 @@ class TreeWidget(RevisionTreeView):
         if len(paths) == 0:
             return
         
-        args = ["revert"]
-        args.extend(paths)
-        desc = (gettext("Revert %s to latest revision.") % ", ".join(paths))
-        revert_dialog = SimpleSubProcessDialog(gettext("Revert"),
-                                         desc=desc,
-                                         args=args,
-                                         dir=self.tree.basedir,
-                                         parent=self,
-                                         hide_progress=True,)
-        res = revert_dialog.exec_()
-        if res == QtGui.QDialog.Accepted:
+        res = QtGui.QMessageBox.question(self,
+            gettext("Revert"),
+            gettext("Do you really want to revert the selected file(s)?"),
+            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+        if res == QtGui.QMessageBox.Yes:
+            self.tree.revert(paths, self.tree.basis_tree())
+            # XXX - it would be good it we could just refresh the selected items
             self.refresh()
     
     @ui_current_widget
