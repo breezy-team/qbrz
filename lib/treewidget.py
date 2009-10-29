@@ -1171,47 +1171,6 @@ class TreeWidget(RevisionTreeView):
             
             self.context_menu.setDefaultAction(self.action_show_file)
 
-    def create_context_menu(self):
-        self.context_menu = QtGui.QMenu(self)
-        self.action_open_file = self.context_menu.addAction(
-                                    gettext("&Open"),
-                                    self.open_file)
-        self.action_show_file = self.context_menu.addAction(
-                                    gettext("&View file"),
-                                    self.show_file_content)
-        self.action_show_annotate = self.context_menu.addAction(
-                                    gettext("Show &annotate"), 
-                                    self.show_file_annotate)
-        self.action_show_log = self.context_menu.addAction(
-                                    gettext("Show &log"),
-                                    self.show_file_log)
-        if has_ext_diff():
-            diff_menu = ExtDiffMenu(self)
-            self.action_show_diff = self.context_menu.addMenu(diff_menu)
-            self.connect(diff_menu,
-                         QtCore.SIGNAL("triggered(QString)"),
-                         self.show_differences)
-        else:
-            self.action_show_diff = self.context_menu.addAction(
-                                    gettext("Show &differences"),
-                                    self.show_differences)
-        
-        self.context_menu.addSeparator()
-        self.action_merge = self.context_menu.addAction(
-                                    gettext("&Merge conflict"),
-                                    self.merge)
-        self.action_resolve = self.context_menu.addAction(
-                                    gettext("Mark conflict &resolved"),
-                                    self.resolve)
-        
-        self.context_menu.addSeparator()
-        self.action_add = self.context_menu.addAction(
-                                    gettext("&Add"),
-                                    self.add)
-        self.action_revert = self.context_menu.addAction(
-                                    gettext("&Revert"),
-                                    self.revert)
-    
     def set_tree(self, tree, branch=None,
                  changes_mode=False, want_unversioned=True,
                  initial_checked_paths=None,
@@ -1396,6 +1355,47 @@ class TreeWidget(RevisionTreeView):
         for index in indexes:
             items.append(self.tree_model.inventory_data[index.internalId()])
         return items
+    
+    def create_context_menu(self):
+        self.context_menu = QtGui.QMenu(self)
+        self.action_open_file = self.context_menu.addAction(
+                                    gettext("&Open"),
+                                    self.open_file)
+        self.action_show_file = self.context_menu.addAction(
+                                    gettext("&View file"),
+                                    self.show_file_content)
+        self.action_show_annotate = self.context_menu.addAction(
+                                    gettext("Show &annotate"), 
+                                    self.show_file_annotate)
+        self.action_show_log = self.context_menu.addAction(
+                                    gettext("Show &log"),
+                                    self.show_file_log)
+        if has_ext_diff():
+            diff_menu = ExtDiffMenu(self)
+            self.action_show_diff = self.context_menu.addMenu(diff_menu)
+            self.connect(diff_menu,
+                         QtCore.SIGNAL("triggered(QString)"),
+                         self.show_differences)
+        else:
+            self.action_show_diff = self.context_menu.addAction(
+                                    gettext("Show &differences"),
+                                    self.show_differences)
+        
+        self.context_menu.addSeparator()
+        self.action_merge = self.context_menu.addAction(
+                                    gettext("&Merge conflict"),
+                                    self.merge)
+        self.action_resolve = self.context_menu.addAction(
+                                    gettext("Mark conflict &resolved"),
+                                    self.resolve)
+        
+        self.context_menu.addSeparator()
+        self.action_add = self.context_menu.addAction(
+                                    gettext("&Add"),
+                                    self.add)
+        self.action_revert = self.context_menu.addAction(
+                                    gettext("&Revert"),
+                                    self.revert)
 
     def filter_context_menu(self):
         is_working_tree = isinstance(self.tree, WorkingTree)
