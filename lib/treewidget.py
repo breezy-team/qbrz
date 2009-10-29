@@ -341,6 +341,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.inventory_data_by_id = {} # Will not contain unversioned items.
         self.checkable = False
         self.icon_provider = QtGui.QFileIconProvider()
+        self.parent_view = parent
     
     def set_tree(self, tree, branch=None, 
                  changes_mode=False, want_unversioned=True,
@@ -758,6 +759,21 @@ class TreeModel(QtCore.QAbstractItemModel):
             
             return True
         
+        if index.column() == self.NAME and role == QtCore.Qt.EditRole:
+            # Rename
+            value = unicode(value.toString())
+            item_data = self.inventory_data[index.internalId()]
+            dir_path, name = os.path.split(item_data.path)
+            new_path = os.path.join(dir_path, value)
+            if item_data.item.file_id:
+                # Versioned file
+                self.tree.rename_one(item_data.path, new_path)
+            else:
+                os.rename(self.tree.abspath(item_data.path),
+                          self.tree.abspath(new_path))
+            self.parent_view.refresh()
+            return True
+            
         return False
     
     REVID = QtCore.Qt.UserRole + 1
@@ -776,7 +792,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         column = index.column()
         if column == self.NAME:
-            if role == QtCore.Qt.DisplayRole:
+            if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
                 return QtCore.QVariant(item.name)
             if role == QtCore.Qt.DecorationRole:
                 if item_data.icon is None:
@@ -851,14 +867,14 @@ class TreeModel(QtCore.QAbstractItemModel):
     def flags(self, index):
         #if not index.isValid():
         #    return QtCore.Qt.ItemIsEnabled
-
-        if self.checkable and index.column() == self.NAME:
-            return (QtCore.Qt.ItemIsEnabled |
-                    QtCore.Qt.ItemIsSelectable |
-                    QtCore.Qt.ItemIsUserCheckable)
-        else:
-            return (QtCore.Qt.ItemIsEnabled |
-                    QtCore.Qt.ItemIsSelectable)
+        
+        flags = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+        
+        if index.column() == self.NAME:
+            flags = flags | QtCore.Qt.ItemIsEditable
+            if self.checkable:
+                flags = flags | QtCore.Qt.ItemIsUserCheckable
+        return flags
 
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
@@ -1099,6 +1115,7 @@ class TreeWidget(RevisionTreeView):
         RevisionTreeView.__init__(self, *args)
         
         self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         
         self.tree = None
         self.branch = None
@@ -1396,7 +1413,10 @@ class TreeWidget(RevisionTreeView):
         self.action_revert = self.context_menu.addAction(
                                     gettext("&Revert"),
                                     self.revert)
-
+        self.action_rename = self.context_menu.addAction(
+                                    gettext("Re&name"),
+                                    self.rename)
+    
     def filter_context_menu(self):
         is_working_tree = isinstance(self.tree, WorkingTree)
         items = self.get_selection_items()
@@ -1435,6 +1455,8 @@ class TreeWidget(RevisionTreeView):
         self.action_add.setDisabled(all(versioned))
         self.action_revert.setVisible(is_working_tree)
         self.action_revert.setEnabled(any(versioned_changed))
+        self.action_rename.setVisible(is_working_tree)
+        self.action_rename.setEnabled(single_item_in_tree)
         
         if is_working_tree:
             if any(versioned_changed):
@@ -1543,7 +1565,6 @@ class TreeWidget(RevisionTreeView):
         show_diff(arg_provider, ext_diff=ext_diff,
                   parent_window=self.window())
 
-
     @ui_current_widget
     def add(self):
         """Add selected file(s)."""
@@ -1640,6 +1661,17 @@ class TreeWidget(RevisionTreeView):
         res = resolve_dialog.exec_()
         if res == QtGui.QDialog.Accepted:
             self.refresh()
+
+    @ui_current_widget
+    def rename(self):
+        """Rename the selected file."""
+        
+        indexes = self.get_selection_indexes()
+        if len(indexes) <> 1:
+            return
+        index = indexes[0]
+        index = self.tree_filter_model.mapFromSource (index)
+        self.edit(index)
 
 class SelectAllCheckBox(QtGui.QCheckBox):
     
