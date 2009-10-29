@@ -340,18 +340,17 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.inventory_data_by_path = {}
         self.inventory_data_by_id = {} # Will not contain unversioned items.
         self.checkable = False
-        self.initial_checked_paths = None
         self.icon_provider = QtGui.QFileIconProvider()
     
     def set_tree(self, tree, branch=None, 
                  changes_mode=False, want_unversioned=True,
                  initial_checked_paths=None,
-                 change_load_filter=None):
+                 change_load_filter=None,
+                 load_dirs=None):
         self.tree = tree
         self.branch = branch
         self.revno_map = None
         self.changes_mode = changes_mode
-        self.initial_checked_paths = initial_checked_paths
         
         self.unver_by_parent = {}
         self.inventory_data_by_path = {}
@@ -402,10 +401,10 @@ class TreeModel(QtCore.QAbstractItemModel):
                                 self.inventory_data_by_id[fileid] \
                                     = item_data
                     
-                    if self.initial_checked_paths:
+                    if initial_checked_paths:
                         # Add versioned directories so that we can easily check
                         # them.
-                        for path in self.initial_checked_paths:
+                        for path in initial_checked_paths:
                             fileid = self.tree.path2id(path)
                             if fileid:
                                 kind = self.tree.kind(fileid)
@@ -475,11 +474,13 @@ class TreeModel(QtCore.QAbstractItemModel):
                                 item_data.change)
                 finally:
                     basis_tree.unlock()
-                self.process_inventory(self.working_tree_get_children)
+                self.process_inventory(self.working_tree_get_children,
+                                       initial_checked_paths, load_dirs)
             finally:
                 tree.unlock()
         else:
-            self.process_inventory(self.revision_tree_get_children)
+            self.process_inventory(self.revision_tree_get_children,
+                                   initial_checked_paths, load_dirs)
     
     def revision_tree_get_children(self, item_data):
         for child in item_data.item.children.itervalues():
@@ -556,7 +557,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         finally:
             self.tree.unlock()
     
-    def process_inventory(self, get_children):
+    def process_inventory(self, get_children, initial_checked_paths, load_dirs):
         self.get_children = get_children
         
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
@@ -571,11 +572,21 @@ class TreeModel(QtCore.QAbstractItemModel):
             
         root_item = ModelItemData(
             '', item=self.tree.inventory[self.tree.get_root_id()])
+        if initial_checked_paths:
+            root_item.checked = QtCore.Qt.Unchecked
+        else:
+            root_item.checked = QtCore.Qt.Checked
         
         root_id = self.append_item(root_item, None)
         self.load_dir(root_id)
-        if self.initial_checked_paths:
-            self.set_checked_paths(self.initial_checked_paths)
+        
+        if load_dirs:
+            # refs2indexes will load the parents if nesseary.
+            for index in self.refs2indexes(load_dirs):
+                self.load_dir(index.internalId())
+        
+        if initial_checked_paths:
+            self.set_checked_paths(initial_checked_paths)
         self.emit(QtCore.SIGNAL("layoutChanged()"))
     
     def append_item(self, item_data, parent_id):
@@ -589,10 +600,6 @@ class TreeModel(QtCore.QAbstractItemModel):
             item_data.row = len(parent_data.children_ids)
         else:
             # Root Item
-            if self.initial_checked_paths:
-                item_data.checked = QtCore.Qt.Unchecked
-            else:
-                item_data.checked = QtCore.Qt.Checked
             item_data.row = 0
         item_data.parent_id = parent_id
         self.inventory_data.append(item_data)
@@ -1249,13 +1256,14 @@ class TreeWidget(RevisionTreeView):
         self.set_visible_headers()
         QtCore.QCoreApplication.processEvents()
         
+        if initial_checked_paths and not self.tree_model.checkable:
+            raise AttributeError("You can't have a initial_selection if "
+                                 "tree_model.checkable is not True.")
+        
         self.tree_model.set_tree(self.tree, self.branch,
                                  changes_mode, want_unversioned,
                                  change_load_filter=self.change_load_filter,
                                  initial_checked_paths=initial_checked_paths)
-        if initial_checked_paths and not self.tree_model.checkable:
-            raise AttributeError("You can't have a initial_selection if "
-                                 "tree_model.checkable is not True.")
         
         if self.tree_model.checkable:
             refs = self.tree_model.iter_checked()
@@ -1318,10 +1326,11 @@ class TreeWidget(RevisionTreeView):
                                             self.iter_expanded_indexes())
         selected = self.tree_model.indexes2refs(
             self.get_selection_indexes())
-        return (checked, expanded, selected)
+        v_scroll = self.verticalScrollBar().value()
+        return (checked, expanded, selected, v_scroll)
     
     def restore_state(self, state):
-        (checked, expanded, selected) = state
+        (checked, expanded, selected, v_scroll) = state
         self.tree.lock_read()
         try:
             if self.tree_model.checkable and checked is not None:
@@ -1347,6 +1356,7 @@ class TreeWidget(RevisionTreeView):
                     self.tree_filter_model.mapFromSource(index),
                     QtGui.QItemSelectionModel.SelectCurrent |
                     QtGui.QItemSelectionModel.Rows)
+            self.verticalScrollBar().setValue(v_scroll)
         finally:
             self.tree.unlock()
 
@@ -1356,7 +1366,8 @@ class TreeWidget(RevisionTreeView):
             state = self.get_state()
             self.tree_model.set_tree(self.tree, self.branch,
                                      self.changes_mode, self.want_unversioned,
-                                     change_load_filter=self.change_load_filter)
+                                     change_load_filter=self.change_load_filter,
+                                     load_dirs=state[1])
             self.restore_state(state)
             self.tree_filter_model.invalidateFilter()
             if str(QtCore.QT_VERSION_STR).startswith("4.4"):
@@ -1546,19 +1557,10 @@ class TreeWidget(RevisionTreeView):
         
         if len(paths) == 0:
             return
+        self.tree.add(paths)
         
-        args = ["add"]
-        args.extend(paths)
-        desc = (gettext("Add %s to the tree.") % ", ".join(paths))
-        revert_dialog = SimpleSubProcessDialog(gettext("Add"),
-                                               desc=desc,
-                                               args=args,
-                                               dir=self.tree.basedir,
-                                               parent=self,
-                                               hide_progress=True,)
-        res = revert_dialog.exec_()
-        if res == QtGui.QDialog.Accepted:
-            self.refresh()
+        # XXX - it would be good it we could just refresh the selected items
+        self.refresh()
 
     @ui_current_widget
     def revert(self):
@@ -1575,17 +1577,13 @@ class TreeWidget(RevisionTreeView):
         if len(paths) == 0:
             return
         
-        args = ["revert"]
-        args.extend(paths)
-        desc = (gettext("Revert %s to latest revision.") % ", ".join(paths))
-        revert_dialog = SimpleSubProcessDialog(gettext("Revert"),
-                                         desc=desc,
-                                         args=args,
-                                         dir=self.tree.basedir,
-                                         parent=self,
-                                         hide_progress=True,)
-        res = revert_dialog.exec_()
-        if res == QtGui.QDialog.Accepted:
+        res = QtGui.QMessageBox.question(self,
+            gettext("Revert"),
+            gettext("Do you really want to revert the selected file(s)?"),
+            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+        if res == QtGui.QMessageBox.Yes:
+            self.tree.revert(paths, self.tree.basis_tree())
+            # XXX - it would be good it we could just refresh the selected items
             self.refresh()
     
     @ui_current_widget
