@@ -1326,10 +1326,11 @@ class TreeWidget(RevisionTreeView):
                                             self.iter_expanded_indexes())
         selected = self.tree_model.indexes2refs(
             self.get_selection_indexes())
-        return (checked, expanded, selected)
+        v_scroll = self.verticalScrollBar().value()
+        return (checked, expanded, selected, v_scroll)
     
     def restore_state(self, state):
-        (checked, expanded, selected) = state
+        (checked, expanded, selected, v_scroll) = state
         self.tree.lock_read()
         try:
             if self.tree_model.checkable and checked is not None:
@@ -1355,6 +1356,7 @@ class TreeWidget(RevisionTreeView):
                     self.tree_filter_model.mapFromSource(index),
                     QtGui.QItemSelectionModel.SelectCurrent |
                     QtGui.QItemSelectionModel.Rows)
+            self.verticalScrollBar().setValue(v_scroll)
         finally:
             self.tree.unlock()
 
