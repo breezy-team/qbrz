@@ -91,7 +91,7 @@ class InternalDiffArgProvider(DiffArgProvider):
                 self.specific_files)
         
     def get_revspec(self):
-        return "-r revid:%s..revid:%s" % (self.old_revid, self.new_revid)
+        return "-rrevid:%s..revid:%s" % (self.old_revid, self.new_revid)
     
     def get_ext_diff_args(self, processEvents):
         from bzrlib import urlutils
@@ -145,7 +145,7 @@ class InternalWTDiffArgProvider(InternalDiffArgProvider):
 
     def get_revspec(self):
         if self.old_revid is not None:
-            return "-r revid:%s" % (self.old_revid,)
+            return "-rrevid:%s" % (self.old_revid,)
         else:
             return None
     
