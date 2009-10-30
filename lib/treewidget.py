@@ -23,7 +23,7 @@ from PyQt4 import QtCore, QtGui
 from bzrlib import errors
 from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
-from bzrlib.osutils import file_kind
+from bzrlib.osutils import file_kind, minimum_path_selection
 from bzrlib.conflicts import TextConflict
 
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, QBzrViewWindow
@@ -873,12 +873,19 @@ class TreeModel(QtCore.QAbstractItemModel):
         #if not index.isValid():
         #    return QtCore.Qt.ItemIsEnabled
         
-        flags = QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
+        flags = (QtCore.Qt.ItemIsEnabled |
+                 QtCore.Qt.ItemIsSelectable |
+                 QtCore.Qt.ItemIsDragEnabled)
         
         if index.column() == self.NAME:
             flags = flags | QtCore.Qt.ItemIsEditable
             if self.checkable:
                 flags = flags | QtCore.Qt.ItemIsUserCheckable
+        
+        item_data = self.inventory_data[index.internalId()]
+        if item_data.item.kind == "directory":
+            flags = flags | QtCore.Qt.ItemIsDropEnabled
+        
         return flags
 
     def headerData(self, section, orientation, role):
@@ -989,7 +996,9 @@ class TreeModel(QtCore.QAbstractItemModel):
     def set_checked_paths(self, paths):
         return self.set_checked_items([PersistantItemReference(None, path)
                                        for path in paths])
-
+    
+    def supportedDropActions(self):
+        return QtCore.Qt.MoveAction
 
 class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     source_model = None
@@ -1121,6 +1130,10 @@ class TreeWidget(RevisionTreeView):
         
         self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.setDragEnabled(True)
+        self.viewport().setAcceptDrops(True)
+        self.setDropIndicatorShown(True)
+        self.setDragDropMode(QtGui.QAbstractItemView.InternalMove);
         
         self.tree = None
         self.branch = None
@@ -1360,6 +1373,59 @@ class TreeWidget(RevisionTreeView):
                 self.set_header_width_settings()
         finally:
             self.tree.unlock()
+    
+    def mousePressEvent(self, event):
+        index = self.indexAt(event.pos())
+        if not self.selectionModel().isSelected(index):
+            # Don't drag if we are not over the selection.
+            self.setDragEnabled(False)
+        else:
+            # Don't allow draging a selection that goes across dirs.
+            ok_selection = True
+            item_by_path = {}
+            item_ids = set()
+            for item in self.get_selection_items():
+                item_by_path[item.path] = item
+                item_ids.add(item.id)
+            root_dir = None
+            for path in minimum_path_selection(item_by_path.keys()):
+                dir_path, name = os.path.split(path)
+                if root_dir is None:
+                    root_dir = dir_path
+                if dir_path != root_dir:
+                    ok_selection = False
+                    break
+                item = item_by_path[path]
+                if item.item.kind == "directory" and item.children_ids:
+                    # Either all, or none of the children must be selected.
+                    first = None
+                    for child_id in item.children_ids:
+                        this = child_id in item_ids
+                        if first is None:
+                            first = this
+                        if first != this:
+                            ok_selection = False
+                            break
+                    if not ok_selection:
+                        break
+            self.setDragEnabled(ok_selection)
+            
+        QtGui.QTreeView.mousePressEvent(self, event)
+    
+    def dropEvent(self, event):
+        # we should encode the paths list, give it an aproite mime type, etc.
+        # Eaiser to just get the selection.
+        drop_index = self.tree_filter_model.mapToSource(
+                                                    self.indexAt(event.pos()))
+        drop_item = self.tree_model.inventory_data[drop_index.internalId()]
+        if drop_item.item.kind == "directory":
+            drop_path = drop_item.path
+        else:
+            drop_path, name = os.path.split(drop_item.path)
+        paths = [item.path for item in self.get_selection_items()]
+        min_paths = minimum_path_selection(paths)
+        self.tree.move(paths, drop_path)
+        self.refresh()
 
     def contextMenuEvent(self, event):
         self.filter_context_menu()
