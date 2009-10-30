@@ -164,8 +164,7 @@ class CommitData(object):
     def save(self):
         """Save data to the branch/tree."""
         # XXX save should wipe if self._data is empty
-        config = self._get_branch_config()
-        config.set_user_option('commit_data', self._filtered_data())
+        self._set_new_commit_data(self._filtered_data())
         # clear old data
         self._wipe_old_data()
 
@@ -175,8 +174,7 @@ class CommitData(object):
 
     def wipe(self):
         """Delete saved data from branch/tree config."""
-        config = self._get_branch_config()
-        config.set_user_option('commit_data', {})
+        self._set_new_commit_data({})
         # clear old data
         self._wipe_old_data()
 
@@ -194,6 +192,16 @@ class CommitData(object):
 
     def _get_branch_config(self):
         return self._get_branch().get_config()
+
+    def _set_new_commit_data(self, new_data):
+        config = self._get_branch_config()
+        old_data = config.get_user_option('commit_data')
+        if old_data == new_data:
+            return
+        try:
+            config.set_user_option('commit_data', new_data)
+        except AttributeError:
+            pass
 
 
 class QBzrCommitData(CommitData):

@@ -39,6 +39,12 @@ What's new in this release:
       now no prompt for add. With large trees, there is less flicker when the
       tree is refreshed, and the scroll position is remembered.
       (Gary van der Merwe)
+ * qcommit/uncommit:
+   * Catch AttributeError in save of commit_data during qcommit and/or uncommit 
+     in lightweight checkout from branch accessed via smart-server 
+     (lp:, bzr+ssh://, bzr:// etc). 
+     (#434034 #430382 #463296, Alexander Belchenko)
+
 
 0.15 "Yellow and green" - 2009-10-19
 ------------------------------------
@@ -119,6 +125,20 @@ Detailed changelog:
  * qupdate:
    * Now working for bound branches (aka heavyweight checkouts).
      (#422649, Craig Hewetson)
+
+
+0.14.5 - In development
+-----------------------
+Bugfixes and backported bugfixes.
+
+ * qcommit:
+   * Catch AttributeError in save of commit_data during qcommit and/or uncommit 
+     in lightweight checkout from branch accessed via smart-server 
+     (lp:, bzr+ssh://, bzr:// etc). 
+     (#434034 #430382 #463296, Alexander Belchenko)
+ * qlog:
+   * Avoid a deprecation warning when diffing the first rev in a branch.
+     (John Szakmeister)
 
 
 0.14.4 "Kenny" - 2009-10-17
