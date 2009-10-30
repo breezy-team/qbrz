@@ -2,6 +2,11 @@
 -----------------------
 Bugfixes and backported bugfixes.
 
+ * qcommit:
+   * Catch AttributeError in save of commit_data during qcommit and/or uncommit 
+     in lightweight checkout from branch accessed via smart-server 
+     (lp:, bzr+ssh://, bzr:// etc). 
+     (#434034 #430382 #463296, Alexander Belchenko)
  * qlog:
    * Avoid a deprecation warning when diffing the first rev in a branch.
      (John Szakmeister)
