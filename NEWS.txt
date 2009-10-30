@@ -10,6 +10,8 @@ Bugfixes and backported bugfixes.
  * qlog:
    * Avoid a deprecation warning when diffing the first rev in a branch.
      (John Szakmeister)
+ * Save the size of Dialogs when the user press Esc. (Bug 417809,
+   Gary van der Merwe)
 
 
 0.14.4 "Kenny" - 2009-10-17
