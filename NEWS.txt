@@ -17,8 +17,11 @@ Bugfixes and backported bugfixes.
    * save/restore the size of dialog. (#435859, Craig Hewetson)
  * Save the size of Dialogs when the user press Esc. (Bug 417809,
    Gary van der Merwe)
- * qsubprocess: new command-line option --bencode to use bencoded command list.
-   (#392920, Alexander Belchenko)
+ * qsubprocess: 
+   * new command-line option --bencode to use bencoded command list.
+     (#392920, Alexander Belchenko)
+   * Very long command-line passed to qsubprocess via temp file 
+     regardless of platform. (Alexander Belchenko)
 
 
 0.14.4 "Kenny" - 2009-10-17
