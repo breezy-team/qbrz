@@ -295,18 +295,22 @@ class ChangeDesc(tuple):
         else:
             # versioned = True, True - so either renamed or modified
             # or properties changed (x-bit).
+            mod_strs = []
+            
             renamed = (parent[0], name[0]) != (parent[1], name[1])
+            
             if renamed:
-                if changed_content:
-                    return gettext("renamed and modified")
-                else:
-                    return gettext("renamed")
-            elif changed_content:
-                return gettext("modified")
-            elif executable[0] != executable[1]:
-                return gettext("modified (x-bit)")
-            else:
-                raise RuntimeError, "what status am I missing??"
+                old_split = os.path.split(path_in_source)
+                new_split = os.path.split(path_in_target)
+                if old_split[0] != new_split[0]:
+                    mod_strs.append(gettext("moved"))
+                if old_split[1] != new_split[1]:
+                    mod_strs.append(gettext("renamed"))
+            if changed_content:
+                mod_strs.append(gettext("modified"))
+            if executable[0] != executable[1]:
+                mod_strs.append(gettext("x-bit"))
+            return ", ".join(mod_strs)
 
 
 class TreeModel(QtCore.QAbstractItemModel):
