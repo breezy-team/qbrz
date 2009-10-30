@@ -13,6 +13,8 @@ Bugfixes and backported bugfixes.
  * qadd:
    * Properly support adding unversioned files to newly added directory.
      (#418520, Gary van der Merwe)
+ * qtag: 
+   * save/restore the size of dialog. (#435859, Craig Hewetson)
  * Save the size of Dialogs when the user press Esc. (Bug 417809,
    Gary van der Merwe)
  * qsubprocess: new command-line option --bencode to use bencoded command list.
