@@ -123,7 +123,8 @@ class AddWindow(SubProcessDialog):
         fmodel = self.filelist.tree_filter_model
         fmodel.setFilter(fmodel.CHANGED, False)
         self.filelist.set_tree(self.tree, changes_mode = True,
-            initial_checked_paths=self.initial_selected_list) 
+            initial_checked_paths=self.initial_selected_list,
+            change_load_filter=lambda c:not c.is_versioned())
         self.throbber.hide()
 
     def do_start(self):

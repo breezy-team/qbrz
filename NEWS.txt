@@ -10,6 +10,9 @@ Bugfixes and backported bugfixes.
  * qlog:
    * Avoid a deprecation warning when diffing the first rev in a branch.
      (John Szakmeister)
+ * qadd:
+   * Properly support adding unversioned files to newly added directory.
+     (#418520, Gary van der Merwe)
  * Save the size of Dialogs when the user press Esc. (Bug 417809,
    Gary van der Merwe)
 
