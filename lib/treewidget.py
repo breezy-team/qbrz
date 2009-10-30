@@ -771,7 +771,12 @@ class TreeModel(QtCore.QAbstractItemModel):
             else:
                 os.rename(self.tree.abspath(item_data.path),
                           self.tree.abspath(new_path))
+            ref = self.index2ref(index)
             self.parent_view.refresh()
+            new_index = self.ref2index(ref)
+            new_index = self.parent_view.tree_filter_model.mapFromSource(
+                                                                    new_index)
+            self.parent_view.scrollTo(new_index)
             return True
             
         return False
