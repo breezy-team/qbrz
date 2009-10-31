@@ -127,8 +127,8 @@ Detailed changelog:
      (#422649, Craig Hewetson)
 
 
-0.14.5 - In development
------------------------
+0.14.5 "Dropzone" - 2009-10-31
+------------------------------
 Bugfixes and backported bugfixes.
 
  * qcommit:
@@ -139,6 +139,18 @@ Bugfixes and backported bugfixes.
  * qlog:
    * Avoid a deprecation warning when diffing the first rev in a branch.
      (John Szakmeister)
+ * qadd:
+   * Properly support adding unversioned files to newly added directory.
+     (#418520, Gary van der Merwe)
+ * qtag: 
+   * save/restore the size of dialog. (#435859, Craig Hewetson)
+ * Save the size of Dialogs when the user press Esc. (Bug 417809,
+   Gary van der Merwe)
+ * qsubprocess: 
+   * new command-line option --bencode to use bencoded command list.
+     (#392920, Alexander Belchenko)
+   * Very long command-line passed to qsubprocess via temp file 
+     regardless of platform. (Alexander Belchenko)
 
 
 0.14.4 "Kenny" - 2009-10-17
