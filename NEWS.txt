@@ -1,5 +1,5 @@
-0.14.5 - In development
------------------------
+0.14.5 "Dropzone" - 2009-10-31
+------------------------------
 Bugfixes and backported bugfixes.
 
  * qcommit:
