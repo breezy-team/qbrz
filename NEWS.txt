@@ -39,6 +39,9 @@ What's new in this release:
       now no prompt for add. With large trees, there is less flicker when the
       tree is refreshed, and the scroll position is remembered.
       (Gary van der Merwe)
+    * It is now possible to rename and move files or directories, and to mark
+      files or directories that have allready been renamed or moved as such.
+      (Gary van der Merwe)
 
 0.15 "Yellow and green" - 2009-10-19
 ------------------------------------
