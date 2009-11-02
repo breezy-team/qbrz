@@ -60,7 +60,7 @@ def group_large_dirs(paths):
     # XXX - check the performance of this method with lots of paths, and
     # deep paths.
     
-    all_paths_expanded = {}
+    all_paths_expanded = {'':('', 0, set([]))}
     """Dict of all paths expaned, and thier depth, and a set of decendents
     they contain.
     
@@ -71,6 +71,9 @@ def group_large_dirs(paths):
         paths = frozenset(('',))
     
     for path in paths:
+        if path == '':
+            continue
+        
         parent_paths = []
         dir_path = path
         while True:
@@ -554,7 +557,6 @@ class TreeModel(QtCore.QAbstractItemModel):
             dir_item.children_ids = []
             children = sorted(self.get_children(dir_item),
                               key=ModelItemData.dirs_first_sort_key)
-            
             parent_model_index = self._index_from_id(dir_id, 0)
             self.beginInsertRows(parent_model_index, 0, len(children)-1)
             try:
