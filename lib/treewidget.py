@@ -24,7 +24,7 @@ from bzrlib import errors
 from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
 from bzrlib.osutils import file_kind, minimum_path_selection
-from bzrlib.conflicts import TextConflict
+from bzrlib.conflicts import TextConflict, resolve
 
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, QBzrViewWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
@@ -1752,18 +1752,8 @@ class TreeWidget(RevisionTreeView):
         if len(paths) == 0:
             return
         
-        args = ["resolve"]
-        args.extend(paths)
-        desc = (gettext("Resolve %s to latest revision.") % ", ".join(paths))
-        resolve_dialog = SimpleSubProcessDialog(gettext("Resolve"),
-                                         desc=desc,
-                                         args=args,
-                                         dir=self.tree.basedir,
-                                         parent=self,
-                                         hide_progress=True,)
-        res = resolve_dialog.exec_()
-        if res == QtGui.QDialog.Accepted:
-            self.refresh()
+        resolve(self.tree, paths)
+        self.refresh()
     
     def mark_move(self):
         items = self.get_selection_items()
