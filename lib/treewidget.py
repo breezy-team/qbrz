@@ -297,15 +297,10 @@ class ChangeDesc(tuple):
             # or properties changed (x-bit).
             mod_strs = []
             
-            renamed = (parent[0], name[0]) != (parent[1], name[1])
-            
-            if renamed:
-                old_split = os.path.split(path_in_source)
-                new_split = os.path.split(path_in_target)
-                if old_split[0] != new_split[0]:
-                    mod_strs.append(gettext("moved"))
-                if old_split[1] != new_split[1]:
-                    mod_strs.append(gettext("renamed"))
+            if parent[0] != parent[1]:
+                mod_strs.append(gettext("moved"))
+            if name[0] != name[1]:
+                mod_strs.append(gettext("renamed"))
             if changed_content:
                 mod_strs.append(gettext("modified"))
             if executable[0] != executable[1]:
