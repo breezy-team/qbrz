@@ -23,7 +23,7 @@ from PyQt4 import QtCore, QtGui
 from bzrlib import errors
 from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
-from bzrlib.osutils import file_kind
+from bzrlib.osutils import file_kind, minimum_path_selection
 from bzrlib.conflicts import TextConflict
 
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, QBzrViewWindow
@@ -123,6 +123,18 @@ def group_large_dirs(paths):
     set_dir_as_container('')
     return container_dirs
 
+def missing_unversioned(missing, unversioned): 
+    return (missing.change is not None and
+            missing.change.is_missing() and
+            unversioned.change is not None and
+            unversioned.change[3][1] == False)
+
+def move_or_rename(old_path, new_path):
+    old_split = os.path.split(old_path)
+    new_split = os.path.split(new_path)
+    return (old_split[0] != new_split[0],
+            old_split[1] != new_split[1])
+    
 class InternalItem(object):
     __slots__  = ["name", "kind", "file_id"]
     def __init__(self, name, kind, file_id):
@@ -295,18 +307,17 @@ class ChangeDesc(tuple):
         else:
             # versioned = True, True - so either renamed or modified
             # or properties changed (x-bit).
-            renamed = (parent[0], name[0]) != (parent[1], name[1])
-            if renamed:
-                if changed_content:
-                    return gettext("renamed and modified")
-                else:
-                    return gettext("renamed")
-            elif changed_content:
-                return gettext("modified")
-            elif executable[0] != executable[1]:
-                return gettext("modified (x-bit)")
-            else:
-                raise RuntimeError, "what status am I missing??"
+            mod_strs = []
+            
+            if parent[0] != parent[1]:
+                mod_strs.append(gettext("moved"))
+            if name[0] != name[1]:
+                mod_strs.append(gettext("renamed"))
+            if changed_content:
+                mod_strs.append(gettext("modified"))
+            if executable[0] != executable[1]:
+                mod_strs.append(gettext("x-bit"))
+            return ", ".join(mod_strs)
 
 
 class TreeModel(QtCore.QAbstractItemModel):
@@ -341,6 +352,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.inventory_data_by_id = {} # Will not contain unversioned items.
         self.checkable = False
         self.icon_provider = QtGui.QFileIconProvider()
+        self.parent_view = parent
     
     def set_tree(self, tree, branch=None, 
                  changes_mode=False, want_unversioned=True,
@@ -582,7 +594,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         if load_dirs:
             # refs2indexes will load the parents if nesseary.
-            for index in self.refs2indexes(load_dirs):
+            for index in self.refs2indexes(load_dirs,
+                                           ignore_no_file_error=True):
                 self.load_dir(index.internalId())
         
         if initial_checked_paths:
@@ -758,6 +771,26 @@ class TreeModel(QtCore.QAbstractItemModel):
             
             return True
         
+        if index.column() == self.NAME and role == QtCore.Qt.EditRole:
+            # Rename
+            value = unicode(value.toString())
+            item_data = self.inventory_data[index.internalId()]
+            dir_path, name = os.path.split(item_data.path)
+            new_path = os.path.join(dir_path, value)
+            if item_data.item.file_id:
+                # Versioned file
+                self.tree.rename_one(item_data.path, new_path)
+            else:
+                os.rename(self.tree.abspath(item_data.path),
+                          self.tree.abspath(new_path))
+            ref = self.index2ref(index)
+            self.parent_view.refresh()
+            new_index = self.ref2index(ref)
+            new_index = self.parent_view.tree_filter_model.mapFromSource(
+                                                                    new_index)
+            self.parent_view.scrollTo(new_index)
+            return True
+            
         return False
     
     REVID = QtCore.Qt.UserRole + 1
@@ -776,7 +809,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         column = index.column()
         if column == self.NAME:
-            if role == QtCore.Qt.DisplayRole:
+            if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
                 return QtCore.QVariant(item.name)
             if role == QtCore.Qt.DecorationRole:
                 if item_data.icon is None:
@@ -851,14 +884,21 @@ class TreeModel(QtCore.QAbstractItemModel):
     def flags(self, index):
         #if not index.isValid():
         #    return QtCore.Qt.ItemIsEnabled
-
-        if self.checkable and index.column() == self.NAME:
-            return (QtCore.Qt.ItemIsEnabled |
-                    QtCore.Qt.ItemIsSelectable |
-                    QtCore.Qt.ItemIsUserCheckable)
-        else:
-            return (QtCore.Qt.ItemIsEnabled |
-                    QtCore.Qt.ItemIsSelectable)
+        
+        flags = (QtCore.Qt.ItemIsEnabled |
+                 QtCore.Qt.ItemIsSelectable |
+                 QtCore.Qt.ItemIsDragEnabled)
+        
+        if index.column() == self.NAME:
+            flags = flags | QtCore.Qt.ItemIsEditable
+            if self.checkable:
+                flags = flags | QtCore.Qt.ItemIsUserCheckable
+        
+        item_data = self.inventory_data[index.internalId()]
+        if item_data.item.kind == "directory":
+            flags = flags | QtCore.Qt.ItemIsDropEnabled
+        
+        return flags
 
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
@@ -968,7 +1008,9 @@ class TreeModel(QtCore.QAbstractItemModel):
     def set_checked_paths(self, paths):
         return self.set_checked_items([PersistantItemReference(None, path)
                                        for path in paths])
-
+    
+    def supportedDropActions(self):
+        return QtCore.Qt.MoveAction
 
 class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     source_model = None
@@ -1100,6 +1142,11 @@ class TreeWidget(RevisionTreeView):
         
         self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.setUniformRowHeights(True)
+        self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.setDragEnabled(True)
+        self.viewport().setAcceptDrops(True)
+        self.setDropIndicatorShown(True)
+        self.setDragDropMode(QtGui.QAbstractItemView.InternalMove);
         
         self.tree = None
         self.branch = None
@@ -1172,47 +1219,6 @@ class TreeWidget(RevisionTreeView):
             
             self.context_menu.setDefaultAction(self.action_show_file)
 
-    def create_context_menu(self):
-        self.context_menu = QtGui.QMenu(self)
-        self.action_open_file = self.context_menu.addAction(
-                                    gettext("&Open"),
-                                    self.open_file)
-        self.action_show_file = self.context_menu.addAction(
-                                    gettext("&View file"),
-                                    self.show_file_content)
-        self.action_show_annotate = self.context_menu.addAction(
-                                    gettext("Show &annotate"), 
-                                    self.show_file_annotate)
-        self.action_show_log = self.context_menu.addAction(
-                                    gettext("Show &log"),
-                                    self.show_file_log)
-        if has_ext_diff():
-            diff_menu = ExtDiffMenu(self)
-            self.action_show_diff = self.context_menu.addMenu(diff_menu)
-            self.connect(diff_menu,
-                         QtCore.SIGNAL("triggered(QString)"),
-                         self.show_differences)
-        else:
-            self.action_show_diff = self.context_menu.addAction(
-                                    gettext("Show &differences"),
-                                    self.show_differences)
-        
-        self.context_menu.addSeparator()
-        self.action_merge = self.context_menu.addAction(
-                                    gettext("&Merge conflict"),
-                                    self.merge)
-        self.action_resolve = self.context_menu.addAction(
-                                    gettext("Mark conflict &resolved"),
-                                    self.resolve)
-        
-        self.context_menu.addSeparator()
-        self.action_add = self.context_menu.addAction(
-                                    gettext("&Add"),
-                                    self.add)
-        self.action_revert = self.context_menu.addAction(
-                                    gettext("&Revert"),
-                                    self.revert)
-    
     def set_tree(self, tree, branch=None,
                  changes_mode=False, want_unversioned=True,
                  initial_checked_paths=None,
@@ -1380,6 +1386,59 @@ class TreeWidget(RevisionTreeView):
                 self.set_header_width_settings()
         finally:
             self.tree.unlock()
+    
+    def mousePressEvent(self, event):
+        index = self.indexAt(event.pos())
+        if not self.selectionModel().isSelected(index):
+            # Don't drag if we are not over the selection.
+            self.setDragEnabled(False)
+        else:
+            # Don't allow draging a selection that goes across dirs.
+            ok_selection = True
+            item_by_path = {}
+            item_ids = set()
+            for item in self.get_selection_items():
+                item_by_path[item.path] = item
+                item_ids.add(item.id)
+            root_dir = None
+            for path in minimum_path_selection(item_by_path.keys()):
+                dir_path, name = os.path.split(path)
+                if root_dir is None:
+                    root_dir = dir_path
+                if dir_path != root_dir:
+                    ok_selection = False
+                    break
+                item = item_by_path[path]
+                if item.item.kind == "directory" and item.children_ids:
+                    # Either all, or none of the children must be selected.
+                    first = None
+                    for child_id in item.children_ids:
+                        this = child_id in item_ids
+                        if first is None:
+                            first = this
+                        if first != this:
+                            ok_selection = False
+                            break
+                    if not ok_selection:
+                        break
+            self.setDragEnabled(ok_selection)
+            
+        QtGui.QTreeView.mousePressEvent(self, event)
+    
+    def dropEvent(self, event):
+        # we should encode the paths list, give it an aproite mime type, etc.
+        # Eaiser to just get the selection.
+        drop_index = self.tree_filter_model.mapToSource(
+                                                    self.indexAt(event.pos()))
+        drop_item = self.tree_model.inventory_data[drop_index.internalId()]
+        if drop_item.item.kind == "directory":
+            drop_path = drop_item.path
+        else:
+            drop_path, name = os.path.split(drop_item.path)
+        paths = [item.path for item in self.get_selection_items()]
+        min_paths = minimum_path_selection(paths)
+        self.tree.move(paths, drop_path)
+        self.refresh()
 
     def contextMenuEvent(self, event):
         self.filter_context_menu()
@@ -1397,7 +1456,55 @@ class TreeWidget(RevisionTreeView):
         for index in indexes:
             items.append(self.tree_model.inventory_data[index.internalId()])
         return items
-
+    
+    def create_context_menu(self):
+        self.context_menu = QtGui.QMenu(self)
+        self.action_open_file = self.context_menu.addAction(
+                                    gettext("&Open"),
+                                    self.open_file)
+        self.action_show_file = self.context_menu.addAction(
+                                    gettext("&View file"),
+                                    self.show_file_content)
+        self.action_show_annotate = self.context_menu.addAction(
+                                    gettext("Show &annotate"), 
+                                    self.show_file_annotate)
+        self.action_show_log = self.context_menu.addAction(
+                                    gettext("Show &log"),
+                                    self.show_file_log)
+        if has_ext_diff():
+            diff_menu = ExtDiffMenu(self)
+            self.action_show_diff = self.context_menu.addMenu(diff_menu)
+            self.connect(diff_menu,
+                         QtCore.SIGNAL("triggered(QString)"),
+                         self.show_differences)
+        else:
+            self.action_show_diff = self.context_menu.addAction(
+                                    gettext("Show &differences"),
+                                    self.show_differences)
+        
+        self.context_menu.addSeparator()
+        self.action_merge = self.context_menu.addAction(
+                                    gettext("&Merge conflict"),
+                                    self.merge)
+        self.action_resolve = self.context_menu.addAction(
+                                    gettext("Mark conflict &resolved"),
+                                    self.resolve)
+        
+        self.context_menu.addSeparator()
+        self.action_add = self.context_menu.addAction(
+                                    gettext("&Add"),
+                                    self.add)
+        self.action_revert = self.context_menu.addAction(
+                                    gettext("&Revert"),
+                                    self.revert)
+        self.action_rename = self.context_menu.addAction(
+                                    gettext("Re&name"),
+                                    self.rename)
+        # The text for this is set per selection, depending on move or rename.
+        self.action_mark_move = self.context_menu.addAction(
+                                    "mv --after", 
+                                    self.mark_move)
+    
     def filter_context_menu(self):
         is_working_tree = isinstance(self.tree, WorkingTree)
         items = self.get_selection_items()
@@ -1436,6 +1543,21 @@ class TreeWidget(RevisionTreeView):
         self.action_add.setDisabled(all(versioned))
         self.action_revert.setVisible(is_working_tree)
         self.action_revert.setEnabled(any(versioned_changed))
+        self.action_rename.setVisible(is_working_tree)
+        self.action_rename.setEnabled(single_item_in_tree)
+        
+        can_mark_move = (selection_len == 2 and
+                         (missing_unversioned(items[0], items[1]) or
+                          missing_unversioned(items[1], items[0])))
+        self.action_mark_move.setVisible(can_mark_move)
+        if can_mark_move:
+            move, rename = move_or_rename(items[0].path, items[1].path)
+            if move and rename:
+                self.action_mark_move.setText(gettext("&Mark as moved and renamed"))
+            elif move:
+                self.action_mark_move.setText(gettext("&Mark as moved"))
+            elif rename:
+                self.action_mark_move.setText(gettext("&Mark as renamed"))
         
         if is_working_tree:
             if any(versioned_changed):
@@ -1544,7 +1666,6 @@ class TreeWidget(RevisionTreeView):
         show_diff(arg_provider, ext_diff=ext_diff,
                   parent_window=self.window())
 
-
     @ui_current_widget
     def add(self):
         """Add selected file(s)."""
@@ -1641,6 +1762,33 @@ class TreeWidget(RevisionTreeView):
         res = resolve_dialog.exec_()
         if res == QtGui.QDialog.Accepted:
             self.refresh()
+    
+    def mark_move(self):
+        items = self.get_selection_items()
+        if len(items) <> 2:
+            return
+        
+        if missing_unversioned(items[0], items[1]):
+            old = items[0]
+            new = items[1]
+        elif missing_unversioned(items[1], items[0]):
+            old = items[1]
+            new = items[0]
+        else:
+            return
+        self.tree.rename_one(old.path, new.path, after=True)
+        self.refresh()
+
+    @ui_current_widget
+    def rename(self):
+        """Rename the selected file."""
+        
+        indexes = self.get_selection_indexes()
+        if len(indexes) <> 1:
+            return
+        index = indexes[0]
+        index = self.tree_filter_model.mapFromSource (index)
+        self.edit(index)
 
 class SelectAllCheckBox(QtGui.QCheckBox):
     
