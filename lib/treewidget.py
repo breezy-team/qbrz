@@ -123,6 +123,18 @@ def group_large_dirs(paths):
     set_dir_as_container('')
     return container_dirs
 
+def missing_unversioned(missing, unversioned): 
+    return (missing.change is not None and
+            missing.change.is_missing() and
+            unversioned.change is not None and
+            unversioned.change[3][1] == False)
+
+def move_or_rename(old_path, new_path):
+    old_split = os.path.split(old_path)
+    new_split = os.path.split(new_path)
+    return (old_split[0] != new_split[0],
+            old_split[1] != new_split[1])
+    
 class InternalItem(object):
     __slots__  = ["name", "kind", "file_id"]
     def __init__(self, name, kind, file_id):
@@ -582,7 +594,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         if load_dirs:
             # refs2indexes will load the parents if nesseary.
-            for index in self.refs2indexes(load_dirs):
+            for index in self.refs2indexes(load_dirs,
+                                           ignore_no_file_error=True):
                 self.load_dir(index.internalId())
         
         if initial_checked_paths:
@@ -1486,6 +1499,10 @@ class TreeWidget(RevisionTreeView):
         self.action_rename = self.context_menu.addAction(
                                     gettext("Re&name"),
                                     self.rename)
+        # The text for this is set per selection, depending on move or rename.
+        self.action_mark_move = self.context_menu.addAction(
+                                    "mv --after", 
+                                    self.mark_move)
     
     def filter_context_menu(self):
         is_working_tree = isinstance(self.tree, WorkingTree)
@@ -1527,6 +1544,19 @@ class TreeWidget(RevisionTreeView):
         self.action_revert.setEnabled(any(versioned_changed))
         self.action_rename.setVisible(is_working_tree)
         self.action_rename.setEnabled(single_item_in_tree)
+        
+        can_mark_move = (selection_len == 2 and
+                         (missing_unversioned(items[0], items[1]) or
+                          missing_unversioned(items[1], items[0])))
+        self.action_mark_move.setVisible(can_mark_move)
+        if can_mark_move:
+            move, rename = move_or_rename(items[0].path, items[1].path)
+            if move and rename:
+                self.action_mark_move.setText(gettext("&Mark as moved and renamed"))
+            elif move:
+                self.action_mark_move.setText(gettext("&Mark as moved"))
+            elif rename:
+                self.action_mark_move.setText(gettext("&Mark as renamed"))
         
         if is_working_tree:
             if any(versioned_changed):
@@ -1731,6 +1761,22 @@ class TreeWidget(RevisionTreeView):
         res = resolve_dialog.exec_()
         if res == QtGui.QDialog.Accepted:
             self.refresh()
+    
+    def mark_move(self):
+        items = self.get_selection_items()
+        if len(items) <> 2:
+            return
+        
+        if missing_unversioned(items[0], items[1]):
+            old = items[0]
+            new = items[1]
+        elif missing_unversioned(items[1], items[0]):
+            old = items[1]
+            new = items[0]
+        else:
+            return
+        self.tree.rename_one(old.path, new.path, after=True)
+        self.refresh()
 
     @ui_current_widget
     def rename(self):
