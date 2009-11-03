@@ -784,14 +784,22 @@ class TreeModel(QtCore.QAbstractItemModel):
                 # Versioned file
                 self.tree.rename_one(item_data.path, new_path)
             else:
-                os.rename(self.tree.abspath(item_data.path),
-                          self.tree.abspath(new_path))
+                old_path_abs=self.tree.abspath(item_data.path)
+                new_path_abs=self.tree.abspath(new_path)
+                os.rename(old_path_abs, new_path_abs)
+            # We do this so that the ref has the new_path, and hence refresh
+            # restores it's state correctly.
+            item_data.path = new_path
             ref = self.index2ref(index)
+            print ref
             self.parent_view.refresh()
-            new_index = self.ref2index(ref)
-            new_index = self.parent_view.tree_filter_model.mapFromSource(
-                                                                    new_index)
-            self.parent_view.scrollTo(new_index)
+            try:
+                new_index = self.ref2index(ref)
+                new_index = self.parent_view.tree_filter_model.mapFromSource(
+                                                                        new_index)
+                self.parent_view.scrollTo(new_index)
+            except (errors.NoSuchId, errors.NoSuchFile):
+                pass
             return True
             
         return False
