@@ -48,6 +48,7 @@ from bzrlib.plugins.qbzr.lib.diff import (
     ExtDiffMenu,
     InternalWTDiffArgProvider,
     )
+from bzrlib.plugins.qbzr.lib.trace import report_exception, SUB_LOAD_METHOD
 
 def dict_set_add(dict, key, value):
     if key in dict:
@@ -1439,7 +1440,10 @@ class TreeWidget(RevisionTreeView):
             drop_path, name = os.path.split(drop_item.path)
         paths = [item.path for item in self.get_selection_items()]
         min_paths = minimum_path_selection(paths)
-        self.tree.move(paths, drop_path)
+        try:
+            self.tree.move(paths, drop_path)
+        except Exception:
+            report_exception(type=SUB_LOAD_METHOD, window=self.window())        
         self.refresh()
 
     def contextMenuEvent(self, event):
@@ -1681,7 +1685,10 @@ class TreeWidget(RevisionTreeView):
         
         if len(paths) == 0:
             return
-        self.tree.add(paths)
+        try:
+            self.tree.add(paths)
+        except Exception:
+            report_exception(type=SUB_LOAD_METHOD, window=self.window())
         
         # XXX - it would be good it we could just refresh the selected items
         self.refresh()
@@ -1706,7 +1713,10 @@ class TreeWidget(RevisionTreeView):
             gettext("Do you really want to revert the selected file(s)?"),
             QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
         if res == QtGui.QMessageBox.Yes:
-            self.tree.revert(paths, self.tree.basis_tree())
+            try:
+                self.tree.revert(paths, self.tree.basis_tree())
+            except Exception:
+                report_exception(type=SUB_LOAD_METHOD, window=self.window())
             # XXX - it would be good it we could just refresh the selected items
             self.refresh()
     
@@ -1752,7 +1762,10 @@ class TreeWidget(RevisionTreeView):
         if len(paths) == 0:
             return
         
-        resolve(self.tree, paths)
+        try:
+            resolve(self.tree, paths)
+        except Exception:
+            report_exception(type=SUB_LOAD_METHOD, window=self.window())
         self.refresh()
     
     def mark_move(self):
@@ -1768,7 +1781,10 @@ class TreeWidget(RevisionTreeView):
             new = items[0]
         else:
             return
-        self.tree.rename_one(old.path, new.path, after=True)
+        try:
+            self.tree.rename_one(old.path, new.path, after=True)
+        except Exception:
+            report_exception(type=SUB_LOAD_METHOD, window=self.window())
         self.refresh()
 
     @ui_current_widget
