@@ -780,13 +780,16 @@ class TreeModel(QtCore.QAbstractItemModel):
             item_data = self.inventory_data[index.internalId()]
             dir_path, name = os.path.split(item_data.path)
             new_path = os.path.join(dir_path, value)
-            if item_data.item.file_id:
-                # Versioned file
-                self.tree.rename_one(item_data.path, new_path)
-            else:
-                old_path_abs=self.tree.abspath(item_data.path)
-                new_path_abs=self.tree.abspath(new_path)
-                os.rename(old_path_abs, new_path_abs)
+            try:
+                if item_data.item.file_id:
+                    # Versioned file
+                    self.tree.rename_one(item_data.path, new_path)
+                else:
+                    old_path_abs=self.tree.abspath(item_data.path)
+                    new_path_abs=self.tree.abspath(new_path)
+                    os.rename(old_path_abs, new_path_abs)
+            except Exception:
+                report_exception(type=SUB_LOAD_METHOD, window=self.window())
             # We do this so that the ref has the new_path, and hence refresh
             # restores it's state correctly.
             item_data.path = new_path
