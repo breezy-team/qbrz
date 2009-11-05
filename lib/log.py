@@ -510,7 +510,7 @@ class FileListContainer(QtGui.QWidget):
         revids, count = \
             self.log_list.get_selection_top_and_parent_revids_and_count()
         
-        if revids:
+        if not revids:
             return
         
         if revids not in self.delta_cache:
