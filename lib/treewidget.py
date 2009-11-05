@@ -775,6 +775,8 @@ class TreeModel(QtCore.QAbstractItemModel):
             return True
         
         if index.column() == self.NAME and role == QtCore.Qt.EditRole:
+            if not isinstance(self.tree, WorkingTree):
+                return False
             # Rename
             value = unicode(value.toString())
             item_data = self.inventory_data[index.internalId()]
@@ -903,8 +905,10 @@ class TreeModel(QtCore.QAbstractItemModel):
         #    return QtCore.Qt.ItemIsEnabled
         
         flags = (QtCore.Qt.ItemIsEnabled |
-                 QtCore.Qt.ItemIsSelectable |
-                 QtCore.Qt.ItemIsDragEnabled)
+                 QtCore.Qt.ItemIsSelectable)
+        
+        if isinstance(self.tree, WorkingTree):
+            flags = flags | QtCore.Qt.ItemIsDragEnabled
         
         if index.column() == self.NAME:
             flags = flags | QtCore.Qt.ItemIsEditable
@@ -1160,7 +1164,6 @@ class TreeWidget(RevisionTreeView):
         self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.setUniformRowHeights(True)
         self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
-        self.setDragEnabled(True)
         self.viewport().setAcceptDrops(True)
         self.setDropIndicatorShown(True)
         self.setDragDropMode(QtGui.QAbstractItemView.InternalMove);
@@ -1406,6 +1409,8 @@ class TreeWidget(RevisionTreeView):
     
     def mousePressEvent(self, event):
         index = self.indexAt(event.pos())
+        if not isinstance(self.tree, WorkingTree):
+            self.setDragEnabled(False)
         if not self.selectionModel().isSelected(index):
             # Don't drag if we are not over the selection.
             self.setDragEnabled(False)
@@ -1443,6 +1448,9 @@ class TreeWidget(RevisionTreeView):
         QtGui.QTreeView.mousePressEvent(self, event)
     
     def dropEvent(self, event):
+        if not isinstance(self.tree, WorkingTree):
+            return
+        
         # we should encode the paths list, give it an aproite mime type, etc.
         # Eaiser to just get the selection.
         drop_index = self.tree_filter_model.mapToSource(
