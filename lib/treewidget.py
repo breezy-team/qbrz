@@ -789,7 +789,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                     new_path_abs=self.tree.abspath(new_path)
                     os.rename(old_path_abs, new_path_abs)
             except Exception:
-                report_exception(type=SUB_LOAD_METHOD, window=self.window())
+                report_exception(type=SUB_LOAD_METHOD,
+                                 window=self.parent_view.window())
             # We do this so that the ref has the new_path, and hence refresh
             # restores it's state correctly.
             item_data.path = new_path
