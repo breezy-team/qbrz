@@ -794,7 +794,6 @@ class TreeModel(QtCore.QAbstractItemModel):
             # restores it's state correctly.
             item_data.path = new_path
             ref = self.index2ref(index)
-            print ref
             self.parent_view.refresh()
             try:
                 new_index = self.ref2index(ref)
