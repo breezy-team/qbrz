@@ -778,8 +778,8 @@ class TreeModel(QtCore.QAbstractItemModel):
             # Rename
             value = unicode(value.toString())
             item_data = self.inventory_data[index.internalId()]
-            dir_path, name = os.path.split(item_data.path)
-            new_path = os.path.join(dir_path, value)
+            parent = self.inventory_data[item_data.parent_id]
+            new_path = os.path.join(parent.path, value)
             try:
                 if item_data.item.file_id:
                     # Versioned file
@@ -823,8 +823,11 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         column = index.column()
         if column == self.NAME:
-            if role == QtCore.Qt.DisplayRole or role == QtCore.Qt.EditRole:
+            if role == QtCore.Qt.DisplayRole:
                 return QtCore.QVariant(item.name)
+            if role == QtCore.Qt.EditRole:
+                parent = self.inventory_data[item_data.parent_id]
+                return item_data.path[len(parent.path):]
             if role == QtCore.Qt.DecorationRole:
                 if item_data.icon is None:
                     if isinstance(self.tree, WorkingTree):
