@@ -18,32 +18,32 @@ What's new in this release:
      Gary van der Merwe)
    * Show a throbber above the file list while a delta is being loaded.
      (Gary van der Merwe)
-  * qcommit, qadd, qrevert:
-    * Directoies with 4 or more sub items are grouped in the tree view.
-      (Bug 456198, Gary van der Merwe)
-    * Correct the old path shown for renamed files. (Bug 432572,
-      Gary van der Merwe)
-    * Passing a directory via the command line now correctly checks the
-      directory. (Bug 435034, Gary van der Merwe)
-    * For qcommit, It is now possible to select unversioned file and directories
-      via the command line. (Gary van der Merwe)
-    * Automaticly expand to the check items on load. (Gary van der Merwe)
-    * Fix View for unversoined files when run from a sub directory of the
-      working tree. (Gary van der Merwe)
-  * qcommit/qbrowse:
-    * Conflicts are shown in the status column. External merge applications
-      can be launched to resolve these conflicts, and the conflicts can be
-      marked as merged. (Bug 174509, Gary van der Merwe)
-    * Improved the usibility of the context menu add, and revert actions.
-      These now directly use the api, rather than via subprocess. There is
-      now no prompt for add. With large trees, there is less flicker when the
-      tree is refreshed, and the scroll position is remembered.
-      (Gary van der Merwe)
-    * It is now possible to rename and move files or directories, and to mark
-      files or directories that have allready been renamed or moved as such.
-      (Gary van der Merwe)
-    * It is now possible to remove files from the branch. (Gary van der Merwe)
-  * qcommit/uncommit:
+ * qcommit, qadd, qrevert:
+   * Directoies with 4 or more sub items are grouped in the tree view.
+     (Bug 456198, Gary van der Merwe)
+   * Correct the old path shown for renamed files. (Bug 432572,
+     Gary van der Merwe)
+   * Passing a directory via the command line now correctly checks the
+     directory. (Bug 435034, Gary van der Merwe)
+   * For qcommit, It is now possible to select unversioned file and directories
+     via the command line. (Gary van der Merwe)
+   * Automaticly expand to the check items on load. (Gary van der Merwe)
+   * Fix View for unversoined files when run from a sub directory of the
+     working tree. (Gary van der Merwe)
+ * qcommit/qbrowse:
+   * Conflicts are shown in the status column. External merge applications
+     can be launched to resolve these conflicts, and the conflicts can be
+     marked as merged. (Bug 174509, Gary van der Merwe)
+   * Improved the usibility of the context menu add, and revert actions.
+     These now directly use the api, rather than via subprocess. There is
+     now no prompt for add. With large trees, there is less flicker when the
+     tree is refreshed, and the scroll position is remembered.
+     (Gary van der Merwe)
+   * It is now possible to rename and move files or directories, and to mark
+     files or directories that have allready been renamed or moved as such.
+     (Gary van der Merwe)
+   * It is now possible to remove files from the branch. (Gary van der Merwe)
+ * qcommit/uncommit:
    * Catch AttributeError in save of commit_data during qcommit and/or uncommit 
      in lightweight checkout from branch accessed via smart-server 
      (lp:, bzr+ssh://, bzr:// etc). 
