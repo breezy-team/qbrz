@@ -357,6 +357,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.checkable = False
         self.icon_provider = QtGui.QFileIconProvider()
         self.parent_view = parent
+        self._index_cache = {}
     
     def set_tree(self, tree, branch=None, 
                  changes_mode=False, want_unversioned=True,
@@ -371,6 +372,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.unver_by_parent = {}
         self.inventory_data_by_path = {}
         self.inventory_data_by_id = {}
+        self._index_cache = {}
         
         if isinstance(self.tree, WorkingTree):
             tree.lock_read()
@@ -653,17 +655,23 @@ class TreeModel(QtCore.QAbstractItemModel):
         if parent_id>=len(self.inventory_data):
             return QtCore.QModelIndex()
         
-        parent_data = self.inventory_data[parent_id]
-        if parent_data.children_ids is None:
-            return QtCore.QModelIndex()
-        
-        if (row < 0 or
-            row >= len(parent_data.children_ids) or
-            column < 0 or
-            column >= len(self.HEADER_LABELS)):
-            return QtCore.QModelIndex()
-        item_id = parent_data.children_ids[row]
-        return self.createIndex(row, column, item_id)
+        cache_key = (parent_id, row, column)
+        if cache_key in self._index_cache:
+            return self._index_cache[cache_key]
+        else:
+            parent_data = self.inventory_data[parent_id]
+            if parent_data.children_ids is None:
+                return QtCore.QModelIndex()
+            
+            if (row < 0 or
+                row >= len(parent_data.children_ids) or
+                column < 0 or
+                column >= len(self.HEADER_LABELS)):
+                return QtCore.QModelIndex()
+            item_id = parent_data.children_ids[row]
+            index = self.createIndex(row, column, item_id)
+            self._index_cache[cache_key] = index
+            return index
     
     def _index_from_id(self, item_id, column):
         if item_id >= len(self.inventory_data):
@@ -812,6 +820,9 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def data(self, index, role):
         if not index.isValid():
+            return QtCore.QVariant()
+        
+        if role >= QtCore.Qt.FontRole and role >= QtCore.Qt.TextColorRole:
             return QtCore.QVariant()
         
         item_data = self.inventory_data[index.internalId()]
@@ -1048,6 +1059,8 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     
     def setFilter(self, filter, value):
         self.filters[filter] = value
+        # This is slow. It causes TreeModel.index, and TreeModel.data thousands
+        # of times. 
         self.invalidateFilter()
     
     def setFilters(self, filters):
