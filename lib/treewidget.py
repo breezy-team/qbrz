@@ -564,9 +564,6 @@ class TreeModel(QtCore.QAbstractItemModel):
                 for child in children:
                     child_id = self.append_item(child, dir_id)
                     dir_item.children_ids.append(child_id)
-                    
-                    if len(self.inventory_data) % 100 == 0:
-                        QtCore.QCoreApplication.processEvents()
             finally:
                 self.endInsertRows();
         finally:
