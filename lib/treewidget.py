@@ -253,7 +253,7 @@ class ChangeDesc(tuple):
     def is_renamed(desc):
         return (desc[3] == (True, True)
                 and (desc[4][0], desc[5][0]) != (desc[4][1], desc[5][1]))
-
+    
     def is_tree_root(desc):
         """Check if entry actually tree root."""
         if desc[3] != (False, False) and desc[4] == (None, None):
@@ -268,6 +268,10 @@ class ChangeDesc(tuple):
         (i.e. deleted manually, without invoking `bzr remove` command)
         """
         return (desc[3] == (True, True) and desc[6][1] is None)
+    
+    def is_on_disk(desc):
+        """Is the file or folder actualy on the disk"""
+        return desc[6][1] is not None
 
     def is_misadded(desc):
         """Check if file was added to the working tree but then gone
@@ -843,7 +847,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 return item_data.path[len(parent.path):]
             if role == QtCore.Qt.DecorationRole:
                 if item_data.icon is None:
-                    if item_data.change and item_data.change.is_missing():
+                    if item_data.change and not item_data.change.is_on_disk():
                         item_data.icon = self.missing_icon
                     elif isinstance(self.tree, WorkingTree):
                         abspath = self.tree.abspath(item_data.path)
@@ -1592,7 +1596,7 @@ class TreeWidget(RevisionTreeView):
         self.action_rename.setVisible(is_working_tree)
         self.action_rename.setEnabled(single_item_in_tree)
         self.action_remove.setVisible(is_working_tree)
-        self.action_remove.setEnabled(any(versioned))
+        self.action_remove.setDisabled(all(missing))
         
         
         can_mark_move = (selection_len == 2 and
