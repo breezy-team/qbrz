@@ -1569,6 +1569,8 @@ class TreeWidget(RevisionTreeView):
                                for conflict in item.conflicts
                                if isinstance(conflict, TextConflict)])>0
                           for item in items]
+        on_disk = [item.change is None or item.change.is_on_disk()
+                   for item in items]
         selection_len = len(items)
         
         single_item_in_tree = (selection_len == 1 and
@@ -1596,7 +1598,7 @@ class TreeWidget(RevisionTreeView):
         self.action_rename.setVisible(is_working_tree)
         self.action_rename.setEnabled(single_item_in_tree)
         self.action_remove.setVisible(is_working_tree)
-        self.action_remove.setDisabled(all(missing))
+        self.action_remove.setEnabled(any(on_disk))
         
         
         can_mark_move = (selection_len == 2 and
@@ -1851,14 +1853,25 @@ class TreeWidget(RevisionTreeView):
         
         items = self.get_selection_items()
         
-        # Only paths that are versioned
+        # Only paths that are not missing
         paths = [item.path
                  for item in items
-                 if item.item.file_id is not None]
+                 if item.change is None or 
+                    item.change.is_on_disk()]
         if len(paths) == 0:
             return
         try:
-            self.tree.remove(paths)
+            try:
+                self.tree.remove(paths, keep_files=False)
+            except errors.BzrRemoveChangedFilesError:
+                res = QtGui.QMessageBox.question(
+                    self, gettext("Remove"),
+                    gettext("Some of the files selected cannot be recoverd if "
+                            "removed. Are you sure you want to remove these "
+                            "files?"),
+                    QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+                if res == QtGui.QMessageBox.Yes:
+                    self.tree.remove(paths, keep_files=False, force=True)
         except Exception:
             report_exception(type=SUB_LOAD_METHOD, window=self.window())
         
