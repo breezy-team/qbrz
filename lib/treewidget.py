@@ -350,6 +350,9 @@ class TreeModel(QtCore.QAbstractItemModel):
             self.file_icon = QtGui.QIcon()
             self.dir_icon = QtGui.QIcon()
             self.symlink_icon = QtGui.QIcon()
+        self.missing_icon = QtGui.QIcon()
+        self.missing_icon.addFile(':/16x16/missing.png')
+        
         self.tree = None
         self.inventory_data = []
         self.inventory_data_by_path = {}
@@ -840,7 +843,9 @@ class TreeModel(QtCore.QAbstractItemModel):
                 return item_data.path[len(parent.path):]
             if role == QtCore.Qt.DecorationRole:
                 if item_data.icon is None:
-                    if isinstance(self.tree, WorkingTree):
+                    if item_data.change and item_data.change.is_missing():
+                        item_data.icon = self.missing_icon
+                    elif isinstance(self.tree, WorkingTree):
                         abspath = self.tree.abspath(item_data.path)
                         info = QtCore.QFileInfo(abspath)
                         item_data.icon = \
