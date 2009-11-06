@@ -854,6 +854,8 @@ class LogGraphProvider(object):
     def get_revision_visible(self, index):
         """ Returns wether a revision is visible or not"""
         
+        if not index < len(self.revisions):
+            return False
         
         return self.revisions[index].f_index is not None
         #branch_id = self.revisions[index].branch_id

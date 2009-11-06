@@ -18,6 +18,8 @@ What's new in this release:
      Gary van der Merwe)
    * Show a throbber above the file list while a delta is being loaded.
      (Gary van der Merwe)
+   * Fix a bug when refreshing a branch with revisions that have been removed.
+     (Bug #435486, Gary van der Merwe)
  * qcommit, qadd, qrevert:
    * Directoies with 4 or more sub items are grouped in the tree view.
      (Bug #456198, Gary van der Merwe)
