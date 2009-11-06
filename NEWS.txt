@@ -3,28 +3,28 @@
 What's new in this release:
 
  * SubprocessUIFactory and QUIFactory now both support get_username, and
-   get_boolean. (Bug 421851, Gary van der Merwe)
- * Save the size of Dialogs when the user press Esc. (Bug 417809,
+   get_boolean. (Bug #421851, Gary van der Merwe)
+ * Save the size of Dialogs when the user press Esc. (Bug #417809,
    Gary van der Merwe)
  * qlog:
    * Get the max main_line digets in a different way so that we don't break 
-     --no-graph. (Bug 455867, Gary van der Merwe)
+     --no-graph. (Bug #455867, Gary van der Merwe)
    * Corrected the margin for the revision number column. (Gary van der Merwe)
    * When loading the file list delta, only lock the repositories that are
      being used. If the 2 trees are from the same repositories, load them 
      together. (Gary van der Merwe)
    * When viewing a svn repo, only show the file list if 1 revision is selected,
-     and if so, use a optimized method to do so. (Bug 450225,
+     and if so, use a optimized method to do so. (Bug #450225,
      Gary van der Merwe)
    * Show a throbber above the file list while a delta is being loaded.
      (Gary van der Merwe)
  * qcommit, qadd, qrevert:
    * Directoies with 4 or more sub items are grouped in the tree view.
-     (Bug 456198, Gary van der Merwe)
-   * Correct the old path shown for renamed files. (Bug 432572,
+     (Bug #456198, Gary van der Merwe)
+   * Correct the old path shown for renamed files. (Bug #432572,
      Gary van der Merwe)
    * Passing a directory via the command line now correctly checks the
-     directory. (Bug 435034, Gary van der Merwe)
+     directory. (Bug #435034, Gary van der Merwe)
    * For qcommit, It is now possible to select unversioned file and directories
      via the command line. (Gary van der Merwe)
    * Automaticly expand to the check items on load. (Gary van der Merwe)
@@ -33,7 +33,7 @@ What's new in this release:
  * qcommit/qbrowse:
    * Conflicts are shown in the status column. External merge applications
      can be launched to resolve these conflicts, and the conflicts can be
-     marked as merged. (Bug 174509, Gary van der Merwe)
+     marked as merged. (Bug #174509, Gary van der Merwe)
    * Improved the usibility of the context menu add, and revert actions.
      These now directly use the api, rather than via subprocess. There is
      now no prompt for add. With large trees, there is less flicker when the
@@ -47,7 +47,7 @@ What's new in this release:
    * Catch AttributeError in save of commit_data during qcommit and/or uncommit 
      in lightweight checkout from branch accessed via smart-server 
      (lp:, bzr+ssh://, bzr:// etc). 
-     (#434034 #430382 #463296, Alexander Belchenko)
+     (Bug #434034 Bug #430382 Bug #463296, Alexander Belchenko)
 
 
 0.15 "Yellow and green" - 2009-10-19
