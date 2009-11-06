@@ -1528,6 +1528,9 @@ class TreeWidget(RevisionTreeView):
         self.action_rename = self.context_menu.addAction(
                                     gettext("Re&name"),
                                     self.rename)
+        self.action_remove = self.context_menu.addAction(
+                                    gettext("Remove"),
+                                    self.remove)
         # The text for this is set per selection, depending on move or rename.
         self.action_mark_move = self.context_menu.addAction(
                                     "mv --after", 
@@ -1573,6 +1576,9 @@ class TreeWidget(RevisionTreeView):
         self.action_revert.setEnabled(any(versioned_changed))
         self.action_rename.setVisible(is_working_tree)
         self.action_rename.setEnabled(single_item_in_tree)
+        self.action_remove.setVisible(is_working_tree)
+        self.action_remove.setEnabled(any(versioned))
+        
         
         can_mark_move = (selection_len == 2 and
                          (missing_unversioned(items[0], items[1]) or
@@ -1819,6 +1825,25 @@ class TreeWidget(RevisionTreeView):
         index = indexes[0]
         index = self.tree_filter_model.mapFromSource (index)
         self.edit(index)
+    
+    @ui_current_widget
+    def remove(self):
+        """Remove selected file(s)."""
+        
+        items = self.get_selection_items()
+        
+        # Only paths that are versioned
+        paths = [item.path
+                 for item in items
+                 if item.item.file_id is not None]
+        if len(paths) == 0:
+            return
+        try:
+            self.tree.remove(paths)
+        except Exception:
+            report_exception(type=SUB_LOAD_METHOD, window=self.window())
+        
+        self.refresh()
 
 class SelectAllCheckBox(QtGui.QCheckBox):
     
