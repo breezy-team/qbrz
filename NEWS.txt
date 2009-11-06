@@ -42,7 +42,8 @@ What's new in this release:
     * It is now possible to rename and move files or directories, and to mark
       files or directories that have allready been renamed or moved as such.
       (Gary van der Merwe)
- * qcommit/uncommit:
+    * It is now possible to remove files from the branch. (Gary van der Merwe)
+  * qcommit/uncommit:
    * Catch AttributeError in save of commit_data during qcommit and/or uncommit 
      in lightweight checkout from branch accessed via smart-server 
      (lp:, bzr+ssh://, bzr:// etc). 
