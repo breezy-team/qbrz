@@ -22,6 +22,9 @@ What's new in this release:
      (Gary van der Merwe)
    * Fix a bug when refreshing a branch with revisions that have been removed.
      (Bug #435486, Gary van der Merwe)
+ * qlog/qannotate:
+   * Preserve leading whitespace in the lines of the log message.
+     (Max Bowsher)
  * qcommit, qadd, qrevert:
    * Directoies with 4 or more sub items are grouped in the tree view.
      (Bug #456198, Gary van der Merwe)

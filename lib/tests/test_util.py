@@ -173,6 +173,18 @@ class TestUtil(tests.TestCase):
         self.assertEqual(1, util.ensure_unicode(1))
 
 
+class TestHtmlize(tests.TestCase):
+
+    def test_convert_leading_spaces_to_nbsp(self):
+        self.assertEqual('foo bar', util.htmlize('foo bar'))
+        self.assertEqual("0<br />"
+                         "&nbsp;1<br />"
+                         "&nbsp;&nbsp;2<br />"
+                         "0",
+                         util.htmlize("0\n 1\n  2\n0"))
+        self.assertEqual('&nbsp;foo bar', util.htmlize(' foo bar'))
+
+
 class TestOpenTree(tests.TestCaseWithTransport):
 
     def test_no_ui_mode_no_branch(self):
