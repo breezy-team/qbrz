@@ -132,8 +132,6 @@ class InternalDiffArgProvider(DiffArgProvider):
             processEvents()
         if self.specific_files:
             args.extend(self.specific_files)
-        print dir
-        print args
         
         return dir, args
 
