@@ -103,7 +103,7 @@ class InternalDiffArgProvider(DiffArgProvider):
             args.append(revspec)
         
         def get_base(branch, tree):
-            if tree:
+            if tree and isinstance(tree, WorkingTree):
                 return urlutils.local_path_to_url(tree.basedir)
             return branch.base
         
