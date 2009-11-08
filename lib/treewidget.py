@@ -829,7 +829,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         if not index.isValid():
             return QtCore.QVariant()
         
-        if role >= QtCore.Qt.FontRole and role >= QtCore.Qt.TextColorRole:
+        if role >= QtCore.Qt.FontRole and role <= QtCore.Qt.TextColorRole:
             return QtCore.QVariant()
         
         item_data = self.inventory_data[index.internalId()]
