@@ -62,6 +62,9 @@ What's new in this release:
  * qcommit:
    * Don't run `bzr add --no-recurse` before commit if there is nothing to add.
      (Alexander Belchenko)
+ * qplugins:
+   * Format plugin version nicely even if it does not follow bzr standards on
+     version_info tuple. (Bug #475286, Alexander Belchenko)
 
 
 0.15 "Yellow and green" - 2009-10-19
