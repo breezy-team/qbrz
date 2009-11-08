@@ -44,8 +44,6 @@ class TestTreeModel(TestWatchExceptHook, TestCaseWithTransport):
                      committer="joe@foo.com",
                      timestamp=1166046000.00, timezone=0)
 
-        self.knownFailure('See bug #477823')
-
         model = TreeModel(parent=None)
         modeltest = ModelTest(model, None)
 
