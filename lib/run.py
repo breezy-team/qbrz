@@ -182,14 +182,6 @@ class QBzrRunDialog(SubProcessDialog):
         args = [unicode(self.ui.cmd_combobox.currentText())]
         cmd_utf8 = unicode(self.ui.opt_arg_edit.text()).encode('utf-8')
         args.extend([unicode(p,'utf8') for p in shlex.split(cmd_utf8)])
-        # show actual command line
-        cmd_line = ["bzr"]
-        for a in args:
-            if " " in a:
-                a = '"%s"' % a
-            cmd_line.append(a)
-        self.process_widget.logMessageEx("Run command: "+' '.join(cmd_line), 
-            "cmdline")
         self.process_widget.do_start(cwd, *args)
 
     def saveSize(self):

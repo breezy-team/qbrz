@@ -21,7 +21,19 @@ import os
 import sys
 from bzrlib import trace
 
+try:
+    from PyQt4 import QtGui
+except ImportError:
+    _qt_app = "don't initialize it!"    # fake object to avoid QApplication call
+else:
+    _qt_app = None   # intended to hold global QApplication instance for tests.
+
+
 def load_tests(basic_tests, module, loader):
+    global _qt_app
+    if _qt_app is None:
+        _qt_app = QtGui.QApplication(sys.argv)
+
     testmod_names = [
         'mock',
         'test_annotate',

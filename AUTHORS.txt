@@ -19,6 +19,7 @@ Contributors:
  * Mario del Pozo <mariodpros at gmail dot com>
  * Mark Hammond <mhammond at skippinet dot com au>
  * Martin <gzlist at googlemail dot com>
+ * Max Bowsher <maxb at f2s dot com>
  * Neil Martinsen-Burrell <nmb at wartburg dot edu>
  * Nicholas Allen <nick dot allen at onlinehome dot de>
  * Ohad Kammar <ohad dot kammar at gmail dot com>

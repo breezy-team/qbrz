@@ -1,5 +1,5 @@
-0.16 - in development
----------------------
+0.16 "Acacia" - 2009/11/9
+-------------------------
 What's new in this release:
 
  * qswitch:
@@ -22,6 +22,12 @@ What's new in this release:
      (Gary van der Merwe)
    * Fix a bug when refreshing a branch with revisions that have been removed.
      (Bug #435486, Gary van der Merwe)
+ * qlog/qannotate:
+   * Preserve leading whitespace in the lines of the log message.
+     (Max Bowsher)
+ * qadd:
+   * Don't show unchanged directories that contain ignored files. 
+     (Bug #462435, Gary van der Merwe)
  * qcommit, qadd, qrevert:
    * Directoies with 4 or more sub items are grouped in the tree view.
      (Bug #456198, Gary van der Merwe)
@@ -53,6 +59,15 @@ What's new in this release:
      in lightweight checkout from branch accessed via smart-server 
      (lp:, bzr+ssh://, bzr:// etc). 
      (Bug #434034 Bug #430382 Bug #463296, Alexander Belchenko)
+ * qsubprocess:
+   * Show actual command-line to user when we invoke action via qsubprocess.
+     (Bug #476025, Alexander Belchenko)
+ * qcommit:
+   * Don't run `bzr add --no-recurse` before commit if there is nothing to add.
+     (Alexander Belchenko)
+ * qplugins:
+   * Format plugin version nicely even if it does not follow bzr standards on
+     version_info tuple. (Bug #475286, Alexander Belchenko)
 
 
 0.15 "Yellow and green" - 2009-10-19

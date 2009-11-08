@@ -586,6 +586,7 @@ class CommitWindow(SubProcessDialog):
     def do_start(self):
         args = ["commit"]
         files_to_add = ["add", "--no-recurse"]
+        add_cmd_len = len(files_to_add)
         
         message = unicode(self.message.toPlainText()).strip() 
         if not message: 
@@ -654,7 +655,7 @@ class CommitWindow(SubProcessDialog):
         
         dir = self.tree.basedir
         commands = []
-        if len(files_to_add)>1:
+        if len(files_to_add) > add_cmd_len:
             commands.append((dir, files_to_add))
         commands.append((dir, args))
 

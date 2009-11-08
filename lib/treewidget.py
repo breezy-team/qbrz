@@ -342,6 +342,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         # XXX parent object: instance of what class it supposed to be?
         QtCore.QAbstractTableModel.__init__(self, parent)
 
+        self.missing_icon = QtGui.QIcon()
         if parent is not None:
             # TreeModel is subclass of QtCore.QAbstractItemModel,
             # the latter can have parent in constructor
@@ -350,12 +351,11 @@ class TreeModel(QtCore.QAbstractItemModel):
             self.file_icon = style.standardIcon(QtGui.QStyle.SP_FileIcon)
             self.dir_icon = style.standardIcon(QtGui.QStyle.SP_DirIcon)
             self.symlink_icon = style.standardIcon(QtGui.QStyle.SP_FileLinkIcon)
+            self.missing_icon.addFile(':/16x16/missing.png')
         else:
             self.file_icon = QtGui.QIcon()
             self.dir_icon = QtGui.QIcon()
             self.symlink_icon = QtGui.QIcon()
-        self.missing_icon = QtGui.QIcon()
-        self.missing_icon.addFile(':/16x16/missing.png')
         
         self.tree = None
         self.inventory_data = []
@@ -829,7 +829,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         if not index.isValid():
             return QtCore.QVariant()
         
-        if role >= QtCore.Qt.FontRole and role >= QtCore.Qt.TextColorRole:
+        if role >= QtCore.Qt.FontRole and role <= QtCore.Qt.TextColorRole:
             return QtCore.QVariant()
         
         item_data = self.inventory_data[index.internalId()]
@@ -932,9 +932,11 @@ class TreeModel(QtCore.QAbstractItemModel):
             if self.checkable:
                 flags = flags | QtCore.Qt.ItemIsUserCheckable
         
-        item_data = self.inventory_data[index.internalId()]
-        if item_data.item.kind == "directory":
-            flags = flags | QtCore.Qt.ItemIsDropEnabled
+        id = index.internalId()
+        if id < len(self.inventory_data):
+            item_data = self.inventory_data[index.internalId()]
+            if item_data.item.kind == "directory":
+                flags = flags | QtCore.Qt.ItemIsDropEnabled
         
         return flags
 
