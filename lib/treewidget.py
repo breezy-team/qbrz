@@ -342,6 +342,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         # XXX parent object: instance of what class it supposed to be?
         QtCore.QAbstractTableModel.__init__(self, parent)
 
+        self.missing_icon = QtGui.QIcon()
         if parent is not None:
             # TreeModel is subclass of QtCore.QAbstractItemModel,
             # the latter can have parent in constructor
@@ -350,12 +351,11 @@ class TreeModel(QtCore.QAbstractItemModel):
             self.file_icon = style.standardIcon(QtGui.QStyle.SP_FileIcon)
             self.dir_icon = style.standardIcon(QtGui.QStyle.SP_DirIcon)
             self.symlink_icon = style.standardIcon(QtGui.QStyle.SP_FileLinkIcon)
+            self.missing_icon.addFile(':/16x16/missing.png')
         else:
             self.file_icon = QtGui.QIcon()
             self.dir_icon = QtGui.QIcon()
             self.symlink_icon = QtGui.QIcon()
-        self.missing_icon = QtGui.QIcon()
-        self.missing_icon.addFile(':/16x16/missing.png')
         
         self.tree = None
         self.inventory_data = []
