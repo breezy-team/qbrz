@@ -932,9 +932,11 @@ class TreeModel(QtCore.QAbstractItemModel):
             if self.checkable:
                 flags = flags | QtCore.Qt.ItemIsUserCheckable
         
-        item_data = self.inventory_data[index.internalId()]
-        if item_data.item.kind == "directory":
-            flags = flags | QtCore.Qt.ItemIsDropEnabled
+        id = index.internalId()
+        if id < len(self.inventory_data):
+            item_data = self.inventory_data[index.internalId()]
+            if item_data.item.kind == "directory":
+                flags = flags | QtCore.Qt.ItemIsDropEnabled
         
         return flags
 
