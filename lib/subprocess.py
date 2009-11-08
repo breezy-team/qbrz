@@ -425,6 +425,22 @@ class SubProcessWidget(QtGui.QWidget):
         self._delete_args_file()
         dir, args = self.commands.pop(0)
 
+        # Log the command we about to execute
+        def format_args_for_log(args):
+            r = ['bzr']
+            for a in args:
+                a = unicode(a).translate({
+                        ord(u'\n'): u'\\n',
+                        ord(u'\r'): u'\\r',
+                        ord(u'\t'): u'\\t',
+                        })
+                if " " in a:
+                    r.append('"%s"' % a)
+                else:
+                    r.append(a)
+            return ' '.join(r)
+        self.logMessageEx("Run command: "+format_args_for_log(args), "cmdline")
+
         args = bencode_unicode(args)
 
         # win32 has command-line length limit about 32K, but it seems 

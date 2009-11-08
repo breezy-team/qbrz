@@ -56,6 +56,9 @@ What's new in this release:
      in lightweight checkout from branch accessed via smart-server 
      (lp:, bzr+ssh://, bzr:// etc). 
      (Bug #434034 Bug #430382 Bug #463296, Alexander Belchenko)
+ * qsubprocess:
+   * Show actual command-line to user when we invoke action via qsubprocess.
+     (Bug #476025, Alexander Belchenko)
 
 
 0.15 "Yellow and green" - 2009-10-19
