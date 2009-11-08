@@ -25,6 +25,9 @@ What's new in this release:
  * qlog/qannotate:
    * Preserve leading whitespace in the lines of the log message.
      (Max Bowsher)
+ * qadd:
+   * Don't show unchanged directories that contain ignored files. 
+     (Bug #462435, Gary van der Merwe)
  * qcommit, qadd, qrevert:
    * Directoies with 4 or more sub items are grouped in the tree view.
      (Bug #456198, Gary van der Merwe)
