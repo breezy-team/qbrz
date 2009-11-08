@@ -59,6 +59,9 @@ What's new in this release:
  * qsubprocess:
    * Show actual command-line to user when we invoke action via qsubprocess.
      (Bug #476025, Alexander Belchenko)
+ * qcommit:
+   * Don't run `bzr add --no-recurse` before commit if there is nothing to add.
+     (Alexander Belchenko)
 
 
 0.15 "Yellow and green" - 2009-10-19
