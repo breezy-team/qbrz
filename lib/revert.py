@@ -62,7 +62,7 @@ class RevertWindow(SubProcessDialog):
         self.throbber = ThrobberWidget(self) 
 
         # Display the list of changed files
-        self.file_groupbox = QtGui.QGroupBox(gettext("Changes"), self)
+        self.file_groupbox = QtGui.QGroupBox(gettext("Select Changes to Revert"), self)
 
         self.filelist = TreeWidget(self.file_groupbox)
         self.filelist.throbber = self.throbber 
@@ -75,7 +75,7 @@ class RevertWindow(SubProcessDialog):
         self.filelist.filter_context_menu = filter_context_menu
 
         self.selectall_checkbox = SelectAllCheckBox(self.filelist, self.file_groupbox)
-        self.selectall_checkbox.setCheckState(QtCore.Qt.Checked)
+        self.selectall_checkbox.setCheckState(QtCore.Qt.Unchecked)
         self.selectall_checkbox.setEnabled(True)
 
         self.no_backup_checkbox = QtGui.QCheckBox(
@@ -175,7 +175,7 @@ class RevertWindow(SubProcessDialog):
                                                  self.tree)
             self.pending_merges.load()
             self.processEvents()
-        
+        self.selectall_checkbox.clicked(QtCore.Qt.Unchecked)
         self.throbber.hide()
 
 
