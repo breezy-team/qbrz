@@ -418,7 +418,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                             item_data = ModelItemData(path,
                                                       conflicts=[conflict])
                             fileid = conflict.file_id
-                            kind = self.tree.kind(fileid)
+                            kind = file_kind(self.tree.abspath(path))
                             item_data.item = InternalItem("", change.kind(),
                                                           fileid)
                             self.inventory_data_by_path[path] = item_data
