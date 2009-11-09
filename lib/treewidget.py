@@ -1765,7 +1765,11 @@ class TreeWidget(RevisionTreeView):
             QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
         if res == QtGui.QMessageBox.Yes:
             try:
-                self.tree.revert(paths, self.tree.basis_tree())
+                self.tree.lock_write()
+                try:
+                    self.tree.revert(paths, self.tree.basis_tree())
+                finally:
+                    self.tree.unlock()
             except Exception:
                 report_exception(type=SUB_LOAD_METHOD, window=self.window())
             # XXX - it would be good it we could just refresh the selected items
