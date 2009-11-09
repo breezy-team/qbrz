@@ -49,6 +49,8 @@ class RevertWindow(SubProcessDialog):
         self.tree = tree
         self.has_pending_merges = len(tree.get_parent_ids())>1
         self.initial_selected_list = selected_list
+        if self.initial_selected_list is None:
+            self.initial_selected_list = []
         
         SubProcessDialog.__init__(self,
                                   gettext("Revert"),
@@ -75,7 +77,6 @@ class RevertWindow(SubProcessDialog):
         self.filelist.filter_context_menu = filter_context_menu
 
         self.selectall_checkbox = SelectAllCheckBox(self.filelist, self.file_groupbox)
-        self.selectall_checkbox.setCheckState(QtCore.Qt.Unchecked)
         self.selectall_checkbox.setEnabled(True)
 
         self.no_backup_checkbox = QtGui.QCheckBox(
@@ -93,7 +94,6 @@ class RevertWindow(SubProcessDialog):
             self.file_groupbox.setCheckable(True)
             self.merges_groupbox = QtGui.QGroupBox(gettext("Pending Merges to Revert"))
             self.merges_groupbox.setCheckable(True)
-            self.merges_groupbox.setChecked(QtCore.Qt.Unchecked)
             # This keeps track of what the merges_groupbox was before the
             # select all changes it, so that it can put it back to the state
             # it was.
@@ -175,7 +175,7 @@ class RevertWindow(SubProcessDialog):
                                                  self.tree)
             self.pending_merges.load()
             self.processEvents()
-        self.selectall_checkbox.clicked(QtCore.Qt.Unchecked)
+        
         self.throbber.hide()
 
 
