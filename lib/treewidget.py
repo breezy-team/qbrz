@@ -844,11 +844,11 @@ class TreeModel(QtCore.QAbstractItemModel):
                 return QtCore.QVariant(item.name)
             if role == QtCore.Qt.EditRole:
                 parent = self.inventory_data[item_data.parent_id]
-                return item_data.path[len(parent.path):]
+                return QtCore.QVariant(item_data.path[len(parent.path):])
             if role == QtCore.Qt.DecorationRole:
                 if item_data.icon is None:
                     if item_data.change and not item_data.change.is_on_disk():
-                        item_data.icon = self.missing_icon
+                        item_data.icon = QtCore.QVariant(self.missing_icon)
                     elif isinstance(self.tree, WorkingTree):
                         abspath = self.tree.abspath(item_data.path)
                         info = QtCore.QFileInfo(abspath)
