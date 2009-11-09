@@ -1,3 +1,11 @@
+0.17 - in development
+---------------------
+
+ * treewidget:
+   * Fixed compatibility with PyQt < 4.6. 
+     (Bug #479093, Bug #478979, Gary van der Merwe)
+
+
 0.16 "Acacia" - 2009/11/9
 -------------------------
 What's new in this release:
