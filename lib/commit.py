@@ -177,7 +177,7 @@ class PendingMergesList(LogList):
 
     def create_context_menu(self):
         super(PendingMergesList, self).create_context_menu()
-        showinfo = QtGui.QAction("Show &infomation...", self)
+        showinfo = QtGui.QAction("Show &information...", self)
         self.context_menu.insertAction(self.context_menu.actions()[0],
                                        showinfo)
         self.context_menu.setDefaultAction(showinfo)
