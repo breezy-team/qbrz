@@ -7,6 +7,7 @@ Contributors:
  * Atsuo Ishimoto <ishimoto@ishimoto-PC>
  * B. Sygnat <b dot sygnat at gawab dot com>
  * Craig Hewetson <craighewetson at gmail dot com>
+ * David Roberts <smartgpx at gmail dot com>
  * Gary van der Merwe <garyvdm at gmail dot com>
  * Goffredo Baroncelli <kreijack at tiscalinet dot it>
  * HAYASHI Kentaro <kenhys at gigo-ice dot org>
