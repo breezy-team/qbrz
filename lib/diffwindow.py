@@ -208,7 +208,6 @@ class DiffWindow(QBzrWindow):
             self.throbber.hide()
 
     def load_branch_info(self):
-        
         (tree1, tree2,
          branch1, branch2,
          specific_files) = self.arg_provider.get_diff_window_args(self.processEvents)
@@ -413,4 +412,5 @@ class DiffWindow(QBzrWindow):
         return False
     
     def ext_diff_triggered(self, ext_diff):
+        """@param ext_diff: path to external diff executable."""
         show_diff(self.arg_provider, ext_diff=ext_diff, parent_window = self)

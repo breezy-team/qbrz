@@ -373,7 +373,6 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
     aliases = ['qdi']
 
     def get_diff_window_args(self, processEvents):
-        
         try:
             from bzrlib.diff import get_trees_and_branches_to_diff
             has_get_trees_and_branches_to_diff = True
@@ -398,17 +397,19 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
             else:
                 # If no path is given, the current working tree is used
                 default_location = CUR_DIR
-            
-            if self.old is None:
-                self.old = default_location
+
+            self_old = self.old
+            if self_old is None:
+                self_old = default_location
             wt, old_branch, rp = \
-                BzrDir.open_containing_tree_or_branch(self.old)
+                BzrDir.open_containing_tree_or_branch(self_old)
             processEvents()
-            if self.new is None:
-                self.new = default_location
-            if self.new != self.old :
+            self_new = self.new
+            if self_new is None:
+                self_new = default_location
+            if self_new != self_old :
                 wt, new_branch, rp = \
-                    BzrDir.open_containing_tree_or_branch(self.new)
+                    BzrDir.open_containing_tree_or_branch(self_new)
             else:
                 new_branch = old_branch
             processEvents()
@@ -422,10 +423,10 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
         elif self.revision and  len(self.revision) == 2:
             args.append("-r%s..%s" % (self.revision[0].user_spec,
                                        self.revision[1].user_spec))
-        
-        if self.new and not self.new==CUR_DIR:
+
+        if self.new and not self.new == CUR_DIR:
             args.append("--new=%s" % self.new)
-        if self.old and not self.old==CUR_DIR:
+        if self.old and not self.old == CUR_DIR:
             args.append("--old=%s" % self.old)
         
         if self.file_list:
