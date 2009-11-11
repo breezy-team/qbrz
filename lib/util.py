@@ -50,6 +50,7 @@ from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from bzrlib import errors
 from bzrlib.workingtree import WorkingTree
+from bzrlib import foreign
 ''')
 
 
@@ -57,10 +58,12 @@ _email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)', re.IGNOR
 _link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])', re.IGNORECASE)
 _link2_re = lazy_regex.lazy_compile(r'(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)', re.IGNORECASE)
 _tag_re = lazy_regex.lazy_compile(r'[, ]')
+_start_of_line_whitespace_re = lazy_regex.lazy_compile(r'(?m)^ +')
 
 
 def htmlize(text):
     text = htmlencode(text)
+    text = _start_of_line_whitespace_re.sub(lambda m: "&nbsp;" * len(m.group()), text)
     text = text.replace("\n", '<br />')
     text = _email_re.sub('<a href="mailto:\\1">\\1</a>', text)
     text = _link1_re.sub('\\1<a href="\\2://\\3">\\2://\\3</a>', text)
@@ -244,7 +247,7 @@ class QBzrGlobalConfig(IniBasedConfig):
         f.close()
 
 
-class _QBzrWindowBase:
+class _QBzrWindowBase(object):
 
     def set_title(self, title=None):
         if title:
@@ -407,6 +410,9 @@ class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
     def do_reject(self):
         self.reject()
 
+    def reject(self):
+        self.saveSize()
+        QtGui.QDialog.reject(self)
 
 throber_movie = None
 
@@ -575,6 +581,33 @@ def format_revision_html(rev, search_replace=None, show_timestamp=False):
                     dict(url=url, status=gettext(status))))
         if bugs:
             props.append((ngettext("Bug:", "Bugs:", len(bugs)), ", ".join(bugs)))
+
+        if isinstance(rev, foreign.ForeignRevision):
+            foreign_attribs = \
+                rev.mapping.vcs.show_foreign_revid(rev.foreign_revid)
+
+            keys = foreign_attribs.keys()
+            keys.sort()
+            for key in keys:
+                props.append((key + ":", foreign_attribs[key]))
+
+        elif ":" in rev.revision_id:
+            try:
+                foreign_revid, mapping = \
+                    foreign.foreign_vcs_registry.parse_revision_id(
+                        rev.revision_id)
+                
+                foreign_attribs = \
+                    mapping.vcs.show_foreign_revid(foreign_revid)
+                
+                keys = foreign_attribs.keys()
+                keys.sort()
+                for key in keys:
+                    props.append((key + ":", foreign_attribs[key]))
+
+            except errors.InvalidRevisionId:
+                pass
+
 
     text = []
     text.append('<table style="background:#EDEDED;" width="100%" cellspacing="0" cellpadding="0"><tr><td>')

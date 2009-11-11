@@ -49,6 +49,7 @@ from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.treewidget import (
     TreeWidget,
     SelectAllCheckBox,
+    PersistantItemReference,
     )
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.revisionview import RevisionView
@@ -176,7 +177,7 @@ class PendingMergesList(LogList):
 
     def create_context_menu(self):
         super(PendingMergesList, self).create_context_menu()
-        showinfo = QtGui.QAction("Show &infomation...", self)
+        showinfo = QtGui.QAction("Show &information...", self)
         self.context_menu.insertAction(self.context_menu.actions()[0],
                                        showinfo)
         self.context_menu.setDefaultAction(showinfo)
@@ -284,7 +285,7 @@ class CommitWindow(SubProcessDialog):
         self.filelist = TreeWidget(self)
         self.filelist.throbber = self.throbber
         self.filelist.tree_model.is_item_in_select_all = lambda item: (
-            item.change is not None and
+            item.change is None or
             item.change.is_versioned())
         
         self.file_words = {}
@@ -451,13 +452,24 @@ class CommitWindow(SubProcessDialog):
                 # we can't load the words list.
                 if not refresh:
                     fmodel = self.filelist.tree_filter_model
-                    #fmodel.setFilter(fmodel.UNVERSIONED, False)
+                    
+                    want_unversioned = self.show_nonversioned_checkbox.isChecked()
+                    fmodel.setFilter(fmodel.UNVERSIONED, want_unversioned)
+                    if not want_unversioned and self.initial_selected_list:
+                        # if there are any paths from the command line that
+                        # are not versioned, we want_unversioned.
+                        for path in self.initial_selected_list:
+                            if not self.tree.path2id(path):
+                                want_unversioned = True
+                                break
+                    
                     self.filelist.set_tree(
                         self.tree,
                         branch=self.tree.branch,
                         changes_mode=True,
-                        want_unversioned=self.show_nonversioned_checkbox.isChecked(),
-                        initial_checked_paths=self.initial_selected_list)
+                        want_unversioned=want_unversioned,
+                        initial_checked_paths=self.initial_selected_list,
+                        change_load_filter=lambda c:not c.is_ignored())
                 else:
                     self.filelist.refresh()
                 self.is_loading = False
@@ -491,7 +503,7 @@ class CommitWindow(SubProcessDialog):
                     file_words.add(os.path.split(path)[-1])
                     change = self.filelist.tree_model.inventory_data_by_path[
                                                                ref.path].change
-                    if change.is_renamed():
+                    if change and change.is_renamed():
                         file_words.add(change.oldpath())
                         file_words.add(os.path.split(change.oldpath())[-1])
                     #if num_versioned_files < MAX_AUTOCOMPLETE_FILES:
@@ -574,6 +586,7 @@ class CommitWindow(SubProcessDialog):
     def do_start(self):
         args = ["commit"]
         files_to_add = ["add", "--no-recurse"]
+        add_cmd_len = len(files_to_add)
         
         message = unicode(self.message.toPlainText()).strip() 
         if not message: 
@@ -642,7 +655,7 @@ class CommitWindow(SubProcessDialog):
         
         dir = self.tree.basedir
         commands = []
-        if len(files_to_add)>1:
+        if len(files_to_add) > add_cmd_len:
             commands.append((dir, files_to_add))
         commands.append((dir, args))
 
@@ -653,8 +666,9 @@ class CommitWindow(SubProcessDialog):
         """Show/hide non-versioned files."""
         if state and not self.filelist.want_unversioned:
             state = self.filelist.get_state()
-            self.filelist.set_tree(self.tree, changes_mode=True,
-                                   want_unversioned=True)
+            self.filelist.set_tree(
+                self.tree, changes_mode=True, want_unversioned=True,
+                change_load_filter=lambda c:not c.is_ignored())
             self.filelist.restore_state(state)
         
         fmodel = self.filelist.tree_filter_model

@@ -102,8 +102,9 @@ class InternalDiffArgProvider(DiffArgProvider):
         if revspec:
             args.append(revspec)
         
+        from bzrlib.workingtree import WorkingTree
         def get_base(branch, tree):
-            if tree:
+            if tree and isinstance(tree, WorkingTree):
                 return urlutils.local_path_to_url(tree.basedir)
             return branch.base
         
@@ -132,8 +133,6 @@ class InternalDiffArgProvider(DiffArgProvider):
             processEvents()
         if self.specific_files:
             args.extend(self.specific_files)
-        print dir
-        print args
         
         return dir, args
 

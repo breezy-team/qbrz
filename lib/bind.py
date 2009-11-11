@@ -100,15 +100,6 @@ class QBzrBindDialog(SubProcessDialog):
         bind_hbox.setStretchFactor(browse_button,0)
         bind_box.addRow(bind_hbox)
  
-        # Build the button box
-        self.buttonbox.clear()
-        self.bindButton = QtGui.QPushButton(gettext("Bind"))
-        self.buttonbox.addButton(self.bindButton,
-                                 QtGui.QDialogButtonBox.AcceptRole)      
-        cancelButton = StandardButton(BTN_CANCEL)
-        self.buttonbox.addButton(cancelButton,
-                                 QtGui.QDialogButtonBox.RejectRole)
- 
         # Put the form together
         layout = QtGui.QVBoxLayout(self)
         layout.addWidget(gbBind)

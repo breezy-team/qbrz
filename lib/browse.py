@@ -119,6 +119,8 @@ class BrowseWindow(QBzrWindow):
 
         self.windows = []
 
+        self.file_tree.setFocus()   # set focus so keyboard navigation will work from the beginning
+
     def show(self):
         # we show the bare form as soon as possible.
         QBzrWindow.show(self)

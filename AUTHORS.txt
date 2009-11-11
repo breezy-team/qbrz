@@ -4,6 +4,7 @@ Contributors:
  * Alexander Belchenko <bialix at ukr dot net>
  * Alexey Borzenkov <snaury at gmail dot com>
  * Alexey Stukalov <astukalov at gmail dot com>
+ * Atsuo Ishimoto <ishimoto@ishimoto-PC>
  * B. Sygnat <b dot sygnat at gawab dot com>
  * Craig Hewetson <craighewetson at gmail dot com>
  * Gary van der Merwe <garyvdm at gmail dot com>
@@ -18,6 +19,7 @@ Contributors:
  * Mario del Pozo <mariodpros at gmail dot com>
  * Mark Hammond <mhammond at skippinet dot com au>
  * Martin <gzlist at googlemail dot com>
+ * Max Bowsher <maxb at f2s dot com>
  * Neil Martinsen-Burrell <nmb at wartburg dot edu>
  * Nicholas Allen <nick dot allen at onlinehome dot de>
  * Ohad Kammar <ohad dot kammar at gmail dot com>

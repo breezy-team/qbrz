@@ -52,8 +52,9 @@ class LogList(RevisionTreeView):
 
         self.setItemDelegateForColumn(logmodel.COL_MESSAGE,
                                       GraphTagsBugsItemDelegate(self))
+        self.rev_no_item_delegate = RevNoItemDelegate(parent=self)
         self.setItemDelegateForColumn(logmodel.COL_REV,
-                                      RevNoItemDelegate(parent=self))
+                                      self.rev_no_item_delegate)
         self.processEvents = processEvents
         self.throbber = throbber
 
@@ -197,6 +198,17 @@ class LogList(RevisionTreeView):
         try:
             self.graph_provider.load_tags()
             self.log_model.load_graph_all_revisions()
+            
+            # Resize the rev no col.
+            main_line_digets = len("%d" % self.graph_provider.max_mainline_revno)
+            main_line_digets = max(main_line_digets, 4)
+            self.rev_no_item_delegate.max_mainline_digits = main_line_digets
+            header = self.header()
+            fm = self.fontMetrics()
+            col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
+                                                   None, self) + 1) *2
+            header.resizeSection(logmodel.COL_REV,
+                                 fm.width(("8"*main_line_digets)+".8.888") + col_margin)
         finally:
             self.graph_provider.unlock_branches()
         
@@ -303,12 +315,15 @@ class LogList(RevisionTreeView):
 
     def get_selection_indexes(self, index=None):
         if index is None:
-            return self.selectionModel().selectedRows(0)
+            return sorted(self.selectionModel().selectedRows(0), 
+                          key=lambda x: x.row())
         else:
             return [index]
     
-    def get_selection_top_and_parent_revids(self, index=None):
+    def get_selection_top_and_parent_revids_and_count(self, index=None):
         indexes = self.get_selection_indexes(index)
+        if len(indexes) == 0:
+            return None, None
         top_revid = str(indexes[0].data(logmodel.RevIdRole).toString())
         bot_revid = str(indexes[-1].data(logmodel.RevIdRole).toString())
         parents = self.graph_provider.graph_parents[bot_revid]
@@ -321,7 +336,7 @@ class LogList(RevisionTreeView):
                 parent_revid = self.graph_provider.graph.get_parent_map([bot_revid])[bot_revid][0]
         else:
             parent_revid = NULL_REVISION
-        return top_revid, parent_revid
+        return (top_revid, parent_revid), len(indexes)
     
     def set_search(self, str, field):
         self.graph_provider.set_search(str, field)
@@ -343,7 +358,11 @@ class LogList(RevisionTreeView):
                   specific_files=None, specific_file_ids=None,
                   ext_diff=None):
         
-        new_revid, old_revid = self.get_selection_top_and_parent_revids(index)
+        (new_revid, old_revid), count = \
+            self.get_selection_top_and_parent_revids_and_count(index)
+        if new_revid is None and old_revid is None:
+            # No revision selection.
+            return
         new_branch = self.graph_provider.get_revid_branch(new_revid)
         old_branch =  self.graph_provider.get_revid_branch(old_revid)
         
@@ -440,8 +459,8 @@ class GraphTagsBugsItemDelegate(StyledItemDelegate):
                             option, painter, widget)
         
         graphCols = 0
+        rect = option.rect
         if draw_graph:
-            rect = option.rect
             painter.save()
             try:
                 painter.setRenderHint(QtGui.QPainter.Antialiasing)            
@@ -553,7 +572,7 @@ class GraphTagsBugsItemDelegate(StyledItemDelegate):
         rect.adjust(x, 0, 0, 0)
         
         if not option.text.isEmpty():
-            painter.setPen(self.get_text_color(option))
+            painter.setPen(self.get_text_color(option, style))
             text_rect = rect.adjusted(0, 0, -text_margin, 0)
             painter.setFont(option.font)
             fm = painter.fontMetrics()

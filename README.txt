@@ -2,6 +2,11 @@
  QBzr - Qt-based front end for Bazaar
 ======================================
 
+QBzr is a cross platform, Qt-based front-end for Bazaar, providing GUI
+applications for many core bzr commands. In addition, it provides several
+special dialogs and helper commands. Equivalents for core bzr commands have
+the same names as CLI commands but with a prefix of "q".
+
 Requirements
 ============
 
@@ -9,7 +14,7 @@ Requirements
               
  * Bazaar VCS itself
 
- * PyQt 4.3 with Qt 4.3 or later
+ * PyQt 4.4 with Qt 4.4 or later
    http://www.riverbankcomputing.co.uk/pyqt/
    http://www.trolltech.com/products/qt
 
@@ -29,18 +34,55 @@ Other bzr plugins that improve QBzr
  * bzr-difftools (Improves the usability of launching external diffs)
    https://launchpad.net/bzr-difftools
 
+ * bzr-extmerge (Required to lauch external merge applications to resolve
+   conficts.)
+   https://launchpad.net/bzr-extmerge
+
 Provided Commands
 =================
 
-* qannotate - GUI interface for file annotation
-* qbrowse - Browse your branch a-la Trac Browse Source
-* qcat - View the contents of a file as of a given revision
-* qcommit - GUI interface to enter log message and select changes to commit
-* qconfig - Bazaar configuration
-* qdiff - Side-by-side and unidiff view of changes.
-* qlog - Show log messages in GUI window.
-* qpull - GUI interface for pull command
-* qpush - GUI interface for push command
+Basic q-commands:
+
+ * qadd - GUI for adding files or directories.
+ * qannotate - Show the origin of each line in a file.
+ * qbind - Convert the current branch into a checkout of the supplied branch.
+ * qbranch - Create a new copy of a branch.
+ * qcat - View the contents of a file as of a given revision.
+ * qcommit - GUI for committing revisions.
+ * qconflicts - Show conflicts.
+ * qdiff - Show differences in working tree in a GUI window.
+ * qexport - Export current or past revision to a destination directory or archive.
+ * qinfo - Shows information about the current location.
+ * qinit - Initializes a new branch or shared repository.
+ * qlog - Show log of a repository, branch, file, or directory in a Qt window.
+ * qmerge - Perform a three-way merge.
+ * qplugins - Display information about installed plugins.
+ * qpull - Turn this branch into a mirror of another branch.
+ * qpush - Update a mirror of this branch.
+ * qrevert - Revert changes files.
+ * qsend - Mail or create a merge-directive for submitting changes.
+ * qswitch - Set the branch of a checkout and update.
+ * qtag - Edit tags.
+ * qunbind - Convert the current checkout into a regular branch.
+ * quncommit - Move the tip of a branch to an earlier revision.
+ * qupdate - Update working tree with latest changes in the branch.
+ * qversion - Show version/system information.
+
+Hybrid dialogs:
+
+ * qgetnew - Creates a new working tree (either a checkout or full branch).
+ * qgetupdates - Fetches external changes into the working tree.
+
+Additional commands:
+
+ * qbrowse - Show inventory or working tree.
+ * qconfig - Configure Bazaar and QBzr.
+ * qrun - Run arbitrary bzr command.
+ * qviewer - Simple file viewer.
+
+Miscellaneous:
+
+ * bug-url - print full URL to a specific bug, or open it in your browser.
 
 
 Interface localization
@@ -117,5 +159,8 @@ depend on the kind of change. Use values 'True' or '1' to enable option.
 More Info
 =========
 
- * Bug Tracker, Source Code
+ * Mailing list/Discussion forum:
+   http://groups.google.com/group/qbzr
+
+ * Bug Tracker, Source Code, Translations, Questions:
    https://launchpad.net/qbzr

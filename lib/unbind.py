@@ -26,13 +26,11 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import (
     url_for_display,
-    StandardButton,
-    BTN_CANCEL
     )
 
 class QBzrUnbindDialog(SubProcessDialog):
      
-    def __init__(self, branch, ui_mode = None):
+    def __init__(self, branch, ui_mode=None):
 
         super(QBzrUnbindDialog, self).__init__(
                                   gettext("Unbind branch"),
@@ -43,43 +41,22 @@ class QBzrUnbindDialog(SubProcessDialog):
                                   parent = None,
                                   hide_progress=False,
                                   )
-        
         self.branch = branch
         
         gbBind = QtGui.QGroupBox(gettext("Unbind"), self)
-        
         bind_box = QtGui.QFormLayout(gbBind)
-                
         info_label = QtGui.QLabel(url_for_display(branch.base))
-                
         bind_box.addRow(gettext("Branch:"), info_label)
-            
 
         self.currbound = branch.get_bound_location()
         if self.currbound != None:
             curr_label = QtGui.QLabel(url_for_display(self.currbound))
-            
             bind_box.addRow(gettext("Bound to:"), curr_label)  
-
                     
         layout = QtGui.QVBoxLayout(self)
-        
         layout.addWidget(gbBind)
-        
-        self.buttonbox.clear()
-        
-        cancelButton = StandardButton(BTN_CANCEL)
-        
-        self.unbindButton = QtGui.QPushButton(gettext("Unbind"))
-        self.buttonbox.addButton(self.unbindButton,
-                                 QtGui.QDialogButtonBox.AcceptRole)     
-        
-        self.buttonbox.addButton(cancelButton,
-                                 QtGui.QDialogButtonBox.RejectRole)
-                
         layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
             
     def do_start(self):        
-        
         self.process_widget.do_start(None, 'unbind')

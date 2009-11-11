@@ -9,3 +9,4 @@ tags
 # files from standalone QBzr installation
 ./_lib
 ./uninst.exe
+launchpad-export.tar.gz
