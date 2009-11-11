@@ -21,9 +21,11 @@ from PyQt4 import QtCore, QtGui, Qt
 
 from bzrlib.bzrdir import BzrDir
 from bzrlib.revision import NULL_REVISION
+from bzrlib.revisionspec import RevisionSpec
 from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
                                                  RevNoItemDelegate,
                                                  StyledItemDelegate)
+from bzrlib.plugins.qbzr.lib.tag import TagWindow, CallBackTagWindow
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.trace import *
 from bzrlib.plugins.qbzr.lib.util import (
@@ -138,7 +140,9 @@ class LogList(RevisionTreeView):
                          self.show_context_menu)
             
             self.context_menu.addAction(gettext("Show &tree..."),
-                                        self.show_revision_tree)        
+                                        self.show_revision_tree)
+            self.context_menu.addAction(gettext("Tag &revision..."),
+                                        self.tag_revision)
 
     def load_branch(self, branch, fileids, tree=None):
         self.throbber.show()
@@ -210,6 +214,13 @@ class LogList(RevisionTreeView):
         
         # Start later so that it does not run in the loading queue.
         QtCore.QTimer.singleShot(1, self.graph_provider.load_filter_file_id)
+
+    def refresh_tags(self):
+        self.graph_provider.lock_read_branches()
+        try:
+            self.graph_provider.load_tags()
+        finally:
+            self.graph_provider.unlock_branches()
 
     def mousePressEvent (self, e):
         colapse_expand_click = False
@@ -332,6 +343,16 @@ class LogList(RevisionTreeView):
     
     def default_action(self, index=None):
         self.show_diff(index)
+        
+    def tag_revision(self):
+        revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
+        revno = self.graph_provider.revid_rev[revid].revno_str
+        revs = [RevisionSpec.from_string(revno)]
+        branch = self.graph_provider.get_revid_branch(revid)
+        action = TagWindow.action_from_options(force=False, delete=False)
+        window = CallBackTagWindow(branch, self.refresh_tags, action=action, revision=revs)
+        window.show()
+        self.window().windows.append(window)
     
     def show_diff(self, index=None,
                   specific_files=None, specific_file_ids=None,
@@ -380,7 +401,7 @@ class LogList(RevisionTreeView):
     def show_context_menu(self, pos):
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
-    
+
 class GraphTagsBugsItemDelegate(StyledItemDelegate):
 
     _tagColor = QtGui.QColor(80, 128, 32)

@@ -1,6 +1,7 @@
 0.17 - in development
 ---------------------
-
+ * qlog:
+   * Added "tag revision" action to context menu. (Craig Hewetson)
  * treewidget:
    * Fixed compatibility with PyQt < 4.6. 
      (Bug #479093, Bug #478979, Gary van der Merwe)
