@@ -202,12 +202,11 @@ class RevertWindow(SubProcessDialog):
     def merges_clicked(self, state):
         self.merges_base_checked = state
         
-#        This logic seems a bit wierd.
-#        if state:
-#            if self.file_groupbox.isChecked():
-#                self.selectall_checkbox.clicked(QtCore.Qt.Checked)
-#            else:
-#                self.selectall_checkbox.clicked(QtCore.Qt.Unchecked)
+        if state:
+            if self.file_groupbox.isChecked():
+                self.selectall_checkbox.clicked(QtCore.Qt.Checked)
+            else:
+                self.selectall_checkbox.clicked(QtCore.Qt.Unchecked)
         
         if not state:
             self.file_groupbox.setChecked(True)
