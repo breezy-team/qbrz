@@ -1,5 +1,6 @@
 from PyQt4 import QtGui, QtCore
 from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
+from bzrlib.plugins.qbzr.lib.util import is_valid_encoding
 import sys
 
 class EncodingSelector(QtGui.QWidget):
@@ -9,6 +10,7 @@ class EncodingSelector(QtGui.QWidget):
             'cp932', 'euc_jp', 'iso-2022-jp', # japanese common codecs.
             # todo: preset another codecs.
             ]
+    encodings = filter(is_valid_encoding, encodings)
 
     def __init__(self, initial_encoding = "UTF-8", label_text="Encoding:", *args):
         QtGui.QWidget.__init__(self, *args)
@@ -37,6 +39,15 @@ class EncodingSelector(QtGui.QWidget):
 
     encoding = property(getEncoding, setEncoding)
 
+    def _on_encoding_changed(self, encoding):
+        try:
+            encoding = str(encoding)
+            if is_valid_encoding(encoding):
+                self.onChanged(encoding)
+        except UnicodeException:
+            # when non-ascii string is inputted the box.
+            pass
+
     def onChanged(self, encoding):
-        """Override this."""
+        """Public event handler. Override this."""
         pass
