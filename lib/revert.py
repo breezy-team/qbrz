@@ -49,8 +49,6 @@ class RevertWindow(SubProcessDialog):
         self.tree = tree
         self.has_pending_merges = len(tree.get_parent_ids())>1
         self.initial_selected_list = selected_list
-        if self.initial_selected_list is None:
-            self.initial_selected_list = []
         
         SubProcessDialog.__init__(self,
                                   gettext("Revert"),
@@ -97,7 +95,7 @@ class RevertWindow(SubProcessDialog):
             # This keeps track of what the merges_groupbox was before the
             # select all changes it, so that it can put it back to the state
             # it was.
-            self.merges_base_checked = False
+            self.merges_base_checked = True
             self.pending_merges = PendingMergesList(self.processEvents,
                                                     self.throbber,
                                                     False,
@@ -162,11 +160,15 @@ class RevertWindow(SubProcessDialog):
         self.filelist.tree_model.checkable = True 
         fmodel = self.filelist.tree_filter_model 
         #fmodel.setFilter(fmodel.UNVERSIONED, False) 
+        if self.initial_selected_list is None and not self.pending_merges:
+            self.initial_selected_list = []
+        
         self.filelist.set_tree(self.tree, changes_mode=True,
                                want_unversioned=False,
                                initial_checked_paths=self.initial_selected_list)
         self.filelist_checked_base = list(
             self.filelist.tree_model.iter_checked())
+        self.selectall_checkbox.update_state()
         self.processEvents()
         
         if self.has_pending_merges:
