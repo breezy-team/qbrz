@@ -298,7 +298,7 @@ class AnnotateWindow(QBzrWindow):
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(self.throbber)
         vbox.addWidget(splitter)
-        hbox = QtGui.QHBoxLayout(self.centralwidget)
+        hbox = QtGui.QHBoxLayout()
         hbox.addWidget(self.encoding_selector)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
