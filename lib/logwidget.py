@@ -20,9 +20,12 @@
 from PyQt4 import QtCore, QtGui, Qt
 
 from bzrlib.bzrdir import BzrDir
+from bzrlib.revision import NULL_REVISION
+from bzrlib.revisionspec import RevisionSpec
 from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
                                                  RevNoItemDelegate,
                                                  StyledItemDelegate)
+from bzrlib.plugins.qbzr.lib.tag import TagWindow, CallBackTagWindow
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.trace import *
 from bzrlib.plugins.qbzr.lib.util import (
@@ -49,8 +52,9 @@ class LogList(RevisionTreeView):
 
         self.setItemDelegateForColumn(logmodel.COL_MESSAGE,
                                       GraphTagsBugsItemDelegate(self))
+        self.rev_no_item_delegate = RevNoItemDelegate(parent=self)
         self.setItemDelegateForColumn(logmodel.COL_REV,
-                                      RevNoItemDelegate(parent=self))
+                                      self.rev_no_item_delegate)
         self.processEvents = processEvents
         self.throbber = throbber
 
@@ -89,7 +93,7 @@ class LogList(RevisionTreeView):
         if self.view_commands:
             self.connect(self,
                          QtCore.SIGNAL("doubleClicked(QModelIndex)"),
-                         self.show_diff)
+                         self.default_action)
         self.context_menu = QtGui.QMenu(self)
         self.connect(self.log_model,
                      QtCore.SIGNAL("linesUpdated()"),
@@ -136,7 +140,9 @@ class LogList(RevisionTreeView):
                          self.show_context_menu)
             
             self.context_menu.addAction(gettext("Show &tree..."),
-                                        self.show_revision_tree)        
+                                        self.show_revision_tree)
+            self.context_menu.addAction(gettext("Tag &revision..."),
+                                        self.tag_revision)
 
     def load_branch(self, branch, fileids, tree=None):
         self.throbber.show()
@@ -192,11 +198,29 @@ class LogList(RevisionTreeView):
         try:
             self.graph_provider.load_tags()
             self.log_model.load_graph_all_revisions()
+            
+            # Resize the rev no col.
+            main_line_digets = len("%d" % self.graph_provider.max_mainline_revno)
+            main_line_digets = max(main_line_digets, 4)
+            self.rev_no_item_delegate.max_mainline_digits = main_line_digets
+            header = self.header()
+            fm = self.fontMetrics()
+            col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
+                                                   None, self) + 1) *2
+            header.resizeSection(logmodel.COL_REV,
+                                 fm.width(("8"*main_line_digets)+".8.888") + col_margin)
         finally:
             self.graph_provider.unlock_branches()
         
         # Start later so that it does not run in the loading queue.
         QtCore.QTimer.singleShot(1, self.graph_provider.load_filter_file_id)
+
+    def refresh_tags(self):
+        self.graph_provider.lock_read_branches()
+        try:
+            self.graph_provider.load_tags()
+        finally:
+            self.graph_provider.unlock_branches()
 
     def mousePressEvent (self, e):
         colapse_expand_click = False
@@ -252,7 +276,7 @@ class LogList(RevisionTreeView):
         e_key = e.key()
         if e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return) and self.view_commands:
             e.accept()
-            self.show_diff()
+            self.default_action()
         elif e_key in (QtCore.Qt.Key_Left, QtCore.Qt.Key_Right):
             e.accept()
             indexes = [index for index in self.selectedIndexes() if index.column()==0]
@@ -291,26 +315,54 @@ class LogList(RevisionTreeView):
 
     def get_selection_indexes(self, index=None):
         if index is None:
-            return self.selectionModel().selectedRows(0)
+            return sorted(self.selectionModel().selectedRows(0), 
+                          key=lambda x: x.row())
         else:
             return [index]
     
-    def get_selection_top_and_parent_revids(self, index=None):
+    def get_selection_top_and_parent_revids_and_count(self, index=None):
         indexes = self.get_selection_indexes(index)
+        if len(indexes) == 0:
+            return None, None
         top_revid = str(indexes[0].data(logmodel.RevIdRole).toString())
         bot_revid = str(indexes[-1].data(logmodel.RevIdRole).toString())
-        # We need a ui to select which parent.
-        parent_revid = self.graph_provider.graph_parents[bot_revid][0]
-        return top_revid, parent_revid
+        parents = self.graph_provider.graph_parents[bot_revid]
+        if parents:
+            # We need a ui to select which parent.
+            parent_revid = parents[0]
+            
+            # This is ugly. It is for the PendingMergesList in commit/revert.
+            if parent_revid == "root:":
+                parent_revid = self.graph_provider.graph.get_parent_map([bot_revid])[bot_revid][0]
+        else:
+            parent_revid = NULL_REVISION
+        return (top_revid, parent_revid), len(indexes)
     
     def set_search(self, str, field):
         self.graph_provider.set_search(str, field)
+    
+    def default_action(self, index=None):
+        self.show_diff(index)
+        
+    def tag_revision(self):
+        revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
+        revno = self.graph_provider.revid_rev[revid].revno_str
+        revs = [RevisionSpec.from_string(revno)]
+        branch = self.graph_provider.get_revid_branch(revid)
+        action = TagWindow.action_from_options(force=False, delete=False)
+        window = CallBackTagWindow(branch, self.refresh_tags, action=action, revision=revs)
+        window.show()
+        self.window().windows.append(window)
     
     def show_diff(self, index=None,
                   specific_files=None, specific_file_ids=None,
                   ext_diff=None):
         
-        new_revid, old_revid = self.get_selection_top_and_parent_revids(index)
+        (new_revid, old_revid), count = \
+            self.get_selection_top_and_parent_revids_and_count(index)
+        if new_revid is None and old_revid is None:
+            # No revision selection.
+            return
         new_branch = self.graph_provider.get_revid_branch(new_revid)
         old_branch =  self.graph_provider.get_revid_branch(old_revid)
         
@@ -349,7 +401,7 @@ class LogList(RevisionTreeView):
     def show_context_menu(self, pos):
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
-    
+
 class GraphTagsBugsItemDelegate(StyledItemDelegate):
 
     _tagColor = QtGui.QColor(80, 128, 32)
@@ -407,8 +459,8 @@ class GraphTagsBugsItemDelegate(StyledItemDelegate):
                             option, painter, widget)
         
         graphCols = 0
+        rect = option.rect
         if draw_graph:
-            rect = option.rect
             painter.save()
             try:
                 painter.setRenderHint(QtGui.QPainter.Antialiasing)            
@@ -520,7 +572,7 @@ class GraphTagsBugsItemDelegate(StyledItemDelegate):
         rect.adjust(x, 0, 0, 0)
         
         if not option.text.isEmpty():
-            painter.setPen(self.get_text_color(option))
+            painter.setPen(self.get_text_color(option, style))
             text_rect = rect.adjusted(0, 0, -text_margin, 0)
             painter.setFont(option.font)
             fm = painter.fontMetrics()

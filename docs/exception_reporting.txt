@@ -1,0 +1,65 @@
+Exception reporting in QBzr
+***************************
+Overview
+========
+QBzr has a global exception handler. This will either report the exception
+to the command line, or show a dialog with the error. The behaviour of this
+can be modified to suit the area of the program.
+
+Modes
+=====
+There are 3 different modes for the exception reporting: (In the code, these
+are called "type")
+
+
+MAIN_LOAD_METHOD
+----------------
+The behaviour of this mode depends on wether the window is in ui_mode or not.
+If in ui_mode, the window is closed, and the report is written to the console.
+If not in ui mode, the report is displayed in a dialog. This dialog only has
+one button - "Close", which closes both this dialog, and the window.
+
+This mode should be used for initial window loding methods, where if the method
+fail, then the dialog would be useless, and hence gets closed every time.
+
+SUB_LOAD_METHOD
+--------------
+The behaviour of this mode is to show the report in a dialog, with just a close
+button. When the close button is clicked, the report dialog is closed, but not
+the window.
+
+The mode should be used for methods where you are executing and action, or
+loading data from user input provided in the gui, e.g. when you open a branch,
+and the location is from a text edit. In these cases, you need to tell the user
+that there was an error, but allow the user to continue working.
+
+ITEM_OR_EVENT_METHOD
+--------------------
+The behaviour of this mode is to show the report in a dialog, with just a close
+and a ignore button. When the close button is clicked, the report dialog and the
+window are closed. If the ignor button is pressed, just the report dialog is
+closed.
+
+If no mode it specifed by the method below, then the global exception handler
+uses this as the default, and hence covers alot of unexpected errors. It gives
+the user the option to ignore a minor error, and continue working.
+
+Controlling the mode
+====================
+You can either decorate your method with @reports_exception, which wraps your
+method in a try..except for every time is is called. Or you can have your own
+try..except, and call report_exception in the except. Both of these except a
+type paramater, with MAIN_LOAD_METHOD as the default.
+
+E.g.:
+
+@reports_exception() 
+def load(self):
+
+@reports_exception(type=SUB_LOAD_METHOD)
+def refresh(self):
+
+try:
+    self.tree.add(paths)
+except Exception:
+    report_exception(type=SUB_LOAD_METHOD, window=self.window())

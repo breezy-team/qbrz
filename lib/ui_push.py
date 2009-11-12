@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/push.ui'
 #
-# Created: Thu Jul 30 12:02:52 2009
+# Created: Mon Oct 05 19:41:19 2009
 #      by: PyQt4 UI code generator 4.4.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -39,7 +39,7 @@ class Ui_PushForm(object):
         self.location_picker.setObjectName("location_picker")
         self.gridLayout.addWidget(self.location_picker, 0, 2, 1, 1)
         self.remember = QtGui.QCheckBox(self.groupBox)
-        self.remember.setChecked(True)
+        self.remember.setChecked(False)
         self.remember.setObjectName("remember")
         self.gridLayout.addWidget(self.remember, 1, 0, 1, 3)
         self.overwrite = QtGui.QCheckBox(self.groupBox)

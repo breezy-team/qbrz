@@ -16,9 +16,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib import tests
+from bzrlib import (
+    errors,
+    tests,
+    )
+from bzrlib.transport import memory
 from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
-from bzrlib import errors
+
 
 class TestLogGraphProvider(tests.TestCaseWithTransport):
 
@@ -79,18 +83,15 @@ class TestLogGraphProvider(tests.TestCaseWithTransport):
         self.assertEqual(None, bi.index)
 
         self.assertEqual(['file1-id'], gp.fileids)
-        self.assertFalse(gp.has_dir)
         
         gp.open_branch(branch, tree=tree, file_ids = ['dir-id'])        
         self.assertEqual(['file1-id', 'dir-id'], gp.fileids)
-        self.assertTrue(gp.has_dir)
         
         # Check that a new branch has not been added.
         self.assertLength(1, gp.branches)
         
         gp.open_branch(branch, tree=tree, file_ids = ['file3-id'])
         self.assertEqual(['file1-id', 'dir-id','file3-id'], gp.fileids)
-        self.assertTrue(gp.has_dir)
         
         # Check that a new branch has not been added.
         self.assertLength(1, gp.branches)
@@ -149,28 +150,30 @@ class TestLogGraphProvider(tests.TestCaseWithTransport):
                           (tree2.basedir, tree2.branch.base, None))),
                          set(self.branches_to_base(gp.branches)))
     
-    def test_open_locations_raise_not_a_branch(self):
+    def test_open_locations_in_shared_reporaise_not_a_branch(self):
         repo = self.make_repository("repo", shared=True)
         gp = LogGraphProvider(False)
         self.assertRaises(errors.NotBranchError,
                           gp.open_locations, ["repo/non_existant_branch"])
+
+    def test_open_locations_raise_not_a_branch(self):
+        self.vfs_transport_factory = memory.MemoryServer
+        gp = LogGraphProvider(False)
         self.assertRaises(errors.NotBranchError,
-                          gp.open_locations, ["/non_existant_branch"])
+                          gp.open_locations,
+                          [self.get_url("non_existant_branch")])
 
     def check_open_location_files(self):
         gp = LogGraphProvider(False)
         
         gp.open_locations(['branch/file1'])
         self.assertEqual(['file1-id'], gp.fileids)
-        self.assertFalse(gp.has_dir)
         
         gp.open_locations(['branch/dir'])
         self.assertEqual(['file1-id', 'dir-id'], gp.fileids)
-        self.assertTrue(gp.has_dir)
         
         gp.open_locations(['branch/file3'])
         self.assertEqual(['file1-id', 'dir-id','file3-id'], gp.fileids)
-        self.assertTrue(gp.has_dir)
     
     def test_open_locations_files(self):
         tree = self.make_branch_and_tree_with_files_and_dir()

@@ -20,7 +20,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from bzrlib.tests import TestCase
-from bzrlib.plugins.qbzr.lib.subprocess import bencode_unicode
+from bzrlib.plugins.qbzr.lib.subprocess import (
+    bdecode_prompt,
+    bencode_prompt,
+    bencode_unicode,
+    )
 
 
 class TestBencode(TestCase):
@@ -29,3 +33,15 @@ class TestBencode(TestCase):
         self.assertEqual(u"l7:versione", bencode_unicode(["version"]))
         self.assertEqual(u"l3:add3:\u1234e", 
             bencode_unicode([u"add", u"\u1234"]))
+
+    def test_bencode_prompt(self):
+        self.assertEqual("4:spam", bencode_prompt('spam'))
+        self.assertEqual("10:spam\\neggs", bencode_prompt('spam'+'\n'+'eggs'))
+        self.assertEqual("14:\\u0420\\n\\u0421",
+            bencode_prompt(u'\u0420\n\u0421'))
+
+    def test_bdecode_prompt(self):
+        self.assertEqual('spam', bdecode_prompt("4:spam"))
+        self.assertEqual('spam'+'\n'+'eggs', bdecode_prompt("10:spam\\neggs"))
+        self.assertEqual(u'\u0420\n\u0421',
+            bdecode_prompt("14:\\u0420\\n\\u0421"))

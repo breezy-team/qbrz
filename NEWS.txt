@@ -1,12 +1,207 @@
-0.15 - in development
+0.17 - in development
 ---------------------
+ * qdiff:
+   * Fixed problem with invoking external diff from qdiff dialog 
+     when the current directory is not repository root. 
+     (Bug #439084, Alexander Belchenko)
+ * qlog:
+   * Added "tag revision" action to context menu. (Craig Hewetson)
+ * treewidget:
+   * Fixed compatibility with PyQt < 4.6. 
+     (Bug #479093, Bug #478979, Gary van der Merwe)
+ * Added Czech translations.
+
+
+0.16 "Acacia" - 2009/11/9
+-------------------------
+What's new in this release:
+
+ * qswitch:
+   * Added support for --create-branch option to "bzr switch". (A. S. Budden)
+ * SubprocessUIFactory and QUIFactory now both support get_username, and
+   get_boolean. (Bug #421851, Gary van der Merwe)
+ * Save the size of Dialogs when the user press Esc. (Bug #417809,
+   Gary van der Merwe)
+ * qlog:
+   * Get the max main_line digets in a different way so that we don't break 
+     --no-graph. (Bug #455867, Gary van der Merwe)
+   * Corrected the margin for the revision number column. (Gary van der Merwe)
+   * When loading the file list delta, only lock the repositories that are
+     being used. If the 2 trees are from the same repositories, load them 
+     together. (Gary van der Merwe)
+   * When viewing a svn repo, only show the file list if 1 revision is selected,
+     and if so, use a optimized method to do so. (Bug #450225,
+     Gary van der Merwe)
+   * Show a throbber above the file list while a delta is being loaded.
+     (Gary van der Merwe)
+   * Fix a bug when refreshing a branch with revisions that have been removed.
+     (Bug #435486, Gary van der Merwe)
+ * qlog/qannotate:
+   * Preserve leading whitespace in the lines of the log message.
+     (Max Bowsher)
+ * qadd:
+   * Don't show unchanged directories that contain ignored files. 
+     (Bug #462435, Gary van der Merwe)
+ * qcommit, qadd, qrevert:
+   * Directoies with 4 or more sub items are grouped in the tree view.
+     (Bug #456198, Gary van der Merwe)
+   * Correct the old path shown for renamed files. (Bug #432572,
+     Gary van der Merwe)
+   * Passing a directory via the command line now correctly checks the
+     directory. (Bug #435034, Gary van der Merwe)
+   * For qcommit, It is now possible to select unversioned file and directories
+     via the command line. (Gary van der Merwe)
+   * Automaticly expand to the check items on load. (Gary van der Merwe)
+   * Fix View for unversoined files when run from a sub directory of the
+     working tree. (Gary van der Merwe)
+ * qcommit/qbrowse:
+   * Conflicts are shown in the status column. External merge applications
+     can be launched to resolve these conflicts, and the conflicts can be
+     marked as merged. (Bug #174509, Gary van der Merwe)
+   * Improved the usibility of the context menu add, and revert actions.
+     These now directly use the api, rather than via subprocess. There is
+     now no prompt for add. With large trees, there is less flicker when the
+     tree is refreshed, and the scroll position is remembered.
+     (Gary van der Merwe)
+   * It is now possible to rename and move files or directories, and to mark
+     files or directories that have allready been renamed or moved as such.
+     (Gary van der Merwe)
+   * It is now possible to remove files from the branch. (Gary van der Merwe)
+   * Show blank icon for missing files. (Bug #418471, Gary van der Merwe)
+ * qcommit/uncommit:
+   * Catch AttributeError in save of commit_data during qcommit and/or uncommit 
+     in lightweight checkout from branch accessed via smart-server 
+     (lp:, bzr+ssh://, bzr:// etc). 
+     (Bug #434034 Bug #430382 Bug #463296, Alexander Belchenko)
+ * qsubprocess:
+   * Show actual command-line to user when we invoke action via qsubprocess.
+     (Bug #476025, Alexander Belchenko)
+ * qcommit:
+   * Don't run `bzr add --no-recurse` before commit if there is nothing to add.
+     (Alexander Belchenko)
+ * qplugins:
+   * Format plugin version nicely even if it does not follow bzr standards on
+     version_info tuple. (Bug #475286, Alexander Belchenko)
+
+
+0.15 "Yellow and green" - 2009-10-19
+------------------------------------
+What's new in this release: 
+
+ * Compatible with bzr >= 1.17 (works fine with 2.0.x and 2.1.x series).
+ * New qrun dialog to launch any (non-interactive) bzr command.
+ * Improved speed of qcat, qdiff, qlog.
+ * Added Browse button for editor selection in qconfig.
+ * qconflicts: Enable multiple selections of conflict items to resolve 
+   or launch merge tool for them.
+ * qgetupdates and qupdate dialogs now properly support all 3 cases:
+   * update tree
+   * update bound branch
+   * update lightweight checkout
+ * qlog can display foreign revision info if available.
+ * Sort tags alphabeticaly and case-insensitive in qtag dialog.
+ * qexport now has sensible defaults and more user-friendly archive
+   types (e.g. tar.gz instead of tgz) displayed in the combo box.
+   On windows, the default archive type is now zip as well.
+ * And more than 37 bugfixes (plus all critical bugfixes from 0.14.x releases).
+
+Detailed changelog:
+
+ * Compatible with bzr >= 1.17 (works fine with 2.0.x and 2.1.x series).
+ * Internal: 
+   * Install QUIFactory after we have properly initialize QApplication.
+     (#430232, John Arbash Meinel)
+   * Better compatibility of qbzr test suite with bzr 2.1.
+     (#433843, Vincent Ladeuil)
+   * Use unicode('.') everywhere as current directory marker. (Naoki INADA)
+   * Don't bundle PyQt4 and Pygments libs to Windows installer anymore.
+     (Alexander Belchenko)
+   * Get rid of old-style classes to be compatible with PyQt 4.6.
+     (#447214)
  * New dialog:
     * qrun (Alexander Belchenko)
- * qsubprocess: new command-line option --bencode to use bencoded command list.
-   (#392920, Alexander Belchenko)
+ * qadd:
+   * Properly support adding unversioned files to newly added directory.
+     (#418520, Gary van der Merwe)
+ * qbind/qunbind:
+   * Show Close, not Ok/Cancel, on completion. (#449489, Ian Clatworthy)
+ * qcat:
+   * Improve speed of syntax highlighting. (#442965, Atsuo Ishimoto)
+ * qconfig:
+   * Added Browse button for editor selection. (#430192, Alexander Belchenko)
+ * qconflicts:
+   * Enable multiple selections of conflict items to resolve or launch merge
+     tool for them. (#415393, Craig Hewetson)
+ * qdiff:
+   * More responsive dialog during diff loading. (Gary van der Merwe)
+   * Better support for external diff tools. 
+     (#422688, #423221, Gary van der Merwe)
+ * qgetupdates:
+   * Now able to update lightweight checkouts. (Alexander Belchenko)
+ * qlog:
+   * More responsive dialog during revision loading. (Gary van der Merwe)
+   * Faster qlog on directory. (Gary van der Merwe)
+   * Show the revision html, and file delta for all selected revisions.
+     (#412029, Gary van der Merwe)
+   * Don't show the throbber when loading revisions from a remote repo
+     to avoid weird behavior. (#412894, Gary van der Merwe)
+   * Fixed regression with --no-graph feature. (#448232, Craig Hewetson)
+   * Display foreign revision info if available. 
+     (John Szakmeister, Gary van der Merwe)
+   * Auto-adjust revno column to the number of digits in latest revno
+     on mainline. (#450179, Gary van der Merwe)
+ * qpull/qpush:
+   * Don't remember location by default. (Alexander Belchenko)
+ * qsubprocess: 
+   * New command-line option --bencode to use bencoded command list.
+     (#392920, Alexander Belchenko)
+   * Very long command-line passed to qsubprocess via temp file 
+     regardless of platform. (#387320, Alexander Belchenko)
  * qtag: 
-   * sort tags alphabeticaly and case-insensitive. (#423075, Craig Hewetson)
+   * Sort tags alphabeticaly and case-insensitive. (#423075, Craig Hewetson)
+   * Save/restore the size of dialog. (#435859, Craig Hewetson)
+ * qupdate:
+   * Now working for bound branches (aka heavyweight checkouts).
+     (#422649, Craig Hewetson)
+
+
+0.14.5 "Dropzone" - 2009-10-31
+------------------------------
+Bugfixes and backported bugfixes.
+
+ * qcommit:
+   * Catch AttributeError in save of commit_data during qcommit and/or uncommit 
+     in lightweight checkout from branch accessed via smart-server 
+     (lp:, bzr+ssh://, bzr:// etc). 
+     (#434034 #430382 #463296, Alexander Belchenko)
+ * qlog:
+   * Avoid a deprecation warning when diffing the first rev in a branch.
+     (John Szakmeister)
+ * qadd:
+   * Properly support adding unversioned files to newly added directory.
+     (#418520, Gary van der Merwe)
+ * qtag: 
    * save/restore the size of dialog. (#435859, Craig Hewetson)
+ * Save the size of Dialogs when the user press Esc. (Bug 417809,
+   Gary van der Merwe)
+ * qsubprocess: 
+   * new command-line option --bencode to use bencoded command list.
+     (#392920, Alexander Belchenko)
+   * Very long command-line passed to qsubprocess via temp file 
+     regardless of platform. (Alexander Belchenko)
+
+
+0.14.4 "Kenny" - 2009-10-17
+---------------------------
+Critical Koala bugfixes.
+
+ * Internal: get rid of old-style classes to be compatible with PyQt 4.6.
+   (#447214)
+ * qlog:
+   * handle revids as plain strings, not unicode. (#452235)
+ * qcommit/qrevert: 
+   * Fixed a bug were the pending merges graph was being loaded
+     twice. (Gary van der Merwe)
 
 
 0.14.3 - 2009-10-02

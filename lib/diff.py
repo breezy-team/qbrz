@@ -59,7 +59,7 @@ def show_diff(arg_provider, ext_diff=None, parent_window=None):
         dir, extra_args = arg_provider.get_ext_diff_args(
                                         QtCore.QCoreApplication.processEvents)
         args.extend(extra_args)
-        
+
         window = SimpleSubProcessDialog("External Diff",
                                         desc=ext_diff,
                                         args=args,
@@ -130,4 +130,3 @@ class DiffButtons(QtGui.QWidget):
         if ext_diff is None:
             ext_diff = QtCore.QString(default_diff)
         self.emit(QtCore.SIGNAL("triggered(QString)"), ext_diff)
-

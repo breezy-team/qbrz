@@ -50,7 +50,14 @@ from bzrlib.plugins.qbzr.lib.trace import (
 from bzrlib.ui.text import TextProgressView, TextUIFactory
 
 
-class SubProcessWindowBase:
+# Subprocess service messages markers
+SUB_PROGRESS = "qbzr:PROGRESS:"
+SUB_GETPASS = "qbzr:GETPASS:"
+SUB_GETUSER = "qbzr:GETUSER:"
+SUB_GETBOOL = "qbzr:GETBOOL:"
+
+
+class SubProcessWindowBase(object):
 
     def __init_internal__(self, title,
                           name="genericsubprocess",
@@ -425,6 +432,25 @@ class SubProcessWidget(QtGui.QWidget):
         self._delete_args_file()
         dir, args = self.commands.pop(0)
 
+        # Log the command we about to execute
+        def format_args_for_log(args):
+            r = ['bzr']
+            for a in args:
+                a = unicode(a).translate({
+                        ord(u'\n'): u'\\n',
+                        ord(u'\r'): u'\\r',
+                        ord(u'\t'): u'\\t',
+                        })
+                if " " in a:
+                    r.append('"%s"' % a)
+                else:
+                    r.append(a)
+            s = ' '.join(r)
+            if len(s) > 128:  # XXX make it configurable?
+                s = s[:128] + ' ...'
+            return s
+        self.logMessageEx("Run command: "+format_args_for_log(args), "cmdline")
+
         args = bencode_unicode(args)
 
         # win32 has command-line length limit about 32K, but it seems 
@@ -499,20 +525,38 @@ class SubProcessWidget(QtGui.QWidget):
         data = str(self.process.readAllStandardOutput())
         # we need unicode for all strings except bencoded streams
         for line in data.splitlines():
-            if line.startswith("qbzr:PROGRESS:"):
+            if line.startswith(SUB_PROGRESS):
                 # but we have to ensure we have unicode after bdecode
-                progress, transport_activity, messages = map(ensure_unicode, bencode.bdecode(line[14:]))
+                progress, transport_activity, messages = map(ensure_unicode,
+                    bencode.bdecode(line[len(SUB_PROGRESS):]))
                 self.setProgress(progress, messages, transport_activity)
-            elif line.startswith("qbzr:GETPASS:"):
-                prompt = bencode.bdecode(line[13:]).decode('utf-8')
+            elif line.startswith(SUB_GETPASS):
+                prompt = bdecode_prompt(line[len(SUB_GETPASS):])
                 passwd, ok = QtGui.QInputDialog.getText(self,
                                                         gettext("Enter Password"),
                                                         prompt,
                                                         QtGui.QLineEdit.Password)
                 data = unicode(passwd).encode('utf-8'), int(ok)
-                self.process.write("qbzr:GETPASS:"+bencode.bencode(data)+"\n")
+                self.process.write(SUB_GETPASS + bencode.bencode(data) + "\n")
                 if not ok:
                     self.abort_futher_processes()
+            elif line.startswith(SUB_GETUSER):
+                prompt = bdecode_prompt(line[len(SUB_GETUSER):])
+                passwd, ok = QtGui.QInputDialog.getText(self,
+                                                        gettext("Enter Username"),
+                                                        prompt)
+                data = unicode(passwd).encode('utf-8'), int(ok)
+                self.process.write(SUB_GETUSER + bencode.bencode(data) + "\n")
+                if not ok:
+                    self.abort_futher_processes()
+            elif line.startswith(SUB_GETBOOL):
+                prompt = bdecode_prompt(line[len(SUB_GETBOOL):])
+                button = QtGui.QMessageBox.question(
+                    self, "Bazaar", prompt,
+                    QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+                
+                data = (button == QtGui.QMessageBox.Yes)
+                self.process.write(SUB_GETBOOL + bencode.bencode(data) + "\n")
             else:
                 line = line.decode(self.encoding)
                 self.logMessage(line)
@@ -640,8 +684,8 @@ class SubprocessProgressView (TextProgressView):
 
         trans = self._last_transport_msg
 
-        self._term_file.write('qbzr:PROGRESS:' + bencode.bencode((progress,
-                              trans, task_msg)) + '\n')
+        self._term_file.write(
+            SUB_PROGRESS + bencode.bencode((progress, trans, task_msg)) + '\n')
         self._term_file.flush()
 
     def clear(self):
@@ -663,18 +707,32 @@ class SubprocessUIFactory(TextUIFactory):
         cursor at the leftmost position."""
         pass
 
-    def get_password(self, prompt='', **kwargs):
-        prompt = prompt % kwargs
-        self.stdout.write('qbzr:GETPASS:' + bencode.bencode(prompt.encode('utf-8')) + '\n')
+    def _get_answer_from_main(self, name, arg):
+        self.stdout.write(name + bencode_prompt(arg) + '\n')
         self.stdout.flush()
         line = self.stdin.readline()
-        if line.startswith('qbzr:GETPASS:'):
-            passwd, accepted = bencode.bdecode(line[13:].rstrip('\r\n'))
-            if accepted:
-                return passwd
-            else:
-                raise KeyboardInterrupt()
-        raise Exception("Did not recive a password from the main process.")
+        if line.startswith(name):
+            return bencode.bdecode(line[len(name):].rstrip('\r\n'))
+        raise Exception("Did not recive a answer from the main process.")
+    
+    def get_password(self, prompt='', **kwargs):
+        prompt = prompt % kwargs
+        passwd, accepted = self._get_answer_from_main(SUB_GETPASS, prompt)
+        if accepted:
+            return passwd
+        else:
+            raise KeyboardInterrupt()
+    
+    def get_username(self, prompt='', **kwargs):
+        prompt = prompt % kwargs
+        username, accepted = self._get_answer_from_main(SUB_GETUSER, prompt)
+        if accepted:
+            return username
+        else:
+            raise KeyboardInterrupt()
+
+    def get_boolean(self, prompt):
+        return self._get_answer_from_main(SUB_GETBOOL, prompt+'?')
 
 
 if MS_WINDOWS:
@@ -715,3 +773,9 @@ def bencode_unicode(args):
     """
     args_utf8 = bencode.bencode([unicode(a).encode('utf-8') for a in args])
     return unicode(args_utf8, 'utf-8')
+
+def bencode_prompt(arg):
+    return bencode.bencode(arg.encode('unicode-escape'))
+
+def bdecode_prompt(s):
+    return bencode.bdecode(s).decode('unicode-escape')

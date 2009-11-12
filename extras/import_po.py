@@ -69,7 +69,8 @@ class import_po(Command):
             fn = parts[-1]
             if not fn:
                 continue
-            entries.append((n, os.path.join(self.output_dir, fn)))
+            if t.getmember(n).isfile():
+                entries.append((n, os.path.join(self.output_dir, fn)))
             if fn.endswith('.pot'):
                 assert pot_file is None, "There is 2 POT files in archive!"
                 pot_file = fn

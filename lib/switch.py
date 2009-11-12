@@ -108,6 +108,11 @@ class QBzrSwitchWindow(SubProcessDialog):
         switch_hbox.setStretchFactor(browse_button,0)
         
         switch_box.addRow(switch_hbox)
+
+        create_branch_box = QtGui.QCheckBox(gettext("Create Branch before switching"))
+        create_branch_box.setChecked(False)
+        switch_box.addRow(create_branch_box)
+        self.create_branch_box = create_branch_box
         
         layout = QtGui.QVBoxLayout(self)
         
@@ -164,4 +169,7 @@ class QBzrSwitchWindow(SubProcessDialog):
     
     def do_start(self):        
         location = str(self.branch_combo.currentText())
-        self.process_widget.do_start(None, 'switch', location)
+        if self.create_branch_box.isChecked():
+            self.process_widget.do_start(None, 'switch', '--create-branch', location)
+        else:
+            self.process_widget.do_start(None, 'switch', location)

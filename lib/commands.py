@@ -82,6 +82,8 @@ from bzrlib.plugins.qbzr.lib.send import SendWindow
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
 from bzrlib.plugins.qbzr.lib.diff_arg import DiffArgProvider
 
+CUR_DIR=u'.'
+
 class InvalidEncodingOption(errors.BzrError):
 
     _fmt = ('Invalid encoding: %(encoding)s\n'
@@ -310,7 +312,7 @@ class cmd_qconflicts(QBzrCommand):
 
     def _qbzr_run(self):
         from bzrlib.plugins.qbzr.lib.conflicts import ConflictsWindow
-        self.main_window = ConflictsWindow(u'.')
+        self.main_window = ConflictsWindow(CUR_DIR)
         self.main_window.show()
         self._application.exec_()
 
@@ -371,33 +373,47 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
     aliases = ['qdi']
 
     def get_diff_window_args(self, processEvents):
-        from bzrlib.diff import _get_trees_to_diff
+        try:
+            from bzrlib.diff import get_trees_and_branches_to_diff
+            has_get_trees_and_branches_to_diff = True
+        except ImportError:
+            from bzrlib.diff import _get_trees_to_diff
+            has_get_trees_and_branches_to_diff = False
+        
+        if has_get_trees_and_branches_to_diff:
+            (old_tree, new_tree,
+             old_branch, new_branch,
+             specific_files, extra_trees) = \
+               get_trees_and_branches_to_diff(self.file_list, self.revision,
+                                              self.old, self.new)
+        else:
+            old_tree, new_tree, specific_files, extra_trees = \
+                    _get_trees_to_diff(self.file_list, self.revision,
+                                       self.old, self.new)
+            processEvents()
+            
+            if self.file_list:
+                default_location = self.file_list[0]
+            else:
+                # If no path is given, the current working tree is used
+                default_location = CUR_DIR
 
-        old_tree, new_tree, specific_files, extra_trees = \
-                _get_trees_to_diff(self.file_list, self.revision,
-                                   self.old, self.new)
-        processEvents()
-        
-        if self.file_list:
-            default_location = self.file_list[0]
-        else:
-            # If no path is given, the current working tree is used
-            default_location = u'.'
-        
-        if self.old is None:
-            self.old = default_location
-        wt, old_branch, rp = \
-            BzrDir.open_containing_tree_or_branch(self.old)
-        processEvents()
-        if self.new is None:
-            self.new = default_location
-        if self.new != self.old :
-            wt, new_branch, rp = \
-                BzrDir.open_containing_tree_or_branch(self.new)
-        else:
-            new_branch = old_branch
-        processEvents()
-        
+            self_old = self.old
+            if self_old is None:
+                self_old = default_location
+            wt, old_branch, rp = \
+                BzrDir.open_containing_tree_or_branch(self_old)
+            processEvents()
+            self_new = self.new
+            if self_new is None:
+                self_new = default_location
+            if self_new != self_old :
+                wt, new_branch, rp = \
+                    BzrDir.open_containing_tree_or_branch(self_new)
+            else:
+                new_branch = old_branch
+            processEvents()
+            
         return old_tree, new_tree, old_branch, new_branch, specific_files
     
     def get_ext_diff_args(self, processEvents):
@@ -407,10 +423,10 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
         elif self.revision and  len(self.revision) == 2:
             args.append("-r%s..%s" % (self.revision[0].user_spec,
                                        self.revision[1].user_spec))
-        
-        if self.new and not self.new==".":
+
+        if self.new and not self.new == CUR_DIR:
             args.append("--new=%s" % self.new)
-        if self.old and not self.old==".":
+        if self.old and not self.old == CUR_DIR:
             args.append("--old=%s" % self.old)
         
         if self.file_list:
@@ -473,7 +489,7 @@ class cmd_qlog(QBzrCommand):
                    	 Option('no-graph', help="Shows the log with no graph."),
                     ]
 
-    def _qbzr_run(self, locations_list, ui_mode=False, no_graph=False):
+    def _qbzr_run(self, locations_list=None, ui_mode=False, no_graph=False):
         window = LogWindow(locations_list, None, None, ui_mode=ui_mode,
                            no_graph=no_graph)
         window.show()
@@ -544,7 +560,7 @@ class cmd_qpull(QBzrCommand):
     def _qbzr_run(self, location=None, directory=None,
                   remember=None, overwrite=None, revision=None, ui_mode=False):
         if directory is None:
-            directory = u'.'
+            directory = CUR_DIR
         try:
             tree_to = WorkingTree.open_containing(directory)[0]
             branch_to = tree_to.branch
@@ -574,7 +590,7 @@ class cmd_qmerge(QBzrCommand):
     def _qbzr_run(self, location=None, directory=None, revision=None,
                   remember=None, force=None, uncommitted=None, ui_mode=False):
         if directory is None:
-            directory = u'.'
+            directory = CUR_DIR
         try:
             tree_to = WorkingTree.open_containing(directory)[0]
             branch_to = tree_to.branch
@@ -604,7 +620,7 @@ class cmd_qpush(QBzrCommand):
                   ui_mode=False):
 
         if directory is None:
-            directory = u'.'
+            directory = CUR_DIR
         
         try:
             tree_to = WorkingTree.open_containing(directory)[0]
@@ -644,7 +660,7 @@ class cmd_qinfo(QBzrCommand):
     takes_options = []
     takes_args = ['location?']
 
-    def _qbzr_run(self, location=u'.'):
+    def _qbzr_run(self, location=CUR_DIR):
         window = QBzrInfoWindow(location)
         window.show()
         self._application.exec_()
@@ -656,7 +672,7 @@ class cmd_qinit(QBzrCommand):
     takes_options = [ui_mode_option]
     takes_args = ['location?']
 
-    def _qbzr_run(self, location=u'.', ui_mode=False):
+    def _qbzr_run(self, location=CUR_DIR, ui_mode=False):
         self.main_window = QBzrInitWindow(location, ui_mode=ui_mode)
         self.main_window.show()
         self._application.exec_()
@@ -734,7 +750,7 @@ class cmd_qmain(QBzrCommand):
             format_registry.remove('subversion-wc')
         # Start QBzr
         window = QBzrMainWindow()
-        window.setDirectory(osutils.realpath(u'.'))
+        window.setDirectory(osutils.realpath(CUR_DIR))
         window.show()
         self._application.exec_()
 
@@ -800,7 +816,7 @@ class cmd_qgetupdates(QBzrCommand):
     takes_options = [ui_mode_option]
     aliases = ['qgetu', 'qgetup']
 
-    def _qbzr_run(self, location=u".", ui_mode=False):
+    def _qbzr_run(self, location=CUR_DIR, ui_mode=False):
         branch, relpath = Branch.open_containing(location)
         app = QtGui.QApplication(sys.argv)
         tb = TreeBranch.open_containing(location, ui_mode=ui_mode)
@@ -824,7 +840,7 @@ class cmd_qgetnew(QBzrCommand):
     takes_options = [ui_mode_option]
     aliases = ['qgetn']
 
-    def _qbzr_run(self, location=u".", ui_mode=False):
+    def _qbzr_run(self, location=CUR_DIR, ui_mode=False):
         from bzrlib.plugins.qbzr.lib.getnew import GetNewWorkingTreeWindow
         self.main_window = GetNewWorkingTreeWindow(location, ui_mode=ui_mode)
         self.main_window.show()
@@ -856,7 +872,7 @@ class cmd_qtag(QBzrCommand):
         'revision',
         ]
 
-    def _qbzr_run(self, tag_name=None, delete=None, directory=u'.',
+    def _qbzr_run(self, tag_name=None, delete=None, directory=CUR_DIR,
         force=None, revision=None, ui_mode=False):
         branch = Branch.open_containing(directory)[0]
         # determine action based on given options
@@ -875,7 +891,7 @@ class cmd_quncommit(QBzrCommand):
         ]
     takes_args = ["location?"]
 
-    def _qbzr_run(self, location=u'.', ui_mode=False):
+    def _qbzr_run(self, location=CUR_DIR, ui_mode=False):
         window = QBzrUncommitWindow(location, ui_mode=ui_mode)
         window.show()
         self._application.exec_()
@@ -945,7 +961,7 @@ class cmd_qsend(QBzrCommand):
     takes_args = ['submit_branch?', 'public_branch?']
     takes_options = [ui_mode_option]
     
-    def _qbzr_run(self, submit_branch=".", public_branch=None, ui_mode=False):
+    def _qbzr_run(self, submit_branch=CUR_DIR, public_branch=None, ui_mode=False):
         branch = Branch.open_containing(submit_branch)[0]
         window = SendWindow(branch, ui_mode)
         window.show()
@@ -961,8 +977,8 @@ class cmd_qswitch(QBzrCommand):
     def _qbzr_run(self, location=None, ui_mode=False):
         from bzrlib.plugins.qbzr.lib.switch import QBzrSwitchWindow
         
-        branch = Branch.open_containing(".")[0]
-        bzrdir = BzrDir.open_containing(".")[0]
+        branch = Branch.open_containing(CUR_DIR)[0]
+        bzrdir = BzrDir.open_containing(CUR_DIR)[0]
         self.main_window = QBzrSwitchWindow(branch, bzrdir, location, ui_mode)
         self.main_window.show()
         self._application.exec_() 
@@ -975,7 +991,7 @@ class cmd_qunbind(QBzrCommand):
     def _qbzr_run(self, ui_mode=False):
         from bzrlib.plugins.qbzr.lib.unbind import QBzrUnbindDialog
         
-        branch = Branch.open_containing(".")[0]
+        branch = Branch.open_containing(CUR_DIR)[0]
         if branch.get_bound_location() == None:
             raise errors.BzrCommandError("This branch is not bound.")
         
@@ -999,7 +1015,7 @@ class cmd_qexport(QBzrCommand):
         from bzrlib.plugins.qbzr.lib.export import QBzrExportDialog
         
         if branch_or_subdir == None:
-            branch = Branch.open_containing(".")[0]
+            branch = Branch.open_containing(CUR_DIR)[0]
         else:
             branch = Branch.open_containing(branch_or_subdir)[0]
         
@@ -1020,7 +1036,7 @@ class cmd_qbind(QBzrCommand):
     def _qbzr_run(self, location=None, ui_mode=False):
         from bzrlib.plugins.qbzr.lib.bind import QBzrBindDialog
         
-        branch = Branch.open_containing(".")[0]
+        branch = Branch.open_containing(CUR_DIR)[0]
         
         self.main_window = QBzrBindDialog(branch, location, ui_mode)
         self.main_window.show()

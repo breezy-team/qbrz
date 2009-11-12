@@ -71,17 +71,13 @@ Building distribution files under the hood
 
 3. Make Windows universal installer:
 
-    a. Copy 3rd party python libs::
-
-        python installer/copy_libs.py
-    
-    b. Run Inno Setup script compiler::
+    a. Run Inno Setup script compiler::
     
         iscc installer/qbzr-setup.iss
         
     This command will produce qbzr-setup-X.Y.Z.exe file in tree root directory.
     
-    c. Sign this file with your GPG key::
+    b. Sign this file with your GPG key::
    
         gpg -ab qbzr-setup-X.Y.Z.exe
 
@@ -113,4 +109,4 @@ Finishing stuff at Launchpad
 
 Create deb packages with Launchpad PPA
 --------------------------------------
-Usually Lukas Lalinsky do the packages for Ubuntu.
+Usually Gary van der Merwe do the packages for Ubuntu.

@@ -26,6 +26,7 @@
     <file>16x16/folder-modified.png</file>
     <file>16x16/folder-conflict.png</file>
     <file>16x16/process-working.gif</file>
+    <file>16x16/missing.png</file>
 
 </qresource>
 </RCC>

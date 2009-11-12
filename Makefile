@@ -25,9 +25,6 @@ tarball:
 	bzr export --root=qbzr qbzr-$(RELEASE).tar.gz
 	gpg -ab qbzr-$(RELEASE).tar.gz
 
-copy-libs:
-	python installer/copy_libs.py
-
 inno: mo
 	iscc installer/qbzr-setup.iss
 	gpg -ab qbzr-setup-$(RELEASE).exe

@@ -66,7 +66,10 @@ class AddWindow(SubProcessDialog):
         
         def filter_context_menu():
             items = self.filelist.get_selection_items()
-            single_file = (len(items) == 1 and items[0].item.kind == "file")
+            selection_len = len(items)
+            single_file = (selection_len == 1 and items[0].item.kind == "file")
+            single_item_in_tree = (selection_len == 1 and
+                (items[0].change is None or items[0].change[6][1] is not None))
             
             self.filelist.action_open_file.setEnabled(True)
             self.filelist.action_open_file.setVisible(True)
@@ -77,6 +80,13 @@ class AddWindow(SubProcessDialog):
             self.filelist.action_show_diff.setVisible(False)
             self.filelist.action_add.setVisible(False)
             self.filelist.action_revert.setVisible(False)
+            self.filelist.action_merge.setVisible(False)
+            self.filelist.action_resolve.setVisible(False)
+            self.filelist.action_rename.setVisible(True)
+            self.filelist.action_rename.setEnabled(single_item_in_tree)
+            self.filelist.action_remove.setVisible(False)
+            self.filelist.action_mark_move.setVisible(False)
+        
         self.filelist.filter_context_menu = filter_context_menu
         
         vbox.addWidget(self.filelist)
@@ -121,6 +131,7 @@ class AddWindow(SubProcessDialog):
         self.filelist.tree_model.checkable = True
         fmodel = self.filelist.tree_filter_model
         fmodel.setFilter(fmodel.CHANGED, False)
+        fmodel.setFilter(fmodel.UNCHANGED, False)
         self.filelist.set_tree(self.tree, changes_mode = True,
             initial_checked_paths=self.initial_selected_list,
             change_load_filter=lambda c:not c.is_versioned())

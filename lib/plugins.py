@@ -96,7 +96,7 @@ def format_plugin_version(plugin):
     else:
         try:
             result = _format_version_tuple(version_info)
-        except ValueError:
+        except (ValueError, IndexError):
             # Version info fails the expected rules.
             # Format it nicely anyhow.
             result = ".".join([str(part) for part in version_info])

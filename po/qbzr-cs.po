@@ -1,4 +1,4 @@
-# Estonian translation for qbzr
+# Czech translation for qbzr
 # Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
 # This file is distributed under the same license as the qbzr package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
@@ -8,20 +8,20 @@ msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2009-11-10 20:04+0200\n"
-"PO-Revision-Date: 2009-08-01 08:35+0000\n"
-"Last-Translator: Magnus Kokk <Unknown>\n"
-"Language-Team: Estonian <et@li.org>\n"
+"PO-Revision-Date: 2009-10-23 12:17+0000\n"
+"Last-Translator: Kuvaly <kuvaly@seznam.cz>\n"
+"Language-Team: Czech <cs@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 "X-Launchpad-Export-Date: 2009-11-10 20:08+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
 #: lib\config.py:201
 msgid "Add"
-msgstr "Lisa"
+msgstr ""
 
 #: lib\add.py:57
 msgid "Unversioned Files"
@@ -33,11 +33,11 @@ msgstr ""
 
 #: lib\annotate.py:96
 msgid "Line"
-msgstr "Rida"
+msgstr "Řádka"
 
 #: lib\annotate.py:97 lib\logmodel.py:99 lib\treewidget.py:337
 msgid "Author"
-msgstr "Autor"
+msgstr "Tvůrce"
 
 #: lib\annotate.py:98 lib\logmodel.py:96 lib\treewidget.py:335
 msgid "Rev"
@@ -45,16 +45,16 @@ msgstr ""
 
 #: lib\annotate.py:209 lib\annotate.py:346 lib\annotate.py:350 lib\log.py:476
 msgid "Annotate"
-msgstr ""
+msgstr "Komentovat"
 
 #: lib\annotate.py:209 lib\diffwindow.py:119 lib\util.py:442
 msgid "Loading..."
-msgstr "Laadimine..."
+msgstr "Načítání..."
 
 #: lib\annotate.py:347
 #, python-format
 msgid "Revision %s"
-msgstr ""
+msgstr "Revize %s"
 
 #: lib\annotate.py:403
 msgid "&Annotate this revision"
@@ -70,7 +70,7 @@ msgstr ""
 
 #: lib\bind.py:58
 msgid "Branch location:"
-msgstr ""
+msgstr "Umístění větve:"
 
 #: lib\bind.py:62
 msgid "Currently bound to:"
@@ -84,7 +84,7 @@ msgstr ""
 #: lib\export.py:200 lib\send.py:62 lib\send.py:86 lib\send.py:152
 #: lib\switch.py:99
 msgid "Browse"
-msgstr "Sirvi"
+msgstr "Procházet"
 
 #: lib\bind.py:111 lib\switch.py:153 lib\tag.py:190
 msgid "Select branch location"
@@ -96,33 +96,33 @@ msgstr ""
 
 #: lib\browse.py:72 lib\export.py:179 lib\ui_info.py:146
 msgid "Location:"
-msgstr "Asukoht:"
+msgstr "Umístění:"
 
 #: lib\browse.py:77 lib\export.py:216 lib\ui_new_tree.py:160 lib\util.py:528
 #: lib\util.py:530
 msgid "Revision:"
-msgstr "Versioon:"
+msgstr ""
 
 #: lib\browse.py:82
 msgid "Show"
-msgstr "Näita"
+msgstr "Ukázat"
 
 #: lib\browse.py:88 lib\treewidget.py:1152
 msgid "&Filter"
-msgstr "&Filter"
+msgstr ""
 
 #: lib\cat.py:86 lib\cat.py:244
 msgid "View"
-msgstr "Vaade"
+msgstr "Zobrazit"
 
 #: lib\commit.py:216 lib\commit.py:594 lib\commit.py:622 lib\commit.py:630
 msgid "Commit"
-msgstr "Kanna sisse"
+msgstr ""
 
 #: lib\commit.py:242 lib\ui_branch.py:65 lib\ui_new_tree.py:130
 #: lib\ui_tag.py:89
 msgid "Branch"
-msgstr "Haru"
+msgstr ""
 
 #: lib\commit.py:254
 msgid "&Local commit"
@@ -136,11 +136,11 @@ msgstr ""
 
 #: lib\commit.py:260
 msgid "Description:"
-msgstr "Kirjeldus:"
+msgstr ""
 
 #: lib\commit.py:275 lib\logmodel.py:97 lib\treewidget.py:336
 msgid "Message"
-msgstr "Teade"
+msgstr ""
 
 #: lib\commit.py:283
 msgid "Show non-versioned files"
@@ -166,7 +166,7 @@ msgstr ""
 
 #: lib\commit.py:331
 msgid "&Author:"
-msgstr "&Autor:"
+msgstr ""
 
 #: lib\commit.py:332
 msgid "Set the author of this change, if it's different from the committer"
@@ -179,7 +179,7 @@ msgstr ""
 
 #: lib\commit.py:350 lib\revert.py:65
 msgid "Changes"
-msgstr "Muudatused"
+msgstr ""
 
 #: lib\commit.py:367 lib\revert.py:94
 msgid "Pending Merges"
@@ -188,7 +188,7 @@ msgstr ""
 #: lib\commit.py:378 lib\main.py:359 lib\subprocess.py:134
 #: lib\treewidget.py:338
 msgid "Status"
-msgstr "Staatus"
+msgstr "Status"
 
 #: lib\commit.py:390
 msgid "View changes in files selected to commit"
@@ -201,7 +201,7 @@ msgstr ""
 #: lib\commit.py:596 lib\conflicts.py:175 lib\conflicts.py:180
 #: lib\diffwindow.py:381 lib\util.py:80
 msgid "&OK"
-msgstr "&OK"
+msgstr ""
 
 #: lib\commit.py:623
 msgid "No changes to commit."
@@ -229,27 +229,27 @@ msgstr ""
 #: lib\diffwindow.py:232 lib\diffwindow.py:371 lib\diffwindow.py:379
 #: lib\revert.py:297
 msgid "Diff"
-msgstr "Erinevus"
+msgstr ""
 
 #: lib\config.py:42
 msgid "Default"
-msgstr "Vaikimisi"
+msgstr ""
 
 #: lib\config.py:43
 msgid "Thunderbird"
-msgstr "Thunderbird"
+msgstr ""
 
 #: lib\config.py:44
 msgid "Evolution"
-msgstr "Evolution"
+msgstr ""
 
 #: lib\config.py:45
 msgid "KMail"
-msgstr "KMail"
+msgstr ""
 
 #: lib\config.py:46
 msgid "Mutt"
-msgstr "Mutt"
+msgstr ""
 
 #: lib\config.py:47
 msgid "XDG e-mail client"
@@ -261,19 +261,19 @@ msgstr ""
 
 #: lib\config.py:49
 msgid "Editor"
-msgstr "Redaktor"
+msgstr ""
 
 #: lib\config.py:71
 msgid "Configuration"
-msgstr "Seadistamine"
+msgstr ""
 
 #: lib\config.py:81 lib\ui_bookmark.py:50
 msgid "&Name:"
-msgstr "&Nimi:"
+msgstr ""
 
 #: lib\config.py:87
 msgid "E-&mail:"
-msgstr "E-&mail:"
+msgstr ""
 
 #: lib\config.py:93 lib\ui_run.py:103 lib\ui_tag.py:90
 msgid "&Browse..."
@@ -289,24 +289,24 @@ msgstr ""
 
 #: lib\config.py:118
 msgid "Alias"
-msgstr "Alias"
+msgstr ""
 
 #: lib\config.py:118 lib\config.py:166
 msgid "Command"
-msgstr "Käsk"
+msgstr ""
 
 #: lib\config.py:123 lib\config.py:144 lib\config.py:175 lib\config.py:204
 #: lib\treewidget.py:1553 lib\treewidget.py:1874
 msgid "Remove"
-msgstr "Eemalda"
+msgstr ""
 
 #: lib\config.py:139
 msgid "Abbreviation"
-msgstr "Lühend"
+msgstr ""
 
 #: lib\config.py:139
 msgid "URL"
-msgstr "URL"
+msgstr ""
 
 #: lib\config.py:160
 msgid "Show inter-group inserts and deletes in green and red"
@@ -318,7 +318,7 @@ msgstr ""
 
 #: lib\config.py:165 lib\main.py:357 lib\plugins.py:56 lib\plugins.py:61
 msgid "Name"
-msgstr "Nimi"
+msgstr ""
 
 #: lib\config.py:192
 msgid "External Merge Apps:"
@@ -326,15 +326,15 @@ msgstr ""
 
 #: lib\config.py:195
 msgid "Definition"
-msgstr "Definitsioon"
+msgstr ""
 
 #: lib\config.py:218
 msgid "General"
-msgstr "Üldine"
+msgstr ""
 
 #: lib\config.py:219
 msgid "Aliases"
-msgstr "Aliased"
+msgstr ""
 
 #: lib\config.py:220
 msgid "Bug Trackers"
@@ -346,7 +346,7 @@ msgstr ""
 
 #: lib\config.py:222
 msgid "&Diff"
-msgstr "&Võrdlemine"
+msgstr ""
 
 #: lib\config.py:223
 msgid "&Merge"
@@ -367,15 +367,15 @@ msgstr ""
 #: lib\conflicts.py:39 lib\conflicts.py:154 lib\conflicts.py:171
 #: lib\conflicts.py:178
 msgid "Conflicts"
-msgstr "Konfliktid"
+msgstr ""
 
 #: lib\conflicts.py:50
 msgid "File"
-msgstr "Fail"
+msgstr ""
 
 #: lib\conflicts.py:51
 msgid "Conflict"
-msgstr "Konflikt"
+msgstr ""
 
 #: lib\conflicts.py:77
 msgid "Use Configured Default"
@@ -428,7 +428,7 @@ msgstr ""
 #: lib\conflicts.py:236 lib\conflicts.py:300 lib\tag.py:204 lib\trace.py:186
 #: lib\trace.py:200 lib\tree_branch.py:95 lib\util.py:1097 lib\util.py:1107
 msgid "Error"
-msgstr "Viga"
+msgstr ""
 
 #: lib\conflicts.py:276
 msgid "Set up external_merge app in qconfig under the Merge tab"
@@ -470,7 +470,7 @@ msgstr ""
 
 #: lib\conflicts.py:325
 msgid "duplicate"
-msgstr "duplikaat"
+msgstr ""
 
 #: lib\conflicts.py:326
 msgid "parent loop"
@@ -498,19 +498,19 @@ msgstr ""
 
 #: lib\diffview.py:248
 msgid "Last modified:"
-msgstr "Viimati muudetud:"
+msgstr ""
 
 #: lib\diffview.py:249
 msgid "Status:"
-msgstr "Olek:"
+msgstr ""
 
 #: lib\diffview.py:250
 msgid "Kind:"
-msgstr "Laad:"
+msgstr ""
 
 #: lib\diffview.py:251
 msgid "Properties:"
-msgstr "Atribuudid:"
+msgstr ""
 
 #: lib\diffview.py:485
 msgid "[binary file]"
@@ -563,7 +563,7 @@ msgstr ""
 
 #: lib\diffwindow.py:157
 msgid "Complete"
-msgstr "Valmis"
+msgstr ""
 
 #: lib\diffwindow.py:166
 msgid "Using"
@@ -582,7 +582,7 @@ msgstr ""
 
 #: lib\diffwindow.py:315 lib\treewidget.py:310
 msgid "added"
-msgstr "lisatud"
+msgstr ""
 
 #: lib\diffwindow.py:317
 msgid "renamed and modified"
@@ -594,7 +594,7 @@ msgstr ""
 
 #: lib\diffwindow.py:321 lib\treewidget.py:325
 msgid "modified"
-msgstr "muudetud"
+msgstr ""
 
 #: lib\diffwindow.py:372
 #, python-format
@@ -606,11 +606,11 @@ msgstr ""
 #: lib\diffwindow.py:374 lib\tag.py:138 lib\tag.py:169 lib\tag.py:206
 #: lib\tree_branch.py:97 lib\util.py:82 lib\util.py:1100 lib\util.py:1110
 msgid "&Close"
-msgstr "&Sulge"
+msgstr ""
 
 #: lib\diffwindow.py:380
 msgid "No changes found."
-msgstr "Muudatusi ei leitud"
+msgstr ""
 
 #: lib\export.py:61 lib\export.py:80
 msgid "Export"
@@ -641,15 +641,15 @@ msgstr ""
 
 #: lib\help.py:103
 msgid "Help"
-msgstr "Abi"
+msgstr ""
 
 #: lib\i18n.py:87
 msgid "file"
-msgstr "fail"
+msgstr ""
 
 #: lib\i18n.py:88
 msgid "directory"
-msgstr "kataloog"
+msgstr ""
 
 #: lib\i18n.py:89
 msgid "symlink"
@@ -689,7 +689,7 @@ msgstr ""
 
 #: lib\info.py:43
 msgid "Info"
-msgstr "Info"
+msgstr ""
 
 #: lib\info.py:67
 msgid "Location has no working tree"
@@ -709,19 +709,19 @@ msgstr ""
 
 #: lib\log.py:101
 msgid "Log"
-msgstr "Logi"
+msgstr ""
 
 #: lib\log.py:128
 msgid "&Search:"
-msgstr "&Otsing:"
+msgstr ""
 
 #: lib\log.py:144
 msgid "Messages"
-msgstr "Teated"
+msgstr ""
 
 #: lib\log.py:146
 msgid "Authors"
-msgstr "Autorid"
+msgstr ""
 
 #: lib\log.py:148
 msgid "Revision IDs"
@@ -733,11 +733,11 @@ msgstr ""
 
 #: lib\log.py:152
 msgid "Tags"
-msgstr "Sildid"
+msgstr ""
 
 #: lib\log.py:154
 msgid "Bugs"
-msgstr "Vead"
+msgstr ""
 
 #: lib\log.py:250
 msgid "Messages and File text (indexed)"
@@ -753,7 +753,7 @@ msgstr ""
 
 #: lib\logmodel.py:98 lib\treewidget.py:334
 msgid "Date"
-msgstr "Kuupäev"
+msgstr ""
 
 #: lib\logmodel.py:248
 #, python-format
@@ -782,7 +782,7 @@ msgstr ""
 
 #: lib\main.py:124
 msgid "Computer"
-msgstr "Arvuti"
+msgstr ""
 
 #: lib\main.py:153
 msgid "&Edit Bookmark..."
@@ -794,11 +794,11 @@ msgstr ""
 
 #: lib\main.py:169
 msgid "Bookmarks"
-msgstr "Järjehoidjad"
+msgstr ""
 
 #: lib\main.py:278 lib\util.py:84
 msgid "&Refresh"
-msgstr "&Värskenda"
+msgstr ""
 
 #: lib\main.py:280
 msgid "Refresh the directory tree"
@@ -806,7 +806,7 @@ msgstr ""
 
 #: lib\main.py:284
 msgid "&Commit"
-msgstr "&Kanna sisse"
+msgstr ""
 
 #: lib\main.py:285
 msgid "Commit changes into a new revision"
@@ -834,19 +834,19 @@ msgstr ""
 
 #: lib\main.py:305
 msgid "&File"
-msgstr "&Fail"
+msgstr ""
 
 #: lib\main.py:306
 msgid "&Configure..."
-msgstr "&Seadista..."
+msgstr ""
 
 #: lib\main.py:308
 msgid "&Quit"
-msgstr "&Välju"
+msgstr ""
 
 #: lib\main.py:309
 msgid "&View"
-msgstr "&Vaade"
+msgstr ""
 
 #: lib\main.py:311
 msgid "&Branch"
@@ -854,23 +854,23 @@ msgstr ""
 
 #: lib\main.py:315
 msgid "&Bookmarks"
-msgstr "&Järjehoidjad"
+msgstr ""
 
 #: lib\main.py:317 lib\util.py:83
 msgid "&Help"
-msgstr "&Abi"
+msgstr ""
 
 #: lib\main.py:318
 msgid "&Help..."
-msgstr "&Abi..."
+msgstr ""
 
 #: lib\main.py:320
 msgid "&About..."
-msgstr "&Programmist..."
+msgstr ""
 
 #: lib\main.py:358
 msgid "Size"
-msgstr "Suurus"
+msgstr ""
 
 #: lib\main.py:410
 msgid "About QBzr"
@@ -887,15 +887,15 @@ msgstr ""
 
 #: lib\main.py:476
 msgid "Add Bookmark"
-msgstr "Lisa järjehoidja"
+msgstr ""
 
 #: lib\main.py:487
 msgid "Edit Bookmark"
-msgstr "Redigeeri järjehoidjaid"
+msgstr ""
 
 #: lib\main.py:497
 msgid "Remove Bookmark"
-msgstr "Eemalda järjehoidja"
+msgstr ""
 
 #: lib\main.py:498
 msgid "Do you really want to remove the selected bookmark?"
@@ -911,7 +911,7 @@ msgstr ""
 
 #: lib\plugins.py:58 lib\subprocess.py:311
 msgid "Description"
-msgstr "Kirjeldus"
+msgstr ""
 
 #: lib\plugins.py:62
 msgid "Directory"
@@ -944,23 +944,23 @@ msgstr ""
 
 #: lib\pull.py:197 lib\ui_push.py:62
 msgid "Push"
-msgstr "Lükkamine"
+msgstr ""
 
 #: lib\pull.py:199
 msgid "Do you want to continue anyway?"
-msgstr "Kas sellest hoolimata jätkata?"
+msgstr ""
 
 #: lib\pull.py:200 lib\uncommit.py:127
 msgid "&Yes"
-msgstr "&Jah"
+msgstr ""
 
 #: lib\pull.py:200 lib\uncommit.py:127
 msgid "&No"
-msgstr "&Ei"
+msgstr ""
 
 #: lib\revert.py:54 lib\treewidget.py:1763
 msgid "Revert"
-msgstr "&Võta tagasi"
+msgstr ""
 
 #: lib\revert.py:82
 msgid "Do not save backups of reverted files"
@@ -978,7 +978,7 @@ msgstr ""
 
 #: lib\revisionview.py:60 lib\ui_new_tree.py:158
 msgid "Revision"
-msgstr "Versioon"
+msgstr ""
 
 #: lib\run.py:80
 msgid "Select working directory"
@@ -998,7 +998,7 @@ msgstr ""
 
 #: lib\send.py:34
 msgid "Send"
-msgstr "Saada"
+msgstr ""
 
 #: lib\send.py:47
 msgid "Merge Directive Options"
@@ -1026,7 +1026,7 @@ msgstr ""
 
 #: lib\send.py:112
 msgid "Action"
-msgstr "Toiming"
+msgstr ""
 
 #: lib\send.py:122
 msgid "Address:"
@@ -1034,11 +1034,11 @@ msgstr ""
 
 #: lib\send.py:132
 msgid "Message:"
-msgstr "Teade:"
+msgstr ""
 
 #: lib\send.py:149
 msgid "Filename:"
-msgstr "Faili nimi:"
+msgstr ""
 
 #: lib\send.py:163
 msgid "Revisions:"
@@ -1050,19 +1050,19 @@ msgstr ""
 
 #: lib\subprocess.py:418
 msgid "Starting..."
-msgstr "Alustamine..."
+msgstr ""
 
 #: lib\subprocess.py:495
 msgid "Aborting..."
-msgstr "Katkestan..."
+msgstr ""
 
 #: lib\subprocess.py:506 lib\subprocess.py:621
 msgid "Finished!"
-msgstr "Valmis!"
+msgstr ""
 
 #: lib\subprocess.py:528 lib\uifactory.py:108
 msgid "Enter Password"
-msgstr "Sisesta parool"
+msgstr ""
 
 #: lib\subprocess.py:538 lib\uifactory.py:119
 msgid "Enter Username"
@@ -1070,7 +1070,7 @@ msgstr ""
 
 #: lib\subprocess.py:602 lib\subprocess.py:624
 msgid "Failed!"
-msgstr "Ebaõnnestus!"
+msgstr ""
 
 #: lib\subprocess.py:604
 msgid "Failed to start bzr."
