@@ -326,6 +326,7 @@ class AnnotateWindow(QBzrWindow):
                 self.loader_func = self.loader_args = None # kill extra refs...
                 QtCore.QCoreApplication.processEvents()
             self.encoding = get_set_encoding(self.encoding, self.branch)
+            self.encoding_selector.encoding = self.encoding
             self.branch.lock_read()
             try:
                 self.set_annotate_title()
