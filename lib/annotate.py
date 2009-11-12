@@ -277,7 +277,7 @@ class AnnotateWindow(QBzrWindow):
                      self.update_selection)
 
         self.encoding_selector = EncodingSelector(self.encoding, gettext("Encoding:"))
-        self.encoding_selector.onChanged = self.set_encoding
+        self.encoding_selector.onChanged = self._on_encoding_changed
 
         hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
         hsplitter.addWidget(self.log_list)
@@ -516,7 +516,7 @@ class AnnotateWindow(QBzrWindow):
             self.throbber.hide()
 
     @runs_in_loading_queue
-    def set_encoding(self, encoding):
+    def _on_encoding_changed(self, encoding):
         self.encoding = encoding
         self.throbber.show()
         try:
