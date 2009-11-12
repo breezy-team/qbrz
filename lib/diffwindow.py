@@ -157,10 +157,12 @@ class DiffWindow(QBzrWindow):
                      self.click_unidiff)
 
         left_enc_sel = EncodingSelector(encoding, gettext("Left Encoding:"))
-        left_enc_sel.onChanged = self.encoding_selected_left
+        left_enc_sel.onChanged = lambda x: self.click_refresh()
+        self.encoding_selector_left = left_enc_sel
 
         right_enc_sel = EncodingSelector(encoding, gettext("Right Encoding:"))
         right_enc_sel.onChanged = self.encoding_selected_right
+        self.encoding_selector_right = right_enc_sel
 
         complete = QtGui.QCheckBox (gettext("Complete"),
                                             self.centralwidget)
@@ -228,8 +230,8 @@ class DiffWindow(QBzrWindow):
         
         self.set_diff_title()
         
-        self.encodings = [get_set_encoding(self.encoding, branch1),
-                          get_set_encoding(self.encoding, branch2)]
+        self.encoding_selector_left.encoding = get_set_encoding(self.encoding, branch1)
+        self.encoding_selector_right.encoding = get_set_encoding(self.encoding, branch2)
         self.processEvents()
     
     def set_diff_title(self):
@@ -356,7 +358,8 @@ class DiffWindow(QBzrWindow):
                                 else:
                                     groups = list(matcher.get_grouped_opcodes())
                             ulines = []
-                            for l, encoding in zip(lines, self.encodings):
+                            for l, encoding in zip(lines, [self.encoding_selector_left.encoding,
+                                                           self.encoding_selector_right.encoding]):
                                 try:
                                     ulines.append([i.decode(encoding) for i in l])
                                 except UnicodeDecodeError, e:
@@ -391,16 +394,6 @@ class DiffWindow(QBzrWindow):
                 gettext('No changes found.'),
                 gettext('&OK'))
         self.refresh_button.setEnabled(self.can_refresh())
-
-    def encoding_selected(self, which, encoding):
-        self.encodings[which] = encoding
-        self.click_refresh()
-
-    def encoding_selected_left(self, encoding):
-        self.encoding_selected(0, encoding)
-
-    def encoding_selected_right(self, encoding):
-        self.encoding_selected(1, encoding)
 
     def click_unidiff(self, checked):
         if checked:
