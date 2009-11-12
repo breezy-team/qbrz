@@ -161,7 +161,7 @@ class DiffWindow(QBzrWindow):
         self.encoding_selector_left = left_enc_sel
 
         right_enc_sel = EncodingSelector(encoding, gettext("Right Encoding:"))
-        right_enc_sel.onChanged = self.encoding_selected_right
+        right_enc_sel.onChanged = lambda x: self.click_refresh()
         self.encoding_selector_right = right_enc_sel
 
         complete = QtGui.QCheckBox (gettext("Complete"),

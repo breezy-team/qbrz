@@ -33,7 +33,7 @@ class EncodingSelector(QtGui.QWidget):
         self.chooser.setEditText(QtCore.QString(encoding))
 
     def getEncoding(self):
-        return str(self.chooser.getEditText())
+        return str(self.chooser.currentText())
 
     encoding = property(getEncoding, setEncoding)
 
