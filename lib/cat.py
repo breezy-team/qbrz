@@ -96,7 +96,7 @@ class QBzrCatWindow(QBzrWindow):
         self.vbox.addWidget(self.throbber)
         self.vbox.addStretch()
 
-        hbox = QtGui.QHBoxLayout(self.centralwidget)
+        hbox = QtGui.QHBoxLayout()
         hbox.addWidget(self.encoding_selector)
         hbox.addWidget(self.buttonbox)
         self.vbox.addLayout(hbox)
