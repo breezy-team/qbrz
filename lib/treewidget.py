@@ -593,7 +593,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             
         root_item = ModelItemData(
             '', item=self.tree.inventory[self.tree.get_root_id()])
-        if initial_checked_paths:
+        if initial_checked_paths is not None:
             root_item.checked = QtCore.Qt.Unchecked
         else:
             root_item.checked = QtCore.Qt.Checked
@@ -607,7 +607,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                                            ignore_no_file_error=True):
                 self.load_dir(index.internalId())
         
-        if initial_checked_paths:
+        if initial_checked_paths is not None:
             self.set_checked_paths(initial_checked_paths)
         self.emit(QtCore.SIGNAL("layoutChanged()"))
     
