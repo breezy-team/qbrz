@@ -62,7 +62,7 @@ class RevertWindow(SubProcessDialog):
         self.throbber = ThrobberWidget(self) 
 
         # Display the list of changed files
-        self.file_groupbox = QtGui.QGroupBox(gettext("Changes"), self)
+        self.file_groupbox = QtGui.QGroupBox(gettext("Select Changes to Revert"), self)
 
         self.filelist = TreeWidget(self.file_groupbox)
         self.filelist.throbber = self.throbber 
@@ -75,7 +75,6 @@ class RevertWindow(SubProcessDialog):
         self.filelist.filter_context_menu = filter_context_menu
 
         self.selectall_checkbox = SelectAllCheckBox(self.filelist, self.file_groupbox)
-        self.selectall_checkbox.setCheckState(QtCore.Qt.Checked)
         self.selectall_checkbox.setEnabled(True)
 
         self.no_backup_checkbox = QtGui.QCheckBox(
@@ -91,9 +90,8 @@ class RevertWindow(SubProcessDialog):
         
         if self.has_pending_merges:
             self.file_groupbox.setCheckable(True)
-            self.merges_groupbox = QtGui.QGroupBox(gettext("Pending Merges"))
+            self.merges_groupbox = QtGui.QGroupBox(gettext("Pending Merges to Revert"))
             self.merges_groupbox.setCheckable(True)
-            
             # This keeps track of what the merges_groupbox was before the
             # select all changes it, so that it can put it back to the state
             # it was.
@@ -162,11 +160,15 @@ class RevertWindow(SubProcessDialog):
         self.filelist.tree_model.checkable = True 
         fmodel = self.filelist.tree_filter_model 
         #fmodel.setFilter(fmodel.UNVERSIONED, False) 
+        if self.initial_selected_list is None and not self.pending_merges:
+            self.initial_selected_list = []
+        
         self.filelist.set_tree(self.tree, changes_mode=True,
                                want_unversioned=False,
                                initial_checked_paths=self.initial_selected_list)
         self.filelist_checked_base = list(
             self.filelist.tree_model.iter_checked())
+        self.selectall_checkbox.update_state()
         self.processEvents()
         
         if self.has_pending_merges:
