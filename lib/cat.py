@@ -89,7 +89,7 @@ class QBzrCatWindow(QBzrWindow):
 
         self.throbber = ThrobberWidget(self)
         self.buttonbox = self.create_button_box(BTN_CLOSE)
-        self.encoding_selector = EncodingSelector(self.encoding, gettext('Encoding: '))
+        self.encoding_selector = EncodingSelector(self.encoding)
         self.encoding_selector.onChanged = self._on_encoding_changed
 
         self.vbox = QtGui.QVBoxLayout(self.centralwidget)
@@ -231,6 +231,10 @@ class QBzrCatWindow(QBzrWindow):
     def _on_encoding_changed(self, encoding):
         """event handler for EncodingSelector."""
         self.encoding = encoding
+        if not self.tree:
+            branch, relpath = Branch.open_containing(self.filename)
+            get_set_encoding(encoding, branch)
+            del branch, relpath
         text = self.text.decode(self.encoding or 'utf-8', 'replace')
         self._set_document(self.filename, text)
 

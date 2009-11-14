@@ -518,6 +518,7 @@ class AnnotateWindow(QBzrWindow):
     @runs_in_loading_queue
     def _on_encoding_changed(self, encoding):
         self.encoding = encoding
+        get_set_encoding(encoding, self.branch)
         self.throbber.show()
         try:
             self.branch.lock_read()

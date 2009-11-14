@@ -156,12 +156,20 @@ class DiffWindow(QBzrWindow):
                      QtCore.SIGNAL("clicked(bool)"),
                      self.click_unidiff)
 
-        left_enc_sel = EncodingSelector(encoding, gettext("Left Encoding:"))
-        left_enc_sel.onChanged = lambda x: self.click_refresh()
+        def on_left_encoding_changed(encoding):
+            if self.branches:
+                get_set_encoding(encoding, self.branches[0])
+            self.click_refresh()
+        left_enc_sel = EncodingSelector(encoding, gettext("Left side encoding:"))
+        left_enc_sel.onChanged = on_left_encoding_changed
         self.encoding_selector_left = left_enc_sel
 
-        right_enc_sel = EncodingSelector(encoding, gettext("Right Encoding:"))
-        right_enc_sel.onChanged = lambda x: self.click_refresh()
+        def on_right_encoding_changed(encoding):
+            if self.branches:
+                get_set_encoding(encoding, self.branches[1])
+            self.click_refresh()
+        right_enc_sel = EncodingSelector(encoding, gettext("Right side encoding:"))
+        right_enc_sel.onChanged = on_right_encoding_changed
         self.encoding_selector_right = right_enc_sel
 
         complete = QtGui.QCheckBox (gettext("Complete"),
