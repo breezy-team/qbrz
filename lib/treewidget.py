@@ -593,10 +593,6 @@ class TreeModel(QtCore.QAbstractItemModel):
             
         root_item = ModelItemData(
             '', item=self.tree.inventory[self.tree.get_root_id()])
-        if initial_checked_paths:
-            root_item.checked = QtCore.Qt.Unchecked
-        else:
-            root_item.checked = QtCore.Qt.Checked
         
         root_id = self.append_item(root_item, None)
         self.load_dir(root_id)
@@ -607,18 +603,19 @@ class TreeModel(QtCore.QAbstractItemModel):
                                            ignore_no_file_error=True):
                 self.load_dir(index.internalId())
         
-        if initial_checked_paths:
-            self.set_checked_paths(initial_checked_paths)
+        if self.checkable:
+            if initial_checked_paths is not None:
+                self.set_checked_paths(initial_checked_paths)
+            else:
+                self.setData(self._index_from_id(root_id,self.NAME), 
+                             QtCore.QVariant(QtCore.Qt.Checked),
+                             QtCore.Qt.CheckStateRole)
         self.emit(QtCore.SIGNAL("layoutChanged()"))
     
     def append_item(self, item_data, parent_id):
         item_data.id = len(self.inventory_data)
         if parent_id is not None:
             parent_data = self.inventory_data[parent_id]
-            if self.is_item_in_select_all(item_data):
-                item_data.checked = parent_data.checked
-            else:
-                item_data.checked = QtCore.Qt.Unchecked
             item_data.row = len(parent_data.children_ids)
         else:
             # Root Item
@@ -638,7 +635,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                       index,index)        
     
     def columnCount(self, parent):
-         return len(self.HEADER_LABELS)
+        return len(self.HEADER_LABELS)
 
     def rowCount(self, parent):
         if parent.internalId()>=len(self.inventory_data):
@@ -737,19 +734,25 @@ class TreeModel(QtCore.QAbstractItemModel):
             set_checked(item_data, value)
             
             # Recursively set all children to checked.
-            if item_data.children_ids is not None:
-                children_ids = list(item_data.children_ids)
-                while children_ids:
-                    child = self.inventory_data[children_ids.pop(0)]
+            def set_child_checked_recurse(item_data):
+                if not item_data.children_ids:
+                    return False
+                have_changed_item = False
+                
+                for child_id in item_data.children_ids:
+                    child = self.inventory_data[child_id]
                     
+                    has_children_changed = set_child_checked_recurse(child)
+
                     # If unchecking, uncheck everything, but if checking,
                     # only check those in "select_all" get checked.
                     if (self.is_item_in_select_all(child) or
-                        value == QtCore.Qt.Unchecked):
-                        
+                        value == QtCore.Qt.Unchecked or
+                        has_children_changed):
+                        have_changed_item = True
                         set_checked(child, value)
-                        if child.children_ids is not None:
-                            children_ids.extend(child.children_ids)
+                return have_changed_item
+            set_child_checked_recurse(item_data)
             
             # Walk up the tree, and update every dir
             parent_data = item_data
