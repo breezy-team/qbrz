@@ -6,7 +6,9 @@ import sys
 
 # encodings found in encodings package.
 python_encodings = """
+utf_8
 ascii
+latin_1
 big5
 big5hkscs
 cp037
@@ -80,7 +82,6 @@ iso8859_9
 johab
 koi8_r
 koi8_u
-latin_1
 mac_arabic
 mac_centeuro
 mac_croatian
@@ -95,11 +96,9 @@ mac_turkish
 palmos
 ptcp154
 quopri_codec
-rot_13
 shift_jis
 shift_jisx0213
 shift_jis_2004
-string_escape
 tis_620
 utf_16
 utf_16_be
@@ -108,7 +107,6 @@ utf_32
 utf_32_be
 utf_32_le
 utf_7
-utf_8
 utf_8_sig
 """.split()
 
