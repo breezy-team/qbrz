@@ -49,6 +49,7 @@ from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
                                                          cached_revisions)
 from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
                                                  RevNoItemDelegate)
+from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingSelector
 
 have_pygments = True
 try:
@@ -85,6 +86,7 @@ class FormatedCodeItemDelegate(QtGui.QItemDelegate):
             textPoint.setX(textPoint.x() + QtGui.QFontMetrics(painter.font()).width(text))
             painter.restore()
 
+
 class AnnotateModel(QtCore.QAbstractTableModel):
 
     LINE_NO, AUTHOR, REVNO, TEXT = range(4)
@@ -98,7 +100,6 @@ class AnnotateModel(QtCore.QAbstractTableModel):
                                        gettext("Rev"),
                                        "",
                                        ]
-        
         self.get_revno = get_revno
         self.font = font
         self.annotate = []
@@ -275,6 +276,10 @@ class AnnotateWindow(QBzrWindow):
                      QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
                      self.update_selection)
 
+        self.encoding_selector = EncodingSelector(self.encoding,
+            gettext("Encoding:"),
+            self._on_encoding_changed)
+
         hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
         hsplitter.addWidget(self.log_list)
         hsplitter.addWidget(message)
@@ -294,7 +299,10 @@ class AnnotateWindow(QBzrWindow):
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(self.throbber)
         vbox.addWidget(splitter)
-        vbox.addWidget(buttonbox)
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(self.encoding_selector)
+        hbox.addWidget(buttonbox)
+        vbox.addLayout(hbox)
         self.browser.setFocus()
 
     def show(self):
@@ -319,6 +327,7 @@ class AnnotateWindow(QBzrWindow):
                 self.loader_func = self.loader_args = None # kill extra refs...
                 QtCore.QCoreApplication.processEvents()
             self.encoding = get_set_encoding(self.encoding, self.branch)
+            self.encoding_selector.encoding = self.encoding
             self.branch.lock_read()
             try:
                 self.set_annotate_title()
@@ -501,6 +510,20 @@ class AnnotateWindow(QBzrWindow):
                 self.path = self.tree.id2path(self.fileId)
                 self.set_annotate_title()
                 self.processEvents()
+                self.annotate(self.tree, self.fileId, self.path)
+            finally:
+                self.branch.unlock()
+        finally:
+            self.throbber.hide()
+
+    @runs_in_loading_queue
+    def _on_encoding_changed(self, encoding):
+        self.encoding = encoding
+        get_set_encoding(encoding, self.branch)
+        self.throbber.show()
+        try:
+            self.branch.lock_read()
+            try:
                 self.annotate(self.tree, self.fileId, self.path)
             finally:
                 self.branch.unlock()

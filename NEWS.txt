@@ -1,5 +1,16 @@
 0.17 - in development
 ---------------------
+What's new in this release:
+
+ * New encoding selector added to qdiff, qannotate and qcat. 
+   This selector allows change of the text encoding "on the fly".
+ * Added new context menu action in qlog to tag a revision.
+ * Added Czech translations.
+
+Changelog:
+
+ * qannotate, qcat, qdiff:
+   * Added encoding selector. (INADA Naoki)
  * qdiff:
    * Fixed problem with invoking external diff from qdiff dialog 
      when the current directory is not repository root. 
@@ -9,7 +20,6 @@
  * treewidget:
    * Fixed compatibility with PyQt < 4.6. 
      (Bug #479093, Bug #478979, Gary van der Merwe)
- * Added Czech translations.
 
 
 0.16 "Acacia" - 2009/11/9

@@ -58,6 +58,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
+from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingSelector
 
 
 def get_file_lines_from_tree(tree, file_id):
@@ -154,6 +155,23 @@ class DiffWindow(QBzrWindow):
                      QtCore.SIGNAL("clicked(bool)"),
                      self.click_unidiff)
 
+        def on_left_encoding_changed(encoding):
+            if self.branches:
+                get_set_encoding(encoding, self.branches[0])
+            self.click_refresh()
+        self.encoding_selector_left = EncodingSelector(encoding,
+                                            gettext("Left side encoding:"),
+                                            on_left_encoding_changed)
+
+        def on_right_encoding_changed(encoding):
+            if self.branches:
+                get_set_encoding(encoding, self.branches[1])
+            self.click_refresh()
+        self.encoding_selector_right = EncodingSelector(encoding,
+                                            gettext("Right side encoding:"),
+                                            on_right_encoding_changed)
+
+
         complete = QtGui.QCheckBox (gettext("Complete"),
                                             self.centralwidget)
         self.connect(complete,
@@ -184,6 +202,8 @@ class DiffWindow(QBzrWindow):
         hbox.addWidget(complete)
         if has_ext_diff():
             hbox.addWidget(ext_diff_button)
+        hbox.addWidget(self.encoding_selector_left)
+        hbox.addWidget(self.encoding_selector_right)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
 
@@ -218,8 +238,8 @@ class DiffWindow(QBzrWindow):
         
         self.set_diff_title()
         
-        self.encodings = (get_set_encoding(self.encoding, branch1),
-                          get_set_encoding(self.encoding, branch2))
+        self.encoding_selector_left.encoding = get_set_encoding(self.encoding, branch1)
+        self.encoding_selector_right.encoding = get_set_encoding(self.encoding, branch2)
         self.processEvents()
     
     def set_diff_title(self):
@@ -242,7 +262,7 @@ class DiffWindow(QBzrWindow):
                 title.append(self.filter_options.to_str())
 
         self.set_title_and_icon(title)
-        self.processEvents()        
+        self.processEvents()
 
     def load_diff(self):
         self.refresh_button.setEnabled(False)
@@ -345,12 +365,15 @@ class DiffWindow(QBzrWindow):
                                     groups = list([matcher.get_opcodes()])
                                 else:
                                     groups = list(matcher.get_grouped_opcodes())
-                            try:
-                                lines = [[i.decode(encoding) for i in l]
-                                        for l, encoding in zip(lines, self.encodings)]
-                            except UnicodeDecodeError, e:
-                                trace.note('Failed to decode using %s, falling back to latin1' % e.encoding)
-                                lines = [[i.decode('latin1') for i in l] for l in lines]
+                            ulines = []
+                            for l, encoding in zip(lines, [self.encoding_selector_left.encoding,
+                                                           self.encoding_selector_right.encoding]):
+                                try:
+                                    ulines.append([i.decode(encoding) for i in l])
+                                except UnicodeDecodeError, e:
+                                    trace.note('Failed to decode using %s, falling back to latin1', e.encoding)
+                                    ulines.append([i.decode('latin1') for i in l])
+                            lines = ulines
                             data = ((),())
                         else:
                             groups = []
