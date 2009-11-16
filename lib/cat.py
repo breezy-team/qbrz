@@ -80,10 +80,10 @@ class QBzrCatWindow(QBzrWindow):
         self.tree = tree
         self.file_id = file_id
         self.encoding = encoding
-        
+
         if (not self.filename) and self.tree and self.file_id:
             self.filename = self.tree.id2path(self.file_id)
-        
+
         QBzrWindow.__init__(self, [gettext("View"), self.filename], parent)
         self.restoreSize("cat", (780, 580))
 

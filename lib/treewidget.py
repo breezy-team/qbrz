@@ -1055,6 +1055,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     def supportedDropActions(self):
         return QtCore.Qt.MoveAction
 
+
 class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     source_model = None
     

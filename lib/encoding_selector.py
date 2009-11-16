@@ -69,8 +69,9 @@ class EncodingSelector(QtGui.QWidget):
         _encodings += python_encodings
         self.encodings = filter(is_valid_encoding, _encodings)
 
-        if initial_encoding and initial_encoding not in self.encodings:
-            self.encodings.insert(0, initial_encoding)
+        if initial_encoding:
+            if initial_encoding not in self.encodings:
+                self.encodings.insert(0, initial_encoding)
         else:
             initial_encoding = 'utf-8'
 
