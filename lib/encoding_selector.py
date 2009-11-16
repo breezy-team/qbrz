@@ -19,6 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import codecs
 import sys
 from PyQt4 import QtGui, QtCore
 
@@ -96,11 +97,14 @@ class EncodingSelector(QtGui.QWidget):
 
     def _encodingChanged(self, encoding):
         try:
-            encoding = str(encoding)
-            if is_valid_encoding(encoding):
-                self.onChanged(encoding)
-        except UnicodeError:
-            pass
+            encoding = str(encoding)    # may raise UnicodeError
+            codecs.lookup(encoding)     # may raise LookupError
+            self.onChanged(encoding)
+        except (UnicodeError, LookupError):
+            QtGui.QMessageBox.critical(self,
+                gettext("Wrong encoding"),
+                gettext('Encoding "%s" is invalid or not supported.') %
+                    unicode(encoding))
 
     def getEncoding(self):
         return str(self.chooser.currentText())
