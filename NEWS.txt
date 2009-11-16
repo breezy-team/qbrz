@@ -6,11 +6,14 @@ What's new in this release:
    This selector allows change of the text encoding "on the fly".
  * Added new context menu action in qlog to tag a revision.
  * Added Czech translations.
+ * Double click on file item in conflicts window opens merge tool.
 
 Changelog:
 
  * qannotate, qcat, qdiff:
    * Added encoding selector. (INADA Naoki)
+ * qconflicts:
+   * Double click on file item opens merge tool. (Eugene Tarasenko)
  * qdiff:
    * Fixed problem with invoking external diff from qdiff dialog 
      when the current directory is not repository root. 

@@ -58,6 +58,10 @@ class ConflictsWindow(QBzrWindow):
             self.conflicts_list,
             QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
             self.show_context_menu)
+        self.connect(
+            self.conflicts_list,
+            QtCore.SIGNAL("itemDoubleClicked(QTreeWidgetItem *, int)"),
+            self.launch_merge_tool)
         self.conflicts_list.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.conflicts_list.setSortingEnabled(True)
         self.conflicts_list.sortByColumn(0, QtCore.Qt.AscendingOrder)
@@ -139,6 +143,7 @@ class ConflictsWindow(QBzrWindow):
         self.connect(self.merge_action, QtCore.SIGNAL("triggered(bool)"),
                      self.launch_merge_tool)
         self.context_menu.addAction(self.merge_action)
+        self.context_menu.setDefaultAction(self.merge_action)
         self.context_menu.addAction(gettext("Mark as &resolved"),
                                    self.mark_item_as_resolved)
 
