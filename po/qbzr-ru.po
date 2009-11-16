@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: QBzr 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-11-10 20:04+0200\n"
+"POT-Creation-Date: 2009-11-16 12:23+0200\n"
 "PO-Revision-Date: 2009-10-31 21:36+0000\n"
 "Last-Translator: Artem Polischuk aka Tim <Unknown>\n"
 "Language-Team: Russian\n"
@@ -14,7 +14,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Launchpad-Export-Date: 2009-11-10 20:08+0000\n"
+"X-Launchpad-Export-Date: 2009-11-16 12:08+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
@@ -30,32 +30,36 @@ msgstr "Неверсионированные файлы"
 msgid "Show ignored files"
 msgstr "Отображать игнорируемые файлы"
 
-#: lib\annotate.py:96
+#: lib\annotate.py:98
 msgid "Line"
 msgstr "Строка"
 
-#: lib\annotate.py:97 lib\logmodel.py:99 lib\treewidget.py:337
+#: lib\annotate.py:99 lib\logmodel.py:99 lib\treewidget.py:337
 msgid "Author"
 msgstr "Автор"
 
-#: lib\annotate.py:98 lib\logmodel.py:96 lib\treewidget.py:335
+#: lib\annotate.py:100 lib\logmodel.py:96 lib\treewidget.py:335
 msgid "Rev"
 msgstr "Версия"
 
-#: lib\annotate.py:209 lib\annotate.py:346 lib\annotate.py:350 lib\log.py:476
+#: lib\annotate.py:210 lib\annotate.py:355 lib\annotate.py:359 lib\log.py:476
 msgid "Annotate"
 msgstr "Аннотация"
 
-#: lib\annotate.py:209 lib\diffwindow.py:119 lib\util.py:442
+#: lib\annotate.py:210 lib\diffwindow.py:120 lib\util.py:442
 msgid "Loading..."
 msgstr "Загрузка..."
 
-#: lib\annotate.py:347
+#: lib\annotate.py:280 lib\cat.py:93 lib\encoding_selector.py:84
+msgid "Encoding:"
+msgstr ""
+
+#: lib\annotate.py:356
 #, python-format
 msgid "Revision %s"
 msgstr "Ревизия %s"
 
-#: lib\annotate.py:403
+#: lib\annotate.py:412
 msgid "&Annotate this revision"
 msgstr "Аннотация для этой ревизии"
 
@@ -106,11 +110,11 @@ msgstr "Версия:"
 msgid "Show"
 msgstr "Показать"
 
-#: lib\browse.py:88 lib\treewidget.py:1152
+#: lib\browse.py:88 lib\treewidget.py:1155
 msgid "&Filter"
 msgstr "&Фильтр"
 
-#: lib\cat.py:86 lib\cat.py:244
+#: lib\cat.py:87 lib\cat.py:273
 msgid "View"
 msgstr "Просмотр"
 
@@ -183,15 +187,15 @@ msgid ""
 msgstr ""
 "Введите имя автора, например: <i>John Doe &lt;jdoe@example.com&gt;</i>"
 
-#: lib\commit.py:350 lib\revert.py:65
+#: lib\commit.py:350
 msgid "Changes"
 msgstr "Изменения"
 
-#: lib\commit.py:367 lib\revert.py:94
+#: lib\commit.py:367
 msgid "Pending Merges"
 msgstr "Незаконченное объединение"
 
-#: lib\commit.py:378 lib\main.py:359 lib\subprocess.py:134
+#: lib\commit.py:378 lib\main.py:359 lib\subprocess.py:141
 #: lib\treewidget.py:338
 msgid "Status"
 msgstr "Состояние"
@@ -205,7 +209,7 @@ msgid "You should provide commit message."
 msgstr "Вы должны написать комментарий к фиксации"
 
 #: lib\commit.py:596 lib\conflicts.py:175 lib\conflicts.py:180
-#: lib\diffwindow.py:381 lib\util.py:80
+#: lib\diffwindow.py:403 lib\util.py:80
 msgid "&OK"
 msgstr "&ОК"
 
@@ -237,8 +241,8 @@ msgstr ""
 "Фиксация будет выполнена только в локальной ветке. Главная ветка не будет "
 "обновлена до тех пор, пока вы не сделаете обычную (не локальную) фиксацию."
 
-#: lib\commit.py:734 lib\diff.py:105 lib\diffwindow.py:119
-#: lib\diffwindow.py:232 lib\diffwindow.py:371 lib\diffwindow.py:379
+#: lib\commit.py:734 lib\diff.py:105 lib\diffwindow.py:120
+#: lib\diffwindow.py:251 lib\diffwindow.py:393 lib\diffwindow.py:401
 #: lib\revert.py:297
 msgid "Diff"
 msgstr "Различия"
@@ -308,7 +312,7 @@ msgid "Command"
 msgstr "Команда"
 
 #: lib\config.py:123 lib\config.py:144 lib\config.py:175 lib\config.py:204
-#: lib\treewidget.py:1553 lib\treewidget.py:1874
+#: lib\treewidget.py:1556 lib\treewidget.py:1877
 msgid "Remove"
 msgstr "Удалить"
 
@@ -413,7 +417,7 @@ msgstr "Программа для объединения изменений:"
 msgid "Auto-resolve"
 msgstr "Автоматически"
 
-#: lib\conflicts.py:137 lib\treewidget.py:1536
+#: lib\conflicts.py:137 lib\treewidget.py:1539
 msgid "&Merge conflict"
 msgstr ""
 
@@ -505,7 +509,7 @@ msgstr ""
 msgid "non-directory parent"
 msgstr ""
 
-#: lib\diff.py:81 lib\treewidget.py:1531
+#: lib\diff.py:81 lib\treewidget.py:1534
 msgid "Show &differences"
 msgstr "Показать различия"
 
@@ -533,56 +537,64 @@ msgstr "[бинарный файл]"
 msgid "\\ No newline at end of file"
 msgstr "\\ Нет символа перевода строки в конце файла"
 
-#: lib\diffwindow.py:76
+#: lib\diffwindow.py:77
 #, python-format
 msgid "Working Tree for %s"
 msgstr "Рабочая копия ветки %s"
 
-#: lib\diffwindow.py:78
+#: lib\diffwindow.py:79
 msgid "Working Tree"
 msgstr "Рабочая копия"
 
-#: lib\diffwindow.py:97
+#: lib\diffwindow.py:98
 #, python-format
 msgid "Rev %(rev)s for %(branch)s"
 msgstr "Версия %(rev)s в ветке %(branch)s"
 
-#: lib\diffwindow.py:99
+#: lib\diffwindow.py:100
 #, python-format
 msgid "Rev %s"
 msgstr "Версия %s"
 
-#: lib\diffwindow.py:102
+#: lib\diffwindow.py:103
 #, python-format
 msgid "Revid: %(revid)s for %(branch)s"
 msgstr "Revid: %(revid)s для %(branch)s"
 
-#: lib\diffwindow.py:104
+#: lib\diffwindow.py:105
 #, python-format
 msgid "Revid: %s"
 msgstr "Revid: %s"
 
-#: lib\diffwindow.py:107
+#: lib\diffwindow.py:108
 msgid "Merge Preview"
 msgstr "Результат объединения"
 
-#: lib\diffwindow.py:145
+#: lib\diffwindow.py:146
 msgid "Side by side"
 msgstr "Две панели рядом"
 
-#: lib\diffwindow.py:152
+#: lib\diffwindow.py:153
 msgid "Unidiff"
 msgstr "Unidiff"
 
-#: lib\diffwindow.py:157
+#: lib\diffwindow.py:163
+msgid "Left side encoding:"
+msgstr ""
+
+#: lib\diffwindow.py:171
+msgid "Right side encoding:"
+msgstr ""
+
+#: lib\diffwindow.py:175
 msgid "Complete"
 msgstr "Показывать файлы целиком"
 
-#: lib\diffwindow.py:166
+#: lib\diffwindow.py:184
 msgid "Using"
 msgstr ""
 
-#: lib\diffwindow.py:238
+#: lib\diffwindow.py:257
 #, python-format
 msgid "%d file"
 msgid_plural "%d files"
@@ -590,27 +602,27 @@ msgstr[0] "%d файл"
 msgstr[1] "%d файла"
 msgstr[2] "%d файлов"
 
-#: lib\diffwindow.py:313 lib\treewidget.py:312
+#: lib\diffwindow.py:332 lib\treewidget.py:312
 msgid "removed"
 msgstr "удален"
 
-#: lib\diffwindow.py:315 lib\treewidget.py:310
+#: lib\diffwindow.py:334 lib\treewidget.py:310
 msgid "added"
 msgstr "добавлен"
 
-#: lib\diffwindow.py:317
+#: lib\diffwindow.py:336
 msgid "renamed and modified"
 msgstr "переименован и изменен"
 
-#: lib\diffwindow.py:319 lib\treewidget.py:323
+#: lib\diffwindow.py:338 lib\treewidget.py:323
 msgid "renamed"
 msgstr "переименован"
 
-#: lib\diffwindow.py:321 lib\treewidget.py:325
+#: lib\diffwindow.py:340 lib\treewidget.py:325
 msgid "modified"
 msgstr "изменён"
 
-#: lib\diffwindow.py:372
+#: lib\diffwindow.py:394
 #, python-format
 msgid ""
 "File %s is not versioned.\n"
@@ -619,14 +631,23 @@ msgstr ""
 "Изменения в файле \"%s\" не отслеживаются.\n"
 "Операция прервана."
 
-#: lib\diffwindow.py:374 lib\tag.py:138 lib\tag.py:169 lib\tag.py:206
+#: lib\diffwindow.py:396 lib\tag.py:138 lib\tag.py:169 lib\tag.py:206
 #: lib\tree_branch.py:97 lib\util.py:82 lib\util.py:1100 lib\util.py:1110
 msgid "&Close"
 msgstr "&Закрыть"
 
-#: lib\diffwindow.py:380
+#: lib\diffwindow.py:402
 msgid "No changes found."
 msgstr "Изменения не найдены."
+
+#: lib\encoding_selector.py:105
+msgid "Wrong encoding"
+msgstr ""
+
+#: lib\encoding_selector.py:106
+#, python-format
+msgid "Encoding \"%s\" is invalid or not supported."
+msgstr ""
 
 #: lib\export.py:61 lib\export.py:80
 msgid "Export"
@@ -759,7 +780,7 @@ msgstr "Номера ошибок"
 msgid "Messages and File text (indexed)"
 msgstr ""
 
-#: lib\log.py:471 lib\logwidget.py:132
+#: lib\log.py:471 lib\logwidget.py:134
 msgid "Show &differences..."
 msgstr "Показать &различия..."
 
@@ -776,25 +797,29 @@ msgstr "Дата"
 msgid "bug #%s"
 msgstr "bug #%s"
 
-#: lib\logwidget.py:106
+#: lib\logwidget.py:108
 msgid "Show file &differences"
 msgstr "Показать различия для файла"
 
-#: lib\logwidget.py:112
+#: lib\logwidget.py:114
 msgid "Show all &differences"
 msgstr "Показать различия для всех файлов"
 
-#: lib\logwidget.py:118
+#: lib\logwidget.py:120
 msgid "Show file &differences..."
 msgstr "Показать различия для файла..."
 
-#: lib\logwidget.py:122
+#: lib\logwidget.py:124
 msgid "Show all &differences..."
 msgstr "Показать различия для всех файлов..."
 
-#: lib\logwidget.py:140
+#: lib\logwidget.py:142
 msgid "Show &tree..."
 msgstr "Дерево файлов"
+
+#: lib\logwidget.py:144
+msgid "Tag &revision..."
+msgstr ""
 
 #: lib\main.py:124
 msgid "Computer"
@@ -930,7 +955,7 @@ msgstr ""
 msgid "Version"
 msgstr ""
 
-#: lib\plugins.py:58 lib\subprocess.py:311
+#: lib\plugins.py:58 lib\subprocess.py:318
 msgid "Description"
 msgstr "Описание"
 
@@ -981,15 +1006,23 @@ msgstr "&Да"
 msgid "&No"
 msgstr "&Нет"
 
-#: lib\revert.py:54 lib\treewidget.py:1763
+#: lib\revert.py:54 lib\treewidget.py:1766
 msgid "Revert"
 msgstr "Возврат к предыдущей версии"
+
+#: lib\revert.py:65
+msgid "Select changes to revert"
+msgstr ""
 
 #: lib\revert.py:82
 msgid "Do not save backups of reverted files"
 msgstr "Не сохранять резервные копии для обрабатываемых файлов"
 
-#: lib\revert.py:144
+#: lib\revert.py:94
+msgid "Forget pending merges"
+msgstr ""
+
+#: lib\revert.py:143
 msgid "View changes in files selected to revert"
 msgstr ""
 "Просмотр изменений в файлах, которые необходимо возвратить к предыдущей "
@@ -1071,44 +1104,44 @@ msgstr "Файл:"
 msgid "Revisions:"
 msgstr "Ревизии:"
 
-#: lib\subprocess.py:349
+#: lib\subprocess.py:356
 msgid "Ready"
 msgstr "Готов"
 
-#: lib\subprocess.py:418
+#: lib\subprocess.py:425
 msgid "Starting..."
 msgstr "Начинаем операцию..."
 
-#: lib\subprocess.py:495
+#: lib\subprocess.py:502
 msgid "Aborting..."
 msgstr "Останавливаем операцию..."
 
-#: lib\subprocess.py:506 lib\subprocess.py:621
+#: lib\subprocess.py:513 lib\subprocess.py:629
 msgid "Finished!"
 msgstr "Завершено!"
 
-#: lib\subprocess.py:528 lib\uifactory.py:108
+#: lib\subprocess.py:536 lib\uifactory.py:108
 msgid "Enter Password"
 msgstr "Введите пароль"
 
-#: lib\subprocess.py:538 lib\uifactory.py:119
+#: lib\subprocess.py:546 lib\uifactory.py:119
 msgid "Enter Username"
 msgstr ""
 
-#: lib\subprocess.py:602 lib\subprocess.py:624
+#: lib\subprocess.py:610 lib\subprocess.py:632
 msgid "Failed!"
 msgstr "Неудачно!"
 
-#: lib\subprocess.py:604
+#: lib\subprocess.py:612
 msgid "Failed to start bzr."
 msgstr "Не могу запустить bzr."
 
-#: lib\subprocess.py:606
+#: lib\subprocess.py:614
 #, python-format
 msgid "Error while running bzr. (error code: %d)"
 msgstr "Ошибка во время работы bzr. (код ошибки: %d)"
 
-#: lib\subprocess.py:614
+#: lib\subprocess.py:622
 msgid "Aborted!"
 msgstr "Прервано!"
 
@@ -1220,81 +1253,81 @@ msgstr ""
 msgid "File Name"
 msgstr "Имя файла"
 
-#: lib\treewidget.py:1154
+#: lib\treewidget.py:1157
 msgid "Unchanged"
 msgstr "Не изменен"
 
-#: lib\treewidget.py:1155
+#: lib\treewidget.py:1158
 msgid "Changed"
 msgstr "Изменен"
 
-#: lib\treewidget.py:1156
+#: lib\treewidget.py:1159
 msgid "Unversioned"
 msgstr "Не версионирован"
 
-#: lib\treewidget.py:1157
+#: lib\treewidget.py:1160
 msgid "Ignored"
 msgstr "Игнорируется"
 
-#: lib\treewidget.py:1512
+#: lib\treewidget.py:1515
 msgid "&Open"
 msgstr "&Открыть"
 
-#: lib\treewidget.py:1515
+#: lib\treewidget.py:1518
 msgid "&View file"
 msgstr "&Просмотр файла"
 
-#: lib\treewidget.py:1518
+#: lib\treewidget.py:1521
 msgid "Show &annotate"
 msgstr "Показать &аннотацию"
 
-#: lib\treewidget.py:1521
+#: lib\treewidget.py:1524
 msgid "Show &log"
 msgstr "Показать &журнал"
 
-#: lib\treewidget.py:1539
+#: lib\treewidget.py:1542
 msgid "Mark conflict &resolved"
 msgstr ""
 
-#: lib\treewidget.py:1544
+#: lib\treewidget.py:1547
 msgid "&Add"
 msgstr "&Добавить"
 
-#: lib\treewidget.py:1547
+#: lib\treewidget.py:1550
 msgid "&Revert"
 msgstr "&Отменить изменения"
 
-#: lib\treewidget.py:1550
+#: lib\treewidget.py:1553
 msgid "Re&name"
 msgstr ""
 
-#: lib\treewidget.py:1613
+#: lib\treewidget.py:1616
 msgid "&Mark as moved and renamed"
 msgstr ""
 
-#: lib\treewidget.py:1615
+#: lib\treewidget.py:1618
 msgid "&Mark as moved"
 msgstr ""
 
-#: lib\treewidget.py:1617
+#: lib\treewidget.py:1620
 msgid "&Mark as renamed"
 msgstr ""
 
-#: lib\treewidget.py:1764
+#: lib\treewidget.py:1767
 msgid "Do you really want to revert the selected file(s)?"
 msgstr ""
 
-#: lib\treewidget.py:1797
+#: lib\treewidget.py:1800
 msgid "External Merge"
 msgstr ""
 
-#: lib\treewidget.py:1875
+#: lib\treewidget.py:1878
 msgid ""
 "Some of the files selected cannot be recoverd if removed. Are you sure you "
 "want to remove these files?"
 msgstr ""
 
-#: lib\treewidget.py:1889
+#: lib\treewidget.py:1892
 msgid "Select / deselect all"
 msgstr "Выбрать все файлы"
 
