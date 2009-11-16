@@ -25,6 +25,7 @@ from bzrlib.transport.local import LocalTransport
 
 RevIdRole = QtCore.Qt.UserRole + 1
 
+
 class RevisionTreeView(QtGui.QTreeView):
     """TreeView widget to shows revisions.
     
@@ -148,7 +149,9 @@ class RevisionTreeView(QtGui.QTreeView):
         QtCore.QCoreApplication.processEvents(
                             QtCore.QEventLoop.WaitForMoreEvents)
 
+
 has_vista_style = hasattr(QtGui, "QWindowsVistaStyle")
+
 
 class StyledItemDelegate(QtGui.QStyledItemDelegate):
     

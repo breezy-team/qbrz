@@ -1331,7 +1331,6 @@ class TreeWidget(RevisionTreeView):
             self.set_header_width_settings()
             self.set_visible_headers()
         
-        
         if sys.platform.startswith("win"):
             # This is to fix Bug 402276, where the treewidget does not get
             # repainted when you scroll.
@@ -1497,7 +1496,25 @@ class TreeWidget(RevisionTreeView):
         self.filter_context_menu()
         self.context_menu.popup(event.globalPos())
         event.accept()
-    
+
+    def keyPressEvent(self, event):
+        """Processing Enter key to launch default action for files and
+        expand/collapse directories.
+        """
+        e_key = event.key()
+        if e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
+            items = self.get_selection_items()
+            if len(items) == 1:
+                kind = items[0].item.kind
+                event.accept()
+                index = self.selectedIndexes()[0]
+                if kind == 'directory':
+                    self.setExpanded(index, not self.isExpanded(index))
+                else:
+                    self.do_default_action(index)
+                return
+        QtGui.QTreeView.keyPressEvent(self, event)
+
     def get_selection_indexes(self, indexes=None):
         if indexes is None or (len(indexes) == 1 and indexes[0] is None):
             indexes = self.selectionModel().selectedRows(0)
@@ -1605,8 +1622,7 @@ class TreeWidget(RevisionTreeView):
         self.action_rename.setEnabled(single_item_in_tree)
         self.action_remove.setVisible(is_working_tree)
         self.action_remove.setEnabled(any(on_disk))
-        
-        
+
         can_mark_move = (selection_len == 2 and
                          (missing_unversioned(items[0], items[1]) or
                           missing_unversioned(items[1], items[0])))
@@ -1886,6 +1902,7 @@ class TreeWidget(RevisionTreeView):
             report_exception(type=SUB_LOAD_METHOD, window=self.window())
         
         self.refresh()
+
 
 class SelectAllCheckBox(QtGui.QCheckBox):
     

@@ -33,6 +33,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib import diff
 
+
 class LogList(RevisionTreeView):
     """TreeView widget to show log with metadata and graph of revisions."""
 
@@ -270,7 +271,6 @@ class LogList(RevisionTreeView):
                     colapse_expand_click = True
         if not colapse_expand_click:
             QtGui.QTreeView.mouseMoveEvent(self, e)
-
 
     def keyPressEvent (self, e):
         e_key = e.key()

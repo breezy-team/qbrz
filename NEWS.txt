@@ -20,6 +20,8 @@ Changelog:
  * treewidget:
    * Fixed compatibility with PyQt < 4.6. 
      (Bug #479093, Bug #478979, Gary van der Merwe)
+   * Extended keyboard navigation: pressing Enter invokes default action
+     for selected item. (Bug #483597, Alexander Belchenko)
 
 
 0.16 "Acacia" - 2009/11/9
