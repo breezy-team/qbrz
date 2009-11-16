@@ -148,7 +148,6 @@ class RevertWindow(SubProcessDialog):
         layout.addLayout(hbox)
         self.throbber.show()
 
-
     def show(self): 
         SubProcessDialog.show(self) 
         QtCore.QTimer.singleShot(1, self.initial_load) 
@@ -160,7 +159,7 @@ class RevertWindow(SubProcessDialog):
         self.filelist.tree_model.checkable = True 
         fmodel = self.filelist.tree_filter_model 
         #fmodel.setFilter(fmodel.UNVERSIONED, False) 
-        if self.initial_selected_list is None and not self.pending_merges:
+        if self.initial_selected_list is None and not self.has_pending_merges:
             self.initial_selected_list = []
         
         self.filelist.set_tree(self.tree, changes_mode=True,
