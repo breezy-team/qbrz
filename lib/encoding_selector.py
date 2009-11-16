@@ -89,10 +89,18 @@ class EncodingSelector(QtGui.QWidget):
         self.chooser.setEditable(True)
         self.chooser.setEditText(QtCore.QString(initial_encoding))
         self.connect(self.chooser, QtCore.SIGNAL("activated(QString)"),
-                     lambda x: self.onChanged(str(x)))
+                     self._encodingChanged)
         layout.addWidget(self.chooser)
 
         self.setLayout(layout)
+
+    def _encodingChanged(self, encoding):
+        try:
+            encoding = str(encoding)
+            if is_valid_encoding(encoding):
+                self.onChanged(encoding)
+        except UnicodeError:
+            pass
 
     def getEncoding(self):
         return str(self.chooser.currentText())
