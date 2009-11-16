@@ -58,16 +58,17 @@ class RevertWindow(SubProcessDialog):
                                   dialog = dialog,
                                   parent = parent,
                                   hide_progress=True)
-        
+
         self.throbber = ThrobberWidget(self) 
 
         # Display the list of changed files
-        self.file_groupbox = QtGui.QGroupBox(gettext("Select Changes to Revert"), self)
+        self.file_groupbox = QtGui.QGroupBox(gettext("Select changes to revert"), self)
 
         self.filelist = TreeWidget(self.file_groupbox)
         self.filelist.throbber = self.throbber 
         self.filelist.tree_model.is_item_in_select_all = lambda item: ( 
             item.change is not None and item.change.is_versioned())
+
         def filter_context_menu():
             TreeWidget.filter_context_menu(self.filelist)
             self.filelist.action_add.setVisible(False)
@@ -90,7 +91,7 @@ class RevertWindow(SubProcessDialog):
         
         if self.has_pending_merges:
             self.file_groupbox.setCheckable(True)
-            self.merges_groupbox = QtGui.QGroupBox(gettext("Pending Merges to Revert"))
+            self.merges_groupbox = QtGui.QGroupBox(gettext("Forget pending merges"))
             self.merges_groupbox.setCheckable(True)
             # This keeps track of what the merges_groupbox was before the
             # select all changes it, so that it can put it back to the state
@@ -151,7 +152,7 @@ class RevertWindow(SubProcessDialog):
     def show(self): 
         SubProcessDialog.show(self) 
         QtCore.QTimer.singleShot(1, self.initial_load) 
- 
+
     @runs_in_loading_queue 
     @ui_current_widget 
     @reports_exception() 
@@ -161,7 +162,7 @@ class RevertWindow(SubProcessDialog):
         #fmodel.setFilter(fmodel.UNVERSIONED, False) 
         if self.initial_selected_list is None and not self.has_pending_merges:
             self.initial_selected_list = []
-        
+
         self.filelist.set_tree(self.tree, changes_mode=True,
                                want_unversioned=False,
                                initial_checked_paths=self.initial_selected_list)
@@ -169,18 +170,16 @@ class RevertWindow(SubProcessDialog):
             self.filelist.tree_model.iter_checked())
         self.selectall_checkbox.update_state()
         self.processEvents()
-        
+
         if self.has_pending_merges:
             self.pending_merges.load_branch(self.tree.branch,
                                                  None,
                                                  self.tree)
             self.pending_merges.load()
             self.processEvents()
-        
+
         self.throbber.hide()
 
-
-    
     # The logic for the next 4 methods is like this:
     # * Either file_groupbox or merges_groupbox or both must be checked,
     #   never neither.
