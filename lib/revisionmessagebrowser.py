@@ -147,15 +147,14 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                 message = gettext("Uncommited Working Tree Changes")
 
             text = []
-            text.append('<table style="background:#EDEDED;" width="100%" cellspacing="0" cellpadding="0"><tr><td>')
-            text.append('<table cellspacing="0" cellpadding="0">')
+            text.append('<table style="background:#EDEDED;">')
             for prop in props:
-                # <nobr> needed because in Russian some prop labels has 2 words
-                # &nbsp; needed because on Windows + PyQt 4.3.1 style=padding-left:5px does not working
-                text.append(('<tr><td style="padding-left:2px;" align="right"><b><nobr>%s </nobr></b></td>'
-                    '<td>%s</td></tr>') % prop)
+                # white-space: pre is needed because in some languaged, some 
+                # prop labels have more than 1 word. white-space: nowrap
+                # does not work for Japanese, but pre does.
+                text.append(('<tr><td style="padding-left:2px; font-weight:bold; white-space: pre;" align="right">%s</td>'
+                    '<td width="100%%">%s</td></tr>') % prop)
             text.append('</table>')
-            text.append('</td></tr></table>')
         
             text.append('<div style="margin:2px;margin-top:0.5em;">%s</div>' % message)
             rev_html.append("".join(text))
