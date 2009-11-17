@@ -20,10 +20,7 @@ from PyQt4 import QtCore, QtGui
 
 from bzrlib.plugins.qbzr.lib.diffwindow import DiffWindow
 from bzrlib.plugins.qbzr.lib.diff_arg import InternalDiffArgProvider
-from bzrlib.plugins.qbzr.lib.util import (
-    format_revision_html,
-    RevisionMessageBrowser,
-    )
+from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import RevisionMessageBrowser
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 
 # DiffWindow has alot of stuff that we need, so we just extend it.
@@ -39,10 +36,9 @@ class RevisionView(DiffWindow):
                                        branch, branch)
         DiffWindow.__init__(self, args, parent)
         
-        self.message = QtGui.QTextDocument(self)
         self.message_browser = RevisionMessageBrowser(self)
-        self.message_browser.setDocument(self.message)
-        self.message.setHtml(format_revision_html(revision))
+        self.message_browser.set_display_revids([revision.revision_id], 
+                                                branch.repository)
         
         vsplitter = QtGui.QSplitter(QtCore.Qt.Vertical)
         vsplitter.addWidget(self.message_browser)

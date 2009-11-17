@@ -54,22 +54,6 @@ from bzrlib import foreign
 ''')
 
 
-_email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)', re.IGNORECASE)
-_link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])', re.IGNORECASE)
-_link2_re = lazy_regex.lazy_compile(r'(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)', re.IGNORECASE)
-_tag_re = lazy_regex.lazy_compile(r'[, ]')
-_start_of_line_whitespace_re = lazy_regex.lazy_compile(r'(?m)^ +')
-
-
-def htmlize(text):
-    text = htmlencode(text)
-    text = _start_of_line_whitespace_re.sub(lambda m: "&nbsp;" * len(m.group()), text)
-    text = text.replace("\n", '<br />')
-    text = _email_re.sub('<a href="mailto:\\1">\\1</a>', text)
-    text = _link1_re.sub('\\1<a href="\\2://\\3">\\2://\\3</a>', text)
-    text = _link2_re.sub('\\1<a href="http://www.\\2.\\3\\4">www.\\2.\\3\\4</a>', text)
-    return text
-
 
 # standard buttons with translatable labels
 BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP, BTN_REFRESH = range(5)
@@ -522,115 +506,6 @@ def quote_tag(tag):
     return tag
 
 
-def format_revision_html(rev, search_replace=None, show_timestamp=False):
-    props = []
-    if hasattr(rev, "revno"):
-        props.append((gettext("Revision:"), "%s revid:%s" % (rev.revno, rev.revision_id)))
-    else:
-        props.append((gettext("Revision:"), "revid:%s" % (rev.revision_id)))
-
-    def short_text(summary, length):
-        if len(summary) > length:
-            return summary[:length-1] + u"\u2026"
-        else:
-            return summary
-
-    def revision_list_html(revisions):
-        return ', '.join('<a href="qlog-revid:%s" title="%s">%s: %s</a>' % (
-            (r.revision_id,
-             htmlencode(get_summary(r)),
-             short_text(r.revno, 10),
-             htmlencode(short_text(get_summary(r), 60)))) for r in revisions)
-
-    parents = getattr(rev, 'parents', None)
-    if parents:
-        props.append((gettext("Parents:"), revision_list_html(parents)))
-
-    children = getattr(rev, 'children', None)
-    if children:
-        props.append((gettext("Children:"), revision_list_html(children)))
-
-    if not rev.revision_id == CURRENT_REVISION:
-        if show_timestamp and rev.timestamp is not None:
-            props.append((gettext("Date:"), format_timestamp(rev.timestamp)))
-    
-        props.append((gettext("Committer:"), htmlize(rev.committer)))
-        author = rev.properties.get('author')
-        if author:
-            props.append((gettext("Author:"), htmlize(author)))
-        else:
-            authors = rev.properties.get('authors')
-            if authors:
-                for author in authors.split('\n'):
-                    props.append((gettext("Author:"), htmlize(author)))
-    
-        branch_nick = rev.properties.get('branch-nick')
-        if branch_nick:
-            props.append((gettext("Branch:"), htmlize(branch_nick)))
-    
-        tags = getattr(rev, 'tags', None)
-        if tags:
-            tags = map(quote_tag, tags)
-            props.append((gettext("Tags:"), htmlencode(", ".join(tags))))
-    
-        bugs = []
-        for bug in rev.properties.get('bugs', '').split('\n'):
-            if bug:
-                url, status = bug.split(' ', 1)
-                bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
-                    dict(url=url, status=gettext(status))))
-        if bugs:
-            props.append((ngettext("Bug:", "Bugs:", len(bugs)), ", ".join(bugs)))
-
-        if isinstance(rev, foreign.ForeignRevision):
-            foreign_attribs = \
-                rev.mapping.vcs.show_foreign_revid(rev.foreign_revid)
-
-            keys = foreign_attribs.keys()
-            keys.sort()
-            for key in keys:
-                props.append((key + ":", foreign_attribs[key]))
-
-        elif ":" in rev.revision_id:
-            try:
-                foreign_revid, mapping = \
-                    foreign.foreign_vcs_registry.parse_revision_id(
-                        rev.revision_id)
-                
-                foreign_attribs = \
-                    mapping.vcs.show_foreign_revid(foreign_revid)
-                
-                keys = foreign_attribs.keys()
-                keys.sort()
-                for key in keys:
-                    props.append((key + ":", foreign_attribs[key]))
-
-            except errors.InvalidRevisionId:
-                pass
-
-
-    text = []
-    text.append('<table style="background:#EDEDED;" width="100%" cellspacing="0" cellpadding="0"><tr><td>')
-    text.append('<table cellspacing="0" cellpadding="0">')
-    for prop in props:
-        # <nobr> needed because in Russian some prop labels has 2 words
-        # &nbsp; needed because on Windows + PyQt 4.3.1 style=padding-left:5px does not working
-        text.append(('<tr><td style="padding-left:2px;" align="right"><b><nobr>%s </nobr></b></td>'
-            '<td>%s</td></tr>') % prop)
-    text.append('</table>')
-    text.append('</td></tr></table>')
-
-    if rev.revision_id == CURRENT_REVISION:
-        message = gettext("Uncommited Working Tree Changes")
-    else:
-        message = htmlize(get_message(rev))
-    if search_replace:
-        for search, replace in search_replace:
-            message = re.sub(search, replace, message)
-    text.append('<div style="margin:2px;margin-top:0.5em;">%s</div>' % message)
-
-    return "".join(text)
-
 
 def open_browser(url):
     try:
@@ -700,12 +575,6 @@ def get_set_encoding(encoding, branch):
         if branch is not None:
             branch.get_config().set_user_option("encoding", encoding)
     return encoding
-
-
-class RevisionMessageBrowser(QtGui.QTextBrowser):
-
-    def setSource(self, uri):
-        pass
 
 
 def file_extension(path):

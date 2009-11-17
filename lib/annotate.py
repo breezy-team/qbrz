@@ -32,15 +32,14 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     ThrobberWidget,
-    format_revision_html,
     get_apparent_author_name,
     get_set_encoding,
     open_browser,
-    RevisionMessageBrowser,
     split_tokens_at_lines,
     format_for_ttype,
     runs_in_loading_queue,
     )
+from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
@@ -258,23 +257,13 @@ class AnnotateWindow(QBzrWindow):
                      QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
                      self.setRevisionByLine)
 
-        
-        self.message_doc = QtGui.QTextDocument()
-        message = RevisionMessageBrowser()
-        message.setDocument(self.message_doc)
-        self.connect(message,
-                     QtCore.SIGNAL("anchorClicked(QUrl)"),
-                     self.linkClicked)
-
         self.log_list = LogList(self.processEvents, self.throbber, no_graph, self)
         self.log_list.load = self.log_list_load
         self.log_list.header().hideSection(COL_DATE)
         #self.log_list.header().hideSection(COL_AUTHOR)
         self.log_branch_loaded = False
         
-        self.connect(self.log_list.selectionModel(),
-                     QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
-                     self.update_selection)
+        self.message = LogListRevisionMessageBrowser(self.log_list, self)
 
         self.encoding_selector = EncodingSelector(self.encoding,
             gettext("Encoding:"),
@@ -282,7 +271,7 @@ class AnnotateWindow(QBzrWindow):
 
         hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
         hsplitter.addWidget(self.log_list)
-        hsplitter.addWidget(message)
+        hsplitter.addWidget(self.message)
 
         hsplitter.setStretchFactor(0, 2)
         hsplitter.setStretchFactor(1, 2)
@@ -423,8 +412,8 @@ class AnnotateWindow(QBzrWindow):
             changed_indexes.append(index)
             
             if len(changed_indexes) >=500:
-                 gp.invaladate_filter_cache_revs(changed_indexes)
-                 changed_indexes = []
+                gp.invaladate_filter_cache_revs(changed_indexes)
+                changed_indexes = []
         
         gp.invaladate_filter_cache_revs(changed_indexes, last_call=True)
         
@@ -474,28 +463,6 @@ class AnnotateWindow(QBzrWindow):
             index = self.log_list.filter_proxy_model.mapFromSource(index)
             self.log_list.setCurrentIndex(index)
 
-    # XXX this method should be common with the same method in log.py
-    def update_selection(self, selected, deselected):
-        indexes = [index for index in self.log_list.selectedIndexes()
-                   if index.column()==0]
-        if not indexes:
-            self.message_doc.setHtml("")
-        else:
-            index = indexes[0]
-            revid = str(index.data(RevIdRole).toString())
-            gp = self.log_list.graph_provider
-            rev  = gp.load_revisions([revid])[revid]
-            if not hasattr(rev, "revno"):
-                if rev.revision_id in gp.revid_rev:
-                    rev.revno = gp.revid_rev[rev.revision_id].revno_str
-                else:
-                    rev.revno = ""
-            self.message_doc.setHtml(format_revision_html(rev,
-                                                          show_timestamp=True))
-
-    def linkClicked(self, url):
-        open_browser(str(url.toEncoded()))
-    
     @runs_in_loading_queue
     def set_annotate_revision(self):
         self.throbber.show()
