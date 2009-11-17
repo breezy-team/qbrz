@@ -95,6 +95,8 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
         self._all_loaded_revs.update(revs_loaded)
         
         rev_html = []
+        min_merge_depth = min([self.get_merge_depth(revid) 
+                               for revid in self._display_revids])
         for revid in self._display_revids:
             props = []
             message = ""
@@ -145,18 +147,28 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                             message = re.sub(search, replace, message)
             else:
                 message = gettext("Uncommited Working Tree Changes")
-
+            
+            margin_left = (self.get_merge_depth(revid)-min_merge_depth)*20
             text = []
-            text.append('<table style="background:#EDEDED;">')
+            text.append('<table style="background:#EDEDED; margin-left:%dpx;">' 
+                        % margin_left)
             for prop in props:
                 # white-space: pre is needed because in some languaged, some 
                 # prop labels have more than 1 word. white-space: nowrap
                 # does not work for Japanese, but pre does.
-                text.append(('<tr><td style="padding-left:2px; font-weight:bold; white-space: pre;" align="right">%s</td>'
-                    '<td width="100%%">%s</td></tr>') % prop)
+                text.append(('<tr>'
+                               '<td style="padding-left:2px; '
+                                          'font-weight:bold; '
+                                          'white-space: pre;"'
+                                   'align="right">%s</td>'
+                               '<td width="100%%">%s</td>'
+                             '</tr>') % prop)
             text.append('</table>')
+            
         
-            text.append('<div style="margin:2px;margin-top:0.5em;">%s</div>' % message)
+            text.append('<div style="margin-top:0.5em; '
+                                    'margin-left:%spx;">%s</div>' 
+                        % (margin_left + 2 , message))
             rev_html.append("".join(text))
     
         self.setHtml("<br>".join(rev_html))
@@ -212,6 +224,10 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
         # Normaly, we don't know how to do this.
         return None
     
+    def get_merge_depth(self, revid):
+        # Normaly, we don't know how to do this.
+        return 0
+    
     def setSource(self, uri):
         pass
     
@@ -265,4 +281,6 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
     
     def get_revno(self, revid):
         return self.log_list.graph_provider.revid_rev[revid].revno_str
-
+    
+    def get_merge_depth(self, revid):
+        return self.log_list.graph_provider.revid_rev[revid].merge_depth
