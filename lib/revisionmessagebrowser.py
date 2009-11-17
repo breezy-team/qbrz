@@ -105,6 +105,9 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                                         QtCore.QUrl("dot%d" % color),
                                         QtCore.QVariant(image))
             self.images.append(image)
+        
+        self.props_back_color_str = ("#%02X%02X%02X" % 
+            self.palette().background().color().getRgb()[:3])
     
     def get_act_color(self, color, back):
         qcolor = QtGui.QColor()
@@ -199,8 +202,8 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
             
             margin_left = (self.get_merge_depth(revid)-min_merge_depth)*20
             text = []
-            text.append('<table style="background:#EDEDED; margin-left:%dpx;">' 
-                        % margin_left)
+            text.append('<table style="background:%s; margin-left:%dpx;">' 
+                        % (self.props_back_color_str, margin_left))
             for prop in props:
                 # white-space: pre is needed because in some languaged, some 
                 # prop labels have more than 1 word. white-space: nowrap
