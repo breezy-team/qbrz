@@ -75,8 +75,52 @@ def htmlize(text):
 class RevisionMessageBrowser(QtGui.QTextBrowser):
     """Widget to display revision metadata and messages."""
     
-    _display_revids = []
-    _all_loaded_revs = {}
+    def __init__(self, parent=None):
+        super(RevisionMessageBrowser, self).__init__(parent)
+        _display_revids = []
+        _all_loaded_revs = {}
+
+        
+        boxsize = self.fontMetrics().ascent()
+        center = boxsize * 0.5
+        dotsize = 0.7
+        dot_rect =  QtCore.QRectF(center - (boxsize * dotsize * 0.5 ),
+                                  center - (boxsize * dotsize * 0.5 ),
+                                  boxsize * dotsize, 
+                                  boxsize * dotsize)
+        self.images = []
+        for color in xrange(7):
+            image = QtGui.QImage(boxsize, boxsize, QtGui.QImage.Format_ARGB32)
+            image.fill(0)
+            painter = QtGui.QPainter(image)
+            painter.setRenderHint(QtGui.QPainter.Antialiasing)            
+            pen = QtGui.QPen()
+            pen.setWidth(1)
+            pen.setColor(self.get_act_color(color,False))
+            painter.setPen(pen)
+            painter.setBrush(QtGui.QBrush(self.get_act_color(color,True)))
+            painter.drawEllipse(dot_rect)
+            painter.end()
+            self.document().addResource(QtGui.QTextDocument.ImageResource,
+                                        QtCore.QUrl("dot%d" % color),
+                                        QtCore.QVariant(image))
+            self.images.append(image)
+    
+    def get_act_color(self, color, back):
+        qcolor = QtGui.QColor()
+        if color == 0:
+            if back:
+                qcolor.setHsvF(0,0,0.8)
+            else:
+                qcolor.setHsvF(0,0,0)
+        else:
+            h = float(color % 6) / 6
+            if back:
+                qcolor.setHsvF(h,0.4,1)
+            else:
+                qcolor.setHsvF(h,1,0.7)
+        
+        return qcolor
     
     def set_display_revids(self, revids, repo):
         self._display_revids = revids
@@ -116,16 +160,21 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                 revs = []
                 for revid in revids:
                     revno = self.get_revno(revid)
+                    color = self.get_color(revid)
+                    if color is not None:
+                        color = ('<img src="dot%d">' % (color % 6))
+                    else:
+                        color = ""
                     if revid in self._all_loaded_revs:
                         summary = get_summary(self._all_loaded_revs[revid])
                         revs.append(
-                            '<a href="qlog-revid:%s" title="%s">%s: %s</a>' %
-                            (revid, htmlencode(summary), revno, 
+                            '<a href="qlog-revid:%s" title="%s">%s%s: %s</a>' %
+                            (revid, htmlencode(summary), color, revno,
                              htmlencode((short_text(summary, 60)))))
                     else:
                         revs.append(
-                            '<a href="qlog-revid:%s">revid: %s</a>' %
-                            (revid, revid))
+                            '<a href="qlog-revid:%s">%s%srevid: %s</a>' %
+                            (revid, color, revno, revid))
                 return '<br>'.join(revs)
             
             if parents:
@@ -172,6 +221,12 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
             rev_html.append("".join(text))
     
         self.setHtml("<br>".join(rev_html))
+        
+        # setHtml creates a new document, so we have to re add the images.
+        for color, image in enumerate(self.images):
+            self.document().addResource(QtGui.QTextDocument.ImageResource,
+                                        QtCore.QUrl("dot%d" % color),
+                                        QtCore.QVariant(image))            
     
     def loaded_revision_props(self, rev):
         props = []
@@ -228,6 +283,10 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
         # Normaly, we don't know how to do this.
         return 0
     
+    def get_color(self, revid):
+        # Normaly, we don't know how to do this.
+        return None
+
     def setSource(self, uri):
         pass
     
@@ -238,7 +297,7 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
 
     
     def __init__(self, log_list, parent=None):
-        super(type(self), self).__init__(parent)
+        super(LogListRevisionMessageBrowser, self).__init__(parent)
         self.log_list = log_list
         assert(isinstance(self.log_list, LogList))
 
@@ -284,3 +343,6 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
     
     def get_merge_depth(self, revid):
         return self.log_list.graph_provider.revid_rev[revid].merge_depth
+
+    def get_color(self, revid):
+        return self.log_list.graph_provider.revid_rev[revid].color
