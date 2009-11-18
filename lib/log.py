@@ -34,13 +34,12 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     ThrobberWidget,
     StandardButton,
-    format_revision_html,
     open_browser,
-    RevisionMessageBrowser,
     url_for_display,
     runs_in_loading_queue,
     get_set_encoding,
     )
+from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
 from bzrlib.plugins.qbzr.lib.trace import *
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
@@ -175,11 +174,10 @@ class LogWindow(QBzrWindow):
                      self.update_selection)
         
         self.message = QtGui.QTextDocument()
-        self.message_browser = RevisionMessageBrowser()
+        self.message_browser = LogListRevisionMessageBrowser(self.log_list, 
+                                                             self)
         self.message_browser.setDocument(self.message)
-        self.connect(self.message_browser,
-                     QtCore.SIGNAL("anchorClicked(QUrl)"),
-                     self.link_clicked)
+
         
         self.file_list_container = FileListContainer(self.log_list, self)
         self.connect(self.log_list.selectionModel(),
@@ -297,60 +295,12 @@ class LogWindow(QBzrWindow):
         QBzrWindow.show(self)
         QtCore.QTimer.singleShot(1, self.load)
 
-    def link_clicked(self, url):
-        scheme = unicode(url.scheme())
-        if scheme == 'qlog-revid':
-            revision_id = unicode(url.path())
-            self.log_list.log_model.ensure_rev_visible(revision_id)
-            index = self.log_list.log_model.indexFromRevId(revision_id)
-            index = self.log_list.filter_proxy_model.mapFromSource(index)
-            self.log_list.setCurrentIndex(index)
-        else:
-            open_browser(str(url.toEncoded()))
-
-    @runs_in_loading_queue
-    @ui_current_widget
     def update_selection(self, selected, deselected):
         indexes = self.log_list.get_selection_indexes()
         if not indexes:
             self.diffbuttons.setEnabled(False)
-            self.message.setHtml("")
         else:
             self.diffbuttons.setEnabled(True)
-            
-            gp = self.log_list.graph_provider
-            revids = [str(index.data(logmodel.RevIdRole).toString())
-                      for index in indexes]
-            all_revids = set(revids)
-            for revid in revids:
-                all_revids.update(set(gp.graph_parents[revid]))
-                all_revids.update(set(gp.graph_children[revid]))
-            
-            all_revs = gp.load_revisions(all_revids)
-            
-            for rev in all_revs.itervalues():
-                if not hasattr(rev, "revno"):
-                    if rev.revision_id in gp.revid_rev:
-                        rev.revno = gp.revid_rev[rev.revision_id].revno_str
-                    else:
-                        rev.revno = ""
-            
-            html = []
-            for revid in revids:
-                rev = all_revs[revid]
-                
-                if not hasattr(rev, "children"): 
-                    rev.children = [all_revs[parent] for parent in gp.graph_children[revid]]
-                if not hasattr(rev, "parents"):
-                    rev.parents = [all_revs[child] for child in gp.graph_parents[revid]]
-                if not hasattr(rev, "branch"):
-                    rev.branch = gp.get_revid_branch(revid)
-                if not hasattr(rev, "tags"):
-                    rev.tags = sorted(gp.tags.get(revid, []))
-                
-                replace = self.replace_config(rev.branch)
-                html.append(format_revision_html(rev, replace))
-            self.message.setHtml("<br>".join(html))
     
     @ui_current_widget
     def update_search(self):
