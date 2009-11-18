@@ -22,23 +22,21 @@ from bzrlib.plugins.qbzr.lib.diffwindow import DiffWindow
 from bzrlib.plugins.qbzr.lib.diff_arg import InternalDiffArgProvider
 from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import RevisionMessageBrowser
 from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.lazycachedrevloader import load_revisions
 
 # DiffWindow has alot of stuff that we need, so we just extend it.
 class RevisionView(DiffWindow):
     """Shows information, and a diff for a revision, in a window."""
     
-    def __init__(self, revision, branch, parent=None):
+    def __init__(self, revid, branch, parent=None):
         self.branch = branch
-        self.revision = revision
+        self.revid = revid
         
-        args = InternalDiffArgProvider(revision.parent_ids[0],
-                                       revision.revision_id,
-                                       branch, branch)
+        args = InternalDiffArgProvider(None, revid, branch, branch)
         DiffWindow.__init__(self, args, parent)
         
         self.message_browser = RevisionMessageBrowser(self)
-        self.message_browser.set_display_revids([revision.revision_id], 
-                                                branch.repository)
+        self.message_browser.set_display_revids([self.revid], branch.repository)
         
         vsplitter = QtGui.QSplitter(QtCore.Qt.Vertical)
         vsplitter.addWidget(self.message_browser)
@@ -52,8 +50,20 @@ class RevisionView(DiffWindow):
         self.refresh_button.setVisible(False)
         self.set_diff_title()
     
+    def initial_load(self):
+        self.throbber.show()
+        load_revisions([self.revid], self.branch.repository, 
+                       pass_prev_loaded_rev = True,
+                       revisions_loaded = self.revisions_loaded)
+    
+    def revisions_loaded(self, loaded_revs, last_call):
+        revision = loaded_revs[self.revid]
+        self.arg_provider.old_revid = revision.parent_ids[0]
+        super(RevisionView, self).initial_load()
+        self.throbber.hide()
+    
     def set_diff_title(self):
-        title = [gettext("Revision"), self.revision.revision_id]
+        title = [gettext("Revision"), self.revid]
         self.set_title_and_icon(title)
 
     def restoreSize(self, name, defaultSize):

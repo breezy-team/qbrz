@@ -198,9 +198,8 @@ class PendingMergesList(LogList):
         
         revid = str(index.data(logmodel.RevIdRole).toString())
         branch = self.graph_provider.get_revid_branch(revid)
-        rev = self.graph_provider.load_revisions([revid])[revid]
         parent_window = self.window()
-        window = RevisionView(rev, branch, parent=parent_window)
+        window = RevisionView(revid, branch, parent=parent_window)
         window.show()
         parent_window.windows.append(window)
     
