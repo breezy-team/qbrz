@@ -734,6 +734,11 @@ class TreeModel(QtCore.QAbstractItemModel):
             
             # Recursively set all children to checked.
             def set_child_checked_recurse(item_data):
+                if (item_data.children_ids is None and
+                    item_data.item.kind == "directory"):
+                    print item_data.id
+                    self.load_dir(item_data.id)
+                
                 if not item_data.children_ids:
                     return False
                 have_changed_item = False
