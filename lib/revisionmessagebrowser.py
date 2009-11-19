@@ -39,6 +39,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     format_timestamp,
     get_message,
     get_summary,
+    open_browser,
     )
 
 from bzrlib.lazy_import import lazy_import
