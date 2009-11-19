@@ -500,13 +500,6 @@ def get_branch_config(branch):
         return get_global_config()
 
 
-def quote_tag(tag):
-    if _tag_re.search(tag):
-        return '"%s"' % tag
-    return tag
-
-
-
 def open_browser(url):
     try:
         import webbrowser
