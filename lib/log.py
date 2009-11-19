@@ -485,7 +485,7 @@ class FileListContainer(QtGui.QWidget):
                     repos_revids = [(repos[0], revids)]
                 else:
                     repos_revids = [(repo, [revid])
-                            for revid, repo in zip(revids_load, repos)]
+                            for revid, repo in zip(revids, repos)]
                 
                 for repo, repo_revids in repos_revids:
                     repo_revids = [revid for revid in repo_revids 
