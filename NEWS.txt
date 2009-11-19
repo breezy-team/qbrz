@@ -20,6 +20,7 @@ Changelog:
      (Bug #439084, Alexander Belchenko)
  * qlog:
    * Added "tag revision" action to context menu. (Craig Hewetson)
+   * Robust handling of bogus --fixed properties. (Bug #436834, Craig Hewetson)
  * treewidget:
    * Fixed compatibility with PyQt < 4.6. 
      (Bug #479093, Bug #478979, Gary van der Merwe)

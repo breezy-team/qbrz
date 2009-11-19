@@ -265,9 +265,12 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
         bugs = []
         for bug in rev.properties.get('bugs', '').split('\n'):
             if bug:
-                url, status = bug.split(' ', 1)
-                bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
-                    dict(url=url, status=gettext(status))))
+                try:
+                    url, status = bug.split(' ', 1)
+                    bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
+                                   dict(url=url, status=gettext(status))))
+                except ValueError:
+                    bugs.append(bug)  # show it "as is"
         if bugs:
             props.append((ngettext("Bug:", "Bugs:", len(bugs)), ", ".join(bugs)))
 
