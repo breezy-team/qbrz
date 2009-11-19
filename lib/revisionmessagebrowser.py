@@ -247,7 +247,22 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
             authors = rev.properties.get('author')
         if authors:
             props.append((gettext("Author:"), htmlize(authors)))
-        
+
+        branch_nick = rev.properties.get('branch-nick')
+        if branch_nick:
+            props.append((gettext("Branch:"), htmlize(branch_nick)))
+
+        # XXX tags???'
+
+        bugs = []
+        for bug in rev.properties.get('bugs', '').split('\n'):
+            if bug:
+                url, status = bug.split(' ', 1)
+                bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
+                    dict(url=url, status=gettext(status))))
+        if bugs:
+            props.append((ngettext("Bug:", "Bugs:", len(bugs)), ", ".join(bugs)))
+
         foreign_attribs = None
         if isinstance(rev, foreign.ForeignRevision):
             foreign_attribs = \
