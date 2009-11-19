@@ -144,6 +144,7 @@ class BranchLine(object):
     def __repr__(self):
         return "%s <%s>" % (self.__class__.__name__, self.branch_id)
 
+
 class LogGraphProvider(object):
     """Loads and computes revision and graph data for GUI log widgets."""
     
