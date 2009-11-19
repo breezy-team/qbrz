@@ -178,7 +178,6 @@ class LogWindow(QBzrWindow):
                                                              self)
         self.message_browser.setDocument(self.message)
 
-        
         self.file_list_container = FileListContainer(self.log_list, self)
         self.connect(self.log_list.selectionModel(),
                      QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),

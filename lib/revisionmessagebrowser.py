@@ -50,6 +50,7 @@ from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
 ''')
 
+
 def htmlencode(string):
     return "<br/>".join(
            string.replace("&", "&amp;")
@@ -58,11 +59,13 @@ def htmlencode(string):
                  .replace("\"", "&quot;")
                  .splitlines())
 
+
 _email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)', re.IGNORECASE)
 _link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])', re.IGNORECASE)
 _link2_re = lazy_regex.lazy_compile(r'(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)', re.IGNORECASE)
 _tag_re = lazy_regex.lazy_compile(r'[, ]')
 _start_of_line_whitespace_re = lazy_regex.lazy_compile(r'(?m)^ +')
+
 
 def htmlize(text):
     text = htmlencode(text)
@@ -73,6 +76,13 @@ def htmlize(text):
     text = _link2_re.sub('\\1<a href="http://www.\\2.\\3\\4">www.\\2.\\3\\4</a>', text)
     return text
 
+
+def quote_tag(tag):
+    if _tag_re.search(tag):
+        return '"%s"' % tag
+    return tag
+
+
 class RevisionMessageBrowser(QtGui.QTextBrowser):
     """Widget to display revision metadata and messages."""
     
@@ -81,7 +91,6 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
         _display_revids = []
         _all_loaded_revs = {}
 
-        
         boxsize = self.fontMetrics().ascent()
         center = boxsize * 0.5
         dotsize = 0.7
@@ -218,7 +227,6 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                              '</tr>') % prop)
             text.append('</table>')
             
-        
             text.append('<div style="margin-top:0.5em; '
                                     'margin-left:%spx;">%s</div>' 
                         % (margin_left + 2 , message))
@@ -244,7 +252,25 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
             authors = rev.properties.get('author')
         if authors:
             props.append((gettext("Author:"), htmlize(authors)))
-        
+
+        branch_nick = rev.properties.get('branch-nick')
+        if branch_nick:
+            props.append((gettext("Branch:"), htmlize(branch_nick)))
+
+        tags = self.get_tags(rev.revision_id)
+        if tags:
+            tags = map(quote_tag, tags)
+            props.append((gettext("Tags:"), htmlencode(", ".join(tags))))
+
+        bugs = []
+        for bug in rev.properties.get('bugs', '').split('\n'):
+            if bug:
+                url, status = bug.split(' ', 1)
+                bugs.append('<a href="%(url)s">%(url)s</a> %(status)s' % (
+                    dict(url=url, status=gettext(status))))
+        if bugs:
+            props.append((ngettext("Bug:", "Bugs:", len(bugs)), ", ".join(bugs)))
+
         foreign_attribs = None
         if isinstance(rev, foreign.ForeignRevision):
             foreign_attribs = \
@@ -291,15 +317,16 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
         # Normaly, we don't know how to do this.
         return None
 
+    def get_tags(self, revid):
+        return None
+
     def setSource(self, uri):
         pass
-    
+
 
 class LogListRevisionMessageBrowser(RevisionMessageBrowser):
     """RevisionMessageBrowser customized to work with LogList"""
-    
 
-    
     def __init__(self, log_list, parent=None):
         super(LogListRevisionMessageBrowser, self).__init__(parent)
         self.log_list = log_list
@@ -350,3 +377,6 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
 
     def get_color(self, revid):
         return self.log_list.graph_provider.revid_rev[revid].color
+
+    def get_tags(self, revid):
+        return self.log_list.graph_provider.tags.get(revid)

@@ -85,6 +85,7 @@ class QLogGraphProvider(LogGraphProvider):
     def load_filter_file_id_chunk_finished(self):
         LogGraphProvider.load_filter_file_id_chunk_finished(self)
 
+
 class LogModel(QtCore.QAbstractTableModel):
 
     def __init__(self, graph_provider, parent=None):
@@ -141,7 +142,6 @@ class LogModel(QtCore.QAbstractTableModel):
             self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                       clicked_row_index,
                       clicked_row_index)
-            
     
     def has_rev_id(self, revid):
         return self.graph_provider.has_revid(revid)
@@ -167,7 +167,6 @@ class LogModel(QtCore.QAbstractTableModel):
     def data(self, index, role):
         if not index.isValid():
             return QtCore.QVariant()
-        
         
         gp = self.graph_provider
         if self.last_rev_is_placeholder and \
@@ -269,7 +268,6 @@ class LogModel(QtCore.QAbstractTableModel):
         if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
             return QtCore.QVariant(self.horizontalHeaderLabels[section])
         return QtCore.QVariant()
-    
 
     def indexFromRevId(self, revid, columns=None):
         rev = self.graph_provider.revid_rev[revid]
@@ -287,7 +285,7 @@ class LogModel(QtCore.QAbstractTableModel):
     def on_filter_changed(self):
         self.compute_lines()
 
-    
+
 class LogFilterProxyModel(QtGui.QSortFilterProxyModel):
     def __init__(self, graph_provider, parent = None):
         QtGui.QSortFilterProxyModel.__init__(self, parent)
