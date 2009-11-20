@@ -37,8 +37,9 @@ from bzrlib.plugins.qbzr.lib.util import hookup_directory_picker
 
 class QBzrRunDialog(SubProcessDialog):
 
-    def __init__(self, workdir=None, ui_mode=False, parent=None):
+    def __init__(self, command=None, workdir=None, ui_mode=False, parent=None):
         """Build dialog.
+        @param command: initial command selection.
         @param workdir: working directory to run command.
         @param ui_mode: wait after the operation is complete.
         @param parent:  parent window.
@@ -55,7 +56,7 @@ class QBzrRunDialog(SubProcessDialog):
         self.ui.cmd_layout.setColumnStretch(2, 1)
         # fill cmd_combobox with available commands
         self.collect_command_names()
-        self.set_cmd_combobox()
+        self.set_cmd_combobox(command=command)
         # set help_browser with some default text
         self.set_default_help()
         # and add the subprocess widgets
@@ -103,8 +104,10 @@ class QBzrRunDialog(SubProcessDialog):
                                    for n,o in self.cmds_dict.iteritems()
                                    if not o.hidden])
 
-    def set_cmd_combobox(self, all=False):
+    def set_cmd_combobox(self, command=None, all=False):
         """Fill command combobox with bzr commands names.
+        @param selection: if not None, the command to initially select
+            if it exists in the list.
         @param all: show all commands including hidden ones.
         """
         cb = self.ui.cmd_combobox
@@ -113,7 +116,11 @@ class QBzrRunDialog(SubProcessDialog):
             cb.addItems(self.all_cmds)
         else:
             cb.addItems(self.public_cmds)
-        cb.setCurrentIndex(-1)    
+        if command is None:
+            index = -1
+        else:
+            index = cb.findText(command)
+        cb.setCurrentIndex(index)    
 
     def set_cmd_help(self, cmd_name):
         """Show help for selected command in help widget.
