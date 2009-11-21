@@ -52,14 +52,14 @@ class QBzrRunDialog(SubProcessDialog):
         if workdir is None:
             workdir = osutils.getcwd()
         self.ui.wd_edit.setText(workdir)
+        # set help_browser with some default text
+        self.set_default_help()
         # cmd_combobox should fill all available space
         self.ui.cmd_layout.setColumnStretch(1, 1)
         self.ui.cmd_layout.setColumnStretch(2, 1)
         # fill cmd_combobox with available commands
         self.collect_command_names()
         self.set_cmd_combobox(cmd_name=command)
-        # set help_browser with some default text
-        self.set_default_help()
         # and add the subprocess widgets
         self.splitter = self.ui.splitter
         for w in self.make_default_layout_widgets():
@@ -122,6 +122,8 @@ class QBzrRunDialog(SubProcessDialog):
             index = -1
         else:
             index = cb.findText(cmd_name)
+            if index >= 0:
+                self.set_cmd_help(cmd_name)
         cb.setCurrentIndex(index)    
 
     def _get_cmd_name(self):
