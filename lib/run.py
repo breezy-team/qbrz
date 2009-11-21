@@ -57,7 +57,7 @@ class QBzrRunDialog(SubProcessDialog):
         self.ui.cmd_layout.setColumnStretch(2, 1)
         # fill cmd_combobox with available commands
         self.collect_command_names()
-        self.set_cmd_combobox(command=command)
+        self.set_cmd_combobox(cmd_name=command)
         # set help_browser with some default text
         self.set_default_help()
         # and add the subprocess widgets
@@ -105,10 +105,10 @@ class QBzrRunDialog(SubProcessDialog):
                                    for n,o in self.cmds_dict.iteritems()
                                    if not o.hidden])
 
-    def set_cmd_combobox(self, command=None, all=False):
+    def set_cmd_combobox(self, cmd_name=None, all=False):
         """Fill command combobox with bzr commands names.
 
-        @param selection: if not None, the command to initially select
+        @param cmd_name: if not None, the command to initially select
             if it exists in the list.
         @param all: show all commands including hidden ones.
         """
@@ -118,13 +118,13 @@ class QBzrRunDialog(SubProcessDialog):
             cb.addItems(self.all_cmds)
         else:
             cb.addItems(self.public_cmds)
-        if command is None:
+        if cmd_name is None:
             index = -1
         else:
-            index = cb.findText(command)
+            index = cb.findText(cmd_name)
         cb.setCurrentIndex(index)    
 
-    def _get_command_name(self):
+    def _get_cmd_name(self):
         """Return the command name."""
         return unicode(self.ui.cmd_combobox.currentText()).strip()
 
@@ -138,7 +138,7 @@ class QBzrRunDialog(SubProcessDialog):
         cmd_object = self.cmds_dict.get(cmd_name)
         if cmd_object:
             self.ui.help_browser.setHtml(
-                get_help_topic_as_html("commands/"+cmd_name))
+                get_help_topic_as_html("commands/" + cmd_name))
         else:
             self.set_default_help()
 
@@ -188,14 +188,14 @@ class QBzrRunDialog(SubProcessDialog):
 
     def validate(self):
         """Validate before launch command: start command only if there is one."""
-        if self._get_command_name():
+        if self._get_cmd_name():
             return True
         return False
 
     def do_start(self):
         """Launch command."""
         cwd = self._get_cwd()
-        args = [self._get_command_name()]
+        args = [self._get_cmd_name()]
         cmd_utf8 = unicode(self.ui.opt_arg_edit.text()).encode('utf-8')
         args.extend([unicode(p,'utf8') for p in shlex.split(cmd_utf8)])
         self.process_widget.do_start(cwd, *args)
