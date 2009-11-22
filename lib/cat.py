@@ -29,22 +29,13 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     ThrobberWidget,
     file_extension,
-    CachedTTypeFormater,
     get_set_encoding,
     runs_in_loading_queue,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingSelector
-
-
-have_pygments = True
-try:
-    from pygments import lex
-    from pygments.util import ClassNotFound
-    from pygments.lexers import get_lexer_for_filename
-except ImportError:
-    have_pygments = False
+from bzrlib.plugins.qbzr.lib.syntaxhighlighter import highlight_document
 
 
 def hexdump(data):
@@ -192,8 +183,9 @@ class QBzrCatWindow(QBzrWindow):
             return kind, self._create_symlink_view
     
     def _create_text_browser(self):
-        self.browser = QtGui.QTextBrowser()
-        self.doc = QtGui.QTextDocument()
+        self.browser = QtGui.QPlainTextEdit(self)
+        self.browser.setReadOnly(True)
+        self.doc = self.browser.document()
         self.doc.setDefaultFont(QtGui.QFont("Courier New,courier", self.browser.font().pointSize()))
         return self.browser
 
@@ -203,28 +195,14 @@ class QBzrCatWindow(QBzrWindow):
         if doc is None:
             return
         doc.clear()
-        if not have_pygments:
-            self.doc.setPlainText(text)
-        else:
-            try:
-                cursor = QtGui.QTextCursor(self.doc)
-                font = self.doc.defaultFont()
-                format = QtGui.QTextCharFormat()
-                format.setFont(font)
-                formatter = CachedTTypeFormater(format)
-                lexer = get_lexer_for_filename(relpath, stripnl=False)
-                for ttype, value in lex(text, lexer):                    
-                    format = formatter.format(ttype)
-                    cursor.insertText(value, format)
-                cursor.movePosition (QtGui.QTextCursor.Start)
-            except ClassNotFound:
-                self.doc.setPlainText(text)
+        self.doc.setPlainText(text)
+        
+        highlight_document(self.browser, relpath)
 
     def _create_text_view(self, relpath, text):
         self._create_text_browser()
         text = text.decode(self.encoding or 'utf-8', 'replace')
         self._set_document(relpath, text)
-        self.browser.setDocument(self.doc)
         return self.browser
 
     def _on_encoding_changed(self, encoding):
@@ -240,13 +218,11 @@ class QBzrCatWindow(QBzrWindow):
     def _create_symlink_view(self, relpath, target):
         self._create_text_browser()
         self.doc.setPlainText('-> ' + target.decode('utf-8', 'replace'))
-        self.browser.setDocument(self.doc)
         return self.browser
 
     def _create_hexdump_view(self, relpath, data):
         self._create_text_browser()
         self.doc.setPlainText(hexdump(data))
-        self.browser.setDocument(self.doc)
         return self.browser
 
     def _create_image_view(self, relpath, data):

@@ -100,7 +100,7 @@ def highlight_document(edit, filename):
             block_pos += format_range.length
             if block_len == 0:
                 block.layout().setAdditionalFormats(block_formats)
-                
+                doc.markContentsDirty(block.position(), block.length())
                 block = block.next()
                 block_pos = 0
                 block_len = block.length()                    
@@ -108,7 +108,6 @@ def highlight_document(edit, filename):
                 
                 block_count += 1
                 if block_count % 100 == 0:
-                    edit.update()
                     processEvents()
 
 
