@@ -48,7 +48,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     StandardButton,
     ensure_unicode,
     )
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import (
    report_exception,
    SUB_LOAD_METHOD)
@@ -660,7 +659,7 @@ class SubProcessWidget(QtGui.QWidget):
         if self._args_file:
             try:
                 os.unlink(self._args_file)
-            except (IOError, OSError), e:
+            except (IOError, OSError):
                 pass
             else:
                 self._args_file = None

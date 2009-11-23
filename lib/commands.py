@@ -763,7 +763,6 @@ class cmd_qgetupdates(QBzrCommand):
 
     def _qbzr_run(self, location=CUR_DIR, ui_mode=False):
         branch, relpath = Branch.open_containing(location)
-        app = QtGui.QApplication(sys.argv)
         tb = TreeBranch.open_containing(location, ui_mode=ui_mode)
         if tb is None:
             return errors.EXIT_ERROR
@@ -801,7 +800,7 @@ class cmd_qhelp(QBzrCommand):
     hidden = True
 
     def _qbzr_run(self, topic):
-        window = show_help(topic)
+        show_help(topic)
         self._application.exec_()
 
 
