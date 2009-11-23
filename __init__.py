@@ -159,7 +159,6 @@ register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpull', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpush', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrevert', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrun', ['qcmd'])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsubprocess', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qtag', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_quncommit', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qupdate', ['qup'])
@@ -172,6 +171,8 @@ register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qunbind', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.extra.bugurl', 'cmd_bug_url', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.extra.isignored', 'cmd_is_ignored', [])
 register_lazy_command('bzrlib.plugins.qbzr.lib.extra.isversioned', 'cmd_is_versioned', [])
+
+register_lazy_command('bzrlib.plugins.qbzr.lib.subprocess', 'cmd_qsubprocess', [])
 
 
 def post_uncommit_hook(local, master, old_revno, old_tip, new_revno, hook_new_tip):
