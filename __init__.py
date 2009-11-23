@@ -97,82 +97,57 @@ def require_mimimum_api(object_with_api, wanted_mimimum_api):
 
 require_mimimum_api(bzrlib, (1, 17, 0))
 
-from bzrlib import registry
-from bzrlib.commands import register_command, plugin_cmds
+from bzrlib.commands import plugin_cmds
 
-
-class LazyCommandProxy(registry._LazyObjectGetter):
-
-    def __init__(self, module, name, aliases):
-        super(LazyCommandProxy, self).__init__(module, name)
-        self.aliases = aliases
-        self.__name__ = name
-
-    def __call__(self, *args, **kwargs):
-        return self.get_obj()(*args, **kwargs)
-
-    def __getattr__(self, name):
-        return getattr(self.get_obj(), name)
-
-
-def register_lazy_command(module, name, aliases, decorate=False):
-    """Lazily register a command.
-
-    :param module: Name of the module where is the command defined
-    :param name: Name of the command class; this Command subclass must
-        exist in `module`
-    :param aliases: List of command aliases
-    :param decorate: If true, allow overriding an existing command
-        of the same name; the old command is returned by this function.
-        Otherwise it is an error to try to override an existing command.
-    """
-    #try:
-        ## FIXME can't overwrite existing command
-        #plugin_cmds.register_lazy(name, aliases, module)
-    #except AttributeError:
-    register_command(LazyCommandProxy(module, name, aliases), decorate)
 
 # merge --qpreview disabled for 0.14 because it makes qbzr incompatible with bzr-pipeline plugin
 # see bug https://bugs.launchpad.net/bugs/395817
 #register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_merge', [], decorate=True)  # provides merge --qpreview
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qadd', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qannotate', ['qann', 'qblame'])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbind', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbranch', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbrowse', ['qbw'])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qmain', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qcat', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qcommit', ['qci'])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qconfig', ['qconfigure'])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qconflicts', ['qresolve'])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qdiff', ['qdi'])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qexport', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetnew', ['qgetn'])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetupdates', ['qgetu', 'qgetup'])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qhelp', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinfo', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinit', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qlog', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qmerge', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qplugins', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpull', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpush', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrevert', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrun', ['qcmd'])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qtag', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_quncommit', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qupdate', ['qup'])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qversion', ['qsysinfo'])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qviewer', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsend', ['qsend'])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qswitch', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_qunbind', [])
 
-register_lazy_command('bzrlib.plugins.qbzr.lib.extra.bugurl', 'cmd_bug_url', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.extra.isignored', 'cmd_is_ignored', [])
-register_lazy_command('bzrlib.plugins.qbzr.lib.extra.isversioned', 'cmd_is_versioned', [])
+lazy_commands = (
+    # module, command, [aliases]
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qadd', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qannotate', ['qann', 'qblame']),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbind', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbranch', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbrowse', ['qbw']),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qmain', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qcat', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qcommit', ['qci']),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qconfig', ['qconfigure']),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qconflicts', ['qresolve']),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qdiff', ['qdi']),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qexport', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetnew', ['qgetn']),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetupdates', ['qgetu', 'qgetup']),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qhelp', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinfo', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinit', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qlog', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qmerge', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qplugins', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpull', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpush', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrevert', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrun', ['qcmd']),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qtag', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_quncommit', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qupdate', ['qup']),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qversion', ['qsysinfo']),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qviewer', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsend', ['qsend']),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qswitch', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qunbind', []),
+    # extra commands
+    ('bzrlib.plugins.qbzr.lib.extra.bugurl', 'cmd_bug_url', []),
+    ('bzrlib.plugins.qbzr.lib.extra.isignored', 'cmd_is_ignored', []),
+    ('bzrlib.plugins.qbzr.lib.extra.isversioned', 'cmd_is_versioned', []),
+    # hidden power of qbzr ;-)
+    ('bzrlib.plugins.qbzr.lib.subprocess', 'cmd_qsubprocess', []),
+)
 
-register_lazy_command('bzrlib.plugins.qbzr.lib.subprocess', 'cmd_qsubprocess', [])
+for module, name, aliases in lazy_commands:
+    plugin_cmds.register_lazy(name, aliases, module)
 
 
 def post_uncommit_hook(local, master, old_revno, old_tip, new_revno, hook_new_tip):
