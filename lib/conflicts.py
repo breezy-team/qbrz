@@ -303,7 +303,9 @@ class ConflictsWindow(QBzrWindow):
         except ValueError, e:
             if showErrorDialog:
                 QtGui.QMessageBox.critical(self, gettext("Error"),
-                    gettext("The extmerge definition: '%(tool)s' is invalid.\nMissing the flag: %(flags)s. This must be fixed in qconflicts under the Merge tab.") % {
+                    gettext("The extmerge definition: '%(tool)s' is invalid.\n"
+                        "Missing the flag: %(flags)s. "
+                        "This must be fixed in qconfig under the Merge tab.") % {
                         'tool': extmerge_tool,
                         'flags': flags,
                     })
