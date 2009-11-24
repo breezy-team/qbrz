@@ -26,6 +26,8 @@ Changelog:
      (Bug #479093, Bug #478979, Gary van der Merwe)
    * Extended keyboard navigation: pressing Enter invokes default action
      for selected item. (Bug #483597, Alexander Belchenko)
+   * Fixed is_ignored() check (versioned file that matches ignore pattern
+     should not be called "ignored"). (Bug #487560, Alexander Belchenko)
 
 
 0.16 "Acacia" - 2009/11/9
