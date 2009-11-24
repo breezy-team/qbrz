@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-11-16 12:23+0200\n"
-"PO-Revision-Date: 2008-07-24 12:28+0000\n"
-"Last-Translator: Rafael Porto Rodrigues <rafporto@gmail.com>\n"
+"PO-Revision-Date: 2009-11-16 21:09+0000\n"
+"Last-Translator: Fabio S Monteiro <fabio.fsm@gmail.com>\n"
 "Language-Team: Brazilian Portuguese <pt_BR@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Launchpad-Export-Date: 2009-11-16 12:08+0000\n"
+"X-Launchpad-Export-Date: 2009-11-24 13:32+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
@@ -29,7 +29,7 @@ msgstr ""
 
 #: lib\add.py:100
 msgid "Show ignored files"
-msgstr ""
+msgstr "Exibir arquivos ignorados"
 
 #: lib\annotate.py:98
 msgid "Line"
@@ -53,12 +53,12 @@ msgstr ""
 
 #: lib\annotate.py:280 lib\cat.py:93 lib\encoding_selector.py:84
 msgid "Encoding:"
-msgstr ""
+msgstr "Codificação"
 
 #: lib\annotate.py:356
 #, python-format
 msgid "Revision %s"
-msgstr ""
+msgstr "Revisão %s"
 
 #: lib\annotate.py:412
 msgid "&Annotate this revision"
