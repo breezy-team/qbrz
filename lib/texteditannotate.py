@@ -66,14 +66,16 @@ class AnnotateBarBase(QtGui.QWidget):
         else:
             self.update(0, rect.y(), self.width(), rect.height())
     
-    def mousePressEvent (self, event):
-        cursor = self.edit.cursorForPosition(event.pos())
-        cursor.movePosition(QtGui.QTextCursor.StartOfBlock)
-        cursor.movePosition(QtGui.QTextCursor.EndOfBlock,
-                            QtGui.QTextCursor.KeepAnchor)
-        self.edit.setTextCursor(cursor)
-        
-        super(AnnotateBarBase, self).mousePressEvent(event)
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.LeftButton:
+            cursor = self.edit.cursorForPosition(event.pos())
+            cursor.movePosition(QtGui.QTextCursor.StartOfBlock)
+            cursor.movePosition(QtGui.QTextCursor.EndOfBlock,
+                                QtGui.QTextCursor.KeepAnchor)
+            self.edit.setTextCursor(cursor)
+    
+    def wheelEvent(self, event):
+        self.edit.wheelEvent(event)
 
 class LineNumberBar(AnnotateBarBase):
 
