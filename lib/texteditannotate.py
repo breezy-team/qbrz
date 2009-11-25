@@ -55,7 +55,7 @@ class AnnotateBarBase(QtGui.QWidget):
 
         painter.end()
         
-        QtGui.QWidget.paintEvent(self, event)
+        super(AnnotateBarBase, self).paintEvent(event)
     
     def paint_line(self, painter, rect, line_number, is_current):
         pass
@@ -65,6 +65,15 @@ class AnnotateBarBase(QtGui.QWidget):
             self.scroll(0, scroll)
         else:
             self.update(0, rect.y(), self.width(), rect.height())
+    
+    def mousePressEvent (self, event):
+        cursor = self.edit.cursorForPosition(event.pos())
+        cursor.movePosition(QtGui.QTextCursor.StartOfBlock)
+        cursor.movePosition(QtGui.QTextCursor.EndOfBlock,
+                            QtGui.QTextCursor.KeepAnchor)
+        self.edit.setTextCursor(cursor)
+        
+        super(AnnotateBarBase, self).mousePressEvent(event)
 
 class LineNumberBar(AnnotateBarBase):
 
