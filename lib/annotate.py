@@ -221,6 +221,13 @@ class AnnotateWindow(QBzrWindow):
         self.annotate_bar.splitter = annotate_spliter
         self.text_edit_frame.hbox.addWidget(annotate_spliter)
         
+        self.connect(self.text_edit,
+                     QtCore.SIGNAL("selectionChanged()"),
+                     self.edit_selectionChanged)        
+        self.connect(self.annotate_bar,
+                     QtCore.SIGNAL("selectionChanged()"),
+                     self.edit_selectionChanged)        
+        
         self.log_list = LogList(self.processEvents, self.throbber, no_graph, self)
         self.log_list.load = self.log_list_load
         self.log_list.header().hideSection(COL_DATE)
@@ -404,11 +411,10 @@ class AnnotateWindow(QBzrWindow):
         self.annotate_bar.update()
         self.text_edit.update()
 
-    def setRevisionByLine(self, selected, deselected):
-        indexes = self.browser.selectedIndexes()
-        if not indexes:
-            return
-        rev_id = str(indexes[0].data(self.model.REVID).toString())
+    def edit_selectionChanged(self):
+        current_line = self.text_edit.document().findBlock(
+            self.text_edit.textCursor().position()).blockNumber()
+        rev_id, is_top = self.text_edit.annotate[current_line]
         if self.log_list.graph_provider.has_rev_id(rev_id):
             self.log_list.log_model.ensure_rev_visible(rev_id)
             index = self.log_list.log_model.indexFromRevId(rev_id)
