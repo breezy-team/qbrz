@@ -60,6 +60,7 @@ class AnnotateBar(AnnotateBarBase):
         
         self.get_revno = get_revno
         self.annotate = None
+        self.rev_colors = {}
         
         self.splitter = None
         self.adjustWidth(1, 999)
@@ -85,7 +86,19 @@ class AnnotateBar(AnnotateBarBase):
         
         self.setMinimumWidth(self.line_number_width + self.revno_width)
     
-    def paint_line(self, painter, rect, line_number):
+    def paint_line(self, painter, rect, line_number, is_current):
+        if is_current:
+            option = QtGui.QStyleOptionViewItemV4()
+            option.initFrom(self)
+            option.state = option.state | QtGui.QStyle.State_Selected
+            option.rect = rect.toRect()
+            self.style().drawPrimitive(QtGui.QStyle.PE_PanelItemViewItem,
+                                       option, painter, self)
+        elif self.annotate and line_number-1 < len(self.annotate):
+            revid, is_top = self.annotate[line_number - 1]
+            if revid in self.rev_colors:
+                painter.fillRect(rect, self.rev_colors[revid])
+        
         text_margin = self.style().pixelMetric(
             QtGui.QStyle.PM_FocusFrameHMargin, None, self) + 1
         
@@ -149,9 +162,7 @@ class AnnotatedTextEdit(QtGui.QPlainTextEdit):
                 
                 revid, is_top = self.annotate[line_count - 1]
                 if revid in self.rev_colors:
-                    color = self.rev_colors[revid]
-                    brush = QtGui.QBrush(color)
-                    painter.fillRect(rect, brush)
+                    painter.fillRect(rect, self.rev_colors[revid])
                 
                 block = block.next()
             del painter
@@ -371,13 +382,16 @@ class AnnotateWindow(QBzrWindow):
             else:
                 days = (self.now - rev.timestamp) / (24 * 60 * 60)
             
-            saturation = 0.5/((days/50) + 1)
+            alpha = 0.5/((days/50) + 1)
             hue =  1-float(abs(hash(author_name))) / sys.maxint 
-            color = QtGui.QColor.fromHsvF(hue, saturation, 1 )
+            color = QtGui.QColor.fromHsvF(hue, 1, 1, alpha)
+            brush = QtGui.QBrush(color)
             
-            self.text_edit.rev_colors[rev.revision_id] = color
-        self.text_edit.update()
+            self.annotate_bar.rev_colors[rev.revision_id] = brush
+            self.text_edit.rev_colors[rev.revision_id] = brush
+        
         self.annotate_bar.update()
+        self.text_edit.update()
 
     def setRevisionByLine(self, selected, deselected):
         indexes = self.browser.selectedIndexes()

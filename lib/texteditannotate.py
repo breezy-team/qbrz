@@ -43,17 +43,14 @@ class AnnotateBarBase(QtGui.QWidget):
         # Iterate over all visible text blocks in the document.
         while block.isValid():
             line_count += 1
-            block_top = self.edit.blockBoundingGeometry(block).translated(
-                self.edit.contentOffset()).top()
+            rect = self.edit.blockBoundingGeometry(block)
+            rect = rect.translated(self.edit.contentOffset())            
 
             # Check if the position of the block is out side of the visible
             # area.
-            if not block.isVisible() or block_top >= event.rect().bottom():
+            if not block.isVisible() or rect.top() >= event.rect().bottom():
                 break
-            # Draw the line number right justified at the position of the line.
-            paint_rect = QtCore.QRect(0, block_top,
-                                      self.width(), font_metrics.height())
-            self.paint_line(painter, paint_rect, line_count)
+            self.paint_line(painter, rect, line_count, line_count==current_line)
             block = block.next()
 
         painter.end()
@@ -84,7 +81,7 @@ class LineNumberBar(AnnotateBarBase):
         if self.width() != width:
             self.setFixedWidth(width)
     
-    def paint_line(self, painter, rect, line_number):
+    def paint_line(self, painter, rect, line_number, is_current):
         text_margin = self.style().pixelMetric(
             QtGui.QStyle.PM_FocusFrameHMargin, None, self) + 1
         painter.drawText(rect.adjusted(text_margin, 0, -text_margin, 0),
