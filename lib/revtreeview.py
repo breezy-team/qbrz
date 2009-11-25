@@ -153,31 +153,29 @@ class RevisionTreeView(QtGui.QTreeView):
 has_vista_style = hasattr(QtGui, "QWindowsVistaStyle")
 
 
-class StyledItemDelegate(QtGui.QStyledItemDelegate):
+def get_text_color ( option, style):
+    if option.state & QtGui.QStyle.State_Enabled:
+        if option.state & QtGui.QStyle.State_Active:
+            cg = QtGui.QPalette.Active
+        else:
+            cg = QtGui.QPalette.Inactive
+    else:
+        cg = QtGui.QPalette.Disabled
     
-    def get_text_color (self, option, style):
-        if option.state & QtGui.QStyle.State_Enabled:
-            if option.state & QtGui.QStyle.State_Active:
-                cg = QtGui.QPalette.Active
-            else:
-                cg = QtGui.QPalette.Inactive
-        else:
-            cg = QtGui.QPalette.Disabled
-        
-        if option.state & QtGui.QStyle.State_Selected:
-            if has_vista_style and isinstance(style, QtGui.QWindowsVistaStyle):
-                # QWindowsVistaStyle normaly modifies it palette,
-                # but as we can't reuse that code, we have to reproduce
-                # what it does here.
-                # https://bugs.edge.launchpad.net/qbzr/+bug/457895
-                return option.palette.color(cg, QtGui.QPalette.Text)
-            
-            return option.palette.color(cg, QtGui.QPalette.HighlightedText)
-        else:
+    if option.state & QtGui.QStyle.State_Selected:
+        if has_vista_style and isinstance(style, QtGui.QWindowsVistaStyle):
+            # QWindowsVistaStyle normaly modifies it palette,
+            # but as we can't reuse that code, we have to reproduce
+            # what it does here.
+            # https://bugs.edge.launchpad.net/qbzr/+bug/457895
             return option.palette.color(cg, QtGui.QPalette.Text)
+        
+        return option.palette.color(cg, QtGui.QPalette.HighlightedText)
+    else:
+        return option.palette.color(cg, QtGui.QPalette.Text)
 
 
-class RevNoItemDelegate(StyledItemDelegate):
+class RevNoItemDelegate(QtGui.QStyledItemDelegate):
     def __init__ (self, max_mainline_digits = 4, parent = None):    
         QtGui.QItemDelegate.__init__ (self, parent)
         self.max_mainline_digits = max_mainline_digits
@@ -197,7 +195,7 @@ class RevNoItemDelegate(StyledItemDelegate):
                                         None, widget) + 1
         text_rect = option.rect.adjusted(text_margin, 0, -text_margin, 0)
         
-        painter.setPen(self.get_text_color(option, style))
+        painter.setPen(get_text_color(option, style))
         
         if not option.text.isEmpty():
             text = option.text

@@ -24,7 +24,7 @@ from bzrlib.revision import NULL_REVISION
 from bzrlib.revisionspec import RevisionSpec
 from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
                                                  RevNoItemDelegate,
-                                                 StyledItemDelegate)
+                                                 get_text_color)
 from bzrlib.plugins.qbzr.lib.tag import TagWindow, CallBackTagWindow
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.trace import *
@@ -402,7 +402,7 @@ class LogList(RevisionTreeView):
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
 
-class GraphTagsBugsItemDelegate(StyledItemDelegate):
+class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
 
     _tagColor = QtGui.QColor(80, 128, 32)
     _bugColor = QtGui.QColor(164, 0, 0)
@@ -572,7 +572,7 @@ class GraphTagsBugsItemDelegate(StyledItemDelegate):
         rect.adjust(x, 0, 0, 0)
         
         if not option.text.isEmpty():
-            painter.setPen(self.get_text_color(option, style))
+            painter.setPen(get_text_color(option, style))
             text_rect = rect.adjusted(0, 0, -text_margin, 0)
             painter.setFont(option.font)
             fm = painter.fontMetrics()

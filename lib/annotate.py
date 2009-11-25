@@ -51,7 +51,7 @@ from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingSelector
 from bzrlib.plugins.qbzr.lib.syntaxhighlighter import highlight_document
 from bzrlib.plugins.qbzr.lib.texteditannotate import (AnnotateBarBase,
                                                       AnnotateEditerFrameBase)
-from bzrlib.plugins.qbzr.lib.revtreeview import paint_revno
+from bzrlib.plugins.qbzr.lib.revtreeview import paint_revno, get_text_color
 
 class AnnotateBar(AnnotateBarBase):
     
@@ -92,13 +92,17 @@ class AnnotateBar(AnnotateBarBase):
         self.setMinimumWidth(self.line_number_width + self.revno_width)
     
     def paint_line(self, painter, rect, line_number, is_current):
+        painter.save()
         if is_current and self.show_current_line:
+            style = self.style()
             option = QtGui.QStyleOptionViewItemV4()
             option.initFrom(self)
             option.state = option.state | QtGui.QStyle.State_Selected
             option.rect = rect.toRect()
-            self.style().drawPrimitive(QtGui.QStyle.PE_PanelItemViewItem,
+            style.drawPrimitive(QtGui.QStyle.PE_PanelItemViewItem,
                                        option, painter, self)
+            
+            painter.setPen(get_text_color(option, style))
         elif self.annotate and line_number-1 < len(self.annotate):
             revid, is_top = self.annotate[line_number - 1]
             if revid in self.rev_colors:
@@ -138,6 +142,7 @@ class AnnotateBar(AnnotateBarBase):
                         rect.bottom())
                     painter.drawText(author_rect, 0,
                                      get_apparent_author_name(rev))
+        painter.restore()
 
 
 class AnnotatedTextEdit(QtGui.QPlainTextEdit):
