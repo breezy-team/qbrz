@@ -74,10 +74,8 @@ class AnnotateBar(AnnotateBarBase):
         self.line_number_width += (text_margin * 2)
         
         self.revno_width = fm.width(unicode(max_revno)+".8.88")
-        print self.revno_width
         self.max_mainline_digits = len(unicode(max_revno))
         self.revno_width += (text_margin * 2)
-        print self.revno_width
         
         if self.splitter:
             if 0: self.splitter = QtGui.QSplitter
@@ -135,13 +133,13 @@ class AnnotatedTextEdit(QtGui.QPlainTextEdit):
             painter.setClipRect(event.rect())
             
             line_count = block.blockNumber()
-    
             # Iterate over all visible text blocks in the document.
             while block.isValid():
                 line_count += 1
                 # Check if the position of the block is out side of the visible
                 # area.
                 rect = self.blockBoundingGeometry(block)
+                rect = rect.translated(self.contentOffset())
                 
                 if not block.isVisible() or rect.top() >= event.rect().bottom():
                     break
@@ -157,7 +155,7 @@ class AnnotatedTextEdit(QtGui.QPlainTextEdit):
                 
                 block = block.next()
             del painter
-        QtGui.QPlainTextEdit.paintEvent(self, event)
+        super(AnnotatedTextEdit, self).paintEvent(event)
 
 
 class AnnotateWindow(QBzrWindow):
