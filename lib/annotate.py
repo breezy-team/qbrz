@@ -64,7 +64,12 @@ class AnnotateBar(AnnotateBarBase):
         
         self.splitter = None
         self.adjustWidth(1, 999)
+        
+        edit.selectionChanged.connect(self.edit_selectionChanged)
+        self.show_current_line = False
 
+    def edit_selectionChanged(self):
+        self.show_current_line = True
 
     def adjustWidth(self, lines, max_revno):
         fm = self.fontMetrics()
@@ -87,7 +92,7 @@ class AnnotateBar(AnnotateBarBase):
         self.setMinimumWidth(self.line_number_width + self.revno_width)
     
     def paint_line(self, painter, rect, line_number, is_current):
-        if is_current:
+        if is_current and self.show_current_line:
             option = QtGui.QStyleOptionViewItemV4()
             option.initFrom(self)
             option.state = option.state | QtGui.QStyle.State_Selected
