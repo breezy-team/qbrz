@@ -320,6 +320,18 @@ class LogList(RevisionTreeView):
         else:
             return [index]
     
+    def get_selection_and_merged_revids(self, index=None):
+        indexes = self.get_selection_indexes(index)
+        revids = set()
+        for index in indexes:
+            revid = str(index.data(logmodel.RevIdRole).toString())
+            revids.add(revid)
+            merges = [self.graph_provider.revisions[rev_index].revid
+                      for rev_index in
+                        self.graph_provider.revid_rev[revid].merges]
+            revids.update(set(merges))
+        return revids
+    
     def get_selection_top_and_parent_revids_and_count(self, index=None):
         indexes = self.get_selection_indexes(index)
         if len(indexes) == 0:

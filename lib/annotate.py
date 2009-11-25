@@ -61,6 +61,7 @@ class AnnotateBar(AnnotateBarBase):
         self.get_revno = get_revno
         self.annotate = None
         self.rev_colors = {}
+        self.highlight_revids = set()
         
         self.splitter = None
         self.adjustWidth(1, 999)
@@ -124,6 +125,11 @@ class AnnotateBar(AnnotateBarBase):
         if self.annotate and line_number-1 < len(self.annotate):
             revid, is_top = self.annotate[line_number - 1]
             if is_top:
+                if revid in self.highlight_revids:
+                    font = painter.font()
+                    font.setBold(True)
+                    painter.setFont(font)
+                
                 revno_rect = QtCore.QRect(
                     rect.left() + self.line_number_width + text_margin,
                     rect.top(),
@@ -233,6 +239,10 @@ class AnnotateWindow(QBzrWindow):
         self.log_list.header().hideSection(COL_DATE)
         #self.log_list.header().hideSection(COL_AUTHOR)
         self.log_branch_loaded = False
+        
+        self.connect(self.log_list.selectionModel(),
+                     QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
+                     self.log_list_selectionChanged)
         
         self.message = LogListRevisionMessageBrowser(self.log_list, self)
 
@@ -454,6 +464,9 @@ class AnnotateWindow(QBzrWindow):
                 self.branch.unlock()
         finally:
             self.throbber.hide()
+    
+    def log_list_selectionChanged(self, selected, deselected):
+        revids = self.log_list.get_selection_and_merged_revids()
+        self.annotate_bar.highlight_revids = revids
+        self.annotate_bar.update()
 
-    def browser_on_revisions_loaded(self, revisions, last_call):
-        self.model.on_revisions_loaded(revisions, last_call)
