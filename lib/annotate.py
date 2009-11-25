@@ -115,8 +115,8 @@ class AnnotateBar(AnnotateBarBase):
         line_number_rect = QtCore.QRect(
             rect.left() + text_margin,
             rect.top(),
-            rect.left() + self.line_number_width - text_margin,
-            rect.bottom())
+            self.line_number_width - (2 * text_margin),
+            rect.height())
         
         painter.drawText(line_number_rect, QtCore.Qt.AlignRight,
                          unicode(line_number))
@@ -125,10 +125,10 @@ class AnnotateBar(AnnotateBarBase):
             revid, is_top = self.annotate[line_number - 1]
             if is_top:
                 revno_rect = QtCore.QRect(
-                    line_number_rect.right() + text_margin,
+                    rect.left() + self.line_number_width + text_margin,
                     rect.top(),
-                    line_number_rect.right()  + self.revno_width - text_margin,
-                    rect.bottom())
+                    self.revno_width - (2 * text_margin),
+                    rect.height())
                 paint_revno(painter, revno_rect,
                             QtCore.QString(self.get_revno(revid)),
                             self.max_mainline_digits)
@@ -136,10 +136,11 @@ class AnnotateBar(AnnotateBarBase):
                 if revid in cached_revisions:
                     rev = cached_revisions[revid]
                     author_rect = QtCore.QRect(
-                        revno_rect.right() + text_margin,
+                        rect.left() + self.line_number_width
+                                    + self.revno_width + text_margin,
                         rect.top(),
-                        rect.right() - text_margin,
-                        rect.bottom())
+                        rect.right() - revno_rect.right() - (2 * text_margin),
+                        rect.height())
                     painter.drawText(author_rect, 0,
                                      get_apparent_author_name(rev))
         painter.restore()
