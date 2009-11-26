@@ -21,12 +21,19 @@
 from bzrlib import (
     tests,
     )
-from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import htmlize
+from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import (
+    htmlencode,
+    htmlize,
+    )
 
 
-class TestHtmlize(tests.TestCase):
+class TestHtmlUtils(tests.TestCase):
 
-    def test_convert_leading_spaces_to_nbsp(self):
+    def test_htmlencode(self):
+        self.assertEquals('&quot;&amp;&lt;&gt;', htmlencode('"&<>'))
+        self.assertEquals('\n', htmlencode('\n'))
+
+    def test_htmlize_convert_leading_spaces_to_nbsp(self):
         self.assertEqual('foo bar', htmlize('foo bar'))
         self.assertEqual("0<br />"
                          "&nbsp;1<br />"

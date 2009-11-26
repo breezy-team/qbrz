@@ -132,9 +132,6 @@ class TestUtil(tests.TestCase):
             self.assertEquals('/home/work/qbzr/',
                 util.url_for_display('file:///home/work/qbzr/'))
 
-    def test_htmlencode(self):
-        self.assertEquals('&quot;&amp;&lt;&gt;', util.htmlencode('"&<>'))
-
     def test_is_binary_content(self):
         self.assertEquals(False, util.is_binary_content([]))
         self.assertEquals(False, util.is_binary_content(['foo\n', 'bar\r\n', 'spam\r']))
