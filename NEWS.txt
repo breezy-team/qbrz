@@ -2,19 +2,13 @@
 ---------------------
 What's new in this release:
 
- * New encoding selector added to qdiff, qannotate and qcat. 
-   This selector allows change of the text encoding "on the fly".
- * Added new context menu action in qlog to tag a revision.
+ * New encoding selector added to qdiff, qannotate and qcat. This selector
+   allows change of the text encoding "on the fly". (INADA Naoki)
  * Added Czech translations.
- * Double click on file item in conflicts window opens merge tool.
- * When a push location is yet to be defined, qpush suggests a
-   location for feature branches when the master branch is hosted
-   on Launchpad.
-
-Changelog:
-
- * qannotate, qcat, qdiff:
-   * Added encoding selector. (INADA Naoki)
+ * qpush:
+   * When a push location is yet to be defined, qpush suggests a location for
+     feature branches when the master branch is hosted on Launchpad.
+     (Bug #487562, Ian Clatworthy)
  * qconflicts:
    * Double click on file item opens merge tool. (Eugene Tarasenko)
  * qdiff:
@@ -22,9 +16,13 @@ Changelog:
      when the current directory is not repository root. 
      (Bug #439084, Alexander Belchenko)
  * qlog:
-   * Added "tag revision" action to context menu. (Craig Hewetson)
+   * Added "tag revision" action to context menu. (Bug #442953, Craig Hewetson)
    * Robust handling of bogus --fixed properties. (Bug #436834, Craig Hewetson)
- * treewidget:
+   * The properties box in the message box now follow the theme, and hence are
+     now readable on dark themes. (Bug #407070, Gary van der Merwe)
+   * Parents and children in the message box are now show with a dot, of the
+     same color as thier dot in the graph. (Gary van der Merwe)
+ * treewidget (used in qcommit, qadd, qrevert, and qbrowse):
    * Fixed compatibility with PyQt < 4.6. 
      (Bug #479093, Bug #478979, Gary van der Merwe)
    * Extended keyboard navigation: pressing Enter invokes default action
