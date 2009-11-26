@@ -285,7 +285,8 @@ class CommitWindow(SubProcessDialog):
         self.filelist.throbber = self.throbber
         self.filelist.tree_model.is_item_in_select_all = lambda item: (
             item.change is None or
-            item.change.is_versioned())
+            item.change.is_versioned(),
+            True)
         
         self.file_words = {}
         self.connect(self.filelist.tree_model,

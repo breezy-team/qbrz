@@ -717,8 +717,9 @@ class TreeModel(QtCore.QAbstractItemModel):
         item_data = self.inventory_data[parent.internalId()]
         return item_data.item.kind == "directory"
     
-    is_item_in_select_all = lambda self, item: True
-    """Returns wether an item is changed when select all is clicked."""
+    is_item_in_select_all = lambda self, item: (True, True)
+    """Returns wether an item is changed when select all is clicked, and whether
+    it's children are looked at."""
     
     def setData(self, index, value, role):
         
@@ -751,23 +752,33 @@ class TreeModel(QtCore.QAbstractItemModel):
                 for child_id in item_data.children_ids:
                     child = self.inventory_data[child_id]
                     
-                    has_children_changed = set_child_checked_recurse(child)
-
                     # If unchecking, uncheck everything, but if checking,
                     # only check those in "select_all" get checked.
-                    if (self.is_item_in_select_all(child) or
-                        value == QtCore.Qt.Unchecked or
-                        has_children_changed):
+                    if value == QtCore.Qt.Unchecked:
+                        change = True
+                        lookat_children = True
+                    else:
+                        (change,
+                         lookat_children) = self.is_item_in_select_all(child)
+                    
+                    if lookat_children:
+                        has_children_changed = set_child_checked_recurse(child)
+                    else:
+                        has_children_changed = False
+
+                    if (change or has_children_changed):
                         have_changed_item = True
                         set_checked(child, value)
                 return have_changed_item
+            
             set_child_checked_recurse(item_data)
             
             # Walk up the tree, and update every dir
             parent_data = item_data
             while parent_data.parent_id is not None:
-                if (not self.is_item_in_select_all(parent_data) and
-                        value == QtCore.Qt.Unchecked):
+                (in_select_all,
+                 look_at_children) = self.is_item_in_select_all(parent_data)
+                if (not in_select_all and value == QtCore.Qt.Unchecked):
                     # Don't uncheck parents if not in "select_all".
                     break
                 parent_data = self.inventory_data[parent_data.parent_id]
@@ -775,15 +786,17 @@ class TreeModel(QtCore.QAbstractItemModel):
                 has_unchecked = False
                 for child_id in parent_data.children_ids:
                     child = self.inventory_data[child_id]
+                    (child_in_select_all, child_look_at_children) \
+                                   = self.is_item_in_select_all(parent_data)
                     
                     if child.checked == QtCore.Qt.Checked:
                         has_checked = True
                     elif (child.checked == QtCore.Qt.Unchecked and
-                          self.is_item_in_select_all(child)):
+                          child_in_select_all):
                         has_unchecked = True
                     elif child.checked == QtCore.Qt.PartiallyChecked:
                         has_checked = True
-                        if self.is_item_in_select_all(child):
+                        if child_in_select_all:
                             has_unchecked = True
                     
                     if has_checked and has_unchecked:
