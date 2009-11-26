@@ -156,7 +156,6 @@ class QBzrPushWindow(SubProcessDialog):
             master_url = (parent_branch.get_parent() or
                 parent_branch.get_bound_location())
             if master_url and not master_url.startswith("file://"):
-                print master_url
                 if master_url.find("launchpad") >= 0:
                     suggest_url = self._build_lp_push_suggestion(master_url)
                     if suggest_url:
