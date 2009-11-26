@@ -539,10 +539,6 @@ def format_timestamp(timestamp):
     return unicode(date.toString(QtCore.Qt.LocalDate))
 
 
-def htmlencode(string):
-    return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")
-
-
 def is_valid_encoding(encoding):
     import codecs
     try:

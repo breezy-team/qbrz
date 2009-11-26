@@ -132,9 +132,6 @@ class TestUtil(tests.TestCase):
             self.assertEquals('/home/work/qbzr/',
                 util.url_for_display('file:///home/work/qbzr/'))
 
-    def test_htmlencode(self):
-        self.assertEquals('&quot;&amp;&lt;&gt;', util.htmlencode('"&<>'))
-
     def test_is_binary_content(self):
         self.assertEquals(False, util.is_binary_content([]))
         self.assertEquals(False, util.is_binary_content(['foo\n', 'bar\r\n', 'spam\r']))
@@ -171,18 +168,6 @@ class TestUtil(tests.TestCase):
         self.assertEqual(u'foo', util.ensure_unicode(u'foo'))
         self.assertEqual(u'\u1234', util.ensure_unicode(u'\u1234'))
         self.assertEqual(1, util.ensure_unicode(1))
-
-
-class TestHtmlize(tests.TestCase):
-
-    def test_convert_leading_spaces_to_nbsp(self):
-        self.assertEqual('foo bar', util.htmlize('foo bar'))
-        self.assertEqual("0<br />"
-                         "&nbsp;1<br />"
-                         "&nbsp;&nbsp;2<br />"
-                         "0",
-                         util.htmlize("0\n 1\n  2\n0"))
-        self.assertEqual('&nbsp;foo bar', util.htmlize(' foo bar'))
 
 
 class TestOpenTree(tests.TestCaseWithTransport):
