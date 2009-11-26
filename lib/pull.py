@@ -19,6 +19,7 @@
 
 from PyQt4 import QtCore, QtGui
 
+from bzrlib import urlutils
 from bzrlib.commands import get_cmd_object
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -154,22 +155,39 @@ class QBzrPushWindow(SubProcessDialog):
             parent_branch = Branch.open(parent_url)
             master_url = (parent_branch.get_parent() or
                 parent_branch.get_bound_location())
-            if master_url:
+            if master_url and not master_url.startswith("file://"):
+                print master_url
                 if master_url.find("launchpad") >= 0:
-                    return self._build_lp_push_suggestion(master_url)
-                # TODO: suggest something for other hosting sites
+                    suggest_url = self._build_lp_push_suggestion(master_url)
+                    if suggest_url:
+                        return suggest_url
+                # XXX we can hook in there even more specific suggesters
+                # XXX maybe we need registry?
+                suggest_url = self._build_generic_push_suggestion(master_url)
+                if suggest_url:
+                    return suggest_url
             return ''
 
     def _build_lp_push_suggestion(self, master_url):
-        from bzrlib.plugins.launchpad import account
+        try:
+            from bzrlib.plugins.launchpad import account
+        except ImportError:
+            # yes, ImportError is possible with bzr.exe,
+            # because user has option to not install launchpad plugin at all
+            return ''
         from bzrlib.plugins.qbzr.lib.util import launchpad_project_from_url
         user_name = account.get_lp_login()
         project_name = launchpad_project_from_url(master_url)
-        branch_name = self.branch.base.rstrip('/').split('/')[-1]
+        branch_name = urlutils.basename(self.branch.base)
         if user_name and project_name and branch_name:
             return "lp:~%s/%s/%s" % (user_name, project_name, branch_name)
         else:
             return ''
+
+    def _build_generic_push_suggestion(self, master_url):
+        master_parent = urlutils.dirname(master_url)
+        branch_name = urlutils.basename(self.branch.base)
+        return urlutils.join(master_parent, branch_name)
 
     def do_start(self):
         if self.tree:
