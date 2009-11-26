@@ -153,31 +153,29 @@ class RevisionTreeView(QtGui.QTreeView):
 has_vista_style = hasattr(QtGui, "QWindowsVistaStyle")
 
 
-class StyledItemDelegate(QtGui.QStyledItemDelegate):
+def get_text_color ( option, style):
+    if option.state & QtGui.QStyle.State_Enabled:
+        if option.state & QtGui.QStyle.State_Active:
+            cg = QtGui.QPalette.Active
+        else:
+            cg = QtGui.QPalette.Inactive
+    else:
+        cg = QtGui.QPalette.Disabled
     
-    def get_text_color (self, option, style):
-        if option.state & QtGui.QStyle.State_Enabled:
-            if option.state & QtGui.QStyle.State_Active:
-                cg = QtGui.QPalette.Active
-            else:
-                cg = QtGui.QPalette.Inactive
-        else:
-            cg = QtGui.QPalette.Disabled
-        
-        if option.state & QtGui.QStyle.State_Selected:
-            if has_vista_style and isinstance(style, QtGui.QWindowsVistaStyle):
-                # QWindowsVistaStyle normaly modifies it palette,
-                # but as we can't reuse that code, we have to reproduce
-                # what it does here.
-                # https://bugs.edge.launchpad.net/qbzr/+bug/457895
-                return option.palette.color(cg, QtGui.QPalette.Text)
-            
-            return option.palette.color(cg, QtGui.QPalette.HighlightedText)
-        else:
+    if option.state & QtGui.QStyle.State_Selected:
+        if has_vista_style and isinstance(style, QtGui.QWindowsVistaStyle):
+            # QWindowsVistaStyle normaly modifies it palette,
+            # but as we can't reuse that code, we have to reproduce
+            # what it does here.
+            # https://bugs.edge.launchpad.net/qbzr/+bug/457895
             return option.palette.color(cg, QtGui.QPalette.Text)
+        
+        return option.palette.color(cg, QtGui.QPalette.HighlightedText)
+    else:
+        return option.palette.color(cg, QtGui.QPalette.Text)
 
 
-class RevNoItemDelegate(StyledItemDelegate):
+class RevNoItemDelegate(QtGui.QStyledItemDelegate):
     def __init__ (self, max_mainline_digits = 4, parent = None):    
         QtGui.QItemDelegate.__init__ (self, parent)
         self.max_mainline_digits = max_mainline_digits
@@ -197,37 +195,41 @@ class RevNoItemDelegate(StyledItemDelegate):
                                         None, widget) + 1
         text_rect = option.rect.adjusted(text_margin, 0, -text_margin, 0)
         
+        painter.setPen(get_text_color(option, style))
+        
         if not option.text.isEmpty():
             text = option.text
-            splitpoint = text.indexOf(".")
-            if splitpoint == -1:
-                splitpoint = len(text)
-            mainline, therest = text[:splitpoint], text[splitpoint:]
-            
-            if mainline.endsWith(" ?"):
-                mainline = mainline[:-2]
-                therest = " ?"
-            
-            fm = painter.fontMetrics()
-            mainline_width = fm.width("8"*self.max_mainline_digits)
-            therest_width = fm.width(therest)
-            
-            painter.setPen(self.get_text_color(option, style))
-            
-            if mainline_width + therest_width > text_rect.width():
-                if fm.width(text) > text_rect.width():
-                    text = self.elidedText(fm, text_rect.width(),
-                                           QtCore.Qt.ElideRight, text)
-                painter.drawText(text_rect, QtCore.Qt.AlignRight, text);
-            else:
-                mainline_rect = QtCore.QRect(text_rect.x(),
-                                             text_rect.y(),
-                                             mainline_width,
-                                             text_rect.height())
-                therest_rect = QtCore.QRect(text_rect.x() + mainline_width,
-                                            text_rect.y(),
-                                            text_rect.width() - mainline_width,
-                                            text_rect.height())
-                painter.drawText(mainline_rect, QtCore.Qt.AlignRight, mainline)
-                painter.drawText(therest_rect, QtCore.Qt.AlignLeft, therest)
+            paint_revno(painter, text_rect, text, self.max_mainline_digits)
+        
         painter.restore()
+
+def paint_revno(painter, rect, revno, max_mainline_digits):
+    splitpoint = revno.indexOf(".")
+    if splitpoint == -1:
+        splitpoint = len(revno)
+    mainline, therest = revno[:splitpoint], revno[splitpoint:]
+    
+    if mainline.endsWith(" ?"):
+        mainline = mainline[:-2]
+        therest = " ?"
+    
+    fm = painter.fontMetrics()
+    mainline_width = fm.width("8"*max_mainline_digits)
+    therest_width = fm.width(therest)
+    
+    if mainline_width + therest_width > rect.width():
+        if fm.width(text) > rect.width():
+            text = fm.elidedText(fm, rect.width(),
+                                 QtCore.Qt.ElideRight, text)
+        painter.drawText(rect, QtCore.Qt.AlignRight, text);
+    else:
+        mainline_rect = QtCore.QRect(rect.x(),
+                                     rect.y(),
+                                     mainline_width,
+                                     rect.height())
+        therest_rect = QtCore.QRect(rect.x() + mainline_width,
+                                    rect.y(),
+                                    rect.width() - mainline_width,
+                                    rect.height())
+        painter.drawText(mainline_rect, QtCore.Qt.AlignRight, mainline)
+        painter.drawText(therest_rect, QtCore.Qt.AlignLeft, therest)

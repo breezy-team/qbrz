@@ -3,6 +3,7 @@
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2006 Lukáš Lalinský <lalinsky@gmail.com>
 # Copyright (C) 2005 Dan Loda <danloda@gmail.com>
+# Copyright (C) 2009 Gary van der Merwe <garyvdm@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -46,159 +47,147 @@ from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.plugins.qbzr.lib.logmodel import COL_DATE, RevIdRole
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
                                                          cached_revisions)
-from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
-                                                 RevNoItemDelegate)
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingSelector
+from bzrlib.plugins.qbzr.lib.syntaxhighlighter import highlight_document
+from bzrlib.plugins.qbzr.lib.texteditannotate import (AnnotateBarBase,
+                                                      AnnotateEditerFrameBase)
+from bzrlib.plugins.qbzr.lib.revtreeview import paint_revno, get_text_color
 
-have_pygments = True
-try:
-    from pygments import lex
-    from pygments.util import ClassNotFound
-    from pygments.lexers import get_lexer_for_filename
-except ImportError:
-    have_pygments = False
-
-
-class FormatedCodeItemDelegate(QtGui.QItemDelegate):
+class AnnotateBar(AnnotateBarBase):
     
-    def __init__(self, lines, parent = None):
-        QtGui.QItemDelegate.__init__(self, parent)
-        self.lines = lines
-
-    def paint(self, painter, option, index):
-        self.line = self.lines[index.row()]
-        QtGui.QItemDelegate.paint(self, painter, option, index)
-
-    def drawDisplay(self, painter, option, rect, text):
-        painter.setFont(option.font)
-        if (option.state & QtGui.QStyle.State_Selected
-            and option.state & QtGui.QStyle.State_Active):
-            painter.setPen(option.palette.highlightedText().color())
-        else:
-            painter.setPen(option.palette.text().color())
+    def __init__(self, edit, parent, get_revno):
+        super(AnnotateBar, self).__init__(edit, parent)
         
-        textPoint = QtCore.QPoint(rect.left() + 2, rect.bottom() - option.fontMetrics.descent())
-        for ttype, text in self.line:
-            painter.save()
-            format_for_ttype(ttype, painter)
-            painter.drawText(textPoint, text.rstrip())
-            textPoint.setX(textPoint.x() + QtGui.QFontMetrics(painter.font()).width(text))
-            painter.restore()
-
-
-class AnnotateModel(QtCore.QAbstractTableModel):
-
-    LINE_NO, AUTHOR, REVNO, TEXT = range(4)
-    REVID = QtCore.Qt.UserRole + 1
-    
-    def __init__(self, get_revno, font, parent=None):
-        QtCore.QAbstractTableModel.__init__(self, parent)
-        
-        self.horizontalHeaderLabels = [gettext("Line"),
-                                       gettext("Author"),
-                                       gettext("Rev"),
-                                       "",
-                                       ]
         self.get_revno = get_revno
-        self.font = font
-        self.annotate = []
-        self.revid_indexes = {}
-        self.branch = None
-    
-    def set_annotate(self, annotate, revid_indexes, branch):
-        try:
-            self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
-            self.annotate = annotate
-            self.revid_indexes = revid_indexes
-            self.branch = branch
-            self.now = time.time()
-        finally:
-            self.emit(QtCore.SIGNAL("layoutChanged()"))
-    
-    def columnCount(self, parent):
-        return len(self.horizontalHeaderLabels)
+        self.annotate = None
+        self.rev_colors = {}
+        self.highlight_revids = set()
+        
+        self.splitter = None
+        self.adjustWidth(1, 999)
+        
+        edit.selectionChanged.connect(self.edit_selectionChanged)
+        self.show_current_line = False
 
-    def rowCount(self, parent):
-        if parent.isValid():
-            return 0
-        return len(self.annotate)
+    def edit_selectionChanged(self):
+        self.show_current_line = True
+
+    def adjustWidth(self, lines, max_revno):
+        fm = self.fontMetrics()
+        text_margin = self.style().pixelMetric(
+            QtGui.QStyle.PM_FocusFrameHMargin, None, self) + 1
+        
+        self.line_number_width = fm.width(unicode(lines))
+        self.line_number_width += (text_margin * 2)
+        
+        self.revno_width = fm.width(unicode(max_revno)+".8.88")
+        self.max_mainline_digits = len(unicode(max_revno))
+        self.revno_width += (text_margin * 2)
+        
+        if self.splitter:
+            if 0: self.splitter = QtGui.QSplitter
+            width = (self.line_number_width + self.revno_width +
+                     fm.width("Joe I have a Long Name"))
+            self.splitter.setSizes([width, 1000])
+        
+        self.setMinimumWidth(self.line_number_width + self.revno_width)
     
-    def data(self, index, role):
-        if not index.isValid():
-            return QtCore.QVariant()
-        
-        revid, text, is_top = self.annotate[index.row()]
-        
-        if role == self.REVID:
-            return QtCore.QVariant(revid)
-        
-        if revid in cached_revisions:
-            rev = cached_revisions[revid]
-        else:
-            rev = None
-
-        column = index.column()
-        if column == self.LINE_NO:
-            if role == QtCore.Qt.DisplayRole:
-                return QtCore.QVariant(index.row() + 1)
-            if role == QtCore.Qt.TextAlignmentRole:
-                return QtCore.QVariant(QtCore.Qt.AlignRight)
-        
-        if column == self.AUTHOR:
-            if role == QtCore.Qt.DisplayRole:
-                if is_top and rev:
-                    return QtCore.QVariant(get_apparent_author_name(rev))
-        
-        if column == self.REVNO:
-            if role == QtCore.Qt.DisplayRole:
-                if is_top:
-                    revno = self.get_revno(revid)
-                    if revno is None:
-                        revno = ""
-                    return QtCore.QVariant(revno)
-
-        if column == self.TEXT:
-            if role == QtCore.Qt.DisplayRole:
-                return QtCore.QVariant(text)
-            if role == QtCore.Qt.FontRole:
-                return QtCore.QVariant(self.font)
-        
-        if column == self.TEXT and role == QtCore.Qt.BackgroundRole and rev:
-            if rev.timestamp is None:
-                days = sys.maxint
-            elif self.now < rev.timestamp:
-                days = 0
-            else:
-                days = (self.now - rev.timestamp) / (24 * 60 * 60)
+    def paint_line(self, painter, rect, line_number, is_current):
+        fm = self.fontMetrics()
+        painter.save()
+        if is_current and self.show_current_line:
+            style = self.style()
+            option = QtGui.QStyleOptionViewItemV4()
+            option.initFrom(self)
+            option.state = option.state | QtGui.QStyle.State_Selected
+            option.rect = rect.toRect()
+            style.drawPrimitive(QtGui.QStyle.PE_PanelItemViewItem,
+                                       option, painter, self)
             
-            saturation = 0.5/((days/50) + 1)
-            hue =  1-float(abs(hash(get_apparent_author_name(rev)))) / sys.maxint 
-            return QtCore.QVariant(QtGui.QColor.fromHsvF(hue, saturation, 1 ))
+            painter.setPen(get_text_color(option, style))
+        elif self.annotate and line_number-1 < len(self.annotate):
+            revid, is_top = self.annotate[line_number - 1]
+            if revid in self.rev_colors:
+                painter.fillRect(rect, self.rev_colors[revid])
         
-        if role == QtCore.Qt.DisplayRole: 
-            return QtCore.QVariant("")
-        return QtCore.QVariant()
-    
-    def flags(self, index):
-        if not index.isValid():
-            return QtCore.Qt.ItemIsEnabled
+        text_margin = self.style().pixelMetric(
+            QtGui.QStyle.PM_FocusFrameHMargin, None, self) + 1
+        
+        if 0: rect = QtCore.QRect
+        line_number_rect = QtCore.QRect(
+            rect.left() + text_margin,
+            rect.top(),
+            self.line_number_width - (2 * text_margin),
+            rect.height())
+        
+        painter.drawText(line_number_rect, QtCore.Qt.AlignRight,
+                         unicode(line_number))
+        
+        if self.annotate and line_number-1 < len(self.annotate):
+            revid, is_top = self.annotate[line_number - 1]
+            if is_top:
+                if revid in self.highlight_revids:
+                    font = painter.font()
+                    font.setBold(True)
+                    painter.setFont(font)
+                
+                revno_rect = QtCore.QRect(
+                    rect.left() + self.line_number_width + text_margin,
+                    rect.top(),
+                    self.revno_width - (2 * text_margin),
+                    rect.height())
+                paint_revno(painter, revno_rect,
+                            QtCore.QString(self.get_revno(revid)),
+                            self.max_mainline_digits)
+                
+                if revid in cached_revisions:
+                    rev = cached_revisions[revid]
+                    author_rect = QtCore.QRect(
+                        rect.left() + self.line_number_width
+                                    + self.revno_width + text_margin,
+                        rect.top(),
+                        rect.right() - revno_rect.right() - (2 * text_margin),
+                        rect.height())
+                    author = QtCore.QString(get_apparent_author_name(rev))
+                    if fm.width(author) > author_rect.width():
+                        author= fm.elidedText(author, QtCore.Qt.ElideRight,
+                                              author_rect.width())                    
+                    painter.drawText(author_rect, 0, author)
+        painter.restore()
 
-        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
 
-    def headerData(self, section, orientation, role):
-        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
-            return QtCore.QVariant(self.horizontalHeaderLabels[section])
-        return QtCore.QVariant()
-    
-    def on_revisions_loaded(self, revisions, last_call):
-        for revid in revisions.iterkeys():
-            for row in self.revid_indexes[revid]:
-                self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                          self.index (row, 0, QtCore.QModelIndex()),
-                          self.index (row, 4, QtCore.QModelIndex()))
+class AnnotatedTextEdit(QtGui.QPlainTextEdit):
+    annotate = None
+    rev_colors = {}
 
-    def get_repo(self):
-        return self.branch.repository
+    def paintEvent(self, event):
+        if self.annotate:
+            block = self.firstVisibleBlock()
+            painter = QtGui.QPainter(self.viewport())
+            painter.setClipRect(event.rect())
+            
+            line_count = block.blockNumber()
+            # Iterate over all visible text blocks in the document.
+            while block.isValid():
+                line_count += 1
+                # Check if the position of the block is out side of the visible
+                # area.
+                rect = self.blockBoundingGeometry(block)
+                rect = rect.translated(self.contentOffset())
+                
+                if not block.isVisible() or rect.top() >= event.rect().bottom():
+                    break
+                
+                if line_count - 1 >= len(self.annotate):
+                    break
+                
+                revid, is_top = self.annotate[line_count - 1]
+                if revid in self.rev_colors:
+                    painter.fillRect(rect, self.rev_colors[revid])
+                
+                block = block.next()
+            del painter
+        super(AnnotatedTextEdit, self).paintEvent(event)
 
 
 class AnnotateWindow(QBzrWindow):
@@ -227,41 +216,37 @@ class AnnotateWindow(QBzrWindow):
 
         self.throbber = ThrobberWidget(self)
         
+        self.text_edit_frame = AnnotateEditerFrameBase(self)
+        self.text_edit = AnnotatedTextEdit(self)
+        self.text_edit.setFrameStyle(QtGui.QFrame.NoFrame)
+        self.text_edit.setReadOnly(True)
+        self.text_edit.document().setDefaultFont(
+            QtGui.QFont("Courier New,courier", 
+                        self.text_edit.font().pointSize()))
         
-        self.browser = RevisionTreeView()
-
-        font = QtGui.QFont("Courier New,courier",
-                           self.browser.font().pointSize())
-        self.model = AnnotateModel(self.get_revno, font)
-        self.browser.setModel(self.model)
-        self.browser.throbber = self.throbber
-
-        self.browser.setRootIsDecorated(False)
-
-        self.browser.setItemDelegateForColumn(self.model.REVNO,
-                                              RevNoItemDelegate(parent=self))
-        header = self.browser.header()
-        fm = self.fontMetrics()
+        self.annotate_bar = AnnotateBar(self.text_edit, self, self.get_revno)
+        annotate_spliter = QtGui.QSplitter(QtCore.Qt.Horizontal, self)
+        annotate_spliter.addWidget(self.annotate_bar)
+        annotate_spliter.addWidget(self.text_edit)
+        self.annotate_bar.splitter = annotate_spliter
+        self.text_edit_frame.hbox.addWidget(annotate_spliter)
         
-        col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
-                                               None, self) + 1) *2
-        header.resizeSection(self.model.LINE_NO,
-                             fm.width("8888") + col_margin)
-        header.resizeSection(self.model.AUTHOR,
-                             fm.width("Joe I have a Long Name") + col_margin)
-        header.resizeSection(self.model.REVNO,
-                             fm.width("8888.8.888") + col_margin)
-
-        self.browser.setUniformRowHeights(True)
-        self.connect(self.browser.selectionModel(),
-                     QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
-                     self.setRevisionByLine)
-
+        self.connect(self.text_edit,
+                     QtCore.SIGNAL("selectionChanged()"),
+                     self.edit_selectionChanged)        
+        self.connect(self.annotate_bar,
+                     QtCore.SIGNAL("selectionChanged()"),
+                     self.edit_selectionChanged)        
+        
         self.log_list = LogList(self.processEvents, self.throbber, no_graph, self)
         self.log_list.load = self.log_list_load
         self.log_list.header().hideSection(COL_DATE)
         #self.log_list.header().hideSection(COL_AUTHOR)
         self.log_branch_loaded = False
+        
+        self.connect(self.log_list.selectionModel(),
+                     QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
+                     self.log_list_selectionChanged)
         
         self.message = LogListRevisionMessageBrowser(self.log_list, self)
 
@@ -277,7 +262,7 @@ class AnnotateWindow(QBzrWindow):
         hsplitter.setStretchFactor(1, 2)
 
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
-        splitter.addWidget(self.browser)
+        splitter.addWidget(self.text_edit_frame)
         splitter.addWidget(hsplitter)
 
         splitter.setStretchFactor(0, 5)
@@ -292,7 +277,7 @@ class AnnotateWindow(QBzrWindow):
         hbox.addWidget(self.encoding_selector)
         hbox.addWidget(buttonbox)
         vbox.addLayout(hbox)
-        self.browser.setFocus()
+        self.text_edit.setFocus()
 
     def show(self):
         QBzrWindow.show(self)
@@ -353,11 +338,12 @@ class AnnotateWindow(QBzrWindow):
         return ""
     
     def annotate(self, tree, fileId, path):
+        self.now = time.time()
         self.rev_indexes = {}
         last_revid = None
         lines = []
         annotate = []
-        text_max_len = 80
+        ordered_revids = []
         self.processEvents()
         for revid, text in tree.annotate_iter(fileId):
             text = text.decode(self.encoding, 'replace')
@@ -365,32 +351,23 @@ class AnnotateWindow(QBzrWindow):
             lines.append(text)
             
             text = text.rstrip()
-            text_max_len = max(len(text), text_max_len)
             if revid not in self.rev_indexes:
                 self.rev_indexes[revid]=[]
+                ordered_revids.append(revid)
             self.rev_indexes[revid].append(len(annotate))
             
             is_top = last_revid != revid
             last_revid = revid
             
-            annotate.append((revid, text, is_top))
+            annotate.append((revid, is_top))
             if len(annotate) % 100 == 0:
                 self.processEvents()
         
-        header = self.browser.header()
-        fm = self.fontMetrics()
+        self.text_edit.setPlainText("".join(lines))
+        self.annotate_bar.adjustWidth(len(lines), 999)
+        self.annotate_bar.annotate = annotate
+        self.text_edit.annotate = annotate
         
-        col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
-                                               None, self) + 1) *2
-        line_no_max_digts = len("%d"%len(annotate))
-        if line_no_max_digts>4:
-            header.resizeSection(self.model.LINE_NO,
-                            fm.width("8"*line_no_max_digts) + col_margin)
-        header.setStretchLastSection(False)
-        header.resizeSection(self.model.TEXT,
-                        fm.width("8"*text_max_len) + col_margin)
-        
-        self.model.set_annotate(annotate, self.rev_indexes, self.branch)
         self.processEvents()
 
         if not self.log_branch_loaded:
@@ -400,7 +377,6 @@ class AnnotateWindow(QBzrWindow):
             self.log_list.context_menu.addAction(
                                     gettext("&Annotate this revision"),
                                     self.set_annotate_revision)
-
         
         gp = self.log_list.graph_provider
         gp.filter_file_id = [False for i in xrange(len(gp.revisions))]
@@ -417,46 +393,42 @@ class AnnotateWindow(QBzrWindow):
         
         gp.invaladate_filter_cache_revs(changed_indexes, last_call=True)
         
-        self.processEvents()
+        self.annotate_bar.adjustWidth(len(lines),
+                                      gp.revisions[0].revno_sequence[0])
         
-        if have_pygments:
-            try:
-                # A more correct way to do this would be to add the tokens as
-                # a data role to each respective tree item. But it is to much
-                # effort to wrap them as QVariants. We will just pass the line
-                # tokens to the delegate.
-                lines_tokens = list(split_tokens_at_lines(\
-                                  lex("".join(lines),
-                                  get_lexer_for_filename(path, stripnl=False))))
-                self.browser.setItemDelegateForColumn(3,FormatedCodeItemDelegate(lines_tokens, self))
-                
-            except ClassNotFound:
-                pass
+        self.processEvents()
+        highlight_document(self.text_edit, path)
+        self.processEvents()
+        load_revisions(ordered_revids, self.branch.repository,
+                       revisions_loaded = self.revisions_loaded,
+                       pass_prev_loaded_rev = True)
     
     def revisions_loaded(self, revisions, last_call):
-        self.log_list.model.on_revisions_loaded(revisions, last_call)
         for rev in revisions.itervalues():
             author_name = get_apparent_author_name(rev)
-            for item in self.rev_top_items[rev.revision_id]:
-                item.setText(1, author_name)
             
-            if self.now < rev.timestamp:
+            if rev.timestamp is None:
+                days = sys.maxint
+            elif self.now < rev.timestamp:
                 days = 0
             else:
                 days = (self.now - rev.timestamp) / (24 * 60 * 60)
             
-            saturation = 0.5/((days/50) + 1)
+            alpha = 0.5/((days/50) + 1)
             hue =  1-float(abs(hash(author_name))) / sys.maxint 
-            color = QtGui.QColor.fromHsvF(hue, saturation, 1 )
+            color = QtGui.QColor.fromHsvF(hue, 1, 1, alpha)
+            brush = QtGui.QBrush(color)
             
-            for item in self.rev_indexes[rev.revision_id]:
-                item.setBackground(3, color)
-    
-    def setRevisionByLine(self, selected, deselected):
-        indexes = self.browser.selectedIndexes()
-        if not indexes:
-            return
-        rev_id = str(indexes[0].data(self.model.REVID).toString())
+            self.annotate_bar.rev_colors[rev.revision_id] = brush
+            self.text_edit.rev_colors[rev.revision_id] = brush
+        
+        self.annotate_bar.update()
+        self.text_edit.update()
+
+    def edit_selectionChanged(self):
+        current_line = self.text_edit.document().findBlock(
+            self.text_edit.textCursor().position()).blockNumber()
+        rev_id, is_top = self.text_edit.annotate[current_line]
         if self.log_list.graph_provider.has_rev_id(rev_id):
             self.log_list.log_model.ensure_rev_visible(rev_id)
             index = self.log_list.log_model.indexFromRevId(rev_id)
@@ -496,6 +468,9 @@ class AnnotateWindow(QBzrWindow):
                 self.branch.unlock()
         finally:
             self.throbber.hide()
+    
+    def log_list_selectionChanged(self, selected, deselected):
+        revids = self.log_list.get_selection_and_merged_revids()
+        self.annotate_bar.highlight_revids = revids
+        self.annotate_bar.update()
 
-    def browser_on_revisions_loaded(self, revisions, last_call):
-        self.model.on_revisions_loaded(revisions, last_call)
