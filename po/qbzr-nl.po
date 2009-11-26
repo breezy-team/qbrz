@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-11-16 12:23+0200\n"
-"PO-Revision-Date: 2009-08-05 15:05+0000\n"
-"Last-Translator: Jeroen Hellingman <jeroen@bohol.ph>\n"
+"PO-Revision-Date: 2009-11-16 17:05+0000\n"
+"Last-Translator: Maarten Bosmans <mkbosmans@gmail.com>\n"
 "Language-Team: Dutch <nl@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2009-11-16 12:08+0000\n"
+"X-Launchpad-Export-Date: 2009-11-24 13:32+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
@@ -25,7 +25,7 @@ msgstr "Toevoegen"
 
 #: lib\add.py:57
 msgid "Unversioned Files"
-msgstr ""
+msgstr "Niet-beheerde bestanden"
 
 #: lib\add.py:100
 msgid "Show ignored files"
@@ -53,7 +53,7 @@ msgstr "Bezig met laden..."
 
 #: lib\annotate.py:280 lib\cat.py:93 lib\encoding_selector.py:84
 msgid "Encoding:"
-msgstr ""
+msgstr "Codering:"
 
 #: lib\annotate.py:356
 #, python-format

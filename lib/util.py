@@ -539,10 +539,6 @@ def format_timestamp(timestamp):
     return unicode(date.toString(QtCore.Qt.LocalDate))
 
 
-def htmlencode(string):
-    return string.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")
-
-
 def is_valid_encoding(encoding):
     import codecs
     try:
@@ -973,3 +969,20 @@ def open_tree(directory, ui_mode=False,
             return None
         else:
             raise
+
+
+def launchpad_project_from_url(url):
+    """If url is a Launchpad code URL, get the project name.
+
+    @return: project name or None
+    """
+    # The format ought to be scheme://host/~user-id/project-name/branch-name/
+    from urlparse import urlsplit
+    scheme, host, path = urlsplit(url)[:3]
+    # Sanity check the host
+    if (host.find('bazaar.launchpad.net') >= 0 or
+        host.find('bazaar.launchpad.dev') >= 0):
+        parts = path.strip('/').split('/')
+        if len(parts) == 3 and parts[0].startswith('~'):
+            return parts[1]
+    return None

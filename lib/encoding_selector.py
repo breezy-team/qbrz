@@ -74,6 +74,7 @@ class EncodingSelector(QtGui.QWidget):
                 self.encodings.insert(0, initial_encoding)
         else:
             initial_encoding = 'utf-8'
+        self._encoding = initial_encoding
 
         self.onChanged = onChanged
         if onChanged is None:
@@ -92,26 +93,37 @@ class EncodingSelector(QtGui.QWidget):
         self.chooser.setEditText(QtCore.QString(initial_encoding))
         self.connect(self.chooser, QtCore.SIGNAL("activated(QString)"),
                      self._encodingChanged)
+        self.chooser.focusOutEvent = self._focusOut
         layout.addWidget(self.chooser)
 
         self.setLayout(layout)
+
+    def _focusOut(self, ev):
+        encoding = self.chooser.currentText()
+        if self._encoding != encoding:
+            self._encodingChanged(encoding)
+        QtGui.QComboBox.focusOutEvent(self.chooser, ev)
 
     def _encodingChanged(self, encoding):
         try:
             encoding = str(encoding)    # may raise UnicodeError
             codecs.lookup(encoding)     # may raise LookupError
+            self._encoding = encoding
             self.onChanged(encoding)
         except (UnicodeError, LookupError):
             QtGui.QMessageBox.critical(self,
                 gettext("Wrong encoding"),
                 gettext('Encoding "%s" is invalid or not supported.') %
                     unicode(encoding))
+            self.setEncoding(self._encoding)
 
     def getEncoding(self):
-        return str(self.chooser.currentText())
+        return self._encoding
 
     def setEncoding(self, encoding):
-        self.chooser.setEditText(QtCore.QString(encoding))
+        if is_valid_encoding(encoding):
+            self._encoding = encoding
+            self.chooser.setEditText(QtCore.QString(encoding))
 
     encoding = property(getEncoding, setEncoding)
 
