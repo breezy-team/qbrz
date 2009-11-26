@@ -22,6 +22,8 @@ What's new in this release:
      now readable on dark themes. (Bug #407070, Gary van der Merwe)
    * Parents and children in the message box are now show with a dot, of the
      same color as thier dot in the graph. (Gary van der Merwe)
+ * qcat:
+   * Line numbers are now shown when viewing text files. (Gary van der Merwe)
  * treewidget (used in qcommit, qadd, qrevert, and qbrowse):
    * Fixed compatibility with PyQt < 4.6. 
      (Bug #479093, Bug #478979, Gary van der Merwe)
