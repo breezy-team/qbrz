@@ -18,12 +18,9 @@
 
 from bzrlib.tests import TestCase, TestCaseWithTransport
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib.annotate import AnnotateModel
-from bzrlib.plugins.qbzr.lib.tests.modeltest import ModelTest
-from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
 from bzrlib import conflicts
 
-class TestAnnotateModel(TestWatchExceptHook, TestCaseWithTransport):
+class TestAnnotateModel(TestCaseWithTransport):
     
     # Coppied from bzrlib/tests/test_annotate.py
     def create_merged_trees(self):
@@ -69,13 +66,3 @@ class TestAnnotateModel(TestWatchExceptHook, TestCaseWithTransport):
         tree1.lock_read()
         self.addCleanup(tree1.unlock)
         return tree1, tree2
-
-    def test_model(self):
-        model = AnnotateModel(lambda revid: "", QtGui.QFont())
-        modeltest = ModelTest(model, None);
-        
-        tree, tree2 = self.create_merged_trees()
-        
-        annotate = [(revid, text, True)
-                    for revid, text in tree.annotate_iter("a-id")]
-        model.set_annotate(annotate, {}, tree.branch)
