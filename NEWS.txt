@@ -27,6 +27,8 @@ What's new in this release:
  * qannotate:
    * It is now possible to select and copy text from qannotate. (Bug #251309,
      Gary van der Merwe)
+   * Show all revisions that touch the file in the log list. (Bug #488824,
+     Gary van der Merwe)
  * treewidget (used in qcommit, qadd, qrevert, and qbrowse):
    * Fixed compatibility with PyQt < 4.6. 
      (Bug #479093, Bug #478979, Gary van der Merwe)

@@ -369,7 +369,8 @@ class AnnotateWindow(QBzrWindow):
         self.text_edit.annotate = annotate
         
         self.processEvents()
-
+        
+        just_loaded_log = False
         if not self.log_branch_loaded:
             self.log_branch_loaded = True
             self.log_list.load_branch(self.branch, [self.fileId], tree)
@@ -377,24 +378,27 @@ class AnnotateWindow(QBzrWindow):
             self.log_list.context_menu.addAction(
                                     gettext("&Annotate this revision"),
                                     self.set_annotate_revision)
-        
-        gp = self.log_list.graph_provider
-        gp.filter_file_id = [False for i in xrange(len(gp.revisions))]
-        
-        changed_indexes = []
-        for revid in self.rev_indexes.keys():
-            index = gp.revid_rev[revid].index
-            gp.filter_file_id[index] = True
-            changed_indexes.append(index)
             
-            if len(changed_indexes) >=500:
-                gp.invaladate_filter_cache_revs(changed_indexes)
-                changed_indexes = []
-        
-        gp.invaladate_filter_cache_revs(changed_indexes, last_call=True)
-        
-        self.annotate_bar.adjustWidth(len(lines),
-                                      gp.revisions[0].revno_sequence[0])
+            just_loaded_log = True
+            
+            # Show the revisions the we know about now.
+            gp = self.log_list.graph_provider
+            gp.filter_file_id = [False for i in xrange(len(gp.revisions))]
+            
+            changed_indexes = []
+            for revid in self.rev_indexes.keys():
+                index = gp.revid_rev[revid].index
+                gp.filter_file_id[index] = True
+                changed_indexes.append(index)
+                
+                if len(changed_indexes) >=500:
+                    gp.invaladate_filter_cache_revs(changed_indexes)
+                    changed_indexes = []
+            
+            gp.invaladate_filter_cache_revs(changed_indexes, last_call=True)
+            
+            self.annotate_bar.adjustWidth(len(lines),
+                                          gp.revisions[0].revno_sequence[0])
         
         self.processEvents()
         highlight_document(self.text_edit, path)
@@ -402,6 +406,21 @@ class AnnotateWindow(QBzrWindow):
         load_revisions(ordered_revids, self.branch.repository,
                        revisions_loaded = self.revisions_loaded,
                        pass_prev_loaded_rev = True)
+        self.processEvents()
+        
+        if just_loaded_log:
+            # Check for any other revisions we don't know about
+            revids = [rev.revid for rev in gp.revisions
+                      if rev.revid not in self.rev_indexes]
+            
+            for repo, revids in gp.get_repo_revids(revids):
+                chunk_size = 500
+                
+                for start in xrange(0, len(revids), chunk_size):
+                    text_keys = []
+                    gp.load_filter_file_id_chunk(repo, 
+                            revids[start:start + chunk_size])
+            gp.load_filter_file_id_chunk_finished()
     
     def revisions_loaded(self, revisions, last_call):
         for rev in revisions.itervalues():
