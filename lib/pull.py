@@ -116,7 +116,8 @@ class QBzrPushWindow(SubProcessDialog):
         for w in self.make_default_layout_widgets():
             self.layout().addWidget(w)
 
-        df = url_for_display(self.branch.get_push_location() or '')
+        df = url_for_display(self.branch.get_push_location() or 
+            self._suggested_push_location())
         fill_combo_with(self.ui.location, df,
                         iter_branch_related_locations(self.branch))
         if location:
@@ -138,6 +139,37 @@ class QBzrPushWindow(SubProcessDialog):
                                 self.ui.location_picker,
                                 self.ui.location,
                                 DIRECTORYPICKER_TARGET)
+
+    def _suggested_push_location(self):
+        """Suggest a push location when one is not already defined.
+
+        @return: a sensible location as a string or '' if none.
+        """
+        # If this is a feature branch and its parent exists locally,
+        # its grandparent is likely to be the hosted master branch.
+        # If so, suggest a push location, otherwise don't.
+        parent_url = self.branch.get_parent()
+        if parent_url and parent_url.startswith("file://"):
+            from bzrlib.branch import Branch
+            parent_branch = Branch.open(parent_url)
+            master_url = (parent_branch.get_parent() or
+                parent_branch.get_bound_location())
+            if master_url:
+                if master_url.find("launchpad") >= 0:
+                    return self._build_lp_push_suggestion(master_url)
+                # TODO: suggest something for other hosting sites
+            return ''
+
+    def _build_lp_push_suggestion(self, master_url):
+        from bzrlib.plugins.launchpad import account
+        from bzrlib.plugins.qbzr.lib.util import launchpad_project_from_url
+        user_name = account.get_lp_login()
+        project_name = launchpad_project_from_url(master_url)
+        branch_name = self.branch.base.rstrip('/').split('/')[-1]
+        if user_name and project_name and branch_name:
+            return "lp:~%s/%s/%s" % (user_name, project_name, branch_name)
+        else:
+            return ''
 
     def do_start(self):
         if self.tree:

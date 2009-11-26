@@ -7,6 +7,9 @@ What's new in this release:
  * Added new context menu action in qlog to tag a revision.
  * Added Czech translations.
  * Double click on file item in conflicts window opens merge tool.
+ * When a push location is yet to be defined, qpush suggests a
+   location for feature branches when the master branch is hosted
+   on Launchpad.
 
 Changelog:
 
