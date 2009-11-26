@@ -19,6 +19,7 @@
 
 from PyQt4 import QtCore, QtGui
 
+from bzrlib import urlutils
 from bzrlib.commands import get_cmd_object
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -116,7 +117,8 @@ class QBzrPushWindow(SubProcessDialog):
         for w in self.make_default_layout_widgets():
             self.layout().addWidget(w)
 
-        df = url_for_display(self.branch.get_push_location() or '')
+        df = url_for_display(self.branch.get_push_location() or 
+            self._suggested_push_location())
         fill_combo_with(self.ui.location, df,
                         iter_branch_related_locations(self.branch))
         if location:
@@ -138,6 +140,53 @@ class QBzrPushWindow(SubProcessDialog):
                                 self.ui.location_picker,
                                 self.ui.location,
                                 DIRECTORYPICKER_TARGET)
+
+    def _suggested_push_location(self):
+        """Suggest a push location when one is not already defined.
+
+        @return: a sensible location as a string or '' if none.
+        """
+        # If this is a feature branch and its parent exists locally,
+        # its grandparent is likely to be the hosted master branch.
+        # If so, suggest a push location, otherwise don't.
+        parent_url = self.branch.get_parent()
+        if parent_url and parent_url.startswith("file://"):
+            from bzrlib.branch import Branch
+            parent_branch = Branch.open(parent_url)
+            master_url = (parent_branch.get_parent() or
+                parent_branch.get_bound_location())
+            if master_url and not master_url.startswith("file://"):
+                if master_url.find("launchpad") >= 0:
+                    suggest_url = self._build_lp_push_suggestion(master_url)
+                    if suggest_url:
+                        return suggest_url
+                # XXX we can hook in there even more specific suggesters
+                # XXX maybe we need registry?
+                suggest_url = self._build_generic_push_suggestion(master_url)
+                if suggest_url:
+                    return suggest_url
+            return ''
+
+    def _build_lp_push_suggestion(self, master_url):
+        try:
+            from bzrlib.plugins.launchpad import account
+        except ImportError:
+            # yes, ImportError is possible with bzr.exe,
+            # because user has option to not install launchpad plugin at all
+            return ''
+        from bzrlib.plugins.qbzr.lib.util import launchpad_project_from_url
+        user_name = account.get_lp_login()
+        project_name = launchpad_project_from_url(master_url)
+        branch_name = urlutils.basename(self.branch.base)
+        if user_name and project_name and branch_name:
+            return "lp:~%s/%s/%s" % (user_name, project_name, branch_name)
+        else:
+            return ''
+
+    def _build_generic_push_suggestion(self, master_url):
+        master_parent = urlutils.dirname(master_url)
+        branch_name = urlutils.basename(self.branch.base)
+        return urlutils.join(master_parent, branch_name)
 
     def do_start(self):
         if self.tree:

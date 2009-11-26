@@ -37,8 +37,10 @@ from bzrlib.plugins.qbzr.lib.util import hookup_directory_picker
 
 class QBzrRunDialog(SubProcessDialog):
 
-    def __init__(self, workdir=None, ui_mode=False, parent=None):
+    def __init__(self, command=None, workdir=None, ui_mode=False, parent=None):
         """Build dialog.
+
+        @param command: initial command selection.
         @param workdir: working directory to run command.
         @param ui_mode: wait after the operation is complete.
         @param parent:  parent window.
@@ -50,14 +52,14 @@ class QBzrRunDialog(SubProcessDialog):
         if workdir is None:
             workdir = osutils.getcwd()
         self.ui.wd_edit.setText(workdir)
+        # set help_browser with some default text
+        self.set_default_help()
         # cmd_combobox should fill all available space
         self.ui.cmd_layout.setColumnStretch(1, 1)
         self.ui.cmd_layout.setColumnStretch(2, 1)
         # fill cmd_combobox with available commands
         self.collect_command_names()
-        self.set_cmd_combobox()
-        # set help_browser with some default text
-        self.set_default_help()
+        self.set_cmd_combobox(cmd_name=command)
         # and add the subprocess widgets
         self.splitter = self.ui.splitter
         for w in self.make_default_layout_widgets():
@@ -103,8 +105,11 @@ class QBzrRunDialog(SubProcessDialog):
                                    for n,o in self.cmds_dict.iteritems()
                                    if not o.hidden])
 
-    def set_cmd_combobox(self, all=False):
+    def set_cmd_combobox(self, cmd_name=None, all=False):
         """Fill command combobox with bzr commands names.
+
+        @param cmd_name: if not None, the command to initially select
+            if it exists in the list.
         @param all: show all commands including hidden ones.
         """
         cb = self.ui.cmd_combobox
@@ -113,10 +118,21 @@ class QBzrRunDialog(SubProcessDialog):
             cb.addItems(self.all_cmds)
         else:
             cb.addItems(self.public_cmds)
-        cb.setCurrentIndex(-1)    
+        if cmd_name is None:
+            index = -1
+        else:
+            index = cb.findText(cmd_name)
+            if index >= 0:
+                self.set_cmd_help(cmd_name)
+        cb.setCurrentIndex(index)    
+
+    def _get_cmd_name(self):
+        """Return the command name."""
+        return unicode(self.ui.cmd_combobox.currentText()).strip()
 
     def set_cmd_help(self, cmd_name):
         """Show help for selected command in help widget.
+
         @param cmd_name: name of command to show help.
         """
         cmd_name = unicode(cmd_name)
@@ -124,12 +140,13 @@ class QBzrRunDialog(SubProcessDialog):
         cmd_object = self.cmds_dict.get(cmd_name)
         if cmd_object:
             self.ui.help_browser.setHtml(
-                get_help_topic_as_html("commands/"+cmd_name))
+                get_help_topic_as_html("commands/" + cmd_name))
         else:
             self.set_default_help()
 
     def _get_cwd(self, default=None):
         """Return selected working dir for command.
+
         @param default: if working dir is not exists then return this default 
             value.
         """
@@ -140,9 +157,10 @@ class QBzrRunDialog(SubProcessDialog):
 
     def _prepare_filepath(self, path):
         """Ensure path is safe to insert to options/arguments command line.
+
         On Windows convert backslashes to slashes;
         if path contains spaces we need to quote it.
-        @return: path string suitabe to insert to command line.
+        @return: path string suitable to insert to command line.
         """
         if MS_WINDOWS:
             path = path.replace('\\', '/')
@@ -151,7 +169,7 @@ class QBzrRunDialog(SubProcessDialog):
         return path
 
     def insert_directory(self):
-        """Select exisiting directory and insert it to command line."""
+        """Select existing directory and insert it to command line."""
         cwd = self._get_cwd("")
         path = QtGui.QFileDialog.getExistingDirectory(self,
             gettext("Select path to insert"),
@@ -172,14 +190,14 @@ class QBzrRunDialog(SubProcessDialog):
 
     def validate(self):
         """Validate before launch command: start command only if there is one."""
-        if unicode(self.ui.cmd_combobox.currentText()).strip():
+        if self._get_cmd_name():
             return True
         return False
 
     def do_start(self):
         """Launch command."""
         cwd = self._get_cwd()
-        args = [unicode(self.ui.cmd_combobox.currentText())]
+        args = [self._get_cmd_name()]
         cmd_utf8 = unicode(self.ui.opt_arg_edit.text()).encode('utf-8')
         args.extend([unicode(p,'utf8') for p in shlex.split(cmd_utf8)])
         self.process_widget.do_start(cwd, *args)

@@ -218,8 +218,9 @@ class ChangeDesc(tuple):
     [7]: executable      -> 2-tuple (bool/None, bool/None)
     
     --optional--
-    [8]: is_ignored      -> If the file is ignored, pattern which caused it to
-                            be ignored, otherwise None.
+    [8]: ignore_pattern  -> If the file name matches ignore pattern then
+                            this value holds corresponding pattern,
+                            otherwise None.
     
     NOTE: None value used for non-existing entry in corresponding
           tree, e.g. for added/deleted/ignored/unversioned
@@ -280,11 +281,16 @@ class ChangeDesc(tuple):
         return (desc[3] == (False, True) and desc[6][1] is None)
     
     def is_ignored(desc):
+        """Returns ignore pattern if file is ignored;
+        None if none pattern match;
+        False is there is pattern but file actually versioned.
+        """
         if len(desc) > 8:
-            return desc[8]
+            # ignored is when file match ignore pattern and not versioned
+            return desc[8] and desc[3] == (False, False)
         else:
             return None
-    
+
     def status(desc):
         if len(desc) == 8:
             (file_id, (path_in_source, path_in_target),
