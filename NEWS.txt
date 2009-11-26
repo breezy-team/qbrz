@@ -24,6 +24,9 @@ What's new in this release:
      same color as thier dot in the graph. (Gary van der Merwe)
  * qcat:
    * Line numbers are now shown when viewing text files. (Gary van der Merwe)
+ * qannotate:
+   * It is now possible to select and copy text from qannotate. (Bug #251309,
+     Gary van der Merwe)
  * treewidget (used in qcommit, qadd, qrevert, and qbrowse):
    * Fixed compatibility with PyQt < 4.6. 
      (Bug #479093, Bug #478979, Gary van der Merwe)
