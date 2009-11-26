@@ -93,6 +93,7 @@ class AnnotateBar(AnnotateBarBase):
         self.setMinimumWidth(self.line_number_width + self.revno_width)
     
     def paint_line(self, painter, rect, line_number, is_current):
+        fm = self.fontMetrics()
         painter.save()
         if is_current and self.show_current_line:
             style = self.style()
@@ -147,8 +148,11 @@ class AnnotateBar(AnnotateBarBase):
                         rect.top(),
                         rect.right() - revno_rect.right() - (2 * text_margin),
                         rect.height())
-                    painter.drawText(author_rect, 0,
-                                     get_apparent_author_name(rev))
+                    author = QtCore.QString(get_apparent_author_name(rev))
+                    if fm.width(author) > author_rect.width():
+                        author= fm.elidedText(author, QtCore.Qt.ElideRight,
+                                              author_rect.width())                    
+                    painter.drawText(author_rect, 0, author)
         painter.restore()
 
 

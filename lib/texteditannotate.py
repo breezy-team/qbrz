@@ -44,7 +44,8 @@ class AnnotateBarBase(QtGui.QWidget):
         while block.isValid():
             line_count += 1
             rect = self.edit.blockBoundingGeometry(block)
-            rect = rect.translated(self.edit.contentOffset())            
+            rect = rect.translated(self.edit.contentOffset())
+            rect.setWidth(self.width())
 
             # Check if the position of the block is out side of the visible
             # area.
