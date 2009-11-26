@@ -354,7 +354,7 @@ class LogList(RevisionTreeView):
         self.graph_provider.set_search(str, field)
     
     def default_action(self, index=None):
-        self.show_diff(index)
+        self.show_diff_specified_files()
         
     def tag_revision(self):
         revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
