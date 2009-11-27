@@ -334,7 +334,6 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
     def __init__(self, log_list, parent=None):
         super(LogListRevisionMessageBrowser, self).__init__(parent)
         self.log_list = log_list
-        assert(isinstance(self.log_list, LogList))
 
         self.connect(self.log_list.selectionModel(),
                      QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),

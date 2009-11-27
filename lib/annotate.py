@@ -284,7 +284,7 @@ class AnnotateWindow(QBzrWindow):
 
     def show(self):
         QBzrWindow.show(self)
-        QtCore.QTimer.singleShot(1, self.initial_load)
+        QtCore.QTimer.singleShot(0, self.initial_load)
 
     @runs_in_loading_queue
     @ui_current_widget

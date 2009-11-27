@@ -292,7 +292,7 @@ class LogWindow(QBzrWindow):
     def show(self):
         # we show the bare form as soon as possible.
         QBzrWindow.show(self)
-        QtCore.QTimer.singleShot(1, self.load)
+        QtCore.QTimer.singleShot(0, self.load)
 
     def update_selection(self, selected, deselected):
         indexes = self.log_list.get_selection_indexes()
