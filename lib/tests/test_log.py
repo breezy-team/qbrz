@@ -28,11 +28,9 @@ class TestLog(TestWatchExceptHook, TestCaseWithTransport):
         tree1 = self.make_branch_and_tree('tree1')
 
         win = LogWindow(['tree1'], None)
-        try:
-            win.show()
-            QtCore.QCoreApplication.processEvents()
-        finally:
-            win.close()
+        self.addCleanup(win.close)
+        win.show()
+        QtCore.QCoreApplication.processEvents()
 
     def setUp(self):
         super(TestLog, self).setUp()
@@ -48,8 +46,6 @@ class TestLog(TestWatchExceptHook, TestCaseWithTransport):
                             u'<test@example.com>')
 
         win = LogWindow(['.'], None)
-        try:
-            win.show()
-            QtCore.QCoreApplication.processEvents()
-        finally:
-            win.close()
+        self.addCleanup(win.close)
+        win.show()
+        QtCore.QCoreApplication.processEvents()
