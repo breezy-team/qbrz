@@ -104,6 +104,7 @@ class AnnotateBar(AnnotateBarBase):
             option.initFrom(self)
             option.state = option.state | QtGui.QStyle.State_Selected
             option.rect = rect.toRect()
+            painter.fillRect(rect, QtGui.QBrush(option.palette.highlight()))
             style.drawPrimitive(QtGui.QStyle.PE_PanelItemViewItem,
                                        option, painter, self)
             
