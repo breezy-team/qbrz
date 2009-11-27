@@ -20,6 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
 from PyQt4 import QtCore, QtGui
 
 
@@ -28,7 +29,9 @@ class AnnotateBarBase(QtGui.QWidget):
     def __init__(self, edit, parent):
         QtGui.QWidget.__init__(self, parent)
         self.edit = edit
-        self.edit.updateRequest.connect(self.updateContents)
+        self.connect(self.edit,
+            QtCore.SIGNAL("updateRequest(const QRect&,int)"),
+            self.updateContents)
 
     def paintEvent(self, event):
         font_metrics = self.fontMetrics()
@@ -79,12 +82,15 @@ class AnnotateBarBase(QtGui.QWidget):
     def wheelEvent(self, event):
         self.edit.wheelEvent(event)
 
+
 class LineNumberBar(AnnotateBarBase):
 
     def __init__(self, edit, parent):
         super(LineNumberBar, self).__init__(edit, parent)
         self.adjustWidth(1)
-        self.edit.blockCountChanged.connect(self.adjustWidth)
+        self.connect(self.edit,
+            QtCore.SIGNAL("blockCountChanged(int)"),
+            self.adjustWidth)
 
     def adjustWidth(self, count):
         width = self.fontMetrics().width(unicode(count))
@@ -100,12 +106,14 @@ class LineNumberBar(AnnotateBarBase):
         painter.drawText(rect.adjusted(text_margin, 0, -text_margin, 0),
                          QtCore.Qt.AlignRight, unicode(line_number))
 
+
 class AnnotateEditerFrameBase(QtGui.QFrame):
+
     def __init__(self, parent = None):
         QtGui.QFrame.__init__(self,parent)
- 
+
         self.setFrameStyle(QtGui.QFrame.StyledPanel | QtGui.QFrame.Sunken)
- 
+
         self.hbox = QtGui.QHBoxLayout(self)
         self.hbox.setSpacing(0)
         self.hbox.setMargin(0)

@@ -53,6 +53,7 @@ from bzrlib.plugins.qbzr.lib.texteditannotate import (AnnotateBarBase,
                                                       AnnotateEditerFrameBase)
 from bzrlib.plugins.qbzr.lib.revtreeview import paint_revno, get_text_color
 
+
 class AnnotateBar(AnnotateBarBase):
     
     def __init__(self, edit, parent, get_revno):
@@ -66,7 +67,9 @@ class AnnotateBar(AnnotateBarBase):
         self.splitter = None
         self.adjustWidth(1, 999)
         
-        edit.selectionChanged.connect(self.edit_selectionChanged)
+        self.connect(edit,
+            QtCore.SIGNAL("selectionChanged()"),
+            self.edit_selectionChanged)
         self.show_current_line = False
 
     def edit_selectionChanged(self):
@@ -492,4 +495,3 @@ class AnnotateWindow(QBzrWindow):
         revids = self.log_list.get_selection_and_merged_revids()
         self.annotate_bar.highlight_revids = revids
         self.annotate_bar.update()
-
