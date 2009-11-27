@@ -18,7 +18,7 @@
 
 from bzrlib.tests import TestCase, TestCaseWithTransport
 from PyQt4 import QtCore, QtGui
-from bzrlib import conflicts
+from bzrlib.plugins.qbzr.lib.tests import replace_report_exception
 from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
 from bzrlib.plugins.qbzr.lib.log import LogWindow
 
@@ -33,7 +33,11 @@ class TestLog(TestWatchExceptHook, TestCaseWithTransport):
             QtCore.QCoreApplication.processEvents()
         finally:
             win.close()
-    
+
+    def setUp(self):
+        super(TestLog, self).setUp()
+        replace_report_exception(self)
+
     def test_just_show_log_simple_commit(self):
         wt = self.make_branch_and_tree('.')
         wt.commit('empty commit')

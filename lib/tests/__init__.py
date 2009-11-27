@@ -34,13 +34,6 @@ def load_tests(basic_tests, module, loader):
     if _qt_app is None:
         _qt_app = QtGui.QApplication(sys.argv)
     
-    # Prevent gui error reports from showing.
-    def report_exception(exc_info=None, type=None, window=None,
-                         ui_mode=False):
-        raise
-    import bzrlib.plugins.qbzr.lib.trace
-    bzrlib.plugins.qbzr.lib.trace.report_exception = report_exception
-
     testmod_names = [
         'mock',
         'test_annotate',
@@ -73,3 +66,18 @@ def load_tests(basic_tests, module, loader):
             else:
                 raise
     return basic_tests
+
+
+def replace_report_exception(test_case):
+    import bzrlib.plugins.qbzr.lib.trace
+    def report_exception(exc_info=None, type=None, window=None,
+                         ui_mode=False):
+        raise
+    old_report_exception = bzrlib.plugins.qbzr.lib.trace.report_exception
+    bzrlib.plugins.qbzr.lib.trace.report_exception = report_exception
+    
+    def restore_report_exception():
+        bzrlib.plugins.qbzr.lib.trace.report_exception = old_report_exception
+    
+    test_case.addCleanup(restore_report_exception)
+    
