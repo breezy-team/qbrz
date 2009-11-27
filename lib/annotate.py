@@ -190,7 +190,7 @@ class AnnotatedTextEdit(QtGui.QPlainTextEdit):
                 
                 block = block.next()
             del painter
-        super(AnnotatedTextEdit, self).paintEvent(event)
+        QtGui.QPlainTextEdit.paintEvent(self, event)
 
 
 class AnnotateWindow(QBzrWindow):

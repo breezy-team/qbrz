@@ -59,7 +59,7 @@ class AnnotateBarBase(QtGui.QWidget):
 
         painter.end()
         
-        super(AnnotateBarBase, self).paintEvent(event)
+        QtGui.QWidget.paintEvent(self, event)
     
     def paint_line(self, painter, rect, line_number, is_current):
         pass
