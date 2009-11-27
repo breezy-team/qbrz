@@ -33,6 +33,13 @@ def load_tests(basic_tests, module, loader):
     global _qt_app
     if _qt_app is None:
         _qt_app = QtGui.QApplication(sys.argv)
+    
+    # Prevent gui error reports from showing.
+    def report_exception(exc_info=None, type=None, window=None,
+                         ui_mode=False):
+        raise
+    import bzrlib.plugins.qbzr.lib.trace
+    bzrlib.plugins.qbzr.lib.trace.report_exception = report_exception
 
     testmod_names = [
         'mock',
