@@ -70,6 +70,8 @@ class QBzrCatWindow(QBzrWindow):
         self.filename = filename
         self.revision = revision
         self.tree = tree
+        if tree:
+            self.branch = tree.branch
         self.file_id = file_id
         self.encoding = encoding
 
@@ -108,7 +110,7 @@ class QBzrCatWindow(QBzrWindow):
         try:
             if not self.tree:
                 branch, relpath = Branch.open_containing(self.filename)
-
+                self.branch = branch
                 self.encoding = get_set_encoding(self.encoding, branch)
                 self.encoding_selector.encoding = self.encoding
 
@@ -182,58 +184,77 @@ class QBzrCatWindow(QBzrWindow):
                     return 'binary file', self._create_hexdump_view
         else:
             return kind, self._create_symlink_view
-    
-    def _create_text_browser(self):
-        self.browser = QtGui.QPlainTextEdit(self)
-        self.browser.setReadOnly(True)
-        self.browser.document().setDefaultFont(
-            QtGui.QFont("Courier New,courier", self.browser.font().pointSize()))
-        return self.browser
 
-    def _set_document(self, relpath, text):
-        """@param text: unicode text."""
-        self.browser.setPlainText(text)
-        highlight_document(self.browser, relpath)
+    def _set_text(self, edit_widget, relpath, text, encoding=None):
+        """Set plain text to widget, as unicode.
+
+        @param edit_widget: edit widget to view the text.
+        @param relpath: filename (required for syntax highlighting to detect
+            file type).
+        @param text: plain non-unicode text (bytes).
+        @param encoding: text encoding (default: utf-8).
+        """
+        text = text.decode(encoding or 'utf-8', 'replace')
+        edit_widget.setPlainText(text)
+        highlight_document(edit_widget, relpath)
 
     def _create_text_view(self, relpath, text):
-        frame = LineNumberEditerFrame(self)
-        self.browser = frame.edit
-        self.browser.setReadOnly(True)
-        self.browser.document().setDefaultFont(
-            QtGui.QFont("Courier New,courier", self.browser.font().pointSize()))
-
-        text = text.decode(self.encoding or 'utf-8', 'replace')
-        self._set_document(relpath, text)
-        return frame
+        """Create widget to show text files.
+        @return: created widget with loaded text.
+        """
+        browser = LineNumberEditerFrame(self)
+        edit = browser.edit
+        edit.setReadOnly(True)
+        edit.document().setDefaultFont(
+            QtGui.QFont("Courier New,courier", edit.font().pointSize()))
+        self._set_text(edit, relpath, text, self.encoding)
+        return browser
 
     def _on_encoding_changed(self, encoding):
-        """event handler for EncodingSelector."""
+        """Event handler for EncodingSelector.
+        It sets file text to browser again with new encoding.
+        """
         self.encoding = encoding
-        if not self.tree:
-            branch, relpath = Branch.open_containing(self.filename)
-            get_set_encoding(encoding, branch)
-            del branch, relpath
-        text = self.text.decode(self.encoding or 'utf-8', 'replace')
-        self._set_document(self.filename, text)
+        branch = self.branch
+        if not branch:
+            branch = Branch.open_containing(self.filename)[0]
+        get_set_encoding(encoding, branch)
+        self._set_text(self.browser.edit, self.filename, self.text, self.encoding)
+
+    def _create_simple_text_browser(self):
+        """Create and return simple widget to show text-like content."""
+        browser = QtGui.QPlainTextEdit(self)
+        browser.setReadOnly(True)
+        browser.document().setDefaultFont(
+            QtGui.QFont("Courier New,courier", browser.font().pointSize()))
+        return browser
 
     def _create_symlink_view(self, relpath, target):
-        self._create_text_browser()
-        self.browser.setPlainText('-> ' + target.decode('utf-8', 'replace'))
-        return self.browser
+        """Create widget to show symlink target.
+        @return: created widget with loaded content.
+        """
+        browser = self._create_simple_text_browser()
+        browser.setPlainText('-> ' + target.decode('utf-8', 'replace'))
+        return browser
 
     def _create_hexdump_view(self, relpath, data):
-        self._create_text_browser()
-        self.browser.setPlainText(hexdump(data))
-        return self.browser
+        """Create widget to show content of binary files.
+        @return: created widget with loaded content.
+        """
+        browser = self._create_simple_text_browser()
+        browser.setPlainText(hexdump(data))
+        return browser
 
     def _create_image_view(self, relpath, data):
+        """Create widget to show image file.
+        @return: created widget with loaded image.
+        """
         self.pixmap = QtGui.QPixmap()
         self.pixmap.loadFromData(data)
         self.item = QtGui.QGraphicsPixmapItem(self.pixmap)
         self.scene = QtGui.QGraphicsScene(self.item.boundingRect())
         self.scene.addItem(self.item)
-        self.browser = QtGui.QGraphicsView(self.scene)
-        return self.browser
+        return QtGui.QGraphicsView(self.scene)
 
 
 class QBzrViewWindow(QBzrCatWindow):
