@@ -83,12 +83,7 @@ class QBzrCatWindow(QBzrWindow):
 
         self.throbber = ThrobberWidget(self)
         self.buttonbox = self.create_button_box(BTN_CLOSE)
-        self.encoding_selector = EncodingSelector(self.encoding,
-            gettext("Encoding:"),
-            self._on_encoding_changed)
-        # disable encoding selector,
-        # it will be enabled later only for text files
-        self.encoding_selector.setDisabled(True)
+        self.encoding_selector = self._create_encoding_selector()
 
         self.vbox = QtGui.QVBoxLayout(self.centralwidget)
         self.vbox.addWidget(self.throbber)
@@ -98,6 +93,15 @@ class QBzrCatWindow(QBzrWindow):
         hbox.addWidget(self.encoding_selector)
         hbox.addWidget(self.buttonbox)
         self.vbox.addLayout(hbox)
+
+    def _create_encoding_selector(self):
+        encoding_selector = EncodingSelector(self.encoding,
+            gettext("Encoding:"),
+            self._on_encoding_changed)
+        # disable encoding selector,
+        # it will be enabled later only for text files
+        encoding_selector.setDisabled(True)
+        return encoding_selector
 
     def show(self):
         # we show the bare form as soon as possible.
@@ -280,12 +284,7 @@ class QBzrViewWindow(QBzrCatWindow):
         self.encoding = encoding
 
         self.buttonbox = self.create_button_box(BTN_CLOSE)
-        self.encoding_selector = EncodingSelector(self.encoding,
-            gettext("Encoding:"),
-            self._on_encoding_changed)
-        # disable encoding selector,
-        # it will be enabled later only for text files
-        self.encoding_selector.setDisabled(True)
+        self.encoding_selector = self._create_encoding_selector()
         # special branch object to disable save encodings to branch.conf
         class FakeBranch(object):
             def __init__(self):
