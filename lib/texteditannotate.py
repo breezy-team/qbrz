@@ -129,3 +129,6 @@ class LineNumberEditerFrame(AnnotateEditerFrameBase):
         self.number_bar = LineNumberBar(self.edit, self)
         self.hbox.addWidget(self.number_bar)
         self.hbox.addWidget(self.edit)
+
+    def setFocus(self):
+        self.edit.setFocus()
