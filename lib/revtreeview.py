@@ -176,6 +176,7 @@ def get_text_color ( option, style):
 
 
 class RevNoItemDelegate(QtGui.QStyledItemDelegate):
+
     def __init__ (self, max_mainline_digits = 4, parent = None):    
         QtGui.QItemDelegate.__init__ (self, parent)
         self.max_mainline_digits = max_mainline_digits
@@ -203,6 +204,7 @@ class RevNoItemDelegate(QtGui.QStyledItemDelegate):
         
         painter.restore()
 
+
 def paint_revno(painter, rect, revno, max_mainline_digits):
     splitpoint = revno.indexOf(".")
     if splitpoint == -1:
@@ -218,6 +220,7 @@ def paint_revno(painter, rect, revno, max_mainline_digits):
     therest_width = fm.width(therest)
     
     if mainline_width + therest_width > rect.width():
+        text = revno
         if fm.width(text) > rect.width():
             text = fm.elidedText(fm, rect.width(),
                                  QtCore.Qt.ElideRight, text)
