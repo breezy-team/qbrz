@@ -86,6 +86,9 @@ class QBzrCatWindow(QBzrWindow):
         self.encoding_selector = EncodingSelector(self.encoding,
             gettext("Encoding:"),
             self._on_encoding_changed)
+        # disable encoding selector,
+        # it will be enabled later only for text files
+        self.encoding_selector.setDisabled(True)
 
         self.vbox = QtGui.QVBoxLayout(self.centralwidget)
         self.vbox.addWidget(self.throbber)
@@ -208,6 +211,7 @@ class QBzrCatWindow(QBzrWindow):
         edit.document().setDefaultFont(
             QtGui.QFont("Courier New,courier", edit.font().pointSize()))
         self._set_text(edit, relpath, text, self.encoding)
+        self.encoding_selector.setEnabled(True)
         return browser
 
     def _on_encoding_changed(self, encoding):
@@ -216,9 +220,10 @@ class QBzrCatWindow(QBzrWindow):
         """
         self.encoding = encoding
         branch = self.branch
-        if not branch:
+        if branch is None:
             branch = Branch.open_containing(self.filename)[0]
-        get_set_encoding(encoding, branch)
+        if branch:
+            get_set_encoding(encoding, branch)
         self._set_text(self.browser.edit, self.filename, self.text, self.encoding)
 
     def _create_simple_text_browser(self):
@@ -275,9 +280,26 @@ class QBzrViewWindow(QBzrCatWindow):
         self.encoding = encoding
 
         self.buttonbox = self.create_button_box(BTN_CLOSE)
+        self.encoding_selector = EncodingSelector(self.encoding,
+            gettext("Encoding:"),
+            self._on_encoding_changed)
+        # disable encoding selector,
+        # it will be enabled later only for text files
+        self.encoding_selector.setDisabled(True)
+        # special branch object to disable save encodings to branch.conf
+        class FakeBranch(object):
+            def __init__(self):
+                pass
+            def __nonzero__(self):
+                return False
+        self.branch = FakeBranch()
+
         self.vbox = QtGui.QVBoxLayout(self.centralwidget)
         self.vbox.addStretch()
-        self.vbox.addWidget(self.buttonbox)
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(self.encoding_selector)
+        hbox.addWidget(self.buttonbox)
+        self.vbox.addLayout(hbox)
 
     def load(self):
         kind = osutils.file_kind(self.filename)
@@ -290,6 +312,7 @@ class QBzrViewWindow(QBzrCatWindow):
                 f.close()
         elif kind == 'symlink':
             text = os.readlink(self.filename)
+        self.text = text
         self._create_and_show_browser(self.filename, text, kind)
 
 
