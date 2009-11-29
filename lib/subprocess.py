@@ -584,14 +584,10 @@ class SubProcessWidget(QtGui.QWidget):
                 self.stderr.write("\n")
 
     def logMessage(self, message, error=False):
+        kind = 'plain'
         if error:
-            format = self.errorFormat
-        else:
-            format = self.messageFormat
-        self.console.setCurrentCharFormat(format);
-        self.console.append(message);
-        scrollbar = self.console.verticalScrollBar()
-        scrollbar.setValue(scrollbar.maximum())
+            kind = 'error'
+        self.logMessageEx(message, kind)
 
     def logMessageEx(self, message, kind="plain"):
         """Write message to console area.
