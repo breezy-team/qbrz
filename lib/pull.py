@@ -19,7 +19,7 @@
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import urlutils
+from bzrlib import errors, urlutils
 from bzrlib.commands import get_cmd_object
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -152,7 +152,10 @@ class QBzrPushWindow(SubProcessDialog):
         parent_url = self.branch.get_parent()
         if parent_url and parent_url.startswith("file://"):
             from bzrlib.branch import Branch
-            parent_branch = Branch.open(parent_url)
+            try:
+                parent_branch = Branch.open(parent_url)
+            except errors.NotBranchError:
+                return ''
             master_url = (parent_branch.get_parent() or
                 parent_branch.get_bound_location())
             if master_url and not master_url.startswith("file://"):
