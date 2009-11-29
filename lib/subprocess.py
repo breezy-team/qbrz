@@ -526,10 +526,17 @@ class SubProcessWidget(QtGui.QWidget):
         # we need unicode for all strings except bencoded streams
         for line in data.splitlines():
             if line.startswith(SUB_PROGRESS):
-                # but we have to ensure we have unicode after bdecode
-                progress, transport_activity, messages = map(ensure_unicode,
-                    bencode.bdecode(line[len(SUB_PROGRESS):]))
-                self.setProgress(progress, messages, transport_activity)
+                try:
+                    # map(ensure_unicode, ...) to ensure that we have unicode after bdecode
+                    progress, transport_activity, messages = map(ensure_unicode,
+                        bencode.bdecode(line[len(SUB_PROGRESS):]))
+                except ValueError, e:
+                    # we got malformed data from qsubprocess (bencode failed to decode)
+                    # so just show it in the status console
+                    self.logMessageEx("qsubprocess error: "+str(e), "error")
+                    self.logMessageEx(line.decode(self.encoding), "error")
+                else:
+                    self.setProgress(progress, messages, transport_activity)
             elif line.startswith(SUB_GETPASS):
                 prompt = bdecode_prompt(line[len(SUB_GETPASS):])
                 passwd, ok = QtGui.QInputDialog.getText(self,
