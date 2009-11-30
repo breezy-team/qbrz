@@ -77,7 +77,7 @@ class AnnotateBarBase(QtGui.QWidget):
             cursor.movePosition(QtGui.QTextCursor.EndOfBlock,
                                 QtGui.QTextCursor.KeepAnchor)
             self.edit.setTextCursor(cursor)
-            self.emit(QtCore.SIGNAL("selectionChanged()"))
+            self.emit(QtCore.SIGNAL("cursorPositionChanged()"))
     
     def wheelEvent(self, event):
         self.edit.wheelEvent(event)

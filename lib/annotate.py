@@ -68,11 +68,11 @@ class AnnotateBar(AnnotateBarBase):
         self.adjustWidth(1, 999)
         
         self.connect(edit,
-            QtCore.SIGNAL("selectionChanged()"),
-            self.edit_selectionChanged)
+            QtCore.SIGNAL("cursorPositionChanged()"),
+            self.edit_cursorPositionChanged)
         self.show_current_line = False
 
-    def edit_selectionChanged(self):
+    def edit_cursorPositionChanged(self):
         self.show_current_line = True
 
     def adjustWidth(self, lines, max_revno):
@@ -236,11 +236,11 @@ class AnnotateWindow(QBzrWindow):
         self.text_edit_frame.hbox.addWidget(annotate_spliter)
         
         self.connect(self.text_edit,
-                     QtCore.SIGNAL("selectionChanged()"),
-                     self.edit_selectionChanged)        
+                     QtCore.SIGNAL("cursorPositionChanged()"),
+                     self.edit_cursorPositionChanged)        
         self.connect(self.annotate_bar,
-                     QtCore.SIGNAL("selectionChanged()"),
-                     self.edit_selectionChanged)        
+                     QtCore.SIGNAL("cursorPositionChanged()"),
+                     self.edit_cursorPositionChanged)        
         
         self.log_list = LogList(self.processEvents, self.throbber, no_graph, self)
         self.log_list.load = self.log_list_load
@@ -371,6 +371,7 @@ class AnnotateWindow(QBzrWindow):
         self.annotate_bar.adjustWidth(len(lines), 999)
         self.annotate_bar.annotate = annotate
         self.text_edit.annotate = annotate
+        self.annotate_bar.show_current_line = False
         
         self.processEvents()
         
@@ -448,15 +449,16 @@ class AnnotateWindow(QBzrWindow):
         self.annotate_bar.update()
         self.text_edit.update()
 
-    def edit_selectionChanged(self):
+    def edit_cursorPositionChanged(self):
         current_line = self.text_edit.document().findBlock(
             self.text_edit.textCursor().position()).blockNumber()
-        rev_id, is_top = self.text_edit.annotate[current_line]
-        if self.log_list.graph_provider.has_rev_id(rev_id):
-            self.log_list.log_model.ensure_rev_visible(rev_id)
-            index = self.log_list.log_model.indexFromRevId(rev_id)
-            index = self.log_list.filter_proxy_model.mapFromSource(index)
-            self.log_list.setCurrentIndex(index)
+        if self.text_edit.annotate:
+            rev_id, is_top = self.text_edit.annotate[current_line]
+            if self.log_list.graph_provider.has_rev_id(rev_id):
+                self.log_list.log_model.ensure_rev_visible(rev_id)
+                index = self.log_list.log_model.indexFromRevId(rev_id)
+                index = self.log_list.filter_proxy_model.mapFromSource(index)
+                self.log_list.setCurrentIndex(index)
 
     @runs_in_loading_queue
     def set_annotate_revision(self):
