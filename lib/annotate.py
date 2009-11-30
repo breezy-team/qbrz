@@ -223,7 +223,10 @@ class AnnotateWindow(QBzrWindow):
         self.text_edit_frame = AnnotateEditerFrameBase(self)
         self.text_edit = AnnotatedTextEdit(self)
         self.text_edit.setFrameStyle(QtGui.QFrame.NoFrame)
-        self.text_edit.setReadOnly(True)
+        self.text_edit.setTextInteractionFlags(
+            QtCore.Qt.TextSelectableByMouse|
+            QtCore.Qt.TextSelectableByKeyboard)
+        
         self.text_edit.document().setDefaultFont(
             QtGui.QFont("Courier New,courier", 
                         self.text_edit.font().pointSize()))
