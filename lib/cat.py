@@ -106,7 +106,7 @@ class QBzrCatWindow(QBzrWindow):
     def show(self):
         # we show the bare form as soon as possible.
         QBzrWindow.show(self)
-        QtCore.QTimer.singleShot(1, self.load)
+        QtCore.QTimer.singleShot(0, self.load)
     
     @runs_in_loading_queue
     @ui_current_widget
