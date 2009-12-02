@@ -448,7 +448,7 @@ class SubProcessWidget(QtGui.QWidget):
                     r.append(a)
             s = ' '.join(r)
             if len(s) > 128:  # XXX make it configurable?
-                s = s[:128] + ' ...'
+                s = s[:128] + '...'
             return s
         self.logMessageEx("Run command: "+format_args_for_log(args), "cmdline", self.stderr)
 
