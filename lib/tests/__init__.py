@@ -39,6 +39,7 @@ def load_tests(basic_tests, module, loader):
         'test_annotate',
         'test_autocomplete',
         'test_bugs',
+        'test_cat',
         'test_commit_data',
         #'test_diffview', - broken by API changes
         'test_extra_isignored',
@@ -54,7 +55,6 @@ def load_tests(basic_tests, module, loader):
         'test_tree_branch',
         'test_treewidget',
         'test_util',
-        'test_cat',
     ]
     for name in testmod_names:
         m = "%s.%s" % (__name__, name)

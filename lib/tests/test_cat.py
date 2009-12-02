@@ -22,6 +22,7 @@ from bzrlib.plugins.qbzr.lib.tests import replace_report_exception
 from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
 
+
 class TestCat(TestWatchExceptHook, TestCaseWithTransport):
     
     def setUp(self):
@@ -33,12 +34,12 @@ class TestCat(TestWatchExceptHook, TestCaseWithTransport):
         self.build_tree_contents([('branch/a', 'foo\n')])
         tree.add('a')
         tree.commit(message='1')
-        win = QBzrCatWindow('a', tree=tree)
+        win = QBzrCatWindow('a', tree=tree, encoding='utf-8')
         self.addCleanup(win.close)
         win.show()
         QtCore.QCoreApplication.processEvents()
         
-        # Change the encodeing.
+        # Change the encoding.
         encode_combo = win.encoding_selector.chooser
         encode_combo.setCurrentIndex(encode_combo.findText("ascii"))
         QtCore.QCoreApplication.processEvents()
