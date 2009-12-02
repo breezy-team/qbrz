@@ -71,7 +71,9 @@ class QBzrCatWindow(QBzrWindow):
         self.revision = revision
         self.tree = tree
         if tree:
-            self.branch = tree.branch
+            self.branch = getattr(tree, 'branch', None)
+            if self.branch is None:
+                self.branch = FakeBranch()
         self.file_id = file_id
         self.encoding = encoding
 
@@ -285,12 +287,6 @@ class QBzrViewWindow(QBzrCatWindow):
 
         self.buttonbox = self.create_button_box(BTN_CLOSE)
         self.encoding_selector = self._create_encoding_selector()
-        # special branch object to disable save encodings to branch.conf
-        class FakeBranch(object):
-            def __init__(self):
-                pass
-            def __nonzero__(self):
-                return False
         self.branch = FakeBranch()
 
         self.vbox = QtGui.QVBoxLayout(self.centralwidget)
@@ -313,6 +309,16 @@ class QBzrViewWindow(QBzrCatWindow):
             text = os.readlink(self.filename)
         self.text = text
         self._create_and_show_browser(self.filename, text, kind)
+
+
+class FakeBranch(object):
+    """Special branch object to disable save encodings to branch.conf"""
+
+    def __init__(self):
+        pass
+
+    def __nonzero__(self):
+        return False
 
 
 def cat_to_native_app(tree, relpath):
