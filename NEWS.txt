@@ -40,6 +40,11 @@ What's new in this release:
      for selected item. (Bug #483597, Alexander Belchenko)
    * Fixed is_ignored() check (versioned file that matches ignore pattern
      should not be called "ignored"). (Bug #487560, Alexander Belchenko)
+ * qbranch:
+   * If a source URL is given on the command line, focus is set to
+     the To field.
+   * The To location is now intelligently set based on the source URL.
+     (#318214, Ian Clatworthy)
 
 
 0.16 "Acacia" - 2009/11/9
