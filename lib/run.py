@@ -76,7 +76,7 @@ class QBzrRunDialog(SubProcessDialog):
         # setup signals
         QtCore.QObject.connect(self.ui.hidden_checkbox,
             QtCore.SIGNAL("stateChanged(int)"),
-            self.set_cmd_combobox)
+            lambda x: self.set_cmd_combobox(all=x))
         QtCore.QObject.connect(self.ui.cmd_combobox,
             QtCore.SIGNAL("currentIndexChanged(const QString&)"),
             self.set_cmd_help)
