@@ -17,9 +17,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import os
+
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import errors, urlutils
+from bzrlib import errors, osutils, urlutils
 from bzrlib.commands import get_cmd_object
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -42,17 +44,29 @@ class QBzrBranchWindow(SubProcessDialog):
     NAME = "branch"
 
     def __init__(self, from_location, to_location=None,
-                 revision=None, ui_mode=True, parent=None):
+                 revision=None, parent_dir=None, ui_mode=True, parent=None):
         super(QBzrBranchWindow, self).__init__(name = self.NAME,
                                              ui_mode = ui_mode,
                                              parent = parent)
 
+        # Unless instructed otherwise, use the current directory as
+        # the parent directory.
+        if parent_dir is None:
+            parent_dir = os.getcwdu()
+        self.parent_dir = parent_dir
+
+        # Layout the form, adding the subprocess widgets
         self.ui = Ui_BranchForm()
         self.setupUi(self.ui)
-        # and add the subprocess widgets.
         for w in self.make_default_layout_widgets():
             self.layout().addWidget(w)
 
+        # Setup smart setting of fields as others are edited.
+        QtCore.QObject.connect(self.ui.from_location,
+            QtCore.SIGNAL("editTextChanged(const QString&)"),
+            self.from_changed)
+
+        # Initialise the fields
         fill_combo_with(self.ui.from_location,
                         u'',
                         iter_saved_pull_locations())
@@ -63,12 +77,11 @@ class QBzrBranchWindow(SubProcessDialog):
         if revision:
             self.ui.revision.setText(revision)
 
-        # Our 2 directory pickers hook up to our combos.
+        # Hook up our directory pickers
         hookup_directory_picker(self,
                                 self.ui.from_picker,
                                 self.ui.from_location,
                                 DIRECTORYPICKER_SOURCE)
-
         hookup_directory_picker(self,
                                 self.ui.to_picker,
                                 self.ui.to_location,
@@ -79,6 +92,37 @@ class QBzrBranchWindow(SubProcessDialog):
             self.ui.to_location.setFocus()
         else:
             self.ui.from_location.setFocus()
+
+    def from_changed(self, from_location):
+        to_location = self._default_to_location(unicode(from_location))
+        if to_location is not None:
+            self.ui.to_location.setEditText(to_location)
+
+    def _default_to_location(self, from_location):
+        """Work out a good To location give a From location.
+
+        :return: the To location or None if unsure
+        """
+        # We want to avoid opening the from location here so
+        # we 'guess' the basename using some simple heuristics
+        from_location = from_location.replace('\\', '/')
+        if from_location.find('/') >= 0:
+            basename = osutils.basename(from_location)
+        else:
+            # Handle 'directory services' like lp:
+            ds_sep = from_location.find(':')
+            if ds_sep >= 0:
+                basename = from_location[ds_sep + 1:]
+            else:
+                return None
+
+        # Calculate the To location and check it's not the same as the
+        # From location.
+        to_location = osutils.pathjoin(self.parent_dir, basename)
+        if to_location == from_location:
+            return None
+        else:
+            return to_location
 
     def do_start(self):
         args = []
