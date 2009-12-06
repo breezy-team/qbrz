@@ -92,7 +92,10 @@ class QBzrRunDialog(SubProcessDialog):
             QtCore.SIGNAL("clicked()"),
             self.insert_filenames)
         # ready to go
-        self.ui.cmd_combobox.setFocus()
+        if command:
+            self.ui.opt_arg_edit.setFocus()
+        else:
+            self.ui.cmd_combobox.setFocus()
 
     def set_default_help(self):
         """Set default text in help widget."""
