@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'ui/run.ui'
 #
-# Created: Sun Aug 23 20:03:41 2009
-#      by: PyQt4 UI code generator 4.4.3
+# Created: Mon Dec  7 01:25:47 2009
+#      by: PyQt4 UI code generator 4.6
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -49,17 +49,24 @@ class Ui_RunDialog(object):
         self.frame_layout.addLayout(self.wd_layout)
         self.cmd_layout = QtGui.QGridLayout()
         self.cmd_layout.setObjectName("cmd_layout")
+        self.cat_label = QtGui.QLabel(self.frame)
+        self.cat_label.setObjectName("cat_label")
+        self.cmd_layout.addWidget(self.cat_label, 0, 0, 1, 1)
+        self.cat_combobox = QtGui.QComboBox(self.frame)
+        self.cat_combobox.setMinimumSize(QtCore.QSize(170, 0))
+        self.cat_combobox.setObjectName("cat_combobox")
+        self.cmd_layout.addWidget(self.cat_combobox, 0, 1, 1, 1)
         self.cmd_label = QtGui.QLabel(self.frame)
         self.cmd_label.setObjectName("cmd_label")
-        self.cmd_layout.addWidget(self.cmd_label, 0, 0, 1, 1)
+        self.cmd_layout.addWidget(self.cmd_label, 1, 0, 1, 1)
         self.cmd_combobox = QtGui.QComboBox(self.frame)
         self.cmd_combobox.setMinimumSize(QtCore.QSize(170, 0))
         self.cmd_combobox.setEditable(True)
         self.cmd_combobox.setObjectName("cmd_combobox")
-        self.cmd_layout.addWidget(self.cmd_combobox, 0, 1, 1, 1)
+        self.cmd_layout.addWidget(self.cmd_combobox, 1, 1, 1, 1)
         self.hidden_checkbox = QtGui.QCheckBox(self.frame)
         self.hidden_checkbox.setObjectName("hidden_checkbox")
-        self.cmd_layout.addWidget(self.hidden_checkbox, 0, 2, 1, 1)
+        self.cmd_layout.addWidget(self.hidden_checkbox, 1, 2, 1, 1)
         self.frame_layout.addLayout(self.cmd_layout)
         self.opt_arg_label = QtGui.QLabel(self.frame)
         self.opt_arg_label.setLineWidth(0)
@@ -83,6 +90,7 @@ class Ui_RunDialog(object):
         self.help_browser.setObjectName("help_browser")
         self.main_v_layout.addWidget(self.splitter)
         self.wd_label.setBuddy(self.wd_edit)
+        self.cat_label.setBuddy(self.cmd_combobox)
         self.cmd_label.setBuddy(self.cmd_combobox)
         self.opt_arg_label.setBuddy(self.opt_arg_edit)
 
@@ -101,6 +109,7 @@ class Ui_RunDialog(object):
         RunDialog.setWindowTitle(gettext("Run bzr command"))
         self.wd_label.setText(gettext("&Working directory:"))
         self.browse_button.setText(gettext("&Browse..."))
+        self.cat_label.setText(gettext("C&ategory:"))
         self.cmd_label.setText(gettext("&Command:"))
         self.hidden_checkbox.setText(gettext("&Show hidden commands"))
         self.opt_arg_label.setText(gettext("&Options and arguments for command:"))

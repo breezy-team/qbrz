@@ -61,6 +61,8 @@ class QBzrRunDialog(SubProcessDialog):
         self.ui.cmd_layout.setColumnStretch(2, 1)
         # fill cmd_combobox with available commands
         self.collect_command_names()
+        categories = sorted(self.all_cmds.keys())
+        self.ui.cat_combobox.insertItems(0, categories)
         self.set_cmd_combobox(cmd_name=command)
         # add the parameters, if any
         if parameters:
@@ -76,13 +78,16 @@ class QBzrRunDialog(SubProcessDialog):
         # setup signals
         QtCore.QObject.connect(self.ui.hidden_checkbox,
             QtCore.SIGNAL("stateChanged(int)"),
-            self.set_cmd_combobox)
+            self.set_show_hidden)
         QtCore.QObject.connect(self.ui.cmd_combobox,
             QtCore.SIGNAL("currentIndexChanged(const QString&)"),
             self.set_cmd_help)
         QtCore.QObject.connect(self.ui.cmd_combobox,
             QtCore.SIGNAL("editTextChanged(const QString&)"),
             self.set_cmd_help)
+        QtCore.QObject.connect(self.ui.cat_combobox,
+            QtCore.SIGNAL("currentIndexChanged(const QString&)"),
+            self.set_category)
         hookup_directory_picker(self, self.ui.browse_button, 
             self.ui.wd_edit, gettext("Select working directory"))
         QtCore.QObject.connect(self.ui.directory_button,
@@ -128,19 +133,36 @@ class QBzrRunDialog(SubProcessDialog):
                 # no public commands - that's ok
                 pass
 
-    def set_cmd_combobox(self, cmd_name=None, all=False):
+    def set_category(self, category):
+        cmd_name = self._get_cmd_name()
+        all = self.ui.hidden_checkbox.isChecked()
+        category = unicode(category)
+        self.set_cmd_combobox(cmd_name=cmd_name, all=all, category=category)
+
+    def set_show_hidden(self, show):
+        cmd_name = self._get_cmd_name()
+        all = bool(show)
+        category = unicode(self.ui.cat_combobox.currentText())
+        self.set_cmd_combobox(cmd_name=cmd_name, all=all, category=category)
+
+    def set_cmd_combobox(self, cmd_name=None, all=False, category=None):
         """Fill command combobox with bzr commands names.
 
         @param cmd_name: if not None, the command to initially select
             if it exists in the list.
         @param all: show all commands including hidden ones.
+        @param category: show commands just for this category.
+            If None, commands in all categories are shown.
         """
+        if category is None:
+            category = 'All'
+        if all:
+            lookup = self.all_cmds
+        else:
+            lookup = self.public_cmds
         cb = self.ui.cmd_combobox
         cb.clear()
-        if all:
-            cb.addItems(self.all_cmds['All'])
-        else:
-            cb.addItems(self.public_cmds['All'])
+        cb.addItems(lookup.get(category, []))
         if cmd_name is None:
             index = -1
         else:
