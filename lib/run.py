@@ -38,12 +38,13 @@ from bzrlib.plugins.qbzr.lib.util import hookup_directory_picker
 class QBzrRunDialog(SubProcessDialog):
 
     def __init__(self, command=None, parameters=None, workdir=None,
-        ui_mode=False, parent=None):
+        category=None, ui_mode=False, parent=None):
         """Build dialog.
 
         @param command: initial command selection.
         @param parameters: initial options and arguments (string) for command.
         @param workdir: working directory to run command.
+        @param category: initial category selection.
         @param ui_mode: wait after the operation is complete.
         @param parent:  parent window.
         """
@@ -96,6 +97,13 @@ class QBzrRunDialog(SubProcessDialog):
         QtCore.QObject.connect(self.ui.filenames_button,
             QtCore.SIGNAL("clicked()"),
             self.insert_filenames)
+        # Init the category if set.
+        # (This needs to be done after the signals are hooked up)
+        if category:
+            cb = self.ui.cat_combobox
+            index = cb.findText(category)
+            if index >= 0:
+                cb.setCurrentIndex(index)
         # ready to go
         if command:
             self.ui.opt_arg_edit.setFocus()
