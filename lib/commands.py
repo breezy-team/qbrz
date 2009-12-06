@@ -1044,8 +1044,15 @@ class cmd_qbind(QBzrCommand):
 
 
 class cmd_qrun(QBzrCommand):
-    """Run arbitrary bzr command."""
-    takes_args = ['command?']
+    """Run arbitrary bzr command.
+
+    If you wish to pass options to COMMAND, use ``--`` beforehand
+    so that the options aren't treated as options to the qrun
+    command itself. For example::
+
+      bzr qrun shelve -- --list
+    """
+    takes_args = ['command?', 'parameters*']
     takes_options = [ui_mode_option,
         Option('directory',
             help='Working directory.',
@@ -1055,9 +1062,14 @@ class cmd_qrun(QBzrCommand):
         ]
     aliases = ['qcmd']
 
-    def _qbzr_run(self, command=None, ui_mode=False, directory=None):
+    def _qbzr_run(self, command=None, parameters_list=None, ui_mode=False,
+        directory=None):
         from bzrlib.plugins.qbzr.lib.run import QBzrRunDialog
-        window = QBzrRunDialog(command=command, workdir=directory,
-            ui_mode=ui_mode)
+        if parameters_list:
+            parameters = " ".join(parameters_list)
+        else:
+            parameters = None
+        window = QBzrRunDialog(command=command, parameters=parameters,
+            workdir=directory, ui_mode=ui_mode)
         window.show()
         self._application.exec_()

@@ -37,10 +37,12 @@ from bzrlib.plugins.qbzr.lib.util import hookup_directory_picker
 
 class QBzrRunDialog(SubProcessDialog):
 
-    def __init__(self, command=None, workdir=None, ui_mode=False, parent=None):
+    def __init__(self, command=None, parameters=None, workdir=None,
+        ui_mode=False, parent=None):
         """Build dialog.
 
         @param command: initial command selection.
+        @param parameters: initial options and arguments (string) for command.
         @param workdir: working directory to run command.
         @param ui_mode: wait after the operation is complete.
         @param parent:  parent window.
@@ -60,6 +62,9 @@ class QBzrRunDialog(SubProcessDialog):
         # fill cmd_combobox with available commands
         self.collect_command_names()
         self.set_cmd_combobox(cmd_name=command)
+        # add the parameters, if any
+        if parameters:
+            self.ui.opt_arg_edit.setText(parameters)
         # and add the subprocess widgets
         self.splitter = self.ui.splitter
         for w in self.make_default_layout_widgets():
@@ -87,7 +92,10 @@ class QBzrRunDialog(SubProcessDialog):
             QtCore.SIGNAL("clicked()"),
             self.insert_filenames)
         # ready to go
-        self.ui.cmd_combobox.setFocus()
+        if command:
+            self.ui.opt_arg_edit.setFocus()
+        else:
+            self.ui.cmd_combobox.setFocus()
 
     def set_default_help(self):
         """Set default text in help widget."""
