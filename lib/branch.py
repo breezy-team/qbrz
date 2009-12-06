@@ -74,6 +74,12 @@ class QBzrBranchWindow(SubProcessDialog):
                                 self.ui.to_location,
                                 DIRECTORYPICKER_TARGET)
 
+        # Put the focus on the To location if From is already set
+        if from_location:
+            self.ui.to_location.setFocus()
+        else:
+            self.ui.from_location.setFocus()
+
     def do_start(self):
         args = []
         revision = str(self.ui.revision.text())
