@@ -114,10 +114,16 @@ class QBzrRunDialog(SubProcessDialog):
         self.cmds_dict = dict((n, _mod_commands.get_cmd_object(n)) 
                               for n in names)
         # Find the commands for each category, public or otherwise
+        builtins = _mod_commands.builtin_command_names()
         self.all_cmds = {'All': []}
         self.public_cmds = {'All': []}
         for name, cmd in self.cmds_dict.iteritems():
-            category = cmd.plugin_name() or 'Core'
+            # If a command is builtin, we always put it into the Core
+            # category, even if overridden in a plugin
+            if name in builtins:
+                category = 'Core'
+            else:
+                category = cmd.plugin_name()
             self.all_cmds['All'].append(name)
             self.all_cmds.setdefault(category, []).append(name)
             if not cmd.hidden:
@@ -128,7 +134,6 @@ class QBzrRunDialog(SubProcessDialog):
             self.all_cmds[category].sort()
             try:
                 self.public_cmds[category].sort()
-                #print "%s: %s" % (category, self.all_cmds[category])
             except KeyError:
                 # no public commands - that's ok
                 pass
@@ -154,14 +159,14 @@ class QBzrRunDialog(SubProcessDialog):
         @param category: show commands just for this category.
             If None, commands in all categories are shown.
         """
-        if category is None:
-            category = 'All'
+        cb = self.ui.cmd_combobox
+        cb.clear()
         if all:
             lookup = self.all_cmds
         else:
             lookup = self.public_cmds
-        cb = self.ui.cmd_combobox
-        cb.clear()
+        if category is None:
+            category = 'All'
         cb.addItems(lookup.get(category, []))
         if cmd_name is None:
             index = -1
