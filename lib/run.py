@@ -108,10 +108,25 @@ class QBzrRunDialog(SubProcessDialog):
         names = list(_mod_commands.all_command_names())
         self.cmds_dict = dict((n, _mod_commands.get_cmd_object(n)) 
                               for n in names)
-        self.all_cmds = sorted(names)
-        self.public_cmds = sorted([n 
-                                   for n,o in self.cmds_dict.iteritems()
-                                   if not o.hidden])
+        # Find the commands for each category, public or otherwise
+        self.all_cmds = {'All': []}
+        self.public_cmds = {'All': []}
+        for name, cmd in self.cmds_dict.iteritems():
+            category = cmd.plugin_name() or 'Core'
+            self.all_cmds['All'].append(name)
+            self.all_cmds.setdefault(category, []).append(name)
+            if not cmd.hidden:
+                self.public_cmds['All'].append(name)
+                self.public_cmds.setdefault(category, []).append(name)
+        # Sort them
+        for category in self.all_cmds:
+            self.all_cmds[category].sort()
+            try:
+                self.public_cmds[category].sort()
+                #print "%s: %s" % (category, self.all_cmds[category])
+            except KeyError:
+                # no public commands - that's ok
+                pass
 
     def set_cmd_combobox(self, cmd_name=None, all=False):
         """Fill command combobox with bzr commands names.
@@ -123,9 +138,9 @@ class QBzrRunDialog(SubProcessDialog):
         cb = self.ui.cmd_combobox
         cb.clear()
         if all:
-            cb.addItems(self.all_cmds)
+            cb.addItems(self.all_cmds['All'])
         else:
-            cb.addItems(self.public_cmds)
+            cb.addItems(self.public_cmds['All'])
         if cmd_name is None:
             index = -1
         else:
