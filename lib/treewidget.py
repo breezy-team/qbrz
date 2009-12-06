@@ -50,6 +50,7 @@ from bzrlib.plugins.qbzr.lib.diff import (
     )
 from bzrlib.plugins.qbzr.lib.trace import report_exception, SUB_LOAD_METHOD
 
+
 def dict_set_add(dict, key, value):
     if key in dict:
         dict[key].add(value)
@@ -57,7 +58,6 @@ def dict_set_add(dict, key, value):
         dict[key] = set((value,))
 
 def group_large_dirs(paths):
-    
     # XXX - check the performance of this method with lots of paths, and
     # deep paths.
     
@@ -138,7 +138,8 @@ def move_or_rename(old_path, new_path):
     new_split = os.path.split(new_path)
     return (old_split[0] != new_split[0],
             old_split[1] != new_split[1])
-    
+
+
 class InternalItem(object):
     __slots__  = ["name", "kind", "file_id"]
     def __init__(self, name, kind, file_id):
@@ -202,6 +203,7 @@ class PersistantItemReference(object):
 
     def __repr__(self):
         return "<%s %s %s>" % (self.__class__.__name__, self.path, self.file_id)
+
 
 class ChangeDesc(tuple):
     """Helper class that "knows" about internals of iter_changes' changed entry
@@ -1044,7 +1046,12 @@ class TreeModel(QtCore.QAbstractItemModel):
                     raise
         return indexes
     
-    def iter_checked(self):
+    def iter_checked(self, include_unchanged_dirs=True):
+        """Iterate over the list of checked items and emit the entires.
+
+        @param include_unchanged_dirs: should we include unchanged directories
+            or skip them.
+        """
         # We have to recurse and load all dirs, because we use --no-recurse
         # for add, and commit and revert don't recurse.
         i = 0
@@ -1055,9 +1062,13 @@ class TreeModel(QtCore.QAbstractItemModel):
                 item_data.checked):
                 self.load_dir(item_data.id)
             i += 1
-        
+
         for item_data in self.inventory_data[1:]:
             if item_data.checked == QtCore.Qt.Checked:
+                if (item_data.change is None
+                    and item_data.item.kind == 'directory'
+                    and not include_unchanged_dirs):
+                    continue
                 yield self.item2ref(item_data)
 
     def set_checked_items(self, refs, ignore_no_file_error=True):

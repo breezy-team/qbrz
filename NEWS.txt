@@ -40,6 +40,9 @@ What's new in this release:
      for selected item. (Bug #483597, Alexander Belchenko)
    * Fixed is_ignored() check (versioned file that matches ignore pattern
      should not be called "ignored"). (Bug #487560, Alexander Belchenko)
+ * qrevert:
+   * Don't revert entire directory if only one file within it is selected.
+     (Bug #491212, Alexander Belchenko)
 
 
 0.16 "Acacia" - 2009/11/9
