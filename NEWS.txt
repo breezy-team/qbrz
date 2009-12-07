@@ -51,6 +51,8 @@ What's new in this release:
  * qexport:
    * Fixed NameError when invoked with directory location argument.
      (Bug #491702, Alexander Belchenko)
+ * qconfig:
+   * Properly save data in empty qbzr.conf. (Bug #493634, Alexander Belchenko)
 
 
 0.16 "Acacia" - 2009/11/9

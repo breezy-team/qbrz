@@ -381,23 +381,22 @@ class QBzrConfigWindow(QBzrDialog):
         qconfig = QBzrGlobalConfig()
         qparser = qconfig._get_parser()
 
-        if 'DEFAULT' not in parser:
-            parser['DEFAULT'] = {}
-
-        # Name & e-mail
-        username = '%s <%s>' % (
-            unicode(self.nameEdit.text()),
-            unicode(self.emailEdit.text()))
-        parser['DEFAULT']['email'] = username
-
         def set_or_delete_option(parser, name, value):
             if value:
+                if 'DEFAULT' not in parser:
+                    parser['DEFAULT'] = {}
                 parser['DEFAULT'][name] = value
             else:
                 try:
                     del parser['DEFAULT'][name]
                 except KeyError:
                     pass
+
+        # Name & e-mail
+        username = '%s <%s>' % (
+            unicode(self.nameEdit.text()),
+            unicode(self.emailEdit.text()))
+        set_or_delete_option(parser, 'email', username)
 
         # Editor
         editor = unicode(self.editorEdit.text())
