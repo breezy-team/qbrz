@@ -261,7 +261,8 @@ class RevertWindow(SubProcessDialog):
              self.file_groupbox.isChecked() and
              not self.merges_groupbox.isChecked())):
             args.extend([ref.path
-                         for ref in self.filelist.tree_model.iter_checked()])
+                         for ref in self.filelist.tree_model.iter_checked(
+                            include_unchanged_dirs=False)])
         if (self.has_pending_merges and
             self.merges_groupbox.isChecked() and
             not self.file_groupbox.isChecked()):

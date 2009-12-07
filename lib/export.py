@@ -111,8 +111,8 @@ class QBzrExportDialog(SubProcessDialog):
         # Initialise the locations with sensible defaults
         if dest is not None:
             if os.path.isdir(dest) or self.detect_format(dest) is None:
-                locationdir_edit.setText(osutils.abspath(dest))
-                locationdir_edit.setFocus()
+                self.locationdir_edit.setText(osutils.abspath(dest))
+                self.locationdir_edit.setFocus()
                 exportdir_radio.setChecked(True)   
                 self.locationdir_edit.setFocus()
             else:

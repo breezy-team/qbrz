@@ -43,6 +43,7 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib import i18n
 from bzrlib.plugins.qbzr.lib.add import AddWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
+from bzrlib.plugins.qbzr.lib.branch import QBzrBranchWindow
 from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
 from bzrlib.plugins.qbzr.lib.cat import (
     QBzrCatWindow,
@@ -61,7 +62,6 @@ from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
 from bzrlib.plugins.qbzr.lib.pull import (
     QBzrPullWindow,
     QBzrPushWindow,
-    QBzrBranchWindow,
     QBzrMergeWindow,
     )
 from bzrlib.plugins.qbzr.lib.revert import RevertWindow
