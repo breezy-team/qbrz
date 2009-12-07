@@ -222,8 +222,7 @@ def paint_revno(painter, rect, revno, max_mainline_digits):
     if mainline_width + therest_width > rect.width():
         text = revno
         if fm.width(text) > rect.width():
-            text = fm.elidedText(fm, rect.width(),
-                                 QtCore.Qt.ElideRight, text)
+            text = fm.elidedText(text, QtCore.Qt.ElideRight, rect.width())
         painter.drawText(rect, QtCore.Qt.AlignRight, text);
     else:
         mainline_rect = QtCore.QRect(rect.x(),
