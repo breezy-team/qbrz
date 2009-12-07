@@ -105,7 +105,7 @@ class QBzrBranchWindow(SubProcessDialog):
         """
         # We want to avoid opening the from location here so
         # we 'guess' the basename using some simple heuristics
-        from_location = from_location.replace('\\', '/')
+        from_location = from_location.replace('\\', '/').rstrip('/')
         if from_location.find('/') >= 0:
             basename = osutils.basename(from_location)
         else:
