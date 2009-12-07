@@ -43,6 +43,11 @@ What's new in this release:
  * qrevert:
    * Don't revert entire directory if only one file within it is selected.
      (Bug #491212, Alexander Belchenko)
+ * qbranch:
+   * If a source URL is given on the command line, focus is set to
+     the To field.
+   * The To location is now intelligently set based on the source URL.
+     (#318214, Ian Clatworthy)
 
 
 0.16 "Acacia" - 2009/11/9

@@ -24,7 +24,6 @@ from bzrlib.commands import get_cmd_object
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.ui_branch import Ui_BranchForm
 from bzrlib.plugins.qbzr.lib.ui_pull import Ui_PullForm
 from bzrlib.plugins.qbzr.lib.ui_push import Ui_PushForm
 from bzrlib.plugins.qbzr.lib.ui_merge import Ui_MergeForm
@@ -255,59 +254,6 @@ class QBzrPushWindow(SubProcessDialog):
             self._no_strict = True
             return True
         return False
-
-
-class QBzrBranchWindow(SubProcessDialog):
-
-    NAME = "branch"
-
-    def __init__(self, from_location, to_location=None,
-                 revision=None, ui_mode=True, parent=None):
-        super(QBzrBranchWindow, self).__init__(name = self.NAME,
-                                             ui_mode = ui_mode,
-                                             parent = parent)
-
-        self.ui = Ui_BranchForm()
-        self.setupUi(self.ui)
-        # and add the subprocess widgets.
-        for w in self.make_default_layout_widgets():
-            self.layout().addWidget(w)
-
-        fill_combo_with(self.ui.from_location,
-                        u'',
-                        iter_saved_pull_locations())
-        if from_location:
-            self.ui.from_location.setEditText(from_location)
-        if to_location:
-            self.ui.to_location.setEditText(to_location)
-        if revision:
-            self.ui.revision.setText(revision)
-
-        # Our 2 directory pickers hook up to our combos.
-        hookup_directory_picker(self,
-                                self.ui.from_picker,
-                                self.ui.from_location,
-                                DIRECTORYPICKER_SOURCE)
-
-        hookup_directory_picker(self,
-                                self.ui.to_picker,
-                                self.ui.to_location,
-                                DIRECTORYPICKER_TARGET)
-
-    def do_start(self):
-        args = []
-        revision = str(self.ui.revision.text())
-        if revision:
-            args.append('--revision')
-            args.append(revision)
-        from_location = unicode(self.ui.from_location.currentText())
-        to_location = unicode(self.ui.to_location.currentText())
-        cmd_branch = get_cmd_object('branch')
-        if 'use-existing-dir' in cmd_branch.options():
-            # always use this options because it should be mostly harmless
-            args.append('--use-existing-dir')
-        self.process_widget.do_start(None, 'branch', from_location, to_location, *args)
-        save_pull_location(None, from_location)
 
 
 class QBzrMergeWindow(SubProcessDialog):
