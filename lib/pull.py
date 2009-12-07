@@ -167,7 +167,7 @@ class QBzrPushWindow(SubProcessDialog):
                 suggest_url = self._build_generic_push_suggestion(master_url)
                 if suggest_url:
                     return suggest_url
-            return ''
+        return ''
 
     def _build_lp_push_suggestion(self, master_url):
         try:
