@@ -29,6 +29,11 @@ What's new in this release:
      Gary van der Merwe)
    * Show all revisions that touch the file in the log list. (Bug #488824,
      Gary van der Merwe)
+ * qrun:
+   * A category field has been added to make finding commands easier.
+     (#486968, Ian Clatworthy)
+   * The command name, command parameters and command category can be
+     passed on the command line. (Ian Clatworthy)
  * qsubprocess:
    * Catch possible errors from bencode decoder is we got malformed string
      from child process. Show the error nicely. 
