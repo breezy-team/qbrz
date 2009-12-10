@@ -58,6 +58,7 @@ What's new in this release:
      (Bug #491702, Alexander Belchenko)
  * qconfig:
    * Properly save data in empty qbzr.conf. (Bug #493634, Alexander Belchenko)
+ * New translations added: Arabic, Danish, English (United Kingdom).
 
 
 0.16 "Acacia" - 2009/11/9

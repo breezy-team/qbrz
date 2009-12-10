@@ -1,242 +1,239 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# Danish translation for qbzr
+# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# This file is distributed under the same license as the qbzr package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
-"Report-Msgid-Bugs-To: \n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2009-12-10 12:56+0200\n"
-"PO-Revision-Date: 2009-11-27 05:54+0000\n"
-"Last-Translator: Akira Asakura <Unknown>\n"
-"Language-Team: Japanese <ja@li.org>\n"
+"PO-Revision-Date: 2009-12-06 12:51+0000\n"
+"Last-Translator: nanker <Unknown>\n"
+"Language-Team: Danish <da@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
 "X-Launchpad-Export-Date: 2009-12-10 14:00+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
 #: lib\config.py:201
 msgid "Add"
-msgstr "追加"
+msgstr "Tilføj"
 
 #: lib\add.py:57
 msgid "Unversioned Files"
-msgstr "バージョン管理外のファイル"
+msgstr ""
 
 #: lib\add.py:104
 msgid "Show ignored files"
-msgstr "無視したファイルを表示"
+msgstr "Vis afviste filer"
 
 #: lib\annotate.py:202 lib\annotate.py:336 lib\annotate.py:340 lib\log.py:425
 msgid "Annotate"
-msgstr "注釈"
+msgstr ""
 
 #: lib\annotate.py:202 lib\diffwindow.py:120 lib\util.py:426
 msgid "Loading..."
-msgstr "読み込み中..."
+msgstr "Indlæser..."
 
 #: lib\annotate.py:261 lib\cat.py:101 lib\encoding_selector.py:86
 msgid "Encoding:"
-msgstr "エンコード:"
+msgstr ""
 
 #: lib\annotate.py:337
 #, python-format
 msgid "Revision %s"
-msgstr "リビジョン %s"
+msgstr "Revision %s"
 
 #: lib\annotate.py:387
 msgid "&Annotate this revision"
-msgstr "このリビジョンを注釈する(&A)"
+msgstr ""
 
 #: lib\bind.py:46
 msgid "Bind branch"
-msgstr "ブランチをバインドする"
+msgstr ""
 
 #: lib\bind.py:56
 msgid "Bind"
-msgstr "バインド"
+msgstr ""
 
 #: lib\bind.py:58
 msgid "Branch location:"
-msgstr "ブランチの場所:"
+msgstr ""
 
 #: lib\bind.py:62
 msgid "Currently bound to:"
-msgstr "現在のバインド先:"
+msgstr ""
 
 #: lib\bind.py:66
 msgid "Bind to:"
-msgstr "バインド先:"
+msgstr ""
 
 #: lib\bind.py:70 lib\browse.py:64 lib\browse.py:236 lib\export.py:182
 #: lib\export.py:200 lib\send.py:62 lib\send.py:86 lib\send.py:152
 #: lib\switch.py:99
 msgid "Browse"
-msgstr "参照"
+msgstr "Gennemse"
 
 #: lib\bind.py:111 lib\switch.py:153 lib\tag.py:190
 msgid "Select branch location"
-msgstr "ブランチの場所を選択"
+msgstr ""
 
 #: lib\bind.py:122
 msgid "Master branch location not specified."
-msgstr "マスタであるブランチの場所が指定されていません。"
+msgstr ""
 
 #: lib\browse.py:73 lib\export.py:179 lib\ui_info.py:146
 msgid "Location:"
-msgstr "場所:"
+msgstr "Placering:"
 
 #: lib\browse.py:78 lib\export.py:216 lib\revisionmessagebrowser.py:161
 #: lib\ui_new_tree.py:160
 msgid "Revision:"
-msgstr "リビジョン:"
+msgstr "Revision:"
 
 #: lib\browse.py:83
 msgid "Show"
-msgstr "表示"
+msgstr "Vis"
 
 #: lib\browse.py:89 lib\treewidget.py:1189
 msgid "&Filter"
-msgstr "フィルタ(&F)"
+msgstr "&Filtrér"
 
 #: lib\cat.py:83 lib\cat.py:282
 msgid "View"
-msgstr "表示"
+msgstr "Vis"
 
 #: lib\commit.py:215 lib\commit.py:594 lib\commit.py:622 lib\commit.py:630
 msgid "Commit"
-msgstr "コミット"
+msgstr ""
 
 #: lib\commit.py:241 lib\ui_branch.py:65 lib\ui_new_tree.py:130
 #: lib\ui_tag.py:89
 msgid "Branch"
-msgstr "ブランチ"
+msgstr ""
 
 #: lib\commit.py:253
 msgid "&Local commit"
-msgstr "ローカルコミット(&L)"
+msgstr ""
 
 #: lib\commit.py:255
 msgid ""
 "Local commits are not pushed to the master branch until a normal commit is "
 "performed"
-msgstr "通常のコミットが行われるまで、ローカルコミットはマスターブランチへと送られることはありません"
+msgstr ""
 
 #: lib\commit.py:259
 msgid "Description:"
-msgstr "説明:"
+msgstr "Beskrivelse:"
 
 #: lib\commit.py:274 lib\logmodel.py:98 lib\treewidget.py:344
 msgid "Message"
-msgstr "メッセージ"
+msgstr "Meddelelse"
 
 #: lib\commit.py:282
 msgid "Show non-versioned files"
-msgstr "バージョン管理下にないファイルを表示"
+msgstr ""
 
 #: lib\commit.py:304
 msgid "Enter the commit message"
-msgstr "コミットメッセージを入力してください。"
+msgstr ""
 
 #: lib\commit.py:317
 msgid "&Fixed bugs:"
-msgstr "修正されたバグ(&F):"
+msgstr ""
 
 #: lib\commit.py:318
 msgid "Set the IDs of bugs fixed by this commit"
-msgstr "このコミットにより修正されるバグのIDを設定"
+msgstr ""
 
 #: lib\commit.py:321
 msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
 msgstr ""
-"バグIDのリストを入力する　フォーマットは <i>tag:id</i>でスペースで区切る。例 <i>project:123 project:765</i>"
 
 #: lib\commit.py:331
 msgid "&Author:"
-msgstr "著者(&A):"
+msgstr "&Forfatter:"
 
 #: lib\commit.py:332
 msgid "Set the author of this change, if it's different from the committer"
-msgstr "この変更の著者がコミッターと異なるなら著者を設定"
+msgstr ""
 
 #: lib\commit.py:335
 msgid ""
 "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
-msgstr "著者の名前を入力してください。(例: <i>John Doe &lt;jdoe@example.com&gt;</i>)"
+msgstr ""
 
 #: lib\commit.py:350
 msgid "Changes"
-msgstr "変更点"
+msgstr "Ændringer"
 
 #: lib\commit.py:367
 msgid "Pending Merges"
-msgstr "マージ保留"
+msgstr ""
 
 #: lib\commit.py:378 lib\main.py:359 lib\subprocess.py:141
 #: lib\treewidget.py:346
 msgid "Status"
-msgstr "状態"
+msgstr "Status"
 
 #: lib\commit.py:390
 msgid "View changes in files selected to commit"
-msgstr "選択されたファイルの変更点を見る"
+msgstr ""
 
 #: lib\commit.py:595
 msgid "You should provide commit message."
-msgstr "コミットメッセージを入力すべきです。"
+msgstr ""
 
 #: lib\commit.py:596 lib\conflicts.py:180 lib\conflicts.py:185
 #: lib\diffwindow.py:403 lib\util.py:64
 msgid "&OK"
-msgstr "OK(&O)"
+msgstr ""
 
 #: lib\commit.py:623
 msgid "No changes to commit."
-msgstr "コミットする変更がありません。"
+msgstr ""
 
 #: lib\commit.py:631
 msgid ""
 "No changes selected to commit.\n"
 "Do you want to commit anyway?"
 msgstr ""
-"コミットする変更が選択されていません。\n"
-"どうしてもコミットしたいですか?"
 
 #: lib\commit.py:696
 msgid ""
 "A commit will be made directly to the master branch, keeping the local and "
 "master branches in sync."
-msgstr "コミットはマスターブランチに送られ、ローカルとマスターブランチ間で同期します"
+msgstr ""
 
 #: lib\commit.py:702
 msgid ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
-msgstr "ブランチへのローカルコミットが行われます。ローカルコミットでないコミットをしない限り、マスターブランチは更新されません。"
+msgstr ""
 
 #: lib\commit.py:735 lib\diff.py:104 lib\diffwindow.py:120
 #: lib\diffwindow.py:251 lib\diffwindow.py:393 lib\diffwindow.py:401
 #: lib\revert.py:299
 msgid "Diff"
-msgstr "差分"
+msgstr ""
 
 #: lib\config.py:42
 msgid "Default"
-msgstr "デフォルト"
+msgstr "Standard"
 
 #: lib\config.py:43
 msgid "Thunderbird"
-msgstr "Thunderbird"
+msgstr ""
 
 #: lib\config.py:44
 msgid "Evolution"
-msgstr "Evolution"
+msgstr ""
 
 #: lib\config.py:45
 msgid "KMail"
@@ -244,60 +241,60 @@ msgstr "KMail"
 
 #: lib\config.py:46
 msgid "Mutt"
-msgstr "Mutt"
+msgstr ""
 
 #: lib\config.py:47
 msgid "XDG e-mail client"
-msgstr "XDG Eメールクライアント"
+msgstr ""
 
 #: lib\config.py:48
 msgid "MAPI e-mail client"
-msgstr "MAPI　Eメールクライアント"
+msgstr ""
 
 #: lib\config.py:49
 msgid "Editor"
-msgstr "エディタ"
+msgstr "Editor"
 
 #: lib\config.py:71
 msgid "Configuration"
-msgstr "設定"
+msgstr "Opsætning"
 
 #: lib\config.py:81 lib\ui_bookmark.py:50
 msgid "&Name:"
-msgstr "名前(&N):"
+msgstr "&Navn:"
 
 #: lib\config.py:87
 msgid "E-&mail:"
-msgstr "メール(&M):"
+msgstr "E-&mail:"
 
 #: lib\config.py:93 lib\ui_run.py:103 lib\ui_tag.py:90
 msgid "&Browse..."
-msgstr "ブラウズ(&B)..."
+msgstr "&Gennemse..."
 
 #: lib\config.py:100
 msgid "&Editor:"
-msgstr "エディタ(&E):"
+msgstr "&Editor:"
 
 #: lib\config.py:108
 msgid "E-mail &client:"
-msgstr "メールクライアント(&C):"
+msgstr "E-mail &klient:"
 
 #: lib\config.py:118
 msgid "Alias"
-msgstr "エイリアス"
+msgstr "Alias"
 
 #: lib\config.py:118 lib\config.py:166
 msgid "Command"
-msgstr "コマンド"
+msgstr "Kommando"
 
 #: lib\config.py:123 lib\config.py:144 lib\config.py:175 lib\config.py:204
 #: lib\treewidget.py:1607 lib\treewidget.py:1927
 msgid "Remove"
-msgstr "削除"
+msgstr "Fjern"
 
 #: lib\config.py:139
 msgid "Abbreviation"
-msgstr "略記"
+msgstr "Forkortelse"
 
 #: lib\config.py:139
 msgid "URL"
@@ -309,72 +306,72 @@ msgstr ""
 
 #: lib\config.py:162
 msgid "External Diff Apps:"
-msgstr "外部の diff プログラム"
+msgstr ""
 
 #: lib\config.py:165 lib\main.py:357 lib\plugins.py:56 lib\plugins.py:61
 msgid "Name"
-msgstr "名前"
+msgstr "Navn"
 
 #: lib\config.py:192
 msgid "External Merge Apps:"
-msgstr "外部の merge プログラム"
+msgstr ""
 
 #: lib\config.py:195
 msgid "Definition"
-msgstr "定義"
+msgstr "Definition"
 
 #: lib\config.py:218
 msgid "General"
-msgstr "一般"
+msgstr "Generelt"
 
 #: lib\config.py:219
 msgid "Aliases"
-msgstr "エイリアス"
+msgstr "Aliasser"
 
 #: lib\config.py:220
 msgid "Bug Trackers"
-msgstr "バグトラッカー"
+msgstr "Bug finder"
 
 #: lib\config.py:221
 msgid "&User Interface"
-msgstr "ユーザインタフェース(&U)"
+msgstr "B&ruger interface"
 
 #: lib\config.py:222
 msgid "&Diff"
-msgstr "差分(&D)"
+msgstr "&Diff"
 
 #: lib\config.py:223
 msgid "&Merge"
-msgstr "マージ(&M)"
+msgstr "&Flet"
 
 #: lib\config.py:248
 msgid "Spell check &language:"
-msgstr "スペルチェック言語(&L):"
+msgstr "Stavekontro&l sprog:"
 
 #: lib\config.py:340 lib\diff.py:35
 msgid "Builtin Diff"
-msgstr "組み込みのdiff"
+msgstr ""
 
 #: lib\config.py:587
 msgid "Select editor executable"
-msgstr "エディタを選択"
+msgstr ""
 
 #: lib\conflicts.py:39 lib\conflicts.py:159 lib\conflicts.py:176
 #: lib\conflicts.py:183
 msgid "Conflicts"
-msgstr "競合"
+msgstr "Konflikter"
 
 #: lib\conflicts.py:50
 msgid "File"
-msgstr "ファイル"
+msgstr "Fil"
 
 #: lib\conflicts.py:51
 msgid "Conflict"
-msgstr "競合"
+msgstr "Konflikt"
 
 #: lib\conflicts.py:81
 msgid "Use Configured Default"
-msgstr "設定されたデフォルトのツールを利用する"
+msgstr "Brug standard opsætning"
 
 #: lib\conflicts.py:83
 msgid ""
@@ -383,54 +380,51 @@ msgid ""
 "external_merge = kdiff3 --output %r %b %t %o\n"
 "%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."
 msgstr ""
-"qconfigで設定されたマージツール。\n"
-"extmergeというプラグインの external_merge = kdiff3 --output %r %b %t %o "
-"という設定方法と同じルールに従います。\n"
-"%rは出力,%bは .BASE, %t は .THIS,  %o は .OTHER ファイルに置き換えられます。"
 
 #: lib\conflicts.py:91
 msgid "&Launch..."
-msgstr "起動(&L)..."
+msgstr ""
 
 #: lib\conflicts.py:97
 msgid "M&erge tool:"
-msgstr "マージツール(&M):"
+msgstr ""
 
 #: lib\conflicts.py:112
 msgid "Auto-resolve"
-msgstr "自動解決"
+msgstr ""
 
 #: lib\conflicts.py:141 lib\treewidget.py:1590
 msgid "&Merge conflict"
-msgstr "競合をマージする(&M)"
+msgstr ""
 
 #: lib\conflicts.py:147
 msgid "Mark as &resolved"
-msgstr "解決済みにする(&R)"
+msgstr ""
 
 #: lib\conflicts.py:177
 #, python-format
 msgid "%d conflict auto-resolved."
 msgid_plural "%d conflicts auto-resolved."
-msgstr[0] "%d個の競合が解決済みになりました"
+msgstr[0] ""
+msgstr[1] ""
 
 #: lib\conflicts.py:184
 msgid "All conflicts resolved."
-msgstr "全ての競合は解決されました。"
+msgstr "Alle konflikter løst."
 
 #: lib\conflicts.py:240
 #, python-format
 msgid "Error while running merge tool (code %d)"
-msgstr "merge ツールの実行中にエラーが発生しました (コード %d)"
+msgstr ""
 
 #: lib\conflicts.py:241 lib\conflicts.py:305 lib\tag.py:204 lib\trace.py:186
 #: lib\trace.py:200 lib\tree_branch.py:95 lib\util.py:955 lib\util.py:965
 msgid "Error"
-msgstr "エラー"
+msgstr "Fejl"
 
 #: lib\conflicts.py:281
 msgid "Set up external_merge app in qconfig under the Merge tab"
-msgstr "qconfig の merge タブで外部のマージプログラムを設定してください"
+msgstr ""
 
 #: lib\conflicts.py:306
 #, python-format
@@ -443,36 +437,36 @@ msgstr ""
 #: lib\conflicts.py:312
 #, python-format
 msgid "Missing the flag: %s. Configure in qconfig under the merge tab."
-msgstr "%s フラグがありません。 qconfig の merge タブで設定してください"
+msgstr ""
 
 #: lib\conflicts.py:320
 #, python-format
 msgid "%s (Configured external merge definition in qconfig)"
-msgstr "%s(qconfigで設定された外部マージツール)"
+msgstr ""
 
 #: lib\conflicts.py:328
 msgid "path conflict"
-msgstr "パスの競合"
+msgstr "sti konflikt"
 
 #: lib\conflicts.py:329
 msgid "contents conflict"
-msgstr "内容の競合"
+msgstr "indholds konflikt"
 
 #: lib\conflicts.py:330
 msgid "text conflict"
-msgstr "テキストの競合"
+msgstr "tekst konflikt"
 
 #: lib\conflicts.py:331
 msgid "duplicate id"
-msgstr "重複ID"
+msgstr ""
 
 #: lib\conflicts.py:332
 msgid "duplicate"
-msgstr "複製"
+msgstr ""
 
 #: lib\conflicts.py:333
 msgid "parent loop"
-msgstr "フォルダ構成のループ"
+msgstr ""
 
 #: lib\conflicts.py:334
 msgid "unversioned parent"
@@ -492,114 +486,115 @@ msgstr ""
 
 #: lib\diff.py:80 lib\treewidget.py:1585
 msgid "Show &differences"
-msgstr "差異を表示(&D)"
+msgstr ""
 
 #: lib\diffview.py:248
 msgid "Last modified:"
-msgstr "最終更新:"
+msgstr "Sidst ændret:"
 
 #: lib\diffview.py:249
 msgid "Status:"
-msgstr "状態:"
+msgstr "Status:"
 
 #: lib\diffview.py:250
 msgid "Kind:"
-msgstr "種類:"
+msgstr "Art:"
 
 #: lib\diffview.py:251
 msgid "Properties:"
-msgstr "プロパティ:"
+msgstr "Egenskaber:"
 
 #: lib\diffview.py:485
 msgid "[binary file]"
-msgstr "[バイナリファイル]"
+msgstr ""
 
 #: lib\diffview.py:666
 msgid "\\ No newline at end of file"
-msgstr "\\ ファイル終端に改行がない"
+msgstr ""
 
 #: lib\diffwindow.py:77
 #, python-format
 msgid "Working Tree for %s"
-msgstr "%s の作業ツリー"
+msgstr ""
 
 #: lib\diffwindow.py:79
 msgid "Working Tree"
-msgstr "作業ツリー"
+msgstr ""
 
 #: lib\diffwindow.py:98
 #, python-format
 msgid "Rev %(rev)s for %(branch)s"
-msgstr "%(branch)sのリビジョン%(rev)s"
+msgstr ""
 
 #: lib\diffwindow.py:100
 #, python-format
 msgid "Rev %s"
-msgstr "リビジョン %s"
+msgstr ""
 
 #: lib\diffwindow.py:103
 #, python-format
 msgid "Revid: %(revid)s for %(branch)s"
-msgstr "%(branch)sのリビジョンID%(revid)s"
+msgstr ""
 
 #: lib\diffwindow.py:105
 #, python-format
 msgid "Revid: %s"
-msgstr "リビジョンID: %s"
+msgstr ""
 
 #: lib\diffwindow.py:108
 msgid "Merge Preview"
-msgstr "マージプレビュー"
+msgstr ""
 
 #: lib\diffwindow.py:146
 msgid "Side by side"
-msgstr "並べて表示"
+msgstr "Side ved side"
 
 #: lib\diffwindow.py:153
 msgid "Unidiff"
-msgstr "Unified形式で表示"
+msgstr ""
 
 #: lib\diffwindow.py:163
 msgid "Left side encoding:"
-msgstr "左側のエンコード"
+msgstr ""
 
 #: lib\diffwindow.py:171
 msgid "Right side encoding:"
-msgstr "右側のエンコード"
+msgstr ""
 
 #: lib\diffwindow.py:175
 msgid "Complete"
-msgstr "すべて"
+msgstr "Færdig"
 
 #: lib\diffwindow.py:184
 msgid "Using"
-msgstr "使用するツール"
+msgstr "Bruger"
 
 #: lib\diffwindow.py:257
 #, python-format
 msgid "%d file"
 msgid_plural "%d files"
-msgstr[0] "%dファイル"
+msgstr[0] "%d fil"
+msgstr[1] "%d filer"
 
 #: lib\diffwindow.py:332 lib\treewidget.py:320
 msgid "removed"
-msgstr "削除"
+msgstr "fjernet"
 
 #: lib\diffwindow.py:334 lib\treewidget.py:318
 msgid "added"
-msgstr "追加"
+msgstr "tilføjet"
 
 #: lib\diffwindow.py:336
 msgid "renamed and modified"
-msgstr "名称変更/修正"
+msgstr "omdøbt og ændret"
 
 #: lib\diffwindow.py:338 lib\treewidget.py:331
 msgid "renamed"
-msgstr "名称変更"
+msgstr "omdøbt"
 
 #: lib\diffwindow.py:340 lib\treewidget.py:333
 msgid "modified"
-msgstr "変更"
+msgstr "ændret"
 
 #: lib\diffwindow.py:394
 #, python-format
@@ -607,153 +602,151 @@ msgid ""
 "File %s is not versioned.\n"
 "Operation aborted."
 msgstr ""
-"%s はバージョン管理外です。\n"
-"処理は中断しました。"
 
 #: lib\diffwindow.py:396 lib\tag.py:138 lib\tag.py:169 lib\tag.py:206
 #: lib\tree_branch.py:97 lib\util.py:66 lib\util.py:958 lib\util.py:968
 msgid "&Close"
-msgstr "閉じる(&C)"
+msgstr "&Luk"
 
 #: lib\diffwindow.py:402
 msgid "No changes found."
-msgstr "変更が見つかりません。"
+msgstr "Ingen ændringer fundet."
 
 #: lib\encoding_selector.py:115
 msgid "Wrong encoding"
-msgstr "不正なエンコード"
+msgstr "Forkert kodning"
 
 #: lib\encoding_selector.py:116
 #, python-format
 msgid "Encoding \"%s\" is invalid or not supported."
-msgstr "エンコード\"%s\"は無効か、サポート外です"
+msgstr "Kodning \"%s\" er fejlbehæftet eller ikke understøttet."
 
 #: lib\export.py:61 lib\export.py:80
 msgid "Export"
-msgstr "エクスポート"
+msgstr "Eksportér"
 
 #: lib\export.py:75 lib\uncommit.py:52
 #, python-format
 msgid "Branch: %s"
-msgstr "ブランチ: %s"
+msgstr ""
 
 #: lib\export.py:146
 msgid "Archive type:"
-msgstr "アーカイブの種類:"
+msgstr "Arkiv type:"
 
 #: lib\export.py:168
 msgid "Root directory name:"
-msgstr "ルートディレクトリ名:"
+msgstr ""
 
 #: lib\export.py:236 lib\ui_branch.py:66 lib\ui_merge.py:63 lib\ui_pull.py:61
 #: lib\ui_push.py:63
 msgid "Options"
-msgstr "オプション"
+msgstr "Valgmuligheder"
 
 #: lib\help.py:59
 #, python-format
 msgid "No help can be found for <i>%s</i>"
-msgstr "<i>%s</i>に該当するヘルプはありません"
+msgstr "Ingen hjælp fundet for <i>%s</i>"
 
 #: lib\help.py:103
 msgid "Help"
-msgstr "ヘルプ"
+msgstr "Hjælp"
 
 #: lib\i18n.py:87
 msgid "file"
-msgstr "ファイル"
+msgstr "fil"
 
 #: lib\i18n.py:88
 msgid "directory"
-msgstr "ディレクトリ"
+msgstr "mappe"
 
 #: lib\i18n.py:89
 msgid "symlink"
-msgstr "シンボリックリンク"
+msgstr ""
 
 #: lib\i18n.py:91
 msgid "fixed"
-msgstr "修正済み"
+msgstr ""
 
 #: lib\i18n.py:93
 msgid "View text file"
-msgstr "テキストファイルを表示"
+msgstr "Vis tekstfil"
 
 #: lib\i18n.py:94
 msgid "View image file"
-msgstr "画像を表示"
+msgstr "Vis billedfil"
 
 #: lib\i18n.py:95
 msgid "View binary file"
-msgstr "バイナリファイルを表示"
+msgstr "Vis binær fil"
 
 #: lib\i18n.py:96
 msgid "View symlink"
-msgstr "シンボリックリンクを表示"
+msgstr "Vis symlink"
 
 #: lib\i18n.py:97
 msgid "View directory"
-msgstr "ディレクトリを表示"
+msgstr "Vis mappe"
 
 #: lib\i18n.py:99
 msgid "No changes selected to commit"
-msgstr "commit する変更が選択されていません"
+msgstr ""
 
 #: lib\i18n.py:100
 msgid "No changes selected to revert"
-msgstr "revert する変更が選択されていません"
+msgstr ""
 
 #: lib\info.py:43
 msgid "Info"
-msgstr "情報"
+msgstr "Information"
 
 #: lib\info.py:67
 msgid "Location has no working tree"
-msgstr "作業ツリーはありません"
+msgstr ""
 
 #: lib\info.py:80
 msgid "Location has no branch"
-msgstr "ブランチはありません"
+msgstr ""
 
 #: lib\init.py:37 lib\ui_init.py:118
 msgid "Initialize"
-msgstr "初期化"
+msgstr "Initialiser"
 
 #: lib\init.py:72
 msgid "You must specify a location"
-msgstr "場所を指定する必要があります"
+msgstr ""
 
 #: lib\log.py:100
 msgid "Log"
-msgstr "ログ"
+msgstr "Log"
 
 #: lib\log.py:127
 msgid "&Search:"
-msgstr "検索(&S):"
+msgstr "&Søg:"
 
 #: lib\log.py:143
 msgid "Messages"
-msgstr "メッセージ"
+msgstr "Meddelelser"
 
 #: lib\log.py:145
 msgid "Authors"
-msgstr "著者"
+msgstr "Forfattere"
 
 #: lib\log.py:147
 msgid "Revision IDs"
-msgstr "リビジョンID"
+msgstr "Revisions IDs"
 
 #: lib\log.py:149
 msgid "Revision Numbers"
-msgstr "リビジョン番号"
+msgstr "Revisions numre"
 
 #: lib\log.py:151
 msgid "Tags"
-msgstr "Tags"
+msgstr "Mærker"
 
 #: lib\log.py:153
 msgid "Bugs"
-msgstr "バグ"
+msgstr "Fejl"
 
 #: lib\log.py:247
 msgid "Messages and File text (indexed)"
@@ -761,148 +754,148 @@ msgstr ""
 
 #: lib\log.py:420 lib\logwidget.py:135
 msgid "Show &differences..."
-msgstr "差分を表示(&D)..."
+msgstr ""
 
 #: lib\log.py:428
 msgid "View file"
-msgstr "ファイルを表示"
+msgstr "Vis fil"
 
 #: lib\logmodel.py:97 lib\treewidget.py:343
 msgid "Rev"
-msgstr "リビジョン"
+msgstr ""
 
 #: lib\logmodel.py:99 lib\treewidget.py:342
 msgid "Date"
-msgstr "日付"
+msgstr "Dato"
 
 #: lib\logmodel.py:100 lib\treewidget.py:345
 msgid "Author"
-msgstr "著者"
+msgstr "Forfatter"
 
 #: lib\logmodel.py:247
 #, python-format
 msgid "bug #%s"
-msgstr "バグ #%s"
+msgstr "fejl #%s"
 
 #: lib\logwidget.py:109
 msgid "Show file &differences"
-msgstr "ファイルの差分を表示(&d)"
+msgstr ""
 
 #: lib\logwidget.py:115
 msgid "Show all &differences"
-msgstr "すべての差分を表示(&d)"
+msgstr ""
 
 #: lib\logwidget.py:121
 msgid "Show file &differences..."
-msgstr "差分を表示(&d)..."
+msgstr ""
 
 #: lib\logwidget.py:125
 msgid "Show all &differences..."
-msgstr "すべての差分を表示(&d)..."
+msgstr ""
 
 #: lib\logwidget.py:143
 msgid "Show &tree..."
-msgstr "ツリーを表示(&T)..."
+msgstr ""
 
 #: lib\logwidget.py:145
 msgid "Tag &revision..."
-msgstr "このリビジョンにタグを付加する(&R)"
+msgstr ""
 
 #: lib\main.py:124
 msgid "Computer"
-msgstr "コンピュータ"
+msgstr "Computer"
 
 #: lib\main.py:153
 msgid "&Edit Bookmark..."
-msgstr "ブックマークを編集(&E)..."
+msgstr "R&ediger bogmærker..."
 
 #: lib\main.py:154
 msgid "&Remove Bookmark..."
-msgstr "ブックマークを削除(&R)..."
+msgstr "Fje&rn bogmærker..."
 
 #: lib\main.py:169
 msgid "Bookmarks"
-msgstr "ブックマーク"
+msgstr "Bogmærker"
 
 #: lib\main.py:278 lib\util.py:68
 msgid "&Refresh"
-msgstr "更新(&R)"
+msgstr "&Opdater"
 
 #: lib\main.py:280
 msgid "Refresh the directory tree"
-msgstr "ディレクトリツリーを更新"
+msgstr ""
 
 #: lib\main.py:284
 msgid "&Commit"
-msgstr "コミット(&C)"
+msgstr ""
 
 #: lib\main.py:285
 msgid "Commit changes into a new revision"
-msgstr "新規リビジョンとして修正をコミット"
+msgstr ""
 
 #: lib\main.py:289
 msgid "&Push"
-msgstr "プッシュ(&P)"
+msgstr "&Skub"
 
 #: lib\main.py:290
 msgid "Turn this branch into a mirror of another branch"
-msgstr "このブランチを他のブランチのミラーに切り替える"
+msgstr ""
 
 #: lib\main.py:294
 msgid "Pu&ll"
-msgstr "プル(&U)"
+msgstr ""
 
 #: lib\main.py:295
 msgid "Update a mirror of this branch"
-msgstr "このブランチのミラーを更新"
+msgstr ""
 
 #: lib\main.py:298
 msgid "&Add Bookmark..."
-msgstr "ブックマークを追加(&A)..."
+msgstr "&Tilføj bogmærke..."
 
 #: lib\main.py:305
 msgid "&File"
-msgstr "ファイル(&F)"
+msgstr "&Fil"
 
 #: lib\main.py:306
 msgid "&Configure..."
-msgstr "設定(&C)"
+msgstr "&Indstil..."
 
 #: lib\main.py:308
 msgid "&Quit"
-msgstr "終了(&Q)"
+msgstr "&Afslut"
 
 #: lib\main.py:309
 msgid "&View"
-msgstr "表示(&V)"
+msgstr "&Vis"
 
 #: lib\main.py:311
 msgid "&Branch"
-msgstr "ブランチ(&B)"
+msgstr ""
 
 #: lib\main.py:315
 msgid "&Bookmarks"
-msgstr "ブックマーク(&B)"
+msgstr "&Bogmærker"
 
 #: lib\main.py:317 lib\util.py:67
 msgid "&Help"
-msgstr "ヘルプ(&H)"
+msgstr "&Hjælp"
 
 #: lib\main.py:318
 msgid "&Help..."
-msgstr "ヘルプ(&H)..."
+msgstr "&Hjælp..."
 
 #: lib\main.py:320
 msgid "&About..."
-msgstr "詳細(&A)..."
+msgstr "&Om..."
 
 #: lib\main.py:358
 msgid "Size"
-msgstr "サイズ"
+msgstr "Størrelse"
 
 #: lib\main.py:410
 msgid "About QBzr"
-msgstr "QBzrについて"
+msgstr "Om QBzr"
 
 #: lib\main.py:411
 #, python-format
@@ -912,170 +905,167 @@ msgid ""
 "2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
 "vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
-"<b>QBzr</b> — Bazaarのグラフィカルインターフェース<br><small>バージョン %(qbzr_version)s (bzrlib "
-"%(bzrlib_version)s)</small><br><br>Copyright © 2006-2008 Lukáš Lalinský "
-"とその他の方々<br><br><a href=\"http://bazaar-vcs.org/QBzr\">http://bazaar-"
-"vcs.org/QBzr</a>"
 
 #: lib\main.py:476
 msgid "Add Bookmark"
-msgstr "ブックマークの追加"
+msgstr "Tilføj bogmærke"
 
 #: lib\main.py:487
 msgid "Edit Bookmark"
-msgstr "ブックマークの編集"
+msgstr "Rediger bogmærke"
 
 #: lib\main.py:497
 msgid "Remove Bookmark"
-msgstr "ブックマークの削除"
+msgstr "Fjern bogmærke"
 
 #: lib\main.py:498
 msgid "Do you really want to remove the selected bookmark?"
-msgstr "選択したブックマークを本当に削除しますか?"
+msgstr "Vil du virkelig fjerne det valgte bogmærke?"
 
 #: lib\plugins.py:44
 msgid "Plugins"
-msgstr "プラグイン"
+msgstr "Udvidelser"
 
 #: lib\plugins.py:57
 msgid "Version"
-msgstr "バージョン"
+msgstr "Version"
 
 #: lib\plugins.py:58 lib\subprocess.py:318
 msgid "Description"
-msgstr "説明"
+msgstr "Beskrivelse"
 
 #: lib\plugins.py:62
 msgid "Directory"
-msgstr "ディレクトリ"
+msgstr "Mappe"
 
 #: lib\plugins.py:64
 #, python-format
 msgid "Plugins installed: %(rows)d"
-msgstr "インストール済みプラグイン: %(rows)d"
+msgstr ""
 
 #: lib\plugins.py:71
 msgid "Summary"
-msgstr "要約"
+msgstr "Oversigt"
 
 #: lib\plugins.py:72
 msgid "Locations"
-msgstr "場所"
+msgstr "Lokaliteter"
 
 #: lib\plugins.py:111
 msgid "(no description)"
-msgstr "(説明なし)"
+msgstr "(ingen beskrivelse)"
 
 #: lib\pull.py:237
 msgid "Working tree has uncommitted changes."
-msgstr "作業ツリーにはコミットしていない変更が含まれています。"
+msgstr ""
 
 #: lib\pull.py:242
 msgid "Working tree is out of date, please run 'bzr update'."
-msgstr "作業ツリーが古いままです。'bzr update'を実行してください。"
+msgstr ""
 
 #: lib\pull.py:248 lib\ui_push.py:62
 msgid "Push"
-msgstr "プッシュ"
+msgstr "Skub"
 
 #: lib\pull.py:250
 msgid "Do you want to continue anyway?"
-msgstr "それでも続行しますか？"
+msgstr "Vil du fortsætte alligevel?"
 
 #: lib\pull.py:251 lib\uncommit.py:127
 msgid "&Yes"
-msgstr "はい(&Y)"
+msgstr "&Ja"
 
 #: lib\pull.py:251 lib\uncommit.py:127
 msgid "&No"
-msgstr "いいえ(&N)"
+msgstr "&Nej"
 
 #: lib\revert.py:54 lib\treewidget.py:1816
 msgid "Revert"
-msgstr "元に戻す"
+msgstr "Tilbagefør"
 
 #: lib\revert.py:65
 msgid "Select changes to revert"
-msgstr "元に戻す変更を選択してください"
+msgstr "Vælg ændringer at tilbageføre"
 
 #: lib\revert.py:83
 msgid "Do not save backups of reverted files"
-msgstr "revert されるファイルのバックアップを作らない"
+msgstr "Gem ikke kopier af tilbageførte filer"
 
 #: lib\revert.py:95
 msgid "Forget pending merges"
-msgstr "マージ待ち状態を解除する"
+msgstr ""
 
 #: lib\revert.py:144
 msgid "View changes in files selected to revert"
-msgstr "revert するように選択されているファイルの変更点を確認する"
+msgstr "Vis ændringer i filer der er valgt tilbageført"
 
 #: lib\revert.py:243
 msgid ""
 "You are reverting all changed paths without also reverting pending merges. "
 "Do you want to continue?"
-msgstr "マージ待ち状態は解除せずに、すべての変更を元に戻します。続行しますか？"
+msgstr ""
 
 #: lib\revisionmessagebrowser.py:195
 msgid "Parents:"
-msgstr "親:"
+msgstr ""
 
 #: lib\revisionmessagebrowser.py:198
 msgid "Children:"
-msgstr "子供:"
+msgstr ""
 
 #: lib\revisionmessagebrowser.py:212
 msgid "Uncommited Working Tree Changes"
-msgstr "コミットされていない作業ツリーの変更"
+msgstr ""
 
 #: lib\revisionmessagebrowser.py:247
 msgid "Date:"
-msgstr "日付:"
+msgstr "Dato:"
 
 #: lib\revisionmessagebrowser.py:249
 msgid "Committer:"
-msgstr "コミッタ:"
+msgstr "Bidragsyder:"
 
 #: lib\revisionmessagebrowser.py:255
 msgid "Author:"
-msgstr "著者:"
+msgstr "Forfatter:"
 
 #: lib\revisionmessagebrowser.py:259 lib\unbind.py:49
 msgid "Branch:"
-msgstr "ブランチ:"
+msgstr ""
 
 #: lib\revisionmessagebrowser.py:264
 msgid "Tags:"
-msgstr "タグ:"
+msgstr "Mærker:"
 
 #: lib\revisionmessagebrowser.py:276
 msgid "Bug:"
 msgid_plural "Bugs:"
-msgstr[0] "バグ:"
+msgstr[0] "Fejl"
+msgstr[1] "Fejl"
 
 #: lib\revisionview.py:66 lib\ui_new_tree.py:158
 msgid "Revision"
-msgstr "リビジョン"
+msgstr "Revision"
 
 #: lib\run.py:87
 msgid "Select working directory"
-msgstr "作業ディレクトリを選択"
+msgstr "Vælg arbejdsmappe"
 
 #: lib\run.py:103
 msgid "Help for command"
-msgstr "コマンドのヘルプ"
+msgstr ""
 
 #: lib\run.py:183
 msgid "Select path to insert"
-msgstr "挿入するパスを選択して下さい"
+msgstr "Vælg sti at indsætte"
 
 #: lib\run.py:193
 msgid "Select files to insert"
-msgstr "挿入するファイルを選択して下さい"
+msgstr "Vælg fil at indsætte"
 
 #: lib\send.py:34
 msgid "Send"
-msgstr "送信"
+msgstr "Send"
 
 #: lib\send.py:47
 msgid "Merge Directive Options"
@@ -1083,92 +1073,92 @@ msgstr ""
 
 #: lib\send.py:53
 msgid "Submit Branch:"
-msgstr "送信するブランチ:"
+msgstr ""
 
 #: lib\send.py:77
 msgid "Public Branch:"
-msgstr "公開ブランチ:"
+msgstr ""
 
 #: lib\send.py:99
 msgid "Remember these locations as defaults"
-msgstr "この場所をデフォルトとして記憶"
+msgstr ""
 
 #: lib\send.py:103
 msgid "Include a bundle in the merge directive"
-msgstr "マージディレクティブにバンドル情報を含める"
+msgstr ""
 
 #: lib\send.py:107
 msgid "Include a preview patch in the merge directive"
-msgstr "マージディレクティブにパッチのプレビューを含める"
+msgstr ""
 
 #: lib\send.py:112
 msgid "Action"
-msgstr "操作"
+msgstr "Handling"
 
 #: lib\send.py:122
 msgid "Address:"
-msgstr "アドレス:"
+msgstr "Adresse:"
 
 #: lib\send.py:132
 msgid "Message:"
-msgstr "メッセージ:"
+msgstr "Meddelelse:"
 
 #: lib\send.py:149
 msgid "Filename:"
-msgstr "ファイル名:"
+msgstr "Filnavn:"
 
 #: lib\send.py:163
 msgid "Revisions:"
-msgstr "リビジョン:"
+msgstr "Revision:"
 
 #: lib\subprocess.py:356
 msgid "Ready"
-msgstr "待機中"
+msgstr "Klar"
 
 #: lib\subprocess.py:425
 msgid "Starting..."
-msgstr "開始..."
+msgstr "Starter..."
 
 #: lib\subprocess.py:502
 msgid "Aborting..."
-msgstr "中止..."
+msgstr "Afbryder..."
 
 #: lib\subprocess.py:513 lib\subprocess.py:632
 msgid "Finished!"
-msgstr "完了!"
+msgstr "Færdig!"
 
 #: lib\subprocess.py:543 lib\uifactory.py:108
 msgid "Enter Password"
-msgstr "パスワードを入力して下さい"
+msgstr "Angiv adgangskode"
 
 #: lib\subprocess.py:553 lib\uifactory.py:119
 msgid "Enter Username"
-msgstr ""
+msgstr "Angiv brugernavn"
 
 #: lib\subprocess.py:613 lib\subprocess.py:635
 msgid "Failed!"
-msgstr "失敗!"
+msgstr "Fejlede!"
 
 #: lib\subprocess.py:615
 msgid "Failed to start bzr."
-msgstr "bzrの実行に失敗しました。"
+msgstr "Kunne ikke starte bzr."
 
 #: lib\subprocess.py:617
 #, python-format
 msgid "Error while running bzr. (error code: %d)"
-msgstr "bzr実行中にエラーが発生しました。(エラーコード: %d)"
+msgstr "Fejl ved kørsel af bzr. (fejl kode: %d)"
 
 #: lib\subprocess.py:625
 msgid "Aborted!"
-msgstr "中断しました！"
+msgstr "Afbrudt!"
 
 #: lib\switch.py:45
 msgid "Switch"
-msgstr "切り替え"
+msgstr "Skift"
 
 #: lib\switch.py:56
 msgid "Switch checkout"
-msgstr "チェックアウトの切り替え"
+msgstr ""
 
 #: lib\switch.py:64
 msgid "Heavyweight checkout:"
@@ -1176,27 +1166,27 @@ msgstr ""
 
 #: lib\switch.py:68
 msgid "Lightweight checkout:"
-msgstr "軽量チェックアウト:"
+msgstr ""
 
 #: lib\switch.py:75
 msgid "Checkout of branch:"
-msgstr "チェックアウト元のブランチ:"
+msgstr ""
 
 #: lib\switch.py:88
 msgid "Switch to branch:"
-msgstr "切り替え先ブランチ:"
+msgstr ""
 
 #: lib\switch.py:112
 msgid "Create Branch before switching"
-msgstr "切り替え前にブランチを作成する"
+msgstr ""
 
 #: lib\sysinfo.py:38 lib\ui_sysinfo.py:112
 msgid "System Information"
-msgstr "システム情報"
+msgstr "System information"
 
 #: lib\tag.py:137
 msgid "You should specify tag name"
-msgstr "タグ名の指定が必要です"
+msgstr ""
 
 #: lib\tag.py:143
 #, python-format
@@ -1204,16 +1194,14 @@ msgid ""
 "Tag \"%s\" already exists.\n"
 "Do you want to move existing tag?"
 msgstr ""
-"タグ\"%s\"は既にに登録されています。\n"
-"既存のタグを移動しますか？"
 
 #: lib\tag.py:146
 msgid "&Move"
-msgstr "移動(&M)"
+msgstr "&Flyt"
 
 #: lib\tag.py:146 lib\tag.py:159 lib\util.py:65
 msgid "&Cancel"
-msgstr "キャンセル(&C)"
+msgstr "&Afbryd"
 
 #: lib\tag.py:156
 #, python-format
@@ -1221,17 +1209,15 @@ msgid ""
 "Tag \"%s\" does not exists yet.\n"
 "Do you want to create new tag?"
 msgstr ""
-"タグ \"%s\"はまだ存在しません。\n"
-"新しいタグを作成しますか?"
 
 #: lib\tag.py:159
 msgid "Cre&ate"
-msgstr "作成(&A)"
+msgstr "&Opret"
 
 #: lib\tag.py:168
 #, python-format
 msgid "Tag \"%s\" does not exists"
-msgstr "タグ \"%s\" は存在しません"
+msgstr "Mærke \"%s\" eksisterer ikke"
 
 #: lib\tag.py:205
 #, python-format
@@ -1239,100 +1225,98 @@ msgid ""
 "Not a branch:\n"
 "%s"
 msgstr ""
-"ブランチではありません：\n"
-"%s"
 
 #: lib\treewidget.py:311
 msgid "ignored"
-msgstr "無視"
+msgstr "ignoreret"
 
 #: lib\treewidget.py:313
 msgid "non-versioned"
-msgstr "管理外"
+msgstr ""
 
 #: lib\treewidget.py:316
 msgid "added, missing"
-msgstr ""
+msgstr "tilføjet, mangler"
 
 #: lib\treewidget.py:322
 msgid "missing"
-msgstr "紛失"
+msgstr "mangler"
 
 #: lib\treewidget.py:329
 msgid "moved"
-msgstr ""
+msgstr "flyttet"
 
 #: lib\treewidget.py:335
 msgid "x-bit"
-msgstr ""
+msgstr "x-bit"
 
 #: lib\treewidget.py:341
 msgid "File Name"
-msgstr "ファイル名"
+msgstr "Filnavn"
 
 #: lib\treewidget.py:1191
 msgid "Unchanged"
-msgstr "変更なし"
+msgstr "Uændret"
 
 #: lib\treewidget.py:1192
 msgid "Changed"
-msgstr "変更"
+msgstr "Ændret"
 
 #: lib\treewidget.py:1193
 msgid "Unversioned"
-msgstr "管理外"
+msgstr ""
 
 #: lib\treewidget.py:1194
 msgid "Ignored"
-msgstr "無視"
+msgstr "Ignoreret"
 
 #: lib\treewidget.py:1566
 msgid "&Open"
-msgstr "開く(&O)"
+msgstr "&Åben"
 
 #: lib\treewidget.py:1569
 msgid "&View file"
-msgstr "ファイルを表示(&V)"
+msgstr "&Vis fil"
 
 #: lib\treewidget.py:1572
 msgid "Show &annotate"
-msgstr "注釈を表示する(&A)"
+msgstr ""
 
 #: lib\treewidget.py:1575
 msgid "Show &log"
-msgstr "ログを表示(&l)"
+msgstr "Vis &log"
 
 #: lib\treewidget.py:1593
 msgid "Mark conflict &resolved"
-msgstr "競合を解決済みにする(&R)"
+msgstr ""
 
 #: lib\treewidget.py:1598
 msgid "&Add"
-msgstr "追加(&A)"
+msgstr "&Tilføj"
 
 #: lib\treewidget.py:1601
 msgid "&Revert"
-msgstr "元に戻す(&R)"
+msgstr "&Tilbageført"
 
 #: lib\treewidget.py:1604
 msgid "Re&name"
-msgstr "名前を変更する(&R)"
+msgstr "&Omdøb"
 
 #: lib\treewidget.py:1666
 msgid "&Mark as moved and renamed"
-msgstr ""
+msgstr "&Markér som flyttet og omdøbt"
 
 #: lib\treewidget.py:1668
 msgid "&Mark as moved"
-msgstr ""
+msgstr "&Markér som flyttet"
 
 #: lib\treewidget.py:1670
 msgid "&Mark as renamed"
-msgstr ""
+msgstr "&Markér som omdøbt"
 
 #: lib\treewidget.py:1817
 msgid "Do you really want to revert the selected file(s)?"
-msgstr "本当に選択したファイルの変更を破棄してもよろしいですか？"
+msgstr ""
 
 #: lib\treewidget.py:1850
 msgid "External Merge"
@@ -1342,11 +1326,11 @@ msgstr ""
 msgid ""
 "Some of the files selected cannot be recoverd if removed. Are you sure you "
 "want to remove these files?"
-msgstr "削除すると元に戻せなくなるファイルがあります。本当にこれらのファイルを削除してもよろしいですか？"
+msgstr ""
 
 #: lib\treewidget.py:1943
 msgid "Select / deselect all"
-msgstr "全選択/非選択"
+msgstr "Vælg / fravælg alle"
 
 #: lib\tree_branch.py:91 lib\util.py:956
 #, python-format
@@ -1356,27 +1340,27 @@ msgstr ""
 #: lib\tree_branch.py:93 lib\util.py:966
 #, python-format
 msgid "No working tree exists for \"%s\""
-msgstr "%sという作業ツリーは存在しません"
+msgstr ""
 
 #: lib\ui_bookmark.py:51 lib\ui_branch.py:67 lib\ui_merge.py:64
 #: lib\ui_pull.py:62 lib\ui_push.py:64
 msgid "&Location:"
-msgstr "場所(&L):"
+msgstr "P&lacering:"
 
 #: lib\ui_branch.py:68 lib\ui_branch.py:71 lib\ui_init.py:120
 #: lib\ui_merge.py:65 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
 #: lib\ui_pull.py:63 lib\ui_push.py:65 lib\ui_update_branch.py:85
 #: lib\ui_update_checkout.py:79
 msgid "Browse..."
-msgstr "参照..."
+msgstr "Gennemse..."
 
 #: lib\ui_branch.py:69 lib\ui_merge.py:66 lib\ui_pull.py:64 lib\ui_tag.py:97
 msgid "&Revision:"
-msgstr "リビジョン(&R):"
+msgstr "&Revision:"
 
 #: lib\ui_branch.py:70
 msgid "&To:"
-msgstr "宛先(&T):"
+msgstr "&Til:"
 
 #: lib\ui_info.py:147 lib\ui_info.py:149 lib\ui_info.py:151 lib\ui_info.py:153
 #: lib\ui_info.py:155 lib\ui_info.py:158 lib\ui_info.py:160 lib\ui_info.py:162
@@ -1386,55 +1370,55 @@ msgstr "..."
 
 #: lib\ui_info.py:148
 msgid "Parent branch:"
-msgstr "親ブランチ:"
+msgstr ""
 
 #: lib\ui_info.py:150
 msgid "Push branch:"
-msgstr "プッシュ先ブランチ:"
+msgstr ""
 
 #: lib\ui_info.py:152
 msgid "Submit branch:"
-msgstr "ブランチ送信先："
+msgstr ""
 
 #: lib\ui_info.py:154
 msgid "Public branch:"
-msgstr "公開ブランチ:"
+msgstr ""
 
 #: lib\ui_info.py:156
 msgid "&Related Branches"
-msgstr "関連ブランチ(&R)"
+msgstr ""
 
 #: lib\ui_info.py:157
 msgid "Working tree format:"
-msgstr "作業ツリーフォーマット："
+msgstr ""
 
 #: lib\ui_info.py:159
 msgid "Branch format:"
-msgstr "ブランチフォーマット："
+msgstr ""
 
 #: lib\ui_info.py:161
 msgid "Repository format:"
-msgstr "リポジトリフォーマット："
+msgstr ""
 
 #: lib\ui_info.py:163
 msgid "Control directory format:"
-msgstr "管理ディレクトリフォーマット："
+msgstr ""
 
 #: lib\ui_info.py:165
 msgid "&Format"
-msgstr "フォーマット(&F)："
+msgstr "&Formatér"
 
 #: lib\ui_init.py:119
 msgid "Local Directory"
-msgstr "ローカルディレクトリ"
+msgstr "Lokal mappe"
 
 #: lib\ui_init.py:121
 msgid "Repository"
-msgstr "リポジトリ"
+msgstr "Arkiv"
 
 #: lib\ui_init.py:122
 msgid "Create a new standalone tree"
-msgstr "新たな単体ツリーを作成"
+msgstr ""
 
 #: lib\ui_init.py:123
 msgid "Ensure all revisions are appended to the log"
@@ -1442,231 +1426,231 @@ msgstr ""
 
 #: lib\ui_init.py:124
 msgid "Create a new shared repository"
-msgstr "新規共有リポジトリを作成"
+msgstr "Skab et nyt delt arkiv"
 
 #: lib\ui_init.py:125
 msgid "Skip the creation of working trees in this repository"
-msgstr "リポジトリ内での作業ツリーの作成を行いません"
+msgstr ""
 
 #: lib\ui_init.py:131
 msgid "Repository Format:"
-msgstr "リポジトリフォーマット："
+msgstr "Arkiv format:"
 
 #: lib\ui_init.py:132
 msgid "Description of format"
-msgstr "フォーマットの説明"
+msgstr "Beskrivelse af format"
 
 #: lib\ui_merge.py:62
 msgid "Merge"
-msgstr "マージ"
+msgstr "Sammenflet"
 
 #: lib\ui_merge.py:67 lib\ui_pull.py:65 lib\ui_push.py:66
 msgid "Remember this location as a default"
-msgstr "この場所をデフォルトとして保存"
+msgstr "Husk denne placering som en standard"
 
 #: lib\ui_merge.py:68
 msgid "Merge even if the working tree has uncommitted changes"
-msgstr "作業ツリーにコミットしていない変更があってもマージする"
+msgstr ""
 
 #: lib\ui_merge.py:69
 msgid "Merge uncommitted changes instead of committed ones"
-msgstr "コミット済みの変更ではなくコミットしていない変更をマージする"
+msgstr ""
 
 #: lib\ui_new_tree.py:129
 msgid "Create a new Bazaar Working Tree"
-msgstr "新たなBazzar作業ツリーを作成"
+msgstr ""
 
 #: lib\ui_new_tree.py:131
 msgid ""
 "Branch source (enter a URL or select a local directory with an existing "
 "branch)"
-msgstr "ブランチ元(URLや既存ブランチのあるローカルディレクトリを選択)"
+msgstr ""
 
 #: lib\ui_new_tree.py:133
 msgid "Local directory where the working tree will be created"
-msgstr "作業ツリーを作成するローカルディレクトリ"
+msgstr ""
 
 #: lib\ui_new_tree.py:135
 msgid "Working Tree Options"
-msgstr "作業ツリーオプション"
+msgstr ""
 
 #: lib\ui_new_tree.py:136
 msgid "Create a checkout"
-msgstr "チェックアウトを作成"
+msgstr ""
 
 #: lib\ui_new_tree.py:144
 msgid "Light-weight checkout"
-msgstr "軽量チェックアウト"
+msgstr ""
 
 #: lib\ui_new_tree.py:145
 msgid "Make a local copy of the branch"
-msgstr "このブランチのローカルコピーを作成"
+msgstr ""
 
 #: lib\ui_new_tree.py:151
 msgid "Create a stacked branch referring to the source branch"
-msgstr "ソースブランチを参照する新たなスタックブランチを作成"
+msgstr ""
 
 #: lib\ui_new_tree.py:152
 msgid "Click a link for more information about checkouts and branches."
-msgstr "チェックアウトとブランチに関するより多くの情報を得るにはリックをクリックしてください。"
+msgstr ""
 
 #: lib\ui_new_tree.py:159
 msgid "Most recent (tip) revision"
-msgstr "最新の (tip) revision"
+msgstr ""
 
 #: lib\ui_new_tree.py:161
 msgid "Show Log..."
-msgstr "ログを表示..."
+msgstr "Vis log..."
 
 #: lib\ui_pull.py:60
 msgid "Pull"
-msgstr "プル"
+msgstr "Træk"
 
 #: lib\ui_pull.py:66 lib\ui_push.py:67 lib\ui_update_branch.py:88
 #: lib\ui_update_checkout.py:80
 msgid "Overwrite differences between branches"
-msgstr "ブランチ間の差分を上書き"
+msgstr ""
 
 #: lib\ui_push.py:68
 msgid "Use existing directory"
-msgstr "すでにあるディレクトリを使用する"
+msgstr "Brug eksisterende mappe"
 
 #: lib\ui_push.py:69
 msgid "Create the path up to the branch if it does not exist"
-msgstr "存在しなければブランチへのパスを生成する"
+msgstr ""
 
 #: lib\ui_run.py:101
 msgid "Run bzr command"
-msgstr "bzrコマンドを実行"
+msgstr "Kør bzr kommando"
 
 #: lib\ui_run.py:102
 msgid "&Working directory:"
-msgstr "作業ディレクトリ(&W):"
+msgstr "&Arbejdsmappe:"
 
 #: lib\ui_run.py:104
 msgid "&Command:"
-msgstr "コマンド(&C):"
+msgstr "&Kommando:"
 
 #: lib\ui_run.py:105
 msgid "&Show hidden commands"
-msgstr "隠れたコマンドも表示(&S)"
+msgstr "&Vis skjulte kommandoer"
 
 #: lib\ui_run.py:106
 msgid "&Options and arguments for command:"
-msgstr "コマンドオプションや引数(&O):"
+msgstr ""
 
 #: lib\ui_run.py:107
 msgid "Insert &directory..."
-msgstr "ディレクトリを挿入(%d)..."
+msgstr "Indsæt &mappe..."
 
 #: lib\ui_run.py:108
 msgid "Insert &filenames..."
-msgstr "ファイル名を挿入(&f)..."
+msgstr "Indsæt &filnavne..."
 
 #: lib\ui_sysinfo.py:113
 msgid "Bazaar Library"
-msgstr "Bazaarライブラリ"
+msgstr "Bazaar Bibliotek"
 
 #: lib\ui_sysinfo.py:114 lib\ui_sysinfo.py:124
 msgid "Version:"
-msgstr "バージョン:"
+msgstr "Version:"
 
 #: lib\ui_sysinfo.py:115
 msgid "(bzr-version)"
-msgstr ""
+msgstr "(bzr-version)"
 
 #: lib\ui_sysinfo.py:116 lib\ui_sysinfo.py:126
 msgid "Path:"
-msgstr "パス:"
+msgstr "Sti:"
 
 #: lib\ui_sysinfo.py:117
 msgid "(bzr-lib-path)"
-msgstr ""
+msgstr "(bzr-lib-sti)"
 
 #: lib\ui_sysinfo.py:118
 msgid "Bazaar Configuration"
-msgstr "Bazaarの設定"
+msgstr "Bazaar opsætning"
 
 #: lib\ui_sysinfo.py:119
 msgid "Settings:"
-msgstr "設定:"
+msgstr "Indstillinger:"
 
 #: lib\ui_sysinfo.py:120
 msgid "(bzr-config-dir)"
-msgstr ""
+msgstr "(bzr-opsæt-map)"
 
 #: lib\ui_sysinfo.py:121
 msgid "Log File:"
-msgstr "ログファイル:"
+msgstr "Logfil:"
 
 #: lib\ui_sysinfo.py:122
 msgid "(bzr-log-file)"
-msgstr ""
+msgstr "(bzr-log-fil)"
 
 #: lib\ui_sysinfo.py:123
 msgid "Python Interpreter"
-msgstr "Pythonインタプリタ"
+msgstr ""
 
 #: lib\ui_sysinfo.py:125
 msgid "(python-version)"
-msgstr ""
+msgstr "(python-version)"
 
 #: lib\ui_sysinfo.py:127
 msgid "(python-file)"
-msgstr ""
+msgstr "(python-fil)"
 
 #: lib\ui_sysinfo.py:128
 msgid "Library:"
-msgstr "ライブラリ:"
+msgstr "Bibliotek:"
 
 #: lib\ui_sysinfo.py:129
 msgid "(python-lib-dir)"
-msgstr ""
+msgstr "(python-bibl-map)"
 
 #: lib\ui_tag.py:88
 msgid "Edit tag"
-msgstr "タグを編集"
+msgstr "Redigér mærke"
 
 #: lib\ui_tag.py:91
 msgid "Tag"
-msgstr "タグ"
+msgstr "Mærke"
 
 #: lib\ui_tag.py:92
 msgid "&Action:"
-msgstr "アクション(&A)："
+msgstr "H&andling:"
 
 #: lib\ui_tag.py:93
 msgid "Create new tag"
-msgstr "新規タグを作成"
+msgstr "Opret nyt mærke"
 
 #: lib\ui_tag.py:94
 msgid "Move existing tag"
-msgstr "既存のタグを移動"
+msgstr "Flyt eksisterende mærke"
 
 #: lib\ui_tag.py:95
 msgid "Delete existing tag"
-msgstr "既存のタグを削除"
+msgstr "Slet eksisterede mærke"
 
 #: lib\ui_tag.py:96
 msgid "&Tag name:"
-msgstr "タグ名(&T)："
+msgstr "&Mærke navn:"
 
 #: lib\ui_tag.py:98
 msgid "&Select..."
-msgstr "選択(&S)..."
+msgstr "&Vælg..."
 
 #: lib\ui_update_branch.py:82
 msgid "Update Branch"
-msgstr "ブランチ更新"
+msgstr ""
 
 #: lib\ui_update_branch.py:83
 msgid ""
 "This directory is a branch.  Please select what you would like to update"
-msgstr "このディレクトリはブランチです。何を更新したいか選択してください。"
+msgstr ""
 
 #: lib\ui_update_branch.py:84 lib\ui_update_checkout.py:76
 msgid "Update source"
-msgstr "ソースを更新"
+msgstr "Opdatér kilde"
 
 #: lib\ui_update_branch.py:86
 msgid "Pull most recent changes from:"
@@ -1674,162 +1658,102 @@ msgstr ""
 
 #: lib\ui_update_branch.py:87
 msgid "Remember this as the new parent branch"
-msgstr "新たな親ブランチとして記憶します"
+msgstr ""
 
 #: lib\ui_update_branch.py:89
 msgid "<Parent Branch shown here>"
-msgstr "<親のブランチをここに表示>"
+msgstr ""
 
 #: lib\ui_update_branch.py:90
 msgid "Update working tree to the latest changes in the branch"
-msgstr "作業ツリー(working tree)を branch の最新の状態に update する"
+msgstr ""
 
 #: lib\ui_update_checkout.py:74
 msgid "Update Checkout"
-msgstr "チェックアウトを更新"
+msgstr ""
 
 #: lib\ui_update_checkout.py:75
 #, python-format
 msgid "This directory is a checkout of: %s"
-msgstr "このディレクトリのチェックアウト元： %s"
+msgstr ""
 
 #: lib\ui_update_checkout.py:77
 msgid "Update the working tree from the bound branch"
-msgstr "割り当てたブランチから作業ツリーを更新する"
+msgstr ""
 
 #: lib\ui_update_checkout.py:78
 msgid "Pull a different branch"
-msgstr "異なるブランチにプル"
+msgstr ""
 
 #: lib\unbind.py:36
 msgid "Unbind branch"
-msgstr "ブランチの割り当て解除"
+msgstr ""
 
 #: lib\unbind.py:46
 msgid "Unbind"
-msgstr "割り当て解除"
+msgstr ""
 
 #: lib\unbind.py:54
 msgid "Bound to:"
-msgstr "割り当て先:"
+msgstr ""
 
 #: lib\uncommit.py:41 lib\uncommit.py:125
 msgid "Uncommit"
-msgstr "コミット取り消し"
+msgstr ""
 
 #: lib\uncommit.py:58
 msgid "Move tip to"
-msgstr "Tipの移動先"
+msgstr ""
 
 #: lib\uncommit.py:60
 msgid "Parent of current tip revision"
-msgstr "現在のTipの親リビジョン"
+msgstr ""
 
 #: lib\uncommit.py:62
 msgid "Other revision:"
-msgstr "他のリビジョン:"
+msgstr ""
 
 #: lib\uncommit.py:105
 msgid "No other revision specified."
-msgstr "リビジョンが指定されていません"
+msgstr ""
 
 #: lib\uncommit.py:123
 msgid "Do you really want to uncommit these revisions?"
-msgstr "本当にこれらのリビジョンのコミットを取り消してもよろしいですか？"
+msgstr ""
 
 #: lib\update.py:35
 msgid "Update working tree"
-msgstr "作業ツリーを更新"
+msgstr ""
 
 #: lib\update.py:36
 #, python-format
 msgid "Update tree %s"
-msgstr "ツリー %sを更新"
+msgstr ""
 
 #: lib\util.py:456
 msgid "Select Source Directory"
-msgstr "ソースディレクトリを選択"
+msgstr "Vælg kilde mappe"
 
 #: lib\util.py:458
 msgid "Select Target Directory"
-msgstr "対象ディレクトリを選択"
+msgstr ""
 
 #: lib\util.py:615
 msgid "deleted files"
-msgstr "削除"
+msgstr "slettede filer"
 
 #: lib\util.py:617
 msgid "added files"
-msgstr "追加"
+msgstr "tilføjede filer"
 
 #: lib\util.py:619
 msgid "renamed files"
-msgstr "名前が変更されたファイル"
+msgstr "omdøbte filer"
 
 #: lib\util.py:621
 msgid "modified files"
-msgstr "変更されたファイル"
+msgstr "ændrede filer"
 
 #: lib\util.py:918 lib\util.py:919 lib\util.py:922
 msgid "(no message)"
-msgstr ""
-
-#~ msgid "Line"
-#~ msgstr "行"
-
-#~ msgid "Show log..."
-#~ msgstr "ログを表示..."
-
-#~ msgid "&Revert..."
-#~ msgstr "元に戻す(&R)..."
-
-#~ msgid "Stopped"
-#~ msgstr "停止"
-
-#~ msgid "Internal Error"
-#~ msgstr "内部エラー"
-
-#~ msgid "Replace existing tag"
-#~ msgstr "既存のタグを置換"
-
-#, python-format
-#~ msgid ""
-#~ "Sorry, subprocess action \"%s\" cannot be started\n"
-#~ "because self.args is None.\n"
-#~ "Please, report bug at:\n"
-#~ "https://bugs.launchpad.net/qbzr/+filebug"
-#~ msgstr ""
-#~ "サブプロセス処理 \"%s\" がself.argsがNoneのために開始されません。\n"
-#~ "https://bugs.launchpad.net/qbzr/+filebugにバグレポートをしてください。"
-
-#, python-format
-#~ msgid ""
-#~ "Tag \"%s\" already exists.\n"
-#~ "Do you want to replace existing tag?"
-#~ msgstr ""
-#~ "タグ \"%s\"は既に存在します。\n"
-#~ "既存のタグを置き換えますか?"
-
-#~ msgid "&Replace"
-#~ msgstr "置換(&R)"
-
-#~ msgid "Local location:"
-#~ msgstr "ローカル配置："
-
-#~ msgid "Public branch location:"
-#~ msgstr "公開ブランチの場所："
-
-#~ msgid "&Location"
-#~ msgstr "ロケーション(&L)"
-
-#~ msgid ""
-#~ "Branch source (enter a URL or select a local directory with an exiting "
-#~ "branch)"
-#~ msgstr "ブランチ元(URLを入力するか、ブランチのあるディレクトリを選択してください)"
-
-#~ msgid "Extension"
-#~ msgstr "拡張子"
-
-#, python-format
-#~ msgid "Revert %s to latest revision."
-#~ msgstr "%sを最新のリビジョンに戻す"
+msgstr "(ingen meddelelser)"
