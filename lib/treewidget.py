@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os, sys
+import posixpath  # to use '/' path sep in path.join().
 from time import (strftime, localtime)
 from PyQt4 import QtCore, QtGui
 from bzrlib import errors
@@ -820,7 +821,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             value = unicode(value.toString())
             item_data = self.inventory_data[index.internalId()]
             parent = self.inventory_data[item_data.parent_id]
-            new_path = os.path.join(parent.path, value)
+            new_path = posixpath.join(parent.path, value)
             if item_data.path == new_path:
                 return False
             try:
