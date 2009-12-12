@@ -1,10 +1,27 @@
-0.17 - in development
----------------------
+0.17 "Sapin de Noël" - 2009/12/12
+---------------------------------
 What's new in this release:
+
+ * New encoding selector added to qdiff, qannotate, qcat and qviewer. 
+   This selector allows change of the text encoding "on the fly". See:
+   http://bazaarvcs.wordpress.com/2009/12/04/selecting-file-encoding-in-qbzr/
+ * qpush can auto-suggest push location for feature branches when master
+   branch hosted on remote server. In the case of Launchpad it suggests
+   location lp:~user/project/branch.
+ * Now it's possible to tag a revision while browsing history in qlog.
+ * Details on revision in qlog now have fancy dots for parent/children
+   revisions, dots have the same color as in main qlog graph.
+ * qcat/qviewer: show line numbers for text lines.
+ * qannotate: new feel & look, you can copy text from annotated view now.
+ * qrun now groups the commands into several categories (All, Core, 
+   and separate for each installed plugin)
+ * New translations added: Arabic, Czech, Danish, English (United Kingdom).
+ * And many other bugfixes as well.
+
+Changelog:
 
  * New encoding selector added to qdiff, qannotate and qcat. This selector
    allows change of the text encoding "on the fly". (INADA Naoki)
- * Added Czech translations.
  * qpush:
    * When a push location is yet to be defined, qpush suggests a location for
      feature branches when the master branch is hosted on Launchpad.
@@ -58,7 +75,7 @@ What's new in this release:
      (Bug #491702, Alexander Belchenko)
  * qconfig:
    * Properly save data in empty qbzr.conf. (Bug #493634, Alexander Belchenko)
- * New translations added: Arabic, Danish, English (United Kingdom).
+ * New translations added: Arabic, Czech, Danish, English (United Kingdom).
 
 
 0.16 "Acacia" - 2009/11/9
