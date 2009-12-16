@@ -21,15 +21,21 @@
 
 import codecs
 import os
+import shlex
 import signal
 import sys
 import tempfile
+import thread
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import osutils, progress, errors
-
-from bzrlib import bencode
+from bzrlib import (
+    bencode,
+    commands,
+    osutils,
+    ui,
+    )
+from bzrlib.option import Option
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -42,7 +48,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     StandardButton,
     ensure_unicode,
     )
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import (
    report_exception,
    SUB_LOAD_METHOD)
@@ -657,7 +662,7 @@ class SubProcessWidget(QtGui.QWidget):
         if self._args_file:
             try:
                 os.unlink(self._args_file)
-            except (IOError, OSError), e:
+            except (IOError, OSError):
                 pass
             else:
                 self._args_file = None
@@ -736,6 +741,62 @@ class SubprocessUIFactory(TextUIFactory):
 
     def get_boolean(self, prompt):
         return self._get_answer_from_main(SUB_GETBOOL, prompt+'?')
+
+
+# [bialix 2009/11/23] cmd_qsubprocess has moved from commands.py
+# to see annotation of cmd_qsubprocess before move use:
+#     bzr qannotate commands.py -r1117
+
+class cmd_qsubprocess(commands.Command):
+    """Run some bzr command as subprocess. 
+    Used with most of subprocess-based dialogs of QBzr.
+    
+    If CMD argument starts with @ characters then it used as name of file with
+    actual cmd string (in utf-8).
+    
+    With --bencode option cmd string interpreted as bencoded list of utf-8
+    strings. This is the recommended way to launch qsubprocess.
+    """
+    takes_args = ['cmd']
+    takes_options = [Option("bencoded", help="Pass command as bencoded string.")]
+    hidden = True
+
+    if MS_WINDOWS:
+        def __win32_ctrl_c(self):
+            import win32event
+            ev = win32event.CreateEvent(None, 0, 0, get_event_name(os.getpid()))
+            try:
+                win32event.WaitForSingleObject(ev, win32event.INFINITE)
+            finally:
+                ev.Close()
+            thread.interrupt_main()
+
+    def run(self, cmd, bencoded=False):
+        if MS_WINDOWS:
+            thread.start_new_thread(self.__win32_ctrl_c, ())
+        else:
+            signal.signal(signal.SIGINT, sigabrt_handler)
+        ui.ui_factory = SubprocessUIFactory(stdin=sys.stdin,
+                                            stdout=sys.stdout,
+                                            stderr=sys.stderr)
+        if cmd.startswith('@'):
+            fname = cmd[1:]
+            f = open(fname, 'rb')
+            try:
+                cmd_utf8 = f.read()
+            finally:
+                f.close()
+        else:
+            cmd_utf8 = cmd.encode('utf8')
+        if not bencoded:
+            argv = [unicode(p, 'utf-8') for p in shlex.split(cmd_utf8)]
+        else:
+            argv = [unicode(p, 'utf-8') for p in bencode.bdecode(cmd_utf8)]
+        commands.run_bzr(argv)
+
+
+def sigabrt_handler(signum, frame):
+    raise KeyboardInterrupt()
 
 
 if MS_WINDOWS:

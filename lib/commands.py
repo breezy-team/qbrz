@@ -18,23 +18,20 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import os
 import sys
-from bzrlib import errors, ui
-from bzrlib.option import Option
+from bzrlib import errors
 from bzrlib.commands import Command
+from bzrlib.option import Option
 import bzrlib.builtins
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
-import signal, shlex, thread
-
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui
 
 from bzrlib import (
     builtins,
-    commands,
     osutils,
+    ui,
     )
 from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
@@ -65,7 +62,6 @@ from bzrlib.plugins.qbzr.lib.pull import (
     QBzrMergeWindow,
     )
 from bzrlib.plugins.qbzr.lib.revert import RevertWindow
-from bzrlib.plugins.qbzr.lib.subprocess import SubprocessUIFactory
 from bzrlib.plugins.qbzr.lib.tag import TagWindow
 from bzrlib.plugins.qbzr.lib.tree_branch import TreeBranch
 from bzrlib.plugins.qbzr.lib.uncommit import QBzrUncommitWindow
@@ -79,7 +75,6 @@ from bzrlib.plugins.qbzr.lib.uifactory import QUIFactory
 from bzrlib.plugins.qbzr.lib.send import SendWindow
 ''')
 
-from bzrlib.plugins.qbzr.lib import MS_WINDOWS
 from bzrlib.plugins.qbzr.lib.diff_arg import DiffArgProvider
 
 CUR_DIR=u'.'
@@ -733,7 +728,6 @@ class cmd_qmain(QBzrCommand):
 
     Not finished -- DON'T USE
     """
-
     takes_options = []
     takes_args = []
     hidden = True
@@ -755,58 +749,9 @@ class cmd_qmain(QBzrCommand):
         self._application.exec_()
 
 
-class cmd_qsubprocess(Command):
-    """Run some bzr command as subprocess. 
-    Used with most of subprocess-based dialogs of QBzr.
-    
-    If CMD argument starts with @ characters then it used as name of file with
-    actual cmd string (in utf-8).
-    
-    With --bencode option cmd string interpreted as bencoded list of utf-8
-    strings. This is the recommended way to launch qsubprocess.
-    """
-    takes_args = ['cmd']
-    takes_options = [Option("bencode", help="Pass command as bencoded string.")]
-    hidden = True
-
-    if MS_WINDOWS:
-        def __win32_ctrl_c(self):
-            import win32event
-            from bzrlib.plugins.qbzr.lib.subprocess import get_event_name
-            ev = win32event.CreateEvent(None, 0, 0, get_event_name(os.getpid()))
-            try:
-                win32event.WaitForSingleObject(ev, win32event.INFINITE)
-            finally:
-                ev.Close()
-            thread.interrupt_main()
-
-    def run(self, cmd, bencode=False):
-        if MS_WINDOWS:
-            thread.start_new_thread(self.__win32_ctrl_c, ())
-        else:
-            signal.signal(signal.SIGINT, sigabrt_handler)
-        ui.ui_factory = SubprocessUIFactory(stdin=sys.stdin,
-                                            stdout=sys.stdout,
-                                            stderr=sys.stderr)
-        if cmd.startswith('@'):
-            fname = cmd[1:]
-            f = open(fname, 'rb')
-            try:
-                cmd_utf8 = f.read()
-            finally:
-                f.close()
-        else:
-            cmd_utf8 = cmd.encode('utf8')
-        if not bencode:
-            argv = [unicode(p, 'utf-8') for p in shlex.split(cmd_utf8)]
-        else:
-            from bzrlib.plugins.qbzr.lib.subprocess import bencode
-            argv = [unicode(p, 'utf-8') for p in bencode.bdecode(cmd_utf8)]
-        commands.run_bzr(argv)
-
-
-def sigabrt_handler(signum, frame):
-    raise KeyboardInterrupt()
+# [bialix 2009/11/23] cmd_qsubprocess has moved to subprocess.py
+# to see annotation of cmd_qsubprocess before move use:
+#     bzr qannotate commands.py -r1117
 
 
 class cmd_qgetupdates(QBzrCommand):
@@ -818,7 +763,6 @@ class cmd_qgetupdates(QBzrCommand):
 
     def _qbzr_run(self, location=CUR_DIR, ui_mode=False):
         branch, relpath = Branch.open_containing(location)
-        app = QtGui.QApplication(sys.argv)
         tb = TreeBranch.open_containing(location, ui_mode=ui_mode)
         if tb is None:
             return errors.EXIT_ERROR
@@ -856,7 +800,7 @@ class cmd_qhelp(QBzrCommand):
     hidden = True
 
     def _qbzr_run(self, topic):
-        window = show_help(topic)
+        show_help(topic)
         self._application.exec_()
 
 
