@@ -48,7 +48,6 @@ def load_tests(basic_tests, module, loader):
         'test_log',
         'test_loggraphprovider',
         'test_logmodel',
-        'test_qbzr',
         'test_revisionmessagebrowser',
         'test_spellcheck',
         'test_subprocess',
