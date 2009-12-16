@@ -46,7 +46,6 @@ def load_tests(basic_tests, module, loader):
         'test_i18n',
         'test_loggraphprovider',
         'test_logmodel',
-        'test_qbzr',
         'test_spellcheck',
         'test_subprocess',
         'test_tree_branch',
