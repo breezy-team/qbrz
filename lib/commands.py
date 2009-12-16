@@ -40,6 +40,7 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib import i18n
 from bzrlib.plugins.qbzr.lib.add import AddWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
+from bzrlib.plugins.qbzr.lib.branch import QBzrBranchWindow
 from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
 from bzrlib.plugins.qbzr.lib.cat import (
     QBzrCatWindow,
@@ -58,7 +59,6 @@ from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
 from bzrlib.plugins.qbzr.lib.pull import (
     QBzrPullWindow,
     QBzrPushWindow,
-    QBzrBranchWindow,
     QBzrMergeWindow,
     )
 from bzrlib.plugins.qbzr.lib.revert import RevertWindow
@@ -988,20 +988,36 @@ class cmd_qbind(QBzrCommand):
 
 
 class cmd_qrun(QBzrCommand):
-    """Run arbitrary bzr command."""
-    takes_args = ['command?']
+    """Run arbitrary bzr command.
+
+    If you wish to pass options to COMMAND, use ``--`` beforehand
+    so that the options aren't treated as options to the qrun
+    command itself. For example::
+
+      bzr qrun shelve -- --list
+    """
+    takes_args = ['command?', 'parameters*']
     takes_options = [ui_mode_option,
         Option('directory',
             help='Working directory.',
             short_name='d',
             type=unicode,
             ),
+        Option('category',
+            help='Initial category selection.',
+            type=unicode,
+            ),
         ]
     aliases = ['qcmd']
 
-    def _qbzr_run(self, command=None, ui_mode=False, directory=None):
+    def _qbzr_run(self, command=None, parameters_list=None, ui_mode=False,
+        directory=None, category=None):
         from bzrlib.plugins.qbzr.lib.run import QBzrRunDialog
-        window = QBzrRunDialog(command=command, workdir=directory,
-            ui_mode=ui_mode)
+        if parameters_list:
+            parameters = " ".join(parameters_list)
+        else:
+            parameters = None
+        window = QBzrRunDialog(command=command, parameters=parameters,
+            workdir=directory, category=category, ui_mode=ui_mode)
         window.show()
         self._application.exec_()

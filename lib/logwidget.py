@@ -24,7 +24,7 @@ from bzrlib.revision import NULL_REVISION
 from bzrlib.revisionspec import RevisionSpec
 from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
                                                  RevNoItemDelegate,
-                                                 StyledItemDelegate)
+                                                 get_text_color)
 from bzrlib.plugins.qbzr.lib.tag import TagWindow, CallBackTagWindow
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.trace import *
@@ -320,6 +320,18 @@ class LogList(RevisionTreeView):
         else:
             return [index]
     
+    def get_selection_and_merged_revids(self, index=None):
+        indexes = self.get_selection_indexes(index)
+        revids = set()
+        for index in indexes:
+            revid = str(index.data(logmodel.RevIdRole).toString())
+            revids.add(revid)
+            merges = [self.graph_provider.revisions[rev_index].revid
+                      for rev_index in
+                        self.graph_provider.revid_rev[revid].merges]
+            revids.update(set(merges))
+        return revids
+    
     def get_selection_top_and_parent_revids_and_count(self, index=None):
         indexes = self.get_selection_indexes(index)
         if len(indexes) == 0:
@@ -342,7 +354,7 @@ class LogList(RevisionTreeView):
         self.graph_provider.set_search(str, field)
     
     def default_action(self, index=None):
-        self.show_diff(index)
+        self.show_diff_specified_files()
         
     def tag_revision(self):
         revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
@@ -402,7 +414,7 @@ class LogList(RevisionTreeView):
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
 
-class GraphTagsBugsItemDelegate(StyledItemDelegate):
+class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
 
     _tagColor = QtGui.QColor(80, 128, 32)
     _bugColor = QtGui.QColor(164, 0, 0)
@@ -572,7 +584,7 @@ class GraphTagsBugsItemDelegate(StyledItemDelegate):
         rect.adjust(x, 0, 0, 0)
         
         if not option.text.isEmpty():
-            painter.setPen(self.get_text_color(option, style))
+            painter.setPen(get_text_color(option, style))
             text_rect = rect.adjusted(0, 0, -text_margin, 0)
             painter.setFont(option.font)
             fm = painter.fontMetrics()

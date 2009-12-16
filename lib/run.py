@@ -37,11 +37,14 @@ from bzrlib.plugins.qbzr.lib.util import hookup_directory_picker
 
 class QBzrRunDialog(SubProcessDialog):
 
-    def __init__(self, command=None, workdir=None, ui_mode=False, parent=None):
+    def __init__(self, command=None, parameters=None, workdir=None,
+        category=None, ui_mode=False, parent=None):
         """Build dialog.
 
         @param command: initial command selection.
+        @param parameters: initial options and arguments (string) for command.
         @param workdir: working directory to run command.
+        @param category: initial category selection.
         @param ui_mode: wait after the operation is complete.
         @param parent:  parent window.
         """
@@ -59,7 +62,12 @@ class QBzrRunDialog(SubProcessDialog):
         self.ui.cmd_layout.setColumnStretch(2, 1)
         # fill cmd_combobox with available commands
         self.collect_command_names()
+        categories = sorted(self.all_cmds.keys())
+        self.ui.cat_combobox.insertItems(0, categories)
         self.set_cmd_combobox(cmd_name=command)
+        # add the parameters, if any
+        if parameters:
+            self.ui.opt_arg_edit.setText(parameters)
         # and add the subprocess widgets
         self.splitter = self.ui.splitter
         for w in self.make_default_layout_widgets():
@@ -71,13 +79,16 @@ class QBzrRunDialog(SubProcessDialog):
         # setup signals
         QtCore.QObject.connect(self.ui.hidden_checkbox,
             QtCore.SIGNAL("stateChanged(int)"),
-            self.set_cmd_combobox)
+            self.set_show_hidden)
         QtCore.QObject.connect(self.ui.cmd_combobox,
             QtCore.SIGNAL("currentIndexChanged(const QString&)"),
             self.set_cmd_help)
         QtCore.QObject.connect(self.ui.cmd_combobox,
             QtCore.SIGNAL("editTextChanged(const QString&)"),
             self.set_cmd_help)
+        QtCore.QObject.connect(self.ui.cat_combobox,
+            QtCore.SIGNAL("currentIndexChanged(const QString&)"),
+            self.set_category)
         hookup_directory_picker(self, self.ui.browse_button, 
             self.ui.wd_edit, gettext("Select working directory"))
         QtCore.QObject.connect(self.ui.directory_button,
@@ -86,8 +97,18 @@ class QBzrRunDialog(SubProcessDialog):
         QtCore.QObject.connect(self.ui.filenames_button,
             QtCore.SIGNAL("clicked()"),
             self.insert_filenames)
+        # Init the category if set.
+        # (This needs to be done after the signals are hooked up)
+        if category:
+            cb = self.ui.cat_combobox
+            index = cb.findText(category)
+            if index >= 0:
+                cb.setCurrentIndex(index)
         # ready to go
-        self.ui.cmd_combobox.setFocus()
+        if command:
+            self.ui.opt_arg_edit.setFocus()
+        else:
+            self.ui.cmd_combobox.setFocus()
 
     def set_default_help(self):
         """Set default text in help widget."""
@@ -100,24 +121,61 @@ class QBzrRunDialog(SubProcessDialog):
         names = list(_mod_commands.all_command_names())
         self.cmds_dict = dict((n, _mod_commands.get_cmd_object(n)) 
                               for n in names)
-        self.all_cmds = sorted(names)
-        self.public_cmds = sorted([n 
-                                   for n,o in self.cmds_dict.iteritems()
-                                   if not o.hidden])
+        # Find the commands for each category, public or otherwise
+        builtins = _mod_commands.builtin_command_names()
+        self.all_cmds = {'All': []}
+        self.public_cmds = {'All': []}
+        for name, cmd in self.cmds_dict.iteritems():
+            # If a command is builtin, we always put it into the Core
+            # category, even if overridden in a plugin
+            if name in builtins:
+                category = 'Core'
+            else:
+                category = cmd.plugin_name()
+            self.all_cmds['All'].append(name)
+            self.all_cmds.setdefault(category, []).append(name)
+            if not cmd.hidden:
+                self.public_cmds['All'].append(name)
+                self.public_cmds.setdefault(category, []).append(name)
+        # Sort them
+        for category in self.all_cmds:
+            self.all_cmds[category].sort()
+            try:
+                self.public_cmds[category].sort()
+            except KeyError:
+                # no public commands - that's ok
+                pass
 
-    def set_cmd_combobox(self, cmd_name=None, all=False):
+    def set_category(self, category):
+        cmd_name = self._get_cmd_name()
+        all = self.ui.hidden_checkbox.isChecked()
+        category = unicode(category)
+        self.set_cmd_combobox(cmd_name=cmd_name, all=all, category=category)
+
+    def set_show_hidden(self, show):
+        cmd_name = self._get_cmd_name()
+        all = bool(show)
+        category = unicode(self.ui.cat_combobox.currentText())
+        self.set_cmd_combobox(cmd_name=cmd_name, all=all, category=category)
+
+    def set_cmd_combobox(self, cmd_name=None, all=False, category=None):
         """Fill command combobox with bzr commands names.
 
         @param cmd_name: if not None, the command to initially select
             if it exists in the list.
         @param all: show all commands including hidden ones.
+        @param category: show commands just for this category.
+            If None, commands in all categories are shown.
         """
         cb = self.ui.cmd_combobox
         cb.clear()
         if all:
-            cb.addItems(self.all_cmds)
+            lookup = self.all_cmds
         else:
-            cb.addItems(self.public_cmds)
+            lookup = self.public_cmds
+        if category is None:
+            category = 'All'
+        cb.addItems(lookup.get(category, []))
         if cmd_name is None:
             index = -1
         else:

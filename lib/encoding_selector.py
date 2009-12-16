@@ -91,7 +91,7 @@ class EncodingSelector(QtGui.QWidget):
         self.chooser.addItems(self.encodings)
         self.chooser.setEditable(True)
         self.chooser.setEditText(QtCore.QString(initial_encoding))
-        self.connect(self.chooser, QtCore.SIGNAL("activated(QString)"),
+        self.connect(self.chooser, QtCore.SIGNAL("currentIndexChanged(QString)"),
                      self._encodingChanged)
         self.chooser.focusOutEvent = self._focusOut
         layout.addWidget(self.chooser)

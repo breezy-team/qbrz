@@ -19,11 +19,11 @@
 
 from PyQt4 import QtCore, QtGui
 
+from bzrlib import errors, urlutils
 from bzrlib.commands import get_cmd_object
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.ui_branch import Ui_BranchForm
 from bzrlib.plugins.qbzr.lib.ui_pull import Ui_PullForm
 from bzrlib.plugins.qbzr.lib.ui_push import Ui_PushForm
 from bzrlib.plugins.qbzr.lib.ui_merge import Ui_MergeForm
@@ -116,7 +116,8 @@ class QBzrPushWindow(SubProcessDialog):
         for w in self.make_default_layout_widgets():
             self.layout().addWidget(w)
 
-        df = url_for_display(self.branch.get_push_location() or '')
+        df = url_for_display(self.branch.get_push_location() or 
+            self._suggested_push_location())
         fill_combo_with(self.ui.location, df,
                         iter_branch_related_locations(self.branch))
         if location:
@@ -138,6 +139,56 @@ class QBzrPushWindow(SubProcessDialog):
                                 self.ui.location_picker,
                                 self.ui.location,
                                 DIRECTORYPICKER_TARGET)
+
+    def _suggested_push_location(self):
+        """Suggest a push location when one is not already defined.
+
+        @return: a sensible location as a string or '' if none.
+        """
+        # If this is a feature branch and its parent exists locally,
+        # its grandparent is likely to be the hosted master branch.
+        # If so, suggest a push location, otherwise don't.
+        parent_url = self.branch.get_parent()
+        if parent_url and parent_url.startswith("file://"):
+            from bzrlib.branch import Branch
+            try:
+                parent_branch = Branch.open(parent_url)
+            except errors.NotBranchError:
+                return ''
+            master_url = (parent_branch.get_parent() or
+                parent_branch.get_bound_location())
+            if master_url and not master_url.startswith("file://"):
+                if master_url.find("launchpad") >= 0:
+                    suggest_url = self._build_lp_push_suggestion(master_url)
+                    if suggest_url:
+                        return suggest_url
+                # XXX we can hook in there even more specific suggesters
+                # XXX maybe we need registry?
+                suggest_url = self._build_generic_push_suggestion(master_url)
+                if suggest_url:
+                    return suggest_url
+        return ''
+
+    def _build_lp_push_suggestion(self, master_url):
+        try:
+            from bzrlib.plugins.launchpad import account
+        except ImportError:
+            # yes, ImportError is possible with bzr.exe,
+            # because user has option to not install launchpad plugin at all
+            return ''
+        from bzrlib.plugins.qbzr.lib.util import launchpad_project_from_url
+        user_name = account.get_lp_login()
+        project_name = launchpad_project_from_url(master_url)
+        branch_name = urlutils.basename(self.branch.base)
+        if user_name and project_name and branch_name:
+            return "lp:~%s/%s/%s" % (user_name, project_name, branch_name)
+        else:
+            return ''
+
+    def _build_generic_push_suggestion(self, master_url):
+        master_parent = urlutils.dirname(master_url)
+        branch_name = urlutils.basename(self.branch.base)
+        return urlutils.join(master_parent, branch_name)
 
     def do_start(self):
         if self.tree:
@@ -203,59 +254,6 @@ class QBzrPushWindow(SubProcessDialog):
             self._no_strict = True
             return True
         return False
-
-
-class QBzrBranchWindow(SubProcessDialog):
-
-    NAME = "branch"
-
-    def __init__(self, from_location, to_location=None,
-                 revision=None, ui_mode=True, parent=None):
-        super(QBzrBranchWindow, self).__init__(name = self.NAME,
-                                             ui_mode = ui_mode,
-                                             parent = parent)
-
-        self.ui = Ui_BranchForm()
-        self.setupUi(self.ui)
-        # and add the subprocess widgets.
-        for w in self.make_default_layout_widgets():
-            self.layout().addWidget(w)
-
-        fill_combo_with(self.ui.from_location,
-                        u'',
-                        iter_saved_pull_locations())
-        if from_location:
-            self.ui.from_location.setEditText(from_location)
-        if to_location:
-            self.ui.to_location.setEditText(to_location)
-        if revision:
-            self.ui.revision.setText(revision)
-
-        # Our 2 directory pickers hook up to our combos.
-        hookup_directory_picker(self,
-                                self.ui.from_picker,
-                                self.ui.from_location,
-                                DIRECTORYPICKER_SOURCE)
-
-        hookup_directory_picker(self,
-                                self.ui.to_picker,
-                                self.ui.to_location,
-                                DIRECTORYPICKER_TARGET)
-
-    def do_start(self):
-        args = []
-        revision = str(self.ui.revision.text())
-        if revision:
-            args.append('--revision')
-            args.append(revision)
-        from_location = unicode(self.ui.from_location.currentText())
-        to_location = unicode(self.ui.to_location.currentText())
-        cmd_branch = get_cmd_object('branch')
-        if 'use-existing-dir' in cmd_branch.options():
-            # always use this options because it should be mostly harmless
-            args.append('--use-existing-dir')
-        self.process_widget.do_start(None, 'branch', from_location, to_location, *args)
-        save_pull_location(None, from_location)
 
 
 class QBzrMergeWindow(SubProcessDialog):

@@ -53,8 +53,7 @@ def show_diff(arg_provider, ext_diff=None, parent_window=None):
         if parent_window:
             parent_window.windows.append(window)
     else:
-        args=["diff",
-              "--using=%s" % ext_diff]
+        args=["diff", "--using", ext_diff]  # NEVER USE --using=xxx, ALWAYS --using xxx
         # This should be move to after the window has been shown.
         dir, extra_args = arg_provider.get_ext_diff_args(
                                         QtCore.QCoreApplication.processEvents)

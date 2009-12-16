@@ -67,7 +67,8 @@ class RevertWindow(SubProcessDialog):
         self.filelist = TreeWidget(self.file_groupbox)
         self.filelist.throbber = self.throbber 
         self.filelist.tree_model.is_item_in_select_all = lambda item: ( 
-            item.change is not None and item.change.is_versioned())
+            item.change is not None and item.change.is_versioned(),
+            True)
 
         def filter_context_menu():
             TreeWidget.filter_context_menu(self.filelist)
@@ -260,7 +261,8 @@ class RevertWindow(SubProcessDialog):
              self.file_groupbox.isChecked() and
              not self.merges_groupbox.isChecked())):
             args.extend([ref.path
-                         for ref in self.filelist.tree_model.iter_checked()])
+                         for ref in self.filelist.tree_model.iter_checked(
+                            include_unchanged_dirs=False)])
         if (self.has_pending_merges and
             self.merges_groupbox.isChecked() and
             not self.file_groupbox.isChecked()):

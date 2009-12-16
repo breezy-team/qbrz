@@ -33,19 +33,22 @@ def load_tests(basic_tests, module, loader):
     global _qt_app
     if _qt_app is None:
         _qt_app = QtGui.QApplication(sys.argv)
-
+    
     testmod_names = [
         'mock',
         'test_annotate',
         'test_autocomplete',
         'test_bugs',
+        'test_cat',
         'test_commit_data',
         #'test_diffview', - broken by API changes
         'test_extra_isignored',
         'test_extra_isversioned',
         'test_i18n',
+        'test_log',
         'test_loggraphprovider',
         'test_logmodel',
+        'test_revisionmessagebrowser',
         'test_spellcheck',
         'test_subprocess',
         'test_tree_branch',
@@ -63,3 +66,18 @@ def load_tests(basic_tests, module, loader):
             else:
                 raise
     return basic_tests
+
+
+def replace_report_exception(test_case):
+    import bzrlib.plugins.qbzr.lib.trace
+    def report_exception(exc_info=None, type=None, window=None,
+                         ui_mode=False):
+        raise
+    old_report_exception = bzrlib.plugins.qbzr.lib.trace.report_exception
+    bzrlib.plugins.qbzr.lib.trace.report_exception = report_exception
+    
+    def restore_report_exception():
+        bzrlib.plugins.qbzr.lib.trace.report_exception = old_report_exception
+    
+    test_case.addCleanup(restore_report_exception)
+    

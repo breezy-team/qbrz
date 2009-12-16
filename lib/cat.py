@@ -29,22 +29,14 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     ThrobberWidget,
     file_extension,
-    CachedTTypeFormater,
     get_set_encoding,
     runs_in_loading_queue,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingSelector
-
-
-have_pygments = True
-try:
-    from pygments import lex
-    from pygments.util import ClassNotFound
-    from pygments.lexers import get_lexer_for_filename
-except ImportError:
-    have_pygments = False
+from bzrlib.plugins.qbzr.lib.syntaxhighlighter import highlight_document
+from bzrlib.plugins.qbzr.lib.texteditannotate import LineNumberEditerFrame
 
 
 def hexdump(data):
@@ -78,6 +70,10 @@ class QBzrCatWindow(QBzrWindow):
         self.filename = filename
         self.revision = revision
         self.tree = tree
+        if tree:
+            self.branch = getattr(tree, 'branch', None)
+            if self.branch is None:
+                self.branch = FakeBranch()
         self.file_id = file_id
         self.encoding = encoding
 
@@ -89,9 +85,7 @@ class QBzrCatWindow(QBzrWindow):
 
         self.throbber = ThrobberWidget(self)
         self.buttonbox = self.create_button_box(BTN_CLOSE)
-        self.encoding_selector = EncodingSelector(self.encoding,
-            gettext("Encoding:"),
-            self._on_encoding_changed)
+        self.encoding_selector = self._create_encoding_selector()
 
         self.vbox = QtGui.QVBoxLayout(self.centralwidget)
         self.vbox.addWidget(self.throbber)
@@ -102,10 +96,19 @@ class QBzrCatWindow(QBzrWindow):
         hbox.addWidget(self.buttonbox)
         self.vbox.addLayout(hbox)
 
+    def _create_encoding_selector(self):
+        encoding_selector = EncodingSelector(self.encoding,
+            gettext("Encoding:"),
+            self._on_encoding_changed)
+        # disable encoding selector,
+        # it will be enabled later only for text files
+        encoding_selector.setDisabled(True)
+        return encoding_selector
+
     def show(self):
         # we show the bare form as soon as possible.
         QBzrWindow.show(self)
-        QtCore.QTimer.singleShot(1, self.load)
+        QtCore.QTimer.singleShot(0, self.load)
     
     @runs_in_loading_queue
     @ui_current_widget
@@ -116,7 +119,7 @@ class QBzrCatWindow(QBzrWindow):
         try:
             if not self.tree:
                 branch, relpath = Branch.open_containing(self.filename)
-
+                self.branch = branch
                 self.encoding = get_set_encoding(self.encoding, branch)
                 self.encoding_selector.encoding = self.encoding
 
@@ -190,73 +193,79 @@ class QBzrCatWindow(QBzrWindow):
                     return 'binary file', self._create_hexdump_view
         else:
             return kind, self._create_symlink_view
-    
-    def _create_text_browser(self):
-        self.browser = QtGui.QTextBrowser()
-        self.doc = QtGui.QTextDocument()
-        self.doc.setDefaultFont(QtGui.QFont("Courier New,courier", self.browser.font().pointSize()))
-        return self.browser
 
-    def _set_document(self, relpath, text):
-        """@param text: unicode text."""
-        doc = getattr(self, 'doc', None)
-        if doc is None:
-            return
-        doc.clear()
-        if not have_pygments:
-            self.doc.setPlainText(text)
-        else:
-            try:
-                cursor = QtGui.QTextCursor(self.doc)
-                font = self.doc.defaultFont()
-                format = QtGui.QTextCharFormat()
-                format.setFont(font)
-                formatter = CachedTTypeFormater(format)
-                lexer = get_lexer_for_filename(relpath, stripnl=False)
-                for ttype, value in lex(text, lexer):                    
-                    format = formatter.format(ttype)
-                    cursor.insertText(value, format)
-                cursor.movePosition (QtGui.QTextCursor.Start)
-            except ClassNotFound:
-                self.doc.setPlainText(text)
+    def _set_text(self, edit_widget, relpath, text, encoding=None):
+        """Set plain text to widget, as unicode.
+
+        @param edit_widget: edit widget to view the text.
+        @param relpath: filename (required for syntax highlighting to detect
+            file type).
+        @param text: plain non-unicode text (bytes).
+        @param encoding: text encoding (default: utf-8).
+        """
+        text = text.decode(encoding or 'utf-8', 'replace')
+        edit_widget.setPlainText(text)
+        highlight_document(edit_widget, relpath)
 
     def _create_text_view(self, relpath, text):
-        self._create_text_browser()
-        text = text.decode(self.encoding or 'utf-8', 'replace')
-        self._set_document(relpath, text)
-        self.browser.setDocument(self.doc)
-        return self.browser
+        """Create widget to show text files.
+        @return: created widget with loaded text.
+        """
+        browser = LineNumberEditerFrame(self)
+        edit = browser.edit
+        edit.setReadOnly(True)
+        edit.document().setDefaultFont(
+            QtGui.QFont("Courier New,courier", edit.font().pointSize()))
+        self._set_text(edit, relpath, text, self.encoding)
+        self.encoding_selector.setEnabled(True)
+        return browser
 
     def _on_encoding_changed(self, encoding):
-        """event handler for EncodingSelector."""
+        """Event handler for EncodingSelector.
+        It sets file text to browser again with new encoding.
+        """
         self.encoding = encoding
-        if not self.tree:
-            branch, relpath = Branch.open_containing(self.filename)
+        branch = self.branch
+        if branch is None:
+            branch = Branch.open_containing(self.filename)[0]
+        if branch:
             get_set_encoding(encoding, branch)
-            del branch, relpath
-        text = self.text.decode(self.encoding or 'utf-8', 'replace')
-        self._set_document(self.filename, text)
+        self._set_text(self.browser.edit, self.filename, self.text, self.encoding)
+
+    def _create_simple_text_browser(self):
+        """Create and return simple widget to show text-like content."""
+        browser = QtGui.QPlainTextEdit(self)
+        browser.setReadOnly(True)
+        browser.document().setDefaultFont(
+            QtGui.QFont("Courier New,courier", browser.font().pointSize()))
+        return browser
 
     def _create_symlink_view(self, relpath, target):
-        self._create_text_browser()
-        self.doc.setPlainText('-> ' + target.decode('utf-8', 'replace'))
-        self.browser.setDocument(self.doc)
-        return self.browser
+        """Create widget to show symlink target.
+        @return: created widget with loaded content.
+        """
+        browser = self._create_simple_text_browser()
+        browser.setPlainText('-> ' + target.decode('utf-8', 'replace'))
+        return browser
 
     def _create_hexdump_view(self, relpath, data):
-        self._create_text_browser()
-        self.doc.setPlainText(hexdump(data))
-        self.browser.setDocument(self.doc)
-        return self.browser
+        """Create widget to show content of binary files.
+        @return: created widget with loaded content.
+        """
+        browser = self._create_simple_text_browser()
+        browser.setPlainText(hexdump(data))
+        return browser
 
     def _create_image_view(self, relpath, data):
+        """Create widget to show image file.
+        @return: created widget with loaded image.
+        """
         self.pixmap = QtGui.QPixmap()
         self.pixmap.loadFromData(data)
         self.item = QtGui.QGraphicsPixmapItem(self.pixmap)
         self.scene = QtGui.QGraphicsScene(self.item.boundingRect())
         self.scene.addItem(self.item)
-        self.browser = QtGui.QGraphicsView(self.scene)
-        return self.browser
+        return QtGui.QGraphicsView(self.scene)
 
 
 class QBzrViewWindow(QBzrCatWindow):
@@ -277,9 +286,15 @@ class QBzrViewWindow(QBzrCatWindow):
         self.encoding = encoding
 
         self.buttonbox = self.create_button_box(BTN_CLOSE)
+        self.encoding_selector = self._create_encoding_selector()
+        self.branch = FakeBranch()
+
         self.vbox = QtGui.QVBoxLayout(self.centralwidget)
         self.vbox.addStretch()
-        self.vbox.addWidget(self.buttonbox)
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(self.encoding_selector)
+        hbox.addWidget(self.buttonbox)
+        self.vbox.addLayout(hbox)
 
     def load(self):
         kind = osutils.file_kind(self.filename)
@@ -292,7 +307,18 @@ class QBzrViewWindow(QBzrCatWindow):
                 f.close()
         elif kind == 'symlink':
             text = os.readlink(self.filename)
+        self.text = text
         self._create_and_show_browser(self.filename, text, kind)
+
+
+class FakeBranch(object):
+    """Special branch object to disable save encodings to branch.conf"""
+
+    def __init__(self):
+        pass
+
+    def __nonzero__(self):
+        return False
 
 
 def cat_to_native_app(tree, relpath):

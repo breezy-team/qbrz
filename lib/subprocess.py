@@ -434,6 +434,7 @@ class SubProcessWidget(QtGui.QWidget):
 
     def _start_next(self):
         """Start first command from self.commands queue."""
+        self._setup_stdout_stderr()
         self._delete_args_file()
         dir, args = self.commands.pop(0)
 
@@ -452,9 +453,9 @@ class SubProcessWidget(QtGui.QWidget):
                     r.append(a)
             s = ' '.join(r)
             if len(s) > 128:  # XXX make it configurable?
-                s = s[:128] + ' ...'
+                s = s[:128] + '...'
             return s
-        self.logMessageEx("Run command: "+format_args_for_log(args), "cmdline")
+        self.logMessageEx("Run command: "+format_args_for_log(args), "cmdline", self.stderr)
 
         args = bencode_unicode(args)
 
@@ -472,8 +473,7 @@ class SubProcessWidget(QtGui.QWidget):
         if dir is None:
             dir = self.defaultWorkingDir
 
-        self.process.setWorkingDirectory (dir)
-        self._setup_stdout_stderr()
+        self.process.setWorkingDirectory(dir)
         if getattr(sys, "frozen", None) is not None:
             bzr_exe = sys.argv[0]
             if sys.frozen == 'windows_exe':
@@ -531,10 +531,17 @@ class SubProcessWidget(QtGui.QWidget):
         # we need unicode for all strings except bencoded streams
         for line in data.splitlines():
             if line.startswith(SUB_PROGRESS):
-                # but we have to ensure we have unicode after bdecode
-                progress, transport_activity, messages = map(ensure_unicode,
-                    bencode.bdecode(line[len(SUB_PROGRESS):]))
-                self.setProgress(progress, messages, transport_activity)
+                try:
+                    # map(ensure_unicode, ...) to ensure that we have unicode after bdecode
+                    progress, transport_activity, messages = map(ensure_unicode,
+                        bencode.bdecode(line[len(SUB_PROGRESS):]))
+                except ValueError, e:
+                    # we got malformed data from qsubprocess (bencode failed to decode)
+                    # so just show it in the status console
+                    self.logMessageEx("qsubprocess error: "+str(e), "error", self.stderr)
+                    self.logMessageEx(line.decode(self.encoding), "error", self.stderr)
+                else:
+                    self.setProgress(progress, messages, transport_activity)
             elif line.startswith(SUB_GETPASS):
                 prompt = bdecode_prompt(line[len(SUB_GETPASS):])
                 passwd, ok = QtGui.QInputDialog.getText(self,
@@ -564,10 +571,7 @@ class SubProcessWidget(QtGui.QWidget):
                 self.process.write(SUB_GETBOOL + bencode.bencode(data) + "\n")
             else:
                 line = line.decode(self.encoding)
-                self.logMessage(line)
-                if not self.ui_mode:
-                    self.stdout.write(line)
-                    self.stdout.write("\n")
+                self.logMessageEx(line, 'plain', self.stdout)
 
     def readStderr(self):
         data = str(self.process.readAllStandardError()).decode(self.encoding, 'replace')
@@ -576,28 +580,24 @@ class SubProcessWidget(QtGui.QWidget):
 
         for line in data.splitlines():
             error = line.startswith("bzr: ERROR:")
-            self.logMessage(line, error)
-            if not self.ui_mode:
-                self.stderr.write(line)
-                self.stderr.write("\n")
+            self.logMessage(line, error, self.stderr)
 
-    def logMessage(self, message, error=False):
+    def logMessage(self, message, error=False, terminal_stream=None):
+        kind = 'plain'
         if error:
-            format = self.errorFormat
-        else:
-            format = self.messageFormat
-        self.console.setCurrentCharFormat(format);
-        self.console.append(message);
-        scrollbar = self.console.verticalScrollBar()
-        scrollbar.setValue(scrollbar.maximum())
+            kind = 'error'
+        self.logMessageEx(message, kind, terminal_stream)
 
-    def logMessageEx(self, message, kind="plain"):
+    def logMessageEx(self, message, kind="plain", terminal_stream=None):
         """Write message to console area.
         @param kind: kind of message used for selecting style of formatting.
             Possible kind values:
                 * plain = usual message, written in default style;
                 * error = error message, written in red;
                 * cmdline = show actual command-line, written in blue.
+        @param terminal_stream: if we working in non --ui-mode
+            the message can be echoed to real terminal via specified
+            terminal_stream (e.g. sys.stdout or sys.stderr)
         """
         if kind == 'error':
             format = self.errorFormat
@@ -609,6 +609,9 @@ class SubProcessWidget(QtGui.QWidget):
         self.console.append(message)
         scrollbar = self.console.verticalScrollBar()
         scrollbar.setValue(scrollbar.maximum())
+        if not self.ui_mode and terminal_stream:
+            terminal_stream.write(message)
+            terminal_stream.write('\n')
 
     def reportProcessError(self, error):
         self.aborting = False

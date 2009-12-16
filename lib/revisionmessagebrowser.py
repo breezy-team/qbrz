@@ -51,15 +51,6 @@ from bzrlib.plugins.qbzr.lib.logwidget import LogList
 ''')
 
 
-def htmlencode(string):
-    return "<br/>".join(
-           string.replace("&", "&amp;")
-                 .replace("<", "&lt;")
-                 .replace(">", "&gt;")
-                 .replace("\"", "&quot;")
-                 .splitlines())
-
-
 _email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)', re.IGNORECASE)
 _link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])', re.IGNORECASE)
 _link2_re = lazy_regex.lazy_compile(r'(\s)www\.([a-z0-9\-]+)\.([a-z0-9\-.\~]+)((?:/[^ <>{}()\n\r]*[^., <>{}()\n\r]?)?)', re.IGNORECASE)
@@ -67,7 +58,18 @@ _tag_re = lazy_regex.lazy_compile(r'[, ]')
 _start_of_line_whitespace_re = lazy_regex.lazy_compile(r'(?m)^ +')
 
 
+def htmlencode(s):
+    """Convert single line to html snippet suitable to show in Qt widgets."""
+    return (s.replace("&", "&amp;")
+             .replace("<", "&lt;")
+             .replace(">", "&gt;")
+             .replace("\"", "&quot;")
+             )
+
 def htmlize(text):
+    """Convert multiline text (of commit messages) to valid html snippet
+    suitable to show in revision message browser widget.
+    """
     text = htmlencode(text)
     text = _start_of_line_whitespace_re.sub(lambda m: "&nbsp;" * len(m.group()), text)
     text = text.replace("\n", '<br />')
@@ -75,7 +77,6 @@ def htmlize(text):
     text = _link1_re.sub('\\1<a href="\\2://\\3">\\2://\\3</a>', text)
     text = _link2_re.sub('\\1<a href="http://www.\\2.\\3\\4">www.\\2.\\3\\4</a>', text)
     return text
-
 
 def quote_tag(tag):
     if _tag_re.search(tag):
@@ -333,7 +334,6 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
     def __init__(self, log_list, parent=None):
         super(LogListRevisionMessageBrowser, self).__init__(parent)
         self.log_list = log_list
-        assert(isinstance(self.log_list, LogList))
 
         self.connect(self.log_list.selectionModel(),
                      QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),

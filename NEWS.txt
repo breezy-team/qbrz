@@ -1,17 +1,31 @@
-0.17 - in development
----------------------
+0.17 "Sapin de Noël" - 2009/12/12
+---------------------------------
 What's new in this release:
 
- * New encoding selector added to qdiff, qannotate and qcat. 
-   This selector allows change of the text encoding "on the fly".
- * Added new context menu action in qlog to tag a revision.
- * Added Czech translations.
- * Double click on file item in conflicts window opens merge tool.
+ * New encoding selector added to qdiff, qannotate, qcat and qviewer. 
+   This selector allows change of the text encoding "on the fly". See:
+   http://bazaarvcs.wordpress.com/2009/12/04/selecting-file-encoding-in-qbzr/
+ * qpush can auto-suggest push location for feature branches when master
+   branch hosted on remote server. In the case of Launchpad it suggests
+   location lp:~user/project/branch.
+ * Now it's possible to tag a revision while browsing history in qlog.
+ * Details on revision in qlog now have fancy dots for parent/children
+   revisions, dots have the same color as in main qlog graph.
+ * qcat/qviewer: show line numbers for text lines.
+ * qannotate: new feel & look, you can copy text from annotated view now.
+ * qrun now groups the commands into several categories (All, Core, 
+   and separate for each installed plugin)
+ * New translations added: Arabic, Czech, Danish, English (United Kingdom).
+ * And many other bugfixes as well.
 
 Changelog:
 
- * qannotate, qcat, qdiff:
-   * Added encoding selector. (INADA Naoki)
+ * New encoding selector added to qdiff, qannotate and qcat. This selector
+   allows change of the text encoding "on the fly". (INADA Naoki)
+ * qpush:
+   * When a push location is yet to be defined, qpush suggests a location for
+     feature branches when the master branch is hosted on Launchpad.
+     (Bug #487562, Ian Clatworthy)
  * qconflicts:
    * Double click on file item opens merge tool. (Eugene Tarasenko)
  * qdiff:
@@ -19,13 +33,49 @@ Changelog:
      when the current directory is not repository root. 
      (Bug #439084, Alexander Belchenko)
  * qlog:
-   * Added "tag revision" action to context menu. (Craig Hewetson)
+   * Added "tag revision" action to context menu. (Bug #442953, Craig Hewetson)
    * Robust handling of bogus --fixed properties. (Bug #436834, Craig Hewetson)
- * treewidget:
+   * The properties box in the message box now follow the theme, and hence are
+     now readable on dark themes. (Bug #407070, Gary van der Merwe)
+   * Parents and children in the message box are now show with a dot, of the
+     same color as thier dot in the graph. (Gary van der Merwe)
+ * qcat:
+   * Line numbers are now shown when viewing text files. (Gary van der Merwe)
+ * qannotate:
+   * It is now possible to select and copy text from qannotate. (Bug #251309,
+     Gary van der Merwe)
+   * Show all revisions that touch the file in the log list. (Bug #488824,
+     Gary van der Merwe)
+ * qrun:
+   * A category field has been added to make finding commands easier.
+     (#486968, Ian Clatworthy)
+   * The command name, command parameters and command category can be
+     passed on the command line. (Ian Clatworthy)
+ * qsubprocess:
+   * Catch possible errors from bencode decoder is we got malformed string
+     from child process. Show the error nicely. 
+     (Bug #484624, Alexander Belchenko)
+ * treewidget (used in qcommit, qadd, qrevert, and qbrowse):
    * Fixed compatibility with PyQt < 4.6. 
      (Bug #479093, Bug #478979, Gary van der Merwe)
    * Extended keyboard navigation: pressing Enter invokes default action
      for selected item. (Bug #483597, Alexander Belchenko)
+   * Fixed is_ignored() check (versioned file that matches ignore pattern
+     should not be called "ignored"). (Bug #487560, Alexander Belchenko)
+ * qrevert:
+   * Don't revert entire directory if only one file within it is selected.
+     (Bug #491212, Alexander Belchenko)
+ * qbranch:
+   * If a source URL is given on the command line, focus is set to
+     the To field.
+   * The To location is now intelligently set based on the source URL.
+     (#318214, Ian Clatworthy)
+ * qexport:
+   * Fixed NameError when invoked with directory location argument.
+     (Bug #491702, Alexander Belchenko)
+ * qconfig:
+   * Properly save data in empty qbzr.conf. (Bug #493634, Alexander Belchenko)
+ * New translations added: Arabic, Czech, Danish, English (United Kingdom).
 
 
 0.16 "Acacia" - 2009/11/9
