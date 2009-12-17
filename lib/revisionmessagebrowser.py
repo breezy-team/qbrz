@@ -26,6 +26,7 @@ from PyQt4 import QtCore, QtGui
 
 from bzrlib.revision import Revision, CURRENT_REVISION
 from bzrlib import (
+    errors,
     lazy_regex,
     osutils,
     urlutils,

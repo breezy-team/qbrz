@@ -22,6 +22,7 @@
 import os.path
 from PyQt4 import QtCore, QtGui
 
+from bzrlib import errors
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
 from bzrlib.plugins.qbzr.lib.commit_data import QBzrCommitData
