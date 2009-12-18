@@ -20,7 +20,6 @@
 from PyQt4 import QtCore, QtGui
 from bzrlib.branch import Branch
 from bzrlib import osutils
-from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.plugins.qbzr.lib.diff import (
     has_ext_diff,
@@ -34,13 +33,12 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     ThrobberWidget,
     StandardButton,
-    open_browser,
     url_for_display,
     runs_in_loading_queue,
     get_set_encoding,
     )
 from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
-from bzrlib.plugins.qbzr.lib.trace import *
+from bzrlib.plugins.qbzr.lib.trace import reports_exception, SUB_LOAD_METHOD
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow

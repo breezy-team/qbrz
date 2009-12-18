@@ -23,21 +23,18 @@ from PyQt4 import QtCore, QtGui
 
 
 from bzrlib import (
-    bugtracker,
     errors,
     osutils,
     )
-from bzrlib.workingtree import WorkingTree
 import bzrlib
 
 from bzrlib.plugins import qbzr
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
+from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.statuscache import StatusCache
 from bzrlib.plugins.qbzr.lib.ui_bookmark import Ui_BookmarkDialog
 from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     QBzrConfig,
-    QBzrGlobalConfig,
     open_browser,
     StandardButton,
     BTN_OK,
@@ -106,7 +103,6 @@ class DirectoryItem(SideBarItem):
             QtCore.QDir.Dirs |
             QtCore.QDir.Drives |
             QtCore.QDir.NoDotAndDotDot)
-        pathParts = osutils.splitpath(unicode(self.path))
         for fileInfo in fileInfoList:
             #print fileInfo.fileName(), sidebar.window.getDirectoryStatus(pathParts, unicode(fileInfo.fileName()))
             item = DirectoryItem(fileInfo, self, sidebar)
@@ -524,7 +520,7 @@ class QBzrMainWindow(QBzrWindow):
             basename = unicode(item.text(0))
             filepath = osutils.pathjoin(self.currentDirectory, basename)
             url = QtCore.QUrl(filepath)
-            result = QtGui.QDesktopServices.openUrl(url)
+            QtGui.QDesktopServices.openUrl(url)
 
     def refresh(self):
         if self.currentDirectory:
@@ -533,7 +529,6 @@ class QBzrMainWindow(QBzrWindow):
 
     def autoRefresh(self, path):
         try:
-            relpath = osutils.relpath(self.currentDirectory, path)
             self.setDirectory(self.currentDirectory)
         except errors.PathNotChild:
             pass

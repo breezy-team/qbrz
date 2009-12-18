@@ -52,7 +52,6 @@ def load_revisions(revids, repo,
     showed_throbber = False
     revids = [revid for revid in revids if not revid == "root:"]
     return_revisions = {}
-    org_revids = revids
     throbber = current_throbber()
     
     try:

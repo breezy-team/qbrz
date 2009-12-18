@@ -17,22 +17,17 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import os
 import re
-import sys
-import itertools
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.revision import Revision, CURRENT_REVISION
+from bzrlib.revision import CURRENT_REVISION
 from bzrlib import (
     errors,
     lazy_regex,
-    osutils,
-    urlutils,
     )
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
+from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext
 
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import load_revisions
 from bzrlib.plugins.qbzr.lib.util import (
@@ -43,14 +38,9 @@ from bzrlib.plugins.qbzr.lib.util import (
     open_browser,
     )
 
-from bzrlib.lazy_import import lazy_import
-lazy_import(globals(), '''
 from bzrlib import foreign
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib import logmodel
-from bzrlib.plugins.qbzr.lib.logwidget import LogList
-''')
-
 
 _email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)', re.IGNORECASE)
 _link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])', re.IGNORECASE)
@@ -90,9 +80,7 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
     
     def __init__(self, parent=None):
         super(RevisionMessageBrowser, self).__init__(parent)
-        _display_revids = []
-        _all_loaded_revs = {}
-
+        
         boxsize = self.fontMetrics().ascent()
         center = boxsize * 0.5
         dotsize = 0.7

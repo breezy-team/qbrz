@@ -29,7 +29,6 @@ from bzrlib.plugins.qbzr.lib.ui_push import Ui_PushForm
 from bzrlib.plugins.qbzr.lib.ui_merge import Ui_MergeForm
 from bzrlib.plugins.qbzr.lib.util import (
     iter_branch_related_locations,
-    iter_saved_pull_locations,
     save_pull_location,
     fill_pull_combo,
     fill_combo_with,

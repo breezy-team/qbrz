@@ -300,7 +300,7 @@ class ConflictsWindow(QBzrWindow):
             extmerge_tool.rindex('%t')
             flags = "%o"
             extmerge_tool.rindex('%o')
-        except ValueError, e:
+        except ValueError:
             if showErrorDialog:
                 QtGui.QMessageBox.critical(self, gettext("Error"),
                     gettext("The extmerge definition: '%(tool)s' is invalid.\n"

@@ -19,7 +19,7 @@
 
 from inspect import getdoc
 
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtGui
 
 from bzrlib import (
     _format_version_tuple,

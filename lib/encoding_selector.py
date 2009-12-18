@@ -20,10 +20,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import codecs
-import sys
 from PyQt4 import QtGui, QtCore
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
+from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import is_valid_encoding
 from bzrlib.osutils import get_user_encoding, get_terminal_encoding
 

@@ -19,8 +19,7 @@ from cgi import escape
 import codecs
 from cStringIO import StringIO
 
-from bzrlib import bzrdir, errors, trace, log
-from bzrlib.osutils import format_date
+from bzrlib import log
 
 
 def log_as_html(branch, rqst):

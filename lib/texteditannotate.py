@@ -34,7 +34,6 @@ class AnnotateBarBase(QtGui.QWidget):
             self.updateContents)
 
     def paintEvent(self, event):
-        font_metrics = self.fontMetrics()
         current_line = self.edit.document().findBlock(
             self.edit.textCursor().position()).blockNumber() + 1
 

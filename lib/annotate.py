@@ -35,9 +35,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     ThrobberWidget,
     get_apparent_author_name,
     get_set_encoding,
-    open_browser,
-    split_tokens_at_lines,
-    format_for_ttype,
     runs_in_loading_queue,
     )
 from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
@@ -425,7 +422,6 @@ class AnnotateWindow(QBzrWindow):
                 chunk_size = 500
                 
                 for start in xrange(0, len(revids), chunk_size):
-                    text_keys = []
                     gp.load_filter_file_id_chunk(repo, 
                             revids[start:start + chunk_size])
             gp.load_filter_file_id_chunk_finished()

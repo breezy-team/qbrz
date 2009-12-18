@@ -27,11 +27,8 @@ from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
                                                  get_text_color)
 from bzrlib.plugins.qbzr.lib.tag import TagWindow, CallBackTagWindow
 from bzrlib.plugins.qbzr.lib import logmodel
-from bzrlib.plugins.qbzr.lib.trace import *
-from bzrlib.plugins.qbzr.lib.util import (
-    runs_in_loading_queue,
-    )
 from bzrlib.plugins.qbzr.lib import diff
+from bzrlib.plugins.qbzr.lib.i18n import gettext
 
 
 class LogList(RevisionTreeView):

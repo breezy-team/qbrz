@@ -116,7 +116,7 @@ class QBzrExportDialog(SubProcessDialog):
                 exportdir_radio.setChecked(True)   
                 self.locationdir_edit.setFocus()
             else:
-                locationfil_edit.setText(osutils.abspath(dest))
+                self.locationdir_edit.setText(osutils.abspath(dest))
                 self.update_root_n_format()
                 exportarch_radio.setChecked(True)
                 self.locationfil_edit.setFocus()
@@ -256,7 +256,7 @@ class QBzrExportDialog(SubProcessDialog):
             pass
         else:
             try:
-                base_branch = basedir.open_branch()
+                basedir.open_branch()
             except errors.NotBranchError: #this is a shared repo. name "repo-dir"
                 base_sp = os.path.split(base[0])
                 if use_parent:

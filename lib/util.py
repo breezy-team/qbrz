@@ -19,13 +19,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os
-import re
 import sys
 import itertools
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.revision import Revision, CURRENT_REVISION
+from bzrlib.revision import Revision
 from bzrlib.config import (
     GlobalConfig,
     IniBasedConfig,
@@ -41,19 +40,13 @@ from bzrlib.util.configobj import configobj
 
 from bzrlib.plugins.qbzr.lib import trace
 from bzrlib.plugins.qbzr.lib import i18n
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
+from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 
 # pyflakes says this is not needed, but it is.
 import bzrlib.plugins.qbzr.lib.resources
 
-from bzrlib.lazy_import import lazy_import
-lazy_import(globals(), '''
 from bzrlib import errors
 from bzrlib.workingtree import WorkingTree
-from bzrlib import foreign
-''')
-
-
 
 # standard buttons with translatable labels
 BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP, BTN_REFRESH = range(5)

@@ -675,8 +675,6 @@ class SimpleDiffView(QtGui.QTextBrowser):
                 i0, i1, j0, j1 = group[0][1], group[-1][2], group[0][3], group[-1][4]
                 self.cursor.insertText("@@ -%d,%d +%d,%d @@\n" % (i0+1, i1-i0, j0+1, j1-j0), self.monospacedHunkFormat)
                 for tag, i0, i1, j0, j1 in group:
-                    ni = i1 - i0
-                    nj = j1 - j0
                     if tag == "equal":
                         text = "".join(" " + l for l in a[i0:i1])
                         self.cursor.insertText(text, self.monospacedFormat)

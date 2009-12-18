@@ -159,7 +159,6 @@ class RevertWindow(SubProcessDialog):
     @reports_exception() 
     def initial_load(self):
         self.filelist.tree_model.checkable = True 
-        fmodel = self.filelist.tree_filter_model 
         #fmodel.setFilter(fmodel.UNVERSIONED, False) 
         if self.initial_selected_list is None and not self.has_pending_merges:
             self.initial_selected_list = []

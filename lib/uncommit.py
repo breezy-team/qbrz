@@ -17,11 +17,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import os
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import bzrdir, errors, log, urlutils
-from bzrlib.revisionspec import RevisionInfo, RevisionSpec
+from bzrlib import bzrdir, errors, log
+from bzrlib.revisionspec import RevisionSpec
 
 from bzrlib.plugins.qbzr.lib.html_log import log_as_html
 from bzrlib.plugins.qbzr.lib.i18n import gettext

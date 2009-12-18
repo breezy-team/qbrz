@@ -452,7 +452,6 @@ class TreeModel(QtCore.QAbstractItemModel):
                         else:
                             name = path
                         if change and change.is_renamed():
-                            root_id = basis_tree.get_root_id()
                             old_inventory_item = basis_tree.inventory[change.fileid()]
                             old_names = [old_inventory_item.name]
                             while old_inventory_item.parent_id:
@@ -973,7 +972,6 @@ class TreeModel(QtCore.QAbstractItemModel):
         return QtCore.QVariant()
     
     def on_revisions_loaded(self, revisions, last_call):
-        inventory = self.tree.inventory
         for item_data in self.inventory_data:
             if item_data.id == 0:
                 continue
@@ -1017,7 +1015,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             def iter_parents():
                 path_split = ref.path.split("/")
                 parent_dir_path = None
-                for parent_name in ref.path.split("/")[:-1]:
+                for parent_name in path_split[:-1]:
                     if parent_dir_path is None:\
                         parent_dir_path = parent_name
                     else:
@@ -1518,7 +1516,6 @@ class TreeWidget(RevisionTreeView):
         else:
             drop_path, name = os.path.split(drop_item.path)
         paths = [item.path for item in self.get_selection_items()]
-        min_paths = minimum_path_selection(paths)
         try:
             self.tree.move(paths, drop_path)
         except Exception:
@@ -1716,7 +1713,7 @@ class TreeWidget(RevisionTreeView):
         """Open the file in the os specified editor."""
         
         if not isinstance(self.tree, WorkingTree):
-            raise RuntimeException("Tree must be a working tree to open a file.")
+            raise AttributeError("Tree must be a working tree to open a file.")
             
         items = self.get_selection_items([index])
         if not len(items) == 1:
@@ -1729,7 +1726,7 @@ class TreeWidget(RevisionTreeView):
         finally:
             self.tree.unlock()
         url = QtCore.QUrl.fromLocalFile(abspath)
-        result = QtGui.QDesktopServices.openUrl(url)
+        QtGui.QDesktopServices.openUrl(url)
 
     @ui_current_widget
     def show_file_log(self):
@@ -1847,13 +1844,13 @@ class TreeWidget(RevisionTreeView):
         args = ["extmerge"]
         args.extend(paths)
         desc = " ".join(args)
-        window = SimpleSubProcessDialog(gettext("External Merge"),
-                                         desc=desc,
-                                         args=args,
-                                         dir=self.tree.basedir,
-                                         parent=self,
-                                         auto_start_show_on_failed=True,
-                                         hide_progress=True,)
+        SimpleSubProcessDialog(gettext("External Merge"),
+                               desc=desc,
+                               args=args,
+                               dir=self.tree.basedir,
+                               parent=self,
+                               auto_start_show_on_failed=True,
+                               hide_progress=True,)
         # We don't refesh the tree, because it is very unlikley to have
         # changed.
 

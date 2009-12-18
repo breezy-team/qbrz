@@ -19,23 +19,20 @@
 
 import os
 
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtCore
 
-from bzrlib import errors, osutils, urlutils
+from bzrlib import osutils
 from bzrlib.commands import get_cmd_object
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_branch import Ui_BranchForm
 from bzrlib.plugins.qbzr.lib.util import (
     iter_saved_pull_locations,
     save_pull_location,
-    fill_pull_combo,
     fill_combo_with,
     hookup_directory_picker,
     DIRECTORYPICKER_SOURCE,
     DIRECTORYPICKER_TARGET,
-    url_for_display,
     )
 
 

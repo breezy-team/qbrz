@@ -23,7 +23,7 @@
 
 import os
 import re
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtCore
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_new_tree import Ui_NewWorkingTreeForm
 from bzrlib.plugins.qbzr.lib.util import (

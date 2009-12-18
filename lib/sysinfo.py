@@ -17,9 +17,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import os
-from PyQt4 import QtCore, QtGui
-
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.sysinfo_data import get_sys_info
 from bzrlib.plugins.qbzr.lib.ui_sysinfo import Ui_MainWindow

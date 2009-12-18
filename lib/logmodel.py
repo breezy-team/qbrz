@@ -20,9 +20,6 @@
 from PyQt4 import QtCore, QtGui
 from time import (strftime, localtime)
 
-from bzrlib import lazy_regex
-from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
-
 from bzrlib.plugins.qbzr.lib.bugs import get_bug_id
 from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions

@@ -21,8 +21,6 @@
 of a branch.
 """
 
-from PyQt4 import QtGui
-
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
 

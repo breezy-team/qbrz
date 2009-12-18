@@ -28,7 +28,6 @@ from bzrlib.tsort import merge_sort
 from bzrlib.graph import (Graph, StackedParentsProvider)
     
 from bzrlib.bzrdir import BzrDir
-from bzrlib.inventory import Inventory
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
                                                          cached_revisions)
@@ -126,6 +125,8 @@ class RevisionInfo(object):
     def __repr__(self):
         return "%s <%s %s>" % (self.__class__.__name__, self.revno_str,
                               self.revid)
+
+paths_and_branches_err = "It is not possible to specify different file paths and different branches at the same time."
 
 class BranchLine(object):
     __slots__ = ["branch_id", "revs", "visible", "merges", "merged_by",
@@ -277,8 +278,6 @@ class LogGraphProvider(object):
         of locations strings, inputed by the user (such as at the command line.)
         
         """
-        paths_and_branches_err = "It is not possible to specify different file paths and different branches at the same time."
-        
         for location in locations:
             tree, br, repo, fp = \
                     BzrDir.open_containing_tree_branch_or_repository(location)
@@ -803,7 +802,6 @@ class LogGraphProvider(object):
                     chunk_size = 500
                 
                 for start in xrange(0, len(revids), chunk_size):
-                    text_keys = []
                     self.load_filter_file_id_chunk(repo, 
                             revids[start:start + chunk_size])
             
@@ -1323,7 +1321,6 @@ class LogGraphProvider(object):
                     parent_col_index = max(parent_col_index, 1)
                 
                 col_search_order = branch_line_col_search_order(parent_col_index) 
-                cur_cont_line = []
                 
                 if last_parent:
                     col_index = find_free_column(col_search_order,
@@ -1455,7 +1452,6 @@ class LogGraphProvider(object):
                         parent_branch_id in processed_branch_ids):
                         continue
                     
-                    collapse_parent = False
                     if parent.expanded_by == branch_id:
                         branch_ids.append((parent_branch_id, branch_id))
                     else:

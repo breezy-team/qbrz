@@ -57,4 +57,4 @@ class DummySpellChecker(object):
 try:
     from bzrlib.plugins.qbzr.lib.spellcheck_enchant import EnchantSpellChecker as SpellChecker
 except ImportError:
-    SpellChecker = DummySpellChecker
+    SpellChecker = DummySpellChecker 

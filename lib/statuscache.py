@@ -83,7 +83,7 @@ class StatusCache(QtCore.QObject):
             #if not QtCore.QDir(p).exists('.bzr'):
             #    raise errors.NotBranchError(p)
             wt, relpath = workingtree.WorkingTree.open_containing(p)
-        except errors.BzrError, e:
+        except errors.BzrError:
             self.fileSystemWatcher.addPath(p)
             return self._cacheStatus(path, 'non-versioned')
         self.fileSystemWatcher.addPath(wt.basedir)

@@ -45,12 +45,10 @@ from bzrlib.plugins.qbzr.lib.util import (
 
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.plugins.qbzr.lib import logmodel
-from bzrlib.plugins.qbzr.lib.trace import *
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.treewidget import (
     TreeWidget,
     SelectAllCheckBox,
-    PersistantItemReference,
     )
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.revisionview import RevisionView
@@ -309,8 +307,7 @@ class CommitWindow(SubProcessDialog):
         self.message.setCompleter(self.completer)
         self.message.setAcceptRichText(False)
 
-        spell_highlighter = SpellCheckHighlighter(self.message.document(),
-                                                  spell_checker)
+        SpellCheckHighlighter(self.message.document(), spell_checker)
 
         grid.addWidget(self.message, 0, 0, 1, 2)
 

@@ -18,7 +18,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import sys
 from bzrlib import errors
 from bzrlib.commands import Command
 from bzrlib.option import Option
@@ -26,6 +25,8 @@ import bzrlib.builtins
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
+import sys
+
 from PyQt4 import QtGui
 
 from bzrlib import (
