@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os, sys
+import posixpath  # to use '/' path sep in path.join().
 from time import (strftime, localtime)
 from PyQt4 import QtCore, QtGui
 from bzrlib import errors
@@ -819,7 +820,9 @@ class TreeModel(QtCore.QAbstractItemModel):
             value = unicode(value.toString())
             item_data = self.inventory_data[index.internalId()]
             parent = self.inventory_data[item_data.parent_id]
-            new_path = os.path.join(parent.path, value)
+            new_path = posixpath.join(parent.path, value)
+            if item_data.path == new_path:
+                return False
             try:
                 if item_data.item.file_id:
                     # Versioned file
@@ -869,8 +872,11 @@ class TreeModel(QtCore.QAbstractItemModel):
             if role == QtCore.Qt.DisplayRole:
                 return QtCore.QVariant(item.name)
             if role == QtCore.Qt.EditRole:
-                parent = self.inventory_data[item_data.parent_id]
-                return QtCore.QVariant(item_data.path[len(parent.path):])
+                path = item_data.path
+                if item_data.parent_id:
+                    parent = self.inventory_data[item_data.parent_id]
+                    path = path[len(parent.path)+1:]
+                return QtCore.QVariant(path)
             if role == QtCore.Qt.DecorationRole:
                 if item_data.icon is None:
                     if item_data.change and not item_data.change.is_on_disk():
@@ -944,12 +950,12 @@ class TreeModel(QtCore.QAbstractItemModel):
         return QtCore.QVariant()
     
     def flags(self, index):
-        #if not index.isValid():
-        #    return QtCore.Qt.ItemIsEnabled
+        if not index.isValid():
+            return 0
         
         flags = (QtCore.Qt.ItemIsEnabled |
                  QtCore.Qt.ItemIsSelectable)
-        
+
         if isinstance(self.tree, WorkingTree):
             flags = flags | QtCore.Qt.ItemIsDragEnabled
         
@@ -957,7 +963,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             flags = flags | QtCore.Qt.ItemIsEditable
             if self.checkable:
                 flags = flags | QtCore.Qt.ItemIsUserCheckable
-        
+
         id = index.internalId()
         if id < len(self.inventory_data):
             item_data = self.inventory_data[index.internalId()]
@@ -1216,10 +1222,11 @@ class TreeWidget(RevisionTreeView):
 
     def __init__(self, *args):
         RevisionTreeView.__init__(self, *args)
-        
+
         self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.setUniformRowHeights(True)
-        self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.setEditTriggers(QtGui.QAbstractItemView.SelectedClicked |
+                             QtGui.QAbstractItemView.EditKeyPressed)
         self.viewport().setAcceptDrops(True)
         self.setDropIndicatorShown(True)
         self.setDragDropMode(QtGui.QAbstractItemView.InternalMove);
@@ -1897,7 +1904,7 @@ class TreeWidget(RevisionTreeView):
         """Rename the selected file."""
         
         indexes = self.get_selection_indexes()
-        if len(indexes) <> 1:
+        if len(indexes) != 1:
             return
         index = indexes[0]
         index = self.tree_filter_model.mapFromSource (index)
