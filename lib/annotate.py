@@ -36,6 +36,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_apparent_author_name,
     get_set_encoding,
     runs_in_loading_queue,
+    get_icon,
+    FindToolbar,
     )
 from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
@@ -272,16 +274,44 @@ class AnnotateWindow(QBzrWindow):
         splitter.setStretchFactor(0, 5)
         splitter.setStretchFactor(1, 2)
 
-        buttonbox = self.create_button_box(BTN_CLOSE)
-
         vbox = QtGui.QVBoxLayout(self.centralwidget)
-        vbox.addWidget(self.throbber)
+        #vbox.addWidget(self.toolbar)
         vbox.addWidget(splitter)
-        hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(self.encoding_selector)
-        hbox.addWidget(buttonbox)
-        vbox.addLayout(hbox)
         self.text_edit.setFocus()
+
+        self.show_find = QtGui.QAction(get_icon("edit-find"), gettext("Find"), self)
+        self.show_find.setShortcuts(QtGui.QKeySequence.Find)
+        self.show_find.setCheckable(True)
+        
+        self.show_goto_line = QtGui.QAction(get_icon("go-jump"), gettext("Goto Line"), self)
+        self.show_goto_line.setShortcuts((QtCore.Qt.CTRL + QtCore.Qt.Key_G,))
+        self.show_goto_line.setCheckable(True)
+        
+        toolbar = self.addToolBar(gettext("Annotate"))
+        toolbar.setMovable (False)
+        toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        
+        #self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        toolbar.addAction(self.show_find)
+        toolbar.addAction(self.show_goto_line)
+        
+        spacer = QtGui.QWidget()
+        spacer.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        toolbar.addWidget(spacer) 
+        toolbar.addWidget(self.throbber)
+        
+        self.addToolBarBreak()
+        
+        self.find_toolbar = FindToolbar(self, self.text_edit, self.show_find)
+        self.find_toolbar.hide()
+        self.addToolBar(self.find_toolbar)
+        self.connect(self.show_find,
+                     QtCore.SIGNAL("toggled (bool)"),
+                     self.show_find_toggle)
+        
+        self.connect(self.show_goto_line,
+                     QtCore.SIGNAL("toggled (bool)"),
+                     self.show_goto_line_toggle )
 
     def show(self):
         QBzrWindow.show(self)
@@ -497,3 +527,13 @@ class AnnotateWindow(QBzrWindow):
         revids = self.log_list.get_selection_and_merged_revids()
         self.annotate_bar.highlight_revids = revids
         self.annotate_bar.update()
+    
+    def show_find_toggle(self, state):
+        if state:
+            self.show_goto_line.setChecked(False)
+
+    def show_goto_line_toggle(self, state):
+        #self.goto_line_toolbar.setVisible(state)
+        if state:
+            #self.goto_line_toolbar.line_text.setFocus()
+            self.show_find.setChecked(False)
