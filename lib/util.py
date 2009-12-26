@@ -1017,8 +1017,8 @@ class FindToolbar(QtGui.QToolBar):
         close_find.setIcon(self.style().standardIcon(
                                         QtGui.QStyle.SP_DialogCloseButton))
         self.addAction(close_find)
-        close_find.setShortcut(QtGui.QKeySequence.Close)
-        close_find.setShortcutContext(QtCore.Qt.WidgetShortcut)
+        close_find.setShortcut((QtCore.Qt.Key_Escape))
+        close_find.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         close_find.setStatusTip(gettext("Close find"))
         self.connect(self.show_action,
                      QtCore.SIGNAL("toggled (bool)"),
