@@ -1046,6 +1046,8 @@ class FindToolbar(QtGui.QToolBar):
         self.setVisible(state)
         if state:
             self.find_text.setFocus()
+        else:
+            self.find_text.setText('')
     
     def close_triggered(self, state):
         self.show_action.setChecked(False)

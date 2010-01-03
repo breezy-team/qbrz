@@ -309,6 +309,10 @@ class AnnotateWindow(QBzrWindow):
                      QtCore.SIGNAL("toggled (bool)"),
                      self.show_find_toggle)
         
+        self.goto_line_toolbar = GotoLineToolbar(self, self.show_goto_line)
+        self.goto_line_toolbar.hide()
+        self.addToolBar(self.goto_line_toolbar)
+        
         self.connect(self.show_goto_line,
                      QtCore.SIGNAL("toggled (bool)"),
                      self.show_goto_line_toggle )
@@ -533,7 +537,63 @@ class AnnotateWindow(QBzrWindow):
             self.show_goto_line.setChecked(False)
 
     def show_goto_line_toggle(self, state):
-        #self.goto_line_toolbar.setVisible(state)
+        self.goto_line_toolbar.setVisible(state)
         if state:
-            #self.goto_line_toolbar.line_text.setFocus()
+            self.goto_line_toolbar.line_edit.setFocus()
             self.show_find.setChecked(False)
+        else:
+            self.goto_line_toolbar.line_edit.setText('')
+
+class GotoLineToolbar(QtGui.QToolBar):
+    
+    def __init__(self, anotate_window, show_action):
+        QtGui.QToolBar.__init__(self, gettext("Goto Line"), anotate_window)
+        self.anotate_window = anotate_window
+        if 0: self.anotate_window = AnnotateWindow()
+        self.show_action = show_action
+        
+        self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self.setMovable (False)
+        
+        label = QtGui.QLabel(gettext("Goto Line: "), self)
+        self.addWidget(label)
+        
+        self.line_edit = QtGui.QLineEdit(self)
+        self.line_edit.setValidator(
+            QtGui.QIntValidator(1, sys.maxint, self.line_edit))
+        self.addWidget(self.line_edit)
+        label.setBuddy(self.line_edit)
+        
+        go = self.addAction(get_icon("go-next"), gettext("Go"))
+        go.setShortcut((QtCore.Qt.Key_Enter))
+        go.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
+        
+        spacer = QtGui.QWidget()
+        spacer.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        self.addWidget(spacer)
+        
+        close = QtGui.QAction(self)
+        close.setIcon(self.style().standardIcon(
+                                        QtGui.QStyle.SP_DialogCloseButton))
+        self.addAction(close)
+        close.setShortcut((QtCore.Qt.Key_Escape))
+        close.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
+        close.setStatusTip(gettext("Close Goto Line"))
+        self.connect(close,
+                     QtCore.SIGNAL("triggered(bool)"),
+                     self.close_triggered)
+        self.connect(go,
+                     QtCore.SIGNAL("triggered(bool)"),
+                     self.go_triggered)
+    
+    def close_triggered(self, state):
+        self.show_action.setChecked(False)
+    
+    def go_triggered(self, state):
+        line = int(str(self.line_edit.text()))-1
+        doc = self.anotate_window.text_edit.document()
+        cursor = QtGui.QTextCursor(doc)
+        cursor.setPosition(doc.findBlockByNumber(line).position())
+        self.anotate_window.text_edit.setTextCursor(cursor)
+        
+        self.show_action.setChecked(False)
