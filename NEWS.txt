@@ -1,3 +1,10 @@
+0.18 "Pine-needles" - YYYY-MM-DD
+--------------------------------
+
+ * Flush clipboard on exit, so data copied there is available after closing of
+   q-window. (Bug #503401)
+
+
 0.17 "Sapin de Noël" - 2009/12/12
 ---------------------------------
 What's new in this release:

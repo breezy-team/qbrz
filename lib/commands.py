@@ -27,7 +27,7 @@ from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 import sys
 
-from PyQt4 import QtGui
+from PyQt4 import QtCore, QtGui
 
 from bzrlib import (
     builtins,
@@ -160,14 +160,20 @@ class QBzrCommand(Command):
         sys.excepthook = excepthook
         
         try:
-            ret_code = self._qbzr_run(*args, **kwargs)
+            try:
+                ret_code = self._qbzr_run(*args, **kwargs)
+            finally:
+                # ensure we flush clipboard data (see bug #503401)
+                clipboard = self._application.clipboard()
+                clipEvent = QtCore.QEvent(QtCore.QEvent.Clipboard)
+                self._application.sendEvent(clipboard, clipEvent)
             if ret_code is None:
                 main_window = getattr(self, "main_window", None)
                 if main_window is not None:
                     ret_code = getattr(main_window, "return_code", None)
             return ret_code
         except Exception:
-            ui_mode = ("ui_mode" in kwargs and kwargs["ui_mode"])
+            ui_mode = kwargs.get("ui_mode", False)
             from bzrlib.plugins.qbzr.lib.trace import report_exception
             return report_exception(ui_mode=ui_mode)
 
