@@ -225,6 +225,7 @@ class AnnotateWindow(QBzrWindow):
         self.text_edit.setTextInteractionFlags(
             QtCore.Qt.TextSelectableByMouse|
             QtCore.Qt.TextSelectableByKeyboard)
+        self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
         
         self.text_edit.document().setDefaultFont(
             QtGui.QFont("Courier New,courier", 
@@ -287,6 +288,22 @@ class AnnotateWindow(QBzrWindow):
         self.show_goto_line.setShortcuts((QtCore.Qt.CTRL + QtCore.Qt.Key_G,))
         self.show_goto_line.setCheckable(True)
         
+        show_view_menu = QtGui.QAction(get_icon("document-properties"), gettext("&View Options"), self)
+        view_menu = QtGui.QMenu(gettext('View Options'), self)
+        show_view_menu.setMenu(view_menu)
+        
+        encoding_action = QtGui.QWidgetAction(view_menu)
+        encoding_action.setDefaultWidget(self.encoding_selector)
+        
+        word_wrap = QtGui.QAction(gettext("Word Wrap"), self)
+        word_wrap.setCheckable(True)
+        self.connect(word_wrap,
+                     QtCore.SIGNAL("toggled (bool)"),
+                     self.word_wrap_toggle)
+        
+        view_menu.addAction(encoding_action)
+        view_menu.addAction(word_wrap)
+        
         toolbar = self.addToolBar(gettext("Annotate"))
         toolbar.setMovable (False)
         toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
@@ -294,6 +311,8 @@ class AnnotateWindow(QBzrWindow):
         #self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
         toolbar.addAction(self.show_find)
         toolbar.addAction(self.show_goto_line)
+        toolbar.addAction(show_view_menu)
+        toolbar.widgetForAction(show_view_menu).setPopupMode(QtGui.QToolButton.InstantPopup)
         
         spacer = QtGui.QWidget()
         spacer.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
@@ -543,6 +562,12 @@ class AnnotateWindow(QBzrWindow):
             self.show_find.setChecked(False)
         else:
             self.goto_line_toolbar.line_edit.setText('')
+    
+    def word_wrap_toggle(self, state):
+        if state:
+            self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.WidgetWidth)
+        else:
+            self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
 
 class GotoLineToolbar(QtGui.QToolBar):
     
@@ -597,3 +622,4 @@ class GotoLineToolbar(QtGui.QToolBar):
         self.anotate_window.text_edit.setTextCursor(cursor)
         
         self.show_action.setChecked(False)
+
