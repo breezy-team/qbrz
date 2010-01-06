@@ -1,6 +1,7 @@
 0.18 "Pine-needles" - YYYY-MM-DD
 --------------------------------
 
+ * Fixed problems with rename items in subdirectory. (Bug #495519, INADA Naoki)
  * Flush clipboard on exit, so data copied there is available after closing of
    q-window. (Bug #503401)
 
