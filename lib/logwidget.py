@@ -196,22 +196,25 @@ class LogList(RevisionTreeView):
         try:
             self.graph_provider.load_tags()
             self.log_model.load_graph_all_revisions()
-            
-            # Resize the rev no col.
-            main_line_digets = len("%d" % self.graph_provider.max_mainline_revno)
-            main_line_digets = max(main_line_digets, 4)
-            self.rev_no_item_delegate.max_mainline_digits = main_line_digets
-            header = self.header()
-            fm = self.fontMetrics()
-            col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
-                                                   None, self) + 1) *2
-            header.resizeSection(logmodel.COL_REV,
-                                 fm.width(("8"*main_line_digets)+".8.888") + col_margin)
+            self._adjust_revno_column()
         finally:
             self.graph_provider.unlock_branches()
         
         # Start later so that it does not run in the loading queue.
         QtCore.QTimer.singleShot(1, self.graph_provider.load_filter_file_id)
+
+    def _adjust_revno_column(self):
+        # update the data
+        mainline_digits = len("%d" % self.graph_provider.max_mainline_revno)
+        max_mainline_digits = max(mainline_digits, 4)
+        self.rev_no_item_delegate.max_mainline_digits = max_mainline_digits
+        # resize the column
+        header = self.header()
+        fm = self.fontMetrics()
+        col_margin = (self.style().pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
+                                               None, self) + 1) *2
+        header.resizeSection(logmodel.COL_REV,
+            fm.width(("8"*max_mainline_digits)+".8.888") + col_margin)
 
     def refresh_tags(self):
         self.graph_provider.lock_read_branches()

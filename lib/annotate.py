@@ -242,10 +242,8 @@ class AnnotateWindow(QBzrWindow):
                      QtCore.SIGNAL("cursorPositionChanged()"),
                      self.edit_cursorPositionChanged)        
         
-        self.log_list = LogList(self.processEvents, self.throbber, no_graph, self)
-        self.log_list.load = self.log_list_load
+        self.log_list = AnnotateLogList(self.processEvents, self.throbber, no_graph, self)
         self.log_list.header().hideSection(COL_DATE)
-        #self.log_list.header().hideSection(COL_AUTHOR)
         self.log_branch_loaded = False
         
         self.connect(self.log_list.selectionModel(),
@@ -315,16 +313,6 @@ class AnnotateWindow(QBzrWindow):
         finally:
             self.throbber.hide()
     
-    def log_list_load(self):
-        gp = self.log_list.graph_provider
-        gp.lock_read_branches()
-        try:
-            gp.load_tags()
-            self.log_list.log_model.load_graph(
-                gp.load_graph_all_revisions_for_annotate)
-        finally:
-            gp.unlock_branches()
-    
     def set_annotate_title(self):
         # and update the title to show we are done.
         if isinstance(self.tree, RevisionTree):
@@ -366,7 +354,8 @@ class AnnotateWindow(QBzrWindow):
             annotate.append((revid, is_top))
             if len(annotate) % 100 == 0:
                 self.processEvents()
-        
+        annotate.append((None, False))  # because the view has one more line
+
         self.text_edit.setPlainText("".join(lines))
         self.annotate_bar.adjustWidth(len(lines), 999)
         self.annotate_bar.annotate = annotate
@@ -497,3 +486,16 @@ class AnnotateWindow(QBzrWindow):
         revids = self.log_list.get_selection_and_merged_revids()
         self.annotate_bar.highlight_revids = revids
         self.annotate_bar.update()
+
+
+class AnnotateLogList(LogList):
+
+    def load(self):
+        self.graph_provider.lock_read_branches()
+        try:
+            self.graph_provider.load_tags()
+            self.log_model.load_graph(
+                self.graph_provider.load_graph_all_revisions_for_annotate)
+            self._adjust_revno_column()
+        finally:
+            self.graph_provider.unlock_branches()

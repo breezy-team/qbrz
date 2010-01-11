@@ -177,8 +177,8 @@ def get_text_color ( option, style):
 
 class RevNoItemDelegate(QtGui.QStyledItemDelegate):
 
-    def __init__ (self, max_mainline_digits = 4, parent = None):    
-        QtGui.QItemDelegate.__init__ (self, parent)
+    def __init__ (self, max_mainline_digits=4, parent=None):
+        QtGui.QItemDelegate.__init__(self, parent)
         self.max_mainline_digits = max_mainline_digits
     
     def paint(self, painter, option, index):
