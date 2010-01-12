@@ -150,13 +150,11 @@ class BrowseWindow(QBzrWindow):
                 self.set_revision(revision_id=self.revision_id, text=self.revision_spec)
             else:
                 self.set_revision(self.revision)
-            
+
             self.processEvents()
-            
         finally:
             self.throbber.hide()
 
-    
     @ui_current_widget
     def set_revision(self, revspec=None, revision_id=None, text=None):
         self.throbber.show()

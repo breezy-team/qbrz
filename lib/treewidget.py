@@ -1240,10 +1240,12 @@ class TreeWidget(RevisionTreeView):
         self.setModel(self.tree_filter_model)
         #self.setModel(self.tree_model)
         
+        self.revno_item_delegate = RevNoItemDelegate(parent=self)
+
         self.set_header_width_settings()
 
         self.setItemDelegateForColumn(self.tree_model.REVNO,
-                                      RevNoItemDelegate(parent=self))
+                                      self.revno_item_delegate)
 
         self.create_context_menu()
         
@@ -1266,7 +1268,7 @@ class TreeWidget(RevisionTreeView):
                                                None, self) + 1) *2
         
         header.resizeSection(self.tree_model.REVNO,
-                             fm.width("8888.8.888") + col_margin)
+            fm.width("8"*self.revno_item_delegate.max_mainline_digits + ".8.888") + col_margin)
         header.resizeSection(self.tree_model.DATE,
                              fm.width("88-88-8888 88:88") + col_margin)
         header.resizeSection(self.tree_model.AUTHOR,
@@ -1335,14 +1337,16 @@ class TreeWidget(RevisionTreeView):
         self.changes_mode = changes_mode
         self.want_unversioned = want_unversioned
         self.change_load_filter = change_load_filter
-        
-        if str(QtCore.QT_VERSION_STR).startswith("4.4"):
-            # 4.4.x have a bug where if you do a layoutChanged when using
-            # a QSortFilterProxyModel, it loses all header width settings.
-            # So if you are using 4.4, we have to reset the width settings
-            # after every time we do a layout changed. The issue is similar to 
-            # http://www.qtsoftware.com/developer/task-tracker/index_html?method=entry&id=236755
-            self.set_header_width_settings()
+
+        if branch:
+            branch.lock_read()
+            try:
+                last_revno = branch.last_revision_info()[0]
+            finally:
+                branch.unlock()
+            self.revno_item_delegate.set_max_revno(last_revno)
+        # update width uncoditionally because we may change the revno column
+        self.set_header_width_settings()
         self.set_visible_headers()
         QtCore.QCoreApplication.processEvents()
         

@@ -4,6 +4,9 @@
  * Fixed problems with rename items in subdirectory. (Bug #495519, INADA Naoki)
  * Flush clipboard on exit, so data copied there is available after closing of
    q-window. (Bug #503401)
+ * Fixed problem with insufficient width of revno column in qannotate and
+   qbrowse (for revision tree) if revno bigger than 9999. 
+   (Bug #505990, Alexander Belchenko)
 
 
 0.17 "Sapin de Noël" - 2009/12/12

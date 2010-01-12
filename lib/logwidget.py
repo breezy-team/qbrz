@@ -205,9 +205,8 @@ class LogList(RevisionTreeView):
 
     def _adjust_revno_column(self):
         # update the data
-        mainline_digits = len("%d" % self.graph_provider.max_mainline_revno)
-        max_mainline_digits = max(mainline_digits, 4)
-        self.rev_no_item_delegate.max_mainline_digits = max_mainline_digits
+        max_mainline_digits = self.rev_no_item_delegate.set_max_revno(
+            self.graph_provider.max_mainline_revno)
         # resize the column
         header = self.header()
         fm = self.fontMetrics()

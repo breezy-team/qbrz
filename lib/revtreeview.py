@@ -204,6 +204,14 @@ class RevNoItemDelegate(QtGui.QStyledItemDelegate):
         
         painter.restore()
 
+    def set_max_revno(self, revno):
+        """Update max_mainline_digits based on max revno.
+        Return the new value of max_mainline_digits to caller.
+        """
+        mainline_digits = len("%d" % revno)
+        self.max_mainline_digits = max(mainline_digits, 4)
+        return self.max_mainline_digits
+
 
 def paint_revno(painter, rect, revno, max_mainline_digits):
     splitpoint = revno.indexOf(".")
