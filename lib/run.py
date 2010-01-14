@@ -38,7 +38,7 @@ from bzrlib.plugins.qbzr.lib.util import hookup_directory_picker
 class QBzrRunDialog(SubProcessDialog):
 
     def __init__(self, command=None, parameters=None, workdir=None,
-        category=None, ui_mode=False, parent=None):
+        category=None, ui_mode=False, parent=None, execute=False):
         """Build dialog.
 
         @param command: initial command selection.
@@ -47,6 +47,7 @@ class QBzrRunDialog(SubProcessDialog):
         @param category: initial category selection.
         @param ui_mode: wait after the operation is complete.
         @param parent:  parent window.
+        @param execute: True => run command immediately
         """
         super(QBzrRunDialog, self).__init__(name="run", ui_mode=ui_mode,
             dialog=True, parent=parent)
@@ -105,10 +106,52 @@ class QBzrRunDialog(SubProcessDialog):
             if index >= 0:
                 cb.setCurrentIndex(index)
         # ready to go
-        if command:
-            self.ui.opt_arg_edit.setFocus()
+        if execute:
+            
+            # hide user edit fields
+            self.ui.frame.hide()
+            self.ui.help_browser.hide()
+            
+            # create edit button
+            self._editButton = QtGui.QPushButton(gettext('&Edit'))
+            QtCore.QObject.connect(self._editButton,
+                QtCore.SIGNAL("clicked()"),
+                self.enable_command_edit)
+
+            # cause edit button to be shown if command fails
+            QtCore.QObject.connect(self,
+                                   QtCore.SIGNAL("subprocessFailed(bool)"),
+                                   self._editButton,
+                                   QtCore.SLOT("setHidden(bool)"))
+            
+            # add edit button to dialog buttons     
+            self.buttonbox.addButton(self._editButton,
+                QtGui.QDialogButtonBox.ResetRole)
+            
+            # setup initial dialog button status
+            self.init_button_status()
+            self._okButton.setHidden(True)
+            self._editButton.setHidden(True)
+            
+            # run command
+            self.do_start()
+            
         else:
-            self.ui.cmd_combobox.setFocus()
+            if command:
+                self.ui.opt_arg_edit.setFocus()
+            else:
+                self.ui.cmd_combobox.setFocus()
+
+    def enable_command_edit(self):
+        """Hide Edit button and make user edit fields visible"""
+        self._editButton.setHidden(True)
+        QtCore.QObject.disconnect(self,
+                                  QtCore.SIGNAL("subprocessFailed(bool)"),
+                                  self._editButton,
+                                  QtCore.SLOT("setHidden(bool)"))
+        
+        self.ui.frame.show()
+        self.ui.help_browser.show()
 
     def set_default_help(self):
         """Set default text in help widget."""
