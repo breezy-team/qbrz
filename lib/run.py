@@ -256,7 +256,9 @@ class QBzrRunDialog(SubProcessDialog):
         """Launch command."""
         cwd = self._get_cwd()
         args = [self._get_cmd_name()]
-        cmd_utf8 = unicode(self.ui.opt_arg_edit.text()).encode('utf-8')
+        opt_arg = self.ui.opt_arg_edit.text()
+        opt_arg = opt_arg.replace('\\','\\\\')
+        cmd_utf8 = unicode(opt_arg).encode('utf-8')
         args.extend([unicode(p,'utf8') for p in shlex.split(cmd_utf8)])
         self.process_widget.do_start(cwd, *args)
 
