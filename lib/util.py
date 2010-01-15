@@ -19,6 +19,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os
+import shlex
 import sys
 import itertools
 
@@ -979,3 +980,20 @@ def launchpad_project_from_url(url):
         if len(parts) == 3 and parts[0].startswith('~'):
             return parts[1]
     return None
+
+
+def _shlex_split_unicode_linux(unicode_string):
+    """Split unicode string to list of unicode arguments."""
+    return [unicode(p,'utf8') for p in shlex.split(unicode_string.encode('utf-8'))]
+
+def _shlex_split_unicode_windows(unicode_string):
+    """Split unicode string to list of unicode arguments.
+    Take care about backslashes as valid path separators.
+    """
+    utf8_string = unicode_string.replace('\\', '\\\\').encode('utf-8')
+    return [unicode(p,'utf8') for p in shlex.split(utf8_string)]
+
+if MS_WINDOWS:
+    shlex_split_unicode = _shlex_split_unicode_windows
+else:
+    shlex_split_unicode = _shlex_split_unicode_linux
