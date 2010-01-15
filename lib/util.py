@@ -38,8 +38,8 @@ from bzrlib import (
     )
 from bzrlib.util.configobj import configobj
 
+from bzrlib.plugins.qbzr.lib import MS_WINDOWS
 from bzrlib.plugins.qbzr.lib import trace
-from bzrlib.plugins.qbzr.lib import i18n
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 
 # pyflakes says this is not needed, but it is.
@@ -605,13 +605,13 @@ class FilterOptions(object):
     def to_str(self):
         s = []
         if self.deleted:
-            s.append(i18n.gettext('deleted files'))
+            s.append(gettext('deleted files'))
         if self.added:
-            s.append(i18n.gettext('added files'))
+            s.append(gettext('added files'))
         if self.renamed:
-            s.append(i18n.gettext('renamed files'))
+            s.append(gettext('renamed files'))
         if self.modified:
-            s.append(i18n.gettext('modified files'))
+            s.append(gettext('modified files'))
         return ', '.join(s)
 
     def check(self, status):
