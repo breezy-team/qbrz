@@ -951,7 +951,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def flags(self, index):
         if not index.isValid():
-            return 0
+            return QtCore.Qt.NoItemFlags
         
         flags = (QtCore.Qt.ItemIsEnabled |
                  QtCore.Qt.ItemIsSelectable)
