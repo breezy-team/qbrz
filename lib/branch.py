@@ -40,8 +40,8 @@ class QBzrBranchWindow(SubProcessDialog):
 
     NAME = "branch"
 
-    def __init__(self, from_location, to_location=None,
-                 revision=None, parent_dir=None, ui_mode=True, parent=None):
+    def __init__(self, from_location, to_location=None, revision=None,
+            bind=False, parent_dir=None, ui_mode=True, parent=None):
         super(QBzrBranchWindow, self).__init__(name = self.NAME,
                                              ui_mode = ui_mode,
                                              parent = parent)
@@ -74,6 +74,8 @@ class QBzrBranchWindow(SubProcessDialog):
             self.ui.from_location.setEditText(from_location)
         if to_location:
             self.ui.to_location.setEditText(to_location)
+        if bind:
+            self.ui.bind.setChecked(True)
         if revision:
             self.ui.revision.setText(revision)
 
