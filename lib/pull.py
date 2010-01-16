@@ -17,6 +17,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import os
+
 from PyQt4 import QtCore, QtGui
 
 from bzrlib import errors, urlutils
@@ -56,7 +58,7 @@ class QBzrPullWindow(SubProcessDialog):
         for w in self.make_default_layout_widgets():
             self.layout().addWidget(w)
 
-        fill_pull_combo(self.ui.location, self.branch)
+        self.default_location = fill_pull_combo(self.ui.location, self.branch)
         if location:
             self.ui.location.setEditText(location)
         else:
@@ -80,7 +82,10 @@ class QBzrPullWindow(SubProcessDialog):
             dest = self.tree.basedir
         else:
             dest = self.branch.base
-        args = ['--directory', dest]
+        if dest == os.getcwdu():
+            args = []
+        else:
+            args = ['--directory', dest]
         if self.ui.overwrite.isChecked():
             args.append('--overwrite')
         if self.ui.remember.isChecked():
@@ -90,6 +95,8 @@ class QBzrPullWindow(SubProcessDialog):
             args.append('--revision')
             args.append(revision)
         location = unicode(self.ui.location.currentText())
+        if location and location == self.default_location:
+            location = ''
         self.process_widget.do_start(None, 'pull', location, *args)
         save_pull_location(self.branch, location)
 
@@ -115,7 +122,8 @@ class QBzrPushWindow(SubProcessDialog):
         for w in self.make_default_layout_widgets():
             self.layout().addWidget(w)
 
-        df = url_for_display(self.branch.get_push_location() or 
+        self.default_location = self.branch.get_push_location()
+        df = url_for_display(self.default_location or 
             self._suggested_push_location())
         fill_combo_with(self.ui.location, df,
                         iter_branch_related_locations(self.branch))
@@ -194,7 +202,10 @@ class QBzrPushWindow(SubProcessDialog):
             dest = self.tree.basedir
         else:
             dest = self.branch.base
-        args = ['--directory', dest]
+        if dest == os.getcwdu():
+            args = []
+        else:
+            args = ['--directory', dest]
         if self.ui.overwrite.isChecked():
             args.append('--overwrite')
         if self.ui.remember.isChecked():
@@ -208,6 +219,8 @@ class QBzrPushWindow(SubProcessDialog):
             # in validate method (see below).
             args.append('--no-strict')
         location = unicode(self.ui.location.currentText())
+        if location and location == self.default_location:
+            location = ''
         self.process_widget.do_start(None, 'push', location, *args)
 
     def validate(self):
@@ -298,7 +311,10 @@ class QBzrMergeWindow(SubProcessDialog):
             dest = self.tree.basedir
         else:
             dest = self.branch.base
-        args = ['--directory', dest]
+        if dest == os.getcwdu():
+            args = []
+        else:
+            args = ['--directory', dest]
         if self.ui.remember.isChecked():
             args.append('--remember')
         if self.ui.force.isChecked():

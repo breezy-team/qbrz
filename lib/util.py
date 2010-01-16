@@ -669,7 +669,7 @@ def iter_branch_related_locations(branch):
         if location is not None:
             yield url_for_display(location)
 
-# A helper to fill a 'pull' combo.
+# A helper to fill a 'pull' combo. Returns the default value.
 def fill_pull_combo(combo, branch):
     if branch is None:
         p = u''
@@ -678,6 +678,7 @@ def fill_pull_combo(combo, branch):
         p = url_for_display(branch.get_parent() or '')
         related = iter_branch_related_locations(branch)
     fill_combo_with(combo, p, related, iter_saved_pull_locations())
+    return p
 
 
 # A helper to fill a combo with values.  Example usage:
