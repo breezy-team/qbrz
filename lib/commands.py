@@ -1002,6 +1002,8 @@ class cmd_qrun(QBzrCommand):
     command itself. For example::
 
       bzr qrun shelve -- --list
+
+    NOTE: you should use only canonical name of the COMMAND, not the alias.
     """
     takes_args = ['command?', 'parameters*']
     takes_options = [ui_mode_option,
