@@ -55,6 +55,9 @@ class QBzrBranchWindow(SubProcessDialog):
         # Layout the form, adding the subprocess widgets
         self.ui = Ui_BranchForm()
         self.setupUi(self.ui)
+        self.cmd_branch_options = get_cmd_object('branch').options()
+        if 'bind' not in self.cmd_branch_options:
+            self.ui.bind.setVisible(False)
         for w in self.make_default_layout_widgets():
             self.layout().addWidget(w)
 
@@ -121,16 +124,22 @@ class QBzrBranchWindow(SubProcessDialog):
         else:
             return to_location
 
+    def get_to_location(self):
+        """The path the branch was created in."""
+        # This is used by explorer to find the location to open on completion
+        return unicode(self.ui.to_location.currentText())
+
     def do_start(self):
         args = []
+        if self.ui.bind.isChecked():
+            args.append('--bind')
         revision = str(self.ui.revision.text())
         if revision:
             args.append('--revision')
             args.append(revision)
         from_location = unicode(self.ui.from_location.currentText())
-        to_location = unicode(self.ui.to_location.currentText())
-        cmd_branch = get_cmd_object('branch')
-        if 'use-existing-dir' in cmd_branch.options():
+        to_location = self.get_to_location()
+        if 'use-existing-dir' in self.cmd_branch_options:
             # always use this options because it should be mostly harmless
             args.append('--use-existing-dir')
         self.process_widget.do_start(None, 'branch', from_location, to_location, *args)
