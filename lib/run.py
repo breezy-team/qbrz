@@ -109,7 +109,6 @@ class QBzrRunDialog(SubProcessDialog):
                 cb.setCurrentIndex(index)
         # ready to go
         if execute:
-            
             # hide user edit fields
             self.ui.frame.hide()
             self.ui.help_browser.hide()
@@ -137,7 +136,6 @@ class QBzrRunDialog(SubProcessDialog):
             
             # run command
             self.do_start()
-            
         else:
             if command:
                 self.ui.opt_arg_edit.setFocus()
@@ -151,7 +149,6 @@ class QBzrRunDialog(SubProcessDialog):
                                   QtCore.SIGNAL("subprocessFailed(bool)"),
                                   self._editButton,
                                   QtCore.SLOT("setHidden(bool)"))
-        
         self.ui.frame.show()
         self.ui.help_browser.show()
 

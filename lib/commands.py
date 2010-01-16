@@ -1028,6 +1028,8 @@ class cmd_qrun(QBzrCommand):
             parameters = " ".join(parameters_list)
         else:
             parameters = None
+        if not command:
+            execute = False
         window = QBzrRunDialog(command=command, parameters=parameters,
             workdir=directory, category=category, ui_mode=ui_mode,
             execute=execute)
