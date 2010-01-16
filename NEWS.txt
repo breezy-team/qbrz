@@ -13,6 +13,8 @@
  * qrun has new option --execute which allows to run the supplied command
    immediately. If the command failed user can edit the command and its
    arguments in usual way. (Simon Kersey)
+ * qbranch has a new --bind option for convenient binding to the parent
+   location while branching.
 
 
 0.17 "Sapin de Noël" - 2009/12/12
