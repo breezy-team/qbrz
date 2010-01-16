@@ -10,6 +10,9 @@
  * Changed buttons behavior in subprocess-based dialogs: if the operation
    failed then show Retry button (instead of OK), at the successfull finish
    show only Close button. (Simon Kersey)
+ * qrun has new option --execute which allows to run the supplied command
+   immediately. If the command failed user can edit the command and its
+   arguments in usual way. (Simon Kersey)
 
 
 0.17 "Sapin de Noël" - 2009/12/12

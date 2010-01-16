@@ -1014,17 +1014,22 @@ class cmd_qrun(QBzrCommand):
             help='Initial category selection.',
             type=unicode,
             ),
+        Option('execute',
+            help="Validate and run the supplied command immediately.",
+            short_name='e'
+            ),
         ]
     aliases = ['qcmd']
 
     def _qbzr_run(self, command=None, parameters_list=None, ui_mode=False,
-        directory=None, category=None):
+        directory=None, category=None, execute=False):
         from bzrlib.plugins.qbzr.lib.run import QBzrRunDialog
         if parameters_list:
             parameters = " ".join(parameters_list)
         else:
             parameters = None
         window = QBzrRunDialog(command=command, parameters=parameters,
-            workdir=directory, category=category, ui_mode=ui_mode)
+            workdir=directory, category=category, ui_mode=ui_mode,
+            execute=execute)
         window.show()
         self._application.exec_()
