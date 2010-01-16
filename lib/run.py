@@ -22,7 +22,6 @@
 """Dialog to run arbitrary bzr command."""
 
 import os
-import shlex
 from PyQt4 import QtCore, QtGui
 
 from bzrlib import osutils
@@ -32,7 +31,10 @@ from bzrlib.plugins.qbzr.lib.help import get_help_topic_as_html
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_run import Ui_RunDialog
-from bzrlib.plugins.qbzr.lib.util import hookup_directory_picker
+from bzrlib.plugins.qbzr.lib.util import (
+    hookup_directory_picker,
+    shlex_split_unicode,
+    )
 
 
 class QBzrRunDialog(SubProcessDialog):
@@ -299,8 +301,8 @@ class QBzrRunDialog(SubProcessDialog):
         """Launch command."""
         cwd = self._get_cwd()
         args = [self._get_cmd_name()]
-        cmd_utf8 = unicode(self.ui.opt_arg_edit.text()).encode('utf-8')
-        args.extend([unicode(p,'utf8') for p in shlex.split(cmd_utf8)])
+        opt_arg = unicode(self.ui.opt_arg_edit.text())
+        args.extend(shlex_split_unicode(opt_arg))
         self.process_widget.do_start(cwd, *args)
 
     def saveSize(self):

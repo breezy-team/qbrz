@@ -169,7 +169,6 @@ class SubProcessWindowBase(object):
         self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.do_reject)
         
         self.init_button_status()
-        
 
     def init_button_status(self):
         self._closeButton.setHidden(True) # but 'close' starts as hidden.

@@ -7,6 +7,9 @@
  * Fixed problem with insufficient width of revno column in qannotate and
    qbrowse (for revision tree) if revno bigger than 9999. 
    (Bug #505990, Alexander Belchenko)
+ * Changed buttons behavior in subprocess-based dialogs: if the operation
+   failed then show Retry button (instead of OK), at the successfull finish
+   show only Close button. (Simon Kersey)
 
 
 0.17 "Sapin de Noël" - 2009/12/12
