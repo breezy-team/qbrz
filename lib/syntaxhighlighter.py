@@ -64,8 +64,8 @@ def highlight_document(edit, filename):
         
         format = QtGui.QTextCharFormat(parent_format)
         font = format.font()
-        tstyle = style.style_for_token(token)
-        if tstyle:
+        if style.styles_token(token):
+            tstyle = style.style_for_token(token)
             if tstyle['color']:
                 format.setForeground (QtGui.QColor("#"+tstyle['color']))
             if tstyle['bold']: font.setWeight(QtGui.QFont.Bold)
