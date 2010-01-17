@@ -645,8 +645,12 @@ class cmd_qbranch(QBzrCommand):
     """Create a new copy of a branch."""
 
     takes_options = [simple_revision_option,
-                     bzr_option("branch", "bind"),
                      ui_mode_option]
+    try:
+        takes_options.append(bzr_option("branch", "bind"))
+    except KeyError:
+        # older version of bzr that doesn't support the option
+        pass
     takes_args = ['from_location?', 'to_location?']
 
     def _qbzr_run(self, from_location=None, to_location=None,
