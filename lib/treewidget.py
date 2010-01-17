@@ -86,7 +86,7 @@ def group_large_dirs(paths):
         
         lp = len(parent_paths)
         for i, dir_path in enumerate(parent_paths):
-            depth = lp - i
+            depth = lp - i - 1
             if dir_path in all_paths_expanded:
                 all_paths_expanded[dir_path][2].add(path)
             else:
@@ -94,6 +94,9 @@ def group_large_dirs(paths):
     
     container_dirs = {}
     """Dict of a container dir path, with a set of it's decendents"""
+    
+    paths_deep_first = sorted(all_paths_expanded.itervalues(),
+                              key=lambda x: -x[1])
     
     def set_dir_as_container(path):
         decendents = all_paths_expanded[path][2]
@@ -106,15 +109,14 @@ def group_large_dirs(paths):
             ans_decendents.add(path)
     
     # directories included in the original paths container.
-    for path, depth, decendents in all_paths_expanded.itervalues():
+    for path, depth, decendents in paths_deep_first:
         if len(decendents)>0 and (path in paths):
             set_dir_as_container(path)
     
-    for path, depth, decendents in sorted(all_paths_expanded.itervalues(),
-                                          key=lambda x: -x[1]):
+    for path, depth, decendents in paths_deep_first:
         len_decendents = len(decendents)
         # Config?
-        if len_decendents>=4:
+        if len_decendents>=4 and path not in container_dirs:
             has_ansestor_with_others = False
             dir_path = path
             while dir_path:
