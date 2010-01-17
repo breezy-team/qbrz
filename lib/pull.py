@@ -95,9 +95,9 @@ class QBzrPullWindow(SubProcessDialog):
             args.append('--revision')
             args.append(revision)
         location = unicode(self.ui.location.currentText())
-        if location and location == self.default_location:
-            location = ''
-        self.process_widget.do_start(None, 'pull', location, *args)
+        if location and location != self.default_location:
+            args.insert(0, location)
+        self.process_widget.do_start(None, 'pull', *args)
         save_pull_location(self.branch, location)
 
 
@@ -219,9 +219,9 @@ class QBzrPushWindow(SubProcessDialog):
             # in validate method (see below).
             args.append('--no-strict')
         location = unicode(self.ui.location.currentText())
-        if location and location == self.default_location:
-            location = ''
-        self.process_widget.do_start(None, 'push', location, *args)
+        if location and location != self.default_location:
+            args.insert(0, location)
+        self.process_widget.do_start(None, 'push', *args)
 
     def validate(self):
         """Check working tree for blocking conditions (such as uncommitted
