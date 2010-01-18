@@ -19,6 +19,8 @@
    (Gary van der Merwe)
  * qbranch has a new --bind option for convenient binding to the parent
    location while branching.
+ * qcommit: Non versioned files are now selected by select all when they are
+   shown. (Bug #490864, Gary van der Merwe)
 
 
 0.17 "Sapin de Noël" - 2009/12/12

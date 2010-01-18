@@ -282,10 +282,8 @@ class CommitWindow(SubProcessDialog):
 
         self.filelist = TreeWidget(self)
         self.filelist.throbber = self.throbber
-        self.filelist.tree_model.is_item_in_select_all = lambda item: (
-            item.change is None or
-            item.change.is_versioned(),
-            True)
+        self.filelist.tree_model.is_item_in_select_all = \
+                                                self.select_all_versioned
         
         self.file_words = {}
         self.connect(self.filelist.tree_model,
@@ -669,8 +667,21 @@ class CommitWindow(SubProcessDialog):
                 change_load_filter=lambda c:not c.is_ignored())
             self.filelist.restore_state(state)
         
+        if state:
+            self.filelist.tree_model.is_item_in_select_all = \
+                                                self.select_all_nonversioned
+        else:
+            self.filelist.tree_model.is_item_in_select_all = \
+                                                self.select_all_versioned
+        
         fmodel = self.filelist.tree_filter_model
         fmodel.setFilter(fmodel.UNVERSIONED, state)
+    
+    def select_all_versioned(self, item):
+        return (item.change is None or item.change.is_versioned(), True)
+    
+    def select_all_nonversioned(self, item):
+        return (True, True)
 
     def _save_or_wipe_commit_data(self):
         if not self.process_widget.is_running():
