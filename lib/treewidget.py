@@ -612,6 +612,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                                            ignore_no_file_error=True):
                 self.load_dir(index.internalId())
         
+        self.emit(QtCore.SIGNAL("layoutChanged()"))
+        
         if self.checkable:
             if initial_checked_paths is not None:
                 self.set_checked_paths(initial_checked_paths)
@@ -619,7 +621,6 @@ class TreeModel(QtCore.QAbstractItemModel):
                 self.setData(self._index_from_id(root_id,self.NAME), 
                              QtCore.QVariant(QtCore.Qt.Checked),
                              QtCore.Qt.CheckStateRole)
-        self.emit(QtCore.SIGNAL("layoutChanged()"))
     
     def append_item(self, item_data, parent_id):
         item_data.id = len(self.inventory_data)
