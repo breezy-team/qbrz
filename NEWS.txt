@@ -17,6 +17,9 @@
    it correctly handle tokens without styles. (Bug #508281, Gary van der Merwe)
  * Fixed a bug in TreeWidget were some times duplicated in parent directories.
    (Gary van der Merwe)
+ * qbranch has a new --bind option for convenient binding to the parent
+   location while branching.
+
 
 0.17 "Sapin de Noël" - 2009/12/12
 ---------------------------------

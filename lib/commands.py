@@ -646,12 +646,17 @@ class cmd_qbranch(QBzrCommand):
 
     takes_options = [simple_revision_option,
                      ui_mode_option]
+    try:
+        takes_options.append(bzr_option("branch", "bind"))
+    except KeyError:
+        # older version of bzr that doesn't support the option
+        pass
     takes_args = ['from_location?', 'to_location?']
 
     def _qbzr_run(self, from_location=None, to_location=None,
-                  revision=None, ui_mode=False):
+                  revision=None, bind=False, ui_mode=False):
         self.main_window = QBzrBranchWindow(from_location, to_location,
-                                  revision=revision, ui_mode=ui_mode)
+            revision=revision, bind=bind, ui_mode=ui_mode)
         self.main_window.show()
         self._application.exec_()
 
