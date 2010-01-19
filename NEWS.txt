@@ -258,6 +258,14 @@ Detailed changelog:
      (#422649, Craig Hewetson)
 
 
+0.14.6 "Spruce" - 2010-01-18
+----------------------------
+Bugfixes and backported bugfixes.
+
+  * qlog: Fix a bug when refreshing a branch with revisions that have been 
+    removed. (Bug #435486, Gary van der Merwe)
+
+
 0.14.5 "Dropzone" - 2009-10-31
 ------------------------------
 Bugfixes and backported bugfixes.
