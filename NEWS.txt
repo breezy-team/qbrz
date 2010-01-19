@@ -1,5 +1,6 @@
-0.18 "Pine-needles" - YYYY-MM-DD
+0.18 "Pine-needles" - 2010-01-19
 --------------------------------
+What's new in this release:
 
  * Fixed problems with rename items in subdirectory. (Bug #495519, INADA Naoki)
  * Flush clipboard on exit, so data copied there is available after closing of
@@ -13,7 +14,7 @@
  * qrun has new option --execute which allows to run the supplied command
    immediately. If the command failed user can edit the command and its
    arguments in usual way. (Simon Kersey)
- * Fixed a bug in the new SyntaxHighlighter used in qannatate and qcat so that
+ * Fixed a bug in the new SyntaxHighlighter used in qannotate and qcat so that
    it correctly handle tokens without styles. (Bug #508281, Gary van der Merwe)
  * Fixed a bug in TreeWidget were some times duplicated in parent directories.
    (Gary van der Merwe)
@@ -21,6 +22,7 @@
    location while branching.
  * qcommit: Non versioned files are now selected by select all when they are
    shown. (Bug #490864, Gary van der Merwe)
+ * Serbian translations added.
 
 
 0.17 "Sapin de Noël" - 2009/12/12
