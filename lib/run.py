@@ -71,13 +71,15 @@ class QBzrRunDialog(SubProcessDialog):
         # add the parameters, if any
         if parameters:
             self.ui.opt_arg_edit.setText(parameters)
+        
         # and add the subprocess widgets
-        self.splitter = self.ui.splitter
         for w in self.make_default_layout_widgets():
-            self.splitter.addWidget(w)
+            self.ui.subprocess_container_layout.addWidget(w)
         self.process_widget.hide_progress()
+        
         # restore the sizes
         self.restoreSize("run", None)
+        self.splitter = self.ui.splitter
         self.restoreSplitterSizes()
         # setup signals
         QtCore.QObject.connect(self.ui.hidden_checkbox,

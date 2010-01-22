@@ -24,26 +24,11 @@
      <property name="childrenCollapsible" >
       <bool>false</bool>
      </property>
-     <widget class="QFrame" name="frame" >
-      <property name="sizePolicy" >
-       <sizepolicy vsizetype="Preferred" hsizetype="Preferred" >
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
+     <widget class="QGroupBox" name="run_container" >
+      <property name="title" >
+       <string>Options</string>
       </property>
-      <property name="frameShape" >
-       <enum>QFrame::StyledPanel</enum>
-      </property>
-      <property name="frameShadow" >
-       <enum>QFrame::Raised</enum>
-      </property>
-      <property name="lineWidth" >
-       <number>0</number>
-      </property>
-      <layout class="QVBoxLayout" name="frame_layout" >
-       <property name="margin" >
-        <number>0</number>
-       </property>
+      <layout class="QVBoxLayout" name="run_container_layout" >
        <item>
         <layout class="QHBoxLayout" name="wd_layout" >
          <item>
@@ -169,16 +154,18 @@
          </item>
         </layout>
        </item>
+       <item>
+        <widget class="QTextBrowser" name="help_browser" >
+        </widget>
+       </item>
       </layout>
      </widget>
-     <widget class="QTextBrowser" name="help_browser" >
-      <property name="html" >
-       <string>&lt;!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
-&lt;html>&lt;head>&lt;meta name="qrichtext" content="1" />&lt;style type="text/css">
-p, li { white-space: pre-wrap; }
-&lt;/style>&lt;/head>&lt;body style=" font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;">
-&lt;p style="-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8pt;">&lt;/p>&lt;/body>&lt;/html></string>
-      </property>
+     <widget class="QWidget" name="subprocess_container" >
+      <layout class="QVBoxLayout" name="subprocess_container_layout" >
+       <property name="margin" >
+        <number>0</number>
+       </property>
+      </layout>
      </widget>
     </widget>
    </item>
@@ -199,7 +186,7 @@ p, li { white-space: pre-wrap; }
   <connection>
    <sender>RunDialog</sender>
    <signal>disableUi(bool)</signal>
-   <receiver>frame</receiver>
+   <receiver>run_container</receiver>
    <slot>setDisabled(bool)</slot>
    <hints>
     <hint type="sourcelabel" >
