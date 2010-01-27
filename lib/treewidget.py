@@ -1936,7 +1936,7 @@ class TreeWidget(RevisionTreeView):
             except errors.BzrRemoveChangedFilesError:
                 res = QtGui.QMessageBox.question(
                     self, gettext("Remove"),
-                    gettext("Some of the files selected cannot be recoverd if "
+                    gettext("Some of the files selected cannot be recovered if "
                             "removed. Are you sure you want to remove these "
                             "files?"),
                     QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)

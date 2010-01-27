@@ -588,7 +588,7 @@ class CommitWindow(SubProcessDialog):
         if not message: 
             QtGui.QMessageBox.warning(self,
                 "QBzr - " + gettext("Commit"),
-                gettext("You should provide commit message."),
+                gettext("You should provide a commit message."),
                 gettext('&OK'))
             # don't commit, but don't close the window either
             self.on_failed()
