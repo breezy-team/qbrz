@@ -1,3 +1,10 @@
+0.18.1 "" - In Devlopment
+-------------------------
+What's new in this release:
+ * Treewidget: Fix a crash when refreshing tree with a checked item that has a
+   parent that is ungrouped. (Bug #512006, Gary van der Merwe)
+
+
 0.18 "Pine-needles" - 2010-01-19
 --------------------------------
 What's new in this release:
