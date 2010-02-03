@@ -21,7 +21,11 @@ import os
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import errors, urlutils
+from bzrlib import (
+    errors,
+    osutils,
+    urlutils,
+    )
 from bzrlib.commands import get_cmd_object
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -202,10 +206,9 @@ class QBzrPushWindow(SubProcessDialog):
             dest = self.tree.basedir
         else:
             dest = self.branch.base
-        if dest == os.getcwdu():
-            args = []
-        else:
-            args = ['--directory', dest]
+        args = []
+        if dest != osutils.getcwd():
+            args.extend(('--directory', dest))
         if self.ui.overwrite.isChecked():
             args.append('--overwrite')
         if self.ui.remember.isChecked():
