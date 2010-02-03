@@ -86,10 +86,9 @@ class QBzrPullWindow(SubProcessDialog):
             dest = self.tree.basedir
         else:
             dest = self.branch.base
-        if dest == os.getcwdu():
-            args = []
-        else:
-            args = ['--directory', dest]
+        args = []
+        if dest != osutils.getcwd():
+            args.extend(('--directory', dest))
         if self.ui.overwrite.isChecked():
             args.append('--overwrite')
         if self.ui.remember.isChecked():
