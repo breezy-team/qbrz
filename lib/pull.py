@@ -214,7 +214,7 @@ class QBzrPushWindow(SubProcessDialog):
             args.append('--create-prefix')
         if self.ui.use_existing_dir.isChecked():
             args.append('--use-existing-dir')
-        if 'strict' in get_cmd_object('push').options():
+        if 'strict' in get_cmd_object('push').options() and self._no_strict:
             # force --no-strict because we checking blocking conditions
             # in validate method (see below).
             args.append('--no-strict')
