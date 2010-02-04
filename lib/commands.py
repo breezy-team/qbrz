@@ -761,9 +761,27 @@ class cmd_qmain(QBzrCommand):
         self._application.exec_()
 
 
-# [bialix 2009/11/23] cmd_qsubprocess has moved to subprocess.py
+# [bialix 2010/02/04] body of cmd_qsubprocess has moved to subprocess.py
 # to see annotation of cmd_qsubprocess before move use:
 #     bzr qannotate commands.py -r1117
+
+class cmd_qsubprocess(Command):
+    """Run some bzr command as subprocess. 
+    Used with most of subprocess-based dialogs of QBzr.
+    
+    If CMD argument starts with @ characters then it used as name of file with
+    actual cmd string (in utf-8).
+    
+    With --bencode option cmd string interpreted as bencoded list of utf-8
+    strings. This is the recommended way to launch qsubprocess.
+    """
+    takes_args = ['cmd']
+    takes_options = [Option("bencoded", help="Pass command as bencoded string.")]
+    hidden = True
+
+    def run(self, cmd, bencoded=False):
+        from bzrlib.plugins.qbzr.lib.subprocess import run_subprocess_command
+        return run_subprocess_command(cmd, bencoded)
 
 
 class cmd_qgetupdates(QBzrCommand):
