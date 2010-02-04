@@ -143,7 +143,7 @@ lazy_commands = (
     ('bzrlib.plugins.qbzr.lib.extra.isignored', 'cmd_is_ignored', []),
     ('bzrlib.plugins.qbzr.lib.extra.isversioned', 'cmd_is_versioned', []),
     # hidden power of qbzr ;-)
-    ('bzrlib.plugins.qbzr.lib.subprocess', 'cmd_qsubprocess', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsubprocess', []),
 )
 
 for module, name, aliases in lazy_commands:
