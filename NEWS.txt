@@ -1,8 +1,11 @@
-0.18.1 "" - In Devlopment
--------------------------
+0.18.1 "Fern" - 2010/02/04
+--------------------------
 What's new in this release:
+
  * Treewidget: Fix a crash when refreshing tree with a checked item that has a
    parent that is ungrouped. (Bug #512006, Gary van der Merwe)
+ * Avoid importing Qt libs when `bzr help commands` invoked. 
+   (Bug #515636, Alexander Belchenko)
 
 
 0.18 "Pine-needles" - 2010-01-19
