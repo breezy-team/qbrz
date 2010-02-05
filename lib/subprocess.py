@@ -21,6 +21,7 @@
 
 import codecs
 import os
+import re
 import shlex
 import signal
 import sys
@@ -494,10 +495,11 @@ class SubProcessWidget(QtGui.QWidget):
         # win32 has command-line length limit about 32K, but it seems 
         # problems with command-line buffer limit occurs not only on windows.
         # see bug https://bugs.launchpad.net/qbzr/+bug/396165
-        # XXX make the threshold configurable in qbzr.conf?
-        if len(args) > 10000:   # on Linux I believe command-line is in utf-8,
-                                # so we need to have some extra space
-                                # when converting unicode -> utf8
+        # on Linux I believe command-line is in utf-8,
+        # so we need to have some extra space
+        # when converting unicode -> utf8
+        if (len(args) > 10000          # XXX make the threshold configurable in qbzr.conf?
+            or re.search(r"(\n|\r)", args) is not None):
             # save the args to the file
             fname = self._create_args_file(args)
             args = "@" + fname.replace('\\', '/')
