@@ -604,7 +604,7 @@ class SubProcessWidget(QtGui.QWidget):
                 data = (button == QtGui.QMessageBox.Yes)
                 self.process.write(SUB_GETBOOL + bencode.bencode(data) + "\n")
             else:
-                line = line.decode(self.encoding)
+                line = line.decode(self.encoding, 'replace')
                 self.logMessageEx(line, 'plain', self.stdout)
 
     def readStderr(self):
