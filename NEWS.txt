@@ -2,6 +2,10 @@
 ----------------------
 Bugfixes in stable branch.
 
+ * qsubprocess: pass command line with \n in it via temporary file.
+   (Bug #517420, Alexander Belchenko)
+ * qsubprocess: relax the unicode problems while decode stdout of subprocess.
+   (Bug #523746, INADA Naoki)
  * Added Hungarian translation.
 
 
