@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-01-16 13:16+0200\n"
-"PO-Revision-Date: 2009-11-16 17:05+0000\n"
+"PO-Revision-Date: 2010-02-18 11:09+0000\n"
 "Last-Translator: Maarten Bosmans <mkbosmans@gmail.com>\n"
 "Language-Team: Dutch <nl@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2010-01-18 18:08+0000\n"
+"X-Launchpad-Export-Date: 2010-02-19 13:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
@@ -1787,15 +1787,3 @@ msgstr "aangepaste bestanden"
 #: lib\util.py:912 lib\util.py:913 lib\util.py:916
 msgid "(no message)"
 msgstr ""
-
-#~ msgid "Line"
-#~ msgstr "Regel"
-
-#~ msgid "&Revert..."
-#~ msgstr "&Terugzetten..."
-
-#~ msgid "Extension"
-#~ msgstr "Extensie"
-
-#~ msgid "Stopped"
-#~ msgstr "Gestopt"

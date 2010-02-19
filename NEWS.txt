@@ -2,6 +2,8 @@
 ----------------------
 Bugfixes in stable branch.
 
+ * Added Hungarian translation.
+
 
 0.18.1 "Fern" - 2010/02/04
 --------------------------

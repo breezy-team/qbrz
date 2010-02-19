@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-01-16 13:16+0200\n"
-"PO-Revision-Date: 2008-11-22 15:38+0000\n"
+"PO-Revision-Date: 2010-02-18 11:01+0000\n"
 "Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
 "Language-Team: Ukrainian <uk@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Launchpad-Export-Date: 2010-01-18 18:08+0000\n"
+"X-Launchpad-Export-Date: 2010-02-19 13:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
@@ -1777,33 +1777,3 @@ msgstr "змінені файли"
 #: lib\util.py:912 lib\util.py:913 lib\util.py:916
 msgid "(no message)"
 msgstr ""
-
-#~ msgid "&Revert..."
-#~ msgstr "&Повернути попередню версію..."
-
-#~ msgid "Extension"
-#~ msgstr "Розширення"
-
-#~ msgid "Show log..."
-#~ msgstr "Показати журнал..."
-
-#~ msgid "Line"
-#~ msgstr "Рядок"
-
-#~ msgid "Stopped"
-#~ msgstr "Зупинено"
-
-#~ msgid "Internal Error"
-#~ msgstr "Internal Error"
-
-#, python-format
-#~ msgid ""
-#~ "Sorry, subprocess action \"%s\" cannot be started\n"
-#~ "because self.args is None.\n"
-#~ "Please, report bug at:\n"
-#~ "https://bugs.launchpad.net/qbzr/+filebug"
-#~ msgstr ""
-#~ "Sorry, subprocess action \"%s\" cannot be started\n"
-#~ "because self.args is None.\n"
-#~ "Please, report bug at:\n"
-#~ "https://bugs.launchpad.net/qbzr/+filebug"

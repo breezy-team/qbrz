@@ -6,7 +6,7 @@ msgstr ""
 "Project-Id-Version: QBzr 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-01-16 13:16+0200\n"
-"PO-Revision-Date: 2010-01-16 20:45+0000\n"
+"PO-Revision-Date: 2010-02-18 10:59+0000\n"
 "Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
@@ -14,7 +14,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Launchpad-Export-Date: 2010-01-18 18:08+0000\n"
+"X-Launchpad-Export-Date: 2010-02-19 13:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
@@ -1807,60 +1807,3 @@ msgstr "измененные файлы"
 #: lib\util.py:912 lib\util.py:913 lib\util.py:916
 msgid "(no message)"
 msgstr "(нет комментария)"
-
-#~ msgid "Extension"
-#~ msgstr "Расширение"
-
-#~ msgid "&Revert..."
-#~ msgstr "&Вернуть предыдущую версию..."
-
-#~ msgid "Show log..."
-#~ msgstr "Показать журнал..."
-
-#~ msgid "Line"
-#~ msgstr "Строка"
-
-#~ msgid "Stopped"
-#~ msgstr "Остановлено"
-
-#~ msgid "Local location:"
-#~ msgstr "Расположение на диске"
-
-#~ msgid "&Location"
-#~ msgstr "&Расположение"
-
-#, python-format
-#~ msgid "Revert %s to latest revision."
-#~ msgstr "Вернуться к последней версии для %s"
-
-#~ msgid "Public branch location:"
-#~ msgstr "Публичная ветка:"
-
-#~ msgid "Internal Error"
-#~ msgstr "Внутренняя ошибка"
-
-#, python-format
-#~ msgid ""
-#~ "Tag \"%s\" already exists.\n"
-#~ "Do you want to replace existing tag?"
-#~ msgstr ""
-#~ "Тег \"%s\" уже существует.\n"
-#~ "Хотите его изменить?"
-
-#~ msgid "Replace existing tag"
-#~ msgstr "Изменить существующий тег"
-
-#, python-format
-#~ msgid ""
-#~ "Sorry, subprocess action \"%s\" cannot be started\n"
-#~ "because self.args is None.\n"
-#~ "Please, report bug at:\n"
-#~ "https://bugs.launchpad.net/qbzr/+filebug"
-#~ msgstr ""
-#~ "Sorry, subprocess action \"%s\" cannot be started\n"
-#~ "because self.args is None.\n"
-#~ "Please, report bug at:\n"
-#~ "https://bugs.launchpad.net/qbzr/+filebug"
-
-#~ msgid "&Replace"
-#~ msgstr "И&зменить"

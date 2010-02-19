@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-01-16 13:16+0200\n"
-"PO-Revision-Date: 2010-01-16 13:50+0000\n"
-"Last-Translator: INADA Naoki <Unknown>\n"
+"PO-Revision-Date: 2010-02-18 11:35+0000\n"
+"Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
 "Language-Team: Japanese <ja@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2010-01-18 18:08+0000\n"
+"X-Launchpad-Export-Date: 2010-02-19 13:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
@@ -1787,63 +1787,3 @@ msgstr "変更されたファイル"
 #: lib\util.py:912 lib\util.py:913 lib\util.py:916
 msgid "(no message)"
 msgstr "(メッセージなし)"
-
-#~ msgid "Line"
-#~ msgstr "行"
-
-#~ msgid "Show log..."
-#~ msgstr "ログを表示..."
-
-#~ msgid "&Revert..."
-#~ msgstr "元に戻す(&R)..."
-
-#~ msgid "Stopped"
-#~ msgstr "停止"
-
-#~ msgid "Internal Error"
-#~ msgstr "内部エラー"
-
-#~ msgid "Replace existing tag"
-#~ msgstr "既存のタグを置換"
-
-#, python-format
-#~ msgid ""
-#~ "Sorry, subprocess action \"%s\" cannot be started\n"
-#~ "because self.args is None.\n"
-#~ "Please, report bug at:\n"
-#~ "https://bugs.launchpad.net/qbzr/+filebug"
-#~ msgstr ""
-#~ "サブプロセス処理 \"%s\" がself.argsがNoneのために開始されません。\n"
-#~ "https://bugs.launchpad.net/qbzr/+filebugにバグレポートをしてください。"
-
-#, python-format
-#~ msgid ""
-#~ "Tag \"%s\" already exists.\n"
-#~ "Do you want to replace existing tag?"
-#~ msgstr ""
-#~ "タグ \"%s\"は既に存在します。\n"
-#~ "既存のタグを置き換えますか?"
-
-#~ msgid "&Replace"
-#~ msgstr "置換(&R)"
-
-#~ msgid "Local location:"
-#~ msgstr "ローカル配置："
-
-#~ msgid "Public branch location:"
-#~ msgstr "公開ブランチの場所："
-
-#~ msgid "&Location"
-#~ msgstr "ロケーション(&L)"
-
-#~ msgid ""
-#~ "Branch source (enter a URL or select a local directory with an exiting "
-#~ "branch)"
-#~ msgstr "ブランチ元(URLを入力するか、ブランチのあるディレクトリを選択してください)"
-
-#~ msgid "Extension"
-#~ msgstr "拡張子"
-
-#, python-format
-#~ msgid "Revert %s to latest revision."
-#~ msgstr "%sを最新のリビジョンに戻す"

@@ -7,14 +7,14 @@ msgstr ""
 "Project-Id-Version: sk\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-01-16 13:16+0200\n"
-"PO-Revision-Date: 2008-11-22 15:14+0000\n"
+"PO-Revision-Date: 2010-02-18 10:59+0000\n"
 "Last-Translator: Lukáš Lalinský <lalinsky@gmail.com>\n"
 "Language-Team: Slovak <sk@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 1 : (n>=2 && n<=4) ? 2 : 0;\n"
-"X-Launchpad-Export-Date: 2010-01-18 18:08+0000\n"
+"X-Launchpad-Export-Date: 2010-02-19 13:56+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
@@ -1773,12 +1773,3 @@ msgstr ""
 #: lib\util.py:912 lib\util.py:913 lib\util.py:916
 msgid "(no message)"
 msgstr ""
-
-#~ msgid "Extension"
-#~ msgstr "Prípona"
-
-#~ msgid "&Revert..."
-#~ msgstr "&Revertovať..."
-
-#~ msgid "Show log..."
-#~ msgstr "Zobraziť históriu..."
