@@ -586,6 +586,4 @@ class QBzrConfigWindow(QBzrDialog):
             gettext('Select editor executable'),
             '/')
         if filename:
-            if ' ' in filename:
-                filename = '"%s"' % unicode(filename)
             self.editorEdit.setText(filename)
