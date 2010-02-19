@@ -2,6 +2,7 @@
 ----------------------
 Bugfixes in stable branch.
 
+ * qconfig: don't quote editor path. (Bug #523212, Alexander Belchenko)
  * qsubprocess: pass command line with \n in it via temporary file.
    (Bug #517420, Alexander Belchenko)
  * qsubprocess: relax the unicode problems while decode stdout of subprocess.
