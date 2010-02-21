@@ -9,6 +9,8 @@ Bugfixes in stable branch.
    (Bug #523746, INADA Naoki)
  * Restore standard bzrlib ui_factory on exit from q-commands.
    (Bug #498309, Alexander Belchenko)
+ * Better "select all" logic for qrevert and qadd. 
+   (Bug #524483, Alexander Belchenko)
  * Added Hungarian translation.
 
 
