@@ -376,6 +376,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.icon_provider = QtGui.QFileIconProvider()
         self.parent_view = parent
         self._index_cache = {}
+        self.set_select_all_kind()
     
     def set_tree(self, tree, branch=None, 
                  changes_mode=False, want_unversioned=True,
@@ -722,13 +723,26 @@ class TreeModel(QtCore.QAbstractItemModel):
             return True
         item_data = self.inventory_data[parent.internalId()]
         return item_data.item.kind == "directory"
+
+    def set_select_all_kind(self, kind='all'):
+        """Set checker function for 'select all' checkbox.
+        Possible kind values: all, versioned.
+        """
+        def _is_item_in_select_all_all(item):
+            """Returns whether an item is changed when select all is clicked,
+            and whether it's children are looked at."""
+            return True, True
     
-    is_item_in_select_all = lambda self, item: (True, True)
-    """Returns wether an item is changed when select all is clicked, and whether
-    it's children are looked at."""
-    
+        def _is_item_in_select_all_versioned(item):
+            return (item.change is None or item.change.is_versioned(), True)
+
+        if kind == 'all':
+            self.is_item_in_select_all = _is_item_in_select_all_all
+        elif kind == 'versioned':
+            self.is_item_in_select_all = _is_item_in_select_all_versioned
+
     def setData(self, index, value, role):
-        
+
         def set_checked(item_data, checked):
             old_checked = item_data.checked
             item_data.checked = checked

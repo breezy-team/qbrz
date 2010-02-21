@@ -153,29 +153,33 @@ class QBzrCommand(Command):
         # opening a branch, etc will go to the ui_factory to request a
         # password, and the app must exist before the dialog can be created.
         self._application = QtGui.QApplication(sys.argv)
-        ui.ui_factory = QUIFactory()
-        
-        # Set up global exception handling.
-        from bzrlib.plugins.qbzr.lib.trace import excepthook
-        sys.excepthook = excepthook
-        
+        std_ui_factory = ui.ui_factory
         try:
+            ui.ui_factory = QUIFactory()
+            
+            # Set up global exception handling.
+            from bzrlib.plugins.qbzr.lib.trace import excepthook
+            sys.excepthook = excepthook
+            
             try:
-                ret_code = self._qbzr_run(*args, **kwargs)
-            finally:
-                # ensure we flush clipboard data (see bug #503401)
-                clipboard = self._application.clipboard()
-                clipEvent = QtCore.QEvent(QtCore.QEvent.Clipboard)
-                self._application.sendEvent(clipboard, clipEvent)
-            if ret_code is None:
-                main_window = getattr(self, "main_window", None)
-                if main_window is not None:
-                    ret_code = getattr(main_window, "return_code", None)
-            return ret_code
-        except Exception:
-            ui_mode = kwargs.get("ui_mode", False)
-            from bzrlib.plugins.qbzr.lib.trace import report_exception
-            return report_exception(ui_mode=ui_mode)
+                try:
+                    ret_code = self._qbzr_run(*args, **kwargs)
+                finally:
+                    # ensure we flush clipboard data (see bug #503401)
+                    clipboard = self._application.clipboard()
+                    clipEvent = QtCore.QEvent(QtCore.QEvent.Clipboard)
+                    self._application.sendEvent(clipboard, clipEvent)
+                if ret_code is None:
+                    main_window = getattr(self, "main_window", None)
+                    if main_window is not None:
+                        ret_code = getattr(main_window, "return_code", None)
+                return ret_code
+            except Exception:
+                ui_mode = kwargs.get("ui_mode", False)
+                from bzrlib.plugins.qbzr.lib.trace import report_exception
+                return report_exception(ui_mode=ui_mode)
+        finally:
+            ui.ui_factory = std_ui_factory
 
 
 ui_mode_option = Option("ui-mode", help="Causes dialogs to wait after the operation is complete.")

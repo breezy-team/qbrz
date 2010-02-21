@@ -59,14 +59,15 @@ class AddWindow(SubProcessDialog):
 
         self.filelist = TreeWidget(groupbox)
         self.filelist.throbber = self.throbber
-        self.filelist.tree_model.is_item_in_select_all = lambda item: (
-            item.change is not None and
-            item.change.is_ignored() is None and
-            not item.change.is_versioned(), 
-            
-            item.change is not None and item.change.is_ignored() is None or
-            item.change is None
-            )
+        # XXX [bialix 2010/02/21] following code is wrong, because item.change is always None
+        #self.filelist.tree_model.is_item_in_select_all = lambda item: (
+        #    item.change is not None and
+        #    item.change.is_ignored() is None and
+        #    not item.change.is_versioned(),
+        #
+        #    item.change is not None and item.change.is_ignored() is None or
+        #    item.change is None
+        #    )
         
         def filter_context_menu():
             items = self.filelist.get_selection_items()
