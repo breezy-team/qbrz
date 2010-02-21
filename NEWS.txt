@@ -1,6 +1,6 @@
-0.18.2 "" - YYYY/MM/DD
-----------------------
-Bugfixes in stable branch.
+0.18.2 "Cedar" - 2010/02/21
+---------------------------
+Bugfixes in the stable branch. Suitable for bzr 2.1.x.
 
  * qconfig: don't quote editor path. (Bug #523212, Alexander Belchenko)
  * qsubprocess: pass command line with \n in it via temporary file.

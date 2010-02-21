@@ -8,8 +8,8 @@
 AppId=QBzr
 
 AppName=                 QBzr
-AppVerName=              QBzr 0.18.2dev
-OutputBaseFilename=qbzr-setup-0.18.2dev
+AppVerName=              QBzr 0.18.2
+OutputBaseFilename=qbzr-setup-0.18.2
 
 SourceDir="..\"
 OutputDir="."
