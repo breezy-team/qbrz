@@ -7,6 +7,8 @@ Bugfixes in stable branch.
    (Bug #517420, Alexander Belchenko)
  * qsubprocess: relax the unicode problems while decode stdout of subprocess.
    (Bug #523746, INADA Naoki)
+ * Restore standard bzrlib ui_factory on exit from q-commands.
+   (Bug #498309, Alexander Belchenko)
  * Added Hungarian translation.
 
 
