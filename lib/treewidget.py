@@ -1126,12 +1126,16 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     
     def invalidateFilter(self):
         self.filter_cache = {}
-        QtGui.QSortFilterProxyModel.invalidateFilter(self)
+        self.source_model.tree.lock_read()
+        try:
+            QtGui.QSortFilterProxyModel.invalidateFilter(self)
+        finally:
+            self.source_model.tree.unlock()
     
     def setFilter(self, filter, value):
         self.filters[filter] = value
         # This is slow. It causes TreeModel.index, and TreeModel.data thousands
-        # of times. 
+        # of times.
         self.invalidateFilter()
     
     def setFilters(self, filters):
