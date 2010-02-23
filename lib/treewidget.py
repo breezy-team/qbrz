@@ -1126,11 +1126,13 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     
     def invalidateFilter(self):
         self.filter_cache = {}
-        self.source_model.tree.lock_read()
+        if self.source_model.tree:
+            self.source_model.tree.lock_read()
         try:
             QtGui.QSortFilterProxyModel.invalidateFilter(self)
         finally:
-            self.source_model.tree.unlock()
+            if self.source_model.tree:
+                self.source_model.tree.unlock()
     
     def setFilter(self, filter, value):
         self.filters[filter] = value
