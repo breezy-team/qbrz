@@ -1,5 +1,9 @@
-0.18.3 "" - YYYY/MM/DD
-----------------------
+0.18.3 "Cypress" - YYYY/MM/DD
+-----------------------------
+Bugfixes.
+
+ * Fixed problem with running diff from qannotate from qbrowse.
+   (Bug #505987, Alexander Belchenko)
 
 
 0.18.2 "Cedar" - 2010/02/21
