@@ -4,6 +4,8 @@ Bugfixes.
 
  * Fixed problem with running diff from qannotate from qbrowse.
    (Bug #505987, Alexander Belchenko)
+ * Rollback changes to qadd made in 0.18.2 which caused regression.
+   (Bug #526933, Alexander Belchenko)
 
 
 0.18.2 "Cedar" - 2010/02/21
