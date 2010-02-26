@@ -177,8 +177,8 @@ def get_text_color ( option, style):
 
 class RevNoItemDelegate(QtGui.QStyledItemDelegate):
 
-    def __init__ (self, max_mainline_digits = 4, parent = None):    
-        QtGui.QItemDelegate.__init__ (self, parent)
+    def __init__ (self, max_mainline_digits=4, parent=None):
+        QtGui.QItemDelegate.__init__(self, parent)
         self.max_mainline_digits = max_mainline_digits
     
     def paint(self, painter, option, index):
@@ -203,6 +203,14 @@ class RevNoItemDelegate(QtGui.QStyledItemDelegate):
             paint_revno(painter, text_rect, text, self.max_mainline_digits)
         
         painter.restore()
+
+    def set_max_revno(self, revno):
+        """Update max_mainline_digits based on max revno.
+        Return the new value of max_mainline_digits to caller.
+        """
+        mainline_digits = len("%d" % revno)
+        self.max_mainline_digits = max(mainline_digits, 4)
+        return self.max_mainline_digits
 
 
 def paint_revno(painter, rect, revno, max_mainline_digits):

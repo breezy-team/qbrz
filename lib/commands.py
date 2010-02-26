@@ -27,7 +27,7 @@ from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 import sys
 
-from PyQt4 import QtGui
+from PyQt4 import QtCore, QtGui
 
 from bzrlib import (
     builtins,
@@ -160,14 +160,20 @@ class QBzrCommand(Command):
         sys.excepthook = excepthook
         
         try:
-            ret_code = self._qbzr_run(*args, **kwargs)
+            try:
+                ret_code = self._qbzr_run(*args, **kwargs)
+            finally:
+                # ensure we flush clipboard data (see bug #503401)
+                clipboard = self._application.clipboard()
+                clipEvent = QtCore.QEvent(QtCore.QEvent.Clipboard)
+                self._application.sendEvent(clipboard, clipEvent)
             if ret_code is None:
                 main_window = getattr(self, "main_window", None)
                 if main_window is not None:
                     ret_code = getattr(main_window, "return_code", None)
             return ret_code
         except Exception:
-            ui_mode = ("ui_mode" in kwargs and kwargs["ui_mode"])
+            ui_mode = kwargs.get("ui_mode", False)
             from bzrlib.plugins.qbzr.lib.trace import report_exception
             return report_exception(ui_mode=ui_mode)
 
@@ -640,12 +646,17 @@ class cmd_qbranch(QBzrCommand):
 
     takes_options = [simple_revision_option,
                      ui_mode_option]
+    try:
+        takes_options.append(bzr_option("branch", "bind"))
+    except KeyError:
+        # older version of bzr that doesn't support the option
+        pass
     takes_args = ['from_location?', 'to_location?']
 
     def _qbzr_run(self, from_location=None, to_location=None,
-                  revision=None, ui_mode=False):
+                  revision=None, bind=False, ui_mode=False):
         self.main_window = QBzrBranchWindow(from_location, to_location,
-                                  revision=revision, ui_mode=ui_mode)
+            revision=revision, bind=bind, ui_mode=ui_mode)
         self.main_window.show()
         self._application.exec_()
 
@@ -996,6 +1007,8 @@ class cmd_qrun(QBzrCommand):
     command itself. For example::
 
       bzr qrun shelve -- --list
+
+    NOTE: you should use only canonical name of the COMMAND, not the alias.
     """
     takes_args = ['command?', 'parameters*']
     takes_options = [ui_mode_option,
@@ -1008,17 +1021,24 @@ class cmd_qrun(QBzrCommand):
             help='Initial category selection.',
             type=unicode,
             ),
+        Option('execute',
+            help="Validate and run the supplied command immediately.",
+            short_name='e'
+            ),
         ]
     aliases = ['qcmd']
 
     def _qbzr_run(self, command=None, parameters_list=None, ui_mode=False,
-        directory=None, category=None):
+        directory=None, category=None, execute=False):
         from bzrlib.plugins.qbzr.lib.run import QBzrRunDialog
         if parameters_list:
             parameters = " ".join(parameters_list)
         else:
             parameters = None
+        if not command:
+            execute = False
         window = QBzrRunDialog(command=command, parameters=parameters,
-            workdir=directory, category=category, ui_mode=ui_mode)
+            workdir=directory, category=category, ui_mode=ui_mode,
+            execute=execute)
         window.show()
         self._application.exec_()

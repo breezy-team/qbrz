@@ -26,6 +26,7 @@ Contributors:
  * Nicholas Allen <nick dot allen at onlinehome dot de>
  * Ohad Kammar <ohad dot kammar at gmail dot com>
  * Robert Widhopf-Fenk <hack at robf dot de>
+ * Simon Kersey <simon dot kersey at ipl dot com>
  * Vincent Ladeuil <v dot ladeuil+lp at free dot fr>
 
 

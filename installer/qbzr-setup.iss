@@ -6,10 +6,11 @@
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId=QBzr
-AppName=QBzr
-AppVerName=QBzr 0.17
 
-OutputBaseFilename=qbzr-setup-0.17
+AppName=                 QBzr
+AppVerName=              QBzr 0.19dev
+OutputBaseFilename=qbzr-setup-0.19dev
+
 SourceDir="..\"
 OutputDir="."
 OutputManifestFile=qbzr-setup-iss.log

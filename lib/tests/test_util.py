@@ -169,6 +169,14 @@ class TestUtil(tests.TestCase):
         self.assertEqual(u'\u1234', util.ensure_unicode(u'\u1234'))
         self.assertEqual(1, util.ensure_unicode(1))
 
+    def test__shlex_split_unicode_linux(self):
+        self.assertEquals([u'foo/bar', u'\u1234'],
+            util._shlex_split_unicode_linux(u"foo/bar \u1234"))
+
+    def test__shlex_split_unicode_windows(self):
+        self.assertEquals([u'C:\\foo\\bar', u'\u1234'],
+            util._shlex_split_unicode_windows(u"C:\\foo\\bar \u1234"))
+
 
 class TestOpenTree(tests.TestCaseWithTransport):
 

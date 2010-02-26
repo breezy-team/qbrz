@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os, sys
+import posixpath  # to use '/' path sep in path.join().
 from time import (strftime, localtime)
 from PyQt4 import QtCore, QtGui
 from bzrlib import errors
@@ -85,7 +86,7 @@ def group_large_dirs(paths):
         
         lp = len(parent_paths)
         for i, dir_path in enumerate(parent_paths):
-            depth = lp - i
+            depth = lp - i - 1
             if dir_path in all_paths_expanded:
                 all_paths_expanded[dir_path][2].add(path)
             else:
@@ -93,6 +94,9 @@ def group_large_dirs(paths):
     
     container_dirs = {}
     """Dict of a container dir path, with a set of it's decendents"""
+    
+    paths_deep_first = sorted(all_paths_expanded.itervalues(),
+                              key=lambda x: -x[1])
     
     def set_dir_as_container(path):
         decendents = all_paths_expanded[path][2]
@@ -105,15 +109,14 @@ def group_large_dirs(paths):
             ans_decendents.add(path)
     
     # directories included in the original paths container.
-    for path, depth, decendents in all_paths_expanded.itervalues():
+    for path, depth, decendents in paths_deep_first:
         if len(decendents)>0 and (path in paths):
             set_dir_as_container(path)
     
-    for path, depth, decendents in sorted(all_paths_expanded.itervalues(),
-                                          key=lambda x: -x[1]):
+    for path, depth, decendents in paths_deep_first:
         len_decendents = len(decendents)
         # Config?
-        if len_decendents>=4:
+        if len_decendents>=4 and path not in container_dirs:
             has_ansestor_with_others = False
             dir_path = path
             while dir_path:
@@ -609,6 +612,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                                            ignore_no_file_error=True):
                 self.load_dir(index.internalId())
         
+        self.emit(QtCore.SIGNAL("layoutChanged()"))
+        
         if self.checkable:
             if initial_checked_paths is not None:
                 self.set_checked_paths(initial_checked_paths)
@@ -616,7 +621,6 @@ class TreeModel(QtCore.QAbstractItemModel):
                 self.setData(self._index_from_id(root_id,self.NAME), 
                              QtCore.QVariant(QtCore.Qt.Checked),
                              QtCore.Qt.CheckStateRole)
-        self.emit(QtCore.SIGNAL("layoutChanged()"))
     
     def append_item(self, item_data, parent_id):
         item_data.id = len(self.inventory_data)
@@ -819,7 +823,9 @@ class TreeModel(QtCore.QAbstractItemModel):
             value = unicode(value.toString())
             item_data = self.inventory_data[index.internalId()]
             parent = self.inventory_data[item_data.parent_id]
-            new_path = os.path.join(parent.path, value)
+            new_path = posixpath.join(parent.path, value)
+            if item_data.path == new_path:
+                return False
             try:
                 if item_data.item.file_id:
                     # Versioned file
@@ -869,8 +875,11 @@ class TreeModel(QtCore.QAbstractItemModel):
             if role == QtCore.Qt.DisplayRole:
                 return QtCore.QVariant(item.name)
             if role == QtCore.Qt.EditRole:
-                parent = self.inventory_data[item_data.parent_id]
-                return QtCore.QVariant(item_data.path[len(parent.path):])
+                path = item_data.path
+                if item_data.parent_id:
+                    parent = self.inventory_data[item_data.parent_id]
+                    path = path[len(parent.path)+1:]
+                return QtCore.QVariant(path)
             if role == QtCore.Qt.DecorationRole:
                 if item_data.icon is None:
                     if item_data.change and not item_data.change.is_on_disk():
@@ -944,12 +953,12 @@ class TreeModel(QtCore.QAbstractItemModel):
         return QtCore.QVariant()
     
     def flags(self, index):
-        #if not index.isValid():
-        #    return QtCore.Qt.ItemIsEnabled
+        if not index.isValid():
+            return QtCore.Qt.NoItemFlags
         
         flags = (QtCore.Qt.ItemIsEnabled |
                  QtCore.Qt.ItemIsSelectable)
-        
+
         if isinstance(self.tree, WorkingTree):
             flags = flags | QtCore.Qt.ItemIsDragEnabled
         
@@ -957,7 +966,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             flags = flags | QtCore.Qt.ItemIsEditable
             if self.checkable:
                 flags = flags | QtCore.Qt.ItemIsUserCheckable
-        
+
         id = index.internalId()
         if id < len(self.inventory_data):
             item_data = self.inventory_data[index.internalId()]
@@ -1216,10 +1225,11 @@ class TreeWidget(RevisionTreeView):
 
     def __init__(self, *args):
         RevisionTreeView.__init__(self, *args)
-        
+
         self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.setUniformRowHeights(True)
-        self.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.setEditTriggers(QtGui.QAbstractItemView.SelectedClicked |
+                             QtGui.QAbstractItemView.EditKeyPressed)
         self.viewport().setAcceptDrops(True)
         self.setDropIndicatorShown(True)
         self.setDragDropMode(QtGui.QAbstractItemView.InternalMove);
@@ -1233,10 +1243,12 @@ class TreeWidget(RevisionTreeView):
         self.setModel(self.tree_filter_model)
         #self.setModel(self.tree_model)
         
+        self.revno_item_delegate = RevNoItemDelegate(parent=self)
+
         self.set_header_width_settings()
 
         self.setItemDelegateForColumn(self.tree_model.REVNO,
-                                      RevNoItemDelegate(parent=self))
+                                      self.revno_item_delegate)
 
         self.create_context_menu()
         
@@ -1259,7 +1271,7 @@ class TreeWidget(RevisionTreeView):
                                                None, self) + 1) *2
         
         header.resizeSection(self.tree_model.REVNO,
-                             fm.width("8888.8.888") + col_margin)
+            fm.width("8"*self.revno_item_delegate.max_mainline_digits + ".8.888") + col_margin)
         header.resizeSection(self.tree_model.DATE,
                              fm.width("88-88-8888 88:88") + col_margin)
         header.resizeSection(self.tree_model.AUTHOR,
@@ -1328,14 +1340,16 @@ class TreeWidget(RevisionTreeView):
         self.changes_mode = changes_mode
         self.want_unversioned = want_unversioned
         self.change_load_filter = change_load_filter
-        
-        if str(QtCore.QT_VERSION_STR).startswith("4.4"):
-            # 4.4.x have a bug where if you do a layoutChanged when using
-            # a QSortFilterProxyModel, it loses all header width settings.
-            # So if you are using 4.4, we have to reset the width settings
-            # after every time we do a layout changed. The issue is similar to 
-            # http://www.qtsoftware.com/developer/task-tracker/index_html?method=entry&id=236755
-            self.set_header_width_settings()
+
+        if branch:
+            branch.lock_read()
+            try:
+                last_revno = branch.last_revision_info()[0]
+            finally:
+                branch.unlock()
+            self.revno_item_delegate.set_max_revno(last_revno)
+        # update width uncoditionally because we may change the revno column
+        self.set_header_width_settings()
         self.set_visible_headers()
         QtCore.QCoreApplication.processEvents()
         
@@ -1897,7 +1911,7 @@ class TreeWidget(RevisionTreeView):
         """Rename the selected file."""
         
         indexes = self.get_selection_indexes()
-        if len(indexes) <> 1:
+        if len(indexes) != 1:
             return
         index = indexes[0]
         index = self.tree_filter_model.mapFromSource (index)

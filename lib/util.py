@@ -19,6 +19,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os
+import shlex
 import sys
 import itertools
 
@@ -38,8 +39,8 @@ from bzrlib import (
     )
 from bzrlib.util.configobj import configobj
 
+from bzrlib.plugins.qbzr.lib import MS_WINDOWS
 from bzrlib.plugins.qbzr.lib import trace
-from bzrlib.plugins.qbzr.lib import i18n
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 
 # pyflakes says this is not needed, but it is.
@@ -607,13 +608,13 @@ class FilterOptions(object):
     def to_str(self):
         s = []
         if self.deleted:
-            s.append(i18n.gettext('deleted files'))
+            s.append(gettext('deleted files'))
         if self.added:
-            s.append(i18n.gettext('added files'))
+            s.append(gettext('added files'))
         if self.renamed:
-            s.append(i18n.gettext('renamed files'))
+            s.append(gettext('renamed files'))
         if self.modified:
-            s.append(i18n.gettext('modified files'))
+            s.append(gettext('modified files'))
         return ', '.join(s)
 
     def check(self, status):
@@ -670,7 +671,7 @@ def iter_branch_related_locations(branch):
         if location is not None:
             yield url_for_display(location)
 
-# A helper to fill a 'pull' combo.
+# A helper to fill a 'pull' combo. Returns the default value.
 def fill_pull_combo(combo, branch):
     if branch is None:
         p = u''
@@ -679,6 +680,7 @@ def fill_pull_combo(combo, branch):
         p = url_for_display(branch.get_parent() or '')
         related = iter_branch_related_locations(branch)
     fill_combo_with(combo, p, related, iter_saved_pull_locations())
+    return p
 
 
 # A helper to fill a combo with values.  Example usage:
@@ -981,6 +983,23 @@ def launchpad_project_from_url(url):
         if len(parts) == 3 and parts[0].startswith('~'):
             return parts[1]
     return None
+
+
+def _shlex_split_unicode_linux(unicode_string):
+    """Split unicode string to list of unicode arguments."""
+    return [unicode(p,'utf8') for p in shlex.split(unicode_string.encode('utf-8'))]
+
+def _shlex_split_unicode_windows(unicode_string):
+    """Split unicode string to list of unicode arguments.
+    Take care about backslashes as valid path separators.
+    """
+    utf8_string = unicode_string.replace('\\', '\\\\').encode('utf-8')
+    return [unicode(p,'utf8') for p in shlex.split(utf8_string)]
+
+if MS_WINDOWS:
+    shlex_split_unicode = _shlex_split_unicode_windows
+else:
+    shlex_split_unicode = _shlex_split_unicode_linux
 
 def get_icon(name):
     # TODO: Load multiple sizes

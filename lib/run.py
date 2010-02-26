@@ -22,7 +22,6 @@
 """Dialog to run arbitrary bzr command."""
 
 import os
-import shlex
 from PyQt4 import QtCore, QtGui
 
 from bzrlib import osutils
@@ -32,13 +31,16 @@ from bzrlib.plugins.qbzr.lib.help import get_help_topic_as_html
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_run import Ui_RunDialog
-from bzrlib.plugins.qbzr.lib.util import hookup_directory_picker
+from bzrlib.plugins.qbzr.lib.util import (
+    hookup_directory_picker,
+    shlex_split_unicode,
+    )
 
 
 class QBzrRunDialog(SubProcessDialog):
 
     def __init__(self, command=None, parameters=None, workdir=None,
-        category=None, ui_mode=False, parent=None):
+        category=None, ui_mode=False, parent=None, execute=False):
         """Build dialog.
 
         @param command: initial command selection.
@@ -47,6 +49,7 @@ class QBzrRunDialog(SubProcessDialog):
         @param category: initial category selection.
         @param ui_mode: wait after the operation is complete.
         @param parent:  parent window.
+        @param execute: True => run command immediately
         """
         super(QBzrRunDialog, self).__init__(name="run", ui_mode=ui_mode,
             dialog=True, parent=parent)
@@ -68,13 +71,15 @@ class QBzrRunDialog(SubProcessDialog):
         # add the parameters, if any
         if parameters:
             self.ui.opt_arg_edit.setText(parameters)
+        
         # and add the subprocess widgets
-        self.splitter = self.ui.splitter
         for w in self.make_default_layout_widgets():
-            self.splitter.addWidget(w)
+            self.ui.subprocess_container_layout.addWidget(w)
         self.process_widget.hide_progress()
+        
         # restore the sizes
         self.restoreSize("run", None)
+        self.splitter = self.ui.splitter
         self.restoreSplitterSizes()
         # setup signals
         QtCore.QObject.connect(self.ui.hidden_checkbox,
@@ -105,10 +110,49 @@ class QBzrRunDialog(SubProcessDialog):
             if index >= 0:
                 cb.setCurrentIndex(index)
         # ready to go
-        if command:
-            self.ui.opt_arg_edit.setFocus()
+        if execute:
+            # hide user edit fields
+            self.ui.frame.hide()
+            self.ui.help_browser.hide()
+            
+            # create edit button
+            self._editButton = QtGui.QPushButton(gettext('&Edit'))
+            QtCore.QObject.connect(self._editButton,
+                QtCore.SIGNAL("clicked()"),
+                self.enable_command_edit)
+
+            # cause edit button to be shown if command fails
+            QtCore.QObject.connect(self,
+                                   QtCore.SIGNAL("subprocessFailed(bool)"),
+                                   self._editButton,
+                                   QtCore.SLOT("setHidden(bool)"))
+            
+            # add edit button to dialog buttons     
+            self.buttonbox.addButton(self._editButton,
+                QtGui.QDialogButtonBox.ResetRole)
+            
+            # setup initial dialog button status
+            self.init_button_status()
+            self._okButton.setHidden(True)
+            self._editButton.setHidden(True)
+            
+            # run command
+            self.do_start()
         else:
-            self.ui.cmd_combobox.setFocus()
+            if command:
+                self.ui.opt_arg_edit.setFocus()
+            else:
+                self.ui.cmd_combobox.setFocus()
+
+    def enable_command_edit(self):
+        """Hide Edit button and make user edit fields visible"""
+        self._editButton.setHidden(True)
+        QtCore.QObject.disconnect(self,
+                                  QtCore.SIGNAL("subprocessFailed(bool)"),
+                                  self._editButton,
+                                  QtCore.SLOT("setHidden(bool)"))
+        self.ui.frame.show()
+        self.ui.help_browser.show()
 
     def set_default_help(self):
         """Set default text in help widget."""
@@ -256,8 +300,8 @@ class QBzrRunDialog(SubProcessDialog):
         """Launch command."""
         cwd = self._get_cwd()
         args = [self._get_cmd_name()]
-        cmd_utf8 = unicode(self.ui.opt_arg_edit.text()).encode('utf-8')
-        args.extend([unicode(p,'utf8') for p in shlex.split(cmd_utf8)])
+        opt_arg = unicode(self.ui.opt_arg_edit.text())
+        args.extend(shlex_split_unicode(opt_arg))
         self.process_widget.do_start(cwd, *args)
 
     def saveSize(self):

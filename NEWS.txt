@@ -1,3 +1,30 @@
+0.18 "Pine-needles" - 2010-01-19
+--------------------------------
+What's new in this release:
+
+ * Fixed problems with rename items in subdirectory. (Bug #495519, INADA Naoki)
+ * Flush clipboard on exit, so data copied there is available after closing of
+   q-window. (Bug #503401)
+ * Fixed problem with insufficient width of revno column in qannotate and
+   qbrowse (for revision tree) if revno bigger than 9999. 
+   (Bug #505990, Alexander Belchenko)
+ * Changed buttons behavior in subprocess-based dialogs: if the operation
+   failed then show Retry button (instead of OK), at the successfull finish
+   show only Close button. (Simon Kersey)
+ * qrun has new option --execute which allows to run the supplied command
+   immediately. If the command failed user can edit the command and its
+   arguments in usual way. (Simon Kersey)
+ * Fixed a bug in the new SyntaxHighlighter used in qannotate and qcat so that
+   it correctly handle tokens without styles. (Bug #508281, Gary van der Merwe)
+ * Fixed a bug in TreeWidget were some times duplicated in parent directories.
+   (Gary van der Merwe)
+ * qbranch has a new --bind option for convenient binding to the parent
+   location while branching.
+ * qcommit: Non versioned files are now selected by select all when they are
+   shown. (Bug #490864, Gary van der Merwe)
+ * Serbian translations added.
+
+
 0.17 "Sapin de Noël" - 2009/12/12
 ---------------------------------
 What's new in this release:
@@ -229,6 +256,14 @@ Detailed changelog:
  * qupdate:
    * Now working for bound branches (aka heavyweight checkouts).
      (#422649, Craig Hewetson)
+
+
+0.14.6 "Spruce" - 2010-01-18
+----------------------------
+Bugfixes and backported bugfixes.
+
+  * qlog: Fix a bug when refreshing a branch with revisions that have been 
+    removed. (Bug #435486, Gary van der Merwe)
 
 
 0.14.5 "Dropzone" - 2009-10-31
