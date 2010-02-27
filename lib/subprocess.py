@@ -21,6 +21,7 @@
 
 import codecs
 import os
+import re
 import shlex
 import signal
 import sys
@@ -494,10 +495,11 @@ class SubProcessWidget(QtGui.QWidget):
         # win32 has command-line length limit about 32K, but it seems 
         # problems with command-line buffer limit occurs not only on windows.
         # see bug https://bugs.launchpad.net/qbzr/+bug/396165
-        # XXX make the threshold configurable in qbzr.conf?
-        if len(args) > 10000:   # on Linux I believe command-line is in utf-8,
-                                # so we need to have some extra space
-                                # when converting unicode -> utf8
+        # on Linux I believe command-line is in utf-8,
+        # so we need to have some extra space
+        # when converting unicode -> utf8
+        if (len(args) > 10000          # XXX make the threshold configurable in qbzr.conf?
+            or re.search(r"(\n|\r)", args) is not None):
             # save the args to the file
             fname = self._create_args_file(args)
             args = "@" + fname.replace('\\', '/')
@@ -602,7 +604,7 @@ class SubProcessWidget(QtGui.QWidget):
                 data = (button == QtGui.QMessageBox.Yes)
                 self.process.write(SUB_GETBOOL + bencode.bencode(data) + "\n")
             else:
-                line = line.decode(self.encoding)
+                line = line.decode(self.encoding, 'replace')
                 self.logMessageEx(line, 'plain', self.stdout)
 
     def readStderr(self):
@@ -775,56 +777,40 @@ class SubprocessUIFactory(TextUIFactory):
         return self._get_answer_from_main(SUB_GETBOOL, prompt+'?')
 
 
-# [bialix 2009/11/23] cmd_qsubprocess has moved from commands.py
+# [bialix 2010/02/04] body of cmd_qsubprocess has moved from commands.py
 # to see annotation of cmd_qsubprocess before move use:
 #     bzr qannotate commands.py -r1117
 
-class cmd_qsubprocess(commands.Command):
-    """Run some bzr command as subprocess. 
-    Used with most of subprocess-based dialogs of QBzr.
-    
-    If CMD argument starts with @ characters then it used as name of file with
-    actual cmd string (in utf-8).
-    
-    With --bencode option cmd string interpreted as bencoded list of utf-8
-    strings. This is the recommended way to launch qsubprocess.
+def run_subprocess_command(cmd, bencoded=False):
+    """The actual body of qsubprocess.
+    Running specified bzr command in the subprocess.
+    @param cmd: string with command line to run.
+    @param bencoded: either cmd_str is bencoded list or not.
+
+    NOTE: if cmd starts with @ sign then it used as name of the file
+    where actual command line string is saved (utf-8 encoded).
     """
-    takes_args = ['cmd']
-    takes_options = [Option("bencoded", help="Pass command as bencoded string.")]
-    hidden = True
-
     if MS_WINDOWS:
-        def __win32_ctrl_c(self):
-            import win32event
-            ev = win32event.CreateEvent(None, 0, 0, get_event_name(os.getpid()))
-            try:
-                win32event.WaitForSingleObject(ev, win32event.INFINITE)
-            finally:
-                ev.Close()
-            thread.interrupt_main()
-
-    def run(self, cmd, bencoded=False):
-        if MS_WINDOWS:
-            thread.start_new_thread(self.__win32_ctrl_c, ())
-        else:
-            signal.signal(signal.SIGINT, sigabrt_handler)
-        ui.ui_factory = SubprocessUIFactory(stdin=sys.stdin,
-                                            stdout=sys.stdout,
-                                            stderr=sys.stderr)
-        if cmd.startswith('@'):
-            fname = cmd[1:]
-            f = open(fname, 'rb')
-            try:
-                cmd_utf8 = f.read()
-            finally:
-                f.close()
-        else:
-            cmd_utf8 = cmd.encode('utf8')
-        if not bencoded:
-            argv = [unicode(p, 'utf-8') for p in shlex.split(cmd_utf8)]
-        else:
-            argv = [unicode(p, 'utf-8') for p in bencode.bdecode(cmd_utf8)]
-        commands.run_bzr(argv)
+        thread.start_new_thread(windows_emulate_ctrl_c, ())
+    else:
+        signal.signal(signal.SIGINT, sigabrt_handler)
+    ui.ui_factory = SubprocessUIFactory(stdin=sys.stdin,
+                                        stdout=sys.stdout,
+                                        stderr=sys.stderr)
+    if cmd.startswith('@'):
+        fname = cmd[1:]
+        f = open(fname, 'rb')
+        try:
+            cmd_utf8 = f.read()
+        finally:
+            f.close()
+    else:
+        cmd_utf8 = cmd.encode('utf8')
+    if not bencoded:
+        argv = [unicode(p, 'utf-8') for p in shlex.split(cmd_utf8)]
+    else:
+        argv = [unicode(p, 'utf-8') for p in bencode.bdecode(cmd_utf8)]
+    return commands.run_bzr(argv)
 
 
 def sigabrt_handler(signum, frame):
@@ -862,6 +848,20 @@ if MS_WINDOWS:
             win32event.SetEvent(ev)
         finally:
             ev.Close()
+
+    def windows_emulate_ctrl_c():
+        """To emulate Ctrl+C on Windows we have to wait some global event,
+        and once it will trigger we will try to interrupt main thread.
+        IMPORTANT: This function should be invoked as separate thread!
+        """
+        import win32event
+        ev = win32event.CreateEvent(None, 0, 0, get_event_name(os.getpid()))
+        try:
+            win32event.WaitForSingleObject(ev, win32event.INFINITE)
+        finally:
+            ev.Close()
+        thread.interrupt_main()
+
 
 def bencode_unicode(args):
     """Bencode list of unicode strings as list of utf-8 strings and converting

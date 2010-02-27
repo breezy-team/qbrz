@@ -60,6 +60,15 @@ from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingSelector
 
+try:
+    from bzrlib.errors import FileTimestampUnavailable
+except ImportError:
+    # FileTimestampUnavailable is available only in bzr 2.1.0rc1 and up
+    from bzrlib.errors import BzrError
+    class FileTimestampUnavailable(BzrError):
+        """Fake FileTimestampUnavailable error for older bzr."""
+        pass
+
 
 def get_file_lines_from_tree(tree, file_id):
     try:
@@ -321,6 +330,9 @@ class DiffWindow(QBzrWindow):
                                 # If we get ENOENT error then probably we trigger
                                 # bug #251532 in bzrlib. Take current time instead
                                 dates[ix] = time.time()
+                            except FileTimestampUnavailable:
+                                # ghosts around us (see Bug #513096)
+                                dates[ix] = 0  # using 1970/1/1 instead
 
                     properties_changed = [] 
                     if bool(executable[0]) != bool(executable[1]):

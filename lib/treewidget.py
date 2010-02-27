@@ -376,6 +376,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.icon_provider = QtGui.QFileIconProvider()
         self.parent_view = parent
         self._index_cache = {}
+        self.set_select_all_kind()
     
     def set_tree(self, tree, branch=None, 
                  changes_mode=False, want_unversioned=True,
@@ -569,7 +570,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             return
         dir_item = self.inventory_data[dir_id]
         if dir_item.children_ids is not None:
-            return 
+            return # This dir has allready been loaded.
         
         self.tree.lock_read()
         try:
@@ -590,16 +591,19 @@ class TreeModel(QtCore.QAbstractItemModel):
     def process_inventory(self, get_children, initial_checked_paths, load_dirs):
         self.get_children = get_children
         
-        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
         
         is_refresh = len(self.inventory_data)>0
         if is_refresh:
+            self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
             self.beginRemoveRows(QtCore.QModelIndex(), 0,
                                  len(self.inventory_data[0].children_ids)-1)
         self.inventory_data = []
         if is_refresh:
             self.endRemoveRows()
-            
+            self.emit(QtCore.SIGNAL("layoutChanged()"))
+        
+        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+        
         root_item = ModelItemData(
             '', item=self.tree.inventory[self.tree.get_root_id()])
         
@@ -721,13 +725,26 @@ class TreeModel(QtCore.QAbstractItemModel):
             return True
         item_data = self.inventory_data[parent.internalId()]
         return item_data.item.kind == "directory"
+
+    def set_select_all_kind(self, kind='all'):
+        """Set checker function for 'select all' checkbox.
+        Possible kind values: all, versioned.
+        """
+        def _is_item_in_select_all_all(item):
+            """Returns whether an item is changed when select all is clicked,
+            and whether it's children are looked at."""
+            return True, True
     
-    is_item_in_select_all = lambda self, item: (True, True)
-    """Returns wether an item is changed when select all is clicked, and whether
-    it's children are looked at."""
-    
+        def _is_item_in_select_all_versioned(item):
+            return (item.change is None or item.change.is_versioned(), True)
+
+        if kind == 'all':
+            self.is_item_in_select_all = _is_item_in_select_all_all
+        elif kind == 'versioned':
+            self.is_item_in_select_all = _is_item_in_select_all_versioned
+
     def setData(self, index, value, role):
-        
+
         def set_checked(item_data, checked):
             old_checked = item_data.checked
             item_data.checked = checked
@@ -868,7 +885,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         item = item_data.item
         
         if role == self.FILEID:
-            return QtCore.QVariant(item.file_id)
+            return QtCore.QVariant(QtCore.QByteArray(item.file_id))
         
         column = index.column()
         if column == self.NAME:
@@ -1034,9 +1051,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         if key not in dict or dict[key].id is None:
             # Try loading the parents
             for parent_key in iter_parents():
-                if parent_key not in dict:
-                    break
-                self.load_dir(dict[parent_key].id)
+                if parent_key in dict:
+                    self.load_dir(dict[parent_key].id)
         
         if key not in dict:
             raise errors.NoSuchFile(ref.path)
@@ -1110,12 +1126,18 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     
     def invalidateFilter(self):
         self.filter_cache = {}
-        QtGui.QSortFilterProxyModel.invalidateFilter(self)
+        if self.source_model.tree:
+            self.source_model.tree.lock_read()
+        try:
+            QtGui.QSortFilterProxyModel.invalidateFilter(self)
+        finally:
+            if self.source_model.tree:
+                self.source_model.tree.unlock()
     
     def setFilter(self, filter, value):
         self.filters[filter] = value
         # This is slow. It causes TreeModel.index, and TreeModel.data thousands
-        # of times. 
+        # of times.
         self.invalidateFilter()
     
     def setFilters(self, filters):
@@ -1758,8 +1780,11 @@ class TreeWidget(RevisionTreeView):
     def show_file_annotate(self):
         """Show qannotate for selected file."""
         index = self.currentIndex()
-        file_id = unicode(index.data(self.tree_model.FILEID).toString())
+        file_id = str(index.data(self.tree_model.FILEID).toByteArray())
         path = unicode(index.data(self.tree_model.PATH).toString())
+
+        if isinstance(file_id, unicode):
+            raise errors.InternalBzrError('file_id should be plain string, not unicode')
 
         window = AnnotateWindow(self.branch, self.tree, path, file_id)
         window.show()
@@ -1936,7 +1961,7 @@ class TreeWidget(RevisionTreeView):
             except errors.BzrRemoveChangedFilesError:
                 res = QtGui.QMessageBox.question(
                     self, gettext("Remove"),
-                    gettext("Some of the files selected cannot be recoverd if "
+                    gettext("Some of the files selected cannot be recovered if "
                             "removed. Are you sure you want to remove these "
                             "files?"),
                     QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)

@@ -381,6 +381,12 @@ class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
         
         self.windows = []
         self.closing = False
+        
+        # Even though this is a dialog, make it like a window. This allows us
+        # to have the best of both worlds, e.g. Default buttons from dialogs,
+        # and max and min buttons from window.
+        # It also fixes https://bugs.launchpad.net/qbzr/+bug/421039
+        self.setWindowFlags(QtCore.Qt.Window)
 
     def do_accept(self):
         self.accept()

@@ -1,3 +1,49 @@
+0.19.0 "" - YYYY/MM/DD
+----------------------
+ * Added Hungarian translation.
+
+
+0.18.3 "Cypress" - YYYY/MM/DD
+-----------------------------
+Bugfixes.
+
+ * Fixed problem with running diff from qannotate from qbrowse.
+   (Bug #505987, Alexander Belchenko)
+ * Rollback changes to qadd made in 0.18.2 which caused regression.
+   (Bug #526933, Alexander Belchenko)
+ * Handle FileTimestampUnavailable error when diffing file with ghosts
+   in history. (Bug #513096, Alexander Belchenko)
+ * Change dialogs to have normal window flags. This fixes a bug where on
+   some window managers (metacity, Mac OSX) windows opened from a dialog
+   would be behind the dialog. (Bug #421039, Gary van der Merwe)
+
+
+0.18.2 "Cedar" - 2010/02/21
+---------------------------
+Bugfixes in the stable branch. Suitable for bzr 2.1.x.
+
+ * qconfig: don't quote editor path. (Bug #523212, Alexander Belchenko)
+ * qsubprocess: pass command line with \n in it via temporary file.
+   (Bug #517420, Alexander Belchenko)
+ * qsubprocess: relax the unicode problems while decode stdout of subprocess.
+   (Bug #523746, INADA Naoki)
+ * Restore standard bzrlib ui_factory on exit from q-commands.
+   (Bug #498309, Alexander Belchenko)
+ * Better "select all" logic for qrevert and qadd. 
+   (Bug #524483, Alexander Belchenko)
+ * Added Hungarian translation.
+
+
+0.18.1 "Fern" - 2010/02/04
+--------------------------
+What's new in this release:
+
+ * Treewidget: Fix a crash when refreshing tree with a checked item that has a
+   parent that is ungrouped. (Bug #512006, Gary van der Merwe)
+ * Avoid importing Qt libs when `bzr help commands` invoked. 
+   (Bug #515636, Alexander Belchenko)
+
+
 0.18 "Pine-needles" - 2010-01-19
 --------------------------------
 What's new in this release:
@@ -257,6 +303,13 @@ Detailed changelog:
    * Now working for bound branches (aka heavyweight checkouts).
      (#422649, Craig Hewetson)
 
+0.14.7 - Under Development
+----------------------------
+Bugfixes and backported bugfixes.
+
+  * Change dialogs to have normal window flags. This fixes a bug where on
+    some window managers (metacity, Mac OSX) windows opened from a dialog
+    would be behind the dialog. (Bug #421039, Gary van der Merwe)
 
 0.14.6 "Spruce" - 2010-01-18
 ----------------------------
