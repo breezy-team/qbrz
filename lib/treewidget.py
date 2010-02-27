@@ -437,12 +437,14 @@ class TreeModel(QtCore.QAbstractItemModel):
         
         is_refresh = len(self.inventory_data)>0
         if is_refresh:
+            self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
             self.beginRemoveRows(QtCore.QModelIndex(), 0,
                                  len(self.inventory_data[0].children_ids)-1)
         self.inventory_data = []
         if is_refresh:
             self.endRemoveRows()
-            
+            self.emit(QtCore.SIGNAL("layoutChanged()"))
+        
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
         root_item = ModelItemData(self.tree.inventory[self.tree.get_root_id()],
                                   None, '')
