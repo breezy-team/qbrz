@@ -409,7 +409,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             return
         dir_item = self.inventory_data[dir_id]
         if dir_item.children_ids is not None:
-            return 
+            return # This dir has allready been loaded.
         
         self.tree.lock_read()
         try:
@@ -434,7 +434,6 @@ class TreeModel(QtCore.QAbstractItemModel):
     def process_inventory(self, get_children):
         self.get_children = get_children
         
-        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
         
         is_refresh = len(self.inventory_data)>0
         if is_refresh:
@@ -444,6 +443,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         if is_refresh:
             self.endRemoveRows()
             
+        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
         root_item = ModelItemData(self.tree.inventory[self.tree.get_root_id()],
                                   None, '')
         root_id = self.append_item(root_item, None)
@@ -782,9 +782,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         if key not in dict or dict[key].id is None:
             # Try loading the parents
             for parent_key in iter_parents():
-                if parent_key not in dict:
-                    break
-                self.load_dir(dict[parent_key].id)
+                if parent_key in dict:
+                    self.load_dir(dict[parent_key].id)
         
         if key not in dict:
             raise errors.NoSuchFile(ref.path)
