@@ -885,7 +885,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         item = item_data.item
         
         if role == self.FILEID:
-            return QtCore.QVariant(item.file_id)
+            return QtCore.QVariant(QtCore.QByteArray(item.file_id))
         
         column = index.column()
         if column == self.NAME:
@@ -1780,8 +1780,11 @@ class TreeWidget(RevisionTreeView):
     def show_file_annotate(self):
         """Show qannotate for selected file."""
         index = self.currentIndex()
-        file_id = unicode(index.data(self.tree_model.FILEID).toString())
+        file_id = str(index.data(self.tree_model.FILEID).toByteArray())
         path = unicode(index.data(self.tree_model.PATH).toString())
+
+        if isinstance(file_id, unicode):
+            raise errors.InternalBzrError('file_id should be plain string, not unicode')
 
         window = AnnotateWindow(self.branch, self.tree, path, file_id)
         window.show()

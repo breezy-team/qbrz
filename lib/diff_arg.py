@@ -54,7 +54,7 @@ class InternalDiffArgProvider(DiffArgProvider):
         self.new_branch = new_branch
         self.specific_files = specific_files
         self.specific_file_ids = specific_file_ids
-        
+
         self.old_tree = None
         self.new_tree = None
     
