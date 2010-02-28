@@ -97,83 +97,51 @@ class SubProcessWindowBase(object):
             QtCore.SIGNAL("error()"),
             self.on_error)
 
-        self._closeButton = StandardButton(BTN_CLOSE)
-        self._okButton = StandardButton(BTN_OK)
-        self._cancelButton = StandardButton(BTN_CANCEL)
-        self._retryButton = QtGui.QPushButton(gettext('&Retry'))
+        closeButton = StandardButton(BTN_CLOSE)
+        okButton = StandardButton(BTN_OK)
+        cancelButton = StandardButton(BTN_CANCEL)
 
         # ok button gets disabled when we start.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessStarted(bool)"),
-                               self._okButton,
-                               QtCore.SLOT("setDisabled(bool)"))
-
-        # retry button gets disabled when we start.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessStarted(bool)"),
-                               self._retryButton,
+                               okButton,
                                QtCore.SLOT("setDisabled(bool)"))
 
         # ok button gets hidden when we finish.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self._okButton,
-                               QtCore.SLOT("setHidden(bool)"))
-                               
-        # retry button gets hidden when we finish
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self._retryButton,
-                               QtCore.SLOT("setHidden(bool)"))
-        
-        # cancel button gets hidden when we finish.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self._cancelButton,
+                               okButton,
                                QtCore.SLOT("setHidden(bool)"))
 
         # close button gets shown when we finish.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self._closeButton,
+                               closeButton,
                                QtCore.SLOT("setShown(bool)"))
 
-        # ok button gets hidden when we fail.
+        # cancel button gets disabled when finished.
         QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessFailed(bool)"),
-                               self._okButton,
-                               QtCore.SLOT("setShown(bool)"))
-
-        # retry button gets enabled when we fail.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessFailed(bool)"),
-                               self._retryButton,
+                               QtCore.SIGNAL("subprocessFinished(bool)"),
+                               cancelButton,
                                QtCore.SLOT("setDisabled(bool)"))
-        
-        # retry button gets shown when we fail
+
+        # ok button gets enabled when we fail.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessFailed(bool)"),
-                               self._retryButton,
-                               QtCore.SLOT("setHidden(bool)"))
+                               okButton,
+                               QtCore.SLOT("setDisabled(bool)"))
 
         self.buttonbox = QtGui.QDialogButtonBox(self)
-        self.buttonbox.addButton(self._okButton,
+        self.buttonbox.addButton(okButton,
             QtGui.QDialogButtonBox.AcceptRole)
-        self.buttonbox.addButton(self._retryButton,
+        self.buttonbox.addButton(closeButton,
             QtGui.QDialogButtonBox.AcceptRole)
-        self.buttonbox.addButton(self._closeButton,
-            QtGui.QDialogButtonBox.AcceptRole)
-        self.buttonbox.addButton(self._cancelButton,
+        self.buttonbox.addButton(cancelButton,
             QtGui.QDialogButtonBox.RejectRole)
         self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.do_accept)
         self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.do_reject)
-        
-        self.init_button_status()
+        closeButton.setHidden(True) # but 'close' starts as hidden.
 
-    def init_button_status(self):
-        self._closeButton.setHidden(True) # but 'close' starts as hidden.
-        self._retryButton.setHidden(True) # and 'retry' starts as hidden
-    
     def make_default_status_box(self):
         status_group_box = QtGui.QGroupBox(gettext("Status"))
         status_layout = QtGui.QVBoxLayout(status_group_box)
