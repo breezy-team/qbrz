@@ -131,6 +131,11 @@ class SubProcessWindowBase(object):
                                okButton,
                                QtCore.SLOT("setDisabled(bool)"))
 
+        # Change the ok button to 'retry' if we fail.
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessFailed(bool)"),
+                               lambda failed: okButton.setText(gettext('&Retry')))
+
         self.buttonbox = QtGui.QDialogButtonBox(self)
         self.buttonbox.addButton(okButton,
             QtGui.QDialogButtonBox.AcceptRole)
