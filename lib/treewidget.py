@@ -1562,15 +1562,14 @@ class TreeWidget(RevisionTreeView):
         """
         e_key = event.key()
         if e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
-            items = self.get_selection_items()
-            if len(items) == 1:
-                kind = items[0].item.kind
+            if not self.state() & QtGui.QAbstractItemView.EditingState:
                 event.accept()
-                index = self.selectedIndexes()[0]
-                if kind == 'directory':
-                    self.setExpanded(index, not self.isExpanded(index))
+                indexes = self.selectionModel().selectedRows(0)
+                if (len(indexes) == 1 and
+                        self.get_selection_items(indexes)[0].item.kind == 'directory'):
+                    self.setExpanded(indexes[0], not self.isExpanded(indexes[0]))
                 else:
-                    self.do_default_action(index)
+                    self.do_default_action(None)
                 return
         QtGui.QTreeView.keyPressEvent(self, event)
 
@@ -1702,6 +1701,7 @@ class TreeWidget(RevisionTreeView):
                 self.context_menu.setDefaultAction(self.action_open_file)
 
     def do_default_action(self, index):
+        # XXX This should be made to handle selections of multiple items.
         item_data = self.get_selection_items([index])[0]
         if item_data.item.kind == "directory":
             # Don't do anything, so that the directory can be expanded.

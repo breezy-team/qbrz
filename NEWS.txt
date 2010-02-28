@@ -14,6 +14,8 @@ Bugfixes.
  * TreeWidget: emit layoutAboutToBeChanged signal while we remove old items
    to ensure model data consistancy.
    (Bug #513066, Bug #515908, Gary van der Merwe)
+ * TreeWidget: When renameing a file, pressing enter should not cause the
+   default action to be run. (Bug #513107, Gary van der Merwe)
 
 
 0.18.2 "Cedar" - 2010/02/21
