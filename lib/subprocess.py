@@ -61,6 +61,7 @@ SUB_PROGRESS = "qbzr:PROGRESS:"
 SUB_GETPASS = "qbzr:GETPASS:"
 SUB_GETUSER = "qbzr:GETUSER:"
 SUB_GETBOOL = "qbzr:GETBOOL:"
+SUB_ERROR = "qbzr:ERROR:"
 
 
 class SubProcessWindowBase(object):
@@ -92,7 +93,7 @@ class SubProcessWindowBase(object):
             QtCore.SIGNAL("finished()"),
             self.on_finished)
         self.connect(self.process_widget,
-            QtCore.SIGNAL("failed()"),
+            QtCore.SIGNAL("failed(QString)"),
             self.on_failed)
         self.connect(self.process_widget,
             QtCore.SIGNAL("error()"),
@@ -225,7 +226,7 @@ class SubProcessWindowBase(object):
         if self._check_args():
             self.process_widget.do_start(self.dir, *self.args)
         else:
-            self.on_failed()
+            self.on_failed('CheckArgsFailed')
 
     def do_reject(self):
         if self.process_widget.is_running():
@@ -245,7 +246,7 @@ class SubProcessWindowBase(object):
         if not self.ui_mode:
             self.close()
 
-    def on_failed(self):
+    def on_failed(self, error):
         self.emit(QtCore.SIGNAL("subprocessFailed(bool)"), False)
         self.emit(QtCore.SIGNAL("disableUi(bool)"), False)
 
@@ -440,6 +441,7 @@ class SubProcessWidget(QtGui.QWidget):
             self.hide_progress()
 
         self._args_file = None  # temp file to pass arguments to qsubprocess
+        self.error_class = ''
 
     def hide_progress(self):
         self.progressMessage.setHidden(True)
@@ -506,7 +508,9 @@ class SubProcessWidget(QtGui.QWidget):
 
         if dir is None:
             dir = self.defaultWorkingDir
-
+            
+        self.error_class = ''
+        
         self.process.setWorkingDirectory(dir)
         if getattr(sys, "frozen", None) is not None:
             bzr_exe = sys.argv[0]
@@ -603,6 +607,8 @@ class SubProcessWidget(QtGui.QWidget):
                 
                 data = (button == QtGui.QMessageBox.Yes)
                 self.process.write(SUB_GETBOOL + bencode.bencode(data) + "\n")
+            elif line.startswith(SUB_ERROR):
+                self.error_class = line[len(SUB_ERROR):]
             else:
                 line = line.decode(self.encoding, 'replace')
                 self.logMessageEx(line, 'plain', self.stdout)
@@ -655,14 +661,14 @@ class SubProcessWidget(QtGui.QWidget):
         else:
             message = gettext("Error while running bzr. (error code: %d)" % error)
         self.logMessage(message, True)
-        self.emit(QtCore.SIGNAL("failed()"))
+        self.emit(QtCore.SIGNAL("failed(QString)"), self.error_class)
 
     def onFinished(self, exitCode, exitStatus):
         self._delete_args_file()
         if self.aborting:
             self.aborting = False
             self.setProgress(1000000, [gettext("Aborted!")])
-            self.emit(QtCore.SIGNAL("failed()"))
+            self.emit(QtCore.SIGNAL("failed(QString)"), 'Aborted')
         elif exitCode == 0:
             if self.commands and not self.aborting:
                 self._start_next()
@@ -672,7 +678,7 @@ class SubProcessWidget(QtGui.QWidget):
                 self.emit(QtCore.SIGNAL("finished()"))
         else:
             self.setProgress(1000000, [gettext("Failed!")])
-            self.emit(QtCore.SIGNAL("failed()"))
+            self.emit(QtCore.SIGNAL("failed(QString)"), self.error_class)
 
     def _create_args_file(self, text):
         """@param text: text to write into temp file,
@@ -810,7 +816,11 @@ def run_subprocess_command(cmd, bencoded=False):
         argv = [unicode(p, 'utf-8') for p in shlex.split(cmd_utf8)]
     else:
         argv = [unicode(p, 'utf-8') for p in bencode.bdecode(cmd_utf8)]
-    return commands.run_bzr(argv)
+    try:
+        return commands.run_bzr(argv)
+    except Exception, e:
+        print "%s%s" % (SUB_ERROR, e.__class__.__name__)
+        raise
 
 
 def sigabrt_handler(signum, frame):

@@ -231,7 +231,7 @@ class CommitWindow(SubProcessDialog):
         self.initial_selected_list = selected_list
 
         self.connect(self.process_widget,
-            QtCore.SIGNAL("failed()"),
+            QtCore.SIGNAL("failed(QString)"),
             self.on_failed)
 
         self.throbber = ThrobberWidget(self)
@@ -590,7 +590,7 @@ class CommitWindow(SubProcessDialog):
                 gettext("You should provide a commit message."),
                 gettext('&OK'))
             # don't commit, but don't close the window either
-            self.on_failed()
+            self.on_failed('NoCommitMessage')
             self.message.setFocus()
             return
 
@@ -617,7 +617,7 @@ class CommitWindow(SubProcessDialog):
                     "QBzr - " + gettext("Commit"), 
                     gettext("No changes to commit."),
                     QtGui.QMessageBox.Ok) 
-                self.on_failed()
+                self.on_failed('PointlessCommit')
                 return
             else:
                 # bzr >= 1.6
@@ -627,7 +627,7 @@ class CommitWindow(SubProcessDialog):
                         "Do you want to commit anyway?"),
                     QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
                 if button == QtGui.QMessageBox.No:
-                    self.on_failed()
+                    self.on_failed('PointlessCommit')
                     return
                 else:
                     # Possible [rare] problems:
@@ -744,3 +744,4 @@ class CommitWindow(SubProcessDialog):
                 self.tree.basis_tree().get_revision_id(), self.tree,
                 self.tree.branch, self.tree.branch)            
             show_diff(arg_provider, ext_diff=ext_diff, parent_window = self)
+    

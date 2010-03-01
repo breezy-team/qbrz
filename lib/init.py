@@ -71,7 +71,7 @@ class QBzrInitWindow(SubProcessDialog):
         if not location:
             self.process_widget.logMessage(gettext("You must specify a location"),
                                            error=True)
-            self.on_failed()
+            self.on_failed('NoLocation')
             return
 
         if self.ui.but_init.isChecked():
