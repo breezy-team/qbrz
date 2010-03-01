@@ -41,6 +41,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     ThrobberWidget,
     runs_in_loading_queue,
     StandardButton,
+    InfoWidget,
     )
 
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
@@ -52,7 +53,7 @@ from bzrlib.plugins.qbzr.lib.treewidget import (
     )
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.revisionview import RevisionView
-
+from bzrlib.plugins.qbzr.lib.update import QBzrUpdateWindow
 
 MAX_AUTOCOMPLETE_FILES = 20
 
@@ -267,7 +268,36 @@ class CommitWindow(SubProcessDialog):
             if local:
                 self.local_checkbox.setChecked(True)
             self.update_branch_groupbox()
+        
+        self.not_uptodate_errors = {
+            'BoundBranchOutOfDate': gettext(
+                'Local branch is out of date with master branch.\n'
+                'To commit to master branch, update the local branch.\n'
+                'You can also pass select local to commit to continue working disconnected.'),
+            'OutOfDateTree': gettext(
+                'Working tree is out of date. To commit, update the working tree.')
+            }
+        self.not_uptodate_info = InfoWidget(branch_groupbox)
+        not_uptodate_layout = QtGui.QHBoxLayout(self.not_uptodate_info)
+        
+        # XXX this is to big. Resize
+        not_uptodate_icon = QtGui.QLabel()
+        not_uptodate_icon.setPixmap(self.style().standardPixmap(
+            QtGui.QStyle.SP_MessageBoxWarning))
+        not_uptodate_layout.addWidget(not_uptodate_icon)
+        
+        self.not_uptodate_label = QtGui.QLabel('error message goes here')
+        not_uptodate_layout.addWidget(self.not_uptodate_label, 2)
+        
+        update_button = QtGui.QPushButton(gettext('Update'))
+        self.connect(update_button, QtCore.SIGNAL("clicked(bool)"),
+                     self.open_update_win)
 
+        not_uptodate_layout.addWidget(update_button)
+        
+        self.not_uptodate_info.hide()
+        branch_layout.addWidget(self.not_uptodate_info, 3, 0, 1, 2)
+        
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self)
 
         message_groupbox = QtGui.QGroupBox(gettext("Message"), splitter)
@@ -745,3 +775,18 @@ class CommitWindow(SubProcessDialog):
                 self.tree.branch, self.tree.branch)            
             show_diff(arg_provider, ext_diff=ext_diff, parent_window = self)
     
+    def on_failed(self, error):
+        SubProcessDialog.on_failed(self, error)
+        error = str(error)
+        if error in self.not_uptodate_errors:
+            self.not_uptodate_label.setText(self.not_uptodate_errors[error])
+            self.not_uptodate_info.show()
+    
+    def open_update_win(self, b):
+        update_window = QBzrUpdateWindow(self.tree)
+        self.windows.append(update_window)
+        update_window.show()
+        QtCore.QObject.connect(update_window,
+                               QtCore.SIGNAL("subprocessFinished(bool)"),
+                               self.not_uptodate_info,
+                               QtCore.SLOT("setHidden(bool)"))        

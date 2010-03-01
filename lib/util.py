@@ -1004,3 +1004,11 @@ if MS_WINDOWS:
     shlex_split_unicode = _shlex_split_unicode_windows
 else:
     shlex_split_unicode = _shlex_split_unicode_linux
+
+class InfoWidget(QtGui.QFrame):
+    def __init__(self, parent=None):
+        QtGui.QFrame.__init__(self, parent)
+        self.setFrameShape(QtGui.QFrame.StyledPanel)
+        # This not working on gome. 
+        self.setBackgroundRole(QtGui.QPalette.ToolTipBase) 
+        self.setForegroundRole(QtGui.QPalette.ToolTipText)
