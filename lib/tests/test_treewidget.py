@@ -101,6 +101,8 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
         widget.set_tree(self.tree, self.branch,
                         changes_mode=self.changes_mode)
         QtCore.QCoreApplication.processEvents()
+        widget.expandAll ()
+        QtCore.QCoreApplication.processEvents()
 
 
 class TestModelItemData(TestCase):
