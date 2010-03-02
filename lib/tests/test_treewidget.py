@@ -21,6 +21,9 @@ import os
 from bzrlib.tests import TestCase, TestCaseWithTransport
 from bzrlib import tests
 from bzrlib.workingtree import WorkingTree
+from bzrlib.branch import Branch
+from bzrlib.bzrdir import BzrDir
+
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.treewidget import (
     TreeWidget,
@@ -59,15 +62,31 @@ def load_tests(standard_tests, module, loader):
 
 def make_working_tree(test):
     #tree = WorkingTree()
-    tree = test.make_branch_and_tree('tree')
-    test.build_tree(['tree/dir/'])
-    test.build_tree_contents([('tree/unmodified', ''),
-                              ('tree/renamed', ''),
-                              ('tree/moved', ''),
-                              ('tree/movedandrenamed', ''),
-                              ('tree/removed', ''),
-                              ('tree/missing', ''),
-                              ('tree/modified', 'old')])
+    tree = test.make_branch_and_tree('trunk')
+    test.build_tree_contents([('trunk/textconflict', 'base'),])
+    tree.add(['textconflict'], ['textconflict-id'])
+    tree.commit('a', rev_id='rev-a',
+                committer="joe@foo.com",
+                timestamp=1166046000.00, timezone=0)
+    
+    branch_tree = tree.bzrdir.sprout('branch').open_workingtree()
+    test.build_tree_contents([('branch/textconflict', 'other'),])
+    branch_tree.commit('b', rev_id='rev-b',
+                       committer="joe@foo.com",
+                       timestamp=1166046000.00, timezone=0)
+    test.branch_tree = branch_tree
+    
+    
+    test.build_tree(['trunk/dir/'])
+    test.build_tree_contents([('trunk/unmodified', ''),
+                              ('trunk/renamed', ''),
+                              ('trunk/moved', ''),
+                              ('trunk/movedandrenamed', ''),
+                              ('trunk/removed', ''),
+                              ('trunk/missing', ''),
+                              ('trunk/modified', 'old'),
+                              ('trunk/textconflict', 'this'),
+                              ])
     tree.add(['dir'], ['dir-id'])
     tree.add(['unmodified'], ['unmodified-id'])
     tree.add(['renamed'], ['renamed-id'])
@@ -76,17 +95,21 @@ def make_working_tree(test):
     tree.add(['removed'], ['removed-id'])
     tree.add(['missing'], ['missing-id'])
     tree.add(['modified'], ['modified-id'])
-    tree.commit('a', rev_id='rev-1',
+    tree.commit('c', rev_id='rev-c',
                 committer="joe@foo.com",
                 timestamp=1166046000.00, timezone=0)
     
     return tree, tree.branch
 
 def modify_working_tree(test, tree):
-    test.build_tree_contents([('tree/added', ''),
-                              ('tree/addedmissing', ''),
-                              ('tree/modified', 'new'),
-                              ('tree/unversioned', ''),
+    if 0: tree = WorkingTree()
+    tree.merge_from_branch(test.branch_tree.branch, 'rev-b')
+
+    
+    test.build_tree_contents([('trunk/added', ''),
+                              ('trunk/addedmissing', ''),
+                              ('trunk/modified', 'new'),
+                              ('trunk/unversioned', ''),
                               ])
     tree.add(['added'], ['added-id'])
     tree.add(['addedmissing'], ['addedmissing-id'])
@@ -95,8 +118,8 @@ def modify_working_tree(test, tree):
     tree.rename_one('movedandrenamed', 'movedandrenamed1')
     tree.move(('movedandrenamed1',), 'dir')
     tree.remove(('removed',))
-    os.remove('tree/missing')
-    os.remove('tree/addedmissing')
+    os.remove('trunk/missing')
+    os.remove('trunk/addedmissing')
 
 
 def make_rev_tree(test):
@@ -141,19 +164,26 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
     def test_show_widget(self):
         widget = TreeWidget()
         self.addCleanup(widget.close)
+        # make the widget bigger so that we can see what is going on.
+        widget.setGeometry(0,0,500,500)
         widget.show()
         QtCore.QCoreApplication.processEvents()
         widget.set_tree(self.tree, self.branch,
                         changes_mode=self.changes_mode)
+        widget.update()
         QtCore.QCoreApplication.processEvents()
         widget.expandAll ()
+        widget.update()
         QtCore.QCoreApplication.processEvents()
         if self.modify_tree:
             self.modify_tree(self, self.tree)
             widget.refresh()
+            widget.update()
             QtCore.QCoreApplication.processEvents()
             widget.expandAll ()
+            widget.update()
             QtCore.QCoreApplication.processEvents()
+        x=1
 
 
 class TestModelItemData(TestCase):
