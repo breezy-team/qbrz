@@ -148,21 +148,15 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
     def setUp(self):
         super(TestTreeWidget, self).setUp()
         self.tree, self.branch = self.make_tree(self)
-
-    def test_model(self):
-        model = TreeModel(parent=None)
-        modeltest = ModelTest(model, None)
-        model.set_tree(self.tree, self.branch,
-                       changes_mode=self.changes_mode)
-        modeltest = ModelTest(model, None)
-        if self.modify_tree:
-            self.modify_tree(self, self.tree)
-            model.set_tree(self.tree, self.branch,
-                           changes_mode=self.changes_mode)
-            modeltest = ModelTest(model, None)
+    
+    def run_model_tests(self, widget):
+        ModelTest(widget.tree_model, None)
+        ModelTest(widget.tree_filter_model, None)
     
     def test_show_widget(self):
         widget = TreeWidget()
+        self.run_model_tests(widget)
+        
         self.addCleanup(widget.close)
         # make the widget bigger so that we can see what is going on.
         widget.setGeometry(0,0,500,500)
@@ -170,17 +164,25 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
         QtCore.QCoreApplication.processEvents()
         widget.set_tree(self.tree, self.branch,
                         changes_mode=self.changes_mode)
+        self.run_model_tests(widget)
+        
         widget.update()
         QtCore.QCoreApplication.processEvents()
         widget.expandAll ()
+        self.run_model_tests(widget)
+        
         widget.update()
         QtCore.QCoreApplication.processEvents()
         if self.modify_tree:
             self.modify_tree(self, self.tree)
             widget.refresh()
+            self.run_model_tests(widget)
+            
             widget.update()
             QtCore.QCoreApplication.processEvents()
             widget.expandAll ()
+            self.run_model_tests(widget)
+            
             widget.update()
             QtCore.QCoreApplication.processEvents()
         x=1
