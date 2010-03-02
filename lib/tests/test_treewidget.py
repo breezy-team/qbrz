@@ -16,8 +16,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import os
+
 from bzrlib.tests import TestCase, TestCaseWithTransport
 from bzrlib import tests
+from bzrlib.workingtree import WorkingTree
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.treewidget import (
     TreeWidget,
@@ -52,28 +55,60 @@ def load_tests(standard_tests, module, loader):
 
     return result
 
-def make_base_tree(test):
+def make_working_tree(test):
+    #tree = WorkingTree()
+    tree = test.make_branch_and_tree('tree')
+    test.build_tree(['tree/dir/'])
+    test.build_tree_contents([('tree/unmodified', ''),
+                              ('tree/renamed', ''),
+                              ('tree/moved', ''),
+                              ('tree/movedandrenamed', ''),
+                              ('tree/removed', ''),
+                              ('tree/missing', ''),
+                              ('tree/modified', 'old')])
+    tree.add(['dir'], ['dir-id'])
+    tree.add(['unmodified'], ['unmodified-id'])
+    tree.add(['renamed'], ['renamed-id'])
+    tree.add(['moved'], ['moved-id'])
+    tree.add(['movedandrenamed'], ['movedandrenamed-id'])
+    tree.add(['removed'], ['removed-id'])
+    tree.add(['missing'], ['missing-id'])
+    tree.add(['modified'], ['modified-id'])
+    tree.commit('a', rev_id='rev-1',
+                committer="joe@foo.com",
+                timestamp=1166046000.00, timezone=0)
+    
+    test.build_tree_contents([('tree/added', ''),
+                              ('tree/addedmissing', ''),
+                              ])
+    tree.add(['added'], ['added-id'])
+    tree.add(['addedmissing'], ['addedmissing-id'])
+    tree.rename_one('renamed', 'renamed1')
+    tree.move(('moved',), 'dir')
+    tree.rename_one('movedandrenamed', 'movedandrenamed1')
+    tree.move(('movedandrenamed1',), 'dir')
+    tree.remove(('removed',))
+    os.remove('tree/missing')
+    os.remove('tree/addedmissing')
+    file('tree/modified', 'w').write('new')
+    
+    return tree, tree.branch
+
+def make_rev_tree(test):
     tree = test.make_branch_and_tree('tree')
     test.build_tree(['tree/b/', "tree/e/"])
     test.build_tree_contents([('tree/a', ''),
-                         ('tree/b/c', ''),
-                         ('tree/d', ''),
-                         ('tree/e/f', '')])
+                              ('tree/b/c', ''),
+                              ('tree/d', ''),
+                              ('tree/e/f', '')])
     tree.add(['a'], ['a-id'])
     tree.add(['b'], ['b-id'])
     tree.add(['b/c'], ['c-id'])
     tree.commit('a', rev_id='rev-1',
                 committer="joe@foo.com",
-                timestamp=1166046000.00, timezone=0)
-    return tree, tree.branch
-
-def make_working_tree(test):
-    return make_base_tree(test)
-
-def make_rev_tree(test):
-    tree, branch = make_base_tree(test)
-    revtree = branch.repository.revision_tree('rev-1')
-    return revtree, branch
+                timestamp=1166046000.00, timezone=0)    
+    revtree = tree.branch.repository.revision_tree('rev-1')
+    return revtree, tree.branch
     
 
 class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
