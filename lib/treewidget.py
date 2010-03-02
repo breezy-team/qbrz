@@ -546,6 +546,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 yield ModelItemData(path, item=child, change=change)
         
         if (not isinstance(item, InternalItem) and
+            item.kind == 'directory' and
             item.children is not None and not self.changes_mode):
             #Because we create copies, we have to get the real item.
             item = self.tree.inventory[item.file_id]
@@ -651,7 +652,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         return len(self.HEADER_LABELS)
 
     def rowCount(self, parent):
-        if parent.internalId()>=len(self.inventory_data):
+        #if 0: parent = QtCore.QModelIndex()
+        if parent.column()>0 or parent.internalId()>=len(self.inventory_data):
             return 0
         parent_data = self.inventory_data[parent.internalId()]
         if parent_data.children_ids is None:
@@ -698,6 +700,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         return self.createIndex(item_data.row, column, item_id) 
     
     def index(self, row, column, parent = QtCore.QModelIndex()):
+        if parent.column()>0:
+            return QtCore.QModelIndex()
         return self._index(row, column, parent.internalId())
     
     def sibling(self, row, column, index):
