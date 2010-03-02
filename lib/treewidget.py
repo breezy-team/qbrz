@@ -430,7 +430,11 @@ class TreeModel(QtCore.QAbstractItemModel):
                             item_data = ModelItemData(path,
                                                       conflicts=[conflict])
                             fileid = conflict.file_id
-                            kind = file_kind(self.tree.abspath(path))
+                            try:
+                                kind = file_kind(self.tree.abspath(path))
+                            except errors.NoSuchFile:
+                                kind = ''
+                            
                             item_data.item = InternalItem("", kind, fileid)
                             self.inventory_data_by_path[path] = item_data
                             if fileid:
@@ -494,8 +498,10 @@ class TreeModel(QtCore.QAbstractItemModel):
                                     item_data.change)
                     else:
                         # record the unversioned items
-                        for item_data in self.inventory_data_by_path.itervalues():
-                            if item_data.change and not item_data.change.is_versioned():
+                        for item_data in self.inventory_data_by_path.itervalues() :
+                            if (item_data.change and
+                                not item_data.change.is_versioned() or
+                                not item_data.change):
                                 parent_path, name = os.path.split(item_data.path)
                                 dict_set_add(self.unver_by_parent, parent_path,
                                              item_data.path)
@@ -902,7 +908,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                 return QtCore.QVariant(path)
             if role == QtCore.Qt.DecorationRole:
                 if item_data.icon is None:
-                    if item_data.change and not item_data.change.is_on_disk():
+                    if (item_data.change and not item_data.change.is_on_disk()
+                        or item.kind == ''):
                         item_data.icon = QtCore.QVariant(self.missing_icon)
                     elif isinstance(self.tree, WorkingTree):
                         abspath = self.tree.abspath(item_data.path)

@@ -22,6 +22,8 @@ Bugfixes.
    (Gary van der Merwe)
  * TreeWidget: Add more comprehensive tests. Fix some minor bugs found by
    these tests. (Gary van der Merwe)
+ * TreeWidget: Fix a bug where the TreeWidget if there was a conflict, for
+   which the file does not exist. (Bug #528548, Gary van der Merwe)
 
 0.18.2 "Cedar" - 2010/02/21
 ---------------------------

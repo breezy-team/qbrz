@@ -23,6 +23,7 @@ from bzrlib import tests
 from bzrlib.workingtree import WorkingTree
 from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
+from bzrlib.conflicts import TextConflict, ConflictList
 
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.treewidget import (
@@ -120,6 +121,10 @@ def modify_working_tree(test, tree):
     tree.remove(('removed',))
     os.remove('trunk/missing')
     os.remove('trunk/addedmissing')
+    
+    # manuly add conflicts for files that don't exist
+    # See https://bugs.launchpad.net/qbzr/+bug/528548
+    tree.add_conflicts([TextConflict('nofileconflict')])
 
 
 def make_rev_tree(test):
@@ -186,7 +191,6 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
             
             widget.update()
             QtCore.QCoreApplication.processEvents()
-        x=1
 
 
 class TestModelItemData(TestCase):
