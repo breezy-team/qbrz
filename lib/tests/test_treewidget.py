@@ -33,8 +33,13 @@ def load_tests(standard_tests, module, loader):
     result = loader.suiteClass()
 
     tree_scenarios = (
-        ('Working Tree', {'make_tree': make_working_tree}),
-        ('Revision Tree', {'make_tree': make_rev_tree}),
+        ('Working Tree',
+            {'make_tree': make_working_tree,}),
+        ('Working Tree Changes Mode',
+            {'make_tree': make_working_tree,
+             'changes_mode': False}),
+        ('Revision Tree',
+            {'make_tree': make_rev_tree,}),
     )
     sp_tests, remaining_tests = tests.split_suite_by_condition(
         standard_tests, tests.condition_isinstance((
@@ -75,6 +80,7 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
     
     # Set by load_tests
     make_tree = None
+    changes_mode = False
     
     def setUp(self):
         super(TestTreeWidget, self).setUp()
@@ -83,7 +89,8 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
     def test_model(self):
         model = TreeModel(parent=None)
         modeltest = ModelTest(model, None)
-        model.set_tree(self.tree, self.branch)
+        model.set_tree(self.tree, self.branch,
+                       changes_mode=self.changes_mode)
         modeltest = ModelTest(model, None)
     
     def test_show_widget(self):
@@ -91,7 +98,8 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
         self.addCleanup(widget.close)
         widget.show()
         QtCore.QCoreApplication.processEvents()
-        widget.set_tree(self.tree, self.branch)
+        widget.set_tree(self.tree, self.branch,
+                        changes_mode=self.changes_mode)
         QtCore.QCoreApplication.processEvents()
 
 
