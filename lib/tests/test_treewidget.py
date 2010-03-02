@@ -64,17 +64,14 @@ def load_tests(standard_tests, module, loader):
 def make_working_tree(test):
     #tree = WorkingTree()
     tree = test.make_branch_and_tree('trunk')
-    test.build_tree_contents([('trunk/textconflict', 'base'),
-                              ('trunk/textconflictmissing', 'base'),])
+    test.build_tree_contents([('trunk/textconflict', 'base'),])
     tree.add(['textconflict'], ['textconflict-id'])
-    tree.add(['textconflictmissing'], ['textconflictmissing-id'])
     tree.commit('a', rev_id='rev-a',
                 committer="joe@foo.com",
                 timestamp=1166046000.00, timezone=0)
     
     branch_tree = tree.bzrdir.sprout('branch').open_workingtree()
-    test.build_tree_contents([('branch/textconflict', 'other'),
-                              ('branch/textconflictmissing', 'other'),])
+    test.build_tree_contents([('branch/textconflict', 'other'),])
     branch_tree.commit('b', rev_id='rev-b',
                        committer="joe@foo.com",
                        timestamp=1166046000.00, timezone=0)
@@ -90,7 +87,6 @@ def make_working_tree(test):
                               ('trunk/missing', ''),
                               ('trunk/modified', 'old'),
                               ('trunk/textconflict', 'this'),
-                              ('trunk/textconflictmissing', 'this'),
                               ])
     tree.add(['dir'], ['dir-id'])
     tree.add(['unmodified'], ['unmodified-id'])
@@ -125,7 +121,6 @@ def modify_working_tree(test, tree):
     tree.remove(('removed',))
     os.remove('trunk/missing')
     os.remove('trunk/addedmissing')
-    os.remove('trunk/textconflictmissing')
     
     # manuly add conflicts for files that don't exist
     # See https://bugs.launchpad.net/qbzr/+bug/528548
@@ -196,7 +191,6 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
             
             widget.update()
             QtCore.QCoreApplication.processEvents()
-        x=1
 
 
 class TestModelItemData(TestCase):
