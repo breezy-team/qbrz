@@ -37,9 +37,11 @@ def load_tests(standard_tests, module, loader):
 
     tree_scenarios = (
         ('Working Tree',
-            {'make_tree': make_working_tree,}),
+            {'make_tree': make_working_tree,
+             'modify_tree': modify_working_tree,}),
         ('Working Tree Changes Mode',
             {'make_tree': make_working_tree,
+             'modify_tree': modify_working_tree,
              'changes_mode': False}),
         ('Revision Tree',
             {'make_tree': make_rev_tree,}),
@@ -78,6 +80,9 @@ def make_working_tree(test):
                 committer="joe@foo.com",
                 timestamp=1166046000.00, timezone=0)
     
+    return tree, tree.branch
+
+def modify_working_tree(test, tree):
     test.build_tree_contents([('tree/added', ''),
                               ('tree/addedmissing', ''),
                               ('tree/modified', 'new'),
@@ -92,8 +97,7 @@ def make_working_tree(test):
     tree.remove(('removed',))
     os.remove('tree/missing')
     os.remove('tree/addedmissing')
-    
-    return tree, tree.branch
+
 
 def make_rev_tree(test):
     tree = test.make_branch_and_tree('tree')
@@ -115,6 +119,7 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
     
     # Set by load_tests
     make_tree = None
+    modify_tree = None
     changes_mode = False
     
     def setUp(self):
@@ -127,6 +132,11 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
         model.set_tree(self.tree, self.branch,
                        changes_mode=self.changes_mode)
         modeltest = ModelTest(model, None)
+        if self.modify_tree:
+            self.modify_tree(self, self.tree)
+            model.set_tree(self.tree, self.branch,
+                           changes_mode=self.changes_mode)
+            modeltest = ModelTest(model, None)
     
     def test_show_widget(self):
         widget = TreeWidget()
@@ -138,6 +148,12 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
         QtCore.QCoreApplication.processEvents()
         widget.expandAll ()
         QtCore.QCoreApplication.processEvents()
+        if self.modify_tree:
+            self.modify_tree(self, self.tree)
+            widget.refresh()
+            QtCore.QCoreApplication.processEvents()
+            widget.expandAll ()
+            QtCore.QCoreApplication.processEvents()
 
 
 class TestModelItemData(TestCase):
