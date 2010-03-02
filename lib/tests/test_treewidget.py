@@ -149,13 +149,14 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
         super(TestTreeWidget, self).setUp()
         self.tree, self.branch = self.make_tree(self)
     
-    def run_model_tests(self, widget):
-        ModelTest(widget.tree_model, None)
-        ModelTest(widget.tree_filter_model, None)
+    def run_model_tests(self):
+        ModelTest(self.widget.tree_model, None)
+        ModelTest(self.widget.tree_filter_model, None)
     
     def test_show_widget(self):
         widget = TreeWidget()
-        self.run_model_tests(widget)
+        self.widget = widget
+        self.run_model_tests()
         
         self.addCleanup(widget.close)
         # make the widget bigger so that we can see what is going on.
@@ -164,24 +165,24 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
         QtCore.QCoreApplication.processEvents()
         widget.set_tree(self.tree, self.branch,
                         changes_mode=self.changes_mode)
-        self.run_model_tests(widget)
+        self.run_model_tests()
         
         widget.update()
         QtCore.QCoreApplication.processEvents()
         widget.expandAll ()
-        self.run_model_tests(widget)
+        self.run_model_tests()
         
         widget.update()
         QtCore.QCoreApplication.processEvents()
         if self.modify_tree:
             self.modify_tree(self, self.tree)
             widget.refresh()
-            self.run_model_tests(widget)
+            self.run_model_tests()
             
             widget.update()
             QtCore.QCoreApplication.processEvents()
             widget.expandAll ()
-            self.run_model_tests(widget)
+            self.run_model_tests()
             
             widget.update()
             QtCore.QCoreApplication.processEvents()
