@@ -97,17 +97,16 @@ def make_working_tree(test):
 
 def make_rev_tree(test):
     tree = test.make_branch_and_tree('tree')
-    test.build_tree(['tree/b/', "tree/e/"])
+    test.build_tree(['tree/b/'])
     test.build_tree_contents([('tree/a', ''),
                               ('tree/b/c', ''),
-                              ('tree/d', ''),
-                              ('tree/e/f', '')])
+                              ])
     tree.add(['a'], ['a-id'])
     tree.add(['b'], ['b-id'])
     tree.add(['b/c'], ['c-id'])
     tree.commit('a', rev_id='rev-1',
                 committer="joe@foo.com",
-                timestamp=1166046000.00, timezone=0)    
+                timestamp=1166046000.00, timezone=0)
     revtree = tree.branch.repository.revision_tree('rev-1')
     return revtree, tree.branch
     
