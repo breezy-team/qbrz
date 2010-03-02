@@ -20,6 +20,7 @@ from bzrlib.tests import TestCase, TestCaseWithTransport
 from bzrlib import tests
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.treewidget import (
+    TreeWidget,
     TreeModel,
     ModelItemData,
     InternalItem,
@@ -37,7 +38,7 @@ def load_tests(standard_tests, module, loader):
     )
     sp_tests, remaining_tests = tests.split_suite_by_condition(
         standard_tests, tests.condition_isinstance((
-                TestTreeModel,
+                TestTreeWidget,
                 )))
     tests.multiply_tests(sp_tests, tree_scenarios, result)
 
@@ -70,13 +71,13 @@ def make_rev_tree(test):
     return revtree, branch
     
 
-class TestTreeModel(TestWatchExceptHook, TestCaseWithTransport):
+class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
     
     # Set by load_tests
     make_tree = None
     
     def setUp(self):
-        super(TestTreeModel, self).setUp()
+        super(TestTreeWidget, self).setUp()
         self.tree, self.branch = self.make_tree(self)
 
     def test_model(self):
@@ -84,6 +85,14 @@ class TestTreeModel(TestWatchExceptHook, TestCaseWithTransport):
         modeltest = ModelTest(model, None)
         model.set_tree(self.tree, self.branch)
         modeltest = ModelTest(model, None)
+    
+    def test_show_widget(self):
+        widget = TreeWidget()
+        self.addCleanup(widget.close)
+        widget.show()
+        QtCore.QCoreApplication.processEvents()
+        widget.set_tree(self.tree, self.branch)
+        QtCore.QCoreApplication.processEvents()
 
 
 class TestModelItemData(TestCase):
