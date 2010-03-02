@@ -80,6 +80,8 @@ def make_working_tree(test):
     
     test.build_tree_contents([('tree/added', ''),
                               ('tree/addedmissing', ''),
+                              ('tree/modified', 'new'),
+                              ('tree/unversioned', ''),
                               ])
     tree.add(['added'], ['added-id'])
     tree.add(['addedmissing'], ['addedmissing-id'])
@@ -90,7 +92,6 @@ def make_working_tree(test):
     tree.remove(('removed',))
     os.remove('tree/missing')
     os.remove('tree/addedmissing')
-    file('tree/modified', 'w').write('new')
     
     return tree, tree.branch
 
