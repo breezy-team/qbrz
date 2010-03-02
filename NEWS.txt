@@ -18,7 +18,19 @@ Bugfixes.
  * Change dialogs to have normal window flags. This fixes a bug where on
    some window managers (metacity, Mac OSX) windows opened from a dialog
    would be behind the dialog. (Bug #421039, Gary van der Merwe)
-
+ * TreeWidget: emit layoutAboutToBeChanged signal while we remove old items
+   to ensure model data consistancy.
+   (Bug #513066, Bug #515908, Gary van der Merwe)
+ * TreeWidget: When renameing a file, pressing enter should not cause the
+   default action to be run. (Bug #513107, Gary van der Merwe)
+ * Sub processes dialogs: Fix usability bugs with the retry button:
+   * The button position changes on linux when the retry button appears. 
+   * The enter button does not work after the retry button appears.
+   (Gary van der Merwe)
+ * TreeWidget: Add more comprehensive tests. Fix some minor bugs found by
+   these tests. (Gary van der Merwe)
+ * TreeWidget: Fix a bug where the TreeWidget if there was a conflict, for
+   which the file does not exist. (Bug #528548, Gary van der Merwe)
 
 0.18.2 "Cedar" - 2010/02/21
 ---------------------------
@@ -309,9 +321,11 @@ Detailed changelog:
 ----------------------------
 Bugfixes and backported bugfixes.
 
-  * Change dialogs to have normal window flags. This fixes a bug where on
-    some window managers (metacity, Mac OSX) windows opened from a dialog
-    would be behind the dialog. (Bug #421039, Gary van der Merwe)
+ * Change dialogs to have normal window flags. This fixes a bug where on
+   some window managers (metacity, Mac OSX) windows opened from a dialog
+   would be behind the dialog. (Bug #421039, Gary van der Merwe)
+ * Treewidget: Fix a crash when refreshing tree with a checked item that has a
+   parent that is ungrouped. (Bug #512006, Gary van der Merwe)
 
 0.14.6 "Spruce" - 2010-01-18
 ----------------------------

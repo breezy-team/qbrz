@@ -430,7 +430,11 @@ class TreeModel(QtCore.QAbstractItemModel):
                             item_data = ModelItemData(path,
                                                       conflicts=[conflict])
                             fileid = conflict.file_id
-                            kind = file_kind(self.tree.abspath(path))
+                            try:
+                                kind = file_kind(self.tree.abspath(path))
+                            except errors.NoSuchFile:
+                                kind = ''
+                            
                             item_data.item = InternalItem("", kind, fileid)
                             self.inventory_data_by_path[path] = item_data
                             if fileid:
@@ -494,8 +498,10 @@ class TreeModel(QtCore.QAbstractItemModel):
                                     item_data.change)
                     else:
                         # record the unversioned items
-                        for item_data in self.inventory_data_by_path.itervalues():
-                            if item_data.change and not item_data.change.is_versioned():
+                        for item_data in self.inventory_data_by_path.itervalues() :
+                            if (item_data.change and
+                                not item_data.change.is_versioned() or
+                                not item_data.change):
                                 parent_path, name = os.path.split(item_data.path)
                                 dict_set_add(self.unver_by_parent, parent_path,
                                              item_data.path)
@@ -546,6 +552,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 yield ModelItemData(path, item=child, change=change)
         
         if (not isinstance(item, InternalItem) and
+            item.kind == 'directory' and
             item.children is not None and not self.changes_mode):
             #Because we create copies, we have to get the real item.
             item = self.tree.inventory[item.file_id]
@@ -603,7 +610,6 @@ class TreeModel(QtCore.QAbstractItemModel):
             self.emit(QtCore.SIGNAL("layoutChanged()"))
         
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
-        
         root_item = ModelItemData(
             '', item=self.tree.inventory[self.tree.get_root_id()])
         
@@ -652,7 +658,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         return len(self.HEADER_LABELS)
 
     def rowCount(self, parent):
-        if parent.internalId()>=len(self.inventory_data):
+        #if 0: parent = QtCore.QModelIndex()
+        if parent.column()>0 or parent.internalId()>=len(self.inventory_data):
             return 0
         parent_data = self.inventory_data[parent.internalId()]
         if parent_data.children_ids is None:
@@ -699,6 +706,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         return self.createIndex(item_data.row, column, item_id) 
     
     def index(self, row, column, parent = QtCore.QModelIndex()):
+        if parent.column()>0:
+            return QtCore.QModelIndex()
         return self._index(row, column, parent.internalId())
     
     def sibling(self, row, column, index):
@@ -899,7 +908,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                 return QtCore.QVariant(path)
             if role == QtCore.Qt.DecorationRole:
                 if item_data.icon is None:
-                    if item_data.change and not item_data.change.is_on_disk():
+                    if (item_data.change and not item_data.change.is_on_disk()
+                        or item.kind == ''):
                         item_data.icon = QtCore.QVariant(self.missing_icon)
                     elif isinstance(self.tree, WorkingTree):
                         abspath = self.tree.abspath(item_data.path)
@@ -1569,15 +1579,14 @@ class TreeWidget(RevisionTreeView):
         """
         e_key = event.key()
         if e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
-            items = self.get_selection_items()
-            if len(items) == 1:
-                kind = items[0].item.kind
+            if not self.state() & QtGui.QAbstractItemView.EditingState:
                 event.accept()
-                index = self.selectedIndexes()[0]
-                if kind == 'directory':
-                    self.setExpanded(index, not self.isExpanded(index))
+                indexes = self.selectionModel().selectedRows(0)
+                if (len(indexes) == 1 and
+                        self.get_selection_items(indexes)[0].item.kind == 'directory'):
+                    self.setExpanded(indexes[0], not self.isExpanded(indexes[0]))
                 else:
-                    self.do_default_action(index)
+                    self.do_default_action(None)
                 return
         QtGui.QTreeView.keyPressEvent(self, event)
 
@@ -1709,6 +1718,7 @@ class TreeWidget(RevisionTreeView):
                 self.context_menu.setDefaultAction(self.action_open_file)
 
     def do_default_action(self, index):
+        # XXX This should be made to handle selections of multiple items.
         item_data = self.get_selection_items([index])[0]
         if item_data.item.kind == "directory":
             # Don't do anything, so that the directory can be expanded.
