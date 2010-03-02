@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from bzrlib.tests import TestCase, TestCaseWithTransport
+from bzrlib import tests
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.treewidget import (
     TreeModel,
@@ -27,37 +28,63 @@ from bzrlib.plugins.qbzr.lib.treewidget import (
 from bzrlib.plugins.qbzr.lib.tests.modeltest import ModelTest
 from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
 
+def load_tests(standard_tests, module, loader):
+    result = loader.suiteClass()
+
+    tree_scenarios = (
+        ('Working Tree', {'make_tree': make_working_tree}),
+        ('Revision Tree', {'make_tree': make_rev_tree}),
+    )
+    sp_tests, remaining_tests = tests.split_suite_by_condition(
+        standard_tests, tests.condition_isinstance((
+                TestTreeModel,
+                )))
+    tests.multiply_tests(sp_tests, tree_scenarios, result)
+
+    # No parametrization for the remaining tests
+    result.addTests(remaining_tests)
+
+    return result
+
+def make_base_tree(test):
+    tree = test.make_branch_and_tree('tree')
+    test.build_tree(['tree/b/', "tree/e/"])
+    test.build_tree_contents([('tree/a', ''),
+                         ('tree/b/c', ''),
+                         ('tree/d', ''),
+                         ('tree/e/f', '')])
+    tree.add(['a'], ['a-id'])
+    tree.add(['b'], ['b-id'])
+    tree.add(['b/c'], ['c-id'])
+    tree.commit('a', rev_id='rev-1',
+                committer="joe@foo.com",
+                timestamp=1166046000.00, timezone=0)
+    return tree, tree.branch
+
+def make_working_tree(test):
+    return make_base_tree(test)
+
+def make_rev_tree(test):
+    tree, branch = make_base_tree(test)
+    revtree = branch.repository.revision_tree('rev-1')
+    return revtree, branch
+    
+
 class TestTreeModel(TestWatchExceptHook, TestCaseWithTransport):
+    
+    # Set by load_tests
+    make_tree = None
     
     def setUp(self):
         super(TestTreeModel, self).setUp()
-        self.tree = self.make_branch_and_tree('tree')
-        self.build_tree(['tree/b/', "tree/e/"])
-        self.build_tree_contents([('tree/a', ''),
-                                  ('tree/b/c', ''),
-                                  ('tree/d', ''),
-                                  ('tree/e/f', '')])
-        self.tree.add(['a'], ['a-id'])
-        self.tree.add(['b'], ['b-id'])
-        self.tree.add(['b/c'], ['c-id'])
-        self.tree.commit('a', rev_id='rev-1',
-                         committer="joe@foo.com",
-                         timestamp=1166046000.00, timezone=0)
+        self.tree, self.branch = self.make_tree(self)
 
-    def test_model_working_tree(self):
+    def test_model(self):
         model = TreeModel(parent=None)
         modeltest = ModelTest(model, None)
-
-        model.set_tree(self.tree, self.tree.branch)
+        model.set_tree(self.tree, self.branch)
         modeltest = ModelTest(model, None)
 
-    def test_model_revision_tree(self):
-        model = TreeModel(parent=None)
-        modeltest = ModelTest(model, None)
-        
-        revtree = self.tree.branch.repository.revision_tree('rev-1')
-        model.set_tree(revtree, self.tree.branch)
-        modeltest = ModelTest(model, None)
 
 class TestModelItemData(TestCase):
 
