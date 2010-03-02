@@ -29,45 +29,35 @@ from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
 
 class TestTreeModel(TestWatchExceptHook, TestCaseWithTransport):
     
-    def test_model_working_tree(self):
-
-        tree = self.make_branch_and_tree('tree')
+    def setUp(self):
+        super(TestTreeModel, self).setUp()
+        self.tree = self.make_branch_and_tree('tree')
         self.build_tree(['tree/b/', "tree/e/"])
         self.build_tree_contents([('tree/a', ''),
                                   ('tree/b/c', ''),
                                   ('tree/d', ''),
                                   ('tree/e/f', '')])
-        tree.add(['a'], ['a-id'])
-        tree.add(['b'], ['b-id'])
-        tree.add(['b/c'], ['c-id'])
-        tree.commit('a', rev_id='rev-1',
-                     committer="joe@foo.com",
-                     timestamp=1166046000.00, timezone=0)
+        self.tree.add(['a'], ['a-id'])
+        self.tree.add(['b'], ['b-id'])
+        self.tree.add(['b/c'], ['c-id'])
+        self.tree.commit('a', rev_id='rev-1',
+                         committer="joe@foo.com",
+                         timestamp=1166046000.00, timezone=0)
 
+    def test_model_working_tree(self):
         model = TreeModel(parent=None)
         modeltest = ModelTest(model, None)
 
-        model.set_tree(tree, tree.branch)
+        model.set_tree(self.tree, self.tree.branch)
+        modeltest = ModelTest(model, None)
 
-    #def test_model_revision_tree(self):
-    #
-    #    tree = self.make_branch_and_tree('tree')
-    #    self.build_tree(['tree/b/'])
-    #    self.build_tree_contents([('tree/a', ''),
-    #                              ('tree/b/c', '')])
-    #    tree.add(['a'], ['a-id'])
-    #    tree.add(['b'], ['b-id'])
-    #    tree.add(['b/c'], ['c-id'])
-    #    tree.commit('a', rev_id='rev-1',
-    #                 committer="joe@foo.com",
-    #                 timestamp=1166046000.00, timezone=0)
-    #
-    #    widget = TreeWidget()
-    #    model = widget.model
-    #    
-    #    revtree = branch.repository.revision_tree('rev-1')
-    #    widget.set_tree(revtree, branch)
-    #    modeltest = ModelTest(model, None)
+    def test_model_revision_tree(self):
+        model = TreeModel(parent=None)
+        modeltest = ModelTest(model, None)
+        
+        revtree = self.tree.branch.repository.revision_tree('rev-1')
+        model.set_tree(revtree, self.tree.branch)
+        modeltest = ModelTest(model, None)
 
 class TestModelItemData(TestCase):
 
