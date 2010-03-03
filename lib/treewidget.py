@@ -1161,8 +1161,8 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         self.invalidateFilter()
 
     def filterAcceptsRow(self, source_row, source_parent):
-        if all(self.filters):
-            return True
+        #if all(self.filters):
+        #    return True
         
         model = self.source_model
         parent_id = source_parent.internalId()
@@ -1179,15 +1179,27 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         if id in self.filter_cache:
             return self.filter_cache[id]
         else:
-            result = self.filter_id(id)
+            result = self.filter_id_recurse(id)
             self.filter_cache[id] = result
             return result
     
-    def filter_id(self, id):
+    def filter_id_recurse(self, id):
+        item_data = self.source_model.inventory_data[id]
+        
+        if self.filter_id(id, item_data):
+            return True
+        
+        if item_data.item.kind == "directory":
+            if item_data.children_ids is None:
+                self.source_model.load_dir(id)
+            
+            for child_id in item_data.children_ids:
+                if self.filter_id_cached(child_id):
+                    return True
+        return False
+    
+    def filter_id(self, id, item_data):
         (unchanged, changed, unversioned, ignored) = self.filters
-
-        model = self.source_model
-        item_data = model.inventory_data[id]
         
         if item_data.change is None and unchanged: return True
         
@@ -1201,14 +1213,6 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
             if not is_ignored: return True
             if is_ignored and ignored: return True
             if is_ignored and not ignored: return False
-        
-        if item_data.item.kind == "directory":
-            if item_data.children_ids is None:
-                model.load_dir(id)
-            
-            for child_id in item_data.children_ids:
-                if self.filter_id_cached(child_id):
-                    return True
         
         return False
     
