@@ -1,6 +1,6 @@
-0.18.3 "Cypress" - YYYY/MM/DD
+0.18.3 "Cypress" - 2010/03/03
 -----------------------------
-Bugfixes.
+Bugfixes in the stable branch. Suitable for bzr 2.1.x.
 
  * Fixed problem with running diff from qannotate from qbrowse.
    (Bug #505987, Alexander Belchenko)
@@ -12,18 +12,19 @@ Bugfixes.
    some window managers (metacity, Mac OSX) windows opened from a dialog
    would be behind the dialog. (Bug #421039, Gary van der Merwe)
  * TreeWidget: emit layoutAboutToBeChanged signal while we remove old items
-   to ensure model data consistancy.
+   to ensure model data consistency.
    (Bug #513066, Bug #515908, Gary van der Merwe)
- * TreeWidget: When renameing a file, pressing enter should not cause the
+ * TreeWidget: When renaming a file, pressing enter should not cause the
    default action to be run. (Bug #513107, Gary van der Merwe)
- * Sub processes dialogs: Fix usability bugs with the retry button:
-   * The button position changes on linux when the retry button appears. 
-   * The enter button does not work after the retry button appears.
+ * Sub processes dialogs: Fix usability bugs with the Retry button:
+   * The button position changes on Linux when the Retry button appears. 
+   * The Enter key does not work after the Retry button appears.
    (Gary van der Merwe)
  * TreeWidget: Add more comprehensive tests. Fix some minor bugs found by
    these tests. (Gary van der Merwe)
  * TreeWidget: Fix a bug where the TreeWidget if there was a conflict, for
    which the file does not exist. (Bug #528548, Gary van der Merwe)
+
 
 0.18.2 "Cedar" - 2010/02/21
 ---------------------------
