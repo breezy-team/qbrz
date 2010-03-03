@@ -449,10 +449,12 @@ class TreeModel(QtCore.QAbstractItemModel):
                             if fileid:
                                 kind = self.tree.kind(fileid)
                                 if kind == "directory":
-                                    item = InternalItem("", kind, fileid)
-                                    item_data = ModelItemData(path, change=change, item=item)
-                                    self.inventory_data_by_path[path] = item_data
-                                    self.inventory_data_by_id[fileid] = item_data
+                                    item_data = self.inventory_data_by_path.get(path)
+                                    if item_data is None:
+                                        item = InternalItem("", kind, fileid)
+                                        item_data = ModelItemData(path, item=item)
+                                        self.inventory_data_by_path[path] = item_data
+                                        self.inventory_data_by_id[fileid] = item_data
                     
                     def get_name(dir_fileid, dir_path, path, change):
                         if dir_path:

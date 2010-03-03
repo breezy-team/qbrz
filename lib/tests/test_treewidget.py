@@ -46,7 +46,7 @@ def load_tests(standard_tests, module, loader):
         ('Working Tree Changes Mode',
             {'make_tree': make_working_tree,
              'modify_tree': modify_working_tree,
-             'changes_mode': False}),
+             'changes_mode': True}),
         ('Revision Tree',
             {'make_tree': make_rev_tree,}),
     )
