@@ -42,6 +42,7 @@ class TestGetBugId(TestCase):
 
     def test_redmine(self):
         self.assertEquals('1832', get_bug_id('http://www.redmine.org/issues/show/1832'))
+        self.assertEquals('6', get_bug_id('https://rm.ftrahan.com/issues/6'))
 
     def test_fogbugz(self):
         self.assertEquals('1234', get_bug_id('http://test.fogbugz.com/default.asp?1234'))

@@ -28,7 +28,7 @@ _bug_id_re = lazy_regex.lazy_compile(r'(?:'
     r'bugs/'                    # Launchpad bugs URL
     r'|ticket/'                 # Trac bugs URL
     r'|show_bug\.cgi\?id='      # Bugzilla bugs URL
-    r'|issues/show/'            # Redmine bugs URL
+    r'|issues/(?:show/)?'       # Redmine bugs URL
     r'|DispForm.aspx\?ID='      # Microsoft SharePoint URL
     r'|default.asp\?'           # Fogbugz URL
     r'|issue'                   # Roundup issue tracker URL

@@ -2,6 +2,8 @@
 ----------------------
 Bugfixes in the stable branch. Suitable for bzr 2.1.x.
 
+ * Improved support for Redmine bugs URL. (Bug #538414, Alexander Belchenko)
+
 
 0.18.3 "Cypress" - 2010/03/03
 -----------------------------
