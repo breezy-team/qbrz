@@ -4,6 +4,15 @@
  * qcommit: Give the user the option to update the branch if it is not up to
    date. (Bug #439920, Gary van der Merwe)
 
+0.18.4 "" - YYYY/MM/DD
+----------------------
+Bugfixes in the stable branch. Suitable for bzr 2.1.x.
+
+ * Improved support for Redmine bugs URL. (Bug #538414, Alexander Belchenko)
+ * TreeWidget: Fix a bug where refreshing may result in data inconsistencies.
+   This bug was causing a number of knock on bugs.
+   (Bug #538753, Gary van der Merwe)
+
 
 0.18.3 "Cypress" - 2010/03/03
 -----------------------------

@@ -79,7 +79,8 @@ def make_working_tree(test):
     
     
     test.build_tree(['trunk/dir/'])
-    test.build_tree_contents([('trunk/unmodified', ''),
+    test.build_tree_contents([('trunk/dir/dirchild', ''),
+                              ('trunk/unmodified', ''),
                               ('trunk/renamed', ''),
                               ('trunk/moved', ''),
                               ('trunk/movedandrenamed', ''),
@@ -89,6 +90,7 @@ def make_working_tree(test):
                               ('trunk/textconflict', 'this'),
                               ])
     tree.add(['dir'], ['dir-id'])
+    tree.add(['dir/dirchild'], ['dirchild-id'])
     tree.add(['unmodified'], ['unmodified-id'])
     tree.add(['renamed'], ['renamed-id'])
     tree.add(['moved'], ['moved-id'])
@@ -121,6 +123,13 @@ def modify_working_tree(test, tree):
     tree.remove(('removed',))
     os.remove('trunk/missing')
     os.remove('trunk/addedmissing')
+
+    # test for https://bugs.launchpad.net/qbzr/+bug/538753
+    # must sort before trunk/dir
+    test.build_tree(['trunk/a-newdir/'])
+    test.build_tree_contents([('trunk/a-newdir/newdirchild', '')])
+    tree.add(['a-newdir'], ['a-newdir-id'])
+    tree.add(['a-newdir/newdirchild'], ['newdirchild-id'])
     
     # manuly add conflicts for files that don't exist
     # See https://bugs.launchpad.net/qbzr/+bug/528548
@@ -155,6 +164,19 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
         self.tree, self.branch = self.make_tree(self)
     
     def run_model_tests(self):
+        # Check that indexes point to their correct items.
+        def check_item_children(index):
+            item = self.widget.tree_model.inventory_data[index.internalId()]
+            if item.children_ids:
+                for row, child_id in enumerate(item.children_ids):
+                    child_index = self.widget.tree_model.index(row, 0, index)
+                    self.assertEqual(child_index.internalId(), child_id)
+                    check_item_children(child_index)
+        
+        if self.widget.tree_model.inventory_data:
+            check_item_children (
+                self.widget.tree_model._index_from_id(0, 0)) # root
+        
         ModelTest(self.widget.tree_model, None)
         ModelTest(self.widget.tree_filter_model, None)
     
