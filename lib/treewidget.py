@@ -388,10 +388,19 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.revno_map = None
         self.changes_mode = changes_mode
         
+        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+        
+        is_refresh = len(self.inventory_data)>0
+        if is_refresh:
+            self.beginRemoveRows(QtCore.QModelIndex(), 0,
+                                 len(self.inventory_data[0].children_ids)-1)
+        self.inventory_data = []
+        self._index_cache = {}
         self.unver_by_parent = {}
         self.inventory_data_by_path = {}
         self.inventory_data_by_id = {}
-        self._index_cache = {}
+        if is_refresh:
+            self.endRemoveRows()
         
         if isinstance(self.tree, WorkingTree):
             tree.lock_read()
@@ -524,6 +533,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         else:
             self.process_inventory(self.revision_tree_get_children,
                                    initial_checked_paths, load_dirs)
+        
+        self.emit(QtCore.SIGNAL("layoutChanged()"))
     
     def revision_tree_get_children(self, item_data):
         for child in item_data.item.children.itervalues():
@@ -600,18 +611,6 @@ class TreeModel(QtCore.QAbstractItemModel):
     def process_inventory(self, get_children, initial_checked_paths, load_dirs):
         self.get_children = get_children
         
-        
-        is_refresh = len(self.inventory_data)>0
-        if is_refresh:
-            self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
-            self.beginRemoveRows(QtCore.QModelIndex(), 0,
-                                 len(self.inventory_data[0].children_ids)-1)
-        self.inventory_data = []
-        if is_refresh:
-            self.endRemoveRows()
-            self.emit(QtCore.SIGNAL("layoutChanged()"))
-        
-        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
         root_item = ModelItemData(
             '', item=self.tree.inventory[self.tree.get_root_id()])
         
@@ -623,8 +622,6 @@ class TreeModel(QtCore.QAbstractItemModel):
             for index in self.refs2indexes(load_dirs,
                                            ignore_no_file_error=True):
                 self.load_dir(index.internalId())
-        
-        self.emit(QtCore.SIGNAL("layoutChanged()"))
         
         if self.checkable:
             if initial_checked_paths is not None:
