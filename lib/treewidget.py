@@ -591,6 +591,8 @@ class TreeModel(QtCore.QAbstractItemModel):
         dir_item = self.inventory_data[dir_id]
         if dir_item.children_ids is not None:
             return # This dir has allready been loaded.
+        if not dir_item.item.kind=='directory':
+            return
         
         self.tree.lock_read()
         try:
