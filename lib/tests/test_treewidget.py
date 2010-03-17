@@ -281,8 +281,16 @@ class TestTreeFilterProxyModel(TestWatchExceptHook, TestCaseWithTransport):
         self.filter_model.setFilters((False, False, False, True))
         self.assertVisiblePaths([
                                  'ignored-dir-with-child',
-                                 'ignored-dir-with-child/child',
                                  'ignored',
+                                 ])
+        
+        self.filter_model.setFilters((False, False, True, True))
+        self.assertVisiblePaths(['ignored-dir-with-child/child',
+                                 'ignored-dir-with-child',
+                                 'ignored',
+                                 'dir-with-unversioned',
+                                 'dir-with-unversioned/child',
+                                 'unversioned', 
                                  ])
         
 
