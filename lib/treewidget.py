@@ -1185,8 +1185,9 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     def filter_id_recurse(self, id):
         item_data = self.source_model.inventory_data[id]
         
-        if self.filter_id(id, item_data):
-            return True
+        filter = self.filter_id(id, item_data)
+        if filter is not None:
+            return filter
         
         if item_data.item.kind == "directory":
             if item_data.children_ids is None:
@@ -1198,6 +1199,13 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         return False
     
     def filter_id(self, id, item_data):
+        """Determines wether a item should be displayed.
+        Returns :
+            * True: Show the item
+            * False: Donot show the item
+            * None: Show the item if there are any children that are visible.
+        """
+        
         (unchanged, changed, unversioned, ignored) = self.filters
         
         if item_data.change is None and unchanged: return True
@@ -1207,13 +1215,12 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         if is_versioned and item_data.change is not None and changed:
             return True
         
-        if not is_versioned and unversioned:
+        if not is_versioned and (unversioned or ignored):
             is_ignored = item_data.change.is_ignored()
-            if not is_ignored: return True
-            if is_ignored and ignored: return True
-            if is_ignored and not ignored: return False
+            if not is_ignored and unversioned: return True
+            if is_ignored: return ignored
         
-        return False
+        return None
     
     def on_revisions_loaded(self, revisions, last_call):
         self.source_model.on_revisions_loaded(revisions, last_call)

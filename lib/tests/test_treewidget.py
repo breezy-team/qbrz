@@ -24,13 +24,16 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
 from bzrlib.conflicts import TextConflict, ConflictList
+from bzrlib import ignores
 
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.treewidget import (
     TreeWidget,
     TreeModel,
+    TreeFilterProxyModel,
     ModelItemData,
     InternalItem,
+    PersistantItemReference,
     group_large_dirs,
     )
 from bzrlib.plugins.qbzr.lib.tests.modeltest import ModelTest
@@ -214,6 +217,100 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
             widget.update()
             QtCore.QCoreApplication.processEvents()
 
+class TestTreeFilterProxyModel(TestWatchExceptHook, TestCaseWithTransport):
+    def test_filters(self):
+        tree = self.make_branch_and_tree('tree')
+        
+        self.build_tree(['tree/dir-with-unversioned/',
+                         'tree/ignored-dir-with-child/',])
+        self.build_tree_contents([('tree/dir-with-unversioned/child', ''),
+                                  ('tree/ignored-dir-with-child/child', ''),
+                                  ('tree/unchanged', ''),
+                                  ('tree/changed', 'old'),
+                                  ('tree/unversioned', ''),
+                                  ('tree/ignored', ''),
+                                  ])
+        tree.add(['dir-with-unversioned'], ['dir-with-unversioned-id'])
+        tree.add(['unchanged'], ['unchanged-id'])
+        tree.add(['changed'], ['changed-id'])
+        ignores.tree_ignores_add_patterns(tree,
+                                          ['ignored-dir-with-child',
+                                           'ignored'])
+        
+        tree.commit('a', rev_id='rev-a',
+                    committer="joe@foo.com",
+                    timestamp=1166046000.00, timezone=0)
+        
+        self.build_tree_contents([('tree/changed', 'new')])
+        
+        self.model = TreeModel()
+        load_dirs=[PersistantItemReference(None, 'dir-with-unversioned'),
+                   PersistantItemReference(None, 'ignored-dir-with-child')]        
+        self.model.set_tree(tree, branch=tree.branch, load_dirs=load_dirs)
+        self.filter_model = TreeFilterProxyModel()
+        self.filter_model.setSourceModel(self.model)
+        
+        # UNCHANGED, CHANGED, UNVERSIONED, IGNORED
+        self.filter_model.setFilters((True, True, True, True))
+        self.assertVisiblePaths(['dir-with-unversioned',
+                                 'dir-with-unversioned/child',
+                                 'ignored-dir-with-child',
+                                 'ignored-dir-with-child/child',
+                                 'unchanged', 
+                                 'changed', 
+                                 'unversioned', 
+                                 'ignored',
+                                 '.bzrignore',
+                                 ])
+        
+        self.filter_model.setFilters((True, False, False, False))
+        self.assertVisiblePaths(['dir-with-unversioned',
+                                 'unchanged', 
+                                 '.bzrignore',
+                                 ])
+
+        self.filter_model.setFilters((False, True, False, False))
+        self.assertVisiblePaths(['changed', ])
+        
+        self.filter_model.setFilters((False, False, True, False))
+        self.assertVisiblePaths(['dir-with-unversioned',
+                                 'dir-with-unversioned/child',
+                                 'unversioned', 
+                                 ])
+        
+        self.filter_model.setFilters((False, False, False, True))
+        self.assertVisiblePaths([
+                                 'ignored-dir-with-child',
+                                 'ignored',
+                                 ])
+        
+        self.filter_model.setFilters((False, False, True, True))
+        self.assertVisiblePaths(['ignored-dir-with-child/child',
+                                 'ignored-dir-with-child',
+                                 'ignored',
+                                 'dir-with-unversioned',
+                                 'dir-with-unversioned/child',
+                                 'unversioned', 
+                                 ])
+        
+
+    
+    def assertVisiblePaths(self, paths):
+        visible_paths = []
+        parent_indexes_to_visit = [QtCore.QModelIndex()]
+        while parent_indexes_to_visit:
+            parent_index = parent_indexes_to_visit.pop()
+            for row in range(self.filter_model.rowCount(parent_index)):
+                index = self.filter_model.index(row, 0, parent_index)
+                visible_paths.append(
+                    str(self.filter_model.data(index, self.model.PATH).toString()))
+                if self.filter_model.hasChildren(index):
+                    parent_indexes_to_visit.append(index)
+        
+        # we do not care for the order in this test.
+        visible_paths.sort()
+        paths.sort()
+        self.assertEqual(visible_paths, paths)
 
 class TestModelItemData(TestCase):
 
