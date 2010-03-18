@@ -91,7 +91,8 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
         
         
         self.build_tree(['trunk/dir/'])
-        self.build_tree_contents([('trunk/unmodified', ''),
+        self.build_tree_contents([('trunk/dir/dirchild', ''),
+                                  ('trunk/unmodified', ''),
                                   ('trunk/renamed', ''),
                                   ('trunk/moved', ''),
                                   ('trunk/movedandrenamed', ''),
@@ -101,6 +102,7 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
                                   ('trunk/textconflict', 'this'),
                                   ])
         tree.add(['dir'], ['dir-id'])
+        tree.add(['dir/dirchild'], ['dirchild-id'])
         tree.add(['unmodified'], ['unmodified-id'])
         tree.add(['renamed'], ['renamed-id'])
         tree.add(['moved'], ['moved-id'])
@@ -133,6 +135,13 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
         tree.remove(('removed',))
         os.remove('trunk/missing')
         os.remove('trunk/addedmissing')
+        
+        # test for https://bugs.launchpad.net/qbzr/+bug/538753
+        # must sort before trunk/dir
+        self.build_tree(['trunk/a-newdir/'])
+        self.build_tree_contents([('trunk/a-newdir/newdirchild', '')])
+        tree.add(['a-newdir'], ['a-newdir-id'])
+        tree.add(['a-newdir/newdirchild'], ['newdirchild-id'])
         
         # manuly add conflicts for files that don't exist
         # See https://bugs.launchpad.net/qbzr/+bug/528548
