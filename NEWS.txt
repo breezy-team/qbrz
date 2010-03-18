@@ -6,6 +6,8 @@ Bugfixes in the stable branch. Suitable for bzr 2.1.x.
  * TreeWidget: Fix a bug where refreshing may result in data inconsistencies.
    This bug was causing a number of knock on bugs.
    (Bug #538753, Gary van der Merwe)
+ * qcommit: better support of commit directly into SVN tree.
+   (Bug #540363, Alexander Belchenko)
 
 
 0.18.3 "Cypress" - 2010/03/03
