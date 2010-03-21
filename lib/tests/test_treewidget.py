@@ -42,24 +42,18 @@ from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
 def load_tests(standard_tests, module, loader):
     result = loader.suiteClass()
 
-    tree_scenarios = (
-        ('Working-Tree',
-            {'make_tree': TestTreeWidget.make_working_tree,
-             'modify_tree': TestTreeWidget.modify_working_tree,}),
-        ('Working-Tree-Changes-Mode',
-            {'make_tree': TestTreeWidget.make_working_tree,
-             'modify_tree': TestTreeWidget.modify_working_tree,
-             'changes_mode': True}),
-        ('Revision-Tree',
-            {'make_tree': TestTreeWidget.make_rev_tree,
-             'modify_tree': lambda self, tree: None,}),
-    )
-    sp_tests, remaining_tests = tests.split_suite_by_condition(
+    tree_tests, remaining_tests = tests.split_suite_by_condition(
         standard_tests, tests.condition_isinstance((
                 TestTreeWidget,
                 )))
-    tests.multiply_tests(sp_tests, tree_scenarios, result)
+    tests.multiply_tests(tree_tests, tree_scenarios, result)
 
+    filter_tests, remaining_tests = tests.split_suite_by_condition(
+        remaining_tests, tests.condition_isinstance((
+                TestTreeFilterProxyModel,
+                )))
+    tests.multiply_tests(filter_tests, filter_scenarios, result)
+    
     # No parametrization for the remaining tests
     result.addTests(remaining_tests)
 
@@ -217,7 +211,24 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
         widget.update()
         QtCore.QCoreApplication.processEvents()
 
+tree_scenarios = (
+    ('Working-Tree',
+        {'make_tree': TestTreeWidget.make_working_tree,
+         'modify_tree': TestTreeWidget.modify_working_tree,}),
+    ('Working-Tree-Changes-Mode',
+        {'make_tree': TestTreeWidget.make_working_tree,
+         'modify_tree': TestTreeWidget.modify_working_tree,
+         'changes_mode': True}),
+    ('Revision-Tree',
+        {'make_tree': TestTreeWidget.make_rev_tree,
+         'modify_tree': lambda self, tree: None,}),
+)
+
 class TestTreeFilterProxyModel(TestWatchExceptHook, TestCaseWithTransport):
+    # Set by load_tests
+    filter = None
+    expected_visible = None
+    
     def test_filters(self):
         tree = self.make_branch_and_tree('tree')
         
@@ -250,49 +261,9 @@ class TestTreeFilterProxyModel(TestWatchExceptHook, TestCaseWithTransport):
         self.filter_model = TreeFilterProxyModel()
         self.filter_model.setSourceModel(self.model)
         
-        # UNCHANGED, CHANGED, UNVERSIONED, IGNORED
-        self.filter_model.setFilters((True, True, True, True))
-        self.assertVisiblePaths(['dir-with-unversioned',
-                                 'dir-with-unversioned/child',
-                                 'ignored-dir-with-child',
-                                 'ignored-dir-with-child/child',
-                                 'unchanged', 
-                                 'changed', 
-                                 'unversioned', 
-                                 'ignored',
-                                 '.bzrignore',
-                                 ])
-        
-        self.filter_model.setFilters((True, False, False, False))
-        self.assertVisiblePaths(['dir-with-unversioned',
-                                 'unchanged', 
-                                 '.bzrignore',
-                                 ])
 
-        self.filter_model.setFilters((False, True, False, False))
-        self.assertVisiblePaths(['changed', ])
-        
-        self.filter_model.setFilters((False, False, True, False))
-        self.assertVisiblePaths(['dir-with-unversioned',
-                                 'dir-with-unversioned/child',
-                                 'unversioned', 
-                                 ])
-        
-        self.filter_model.setFilters((False, False, False, True))
-        self.assertVisiblePaths([
-                                 'ignored-dir-with-child',
-                                 'ignored',
-                                 ])
-        
-        self.filter_model.setFilters((False, False, True, True))
-        self.assertVisiblePaths(['ignored-dir-with-child/child',
-                                 'ignored-dir-with-child',
-                                 'ignored',
-                                 'dir-with-unversioned',
-                                 'dir-with-unversioned/child',
-                                 'unversioned', 
-                                 ])
-        
+        self.filter_model.setFilters(self.filter)
+        self.assertVisiblePaths(self.expected_visible)
 
     
     def assertVisiblePaths(self, paths):
@@ -345,6 +316,52 @@ class TestModelItemData(TestCase):
             ('c', 'file')))
         self.assertEqual(models, sorted(reversed(models),
             key=ModelItemData.dirs_first_sort_key))
+
+# UNCHANGED, CHANGED, UNVERSIONED, IGNORED
+filter_scenarios = (
+    ('All',
+        {'filter': (True, True, True, True),
+         'expected_visible': ['dir-with-unversioned',
+                              'dir-with-unversioned/child',
+                              'ignored-dir-with-child',
+                              'ignored-dir-with-child/child',
+                              'unchanged', 
+                              'changed', 
+                              'unversioned', 
+                              'ignored',
+                              '.bzrignore',
+                              ],}),
+    ('Unchanged',
+        {'filter': (True, False, False, False) ,
+         'expected_visible': ['dir-with-unversioned',
+                              'unchanged', 
+                              '.bzrignore',
+                              ],}),
+    ('Changed',
+        {'filter': (False, True, False, False),
+         'expected_visible': ['changed', ],}),
+    ('Unversioned',
+        {'filter': (False, False, True, False),
+         'expected_visible': ['dir-with-unversioned',
+                              'dir-with-unversioned/child',
+                              'unversioned', 
+                              ],}),
+    ('Ignored',
+        {'filter': (False, False, False, True),
+         'expected_visible': ['ignored-dir-with-child',
+                              'ignored',
+                              ],}),
+    ('Ignored+Unversioned',
+        {'filter': (False, False, True, True),
+         'expected_visible': ['ignored-dir-with-child/child',
+                              'ignored-dir-with-child',
+                              'ignored',
+                              'dir-with-unversioned',
+                              'dir-with-unversioned/child',
+                              'unversioned', 
+                              ],}),
+    )
+
 
 class TestGroupLargeDirs(TestCase):
     
