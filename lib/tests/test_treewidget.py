@@ -43,15 +43,16 @@ def load_tests(standard_tests, module, loader):
     result = loader.suiteClass()
 
     tree_scenarios = (
-        ('Working Tree',
-            {'make_tree': make_working_tree,
-             'modify_tree': modify_working_tree,}),
-        ('Working Tree Changes Mode',
-            {'make_tree': make_working_tree,
-             'modify_tree': modify_working_tree,
+        ('Working-Tree',
+            {'make_tree': TestTreeWidget.make_working_tree,
+             'modify_tree': TestTreeWidget.modify_working_tree,}),
+        ('Working-Tree-Changes-Mode',
+            {'make_tree': TestTreeWidget.make_working_tree,
+             'modify_tree': TestTreeWidget.modify_working_tree,
              'changes_mode': True}),
-        ('Revision Tree',
-            {'make_tree': make_rev_tree,}),
+        ('Revision-Tree',
+            {'make_tree': TestTreeWidget.make_rev_tree,
+             'modify_tree': lambda self, tree: None,}),
     )
     sp_tests, remaining_tests = tests.split_suite_by_condition(
         standard_tests, tests.condition_isinstance((
@@ -64,97 +65,6 @@ def load_tests(standard_tests, module, loader):
 
     return result
 
-def make_working_tree(test):
-    #tree = WorkingTree()
-    tree = test.make_branch_and_tree('trunk')
-    test.build_tree_contents([('trunk/textconflict', 'base'),])
-    tree.add(['textconflict'], ['textconflict-id'])
-    tree.commit('a', rev_id='rev-a',
-                committer="joe@foo.com",
-                timestamp=1166046000.00, timezone=0)
-    
-    branch_tree = tree.bzrdir.sprout('branch').open_workingtree()
-    test.build_tree_contents([('branch/textconflict', 'other'),])
-    branch_tree.commit('b', rev_id='rev-b',
-                       committer="joe@foo.com",
-                       timestamp=1166046000.00, timezone=0)
-    test.branch_tree = branch_tree
-    
-    
-    test.build_tree(['trunk/dir/'])
-    test.build_tree_contents([('trunk/dir/dirchild', ''),
-                              ('trunk/unmodified', ''),
-                              ('trunk/renamed', ''),
-                              ('trunk/moved', ''),
-                              ('trunk/movedandrenamed', ''),
-                              ('trunk/removed', ''),
-                              ('trunk/missing', ''),
-                              ('trunk/modified', 'old'),
-                              ('trunk/textconflict', 'this'),
-                              ])
-    tree.add(['dir'], ['dir-id'])
-    tree.add(['dir/dirchild'], ['dirchild-id'])
-    tree.add(['unmodified'], ['unmodified-id'])
-    tree.add(['renamed'], ['renamed-id'])
-    tree.add(['moved'], ['moved-id'])
-    tree.add(['movedandrenamed'], ['movedandrenamed-id'])
-    tree.add(['removed'], ['removed-id'])
-    tree.add(['missing'], ['missing-id'])
-    tree.add(['modified'], ['modified-id'])
-    tree.commit('c', rev_id='rev-c',
-                committer="joe@foo.com",
-                timestamp=1166046000.00, timezone=0)
-    
-    return tree, tree.branch
-
-def modify_working_tree(test, tree):
-    if 0: tree = WorkingTree()
-    tree.merge_from_branch(test.branch_tree.branch, 'rev-b')
-
-    
-    test.build_tree_contents([('trunk/added', ''),
-                              ('trunk/addedmissing', ''),
-                              ('trunk/modified', 'new'),
-                              ('trunk/unversioned', ''),
-                              ])
-    tree.add(['added'], ['added-id'])
-    tree.add(['addedmissing'], ['addedmissing-id'])
-    tree.rename_one('renamed', 'renamed1')
-    tree.move(('moved',), 'dir')
-    tree.rename_one('movedandrenamed', 'movedandrenamed1')
-    tree.move(('movedandrenamed1',), 'dir')
-    tree.remove(('removed',))
-    os.remove('trunk/missing')
-    os.remove('trunk/addedmissing')
-
-    # test for https://bugs.launchpad.net/qbzr/+bug/538753
-    # must sort before trunk/dir
-    test.build_tree(['trunk/a-newdir/'])
-    test.build_tree_contents([('trunk/a-newdir/newdirchild', '')])
-    tree.add(['a-newdir'], ['a-newdir-id'])
-    tree.add(['a-newdir/newdirchild'], ['newdirchild-id'])
-    
-    # manuly add conflicts for files that don't exist
-    # See https://bugs.launchpad.net/qbzr/+bug/528548
-    tree.add_conflicts([TextConflict('nofileconflict')])
-
-
-def make_rev_tree(test):
-    tree = test.make_branch_and_tree('tree')
-    test.build_tree(['tree/b/'])
-    test.build_tree_contents([('tree/a', ''),
-                              ('tree/b/c', ''),
-                              ])
-    tree.add(['a'], ['a-id'])
-    tree.add(['b'], ['b-id'])
-    tree.add(['b/c'], ['c-id'])
-    tree.commit('a', rev_id='rev-1',
-                committer="joe@foo.com",
-                timestamp=1166046000.00, timezone=0)
-    revtree = tree.branch.repository.revision_tree('rev-1')
-    return revtree, tree.branch
-    
-
 class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
     
     # Set by load_tests
@@ -165,6 +75,96 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
     def setUp(self):
         super(TestTreeWidget, self).setUp()
         self.tree, self.branch = self.make_tree(self)
+    
+    def make_working_tree(self):
+        #tree = WorkingTree()
+        tree = self.make_branch_and_tree('trunk')
+        self.build_tree_contents([('trunk/textconflict', 'base'),])
+        tree.add(['textconflict'], ['textconflict-id'])
+        tree.commit('a', rev_id='rev-a',
+                    committer="joe@foo.com",
+                    timestamp=1166046000.00, timezone=0)
+        
+        branch_tree = tree.bzrdir.sprout('branch').open_workingtree()
+        self.build_tree_contents([('branch/textconflict', 'other'),])
+        branch_tree.commit('b', rev_id='rev-b',
+                           committer="joe@foo.com",
+                           timestamp=1166046000.00, timezone=0)
+        self.branch_tree = branch_tree
+        
+        
+        self.build_tree(['trunk/dir/'])
+        self.build_tree_contents([('trunk/dir/dirchild', ''),
+                                  ('trunk/unmodified', ''),
+                                  ('trunk/renamed', ''),
+                                  ('trunk/moved', ''),
+                                  ('trunk/movedandrenamed', ''),
+                                  ('trunk/removed', ''),
+                                  ('trunk/missing', ''),
+                                  ('trunk/modified', 'old'),
+                                  ('trunk/textconflict', 'this'),
+                                  ])
+        tree.add(['dir'], ['dir-id'])
+        tree.add(['dir/dirchild'], ['dirchild-id'])
+        tree.add(['unmodified'], ['unmodified-id'])
+        tree.add(['renamed'], ['renamed-id'])
+        tree.add(['moved'], ['moved-id'])
+        tree.add(['movedandrenamed'], ['movedandrenamed-id'])
+        tree.add(['removed'], ['removed-id'])
+        tree.add(['missing'], ['missing-id'])
+        tree.add(['modified'], ['modified-id'])
+        tree.commit('c', rev_id='rev-c',
+                    committer="joe@foo.com",
+                    timestamp=1166046000.00, timezone=0)
+        
+        return tree, tree.branch
+    
+    def modify_working_tree(self, tree):
+        if 0: tree = WorkingTree()
+        tree.merge_from_branch(self.branch_tree.branch, 'rev-b')
+    
+        
+        self.build_tree_contents([('trunk/added', ''),
+                                  ('trunk/addedmissing', ''),
+                                  ('trunk/modified', 'new'),
+                                  ('trunk/unversioned', ''),
+                                  ])
+        tree.add(['added'], ['added-id'])
+        tree.add(['addedmissing'], ['addedmissing-id'])
+        tree.rename_one('renamed', 'renamed1')
+        tree.move(('moved',), 'dir')
+        tree.rename_one('movedandrenamed', 'movedandrenamed1')
+        tree.move(('movedandrenamed1',), 'dir')
+        tree.remove(('removed',))
+        os.remove('trunk/missing')
+        os.remove('trunk/addedmissing')
+        
+        # test for https://bugs.launchpad.net/qbzr/+bug/538753
+        # must sort before trunk/dir
+        self.build_tree(['trunk/a-newdir/'])
+        self.build_tree_contents([('trunk/a-newdir/newdirchild', '')])
+        tree.add(['a-newdir'], ['a-newdir-id'])
+        tree.add(['a-newdir/newdirchild'], ['newdirchild-id'])
+        
+        # manuly add conflicts for files that don't exist
+        # See https://bugs.launchpad.net/qbzr/+bug/528548
+        tree.add_conflicts([TextConflict('nofileconflict')])
+    
+    
+    def make_rev_tree(self):
+        tree = self.make_branch_and_tree('tree')
+        self.build_tree(['tree/b/'])
+        self.build_tree_contents([('tree/a', ''),
+                                  ('tree/b/c', ''),
+                                  ])
+        tree.add(['a'], ['a-id'])
+        tree.add(['b'], ['b-id'])
+        tree.add(['b/c'], ['c-id'])
+        tree.commit('a', rev_id='rev-1',
+                    committer="joe@foo.com",
+                    timestamp=1166046000.00, timezone=0)
+        revtree = tree.branch.repository.revision_tree('rev-1')
+        return revtree, tree.branch
     
     def run_model_tests(self):
         # Check that indexes point to their correct items.
@@ -204,18 +204,18 @@ class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
         
         widget.update()
         QtCore.QCoreApplication.processEvents()
-        if self.modify_tree:
-            self.modify_tree(self, self.tree)
-            widget.refresh()
-            self.run_model_tests()
-            
-            widget.update()
-            QtCore.QCoreApplication.processEvents()
-            widget.expandAll ()
-            self.run_model_tests()
-            
-            widget.update()
-            QtCore.QCoreApplication.processEvents()
+        
+        self.modify_tree(self, self.tree)
+        widget.refresh()
+        self.run_model_tests()
+        
+        widget.update()
+        QtCore.QCoreApplication.processEvents()
+        widget.expandAll ()
+        self.run_model_tests()
+        
+        widget.update()
+        QtCore.QCoreApplication.processEvents()
 
 class TestTreeFilterProxyModel(TestWatchExceptHook, TestCaseWithTransport):
     def test_filters(self):
