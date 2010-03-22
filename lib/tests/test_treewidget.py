@@ -283,6 +283,69 @@ class TestTreeFilterProxyModel(TestWatchExceptHook, TestCaseWithTransport):
         paths.sort()
         self.assertEqual(visible_paths, paths)
 
+class TestTreeWidgetSelectAll(TestWatchExceptHook, TestCaseWithTransport):
+    
+    def setUp(self):
+        super(TestTreeWidgetSelectAll, self).setUp()
+        tree = self.make_branch_and_tree('tree')
+        
+        self.build_tree(['tree/dir-with-unversioned/',
+                         'tree/ignored-dir-with-child/',])
+        self.build_tree_contents([('tree/dir-with-unversioned/child', ''),
+                                  ('tree/ignored-dir-with-child/child', ''),
+                                  ('tree/unchanged', ''),
+                                  ('tree/changed', 'old'),
+                                  ('tree/unversioned', ''),
+                                  ('tree/ignored', ''),
+                                  ])
+        tree.add(['dir-with-unversioned'], ['dir-with-unversioned-id'])
+        tree.add(['unchanged'], ['unchanged-id'])
+        tree.add(['changed'], ['changed-id'])
+        ignores.tree_ignores_add_patterns(tree,
+                                          ['ignored-dir-with-child',
+                                           'ignored'])
+        
+        tree.commit('a', rev_id='rev-a',
+                    committer="joe@foo.com",
+                    timestamp=1166046000.00, timezone=0)
+        
+        self.build_tree_contents([('tree/changed', 'new')])
+        self.tree = tree
+    
+    def assertSelectedPaths(self, treewidget, paths):
+        if 0: treewidget = TreeWidget()
+        selected = [item.path for item in treewidget.tree_model.iter_checked()]
+        # we do not care for the order in this test.
+        selected.sort()
+        paths.sort()
+        self.assertEqual(selected, paths)
+    
+    def test_add_selectall(self):
+        import bzrlib.plugins.qbzr.lib.add
+        win = bzrlib.plugins.qbzr.lib.add.AddWindow(self.tree, None)
+        win.initial_load()
+        self.assertSelectedPaths(win.filelist, ['dir-with-unversioned/child',
+                                                'unversioned'])
+    
+    def test_commit_selectall(self):
+        import bzrlib.plugins.qbzr.lib.commit
+        win = bzrlib.plugins.qbzr.lib.commit.CommitWindow(self.tree, None)
+        win.load()
+        self.assertSelectedPaths(win.filelist, ['changed'])
+        win.show_nonversioned_checkbox.setCheckState(QtCore.Qt.Checked)
+        win.selectall_checkbox.setCheckState(QtCore.Qt.Unchecked)
+        win.selectall_checkbox.click()
+        self.assertSelectedPaths(win.filelist, ['changed',
+                                                'dir-with-unversioned/child',
+                                                'unversioned'])
+
+    def test_revert_selectall(self):
+        import bzrlib.plugins.qbzr.lib.revert
+        win = bzrlib.plugins.qbzr.lib.revert.RevertWindow(self.tree, None)
+        win.initial_load()
+        win.selectall_checkbox.click()
+        self.assertSelectedPaths(win.filelist, ['changed'])
+
 class TestModelItemData(TestCase):
 
     def _make_unversioned_model_list(self, iterable):

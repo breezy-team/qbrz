@@ -319,8 +319,8 @@ class CommitWindow(SubProcessDialog):
                      QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                      self.on_filelist_data_changed)
         
-        selectall_checkbox = SelectAllCheckBox(self.filelist, self)
-        selectall_checkbox.setCheckState(QtCore.Qt.Checked)
+        self.selectall_checkbox = SelectAllCheckBox(self.filelist, self)
+        self.selectall_checkbox.setCheckState(QtCore.Qt.Checked)
 
         language = get_global_config().get_user_option('spellcheck_language') or 'en'
         spell_checker = SpellChecker(language)
@@ -379,12 +379,12 @@ class CommitWindow(SubProcessDialog):
         self.connect(self.show_nonversioned_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_nonversioned)
         vbox.addWidget(self.show_nonversioned_checkbox)
     
-        vbox.addWidget(selectall_checkbox)
+        vbox.addWidget(self.selectall_checkbox)
 
         # Display a list of pending merges
         if self.has_pending_merges:
-            selectall_checkbox.setCheckState(QtCore.Qt.Checked)
-            selectall_checkbox.setEnabled(False)
+            self.selectall_checkbox.setCheckState(QtCore.Qt.Checked)
+            self.selectall_checkbox.setEnabled(False)
             self.pending_merges_list = PendingMergesList(
                 self.processEvents, self.throbber, False, self)
             
