@@ -1,5 +1,5 @@
-0.18.4 "" - YYYY/MM/DD
-----------------------
+0.18.4 "Pussy-willow" - 2010/03/22
+----------------------------------
 Bugfixes in the stable branch. Suitable for bzr 2.1.x.
 
  * Improved support for Redmine bugs URL. (Bug #538414, Alexander Belchenko)
