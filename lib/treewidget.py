@@ -1431,10 +1431,10 @@ class TreeWidget(RevisionTreeView):
                                  change_load_filter=self.change_load_filter,
                                  initial_checked_paths=initial_checked_paths)
         
-        #if self.tree_model.checkable:
-        #    refs = self.tree_model.iter_checked()
-        #    indexes = self.tree_model.refs2indexes(refs)
-        #    self.expanded_to_indexes(indexes)        
+        if self.tree_model.checkable:
+            refs = self.tree_model.iter_checked()
+            indexes = self.tree_model.refs2indexes(refs)
+            self.expanded_to_indexes(indexes)        
         
         if str(QtCore.QT_VERSION_STR).startswith("4.4"):
             # 4.4.x have a bug where if you do a layoutChanged when using
