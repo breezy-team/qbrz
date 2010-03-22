@@ -585,6 +585,19 @@ class TreeModel(QtCore.QAbstractItemModel):
             for path in self.unver_by_parent[item_data.path]:
                 yield self.inventory_data_by_path[path]
     
+    
+    _many_loaddirs_started = False
+    _many_loaddirs_should_start = False
+    def start_maybe_many_loaddirs(self):
+        self._many_loaddirs_should_start = True
+    
+    def end_maybe_many_loaddirs(self):
+        self._many_loaddirs_should_start = False
+        if self._many_loaddirs_started:
+            self._many_loaddirs_started = False
+            self.tree.unlock()
+    
+    
     def load_dir(self, dir_id):
         if dir_id>=len(self.inventory_data):
             return
@@ -594,7 +607,11 @@ class TreeModel(QtCore.QAbstractItemModel):
         if not dir_item.item.kind=='directory':
             return
         
-        self.tree.lock_read()
+        if not self._many_loaddirs_started:
+            self.tree.lock_read()
+            if self._many_loaddirs_should_start:
+                self._many_loaddirs_started = True
+        
         try:
             dir_item.children_ids = []
             children = sorted(self.get_children(dir_item),
@@ -608,7 +625,8 @@ class TreeModel(QtCore.QAbstractItemModel):
             finally:
                 self.endInsertRows();
         finally:
-            self.tree.unlock()
+            if not self._many_loaddirs_started:
+                self.tree.unlock()
     
     def process_inventory(self, get_children, initial_checked_paths, load_dirs):
         self.get_children = get_children
@@ -755,15 +773,15 @@ class TreeModel(QtCore.QAbstractItemModel):
 
     def setData(self, index, value, role):
 
-        def set_checked(item_data, checked):
-            old_checked = item_data.checked
-            item_data.checked = checked
-            if not old_checked == checked:
-                index = self.createIndex (item_data.row, self.NAME, item_data.id)
-                self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                          index,index)        
-            
         if index.column() == self.NAME and role == QtCore.Qt.CheckStateRole:
+            def set_checked(item_data, checked):
+                old_checked = item_data.checked
+                item_data.checked = checked
+                if not old_checked == checked:
+                    index = self.createIndex (item_data.row, self.NAME, item_data.id)
+                    self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                              index,index)        
+            
             value = value.toInt()[0]
             if index.internalId() >= len(self.inventory_data):
                 return False
@@ -803,7 +821,11 @@ class TreeModel(QtCore.QAbstractItemModel):
                         set_checked(child, value)
                 return have_changed_item
             
-            set_child_checked_recurse(item_data)
+            self.start_maybe_many_loaddirs()
+            try:
+                set_child_checked_recurse(item_data)
+            finally:
+                self.end_maybe_many_loaddirs()
             
             # Walk up the tree, and update every dir
             parent_data = item_data
@@ -1137,13 +1159,11 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     
     def invalidateFilter(self):
         self.filter_cache = {}
-        if self.source_model.tree:
-            self.source_model.tree.lock_read()
+        self.source_model.start_maybe_many_loaddirs()
         try:
             QtGui.QSortFilterProxyModel.invalidateFilter(self)
         finally:
-            if self.source_model.tree:
-                self.source_model.tree.unlock()
+            self.source_model.end_maybe_many_loaddirs()
     
     def setFilter(self, filter, value):
         self.filters[filter] = value
