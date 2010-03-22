@@ -774,21 +774,23 @@ class TreeModel(QtCore.QAbstractItemModel):
     def setData(self, index, value, role):
 
         if index.column() == self.NAME and role == QtCore.Qt.CheckStateRole:
-            def set_checked(item_data, checked):
+
+            def set_checked(item_data, checked, emit=True):
                 old_checked = item_data.checked
                 item_data.checked = checked
-                if not old_checked == checked:
-                    index = self.createIndex (item_data.row, self.NAME, item_data.id)
-                    self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                              index,index)        
+                return not old_checked == checked
             
             value = value.toInt()[0]
             if index.internalId() >= len(self.inventory_data):
                 return False
             
             item_data = self.inventory_data[index.internalId()]
+            first_index = self._index_from_id(item_data.id, self.NAME)
             set_checked(item_data, value)
             
+            # this is an array so that it is a poormans nonlocal
+            # http://www.python.org/dev/peps/pep-3104/
+            last_item_data = [None]
             # Recursively set all children to checked.
             def set_child_checked_recurse(item_data):
                 if (item_data.children_ids is None and
@@ -811,6 +813,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                         (change,
                          lookat_children) = self.is_item_in_select_all(child)
                     
+                    last_item_data[0] = child
+                    
                     if lookat_children:
                         has_children_changed = set_child_checked_recurse(child)
                     else:
@@ -818,7 +822,7 @@ class TreeModel(QtCore.QAbstractItemModel):
 
                     if (change or has_children_changed):
                         have_changed_item = True
-                        set_checked(child, value)
+                        set_checked(child, value, False)
                 return have_changed_item
             
             self.start_maybe_many_loaddirs()
@@ -826,6 +830,13 @@ class TreeModel(QtCore.QAbstractItemModel):
                 set_child_checked_recurse(item_data)
             finally:
                 self.end_maybe_many_loaddirs()
+            
+            if last_item_data[0]:
+                last_index = self._index_from_id(last_item_data[0].id, self.NAME)
+            else:
+                last_index = first_index
+            self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                      first_index,last_index)
             
             # Walk up the tree, and update every dir
             parent_data = item_data
@@ -857,12 +868,17 @@ class TreeModel(QtCore.QAbstractItemModel):
                         break
                 
                 if has_checked and has_unchecked:
-                    set_checked(parent_data, QtCore.Qt.PartiallyChecked)
+                    checked = QtCore.Qt.PartiallyChecked
                 elif has_checked:
-                    set_checked(parent_data, QtCore.Qt.Checked)
+                    checked = QtCore.Qt.Checked
                 else:
-                    set_checked(parent_data, QtCore.Qt.Unchecked)
-            
+                    checked = QtCore.Qt.Unchecked
+                
+                if set_checked(parent_data, checked):
+                    index = self._index_from_id(parent_data.id, self.NAME)
+                    self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                              index,index)        
+
             return True
         
         if index.column() == self.NAME and role == QtCore.Qt.EditRole:
