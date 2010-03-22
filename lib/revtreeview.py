@@ -53,6 +53,7 @@ class RevisionTreeView(QtGui.QTreeView):
         
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
+        self.revision_loading_disabled = False
     
     def setModel(self, model):
         QtGui.QTreeView.setModel(self, model)
@@ -80,7 +81,8 @@ class RevisionTreeView(QtGui.QTreeView):
         QtGui.QTreeView.resizeEvent(self, e)
     
     def load_visible_revisions(self):
-        run_in_loading_queue(self._load_visible_revisions)
+        if not self.revision_loading_disabled:
+            run_in_loading_queue(self._load_visible_revisions)
     
     def _load_visible_revisions(self):
         model = self.model()
