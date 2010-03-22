@@ -2034,7 +2034,8 @@ class SelectAllCheckBox(QtGui.QCheckBox):
                      self.clicked)
     
     def on_data_changed(self, start_index, end_index):
-        self.update_state()
+        if start_index==QtCore.QModelIndex():
+            self.update_state()
     
     def update_state(self):
         model = self.tree_widget.tree_model
