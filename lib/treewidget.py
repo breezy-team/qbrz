@@ -1874,6 +1874,24 @@ class TreeWidget(RevisionTreeView):
         
         show_diff(arg_provider, ext_diff=ext_diff,
                   parent_window=self.window())
+    
+    def unversioned_parents_paths(self, item, include_item=True):
+        paths = []
+        first = True
+        while item.item.file_id is None:
+            if first:
+                if include_item:
+                    paths.append(item.path)
+                first = False
+            else:
+                paths.append(item.path)
+            
+            if item.parent_id:
+                item = self.tree_model.inventory_data[item.parent_id]
+            else:
+                break
+        paths.reverse()
+        return paths
 
     @ui_current_widget
     def add(self):
@@ -1882,9 +1900,9 @@ class TreeWidget(RevisionTreeView):
         items = self.get_selection_items()
         
         # Only paths that are not versioned.
-        paths = [item.path
-                 for item in items
-                 if item.item.file_id is None]
+        paths = []
+        for item in items:
+            paths.extend(self.unversioned_parents_paths(item))
         
         if len(paths) == 0:
             return
@@ -1905,7 +1923,7 @@ class TreeWidget(RevisionTreeView):
         # Only paths that have changes.
         paths = [item.path
                  for item in items
-                 if item.change is not None and
+               if item.change is not None and
                     item.item.file_id is not None]
         
         if len(paths) == 0:
@@ -1989,6 +2007,10 @@ class TreeWidget(RevisionTreeView):
         else:
             return
         try:
+            # add the new parent
+            self.tree.add(self.unversioned_parents_paths(
+                self.tree_model.inventory_data[new], False))
+            
             self.tree.rename_one(old.path, new.path, after=True)
         except Exception:
             report_exception(type=SUB_LOAD_METHOD, window=self.window())
