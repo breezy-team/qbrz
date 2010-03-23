@@ -576,17 +576,22 @@ class LogGraphProvider(object):
         self.graph_parents["top:"] = self.head_revids
     
         if len(self.graph_parents)>0:
+            tick = clock()
             def make_kg():
                 return KnownGraph(self.graph_parents)
             kg = make_kg()
             merge_sorted_revisions = kg.merge_sort('top:')
             # assert merge_sorted_revisions[0][1] == "top:"
             # Get rid of the 'top:' revision
+            tock = clock()
             merge_sorted_revisions.pop(0)
             self.revisions = [
                 RevisionInfo(index, node.key, node.merge_depth,
                              node.revno, node.end_of_merge)
                 for index, node in enumerate(merge_sorted_revisions)]
+            tuck = clock()
+            print 'time to kg().merge_sort() %.3fs\nself.revisions %.3fs' % (
+                tock-tick, tuck-tock)
         else:
             self.revisions = ()
         
