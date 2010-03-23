@@ -25,7 +25,7 @@ from bzrlib import errors
 from bzrlib.transport.local import LocalTransport
 from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.tsort import merge_sort
-from bzrlib.graph import (Graph, StackedParentsProvider)
+from bzrlib.graph import (Graph, StackedParentsProvider, KnownGraph)
     
 from bzrlib.bzrdir import BzrDir
 from bzrlib.workingtree import WorkingTree
@@ -576,16 +576,17 @@ class LogGraphProvider(object):
         self.graph_parents["top:"] = self.head_revids
     
         if len(self.graph_parents)>0:
-            merge_sorted_revisions = merge_sort(self.graph_parents,
-                                                "top:",
-                                                generate_revno=True)
-            assert merge_sorted_revisions[0][1] == "top:"
-            self.revisions = \
-                [RevisionInfo(index, revid, merge_depth,
-                              revno_sequence, end_of_merge)
-                 for (index, (seq, revid, merge_depth,
-                              revno_sequence, end_of_merge)) in
-                       enumerate(merge_sorted_revisions[1:])]
+            def make_kg():
+                return KnownGraph(self.graph_parents)
+            kg = make_kg()
+            merge_sorted_revisions = kg.merge_sort('top:')
+            # assert merge_sorted_revisions[0][1] == "top:"
+            # Get rid of the 'top:' revision
+            merge_sorted_revisions.pop(0)
+            self.revisions = [
+                RevisionInfo(index, node.key, node.merge_depth,
+                             node.revno, node.end_of_merge)
+                for index, node in enumerate(merge_sorted_revisions)]
         else:
             self.revisions = ()
         
