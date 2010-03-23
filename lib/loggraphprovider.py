@@ -25,7 +25,6 @@ from time import clock
 from bzrlib import errors
 from bzrlib.transport.local import LocalTransport
 from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
-from bzrlib.tsort import merge_sort
 from bzrlib.graph import (Graph, StackedParentsProvider, KnownGraph)
     
 from bzrlib.bzrdir import BzrDir
@@ -462,9 +461,7 @@ class LogGraphProvider(object):
                                  for repo in self.repos_sorted_local_first()]
             self.graph = Graph(StackedParentsProvider(parents_providers))
         
-        self.process_graph_parents(self.graph.iter_ancestry(self.head_revids))
-        
-        self.compute_loaded_graph()
+        self._load_graph(self.graph.iter_ancestry(self.head_revids))
 
     def load_graph_all_revisions_for_annotate(self):
         if not len(self.branches) == 1:
@@ -502,9 +499,7 @@ class LogGraphProvider(object):
             for p in self.graph.iter_ancestry(heads):
                 yield p
         
-        self.process_graph_parents(parents())
-        
-        self.compute_loaded_graph()
+        self._load_graph(parents())
     
     def load_graph_pending_merges(self):
         if not len(self.branches) == 1 or not len(self.repos) == 1:
@@ -546,46 +541,39 @@ class LogGraphProvider(object):
                     new_parents.append("root:")
             graph_parents[revid] = tuple(new_parents)
         
-        self.process_graph_parents(graph_parents.items())
-        self.compute_loaded_graph()
+        self._load_graph(graph_parents.items())
     
-    def process_graph_parents(self, graph_parents):
-        self.graph_parents = {}
-        self.graph_children = {}        
-        ghosts = set()
+    def _load_graph(self, graph_parents_iter):
+        graph_parents = {}
         
-        for (revid, parent_revids) \
-                    in graph_parents:
-            if parent_revids is None:
-                ghosts.add(revid)
+        for (revid, parent_revids) in graph_parents_iter:
+            if revid == NULL_REVISION:
                 continue
-            if parent_revids == (NULL_REVISION,):
-                self.graph_parents[revid] = ()
+            if parent_revids is None:
+                #Ghost
+                graph_parents[revid] = ()
+            elif parent_revids == (NULL_REVISION,):
+                graph_parents[revid] = ()
             else:
-                self.graph_parents[revid] = parent_revids
-            for parent in parent_revids:
-                self.graph_children.setdefault(parent, []).append(revid)
-            self.graph_children.setdefault(revid, [])
-            if len(self.graph_parents) % 100 == 0 :
+                graph_parents[revid] = parent_revids
+            if len(graph_parents) % 100 == 0 :
                 self.update_ui()
-        for ghost in ghosts:
-            for ghost_child in self.graph_children[ghost]:
-                self.graph_parents[ghost_child] = [p
-                        for p in self.graph_parents[ghost_child] if p not in ghosts]
-    
-    def compute_loaded_graph(self):
-        self.graph_parents["top:"] = self.head_revids
-    
-        enabled = gc.isenabled()
-        if len(self.graph_parents)>0:
+        
+        graph_parents["top:"] = self.head_revids
+        
+
+        if len(graph_parents)>0:
+            enabled = gc.isenabled()
             if enabled:
                 gc.disable()
             tick = clock()
+            
             def make_kg():
-                return KnownGraph(self.graph_parents)
-            kg = make_kg()
+                return KnownGraph(graph_parents)
+            self.known_graph = make_kg()
+            
             tizzle = clock()
-            merge_sorted_revisions = kg.merge_sort('top:')
+            merge_sorted_revisions = self.known_graph.merge_sort('top:')
             # So far, we are a bit faster than the pure-python code. But the
             # last step hurts. Specifically, we take
             #   377ms KnownGraph(self.graph_parents)
@@ -753,8 +741,8 @@ class LogGraphProvider(object):
         
         for rev in self.revisions:
             
-            parents = [self.revid_rev[parent]
-                       for parent in self.graph_parents[rev.revid]]
+            parents = [self.revid_rev[parent] for parent in
+                       self.known_graph.get_parent_keys(rev.revid)]
             
             if len(parents) > 0:
                 if rev.branch_id == parents[0].branch_id:
@@ -1223,8 +1211,8 @@ class LogGraphProvider(object):
                     # Find parents that are currently visible
                     rev_visible_parents = [] # List of (parent_rev, is_direct)
                     
-                    parents = [self.revid_rev[parent_revid]
-                               for parent_revid in self.graph_parents[rev.revid]]
+                    parents = [self.revid_rev[parent_revid] for parent_revid in 
+                               self.known_graph.get_parent_keys(rev.revid)]
                     # Don't include left hand parents (unless this is the last
                     # revision of the branch.) All of these parents in the
                     # branch can be drawn with one line.
@@ -1279,7 +1267,7 @@ class LogGraphProvider(object):
                                 if not parent.branch_id == branch_id:
                                     has_seen_different_branch = True
                                 # find grand parent.
-                                g_parent_ids = self.graph_parents[parent.revid]
+                                g_parent_ids = self.known_graph.get_parent_keys(parent.revid)
                                 
                                 if len(g_parent_ids) == 0:
                                     parent = None

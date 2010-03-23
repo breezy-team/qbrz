@@ -337,7 +337,7 @@ class LogList(RevisionTreeView):
             return None, None
         top_revid = str(indexes[0].data(logmodel.RevIdRole).toString())
         bot_revid = str(indexes[-1].data(logmodel.RevIdRole).toString())
-        parents = self.graph_provider.graph_parents[bot_revid]
+        parents = self.graph_provider.known_graph.get_parent_keys(bot_revid)
         if parents:
             # We need a ui to select which parent.
             parent_revid = parents[0]
