@@ -631,6 +631,8 @@ class LogGraphProvider(object):
                 tizzle-tick, tock-tizzle)
             print 'time to kg().merge_sort() %.3fs\nself.revisions %.3fs' % (
                 tock-tick, tuck-tock)
+            print 'total time %.3fs' % (
+                tuck-tizzle)
             if enabled:
                 gc.enable()
         else:
