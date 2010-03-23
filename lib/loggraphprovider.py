@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import fnmatch
+import gc
 import re
 from time import clock
 
@@ -575,7 +576,10 @@ class LogGraphProvider(object):
     def compute_loaded_graph(self):
         self.graph_parents["top:"] = self.head_revids
     
+        enabled = gc.isenabled()
         if len(self.graph_parents)>0:
+            if enabled:
+                gc.disable()
             tick = clock()
             def make_kg():
                 return KnownGraph(self.graph_parents)
@@ -595,9 +599,29 @@ class LogGraphProvider(object):
             #   691ms self.revisions = [...]
             # assert merge_sorted_revisions[0][1] == "top:"
             # Get rid of the 'top:' revision
+            # It is a gc thing... :(
+            # Adding gc.disable() / gc.enable() around this whole loop changes
+            # things to be:
+            #   time to kg() 0.100s
+            #   .merge_sort() 0.077s
+            #   time to kg().merge_sort() 0.177s
+            #   self.revisions 0.174s
+            # Also known as "wow that's a lot faster". This is because KG()
+            # creates a bunch of Python objects, then merge_sort() creates a
+            # bunch more. And then self.revisions() creates another whole set.
+            # And all of these are moderately long lived, so you have a *lot*
+            # of allocations without removals (which triggers the gc checker
+            # over and over again.) And they probably don't live in cycles
+            # anyway, so you can skip it for now, and just run at the end.
+            
+            # TODO: Profile against similar gc.disable() with the old topo_sort
+            #       code.
             merge_sorted_revisions.pop(0)
             tock = clock()
             self.revisions = [
+                # RevisionInfo(index, 1, 1, (index,), False)
+                # node.key, node.merge_depth,
+                #              node.revno, node.end_of_merge)
                 RevisionInfo(index, node.key, node.merge_depth,
                              node.revno, node.end_of_merge)
                 for index, node in enumerate(merge_sorted_revisions)]
@@ -606,6 +630,8 @@ class LogGraphProvider(object):
                 tizzle-tick, tock-tizzle)
             print 'time to kg().merge_sort() %.3fs\nself.revisions %.3fs' % (
                 tock-tick, tuck-tock)
+            if enabled:
+                gc.enable()
         else:
             self.revisions = ()
         
