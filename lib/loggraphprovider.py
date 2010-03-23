@@ -613,9 +613,14 @@ class LogGraphProvider(object):
             # of allocations without removals (which triggers the gc checker
             # over and over again.) And they probably don't live in cycles
             # anyway, so you can skip it for now, and just run at the end.
-            
-            # TODO: Profile against similar gc.disable() with the old topo_sort
-            #       code.
+
+            # Old code with gc.disable()
+            #   time to tsort.merge_sort() 0.639s
+            #   self.revisions 0.150s
+            # So it also significantly benefits. However it is still 0.639s vs
+            # 0.177s for the merge sorting, and 0.174s vs 0.150s for the
+            # revision casting. So the revision part is only slightly slower,
+            # while the merge sorting is a *lot* faster.
             merge_sorted_revisions.pop(0)
             tock = clock()
             self.revisions = [
