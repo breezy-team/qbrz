@@ -566,13 +566,11 @@ class LogGraphProvider(object):
             enabled = gc.isenabled()
             if enabled:
                 gc.disable()
-            tick = clock()
             
             def make_kg():
                 return KnownGraph(graph_parents)
             self.known_graph = make_kg()
             
-            tizzle = clock()
             merge_sorted_revisions = self.known_graph.merge_sort('top:')
             # So far, we are a bit faster than the pure-python code. But the
             # last step hurts. Specifically, we take
@@ -606,20 +604,8 @@ class LogGraphProvider(object):
 
             # Get rid of the 'top:' revision
             merge_sorted_revisions.pop(0)
-            tock = clock()
-            self.revisions = [
-                # RevisionInfo(index, 1, 1, (index,), False)
-                # node.key, node.merge_depth,
-                #              node.revno, node.end_of_merge)
-                RevisionInfo(index, node)
+            self.revisions = [RevisionInfo(index, node)
                 for index, node in enumerate(merge_sorted_revisions)]
-            tuck = clock()
-            print 'time to kg() %.3fs\n.merge_sort() %.3fs' % (
-                tizzle-tick, tock-tizzle)
-            print 'time to kg().merge_sort() %.3fs\nself.revisions %.3fs' % (
-                tock-tick, tuck-tock)
-            print 'total time %.3fs' % (
-                tuck-tizzle)
             if enabled:
                 gc.enable()
         else:
