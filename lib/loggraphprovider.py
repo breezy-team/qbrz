@@ -65,12 +65,10 @@ class RevisionInfo(object):
     
     # Instance of this object are typicaly named "rev".
     
-    __slots__ = ["index", "revid", "merge_depth", "revno_sequence",
-                 "end_of_merge", "branch_id", "_revno_str", "filter_cache",
+    __slots__ = ["index", "_merge_sort_node", "branch_id", "_revno_str", "filter_cache",
                  "merges", "merged_by", "f_index", "color",
                  "col_index", "lines", "twisty_state", "twisty_branch_ids"]
-
-    def __init__ (self, index, revid, merge_depth, revno_sequence, end_of_merge):
+    def __init__ (self, index, _merge_sort_node):
         self.index = index
         """Index in LogGraphProvider.revisions"""
         self.f_index = None
@@ -78,10 +76,7 @@ class RevisionInfo(object):
         
         If None, then this revision is not visible
         """
-        self.revid = revid
-        self.merge_depth = merge_depth
-        self.revno_sequence = revno_sequence
-        self.end_of_merge = end_of_merge
+        self._merge_sort_node = _merge_sort_node
         self.branch_id = self.revno_sequence[0:-1]
         self._revno_str = None
         self.filter_cache = True
@@ -113,6 +108,11 @@ class RevisionInfo(object):
         clicked on.
         
         """
+    
+    revid = property(lambda self: self._merge_sort_node.key)
+    merge_depth = property(lambda self: self._merge_sort_node.merge_depth)
+    revno_sequence = property(lambda self: self._merge_sort_node.revno)
+    end_of_merge = property(lambda self: self._merge_sort_node.end_of_merge)
     
     def get_revno_str(self):
         if self._revno_str is None:
@@ -623,8 +623,7 @@ class LogGraphProvider(object):
                 # RevisionInfo(index, 1, 1, (index,), False)
                 # node.key, node.merge_depth,
                 #              node.revno, node.end_of_merge)
-                RevisionInfo(index, node.key, node.merge_depth,
-                             node.revno, node.end_of_merge)
+                RevisionInfo(index, node)
                 for index, node in enumerate(merge_sorted_revisions)]
             tuck = clock()
             print 'time to kg() %.3fs\n.merge_sort() %.3fs' % (
