@@ -580,16 +580,30 @@ class LogGraphProvider(object):
             def make_kg():
                 return KnownGraph(self.graph_parents)
             kg = make_kg()
+            tizzle = clock()
             merge_sorted_revisions = kg.merge_sort('top:')
+            # So far, we are a bit faster than the pure-python code.
+            # Specifically, we take
+            #   377ms KnownGraph(self.graph_parents)
+            #   263ms kg.merge_sort() [640ms combined]
+            # vs 
+            #  1152ms tsort.merge_sort(self.graph_parents)
+            #
+            # However, we then take
+            #  1322ms self.revisions = [...]
+            # vs
+            #   691ms self.revisions = [...]
             # assert merge_sorted_revisions[0][1] == "top:"
             # Get rid of the 'top:' revision
-            tock = clock()
             merge_sorted_revisions.pop(0)
+            tock = clock()
             self.revisions = [
                 RevisionInfo(index, node.key, node.merge_depth,
                              node.revno, node.end_of_merge)
                 for index, node in enumerate(merge_sorted_revisions)]
             tuck = clock()
+            print 'time to kg() %.3fs\n.merge_sort() %.3fs' % (
+                tizzle-tick, tock-tizzle)
             print 'time to kg().merge_sort() %.3fs\nself.revisions %.3fs' % (
                 tock-tick, tuck-tock)
         else:
