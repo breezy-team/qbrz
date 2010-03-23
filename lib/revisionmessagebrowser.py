@@ -356,11 +356,13 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
             open_browser(str(url.toEncoded()))
 
     def get_parents(self, revid):
-        return self.log_list.graph_provider.graph_parents[revid]
+        return self.log_list.graph_provider.known_graph.get_parent_keys(revid)
     
     def get_children(self, revid):
-        return self.log_list.graph_provider.graph_children[revid]
-    
+        return [child for child in
+                self.log_list.graph_provider.known_graph.get_child_keys(revid)
+                if not child == "top:"]
+
     def get_revno(self, revid):
         return self.log_list.graph_provider.revid_rev[revid].revno_str
     

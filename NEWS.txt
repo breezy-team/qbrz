@@ -3,6 +3,8 @@
  * Added Hungarian translation.
  * qcommit: Give the user the option to update the branch if it is not up to
    date. (Bug #439920, Gary van der Merwe)
+ * qlog: Improve performance by using KnownGraph. (John Arbash Meinel,
+   Gary van der Merwe)
 
 
 0.18.4 "Pussy-willow" - 2010/03/22

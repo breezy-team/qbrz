@@ -18,14 +18,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import fnmatch
+import gc
 import re
 from time import clock
 
 from bzrlib import errors
 from bzrlib.transport.local import LocalTransport
 from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
-from bzrlib.tsort import merge_sort
-from bzrlib.graph import (Graph, StackedParentsProvider)
+from bzrlib.graph import (Graph, StackedParentsProvider, KnownGraph)
     
 from bzrlib.bzrdir import BzrDir
 from bzrlib.workingtree import WorkingTree
@@ -64,12 +64,10 @@ class RevisionInfo(object):
     
     # Instance of this object are typicaly named "rev".
     
-    __slots__ = ["index", "revid", "merge_depth", "revno_sequence",
-                 "end_of_merge", "branch_id", "_revno_str", "filter_cache",
+    __slots__ = ["index", "_merge_sort_node", "branch_id", "_revno_str", "filter_cache",
                  "merges", "merged_by", "f_index", "color",
                  "col_index", "lines", "twisty_state", "twisty_branch_ids"]
-
-    def __init__ (self, index, revid, merge_depth, revno_sequence, end_of_merge):
+    def __init__ (self, index, _merge_sort_node):
         self.index = index
         """Index in LogGraphProvider.revisions"""
         self.f_index = None
@@ -77,10 +75,7 @@ class RevisionInfo(object):
         
         If None, then this revision is not visible
         """
-        self.revid = revid
-        self.merge_depth = merge_depth
-        self.revno_sequence = revno_sequence
-        self.end_of_merge = end_of_merge
+        self._merge_sort_node = _merge_sort_node
         self.branch_id = self.revno_sequence[0:-1]
         self._revno_str = None
         self.filter_cache = True
@@ -112,6 +107,11 @@ class RevisionInfo(object):
         clicked on.
         
         """
+    
+    revid = property(lambda self: self._merge_sort_node.key)
+    merge_depth = property(lambda self: self._merge_sort_node.merge_depth)
+    revno_sequence = property(lambda self: self._merge_sort_node.revno)
+    end_of_merge = property(lambda self: self._merge_sort_node.end_of_merge)
     
     def get_revno_str(self):
         if self._revno_str is None:
@@ -461,9 +461,7 @@ class LogGraphProvider(object):
                                  for repo in self.repos_sorted_local_first()]
             self.graph = Graph(StackedParentsProvider(parents_providers))
         
-        self.process_graph_parents(self.graph.iter_ancestry(self.head_revids))
-        
-        self.compute_loaded_graph()
+        self._load_graph(self.graph.iter_ancestry(self.head_revids))
 
     def load_graph_all_revisions_for_annotate(self):
         if not len(self.branches) == 1:
@@ -501,9 +499,7 @@ class LogGraphProvider(object):
             for p in self.graph.iter_ancestry(heads):
                 yield p
         
-        self.process_graph_parents(parents())
-        
-        self.compute_loaded_graph()
+        self._load_graph(parents())
     
     def load_graph_pending_merges(self):
         if not len(self.branches) == 1 or not len(self.repos) == 1:
@@ -545,47 +541,73 @@ class LogGraphProvider(object):
                     new_parents.append("root:")
             graph_parents[revid] = tuple(new_parents)
         
-        self.process_graph_parents(graph_parents.items())
-        self.compute_loaded_graph()
+        self._load_graph(graph_parents.items())
     
-    def process_graph_parents(self, graph_parents):
-        self.graph_parents = {}
-        self.graph_children = {}        
-        ghosts = set()
+    def _load_graph(self, graph_parents_iter):
+        graph_parents = {}
         
-        for (revid, parent_revids) \
-                    in graph_parents:
-            if parent_revids is None:
-                ghosts.add(revid)
+        for (revid, parent_revids) in graph_parents_iter:
+            if revid == NULL_REVISION:
                 continue
-            if parent_revids == (NULL_REVISION,):
-                self.graph_parents[revid] = ()
+            if parent_revids is None:
+                #Ghost
+                graph_parents[revid] = ()
+            elif parent_revids == (NULL_REVISION,):
+                graph_parents[revid] = ()
             else:
-                self.graph_parents[revid] = parent_revids
-            for parent in parent_revids:
-                self.graph_children.setdefault(parent, []).append(revid)
-            self.graph_children.setdefault(revid, [])
-            if len(self.graph_parents) % 100 == 0 :
+                graph_parents[revid] = parent_revids
+            if len(graph_parents) % 100 == 0 :
                 self.update_ui()
-        for ghost in ghosts:
-            for ghost_child in self.graph_children[ghost]:
-                self.graph_parents[ghost_child] = [p
-                        for p in self.graph_parents[ghost_child] if p not in ghosts]
-    
-    def compute_loaded_graph(self):
-        self.graph_parents["top:"] = self.head_revids
-    
-        if len(self.graph_parents)>0:
-            merge_sorted_revisions = merge_sort(self.graph_parents,
-                                                "top:",
-                                                generate_revno=True)
-            assert merge_sorted_revisions[0][1] == "top:"
-            self.revisions = \
-                [RevisionInfo(index, revid, merge_depth,
-                              revno_sequence, end_of_merge)
-                 for (index, (seq, revid, merge_depth,
-                              revno_sequence, end_of_merge)) in
-                       enumerate(merge_sorted_revisions[1:])]
+        
+        graph_parents["top:"] = self.head_revids
+        
+
+        if len(graph_parents)>0:
+            enabled = gc.isenabled()
+            if enabled:
+                gc.disable()
+            
+            def make_kg():
+                return KnownGraph(graph_parents)
+            self.known_graph = make_kg()
+            
+            merge_sorted_revisions = self.known_graph.merge_sort('top:')
+            # So far, we are a bit faster than the pure-python code. But the
+            # last step hurts. Specifically, we take
+            #   377ms KnownGraph(self.graph_parents)
+            #   263ms kg.merge_sort() [640ms combined]
+            #  1322ms self.revisions = [...]
+            # vs 
+            #  1152ms tsort.merge_sort(self.graph_parents)
+            #   691ms self.revisions = [...]
+            #
+            # It is a gc thing... :(
+            # Adding gc.disable() / gc.enable() around this whole loop changes
+            # things to be:
+            #   100ms   KnownGraph(self.graph_parents)
+            #    77ms   kg.merge_sort() [177ms combined]
+            #   174ms   self.revisions = [...]
+            # vs
+            #   639ms   tsort.merge_sort(self.graph_parents)
+            #   150ms   self.revisions = [...]
+            # Also known as "wow that's a lot faster". This is because KG()
+            # creates a bunch of Python objects, then merge_sort() creates a
+            # bunch more. And then self.revisions() creates another whole set.
+            # And all of these are moderately long lived, so you have a *lot*
+            # of allocations without removals (which triggers the gc checker
+            # over and over again.) And they probably don't live in cycles
+            # anyway, so you can skip it for now, and just run at the end.
+            
+            # self.revisions *is* a little bit slower. Probably because pyrex
+            # MergeSortNodes use long integers rather than PyIntObject and thus
+            # create them on-the-fly.
+
+            # Get rid of the 'top:' revision
+            merge_sorted_revisions.pop(0)
+            self.revisions = [RevisionInfo(index, node)
+                for index, node in enumerate(merge_sorted_revisions)]
+            if enabled:
+                gc.enable()
         else:
             self.revisions = ()
         
@@ -705,8 +727,8 @@ class LogGraphProvider(object):
         
         for rev in self.revisions:
             
-            parents = [self.revid_rev[parent]
-                       for parent in self.graph_parents[rev.revid]]
+            parents = [self.revid_rev[parent] for parent in
+                       self.known_graph.get_parent_keys(rev.revid)]
             
             if len(parents) > 0:
                 if rev.branch_id == parents[0].branch_id:
@@ -1175,8 +1197,8 @@ class LogGraphProvider(object):
                     # Find parents that are currently visible
                     rev_visible_parents = [] # List of (parent_rev, is_direct)
                     
-                    parents = [self.revid_rev[parent_revid]
-                               for parent_revid in self.graph_parents[rev.revid]]
+                    parents = [self.revid_rev[parent_revid] for parent_revid in 
+                               self.known_graph.get_parent_keys(rev.revid)]
                     # Don't include left hand parents (unless this is the last
                     # revision of the branch.) All of these parents in the
                     # branch can be drawn with one line.
@@ -1231,7 +1253,7 @@ class LogGraphProvider(object):
                                 if not parent.branch_id == branch_id:
                                     has_seen_different_branch = True
                                 # find grand parent.
-                                g_parent_ids = self.graph_parents[parent.revid]
+                                g_parent_ids = self.known_graph.get_parent_keys(parent.revid)
                                 
                                 if len(g_parent_ids) == 0:
                                     parent = None
