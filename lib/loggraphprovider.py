@@ -586,26 +586,24 @@ class LogGraphProvider(object):
             kg = make_kg()
             tizzle = clock()
             merge_sorted_revisions = kg.merge_sort('top:')
-            # So far, we are a bit faster than the pure-python code.
-            # Specifically, we take
+            # So far, we are a bit faster than the pure-python code. But the
+            # last step hurts. Specifically, we take
             #   377ms KnownGraph(self.graph_parents)
             #   263ms kg.merge_sort() [640ms combined]
+            #  1322ms self.revisions = [...]
             # vs 
             #  1152ms tsort.merge_sort(self.graph_parents)
-            #
-            # However, we then take
-            #  1322ms self.revisions = [...]
-            # vs
             #   691ms self.revisions = [...]
-            # assert merge_sorted_revisions[0][1] == "top:"
-            # Get rid of the 'top:' revision
+            #
             # It is a gc thing... :(
             # Adding gc.disable() / gc.enable() around this whole loop changes
             # things to be:
-            #   time to kg() 0.100s
-            #   .merge_sort() 0.077s
-            #   time to kg().merge_sort() 0.177s
-            #   self.revisions 0.174s
+            #   100ms   KnownGraph(self.graph_parents)
+            #    77ms   kg.merge_sort() [177ms combined]
+            #   174ms   self.revisions = [...]
+            # vs
+            #   639ms   tsort.merge_sort(self.graph_parents)
+            #   150ms   self.revisions = [...]
             # Also known as "wow that's a lot faster". This is because KG()
             # creates a bunch of Python objects, then merge_sort() creates a
             # bunch more. And then self.revisions() creates another whole set.
@@ -613,14 +611,12 @@ class LogGraphProvider(object):
             # of allocations without removals (which triggers the gc checker
             # over and over again.) And they probably don't live in cycles
             # anyway, so you can skip it for now, and just run at the end.
+            
+            # self.revisions *is* a little bit slower. Probably because pyrex
+            # MergeSortNodes use long integers rather than PyIntObject and thus
+            # create them on-the-fly.
 
-            # Old code with gc.disable()
-            #   time to tsort.merge_sort() 0.639s
-            #   self.revisions 0.150s
-            # So it also significantly benefits. However it is still 0.639s vs
-            # 0.177s for the merge sorting, and 0.174s vs 0.150s for the
-            # revision casting. So the revision part is only slightly slower,
-            # while the merge sorting is a *lot* faster.
+            # Get rid of the 'top:' revision
             merge_sorted_revisions.pop(0)
             tock = clock()
             self.revisions = [
