@@ -5,6 +5,7 @@
    date. (Bug #439920, Gary van der Merwe)
  * qlog: Improve performance by using KnownGraph. (John Arbash Meinel,
    Gary van der Merwe)
+ * Improve startup performance by using lazy imports. (Gary van der Merwe)
 
 
 0.18.4 "Pussy-willow" - 2010/03/22
