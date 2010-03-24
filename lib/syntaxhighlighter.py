@@ -125,3 +125,66 @@ if __name__ == "__main__":
     highlight_document(python, 'syntaxhighlighter.py')
 
     sys.exit(app.exec_())
+
+
+if have_pygments:
+    style = get_style_by_name("default")
+
+def format_for_ttype(ttype, format):
+    if have_pygments and ttype:
+        font = format.font()
+        
+        # If there is no style, use the parent type's style.
+        # It fixes bug 347333 - GaryvdM
+        while not style.styles_token(ttype) and ttype.parent:
+            ttype = ttype.parent
+        
+        tstyle = style.style_for_token(ttype)
+        if tstyle['color']:
+            if isinstance(format, QtGui.QPainter):
+                format.setPen (QtGui.QColor("#"+tstyle['color']))
+            else:
+                format.setForeground (QtGui.QColor("#"+tstyle['color']))
+        if tstyle['bold']: font.setWeight(QtGui.QFont.Bold)
+        if tstyle['italic']: font.setItalic (True)
+        # Can't get this not to affect line height.
+        #if tstyle['underline']: format.setFontUnderline(True)
+        if tstyle['bgcolor']: format.setBackground (QtGui.QColor("#"+tstyle['bgcolor']))
+        # No way to set this for a QTextCharFormat
+        #if tstyle['border']: format.
+    return format
+
+class CachedTTypeFormater(object):
+    def __init__(self, base_format):
+        self.base_format = base_format
+        self._cache = {}
+    
+    def format(self, ttype):
+        if not have_pygments or not ttype:
+            return self.base_format
+        if ttype in self._cache:
+            format = self._cache[ttype]
+        else:
+            format = QtGui.QTextCharFormat(self.base_format)
+            self._cache[ttype] = format
+            
+            # If there is no style, use the parent type's style.
+            # It fixes bug 347333 - GaryvdM
+            while not style.styles_token(ttype) and ttype.parent:
+                ttype = ttype.parent
+                self._cache[ttype] = format
+            
+            format_for_ttype(ttype, format)
+        
+        return format
+
+def split_tokens_at_lines(tokens):
+    currentLine = []
+    for ttype, value in tokens:
+        vsplit = value.splitlines(True)
+        for v in vsplit:
+            currentLine.append((ttype, v))
+            if v[-1:] in ('\n','\r'):
+                yield currentLine
+                currentLine = []
+    yield currentLine

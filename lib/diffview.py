@@ -26,13 +26,14 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     format_timestamp,
-    split_tokens_at_lines,
-    CachedTTypeFormater,
     QBzrGlobalConfig,
     QBzrConfig,
     )
 from bzrlib.trace import mutter
-
+from bzrlib.plugins.qbzr.lib.syntaxhighlighter import (
+    CachedTTypeFormater,
+    split_tokens_at_lines,
+    )
 
 have_pygments = True
 try:

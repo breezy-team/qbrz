@@ -262,6 +262,7 @@ class LogWindow(QBzrWindow):
             #    self.file_list.hide()
         finally:
             self.refresh_button.setDisabled(False)
+        self.close()
     
     @runs_in_loading_queue
     @ui_current_widget
