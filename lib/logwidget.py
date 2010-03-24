@@ -17,19 +17,22 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from PyQt4 import QtCore, QtGui, Qt
+from PyQt4 import QtCore, QtGui
 
-from bzrlib.bzrdir import BzrDir
-from bzrlib.revision import NULL_REVISION
-from bzrlib.revisionspec import RevisionSpec
 from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
                                                  RevNoItemDelegate,
                                                  get_text_color)
+
+from bzrlib.lazy_import import lazy_import
+lazy_import(globals(), '''
+from bzrlib.bzrdir import BzrDir
+from bzrlib.revision import NULL_REVISION
+from bzrlib.revisionspec import RevisionSpec
 from bzrlib.plugins.qbzr.lib.tag import TagWindow, CallBackTagWindow
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib import diff
 from bzrlib.plugins.qbzr.lib.i18n import gettext
-
+''')
 
 class LogList(RevisionTreeView):
     """TreeView widget to show log with metadata and graph of revisions."""
@@ -460,10 +463,6 @@ class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
         text_margin = style.pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
                                         None, widget) + 1
         
-        if not hasattr(self, '_usingGtkStyle'):
-            self._usingGtkStyle = style.objectName() == 'gtk+'
-            self._usingQt45 = Qt.qVersion() >= '4.5'
-        
         painter.save()
         painter.setClipRect(option.rect)
         style.drawPrimitive(QtGui.QStyle.PE_PanelItemViewItem,
@@ -481,9 +480,8 @@ class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
                 penwidth = 1
                 pen.setWidth(penwidth)
                 pen.setCapStyle(QtCore.Qt.FlatCap)
-                if not self._usingQt45:
-                    #this is to try get lines 1 pixel wide to actualy be 1 pixel wide.
-                    painter.translate(0.5, 0.5)
+                #this is to try get lines 1 pixel wide to actualy be 1 pixel wide.
+                painter.translate(0.5, 0.5)
                 
                 # Draw lines into the cell
                 for line in self.prevLines:
@@ -573,10 +571,7 @@ class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
                 painter.drawLine(tl.x() + 1, br.y(), br.x() - 1, br.y())
                 painter.setFont(tagFont)
                 painter.setPen(self._labelColor)
-                if self._usingGtkStyle:
-                    painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent(), label)
-                else:
-                    painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, label)
+                painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, label)
                 x += tagRect.width() + text_margin
         finally:
             painter.restore()

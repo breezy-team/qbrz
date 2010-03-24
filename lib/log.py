@@ -18,15 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.branch import Branch
-from bzrlib import osutils
-from bzrlib.plugins.qbzr.lib.logwidget import LogList
-from bzrlib.plugins.qbzr.lib.diff import (
-    has_ext_diff,
-    ExtDiffMenu,
-    DiffButtons,
-    )
-from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     BTN_REFRESH,
@@ -37,17 +28,24 @@ from bzrlib.plugins.qbzr.lib.util import (
     runs_in_loading_queue,
     get_set_encoding,
     )
-from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
 from bzrlib.plugins.qbzr.lib.trace import reports_exception, SUB_LOAD_METHOD
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+
+from bzrlib.lazy_import import lazy_import
+lazy_import(globals(), '''
+from bzrlib.branch import Branch
+from bzrlib import osutils
+from bzrlib.plugins.qbzr.lib.logwidget import LogList
+from bzrlib.plugins.qbzr.lib.diff import (
+    has_ext_diff,
+    ExtDiffMenu,
+    DiffButtons,
+    )
+from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
-
-try:
-    from bzrlib.plugins.svn.repository import SvnRepository
-    has_svn = True
-except ImportError:
-    has_svn = False
+''')
 
 
 PathRole = QtCore.Qt.UserRole + 1
@@ -262,7 +260,6 @@ class LogWindow(QBzrWindow):
             #    self.file_list.hide()
         finally:
             self.refresh_button.setDisabled(False)
-        self.close()
     
     @runs_in_loading_queue
     @ui_current_widget
@@ -465,8 +462,8 @@ class FileListContainer(QtGui.QWidget):
             self.throbber.show()
             gp = self.log_list.graph_provider
             repos = [gp.get_revid_branch(revid).repository for revid in revids]
-            if has_svn and (isinstance(repos[0], SvnRepository) or
-                            isinstance(repos[1], SvnRepository)):
+            if (repos[0].__class__.__name__ == 'SvnRepository' or
+                repos[1].__class__.__name__ == 'SvnRepository'):
                 # Loading trees from a remote svn repo is unusably slow.
                 # See https://bugs.launchpad.net/qbzr/+bug/450225
                 # If only 1 revision is selected, use a optimized svn method

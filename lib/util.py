@@ -23,6 +23,7 @@ import shlex
 import sys
 import itertools
 
+
 from PyQt4 import QtCore, QtGui
 
 from bzrlib.revision import Revision
@@ -32,22 +33,28 @@ from bzrlib.config import (
     config_dir,
     ensure_config_dir_exists,
     )
-from bzrlib import (
-    lazy_regex,
-    osutils,
-    urlutils,
-    )
-from bzrlib.util.configobj import configobj
+from bzrlib import lazy_regex
+
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
-from bzrlib.plugins.qbzr.lib import trace
+
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 
 # pyflakes says this is not needed, but it is.
 import bzrlib.plugins.qbzr.lib.resources
 
 from bzrlib import errors
+
+from bzrlib.lazy_import import lazy_import
+lazy_import(globals(), '''
+from bzrlib import (
+    osutils,
+    urlutils,
+)
+from bzrlib.util.configobj import configobj
+from bzrlib.plugins.qbzr.lib import trace
 from bzrlib.workingtree import WorkingTree
+''')
 
 # standard buttons with translatable labels
 BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP, BTN_REFRESH = range(5)

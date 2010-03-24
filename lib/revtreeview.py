@@ -19,9 +19,12 @@
 
 from PyQt4 import QtCore, QtGui
 
+from bzrlib.lazy_import import lazy_import
+lazy_import(globals(), '''
 from bzrlib.plugins.qbzr.lib.util import run_in_loading_queue
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import load_revisions
 from bzrlib.transport.local import LocalTransport
+''')
 
 RevIdRole = QtCore.Qt.UserRole + 1
 

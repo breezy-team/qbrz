@@ -20,14 +20,27 @@
 
 from PyQt4 import QtCore, QtGui
 
-have_pygments = True
-try:
-    from pygments.styles import get_style_by_name
-    from pygments import lex
-    from pygments.util import ClassNotFound
-    from pygments.lexers import get_lexer_for_filename
-except ImportError:
-    have_pygments = False
+from bzrlib.lazy_import import lazy_import
+lazy_import(globals(), '''
+from pygments.styles import get_style_by_name
+from pygments import lex
+from pygments.util import ClassNotFound
+from pygments.lexers import get_lexer_for_filename
+''')
+
+_have_pygments = None
+def check_for_pygments():
+    global _have_pygments
+    if _have_pygments is None:
+        try:
+            import pygments
+        except ImportError:
+            _have_pygments = False
+        else:
+            _have_pygments = False
+
+have_pygments = property(check_for_pygments())
+
 
 def highlight_document(edit, filename):
     doc = edit.document()
@@ -127,11 +140,10 @@ if __name__ == "__main__":
     sys.exit(app.exec_())
 
 
-if have_pygments:
-    style = get_style_by_name("default")
-
 def format_for_ttype(ttype, format):
     if have_pygments and ttype:
+        style = get_style_by_name("default")
+        
         font = format.font()
         
         # If there is no style, use the parent type's style.

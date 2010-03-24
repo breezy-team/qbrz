@@ -18,9 +18,20 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os, sys
+from PyQt4 import QtCore, QtGui
+
+from bzrlib.plugins.qbzr.lib.i18n import gettext
+
+from bzrlib.plugins.qbzr.lib.revtreeview import (
+    RevisionTreeView,
+    RevNoItemDelegate,
+    )
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.lazy_import import lazy_import
+lazy_import(globals(), '''
 import posixpath  # to use '/' path sep in path.join().
 from time import (strftime, localtime)
-from PyQt4 import QtCore, QtGui
+
 from bzrlib import errors
 from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
@@ -29,19 +40,13 @@ from bzrlib.conflicts import TextConflict, resolve
 
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, QBzrViewWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
-from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.log import LogWindow
-from bzrlib.plugins.qbzr.lib.revtreeview import (
-    RevisionTreeView,
-    RevNoItemDelegate,
-    )
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
 from bzrlib.plugins.qbzr.lib.util import (
     get_set_encoding,
     get_summary,
     get_apparent_author_name,
     )
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
 from bzrlib.plugins.qbzr.lib.diff import (
     show_diff,
@@ -51,7 +56,7 @@ from bzrlib.plugins.qbzr.lib.diff import (
     )
 from bzrlib.plugins.qbzr.lib.trace import report_exception, SUB_LOAD_METHOD
 
-
+''')
 def dict_set_add(dict, key, value):
     if key in dict:
         dict[key].add(value)
