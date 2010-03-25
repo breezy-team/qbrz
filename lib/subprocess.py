@@ -642,7 +642,7 @@ class SubProcessWidget(QtGui.QWidget):
             self.aborting = False
             self.setProgress(1000000, [gettext("Aborted!")])
             self.emit(QtCore.SIGNAL("failed(QString)"), 'Aborted')
-        elif exitCode == 0:
+        elif exitCode < 3:
             if self.commands and not self.aborting:
                 self._start_next()
             else:
