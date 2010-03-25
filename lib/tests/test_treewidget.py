@@ -322,29 +322,41 @@ class TestTreeWidgetSelectAll(TestWatchExceptHook, TestCaseWithTransport):
     
     def test_add_selectall(self):
         import bzrlib.plugins.qbzr.lib.add
-        win = bzrlib.plugins.qbzr.lib.add.AddWindow(self.tree, None)
-        win.initial_load()
-        self.assertSelectedPaths(win.filelist, ['dir-with-unversioned/child',
+        self.win = bzrlib.plugins.qbzr.lib.add.AddWindow(self.tree, None)
+        self.addCleanup(self.cleanup_win)
+        self.win.initial_load()
+        self.assertSelectedPaths(self.win.filelist, ['dir-with-unversioned/child',
                                                 'unversioned'])
+
     
     def test_commit_selectall(self):
         import bzrlib.plugins.qbzr.lib.commit
-        win = bzrlib.plugins.qbzr.lib.commit.CommitWindow(self.tree, None)
-        win.load()
-        self.assertSelectedPaths(win.filelist, ['changed'])
-        win.show_nonversioned_checkbox.setCheckState(QtCore.Qt.Checked)
-        win.selectall_checkbox.setCheckState(QtCore.Qt.Unchecked)
-        win.selectall_checkbox.click()
-        self.assertSelectedPaths(win.filelist, ['changed',
-                                                'dir-with-unversioned/child',
-                                                'unversioned'])
+        self.win = bzrlib.plugins.qbzr.lib.commit.CommitWindow(self.tree, None)
+        self.addCleanup(self.cleanup_win)
+        self.win.load()
+        self.assertSelectedPaths(self.win.filelist, ['changed'])
+        self.win.show_nonversioned_checkbox.setCheckState(QtCore.Qt.Checked)
+        self.win.selectall_checkbox.setCheckState(QtCore.Qt.Unchecked)
+        self.win.selectall_checkbox.click()
+        self.assertSelectedPaths(self.win.filelist, ['changed',
+                                                     'dir-with-unversioned/child',
+                                                     'unversioned'])
 
     def test_revert_selectall(self):
         import bzrlib.plugins.qbzr.lib.revert
-        win = bzrlib.plugins.qbzr.lib.revert.RevertWindow(self.tree, None)
-        win.initial_load()
-        win.selectall_checkbox.click()
-        self.assertSelectedPaths(win.filelist, ['changed'])
+        self.win = bzrlib.plugins.qbzr.lib.revert.RevertWindow(self.tree, None)
+        self.addCleanup(self.cleanup_win)
+        self.win.initial_load()
+        self.win.selectall_checkbox.click()
+        self.assertSelectedPaths(self.win.filelist, ['changed'])
+    
+    def cleanup_win(self):
+        # Sometimes the model was getting deleted before the widget, and the
+        # widget was trying to query the model. So we delete everything here.
+        self.win.deleteLater()
+        self.win.filelist.deleteLater()
+        self.win.filelist.tree_model.deleteLater()
+        QtCore.QCoreApplication.processEvents()
 
 class TestModelItemData(TestCase):
 
