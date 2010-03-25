@@ -140,9 +140,10 @@ if __name__ == "__main__":
     sys.exit(app.exec_())
 
 
-def format_for_ttype(ttype, format):
+def format_for_ttype(ttype, format, style=None):
     if have_pygments and ttype:
-        style = get_style_by_name("default")
+        if style is None:
+            style = get_style_by_name("default")
         
         font = format.font()
         
@@ -170,6 +171,8 @@ class CachedTTypeFormater(object):
     def __init__(self, base_format):
         self.base_format = base_format
         self._cache = {}
+        if have_pygments:
+            self.style = get_style_by_name("default")
     
     def format(self, ttype):
         if not have_pygments or not ttype:
@@ -182,11 +185,11 @@ class CachedTTypeFormater(object):
             
             # If there is no style, use the parent type's style.
             # It fixes bug 347333 - GaryvdM
-            while not style.styles_token(ttype) and ttype.parent:
+            while not self.style.styles_token(ttype) and ttype.parent:
                 ttype = ttype.parent
                 self._cache[ttype] = format
             
-            format_for_ttype(ttype, format)
+            format_for_ttype(ttype, format, self.style)
         
         return format
 
