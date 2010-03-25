@@ -20,20 +20,20 @@
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.lazy_import import lazy_import
-lazy_import(globals(), '''
-from pygments.styles import get_style_by_name
-from pygments import lex
-from pygments.util import ClassNotFound
-from pygments.lexers import get_lexer_for_filename
-''')
-
 _have_pygments = None
 def check_for_pygments():
     global _have_pygments
+    global ClassNotFound
+    global get_lexer_for_filename
+    global get_style_by_name
+    global lex
+    
     if _have_pygments is None:
         try:
-            import pygments
+            from pygments.util import ClassNotFound
+            from pygments.styles import get_style_by_name
+            from pygments import lex
+            from pygments.lexers import get_lexer_for_filename
         except ImportError:
             _have_pygments = False
         else:
