@@ -252,7 +252,7 @@ class CommitWindow(SubProcessDialog):
         master_branch = url_for_display(tree.branch.get_bound_location())
         if not master_branch:
             self.branch_location.setText(branch_base)
-            branch_layout.addWidget(self.branch_location)
+            branch_layout.addWidget(self.branch_location, 0, 0, 1, 2)
         else:
             self.local_checkbox = QtGui.QCheckBox(gettext(
                 "&Local commit"))
