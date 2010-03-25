@@ -22,16 +22,6 @@
 import os.path
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import errors
-from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
-from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
-from bzrlib.plugins.qbzr.lib.commit_data import QBzrCommitData
-from bzrlib.plugins.qbzr.lib.diff import (
-    DiffButtons,
-    show_diff,
-    InternalWTDiffArgProvider,
-    )
-from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_REFRESH,
@@ -45,16 +35,31 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
-from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.plugins.qbzr.lib.trace import reports_exception
+
+from bzrlib.lazy_import import lazy_import
+lazy_import(globals(), '''
+
+from bzrlib import errors
+from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
+from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
+from bzrlib.plugins.qbzr.lib.commit_data import QBzrCommitData
+from bzrlib.plugins.qbzr.lib.diff import (
+    DiffButtons,
+    show_diff,
+    InternalWTDiffArgProvider,
+    )
+from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib.treewidget import (
     TreeWidget,
     SelectAllCheckBox,
     )
-from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.revisionview import RevisionView
 from bzrlib.plugins.qbzr.lib.update import QBzrUpdateWindow
 
+''')
 MAX_AUTOCOMPLETE_FILES = 20
 
 

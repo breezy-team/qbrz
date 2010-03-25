@@ -18,15 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from bzrlib import (
-    osutils,
-    errors,
-    )
-from bzrlib.bzrdir import BzrDir
-from bzrlib.revisionspec import RevisionSpec
-
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.treewidget import TreeWidget, TreeFilterMenu
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     BTN_REFRESH,
@@ -38,9 +29,20 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
+
+from bzrlib.lazy_import import lazy_import
+lazy_import(globals(), '''
+from bzrlib import (
+    osutils,
+    errors,
+    )
+from bzrlib.bzrdir import BzrDir
+from bzrlib.revisionspec import RevisionSpec
+
+from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.treewidget import TreeWidget, TreeFilterMenu
 from bzrlib.plugins.qbzr.lib.diff import DiffButtons
-
-
+''')
 class BrowseWindow(QBzrWindow):
 
     def __init__(self, branch=None, location=None, revision=None,
