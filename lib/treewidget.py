@@ -28,6 +28,7 @@ from bzrlib.plugins.qbzr.lib.revtreeview import (
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.lazy_import import lazy_import
+from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
 lazy_import(globals(), '''
 import posixpath  # to use '/' path sep in path.join().
 from time import (strftime, localtime)
@@ -41,7 +42,6 @@ from bzrlib.conflicts import TextConflict, resolve
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, QBzrViewWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.lib.log import LogWindow
-from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
 from bzrlib.plugins.qbzr.lib.util import (
     get_set_encoding,
     get_summary,
