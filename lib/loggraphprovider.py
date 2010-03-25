@@ -775,7 +775,7 @@ class LogGraphProvider(object):
                     # if revid == c,then we want other_revids = [b]
                     
                     merged_by_revid = self.revisions[rev.merged_by].revid
-                    other_revids = [self.graph_parents[merged_by_revid][0]]
+                    other_revids = [self.known_graph.get_parent_keys(merged_by_revid)[0]]
                 else:
                     other_revids = [other_revid for other_revid \
                         in self.revid_head_info.iterkeys() \
