@@ -415,6 +415,7 @@ class SubProcessWidget(QtGui.QWidget):
 
         self._args_file = None  # temp file to pass arguments to qsubprocess
         self.error_class = ''
+        self.error_data = {}
 
     def hide_progress(self):
         self.progressMessage.setHidden(True)
@@ -483,6 +484,7 @@ class SubProcessWidget(QtGui.QWidget):
             dir = self.defaultWorkingDir
             
         self.error_class = ''
+        self.error_data = {}
         
         self.process.setWorkingDirectory(dir)
         if getattr(sys, "frozen", None) is not None:
@@ -581,7 +583,10 @@ class SubProcessWidget(QtGui.QWidget):
                 data = (button == QtGui.QMessageBox.Yes)
                 self.process.write(SUB_GETBOOL + bencode.bencode(data) + "\n")
             elif line.startswith(SUB_ERROR):
-                self.error_class = line[len(SUB_ERROR):]
+                data = bencode.bdecode(line[len(SUB_ERROR):])
+                self.error_class = data[0]
+                self.error_data = data[1]
+                print self.error_data
             else:
                 line = line.decode(self.encoding, 'replace')
                 self.logMessageEx(line, 'plain', self.stdout)
@@ -792,7 +797,11 @@ def run_subprocess_command(cmd, bencoded=False):
     try:
         return commands.run_bzr(argv)
     except Exception, e:
-        print "%s%s" % (SUB_ERROR, e.__class__.__name__)
+        d = {}
+        for key, val in e.__dict__.iteritems():
+            if not key.startswith('_'):
+                d[key]=unicode(val).encode('utf-8')
+        print "%s%s" % (SUB_ERROR, bencode.bencode((e.__class__.__name__, d)))
         raise
 
 
