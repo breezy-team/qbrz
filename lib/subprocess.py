@@ -649,7 +649,6 @@ class SubProcessWidget(QtGui.QWidget):
                 data = bencode.bdecode(line[len(SUB_ERROR):])
                 self.error_class = data[0]
                 self.error_data = data[1]
-                print self.error_data
             else:
                 line = line.decode(self.encoding, 'replace')
                 self.logMessageEx(line, 'plain', self.stdout)
