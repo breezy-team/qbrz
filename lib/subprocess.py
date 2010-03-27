@@ -19,24 +19,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import codecs
 import os
-import re
-import shlex
-import signal
 import sys
-import tempfile
-import thread
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import (
-    bencode,
-    commands,
-    osutils,
-    ui,
-    )
-from bzrlib.option import Option
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -49,11 +36,28 @@ from bzrlib.plugins.qbzr.lib.util import (
     StandardButton,
     ensure_unicode,
     )
+
+from bzrlib.ui.text import TextProgressView, TextUIFactory
+from bzrlib.lazy_import import lazy_import
+lazy_import(globals(), '''
+import codecs
+import re
+import shlex
+import signal
+import tempfile
+import thread
+
+from bzrlib import (
+    bencode,
+    commands,
+    osutils,
+    ui,
+    )
+
 from bzrlib.plugins.qbzr.lib.trace import (
    report_exception,
    SUB_LOAD_METHOD)
-
-from bzrlib.ui.text import TextProgressView, TextUIFactory
+''')
 
 
 # Subprocess service messages markers
