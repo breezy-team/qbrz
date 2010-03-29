@@ -1,3 +1,8 @@
+0.19 Beta 2  - Under development
+--------------------------------
+
+
+
 0.19 Beta 1 "Monkey-puzzle, aka Araucaria araucana" - 2010/03/29
 ----------------------------------------------------------------
  * Added Hungarian translation.
