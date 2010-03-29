@@ -2,6 +2,9 @@
 ----------------------
 Maintenance release.
 
+ * qsubprocess: pass command line with double and multiple backslashes 
+   via temporary file. (Bug #528944, Alexander Belchenko)
+
 
 0.18.4 "Pussy-willow" - 2010/03/22
 ----------------------------------
