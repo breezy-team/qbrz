@@ -95,7 +95,7 @@ def require_mimimum_api(object_with_api, wanted_mimimum_api):
         raise IncompatibleAPI(object_with_api, wanted_mimimum_api,
                               minimum, current)
 
-require_mimimum_api(bzrlib, (1, 17, 0))
+require_mimimum_api(bzrlib, (2, 1, 0))
 
 from bzrlib.commands import plugin_cmds
 

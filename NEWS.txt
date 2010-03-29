@@ -6,6 +6,8 @@
  * qlog: Improve performance by using KnownGraph. (John Arbash Meinel,
    Gary van der Merwe)
 
+Note: qbzr now requires bzr 2.1.
+
 
 0.18.4 "Pussy-willow" - 2010/03/22
 ----------------------------------
