@@ -22,11 +22,11 @@ from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
                                                  RevNoItemDelegate,
                                                  get_text_color)
+from bzrlib.revision import NULL_REVISION
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from bzrlib.bzrdir import BzrDir
-from bzrlib.revision import NULL_REVISION
 from bzrlib.revisionspec import RevisionSpec
 from bzrlib.plugins.qbzr.lib.tag import TagWindow, CallBackTagWindow
 from bzrlib.plugins.qbzr.lib import logmodel
