@@ -1,3 +1,8 @@
+0.18.5 "" - YYYY-MM-DD
+----------------------
+Maintenance release.
+
+
 0.18.4 "Pussy-willow" - 2010/03/22
 ----------------------------------
 Bugfixes in the stable branch. Suitable for bzr 2.1.x.
