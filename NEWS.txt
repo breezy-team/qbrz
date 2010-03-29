@@ -12,6 +12,8 @@
    (Bug #513105, Bug #476641, Gary van der Merwe)
  * Improve startup performance by using lazy imports. (Gary van der Merwe)
 
+Note: qbzr now requires bzr 2.1.
+
 
 0.18.4 "Pussy-willow" - 2010/03/22
 ----------------------------------
