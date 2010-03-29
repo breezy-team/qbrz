@@ -1,10 +1,15 @@
-0.19.0 "" - YYYY/MM/DD
-----------------------
+0.19 Beta 1 "Monkey-puzzle, aka Araucaria araucana" - 2010/03/29
+----------------------------------------------------------------
  * Added Hungarian translation.
  * qcommit: Give the user the option to update the branch if it is not up to
    date. (Bug #439920, Gary van der Merwe)
+ * qpush, qmerge, etc.: When there are uncommit changes in the working tree,
+   give the user the option to commit, or revert. (Gary van der Merwe)
  * qlog: Improve performance by using KnownGraph. (John Arbash Meinel,
    Gary van der Merwe)
+ * TreeWidget dialogs (qcommit, qadd, qrevert, qbrowse):
+   Performance improvements for select all, and changeing filters.
+   (Bug #513105, Bug #476641, Gary van der Merwe)
  * Improve startup performance by using lazy imports. (Gary van der Merwe)
 
 
