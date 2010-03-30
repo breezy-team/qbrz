@@ -21,7 +21,7 @@
 from PyQt4 import QtCore, QtGui
 
 _have_pygments = None
-def check_for_pygments():
+def have_pygments():
     global _have_pygments
     global ClassNotFound
     global get_lexer_for_filename
@@ -37,15 +37,14 @@ def check_for_pygments():
         except ImportError:
             _have_pygments = False
         else:
-            _have_pygments = False
-
-have_pygments = property(check_for_pygments())
+            _have_pygments = True
+    return _have_pygments
 
 
 def highlight_document(edit, filename):
     doc = edit.document()
     
-    if not have_pygments:
+    if not have_pygments():
         return
     
     try:
@@ -141,7 +140,7 @@ if __name__ == "__main__":
 
 
 def format_for_ttype(ttype, format, style=None):
-    if have_pygments and ttype:
+    if have_pygments() and ttype:
         if style is None:
             style = get_style_by_name("default")
         
@@ -171,11 +170,11 @@ class CachedTTypeFormater(object):
     def __init__(self, base_format):
         self.base_format = base_format
         self._cache = {}
-        if have_pygments:
+        if have_pygments():
             self.style = get_style_by_name("default")
     
     def format(self, ttype):
-        if not have_pygments or not ttype:
+        if not have_pygments() or not ttype:
             return self.base_format
         if ttype in self._cache:
             format = self._cache[ttype]
