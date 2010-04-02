@@ -1,5 +1,5 @@
-0.18.5 "" - YYYY-MM-DD
-----------------------
+0.18.5 "Silver terminalia" - 2010-04-02
+---------------------------------------
 Maintenance release.
 
  * qsubprocess: pass command line with double and multiple backslashes 
