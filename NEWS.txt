@@ -19,6 +19,15 @@
 
 Note: qbzr now requires bzr 2.1.
 
+0.18.5 "" - YYYY-MM-DD
+----------------------
+Maintenance release.
+
+ * qsubprocess: pass command line with double and multiple backslashes 
+   via temporary file. (Bug #528944, Alexander Belchenko)
+ * qlog, qbrowse: Fix a bug when using with pyqt 4.7.2. (Bug #544928,
+   Gary van der Merwe)
+
 
 0.18.4 "Pussy-willow" - 2010/03/22
 ----------------------------------

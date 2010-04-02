@@ -189,7 +189,7 @@ class RevNoItemDelegate(QtGui.QStyledItemDelegate):
     def paint(self, painter, option, index):
         option = QtGui.QStyleOptionViewItemV4(option)
         self.initStyleOption(option, index)
-        widget = option.widget
+        widget = self.parent()
         style = widget.style()
         
         painter.save()

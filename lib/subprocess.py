@@ -537,8 +537,11 @@ class SubProcessWidget(QtGui.QWidget):
         # on Linux I believe command-line is in utf-8,
         # so we need to have some extra space
         # when converting unicode -> utf8
-        if (len(args) > 10000          # XXX make the threshold configurable in qbzr.conf?
-            or re.search(r"(\n|\r)", args) is not None):
+        if (len(args) > 10000       # XXX make the threshold configurable in qbzr.conf?
+            or re.search(r"(?:"
+                r"\n|\r"            # workaround for bug #517420
+                r"|\\\\"            # workaround for bug #528944
+                r")", args) is not None):
             # save the args to the file
             fname = self._create_args_file(args)
             args = "@" + fname.replace('\\', '/')
