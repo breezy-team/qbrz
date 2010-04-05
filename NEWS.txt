@@ -1,6 +1,7 @@
 0.19 Beta 2  - Under development
 --------------------------------
-
+ * Allow finding locale in system location on Linux
+   (Bug #542429, Toshio Kuratomi).
 
 
 0.19 Beta 1 "Monkey-puzzle, aka Araucaria araucana" - 2010/03/29
