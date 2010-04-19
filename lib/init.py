@@ -122,5 +122,5 @@ def fill_option_combo(combo, option, default, desc_widget=None):
             combo.parentWidget().connect(combo,
                                          QtCore.SIGNAL("currentIndexChanged(int)"),
                                          index_changed)
-    print "fill_option_combo: default_index=%d" % default_index
+
     combo.setCurrentIndex(default_index)
