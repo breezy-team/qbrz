@@ -117,7 +117,7 @@ def fill_option_combo(combo, option, default, desc_widget=None):
         user_data = QtCore.QVariant(help or '')
         combo.addItem(name, user_data)
         if name == default:
-            default_index = combo.count() -1
+            default_index = combo.count() - 1
         if desc_widget is not None:
             combo.parentWidget().connect(combo,
                                          QtCore.SIGNAL("currentIndexChanged(int)"),
