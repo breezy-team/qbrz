@@ -72,6 +72,10 @@ class TextEdit(QtGui.QTextEdit):
         self.eow = QtCore.QString("~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-=")
         self.main_window = main_window
 
+    def inputMethodEvent(self, e):
+        self.completer.popup().hide()
+        QtGui.QTextEdit.inputMethodEvent(self, e)
+
     def keyPressEvent(self, e):
         c = self.completer
         e_key = e.key()

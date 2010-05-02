@@ -4,6 +4,7 @@
    (Bug #542429, Toshio Kuratomi).
  * qinit: set default value for repository format in the combobox.
    (Bug #531795, Gordon Tyler)
+ * qcommit: hide completer's popup. (Bug #573652)
 
 
 0.19 Beta 1 "Monkey-puzzle, aka Araucaria araucana" - 2010/03/29
