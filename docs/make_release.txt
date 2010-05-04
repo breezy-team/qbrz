@@ -20,8 +20,7 @@ Prepare code
    * ./installer/qbzr-setup.iss: at the beginning of file::
    
    	AppVerName=QBzr X.Y.Z
-    
-    OutputBaseFilename=qbzr-setup-X.Y.Z
+   	OutputBaseFilename=qbzr-setup-X.Y.Z
    
 3. Commit this changes and tag the revision with label: release-X.Y.Z
 4. Push the code to Launchpad

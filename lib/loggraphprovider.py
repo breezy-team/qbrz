@@ -1541,7 +1541,7 @@ class LogGraphProvider(object):
 
         def wildcard2regex(wildcard):
             """Translate shel pattern to regexp."""
-            return fnmatch.translate(wildcard).rstrip('$')
+            return fnmatch.translate(wildcard + '*')
         
         if str is None or str == u"":
             self.sr_filter_re = None

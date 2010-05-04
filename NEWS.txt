@@ -23,8 +23,14 @@
 
 Note: qbzr now requires bzr 2.1.
 
-0.18.5 "" - YYYY-MM-DD
-----------------------
+0.18.6 - 2010-05-04
+-------------------
+Maintenance release.
+
+ * qlog: Fix a bug with search. (Bug #575338, Gary van der Merwe)
+
+0.18.5 "Silver terminalia" - 2010-04-02
+---------------------------------------
 Maintenance release.
 
  * qsubprocess: pass command line with double and multiple backslashes 
