@@ -4,7 +4,10 @@
    (Bug #542429, Toshio Kuratomi).
  * qinit: set default value for repository format in the combobox.
    (Bug #531795, Gordon Tyler)
- * qcommit: hide completer's popup. (Bug #573652)
+ * qcommit:
+   * Hide completer's popup when a IME event occurs. (Bug #573652, INADA Naoki)
+   * If a branch path is passed to the command line, select the files in
+     the branch. (Gary van der Merwe)
  * qdiff: Use the new  bzrlib.diff.get_trees_and_branches_to_diff_locked api.
    (Gary van der Merwe)
  * qlog: Handle ghost revisions better. Ghost can now be seen in the graph,

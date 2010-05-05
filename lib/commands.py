@@ -288,7 +288,7 @@ class cmd_qadd(QBzrCommand):
     def _qbzr_run(self, selected_list=None, ui_mode=False):
         tree, selected_list = builtins.tree_files(selected_list)
         if selected_list == ['']:
-            selected_list = []
+            selected_list = None
         self.main_window = AddWindow(tree, selected_list, dialog=False, ui_mode=ui_mode)
         self.main_window.show()
         self._application.exec_()
@@ -302,7 +302,7 @@ class cmd_qrevert(QBzrCommand):
     def _qbzr_run(self, selected_list=None, ui_mode=False, no_backup=False):
         tree, selected_list = builtins.tree_files(selected_list)
         if selected_list == ['']:
-            selected_list = []
+            selected_list = None
         self.main_window = RevertWindow(tree, selected_list, dialog=False,
             ui_mode=ui_mode,
             backup=not no_backup)
@@ -351,7 +351,7 @@ class cmd_qcommit(QBzrCommand):
     def _qbzr_run(self, selected_list=None, message=None, local=False, ui_mode=False):
         tree, selected_list = builtins.tree_files(selected_list)
         if selected_list == ['']:
-            selected_list = []
+            selected_list = None
         self.main_window = CommitWindow(tree, selected_list, dialog=False,
             message=message, local=local, ui_mode=ui_mode)
         self.main_window.show()
