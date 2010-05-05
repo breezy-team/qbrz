@@ -126,6 +126,14 @@ class RevisionInfo(object):
         return "%s <%s %s>" % (self.__class__.__name__, self.revno_str,
                               self.revid)
 
+class GhostRevisionError(errors.InternalBzrError):
+
+    _fmt = "{%(revision_id)s} is a ghost."
+
+    def __init__(self, revision_id):
+        errors.BzrError.__init__(self)
+        self.revision_id = revision_id
+
 paths_and_branches_err = "It is not possible to specify different file paths and different branches at the same time."
 
 class BranchLine(object):
@@ -194,6 +202,7 @@ class LogGraphProvider(object):
         are visible."""
         
         self.trunk_branch = None
+        self.ghosts = set()
         
         self.revisions = []
         """List of RevisionInfo from merge_sort."""
@@ -545,6 +554,7 @@ class LogGraphProvider(object):
     
     def _load_graph(self, graph_parents_iter):
         graph_parents = {}
+        self.ghosts = set()
         
         for (revid, parent_revids) in graph_parents_iter:
             if revid == NULL_REVISION:
@@ -552,6 +562,7 @@ class LogGraphProvider(object):
             if parent_revids is None:
                 #Ghost
                 graph_parents[revid] = ()
+                self.ghosts.add(revid)
             elif parent_revids == (NULL_REVISION,):
                 graph_parents[revid] = ()
             else:
@@ -1596,6 +1607,9 @@ class LogGraphProvider(object):
                                     revisions_loaded = revisions_loaded)
     
     def get_revid_branch(self, revid):
+        if revid in self.ghosts:
+            raise GhostRevisionError(revid)
+        
         if len(self.branches)==1 and revid not in self.revid_branch:
             return self.branches[0].branch
         return self.revid_branch[revid]
@@ -1615,8 +1629,12 @@ class LogGraphProvider(object):
                 repo_revids[local_repo_copy].append(revid)
         
         for revid in revids:
-            repo = self.get_revid_repo(revid)
-            repo_revids[repo.base].append(revid)
+            try:
+                repo = self.get_revid_repo(revid)
+            except GhostRevisionError:
+                pass
+            else:
+                repo_revids[repo.base].append(revid)
         
         return [(repo, repo_revids[repo.base])
                         for repo in self.repos_sorted_local_first()]
