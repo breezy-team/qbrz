@@ -28,7 +28,7 @@ class DiffArgProvider (object):
     """Contract class to pass arguments to either builtin diff window, or
     external diffs"""
     
-    def get_diff_window_args(self, processEvents):
+    def get_diff_window_args(self, processEvents, add_cleanup):
         """Returns the arguments for the builtin diff window.
         
         :return: (tree1, tree2, branch1, branch2, specific_files)
@@ -80,7 +80,7 @@ class InternalDiffArgProvider(DiffArgProvider):
             finally:
                 self.new_tree.unlock()
 
-    def get_diff_window_args(self, processEvents):
+    def get_diff_window_args(self, processEvents, add_cleanup):
         self.load_old_tree()
         processEvents()
         self.load_new_tree_and_paths()
@@ -158,7 +158,7 @@ class InternalWTDiffArgProvider(InternalDiffArgProvider):
         else:
             InternalDiffArgProvider.load_old_tree(self)
 
-    def get_diff_window_args(self, processEvents):
+    def get_diff_window_args(self, processEvents, add_cleanup):
         self.load_old_tree()
         processEvents()
         
