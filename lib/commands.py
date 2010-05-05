@@ -379,47 +379,12 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
     aliases = ['qdi']
 
     def get_diff_window_args(self, processEvents):
-        try:
-            from bzrlib.diff import get_trees_and_branches_to_diff
-            has_get_trees_and_branches_to_diff = True
-        except ImportError:
-            from bzrlib.diff import _get_trees_to_diff
-            has_get_trees_and_branches_to_diff = False
-        
-        if has_get_trees_and_branches_to_diff:
-            (old_tree, new_tree,
-             old_branch, new_branch,
-             specific_files, extra_trees) = \
-               get_trees_and_branches_to_diff(self.file_list, self.revision,
-                                              self.old, self.new)
-        else:
-            old_tree, new_tree, specific_files, extra_trees = \
-                    _get_trees_to_diff(self.file_list, self.revision,
-                                       self.old, self.new)
-            processEvents()
-            
-            if self.file_list:
-                default_location = self.file_list[0]
-            else:
-                # If no path is given, the current working tree is used
-                default_location = CUR_DIR
-
-            self_old = self.old
-            if self_old is None:
-                self_old = default_location
-            wt, old_branch, rp = \
-                BzrDir.open_containing_tree_or_branch(self_old)
-            processEvents()
-            self_new = self.new
-            if self_new is None:
-                self_new = default_location
-            if self_new != self_old :
-                wt, new_branch, rp = \
-                    BzrDir.open_containing_tree_or_branch(self_new)
-            else:
-                new_branch = old_branch
-            processEvents()
-            
+        from bzrlib.diff import get_trees_and_branches_to_diff
+        (old_tree, new_tree,
+         old_branch, new_branch,
+         specific_files, extra_trees) = \
+           get_trees_and_branches_to_diff(self.file_list, self.revision,
+                                          self.old, self.new)
         return old_tree, new_tree, old_branch, new_branch, specific_files
     
     def get_ext_diff_args(self, processEvents):
