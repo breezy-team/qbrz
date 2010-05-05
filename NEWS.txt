@@ -5,7 +5,10 @@
  * qinit: set default value for repository format in the combobox.
    (Bug #531795, Gordon Tyler)
  * qcommit: hide completer's popup. (Bug #573652)
-
+ * qdiff: Use the new  bzrlib.diff.get_trees_and_branches_to_diff_locked api.
+   (Gary van der Merwe)
+ * qlog: Handle ghost revisions better. Ghost can now be seen in the graph,
+   and don't cause search to crash. (Bug #57042, Gary van der Merwe)
 
 0.19 Beta 1 "Monkey-puzzle, aka Araucaria araucana" - 2010/03/29
 ----------------------------------------------------------------
