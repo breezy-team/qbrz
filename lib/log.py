@@ -423,10 +423,11 @@ class FileListContainer(QtGui.QWidget):
         self.file_list_context_menu_cat = \
             self.file_list_context_menu.addAction(gettext("View file"),
                                                   self.show_file_content)
-
         self.file_list_context_menu_revert_file = \
-            self.file_list_context_menu.addAction(gettext("Revert to this revision"),
-                                                  self.revert_file)
+                self.file_list_context_menu.addAction(
+                                        gettext("Revert to this revision"),
+                                        self.revert_file)
+
         self.file_list.connect(
             self.file_list,
             QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
@@ -561,10 +562,21 @@ class FileListContainer(QtGui.QWidget):
         is_single_file = len(paths) == 1
         self.file_list_context_menu_annotate.setEnabled(is_single_file)
         self.file_list_context_menu_cat.setEnabled(is_single_file)
+        
+                   
+        gp = self.log_list.graph_provider
+        working_tree_count = 0
+        for branch_info in gp.branches:
+            if branch_info.tree:
+                working_tree_count = working_tree_count + 1
+
         (top_revid, old_revid), count = \
             self.log_list.get_selection_top_and_parent_revids_and_count()
         self.file_list_context_menu_revert_file.setEnabled(is_single_file
-                                                           & count==1)
+                                                            and count==1)
+        self.file_list_context_menu_revert_file.setVisible(
+                                                working_tree_count == 1)
+            
         
         self.file_list_context_menu.popup(
             self.file_list.viewport().mapToGlobal(pos))
@@ -626,16 +638,16 @@ class FileListContainer(QtGui.QWidget):
           paths, file_ids = self.get_file_selection_paths_and_ids()
 
           (top_revid, old_revid), count = \
-            self.log_list.get_selection_top_and_parent_revids_and_count()
+              self.log_list.get_selection_top_and_parent_revids_and_count()
           branch = self.log_list.graph_provider.get_revid_branch(top_revid)
           tree = branch.repository.revision_tree(top_revid)
-          working_tree = branch.bzrdir.open_workingtree()
-          working_tree.lock_write()
+          gp = self.log_list.graph_provider
+          branch_info.tree.lock_write()
           try:
-            working_tree.revert([paths[0]], old_tree=tree,
+              branch_info.tree.revert([paths[0]], old_tree=tree,
                                  report_changes=True)
           finally:
-            working_tree.unlock()
+              branch_info.tree.unlock()
 
     @ui_current_widget
     def show_file_annotate(self):
