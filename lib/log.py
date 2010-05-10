@@ -565,17 +565,16 @@ class FileListContainer(QtGui.QWidget):
         
                    
         gp = self.log_list.graph_provider
-        working_tree_count = 0
-        for branch_info in gp.branches:
-            if branch_info.tree:
-                working_tree_count = working_tree_count + 1
+        # It would be nice if there were more than one branch, that we
+        # show a menu so the user can chose which branch actions should take
+        # place in.
+        one_branch_with_tree = (len(gp.branches) == 1 and
+                                gp.branches[0].tree is not None)
 
         (top_revid, old_revid), count = \
             self.log_list.get_selection_top_and_parent_revids_and_count()
-        self.file_list_context_menu_revert_file.setEnabled(is_single_file
-                                                            and count==1)
-        self.file_list_context_menu_revert_file.setVisible(
-                                                working_tree_count == 1)
+        self.file_list_context_menu_revert_file.setEnabled(one_branch_with_tree)
+        self.file_list_context_menu_revert_file.setVisible(one_branch_with_tree)
             
         
         self.file_list_context_menu.popup(
@@ -639,15 +638,12 @@ class FileListContainer(QtGui.QWidget):
 
           (top_revid, old_revid), count = \
               self.log_list.get_selection_top_and_parent_revids_and_count()
-          branch = self.log_list.graph_provider.get_revid_branch(top_revid)
-          tree = branch.repository.revision_tree(top_revid)
           gp = self.log_list.graph_provider
-          branch_info.tree.lock_write()
-          try:
-              branch_info.tree.revert([paths[0]], old_tree=tree,
-                                 report_changes=True)
-          finally:
-              branch_info.tree.unlock()
+          assert(len(gp.branches)==1)
+          branch_info = gp.branches[0]
+          rev_tree = gp.get_revid_repo(top_revid).revision_tree(top_revid)
+          branch_info.tree.revert(paths, old_tree=rev_tree,
+                                  report_changes=True)
 
     @ui_current_widget
     def show_file_annotate(self):
