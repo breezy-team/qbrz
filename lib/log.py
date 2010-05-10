@@ -423,6 +423,10 @@ class FileListContainer(QtGui.QWidget):
         self.file_list_context_menu_cat = \
             self.file_list_context_menu.addAction(gettext("View file"),
                                                   self.show_file_content)
+        self.file_list_context_menu_revert_file = \
+                self.file_list_context_menu.addAction(
+                                        gettext("Revert to this revision"),
+                                        self.revert_file)
 
         self.file_list.connect(
             self.file_list,
@@ -559,6 +563,20 @@ class FileListContainer(QtGui.QWidget):
         self.file_list_context_menu_annotate.setEnabled(is_single_file)
         self.file_list_context_menu_cat.setEnabled(is_single_file)
         
+                   
+        gp = self.log_list.graph_provider
+        # It would be nice if there were more than one branch, that we
+        # show a menu so the user can chose which branch actions should take
+        # place in.
+        one_branch_with_tree = (len(gp.branches) == 1 and
+                                gp.branches[0].tree is not None)
+
+        (top_revid, old_revid), count = \
+            self.log_list.get_selection_top_and_parent_revids_and_count()
+        self.file_list_context_menu_revert_file.setEnabled(one_branch_with_tree)
+        self.file_list_context_menu_revert_file.setVisible(one_branch_with_tree)
+            
+        
         self.file_list_context_menu.popup(
             self.file_list.viewport().mapToGlobal(pos))
     
@@ -607,6 +625,25 @@ class FileListContainer(QtGui.QWidget):
             encoding=encoding)
         window.show()
         self.window().windows.append(window)
+
+    @ui_current_widget    
+    def revert_file(self):
+        """Reverts the file to what it was at the selected revision."""
+        res = QtGui.QMessageBox.question(self, gettext("Revert File"),
+                    gettext("Are you sure you want to revert this file "
+                            "to the state it was at the selected revision?"
+                            ),QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+        if res == QtGui.QMessageBox.Yes:
+          paths, file_ids = self.get_file_selection_paths_and_ids()
+
+          (top_revid, old_revid), count = \
+              self.log_list.get_selection_top_and_parent_revids_and_count()
+          gp = self.log_list.graph_provider
+          assert(len(gp.branches)==1)
+          branch_info = gp.branches[0]
+          rev_tree = gp.get_revid_repo(top_revid).revision_tree(top_revid)
+          branch_info.tree.revert(paths, old_tree=rev_tree,
+                                  report_changes=True)
 
     @ui_current_widget
     def show_file_annotate(self):
