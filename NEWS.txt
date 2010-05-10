@@ -1,11 +1,65 @@
-0.19.0 "" - YYYY/MM/DD
-----------------------
+0.19 Beta 2  - Under development
+--------------------------------
+ * Allow finding locale in system location on Linux
+   (Bug #542429, Toshio Kuratomi).
+ * qinit: set default value for repository format in the combobox.
+   (Bug #531795, Gordon Tyler)
+ * qcommit:
+   * Hide completer's popup when a IME event occurs. (Bug #573652, INADA Naoki)
+   * If a branch path is passed to the command line, select the files in
+     the branch. (Gary van der Merwe)
+ * qdiff: Use the new  bzrlib.diff.get_trees_and_branches_to_diff_locked api.
+   (Gary van der Merwe)
+ * qlog: Handle ghost revisions better. Ghost can now be seen in the graph,
+   and don't cause search to crash. (Bug #57042, Gary van der Merwe)
+
+0.19 Beta 1 "Monkey-puzzle, aka Araucaria araucana" - 2010/03/29
+----------------------------------------------------------------
  * Added Hungarian translation.
+ * qcommit: Give the user the option to update the branch if it is not up to
+   date. (Bug #439920, Gary van der Merwe)
+ * qpush, qmerge, etc.: When there are uncommit changes in the working tree,
+   give the user the option to commit, or revert. (Gary van der Merwe)
+ * qlog: Improve performance by using KnownGraph. (John Arbash Meinel,
+   Gary van der Merwe)
+ * TreeWidget dialogs (qcommit, qadd, qrevert, qbrowse):
+   Performance improvements for select all, and changeing filters.
+   (Bug #513105, Bug #476641, Gary van der Merwe)
+ * Improve startup performance by using lazy imports. (Gary van der Merwe)
+
+Note: qbzr now requires bzr 2.1.
+
+0.18.6 - 2010-05-04
+-------------------
+Maintenance release.
+
+ * qlog: Fix a bug with search. (Bug #575338, Gary van der Merwe)
+
+0.18.5 "Silver terminalia" - 2010-04-02
+---------------------------------------
+Maintenance release.
+
+ * qsubprocess: pass command line with double and multiple backslashes 
+   via temporary file. (Bug #528944, Alexander Belchenko)
+ * qlog, qbrowse: Fix a bug when using with pyqt 4.7.2. (Bug #544928,
+   Gary van der Merwe)
 
 
-0.18.3 "Cypress" - YYYY/MM/DD
+0.18.4 "Pussy-willow" - 2010/03/22
+----------------------------------
+Bugfixes in the stable branch. Suitable for bzr 2.1.x.
+
+ * Improved support for Redmine bugs URL. (Bug #538414, Alexander Belchenko)
+ * TreeWidget: Fix a bug where refreshing may result in data inconsistencies.
+   This bug was causing a number of knock on bugs.
+   (Bug #538753, Gary van der Merwe)
+ * qcommit: better support of commit directly into SVN tree.
+   (Bug #540363, Alexander Belchenko)
+
+
+0.18.3 "Cypress" - 2010/03/03
 -----------------------------
-Bugfixes.
+Bugfixes in the stable branch. Suitable for bzr 2.1.x.
 
  * Fixed problem with running diff from qannotate from qbrowse.
    (Bug #505987, Alexander Belchenko)
@@ -16,6 +70,19 @@ Bugfixes.
  * Change dialogs to have normal window flags. This fixes a bug where on
    some window managers (metacity, Mac OSX) windows opened from a dialog
    would be behind the dialog. (Bug #421039, Gary van der Merwe)
+ * TreeWidget: emit layoutAboutToBeChanged signal while we remove old items
+   to ensure model data consistency.
+   (Bug #513066, Bug #515908, Gary van der Merwe)
+ * TreeWidget: When renaming a file, pressing enter should not cause the
+   default action to be run. (Bug #513107, Gary van der Merwe)
+ * Sub processes dialogs: Fix usability bugs with the Retry button:
+   * The button position changes on Linux when the Retry button appears. 
+   * The Enter key does not work after the Retry button appears.
+   (Gary van der Merwe)
+ * TreeWidget: Add more comprehensive tests. Fix some minor bugs found by
+   these tests. (Gary van der Merwe)
+ * TreeWidget: Fix a bug where the TreeWidget if there was a conflict, for
+   which the file does not exist. (Bug #528548, Gary van der Merwe)
 
 
 0.18.2 "Cedar" - 2010/02/21
@@ -307,9 +374,11 @@ Detailed changelog:
 ----------------------------
 Bugfixes and backported bugfixes.
 
-  * Change dialogs to have normal window flags. This fixes a bug where on
-    some window managers (metacity, Mac OSX) windows opened from a dialog
-    would be behind the dialog. (Bug #421039, Gary van der Merwe)
+ * Change dialogs to have normal window flags. This fixes a bug where on
+   some window managers (metacity, Mac OSX) windows opened from a dialog
+   would be behind the dialog. (Bug #421039, Gary van der Merwe)
+ * Treewidget: Fix a crash when refreshing tree with a checked item that has a
+   parent that is ungrouped. (Bug #512006, Gary van der Merwe)
 
 0.14.6 "Spruce" - 2010-01-18
 ----------------------------

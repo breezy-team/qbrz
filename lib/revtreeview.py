@@ -19,9 +19,12 @@
 
 from PyQt4 import QtCore, QtGui
 
+from bzrlib.lazy_import import lazy_import
+lazy_import(globals(), '''
 from bzrlib.plugins.qbzr.lib.util import run_in_loading_queue
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import load_revisions
 from bzrlib.transport.local import LocalTransport
+''')
 
 RevIdRole = QtCore.Qt.UserRole + 1
 
@@ -53,6 +56,7 @@ class RevisionTreeView(QtGui.QTreeView):
         
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
+        self.revision_loading_disabled = False
     
     def setModel(self, model):
         QtGui.QTreeView.setModel(self, model)
@@ -80,7 +84,8 @@ class RevisionTreeView(QtGui.QTreeView):
         QtGui.QTreeView.resizeEvent(self, e)
     
     def load_visible_revisions(self):
-        run_in_loading_queue(self._load_visible_revisions)
+        if not self.revision_loading_disabled:
+            run_in_loading_queue(self._load_visible_revisions)
     
     def _load_visible_revisions(self):
         model = self.model()
@@ -184,7 +189,7 @@ class RevNoItemDelegate(QtGui.QStyledItemDelegate):
     def paint(self, painter, option, index):
         option = QtGui.QStyleOptionViewItemV4(option)
         self.initStyleOption(option, index)
-        widget = option.widget
+        widget = self.parent()
         style = widget.style()
         
         painter.save()

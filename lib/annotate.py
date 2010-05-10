@@ -24,9 +24,6 @@
 
 import sys, time
 from PyQt4 import QtCore, QtGui
-from bzrlib.workingtree import WorkingTree
-from bzrlib.revisiontree import RevisionTree
-from bzrlib.revision import CURRENT_REVISION
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
@@ -39,19 +36,25 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_icon,
     FindToolbar,
     )
-from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
-from bzrlib.plugins.qbzr.lib.logmodel import COL_DATE, RevIdRole
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
                                                          cached_revisions)
-from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingSelector
-from bzrlib.plugins.qbzr.lib.syntaxhighlighter import highlight_document
 from bzrlib.plugins.qbzr.lib.texteditannotate import (AnnotateBarBase,
                                                       AnnotateEditerFrameBase)
+from bzrlib.lazy_import import lazy_import
+lazy_import(globals(), '''
+from bzrlib.workingtree import WorkingTree
+from bzrlib.revisiontree import RevisionTree
+from bzrlib.revision import CURRENT_REVISION
+from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
+from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingSelector
+from bzrlib.plugins.qbzr.lib.syntaxhighlighter import highlight_document
 from bzrlib.plugins.qbzr.lib.revtreeview import paint_revno, get_text_color
+from bzrlib.plugins.qbzr.lib import logmodel
 
+''')
 
 class AnnotateBar(AnnotateBarBase):
     
@@ -246,7 +249,7 @@ class AnnotateWindow(QBzrWindow):
                      self.edit_cursorPositionChanged)        
         
         self.log_list = AnnotateLogList(self.processEvents, self.throbber, no_graph, self)
-        self.log_list.header().hideSection(COL_DATE)
+        self.log_list.header().hideSection(logmodel.COL_DATE)
         self.log_branch_loaded = False
         
         self.connect(self.log_list.selectionModel(),
@@ -507,7 +510,7 @@ class AnnotateWindow(QBzrWindow):
         try:
             self.branch.lock_read()
             try:
-                revid = str(self.log_list.currentIndex().data(RevIdRole).toString())
+                revid = str(self.log_list.currentIndex().data(logmodel.RevIdRole).toString())
                 if revid == CURRENT_REVISION:
                     self.tree = self.working_tree
                 else:

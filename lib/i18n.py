@@ -51,8 +51,11 @@ def uninstall():
 
 
 def _get_locale_dir():
-    return os.path.join(os.path.realpath(os.path.dirname(__file__)), '..', 'locale')
-
+    localedir = os.path.join(os.path.realpath(os.path.dirname(__file__)), '..', 'locale')
+    if sys.platform.startswith('linux'):
+        if not os.access(localedir, os.R_OK | os.X_OK):
+            localedir = '/usr/share/locale'
+    return localedir
 
 def _check_win32_locale():
     for i in ('LANGUAGE','LC_ALL','LC_MESSAGES','LANG'):

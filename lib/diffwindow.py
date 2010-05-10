@@ -33,6 +33,7 @@ from bzrlib.transform import _PreviewTree
 from bzrlib.workingtree import WorkingTree
 from bzrlib.workingtree_4 import DirStateRevisionTree
 from bzrlib import trace
+from bzrlib import cleanup
 
 from bzrlib.plugins.qbzr.lib.diffview import (
     SidebySideDiffView,
@@ -228,27 +229,29 @@ class DiffWindow(QBzrWindow):
         throbber window, then loads the branches etc if they weren't specified
         in our constructor.
         """
-        # we only open the branch using the throbber
+        op = cleanup.OperationWithCleanups(self._initial_load)
         self.throbber.show()
-        try:
-            self.load_branch_info()
-            self.load_diff()
-        finally:
-            self.throbber.hide()
-
-    def load_branch_info(self):
+        op.add_cleanup(self.throbber.hide)
+        op.run()
+    
+    def _initial_load(self, op):
         (tree1, tree2,
          branch1, branch2,
-         specific_files) = self.arg_provider.get_diff_window_args(self.processEvents)
+         specific_files) = self.arg_provider.get_diff_window_args(
+                                        self.processEvents, op.add_cleanup)
         
         self.trees = (tree1, tree2)
         self.branches = (branch1, branch2)
         self.specific_files = specific_files
         
+        self.load_branch_info()
+        self.load_diff()
+    
+    def load_branch_info(self):
         self.set_diff_title()
         
-        self.encoding_selector_left.encoding = get_set_encoding(self.encoding, branch1)
-        self.encoding_selector_right.encoding = get_set_encoding(self.encoding, branch2)
+        self.encoding_selector_left.encoding = get_set_encoding(self.encoding, self.branches[0])
+        self.encoding_selector_right.encoding = get_set_encoding(self.encoding, self.branches[1])
         self.processEvents()
     
     def set_diff_title(self):

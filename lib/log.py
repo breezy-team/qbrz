@@ -18,15 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.branch import Branch
-from bzrlib import osutils
-from bzrlib.plugins.qbzr.lib.logwidget import LogList
-from bzrlib.plugins.qbzr.lib.diff import (
-    has_ext_diff,
-    ExtDiffMenu,
-    DiffButtons,
-    )
-from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     BTN_REFRESH,
@@ -37,17 +28,24 @@ from bzrlib.plugins.qbzr.lib.util import (
     runs_in_loading_queue,
     get_set_encoding,
     )
-from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
 from bzrlib.plugins.qbzr.lib.trace import reports_exception, SUB_LOAD_METHOD
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+
+from bzrlib.lazy_import import lazy_import
+lazy_import(globals(), '''
+from bzrlib.branch import Branch
+from bzrlib import osutils
+from bzrlib.plugins.qbzr.lib.logwidget import LogList
+from bzrlib.plugins.qbzr.lib.diff import (
+    has_ext_diff,
+    ExtDiffMenu,
+    DiffButtons,
+    )
+from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
-
-try:
-    from bzrlib.plugins.svn.repository import SvnRepository
-    has_svn = True
-except ImportError:
-    has_svn = False
+''')
 
 
 PathRole = QtCore.Qt.UserRole + 1
@@ -425,6 +423,10 @@ class FileListContainer(QtGui.QWidget):
         self.file_list_context_menu_cat = \
             self.file_list_context_menu.addAction(gettext("View file"),
                                                   self.show_file_content)
+        self.file_list_context_menu_revert_file = \
+                self.file_list_context_menu.addAction(
+                                        gettext("Revert to this revision"),
+                                        self.revert_file)
 
         self.file_list.connect(
             self.file_list,
@@ -464,8 +466,8 @@ class FileListContainer(QtGui.QWidget):
             self.throbber.show()
             gp = self.log_list.graph_provider
             repos = [gp.get_revid_branch(revid).repository for revid in revids]
-            if has_svn and (isinstance(repos[0], SvnRepository) or
-                            isinstance(repos[1], SvnRepository)):
+            if (repos[0].__class__.__name__ == 'SvnRepository' or
+                repos[1].__class__.__name__ == 'SvnRepository'):
                 # Loading trees from a remote svn repo is unusably slow.
                 # See https://bugs.launchpad.net/qbzr/+bug/450225
                 # If only 1 revision is selected, use a optimized svn method
@@ -561,6 +563,20 @@ class FileListContainer(QtGui.QWidget):
         self.file_list_context_menu_annotate.setEnabled(is_single_file)
         self.file_list_context_menu_cat.setEnabled(is_single_file)
         
+                   
+        gp = self.log_list.graph_provider
+        # It would be nice if there were more than one branch, that we
+        # show a menu so the user can chose which branch actions should take
+        # place in.
+        one_branch_with_tree = (len(gp.branches) == 1 and
+                                gp.branches[0].tree is not None)
+
+        (top_revid, old_revid), count = \
+            self.log_list.get_selection_top_and_parent_revids_and_count()
+        self.file_list_context_menu_revert_file.setEnabled(one_branch_with_tree)
+        self.file_list_context_menu_revert_file.setVisible(one_branch_with_tree)
+            
+        
         self.file_list_context_menu.popup(
             self.file_list.viewport().mapToGlobal(pos))
     
@@ -609,6 +625,25 @@ class FileListContainer(QtGui.QWidget):
             encoding=encoding)
         window.show()
         self.window().windows.append(window)
+
+    @ui_current_widget    
+    def revert_file(self):
+        """Reverts the file to what it was at the selected revision."""
+        res = QtGui.QMessageBox.question(self, gettext("Revert File"),
+                    gettext("Are you sure you want to revert this file "
+                            "to the state it was at the selected revision?"
+                            ),QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+        if res == QtGui.QMessageBox.Yes:
+          paths, file_ids = self.get_file_selection_paths_and_ids()
+
+          (top_revid, old_revid), count = \
+              self.log_list.get_selection_top_and_parent_revids_and_count()
+          gp = self.log_list.graph_provider
+          assert(len(gp.branches)==1)
+          branch_info = gp.branches[0]
+          rev_tree = gp.get_revid_repo(top_revid).revision_tree(top_revid)
+          branch_info.tree.revert(paths, old_tree=rev_tree,
+                                  report_changes=True)
 
     @ui_current_widget
     def show_file_annotate(self):

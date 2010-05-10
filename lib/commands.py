@@ -288,7 +288,7 @@ class cmd_qadd(QBzrCommand):
     def _qbzr_run(self, selected_list=None, ui_mode=False):
         tree, selected_list = builtins.tree_files(selected_list)
         if selected_list == ['']:
-            selected_list = []
+            selected_list = None
         self.main_window = AddWindow(tree, selected_list, dialog=False, ui_mode=ui_mode)
         self.main_window.show()
         self._application.exec_()
@@ -302,7 +302,7 @@ class cmd_qrevert(QBzrCommand):
     def _qbzr_run(self, selected_list=None, ui_mode=False, no_backup=False):
         tree, selected_list = builtins.tree_files(selected_list)
         if selected_list == ['']:
-            selected_list = []
+            selected_list = None
         self.main_window = RevertWindow(tree, selected_list, dialog=False,
             ui_mode=ui_mode,
             backup=not no_backup)
@@ -351,7 +351,7 @@ class cmd_qcommit(QBzrCommand):
     def _qbzr_run(self, selected_list=None, message=None, local=False, ui_mode=False):
         tree, selected_list = builtins.tree_files(selected_list)
         if selected_list == ['']:
-            selected_list = []
+            selected_list = None
         self.main_window = CommitWindow(tree, selected_list, dialog=False,
             message=message, local=local, ui_mode=ui_mode)
         self.main_window.show()
@@ -378,48 +378,23 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
         takes_options.append('change')
     aliases = ['qdi']
 
-    def get_diff_window_args(self, processEvents):
+    def get_diff_window_args(self, processEvents, add_cleanup):
         try:
-            from bzrlib.diff import get_trees_and_branches_to_diff
-            has_get_trees_and_branches_to_diff = True
+            from bzrlib.diff import get_trees_and_branches_to_diff_locked
         except ImportError:
-            from bzrlib.diff import _get_trees_to_diff
-            has_get_trees_and_branches_to_diff = False
-        
-        if has_get_trees_and_branches_to_diff:
+            from bzrlib.diff import get_trees_and_branches_to_diff
             (old_tree, new_tree,
              old_branch, new_branch,
              specific_files, extra_trees) = \
-               get_trees_and_branches_to_diff(self.file_list, self.revision,
-                                              self.old, self.new)
+                get_trees_and_branches_to_diff(
+                    self.file_list, self.revision, self.old, self.new)
         else:
-            old_tree, new_tree, specific_files, extra_trees = \
-                    _get_trees_to_diff(self.file_list, self.revision,
-                                       self.old, self.new)
-            processEvents()
-            
-            if self.file_list:
-                default_location = self.file_list[0]
-            else:
-                # If no path is given, the current working tree is used
-                default_location = CUR_DIR
-
-            self_old = self.old
-            if self_old is None:
-                self_old = default_location
-            wt, old_branch, rp = \
-                BzrDir.open_containing_tree_or_branch(self_old)
-            processEvents()
-            self_new = self.new
-            if self_new is None:
-                self_new = default_location
-            if self_new != self_old :
-                wt, new_branch, rp = \
-                    BzrDir.open_containing_tree_or_branch(self_new)
-            else:
-                new_branch = old_branch
-            processEvents()
-            
+            (old_tree, new_tree,
+             old_branch, new_branch,
+             specific_files, extra_trees) = \
+                get_trees_and_branches_to_diff_locked(
+                    self.file_list, self.revision, self.old, self.new,
+                    add_cleanup)
         return old_tree, new_tree, old_branch, new_branch, specific_files
     
     def get_ext_diff_args(self, processEvents):
@@ -710,7 +685,7 @@ class cmd_merge(bzrlib.builtins.cmd_merge, DiffArgProvider):
             del kw['encoding']
         return bzrlib.builtins.cmd_merge.run(self, *args, **kw)
 
-    def get_diff_window_args(self, processEvents):
+    def get_diff_window_args(self, processEvents, add_cleanup):
         tree_merger = self.merger.make_merger()
         self.tt = tree_merger.make_preview_transform()
         result_tree = self.tt.get_preview_tree()

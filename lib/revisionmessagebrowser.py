@@ -88,6 +88,7 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                                   center - (boxsize * dotsize * 0.5 ),
                                   boxsize * dotsize, 
                                   boxsize * dotsize)
+        self.imagesize = boxsize
         self.images = []
         for color in xrange(7):
             image = QtGui.QImage(boxsize, boxsize, QtGui.QImage.Format_ARGB32)
@@ -165,7 +166,8 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                     revno = self.get_revno(revid)
                     color = self.get_color(revid)
                     if color is not None:
-                        color = ('<img src="dot%d">' % (color % 6))
+                        color = '<img src="dot%d" width="%d" height="%d">' % (
+                            color % 6, self.imagesize, self.imagesize)
                     else:
                         color = ""
                     if revid in self._all_loaded_revs:
@@ -356,11 +358,13 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
             open_browser(str(url.toEncoded()))
 
     def get_parents(self, revid):
-        return self.log_list.graph_provider.graph_parents[revid]
+        return self.log_list.graph_provider.known_graph.get_parent_keys(revid)
     
     def get_children(self, revid):
-        return self.log_list.graph_provider.graph_children[revid]
-    
+        return [child for child in
+                self.log_list.graph_provider.known_graph.get_child_keys(revid)
+                if not child == "top:"]
+
     def get_revno(self, revid):
         return self.log_list.graph_provider.revid_rev[revid].revno_str
     

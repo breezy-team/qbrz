@@ -71,7 +71,7 @@ class QBzrInitWindow(SubProcessDialog):
         if not location:
             self.process_widget.logMessage(gettext("You must specify a location"),
                                            error=True)
-            self.on_failed()
+            self.on_failed('NoLocation')
             return
 
         if self.ui.but_init.isChecked():
@@ -117,7 +117,7 @@ def fill_option_combo(combo, option, default, desc_widget=None):
         user_data = QtCore.QVariant(help or '')
         combo.addItem(name, user_data)
         if name == default:
-            default_index = i - 1
+            default_index = combo.count() - 1
         if desc_widget is not None:
             combo.parentWidget().connect(combo,
                                          QtCore.SIGNAL("currentIndexChanged(int)"),

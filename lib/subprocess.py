@@ -19,24 +19,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import codecs
 import os
-import re
-import shlex
-import signal
 import sys
-import tempfile
-import thread
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import (
-    bencode,
-    commands,
-    osutils,
-    ui,
-    )
-from bzrlib.option import Option
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -48,12 +35,36 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     StandardButton,
     ensure_unicode,
+    InfoWidget,
     )
+
+from bzrlib.ui.text import TextProgressView, TextUIFactory
+
+from bzrlib.lazy_import import lazy_import
+lazy_import(globals(), '''
+import codecs
+import re
+import shlex
+import signal
+import tempfile
+import thread
+
+from bzrlib import (
+    bencode,
+    commands,
+    osutils,
+    ui,
+    )
+
+from bzrlib.bzrdir import BzrDir
+
 from bzrlib.plugins.qbzr.lib.trace import (
    report_exception,
    SUB_LOAD_METHOD)
 
-from bzrlib.ui.text import TextProgressView, TextUIFactory
+from bzrlib.plugins.qbzr.lib.commit import CommitWindow
+from bzrlib.plugins.qbzr.lib.revert import RevertWindow
+''')
 
 
 # Subprocess service messages markers
@@ -61,6 +72,7 @@ SUB_PROGRESS = "qbzr:PROGRESS:"
 SUB_GETPASS = "qbzr:GETPASS:"
 SUB_GETUSER = "qbzr:GETUSER:"
 SUB_GETBOOL = "qbzr:GETBOOL:"
+SUB_ERROR = "qbzr:ERROR:"
 
 
 class SubProcessWindowBase(object):
@@ -92,89 +104,88 @@ class SubProcessWindowBase(object):
             QtCore.SIGNAL("finished()"),
             self.on_finished)
         self.connect(self.process_widget,
-            QtCore.SIGNAL("failed()"),
+            QtCore.SIGNAL("failed(QString)"),
             self.on_failed)
         self.connect(self.process_widget,
             QtCore.SIGNAL("error()"),
             self.on_error)
 
-        self._closeButton = StandardButton(BTN_CLOSE)
-        self._okButton = StandardButton(BTN_OK)
-        self._cancelButton = StandardButton(BTN_CANCEL)
-        self._retryButton = QtGui.QPushButton(gettext('&Retry'))
+        closeButton = StandardButton(BTN_CLOSE)
+        okButton = StandardButton(BTN_OK)
+        cancelButton = StandardButton(BTN_CANCEL)
 
         # ok button gets disabled when we start.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessStarted(bool)"),
-                               self._okButton,
-                               QtCore.SLOT("setDisabled(bool)"))
-
-        # retry button gets disabled when we start.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessStarted(bool)"),
-                               self._retryButton,
+                               okButton,
                                QtCore.SLOT("setDisabled(bool)"))
 
         # ok button gets hidden when we finish.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self._okButton,
-                               QtCore.SLOT("setHidden(bool)"))
-                               
-        # retry button gets hidden when we finish
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self._retryButton,
-                               QtCore.SLOT("setHidden(bool)"))
-        
-        # cancel button gets hidden when we finish.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self._cancelButton,
+                               okButton,
                                QtCore.SLOT("setHidden(bool)"))
 
         # close button gets shown when we finish.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self._closeButton,
+                               closeButton,
                                QtCore.SLOT("setShown(bool)"))
 
-        # ok button gets hidden when we fail.
+        # cancel button gets disabled when finished.
         QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessFailed(bool)"),
-                               self._okButton,
-                               QtCore.SLOT("setShown(bool)"))
-
-        # retry button gets enabled when we fail.
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("subprocessFailed(bool)"),
-                               self._retryButton,
+                               QtCore.SIGNAL("subprocessFinished(bool)"),
+                               cancelButton,
                                QtCore.SLOT("setDisabled(bool)"))
-        
-        # retry button gets shown when we fail
+
+        # ok button gets enabled when we fail.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessFailed(bool)"),
-                               self._retryButton,
-                               QtCore.SLOT("setHidden(bool)"))
+                               okButton,
+                               QtCore.SLOT("setDisabled(bool)"))
+
+        # Change the ok button to 'retry' if we fail.
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessFailed(bool)"),
+                               lambda failed: okButton.setText(gettext('&Retry')))
 
         self.buttonbox = QtGui.QDialogButtonBox(self)
-        self.buttonbox.addButton(self._okButton,
+        self.buttonbox.addButton(okButton,
             QtGui.QDialogButtonBox.AcceptRole)
-        self.buttonbox.addButton(self._retryButton,
+        self.buttonbox.addButton(closeButton,
             QtGui.QDialogButtonBox.AcceptRole)
-        self.buttonbox.addButton(self._closeButton,
-            QtGui.QDialogButtonBox.AcceptRole)
-        self.buttonbox.addButton(self._cancelButton,
+        self.buttonbox.addButton(cancelButton,
             QtGui.QDialogButtonBox.RejectRole)
         self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.do_accept)
         self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.do_reject)
+        closeButton.setHidden(True) # but 'close' starts as hidden.
         
-        self.init_button_status()
+        self.uncommitted_info = InfoWidget(self)
+        uncommitted_info_layout = QtGui.QHBoxLayout(self.uncommitted_info)
+        
+        # XXX this is to big. Resize
+        uncommitted_info_icon = QtGui.QLabel()
+        uncommitted_info_icon.setPixmap(self.style().standardPixmap(
+            QtGui.QStyle.SP_MessageBoxWarning))
+        uncommitted_info_layout.addWidget(uncommitted_info_icon)
+        
+        uncommitted_info_label = QtGui.QLabel(gettext(
+            'Working tree has uncommitted changes.'))
+        uncommitted_info_layout.addWidget(uncommitted_info_label, 2)
+        uncommitted_info_button_layout = QtGui.QVBoxLayout()
+        uncommitted_info_layout.addLayout(uncommitted_info_button_layout)
+        commit_button = QtGui.QPushButton(gettext('Commit'))
+        self.connect(commit_button, QtCore.SIGNAL("clicked(bool)"),
+                     self.open_commit_win)
+        uncommitted_info_button_layout.addWidget(commit_button)
+        
+        revert_button = QtGui.QPushButton(gettext('Revert'))
+        self.connect(revert_button, QtCore.SIGNAL("clicked(bool)"),
+                     self.open_revert_win)
+        uncommitted_info_button_layout.addWidget(revert_button)
+        self.uncommitted_info.hide()
 
-    def init_button_status(self):
-        self._closeButton.setHidden(True) # but 'close' starts as hidden.
-        self._retryButton.setHidden(True) # and 'retry' starts as hidden
-    
+
     def make_default_status_box(self):
         status_group_box = QtGui.QGroupBox(gettext("Status"))
         status_layout = QtGui.QVBoxLayout(status_group_box)
@@ -188,6 +199,7 @@ class SubProcessWindowBase(object):
         Button box has 2 buttons: OK and Cancel (after successfull command 
         execution there will be Close and Cancel).
         """
+        yield self.uncommitted_info
         yield self.make_default_status_box()
         yield self.buttonbox
 
@@ -225,7 +237,7 @@ class SubProcessWindowBase(object):
         if self._check_args():
             self.process_widget.do_start(self.dir, *self.args)
         else:
-            self.on_failed()
+            self.on_failed('CheckArgsFailed')
 
     def do_reject(self):
         if self.process_widget.is_running():
@@ -245,9 +257,13 @@ class SubProcessWindowBase(object):
         if not self.ui_mode:
             self.close()
 
-    def on_failed(self):
+    def on_failed(self, error):
         self.emit(QtCore.SIGNAL("subprocessFailed(bool)"), False)
         self.emit(QtCore.SIGNAL("disableUi(bool)"), False)
+        
+        if error=='UncommittedChanges':
+            self.action_url = self.process_widget.error_data['display_url']
+            self.uncommitted_info.show()
 
     def on_error(self):
         self.emit(QtCore.SIGNAL("subprocessError(bool)"), False)
@@ -257,6 +273,27 @@ class SubProcessWindowBase(object):
         if self._restore_size:
             self.resize(self._restore_size)
 
+    def open_commit_win(self, b):
+        # XXX refactor so that the tree can be opened by the window
+        tree, branch = BzrDir.open_tree_or_branch(self.action_url)
+        commit_window = CommitWindow(tree, None)
+        self.windows.append(commit_window)
+        commit_window.show()
+        QtCore.QObject.connect(commit_window,
+                               QtCore.SIGNAL("subprocessFinished(bool)"),
+                               self.uncommitted_info,
+                               QtCore.SLOT("setHidden(bool)"))
+    
+    def open_revert_win(self, b):
+        # XXX refactor so that the tree can be opened by the window
+        tree, branch = BzrDir.open_tree_or_branch(self.action_url)
+        revert_window = RevertWindow(tree, None)
+        self.windows.append(revert_window)
+        revert_window.show()
+        QtCore.QObject.connect(revert_window,
+                               QtCore.SIGNAL("subprocessFinished(bool)"),
+                               self.uncommitted_info,
+                               QtCore.SLOT("setHidden(bool)")) 
 
 class SubProcessWindow(SubProcessWindowBase, QBzrWindow):
 
@@ -440,6 +477,8 @@ class SubProcessWidget(QtGui.QWidget):
             self.hide_progress()
 
         self._args_file = None  # temp file to pass arguments to qsubprocess
+        self.error_class = ''
+        self.error_data = {}
 
     def hide_progress(self):
         self.progressMessage.setHidden(True)
@@ -498,15 +537,21 @@ class SubProcessWidget(QtGui.QWidget):
         # on Linux I believe command-line is in utf-8,
         # so we need to have some extra space
         # when converting unicode -> utf8
-        if (len(args) > 10000          # XXX make the threshold configurable in qbzr.conf?
-            or re.search(r"(\n|\r)", args) is not None):
+        if (len(args) > 10000       # XXX make the threshold configurable in qbzr.conf?
+            or re.search(r"(?:"
+                r"\n|\r"            # workaround for bug #517420
+                r"|\\\\"            # workaround for bug #528944
+                r")", args) is not None):
             # save the args to the file
             fname = self._create_args_file(args)
             args = "@" + fname.replace('\\', '/')
 
         if dir is None:
             dir = self.defaultWorkingDir
-
+            
+        self.error_class = ''
+        self.error_data = {}
+        
         self.process.setWorkingDirectory(dir)
         if getattr(sys, "frozen", None) is not None:
             bzr_exe = sys.argv[0]
@@ -603,6 +648,10 @@ class SubProcessWidget(QtGui.QWidget):
                 
                 data = (button == QtGui.QMessageBox.Yes)
                 self.process.write(SUB_GETBOOL + bencode.bencode(data) + "\n")
+            elif line.startswith(SUB_ERROR):
+                data = bencode.bdecode(line[len(SUB_ERROR):])
+                self.error_class = data[0]
+                self.error_data = data[1]
             else:
                 line = line.decode(self.encoding, 'replace')
                 self.logMessageEx(line, 'plain', self.stdout)
@@ -655,15 +704,15 @@ class SubProcessWidget(QtGui.QWidget):
         else:
             message = gettext("Error while running bzr. (error code: %d)" % error)
         self.logMessage(message, True)
-        self.emit(QtCore.SIGNAL("failed()"))
+        self.emit(QtCore.SIGNAL("failed(QString)"), self.error_class)
 
     def onFinished(self, exitCode, exitStatus):
         self._delete_args_file()
         if self.aborting:
             self.aborting = False
             self.setProgress(1000000, [gettext("Aborted!")])
-            self.emit(QtCore.SIGNAL("failed()"))
-        elif exitCode == 0:
+            self.emit(QtCore.SIGNAL("failed(QString)"), 'Aborted')
+        elif exitCode < 3:
             if self.commands and not self.aborting:
                 self._start_next()
             else:
@@ -672,7 +721,7 @@ class SubProcessWidget(QtGui.QWidget):
                 self.emit(QtCore.SIGNAL("finished()"))
         else:
             self.setProgress(1000000, [gettext("Failed!")])
-            self.emit(QtCore.SIGNAL("failed()"))
+            self.emit(QtCore.SIGNAL("failed(QString)"), self.error_class)
 
     def _create_args_file(self, text):
         """@param text: text to write into temp file,
@@ -810,7 +859,15 @@ def run_subprocess_command(cmd, bencoded=False):
         argv = [unicode(p, 'utf-8') for p in shlex.split(cmd_utf8)]
     else:
         argv = [unicode(p, 'utf-8') for p in bencode.bdecode(cmd_utf8)]
-    return commands.run_bzr(argv)
+    try:
+        return commands.run_bzr(argv)
+    except Exception, e:
+        d = {}
+        for key, val in e.__dict__.iteritems():
+            if not key.startswith('_'):
+                d[key]=unicode(val).encode('utf-8')
+        print "%s%s" % (SUB_ERROR, bencode.bencode((e.__class__.__name__, d)))
+        raise
 
 
 def sigabrt_handler(signum, frame):

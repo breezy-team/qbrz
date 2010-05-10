@@ -60,10 +60,12 @@ class AddWindow(SubProcessDialog):
         self.filelist = TreeWidget(groupbox)
         self.filelist.throbber = self.throbber
         self.filelist.tree_model.is_item_in_select_all = lambda item: (
+            # Is in select all. - Not versioned, and not Ignored
             item.change is not None and
             item.change.is_ignored() is None and
             not item.change.is_versioned(), 
             
+            # look at children. - Not ignored
             item.change is not None and item.change.is_ignored() is None or
             item.change is None
             )

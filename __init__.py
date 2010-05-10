@@ -69,7 +69,7 @@ Miscellaneous:
  * bug-url - print full URL to a specific bug, or open it in your browser.
 """
 
-version_info = (0, 19, 0, 'dev', 0)
+version_info = (0, 19, 0, 'dev', 1)
 __version__ = '.'.join(map(str, version_info))
 
 
@@ -95,7 +95,7 @@ def require_mimimum_api(object_with_api, wanted_mimimum_api):
         raise IncompatibleAPI(object_with_api, wanted_mimimum_api,
                               minimum, current)
 
-require_mimimum_api(bzrlib, (1, 17, 0))
+require_mimimum_api(bzrlib, (2, 1, 0))
 
 from bzrlib.commands import plugin_cmds
 

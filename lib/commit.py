@@ -22,6 +22,25 @@
 import os.path
 from PyQt4 import QtCore, QtGui
 
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
+from bzrlib.plugins.qbzr.lib.util import (
+    BTN_REFRESH,
+    file_extension,
+    get_global_config,
+    url_for_display,
+    ThrobberWidget,
+    runs_in_loading_queue,
+    StandardButton,
+    InfoWidget,
+    )
+
+from bzrlib.plugins.qbzr.lib.logwidget import LogList
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.plugins.qbzr.lib.trace import reports_exception
+
+from bzrlib.lazy_import import lazy_import
+lazy_import(globals(), '''
+
 from bzrlib import errors
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
@@ -32,28 +51,15 @@ from bzrlib.plugins.qbzr.lib.diff import (
     InternalWTDiffArgProvider,
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.util import (
-    BTN_REFRESH,
-    file_extension,
-    get_global_config,
-    url_for_display,
-    ThrobberWidget,
-    runs_in_loading_queue,
-    StandardButton,
-    )
-
-from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.plugins.qbzr.lib import logmodel
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.treewidget import (
     TreeWidget,
     SelectAllCheckBox,
     )
-from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.revisionview import RevisionView
+from bzrlib.plugins.qbzr.lib.update import QBzrUpdateWindow
 
-
+''')
 MAX_AUTOCOMPLETE_FILES = 20
 
 
@@ -65,6 +71,10 @@ class TextEdit(QtGui.QTextEdit):
         self.spell_checker = spell_checker
         self.eow = QtCore.QString("~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-=")
         self.main_window = main_window
+
+    def inputMethodEvent(self, e):
+        self.completer.popup().hide()
+        QtGui.QTextEdit.inputMethodEvent(self, e)
 
     def keyPressEvent(self, e):
         c = self.completer
@@ -231,7 +241,7 @@ class CommitWindow(SubProcessDialog):
         self.initial_selected_list = selected_list
 
         self.connect(self.process_widget,
-            QtCore.SIGNAL("failed()"),
+            QtCore.SIGNAL("failed(QString)"),
             self.on_failed)
 
         self.throbber = ThrobberWidget(self)
@@ -246,7 +256,7 @@ class CommitWindow(SubProcessDialog):
         master_branch = url_for_display(tree.branch.get_bound_location())
         if not master_branch:
             self.branch_location.setText(branch_base)
-            branch_layout.addWidget(self.branch_location)
+            branch_layout.addWidget(self.branch_location, 0, 0, 1, 2)
         else:
             self.local_checkbox = QtGui.QCheckBox(gettext(
                 "&Local commit"))
@@ -267,7 +277,36 @@ class CommitWindow(SubProcessDialog):
             if local:
                 self.local_checkbox.setChecked(True)
             self.update_branch_groupbox()
+        
+        self.not_uptodate_errors = {
+            'BoundBranchOutOfDate': gettext(
+                'Local branch is out of date with master branch.\n'
+                'To commit to master branch, update the local branch.\n'
+                'You can also pass select local to commit to continue working disconnected.'),
+            'OutOfDateTree': gettext(
+                'Working tree is out of date. To commit, update the working tree.')
+            }
+        self.not_uptodate_info = InfoWidget(branch_groupbox)
+        not_uptodate_layout = QtGui.QHBoxLayout(self.not_uptodate_info)
+        
+        # XXX this is to big. Resize
+        not_uptodate_icon = QtGui.QLabel()
+        not_uptodate_icon.setPixmap(self.style().standardPixmap(
+            QtGui.QStyle.SP_MessageBoxWarning))
+        not_uptodate_layout.addWidget(not_uptodate_icon)
+        
+        self.not_uptodate_label = QtGui.QLabel('error message goes here')
+        not_uptodate_layout.addWidget(self.not_uptodate_label, 2)
+        
+        update_button = QtGui.QPushButton(gettext('Update'))
+        self.connect(update_button, QtCore.SIGNAL("clicked(bool)"),
+                     self.open_update_win)
 
+        not_uptodate_layout.addWidget(update_button)
+        
+        self.not_uptodate_info.hide()
+        branch_layout.addWidget(self.not_uptodate_info, 3, 0, 1, 2)
+        
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self)
 
         message_groupbox = QtGui.QGroupBox(gettext("Message"), splitter)
@@ -289,8 +328,8 @@ class CommitWindow(SubProcessDialog):
                      QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                      self.on_filelist_data_changed)
         
-        selectall_checkbox = SelectAllCheckBox(self.filelist, self)
-        selectall_checkbox.setCheckState(QtCore.Qt.Checked)
+        self.selectall_checkbox = SelectAllCheckBox(self.filelist, self)
+        self.selectall_checkbox.setCheckState(QtCore.Qt.Checked)
 
         language = get_global_config().get_user_option('spellcheck_language') or 'en'
         spell_checker = SpellChecker(language)
@@ -349,12 +388,12 @@ class CommitWindow(SubProcessDialog):
         self.connect(self.show_nonversioned_checkbox, QtCore.SIGNAL("toggled(bool)"), self.show_nonversioned)
         vbox.addWidget(self.show_nonversioned_checkbox)
     
-        vbox.addWidget(selectall_checkbox)
+        vbox.addWidget(self.selectall_checkbox)
 
         # Display a list of pending merges
         if self.has_pending_merges:
-            selectall_checkbox.setCheckState(QtCore.Qt.Checked)
-            selectall_checkbox.setEnabled(False)
+            self.selectall_checkbox.setCheckState(QtCore.Qt.Checked)
+            self.selectall_checkbox.setEnabled(False)
             self.pending_merges_list = PendingMergesList(
                 self.processEvents, self.throbber, False, self)
             
@@ -570,7 +609,7 @@ class CommitWindow(SubProcessDialog):
             ci_data.save()
 
     def wipe_commit_data(self):
-        if (self.tree.branch.control_files.get_physical_lock_status()
+        if (self.tree.branch.get_physical_lock_status()
             or self.tree.branch.is_locked()):
             # XXX maybe show this in a GUI MessageBox (information box)???
             from bzrlib.trace import warning
@@ -590,7 +629,7 @@ class CommitWindow(SubProcessDialog):
                 gettext("You should provide a commit message."),
                 gettext('&OK'))
             # don't commit, but don't close the window either
-            self.on_failed()
+            self.on_failed('NoCommitMessage')
             self.message.setFocus()
             return
 
@@ -617,7 +656,7 @@ class CommitWindow(SubProcessDialog):
                     "QBzr - " + gettext("Commit"), 
                     gettext("No changes to commit."),
                     QtGui.QMessageBox.Ok) 
-                self.on_failed()
+                self.on_failed('PointlessCommit')
                 return
             else:
                 # bzr >= 1.6
@@ -627,7 +666,7 @@ class CommitWindow(SubProcessDialog):
                         "Do you want to commit anyway?"),
                     QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
                 if button == QtGui.QMessageBox.No:
-                    self.on_failed()
+                    self.on_failed('PointlessCommit')
                     return
                 else:
                     # Possible [rare] problems:
@@ -744,3 +783,19 @@ class CommitWindow(SubProcessDialog):
                 self.tree.basis_tree().get_revision_id(), self.tree,
                 self.tree.branch, self.tree.branch)            
             show_diff(arg_provider, ext_diff=ext_diff, parent_window = self)
+    
+    def on_failed(self, error):
+        SubProcessDialog.on_failed(self, error)
+        error = str(error)
+        if error in self.not_uptodate_errors:
+            self.not_uptodate_label.setText(self.not_uptodate_errors[error])
+            self.not_uptodate_info.show()
+    
+    def open_update_win(self, b):
+        update_window = QBzrUpdateWindow(self.tree)
+        self.windows.append(update_window)
+        update_window.show()
+        QtCore.QObject.connect(update_window,
+                               QtCore.SIGNAL("subprocessFinished(bool)"),
+                               self.not_uptodate_info,
+                               QtCore.SLOT("setHidden(bool)"))        
