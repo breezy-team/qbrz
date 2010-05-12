@@ -27,7 +27,7 @@ SUB_LOAD_METHOD
 The behaviour of this mode is to show the report in a dialog, with just a close
 button. When the close button is clicked, the report dialog is closed, but not
 the window.
-                                                                                  a
+
 The mode should be used for methods where you are executing an action, or
 loading data from user input provided in the gui, e.g. when you open a branch,
 and the location is from a text edit. In these cases, you need to tell the user
@@ -51,15 +51,15 @@ method in a try..except for every time is is called. Or you can have your own
 try..except, and call report_exception in the except. Both of these except a
 type parameter, with MAIN_LOAD_METHOD as the default.
 
-E.g.:
+E.g.::
 
-@reports_exception() 
-def load(self):
-
-@reports_exception(type=SUB_LOAD_METHOD)
-def refresh(self):
-
-try:
-    self.tree.add(paths)
-except Exception:
-    report_exception(type=SUB_LOAD_METHOD, window=self.window())
+    @reports_exception() 
+    def load(self):
+    
+    @reports_exception(type=SUB_LOAD_METHOD)
+    def refresh(self):
+    
+    try:
+        self.tree.add(paths)
+    except Exception:
+        report_exception(type=SUB_LOAD_METHOD, window=self.window())
