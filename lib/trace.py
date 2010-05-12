@@ -223,14 +223,14 @@ class ErrorReport(QtGui.QDialog):
         # duplicate this :-(
         if type == MAIN_LOAD_METHOD:
             buttons = QtGui.QDialogButtonBox.Close
-            help_message = "Click on the Close button to close this error dialog and quit the application"
+            help_message = "Click on the Close button to close this error dialog and quit the application."
         elif type == SUB_LOAD_METHOD:
             buttons = QtGui.QDialogButtonBox.Ok
-            help_message = "Click on the Close button to close this error dialog and quit the application"
+            help_message = "Click on the Ok button to close this error dialog."
         elif type == ITEM_OR_EVENT_METHOD:
             buttons = QtGui.QDialogButtonBox.Close | \
                       QtGui.QDialogButtonBox.Ignore
-            help_message = "Click on the Close button to close this error dialog and quit the application"
+            help_message = "Click on the Close button to close this error dialog and quit the application or on the Ignore button to continue."
 
         label = QtGui.QLabel(message)
         label.setWordWrap(True)
@@ -255,18 +255,21 @@ class ErrorReport(QtGui.QDialog):
                      QtCore.SIGNAL("clicked (QAbstractButton *)"),
                      self.clicked)
 
-        layout = QtGui.QGridLayout()
-        layout.addWidget(icon_label, 0, 0)
-        layout.addWidget(label, 0, 1)
-        layout.setColumnStretch(1,1)
+        vbox = QtGui.QVBoxLayout()
         
-        layout.addWidget(trace_back_label, 1, 0, 2, 0)
-        layout.setRowStretch(1,1)
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(icon_label)
+        hbox.addWidget(label, 10)
+        vbox.addLayout(hbox)
+        
+        vbox.addWidget(trace_back_label)
 
-        layout.addWidget(help_label, 3, 0, 2, 0)
-        layout.addWidget(self.buttonbox, 3, 2, 2, 0)
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(help_label, 10)
+        hbox.addWidget(self.buttonbox)
+        vbox.addLayout(hbox)
         
-        self.setLayout(layout)
+        self.setLayout(vbox)
         
         self.setWindowTitle(title)
         
