@@ -5,6 +5,7 @@ QBzr developers documentation catalog
 
 * `Gettext usage in QBzr <gettext_usage.html>`_
 * `Mini-tutorial on slots and signals`__
+* `Exception reporting in QBzr <exception_reporting.html>`_
 
 __ slot-signal-mini-tutorial/slot-signal-mini-tutorial.html
 

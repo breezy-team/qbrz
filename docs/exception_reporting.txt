@@ -23,7 +23,7 @@ This mode should be used for initial window loding methods, where if the method
 fail, then the dialog would be useless, and hence gets closed every time.
 
 SUB_LOAD_METHOD
---------------
+---------------
 The behaviour of this mode is to show the report in a dialog, with just a close
 button. When the close button is clicked, the report dialog is closed, but not
 the window.
