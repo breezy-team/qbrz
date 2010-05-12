@@ -144,6 +144,8 @@ lazy_commands = (
     ('bzrlib.plugins.qbzr.lib.extra.isversioned', 'cmd_is_versioned', []),
     # hidden power of qbzr ;-)
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsubprocess', []),
+    # test command
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qerror', []),
 )
 
 for module, name, aliases in lazy_commands:

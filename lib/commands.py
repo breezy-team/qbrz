@@ -1039,3 +1039,23 @@ class cmd_qrun(QBzrCommand):
             execute=execute)
         window.show()
         self._application.exec_()
+
+
+class cmd_qerror(QBzrCommand):
+    """Hidden command to display the error dialog."""
+
+    takes_options = []
+    takes_args = []
+    hidden = True
+
+    def _qbzr_run(self):
+        from bzrlib.plugins.qbzr.lib.trace import ErrorReport
+        from PyQt4 import QtGui
+        msg_box = ErrorReport("Error",
+          "This is a dummy message",
+          "This is a dummy traceback",
+          QtGui.QDialogButtonBox.Close | QtGui.QDialogButtonBox.Ignore,
+          None)
+        msg_box.exec_()
+
+
