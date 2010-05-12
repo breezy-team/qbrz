@@ -215,20 +215,23 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
 class ErrorReport(QtGui.QDialog):
     def __init__(self, title, message, trace_back, type=MAIN_LOAD_METHOD,
                  parent=None):
+
+        QtGui.QDialog.__init__ (self, parent)
+
         # PyQt is stupid and thinks QMessageBox.StandardButton and
         # QDialogButtonBox.StandardButton are different, so we have to
         # duplicate this :-(
         if type == MAIN_LOAD_METHOD:
             buttons = QtGui.QDialogButtonBox.Close
+            help_message = "Click on the Close button to close this error dialog and quit the application"
         elif type == SUB_LOAD_METHOD:
             buttons = QtGui.QDialogButtonBox.Ok
+            help_message = "Click on the Close button to close this error dialog and quit the application"
         elif type == ITEM_OR_EVENT_METHOD:
             buttons = QtGui.QDialogButtonBox.Close | \
                       QtGui.QDialogButtonBox.Ignore
+            help_message = "Click on the Close button to close this error dialog and quit the application"
 
-
-        QtGui.QDialog.__init__ (self, parent)
-        
         label = QtGui.QLabel(message)
         label.setWordWrap(True)
         label.setAlignment(QtCore.Qt.AlignTop|QtCore.Qt.AlignLeft)
@@ -243,6 +246,9 @@ class ErrorReport(QtGui.QDialog):
         trace_back_label = QtGui.QTextEdit()
         trace_back_label.setPlainText (trace_back)
         trace_back_label.setReadOnly(True)
+
+        help_label = QtGui.QLabel(help_message)
+        help_label.setWordWrap(False)
         
         self.buttonbox = QtGui.QDialogButtonBox(buttons)
         self.connect(self.buttonbox,
@@ -256,8 +262,9 @@ class ErrorReport(QtGui.QDialog):
         
         layout.addWidget(trace_back_label, 1, 0, 2, 0)
         layout.setRowStretch(1,1)
-        
-        layout.addWidget(self.buttonbox, 3, 0, 2, 0)
+
+        layout.addWidget(help_label, 3, 0, 2, 0)
+        layout.addWidget(self.buttonbox, 3, 2, 2, 0)
         
         self.setLayout(layout)
         
