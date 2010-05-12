@@ -172,21 +172,10 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
                     (name, a_plugin.path(), a_plugin.__version__))
             
             
-            # PyQt is stupid and thinks QMessageBox.StandardButton and
-            # QDialogButtonBox.StandardButton are different, so we have to
-            # duplicate this :-(
-            if type == MAIN_LOAD_METHOD:
-                buttons = QtGui.QDialogButtonBox.Close
-            elif type == SUB_LOAD_METHOD:
-                buttons = QtGui.QDialogButtonBox.Ok
-            elif type == ITEM_OR_EVENT_METHOD:
-                buttons = QtGui.QDialogButtonBox.Close | \
-                          QtGui.QDialogButtonBox.Ignore
-            
             msg_box = ErrorReport(gettext("Error"),
                                   message,
                                   traceback_file.getvalue(),
-                                  buttons,
+                                  type,
                                   window)
         else:
             if type == MAIN_LOAD_METHOD:
@@ -224,8 +213,20 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
     return error_type
 
 class ErrorReport(QtGui.QDialog):
-    def __init__(self, title, message, trace_back, buttons,
+    def __init__(self, title, message, trace_back, type=MAIN_LOAD_METHOD,
                  parent=None):
+        # PyQt is stupid and thinks QMessageBox.StandardButton and
+        # QDialogButtonBox.StandardButton are different, so we have to
+        # duplicate this :-(
+        if type == MAIN_LOAD_METHOD:
+            buttons = QtGui.QDialogButtonBox.Close
+        elif type == SUB_LOAD_METHOD:
+            buttons = QtGui.QDialogButtonBox.Ok
+        elif type == ITEM_OR_EVENT_METHOD:
+            buttons = QtGui.QDialogButtonBox.Close | \
+                      QtGui.QDialogButtonBox.Ignore
+
+
         QtGui.QDialog.__init__ (self, parent)
         
         label = QtGui.QLabel(message)

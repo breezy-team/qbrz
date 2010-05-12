@@ -1049,13 +1049,11 @@ class cmd_qerror(QBzrCommand):
     hidden = True
 
     def _qbzr_run(self):
-        from bzrlib.plugins.qbzr.lib.trace import ErrorReport
-        from PyQt4 import QtGui
+        from bzrlib.plugins.qbzr.lib.trace import ErrorReport, ITEM_OR_EVENT_METHOD
         msg_box = ErrorReport("Error",
           "This is a dummy message",
           "This is a dummy traceback",
-          QtGui.QDialogButtonBox.Close | QtGui.QDialogButtonBox.Ignore,
-          None)
+          type=ITEM_OR_EVENT_METHOD)
         msg_box.exec_()
 
 
