@@ -234,7 +234,7 @@ class ErrorReport(QtGui.QDialog):
 
         label = QtGui.QLabel(message)
         label.setWordWrap(True)
-        label.setAlignment(QtCore.Qt.AlignTop|QtCore.Qt.AlignLeft)
+        label.setAlignment(QtCore.Qt.AlignVCenter|QtCore.Qt.AlignLeft)
         self.connect(label,
                      QtCore.SIGNAL("linkActivated(QString)"),
                      self.link_clicked)
