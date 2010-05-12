@@ -223,14 +223,14 @@ class ErrorReport(QtGui.QDialog):
         # duplicate this :-(
         if type == MAIN_LOAD_METHOD:
             buttons = QtGui.QDialogButtonBox.Close
-            help_message = "Click on the Close button to close this error dialog and quit the application."
+            help_message = gettext("Click on the Close button to close this error dialog and quit the application.")
         elif type == SUB_LOAD_METHOD:
             buttons = QtGui.QDialogButtonBox.Ok
-            help_message = "Click on the Ok button to close this error dialog."
+            help_message = gettext("Click on the Ok button to close this error dialog.")
         elif type == ITEM_OR_EVENT_METHOD:
             buttons = QtGui.QDialogButtonBox.Close | \
                       QtGui.QDialogButtonBox.Ignore
-            help_message = "Click on the Close button to close this error dialog and quit the application or on the Ignore button to continue."
+            help_message = gettext("Click on the Close button to close this error dialog and quit the application or on the Ignore button to continue.")
 
         label = QtGui.QLabel(message)
         label.setWordWrap(True)
