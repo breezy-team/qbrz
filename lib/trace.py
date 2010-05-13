@@ -223,7 +223,7 @@ class ErrorReport(QtGui.QDialog):
         # PyQt is stupid and thinks QMessageBox.StandardButton and
         # QDialogButtonBox.StandardButton are different, so we have to
         # duplicate this :-(
-        if type == MAIN_LOAD_METHOD:
+        if type == MAIN_LOAD_METHOD or parent == None:
             button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Close)
             button.setText(gettext("Close Application"))
         elif type == SUB_LOAD_METHOD:

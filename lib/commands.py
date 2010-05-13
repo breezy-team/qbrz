@@ -1054,11 +1054,14 @@ class cmd_qerror(QBzrCommand):
     hidden = True
 
     def _qbzr_run(self, type=0):
+        from bzrlib.plugins.qbzr.lib.plugins import QBzrPluginsWindow
+        window = QBzrPluginsWindow()     
         from bzrlib.plugins.qbzr.lib.trace import ErrorReport
         msg_box = ErrorReport("Error",
           "This is a dummy message",
           "This is a dummy traceback",
-          type)
+          type,
+          window)
         msg_box.exec_()
 
 
