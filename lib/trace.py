@@ -218,19 +218,22 @@ class ErrorReport(QtGui.QDialog):
 
         QtGui.QDialog.__init__ (self, parent)
 
+        self.buttonbox = QtGui.QDialogButtonBox()
+
         # PyQt is stupid and thinks QMessageBox.StandardButton and
         # QDialogButtonBox.StandardButton are different, so we have to
         # duplicate this :-(
         if type == MAIN_LOAD_METHOD:
-            buttons = QtGui.QDialogButtonBox.Close
-            help_message = gettext("Click the Close button to close this window and quit the application.")
+            button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Close)
+            button.setText(gettext("Close Application"))
         elif type == SUB_LOAD_METHOD:
-            buttons = QtGui.QDialogButtonBox.Ok
-            help_message = gettext("Click the Ok button to close this window.")
+            button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Ok)
+            button.setText(gettext("Close Error Dialog"))
         elif type == ITEM_OR_EVENT_METHOD:
-            buttons = QtGui.QDialogButtonBox.Close | \
-                      QtGui.QDialogButtonBox.Ignore
-            help_message = gettext("Click the Close button to close this window and quit the application or click the Ignore button to close this window and continue.")
+            button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Close)
+            button.setText(gettext("Close Application"))
+            button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Ignore)
+            button.setText(gettext("Ignore Error"))
 
         label = QtGui.QLabel(message)
         label.setWordWrap(True)
@@ -246,11 +249,7 @@ class ErrorReport(QtGui.QDialog):
         trace_back_label = QtGui.QTextEdit()
         trace_back_label.setPlainText (trace_back)
         trace_back_label.setReadOnly(True)
-
-        help_label = QtGui.QLabel(help_message)
-        help_label.setWordWrap(False)
-        
-        self.buttonbox = QtGui.QDialogButtonBox(buttons)
+                    
         self.connect(self.buttonbox,
                      QtCore.SIGNAL("clicked (QAbstractButton *)"),
                      self.clicked)
@@ -265,7 +264,6 @@ class ErrorReport(QtGui.QDialog):
         vbox.addWidget(trace_back_label)
 
         hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(help_label, 10)
         hbox.addWidget(self.buttonbox)
         vbox.addLayout(hbox)
         
