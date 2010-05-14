@@ -27,7 +27,7 @@ from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
 
 class QBzrUpdateWindow(SimpleSubProcessDialog):
 
-    def __init__(self, tree, ui_mode=True, parent=None):
+    def __init__(self, tree, ui_mode=True, immediate=False, parent=None):
         self.tree = tree
         super(QBzrUpdateWindow, self).__init__(
             title=gettext("Update working tree"),
@@ -38,4 +38,5 @@ class QBzrUpdateWindow(SimpleSubProcessDialog):
             default_size=(256, 256),
             ui_mode=ui_mode,
             parent=parent,
+            immediate=immediate,
             )

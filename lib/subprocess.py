@@ -85,7 +85,8 @@ class SubProcessWindowBase(object):
                           ui_mode=True,
                           dialog=True,
                           parent=None,
-                          hide_progress=False):
+                          hide_progress=False,
+                          immediate=False):
         self.restoreSize(name, default_size)
         self._name = name
         self._default_size = default_size
@@ -184,6 +185,8 @@ class SubProcessWindowBase(object):
                      self.open_revert_win)
         uncommitted_info_button_layout.addWidget(revert_button)
         self.uncommitted_info.hide()
+        if immediate:
+            self.do_accept()
 
 
     def make_default_status_box(self):
@@ -341,7 +344,8 @@ class SubProcessDialog(SubProcessWindowBase, QBzrDialog):
                  ui_mode=True,
                  dialog=True,
                  parent=None,
-                 hide_progress=False):
+                 hide_progress=False,
+                 immediate=False):
         QBzrDialog.__init__(self, title, parent)
         self.__init_internal__(title,
                                name=name,
@@ -351,7 +355,8 @@ class SubProcessDialog(SubProcessWindowBase, QBzrDialog):
                                ui_mode=ui_mode,
                                dialog=dialog,
                                parent=parent,
-                               hide_progress=hide_progress)
+                               hide_progress=hide_progress,
+                               immediate=immediate)
 
     def closeEvent(self, event):
         if not self.process_widget.is_running():
@@ -376,6 +381,7 @@ class SimpleSubProcessDialog(SubProcessDialog):
                  hide_progress=False,
                  auto_start_show_on_failed=False,
                  parent=None,
+                 immediate=False
                  ):
         super(SimpleSubProcessDialog, self).__init__(
                                title,
@@ -386,7 +392,8 @@ class SimpleSubProcessDialog(SubProcessDialog):
                                ui_mode=ui_mode,
                                dialog=dialog,
                                parent=parent,
-                               hide_progress=hide_progress)
+                               hide_progress=hide_progress,
+                               immediate=immediate)
         self.desc = desc
         # create a layout to hold our one label and the subprocess widgets.
         layout = QtGui.QVBoxLayout(self)

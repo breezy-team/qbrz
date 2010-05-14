@@ -183,6 +183,7 @@ class QBzrCommand(Command):
 
 
 ui_mode_option = Option("ui-mode", help="Causes dialogs to wait after the operation is complete.")
+immediate_option = Option("immediate", help="Causes dialogs to start the underlying action immediately without waiting for user input")
 
 # A special option so 'revision' can be passed as a simple string, when we do
 # *not* wan't bzrlib's feature of parsing the revision string before passing it.
@@ -897,13 +898,13 @@ class cmd_qupdate(QBzrCommand):
     """Update working tree with latest changes in the branch."""
     aliases = ['qup']
     takes_args = ['directory?']
-    takes_options = [ui_mode_option]
+    takes_options = [ui_mode_option, immediate_option]
 
-    def _qbzr_run(self, directory=None, ui_mode=False):
+    def _qbzr_run(self, directory=None, ui_mode=False, immediate=False):
         tree = open_tree(directory, ui_mode)
         if tree is None:
             return
-        self.main_window = QBzrUpdateWindow(tree, ui_mode)
+        self.main_window = QBzrUpdateWindow(tree, ui_mode, immediate)
         self.main_window.show()
         self._application.exec_()
 
