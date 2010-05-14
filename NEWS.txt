@@ -12,6 +12,8 @@
    (Gary van der Merwe)
  * qlog: Handle ghost revisions better. Ghost can now be seen in the graph,
    and don't cause search to crash. (Bug #57042, Gary van der Merwe)
+ * Provide better text on Close and Ignore buttons when exceptions raised.
+   (Bug #486946, Luis Arias)
 
 0.19 Beta 1 "Monkey-puzzle, aka Araucaria araucana" - 2010/03/29
 ----------------------------------------------------------------
