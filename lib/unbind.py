@@ -30,7 +30,7 @@ from bzrlib.plugins.qbzr.lib.util import (
 
 class QBzrUnbindDialog(SubProcessDialog):
      
-    def __init__(self, branch, ui_mode=None):
+    def __init__(self, branch, ui_mode=None, immediate=False):
 
         super(QBzrUnbindDialog, self).__init__(
                                   gettext("Unbind branch"),
@@ -40,6 +40,7 @@ class QBzrUnbindDialog(SubProcessDialog):
                                   dialog = True,
                                   parent = None,
                                   hide_progress=False,
+                                  immediate = immediate
                                   )
         self.branch = branch
         
