@@ -16,6 +16,8 @@
    (Bug #486946, Luis Arias)
  * Fix bug where Mac OS X windows start in background. (Bug #417162,
    Luis Arias)
+ * Fix bug in treewidget where folders are repeated.
+   (Bug #580798, Iwata, Gary van der Merwe)
 
 0.19 Beta 1 "Monkey-puzzle, aka Araucaria araucana" - 2010/03/29
 ----------------------------------------------------------------
