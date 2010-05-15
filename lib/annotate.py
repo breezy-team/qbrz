@@ -378,12 +378,23 @@ class AnnotateWindow(QBzrWindow):
                 old_center.position()
             )
             new_positions = [None, None, None]
-            for line
-            for pos in old_positions:
-                pos
-            print old_cursor
-            print old_center_y
-            print old_center
+            old_char_start = 0
+            new_char_start = 0
+            opcode_len = lambda start, end, lines: sum(
+                [len(l) for l in lines[start:end]])
+            for i, old_pos in enumerate(old_positions):
+                for code, old_start, old_end, new_start, new_end in opcodes:
+                    old_len = opcode_len(old_start, old_end, self.old_lines)
+                    new_len = opcode_len(new_start, new_end, lines)
+                    if (old_pos >= old_char_start and
+                        old_pos < old_char_start + old_len):
+                        new_pos = new_char_start + (old_pos - old_char_start)
+                        new_positions[i] = new_pos
+                        break
+                    old_char_start += old_len
+                    new_char_start += new_len
+            print old_positions
+            print new_positions
         
         self.text_edit.setPlainText("".join(lines))
         self.old_lines = lines
