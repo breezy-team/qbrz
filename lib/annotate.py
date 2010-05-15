@@ -51,7 +51,7 @@ from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingSelector
 from bzrlib.plugins.qbzr.lib.syntaxhighlighter import highlight_document
 from bzrlib.plugins.qbzr.lib.revtreeview import paint_revno, get_text_color
 from bzrlib.plugins.qbzr.lib import logmodel
-
+from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 ''')
 
 class AnnotateBar(AnnotateBarBase):
@@ -211,6 +211,7 @@ class AnnotateWindow(QBzrWindow):
             self.working_tree = tree
         else:
             self.working_tree = None
+        self.old_lines = None
         
         self.fileId = fileId
         self.path = path
@@ -339,6 +340,8 @@ class AnnotateWindow(QBzrWindow):
         lines = []
         annotate = []
         ordered_revids = []
+        
+        
         self.processEvents()
         for revid, text in tree.annotate_iter(fileId):
             text = text.decode(self.encoding, 'replace')
@@ -358,8 +361,32 @@ class AnnotateWindow(QBzrWindow):
             if len(annotate) % 100 == 0:
                 self.processEvents()
         annotate.append((None, False))  # because the view has one more line
-
+        
+        if self.old_lines:
+            # Try keep the scroll, and selection stable.
+            sm = SequenceMatcher(None, self.old_lines, lines)
+            opcodes = sm.get_opcodes()
+            old_cursor = self.text_edit.textCursor()
+            old_center_y = (self.text_edit.verticalScrollBar().value() +
+                            self.text_edit.height() / 2)
+            old_center = self.text_edit.cursorForPosition(
+                QtCore.QPoint(0, old_center_y))
+            
+            old_positions = (
+                old_cursor.selectionStart(),
+                old_cursor.selectionEnd(),
+                old_center.position()
+            )
+            new_positions = [None, None, None]
+            for line
+            for pos in old_positions:
+                pos
+            print old_cursor
+            print old_center_y
+            print old_center
+        
         self.text_edit.setPlainText("".join(lines))
+        self.old_lines = lines
         self.annotate_bar.adjustWidth(len(lines), 999)
         self.annotate_bar.annotate = annotate
         self.text_edit.annotate = annotate
