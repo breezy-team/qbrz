@@ -362,10 +362,12 @@ class LogList(RevisionTreeView):
         self.show_diff_specified_files()
         
     def tag_revision(self):
+        gp = self.graph_provider
         revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
-        revno = self.graph_provider.revid_rev[revid].revno_str
+        revno = gp.revid_rev[revid].revno_str
         revs = [RevisionSpec.from_string(revno)]
-        branch = self.graph_provider.get_revid_branch(revid)
+        assert(len(gp.branches)==1)
+        branch = gp.branches[0].branch
         action = TagWindow.action_from_options(force=False, delete=False)
         window = CallBackTagWindow(branch, self.refresh_tags, action=action, revision=revs)
         window.show()
