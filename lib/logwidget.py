@@ -142,8 +142,12 @@ class LogList(RevisionTreeView):
             
             self.context_menu.addAction(gettext("Show &tree..."),
                                         self.show_revision_tree)
-            self.context_menu.addAction(gettext("Tag &revision..."),
-                                        self.tag_revision)
+            self.context_menu_tag = \
+                self.context_menu.addAction(gettext("Tag &revision..."),
+                                            self.tag_revision)
+            self.context_menu_revert = \
+                self.context_menu.addAction(gettext("Revert to this revision..."),
+                                            self.revert_revision)
 
     def load_branch(self, branch, fileids, tree=None):
         self.throbber.show()
@@ -359,14 +363,32 @@ class LogList(RevisionTreeView):
         self.show_diff_specified_files()
         
     def tag_revision(self):
+        gp = self.graph_provider
         revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
-        revno = self.graph_provider.revid_rev[revid].revno_str
+        revno = gp.revid_rev[revid].revno_str
         revs = [RevisionSpec.from_string(revno)]
-        branch = self.graph_provider.get_revid_branch(revid)
+        assert(len(gp.branches)==1)
+        branch = gp.branches[0].branch
         action = TagWindow.action_from_options(force=False, delete=False)
         window = CallBackTagWindow(branch, self.refresh_tags, action=action, revision=revs)
         window.show()
         self.window().windows.append(window)
+    
+    def revert_revision(self):
+        """Reverts the working tree to the selected revision."""
+        res = QtGui.QMessageBox.question(self, gettext("Revert Revision"),
+                    gettext("Are you sure you want to revert the working "
+                            "tree to the selected revision?"
+                            ),QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+        if res == QtGui.QMessageBox.Yes:
+          (top_revid, old_revid), count = \
+              self.get_selection_top_and_parent_revids_and_count()
+          gp = self.graph_provider
+          assert(len(gp.branches)==1)
+          branch_info = gp.branches[0]
+          rev_tree = gp.get_revid_repo(top_revid).revision_tree(top_revid)
+          branch_info.tree.revert(filenames=None, old_tree=rev_tree,
+                                  report_changes=True)
     
     def show_diff(self, index=None,
                   specific_files=None, specific_file_ids=None,
@@ -413,6 +435,16 @@ class LogList(RevisionTreeView):
         self.window().windows.append(window)
 
     def show_context_menu(self, pos):
+        branch_count = len(self.graph_provider.branches)
+        single_branch_with_tree = bool(
+            branch_count == 1 and self.graph_provider.branches[0].tree)
+        (top_revid, old_revid), count = \
+              self.get_selection_top_and_parent_revids_and_count()
+        
+        self.context_menu_tag.setVisible(count == 1 and branch_count == 1)
+        self.context_menu_revert.setVisible(count == 1 and
+                                            single_branch_with_tree)
+        
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
 
