@@ -142,11 +142,12 @@ class LogList(RevisionTreeView):
             
             self.context_menu.addAction(gettext("Show &tree..."),
                                         self.show_revision_tree)
-            self.context_menu.addAction(gettext("Tag &revision..."),
-                                        self.tag_revision)
+            self.context_menu_tag = \
+                self.context_menu.addAction(gettext("Tag &revision..."),
+                                            self.tag_revision)
             self.context_menu_revert = \
-            self.context_menu.addAction(gettext("Revert to this revision..."),
-                                        self.revert_revision)
+                self.context_menu.addAction(gettext("Revert to this revision..."),
+                                            self.revert_revision)
 
     def load_branch(self, branch, fileids, tree=None):
         self.throbber.show()
@@ -434,10 +435,17 @@ class LogList(RevisionTreeView):
         self.window().windows.append(window)
 
     def show_context_menu(self, pos):
-        self.context_menu.popup(self.viewport().mapToGlobal(pos))
+        branch_count = len(self.graph_provider.branches)
+        single_branch_with_tree = bool(
+            branch_count == 1 and self.graph_provider.branches[0].tree)
         (top_revid, old_revid), count = \
               self.get_selection_top_and_parent_revids_and_count()
-        self.context_menu_revert.setEnabled(count == 1)
+        
+        self.context_menu_tag.setVisible(count == 1 and branch_count == 1)
+        self.context_menu_revert.setVisible(count == 1 and
+                                            single_branch_with_tree)
+        
+        self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
 
 class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
