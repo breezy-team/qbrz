@@ -100,12 +100,13 @@ class LogList(RevisionTreeView):
                      QtCore.SIGNAL("linesUpdated()"),
                      self.make_selection_continuous)
 
-    def create_context_menu(self):
+    def create_context_menu(self, diff_is_default_action=True):
         self.context_menu = QtGui.QMenu(self)
         if self.view_commands or self.action_commands:
             if self.graph_provider.fileids:
                 if diff.has_ext_diff():
-                    diff_menu = diff.ExtDiffMenu(self)
+                    diff_menu = diff.ExtDiffMenu(
+                        self, set_default=diff_is_default_action)
                     diff_menu.setTitle(gettext("Show file &differences"))
                     self.context_menu.addMenu(diff_menu)
                     self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"),
@@ -120,13 +121,15 @@ class LogList(RevisionTreeView):
                     show_diff_action = self.context_menu.addAction(
                                         gettext("Show file &differences..."),
                                         self.show_diff_specified_files)
-                    self.context_menu.setDefaultAction(show_diff_action)
+                    if diff_is_default_action:
+                        self.context_menu.setDefaultAction(show_diff_action)
                     self.context_menu.addAction(
                                         gettext("Show all &differences..."),
                                         self.show_diff)
             else:
                 if diff.has_ext_diff():
-                    diff_menu = diff.ExtDiffMenu(self)
+                    diff_menu = diff.ExtDiffMenu(
+                        self, set_default=diff_is_default_action)
                     self.context_menu.addMenu(diff_menu)
                     self.connect(diff_menu, QtCore.SIGNAL("triggered(QString)"),
                                  self.show_diff_ext)
@@ -134,7 +137,8 @@ class LogList(RevisionTreeView):
                     show_diff_action = self.context_menu.addAction(
                                         gettext("Show &differences..."),
                                         self.show_diff)
-                    self.context_menu.setDefaultAction(show_diff_action)
+                    if diff_is_default_action:
+                        self.context_menu.setDefaultAction(show_diff_action)
 
             self.connect(self,
                          QtCore.SIGNAL("customContextMenuRequested(QPoint)"),

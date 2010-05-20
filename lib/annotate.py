@@ -247,6 +247,7 @@ class AnnotateWindow(QBzrWindow):
         
         self.log_list = AnnotateLogList(self.processEvents, self.throbber, no_graph, self)
         self.log_list.header().hideSection(logmodel.COL_DATE)
+        self.log_list.parent_annotate_window = self
         self.log_branch_loaded = False
         
         self.connect(self.log_list.selectionModel(),
@@ -372,10 +373,6 @@ class AnnotateWindow(QBzrWindow):
             self.log_branch_loaded = True
             self.log_list.load_branch(self.branch, [self.fileId], tree)
             
-            self.log_list.context_menu.addAction(
-                                    gettext("&Annotate this revision"),
-                                    self.set_annotate_revision)
-            
             just_loaded_log = True
             
             # Show the revisions the we know about now.
@@ -492,7 +489,9 @@ class AnnotateWindow(QBzrWindow):
 
 
 class AnnotateLogList(LogList):
-
+    
+    parent_annotate_window = None
+    
     def load(self):
         self.graph_provider.lock_read_branches()
         try:
@@ -502,3 +501,17 @@ class AnnotateLogList(LogList):
             self._adjust_revno_column()
         finally:
             self.graph_provider.unlock_branches()
+    
+    def create_context_menu(self):
+        LogList.create_context_menu(self, diff_is_default_action=False)
+        set_rev_action = QtGui.QAction(gettext("&Annotate this revision"),
+                                       self.context_menu)
+        self.connect(set_rev_action, QtCore.SIGNAL('triggered()'),
+                     self.parent_annotate_window.set_annotate_revision)
+        self.context_menu.insertAction(
+            self.context_menu.actions()[0],
+            set_rev_action)
+        self.context_menu.setDefaultAction(set_rev_action)
+    
+    def default_action(self, index=None):
+        self.parent_annotate_window.set_annotate_revision()
