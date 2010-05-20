@@ -192,6 +192,35 @@ class AnnotatedTextEdit(QtGui.QPlainTextEdit):
                 block = block.next()
             del painter
         QtGui.QPlainTextEdit.paintEvent(self, event)
+    
+    def get_positions(self):
+        """Returns the charator positons for the selection start,
+        selection end, center of the viewport, an the number of lines from
+        the top of the viewport to the center of the viewport."""
+        old_cursor = self.textCursor()
+        old_center = self.cursorForPosition(QtCore.QPoint(0, self.height() / 2))
+        lines_to_center = (old_center.block().blockNumber() -
+                           self.verticalScrollBar().value())
+        
+        return (old_cursor.selectionStart(),
+                old_cursor.selectionEnd(),
+                old_center.position()) , lines_to_center
+    
+    def set_positions(self, new_positions, lines_to_center):
+        new_start, new_end, new_center = new_positions
+        new_center_cursor = QtGui.QTextCursor(self.document())
+        new_center_cursor.setPosition(new_center)
+        new_scroll = new_center_cursor.block().blockNumber() - lines_to_center
+        self.verticalScrollBar().setValue(new_scroll)
+        
+        new_selection_cursor = QtGui.QTextCursor(self.document())
+        new_selection_cursor.movePosition(QtGui.QTextCursor.Right,
+                                          QtGui.QTextCursor.MoveAnchor,
+                                          new_start)
+        new_selection_cursor.movePosition(QtGui.QTextCursor.Right,
+                                          QtGui.QTextCursor.KeepAnchor,
+                                          new_end - new_start)
+        self.setTextCursor(new_selection_cursor)        
 
 
 class AnnotateWindow(QBzrWindow):
@@ -365,56 +394,13 @@ class AnnotateWindow(QBzrWindow):
         new_positions = None
         if self.old_lines:
             # Try keep the scroll, and selection stable.
-            sm = SequenceMatcher(None, self.old_lines, lines)
-            opcodes = sm.get_opcodes()
-            old_cursor = self.text_edit.textCursor()
-            
-            old_center = self.text_edit.cursorForPosition(
-                QtCore.QPoint(0, self.text_edit.height() / 2))
-            lines_to_center = (old_center.block().blockNumber() -
-                               self.text_edit.verticalScrollBar().value())
-            
-            old_positions = (
-                old_cursor.selectionStart(),
-                old_cursor.selectionEnd(),
-                old_center.position()
-            )
-            new_positions = [None, None, None]
-            old_char_start = 0
-            new_char_start = 0
-            opcode_len = lambda start, end, lines: sum(
-                [len(l) for l in lines[start:end]])
-            for i, old_pos in enumerate(old_positions):
-                for code, old_start, old_end, new_start, new_end in opcodes:
-                    old_len = opcode_len(old_start, old_end, self.old_lines)
-                    new_len = opcode_len(new_start, new_end, lines)
-                    if (old_pos >= old_char_start and
-                        old_pos < old_char_start + old_len):
-                        if code == 'delete':
-                            new_pos = new_char_start
-                        else:
-                            new_pos = new_char_start + (old_pos - old_char_start)
-                        new_positions[i] = new_pos
-                        break
-                    old_char_start += old_len
-                    new_char_start += new_len
+            old_positions, lines_to_center = self.text_edit.get_positions()
+            new_positions = self.translate_positions(
+                                    self.old_lines, lines, old_positions)
         
         self.text_edit.setPlainText("".join(lines))
         if new_positions:
-            new_start, new_end, new_center = new_positions
-            new_center_cursor = QtGui.QTextCursor(self.text_edit.document())
-            new_center_cursor.setPosition(new_center)
-            new_scroll = new_center_cursor.block().blockNumber() - lines_to_center
-            self.text_edit.verticalScrollBar().setValue(new_scroll)
-            
-            new_selection_cursor = QtGui.QTextCursor(self.text_edit.document())
-            new_selection_cursor.movePosition(QtGui.QTextCursor.Right,
-                                              QtGui.QTextCursor.MoveAnchor,
-                                              new_start)
-            new_selection_cursor.movePosition(QtGui.QTextCursor.Right,
-                                              QtGui.QTextCursor.KeepAnchor,
-                                              new_end - new_start)
-            self.text_edit.setTextCursor(new_selection_cursor)
+            self.text_edit.set_positions(new_positions, lines_to_center)
         
         self.old_lines = lines
         self.annotate_bar.adjustWidth(len(lines), 999)
@@ -474,6 +460,30 @@ class AnnotateWindow(QBzrWindow):
                     gp.load_filter_file_id_chunk(repo, 
                             revids[start:start + chunk_size])
             gp.load_filter_file_id_chunk_finished()
+    
+    def translate_positions(self, old_lines, new_lines, old_positions):
+        sm = SequenceMatcher(None, old_lines, new_lines)
+        opcodes = sm.get_opcodes()
+        new_positions = [None for x in range(len(old_positions))]
+        old_char_start = 0
+        new_char_start = 0
+        opcode_len = lambda start, end, lines: sum(
+            [len(l) for l in lines[start:end]])
+        for i, old_pos in enumerate(old_positions):
+            for code, old_start, old_end, new_start, new_end in opcodes:
+                old_len = opcode_len(old_start, old_end, old_lines)
+                new_len = opcode_len(new_start, new_end, new_lines)
+                if (old_pos >= old_char_start and
+                    old_pos < old_char_start + old_len):
+                    if code == 'delete':
+                        new_pos = new_char_start
+                    else:
+                        new_pos = new_char_start + (old_pos - old_char_start)
+                    new_positions[i] = new_pos
+                    break
+                old_char_start += old_len
+                new_char_start += new_len
+        return new_positions
     
     def revisions_loaded(self, revisions, last_call):
         for rev in revisions.itervalues():
