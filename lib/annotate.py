@@ -51,7 +51,7 @@ from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingSelector
 from bzrlib.plugins.qbzr.lib.syntaxhighlighter import highlight_document
 from bzrlib.plugins.qbzr.lib.revtreeview import paint_revno, get_text_color
 from bzrlib.plugins.qbzr.lib import logmodel
-
+from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 ''')
 
 class AnnotateBar(AnnotateBarBase):
@@ -192,6 +192,35 @@ class AnnotatedTextEdit(QtGui.QPlainTextEdit):
                 block = block.next()
             del painter
         QtGui.QPlainTextEdit.paintEvent(self, event)
+    
+    def get_positions(self):
+        """Returns the charator positons for the selection start,
+        selection end, center of the viewport, an the number of lines from
+        the top of the viewport to the center of the viewport."""
+        old_cursor = self.textCursor()
+        old_center = self.cursorForPosition(QtCore.QPoint(0, self.height() / 2))
+        lines_to_center = (old_center.block().blockNumber() -
+                           self.verticalScrollBar().value())
+        
+        return (old_cursor.selectionStart(),
+                old_cursor.selectionEnd(),
+                old_center.position()) , lines_to_center
+    
+    def set_positions(self, new_positions, lines_to_center):
+        new_start, new_end, new_center = new_positions
+        new_center_cursor = QtGui.QTextCursor(self.document())
+        new_center_cursor.setPosition(new_center)
+        new_scroll = new_center_cursor.block().blockNumber() - lines_to_center
+        self.verticalScrollBar().setValue(new_scroll)
+        
+        new_selection_cursor = QtGui.QTextCursor(self.document())
+        new_selection_cursor.movePosition(QtGui.QTextCursor.Right,
+                                          QtGui.QTextCursor.MoveAnchor,
+                                          new_start)
+        new_selection_cursor.movePosition(QtGui.QTextCursor.Right,
+                                          QtGui.QTextCursor.KeepAnchor,
+                                          new_end - new_start)
+        self.setTextCursor(new_selection_cursor)        
 
 
 class AnnotateWindow(QBzrWindow):
@@ -211,6 +240,7 @@ class AnnotateWindow(QBzrWindow):
             self.working_tree = tree
         else:
             self.working_tree = None
+        self.old_lines = None
         
         self.fileId = fileId
         self.path = path
@@ -340,6 +370,8 @@ class AnnotateWindow(QBzrWindow):
         lines = []
         annotate = []
         ordered_revids = []
+        
+        
         self.processEvents()
         for revid, text in tree.annotate_iter(fileId):
             text = text.decode(self.encoding, 'replace')
@@ -360,8 +392,19 @@ class AnnotateWindow(QBzrWindow):
                 self.processEvents()
         annotate.append((None, False))  # because the view has one more line
         
+        new_positions = None
+        if self.old_lines:
+            # Try keep the scroll, and selection stable.
+            old_positions, lines_to_center = self.text_edit.get_positions()
+            new_positions = self.translate_positions(
+                                    self.old_lines, lines, old_positions)
+        
         self.text_edit.annotate = None
         self.text_edit.setPlainText("".join(lines))
+        if new_positions:
+            self.text_edit.set_positions(new_positions, lines_to_center)
+        
+        self.old_lines = lines
         self.annotate_bar.adjustWidth(len(lines), 999)
         self.annotate_bar.annotate = annotate
         self.text_edit.annotate = annotate
@@ -415,6 +458,39 @@ class AnnotateWindow(QBzrWindow):
                     gp.load_filter_file_id_chunk(repo, 
                             revids[start:start + chunk_size])
             gp.load_filter_file_id_chunk_finished()
+    
+    def translate_positions(self, old_lines, new_lines, old_positions):
+        sm = SequenceMatcher(None, old_lines, new_lines)
+        opcodes = sm.get_opcodes()
+        new_positions = [None for x in range(len(old_positions))]
+        old_char_start = 0
+        new_char_start = 0
+        opcode_len = lambda start, end, lines: sum(
+            [len(l) for l in lines[start:end]])
+        for i, old_pos in enumerate(old_positions):
+            for code, old_start, old_end, new_start, new_end in opcodes:
+                old_len = opcode_len(old_start, old_end, old_lines)
+                new_len = opcode_len(new_start, new_end, new_lines)
+                if (old_pos >= old_char_start and
+                    old_pos < old_char_start + old_len):
+                    if code == 'delete':
+                        new_pos = new_char_start
+                    elif (code == 'replace' and recurse and
+                          old_start < old_end and new_start < new_end):
+                        # XXX This should cache the opcodes if we do the same
+                        # block more than once.
+                        new_inner_pos = self.translate_positions(
+                            ''.join(old_lines[old_start:old_end]),
+                            ''.join(new_lines[new_start:new_end]),
+                            [old_pos - old_char_start])[0]
+                        new_pos = new_char_start + new_inner_pos
+                    else:
+                        new_pos = new_char_start + (old_pos - old_char_start)
+                    new_positions[i] = new_pos
+                    break
+                old_char_start += old_len
+                new_char_start += new_len
+        return new_positions
     
     def revisions_loaded(self, revisions, last_call):
         for rev in revisions.itervalues():
