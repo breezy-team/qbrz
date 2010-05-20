@@ -475,8 +475,7 @@ class AnnotateWindow(QBzrWindow):
                     old_pos < old_char_start + old_len):
                     if code == 'delete':
                         new_pos = new_char_start
-                    elif (code == 'replace' and recurse and
-                          old_start < old_end and new_start < new_end):
+                    elif (code == 'replace' and len(opcodes)>1):
                         # XXX This should cache the opcodes if we do the same
                         # block more than once.
                         new_inner_pos = self.translate_positions(
