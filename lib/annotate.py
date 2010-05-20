@@ -359,7 +359,8 @@ class AnnotateWindow(QBzrWindow):
             if len(annotate) % 100 == 0:
                 self.processEvents()
         annotate.append((None, False))  # because the view has one more line
-
+        
+        self.text_edit.annotate = None
         self.text_edit.setPlainText("".join(lines))
         self.annotate_bar.adjustWidth(len(lines), 999)
         self.annotate_bar.annotate = annotate
