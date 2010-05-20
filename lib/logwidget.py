@@ -150,8 +150,9 @@ class LogList(RevisionTreeView):
                 self.context_menu.addAction(gettext("Tag &revision..."),
                                             self.tag_revision)
             self.context_menu_revert = \
-                self.context_menu.addAction(gettext("Revert to this revision..."),
+                self.context_menu.addAction(gettext("R&evert to this revision..."),
                                             self.revert_revision)
+            self.revert_menu = None
 
     def load_branch(self, branch, fileids, tree=None):
         self.throbber.show()
@@ -378,20 +379,28 @@ class LogList(RevisionTreeView):
         window.show()
         self.window().windows.append(window)
     
-    def revert_revision(self):
-        """Reverts the working tree to the selected revision."""
+    def revert_revision(self, selected_working_tree=None):
+        """Reverts the working tree to the selected revision.
+           If there are more than 1 working tree the argument
+           selected_working_tree will be specified as QVariant
+           with a working tree as a python object. 
+           This will be the working tree that the user selected."""
         res = QtGui.QMessageBox.question(self, gettext("Revert Revision"),
                     gettext("Are you sure you want to revert the working "
                             "tree to the selected revision?"
                             ),QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
         if res == QtGui.QMessageBox.Yes:
-          (top_revid, old_revid), count = \
-              self.get_selection_top_and_parent_revids_and_count()
-          gp = self.graph_provider
-          assert(len(gp.branches)==1)
-          branch_info = gp.branches[0]
-          rev_tree = gp.get_revid_repo(top_revid).revision_tree(top_revid)
-          branch_info.tree.revert(filenames=None, old_tree=rev_tree,
+            (top_revid, old_revid), count = \
+                    self.get_selection_top_and_parent_revids_and_count()
+            gp = self.graph_provider
+            rev_tree = gp.get_revid_repo(top_revid).revision_tree(top_revid)
+            if selected_working_tree:
+                wt = selected_working_tree.toPyObject() 
+                wt.revert(filenames=None,old_tree=rev_tree, report_changes=True)
+            else:
+                assert(len(gp.branches)==1)
+                branch_info = gp.branches[0]
+                branch_info.tree.revert(filenames=None, old_tree=rev_tree,
                                   report_changes=True)
     
     def show_diff(self, index=None,
@@ -444,13 +453,45 @@ class LogList(RevisionTreeView):
             branch_count == 1 and self.graph_provider.branches[0].tree)
         (top_revid, old_revid), count = \
               self.get_selection_top_and_parent_revids_and_count()
-        
+        working_tree_count = 0
+        for b in self.graph_provider.branches:
+            if b.tree:
+                working_tree_count = working_tree_count + 1
+         
         self.context_menu_tag.setVisible(count == 1 and branch_count == 1)
-        self.context_menu_revert.setVisible(count == 1 and
+        self.context_menu_revert.setVisible(False)
+        if single_branch_with_tree:
+            self.context_menu_revert.setVisible(count == 1 and
                                             single_branch_with_tree)
-        
+        elif working_tree_count > 0 and (self.revert_menu == None):
+            self.revert_menu = RevertMenu(self, self.graph_provider.branches)
+            self.connect(self.revert_menu, QtCore.SIGNAL("triggered(QVariant)"),
+                         self.revert_revision)
+            self.context_menu.addMenu(self.revert_menu)
+
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
+class RevertMenu(QtGui.QMenu):
+    
+    def __init__ (self, parent, branches):
+        QtGui.QMenu.__init__(self, gettext("&Revert to this revision..."),
+                              parent)
+        action = QtGui.QAction("Working Trees:", self)
+        action.setData(None)
+        action.setEnabled(False)
+        self.addAction(action)
+        self.addSeparator()
+        for branch in branches:
+            if branch.tree:
+                action = QtGui.QAction(str(branch.tree.basedir), self)
+                action.setData(QtCore.QVariant (branch.tree))
+                self.addAction(action)
+        
+        self.connect(self, QtCore.SIGNAL("triggered(QAction *)"),
+                     self.triggered)
+    
+    def triggered(self, action):
+        self.emit(QtCore.SIGNAL("triggered(QVariant)"), action.data())
 
 class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
 
