@@ -68,7 +68,7 @@ def group_large_dirs(paths):
     # deep paths.
     
     all_paths_expanded = {'':('', 0, set([]))}
-    """Dict of all paths expaned, and thier depth, and a set of decendents
+    """Dict of all paths expaned, and their depth, and a set of decendents
     they contain.
     
     The key is the path
@@ -110,8 +110,10 @@ def group_large_dirs(paths):
         while dir_path:
             dir_path, name = os.path.split(dir_path)
             ans_decendents = all_paths_expanded[dir_path][2]
+            old_len = len(ans_decendents)
             ans_decendents.difference_update(decendents)
-            ans_decendents.add(path)
+            if len(ans_decendents) < old_len:
+                ans_decendents.add(path)
     
     # directories included in the original paths container.
     for path, depth, decendents in paths_deep_first:

@@ -16,6 +16,8 @@
    (Bug #486946, Luis Arias)
  * Fix bug where Mac OS X windows start in background. (Bug #417162,
    Luis Arias)
+ * Fix bug in treewidget where folders are repeated.
+   (Bug #580798, Iwata, Gary van der Merwe)
  * qupdate, qunbind, qgetupdates:  new --immediate option will run these
    commands without waiting for the user to click on the Ok button (Luis Arias)
 
