@@ -33,6 +33,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_apparent_author_name,
     get_set_encoding,
     runs_in_loading_queue,
+    get_icon,
+    FindToolbar,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
@@ -256,6 +258,7 @@ class AnnotateWindow(QBzrWindow):
         self.text_edit.setTextInteractionFlags(
             QtCore.Qt.TextSelectableByMouse|
             QtCore.Qt.TextSelectableByKeyboard)
+        self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
         
         self.text_edit.document().setDefaultFont(
             QtGui.QFont("Courier New,courier", 
@@ -304,16 +307,66 @@ class AnnotateWindow(QBzrWindow):
         splitter.setStretchFactor(0, 5)
         splitter.setStretchFactor(1, 2)
 
-        buttonbox = self.create_button_box(BTN_CLOSE)
-
         vbox = QtGui.QVBoxLayout(self.centralwidget)
-        vbox.addWidget(self.throbber)
+        #vbox.addWidget(self.toolbar)
         vbox.addWidget(splitter)
-        hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(self.encoding_selector)
-        hbox.addWidget(buttonbox)
-        vbox.addLayout(hbox)
         self.text_edit.setFocus()
+
+        self.show_find = QtGui.QAction(get_icon("edit-find"), gettext("Find"), self)
+        self.show_find.setShortcuts(QtGui.QKeySequence.Find)
+        self.show_find.setCheckable(True)
+        
+        self.show_goto_line = QtGui.QAction(get_icon("go-jump"), gettext("Goto Line"), self)
+        self.show_goto_line.setShortcuts((QtCore.Qt.CTRL + QtCore.Qt.Key_L,))
+        self.show_goto_line.setCheckable(True)
+        
+        show_view_menu = QtGui.QAction(get_icon("document-properties"), gettext("&View Options"), self)
+        view_menu = QtGui.QMenu(gettext('View Options'), self)
+        show_view_menu.setMenu(view_menu)
+        
+        encoding_action = QtGui.QWidgetAction(view_menu)
+        encoding_action.setDefaultWidget(self.encoding_selector)
+        
+        word_wrap = QtGui.QAction(gettext("Word Wrap"), self)
+        word_wrap.setCheckable(True)
+        self.connect(word_wrap,
+                     QtCore.SIGNAL("toggled (bool)"),
+                     self.word_wrap_toggle)
+        
+        view_menu.addAction(encoding_action)
+        view_menu.addAction(word_wrap)
+        
+        toolbar = self.addToolBar(gettext("Annotate"))
+        toolbar.setMovable (False)
+        toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        
+        #self.toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        toolbar.addAction(self.show_find)
+        toolbar.addAction(self.show_goto_line)
+        toolbar.addAction(show_view_menu)
+        toolbar.widgetForAction(show_view_menu).setPopupMode(QtGui.QToolButton.InstantPopup)
+        
+        spacer = QtGui.QWidget()
+        spacer.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        toolbar.addWidget(spacer) 
+        toolbar.addWidget(self.throbber)
+        
+        self.addToolBarBreak()
+        
+        self.find_toolbar = FindToolbar(self, self.text_edit, self.show_find)
+        self.find_toolbar.hide()
+        self.addToolBar(self.find_toolbar)
+        self.connect(self.show_find,
+                     QtCore.SIGNAL("toggled (bool)"),
+                     self.show_find_toggle)
+        
+        self.goto_line_toolbar = GotoLineToolbar(self, self.show_goto_line)
+        self.goto_line_toolbar.hide()
+        self.addToolBar(self.goto_line_toolbar)
+        
+        self.connect(self.show_goto_line,
+                     QtCore.SIGNAL("toggled (bool)"),
+                     self.show_goto_line_toggle )
 
     def show(self):
         QBzrWindow.show(self)
@@ -562,6 +615,82 @@ class AnnotateWindow(QBzrWindow):
         revids = self.log_list.get_selection_and_merged_revids()
         self.annotate_bar.highlight_revids = revids
         self.annotate_bar.update()
+    
+    def show_find_toggle(self, state):
+        if state:
+            self.show_goto_line.setChecked(False)
+
+    def show_goto_line_toggle(self, state):
+        self.goto_line_toolbar.setVisible(state)
+        if state:
+            self.goto_line_toolbar.line_edit.setFocus()
+            self.show_find.setChecked(False)
+        else:
+            self.goto_line_toolbar.line_edit.setText('')
+    
+    def word_wrap_toggle(self, state):
+        if state:
+            self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.WidgetWidth)
+        else:
+            self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
+
+class GotoLineToolbar(QtGui.QToolBar):
+    
+    def __init__(self, anotate_window, show_action):
+        QtGui.QToolBar.__init__(self, gettext("Goto Line"), anotate_window)
+        self.anotate_window = anotate_window
+        if 0: self.anotate_window = AnnotateWindow()
+        self.show_action = show_action
+        
+        self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self.setMovable (False)
+        
+        label = QtGui.QLabel(gettext("Goto Line: "), self)
+        self.addWidget(label)
+        
+        self.line_edit = QtGui.QLineEdit(self)
+        self.line_edit.setValidator(
+            QtGui.QIntValidator(1, sys.maxint, self.line_edit))
+        self.addWidget(self.line_edit)
+        label.setBuddy(self.line_edit)
+        
+        go = self.addAction(get_icon("go-next"), gettext("Go"))
+        
+        spacer = QtGui.QWidget()
+        spacer.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        self.addWidget(spacer)
+        
+        close = QtGui.QAction(self)
+        close.setIcon(self.style().standardIcon(
+                                        QtGui.QStyle.SP_DialogCloseButton))
+        self.addAction(close)
+        close.setShortcut((QtCore.Qt.Key_Escape))
+        close.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
+        close.setStatusTip(gettext("Close Goto Line"))
+        self.connect(close,
+                     QtCore.SIGNAL("triggered(bool)"),
+                     self.close_triggered)
+        self.connect(go,
+                     QtCore.SIGNAL("triggered(bool)"),
+                     self.go_triggered)
+    
+    def close_triggered(self, state):
+        self.show_action.setChecked(False)
+    
+    def go_triggered(self, state):
+        line = int(str(self.line_edit.text()))-1
+        doc = self.anotate_window.text_edit.document()
+        cursor = QtGui.QTextCursor(doc)
+        cursor.setPosition(doc.findBlockByNumber(line).position())
+        self.anotate_window.text_edit.setTextCursor(cursor)
+        
+        self.show_action.setChecked(False)
+
+    def keyPressEvent(self, e):
+        if e.key() in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
+            self.go_triggered(True)
+        else:
+            QtGui.QToolBar.keyPressEvent(self, e)
 
 
 class AnnotateLogList(LogList):
