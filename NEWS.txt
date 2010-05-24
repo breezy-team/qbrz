@@ -23,6 +23,10 @@
  * qsubprocess: when sending error object over the stdout we should use
    unicode-escape encoding for the possible unicode/multiline strings.
    (Bug #570564, Alexander Belchenko)
+ * qannotate:
+   * Add find and goto line interfaces. The style for this interface will be
+     used for other browsing windows in the future.
+     (Bug #215256, Gary van der Merwe)
 
 
 0.19 Beta 1 "Monkey-puzzle, aka Araucaria araucana" - 2010/03/29
