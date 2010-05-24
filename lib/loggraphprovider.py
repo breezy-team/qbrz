@@ -103,7 +103,7 @@ class RevisionInfo(object):
         visible, and we need to show a -.
         """
         self.twisty_branch_ids = []
-        """Branches that will be expanded/colapsed when the twisty is
+        """Branches that will be expanded/collapsed when the twisty is
         clicked on.
         
         """
@@ -159,7 +159,7 @@ class LogGraphProvider(object):
     
     # Most list/dicts related to revisions are unfiltered. When we do a graph
     # layout, we filter these revisions. A revision may be filter out because:
-    # * It's branch is hidden (or colapsed).
+    # * It's branch is hidden (or collapsed).
     # * We have a sepcified file_id(s), and the revision does not touch the
     #   file_id(s).
     # * We have a search, and the revision does not match the search.
@@ -1463,7 +1463,7 @@ class LogGraphProvider(object):
                 return True
         return False
 
-    def colapse_expand_rev(self, revid, visible):
+    def collapse_expand_rev(self, revid, visible):
         rev = self.revid_rev[revid]
         #if rev.f_index is not None: return
         branch_ids = zip(rev.twisty_branch_ids,

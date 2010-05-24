@@ -956,7 +956,7 @@ or remove old files first.
     * Show changes in x bits. (#153817)
  * qlog: 
     * Always show location even in the case it runs as ``bzr qlog``
-    * Add a revision graph that can be expanded and colapsed. (#242752)
+    * Add a revision graph that can be expanded and collapsed. (#242752)
  * qdiff, qcat, qannotate: Font sizes are no longer set a a small 8pt. They
    now use the default widget font size. (#240859)
 

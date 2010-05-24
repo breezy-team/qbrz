@@ -234,7 +234,7 @@ class LogList(RevisionTreeView):
             self.graph_provider.unlock_branches()
 
     def mousePressEvent (self, e):
-        colapse_expand_click = False
+        collapse_expand_click = False
         if e.button() & QtCore.Qt.LeftButton:
             pos = e.pos()
             index = self.indexAt(pos)
@@ -250,20 +250,20 @@ class LogList(RevisionTreeView):
                 if twistyRect.contains(pos):
                     twisty_state = index.data(logmodel.GraphTwistyStateRole)
                     if twisty_state.isValid():
-                        colapse_expand_click = True
+                        collapse_expand_click = True
                         revision_id = str(index.data(logmodel.RevIdRole).toString())
-                        self.log_model.colapse_expand_rev(revision_id, not twisty_state.toBool())
+                        self.log_model.collapse_expand_rev(revision_id, not twisty_state.toBool())
                         index_b = self.log_model.indexFromRevId(revision_id)
                         index_b = self.filter_proxy_model.mapFromSource(index_b)
                         self.scrollTo(index_b)
                         e.accept ()
-        if not colapse_expand_click:
+        if not collapse_expand_click:
             QtGui.QTreeView.mousePressEvent(self, e)
     
     def mouseMoveEvent (self, e):
         # This prevents the selection from changing when the mouse is over
         # a twisty.
-        colapse_expand_click = False
+        collapse_expand_click = False
         pos = e.pos()
         index = self.indexAt(pos)
         rect = self.visualRect(index)
@@ -278,8 +278,8 @@ class LogList(RevisionTreeView):
             if twistyRect.contains(pos):
                 twisty_state = index.data(logmodel.GraphTwistyStateRole)
                 if twisty_state.isValid():
-                    colapse_expand_click = True
-        if not colapse_expand_click:
+                    collapse_expand_click = True
+        if not collapse_expand_click:
             QtGui.QTreeView.mouseMoveEvent(self, e)
 
     def keyPressEvent (self, e):
@@ -298,10 +298,10 @@ class LogList(RevisionTreeView):
             if e.key() == QtCore.Qt.Key_Right \
                     and twisty_state.isValid() \
                     and not twisty_state.toBool():
-                self.log_model.colapse_expand_rev(revision_id, True)
+                self.log_model.collapse_expand_rev(revision_id, True)
             if e.key() == QtCore.Qt.Key_Left:
                 if twisty_state.isValid() and twisty_state.toBool():
-                    self.log_model.colapse_expand_rev(revision_id, False)
+                    self.log_model.collapse_expand_rev(revision_id, False)
                 else:
                     #find merge of child branch
                     revision_id = self.graph_provider.\
