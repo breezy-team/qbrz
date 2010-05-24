@@ -658,7 +658,7 @@ class SubProcessWidget(QtGui.QWidget):
             elif line.startswith(SUB_ERROR):
                 data = bencode.bdecode(line[len(SUB_ERROR):])
                 self.error_class = data[0]
-                self.error_data = data[1]
+                self.error_data = decode_unicode_escape(data[1])
             else:
                 line = line.decode(self.encoding, 'replace')
                 self.logMessageEx(line, 'plain', self.stdout)
@@ -872,8 +872,12 @@ def run_subprocess_command(cmd, bencoded=False):
         d = {}
         for key, val in e.__dict__.iteritems():
             if not key.startswith('_'):
-                d[key]=unicode(val).encode('utf-8')
-        print "%s%s" % (SUB_ERROR, bencode.bencode((e.__class__.__name__, d)))
+                if not isinstance(val, unicode):
+                    val = unicode(val)
+                d[key] = val
+        print "%s%s" % (SUB_ERROR,
+                        bencode.bencode((e.__class__.__name__,
+                                         encode_unicode_escape(d))))
         raise
 
 
@@ -939,3 +943,21 @@ def bencode_prompt(arg):
 
 def bdecode_prompt(s):
     return bencode.bdecode(s).decode('unicode-escape')
+
+def encode_unicode_escape(obj):
+    if isinstance(obj, dict):
+        result = {}
+        for k,v in obj.iteritems():
+            result[k] = v.encode('unicode-escape')
+        return result
+    else:
+        raise TypeError('encode_unicode_escape: unsupported type: %r' % type(obj))
+
+def decode_unicode_escape(obj):
+    if isinstance(obj, dict):
+        result = {}
+        for k,v in obj.iteritems():
+            result[k] = v.decode('unicode-escape')
+        return result
+    else:
+        raise TypeError('decode_unicode_escape: unsupported type: %r' % type(obj))
