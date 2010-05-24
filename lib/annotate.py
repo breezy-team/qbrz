@@ -317,7 +317,7 @@ class AnnotateWindow(QBzrWindow):
         self.show_find.setCheckable(True)
         
         self.show_goto_line = QtGui.QAction(get_icon("go-jump"), gettext("Goto Line"), self)
-        self.show_goto_line.setShortcuts((QtCore.Qt.CTRL + QtCore.Qt.Key_G,))
+        self.show_goto_line.setShortcuts((QtCore.Qt.CTRL + QtCore.Qt.Key_L,))
         self.show_goto_line.setCheckable(True)
         
         show_view_menu = QtGui.QAction(get_icon("document-properties"), gettext("&View Options"), self)
@@ -655,8 +655,6 @@ class GotoLineToolbar(QtGui.QToolBar):
         label.setBuddy(self.line_edit)
         
         go = self.addAction(get_icon("go-next"), gettext("Go"))
-        go.setShortcut((QtCore.Qt.Key_Enter))
-        go.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
         
         spacer = QtGui.QWidget()
         spacer.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
@@ -688,6 +686,11 @@ class GotoLineToolbar(QtGui.QToolBar):
         
         self.show_action.setChecked(False)
 
+    def keyPressEvent(self, e):
+        if e.key() in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
+            self.go_triggered(True)
+        else:
+            QtGui.QToolBar.keyPressEvent(self, e)
 
 
 class AnnotateLogList(LogList):

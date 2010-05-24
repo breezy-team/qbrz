@@ -978,7 +978,11 @@ class FindToolbar(QtGui.QToolBar):
         find_label.setBuddy(self.find_text)
         
         prev = self.addAction(get_icon("go-previous"), gettext("Previous"))
+        prev.setShortcut(QtGui.QKeySequence.FindPrevious)
+        
         next = self.addAction(get_icon("go-next"), gettext("Next"))
+        next.setShortcut(QtGui.QKeySequence.FindNext)
+        
         self.case_sensitive = QtGui.QCheckBox(gettext("Case sensitive"), self)
         self.addWidget(self.case_sensitive)
         self.whole_words = QtGui.QCheckBox(gettext("Whole words"), self)
@@ -1061,6 +1065,13 @@ class FindToolbar(QtGui.QToolBar):
             # Maybe make find_text background red like Firefox?
         else:
             self.text_edit.setTextCursor(cursor)
+    
+    def keyPressEvent(self, e):
+        if e.key() in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
+            self.find_next(True)
+        else:
+            QtGui.QToolBar.keyPressEvent(self, e)
+
 
 class InfoWidget(QtGui.QFrame):
     def __init__(self, parent=None):
