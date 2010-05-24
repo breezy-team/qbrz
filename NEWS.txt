@@ -12,6 +12,18 @@
    (Gary van der Merwe)
  * qlog: Handle ghost revisions better. Ghost can now be seen in the graph,
    and don't cause search to crash. (Bug #57042, Gary van der Merwe)
+ * Provide better text on Close and Ignore buttons when exceptions raised.
+   (Bug #486946, Luis Arias)
+ * Fix bug where Mac OS X windows start in background. (Bug #417162,
+   Luis Arias)
+ * Fix bug in treewidget where folders are repeated.
+   (Bug #580798, Iwata, Gary van der Merwe)
+ * qupdate, qunbind, qgetupdates:  new --immediate option will run these
+   commands without waiting for the user to click on the Ok button (Luis Arias)
+ * qsubprocess: when sending error object over the stdout we should use
+   unicode-escape encoding for the possible unicode/multiline strings.
+   (Bug #570564, Alexander Belchenko)
+
 
 0.19 Beta 1 "Monkey-puzzle, aka Araucaria araucana" - 2010/03/29
 ----------------------------------------------------------------
@@ -29,11 +41,13 @@
 
 Note: qbzr now requires bzr 2.1.
 
+
 0.18.6 - 2010-05-04
 -------------------
 Maintenance release.
 
  * qlog: Fix a bug with search. (Bug #575338, Gary van der Merwe)
+
 
 0.18.5 "Silver terminalia" - 2010-04-02
 ---------------------------------------

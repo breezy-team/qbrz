@@ -24,6 +24,8 @@ from bzrlib.plugins.qbzr.lib.subprocess import (
     bdecode_prompt,
     bencode_prompt,
     bencode_unicode,
+    encode_unicode_escape,
+    decode_unicode_escape,
     )
 
 
@@ -45,3 +47,11 @@ class TestBencode(TestCase):
         self.assertEqual('spam'+'\n'+'eggs', bdecode_prompt("10:spam\\neggs"))
         self.assertEqual(u'\u0420\n\u0421',
             bdecode_prompt("14:\\u0420\\n\\u0421"))
+
+    def test_encode_unicode_escape_dict(self):
+        self.assertEqual({'key': 'foo\\nbar', 'ukey': u'\\u1234'},
+            encode_unicode_escape({'key': 'foo\nbar', 'ukey': u'\u1234'}))
+
+    def test_decode_unicode_escape_dict(self):
+        self.assertEqual({'key': 'foo\nbar', 'ukey': u'\u1234'},
+            decode_unicode_escape({'key': 'foo\\nbar', 'ukey': u'\\u1234'}))

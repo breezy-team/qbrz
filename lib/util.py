@@ -377,6 +377,10 @@ class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
         self.windows = []
         self.closing = False
 
+    def show(self):
+        QtGui.QMainWindow.show(self)
+        self.raise_()	# Make sure it displays in the foreground
+
 
 class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
 
@@ -404,6 +408,10 @@ class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
     def reject(self):
         self.saveSize()
         QtGui.QDialog.reject(self)
+
+    def show(self):
+        QtGui.QMainWindow.show(self)
+        self.raise_()	# Make sure it displays in the foreground
 
 throber_movie = None
 

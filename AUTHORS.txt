@@ -18,6 +18,7 @@ Contributors:
  * Javier Derderian <javierder at gmail dot com>
  * John Arbash Meinel <john at arbash-meinel dot com>
  * John Szakmeister <john at szakmeister dot net>
+ * Luis Arias <luis at balsamiq dot com>
  * Lukáš Lalinský <lalinsky at gmail dot com>
  * Mario del Pozo <mariodpros at gmail dot com>
  * Mark Hammond <mhammond at skippinet dot com au>

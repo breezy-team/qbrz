@@ -172,21 +172,10 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
                     (name, a_plugin.path(), a_plugin.__version__))
             
             
-            # PyQt is stupid and thinks QMessageBox.StandardButton and
-            # QDialogButtonBox.StandardButton are different, so we have to
-            # duplicate this :-(
-            if type == MAIN_LOAD_METHOD:
-                buttons = QtGui.QDialogButtonBox.Close
-            elif type == SUB_LOAD_METHOD:
-                buttons = QtGui.QDialogButtonBox.Ok
-            elif type == ITEM_OR_EVENT_METHOD:
-                buttons = QtGui.QDialogButtonBox.Close | \
-                          QtGui.QDialogButtonBox.Ignore
-            
             msg_box = ErrorReport(gettext("Error"),
                                   message,
                                   traceback_file.getvalue(),
-                                  buttons,
+                                  type,
                                   window)
         else:
             if type == MAIN_LOAD_METHOD:
@@ -224,13 +213,31 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
     return error_type
 
 class ErrorReport(QtGui.QDialog):
-    def __init__(self, title, message, trace_back, buttons,
+    def __init__(self, title, message, trace_back, type=MAIN_LOAD_METHOD,
                  parent=None):
+
         QtGui.QDialog.__init__ (self, parent)
-        
+
+        self.buttonbox = QtGui.QDialogButtonBox()
+
+        # PyQt is stupid and thinks QMessageBox.StandardButton and
+        # QDialogButtonBox.StandardButton are different, so we have to
+        # duplicate this :-(
+        if type == MAIN_LOAD_METHOD or parent == None:
+            button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Close)
+            button.setText(gettext("Close Application"))
+        elif type == SUB_LOAD_METHOD:
+            button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Ok)
+            button.setText(gettext("Close Error Dialog"))
+        elif type == ITEM_OR_EVENT_METHOD:
+            button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Close)
+            button.setText(gettext("Close Application"))
+            button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Ignore)
+            button.setText(gettext("Ignore Error"))
+
         label = QtGui.QLabel(message)
         label.setWordWrap(True)
-        label.setAlignment(QtCore.Qt.AlignTop|QtCore.Qt.AlignLeft)
+        label.setAlignment(QtCore.Qt.AlignVCenter|QtCore.Qt.AlignLeft)
         self.connect(label,
                      QtCore.SIGNAL("linkActivated(QString)"),
                      self.link_clicked)
@@ -242,23 +249,25 @@ class ErrorReport(QtGui.QDialog):
         trace_back_label = QtGui.QTextEdit()
         trace_back_label.setPlainText (trace_back)
         trace_back_label.setReadOnly(True)
-        
-        self.buttonbox = QtGui.QDialogButtonBox(buttons)
+                    
         self.connect(self.buttonbox,
                      QtCore.SIGNAL("clicked (QAbstractButton *)"),
                      self.clicked)
 
-        layout = QtGui.QGridLayout()
-        layout.addWidget(icon_label, 0, 0)
-        layout.addWidget(label, 0, 1)
-        layout.setColumnStretch(1,1)
+        vbox = QtGui.QVBoxLayout()
         
-        layout.addWidget(trace_back_label, 1, 0, 2, 0)
-        layout.setRowStretch(1,1)
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(icon_label)
+        hbox.addWidget(label, 10)
+        vbox.addLayout(hbox)
         
-        layout.addWidget(self.buttonbox, 3, 0, 2, 0)
+        vbox.addWidget(trace_back_label)
+
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(self.buttonbox)
+        vbox.addLayout(hbox)
         
-        self.setLayout(layout)
+        self.setLayout(vbox)
         
         self.setWindowTitle(title)
         

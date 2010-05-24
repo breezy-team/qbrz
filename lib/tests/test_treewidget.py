@@ -489,3 +489,14 @@ class TestGroupLargeDirs(TestCase):
                           u'b': set([u'b/1', u'b/2', u'b/3', u'b/4', u'b/c']),
                           u'b/c': set([u'b/c/1', u'b/c/2', u'b/c/3', u'b/c/4'])})
 
+    def test_bug_580798(self):
+        # Test for Bug #580798
+        paths = frozenset(('a',
+                           'a/b1/c1',
+                           'a/b2/d1', 'a/b2/d2', 'a/b2/d3', 'a/b2/d4',
+                           ))
+        self.assertEqual(group_large_dirs(paths),
+                         {'': set(['a']),
+                          'a': set(['a/b1/c1', 'a/b2']),
+                          'a/b2': set(['a/b2/d1', 'a/b2/d2', 'a/b2/d3', 'a/b2/d4']),
+                          })
