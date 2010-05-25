@@ -287,7 +287,12 @@ class LogGraphProvider(object):
         of locations strings, inputed by the user (such as at the command line.)
         
         """
-        for location in locations:
+        if locations is not None:
+            _locations = locations
+        else:
+            _locations = [u'.']
+        
+        for location in _locations:
             tree, br, repo, fp = \
                     BzrDir.open_containing_tree_branch_or_repository(location)
             self.update_ui()
@@ -314,14 +319,7 @@ class LogGraphProvider(object):
             # If no locations were sepecified, don't do fileids
             # Otherwise it gives you the history for the dir if you are
             # in a sub dir.
-            #
-            # XXX - There is a case where this does not behave correctly.
-            # If we are in subdir and we do "bzr qlog ." then we should filter
-            # on subdir. but if we do "bzr qlog" then we should not. To be able
-            # to do this, we need to move the implication the no location
-            # argument means '.' down in to the method, rather than where it is
-            # now. - GaryvdM 29 May 2009
-            if fp != '' and locations == [u"."]:
+            if fp != '' and locations is None:
                 fp = ''
 
             if fp != '' :
