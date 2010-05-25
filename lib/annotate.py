@@ -29,7 +29,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
-    ThrobberWidget,
+    ToolBarThrobberWidget,
     get_apparent_author_name,
     get_set_encoding,
     runs_in_loading_queue,
@@ -250,7 +250,7 @@ class AnnotateWindow(QBzrWindow):
         self.loader_func = loader
         self.loader_args = loader_args
 
-        self.throbber = ThrobberWidget(self)
+        self.throbber = ToolBarThrobberWidget(self)
         
         self.text_edit_frame = AnnotateEditerFrameBase(self)
         self.text_edit = AnnotatedTextEdit(self)
@@ -634,6 +634,20 @@ class AnnotateWindow(QBzrWindow):
         else:
             self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
 
+# QIntValidator did not work on vila's setup, so this is a workaround.
+class IntValidator(QtGui.QValidator):
+    def validate (self, input, pos):
+        if input == '':
+            return (QtGui.QValidator.Intermediate, pos)
+        try: 
+            i = int(input)
+        except ValueError:
+            return (QtGui.QValidator.Invalid, pos)
+        if i > 0:
+            return (QtGui.QValidator.Acceptable, pos)
+        else:
+            return (QtGui.QValidator.Invalid, pos)
+
 class GotoLineToolbar(QtGui.QToolBar):
     
     def __init__(self, anotate_window, show_action):
@@ -649,8 +663,7 @@ class GotoLineToolbar(QtGui.QToolBar):
         self.addWidget(label)
         
         self.line_edit = QtGui.QLineEdit(self)
-        self.line_edit.setValidator(
-            QtGui.QIntValidator(1, sys.maxint, self.line_edit))
+        self.line_edit.setValidator(IntValidator(self.line_edit))
         self.addWidget(self.line_edit)
         label.setBuddy(self.line_edit)
         
@@ -673,24 +686,26 @@ class GotoLineToolbar(QtGui.QToolBar):
         self.connect(go,
                      QtCore.SIGNAL("triggered(bool)"),
                      self.go_triggered)
+        self.connect(self.line_edit,
+                     QtCore.SIGNAL("returnPressed()"),
+                     self.go_triggered)
     
     def close_triggered(self, state):
         self.show_action.setChecked(False)
     
-    def go_triggered(self, state):
-        line = int(str(self.line_edit.text()))-1
-        doc = self.anotate_window.text_edit.document()
-        cursor = QtGui.QTextCursor(doc)
-        cursor.setPosition(doc.findBlockByNumber(line).position())
-        self.anotate_window.text_edit.setTextCursor(cursor)
-        
-        self.show_action.setChecked(False)
-
-    def keyPressEvent(self, e):
-        if e.key() in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
-            self.go_triggered(True)
+    def go_triggered(self, state=True):
+        try:
+            line = int(str(self.line_edit.text()))-1
+        except ValueError:
+            pass
         else:
-            QtGui.QToolBar.keyPressEvent(self, e)
+            doc = self.anotate_window.text_edit.document()
+            cursor = QtGui.QTextCursor(doc)
+            cursor.setPosition(doc.findBlockByNumber(line).position())
+            self.anotate_window.text_edit.setTextCursor(cursor)
+            
+            self.show_action.setChecked(False)
+
 
 
 class AnnotateLogList(LogList):
