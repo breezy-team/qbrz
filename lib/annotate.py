@@ -29,7 +29,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
-    ThrobberWidget,
+    ToolBarThrobberWidget,
     get_apparent_author_name,
     get_set_encoding,
     runs_in_loading_queue,
@@ -250,7 +250,7 @@ class AnnotateWindow(QBzrWindow):
         self.loader_func = loader
         self.loader_args = loader_args
 
-        self.throbber = ThrobberWidget(self)
+        self.throbber = ToolBarThrobberWidget(self)
         
         self.text_edit_frame = AnnotateEditerFrameBase(self)
         self.text_edit = AnnotatedTextEdit(self)

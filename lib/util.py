@@ -416,55 +416,84 @@ class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
 throber_movie = None
 
 class ThrobberWidget(QtGui.QWidget):
-    """A window that displays a simple throbber over its parent."""
+    """A widget that indicates activity."""
 
     def __init__(self, parent, timeout=500):
         QtGui.QWidget.__init__(self, parent)
-        self.create_ui()
-        self.num_show = 0
-        
-        # create a timer that displays our window after the timeout.
-        #QtCore.QTimer.singleShot(timeout, self.show)
-
-    def create_ui(self):
-        # a couple of widgets
-        layout = QtGui.QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        
-        self.spinner = QtGui.QLabel("", self)    
         global throber_movie
         if not throber_movie:
             throber_movie = QtGui.QMovie(":/16x16/process-working.gif")
             throber_movie.start()
+        
+        self.spinner = QtGui.QLabel("", self)    
         self.spinner.setMovie(throber_movie)
         
-        #self.message = QtGui.QLabel(gettext("Loading..."), self)
+        self.message = QtGui.QLabel(gettext("Loading..."), self)
         #self.progress = QtGui.QProgressBar(self)
         #self.progress.setTextVisible (False)
         #self.progress.hide()
         #self.progress.setMaximum(sys.maxint)
         self.transport = QtGui.QLabel("", self)
+        for widget in (self.spinner,
+                       self.message,
+                       #self.progress,
+                       self.transport):
+            widget.hide()
+        
+        self.widgets = []
+        self.set_layout()
+        self.num_show = 0
+
+    def set_layout(self):
+        layout = QtGui.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        layout.addWidget(self.spinner)
+        #layout.addWidget(self.progress)
+        layout.addWidget(self.message, 1)
+        layout.addWidget(self.transport)
+        
+        self.widgets.append(self.spinner)
+        #self.widgets.append(self.progress)
+        self.widgets.append(self.message)
+        self.widgets.append(self.transport)
+
+    def hide(self):
+        #if self.is_shown:
+            #QtGui.QApplication.restoreOverrideCursor()
+        self.num_show -= 1
+        if self.num_show <= 0:
+            self.num_show = 0
+            QtGui.QWidget.hide(self)
+            for widget in self.widgets:
+                widget.hide()
+    
+    def show(self):
+        #QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        # and show ourselves.
+        self.num_show += 1
+        QtGui.QWidget.show(self)
+        for widget in self.widgets:
+            widget.show()
+    
+
+class ToolBarThrobberWidget(ThrobberWidget):
+    """A widget that indicates activity. Smaller than ThrobberWidget, designed
+    for use on a toolbar."""
+
+    def set_layout(self):
+        layout = QtGui.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         
         layout.addWidget(self.transport)
         layout.addWidget(self.spinner)
         #layout.addWidget(self.progress)
         #layout.addWidget(self.message, 1)
-
-    def hide(self):
-        self.num_show -= 1
-        if self.num_show <= 0:
-            self.num_show = 0
-            #QtGui.QApplication.restoreOverrideCursor()
-            QtGui.QWidget.hide(self)
-            self.transport.hide()
-            self.spinner.hide()
-
-    def show(self):
-        #QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
-        QtGui.QWidget.show(self)
-        self.transport.show()
-        self.spinner.show()
-        self.num_show += 1
+        
+        self.widgets.append(self.spinner)
+        #self.widgets.append(self.progress)
+        #self.widgets.append(self.message)
+        self.widgets.append(self.transport)
 
 
 # Helpers for directory pickers.
