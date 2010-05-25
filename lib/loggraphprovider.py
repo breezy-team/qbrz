@@ -26,6 +26,7 @@ from bzrlib import errors
 from bzrlib.transport.local import LocalTransport
 from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.graph import (Graph, StackedParentsProvider, KnownGraph)
+from bzrlib.urlutils import determine_relative_path, join
     
 from bzrlib.bzrdir import BzrDir
 from bzrlib.workingtree import WorkingTree
@@ -45,8 +46,8 @@ class BranchInfo(object):
     
     # Instance of this object are typicaly named "bi".
     
-    __slots__ = ["tree", "branch", "index"]
-    def __init__ (self, tree, branch, index):
+    def __init__ (self, label, tree, branch, index=None):
+        self.label = label
         self.tree = tree
         self.branch = branch
         self.index = index
@@ -153,7 +154,6 @@ class BranchLine(object):
     def __repr__(self):
         return "%s <%s>" % (self.__class__.__name__, self.branch_id)
 
-
 class LogGraphProvider(object):
     """Loads and computes revision and graph data for GUI log widgets."""
     
@@ -246,8 +246,8 @@ class LogGraphProvider(object):
         if local_copy:
             self.local_repo_copies.append(repo.base)
     
-    def append_branch(self, tree, branch):
-        bi = BranchInfo(tree, branch, None)
+    def append_branch(self, label, tree, branch):
+        bi = BranchInfo(label, tree, branch)
         if bi not in self.branches:
             bi.index = self.open_search_index(branch)
             self.branches.append(bi)
@@ -260,6 +260,36 @@ class LogGraphProvider(object):
                 return None
         else:
             return None
+    
+    no_usefull_info_in_location_re = re.compile(r'^[.:/\\]*$')
+    def branch_label(self, location, branch,
+                     shared_repo_location=None, shared_repo=None):
+        # We should rather use QFontMetrics.elidedText. How do we decide on the
+        # width.
+        # This should be smarter about paths
+        def elided_text(text):
+            if len(text)>23:
+                return text[:20]+'...'
+            return text
+        
+        if shared_repo_location and shared_repo and not location:
+            # Once we depend on bzrlib 2.2, this can become .user_url
+            branch_rel = determine_relative_path(
+                shared_repo.bzrdir.root_transport.base,
+                branch.bzrdir.root_transport.base)
+            location = join(shared_repo_location, branch_rel)
+        if location is None:
+            return elided_text(branch.nick)
+        
+        append_nick = (
+            location.startswith(':') or
+            bool(self.no_usefull_info_in_location_re.match(location)) or
+            branch.get_config().has_explicit_nickname()
+            )
+        if append_nick:
+            return '%s (%s)' % (elided_text(location), branch.nick)
+        
+        return elided_text(location)
     
     def open_branch(self, branch, file_ids=None, tree=None):
         """Open branch and fileids to be loaded. """
@@ -274,7 +304,8 @@ class LogGraphProvider(object):
             except errors.NoWorkingTree:
                 pass
         self.append_repo(repo)
-        self.append_branch(tree, branch)
+        label = self.branch_label(None, branch)
+        self.append_branch(label, tree, branch)
 
         if file_ids:
             self.fileids.extend(file_ids)
@@ -307,12 +338,14 @@ class LogGraphProvider(object):
                         tree = br.bzrdir.open_workingtree()
                     except errors.NoWorkingTree:
                         tree = None
-                    self.append_branch(tree, br)
+                    label = self.branch_label(None, br, location, repo)
+                    self.append_branch(label, tree, br)
                     self.append_repo(br.repository)
                 self.update_ui()
             else:
                 self.append_repo(repo)
-                self.append_branch(tree, br)
+                label = self.branch_label(location, br)
+                self.append_branch(label, tree, br)
                 if len(self.branches)==1 and self.trunk_branch == None:
                     self.trunk_branch = br
             
@@ -376,16 +409,14 @@ class LogGraphProvider(object):
         self.head_revids = []
         self.revid_branch = {}
         for bi in self.branches:
-            
-            if len(self.branches) == 1:
-                tag = None
+            if len(self.branches)>0:
+                label = bi.label
             else:
-                tag = bi.branch.nick
-                if len(tag) > 20:
-                    tag = tag[:20]+'...'
+                label = None
             
             branch_last_revision = bi.branch.last_revision()
-            self.append_head_info(branch_last_revision, bi.branch, tag, True)
+            self.append_head_info(branch_last_revision, bi.branch,
+                                  bi.label, True)
             self.update_ui()
             
             if bi.tree:
@@ -395,17 +426,17 @@ class LogGraphProvider(object):
                     revid = parent_ids[0]
                     if revid != branch_last_revision:
                         # working tree is out of date
-                        if tag:
+                        if label:
                             self.append_head_info(revid, bi.branch,
-                                             "%s - Working Tree" % tag, False)
+                                             "%s - Working Tree" % label, False)
                         else:
                             self.append_head_info(revid, bi.branch,
                                              "Working Tree", False)
                     # other parents are pending merges
                     for revid in parent_ids[1:]:
-                        if tag:
+                        if label:
                             self.append_head_info(revid, bi.branch,
-                                             "%s - Pending Merge" % tag, False)
+                                             "%s - Pending Merge" % label, False)
                         else:
                             self.append_head_info(revid, bi.branch,
                                              "Pending Merge", False)
