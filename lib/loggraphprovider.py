@@ -768,7 +768,11 @@ class LogGraphProvider(object):
         else:
             self.revid_branch = {}
         
-        if len(self.revid_head_info) > 1:
+        head_count = 0
+        for head_info, ur in self.revid_head_info.itervalues():
+            head_count += len(head_info)
+        
+        if head_count > 1:
             # Populate unique revisions for heads
             for revid, (head_info, ur) in self.revid_head_info.iteritems():
                 rev = None
