@@ -686,24 +686,26 @@ class GotoLineToolbar(QtGui.QToolBar):
         self.connect(go,
                      QtCore.SIGNAL("triggered(bool)"),
                      self.go_triggered)
+        self.connect(self.line_edit,
+                     QtCore.SIGNAL("returnPressed()"),
+                     self.go_triggered)
     
     def close_triggered(self, state):
         self.show_action.setChecked(False)
     
-    def go_triggered(self, state):
-        line = int(str(self.line_edit.text()))-1
-        doc = self.anotate_window.text_edit.document()
-        cursor = QtGui.QTextCursor(doc)
-        cursor.setPosition(doc.findBlockByNumber(line).position())
-        self.anotate_window.text_edit.setTextCursor(cursor)
-        
-        self.show_action.setChecked(False)
-
-    def keyPressEvent(self, e):
-        if e.key() in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
-            self.go_triggered(True)
+    def go_triggered(self, state=True):
+        try:
+            line = int(str(self.line_edit.text()))-1
+        except ValueError:
+            pass
         else:
-            QtGui.QToolBar.keyPressEvent(self, e)
+            doc = self.anotate_window.text_edit.document()
+            cursor = QtGui.QTextCursor(doc)
+            cursor.setPosition(doc.findBlockByNumber(line).position())
+            self.anotate_window.text_edit.setTextCursor(cursor)
+            
+            self.show_action.setChecked(False)
+
 
 
 class AnnotateLogList(LogList):

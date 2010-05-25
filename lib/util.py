@@ -1016,6 +1016,9 @@ class FindToolbar(QtGui.QToolBar):
         self.connect(self.whole_words,
                      QtCore.SIGNAL("stateChanged(int)"),
                      self.find_text_changed)
+        self.connect(self.find_text,
+                     QtCore.SIGNAL("returnPressed()"),
+                     self.find_next)        
         
     def show_action_toggle(self, state):
         self.setVisible(state)
@@ -1065,12 +1068,6 @@ class FindToolbar(QtGui.QToolBar):
             # Maybe make find_text background red like Firefox?
         else:
             self.text_edit.setTextCursor(cursor)
-    
-    def keyPressEvent(self, e):
-        if e.key() in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return):
-            self.find_next(True)
-        else:
-            QtGui.QToolBar.keyPressEvent(self, e)
 
 
 class InfoWidget(QtGui.QFrame):
