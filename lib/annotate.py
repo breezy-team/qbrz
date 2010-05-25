@@ -634,6 +634,20 @@ class AnnotateWindow(QBzrWindow):
         else:
             self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
 
+# QIntValidator did not work on vila's setup, so this is a workaround.
+class IntValidator(QtGui.QValidator):
+    def validate (self, input, pos):
+        if input == '':
+            return (QtGui.QValidator.Intermediate, pos)
+        try: 
+            i = int(input)
+        except ValueError:
+            return (QtGui.QValidator.Invalid, pos)
+        if i > 0:
+            return (QtGui.QValidator.Acceptable, pos)
+        else:
+            return (QtGui.QValidator.Invalid, pos)
+
 class GotoLineToolbar(QtGui.QToolBar):
     
     def __init__(self, anotate_window, show_action):
@@ -649,8 +663,7 @@ class GotoLineToolbar(QtGui.QToolBar):
         self.addWidget(label)
         
         self.line_edit = QtGui.QLineEdit(self)
-        self.line_edit.setValidator(
-            QtGui.QIntValidator(1, sys.maxint, self.line_edit))
+        self.line_edit.setValidator(IntValidator(self.line_edit))
         self.addWidget(self.line_edit)
         label.setBuddy(self.line_edit)
         
