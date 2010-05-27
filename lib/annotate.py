@@ -451,7 +451,7 @@ class AnnotateWindow(QBzrWindow):
             old_positions, lines_to_center = self.text_edit.get_positions()
             new_positions = self.translate_positions(
                                     self.old_lines, lines, old_positions)
-        
+            
         self.text_edit.annotate = None
         self.text_edit.setPlainText("".join(lines))
         if new_positions:
@@ -516,11 +516,11 @@ class AnnotateWindow(QBzrWindow):
         sm = SequenceMatcher(None, old_lines, new_lines)
         opcodes = sm.get_opcodes()
         new_positions = [None for x in range(len(old_positions))]
-        old_char_start = 0
-        new_char_start = 0
         opcode_len = lambda start, end, lines: sum(
             [len(l) for l in lines[start:end]])
         for i, old_pos in enumerate(old_positions):
+            old_char_start = 0
+            new_char_start = 0
             for code, old_start, old_end, new_start, new_end in opcodes:
                 old_len = opcode_len(old_start, old_end, old_lines)
                 new_len = opcode_len(new_start, new_end, new_lines)
