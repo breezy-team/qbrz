@@ -26,7 +26,7 @@ from bzrlib import errors
 from bzrlib.transport.local import LocalTransport
 from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.graph import (Graph, StackedParentsProvider, KnownGraph)
-from bzrlib.urlutils import determine_relative_path, join
+from bzrlib.urlutils import determine_relative_path, join, split
     
 from bzrlib.bzrdir import BzrDir
 from bzrlib.workingtree import WorkingTree
@@ -266,11 +266,18 @@ class LogGraphProvider(object):
                      shared_repo_location=None, shared_repo=None):
         # We should rather use QFontMetrics.elidedText. How do we decide on the
         # width.
-        # This should be smarter about paths
-        def elided_text(text):
-            if len(text)>23:
-                return text[:20]+'...'
+        def elided_text(text, length=20):
+            if len(text)>length+3:
+                return text[:length]+'...'
             return text
+        
+        def elided_path(path):
+            if len(path)>23:
+                dir, name = split(path)
+                dir = elided_text(dir, 10)
+                name = elided_text(name)
+                return join(dir, name)
+            return path
         
         if shared_repo_location and shared_repo and not location:
             # Once we depend on bzrlib 2.2, this can become .user_url
@@ -287,7 +294,7 @@ class LogGraphProvider(object):
             branch.get_config().has_explicit_nickname()
             )
         if append_nick:
-            return '%s (%s)' % (elided_text(location), branch.nick)
+            return '%s (%s)' % (elided_path(location), branch.nick)
         
         return elided_text(location)
     
