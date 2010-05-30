@@ -2,11 +2,9 @@
 ----------------------------
 Bugfixes and backported bugfixes.
 
- * Change dialogs to have normal window flags. This fixes a bug where on
-   some window managers (metacity, Mac OSX) windows opened from a dialog
-   would be behind the dialog. (Bug #421039, Gary van der Merwe)
- * Treewidget: Fix a crash when refreshing tree with a checked item that has a
-   parent that is ungrouped. (Bug #512006, Gary van der Merwe)
+  * Change dialogs to have normal window flags. This fixes a bug where on
+    some window managers (metacity, Mac OSX) windows opened from a dialog
+    would be behind the dialog. (Bug #421039, Gary van der Merwe)
 
 0.14.6 "Spruce" - 2010-01-18
 ----------------------------
