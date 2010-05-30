@@ -197,7 +197,7 @@ class LogGraphProvider(object):
             tag,
             is_branch_last_revision)
         """
-        self.branch_tags = {}
+        self.branch_labels = {}
         """Dict of revid to a list of branch tags. Depends on which revisions
         are visible."""
         
@@ -1462,7 +1462,7 @@ class LogGraphProvider(object):
                      parent.color,
                      direct))
         
-        self.branch_tags = {}
+        self.branch_labels = {}
         for (revid, (head_info,
                      unique_revids)) in self.revid_head_info.iteritems():
             top_visible_revid = None
@@ -1473,11 +1473,8 @@ class LogGraphProvider(object):
                     top_visible_revid = unique_revid
                     break
             
-            tags =  [tag for (branch,
-                              tag,
-                              is_branch_last_revision) in head_info]
             if top_visible_revid:
-                self.branch_tags[top_visible_revid] = tags
+                self.branch_labels[top_visible_revid] = head_info
     
     def set_branch_visible(self, branch_id, visible, has_change):
         if not self.branch_lines[branch_id].visible == visible:

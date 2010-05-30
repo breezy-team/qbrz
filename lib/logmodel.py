@@ -216,11 +216,24 @@ class LogModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant(QtCore.QStringList(tags))
         
         if role == BranchTagsRole:
-            tags = []
-            if rev_info.revid in gp.branch_tags:
-                tags = [tag for tag \
-                        in gp.branch_tags[rev_info.revid] if tag]
-            return QtCore.QVariant(QtCore.QStringList(tags))
+            labels = []
+            if rev_info.revid in gp.branch_labels:
+                labels =  [label for (branch,
+                                      label,
+                                      is_branch_last_revision)
+                           in gp.branch_labels[rev_info.revid]
+                           if label]
+            return QtCore.QVariant(QtCore.QStringList(labels))
+        
+        if role == QtCore.Qt.ToolTipRole and index.column() == COL_MESSAGE:
+            urls = []
+            if rev_info.revid in gp.branch_labels:
+                urls =  [branch.base for (branch,
+                                          label,
+                                          is_branch_last_revision)
+                           in gp.branch_labels[rev_info.revid]
+                           if label]
+            return QtCore.QVariant('\n'.join(urls))
         
         if role == RevIdRole:
             return QtCore.QVariant(QtCore.QByteArray(rev_info.revid))
