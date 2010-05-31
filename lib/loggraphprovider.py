@@ -42,7 +42,7 @@ have_search = True
 try:
     from bzrlib.plugins.search import errors as search_errors
     from bzrlib.plugins.search import index as search_index
-except ImportError:
+except (ImportError, errors.IncompatibleAPI):
     have_search = False
 
 class BranchInfo(object):
@@ -249,7 +249,7 @@ class LogGraphProvider(object):
         if have_search:
             try:
                 return search_index.open_index_branch(branch)
-            except search_errors.NoSearchIndex:
+            except (search_errors.NoSearchIndex, errors.IncompatibleAPI):
                 return None
         else:
             return None
