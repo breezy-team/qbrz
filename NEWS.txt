@@ -5,6 +5,8 @@ Maintenance release.
  * qlog: Fix a bug with search. (Bug #575338, Gary van der Merwe)
  * qlog: Fix a bug were qlog crashes when bzr-svn is incompatible with bzrlib.
    (Bug #546843, Gary van der Merwe)
+ * Fix bug in treewidget where folders are repeated.
+   (Bug #580798, Iwata, Gary van der Merwe)
 
 0.18.5 "Silver terminalia" - 2010-04-02
 ---------------------------------------
