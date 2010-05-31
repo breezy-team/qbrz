@@ -5,6 +5,7 @@ Bugfixes and backported bugfixes.
   * Change dialogs to have normal window flags. This fixes a bug where on
     some window managers (metacity, Mac OSX) windows opened from a dialog
     would be behind the dialog. (Bug #421039, Gary van der Merwe)
+  * Fix test failures with new versions of bzr. (Bug #433843, Gary van der Merwe)
 
 0.14.6 "Spruce" - 2010-01-18
 ----------------------------
