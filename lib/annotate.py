@@ -210,10 +210,11 @@ class AnnotatedTextEdit(QtGui.QPlainTextEdit):
     
     def set_positions(self, new_positions, lines_to_center):
         new_start, new_end, new_center = new_positions
-        new_center_cursor = QtGui.QTextCursor(self.document())
-        new_center_cursor.setPosition(new_center)
-        new_scroll = new_center_cursor.block().blockNumber() - lines_to_center
-        self.verticalScrollBar().setValue(new_scroll)
+        if new_center:
+            new_center_cursor = QtGui.QTextCursor(self.document())
+            new_center_cursor.setPosition(new_center)
+            new_scroll = new_center_cursor.block().blockNumber() - lines_to_center
+            self.verticalScrollBar().setValue(new_scroll)
         
         new_selection_cursor = QtGui.QTextCursor(self.document())
         new_selection_cursor.movePosition(QtGui.QTextCursor.Right,
