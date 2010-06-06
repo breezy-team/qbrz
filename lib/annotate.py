@@ -49,7 +49,7 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
 from bzrlib.revision import CURRENT_REVISION
 from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
-from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingSelector
+from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
 from bzrlib.plugins.qbzr.lib.syntaxhighlighter import highlight_document
 from bzrlib.plugins.qbzr.lib.revtreeview import paint_revno, get_text_color
 from bzrlib.plugins.qbzr.lib import logmodel
@@ -289,8 +289,8 @@ class AnnotateWindow(QBzrWindow):
         
         self.message = LogListRevisionMessageBrowser(self.log_list, self)
 
-        self.encoding_selector = EncodingSelector(self.encoding,
-            gettext("Encoding:"),
+        self.encoding_selector = EncodingMenuSelector(self.encoding,
+            gettext("Encoding"),
             self._on_encoding_changed)
 
         hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
@@ -324,16 +324,13 @@ class AnnotateWindow(QBzrWindow):
         view_menu = QtGui.QMenu(gettext('View Options'), self)
         show_view_menu.setMenu(view_menu)
         
-        encoding_action = QtGui.QWidgetAction(view_menu)
-        encoding_action.setDefaultWidget(self.encoding_selector)
-        
         word_wrap = QtGui.QAction(gettext("Word Wrap"), self)
         word_wrap.setCheckable(True)
         self.connect(word_wrap,
                      QtCore.SIGNAL("toggled (bool)"),
                      self.word_wrap_toggle)
         
-        view_menu.addAction(encoding_action)
+        view_menu.addMenu(self.encoding_selector)
         view_menu.addAction(word_wrap)
         
         toolbar = self.addToolBar(gettext("Annotate"))
