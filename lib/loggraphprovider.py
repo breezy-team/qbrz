@@ -784,11 +784,15 @@ class LogGraphProvider(object):
             if tree is None:
                 tree = bi.branch.basis_tree()
             
-            self.has_dir = False
-            for fileid in self.fileids:
-                if tree.kind(fileid) in ('directory', 'tree-reference'):
-                    self.has_dir = True
-                    break
+            tree.lock_read()
+            try:
+                self.has_dir = False
+                for fileid in self.fileids:
+                    if tree.kind(fileid) in ('directory', 'tree-reference'):
+                        self.has_dir = True
+                        break
+            finally:
+                tree.unlock()
             
             self.filter_file_id = [False for i in 
                          xrange(len(self.revisions))]
