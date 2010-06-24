@@ -28,6 +28,8 @@
      (Bug # 485236, Gary van der Merwe)
    * qlog . in a sub dir now filters to only show the sub dir.
      (Bug #517592, Gary van der Merwe)
+   * Fix crash we viewing file history from qbrowse/bzr explorer.
+     (Bug #585280, Gary van der Merwe)
  * qupdate, qunbind, qgetupdates:  new --immediate option will run these
    commands without waiting for the user to click on the Ok button (Luis Arias)
  * qannotate:
