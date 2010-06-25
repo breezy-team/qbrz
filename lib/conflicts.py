@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
+from bzrlib import cmdline
 from bzrlib.config import GlobalConfig
 from bzrlib.conflicts import resolve
 from bzrlib.workingtree import WorkingTree
@@ -218,7 +219,7 @@ class ConflictsWindow(QBzrWindow):
         if self.program_extmerge_default_button.isChecked():
             bzr_config = GlobalConfig()
             extmerge_tool = bzr_config.get_user_option("external_merge")
-            args = extmerge_tool.split(" ")
+            args = cmdline.split(extmerge_tool)
             new_args = args[1:len(args)]
             i = 0
             while i < len(new_args):
