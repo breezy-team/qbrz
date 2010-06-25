@@ -98,11 +98,13 @@ class RevisionTreeView(QtGui.QTreeView):
         #    throbber_height = self.throbber.   etc...        
         bottom_index = self.indexAt(self.viewport().rect().bottomLeft()) # + throbber_height
         
-        revids = set()
+        revids = []
         while True:
             revid = index.data(RevIdRole)
             if not revid.isNull():
-                revids.add(str(revid.toByteArray()))
+                revid = str(revid.toByteArray())
+                if revid not in revids:
+                    revids.append(revid)
             if index == bottom_index:
                 break
             index = self.indexBelow(index)
