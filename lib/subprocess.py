@@ -39,6 +39,9 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 
 from bzrlib.ui.text import TextProgressView, TextUIFactory
+from bzrlib.plugins.qbzr.lib.trace import (
+   report_exception,
+   SUB_LOAD_METHOD)
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
@@ -57,10 +60,6 @@ from bzrlib import (
     )
 
 from bzrlib.bzrdir import BzrDir
-
-from bzrlib.plugins.qbzr.lib.trace import (
-   report_exception,
-   SUB_LOAD_METHOD)
 
 from bzrlib.plugins.qbzr.lib.commit import CommitWindow
 from bzrlib.plugins.qbzr.lib.revert import RevertWindow

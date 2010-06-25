@@ -29,6 +29,8 @@ from bzrlib.plugins.qbzr.lib.revtreeview import (
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.lazy_import import lazy_import
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
+from bzrlib.plugins.qbzr.lib.trace import report_exception, SUB_LOAD_METHOD
+
 lazy_import(globals(), '''
 import posixpath  # to use '/' path sep in path.join().
 from time import (strftime, localtime)
@@ -54,7 +56,6 @@ from bzrlib.plugins.qbzr.lib.diff import (
     ExtDiffMenu,
     InternalWTDiffArgProvider,
     )
-from bzrlib.plugins.qbzr.lib.trace import report_exception, SUB_LOAD_METHOD
 
 ''')
 def dict_set_add(dict, key, value):
