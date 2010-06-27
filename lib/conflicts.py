@@ -18,7 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from bzrlib import cmdline
 from bzrlib.config import GlobalConfig
 from bzrlib.conflicts import resolve
 from bzrlib.workingtree import WorkingTree
@@ -29,6 +28,11 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrGlobalConfig,
     StandardButton,
     )
+
+try:
+    from bzrlib.cmdline import split as cmdline_split
+except ImportError:
+    from bzrlib.commands import shlex_split_unicode as cmdline_split
 
 
 class ConflictsWindow(QBzrWindow):
@@ -219,7 +223,7 @@ class ConflictsWindow(QBzrWindow):
         if self.program_extmerge_default_button.isChecked():
             bzr_config = GlobalConfig()
             extmerge_tool = bzr_config.get_user_option("external_merge")
-            args = cmdline.split(extmerge_tool)
+            args = cmdline_split(extmerge_tool)
             new_args = args[1:len(args)]
             i = 0
             while i < len(new_args):
