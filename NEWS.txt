@@ -1,5 +1,5 @@
-0.19 Beta 2  - Under development
---------------------------------
+0.19 Beta 2 "Pomegranate" - 2010/07/01
+--------------------------------------
  * Allow finding locale in system location on Linux
    (Bug #542429, Toshio Kuratomi).
  * Provide better text on Close and Ignore buttons when exceptions raised.
