@@ -182,8 +182,11 @@ class QBzrCommand(Command):
             ui.ui_factory = std_ui_factory
 
 
-ui_mode_option = Option("ui-mode", help="Causes dialogs to wait after the operation is complete.")
-immediate_option = Option("immediate", help="Causes dialogs to start the underlying action immediately without waiting for user input")
+ui_mode_option = Option("ui-mode",
+    help="Causes dialogs to wait after the operation is complete.")
+execute_option = Option("execute", short_name='e',
+    help="Causes dialogs to start the underlying action immediately without "
+         "waiting for user input.")
 
 # A special option so 'revision' can be passed as a simple string, when we do
 # *not* wan't bzrlib's feature of parsing the revision string before passing it.
@@ -768,16 +771,16 @@ class cmd_qgetupdates(QBzrCommand):
     """Fetches external changes into the working tree."""
 
     takes_args = ['location?']
-    takes_options = [ui_mode_option, immediate_option]
+    takes_options = [ui_mode_option, execute_option]
     aliases = ['qgetu', 'qgetup']
 
-    def _qbzr_run(self, location=CUR_DIR, ui_mode=False, immediate=False):
+    def _qbzr_run(self, location=CUR_DIR, ui_mode=False, execute=False):
         branch, relpath = Branch.open_containing(location)
         tb = TreeBranch.open_containing(location, ui_mode=ui_mode)
         if tb is None:
             return errors.EXIT_ERROR
         if tb.is_light_co():
-            window = QBzrUpdateWindow(tb.tree, ui_mode, immediate=immediate)
+            window = QBzrUpdateWindow(tb.tree, ui_mode, execute=execute)
         elif tb.is_bound():
             window = UpdateCheckoutWindow(tb.branch, ui_mode=ui_mode)
         else:
@@ -898,13 +901,13 @@ class cmd_qupdate(QBzrCommand):
     """Update working tree with latest changes in the branch."""
     aliases = ['qup']
     takes_args = ['directory?']
-    takes_options = [ui_mode_option, immediate_option]
+    takes_options = [ui_mode_option, execute_option]
 
-    def _qbzr_run(self, directory=None, ui_mode=False, immediate=False):
+    def _qbzr_run(self, directory=None, ui_mode=False, execute=False):
         tree = open_tree(directory, ui_mode)
         if tree is None:
             return
-        self.main_window = QBzrUpdateWindow(tree, ui_mode, immediate)
+        self.main_window = QBzrUpdateWindow(tree, ui_mode, execute)
         self.main_window.show()
         self._application.exec_()
 
@@ -940,16 +943,16 @@ class cmd_qswitch(QBzrCommand):
 
 class cmd_qunbind(QBzrCommand):
     """Convert the current checkout into a regular branch."""
-    takes_options = [ui_mode_option, immediate_option]
+    takes_options = [ui_mode_option, execute_option]
     
-    def _qbzr_run(self, ui_mode=False, immediate=False):
+    def _qbzr_run(self, ui_mode=False, execute=False):
         from bzrlib.plugins.qbzr.lib.unbind import QBzrUnbindDialog
         
         branch = Branch.open_containing(CUR_DIR)[0]
         if branch.get_bound_location() == None:
             raise errors.BzrCommandError("This branch is not bound.")
         
-        self.main_window = QBzrUnbindDialog(branch, ui_mode, immediate)
+        self.main_window = QBzrUnbindDialog(branch, ui_mode, execute)
         self.main_window.show()
         self._application.exec_() 
 
@@ -1019,10 +1022,7 @@ class cmd_qrun(QBzrCommand):
             help='Initial category selection.',
             type=unicode,
             ),
-        Option('execute',
-            help="Validate and run the supplied command immediately.",
-            short_name='e'
-            ),
+        execute_option,
         ]
     aliases = ['qcmd']
 

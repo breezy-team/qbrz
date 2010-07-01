@@ -30,8 +30,9 @@
      (Bug #517592, Gary van der Merwe)
    * Fix crash we viewing file history from qbrowse/bzr explorer.
      (Bug #585280, Gary van der Merwe)
- * qupdate, qunbind, qgetupdates:  new --immediate option will run these
-   commands without waiting for the user to click on the Ok button (Luis Arias)
+ * qupdate, qunbind, qgetupdates:  new --execute option will run these
+   commands immediately without waiting for the user to click on the Ok button
+   (Luis Arias)
  * qannotate:
    * Add find and goto line interfaces. The style for this interface will be
      used for other browsing windows in the future.
