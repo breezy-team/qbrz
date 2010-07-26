@@ -379,10 +379,10 @@ class LogList(RevisionTreeView):
         window.show()
         self.window().windows.append(window)
     
-    def revert_revision(self, selected_working_tree=None):
+    def revert_revision(self, selected_branch_info=None):
         """Reverts the working tree to the selected revision.
            If there are more than 1 working tree the argument
-           selected_working_tree will be specified as QVariant
+           selected_branch will be specified as QVariant
            with a working tree as a python object. 
            This will be the working tree that the user selected."""
         res = QtGui.QMessageBox.question(self, gettext("Revert Revision"),
@@ -394,14 +394,13 @@ class LogList(RevisionTreeView):
                     self.get_selection_top_and_parent_revids_and_count()
             gp = self.graph_provider
             rev_tree = gp.get_revid_repo(top_revid).revision_tree(top_revid)
-            if selected_working_tree:
-                wt = selected_working_tree.toPyObject() 
-                wt.revert(filenames=None,old_tree=rev_tree, report_changes=True)
+            if selected_branch_info:
+                selected_branch_info = selected_branch_info.toPyObject()
             else:
                 assert(len(gp.branches)==1)
-                branch_info = gp.branches[0]
-                branch_info.tree.revert(filenames=None, old_tree=rev_tree,
-                                  report_changes=True)
+                selected_branch_info = gp.branches[0]
+            selected_branch_info.tree.revert(
+                filenames=None, old_tree=rev_tree, report_changes=True)
     
     def show_diff(self, index=None,
                   specific_files=None, specific_file_ids=None,
@@ -464,28 +463,25 @@ class LogList(RevisionTreeView):
             self.context_menu_revert.setVisible(count == 1 and
                                             single_branch_with_tree)
         elif working_tree_count > 0 and (self.revert_menu == None):
-            self.revert_menu = RevertMenu(self, self.graph_provider.branches)
+            self.revert_menu = BranchMenu(
+                gettext("&Revert to this revision..."), self,
+                self.graph_provider.branches, True)
             self.connect(self.revert_menu, QtCore.SIGNAL("triggered(QVariant)"),
                          self.revert_revision)
             self.context_menu.addMenu(self.revert_menu)
 
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
-class RevertMenu(QtGui.QMenu):
+class BranchMenu(QtGui.QMenu):
     
-    def __init__ (self, parent, branches):
-        QtGui.QMenu.__init__(self, gettext("&Revert to this revision..."),
-                              parent)
-        action = QtGui.QAction("Working Trees:", self)
-        action.setData(None)
-        action.setEnabled(False)
-        self.addAction(action)
-        self.addSeparator()
+    def __init__ (self, text, parent, branches, require_wt):
+        QtGui.QMenu.__init__(self, text, parent)
         for branch in branches:
-            if branch.tree:
-                action = QtGui.QAction(str(branch.tree.basedir), self)
-                action.setData(QtCore.QVariant (branch.tree))
-                self.addAction(action)
+            action = QtGui.QAction(branch.label, self)
+            action.setData(QtCore.QVariant (branch))
+            self.addAction(action)
+            if require_wt and branch.tree is None:
+                action.setDisabled(True)
         
         self.connect(self, QtCore.SIGNAL("triggered(QAction *)"),
                      self.triggered)
