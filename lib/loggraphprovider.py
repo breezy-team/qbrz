@@ -26,6 +26,7 @@ from bzrlib import errors
 from bzrlib.transport.local import LocalTransport
 from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.graph import (Graph, StackedParentsProvider, KnownGraph)
+from bzrlib.urlutils import determine_relative_path, join, split
     
 from bzrlib.bzrdir import BzrDir
 from bzrlib.workingtree import WorkingTree
@@ -45,8 +46,8 @@ class BranchInfo(object):
     
     # Instance of this object are typicaly named "bi".
     
-    __slots__ = ["tree", "branch", "index"]
-    def __init__ (self, tree, branch, index):
+    def __init__ (self, label, tree, branch, index=None):
+        self.label = label
         self.tree = tree
         self.branch = branch
         self.index = index
@@ -103,7 +104,7 @@ class RevisionInfo(object):
         visible, and we need to show a -.
         """
         self.twisty_branch_ids = []
-        """Branches that will be expanded/colapsed when the twisty is
+        """Branches that will be expanded/collapsed when the twisty is
         clicked on.
         
         """
@@ -153,13 +154,12 @@ class BranchLine(object):
     def __repr__(self):
         return "%s <%s>" % (self.__class__.__name__, self.branch_id)
 
-
 class LogGraphProvider(object):
     """Loads and computes revision and graph data for GUI log widgets."""
     
     # Most list/dicts related to revisions are unfiltered. When we do a graph
     # layout, we filter these revisions. A revision may be filter out because:
-    # * It's branch is hidden (or colapsed).
+    # * It's branch is hidden (or collapsed).
     # * We have a sepcified file_id(s), and the revision does not touch the
     #   file_id(s).
     # * We have a search, and the revision does not match the search.
@@ -197,7 +197,7 @@ class LogGraphProvider(object):
             tag,
             is_branch_last_revision)
         """
-        self.branch_tags = {}
+        self.branch_labels = {}
         """Dict of revid to a list of branch tags. Depends on which revisions
         are visible."""
         
@@ -246,8 +246,8 @@ class LogGraphProvider(object):
         if local_copy:
             self.local_repo_copies.append(repo.base)
     
-    def append_branch(self, tree, branch):
-        bi = BranchInfo(tree, branch, None)
+    def append_branch(self, label, tree, branch):
+        bi = BranchInfo(label, tree, branch)
         if bi not in self.branches:
             bi.index = self.open_search_index(branch)
             self.branches.append(bi)
@@ -260,6 +260,43 @@ class LogGraphProvider(object):
                 return None
         else:
             return None
+    
+    no_usefull_info_in_location_re = re.compile(r'^[.:/\\]*$')
+    def branch_label(self, location, branch,
+                     shared_repo_location=None, shared_repo=None):
+        # We should rather use QFontMetrics.elidedText. How do we decide on the
+        # width.
+        def elided_text(text, length=20):
+            if len(text)>length+3:
+                return text[:length]+'...'
+            return text
+        
+        def elided_path(path):
+            if len(path)>23:
+                dir, name = split(path)
+                dir = elided_text(dir, 10)
+                name = elided_text(name)
+                return join(dir, name)
+            return path
+        
+        if shared_repo_location and shared_repo and not location:
+            # Once we depend on bzrlib 2.2, this can become .user_url
+            branch_rel = determine_relative_path(
+                shared_repo.bzrdir.root_transport.base,
+                branch.bzrdir.root_transport.base)
+            location = join(shared_repo_location, branch_rel)
+        if location is None:
+            return elided_text(branch.nick)
+        
+        append_nick = (
+            location.startswith(':') or
+            bool(self.no_usefull_info_in_location_re.match(location)) or
+            branch.get_config().has_explicit_nickname()
+            )
+        if append_nick:
+            return '%s (%s)' % (elided_path(location), branch.nick)
+        
+        return elided_text(location)
     
     def open_branch(self, branch, file_ids=None, tree=None):
         """Open branch and fileids to be loaded. """
@@ -274,7 +311,8 @@ class LogGraphProvider(object):
             except errors.NoWorkingTree:
                 pass
         self.append_repo(repo)
-        self.append_branch(tree, branch)
+        label = self.branch_label(None, branch)
+        self.append_branch(label, tree, branch)
 
         if file_ids:
             self.fileids.extend(file_ids)
@@ -287,7 +325,12 @@ class LogGraphProvider(object):
         of locations strings, inputed by the user (such as at the command line.)
         
         """
-        for location in locations:
+        if locations is not None:
+            _locations = locations
+        else:
+            _locations = [u'.']
+        
+        for location in _locations:
             tree, br, repo, fp = \
                     BzrDir.open_containing_tree_branch_or_repository(location)
             self.update_ui()
@@ -302,26 +345,21 @@ class LogGraphProvider(object):
                         tree = br.bzrdir.open_workingtree()
                     except errors.NoWorkingTree:
                         tree = None
-                    self.append_branch(tree, br)
+                    label = self.branch_label(None, br, location, repo)
+                    self.append_branch(label, tree, br)
                     self.append_repo(br.repository)
                 self.update_ui()
             else:
                 self.append_repo(repo)
-                self.append_branch(tree, br)
+                label = self.branch_label(location, br)
+                self.append_branch(label, tree, br)
                 if len(self.branches)==1 and self.trunk_branch == None:
                     self.trunk_branch = br
             
             # If no locations were sepecified, don't do fileids
             # Otherwise it gives you the history for the dir if you are
             # in a sub dir.
-            #
-            # XXX - There is a case where this does not behave correctly.
-            # If we are in subdir and we do "bzr qlog ." then we should filter
-            # on subdir. but if we do "bzr qlog" then we should not. To be able
-            # to do this, we need to move the implication the no location
-            # argument means '.' down in to the method, rather than where it is
-            # now. - GaryvdM 29 May 2009
-            if fp != '' and locations == [u"."]:
+            if fp != '' and locations is None:
                 fp = ''
 
             if fp != '' :
@@ -378,16 +416,14 @@ class LogGraphProvider(object):
         self.head_revids = []
         self.revid_branch = {}
         for bi in self.branches:
-            
-            if len(self.branches) == 1:
-                tag = None
+            if len(self.branches)>0:
+                label = bi.label
             else:
-                tag = bi.branch.nick
-                if len(tag) > 20:
-                    tag = tag[:20]+'...'
+                label = None
             
             branch_last_revision = bi.branch.last_revision()
-            self.append_head_info(branch_last_revision, bi.branch, tag, True)
+            self.append_head_info(branch_last_revision, bi.branch,
+                                  bi.label, True)
             self.update_ui()
             
             if bi.tree:
@@ -397,17 +433,17 @@ class LogGraphProvider(object):
                     revid = parent_ids[0]
                     if revid != branch_last_revision:
                         # working tree is out of date
-                        if tag:
+                        if label:
                             self.append_head_info(revid, bi.branch,
-                                             "%s - Working Tree" % tag, False)
+                                             "%s - Working Tree" % label, False)
                         else:
                             self.append_head_info(revid, bi.branch,
                                              "Working Tree", False)
                     # other parents are pending merges
                     for revid in parent_ids[1:]:
-                        if tag:
+                        if label:
                             self.append_head_info(revid, bi.branch,
-                                             "%s - Pending Merge" % tag, False)
+                                             "%s - Pending Merge" % label, False)
                         else:
                             self.append_head_info(revid, bi.branch,
                                              "Pending Merge", False)
@@ -770,7 +806,11 @@ class LogGraphProvider(object):
         else:
             self.revid_branch = {}
         
-        if len(self.revid_head_info) > 1:
+        head_count = 0
+        for head_info, ur in self.revid_head_info.itervalues():
+            head_count += len(head_info)
+        
+        if head_count > 1:
             # Populate unique revisions for heads
             for revid, (head_info, ur) in self.revid_head_info.iteritems():
                 rev = None
@@ -817,11 +857,15 @@ class LogGraphProvider(object):
             if tree is None:
                 tree = bi.branch.basis_tree()
             
-            self.has_dir = False
-            for fileid in self.fileids:
-                if tree.kind(fileid) in ('directory', 'tree-reference'):
-                    self.has_dir = True
-                    break
+            tree.lock_read()
+            try:
+                self.has_dir = False
+                for fileid in self.fileids:
+                    if tree.kind(fileid) in ('directory', 'tree-reference'):
+                        self.has_dir = True
+                        break
+            finally:
+                tree.unlock()
             
             self.filter_file_id = [False for i in 
                          xrange(len(self.revisions))]
@@ -1422,7 +1466,7 @@ class LogGraphProvider(object):
                      parent.color,
                      direct))
         
-        self.branch_tags = {}
+        self.branch_labels = {}
         for (revid, (head_info,
                      unique_revids)) in self.revid_head_info.iteritems():
             top_visible_revid = None
@@ -1433,11 +1477,8 @@ class LogGraphProvider(object):
                     top_visible_revid = unique_revid
                     break
             
-            tags =  [tag for (branch,
-                              tag,
-                              is_branch_last_revision) in head_info]
             if top_visible_revid:
-                self.branch_tags[top_visible_revid] = tags
+                self.branch_labels[top_visible_revid] = head_info
     
     def set_branch_visible(self, branch_id, visible, has_change):
         if not self.branch_lines[branch_id].visible == visible:
@@ -1463,7 +1504,7 @@ class LogGraphProvider(object):
                 return True
         return False
 
-    def colapse_expand_rev(self, revid, visible):
+    def collapse_expand_rev(self, revid, visible):
         rev = self.revid_rev[revid]
         #if rev.f_index is not None: return
         branch_ids = zip(rev.twisty_branch_ids,

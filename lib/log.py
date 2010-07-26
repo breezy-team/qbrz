@@ -105,8 +105,8 @@ class LogWindow(QBzrWindow):
         else:
             self.branch = None
             self.locations = locations
-            if self.locations is None:
-                self.locations = [u"."]
+            #if self.locations is None:
+            #    self.locations = [u"."]
             assert specific_fileids is None, "specific_fileids is ignored if branch is None"
         
         self.branches = None
@@ -375,7 +375,7 @@ class LogWindow(QBzrWindow):
         self.search_timer.start(200)
 
     def _locations_for_title(self, locations):
-        if locations == ['.']:
+        if locations is None:
             return osutils.getcwd()
         else:
             if len(locations) > 1:

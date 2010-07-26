@@ -39,6 +39,9 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 
 from bzrlib.ui.text import TextProgressView, TextUIFactory
+from bzrlib.plugins.qbzr.lib.trace import (
+   report_exception,
+   SUB_LOAD_METHOD)
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
@@ -57,10 +60,6 @@ from bzrlib import (
     )
 
 from bzrlib.bzrdir import BzrDir
-
-from bzrlib.plugins.qbzr.lib.trace import (
-   report_exception,
-   SUB_LOAD_METHOD)
 
 from bzrlib.plugins.qbzr.lib.commit import CommitWindow
 from bzrlib.plugins.qbzr.lib.revert import RevertWindow
@@ -85,7 +84,8 @@ class SubProcessWindowBase(object):
                           ui_mode=True,
                           dialog=True,
                           parent=None,
-                          hide_progress=False):
+                          hide_progress=False,
+                          immediate=False):
         self.restoreSize(name, default_size)
         self._name = name
         self._default_size = default_size
@@ -184,6 +184,8 @@ class SubProcessWindowBase(object):
                      self.open_revert_win)
         uncommitted_info_button_layout.addWidget(revert_button)
         self.uncommitted_info.hide()
+        if immediate:
+            self.do_accept()
 
 
     def make_default_status_box(self):
@@ -341,7 +343,8 @@ class SubProcessDialog(SubProcessWindowBase, QBzrDialog):
                  ui_mode=True,
                  dialog=True,
                  parent=None,
-                 hide_progress=False):
+                 hide_progress=False,
+                 immediate=False):
         QBzrDialog.__init__(self, title, parent)
         self.__init_internal__(title,
                                name=name,
@@ -351,7 +354,8 @@ class SubProcessDialog(SubProcessWindowBase, QBzrDialog):
                                ui_mode=ui_mode,
                                dialog=dialog,
                                parent=parent,
-                               hide_progress=hide_progress)
+                               hide_progress=hide_progress,
+                               immediate=immediate)
 
     def closeEvent(self, event):
         if not self.process_widget.is_running():
@@ -376,6 +380,7 @@ class SimpleSubProcessDialog(SubProcessDialog):
                  hide_progress=False,
                  auto_start_show_on_failed=False,
                  parent=None,
+                 immediate=False
                  ):
         super(SimpleSubProcessDialog, self).__init__(
                                title,
@@ -386,7 +391,8 @@ class SimpleSubProcessDialog(SubProcessDialog):
                                ui_mode=ui_mode,
                                dialog=dialog,
                                parent=parent,
-                               hide_progress=hide_progress)
+                               hide_progress=hide_progress,
+                               immediate=immediate)
         self.desc = desc
         # create a layout to hold our one label and the subprocess widgets.
         layout = QtGui.QVBoxLayout(self)
@@ -651,7 +657,7 @@ class SubProcessWidget(QtGui.QWidget):
             elif line.startswith(SUB_ERROR):
                 data = bencode.bdecode(line[len(SUB_ERROR):])
                 self.error_class = data[0]
-                self.error_data = data[1]
+                self.error_data = decode_unicode_escape(data[1])
             else:
                 line = line.decode(self.encoding, 'replace')
                 self.logMessageEx(line, 'plain', self.stdout)
@@ -865,8 +871,12 @@ def run_subprocess_command(cmd, bencoded=False):
         d = {}
         for key, val in e.__dict__.iteritems():
             if not key.startswith('_'):
-                d[key]=unicode(val).encode('utf-8')
-        print "%s%s" % (SUB_ERROR, bencode.bencode((e.__class__.__name__, d)))
+                if not isinstance(val, unicode):
+                    val = unicode(val)
+                d[key] = val
+        print "%s%s" % (SUB_ERROR,
+                        bencode.bencode((e.__class__.__name__,
+                                         encode_unicode_escape(d))))
         raise
 
 
@@ -932,3 +942,21 @@ def bencode_prompt(arg):
 
 def bdecode_prompt(s):
     return bencode.bdecode(s).decode('unicode-escape')
+
+def encode_unicode_escape(obj):
+    if isinstance(obj, dict):
+        result = {}
+        for k,v in obj.iteritems():
+            result[k] = v.encode('unicode-escape')
+        return result
+    else:
+        raise TypeError('encode_unicode_escape: unsupported type: %r' % type(obj))
+
+def decode_unicode_escape(obj):
+    if isinstance(obj, dict):
+        result = {}
+        for k,v in obj.iteritems():
+            result[k] = v.decode('unicode-escape')
+        return result
+    else:
+        raise TypeError('decode_unicode_escape: unsupported type: %r' % type(obj))

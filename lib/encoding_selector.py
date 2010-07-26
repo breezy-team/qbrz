@@ -47,19 +47,9 @@ class UniqueList(object):
         return iter(self._data)
 
 
-class EncodingSelector(QtGui.QWidget):
-    """Widget to control encoding of text."""
+class BaseEncodingSelector(object):
 
-    def __init__(self, initial_encoding=None, label_text=None, onChanged=None,
-        *args):
-        """Create widget: label + combobox.
-        @param initial_encoding: initially selected encoding (default: utf-8).
-        @param label_text: text for label (default: "Encoding:").
-        @param onChanged: callback to processing encoding change.
-        @param args: additional arguments to initialize QWidget.
-        """
-        QtGui.QWidget.__init__(self, *args)
-
+    def init_encodings(self, initial_encoding=None):
         _encodings = UniqueList()
         if initial_encoding:
             _encodings.append(initial_encoding)
@@ -74,34 +64,6 @@ class EncodingSelector(QtGui.QWidget):
         else:
             initial_encoding = 'utf-8'
         self._encoding = initial_encoding
-
-        self.onChanged = onChanged
-        if onChanged is None:
-            self.onChanged = lambda encoding: None
-
-        layout = QtGui.QHBoxLayout()
-
-        if label_text is None:
-            label_text = gettext("Encoding:")
-        self._label = QtGui.QLabel(label_text)
-        layout.addWidget(self._label)
-
-        self.chooser = QtGui.QComboBox()
-        self.chooser.addItems(self.encodings)
-        self.chooser.setEditable(True)
-        self.chooser.setEditText(QtCore.QString(initial_encoding))
-        self.connect(self.chooser, QtCore.SIGNAL("currentIndexChanged(QString)"),
-                     self._encodingChanged)
-        self.chooser.focusOutEvent = self._focusOut
-        layout.addWidget(self.chooser)
-
-        self.setLayout(layout)
-
-    def _focusOut(self, ev):
-        encoding = self.chooser.currentText()
-        if self._encoding != encoding:
-            self._encodingChanged(encoding)
-        QtGui.QComboBox.focusOutEvent(self.chooser, ev)
 
     def _encodingChanged(self, encoding):
         try:
@@ -122,9 +84,57 @@ class EncodingSelector(QtGui.QWidget):
     def setEncoding(self, encoding):
         if is_valid_encoding(encoding):
             self._encoding = encoding
-            self.chooser.setEditText(QtCore.QString(encoding))
+            self._setEncoding(encoding)
+    
+    def _setEncoding(self, encoding):
+        pass
 
     encoding = property(getEncoding, setEncoding)
+
+
+class EncodingSelector(QtGui.QWidget, BaseEncodingSelector):
+    """Widget to control encoding of text."""
+
+    def __init__(self, initial_encoding=None, label_text=None, onChanged=None,
+        *args):
+        """Create widget: label + combobox.
+        @param initial_encoding: initially selected encoding (default: utf-8).
+        @param label_text: text for label (default: "Encoding:").
+        @param onChanged: callback to processing encoding change.
+        @param args: additional arguments to initialize QWidget.
+        """
+        QtGui.QWidget.__init__(self, *args)
+        self.init_encodings(initial_encoding)
+        self.onChanged = onChanged
+        if onChanged is None:
+            self.onChanged = lambda encoding: None
+
+        layout = QtGui.QHBoxLayout()
+
+        if label_text is None:
+            label_text = gettext("Encoding:")
+        self._label = QtGui.QLabel(label_text)
+        layout.addWidget(self._label)
+
+        self.chooser = QtGui.QComboBox()
+        self.chooser.addItems(self.encodings)
+        self.chooser.setEditable(True)
+        self.chooser.setEditText(QtCore.QString(self.encoding))
+        self.connect(self.chooser, QtCore.SIGNAL("currentIndexChanged(QString)"),
+                     self._encodingChanged)
+        self.chooser.focusOutEvent = self._focusOut
+        layout.addWidget(self.chooser)
+
+        self.setLayout(layout)
+
+    def _focusOut(self, ev):
+        encoding = self.chooser.currentText()
+        if self._encoding != encoding:
+            self._encodingChanged(encoding)
+        QtGui.QComboBox.focusOutEvent(self.chooser, ev)
+
+    def _setEncoding(self, encoding):
+        self.chooser.setEditText(QtCore.QString(encoding))
 
     def getLabel(self):
         return unicode(self._label.text())
@@ -133,6 +143,56 @@ class EncodingSelector(QtGui.QWidget):
         self._label.setText(new_label)
 
     label = property(getLabel, setLabel)
+
+class EncodingMenuSelector(QtGui.QMenu, BaseEncodingSelector):
+    """Menu to control encoding of text."""
+
+    def __init__(self, initial_encoding=None, label_text=None, onChanged=None,
+        *args):
+        """Create widget: label + combobox.
+        @param initial_encoding: initially selected encoding (default: utf-8).
+        @param label_text: text for label (default: "Encoding:").
+        @param onChanged: callback to processing encoding change.
+        @param args: additional arguments to initialize QWidget.
+        """
+        QtGui.QMenu.__init__(self, *args)
+        self.init_encodings(initial_encoding)
+        self.onChanged = onChanged
+        if onChanged is None:
+            self.onChanged = lambda encoding: None
+        
+        self.setTitle(label_text)
+        
+        self.action_group = QtGui.QActionGroup(self)
+        
+        self.encoding_actions = {}
+        for encoding in self.encodings:
+            action = QtGui.QAction(encoding, self.action_group)
+            action.setCheckable(True)
+            action.setData(QtCore.QVariant(encoding))
+            self.addAction(action)
+            self.encoding_actions[encoding] = action
+        
+        self._setEncoding(self.encoding)
+        self.connect(self, QtCore.SIGNAL("triggered(QAction *)"),
+                     self.triggered)
+    
+    def triggered(self, action):
+        encoding = unicode(action.data().toString())
+        self._encodingChanged(encoding)
+
+    def _setEncoding(self, encoding):
+        if encoding in self.encoding_actions:
+            self.encoding_actions[encoding].setChecked(True)
+
+    def getLabel(self):
+        return unicode(self.title())
+
+    def setLabel(self, new_label):
+        self.setTitle(new_label)
+
+    label = property(getLabel, setLabel)
+
 
 
 # human encodings found in standard Python encodings package.

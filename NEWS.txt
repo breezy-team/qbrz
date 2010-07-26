@@ -1,7 +1,22 @@
-0.19 Beta 2  - Under development
---------------------------------
+0.19 Beta 3 - Under development
+-------------------------------
+
+
+
+
+0.19 Beta 2 "Pomegranate" - 2010/07/01
+--------------------------------------
  * Allow finding locale in system location on Linux
    (Bug #542429, Toshio Kuratomi).
+ * Provide better text on Close and Ignore buttons when exceptions raised.
+   (Bug #486946, Luis Arias)
+ * Fix bug where Mac OS X windows start in background. (Bug #417162,
+   Luis Arias)
+ * Fix bug in treewidget where folders are repeated.
+   (Bug #580798, Iwata, Gary van der Merwe)
+ * qsubprocess: when sending error object over the stdout we should use
+   unicode-escape encoding for the possible unicode/multiline strings.
+   (Bug #570564, Alexander Belchenko)
  * qinit: set default value for repository format in the combobox.
    (Bug #531795, Gordon Tyler)
  * qcommit:
@@ -10,14 +25,30 @@
      the branch. (Gary van der Merwe)
  * qdiff: Use the new  bzrlib.diff.get_trees_and_branches_to_diff_locked api.
    (Gary van der Merwe)
- * qlog: Handle ghost revisions better. Ghost can now be seen in the graph,
-   and don't cause search to crash. (Bug #57042, Gary van der Merwe)
- * Provide better text on Close and Ignore buttons when exceptions raised.
-   (Bug #486946, Luis Arias)
- * Fix bug where Mac OS X windows start in background. (Bug #417162,
-   Luis Arias)
- * Fix bug in treewidget where folders are repeated.
-   (Bug #580798, Iwata, Gary van der Merwe)
+ * qlog:
+   * Handle ghost revisions better. Ghost can now be seen in the graph,
+     and don't cause search to crash. (Bug #57042, Gary van der Merwe)
+   * Show better labels for branch tips. Show a tooltip with the full branch
+     url. (Bug #585309, Gary van der Merwe)
+   * Fix a bug where branch labels don't show if the have the same tips.
+     (Bug # 485236, Gary van der Merwe)
+   * qlog . in a sub dir now filters to only show the sub dir.
+     (Bug #517592, Gary van der Merwe)
+   * Fix crash we viewing file history from qbrowse/bzr explorer.
+     (Bug #585280, Gary van der Merwe)
+ * qupdate, qunbind, qgetupdates:  new --execute option will run these
+   commands immediately without waiting for the user to click on the Ok button
+   (Luis Arias)
+ * qannotate:
+   * Add find and goto line interfaces. The style for this interface will be
+     used for other browsing windows in the future.
+     (Bug #215256, Gary van der Merwe)
+   * Double clicking or pressing enter for a revision now changes the annotated
+     revision. Please use the context menu to get to the diff.
+     (Bug #404276, Gary van der Merwe)
+   * When changinging the annotated revision, the scroll position, and selection
+     are maintained. (Bug #404288, Gary van der Merwe)
+
 
 0.19 Beta 1 "Monkey-puzzle, aka Araucaria araucana" - 2010/03/29
 ----------------------------------------------------------------
@@ -35,11 +66,17 @@
 
 Note: qbzr now requires bzr 2.1.
 
+
 0.18.6 - 2010-05-04
 -------------------
 Maintenance release.
 
  * qlog: Fix a bug with search. (Bug #575338, Gary van der Merwe)
+ * qlog: Fix a bug were qlog crashes when bzr-svn is incompatible with bzrlib.
+   (Bug #546843, Gary van der Merwe)
+ * Fix bug in treewidget where folders are repeated.
+   (Bug #580798, Iwata, Gary van der Merwe)
+
 
 0.18.5 "Silver terminalia" - 2010-04-02
 ---------------------------------------
@@ -944,7 +981,7 @@ or remove old files first.
     * Show changes in x bits. (#153817)
  * qlog: 
     * Always show location even in the case it runs as ``bzr qlog``
-    * Add a revision graph that can be expanded and colapsed. (#242752)
+    * Add a revision graph that can be expanded and collapsed. (#242752)
  * qdiff, qcat, qannotate: Font sizes are no longer set a a small 8pt. They
    now use the default widget font size. (#240859)
 

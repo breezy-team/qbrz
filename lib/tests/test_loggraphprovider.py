@@ -193,3 +193,61 @@ class TestLogGraphProvider(tests.TestCaseWithTransport):
         self.assertRaises(errors.BzrCommandError,
                           gp.open_locations,
                           ["file-that-does-not-exist"])
+    
+    def test_branch_label_location(self):
+        branch = self.make_branch("branch")
+        gp = LogGraphProvider(False)
+        
+        self.assertEqual('path',
+                         gp.branch_label('path', branch))
+
+    def test_branch_label_no_location(self):
+        branch = self.make_branch("branch")
+        gp = LogGraphProvider(False)
+        
+        # No location, use nick
+        self.assertEqual('branch',
+                         gp.branch_label(None, branch))
+    
+    def test_branch_label_path_location(self):
+        branch = self.make_branch("branch")
+        gp = LogGraphProvider(False)
+        
+        # Location seems like a path - use it
+        self.assertEqual('path-to-branch',
+                         gp.branch_label('path-to-branch', branch))
+
+    def test_branch_label_alias_directory(self):
+        branch = self.make_branch("branch")
+        gp = LogGraphProvider(False)
+        
+        # show shortcut, and nick
+        self.assertEqual(':parent (branch)',
+                         gp.branch_label(':parent', branch))
+    
+    def test_branch_label_no_info_locations(self):
+        branch = self.make_branch("branch")
+        gp = LogGraphProvider(False)
+        
+        # locations that don't have alot of info in them should show the nick
+        self.assertEqual('. (branch)',
+                         gp.branch_label('.', branch))
+        self.assertEqual('../ (branch)',
+                         gp.branch_label('../', branch))
+
+    def test_branch_label_explict_nick(self):
+        branch = self.make_branch("branch")
+        branch.nick = "nick"
+        gp = LogGraphProvider(False)
+        
+        self.assertEqual('path (nick)',
+                         gp.branch_label('path', branch))
+
+    def test_branch_label_repository(self):
+        repo = self.make_repository("repo", shared=True)
+        branch = self.make_branch("repo/branch")
+        
+        gp = LogGraphProvider(False)
+        
+        self.assertEqual('./branch',
+                         gp.branch_label(None, branch, '.', repo))

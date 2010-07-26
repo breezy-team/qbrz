@@ -112,7 +112,7 @@ class QBzrRunDialog(SubProcessDialog):
         # ready to go
         if execute:
             # hide user edit fields
-            self.ui.frame.hide()
+            self.ui.run_container.hide()
             self.ui.help_browser.hide()
             
             # create edit button

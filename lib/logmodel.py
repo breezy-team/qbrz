@@ -121,7 +121,7 @@ class LogModel(QtCore.QAbstractTableModel):
                                     COL_MESSAGE, QtCore.QModelIndex()))
         self.emit(QtCore.SIGNAL("linesUpdated()"))
     
-    def colapse_expand_rev(self, revid, visible):
+    def collapse_expand_rev(self, revid, visible):
         self.clicked_row = self.graph_provider.revid_rev[revid].index
         clicked_row_index = self.createIndex (self.clicked_row,
                                               COL_MESSAGE,
@@ -131,7 +131,7 @@ class LogModel(QtCore.QAbstractTableModel):
                   clicked_row_index)
         self.graph_provider.update_ui()
         self.clicked_row = None
-        has_change = self.graph_provider.colapse_expand_rev(revid, visible)
+        has_change = self.graph_provider.collapse_expand_rev(revid, visible)
         
         if has_change:
             self.compute_lines()
@@ -216,11 +216,24 @@ class LogModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant(QtCore.QStringList(tags))
         
         if role == BranchTagsRole:
-            tags = []
-            if rev_info.revid in gp.branch_tags:
-                tags = [tag for tag \
-                        in gp.branch_tags[rev_info.revid] if tag]
-            return QtCore.QVariant(QtCore.QStringList(tags))
+            labels = []
+            if rev_info.revid in gp.branch_labels:
+                labels =  [label for (branch,
+                                      label,
+                                      is_branch_last_revision)
+                           in gp.branch_labels[rev_info.revid]
+                           if label]
+            return QtCore.QVariant(QtCore.QStringList(labels))
+        
+        if role == QtCore.Qt.ToolTipRole and index.column() == COL_MESSAGE:
+            urls = []
+            if rev_info.revid in gp.branch_labels:
+                urls =  [branch.base for (branch,
+                                          label,
+                                          is_branch_last_revision)
+                           in gp.branch_labels[rev_info.revid]
+                           if label]
+            return QtCore.QVariant('\n'.join(urls))
         
         if role == RevIdRole:
             return QtCore.QVariant(QtCore.QByteArray(rev_info.revid))

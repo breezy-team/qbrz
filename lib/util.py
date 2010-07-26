@@ -416,26 +416,16 @@ class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
 throber_movie = None
 
 class ThrobberWidget(QtGui.QWidget):
-    """A window that displays a simple throbber over its parent."""
+    """A widget that indicates activity."""
 
     def __init__(self, parent, timeout=500):
         QtGui.QWidget.__init__(self, parent)
-        self.create_ui()
-        self.num_show = 0
-        
-        # create a timer that displays our window after the timeout.
-        #QtCore.QTimer.singleShot(timeout, self.show)
-
-    def create_ui(self):
-        # a couple of widgets
-        layout = QtGui.QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        
-        self.spinner = QtGui.QLabel("", self)    
         global throber_movie
         if not throber_movie:
             throber_movie = QtGui.QMovie(":/16x16/process-working.gif")
             throber_movie.start()
+        
+        self.spinner = QtGui.QLabel("", self)    
         self.spinner.setMovie(throber_movie)
         
         self.message = QtGui.QLabel(gettext("Loading..."), self)
@@ -444,11 +434,29 @@ class ThrobberWidget(QtGui.QWidget):
         #self.progress.hide()
         #self.progress.setMaximum(sys.maxint)
         self.transport = QtGui.QLabel("", self)
+        for widget in (self.spinner,
+                       self.message,
+                       #self.progress,
+                       self.transport):
+            widget.hide()
+        
+        self.widgets = []
+        self.set_layout()
+        self.num_show = 0
+
+    def set_layout(self):
+        layout = QtGui.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         
         layout.addWidget(self.spinner)
         #layout.addWidget(self.progress)
         layout.addWidget(self.message, 1)
         layout.addWidget(self.transport)
+        
+        self.widgets.append(self.spinner)
+        #self.widgets.append(self.progress)
+        self.widgets.append(self.message)
+        self.widgets.append(self.transport)
 
     def hide(self):
         #if self.is_shown:
@@ -457,12 +465,35 @@ class ThrobberWidget(QtGui.QWidget):
         if self.num_show <= 0:
             self.num_show = 0
             QtGui.QWidget.hide(self)
-
+            for widget in self.widgets:
+                widget.hide()
+    
     def show(self):
         #QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         # and show ourselves.
-        QtGui.QWidget.show(self)
         self.num_show += 1
+        QtGui.QWidget.show(self)
+        for widget in self.widgets:
+            widget.show()
+    
+
+class ToolBarThrobberWidget(ThrobberWidget):
+    """A widget that indicates activity. Smaller than ThrobberWidget, designed
+    for use on a toolbar."""
+
+    def set_layout(self):
+        layout = QtGui.QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        layout.addWidget(self.transport)
+        layout.addWidget(self.spinner)
+        #layout.addWidget(self.progress)
+        #layout.addWidget(self.message, 1)
+        
+        self.widgets.append(self.spinner)
+        #self.widgets.append(self.progress)
+        #self.widgets.append(self.message)
+        self.widgets.append(self.transport)
 
 
 # Helpers for directory pickers.
@@ -951,6 +982,123 @@ if MS_WINDOWS:
 else:
     shlex_split_unicode = _shlex_split_unicode_linux
 
+def get_icon(name):
+    # TODO: Load multiple sizes
+    # TODO: Try load from system theme
+    return QtGui.QIcon(":/22x22/%s.png" % name)
+
+
+class FindToolbar(QtGui.QToolBar):
+    
+    def __init__(self, window, text_edit, show_action):
+        QtGui.QToolBar.__init__(self, gettext("Find"), window)
+        self.text_edit = text_edit
+        if 0: self.text_edit = QtGui.QTextEdit()
+        self.show_action = show_action
+        
+        self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self.setMovable (False)
+        
+        find_label = QtGui.QLabel(gettext("Find: "), self)
+        self.addWidget(find_label)
+        
+        self.find_text = QtGui.QLineEdit(self)
+        self.addWidget(self.find_text)
+        find_label.setBuddy(self.find_text)
+        
+        prev = self.addAction(get_icon("go-previous"), gettext("Previous"))
+        prev.setShortcut(QtGui.QKeySequence.FindPrevious)
+        
+        next = self.addAction(get_icon("go-next"), gettext("Next"))
+        next.setShortcut(QtGui.QKeySequence.FindNext)
+        
+        self.case_sensitive = QtGui.QCheckBox(gettext("Case sensitive"), self)
+        self.addWidget(self.case_sensitive)
+        self.whole_words = QtGui.QCheckBox(gettext("Whole words"), self)
+        self.addWidget(self.whole_words)
+        
+        close_find = QtGui.QAction(self)
+        close_find.setIcon(self.style().standardIcon(
+                                        QtGui.QStyle.SP_DialogCloseButton))
+        self.addAction(close_find)
+        close_find.setShortcut((QtCore.Qt.Key_Escape))
+        close_find.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
+        close_find.setStatusTip(gettext("Close find"))
+        self.connect(self.show_action,
+                     QtCore.SIGNAL("toggled (bool)"),
+                     self.show_action_toggle)
+        self.connect(close_find,
+                     QtCore.SIGNAL("triggered(bool)"),
+                     self.close_triggered)
+        self.connect(self.find_text,
+                     QtCore.SIGNAL("textChanged(QString)"),
+                     self.find_text_changed)
+        self.connect(next,
+                     QtCore.SIGNAL("triggered(bool)"),
+                     self.find_next)
+        self.connect(prev,
+                     QtCore.SIGNAL("triggered(bool)"),
+                     self.find_prev)
+        self.connect(self.case_sensitive,
+                     QtCore.SIGNAL("stateChanged(int)"),
+                     self.find_text_changed)
+        self.connect(self.whole_words,
+                     QtCore.SIGNAL("stateChanged(int)"),
+                     self.find_text_changed)
+        self.connect(self.find_text,
+                     QtCore.SIGNAL("returnPressed()"),
+                     self.find_next)        
+        
+    def show_action_toggle(self, state):
+        self.setVisible(state)
+        if state:
+            self.find_text.setFocus()
+        else:
+            self.find_text.setText('')
+    
+    def close_triggered(self, state):
+        self.show_action.setChecked(False)
+    
+    def find_text_changed(self, text):
+        self.find_avoid_moving()
+    
+    def find_get_flags(self):
+        flags = QtGui.QTextDocument.FindFlags()
+        if self.case_sensitive.isChecked():
+            flags = flags | QtGui.QTextDocument.FindCaseSensitively
+        if self.whole_words.isChecked():
+            flags = flags | QtGui.QTextDocument.FindWholeWords
+        return flags
+    
+    def find_avoid_moving(self):
+        self.find(self.text_edit.textCursor().selectionStart(), 0,
+                  self.find_get_flags())
+    
+    def find_next(self, state):
+        self.find(self.text_edit.textCursor().selectionEnd(), 0,
+                  self.find_get_flags())
+    
+    def find_prev(self, state):
+        self.find(self.text_edit.textCursor().selectionStart(),
+                  self.text_edit.document().characterCount(),
+                  self.find_get_flags() | QtGui.QTextDocument.FindBackward)
+    
+    def find(self, from_pos, restart_pos, flags):
+        doc = self.text_edit.document()
+        text = self.find_text.text()
+        cursor = doc.find(text, from_pos, flags)
+        if cursor.isNull():
+            # try again from the restart pos
+            cursor = doc.find(text, restart_pos, flags)
+        if cursor.isNull():
+            cursor = self.text_edit.textCursor()
+            cursor.setPosition(cursor.selectionStart())
+            self.text_edit.setTextCursor(cursor)
+            # Maybe make find_text background red like Firefox?
+        else:
+            self.text_edit.setTextCursor(cursor)
+
+
 class InfoWidget(QtGui.QFrame):
     def __init__(self, parent=None):
         QtGui.QFrame.__init__(self, parent)
@@ -959,3 +1107,4 @@ class InfoWidget(QtGui.QFrame):
         self.setAutoFillBackground(True)
         self.setBackgroundRole(QtGui.QPalette.ToolTipBase) 
         self.setForegroundRole(QtGui.QPalette.ToolTipText)
+

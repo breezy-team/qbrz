@@ -48,11 +48,11 @@ class RevisionTreeView(QtGui.QTreeView):
             
         self.connect(self,
                      QtCore.SIGNAL("collapsed (QModelIndex)"),
-                     self.colapsed_expanded)
+                     self.collapsed_expanded)
         
         self.connect(self,
                      QtCore.SIGNAL("expanded (QModelIndex)"),
-                     self.colapsed_expanded)
+                     self.collapsed_expanded)
         
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
@@ -76,7 +76,7 @@ class RevisionTreeView(QtGui.QTreeView):
     def data_changed(self, start_index, end_index):
         self.load_visible_revisions()
     
-    def colapsed_expanded(self, index):
+    def collapsed_expanded(self, index):
         self.load_visible_revisions()
     
     def resizeEvent(self, e):
@@ -98,11 +98,13 @@ class RevisionTreeView(QtGui.QTreeView):
         #    throbber_height = self.throbber.   etc...        
         bottom_index = self.indexAt(self.viewport().rect().bottomLeft()) # + throbber_height
         
-        revids = set()
+        revids = []
         while True:
             revid = index.data(RevIdRole)
             if not revid.isNull():
-                revids.add(str(revid.toByteArray()))
+                revid = str(revid.toByteArray())
+                if revid not in revids:
+                    revids.append(revid)
             if index == bottom_index:
                 break
             index = self.indexBelow(index)

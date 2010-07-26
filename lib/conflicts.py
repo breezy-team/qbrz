@@ -29,6 +29,11 @@ from bzrlib.plugins.qbzr.lib.util import (
     StandardButton,
     )
 
+try:
+    from bzrlib.cmdline import split as cmdline_split
+except ImportError:
+    from bzrlib.commands import shlex_split_unicode as cmdline_split
+
 
 class ConflictsWindow(QBzrWindow):
 
@@ -218,7 +223,7 @@ class ConflictsWindow(QBzrWindow):
         if self.program_extmerge_default_button.isChecked():
             bzr_config = GlobalConfig()
             extmerge_tool = bzr_config.get_user_option("external_merge")
-            args = extmerge_tool.split(" ")
+            args = cmdline_split(extmerge_tool)
             new_args = args[1:len(args)]
             i = 0
             while i < len(new_args):
