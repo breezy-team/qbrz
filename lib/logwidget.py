@@ -101,6 +101,8 @@ class LogList(RevisionTreeView):
                      self.make_selection_continuous)
 
     def create_context_menu(self, diff_is_default_action=True):
+        branch_count = len(self.graph_provider.branches)
+        
         self.context_menu = QtGui.QMenu(self)
         if self.view_commands or self.action_commands:
             if self.graph_provider.fileids:
@@ -149,10 +151,17 @@ class LogList(RevisionTreeView):
             self.context_menu_tag = \
                 self.context_menu.addAction(gettext("Tag &revision..."),
                                             self.tag_revision)
-            self.context_menu_revert = \
-                self.context_menu.addAction(gettext("R&evert to this revision..."),
-                                            self.revert_revision)
-            self.revert_menu = None
+            if branch_count == 1:
+                self.context_menu_revert = \
+                    self.context_menu.addAction(gettext("R&evert to this revision..."),
+                                                self.revert_revision)
+            else:
+                self.context_menu_revert = BranchMenu(
+                    gettext("&Revert to this revision..."), self,
+                    self.graph_provider.branches, True)
+                self.connect(self.context_menu_revert, QtCore.SIGNAL("triggered(QVariant)"),
+                             self.revert_revision)
+                self.context_menu.addMenu(self.context_menu_revert)
 
     def load_branch(self, branch, fileids, tree=None):
         self.throbber.show()
@@ -448,27 +457,11 @@ class LogList(RevisionTreeView):
 
     def show_context_menu(self, pos):
         branch_count = len(self.graph_provider.branches)
-        single_branch_with_tree = bool(
-            branch_count == 1 and self.graph_provider.branches[0].tree)
         (top_revid, old_revid), count = \
               self.get_selection_top_and_parent_revids_and_count()
-        working_tree_count = 0
-        for b in self.graph_provider.branches:
-            if b.tree:
-                working_tree_count = working_tree_count + 1
          
         self.context_menu_tag.setVisible(count == 1 and branch_count == 1)
         self.context_menu_revert.setVisible(False)
-        if single_branch_with_tree:
-            self.context_menu_revert.setVisible(count == 1 and
-                                            single_branch_with_tree)
-        elif working_tree_count > 0 and (self.revert_menu == None):
-            self.revert_menu = BranchMenu(
-                gettext("&Revert to this revision..."), self,
-                self.graph_provider.branches, True)
-            self.connect(self.revert_menu, QtCore.SIGNAL("triggered(QVariant)"),
-                         self.revert_revision)
-            self.context_menu.addMenu(self.revert_menu)
 
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
