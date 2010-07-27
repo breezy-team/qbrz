@@ -148,9 +148,18 @@ class LogList(RevisionTreeView):
             
             self.context_menu.addAction(gettext("Show &tree..."),
                                         self.show_revision_tree)
-            self.context_menu_tag = \
-                self.context_menu.addAction(gettext("Tag &revision..."),
-                                            self.tag_revision)
+            if branch_count == 1:
+                self.context_menu_tag = \
+                    self.context_menu.addAction(gettext("Tag &revision..."),
+                                                self.tag_revision)
+            else:
+                self.context_menu_tag = BranchMenu(
+                    gettext("Tag &revision..."), self,
+                    self.graph_provider.branches, False)
+                self.connect(self.context_menu_tag, QtCore.SIGNAL("triggered(QVariant)"),
+                             self.tag_revision)
+                self.context_menu.addMenu(self.context_menu_tag)
+            
             if branch_count == 1:
                 self.context_menu_revert = \
                     self.context_menu.addAction(gettext("R&evert to this revision..."),
@@ -376,13 +385,19 @@ class LogList(RevisionTreeView):
     def default_action(self, index=None):
         self.show_diff_specified_files()
         
-    def tag_revision(self):
+    def tag_revision(self, selected_branch_info=None):
         gp = self.graph_provider
+        
+        if selected_branch_info:
+            selected_branch_info = selected_branch_info.toPyObject()
+        else:
+            assert(len(gp.branches)==1)
+            selected_branch_info = gp.branches[0]
+        
         revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
         revno = gp.revid_rev[revid].revno_str
         revs = [RevisionSpec.from_string(revno)]
-        assert(len(gp.branches)==1)
-        branch = gp.branches[0].branch
+        branch = selected_branch_info.branch
         action = TagWindow.action_from_options(force=False, delete=False)
         window = CallBackTagWindow(branch, self.refresh_tags, action=action, revision=revs)
         window.show()
