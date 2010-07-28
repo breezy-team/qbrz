@@ -146,31 +146,34 @@ class LogList(RevisionTreeView):
                          QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
                          self.show_context_menu)
             
-            self.context_menu.addAction(gettext("Show &tree..."),
-                                        self.show_revision_tree)
+            self.context_menu_show_tree = self.context_menu.addAction(
+                gettext("Show &tree..."), self.show_revision_tree)
+            
             if branch_count == 1:
                 self.context_menu_tag = \
                     self.context_menu.addAction(gettext("Tag &revision..."),
                                                 self.tag_revision)
             else:
-                self.context_menu_tag = BranchMenu(
+                tag_menu = BranchMenu(
                     gettext("Tag &revision..."), self,
-                    self.graph_provider.branches, False)
-                self.connect(self.context_menu_tag, QtCore.SIGNAL("triggered(QVariant)"),
+                    self.graph_provider, False)
+                self.connect(tag_menu,
+                             QtCore.SIGNAL("triggered(QVariant)"),
                              self.tag_revision)
-                self.context_menu.addMenu(self.context_menu_tag)
+                self.context_menu_tag = self.context_menu.addMenu(tag_menu)
             
             if branch_count == 1:
                 self.context_menu_revert = \
                     self.context_menu.addAction(gettext("R&evert to this revision..."),
                                                 self.revert_revision)
             else:
-                self.context_menu_revert = BranchMenu(
+                revert_menu = BranchMenu(
                     gettext("&Revert to this revision..."), self,
-                    self.graph_provider.branches, True)
-                self.connect(self.context_menu_revert, QtCore.SIGNAL("triggered(QVariant)"),
+                    self.graph_provider, True)
+                self.connect(revert_menu,
+                             QtCore.SIGNAL("triggered(QVariant)"),
                              self.revert_revision)
-                self.context_menu.addMenu(self.context_menu_revert)
+                self.context_menu_revert = self.context_menu.addMenu(revert_menu)
 
     def load_branch(self, branch, fileids, tree=None):
         self.throbber.show()
@@ -475,16 +478,18 @@ class LogList(RevisionTreeView):
         (top_revid, old_revid), count = \
               self.get_selection_top_and_parent_revids_and_count()
          
-        self.context_menu_tag.setVisible(count == 1 and branch_count == 1)
-        self.context_menu_revert.setVisible(False)
-
+        self.context_menu_show_tree.setVisible(count == 1)
+        self.context_menu_tag.setVisible(count == 1)
+        self.context_menu_revert.setVisible(count == 1)
+        
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
 class BranchMenu(QtGui.QMenu):
     
-    def __init__ (self, text, parent, branches, require_wt):
+    def __init__ (self, text, parent, graphprovider, require_wt):
         QtGui.QMenu.__init__(self, text, parent)
-        for branch in branches:
+        self.graphprovider = graphprovider
+        for branch in self.graphprovider.branches:
             action = QtGui.QAction(branch.label, self)
             action.setData(QtCore.QVariant (branch))
             self.addAction(action)
