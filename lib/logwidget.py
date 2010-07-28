@@ -479,7 +479,13 @@ class LogList(RevisionTreeView):
               self.get_selection_top_and_parent_revids_and_count()
          
         self.context_menu_show_tree.setVisible(count == 1)
+        
         self.context_menu_tag.setVisible(count == 1)
+        if count == 1:
+            tag_menu = self.context_menu_tag.menu()
+            if tag_menu:
+                tag_menu.filter_rev_ansestor(top_revid)
+        
         self.context_menu_revert.setVisible(count == 1)
         
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
@@ -498,6 +504,22 @@ class BranchMenu(QtGui.QMenu):
         
         self.connect(self, QtCore.SIGNAL("triggered(QAction *)"),
                      self.triggered)
+    
+    def filter_rev_ansestor(self, rev, is_ansestor=True):
+        visible_action_count = 0
+        
+        for action in self.actions():
+            branch_info = action.data().toPyObject()
+            branch_tip = branch_info.branch.last_revision()
+            is_ansestor_ = (
+                frozenset((branch_tip,)) ==
+                self.graphprovider.known_graph.heads((branch_tip, rev)))
+            visible = is_ansestor_==is_ansestor
+            action.setVisible(visible)
+            if visible:
+                visible_action_count += 1
+        
+        return
     
     def triggered(self, action):
         self.emit(QtCore.SIGNAL("triggered(QVariant)"), action.data())
