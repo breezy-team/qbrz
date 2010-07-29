@@ -169,12 +169,20 @@ class LogList(RevisionTreeView):
                 gettext("Tag &revision..."), self.tag_revision)
             
             self.context_menu_revert = add_branch_action(
-                gettext("R&evert to this revision..."), self.revert_to_revision,
+                gettext("R&evert to this revision"), self.revert_to_revision,
                 require_wt=True)
             
             self.context_menu_update = add_branch_action(
-                gettext("&Update to this revision..."), self.update_to_revision,
+                gettext("&Update to this revision"), self.update_to_revision,
                 require_wt=True)
+            
+            # In theory we should have a select branch option like push.
+            # But merge is orentated to running in a branch, and selecting a
+            # branch to merge form, so it does not really work well.
+            if branch_count > 1:
+                self.context_menu_cherry_pick = add_branch_action(
+                    gettext("&Cherry pick"), self.cherry_pick,
+                    require_wt=True)
 
     def load_branch(self, branch, fileids, tree=None):
         self.throbber.show()
@@ -485,6 +493,27 @@ class LogList(RevisionTreeView):
                                 self.refresh)
         # TODO, we should just update the branch tags, rather than a full
         # refresh.
+
+    def cherry_pick(self, selected_branch_info=None):
+        def get_dialog(rev_count,
+                       top_revid, old_revid,
+                       top_revno_str, old_revno_str,
+                       selected_branch_info, single_branch):
+            from_branch_info = self.graph_provider.get_revid_branch_info(top_revid)
+            
+            desc = (gettext("Cherry pick revisions %s - %s from %s to %s.") %
+                    (old_revno_str, top_revno_str,
+                     from_branch_info.label, selected_branch_info.label))
+            
+            args = ["merge", from_branch_info.branch.base,
+                    '-r', 'revid:%s..revid:%s' % (old_revid, top_revid)]
+            return SimpleSubProcessDialog(
+                gettext("Cherry pick"), desc=desc, args=args,
+                dir=selected_branch_info.tree.basedir,
+                parent=self)
+        
+        self.sub_process_action(selected_branch_info, get_dialog)
+
     
     def show_diff(self, index=None,
                   specific_files=None, specific_file_ids=None,
@@ -538,7 +567,10 @@ class LogList(RevisionTreeView):
         def filter_rev_ansestor(action, is_ansestor=True):
             branch_menu = action.menu()
             if branch_menu:
-                branch_menu.filter_rev_ansestor(top_revid, is_ansestor)
+                vis_branch_count = branch_menu.filter_rev_ansestor(
+                                                        top_revid, is_ansestor)
+                if vis_branch_count == 0:
+                    action.setVisible(False)
         
         self.context_menu_show_tree.setVisible(count == 1)
         self.context_menu_tag.setVisible(count == 1)
@@ -546,6 +578,8 @@ class LogList(RevisionTreeView):
             filter_rev_ansestor(self.context_menu_tag)
         self.context_menu_revert.setVisible(count == 1)
         self.context_menu_update.setVisible(count == 1)
+        
+        filter_rev_ansestor(self.context_menu_cherry_pick, is_ansestor=False)
         
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
@@ -573,12 +607,12 @@ class BranchMenu(QtGui.QMenu):
             is_ansestor_ = (
                 frozenset((branch_tip,)) ==
                 self.graphprovider.known_graph.heads((branch_tip, rev)))
-            visible = is_ansestor_==is_ansestor
+            visible = is_ansestor_== is_ansestor
             action.setVisible(visible)
             if visible:
                 visible_action_count += 1
         
-        return
+        return visible_action_count
     
     def triggered(self, action):
         self.emit(QtCore.SIGNAL("triggered(QVariant)"), action.data())
