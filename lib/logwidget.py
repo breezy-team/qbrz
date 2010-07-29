@@ -407,6 +407,38 @@ class LogList(RevisionTreeView):
         window.show()
         self.window().windows.append(window)
     
+    def sub_process_action(self, selected_branch_info, get_dialog, auto_run,
+                           refresh_method=None):
+        gp = self.graph_provider
+        (top_revid, old_revid), rev_count = \
+                self.get_selection_top_and_parent_revids_and_count()
+        top_revno_str = gp.revid_rev[top_revid].revno_str
+        old_revno_str = gp.revid_rev[old_revid].revno_str
+        
+        if selected_branch_info:
+            selected_branch_info = selected_branch_info.toPyObject()
+            single_branch = False
+        else:
+            assert(len(gp.branches)==1)
+            selected_branch_info = gp.branches[0]
+            single_branch = True
+        
+        dialog = get_dialog(rev_count,
+                            top_revid, old_revid,
+                            top_revno_str, old_revno_str,
+                            selected_branch_info, single_branch)
+        
+        if refresh_method:
+            QtCore.QObject.connect(dialog,
+                                   QtCore.SIGNAL("subprocessFinished(bool)"),
+                                   refresh_method)
+        
+        dialog.show()
+        self.window().windows.append(dialog)
+        
+        if auto_run:
+            dialog.do_accept()
+    
     def revert_to_revision(self, selected_branch_info=None):
         """Reverts the working tree to the selected revision.
            If there are more than 1 working tree the argument
@@ -431,36 +463,30 @@ class LogList(RevisionTreeView):
                 filenames=None, old_tree=rev_tree, report_changes=True)
     
     def update_to_revision(self, selected_branch_info=None):
-        gp = self.graph_provider
-        (top_revid, old_revid), count = \
-                self.get_selection_top_and_parent_revids_and_count()
-        revno_str = gp.revid_rev[top_revid].revno_str
-        assert(count==1)
         
-        if selected_branch_info:
-            selected_branch_info = selected_branch_info.toPyObject()
-            desc = (gettext("Update %s to revision %s revid:%s.") %
-                (selected_branch_info.label, revno_str, top_revid))
-        else:
-            assert(len(gp.branches)==1)
-            selected_branch_info = gp.branches[0]
-            desc = (gettext("Update to revision %s revid:%s.") %
-                    (revno_str, top_revid))
+        def get_dialog(rev_count,
+                       top_revid, old_revid,
+                       top_revno_str, old_revno_str,
+                       selected_branch_info, single_branch):
+            assert(rev_count==1)
+            
+            if single_branch:
+                desc = (gettext("Update to revision %s revid:%s.") %
+                        (top_revno_str, top_revid))
+            else:
+                desc = (gettext("Update %s to revision %s revid:%s.") %
+                        (selected_branch_info.label, top_revno_str, top_revid))
+            
+            args = ["update", '-r', 'revid:%s' % top_revid]
+            return SimpleSubProcessDialog(
+                gettext("Update"), desc=desc, args=args,
+                dir=selected_branch_info.tree.basedir,
+                parent=self)
         
-        args = ["update", '-r', 'revid:%s' % top_revid]
-        update_dialog = SimpleSubProcessDialog(
-            gettext("Update"), desc=desc, args=args,
-            dir=selected_branch_info.tree.basedir,
-            parent=self)
-        
+        self.sub_process_action(selected_branch_info, get_dialog, True,
+                                self.refresh)
         # TODO, we should just update the branch tags, rather than a full
         # refresh.
-        QtCore.QObject.connect(update_dialog,
-                               QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self.refresh)
-        update_dialog.show()
-        update_dialog.do_accept()
-    
     
     def show_diff(self, index=None,
                   specific_files=None, specific_file_ids=None,
