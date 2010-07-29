@@ -183,6 +183,10 @@ class LogList(RevisionTreeView):
                 self.context_menu_cherry_pick = add_branch_action(
                     gettext("&Cherry pick"), self.cherry_pick,
                     require_wt=True)
+            
+            self.context_menu_reverse_cherry_pick = add_branch_action(
+                gettext("Re&verse Cherry pick"), self.reverse_cherry_pick,
+                require_wt=True)
 
     def load_branch(self, branch, fileids, tree=None):
         self.throbber.show()
@@ -501,19 +505,41 @@ class LogList(RevisionTreeView):
                        selected_branch_info, single_branch):
             from_branch_info = self.graph_provider.get_revid_branch_info(top_revid)
             
-            desc = (gettext("Cherry pick revisions %s - %s from %s to %s.") %
+            desc = (gettext("Cherry-pick revisions %s - %s from %s to %s.") %
                     (old_revno_str, top_revno_str,
                      from_branch_info.label, selected_branch_info.label))
             
             args = ["merge", from_branch_info.branch.base,
                     '-r', 'revid:%s..revid:%s' % (old_revid, top_revid)]
             return SimpleSubProcessDialog(
-                gettext("Cherry pick"), desc=desc, args=args,
+                gettext("Cherry-pick"), desc=desc, args=args,
                 dir=selected_branch_info.tree.basedir,
                 parent=self)
         
         self.sub_process_action(selected_branch_info, get_dialog)
+        # No refresh, because we don't track cherry-picks yet :-(
 
+    def reverse_cherry_pick(self, selected_branch_info=None):
+        def get_dialog(rev_count,
+                       top_revid, old_revid,
+                       top_revno_str, old_revno_str,
+                       selected_branch_info, single_branch):
+            if single_branch:
+                desc = (gettext("Reverse cherry-pick revisions %s - %s") %
+                        (old_revno_str, top_revno_str))
+            else:
+                desc = (gettext("Reverse cherry-pick revisions %s - %s in %s.") %
+                        (old_revno_str, top_revno_str, selected_branch_info.label))
+
+            args = ["merge", '.',
+                    '-r', 'revid:%s..revid:%s' % (top_revid, old_revid)]
+            return SimpleSubProcessDialog(
+                gettext("Reverse cherry-pick"), desc=desc, args=args,
+                dir=selected_branch_info.tree.basedir,
+                parent=self)
+        
+        self.sub_process_action(selected_branch_info, get_dialog)
+        # No refresh, because we don't track cherry-picks yet :-(
     
     def show_diff(self, index=None,
                   specific_files=None, specific_file_ids=None,
@@ -580,6 +606,7 @@ class LogList(RevisionTreeView):
         self.context_menu_update.setVisible(count == 1)
         
         filter_rev_ansestor(self.context_menu_cherry_pick, is_ansestor=False)
+        filter_rev_ansestor(self.context_menu_reverse_cherry_pick)
         
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
