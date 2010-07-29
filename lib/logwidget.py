@@ -32,6 +32,7 @@ from bzrlib.plugins.qbzr.lib.tag import TagWindow, CallBackTagWindow
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib import diff
 from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
 ''')
 
 class LogList(RevisionTreeView):
@@ -101,8 +102,14 @@ class LogList(RevisionTreeView):
                      self.make_selection_continuous)
 
     def create_context_menu(self, diff_is_default_action=True):
+        branch_count = len(self.graph_provider.branches)
+        
         self.context_menu = QtGui.QMenu(self)
-        if self.view_commands or self.action_commands:
+        self.connect(self,
+                     QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
+                     self.show_context_menu)
+        
+        if self.view_commands:
             if self.graph_provider.fileids:
                 if diff.has_ext_diff():
                     diff_menu = diff.ExtDiffMenu(
@@ -140,18 +147,48 @@ class LogList(RevisionTreeView):
                     if diff_is_default_action:
                         self.context_menu.setDefaultAction(show_diff_action)
 
-            self.connect(self,
-                         QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
-                         self.show_context_menu)
+            self.context_menu_show_tree = self.context_menu.addAction(
+                gettext("Show &tree..."), self.show_revision_tree)
+        
+        if self.action_commands:
+            self.context_menu.addSeparator()
+            def add_branch_action(text, triggered, require_wt=False):
+                if branch_count == 1:
+                    action = self.context_menu.addAction(text, triggered)
+                    if require_wt:
+                        action.setDisabled(
+                            self.graph_provider.branches[0].tree is None)
+                else:
+                    menu = BranchMenu(text, self, self.graph_provider,
+                                      require_wt)
+                    self.connect(menu,
+                                 QtCore.SIGNAL("triggered(QVariant)"),
+                                 triggered)
+                    action = self.context_menu.addMenu(menu)
+                return action
             
-            self.context_menu.addAction(gettext("Show &tree..."),
-                                        self.show_revision_tree)
-            self.context_menu_tag = \
-                self.context_menu.addAction(gettext("Tag &revision..."),
-                                            self.tag_revision)
-            self.context_menu_revert = \
-                self.context_menu.addAction(gettext("Revert to this revision..."),
-                                            self.revert_revision)
+            self.context_menu_tag = add_branch_action(
+                gettext("Tag &revision..."), self.tag_revision)
+            
+            self.context_menu_revert = add_branch_action(
+                gettext("R&evert to this revision"), self.revert_to_revision,
+                require_wt=True)
+            
+            self.context_menu_update = add_branch_action(
+                gettext("&Update to this revision"), self.update_to_revision,
+                require_wt=True)
+            
+            # In theory we should have a select branch option like push.
+            # But merge is orentated to running in a branch, and selecting a
+            # branch to merge form, so it does not really work well.
+            if branch_count > 1:
+                self.context_menu_cherry_pick = add_branch_action(
+                    gettext("&Cherry pick"), self.cherry_pick,
+                    require_wt=True)
+            
+            self.context_menu_reverse_cherry_pick = add_branch_action(
+                gettext("Re&verse Cherry pick"), self.reverse_cherry_pick,
+                require_wt=True)
 
     def load_branch(self, branch, fileids, tree=None):
         self.throbber.show()
@@ -366,33 +403,145 @@ class LogList(RevisionTreeView):
     def default_action(self, index=None):
         self.show_diff_specified_files()
         
-    def tag_revision(self):
+    def tag_revision(self, selected_branch_info=None):
         gp = self.graph_provider
+        
+        if selected_branch_info:
+            selected_branch_info = selected_branch_info.toPyObject()
+        else:
+            assert(len(gp.branches)==1)
+            selected_branch_info = gp.branches[0]
+        
         revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
         revno = gp.revid_rev[revid].revno_str
         revs = [RevisionSpec.from_string(revno)]
-        assert(len(gp.branches)==1)
-        branch = gp.branches[0].branch
+        branch = selected_branch_info.branch
         action = TagWindow.action_from_options(force=False, delete=False)
         window = CallBackTagWindow(branch, self.refresh_tags, action=action, revision=revs)
         window.show()
         self.window().windows.append(window)
     
-    def revert_revision(self):
-        """Reverts the working tree to the selected revision."""
-        res = QtGui.QMessageBox.question(self, gettext("Revert Revision"),
-                    gettext("Are you sure you want to revert the working "
-                            "tree to the selected revision?"
-                            ),QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-        if res == QtGui.QMessageBox.Yes:
-          (top_revid, old_revid), count = \
-              self.get_selection_top_and_parent_revids_and_count()
-          gp = self.graph_provider
-          assert(len(gp.branches)==1)
-          branch_info = gp.branches[0]
-          rev_tree = gp.get_revid_repo(top_revid).revision_tree(top_revid)
-          branch_info.tree.revert(filenames=None, old_tree=rev_tree,
-                                  report_changes=True)
+    def sub_process_action(self, selected_branch_info, get_dialog,
+                           auto_run=False, refresh_method=None):
+        gp = self.graph_provider
+        (top_revid, old_revid), rev_count = \
+                self.get_selection_top_and_parent_revids_and_count()
+        top_revno_str = gp.revid_rev[top_revid].revno_str
+        old_revno_str = gp.revid_rev[old_revid].revno_str
+        
+        if selected_branch_info:
+            selected_branch_info = selected_branch_info.toPyObject()
+            single_branch = False
+        else:
+            assert(len(gp.branches)==1)
+            selected_branch_info = gp.branches[0]
+            single_branch = True
+        
+        dialog = get_dialog(rev_count,
+                            top_revid, old_revid,
+                            top_revno_str, old_revno_str,
+                            selected_branch_info, single_branch)
+        
+        if refresh_method:
+            QtCore.QObject.connect(dialog,
+                                   QtCore.SIGNAL("subprocessFinished(bool)"),
+                                   refresh_method)
+        
+        dialog.show()
+        self.window().windows.append(dialog)
+        
+        if auto_run:
+            dialog.do_accept()
+    
+    def revert_to_revision(self, selected_branch_info=None):
+        def get_dialog(rev_count,
+                       top_revid, old_revid,
+                       top_revno_str, old_revno_str,
+                       selected_branch_info, single_branch):
+            assert(rev_count==1)
+            
+            if single_branch:
+                desc = (gettext("Revert to revision %s revid:%s.") %
+                        (top_revno_str, top_revid))
+            else:
+                desc = (gettext("Revert %s to revision %s revid:%s.") %
+                        (selected_branch_info.label, top_revno_str, top_revid))
+            
+            args = ["revert", '-r', 'revid:%s' % top_revid]
+            return SimpleSubProcessDialog(
+                gettext("Revert"), desc=desc, args=args,
+                dir=selected_branch_info.tree.basedir,
+                parent=self)
+        
+        self.sub_process_action(selected_branch_info, get_dialog)
+    
+    def update_to_revision(self, selected_branch_info=None):
+        def get_dialog(rev_count,
+                       top_revid, old_revid,
+                       top_revno_str, old_revno_str,
+                       selected_branch_info, single_branch):
+            assert(rev_count==1)
+            
+            if single_branch:
+                desc = (gettext("Update to revision %s revid:%s.") %
+                        (top_revno_str, top_revid))
+            else:
+                desc = (gettext("Update %s to revision %s revid:%s.") %
+                        (selected_branch_info.label, top_revno_str, top_revid))
+            
+            args = ["update", '-r', 'revid:%s' % top_revid]
+            return SimpleSubProcessDialog(
+                gettext("Update"), desc=desc, args=args,
+                dir=selected_branch_info.tree.basedir,
+                parent=self)
+        
+        self.sub_process_action(selected_branch_info, get_dialog, True,
+                                self.refresh)
+        # TODO, we should just update the branch tags, rather than a full
+        # refresh.
+
+    def cherry_pick(self, selected_branch_info=None):
+        def get_dialog(rev_count,
+                       top_revid, old_revid,
+                       top_revno_str, old_revno_str,
+                       selected_branch_info, single_branch):
+            from_branch_info = self.graph_provider.get_revid_branch_info(top_revid)
+            
+            desc = (gettext("Cherry-pick revisions %s - %s from %s to %s.") %
+                    (old_revno_str, top_revno_str,
+                     from_branch_info.label, selected_branch_info.label))
+            
+            args = ["merge", from_branch_info.branch.base,
+                    '-r', 'revid:%s..revid:%s' % (old_revid, top_revid)]
+            return SimpleSubProcessDialog(
+                gettext("Cherry-pick"), desc=desc, args=args,
+                dir=selected_branch_info.tree.basedir,
+                parent=self)
+        
+        self.sub_process_action(selected_branch_info, get_dialog)
+        # No refresh, because we don't track cherry-picks yet :-(
+
+    def reverse_cherry_pick(self, selected_branch_info=None):
+        def get_dialog(rev_count,
+                       top_revid, old_revid,
+                       top_revno_str, old_revno_str,
+                       selected_branch_info, single_branch):
+            if single_branch:
+                desc = (gettext("Reverse cherry-pick revisions %s - %s") %
+                        (old_revno_str, top_revno_str))
+            else:
+                desc = (gettext("Reverse cherry-pick revisions %s - %s in %s.") %
+                        (old_revno_str, top_revno_str, selected_branch_info.label))
+
+            args = ["merge", '.',
+                    '-r', 'revid:%s..revid:%s' % (top_revid, old_revid)]
+            return SimpleSubProcessDialog(
+                gettext("Reverse cherry-pick"), desc=desc, args=args,
+                dir=selected_branch_info.tree.basedir,
+                parent=self)
+        
+        self.sub_process_action(selected_branch_info, get_dialog)
+        # No refresh, because we don't track cherry-picks yet :-(
     
     def show_diff(self, index=None,
                   specific_files=None, specific_file_ids=None,
@@ -440,17 +589,65 @@ class LogList(RevisionTreeView):
 
     def show_context_menu(self, pos):
         branch_count = len(self.graph_provider.branches)
-        single_branch_with_tree = bool(
-            branch_count == 1 and self.graph_provider.branches[0].tree)
         (top_revid, old_revid), count = \
               self.get_selection_top_and_parent_revids_and_count()
+         
+        def filter_rev_ansestor(action, is_ansestor=True):
+            branch_menu = action.menu()
+            if branch_menu:
+                vis_branch_count = branch_menu.filter_rev_ansestor(
+                                                        top_revid, is_ansestor)
+                if vis_branch_count == 0:
+                    action.setVisible(False)
         
-        self.context_menu_tag.setVisible(count == 1 and branch_count == 1)
-        self.context_menu_revert.setVisible(count == 1 and
-                                            single_branch_with_tree)
+        if self.view_commands:
+            self.context_menu_show_tree.setVisible(count == 1)
         
+        if self.action_commands:
+            self.context_menu_tag.setVisible(count == 1)
+            if count == 1:
+                filter_rev_ansestor(self.context_menu_tag)
+            self.context_menu_revert.setVisible(count == 1)
+            self.context_menu_update.setVisible(count == 1)
+            
+            filter_rev_ansestor(self.context_menu_cherry_pick, is_ansestor=False)
+            filter_rev_ansestor(self.context_menu_reverse_cherry_pick)
+            
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
+class BranchMenu(QtGui.QMenu):
+    
+    def __init__ (self, text, parent, graphprovider, require_wt):
+        QtGui.QMenu.__init__(self, text, parent)
+        self.graphprovider = graphprovider
+        for branch in self.graphprovider.branches:
+            action = QtGui.QAction(branch.label, self)
+            action.setData(QtCore.QVariant (branch))
+            self.addAction(action)
+            if require_wt and branch.tree is None:
+                action.setDisabled(True)
+        
+        self.connect(self, QtCore.SIGNAL("triggered(QAction *)"),
+                     self.triggered)
+    
+    def filter_rev_ansestor(self, rev, is_ansestor=True):
+        visible_action_count = 0
+        
+        for action in self.actions():
+            branch_info = action.data().toPyObject()
+            branch_tip = branch_info.branch.last_revision()
+            is_ansestor_ = (
+                frozenset((branch_tip,)) ==
+                self.graphprovider.known_graph.heads((branch_tip, rev)))
+            visible = is_ansestor_== is_ansestor
+            action.setVisible(visible)
+            if visible:
+                visible_action_count += 1
+        
+        return visible_action_count
+    
+    def triggered(self, action):
+        self.emit(QtCore.SIGNAL("triggered(QVariant)"), action.data())
 
 class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
 
