@@ -511,14 +511,15 @@ class LogList(RevisionTreeView):
         (top_revid, old_revid), count = \
               self.get_selection_top_and_parent_revids_and_count()
          
-        self.context_menu_show_tree.setVisible(count == 1)
+        def filter_rev_ansestor(action, is_ansestor=True):
+            branch_menu = action.menu()
+            if branch_menu:
+                branch_menu.filter_rev_ansestor(top_revid, is_ansestor)
         
+        self.context_menu_show_tree.setVisible(count == 1)
         self.context_menu_tag.setVisible(count == 1)
         if count == 1:
-            tag_menu = self.context_menu_tag.menu()
-            if tag_menu:
-                tag_menu.filter_rev_ansestor(top_revid)
-        
+            filter_rev_ansestor(self.context_menu_tag)
         self.context_menu_revert.setVisible(count == 1)
         self.context_menu_update.setVisible(count == 1)
         
