@@ -1,7 +1,11 @@
 0.19 Beta 3 - Under development
 -------------------------------
 
-
+ * qlog:
+   * Context menu actions for tag, and revert will now show a branch menu if
+     more than one branch is open. (Craig Hewetson, Gary van der Merwe)
+   * Add context menu actions for update, cherry-pick, and reverse cherry-pick.
+     (Bug #258360, Gary van der Merwe)
 
 
 0.19 Beta 2 "Pomegranate" - 2010/07/01
