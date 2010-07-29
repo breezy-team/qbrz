@@ -32,6 +32,7 @@ from bzrlib.plugins.qbzr.lib.tag import TagWindow, CallBackTagWindow
 from bzrlib.plugins.qbzr.lib import logmodel
 from bzrlib.plugins.qbzr.lib import diff
 from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
 ''')
 
 class LogList(RevisionTreeView):
@@ -168,7 +169,11 @@ class LogList(RevisionTreeView):
                 gettext("Tag &revision..."), self.tag_revision)
             
             self.context_menu_revert = add_branch_action(
-                gettext("R&evert to this revision..."), self.tag_revision,
+                gettext("R&evert to this revision..."), self.revert_to_revision,
+                require_wt=True)
+            
+            self.context_menu_update = add_branch_action(
+                gettext("&Update to this revision..."), self.update_to_revision,
                 require_wt=True)
 
     def load_branch(self, branch, fileids, tree=None):
@@ -402,7 +407,7 @@ class LogList(RevisionTreeView):
         window.show()
         self.window().windows.append(window)
     
-    def revert_revision(self, selected_branch_info=None):
+    def revert_to_revision(self, selected_branch_info=None):
         """Reverts the working tree to the selected revision.
            If there are more than 1 working tree the argument
            selected_branch will be specified as QVariant
@@ -424,6 +429,38 @@ class LogList(RevisionTreeView):
                 selected_branch_info = gp.branches[0]
             selected_branch_info.tree.revert(
                 filenames=None, old_tree=rev_tree, report_changes=True)
+    
+    def update_to_revision(self, selected_branch_info=None):
+        gp = self.graph_provider
+        (top_revid, old_revid), count = \
+                self.get_selection_top_and_parent_revids_and_count()
+        revno_str = gp.revid_rev[top_revid].revno_str
+        assert(count==1)
+        
+        if selected_branch_info:
+            selected_branch_info = selected_branch_info.toPyObject()
+            desc = (gettext("Update %s to revision %s revid:%s.") %
+                (selected_branch_info.label, revno_str, top_revid))
+        else:
+            assert(len(gp.branches)==1)
+            selected_branch_info = gp.branches[0]
+            desc = (gettext("Update to revision %s revid:%s.") %
+                    (revno_str, top_revid))
+        
+        args = ["update", '-r', 'revid:%s' % top_revid]
+        update_dialog = SimpleSubProcessDialog(
+            gettext("Update"), desc=desc, args=args,
+            dir=selected_branch_info.tree.basedir,
+            parent=self)
+        
+        # TODO, we should just update the branch tags, rather than a full
+        # refresh.
+        QtCore.QObject.connect(update_dialog,
+                               QtCore.SIGNAL("subprocessFinished(bool)"),
+                               self.refresh)
+        update_dialog.show()
+        update_dialog.do_accept()
+    
     
     def show_diff(self, index=None,
                   specific_files=None, specific_file_ids=None,
@@ -483,6 +520,7 @@ class LogList(RevisionTreeView):
                 tag_menu.filter_rev_ansestor(top_revid)
         
         self.context_menu_revert.setVisible(count == 1)
+        self.context_menu_update.setVisible(count == 1)
         
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
