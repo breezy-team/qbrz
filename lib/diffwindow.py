@@ -21,6 +21,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import errno
+import re
 import time
 
 from PyQt4 import QtCore, QtGui
@@ -387,7 +388,8 @@ class DiffWindow(QBzrWindow):
                                 if self.ignore_whitespace:
                                     sequences = []
                                     for l in lines:
-                                        sequence = (line.translate(None, " \t\r\n") for line in l)
+                                        #sequence = (line.translate(None, " \t\r\n") for line in l)
+                                        sequence = (re.sub('\s', '', line) for line in l)
                                         sequences.append(sequence)
                                 matcher = SequenceMatcher(None, sequences[0], sequences[1])
                                 self.processEvents()
