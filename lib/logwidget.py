@@ -407,8 +407,8 @@ class LogList(RevisionTreeView):
         window.show()
         self.window().windows.append(window)
     
-    def sub_process_action(self, selected_branch_info, get_dialog, auto_run,
-                           refresh_method=None):
+    def sub_process_action(self, selected_branch_info, get_dialog,
+                           auto_run=False, refresh_method=None):
         gp = self.graph_provider
         (top_revid, old_revid), rev_count = \
                 self.get_selection_top_and_parent_revids_and_count()
@@ -440,30 +440,28 @@ class LogList(RevisionTreeView):
             dialog.do_accept()
     
     def revert_to_revision(self, selected_branch_info=None):
-        """Reverts the working tree to the selected revision.
-           If there are more than 1 working tree the argument
-           selected_branch will be specified as QVariant
-           with a working tree as a python object. 
-           This will be the working tree that the user selected."""
-        res = QtGui.QMessageBox.question(self, gettext("Revert Revision"),
-                    gettext("Are you sure you want to revert the working "
-                            "tree to the selected revision?"
-                            ),QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-        if res == QtGui.QMessageBox.Yes:
-            (top_revid, old_revid), count = \
-                    self.get_selection_top_and_parent_revids_and_count()
-            gp = self.graph_provider
-            rev_tree = gp.get_revid_repo(top_revid).revision_tree(top_revid)
-            if selected_branch_info:
-                selected_branch_info = selected_branch_info.toPyObject()
+        def get_dialog(rev_count,
+                       top_revid, old_revid,
+                       top_revno_str, old_revno_str,
+                       selected_branch_info, single_branch):
+            assert(rev_count==1)
+            
+            if single_branch:
+                desc = (gettext("Revert to revision %s revid:%s.") %
+                        (top_revno_str, top_revid))
             else:
-                assert(len(gp.branches)==1)
-                selected_branch_info = gp.branches[0]
-            selected_branch_info.tree.revert(
-                filenames=None, old_tree=rev_tree, report_changes=True)
+                desc = (gettext("Revert %s to revision %s revid:%s.") %
+                        (selected_branch_info.label, top_revno_str, top_revid))
+            
+            args = ["revert", '-r', 'revid:%s' % top_revid]
+            return SimpleSubProcessDialog(
+                gettext("Revert"), desc=desc, args=args,
+                dir=selected_branch_info.tree.basedir,
+                parent=self)
+        
+        self.sub_process_action(selected_branch_info, get_dialog)
     
     def update_to_revision(self, selected_branch_info=None):
-        
         def get_dialog(rev_count,
                        top_revid, old_revid,
                        top_revno_str, old_revno_str,
