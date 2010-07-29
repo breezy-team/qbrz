@@ -138,6 +138,7 @@ class DiffWindow(QBzrWindow):
         if filter_options is None:
             self.filter_options = FilterOptions(all_enable=True)
         self.complete = complete
+        self.ignore_whitespace = False
 
         self.throbber = ThrobberWidget(self)
         
@@ -196,6 +197,13 @@ class DiffWindow(QBzrWindow):
             self.connect(self.menu, QtCore.SIGNAL("triggered(QString)"),
                          self.ext_diff_triggered)
 
+        ignore_whitespace = QtGui.QCheckBox (gettext("Ignore whitespace"),
+                                            self.centralwidget)
+        self.connect(ignore_whitespace,
+                     QtCore.SIGNAL("clicked(bool)"),
+                     self.click_ignore_whitespace)
+        ignore_whitespace.setChecked(self.ignore_whitespace);
+
         buttonbox = self.create_button_box(BTN_CLOSE)
 
         refresh = StandardButton(BTN_REFRESH)
@@ -212,6 +220,7 @@ class DiffWindow(QBzrWindow):
         hbox.addWidget(complete)
         if has_ext_diff():
             hbox.addWidget(ext_diff_button)
+        hbox.addWidget(ignore_whitespace)
         hbox.addWidget(self.encoding_selector_left)
         hbox.addWidget(self.encoding_selector_right)
         hbox.addWidget(buttonbox)
@@ -374,7 +383,13 @@ class DiffWindow(QBzrWindow):
                             elif versioned == (False, True):
                                 groups = [[('insert', 0, 0, 0, len(lines[1]))]]
                             else:
-                                matcher = SequenceMatcher(None, lines[0], lines[1])
+                                sequences = (lines[0], lines[1])
+                                if self.ignore_whitespace:
+                                    sequences = []
+                                    for l in lines:
+                                        sequence = (line.translate(None, " \t\r\n") for line in l)
+                                        sequences.append(sequence)
+                                matcher = SequenceMatcher(None, sequences[0], sequences[1])
                                 self.processEvents()
                                 if self.complete:
                                     groups = list([matcher.get_opcodes()])
@@ -452,3 +467,10 @@ class DiffWindow(QBzrWindow):
     def ext_diff_triggered(self, ext_diff):
         """@param ext_diff: path to external diff executable."""
         show_diff(self.arg_provider, ext_diff=ext_diff, parent_window = self)
+
+    def click_ignore_whitespace(self, checked ):
+        self.ignore_whitespace = checked
+        #Has the side effect of refreshing...
+        self.diffview.clear()
+        self.sdiffview.clear()
+        run_in_loading_queue(self.load_diff)
