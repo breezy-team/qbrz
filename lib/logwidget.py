@@ -105,7 +105,11 @@ class LogList(RevisionTreeView):
         branch_count = len(self.graph_provider.branches)
         
         self.context_menu = QtGui.QMenu(self)
-        if self.view_commands or self.action_commands:
+        self.connect(self,
+                     QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
+                     self.show_context_menu)
+        
+        if self.view_commands:
             if self.graph_provider.fileids:
                 if diff.has_ext_diff():
                     diff_menu = diff.ExtDiffMenu(
@@ -143,13 +147,10 @@ class LogList(RevisionTreeView):
                     if diff_is_default_action:
                         self.context_menu.setDefaultAction(show_diff_action)
 
-            self.connect(self,
-                         QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
-                         self.show_context_menu)
-            
             self.context_menu_show_tree = self.context_menu.addAction(
                 gettext("Show &tree..."), self.show_revision_tree)
-            
+        
+        if self.action_commands:
             def add_branch_action(text, triggered, require_wt=False):
                 if branch_count == 1:
                     action = self.context_menu.addAction(text, triggered)
@@ -598,16 +599,19 @@ class LogList(RevisionTreeView):
                 if vis_branch_count == 0:
                     action.setVisible(False)
         
-        self.context_menu_show_tree.setVisible(count == 1)
-        self.context_menu_tag.setVisible(count == 1)
-        if count == 1:
-            filter_rev_ansestor(self.context_menu_tag)
-        self.context_menu_revert.setVisible(count == 1)
-        self.context_menu_update.setVisible(count == 1)
+        if self.view_commands:
+            self.context_menu_show_tree.setVisible(count == 1)
         
-        filter_rev_ansestor(self.context_menu_cherry_pick, is_ansestor=False)
-        filter_rev_ansestor(self.context_menu_reverse_cherry_pick)
-        
+        if self.action_commands:
+            self.context_menu_tag.setVisible(count == 1)
+            if count == 1:
+                filter_rev_ansestor(self.context_menu_tag)
+            self.context_menu_revert.setVisible(count == 1)
+            self.context_menu_update.setVisible(count == 1)
+            
+            filter_rev_ansestor(self.context_menu_cherry_pick, is_ansestor=False)
+            filter_rev_ansestor(self.context_menu_reverse_cherry_pick)
+            
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
 class BranchMenu(QtGui.QMenu):
