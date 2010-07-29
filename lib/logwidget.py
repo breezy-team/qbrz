@@ -151,6 +151,7 @@ class LogList(RevisionTreeView):
                 gettext("Show &tree..."), self.show_revision_tree)
         
         if self.action_commands:
+            self.context_menu.addSeparator()
             def add_branch_action(text, triggered, require_wt=False):
                 if branch_count == 1:
                     action = self.context_menu.addAction(text, triggered)
