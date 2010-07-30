@@ -40,6 +40,7 @@ def load_tests(basic_tests, module, loader):
         'test_autocomplete',
         'test_bugs',
         'test_cat',
+        'test_commit',
         'test_commit_data',
         #'test_diffview', - broken by API changes
         'test_extra_isignored',
