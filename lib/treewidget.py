@@ -395,6 +395,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.branch = branch
         self.revno_map = None
         self.changes_mode = changes_mode
+        self.change_load_filter = change_load_filter
         
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
         
@@ -427,8 +428,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                         is_ignored = self.tree.is_ignored(path)
                         change = ChangeDesc(change+(is_ignored,))
                         
-                        if (change_load_filter is not None and
-                            not change_load_filter(change)):
+                        if (self.change_load_filter is not None and
+                            not self.change_load_filter(change)):
                             continue
                         
                         item = InternalItem("", change.kind(), fileid)
@@ -570,6 +571,11 @@ class TreeModel(QtCore.QAbstractItemModel):
                                      (None, kind),
                                      (None, executable),
                                      is_ignored))
+                
+                if (self.change_load_filter is not None and
+                    not self.change_load_filter(change)):
+                    continue
+                
                 yield ModelItemData(path, item=child, change=change)
         
         if (not isinstance(item, InternalItem) and
