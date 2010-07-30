@@ -185,6 +185,8 @@ class LogList(RevisionTreeView):
                 self.context_menu_cherry_pick = add_branch_action(
                     gettext("&Cherry pick"), self.cherry_pick,
                     require_wt=True)
+            else:
+                self.context_menu_cherry_pick = None
             
             self.context_menu_reverse_cherry_pick = add_branch_action(
                 gettext("Re&verse Cherry pick"), self.reverse_cherry_pick,
@@ -610,7 +612,10 @@ class LogList(RevisionTreeView):
             self.context_menu_revert.setVisible(count == 1)
             self.context_menu_update.setVisible(count == 1)
             
-            filter_rev_ansestor(self.context_menu_cherry_pick, is_ansestor=False)
+            if branch_count>1:
+                filter_rev_ansestor(self.context_menu_cherry_pick,
+                                    is_ansestor=False)
+            
             filter_rev_ansestor(self.context_menu_reverse_cherry_pick)
             
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
