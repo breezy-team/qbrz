@@ -290,9 +290,13 @@ class TestTreeWidgetSelectAll(TestWatchExceptHook, TestCaseWithTransport):
         tree = self.make_branch_and_tree('tree')
         
         self.build_tree(['tree/dir-with-unversioned/',
-                         'tree/ignored-dir-with-child/',])
+                         'tree/ignored-dir-with-child/',
+                         'tree/unversioned-with-ignored/',
+                         'tree/unversioned-with-ignored/ignored-dir-with-child/',
+                         ])
         self.build_tree_contents([('tree/dir-with-unversioned/child', ''),
                                   ('tree/ignored-dir-with-child/child', ''),
+                                  ('tree/unversioned-with-ignored/ignored-dir-with-child/child', ''),
                                   ('tree/unchanged', ''),
                                   ('tree/changed', 'old'),
                                   ('tree/unversioned', ''),
@@ -326,7 +330,8 @@ class TestTreeWidgetSelectAll(TestWatchExceptHook, TestCaseWithTransport):
         self.addCleanup(self.cleanup_win)
         self.win.initial_load()
         self.assertSelectedPaths(self.win.filelist, ['dir-with-unversioned/child',
-                                                'unversioned'])
+                                                     'unversioned',
+                                                     'unversioned-with-ignored'])
 
     
     def test_commit_selectall(self):
@@ -335,12 +340,15 @@ class TestTreeWidgetSelectAll(TestWatchExceptHook, TestCaseWithTransport):
         self.addCleanup(self.cleanup_win)
         self.win.load()
         self.assertSelectedPaths(self.win.filelist, ['changed'])
-        self.win.show_nonversioned_checkbox.setCheckState(QtCore.Qt.Checked)
-        self.win.selectall_checkbox.setCheckState(QtCore.Qt.Unchecked)
+        #self.win.show_nonversioned_checkbox.setCheckState(QtCore.Qt.Checked)
+        self.win.show_nonversioned_checkbox.click()
+        #self.win.selectall_checkbox.setCheckState(QtCore.Qt.Unchecked)
         self.win.selectall_checkbox.click()
+        #import pdb; pdb.set_trace()
         self.assertSelectedPaths(self.win.filelist, ['changed',
                                                      'dir-with-unversioned/child',
-                                                     'unversioned'])
+                                                     'unversioned',
+                                                     'unversioned-with-ignored'])
 
     def test_revert_selectall(self):
         import bzrlib.plugins.qbzr.lib.revert
