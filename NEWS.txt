@@ -6,6 +6,7 @@ Bugfixes and backported bugfixes.
     some window managers (metacity, Mac OSX) windows opened from a dialog
     would be behind the dialog. (Bug #421039, Gary van der Merwe)
 
+
 0.14.6 "Spruce" - 2010-01-18
 ----------------------------
 Bugfixes and backported bugfixes.

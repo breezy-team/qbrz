@@ -26,10 +26,11 @@ Compatibility between qbzr and bzr versions
  * QBzr 0.14.x compatible with bzr 1.17, 1.18.x, 2.0.x. 
 
  * QBzr 0.18.x required bzr 2.1.x.
+   Some commands/dialogs are working with bzr 1.17, 1.18.x, 2.0.x.
    It may work with bzr 2.2 or later, but this is not guaranteed.
 
- * QBzr 0.19 required bzr 2.2.
-   It may work with bzr 2.1.x, but this is not guaranteed.
+ * QBzr 0.19 required bzr 2.2 and compatible with bzr 2.1.
+   It may not work with older versions of bzr.
 
 
 Other bzr plugins that improve QBzr
