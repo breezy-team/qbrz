@@ -6,6 +6,10 @@
      more than one branch is open. (Craig Hewetson, Gary van der Merwe)
    * Add context menu actions for update, cherry-pick, and reverse cherry-pick.
      (Bug #258360, Gary van der Merwe)
+ * Language of GUI can be set in DEFAULT section of bazaar.conf 
+   as ``language = code``. Language codes are the same as for LANG environment
+   variable. Environment variable LANGUAGE still preferred over settings
+   in bazaar.conf. (Alexander Belchenko)
  * Added Thai translation.
 
 

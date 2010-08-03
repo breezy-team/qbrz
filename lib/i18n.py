@@ -40,6 +40,10 @@ def N_(s):
 
 def install():
     global _translation
+    from bzrlib import config
+    lang = config.GlobalConfig().get_user_option('language')
+    if lang and not os.environ.get('LANGUAGE'):
+        os.environ['LANGUAGE'] = lang
     if sys.platform == 'win32':
         _check_win32_locale()
     _translation = _gettext.translation('qbzr', localedir=_get_locale_dir(), fallback=True)
