@@ -6,6 +6,7 @@
      more than one branch is open. (Craig Hewetson, Gary van der Merwe)
    * Add context menu actions for update, cherry-pick, and reverse cherry-pick.
      (Bug #258360, Gary van der Merwe)
+ * Added Thai translation.
 
 
 0.19 Beta 2 "Pomegranate" - 2010/07/01
@@ -80,6 +81,7 @@ Maintenance release.
    (Bug #546843, Gary van der Merwe)
  * Treewidget: Fix bug in treewidget where folders are repeated. 
    (Bug #580798, Gary van der Merwe)
+ * Added Thai translation.
 
 
 0.18.6 - 2010-05-04

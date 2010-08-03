@@ -6,15 +6,15 @@ msgstr ""
 "Project-Id-Version: QBzr 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-01-16 13:16+0200\n"
-"PO-Revision-Date: 2010-01-16 20:45+0000\n"
-"Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
+"PO-Revision-Date: 2010-06-11 08:30+0000\n"
+"Last-Translator: Alex L. <Unknown>\n"
 "Language-Team: Russian\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Launchpad-Export-Date: 2010-02-06 11:48+0000\n"
+"X-Launchpad-Export-Date: 2010-08-03 12:24+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
@@ -53,7 +53,7 @@ msgstr "Аннотация для этой ревизии"
 
 #: lib\bind.py:44
 msgid "Bind branch"
-msgstr ""
+msgstr "Связать ветви"
 
 #: lib\bind.py:54
 msgid "Bind"
@@ -83,7 +83,7 @@ msgstr "Выбрать расположение ветки"
 
 #: lib\bind.py:120
 msgid "Master branch location not specified."
-msgstr ""
+msgstr "Не указано расположение основной ветви"
 
 #: lib\browse.py:73 lib\export.py:179 lib\ui_info.py:146
 msgid "Location:"
@@ -407,7 +407,7 @@ msgstr "Автоматически"
 
 #: lib\conflicts.py:141 lib\treewidget.py:1598
 msgid "&Merge conflict"
-msgstr ""
+msgstr "&Объединить конфликты"
 
 #: lib\conflicts.py:147
 msgid "Mark as &resolved"
@@ -479,7 +479,7 @@ msgstr "дубликат"
 
 #: lib\conflicts.py:333
 msgid "parent loop"
-msgstr ""
+msgstr "цикл родителя"
 
 #: lib\conflicts.py:334
 msgid "unversioned parent"
@@ -491,11 +491,11 @@ msgstr "отсутствует родительский каталог"
 
 #: lib\conflicts.py:336
 msgid "deleting parent"
-msgstr ""
+msgstr "удаление родителя"
 
 #: lib\conflicts.py:337
 msgid "non-directory parent"
-msgstr ""
+msgstr "не каталогизированный родитель"
 
 #: lib\diff.py:80 lib\treewidget.py:1593
 msgid "Show &differences"
@@ -580,7 +580,7 @@ msgstr "Показывать файлы целиком"
 
 #: lib\diffwindow.py:184
 msgid "Using"
-msgstr ""
+msgstr "Используя"
 
 #: lib\diffwindow.py:257
 #, python-format
@@ -718,11 +718,11 @@ msgstr "Сведения"
 
 #: lib\info.py:65
 msgid "Location has no working tree"
-msgstr ""
+msgstr "Место не имеет рабочего дерева"
 
 #: lib\info.py:78
 msgid "Location has no branch"
-msgstr ""
+msgstr "Место не имеет ветви"
 
 #: lib\init.py:37 lib\ui_init.py:118
 msgid "Initialize"
@@ -766,7 +766,7 @@ msgstr "Номера ошибок"
 
 #: lib\log.py:245
 msgid "Messages and File text (indexed)"
-msgstr ""
+msgstr "Сообщения и текстовые файлы (проиндексированные)"
 
 #: lib\log.py:418 lib\logwidget.py:132
 msgid "Show &differences..."
@@ -1359,16 +1359,19 @@ msgstr "Пометить как переименованный"
 #: lib\treewidget.py:1825
 msgid "Do you really want to revert the selected file(s)?"
 msgstr ""
+"Вы действительно хотите вернуть выбранные файлы в исходное состояние?"
 
 #: lib\treewidget.py:1858
 msgid "External Merge"
-msgstr ""
+msgstr "Внешние слияния"
 
 #: lib\treewidget.py:1936
 msgid ""
 "Some of the files selected cannot be recoverd if removed. Are you sure you "
 "want to remove these files?"
 msgstr ""
+"Некоторые из выбранных файлов не могут быть восстановлены, если будут "
+"удалены. Вы уверены, что хотите удалить эти файлы?"
 
 #: lib\treewidget.py:1951
 msgid "Select / deselect all"
@@ -1416,15 +1419,15 @@ msgstr "Родительская ветка:"
 
 #: lib\ui_info.py:150
 msgid "Push branch:"
-msgstr ""
+msgstr "Поместить ветвь:"
 
 #: lib\ui_info.py:152
 msgid "Submit branch:"
-msgstr ""
+msgstr "Отправить ветвь:"
 
 #: lib\ui_info.py:154
 msgid "Public branch:"
-msgstr ""
+msgstr "Опубликовать ветвь:"
 
 #: lib\ui_info.py:156
 msgid "&Related Branches"
@@ -1502,21 +1505,23 @@ msgstr "Применить незафиксированные изменения
 
 #: lib\ui_new_tree.py:129
 msgid "Create a new Bazaar Working Tree"
-msgstr ""
+msgstr "Создать новое рабочее дерево Bazaar"
 
 #: lib\ui_new_tree.py:131
 msgid ""
 "Branch source (enter a URL or select a local directory with an existing "
 "branch)"
 msgstr ""
+"Источник ветви (введите URL или выберите локальный каталог с существующей "
+"ветвью)"
 
 #: lib\ui_new_tree.py:133
 msgid "Local directory where the working tree will be created"
-msgstr ""
+msgstr "Локальный каталог, где рабочие дерево будет создано"
 
 #: lib\ui_new_tree.py:135
 msgid "Working Tree Options"
-msgstr ""
+msgstr "Опции рабочего дерева"
 
 #: lib\ui_new_tree.py:136
 msgid "Create a checkout"
@@ -1575,7 +1580,7 @@ msgstr "&Рабочий каталог:"
 
 #: lib\ui_run.py:112
 msgid "C&ategory:"
-msgstr ""
+msgstr "К&атегория:"
 
 #: lib\ui_run.py:113
 msgid "&Command:"
@@ -1737,19 +1742,19 @@ msgstr "Получить новые ревизии из другой ветки"
 
 #: lib\unbind.py:36
 msgid "Unbind branch"
-msgstr ""
+msgstr "Отвязать ветвь"
 
 #: lib\unbind.py:46
 msgid "Unbind"
-msgstr ""
+msgstr "Отвязать"
 
 #: lib\unbind.py:54
 msgid "Bound to:"
-msgstr ""
+msgstr "Связать с:"
 
 #: lib\uncommit.py:40 lib\uncommit.py:124
 msgid "Uncommit"
-msgstr ""
+msgstr "Отменить фиксацию"
 
 #: lib\uncommit.py:57
 msgid "Move tip to"
@@ -1769,7 +1774,7 @@ msgstr "Другая ревизия не указана."
 
 #: lib\uncommit.py:122
 msgid "Do you really want to uncommit these revisions?"
-msgstr ""
+msgstr "Вы действительно хотите отменить фиксацию этих изменений?"
 
 #: lib\update.py:33
 msgid "Update working tree"
