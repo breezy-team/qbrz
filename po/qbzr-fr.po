@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-01-16 13:16+0200\n"
-"PO-Revision-Date: 2010-02-18 11:29+0000\n"
-"Last-Translator: Julien Rosa <epicxnausea@yahoo.fr>\n"
+"PO-Revision-Date: 2010-07-07 16:24+0000\n"
+"Last-Translator: Ptitphysik <amalpeyre@gmail.com>\n"
 "Language-Team: French <fr@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Launchpad-Export-Date: 2010-02-19 13:56+0000\n"
+"X-Launchpad-Export-Date: 2010-08-03 12:00+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
@@ -146,11 +146,11 @@ msgstr "Entrez le message de commit"
 
 #: lib\commit.py:315
 msgid "&Fixed bugs:"
-msgstr "&Bugs corrigé s:"
+msgstr "&Bogues corrigé s:"
 
 #: lib\commit.py:316
 msgid "Set the IDs of bugs fixed by this commit"
-msgstr "Définit les identifiants des bugs corrigés par ce commit"
+msgstr "Définit les identifiants des bogues corrigés par ce commit"
 
 #: lib\commit.py:319
 msgid ""
@@ -396,11 +396,11 @@ msgstr ""
 
 #: lib\conflicts.py:91
 msgid "&Launch..."
-msgstr ""
+msgstr "&Démarrer..."
 
 #: lib\conflicts.py:97
 msgid "M&erge tool:"
-msgstr ""
+msgstr "Outil d&e fusion :"
 
 #: lib\conflicts.py:112
 msgid "Auto-resolve"
@@ -408,11 +408,11 @@ msgstr "Résoudre automatiquement"
 
 #: lib\conflicts.py:141 lib\treewidget.py:1598
 msgid "&Merge conflict"
-msgstr ""
+msgstr "Conflit de &fusion"
 
 #: lib\conflicts.py:147
 msgid "Mark as &resolved"
-msgstr ""
+msgstr "Marquer comme &résolu"
 
 #: lib\conflicts.py:177
 #, python-format
@@ -499,7 +499,7 @@ msgstr ""
 
 #: lib\diff.py:80 lib\treewidget.py:1593
 msgid "Show &differences"
-msgstr ""
+msgstr "Montrer les &différences"
 
 #: lib\diffview.py:248
 msgid "Last modified:"
@@ -523,7 +523,7 @@ msgstr "[fichier binaire]"
 
 #: lib\diffview.py:666
 msgid "\\ No newline at end of file"
-msgstr ""
+msgstr "\\ Pas de retour à la ligne à la fin du fichier"
 
 #: lib\diffwindow.py:77
 #, python-format
@@ -537,7 +537,7 @@ msgstr "Arbre de Travail"
 #: lib\diffwindow.py:98
 #, python-format
 msgid "Rev %(rev)s for %(branch)s"
-msgstr ""
+msgstr "Version %(rev)s pour la branche %(branch)s"
 
 #: lib\diffwindow.py:100
 #, python-format
@@ -615,6 +615,8 @@ msgid ""
 "File %s is not versioned.\n"
 "Operation aborted."
 msgstr ""
+"Le fichier %s n'est pas sous contrôle de version.\n"
+"Opération annulée."
 
 #: lib\diffwindow.py:396 lib\tag.py:138 lib\tag.py:169 lib\tag.py:206
 #: lib\tree_branch.py:97 lib\util.py:60 lib\util.py:952 lib\util.py:962
@@ -636,12 +638,12 @@ msgstr ""
 
 #: lib\export.py:61 lib\export.py:80
 msgid "Export"
-msgstr ""
+msgstr "Exporter"
 
 #: lib\export.py:75 lib\uncommit.py:51
 #, python-format
 msgid "Branch: %s"
-msgstr ""
+msgstr "Branche: %s"
 
 #: lib\export.py:146
 msgid "Archive type:"
@@ -659,7 +661,7 @@ msgstr "Options"
 #: lib\help.py:59
 #, python-format
 msgid "No help can be found for <i>%s</i>"
-msgstr ""
+msgstr "Aucune aide ne peut être trouvée pour <i>%s</i>"
 
 #: lib\help.py:103
 msgid "Help"
@@ -767,7 +769,7 @@ msgstr ""
 
 #: lib\log.py:418 lib\logwidget.py:132
 msgid "Show &differences..."
-msgstr ""
+msgstr "Montrer les &différences…"
 
 #: lib\log.py:426
 msgid "View file"
@@ -788,7 +790,7 @@ msgstr "Auteur"
 #: lib\logmodel.py:244
 #, python-format
 msgid "bug #%s"
-msgstr ""
+msgstr "bogue #%s"
 
 #: lib\logwidget.py:106
 msgid "Show file &differences"
@@ -971,6 +973,7 @@ msgstr ""
 #: lib\pull.py:236
 msgid "Working tree has uncommitted changes."
 msgstr ""
+"L'arborescence du travail contient des modifications non-enregistrées"
 
 #: lib\pull.py:241
 msgid "Working tree is out of date, please run 'bzr update'."
@@ -1023,11 +1026,11 @@ msgstr ""
 
 #: lib\revisionmessagebrowser.py:184
 msgid "Parents:"
-msgstr ""
+msgstr "Parents :"
 
 #: lib\revisionmessagebrowser.py:187
 msgid "Children:"
-msgstr ""
+msgstr "Enfants :"
 
 #: lib\revisionmessagebrowser.py:201
 msgid "Uncommited Working Tree Changes"
@@ -1035,7 +1038,7 @@ msgstr ""
 
 #: lib\revisionmessagebrowser.py:236
 msgid "Date:"
-msgstr ""
+msgstr "Date :"
 
 #: lib\revisionmessagebrowser.py:238
 msgid "Committer:"
@@ -1056,8 +1059,8 @@ msgstr "Étiquettes :"
 #: lib\revisionmessagebrowser.py:265
 msgid "Bug:"
 msgid_plural "Bugs:"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Bogues :"
+msgstr[1] "Bugs :"
 
 #: lib\revisionview.py:66 lib\ui_new_tree.py:158
 msgid "Revision"
@@ -1380,7 +1383,7 @@ msgstr "Parcourir…"
 
 #: lib\ui_branch.py:69 lib\ui_merge.py:66 lib\ui_pull.py:64 lib\ui_tag.py:97
 msgid "&Revision:"
-msgstr ""
+msgstr "&Révision :"
 
 #: lib\ui_branch.py:70
 msgid "&To:"
@@ -1760,11 +1763,11 @@ msgstr ""
 
 #: lib\util.py:450
 msgid "Select Source Directory"
-msgstr ""
+msgstr "Choisir le répertoire source"
 
 #: lib\util.py:452
 msgid "Select Target Directory"
-msgstr ""
+msgstr "Choisir le répertoire cible"
 
 #: lib\util.py:609
 msgid "deleted files"
@@ -1784,4 +1787,4 @@ msgstr "fichiers modifiés"
 
 #: lib\util.py:912 lib\util.py:913 lib\util.py:916
 msgid "(no message)"
-msgstr ""
+msgstr "(aucun message)"

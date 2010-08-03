@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-01-16 13:16+0200\n"
-"PO-Revision-Date: 2010-02-18 11:16+0000\n"
-"Last-Translator: Alexander Belchenko <bialix@ukr.net>\n"
+"PO-Revision-Date: 2010-05-31 09:06+0000\n"
+"Last-Translator: René Pärts <Unknown>\n"
 "Language-Team: Estonian <et@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2010-02-19 13:56+0000\n"
+"X-Launchpad-Export-Date: 2010-08-03 12:00+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
@@ -25,15 +25,15 @@ msgstr "Lisa"
 
 #: lib\add.py:57
 msgid "Unversioned Files"
-msgstr ""
+msgstr "Versioonita failid"
 
 #: lib\add.py:104
 msgid "Show ignored files"
-msgstr ""
+msgstr "Näita eiratud faile"
 
 #: lib\annotate.py:199 lib\annotate.py:321 lib\annotate.py:325 lib\log.py:423
 msgid "Annotate"
-msgstr ""
+msgstr "Annoteeri"
 
 #: lib\annotate.py:199 lib\diffwindow.py:120 lib\util.py:420
 msgid "Loading..."
@@ -46,45 +46,45 @@ msgstr "Kodeering:"
 #: lib\annotate.py:322
 #, python-format
 msgid "Revision %s"
-msgstr ""
+msgstr "Versioon %s"
 
 #: lib\annotate.py:373
 msgid "&Annotate this revision"
-msgstr ""
+msgstr "&Annoteeri see versioon"
 
 #: lib\bind.py:44
 msgid "Bind branch"
-msgstr ""
+msgstr "Köida haru"
 
 #: lib\bind.py:54
 msgid "Bind"
-msgstr ""
+msgstr "Köida"
 
 #: lib\bind.py:56
 msgid "Branch location:"
-msgstr ""
+msgstr "Haru asukoht:"
 
 #: lib\bind.py:60
 msgid "Currently bound to:"
-msgstr ""
+msgstr "Hetkel köidetud:"
 
 #: lib\bind.py:64
 msgid "Bind to:"
-msgstr ""
+msgstr "Köidetud:"
 
 #: lib\bind.py:68 lib\browse.py:64 lib\browse.py:234 lib\export.py:182
 #: lib\export.py:200 lib\send.py:62 lib\send.py:86 lib\send.py:152
 #: lib\switch.py:99
 msgid "Browse"
-msgstr "Sirvi"
+msgstr "Lehitse"
 
 #: lib\bind.py:109 lib\switch.py:153 lib\tag.py:190
 msgid "Select branch location"
-msgstr ""
+msgstr "Vali haru asukoht"
 
 #: lib\bind.py:120
 msgid "Master branch location not specified."
-msgstr ""
+msgstr "Ülemharu asukohta pole määratud."
 
 #: lib\browse.py:73 lib\export.py:179 lib\ui_info.py:146
 msgid "Location:"
@@ -101,7 +101,7 @@ msgstr "Näita"
 
 #: lib\browse.py:89 lib\treewidget.py:1193
 msgid "&Filter"
-msgstr "&Filter"
+msgstr "&Filtreeri"
 
 #: lib\cat.py:83 lib\cat.py:282
 msgid "View"
@@ -118,13 +118,15 @@ msgstr "Haru"
 
 #: lib\commit.py:252
 msgid "&Local commit"
-msgstr ""
+msgstr "&Kohalik sissekanne"
 
 #: lib\commit.py:254
 msgid ""
 "Local commits are not pushed to the master branch until a normal commit is "
 "performed"
 msgstr ""
+"Kohalikud sissekanded pole ülemharusse pandud kuniks tavaline sissekanne on "
+"tehtud"
 
 #: lib\commit.py:258
 msgid "Description:"
@@ -132,29 +134,31 @@ msgstr "Kirjeldus:"
 
 #: lib\commit.py:273 lib\logmodel.py:95 lib\treewidget.py:345
 msgid "Message"
-msgstr "Teade"
+msgstr "Sõnum"
 
 #: lib\commit.py:281
 msgid "Show non-versioned files"
-msgstr ""
+msgstr "Näita versioonita faile"
 
 #: lib\commit.py:303
 msgid "Enter the commit message"
-msgstr ""
+msgstr "Sisesta sissekande sõnum"
 
 #: lib\commit.py:315
 msgid "&Fixed bugs:"
-msgstr ""
+msgstr "&Fikseeritud vead:"
 
 #: lib\commit.py:316
 msgid "Set the IDs of bugs fixed by this commit"
-msgstr ""
+msgstr "Määra selle sissekande poolt parandatud vigade ID-d"
 
 #: lib\commit.py:319
 msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
 msgstr ""
+"Sisesta vigade ID-loend formaadis <i>silt:id</i> eraldatud tühikuga nagu "
+"näiteks <i>projekt:123 projekt:765</i>"
 
 #: lib\commit.py:329
 msgid "&Author:"
@@ -162,12 +166,13 @@ msgstr "&Autor:"
 
 #: lib\commit.py:330
 msgid "Set the author of this change, if it's different from the committer"
-msgstr ""
+msgstr "Määra muudatusele sissekandjast erinev autor"
 
 #: lib\commit.py:333
 msgid ""
 "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
+"Sisesta autori nimi nagu näiteks <i>John Doe &lt;jdoe@example.com&gt;</i>"
 
 #: lib\commit.py:348
 msgid "Changes"
@@ -175,20 +180,20 @@ msgstr "Muudatused"
 
 #: lib\commit.py:365
 msgid "Pending Merges"
-msgstr ""
+msgstr "Ootel ühendused"
 
 #: lib\commit.py:376 lib\main.py:355 lib\subprocess.py:178
 #: lib\treewidget.py:347
 msgid "Status"
-msgstr "Staatus"
+msgstr "Olek"
 
 #: lib\commit.py:388
 msgid "View changes in files selected to commit"
-msgstr ""
+msgstr "Vaata sissekandeks valitud failide muudatusi"
 
 #: lib\commit.py:593
 msgid "You should provide commit message."
-msgstr ""
+msgstr "Peaksid sisestama sissekandesõnumi."
 
 #: lib\commit.py:594 lib\conflicts.py:180 lib\conflicts.py:185
 #: lib\diffwindow.py:403 lib\util.py:58
@@ -197,25 +202,31 @@ msgstr "&OK"
 
 #: lib\commit.py:621
 msgid "No changes to commit."
-msgstr ""
+msgstr "Sissekandeks puuduvad muudatused."
 
 #: lib\commit.py:629
 msgid ""
 "No changes selected to commit.\n"
 "Do you want to commit anyway?"
 msgstr ""
+"Sissekandeks valitud muudatused puuduvad.\n"
+"Kas siiski teha sissekanne?"
 
 #: lib\commit.py:694
 msgid ""
 "A commit will be made directly to the master branch, keeping the local and "
 "master branches in sync."
 msgstr ""
+"Sissekanne tehakse otse ülemharule, hoides sünkroonis kohalikku haru ning "
+"ülemharu."
 
 #: lib\commit.py:700
 msgid ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
 msgstr ""
+"Teostatakse kohalik sissekanne harusse. Ülemharu ei uuendata kuniks tehakse "
+"mitte-kohalik sissekanne."
 
 #: lib\commit.py:733 lib\diff.py:104 lib\diffwindow.py:120
 #: lib\diffwindow.py:251 lib\diffwindow.py:393 lib\diffwindow.py:401
@@ -245,11 +256,11 @@ msgstr "Mutt"
 
 #: lib\config.py:47
 msgid "XDG e-mail client"
-msgstr ""
+msgstr "XDG e-posti klient"
 
 #: lib\config.py:48
 msgid "MAPI e-mail client"
-msgstr ""
+msgstr "MAPI e-posti klient"
 
 #: lib\config.py:49
 msgid "Editor"
@@ -265,19 +276,19 @@ msgstr "&Nimi:"
 
 #: lib\config.py:87
 msgid "E-&mail:"
-msgstr "E-&mail:"
+msgstr "E-&post:"
 
 #: lib\config.py:93 lib\ui_run.py:111 lib\ui_tag.py:90
 msgid "&Browse..."
-msgstr ""
+msgstr "&Lehitse..."
 
 #: lib\config.py:100
 msgid "&Editor:"
-msgstr ""
+msgstr "&Redaktor:"
 
 #: lib\config.py:108
 msgid "E-mail &client:"
-msgstr ""
+msgstr "E-post &klient:"
 
 #: lib\config.py:118
 msgid "Alias"
@@ -302,11 +313,11 @@ msgstr "URL"
 
 #: lib\config.py:160
 msgid "Show inter-group inserts and deletes in green and red"
-msgstr ""
+msgstr "Näita grupisiseseid sisestusi ja kustutamisi rohelise ja punasega"
 
 #: lib\config.py:162
 msgid "External Diff Apps:"
-msgstr ""
+msgstr "Välised erinevusrakendused:"
 
 #: lib\config.py:165 lib\main.py:353 lib\plugins.py:56 lib\plugins.py:61
 msgid "Name"
@@ -314,7 +325,7 @@ msgstr "Nimi"
 
 #: lib\config.py:192
 msgid "External Merge Apps:"
-msgstr ""
+msgstr "Välised liitmisrakendused:"
 
 #: lib\config.py:195
 msgid "Definition"
@@ -330,11 +341,11 @@ msgstr "Aliased"
 
 #: lib\config.py:220
 msgid "Bug Trackers"
-msgstr ""
+msgstr "Vigade jälgijad"
 
 #: lib\config.py:221
 msgid "&User Interface"
-msgstr ""
+msgstr "&Kasutajaliides"
 
 #: lib\config.py:222
 msgid "&Diff"
@@ -342,19 +353,19 @@ msgstr "&Võrdlemine"
 
 #: lib\config.py:223
 msgid "&Merge"
-msgstr ""
+msgstr "&Liida"
 
 #: lib\config.py:248
 msgid "Spell check &language:"
-msgstr ""
+msgstr "Õigekirja kontroll &keel:"
 
 #: lib\config.py:340 lib\diff.py:35
 msgid "Builtin Diff"
-msgstr ""
+msgstr "Sisseehitatud võrdlus"
 
 #: lib\config.py:586
 msgid "Select editor executable"
-msgstr ""
+msgstr "Vali käivitatav redaktor"
 
 #: lib\conflicts.py:39 lib\conflicts.py:159 lib\conflicts.py:176
 #: lib\conflicts.py:183
@@ -371,7 +382,7 @@ msgstr "Konflikt"
 
 #: lib\conflicts.py:81
 msgid "Use Configured Default"
-msgstr ""
+msgstr "Kasuta vaikimisi seadistusi"
 
 #: lib\conflicts.py:83
 msgid ""
@@ -380,42 +391,46 @@ msgid ""
 "external_merge = kdiff3 --output %r %b %t %o\n"
 "%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."
 msgstr ""
+"Liitmise tööriist on seadistatud qconfig liitmise failis.\n"
+"See järgib konventsiooni, mis on kasutusel bzr pluginas: extmerge\n"
+"external_merge = kdiff3 --output %r %b %t %o\n"
+"%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."
 
 #: lib\conflicts.py:91
 msgid "&Launch..."
-msgstr ""
+msgstr "&Käivita..."
 
 #: lib\conflicts.py:97
 msgid "M&erge tool:"
-msgstr ""
+msgstr "L&iitmise tööriist:"
 
 #: lib\conflicts.py:112
 msgid "Auto-resolve"
-msgstr ""
+msgstr "Automaatne lahendamine"
 
 #: lib\conflicts.py:141 lib\treewidget.py:1598
 msgid "&Merge conflict"
-msgstr ""
+msgstr "&Liida konflikt"
 
 #: lib\conflicts.py:147
 msgid "Mark as &resolved"
-msgstr ""
+msgstr "Märgi &lahendatuks"
 
 #: lib\conflicts.py:177
 #, python-format
 msgid "%d conflict auto-resolved."
 msgid_plural "%d conflicts auto-resolved."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d konflikt on automaatselt lahendatud."
+msgstr[1] "%d konflikti on automaatselt lahendatud."
 
 #: lib\conflicts.py:184
 msgid "All conflicts resolved."
-msgstr ""
+msgstr "Kõik konfliktid on lahendatud."
 
 #: lib\conflicts.py:240
 #, python-format
 msgid "Error while running merge tool (code %d)"
-msgstr ""
+msgstr "Liitmise tööriista (code %d) käivitamisel tekkis viga"
 
 #: lib\conflicts.py:241 lib\conflicts.py:305 lib\tag.py:204 lib\trace.py:186
 #: lib\trace.py:200 lib\tree_branch.py:95 lib\util.py:949 lib\util.py:959
@@ -424,7 +439,7 @@ msgstr "Viga"
 
 #: lib\conflicts.py:281
 msgid "Set up external_merge app in qconfig under the Merge tab"
-msgstr ""
+msgstr "Määra external_merge rakendus qconfig'is liitmise kaardil"
 
 #: lib\conflicts.py:306
 #, python-format
@@ -433,32 +448,35 @@ msgid ""
 "Missing the flag: %(flags)s. This must be fixed in qconfig under the Merge "
 "tab."
 msgstr ""
+"extmerge definitsioon: '%(tool)s' on vigane.\n"
+"Kadunud märgistus: %(flags)s. See peab olema fikseeritud qconfig'i liitmise "
+"kaardis."
 
 #: lib\conflicts.py:312
 #, python-format
 msgid "Missing the flag: %s. Configure in qconfig under the merge tab."
-msgstr ""
+msgstr "Kadunud märgistus: %s. Seadista qconfig'i liitmise kaardis."
 
 #: lib\conflicts.py:320
 #, python-format
 msgid "%s (Configured external merge definition in qconfig)"
-msgstr ""
+msgstr "%s (Seadistatud välise liitmise definitsioon qconfig'is)"
 
 #: lib\conflicts.py:328
 msgid "path conflict"
-msgstr ""
+msgstr "asukohakonflikt"
 
 #: lib\conflicts.py:329
 msgid "contents conflict"
-msgstr ""
+msgstr "sisukonflikt"
 
 #: lib\conflicts.py:330
 msgid "text conflict"
-msgstr ""
+msgstr "tekstikonflikt"
 
 #: lib\conflicts.py:331
 msgid "duplicate id"
-msgstr ""
+msgstr "dubleeri id"
 
 #: lib\conflicts.py:332
 msgid "duplicate"
@@ -466,27 +484,27 @@ msgstr "duplikaat"
 
 #: lib\conflicts.py:333
 msgid "parent loop"
-msgstr ""
+msgstr "ülemkordus"
 
 #: lib\conflicts.py:334
 msgid "unversioned parent"
-msgstr ""
+msgstr "versioonita ülem"
 
 #: lib\conflicts.py:335
 msgid "missing parent"
-msgstr ""
+msgstr "kadunud ülem"
 
 #: lib\conflicts.py:336
 msgid "deleting parent"
-msgstr ""
+msgstr "ülema kustutamine"
 
 #: lib\conflicts.py:337
 msgid "non-directory parent"
-msgstr ""
+msgstr "kataloogita ülem"
 
 #: lib\diff.py:80 lib\treewidget.py:1593
 msgid "Show &differences"
-msgstr ""
+msgstr "Näita &erinevusi"
 
 #: lib\diffview.py:248
 msgid "Last modified:"
@@ -506,60 +524,60 @@ msgstr "Atribuudid:"
 
 #: lib\diffview.py:485
 msgid "[binary file]"
-msgstr ""
+msgstr "[binaarfail]"
 
 #: lib\diffview.py:666
 msgid "\\ No newline at end of file"
-msgstr ""
+msgstr "\\ Faili lõpus reavahetus puudub"
 
 #: lib\diffwindow.py:77
 #, python-format
 msgid "Working Tree for %s"
-msgstr ""
+msgstr "Tööpuu %s jaoks"
 
 #: lib\diffwindow.py:79
 msgid "Working Tree"
-msgstr ""
+msgstr "Tööpuu"
 
 #: lib\diffwindow.py:98
 #, python-format
 msgid "Rev %(rev)s for %(branch)s"
-msgstr ""
+msgstr "Rev %(rev)s %(branch)s jaoks"
 
 #: lib\diffwindow.py:100
 #, python-format
 msgid "Rev %s"
-msgstr ""
+msgstr "Rev %s"
 
 #: lib\diffwindow.py:103
 #, python-format
 msgid "Revid: %(revid)s for %(branch)s"
-msgstr ""
+msgstr "Revid: %(revid)s %(branch)s jaoks"
 
 #: lib\diffwindow.py:105
 #, python-format
 msgid "Revid: %s"
-msgstr ""
+msgstr "Revid: %s"
 
 #: lib\diffwindow.py:108
 msgid "Merge Preview"
-msgstr ""
+msgstr "Liida eelvaade"
 
 #: lib\diffwindow.py:146
 msgid "Side by side"
-msgstr ""
+msgstr "Kõrvuti"
 
 #: lib\diffwindow.py:153
 msgid "Unidiff"
-msgstr ""
+msgstr "Unidiff"
 
 #: lib\diffwindow.py:163
 msgid "Left side encoding:"
-msgstr ""
+msgstr "Vasakpoolne kodeering:"
 
 #: lib\diffwindow.py:171
 msgid "Right side encoding:"
-msgstr ""
+msgstr "Parempoolne kodeering:"
 
 #: lib\diffwindow.py:175
 msgid "Complete"
@@ -567,18 +585,18 @@ msgstr "Valmis"
 
 #: lib\diffwindow.py:184
 msgid "Using"
-msgstr ""
+msgstr "Kasutusel"
 
 #: lib\diffwindow.py:257
 #, python-format
 msgid "%d file"
 msgid_plural "%d files"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d fail"
+msgstr[1] "%d faili"
 
 #: lib\diffwindow.py:332 lib\treewidget.py:321
 msgid "removed"
-msgstr ""
+msgstr "eemaldatud"
 
 #: lib\diffwindow.py:334 lib\treewidget.py:319
 msgid "added"
@@ -586,11 +604,11 @@ msgstr "lisatud"
 
 #: lib\diffwindow.py:336
 msgid "renamed and modified"
-msgstr ""
+msgstr "ümbernimetatud ja muudetud"
 
 #: lib\diffwindow.py:338 lib\treewidget.py:332
 msgid "renamed"
-msgstr ""
+msgstr "ümbernimetatud"
 
 #: lib\diffwindow.py:340 lib\treewidget.py:334
 msgid "modified"
@@ -602,6 +620,8 @@ msgid ""
 "File %s is not versioned.\n"
 "Operation aborted."
 msgstr ""
+"Fail %s ei ole versioonitud.\n"
+"Operatsioon on katkestatud."
 
 #: lib\diffwindow.py:396 lib\tag.py:138 lib\tag.py:169 lib\tag.py:206
 #: lib\tree_branch.py:97 lib\util.py:60 lib\util.py:952 lib\util.py:962
@@ -610,43 +630,43 @@ msgstr "&Sulge"
 
 #: lib\diffwindow.py:402
 msgid "No changes found."
-msgstr "Muudatusi ei leitud"
+msgstr "Muudatusi ei leitud."
 
 #: lib\encoding_selector.py:114
 msgid "Wrong encoding"
-msgstr ""
+msgstr "Vale kodeerimine"
 
 #: lib\encoding_selector.py:115
 #, python-format
 msgid "Encoding \"%s\" is invalid or not supported."
-msgstr ""
+msgstr "\"%s\" kodeerimine on vigane või tugi puudub."
 
 #: lib\export.py:61 lib\export.py:80
 msgid "Export"
-msgstr ""
+msgstr "Ekspordi"
 
 #: lib\export.py:75 lib\uncommit.py:51
 #, python-format
 msgid "Branch: %s"
-msgstr ""
+msgstr "Haru: %s"
 
 #: lib\export.py:146
 msgid "Archive type:"
-msgstr ""
+msgstr "Arhiivi liik:"
 
 #: lib\export.py:168
 msgid "Root directory name:"
-msgstr ""
+msgstr "Juurkataloogi nimi:"
 
 #: lib\export.py:236 lib\ui_branch.py:66 lib\ui_merge.py:63 lib\ui_pull.py:61
 #: lib\ui_push.py:63
 msgid "Options"
-msgstr ""
+msgstr "Valikud"
 
 #: lib\help.py:59
 #, python-format
 msgid "No help can be found for <i>%s</i>"
-msgstr ""
+msgstr "Abi <i>%s</i> jaoks ei leitud"
 
 #: lib\help.py:103
 msgid "Help"
@@ -662,39 +682,39 @@ msgstr "kataloog"
 
 #: lib\i18n.py:89
 msgid "symlink"
-msgstr ""
+msgstr "nimeviit"
 
 #: lib\i18n.py:91
 msgid "fixed"
-msgstr ""
+msgstr "fikseeritud"
 
 #: lib\i18n.py:93
 msgid "View text file"
-msgstr ""
+msgstr "Tekstifaili vaatamine"
 
 #: lib\i18n.py:94
 msgid "View image file"
-msgstr ""
+msgstr "Pildifaili vaatamine"
 
 #: lib\i18n.py:95
 msgid "View binary file"
-msgstr ""
+msgstr "Binaarfaili vaatamine"
 
 #: lib\i18n.py:96
 msgid "View symlink"
-msgstr ""
+msgstr "Nimeviida vaatamine"
 
 #: lib\i18n.py:97
 msgid "View directory"
-msgstr ""
+msgstr "Kataloogi vaatamine"
 
 #: lib\i18n.py:99
 msgid "No changes selected to commit"
-msgstr ""
+msgstr "Sissekande jaoks valitud muudatusi ei leitud"
 
 #: lib\i18n.py:100
 msgid "No changes selected to revert"
-msgstr ""
+msgstr "Valitud muudatusi tühistamiseks ei leitud"
 
 #: lib\info.py:41
 msgid "Info"
@@ -702,19 +722,19 @@ msgstr "Info"
 
 #: lib\info.py:65
 msgid "Location has no working tree"
-msgstr ""
+msgstr "Asukohal puudub tööpuu"
 
 #: lib\info.py:78
 msgid "Location has no branch"
-msgstr ""
+msgstr "Asukohal puudub haru"
 
 #: lib\init.py:37 lib\ui_init.py:118
 msgid "Initialize"
-msgstr ""
+msgstr "Initsialiseeri"
 
 #: lib\init.py:72
 msgid "You must specify a location"
-msgstr ""
+msgstr "Sa pead määrama asukoha"
 
 #: lib\log.py:98
 msgid "Log"
@@ -726,7 +746,7 @@ msgstr "&Otsing:"
 
 #: lib\log.py:141
 msgid "Messages"
-msgstr "Teated"
+msgstr "Sõnumid"
 
 #: lib\log.py:143
 msgid "Authors"
@@ -734,11 +754,11 @@ msgstr "Autorid"
 
 #: lib\log.py:145
 msgid "Revision IDs"
-msgstr ""
+msgstr "Versiooni ID'd"
 
 #: lib\log.py:147
 msgid "Revision Numbers"
-msgstr ""
+msgstr "Versiooni numbrid"
 
 #: lib\log.py:149
 msgid "Tags"
@@ -750,19 +770,19 @@ msgstr "Vead"
 
 #: lib\log.py:245
 msgid "Messages and File text (indexed)"
-msgstr ""
+msgstr "Sõnumid ja faili tekst (indekseeritud)"
 
 #: lib\log.py:418 lib\logwidget.py:132
 msgid "Show &differences..."
-msgstr ""
+msgstr "Näita &erinevusi..."
 
 #: lib\log.py:426
 msgid "View file"
-msgstr ""
+msgstr "Vaata faili"
 
 #: lib\logmodel.py:94 lib\treewidget.py:344
 msgid "Rev"
-msgstr ""
+msgstr "Rev"
 
 #: lib\logmodel.py:96 lib\treewidget.py:343
 msgid "Date"
@@ -775,31 +795,31 @@ msgstr "Autor"
 #: lib\logmodel.py:244
 #, python-format
 msgid "bug #%s"
-msgstr ""
+msgstr "viga #%s"
 
 #: lib\logwidget.py:106
 msgid "Show file &differences"
-msgstr ""
+msgstr "Näita faili &erinevusi"
 
 #: lib\logwidget.py:112
 msgid "Show all &differences"
-msgstr ""
+msgstr "Näita kõiki &erinevusi"
 
 #: lib\logwidget.py:118
 msgid "Show file &differences..."
-msgstr ""
+msgstr "Näita faili &erinevusi..."
 
 #: lib\logwidget.py:122
 msgid "Show all &differences..."
-msgstr ""
+msgstr "Näita kõiki &erinevusi..."
 
 #: lib\logwidget.py:140
 msgid "Show &tree..."
-msgstr ""
+msgstr "Näita &puud..."
 
 #: lib\logwidget.py:142
 msgid "Tag &revision..."
-msgstr ""
+msgstr "Silt &versioon..."
 
 #: lib\main.py:120
 msgid "Computer"
@@ -807,11 +827,11 @@ msgstr "Arvuti"
 
 #: lib\main.py:149
 msgid "&Edit Bookmark..."
-msgstr ""
+msgstr "&Redigeeri järjehoidjat..."
 
 #: lib\main.py:150
 msgid "&Remove Bookmark..."
-msgstr ""
+msgstr "&Eemalda järjehoidja..."
 
 #: lib\main.py:165
 msgid "Bookmarks"
@@ -823,7 +843,7 @@ msgstr "&Värskenda"
 
 #: lib\main.py:276
 msgid "Refresh the directory tree"
-msgstr ""
+msgstr "Värskenda kataloogipuu"
 
 #: lib\main.py:280
 msgid "&Commit"
@@ -831,27 +851,27 @@ msgstr "&Kanna sisse"
 
 #: lib\main.py:281
 msgid "Commit changes into a new revision"
-msgstr ""
+msgstr "Kanna muudatused uude versiooni"
 
 #: lib\main.py:285
 msgid "&Push"
-msgstr ""
+msgstr "&Lükka"
 
 #: lib\main.py:286
 msgid "Turn this branch into a mirror of another branch"
-msgstr ""
+msgstr "Pööra see haru teise haru peegelduseks"
 
 #: lib\main.py:290
 msgid "Pu&ll"
-msgstr ""
+msgstr "&Tõmba"
 
 #: lib\main.py:291
 msgid "Update a mirror of this branch"
-msgstr ""
+msgstr "Uuenda selle haru peegeldus"
 
 #: lib\main.py:294
 msgid "&Add Bookmark..."
-msgstr ""
+msgstr "&Lisa järjehoidja..."
 
 #: lib\main.py:301
 msgid "&File"
@@ -871,7 +891,7 @@ msgstr "&Vaade"
 
 #: lib\main.py:307
 msgid "&Branch"
-msgstr ""
+msgstr "&Haru"
 
 #: lib\main.py:311
 msgid "&Bookmarks"
@@ -887,7 +907,7 @@ msgstr "&Abi..."
 
 #: lib\main.py:316
 msgid "&About..."
-msgstr "&Programmist..."
+msgstr "Te&ave..."
 
 #: lib\main.py:354
 msgid "Size"
@@ -895,7 +915,7 @@ msgstr "Suurus"
 
 #: lib\main.py:406
 msgid "About QBzr"
-msgstr ""
+msgstr "QBzr'i info"
 
 #: lib\main.py:407
 #, python-format
@@ -905,6 +925,10 @@ msgid ""
 "2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
 "vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
+"<b>QBzr</b> — Graafiline Bazaari kasutajaliides<br><small>Versioon "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Autoriõigus © "
+"2006-2008 Lukáš Lalinský ja teised<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 
 #: lib\main.py:472
 msgid "Add Bookmark"
@@ -920,15 +944,15 @@ msgstr "Eemalda järjehoidja"
 
 #: lib\main.py:494
 msgid "Do you really want to remove the selected bookmark?"
-msgstr ""
+msgstr "Kas sa tõesti soovid valitud järjehoidjat eemaldada?"
 
 #: lib\plugins.py:44
 msgid "Plugins"
-msgstr ""
+msgstr "Pluginad"
 
 #: lib\plugins.py:57
 msgid "Version"
-msgstr ""
+msgstr "Versioon"
 
 #: lib\plugins.py:58 lib\subprocess.py:355
 msgid "Description"
@@ -936,40 +960,40 @@ msgstr "Kirjeldus"
 
 #: lib\plugins.py:62
 msgid "Directory"
-msgstr ""
+msgstr "Kataloog"
 
 #: lib\plugins.py:64
 #, python-format
 msgid "Plugins installed: %(rows)d"
-msgstr ""
+msgstr "Paigaldatud pluginad: %(rows)d"
 
 #: lib\plugins.py:71
 msgid "Summary"
-msgstr ""
+msgstr "Kokkuvõte"
 
 #: lib\plugins.py:72
 msgid "Locations"
-msgstr ""
+msgstr "Asukohad"
 
 #: lib\plugins.py:111
 msgid "(no description)"
-msgstr ""
+msgstr "(kirjeldus puudub)"
 
 #: lib\pull.py:236
 msgid "Working tree has uncommitted changes."
-msgstr ""
+msgstr "Tööpuul on sissekandmata muudatused."
 
 #: lib\pull.py:241
 msgid "Working tree is out of date, please run 'bzr update'."
-msgstr ""
+msgstr "Tööpuu on aegunud, palun käivita 'bzr update'."
 
 #: lib\pull.py:247 lib\ui_push.py:62
 msgid "Push"
-msgstr "Lükkamine"
+msgstr "Lükka"
 
 #: lib\pull.py:249
 msgid "Do you want to continue anyway?"
-msgstr "Kas sellest hoolimata jätkata?"
+msgstr "Kas sa soovid sellest hoolimata jätkata?"
 
 #: lib\pull.py:250 lib\uncommit.py:126
 msgid "&Yes"
@@ -985,63 +1009,65 @@ msgstr "&Võta tagasi"
 
 #: lib\revert.py:65
 msgid "Select changes to revert"
-msgstr ""
+msgstr "Vali tagasivõetavad muudatused"
 
 #: lib\revert.py:83
 msgid "Do not save backups of reverted files"
-msgstr ""
+msgstr "Ära salvesta tagasivõetud failide varundusi"
 
 #: lib\revert.py:95
 msgid "Forget pending merges"
-msgstr ""
+msgstr "Unusta ootel liitmised"
 
 #: lib\revert.py:144
 msgid "View changes in files selected to revert"
-msgstr ""
+msgstr "Vaata valitud tagasivõetavate failide muudatusi"
 
 #: lib\revert.py:242
 msgid ""
 "You are reverting all changed paths without also reverting pending merges. "
 "Do you want to continue?"
 msgstr ""
+"Sa võtad kõik muudetud asukohad tagasi ilma, et võtaksid tagasi ootel "
+"liitmised. Kas sa soovid jätkata?"
 
 #: lib\revisionmessagebrowser.py:184
 msgid "Parents:"
-msgstr ""
+msgstr "Ülemad:"
 
 #: lib\revisionmessagebrowser.py:187
 msgid "Children:"
-msgstr ""
+msgstr "Järglased:"
 
 #: lib\revisionmessagebrowser.py:201
 msgid "Uncommited Working Tree Changes"
-msgstr ""
+msgstr "Sissekandmata tööpuu muudatused"
 
 #: lib\revisionmessagebrowser.py:236
 msgid "Date:"
-msgstr ""
+msgstr "Kuupäev:"
 
 #: lib\revisionmessagebrowser.py:238
 msgid "Committer:"
-msgstr ""
+msgstr "Sissekandja:"
 
 #: lib\revisionmessagebrowser.py:244
 msgid "Author:"
-msgstr ""
+msgstr "Autor:"
 
 #: lib\revisionmessagebrowser.py:248 lib\unbind.py:49
 msgid "Branch:"
-msgstr ""
+msgstr "Haru:"
 
 #: lib\revisionmessagebrowser.py:253
 msgid "Tags:"
-msgstr ""
+msgstr "Sildid:"
 
 #: lib\revisionmessagebrowser.py:265
 msgid "Bug:"
 msgid_plural "Bugs:"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Viga:"
+msgstr[1] "Vead:"
 
 #: lib\revisionview.py:66 lib\ui_new_tree.py:158
 msgid "Revision"
@@ -1049,23 +1075,23 @@ msgstr "Versioon"
 
 #: lib\run.py:96
 msgid "Select working directory"
-msgstr ""
+msgstr "Vali töökataloog"
 
 #: lib\run.py:118
 msgid "&Edit"
-msgstr ""
+msgstr "&Redigeeri"
 
 #: lib\run.py:161
 msgid "Help for command"
-msgstr ""
+msgstr "Abi käsule"
 
 #: lib\run.py:278
 msgid "Select path to insert"
-msgstr ""
+msgstr "Vali sisestamiseks asukoht"
 
 #: lib\run.py:288
 msgid "Select files to insert"
-msgstr ""
+msgstr "Vali sisestatavad failid"
 
 #: lib\send.py:34
 msgid "Send"
@@ -1073,27 +1099,27 @@ msgstr "Saada"
 
 #: lib\send.py:47
 msgid "Merge Directive Options"
-msgstr ""
+msgstr "Liida direktiivsed valikud"
 
 #: lib\send.py:53
 msgid "Submit Branch:"
-msgstr ""
+msgstr "Saada haru:"
 
 #: lib\send.py:77
 msgid "Public Branch:"
-msgstr ""
+msgstr "Avalik haru:"
 
 #: lib\send.py:99
 msgid "Remember these locations as defaults"
-msgstr ""
+msgstr "Jäta need asukohad vaikimisi meelde"
 
 #: lib\send.py:103
 msgid "Include a bundle in the merge directive"
-msgstr ""
+msgstr "Sisalda komplekti liidetud direktiividest"
 
 #: lib\send.py:107
 msgid "Include a preview patch in the merge directive"
-msgstr ""
+msgstr "Sisalda liidetud direktiividest eelvaate asukohta"
 
 #: lib\send.py:112
 msgid "Action"
@@ -1101,27 +1127,27 @@ msgstr "Toiming"
 
 #: lib\send.py:122
 msgid "Address:"
-msgstr ""
+msgstr "Aadress:"
 
 #: lib\send.py:132
 msgid "Message:"
-msgstr "Teade:"
+msgstr "Sõnum:"
 
 #: lib\send.py:149
 msgid "Filename:"
-msgstr "Faili nimi:"
+msgstr "Failinimi:"
 
 #: lib\send.py:163
 msgid "Revisions:"
-msgstr ""
+msgstr "Versioonid:"
 
 #: lib\subprocess.py:103
 msgid "&Retry"
-msgstr ""
+msgstr "&Proovi uuesti"
 
 #: lib\subprocess.py:393
 msgid "Ready"
-msgstr ""
+msgstr "Valmis"
 
 #: lib\subprocess.py:462
 msgid "Starting..."
@@ -1129,7 +1155,7 @@ msgstr "Alustamine..."
 
 #: lib\subprocess.py:539
 msgid "Aborting..."
-msgstr "Katkestan..."
+msgstr "Katkestamine..."
 
 #: lib\subprocess.py:550 lib\subprocess.py:669
 msgid "Finished!"
@@ -1141,7 +1167,7 @@ msgstr "Sisesta parool"
 
 #: lib\subprocess.py:590 lib\uifactory.py:119
 msgid "Enter Username"
-msgstr ""
+msgstr "Sisesta kasutajanimi:"
 
 #: lib\subprocess.py:650 lib\subprocess.py:672
 msgid "Failed!"
@@ -1149,52 +1175,52 @@ msgstr "Ebaõnnestus!"
 
 #: lib\subprocess.py:652
 msgid "Failed to start bzr."
-msgstr ""
+msgstr "Bzr'i käivitamine nurjus"
 
 #: lib\subprocess.py:654
 #, python-format
 msgid "Error while running bzr. (error code: %d)"
-msgstr ""
+msgstr "Bzr käivitamisel tekkis viga. (vea kood: %d)"
 
 #: lib\subprocess.py:662
 msgid "Aborted!"
-msgstr ""
+msgstr "Katkenud!"
 
 #: lib\switch.py:45
 msgid "Switch"
-msgstr ""
+msgstr "Lülita"
 
 #: lib\switch.py:56
 msgid "Switch checkout"
-msgstr ""
+msgstr "Lülita väljavõttesse"
 
 #: lib\switch.py:64
 msgid "Heavyweight checkout:"
-msgstr ""
+msgstr "Väga põhjalik väljavõte:"
 
 #: lib\switch.py:68
 msgid "Lightweight checkout:"
-msgstr ""
+msgstr "Vähem põhjalik väljavõte:"
 
 #: lib\switch.py:75
 msgid "Checkout of branch:"
-msgstr ""
+msgstr "Haru väljavõte:"
 
 #: lib\switch.py:88
 msgid "Switch to branch:"
-msgstr ""
+msgstr "Lülita harusse:"
 
 #: lib\switch.py:112
 msgid "Create Branch before switching"
-msgstr ""
+msgstr "Loo enne lülitamist haru"
 
 #: lib\sysinfo.py:35 lib\ui_sysinfo.py:112
 msgid "System Information"
-msgstr ""
+msgstr "Süsteemi informatsioon"
 
 #: lib\tag.py:137
 msgid "You should specify tag name"
-msgstr ""
+msgstr "Sa peaksid määrama sildi nime"
 
 #: lib\tag.py:143
 #, python-format
@@ -1202,14 +1228,16 @@ msgid ""
 "Tag \"%s\" already exists.\n"
 "Do you want to move existing tag?"
 msgstr ""
+"Silt \"%s\" on juba olemas.\n"
+"Kas sa soovid liigutada olemasolevat silti?"
 
 #: lib\tag.py:146
 msgid "&Move"
-msgstr ""
+msgstr "&Liiguta"
 
 #: lib\tag.py:146 lib\tag.py:159 lib\util.py:59
 msgid "&Cancel"
-msgstr ""
+msgstr "&Katkesta"
 
 #: lib\tag.py:156
 #, python-format
@@ -1217,15 +1245,17 @@ msgid ""
 "Tag \"%s\" does not exists yet.\n"
 "Do you want to create new tag?"
 msgstr ""
+"Silti \"%s\" ei ole veel olemas.\n"
+"Kas sa soovid luua uue sildi?"
 
 #: lib\tag.py:159
 msgid "Cre&ate"
-msgstr ""
+msgstr "&Loo"
 
 #: lib\tag.py:168
 #, python-format
 msgid "Tag \"%s\" does not exists"
-msgstr ""
+msgstr "Silti \"%s\" ei ole olemas"
 
 #: lib\tag.py:205
 #, python-format
@@ -1233,461 +1263,466 @@ msgid ""
 "Not a branch:\n"
 "%s"
 msgstr ""
+"See pole haru:\n"
+"%s"
 
 #: lib\treewidget.py:312
 msgid "ignored"
-msgstr ""
+msgstr "ignoreeritud"
 
 #: lib\treewidget.py:314
 msgid "non-versioned"
-msgstr ""
+msgstr "versioonita"
 
 #: lib\treewidget.py:317
 msgid "added, missing"
-msgstr ""
+msgstr "lisatud, puudu"
 
 #: lib\treewidget.py:323
 msgid "missing"
-msgstr ""
+msgstr "puudu"
 
 #: lib\treewidget.py:330
 msgid "moved"
-msgstr ""
+msgstr "liigutatud"
 
 #: lib\treewidget.py:336
 msgid "x-bit"
-msgstr ""
+msgstr "x-bit"
 
 #: lib\treewidget.py:342
 msgid "File Name"
-msgstr ""
+msgstr "Faili nimi"
 
 #: lib\treewidget.py:1195
 msgid "Unchanged"
-msgstr ""
+msgstr "Muutmata"
 
 #: lib\treewidget.py:1196
 msgid "Changed"
-msgstr ""
+msgstr "Muudetud"
 
 #: lib\treewidget.py:1197
 msgid "Unversioned"
-msgstr ""
+msgstr "Versioonita"
 
 #: lib\treewidget.py:1198
 msgid "Ignored"
-msgstr ""
+msgstr "Ignoreeritud"
 
 #: lib\treewidget.py:1574
 msgid "&Open"
-msgstr ""
+msgstr "&Ava"
 
 #: lib\treewidget.py:1577
 msgid "&View file"
-msgstr ""
+msgstr "&Vaata faili"
 
 #: lib\treewidget.py:1580
 msgid "Show &annotate"
-msgstr ""
+msgstr "Näita &annoteerimist"
 
 #: lib\treewidget.py:1583
 msgid "Show &log"
-msgstr ""
+msgstr "Näita &logi"
 
 #: lib\treewidget.py:1601
 msgid "Mark conflict &resolved"
-msgstr ""
+msgstr "Märgi konflikt &lahendatuks"
 
 #: lib\treewidget.py:1606
 msgid "&Add"
-msgstr ""
+msgstr "&Lisa"
 
 #: lib\treewidget.py:1609
 msgid "&Revert"
-msgstr ""
+msgstr "&Tühista"
 
 #: lib\treewidget.py:1612
 msgid "Re&name"
-msgstr ""
+msgstr "&Nimeta ümber"
 
 #: lib\treewidget.py:1674
 msgid "&Mark as moved and renamed"
-msgstr ""
+msgstr "&Märgi liigutatuks ja ümbernimetatuks"
 
 #: lib\treewidget.py:1676
 msgid "&Mark as moved"
-msgstr ""
+msgstr "&Märgi liigutatuks"
 
 #: lib\treewidget.py:1678
 msgid "&Mark as renamed"
-msgstr ""
+msgstr "&Märgi ümbernimetatuks"
 
 #: lib\treewidget.py:1825
 msgid "Do you really want to revert the selected file(s)?"
-msgstr ""
+msgstr "Kas sa tõesti soovid valitud faili(d) tagasi võtta?"
 
 #: lib\treewidget.py:1858
 msgid "External Merge"
-msgstr ""
+msgstr "Väline liitmine"
 
 #: lib\treewidget.py:1936
 msgid ""
 "Some of the files selected cannot be recoverd if removed. Are you sure you "
 "want to remove these files?"
 msgstr ""
+"Mõningaid valitud faile ei olnud võimalik taastada. Oled sa kindel, et sa "
+"soovid need failid eemaldada?"
 
 #: lib\treewidget.py:1951
 msgid "Select / deselect all"
-msgstr ""
+msgstr "Vali / ära vali kõik"
 
 #: lib\tree_branch.py:91 lib\util.py:950
 #, python-format
 msgid "Not a branch \"%s\""
-msgstr ""
+msgstr "Ei ole haru \"%s\""
 
 #: lib\tree_branch.py:93 lib\util.py:960
 #, python-format
 msgid "No working tree exists for \"%s\""
-msgstr ""
+msgstr "Tööpuud \"%s\" jaoks ei ole olemas"
 
 #: lib\ui_bookmark.py:51 lib\ui_branch.py:67 lib\ui_merge.py:64
 #: lib\ui_pull.py:62 lib\ui_push.py:64
 msgid "&Location:"
-msgstr ""
+msgstr "&Asukoht:"
 
 #: lib\ui_branch.py:68 lib\ui_branch.py:71 lib\ui_init.py:120
 #: lib\ui_merge.py:65 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
 #: lib\ui_pull.py:63 lib\ui_push.py:65 lib\ui_update_branch.py:85
 #: lib\ui_update_checkout.py:79
 msgid "Browse..."
-msgstr ""
+msgstr "Lehitse..."
 
 #: lib\ui_branch.py:69 lib\ui_merge.py:66 lib\ui_pull.py:64 lib\ui_tag.py:97
 msgid "&Revision:"
-msgstr ""
+msgstr "&Versioon:"
 
 #: lib\ui_branch.py:70
 msgid "&To:"
-msgstr ""
+msgstr "&Kellele:"
 
 #: lib\ui_info.py:147 lib\ui_info.py:149 lib\ui_info.py:151 lib\ui_info.py:153
 #: lib\ui_info.py:155 lib\ui_info.py:158 lib\ui_info.py:160 lib\ui_info.py:162
 #: lib\ui_info.py:164
 msgid "..."
-msgstr ""
+msgstr "..."
 
 #: lib\ui_info.py:148
 msgid "Parent branch:"
-msgstr ""
+msgstr "Ülemharu:"
 
 #: lib\ui_info.py:150
 msgid "Push branch:"
-msgstr ""
+msgstr "Lükka haru:"
 
 #: lib\ui_info.py:152
 msgid "Submit branch:"
-msgstr ""
+msgstr "Saada haru:"
 
 #: lib\ui_info.py:154
 msgid "Public branch:"
-msgstr ""
+msgstr "Avalik haru:"
 
 #: lib\ui_info.py:156
 msgid "&Related Branches"
-msgstr ""
+msgstr "&Seotud harud"
 
 #: lib\ui_info.py:157
 msgid "Working tree format:"
-msgstr ""
+msgstr "Tööpuu vorming:"
 
 #: lib\ui_info.py:159
 msgid "Branch format:"
-msgstr ""
+msgstr "Haru vorming:"
 
 #: lib\ui_info.py:161
 msgid "Repository format:"
-msgstr ""
+msgstr "Hoidla vorming:"
 
 #: lib\ui_info.py:163
 msgid "Control directory format:"
-msgstr ""
+msgstr "Kontrollkataloogi vorming:"
 
 #: lib\ui_info.py:165
 msgid "&Format"
-msgstr ""
+msgstr "&Vorming"
 
 #: lib\ui_init.py:119
 msgid "Local Directory"
-msgstr ""
+msgstr "Kohalik kataloog"
 
 #: lib\ui_init.py:121
 msgid "Repository"
-msgstr ""
+msgstr "Hoidla"
 
 #: lib\ui_init.py:122
 msgid "Create a new standalone tree"
-msgstr ""
+msgstr "Loo uus eraldiseisev puu"
 
 #: lib\ui_init.py:123
 msgid "Ensure all revisions are appended to the log"
-msgstr ""
+msgstr "Veendu, et kõik versioonid on logisse lisatud"
 
 #: lib\ui_init.py:124
 msgid "Create a new shared repository"
-msgstr ""
+msgstr "Loo uus jagatud hoidla"
 
 #: lib\ui_init.py:125
 msgid "Skip the creation of working trees in this repository"
-msgstr ""
+msgstr "Jäta tööpuude loomine selles hoidlas vahele"
 
 #: lib\ui_init.py:131
 msgid "Repository Format:"
-msgstr ""
+msgstr "Hoidla vorming:"
 
 #: lib\ui_init.py:132
 msgid "Description of format"
-msgstr ""
+msgstr "Vormingu kirjeldus"
 
 #: lib\ui_merge.py:62
 msgid "Merge"
-msgstr ""
+msgstr "Liida"
 
 #: lib\ui_merge.py:67 lib\ui_pull.py:65 lib\ui_push.py:66
 msgid "Remember this location as a default"
-msgstr ""
+msgstr "Jäta see asukoht vaikimisi meelde"
 
 #: lib\ui_merge.py:68
 msgid "Merge even if the working tree has uncommitted changes"
-msgstr ""
+msgstr "Liida isegi siis, kui tööpuul on sissekandmata muudatused"
 
 #: lib\ui_merge.py:69
 msgid "Merge uncommitted changes instead of committed ones"
-msgstr ""
+msgstr "Liida sissekandmata muudatused sissekantute asemele"
 
 #: lib\ui_new_tree.py:129
 msgid "Create a new Bazaar Working Tree"
-msgstr ""
+msgstr "Loo uus Bazaari tööpuu"
 
 #: lib\ui_new_tree.py:131
 msgid ""
 "Branch source (enter a URL or select a local directory with an existing "
 "branch)"
 msgstr ""
+"Haru allikas (Sisesta URL või vali kohalik kataloog olemasoleva haruga)"
 
 #: lib\ui_new_tree.py:133
 msgid "Local directory where the working tree will be created"
-msgstr ""
+msgstr "Kohalik kataloog, kuhu loodakse tööpuu"
 
 #: lib\ui_new_tree.py:135
 msgid "Working Tree Options"
-msgstr ""
+msgstr "Tööpuu valikud"
 
 #: lib\ui_new_tree.py:136
 msgid "Create a checkout"
-msgstr ""
+msgstr "Loo väljavõte"
 
 #: lib\ui_new_tree.py:144
 msgid "Light-weight checkout"
-msgstr ""
+msgstr "Lihtsam väljavõte"
 
 #: lib\ui_new_tree.py:145
 msgid "Make a local copy of the branch"
-msgstr ""
+msgstr "Tee harust kohalik koopia"
 
 #: lib\ui_new_tree.py:151
 msgid "Create a stacked branch referring to the source branch"
-msgstr ""
+msgstr "Loo rühmitatud haru viidates allika harule"
 
 #: lib\ui_new_tree.py:152
 msgid "Click a link for more information about checkouts and branches."
-msgstr ""
+msgstr "Väljavõtetest ja harudest rohkema info saamiseks klõpsa lingile."
 
 #: lib\ui_new_tree.py:159
 msgid "Most recent (tip) revision"
-msgstr ""
+msgstr "Kõige viimane (tip) versioon"
 
 #: lib\ui_new_tree.py:161
 msgid "Show Log..."
-msgstr ""
+msgstr "Näita logi..."
 
 #: lib\ui_pull.py:60
 msgid "Pull"
-msgstr ""
+msgstr "Tõmba"
 
 #: lib\ui_pull.py:66 lib\ui_push.py:67 lib\ui_update_branch.py:88
 #: lib\ui_update_checkout.py:80
 msgid "Overwrite differences between branches"
-msgstr ""
+msgstr "Kirjuta üle harudevahelised erinevused"
 
 #: lib\ui_push.py:68
 msgid "Use existing directory"
-msgstr ""
+msgstr "Kasuta olemasolevat kataloogi"
 
 #: lib\ui_push.py:69
 msgid "Create the path up to the branch if it does not exist"
-msgstr ""
+msgstr "Loo haruni asukoht, kui seda pole olemas"
 
 #: lib\ui_run.py:109
 msgid "Run bzr command"
-msgstr ""
+msgstr "Käivita bzr käsk"
 
 #: lib\ui_run.py:110
 msgid "&Working directory:"
-msgstr ""
+msgstr "&Töökataloog:"
 
 #: lib\ui_run.py:112
 msgid "C&ategory:"
-msgstr ""
+msgstr "&Kategooria:"
 
 #: lib\ui_run.py:113
 msgid "&Command:"
-msgstr ""
+msgstr "&Käsk:"
 
 #: lib\ui_run.py:114
 msgid "&Show hidden commands"
-msgstr ""
+msgstr "&Näita peidetud käske"
 
 #: lib\ui_run.py:115
 msgid "&Options and arguments for command:"
-msgstr ""
+msgstr "&Valikud ja argumendid käsu jaoks:"
 
 #: lib\ui_run.py:116
 msgid "Insert &directory..."
-msgstr ""
+msgstr "Sisesta &kataloog..."
 
 #: lib\ui_run.py:117
 msgid "Insert &filenames..."
-msgstr ""
+msgstr "Sisesta &failinimed..."
 
 #: lib\ui_sysinfo.py:113
 msgid "Bazaar Library"
-msgstr ""
+msgstr "Bazaari teek"
 
 #: lib\ui_sysinfo.py:114 lib\ui_sysinfo.py:124
 msgid "Version:"
-msgstr ""
+msgstr "Versioon:"
 
 #: lib\ui_sysinfo.py:115
 msgid "(bzr-version)"
-msgstr ""
+msgstr "(bzr-versioon)"
 
 #: lib\ui_sysinfo.py:116 lib\ui_sysinfo.py:126
 msgid "Path:"
-msgstr ""
+msgstr "Asukoht:"
 
 #: lib\ui_sysinfo.py:117
 msgid "(bzr-lib-path)"
-msgstr ""
+msgstr "(bzr-lib-asukoht)"
 
 #: lib\ui_sysinfo.py:118
 msgid "Bazaar Configuration"
-msgstr ""
+msgstr "Bazaari seadistamine"
 
 #: lib\ui_sysinfo.py:119
 msgid "Settings:"
-msgstr ""
+msgstr "Seadistused:"
 
 #: lib\ui_sysinfo.py:120
 msgid "(bzr-config-dir)"
-msgstr ""
+msgstr "(bzr-seadistamine-kataloog)"
 
 #: lib\ui_sysinfo.py:121
 msgid "Log File:"
-msgstr ""
+msgstr "Logifail:"
 
 #: lib\ui_sysinfo.py:122
 msgid "(bzr-log-file)"
-msgstr ""
+msgstr "(bzr-logifail)"
 
 #: lib\ui_sysinfo.py:123
 msgid "Python Interpreter"
-msgstr ""
+msgstr "Pythoni interpretaator"
 
 #: lib\ui_sysinfo.py:125
 msgid "(python-version)"
-msgstr ""
+msgstr "(python-versioon)"
 
 #: lib\ui_sysinfo.py:127
 msgid "(python-file)"
-msgstr ""
+msgstr "(python-fail)"
 
 #: lib\ui_sysinfo.py:128
 msgid "Library:"
-msgstr ""
+msgstr "Teek:"
 
 #: lib\ui_sysinfo.py:129
 msgid "(python-lib-dir)"
-msgstr ""
+msgstr "(python-lib-kataloog)"
 
 #: lib\ui_tag.py:88
 msgid "Edit tag"
-msgstr ""
+msgstr "Muuda silti"
 
 #: lib\ui_tag.py:91
 msgid "Tag"
-msgstr ""
+msgstr "Silt"
 
 #: lib\ui_tag.py:92
 msgid "&Action:"
-msgstr ""
+msgstr "&Tegevus:"
 
 #: lib\ui_tag.py:93
 msgid "Create new tag"
-msgstr ""
+msgstr "Loo uus silt"
 
 #: lib\ui_tag.py:94
 msgid "Move existing tag"
-msgstr ""
+msgstr "Liiguta olemasolev silt"
 
 #: lib\ui_tag.py:95
 msgid "Delete existing tag"
-msgstr ""
+msgstr "Kustuta olemasolev silt"
 
 #: lib\ui_tag.py:96
 msgid "&Tag name:"
-msgstr ""
+msgstr "&Sildi nimi:"
 
 #: lib\ui_tag.py:98
 msgid "&Select..."
-msgstr ""
+msgstr "&Vali..."
 
 #: lib\ui_update_branch.py:82
 msgid "Update Branch"
-msgstr ""
+msgstr "Uuenda haru"
 
 #: lib\ui_update_branch.py:83
 msgid ""
 "This directory is a branch.  Please select what you would like to update"
-msgstr ""
+msgstr "See kataloog on haru. Palun vali see, mida soovid uuendada"
 
 #: lib\ui_update_branch.py:84 lib\ui_update_checkout.py:76
 msgid "Update source"
-msgstr ""
+msgstr "Uuenduse allikas"
 
 #: lib\ui_update_branch.py:86
 msgid "Pull most recent changes from:"
-msgstr ""
+msgstr "Tõmba hiljutised muudatused siit:"
 
 #: lib\ui_update_branch.py:87
 msgid "Remember this as the new parent branch"
-msgstr ""
+msgstr "Jäta see uue ülemharuna meelde"
 
 #: lib\ui_update_branch.py:89
 msgid "<Parent Branch shown here>"
-msgstr ""
+msgstr "<Ülemharu näidatud siin>"
 
 #: lib\ui_update_branch.py:90
 msgid "Update working tree to the latest changes in the branch"
-msgstr ""
+msgstr "Uuenda haru viimased muudatused tööpuule"
 
 #: lib\ui_update_checkout.py:74
 msgid "Update Checkout"
-msgstr ""
+msgstr "Uuendamise väljavõte"
 
 #: lib\ui_update_checkout.py:75
 #, python-format
 msgid "This directory is a checkout of: %s"
-msgstr ""
+msgstr "See kataloog on %s väljavõte"
 
 #: lib\ui_update_checkout.py:77
 msgid "Update the working tree from the bound branch"
@@ -1695,19 +1730,19 @@ msgstr ""
 
 #: lib\ui_update_checkout.py:78
 msgid "Pull a different branch"
-msgstr ""
+msgstr "Tõmba erinev haru"
 
 #: lib\unbind.py:36
 msgid "Unbind branch"
-msgstr ""
+msgstr "Sidumata haru"
 
 #: lib\unbind.py:46
 msgid "Unbind"
-msgstr ""
+msgstr "Seo lahti"
 
 #: lib\unbind.py:54
 msgid "Bound to:"
-msgstr ""
+msgstr "Seo siia:"
 
 #: lib\uncommit.py:40 lib\uncommit.py:124
 msgid "Uncommit"
@@ -1723,11 +1758,11 @@ msgstr ""
 
 #: lib\uncommit.py:61
 msgid "Other revision:"
-msgstr ""
+msgstr "Teine versioon:"
 
 #: lib\uncommit.py:104
 msgid "No other revision specified."
-msgstr ""
+msgstr "Teist versiooni pole kirjeldatud."
 
 #: lib\uncommit.py:122
 msgid "Do you really want to uncommit these revisions?"
@@ -1735,37 +1770,37 @@ msgstr ""
 
 #: lib\update.py:33
 msgid "Update working tree"
-msgstr ""
+msgstr "Uuenda tööpuud"
 
 #: lib\update.py:34
 #, python-format
 msgid "Update tree %s"
-msgstr ""
+msgstr "Uuenda puud %s"
 
 #: lib\util.py:450
 msgid "Select Source Directory"
-msgstr ""
+msgstr "Vali allika kataloog"
 
 #: lib\util.py:452
 msgid "Select Target Directory"
-msgstr ""
+msgstr "Vali sihtkataloog"
 
 #: lib\util.py:609
 msgid "deleted files"
-msgstr ""
+msgstr "kustutatud failid"
 
 #: lib\util.py:611
 msgid "added files"
-msgstr ""
+msgstr "lisatud failid"
 
 #: lib\util.py:613
 msgid "renamed files"
-msgstr ""
+msgstr "ümbernimetatud failid"
 
 #: lib\util.py:615
 msgid "modified files"
-msgstr ""
+msgstr "muudetud failid"
 
 #: lib\util.py:912 lib\util.py:913 lib\util.py:916
 msgid "(no message)"
-msgstr ""
+msgstr "(sõnum puudub)"
