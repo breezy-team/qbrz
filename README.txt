@@ -12,7 +12,7 @@ Requirements
 
  * Python 2.4, 2.5 or 2.6
               
- * Bazaar VCS itself
+ * Bazaar VCS itself (see below version compatibility information)
 
  * PyQt 4.4 with Qt 4.4 or later
    http://www.riverbankcomputing.co.uk/pyqt/
@@ -23,6 +23,19 @@ Requirements
 
  * PyEnchant (optional, needed for spellchecking in qcommit)
    http://pyenchant.sourceforge.net/
+
+
+Compatibility between qbzr and bzr versions
+===========================================
+
+ * QBzr 0.14.x compatible with bzr 1.17, 1.18.x, 2.0.x. 
+
+ * QBzr 0.18.x required bzr 2.1.x.
+   Some commands/dialogs are working with bzr 1.17, 1.18.x, 2.0.x.
+   It may work with bzr 2.2 or later, but this is not guaranteed.
+
+ * QBzr 0.19 required bzr 2.2 and compatible with bzr 2.1.
+   It may not work with older versions of bzr.
 
 
 Other bzr plugins that improve QBzr
