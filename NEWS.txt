@@ -9,6 +9,7 @@ Bugfixes and backported bugfixes.
   * qlog: Fix a bug were qlog crashes when bzr-svn is incompatible with bzrlib.
     (Bug #546843, Gary van der Merwe)
 
+
 0.14.6 "Spruce" - 2010-01-18
 ----------------------------
 Bugfixes and backported bugfixes.
