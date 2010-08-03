@@ -25,6 +25,8 @@ from distutils import log
 from distutils.core import Command
 from distutils.errors import DistutilsOptionError
 
+from en_po import regenerate_en
+
 
 class build_pot(Command):
     """Distutils command build_pot"""
@@ -101,16 +103,7 @@ class build_pot(Command):
         # regenerate english PO
         if self.english:
             log.info('Regenerating English PO file...')
-            if prj_name:
-                en_po = prj_name + '-' + 'en.po'
-            else:
-                en_po = 'en.po'
-            self.spawn(['msginit',
-                '--no-translator',
-                '-l', 'en',
-                '-i', os.path.join(self.build_dir, self.output),
-                '-o', os.path.join(self.build_dir, en_po),
-                ])
+            regenerate_en(prj_name, self.build_dir, self.output, self.spawn)
         # search and update all po-files
         if self.no_lang:
             return

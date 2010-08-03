@@ -28,6 +28,8 @@ from distutils.spawn import find_executable
 import os
 import re
 
+from en_po import regenerate_en
+
 
 class build_mo(Command):
     """Subcommand of build command: build_mo"""
@@ -94,16 +96,7 @@ class build_mo(Command):
             else:
                 log.info('Creating English PO file...')
                 pot = (self.prj_name or 'messages') + '.pot'
-                if self.prj_name:
-                    en_po = '%s-en.po' % self.prj_name
-                else:
-                    en_po = 'en.po'
-                self.spawn(['msginit',
-                    '--no-translator',
-                    '-l', 'en',
-                    '-i', os.path.join(self.source_dir, pot),
-                    '-o', os.path.join(self.source_dir, en_po),
-                    ])
+                regenerate_en(self.prj_name, self.source_dir, pot, self.spawn)
 
         basename = self.output_base
         if not basename.endswith('.mo'):

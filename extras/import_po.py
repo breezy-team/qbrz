@@ -23,6 +23,8 @@ from distutils import log
 from distutils.core import Command
 from distutils.spawn import find_executable
 
+from en_po import regenerate_en
+
 
 class import_po(Command):
     """Distutils command for import PO files."""
@@ -90,14 +92,5 @@ class import_po(Command):
             else:
                 log.info('Re-creating English PO file...')
                 prj_name = os.path.splitext(pot_file)[0]
-                if prj_name != 'messages':
-                    en_po = '%s-en.po' % prj_name
-                else:
-                    en_po = 'en.po'
-                self.spawn(['msginit',
-                    '--no-translator',
-                    '-l', 'en',
-                    '-i', os.path.join(self.output_dir, pot_file),
-                    '-o', os.path.join(self.output_dir, en_po),
-                    ])
+                regenerate_en(prj_name, self.output_dir, pot_file, self.spawn)
         log.info('Done.')
