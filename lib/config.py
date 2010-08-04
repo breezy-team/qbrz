@@ -25,7 +25,7 @@ from bzrlib.config import (
     ensure_config_dir_exists,
     extract_email_address,
     )
-from bzrlib import errors
+from bzrlib import errors, mergetools
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellChecker
@@ -348,19 +348,14 @@ class QBzrConfigWindow(QBzrDialog):
         self.extDiffListIgnore = False
 
         # Merge
-        bzr_config = GlobalConfig()
-        defaultMerge = bzr_config.get_user_option("external_merge")
-        if defaultMerge is None:
-            defaultMerge = ""
-        
         self.extMergeListIgnore = True
-        def create_ext_merge_item(definition):
+        def create_ext_merge_item(definition, default):
             item = QtGui.QTreeWidgetItem(self.extMergeList)
             item.setFlags(QtCore.Qt.ItemIsSelectable |
                           QtCore.Qt.ItemIsEditable |
                           QtCore.Qt.ItemIsEnabled |
                           QtCore.Qt.ItemIsUserCheckable)
-            if definition == defaultMerge:
+            if default:
                 item.setCheckState(0, QtCore.Qt.Checked)
             else:
                 item.setCheckState(0, QtCore.Qt.Unchecked)
@@ -368,9 +363,11 @@ class QBzrConfigWindow(QBzrDialog):
             item.setText(0, definition)
             return item
 
-        for name, value in parser.get('DEFAULT', {}).items():
-            if name == "external_merge":
-                create_ext_merge_item(value)
+        definedMergeTools = mergetools.get_merge_tools(config)
+        defaultMergeTool = mergetools.get_user_selected_merge_tool(config)
+        for mergeTool in definedMergeTools:
+            default = mergeTool.get_name() == defaultMergeTool.get_name()
+            create_ext_merge_item(mergeTool.get_commandline(), default)
         self.extMergeListIgnore = False
 
     def save(self):
@@ -451,16 +448,6 @@ class QBzrConfigWindow(QBzrDialog):
                 qparser['EXTDIFF'][name] = command
         set_or_delete_option(qparser, 'default_diff',
                              defaultDiff)
-        # Merge        
-        defaultMerge = None
-        for index in range(self.extMergeList.topLevelItemCount()):
-            item = self.extMergeList.topLevelItem(index)
-            definition = unicode(item.text(0))
-            if item.checkState(0) == QtCore.Qt.Checked:
-                defaultMerge = definition            
-            
-        set_or_delete_option(parser, 'external_merge',
-                             defaultMerge)
         
         def save_config(config, parser):
             ensure_config_dir_exists(os.path.dirname(config._get_filename()))
@@ -470,6 +457,20 @@ class QBzrConfigWindow(QBzrDialog):
         
         save_config(config, parser)
         save_config(qconfig, qparser)
+
+        # Merge
+        default_merge_tool = None
+        defined_merge_tools = []
+        for index in range(self.extMergeList.topLevelItemCount()):
+            item = self.extMergeList.topLevelItem(index)
+            mergeTool = mergetools.MergeTool(unicode(item.text(0)))
+            defined_merge_tools.append(mergeTool)
+            if item.checkState(0) == QtCore.Qt.Checked:
+                default_merge_tool = mergeTool
+        
+        mergetools.set_merge_tools(defined_merge_tools)
+        if default_merge_tool is not None:
+            mergetools.set_user_selected_merge_tool(default_merge_tool)
 
     def do_accept(self):
         """Save changes and close the window."""
