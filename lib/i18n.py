@@ -18,7 +18,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-"""I18N and L10N support for QBzr"""
+"""I18N and L10N support"""
 
 import gettext as _gettext
 import os
@@ -40,10 +40,11 @@ def N_(s):
 
 def install():
     global _translation
-    from bzrlib import config
-    lang = config.GlobalConfig().get_user_option('language')
-    if lang and not os.environ.get('LANGUAGE'):
-        os.environ['LANGUAGE'] = lang
+    if not os.environ.get('LANGUAGE'):
+        from bzrlib import config
+        lang = config.GlobalConfig().get_user_option('language')
+        if lang:
+            os.environ['LANGUAGE'] = lang
     if sys.platform == 'win32':
         _check_win32_locale()
     _translation = _gettext.translation('qbzr', localedir=_get_locale_dir(), fallback=True)
