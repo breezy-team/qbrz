@@ -20,6 +20,7 @@
 from PyQt4 import QtCore, QtGui
 from bzrlib.config import GlobalConfig
 from bzrlib.conflicts import resolve
+from bzrlib import mergetools
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
 from bzrlib.plugins.qbzr.lib.util import (
@@ -208,38 +209,20 @@ class ConflictsWindow(QBzrWindow):
         enabled, error_msg = self.is_merge_tool_launchable()
         if not enabled:
             return
-        merge_tool = unicode(self.program_edit.text()).strip()
-        if not merge_tool:
-            return
+        merge_tool = mergetools.get_user_selected_merge_tool()
         file_id = str(items[0].data(0, QtCore.Qt.UserRole).toString())
         file_name = self.wt.abspath(self.wt.id2path(file_id))
-        base_file_name = file_name + ".BASE"
-        this_file_name = file_name + ".THIS"
-        other_file_name = file_name + ".OTHER"
-        new_args = [base_file_name, this_file_name, other_file_name]
-        config = QBzrGlobalConfig()
-        config.set_user_option("merge_tool_extmerge", False)
-
-        if self.program_extmerge_default_button.isChecked():
-            bzr_config = GlobalConfig()
-            extmerge_tool = bzr_config.get_user_option("external_merge")
-            args = cmdline_split(extmerge_tool)
-            new_args = args[1:len(args)]
-            i = 0
-            while i < len(new_args):
-                new_args[i] = new_args[i].replace('%r', file_name)
-                new_args[i] = new_args[i].replace('%o', other_file_name)
-                new_args[i] = new_args[i].replace('%b', base_file_name)
-                new_args[i] = new_args[i].replace('%t', this_file_name)
-                i = i + 1
-            merge_tool = args[0]
-            config.set_user_option("merge_tool_extmerge", True)
-        else:
-            config.set_user_option("merge_tool", merge_tool)
-
         process = QtCore.QProcess(self)
-        self.connect(process, QtCore.SIGNAL("error(QProcess::ProcessError)"), self.show_merge_tool_error)
-        process.start(merge_tool, new_args)
+        def qprocess_invoker(executable, args, cleanup):
+            def qprocess_error(error):
+                self.show_merge_tool_error(error)
+                cleanup(process.exitCode())
+            def qprocess_finished(exit_code, exit_status):
+                cleanup(exit_code)
+            self.connect(process, QtCore.SIGNAL("error(QProcess::ProcessError)"), qprocess_error)
+            self.connect(process, QtCore.SIGNAL("finished(int,QProcess::ExitStatus)"), qprocess_finished)
+            process.start(executable, args)
+        merge_tool.invoke(file_name, qprocess_invoker)
 
     def show_merge_tool_error(self, error):
         msg = gettext("Error while running merge tool (code %d)") % error
@@ -280,16 +263,15 @@ class ConflictsWindow(QBzrWindow):
 
         # check to see if the extmerge config is correct   
         if self.program_extmerge_default_button.isChecked():
-            bzr_config = GlobalConfig()
-            extmerge_tool = bzr_config.get_user_option("external_merge")
-            if not extmerge_tool:
+            merge_tool = mergetools.get_user_selected_merge_tool()
+            if merge_tool is None:
                 error_msg = gettext("Set up external_merge app in qconfig under the Merge tab")
                 enabled = False
                 return enabled, error_msg
-            error = self.is_extmerge_definition_valid(False)
-            if len(error) > 0:
+            if not merge_tool.is_available():
                 enabled = False
-                error_msg = error
+                error_msg = "External merge tool %s is not available" % \
+                        merge_tool.get_name()
         return enabled, error_msg
 
     def is_extmerge_definition_valid(self, showErrorDialog):
@@ -320,9 +302,8 @@ class ConflictsWindow(QBzrWindow):
     def update_program_edit_text(self, enabled, error_msg):
         if self.program_extmerge_default_button.isChecked():
             if enabled or (len(error_msg) <= 0):
-                config = GlobalConfig()
-                extmerge = config.get_user_option("external_merge")
-                self.program_edit.setText(gettext("%s (Configured external merge definition in qconfig)") % extmerge)
+                merge_tool = mergetools.get_user_selected_merge_tool()
+                self.program_edit.setText(gettext("%s (Configured external merge definition in qconfig)") % merge_tool.get_commandline())
             else:
                 self.program_edit.setText(error_msg)
         else:
