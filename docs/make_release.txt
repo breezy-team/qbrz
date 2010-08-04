@@ -86,7 +86,7 @@ Update QBzr Wiki page
 1. Update QBzr page at Bazaar wiki with corresponding NEWS entry,
    update links to tarball and installers.
    
-   	http://bazaar-vcs.org/QBzr
+   	http://wiki.bazaar.canonical.com/QBzr
 
 
 Make announcement
