@@ -1,5 +1,6 @@
-0.19 Beta 3 - Under development
--------------------------------
+0.19 "Shepherd's Tree, aka Boscia albitrunca" - 2010/08/05
+----------------------------------------------------------
+Bazaar 2.2 companion release. Suitable for bzr 2.2 and bzr 2.1.
 
  * qlog:
    * Context menu actions for tag, and revert will now show a branch menu if
@@ -433,6 +434,7 @@ Detailed changelog:
  * qupdate:
    * Now working for bound branches (aka heavyweight checkouts).
      (#422649, Craig Hewetson)
+
 
 0.14.7 - Under Development
 ----------------------------
