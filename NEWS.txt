@@ -2,6 +2,8 @@
 ----------------------------------------------------------
 Bazaar 2.2 companion release. Suitable for bzr 2.2 and bzr 2.1.
 
+Changes since 0.19b2 release:
+
  * qlog:
    * Context menu actions for tag, and revert will now show a branch menu if
      more than one branch is open. (Craig Hewetson, Gary van der Merwe)
