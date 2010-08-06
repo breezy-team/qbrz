@@ -41,6 +41,7 @@ try:
 except (ImportError, errors.IncompatibleAPI):
     have_search = False
 
+
 class BranchInfo(object):
     """Holds a branch and related information"""
     
@@ -59,6 +60,7 @@ class BranchInfo(object):
         if isinstance(other, BranchInfo):
             return self.branch.base.__eq__(other.branch.base)
         return False
+
 
 class RevisionInfo(object):
     """Holds information about a revision."""
@@ -137,6 +139,7 @@ class GhostRevisionError(errors.InternalBzrError):
 
 paths_and_branches_err = "It is not possible to specify different file paths and different branches at the same time."
 
+
 class BranchLine(object):
     __slots__ = ["branch_id", "revs", "visible", "merges", "merged_by",
                  "color", "merge_depth", "expanded_by"]
@@ -153,6 +156,7 @@ class BranchLine(object):
 
     def __repr__(self):
         return "%s <%s>" % (self.__class__.__name__, self.branch_id)
+
 
 class LogGraphProvider(object):
     """Loads and computes revision and graph data for GUI log widgets."""
@@ -262,6 +266,7 @@ class LogGraphProvider(object):
             return None
     
     no_usefull_info_in_location_re = re.compile(r'^[.:/\\]*$')
+
     def branch_label(self, location, branch,
                      shared_repo_location=None, shared_repo=None):
         # We should rather use QFontMetrics.elidedText. How do we decide on the
@@ -284,7 +289,10 @@ class LogGraphProvider(object):
             branch_rel = determine_relative_path(
                 shared_repo.bzrdir.root_transport.base,
                 branch.bzrdir.root_transport.base)
-            location = join(shared_repo_location, branch_rel)
+            if shared_repo_location == 'colo:':
+                location = shared_repo_location + branch_rel
+            else:
+                location = join(shared_repo_location, branch_rel)
         if location is None:
             return elided_text(branch.nick)
         
@@ -404,8 +412,8 @@ class LogGraphProvider(object):
             if not revid in self.head_revids:
                 self.head_revids.append(revid)
                 self.revid_head_info[revid] = ([],[])
-            self.revid_head_info[revid][0].append ((branch_info, tag,
-                                                    is_branch_last_revision))
+            self.revid_head_info[revid][0].append((branch_info, tag,
+                                                   is_branch_last_revision))
         self.revid_branch_info[revid] = branch_info
     
     def load_branch_heads(self):
