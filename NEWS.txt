@@ -1,4 +1,4 @@
-0.18.7 "Juniper" - not released yet
+0.18.7 "Juniper" - 2010/08/04
 -----------------------------------
 Maintenance release.
 
