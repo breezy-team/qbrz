@@ -79,7 +79,7 @@ Changes since 0.19b2 release:
 Note: qbzr now requires bzr 2.1.
 
 
-0.18.7 "Juniper" - not released yet
+0.18.7 "Juniper" - 2010/08/04
 -----------------------------------
 Maintenance release.
 
