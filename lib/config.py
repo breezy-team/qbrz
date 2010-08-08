@@ -204,10 +204,14 @@ class QBzrConfigWindow(QBzrDialog):
         removeExtMergeButton = QtGui.QPushButton(gettext("Remove"), mergeWidget)
         self.connect(removeExtMergeButton, QtCore.SIGNAL("clicked()"),
                      self.removeExtMerge)
+        detectMergeToolsButton = QtGui.QPushButton(gettext("Detect"), mergeWidget)
+        self.connect(detectMergeToolsButton, QtCore.SIGNAL("clicked()"),
+                     self.detectMergeTools)
 
         extMergeButtonsLayout = QtGui.QHBoxLayout()
         extMergeButtonsLayout.addWidget(addExtMergeButton)
         extMergeButtonsLayout.addWidget(removeExtMergeButton)
+        extMergeButtonsLayout.addWidget(detectMergeToolsButton)
         extMergeButtonsLayout.addStretch()
 
         mergeLayout = QtGui.QVBoxLayout(mergeWidget)
@@ -349,26 +353,26 @@ class QBzrConfigWindow(QBzrDialog):
 
         # Merge
         self.extMergeListIgnore = True
-        def create_ext_merge_item(definition, default):
-            item = QtGui.QTreeWidgetItem(self.extMergeList)
-            item.setFlags(QtCore.Qt.ItemIsSelectable |
-                          QtCore.Qt.ItemIsEditable |
-                          QtCore.Qt.ItemIsEnabled |
-                          QtCore.Qt.ItemIsUserCheckable)
-            if default:
-                item.setCheckState(0, QtCore.Qt.Checked)
-            else:
-                item.setCheckState(0, QtCore.Qt.Unchecked)
-            
-            item.setText(0, definition)
-            return item
-
         definedMergeTools = mergetools.get_merge_tools(config)
         defaultMergeTool = mergetools.get_user_selected_merge_tool(config)
         for mergeTool in definedMergeTools:
             default = mergeTool.get_name() == defaultMergeTool.get_name()
-            create_ext_merge_item(mergeTool.get_commandline(), default)
+            self.create_ext_merge_item(mergeTool.get_commandline(), default)
         self.extMergeListIgnore = False
+
+    def create_ext_merge_item(self, definition, default):
+        item = QtGui.QTreeWidgetItem(self.extMergeList)
+        item.setFlags(QtCore.Qt.ItemIsSelectable |
+                      QtCore.Qt.ItemIsEditable |
+                      QtCore.Qt.ItemIsEnabled |
+                      QtCore.Qt.ItemIsUserCheckable)
+        if default:
+            item.setCheckState(0, QtCore.Qt.Checked)
+        else:
+            item.setCheckState(0, QtCore.Qt.Unchecked)
+        
+        item.setText(0, definition)
+        return item
 
     def save(self):
         """Save the configuration."""
@@ -560,6 +564,21 @@ class QBzrConfigWindow(QBzrDialog):
         for item in self.extMergeList.selectedItems():
             index = self.extMergeList.indexOfTopLevelItem(item)
             self.extMergeList.takeTopLevelItem(index)
+
+    def detectMergeTools(self):
+        current_tools = mergetools.get_merge_tools()
+        detected_tools = mergetools.detect_merge_tools()
+        combined_tools = {}
+        for tool in current_tools + detected_tools:
+            combined_tools[tool.get_name()] = tool
+        new_tools = combined_tools.values()
+        default_tool = mergetools.get_user_selected_merge_tool()
+        new_tools.sort(cmp=lambda x,y: cmp(x.get_name(), y.get_name()))
+        self.extMergeList.clear()
+        for tool in new_tools:
+            default = default_tool is not None and \
+                      tool.get_name() == default_tool.get_name()
+            self.create_ext_merge_item(tool.get_commandline(), default)
 
     def extMergeListItemChanged(self, changed_item, col):
         if col == 0 and not self.extMergeListIgnore:
