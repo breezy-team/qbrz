@@ -2,6 +2,12 @@
 ----------------------------
 
 
+0.19.1 - In development
+-----------------------
+
+ * Fix modeltest.py so that it works with Qt 4.7.
+   (Bug #614123, Gary van der Merwe)
+
 0.19 "Shepherd's Tree, aka Boscia albitrunca" - 2010/08/05
 ----------------------------------------------------------
 Bazaar 2.2 companion release. Suitable for bzr 2.2 and bzr 2.1.
