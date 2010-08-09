@@ -38,25 +38,25 @@ class ModelTest(QtCore.QObject):
         self.fetchingMore = False
         assert(self.model)
 
-        self.connect( self.model, QtCore.SIGNAL("columnsAboutToBeInserted(const QtCore.QModelIndex&, int, int)"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("columnsAboutToBeRemoved(const QtCore.QModelIndex&, int, int)"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("columnsBeInserted(const QtCore.QModelIndex&, int, int)"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("columnsRemoved(const QtCore.QModelIndex&, int, int)"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("dataChanged(const QtCore.QModelIndex&, const QtCore.QModelIndex&)"), self.runAllTests)
+        self.connect( self.model, QtCore.SIGNAL("columnsAboutToBeInserted(const QModelIndex&, int, int)"), self.runAllTests)
+        self.connect( self.model, QtCore.SIGNAL("columnsAboutToBeRemoved(const QModelIndex&, int, int)"), self.runAllTests)
+        self.connect( self.model, QtCore.SIGNAL("columnsBeInserted(const QModelIndex&, int, int)"), self.runAllTests)
+        self.connect( self.model, QtCore.SIGNAL("columnsRemoved(const QModelIndex&, int, int)"), self.runAllTests)
+        self.connect( self.model, QtCore.SIGNAL("dataChanged(const QModelIndex&, const QModelIndex&)"), self.runAllTests)
         self.connect( self.model, QtCore.SIGNAL("headerDataChanged(Qt::Orientation, int, int)"), self.runAllTests)
         self.connect( self.model, QtCore.SIGNAL("layoutAboutToBeChanged()"), self.runAllTests)
         self.connect( self.model, QtCore.SIGNAL("layoutChanged()"), self.runAllTests)
         self.connect( self.model, QtCore.SIGNAL("modelReset()"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("rowsAboutToBeInserted(const QtCore.QModelIndex&, int, int)"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("rowsAboutToBeRemoved(const QtCore.QModelIndex&, int, int)"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("rowsBeInserted(const QtCore.QModelIndex&, int, int)"), self.runAllTests)
-        self.connect( self.model, QtCore.SIGNAL("rowsRemoved(const QtCore.QModelIndex&, int, int)"), self.runAllTests)
+        self.connect( self.model, QtCore.SIGNAL("rowsAboutToBeInserted(const QModelIndex&, int, int)"), self.runAllTests)
+        self.connect( self.model, QtCore.SIGNAL("rowsAboutToBeRemoved(const QModelIndex&, int, int)"), self.runAllTests)
+        self.connect( self.model, QtCore.SIGNAL("rowsBeInserted(const QModelIndex&, int, int)"), self.runAllTests)
+        self.connect( self.model, QtCore.SIGNAL("rowsRemoved(const QModelIndex&, int, int)"), self.runAllTests)
 
         # Special checks for inserting/removing
-        self.connect( self.model, QtCore.SIGNAL("rowsAboutToBeInserted(const QtCore.QModelIndex&, int, int)"), self.rowsAboutToBeInserted)
-        self.connect( self.model, QtCore.SIGNAL("rowsAboutToBeRemoved(const QtCore.QModelIndex&, int, int)"), self.rowsAboutToBeRemoved)
-        self.connect( self.model, QtCore.SIGNAL("rowsBeInserted(const QtCore.QModelIndex&, int, int)"), self.rowsInserted)
-        self.connect( self.model, QtCore.SIGNAL("rowsRemoved(const QtCore.QModelIndex&, int, int)"), self.rowsRemoved)
+        self.connect( self.model, QtCore.SIGNAL("rowsAboutToBeInserted(const QModelIndex&, int, int)"), self.rowsAboutToBeInserted)
+        self.connect( self.model, QtCore.SIGNAL("rowsAboutToBeRemoved(const QModelIndex&, int, int)"), self.rowsAboutToBeRemoved)
+        self.connect( self.model, QtCore.SIGNAL("rowsBeInserted(const QModelIndex&, int, int)"), self.rowsInserted)
+        self.connect( self.model, QtCore.SIGNAL("rowsRemoved(const QModelIndex&, int, int)"), self.rowsRemoved)
         self.runAllTests()
 
     def nonDestructiveBasicTest(self):
