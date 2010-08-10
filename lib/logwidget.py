@@ -875,3 +875,18 @@ class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
                          QtCore.QPointF(endx, mid + height / 2 + 1))
         painter.drawPath(path)
         pen.setStyle(QtCore.Qt.SolidLine)
+    
+    def sizeHint(self, option, index):
+        size = QtGui.QStyledItemDelegate.sizeHint(self, option, index)
+        height = size.height()
+        height =15
+        # sizes smaller that this are to small.
+        if height < 14:
+            height = 14
+        
+        # even sizes blur less
+        if height % 2 == 1:
+            height += 1
+        
+        size.setHeight(height)
+        return size
