@@ -82,16 +82,16 @@ class TestLogGraphProvider(tests.TestCaseWithTransport):
         self.assertEqual(branch, bi.branch)
         self.assertEqual(None, bi.index)
 
-        self.assertEqual(['file1-id'], gp.fileids)
+        self.assertEqual(['file1-id'], gp.file_ids)
         
         gp.open_branch(branch, tree=tree, file_ids = ['dir-id'])        
-        self.assertEqual(['file1-id', 'dir-id'], gp.fileids)
+        self.assertEqual(['file1-id', 'dir-id'], gp.file_ids)
         
         # Check that a new branch has not been added.
         self.assertLength(1, gp.branches)
         
         gp.open_branch(branch, tree=tree, file_ids = ['file3-id'])
-        self.assertEqual(['file1-id', 'dir-id','file3-id'], gp.fileids)
+        self.assertEqual(['file1-id', 'dir-id','file3-id'], gp.file_ids)
         
         # Check that a new branch has not been added.
         self.assertLength(1, gp.branches)
@@ -167,13 +167,13 @@ class TestLogGraphProvider(tests.TestCaseWithTransport):
         gp = LogGraphProvider(False)
         
         gp.open_locations(['branch/file1'])
-        self.assertEqual(['file1-id'], gp.fileids)
+        self.assertEqual(['file1-id'], gp.file_ids)
         
         gp.open_locations(['branch/dir'])
-        self.assertEqual(['file1-id', 'dir-id'], gp.fileids)
+        self.assertEqual(['file1-id', 'dir-id'], gp.file_ids)
         
         gp.open_locations(['branch/file3'])
-        self.assertEqual(['file1-id', 'dir-id','file3-id'], gp.fileids)
+        self.assertEqual(['file1-id', 'dir-id','file3-id'], gp.file_ids)
     
     def test_open_locations_files(self):
         tree = self.make_branch_and_tree_with_files_and_dir()

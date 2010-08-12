@@ -49,7 +49,7 @@ from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 
 
 PathRole = QtCore.Qt.UserRole + 1
-FileIdRole = QtCore.Qt.UserRole + 2
+file_idRole = QtCore.Qt.UserRole + 2
 
 
 class Compleater(QtGui.QCompleter):
@@ -67,11 +67,11 @@ class LogWindow(QBzrWindow):
     FilterTagRole = QtCore.Qt.UserRole + 105
     FilterBugRole = QtCore.Qt.UserRole + 106
 
-    def __init__(self, locations, branch, specific_fileids=None, parent=None,
+    def __init__(self, locations, branch, specific_file_ids=None, parent=None,
                  ui_mode=True, no_graph=False):
         """Create qlog window.
 
-        Note: you must use either locations or branch+specific_fileid
+        Note: you must use either locations or branch+specific_file_id
         arguments, but not both.
 
         @param  locations:  list of locations to show log
@@ -83,7 +83,7 @@ class LogWindow(QBzrWindow):
             Could be None, in this case locations list will be used
             to open branch(es).
 
-        @param  specific_fileids:    file ids from the branch to filter
+        @param  specific_file_ids:    file ids from the branch to filter
             the log.
 
         @param  parent: parent widget.
@@ -100,14 +100,14 @@ class LogWindow(QBzrWindow):
         if branch:
             self.branch = branch
             self.locations = (branch,)
-            self.specific_fileids = specific_fileids
+            self.specific_file_ids = specific_file_ids
             assert locations is None, "can't specify both branch and locations"
         else:
             self.branch = None
             self.locations = locations
             #if self.locations is None:
             #    self.locations = [u"."]
-            assert specific_fileids is None, "specific_fileids is ignored if branch is None"
+            assert specific_file_ids is None, "specific_file_ids is ignored if branch is None"
         
         self.branches = None
         self.replace = {}
@@ -228,7 +228,7 @@ class LogWindow(QBzrWindow):
         self.processEvents()
         try:
             if self.branch:
-                self.log_list.load_branch(self.branch, self.specific_fileids)
+                self.log_list.load_branch(self.branch, self.specific_file_ids)
             else:
                 self.log_list.load_locations(self.locations)
             
@@ -255,7 +255,7 @@ class LogWindow(QBzrWindow):
                 self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
                              self.set_search_timer)
             
-            #if len(self.log_list.graph_provider.fileids)==1 and \
+            #if len(self.log_list.graph_provider.file_ids)==1 and \
             #        not self.log_list.graph_provider.has_dir:
             #    self.file_list.hide()
         finally:
@@ -511,26 +511,26 @@ class FileListContainer(QtGui.QWidget):
         
         if delta:
             items = []
-            specific_fileids = self.log_list.graph_provider.fileids
+            specific_file_ids = self.log_list.graph_provider.file_ids
             
             for path, id, kind in delta.added:
                 items.append((id,
                               path,
-                              id not in specific_fileids,
+                              id not in specific_file_ids,
                               path,
                               "blue"))
     
             for path, id, kind, text_modified, meta_modified in delta.modified:
                 items.append((id,
                               path,
-                              id not in specific_fileids,
+                              id not in specific_file_ids,
                               path,
                               None))
     
             for path, id, kind in delta.removed:
                 items.append((id,
                               path,
-                              id not in specific_fileids,
+                              id not in specific_file_ids,
                               path,
                               "red"))
     
@@ -538,19 +538,19 @@ class FileListContainer(QtGui.QWidget):
                 text_modified, meta_modified) in delta.renamed:
                 items.append((id,
                               newpath,
-                              id not in specific_fileids,
+                              id not in specific_file_ids,
                               "%s => %s" % (oldpath, newpath),
                               "purple"))
             
             for (id, path,
-                 is_not_specific_fileid,
+                 is_not_specific_file_id,
                  display, color) in sorted(items, key = lambda x: (x[2],x[1])):
                 item = QtGui.QListWidgetItem(display, self.file_list)
                 item.setData(PathRole, QtCore.QVariant(path))
-                item.setData(FileIdRole, QtCore.QVariant(id))
+                item.setData(file_idRole, QtCore.QVariant(id))
                 if color:
                     item.setTextColor(QtGui.QColor(color))
-                if not is_not_specific_fileid:
+                if not is_not_specific_file_id:
                     f = item.font()
                     f.setBold(True)
                     item.setFont(f)
@@ -595,7 +595,7 @@ class FileListContainer(QtGui.QWidget):
         for index in indexes:
             item = self.file_list.itemFromIndex(index)
             paths.append(unicode(item.data(PathRole).toString()))
-            ids.append(str(item.data(FileIdRole).toString()))
+            ids.append(str(item.data(file_idRole).toString()))
         return paths, ids
     
     @ui_current_widget

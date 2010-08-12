@@ -175,7 +175,7 @@ class LogGraphProvider(object):
         self.branches = []
         """List of BranchInfo for each branch."""
         
-        self.fileids = []
+        self.file_ids = []
         self.has_dir = False
         
         self.repos = {}
@@ -216,7 +216,7 @@ class LogGraphProvider(object):
         
         self.filter_file_id = None
         """Filtered dict of index's that are visible because they touch
-        self.fileids
+        self.file_ids
         """
         
         self.sr_field = None
@@ -299,7 +299,7 @@ class LogGraphProvider(object):
         return elided_text(location)
     
     def open_branch(self, branch, file_ids=None, tree=None):
-        """Open branch and fileids to be loaded. """
+        """Open branch and file_ids to be loaded. """
         
         repo = branch.repository
         if not tree:
@@ -315,7 +315,7 @@ class LogGraphProvider(object):
         self.append_branch(label, tree, branch)
 
         if file_ids:
-            self.fileids.extend(file_ids)
+            self.file_ids.extend(file_ids)
         
         if len(self.branches)==1 and self.trunk_branch == None:
             self.trunk_branch = branch
@@ -356,7 +356,7 @@ class LogGraphProvider(object):
                 if len(self.branches)==1 and self.trunk_branch == None:
                     self.trunk_branch = br
             
-            # If no locations were sepecified, don't do fileids
+            # If no locations were sepecified, don't do file_ids
             # Otherwise it gives you the history for the dir if you are
             # in a sub dir.
             if fp != '' and locations is None:
@@ -374,9 +374,9 @@ class LogGraphProvider(object):
                 
                 self.update_ui()
                 
-                self.fileids.append(file_id)
+                self.file_ids.append(file_id)
         
-        if self.fileids and len(self.branches)>1:
+        if self.file_ids and len(self.branches)>1:
             raise errors.BzrCommandError(paths_and_branches_err)
 
     def lock_read_branches(self):
@@ -674,7 +674,7 @@ class LogGraphProvider(object):
             self.compute_merge_info()
         self.compute_head_info()
         
-        if not self.fileids:
+        if not self.file_ids:
             # All revisions start visible
             for rev in self.revisions:
                 rev.filter_cache = True
@@ -841,12 +841,12 @@ class LogGraphProvider(object):
         return self.has_dir
     
     def load_filter_file_id(self):
-        """Load with revisions affect the fileids
+        """Load with revisions affect the file_ids
         
         It requires that compute_merge_info has been run.
         
         """
-        if self.fileids:
+        if self.file_ids:
             self.throbber_show()
             
             if len(self.branches)>1:
@@ -860,8 +860,8 @@ class LogGraphProvider(object):
             tree.lock_read()
             try:
                 self.has_dir = False
-                for fileid in self.fileids:
-                    if tree.kind(fileid) in ('directory', 'tree-reference'):
+                for file_id in self.file_ids:
+                    if tree.kind(file_id) in ('directory', 'tree-reference'):
                         self.has_dir = True
                         break
             finally:
@@ -887,7 +887,7 @@ class LogGraphProvider(object):
     def load_filter_file_id_chunk(self, repo, revids):
         def check_text_keys(text_keys):
             changed_indexes = []
-            for fileid, revid in repo.texts.get_parent_map(text_keys):
+            for file_id, revid in repo.texts.get_parent_map(text_keys):
                 rev = self.revid_rev[revid]
                 self.filter_file_id[rev.index] = True
                 changed_indexes.append(rev.index)
@@ -899,9 +899,9 @@ class LogGraphProvider(object):
         repo.lock_read()
         try:
             if not self.load_filter_file_id_uses_inventory():
-                text_keys = [(fileid, revid) 
+                text_keys = [(file_id, revid) 
                                 for revid in revids
-                                for fileid in self.fileids]
+                                for file_id in self.file_ids]
                 check_text_keys(text_keys)
             else:
                 text_keys = []
@@ -911,7 +911,7 @@ class LogGraphProvider(object):
                             repo.iter_inventories(revids),
                             revids):
                     for path, entry in inv.iter_entries_by_dir(
-                                            specific_file_ids = self.fileids):
+                                            specific_file_ids = self.file_ids):
                         text_keys.append((entry.file_id, revid))
                         if entry.kind == "directory":
                             for rc_path, rc_entry in inv.iter_entries(from_dir = entry):
@@ -957,7 +957,7 @@ class LogGraphProvider(object):
                                                             merged_index):
                     return True
         
-        if self.fileids:
+        if self.file_ids:
             if self.filter_file_id is None:
                 return False
             if not self.filter_file_id[index]:

@@ -103,7 +103,7 @@ class LogList(RevisionTreeView):
     def create_context_menu(self, diff_is_default_action=True):
         self.context_menu = QtGui.QMenu(self)
         if self.view_commands or self.action_commands:
-            if self.graph_provider.fileids:
+            if self.graph_provider.file_ids:
                 if diff.has_ext_diff():
                     diff_menu = diff.ExtDiffMenu(
                         self, set_default=diff_is_default_action)
@@ -153,10 +153,10 @@ class LogList(RevisionTreeView):
                 self.context_menu.addAction(gettext("Revert to this revision..."),
                                             self.revert_revision)
 
-    def load_branch(self, branch, fileids, tree=None):
+    def load_branch(self, branch, file_ids, tree=None):
         self.throbber.show()
         try:
-            self.graph_provider.open_branch(branch, fileids, tree)
+            self.graph_provider.open_branch(branch, file_ids, tree)
             self.create_context_menu()
             self.load_current_dir_repo_if_no_local_repos()
             self.processEvents()
@@ -416,9 +416,9 @@ class LogList(RevisionTreeView):
                        parent_window = self.window())
     
     def show_diff_specified_files(self, ext_diff=None):
-        if self.graph_provider.fileids:
+        if self.graph_provider.file_ids:
             self.show_diff(ext_diff=ext_diff,
-                           specific_file_ids = self.graph_provider.fileids)
+                           specific_file_ids = self.graph_provider.file_ids)
         else:
             self.show_diff(ext_diff=ext_diff)
     
