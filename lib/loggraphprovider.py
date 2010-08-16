@@ -321,14 +321,21 @@ class LogGraphProvider(object):
             self.revid_branch[revid] = branch
 
     def load_graph_parents(self):
-        for bi in self.branches:
+        
+        branches_heads = []
+        def load_branch_heads(bi):
+            branch_heads = []
+            def append_head_info(revid, branch, label):
+                self.append_head_info(revid, branch, label)
+                branch_heads.append(revid)
+            
             if len(self.branches)>0:
                 label = bi.label
             else:
                 label = None
             
             branch_last_revision = bi.branch.last_revision()
-            self.append_head_info(branch_last_revision, bi.branch, bi.label)
+            append_head_info(branch_last_revision, bi.branch, bi.label)
             self.update_ui()
             
             if bi.tree:
@@ -342,30 +349,36 @@ class LogGraphProvider(object):
                             wt_label =  "%s - Working Tree" % label
                         else:
                             wt_label = "Working Tree"
-                        self.append_head_info(revid, bi.branch, wt_label)
+                        append_head_info(revid, bi.branch, wt_label)
                     # other parents are pending merges
                     for revid in parent_ids[1:]:
                         if label:
                             pm_label = "%s - Pending Merge" % label
                         else:
                             pm_label = "Pending Merge"
-                        self.append_head_info(revid, bi.branch, pm_label)
+                        append_head_info(revid, bi.branch, pm_label)
                 self.update_ui()
-            
-        head_revids = self.revid_head_info.keys()
-        if len(self.branches)>1:
-            primary_tip = self.primary_bi.branch.last_revision()
+            return branch_heads
+        
+        for bi in self.branches:
+            # Don't do the primary branch, as that will be inserted later at
+            # the first position.
+            if bi != self.primary_bi:
+                branches_heads.append(load_branch_heads(bi))
+        
+        if len(branches_heads) >= 2:
+            head_revids = [revid for branch_heads in branches_heads
+                                 for revid in branch_heads]
             head_revs = self.load_revisions(head_revids)
             
-            def head_revids_cmp(x,y):
-                if x == primary_tip:
-                    return -1
-                if y == primary_tip:
-                    return 1
-                return 0-cmp(head_revs[x].timestamp,
-                             head_revs[y].timestamp)
-            
-            head_revids.sort(head_revids_cmp)
+            get_max_timestamp = lambda revids: max(
+                [head_revs[revid].timestamp for revid in revids])
+            branches_heads.sort(key=get_max_timestamp, reverse=True)
+        
+        if self.primary_bi:
+            branches_heads.insert(0, load_branch_heads(self.primary_bi))
+        head_revids = [revid for branch_heads in branches_heads
+                             for revid in branch_heads]
         
         return head_revids, self.graph.iter_ancestry(head_revids)
 
