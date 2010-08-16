@@ -77,11 +77,12 @@ class LogWindow(QBzrWindow):
     FilterTagRole = QtCore.Qt.UserRole + 105
     FilterBugRole = QtCore.Qt.UserRole + 106
 
-    def __init__(self, locations, branch, specific_file_ids=None, parent=None,
-                 ui_mode=True, no_graph=False):
+    def __init__(self, locations=None,
+                 branch=None, tree=None, specific_file_ids=None,
+                 parent=None, ui_mode=True, no_graph=False):
         """Create qlog window.
 
-        Note: you must use either locations or branch+specific_file_id
+        Note: you must use either locations or branch+tree+specific_file_id
         arguments, but not both.
 
         @param  locations:  list of locations to show log
@@ -110,6 +111,7 @@ class LogWindow(QBzrWindow):
         self.no_graph = no_graph
         if branch:
             self.branch = branch
+            self.tree = tree
             self.locations = (branch,)
             self.specific_file_ids = specific_file_ids
             assert locations is None, "can't specify both branch and locations"
@@ -247,30 +249,28 @@ class LogWindow(QBzrWindow):
     
     def get_branches_and_file_ids(self):
         if self.branch:
-            # XXX - This dose not work if you have a light weight checkout
-            # We should rather make sure that every thing correctly pass
-            # us the wt if there is one.
-            try:
-                tree = branch.bzrdir.open_workingtree()
-            except errors.NoWorkingTree:
-                tree = None
-            label = self.branch_label(None, branch)
-            bi = BranchInfo(label, tree, self.branch)
-            return [bi], bi, self.specific_fileids
+            if self.tree is None:
+                try:
+                    self.tree = self.branch.bzrdir.open_workingtree()
+                except errors.NoWorkingTree:
+                    pass
+            label = self.branch_label(None, self.branch)
+            bi = BranchInfo(label, self.tree, self.branch)
+            return [bi], bi, self.specific_file_ids
         else:
             primary_bi = None
-            branches = []
+            branches = set()
             file_ids = []
             if self.locations is not None:
-                _locations = self.locations
+                locations = self.locations
             else:
-                _locations = [u'.']
+                locations = [u'.']
             
             # Branch names that indicated primary branch.
             # TODO: Make config option.
             primary_branch_names = ('trunk', 'bzr.dev')
             
-            for location in _locations:
+            for location in locations:
                 tree, br, repo, fp = \
                     BzrDir.open_containing_tree_branch_or_repository(location)
                 self.processEvents()
@@ -279,7 +279,10 @@ class LogWindow(QBzrWindow):
                     if fp:
                         raise errors.NotBranchError(fp)
                     
-                    repo_branches = repo.find_branches(using=True) 
+                    repo_branches = repo.find_branches(using=True)
+                    if not repo_branches:
+                        raise errors.NotBranchError(fp)
+                    
                     for br in repo_branches:
                         self.processEvents()
                         try:
@@ -289,7 +292,7 @@ class LogWindow(QBzrWindow):
                             tree = None
                         label = self.branch_label(None, br, location, repo)
                         bi = BranchInfo(label, tree, br)
-                        branches.append(bi)
+                        branches.add(bi)
                         if not primary_bi and br.nick in primary_branch_names:
                             primary_bi = bi
                 else:
@@ -299,12 +302,12 @@ class LogWindow(QBzrWindow):
                         # The first sepecified branch becomes the primary
                         # branch.
                         primary_bi = bi
-                    branches.append(bi)
+                    branches.add(bi)
                 
                 # If no locations were sepecified, don't do fileids
                 # Otherwise it gives you the history for the dir if you are
                 # in a sub dir.
-                if fp != '' and locations is None:
+                if fp != '' and self.locations is None:
                     fp = ''
                 
                 if fp != '' :
@@ -318,7 +321,7 @@ class LogWindow(QBzrWindow):
                         raise errors.BzrCommandError(
                             "Path does not have any revision history: %s" %
                             location)
-                    file_ids
+                    file_ids.append(file_id)
             if file_ids and len(branches)>1:
                 raise errors.BzrCommandError(gettext(
                     'It is not possible to specify different file paths and '
