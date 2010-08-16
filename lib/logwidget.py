@@ -37,7 +37,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 class LogList(RevisionTreeView):
     """TreeView widget to show log with metadata and graph of revisions."""
 
-    def __init__(self, processEvents, throbber, no_graph, parent=None,
+    def __init__(self, processEvents, throbber, parent=None,
                  view_commands=True, action_commands=False):
         """Costructing new widget.
         @param  throbber:   throbber widget in parent window
@@ -59,17 +59,16 @@ class LogList(RevisionTreeView):
         self.processEvents = processEvents
         self.throbber = throbber
 
-        self.graph_provider = logmodel.QLogGraphProvider(self.processEvents,
-                                                         self.throbber,
-                                                         no_graph)
+        self.graph_provider = None
+        self.log_model = logmodel.LogModel(self)
+        self.connect(self.log_model,
+                     QtCore.SIGNAL("linesUpdated()"),
+                     self.make_selection_continuous)
+        
+        self.filter_proxy_model = logmodel.LogFilterProxyModel(self.log_model,
+                                                               self)
 
-        self.log_model = logmodel.LogModel(self.graph_provider, self)
-
-        self.filter_proxy_model = logmodel.LogFilterProxyModel(self.graph_provider, self)
-        self.filter_proxy_model.setSourceModel(self.log_model)
-        self.filter_proxy_model.setDynamicSortFilter(True)
-
-        self.setModel(self.filter_proxy_model)
+        self.setModel(self.filter_proxy_model)    
         
         header = self.header()
         header.setStretchLastSection(False)
@@ -96,14 +95,11 @@ class LogList(RevisionTreeView):
                          QtCore.SIGNAL("doubleClicked(QModelIndex)"),
                          self.default_action)
         self.context_menu = QtGui.QMenu(self)
-        self.connect(self.log_model,
-                     QtCore.SIGNAL("linesUpdated()"),
-                     self.make_selection_continuous)
 
-    def create_context_menu(self, diff_is_default_action=True):
+    def create_context_menu(self, file_ids, diff_is_default_action=True):
         self.context_menu = QtGui.QMenu(self)
         if self.view_commands or self.action_commands:
-            if self.graph_provider.file_ids:
+            if file_ids:
                 if diff.has_ext_diff():
                     diff_menu = diff.ExtDiffMenu(
                         self, set_default=diff_is_default_action)
@@ -153,67 +149,27 @@ class LogList(RevisionTreeView):
                 self.context_menu.addAction(gettext("Revert to this revision..."),
                                             self.revert_revision)
 
-    def load_branch(self, branch, file_ids, tree=None):
+    def load(self, branches, primary_bi, file_ids,
+             no_graph, graph_provider_type):
         self.throbber.show()
+        self.processEvents()        
         try:
-            self.graph_provider.open_branch(branch, file_ids, tree)
-            self.create_context_menu()
-            self.load_current_dir_repo_if_no_local_repos()
-            self.processEvents()
-            self.load()
-        finally:
-            self.throbber.hide()
-    
-    def load_locations(self, locations):
-        self.throbber.show()
-        try:
-            self.graph_provider.open_locations(locations)
-            self.create_context_menu()
-            self.load_current_dir_repo_if_no_local_repos()
-            self.processEvents()
-            self.load()
-        finally:
-            self.throbber.hide()
-    
-    def load_current_dir_repo_if_no_local_repos(self):
-        # There are no local repositories. Try open the repository
-        # of the current directory, and try load revsions data from
-        # this before trying from remote repositories. This makes
-        # the common use case of viewing a remote branch that is
-        # related to the current branch much faster, because most
-        # of the revision can be loaded from the local repoistory.
-        has_local_repo = False
-        for repo in self.graph_provider.repos.values():
-            if repo.is_local:
-                has_local_repo = True
-                break
-        if not has_local_repo:
-            try:
-                bzrdir, relpath = BzrDir.open_containing(u".")
-                repo = bzrdir.find_repository()
-                self.graph_provider.append_repo(repo, local_copy = True)
-            except Exception:
-                pass
-    
-    def refresh(self):
-        self.throbber.show()
-        try:
-            self.load()
-        finally:
-            self.throbber.hide()
-    
-    def load(self):
-        self.graph_provider.lock_read_branches()
-        try:
-            self.graph_provider.load_tags()
-            self.log_model.load_graph_all_revisions()
+            self.create_context_menu(file_ids)
+            
+            graph_provider = graph_provider_type(
+                branches, primary_bi, file_ids, no_graph, 
+                processEvents=self.processEvents, throbber=self.throbber)
+            graph_provider.load()
+            self.graph_provider = graph_provider
+            self.log_model.set_graph_provider(self.graph_provider)
+            
             self._adjust_revno_column()
         finally:
-            self.graph_provider.unlock_branches()
+            self.throbber.hide()
         
         # Start later so that it does not run in the loading queue.
         QtCore.QTimer.singleShot(1, self.graph_provider.load_filter_file_id)
-
+    
     def _adjust_revno_column(self):
         # update the data
         max_mainline_digits = self.rev_no_item_delegate.set_max_revno(

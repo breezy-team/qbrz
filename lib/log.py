@@ -33,9 +33,18 @@ from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
-from bzrlib.branch import Branch
+import re
+
+from bzrlib import errors
 from bzrlib import osutils
+from bzrlib.branch import Branch
+from bzrlib.bzrdir import BzrDir
+from bzrlib.urlutils import determine_relative_path, join, split
+
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
+from bzrlib.plugins.qbzr.lib.logmodel import QLogGraphProvider
+from bzrlib.plugins.qbzr.lib.loggraphprovider import BranchInfo
+
 from bzrlib.plugins.qbzr.lib.diff import (
     has_ext_diff,
     ExtDiffMenu,
@@ -56,6 +65,7 @@ class Compleater(QtGui.QCompleter):
     def splitPath (self, path):
         return QtCore.QStringList([path.split(" ")[-1]])
 
+have_search = None
 
 class LogWindow(QBzrWindow):
 
@@ -93,10 +103,11 @@ class LogWindow(QBzrWindow):
         @param  no_graph:   don't show the graph of revisions (make sense
             for `bzr qlog FILE` to force plain log a-la `bzr log`).
         """
-        self.title = [gettext("Log")]
-        QBzrWindow.__init__(self, self.title, parent, ui_mode=ui_mode)
+        self.title = gettext("Log")
+        QBzrWindow.__init__(self, [self.title], parent, ui_mode=ui_mode)
         self.restoreSize("log", (710, 580))
         
+        self.no_graph = no_graph
         if branch:
             self.branch = branch
             self.locations = (branch,)
@@ -157,7 +168,6 @@ class LogWindow(QBzrWindow):
 
         self.log_list = LogList(self.processEvents,
                                 self.throbber,
-                                no_graph,
                                 self)
         
 
@@ -165,9 +175,6 @@ class LogWindow(QBzrWindow):
         logbox.addWidget(self.log_list)
 
         self.current_rev = None
-        self.connect(self.log_list.selectionModel(),
-                     QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
-                     self.update_selection)
         
         self.message = QtGui.QTextDocument()
         self.message_browser = LogListRevisionMessageBrowser(self.log_list, 
@@ -217,27 +224,125 @@ class LogWindow(QBzrWindow):
     @ui_current_widget
     @reports_exception()
     def load(self):
-        self.refresh_button.setDisabled(True)            
-        
-        # Set window title. 
-        lt = self._locations_for_title(self.locations)
-        if lt:
-            self.title.append(lt)
-        self.set_title (self.title)
-        
+        self.refresh_button.setDisabled(True)
+        self.throbber.show()
         self.processEvents()
         try:
-            if self.branch:
-                self.log_list.load_branch(self.branch, self.specific_file_ids)
-            else:
-                self.log_list.load_locations(self.locations)
+            # Set window title. 
+            lt = self._locations_for_title(self.locations)
+            if lt:
+                self.set_title ((self.title, lt))
             
-            for index in self.log_list.graph_provider.search_indexes():
-                indexes_availble = True
-                break
-            else:
-                indexes_availble = False
+            branches, primary_bi, file_ids = self.get_branches_and_file_ids()
+            self.log_list.load(branches, primary_bi, file_ids,
+                               self.no_graph, QLogGraphProvider)
+            self.connect(self.log_list.selectionModel(),
+                         QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
+                         self.update_selection)
             
+            self.load_search_indexes(branches)
+        finally:
+            self.refresh_button.setDisabled(False)
+            self.throbber.hide()
+    
+    def get_branches_and_file_ids(self):
+        if self.branch:
+            # XXX - This dose not work if you have a light weight checkout
+            # We should rather make sure that every thing correctly pass
+            # us the wt if there is one.
+            try:
+                tree = branch.bzrdir.open_workingtree()
+            except errors.NoWorkingTree:
+                tree = None
+            label = self.branch_label(None, branch)
+            bi = BranchInfo(label, tree, self.branch)
+            return [bi], bi, self.specific_fileids
+        else:
+            primary_bi = None
+            branches = []
+            file_ids = []
+            if self.locations is not None:
+                _locations = self.locations
+            else:
+                _locations = [u'.']
+            
+            # Branch names that indicated primary branch.
+            # TODO: Make config option.
+            primary_branch_names = ('trunk', 'bzr.dev')
+            
+            for location in _locations:
+                tree, br, repo, fp = \
+                    BzrDir.open_containing_tree_branch_or_repository(location)
+                self.processEvents()
+                
+                if br is None:
+                    if fp:
+                        raise errors.NotBranchError(fp)
+                    
+                    repo_branches = repo.find_branches(using=True) 
+                    for br in repo_branches:
+                        self.processEvents()
+                        try:
+                            tree = br.bzrdir.open_workingtree()
+                            self.processEvents()
+                        except errors.NoWorkingTree:
+                            tree = None
+                        label = self.branch_label(None, br, location, repo)
+                        bi = BranchInfo(label, tree, br)
+                        branches.append(bi)
+                        if not primary_bi and br.nick in primary_branch_names:
+                            primary_bi = bi
+                else:
+                    label = self.branch_label(location, br)
+                    bi = BranchInfo(label, tree, br)
+                    if len(branches)==0 is None:
+                        # The first sepecified branch becomes the primary
+                        # branch.
+                        primary_bi = bi
+                    branches.append(bi)
+                
+                # If no locations were sepecified, don't do fileids
+                # Otherwise it gives you the history for the dir if you are
+                # in a sub dir.
+                if fp != '' and locations is None:
+                    fp = ''
+                
+                if fp != '' :
+                    # TODO: Have away to specify a revision to find to file
+                    # path in, so that one can show deleted files.
+                    if tree is None:
+                        tree = br.basis_tree()
+                    
+                    file_id = tree.path2id(fp)
+                    if file_id is None:
+                        raise errors.BzrCommandError(
+                            "Path does not have any revision history: %s" %
+                            location)
+                    file_ids
+            if file_ids and len(branches)>1:
+                raise errors.BzrCommandError(gettext(
+                    'It is not possible to specify different file paths and '
+                    'different branches at the same time.'))
+            return branches, primary_bi, file_ids
+
+    def load_search_indexes(self, branches):
+        global have_search, search_errors, search_index
+        if have_search is None:
+            have_search = True
+            try:
+                from bzrlib.plugins.search import errors as search_errors
+                from bzrlib.plugins.search import index as search_index
+            except (ImportError, errors.IncompatibleAPI):
+                have_search = False            
+        
+        if have_search:
+            indexes_availble = false
+            for bi in branches:
+                try:
+                    bi.index = search_index.open_index_branch(branch)
+                    indexes_availble = true
+                except (search_errors.NoSearchIndex, errors.IncompatibleAPI):
+                    pass
             if indexes_availble:
                 self.searchType.insertItem(0,
                         gettext("Messages and File text (indexed)"),
@@ -253,25 +358,48 @@ class LogWindow(QBzrWindow):
                 self.suggestion_letters_loaded = {"":QtCore.QStringList()}
                 self.suggestion_last_first_letter = ""
                 self.connect(self.completer, QtCore.SIGNAL("activated(QString)"),
-                             self.set_search_timer)
-            
-            #if len(self.log_list.graph_provider.file_ids)==1 and \
-            #        not self.log_list.graph_provider.has_dir:
-            #    self.file_list.hide()
-        finally:
-            self.refresh_button.setDisabled(False)
+                             self.set_search_timer)        
     
-    @runs_in_loading_queue
-    @ui_current_widget
-    @reports_exception(type = SUB_LOAD_METHOD)
+    no_usefull_info_in_location_re = re.compile(r'^[.:/\\]*$')
+    def branch_label(self, location, branch,
+                     shared_repo_location=None, shared_repo=None):
+        # We should rather use QFontMetrics.elidedText. How do we decide on the
+        # width.
+        def elided_text(text, length=20):
+            if len(text)>length+3:
+                return text[:length]+'...'
+            return text
+        
+        def elided_path(path):
+            if len(path)>23:
+                dir, name = split(path)
+                dir = elided_text(dir, 10)
+                name = elided_text(name)
+                return join(dir, name)
+            return path
+        
+        if shared_repo_location and shared_repo and not location:
+            # Once we depend on bzrlib 2.2, this can become .user_url
+            branch_rel = determine_relative_path(
+                shared_repo.bzrdir.root_transport.base,
+                branch.bzrdir.root_transport.base)
+            location = join(shared_repo_location, branch_rel)
+        if location is None:
+            return elided_text(branch.nick)
+        
+        append_nick = (
+            location.startswith(':') or
+            bool(self.no_usefull_info_in_location_re.match(location)) or
+            branch.get_config().has_explicit_nickname()
+            )
+        if append_nick:
+            return '%s (%s)' % (elided_path(location), branch.nick)
+        
+        return elided_text(location)
+    
     def refresh(self):
-        self.refresh_button.setDisabled(True)            
-        self.processEvents()
-        try:
-            self.replace = {}
-            self.log_list.refresh()
-        finally:
-            self.refresh_button.setDisabled(False)
+        self.replace = {}
+        self.load()
 
     def replace_config(self, branch):
         if branch.base not in self.replace:

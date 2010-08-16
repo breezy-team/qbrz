@@ -41,11 +41,16 @@ RevIdRole = im_RevIdRole
  GraphTwistyStateRole,
 ) = range(QtCore.Qt.UserRole + 2, QtCore.Qt.UserRole + 8)
 
+header_labels = (gettext("Rev"),
+                 gettext("Message"),
+                 gettext("Date"),
+                 gettext("Author"), )
+
 (COL_REV,
  COL_MESSAGE,
  COL_DATE,
  COL_AUTHOR,
-) = range(4)
+) = range(len(header_labels))
 
 
 try:
@@ -56,11 +61,12 @@ except AttributeError:
 
 class QLogGraphProvider(LogGraphProvider):
     
-    def __init__(self, processEvents,  throbber, no_graph):
-        LogGraphProvider.__init__(self, no_graph)
-        
+    def __init__(self, branches, primary_bi, file_ids, no_graph,
+                 processEvents,  throbber):
+        LogGraphProvider.__init__(self, branches, primary_bi, file_ids, no_graph)
         self.processEvents = processEvents
         self.throbber = throbber
+        self.on_filter_changed = self.compute_graph_lines
     
     def update_ui(self):
         self.processEvents()
@@ -82,36 +88,26 @@ class QLogGraphProvider(LogGraphProvider):
     def load_filter_file_id_chunk_finished(self):
         LogGraphProvider.load_filter_file_id_chunk_finished(self)
 
+class BlankGraphProvider(object):
+    revisions = ()
 
 class LogModel(QtCore.QAbstractTableModel):
 
-    def __init__(self, graph_provider, parent=None):
+    def __init__(self, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         
-        self.graph_provider = graph_provider
-        self.graph_provider.on_filter_changed = self.on_filter_changed
-        
-        self.horizontalHeaderLabels = [gettext("Rev"),
-                                       gettext("Message"),
-                                       gettext("Date"),
-                                       gettext("Author"),
-                                       ]
+        self.graph_provider = BlankGraphProvider()
+
         self.clicked_row = None
         self.last_rev_is_placeholder = False
     
-    def load_graph(self, gp_loader_func):
+    def set_graph_provider(self, graph_provider):
         try:
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
-            gp_loader_func()
+            self.graph_provider = graph_provider
+            self.graph_provider.on_filter_changed = self.on_filter_changed
         finally:
             self.emit(QtCore.SIGNAL("layoutChanged()"))
-    
-    def load_graph_all_revisions(self):
-        self.load_graph(self.graph_provider.load_graph_all_revisions)
-    
-    def load_graph_pending_merges(self):
-        self.last_rev_is_placeholder = True
-        self.load_graph(self.graph_provider.load_graph_pending_merges)
 
     def compute_lines(self):
         self.graph_provider.compute_graph_lines()
@@ -154,7 +150,7 @@ class LogModel(QtCore.QAbstractTableModel):
     def columnCount(self, parent):
         if parent.isValid():
             return 0
-        return len(self.horizontalHeaderLabels)
+        return len(header_labels)
 
     def rowCount(self, parent):
         if parent.isValid():
@@ -218,9 +214,7 @@ class LogModel(QtCore.QAbstractTableModel):
         if role == BranchTagsRole:
             labels = []
             if rev_info.revid in gp.branch_labels:
-                labels =  [label for (branch,
-                                      label,
-                                      is_branch_last_revision)
+                labels =  [label for (branch, label)
                            in gp.branch_labels[rev_info.revid]
                            if label]
             return QtCore.QVariant(QtCore.QStringList(labels))
@@ -228,9 +222,7 @@ class LogModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.ToolTipRole and index.column() == COL_MESSAGE:
             urls = []
             if rev_info.revid in gp.branch_labels:
-                urls =  [branch.base for (branch,
-                                          label,
-                                          is_branch_last_revision)
+                urls =  [branch.base for (branch, label)
                            in gp.branch_labels[rev_info.revid]
                            if label]
             return QtCore.QVariant('\n'.join(urls))
@@ -276,7 +268,7 @@ class LogModel(QtCore.QAbstractTableModel):
 
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
-            return QtCore.QVariant(self.horizontalHeaderLabels[section])
+            return QtCore.QVariant(header_labels[section])
         return QtCore.QVariant()
 
     def indexFromRevId(self, revid, columns=None):
@@ -297,15 +289,20 @@ class LogModel(QtCore.QAbstractTableModel):
 
 
 class LogFilterProxyModel(QtGui.QSortFilterProxyModel):
-    def __init__(self, graph_provider, parent = None):
+    def __init__(self, parent_log_model, parent = None):
         QtGui.QSortFilterProxyModel.__init__(self, parent)
-        self.graph_provider = graph_provider
+        self.parent_log_model = parent_log_model
+        self.setSourceModel(parent_log_model)
+        self.setDynamicSortFilter(True)
 
     def filterAcceptsRow(self, source_row, source_parent):
-        return self.graph_provider.get_revision_visible(source_row)
+        if source_parent.isValid():
+            return True
+        return self.parent_log_model.graph_provider.get_revision_visible(
+                                                                    source_row)
     
     def on_revisions_loaded(self, revisions, last_call):
         self.sourceModel().on_revisions_loaded(revisions, last_call)    
     
     def get_repo(self):
-        return self.graph_provider.get_repo_revids
+        return self.parent_log_model.graph_provider.get_repo_revids
