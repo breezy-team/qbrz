@@ -406,48 +406,6 @@ class LogGraphProvider(object):
     #    
     #    self._load_graph(parents())
     
-    #def load_graph_pending_merges(self):
-    #    if not len(self.branches) == 1 or not len(self.repos) == 1:
-    #        AssertionError("load_graph_pending_merges should only be called \
-    #                       when 1 branch and repo has been opened.")
-    #    
-    #    bi = self.branches[0]
-    #    if bi.tree is None:
-    #        AssertionError("load_graph_pending_merges must have a working tree.")
-    #        
-    #    self.graph = bi.branch.repository.get_graph()
-    #    tree_heads = bi.tree.get_parent_ids()
-    #    other_revisions = [tree_heads[0],]
-    #    self.update_ui()
-    #
-    #    
-    #    self.revid_head_info = {}
-    #    self.head_revids = ["root:",]
-    #    self.revid_branch = {}
-    #    
-    #    pending_merges = []
-    #    for head in tree_heads[1:]:
-    #        self.append_head_info(head, bi.branch, None, False)
-    #        pending_merges.extend(
-    #            self.graph.find_unique_ancestors(head,other_revisions))
-    #        other_revisions.append(head)
-    #        self.update_ui()
-    #    
-    #    graph_parents = self.graph.get_parent_map(pending_merges)
-    #    graph_parents["root:"] = ()
-    #    self.update_ui()
-    #    
-    #    for (revid, parents) in graph_parents.items():
-    #        new_parents = []
-    #        for index, parent in enumerate(parents):
-    #            if parent in graph_parents:
-    #                new_parents.append(parent)
-    #            elif index == 0:
-    #                new_parents.append("root:")
-    #        graph_parents[revid] = tuple(new_parents)
-    #    
-    #    self._load_graph(graph_parents.items())
-    
     def process_graph_parents(self, head_revids, graph_parents_iter):
         graph_parents = {}
         self.ghosts = set()
@@ -894,7 +852,7 @@ class LogGraphProvider(object):
         if last_call:
             self.ifcr_last_run_time = 0
             self.ifcr_last_call_time = 0
-	
+    
     def compute_graph_lines(self):
         """Recompute the layout of the graph, and store the results in
         self.revision"""
@@ -1530,3 +1488,45 @@ class LogGraphProvider(object):
     
     def revisions_filter_changed(self):
         pass
+
+
+class PendingMergesGraphProvider(LogGraphProvider):
+    
+    def load_graph_parents(self):
+        if not len(self.branches) == 1 or not len(self.repos) == 1:
+            AssertionError("load_graph_pending_merges should only be called \
+                           when 1 branch and repo has been opened.")
+        
+        bi = self.branches[0]
+        if bi.tree is None:
+            AssertionError("load_graph_pending_merges must have a working tree.")
+        
+        self.graph = bi.branch.repository.get_graph()
+        tree_heads = bi.tree.get_parent_ids()
+        other_revisions = [tree_heads[0],]
+        self.update_ui()
+        
+        self.append_head_info('root:', bi.branch, None)
+        pending_merges = []
+        for head in tree_heads[1:]:
+            self.append_head_info(head, bi.branch, None)
+            pending_merges.extend(
+                self.graph.find_unique_ancestors(head,other_revisions))
+            other_revisions.append(head)
+            self.update_ui()
+        
+        graph_parents = self.graph.get_parent_map(pending_merges)
+        graph_parents["root:"] = ()
+        self.update_ui()
+        
+        for (revid, parents) in graph_parents.items():
+            new_parents = []
+            for index, parent in enumerate(parents):
+                if parent in graph_parents:
+                    new_parents.append(parent)
+                elif index == 0:
+                    new_parents.append("root:")
+            graph_parents[revid] = tuple(new_parents)
+        
+        return ["root:",] + tree_heads[1:], graph_parents.items()
+    

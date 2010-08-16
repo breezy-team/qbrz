@@ -21,7 +21,7 @@ from PyQt4 import QtCore, QtGui
 from time import (strftime, localtime)
 
 from bzrlib.plugins.qbzr.lib.bugs import get_bug_id
-from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
+from bzrlib.plugins.qbzr.lib import loggraphprovider
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
 from bzrlib.plugins.qbzr.lib.revtreeview import RevIdRole as im_RevIdRole
 from bzrlib.plugins.qbzr.lib.i18n import gettext
@@ -59,11 +59,12 @@ except AttributeError:
     QVariant_fromList = QtCore.QVariant
 
 
-class QLogGraphProvider(LogGraphProvider):
+class LogGraphProvider(loggraphprovider.LogGraphProvider):
     
     def __init__(self, branches, primary_bi, file_ids, no_graph,
                  processEvents,  throbber):
-        LogGraphProvider.__init__(self, branches, primary_bi, file_ids, no_graph)
+        loggraphprovider.LogGraphProvider.__init__(
+            self, branches, primary_bi, file_ids, no_graph)
         self.processEvents = processEvents
         self.throbber = throbber
         self.on_filter_changed = self.compute_graph_lines
@@ -87,6 +88,10 @@ class QLogGraphProvider(LogGraphProvider):
     @runs_in_loading_queue
     def load_filter_file_id_chunk_finished(self):
         LogGraphProvider.load_filter_file_id_chunk_finished(self)
+
+class PendingMergesGraphProvider(loggraphprovider.PendingMergesGraphProvider,
+                                 LogGraphProvider):
+    pass
 
 class BlankGraphProvider(object):
     revisions = ()

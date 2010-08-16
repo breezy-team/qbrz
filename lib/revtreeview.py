@@ -69,11 +69,17 @@ class RevisionTreeView(QtGui.QTreeView):
         model.connect(model,
                       QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                       self.data_changed)
+        model.connect(model,
+                      QtCore.SIGNAL("layoutChanged()"),
+                      self.layout_changed)
     
     def scroll_changed(self, value):
         self.load_visible_revisions()
     
     def data_changed(self, start_index, end_index):
+        self.load_visible_revisions()
+    
+    def layout_changed(self):
         self.load_visible_revisions()
     
     def collapsed_expanded(self, index):

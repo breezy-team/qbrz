@@ -96,10 +96,8 @@ class RevertWindow(SubProcessDialog):
             # select all changes it, so that it can put it back to the state
             # it was.
             self.merges_base_checked = True
-            self.pending_merges = PendingMergesList(self.processEvents,
-                                                    self.throbber,
-                                                    False,
-                                                    self)
+            self.pending_merges = PendingMergesList(
+                self.processEvents, self.throbber, self)
             merges_box = QtGui.QVBoxLayout(self.merges_groupbox)
             merges_box.addWidget(self.pending_merges)
             
@@ -170,10 +168,7 @@ class RevertWindow(SubProcessDialog):
         self.processEvents()
 
         if self.has_pending_merges:
-            self.pending_merges.load_branch(self.tree.branch,
-                                                 None,
-                                                 self.tree)
-            self.pending_merges.load()
+            self.pending_merges.load_tree(self.tree)
             self.processEvents()
 
         self.throbber.hide()

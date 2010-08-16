@@ -42,7 +42,7 @@ from bzrlib.bzrdir import BzrDir
 from bzrlib.urlutils import determine_relative_path, join, split
 
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
-from bzrlib.plugins.qbzr.lib.logmodel import QLogGraphProvider
+from bzrlib.plugins.qbzr.lib.logmodel import LogGraphProvider
 from bzrlib.plugins.qbzr.lib.loggraphprovider import BranchInfo
 
 from bzrlib.plugins.qbzr.lib.diff import (
@@ -235,7 +235,7 @@ class LogWindow(QBzrWindow):
             
             branches, primary_bi, file_ids = self.get_branches_and_file_ids()
             self.log_list.load(branches, primary_bi, file_ids,
-                               self.no_graph, QLogGraphProvider)
+                               self.no_graph, LogGraphProvider)
             self.connect(self.log_list.selectionModel(),
                          QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
                          self.update_selection)
