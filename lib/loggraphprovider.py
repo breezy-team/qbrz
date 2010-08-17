@@ -32,6 +32,7 @@ from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
 from bzrlib.plugins.qbzr.lib.util import get_apparent_author
 
 
+
 class BranchInfo(object):
     """Holds a branch and related information"""
     
@@ -50,6 +51,7 @@ class BranchInfo(object):
         if isinstance(other, BranchInfo):
             return self.branch.base.__eq__(other.branch.base)
         return False
+
 
 class RevisionInfo(object):
     """Holds information about a revision."""
@@ -142,6 +144,7 @@ class BranchLine(object):
 
     def __repr__(self):
         return "%s <%s>" % (self.__class__.__name__, self.branch_id)
+
 
 class LogGraphProvider(object):
     """Loads and computes revision and graph data for GUI log widgets."""

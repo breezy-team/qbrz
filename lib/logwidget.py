@@ -35,6 +35,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
 ''')
 
+
 class LogList(RevisionTreeView):
     """TreeView widget to show log with metadata and graph of revisions."""
 
@@ -228,7 +229,7 @@ class LogList(RevisionTreeView):
         finally:
             self.graph_provider.unlock_branches()
 
-    def mousePressEvent (self, e):
+    def mousePressEvent(self, e):
         collapse_expand_click = False
         if e.button() & QtCore.Qt.LeftButton:
             pos = e.pos()
@@ -255,7 +256,7 @@ class LogList(RevisionTreeView):
         if not collapse_expand_click:
             QtGui.QTreeView.mousePressEvent(self, e)
     
-    def mouseMoveEvent (self, e):
+    def mouseMoveEvent(self, e):
         # This prevents the selection from changing when the mouse is over
         # a twisty.
         collapse_expand_click = False
@@ -277,7 +278,7 @@ class LogList(RevisionTreeView):
         if not collapse_expand_click:
             QtGui.QTreeView.mouseMoveEvent(self, e)
 
-    def keyPressEvent (self, e):
+    def keyPressEvent(self, e):
         e_key = e.key()
         if e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return) and self.view_commands:
             e.accept()
@@ -576,6 +577,7 @@ class LogList(RevisionTreeView):
             
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
+
 class BranchMenu(QtGui.QMenu):
     
     def __init__ (self, text, parent, graphprovider, require_wt):
@@ -583,7 +585,7 @@ class BranchMenu(QtGui.QMenu):
         self.graphprovider = graphprovider
         for branch in self.graphprovider.branches:
             action = QtGui.QAction(branch.label, self)
-            action.setData(QtCore.QVariant (branch))
+            action.setData(QtCore.QVariant(branch))
             self.addAction(action)
             if require_wt and branch.tree is None:
                 action.setDisabled(True)
@@ -609,6 +611,7 @@ class BranchMenu(QtGui.QMenu):
     
     def triggered(self, action):
         self.emit(QtCore.SIGNAL("triggered(QVariant)"), action.data())
+
 
 class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
 

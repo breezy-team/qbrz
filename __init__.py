@@ -2,6 +2,7 @@
 #
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2008 Lukáš Lalinský <lalinsky@gmail.com>
+# Copyright (C) 2009, 2010 QBzr Developers
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -69,7 +70,7 @@ Miscellaneous:
  * bug-url - print full URL to a specific bug, or open it in your browser.
 """
 
-version_info = (0, 19, 0, 'dev', 3)
+version_info = (0, 20, 0, 'dev', 1)
 __version__ = '.'.join(map(str, version_info))
 
 

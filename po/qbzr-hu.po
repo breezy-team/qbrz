@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-01-16 13:16+0200\n"
-"PO-Revision-Date: 2010-01-25 09:18+0000\n"
-"Last-Translator: Csörföly Dániel <csorfolydaniel@gmail.com>\n"
+"PO-Revision-Date: 2010-02-28 13:26+0000\n"
+"Last-Translator: Krasznecz Zoltán <zoltan.krasznecz@gmail.com>\n"
 "Language-Team: Hungarian <hu@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2010-02-06 11:48+0000\n"
+"X-Launchpad-Export-Date: 2010-08-03 12:24+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
@@ -167,7 +167,7 @@ msgstr ""
 #: lib\commit.py:333
 msgid ""
 "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
-msgstr ""
+msgstr "Írja be a szerző nevét, pl. <i>John Doe &lt;jdoe@pelda.com&gt;</i>"
 
 #: lib\commit.py:348
 msgid "Changes"
@@ -758,7 +758,7 @@ msgstr ""
 
 #: lib\log.py:426
 msgid "View file"
-msgstr ""
+msgstr "Fájl megnézése"
 
 #: lib\logmodel.py:94 lib\treewidget.py:344
 msgid "Rev"
@@ -783,7 +783,7 @@ msgstr ""
 
 #: lib\logwidget.py:112
 msgid "Show all &differences"
-msgstr ""
+msgstr "Összes mutatása &különbségek"
 
 #: lib\logwidget.py:118
 msgid "Show file &differences..."
@@ -851,7 +851,7 @@ msgstr ""
 
 #: lib\main.py:294
 msgid "&Add Bookmark..."
-msgstr ""
+msgstr "&Könyvjelző Hozzáadása..."
 
 #: lib\main.py:301
 msgid "&File"
@@ -895,7 +895,7 @@ msgstr "Méret"
 
 #: lib\main.py:406
 msgid "About QBzr"
-msgstr ""
+msgstr "A QBzr Névjegye"
 
 #: lib\main.py:407
 #, python-format
@@ -912,11 +912,11 @@ msgstr "Könyvjelző hozzáadása"
 
 #: lib\main.py:483
 msgid "Edit Bookmark"
-msgstr ""
+msgstr "Könyvjelző Szerkesztése"
 
 #: lib\main.py:493
 msgid "Remove Bookmark"
-msgstr ""
+msgstr "Könyvjelző Eltávolítása"
 
 #: lib\main.py:494
 msgid "Do you really want to remove the selected bookmark?"
@@ -941,7 +941,7 @@ msgstr ""
 #: lib\plugins.py:64
 #, python-format
 msgid "Plugins installed: %(rows)d"
-msgstr ""
+msgstr "Bővítmények telepítve: %(rows)d"
 
 #: lib\plugins.py:71
 msgid "Summary"
@@ -1007,7 +1007,7 @@ msgstr ""
 
 #: lib\revisionmessagebrowser.py:184
 msgid "Parents:"
-msgstr ""
+msgstr "Szülők:"
 
 #: lib\revisionmessagebrowser.py:187
 msgid "Children:"
@@ -1035,7 +1035,7 @@ msgstr ""
 
 #: lib\revisionmessagebrowser.py:253
 msgid "Tags:"
-msgstr ""
+msgstr "Kulcsszavak:"
 
 #: lib\revisionmessagebrowser.py:265
 msgid "Bug:"
@@ -1117,7 +1117,7 @@ msgstr ""
 
 #: lib\subprocess.py:103
 msgid "&Retry"
-msgstr ""
+msgstr "&Újra"
 
 #: lib\subprocess.py:393
 msgid "Ready"
@@ -1137,28 +1137,28 @@ msgstr ""
 
 #: lib\subprocess.py:580 lib\uifactory.py:108
 msgid "Enter Password"
-msgstr ""
+msgstr "Jelszó Megadása"
 
 #: lib\subprocess.py:590 lib\uifactory.py:119
 msgid "Enter Username"
-msgstr ""
+msgstr "Felhasználónév Megadása"
 
 #: lib\subprocess.py:650 lib\subprocess.py:672
 msgid "Failed!"
-msgstr ""
+msgstr "Sikertelen!"
 
 #: lib\subprocess.py:652
 msgid "Failed to start bzr."
-msgstr ""
+msgstr "A bzr elindítása sikertelen."
 
 #: lib\subprocess.py:654
 #, python-format
 msgid "Error while running bzr. (error code: %d)"
-msgstr ""
+msgstr "Hiba a bzr futása közben. (Hibakód: %d)"
 
 #: lib\subprocess.py:662
 msgid "Aborted!"
-msgstr ""
+msgstr "Megszakítva!"
 
 #: lib\switch.py:45
 msgid "Switch"
@@ -1225,7 +1225,7 @@ msgstr ""
 #: lib\tag.py:168
 #, python-format
 msgid "Tag \"%s\" does not exists"
-msgstr ""
+msgstr "Az \"%s\" cimke nem létezik."
 
 #: lib\tag.py:205
 #, python-format
@@ -1236,7 +1236,7 @@ msgstr ""
 
 #: lib\treewidget.py:312
 msgid "ignored"
-msgstr ""
+msgstr "kihagyva"
 
 #: lib\treewidget.py:314
 msgid "non-versioned"
@@ -1418,7 +1418,7 @@ msgstr ""
 
 #: lib\ui_init.py:119
 msgid "Local Directory"
-msgstr ""
+msgstr "Helyi Könyvtár"
 
 #: lib\ui_init.py:121
 msgid "Repository"
@@ -1446,7 +1446,7 @@ msgstr ""
 
 #: lib\ui_init.py:132
 msgid "Description of format"
-msgstr ""
+msgstr "A formátum leírása"
 
 #: lib\ui_merge.py:62
 msgid "Merge"
@@ -1521,7 +1521,7 @@ msgstr ""
 
 #: lib\ui_push.py:68
 msgid "Use existing directory"
-msgstr ""
+msgstr "Meglévő könyvtár használata"
 
 #: lib\ui_push.py:69
 msgid "Create the path up to the branch if it does not exist"
@@ -1529,15 +1529,15 @@ msgstr ""
 
 #: lib\ui_run.py:109
 msgid "Run bzr command"
-msgstr ""
+msgstr "bzr parancs futtatása"
 
 #: lib\ui_run.py:110
 msgid "&Working directory:"
-msgstr ""
+msgstr "&Munkakönyvtár:"
 
 #: lib\ui_run.py:112
 msgid "C&ategory:"
-msgstr ""
+msgstr "K&ategória:"
 
 #: lib\ui_run.py:113
 msgid "&Command:"
@@ -1545,7 +1545,7 @@ msgstr ""
 
 #: lib\ui_run.py:114
 msgid "&Show hidden commands"
-msgstr ""
+msgstr "&Rejtett parancsok megjelenítése"
 
 #: lib\ui_run.py:115
 msgid "&Options and arguments for command:"
@@ -1621,7 +1621,7 @@ msgstr ""
 
 #: lib\ui_tag.py:88
 msgid "Edit tag"
-msgstr ""
+msgstr "Cimke szerkesztése"
 
 #: lib\ui_tag.py:91
 msgid "Tag"
@@ -1629,19 +1629,19 @@ msgstr ""
 
 #: lib\ui_tag.py:92
 msgid "&Action:"
-msgstr ""
+msgstr "&Művelet:"
 
 #: lib\ui_tag.py:93
 msgid "Create new tag"
-msgstr ""
+msgstr "Új cimke létrehozása"
 
 #: lib\ui_tag.py:94
 msgid "Move existing tag"
-msgstr ""
+msgstr "Meglévő cimke mozgatása"
 
 #: lib\ui_tag.py:95
 msgid "Delete existing tag"
-msgstr ""
+msgstr "Meglévő cimke törlése"
 
 #: lib\ui_tag.py:96
 msgid "&Tag name:"
@@ -1662,7 +1662,7 @@ msgstr ""
 
 #: lib\ui_update_branch.py:84 lib\ui_update_checkout.py:76
 msgid "Update source"
-msgstr ""
+msgstr "Forrás frissítése"
 
 #: lib\ui_update_branch.py:86
 msgid "Pull most recent changes from:"
@@ -1744,28 +1744,28 @@ msgstr ""
 
 #: lib\util.py:450
 msgid "Select Source Directory"
-msgstr ""
+msgstr "Forrás Könyvtár Kiválasztása"
 
 #: lib\util.py:452
 msgid "Select Target Directory"
-msgstr ""
+msgstr "Célkönyvtár Kiválasztása"
 
 #: lib\util.py:609
 msgid "deleted files"
-msgstr ""
+msgstr "törölt fájlok"
 
 #: lib\util.py:611
 msgid "added files"
-msgstr ""
+msgstr "hozzáadott fájlok"
 
 #: lib\util.py:613
 msgid "renamed files"
-msgstr ""
+msgstr "átnevezett fájlok"
 
 #: lib\util.py:615
 msgid "modified files"
-msgstr ""
+msgstr "módosított fájlok"
 
 #: lib\util.py:912 lib\util.py:913 lib\util.py:916
 msgid "(no message)"
-msgstr ""
+msgstr "(nincs üzenet)"

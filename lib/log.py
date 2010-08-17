@@ -386,7 +386,10 @@ class LogWindow(QBzrWindow):
             branch_rel = determine_relative_path(
                 shared_repo.bzrdir.root_transport.base,
                 branch.bzrdir.root_transport.base)
-            location = join(shared_repo_location, branch_rel)
+            if shared_repo_location == 'colo:':
+                location = shared_repo_location + branch_rel
+            else:
+                location = join(shared_repo_location, branch_rel)
         if location is None:
             return elided_text(branch.nick)
         

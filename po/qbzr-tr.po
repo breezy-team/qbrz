@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2010-02-06 11:48+0000\n"
+"X-Launchpad-Export-Date: 2010-08-03 12:24+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
@@ -881,11 +881,11 @@ msgstr "&Yer İmleri"
 
 #: lib\main.py:313 lib\util.py:61
 msgid "&Help"
-msgstr "Ya&rdım"
+msgstr "&Yardım"
 
 #: lib\main.py:314
 msgid "&Help..."
-msgstr "Ya&rdım..."
+msgstr "&Yardım..."
 
 #: lib\main.py:316
 msgid "&About..."

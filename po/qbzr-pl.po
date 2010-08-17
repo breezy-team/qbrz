@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2;\n"
-"X-Launchpad-Export-Date: 2010-02-06 11:48+0000\n"
+"X-Launchpad-Export-Date: 2010-08-03 12:24+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
@@ -42,36 +42,36 @@ msgstr "Ładowanie..."
 
 #: lib\annotate.py:256 lib\cat.py:101 lib\encoding_selector.py:85
 msgid "Encoding:"
-msgstr ""
+msgstr "Kodowanie:"
 
 #: lib\annotate.py:322
 #, python-format
 msgid "Revision %s"
-msgstr ""
+msgstr "Wersja %s"
 
 #: lib\annotate.py:373
 msgid "&Annotate this revision"
-msgstr ""
+msgstr "&Zaznacz tę rewizję"
 
 #: lib\bind.py:44
 msgid "Bind branch"
-msgstr ""
+msgstr "Połącz gałęzię"
 
 #: lib\bind.py:54
 msgid "Bind"
-msgstr ""
+msgstr "Połącz"
 
 #: lib\bind.py:56
 msgid "Branch location:"
-msgstr ""
+msgstr "Położenie gałęzi:"
 
 #: lib\bind.py:60
 msgid "Currently bound to:"
-msgstr ""
+msgstr "Obecnie przypisane do:"
 
 #: lib\bind.py:64
 msgid "Bind to:"
-msgstr ""
+msgstr "Przypisz do:"
 
 #: lib\bind.py:68 lib\browse.py:64 lib\browse.py:234 lib\export.py:182
 #: lib\export.py:200 lib\send.py:62 lib\send.py:86 lib\send.py:152
@@ -85,7 +85,7 @@ msgstr "Wybierz lokalizację gałęzi."
 
 #: lib\bind.py:120
 msgid "Master branch location not specified."
-msgstr ""
+msgstr "Położenie głównej gałęzi nie sprezycowane."
 
 #: lib\browse.py:73 lib\export.py:179 lib\ui_info.py:146
 msgid "Location:"
@@ -102,7 +102,7 @@ msgstr "Pokaż"
 
 #: lib\browse.py:89 lib\treewidget.py:1193
 msgid "&Filter"
-msgstr ""
+msgstr "&Filtr"
 
 #: lib\cat.py:83 lib\cat.py:282
 msgid "View"
@@ -190,7 +190,7 @@ msgstr "Status"
 
 #: lib\commit.py:388
 msgid "View changes in files selected to commit"
-msgstr ""
+msgstr "Przejrzyj zmiany w plikach wybranych do zgłoszenia"
 
 #: lib\commit.py:593
 msgid "You should provide commit message."
@@ -315,10 +315,11 @@ msgstr "URL"
 #: lib\config.py:160
 msgid "Show inter-group inserts and deletes in green and red"
 msgstr ""
+"Pokazuj wewnętrzne dodania i usunięcia w kolorze zielonym i czerwonym"
 
 #: lib\config.py:162
 msgid "External Diff Apps:"
-msgstr ""
+msgstr "Zewnętrzny program diff:"
 
 #: lib\config.py:165 lib\main.py:353 lib\plugins.py:56 lib\plugins.py:61
 msgid "Name"
@@ -326,11 +327,11 @@ msgstr "Nazwa"
 
 #: lib\config.py:192
 msgid "External Merge Apps:"
-msgstr ""
+msgstr "Zewnętrzny program merge:"
 
 #: lib\config.py:195
 msgid "Definition"
-msgstr ""
+msgstr "Definicja"
 
 #: lib\config.py:218
 msgid "General"
@@ -350,11 +351,11 @@ msgstr "&Interfejs użytkownika"
 
 #: lib\config.py:222
 msgid "&Diff"
-msgstr ""
+msgstr "&Diff"
 
 #: lib\config.py:223
 msgid "&Merge"
-msgstr ""
+msgstr "&Merge"
 
 #: lib\config.py:248
 msgid "Spell check &language:"
@@ -362,16 +363,16 @@ msgstr "Sprawdź poprawność pisownii:"
 
 #: lib\config.py:340 lib\diff.py:35
 msgid "Builtin Diff"
-msgstr ""
+msgstr "Wbudowany program diff"
 
 #: lib\config.py:586
 msgid "Select editor executable"
-msgstr ""
+msgstr "Wybierz edytor"
 
 #: lib\conflicts.py:39 lib\conflicts.py:159 lib\conflicts.py:176
 #: lib\conflicts.py:183
 msgid "Conflicts"
-msgstr ""
+msgstr "Konflikty"
 
 #: lib\conflicts.py:50
 msgid "File"
@@ -379,11 +380,11 @@ msgstr "Plik"
 
 #: lib\conflicts.py:51
 msgid "Conflict"
-msgstr ""
+msgstr "Konflikt"
 
 #: lib\conflicts.py:81
 msgid "Use Configured Default"
-msgstr ""
+msgstr "Użyj domyślnej konfiguracji"
 
 #: lib\conflicts.py:83
 msgid ""
@@ -395,11 +396,11 @@ msgstr ""
 
 #: lib\conflicts.py:91
 msgid "&Launch..."
-msgstr ""
+msgstr "&Launch..."
 
 #: lib\conflicts.py:97
 msgid "M&erge tool:"
-msgstr ""
+msgstr "Narzędzie M&erge:"
 
 #: lib\conflicts.py:112
 msgid "Auto-resolve"
@@ -407,22 +408,22 @@ msgstr ""
 
 #: lib\conflicts.py:141 lib\treewidget.py:1598
 msgid "&Merge conflict"
-msgstr ""
+msgstr "Konflikt &Merge"
 
 #: lib\conflicts.py:147
 msgid "Mark as &resolved"
-msgstr ""
+msgstr "Oznacz jako &resolved"
 
 #: lib\conflicts.py:177
 #, python-format
 msgid "%d conflict auto-resolved."
 msgid_plural "%d conflicts auto-resolved."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Konflikt %d automatycznie rozwiązany."
+msgstr[1] "Konflikty %d automatycznie rozwiązane."
 
 #: lib\conflicts.py:184
 msgid "All conflicts resolved."
-msgstr ""
+msgstr "Wszystkie konflikty rozwiązane"
 
 #: lib\conflicts.py:240
 #, python-format
@@ -458,23 +459,23 @@ msgstr ""
 
 #: lib\conflicts.py:328
 msgid "path conflict"
-msgstr ""
+msgstr "konflikt ścieżki"
 
 #: lib\conflicts.py:329
 msgid "contents conflict"
-msgstr ""
+msgstr "konflikt zawartości"
 
 #: lib\conflicts.py:330
 msgid "text conflict"
-msgstr ""
+msgstr "konflikt tekstu"
 
 #: lib\conflicts.py:331
 msgid "duplicate id"
-msgstr ""
+msgstr "podwójne id"
 
 #: lib\conflicts.py:332
 msgid "duplicate"
-msgstr ""
+msgstr "duplikat"
 
 #: lib\conflicts.py:333
 msgid "parent loop"
@@ -486,19 +487,19 @@ msgstr ""
 
 #: lib\conflicts.py:335
 msgid "missing parent"
-msgstr ""
+msgstr "brakujący przodek"
 
 #: lib\conflicts.py:336
 msgid "deleting parent"
-msgstr ""
+msgstr "usuwanie przodka"
 
 #: lib\conflicts.py:337
 msgid "non-directory parent"
-msgstr ""
+msgstr "przodek poza katalogiem"
 
 #: lib\diff.py:80 lib\treewidget.py:1593
 msgid "Show &differences"
-msgstr ""
+msgstr "Pokaż &differences"
 
 #: lib\diffview.py:248
 msgid "Last modified:"
@@ -567,11 +568,11 @@ msgstr "Unidiff"
 
 #: lib\diffwindow.py:163
 msgid "Left side encoding:"
-msgstr ""
+msgstr "Kodowanie lewostronne"
 
 #: lib\diffwindow.py:171
 msgid "Right side encoding:"
-msgstr ""
+msgstr "Kodowanie prawostronne"
 
 #: lib\diffwindow.py:175
 msgid "Complete"
@@ -579,7 +580,7 @@ msgstr "Pełne"
 
 #: lib\diffwindow.py:184
 msgid "Using"
-msgstr ""
+msgstr "Użycie"
 
 #: lib\diffwindow.py:257
 #, python-format
@@ -629,7 +630,7 @@ msgstr "Brak zmian."
 
 #: lib\encoding_selector.py:114
 msgid "Wrong encoding"
-msgstr ""
+msgstr "Złe kodowanie"
 
 #: lib\encoding_selector.py:115
 #, python-format
@@ -638,20 +639,20 @@ msgstr ""
 
 #: lib\export.py:61 lib\export.py:80
 msgid "Export"
-msgstr ""
+msgstr "Eksport"
 
 #: lib\export.py:75 lib\uncommit.py:51
 #, python-format
 msgid "Branch: %s"
-msgstr ""
+msgstr "Gałąź: %s"
 
 #: lib\export.py:146
 msgid "Archive type:"
-msgstr ""
+msgstr "Typ archiwum:"
 
 #: lib\export.py:168
 msgid "Root directory name:"
-msgstr ""
+msgstr "Nazwa katalogu głównego:"
 
 #: lib\export.py:236 lib\ui_branch.py:66 lib\ui_merge.py:63 lib\ui_pull.py:61
 #: lib\ui_push.py:63
@@ -709,7 +710,7 @@ msgstr ""
 
 #: lib\i18n.py:100
 msgid "No changes selected to revert"
-msgstr ""
+msgstr "Nie wybrano zmian do przywrócenia"
 
 #: lib\info.py:41
 msgid "Info"
@@ -757,11 +758,11 @@ msgstr "Numery rewizji"
 
 #: lib\log.py:149
 msgid "Tags"
-msgstr ""
+msgstr "Znaczniki"
 
 #: lib\log.py:151
 msgid "Bugs"
-msgstr ""
+msgstr "Błędy"
 
 #: lib\log.py:245
 msgid "Messages and File text (indexed)"
@@ -943,11 +944,11 @@ msgstr "Czy na pewno chcesz usunąć wybraną zakładkę?"
 
 #: lib\plugins.py:44
 msgid "Plugins"
-msgstr ""
+msgstr "Rozszerzenia"
 
 #: lib\plugins.py:57
 msgid "Version"
-msgstr ""
+msgstr "Wersja"
 
 #: lib\plugins.py:58 lib\subprocess.py:355
 msgid "Description"
@@ -955,7 +956,7 @@ msgstr "Opis"
 
 #: lib\plugins.py:62
 msgid "Directory"
-msgstr ""
+msgstr "Katalog"
 
 #: lib\plugins.py:64
 #, python-format
@@ -968,11 +969,11 @@ msgstr "Podsumowanie"
 
 #: lib\plugins.py:72
 msgid "Locations"
-msgstr ""
+msgstr "Położenia"
 
 #: lib\plugins.py:111
 msgid "(no description)"
-msgstr ""
+msgstr "(brak opisu)"
 
 #: lib\pull.py:236
 msgid "Working tree has uncommitted changes."
@@ -988,15 +989,15 @@ msgstr "Popchnij"
 
 #: lib\pull.py:249
 msgid "Do you want to continue anyway?"
-msgstr ""
+msgstr "Kontynuować mimo tego?"
 
 #: lib\pull.py:250 lib\uncommit.py:126
 msgid "&Yes"
-msgstr ""
+msgstr "&Yes"
 
 #: lib\pull.py:250 lib\uncommit.py:126
 msgid "&No"
-msgstr ""
+msgstr "&Nie"
 
 #: lib\revert.py:54 lib\treewidget.py:1824
 msgid "Revert"
@@ -1008,7 +1009,7 @@ msgstr ""
 
 #: lib\revert.py:83
 msgid "Do not save backups of reverted files"
-msgstr ""
+msgstr "Nie zachowuj kopii zapasowych i przywróconych plików"
 
 #: lib\revert.py:95
 msgid "Forget pending merges"
@@ -1069,11 +1070,11 @@ msgstr "Rewizja"
 
 #: lib\run.py:96
 msgid "Select working directory"
-msgstr ""
+msgstr "Wybierz katalog roboczy"
 
 #: lib\run.py:118
 msgid "&Edit"
-msgstr ""
+msgstr "&Edycja"
 
 #: lib\run.py:161
 msgid "Help for command"
@@ -1089,7 +1090,7 @@ msgstr ""
 
 #: lib\send.py:34
 msgid "Send"
-msgstr ""
+msgstr "Wyślij"
 
 #: lib\send.py:47
 msgid "Merge Directive Options"
@@ -1097,15 +1098,15 @@ msgstr ""
 
 #: lib\send.py:53
 msgid "Submit Branch:"
-msgstr ""
+msgstr "Zgłoś gałąź"
 
 #: lib\send.py:77
 msgid "Public Branch:"
-msgstr ""
+msgstr "Opublikuj gałąź"
 
 #: lib\send.py:99
 msgid "Remember these locations as defaults"
-msgstr ""
+msgstr "Ustaw te lokalizacje jako domyślne"
 
 #: lib\send.py:103
 msgid "Include a bundle in the merge directive"
@@ -1117,31 +1118,31 @@ msgstr ""
 
 #: lib\send.py:112
 msgid "Action"
-msgstr ""
+msgstr "Czynność"
 
 #: lib\send.py:122
 msgid "Address:"
-msgstr ""
+msgstr "Adres:"
 
 #: lib\send.py:132
 msgid "Message:"
-msgstr ""
+msgstr "Wiadomość:"
 
 #: lib\send.py:149
 msgid "Filename:"
-msgstr ""
+msgstr "Nazwa pliku:"
 
 #: lib\send.py:163
 msgid "Revisions:"
-msgstr ""
+msgstr "Rewizje"
 
 #: lib\subprocess.py:103
 msgid "&Retry"
-msgstr ""
+msgstr "&Ponów"
 
 #: lib\subprocess.py:393
 msgid "Ready"
-msgstr ""
+msgstr "Gotowy"
 
 #: lib\subprocess.py:462
 msgid "Starting..."
@@ -1161,7 +1162,7 @@ msgstr "Wprowadź hasło"
 
 #: lib\subprocess.py:590 lib\uifactory.py:119
 msgid "Enter Username"
-msgstr ""
+msgstr "Wprowadż Nazwę Użytkownika"
 
 #: lib\subprocess.py:650 lib\subprocess.py:672
 msgid "Failed!"
@@ -1182,7 +1183,7 @@ msgstr "Przerwane!"
 
 #: lib\switch.py:45
 msgid "Switch"
-msgstr ""
+msgstr "Przełącz"
 
 #: lib\switch.py:56
 msgid "Switch checkout"
@@ -1210,7 +1211,7 @@ msgstr ""
 
 #: lib\sysinfo.py:35 lib\ui_sysinfo.py:112
 msgid "System Information"
-msgstr ""
+msgstr "Informacje o systemie"
 
 #: lib\tag.py:137
 msgid "You should specify tag name"
@@ -1225,7 +1226,7 @@ msgstr ""
 
 #: lib\tag.py:146
 msgid "&Move"
-msgstr ""
+msgstr "&Przenieś"
 
 #: lib\tag.py:146 lib\tag.py:159 lib\util.py:59
 msgid "&Cancel"
@@ -1268,7 +1269,7 @@ msgstr "niewersjonowany"
 
 #: lib\treewidget.py:317
 msgid "added, missing"
-msgstr ""
+msgstr "dodany, brakujący"
 
 #: lib\treewidget.py:323
 msgid "missing"
@@ -1276,7 +1277,7 @@ msgstr "brakujące"
 
 #: lib\treewidget.py:330
 msgid "moved"
-msgstr ""
+msgstr "przeniesiony"
 
 #: lib\treewidget.py:336
 msgid "x-bit"
@@ -1284,27 +1285,27 @@ msgstr ""
 
 #: lib\treewidget.py:342
 msgid "File Name"
-msgstr ""
+msgstr "Nazwa pliku"
 
 #: lib\treewidget.py:1195
 msgid "Unchanged"
-msgstr ""
+msgstr "Niezmieniony"
 
 #: lib\treewidget.py:1196
 msgid "Changed"
-msgstr ""
+msgstr "Zmienione"
 
 #: lib\treewidget.py:1197
 msgid "Unversioned"
-msgstr ""
+msgstr "Nie wersjonowane"
 
 #: lib\treewidget.py:1198
 msgid "Ignored"
-msgstr ""
+msgstr "Ignorowany"
 
 #: lib\treewidget.py:1574
 msgid "&Open"
-msgstr ""
+msgstr "&Otwórz"
 
 #: lib\treewidget.py:1577
 msgid "&View file"
@@ -1316,31 +1317,31 @@ msgstr ""
 
 #: lib\treewidget.py:1583
 msgid "Show &log"
-msgstr ""
+msgstr "Pokaż &dziennik"
 
 #: lib\treewidget.py:1601
 msgid "Mark conflict &resolved"
-msgstr ""
+msgstr "Oznacz konflikt jako &rozwiązany"
 
 #: lib\treewidget.py:1606
 msgid "&Add"
-msgstr ""
+msgstr "Dod&aj"
 
 #: lib\treewidget.py:1609
 msgid "&Revert"
-msgstr ""
+msgstr "&Przywróć"
 
 #: lib\treewidget.py:1612
 msgid "Re&name"
-msgstr ""
+msgstr "Z&mień nazwę"
 
 #: lib\treewidget.py:1674
 msgid "&Mark as moved and renamed"
-msgstr ""
+msgstr "&Oznacz jako przesunięte i o zmienionej nazwie"
 
 #: lib\treewidget.py:1676
 msgid "&Mark as moved"
-msgstr ""
+msgstr "&Oznacz jako przesunięte"
 
 #: lib\treewidget.py:1678
 msgid "&Mark as renamed"
@@ -1359,6 +1360,8 @@ msgid ""
 "Some of the files selected cannot be recoverd if removed. Are you sure you "
 "want to remove these files?"
 msgstr ""
+"Niektóre z tych plików nie mogą być odzyskane po usunięciu. Czy na pewno "
+"chcesz usunąć te pliki?"
 
 #: lib\treewidget.py:1951
 msgid "Select / deselect all"
@@ -1414,7 +1417,7 @@ msgstr "Wyślij gałąź:"
 
 #: lib\ui_info.py:154
 msgid "Public branch:"
-msgstr ""
+msgstr "Publiczna gałąź:"
 
 #: lib\ui_info.py:156
 msgid "&Related Branches"
@@ -1553,23 +1556,23 @@ msgstr "Utwórz wszystkie podkatalogi ścieżki gałęzi, jeśli nie istnieją."
 
 #: lib\ui_run.py:109
 msgid "Run bzr command"
-msgstr ""
+msgstr "Uruchom bzr"
 
 #: lib\ui_run.py:110
 msgid "&Working directory:"
-msgstr ""
+msgstr "&Katalog roboczy"
 
 #: lib\ui_run.py:112
 msgid "C&ategory:"
-msgstr ""
+msgstr "Kategoria"
 
 #: lib\ui_run.py:113
 msgid "&Command:"
-msgstr ""
+msgstr "&Polecenie:"
 
 #: lib\ui_run.py:114
 msgid "&Show hidden commands"
-msgstr ""
+msgstr "&Pokazuj ukryte polecenia"
 
 #: lib\ui_run.py:115
 msgid "&Options and arguments for command:"
@@ -1589,7 +1592,7 @@ msgstr ""
 
 #: lib\ui_sysinfo.py:114 lib\ui_sysinfo.py:124
 msgid "Version:"
-msgstr ""
+msgstr "Wersja:"
 
 #: lib\ui_sysinfo.py:115
 msgid "(bzr-version)"
@@ -1597,7 +1600,7 @@ msgstr ""
 
 #: lib\ui_sysinfo.py:116 lib\ui_sysinfo.py:126
 msgid "Path:"
-msgstr ""
+msgstr "Ścieżka:"
 
 #: lib\ui_sysinfo.py:117
 msgid "(bzr-lib-path)"
@@ -1609,7 +1612,7 @@ msgstr ""
 
 #: lib\ui_sysinfo.py:119
 msgid "Settings:"
-msgstr ""
+msgstr "Ustawienia:"
 
 #: lib\ui_sysinfo.py:120
 msgid "(bzr-config-dir)"
@@ -1617,7 +1620,7 @@ msgstr ""
 
 #: lib\ui_sysinfo.py:121
 msgid "Log File:"
-msgstr ""
+msgstr "Plik dziennika:"
 
 #: lib\ui_sysinfo.py:122
 msgid "(bzr-log-file)"
@@ -1625,19 +1628,19 @@ msgstr ""
 
 #: lib\ui_sysinfo.py:123
 msgid "Python Interpreter"
-msgstr ""
+msgstr "Interpreter Pythona"
 
 #: lib\ui_sysinfo.py:125
 msgid "(python-version)"
-msgstr ""
+msgstr "(python-version)"
 
 #: lib\ui_sysinfo.py:127
 msgid "(python-file)"
-msgstr ""
+msgstr "(python-file)"
 
 #: lib\ui_sysinfo.py:128
 msgid "Library:"
-msgstr ""
+msgstr "Biblioteka:"
 
 #: lib\ui_sysinfo.py:129
 msgid "(python-lib-dir)"
@@ -1723,15 +1726,15 @@ msgstr "Wyciągnij inną gałąź"
 
 #: lib\unbind.py:36
 msgid "Unbind branch"
-msgstr ""
+msgstr "Odłącz gałąź"
 
 #: lib\unbind.py:46
 msgid "Unbind"
-msgstr ""
+msgstr "Odłącz"
 
 #: lib\unbind.py:54
 msgid "Bound to:"
-msgstr ""
+msgstr "Przypisany do:"
 
 #: lib\uncommit.py:40 lib\uncommit.py:124
 msgid "Uncommit"
