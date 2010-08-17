@@ -170,8 +170,8 @@ class LogWindow(QBzrWindow):
 
         self.log_list = LogList(self.processEvents,
                                 self.throbber,
-                                self)
-        
+                                self,
+                                action_commands=True)
 
         logbox.addWidget(self.throbber)
         logbox.addWidget(self.log_list)

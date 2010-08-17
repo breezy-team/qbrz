@@ -227,9 +227,10 @@ class LogModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.ToolTipRole and index.column() == COL_MESSAGE:
             urls = []
             if rev_info.revid in gp.branch_labels:
-                urls =  [branch.base for (branch, label)
-                           in gp.branch_labels[rev_info.revid]
-                           if label]
+                urls =  [branch_info.branch.base
+                         for (branch_info, label)
+                         in gp.branch_labels[rev_info.revid]
+                         if label]
             return QtCore.QVariant('\n'.join(urls))
         
         if role == RevIdRole:

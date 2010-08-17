@@ -311,16 +311,17 @@ class LogGraphProvider(object):
                 else:
                     self.tags[revid] = set(tags)
 
-    def append_head_info(self, revid, branch, tag):
+    def append_head_info(self, revid, branch_info, tag):
         if not revid==NULL_REVISION:
             if not revid in self.revid_head_info:
                 self.revid_head_info[revid] = ([],[])
-            self.revid_head_info[revid][0].append ((branch, tag))
+            self.revid_head_info[revid][0].append ((branch_info, tag))
             
             # So that early calls to get_revid_branch work
             self.revid_branch[revid] = branch
 
     def load_graph_parents(self):
+        """Load the heads of the graph, and the graph parents"""
         
         branches_heads = []
         def load_branch_heads(bi):
@@ -335,7 +336,7 @@ class LogGraphProvider(object):
                 label = None
             
             branch_last_revision = bi.branch.last_revision()
-            append_head_info(branch_last_revision, bi.branch, bi.label)
+            append_head_info(branch_last_revision, bi, bi.label)
             self.update_ui()
             
             if bi.tree:
@@ -349,14 +350,14 @@ class LogGraphProvider(object):
                             wt_label =  "%s - Working Tree" % label
                         else:
                             wt_label = "Working Tree"
-                        append_head_info(revid, bi.branch, wt_label)
+                        append_head_info(revid, bi, wt_label)
                     # other parents are pending merges
                     for revid in parent_ids[1:]:
                         if label:
                             pm_label = "%s - Pending Merge" % label
                         else:
                             pm_label = "Pending Merge"
-                        append_head_info(revid, bi.branch, pm_label)
+                        append_head_info(revid, bi, pm_label)
                 self.update_ui()
             return branch_heads
         
@@ -612,14 +613,14 @@ class LogGraphProvider(object):
             return map
         
         if len(self.branches) > 1:
-            head_revid_branch = sorted([(revid, branch) \
+            head_revid_branch_info = sorted([(revid, branch_info) \
                                        for revid, (head_info, ur) in \
                                        self.revid_head_info.iteritems()
                                        for (branch, tag) in head_info],
                 key = lambda x: x[1].repository.is_local)
-            self.revid_branch = get_revid_head(head_revid_branch)
+            self.revid_branch_info = get_revid_head(head_revid_branch)
         else:
-            self.revid_branch = {}
+            self.revid_branch_info = {}
         
         head_count = 0
         for head_info, ur in self.revid_head_info.itervalues():
@@ -1462,16 +1463,19 @@ class LogGraphProvider(object):
                                     before_batch_load = before_batch_load,
                                     revisions_loaded = revisions_loaded)
     
-    def get_revid_branch(self, revid):
+    def get_revid_branch_info(self, revid):
         if revid in self.ghosts:
             raise GhostRevisionError(revid)
         
-        if len(self.branches)==1 and revid not in self.revid_branch:
-            return self.branches[0].branch
-        return self.revid_branch[revid]
+        if len(self.branches)==1 or revid not in self.revid_branch_info:
+            return self.branches[0]
+        return self.revid_branch_info[revid]
+    
+    def get_revid_branch(self, revid):
+        return self.get_revid_branch_info(revid).branch
     
     def get_revid_repo(self, revid):
-        return self.get_revid_branch(revid).repository
+        return self.get_revid_branch_info(revid).branch.repository
     
     def get_repo_revids(self, revids):
         """Returns list of typle of (repo, revids)"""
