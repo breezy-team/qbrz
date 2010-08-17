@@ -189,7 +189,7 @@ class LogGraphProvider(object):
             have addition text in it, e.g. "Working Tree", "Pending Merges"
         """
         
-        self.revid_branch = {}
+        self.revid_branch_info = {}
         
         self.branch_labels = {}
         """Dict of revid to a list of branch tags. Depends on which revisions
@@ -318,7 +318,7 @@ class LogGraphProvider(object):
             self.revid_head_info[revid][0].append ((branch_info, tag))
             
             # So that early calls to get_revid_branch work
-            self.revid_branch[revid] = branch
+            self.revid_branch_info[revid] = branch_info
 
     def load_graph_parents(self):
         """Load the heads of the graph, and the graph parents"""

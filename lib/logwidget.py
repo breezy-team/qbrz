@@ -193,14 +193,14 @@ class LogList(RevisionTreeView):
         self.throbber.show()
         self.processEvents()        
         try:
-            self.create_context_menu(file_ids)
-            
             graph_provider = graph_provider_type(
                 branches, primary_bi, file_ids, no_graph, 
                 processEvents=self.processEvents, throbber=self.throbber)
             graph_provider.load()
+            
             self.graph_provider = graph_provider
             self.log_model.set_graph_provider(self.graph_provider)
+            self.create_context_menu(file_ids)
             
             self._adjust_revno_column()
         finally:
