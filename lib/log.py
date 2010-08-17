@@ -326,7 +326,7 @@ class LogWindow(QBzrWindow):
                 raise errors.BzrCommandError(gettext(
                     'It is not possible to specify different file paths and '
                     'different branches at the same time.'))
-            return branches, primary_bi, file_ids
+            return tuple(branches), primary_bi, file_ids
 
     def load_search_indexes(self, branches):
         global have_search, search_errors, search_index

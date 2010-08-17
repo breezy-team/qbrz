@@ -37,7 +37,7 @@ class TestLogSmokeTests(TestWatchExceptHook, TestCaseWithTransport):
         QtCore.QCoreApplication.processEvents()
 
     def setUp(self):
-        super(TestLog, self).setUp()
+        super(TestLogSmokeTests, self).setUp()
         replace_report_exception(self)
 
     def test_show_log_simple_commit(self):
