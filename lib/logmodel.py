@@ -83,11 +83,11 @@ class LogGraphProvider(loggraphprovider.LogGraphProvider):
 
     @runs_in_loading_queue
     def load_filter_file_id_chunk(self, repo, revids):
-        LogGraphProvider.load_filter_file_id_chunk(self, repo, revids)
+        super(LogGraphProvider, self).load_filter_file_id_chunk(repo, revids)
 
     @runs_in_loading_queue
     def load_filter_file_id_chunk_finished(self):
-        LogGraphProvider.load_filter_file_id_chunk_finished(self)
+        super(LogGraphProvider, self).load_filter_file_id_chunk_finished()
 
 class PendingMergesGraphProvider(loggraphprovider.PendingMergesGraphProvider,
                                  LogGraphProvider):
