@@ -240,8 +240,8 @@ class LogWindow(QBzrWindow):
                 self.set_title ((self.title, lt))
             
             branches, primary_bi, file_ids = self.get_branches_and_file_ids()
-            self.log_list.load(branches, primary_bi, file_ids,
-                               self.no_graph, LogGraphProvider)
+            self.log_list.log_model.load(branches, primary_bi, file_ids,
+                                         self.no_graph, LogGraphProvider)
             self.connect(self.log_list.selectionModel(),
                          QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
                          self.update_selection)
@@ -346,7 +346,7 @@ class LogWindow(QBzrWindow):
             indexes_availble = False
             for bi in branches:
                 try:
-                    bi.index = search_index.open_index_branch(branch)
+                    bi.index = search_index.open_index_branch(bi.branch)
                     indexes_availble = true
                 except (search_errors.NoSearchIndex, errors.IncompatibleAPI):
                     pass
@@ -438,13 +438,14 @@ class LogWindow(QBzrWindow):
     @ui_current_widget
     def update_search(self):
         # TODO in_paths = self.search_in_paths.isChecked()
+        gp = self.log_list.log_model.graph_provider
         role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
         search_text = unicode(self.search_edit.text())
         if search_text == u"":
             self.log_list.set_search(None, None)
         elif role == self.FilterIdRole:
             self.log_list.set_search(None, None)
-            if self.log_list.graph_provider.has_rev_id(search_text):
+            if gp.has_rev_id(search_text):
                 self.log_list.log_model.ensure_rev_visible(search_text)
                 index = self.log_list.log_model.indexFromRevId(search_text)
                 index = self.log_list.filter_proxy_model.mapFromSource(index)
@@ -456,7 +457,7 @@ class LogWindow(QBzrWindow):
             except ValueError:
                 revno = ()
                 # Not sure what to do if there is an error. Nothing for now
-            revid = self.log_list.graph_provider.revid_from_revno(revno)
+            revid = gp.revid_from_revno(revno)
             if revid:
                 self.log_list.log_model.ensure_rev_visible(revid)
                 index = self.log_list.log_model.indexFromRevId(revid)
@@ -483,6 +484,7 @@ class LogWindow(QBzrWindow):
     
     @ui_current_widget
     def update_search_completer(self, text):
+        gp = self.log_list.log_model.graph_provider
         # We only load the suggestions a letter at a time when needed.
         term = unicode(text).split(" ")[-1]
         if term:
@@ -494,7 +496,7 @@ class LogWindow(QBzrWindow):
             self.suggestion_last_first_letter = first_letter
             if first_letter not in self.suggestion_letters_loaded:
                 suggestions = set()
-                for index in self.log_list.graph_provider.search_indexes():
+                for index in gp.search_indexes():
                     for s in index.suggest(((first_letter,),)): 
                         #if suggestions.count() % 100 == 0: 
                         #    QtCore.QCoreApplication.processEvents() 
@@ -596,13 +598,13 @@ class FileListContainer(QtGui.QWidget):
     def load_delta(self):
         revids, count = \
             self.log_list.get_selection_top_and_parent_revids_and_count()
+        gp = self.log_list.log_model.graph_provider
         
         if not revids:
             return
         
         if revids not in self.delta_cache:
             self.throbber.show()
-            gp = self.log_list.graph_provider
             repos = [gp.get_revid_branch(revid).repository for revid in revids]
             if (repos[0].__class__.__name__ == 'SvnRepository' or
                 repos[1].__class__.__name__ == 'SvnRepository'):
@@ -653,7 +655,7 @@ class FileListContainer(QtGui.QWidget):
         
         if delta:
             items = []
-            specific_file_ids = self.log_list.graph_provider.file_ids
+            specific_file_ids = gp.file_ids
             
             for path, id, kind in delta.added:
                 items.append((id,
@@ -706,7 +708,7 @@ class FileListContainer(QtGui.QWidget):
         self.file_list_context_menu_cat.setEnabled(is_single_file)
         
                    
-        gp = self.log_list.graph_provider
+        gp = self.log_list.log_model.graph_provider
         # It would be nice if there were more than one branch, that we
         # show a menu so the user can chose which branch actions should take
         # place in.
@@ -760,7 +762,7 @@ class FileListContainer(QtGui.QWidget):
         (top_revid, old_revid), count = \
             self.log_list.get_selection_top_and_parent_revids_and_count()
         
-        branch = self.log_list.graph_provider.get_revid_branch(top_revid)
+        branch = self.log_list.log_model.graph_provider.get_revid_branch(top_revid)
         tree = branch.repository.revision_tree(top_revid)
         encoding = get_set_encoding(None, branch)
         window = QBzrCatWindow(filename = paths[0], tree = tree, parent=self,
@@ -780,7 +782,7 @@ class FileListContainer(QtGui.QWidget):
 
           (top_revid, old_revid), count = \
               self.log_list.get_selection_top_and_parent_revids_and_count()
-          gp = self.log_list.graph_provider
+          gp = self.log_list.log_model.graph_provider
           assert(len(gp.branches)==1)
           branch_info = gp.branches[0]
           rev_tree = gp.get_revid_repo(top_revid).revision_tree(top_revid)
@@ -794,7 +796,7 @@ class FileListContainer(QtGui.QWidget):
         (top_revid, old_revid), count = \
             self.log_list.get_selection_top_and_parent_revids_and_count()
         
-        branch = self.log_list.graph_provider.get_revid_branch(top_revid)
+        branch = self.log_list.log_model.graph_provider.get_revid_branch(top_revid)
         tree = branch.repository.revision_tree(top_revid)
         window = AnnotateWindow(branch, tree, paths[0], file_ids[0])
         window.show()

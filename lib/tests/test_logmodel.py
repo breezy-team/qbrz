@@ -21,14 +21,13 @@ from PyQt4 import QtCore
 from bzrlib.plugins.qbzr.lib.logmodel import (
     QVariant_fromList,
     LogModel,
-    )
-from bzrlib.plugins.qbzr.lib.loggraphprovider import (
     LogGraphProvider,
-    BranchInfo
     )
+from bzrlib.plugins.qbzr.lib.loggraphprovider import BranchInfo
 
 from bzrlib.plugins.qbzr.lib.tests.modeltest import ModelTest
 from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
+from bzrlib.plugins.qbzr.lib.util import ThrobberWidget
 
 
 class TestQVariantFromList(TestCase):
@@ -42,15 +41,16 @@ class TestQVariantFromList(TestCase):
 
 class TestModel(TestWatchExceptHook, TestCaseWithTransport):
     
+    
     def _test(self, wt):
-        log_model = LogModel()
+        def processEvents():
+            pass
+        throbber = ThrobberWidget(None)
+        log_model = LogModel(processEvents, throbber)
         modeltest = ModelTest(log_model, None);
         
         bi = BranchInfo('', wt, wt.branch)
-        graph_provider = LogGraphProvider((bi,), bi, None, False)
-        graph_provider.load()
-        
-        log_model.set_graph_provider(graph_provider)
+        log_model.load((bi,), bi, None, False, LogGraphProvider)
     
     def test_empty_branch(self):
         wt = self.make_branch_and_tree('.')

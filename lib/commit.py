@@ -179,7 +179,7 @@ class PendingMergesList(LogList):
     
     def load_tree(self, tree):
         bi = BranchInfo('', tree, tree.branch)
-        self.load(
+        self.log_model.load(
             (bi,), bi, None, False, logmodel.PendingMergesGraphProvider)
     
     def create_context_menu(self, file_ids):
@@ -204,7 +204,7 @@ class PendingMergesList(LogList):
         # XXX We should make this show all selected revsions...
         
         revid = str(index.data(logmodel.RevIdRole).toString())
-        branch = self.graph_provider.get_revid_branch(revid)
+        branch = self.log_model.graph_provider.get_revid_branch(revid)
         parent_window = self.window()
         window = RevisionView(revid, branch, parent=parent_window)
         window.show()

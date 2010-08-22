@@ -80,15 +80,6 @@ class LogGraphProvider(loggraphprovider.LogGraphProvider):
         self.throbber = throbber
         self.on_filter_changed = self.compute_graph_lines
     
-    def load(self):
-        super(LogGraphProvider, self).load()
-        
-        for bi in self.branches:
-            if not bi.tree is None:
-                wt_revid = CURRENT_REVISION + bi.tree.basedir
-                if wt_revid in self.revid_head_info:
-                    cached_revisions[wt_revid] = WorkingTreeRevision(wt_revid, bi.tree)
-    
     def update_ui(self):
         self.processEvents()
     
@@ -115,30 +106,52 @@ class PendingMergesGraphProvider(loggraphprovider.PendingMergesGraphProvider,
 
 class WithWorkingTreeGraphProvider(loggraphprovider.WithWorkingTreeGraphProvider,
                                    LogGraphProvider):
-    pass
-
+    
+    def load(self):
+        super(LogGraphProvider, self).load()
+        
+        for bi in self.branches:
+            if not bi.tree is None:
+                wt_revid = CURRENT_REVISION + bi.tree.basedir
+                if wt_revid in self.revid_head_info:
+                    cached_revisions[wt_revid] = WorkingTreeRevision(wt_revid, bi.tree)
 
 class BlankGraphProvider(object):
     revisions = ()
+    revid_rev = {}
 
 class LogModel(QtCore.QAbstractTableModel):
 
-    def __init__(self, parent=None):
+    def __init__(self, processEvents, throbber, parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
+        self.processEvents = processEvents
+        self.throbber = throbber
         
         self.graph_provider = BlankGraphProvider()
 
         self.clicked_row = None
         self.last_rev_is_placeholder = False
     
-    def set_graph_provider(self, graph_provider):
+    def load(self, branches, primary_bi, file_ids, no_graph,
+             graph_provider_type):
+        self.throbber.show()
+        self.processEvents()        
         try:
+            graph_provider = graph_provider_type(
+                branches, primary_bi, file_ids, no_graph, 
+                processEvents=self.processEvents, throbber=self.throbber)
+            graph_provider.load()
+            graph_provider.on_filter_changed = self.on_filter_changed
+            
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
             self.graph_provider = graph_provider
-            self.graph_provider.on_filter_changed = self.on_filter_changed
-        finally:
             self.emit(QtCore.SIGNAL("layoutChanged()"))
-
+        finally:
+            self.throbber.hide()
+        
+        # Start later so that it does not run in the loading queue.
+        QtCore.QTimer.singleShot(1, self.graph_provider.load_filter_file_id)
+    
     def compute_lines(self):
         self.graph_provider.compute_graph_lines()
         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),

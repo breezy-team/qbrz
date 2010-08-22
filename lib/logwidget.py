@@ -58,14 +58,15 @@ class LogList(RevisionTreeView):
         self.rev_no_item_delegate = RevNoItemDelegate(parent=self)
         self.setItemDelegateForColumn(logmodel.COL_REV,
                                       self.rev_no_item_delegate)
-        self.processEvents = processEvents
-        self.throbber = throbber
 
-        self.graph_provider = None
-        self.log_model = logmodel.LogModel(self)
+        self.log_model = logmodel.LogModel(processEvents, throbber, self)
+        self.connect(self.log_model,
+                     QtCore.SIGNAL("layoutChanged()"),
+                     self._adjust_revno_column)
         self.connect(self.log_model,
                      QtCore.SIGNAL("linesUpdated()"),
                      self.make_selection_continuous)
+            
         
         self.filter_proxy_model = logmodel.LogFilterProxyModel(self.log_model,
                                                                self)
@@ -99,7 +100,7 @@ class LogList(RevisionTreeView):
         self.context_menu = QtGui.QMenu(self)
 
     def create_context_menu(self, file_ids, diff_is_default_action=True):
-        branch_count = len(self.graph_provider.branches)
+        branch_count = len(self.log_model.graph_provider.branches)
         
         self.context_menu = QtGui.QMenu(self)
         self.connect(self,
@@ -154,9 +155,9 @@ class LogList(RevisionTreeView):
                     action = self.context_menu.addAction(text, triggered)
                     if require_wt:
                         action.setDisabled(
-                            self.graph_provider.branches[0].tree is None)
+                            self.log_model.graph_provider.branches[0].tree is None)
                 else:
-                    menu = BranchMenu(text, self, self.graph_provider,
+                    menu = BranchMenu(text, self, self.log_model.graph_provider,
                                       require_wt)
                     self.connect(menu,
                                  QtCore.SIGNAL("triggered(QVariant)"),
@@ -189,31 +190,10 @@ class LogList(RevisionTreeView):
                 gettext("Re&verse Cherry pick"), self.reverse_cherry_pick,
                 require_wt=True)
 
-    def load(self, branches, primary_bi, file_ids,
-             no_graph, graph_provider_type):
-        self.throbber.show()
-        self.processEvents()        
-        try:
-            graph_provider = graph_provider_type(
-                branches, primary_bi, file_ids, no_graph, 
-                processEvents=self.processEvents, throbber=self.throbber)
-            graph_provider.load()
-            
-            self.graph_provider = graph_provider
-            self.log_model.set_graph_provider(self.graph_provider)
-            self.create_context_menu(file_ids)
-            
-            self._adjust_revno_column()
-        finally:
-            self.throbber.hide()
-        
-        # Start later so that it does not run in the loading queue.
-        QtCore.QTimer.singleShot(1, self.graph_provider.load_filter_file_id)
-    
     def _adjust_revno_column(self):
         # update the data
         max_mainline_digits = self.rev_no_item_delegate.set_max_revno(
-            self.graph_provider.max_mainline_revno)
+            self.log_model.graph_provider.max_mainline_revno)
         # resize the column
         header = self.header()
         fm = self.fontMetrics()
@@ -223,11 +203,11 @@ class LogList(RevisionTreeView):
             fm.width(("8"*max_mainline_digits)+".8.888") + col_margin)
 
     def refresh_tags(self):
-        self.graph_provider.lock_read_branches()
+        self.log_model.graph_provider.lock_read_branches()
         try:
-            self.graph_provider.load_tags()
+            self.log_model.graph_provider.load_tags()
         finally:
-            self.graph_provider.unlock_branches()
+            self.log_model.graph_provider.unlock_branches()
 
     def mousePressEvent(self, e):
         collapse_expand_click = False
@@ -300,7 +280,7 @@ class LogList(RevisionTreeView):
                     self.log_model.collapse_expand_rev(revision_id, False)
                 else:
                     #find merge of child branch
-                    revision_id = self.graph_provider.\
+                    revision_id = self.log_model.graph_provider.\
                                   find_child_branch_merge_revision(revision_id)
                     if revision_id is not None:
                         newindex = self.log_model.indexFromRevId(revision_id)
@@ -332,9 +312,9 @@ class LogList(RevisionTreeView):
         for index in indexes:
             revid = str(index.data(logmodel.RevIdRole).toString())
             revids.add(revid)
-            merges = [self.graph_provider.revisions[rev_index].revid
+            merges = [self.log_model.graph_provider.revisions[rev_index].revid
                       for rev_index in
-                        self.graph_provider.revid_rev[revid].merges]
+                        self.log_model.graph_provider.revid_rev[revid].merges]
             revids.update(set(merges))
         return revids
     
@@ -344,26 +324,26 @@ class LogList(RevisionTreeView):
             return None, None
         top_revid = str(indexes[0].data(logmodel.RevIdRole).toString())
         bot_revid = str(indexes[-1].data(logmodel.RevIdRole).toString())
-        parents = self.graph_provider.known_graph.get_parent_keys(bot_revid)
+        parents = self.log_model.graph_provider.known_graph.get_parent_keys(bot_revid)
         if parents:
             # We need a ui to select which parent.
             parent_revid = parents[0]
             
             # This is ugly. It is for the PendingMergesList in commit/revert.
             if parent_revid == "root:":
-                parent_revid = self.graph_provider.graph.get_parent_map([bot_revid])[bot_revid][0]
+                parent_revid = self.log_model.graph_provider.graph.get_parent_map([bot_revid])[bot_revid][0]
         else:
             parent_revid = NULL_REVISION
         return (top_revid, parent_revid), len(indexes)
     
     def set_search(self, str, field):
-        self.graph_provider.set_search(str, field)
+        self.log_model.graph_provider.set_search(str, field)
     
     def default_action(self, index=None):
         self.show_diff_specified_files()
         
     def tag_revision(self, selected_branch_info=None):
-        gp = self.graph_provider
+        gp = self.log_model.graph_provider
         
         if selected_branch_info:
             selected_branch_info = selected_branch_info.toPyObject()
@@ -382,7 +362,7 @@ class LogList(RevisionTreeView):
     
     def sub_process_action(self, selected_branch_info, get_dialog,
                            auto_run=False, refresh_method=None):
-        gp = self.graph_provider
+        gp = self.log_model.graph_provider
         (top_revid, old_revid), rev_count = \
                 self.get_selection_top_and_parent_revids_and_count()
         top_revno_str = gp.revid_rev[top_revid].revno_str
@@ -464,7 +444,7 @@ class LogList(RevisionTreeView):
                        top_revid, old_revid,
                        top_revno_str, old_revno_str,
                        selected_branch_info, single_branch):
-            from_branch_info = self.graph_provider.get_revid_branch_info(top_revid)
+            from_branch_info = self.log_model.graph_provider.get_revid_branch_info(top_revid)
             
             desc = (gettext("Cherry-pick revisions %s - %s from %s to %s.") %
                     (old_revno_str, top_revno_str,
@@ -511,8 +491,8 @@ class LogList(RevisionTreeView):
         if new_revid is None and old_revid is None:
             # No revision selection.
             return
-        new_branch = self.graph_provider.get_revid_branch(new_revid)
-        old_branch =  self.graph_provider.get_revid_branch(old_revid)
+        new_branch = self.log_model.graph_provider.get_revid_branch(new_revid)
+        old_branch =  self.log_model.graph_provider.get_revid_branch(old_revid)
         
         arg_provider = diff.InternalDiffArgProvider(
                                         old_revid, new_revid,
@@ -524,9 +504,9 @@ class LogList(RevisionTreeView):
                        parent_window = self.window())
     
     def show_diff_specified_files(self, ext_diff=None):
-        if self.graph_provider.file_ids:
+        if self.log_model.graph_provider.file_ids:
             self.show_diff(ext_diff=ext_diff,
-                           specific_file_ids = self.graph_provider.file_ids)
+                           specific_file_ids = self.log_model.graph_provider.file_ids)
         else:
             self.show_diff(ext_diff=ext_diff)
     
@@ -539,15 +519,15 @@ class LogList(RevisionTreeView):
     def show_revision_tree(self):
         from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
         revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
-        revno = self.graph_provider.revid_rev[revid].revno_str
-        branch = self.graph_provider.get_revid_branch(revid)
+        revno = self.log_model.graph_provider.revid_rev[revid].revno_str
+        branch = self.log_model.graph_provider.get_revid_branch(revid)
         window = BrowseWindow(branch, revision_id=revid,
                               revision_spec=revno, parent=self)
         window.show()
         self.window().windows.append(window)
 
     def show_context_menu(self, pos):
-        branch_count = len(self.graph_provider.branches)
+        branch_count = len(self.log_model.graph_provider.branches)
         (top_revid, old_revid), count = \
               self.get_selection_top_and_parent_revids_and_count()
          

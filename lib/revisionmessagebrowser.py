@@ -344,7 +344,7 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
             revids = [str(index.data(logmodel.RevIdRole).toString())
                       for index in indexes]
             self.set_display_revids(
-                revids, self.log_list.graph_provider.get_repo_revids)
+                revids, self.log_list.log_model.graph_provider.get_repo_revids)
     
     def link_clicked(self, url):
         scheme = unicode(url.scheme())
@@ -358,21 +358,21 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
             open_browser(str(url.toEncoded()))
 
     def get_parents(self, revid):
-        return self.log_list.graph_provider.known_graph.get_parent_keys(revid)
+        return self.log_list.log_model.graph_provider.known_graph.get_parent_keys(revid)
     
     def get_children(self, revid):
         return [child for child in
-                self.log_list.graph_provider.known_graph.get_child_keys(revid)
+                self.log_list.log_model.graph_provider.known_graph.get_child_keys(revid)
                 if not child == "top:"]
 
     def get_revno(self, revid):
-        return self.log_list.graph_provider.revid_rev[revid].revno_str
+        return self.log_list.log_model.graph_provider.revid_rev[revid].revno_str
     
     def get_merge_depth(self, revid):
-        return self.log_list.graph_provider.revid_rev[revid].merge_depth
+        return self.log_list.log_model.graph_provider.revid_rev[revid].merge_depth
 
     def get_color(self, revid):
-        return self.log_list.graph_provider.revid_rev[revid].color
+        return self.log_list.log_model.graph_provider.revid_rev[revid].color
 
     def get_tags(self, revid):
-        return self.log_list.graph_provider.tags.get(revid)
+        return self.log_list.log_model.graph_provider.tags.get(revid)

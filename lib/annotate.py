@@ -413,9 +413,10 @@ class AnnotateWindow(QBzrWindow):
         self.set_title_and_icon([gettext("Annotate"), self.path])
 
     def get_revno(self, revid):
-        if (self.log_list.graph_provider and
-            revid in self.log_list.graph_provider.revid_rev):
-            return self.log_list.graph_provider.revid_rev[revid].revno_str
+        gp = self.log_list.log_model.graph_provider
+        if (gp and
+            revid in gp.revid_rev):
+            return gp.revid_rev[revid].revno_str
         return ""
     
     def annotate(self, tree, fileId, path):
@@ -474,13 +475,14 @@ class AnnotateWindow(QBzrWindow):
         if not self.log_branch_loaded:
             self.log_branch_loaded = True
             bi = BranchInfo('', self.tree, self.branch)
-            self.log_list.load((bi,), bi, [self.fileId], self.no_graph,
-                               logmodel.WithWorkingTreeGraphProvider)
+            self.log_list.log_model.load(
+                (bi,), bi, [self.fileId], self.no_graph,
+                logmodel.WithWorkingTreeGraphProvider)
             
             just_loaded_log = True
             
             # Show the revisions the we know about now.
-            gp = self.log_list.graph_provider
+            gp = self.log_list.log_model.graph_provider
             gp.filter_file_id = [False for i in xrange(len(gp.revisions))]
             
             changed_indexes = []
@@ -578,7 +580,7 @@ class AnnotateWindow(QBzrWindow):
             self.text_edit.textCursor().position()).blockNumber()
         if self.text_edit.annotate:
             rev_id, is_top = self.text_edit.annotate[current_line]
-            if self.log_list.graph_provider.has_rev_id(rev_id):
+            if self.log_list.log_model.graph_provider.has_rev_id(rev_id):
                 self.log_list.log_model.ensure_rev_visible(rev_id)
                 index = self.log_list.log_model.indexFromRevId(rev_id)
                 index = self.log_list.filter_proxy_model.mapFromSource(index)
