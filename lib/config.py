@@ -262,13 +262,21 @@ class QBzrConfigWindow(QBzrDialog):
         qparser = qconfig._get_parser()
 
         # Name & e-mail
-        username = config.username()
-        if username:
-            self.nameEdit.setText(extract_name(username, strict=True))
+        try:
             try:
-                self.emailEdit.setText(extract_email_address(username))
-            except errors.NoEmailInUsername:
-                pass
+                username = config.username()
+                name = extract_name(username, strict=True)
+                try:
+                    email = extract_email_address(username)
+                except errors.NoEmailInUsername:
+                    email = ''
+            except errors.NoWhoami:
+                name, email = get_user_id_from_os()
+        except Exception:
+            name, email = '', ''
+        
+        self.nameEdit.setText(name)
+        self.emailEdit.setText(email)
 
         # Editor
         editor = config.get_user_option('editor')
@@ -587,3 +595,79 @@ class QBzrConfigWindow(QBzrDialog):
             '/')
         if filename:
             self.editorEdit.setText(filename)
+
+def get_user_id_from_os():
+    """Calculate automatic user identification.
+
+    Returns (realname, email).
+
+    Only used when none is set in the environment or the id file.
+
+    This previously used the FQDN as the default domain, but that can
+    be very slow on machines where DNS is broken.  So now we simply
+    use the hostname.
+    """
+    
+    # This use to live in bzrlib.config._auto_user_id, but got removed, so
+    # we have a copy.
+    
+    import sys
+    if sys.platform == 'win32':
+        name = win32utils.get_user_name_unicode()
+        if name is None:
+            raise errors.BzrError("Cannot autodetect user name.\n"
+                                  "Please, set your name with command like:\n"
+                                  'bzr whoami "Your Name <name@domain.com>"')
+        host = win32utils.get_host_name_unicode()
+        if host is None:
+            host = socket.gethostname()
+        return name, (name + '@' + host)
+
+    try:
+        import pwd
+        uid = os.getuid()
+        try:
+            w = pwd.getpwuid(uid)
+        except KeyError:
+            raise errors.BzrCommandError('Unable to determine your name.  '
+                'Please use "bzr whoami" to set it.')
+
+        # we try utf-8 first, because on many variants (like Linux),
+        # /etc/passwd "should" be in utf-8, and because it's unlikely to give
+        # false positives.  (many users will have their user encoding set to
+        # latin-1, which cannot raise UnicodeError.)
+        try:
+            gecos = w.pw_gecos.decode('utf-8')
+            encoding = 'utf-8'
+        except UnicodeError:
+            try:
+                encoding = osutils.get_user_encoding()
+                gecos = w.pw_gecos.decode(encoding)
+            except UnicodeError:
+                raise errors.BzrCommandError('Unable to determine your name.  '
+                   'Use "bzr whoami" to set it.')
+        try:
+            username = w.pw_name.decode(encoding)
+        except UnicodeError:
+            raise errors.BzrCommandError('Unable to determine your name.  '
+                'Use "bzr whoami" to set it.')
+
+        comma = gecos.find(',')
+        if comma == -1:
+            realname = gecos
+        else:
+            realname = gecos[:comma]
+        if not realname:
+            realname = username
+
+    except ImportError:
+        import getpass
+        try:
+            user_encoding = osutils.get_user_encoding()
+            realname = username = getpass.getuser().decode(user_encoding)
+        except UnicodeDecodeError:
+            raise errors.BzrError("Can't decode username as %s." % \
+                    user_encoding)
+
+    import socket
+    return realname, (username + '@' + socket.gethostname())
