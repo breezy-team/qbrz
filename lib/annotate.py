@@ -25,6 +25,8 @@
 import sys, time
 from PyQt4 import QtCore, QtGui
 
+from bzrlib.revision import CURRENT_REVISION
+
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
@@ -47,12 +49,12 @@ from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
-from bzrlib.revision import CURRENT_REVISION
 from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
 from bzrlib.plugins.qbzr.lib.syntaxhighlighter import highlight_document
 from bzrlib.plugins.qbzr.lib.revtreeview import paint_revno, get_text_color
 from bzrlib.plugins.qbzr.lib import logmodel
+from bzrlib.plugins.qbzr.lib.loggraphprovider import BranchInfo
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 ''')
 
@@ -243,6 +245,7 @@ class AnnotateWindow(QBzrWindow):
             self.working_tree = tree
         else:
             self.working_tree = None
+        self.no_graph = no_graph
         self.old_lines = None
         
         self.fileId = fileId
@@ -279,7 +282,7 @@ class AnnotateWindow(QBzrWindow):
                      QtCore.SIGNAL("cursorPositionChanged()"),
                      self.edit_cursorPositionChanged)        
         
-        self.log_list = AnnotateLogList(self.processEvents, self.throbber, no_graph, self)
+        self.log_list = AnnotateLogList(self.processEvents, self.throbber, self)
         self.log_list.header().hideSection(logmodel.COL_DATE)
         self.log_list.parent_annotate_window = self
         self.log_branch_loaded = False
@@ -410,7 +413,8 @@ class AnnotateWindow(QBzrWindow):
         self.set_title_and_icon([gettext("Annotate"), self.path])
 
     def get_revno(self, revid):
-        if revid in self.log_list.graph_provider.revid_rev:
+        if (self.log_list.graph_provider and
+            revid in self.log_list.graph_provider.revid_rev):
             return self.log_list.graph_provider.revid_rev[revid].revno_str
         return ""
     
@@ -425,6 +429,9 @@ class AnnotateWindow(QBzrWindow):
         
         self.processEvents()
         for revid, text in tree.annotate_iter(fileId):
+            if revid == CURRENT_REVISION:
+                revid = CURRENT_REVISION + tree.basedir
+            
             text = text.decode(self.encoding, 'replace')
             
             lines.append(text)
@@ -466,7 +473,9 @@ class AnnotateWindow(QBzrWindow):
         just_loaded_log = False
         if not self.log_branch_loaded:
             self.log_branch_loaded = True
-            self.log_list.load_branch(self.branch, [self.fileId], tree)
+            bi = BranchInfo('', self.tree, self.branch)
+            self.log_list.load((bi,), bi, [self.fileId], self.no_graph,
+                               logmodel.WithWorkingTreeGraphProvider)
             
             just_loaded_log = True
             
@@ -582,8 +591,9 @@ class AnnotateWindow(QBzrWindow):
             self.branch.lock_read()
             try:
                 revid = str(self.log_list.currentIndex().data(logmodel.RevIdRole).toString())
-                if revid == CURRENT_REVISION:
-                    self.tree = self.working_tree
+                if revid.startswith(CURRENT_REVISION):
+                    rev = cached_revisions[revid]
+                    self.tree = rev.tree
                 else:
                     self.tree = self.branch.repository.revision_tree(revid)
                 self.path = self.tree.id2path(self.fileId)
@@ -710,18 +720,9 @@ class AnnotateLogList(LogList):
     
     parent_annotate_window = None
     
-    def load(self):
-        self.graph_provider.lock_read_branches()
-        try:
-            self.graph_provider.load_tags()
-            self.log_model.load_graph(
-                self.graph_provider.load_graph_all_revisions_for_annotate)
-            self._adjust_revno_column()
-        finally:
-            self.graph_provider.unlock_branches()
-    
-    def create_context_menu(self):
-        LogList.create_context_menu(self, diff_is_default_action=False)
+    def create_context_menu(self, file_ids):
+        LogList.create_context_menu(self, file_ids,
+                                    diff_is_default_action=False)
         set_rev_action = QtGui.QAction(gettext("&Annotate this revision"),
                                        self.context_menu)
         self.connect(set_rev_action, QtCore.SIGNAL('triggered()'),

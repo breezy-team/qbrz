@@ -20,6 +20,8 @@
 from PyQt4 import QtCore, QtGui
 from time import (strftime, localtime)
 
+from bzrlib.revision import CURRENT_REVISION, Revision
+
 from bzrlib.plugins.qbzr.lib.bugs import get_bug_id
 from bzrlib.plugins.qbzr.lib import loggraphprovider
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
@@ -29,7 +31,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
     get_apparent_author,
     runs_in_loading_queue,
-    get_summary,
     )
 
 RevIdRole = im_RevIdRole
@@ -59,6 +60,16 @@ except AttributeError:
     QVariant_fromList = QtCore.QVariant
 
 
+class WorkingTreeRevision(Revision):
+    def __init__(self, revid, tree):
+        super(WorkingTreeRevision, self).__init__(revid)
+        
+        self.parent_ids = tree.get_parent_ids()
+        self.committer = tree.branch.get_config().username()
+        self.message = "" # todo: try load saved commit message
+        self.timestamp = None
+        self.tree = tree
+
 class LogGraphProvider(loggraphprovider.LogGraphProvider):
     
     def __init__(self, branches, primary_bi, file_ids, no_graph,
@@ -68,6 +79,15 @@ class LogGraphProvider(loggraphprovider.LogGraphProvider):
         self.processEvents = processEvents
         self.throbber = throbber
         self.on_filter_changed = self.compute_graph_lines
+    
+    def load(self):
+        super(LogGraphProvider, self).load()
+        
+        for bi in self.branches:
+            if not bi.tree is None:
+                wt_revid = CURRENT_REVISION + bi.tree.basedir
+                if wt_revid in self.revid_head_info:
+                    cached_revisions[wt_revid] = WorkingTreeRevision(wt_revid, bi.tree)
     
     def update_ui(self):
         self.processEvents()
@@ -92,6 +112,11 @@ class LogGraphProvider(loggraphprovider.LogGraphProvider):
 class PendingMergesGraphProvider(loggraphprovider.PendingMergesGraphProvider,
                                  LogGraphProvider):
     pass
+
+class WithWorkingTreeGraphProvider(loggraphprovider.WithWorkingTreeGraphProvider,
+                                   LogGraphProvider):
+    pass
+
 
 class BlankGraphProvider(object):
     revisions = ()
@@ -234,7 +259,7 @@ class LogModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant('\n'.join(urls))
         
         if role == RevIdRole:
-            return QtCore.QVariant(QtCore.QByteArray(rev_info.revid))
+            return QtCore.QVariant(QtCore.QByteArray(str(rev_info.revid)))
         
         #Everything from here foward will need to have the revision loaded.
         if rev_info.revid not in cached_revisions:
@@ -250,7 +275,7 @@ class LogModel(QtCore.QAbstractTableModel):
         if role == QtCore.Qt.DisplayRole and index.column() == COL_AUTHOR:
             return QtCore.QVariant(extract_name(get_apparent_author(revision)))
         if role == QtCore.Qt.DisplayRole and index.column() == COL_MESSAGE:
-            return QtCore.QVariant(get_summary(revision))
+            return QtCore.QVariant(revision.get_summary())
         if role == BugIdsRole:
             bugtext = gettext("bug #%s")
             bugs = []

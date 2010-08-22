@@ -111,7 +111,7 @@ class RevisionInfo(object):
         if self._revno_str is None:
             self._revno_str = ".".join(["%d" % (revno)
                                 for revno in self.revno_sequence])
-            if self.revid == CURRENT_REVISION:
+            if self.revid.startswith(CURRENT_REVISION):
                 self._revno_str += " ?"
         return self._revno_str
     revno_str = property(get_revno_str)
@@ -323,105 +323,87 @@ class LogGraphProvider(object):
             # So that early calls to get_revid_branch work
             self.revid_branch_info[revid] = branch_info
 
+    def load_branch_heads(self, bi):
+        branch_heads = []
+        def append_head_info(revid, branch_info, label):
+            self.append_head_info(revid, branch_info, label)
+            branch_heads.append(revid)
+        
+        if len(self.branches)>0:
+            label = bi.label
+        else:
+            label = None
+        
+        branch_last_revision = bi.branch.last_revision()
+        append_head_info(branch_last_revision, bi, bi.label)
+        self.update_ui()
+        
+        if bi.tree:
+            parent_ids = bi.tree.get_parent_ids()
+            if parent_ids:
+                # first parent is last revision of the tree
+                revid = parent_ids[0]
+                if revid != branch_last_revision:
+                    # working tree is out of date
+                    if label:
+                        wt_label =  "%s - Working Tree" % label
+                    else:
+                        wt_label = "Working Tree"
+                    append_head_info(revid, bi, wt_label)
+                # other parents are pending merges
+                for revid in parent_ids[1:]:
+                    if label:
+                        pm_label = "%s - Pending Merge" % label
+                    else:
+                        pm_label = "Pending Merge"
+                    append_head_info(revid, bi, pm_label)
+            self.update_ui()
+        return branch_heads, branch_heads, ()
+    
     def load_graph_parents(self):
         """Load the heads of the graph, and the graph parents"""
         
+        extra_parents = []
         branches_heads = []
-        def load_branch_heads(bi):
-            branch_heads = []
-            def append_head_info(revid, branch, label):
-                self.append_head_info(revid, branch, label)
-                branch_heads.append(revid)
-            
-            if len(self.branches)>0:
-                label = bi.label
+        
+        def load_branch_heads(bi, insert_at_begin=False):
+            load_heads, sort_heads, extra_parents_ = self.load_branch_heads(bi)
+            extra_parents.extend(extra_parents_)
+            if insert_at_begin:
+                branches_heads.insert(0, (load_heads, sort_heads))
             else:
-                label = None
-            
-            branch_last_revision = bi.branch.last_revision()
-            append_head_info(branch_last_revision, bi, bi.label)
-            self.update_ui()
-            
-            if bi.tree:
-                parent_ids = bi.tree.get_parent_ids()
-                if parent_ids:
-                    # first parent is last revision of the tree
-                    revid = parent_ids[0]
-                    if revid != branch_last_revision:
-                        # working tree is out of date
-                        if label:
-                            wt_label =  "%s - Working Tree" % label
-                        else:
-                            wt_label = "Working Tree"
-                        append_head_info(revid, bi, wt_label)
-                    # other parents are pending merges
-                    for revid in parent_ids[1:]:
-                        if label:
-                            pm_label = "%s - Pending Merge" % label
-                        else:
-                            pm_label = "Pending Merge"
-                        append_head_info(revid, bi, pm_label)
-                self.update_ui()
-            return branch_heads
+                branches_heads.append((load_heads, sort_heads))
         
         for bi in self.branches:
             # Don't do the primary branch, as that will be inserted later at
             # the first position.
             if bi != self.primary_bi:
-                branches_heads.append(load_branch_heads(bi))
+                load_branch_heads(bi)
         
         if len(branches_heads) >= 2:
-            head_revids = [revid for branch_heads in branches_heads
-                                 for revid in branch_heads]
+            head_revids = [revid for load_heads, sort_heads in branches_heads
+                                 for revid in load_heads]
             head_revs = self.load_revisions(head_revids)
             
-            get_max_timestamp = lambda revids: max(
-                [head_revs[revid].timestamp for revid in revids])
+            get_max_timestamp = lambda branch_heads: max(
+                [head_revs[revid].timestamp for revid in branch_heads[0]])
             branches_heads.sort(key=get_max_timestamp, reverse=True)
         
         if self.primary_bi:
-            branches_heads.insert(0, load_branch_heads(self.primary_bi))
-        head_revids = [revid for branch_heads in branches_heads
-                             for revid in branch_heads]
+            load_branch_heads(self.primary_bi, True)
         
-        return head_revids, self.graph.iter_ancestry(head_revids)
-
-    #def load_graph_all_revisions_for_annotate(self):
-    #    if not len(self.branches) == 1:
-    #        AssertionError("load_graph_pending_merges should only be called \
-    #                       when 1 branch and repo has been opened.")        
-    #    
-    #    self.revid_head_info = {}
-    #    self.head_revids = []
-    #    
-    #    bi = self.branches[0]
-    #    
-    #    if bi.tree and isinstance(bi.tree, WorkingTree):
-    #        branch_last_revision = CURRENT_REVISION
-    #        current_parents = bi.tree.get_parent_ids()
-    #    else:
-    #        branch_last_revision = bi.branch.last_revision()
-    #    
-    #    self.append_head_info(branch_last_revision, bi.branch, None, True)
-    #    self.update_ui()
-    #    
-    #    if len(self.repos)==1:
-    #        self.graph = self.repos.values()[0].get_graph()
-    #    else:
-    #        parents_providers = [repo._make_parents_provider() \
-    #                             for repo in self.repos_sorted_local_first()]
-    #        self.graph = Graph(StackedParentsProvider(parents_providers))
-    #    
-    #    def parents():
-    #        if branch_last_revision == CURRENT_REVISION:
-    #            yield (CURRENT_REVISION, current_parents)
-    #            heads = current_parents
-    #        else:
-    #            heads = self.head_revids
-    #        for p in self.graph.iter_ancestry(heads):
-    #            yield p
-    #    
-    #    self._load_graph(parents())
+        load_heads = [revid for load_heads_, sort_heads_ in branches_heads
+                      for revid in load_heads_]
+        sort_heads = [revid for load_heads_, sort_heads_ in branches_heads
+                      for revid in sort_heads_]
+        
+        def parents_iter():
+            for parents in extra_parents:
+                yield parents
+            for parents in self.graph.iter_ancestry(load_heads):
+                yield parents
+        
+        return sort_heads, parents_iter()
     
     def process_graph_parents(self, head_revids, graph_parents_iter):
         graph_parents = {}
@@ -1526,10 +1508,10 @@ class PendingMergesGraphProvider(LogGraphProvider):
         other_revisions = [tree_heads[0],]
         self.update_ui()
         
-        self.append_head_info('root:', bi.branch, None)
+        self.append_head_info('root:', bi, None)
         pending_merges = []
         for head in tree_heads[1:]:
-            self.append_head_info(head, bi.branch, None)
+            self.append_head_info(head, bi, None)
             pending_merges.extend(
                 self.graph.find_unique_ancestors(head,other_revisions))
             other_revisions.append(head)
@@ -1549,4 +1531,75 @@ class PendingMergesGraphProvider(LogGraphProvider):
             graph_parents[revid] = tuple(new_parents)
         
         return ["root:",] + tree_heads[1:], graph_parents.items()
+
+
+class WithWorkingTreeGraphProvider(LogGraphProvider):
     
+    def load_branch_heads(self, bi):
+        # returns load_heads, sort_heads and also calls append_head_info.
+        #
+        # == For branch with tree ==
+        # Graph                     | load_heads | sort_heads | append_head_info
+        # wt                        | No         | Yes        | Yes   
+        # | \                       |            |            |
+        # | 1.1.2 (pending merge)   | Yes        | No         | Yes
+        # 2 |     (basis rev)       | Yes        | No         | Yes
+        #
+        # == For branch with tree not up to date ==
+        # Graph                     | load_heads | sort_heads | append_head_info
+        #   wt                      | No         | Yes        | Yes   
+        #   | \                     |            |            |
+        #   | 1.1.2 (pending merge) | Yes        | No         | Yes
+        # 3/  |     (branch tip)    | Yes        | Yes        | Yes      
+        # 2   |     (basis rev)     | Yes        | No         | No
+        #
+        # == For branch without tree ==
+        # branch tip                | Yes        | head       | yes
+        
+        load_heads = []
+        sort_heads = []
+        extra_parents = []
+        
+        
+        if len(self.branches)>0:
+            label = bi.label
+        else:
+            label = None
+        
+        branch_last_revision = bi.branch.last_revision()
+        self.append_head_info(branch_last_revision, bi, bi.label)
+        load_heads.append(branch_last_revision)
+        self.update_ui()
+        
+        if bi.tree:
+            wt_revid = CURRENT_REVISION + bi.tree.basedir
+            if label:
+                wt_label =  "%s - Working Tree" % label
+            else:
+                wt_label = "Working Tree"
+            self.append_head_info(wt_revid, bi, wt_label)
+            parent_ids = bi.tree.get_parent_ids()
+            
+            extra_parents.append((wt_revid, parent_ids))
+            load_heads.extend(parent_ids)
+            
+            if parent_ids:
+                # first parent is last revision of the tree
+                if parent_ids[0] != branch_last_revision:
+                    # tree is not up to date.
+                    sort_heads.append(branch_last_revision)
+                
+                # other parents are pending merges
+                for revid in parent_ids[1:]:
+                    if label:
+                        pm_label = "%s - Pending Merge" % label
+                    else:
+                        pm_label = "Pending Merge"
+                    append_head_info(revid, bi, pm_label)
+            
+            sort_heads.append(wt_revid)
+            self.update_ui()
+        else:
+            sort_heads.append(branch_last_revision)
+        
+        return load_heads, sort_heads, extra_parents

@@ -18,6 +18,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
+
+from bzrlib.revision import CURRENT_REVISION
+
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     BTN_REFRESH,
@@ -30,6 +33,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib.trace import reports_exception, SUB_LOAD_METHOD
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
@@ -339,7 +343,7 @@ class LogWindow(QBzrWindow):
                 have_search = False            
         
         if have_search:
-            indexes_availble = false
+            indexes_availble = False
             for bi in branches:
                 try:
                     bi.index = search_index.open_index_branch(branch)
@@ -628,7 +632,11 @@ class FileListContainer(QtGui.QWidget):
                         self.processEvents()
                         try:
                             for revid in repo_revids:
-                                tree = repo.revision_tree(revid)
+                                if revid.startswith(CURRENT_REVISION):
+                                    rev = cached_revisions[revid]
+                                    tree = rev.tree
+                                else:
+                                    tree = repo.revision_tree(revid)
                                 self.tree_cache[revid] = tree
                             self.processEvents()
                         finally:
