@@ -224,15 +224,12 @@ class LogList(RevisionTreeView):
                                            boxsize,
                                            boxsize)
                 if twistyRect.contains(pos):
-                    twisty_state = index.data(logmodel.GraphTwistyStateRole)
-                    if twisty_state.isValid():
-                        collapse_expand_click = True
-                        revision_id = str(index.data(logmodel.RevIdRole).toString())
-                        self.log_model.collapse_expand_rev(revision_id, not twisty_state.toBool())
-                        index_b = self.log_model.indexFromRevId(revision_id)
-                        index_b = self.filter_proxy_model.mapFromSource(index_b)
-                        self.scrollTo(index_b)
-                        e.accept ()
+                    collapse_expand_click = True
+                    source_index = self.filter_proxy_model.mapToSource(index)
+                    self.log_model.collapse_expand_rev(source_index.row())
+                    new_index = self.filter_proxy_model.mapFromSource(source_index)
+                    self.scrollTo(new_index)
+                    e.accept ()
         if not collapse_expand_click:
             QtGui.QTreeView.mousePressEvent(self, e)
     

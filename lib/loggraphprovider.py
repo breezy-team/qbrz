@@ -812,7 +812,8 @@ class LogGraphProvider(object):
                 
                 for i, parent in enumerate(parents):
                     if computed.revisions[parent.index] is not None:
-                        rev_visible_parents.append((parent, True))
+                        rev_visible_parents.append(
+                            (computed.revisions[parent.index], True))
                     else:
                         if (parent.index in twisty_hidden_parents and
                             not (i==0 and last_in_branch)):
@@ -841,7 +842,8 @@ class LogGraphProvider(object):
                                 parent = None
                                 break
                         if parent:
-                            rev_visible_parents.append((parent, False)) # Not Direct
+                            rev_visible_parents.append(
+                                (computed.revisions[parent.index], False)) # Not Direct
                 branch_rev_visible_parents.append(rev_visible_parents)
             
             # Find the first parent of the last rev in the branch line
@@ -863,10 +865,10 @@ class LogGraphProvider(object):
                 while i < len(rev_visible_parents):
                     (parent, direct) = rev_visible_parents[i]
                     
-                    if (rev.index <> last_rev.index or i > 0 )and \
+                    if (c_rev <> branch_revs[-1] or i > 0 )and \
                        branch_id <> () and \
-                       self.branch_ids.index(parent.branch_id) <= self.branch_ids.index(branch_id) and\
-                       (last_parent and not direct and last_parent[0].index >= parent.index or not last_parent or direct):
+                       self.branch_ids.index(parent.rev.branch_id) <= self.branch_ids.index(branch_id) and\
+                       (last_parent and not direct and last_parent[0].f_index >= parent.f_index or not last_parent or direct):
                         
                         if parent.f_index - rev.f_index >1:
                             rev_visible_parents.pop(i)
@@ -875,10 +877,10 @@ class LogGraphProvider(object):
                     i += 1
                 
                 # This may be a sprout. Add line to first visible child
-                if rev.merged_by is not None:
-                    merged_by = self.revisions[rev.merged_by]
-                    if merged_by.f_index is None and\
-                       rev.index == merged_by.merges[0]:
+                if c_rev.rev.merged_by is not None:
+                    merged_by = self.revisions[c_rev.rev.merged_by]
+                    if computed.revisions[merged_by.index] is None and\
+                       c_rev.rev.index == merged_by.merges[0]:
                         # The revision that merges this revision is not
                         # visible, and it is the first revision that is
                         # merged by that revision. This is a sprout.
@@ -889,7 +891,7 @@ class LogGraphProvider(object):
                         # Search until we find a decendent that is visible.
                         
                         while merged_by is not None and \
-                              merged_by.f_index is None:
+                              computed.revisions[merged_by.index] is None:
                             if merged_by.merged_by is not None:
                                 merged_by = self.revisions[merged_by.merged_by]
                             else:
@@ -899,8 +901,10 @@ class LogGraphProvider(object):
                             # Ensure only one line to a decendent.
                             if merged_by.index not in children_with_sprout_lines:
                                 children_with_sprout_lines[merged_by.index] = True
-                                if merged_by.f_index is not None:
-                                    append_line(merged_by, rev, False)
+                                if self.revisions[merged_by.merged_by] is not None:
+                                    append_line(
+                                        self.revisions[merged_by.merged_by],
+                                        c_rev, False)
             
             # Find a column for this branch.
             #
@@ -1193,11 +1197,6 @@ class GraphProviderFilterState(object):
         
         return True
     
-    def set_branch_visible(self, branch_id, visible, has_change):
-        if not self.branch_lines[branch_id].visible == visible:
-            has_change = True
-        self.branch_lines[branch_id].visible = visible
-        return has_change
     
     def ensure_rev_visible(self, revid):
         if self.no_graph:
@@ -1212,42 +1211,46 @@ class GraphProviderFilterState(object):
         return has_change
     
 
-    def collapse_expand_rev(self, revid, visible):
-        rev = self.revid_rev[revid]
-        #if rev.f_index is not None: return
-        branch_ids = zip(rev.twisty_branch_ids,
-                         [rev.branch_id]* len(rev.twisty_branch_ids))
+    def collapse_expand_rev(self, c_rev):
+        if c_rev is None:
+            return False
+        visible = not c_rev.twisty_state
+        branch_ids = zip(c_rev.twisty_expands_branch_ids,
+                         [c_rev.rev.branch_id] *
+                                len(c_rev.twisty_expands_branch_ids))
         processed_branch_ids = []
         has_change = False
         while branch_ids:
             branch_id, expanded_by = branch_ids.pop()
             processed_branch_ids.append(branch_id)
-            has_change = self.set_branch_visible(branch_id,
-                                                 visible,
-                                                 has_change)
+            if not branch_id in self.branch_line_state == visible:
+                has_change = True
             if not visible:
-                self.branch_lines[branch_id].expanded_by = None
-                for parent_branch_id in self.branch_lines[branch_id].merges:
-                    parent = self.branch_lines[parent_branch_id]
-                    if (not parent.visible or 
+                del self.branch_line_state[branch_id]
+                for parent_branch_id in self.graph_provider.branch_lines[branch_id].merges:
+                    parent_visible = parent_branch_id in self.branch_line_state
+                    if (not parent_visible or 
                         parent_branch_id in branch_ids or 
                         parent_branch_id in processed_branch_ids):
                         continue
                     
-                    if parent.expanded_by == branch_id:
+                    if self.branch_line_state[parent_branch_id] == branch_id:
+                        # This branch expaned the parent branch, so we must
+                        # collapse it.
                         branch_ids.append((parent_branch_id, branch_id))
                     else:
                         # Check if this parent has any other visible branches
                         # that merge it.
                         has_visible = False
+                        parent = self.graph_provider.branch_lines[parent_branch_id]
                         for merged_by_branch_id in parent.merged_by:
-                            if self.branch_lines[merged_by_branch_id].visible:
+                            if merged_by_branch_id in self.branch_line_state:
                                 has_visible = True
                                 break
                         if not has_visible:
                             branch_ids.append((parent_branch_id, branch_id))
             else:
-                self.branch_lines[branch_id].expanded_by = expanded_by
+                self.branch_line_state[branch_id] = expanded_by
         return has_change
     
 

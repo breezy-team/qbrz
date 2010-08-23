@@ -158,8 +158,8 @@ class LogModel(QtCore.QAbstractTableModel):
                                     COL_MESSAGE, QtCore.QModelIndex()))
         self.emit(QtCore.SIGNAL("linesUpdated()"))
     
-    def collapse_expand_rev(self, revid, visible):
-        self.clicked_row = self.graph_provider.revid_rev[revid].index
+    def collapse_expand_rev(self, index):
+        self.clicked_row = index
         clicked_row_index = self.createIndex (self.clicked_row,
                                               COL_MESSAGE,
                                               QtCore.QModelIndex())
@@ -168,7 +168,9 @@ class LogModel(QtCore.QAbstractTableModel):
                   clicked_row_index)
         self.graph_provider.update_ui()
         self.clicked_row = None
-        has_change = self.graph_provider.collapse_expand_rev(revid, visible)
+        
+        c_rev = self.computed.revisions[index]
+        has_change = self.state.collapse_expand_rev(c_rev)
         
         if has_change:
             self.compute_lines()
