@@ -72,10 +72,10 @@ class WorkingTreeRevision(Revision):
 
 class LogGraphProvider(loggraphprovider.LogGraphProvider):
     
-    def __init__(self, branches, primary_bi, file_ids, no_graph,
+    def __init__(self, branches, primary_bi, no_graph,
                  processEvents,  throbber):
         loggraphprovider.LogGraphProvider.__init__(
-            self, branches, primary_bi, file_ids, no_graph)
+            self, branches, primary_bi, no_graph)
         self.processEvents = processEvents
         self.throbber = throbber
         self.on_filter_changed = self.compute_graph_lines
@@ -91,14 +91,6 @@ class LogGraphProvider(loggraphprovider.LogGraphProvider):
     
     def revisions_filter_changed(self):
         self.on_filter_changed()
-
-    @runs_in_loading_queue
-    def load_filter_file_id_chunk(self, repo, revids):
-        super(LogGraphProvider, self).load_filter_file_id_chunk(repo, revids)
-
-    @runs_in_loading_queue
-    def load_filter_file_id_chunk_finished(self):
-        super(LogGraphProvider, self).load_filter_file_id_chunk_finished()
 
 class PendingMergesGraphProvider(loggraphprovider.PendingMergesGraphProvider,
                                  LogGraphProvider):
@@ -116,10 +108,6 @@ class WithWorkingTreeGraphProvider(loggraphprovider.WithWorkingTreeGraphProvider
                 if wt_revid in self.revid_head_info:
                     cached_revisions[wt_revid] = WorkingTreeRevision(wt_revid, bi.tree)
 
-class BlankGraphProvider(object):
-    revisions = ()
-    revid_rev = {}
-
 class LogModel(QtCore.QAbstractTableModel):
 
     def __init__(self, processEvents, throbber, parent=None):
@@ -127,7 +115,10 @@ class LogModel(QtCore.QAbstractTableModel):
         self.processEvents = processEvents
         self.throbber = throbber
         
-        self.graph_provider = BlankGraphProvider()
+        self.graph_provider = LogGraphProvider((), None, False,
+                                               processEvents, throbber)
+        self.state = loggraphprovider.GraphProviderFilterState(self.graph_provider)
+        self.computed = loggraphprovider.ComputedGraph(self.graph_provider)
 
         self.clicked_row = None
         self.last_rev_is_placeholder = False
@@ -138,19 +129,24 @@ class LogModel(QtCore.QAbstractTableModel):
         self.processEvents()        
         try:
             graph_provider = graph_provider_type(
-                branches, primary_bi, file_ids, no_graph, 
+                branches, primary_bi, no_graph, 
                 processEvents=self.processEvents, throbber=self.throbber)
             graph_provider.load()
             graph_provider.on_filter_changed = self.on_filter_changed
             
+            state = loggraphprovider.GraphProviderFilterState(graph_provider)
+            state.branch_line_state.update(self.state.branch_line_state)
+            
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
             self.graph_provider = graph_provider
+            self.state = state
+            self.computed = loggraphprovider.ComputedGraph(graph_provider)
             self.emit(QtCore.SIGNAL("layoutChanged()"))
         finally:
             self.throbber.hide()
         
         # Start later so that it does not run in the loading queue.
-        QtCore.QTimer.singleShot(1, self.graph_provider.load_filter_file_id)
+        #QtCore.QTimer.singleShot(1, self.graph_provider.load_filter_file_id)
     
     def compute_lines(self):
         self.graph_provider.compute_graph_lines()
@@ -342,8 +338,10 @@ class LogFilterProxyModel(QtGui.QSortFilterProxyModel):
     def filterAcceptsRow(self, source_row, source_parent):
         if source_parent.isValid():
             return True
-        return self.parent_log_model.graph_provider.get_revision_visible(
-                                                                    source_row)
+        computed_revisions = self.parent_log_model.computed.revisions
+        if source_row >= len(computed_revisions):
+            return False
+        return computed_revisions[source_row] is not None
     
     def on_revisions_loaded(self, revisions, last_call):
         self.sourceModel().on_revisions_loaded(revisions, last_call)    

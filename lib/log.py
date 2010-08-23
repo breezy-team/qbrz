@@ -46,7 +46,7 @@ from bzrlib.bzrdir import BzrDir
 from bzrlib.urlutils import determine_relative_path, join, split
 
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
-from bzrlib.plugins.qbzr.lib.logmodel import LogGraphProvider
+from bzrlib.plugins.qbzr.lib.logmodel import LogGraphProvider, WithWorkingTreeGraphProvider
 from bzrlib.plugins.qbzr.lib.loggraphprovider import BranchInfo
 
 from bzrlib.plugins.qbzr.lib.diff import (

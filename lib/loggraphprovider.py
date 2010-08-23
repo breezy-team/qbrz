@@ -53,59 +53,29 @@ class BranchInfo(object):
         return False
 
 
-class RevisionInfo(object):
-    """Holds information about a revision."""
+class RevisionCache(object):
+    """Holds information about a revision that can be cached."""
     
-    # Instance of this object are typicaly named "rev".
+    # Instance of this object are typicaly named "rev_cache".
     
-    __slots__ = ["index", "_merge_sort_node", "branch_id", "_revno_str", "filter_cache",
-                 "merges", "merged_by", "f_index", "color",
-                 "col_index", "lines", "twisty_state", "twisty_branch_ids"]
+    __slots__ = ["index", "_merge_sort_node", "branch", "_revno_str", 
+                 "merges", "merged_by", ]
     def __init__ (self, index, _merge_sort_node):
         self.index = index
         """Index in LogGraphProvider.revisions"""
-        self.f_index = None
-        """Index in LogGraphProvider.filtered_revs.
-        
-        If None, then this revision is not visible
-        """
         self._merge_sort_node = _merge_sort_node
-        self.branch_id = self.revno_sequence[0:-1]
+        self.branch = None
         self._revno_str = None
-        self.filter_cache = True
-        """Cache of if this revision is  visible if it's branch is visible"""
         self.merges = []
         """Revision indexes that this revision merges"""
         self.merged_by = None
         """Revision index that merges this revision."""
-        self.color = 0
-        """Number that repesents a color for the node."""
-        self.col_index = None
-        """Column index for the node of this revision."""
-        self.lines = []
-        """Lines that need to be drawn on the same line as this revisions.
-        
-        List of typle (start, end, color, direct)
-        """
-        
-        # Twisties are the +- buttons to expand and colapes branches.
-        self.twisty_state = None
-        """Sate of the twisty
-        
-        If None, then there is no twisty. If False, there a branched that are
-        not visilble, and so a + must be shown. If True, all branchs are
-        visible, and we need to show a -.
-        """
-        self.twisty_branch_ids = []
-        """Branches that will be expanded/collapsed when the twisty is
-        clicked on.
-        
-        """
     
     revid = property(lambda self: self._merge_sort_node.key)
     merge_depth = property(lambda self: self._merge_sort_node.merge_depth)
     revno_sequence = property(lambda self: self._merge_sort_node.revno)
     end_of_merge = property(lambda self: self._merge_sort_node.end_of_merge)
+    branch_id = property(lambda self: self.revno_sequence[0:-1])
     
     def get_revno_str(self):
         if self._revno_str is None:
@@ -129,18 +99,16 @@ class GhostRevisionError(errors.InternalBzrError):
         self.revision_id = revision_id
 
 class BranchLine(object):
-    __slots__ = ["branch_id", "revs", "visible", "merges", "merged_by",
-                 "color", "merge_depth", "expanded_by"]
+    __slots__ = ["branch_id", "revs", "merges", "merged_by",
+                 "color", "merge_depth"]
     
     def __init__(self, branch_id):
         self.branch_id = branch_id
-        self.visible = False
         self.revs = []
         self.merges = []
         self.merged_by = []
         self.color = reduce(lambda x, y: x+y, self.branch_id, 0)
         self.merge_depth = 0
-        self.expanded_by=None
 
     def __repr__(self):
         return "%s <%s>" % (self.__class__.__name__, self.branch_id)
@@ -160,14 +128,11 @@ class LogGraphProvider(object):
     # in revisions are normaly called index. The main list of filtered revisions
     # is filtered_revs. Revision indexes in this list are called f_index.
     
-    def __init__(self, branches, primary_bi, file_ids, no_graph):
+    def __init__(self, branches, primary_bi, no_graph):
         self.branches = branches
         """List of BranchInfo for each branch."""
         self.primary_bi = primary_bi
-        self.file_ids = file_ids
         self.no_graph = no_graph
-        
-        self.has_dir = False
         
         self.repos = list(set([bi.branch.repository for bi in branches]))
         self.local_repo_copies = []
@@ -203,28 +168,10 @@ class LogGraphProvider(object):
         self.revisions = []
         """List of RevisionInfo from merge_sort."""
         
-        self.filtered_revs = []
         self.revid_rev = {}
         self.graph_children = {}
         
-        self.queue = []
         self.tags = {}      # map revid -> tags set
-        
-        self.filter_file_id = None
-        """Filtered dict of index's that are visible because they touch
-        self.file_ids
-        """
-        
-        self.sr_field = None
-        self.sr_filter_re = None
-        self.sr_loading_revisions = False
-        self.sr_index_matched_revids = None
-        
-        # ifcr = invaladate_filter_cache_revs and these fields are related to
-        # that method.
-        self.ifcr_pending_indexes = []
-        self.ifcr_last_run_time = 0
-        self.ifcr_last_call_time = 0
     
     def load(self):
         self.lock_read_branches()
@@ -247,16 +194,6 @@ class LogGraphProvider(object):
                 self.compute_merge_info()
             
             self.load_tags()
-            
-            if not self.file_ids:
-                # All revisions start visible
-                for rev in self.revisions:
-                    rev.filter_cache = True
-                self.revisions_filter_changed()
-            else:
-                # Revision visibilaty unknown.
-                self.invaladate_filter_cache()
-            
         finally:
             self.unlock_branches()
     
@@ -467,7 +404,7 @@ class LogGraphProvider(object):
 
             # Get rid of the 'top:' revision
             merge_sorted_revisions.pop(0)
-            self.revisions = [RevisionInfo(index, node)
+            self.revisions = [RevisionCache(index, node)
                 for index, node in enumerate(merge_sorted_revisions)]
             if enabled:
                 gc.enable()
@@ -512,12 +449,8 @@ class LogGraphProvider(object):
             else:
                 branch_line = self.branch_lines[rev.branch_id]
             
-            if rev.revid in self.revid_head_info:
-                branch_line.visible = True
-            
             branch_line.revs.append(rev)
             branch_line.merge_depth = max(rev.merge_depth, branch_line.merge_depth)
-            rev.color = branch_line.color
         
         self.branch_ids = self.branch_lines.keys()
         
@@ -637,235 +570,21 @@ class LogGraphProvider(object):
                     in self.graph.find_unique_ancestors(revid, other_revids) \
                     if not revid == NULL_REVISION and revid in self.revid_rev])
                 ur.sort(key=lambda x: self.revid_rev[x].index)
-
-    def load_filter_file_id_uses_inventory(self):
-        return self.has_dir
     
-    def load_filter_file_id(self):
-        """Load with revisions affect the file_ids
-        
-        It requires that compute_merge_info has been run.
-        
-        """
-        if self.file_ids:
-            self.throbber_show()
-            
-            if len(self.branches)>1:
-                raise errors.BzrCommandError(paths_and_branches_err)
-            
-            bi = self.branches[0]
-            tree = bi.tree
-            if tree is None:
-                tree = bi.branch.basis_tree()
-            
-            tree.lock_read()
-            try:
-                self.has_dir = False
-                for file_id in self.file_ids:
-                    if tree.kind(file_id) in ('directory', 'tree-reference'):
-                        self.has_dir = True
-                        break
-            finally:
-                tree.unlock()
-            
-            self.filter_file_id = [False for i in 
-                         xrange(len(self.revisions))]
-            
-            revids = [rev.revid for rev in self.revisions]
-            
-            for repo, revids in self.get_repo_revids(revids):
-                if not self.load_filter_file_id_uses_inventory():
-                    chunk_size = 500
-                else:
-                    chunk_size = 500
-                
-                for start in xrange(0, len(revids), chunk_size):
-                    self.load_filter_file_id_chunk(repo, 
-                            revids[start:start + chunk_size])
-            
-            self.load_filter_file_id_chunk_finished()
     
-    def load_filter_file_id_chunk(self, repo, revids):
-        def check_text_keys(text_keys):
-            changed_indexes = []
-            for file_id, revid in repo.texts.get_parent_map(text_keys):
-                rev = self.revid_rev[revid]
-                self.filter_file_id[rev.index] = True
-                changed_indexes.append(rev.index)
-            
-            self.update_ui()
-            self.invaladate_filter_cache_revs(changed_indexes)
-            self.update_ui()
-        
-        repo.lock_read()
-        try:
-            if not self.load_filter_file_id_uses_inventory():
-                text_keys = [(file_id, revid) 
-                                for revid in revids
-                                for file_id in self.file_ids]
-                check_text_keys(text_keys)
-            else:
-                text_keys = []
-                # We have to load the inventory for each revisions, to find
-                # the children of any directoires.
-                for inv, revid in zip(
-                            repo.iter_inventories(revids),
-                            revids):
-                    for path, entry in inv.iter_entries_by_dir(
-                                            specific_file_ids = self.file_ids):
-                        text_keys.append((entry.file_id, revid))
-                        if entry.kind == "directory":
-                            for rc_path, rc_entry in inv.iter_entries(from_dir = entry):
-                                text_keys.append((rc_entry.file_id, revid))
-                    
-                    self.update_ui()
-                
-                check_text_keys(text_keys)
-        finally:
-            repo.unlock()
-
-    def load_filter_file_id_chunk_finished(self):
-        self.invaladate_filter_cache_revs([], last_call=True)
-        self.throbber_hide()
-    
-    def get_revision_visible(self, index):
-        """ Returns wether a revision is visible or not"""
-        
-        if not index < len(self.revisions):
-            return False
-        
-        return self.revisions[index].f_index is not None
-        #branch_id = self.revisions[index].branch_id
-        #
-        #if not self.no_graph and \
-        #        not self.branch_lines[branch_id].visible: # branch colapased
-        #    return False
-        #
-        #return self.get_revision_visible_if_branch_visible_cached(index)
-
-    def get_revision_visible_if_branch_visible_cached(self, index):
-        rev = self.revisions[index]
-        if rev.filter_cache is None:
-            rev.filter_cache = self.get_revision_visible_if_branch_visible(index)
-        return rev.filter_cache
-    
-    def get_revision_visible_if_branch_visible(self, index):
-        
-        if not self.no_graph:
-            rev = self.revisions[index]
-            for merged_index in rev.merges:
-                if self.get_revision_visible_if_branch_visible_cached(
-                                                            merged_index):
-                    return True
-        
-        if self.file_ids:
-            if self.filter_file_id is None:
-                return False
-            if not self.filter_file_id[index]:
-                return False
-        
-        revid = self.revisions[index].revid
-        
-        if self.sr_filter_re:
-            if revid not in cached_revisions:
-                return False
-            revision = cached_revisions[revid]
-            
-            filtered_str = None
-            if self.sr_field == "message":
-                filtered_str = revision.message
-            elif self.sr_field == "author":
-                filtered_str = get_apparent_author(revision)
-            elif self.sr_field == "bug":
-                rbugs = revision.properties.get('bugs', '')
-                if rbugs:
-                    filtered_str = rbugs.replace('\n', ' ')
-                else:
-                    return False
-
-            if filtered_str is not None:
-                if self.sr_filter_re.search(filtered_str) is None:
-                    return False
-        
-        if self.sr_index_matched_revids is not None:
-            if revid not in self.sr_index_matched_revids:
-                return False
-        
-        return True
-
-    def invaladate_filter_cache(self):
-        for rev in self.revisions:
-            rev.filter_cache = None
-        self.revisions_filter_changed()
-    
-    def invaladate_filter_cache_revs(self, indexes, last_call=False):
-        self.ifcr_pending_indexes.extend(indexes)
-        # Only notify that there are changes every so often.
-        # invaladate_filter_cache_revs causes compute_graph_lines to run, and it
-        # runs slowly because it has to update the filter cache. How often we
-        # update is bases on a ratio of 10:1. If we spend 1 sec calling
-        # invaladate_filter_cache_revs, don't call it again until we have spent
-        # 10 sec else where.
-        if last_call or \
-                clock() - self.ifcr_last_call_time > \
-                self.ifcr_last_run_time * 10:
-            
-            start_time = clock()        
-            prev_cached_indexes = []
-            processed_indexes = []
-            while self.ifcr_pending_indexes:
-                index = self.ifcr_pending_indexes.pop(0)
-                
-                if index in processed_indexes:
-                    continue
-                rev = self.revisions[index]
-                
-                if rev.filter_cache is not None:
-                    prev_cached_indexes.append((index, rev.filter_cache))
-                rev.filter_cache = None
-                
-                if not self.no_graph:
-                    if rev.merged_by is not None:
-                        if rev.merged_by not in self.ifcr_pending_indexes and \
-                           rev.merged_by not in processed_indexes:
-                            self.ifcr_pending_indexes.append(rev.merged_by)
-            
-            # Check if any visibilities have changes. If they have, call
-            # revisions_filter_changed
-            for index, prev_visible in prev_cached_indexes:
-                if not self.no_graph:
-                    merged_by = self.revisions[index].merged_by
-                else:
-                    merged_by = None
-                
-                if not merged_by or \
-                    self.get_revision_visible_if_branch_visible_cached(merged_by):
-                    visible = self.get_revision_visible_if_branch_visible_cached(index)
-                    if visible <> prev_visible:
-                        self.revisions_filter_changed()
-                        break
-            
-            self.ifcr_last_run_time = clock() - start_time
-            self.ifcr_last_call_time = clock()
-        
-        if last_call:
-            self.ifcr_last_run_time = 0
-            self.ifcr_last_call_time = 0
-    
-    def compute_graph_lines(self):
+    def compute_graph_lines(self, state):
         """Recompute the layout of the graph, and store the results in
         self.revision"""
         
         # Overview:
-        # Clear the old data from self.revisions.
         # Work out which revision need to be displayed.
+        # Create ComputedGraph and ComputedRevision objects
         # Assign columns for branches, and lines that go between branches.
         #   These are intermingled, because some of the lines need to come
         #   before it's branch, and others need to come after. Other lines
         #   (such a the line from the last rev in a branch) are treated a
         #   special cases.
-        # The calcated data is then copied into self.revisions in a format
-        #  that is easy for the TreeView to display.
+        # Return ComputedGraph object
         
         for rev in self.filtered_revs:
             rev.f_index = None
@@ -1280,68 +999,6 @@ class LogGraphProvider(object):
             
             if top_visible_revid:
                 self.branch_labels[top_visible_revid] = head_info
-    
-    def set_branch_visible(self, branch_id, visible, has_change):
-        if not self.branch_lines[branch_id].visible == visible:
-            has_change = True
-        self.branch_lines[branch_id].visible = visible
-        return has_change
-    
-    def ensure_rev_visible(self, revid):
-        if self.no_graph:
-            return False
-        
-        branch_id = self.revid_rev[revid].branch_id
-        has_change = self.set_branch_visible(branch_id, True, False)
-        #while (not branch_id in self.start_branch_ids and
-        #       self.branch_lines[branch_id].merged_by):
-        #    branch_id = self.branch_lines[branch_id].merged_by[0]
-        #    has_change = self.set_branch_visible(branch_id, True, has_change)
-        return has_change
-
-    def has_visible_child(self, branch_id):
-        for child_branch_id in self.branch_lines[branch_id].merged_by:
-            if self.branch_lines[child_branch_id].visible:
-                return True
-        return False
-
-    def collapse_expand_rev(self, revid, visible):
-        rev = self.revid_rev[revid]
-        #if rev.f_index is not None: return
-        branch_ids = zip(rev.twisty_branch_ids,
-                         [rev.branch_id]* len(rev.twisty_branch_ids))
-        processed_branch_ids = []
-        has_change = False
-        while branch_ids:
-            branch_id, expanded_by = branch_ids.pop()
-            processed_branch_ids.append(branch_id)
-            has_change = self.set_branch_visible(branch_id,
-                                                 visible,
-                                                 has_change)
-            if not visible:
-                self.branch_lines[branch_id].expanded_by = None
-                for parent_branch_id in self.branch_lines[branch_id].merges:
-                    parent = self.branch_lines[parent_branch_id]
-                    if (not parent.visible or 
-                        parent_branch_id in branch_ids or 
-                        parent_branch_id in processed_branch_ids):
-                        continue
-                    
-                    if parent.expanded_by == branch_id:
-                        branch_ids.append((parent_branch_id, branch_id))
-                    else:
-                        # Check if this parent has any other visible branches
-                        # that merge it.
-                        has_visible = False
-                        for merged_by_branch_id in parent.merged_by:
-                            if self.branch_lines[merged_by_branch_id].visible:
-                                has_visible = True
-                                break
-                        if not has_visible:
-                            branch_ids.append((parent_branch_id, branch_id))
-            else:
-                self.branch_lines[branch_id].expanded_by = expanded_by
-        return has_change
 
     def has_rev_id(self, revid):
         return revid in self.revid_rev
@@ -1364,89 +1021,6 @@ class LogGraphProvider(object):
             if bi.index is not None:
                 yield bi.index
     
-    def set_search(self, str, field):
-        """Set search string for specified kind of data.
-        @param  str:    string to search (interpreted based on field value)
-        @param  field:  kind of data to search, based on some field
-            of revision metadata. Possible values:
-                - message
-                - index (require bzr-search plugin)
-                - author
-                - tag
-                - bug
-
-        Value of `str` interpreted based on field value. For index it's used
-        as input value for bzr-search engine.
-        For message, author, tag and bug it's used as shell pattern
-        (glob pattern) to search in corresponding metadata of revisions.
-        """
-        self.sr_field = field
-        
-        def revisions_loaded(revisions, last_call):
-            indexes = [self.revid_rev[revid].index
-                       for revid in revisions.iterkeys()]
-            self.invaladate_filter_cache_revs(indexes, last_call)
-        
-        def before_batch_load(repo, revids):
-            if self.sr_filter_re is None:
-                return True
-            return False
-
-        def wildcard2regex(wildcard):
-            """Translate shel pattern to regexp."""
-            return fnmatch.translate(wildcard + '*')
-        
-        if str is None or str == u"":
-            self.sr_filter_re = None
-            self.sr_index_matched_revids = None
-            self.invaladate_filter_cache()
-        else:
-            if self.sr_field == "index":
-                self.sr_filter_re = None
-                indexes = self.search_indexes()
-                if not indexes:
-                    self.sr_index_matched_revids = None
-                else:
-                    str = str.strip()
-                    query = [(query_item,) for query_item in str.split(" ")]
-                    self.sr_index_matched_revids = {}
-                    for index in indexes:
-                        for result in index.search(query):
-                            if isinstance(result, search_index.RevisionHit):
-                                self.sr_index_matched_revids\
-                                        [result.revision_key[0]] = True
-                            if isinstance(result, search_index.FileTextHit):
-                                self.sr_index_matched_revids\
-                                        [result.text_key[1]] = True
-                            if isinstance(result, search_index.PathHit):
-                                pass
-            elif self.sr_field == "tag":
-                self.sr_filter_re = None
-                filter_re = re.compile(wildcard2regex(str), re.IGNORECASE)
-                self.sr_index_matched_revids = {}
-                for revid in self.tags:
-                    for t in self.tags[revid]:
-                        if filter_re.search(t):
-                            self.sr_index_matched_revids[revid] = True
-                            break
-            else:
-                self.sr_filter_re = re.compile(wildcard2regex(str),
-                    re.IGNORECASE)
-                self.sr_index_matched_revids = None
-            
-            self.invaladate_filter_cache()
-            
-            if self.sr_filter_re is not None\
-               and not self.sr_loading_revisions:
-                
-                revids = [rev.revid for rev in self.revisions ]
-                
-                self.load_revisions(revids,
-                                    time_before_first_ui_update = 0,
-                                    local_batch_size = 100,
-                                    remote_batch_size = 10,
-                                    before_batch_load = before_batch_load,
-                                    revisions_loaded = revisions_loaded)
     
     def get_revid_branch_info(self, revid):
         if revid in self.ghosts:
@@ -1487,10 +1061,6 @@ class LogGraphProvider(object):
                       *args, **kargs):
         return load_revisions(revids, self.get_repo_revids,
                               *args, **kargs)
-    
-    def revisions_filter_changed(self):
-        pass
-
 
 class PendingMergesGraphProvider(LogGraphProvider):
     
@@ -1603,3 +1173,380 @@ class WithWorkingTreeGraphProvider(LogGraphProvider):
             sort_heads.append(branch_last_revision)
         
         return load_heads, sort_heads, extra_parents
+
+
+class GraphProviderFilterState(object):
+    
+    def __init__(self, graph_provider):
+        self.graph_provider = graph_provider
+        self.branch_line_state = {}
+        "If a branch_id is in this dict, it is visible. The value of the dict "
+        "indicates which branches expanded this branch."
+        
+        for revid in self.graph_provider.revid_head_info:
+            rev_cache = self.graph_provider.revid_rev[revid]
+            self.branch_line_state[rev_cache.branch_id] = []
+        
+        self.filters = []
+    
+    def get_revision_visible_if_branch_visible(self, index):
+        #This was previously cached. TODO: Check if this is still needed.
+        if not self.no_graph:
+            rev = self.revisions[index]
+            for merged_index in rev.merges:
+                if self.get_revision_visible_if_branch_visible_cached(
+                                                            merged_index):
+                    return True
+        
+        for filter in self.filters:
+            filter_value = filter.get_revision_visible(index)
+            if filter_value is not None:
+                return filter_value
+        
+        return True
+    
+    def set_branch_visible(self, branch_id, visible, has_change):
+        if not self.branch_lines[branch_id].visible == visible:
+            has_change = True
+        self.branch_lines[branch_id].visible = visible
+        return has_change
+    
+    def ensure_rev_visible(self, revid):
+        if self.no_graph:
+            return False
+        
+        branch_id = self.revid_rev[revid].branch_id
+        has_change = self.set_branch_visible(branch_id, True, False)
+        #while (not branch_id in self.start_branch_ids and
+        #       self.branch_lines[branch_id].merged_by):
+        #    branch_id = self.branch_lines[branch_id].merged_by[0]
+        #    has_change = self.set_branch_visible(branch_id, True, has_change)
+        return has_change
+    
+
+    def collapse_expand_rev(self, revid, visible):
+        rev = self.revid_rev[revid]
+        #if rev.f_index is not None: return
+        branch_ids = zip(rev.twisty_branch_ids,
+                         [rev.branch_id]* len(rev.twisty_branch_ids))
+        processed_branch_ids = []
+        has_change = False
+        while branch_ids:
+            branch_id, expanded_by = branch_ids.pop()
+            processed_branch_ids.append(branch_id)
+            has_change = self.set_branch_visible(branch_id,
+                                                 visible,
+                                                 has_change)
+            if not visible:
+                self.branch_lines[branch_id].expanded_by = None
+                for parent_branch_id in self.branch_lines[branch_id].merges:
+                    parent = self.branch_lines[parent_branch_id]
+                    if (not parent.visible or 
+                        parent_branch_id in branch_ids or 
+                        parent_branch_id in processed_branch_ids):
+                        continue
+                    
+                    if parent.expanded_by == branch_id:
+                        branch_ids.append((parent_branch_id, branch_id))
+                    else:
+                        # Check if this parent has any other visible branches
+                        # that merge it.
+                        has_visible = False
+                        for merged_by_branch_id in parent.merged_by:
+                            if self.branch_lines[merged_by_branch_id].visible:
+                                has_visible = True
+                                break
+                        if not has_visible:
+                            branch_ids.append((parent_branch_id, branch_id))
+            else:
+                self.branch_lines[branch_id].expanded_by = expanded_by
+        return has_change
+    
+
+class FileIdFilter (object):
+    def __init__(self, graph_provider, filter_changed_callback, file_ids):
+        self.graph_provider = graph_provider
+        self.filter_changed_callback = filter_changed_callback
+        self.file_ids = file_ids
+        self._has_dir = False
+        self.filter_file_id = None
+    
+    def uses_inventory(self):
+        return self.has_dir
+    
+    def load(self):
+        """Load which revisions affect the file_ids"""
+        if self.file_ids:
+            self.throbber_show()
+            
+            if len(self.branches)>1:
+                raise errors.BzrCommandError(paths_and_branches_err)
+            
+            bi = self.branches[0]
+            tree = bi.tree
+            if tree is None:
+                tree = bi.branch.basis_tree()
+            
+            tree.lock_read()
+            try:
+                self.has_dir = False
+                for file_id in self.file_ids:
+                    if tree.kind(file_id) in ('directory', 'tree-reference'):
+                        self.has_dir = True
+                        break
+            finally:
+                tree.unlock()
+            
+            self.filter_file_id = [False for i in 
+                         xrange(len(self.revisions))]
+            
+            revids = [rev.revid for rev in self.revisions]
+            
+            for repo, revids in self.get_repo_revids(revids):
+                if not self.load_filter_file_id_uses_inventory():
+                    chunk_size = 500
+                else:
+                    chunk_size = 500
+                
+                for start in xrange(0, len(revids), chunk_size):
+                    self.load_filter_file_id_chunk(repo, 
+                            revids[start:start + chunk_size])
+            
+            self.load_filter_file_id_chunk_finished()
+    
+    def load_filter_file_id_chunk(self, repo, revids):
+        def check_text_keys(text_keys):
+            changed_indexes = []
+            for file_id, revid in repo.texts.get_parent_map(text_keys):
+                rev = self.revid_rev[revid]
+                self.filter_file_id[rev.index] = True
+                changed_indexes.append(rev.index)
+            
+            self.update_ui()
+            self.invaladate_filter_cache_revs(changed_indexes)
+            self.update_ui()
+        
+        repo.lock_read()
+        try:
+            if not self.load_filter_file_id_uses_inventory():
+                text_keys = [(file_id, revid) 
+                                for revid in revids
+                                for file_id in self.file_ids]
+                check_text_keys(text_keys)
+            else:
+                text_keys = []
+                # We have to load the inventory for each revisions, to find
+                # the children of any directoires.
+                for inv, revid in zip(
+                            repo.iter_inventories(revids),
+                            revids):
+                    for path, entry in inv.iter_entries_by_dir(
+                                            specific_file_ids = self.file_ids):
+                        text_keys.append((entry.file_id, revid))
+                        if entry.kind == "directory":
+                            for rc_path, rc_entry in inv.iter_entries(from_dir = entry):
+                                text_keys.append((rc_entry.file_id, revid))
+                    
+                    self.update_ui()
+                
+                check_text_keys(text_keys)
+        finally:
+            repo.unlock()
+
+    def load_filter_file_id_chunk_finished(self):
+        self.invaladate_filter_cache_revs([], last_call=True)
+        self.throbber_hide()
+    
+    def get_revision_visible(self, index):
+        if self.filter_file_id is None:
+            return False
+        if not self.filter_file_id[index]:
+            return False
+
+class PropertySearchFilter (object):
+    def __init__(self, graph_provider, field, filter_re):
+        self.graph_provider = graph_provider
+        self.field = field
+        self.filter_re = filter_re
+        self._cache = None
+    
+    def set_search(self, str, field):
+        """Set search string for specified kind of data.
+        @param  str:    string to search (interpreted based on field value)
+        @param  field:  kind of data to search, based on some field
+            of revision metadata. Possible values:
+                - message
+                - index (require bzr-search plugin)
+                - author
+                - tag
+                - bug
+
+        Value of `str` interpreted based on field value. For index it's used
+        as input value for bzr-search engine.
+        For message, author, tag and bug it's used as shell pattern
+        (glob pattern) to search in corresponding metadata of revisions.
+        """
+        self.sr_field = field
+        
+        def revisions_loaded(revisions, last_call):
+            indexes = [self.revid_rev[revid].index
+                       for revid in revisions.iterkeys()]
+            self.invaladate_filter_cache_revs(indexes, last_call)
+        
+        def before_batch_load(repo, revids):
+            if self.sr_filter_re is None:
+                return True
+            return False
+
+        def wildcard2regex(wildcard):
+            """Translate shel pattern to regexp."""
+            return fnmatch.translate(wildcard + '*')
+        
+        if str is None or str == u"":
+            self.sr_filter_re = None
+            self.sr_index_matched_revids = None
+            self.invaladate_filter_cache()
+        else:
+            if self.sr_field == "index":
+                self.sr_filter_re = None
+                indexes = self.search_indexes()
+                if not indexes:
+                    self.sr_index_matched_revids = None
+                else:
+                    str = str.strip()
+                    query = [(query_item,) for query_item in str.split(" ")]
+                    self.sr_index_matched_revids = {}
+                    for index in indexes:
+                        for result in index.search(query):
+                            if isinstance(result, search_index.RevisionHit):
+                                self.sr_index_matched_revids\
+                                        [result.revision_key[0]] = True
+                            if isinstance(result, search_index.FileTextHit):
+                                self.sr_index_matched_revids\
+                                        [result.text_key[1]] = True
+                            if isinstance(result, search_index.PathHit):
+                                pass
+            elif self.sr_field == "tag":
+                self.sr_filter_re = None
+                filter_re = re.compile(wildcard2regex(str), re.IGNORECASE)
+                self.sr_index_matched_revids = {}
+                for revid in self.tags:
+                    for t in self.tags[revid]:
+                        if filter_re.search(t):
+                            self.sr_index_matched_revids[revid] = True
+                            break
+            else:
+                self.sr_filter_re = re.compile(wildcard2regex(str),
+                    re.IGNORECASE)
+                self.sr_index_matched_revids = None
+            
+            self.invaladate_filter_cache()
+            
+            if self.sr_filter_re is not None\
+               and not self.sr_loading_revisions:
+                
+                revids = [rev.revid for rev in self.revisions ]
+                
+                self.load_revisions(revids,
+                                    time_before_first_ui_update = 0,
+                                    local_batch_size = 100,
+                                    remote_batch_size = 10,
+                                    before_batch_load = before_batch_load,
+                                    revisions_loaded = revisions_loaded)
+    
+    def get_revision_visible(self, index):
+        revid = self.revisions[index].revid
+        
+        if self.sr_filter_re:
+            if revid not in cached_revisions:
+                return False
+            revision = cached_revisions[revid]
+            
+            filtered_str = None
+            if self.sr_field == "message":
+                filtered_str = revision.message
+            elif self.sr_field == "author":
+                filtered_str = get_apparent_author(revision)
+            elif self.sr_field == "bug":
+                rbugs = revision.properties.get('bugs', '')
+                if rbugs:
+                    filtered_str = rbugs.replace('\n', ' ')
+                else:
+                    return False
+
+            if filtered_str is not None:
+                if self.sr_filter_re.search(filtered_str) is None:
+                    return False
+        
+        if self.sr_index_matched_revids is not None:
+            if revid not in self.sr_index_matched_revids:
+                return False        
+
+class FilterScheduler(object):
+    def __init__(self):
+        self.pending_indexes = []
+        self.last_run_time = 0
+        self.last_call_time = 0
+    def invaladate_filter_cache_revs(self, indexes, last_call=False):
+        self.ifcr_pending_indexes.extend(indexes)
+        # Only notify that there are changes every so often.
+        # invaladate_filter_cache_revs causes compute_graph_lines to run, and it
+        # runs slowly because it has to update the filter cache. How often we
+        # update is bases on a ratio of 10:1. If we spend 1 sec calling
+        # invaladate_filter_cache_revs, don't call it again until we have spent
+        # 10 sec else where.
+        if last_call or \
+                clock() - self.ifcr_last_call_time > \
+                self.ifcr_last_run_time * 10:
+            
+            start_time = clock()        
+            prev_cached_indexes = []
+            processed_indexes = []
+            while self.ifcr_pending_indexes:
+                index = self.ifcr_pending_indexes.pop(0)
+                
+                if index in processed_indexes:
+                    continue
+                rev = self.revisions[index]
+                
+                if rev.filter_cache is not None:
+                    prev_cached_indexes.append((index, rev.filter_cache))
+                rev.filter_cache = None
+                
+                if not self.no_graph:
+                    if rev.merged_by is not None:
+                        if rev.merged_by not in self.ifcr_pending_indexes and \
+                           rev.merged_by not in processed_indexes:
+                            self.ifcr_pending_indexes.append(rev.merged_by)
+            
+            # Check if any visibilities have changes. If they have, call
+            # revisions_filter_changed
+            for index, prev_visible in prev_cached_indexes:
+                if not self.no_graph:
+                    merged_by = self.revisions[index].merged_by
+                else:
+                    merged_by = None
+                
+                if not merged_by or \
+                    self.get_revision_visible_if_branch_visible_cached(merged_by):
+                    visible = self.get_revision_visible_if_branch_visible_cached(index)
+                    if visible <> prev_visible:
+                        self.revisions_filter_changed()
+                        break
+            
+            self.ifcr_last_run_time = clock() - start_time
+            self.ifcr_last_call_time = clock()
+        
+        if last_call:
+            self.ifcr_last_run_time = 0
+            self.ifcr_last_call_time = 0
+
+class ComputedRevision(object):
+    __slots__ = ['rev_cache', 'f_index', 'lines', 'col_index', 'branch_tags',
+                 'twisty_state', 'twisty_expands_branch_ids']
+
+class ComputedGraph(object):
+    def __init__(self, graph_provider):
+        self.filtered_revisions = []
+        self.revisions = []
+        
