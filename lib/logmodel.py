@@ -142,6 +142,8 @@ class LogModel(QtCore.QAbstractTableModel):
             self.state = state
             self.computed = loggraphprovider.ComputedGraph(graph_provider)
             self.emit(QtCore.SIGNAL("layoutChanged()"))
+            
+            self.compute_lines()
         finally:
             self.throbber.hide()
         
@@ -149,7 +151,7 @@ class LogModel(QtCore.QAbstractTableModel):
         #QtCore.QTimer.singleShot(1, self.graph_provider.load_filter_file_id)
     
     def compute_lines(self):
-        self.graph_provider.compute_graph_lines()
+        self.computed = self.graph_provider.compute_graph_lines(self.state)
         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                   self.createIndex (0, COL_MESSAGE, QtCore.QModelIndex()),
                   self.createIndex (len(self.graph_provider.revisions),
@@ -200,7 +202,6 @@ class LogModel(QtCore.QAbstractTableModel):
         if not index.isValid():
             return QtCore.QVariant()
         
-        gp = self.graph_provider
         if self.last_rev_is_placeholder and \
                 index.row() == len(gp.revisions) - 1:
             if role == GraphNodeRole:
@@ -208,11 +209,11 @@ class LogModel(QtCore.QAbstractTableModel):
                                           QtCore.QVariant(0)])
             return QtCore.QVariant()
         
-        rev_info = gp.revisions[index.row()]
+        c_rev = self.computed.revisions[index.row()]
         
         if role == GraphLinesRole:
             qlines = []
-            for start, end, color, direct in rev_info.lines:
+            for start, end, color, direct in c_rev.lines:
                 qlines.append(QVariant_fromList(
                     [QtCore.QVariant(start),
                      QtCore.QVariant(end),
@@ -221,7 +222,7 @@ class LogModel(QtCore.QAbstractTableModel):
             return QVariant_fromList(qlines)
         
         if self.last_rev_is_placeholder and \
-                rev_info.index == len(self.graph_provider.revisions) - 1:
+                rev_info.index == len(self.computed.revisions) - 1:
             if role == GraphNodeRole:
                 return QVariant_fromList([QtCore.QVariant(-1), QtCore.QVariant(0)])
             if role == QtCore.Qt.DisplayRole:
@@ -229,54 +230,49 @@ class LogModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant()
 
         if role == GraphNodeRole:
-            if rev_info.col_index is None:
+            if c_rev.col_index is None:
                 return QtCore.QVariant()
-            return QVariant_fromList([QtCore.QVariant(rev_info.col_index),
-                                      QtCore.QVariant(rev_info.color)])
+            return QVariant_fromList([QtCore.QVariant(c_rev.col_index),
+                                      QtCore.QVariant(c_rev.rev.branch.color)])
         
         if role == GraphTwistyStateRole:
-            if rev_info.twisty_state is None:
+            if c_rev.twisty_state is None:
                 return QtCore.QVariant()
             if index.row() == self.clicked_row:
                 return QtCore.QVariant(-1)
-            return QtCore.QVariant(rev_info.twisty_state)
+            return QtCore.QVariant(c_rev.twisty_state)
         
         if (role == QtCore.Qt.DisplayRole and index.column() == COL_REV) :
-            return QtCore.QVariant(rev_info.revno_str)
+            return QtCore.QVariant(c_rev.rev.revno_str)
         
         if role == TagsRole:
             tags = []
-            if rev_info.revid in gp.tags:
-                tags = list(gp.tags[rev_info.revid])
+            if c_rev.rev.revid in self.graph_provider.tags:
+                tags = list(self.graph_provider.tags[c_rev.rev.revid])
             return QtCore.QVariant(QtCore.QStringList(tags))
         
         if role == BranchTagsRole:
-            labels = []
-            if rev_info.revid in gp.branch_labels:
-                labels =  [label for (branch, label)
-                           in gp.branch_labels[rev_info.revid]
-                           if label]
+            labels =  [label
+                       for (branch_info, label) in c_rev.branch_labels
+                       if label]
             return QtCore.QVariant(QtCore.QStringList(labels))
         
         if role == QtCore.Qt.ToolTipRole and index.column() == COL_MESSAGE:
-            urls = []
-            if rev_info.revid in gp.branch_labels:
-                urls =  [branch_info.branch.base
-                         for (branch_info, label)
-                         in gp.branch_labels[rev_info.revid]
-                         if label]
+            urls =  [branch_info.branch.base
+                     for (branch_info, label) in c_rev.branch_labels
+                     if label]
             return QtCore.QVariant('\n'.join(urls))
         
         if role == RevIdRole:
-            return QtCore.QVariant(QtCore.QByteArray(str(rev_info.revid)))
+            return QtCore.QVariant(QtCore.QByteArray(str(c_rev.rev.revid)))
         
         #Everything from here foward will need to have the revision loaded.
-        if rev_info.revid not in cached_revisions:
+        if c_rev.rev.revid not in cached_revisions:
             if role == QtCore.Qt.DisplayRole:
                 return QtCore.QVariant("")
             return QtCore.QVariant()
         
-        revision = cached_revisions[rev_info.revid]
+        revision = cached_revisions[c_rev.rev.revid]
         
         if role == QtCore.Qt.DisplayRole and index.column() == COL_DATE:
             return QtCore.QVariant(strftime("%Y-%m-%d %H:%M",

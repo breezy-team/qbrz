@@ -56,7 +56,7 @@ class BranchInfo(object):
 class RevisionCache(object):
     """Holds information about a revision that can be cached."""
     
-    # Instance of this object are typicaly named "rev_cache".
+    # Instance of this object are typicaly named "rev".
     
     __slots__ = ["index", "_merge_sort_node", "branch", "_revno_str", 
                  "merges", "merged_by", ]
@@ -158,10 +158,6 @@ class LogGraphProvider(object):
         """
         
         self.revid_branch_info = {}
-        
-        self.branch_labels = {}
-        """Dict of revid to a list of branch tags. Depends on which revisions
-        are visible."""
         
         self.ghosts = set()
         
@@ -451,6 +447,7 @@ class LogGraphProvider(object):
             
             branch_line.revs.append(rev)
             branch_line.merge_depth = max(rev.merge_depth, branch_line.merge_depth)
+            rev.branch = branch_line
         
         self.branch_ids = self.branch_lines.keys()
         
@@ -573,8 +570,6 @@ class LogGraphProvider(object):
     
     
     def compute_graph_lines(self, state):
-        """Recompute the layout of the graph, and store the results in
-        self.revision"""
         
         # Overview:
         # Work out which revision need to be displayed.
@@ -586,38 +581,37 @@ class LogGraphProvider(object):
         #   special cases.
         # Return ComputedGraph object
         
-        for rev in self.filtered_revs:
-            rev.f_index = None
-            rev.col_index = None
-            rev.lines = []
-            rev.twisty_state = None
-            rev.twisty_branch_ids = []
+        computed = ComputedGraph(self)
         
-        self.filtered_revs = []
-        
-        # This is a performance hack. The code will work without it, but will be
-        # slower.
         if self.no_graph:
             rev_whos_branch_is_visible = self.revisions
         else:
             rev_whos_branch_is_visible = []
-            for branch_line in self.branch_lines.itervalues():
-                if branch_line.visible:
-                    rev_whos_branch_is_visible.extend(branch_line.revs)
+            for branch_id in state.branch_line_state.iterkeys():
+                branch_line = self.branch_lines[branch_id]
+                rev_whos_branch_is_visible.extend(branch_line.revs)
             rev_whos_branch_is_visible.sort(key=lambda rev: rev.index)
         
-        # The following commented line would be use without the above
-        # performance hack.
-        #for index in xrange(0,len(self.revisions)):
         for rev in rev_whos_branch_is_visible:
-            # The following would use just get_revision_visible without the
-            # above performance hack.
-            if self.get_revision_visible_if_branch_visible_cached(rev.index): 
-                rev.f_index = len(self.filtered_revs)
-                self.filtered_revs.append(rev)
+            if state.get_revision_visible_if_branch_visible(rev):
+                c_rev = ComputedRevision(
+                    rev, len(computed.filtered_revs))
+                computed.filtered_revs.append(c_rev)
+                computed.revisions[rev.index] = c_rev
+        
+        for (revid, (head_info,
+                     unique_revids)) in self.revid_head_info.iteritems():
+            top_visible_revid = None
+            
+            for unique_revid in unique_revids:
+                rev = self.revid_rev[unique_revid]
+                if computed.revisions[rev.index] is not None:
+                    c_rev = computed.revisions[rev.index]
+                    c_rev.branch_labels.append(head_info)
+                    break
         
         if self.no_graph:
-            return
+            return computed
         
         # This will hold a tuple of (child_index, parent_index, col_index,
         # direct) for each line that needs to be drawn. If col_index is not
@@ -754,206 +748,213 @@ class LogGraphProvider(object):
                     direct ))
         
         for branch_id in self.branch_ids:
-            branch_line = self.branch_lines[branch_id]
+            if not branch_id in state.branch_line_state:
+                continue
             
-            if branch_line.visible:
-                branch_revs = [rev for rev in branch_line.revs
-                                    if rev.f_index is not None]
-            else:
-                branch_revs = []
+            branch_line = self.branch_lines[branch_id]
+            branch_revs = [computed.revisions[rev.index]
+                           for rev in branch_line.revs
+                           if computed.revisions[rev.index] is not None]
+            
+            if not branch_revs:
+                continue
+            
+            # In this loop:
+            # * Find visible parents.
+            # * Populate twisty_branch_ids and twisty_state
+            branch_rev_visible_parents = []
+            
+            for c_rev in branch_revs:
+                rev = c_rev.rev
+                # Find parents that are currently visible
+                rev_visible_parents = [] # List of (parent_rev, is_direct)
                 
-            if branch_revs:
-                # In this loop:
-                # * Find visible parents.
-                # * Populate twisty_branch_ids and twisty_state
-                branch_rev_visible_parents = {}
+                parents = [self.revid_rev[parent_revid] for parent_revid in 
+                           self.known_graph.get_parent_keys(rev.revid)]
+                # Don't include left hand parents (unless this is the last
+                # revision of the branch.) All of these parents in the
+                # branch can be drawn with one line.
+                last_in_branch = c_rev == branch_revs[-1]
+                if not last_in_branch:
+                    parents = parents[1:]
                 
-                for rev in branch_revs:
-                    # Find parents that are currently visible
-                    rev_visible_parents = [] # List of (parent_rev, is_direct)
-                    
-                    parents = [self.revid_rev[parent_revid] for parent_revid in 
-                               self.known_graph.get_parent_keys(rev.revid)]
-                    # Don't include left hand parents (unless this is the last
-                    # revision of the branch.) All of these parents in the
-                    # branch can be drawn with one line.
-                    last_in_branch = rev.index == branch_revs[-1].index
-                    if not last_in_branch:
-                        parents = parents[1:]
-                    
-                    twisty_hidden_parents = []
-                    # Find and add nessery twisties
-                    for parent in parents:
-                        if parent.branch_id == branch_id:
-                            continue
-                        if parent.branch_id == ():
-                            continue
-                        if parent.branch_id in branch_line.merged_by:
-                            continue
-                        parent_branch = self.branch_lines[parent.branch_id]
-                        # Does this branch have any visible revisions
-                        for pb_rev in parent_branch.revs:
-                            visible = pb_rev.f_index is not None or \
-                                self.get_revision_visible_if_branch_visible_cached (pb_rev.index)
-                            if visible:
-                                rev.twisty_branch_ids.append (parent.branch_id)
-                                parent_branch = self.branch_lines[parent.branch_id]
-                                if not parent_branch.visible:
-                                    twisty_hidden_parents.append(parent.index)
-                                break
-                    
-                    # Work out if the twisty needs to show a + or -. If all
-                    # twisty_branch_ids are visible, show - else +.
-                    if len (rev.twisty_branch_ids)>0:
-                        rev.twisty_state = True
-                        for twisty_branch_id in rev.twisty_branch_ids:
-                            if not self.branch_lines[twisty_branch_id].visible:
-                                rev.twisty_state = False
-                                break
-                    
-                    for i, parent in enumerate(parents):
-                        if parent.f_index is not None:
-                            rev_visible_parents.append((parent, True))
+                twisty_hidden_parents = []
+                # Find and add nessery twisties
+                for parent in parents:
+                    if parent.branch_id == branch_id:
+                        continue
+                    if parent.branch_id == ():
+                        continue
+                    if parent.branch_id in branch_line.merged_by:
+                        continue
+                    parent_branch = self.branch_lines[parent.branch_id]
+                    # Does this branch have any visible revisions
+                    for pb_rev in parent_branch.revs:
+                        pb_visible = parent_branch.branch_id in state.branch_line_state
+                        if pb_visible:
+                            visible = bool(computed.revisions[pb_rev.index])
                         else:
-                            if (parent.index in twisty_hidden_parents and
-                                not (i==0 and last_in_branch)):
-                                # no need to draw a line if there is a twisty,
-                                # except if this is the last in the branch.
-                                continue
-                            # The parent was not visible. Search for a ansestor
-                            # that is. Stop searching if we make a hop, i.e. we
-                            # go away from our branch, and we come back to it.
-                            has_seen_different_branch = False
-                            while parent.f_index is None:
-                                if not parent.branch_id == branch_id:
-                                    has_seen_different_branch = True
-                                # find grand parent.
-                                g_parent_ids = self.known_graph.get_parent_keys(parent.revid)
-                                
-                                if len(g_parent_ids) == 0:
-                                    parent = None
-                                    break
-                                else:
-                                    parent = self.revid_rev[g_parent_ids[0]]
-                                
-                                if has_seen_different_branch and parent.branch_id == branch_id:
-                                    # We have gone away and come back to our
-                                    # branch. Stop.
-                                    parent = None
-                                    break
-                            if parent:
-                                rev_visible_parents.append((parent, False)) # Not Direct
-                    branch_rev_visible_parents[rev.index]=rev_visible_parents
+                            visible = state.get_revision_visible_if_branch_visible(pb_rev)
+                        if visible:
+                            c_rev.twisty_expands_branch_ids.append (parent_branch.branch_id)
+                            if not pb_visible:
+                                twisty_hidden_parents.append(parent.index)
+                            break
                 
-                # Find the first parent of the last rev in the branch line
+                # Work out if the twisty needs to show a + or -. If all
+                # twisty_branch_ids are visible, show - else +.
+                if len (c_rev.twisty_expands_branch_ids)>0:
+                    c_rev.twisty_state = True
+                    for twisty_branch_id in c_rev.twisty_expands_branch_ids:
+                        if not twisty_branch_id in state.branch_line_state:
+                            c_rev.twisty_state = False
+                            break
+                
+                for i, parent in enumerate(parents):
+                    if computed.revisions[parent.index] is not None:
+                        rev_visible_parents.append((parent, True))
+                    else:
+                        if (parent.index in twisty_hidden_parents and
+                            not (i==0 and last_in_branch)):
+                            # no need to draw a line if there is a twisty,
+                            # except if this is the last in the branch.
+                            continue
+                        # The parent was not visible. Search for a ansestor
+                        # that is. Stop searching if we make a hop, i.e. we
+                        # go away from our branch, and we come back to it.
+                        has_seen_different_branch = False
+                        while computed.revisions[parent.index] is None:
+                            if not parent.branch_id == branch_id:
+                                has_seen_different_branch = True
+                            # find grand parent.
+                            g_parent_ids = self.known_graph.get_parent_keys(parent.revid)
+                            
+                            if len(g_parent_ids) == 0:
+                                parent = None
+                                break
+                            else:
+                                parent = self.revid_rev[g_parent_ids[0]]
+                            
+                            if has_seen_different_branch and parent.branch_id == branch_id:
+                                # We have gone away and come back to our
+                                # branch. Stop.
+                                parent = None
+                                break
+                        if parent:
+                            rev_visible_parents.append((parent, False)) # Not Direct
+                branch_rev_visible_parents.append(rev_visible_parents)
+            
+            # Find the first parent of the last rev in the branch line
+            if branch_rev_visible_parents[-1]:
+                last_parent = branch_rev_visible_parents[-1].pop(0)
+            else:
                 last_parent = None
-                last_rev = branch_revs[-1]
-                if branch_rev_visible_parents[last_rev.index]:
-                    last_parent = branch_rev_visible_parents[last_rev.index].pop(0)
-                
-                children_with_sprout_lines = {}
-                # In this loop:
-                # * Append lines that need to go to parents before the branch
-                #   (say inbetween the main line and the branch). Remove the
-                #   ones we append from rev_visible_parents so they don't get
-                #   added again later on.
-                # * Append lines to chilren for sprouts.
-                for rev in branch_revs:
-                    rev_visible_parents = branch_rev_visible_parents[rev.index]
-                    i = 0
-                    while i < len(rev_visible_parents):
-                        (parent, direct) = rev_visible_parents[i]
-                        
-                        if (rev.index <> last_rev.index or i > 0 )and \
-                           branch_id <> () and \
-                           self.branch_ids.index(parent.branch_id) <= self.branch_ids.index(branch_id) and\
-                           (last_parent and not direct and last_parent[0].index >= parent.index or not last_parent or direct):
-                            
-                            if parent.f_index - rev.f_index >1:
-                                rev_visible_parents.pop(i)
-                                i -= 1
-                                append_line(rev, parent, direct)
-                        i += 1
+            
+            children_with_sprout_lines = {}
+            # In this loop:
+            # * Append lines that need to go to parents before the branch
+            #   (say inbetween the main line and the branch). Remove the
+            #   ones we append from rev_visible_parents so they don't get
+            #   added again later on.
+            # * Append lines to chilren for sprouts.
+            for c_rev, rev_visible_parents in zip(branch_revs,
+                                                  branch_rev_visible_parents):
+                i = 0
+                while i < len(rev_visible_parents):
+                    (parent, direct) = rev_visible_parents[i]
                     
-                    # This may be a sprout. Add line to first visible child
-                    if rev.merged_by is not None:
-                        merged_by = self.revisions[rev.merged_by]
-                        if merged_by.f_index is None and\
-                           rev.index == merged_by.merges[0]:
-                            # The revision that merges this revision is not
-                            # visible, and it is the first revision that is
-                            # merged by that revision. This is a sprout.
-                            #
-                            # XXX What if multiple merges with --force,
-                            # aka ocutpus merge?
-                            #
-                            # Search until we find a decendent that is visible.
-                            
-                            while merged_by is not None and \
-                                  merged_by.f_index is None:
-                                if merged_by.merged_by is not None:
-                                    merged_by = self.revisions[merged_by.merged_by]
-                                else:
-                                    merged_by = None
-                            
-                            if merged_by is not None:
-                                # Ensure only one line to a decendent.
-                                if merged_by.index not in children_with_sprout_lines:
-                                    children_with_sprout_lines[merged_by.index] = True
-                                    if merged_by.f_index is not None:
-                                        append_line(merged_by, rev, False)
+                    if (rev.index <> last_rev.index or i > 0 )and \
+                       branch_id <> () and \
+                       self.branch_ids.index(parent.branch_id) <= self.branch_ids.index(branch_id) and\
+                       (last_parent and not direct and last_parent[0].index >= parent.index or not last_parent or direct):
+                        
+                        if parent.f_index - rev.f_index >1:
+                            rev_visible_parents.pop(i)
+                            i -= 1
+                            append_line(rev, parent, direct)
+                    i += 1
                 
-                # Find a column for this branch.
-                #
-                # Find the col_index for the direct parent branch. This will
-                # be the starting point when looking for a free column.
-                
-                parent_col_index = 0
-                parent_f_index = None
-                
-                if last_parent and last_parent[0].col_index is not None:
-                    parent_col_index = last_parent[0].col_index
-                
-                if not branch_id == ():
-                    parent_col_index = max(parent_col_index, 1)
-                
-                col_search_order = branch_line_col_search_order(parent_col_index) 
-                
-                if last_parent:
-                    col_index = find_free_column(col_search_order,
-                                                 branch_revs[0].f_index,
-                                                 last_parent[0].f_index)
-                else:
-                    col_index = find_free_column(col_search_order,
-                                                 branch_revs[0].f_index,
-                                                 branch_revs[-1].f_index)
-                
-                # Free column for this branch found. Set node for all
-                # revision in this branch.
-                for rev in branch_revs:
-                    rev.col_index = col_index
-                
-                append_line(branch_revs[0], branch_revs[-1], True, col_index)
-                if last_parent:
-                    append_line(branch_revs[-1], last_parent[0],
-                                last_parent[1], col_index)
-                
-                # In this loop:
-                # * Append the remaining lines to parents.
-                for rev in reversed(branch_revs):
-                    for (parent, direct) in branch_rev_visible_parents[rev.index]:
-                        append_line(rev, parent, direct)
+                # This may be a sprout. Add line to first visible child
+                if rev.merged_by is not None:
+                    merged_by = self.revisions[rev.merged_by]
+                    if merged_by.f_index is None and\
+                       rev.index == merged_by.merges[0]:
+                        # The revision that merges this revision is not
+                        # visible, and it is the first revision that is
+                        # merged by that revision. This is a sprout.
+                        #
+                        # XXX What if multiple merges with --force,
+                        # aka ocutpus merge?
+                        #
+                        # Search until we find a decendent that is visible.
+                        
+                        while merged_by is not None and \
+                              merged_by.f_index is None:
+                            if merged_by.merged_by is not None:
+                                merged_by = self.revisions[merged_by.merged_by]
+                            else:
+                                merged_by = None
+                        
+                        if merged_by is not None:
+                            # Ensure only one line to a decendent.
+                            if merged_by.index not in children_with_sprout_lines:
+                                children_with_sprout_lines[merged_by.index] = True
+                                if merged_by.f_index is not None:
+                                    append_line(merged_by, rev, False)
+            
+            # Find a column for this branch.
+            #
+            # Find the col_index for the direct parent branch. This will
+            # be the starting point when looking for a free column.
+            
+            parent_col_index = 0
+            parent_f_index = None
+            
+            if last_parent and last_parent[0].col_index is not None:
+                parent_col_index = last_parent[0].col_index
+            
+            if not branch_id == ():
+                parent_col_index = max(parent_col_index, 1)
+            
+            col_search_order = branch_line_col_search_order(parent_col_index) 
+            
+            if last_parent:
+                col_index = find_free_column(col_search_order,
+                                             branch_revs[0].f_index,
+                                             last_parent[0].f_index)
+            else:
+                col_index = find_free_column(col_search_order,
+                                             branch_revs[0].f_index,
+                                             branch_revs[-1].f_index)
+            
+            # Free column for this branch found. Set node for all
+            # revision in this branch.
+            for rev in branch_revs:
+                rev.col_index = col_index
+            
+            append_line(branch_revs[0], branch_revs[-1], True, col_index)
+            if last_parent:
+                append_line(branch_revs[-1], last_parent[0],
+                            last_parent[1], col_index)
+            
+            # In this loop:
+            # * Append the remaining lines to parents.
+            for rev, rev_visible_parents in reversed(
+                        zip(branch_revs, branch_rev_visible_parents)):
+                for (parent, direct) in rev_visible_parents:
+                    append_line(rev, parent, direct)
         
         # It has now been calculated which column a line must go into. Now
-        # copy the lines in to graph_line_data.
+        # copy the lines in to computed_revisions.
         for (child_f_index,
              parent_f_index,
              line_col_index,
              direct,
              ) in lines:
             
-            child = self.filtered_revs[child_f_index]
-            parent = self.filtered_revs[parent_f_index]
+            child = computed.filtered_revs[child_f_index]
+            parent = computed.filtered_revs[parent_f_index]
+            parent_color = parent.rev.branch.color
             
             line_length = parent_f_index - child_f_index
             if line_length == 0:
@@ -963,42 +964,30 @@ class LogGraphProvider(object):
                 child.lines.append(
                     (child.col_index,
                      parent.col_index,
-                     parent.color,
+                     parent_color,
                      direct))
             else:
                 # line from the child's column to the lines column
                 child.lines.append(
                     (child.col_index,
                      line_col_index,
-                     parent.color,
+                     parent_color,
                      direct))
                 # lines down the line's column
                 for line_part_f_index in range(child_f_index+1, parent_f_index-1):
-                    self.filtered_revs[line_part_f_index].lines.append(
+                    computed.filtered_revs[line_part_f_index].lines.append(
                         (line_col_index,
                          line_col_index,
-                         parent.color,
+                         parent_color,
                          direct))
                 # line from the line's column to the parent's column
-                self.filtered_revs[parent.f_index-1].lines.append(
+                computed.filtered_revs[parent.f_index-1].lines.append(
                     (line_col_index,
                      parent.col_index,
-                     parent.color,
+                     parent_color,
                      direct))
         
-        self.branch_labels = {}
-        for (revid, (head_info,
-                     unique_revids)) in self.revid_head_info.iteritems():
-            top_visible_revid = None
-            
-            for unique_revid in unique_revids:
-                rev = self.revid_rev[unique_revid]
-                if rev.f_index is not None:
-                    top_visible_revid = unique_revid
-                    break
-            
-            if top_visible_revid:
-                self.branch_labels[top_visible_revid] = head_info
+        return computed
 
     def has_rev_id(self, revid):
         return revid in self.revid_rev
@@ -1184,18 +1173,17 @@ class GraphProviderFilterState(object):
         "indicates which branches expanded this branch."
         
         for revid in self.graph_provider.revid_head_info:
-            rev_cache = self.graph_provider.revid_rev[revid]
-            self.branch_line_state[rev_cache.branch_id] = []
+            rev = self.graph_provider.revid_rev[revid]
+            self.branch_line_state[rev.branch_id] = []
         
         self.filters = []
     
-    def get_revision_visible_if_branch_visible(self, index):
+    def get_revision_visible_if_branch_visible(self, rev):
         #This was previously cached. TODO: Check if this is still needed.
-        if not self.no_graph:
-            rev = self.revisions[index]
+        if not self.graph_provider.no_graph:
             for merged_index in rev.merges:
-                if self.get_revision_visible_if_branch_visible_cached(
-                                                            merged_index):
+                merged_rev = self.graph_provider.revisions[merged_index]
+                if self.get_revision_visible_if_branch_visible(merged_rev):
                     return True
         
         for filter in self.filters:
@@ -1542,11 +1530,20 @@ class FilterScheduler(object):
             self.ifcr_last_call_time = 0
 
 class ComputedRevision(object):
-    __slots__ = ['rev_cache', 'f_index', 'lines', 'col_index', 'branch_tags',
+    # Instance of this object are typicaly named "c_rev".    
+    __slots__ = ['rev', 'f_index', 'lines', 'col_index', 'branch_labels',
                  'twisty_state', 'twisty_expands_branch_ids']
+    
+    def __init__(self, rev, f_index):
+        self.rev = rev
+        self.f_index = f_index
+        self.twisty_state = None
+        self.twisty_expands_branch_ids = []
+        self.lines = []
+        self.branch_labels = []
 
 class ComputedGraph(object):
     def __init__(self, graph_provider):
-        self.filtered_revisions = []
-        self.revisions = []
-        
+        self.graph_provider = graph_provider
+        self.filtered_revs = []
+        self.revisions = [None for i in xrange(len(graph_provider.revisions))]
