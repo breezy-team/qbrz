@@ -19,7 +19,6 @@
 
 import fnmatch
 import gc
-from time import clock
 
 from bzrlib import errors
 from bzrlib.transport.local import LocalTransport
@@ -30,7 +29,6 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
                                                          cached_revisions)
 from bzrlib.plugins.qbzr.lib.util import get_apparent_author
-
 
 
 class BranchInfo(object):
@@ -1170,8 +1168,10 @@ class WithWorkingTreeGraphProvider(LogGraphProvider):
 
 class GraphProviderFilterState(object):
     
-    def __init__(self, graph_provider):
+    def __init__(self, graph_provider, filter_changed_callback):
         self.graph_provider = graph_provider
+        self.filter_changed_callback = filter_changed_callback
+        
         self.branch_line_state = {}
         "If a branch_id is in this dict, it is visible. The value of the dict "
         "indicates which branches expanded this branch."
@@ -1181,22 +1181,62 @@ class GraphProviderFilterState(object):
             self.branch_line_state[rev.branch_id] = []
         
         self.filters = []
+        
+        # This keeps a cache of the filter state so that when one of the
+        # filters notifies us of a change, we can check if anything did change.
+        
+        self.filter_cache = [None for rev in self.graph_provider.revisions]
     
     def get_revision_visible_if_branch_visible(self, rev):
-        #This was previously cached. TODO: Check if this is still needed.
+        rev_filter_cache = self.filter_cache[rev.index]
+        if rev_filter_cache is None:
+            rev_filter_cache = self._get_revision_visible_if_branch_visible(rev)
+            self.filter_cache[rev.index] = rev_filter_cache
+        return rev_filter_cache
+    
+    def _get_revision_visible_if_branch_visible(self, rev):
+        for filter in self.filters:
+            filter_value = filter.get_revision_visible(rev)
+            if filter_value is not None:
+                return filter_value
+        
         if not self.graph_provider.no_graph:
             for merged_index in rev.merges:
                 merged_rev = self.graph_provider.revisions[merged_index]
                 if self.get_revision_visible_if_branch_visible(merged_rev):
                     return True
         
-        for filter in self.filters:
-            filter_value = filter.get_revision_visible(index)
-            if filter_value is not None:
-                return filter_value
-        
         return True
     
+    def filter_changed(self, revs, last_call=True):
+        pending_revs = revs
+        processed_revs = set()
+        prev_cached_revs = []
+        while pending_revs:
+            rev = pending_revs.pop(0)
+            if rev in processed_revs:
+                continue
+            processed_revs.add(rev)
+            
+            rev_filter_cache = self.filter_cache[rev.index]
+            
+            if rev_filter_cache is not None:
+                prev_cached_revs.append((rev, rev_filter_cache))
+            self.filter_cache[rev.index] = None
+            
+            if not self.graph_provider.no_graph:
+                if rev.merged_by is not None:
+                    pending_revs.append(
+                        self.graph_provider.revisions[rev.merged_by])
+       
+        # Check if any visibilities have changes. If they have, call
+        # filter_changed_callback
+        for rev, prev_visible in prev_cached_revs:
+            visible = self.get_revision_visible_if_branch_visible(rev)
+            if visible <> prev_visible:
+                self.filter_changed_callback()
+                break
+        
     
     def ensure_rev_visible(self, revid):
         if self.no_graph:
@@ -1259,8 +1299,8 @@ class FileIdFilter (object):
         self.graph_provider = graph_provider
         self.filter_changed_callback = filter_changed_callback
         self.file_ids = file_ids
-        self._has_dir = False
-        self.filter_file_id = None
+        self.has_dir = False
+        self.filter_file_id = [False for rev in self.graph_provider.revisions]
     
     def uses_inventory(self):
         return self.has_dir
@@ -1268,34 +1308,29 @@ class FileIdFilter (object):
     def load(self):
         """Load which revisions affect the file_ids"""
         if self.file_ids:
-            self.throbber_show()
+            self.graph_provider.throbber_show()
             
-            if len(self.branches)>1:
-                raise errors.BzrCommandError(paths_and_branches_err)
-            
-            bi = self.branches[0]
-            tree = bi.tree
-            if tree is None:
-                tree = bi.branch.basis_tree()
-            
-            tree.lock_read()
-            try:
-                self.has_dir = False
-                for file_id in self.file_ids:
-                    if tree.kind(file_id) in ('directory', 'tree-reference'):
-                        self.has_dir = True
+            for bi in self.graph_provider.branches:
+                tree = bi.tree
+                if tree is None:
+                    tree = bi.branch.basis_tree()
+                
+                tree.lock_read()
+                try:
+                    for file_id in self.file_ids:
+                        if tree.kind(file_id) in ('directory', 'tree-reference'):
+                            self.has_dir = True
+                            break
+                    if self.has_dir:
                         break
-            finally:
-                tree.unlock()
+                finally:
+                    tree.unlock()
             
-            self.filter_file_id = [False for i in 
-                         xrange(len(self.revisions))]
+            revids = [rev.revid for rev in self.graph_provider.revisions]
             
-            revids = [rev.revid for rev in self.revisions]
-            
-            for repo, revids in self.get_repo_revids(revids):
-                if not self.load_filter_file_id_uses_inventory():
-                    chunk_size = 500
+            for repo, revids in self.graph_provider.get_repo_revids(revids):
+                if not self.uses_inventory():
+                    chunk_size = 100
                 else:
                     chunk_size = 500
                 
@@ -1307,19 +1342,19 @@ class FileIdFilter (object):
     
     def load_filter_file_id_chunk(self, repo, revids):
         def check_text_keys(text_keys):
-            changed_indexes = []
+            changed_revs = []
             for file_id, revid in repo.texts.get_parent_map(text_keys):
-                rev = self.revid_rev[revid]
+                rev = self.graph_provider.revid_rev[revid]
                 self.filter_file_id[rev.index] = True
-                changed_indexes.append(rev.index)
+                changed_revs.append(rev)
             
-            self.update_ui()
-            self.invaladate_filter_cache_revs(changed_indexes)
-            self.update_ui()
+            self.graph_provider.update_ui()
+            self.filter_changed_callback(changed_revs, False)
+            self.graph_provider.update_ui()
         
         repo.lock_read()
         try:
-            if not self.load_filter_file_id_uses_inventory():
+            if not self.uses_inventory():
                 text_keys = [(file_id, revid) 
                                 for revid in revids
                                 for file_id in self.file_ids]
@@ -1345,13 +1380,11 @@ class FileIdFilter (object):
             repo.unlock()
 
     def load_filter_file_id_chunk_finished(self):
-        self.invaladate_filter_cache_revs([], last_call=True)
-        self.throbber_hide()
+        self.filter_changed_callback([], True)
+        self.graph_provider.throbber_hide()
     
-    def get_revision_visible(self, index):
-        if self.filter_file_id is None:
-            return False
-        if not self.filter_file_id[index]:
+    def get_revision_visible(self, rev):
+        if not self.filter_file_id[rev.index]:
             return False
 
 class PropertySearchFilter (object):
@@ -1472,65 +1505,6 @@ class PropertySearchFilter (object):
         if self.sr_index_matched_revids is not None:
             if revid not in self.sr_index_matched_revids:
                 return False        
-
-class FilterScheduler(object):
-    def __init__(self):
-        self.pending_indexes = []
-        self.last_run_time = 0
-        self.last_call_time = 0
-    def invaladate_filter_cache_revs(self, indexes, last_call=False):
-        self.ifcr_pending_indexes.extend(indexes)
-        # Only notify that there are changes every so often.
-        # invaladate_filter_cache_revs causes compute_graph_lines to run, and it
-        # runs slowly because it has to update the filter cache. How often we
-        # update is bases on a ratio of 10:1. If we spend 1 sec calling
-        # invaladate_filter_cache_revs, don't call it again until we have spent
-        # 10 sec else where.
-        if last_call or \
-                clock() - self.ifcr_last_call_time > \
-                self.ifcr_last_run_time * 10:
-            
-            start_time = clock()        
-            prev_cached_indexes = []
-            processed_indexes = []
-            while self.ifcr_pending_indexes:
-                index = self.ifcr_pending_indexes.pop(0)
-                
-                if index in processed_indexes:
-                    continue
-                rev = self.revisions[index]
-                
-                if rev.filter_cache is not None:
-                    prev_cached_indexes.append((index, rev.filter_cache))
-                rev.filter_cache = None
-                
-                if not self.no_graph:
-                    if rev.merged_by is not None:
-                        if rev.merged_by not in self.ifcr_pending_indexes and \
-                           rev.merged_by not in processed_indexes:
-                            self.ifcr_pending_indexes.append(rev.merged_by)
-            
-            # Check if any visibilities have changes. If they have, call
-            # revisions_filter_changed
-            for index, prev_visible in prev_cached_indexes:
-                if not self.no_graph:
-                    merged_by = self.revisions[index].merged_by
-                else:
-                    merged_by = None
-                
-                if not merged_by or \
-                    self.get_revision_visible_if_branch_visible_cached(merged_by):
-                    visible = self.get_revision_visible_if_branch_visible_cached(index)
-                    if visible <> prev_visible:
-                        self.revisions_filter_changed()
-                        break
-            
-            self.ifcr_last_run_time = clock() - start_time
-            self.ifcr_last_call_time = clock()
-        
-        if last_call:
-            self.ifcr_last_run_time = 0
-            self.ifcr_last_call_time = 0
 
 class ComputedRevision(object):
     # Instance of this object are typicaly named "c_rev".    

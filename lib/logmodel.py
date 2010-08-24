@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from time import (strftime, localtime)
+from time import (strftime, localtime, clock)
 
 from bzrlib.revision import CURRENT_REVISION, Revision
 
@@ -108,6 +108,34 @@ class WithWorkingTreeGraphProvider(loggraphprovider.WithWorkingTreeGraphProvider
                 if wt_revid in self.revid_head_info:
                     cached_revisions[wt_revid] = WorkingTreeRevision(wt_revid, bi.tree)
 
+class FilterScheduler(object):
+    def __init__(self, filter_changed_callback):
+        self.pending_revs = []
+        self.last_run_time = 0
+        self.last_call_time = 0
+        self.filter_changed_callback = filter_changed_callback
+    
+    def filter_changed(self, revs, last_call=True):
+        self.pending_revs.extend(revs)
+        # Only notify that there are changes every so often.
+        # GraphProviderFilterState.filter_changed invaladates it's cache, and
+        # causes compute_graph_lines to run, and it runs slowly because it has
+        # to update the filter cache. How often we update is bases on a ratio of
+        # 10:1. If we spend 1 sec calling invaladate_filter_cache_revs, don't
+        # call it again until we have spent 10 sec else where.
+        if (last_call or 
+            clock() - self.last_call_time > self.last_run_time * 10):
+            
+            start_time = clock()
+            self.filter_changed_callback(self.pending_revs, last_call)
+            self.pending_revs = []
+            self.last_run_time = clock() - start_time
+            self.last_call_time = clock()
+        
+        if last_call:
+            self.last_run_time = 0
+            self.last_call_time = 0
+
 class LogModel(QtCore.QAbstractTableModel):
 
     def __init__(self, processEvents, throbber, parent=None):
@@ -117,7 +145,8 @@ class LogModel(QtCore.QAbstractTableModel):
         
         self.graph_provider = LogGraphProvider((), None, False,
                                                processEvents, throbber)
-        self.state = loggraphprovider.GraphProviderFilterState(self.graph_provider)
+        self.state = loggraphprovider.GraphProviderFilterState(
+            self.graph_provider, self.compute_lines)
         self.computed = loggraphprovider.ComputedGraph(self.graph_provider)
 
         self.clicked_row = None
@@ -134,21 +163,31 @@ class LogModel(QtCore.QAbstractTableModel):
             graph_provider.load()
             graph_provider.on_filter_changed = self.on_filter_changed
             
-            state = loggraphprovider.GraphProviderFilterState(graph_provider)
+            state = loggraphprovider.GraphProviderFilterState(
+                graph_provider, self.compute_lines)
+            # Copy the expanded branches from the old state to the new.
             state.branch_line_state.update(self.state.branch_line_state)
+            scheduler = FilterScheduler(state.filter_changed)
+            if file_ids:
+                file_id_filter = loggraphprovider.FileIdFilter(
+                    graph_provider, scheduler.filter_changed, file_ids)
+                state.filters.append(file_id_filter)
+            else:
+                file_id_filter = None
             
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
             self.graph_provider = graph_provider
             self.state = state
+            self.file_id_filter = file_id_filter
             self.computed = loggraphprovider.ComputedGraph(graph_provider)
             self.emit(QtCore.SIGNAL("layoutChanged()"))
             
             self.compute_lines()
+            if self.file_id_filter:
+                # Start later so that it does not run in the loading queue.
+                QtCore.QTimer.singleShot(1, self.file_id_filter.load)
         finally:
             self.throbber.hide()
-        
-        # Start later so that it does not run in the loading queue.
-        #QtCore.QTimer.singleShot(1, self.graph_provider.load_filter_file_id)
     
     def compute_lines(self):
         self.computed = self.graph_provider.compute_graph_lines(self.state)
