@@ -655,7 +655,8 @@ class FileListContainer(QtGui.QWidget):
         
         if delta:
             items = []
-            specific_file_ids = gp.file_ids
+            #specific_file_ids = gp.file_ids
+            specific_file_ids = []
             
             for path, id, kind in delta.added:
                 items.append((id,
