@@ -528,12 +528,12 @@ class LogGraphProvider(object):
             return map
         
         if len(self.branches) > 1:
-            head_revid_branch_info = sorted([(revid, branch_info) \
-                                       for revid, (head_info, ur) in \
-                                       self.revid_head_info.iteritems()
-                                       for (branch, tag) in head_info],
-                key = lambda x: x[1].repository.is_local)
-            self.revid_branch_info = get_revid_head(head_revid_branch)
+            head_revid_branch_info = sorted(
+                [(revid, branch_info)
+                 for revid, (head_info, ur) in self.revid_head_info.iteritems()
+                 for (branch_info, tag) in head_info],
+                key = lambda x: x[1].branch.repository.is_local)
+            self.revid_branch_info = get_revid_head(head_revid_branch_info)
         else:
             self.revid_branch_info = {}
         
@@ -607,7 +607,7 @@ class LogGraphProvider(object):
                 rev = self.revid_rev[unique_revid]
                 if computed.revisions[rev.index] is not None:
                     c_rev = computed.revisions[rev.index]
-                    c_rev.branch_labels.append(head_info)
+                    c_rev.branch_labels.extend(head_info)
                     break
         
         if self.no_graph:
@@ -870,10 +870,10 @@ class LogGraphProvider(object):
                        self.branch_ids.index(parent.rev.branch_id) <= self.branch_ids.index(branch_id) and\
                        (last_parent and not direct and last_parent[0].f_index >= parent.f_index or not last_parent or direct):
                         
-                        if parent.f_index - rev.f_index >1:
+                        if parent.f_index - c_rev.f_index >1:
                             rev_visible_parents.pop(i)
                             i -= 1
-                            append_line(rev, parent, direct)
+                            append_line(c_rev, parent, direct)
                     i += 1
                 
                 # This may be a sprout. Add line to first visible child
@@ -1540,9 +1540,10 @@ class ComputedRevision(object):
     def __init__(self, rev, f_index):
         self.rev = rev
         self.f_index = f_index
+        self.lines = []
+        self.col_index = None
         self.twisty_state = None
         self.twisty_expands_branch_ids = []
-        self.lines = []
         self.branch_labels = []
 
 class ComputedGraph(object):
