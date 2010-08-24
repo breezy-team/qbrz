@@ -901,9 +901,9 @@ class LogGraphProvider(object):
                             # Ensure only one line to a decendent.
                             if merged_by.index not in children_with_sprout_lines:
                                 children_with_sprout_lines[merged_by.index] = True
-                                if self.revisions[merged_by.merged_by] is not None:
+                                if computed.revisions[merged_by.index] is not None:
                                     append_line(
-                                        self.revisions[merged_by.merged_by],
+                                        computed.revisions[merged_by.index],
                                         c_rev, False)
             
             # Find a column for this branch.
