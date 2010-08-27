@@ -19,12 +19,15 @@
 
 from PyQt4 import QtCore, QtGui
 from time import (strftime, localtime, clock)
+import re
+import fnmatch
 
 from bzrlib.revision import CURRENT_REVISION, Revision
 
 from bzrlib.plugins.qbzr.lib.bugs import get_bug_id
 from bzrlib.plugins.qbzr.lib import loggraphprovider
-from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
+from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
+                                                         cached_revisions)
 from bzrlib.plugins.qbzr.lib.revtreeview import RevIdRole as im_RevIdRole
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
@@ -116,14 +119,17 @@ class FilterScheduler(object):
         self.filter_changed_callback = filter_changed_callback
     
     def filter_changed(self, revs, last_call=True):
-        self.pending_revs.extend(revs)
+        if revs is None:
+            self.pending_revs = None
+        else:
+            self.pending_revs.extend(revs)
         # Only notify that there are changes every so often.
         # GraphProviderFilterState.filter_changed invaladates it's cache, and
         # causes compute_graph_lines to run, and it runs slowly because it has
         # to update the filter cache. How often we update is bases on a ratio of
         # 10:1. If we spend 1 sec calling invaladate_filter_cache_revs, don't
         # call it again until we have spent 10 sec else where.
-        if (last_call or 
+        if (last_call or revs is None or 
             clock() - self.last_call_time > self.last_run_time * 10):
             
             start_time = clock()
@@ -174,11 +180,15 @@ class LogModel(QtCore.QAbstractTableModel):
                 state.filters.append(file_id_filter)
             else:
                 file_id_filter = None
+            prop_search_filter = PropertySearchFilter(graph_provider,
+                                                      scheduler.filter_changed)
+            state.filters.append(prop_search_filter)
             
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
             self.graph_provider = graph_provider
             self.state = state
             self.file_id_filter = file_id_filter
+            self.prop_search_filter = prop_search_filter
             self.computed = loggraphprovider.ComputedGraph(graph_provider)
             self.emit(QtCore.SIGNAL("layoutChanged()"))
             
@@ -385,3 +395,132 @@ class LogFilterProxyModel(QtGui.QSortFilterProxyModel):
     
     def get_repo(self):
         return self.parent_log_model.graph_provider.get_repo_revids
+
+class PropertySearchFilter (object):
+    def __init__(self, graph_provider, filter_changed_callback):
+        self.graph_provider = graph_provider
+        self.filter_changed_callback = filter_changed_callback
+        self.field = None
+        self.filter_re = None
+        self.cache = None
+        self.index_matched_revids = None
+        self.loading_revisions = False
+    
+    def set_search(self, str, field):
+        """Set search string for specified kind of data.
+        @param  str:    string to search (interpreted based on field value)
+        @param  field:  kind of data to search, based on some field
+            of revision metadata. Possible values:
+                - message
+                - index (require bzr-search plugin)
+                - author
+                - tag
+                - bug
+
+        Value of `str` interpreted based on field value. For index it's used
+        as input value for bzr-search engine.
+        For message, author, tag and bug it's used as shell pattern
+        (glob pattern) to search in corresponding metadata of revisions.
+        """
+        self.field = field
+        
+        def revisions_loaded(revisions, last_call):
+            revs = [self.graph_provider.revid_rev[revid]
+                    for revid in revisions.iterkeys()]
+            self.filter_changed_callback(revs, last_call)
+        
+        def before_batch_load(repo, revids):
+            if self.filter_re is None:
+                return True
+            return False
+
+        def wildcard2regex(wildcard):
+            """Translate shel pattern to regexp."""
+            return fnmatch.translate(wildcard + '*')
+        
+        if str is None or str == u"":
+            self.filter_re = None
+            self.index_matched_revids = None
+            self.filter_changed_callback(None, True)
+        else:
+            if self.field == "index":
+                from bzrlib.plugins.search import index as search_index
+                self.filter_re = None
+                indexes = [bi.index for bi in self.graph_provider.branches
+                           if bi.index is not None]
+                if not indexes:
+                    self.index_matched_revids = None
+                else:
+                    str = str.strip()
+                    query = [(query_item,) for query_item in str.split(" ")]
+                    self.index_matched_revids = {}
+                    for index in indexes:
+                        for result in index.search(query):
+                            if isinstance(result, search_index.RevisionHit):
+                                self.index_matched_revids\
+                                        [result.revision_key[0]] = True
+                            if isinstance(result, search_index.FileTextHit):
+                                self.index_matched_revids\
+                                        [result.text_key[1]] = True
+                            if isinstance(result, search_index.PathHit):
+                                pass
+            elif self.field == "tag":
+                self.filter_re = None
+                filter_re = re.compile(wildcard2regex(str), re.IGNORECASE)
+                self.index_matched_revids = {}
+                for revid in self.tags:
+                    for t in self.tags[revid]:
+                        if filter_re.search(t):
+                            self.index_matched_revids[revid] = True
+                            break
+            else:
+                self.filter_re = re.compile(wildcard2regex(str),
+                    re.IGNORECASE)
+                self.index_matched_revids = None
+            
+            self.filter_changed_callback(None, True)
+            
+            if self.filter_re is not None\
+               and not self.loading_revisions:
+                
+                self.loading_revisions = True
+                try:
+                    revids = [rev.revid
+                              for rev in self.graph_provider.revisions ]
+                    load_revisions(revids, self.graph_provider.get_repo_revids,
+                                   time_before_first_ui_update = 0,
+                                   local_batch_size = 100,
+                                   remote_batch_size = 10,
+                                   before_batch_load = before_batch_load,
+                                   revisions_loaded = revisions_loaded)
+                finally:
+                    self.loading_revisions = False
+    
+    def get_revision_visible(self, rev):
+        
+        revid = rev.revid
+        
+        if self.filter_re:
+            if revid not in cached_revisions:
+                return False
+            revision = cached_revisions[revid]
+            
+            filtered_str = None
+            if self.field == "message":
+                filtered_str = revision.message
+            elif self.field == "author":
+                filtered_str = get_apparent_author(revision)
+            elif self.field == "bug":
+                rbugs = revision.properties.get('bugs', '')
+                if rbugs:
+                    filtered_str = rbugs.replace('\n', ' ')
+                else:
+                    return False
+
+            if filtered_str is not None:
+                if self.filter_re.search(filtered_str) is None:
+                    return False
+        
+        if self.index_matched_revids is not None:
+            if revid not in self.index_matched_revids:
+                return False        

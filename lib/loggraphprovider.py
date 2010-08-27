@@ -17,7 +17,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-import fnmatch
 import gc
 
 from bzrlib import errors
@@ -1007,12 +1006,6 @@ class LogGraphProvider(object):
         else:
             return None
 
-    def search_indexes(self):
-        for bi in self.branches:
-            if bi.index is not None:
-                yield bi.index
-    
-    
     def get_revid_branch_info(self, revid):
         if revid in self.ghosts:
             raise GhostRevisionError(revid)
@@ -1209,33 +1202,37 @@ class GraphProviderFilterState(object):
         return True
     
     def filter_changed(self, revs, last_call=True):
-        pending_revs = revs
-        processed_revs = set()
-        prev_cached_revs = []
-        while pending_revs:
-            rev = pending_revs.pop(0)
-            if rev in processed_revs:
-                continue
-            processed_revs.add(rev)
-            
-            rev_filter_cache = self.filter_cache[rev.index]
-            
-            if rev_filter_cache is not None:
-                prev_cached_revs.append((rev, rev_filter_cache))
-            self.filter_cache[rev.index] = None
-            
-            if not self.graph_provider.no_graph:
-                if rev.merged_by is not None:
-                    pending_revs.append(
-                        self.graph_provider.revisions[rev.merged_by])
-       
-        # Check if any visibilities have changes. If they have, call
-        # filter_changed_callback
-        for rev, prev_visible in prev_cached_revs:
-            visible = self.get_revision_visible_if_branch_visible(rev)
-            if visible <> prev_visible:
-                self.filter_changed_callback()
-                break
+        if revs is None:
+            self.filter_cache = [None for rev in self.graph_provider.revisions]
+            self.filter_changed_callback()
+        else:
+            pending_revs = revs
+            processed_revs = set()
+            prev_cached_revs = []
+            while pending_revs:
+                rev = pending_revs.pop(0)
+                if rev in processed_revs:
+                    continue
+                processed_revs.add(rev)
+                
+                rev_filter_cache = self.filter_cache[rev.index]
+                
+                if rev_filter_cache is not None:
+                    prev_cached_revs.append((rev, rev_filter_cache))
+                self.filter_cache[rev.index] = None
+                
+                if not self.graph_provider.no_graph:
+                    if rev.merged_by is not None:
+                        pending_revs.append(
+                            self.graph_provider.revisions[rev.merged_by])
+           
+            # Check if any visibilities have changes. If they have, call
+            # filter_changed_callback
+            for rev, prev_visible in prev_cached_revs:
+                visible = self.get_revision_visible_if_branch_visible(rev)
+                if visible <> prev_visible:
+                    self.filter_changed_callback()
+                    break
         
     
     def ensure_rev_visible(self, revid):
@@ -1387,124 +1384,6 @@ class FileIdFilter (object):
         if not self.filter_file_id[rev.index]:
             return False
 
-class PropertySearchFilter (object):
-    def __init__(self, graph_provider, field, filter_re):
-        self.graph_provider = graph_provider
-        self.field = field
-        self.filter_re = filter_re
-        self._cache = None
-    
-    def set_search(self, str, field):
-        """Set search string for specified kind of data.
-        @param  str:    string to search (interpreted based on field value)
-        @param  field:  kind of data to search, based on some field
-            of revision metadata. Possible values:
-                - message
-                - index (require bzr-search plugin)
-                - author
-                - tag
-                - bug
-
-        Value of `str` interpreted based on field value. For index it's used
-        as input value for bzr-search engine.
-        For message, author, tag and bug it's used as shell pattern
-        (glob pattern) to search in corresponding metadata of revisions.
-        """
-        self.sr_field = field
-        
-        def revisions_loaded(revisions, last_call):
-            indexes = [self.revid_rev[revid].index
-                       for revid in revisions.iterkeys()]
-            self.invaladate_filter_cache_revs(indexes, last_call)
-        
-        def before_batch_load(repo, revids):
-            if self.sr_filter_re is None:
-                return True
-            return False
-
-        def wildcard2regex(wildcard):
-            """Translate shel pattern to regexp."""
-            return fnmatch.translate(wildcard + '*')
-        
-        if str is None or str == u"":
-            self.sr_filter_re = None
-            self.sr_index_matched_revids = None
-            self.invaladate_filter_cache()
-        else:
-            if self.sr_field == "index":
-                self.sr_filter_re = None
-                indexes = self.search_indexes()
-                if not indexes:
-                    self.sr_index_matched_revids = None
-                else:
-                    str = str.strip()
-                    query = [(query_item,) for query_item in str.split(" ")]
-                    self.sr_index_matched_revids = {}
-                    for index in indexes:
-                        for result in index.search(query):
-                            if isinstance(result, search_index.RevisionHit):
-                                self.sr_index_matched_revids\
-                                        [result.revision_key[0]] = True
-                            if isinstance(result, search_index.FileTextHit):
-                                self.sr_index_matched_revids\
-                                        [result.text_key[1]] = True
-                            if isinstance(result, search_index.PathHit):
-                                pass
-            elif self.sr_field == "tag":
-                self.sr_filter_re = None
-                filter_re = re.compile(wildcard2regex(str), re.IGNORECASE)
-                self.sr_index_matched_revids = {}
-                for revid in self.tags:
-                    for t in self.tags[revid]:
-                        if filter_re.search(t):
-                            self.sr_index_matched_revids[revid] = True
-                            break
-            else:
-                self.sr_filter_re = re.compile(wildcard2regex(str),
-                    re.IGNORECASE)
-                self.sr_index_matched_revids = None
-            
-            self.invaladate_filter_cache()
-            
-            if self.sr_filter_re is not None\
-               and not self.sr_loading_revisions:
-                
-                revids = [rev.revid for rev in self.revisions ]
-                
-                self.load_revisions(revids,
-                                    time_before_first_ui_update = 0,
-                                    local_batch_size = 100,
-                                    remote_batch_size = 10,
-                                    before_batch_load = before_batch_load,
-                                    revisions_loaded = revisions_loaded)
-    
-    def get_revision_visible(self, index):
-        revid = self.revisions[index].revid
-        
-        if self.sr_filter_re:
-            if revid not in cached_revisions:
-                return False
-            revision = cached_revisions[revid]
-            
-            filtered_str = None
-            if self.sr_field == "message":
-                filtered_str = revision.message
-            elif self.sr_field == "author":
-                filtered_str = get_apparent_author(revision)
-            elif self.sr_field == "bug":
-                rbugs = revision.properties.get('bugs', '')
-                if rbugs:
-                    filtered_str = rbugs.replace('\n', ' ')
-                else:
-                    return False
-
-            if filtered_str is not None:
-                if self.sr_filter_re.search(filtered_str) is None:
-                    return False
-        
-        if self.sr_index_matched_revids is not None:
-            if revid not in self.sr_index_matched_revids:
-                return False        
 
 class ComputedRevision(object):
     # Instance of this object are typicaly named "c_rev".    

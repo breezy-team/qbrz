@@ -347,7 +347,7 @@ class LogWindow(QBzrWindow):
             for bi in branches:
                 try:
                     bi.index = search_index.open_index_branch(bi.branch)
-                    indexes_availble = true
+                    indexes_availble = True
                 except (search_errors.NoSearchIndex, errors.IncompatibleAPI):
                     pass
             if indexes_availble:
@@ -496,7 +496,9 @@ class LogWindow(QBzrWindow):
             self.suggestion_last_first_letter = first_letter
             if first_letter not in self.suggestion_letters_loaded:
                 suggestions = set()
-                for index in gp.search_indexes():
+                indexes = [bi.index for bi in gp.branches
+                           if bi.index is not None]
+                for index in indexes:
                     for s in index.suggest(((first_letter,),)): 
                         #if suggestions.count() % 100 == 0: 
                         #    QtCore.QCoreApplication.processEvents() 
