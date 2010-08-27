@@ -1162,7 +1162,7 @@ class WithWorkingTreeGraphProvider(LogGraphProvider):
 
 class GraphProviderFilterState(object):
     
-    def __init__(self, graph_provider, filter_changed_callback):
+    def __init__(self, graph_provider, filter_changed_callback=None):
         self.graph_provider = graph_provider
         self.filter_changed_callback = filter_changed_callback
         
@@ -1205,7 +1205,8 @@ class GraphProviderFilterState(object):
     def filter_changed(self, revs, last_call=True):
         if revs is None:
             self.filter_cache = [None for rev in self.graph_provider.revisions]
-            self.filter_changed_callback()
+            if self.filter_changed_callback:
+                self.filter_changed_callback()
         else:
             pending_revs = revs
             processed_revs = set()
@@ -1232,7 +1233,8 @@ class GraphProviderFilterState(object):
             for rev, prev_visible in prev_cached_revs:
                 visible = self.get_revision_visible_if_branch_visible(rev)
                 if visible <> prev_visible:
-                    self.filter_changed_callback()
+                    if self.filter_changed_callback:
+                        self.filter_changed_callback()
                     break
     
     def ensure_rev_visible(self, rev):
@@ -1242,7 +1244,8 @@ class GraphProviderFilterState(object):
         branch_id = rev.branch_id
         if branch_id not in self.branch_line_state:
             self.branch_line_state[branch_id] = None
-            self.filter_changed_callback()
+            if self.filter_changed_callback:
+                self.filter_changed_callback()
             return True
         return False
     
@@ -1286,7 +1289,7 @@ class GraphProviderFilterState(object):
                             branch_ids.append((parent_branch_id, branch_id))
             else:
                 self.branch_line_state[branch_id] = expanded_by
-        if has_change:
+        if has_change and self.filter_changed_callback:
             self.filter_changed_callback()
 
 class FileIdFilter (object):

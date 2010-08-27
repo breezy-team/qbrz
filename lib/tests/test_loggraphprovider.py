@@ -16,4 +16,21 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-pass
+from bzrlib.tests import TestCase, TestCaseWithTransport
+
+from bzrlib.plugins.qbzr.lib import loggraphprovider
+
+class TestLogGraphProvider(TestCaseWithTransport):
+    
+    def test_no_commits(self):
+        wt = self.make_branch_and_tree('.')
+        
+        bi = loggraphprovider.BranchInfo('', wt, wt.branch)
+        gp = loggraphprovider.LogGraphProvider([bi], bi, False)
+        gp.load()
+        
+        self.assertEqual(len(gp.revisions), 0)
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        computed = gp.compute_graph_lines(state)
+        self.assertEqual(len(computed.revisions), 0)
