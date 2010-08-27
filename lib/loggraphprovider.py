@@ -128,27 +128,10 @@ class LogGraphProvider(object):
         self.primary_bi = primary_bi
         self.no_graph = no_graph
         
-        # Get a unique list of repositories. If the url is the same,
-        # we consider it the same repositories
-        repo_urls = set()
         self.repos = []
-        for bi in branches:
-            repo = bi.branch.repository
-            if repo.base not in repo_urls:
-                repo_urls.add(repo.base)
-                self.repos.append(repo)
-        
         self.local_repo_copies = []
         """A list of repositories that revisions will be aptempted to be loaded        
         from first."""
-        
-        no_local_repos = True
-        for repo in self.repos:
-            if repo_is_local(repo):
-                no_local_repos = False
-        if no_local_repos:
-            self.load_current_dir_repo()
-        self.repos.sort(key=lambda repo: not repo_is_local(repo))
         
         self.revid_head_info = {}
         """Dict with a keys of head revid and value of
@@ -172,14 +155,26 @@ class LogGraphProvider(object):
         self.tags = {}      # map revid -> tags set
     
     def load(self):
+        # Get a unique list of repositories. If the url is the same,
+        # we consider it the same repositories
+        repo_urls = set()
+        for bi in self.branches:
+            repo = bi.branch.repository
+            if repo.base not in repo_urls:
+                repo_urls.add(repo.base)
+                self.repos.append(repo)
+        
+        no_local_repos = True
+        for repo in self.repos:
+            if repo_is_local(repo):
+                no_local_repos = False
+        if no_local_repos:
+            self.load_current_dir_repo()
+        self.repos.sort(key=lambda repo: not repo_is_local(repo))
+
         self.lock_read_branches()
         try:
-            if len(self.repos)==1:
-                self.graph = self.repos[0].get_graph()
-            else:
-                parents_providers = [repo._make_parents_provider() \
-                                     for repo in self.repos]
-                self.graph = Graph(StackedParentsProvider(parents_providers))
+            self.graph = self.get_graph()
             
             head_revids, graph_parents = self.load_graph_parents()
             self.process_graph_parents(head_revids, graph_parents)
@@ -194,6 +189,14 @@ class LogGraphProvider(object):
             self.load_tags()
         finally:
             self.unlock_branches()
+    
+    def get_graph(self):
+        if len(self.repos)==1:
+            return self.repos[0].get_graph()
+        else:
+            parents_providers = [repo._make_parents_provider() \
+                                 for repo in self.repos]
+            return Graph(StackedParentsProvider(parents_providers))
     
     def load_current_dir_repo(self):
         # There are no local repositories. Try open the repository
