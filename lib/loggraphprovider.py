@@ -104,6 +104,9 @@ class BranchLine(object):
     def __repr__(self):
         return "%s <%s>" % (self.__class__.__name__, self.branch_id)
 
+def repo_is_local(repo):
+    return isinstance(repo.bzrdir.transport, LocalTransport)
+
 
 class LogGraphProvider(object):
     """Loads and computes revision and graph data for GUI log widgets."""
@@ -125,20 +128,29 @@ class LogGraphProvider(object):
         self.primary_bi = primary_bi
         self.no_graph = no_graph
         
-        self.repos = list(set([bi.branch.repository for bi in branches]))
+        # Get a unique list of repositories. If the url is the same,
+        # we consider it the same repositories
+        repo_urls = set()
+        self.repos = []
+        for bi in branches:
+            repo = bi.branch.repository
+            if repo.base not in repo_urls:
+                repo_urls.add(repo.base)
+                self.repos.append(repo)
+        
         self.local_repo_copies = []
         """A list of repositories that revisions will be aptempted to be loaded        
         from first."""
         
         no_local_repos = True
         for repo in self.repos:
-            repo.is_local = isinstance(repo.bzrdir.transport, LocalTransport)
-            if repo.is_local:
+            if repo_is_local(repo):
                 no_local_repos = False
         if no_local_repos:
             self.load_current_dir_repo()
-        self.repos.sort(key=lambda repo: repo.is_local)
-        
+        self.repos.sort(key=lambda repo: not repo_is_local(repo))
+        print self.repos
+
         self.revid_head_info = {}
         """Dict with a keys of head revid and value of
             (list of (branch, label),
@@ -523,7 +535,7 @@ class LogGraphProvider(object):
                 [(revid, branch_info)
                  for revid, (head_info, ur) in self.revid_head_info.iteritems()
                  for (branch_info, tag) in head_info],
-                key = lambda x: x[1].branch.repository.is_local)
+                key = lambda x: not repo_is_local(x[1].branch.repository))
             self.revid_branch_info = get_revid_head(head_revid_branch_info)
         else:
             self.revid_branch_info = {}
@@ -1018,12 +1030,12 @@ class LogGraphProvider(object):
         """Returns list of typle of (repo, revids)"""
         repo_revids = {}
         for repo in self.repos:
-            repo_revids[repo] = []
+            repo_revids[repo.base] = []
         
-        for repo in self.local_repo_copies:
-            for revid in repo.has_revisions(revids):
+        for local_repo_copy in self.local_repo_copies:
+            for revid in self.repos[local_repo_copy].has_revisions(revids):
                 revids.remove(revid)
-                repo_revids[repo].append(revid)
+                repo_revids[local_repo_copy].append(revid)
         
         for revid in revids:
             try:
@@ -1031,9 +1043,10 @@ class LogGraphProvider(object):
             except GhostRevisionError:
                 pass
             else:
-                repo_revids[repo].append(revid)
+                repo_revids[repo.base].append(revid)
         
-        return [(repo, repo_revids[repo]) for repo in self.repos]
+        return [(repo, repo_revids[repo.base])
+                for repo in self.repos]
     
     def load_revisions(self, revids):
         return_revisions = {}
