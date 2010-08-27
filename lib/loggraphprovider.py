@@ -23,12 +23,6 @@ from bzrlib import errors
 from bzrlib.transport.local import LocalTransport
 from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.graph import (Graph, StackedParentsProvider, KnownGraph)
-    
-from bzrlib.workingtree import WorkingTree
-from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
-                                                         cached_revisions)
-from bzrlib.plugins.qbzr.lib.util import get_apparent_author
-
 
 class BranchInfo(object):
     """Holds a branch and related information"""
@@ -1041,10 +1035,18 @@ class LogGraphProvider(object):
         
         return [(repo, repo_revids[repo]) for repo in self.repos]
     
-    def load_revisions(self, revids,
-                      *args, **kargs):
-        return load_revisions(revids, self.get_repo_revids,
-                              *args, **kargs)
+    def load_revisions(self, revids):
+        return_revisions = {}
+        for repo, revids in self.get_repo_revids(revids):
+            if revids:
+                repo.lock_read()
+                try:
+                    self.update_ui()
+                    for rev in repo.get_revisions(revids):
+                        return_revisions[rev.revision_id] = rev
+                finally:
+                    repo.unlock()
+        return return_revisions
 
 class PendingMergesGraphProvider(LogGraphProvider):
     

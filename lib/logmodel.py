@@ -95,6 +95,10 @@ class LogGraphProvider(loggraphprovider.LogGraphProvider):
     def revisions_filter_changed(self):
         self.on_filter_changed()
 
+    def load_revisions(self, revids):
+        return load_revisions(revids, self.get_repo_revids)
+
+
 class PendingMergesGraphProvider(loggraphprovider.PendingMergesGraphProvider,
                                  LogGraphProvider):
     pass
