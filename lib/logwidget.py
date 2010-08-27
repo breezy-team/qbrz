@@ -266,22 +266,23 @@ class LogList(RevisionTreeView):
             if not indexes:
                 return
             index = indexes[0]
-            revision_id = str(index.data(logmodel.RevIdRole).toString())
-            twisty_state = index.data(logmodel.GraphTwistyStateRole)
+            source_index = self.filter_proxy_model.mapToSource(index)
+            twisty_state = source_index.data(logmodel.GraphTwistyStateRole)
             if e.key() == QtCore.Qt.Key_Right \
                     and twisty_state.isValid() \
                     and not twisty_state.toBool():
-                self.log_model.collapse_expand_rev(revision_id, True)
+                self.log_model.collapse_expand_rev(source_index.row())
             if e.key() == QtCore.Qt.Key_Left:
                 if twisty_state.isValid() and twisty_state.toBool():
-                    self.log_model.collapse_expand_rev(revision_id, False)
+                    self.log_model.collapse_expand_rev(source_index.row())
                 else:
-                    #find merge of child branch
-                    revision_id = self.log_model.graph_provider.\
-                                  find_child_branch_merge_revision(revision_id)
-                    if revision_id is not None:
-                        newindex = self.log_model.indexFromRevId(revision_id)
-                        newindex = self.filter_proxy_model.mapFromSource(newindex)
+                    # Find the revision the merges us.
+                    gp = self.log_model.graph_provider
+                    rev = gp.revisions[source_index.row()]
+                    if rev.merged_by:
+                        merged_by = gp.revisions[rev.merged_by]
+                        newindex = self.log_model.index(
+                            merged_by.index, 0, QtCore.QModelIndex())
                         self.setCurrentIndex(newindex)
             self.scrollTo(self.currentIndex())
         else:
