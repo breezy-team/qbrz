@@ -1317,7 +1317,7 @@ class FileIdFilter (object):
     def uses_inventory(self):
         return self.has_dir
     
-    def load(self):
+    def load(self, revids=None):
         """Load which revisions affect the file_ids"""
         if self.file_ids:
             self.graph_provider.throbber_show()
@@ -1338,7 +1338,8 @@ class FileIdFilter (object):
                 finally:
                     tree.unlock()
             
-            revids = [rev.revid for rev in self.graph_provider.revisions]
+            if revids is None:
+                revids = [rev.revid for rev in self.graph_provider.revisions]
             
             for repo, revids in self.graph_provider.get_repo_revids(revids):
                 if not self.uses_inventory():

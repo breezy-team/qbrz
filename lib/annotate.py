@@ -479,26 +479,20 @@ class AnnotateWindow(QBzrWindow):
                 (bi,), bi, [self.fileId], self.no_graph,
                 logmodel.WithWorkingTreeGraphProvider)
             
-            just_loaded_log = True
-            
-            # Show the revisions the we know about now.
             gp = self.log_list.log_model.graph_provider
-            gp.filter_file_id = [False for i in xrange(len(gp.revisions))]
-            
-            changed_indexes = []
-            for revid in self.rev_indexes.keys():
-                index = gp.revid_rev[revid].index
-                gp.filter_file_id[index] = True
-                changed_indexes.append(index)
-                
-                if len(changed_indexes) >=500:
-                    gp.invaladate_filter_cache_revs(changed_indexes)
-                    changed_indexes = []
-            
-            gp.invaladate_filter_cache_revs(changed_indexes, last_call=True)
-            
             self.annotate_bar.adjustWidth(len(lines),
                                           gp.revisions[0].revno_sequence[0])
+            
+            just_loaded_log = True
+            
+            # Show the revisions the we know about from the annotate.
+            filter = self.log_list.log_model.file_id_filter
+            changed_revs = []
+            for revid in self.rev_indexes.keys():
+                rev = gp.revid_rev[revid]
+                filter.filter_file_id[rev.index] = True
+                changed_revs.append(rev)
+            filter.filter_changed_callback(changed_revs, last_call=True)
         
         self.processEvents()
         highlight_document(self.text_edit, path)
@@ -510,16 +504,11 @@ class AnnotateWindow(QBzrWindow):
         
         if just_loaded_log:
             # Check for any other revisions we don't know about
+            
+            filter = self.log_list.log_model.file_id_filter
             revids = [rev.revid for rev in gp.revisions
                       if rev.revid not in self.rev_indexes]
-            
-            for repo, revids in gp.get_repo_revids(revids):
-                chunk_size = 500
-                
-                for start in xrange(0, len(revids), chunk_size):
-                    gp.load_filter_file_id_chunk(repo, 
-                            revids[start:start + chunk_size])
-            gp.load_filter_file_id_chunk_finished()
+            filter.load(revids)
     
     def translate_positions(self, old_lines, new_lines, old_positions):
         sm = SequenceMatcher(None, old_lines, new_lines)
