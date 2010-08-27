@@ -569,11 +569,7 @@ class AnnotateWindow(QBzrWindow):
             self.text_edit.textCursor().position()).blockNumber()
         if self.text_edit.annotate:
             rev_id, is_top = self.text_edit.annotate[current_line]
-            if self.log_list.log_model.graph_provider.has_rev_id(rev_id):
-                self.log_list.log_model.ensure_rev_visible(rev_id)
-                index = self.log_list.log_model.indexFromRevId(rev_id)
-                index = self.log_list.filter_proxy_model.mapFromSource(index)
-                self.log_list.setCurrentIndex(index)
+            self.log_list.select_revid(rev_id)
 
     @runs_in_loading_queue
     def set_annotate_revision(self):

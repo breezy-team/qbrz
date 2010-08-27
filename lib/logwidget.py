@@ -281,12 +281,24 @@ class LogList(RevisionTreeView):
                     rev = gp.revisions[source_index.row()]
                     if rev.merged_by:
                         merged_by = gp.revisions[rev.merged_by]
-                        newindex = self.log_model.index(
-                            merged_by.index, 0, QtCore.QModelIndex())
-                        self.setCurrentIndex(newindex)
+                        self.setCurrentIndex(self.index_from_rev(merged_by))
             self.scrollTo(self.currentIndex())
         else:
             QtGui.QTreeView.keyPressEvent(self, e)
+    
+    def index_from_rev(self, rev, column=0):
+        source_index = self.log_model.index(
+            rev.index, column, QtCore.QModelIndex())
+        index = self.filter_proxy_model.mapFromSource(source_index)
+        return index
+
+    def select_revid(self, revid):
+        gp = self.log_model.graph_provider
+        if revid in gp.revid_rev:
+            rev = gp.revid_rev[revid]
+            self.log_model.ensure_rev_visible(rev)
+            index = self.index_from_rev(rev)
+            self.setCurrentIndex(index)
     
     def make_selection_continuous(self):
         rows = self.selectionModel().selectedRows()

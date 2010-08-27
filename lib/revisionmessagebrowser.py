@@ -350,10 +350,7 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
         scheme = unicode(url.scheme())
         if scheme == 'qlog-revid':
             revision_id = unicode(url.path())
-            self.log_list.log_model.ensure_rev_visible(revision_id)
-            index = self.log_list.log_model.indexFromRevId(revision_id)
-            index = self.log_list.filter_proxy_model.mapFromSource(index)
-            self.log_list.setCurrentIndex(index)
+            self.log_list.select_revid(revision_id)
         else:
             open_browser(str(url.toEncoded()))
 

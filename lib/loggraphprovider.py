@@ -994,23 +994,7 @@ class LogGraphProvider(object):
                      direct))
         
         return computed
-
-    def has_rev_id(self, revid):
-        return revid in self.revid_rev
     
-    def revid_from_revno(self, revno):
-        if revno not in self.revno_rev:
-            return None
-        rev = self.revno_rev[revno]
-        return rev.revid
-    
-    def find_child_branch_merge_revision(self, revid):
-        rev = self.revid_rev[revid]
-        if rev.merged_by:
-            return self.revisions[rev.merged_by].revid
-        else:
-            return None
-
     def get_revid_branch_info(self, revid):
         if revid in self.ghosts:
             raise GhostRevisionError(revid)
@@ -1247,21 +1231,18 @@ class GraphProviderFilterState(object):
                 if visible <> prev_visible:
                     self.filter_changed_callback()
                     break
-        
     
-    def ensure_rev_visible(self, revid):
-        if self.no_graph:
+    def ensure_rev_visible(self, rev):
+        if self.graph_provider.no_graph:
             return False
         
-        branch_id = self.revid_rev[revid].branch_id
-        has_change = self.set_branch_visible(branch_id, True, False)
-        #while (not branch_id in self.start_branch_ids and
-        #       self.branch_lines[branch_id].merged_by):
-        #    branch_id = self.branch_lines[branch_id].merged_by[0]
-        #    has_change = self.set_branch_visible(branch_id, True, has_change)
-        return has_change
+        branch_id = rev.branch_id
+        if branch_id not in self.branch_line_state:
+            self.branch_line_state[branch_id] = None
+            self.filter_changed_callback()
+            return True
+        return False
     
-
     def collapse_expand_rev(self, c_rev):
         if c_rev is None:
             return False
@@ -1302,8 +1283,8 @@ class GraphProviderFilterState(object):
                             branch_ids.append((parent_branch_id, branch_id))
             else:
                 self.branch_line_state[branch_id] = expanded_by
-        return has_change
-    
+        if has_change:
+            self.filter_changed_callback()
 
 class FileIdFilter (object):
     def __init__(self, graph_provider, filter_changed_callback, file_ids):

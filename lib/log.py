@@ -445,11 +445,7 @@ class LogWindow(QBzrWindow):
             self.log_list.set_search(None, None)
         elif role == self.FilterIdRole:
             self.log_list.set_search(None, None)
-            if gp.has_rev_id(search_text):
-                self.log_list.log_model.ensure_rev_visible(search_text)
-                index = self.log_list.log_model.indexFromRevId(search_text)
-                index = self.log_list.filter_proxy_model.mapFromSource(index)
-                self.log_list.setCurrentIndex(index)
+            self.log_list.select_revid(search_text)
         elif role == self.FilterRevnoRole:
             self.log_list.set_search(None, None)
             try:
@@ -457,11 +453,9 @@ class LogWindow(QBzrWindow):
             except ValueError:
                 revno = ()
                 # Not sure what to do if there is an error. Nothing for now
-            revid = gp.revid_from_revno(revno)
-            if revid:
-                self.log_list.log_model.ensure_rev_visible(revid)
-                index = self.log_list.log_model.indexFromRevId(revid)
-                index = self.log_list.filter_proxy_model.mapFromSource(index)
+            if revno in gp.revno_rev:
+                rev = gp.revno_rev[revno]
+                index = self.log_list.index_from_rev(rev)
                 self.log_list.setCurrentIndex(index)
         else:
             if role == self.FilterMessageRole:

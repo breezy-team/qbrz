@@ -223,25 +223,14 @@ class LogModel(QtCore.QAbstractTableModel):
         self.clicked_row = None
         
         c_rev = self.computed.revisions[index]
-        has_change = self.state.collapse_expand_rev(c_rev)
+        self.state.collapse_expand_rev(c_rev)
         
-        if has_change:
-            self.compute_lines()
-        else:
-            self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                      clicked_row_index,
-                      clicked_row_index)
+        self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                  clicked_row_index,
+                  clicked_row_index)
     
-    def has_rev_id(self, revid):
-        return self.graph_provider.has_revid(revid)
-    
-    def revid_from_revno(self, revno):
-        return self.graph_provider.revid_from_revno(revno)
-
-    def ensure_rev_visible(self, revid):
-        has_change = self.graph_provider.ensure_rev_visible(revid)
-        if has_change:
-            self.compute_lines()
+    def ensure_rev_visible(self, rev):
+        self.state.ensure_rev_visible(rev)
     
     def columnCount(self, parent):
         if parent.isValid():
@@ -362,18 +351,13 @@ class LogModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant(header_labels[section])
         return QtCore.QVariant()
 
-    def indexFromRevId(self, revid, columns=None):
-        rev = self.graph_provider.revid_rev[revid]
-        if columns:
-            return [self.index (rev.index, column, QtCore.QModelIndex())\
-                    for column in columns]
-        return self.index (rev.index, 0, QtCore.QModelIndex())
-
     def on_revisions_loaded(self, revisions, last_call):
         for revid in revisions.iterkeys():
-            indexes = self.indexFromRevId(revid, (COL_MESSAGE, COL_AUTHOR))
-            self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                      indexes[0], indexes[1])
+            rev = self.graph_provider.revid_rev[revid]
+            self.emit(
+                QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
+                self.index(rev.index, COL_MESSAGE, QtCore.QModelIndex()),
+                self.index(rev.index, COL_AUTHOR, QtCore.QModelIndex()))
     
     def on_filter_changed(self):
         self.compute_lines()
