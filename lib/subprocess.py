@@ -113,6 +113,12 @@ class SubProcessWindowBase(object):
         closeButton = StandardButton(BTN_CLOSE)
         okButton = StandardButton(BTN_OK)
         cancelButton = StandardButton(BTN_CANCEL)
+        
+        # make buttons available on interface so that their state can be
+        # changed from 'qrun' when in execute mode
+        self._closeButton = closeButton
+        self._okButton = okButton
+        self._cancelButton = cancelButton
 
         # ok button gets disabled when we start.
         QtCore.QObject.connect(self,
