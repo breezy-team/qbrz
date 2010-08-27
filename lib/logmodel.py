@@ -456,8 +456,8 @@ class PropertySearchFilter (object):
                 self.filter_re = None
                 filter_re = re.compile(wildcard2regex(str), re.IGNORECASE)
                 self.index_matched_revids = {}
-                for revid in self.tags:
-                    for t in self.tags[revid]:
+                for revid in self.graph_provider.tags:
+                    for t in self.graph_provider.tags[revid]:
                         if filter_re.search(t):
                             self.index_matched_revids[revid] = True
                             break
