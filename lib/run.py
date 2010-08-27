@@ -130,9 +130,15 @@ class QBzrRunDialog(SubProcessDialog):
                 QtGui.QDialogButtonBox.ResetRole)
             
             # setup initial dialog button status
-            self.init_button_status()
+            self._closeButton.setHidden(True)
             self._okButton.setHidden(True)
             self._editButton.setHidden(True)
+            
+            # cancel button gets hidden when finished.
+            QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessFinished(bool)"),
+                               self._cancelButton,
+                               QtCore.SLOT("setHidden(bool)"))
             
             # run command
             self.do_start()
@@ -149,7 +155,7 @@ class QBzrRunDialog(SubProcessDialog):
                                   QtCore.SIGNAL("subprocessFailed(bool)"),
                                   self._editButton,
                                   QtCore.SLOT("setHidden(bool)"))
-        self.ui.frame.show()
+        self.ui.run_container.show()
         self.ui.help_browser.show()
 
     def set_default_help(self):

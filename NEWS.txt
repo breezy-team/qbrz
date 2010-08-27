@@ -1,3 +1,11 @@
+0.18.8 "" - not released yet
+----------------------------
+Maintenance release.
+
+ * qrun:
+   * Fixed '--execute' mode. (Bug #590229, Simon Kersey) 
+
+
 0.18.7 "Juniper" - 2010/08/04
 -----------------------------------
 Maintenance release.
