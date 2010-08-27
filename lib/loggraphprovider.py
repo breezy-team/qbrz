@@ -149,8 +149,7 @@ class LogGraphProvider(object):
         if no_local_repos:
             self.load_current_dir_repo()
         self.repos.sort(key=lambda repo: not repo_is_local(repo))
-        print self.repos
-
+        
         self.revid_head_info = {}
         """Dict with a keys of head revid and value of
             (list of (branch, label),
