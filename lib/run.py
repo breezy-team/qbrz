@@ -126,8 +126,8 @@ class QBzrRunDialog(SubProcessDialog):
                                    QtCore.SIGNAL("subprocessFailed(bool)"),
                                    self._editButton,
                                    QtCore.SLOT("setHidden(bool)"))
-            
-            # add edit button to dialog buttons     
+
+            # add edit button to dialog buttons
             self.buttonbox.addButton(self._editButton,
                 QtGui.QDialogButtonBox.ResetRole)
             
@@ -159,6 +159,7 @@ class QBzrRunDialog(SubProcessDialog):
                                   QtCore.SLOT("setHidden(bool)"))
         self.ui.run_container.show()
         self.ui.help_browser.show()
+        self._okButton.setShown(True)
 
     def set_default_help(self):
         """Set default text in help widget."""
