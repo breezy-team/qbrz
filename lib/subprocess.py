@@ -110,61 +110,56 @@ class SubProcessWindowBase(object):
             QtCore.SIGNAL("error()"),
             self.on_error)
 
-        closeButton = StandardButton(BTN_CLOSE)
-        okButton = StandardButton(BTN_OK)
-        cancelButton = StandardButton(BTN_CANCEL)
+        self.closeButton = StandardButton(BTN_CLOSE)
+        self.okButton = StandardButton(BTN_OK)
+        self.cancelButton = StandardButton(BTN_CANCEL)
         
-        # make buttons available on interface so that their state can be
-        # changed from 'qrun' when in execute mode
-        self._closeButton = closeButton
-        self._okButton = okButton
-        self._cancelButton = cancelButton
-
         # ok button gets disabled when we start.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessStarted(bool)"),
-                               okButton,
+                               self.okButton,
                                QtCore.SLOT("setDisabled(bool)"))
 
         # ok button gets hidden when we finish.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessFinished(bool)"),
-                               okButton,
+                               self.okButton,
                                QtCore.SLOT("setHidden(bool)"))
 
         # close button gets shown when we finish.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessFinished(bool)"),
-                               closeButton,
+                               self.closeButton,
                                QtCore.SLOT("setShown(bool)"))
 
         # cancel button gets disabled when finished.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessFinished(bool)"),
-                               cancelButton,
+                               self.cancelButton,
                                QtCore.SLOT("setDisabled(bool)"))
 
         # ok button gets enabled when we fail.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessFailed(bool)"),
-                               okButton,
+                               self.okButton,
                                QtCore.SLOT("setDisabled(bool)"))
 
         # Change the ok button to 'retry' if we fail.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessFailed(bool)"),
-                               lambda failed: okButton.setText(gettext('&Retry')))
+                               lambda failed: self.okButton.setText(
+                                              gettext('&Retry')))
 
         self.buttonbox = QtGui.QDialogButtonBox(self)
-        self.buttonbox.addButton(okButton,
+        self.buttonbox.addButton(self.okButton,
             QtGui.QDialogButtonBox.AcceptRole)
-        self.buttonbox.addButton(closeButton,
+        self.buttonbox.addButton(self.closeButton,
             QtGui.QDialogButtonBox.AcceptRole)
-        self.buttonbox.addButton(cancelButton,
+        self.buttonbox.addButton(self.cancelButton,
             QtGui.QDialogButtonBox.RejectRole)
         self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.do_accept)
         self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.do_reject)
-        closeButton.setHidden(True) # but 'close' starts as hidden.
+        self.closeButton.setHidden(True) # but 'close' starts as hidden.
         
         self.uncommitted_info = InfoWidget(self)
         uncommitted_info_layout = QtGui.QHBoxLayout(self.uncommitted_info)
