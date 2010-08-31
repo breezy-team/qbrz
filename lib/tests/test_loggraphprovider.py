@@ -78,12 +78,12 @@ class TestLogGraphProvider(TestCaseWithTransport):
         
         # expanded branch line.
         self.assertComputed(
-            [('rev-d', 0, True, [(0, 0, 0, True), (0, 1, 2, True)]), # ⊖─╮ 
-                                                                     # │ │ 
+            [('rev-d', 0, True, [(0, 0, 0, True), (0, 1, 2, True)]), # ⊖   
+                                                                     # ├─╮ 
              ('rev-c', 1, None, [(0, 0, 0, True), (1, 1, 0, True)]), # │ ○ 
                                                                      # │ │ 
-             ('rev-b', 0, None, [(0, 0, 0, True), (1, 0, 0, True)]), # ○─╯ 
-                                                                     # │   
+             ('rev-b', 0, None, [(0, 0, 0, True), (1, 0, 0, True)]), # ○ │ 
+                                                                     # ├─╯ 
              ('rev-a', 0, None, [])                                ],# ○ 
             computed)
     
@@ -108,17 +108,17 @@ class TestLogGraphProvider(TestCaseWithTransport):
         
         # branch lines should not cross over
         self.assertComputed(
-            [('rev-f', 0, True, [(0, 0, 0, True), (0, 2, 3, True)])                 , # ⊖───╮ 
-                                                                                      # │   │ 
+            [('rev-f', 0, True, [(0, 0, 0, True), (0, 2, 3, True)])                 , # ⊖     
+                                                                                      # ├───╮ 
              ('rev-e', 2, True, [(0, 0, 0, True), (2, 2, 2, True)])                 , # │   ⊖ 
                                                                                       # │   │ 
-             ('rev-d', 0, True, [(0, 0, 0, True), (0, 1, 2, True), (2, 2, 2, True)]), # ⊖─╮ │ 
-                                                                                      # │ │ │ 
-             ('rev-c', 1, None, [(0, 0, 0, True), (1, 1, 2, True), (2, 1, 2, True)]), # │ ○─╯ 
-                                                                                      # │ │   
-             ('rev-b', 1, None, [(0, 0, 0, True), (1, 0, 0, True)])                 , # ├─○ 
-                                                                                      # │   
-             ('rev-a', 0, None, [])                                                 ],# ○  
+             ('rev-d', 0, True, [(0, 0, 0, True), (0, 1, 2, True), (2, 2, 2, True)]), # ⊖   │ 
+                                                                                      # ├─╮ │ 
+             ('rev-c', 1, None, [(0, 0, 0, True), (1, 1, 2, True), (2, 1, 2, True)]), # │ ○ │ 
+                                                                                      # │ ├─╯ 
+             ('rev-b', 1, None, [(0, 0, 0, True), (1, 0, 0, True)])                 , # │ ○ 
+                                                                                      # ├─╯ 
+             ('rev-a', 0, None, [])                                                 ],# ○ 
              computed)
       
 
@@ -247,24 +247,24 @@ def format_graph_lines(list, use_unicode=True):
                 this_line[start * 2] = ver_char[direct]
                 next_line[start * 2] = ver_char[direct]
             else:
-                next_line[end * 2] = ver_char[direct]
+                this_line[start * 2] = ver_char[direct]
         
-        def replace_char(i, char_dict):
-            old_char = this_line[i]
+        def replace_char(line, i, char_dict):
+            old_char = line[i]
             if old_char in char_dict:
-                this_line[i] = char_dict[old_char]
+                line[i] = char_dict[old_char]
             
         for start, end, color, direct in lines:
             if start < end:
                 for i in range(start * 2 + 1, end * 2):
-                    replace_char(i, hor_char[direct])
-                replace_char(start * 2, bl_char)
-                replace_char(end * 2, tr_char)
+                    replace_char(next_line, i, hor_char[direct])
+                replace_char(next_line, start * 2, bl_char)
+                replace_char(next_line, end * 2, tr_char)
             elif start > end:
                 for i in range(end * 2 + 1, start * 2):
-                    replace_char(i, hor_char[direct])
-                replace_char(start * 2, br_char)
-                replace_char(end * 2, tl_char)
+                    replace_char(next_line, i, hor_char[direct])
+                replace_char(next_line, start * 2, br_char)
+                replace_char(next_line, end * 2, tl_char)
         
         this_line[col_index * 2] = twisty_char[twisty_state]
         
