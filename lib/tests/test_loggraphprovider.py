@@ -120,6 +120,39 @@ class TestLogGraphProvider(TestCaseWithTransport):
                                                                                       # ├─╯ 
              ('rev-a', 0, None, [])                                                 ],# ○ 
              computed)
+
+
+    def test_inter_branch_line_order(self):
+        gp = BasicTestLogGraphProvider(('rev-g',), {
+         'rev-a': (NULL_REVISION, ), 
+         'rev-b': ('rev-a', ),
+         'rev-c': ('rev-a', ),
+         'rev-d': ('rev-c', 'rev-b'),
+         'rev-e': ('rev-c', 'rev-b'),
+         'rev-f': ('rev-d', 'rev-e' ),
+         'rev-g': ('rev-e', 'rev-f' ),
+        })
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        self.expand_all_branches(state)
+        computed = gp.compute_graph_lines(state)
+        # branch lines should not cross over
+        self.assertComputed(
+            [('rev-g', 0, True, [(0, 0, 0, True), (0, 3, 3, True)])                                  , # ⊖       
+                                                                                                       # ├─────╮ 
+             ('rev-f', 3, None, [(0, 0, 0, True), (3, 1, 0, True), (3, 3, 3, True)])                 , # │     ○ 
+                                                                                                       # │ ╭───┤ 
+             ('rev-d', 3, True, [(0, 0, 0, True), (1, 0, 0, True), (3, 3, 0, True), (3, 2, 2, True)]), # │ │   ⊖ 
+                                                                                                       # ├─╯ ╭─┤ 
+             ('rev-e', 0, True, [(0, 0, 0, True), (0, 1, 2, True), (3, 3, 0, True), (2, 1, 2, True)]), # ⊖   │ │ 
+                                                                                                       # ├─╮─╯ │ 
+             ('rev-b', 1, None, [(0, 0, 0, True), (3, 0, 0, True), (1, 1, 0, True)])                 , # │ ○   │ 
+                                                                                                       # ├─┼───╯ 
+             ('rev-c', 0, None, [(0, 0, 0, True), (1, 0, 0, True)])                                  , # ○ │ 
+                                                                                                       # ├─╯ 
+             ('rev-a', 0, None, [])                                                                  ],# ○ 
+             computed)
       
 
 class BasicTestLogGraphProvider(loggraphprovider.LogGraphProvider):
@@ -215,13 +248,13 @@ def format_graph_lines(list, use_unicode=True):
         hor_char = {True: {' ': '-',},
                     False: {' ': '-'}}
         
-        tl_char = {' ': '/',}
+        tl_char = {}
     
-        tr_char = {' ': '\\'}
+        tr_char = {}
     
-        bl_char = {' ': '\\'}
+        bl_char = {}
         
-        br_char = {' ': '/'}
+        br_char = {}
     
     for row, (item, repr) in enumerate(zip(list, item_repr)):
         if row == 0:
