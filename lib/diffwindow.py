@@ -214,9 +214,9 @@ class DiffWindow(QBzrWindow):
 
     def create_refresh_action(self):
         action = QtGui.QAction(get_icon("view-refresh"),
-                gettext("&Refresh"), self,
-                shortcut="Ctrl+R",
-                toolTip=gettext("Refresh (Ctrl+R)"))
+                gettext("&Refresh"), self)
+        action.setShortcut("Ctrl+R")
+        action.setToolTip(gettext("Refresh (Ctrl+R)"))
         self.connect(action,
                      QtCore.SIGNAL("triggered (bool)"),
                      self.click_refresh)
@@ -285,7 +285,9 @@ class DiffWindow(QBzrWindow):
         if event.type() == QtCore.QEvent.FocusIn:
             if object in self.diffview.browsers:
                 self.find_toolbar.text_edit = object
-        return super(DiffWindow, self).eventFilter(object, event)
+        return QBzrWindow.eventFilter(self, object, event)
+        # Why doesn't this work?
+        #return super(DiffWindow, self).eventFilter(object, event)
 
     def show(self):
         QBzrWindow.show(self)
