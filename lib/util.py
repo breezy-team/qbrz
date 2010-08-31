@@ -54,6 +54,8 @@ from bzrlib import (
 from bzrlib.util.configobj import configobj
 from bzrlib.plugins.qbzr.lib import trace
 from bzrlib.workingtree import WorkingTree
+from bzrlib.transport import get_transport
+from bzrlib.lockdir import LockDir
 ''')
 
 # standard buttons with translatable labels
@@ -94,7 +96,10 @@ class Config(object):
     def __init__(self, filename):
         self._filename = filename
         self._configobj = None
-
+        dir = osutils.dirname(osutils.safe_unicode(filename))
+        transport = get_transport(dir)
+        self._lock = LockDir(transport, 'lock')
+    
     def _load(self):
         if self._configobj is not None:
             return
@@ -134,11 +139,15 @@ class Config(object):
             return {}
 
     def save(self):
-        self._load()
         ensure_config_dir_exists(os.path.dirname(self._filename))
-        f = open(self._filename, 'wb')
-        self._configobj.write(f)
-        f.close()
+        self._lock.lock_write()
+        try:
+            self._load()
+            f = open(self._filename, 'wb')
+            self._configobj.write(f)
+            f.close()
+        finally:
+            self._lock.unlock()
 
 
 class QBzrConfig(Config):
