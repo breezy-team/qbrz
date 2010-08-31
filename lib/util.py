@@ -31,6 +31,7 @@ from bzrlib.config import (
     GlobalConfig,
     config_dir,
     ensure_config_dir_exists,
+    config_filename,
     )
 from bzrlib import lazy_regex
 
@@ -221,14 +222,26 @@ class QBzrConfig(Config):
 _global_config = None
 def get_global_config():
     global _global_config
-    if _global_config is None:
+    
+    if (_global_config is None or
+        _check_global_config_filename_valid(_global_config)):
         _global_config = GlobalConfig()
     return _global_config
+
+def _check_global_config_filename_valid(config):
+    # before bzr 2.3, there was no file_name attrib, only _get_filename, and
+    # checking that would be meaningless.
+    if hasattr(config, 'file_name'):
+        return not config.file_name == config_filename()
+    else:
+        return False
+    
 
 _qbzr_config = None
 def get_qbzr_config():
     global _qbzr_config
-    if _qbzr_config is None:
+    if (_qbzr_config is None or
+        not _qbzr_config._filename == config_filename()):
         _qbzr_config = QBzrConfig()
     return _qbzr_config
 
@@ -342,7 +355,6 @@ class _QBzrWindowBase(object):
             self.splitter.setSizes(sizes)
 
     def closeEvent(self, event):
-        print 'closeEvent'
         self.closing = True
         self.saveSize()
         for window in self.windows:
