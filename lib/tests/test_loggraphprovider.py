@@ -86,6 +86,41 @@ class TestLogGraphProvider(TestCaseWithTransport):
                                                                      # │   
              ('rev-a', 0, None, [])                                ],# ○ 
             computed)
+    
+    def expand_all_branches(self, state):
+        for branch_id in state.graph_provider.branch_lines.keys():
+            state.branch_line_state[branch_id] = None
+    
+    def test_branch_line_order(self):
+        gp = BasicTestLogGraphProvider(('rev-f',), {
+         'rev-a': (NULL_REVISION, ), 
+         'rev-b': ('rev-a', ),
+         'rev-c': ('rev-b', ),
+         'rev-d': ('rev-a', 'rev-c'),
+         'rev-e': ('rev-b', ),
+         'rev-f': ('rev-d', 'rev-e' ),
+        })
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        self.expand_all_branches(state)
+        computed = gp.compute_graph_lines(state)
+        
+        # branch lines should not cross over
+        self.assertComputed(
+            [('rev-f', 0, True, [(0, 0, 0, True), (0, 2, 3, True)])                 , # ⊖───╮ 
+                                                                                      # │   │ 
+             ('rev-e', 2, True, [(0, 0, 0, True), (2, 2, 2, True)])                 , # │   ⊖ 
+                                                                                      # │   │ 
+             ('rev-d', 0, True, [(0, 0, 0, True), (0, 1, 2, True), (2, 2, 2, True)]), # ⊖─╮ │ 
+                                                                                      # │ │ │ 
+             ('rev-c', 1, None, [(0, 0, 0, True), (1, 1, 2, True), (2, 1, 2, True)]), # │ ○─╯ 
+                                                                                      # │ │   
+             ('rev-b', 1, None, [(0, 0, 0, True), (1, 0, 0, True)])                 , # ├─○ 
+                                                                                      # │   
+             ('rev-a', 0, None, [])                                                 ],# ○  
+             computed)
+      
 
 class BasicTestLogGraphProvider(loggraphprovider.LogGraphProvider):
     
@@ -106,6 +141,14 @@ class BasicTestLogGraphProvider(loggraphprovider.LogGraphProvider):
         if not self.no_graph:
             self.compute_branch_lines()
             self.compute_merge_info()
+
+
+def print_computed(computed):
+    print_lines([(c_rev.rev.revid,
+                 c_rev.col_index,
+                 c_rev.twisty_state,
+                 c_rev.lines,)
+                for c_rev in computed.filtered_revs])
 
 def print_lines(list):
     print ''
