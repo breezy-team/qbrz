@@ -1,7 +1,15 @@
 0.20 Beta 1 - In development
 ----------------------------
 
- * Clean up config code. (Gary van der Merwe)
+ * Refactor the config code:
+   * Remove the QBzrGlobalConfig class so that we only have one class that
+     writes to qbzr.conf.
+   * Have a global cache for the QBzrConfig, like we have for bzr GlobalConfig,
+     to reduce reading the config from disk. 
+   * Refactor the window.saveSize methods, so that we only have to write the
+     config to disk once.
+   * Lock the config dir when when saving the config file.
+  (Gary van der Merwe)
 
 0.19.1 - In development
 -----------------------
