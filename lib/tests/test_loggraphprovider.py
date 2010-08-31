@@ -153,7 +153,32 @@ class TestLogGraphProvider(TestCaseWithTransport):
                                                                                                        # ├─╯ 
              ('rev-a', 0, None, [])                                                                  ],# ○ 
              computed)
-      
+
+    def test_octopus_merge(self):
+        gp = BasicTestLogGraphProvider(('rev-e',), {
+         'rev-a': (NULL_REVISION, ), 
+         'rev-b': ('rev-a', ),
+         'rev-c': ('rev-a', ),
+         'rev-d': ('rev-a', ),
+         'rev-e': ('rev-a', 'rev-b', 'rev-c', 'rev-d'),
+        })
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        self.expand_all_branches(state)
+        computed = gp.compute_graph_lines(state)
+        
+        self.assertComputed(
+            [('rev-e', 0, True, [(0, 0, 0, True), (0, 1, 2, True), (0, 2, 3, True), (0, 3, 4, True)]), # ⊖       
+                                                                                                       # ├─╮─╮─╮ 
+             ('rev-b', 3, None, [(0, 0, 0, True), (1, 1, 2, True), (2, 2, 3, True), (3, 3, 0, True)]), # │ │ │ ○ 
+                                                                                                       # │ │ │ │ 
+             ('rev-c', 2, None, [(0, 0, 0, True), (1, 1, 2, True), (2, 2, 3, True), (3, 3, 0, True)]), # │ │ ○ │ 
+                                                                                                       # │ │ │ │ 
+             ('rev-d', 1, None, [(0, 0, 0, True), (1, 0, 0, True), (2, 0, 0, True), (3, 0, 0, True)]), # │ ○ │ │ 
+                                                                                                       # ├─╯─╯─╯ 
+             ('rev-a', 0, None, [])                                                                  ],# ○
+            computed)
 
 class BasicTestLogGraphProvider(loggraphprovider.LogGraphProvider):
     
