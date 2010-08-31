@@ -269,9 +269,9 @@ class RevertWindow(SubProcessDialog):
             args.append("--no-backup")
         self.process_widget.do_start(self.tree.basedir, *args)
 
-    def saveSize(self):
-        SubProcessDialog.saveSize(self)
-        self.saveSplitterSizes()
+    def _saveSize(self, config):
+        SubProcessDialog._saveSize(self, config)
+        self._saveSplitterSizes(config, self.splitter)
 
     def show_diff_for_checked(self, ext_diff=None, dialog_action='revert'):
         """Diff button clicked: show the diff for checked entries.

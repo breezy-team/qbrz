@@ -21,7 +21,6 @@ import re
 import os.path
 from PyQt4 import QtCore, QtGui
 from bzrlib.config import (
-    GlobalConfig,
     ensure_config_dir_exists,
     extract_email_address,
     )
@@ -34,7 +33,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     QBzrDialog,
     extract_name,
-    QBzrGlobalConfig,
+    get_qbzr_config,
+    get_global_config,
     )
 
 
@@ -255,11 +255,10 @@ class QBzrConfigWindow(QBzrDialog):
 
     def load(self):
         """Load the configuration."""
-        config = GlobalConfig()
+        config = get_global_config()
         parser = config._get_parser()
         
-        qconfig = QBzrGlobalConfig()
-        qparser = qconfig._get_parser()
+        qconfig = get_qbzr_config()
 
         # Name & e-mail
         username = config.username()
@@ -316,8 +315,8 @@ class QBzrConfigWindow(QBzrDialog):
             item.setText(1, value)
         
         # Diff
-        self.diffShowIntergroupColors.setChecked(qconfig.get_user_option("diff_show_intergroup_colors") in ("True", "1"))
-        defaultDiff = qconfig.get_user_option("default_diff")
+        self.diffShowIntergroupColors.setChecked(qconfig.get_option("diff_show_intergroup_colors") in ("True", "1"))
+        defaultDiff = qconfig.get_option("default_diff")
         if defaultDiff is None:
             defaultDiff = ""
 
@@ -342,13 +341,13 @@ class QBzrConfigWindow(QBzrDialog):
                       QtCore.Qt.ItemIsEnabled |
                       QtCore.Qt.ItemIsUserCheckable)        
         
-        extDiffs = qparser.get('EXTDIFF', {})
+        extDiffs = qconfig.get_section('EXTDIFF')
         for name, command in extDiffs.items():
             create_ext_diff_item(name, command)
         self.extDiffListIgnore = False
 
         # Merge
-        bzr_config = GlobalConfig()
+        bzr_config = get_global_config()
         defaultMerge = bzr_config.get_user_option("external_merge")
         if defaultMerge is None:
             defaultMerge = ""
@@ -375,11 +374,10 @@ class QBzrConfigWindow(QBzrDialog):
 
     def save(self):
         """Save the configuration."""
-        config = GlobalConfig()
+        config = get_global_config()
         parser = config._get_parser()
 
-        qconfig = QBzrGlobalConfig()
-        qparser = qconfig._get_parser()
+        qconfig = get_qbzr_config()
 
         def set_or_delete_option(parser, name, value):
             if value:
@@ -436,11 +434,11 @@ class QBzrConfigWindow(QBzrDialog):
                 parser['DEFAULT']['bugtracker_%s_url' % abbrev] = url
 
         # Diff
-        set_or_delete_option(qparser, 'diff_show_intergroup_colors',
-                             self.diffShowIntergroupColors.isChecked())
-        defaultDiff = None
+        qconfig.set_option('diff_show_intergroup_colors',
+                           self.diffShowIntergroupColors.isChecked())
         
-        qparser['EXTDIFF'] = {}
+        defaultDiff = None
+        ext_diffs = {}
         for index in range(1, self.extDiffList.topLevelItemCount()):
             item = self.extDiffList.topLevelItem(index)
             name = unicode(item.text(0))
@@ -448,16 +446,18 @@ class QBzrConfigWindow(QBzrDialog):
             if item.checkState(0) == QtCore.Qt.Checked:
                 defaultDiff = command
             if name and command:
-                qparser['EXTDIFF'][name] = command
-        set_or_delete_option(qparser, 'default_diff',
-                             defaultDiff)
+                ext_diffs[name] = command
+        qconfig.set_section('EXTDIFF', ext_diffs)
+        qconfig.set_option('default_diff',
+                           defaultDiff)
+        
         # Merge        
         defaultMerge = None
         for index in range(self.extMergeList.topLevelItemCount()):
             item = self.extMergeList.topLevelItem(index)
             definition = unicode(item.text(0))
             if item.checkState(0) == QtCore.Qt.Checked:
-                defaultMerge = definition            
+                defaultMerge = definition
             
         set_or_delete_option(parser, 'external_merge',
                              defaultMerge)
@@ -469,7 +469,7 @@ class QBzrConfigWindow(QBzrDialog):
             f.close()
         
         save_config(config, parser)
-        save_config(qconfig, qparser)
+        qconfig.save()
 
     def do_accept(self):
         """Save changes and close the window."""

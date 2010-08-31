@@ -304,6 +304,6 @@ class QBzrRunDialog(SubProcessDialog):
         args.extend(shlex_split_unicode(opt_arg))
         self.process_widget.do_start(cwd, *args)
 
-    def saveSize(self):
-        SubProcessDialog.saveSize(self)
-        self.saveSplitterSizes()
+    def _saveSize(self, config):
+        SubProcessDialog._saveSize(self, config)
+        self._saveSplitterSizes(config, self.splitter)
