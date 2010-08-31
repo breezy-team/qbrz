@@ -19,8 +19,9 @@
 from bzrlib.tests import TestCase, TestCaseWithTransport
 from StringIO import StringIO
 
-
 from bzrlib.plugins.qbzr.lib import loggraphprovider
+from bzrlib.revision import NULL_REVISION
+
 
 class TestLogGraphProvider(TestCaseWithTransport):
     
@@ -52,17 +53,12 @@ class TestLogGraphProvider(TestCaseWithTransport):
         self.assertEqual(len(computed.revisions), 0)
 
     def test_basic_branch_line(self):
-        wt = self.make_branch_and_tree('.')
-        wt.commit('a', rev_id='rev-a')
-        wt.commit('b', rev_id='rev-b')
-        wt.pull(wt.branch, True, 'rev-a')
-        wt.commit('c', rev_id='rev-c')
-        wt.pull(wt.branch, True, 'rev-b')
-        wt.set_parent_ids(['rev-b', 'rev-c'])
-        wt.commit('d', rev_id='rev-d')
-        
-        bi = loggraphprovider.BranchInfo('', wt, wt.branch)
-        gp = loggraphprovider.LogGraphProvider([bi], bi, False)
+        gp = BasicTestLogGraphProvider(('rev-d',), {
+         'rev-a': (NULL_REVISION, ), 
+         'rev-b': ('rev-a', ),
+         'rev-c': ('rev-a', ),
+         'rev-d': ('rev-b', 'rev-c'),
+        })
         gp.load()
         
         state = loggraphprovider.GraphProviderFilterState(gp)
@@ -91,6 +87,25 @@ class TestLogGraphProvider(TestCaseWithTransport):
              ('rev-a', 0, None, [])                                ],# ○ 
             computed)
 
+class BasicTestLogGraphProvider(loggraphprovider.LogGraphProvider):
+    
+    def __init__(self, heads, graph_dict):
+        self.heads = heads
+        self.graph_dict = graph_dict
+        bi = loggraphprovider.BranchInfo(None, None, None)
+        loggraphprovider.LogGraphProvider.__init__(self, [bi], bi, False)
+    
+    def load(self):
+        for head in self.heads:
+            self.append_head_info(head, self.branches[0], head)
+        
+        self.process_graph_parents(self.heads, self.graph_dict.items())
+        
+        self.compute_head_info()
+        
+        if not self.no_graph:
+            self.compute_branch_lines()
+            self.compute_merge_info()
 
 def print_lines(list):
     print ''
