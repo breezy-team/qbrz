@@ -992,7 +992,7 @@ class FindToolbar(QtGui.QToolBar):
     
     def __init__(self, window, text_edit, show_action):
         QtGui.QToolBar.__init__(self, gettext("Find"), window)
-        self._text_edit = text_edit
+        self.text_edit = text_edit
         if 0: self.text_edit = QtGui.QTextEdit()
         self.show_action = show_action
         
@@ -1098,15 +1098,10 @@ class FindToolbar(QtGui.QToolBar):
         else:
             self.text_edit.setTextCursor(cursor)
 
-    @property
-    def text_edit(self):
-        return self._text_edit
-
-    @text_edit.setter
-    def text_edit(self, new_text_edit):
-        if self._text_edit:
-            self._text_edit.setTextCursor(QtGui.QTextCursor())
-        self._text_edit = new_text_edit
+    def set_text_edit(self, new_text_edit):
+        if self.text_edit:
+            self.text_edit.setTextCursor(QtGui.QTextCursor())
+        self.text_edit = new_text_edit
 
 class InfoWidget(QtGui.QFrame):
     def __init__(self, parent=None):
