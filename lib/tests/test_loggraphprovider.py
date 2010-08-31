@@ -180,6 +180,38 @@ class TestLogGraphProvider(TestCaseWithTransport):
              ('rev-a', 0, None, [])                                                                  ],# ○
             computed)
 
+    def test_lots_of_merges_between_branch_lines(self):
+        gp = BasicTestLogGraphProvider(('rev-g',), {
+         'rev-a': (NULL_REVISION, ), 
+         'rev-b': ('rev-a', ),
+         'rev-c': ('rev-b', ),
+         'rev-d': ('rev-a', ),
+         'rev-e': ('rev-d', 'rev-b',),
+         'rev-f': ('rev-e', 'rev-c',),
+         'rev-g': ('rev-c', 'rev-f',),
+        })
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        self.expand_all_branches(state)
+        computed = gp.compute_graph_lines(state)
+
+        self.assertComputed(
+            [('rev-g', 0, True, [(0, 0, 0, True), (0, 2, 2, True)])                                  , # ⊖     
+                                                                                                       # ├───╮ 
+             ('rev-f', 2, None, [(0, 0, 0, True), (2, 1, 0, True), (2, 2, 2, True)])                 , # │   ○ 
+                                                                                                       # │ ╭─┤ 
+             ('rev-e', 2, None, [(0, 0, 0, True), (1, 1, 0, True), (2, 1, 0, True), (2, 2, 2, True)]), # │ │ ○ 
+                                                                                                       # │ ├─┤ 
+             ('rev-d', 2, None, [(0, 0, 0, True), (1, 0, 0, True), (1, 1, 0, True), (2, 2, 0, True)]), # │ │ ○ 
+                                                                                                       # ├─┤ │ 
+             ('rev-c', 0, None, [(0, 0, 0, True), (1, 0, 0, True), (2, 2, 0, True)])                 , # ○ │ │ 
+                                                                                                       # ├─╯ │ 
+             ('rev-b', 0, None, [(0, 0, 0, True), (2, 0, 0, True)])                                  , # ○   │ 
+                                                                                                       # ├───╯ 
+             ('rev-a', 0, None, [])                                                                  ],# ○ 
+            computed)
+
 class BasicTestLogGraphProvider(loggraphprovider.LogGraphProvider):
     
     def __init__(self, heads, graph_dict):
