@@ -26,8 +26,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     format_timestamp,
-    QBzrGlobalConfig,
-    QBzrConfig,
+    get_qbzr_config,
     )
 from bzrlib.trace import mutter
 from bzrlib.plugins.qbzr.lib.syntaxhighlighter import (
@@ -59,13 +58,13 @@ interline_changes_background = QtGui.QColor(180, 210, 250)
 #  kind_bound -- the color of the boundary of the rectangle this kind refers to.
 #  kind_fill  -- the color of the filling of that same rectangle.
 
-config = QBzrConfig()
+config = get_qbzr_config()
 component_dict = {0:'fill', 1:'bound'}
 for key in colors.iterkeys():
     for comp in [0,1]:
         color = None
         try:
-            color = config.getColor(key + '_' + component_dict[comp],
+            color = config.get_color(key + '_' + component_dict[comp],
                                         'QDIFF COLORS')
         except ValueError, msg:
             #error handling.
@@ -76,8 +75,8 @@ for key in colors.iterkeys():
 
 #Get a user-defined replacement text background
 try:
-    new_interline_bg  = config.getColor('interline_changes_background',
-                                        'QDIFF COLORS')
+    new_interline_bg  = config.get_color('interline_changes_background',
+                                         'QDIFF COLORS')
     if None != new_interline_bg:
       interline_changes_background = new_interline_bg
 except ValueError, msg:
@@ -254,8 +253,8 @@ class SidebySideDiffView(QtGui.QSplitter):
         self.image_exts = ['.'+str(i)
             for i in QtGui.QImageReader.supportedImageFormats()]
         
-        config = QBzrGlobalConfig()
-        self.show_intergroup_colors = config.get_user_option("diff_show_intergroup_colors") in ("True", "1")
+        config = get_qbzr_config()
+        self.show_intergroup_colors = config.get_option("diff_show_intergroup_colors") in ("True", "1")
     
     def clear(self):
         

@@ -25,7 +25,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE, BTN_REFRESH,
     QBzrWindow,
-    QBzrGlobalConfig,
+    get_qbzr_config,
     StandardButton,
     )
 
@@ -125,8 +125,8 @@ class ConflictsWindow(QBzrWindow):
         self.initialize_ui()        
 
     def initialize_ui(self):
-        config = QBzrGlobalConfig()
-        merge_tool_extmerge = config.get_user_option("merge_tool_extmerge")
+        config = get_qbzr_config().get_option("merge_tool_extmerge")
+        
         self.program_extmerge_default_button.setCheckState(QtCore.Qt.Unchecked)
         if merge_tool_extmerge in ("True", "1"):
             self.program_extmerge_default_button.setCheckState(QtCore.Qt.Checked)
@@ -217,8 +217,8 @@ class ConflictsWindow(QBzrWindow):
         this_file_name = file_name + ".THIS"
         other_file_name = file_name + ".OTHER"
         new_args = [base_file_name, this_file_name, other_file_name]
-        config = QBzrGlobalConfig()
-        config.set_user_option("merge_tool_extmerge", False)
+        config = get_qbzr_config()
+        config.set_option("merge_tool_extmerge", False)
 
         if self.program_extmerge_default_button.isChecked():
             bzr_config = GlobalConfig()
@@ -233,9 +233,9 @@ class ConflictsWindow(QBzrWindow):
                 new_args[i] = new_args[i].replace('%t', this_file_name)
                 i = i + 1
             merge_tool = args[0]
-            config.set_user_option("merge_tool_extmerge", True)
+            config.set_option("merge_tool_extmerge", True)
         else:
-            config.set_user_option("merge_tool", merge_tool)
+            config.set_option("merge_tool", merge_tool)
 
         process = QtCore.QProcess(self)
         self.connect(process, QtCore.SIGNAL("error(QProcess::ProcessError)"), self.show_merge_tool_error)
@@ -266,10 +266,9 @@ class ConflictsWindow(QBzrWindow):
         self.program_edit.setEnabled(enabled and not self.program_extmerge_default_button.isChecked())
         self.program_launch_button.setEnabled(enabled)
         self.update_program_edit_text(enabled, error_msg)
-        config = QBzrGlobalConfig()
-        config.set_user_option("merge_tool_extmerge", False)
-        if self.program_extmerge_default_button.isChecked():
-            config.set_user_option("merge_tool_extmerge", True)  
+        config = get_qbzr_config()
+        config.set_option("merge_tool_extmerge", 
+                          self.program_extmerge_default_button.isChecked()) 
 
     def is_merge_tool_launchable(self):
         items = self.conflicts_list.selectedItems()
@@ -326,7 +325,7 @@ class ConflictsWindow(QBzrWindow):
             else:
                 self.program_edit.setText(error_msg)
         else:
-            config = QBzrGlobalConfig()
+            config = get_qbzr_config()
             self.program_edit.setText((config.get_user_option("merge_tool") or "").strip() or "meld")
 
 if 0:
