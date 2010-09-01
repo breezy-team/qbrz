@@ -211,6 +211,54 @@ class TestLogGraphProvider(TestCaseWithTransport):
                                                                                                        # ├───╯ 
              ('rev-a', 0, None, [])                                                                  ],# ○ 
             computed)
+    
+    def test_merge_line_hidden(self):
+        gp = BasicTestLogGraphProvider(('rev-d',), {
+         'rev-a': (NULL_REVISION, ), 
+         'rev-b': ('rev-a', ),
+         'rev-c': ('rev-a', 'rev-b'),
+         'rev-d': ('rev-a', 'rev-c'),
+        })
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        state.branch_line_state[(1, 1)] = None
+        
+        computed = gp.compute_graph_lines(state)
+        # when the merge by branch line, we should show a non direct line
+        self.assertComputed(
+            [('rev-d', 0, False, [(0, 0, 0, True), (0, 1, 2, False)]), # ⊕   
+                                                                       # ├┄╮ 
+             ('rev-b', 1, None, [(0, 0, 0, True), (1, 0, 0, True)])  , # │ ○ 
+                                                                       # ├─╯ 
+             ('rev-a', 0, None, [])                                  ],# ○ 
+            computed)    
+
+    def test_merge_line_hidden_merge_rev_filtered(self):
+        gp = BasicTestLogGraphProvider(('rev-e',), {
+         'rev-a': (NULL_REVISION, ), 
+         'rev-b': ('rev-a', ),
+         'rev-c': ('rev-b', ),
+         'rev-d': ('rev-a', 'rev-c'),
+         'rev-e': ('rev-a', 'rev-d'),
+        })
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        state.filters.append(BasicFilterer(set(['rev-c'])))
+        state.branch_line_state[(1, 1)] = None
+        
+        computed = gp.compute_graph_lines(state)
+        
+        # when the merge by branch line, we should show a non direct line
+        self.assertComputed(
+            [('rev-e', 0, False, [(0, 0, 0, True), (0, 1, 2, False)]), # ⊕   
+                                                                       # ├┄╮ 
+             ('rev-b', 1, None, [(0, 0, 0, True), (1, 0, 0, True)])  , # │ ○ 
+                                                                       # ├─╯ 
+             ('rev-a', 0, None, [])                                  ],# ○ 
+            computed)    
+
 
 class BasicTestLogGraphProvider(loggraphprovider.LogGraphProvider):
     
@@ -232,6 +280,14 @@ class BasicTestLogGraphProvider(loggraphprovider.LogGraphProvider):
             self.compute_branch_lines()
             self.compute_merge_info()
 
+
+class BasicFilterer(object):
+    def __init__(self, filtered_revids):
+        self.filtered_revids = filtered_revids
+    
+    def get_revision_visible(self, rev):
+        if rev.revid in self.filtered_revids:
+            return False
 
 def print_computed(computed):
     print_lines([(c_rev.rev.revid,
