@@ -125,7 +125,7 @@ class ConflictsWindow(QBzrWindow):
         self.initialize_ui()        
 
     def initialize_ui(self):
-        config = get_qbzr_config().get_option("merge_tool_extmerge")
+        merge_tool_extmerge = get_qbzr_config().get_option("merge_tool_extmerge")
         
         self.program_extmerge_default_button.setCheckState(QtCore.Qt.Unchecked)
         if merge_tool_extmerge in ("True", "1"):
