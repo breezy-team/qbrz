@@ -520,9 +520,9 @@ class LogList(RevisionTreeView):
                        parent_window = self.window())
     
     def show_diff_specified_files(self, ext_diff=None):
-        if self.log_model.graph_provider.file_ids:
+        if self.log_model.file_ids:
             self.show_diff(ext_diff=ext_diff,
-                           specific_file_ids = self.log_model.graph_provider.file_ids)
+                           specific_file_ids = self.log_model.file_ids)
         else:
             self.show_diff(ext_diff=ext_diff)
     

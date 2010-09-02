@@ -180,6 +180,7 @@ class LogModel(QtCore.QAbstractTableModel):
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
             self.graph_provider = graph_provider
             self.state = state
+            self.file_ids = file_ids
             self.file_id_filter = file_id_filter
             self.prop_search_filter = prop_search_filter
             self.computed = loggraphprovider.ComputedGraph(graph_provider)
