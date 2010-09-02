@@ -37,13 +37,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 
 RevIdRole = im_RevIdRole
-(TagsRole,
- BugIdsRole,
- BranchTagsRole,
- GraphNodeRole,
- GraphLinesRole,
- GraphTwistyStateRole,
-) = range(QtCore.Qt.UserRole + 2, QtCore.Qt.UserRole + 8)
+GraphDataRole = QtCore.Qt.UserRole + 2
 
 header_labels = (gettext("Rev"),
                  gettext("Message"),
@@ -55,12 +49,6 @@ header_labels = (gettext("Rev"),
  COL_DATE,
  COL_AUTHOR,
 ) = range(len(header_labels))
-
-
-try:
-    QVariant_fromList = QtCore.QVariant.fromList
-except AttributeError:
-    QVariant_fromList = QtCore.QVariant
 
 
 class WorkingTreeRevision(Revision):
@@ -161,6 +149,7 @@ class LogModel(QtCore.QAbstractTableModel):
 
         self.clicked_row = None
         self.last_rev_is_placeholder = False
+        self.bugtext = gettext("bug #%s")
     
     def load(self, branches, primary_bi, file_ids, no_graph,
              graph_provider_type):
@@ -205,6 +194,8 @@ class LogModel(QtCore.QAbstractTableModel):
     
     def compute_lines(self):
         self.computed = self.graph_provider.compute_graph_lines(self.state)
+        if self.last_rev_is_placeholder:
+            self.computed.filtered_revs[-1].col_index = None
         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                   self.createIndex (0, COL_MESSAGE, QtCore.QModelIndex()),
                   self.createIndex (len(self.graph_provider.revisions),
@@ -240,66 +231,65 @@ class LogModel(QtCore.QAbstractTableModel):
     def rowCount(self, parent):
         if parent.isValid():
             return 0
-        return len(self.graph_provider.revisions)
+        return len(self.computed.revisions)
     
     def data(self, index, role):
+        
         if not index.isValid():
             return QtCore.QVariant()
         
-        if self.last_rev_is_placeholder and \
-                index.row() == len(gp.revisions) - 1:
-            if role == GraphNodeRole:
-                return QVariant_fromList([QtCore.QVariant(-1),
-                                          QtCore.QVariant(0)])
-            return QtCore.QVariant()
-        
-        c_rev = self.computed.revisions[index.row()]
-        
-        if role == GraphLinesRole:
-            qlines = []
-            for start, end, color, direct in c_rev.lines:
-                qlines.append(QVariant_fromList(
-                    [QtCore.QVariant(start),
-                     QtCore.QVariant(end),
-                     QtCore.QVariant(color),
-                     QtCore.QVariant(direct)]))
-            return QVariant_fromList(qlines)
-        
-        if self.last_rev_is_placeholder and \
-                rev_info.index == len(self.computed.revisions) - 1:
-            if role == GraphNodeRole:
-                return QVariant_fromList([QtCore.QVariant(-1), QtCore.QVariant(0)])
+        def blank():
             if role == QtCore.Qt.DisplayRole:
                 return QtCore.QVariant("")
             return QtCore.QVariant()
-
-        if role == GraphNodeRole:
-            if c_rev.col_index is None:
-                return QtCore.QVariant()
-            return QVariant_fromList([QtCore.QVariant(c_rev.col_index),
-                                      QtCore.QVariant(c_rev.rev.branch.color)])
         
-        if role == GraphTwistyStateRole:
-            if c_rev.twisty_state is None:
-                return QtCore.QVariant()
-            if index.row() == self.clicked_row:
-                return QtCore.QVariant(-1)
-            return QtCore.QVariant(c_rev.twisty_state)
+        c_rev = self.computed.revisions[index.row()]
+        if c_rev is None:
+            return blank()
         
-        if (role == QtCore.Qt.DisplayRole and index.column() == COL_REV) :
-            return QtCore.QVariant(c_rev.rev.revno_str)
+        if c_rev.rev.revid in cached_revisions:
+            revision = cached_revisions[c_rev.rev.revid]
+        else:
+            revision = None
         
-        if role == TagsRole:
+        if role == GraphDataRole:
+            prev_c_rev = None
+            prev_c_rev_f_index = c_rev.f_index - 1
+            if prev_c_rev_f_index >= 0:
+                prev_c_rev = self.computed.filtered_revs[prev_c_rev_f_index]
+            
             tags = []
+            # Branch labels
+            tags.extend([(label, QtGui.QColor(24, 80, 200), QtCore.Qt.white)
+                         for (branch_info, label) in c_rev.branch_labels
+                         if label])
+            # Tags
             if c_rev.rev.revid in self.graph_provider.tags:
-                tags = list(self.graph_provider.tags[c_rev.rev.revid])
-            return QtCore.QVariant(QtCore.QStringList(tags))
+                tags.extend(
+                    [(tag, QtGui.QColor(80, 128, 32), QtCore.Qt.white)
+                     for tag in self.graph_provider.tags[c_rev.rev.revid]])
+            
+            # Bugs
+            if revision:
+                if hasattr(revision, '_qlog_bugs'):
+                    bugs = revision._qlog_bugs
+                else:
+                    bugs = []
+                    for bug in revision.properties.get('bugs', '').split('\n'):
+                        if bug:
+                            url = bug.split(' ', 1)[0]
+                            bug_id = get_bug_id(url)
+                            if bug_id:
+                                bugs.append(self.bugtext % bug_id)
+                    revision._qlog_bugs = bugs
+                tags.extend([(bug, QtGui.QColor(164, 0, 0), QtCore.Qt.white)
+                             for bug in bugs])
+            is_clicked = index.row() == self.clicked_row
+            
+            return QtCore.QVariant((c_rev, prev_c_rev, tags, is_clicked))
         
-        if role == BranchTagsRole:
-            labels =  [label
-                       for (branch_info, label) in c_rev.branch_labels
-                       if label]
-            return QtCore.QVariant(QtCore.QStringList(labels))
+        if (role == QtCore.Qt.DisplayRole and index.column() == COL_REV):
+            return QtCore.QVariant(c_rev.rev.revno_str)
         
         if role == QtCore.Qt.ToolTipRole and index.column() == COL_MESSAGE:
             urls =  [branch_info.branch.base
@@ -308,15 +298,11 @@ class LogModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant('\n'.join(urls))
         
         if role == RevIdRole:
-            return QtCore.QVariant(QtCore.QByteArray(str(c_rev.rev.revid)))
+            return QtCore.QVariant(c_rev.rev.revid)
         
         #Everything from here foward will need to have the revision loaded.
-        if c_rev.rev.revid not in cached_revisions:
-            if role == QtCore.Qt.DisplayRole:
-                return QtCore.QVariant("")
-            return QtCore.QVariant()
-        
-        revision = cached_revisions[c_rev.rev.revid]
+        if revision is None:
+            return blank()
         
         if role == QtCore.Qt.DisplayRole and index.column() == COL_DATE:
             return QtCore.QVariant(strftime("%Y-%m-%d %H:%M",
@@ -325,20 +311,8 @@ class LogModel(QtCore.QAbstractTableModel):
             return QtCore.QVariant(extract_name(get_apparent_author(revision)))
         if role == QtCore.Qt.DisplayRole and index.column() == COL_MESSAGE:
             return QtCore.QVariant(revision.get_summary())
-        if role == BugIdsRole:
-            bugtext = gettext("bug #%s")
-            bugs = []
-            for bug in revision.properties.get('bugs', '').split('\n'):
-                if bug:
-                    url = bug.split(' ', 1)[0]
-                    bug_id = get_bug_id(url)
-                    if bug_id:
-                        bugs.append(bugtext % bug_id)
-            return QtCore.QVariant(QtCore.QStringList(bugs))
         
-        if role == QtCore.Qt.DisplayRole:
-            return QtCore.QVariant("")
-        return QtCore.QVariant()
+        return blank()
 
     def flags(self, index):
         if not index.isValid():
@@ -511,4 +485,5 @@ class PropertySearchFilter (object):
         
         if self.index_matched_revids is not None:
             if revid not in self.index_matched_revids:
-                return False        
+                return False
+    

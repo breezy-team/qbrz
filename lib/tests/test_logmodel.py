@@ -19,7 +19,6 @@
 from bzrlib.tests import TestCase, TestCaseWithTransport
 from PyQt4 import QtCore
 from bzrlib.plugins.qbzr.lib.logmodel import (
-    QVariant_fromList,
     LogModel,
     LogGraphProvider,
     )
@@ -29,15 +28,6 @@ from bzrlib.plugins.qbzr.lib.tests.modeltest import ModelTest
 from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
 from bzrlib.plugins.qbzr.lib.util import ThrobberWidget
 
-
-class TestQVariantFromList(TestCase):
-
-    def test_variant_from_list(self):
-        lst = [QtCore.QVariant("a"), QtCore.QVariant("b")]
-        var = QVariant_fromList(lst)
-        lst = var.toList()
-        self.assertEquals("a", lst[0].toString())
-        self.assertEquals("b", lst[1].toString())
 
 class TestModel(TestWatchExceptHook, TestCaseWithTransport):
     

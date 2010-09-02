@@ -35,6 +35,7 @@ class TestLogSmokeTests(TestWatchExceptHook, TestCaseWithTransport):
         self.addCleanup(win.close)
         win.show()
         QtCore.QCoreApplication.processEvents()
+        QtCore.QCoreApplication.processEvents()
 
     def setUp(self):
         super(TestLogSmokeTests, self).setUp()
@@ -53,6 +54,8 @@ class TestLogSmokeTests(TestWatchExceptHook, TestCaseWithTransport):
         self.addCleanup(win.close)
         win.show()
         QtCore.QCoreApplication.processEvents()
+        QtCore.QCoreApplication.processEvents()
+
 
 class TestLogGetBranchesAndFileIds(TestCaseWithTransport):
 

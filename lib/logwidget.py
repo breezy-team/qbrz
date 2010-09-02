@@ -216,9 +216,11 @@ class LogList(RevisionTreeView):
             index = self.indexAt(pos)
             rect = self.visualRect(index)
             boxsize = rect.height()
-            node = index.data(logmodel.GraphNodeRole).toList()
-            if len(node)>0:
-                node_column = node[0].toInt()[0]
+            data = index.data(logmodel.GraphDataRole)
+            if data.isValid():
+                c_rev = data.toPyObject()[0]
+                
+                node_column = c_rev.col_index
                 twistyRect = QtCore.QRect (rect.x() + boxsize * node_column,
                                            rect.y() ,
                                            boxsize,
@@ -241,16 +243,16 @@ class LogList(RevisionTreeView):
         index = self.indexAt(pos)
         rect = self.visualRect(index)
         boxsize = rect.height()
-        node = index.data(logmodel.GraphNodeRole).toList()
-        if len(node)>0:
-            node_column = node[0].toInt()[0]
+        data = index.data(logmodel.GraphDataRole)
+        if data.isValid():
+            c_rev = data.toPyObject()[0]
+            node_column = c_rev.col_index
             twistyRect = QtCore.QRect (rect.x() + boxsize * node_column,
                                        rect.y() ,
                                        boxsize,
                                        boxsize)
             if twistyRect.contains(pos):
-                twisty_state = index.data(logmodel.GraphTwistyStateRole)
-                if twisty_state.isValid():
+                if c_rev.twisty_state is not None:
                     collapse_expand_click = True
         if not collapse_expand_click:
             QtGui.QTreeView.mouseMoveEvent(self, e)
@@ -267,13 +269,17 @@ class LogList(RevisionTreeView):
                 return
             index = indexes[0]
             source_index = self.filter_proxy_model.mapToSource(index)
-            twisty_state = source_index.data(logmodel.GraphTwistyStateRole)
-            if e.key() == QtCore.Qt.Key_Right \
-                    and twisty_state.isValid() \
-                    and not twisty_state.toBool():
+            data = source_index.data(logmodel.GraphDataRole)
+            if data.isValid():
+                c_rev = data.toPyObject()[0]
+            else:
+                c_rev = None
+            
+            if (e.key() == QtCore.Qt.Key_Right
+                and c_rev and not c_rev.twisty_state):
                 self.log_model.collapse_expand_rev(source_index.row())
             if e.key() == QtCore.Qt.Key_Left:
-                if twisty_state.isValid() and twisty_state.toBool():
+                if c_rev and c_rev.twisty_state:
                     self.log_model.collapse_expand_rev(source_index.row())
                 else:
                     # Find the revision the merges us.
@@ -605,42 +611,15 @@ class BranchMenu(QtGui.QMenu):
 
 class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
 
-    _tagColor = QtGui.QColor(80, 128, 32)
-    _bugColor = QtGui.QColor(164, 0, 0)
-    _branchTagColor = QtGui.QColor(24, 80, 200)
-    _labelColor = QtCore.Qt.white
-
     _twistyColor = QtCore.Qt.black
 
     def paint(self, painter, option, index):
-        node = index.data(logmodel.GraphNodeRole)
-        if node.isValid():
+        data = index.data(logmodel.GraphDataRole)
+        if data.isValid():
             draw_graph = True
-            self.node = node.toList()
-            self.lines = index.data(logmodel.GraphLinesRole).toList()
-            self.twisty_state = index.data(logmodel.GraphTwistyStateRole)
-            
-            prevIndex = index.sibling (index.row()-1, index.column())
-            if prevIndex.isValid ():
-                self.prevLines = prevIndex.data(logmodel.GraphLinesRole).toList()
-            else:
-                self.prevLines = []
+            c_rev, prev_c_rev, labels, is_clicked = data.toPyObject()
         else:
             draw_graph = False
-        
-        self.labels = []
-        # collect branch tags
-        for tag in index.data(logmodel.BranchTagsRole).toStringList():
-            self.labels.append(
-                (tag, self._branchTagColor))
-        # collect tag names
-        for tag in index.data(logmodel.TagsRole).toStringList():
-            self.labels.append(
-                (tag, self._tagColor))
-        # collect bug ids
-        for bug in index.data(logmodel.BugIdsRole).toStringList():
-            self.labels.append(
-                (bug, self._bugColor))
         
         option = QtGui.QStyleOptionViewItemV4(option)
         self.initStyleOption(option, index)
@@ -671,63 +650,52 @@ class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
                 painter.translate(0.5, 0.5)
                 
                 # Draw lines into the cell
-                for line in self.prevLines:
-                    start, end, color = [linei.toInt()[0] for linei in line.toList()[0:3]]
-                    direct = line.toList()[3].toBool()
-                    self.drawLine (painter, pen, rect, boxsize,
-                                   rect.y(), boxsize,
-                                   start, end, color, direct)
-                    graphCols = max((graphCols, min(start, end)))
+                if prev_c_rev:
+                    for start, end, color, direct in prev_c_rev.lines:
+                        self.drawLine (painter, pen, rect, boxsize,
+                                       rect.y(), boxsize,
+                                       start, end, color, direct)
+                        graphCols = max((graphCols, min(start, end)))
         
                 # Draw lines out of the cell
-                for line in self.lines:
-                    start, end, color = [linei.toInt()[0] for linei in line.toList()[0:3]]
-                    direct = line.toList()[3].toBool()
-                    self.drawLine (painter, pen, rect,boxsize,
-                                   rect.y() + boxsize, boxsize,
-                                   start, end, color, direct)
-                    graphCols = max((graphCols, min(start, end)))
+                if c_rev:
+                    for start, end, color, direct in c_rev.lines:
+                        self.drawLine (painter, pen, rect,boxsize,
+                                       rect.y() + boxsize, boxsize,
+                                       start, end, color, direct)
+                        graphCols = max((graphCols, min(start, end)))
                 
                 # Draw the revision node in the right column
-                i, is_int = self.twisty_state.toInt()
-                is_clicked = (is_int and i == -1)
                 
-                color = self.node[1].toInt()[0]
-                column = self.node[0].toInt()[0]
-                graphCols = max((graphCols, column))
-                pen.setColor(self.get_color(color,False))
-                painter.setPen(pen)
-                if not is_clicked:
-                    painter.setBrush(QtGui.QBrush(self.get_color(color,True)))
-                else:
-                    painter.setBrush(QtGui.QBrush(QtCore.Qt.white))
-                    
-                centerx = rect.x() + boxsize * (column + 0.5)
-                centery = rect.y() + boxsize * 0.5
-                painter.drawEllipse(
-                    QtCore.QRectF(centerx - (boxsize * dotsize * 0.5 ),
-                                  centery - (boxsize * dotsize * 0.5 ),
-                                 boxsize * dotsize, boxsize * dotsize))
-
-                # Draw twisty
-                if not is_clicked and self.twisty_state.isValid():
-                    linesize = 0.35
-                    pen.setColor(self._twistyColor)
+                if c_rev.col_index is not None:
+                    graphCols = max((graphCols, c_rev.col_index))
+                    pen.setColor(self.get_color(c_rev.rev.branch.color, False))
                     painter.setPen(pen)
-                    i, is_int = self.twisty_state.toInt()
-                    if is_int and i == -1:
-                        painter.drawEllipse(
-                            QtCore.QRectF(centerx - (boxsize * dotsize * 0.25 ),
-                                          centery - (boxsize * dotsize * 0.25 ),
-                                          boxsize * dotsize * 0.5,
-                                          boxsize * dotsize * 0.5))
+                    if not is_clicked:
+                        painter.setBrush(QtGui.QBrush(
+                            self.get_color(c_rev.rev.branch.color,True)))
                     else:
+                        painter.setBrush(QtGui.QBrush(QtCore.Qt.white))
+                        
+                    centerx = rect.x() + boxsize * (c_rev.col_index + 0.5)
+                    centery = rect.y() + boxsize * 0.5
+                    painter.drawEllipse(
+                        QtCore.QRectF(centerx - (boxsize * dotsize * 0.5 ),
+                                      centery - (boxsize * dotsize * 0.5 ),
+                                     boxsize * dotsize, boxsize * dotsize))
+    
+                    # Draw twisty
+                    if not is_clicked and c_rev.twisty_state is not None:
+                        linesize = 0.35
+                        pen.setColor(self._twistyColor)
+                        painter.setPen(pen)
+                        
                         painter.drawLine(QtCore.QLineF
                                          (centerx - boxsize * linesize / 2,
                                           centery,
                                           centerx + boxsize * linesize / 2,
                                           centery))
-                        if not self.twisty_state.toBool():
+                        if not c_rev.twisty_state:
                             painter.drawLine(QtCore.QLineF
                                              (centerx,
                                               centery - boxsize * linesize / 2,
@@ -736,33 +704,33 @@ class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
                 
             finally:
                 painter.restore()
-            rect.adjust( (graphCols + 1.5) * boxsize, 0, 0, 0)        
-        painter.save()
-        
-        x = 0
-        try:
-            tagFont = QtGui.QFont(option.font)
-            tagFont.setPointSizeF(tagFont.pointSizeF() * 9 / 10)
-    
-            for label, color in self.labels:
-                tagRect = rect.adjusted(1, 1, -1, -1)
-                tagRect.setWidth(QtGui.QFontMetrics(tagFont).width(label) + 6)
-                tagRect.moveLeft(tagRect.x() + x)
-                painter.fillRect(tagRect.adjusted(1, 1, -1, -1), color)
-                painter.setPen(color)
-                tl = tagRect.topLeft()
-                br = tagRect.bottomRight()
-                painter.drawLine(tl.x(), tl.y() + 1, tl.x(), br.y() - 1)
-                painter.drawLine(br.x(), tl.y() + 1, br.x(), br.y() - 1)
-                painter.drawLine(tl.x() + 1, tl.y(), br.x() - 1, tl.y())
-                painter.drawLine(tl.x() + 1, br.y(), br.x() - 1, br.y())
-                painter.setFont(tagFont)
-                painter.setPen(self._labelColor)
-                painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, label)
-                x += tagRect.width() + text_margin
-        finally:
-            painter.restore()
-        rect.adjust(x, 0, 0, 0)
+                rect.adjust( (graphCols + 1.5) * boxsize, 0, 0, 0)        
+                
+                painter.save()
+                x = 0
+                try:
+                    tagFont = QtGui.QFont(option.font)
+                    tagFont.setPointSizeF(tagFont.pointSizeF() * 9 / 10)
+            
+                    for label, bg_color, text_color in labels:
+                        tagRect = rect.adjusted(1, 1, -1, -1)
+                        tagRect.setWidth(QtGui.QFontMetrics(tagFont).width(label) + 6)
+                        tagRect.moveLeft(tagRect.x() + x)
+                        painter.setPen(bg_color)
+                        painter.fillRect(tagRect.adjusted(1, 1, -1, -1), bg_color)
+                        tl = tagRect.topLeft()
+                        br = tagRect.bottomRight()
+                        painter.drawLine(tl.x(), tl.y() + 1, tl.x(), br.y() - 1)
+                        painter.drawLine(br.x(), tl.y() + 1, br.x(), br.y() - 1)
+                        painter.drawLine(tl.x() + 1, tl.y(), br.x() - 1, tl.y())
+                        painter.drawLine(tl.x() + 1, br.y(), br.x() - 1, br.y())
+                        painter.setFont(tagFont)
+                        painter.setPen(text_color)
+                        painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, label)
+                        x += tagRect.width() + text_margin
+                finally:
+                    painter.restore()
+                rect.adjust(x, 0, 0, 0)
         
         if not option.text.isEmpty():
             painter.setPen(get_text_color(option, style))
