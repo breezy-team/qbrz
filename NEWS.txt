@@ -470,7 +470,7 @@ Detailed changelog:
      (#422649, Craig Hewetson)
 
 
-0.14.7 - Under Development
+0.14.7 - 2010-09-04
 ----------------------------
 Bugfixes and backported bugfixes.
 
