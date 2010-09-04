@@ -116,25 +116,31 @@ class QBzrRunDialog(SubProcessDialog):
             self.ui.help_browser.hide()
             
             # create edit button
-            self._editButton = QtGui.QPushButton(gettext('&Edit'))
-            QtCore.QObject.connect(self._editButton,
+            self.editButton = QtGui.QPushButton(gettext('&Edit'))
+            QtCore.QObject.connect(self.editButton,
                 QtCore.SIGNAL("clicked()"),
                 self.enable_command_edit)
 
             # cause edit button to be shown if command fails
             QtCore.QObject.connect(self,
                                    QtCore.SIGNAL("subprocessFailed(bool)"),
-                                   self._editButton,
+                                   self.editButton,
                                    QtCore.SLOT("setHidden(bool)"))
-            
-            # add edit button to dialog buttons     
-            self.buttonbox.addButton(self._editButton,
+
+            # add edit button to dialog buttons
+            self.buttonbox.addButton(self.editButton,
                 QtGui.QDialogButtonBox.ResetRole)
             
             # setup initial dialog button status
-            self.init_button_status()
-            self._okButton.setHidden(True)
-            self._editButton.setHidden(True)
+            self.closeButton.setHidden(True)
+            self.okButton.setHidden(True)
+            self.editButton.setHidden(True)
+            
+            # cancel button gets hidden when finished.
+            QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessFinished(bool)"),
+                               self.cancelButton,
+                               QtCore.SLOT("setHidden(bool)"))
             
             # run command
             self.do_start()
@@ -146,13 +152,14 @@ class QBzrRunDialog(SubProcessDialog):
 
     def enable_command_edit(self):
         """Hide Edit button and make user edit fields visible"""
-        self._editButton.setHidden(True)
+        self.editButton.setHidden(True)
         QtCore.QObject.disconnect(self,
                                   QtCore.SIGNAL("subprocessFailed(bool)"),
-                                  self._editButton,
+                                  self.editButton,
                                   QtCore.SLOT("setHidden(bool)"))
-        self.ui.frame.show()
+        self.ui.run_container.show()
         self.ui.help_browser.show()
+        self.okButton.setShown(True)
 
     def set_default_help(self):
         """Set default text in help widget."""
