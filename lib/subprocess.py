@@ -4,6 +4,7 @@
 # Copyright (C) 2006 Lukáš Lalinský <lalinsky@gmail.com>
 # Copyright (C) 2008 Gary van der Merwe <garyvdm@gmail.com>
 # Copyright (C) 2009 Alexander Belchenko
+# Copyright (C) 2010 QBzr Developers
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -113,7 +114,7 @@ class SubProcessWindowBase(object):
         self.closeButton = StandardButton(BTN_CLOSE)
         self.okButton = StandardButton(BTN_OK)
         self.cancelButton = StandardButton(BTN_CANCEL)
-        
+
         # ok button gets disabled when we start.
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL("subprocessStarted(bool)"),
@@ -160,7 +161,7 @@ class SubProcessWindowBase(object):
         self.connect(self.buttonbox, QtCore.SIGNAL("accepted()"), self.do_accept)
         self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.do_reject)
         self.closeButton.setHidden(True) # but 'close' starts as hidden.
-        
+
         self.uncommitted_info = InfoWidget(self)
         uncommitted_info_layout = QtGui.QHBoxLayout(self.uncommitted_info)
         
@@ -187,7 +188,6 @@ class SubProcessWindowBase(object):
         self.uncommitted_info.hide()
         if immediate:
             self.do_accept()
-
 
     def make_default_status_box(self):
         status_group_box = QtGui.QGroupBox(gettext("Status"))

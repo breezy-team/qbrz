@@ -6,9 +6,12 @@
 
 0.19.1 - In development
 -----------------------
+Maintenance release.
 
  * Fix modeltest.py so that it works with Qt 4.7.
    (Bug #614123, Gary van der Merwe)
+ * qrun: fixed '--execute' mode. (Bug #590229, Simon Kersey) 
+
 
 0.19 "Shepherd's Tree, aka Boscia albitrunca" - 2010/08/05
 ----------------------------------------------------------
@@ -89,6 +92,14 @@ Changes since 0.19b2 release:
  * Improve startup performance by using lazy imports. (Gary van der Merwe)
 
 Note: qbzr now requires bzr 2.1.
+
+
+0.18.8 "" - not released yet
+----------------------------
+Maintenance release.
+
+ * qrun:
+   * Fixed '--execute' mode. (Bug #590229, Simon Kersey) 
 
 
 0.18.7 "Juniper" - 2010/08/04
