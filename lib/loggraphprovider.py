@@ -950,7 +950,7 @@ class LogGraphProvider(object):
             # * Append the remaining lines to parents.
             for rev, rev_visible_parents in reversed(
                         zip(branch_revs, branch_rev_visible_parents)):
-                for (parent, direct) in rev_visible_parents:
+                for (parent, direct) in reversed(rev_visible_parents):
                     append_line(rev, parent, direct)
         
         # It has now been calculated which column a line must go into. Now
