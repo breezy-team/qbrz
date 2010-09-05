@@ -885,10 +885,10 @@ class LogGraphProvider(object):
                 if c_rev.rev.merged_by is not None:
                     merged_by = self.revisions[c_rev.rev.merged_by]
                     if computed.revisions[merged_by.index] is None and\
-                       c_rev.rev.index == merged_by.merges[0]:
+                       branch_revs[0].f_index  == c_rev.f_index:
                         # The revision that merges this revision is not
-                        # visible, and it is the first revision that is
-                        # merged by that revision. This is a sprout.
+                        # visible, and it is the first visible revision in
+                        # the branch line. This is a sprout.
                         #
                         # XXX What if multiple merges with --force,
                         # aka ocutpus merge?
