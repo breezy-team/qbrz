@@ -166,6 +166,10 @@ class LogModel(QtCore.QAbstractTableModel):
                 graph_provider, self.compute_lines)
             # Copy the expanded branches from the old state to the new.
             state.branch_line_state.update(self.state.branch_line_state)
+            
+            #for branch_id in graph_provider.branch_lines.keys():
+            #    state.branch_line_state[branch_id] = None
+            
             scheduler = FilterScheduler(state.filter_changed)
             if file_ids:
                 file_id_filter = loggraphprovider.FileIdFilter(
@@ -346,12 +350,10 @@ class LogFilterProxyModel(QtGui.QSortFilterProxyModel):
         self.setDynamicSortFilter(True)
 
     def filterAcceptsRow(self, source_row, source_parent):
-        if source_parent.isValid():
-            return True
-        computed_revisions = self.parent_log_model.computed.revisions
-        if source_row >= len(computed_revisions):
+        try:
+            return self.parent_log_model.computed.revisions[source_row] is not None
+        except IndexError:
             return False
-        return computed_revisions[source_row] is not None
     
     def on_revisions_loaded(self, revisions, last_call):
         self.sourceModel().on_revisions_loaded(revisions, last_call)    
@@ -461,9 +463,8 @@ class PropertySearchFilter (object):
     
     def get_revision_visible(self, rev):
         
-        revid = rev.revid
-        
         if self.filter_re:
+            revid = rev.revid
             if revid not in cached_revisions:
                 return False
             revision = cached_revisions[revid]
@@ -485,6 +486,9 @@ class PropertySearchFilter (object):
                     return False
         
         if self.index_matched_revids is not None:
+            revid = rev.revid
             if revid not in self.index_matched_revids:
                 return False
+        
+        return True
     

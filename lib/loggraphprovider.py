@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import gc
+from itertools import izip
 
 from bzrlib import errors
 from bzrlib.transport.local import LocalTransport
@@ -50,7 +51,7 @@ class RevisionCache(object):
     # Instance of this object are typicaly named "rev".
     
     __slots__ = ["index", "_merge_sort_node", "branch", "_revno_str", 
-                 "merges", "merged_by", ]
+                 "merges", "merged_by", 'branch_id']
     def __init__ (self, index, _merge_sort_node):
         self.index = index
         """Index in LogGraphProvider.revisions"""
@@ -61,12 +62,12 @@ class RevisionCache(object):
         """Revision indexes that this revision merges"""
         self.merged_by = None
         """Revision index that merges this revision."""
+        self.branch_id = self._merge_sort_node.revno[0:-1]
     
     revid = property(lambda self: self._merge_sort_node.key)
     merge_depth = property(lambda self: self._merge_sort_node.merge_depth)
     revno_sequence = property(lambda self: self._merge_sort_node.revno)
     end_of_merge = property(lambda self: self._merge_sort_node.end_of_merge)
-    branch_id = property(lambda self: self.revno_sequence[0:-1])
     
     def get_revno_str(self):
         if self._revno_str is None:
@@ -585,35 +586,43 @@ class LogGraphProvider(object):
         #   (such a the line from the last rev in a branch) are treated a
         #   special cases.
         # Return ComputedGraph object
-        
-        computed = ComputedGraph(self)
-        
-        if self.no_graph:
-            rev_whos_branch_is_visible = self.revisions
-        else:
-            rev_whos_branch_is_visible = []
-            for branch_id in state.branch_line_state.iterkeys():
-                branch_line = self.branch_lines[branch_id]
-                rev_whos_branch_is_visible.extend(branch_line.revs)
-            rev_whos_branch_is_visible.sort(key=lambda rev: rev.index)
-        
-        for rev in rev_whos_branch_is_visible:
-            if state.get_revision_visible_if_branch_visible(rev):
-                c_rev = ComputedRevision(
-                    rev, len(computed.filtered_revs))
-                computed.filtered_revs.append(c_rev)
-                computed.revisions[rev.index] = c_rev
-        
-        for (revid, (head_info,
-                     unique_revids)) in self.revid_head_info.iteritems():
-            top_visible_revid = None
+        gc_enabled = gc.isenabled()
+        gc.disable()
+        try:
+            computed = ComputedGraph(self)
             
-            for unique_revid in unique_revids:
-                rev = self.revid_rev[unique_revid]
-                if computed.revisions[rev.index] is not None:
-                    c_rev = computed.revisions[rev.index]
-                    c_rev.branch_labels.extend(head_info)
-                    break
+            if self.no_graph:
+                rev_whos_branch_is_visible = self.revisions
+            else:
+                rev_whos_branch_is_visible = []
+                for branch_id in state.branch_line_state.iterkeys():
+                    branch_line = self.branch_lines[branch_id]
+                    rev_whos_branch_is_visible.extend(branch_line.revs)
+                rev_whos_branch_is_visible.sort(key=lambda rev: rev.index)
+            
+            visible = state.get_revision_visible_if_branch_visible
+            computed.filtered_revs = [ComputedRevision(rev)
+                                      for rev in rev_whos_branch_is_visible
+                                      if visible(rev)]
+            
+            c_revisions = computed.revisions
+            for f_index, c_rev in enumerate(computed.filtered_revs):
+                c_revisions[c_rev.rev.index] = c_rev
+                c_rev.f_index = f_index
+            
+            for (revid, (head_info,
+                         unique_revids)) in self.revid_head_info.iteritems():
+                top_visible_revid = None
+                
+                for unique_revid in unique_revids:
+                    rev = self.revid_rev[unique_revid]
+                    c_rev = c_revisions[rev.index]
+                    if c_rev is not None:
+                        c_rev.branch_labels.extend(head_info)
+                        break
+        finally:
+            if gc_enabled:
+                gc.enable()
         
         if self.no_graph:
             return computed
@@ -757,9 +766,9 @@ class LogGraphProvider(object):
                 continue
             
             branch_line = self.branch_lines[branch_id]
-            branch_revs = [computed.revisions[rev.index]
+            branch_revs = [c_revisions[rev.index]
                            for rev in branch_line.revs
-                           if computed.revisions[rev.index] is not None]
+                           if c_revisions[rev.index] is not None]
             
             if not branch_revs:
                 continue
@@ -797,7 +806,7 @@ class LogGraphProvider(object):
                     for pb_rev in parent_branch.revs:
                         pb_visible = parent_branch.branch_id in state.branch_line_state
                         if pb_visible:
-                            visible = bool(computed.revisions[pb_rev.index])
+                            visible = bool(c_revisions[pb_rev.index])
                         else:
                             visible = state.get_revision_visible_if_branch_visible(pb_rev)
                         if visible:
@@ -816,9 +825,9 @@ class LogGraphProvider(object):
                             break
                 
                 for i, parent in enumerate(parents):
-                    if computed.revisions[parent.index] is not None:
+                    if c_revisions[parent.index] is not None:
                         rev_visible_parents.append(
-                            (computed.revisions[parent.index], True))
+                            (c_revisions[parent.index], True))
                     else:
                         if (parent.index in twisty_hidden_parents and
                             not (i==0 and last_in_branch)):
@@ -829,7 +838,7 @@ class LogGraphProvider(object):
                         # that is. Stop searching if we make a hop, i.e. we
                         # go away from our branch, and we come back to it.
                         has_seen_different_branch = False
-                        while computed.revisions[parent.index] is None:
+                        while c_revisions[parent.index] is None:
                             if not parent.branch_id == branch_id:
                                 has_seen_different_branch = True
                             # find grand parent.
@@ -848,7 +857,7 @@ class LogGraphProvider(object):
                                 break
                         if parent:
                             rev_visible_parents.append(
-                                (computed.revisions[parent.index], False)) # Not Direct
+                                (c_revisions[parent.index], False)) # Not Direct
                 branch_rev_visible_parents.append(rev_visible_parents)
             
             # Find the first parent of the last rev in the branch line
@@ -864,8 +873,8 @@ class LogGraphProvider(object):
             #   ones we append from rev_visible_parents so they don't get
             #   added again later on.
             # * Append lines to chilren for sprouts.
-            for c_rev, rev_visible_parents in zip(branch_revs,
-                                                  branch_rev_visible_parents):
+            for c_rev, rev_visible_parents in izip(branch_revs,
+                                                   branch_rev_visible_parents):
                 i = 0
                 while i < len(rev_visible_parents):
                     (parent, direct) = rev_visible_parents[i]
@@ -884,7 +893,7 @@ class LogGraphProvider(object):
                 # This may be a sprout. Add line to first visible child
                 if c_rev.rev.merged_by is not None:
                     merged_by = self.revisions[c_rev.rev.merged_by]
-                    if computed.revisions[merged_by.index] is None and\
+                    if c_revisions[merged_by.index] is None and\
                        branch_revs[0].f_index  == c_rev.f_index:
                         # The revision that merges this revision is not
                         # visible, and it is the first visible revision in
@@ -896,7 +905,7 @@ class LogGraphProvider(object):
                         # Search until we find a decendent that is visible.
                         
                         while merged_by is not None and \
-                              computed.revisions[merged_by.index] is None:
+                              c_revisions[merged_by.index] is None:
                             if merged_by.merged_by is not None:
                                 merged_by = self.revisions[merged_by.merged_by]
                             else:
@@ -906,9 +915,9 @@ class LogGraphProvider(object):
                             # Ensure only one line to a decendent.
                             if merged_by.index not in children_with_sprout_lines:
                                 children_with_sprout_lines[merged_by.index] = True
-                                if computed.revisions[merged_by.index] is not None:
+                                if c_revisions[merged_by.index] is not None:
                                     append_line(
-                                        computed.revisions[merged_by.index],
+                                        c_revisions[merged_by.index],
                                         c_rev, False)
             
             # Find a column for this branch.
@@ -948,8 +957,9 @@ class LogGraphProvider(object):
             
             # In this loop:
             # * Append the remaining lines to parents.
-            for rev, rev_visible_parents in reversed(
-                        zip(branch_revs, branch_rev_visible_parents)):
+            for rev, rev_visible_parents in izip(
+                    reversed(branch_revs),
+                    reversed(branch_rev_visible_parents)):
                 for (parent, direct) in reversed(rev_visible_parents):
                     append_line(rev, parent, direct)
         
@@ -1188,11 +1198,14 @@ class GraphProviderFilterState(object):
             self.filter_cache[rev.index] = rev_filter_cache
         return rev_filter_cache
     
-    def _get_revision_visible_if_branch_visible(self, rev):
-        for filter in self.filters:
-            filter_value = filter.get_revision_visible(rev)
-            if filter_value is not None:
-                return filter_value
+    def get_revision_visible_if_branch_visible(self, rev):
+        if not self.filters:
+            return True
+        else:
+            for filter in self.filters:
+                filter_value = filter.get_revision_visible(rev)
+                if filter_value:
+                    return True
         
         if not self.graph_provider.no_graph:
             for merged_index in rev.merges:
@@ -1200,7 +1213,7 @@ class GraphProviderFilterState(object):
                 if self.get_revision_visible_if_branch_visible(merged_rev):
                     return True
         
-        return True
+        return False
     
     def filter_changed(self, revs, last_call=True):
         if revs is None:
@@ -1362,7 +1375,7 @@ class FileIdFilter (object):
                 text_keys = []
                 # We have to load the inventory for each revisions, to find
                 # the children of any directoires.
-                for inv, revid in zip(
+                for inv, revid in izip(
                             repo.iter_inventories(revids),
                             revids):
                     for path, entry in inv.iter_entries_by_dir(
@@ -1383,8 +1396,7 @@ class FileIdFilter (object):
         self.graph_provider.throbber_hide()
     
     def get_revision_visible(self, rev):
-        if not self.filter_file_id[rev.index]:
-            return False
+        return self.filter_file_id[rev.index]
 
 
 class ComputedRevision(object):
@@ -1392,9 +1404,9 @@ class ComputedRevision(object):
     __slots__ = ['rev', 'f_index', 'lines', 'col_index', 'branch_labels',
                  'twisty_state', 'twisty_expands_branch_ids']
     
-    def __init__(self, rev, f_index):
+    def __init__(self, rev):
         self.rev = rev
-        self.f_index = f_index
+        #self.f_index = f_index
         self.lines = []
         self.col_index = None
         self.twisty_state = None

@@ -286,8 +286,7 @@ class BasicFilterer(object):
         self.filtered_revids = filtered_revids
     
     def get_revision_visible(self, rev):
-        if rev.revid in self.filtered_revids:
-            return False
+         return rev.revid not in self.filtered_revids
 
 def print_computed(computed):
     print_lines([(c_rev.rev.revid,
