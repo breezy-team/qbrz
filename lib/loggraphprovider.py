@@ -635,7 +635,6 @@ class LogGraphProvider(object):
         # are 1 row apart.
         lines = []
         lines_by_column = []
-        lines_by_parent_can_overlap = {}
         
         def branch_line_col_search_order(start_col_index):
             for col_index in range(start_col_index, len(lines_by_column)):
@@ -672,15 +671,10 @@ class LogGraphProvider(object):
                 #    yield min_index - i
                 i += 1
         
-        def is_col_free_for_range(col_index, child_f_index, parent_f_index,
-                                  ignore_to_same_parent=False):
+        def is_col_free_for_range(col_index, child_f_index, parent_f_index):
             col_lines = lines_by_column[col_index]
             has_overlaping_line = False
             for (line_child_f_index, line_parent_f_index) in col_lines:
-                if (parent_f_index == line_parent_f_index
-                                        and ignore_to_same_parent):
-                    continue
-                
                 # child_f_index is in between or
                 # parent_f_index is in between or
                 # we compleatly overlap.
@@ -721,24 +715,7 @@ class LogGraphProvider(object):
             line_col_index = None
             if col_index is not None:
                 line_col_index = col_index
-            # Try find a line to a parent that we can overlap on.
-            elif (not direct or col_index is None) \
-                        and parent_f_index in lines_by_parent_can_overlap:
-                # ol = overlaping line
-                for (ol_child_f_index,
-                     ol_col_index,
-                     ol_direct) in lines_by_parent_can_overlap[parent_f_index]:
-                    if ol_direct == direct \
-                            and is_col_free_for_range(ol_col_index,
-                                                      child_f_index,
-                                                      parent_f_index,
-                                                      True):
-                        line_col_index = ol_col_index
-                        break
-            #else:
-            if line_col_index is None:
-                line_col_index = child.col_index
-                if line_length > 1:
+            elif line_length > 1:
                     col_search_order = line_col_search_order(parent.col_index,
                                                              child.col_index)
                     line_col_index = find_free_column(col_search_order,
@@ -753,13 +730,6 @@ class LogGraphProvider(object):
             if line_col_index is not None:
                 lines_by_column[line_col_index].append(
                                             (child.f_index, parent.f_index))
-            if can_overlap:
-                if parent.f_index not in lines_by_parent_can_overlap:
-                    lines_by_parent_can_overlap[parent.f_index] = []
-                lines_by_parent_can_overlap[parent.f_index].append(
-                    (child.f_index,
-                    line_col_index,
-                    direct ))
         
         def find_visible_parent(c_rev, parent):
             if c_revisions[parent.index] is not None:
