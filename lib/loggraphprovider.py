@@ -707,29 +707,14 @@ class LogGraphProvider(object):
             return col_index
         
         def append_line (child, parent, direct, col_index=None):
-            
-            line_length = parent.f_index - child.f_index
-            can_overlap = (col_index is None or not direct) \
-                            and line_length > 1
-            
-            line_col_index = None
-            if col_index is not None:
-                line_col_index = col_index
-            elif line_length > 1:
-                    col_search_order = line_col_search_order(parent.col_index,
-                                                             child.col_index)
-                    line_col_index = find_free_column(col_search_order,
-                                                      child.f_index,
-                                                      parent.f_index)
-            
             lines.append((child.f_index,
                           parent.f_index,
-                          line_col_index,
+                          col_index,
                           direct,
                           ))
-            if line_col_index is not None:
-                lines_by_column[line_col_index].append(
-                                            (child.f_index, parent.f_index))
+            if col_index is not None:
+                lines_by_column[col_index].append((child.f_index,
+                                                   parent.f_index))
         
         def find_visible_parent(c_rev, parent, twisty_hidden_parents):
             if c_revisions[parent.index] is not None:
