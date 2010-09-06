@@ -456,17 +456,21 @@ def format_graph_lines(list, use_unicode=True):
 
 class TestGroupOverlaping(TestCase):
     def test_group_overlaping(self):
-        lines = (
-            (1, 3),
-            (2, 5),
-            (4, 6),
-            (6, 8),
-            )
-        groups = loggraphprovider.group_overlaping(
-            lines,
-            lambda x: x[0],
-            lambda x: x[1],)
+        lines = [
+            (['a1'], 1, 3, 'a'),
+            (['a2'], 2, 5, 'a'),
+            (['a3'], 4, 6, 'a'),
+            (['a4'], 6, 8, 'a'),
+            (['b1'], 1, 3, 'b'),
+            (['b2'], 2, 5, 'b'),
+            (['n1'], 1, 8, None),
+            (['n2'], 1, 8, None),
+            ]
+        groups = loggraphprovider.group_overlaping(lines)
         self.assertEqual(
-            [([(1, 3), (2, 5), (4, 6)], 1, 6),
-             ([(6, 8)], 6, 8)],
+            [(['a1', 'a2', 'a3'], 1, 6, 'a'),
+             (['a4'], 6, 8, 'a'),
+             (['b1', 'b2'], 1, 5, 'b'),
+             (['n1'], 1, 8, None),
+             (['n2'], 1, 8, None)],
             groups)
