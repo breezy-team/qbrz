@@ -849,7 +849,8 @@ class LogGraphProvider(object):
                     if parent_info:
                         c_rev, parent_c_rev, direct = parent_info
                         if (last_parent and
-                            parent_c_rev.f_index <= last_parent[1].f_index ):
+                            parent_c_rev.f_index <= last_parent[1].f_index and
+                            self.branch_id_sort_key(parent_c_rev.rev.branch_id) < branch_id_sort_key):
                             # This line goes before the branch line
                             append_line(c_rev, parent_c_rev, direct)
                         else:
