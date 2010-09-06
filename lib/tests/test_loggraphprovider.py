@@ -29,7 +29,7 @@ class TestLogGraphProvider(TestCaseWithTransport):
         return [(c_rev.rev.revid,
                  c_rev.col_index,
                  c_rev.twisty_state,
-                 c_rev.lines,)
+                 sorted(c_rev.lines),)
                 for c_rev in computed.filtered_revs]
     
     def assertComputed(self, expected_list, computed):
@@ -142,7 +142,7 @@ class TestLogGraphProvider(TestCaseWithTransport):
         self.assertComputed(
             [('rev-h', 0, True, [(0, 0, 0, True), (0, 2, 2, True)])                 , # ⊖     
                                                                                       # ├───╮ 
-             ('rev-g', 2, True, [(0, 0, 0, True), (2, 3, 3, True), (2, 2, 2, True)]), # │   ⊖   
+             ('rev-g', 2, True, [(0, 0, 0, True), (2, 2, 2, True), (2, 3, 3, True)]), # │   ⊖   
                                                                                       # │   ├─╮ 
              ('rev-f', 3, None, [(0, 0, 0, True), (2, 2, 2, True), (3, 2, 2, True)]), # │   │ ○ 
                                                                                       # │   ├─╯ 
@@ -182,7 +182,7 @@ class TestLogGraphProvider(TestCaseWithTransport):
                                                                                                        # ├─╯ ╭─┤ 
              ('rev-e', 0, True, [(0, 0, 0, True), (0, 1, 2, True), (2, 1, 2, True), (3, 3, 0, True)]), # ⊖   │ │ 
                                                                                                        # ├─╮─╯ │ 
-             ('rev-b', 1, None, [(0, 0, 0, True), (3, 0, 0, True), (1, 1, 0, True)])                 , # │ ○   │ 
+             ('rev-b', 1, None, [(0, 0, 0, True), (1, 1, 0, True), (3, 0, 0, True)])                 , # │ ○   │ 
                                                                                                        # ├─┼───╯ 
              ('rev-c', 0, None, [(0, 0, 0, True), (1, 0, 0, True)])                                  , # ○ │ 
                                                                                                        # ├─╯ 
