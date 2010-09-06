@@ -56,7 +56,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     run_in_loading_queue,
     runs_in_loading_queue,
     FindToolbar,
-    get_icon
+    get_icon,
+    show_shortcut_hint
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
@@ -191,11 +192,11 @@ class DiffWindow(QBzrWindow):
         return toolbar
 
     def create_find_action(self):
-        key = QtGui.QKeySequence(QtGui.QKeySequence.Find)
         action = QtGui.QAction(get_icon("edit-find"),
                 gettext("&Find"), self)
-        action.setShortcut(key)
-        action.setToolTip(gettext("Find (%s)") % key.toString())
+        action.setShortcut(QtGui.QKeySequence.Find)
+        action.setToolTip(gettext("Find on active panel"))
+        show_shortcut_hint(action)
         action.setCheckable(True)
         return action
 
@@ -203,8 +204,9 @@ class DiffWindow(QBzrWindow):
         action = QtGui.QAction(get_icon("view-split-left-right"),
                 gettext("Side by side"), self)
         action.setToolTip(
-                gettext("Toggle between Side by side and Unidiff view modes (Ctrl+|)"))
+                gettext("Toggle between Side by side and Unidiff view modes"))
         action.setShortcut("Ctrl+|")
+        show_shortcut_hint(action)
         action.setCheckable(True)
         action.setChecked(True);
         self.connect(action,
@@ -216,7 +218,7 @@ class DiffWindow(QBzrWindow):
         action = QtGui.QAction(get_icon("view-refresh"),
                 gettext("&Refresh"), self)
         action.setShortcut("Ctrl+R")
-        action.setToolTip(gettext("Refresh (Ctrl+R)"))
+        show_shortcut_hint(action)
         self.connect(action,
                      QtCore.SIGNAL("triggered (bool)"),
                      self.click_refresh)
@@ -237,7 +239,6 @@ class DiffWindow(QBzrWindow):
 
     def create_view_menu(self):
         show_view_menu = QtGui.QAction(get_icon("document-properties"), gettext("&View Options"), self)
-        show_view_menu.setShortcut(QtGui.QKeySequence("Ctrl+O"))
         view_menu = QtGui.QMenu(gettext('View Options'), self)
         show_view_menu.setMenu(view_menu)
 

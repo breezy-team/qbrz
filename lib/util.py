@@ -745,6 +745,15 @@ def fill_combo_with(combo, default, *iterables):
             done.add(item)
             combo.addItem(item)
 
+def show_shortcut_hint(action):
+    """Show this action's shortcut, if any, as part of the tooltip.
+    
+    Make sure to set the shortcut and tooltip *before* calling this.
+    """
+    shortcut = action.shortcut()
+    if shortcut and shortcut.toString():
+        toolTip = action.toolTip()
+        action.setToolTip("%s (%s)" % (toolTip, shortcut.toString()))
 
 def iter_saved_pull_locations():
     """ Iterate the 'pull' locations we have previously saved for the user.
@@ -1022,9 +1031,11 @@ class FindToolbar(QtGui.QToolBar):
         
         prev = self.addAction(get_icon("go-previous"), gettext("Previous"))
         prev.setShortcut(QtGui.QKeySequence.FindPrevious)
+        show_shortcut_hint(prev)
         
         next = self.addAction(get_icon("go-next"), gettext("Next"))
         next.setShortcut(QtGui.QKeySequence.FindNext)
+        show_shortcut_hint(next)
         
         self.case_sensitive = QtGui.QCheckBox(gettext("Case sensitive"), self)
         self.addWidget(self.case_sensitive)
