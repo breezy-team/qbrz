@@ -156,7 +156,7 @@ class QBzrConfig(Config):
         super(QBzrConfig, self).__init__(config_filename())
 
     def get_bookmarks(self):
-        section = self.getSection('BOOKMARKS')
+        section = self.get_section('BOOKMARKS')
         i = 0
         while True:
             try:
@@ -172,7 +172,7 @@ class QBzrConfig(Config):
         for i, (name, location) in enumerate(bookmarks):
             section['bookmark%d' % i] = location
             section['bookmark%d_name' % i] = name
-        self.setSection('BOOKMARKS', section)
+        self.set_section('BOOKMARKS', section)
 
     def add_bookmark(self, name, location):
         bookmarks = list(self.getBookmarks())
@@ -751,7 +751,7 @@ def iter_saved_pull_locations():
     """
     config = get_qbzr_config()
     try:
-        sect = config.getSection('Pull Locations')
+        sect = config.get_section('Pull Locations')
     except KeyError:
         return []
     items = sorted(sect.items())
@@ -791,7 +791,7 @@ def save_pull_location(branch, location):
         # edits it)
         key = "%04d" % i
         section[key] = save_location
-    config.setSection('Pull Locations', section)
+    config.set_section('Pull Locations', section)
     config.save()
 
 
