@@ -29,9 +29,9 @@ from PyQt4 import QtCore, QtGui
 from bzrlib.revision import Revision
 from bzrlib.config import (
     GlobalConfig,
-    IniBasedConfig,
     config_dir,
     ensure_config_dir_exists,
+    config_filename,
     )
 from bzrlib import lazy_regex
 
@@ -54,6 +54,8 @@ from bzrlib import (
 from bzrlib.util.configobj import configobj
 from bzrlib.plugins.qbzr.lib import trace
 from bzrlib.workingtree import WorkingTree
+from bzrlib.transport import get_transport
+from bzrlib.lockdir import LockDir
 ''')
 
 # standard buttons with translatable labels
@@ -94,22 +96,29 @@ class Config(object):
     def __init__(self, filename):
         self._filename = filename
         self._configobj = None
-
+        dir = osutils.dirname(osutils.safe_unicode(filename))
+        transport = get_transport(dir)
+        self._lock = LockDir(transport, 'lock')
+    
     def _load(self):
         if self._configobj is not None:
             return
         self._configobj = configobj.ConfigObj(self._filename,
                                               encoding='utf-8')
 
-    def setOption(self, name, value, section=None):
+    def set_option(self, name, value, section=None):
         self._load()
         if section is None:
             section = 'DEFAULT'
         if section not in self._configobj:
             self._configobj[section] = {}
-        self._configobj[section][name] = value
+        if value:
+            self._configobj[section][name] = value
+        else:
+            if name in self._configobj[section]:
+                del self._configobj[section][name] 
 
-    def getOption(self, name, section=None):
+    def get_option(self, name, section=None):
         self._load()
         if section is None:
             section = 'DEFAULT'
@@ -118,11 +127,11 @@ class Config(object):
         except KeyError:
             return None
 
-    def setSection(self, name, values):
+    def set_section(self, name, values):
         self._load()
         self._configobj[name] = values
 
-    def getSection(self, name):
+    def get_section(self, name):
         self._load()
         try:
             return self._configobj[name]
@@ -130,11 +139,15 @@ class Config(object):
             return {}
 
     def save(self):
-        self._load()
         ensure_config_dir_exists(os.path.dirname(self._filename))
-        f = open(self._filename, 'wb')
-        self._configobj.write(f)
-        f.close()
+        self._lock.lock_write()
+        try:
+            self._load()
+            f = open(self._filename, 'wb')
+            self._configobj.write(f)
+            f.close()
+        finally:
+            self._lock.unlock()
 
 
 class QBzrConfig(Config):
@@ -142,8 +155,8 @@ class QBzrConfig(Config):
     def __init__(self):
         super(QBzrConfig, self).__init__(config_filename())
 
-    def getBookmarks(self):
-        section = self.getSection('BOOKMARKS')
+    def get_bookmarks(self):
+        section = self.get_section('BOOKMARKS')
         i = 0
         while True:
             try:
@@ -154,19 +167,19 @@ class QBzrConfig(Config):
             i += 1
             yield name, location
 
-    def setBookmarks(self, bookmarks):
+    def set_bookmarks(self, bookmarks):
         section = {}
         for i, (name, location) in enumerate(bookmarks):
             section['bookmark%d' % i] = location
             section['bookmark%d_name' % i] = name
-        self.setSection('BOOKMARKS', section)
+        self.set_section('BOOKMARKS', section)
 
-    def addBookmark(self, name, location):
+    def add_bookmark(self, name, location):
         bookmarks = list(self.getBookmarks())
         bookmarks.append((name, location))
         self.setBookmarks(bookmarks)
         
-    def getColor(self, name, section=None):
+    def get_color(self, name, section=None):
         """
           Get a color entry from the config file.
           Color entries have the syntax:
@@ -194,7 +207,7 @@ class QBzrConfig(Config):
             "Color components for " + name_str +\
             " should be in the range 0..255 only. Given: "+ given +"."
             
-        val = self.getOption(name, section)
+        val = self.get_option(name, section)
         if None == val:
           return None
           
@@ -215,22 +228,37 @@ class QBzrConfig(Config):
         return QtGui.QColor(*color_components)
 
 
-class QBzrGlobalConfig(IniBasedConfig):
+_global_config = None
+def get_global_config():
+    global _global_config
+    
+    if (_global_config is None or
+        _check_global_config_filename_valid(_global_config)):
+        _global_config = GlobalConfig()
+    return _global_config
 
-    def __init__(self):
-        super(QBzrGlobalConfig, self).__init__(config_filename)
+def _check_global_config_filename_valid(config):
+    # before bzr 2.3, there was no file_name attrib, only _get_filename, and
+    # checking that would be meaningless.
+    if hasattr(config, 'file_name'):
+        return not config.file_name == config_filename()
+    else:
+        return False
+    
 
-    def set_user_option(self, option, value):
-        """Save option and its value in the configuration."""
-        conf_dir = os.path.dirname(self._get_filename())
-        ensure_config_dir_exists(conf_dir)
-        if 'DEFAULT' not in self._get_parser():
-            self._get_parser()['DEFAULT'] = {}
-        self._get_parser()['DEFAULT'][option] = value
-        f = open(self._get_filename(), 'wb')
-        self._get_parser().write(f)
-        f.close()
+_qbzr_config = None
+def get_qbzr_config():
+    global _qbzr_config
+    if (_qbzr_config is None or
+        not _qbzr_config._filename == config_filename()):
+        _qbzr_config = QBzrConfig()
+    return _qbzr_config
 
+def get_branch_config(branch):
+    if branch is not None:
+        return branch.get_config()
+    else:
+        return get_global_config()
 
 class _QBzrWindowBase(object):
 
@@ -273,7 +301,7 @@ class _QBzrWindowBase(object):
                 QtCore.SIGNAL(signal_name), getattr(self, method_name))
         return buttonbox
 
-    def saveSize(self):
+    def _saveSize(self, config):
         name = self._window_name
         is_maximized = int(self.windowState()) & QtCore.Qt.WindowMaximized != 0
         if is_maximized:
@@ -282,15 +310,18 @@ class _QBzrWindowBase(object):
             size = geom.width(), geom.height()
         else:
             size = self.width(), self.height()
-        config = QBzrGlobalConfig()
-        config.set_user_option(name + "_window_size", "%dx%d" % size)
-        config.set_user_option(name + "_window_maximized", is_maximized)
-        return config
+        config.set_option(name + "_window_size", "%dx%d" % size)
+        config.set_option(name + "_window_maximized", is_maximized)
+    
+    def saveSize(self):
+        config = get_qbzr_config()
+        self._saveSize(config)
+        config.save()
 
     def restoreSize(self, name, defaultSize):
         self._window_name = name
-        config = QBzrGlobalConfig()
-        size = config.get_user_option(name + "_window_size")
+        config = get_qbzr_config()
+        size = config.get_option(name + "_window_size")
         if size:
             size = size.split("x")
             if len(size) == 2:
@@ -308,21 +339,20 @@ class _QBzrWindowBase(object):
             self.resize(size.expandedTo(self.minimumSizeHint()))
         self._restore_size = size
 
-        is_maximized = config.get_user_option(name + "_window_maximized")
+        is_maximized = config.get_option(name + "_window_maximized")
         if is_maximized in ("True", "1"):
             self.setWindowState(QtCore.Qt.WindowMaximized)
         return config
 
-    def saveSplitterSizes(self):
+    def _saveSplitterSizes(self, config, splitter):
         name = self._window_name
-        config = QBzrGlobalConfig()
-        sizes = ':'.join(map(str, self.splitter.sizes()))
-        config.set_user_option(name + "_splitter_sizes", sizes)
+        sizes = ':'.join(map(str, splitter.sizes()))
+        config.set_option(name + "_splitter_sizes", sizes)
 
     def restoreSplitterSizes(self, default_sizes=None):
         name = self._window_name
-        config = QBzrGlobalConfig()
-        sizes = config.get_user_option(name + "_splitter_sizes")
+        config = get_qbzr_config()
+        sizes = config.get_option(name + "_splitter_sizes")
         n = len(self.splitter.sizes())
         if sizes:
             sizes = map(int, sizes.split(':'))
@@ -530,22 +560,6 @@ def hookup_directory_picker(dialog, chooser, target, chooser_type):
     dialog.connect(chooser, QtCore.SIGNAL("clicked()"), click_handler)
 
 
-_global_config = None
-
-def get_global_config():
-    global _global_config
-    if _global_config is None:
-        _global_config = GlobalConfig()
-    return _global_config
-
-
-def get_branch_config(branch):
-    if branch is not None:
-        return branch.get_config()
-    else:
-        return get_global_config()
-
-
 def open_browser(url):
     try:
         import webbrowser
@@ -735,9 +749,9 @@ def fill_combo_with(combo, default, *iterables):
 def iter_saved_pull_locations():
     """ Iterate the 'pull' locations we have previously saved for the user.
     """
-    config = QBzrConfig()
+    config = get_qbzr_config()
     try:
-        sect = config.getSection('Pull Locations')
+        sect = config.get_section('Pull Locations')
     except KeyError:
         return []
     items = sorted(sect.items())
@@ -768,7 +782,7 @@ def save_pull_location(branch, location):
     max_items = 20
     existing = existing[:max_items]
 
-    config = QBzrConfig()
+    config = get_qbzr_config()
     # and save it to the ini
     section = {}
     for i, save_location in enumerate(existing):
@@ -777,7 +791,7 @@ def save_pull_location(branch, location):
         # edits it)
         key = "%04d" % i
         section[key] = save_location
-    config.setSection('Pull Locations', section)
+    config.set_section('Pull Locations', section)
     config.save()
 
 

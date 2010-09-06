@@ -156,6 +156,6 @@ class AddWindow(SubProcessDialog):
         fmodel.setFilter(fmodel.IGNORED, state)
         #self.filelist.update_selectall_state(None, None)
 
-    def saveSize(self):
-        SubProcessDialog.saveSize(self)
-        self.saveSplitterSizes()
+    def _saveSize(self, config):
+        SubProcessDialog._saveSize(self, config)
+        self._saveSplitterSizes(config, self.splitter)

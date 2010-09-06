@@ -1,12 +1,26 @@
 0.20 Beta 1 - In development
 ----------------------------
 
+ * Refactor the config code:
+   * Remove the QBzrGlobalConfig class so that we only have one class that
+     writes to qbzr.conf.
+   * Have a global cache for the QBzrConfig, like we have for bzr GlobalConfig,
+     to reduce reading the config from disk. 
+   * Refactor the window.saveSize methods, so that we only have to write the
+     config to disk once.
+   * Lock the config dir when when saving the config file.
+     (Gary van der Merwe)
+ * qrun: fixed '--execute' mode. (Bug #590229, Simon Kersey) 
+
 
 0.19.1 - In development
 -----------------------
+Maintenance release.
 
  * Fix modeltest.py so that it works with Qt 4.7.
    (Bug #614123, Gary van der Merwe)
+ * qrun: fixed '--execute' mode. (Bug #590229, Simon Kersey) 
+
 
 0.19 "Shepherd's Tree, aka Boscia albitrunca" - 2010/08/05
 ----------------------------------------------------------
@@ -87,6 +101,14 @@ Changes since 0.19b2 release:
  * Improve startup performance by using lazy imports. (Gary van der Merwe)
 
 Note: qbzr now requires bzr 2.1.
+
+
+0.18.8 "" - not released yet
+----------------------------
+Maintenance release.
+
+ * qrun:
+   * Fixed '--execute' mode. (Bug #590229, Simon Kersey) 
 
 
 0.18.7 "Juniper" - 2010/08/04
@@ -448,7 +470,7 @@ Detailed changelog:
      (#422649, Craig Hewetson)
 
 
-0.14.7 - Under Development
+0.14.7 - 2010-09-04
 ----------------------------
 Bugfixes and backported bugfixes.
 
