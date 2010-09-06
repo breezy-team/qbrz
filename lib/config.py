@@ -25,7 +25,7 @@ from bzrlib.config import (
     ensure_config_dir_exists,
     extract_email_address,
     )
-from bzrlib import errors
+from bzrlib import errors, trace
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellChecker
@@ -65,13 +65,14 @@ class QRadioCheckItemDelegate(QtGui.QItemDelegate):
                           radioOption,
                           painter)
 
+
 class QBzrConfigWindow(QBzrDialog):
 
     def __init__(self, parent=None):
         QBzrDialog.__init__(self, [gettext("Configuration")], parent)
         self.restoreSize("config", (400, 300))
 
-        tabwidget = QtGui.QTabWidget()
+        self.tabwidget = QtGui.QTabWidget()
 
         generalWidget = QtGui.QWidget()
         generalVBox = QtGui.QVBoxLayout(generalWidget)
@@ -215,17 +216,17 @@ class QBzrConfigWindow(QBzrDialog):
         mergeLayout.addWidget(self.extMergeList)
         mergeLayout.addLayout(extMergeButtonsLayout)
         
-        tabwidget.addTab(generalWidget, gettext("General"))
-        tabwidget.addTab(aliasesWidget, gettext("Aliases"))
-        tabwidget.addTab(bugTrackersWidget, gettext("Bug Trackers"))
-        tabwidget.addTab(self.getGuiTabWidget(), gettext("&User Interface"))
-        tabwidget.addTab(diffWidget, gettext("&Diff"))
-        tabwidget.addTab(mergeWidget, gettext("&Merge"))
+        self.tabwidget.addTab(generalWidget, gettext("General"))
+        self.tabwidget.addTab(aliasesWidget, gettext("Aliases"))
+        self.tabwidget.addTab(bugTrackersWidget, gettext("Bug Trackers"))
+        self.tabwidget.addTab(self.getGuiTabWidget(), gettext("&User Interface"))
+        self.tabwidget.addTab(diffWidget, gettext("&Diff"))
+        self.tabwidget.addTab(mergeWidget, gettext("&Merge"))
 
         buttonbox = self.create_button_box(BTN_OK, BTN_CANCEL)
 
         vbox = QtGui.QVBoxLayout(self)
-        vbox.addWidget(tabwidget)
+        vbox.addWidget(self.tabwidget)
         vbox.addWidget(buttonbox)
         self.load()
 
@@ -272,7 +273,8 @@ class QBzrConfigWindow(QBzrDialog):
                     email = ''
             except errors.NoWhoami:
                 name, email = get_user_id_from_os()
-        except Exception:
+        except Exception, e:
+            trace.mutter("qconfig: load name/email error: %s", str(e))
             name, email = '', ''
         
         self.nameEdit.setText(name)
@@ -401,9 +403,13 @@ class QBzrConfigWindow(QBzrDialog):
                     pass
 
         # Name & e-mail
-        username = '%s <%s>' % (
-            unicode(self.nameEdit.text()),
-            unicode(self.emailEdit.text()))
+        _name = unicode(self.nameEdit.text()).strip()
+        _email = unicode(self.emailEdit.text()).strip()
+        username = u''
+        if _name:
+            username = _name
+        if _email:
+            username = (username + ' <%s>' % _email).strip()
         set_or_delete_option(parser, 'email', username)
 
         # Editor
@@ -481,12 +487,31 @@ class QBzrConfigWindow(QBzrDialog):
 
     def do_accept(self):
         """Save changes and close the window."""
+        if not self.validate():
+            return
         self.save()
         self.close()
 
     def do_reject(self):
         """Close the window."""
         self.close()
+
+    def validate(self):
+        """Check the inputs and return False if there is something wrong
+        and save should be prohibited."""
+        # check whoami
+        _name = unicode(self.nameEdit.text()).strip()
+        _email = unicode(self.emailEdit.text()).strip()
+        if (_name, _email) == ('', ''):
+            if QtGui.QMessageBox.warning(self, "Configuration",
+                "Name and E-mail settings should not be empty",
+                gettext("&Ignore and proceed"),
+                gettext("&Change the values")) != 0:
+                # change the values
+                self.tabwidget.setCurrentIndex(0)
+                self.nameEdit.setFocus()
+                return False
+        return True
 
     def addAlias(self):
         item = QtGui.QTreeWidgetItem(self.aliasesList)
@@ -596,6 +621,7 @@ class QBzrConfigWindow(QBzrDialog):
         if filename:
             self.editorEdit.setText(filename)
 
+
 def get_user_id_from_os():
     """Calculate automatic user identification.
 
@@ -613,6 +639,7 @@ def get_user_id_from_os():
     
     import sys
     if sys.platform == 'win32':
+        from bzrlib import win32utils
         name = win32utils.get_user_name_unicode()
         if name is None:
             raise errors.BzrError("Cannot autodetect user name.\n"
