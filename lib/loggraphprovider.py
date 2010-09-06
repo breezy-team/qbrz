@@ -424,6 +424,39 @@ class LogGraphProvider(object):
             self.revid_rev[rev.revid] = rev
             self.revno_rev[rev.revno_sequence] = rev
         
+    def branch_id_sort_key(self, x):
+        merge_depth = self.branch_lines[x].merge_depth
+        
+        # Note: This greatly affects the layout of the graph.
+        #
+        # Branch line that have a smaller merge depth should be to the left
+        # of those with bigger merge depths.
+        #
+        # For branch lines that have the same parent in the mainline -
+        # those with bigger branch numbers to be to the rights. E.g. for
+        # the following dag, you want the graph to appear as on the left,
+        # not as on the right:
+        #
+        # 3     F_       F
+        #       | \      |\
+        # 1.2.1 |  E     | E
+        #       |  |     | \
+        # 2     D  |     D_|
+        #       |\ |     | +_
+        # 1.1.2 | C|     | | C
+        #       | |/     |  \|
+        # 1.1.1 | B      |   B
+        #       |/       | /
+        # 1     A        A
+        #
+        # Otherwise, thoes with a greater mainline parent revno should
+        # appear to the left.
+        
+        if len(x)==0:
+            return (merge_depth)
+        else:
+            return (merge_depth, -x[0], x[1])
+    
     def compute_branch_lines(self):
         self.branch_lines = {}
         
@@ -457,40 +490,7 @@ class LogGraphProvider(object):
         
         self.branch_ids = self.branch_lines.keys()
         
-        def branch_id_sort_key(x):
-            merge_depth = self.branch_lines[x].merge_depth
-            
-            # Note: This greatly affects the layout of the graph.
-            #
-            # Branch line that have a smaller merge depth should be to the left
-            # of those with bigger merge depths.
-            #
-            # For branch lines that have the same parent in the mainline -
-            # those with bigger branch numbers to be to the rights. E.g. for
-            # the following dag, you want the graph to appear as on the left,
-            # not as on the right:
-            #
-            # 3     F_       F
-            #       | \      |\
-            # 1.2.1 |  E     | E
-            #       |  |     | \
-            # 2     D  |     D_|
-            #       |\ |     | +_
-            # 1.1.2 | C|     | | C
-            #       | |/     |  \|
-            # 1.1.1 | B      |   B
-            #       |/       | /
-            # 1     A        A
-            #
-            # Otherwise, thoes with a greater mainline parent revno should
-            # appear to the left.
-            
-            if len(x)==0:
-                return (merge_depth)
-            else:
-                return (merge_depth, -x[0], x[1])
-        
-        self.branch_ids.sort(key=branch_id_sort_key)
+        self.branch_ids.sort(key=self.branch_id_sort_key)
     
     def compute_merge_info(self):
         
@@ -761,6 +761,37 @@ class LogGraphProvider(object):
                     line_col_index,
                     direct ))
         
+        def find_visible_parent(c_rev, parent):
+            if c_revisions[parent.index] is not None:
+                return (c_rev, c_revisions[parent.index], True)
+            else:
+                if (parent.index in twisty_hidden_parents and
+                    not (i==0 and last_in_branch)):
+                    # no need to draw a line if there is a twisty,
+                    # except if this is the last in the branch.
+                    return None
+                # The parent was not visible. Search for a ansestor
+                # that is. Stop searching if we make a hop, i.e. we
+                # go away from our branch, and we come back to it.
+                has_seen_different_branch = False
+                while c_revisions[parent.index] is None:
+                    if not parent.branch_id == c_rev.rev.branch_id:
+                        has_seen_different_branch = True
+                    # find grand parent.
+                    g_parent_ids = self.known_graph.get_parent_keys(parent.revid)
+                    
+                    if len(g_parent_ids) == 0:
+                        return None
+                    else:
+                        parent = self.revid_rev[g_parent_ids[0]]
+                    
+                    if has_seen_different_branch and parent.branch_id == branch_id:
+                        # We have gone away and come back to our
+                        # branch. Stop.
+                        return None
+                if parent:
+                    return (c_rev, c_revisions[parent.index], False) # Not Direct
+        
         for branch_id in self.branch_ids:
             if not branch_id in state.branch_line_state:
                 continue
@@ -773,24 +804,30 @@ class LogGraphProvider(object):
             if not branch_revs:
                 continue
             
-            # In this loop:
-            # * Find visible parents.
-            # * Populate twisty_branch_ids and twisty_state
-            branch_rev_visible_parents = []
+            branch_rev_visible_parents_post = []
+            # List of (c_rev, parent_c_rev, is_direct)
             
+            last_c_rev = branch_revs[-1]
+            last_rev_left_parents = self.known_graph.get_parent_keys(last_c_rev.rev.revid)
+            if last_rev_left_parents:
+                last_parent = find_visible_parent(
+                    last_c_rev, self.revid_rev[last_rev_left_parents[0]])
+            else:
+                last_parent = None
+            
+            children_with_sprout_lines = {}
+            
+            # In this loop:
+            # * Populate twisty_branch_ids and twisty_state
+            # * Find visible parents.
+            # * Append lines that go before the branch line.
+            # * Append lines to chilren for sprouts.
             for c_rev in branch_revs:
+                last_in_branch = c_rev == branch_revs[-1]
                 rev = c_rev.rev
-                # Find parents that are currently visible
-                rev_visible_parents = [] # List of (parent_rev, is_direct)
                 
                 parents = [self.revid_rev[parent_revid] for parent_revid in 
                            self.known_graph.get_parent_keys(rev.revid)]
-                # Don't include left hand parents (unless this is the last
-                # revision of the branch.) All of these parents in the
-                # branch can be drawn with one line.
-                last_in_branch = c_rev == branch_revs[-1]
-                if not last_in_branch:
-                    parents = parents[1:]
                 
                 twisty_hidden_parents = []
                 # Find and add nessery twisties
@@ -803,10 +840,10 @@ class LogGraphProvider(object):
                         continue
                     parent_branch = self.branch_lines[parent.branch_id]
                     # Does this branch have any visible revisions
+                    pb_visible = parent_branch.branch_id in state.branch_line_state
                     for pb_rev in parent_branch.revs:
-                        pb_visible = parent_branch.branch_id in state.branch_line_state
                         if pb_visible:
-                            visible = bool(c_revisions[pb_rev.index])
+                            visible = c_revisions[pb_rev.index] is not None
                         else:
                             visible = state.get_revision_visible_if_branch_visible(pb_rev)
                         if visible:
@@ -824,71 +861,23 @@ class LogGraphProvider(object):
                             c_rev.twisty_state = False
                             break
                 
+                # Don't include left hand parents All of these parents in the
+                # branch can be drawn with one line.
+                parents = parents[1:]
+                
+                branch_id_sort_key = self.branch_id_sort_key(branch_id)
                 for i, parent in enumerate(parents):
-                    if c_revisions[parent.index] is not None:
-                        rev_visible_parents.append(
-                            (c_revisions[parent.index], True))
-                    else:
-                        if (parent.index in twisty_hidden_parents and
-                            not (i==0 and last_in_branch)):
-                            # no need to draw a line if there is a twisty,
-                            # except if this is the last in the branch.
-                            continue
-                        # The parent was not visible. Search for a ansestor
-                        # that is. Stop searching if we make a hop, i.e. we
-                        # go away from our branch, and we come back to it.
-                        has_seen_different_branch = False
-                        while c_revisions[parent.index] is None:
-                            if not parent.branch_id == branch_id:
-                                has_seen_different_branch = True
-                            # find grand parent.
-                            g_parent_ids = self.known_graph.get_parent_keys(parent.revid)
-                            
-                            if len(g_parent_ids) == 0:
-                                parent = None
-                                break
-                            else:
-                                parent = self.revid_rev[g_parent_ids[0]]
-                            
-                            if has_seen_different_branch and parent.branch_id == branch_id:
-                                # We have gone away and come back to our
-                                # branch. Stop.
-                                parent = None
-                                break
-                        if parent:
-                            rev_visible_parents.append(
-                                (c_revisions[parent.index], False)) # Not Direct
-                branch_rev_visible_parents.append(rev_visible_parents)
-            
-            # Find the first parent of the last rev in the branch line
-            if branch_rev_visible_parents[-1]:
-                last_parent = branch_rev_visible_parents[-1].pop(0)
-            else:
-                last_parent = None
-            
-            children_with_sprout_lines = {}
-            # In this loop:
-            # * Append lines that need to go to parents before the branch
-            #   (say inbetween the main line and the branch). Remove the
-            #   ones we append from rev_visible_parents so they don't get
-            #   added again later on.
-            # * Append lines to chilren for sprouts.
-            for c_rev, rev_visible_parents in izip(branch_revs,
-                                                   branch_rev_visible_parents):
-                i = 0
-                while i < len(rev_visible_parents):
-                    (parent, direct) = rev_visible_parents[i]
-                    
-                    if (c_rev <> branch_revs[-1] or i > 0 )and \
-                       branch_id <> () and \
-                       self.branch_ids.index(parent.rev.branch_id) <= self.branch_ids.index(branch_id) and\
-                       (last_parent and not direct and last_parent[0].f_index >= parent.f_index or not last_parent or direct):
-                        
-                        if parent.f_index - c_rev.f_index >1:
-                            rev_visible_parents.pop(i)
-                            i -= 1
-                            append_line(c_rev, parent, direct)
-                    i += 1
+                    parent_info = find_visible_parent(c_rev, parent)
+                    if parent_info:
+                        c_rev, parent_c_rev, direct = parent_info
+                        if (last_parent and
+                            parent_c_rev.f_index <= last_parent[1].f_index and
+                            self.branch_id_sort_key(parent_c_rev.rev.branch_id) < branch_id_sort_key):
+                            # This line goes before the branch line
+                            append_line(c_rev, parent_c_rev, direct)
+                        else:
+                            # This line goes after
+                            branch_rev_visible_parents_post.append(parent_info)
                 
                 # This may be a sprout. Add line to first visible child
                 if c_rev.rev.merged_by is not None:
@@ -929,7 +918,7 @@ class LogGraphProvider(object):
             parent_f_index = None
             
             if last_parent and last_parent[0].col_index is not None:
-                parent_col_index = last_parent[0].col_index
+                parent_col_index = last_parent[1].col_index
             
             if not branch_id == ():
                 parent_col_index = max(parent_col_index, 1)
@@ -939,7 +928,7 @@ class LogGraphProvider(object):
             if last_parent:
                 col_index = find_free_column(col_search_order,
                                              branch_revs[0].f_index,
-                                             last_parent[0].f_index)
+                                             last_parent[1].f_index)
             else:
                 col_index = find_free_column(col_search_order,
                                              branch_revs[0].f_index,
@@ -952,16 +941,11 @@ class LogGraphProvider(object):
             
             append_line(branch_revs[0], branch_revs[-1], True, col_index)
             if last_parent:
-                append_line(branch_revs[-1], last_parent[0],
-                            last_parent[1], col_index)
+                append_line(last_parent[0], last_parent[1],
+                            last_parent[2], col_index)
             
-            # In this loop:
-            # * Append the remaining lines to parents.
-            for rev, rev_visible_parents in izip(
-                    reversed(branch_revs),
-                    reversed(branch_rev_visible_parents)):
-                for (parent, direct) in reversed(rev_visible_parents):
-                    append_line(rev, parent, direct)
+            for c_rev, parent_c_rev, direct in reversed(branch_rev_visible_parents_post):
+                append_line(c_rev, parent_c_rev, direct)
         
         # It has now been calculated which column a line must go into. Now
         # copy the lines in to computed_revisions.
