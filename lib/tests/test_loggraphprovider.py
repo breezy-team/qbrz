@@ -143,9 +143,9 @@ class TestLogGraphProvider(TestCaseWithTransport):
                                                                                                        # ├─────╮ 
              ('rev-f', 3, None, [(0, 0, 0, True), (3, 1, 0, True), (3, 3, 3, True)])                 , # │     ○ 
                                                                                                        # │ ╭───┤ 
-             ('rev-d', 3, True, [(0, 0, 0, True), (1, 0, 0, True), (3, 3, 0, True), (3, 2, 2, True)]), # │ │   ⊖ 
+             ('rev-d', 3, True, [(0, 0, 0, True), (1, 0, 0, True), (3, 2, 2, True), (3, 3, 0, True)]), # │ │   ⊖ 
                                                                                                        # ├─╯ ╭─┤ 
-             ('rev-e', 0, True, [(0, 0, 0, True), (0, 1, 2, True), (3, 3, 0, True), (2, 1, 2, True)]), # ⊖   │ │ 
+             ('rev-e', 0, True, [(0, 0, 0, True), (0, 1, 2, True), (2, 1, 2, True), (3, 3, 0, True)]), # ⊖   │ │ 
                                                                                                        # ├─╮─╯ │ 
              ('rev-b', 1, None, [(0, 0, 0, True), (3, 0, 0, True), (1, 1, 0, True)])                 , # │ ○   │ 
                                                                                                        # ├─┼───╯ 
