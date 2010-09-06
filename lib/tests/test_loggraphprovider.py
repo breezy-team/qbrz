@@ -36,8 +36,8 @@ class TestLogGraphProvider(TestCaseWithTransport):
         computed_list = self.computed_to_list(computed)
         if not expected_list == computed_list:
             raise AssertionError("not equal: \nexpected_list = \n%scomputed_list = \n%s"
-                % (format_graph_lines(expected_list, use_unicode=False),
-                   format_graph_lines(computed_list, use_unicode=False),))
+                % (format_graph_lines(expected_list, use_unicode=True),
+                   format_graph_lines(computed_list, use_unicode=True),))
     
     def test_no_commits(self):
         br = self.make_branch('.')
