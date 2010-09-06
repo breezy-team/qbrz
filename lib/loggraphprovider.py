@@ -637,8 +637,8 @@ class LogGraphProvider(object):
         lines_by_column = []
         lines_by_parent_can_overlap = {}
         
-        def branch_line_col_search_order(parent_col_index):
-            for col_index in range(parent_col_index, len(lines_by_column)):
+        def branch_line_col_search_order(start_col_index):
+            for col_index in range(start_col_index, len(lines_by_column)):
                 yield col_index
             #for col_index in range(parent_col_index-1, -1, -1):
             #    yield col_index
@@ -817,6 +817,8 @@ class LogGraphProvider(object):
             
             children_with_sprout_lines = {}
             
+            merged_by_max_col_index = 0
+            
             # In this loop:
             # * Populate twisty_branch_ids and twisty_state
             # * Find visible parents.
@@ -825,6 +827,12 @@ class LogGraphProvider(object):
             for c_rev in branch_revs:
                 last_in_branch = c_rev == branch_revs[-1]
                 rev = c_rev.rev
+                
+                if rev.merged_by is not None:
+                    merged_by_c_rev = c_revisions[rev.merged_by]
+                    if merged_by_c_rev:
+                        merged_by_max_col_index = max(
+                            merged_by_max_col_index, merged_by_c_rev.col_index)
                 
                 parents = [self.revid_rev[parent_revid] for parent_revid in 
                            self.known_graph.get_parent_keys(rev.revid)]
@@ -913,16 +921,20 @@ class LogGraphProvider(object):
             # Find the col_index for the direct parent branch. This will
             # be the starting point when looking for a free column.
             
-            parent_col_index = 0
+            if branch_id == ():
+                start_col_index = 0
+            else:
+                start_col_index = 1
+            
             parent_f_index = None
             
             if last_parent and last_parent[0].col_index is not None:
                 parent_col_index = last_parent[1].col_index
+                start_col_index = max(start_col_index, parent_col_index)
             
-            if not branch_id == ():
-                parent_col_index = max(parent_col_index, 1)
+            start_col_index = max(start_col_index, merged_by_max_col_index)
             
-            col_search_order = branch_line_col_search_order(parent_col_index) 
+            col_search_order = branch_line_col_search_order(start_col_index) 
             
             if last_parent:
                 col_index = find_free_column(col_search_order,
