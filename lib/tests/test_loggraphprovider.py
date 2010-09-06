@@ -121,7 +121,42 @@ class TestLogGraphProvider(TestCaseWithTransport):
              ('rev-a', 0, None, [])                                                 ],# ○ 
              computed)
 
+    def test_branch_line_order2(self):
+        gp = BasicTestLogGraphProvider(('rev-h',), {
+         'rev-a': (NULL_REVISION, ), 
+         'rev-b': ('rev-a', ),
+         'rev-c': ('rev-b', ),
+         'rev-d': ('rev-a', ),
+         'rev-e': ('rev-d', 'rev-b' ),
+         'rev-f': ('rev-e', ),
+         'rev-g': ('rev-e', 'rev-f' ),
+         'rev-h': ('rev-c', 'rev-g' ),
+        })
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        self.expand_all_branches(state)
+        computed = gp.compute_graph_lines(state)
 
+        # branch lines should not cross over
+        self.assertComputed(
+            [('rev-h', 0, True, [(0, 0, 0, True), (0, 2, 2, True)])                 , # ⊖     
+                                                                                      # ├───╮ 
+             ('rev-g', 2, True, [(0, 0, 0, True), (2, 3, 3, True), (2, 2, 2, True)]), # │   ⊖   
+                                                                                      # │   ├─╮ 
+             ('rev-f', 3, None, [(0, 0, 0, True), (2, 2, 2, True), (3, 2, 2, True)]), # │   │ ○ 
+                                                                                      # │   ├─╯ 
+             ('rev-e', 2, None, [(0, 0, 0, True), (2, 1, 0, True), (2, 2, 2, True)]), # │   ○ 
+                                                                                      # │ ╭─┤ 
+             ('rev-d', 2, None, [(0, 0, 0, True), (1, 1, 0, True), (2, 2, 0, True)]), # │ │ ○ 
+                                                                                      # │ │ │ 
+             ('rev-c', 0, None, [(0, 0, 0, True), (1, 0, 0, True), (2, 2, 0, True)]), # ○ │ │ 
+                                                                                      # ├─╯ │ 
+             ('rev-b', 0, None, [(0, 0, 0, True), (2, 0, 0, True)])                 , # ○   │ 
+                                                                                      # ├───╯ 
+             ('rev-a', 0, None, [])                                                 ],# ○ 
+             computed)
+    
     def test_inter_branch_line_order(self):
         gp = BasicTestLogGraphProvider(('rev-g',), {
          'rev-a': (NULL_REVISION, ), 
