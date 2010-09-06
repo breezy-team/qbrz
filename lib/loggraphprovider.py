@@ -731,12 +731,11 @@ class LogGraphProvider(object):
                 lines_by_column[line_col_index].append(
                                             (child.f_index, parent.f_index))
         
-        def find_visible_parent(c_rev, parent):
+        def find_visible_parent(c_rev, parent, twisty_hidden_parents):
             if c_revisions[parent.index] is not None:
                 return (c_rev, c_revisions[parent.index], True)
             else:
-                if (parent.index in twisty_hidden_parents and
-                    not (i==0 and last_in_branch)):
+                if parent.index in twisty_hidden_parents:
                     # no need to draw a line if there is a twisty,
                     # except if this is the last in the branch.
                     return None
@@ -781,7 +780,7 @@ class LogGraphProvider(object):
             last_rev_left_parents = self.known_graph.get_parent_keys(last_c_rev.rev.revid)
             if last_rev_left_parents:
                 last_parent = find_visible_parent(
-                    last_c_rev, self.revid_rev[last_rev_left_parents[0]])
+                    last_c_rev, self.revid_rev[last_rev_left_parents[0]], [])
             else:
                 last_parent = None
             
@@ -845,7 +844,8 @@ class LogGraphProvider(object):
                 
                 branch_id_sort_key = self.branch_id_sort_key(branch_id)
                 for i, parent in enumerate(parents):
-                    parent_info = find_visible_parent(c_rev, parent)
+                    parent_info = find_visible_parent(c_rev, parent,
+                                                      twisty_hidden_parents)
                     if parent_info:
                         c_rev, parent_c_rev, direct = parent_info
                         if (last_parent and
