@@ -247,6 +247,34 @@ class TestLogGraphProvider(TestCaseWithTransport):
              ('rev-a', 0, None, [])                                                                  ],# ○ 
             computed)
     
+    def test_hidden_branch_line_hides_child_line(self):
+        gp = BasicTestLogGraphProvider(('rev-g',), {
+         'rev-a': (NULL_REVISION, ), 
+         'rev-b': ('rev-a', ),
+         'rev-c': ('rev-a', ),
+         'rev-d': ('rev-b', 'rev-c', ),
+         'rev-e': ('rev-b', 'rev-d', ),
+         'rev-f': ('rev-c', ),
+         'rev-g': ('rev-e', 'rev-f', ),
+        })
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        state.branch_line_state[(2, 1)] = None
+        computed = gp.compute_graph_lines(state)
+        
+        self.assertComputed(
+            [('rev-g', 0, False, [(0, 0, 0, True)])                 , # ⊕ 
+                                                                      # │ 
+             ('rev-e', 0, True, [(0, 0, 0, True), (0, 1, 3, True)]) , # ⊖   
+                                                                      # ├─╮ 
+             ('rev-d', 1, False, [(0, 0, 0, True), (1, 0, 0, True)]), # │ ⊕ 
+                                                                      # ├─╯ 
+             ('rev-b', 0, None, [(0, 0, 0, True)])                  , # ○ 
+                                                                      # │ 
+             ('rev-a', 0, None, [])                                 ],# ○ 
+             computed)
+    
     def test_merge_line_hidden(self):
         gp = BasicTestLogGraphProvider(('rev-d',), {
          'rev-a': (NULL_REVISION, ), 
