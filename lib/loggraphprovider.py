@@ -761,6 +761,28 @@ class LogGraphProvider(object):
                 if parent:
                     return (c_rev, c_revisions[parent.index], False) # Not Direct
         
+        def append_branch_parent_lines(branch_rev_visible_parents):
+            for key, parents in branch_rev_visible_parents.iteritems():
+                if key is None:
+                    # Lines with length of 1:
+                    for parent_info in parents:
+                        append_line(*parent_info)
+                else:
+                    groups = group_overlaping(parents,
+                                              lambda x: x[0].f_index,
+                                              lambda x: x[1].f_index,)
+                    for parents, start, end in groups:
+                        # Since all parents go from the same branch line to the
+                        # same branch line, we can use the col indexes of the
+                        # parent.
+                        col_search_order = line_col_search_order(
+                            parents[0][1].col_index, parents[0][0].col_index)                        
+                        col_index = find_free_column(col_search_order,
+                                                     start, end)
+                        for c_rev, parent_c_rev, direct in parents:
+                            append_line(c_rev, parent_c_rev,
+                                        direct, col_index)
+        
         for branch_id in self.branch_ids:
             if not branch_id in state.branch_line_state:
                 continue
@@ -773,8 +795,10 @@ class LogGraphProvider(object):
             if not branch_revs:
                 continue
             
-            branch_rev_visible_parents_post = []
-            # List of (c_rev, parent_c_rev, is_direct)
+            branch_rev_visible_parents_post = {None: []}
+            branch_rev_visible_parents_pre = {None: []}
+            # Dicts with key of parent branch id, value of
+            # Lists of (c_rev, parent_c_rev, is_direct)
             
             last_c_rev = branch_revs[-1]
             last_rev_left_parents = self.known_graph.get_parent_keys(last_c_rev.rev.revid)
@@ -852,10 +876,21 @@ class LogGraphProvider(object):
                             parent_c_rev.f_index <= last_parent[1].f_index and
                             self.branch_id_sort_key(parent_c_rev.rev.branch_id) < branch_id_sort_key):
                             # This line goes before the branch line
-                            append_line(c_rev, parent_c_rev, direct)
+                            dest = branch_rev_visible_parents_pre
                         else:
                             # This line goes after
-                            branch_rev_visible_parents_post.append(parent_info)
+                            dest = branch_rev_visible_parents_pre
+                        
+                        line_len = parent_c_rev.f_index - c_rev.f_index
+                        if line_len == 1:
+                            key = None
+                        else:
+                            key = parent_c_rev.rev.branch_id
+                        
+                        if key not in dest:
+                            dest[key] = [parent_info, ]
+                        else:
+                            dest[key].append(parent_info)
                 
                 # This may be a sprout. Add line to first visible child
                 if c_rev.rev.merged_by is not None:
@@ -892,6 +927,8 @@ class LogGraphProvider(object):
             # Find the col_index for the direct parent branch. This will
             # be the starting point when looking for a free column.
             
+            append_branch_parent_lines(branch_rev_visible_parents_pre)
+            
             if branch_id == ():
                 start_col_index = 0
             else:
@@ -926,8 +963,9 @@ class LogGraphProvider(object):
                 append_line(last_parent[0], last_parent[1],
                             last_parent[2], col_index)
             
-            for c_rev, parent_c_rev, direct in reversed(branch_rev_visible_parents_post):
-                append_line(c_rev, parent_c_rev, direct)
+            append_branch_parent_lines(branch_rev_visible_parents_post)
+            #for c_rev, parent_c_rev, direct in reversed(branch_rev_visible_parents_post):
+            #    append_line(c_rev, parent_c_rev, direct)
         
         # It has now been calculated which column a line must go into. Now
         # copy the lines in to computed_revisions.
@@ -1022,6 +1060,38 @@ class LogGraphProvider(object):
                 finally:
                     repo.unlock()
         return return_revisions
+
+def group_overlaping(list, key_start, key_end):
+    groups = [([item], key_start(item), key_end(item))
+              for item in list]
+    has_change = True
+    while has_change:
+        has_change = False
+        a = 0
+        while a < len(groups):
+            inner_has_change = False
+            items_a, start_a, end_a = groups[a]
+            b = a + 1
+            while b < len(groups):
+                items_b, start_b, end_b = groups[b]
+                if ((start_a > start_b and start_a < end_b) or
+                    (end_a > start_b and end_a < end_b) or
+                    (start_a <= start_b and end_a >= end_b)):
+                        # overlaps. Merge b into a
+                        items_a.extend(items_b)
+                        start_a = min(start_a, start_b)
+                        end_a = max(end_a, end_b)
+                        del groups[b]
+                        has_change = True
+                        inner_has_change = True
+                b += 1
+            
+            if inner_has_change:
+                groups[a] = (items_a, start_a, end_a)
+            a += 1
+    
+    return groups
+    
 
 class PendingMergesGraphProvider(LogGraphProvider):
     
