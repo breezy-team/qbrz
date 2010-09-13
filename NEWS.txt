@@ -9,6 +9,10 @@ Maintenance release.
  * qconfig: guess user id if there is no whoami set. 
    (Bug #622336, Gary van der Merwe, Alexander Belchenko)
  * qgetupdates: fixed API mismatch. (Bug #636510, Alexander Belchenko)
+ * qlog:
+   * better branch labels for `bzr qlog colo:` case. (Alexander Belchenko)
+   * give a size hint for the GraphTagsBugsItemDelegate so that blured 
+     rendering on Windows with PyQt 4.7 is avoided. (Gary van der Merwe)
  * qrun: fixed '--execute' mode. (Bug #590229, Simon Kersey) 
 
 
