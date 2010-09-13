@@ -7,6 +7,7 @@ Maintenance release.
  * qbrowse: fixed 'Mark as renamed' feature in treewidget.
    (Bug #620433, Alexander Belchenko)
  * qrun: fixed '--execute' mode. (Bug #590229, Simon Kersey) 
+ * qgetupdates: fixed API mismatch. (Bug #636510, Alexander Belchenko)
 
 
 0.19 "Shepherd's Tree, aka Boscia albitrunca" - 2010/08/05

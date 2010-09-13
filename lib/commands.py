@@ -780,7 +780,7 @@ class cmd_qgetupdates(QBzrCommand):
         if tb is None:
             return errors.EXIT_ERROR
         if tb.is_light_co():
-            window = QBzrUpdateWindow(tb.tree, ui_mode, execute=execute)
+            window = QBzrUpdateWindow(tb.tree, ui_mode, immediate=execute)
         elif tb.is_bound():
             window = UpdateCheckoutWindow(tb.branch, ui_mode=ui_mode)
         else:
