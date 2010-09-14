@@ -23,17 +23,16 @@ from bzrlib.plugins.qbzr.lib.diff_arg import *   # import DiffArgProvider classe
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import ( 
-    QBzrGlobalConfig,
+    get_qbzr_config,
     )
 
 
-qconfig = QBzrGlobalConfig()
-qparser = qconfig._get_parser()
-default_diff = qconfig.get_user_option("default_diff")
+qconfig = get_qbzr_config()
+default_diff = qconfig.get_option("default_diff")
 if default_diff is None:
     default_diff = ""
 ext_diffs = {gettext("Builtin Diff"):""}
-for name, command in qparser.get('EXTDIFF', {}).items():
+for name, command in qconfig.get_section('EXTDIFF').items():
     ext_diffs[name] = command
 
 
