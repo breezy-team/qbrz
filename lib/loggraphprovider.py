@@ -627,12 +627,11 @@ class LogGraphProvider(object):
         if self.no_graph:
             return computed
         
-        # This will hold a tuple of (child_index, parent_index, col_index,
-        # direct) for each line that needs to be drawn. If col_index is not
-        # none, then the line is drawn along that column, else the the line can
-        # be drawn directly between the child and parent because either the
-        # child and parent are in the same branch line, or the child and parent
-        # are 1 row apart.
+        # This will hold a tuple of (child, parent, col_index, direct) for each
+        # line that needs to be drawn. If col_index is not none, then the line
+        # is drawn along that column, else the the line can be drawn directly
+        # between the child and parent because either the child and parent are
+        # in the same branch line, or the child and parent are 1 row apart.
         lines = []
         lines_by_column = []
         
@@ -707,11 +706,8 @@ class LogGraphProvider(object):
             return col_index
         
         def append_line (child, parent, direct, col_index=None):
-            lines.append((child.f_index,
-                          parent.f_index,
-                          col_index,
-                          direct,
-                          ))
+            lines.append((child, parent, col_index, direct))
+            
             if col_index is not None:
                 lines_by_column[col_index].append((child.f_index,
                                                    parent.f_index))
@@ -947,17 +943,11 @@ class LogGraphProvider(object):
         
         # It has now been calculated which column a line must go into. Now
         # copy the lines in to computed_revisions.
-        for (child_f_index,
-             parent_f_index,
-             line_col_index,
-             direct,
-             ) in lines:
+        for (child, parent, line_col_index, direct) in lines:
             
-            child = computed.filtered_revs[child_f_index]
-            parent = computed.filtered_revs[parent_f_index]
             parent_color = parent.rev.branch.color
             
-            line_length = parent_f_index - child_f_index
+            line_length = parent.f_index - child.f_index
             if line_length == 0:
                 # Nothing to do
                 pass
@@ -975,7 +965,7 @@ class LogGraphProvider(object):
                      parent_color,
                      direct))
                 # lines down the line's column
-                for line_part_f_index in range(child_f_index+1, parent_f_index-1):
+                for line_part_f_index in range(child.f_index+1, parent.f_index-1):
                     computed.filtered_revs[line_part_f_index].lines.append(
                         (line_col_index,
                          line_col_index,
