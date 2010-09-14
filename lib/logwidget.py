@@ -771,8 +771,8 @@ class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
         else:
             pen.setStyle(QtCore.Qt.DotLine)            
         painter.setPen(pen)
-        startx = rect.x() + boxsize * start + boxsize / 2 
-        endx = rect.x() + boxsize * end + boxsize / 2 
+        startx = round(rect.x() + boxsize * start + boxsize / 2)
+        endx = round(rect.x() + boxsize * end + boxsize / 2)
         
         path = QtGui.QPainterPath()
         path.moveTo(QtCore.QPointF(startx, mid - height / 2))

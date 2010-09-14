@@ -709,8 +709,8 @@ class LogGraphProvider(object):
             lines.append((child, parent, col_index, direct))
             
             if col_index is not None:
-                lines_by_column[col_index].append((child.f_index,
-                                                   parent.f_index))
+                lines_by_column[int(round(col_index))].append(
+                    (child.f_index, parent.f_index))
         
         def find_visible_parent(c_rev, parent, twisty_hidden_parents):
             if c_revisions[parent.index] is not None:
@@ -755,9 +755,17 @@ class LogGraphProvider(object):
                         parents[0][1].col_index, parents[0][0].col_index)                        
                     col_index = find_free_column(col_search_order,
                                                  start, end)
-                for c_rev, parent_c_rev, direct in parents:
+                
+                col_offset_increment = 1.0 / len(parents)
+                for i, (c_rev, parent_c_rev, direct) in enumerate(parents):
+                    if col_index is None:
+                        col_index_offset = None
+                    else:
+                        col_index_offset = (col_index - 0.5 +
+                                            (i * col_offset_increment) +
+                                            (col_offset_increment / 2))
                     append_line(c_rev, parent_c_rev,
-                                direct, col_index)
+                                direct, col_index_offset)
         
         for branch_id in self.branch_ids:
             if not branch_id in state.branch_line_state:
@@ -1053,7 +1061,8 @@ def group_overlaping(groups):
                             del groups[b]
                             has_change = True
                             inner_has_change = True
-                    b += 1
+                    else:
+                        b += 1
                 if inner_has_change:
                     groups[a] = (items_a, start_a, end_a, group_key_a)
             a += 1

@@ -200,19 +200,19 @@ class TestLogGraphProvider(TestCaseWithTransport):
         computed = gp.compute_graph_lines(state)
 
         self.assertComputed(
-            [('rev-g', 0, True, [(0, 0, 0, True), (0, 2, 2, True)])                                  , # ⊖     
-                                                                                                       # ├───╮ 
-             ('rev-f', 2, None, [(0, 0, 0, True), (2, 1, 0, True), (2, 2, 2, True)])                 , # │   ○ 
-                                                                                                       # │ ╭─┤ 
-             ('rev-e', 2, None, [(0, 0, 0, True), (1, 1, 0, True), (2, 1, 0, True), (2, 2, 2, True)]), # │ │ ○ 
-                                                                                                       # │ ├─┤ 
-             ('rev-d', 2, None, [(0, 0, 0, True), (1, 0, 0, True), (1, 1, 0, True), (2, 2, 0, True)]), # │ │ ○ 
-                                                                                                       # ├─┤ │ 
-             ('rev-c', 0, None, [(0, 0, 0, True), (1, 0, 0, True), (2, 2, 0, True)])                 , # ○ │ │ 
-                                                                                                       # ├─╯ │ 
-             ('rev-b', 0, None, [(0, 0, 0, True), (2, 0, 0, True)])                                  , # ○   │ 
-                                                                                                       # ├───╯ 
-             ('rev-a', 0, None, [])                                                                  ],# ○ 
+            [('rev-g', 0, True, [(0, 0, 0, True), (0, 2, 2, True)])                                           , # ⊖     
+                                                                                                                # ├───╮ 
+             ('rev-f', 2, None, [(0, 0, 0, True), (2, 0.75, 0, True), (2, 2, 2, True)])                       , # │   ○ 
+                                                                                                                # │ ╭─┤ 
+             ('rev-e', 2, None, [(0, 0, 0, True), (0.75, 0.75, 0, True), (2, 1.25, 0, True), (2, 2, 2, True)]), # │ │ ○ 
+                                                                                                                # │ ├─┤ 
+             ('rev-d', 2, None, [(0, 0, 0, True), (0.75, 0, 0, True), (1.25, 1.25, 0, True), (2, 2, 0, True)]), # │ │ ○ 
+                                                                                                                # ├─┤ │ 
+             ('rev-c', 0, None, [(0, 0, 0, True), (1.25, 0, 0, True), (2, 2, 0, True)])                       , # ○ │ │ 
+                                                                                                                # ├─╯ │ 
+             ('rev-b', 0, None, [(0, 0, 0, True), (2, 0, 0, True)])                                           , # ○   │ 
+                                                                                                                # ├───╯ 
+             ('rev-a', 0, None, [])                                                                           ],# ○ 
             computed)
     
     def test_hidden_branch_line_hides_child_line(self):
@@ -419,6 +419,8 @@ def format_graph_lines(list, use_unicode=True):
         next_line = [' ' for i in range(num_cols)]
         
         for start, end, color, direct in lines:
+            start = int(round(start))
+            end = int(round(end))
             if start == end:
                 this_line[start * 2] = ver_char[direct]
                 next_line[start * 2] = ver_char[direct]
@@ -431,6 +433,8 @@ def format_graph_lines(list, use_unicode=True):
                 line[i] = char_dict[old_char]
             
         for start, end, color, direct in lines:
+            start = int(round(start))
+            end = int(round(end))
             if start < end:
                 for i in range(start * 2 + 1, end * 2):
                     replace_char(next_line, i, hor_char[direct])
