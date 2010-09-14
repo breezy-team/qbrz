@@ -302,7 +302,7 @@ class LogWindow(QBzrWindow):
                 else:
                     label = self.branch_label(location, br)
                     bi = BranchInfo(label, tree, br)
-                    if len(branches)==0 is None:
+                    if len(branches)==0:
                         # The first sepecified branch becomes the primary
                         # branch.
                         primary_bi = bi
