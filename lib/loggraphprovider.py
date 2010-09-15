@@ -1211,14 +1211,14 @@ class GraphProviderFilterState(object):
             self.filter_cache[rev.index] = rev_filter_cache
         return rev_filter_cache
     
-    def get_revision_visible_if_branch_visible(self, rev):
-        if not self.filters:
+    def _get_revision_visible_if_branch_visible(self, rev):
+        filters_value = True
+        for filter in self.filters:
+            if not filter.get_revision_visible(rev):
+                filters_value = False
+                break
+        if filters_value:
             return True
-        else:
-            for filter in self.filters:
-                filter_value = filter.get_revision_visible(rev)
-                if filter_value:
-                    return True
         
         if not self.graph_provider.no_graph:
             for merged_index in rev.merges:
@@ -1354,8 +1354,8 @@ class FileIdFilter (object):
                 revids = [rev.revid for rev in self.graph_provider.revisions]
             
             for repo, revids in self.graph_provider.get_repo_revids(revids):
-                if not self.uses_inventory():
-                    chunk_size = 100
+                if self.uses_inventory():
+                    chunk_size = 200
                 else:
                     chunk_size = 500
                 
@@ -1398,7 +1398,7 @@ class FileIdFilter (object):
                             for rc_path, rc_entry in inv.iter_entries(from_dir = entry):
                                 text_keys.append((rc_entry.file_id, revid))
                     
-                    self.update_ui()
+                    self.graph_provider.update_ui()
                 
                 check_text_keys(text_keys)
         finally:
