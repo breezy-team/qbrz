@@ -240,8 +240,8 @@ class LogWindow(QBzrWindow):
                 self.set_title ((self.title, lt))
             
             branches, primary_bi, file_ids = self.get_branches_and_file_ids()
-            self.log_list.log_model.load(branches, primary_bi, file_ids,
-                                         self.no_graph, LogGraphProvider)
+            self.log_list.load(branches, primary_bi, file_ids,
+                               self.no_graph, LogGraphProvider)
             self.connect(self.log_list.selectionModel(),
                          QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
                          self.update_selection)

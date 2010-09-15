@@ -99,8 +99,13 @@ class LogList(RevisionTreeView):
                          self.default_action)
         self.context_menu = QtGui.QMenu(self)
 
-    def create_context_menu(self, file_ids, diff_is_default_action=True):
+    def load(self, *args, **kargs):
+        self.log_model.load(*args, **kargs)
+        self.create_context_menu()
+    
+    def create_context_menu(self, diff_is_default_action=True):
         branch_count = len(self.log_model.graph_provider.branches)
+        has_file_filter = bool(self.log_model.file_id_filter)
         
         self.context_menu = QtGui.QMenu(self)
         self.connect(self,
@@ -108,7 +113,7 @@ class LogList(RevisionTreeView):
                      self.show_context_menu)
         
         if self.view_commands:
-            if file_ids:
+            if has_file_filter:
                 if diff.has_ext_diff():
                     diff_menu = diff.ExtDiffMenu(
                         self, set_default=diff_is_default_action)
@@ -520,9 +525,10 @@ class LogList(RevisionTreeView):
                        parent_window = self.window())
     
     def show_diff_specified_files(self, ext_diff=None):
-        if self.log_model.file_ids:
-            self.show_diff(ext_diff=ext_diff,
-                           specific_file_ids = self.log_model.file_ids)
+        if self.log_model.file_id_filter:
+            self.show_diff(
+                ext_diff=ext_diff,
+                specific_file_ids = self.log_model.file_id_filter.file_ids)
         else:
             self.show_diff(ext_diff=ext_diff)
     

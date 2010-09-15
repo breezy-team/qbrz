@@ -475,7 +475,7 @@ class AnnotateWindow(QBzrWindow):
         if not self.log_branch_loaded:
             self.log_branch_loaded = True
             bi = BranchInfo('', self.tree, self.branch)
-            self.log_list.log_model.load(
+            self.log_list.load(
                 (bi,), bi, [self.fileId], self.no_graph,
                 logmodel.WithWorkingTreeGraphProvider)
             
@@ -707,9 +707,8 @@ class AnnotateLogList(LogList):
     
     parent_annotate_window = None
     
-    def create_context_menu(self, file_ids):
-        LogList.create_context_menu(self, file_ids,
-                                    diff_is_default_action=False)
+    def create_context_menu(self):
+        LogList.create_context_menu(self, diff_is_default_action=False)
         set_rev_action = QtGui.QAction(gettext("&Annotate this revision"),
                                        self.context_menu)
         self.connect(set_rev_action, QtCore.SIGNAL('triggered()'),
