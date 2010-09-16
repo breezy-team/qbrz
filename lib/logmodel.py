@@ -69,7 +69,6 @@ class LogGraphProvider(loggraphprovider.LogGraphProvider):
             self, branches, primary_bi, no_graph)
         self.processEvents = processEvents
         self.throbber = throbber
-        self.on_filter_changed = self.compute_graph_lines
     
     def update_ui(self):
         self.processEvents()
