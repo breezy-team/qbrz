@@ -1,3 +1,11 @@
+0.19.1 - In Developement
+------------------------
+Maintenance release.
+
+ * Fix finding bzr.exe when running from bzrw.exe with out full path in the
+   command line. (Bug #640082, Gary van der Merwe)
+
+
 0.19.1 "Chestnut" - 2010/09/13
 ------------------------------
 Maintenance release.
