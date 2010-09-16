@@ -22,9 +22,7 @@ from StringIO import StringIO
 from bzrlib.plugins.qbzr.lib import loggraphprovider
 from bzrlib.revision import NULL_REVISION
 
-
-class TestLogGraphProvider(TestCaseWithTransport):
-    
+class TestLogGraphProviderMixin(object):
     def computed_to_list(self, computed):
         return [(c_rev.rev.revid,
                  c_rev.col_index,
@@ -39,6 +37,10 @@ class TestLogGraphProvider(TestCaseWithTransport):
                 % (format_graph_lines(expected_list, use_unicode=True),
                    format_graph_lines(computed_list, use_unicode=True),))
     
+
+class TestLogGraphProviderWithBranches(TestCaseWithTransport,
+                                       TestLogGraphProviderMixin):
+
     def test_no_commits(self):
         br = self.make_branch('.')
         
@@ -51,7 +53,10 @@ class TestLogGraphProvider(TestCaseWithTransport):
         state = loggraphprovider.GraphProviderFilterState(gp)
         computed = gp.compute_graph_lines(state)
         self.assertEqual(len(computed.revisions), 0)
+    
 
+class TestLogGraphProviderLayouts(TestCase, TestLogGraphProviderMixin):
+    
     def test_basic_branch_line(self):
         gp = BasicTestLogGraphProvider(('rev-d',), {
          'rev-a': (NULL_REVISION, ), 
