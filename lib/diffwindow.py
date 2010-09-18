@@ -22,6 +22,7 @@
 
 import errno
 import time
+import re
 
 from PyQt4 import QtCore, QtGui
 
@@ -81,13 +82,13 @@ def get_title_for_tree(tree, branch, other_branch):
     branch_title = ""
     if None not in (branch, other_branch) and branch.base != other_branch.base:
         branch_title = branch.nick
-    
+
     if isinstance(tree, WorkingTree):
         if branch_title:
             return gettext("Working Tree for %s") % branch_title
         else:
             return gettext("Working Tree")
-    
+
     elif isinstance(tree, (RevisionTree, DirStateRevisionTree)):
         # revision_id_to_revno is faster, but only works on mainline rev
         revid = tree.get_revision_id()
@@ -117,7 +118,7 @@ def get_title_for_tree(tree, branch, other_branch):
     elif isinstance(tree, _PreviewTree):
         return gettext('Merge Preview')
 
-    # XXX I don't know what other cases we need to handle    
+    # XXX I don't know what other cases we need to handle
     return 'Unknown tree'
 
 
@@ -140,7 +141,7 @@ class DiffWindow(QBzrWindow):
         self.complete = complete
 
         self.throbber = ThrobberWidget(self)
-        
+
         self.diffview = SidebySideDiffView(self)
         self.sdiffview = SimpleDiffView(self)
         self.views = (self.diffview, self.sdiffview)
@@ -188,7 +189,7 @@ class DiffWindow(QBzrWindow):
                      QtCore.SIGNAL("clicked(bool)"),
                      self.click_complete)
         complete.setChecked(self.complete);
-        
+
         if has_ext_diff():
             self.menu = ExtDiffMenu(include_builtin = False)
             ext_diff_button = QtGui.QPushButton(gettext('Using'), self)
@@ -233,33 +234,31 @@ class DiffWindow(QBzrWindow):
         self.throbber.show()
         op.add_cleanup(self.throbber.hide)
         op.run()
-    
+
     def _initial_load(self, op):
-        (tree1, tree2,
-         branch1, branch2,
-         specific_files) = self.arg_provider.get_diff_window_args(
-                                        self.processEvents, op.add_cleanup)
-        
-        self.trees = (tree1, tree2)
-        self.branches = (branch1, branch2)
-        self.specific_files = specific_files
-        
+        args = self.arg_provider.get_diff_window_args(self.processEvents, op.add_cleanup)
+
+        self.trees = (args["old_tree"], args["new_tree"])
+        self.branches = (args.get("old_branch", None), args.get("new_branch",None))
+        self.specific_files = args.get("specific_files", None)
+        self.ignore_whitespace = args.get("ignore_whitespace", False)
+
         self.load_branch_info()
         self.load_diff()
-    
+
     def load_branch_info(self):
         self.set_diff_title()
-        
+
         self.encoding_selector_left.encoding = get_set_encoding(self.encoding, self.branches[0])
         self.encoding_selector_right.encoding = get_set_encoding(self.encoding, self.branches[1])
         self.processEvents()
-    
+
     def set_diff_title(self):
         rev1_title = get_title_for_tree(self.trees[0], self.branches[0],
                                         self.branches[1])
         rev2_title = get_title_for_tree(self.trees[1], self.branches[1],
                                         self.branches[0])
-        
+
         title = [gettext("Diff"), "%s..%s" % (rev1_title, rev2_title)]
 
         if self.specific_files:
@@ -337,7 +336,7 @@ class DiffWindow(QBzrWindow):
                                 # ghosts around us (see Bug #513096)
                                 dates[ix] = 0  # using 1970/1/1 instead
 
-                    properties_changed = [] 
+                    properties_changed = []
                     if bool(executable[0]) != bool(executable[1]):
                         descr = {True: "+x", False: "-x", None: None}
                         properties_changed.append((descr[executable[0]],
@@ -374,12 +373,7 @@ class DiffWindow(QBzrWindow):
                             elif versioned == (False, True):
                                 groups = [[('insert', 0, 0, 0, len(lines[1]))]]
                             else:
-                                matcher = SequenceMatcher(None, lines[0], lines[1])
-                                self.processEvents()
-                                if self.complete:
-                                    groups = list([matcher.get_opcodes()])
-                                else:
-                                    groups = list(matcher.get_grouped_opcodes())
+                                groups = self.difference_groups(lines[0], lines[1])
                             ulines = []
                             for l, encoding in zip(lines, [self.encoding_selector_left.encoding,
                                                            self.encoding_selector_right.encoding]):
@@ -418,6 +412,21 @@ class DiffWindow(QBzrWindow):
                 gettext('&OK'))
         self.refresh_button.setEnabled(self.can_refresh())
 
+    WHITESPACE_RE = re.compile(r"\s+")
+    def difference_groups(self, left, right):
+        if self.ignore_whitespace:
+            left = map(lambda l: DiffWindow.WHITESPACE_RE.sub("", l), left)
+            right = map(lambda l: DiffWindow.WHITESPACE_RE.sub("", l), right)
+        matcher = SequenceMatcher(None, left, right)
+        self.processEvents()
+        if self.complete:
+            groups = list([matcher.get_opcodes()])
+        else:
+            groups = list(matcher.get_grouped_opcodes())
+
+        return groups
+
+
     def click_unidiff(self, checked):
         if checked:
             self.sdiffview.rewind()
@@ -427,7 +436,7 @@ class DiffWindow(QBzrWindow):
         if checked:
             self.diffview.rewind()
             self.stack.setCurrentIndex(0)
-    
+
     def click_complete(self, checked ):
         self.complete = checked
         #Has the side effect of refreshing...
@@ -448,7 +457,7 @@ class DiffWindow(QBzrWindow):
         if isinstance(tree1, MutableTree) or isinstance(tree2, MutableTree):
             return True
         return False
-    
+
     def ext_diff_triggered(self, ext_diff):
         """@param ext_diff: path to external diff executable."""
         show_diff(self.arg_provider, ext_diff=ext_diff, parent_window = self)
