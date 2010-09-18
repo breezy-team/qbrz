@@ -22,7 +22,7 @@
 
 import errno
 import time
-import re
+import string
 
 from PyQt4 import QtCore, QtGui
 
@@ -412,11 +412,12 @@ class DiffWindow(QBzrWindow):
                 gettext('&OK'))
         self.refresh_button.setEnabled(self.can_refresh())
 
-    WHITESPACE_RE = re.compile(r"\s+")
     def difference_groups(self, left, right):
         if self.ignore_whitespace:
-            left = map(lambda l: DiffWindow.WHITESPACE_RE.sub("", l), left)
-            right = map(lambda l: DiffWindow.WHITESPACE_RE.sub("", l), right)
+            table = string.maketrans("", "")
+            strip = lambda l : l.translate(table, string.whitespace)
+            left = map(strip, left)
+            right = map(strip, right)
         matcher = SequenceMatcher(None, left, right)
         self.processEvents()
         if self.complete:
