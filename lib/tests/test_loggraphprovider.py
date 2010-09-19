@@ -22,6 +22,15 @@ from StringIO import StringIO
 from bzrlib.plugins.qbzr.lib import loggraphprovider
 from bzrlib.revision import NULL_REVISION
 
+# TODO:
+# Filtering
+# Tag loading
+# Branch labels + Filtering
+# Ghosts
+# Branch expand/colapse
+# no_graph mode
+# file_ids filtering
+
 class TestLogGraphProviderMixin(object):
     def computed_to_list(self, computed, branch_labels=False):
         if not branch_labels:
@@ -450,6 +459,58 @@ class TestLogGraphProviderLayouts(TestCase, TestLogGraphProviderMixin):
              ('rev-b', 1, None, [(0, 0, 0, True), (1, 0, 0, True)])  , # │ ○ 
                                                                        # ├─╯ 
              ('rev-a', 0, None, [])                                  ],# ○ 
+            computed)    
+
+    def test_non_direct_hidden_branch(self):
+        gp = BasicTestLogGraphProvider(('rev-f',), {
+         'rev-a': (NULL_REVISION, ), 
+         'rev-b': ('rev-a', ),
+         'rev-c': ('rev-b', ),
+         'rev-d': ('rev-a', 'rev-c', ),
+         'rev-e': ('rev-b', ),
+         'rev-f': ('rev-d', 'rev-e', ),
+        })
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        state.branch_line_state[(1, 2)] = None
+        
+        computed = gp.compute_graph_lines(state)
+        
+        self.assertComputed(
+            [('rev-f', 0, True, [(0, 0, 0, True), (0, 1, 3, True)])  , # ⊖   
+                                                                       # ├─╮ 
+             ('rev-e', 1, False, [(0, 0, 0, True), (1, 1, 0, False)]), # │ ⊕ 
+                                                                       # │ ┆ 
+             ('rev-d', 0, False, [(0, 0, 0, True), (1, 0, 0, False)]), # ⊕ ┆ 
+                                                                       # ├┄╯ 
+             ('rev-a', 0, None, [])                                  ],# ○
+            computed)
+
+    def test_non_direct_hidden_parent(self):
+        gp = BasicTestLogGraphProvider(('rev-e',), {
+         'rev-a': (NULL_REVISION, ), 
+         'rev-b': ('rev-a', ),
+         'rev-c': ('rev-b', ),
+         'rev-d': ('rev-a', 'rev-c'),
+         'rev-e': ('rev-a', 'rev-d'),
+        })
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        state.filters.append(BasicFilterer(set(['rev-c'])))
+        self.expand_all_branches(state)
+        
+        computed = gp.compute_graph_lines(state)
+        
+        self.assertComputed(
+            [('rev-e', 0, True, [(0, 0, 0, True), (0, 1, 3, True)])                  , # ⊖   
+                                                                                       # ├─╮ 
+             ('rev-d', 1, True, [(0, 0, 0, True), (1, 1, 0, True), (1, 2, 2, False)]), # │ ⊖   
+                                                                                       # │ ├┄╮ 
+             ('rev-b', 2, None, [(0, 0, 0, True), (1, 0, 0, True), (2, 0, 0, True)]) , # │ │ ○ 
+                                                                                       # ├─╯─╯ 
+             ('rev-a', 0, None, [])                                                  ],# ○
             computed)    
 
 
