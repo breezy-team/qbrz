@@ -196,7 +196,21 @@ class TestLogGraphProviderWithBranches(TestCaseWithTransport,
              ('rev-a', 0, None, [], []) ],                              # ○
             computed, branch_labels=True)
 
-    
+    def test_pending_merges_provider(self):
+        tree = self.make_tree_with_pending_merge('branch')
+        
+        bi = loggraphprovider.BranchInfo(None, tree, tree.branch)
+        gp = loggraphprovider.PendingMergesGraphProvider([bi], bi, False)
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        computed = gp.compute_graph_lines(state)
+        
+        self.assertComputed(
+            [('rev-b', 1, None, [(1, 0, 0, True)]), #   ○ 
+                                                    # ╭─╯ 
+             ('root:', 0, None, [])               ],# ○ 
+            computed)
 
 class TestLogGraphProviderLayouts(TestCase, TestLogGraphProviderMixin):
     
