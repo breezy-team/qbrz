@@ -60,18 +60,10 @@ class LogList(RevisionTreeView):
                                       self.rev_no_item_delegate)
 
         self.log_model = logmodel.LogModel(processEvents, throbber, self)
-        self.connect(self.log_model,
-                     QtCore.SIGNAL("layoutChanged()"),
-                     self._adjust_revno_column)
-        self.connect(self.log_model,
-                     QtCore.SIGNAL("linesUpdated()"),
-                     self.make_selection_continuous)
-            
-        
-        self.filter_proxy_model = logmodel.LogFilterProxyModel(self.log_model,
-                                                               self)
-
-        self.setModel(self.filter_proxy_model)    
+        #self.connect(self.log_model,
+        #             QtCore.SIGNAL("linesUpdated()"),
+        #             self.make_selection_continuous)
+        self.setModel(self.log_model)    
         
         header = self.header()
         header.setStretchLastSection(False)
@@ -102,6 +94,7 @@ class LogList(RevisionTreeView):
     def load(self, *args, **kargs):
         self.log_model.load(*args, **kargs)
         self.create_context_menu()
+        self._adjust_revno_column()
     
     def create_context_menu(self, diff_is_default_action=True):
         branch_count = len(self.log_model.graph_provider.branches)
@@ -214,52 +207,37 @@ class LogList(RevisionTreeView):
         finally:
             self.log_model.graph_provider.unlock_branches()
 
+    def get_c_rev_under_twisty_pos(self, pos):
+        index = self.indexAt(pos)
+        rect = self.visualRect(index)
+        boxsize = rect.height()
+        c_rev = self.log_model.c_rev_from_index(index)
+        if c_rev and c_rev.twisty_state is not None:
+            twistyRect = QtCore.QRect (rect.x() + boxsize * c_rev.col_index,
+                                       rect.y() ,
+                                       boxsize,
+                                       boxsize)
+            if twistyRect.contains(pos):
+                return c_rev
+    
     def mousePressEvent(self, e):
         collapse_expand_click = False
         if e.button() & QtCore.Qt.LeftButton:
-            pos = e.pos()
-            index = self.indexAt(pos)
-            rect = self.visualRect(index)
-            boxsize = rect.height()
-            data = index.data(logmodel.GraphDataRole)
-            if data.isValid():
-                c_rev = data.toPyObject()[0]
-                
-                node_column = c_rev.col_index
-                twistyRect = QtCore.QRect (rect.x() + boxsize * node_column,
-                                           rect.y() ,
-                                           boxsize,
-                                           boxsize)
-                if twistyRect.contains(pos):
-                    collapse_expand_click = True
-                    source_index = self.filter_proxy_model.mapToSource(index)
-                    self.log_model.collapse_expand_rev(source_index.row())
-                    new_index = self.filter_proxy_model.mapFromSource(source_index)
+            c_rev = self.get_c_rev_under_twisty_pos(e.pos())
+            if c_rev:
+                collapse_expand_click = True
+                self.log_model.collapse_expand_rev(c_rev)
+                new_index = self.log_model.index_from_rev(c_rev.rev)
+                if new_index:
                     self.scrollTo(new_index)
-                    e.accept ()
+                e.accept ()
         if not collapse_expand_click:
             QtGui.QTreeView.mousePressEvent(self, e)
     
     def mouseMoveEvent(self, e):
         # This prevents the selection from changing when the mouse is over
         # a twisty.
-        collapse_expand_click = False
-        pos = e.pos()
-        index = self.indexAt(pos)
-        rect = self.visualRect(index)
-        boxsize = rect.height()
-        data = index.data(logmodel.GraphDataRole)
-        if data.isValid():
-            c_rev = data.toPyObject()[0]
-            node_column = c_rev.col_index
-            twistyRect = QtCore.QRect (rect.x() + boxsize * node_column,
-                                       rect.y() ,
-                                       boxsize,
-                                       boxsize)
-            if twistyRect.contains(pos):
-                if c_rev.twisty_state is not None:
-                    collapse_expand_click = True
-        if not collapse_expand_click:
+        if not self.get_c_rev_under_twisty_pos(e.pos()):
             QtGui.QTreeView.mouseMoveEvent(self, e)
 
     def keyPressEvent(self, e):
@@ -269,56 +247,40 @@ class LogList(RevisionTreeView):
             self.default_action()
         elif e_key in (QtCore.Qt.Key_Left, QtCore.Qt.Key_Right):
             e.accept()
-            indexes = [index for index in self.selectedIndexes() if index.column()==0]
+            indexes = self.get_selection_indexes()
             if not indexes:
                 return
-            index = indexes[0]
-            source_index = self.filter_proxy_model.mapToSource(index)
-            data = source_index.data(logmodel.GraphDataRole)
-            if data.isValid():
-                c_rev = data.toPyObject()[0]
-            else:
-                c_rev = None
+            c_rev = self.c_rev_from_index(indexes[0])
             
             if (e.key() == QtCore.Qt.Key_Right
                 and c_rev and not c_rev.twisty_state):
-                self.log_model.collapse_expand_rev(source_index.row())
+                self.log_model.collapse_expand_rev(c_rev)
             if e.key() == QtCore.Qt.Key_Left:
                 if c_rev and c_rev.twisty_state:
-                    self.log_model.collapse_expand_rev(source_index.row())
+                    self.log_model.collapse_expand_rev(c_rev)
                 else:
                     # Find the revision the merges us.
-                    gp = self.log_model.graph_provider
-                    rev = gp.revisions[source_index.row()]
-                    if rev.merged_by:
-                        merged_by = gp.revisions[rev.merged_by]
-                        self.setCurrentIndex(self.index_from_rev(merged_by))
+                    if c_rev.rev.merged_by:
+                        merged_by = self.log_model.computed.revisions[
+                                                        c_rev.rev.merged_by]
+                        self.setCurrentIndex(self.log_model.index_from_c_rev(merged_by))
             self.scrollTo(self.currentIndex())
         else:
             QtGui.QTreeView.keyPressEvent(self, e)
-    
-    def index_from_rev(self, rev, column=0):
-        source_index = self.log_model.index(
-            rev.index, column, QtCore.QModelIndex())
-        index = self.filter_proxy_model.mapFromSource(source_index)
-        return index
 
     def select_revid(self, revid):
-        gp = self.log_model.graph_provider
-        if revid in gp.revid_rev:
-            rev = gp.revid_rev[revid]
-            self.log_model.ensure_rev_visible(rev)
-            index = self.index_from_rev(rev)
+        index = self.log_model.index_from_revid(revid)
+        if index:
             self.setCurrentIndex(index)
     
-    def make_selection_continuous(self):
-        rows = self.selectionModel().selectedRows()
-        if len(rows)>2:
-            selection = QtGui.QItemSelection(rows[0], rows[-1])
-            self.selectionModel().select(selection,
-                                         (QtGui.QItemSelectionModel.Clear |
-                                          QtGui.QItemSelectionModel.Select |
-                                          QtGui.QItemSelectionModel.Rows))
+    #def make_selection_continuous(self):
+    #    rows = self.selectionModel().selectedRows()
+    #    if len(rows)>2:
+    #        selection = QtGui.QItemSelection(rows[0], rows[-1])
+    #        self.selectionModel().select(selection,
+    #                                     (QtGui.QItemSelectionModel.Clear |
+    #                                      QtGui.QItemSelectionModel.Select |
+    #                                      QtGui.QItemSelectionModel.Rows))
 
     def get_selection_indexes(self, index=None):
         if index is None:
