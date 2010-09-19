@@ -33,7 +33,8 @@ class TestLogGraphProviderMixin(object):
     def assertComputed(self, expected_list, computed):
         computed_list = self.computed_to_list(computed)
         if not expected_list == computed_list:
-            raise AssertionError("not equal: \nexpected_list = \n%scomputed_list = \n%s"
+            raise AssertionError(
+                "not equal: \nexpected_list = \n%scomputed_list = \n%s"
                 % (format_graph_lines(expected_list, use_unicode=True),
                    format_graph_lines(computed_list, use_unicode=True),))
     
@@ -53,7 +54,44 @@ class TestLogGraphProviderWithBranches(TestCaseWithTransport,
         state = loggraphprovider.GraphProviderFilterState(gp)
         computed = gp.compute_graph_lines(state)
         self.assertEqual(len(computed.revisions), 0)
-    
+
+    def test_branch_tips_date_sorted(self):
+        builder = self.make_branch_builder('trunk')
+        builder.start_series()
+        builder.build_snapshot('rev-a', None, [
+            ('add', ('', 'TREE_ROOT', 'directory', '')),])
+        builder.build_snapshot('rev-old', ['rev-a'], [])
+        builder.build_snapshot('rev-new', ['rev-a'], [])
+        builder.build_snapshot('rev-trunk', ['rev-a'], [])
+        builder.finish_series()
+        
+        trunk = builder.get_branch()
+        #trunk.set_last_revision('rev-trunk')
+        
+        old = trunk.bzrdir.sprout('../old', revision_id='rev-old').open_branch()
+        
+        new = trunk.bzrdir.sprout('../new', revision_id='rev-new').open_branch()
+        
+        trunk_bi = loggraphprovider.BranchInfo('trunk', None, trunk)
+        gp = loggraphprovider.LogGraphProvider(
+            [trunk_bi,
+             loggraphprovider.BranchInfo('old', None, old),
+             loggraphprovider.BranchInfo('new', None, new),],
+            trunk_bi, False)
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        computed = gp.compute_graph_lines(state)
+        
+        self.assertComputed(
+            [('rev-new', 2, None, [(2, 2, 0, True)])                 , #     ○ 
+                                                                       #     │ 
+             ('rev-old', 1, None, [(1, 1, 0, True), (2, 2, 0, True)]), #   ○ │ 
+                                                                       #   │ │ 
+             ('rev-trunk', 0, None, [(0, 0, 0, True), (1, 0, 0, True), # ○ │ │ 
+                                     (2, 0, 0, True)]),                # ├─╯─╯ 
+             ('rev-a', 0, None, [])                                  ],# ○ 
+            computed)    
 
 class TestLogGraphProviderLayouts(TestCase, TestLogGraphProviderMixin):
     
