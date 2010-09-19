@@ -101,7 +101,7 @@ class TestLogGraphProviderWithBranches(TestCaseWithTransport,
              ('rev-a', 0, None, [])                                  ],# ○ 
             computed)
     
-    def test_pending_merge(self):
+    def make_tree_with_pending_merge(self, path):
         builder = self.make_branch_builder('branch')
         builder.start_series()
         builder.build_snapshot('rev-a', None, [
@@ -114,7 +114,25 @@ class TestLogGraphProviderWithBranches(TestCaseWithTransport,
         tree = branch.bzrdir.create_workingtree()
         tree.merge_from_branch(branch, to_revision='rev-b')
         
-        bi = loggraphprovider.BranchInfo(None, tree, branch)
+        return tree
+    
+    def make_tree_not_up_to_date(self, path):
+        builder = self.make_branch_builder('branch')
+        builder.start_series()
+        builder.build_snapshot('rev-a', None, [
+            ('add', ('', 'TREE_ROOT', 'directory', '')),])
+        builder.build_snapshot('rev-b', ['rev-a'], [])
+        builder.finish_series()
+        
+        branch = builder.get_branch()
+        tree = branch.bzrdir.create_workingtree()
+        tree.update(revision='rev-a')
+        return tree
+    
+    def test_pending_merge(self):
+        tree = self.make_tree_with_pending_merge('branch')
+        
+        bi = loggraphprovider.BranchInfo(None, tree, tree.branch)
         gp = loggraphprovider.LogGraphProvider([bi], bi, False)
         gp.load()
         
@@ -128,18 +146,8 @@ class TestLogGraphProviderWithBranches(TestCaseWithTransport,
             computed, branch_labels=True)
 
     def test_out_of_date_wt(self):
-        builder = self.make_branch_builder('branch')
-        builder.start_series()
-        builder.build_snapshot('rev-a', None, [
-            ('add', ('', 'TREE_ROOT', 'directory', '')),])
-        builder.build_snapshot('rev-b', ['rev-a'], [])
-        builder.finish_series()
-        
-        branch = builder.get_branch()
-        tree = branch.bzrdir.create_workingtree()
-        tree.update(revision='rev-a')
-        
-        bi = loggraphprovider.BranchInfo(None, tree, branch)
+        tree = self.make_tree_not_up_to_date('branch')
+        bi = loggraphprovider.BranchInfo(None, tree, tree.branch)
         gp = loggraphprovider.LogGraphProvider([bi], bi, False)
         gp.load()
         
@@ -151,6 +159,44 @@ class TestLogGraphProviderWithBranches(TestCaseWithTransport,
                                                             # │ 
              ('rev-a', 0, None, [], ['Working Tree'])     ],# ○
             computed, branch_labels=True)
+    
+    def test_with_working_tree_provider(self):
+        tree = self.make_tree_with_pending_merge('branch')
+        
+        bi = loggraphprovider.BranchInfo('branch', tree, tree.branch)
+        gp = loggraphprovider.WithWorkingTreeGraphProvider([bi], bi, False)
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        computed = gp.compute_graph_lines(state)
+        
+        self.assertComputed(
+            [(u'current:%s' % tree.basedir, 0, True,                # ⊖  
+              [(0, 0, 0, True), (0, 1, 2, True)],                   # ├─╮ 
+              ['branch - Working Tree']),                           # │ │ 
+             ('rev-b', 1, None, [(0, 0, 0, True), (1, 0, 0, True)], # │ ○ 
+              ['branch - Pending Merge']),                          # ├─╯ 
+             ('rev-a', 0, None, [], ['branch'])],                   # ○ 
+            computed, branch_labels=True)
+    
+    def test_with_working_tree_provider_out_of_date_wt(self):
+        tree = self.make_tree_not_up_to_date('branch')
+        bi = loggraphprovider.BranchInfo('branch', tree, tree.branch)
+        gp = loggraphprovider.WithWorkingTreeGraphProvider([bi], bi, False)
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        computed = gp.compute_graph_lines(state)
+        
+        self.assertComputed(
+            [(u'current:%s' % tree.basedir, 1, None, [(1, 1, 0, True)], #   ○ 
+              ['branch - Working Tree']),                               #   │ 
+             ('rev-b', 0, None, [(0, 0, 0, True), (1, 0, 0, True)],     # ○ │ 
+              ['branch']),                                              # ├─╯ 
+             ('rev-a', 0, None, [], []) ],                              # ○
+            computed, branch_labels=True)
+
+    
 
 class TestLogGraphProviderLayouts(TestCase, TestLogGraphProviderMixin):
     

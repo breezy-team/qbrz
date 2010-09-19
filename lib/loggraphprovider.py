@@ -1173,7 +1173,7 @@ class WithWorkingTreeGraphProvider(LogGraphProvider):
                         pm_label = "%s - Pending Merge" % label
                     else:
                         pm_label = "Pending Merge"
-                    append_head_info(revid, bi, pm_label)
+                    self.append_head_info(revid, bi, pm_label)
             
             sort_heads.append(wt_revid)
             self.update_ui()
