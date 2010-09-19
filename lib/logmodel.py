@@ -490,4 +490,3 @@ class PropertySearchFilter (object):
                 return False
         
         return True
-    
