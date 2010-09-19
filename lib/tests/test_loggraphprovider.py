@@ -23,15 +23,23 @@ from bzrlib.plugins.qbzr.lib import loggraphprovider
 from bzrlib.revision import NULL_REVISION
 
 class TestLogGraphProviderMixin(object):
-    def computed_to_list(self, computed):
-        return [(c_rev.rev.revid,
-                 c_rev.col_index,
-                 c_rev.twisty_state,
-                 sorted(c_rev.lines),)
-                for c_rev in computed.filtered_revs]
+    def computed_to_list(self, computed, branch_labels=False):
+        if not branch_labels:
+            item = lambda c_rev: (c_rev.rev.revid,
+                                  c_rev.col_index,
+                                  c_rev.twisty_state,
+                                  sorted(c_rev.lines),)
+        else:
+            item = lambda c_rev: (c_rev.rev.revid,
+                                  c_rev.col_index,
+                                  c_rev.twisty_state,
+                                  sorted(c_rev.lines),
+                                  [label for bi, label in c_rev.branch_labels])
+        
+        return [item(c_rev) for c_rev in computed.filtered_revs]
     
-    def assertComputed(self, expected_list, computed):
-        computed_list = self.computed_to_list(computed)
+    def assertComputed(self, expected_list, computed, branch_labels=False):
+        computed_list = self.computed_to_list(computed, branch_labels)
         if not expected_list == computed_list:
             raise AssertionError(
                 "not equal: \nexpected_list = \n%scomputed_list = \n%s"
@@ -91,7 +99,58 @@ class TestLogGraphProviderWithBranches(TestCaseWithTransport,
              ('rev-trunk', 0, None, [(0, 0, 0, True), (1, 0, 0, True), # ○ │ │ 
                                      (2, 0, 0, True)]),                # ├─╯─╯ 
              ('rev-a', 0, None, [])                                  ],# ○ 
-            computed)    
+            computed)
+    
+    def test_pending_merge(self):
+        builder = self.make_branch_builder('branch')
+        builder.start_series()
+        builder.build_snapshot('rev-a', None, [
+            ('add', ('', 'TREE_ROOT', 'directory', '')),])
+        builder.build_snapshot('rev-b', ['rev-a'], [])
+        builder.finish_series()
+        
+        branch = builder.get_branch()
+        branch.set_last_revision_info(1, 'rev-a') # go back to rev-a
+        tree = branch.bzrdir.create_workingtree()
+        tree.merge_from_branch(branch, to_revision='rev-b')
+        
+        bi = loggraphprovider.BranchInfo(None, tree, branch)
+        gp = loggraphprovider.LogGraphProvider([bi], bi, False)
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        computed = gp.compute_graph_lines(state)
+        
+        self.assertComputed(
+            [('rev-b', 1, None, [(1, 0, 0, True)], ['Pending Merge']), #   ○ 
+                                                                       # ╭─╯ 
+             ('rev-a', 0, None, [], [None])                          ],# ○ 
+            computed, branch_labels=True)
+
+    def test_out_of_date_wt(self):
+        builder = self.make_branch_builder('branch')
+        builder.start_series()
+        builder.build_snapshot('rev-a', None, [
+            ('add', ('', 'TREE_ROOT', 'directory', '')),])
+        builder.build_snapshot('rev-b', ['rev-a'], [])
+        builder.finish_series()
+        
+        branch = builder.get_branch()
+        tree = branch.bzrdir.create_workingtree()
+        tree.update(revision='rev-a')
+        
+        bi = loggraphprovider.BranchInfo(None, tree, branch)
+        gp = loggraphprovider.LogGraphProvider([bi], bi, False)
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        computed = gp.compute_graph_lines(state)
+        
+        self.assertComputed(
+            [('rev-b', 0, None, [(0, 0, 0, True)], [None]), # ○ 
+                                                            # │ 
+             ('rev-a', 0, None, [], ['Working Tree'])     ],# ○
+            computed, branch_labels=True)
 
 class TestLogGraphProviderLayouts(TestCase, TestLogGraphProviderMixin):
     
@@ -453,7 +512,11 @@ def format_graph_lines(list, use_unicode=True):
         else:
             s.write(', # ')
         
-        revid, col_index, twisty_state, lines = item
+        if len(item) == 4:
+            revid, col_index, twisty_state, lines = item
+        if len(item) == 5:
+            revid, col_index, twisty_state, lines, labels = item
+        
         all_cols = [col_index]
         all_cols += [start for start, end, color, direct in lines]
         all_cols += [end for start, end, color, direct in lines]
