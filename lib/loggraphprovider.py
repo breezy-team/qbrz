@@ -671,28 +671,11 @@ class LogGraphProvider(object):
                 i += 1
         
         def is_col_free_for_range(col_index, child_f_index, parent_f_index):
-            col_lines = lines_by_column[col_index]
-            has_overlaping_line = False
-            for (line_child_f_index, line_parent_f_index) in col_lines:
-                # child_f_index is in between or
-                # parent_f_index is in between or
-                # we compleatly overlap.
-                if (
-                        child_f_index > line_child_f_index
-                    and
-                        child_f_index < line_parent_f_index
-                   ) or (
-                        parent_f_index > line_child_f_index
-                    and
-                        parent_f_index < line_parent_f_index
-                   ) or (
-                        child_f_index <= line_child_f_index
-                    and
-                        parent_f_index >= line_parent_f_index
-                   ):
-                    has_overlaping_line = True
-                    break
-            return not has_overlaping_line
+            return not any(
+                range_overlaps(child_f_index, parent_f_index,
+                               line_child_f_index, line_parent_f_index)
+                for line_child_f_index, line_parent_f_index
+                in lines_by_column[col_index])
         
         def find_free_column(col_search_order, child_f_index, parent_f_index):
             for col_index in col_search_order:
@@ -1051,9 +1034,7 @@ def group_overlaping(groups):
                 while b < len(groups):
                     items_b, start_b, end_b, group_key_b = groups[b]
                     if (group_key_a == group_key_b and
-                        ((start_a > start_b and start_a < end_b) or
-                         (end_a > start_b and end_a < end_b) or
-                         (start_a <= start_b and end_a >= end_b))):
+                        range_overlaps(start_a, end_a, start_b, end_b)):
                             # overlaps. Merge b into a
                             items_a.extend(items_b)
                             start_a = min(start_a, start_b)
@@ -1068,7 +1049,11 @@ def group_overlaping(groups):
             a += 1
     
     return groups
-    
+
+range_overlaps = (lambda start_a, end_a, start_b, end_b:
+                    start_b < start_a < end_b or
+                    start_b < end_a < end_b or
+                    (start_a <= start_b and end_a >= end_b))
 
 class PendingMergesGraphProvider(LogGraphProvider):
     
