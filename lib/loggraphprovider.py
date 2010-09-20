@@ -1283,11 +1283,11 @@ class GraphProviderFilterState(object):
                         parent_branch_id in seen_branch_ids):
                         continue
                     
-                    seen_branch_ids.add(parent_branch_id)
                     if self.branch_line_state[parent_branch_id] == branch_id:
                         # This branch expaned the parent branch, so we must
                         # collapse it.
                         branch_ids.append((parent_branch_id, branch_id))
+                        seen_branch_ids.add(parent_branch_id)
                     else:
                         # Check if this parent has any other visible branches
                         # that merge it.
@@ -1299,6 +1299,7 @@ class GraphProviderFilterState(object):
                                 break
                         if not has_visible:
                             branch_ids.append((parent_branch_id, branch_id))
+                            seen_branch_ids.add(parent_branch_id)
             else:
                 self.branch_line_state[branch_id] = expanded_by
         if has_change and self.filter_changed_callback:
