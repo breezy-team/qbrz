@@ -527,11 +527,11 @@ class TestLogGraphProviderState(TestCase):
          'c': ('a', 'b'),
         })
         gp.load()
-        # c ⊖   
-        #   ├─╮ 
-        # b │ ○ 
-        #   ├─╯ 
-        # a ○ 
+        # c  
+        # ├─╮ 
+        # │ b
+        # ├─╯ 
+        # a
         
         state = loggraphprovider.GraphProviderFilterState(gp)
         
@@ -561,17 +561,17 @@ class TestLogGraphProviderState(TestCase):
          'f': ('d', 'e')
         })
         gp.load()
-        # f ⊖     
-        #   ├───╮ 
-        # e │   ○ 
-        #   │   │ 
-        # d ⊖   │ 
-        #   ├─╮ │ 
-        # c │ ⊖ │ 
-        #   │ │\│ 
-        # b │ │ ○ 
-        #   ├─╯─╯ 
-        # a ○ 
+        # f     
+        # ├───╮ 
+        # │   e
+        # │   │ 
+        # d   │ 
+        # ├─╮ │ 
+        # │ c │ 
+        # │ │\│ 
+        # │ │ b
+        # ├─╯─╯ 
+        # a 
         return gp
     
     def test_collapse_colapses_sub_expand(self):
@@ -620,6 +620,58 @@ class TestLogGraphProviderState(TestCase):
         # not collapse branchline eb, even though it expanded it
         # branchline eb and mainline left showing
         self.assertFilteredRevisions('fedba', state)
+
+    def test_collapse_deep_expanded_by(self):
+        # This currently errors because of bug.
+        gp = BasicTestLogGraphProvider(('g',), {
+         'a': (NULL_REVISION, ), 
+         'b': ('a', ),
+         'c': ('a', 'b'),
+         'd': ('a', 'c', ),
+         'e': ('b', ),
+         'f': ('d', 'e'),
+         'g': ('a', 'f'),
+        })
+        # g   
+        # ├─╮ 
+        # │ f     
+        # │ ├───╮ 
+        # │ │   e
+        # │ │   │ 
+        # │ d   │ 
+        # │ ├─╮ │ 
+        # │ │ c │ 
+        # │ │ │\│ 
+        # │ │ │ b
+        # ├─╯─╯─╯ 
+        # a 
+        
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        # just mainline showing
+        self.assertFilteredRevisions('ga', state)
+        
+        # expand 'g'
+        state.collapse_expand_rev(gp.compute_graph_lines(state).revisions[0])
+        # branchline fd now showing
+        self.assertFilteredRevisions('gfda', state)
+        
+        # expand 'f'
+        state.collapse_expand_rev(gp.compute_graph_lines(state).revisions[1])
+        # branchline eb now showing
+        self.assertFilteredRevisions('gfedba', state)
+        
+        # expand 'd'
+        state.collapse_expand_rev(gp.compute_graph_lines(state).revisions[3])
+        # branchline c now showing (all showing)
+        self.assertFilteredRevisions('gfedcba', state)
+
+        # colapse 'g'
+        state.collapse_expand_rev(gp.compute_graph_lines(state).filtered_revs[0])
+        # back to just mainline showing
+        self.assertFilteredRevisions('ga', state)
+        
     
 class BasicTestLogGraphProvider(loggraphprovider.LogGraphProvider):
     
