@@ -562,16 +562,33 @@ class SubProcessWidget(QtGui.QWidget):
         self.process.setWorkingDirectory(dir)
         if getattr(sys, "frozen", None) is not None:
             bzr_exe = sys.executable
-            if sys.frozen == 'windows_exe':
-                # bzrw.exe
-                exe = os.path.join(os.path.dirname(sys.executable), 'bzr.exe')
-                if os.path.isfile(exe):
-                    bzr_exe = exe
+            if os.path.basename(bzr_exe) != "bzr.exe":
+                # Was run from bzrw.exe or tbzrcommand.
+                bzr_exe = os.path.join(os.path.dirname(sys.executable), "bzr.exe")
+                if not os.path.isfile(bzr_exe):
+                    self.reportProcessError(
+                        None, gettext('Could not locate "bzr.exe".'))
             self.process.start(
                 bzr_exe, ['qsubprocess', '--bencode', args])
         else:
+            # otherwise running as python script.
+            # ensure run from bzr, and not others, e.g. tbzrcommand.py
+            script = sys.argv[0]
+            # make absolute, because we may be running in a different
+            # dir.
+            script = os.path.abspath(script)
+            if os.path.basename(script) != "bzr":
+                import bzrlib
+                # are we running directly from a bzr directory?
+                script = os.path.join(bzrlib.__path__[0], "..", "bzr")
+                if not os.path.isfile(script):
+                    # maybe from an installed bzr?
+                    script = os.path.join(sys.prefix, "scripts", "bzr")
+                if not os.path.isfile(script):
+                    self.reportProcessError(
+                        None, gettext('Could not locate "bzr" script.'))
             self.process.start(
-                sys.executable, [sys.argv[0], 'qsubprocess', '--bencode', args])
+                sys.executable, [script, 'qsubprocess', '--bencode', args])
 
     def _setup_stdout_stderr(self):
         if self.stdout is None:
@@ -703,13 +720,14 @@ class SubProcessWidget(QtGui.QWidget):
             terminal_stream.write(message)
             terminal_stream.write('\n')
 
-    def reportProcessError(self, error):
+    def reportProcessError(self, error, message=None):
         self.aborting = False
         self.setProgress(1000000, [gettext("Failed!")])
-        if error == QtCore.QProcess.FailedToStart:
-            message = gettext("Failed to start bzr.")
-        else:
-            message = gettext("Error while running bzr. (error code: %d)" % error)
+        if message is None:
+            if error == QtCore.QProcess.FailedToStart:
+                message = gettext("Failed to start bzr.")
+            else:
+                message = gettext("Error while running bzr. (error code: %d)" % error)
         self.logMessage(message, True)
         self.emit(QtCore.SIGNAL("failed(QString)"), self.error_class)
 
