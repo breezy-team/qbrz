@@ -146,7 +146,7 @@ class LogModel(QtCore.QAbstractTableModel):
             self.graph_provider, self.compute_lines)
         self.computed = loggraphprovider.ComputedGraph(self.graph_provider)
 
-        self.clicked_row = None
+        self.clicked_f_index = None
         self.last_rev_is_placeholder = False
         self.bugtext = gettext("bug #%s")
     
@@ -197,27 +197,24 @@ class LogModel(QtCore.QAbstractTableModel):
             self.throbber.hide()
     
     def compute_lines(self):
-        self.computed = self.graph_provider.compute_graph_lines(self.state)
+        computed = self.graph_provider.compute_graph_lines(self.state)
         if self.last_rev_is_placeholder:
-            self.computed.filtered_revs[-1].col_index = None
-        self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
-                  self.createIndex (0, COL_MESSAGE, QtCore.QModelIndex()),
-                  self.createIndex (len(self.graph_provider.revisions),
-                                    COL_MESSAGE, QtCore.QModelIndex()))
-        self.emit(QtCore.SIGNAL("linesUpdated()"))
+            computed.filtered_revs[-1].col_index = None
+        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+        self.computed = computed
+        self.emit(QtCore.SIGNAL("layoutChanged()"))
     
-    def collapse_expand_rev(self, index):
-        self.clicked_row = index
-        clicked_row_index = self.createIndex (self.clicked_row,
+    def collapse_expand_rev(self, c_rev):
+        self.clicked_f_index = c_rev.f_index
+        clicked_row_index = self.createIndex (c_rev.f_index,
                                               COL_MESSAGE,
                                               QtCore.QModelIndex())
         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                   clicked_row_index,
                   clicked_row_index)
         self.graph_provider.update_ui()
-        self.clicked_row = None
+        self.clicked_f_index = None
         
-        c_rev = self.computed.revisions[index]
         self.state.collapse_expand_rev(c_rev)
         
         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
@@ -235,7 +232,7 @@ class LogModel(QtCore.QAbstractTableModel):
     def rowCount(self, parent):
         if parent.isValid():
             return 0
-        return len(self.computed.revisions)
+        return len(self.computed.filtered_revs)
     
     def data(self, index, role):
         
@@ -247,7 +244,7 @@ class LogModel(QtCore.QAbstractTableModel):
                 return QtCore.QVariant("")
             return QtCore.QVariant()
         
-        c_rev = self.computed.revisions[index.row()]
+        c_rev = self.computed.filtered_revs[index.row()]
         if c_rev is None:
             return blank()
         
@@ -288,7 +285,7 @@ class LogModel(QtCore.QAbstractTableModel):
                     revision._qlog_bugs = bugs
                 tags.extend([(bug, QtGui.QColor(164, 0, 0), QtCore.Qt.white)
                              for bug in bugs])
-            is_clicked = index.row() == self.clicked_row
+            is_clicked = c_rev.f_index == self.clicked_f_index
             
             return QtCore.QVariant((c_rev, prev_c_rev, tags, is_clicked))
         
@@ -340,25 +337,32 @@ class LogModel(QtCore.QAbstractTableModel):
     def on_filter_changed(self):
         self.compute_lines()
 
-
-class LogFilterProxyModel(QtGui.QSortFilterProxyModel):
-    def __init__(self, parent_log_model, parent = None):
-        QtGui.QSortFilterProxyModel.__init__(self, parent)
-        self.parent_log_model = parent_log_model
-        self.setSourceModel(parent_log_model)
-        self.setDynamicSortFilter(True)
-
-    def filterAcceptsRow(self, source_row, source_parent):
-        try:
-            return self.parent_log_model.computed.revisions[source_row] is not None
-        except IndexError:
-            return False
-    
-    def on_revisions_loaded(self, revisions, last_call):
-        self.sourceModel().on_revisions_loaded(revisions, last_call)    
-    
     def get_repo(self):
-        return self.parent_log_model.graph_provider.get_repo_revids
+        return self.graph_provider.get_repo_revids
+    
+    def index_from_revid(self, revid, column=0):
+        try:
+            rev = self.graph_provider.revid_rev[revid]
+        except KeyError:
+            return
+        return self.index_from_rev(rev)
+    
+    def index_from_rev(self, rev, column=0):
+        try:
+            c_rev = self.computed.revisions[rev.index]
+        except IndexError:
+            return
+        return self.index_from_c_rev(c_rev, column)
+    
+    def index_from_c_rev(self, c_rev, column=0):
+        return self.index(c_rev.f_index, column, QtCore.QModelIndex())
+    
+    def c_rev_from_index(self, index):
+        f_index = index.row()
+        try: 
+            return self.computed.filtered_revs[f_index]
+        except IndexError:
+            return None    
 
 class PropertySearchFilter (object):
     def __init__(self, graph_provider, filter_changed_callback):
