@@ -590,20 +590,8 @@ class LogGraphProvider(object):
         gc.disable()
         try:
             computed = ComputedGraph(self)
-            
-            if self.no_graph:
-                rev_whos_branch_is_visible = self.revisions
-            else:
-                rev_whos_branch_is_visible = []
-                for branch_id in state.branch_line_state.iterkeys():
-                    branch_line = self.branch_lines[branch_id]
-                    rev_whos_branch_is_visible.extend(branch_line.revs)
-                rev_whos_branch_is_visible.sort(key=lambda rev: rev.index)
-            
-            visible = state.get_revision_visible_if_branch_visible
-            computed.filtered_revs = [ComputedRevision(rev)
-                                      for rev in rev_whos_branch_is_visible
-                                      if visible(rev)]
+            computed.filtered_revs = [ComputedRevision(rev) for rev in
+                                      state.get_filtered_revisions()]
             
             c_revisions = computed.revisions
             for f_index, c_rev in enumerate(computed.filtered_revs):
@@ -1188,6 +1176,19 @@ class GraphProviderFilterState(object):
         # filters notifies us of a change, we can check if anything did change.
         
         self.filter_cache = [None for rev in self.graph_provider.revisions]
+    
+    def get_filtered_revisions(self):
+        if self.graph_provider.no_graph:
+            rev_whos_branch_is_visible = self.graph_provider.revisions
+        else:
+            rev_whos_branch_is_visible = []
+            for branch_id in self.branch_line_state.iterkeys():
+                branch_line = self.graph_provider.branch_lines[branch_id]
+                rev_whos_branch_is_visible.extend(branch_line.revs)
+            rev_whos_branch_is_visible.sort(key=lambda rev: rev.index)
+        
+        visible = self.get_revision_visible_if_branch_visible
+        return (rev for rev in rev_whos_branch_is_visible if visible(rev))
     
     def get_revision_visible_if_branch_visible(self, rev):
         rev_filter_cache = self.filter_cache[rev.index]
