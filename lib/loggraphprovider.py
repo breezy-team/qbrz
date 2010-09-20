@@ -1265,25 +1265,25 @@ class GraphProviderFilterState(object):
         if c_rev is None:
             return False
         visible = not c_rev.twisty_state
-        branch_ids = zip(c_rev.twisty_expands_branch_ids,
-                         [c_rev.rev.branch_id] *
-                                len(c_rev.twisty_expands_branch_ids))
-        processed_branch_ids = []
+        branch_ids = zip(
+            c_rev.twisty_expands_branch_ids,
+            [c_rev.rev.branch_id] * len(c_rev.twisty_expands_branch_ids))
+        
+        seen_branch_ids = set(branch_id for branch_id, expanded_by in branch_ids)
         has_change = False
         while branch_ids:
             branch_id, expanded_by = branch_ids.pop()
-            processed_branch_ids.append(branch_id)
-            if not branch_id in self.branch_line_state == visible:
+            if (branch_id in self.branch_line_state) != visible:
                 has_change = True
             if not visible:
                 del self.branch_line_state[branch_id]
                 for parent_branch_id in self.graph_provider.branch_lines[branch_id].merges:
                     parent_visible = parent_branch_id in self.branch_line_state
                     if (not parent_visible or 
-                        parent_branch_id in branch_ids or 
-                        parent_branch_id in processed_branch_ids):
+                        parent_branch_id in seen_branch_ids):
                         continue
                     
+                    seen_branch_ids.add(parent_branch_id)
                     if self.branch_line_state[parent_branch_id] == branch_id:
                         # This branch expaned the parent branch, so we must
                         # collapse it.

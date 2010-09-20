@@ -622,7 +622,7 @@ class TestLogGraphProviderState(TestCase):
         self.assertFilteredRevisions('fedba', state)
 
     def test_collapse_deep_expanded_by(self):
-        # This currently errors because of bug.
+        # This use to error at one point
         gp = BasicTestLogGraphProvider(('g',), {
          'a': (NULL_REVISION, ), 
          'b': ('a', ),
@@ -632,13 +632,13 @@ class TestLogGraphProviderState(TestCase):
          'f': ('d', 'e'),
          'g': ('a', 'f'),
         })
-        # g   
+        # g v-----1.3 
         # ├─╮ 
-        # │ f     
+        # │ f   v-1.1
         # │ ├───╮ 
         # │ │   e
         # │ │   │ 
-        # │ d   │ 
+        # │ d v-│-1.2
         # │ ├─╮ │ 
         # │ │ c │ 
         # │ │ │\│ 
