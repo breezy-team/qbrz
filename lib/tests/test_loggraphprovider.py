@@ -518,7 +518,7 @@ class TestLogGraphProviderState(TestCase):
 
     def assertFilteredRevisions(self, expected_revids, state):
         revids = [rev.revid for rev in state.get_filtered_revisions()]
-        self.assertEqual(expected_revids, revids)
+        self.assertEqual(list(expected_revids), revids)
     
     def test_collapse_expand_rev_basic(self):
         gp = BasicTestLogGraphProvider(('c',), {
@@ -536,22 +536,91 @@ class TestLogGraphProviderState(TestCase):
         state = loggraphprovider.GraphProviderFilterState(gp)
         
         # just mainline showing
-        self.assertFilteredRevisions(['c', 'a'], state)
+        self.assertFilteredRevisions('ca', state)
         
         # bla - we need a computed to call collapse_expand_rev
         # expand 'c'
         state.collapse_expand_rev(gp.compute_graph_lines(state).filtered_revs[0])
         
         # all should be showing
-        self.assertFilteredRevisions(['c', 'b', 'a'], state)
+        self.assertFilteredRevisions('cba', state)
         
         # colapse 'c'
         state.collapse_expand_rev(gp.compute_graph_lines(state).filtered_revs[0])
         
         # just mainline showing
-        self.assertFilteredRevisions(['c', 'a'], state)
+        self.assertFilteredRevisions('ca', state)
 
+    def get_expanded_by_graph_provider(self):
+        gp = BasicTestLogGraphProvider(('f',), {
+         'a': (NULL_REVISION, ), 
+         'b': ('a', ),
+         'c': ('a', 'b'),
+         'd': ('a', 'c', ),
+         'e': ('b', ),
+         'f': ('d', 'e')
+        })
+        gp.load()
+        # f ⊖     
+        #   ├───╮ 
+        # e │   ○ 
+        #   │   │ 
+        # d ⊖   │ 
+        #   ├─╮ │ 
+        # c │ ⊖ │ 
+        #   │ │\│ 
+        # b │ │ ○ 
+        #   ├─╯─╯ 
+        # a ○ 
+        return gp
+    
+    def test_collapse_colapses_sub_expand(self):
+        gp = self.get_expanded_by_graph_provider()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        # just mainline showing
+        self.assertFilteredRevisions('fda', state)
+        
+        # expand 'd'
+        state.collapse_expand_rev(gp.compute_graph_lines(state).revisions[2])
+        # branchline c now showing
+        self.assertFilteredRevisions('fdca', state)
+        
+        # expand 'c'
+        state.collapse_expand_rev(gp.compute_graph_lines(state).revisions[3])
+        # all showing
+        self.assertFilteredRevisions('fedcba', state)
+        
+        # colapse 'd'
+        state.collapse_expand_rev(gp.compute_graph_lines(state).filtered_revs[2])
+        # cause c expaned branchline eb, and d expanded c, d colapses 
+        # just mainline showing
+        self.assertFilteredRevisions('fda', state)
 
+    def test_collapse_dosent_colapses_prev_expand(self):
+        gp = self.get_expanded_by_graph_provider()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        # just mainline showing
+        self.assertFilteredRevisions('fda', state)
+        
+        # expand 'f'
+        state.collapse_expand_rev(gp.compute_graph_lines(state).revisions[0])
+        # branchline eb now showing
+        self.assertFilteredRevisions('fedba', state)
+        
+        # expand 'd'
+        state.collapse_expand_rev(gp.compute_graph_lines(state).revisions[2])
+        # all showing
+        self.assertFilteredRevisions('fedcba', state)
+        
+        # colapse 'd'
+        state.collapse_expand_rev(gp.compute_graph_lines(state).filtered_revs[2])
+        # cause branchline eb was expanded by f, and not d, collapsing d dose
+        # not collapse branchline eb, even though it expanded it
+        # branchline eb and mainline left showing
+        self.assertFilteredRevisions('fedba', state)
+    
 class BasicTestLogGraphProvider(loggraphprovider.LogGraphProvider):
     
     def __init__(self, heads, graph_dict):
