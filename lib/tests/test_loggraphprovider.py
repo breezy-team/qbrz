@@ -514,6 +514,44 @@ class TestLogGraphProviderLayouts(TestCase, TestLogGraphProviderMixin):
             computed)    
 
 
+class TestLogGraphProviderState(TestCase):
+
+    def assertFilteredRevisions(self, expected_revids, state):
+        revids = [rev.revid for rev in state.get_filtered_revisions()]
+        self.assertEqual(expected_revids, revids)
+    
+    def test_collapse_expand_rev_basic(self):
+        gp = BasicTestLogGraphProvider(('c',), {
+         'a': (NULL_REVISION, ), 
+         'b': ('a', ),
+         'c': ('a', 'b'),
+        })
+        gp.load()
+        # c ⊖   
+        #   ├─╮ 
+        # b │ ○ 
+        #   ├─╯ 
+        # a ○ 
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        
+        # just mainline showing
+        self.assertFilteredRevisions(['c', 'a'], state)
+        
+        # bla - we need a computed to call collapse_expand_rev
+        # expand 'c'
+        state.collapse_expand_rev(gp.compute_graph_lines(state).filtered_revs[0])
+        
+        # all should be showing
+        self.assertFilteredRevisions(['c', 'b', 'a'], state)
+        
+        # colapse 'c'
+        state.collapse_expand_rev(gp.compute_graph_lines(state).filtered_revs[0])
+        
+        # just mainline showing
+        self.assertFilteredRevisions(['c', 'a'], state)
+
+
 class BasicTestLogGraphProvider(loggraphprovider.LogGraphProvider):
     
     def __init__(self, heads, graph_dict):
