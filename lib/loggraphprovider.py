@@ -1170,7 +1170,7 @@ class GraphProviderFilterState(object):
         
         for revid in self.graph_provider.revid_head_info:
             rev = self.graph_provider.revid_rev[revid]
-            self.branch_line_state[rev.branch_id] = []
+            self.branch_line_state[rev.branch_id] = None
         
         self.filters = []
         
