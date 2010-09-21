@@ -700,7 +700,7 @@ class TestLogGraphProviderState(TestCase):
         state.filters.append(BasicFilterer(('d', 'c', 'a')))
         state.filter_changed()
         # d and a not showing bucause of filter
-        # c shows even though it is filtered, bucause it merges a revision
+        # c shows even though it is filtered, because it merges a revision
         # that is not filtered.
         self.assertFilteredRevisions('ecb', state)
     
