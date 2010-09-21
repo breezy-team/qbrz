@@ -51,7 +51,7 @@ class RevisionCache(object):
     # Instance of this object are typicaly named "rev".
     
     __slots__ = ["index", "_merge_sort_node", "branch", "_revno_str", 
-                 "merges", "merged_by", 'branch_id']
+                 "merges", "merged_by", 'branch_id', 'color']
     def __init__ (self, index, _merge_sort_node):
         self.index = index
         """Index in LogGraphProvider.revisions"""
@@ -63,6 +63,7 @@ class RevisionCache(object):
         self.merged_by = None
         """Revision index that merges this revision."""
         self.branch_id = self._merge_sort_node.revno[0:-1]
+        self.color = reduce(lambda x, y: x+y, self.branch_id, 0)        
     
     revid = property(lambda self: self._merge_sort_node.key)
     merge_depth = property(lambda self: self._merge_sort_node.merge_depth)
@@ -99,7 +100,6 @@ class BranchLine(object):
         self.revs = []
         self.merges = []
         self.merged_by = []
-        self.color = reduce(lambda x, y: x+y, self.branch_id, 0)
         self.merge_depth = 0
 
     def __repr__(self):
@@ -613,6 +613,8 @@ class LogGraphProvider(object):
                 gc.enable()
         
         if self.no_graph:
+            for c_rev in c_revisions:
+                c_rev.col_index = c_rev.rev.merge_depth * 0.5
             return computed
         
         # This will hold a tuple of (child, parent, col_index, direct) for each
@@ -924,7 +926,7 @@ class LogGraphProvider(object):
         # copy the lines in to computed_revisions.
         for (child, parent, line_col_index, direct) in lines:
             
-            parent_color = parent.rev.branch.color
+            parent_color = parent.rev.color
             
             line_length = parent.f_index - child.f_index
             if line_length == 0:

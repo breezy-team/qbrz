@@ -637,11 +637,11 @@ class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
                 
                 if c_rev.col_index is not None:
                     graphCols = max((graphCols, c_rev.col_index))
-                    pen.setColor(self.get_color(c_rev.rev.branch.color, False))
+                    pen.setColor(self.get_color(c_rev.rev.color, False))
                     painter.setPen(pen)
                     if not is_clicked:
                         painter.setBrush(QtGui.QBrush(
-                            self.get_color(c_rev.rev.branch.color,True)))
+                            self.get_color(c_rev.rev.color,True)))
                     else:
                         painter.setBrush(QtGui.QBrush(QtCore.Qt.white))
                         

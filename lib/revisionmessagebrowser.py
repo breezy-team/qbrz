@@ -369,7 +369,7 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
         return self.log_list.log_model.graph_provider.revid_rev[revid].merge_depth
 
     def get_color(self, revid):
-        return self.log_list.log_model.graph_provider.revid_rev[revid].branch.color
+        return self.log_list.log_model.graph_provider.revid_rev[revid].color
 
     def get_tags(self, revid):
         return self.log_list.log_model.graph_provider.tags.get(revid)
