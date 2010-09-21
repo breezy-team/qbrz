@@ -26,7 +26,6 @@ from bzrlib.revision import NULL_REVISION
 # Tag loading
 # Branch labels + Filtering
 # Ghosts
-# no_graph mode
 # file_ids filtering
 
 class TestLogGraphProviderMixin(object):
@@ -509,7 +508,29 @@ class TestLogGraphProviderLayouts(TestCase, TestLogGraphProviderMixin):
              ('rev-b', 2, None, [(0, 0, 0, True), (1, 0, 0, True), (2, 0, 0, True)]) , # │ │ ○ 
                                                                                        # ├─╯─╯ 
              ('rev-a', 0, None, [])                                                  ],# ○
-            computed)    
+            computed)
+    
+    def test_no_graph(self):
+        gp = BasicTestLogGraphProvider(('rev-e',), {
+         'rev-a': (NULL_REVISION, ), 
+         'rev-b': ('rev-a', ),
+         'rev-c': ('rev-b', ),
+         'rev-d': ('rev-b', 'rev-c' ),
+         'rev-e': ('rev-a', 'rev-d' ),
+        }, no_graph=True)
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        computed = gp.compute_graph_lines(state)
+
+        # No lines with no-graph, just nodes per merge depth
+        self.assertComputed(
+            [('rev-e', 0.0, None, []), # ○ 
+             ('rev-d', 0.5, None, []), #  ○ 
+             ('rev-c', 1.0, None, []), #   ○ 
+             ('rev-b', 0.5, None, []), #  ○ 
+             ('rev-a', 0.0, None, [])],# ○ 
+             computed)
 
 
 class TestLogGraphProviderState(TestCase):
@@ -706,11 +727,11 @@ class TestLogGraphProviderState(TestCase):
     
 class BasicTestLogGraphProvider(loggraphprovider.LogGraphProvider):
     
-    def __init__(self, heads, graph_dict):
+    def __init__(self, heads, graph_dict, no_graph=False):
         self.heads = heads
         self.graph_dict = graph_dict
         bi = loggraphprovider.BranchInfo(None, None, None)
-        loggraphprovider.LogGraphProvider.__init__(self, [bi], bi, False)
+        loggraphprovider.LogGraphProvider.__init__(self, [bi], bi, no_graph)
     
     def load(self):
         for head in self.heads:
@@ -863,7 +884,7 @@ def format_graph_lines(list, use_unicode=True):
                 replace_char(next_line, start * 2, br_char)
                 replace_char(next_line, end * 2, tl_char)
         
-        this_line[col_index * 2] = twisty_char[twisty_state]
+        this_line[int(col_index * 2)] = twisty_char[twisty_state]
         
         s.write(''.join(this_line))
         s.write('\n')
