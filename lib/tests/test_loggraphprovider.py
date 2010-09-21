@@ -23,11 +23,9 @@ from bzrlib.plugins.qbzr.lib import loggraphprovider
 from bzrlib.revision import NULL_REVISION
 
 # TODO:
-# Filtering
 # Tag loading
 # Branch labels + Filtering
 # Ghosts
-# Branch expand/colapse
 # no_graph mode
 # file_ids filtering
 
@@ -671,7 +669,40 @@ class TestLogGraphProviderState(TestCase):
         state.collapse_expand_rev(gp.compute_graph_lines(state).filtered_revs[0])
         # back to just mainline showing
         self.assertFilteredRevisions('ga', state)
+    
+    def test_filter(self):
+        gp = BasicTestLogGraphProvider(('e',), {
+         'a': (NULL_REVISION, ), 
+         'b': ('a', ),
+         'c': ('a', 'b'),
+         'd': ('c', ),
+         'e': ('d', ),
+        })
+        gp.load()
+        # e
+        # │
+        # d
+        # │
+        # c  
+        # ├─╮ 
+        # │ b
+        # ├─╯ 
+        # a
         
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        
+        # expand 'c'
+        state.collapse_expand_rev(gp.compute_graph_lines(state).filtered_revs[2])
+        
+        # all should be showing
+        self.assertFilteredRevisions('edcba', state)
+        
+        state.filters.append(BasicFilterer(('d', 'c', 'a')))
+        state.filter_changed()
+        # d and a not showing bucause of filter
+        # c shows even though it is filtered, bucause it merges a revision
+        # that is not filtered.
+        self.assertFilteredRevisions('ecb', state)
     
 class BasicTestLogGraphProvider(loggraphprovider.LogGraphProvider):
     

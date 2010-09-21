@@ -1214,7 +1214,7 @@ class GraphProviderFilterState(object):
         
         return False
     
-    def filter_changed(self, revs, last_call=True):
+    def filter_changed(self, revs=None, last_call=True):
         if revs is None:
             self.filter_cache = [None for rev in self.graph_provider.revisions]
             if self.filter_changed_callback:
