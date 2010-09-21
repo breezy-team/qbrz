@@ -217,6 +217,47 @@ class TestLogGraphProviderWithBranches(TestCaseWithTransport,
                                                     # ╭─╯ 
              ('root:', 0, None, [])               ],# ○ 
             computed)
+    
+    def test_with_ghost(self):
+        tree = self.make_branch_and_tree('tree')
+        tree.commit('a', rev_id='rev-a')
+        tree.add_parent_tree_id('rev-b')
+        tree.commit('c', rev_id='rev-c')
+        # rev-b is a ghost. We think he is there, but he dose not exist. Boo!
+        
+        bi = loggraphprovider.BranchInfo(None, tree, tree.branch)
+        gp = loggraphprovider.LogGraphProvider([bi], bi, False)
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        state.expand_all_branch_lines()
+        computed = gp.compute_graph_lines(state)
+        
+        self.assertComputed(
+            [('rev-c', 0, True, [(0, 0, 0, True), (0, 1, 1, True)]), # ⊖   
+                                                                     # ├─╮ 
+             ('rev-b', 1, None, [(0, 0, 0, True)])                 , # │ ○ 
+                                                                     # │   
+             ('rev-a', 0, None, [])                                ],# ○ 
+            computed)
+
+    def test_with_ghost_mainline(self):
+        tree = self.make_branch_and_tree('tree')
+        tree.add_parent_tree_id('rev-a', allow_leftmost_as_ghost=True)
+        tree.commit('b', rev_id='rev-b')
+        
+        bi = loggraphprovider.BranchInfo(None, tree, tree.branch)
+        gp = loggraphprovider.LogGraphProvider([bi], bi, False)
+        gp.load()
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        computed = gp.compute_graph_lines(state)
+        
+        self.assertComputed(
+            [('rev-b', 0, None, [(0, 0, 0, True)]), # ○ 
+                                                    # │ 
+             ('rev-a', 0, None, [])               ],# ○ 
+            computed)
 
 class TestLogGraphProviderLayouts(TestCase, TestLogGraphProviderMixin):
     
@@ -255,10 +296,6 @@ class TestLogGraphProviderLayouts(TestCase, TestLogGraphProviderMixin):
              ('rev-a', 0, None, [])                                ],# ○ 
             computed)
     
-    def expand_all_branches(self, state):
-        for branch_id in state.graph_provider.branch_lines.keys():
-            state.branch_line_state[branch_id] = None
-    
     def test_branch_line_order(self):
         gp = BasicTestLogGraphProvider(('rev-f',), {
          'rev-a': (NULL_REVISION, ), 
@@ -271,7 +308,7 @@ class TestLogGraphProviderLayouts(TestCase, TestLogGraphProviderMixin):
         gp.load()
         
         state = loggraphprovider.GraphProviderFilterState(gp)
-        self.expand_all_branches(state)
+        state.expand_all_branch_lines()
         computed = gp.compute_graph_lines(state)
         
         # branch lines should not cross over
@@ -303,7 +340,7 @@ class TestLogGraphProviderLayouts(TestCase, TestLogGraphProviderMixin):
         gp.load()
         
         state = loggraphprovider.GraphProviderFilterState(gp)
-        self.expand_all_branches(state)
+        state.expand_all_branch_lines()
         computed = gp.compute_graph_lines(state)
 
         # branch lines should not cross over
@@ -336,7 +373,7 @@ class TestLogGraphProviderLayouts(TestCase, TestLogGraphProviderMixin):
         gp.load()
         
         state = loggraphprovider.GraphProviderFilterState(gp)
-        self.expand_all_branches(state)
+        state.expand_all_branch_lines()
         computed = gp.compute_graph_lines(state)
         
         self.assertComputed(
@@ -364,7 +401,7 @@ class TestLogGraphProviderLayouts(TestCase, TestLogGraphProviderMixin):
         gp.load()
         
         state = loggraphprovider.GraphProviderFilterState(gp)
-        self.expand_all_branches(state)
+        state.expand_all_branch_lines()
         computed = gp.compute_graph_lines(state)
 
         self.assertComputed(
@@ -496,7 +533,7 @@ class TestLogGraphProviderLayouts(TestCase, TestLogGraphProviderMixin):
         
         state = loggraphprovider.GraphProviderFilterState(gp)
         state.filters.append(BasicFilterer(set(['rev-c'])))
-        self.expand_all_branches(state)
+        state.expand_all_branch_lines()
         
         computed = gp.compute_graph_lines(state)
         
@@ -509,28 +546,6 @@ class TestLogGraphProviderLayouts(TestCase, TestLogGraphProviderMixin):
                                                                                        # ├─╯─╯ 
              ('rev-a', 0, None, [])                                                  ],# ○
             computed)
-    
-    def test_no_graph(self):
-        gp = BasicTestLogGraphProvider(('rev-e',), {
-         'rev-a': (NULL_REVISION, ), 
-         'rev-b': ('rev-a', ),
-         'rev-c': ('rev-b', ),
-         'rev-d': ('rev-b', 'rev-c' ),
-         'rev-e': ('rev-a', 'rev-d' ),
-        }, no_graph=True)
-        gp.load()
-        
-        state = loggraphprovider.GraphProviderFilterState(gp)
-        computed = gp.compute_graph_lines(state)
-
-        # No lines with no-graph, just nodes per merge depth
-        self.assertComputed(
-            [('rev-e', 0.0, None, []), # ○ 
-             ('rev-d', 0.5, None, []), #  ○ 
-             ('rev-c', 1.0, None, []), #   ○ 
-             ('rev-b', 0.5, None, []), #  ○ 
-             ('rev-a', 0.0, None, [])],# ○ 
-             computed)
 
 
 class TestLogGraphProviderState(TestCase):
@@ -725,39 +740,7 @@ class TestLogGraphProviderState(TestCase):
         # that is not filtered.
         self.assertFilteredRevisions('ecb', state)
 
-    def test_filter_no_graph(self):
-        gp = BasicTestLogGraphProvider(('e',), {
-         'a': (NULL_REVISION, ), 
-         'b': ('a', ),
-         'c': ('a', 'b'),
-         'd': ('c', ),
-         'e': ('d', ),
-        }, no_graph=True)
-        gp.load()
-        # e
-        # │
-        # d
-        # │
-        # c  
-        # ├─╮ 
-        # │ b
-        # ├─╯ 
-        # a
-        
-        state = loggraphprovider.GraphProviderFilterState(gp)
-        
-        # expand 'c'
-        state.collapse_expand_rev(gp.compute_graph_lines(state).filtered_revs[2])
-        
-        # all should be showing
-        self.assertFilteredRevisions('edcba', state)
-        
-        state.filters.append(BasicFilterer(('d', 'c', 'a')))
-        state.filter_changed()
-        # d, c and a not showing bucause of filter
-        # c  not showing even though it merges visible b. This is one of the
-        # features of no-graph originaly requested
-        self.assertFilteredRevisions('eb', state)
+
     
 class BasicTestLogGraphProvider(loggraphprovider.LogGraphProvider):
     

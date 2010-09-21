@@ -1306,6 +1306,12 @@ class GraphProviderFilterState(object):
                 self.branch_line_state[branch_id] = expanded_by
         if has_change and self.filter_changed_callback:
             self.filter_changed_callback()
+    
+    def expand_all_branch_lines(self):
+        for branch_id in self.graph_provider.branch_lines.keys():
+            if branch_id not in self.branch_line_state:
+                self.branch_line_state[branch_id] = None
+    
 
 class FileIdFilter (object):
     def __init__(self, graph_provider, filter_changed_callback, file_ids):
