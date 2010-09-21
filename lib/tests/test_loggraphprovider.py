@@ -724,6 +724,40 @@ class TestLogGraphProviderState(TestCase):
         # c shows even though it is filtered, because it merges a revision
         # that is not filtered.
         self.assertFilteredRevisions('ecb', state)
+
+    def test_filter_no_graph(self):
+        gp = BasicTestLogGraphProvider(('e',), {
+         'a': (NULL_REVISION, ), 
+         'b': ('a', ),
+         'c': ('a', 'b'),
+         'd': ('c', ),
+         'e': ('d', ),
+        }, no_graph=True)
+        gp.load()
+        # e
+        # │
+        # d
+        # │
+        # c  
+        # ├─╮ 
+        # │ b
+        # ├─╯ 
+        # a
+        
+        state = loggraphprovider.GraphProviderFilterState(gp)
+        
+        # expand 'c'
+        state.collapse_expand_rev(gp.compute_graph_lines(state).filtered_revs[2])
+        
+        # all should be showing
+        self.assertFilteredRevisions('edcba', state)
+        
+        state.filters.append(BasicFilterer(('d', 'c', 'a')))
+        state.filter_changed()
+        # d, c and a not showing bucause of filter
+        # c  not showing even though it merges visible b. This is one of the
+        # features of no-graph originaly requested
+        self.assertFilteredRevisions('eb', state)
     
 class BasicTestLogGraphProvider(loggraphprovider.LogGraphProvider):
     
