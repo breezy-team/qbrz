@@ -1,9 +1,10 @@
-0.19.1 - In Developement
-------------------------
+0.19.2 - 2010/09/24
+-------------------
 Maintenance release.
 
  * Fix finding bzr.exe when running from bzrw.exe with out full path in the
-   command line. (Bug #640082, Gary van der Merwe)
+   command line. Handle been launched from tortoisebzr without it having to
+   change sys.executable. (Bug #640082, Bug #641557, Gary van der Merwe)
 
 
 0.19.1 "Chestnut" - 2010/09/13
