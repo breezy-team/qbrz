@@ -23,6 +23,11 @@ from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
                                                  RevNoItemDelegate,
                                                  get_text_color)
 from bzrlib.revision import NULL_REVISION
+from bzrlib.plugins.qbzr.lib.util import (
+    runs_in_loading_queue,
+    )
+from bzrlib.plugins.qbzr.lib.trace import reports_exception, SUB_LOAD_METHOD
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
@@ -92,9 +97,16 @@ class LogList(RevisionTreeView):
         self.context_menu = QtGui.QMenu(self)
 
     def load(self, *args, **kargs):
+        self.load_args = (args, kargs)
         self.log_model.load(*args, **kargs)
         self.create_context_menu()
         self._adjust_revno_column()
+    
+    @runs_in_loading_queue
+    @ui_current_widget
+    def refresh(self, b=True):
+        (args, kargs) = self.load_args
+        self.load(*args, **kargs)
     
     def create_context_menu(self, diff_is_default_action=True):
         branch_count = len(self.log_model.graph_provider.branches)
