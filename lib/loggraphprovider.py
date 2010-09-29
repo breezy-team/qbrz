@@ -962,6 +962,11 @@ class LogGraphProvider(object):
         return computed
     
     def get_revid_branch_info(self, revid):
+        """This returns a branch info whos branch contains the revision.
+        
+        If the revision exists more than one branch, it will only return the
+        first branch info. """
+        
         if revid in self.ghosts:
             raise GhostRevisionError(revid)
         

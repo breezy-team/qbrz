@@ -256,8 +256,61 @@ class TestLogGraphProviderWithBranches(TestCaseWithTransport,
         self.assertComputed(
             [('rev-b', 0, None, [(0, 0, 0, True)]), # ○ 
                                                     # │ 
-             ('rev-a', 0, None, [])               ],# ○ 
+             ('rev-a', 0, None, [])               ],# ○
             computed)
+
+    def test_get_revid_branch_info(self):
+        builder = self.make_branch_builder('trunk')
+        builder.start_series()
+        builder.build_snapshot('rev-a', None, [
+            ('add', ('', 'TREE_ROOT', 'directory', '')),])
+        builder.build_snapshot('rev-branch', ['rev-a'], [])
+        builder.build_snapshot('rev-trunk', ['rev-a'], [])
+        builder.finish_series()
+        #   ○ branch
+        #   │ 
+        # ○ │ trunk
+        # ├─╯ 
+        # ○ rev-a
+        
+        trunk = builder.get_branch()
+        #trunk.set_last_revision('rev-trunk')
+        
+        branch = trunk.bzrdir.sprout('../branch',
+                                     revision_id='rev-branch').open_branch()
+        
+        trunk_bi = loggraphprovider.BranchInfo('trunk', None, trunk)
+        branch_bi = loggraphprovider.BranchInfo('branch', None, branch)
+        gp = loggraphprovider.LogGraphProvider(
+            [trunk_bi, branch_bi],
+            trunk_bi, False)
+        gp.load()
+        
+        self.assertEqual(trunk_bi, gp.get_revid_branch_info('rev-trunk'))
+        self.assertEqual(branch_bi, gp.get_revid_branch_info('rev-branch'))
+        
+        # may return either 
+        self.assertIn(gp.get_revid_branch_info('rev-a'),
+                      (branch_bi, trunk_bi))
+
+    def test_get_revid_branch_info_with_ghost(self):
+        tree = self.make_branch_and_tree('tree')
+        tree.commit('a', rev_id='rev-a')
+        tree.add_parent_tree_id('rev-b')
+        tree.commit('c', rev_id='rev-c')
+        # rev-b is a ghost. We think he is there, but he dose not exist. Boo!
+        # c 
+        # ├─╮
+        # │ b
+        # │ 
+        # a 
+
+        bi = loggraphprovider.BranchInfo(None, tree, tree.branch)
+        gp = loggraphprovider.LogGraphProvider([bi], bi, False)
+        gp.load()
+        
+        self.assertRaises(loggraphprovider.GhostRevisionError,
+                          gp.get_revid_branch_info, 'rev-b')
 
 class TestLogGraphProviderLayouts(TestCase, TestLogGraphProviderMixin):
     
