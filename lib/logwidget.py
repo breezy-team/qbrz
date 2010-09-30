@@ -281,7 +281,12 @@ class LogList(RevisionTreeView):
             QtGui.QTreeView.keyPressEvent(self, e)
 
     def select_revid(self, revid):
-        index = self.log_model.index_from_revid(revid)
+        try:
+            rev = self.log_model.graph_provider.revid_rev[revid]
+        except KeyError:
+            return
+        self.log_model.ensure_rev_visible(rev)
+        index = self.log_model.index_from_rev(rev)
         if index:
             self.setCurrentIndex(index)
     

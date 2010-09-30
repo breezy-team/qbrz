@@ -352,6 +352,8 @@ class LogModel(QtCore.QAbstractTableModel):
             c_rev = self.computed.revisions[rev.index]
         except IndexError:
             return
+        if c_rev is None:
+            return
         return self.index_from_c_rev(c_rev, column)
     
     def index_from_c_rev(self, c_rev, column=0):
