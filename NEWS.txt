@@ -10,7 +10,13 @@
      config to disk once.
    * Lock the config dir when when saving the config file.
      (Gary van der Merwe)
- * qrun: fixed '--execute' mode. (Bug #590229, Simon Kersey) 
+ * qrun: fixed '--execute' mode. (Bug #590229, Simon Kersey)
+ * qlog:
+   * Refactor loggraphprovider so that the state and computed data is separated
+     from the cache.
+   * Write lots of tests for loggraphprovider.
+   * Remove LogFilterProxyModel which improves performance.
+   * --no-graph mode now shows nodes per revision, indented by merge depth.
 
 
 0.19.1 - In development
