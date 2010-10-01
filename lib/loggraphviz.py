@@ -516,9 +516,9 @@ class GraphVizLoader(object):
                 branch_merged_by = self.branch_lines[branch_id].merged_by
                 merged_by_branch_id = self.revisions[merged_by].branch_id
                 merged_by_branch_merges = \
-                    self.branch_lines[merged_by_branch_id]
+                    self.branch_lines[merged_by_branch_id].merges
                 
-                if not branch_id in merged_by_branch_merges.merges:
+                if not branch_id in merged_by_branch_merges:
                     merged_by_branch_merges.append(branch_id)
                 if not merged_by_branch_id in branch_merged_by:
                     branch_merged_by.append(merged_by_branch_id)
