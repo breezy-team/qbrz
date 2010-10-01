@@ -45,7 +45,7 @@ class BranchInfo(object):
         return False
 
 
-class RevisionCache(object):
+class RevisionData(object):
     """Holds information about a revision that can be cached."""
     
     # Instance of this object are typically named "rev".
@@ -406,7 +406,7 @@ class GraphVizLoader(object):
 
             # Get rid of the 'top:' revision
             merge_sorted_revisions.pop(0)
-            self.revisions = [RevisionCache(index, node)
+            self.revisions = [RevisionData(index, node)
                 for index, node in enumerate(merge_sorted_revisions)]
             if enabled:
                 gc.enable()
@@ -579,7 +579,7 @@ class GraphVizLoader(object):
         
         # Overview:
         # Work out which revision need to be displayed.
-        # Create ComputedGraphViz and ComputedRevision objects
+        # Create ComputedGraphViz and ComputedRevisionData objects
         # Assign columns for branches, and lines that go between branches.
         #   These are intermingled, because some of the lines need to come
         #   before it's branch, and others need to come after. Other lines
@@ -590,7 +590,7 @@ class GraphVizLoader(object):
         gc.disable()
         try:
             computed = ComputedGraphViz(self)
-            computed.filtered_revs = [ComputedRevision(rev) for rev in
+            computed.filtered_revs = [ComputedRevisionData(rev) for rev in
                                       state.get_filtered_revisions()]
             
             c_revisions = computed.revisions
@@ -1412,7 +1412,7 @@ class FileIdFilter (object):
         return self.filter_file_id[rev.index]
 
 
-class ComputedRevision(object):
+class ComputedRevisionData(object):
     # Instance of this object are typically named "c_rev".    
     __slots__ = ['rev', 'f_index', 'lines', 'col_index', 'branch_labels',
                  'twisty_state', 'twisty_expands_branch_ids']
