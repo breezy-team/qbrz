@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # QBzr - Qt frontend to Bazaar commands
-# Copyright (C) 2006-2010 Gary van der Merwe <garyvdm@gmail.com> 
+# Copyright (C) 2006-2010 Gary van der Merwe <garyvdm@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -25,12 +25,11 @@ from bzrlib.transport.local import LocalTransport
 from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.graph import (Graph, StackedParentsProvider, KnownGraph)
 
+
 class BranchInfo(object):
     """Holds a branch, it's working tree, if available, and a label."""
     
-    # Instance of this object are typically named "bi".
-    
-    def __init__ (self, label, tree, branch, index=None):
+    def __init__(self, label, tree, branch, index=None):
         self.label = label
         self.tree = tree
         self.branch = branch
@@ -50,9 +49,10 @@ class RevisionData(object):
     
     # Instance of this object are typically named "rev".
     
-    __slots__ = ["index", "_merge_sort_node", "branch", "_revno_str", 
+    __slots__ = ["index", "_merge_sort_node", "branch", "_revno_str",
                  "merges", "merged_by", 'branch_id', 'color']
-    def __init__ (self, index, _merge_sort_node):
+    
+    def __init__(self, index, _merge_sort_node):
         self.index = index
         """Index in GraphVizLoader.revisions"""
         self._merge_sort_node = _merge_sort_node
@@ -63,7 +63,7 @@ class RevisionData(object):
         self.merged_by = None
         """Revision index that merges this revision."""
         self.branch_id = self._merge_sort_node.revno[0:-1]
-        self.color = reduce(lambda x, y: x+y, self.branch_id, 0)        
+        self.color = reduce(lambda x, y: x + y, self.branch_id, 0)
     
     revid = property(lambda self: self._merge_sort_node.key)
     merge_depth = property(lambda self: self._merge_sort_node.merge_depth)
@@ -83,6 +83,7 @@ class RevisionData(object):
         return "%s <%s %s>" % (self.__class__.__name__, self.revno_str,
                               self.revid)
 
+
 class GhostRevisionError(errors.InternalBzrError):
 
     _fmt = "{%(revision_id)s} is a ghost."
@@ -90,6 +91,7 @@ class GhostRevisionError(errors.InternalBzrError):
     def __init__(self, revision_id):
         errors.BzrError.__init__(self)
         self.revision_id = revision_id
+
 
 class BranchLine(object):
     __slots__ = ["branch_id", "revs", "merges", "merged_by",
@@ -105,6 +107,7 @@ class BranchLine(object):
     def __repr__(self):
         return "%s <%s>" % (self.__class__.__name__, self.branch_id)
 
+
 def repo_is_local(repo):
     return isinstance(repo.bzrdir.transport, LocalTransport)
 
@@ -119,9 +122,10 @@ class GraphVizLoader(object):
     #   file_id(s).
     # * We have a search, and the revision does not match the search.
     #
-    # The main list of unfiltered revisions is self.revisions. A revisions index
-    # in revisions are normally called index. The main list of filtered revisions
-    # is filtered_revs. Revision indexes in this list are called f_index.
+    # The main list of unfiltered revisions is self.revisions. A revisions
+    # index in revisions are normally called index. The main list of filtered
+    # revisions is filtered_revs. Revision indexes in this list are called
+    # f_index.
     
     def __init__(self, branches, primary_bi, no_graph):
         self.branches = branches
@@ -192,7 +196,7 @@ class GraphVizLoader(object):
             self.unlock_branches()
     
     def get_graph(self):
-        if len(self.repos)==1:
+        if len(self.repos) == 1:
             return self.repos[0].get_graph()
         else:
             parents_providers = [repo._make_parents_provider() \
@@ -246,7 +250,8 @@ class GraphVizLoader(object):
     def load_tags(self):
         self.tags = {}
         for bi in self.branches:
-            branch_tags = bi.branch.tags.get_reverse_tag_dict()  # revid to tags map
+            # revid to tags map
+            branch_tags = bi.branch.tags.get_reverse_tag_dict()
             for revid, tags in branch_tags.iteritems():
                 if revid in self.tags:
                     self.tags[revid].update(set(tags))
@@ -254,21 +259,22 @@ class GraphVizLoader(object):
                     self.tags[revid] = set(tags)
 
     def append_head_info(self, revid, branch_info, tag):
-        if not revid==NULL_REVISION:
+        if not revid == NULL_REVISION:
             if not revid in self.revid_head_info:
-                self.revid_head_info[revid] = ([],[])
-            self.revid_head_info[revid][0].append ((branch_info, tag))
+                self.revid_head_info[revid] = ([], [])
+            self.revid_head_info[revid][0].append((branch_info, tag))
             
             # So that early calls to get_revid_branch work
             self.revid_branch_info[revid] = branch_info
 
     def load_branch_heads(self, bi):
         branch_heads = []
+        
         def append_head_info(revid, branch_info, label):
             self.append_head_info(revid, branch_info, label)
             branch_heads.append(revid)
         
-        if len(self.branches)>0:
+        if len(self.branches) > 0:
             label = bi.label
         else:
             label = None
@@ -285,7 +291,7 @@ class GraphVizLoader(object):
                 if revid != branch_last_revision:
                     # working tree is out of date
                     if label:
-                        wt_label =  "%s - Working Tree" % label
+                        wt_label = "%s - Working Tree" % label
                     else:
                         wt_label = "Working Tree"
                     append_head_info(revid, bi, wt_label)
@@ -359,12 +365,12 @@ class GraphVizLoader(object):
                 graph_parents[revid] = ()
             else:
                 graph_parents[revid] = parent_revids
-            if len(graph_parents) % 100 == 0 :
+            if len(graph_parents) % 100 == 0:
                 self.update_ui()
         
         graph_parents["top:"] = head_revids
 
-        if len(graph_parents)>0:
+        if len(graph_parents) > 0:
             enabled = gc.isenabled()
             if enabled:
                 gc.disable()
@@ -452,7 +458,7 @@ class GraphVizLoader(object):
         # Otherwise, those with a greater mainline parent revno should
         # appear to the left.
         
-        if len(x)==0:
+        if len(x) == 0:
             return (merge_depth)
         else:
             return (merge_depth, -x[0], x[1])
@@ -485,7 +491,8 @@ class GraphVizLoader(object):
                 branch_line = self.branch_lines[rev.branch_id]
             
             branch_line.revs.append(rev)
-            branch_line.merge_depth = max(rev.merge_depth, branch_line.merge_depth)
+            branch_line.merge_depth = max(rev.merge_depth,
+                                          branch_line.merge_depth)
             rev.branch = branch_line
         
         self.branch_ids = self.branch_lines.keys()
@@ -495,20 +502,25 @@ class GraphVizLoader(object):
     def compute_merge_info(self):
         
         def set_merged_by(rev, merged_by, merged_by_rev, do_branches=False):
-            if merged_by is not None:
-                if merged_by_rev is None:
-                    merged_by_rev = self.revisions[merged_by]
-                rev.merged_by = merged_by
-                merged_by_rev.merges.append(rev.index)
+            if merged_by is None:
+                return
+            
+            if merged_by_rev is None:
+                merged_by_rev = self.revisions[merged_by]
+            rev.merged_by = merged_by
+            merged_by_rev.merges.append(rev.index)
+            
+            if do_branches:
+                branch_id = rev.branch_id
+                branch_merged_by = self.branch_lines[branch_id].merged_by
+                merged_by_branch_id = self.revisions[merged_by].branch_id
+                merged_by_branch_merges = \
+                    self.branch_lines[merged_by_branch_id]
                 
-                if do_branches:
-                    branch_id = rev.branch_id
-                    merged_by_branch_id = self.revisions[merged_by].branch_id
-                    
-                    if not branch_id in self.branch_lines[merged_by_branch_id].merges:
-                        self.branch_lines[merged_by_branch_id].merges.append(branch_id)
-                    if not merged_by_branch_id in self.branch_lines[branch_id].merged_by:
-                        self.branch_lines[branch_id].merged_by.append(merged_by_branch_id)
+                if not branch_id in merged_by_branch_merges.merges:
+                    merged_by_branch_merges.append(branch_id)
+                if not merged_by_branch_id in branch_merged_by:
+                    branch_merged_by.append(merged_by_branch_id)
         
         for rev in self.revisions:
             
@@ -520,7 +532,7 @@ class GraphVizLoader(object):
                     set_merged_by(parents[0], rev.merged_by, None)
             
             for parent in parents[1:]:
-                if rev.merge_depth<=parent.merge_depth:
+                if rev.merge_depth <= parent.merge_depth:
                     set_merged_by(parent, rev.index, rev, do_branches=True)
         
     def compute_head_info(self):
@@ -528,8 +540,9 @@ class GraphVizLoader(object):
             map = {}
             for i in xrange(len(heads)):
                 prev_revids = [revid for revid, head in heads[:i]]
-                for ancestor_revid in self.graph.find_unique_ancestors(heads[i][0],
-                                                                prev_revids):
+                unique_ancestors = self.graph.find_unique_ancestors(
+                    heads[i][0], prev_revids)
+                for ancestor_revid in unique_ancestors:
                     map[ancestor_revid] = heads[i][1]
             return map
         
@@ -538,7 +551,7 @@ class GraphVizLoader(object):
                 [(revid, branch_info)
                  for revid, (head_info, ur) in self.revid_head_info.iteritems()
                  for (branch_info, tag) in head_info],
-                key = lambda x: not repo_is_local(x[1].branch.repository))
+                key=lambda x: not repo_is_local(x[1].branch.repository))
             self.revid_branch_info = get_revid_head(head_revid_branch_info)
         else:
             self.revid_branch_info = {}
@@ -563,7 +576,8 @@ class GraphVizLoader(object):
                     # if revid == c,then we want other_revids = [b]
                     
                     merged_by_revid = self.revisions[rev.merged_by].revid
-                    other_revids = [self.known_graph.get_parent_keys(merged_by_revid)[0]]
+                    other_revids = [self.known_graph
+                                    .get_parent_keys(merged_by_revid)[0]]
                 else:
                     other_revids = [other_revid for other_revid \
                         in self.revid_head_info.iterkeys() \
@@ -573,7 +587,6 @@ class GraphVizLoader(object):
                     in self.graph.find_unique_ancestors(revid, other_revids) \
                     if not revid == NULL_REVISION and revid in self.revid_rev])
                 ur.sort(key=lambda x: self.revid_rev[x].index)
-    
     
     def compute_viz(self, state):
         
@@ -636,7 +649,7 @@ class GraphVizLoader(object):
                 max_index = max(parent_col_index, child_col_index)
                 min_index = min(parent_col_index, child_col_index)
                 # First yield the columns between the child and parent.
-                for col_index in range(max_index, min_index -1, -1):
+                for col_index in range(max_index, min_index - 1, -1):
                     yield col_index
             elif child_col_index is not None:
                 max_index = child_col_index
@@ -678,7 +691,7 @@ class GraphVizLoader(object):
                 lines_by_column.append([])
             return col_index
         
-        def append_line (child, parent, direct, col_index=None):
+        def append_line(child, parent, direct, col_index=None):
             lines.append((child, parent, col_index, direct))
             
             if col_index is not None:
@@ -701,19 +714,22 @@ class GraphVizLoader(object):
                     if not parent.branch_id == c_rev.rev.branch_id:
                         has_seen_different_branch = True
                     # find grand parent.
-                    g_parent_ids = self.known_graph.get_parent_keys(parent.revid)
+                    g_parent_ids = (self.known_graph
+                                    .get_parent_keys(parent.revid))
                     
                     if len(g_parent_ids) == 0:
                         return None
                     else:
                         parent = self.revid_rev[g_parent_ids[0]]
                     
-                    if has_seen_different_branch and parent.branch_id == branch_id:
+                    if (has_seen_different_branch and
+                        parent.branch_id == branch_id):
                         # We have gone away and come back to our
                         # branch. Stop.
                         return None
                 if parent:
-                    return (c_rev, c_revisions[parent.index], False) # Not Direct
+                    # Not Direct
+                    return (c_rev, c_revisions[parent.index], False)
         
         def append_branch_parent_lines(branch_rev_visible_parents):
             groups = group_overlapping(branch_rev_visible_parents)
@@ -754,17 +770,19 @@ class GraphVizLoader(object):
             
             branch_rev_visible_parents_post = []
             branch_rev_visible_parents_pre = []
-            # Lists of ([(c_rev, parent_c_rev, is_direct)], start, end, group_key]
+            # Lists of ([(c_rev, parent_c_rev, is_direct)],
+            #            start, end, group_key]
             
             last_c_rev = branch_revs[-1]
-            last_rev_left_parents = self.known_graph.get_parent_keys(last_c_rev.rev.revid)
+            last_rev_left_parents = (self.known_graph
+                                     .get_parent_keys(last_c_rev.rev.revid))
             if last_rev_left_parents:
                 last_parent = find_visible_parent(
                     last_c_rev, self.revid_rev[last_rev_left_parents[0]], [])
             else:
                 last_parent = None
             
-            children_with_sprout_lines = {}
+            sprout_with_lines = {}
             
             merged_by_max_col_index = 0
             
@@ -797,21 +815,24 @@ class GraphVizLoader(object):
                         continue
                     parent_branch = self.branch_lines[parent.branch_id]
                     # Does this branch have any visible revisions
-                    pb_visible = parent_branch.branch_id in state.branch_line_state
+                    pb_visible = (parent_branch.branch_id in
+                                  state.branch_line_state)
                     for pb_rev in parent_branch.revs:
                         if pb_visible:
                             visible = c_revisions[pb_rev.index] is not None
                         else:
-                            visible = state.get_revision_visible_if_branch_visible(pb_rev)
+                            visible = state\
+                                .get_revision_visible_if_branch_visible(pb_rev)
                         if visible:
-                            c_rev.twisty_expands_branch_ids.append (parent_branch.branch_id)
+                            (c_rev.twisty_expands_branch_ids
+                             .append(parent_branch.branch_id))
                             if not pb_visible:
                                 twisty_hidden_parents.append(parent.index)
                             break
                 
                 # Work out if the twisty needs to show a + or -. If all
                 # twisty_branch_ids are visible, show - else +.
-                if len (c_rev.twisty_expands_branch_ids)>0:
+                if len(c_rev.twisty_expands_branch_ids) > 0:
                     c_rev.twisty_state = True
                     for twisty_branch_id in c_rev.twisty_expands_branch_ids:
                         if not twisty_branch_id in state.branch_line_state:
@@ -830,7 +851,8 @@ class GraphVizLoader(object):
                         c_rev, parent_c_rev, direct = parent_info
                         if (last_parent and
                             parent_c_rev.f_index <= last_parent[1].f_index and
-                            self.branch_id_sort_key(parent_c_rev.rev.branch_id) < branch_id_sort_key):
+                            self.branch_id_sort_key(parent_c_rev.rev.branch_id)
+                            < branch_id_sort_key):
                             # This line goes before the branch line
                             dest = branch_rev_visible_parents_pre
                         else:
@@ -852,7 +874,7 @@ class GraphVizLoader(object):
                 if c_rev.rev.merged_by is not None:
                     merged_by = self.revisions[c_rev.rev.merged_by]
                     if c_revisions[merged_by.index] is None and\
-                       branch_revs[0].f_index  == c_rev.f_index:
+                       branch_revs[0].f_index == c_rev.f_index:
                         # The revision that merges this revision is not
                         # visible, and it is the first visible revision in
                         # the branch line. This is a sprout.
@@ -871,8 +893,8 @@ class GraphVizLoader(object):
                         
                         if merged_by is not None:
                             # Ensure only one line to a descendant.
-                            if merged_by.index not in children_with_sprout_lines:
-                                children_with_sprout_lines[merged_by.index] = True
+                            if (merged_by.index not in sprout_with_lines):
+                                sprout_with_lines[merged_by.index] = True
                                 if c_revisions[merged_by.index] is not None:
                                     append_line(
                                         c_revisions[merged_by.index],
@@ -946,14 +968,15 @@ class GraphVizLoader(object):
                      parent_color,
                      direct))
                 # lines down the line's column
-                for line_part_f_index in range(child.f_index+1, parent.f_index-1):
+                for line_part_f_index in range(child.f_index + 1,
+                                               parent.f_index - 1):
                     computed.filtered_revs[line_part_f_index].lines.append(
                         (line_col_index,
                          line_col_index,
                          parent_color,
                          direct))
                 # line from the line's column to the parent's column
-                computed.filtered_revs[parent.f_index-1].lines.append(
+                computed.filtered_revs[parent.f_index - 1].lines.append(
                     (line_col_index,
                      parent.col_index,
                      parent_color,
@@ -970,7 +993,7 @@ class GraphVizLoader(object):
         if revid in self.ghosts:
             raise GhostRevisionError(revid)
         
-        if len(self.branches)==1 or revid not in self.revid_branch_info:
+        if len(self.branches) == 1 or revid not in self.revid_branch_info:
             return self.branches[0]
         return self.revid_branch_info[revid]
     
@@ -1015,6 +1038,7 @@ class GraphVizLoader(object):
                     repo.unlock()
         return return_revisions
 
+
 def group_overlapping(groups):
 
     has_change = True
@@ -1050,6 +1074,7 @@ range_overlaps = (lambda start_a, end_a, start_b, end_b:
                     start_b < end_a < end_b or
                     (start_a <= start_b and end_a >= end_b))
 
+
 class PendingMergesGraphVizLoader(GraphVizLoader):
     
     def load_graph_parents(self):
@@ -1059,11 +1084,12 @@ class PendingMergesGraphVizLoader(GraphVizLoader):
         
         bi = self.branches[0]
         if bi.tree is None:
-            AssertionError("load_graph_pending_merges must have a working tree.")
+            AssertionError("PendingMergesGraphVizLoader must have a working "
+                           "tree.")
         
         self.graph = bi.branch.repository.get_graph()
         tree_heads = bi.tree.get_parent_ids()
-        other_revisions = [tree_heads[0],]
+        other_revisions = [tree_heads[0], ]
         self.update_ui()
         
         self.append_head_info('root:', bi, None)
@@ -1071,7 +1097,7 @@ class PendingMergesGraphVizLoader(GraphVizLoader):
         for head in tree_heads[1:]:
             self.append_head_info(head, bi, None)
             pending_merges.extend(
-                self.graph.find_unique_ancestors(head,other_revisions))
+                self.graph.find_unique_ancestors(head, other_revisions))
             other_revisions.append(head)
             self.update_ui()
         
@@ -1088,7 +1114,7 @@ class PendingMergesGraphVizLoader(GraphVizLoader):
                     new_parents.append("root:")
             graph_parents[revid] = tuple(new_parents)
         
-        return ["root:",] + tree_heads[1:], graph_parents.items()
+        return ["root:", ] + tree_heads[1:], graph_parents.items()
 
 
 class WithWorkingTreeGraphVizLoader(GraphVizLoader):
@@ -1097,29 +1123,28 @@ class WithWorkingTreeGraphVizLoader(GraphVizLoader):
         # returns load_heads, sort_heads and also calls append_head_info.
         #
         # == For branch with tree ==
-        # Graph                     | load_heads | sort_heads | append_head_info
-        # wt                        | No         | Yes        | Yes   
-        # | \                       |            |            |
-        # | 1.1.2 (pending merge)   | Yes        | No         | Yes
-        # 2 |     (basis rev)       | Yes        | No         | Yes
+        # Graph                   | load_heads | sort_heads | append_head_info
+        # wt                      | No         | Yes        | Yes   
+        # | \                     |            |            |
+        # | 1.1.2 pending merge   | Yes        | No         | Yes
+        # 2 |     basis rev       | Yes        | No         | Yes
         #
         # == For branch with tree not up to date ==
-        # Graph                     | load_heads | sort_heads | append_head_info
-        #   wt                      | No         | Yes        | Yes   
-        #   | \                     |            |            |
-        #   | 1.1.2 (pending merge) | Yes        | No         | Yes
-        # 3/  |     (branch tip)    | Yes        | Yes        | Yes      
-        # 2   |     (basis rev)     | Yes        | No         | No
+        # Graph                   | load_heads | sort_heads | append_head_info
+        #   wt                    | No         | Yes        | Yes   
+        #   | \                   |            |            |
+        #   | 1.1.2 pending merge | Yes        | No         | Yes
+        # 3/  |     branch tip    | Yes        | Yes        | Yes      
+        # 2   |     basis rev     | Yes        | No         | No
         #
         # == For branch without tree ==
-        # branch tip                | Yes        | head       | yes
+        # branch tip              | Yes        | head       | yes
         
         load_heads = []
         sort_heads = []
         extra_parents = []
         
-        
-        if len(self.branches)>0:
+        if len(self.branches) > 0:
             label = bi.label
         else:
             label = None
@@ -1132,7 +1157,7 @@ class WithWorkingTreeGraphVizLoader(GraphVizLoader):
         if bi.tree:
             wt_revid = CURRENT_REVISION + bi.tree.basedir
             if label:
-                wt_label =  "%s - Working Tree" % label
+                wt_label = "%s - Working Tree" % label
             else:
                 wt_label = "Working Tree"
             self.append_head_info(wt_revid, bi, wt_label)
@@ -1200,7 +1225,8 @@ class GraphVizFilterState(object):
     def get_revision_visible_if_branch_visible(self, rev):
         rev_filter_cache = self.filter_cache[rev.index]
         if rev_filter_cache is None:
-            rev_filter_cache = self._get_revision_visible_if_branch_visible(rev)
+            rev_filter_cache = \
+                self._get_revision_visible_if_branch_visible(rev)
             self.filter_cache[rev.index] = rev_filter_cache
         return rev_filter_cache
     
@@ -1251,7 +1277,7 @@ class GraphVizFilterState(object):
             # filter_changed_callback
             for rev, prev_visible in prev_cached_revs:
                 visible = self.get_revision_visible_if_branch_visible(rev)
-                if visible <> prev_visible:
+                if visible != prev_visible:
                     if self.filter_changed_callback:
                         self.filter_changed_callback()
                     break
@@ -1276,7 +1302,8 @@ class GraphVizFilterState(object):
             c_rev.twisty_expands_branch_ids,
             [c_rev.rev.branch_id] * len(c_rev.twisty_expands_branch_ids))
         
-        seen_branch_ids = set(branch_id for branch_id, expanded_by in branch_ids)
+        seen_branch_ids = set(branch_id
+                              for branch_id, expanded_by in branch_ids)
         has_change = False
         while branch_ids:
             branch_id, expanded_by = branch_ids.pop()
@@ -1284,7 +1311,8 @@ class GraphVizFilterState(object):
                 has_change = True
             if not visible:
                 del self.branch_line_state[branch_id]
-                for parent_branch_id in self.graph_viz.branch_lines[branch_id].merges:
+                parents = self.graph_viz.branch_lines[branch_id].merges
+                for parent_branch_id in parents:
                     parent_visible = parent_branch_id in self.branch_line_state
                     if (not parent_visible or 
                         parent_branch_id in seen_branch_ids):
@@ -1342,7 +1370,8 @@ class FileIdFilter (object):
                 tree.lock_read()
                 try:
                     for file_id in self.file_ids:
-                        if tree.kind(file_id) in ('directory', 'tree-reference'):
+                        if tree.kind(file_id) in ('directory',
+                                                  'tree-reference'):
                             self.has_dir = True
                             break
                     if self.has_dir:
@@ -1388,14 +1417,14 @@ class FileIdFilter (object):
                 text_keys = []
                 # We have to load the inventory for each revisions, to find
                 # the children of any directories.
-                for inv, revid in izip(
-                            repo.iter_inventories(revids),
-                            revids):
-                    for path, entry in inv.iter_entries_by_dir(
-                                            specific_file_ids = self.file_ids):
+                for inv, revid in izip(repo.iter_inventories(revids), revids):
+                    entries = inv.iter_entries_by_dir(
+                                         specific_file_ids=self.file_ids)
+                    for path, entry in entries:
                         text_keys.append((entry.file_id, revid))
                         if entry.kind == "directory":
-                            for rc_path, rc_entry in inv.iter_entries(from_dir = entry):
+                            sub_entries = inv.iter_entries(from_dir=entry)
+                            for rc_path, rc_entry in sub_entries:
                                 text_keys.append((rc_entry.file_id, revid))
                     
                     self.graph_viz.update_ui()
@@ -1425,6 +1454,7 @@ class ComputedRevisionData(object):
         self.twisty_state = None
         self.twisty_expands_branch_ids = []
         self.branch_labels = []
+
 
 class ComputedGraphViz(object):
     def __init__(self, graph_viz):
