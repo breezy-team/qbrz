@@ -289,27 +289,27 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
         return props
     
     def get_parents(self, revid):
-        # Normaly, we don't know how to do this.
+        # Normally, we don't know how to do this.
         return []
     
     def get_children(self, revid):
-        # Normaly, we don't know how to do this.
+        # Normally, we don't know how to do this.
         return []
     
     def get_revno(self, revid):
-        # Normaly, we don't know how to do this.
+        # Normally, we don't know how to do this.
         return ""
 
     def get_search_replace(self, revid):
-        # Normaly, we don't know how to do this.
+        # Normally, we don't know how to do this.
         return None
     
     def get_merge_depth(self, revid):
-        # Normaly, we don't know how to do this.
+        # Normally, we don't know how to do this.
         return 0
     
     def get_color(self, revid):
-        # Normaly, we don't know how to do this.
+        # Normally, we don't know how to do this.
         return None
 
     def get_tags(self, revid):

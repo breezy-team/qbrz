@@ -26,9 +26,9 @@ from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.graph import (Graph, StackedParentsProvider, KnownGraph)
 
 class BranchInfo(object):
-    """Holds a branch and related information"""
+    """Holds a branch, it's working tree, if available, and a label."""
     
-    # Instance of this object are typicaly named "bi".
+    # Instance of this object are typically named "bi".
     
     def __init__ (self, label, tree, branch, index=None):
         self.label = label
@@ -48,7 +48,7 @@ class BranchInfo(object):
 class RevisionCache(object):
     """Holds information about a revision that can be cached."""
     
-    # Instance of this object are typicaly named "rev".
+    # Instance of this object are typically named "rev".
     
     __slots__ = ["index", "_merge_sort_node", "branch", "_revno_str", 
                  "merges", "merged_by", 'branch_id', 'color']
@@ -115,12 +115,12 @@ class GraphVizLoader(object):
     # Most list/dicts related to revisions are unfiltered. When we do a graph
     # layout, we filter these revisions. A revision may be filter out because:
     # * It's branch is hidden (or collapsed).
-    # * We have a sepcified file_id(s), and the revision does not touch the
+    # * We have a specified file_id(s), and the revision does not touch the
     #   file_id(s).
     # * We have a search, and the revision does not match the search.
     #
     # The main list of unfiltered revisions is self.revisions. A revisions index
-    # in revisions are normaly called index. The main list of filtered revisions
+    # in revisions are normally called index. The main list of filtered revisions
     # is filtered_revs. Revision indexes in this list are called f_index.
     
     def __init__(self, branches, primary_bi, no_graph):
@@ -131,7 +131,7 @@ class GraphVizLoader(object):
         
         self.repos = []
         self.local_repo_copies = []
-        """A list of repositories that revisions will be aptempted to be loaded        
+        """A list of repositories that revisions will be attempted to be loaded        
         from first."""
         
         self.revid_head_info = {}
@@ -201,11 +201,11 @@ class GraphVizLoader(object):
     
     def load_current_dir_repo(self):
         # There are no local repositories. Try open the repository
-        # of the current directory, and try load revsions data from
+        # of the current directory, and try load revisions data from
         # this before trying from remote repositories. This makes
         # the common use case of viewing a remote branch that is
         # related to the current branch much faster, because most
-        # of the revision can be loaded from the local repoistory.
+        # of the revision can be loaded from the local repository.
         try:
             bzrdir, relpath = BzrDir.open_containing(u".")
             repo = bzrdir.find_repository()
@@ -449,7 +449,7 @@ class GraphVizLoader(object):
         #       |/       | /
         # 1     A        A
         #
-        # Otherwise, thoes with a greater mainline parent revno should
+        # Otherwise, those with a greater mainline parent revno should
         # appear to the left.
         
         if len(x)==0:
@@ -462,9 +462,9 @@ class GraphVizLoader(object):
         
         """A list of branch lines (aka merge lines).
         
-        For a revisions, the revsion number less the least significant
+        For a revisions, the revision number less the least significant
         digit is the branch_id, and used as the key for the dict. Hence
-        revision with the same revsion number less the least significant
+        revision with the same revision number less the least significant
         digit are considered to be in the same branch line. e.g.: for
         revisions 290.12.1 and 290.12.2, the branch_id would be 290.12,
         and these two revisions will be in the same branch line.
@@ -693,7 +693,7 @@ class GraphVizLoader(object):
                     # no need to draw a line if there is a twisty,
                     # except if this is the last in the branch.
                     return None
-                # The parent was not visible. Search for a ansestor
+                # The parent was not visible. Search for a ancestor
                 # that is. Stop searching if we make a hop, i.e. we
                 # go away from our branch, and we come back to it.
                 has_seen_different_branch = False
@@ -716,7 +716,7 @@ class GraphVizLoader(object):
                     return (c_rev, c_revisions[parent.index], False) # Not Direct
         
         def append_branch_parent_lines(branch_rev_visible_parents):
-            groups = group_overlaping(branch_rev_visible_parents)
+            groups = group_overlapping(branch_rev_visible_parents)
             for parents, start, end, group_key in groups:
                 # Since all parents go from the same branch line to the
                 # same branch line, we can use the col indexes of the
@@ -772,7 +772,7 @@ class GraphVizLoader(object):
             # * Populate twisty_branch_ids and twisty_state
             # * Find visible parents.
             # * Append lines that go before the branch line.
-            # * Append lines to chilren for sprouts.
+            # * Append lines to children for sprouts.
             for c_rev in branch_revs:
                 last_in_branch = c_rev == branch_revs[-1]
                 rev = c_rev.rev
@@ -787,7 +787,7 @@ class GraphVizLoader(object):
                            self.known_graph.get_parent_keys(rev.revid)]
                 
                 twisty_hidden_parents = []
-                # Find and add nessery twisties
+                # Find and add necessary twisties
                 for parent in parents:
                     if parent.branch_id == branch_id:
                         continue
@@ -858,9 +858,9 @@ class GraphVizLoader(object):
                         # the branch line. This is a sprout.
                         #
                         # XXX What if multiple merges with --force,
-                        # aka ocutpus merge?
+                        # aka octopus merge?
                         #
-                        # Search until we find a decendent that is visible.
+                        # Search until we find a descendant that is visible.
                         
                         while merged_by is not None and \
                               c_revisions[merged_by.index] is None:
@@ -870,7 +870,7 @@ class GraphVizLoader(object):
                                 merged_by = None
                         
                         if merged_by is not None:
-                            # Ensure only one line to a decendent.
+                            # Ensure only one line to a descendant.
                             if merged_by.index not in children_with_sprout_lines:
                                 children_with_sprout_lines[merged_by.index] = True
                                 if c_revisions[merged_by.index] is not None:
@@ -981,7 +981,7 @@ class GraphVizLoader(object):
         return self.get_revid_branch_info(revid).branch.repository
     
     def get_repo_revids(self, revids):
-        """Returns list of typle of (repo, revids)"""
+        """Returns list of tuple of (repo, revids)"""
         repo_revids = {}
         for repo in self.repos:
             repo_revids[repo.base] = []
@@ -1015,7 +1015,7 @@ class GraphVizLoader(object):
                     repo.unlock()
         return return_revisions
 
-def group_overlaping(groups):
+def group_overlapping(groups):
 
     has_change = True
     while has_change:
@@ -1291,7 +1291,7 @@ class GraphVizFilterState(object):
                         continue
                     
                     if self.branch_line_state[parent_branch_id] == branch_id:
-                        # This branch expaned the parent branch, so we must
+                        # This branch expanded the parent branch, so we must
                         # collapse it.
                         branch_ids.append((parent_branch_id, branch_id))
                         seen_branch_ids.add(parent_branch_id)
@@ -1387,7 +1387,7 @@ class FileIdFilter (object):
             else:
                 text_keys = []
                 # We have to load the inventory for each revisions, to find
-                # the children of any directoires.
+                # the children of any directories.
                 for inv, revid in izip(
                             repo.iter_inventories(revids),
                             revids):
@@ -1413,7 +1413,7 @@ class FileIdFilter (object):
 
 
 class ComputedRevision(object):
-    # Instance of this object are typicaly named "c_rev".    
+    # Instance of this object are typically named "c_rev".    
     __slots__ = ['rev', 'f_index', 'lines', 'col_index', 'branch_labels',
                  'twisty_state', 'twisty_expands_branch_ids']
     

@@ -532,11 +532,11 @@ class LogList(RevisionTreeView):
         (top_revid, old_revid), count = \
               self.get_selection_top_and_parent_revids_and_count()
          
-        def filter_rev_ansestor(action, is_ansestor=True):
+        def filter_rev_ancestor(action, is_ancestor=True):
             branch_menu = action.menu()
             if branch_menu:
-                vis_branch_count = branch_menu.filter_rev_ansestor(
-                                                        top_revid, is_ansestor)
+                vis_branch_count = branch_menu.filter_rev_ancestor(
+                                                        top_revid, is_ancestor)
                 if vis_branch_count == 0:
                     action.setVisible(False)
         
@@ -546,15 +546,15 @@ class LogList(RevisionTreeView):
         if self.action_commands:
             self.context_menu_tag.setVisible(count == 1)
             if count == 1:
-                filter_rev_ansestor(self.context_menu_tag)
+                filter_rev_ancestor(self.context_menu_tag)
             self.context_menu_revert.setVisible(count == 1)
             self.context_menu_update.setVisible(count == 1)
             
             if branch_count>1:
-                filter_rev_ansestor(self.context_menu_cherry_pick,
-                                    is_ansestor=False)
+                filter_rev_ancestor(self.context_menu_cherry_pick,
+                                    is_ancestor=False)
             
-            filter_rev_ansestor(self.context_menu_reverse_cherry_pick)
+            filter_rev_ancestor(self.context_menu_reverse_cherry_pick)
             
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 
@@ -574,16 +574,16 @@ class BranchMenu(QtGui.QMenu):
         self.connect(self, QtCore.SIGNAL("triggered(QAction *)"),
                      self.triggered)
     
-    def filter_rev_ansestor(self, rev, is_ansestor=True):
+    def filter_rev_ancestor(self, rev, is_ancestor=True):
         visible_action_count = 0
         
         for action in self.actions():
             branch_info = action.data().toPyObject()
             branch_tip = branch_info.branch.last_revision()
-            is_ansestor_ = (
+            is_ancestor_ = (
                 frozenset((branch_tip,)) ==
                 self.graphprovider.known_graph.heads((branch_tip, rev)))
-            visible = is_ansestor_== is_ansestor
+            visible = is_ancestor_== is_ancestor
             action.setVisible(visible)
             if visible:
                 visible_action_count += 1

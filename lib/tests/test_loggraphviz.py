@@ -679,7 +679,7 @@ class TestLogGraphProviderState(TestCase):
         
         # colapse 'd'
         state.collapse_expand_rev(gv.compute_viz(state).filtered_revs[2])
-        # cause c expaned branchline eb, and d expanded c, d colapses 
+        # cause c expanded branchline eb, and d expanded c, d colapses 
         # just mainline showing
         self.assertFilteredRevisions('fda', state)
 
@@ -965,8 +965,8 @@ def format_graph_lines(list, use_unicode=True):
     return s.getvalue()
 
 
-class TestGroupOverlaping(TestCase):
-    def test_group_overlaping(self):
+class TestGroupOverlapping(TestCase):
+    def test_group_overlapping(self):
         lines = [
             (['a1'], 1, 3, 'a'),
             (['a2'], 2, 5, 'a'),
@@ -977,7 +977,7 @@ class TestGroupOverlaping(TestCase):
             (['n1'], 1, 8, None),
             (['n2'], 1, 8, None),
             ]
-        groups = loggraphviz.group_overlaping(lines)
+        groups = loggraphviz.group_overlapping(lines)
         self.assertEqual(
             [(['a1', 'a2', 'a3'], 1, 6, 'a'),
              (['a4'], 6, 8, 'a'),
