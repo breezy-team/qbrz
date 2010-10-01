@@ -21,6 +21,7 @@ import gc
 from itertools import izip
 
 from bzrlib import errors
+from bzrlib.bzrdir import BzrDir
 from bzrlib.transport.local import LocalTransport
 from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.graph import (Graph, StackedParentsProvider, KnownGraph)
@@ -613,7 +614,6 @@ class GraphVizLoader(object):
             
             for (revid, (head_info,
                          unique_revids)) in self.revid_head_info.iteritems():
-                top_visible_revid = None
                 
                 for unique_revid in unique_revids:
                     rev = self.revid_rev[unique_revid]
@@ -792,7 +792,6 @@ class GraphVizLoader(object):
             # * Append lines that go before the branch line.
             # * Append lines to children for sprouts.
             for c_rev in branch_revs:
-                last_in_branch = c_rev == branch_revs[-1]
                 rev = c_rev.rev
                 
                 if rev.merged_by is not None:
@@ -911,8 +910,6 @@ class GraphVizLoader(object):
                 start_col_index = 0
             else:
                 start_col_index = 1
-            
-            parent_f_index = None
             
             if last_parent and last_parent[0].col_index is not None:
                 parent_col_index = last_parent[1].col_index
