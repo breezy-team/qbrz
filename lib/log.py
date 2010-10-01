@@ -47,7 +47,7 @@ from bzrlib.urlutils import determine_relative_path, join, split
 
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.plugins.qbzr.lib import logmodel
-from bzrlib.plugins.qbzr.lib.loggraphprovider import BranchInfo
+from bzrlib.plugins.qbzr.lib.loggraphviz import BranchInfo
 
 from bzrlib.plugins.qbzr.lib.diff import (
     has_ext_diff,
@@ -241,7 +241,7 @@ class LogWindow(QBzrWindow):
             
             branches, primary_bi, file_ids = self.get_branches_and_file_ids()
             self.log_list.load(branches, primary_bi, file_ids,
-                               self.no_graph, logmodel.LogGraphProvider)
+                               self.no_graph, logmodel.GraphVizLoader)
             self.connect(self.log_list.selectionModel(),
                          QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
                          self.update_selection)
@@ -438,7 +438,7 @@ class LogWindow(QBzrWindow):
     @ui_current_widget
     def update_search(self):
         # TODO in_paths = self.search_in_paths.isChecked()
-        gp = self.log_list.log_model.graph_provider
+        gv = self.log_list.log_model.graph_viz
         role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
         search_text = unicode(self.search_edit.text())
         if search_text == u"":
@@ -453,8 +453,8 @@ class LogWindow(QBzrWindow):
             except ValueError:
                 revno = ()
                 # Not sure what to do if there is an error. Nothing for now
-            if revno in gp.revno_rev:
-                rev = gp.revno_rev[revno]
+            if revno in gv.revno_rev:
+                rev = gv.revno_rev[revno]
                 index = self.log_list.index_from_rev(rev)
                 self.log_list.setCurrentIndex(index)
         else:
@@ -478,7 +478,7 @@ class LogWindow(QBzrWindow):
     
     @ui_current_widget
     def update_search_completer(self, text):
-        gp = self.log_list.log_model.graph_provider
+        gv = self.log_list.log_model.graph_viz
         # We only load the suggestions a letter at a time when needed.
         term = unicode(text).split(" ")[-1]
         if term:
@@ -490,7 +490,7 @@ class LogWindow(QBzrWindow):
             self.suggestion_last_first_letter = first_letter
             if first_letter not in self.suggestion_letters_loaded:
                 suggestions = set()
-                indexes = [bi.index for bi in gp.branches
+                indexes = [bi.index for bi in gv.branches
                            if bi.index is not None]
                 for index in indexes:
                     for s in index.suggest(((first_letter,),)): 
@@ -594,14 +594,14 @@ class FileListContainer(QtGui.QWidget):
     def load_delta(self):
         revids, count = \
             self.log_list.get_selection_top_and_parent_revids_and_count()
-        gp = self.log_list.log_model.graph_provider
+        gv = self.log_list.log_model.graph_viz
         
         if not revids:
             return
         
         if revids not in self.delta_cache:
             self.throbber.show()
-            repos = [gp.get_revid_branch(revid).repository for revid in revids]
+            repos = [gv.get_revid_branch(revid).repository for revid in revids]
             if (repos[0].__class__.__name__ == 'SvnRepository' or
                 repos[1].__class__.__name__ == 'SvnRepository'):
                 # Loading trees from a remote svn repo is unusably slow.
@@ -651,7 +651,7 @@ class FileListContainer(QtGui.QWidget):
         
         if delta:
             items = []
-            #specific_file_ids = gp.file_ids
+            #specific_file_ids = gv.file_ids
             specific_file_ids = []
             
             for path, id, kind in delta.added:
@@ -705,12 +705,12 @@ class FileListContainer(QtGui.QWidget):
         self.file_list_context_menu_cat.setEnabled(is_single_file)
         
                    
-        gp = self.log_list.log_model.graph_provider
+        gv = self.log_list.log_model.graph_viz
         # It would be nice if there were more than one branch, that we
         # show a menu so the user can chose which branch actions should take
         # place in.
-        one_branch_with_tree = (len(gp.branches) == 1 and
-                                gp.branches[0].tree is not None)
+        one_branch_with_tree = (len(gv.branches) == 1 and
+                                gv.branches[0].tree is not None)
 
         (top_revid, old_revid), count = \
             self.log_list.get_selection_top_and_parent_revids_and_count()
@@ -759,7 +759,7 @@ class FileListContainer(QtGui.QWidget):
         (top_revid, old_revid), count = \
             self.log_list.get_selection_top_and_parent_revids_and_count()
         
-        branch = self.log_list.log_model.graph_provider.get_revid_branch(top_revid)
+        branch = self.log_list.log_model.graph_viz.get_revid_branch(top_revid)
         tree = branch.repository.revision_tree(top_revid)
         encoding = get_set_encoding(None, branch)
         window = QBzrCatWindow(filename = paths[0], tree = tree, parent=self,
@@ -779,10 +779,10 @@ class FileListContainer(QtGui.QWidget):
 
           (top_revid, old_revid), count = \
               self.log_list.get_selection_top_and_parent_revids_and_count()
-          gp = self.log_list.log_model.graph_provider
-          assert(len(gp.branches)==1)
-          branch_info = gp.branches[0]
-          rev_tree = gp.get_revid_repo(top_revid).revision_tree(top_revid)
+          gv = self.log_list.log_model.graph_viz
+          assert(len(gv.branches)==1)
+          branch_info = gv.branches[0]
+          rev_tree = gv.get_revid_repo(top_revid).revision_tree(top_revid)
           branch_info.tree.revert(paths, old_tree=rev_tree,
                                   report_changes=True)
 
@@ -793,7 +793,7 @@ class FileListContainer(QtGui.QWidget):
         (top_revid, old_revid), count = \
             self.log_list.get_selection_top_and_parent_revids_and_count()
         
-        branch = self.log_list.log_model.graph_provider.get_revid_branch(top_revid)
+        branch = self.log_list.log_model.graph_viz.get_revid_branch(top_revid)
         tree = branch.repository.revision_tree(top_revid)
         window = AnnotateWindow(branch, tree, paths[0], file_ids[0])
         window.show()

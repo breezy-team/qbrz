@@ -25,7 +25,7 @@ import fnmatch
 from bzrlib.revision import CURRENT_REVISION, Revision
 
 from bzrlib.plugins.qbzr.lib.bugs import get_bug_id
-from bzrlib.plugins.qbzr.lib import loggraphprovider
+from bzrlib.plugins.qbzr.lib import loggraphviz
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
                                                          cached_revisions)
 from bzrlib.plugins.qbzr.lib.revtreeview import RevIdRole as im_RevIdRole
@@ -61,14 +61,14 @@ class WorkingTreeRevision(Revision):
         self.timestamp = None
         self.tree = tree
 
-class LogGraphProvider(loggraphprovider.LogGraphProvider):
+class GraphVizLoader(loggraphviz.GraphVizLoader):
     
     def __init__(self, branches, primary_bi, no_graph,
                  processEvents,  throbber):
-        loggraphprovider.LogGraphProvider.__init__(
-            self, branches, primary_bi, no_graph)
         self.processEvents = processEvents
         self.throbber = throbber
+        loggraphviz.GraphVizLoader.__init__(
+            self, branches, primary_bi, no_graph)
     
     def update_ui(self):
         self.processEvents()
@@ -86,15 +86,17 @@ class LogGraphProvider(loggraphprovider.LogGraphProvider):
         return load_revisions(revids, self.get_repo_revids)
 
 
-class PendingMergesGraphProvider(loggraphprovider.PendingMergesGraphProvider,
-                                 LogGraphProvider):
+class PendingMergesGraphVizLoader(
+        loggraphviz.PendingMergesGraphVizLoader,
+        GraphVizLoader):
     pass
 
-class WithWorkingTreeGraphProvider(loggraphprovider.WithWorkingTreeGraphProvider,
-                                   LogGraphProvider):
+class WithWorkingTreeGraphVizLoader(
+        loggraphviz.WithWorkingTreeGraphVizLoader,
+        GraphVizLoader):
     
     def load(self):
-        super(LogGraphProvider, self).load()
+        super(GraphVizLoader, self).load()
         
         for bi in self.branches:
             if not bi.tree is None:
@@ -115,8 +117,8 @@ class FilterScheduler(object):
         else:
             self.pending_revs.extend(revs)
         # Only notify that there are changes every so often.
-        # GraphProviderFilterState.filter_changed invaladates it's cache, and
-        # causes compute_graph_lines to run, and it runs slowly because it has
+        # GraphVizFilterState.filter_changed invaladates it's cache, and
+        # causes compute_viz to run, and it runs slowly because it has
         # to update the filter cache. How often we update is bases on a ratio of
         # 10:1. If we spend 1 sec calling invaladate_filter_cache_revs, don't
         # call it again until we have spent 10 sec else where.
@@ -140,11 +142,11 @@ class LogModel(QtCore.QAbstractTableModel):
         self.processEvents = processEvents
         self.throbber = throbber
         
-        self.graph_provider = LogGraphProvider((), None, False,
+        self.graph_viz = GraphVizLoader((), None, False,
                                                processEvents, throbber)
-        self.state = loggraphprovider.GraphProviderFilterState(
-            self.graph_provider, self.compute_lines)
-        self.computed = loggraphprovider.ComputedGraph(self.graph_provider)
+        self.state = loggraphviz.GraphVizFilterState(
+            self.graph_viz, self.compute_lines)
+        self.computed = loggraphviz.ComputedGraphViz(self.graph_viz)
 
         self.clicked_f_index = None
         self.last_rev_is_placeholder = False
@@ -155,38 +157,38 @@ class LogModel(QtCore.QAbstractTableModel):
         self.throbber.show()
         self.processEvents()        
         try:
-            graph_provider = graph_provider_type(
+            graph_viz = graph_provider_type(
                 branches, primary_bi, no_graph, 
                 processEvents=self.processEvents, throbber=self.throbber)
-            graph_provider.load()
-            graph_provider.on_filter_changed = self.on_filter_changed
+            graph_viz.load()
+            graph_viz.on_filter_changed = self.on_filter_changed
             
-            state = loggraphprovider.GraphProviderFilterState(
-                graph_provider, self.compute_lines)
+            state = loggraphviz.GraphVizFilterState(
+                graph_viz, self.compute_lines)
             # Copy the expanded branches from the old state to the new.
             state.branch_line_state.update(self.state.branch_line_state)
             
-            #for branch_id in graph_provider.branch_lines.keys():
+            #for branch_id in graph_viz.branch_lines.keys():
             #    state.branch_line_state[branch_id] = None
             
             scheduler = FilterScheduler(state.filter_changed)
             if file_ids:
-                file_id_filter = loggraphprovider.FileIdFilter(
-                    graph_provider, scheduler.filter_changed, file_ids)
+                file_id_filter = loggraphviz.FileIdFilter(
+                    graph_viz, scheduler.filter_changed, file_ids)
                 state.filters.append(file_id_filter)
             else:
                 file_id_filter = None
-            prop_search_filter = PropertySearchFilter(graph_provider,
+            prop_search_filter = PropertySearchFilter(graph_viz,
                                                       scheduler.filter_changed)
             state.filters.append(prop_search_filter)
             
             self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
-            self.graph_provider = graph_provider
+            self.graph_viz = graph_viz
             self.state = state
             self.file_ids = file_ids
             self.file_id_filter = file_id_filter
             self.prop_search_filter = prop_search_filter
-            self.computed = loggraphprovider.ComputedGraph(graph_provider)
+            self.computed = loggraphviz.ComputedGraphViz(graph_viz)
             self.emit(QtCore.SIGNAL("layoutChanged()"))
             
             self.compute_lines()
@@ -197,7 +199,7 @@ class LogModel(QtCore.QAbstractTableModel):
             self.throbber.hide()
     
     def compute_lines(self):
-        computed = self.graph_provider.compute_graph_lines(self.state)
+        computed = self.graph_viz.compute_viz(self.state)
         if self.last_rev_is_placeholder:
             computed.filtered_revs[-1].col_index = None
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
@@ -212,7 +214,7 @@ class LogModel(QtCore.QAbstractTableModel):
         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                   clicked_row_index,
                   clicked_row_index)
-        self.graph_provider.update_ui()
+        self.graph_viz.update_ui()
         self.clicked_f_index = None
         
         self.state.collapse_expand_rev(c_rev)
@@ -265,10 +267,10 @@ class LogModel(QtCore.QAbstractTableModel):
                          for (branch_info, label) in c_rev.branch_labels
                          if label])
             # Tags
-            if c_rev.rev.revid in self.graph_provider.tags:
+            if c_rev.rev.revid in self.graph_viz.tags:
                 tags.extend(
                     [(tag, QtGui.QColor(80, 128, 32), QtCore.Qt.white)
-                     for tag in self.graph_provider.tags[c_rev.rev.revid]])
+                     for tag in self.graph_viz.tags[c_rev.rev.revid]])
             
             # Bugs
             if revision:
@@ -328,7 +330,7 @@ class LogModel(QtCore.QAbstractTableModel):
 
     def on_revisions_loaded(self, revisions, last_call):
         for revid in revisions.iterkeys():
-            rev = self.graph_provider.revid_rev[revid]
+            rev = self.graph_viz.revid_rev[revid]
             self.emit(
                 QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                 self.index(rev.index, COL_MESSAGE, QtCore.QModelIndex()),
@@ -338,11 +340,11 @@ class LogModel(QtCore.QAbstractTableModel):
         self.compute_lines()
 
     def get_repo(self):
-        return self.graph_provider.get_repo_revids
+        return self.graph_viz.get_repo_revids
     
     def index_from_revid(self, revid, column=0):
         try:
-            rev = self.graph_provider.revid_rev[revid]
+            rev = self.graph_viz.revid_rev[revid]
         except KeyError:
             return
         return self.index_from_rev(rev)
@@ -367,8 +369,8 @@ class LogModel(QtCore.QAbstractTableModel):
             return None    
 
 class PropertySearchFilter (object):
-    def __init__(self, graph_provider, filter_changed_callback):
-        self.graph_provider = graph_provider
+    def __init__(self, graph_viz, filter_changed_callback):
+        self.graph_viz = graph_viz
         self.filter_changed_callback = filter_changed_callback
         self.field = None
         self.filter_re = None
@@ -395,7 +397,7 @@ class PropertySearchFilter (object):
         self.field = field
         
         def revisions_loaded(revisions, last_call):
-            revs = [self.graph_provider.revid_rev[revid]
+            revs = [self.graph_viz.revid_rev[revid]
                     for revid in revisions.iterkeys()]
             self.filter_changed_callback(revs, last_call)
         
@@ -416,7 +418,7 @@ class PropertySearchFilter (object):
             if self.field == "index":
                 from bzrlib.plugins.search import index as search_index
                 self.filter_re = None
-                indexes = [bi.index for bi in self.graph_provider.branches
+                indexes = [bi.index for bi in self.graph_viz.branches
                            if bi.index is not None]
                 if not indexes:
                     self.index_matched_revids = None
@@ -438,8 +440,8 @@ class PropertySearchFilter (object):
                 self.filter_re = None
                 filter_re = re.compile(wildcard2regex(str), re.IGNORECASE)
                 self.index_matched_revids = {}
-                for revid in self.graph_provider.tags:
-                    for t in self.graph_provider.tags[revid]:
+                for revid in self.graph_viz.tags:
+                    for t in self.graph_viz.tags[revid]:
                         if filter_re.search(t):
                             self.index_matched_revids[revid] = True
                             break
@@ -456,8 +458,8 @@ class PropertySearchFilter (object):
                 self.loading_revisions = True
                 try:
                     revids = [rev.revid
-                              for rev in self.graph_provider.revisions ]
-                    load_revisions(revids, self.graph_provider.get_repo_revids,
+                              for rev in self.graph_viz.revisions ]
+                    load_revisions(revids, self.graph_viz.get_repo_revids,
                                    time_before_first_ui_update = 0,
                                    local_batch_size = 100,
                                    remote_batch_size = 10,

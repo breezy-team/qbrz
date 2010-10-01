@@ -52,7 +52,7 @@ from bzrlib.plugins.qbzr.lib.diff import (
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib import logmodel
-from bzrlib.plugins.qbzr.lib.loggraphprovider import BranchInfo
+from bzrlib.plugins.qbzr.lib.loggraphviz import BranchInfo
 from bzrlib.plugins.qbzr.lib.treewidget import (
     TreeWidget,
     SelectAllCheckBox,
@@ -180,7 +180,7 @@ class PendingMergesList(LogList):
     def load_tree(self, tree):
         bi = BranchInfo('', tree, tree.branch)
         self.log_model.load(
-            (bi,), bi, None, False, logmodel.PendingMergesGraphProvider)
+            (bi,), bi, None, False, logmodel.PendingMergesGraphVizLoader)
     
     def create_context_menu(self, file_ids):
         super(PendingMergesList, self).create_context_menu(file_ids)
@@ -204,7 +204,7 @@ class PendingMergesList(LogList):
         # XXX We should make this show all selected revsions...
         
         revid = str(index.data(logmodel.RevIdRole).toString())
-        branch = self.log_model.graph_provider.get_revid_branch(revid)
+        branch = self.log_model.graph_viz.get_revid_branch(revid)
         parent_window = self.window()
         window = RevisionView(revid, branch, parent=parent_window)
         window.show()

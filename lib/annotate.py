@@ -54,7 +54,7 @@ from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
 from bzrlib.plugins.qbzr.lib.syntaxhighlighter import highlight_document
 from bzrlib.plugins.qbzr.lib.revtreeview import paint_revno, get_text_color
 from bzrlib.plugins.qbzr.lib import logmodel
-from bzrlib.plugins.qbzr.lib.loggraphprovider import BranchInfo
+from bzrlib.plugins.qbzr.lib.loggraphviz import BranchInfo
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 ''')
 
@@ -413,10 +413,10 @@ class AnnotateWindow(QBzrWindow):
         self.set_title_and_icon([gettext("Annotate"), self.path])
 
     def get_revno(self, revid):
-        gp = self.log_list.log_model.graph_provider
-        if (gp and
-            revid in gp.revid_rev):
-            return gp.revid_rev[revid].revno_str
+        gv = self.log_list.log_model.graph_viz
+        if (gv and
+            revid in gv.revid_rev):
+            return gv.revid_rev[revid].revno_str
         return ""
     
     def annotate(self, tree, fileId, path):
@@ -477,11 +477,11 @@ class AnnotateWindow(QBzrWindow):
             bi = BranchInfo('', self.tree, self.branch)
             self.log_list.load(
                 (bi,), bi, [self.fileId], self.no_graph,
-                logmodel.WithWorkingTreeGraphProvider)
+                logmodel.WithWorkingTreeGraphVizLoader)
             
-            gp = self.log_list.log_model.graph_provider
+            gv = self.log_list.log_model.graph_viz
             self.annotate_bar.adjustWidth(len(lines),
-                                          gp.revisions[0].revno_sequence[0])
+                                          gv.revisions[0].revno_sequence[0])
             
             just_loaded_log = True
             
@@ -489,7 +489,7 @@ class AnnotateWindow(QBzrWindow):
             filter = self.log_list.log_model.file_id_filter
             changed_revs = []
             for revid in self.rev_indexes.keys():
-                rev = gp.revid_rev[revid]
+                rev = gv.revid_rev[revid]
                 filter.filter_file_id[rev.index] = True
                 changed_revs.append(rev)
             filter.filter_changed_callback(changed_revs, last_call=True)
@@ -506,7 +506,7 @@ class AnnotateWindow(QBzrWindow):
             # Check for any other revisions we don't know about
             
             filter = self.log_list.log_model.file_id_filter
-            revids = [rev.revid for rev in gp.revisions
+            revids = [rev.revid for rev in gv.revisions
                       if rev.revid not in self.rev_indexes]
             filter.load(revids)
     

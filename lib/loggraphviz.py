@@ -54,7 +54,7 @@ class RevisionCache(object):
                  "merges", "merged_by", 'branch_id', 'color']
     def __init__ (self, index, _merge_sort_node):
         self.index = index
-        """Index in LogGraphProvider.revisions"""
+        """Index in GraphVizLoader.revisions"""
         self._merge_sort_node = _merge_sort_node
         self.branch = None
         self._revno_str = None
@@ -109,7 +109,7 @@ def repo_is_local(repo):
     return isinstance(repo.bzrdir.transport, LocalTransport)
 
 
-class LogGraphProvider(object):
+class GraphVizLoader(object):
     """Loads and computes revision and graph data for GUI log widgets."""
     
     # Most list/dicts related to revisions are unfiltered. When we do a graph
@@ -575,21 +575,21 @@ class LogGraphProvider(object):
                 ur.sort(key=lambda x: self.revid_rev[x].index)
     
     
-    def compute_graph_lines(self, state):
+    def compute_viz(self, state):
         
         # Overview:
         # Work out which revision need to be displayed.
-        # Create ComputedGraph and ComputedRevision objects
+        # Create ComputedGraphViz and ComputedRevision objects
         # Assign columns for branches, and lines that go between branches.
         #   These are intermingled, because some of the lines need to come
         #   before it's branch, and others need to come after. Other lines
         #   (such a the line from the last rev in a branch) are treated a
         #   special cases.
-        # Return ComputedGraph object
+        # Return ComputedGraphViz object
         gc_enabled = gc.isenabled()
         gc.disable()
         try:
-            computed = ComputedGraph(self)
+            computed = ComputedGraphViz(self)
             computed.filtered_revs = [ComputedRevision(rev) for rev in
                                       state.get_filtered_revisions()]
             
@@ -1050,7 +1050,7 @@ range_overlaps = (lambda start_a, end_a, start_b, end_b:
                     start_b < end_a < end_b or
                     (start_a <= start_b and end_a >= end_b))
 
-class PendingMergesGraphProvider(LogGraphProvider):
+class PendingMergesGraphVizLoader(GraphVizLoader):
     
     def load_graph_parents(self):
         if not len(self.branches) == 1 or not len(self.repos) == 1:
@@ -1091,7 +1091,7 @@ class PendingMergesGraphProvider(LogGraphProvider):
         return ["root:",] + tree_heads[1:], graph_parents.items()
 
 
-class WithWorkingTreeGraphProvider(LogGraphProvider):
+class WithWorkingTreeGraphVizLoader(GraphVizLoader):
     
     def load_branch_heads(self, bi):
         # returns load_heads, sort_heads and also calls append_head_info.
@@ -1163,18 +1163,18 @@ class WithWorkingTreeGraphProvider(LogGraphProvider):
         return load_heads, sort_heads, extra_parents
 
 
-class GraphProviderFilterState(object):
+class GraphVizFilterState(object):
     
-    def __init__(self, graph_provider, filter_changed_callback=None):
-        self.graph_provider = graph_provider
+    def __init__(self, graph_viz, filter_changed_callback=None):
+        self.graph_viz = graph_viz
         self.filter_changed_callback = filter_changed_callback
         
         self.branch_line_state = {}
         "If a branch_id is in this dict, it is visible. The value of the dict "
         "indicates which branches expanded this branch."
         
-        for revid in self.graph_provider.revid_head_info:
-            rev = self.graph_provider.revid_rev[revid]
+        for revid in self.graph_viz.revid_head_info:
+            rev = self.graph_viz.revid_rev[revid]
             self.branch_line_state[rev.branch_id] = None
         
         self.filters = []
@@ -1182,15 +1182,15 @@ class GraphProviderFilterState(object):
         # This keeps a cache of the filter state so that when one of the
         # filters notifies us of a change, we can check if anything did change.
         
-        self.filter_cache = [None for rev in self.graph_provider.revisions]
+        self.filter_cache = [None for rev in self.graph_viz.revisions]
     
     def get_filtered_revisions(self):
-        if self.graph_provider.no_graph:
-            rev_whos_branch_is_visible = self.graph_provider.revisions
+        if self.graph_viz.no_graph:
+            rev_whos_branch_is_visible = self.graph_viz.revisions
         else:
             rev_whos_branch_is_visible = []
             for branch_id in self.branch_line_state.iterkeys():
-                branch_line = self.graph_provider.branch_lines[branch_id]
+                branch_line = self.graph_viz.branch_lines[branch_id]
                 rev_whos_branch_is_visible.extend(branch_line.revs)
             rev_whos_branch_is_visible.sort(key=lambda rev: rev.index)
         
@@ -1213,9 +1213,9 @@ class GraphProviderFilterState(object):
         if filters_value:
             return True
         
-        if not self.graph_provider.no_graph:
+        if not self.graph_viz.no_graph:
             for merged_index in rev.merges:
-                merged_rev = self.graph_provider.revisions[merged_index]
+                merged_rev = self.graph_viz.revisions[merged_index]
                 if self.get_revision_visible_if_branch_visible(merged_rev):
                     return True
         
@@ -1223,7 +1223,7 @@ class GraphProviderFilterState(object):
     
     def filter_changed(self, revs=None, last_call=True):
         if revs is None:
-            self.filter_cache = [None for rev in self.graph_provider.revisions]
+            self.filter_cache = [None for rev in self.graph_viz.revisions]
             if self.filter_changed_callback:
                 self.filter_changed_callback()
         else:
@@ -1242,10 +1242,10 @@ class GraphProviderFilterState(object):
                     prev_cached_revs.append((rev, rev_filter_cache))
                 self.filter_cache[rev.index] = None
                 
-                if not self.graph_provider.no_graph:
+                if not self.graph_viz.no_graph:
                     if rev.merged_by is not None:
                         pending_revs.append(
-                            self.graph_provider.revisions[rev.merged_by])
+                            self.graph_viz.revisions[rev.merged_by])
            
             # Check if any visibilities have changes. If they have, call
             # filter_changed_callback
@@ -1257,7 +1257,7 @@ class GraphProviderFilterState(object):
                     break
     
     def ensure_rev_visible(self, rev):
-        if self.graph_provider.no_graph:
+        if self.graph_viz.no_graph:
             return False
         
         branch_id = rev.branch_id
@@ -1284,7 +1284,7 @@ class GraphProviderFilterState(object):
                 has_change = True
             if not visible:
                 del self.branch_line_state[branch_id]
-                for parent_branch_id in self.graph_provider.branch_lines[branch_id].merges:
+                for parent_branch_id in self.graph_viz.branch_lines[branch_id].merges:
                     parent_visible = parent_branch_id in self.branch_line_state
                     if (not parent_visible or 
                         parent_branch_id in seen_branch_ids):
@@ -1299,7 +1299,7 @@ class GraphProviderFilterState(object):
                         # Check if this parent has any other visible branches
                         # that merge it.
                         has_visible = False
-                        parent = self.graph_provider.branch_lines[parent_branch_id]
+                        parent = self.graph_viz.branch_lines[parent_branch_id]
                         for merged_by_branch_id in parent.merged_by:
                             if merged_by_branch_id in self.branch_line_state:
                                 has_visible = True
@@ -1313,18 +1313,18 @@ class GraphProviderFilterState(object):
             self.filter_changed_callback()
     
     def expand_all_branch_lines(self):
-        for branch_id in self.graph_provider.branch_lines.keys():
+        for branch_id in self.graph_viz.branch_lines.keys():
             if branch_id not in self.branch_line_state:
                 self.branch_line_state[branch_id] = None
     
 
 class FileIdFilter (object):
-    def __init__(self, graph_provider, filter_changed_callback, file_ids):
-        self.graph_provider = graph_provider
+    def __init__(self, graph_viz, filter_changed_callback, file_ids):
+        self.graph_viz = graph_viz
         self.filter_changed_callback = filter_changed_callback
         self.file_ids = file_ids
         self.has_dir = False
-        self.filter_file_id = [False for rev in self.graph_provider.revisions]
+        self.filter_file_id = [False for rev in self.graph_viz.revisions]
     
     def uses_inventory(self):
         return self.has_dir
@@ -1332,9 +1332,9 @@ class FileIdFilter (object):
     def load(self, revids=None):
         """Load which revisions affect the file_ids"""
         if self.file_ids:
-            self.graph_provider.throbber_show()
+            self.graph_viz.throbber_show()
             
-            for bi in self.graph_provider.branches:
+            for bi in self.graph_viz.branches:
                 tree = bi.tree
                 if tree is None:
                     tree = bi.branch.basis_tree()
@@ -1351,9 +1351,9 @@ class FileIdFilter (object):
                     tree.unlock()
             
             if revids is None:
-                revids = [rev.revid for rev in self.graph_provider.revisions]
+                revids = [rev.revid for rev in self.graph_viz.revisions]
             
-            for repo, revids in self.graph_provider.get_repo_revids(revids):
+            for repo, revids in self.graph_viz.get_repo_revids(revids):
                 if self.uses_inventory():
                     chunk_size = 200
                 else:
@@ -1369,13 +1369,13 @@ class FileIdFilter (object):
         def check_text_keys(text_keys):
             changed_revs = []
             for file_id, revid in repo.texts.get_parent_map(text_keys):
-                rev = self.graph_provider.revid_rev[revid]
+                rev = self.graph_viz.revid_rev[revid]
                 self.filter_file_id[rev.index] = True
                 changed_revs.append(rev)
             
-            self.graph_provider.update_ui()
+            self.graph_viz.update_ui()
             self.filter_changed_callback(changed_revs, False)
-            self.graph_provider.update_ui()
+            self.graph_viz.update_ui()
         
         repo.lock_read()
         try:
@@ -1398,7 +1398,7 @@ class FileIdFilter (object):
                             for rc_path, rc_entry in inv.iter_entries(from_dir = entry):
                                 text_keys.append((rc_entry.file_id, revid))
                     
-                    self.graph_provider.update_ui()
+                    self.graph_viz.update_ui()
                 
                 check_text_keys(text_keys)
         finally:
@@ -1406,7 +1406,7 @@ class FileIdFilter (object):
 
     def load_filter_file_id_chunk_finished(self):
         self.filter_changed_callback([], True)
-        self.graph_provider.throbber_hide()
+        self.graph_viz.throbber_hide()
     
     def get_revision_visible(self, rev):
         return self.filter_file_id[rev.index]
@@ -1426,8 +1426,8 @@ class ComputedRevision(object):
         self.twisty_expands_branch_ids = []
         self.branch_labels = []
 
-class ComputedGraph(object):
-    def __init__(self, graph_provider):
-        self.graph_provider = graph_provider
+class ComputedGraphViz(object):
+    def __init__(self, graph_viz):
+        self.graph_viz = graph_viz
         self.filtered_revs = []
-        self.revisions = [None for i in xrange(len(graph_provider.revisions))]
+        self.revisions = [None for i in xrange(len(graph_viz.revisions))]
