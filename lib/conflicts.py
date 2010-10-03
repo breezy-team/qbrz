@@ -184,7 +184,7 @@ class ConflictsWindow(QBzrWindow):
         enabled, error_msg = self.is_merge_tool_launchable()
         if not enabled:
             return
-        merge_tool = mergetools.get_user_selected_merge_tool()
+        merge_tool = mergetools.find_merge_tool(self.merge_tools_combo.currentText())
         file_id = str(items[0].data(0, QtCore.Qt.UserRole).toString())
         file_name = self.wt.abspath(self.wt.id2path(file_id))
         process = QtCore.QProcess(self)
