@@ -59,7 +59,7 @@ class ConflictsWindow(QBzrWindow):
         self.connect(
             self.conflicts_list.selectionModel(),
             QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
-            self.update_selection)
+            self.update_merge_tool_ui)
         self.connect(
             self.conflicts_list,
             QtCore.SIGNAL("customContextMenuRequested(QPoint)"),
@@ -78,22 +78,12 @@ class ConflictsWindow(QBzrWindow):
         vbox.addWidget(self.conflicts_list)
 
         hbox = QtGui.QHBoxLayout()
-        self.program_edit = QtGui.QLineEdit(self)
-        self.program_edit.setEnabled(False)
-        self.connect(
-            self.program_edit,
-            QtCore.SIGNAL("textChanged(QString)"),
-            self.check_merge_tool_edit)
-        self.program_extmerge_default_button = QtGui.QCheckBox(gettext("Use Configured Default"))
-        self.program_extmerge_default_button.setToolTip(gettext(
-                "The merge tool configured in qconfig under Merge' file.\n"
-                "It follows the convention used in the bzr plugin: extmerge\n"
-                "external_merge = kdiff3 --output %r %b %t %o\n"
-                "%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."))
-        self.connect(
-            self.program_extmerge_default_button,
-            QtCore.SIGNAL("clicked()"),
-            self.program_extmerge_default_clicked)
+        self.merge_tools_combo = QtGui.QComboBox(self)
+        self.merge_tools_combo.setEditable(False)
+        self.connect(self.merge_tools_combo,
+                     QtCore.SIGNAL("currentIndexChanged(int)"),
+                     self.update_merge_tool_ui)
+        
         self.program_launch_button = QtGui.QPushButton(gettext("&Launch..."), self)
         self.program_launch_button.setEnabled(False)
         self.connect(
@@ -101,10 +91,10 @@ class ConflictsWindow(QBzrWindow):
             QtCore.SIGNAL("clicked()"),
             self.launch_merge_tool)
         self.program_label = QtGui.QLabel(gettext("M&erge tool:"), self)
-        self.program_label.setBuddy(self.program_edit)
+        self.program_label.setBuddy(self.merge_tools_combo)
         hbox.addWidget(self.program_label)
-        hbox.addWidget(self.program_edit)
-        hbox.addWidget(self.program_extmerge_default_button)
+        hbox.addWidget(self.merge_tools_combo)
+        hbox.addStretch(1)
         hbox.addWidget(self.program_launch_button)
         vbox.addLayout(hbox)
 
@@ -126,21 +116,13 @@ class ConflictsWindow(QBzrWindow):
         self.initialize_ui()        
 
     def initialize_ui(self):
-        config = QBzrGlobalConfig()
-        merge_tool_extmerge = config.get_user_option("merge_tool_extmerge")
-        self.program_extmerge_default_button.setCheckState(QtCore.Qt.Unchecked)
-        if merge_tool_extmerge in ("True", "1"):
-            self.program_extmerge_default_button.setCheckState(QtCore.Qt.Checked)
-        self.program_extmerge_default_clicked()
-        enabled, error_msg = self.is_merge_tool_launchable()
-        self.update_program_edit_text(enabled, error_msg)
-        # if extmerge not configured then resort to using default
-        if not enabled and self.program_extmerge_default_button.isChecked():
-            bzr_config = GlobalConfig()
-            extmerge_tool = bzr_config.get_user_option("external_merge")
-            if not extmerge_tool:
-                self.program_extmerge_default_button.setCheckState(QtCore.Qt.Unchecked)
-                self.update_program_edit_text(False, "")
+        defined_tools = mergetools.get_merge_tools()
+        default_tool = mergetools.get_user_selected_merge_tool()
+        for merge_tool in defined_tools:
+            self.merge_tools_combo.insertItem(self.merge_tools_combo.count(), merge_tool.get_name())
+        if default_tool is not None:
+            self.merge_tools_combo.setCurrentIndex(self.merge_tools_combo.findText(default_tool.get_name()))
+        self.update_merge_tool_ui()
 
     def create_context_menu(self):
         self.context_menu = QtGui.QMenu(self.conflicts_list)
@@ -191,18 +173,11 @@ class ConflictsWindow(QBzrWindow):
                 gettext('&OK'))
             self.close()
 
-    def update_selection(self, selected, deselected):
+    def update_merge_tool_ui(self):
         enabled, error_msg = self.is_merge_tool_launchable()
-        self.program_edit.setEnabled(enabled and not self.program_extmerge_default_button.isChecked())
+        self.program_launch_button.setToolTip(error_msg)
         self.program_launch_button.setEnabled(enabled)
-        self.update_program_edit_text(enabled, error_msg)
-        if enabled and self.program_extmerge_default_button.isChecked():
-            self.program_edit.setEnabled(False)
         self.merge_action.setEnabled(enabled)
-
-    def check_merge_tool_edit(self, text):
-        enabled, error_msg = self.is_merge_tool_launchable()
-        self.program_launch_button.setEnabled(enabled)
 
     def launch_merge_tool(self):
         items = self.conflicts_list.selectedItems()
@@ -244,34 +219,20 @@ class ConflictsWindow(QBzrWindow):
     def show_context_menu(self, pos):
         self.context_menu.popup(self.conflicts_list.viewport().mapToGlobal(pos))
 
-    def program_extmerge_default_clicked(self):	
-        enabled, error_msg = self.is_merge_tool_launchable()
-        self.program_edit.setEnabled(enabled and not self.program_extmerge_default_button.isChecked())
-        self.program_launch_button.setEnabled(enabled)
-        self.update_program_edit_text(enabled, error_msg)
-        config = QBzrGlobalConfig()
-        config.set_user_option("merge_tool_extmerge", False)
-        if self.program_extmerge_default_button.isChecked():
-            config.set_user_option("merge_tool_extmerge", True)  
-
     def is_merge_tool_launchable(self):
         items = self.conflicts_list.selectedItems()
         error_msg = ""
         enabled = True
         if len(items) != 1 or items[0].data(1, QtCore.Qt.UserRole).toString() != "text conflict":
             enabled = False
-
-        # check to see if the extmerge config is correct   
-        if self.program_extmerge_default_button.isChecked():
-            merge_tool = mergetools.get_user_selected_merge_tool()
-            if merge_tool is None:
-                error_msg = gettext("Set up external_merge app in qconfig under the Merge tab")
-                enabled = False
-                return enabled, error_msg
-            if not merge_tool.is_available():
-                enabled = False
-                error_msg = "External merge tool %s is not available" % \
-                        merge_tool.get_name()
+        merge_tool = mergetools.find_merge_tool(self.merge_tools_combo.currentText())
+        if merge_tool is None:
+            error_msg = gettext("Set up external_merge app in qconfig under the Merge tab")
+            enabled = False
+        elif not merge_tool.is_available():
+            enabled = False
+            error_msg = "External merge tool %s is not available" % \
+                    merge_tool.get_name()
         return enabled, error_msg
 
     def is_extmerge_definition_valid(self, showErrorDialog):
@@ -299,16 +260,6 @@ class ConflictsWindow(QBzrWindow):
             return gettext("Missing the flag: %s. Configure in qconfig under the merge tab.") % flags
         return ""
 
-    def update_program_edit_text(self, enabled, error_msg):
-        if self.program_extmerge_default_button.isChecked():
-            if enabled or (len(error_msg) <= 0):
-                merge_tool = mergetools.get_user_selected_merge_tool()
-                self.program_edit.setText(gettext("%s (Configured external merge definition in qconfig)") % merge_tool.get_commandline())
-            else:
-                self.program_edit.setText(error_msg)
-        else:
-            config = QBzrGlobalConfig()
-            self.program_edit.setText((config.get_user_option("merge_tool") or "").strip() or "meld")
 
 if 0:
     N_("path conflict")
