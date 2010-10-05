@@ -13,10 +13,11 @@
  * qrun: fixed '--execute' mode. (Bug #590229, Simon Kersey)
  * qlog:
    * Refactor loggraphprovider so that the state and computed data is separated
-     from the cache.
-   * Write lots of tests for loggraphprovider.
+     from the cache. Rename to loggraphviz.
+   * Write lots of tests for loggraphviz.
    * Remove LogFilterProxyModel which improves performance.
    * --no-graph mode now shows nodes per revision, indented by merge depth.
+   * Fix the layout of octopus merges. (Bug #489383)
 
 
 0.19.1 - In development
