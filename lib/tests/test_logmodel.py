@@ -18,33 +18,27 @@
 
 from bzrlib.tests import TestCase, TestCaseWithTransport
 from PyQt4 import QtCore
-from bzrlib.plugins.qbzr.lib.logmodel import (
-    QVariant_fromList,
-    LogModel,
-    )
-from bzrlib.plugins.qbzr.lib.loggraphprovider import LogGraphProvider
+
+from bzrlib.plugins.qbzr.lib.logmodel import (LogModel, GraphVizLoader)
+from bzrlib.plugins.qbzr.lib.loggraphviz import BranchInfo
+from bzrlib.plugins.qbzr.lib.util import ThrobberWidget
 
 from bzrlib.plugins.qbzr.lib.tests.modeltest import ModelTest
 from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
 
 
-class TestQVariantFromList(TestCase):
-
-    def test_variant_from_list(self):
-        lst = [QtCore.QVariant("a"), QtCore.QVariant("b")]
-        var = QVariant_fromList(lst)
-        lst = var.toList()
-        self.assertEquals("a", lst[0].toString())
-        self.assertEquals("b", lst[1].toString())
-
 class TestModel(TestWatchExceptHook, TestCaseWithTransport):
     
+    
     def _test(self, wt):
-        graph_provider = LogGraphProvider(False)
-        log_model = LogModel(graph_provider)
-        graph_provider.open_branch(wt.branch, None, wt)
-        log_model.load_graph_all_revisions()
+        def processEvents():
+            pass
+        throbber = ThrobberWidget(None)
+        log_model = LogModel(processEvents, throbber)
         modeltest = ModelTest(log_model, None);
+        
+        bi = BranchInfo('', wt, wt.branch)
+        log_model.load((bi,), bi, None, False, GraphVizLoader)
     
     def test_empty_branch(self):
         wt = self.make_branch_and_tree('.')

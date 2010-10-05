@@ -47,7 +47,7 @@ def load_tests(basic_tests, module, loader):
         'test_extra_isversioned',
         'test_i18n',
         'test_log',
-        'test_loggraphprovider',
+        'test_loggraphviz',
         'test_logmodel',
         'test_revisionmessagebrowser',
         'test_spellcheck',
