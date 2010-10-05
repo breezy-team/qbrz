@@ -262,7 +262,7 @@ class LogList(RevisionTreeView):
             indexes = self.get_selection_indexes()
             if not indexes:
                 return
-            c_rev = self.c_rev_from_index(indexes[0])
+            c_rev = self.log_model.c_rev_from_index(indexes[0])
             
             if (e.key() == QtCore.Qt.Key_Right
                 and c_rev and not c_rev.twisty_state):
