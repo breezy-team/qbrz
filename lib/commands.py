@@ -355,8 +355,7 @@ class cmd_qcommit(QBzrCommand):
 
     def _qbzr_run(self, selected_list=None, message=None, file=None, local=False, ui_mode=False):
         if message is not None and file:
-                raise errors.BzrCommandError(
-                    "please specify either --message or --file")
+            raise errors.BzrCommandError("please specify either --message or --file")
         if file:
             f = open(file)
             try:
