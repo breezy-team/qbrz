@@ -375,7 +375,7 @@ What's new in this release:
      tree is refreshed, and the scroll position is remembered.
      (Gary van der Merwe)
    * It is now possible to rename and move files or directories, and to mark
-     files or directories that have allready been renamed or moved as such.
+     files or directories that have already been renamed or moved as such.
      (Gary van der Merwe)
    * It is now possible to remove files from the branch. (Gary van der Merwe)
    * Show blank icon for missing files. (Bug #418471, Gary van der Merwe)

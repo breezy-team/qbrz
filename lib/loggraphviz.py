@@ -17,6 +17,22 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+"""
+Layout a revision graph for visual representation, allowing for filtering and
+collapsible branches.
+
+Usage example
+=============
+
+.. python::
+  bi = loggraphviz.BranchInfo('branch-label', tree, branch)
+  graph_viz = loggraphviz.GraphVizLoader([bi], bi, False)
+  graph_viz.load()
+  state = loggraphviz.GraphVizFilterState(graph_viz)
+  computed = graph_viz.compute_viz(state)
+
+"""
+
 import gc
 from itertools import izip
 
@@ -28,7 +44,7 @@ from bzrlib.graph import (Graph, StackedParentsProvider, KnownGraph)
 
 
 class BranchInfo(object):
-    """Holds a branch, it's working tree, if available, and a label."""
+    """Wrapper for a branch, it's working tree, if available, and a label."""
     
     def __init__(self, label, tree, branch, index=None):
         self.label = label
@@ -46,17 +62,20 @@ class BranchInfo(object):
 
 
 class RevisionData(object):
-    """Holds information about a revision that can be cached."""
+    """
+    Container for data for a revision in the graph that gets calculated
+    when the graph is loaded.
+    """
     
     # Instance of this object are typically named "rev".
     
     __slots__ = ["index", "_merge_sort_node", "branch", "_revno_str",
                  "merges", "merged_by", 'branch_id', 'color']
     
-    def __init__(self, index, _merge_sort_node):
+    def __init__(self, index, merge_sort_node):
+        """Create a new RevisionData instance."""
         self.index = index
-        """Index in GraphVizLoader.revisions"""
-        self._merge_sort_node = _merge_sort_node
+        self._merge_sort_node = merge_sort_node
         self.branch = None
         self._revno_str = None
         self.merges = []
@@ -84,17 +103,9 @@ class RevisionData(object):
         return "%s <%s %s>" % (self.__class__.__name__, self.revno_str,
                               self.revid)
 
-
-class GhostRevisionError(errors.InternalBzrError):
-
-    _fmt = "{%(revision_id)s} is a ghost."
-
-    def __init__(self, revision_id):
-        errors.BzrError.__init__(self)
-        self.revision_id = revision_id
-
-
 class BranchLine(object):
+    """Container for data for a branch line, aka merge line."""
+    
     __slots__ = ["branch_id", "revs", "merges", "merged_by",
                  "color", "merge_depth"]
     
@@ -109,12 +120,20 @@ class BranchLine(object):
         return "%s <%s>" % (self.__class__.__name__, self.branch_id)
 
 
-def repo_is_local(repo):
-    return isinstance(repo.bzrdir.transport, LocalTransport)
+class GhostRevisionError(errors.InternalBzrError):
+
+    _fmt = "{%(revision_id)s} is a ghost."
+
+    def __init__(self, revision_id):
+        errors.BzrError.__init__(self)
+        self.revision_id = revision_id
 
 
 class GraphVizLoader(object):
-    """Loads and computes revision and graph data for GUI log widgets."""
+    """
+    Loads graph for branches and provides computed layout for visual
+    representation.
+    """
     
     # Most list/dicts related to revisions are unfiltered. When we do a graph
     # layout, we filter these revisions. A revision may be filter out because:
@@ -1036,7 +1055,17 @@ class GraphVizLoader(object):
         return return_revisions
 
 
+def repo_is_local(repo):
+    return isinstance(repo.bzrdir.transport, LocalTransport)
+
 def group_overlapping(groups):
+    """ Groups items with overlapping ranges together.
+    
+    :param groups: List of uncollapsed groups.
+    :param group: (start of range, end of range, items in group)
+    :return: List of collapsed groups.
+    
+    """
 
     has_change = True
     while has_change:
@@ -1066,13 +1095,22 @@ def group_overlapping(groups):
     
     return groups
 
-range_overlaps = (lambda start_a, end_a, start_b, end_b:
-                    start_b < start_a < end_b or
-                    start_b < end_a < end_b or
-                    (start_a <= start_b and end_a >= end_b))
+def range_overlaps (start_a, end_a, start_b, end_b):
+    """Tests if two ranges overlap."""
+    return (start_b < start_a < end_b or
+            start_b < end_a < end_b or
+            (start_a <= start_b and end_a >= end_b))
 
 
 class PendingMergesGraphVizLoader(GraphVizLoader):
+    """GraphVizLoader that only loads pending merges.
+    
+    As only the pending merges are passed to merge_sort, the revno
+    are incorrect, and should be ignored.
+    
+    Only works on a single branch.
+    
+    """
     
     def load_graph_parents(self):
         if not len(self.branches) == 1 or not len(self.repos) == 1:
@@ -1115,6 +1153,10 @@ class PendingMergesGraphVizLoader(GraphVizLoader):
 
 
 class WithWorkingTreeGraphVizLoader(GraphVizLoader):
+    """
+    GraphVizLoader that shows uncommitted working tree changes as a node
+    in the graph, as if it was already committed.
+    """
     
     def load_branch_heads(self, bi):
         # returns load_heads, sort_heads and also calls append_head_info.
@@ -1186,6 +1228,10 @@ class WithWorkingTreeGraphVizLoader(GraphVizLoader):
 
 
 class GraphVizFilterState(object):
+    """
+    Records the state of which branch lines are expanded, and what filters
+    are applied.
+    """
     
     def __init__(self, graph_viz, filter_changed_callback=None):
         self.graph_viz = graph_viz
@@ -1344,6 +1390,10 @@ class GraphVizFilterState(object):
     
 
 class FileIdFilter (object):
+    """
+    Filter that only shows revisions that modify one of the specified files.
+    """
+    
     def __init__(self, graph_viz, filter_changed_callback, file_ids):
         self.graph_viz = graph_viz
         self.filter_changed_callback = filter_changed_callback
@@ -1439,13 +1489,41 @@ class FileIdFilter (object):
 
 
 class ComputedRevisionData(object):
+    """Container for computed layout data for a revision.
+    
+    :ivar rev: Reference to RevisionData. Use to get revno, revid, color and
+        others.
+    :ivar f_index: Index in `ComputedGraphViz.filtered_revs`.
+    :ivar col_index: Column index to place node for revision in.
+    :ivar lines: Lines that need to be drawn from from this revision's line to
+        the next revision's line. Note that not all these lines relate to this
+        revision, but be a part of a longer line that is passing this revision.
+        
+        Each line is a tuple of `(end col_index, start col_index, color,
+        direct)`.
+        
+        If direct is False, it indicates that this line represents an
+        ancestry, with revisions that are filtered. This should be shown as
+        a dotted line.
+        
+    :ivar branch_labels: Labels for branch tips.
+    :ivar twisty_state: State of the revision:
+        
+        * None: No twisty.
+        * True: There are branch lines that this revision merges that can
+          expanded. Show a '+'.
+        * False: All branches that this revision merges are already expanded.
+          Show a '-'.
+    :ivar twisty_expands_branch_ids: Branch lines that will be expanded if the
+        twisty is clicked.
+    """
+    
     # Instance of this object are typically named "c_rev".    
     __slots__ = ['rev', 'f_index', 'lines', 'col_index', 'branch_labels',
                  'twisty_state', 'twisty_expands_branch_ids']
     
     def __init__(self, rev):
         self.rev = rev
-        #self.f_index = f_index
         self.lines = []
         self.col_index = None
         self.twisty_state = None
@@ -1454,6 +1532,14 @@ class ComputedRevisionData(object):
 
 
 class ComputedGraphViz(object):
+    """Computed layout data for a graph.
+    
+    :ivar graph_viz: Reference to parent `GraphVizLoader`. 
+    :ivar filtered_revs: List `ComputedRevisionData`. Only visible revisions
+        are included.
+    :ivar revisions: List `ComputedRevisionData`. Revision that are not
+        visible are None.
+    """
     def __init__(self, graph_viz):
         self.graph_viz = graph_viz
         self.filtered_revs = []
