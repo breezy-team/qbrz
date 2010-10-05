@@ -354,11 +354,7 @@ class cmd_qcommit(QBzrCommand):
     aliases = ['qci']
 
     def _qbzr_run(self, selected_list=None, message=None, file=None, local=False, ui_mode=False):
-        if message is not None:
-            if '\r' in message:
-                message = message.replace('\r\n', '\n')
-                message = message.replace('\r', '\n')
-            if file:
+        if message is not None and file:
                 raise errors.BzrCommandError(
                     "please specify either --message or --file")
         if file:
