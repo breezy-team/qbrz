@@ -263,13 +263,17 @@ class LogModel(QtCore.QAbstractTableModel):
             
             tags = []
             # Branch labels
-            tags.extend([(label, QtGui.QColor(24, 80, 200), QtCore.Qt.white)
+            tags.extend([(label,
+                          QtGui.QColor(24, 80, 200),
+                          QtGui.QColor(QtCore.Qt.white))
                          for (branch_info, label) in c_rev.branch_labels
                          if label])
             # Tags
             if c_rev.rev.revid in self.graph_viz.tags:
                 tags.extend(
-                    [(tag, QtGui.QColor(80, 128, 32), QtCore.Qt.white)
+                    [(tag,
+                      QtGui.QColor(80, 128, 32),
+                      QtGui.QColor(QtCore.Qt.white))
                      for tag in self.graph_viz.tags[c_rev.rev.revid]])
             
             # Bugs
@@ -285,7 +289,9 @@ class LogModel(QtCore.QAbstractTableModel):
                             if bug_id:
                                 bugs.append(self.bugtext % bug_id)
                     revision._qlog_bugs = bugs
-                tags.extend([(bug, QtGui.QColor(164, 0, 0), QtCore.Qt.white)
+                tags.extend([(bug,
+                              QtGui.QColor(164, 0, 0),
+                              QtGui.QColor(QtCore.Qt.white))
                              for bug in bugs])
             is_clicked = c_rev.f_index == self.clicked_f_index
             
