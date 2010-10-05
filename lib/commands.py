@@ -348,11 +348,38 @@ class cmd_qcommit(QBzrCommand):
     takes_options = [
             bzr_option('commit', 'message'),
             bzr_option('commit', 'local'),
+            bzr_option('commit', 'file'),
             ui_mode_option,
             ]
     aliases = ['qci']
 
-    def _qbzr_run(self, selected_list=None, message=None, local=False, ui_mode=False):
+    def _qbzr_run(self, selected_list=None, message=None, file=None, local=False, ui_mode=False):
+        if message is not None:
+            try:
+                file_exists = osutils.lexists(message)
+            except UnicodeError:
+                # The commit message contains unicode characters that can't be
+                # represented in the filesystem encoding, so that can't be a
+                # file.
+                file_exists = False
+            if file_exists:
+                warning_msg = (
+                    'The commit message is a file name: "%(f)s".\n'
+                    '(use --file "%(f)s" to take commit message from that file)'
+                    % { 'f': message })
+                ui.ui_factory.show_warning(warning_msg)
+            if '\r' in message:
+                message = message.replace('\r\n', '\n')
+                message = message.replace('\r', '\n')
+            if file:
+                raise errors.BzrCommandError(
+                    "please specify either --message or --file")
+        if file:
+            f = open(file)
+            try:
+                message = f.read().decode(osutils.get_user_encoding())
+            finally:
+                f.close()
         tree, selected_list = builtins.tree_files(selected_list)
         if selected_list == ['']:
             selected_list = None
