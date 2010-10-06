@@ -202,13 +202,13 @@ class DiffWindow(QBzrWindow):
 
     def create_toggle_view_mode(self):
         action = QtGui.QAction(get_icon("view-split-left-right"),
-                gettext("Side by side"), self)
+                gettext("Unidiff"), self)
         action.setToolTip(
                 gettext("Toggle between Side by side and Unidiff view modes"))
-        action.setShortcut("Ctrl+|")
+        action.setShortcut("Ctrl+U")
         show_shortcut_hint(action)
         action.setCheckable(True)
-        action.setChecked(True);
+        action.setChecked(False);
         self.connect(action,
                      QtCore.SIGNAL("toggled (bool)"),
                      self.click_toggle_view_mode)
@@ -500,13 +500,14 @@ class DiffWindow(QBzrWindow):
 
     def click_toggle_view_mode(self, checked):
         if checked:
-            self.diffview.rewind()
-            self.stack.setCurrentIndex(0)
-            self.find_toolbar.text_edit = self.diffview.browsers[0]
+            view = self.sdiffview
+            self.find_toolbar.text_edit = view
         else:
-            self.sdiffview.rewind()
-            self.stack.setCurrentIndex(1)
-            self.find_toolbar.text_edit = self.sdiffview
+            view = self.diffview
+            self.find_toolbar.text_edit = view.browsers[0]
+        view.rewind()
+        index = self.stack.indexOf(view)
+        self.stack.setCurrentIndex(index)
 
     def click_complete(self, checked ):
         self.complete = checked
