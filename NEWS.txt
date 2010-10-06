@@ -11,7 +11,8 @@
    * Lock the config dir when when saving the config file.
      (Gary van der Merwe)
  * qrun: fixed '--execute' mode. (Bug #590229, Simon Kersey) 
-
+ * qcommit: added option to load commit message from a file 
+   (Bug #640071, Philip Peitsch)
 
 0.19.1 - In development
 -----------------------
@@ -20,6 +21,8 @@ Maintenance release.
  * Fix modeltest.py so that it works with Qt 4.7.
    (Bug #614123, Gary van der Merwe)
  * qrun: fixed '--execute' mode. (Bug #590229, Simon Kersey) 
+ * qcommit: added option to load commit message from a file 
+   (Bug #640071, Philip Peitsch)
 
 
 0.19 "Shepherd's Tree, aka Boscia albitrunca" - 2010/08/05
