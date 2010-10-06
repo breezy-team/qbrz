@@ -350,7 +350,7 @@ class cmd_qcommit(QBzrCommand):
             bzr_option('commit', 'local'),
             bzr_option('commit', 'file'),
             Option('file-encoding', type=check_encoding,
-               help='Encoding of commt message file content.'),
+               help='Encoding of commit message file content.'),
             ui_mode_option,
             ]
     aliases = ['qci']
