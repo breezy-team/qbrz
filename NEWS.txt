@@ -18,6 +18,8 @@
    * Remove LogFilterProxyModel which improves performance.
    * --no-graph mode now shows nodes per revision, indented by merge depth.
    * Fix the layout of octopus merges. (Bug #489383)
+ * qcommit: added option to load commit message from a file.
+   (Bug #640071, Philip Peitsch)
 
 
 0.19.1 - In development
