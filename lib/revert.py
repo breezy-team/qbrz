@@ -96,10 +96,8 @@ class RevertWindow(SubProcessDialog):
             # select all changes it, so that it can put it back to the state
             # it was.
             self.merges_base_checked = True
-            self.pending_merges = PendingMergesList(self.processEvents,
-                                                    self.throbber,
-                                                    False,
-                                                    self)
+            self.pending_merges = PendingMergesList(
+                self.processEvents, self.throbber, self)
             merges_box = QtGui.QVBoxLayout(self.merges_groupbox)
             merges_box.addWidget(self.pending_merges)
             
@@ -170,10 +168,7 @@ class RevertWindow(SubProcessDialog):
         self.processEvents()
 
         if self.has_pending_merges:
-            self.pending_merges.load_branch(self.tree.branch,
-                                                 None,
-                                                 self.tree)
-            self.pending_merges.load()
+            self.pending_merges.load_tree(self.tree)
             self.processEvents()
 
         self.throbber.hide()
@@ -269,9 +264,9 @@ class RevertWindow(SubProcessDialog):
             args.append("--no-backup")
         self.process_widget.do_start(self.tree.basedir, *args)
 
-    def saveSize(self):
-        SubProcessDialog.saveSize(self)
-        self.saveSplitterSizes()
+    def _saveSize(self, config):
+        SubProcessDialog._saveSize(self, config)
+        self._saveSplitterSizes(config, self.splitter)
 
     def show_diff_for_checked(self, ext_diff=None, dialog_action='revert'):
         """Diff button clicked: show the diff for checked entries.

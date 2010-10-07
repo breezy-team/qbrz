@@ -261,6 +261,6 @@ class SendWindow(SubProcessDialog):
             
         self.process_widget.do_start(None, 'send', submit_branch, *args)
 
-    def saveSize(self):
-        SubProcessDialog.saveSize(self)
-        self.saveSplitterSizes()
+    def _saveSize(self, config):
+        SubProcessDialog._saveSize(self, config)
+        self._saveSplitterSizes(config, self.splitter)

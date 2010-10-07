@@ -21,11 +21,10 @@ import re
 import os.path
 from PyQt4 import QtCore, QtGui
 from bzrlib.config import (
-    GlobalConfig,
     ensure_config_dir_exists,
     extract_email_address,
     )
-from bzrlib import errors, mergetools
+from bzrlib import errors, mergetools, trace
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellChecker
@@ -34,7 +33,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     QBzrDialog,
     extract_name,
-    QBzrGlobalConfig,
+    get_qbzr_config,
+    get_global_config,
     )
 
 
@@ -65,13 +65,14 @@ class QRadioCheckItemDelegate(QtGui.QItemDelegate):
                           radioOption,
                           painter)
 
+
 class QBzrConfigWindow(QBzrDialog):
 
     def __init__(self, parent=None):
         QBzrDialog.__init__(self, [gettext("Configuration")], parent)
         self.restoreSize("config", (400, 300))
 
-        tabwidget = QtGui.QTabWidget()
+        self.tabwidget = QtGui.QTabWidget()
 
         generalWidget = QtGui.QWidget()
         generalVBox = QtGui.QVBoxLayout(generalWidget)
@@ -219,17 +220,17 @@ class QBzrConfigWindow(QBzrDialog):
         mergeLayout.addWidget(self.extMergeList)
         mergeLayout.addLayout(extMergeButtonsLayout)
         
-        tabwidget.addTab(generalWidget, gettext("General"))
-        tabwidget.addTab(aliasesWidget, gettext("Aliases"))
-        tabwidget.addTab(bugTrackersWidget, gettext("Bug Trackers"))
-        tabwidget.addTab(self.getGuiTabWidget(), gettext("&User Interface"))
-        tabwidget.addTab(diffWidget, gettext("&Diff"))
-        tabwidget.addTab(mergeWidget, gettext("&Merge"))
+        self.tabwidget.addTab(generalWidget, gettext("General"))
+        self.tabwidget.addTab(aliasesWidget, gettext("Aliases"))
+        self.tabwidget.addTab(bugTrackersWidget, gettext("Bug Trackers"))
+        self.tabwidget.addTab(self.getGuiTabWidget(), gettext("&User Interface"))
+        self.tabwidget.addTab(diffWidget, gettext("&Diff"))
+        self.tabwidget.addTab(mergeWidget, gettext("&Merge"))
 
         buttonbox = self.create_button_box(BTN_OK, BTN_CANCEL)
 
         vbox = QtGui.QVBoxLayout(self)
-        vbox.addWidget(tabwidget)
+        vbox.addWidget(self.tabwidget)
         vbox.addWidget(buttonbox)
         self.load()
 
@@ -259,20 +260,28 @@ class QBzrConfigWindow(QBzrDialog):
 
     def load(self):
         """Load the configuration."""
-        config = GlobalConfig()
+        config = get_global_config()
         parser = config._get_parser()
         
-        qconfig = QBzrGlobalConfig()
-        qparser = qconfig._get_parser()
+        qconfig = get_qbzr_config()
 
         # Name & e-mail
-        username = config.username()
-        if username:
-            self.nameEdit.setText(extract_name(username, strict=True))
+        try:
             try:
-                self.emailEdit.setText(extract_email_address(username))
-            except errors.NoEmailInUsername:
-                pass
+                username = config.username()
+                name = extract_name(username, strict=True)
+                try:
+                    email = extract_email_address(username)
+                except errors.NoEmailInUsername:
+                    email = ''
+            except errors.NoWhoami:
+                name, email = get_user_id_from_os()
+        except Exception, e:
+            trace.mutter("qconfig: load name/email error: %s", str(e))
+            name, email = '', ''
+        
+        self.nameEdit.setText(name)
+        self.emailEdit.setText(email)
 
         # Editor
         editor = config.get_user_option('editor')
@@ -320,8 +329,8 @@ class QBzrConfigWindow(QBzrDialog):
             item.setText(1, value)
         
         # Diff
-        self.diffShowIntergroupColors.setChecked(qconfig.get_user_option("diff_show_intergroup_colors") in ("True", "1"))
-        defaultDiff = qconfig.get_user_option("default_diff")
+        self.diffShowIntergroupColors.setChecked(qconfig.get_option("diff_show_intergroup_colors") in ("True", "1"))
+        defaultDiff = qconfig.get_option("default_diff")
         if defaultDiff is None:
             defaultDiff = ""
 
@@ -346,7 +355,7 @@ class QBzrConfigWindow(QBzrDialog):
                       QtCore.Qt.ItemIsEnabled |
                       QtCore.Qt.ItemIsUserCheckable)        
         
-        extDiffs = qparser.get('EXTDIFF', {})
+        extDiffs = qconfig.get_section('EXTDIFF')
         for name, command in extDiffs.items():
             create_ext_diff_item(name, command)
         self.extDiffListIgnore = False
@@ -376,11 +385,10 @@ class QBzrConfigWindow(QBzrDialog):
 
     def save(self):
         """Save the configuration."""
-        config = GlobalConfig()
+        config = get_global_config()
         parser = config._get_parser()
 
-        qconfig = QBzrGlobalConfig()
-        qparser = qconfig._get_parser()
+        qconfig = get_qbzr_config()
 
         def set_or_delete_option(parser, name, value):
             if value:
@@ -394,9 +402,13 @@ class QBzrConfigWindow(QBzrDialog):
                     pass
 
         # Name & e-mail
-        username = '%s <%s>' % (
-            unicode(self.nameEdit.text()),
-            unicode(self.emailEdit.text()))
+        _name = unicode(self.nameEdit.text()).strip()
+        _email = unicode(self.emailEdit.text()).strip()
+        username = u''
+        if _name:
+            username = _name
+        if _email:
+            username = (username + ' <%s>' % _email).strip()
         set_or_delete_option(parser, 'email', username)
 
         # Editor
@@ -437,11 +449,11 @@ class QBzrConfigWindow(QBzrDialog):
                 parser['DEFAULT']['bugtracker_%s_url' % abbrev] = url
 
         # Diff
-        set_or_delete_option(qparser, 'diff_show_intergroup_colors',
-                             self.diffShowIntergroupColors.isChecked())
-        defaultDiff = None
+        qconfig.set_option('diff_show_intergroup_colors',
+                           self.diffShowIntergroupColors.isChecked())
         
-        qparser['EXTDIFF'] = {}
+        defaultDiff = None
+        ext_diffs = {}
         for index in range(1, self.extDiffList.topLevelItemCount()):
             item = self.extDiffList.topLevelItem(index)
             name = unicode(item.text(0))
@@ -449,9 +461,11 @@ class QBzrConfigWindow(QBzrDialog):
             if item.checkState(0) == QtCore.Qt.Checked:
                 defaultDiff = command
             if name and command:
-                qparser['EXTDIFF'][name] = command
-        set_or_delete_option(qparser, 'default_diff',
-                             defaultDiff)
+                ext_diffs[name] = command
+        qconfig.set_section('EXTDIFF', ext_diffs)
+        qconfig.set_option('default_diff',
+                           defaultDiff)
+        
         
         def save_config(config, parser):
             ensure_config_dir_exists(os.path.dirname(config._get_filename()))
@@ -460,7 +474,7 @@ class QBzrConfigWindow(QBzrDialog):
             f.close()
         
         save_config(config, parser)
-        save_config(qconfig, qparser)
+        qconfig.save()
 
         # Merge
         default_merge_tool = None
@@ -478,12 +492,31 @@ class QBzrConfigWindow(QBzrDialog):
 
     def do_accept(self):
         """Save changes and close the window."""
+        if not self.validate():
+            return
         self.save()
         self.close()
 
     def do_reject(self):
         """Close the window."""
         self.close()
+
+    def validate(self):
+        """Check the inputs and return False if there is something wrong
+        and save should be prohibited."""
+        # check whoami
+        _name = unicode(self.nameEdit.text()).strip()
+        _email = unicode(self.emailEdit.text()).strip()
+        if (_name, _email) == ('', ''):
+            if QtGui.QMessageBox.warning(self, "Configuration",
+                "Name and E-mail settings should not be empty",
+                gettext("&Ignore and proceed"),
+                gettext("&Change the values")) != 0:
+                # change the values
+                self.tabwidget.setCurrentIndex(0)
+                self.nameEdit.setFocus()
+                return False
+        return True
 
     def addAlias(self):
         item = QtGui.QTreeWidgetItem(self.aliasesList)
@@ -607,3 +640,81 @@ class QBzrConfigWindow(QBzrDialog):
             '/')
         if filename:
             self.editorEdit.setText(filename)
+
+
+def get_user_id_from_os():
+    """Calculate automatic user identification.
+
+    Returns (realname, email).
+
+    Only used when none is set in the environment or the id file.
+
+    This previously used the FQDN as the default domain, but that can
+    be very slow on machines where DNS is broken.  So now we simply
+    use the hostname.
+    """
+    
+    # This use to live in bzrlib.config._auto_user_id, but got removed, so
+    # we have a copy.
+    
+    import sys
+    if sys.platform == 'win32':
+        from bzrlib import win32utils
+        name = win32utils.get_user_name_unicode()
+        if name is None:
+            raise errors.BzrError("Cannot autodetect user name.\n"
+                                  "Please, set your name with command like:\n"
+                                  'bzr whoami "Your Name <name@domain.com>"')
+        host = win32utils.get_host_name_unicode()
+        if host is None:
+            host = socket.gethostname()
+        return name, (name + '@' + host)
+
+    try:
+        import pwd
+        uid = os.getuid()
+        try:
+            w = pwd.getpwuid(uid)
+        except KeyError:
+            raise errors.BzrCommandError('Unable to determine your name.  '
+                'Please use "bzr whoami" to set it.')
+
+        # we try utf-8 first, because on many variants (like Linux),
+        # /etc/passwd "should" be in utf-8, and because it's unlikely to give
+        # false positives.  (many users will have their user encoding set to
+        # latin-1, which cannot raise UnicodeError.)
+        try:
+            gecos = w.pw_gecos.decode('utf-8')
+            encoding = 'utf-8'
+        except UnicodeError:
+            try:
+                encoding = osutils.get_user_encoding()
+                gecos = w.pw_gecos.decode(encoding)
+            except UnicodeError:
+                raise errors.BzrCommandError('Unable to determine your name.  '
+                   'Use "bzr whoami" to set it.')
+        try:
+            username = w.pw_name.decode(encoding)
+        except UnicodeError:
+            raise errors.BzrCommandError('Unable to determine your name.  '
+                'Use "bzr whoami" to set it.')
+
+        comma = gecos.find(',')
+        if comma == -1:
+            realname = gecos
+        else:
+            realname = gecos[:comma]
+        if not realname:
+            realname = username
+
+    except ImportError:
+        import getpass
+        try:
+            user_encoding = osutils.get_user_encoding()
+            realname = username = getpass.getuser().decode(user_encoding)
+        except UnicodeDecodeError:
+            raise errors.BzrError("Can't decode username as %s." % \
+                    user_encoding)
+
+    import socket
+    return realname, (username + '@' + socket.gethostname())

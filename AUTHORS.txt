@@ -27,6 +27,7 @@ Contributors:
  * Neil Martinsen-Burrell <nmb at wartburg dot edu>
  * Nicholas Allen <nick dot allen at onlinehome dot de>
  * Ohad Kammar <ohad dot kammar at gmail dot com>
+ * Philip Peitsch <philip dot peitsch at gmail dot com>
  * Robert Widhopf-Fenk <hack at robf dot de>
  * Simon Kersey <simon dot kersey at ipl dot com>
  * Toshio Kuratomi <toshio at tiki-lounge dot com>

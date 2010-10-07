@@ -1,5 +1,41 @@
-0.19 Beta 3 - Under development
--------------------------------
+0.20 Beta 1 - In development
+----------------------------
+
+ * Refactor the config code:
+   * Remove the QBzrGlobalConfig class so that we only have one class that
+     writes to qbzr.conf.
+   * Have a global cache for the QBzrConfig, like we have for bzr GlobalConfig,
+     to reduce reading the config from disk. 
+   * Refactor the window.saveSize methods, so that we only have to write the
+     config to disk once.
+   * Lock the config dir when when saving the config file.
+     (Gary van der Merwe)
+ * qrun: fixed '--execute' mode. (Bug #590229, Simon Kersey)
+ * qlog:
+   * Refactor loggraphprovider so that the state and computed data is separated
+     from the cache. Rename to loggraphviz.
+   * Write lots of tests for loggraphviz.
+   * Remove LogFilterProxyModel which improves performance.
+   * --no-graph mode now shows nodes per revision, indented by merge depth.
+   * Fix the layout of octopus merges. (Bug #489383)
+ * qcommit: added option to load commit message from a file.
+   (Bug #640071, Philip Peitsch)
+
+
+0.19.1 - In development
+-----------------------
+Maintenance release.
+
+ * Fix modeltest.py so that it works with Qt 4.7.
+   (Bug #614123, Gary van der Merwe)
+ * qrun: fixed '--execute' mode. (Bug #590229, Simon Kersey) 
+
+
+0.19 "Shepherd's Tree, aka Boscia albitrunca" - 2010/08/05
+----------------------------------------------------------
+Bazaar 2.2 companion release. Suitable for bzr 2.2 and bzr 2.1.
+
+Changes since 0.19b2 release:
 
  * qlog:
    * Context menu actions for tag, and revert will now show a branch menu if
@@ -76,7 +112,15 @@
 Note: qbzr now requires bzr 2.1.
 
 
-0.18.7 "Juniper" - not released yet
+0.18.8 "" - not released yet
+----------------------------
+Maintenance release.
+
+ * qrun:
+   * Fixed '--execute' mode. (Bug #590229, Simon Kersey) 
+
+
+0.18.7 "Juniper" - 2010/08/04
 -----------------------------------
 Maintenance release.
 
@@ -334,7 +378,7 @@ What's new in this release:
      tree is refreshed, and the scroll position is remembered.
      (Gary van der Merwe)
    * It is now possible to rename and move files or directories, and to mark
-     files or directories that have allready been renamed or moved as such.
+     files or directories that have already been renamed or moved as such.
      (Gary van der Merwe)
    * It is now possible to remove files from the branch. (Gary van der Merwe)
    * Show blank icon for missing files. (Bug #418471, Gary van der Merwe)
@@ -434,7 +478,8 @@ Detailed changelog:
    * Now working for bound branches (aka heavyweight checkouts).
      (#422649, Craig Hewetson)
 
-0.14.7 - Under Development
+
+0.14.7 - 2010-09-04
 ----------------------------
 Bugfixes and backported bugfixes.
 

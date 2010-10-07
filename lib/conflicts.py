@@ -26,7 +26,7 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE, BTN_REFRESH,
     QBzrWindow,
-    QBzrGlobalConfig,
+    get_qbzr_config,
     StandardButton,
     )
 

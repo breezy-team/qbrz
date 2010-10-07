@@ -86,17 +86,18 @@ Update QBzr Wiki page
 1. Update QBzr page at Bazaar wiki with corresponding NEWS entry,
    update links to tarball and installers.
    
-   	http://bazaar-vcs.org/QBzr
+   	http://wiki.bazaar.canonical.com/QBzr
 
 
 Make announcement
 -----------------
 1. Send short e-mail with announcement to:
     * <bazaar-announce@lists.canonical.com>
-    * (optionally) <bazaar@lists.canonical.com>
+    * <bazaar@lists.canonical.com> (optionally for beta releases,
+      mandatory for final releases)
     * <qbzr@googlegroups.com>
 
-2. Optionally make announcement about release via Launchpad RSS:
+2. Also make announcement about release via Launchpad RSS:
 
 	https://launchpad.net/qbzr/+announce
 
