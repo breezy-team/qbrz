@@ -602,7 +602,20 @@ class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
         data = index.data(logmodel.GraphDataRole)
         if data.isValid():
             draw_graph = True
-            c_rev, prev_c_rev, labels, is_clicked = data.toPyObject()
+            if QtCore.PYQT_VERSION_STR.startswith('4.5.'):
+                # toPyObject is buggy in 4.5
+                def toPy (x):
+                    if isinstance(x, QtCore.QVariant):
+                        return x.toPyObject()
+                    else:
+                        return x
+                c_rev, prev_c_rev, labels, is_clicked = (
+                    toPy(item) for item in data.toPyObject())
+                labels = [[toPy(x) for x in toPy(label)]
+                           for label in toPy(labels)]
+            else:
+                c_rev, prev_c_rev, labels, is_clicked = data.toPyObject()
+            
         else:
             draw_graph = False
         
