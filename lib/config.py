@@ -468,8 +468,8 @@ class QBzrConfigWindow(QBzrDialog):
         
         
         def save_config(config, parser):
-            ensure_config_dir_exists(os.path.dirname(config._get_filename()))
-            f = open(config._get_filename(), 'wb')
+            ensure_config_dir_exists(os.path.dirname(config.file_name))
+            f = open(config.file_name, 'wb')
             parser.write(f)
             f.close()
         
