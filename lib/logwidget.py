@@ -602,7 +602,20 @@ class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
         data = index.data(logmodel.GraphDataRole)
         if data.isValid():
             draw_graph = True
-            c_rev, prev_c_rev, labels, is_clicked = data.toPyObject()
+            if QtCore.PYQT_VERSION_STR.startswith('4.5.'):
+                # toPyObject is buggy in 4.5
+                def toPy (x):
+                    if isinstance(x, QtCore.QVariant):
+                        return x.toPyObject()
+                    else:
+                        return x
+                c_rev, prev_c_rev, labels, is_clicked = (
+                    toPy(item) for item in data.toPyObject())
+                labels = [[toPy(x) for x in toPy(label)]
+                           for label in toPy(labels)]
+            else:
+                c_rev, prev_c_rev, labels, is_clicked = data.toPyObject()
+            
         else:
             draw_graph = False
         
@@ -691,31 +704,31 @@ class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
                 painter.restore()
                 rect.adjust( (graphCols + 1.5) * boxsize, 0, 0, 0)        
                 
-                painter.save()
-                x = 0
-                try:
-                    tagFont = QtGui.QFont(option.font)
-                    tagFont.setPointSizeF(tagFont.pointSizeF() * 9 / 10)
-            
-                    for label, bg_color, text_color in labels:
-                        tagRect = rect.adjusted(1, 1, -1, -1)
-                        tagRect.setWidth(QtGui.QFontMetrics(tagFont).width(label) + 6)
-                        tagRect.moveLeft(tagRect.x() + x)
-                        painter.setPen(bg_color)
-                        painter.fillRect(tagRect.adjusted(1, 1, -1, -1), bg_color)
-                        tl = tagRect.topLeft()
-                        br = tagRect.bottomRight()
-                        painter.drawLine(tl.x(), tl.y() + 1, tl.x(), br.y() - 1)
-                        painter.drawLine(br.x(), tl.y() + 1, br.x(), br.y() - 1)
-                        painter.drawLine(tl.x() + 1, tl.y(), br.x() - 1, tl.y())
-                        painter.drawLine(tl.x() + 1, br.y(), br.x() - 1, br.y())
-                        painter.setFont(tagFont)
-                        painter.setPen(text_color)
-                        painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, label)
-                        x += tagRect.width() + text_margin
-                finally:
-                    painter.restore()
-                rect.adjust(x, 0, 0, 0)
+            painter.save()
+            x = 0
+            try:
+                tagFont = QtGui.QFont(option.font)
+                tagFont.setPointSizeF(tagFont.pointSizeF() * 9 / 10)
+        
+                for label, bg_color, text_color in labels:
+                    tagRect = rect.adjusted(1, 1, -1, -1)
+                    tagRect.setWidth(QtGui.QFontMetrics(tagFont).width(label) + 6)
+                    tagRect.moveLeft(tagRect.x() + x)
+                    painter.setPen(bg_color)
+                    painter.fillRect(tagRect.adjusted(1, 1, -1, -1), bg_color)
+                    tl = tagRect.topLeft()
+                    br = tagRect.bottomRight()
+                    painter.drawLine(tl.x(), tl.y() + 1, tl.x(), br.y() - 1)
+                    painter.drawLine(br.x(), tl.y() + 1, br.x(), br.y() - 1)
+                    painter.drawLine(tl.x() + 1, tl.y(), br.x() - 1, tl.y())
+                    painter.drawLine(tl.x() + 1, br.y(), br.x() - 1, br.y())
+                    painter.setFont(tagFont)
+                    painter.setPen(text_color)
+                    painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, label)
+                    x += tagRect.width() + text_margin
+            finally:
+                painter.restore()
+            rect.adjust(x, 0, 0, 0)
         
         if not option.text.isEmpty():
             painter.setPen(get_text_color(option, style))

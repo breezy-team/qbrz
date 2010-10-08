@@ -913,10 +913,18 @@ class GraphVizLoader(object):
                             # Ensure only one line to a descendant.
                             if (merged_by.index not in sprout_with_lines):
                                 sprout_with_lines[merged_by.index] = True
-                                if c_revisions[merged_by.index] is not None:
-                                    append_line(
-                                        c_revisions[merged_by.index],
-                                        c_rev, False)
+                                parent = c_revisions[merged_by.index]
+                                if parent is not None:
+                                    if c_rev.f_index - parent.f_index == 1:
+                                        col_index = None
+                                    else:
+                                        col_search_order = line_col_search_order(
+                                            parent.col_index, c_rev.col_index)
+                                        col_index = find_free_column(
+                                            col_search_order,
+                                            parent.f_index, c_rev.f_index)
+                                    append_line(parent, c_rev, False,
+                                                col_index)
             
             # Find a column for this branch.
             #

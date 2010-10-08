@@ -455,7 +455,7 @@ class LogWindow(QBzrWindow):
                 # Not sure what to do if there is an error. Nothing for now
             if revno in gv.revno_rev:
                 rev = gv.revno_rev[revno]
-                index = self.log_list.index_from_rev(rev)
+                index = self.log_list.log_model.index_from_rev(rev)
                 self.log_list.setCurrentIndex(index)
         else:
             if role == self.FilterMessageRole:
