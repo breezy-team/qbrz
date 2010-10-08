@@ -507,6 +507,13 @@ class TestLogGraphVizLayouts(TestCase, TestLogGraphVizMixin):
          'rev-c': ('rev-a', 'rev-b'),
          'rev-d': ('rev-a', 'rev-c'),
         })
+        # d 
+        # ├─╮ 
+        # │ c 
+        # │ ├─╮ 
+        # │ │ b
+        # ├─╯─╯ 
+        # a
         gv.load()
         
         state = loggraphviz.GraphVizFilterState(gv)
@@ -520,8 +527,53 @@ class TestLogGraphVizLayouts(TestCase, TestLogGraphVizMixin):
              ('rev-b', 1, None, [(0, 0, 0, True), (1, 0, 0, True)])  , # │ ○ 
                                                                        # ├─╯ 
              ('rev-a', 0, None, [])                                  ],# ○ 
-            computed)    
+            computed)
 
+    def test_merge_line_hidden2(self):
+        gv = BasicGraphVizLoader(('rev-e',), {
+         'rev-a': (NULL_REVISION, ), 
+         'rev-z': ('rev-a', ),
+         'rev-y': ('rev-a', 'rev-z', ),
+         'rev-b': ('rev-a', ),
+         'rev-c': ('rev-a', ),
+         'rev-d': ('rev-a', 'rev-c'),
+         'rev-e': ('rev-y', 'rev-b', 'rev-d'),
+        })
+        # f     
+        # ├─╮─╮ 
+        # │ b │ 
+        # │ │ │ 
+        # │ │ e   
+        # │ │ ├─╮ 
+        # │ │ │ d
+        # ├─╯─╯─╯ 
+        # a
+        gv.load()
+        
+        state = loggraphviz.GraphVizFilterState(gv)
+        #state.expand_all_branch_lines()
+        state.branch_line_state[(1, 1)] = None
+        state.branch_line_state[(1, 2)] = None
+        #state.branch_line_state[(1, 3)] = None
+        state.branch_line_state[(1, 4)] = None
+        
+        computed = gv.compute_viz(state)
+        # when the merge by branch line, we should show a non direct line
+        # this could layout better, but that's another story...
+        self.assertComputed(
+            [('rev-e', 0, False, [(0, 0, 0, True), (0, 1, 3, False), (0, 2, 5, True)])               , # ⊕     
+                                                                                                       # ├┄╮─╮ 
+             ('rev-b', 2, None, [(0, 0, 0, True), (1, 3, 3, False), (2, 2, 0, True)])                , # │ ┆ ○   
+                                                                                                       # │ ╰┄┼┄╮ 
+             ('rev-c', 3, None, [(0, 0, 0, True), (2, 2, 0, True), (3, 3, 0, True)])                 , # │   │ ○ 
+                                                                                                       # │   │ │ 
+             ('rev-y', 0, True, [(0, 0, 0, True), (0, 1, 2, True), (2, 2, 0, True), (3, 3, 0, True)]), # ⊖   │ │ 
+                                                                                                       # ├─╮ │ │ 
+             ('rev-z', 1, None, [(0, 0, 0, True), (1, 0, 0, True), (2, 0, 0, True), (3, 0, 0, True)]), # │ ○ │ │ 
+                                                                                                       # ├─╯─╯─╯ 
+             ('rev-a', 0, None, [])                                                                  ],# ○ 
+            computed)
+    
     def test_merge_line_hidden_merge_rev_filtered(self):
         gv = BasicGraphVizLoader(('rev-e',), {
          'rev-a': (NULL_REVISION, ), 
@@ -926,6 +978,8 @@ def format_graph_lines(list, use_unicode=True):
         next_line = [' ' for i in range(num_cols)]
         
         for start, end, color, direct in lines:
+            if start is None or end is None:
+                continue
             start = int(round(start))
             end = int(round(end))
             if start == end:
@@ -940,6 +994,8 @@ def format_graph_lines(list, use_unicode=True):
                 line[i] = char_dict[old_char]
             
         for start, end, color, direct in lines:
+            if start is None or end is None:
+                continue
             start = int(round(start))
             end = int(round(end))
             if start < end:
