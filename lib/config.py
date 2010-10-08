@@ -20,6 +20,7 @@
 import re
 import os.path
 from PyQt4 import QtCore, QtGui
+from PyQt4.Qt import Qt
 from bzrlib.config import (
     ensure_config_dir_exists,
     extract_email_address,
@@ -368,6 +369,7 @@ class QBzrConfigWindow(QBzrDialog):
             default = mergeTool.get_name() == defaultMergeTool.get_name()
             self.create_ext_merge_item(mergeTool.get_commandline(), default)
         self.extMergeListIgnore = False
+        self.extMergeList.sortByColumn(0, Qt.AscendingOrder)
 
     def create_ext_merge_item(self, definition, default):
         item = QtGui.QTreeWidgetItem(self.extMergeList)
@@ -633,6 +635,7 @@ class QBzrConfigWindow(QBzrDialog):
                         item.setCheckState(0, QtCore.Qt.Unchecked)
                 changed_item.setCheckState(0, QtCore.Qt.Checked)
                 self.extMergeListIgnore = False
+        self.extMergeList.sortByColumn(0, Qt.AscendingOrder)
 
     def browseEditor(self):
         filename = QtGui.QFileDialog.getOpenFileName(self,
