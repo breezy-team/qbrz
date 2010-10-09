@@ -586,6 +586,7 @@ class QBzrConfigWindow(QBzrDialog):
                 self.extDiffListIgnore = False
 
     def addExtMerge(self):
+        self.extMergeListIgnore = True
         item = QtGui.QTreeWidgetItem(self.extMergeList)
         item.setFlags(QtCore.Qt.ItemIsSelectable |
                       QtCore.Qt.ItemIsEditable |
@@ -594,6 +595,7 @@ class QBzrConfigWindow(QBzrDialog):
         item.setCheckState(0, QtCore.Qt.Unchecked)
         self.extMergeList.setCurrentItem(item)
         self.extMergeList.editItem(item, 0)
+        self.extMergeListIgnore = False
 
     def removeExtMerge(self):
         for item in self.extMergeList.selectedItems():
@@ -616,7 +618,12 @@ class QBzrConfigWindow(QBzrDialog):
             self.create_ext_merge_item(tool.get_commandline(), default)
 
     def extMergeListItemChanged(self, changed_item, col):
-        if col == 0 and not self.extMergeListIgnore:
+        if self.extMergeListIgnore:
+            return
+        if col == 0:
+            if str(changed_item.text(0)).strip() == '':
+                self.removeExtMerge()
+                return
             checked_count = 0
             for index in range(self.extMergeList.topLevelItemCount()):
                 item = self.extMergeList.topLevelItem(index)
