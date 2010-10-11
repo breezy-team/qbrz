@@ -793,8 +793,10 @@ class FileListContainer(QtGui.QWidget):
         (top_revid, old_revid), count = \
             self.log_list.get_selection_top_and_parent_revids_and_count()
         
-        branch = self.log_list.log_model.graph_viz.get_revid_branch(top_revid)
-        tree = branch.repository.revision_tree(top_revid)
-        window = AnnotateWindow(branch, tree, paths[0], file_ids[0])
+        branch_info = \
+            self.log_list.log_model.graph_viz.get_revid_branch_info(top_revid)
+        tree = branch_info.branch.repository.revision_tree(top_revid)
+        window = AnnotateWindow(branch_info.branch, branch_info.tree, tree,
+                                paths[0], file_ids[0])
         window.show()
         self.window().windows.append(window)

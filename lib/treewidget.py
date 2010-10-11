@@ -1862,8 +1862,8 @@ class TreeWidget(RevisionTreeView):
 
         if isinstance(file_id, unicode):
             raise errors.InternalBzrError('file_id should be plain string, not unicode')
-
-        window = AnnotateWindow(self.branch, self.tree, path, file_id)
+        
+        window = AnnotateWindow(self.branch, None, self.tree, path, file_id)
         window.show()
         self.window().windows.append(window)
 

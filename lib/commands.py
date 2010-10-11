@@ -275,7 +275,7 @@ class cmd_qannotate(QBzrCommand):
 
     def _qbzr_run(self, filename=None, revision=None, encoding=None,
                   ui_mode=False, no_graph=False):
-        win = AnnotateWindow(None, None, None, None,
+        win = AnnotateWindow(None, None, None, None, None,
                              encoding=encoding, ui_mode=ui_mode,
                              loader=self._load_branch,
                              loader_args=(filename, revision),
