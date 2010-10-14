@@ -176,11 +176,17 @@ class DiffWindow(QBzrWindow):
         if has_ext_diff():
             show_ext_diff_menu = self.create_ext_diff_action()
             toolbar.addAction(show_ext_diff_menu)
-            toolbar.widgetForAction(show_ext_diff_menu).setPopupMode(QtGui.QToolButton.InstantPopup)
+            widget = toolbar.widgetForAction(show_ext_diff_menu)
+            widget.setPopupMode(QtGui.QToolButton.InstantPopup)
+            widget.setShortcut("Alt+E")
+            show_shortcut_hint(widget)
 
         show_view_menu = self.create_view_menu()
         toolbar.addAction(show_view_menu)
-        toolbar.widgetForAction(show_view_menu).setPopupMode(QtGui.QToolButton.InstantPopup)
+        widget = toolbar.widgetForAction(show_view_menu)
+        widget.setPopupMode(QtGui.QToolButton.InstantPopup)
+        widget.setShortcut("Alt+V")
+        show_shortcut_hint(widget)
 
         spacer = QtGui.QWidget()
         spacer.setSizePolicy(QtGui.QSizePolicy.Expanding,
@@ -274,7 +280,7 @@ class DiffWindow(QBzrWindow):
         return show_view_menu
 
     def create_ignore_ws_action(self):
-        action = QtGui.QAction(gettext("Ignore whitespace changes"), self)
+        action = QtGui.QAction(gettext("&Ignore whitespace changes"), self)
         action.setCheckable(True)
         self.connect(action,
                      QtCore.SIGNAL("toggled (bool)"),
