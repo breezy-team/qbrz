@@ -229,7 +229,7 @@ class DiffWindow(QBzrWindow):
                 gettext("&External Diff"), self)
         action.setToolTip(
             gettext("Launch an external diff application"))
-        ext_diff_menu = ExtDiffMenu(include_builtin = False)
+        ext_diff_menu = ExtDiffMenu(parent=self, include_builtin = False)
         action.setMenu(ext_diff_menu)
         self.connect(ext_diff_menu,
                 QtCore.SIGNAL("triggered(QString)"),
