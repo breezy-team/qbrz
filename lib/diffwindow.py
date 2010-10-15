@@ -23,6 +23,7 @@
 import errno
 import re
 import time
+import string
 
 from PyQt4 import QtCore, QtGui
 
@@ -141,6 +142,7 @@ class DiffWindow(QBzrWindow):
             self.filter_options = FilterOptions(all_enable=True)
         self.complete = complete
         self.ignore_whitespace = False
+        self.delayed_signal_connections = []
 
         self.diffview = SidebySideDiffView(self)
         self.sdiffview = SimpleDiffView(self)
@@ -161,6 +163,17 @@ class DiffWindow(QBzrWindow):
                 self.show_find)
         self.find_toolbar.hide()
         self.addToolBar(self.find_toolbar)
+
+    def connect_later(self, *args, **kwargs):
+        """Schedules a signal to be connected after loading CLI arguments.
+        
+        Accepts the same arguments as QObject.connect method.
+        """
+        self.delayed_signal_connections.append((args, kwargs))
+
+    def process_delayed_connections(self):
+        for (args, kwargs) in self.delayed_signal_connections:
+            self.connect(*args, **kwargs)
 
     def create_main_toolbar(self):
         toolbar = self.addToolBar(gettext("Diff"))
@@ -255,8 +268,8 @@ class DiffWindow(QBzrWindow):
                      self.click_complete)
         view_menu.addAction(view_complete)
 
-        ignore_whitespace = self.create_ignore_ws_action()
-        view_menu.addAction(ignore_whitespace)
+        self.ignore_whitespace_action = self.create_ignore_ws_action()
+        view_menu.addAction(self.ignore_whitespace_action)
 
         def on_left_encoding_changed(encoding):
             if self.branches:
@@ -282,10 +295,10 @@ class DiffWindow(QBzrWindow):
     def create_ignore_ws_action(self):
         action = QtGui.QAction(gettext("&Ignore whitespace changes"), self)
         action.setCheckable(True)
-        self.connect(action,
+        action.setChecked(self.ignore_whitespace);
+        self.connect_later(action,
                      QtCore.SIGNAL("toggled (bool)"),
                      self.click_ignore_whitespace)
-        action.setChecked(self.ignore_whitespace);
         return action
 
     def eventFilter(self, object, event):
@@ -314,15 +327,15 @@ class DiffWindow(QBzrWindow):
         op.run()
 
     def _initial_load(self, op):
-        (tree1, tree2,
-         branch1, branch2,
-         specific_files) = self.arg_provider.get_diff_window_args(
-                                        self.processEvents, op.add_cleanup)
+        args = self.arg_provider.get_diff_window_args(self.processEvents, op.add_cleanup)
 
-        self.trees = (tree1, tree2)
-        self.branches = (branch1, branch2)
-        self.specific_files = specific_files
+        self.trees = (args["old_tree"], args["new_tree"])
+        self.branches = (args.get("old_branch", None), args.get("new_branch",None))
+        self.specific_files = args.get("specific_files", None)
+        self.ignore_whitespace = args.get("ignore_whitespace", False)
+        self.ignore_whitespace_action.setChecked(self.ignore_whitespace)
 
+        self.process_delayed_connections()
         self.load_branch_info()
         self.load_diff()
 
@@ -453,19 +466,7 @@ class DiffWindow(QBzrWindow):
                             elif versioned == (False, True):
                                 groups = [[('insert', 0, 0, 0, len(lines[1]))]]
                             else:
-                                sequences = (lines[0], lines[1])
-                                if self.ignore_whitespace:
-                                    sequences = []
-                                    for l in lines:
-                                        #sequence = (line.translate(None, " \t\r\n") for line in l)
-                                        sequence = (re.sub('\s', '', line) for line in l)
-                                        sequences.append(sequence)
-                                matcher = SequenceMatcher(None, sequences[0], sequences[1])
-                                self.processEvents()
-                                if self.complete:
-                                    groups = list([matcher.get_opcodes()])
-                                else:
-                                    groups = list(matcher.get_grouped_opcodes())
+                                groups = self.difference_groups(lines[0], lines[1])
                             ulines = []
                             for l, encoding in zip(lines, [self.encoding_selector_left.encoding,
                                                            self.encoding_selector_right.encoding]):
@@ -503,6 +504,22 @@ class DiffWindow(QBzrWindow):
                 gettext('No changes found.'),
                 gettext('&OK'))
         self.view_refresh.setEnabled(self.can_refresh())
+
+    def difference_groups(self, left, right):
+        print type(left[0])
+        if self.ignore_whitespace:
+            table = string.maketrans("", "")
+            strip = lambda l : l.translate(table, string.whitespace)
+            left  = (line.translate(table, string.whitespace) for line in left)
+            right = (line.translate(table, string.whitespace) for line in right)
+        matcher = SequenceMatcher(None, left, right)
+        self.processEvents()
+        if self.complete:
+            groups = list([matcher.get_opcodes()])
+        else:
+            groups = list(matcher.get_grouped_opcodes())
+
+        return groups
 
     def click_toggle_view_mode(self, checked):
         if checked:
