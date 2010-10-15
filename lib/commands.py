@@ -275,7 +275,7 @@ class cmd_qannotate(QBzrCommand):
 
     def _qbzr_run(self, filename=None, revision=None, encoding=None,
                   ui_mode=False, no_graph=False):
-        win = AnnotateWindow(None, None, None, None,
+        win = AnnotateWindow(None, None, None, None, None,
                              encoding=encoding, ui_mode=ui_mode,
                              loader=self._load_branch,
                              loader_args=(filename, revision),
@@ -348,11 +348,23 @@ class cmd_qcommit(QBzrCommand):
     takes_options = [
             bzr_option('commit', 'message'),
             bzr_option('commit', 'local'),
+            bzr_option('commit', 'file'),
+            Option('file-encoding', type=check_encoding,
+               help='Encoding of commit message file content.'),
             ui_mode_option,
             ]
     aliases = ['qci']
 
-    def _qbzr_run(self, selected_list=None, message=None, local=False, ui_mode=False):
+    def _qbzr_run(self, selected_list=None, message=None, file=None,
+                  local=False, ui_mode=False, file_encoding=None):
+        if message is not None and file:
+            raise errors.BzrCommandError("please specify either --message or --file")
+        if file:
+            f = open(file)
+            try:
+                message = f.read().decode(file_encoding or osutils.get_user_encoding())
+            finally:
+                f.close()
         tree, selected_list = builtins.tree_files(selected_list)
         if selected_list == ['']:
             selected_list = None

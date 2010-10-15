@@ -617,7 +617,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             return
         dir_item = self.inventory_data[dir_id]
         if dir_item.children_ids is not None:
-            return # This dir has allready been loaded.
+            return # This dir has already been loaded.
         if not dir_item.item.kind=='directory':
             return
         
@@ -1862,8 +1862,8 @@ class TreeWidget(RevisionTreeView):
 
         if isinstance(file_id, unicode):
             raise errors.InternalBzrError('file_id should be plain string, not unicode')
-
-        window = AnnotateWindow(self.branch, self.tree, path, file_id)
+        
+        window = AnnotateWindow(self.branch, None, self.tree, path, file_id)
         window.show()
         self.window().windows.append(window)
 

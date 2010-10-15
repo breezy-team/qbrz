@@ -1,12 +1,7 @@
-./MANIFEST
 ./api
 ./build
 ./docs/**/*.html
-./installer/_lib/*
+./launchpad-export.tar.gz
 ./locale
-__x
+./MANIFEST
 tags
-# files from standalone QBzr installation
-./_lib*
-./uninst.exe
-launchpad-export.tar.gz

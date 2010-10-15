@@ -69,11 +69,17 @@ class RevisionTreeView(QtGui.QTreeView):
         model.connect(model,
                       QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                       self.data_changed)
+        model.connect(model,
+                      QtCore.SIGNAL("layoutChanged()"),
+                      self.layout_changed)
     
     def scroll_changed(self, value):
         self.load_visible_revisions()
     
     def data_changed(self, start_index, end_index):
+        self.load_visible_revisions()
+    
+    def layout_changed(self):
         self.load_visible_revisions()
     
     def collapsed_expanded(self, index):
@@ -171,7 +177,7 @@ def get_text_color ( option, style):
     
     if option.state & QtGui.QStyle.State_Selected:
         if has_vista_style and isinstance(style, QtGui.QWindowsVistaStyle):
-            # QWindowsVistaStyle normaly modifies it palette,
+            # QWindowsVistaStyle normally modifies it palette,
             # but as we can't reuse that code, we have to reproduce
             # what it does here.
             # https://bugs.edge.launchpad.net/qbzr/+bug/457895

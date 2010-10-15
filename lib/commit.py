@@ -52,6 +52,7 @@ from bzrlib.plugins.qbzr.lib.diff import (
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib import logmodel
+from bzrlib.plugins.qbzr.lib.loggraphviz import BranchInfo
 from bzrlib.plugins.qbzr.lib.treewidget import (
     TreeWidget,
     SelectAllCheckBox,
@@ -168,24 +169,21 @@ class TextEdit(QtGui.QTextEdit):
 
 
 class PendingMergesList(LogList):
-    def __init__(self, processEvents, throbber, no_graph, parent=None):
-        super(PendingMergesList, self).__init__(processEvents,
-                                        throbber, no_graph, parent)
+    def __init__(self, *args, **kargs):
+        super(PendingMergesList, self).__init__(*args, **kargs)
         # The rev numbers are currently bogus. Hide that column.
         # We could work out the revision numbers by loading whole graph, but
         # that is going to make this much slower.
         self.header().hideSection(0)
+        self.log_model.last_rev_is_placeholder = True
     
-    def load(self):
-        self.graph_provider.lock_read_branches()
-        try:
-            self.graph_provider.load_tags()
-            self.log_model.load_graph_pending_merges()
-        finally:
-            self.graph_provider.unlock_branches()
-
-    def create_context_menu(self):
-        super(PendingMergesList, self).create_context_menu()
+    def load_tree(self, tree):
+        bi = BranchInfo('', tree, tree.branch)
+        self.log_model.load(
+            (bi,), bi, None, False, logmodel.PendingMergesGraphVizLoader)
+    
+    def create_context_menu(self, file_ids):
+        super(PendingMergesList, self).create_context_menu(file_ids)
         showinfo = QtGui.QAction("Show &information...", self)
         self.context_menu.insertAction(self.context_menu.actions()[0],
                                        showinfo)
@@ -203,10 +201,10 @@ class PendingMergesList(LogList):
         if index is None:
             index = self.currentIndex()
         
-        # XXX We should make this show all selected revsions...
+        # XXX We should make this show all selected revisions...
         
         revid = str(index.data(logmodel.RevIdRole).toString())
-        branch = self.graph_provider.get_revid_branch(revid)
+        branch = self.log_model.graph_viz.get_revid_branch(revid)
         parent_window = self.window()
         window = RevisionView(revid, branch, parent=parent_window)
         window.show()
@@ -395,7 +393,7 @@ class CommitWindow(SubProcessDialog):
             self.selectall_checkbox.setCheckState(QtCore.Qt.Checked)
             self.selectall_checkbox.setEnabled(False)
             self.pending_merges_list = PendingMergesList(
-                self.processEvents, self.throbber, False, self)
+                self.processEvents, self.throbber, self)
             
             self.tabWidget.addTab(self.pending_merges_list,
                                   gettext("Pending Merges"))
@@ -471,9 +469,7 @@ class CommitWindow(SubProcessDialog):
             self.tree.lock_read()
             try:
                 if self.pending_merges_list:
-                    self.pending_merges_list.load_branch(self.tree.branch,
-                                                         None,
-                                                         self.tree)
+                    self.pending_merges_list.load_tree(self.tree)
                     # Force the loading of the revisions, before we start
                     # loading the file list.
                     self.pending_merges_list._load_visible_revisions()
