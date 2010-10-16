@@ -21,7 +21,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import errno
-import re
 import time
 import string
 
@@ -506,7 +505,6 @@ class DiffWindow(QBzrWindow):
         self.view_refresh.setEnabled(self.can_refresh())
 
     def difference_groups(self, left, right):
-        print type(left[0])
         if self.ignore_whitespace:
             table = string.maketrans("", "")
             strip = lambda l : l.translate(table, string.whitespace)
