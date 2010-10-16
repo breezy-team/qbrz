@@ -117,7 +117,7 @@ class ConflictsWindow(QBzrWindow):
 
     def initialize_ui(self):
         defined_tools = mergetools.get_merge_tools()
-        default_tool = mergetools.get_user_selected_merge_tool()
+        default_tool = mergetools.get_default_merge_tool()
         for merge_tool in defined_tools:
             self.merge_tools_combo.insertItem(self.merge_tools_combo.count(), merge_tool.get_name())
         if default_tool is not None:

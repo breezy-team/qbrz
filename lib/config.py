@@ -364,7 +364,7 @@ class QBzrConfigWindow(QBzrDialog):
         # Merge
         self.extMergeListIgnore = True
         definedMergeTools = mergetools.get_merge_tools(config)
-        defaultMergeTool = mergetools.get_user_selected_merge_tool(config)
+        defaultMergeTool = mergetools.get_default_merge_tool(config)
         for mergeTool in definedMergeTools:
             default = mergeTool.get_name() == defaultMergeTool.get_name()
             self.create_ext_merge_item(mergeTool.get_commandline(), default)
@@ -490,7 +490,7 @@ class QBzrConfigWindow(QBzrDialog):
         
         mergetools.set_merge_tools(defined_merge_tools)
         if default_merge_tool is not None:
-            mergetools.set_user_selected_merge_tool(default_merge_tool)
+            mergetools.set_default_merge_tool(default_merge_tool)
 
     def do_accept(self):
         """Save changes and close the window."""
@@ -609,7 +609,7 @@ class QBzrConfigWindow(QBzrDialog):
         for tool in current_tools + detected_tools:
             combined_tools[tool.get_name()] = tool
         new_tools = combined_tools.values()
-        default_tool = mergetools.get_user_selected_merge_tool()
+        default_tool = mergetools.get_default_merge_tool()
         new_tools.sort(cmp=lambda x,y: cmp(x.get_name(), y.get_name()))
         self.extMergeList.clear()
         for tool in new_tools:
