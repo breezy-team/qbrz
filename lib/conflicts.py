@@ -84,6 +84,8 @@ class ConflictsWindow(QBzrWindow):
                      QtCore.SIGNAL("currentIndexChanged(int)"),
                      self.update_merge_tool_ui)
         
+        self.merge_tool_error = QtGui.QLabel('', self)
+        
         self.program_launch_button = QtGui.QPushButton(gettext("&Launch..."), self)
         self.program_launch_button.setEnabled(False)
         self.connect(
@@ -94,6 +96,7 @@ class ConflictsWindow(QBzrWindow):
         self.program_label.setBuddy(self.merge_tools_combo)
         hbox.addWidget(self.program_label)
         hbox.addWidget(self.merge_tools_combo)
+        hbox.addWidget(self.merge_tool_error)
         hbox.addStretch(1)
         hbox.addWidget(self.program_launch_button)
         vbox.addLayout(hbox)
@@ -175,7 +178,7 @@ class ConflictsWindow(QBzrWindow):
 
     def update_merge_tool_ui(self):
         enabled, error_msg = self.is_merge_tool_launchable()
-        self.program_launch_button.setToolTip(error_msg)
+        self.merge_tool_error.setText(error_msg)
         self.program_launch_button.setEnabled(enabled)
         self.merge_action.setEnabled(enabled)
 
