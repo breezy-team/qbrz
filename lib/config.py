@@ -479,15 +479,7 @@ class QBzrConfigWindow(QBzrDialog):
         qconfig.save()
 
         # Merge
-        default_merge_tool = None
-        defined_merge_tools = []
-        for index in range(self.extMergeList.topLevelItemCount()):
-            item = self.extMergeList.topLevelItem(index)
-            mergeTool = mergetools.MergeTool(unicode(item.text(0)))
-            defined_merge_tools.append(mergeTool)
-            if item.checkState(0) == QtCore.Qt.Checked:
-                default_merge_tool = mergeTool
-        
+        defined_merge_tools, default_merge_tool = self.defineMergeTools()
         mergetools.set_merge_tools(defined_merge_tools)
         if default_merge_tool is not None:
             mergetools.set_default_merge_tool(default_merge_tool)
@@ -601,9 +593,20 @@ class QBzrConfigWindow(QBzrDialog):
         for item in self.extMergeList.selectedItems():
             index = self.extMergeList.indexOfTopLevelItem(item)
             self.extMergeList.takeTopLevelItem(index)
+    
+    def defineMergeTools(self):
+        defined_merge_tools = []
+        default_merge_tool = None
+        for index in range(self.extMergeList.topLevelItemCount()):
+            item = self.extMergeList.topLevelItem(index)
+            mergeTool = mergetools.MergeTool(unicode(item.text(0)))
+            defined_merge_tools.append(mergeTool)
+            if item.checkState(0) == QtCore.Qt.Checked:
+                default_merge_tool = mergeTool
+        return defined_merge_tools, default_merge_tool
 
     def detectMergeTools(self):
-        current_tools = mergetools.get_merge_tools()
+        current_tools, current_default_tool = self.defineMergeTools()
         detected_tools = mergetools.detect_merge_tools()
         combined_tools = {}
         for tool in current_tools + detected_tools:
