@@ -20,6 +20,8 @@
    * Fix the layout of octopus merges. (Bug #489383)
  * qcommit: added option to load commit message from a file.
    (Bug #640071, Philip Peitsch)
+ * Use bzrlib.mergetools for managing and using external merge tools in qconfig
+   and qconflicts. (Bug #489915, Gordon Tyler)
 
 
 0.19.1 - In development
