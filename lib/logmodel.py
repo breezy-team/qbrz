@@ -100,7 +100,8 @@ class WithWorkingTreeGraphVizLoader(
         
         for bi in self.branches:
             if not bi.tree is None:
-                wt_revid = CURRENT_REVISION + bi.tree.basedir
+                wt_revid = (CURRENT_REVISION +
+                            bi.tree.basedir.encode('unicode-escape'))
                 if wt_revid in self.revid_head_info:
                     cached_revisions[wt_revid] = WorkingTreeRevision(wt_revid, bi.tree)
 

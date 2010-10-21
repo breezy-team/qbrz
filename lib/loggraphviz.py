@@ -1202,7 +1202,8 @@ class WithWorkingTreeGraphVizLoader(GraphVizLoader):
         self.update_ui()
         
         if bi.tree:
-            wt_revid = CURRENT_REVISION + bi.tree.basedir
+            wt_revid = (CURRENT_REVISION +
+                        bi.tree.basedir.encode('unicode-escape'))
             if label:
                 wt_label = "%s - Working Tree" % label
             else:
