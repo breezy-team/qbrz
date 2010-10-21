@@ -645,7 +645,7 @@ class GraphVizLoader(object):
                 gc.enable()
         
         if self.no_graph:
-            for c_rev in c_revisions:
+            for c_rev in computed.filtered_revs:
                 c_rev.col_index = c_rev.rev.merge_depth * 0.5
             return computed
         

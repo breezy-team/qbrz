@@ -651,6 +651,46 @@ class TestLogGraphVizLayouts(TestCase, TestLogGraphVizMixin):
              ('rev-a', 0, None, [])                                                  ],# ○
             computed)
 
+    def test_no_graph(self):
+        gv = BasicGraphVizLoader(('rev-d',), {
+         'rev-a': (NULL_REVISION, ), 
+         'rev-b': ('rev-a', ),
+         'rev-c': ('rev-a', ),
+         'rev-d': ('rev-b', 'rev-c'),
+        }, no_graph=True)
+        gv.load()
+        
+        state = loggraphviz.GraphVizFilterState(gv)
+        computed = gv.compute_viz(state)
+        self.assertComputed(
+            [('rev-d', 0.0, None, []), # ○ 
+                                       #   
+             ('rev-c', 0.5, None, []), #  ○ 
+                                       #    
+             ('rev-b', 0.0, None, []), # ○ 
+                                       #   
+             ('rev-a', 0.0, None, [])],# ○ 
+            computed)
+    
+    def test_no_graph_filtered(self):
+        gv = BasicGraphVizLoader(('rev-d',), {
+         'rev-a': (NULL_REVISION, ), 
+         'rev-b': ('rev-a', ),
+         'rev-c': ('rev-a', ),
+         'rev-d': ('rev-b', 'rev-c'),
+        }, no_graph=True)
+        gv.load()
+        
+        state = loggraphviz.GraphVizFilterState(gv)
+        state.filters.append(BasicFilterer(set(['rev-b'])))
+        computed = gv.compute_viz(state)
+        self.assertComputed(
+            [('rev-d', 0.0, None, []), # ○ 
+                                       #   
+             ('rev-c', 0.5, None, []), #  ○ 
+                                       # 
+             ('rev-a', 0.0, None, [])],# ○ 
+            computed)
 
 class TestLogGraphProviderState(TestCase):
 
