@@ -1888,7 +1888,7 @@ class TreeWidget(RevisionTreeView):
         
         show_diff(arg_provider, ext_diff=ext_diff,
                   parent_window=self.window())
-    
+
     def unversioned_parents_paths(self, item, include_item=True):
         paths = []
         first = True
@@ -2006,12 +2006,12 @@ class TreeWidget(RevisionTreeView):
         except Exception:
             report_exception(type=SUB_LOAD_METHOD, window=self.window())
         self.refresh()
-    
+
     def mark_move(self):
         items = self.get_selection_items()
         if len(items) <> 2:
             return
-        
+
         if missing_unversioned(items[0], items[1]):
             old = items[0]
             new = items[1]
@@ -2022,9 +2022,7 @@ class TreeWidget(RevisionTreeView):
             return
         try:
             # add the new parent
-            self.tree.add(self.unversioned_parents_paths(
-                self.tree_model.inventory_data[new], False))
-            
+            self.tree.add(self.unversioned_parents_paths(new, False))
             self.tree.rename_one(old.path, new.path, after=True)
         except Exception:
             report_exception(type=SUB_LOAD_METHOD, window=self.window())
