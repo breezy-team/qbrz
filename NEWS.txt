@@ -1,3 +1,10 @@
+0.19.3 - Under Development
+--------------------------
+
+ * qlog: fix actions that use the branch menu on PyQt 4.7.4.
+   (Bug #621158, Gary van der Merwe)
+
+
 0.19.2 - 2010/09/24
 -------------------
 Maintenance release.
