@@ -40,7 +40,12 @@ from bzrlib import errors
 from bzrlib.bzrdir import BzrDir
 from bzrlib.transport.local import LocalTransport
 from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
-from bzrlib.graph import (Graph, StackedParentsProvider, KnownGraph)
+from bzrlib.graph import (
+    Graph,
+    StackedParentsProvider,
+    KnownGraph,
+    DictParentsProvider,
+    )
 
 
 class BranchInfo(object):
@@ -199,8 +204,6 @@ class GraphVizLoader(object):
 
         self.lock_read_branches()
         try:
-            self.graph = self.get_graph()
-            
             head_revids, graph_parents = self.load_graph_parents()
             self.process_graph_parents(head_revids, graph_parents)
             
@@ -215,13 +218,6 @@ class GraphVizLoader(object):
         finally:
             self.unlock_branches()
     
-    def get_graph(self):
-        if len(self.repos) == 1:
-            return self.repos[0].get_graph()
-        else:
-            parents_providers = [repo._make_parents_provider() \
-                                 for repo in self.repos]
-            return Graph(StackedParentsProvider(parents_providers))
     
     def load_current_dir_repo(self):
         # There are no local repositories. Try open the repository
@@ -323,21 +319,22 @@ class GraphVizLoader(object):
                         pm_label = "Pending Merge"
                     append_head_info(revid, bi, pm_label)
             self.update_ui()
-        return branch_heads, branch_heads, ()
+        return branch_heads, ()
     
     def load_graph_parents(self):
         """Load the heads of the graph, and the graph parents"""
         
-        extra_parents = []
+        extra_parents = {}
         branches_heads = []
         
         def load_branch_heads(bi, insert_at_begin=False):
-            load_heads, sort_heads, extra_parents_ = self.load_branch_heads(bi)
-            extra_parents.extend(extra_parents_)
+            branch_heads, extra_parents_ = self.load_branch_heads(bi)
+            for key, parents in extra_parents_:
+                extra_parents[key] = parents
             if insert_at_begin:
-                branches_heads.insert(0, (load_heads, sort_heads))
+                branches_heads.insert(0, branch_heads)
             else:
-                branches_heads.append((load_heads, sort_heads))
+                branches_heads.append(branch_heads)
         
         for bi in self.branches:
             # Don't do the primary branch, as that will be inserted later at
@@ -346,29 +343,26 @@ class GraphVizLoader(object):
                 load_branch_heads(bi)
         
         if len(branches_heads) >= 2:
-            head_revids = [revid for load_heads, sort_heads in branches_heads
-                                 for revid in load_heads]
+            head_revids = [revid for branch_heads in branches_heads
+                                 for revid in branch_heads]
             head_revs = self.load_revisions(head_revids)
             
             get_max_timestamp = lambda branch_heads: max(
-                [head_revs[revid].timestamp for revid in branch_heads[0]])
+                [head_revs[revid].timestamp for revid in branch_heads])
             branches_heads.sort(key=get_max_timestamp, reverse=True)
         
         if self.primary_bi:
             load_branch_heads(self.primary_bi, True)
         
-        load_heads = [revid for load_heads_, sort_heads_ in branches_heads
-                      for revid in load_heads_]
-        sort_heads = [revid for load_heads_, sort_heads_ in branches_heads
-                      for revid in sort_heads_]
+        head_revids = [revid for branch_heads in branches_heads
+                             for revid in branch_heads]
         
-        def parents_iter():
-            for parents in extra_parents:
-                yield parents
-            for parents in self.graph.iter_ancestry(load_heads):
-                yield parents
+        parents_providers = [repo._make_parents_provider() \
+                             for repo in self.repos]
+        parents_providers.append(DictParentsProvider(extra_parents))
+        self.graph = Graph(StackedParentsProvider(parents_providers))
         
-        return sort_heads, parents_iter()
+        return head_revids, self.graph.iter_ancestry(head_revids)
     
     def process_graph_parents(self, head_revids, graph_parents_iter):
         graph_parents = {}
@@ -1187,8 +1181,7 @@ class WithWorkingTreeGraphVizLoader(GraphVizLoader):
         # == For branch without tree ==
         # branch tip              | Yes        | head       | yes
         
-        load_heads = []
-        sort_heads = []
+        heads = []
         extra_parents = []
         
         if len(self.branches) > 0:
@@ -1198,7 +1191,6 @@ class WithWorkingTreeGraphVizLoader(GraphVizLoader):
         
         branch_last_revision = bi.branch.last_revision()
         self.append_head_info(branch_last_revision, bi, bi.label)
-        load_heads.append(branch_last_revision)
         self.update_ui()
         
         if bi.tree:
@@ -1212,13 +1204,12 @@ class WithWorkingTreeGraphVizLoader(GraphVizLoader):
             parent_ids = bi.tree.get_parent_ids()
             
             extra_parents.append((wt_revid, parent_ids))
-            load_heads.extend(parent_ids)
             
             if parent_ids:
                 # first parent is last revision of the tree
                 if parent_ids[0] != branch_last_revision:
                     # tree is not up to date.
-                    sort_heads.append(branch_last_revision)
+                    heads.append(branch_last_revision)
                 
                 # other parents are pending merges
                 for revid in parent_ids[1:]:
@@ -1228,12 +1219,12 @@ class WithWorkingTreeGraphVizLoader(GraphVizLoader):
                         pm_label = "Pending Merge"
                     self.append_head_info(revid, bi, pm_label)
             
-            sort_heads.append(wt_revid)
+            heads.append(wt_revid)
             self.update_ui()
         else:
-            sort_heads.append(branch_last_revision)
+            heads.append(branch_last_revision)
         
-        return load_heads, sort_heads, extra_parents
+        return heads, extra_parents
 
 
 class GraphVizFilterState(object):
