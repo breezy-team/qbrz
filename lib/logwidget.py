@@ -170,7 +170,7 @@ class LogList(RevisionTreeView):
                     menu = BranchMenu(text, self, self.log_model.graph_viz,
                                       require_wt)
                     self.connect(menu,
-                                 QtCore.SIGNAL("triggered(QVariant)"),
+                                 QtCore.SIGNAL("bm_triggered"),
                                  triggered)
                     action = self.context_menu.addMenu(menu)
                 return action
@@ -346,7 +346,7 @@ class LogList(RevisionTreeView):
         gv = self.log_model.graph_viz
         
         if selected_branch_info:
-            selected_branch_info = selected_branch_info.toPyObject()
+            selected_branch_info = selected_branch_info
         else:
             assert(len(gv.branches)==1)
             selected_branch_info = gv.branches[0]
@@ -369,7 +369,6 @@ class LogList(RevisionTreeView):
         old_revno_str = gv.revid_rev[old_revid].revno_str
         
         if selected_branch_info:
-            selected_branch_info = selected_branch_info.toPyObject()
             single_branch = False
         else:
             assert(len(gv.branches)==1)
@@ -591,7 +590,8 @@ class BranchMenu(QtGui.QMenu):
         return visible_action_count
     
     def triggered(self, action):
-        self.emit(QtCore.SIGNAL("triggered(QVariant)"), action.data())
+        branch_info = action.data().toPyObject()
+        self.emit(QtCore.SIGNAL("bm_triggered"), branch_info)
 
 
 class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):

@@ -37,6 +37,8 @@ Compatibility between qbzr and bzr versions
  * QBzr 0.19 required bzr 2.2 and compatible with bzr 2.1.
    It may not work with older versions of bzr.
 
+ * QBzr 0.20 is targeted to bzr 2.3 and compatible with bzr 2.2.
+   It may not work with older versions of bzr.
 
 Other bzr plugins that improve QBzr
 ===================================
