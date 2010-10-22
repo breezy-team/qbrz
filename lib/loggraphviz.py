@@ -1556,7 +1556,6 @@ class WorkingTreeHasChangeFilter(object):
             if self.file_ids:
                 specific_files = [tree.id2path(file_id)
                                   for file_id in self.file_ids]
-                print specific_files
             
             changes = tree.iter_changes(from_tree,
                                         specific_files=specific_files)
