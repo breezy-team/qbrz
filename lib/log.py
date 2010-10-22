@@ -33,7 +33,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib.trace import reports_exception, SUB_LOAD_METHOD
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
@@ -241,7 +240,8 @@ class LogWindow(QBzrWindow):
             
             branches, primary_bi, file_ids = self.get_branches_and_file_ids()
             self.log_list.load(branches, primary_bi, file_ids,
-                               self.no_graph, logmodel.GraphVizLoader)
+                               self.no_graph,
+                               logmodel.WithWorkingTreeGraphVizLoader)
             self.connect(self.log_list.selectionModel(),
                          QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
                          self.update_selection)
@@ -595,6 +595,7 @@ class FileListContainer(QtGui.QWidget):
         revids, count = \
             self.log_list.get_selection_top_and_parent_revids_and_count()
         gv = self.log_list.log_model.graph_viz
+        gv_is_wtgv = isinstance(gv, logmodel.WithWorkingTreeGraphVizLoader)
         
         if not revids:
             return
@@ -630,9 +631,9 @@ class FileListContainer(QtGui.QWidget):
                         self.processEvents()
                         try:
                             for revid in repo_revids:
-                                if revid.startswith(CURRENT_REVISION):
-                                    rev = cached_revisions[revid]
-                                    tree = rev.tree
+                                if (revid.startswith(CURRENT_REVISION) and
+                                    gv_is_wtgv):
+                                    tree = gv.working_trees[revid]
                                 else:
                                     tree = repo.revision_tree(revid)
                                 self.tree_cache[revid] = tree

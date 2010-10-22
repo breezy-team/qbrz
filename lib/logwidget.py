@@ -22,7 +22,7 @@ from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
                                                  RevNoItemDelegate,
                                                  get_text_color)
-from bzrlib.revision import NULL_REVISION
+from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.plugins.qbzr.lib.util import (
     runs_in_loading_queue,
     )
@@ -494,11 +494,20 @@ class LogList(RevisionTreeView):
         new_branch = self.log_model.graph_viz.get_revid_branch(new_revid)
         old_branch =  self.log_model.graph_viz.get_revid_branch(old_revid)
         
+        def get_tree_if_current(revid):
+            if (revid.startswith(CURRENT_REVISION) and
+                isinstance(self.log_model.graph_viz,
+                            logmodel.WithWorkingTreeGraphVizLoader)):
+                return self.log_model.graph_viz.working_trees[revid]
+        
         arg_provider = diff.InternalDiffArgProvider(
-                                        old_revid, new_revid,
-                                        old_branch, new_branch,
-                                        specific_files = specific_files,
-                                        specific_file_ids = specific_file_ids)
+            old_revid, new_revid,
+            old_branch, new_branch,
+            old_tree=get_tree_if_current(old_revid),
+            new_tree=get_tree_if_current(new_revid), 
+            specific_files = specific_files,
+            specific_file_ids = specific_file_ids)
+        
         
         diff.show_diff(arg_provider, ext_diff = ext_diff,
                        parent_window = self.window())

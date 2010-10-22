@@ -98,12 +98,14 @@ class WithWorkingTreeGraphVizLoader(
     def load(self):
         super(GraphVizLoader, self).load()
         
+        self.working_trees = {}
         for bi in self.branches:
             if not bi.tree is None:
                 wt_revid = (CURRENT_REVISION +
                             bi.tree.basedir.encode('unicode-escape'))
                 if wt_revid in self.revid_head_info:
                     cached_revisions[wt_revid] = WorkingTreeRevision(wt_revid, bi.tree)
+                    self.working_trees[wt_revid] = bi.tree
 
 class FilterScheduler(object):
     def __init__(self, filter_changed_callback):
