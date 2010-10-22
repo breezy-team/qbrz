@@ -1160,6 +1160,17 @@ class WithWorkingTreeGraphVizLoader(GraphVizLoader):
     in the graph, as if it was already committed.
     """
     
+    def tree_revid(self, tree):
+        return CURRENT_REVISION + tree.basedir.encode('unicode-escape')
+    
+    def load(self):
+        self.working_trees = {}
+        for bi in self.branches:
+            if not bi.tree is None:
+                self.working_trees[self.tree_revid(bi.tree)] = bi.tree
+        
+        super(WithWorkingTreeGraphVizLoader, self).load()
+    
     def load_branch_heads(self, bi):
         # returns load_heads, sort_heads and also calls append_head_info.
         #
@@ -1194,8 +1205,7 @@ class WithWorkingTreeGraphVizLoader(GraphVizLoader):
         self.update_ui()
         
         if bi.tree:
-            wt_revid = (CURRENT_REVISION +
-                        bi.tree.basedir.encode('unicode-escape'))
+            wt_revid = self.tree_revid(bi.tree)
             if label:
                 wt_label = "%s - Working Tree" % label
             else:
@@ -1486,6 +1496,74 @@ class FileIdFilter (object):
     
     def get_revision_visible(self, rev):
         return self.filter_file_id[rev.index]
+
+
+class WorkingTreeHasChangeFilter(object):
+    """
+    Filter out working trees that don't have any changes.
+    """
+    
+    def __init__(self, graph_viz, filter_changed_callback, file_ids):
+        self.graph_viz = graph_viz
+        self.file_ids = file_ids
+        if not isinstance(graph_viz, WithWorkingTreeGraphVizLoader):
+            raise TypeError('graph_viz expected to be a '
+                            'WithWorkingTreeGraphVizLoader')
+        self.filter_changed_callback = filter_changed_callback
+        self.tree_revids_with_changes = set()
+    
+    def load(self):
+        """Load if the working trees have changes."""
+        self.tree_revids_with_changes = set()
+        self.graph_viz.throbber_show()
+        try:
+            for wt_revid, tree in self.graph_viz.working_trees.iteritems():
+                if self.has_changes(tree):
+                    self.tree_revids_with_changes.add(wt_revid)
+                rev = self.graph_viz.revid_rev[wt_revid]
+                self.filter_changed_callback([rev], False)
+            self.filter_changed_callback([], True) 
+        finally:
+            self.graph_viz.throbber_hide()
+
+    def has_changes(self, tree):
+        """Quickly check that the tree contains at least one commitable change.
+
+        :param _from_tree: tree to compare against to find changes (default to
+            the basis tree and is intended to be used by tests).
+
+        :return: True if a change is found. False otherwise
+        """
+        tree.lock_read()
+        try:
+            # Copied from mutabletree, cause we need file_ids too.
+            # Check pending merges
+            if len(tree.get_parent_ids()) > 1:
+                return True
+            from_tree = tree.basis_tree()
+            
+            specific_files = None
+            if self.file_ids:
+                specific_files = tree.ids2paths(self.file_ids)
+            
+            changes = tree.iter_changes(from_tree, specific_files=specific_files)
+            try:
+                change = changes.next()
+                # Exclude root (talk about black magic... --vila 20090629)
+                if change[4] == (None, None):
+                    change = changes.next()
+                return True
+            except StopIteration:
+                # No changes
+                return False
+        finally:
+            tree.unlock()
+    
+    def get_revision_visible(self, rev):
+        if rev.revid.startswith(CURRENT_REVISION):
+            return rev.revid in self.tree_revids_with_changes
+        else:
+            return True
 
 
 class ComputedRevisionData(object):

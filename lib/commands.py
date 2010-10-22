@@ -473,7 +473,8 @@ class cmd_qlog(QBzrCommand):
     takes_options = [
         ui_mode_option,
         Option('no-graph', help="Shows the log with no graph."),
-        Option('show-trees', help="Show working tree changes as a node in the graph"),
+        Option('show-trees', help="Show working trees that have changes "
+                                  "as nodes in the graph"),
         ]
 
     def _qbzr_run(self, locations_list=None, ui_mode=False, no_graph=False,
