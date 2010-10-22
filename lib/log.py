@@ -82,7 +82,8 @@ class LogWindow(QBzrWindow):
 
     def __init__(self, locations=None,
                  branch=None, tree=None, specific_file_ids=None,
-                 parent=None, ui_mode=True, no_graph=False):
+                 parent=None, ui_mode=True, no_graph=False,
+                 show_trees=False):
         """Create qlog window.
 
         Note: you must use either locations or branch+tree+specific_file_id
@@ -112,6 +113,7 @@ class LogWindow(QBzrWindow):
         self.restoreSize("log", (710, 580))
         
         self.no_graph = no_graph
+        self.show_trees = show_trees
         if branch:
             self.branch = branch
             self.tree = tree
@@ -239,9 +241,13 @@ class LogWindow(QBzrWindow):
                 self.set_title ((self.title, lt))
             
             branches, primary_bi, file_ids = self.get_branches_and_file_ids()
+            if self.show_trees:
+                gz_cls = logmodel.WithWorkingTreeGraphVizLoader
+            else:
+                gz_cls = logmodel.GraphVizLoader
+            
             self.log_list.load(branches, primary_bi, file_ids,
-                               self.no_graph,
-                               logmodel.WithWorkingTreeGraphVizLoader)
+                               self.no_graph, gz_cls)
             self.connect(self.log_list.selectionModel(),
                          QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
                          self.update_selection)

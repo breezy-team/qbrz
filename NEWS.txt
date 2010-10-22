@@ -18,6 +18,8 @@
    * Remove LogFilterProxyModel which improves performance.
    * --no-graph mode now shows nodes per revision, indented by merge depth.
    * Fix the layout of octopus merges. (Bug #489383)
+   * Add a option --show-trees that shows working tree changes as a node
+     in the graph.
 
 
 0.19.1 - In development
