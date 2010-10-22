@@ -19,10 +19,12 @@
 
 """Diff Arg Provider classes."""
 
+from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
+
+
 # These classes were extracted from diff.py to avoid dependency on PyQt4
 # in commands.py where base provider class is used, but PyQt4 is not required
 # for overriden merge command.
-
 
 class DiffArgProvider (object):
     """Contract class to pass arguments to either builtin diff window, or
@@ -46,7 +48,10 @@ class DiffArgProvider (object):
 class InternalDiffArgProvider(DiffArgProvider):
     """Use for passing arguments from internal source."""
     
-    def __init__(self, old_revid, new_revid, old_branch, new_branch,
+    def __init__(self,
+                 old_revid, new_revid,
+                 old_branch, new_branch,
+                 old_tree=None, new_tree=None,
                  specific_files=None, specific_file_ids=None):
         self.old_revid = old_revid
         self.new_revid = new_revid
@@ -55,8 +60,8 @@ class InternalDiffArgProvider(DiffArgProvider):
         self.specific_files = specific_files
         self.specific_file_ids = specific_file_ids
 
-        self.old_tree = None
-        self.new_tree = None
+        self.old_tree = old_tree
+        self.new_tree = new_tree
     
     def need_to_load_paths(self):
         return self.specific_file_ids is not None \
@@ -91,7 +96,14 @@ class InternalDiffArgProvider(DiffArgProvider):
                 self.specific_files)
         
     def get_revspec(self):
-        return "-rrevid:%s..revid:%s" % (self.old_revid, self.new_revid)
+        def get_revspec_part(revid):
+            if revid.startswith(CURRENT_REVISION):
+                return ''
+            return 'revid:%s' % revid
+        
+        return "-r%s..%s" % (
+            get_revspec_part(self.old_revid),
+            get_revspec_part(self.new_revid))
     
     def get_ext_diff_args(self, processEvents):
         from bzrlib import urlutils

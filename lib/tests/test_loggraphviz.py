@@ -201,6 +201,38 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
              ('rev-a', 0, None, [], []) ],                              # ○
             computed, branch_labels=True)
 
+    def test_with_working_tree_provider_filtered(self):
+        # This test makes sure that lable for a Working Tree shows for on it's
+        # nearest visble unique ansestor when the working tree node is
+        # filtered. 
+        builder = self.make_branch_builder('branch')
+        builder.start_series()
+        builder.build_snapshot('rev-a', None, [
+            ('add', ('', 'TREE_ROOT', 'directory', '')),])
+        builder.build_snapshot('rev-b', ['rev-a'], [])
+        builder.build_snapshot('rev-c', ['rev-a'], [])
+        builder.finish_series()
+        
+        branch = builder.get_branch()
+        tree = branch.bzrdir.create_workingtree()
+        tree.update(revision='rev-b')
+        
+        bi = loggraphviz.BranchInfo('branch', tree, tree.branch)
+        gv = loggraphviz.WithWorkingTreeGraphVizLoader([bi], bi, False)
+        gv.load()
+        
+        state = loggraphviz.GraphVizFilterState(gv)
+        state.filters.append(BasicFilterer(set([
+            'current:%s' % tree.basedir.encode('unicode-escape')])))
+        computed = gv.compute_viz(state)
+        self.assertComputed(
+            [('rev-b', 1, None, [(1, 1, 0, True)], ['branch - Working Tree'])  , #   ○ 
+                                                                                 #   │ 
+             ('rev-c', 0, None, [(0, 0, 0, True), (1, 0, 0, True)], ['branch']), # ○ │ 
+                                                                                 # ├─╯ 
+             ('rev-a', 0, None, [], [])                                        ],# ○ 
+            computed, branch_labels=True)
+    
     def test_pending_merges_provider(self):
         tree = self.make_tree_with_pending_merge('branch')
         
@@ -912,7 +944,7 @@ class BasicFilterer(object):
         self.filtered_revids = filtered_revids
     
     def get_revision_visible(self, rev):
-         return rev.revid not in self.filtered_revids
+        return rev.revid not in self.filtered_revids
 
 def print_computed(computed):
     print_lines([(c_rev.rev.revid,
