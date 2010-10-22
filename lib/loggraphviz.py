@@ -1410,6 +1410,16 @@ class FileIdFilter (object):
         self.file_ids = file_ids
         self.has_dir = False
         self.filter_file_id = [False for rev in self.graph_viz.revisions]
+        
+        # don't filter working tree nodes
+        if isinstance(self.graph_viz, WithWorkingTreeGraphVizLoader):
+            for wt_revid in self.graph_viz.working_trees.iterkeys():
+                try:
+                    rev_index = self.graph_viz.revid_rev[wt_revid].index
+                    self.filter_file_id[rev_index] = True
+                except KeyError:
+                    pass
+        
     
     def uses_inventory(self):
         return self.has_dir
@@ -1544,9 +1554,12 @@ class WorkingTreeHasChangeFilter(object):
             
             specific_files = None
             if self.file_ids:
-                specific_files = tree.ids2paths(self.file_ids)
+                specific_files = [tree.id2path(file_id)
+                                  for file_id in self.file_ids]
+                print specific_files
             
-            changes = tree.iter_changes(from_tree, specific_files=specific_files)
+            changes = tree.iter_changes(from_tree,
+                                        specific_files=specific_files)
             try:
                 change = changes.next()
                 # Exclude root (talk about black magic... --vila 20090629)
