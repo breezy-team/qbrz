@@ -219,19 +219,39 @@ class ErrorReport(QtGui.QDialog):
         QtGui.QDialog.__init__ (self, parent)
 
         self.buttonbox = QtGui.QDialogButtonBox()
-
+        
+        
+        if parent:
+            win_title = None
+            if hasattr(parent, 'title'):
+                if isinstance(parent.title, basestring):
+                    win_title = parent.title
+                elif isinstance(title, (list, tuple)):
+                    # just the first item is more usefull.
+                    win_title = parent.title[0]            
+            else:
+                if hasattr(parent, 'windowTitle'):
+                    win_title = parent.windowTitle()
+            
+            if win_title:
+                close_label = gettext("Close %s Window") % win_title
+            else:
+                close_label = gettext("Close Window")
+        else:
+            close_label = gettext("Close Application")
+        
         # PyQt is stupid and thinks QMessageBox.StandardButton and
         # QDialogButtonBox.StandardButton are different, so we have to
         # duplicate this :-(
         if type == MAIN_LOAD_METHOD:
             button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Close)
-            button.setText(gettext("Close Application"))
+            button.setText(close_label)
         elif type == SUB_LOAD_METHOD:
             button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Ok)
             button.setText(gettext("Close Error Dialog"))
         elif type == ITEM_OR_EVENT_METHOD:
             button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Close)
-            button.setText(gettext("Close Application"))
+            button.setText(close_label)
             button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Ignore)
             button.setText(gettext("Ignore Error"))
 
