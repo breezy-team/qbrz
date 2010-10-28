@@ -599,7 +599,7 @@ class QBzrConfigWindow(QBzrDialog):
         default_merge_tool = None
         for index in range(self.extMergeList.topLevelItemCount()):
             item = self.extMergeList.topLevelItem(index)
-            mergeTool = mergetools.MergeTool(unicode(item.text(0)))
+            mergeTool = mergetools.MergeTool(None, unicode(item.text(0)))
             defined_merge_tools.append(mergeTool)
             if item.checkState(0) == QtCore.Qt.Checked:
                 default_merge_tool = mergeTool
