@@ -234,8 +234,8 @@ class ConflictsWindow(QBzrWindow):
             enabled = False
         elif not merge_tool.is_available():
             enabled = False
-            error_msg = "External merge tool %s is not available" % \
-                    merge_tool.get_name()
+            error_msg = gettext("External merge tool %(tool)s is not available") % \
+                    { 'tool': merge_tool.get_name() }
         return enabled, error_msg
 
     def is_extmerge_definition_valid(self, showErrorDialog):
