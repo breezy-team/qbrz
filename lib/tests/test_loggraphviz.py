@@ -129,13 +129,19 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
         computed = gv.compute_viz(state)
         
         self.assertComputed(
-            [('rev-new', 2, None, [(2, 2, 0, True)])                 , #     ○ 
+            [(gv.tree_revid(new_tree), 2, None, [(2, 2, 3, True)]),    #     ○ 
                                                                        #     │ 
+             ('rev-new', 2, None, [(2, 2, 0, True)]),                  #     ○ 
+                                                                       #     │ 
+             (gv.tree_revid(old_tree), 1, None, [(1, 1, 2, True),      #   ○ │ 
+                                                 (2, 2, 0, True)]),    #   │ │
              ('rev-old', 1, None, [(1, 1, 0, True), (2, 2, 0, True)]), #   ○ │ 
                                                                        #   │ │ 
+             (gv.tree_revid(trunk_tree), 0, None, [                    # ○ │ │ 
+                (0, 0, 0, True), (1, 1, 0, True), (2, 2, 0, True)]),   # │ │ │ 
              ('rev-trunk', 0, None, [(0, 0, 0, True), (1, 0, 0, True), # ○ │ │ 
-                                     (2, 0, 0, True)]),                # ├─╯─╯ 
-             ('rev-a', 0, None, [])                                  ],# ○ 
+                                     (2, 0, 0, True)]),                # ├─╯─╯
+             ('rev-a', 0, None, [])],                                  # ○ 
             computed)
  
     
