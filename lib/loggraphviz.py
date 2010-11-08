@@ -1273,7 +1273,10 @@ class GraphVizFilterState(object):
         else:
             rev_whos_branch_is_visible = []
             for branch_id in self.branch_line_state.iterkeys():
-                branch_line = self.graph_viz.branch_lines[branch_id]
+                try:
+                    branch_line = self.graph_viz.branch_lines[branch_id]
+                except KeyError:
+                    continue
                 rev_whos_branch_is_visible.extend(branch_line.revs)
             rev_whos_branch_is_visible.sort(key=lambda rev: rev.index)
         

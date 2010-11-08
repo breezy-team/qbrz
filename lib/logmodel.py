@@ -178,7 +178,9 @@ class LogModel(QtCore.QAbstractTableModel):
             state = loggraphviz.GraphVizFilterState(
                 graph_viz, self.compute_lines)
             # Copy the expanded branches from the old state to the new.
-            state.branch_line_state.update(self.state.branch_line_state)
+            for (branch_id, value) in self.state.branch_line_state.iteritems():
+                if branch_id in graph_viz.branch_lines:
+                    state.branch_line_state[branch_id] = value
             
             #for branch_id in graph_viz.branch_lines.keys():
             #    state.branch_line_state[branch_id] = None
