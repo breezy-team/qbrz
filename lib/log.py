@@ -262,7 +262,7 @@ class LogWindow(QBzrWindow):
             if self.tree is None:
                 try:
                     self.tree = self.branch.bzrdir.open_workingtree()
-                except errors.NoWorkingTree:
+                except (errors.NoWorkingTree, errors.NotLocalUrl):
                     pass
             label = self.branch_label(None, self.branch)
             bi = BranchInfo(label, self.tree, self.branch)
