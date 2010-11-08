@@ -740,7 +740,10 @@ class MergeToolsListModel(QtCore.QAbstractListModel):
         self.beginResetModel()
         self._merge_tools = merge_tools
         # see set_default for explanation
-        self._default = [mt for mt in self._merge_tools if mt == default][0]
+        for mt in self._merge_tools:
+            if mt == default:
+                self._default = mt
+                break
         self.endResetModel()
         
     def get_default(self):
