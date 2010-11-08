@@ -37,6 +37,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     runs_in_loading_queue,
     get_icon,
     FindToolbar,
+    get_monospace_font,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
@@ -266,9 +267,7 @@ class AnnotateWindow(QBzrWindow):
             QtCore.Qt.TextSelectableByKeyboard)
         self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
         
-        self.text_edit.document().setDefaultFont(
-            QtGui.QFont("Courier New,courier", 
-                        self.text_edit.font().pointSize()))
+        self.text_edit.document().setDefaultFont(get_monospace_font())
         
         self.annotate_bar = AnnotateBar(self.text_edit, self, self.get_revno)
         annotate_spliter = QtGui.QSplitter(QtCore.Qt.Horizontal, self)
