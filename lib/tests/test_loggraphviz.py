@@ -68,7 +68,7 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
         computed = gv.compute_viz(state)
         self.assertEqual(len(computed.revisions), 0)
 
-    def test_branch_tips_date_sorted(self):
+    def make_banches_for_tips_date_sorted(self):
         builder = self.make_branch_builder('trunk')
         builder.start_series()
         builder.build_snapshot('rev-a', None, [
@@ -84,6 +84,11 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
         old = trunk.bzrdir.sprout('../old', revision_id='rev-old').open_branch()
         
         new = trunk.bzrdir.sprout('../new', revision_id='rev-new').open_branch()
+        
+        return trunk, old, new
+
+    def test_branch_tips_date_sorted(self):
+        trunk, old, new = self.make_banches_for_tips_date_sorted()
         
         trunk_bi = loggraphviz.BranchInfo('trunk', None, trunk)
         gv = loggraphviz.GraphVizLoader(
@@ -105,6 +110,40 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
                                      (2, 0, 0, True)]),                # ├─╯─╯ 
              ('rev-a', 0, None, [])                                  ],# ○ 
             computed)
+    
+    def test_branch_tips_date_sorted_with_working_tree_provider(self):
+        trunk, old, new = self.make_banches_for_tips_date_sorted()
+        trunk_tree = trunk.bzrdir.create_workingtree()
+        old_tree = old.bzrdir.open_workingtree()
+        new_tree = new.bzrdir.open_workingtree()
+        
+        trunk_bi = loggraphviz.BranchInfo('trunk', trunk_tree, trunk)
+        gv = loggraphviz.WithWorkingTreeGraphVizLoader(
+            [trunk_bi,
+             loggraphviz.BranchInfo('old', old_tree, old),
+             loggraphviz.BranchInfo('new', new_tree, new),],
+            trunk_bi, False)
+        gv.load()
+        
+        state = loggraphviz.GraphVizFilterState(gv)
+        computed = gv.compute_viz(state)
+        
+        self.assertComputed(
+            [(gv.tree_revid(new_tree), 2, None, [(2, 2, 3, True)]),    #     ○ 
+                                                                       #     │ 
+             ('rev-new', 2, None, [(2, 2, 0, True)]),                  #     ○ 
+                                                                       #     │ 
+             (gv.tree_revid(old_tree), 1, None, [(1, 1, 2, True),      #   ○ │ 
+                                                 (2, 2, 0, True)]),    #   │ │
+             ('rev-old', 1, None, [(1, 1, 0, True), (2, 2, 0, True)]), #   ○ │ 
+                                                                       #   │ │ 
+             (gv.tree_revid(trunk_tree), 0, None, [                    # ○ │ │ 
+                (0, 0, 0, True), (1, 1, 0, True), (2, 2, 0, True)]),   # │ │ │ 
+             ('rev-trunk', 0, None, [(0, 0, 0, True), (1, 0, 0, True), # ○ │ │ 
+                                     (2, 0, 0, True)]),                # ├─╯─╯
+             ('rev-a', 0, None, [])],                                  # ○ 
+            computed)
+ 
     
     def make_tree_with_pending_merge(self, path):
         builder = self.make_branch_builder('branch')
