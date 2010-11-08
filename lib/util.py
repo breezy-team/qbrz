@@ -1122,3 +1122,34 @@ class InfoWidget(QtGui.QFrame):
         self.setBackgroundRole(QtGui.QPalette.ToolTipBase) 
         self.setForegroundRole(QtGui.QPalette.ToolTipText)
 
+
+# Hackish test for monospace. Run bzr qcat lib/util.py to check.
+#888888888888888888888888888888888888888888888888888888888888888888888888888888
+#                                                                             8
+
+monospace_font = None
+def get_monospace_font():
+    global monospace_font
+    if monospace_font is None:
+        monospace_font = _get_monospace_font()
+    return monospace_font
+
+def _get_monospace_font():
+    # TODO: Get font from system settings for Gnome, KDE, Mac.
+    # (no windows option as far as I am aware)
+    # Maybe have our own config setting.
+    
+    # Get the defaul font size
+    size = QtGui.QApplication.font().pointSize()
+    
+    for font_family in ("Monospace", "Courier New"):
+        font = QtGui.QFont(font_family, size)
+        # check that this is really a monospace font
+        if QtGui.QFontInfo(font).fixedPitch():
+            return font
+    
+    # try use style hints to find font.
+    font = QtGui.QFont("", size)
+    font.setFixedPitch(True)
+    return font
+

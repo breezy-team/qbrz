@@ -27,6 +27,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     format_timestamp,
     get_qbzr_config,
+    get_monospace_font,
     )
 from bzrlib.trace import mutter
 from bzrlib.plugins.qbzr.lib.syntaxhighlighter import (
@@ -199,8 +200,7 @@ class SidebySideDiffView(QtGui.QSplitter):
         titleFont.setPointSize(titleFont.pointSize() * 140 / 100)
         titleFont.setBold(True)
         
-        self.monospacedFont = QtGui.QFont("Courier New, Courier",
-                                     self.font().pointSize())
+        self.monospacedFont = get_monospace_font()
         metadataFont = QtGui.QFont(self.font())
         metadataFont.setPointSize(titleFont.pointSize() * 70 / 100)
         metadataLabelFont = QtGui.QFont(metadataFont)
@@ -581,8 +581,7 @@ class SimpleDiffView(QtGui.QTextBrowser):
         format = QtGui.QTextCharFormat()
         format.setAnchorNames(["top"])
         self.cursor.insertText("", format)
-        monospacedFont = QtGui.QFont("Courier New, Courier",
-                                     self.font().pointSize())
+        monospacedFont = get_monospace_font()
         self.monospacedFormat = QtGui.QTextCharFormat()
         self.monospacedFormat.setFont(monospacedFont)
 

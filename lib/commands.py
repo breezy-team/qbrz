@@ -275,7 +275,7 @@ class cmd_qannotate(QBzrCommand):
 
     def _qbzr_run(self, filename=None, revision=None, encoding=None,
                   ui_mode=False, no_graph=False):
-        win = AnnotateWindow(None, None, None, None,
+        win = AnnotateWindow(None, None, None, None, None,
                              encoding=encoding, ui_mode=ui_mode,
                              loader=self._load_branch,
                              loader_args=(filename, revision),
@@ -482,13 +482,17 @@ class cmd_qlog(QBzrCommand):
     """
 
     takes_args = ['locations*']
-    takes_options = [ui_mode_option,
-                   	 Option('no-graph', help="Shows the log with no graph."),
-                    ]
+    takes_options = [
+        ui_mode_option,
+        Option('no-graph', help="Shows the log with no graph."),
+        Option('show-trees', help="Show working trees that have changes "
+                                  "as nodes in the graph"),
+        ]
 
-    def _qbzr_run(self, locations_list=None, ui_mode=False, no_graph=False):
+    def _qbzr_run(self, locations_list=None, ui_mode=False, no_graph=False,
+                  show_trees=False):
         window = LogWindow(locations_list, None, None, ui_mode=ui_mode,
-                           no_graph=no_graph)
+                           no_graph=no_graph, show_trees=show_trees)
         window.show()
         self._application.exec_()
 
@@ -792,7 +796,7 @@ class cmd_qgetupdates(QBzrCommand):
         if tb is None:
             return errors.EXIT_ERROR
         if tb.is_light_co():
-            window = QBzrUpdateWindow(tb.tree, ui_mode, execute=execute)
+            window = QBzrUpdateWindow(tb.tree, ui_mode, immediate=execute)
         elif tb.is_bound():
             window = UpdateCheckoutWindow(tb.branch, ui_mode=ui_mode)
         else:

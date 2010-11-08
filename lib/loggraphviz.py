@@ -40,7 +40,12 @@ from bzrlib import errors
 from bzrlib.bzrdir import BzrDir
 from bzrlib.transport.local import LocalTransport
 from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
-from bzrlib.graph import (Graph, StackedParentsProvider, KnownGraph)
+from bzrlib.graph import (
+    Graph,
+    StackedParentsProvider,
+    KnownGraph,
+    DictParentsProvider,
+    )
 
 
 class BranchInfo(object):
@@ -199,8 +204,6 @@ class GraphVizLoader(object):
 
         self.lock_read_branches()
         try:
-            self.graph = self.get_graph()
-            
             head_revids, graph_parents = self.load_graph_parents()
             self.process_graph_parents(head_revids, graph_parents)
             
@@ -215,13 +218,6 @@ class GraphVizLoader(object):
         finally:
             self.unlock_branches()
     
-    def get_graph(self):
-        if len(self.repos) == 1:
-            return self.repos[0].get_graph()
-        else:
-            parents_providers = [repo._make_parents_provider() \
-                                 for repo in self.repos]
-            return Graph(StackedParentsProvider(parents_providers))
     
     def load_current_dir_repo(self):
         # There are no local repositories. Try open the repository
@@ -328,12 +324,13 @@ class GraphVizLoader(object):
     def load_graph_parents(self):
         """Load the heads of the graph, and the graph parents"""
         
-        extra_parents = []
+        extra_parents = {}
         branches_heads = []
         
         def load_branch_heads(bi, insert_at_begin=False):
             load_heads, sort_heads, extra_parents_ = self.load_branch_heads(bi)
-            extra_parents.extend(extra_parents_)
+            for key, parents in extra_parents_:
+                extra_parents[key] = parents
             if insert_at_begin:
                 branches_heads.insert(0, (load_heads, sort_heads))
             else:
@@ -362,13 +359,12 @@ class GraphVizLoader(object):
         sort_heads = [revid for load_heads_, sort_heads_ in branches_heads
                       for revid in sort_heads_]
         
-        def parents_iter():
-            for parents in extra_parents:
-                yield parents
-            for parents in self.graph.iter_ancestry(load_heads):
-                yield parents
+        parents_providers = [repo._make_parents_provider() \
+                             for repo in self.repos]
+        parents_providers.append(DictParentsProvider(extra_parents))
+        self.graph = Graph(StackedParentsProvider(parents_providers))
         
-        return sort_heads, parents_iter()
+        return sort_heads, self.graph.iter_ancestry(sort_heads)
     
     def process_graph_parents(self, head_revids, graph_parents_iter):
         graph_parents = {}
@@ -645,7 +641,7 @@ class GraphVizLoader(object):
                 gc.enable()
         
         if self.no_graph:
-            for c_rev in c_revisions:
+            for c_rev in computed.filtered_revs:
                 c_rev.col_index = c_rev.rev.merge_depth * 0.5
             return computed
         
@@ -913,10 +909,18 @@ class GraphVizLoader(object):
                             # Ensure only one line to a descendant.
                             if (merged_by.index not in sprout_with_lines):
                                 sprout_with_lines[merged_by.index] = True
-                                if c_revisions[merged_by.index] is not None:
-                                    append_line(
-                                        c_revisions[merged_by.index],
-                                        c_rev, False)
+                                parent = c_revisions[merged_by.index]
+                                if parent is not None:
+                                    if c_rev.f_index - parent.f_index == 1:
+                                        col_index = None
+                                    else:
+                                        col_search_order = line_col_search_order(
+                                            parent.col_index, c_rev.col_index)
+                                        col_index = find_free_column(
+                                            col_search_order,
+                                            parent.f_index, c_rev.f_index)
+                                    append_line(parent, c_rev, False,
+                                                col_index)
             
             # Find a column for this branch.
             #
@@ -1158,6 +1162,17 @@ class WithWorkingTreeGraphVizLoader(GraphVizLoader):
     in the graph, as if it was already committed.
     """
     
+    def tree_revid(self, tree):
+        return CURRENT_REVISION + tree.basedir.encode('unicode-escape')
+    
+    def load(self):
+        self.working_trees = {}
+        for bi in self.branches:
+            if not bi.tree is None:
+                self.working_trees[self.tree_revid(bi.tree)] = bi.tree
+        
+        super(WithWorkingTreeGraphVizLoader, self).load()
+    
     def load_branch_heads(self, bi):
         # returns load_heads, sort_heads and also calls append_head_info.
         #
@@ -1194,7 +1209,7 @@ class WithWorkingTreeGraphVizLoader(GraphVizLoader):
         self.update_ui()
         
         if bi.tree:
-            wt_revid = CURRENT_REVISION + bi.tree.basedir
+            wt_revid = self.tree_revid(bi.tree)
             if label:
                 wt_label = "%s - Working Tree" % label
             else:
@@ -1258,7 +1273,10 @@ class GraphVizFilterState(object):
         else:
             rev_whos_branch_is_visible = []
             for branch_id in self.branch_line_state.iterkeys():
-                branch_line = self.graph_viz.branch_lines[branch_id]
+                try:
+                    branch_line = self.graph_viz.branch_lines[branch_id]
+                except KeyError:
+                    continue
                 rev_whos_branch_is_visible.extend(branch_line.revs)
             rev_whos_branch_is_visible.sort(key=lambda rev: rev.index)
         
@@ -1400,6 +1418,16 @@ class FileIdFilter (object):
         self.file_ids = file_ids
         self.has_dir = False
         self.filter_file_id = [False for rev in self.graph_viz.revisions]
+        
+        # don't filter working tree nodes
+        if isinstance(self.graph_viz, WithWorkingTreeGraphVizLoader):
+            for wt_revid in self.graph_viz.working_trees.iterkeys():
+                try:
+                    rev_index = self.graph_viz.revid_rev[wt_revid].index
+                    self.filter_file_id[rev_index] = True
+                except KeyError:
+                    pass
+        
     
     def uses_inventory(self):
         return self.has_dir
@@ -1486,6 +1514,76 @@ class FileIdFilter (object):
     
     def get_revision_visible(self, rev):
         return self.filter_file_id[rev.index]
+
+
+class WorkingTreeHasChangeFilter(object):
+    """
+    Filter out working trees that don't have any changes.
+    """
+    
+    def __init__(self, graph_viz, filter_changed_callback, file_ids):
+        self.graph_viz = graph_viz
+        self.file_ids = file_ids
+        if not isinstance(graph_viz, WithWorkingTreeGraphVizLoader):
+            raise TypeError('graph_viz expected to be a '
+                            'WithWorkingTreeGraphVizLoader')
+        self.filter_changed_callback = filter_changed_callback
+        self.tree_revids_with_changes = set()
+    
+    def load(self):
+        """Load if the working trees have changes."""
+        self.tree_revids_with_changes = set()
+        self.graph_viz.throbber_show()
+        try:
+            for wt_revid, tree in self.graph_viz.working_trees.iteritems():
+                if self.has_changes(tree):
+                    self.tree_revids_with_changes.add(wt_revid)
+                rev = self.graph_viz.revid_rev[wt_revid]
+                self.filter_changed_callback([rev], False)
+            self.filter_changed_callback([], True) 
+        finally:
+            self.graph_viz.throbber_hide()
+
+    def has_changes(self, tree):
+        """Quickly check that the tree contains at least one commitable change.
+
+        :param _from_tree: tree to compare against to find changes (default to
+            the basis tree and is intended to be used by tests).
+
+        :return: True if a change is found. False otherwise
+        """
+        tree.lock_read()
+        try:
+            # Copied from mutabletree, cause we need file_ids too.
+            # Check pending merges
+            if len(tree.get_parent_ids()) > 1:
+                return True
+            from_tree = tree.basis_tree()
+            
+            specific_files = None
+            if self.file_ids:
+                specific_files = [tree.id2path(file_id)
+                                  for file_id in self.file_ids]
+            
+            changes = tree.iter_changes(from_tree,
+                                        specific_files=specific_files)
+            try:
+                change = changes.next()
+                # Exclude root (talk about black magic... --vila 20090629)
+                if change[4] == (None, None):
+                    change = changes.next()
+                return True
+            except StopIteration:
+                # No changes
+                return False
+        finally:
+            tree.unlock()
+    
+    def get_revision_visible(self, rev):
+        if rev.revid.startswith(CURRENT_REVISION):
+            return rev.revid in self.tree_revids_with_changes
+        else:
+            return True
 
 
 class ComputedRevisionData(object):

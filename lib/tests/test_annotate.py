@@ -76,7 +76,7 @@ class TestAnnotate(TestWatchExceptHook, TestCaseWithTransport):
     
     def test_just_show_annotate(self):
         tree1, tree2 = self.create_merged_trees()
-        win = AnnotateWindow(tree1.branch, tree1, 'a', 'a-id')
+        win = AnnotateWindow(tree1.branch, tree1, tree1, 'a', 'a-id')
         self.addCleanup(win.close)
         win.show()
         QtCore.QCoreApplication.processEvents()

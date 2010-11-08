@@ -33,7 +33,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib.trace import reports_exception, SUB_LOAD_METHOD
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
@@ -83,7 +82,8 @@ class LogWindow(QBzrWindow):
 
     def __init__(self, locations=None,
                  branch=None, tree=None, specific_file_ids=None,
-                 parent=None, ui_mode=True, no_graph=False):
+                 parent=None, ui_mode=True, no_graph=False,
+                 show_trees=False):
         """Create qlog window.
 
         Note: you must use either locations or branch+tree+specific_file_id
@@ -113,6 +113,7 @@ class LogWindow(QBzrWindow):
         self.restoreSize("log", (710, 580))
         
         self.no_graph = no_graph
+        self.show_trees = show_trees
         if branch:
             self.branch = branch
             self.tree = tree
@@ -240,8 +241,13 @@ class LogWindow(QBzrWindow):
                 self.set_title ((self.title, lt))
             
             branches, primary_bi, file_ids = self.get_branches_and_file_ids()
+            if self.show_trees:
+                gz_cls = logmodel.WithWorkingTreeGraphVizLoader
+            else:
+                gz_cls = logmodel.GraphVizLoader
+            
             self.log_list.load(branches, primary_bi, file_ids,
-                               self.no_graph, logmodel.GraphVizLoader)
+                               self.no_graph, gz_cls)
             self.connect(self.log_list.selectionModel(),
                          QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
                          self.update_selection)
@@ -256,7 +262,7 @@ class LogWindow(QBzrWindow):
             if self.tree is None:
                 try:
                     self.tree = self.branch.bzrdir.open_workingtree()
-                except errors.NoWorkingTree:
+                except (errors.NoWorkingTree, errors.NotLocalUrl):
                     pass
             label = self.branch_label(None, self.branch)
             bi = BranchInfo(label, self.tree, self.branch)
@@ -300,7 +306,10 @@ class LogWindow(QBzrWindow):
                         if not primary_bi and br.nick in primary_branch_names:
                             primary_bi = bi
                 else:
-                    label = self.branch_label(location, br)
+                    if len(locations) > 1:
+                        label = self.branch_label(location, br)
+                    else:
+                        label = None
                     bi = BranchInfo(label, tree, br)
                     if len(branches)==0:
                         # The first sepecified branch becomes the primary
@@ -455,7 +464,7 @@ class LogWindow(QBzrWindow):
                 # Not sure what to do if there is an error. Nothing for now
             if revno in gv.revno_rev:
                 rev = gv.revno_rev[revno]
-                index = self.log_list.index_from_rev(rev)
+                index = self.log_list.log_model.index_from_rev(rev)
                 self.log_list.setCurrentIndex(index)
         else:
             if role == self.FilterMessageRole:
@@ -595,6 +604,7 @@ class FileListContainer(QtGui.QWidget):
         revids, count = \
             self.log_list.get_selection_top_and_parent_revids_and_count()
         gv = self.log_list.log_model.graph_viz
+        gv_is_wtgv = isinstance(gv, logmodel.WithWorkingTreeGraphVizLoader)
         
         if not revids:
             return
@@ -630,9 +640,9 @@ class FileListContainer(QtGui.QWidget):
                         self.processEvents()
                         try:
                             for revid in repo_revids:
-                                if revid.startswith(CURRENT_REVISION):
-                                    rev = cached_revisions[revid]
-                                    tree = rev.tree
+                                if (revid.startswith(CURRENT_REVISION) and
+                                    gv_is_wtgv):
+                                    tree = gv.working_trees[revid]
                                 else:
                                     tree = repo.revision_tree(revid)
                                 self.tree_cache[revid] = tree
@@ -793,8 +803,10 @@ class FileListContainer(QtGui.QWidget):
         (top_revid, old_revid), count = \
             self.log_list.get_selection_top_and_parent_revids_and_count()
         
-        branch = self.log_list.log_model.graph_viz.get_revid_branch(top_revid)
-        tree = branch.repository.revision_tree(top_revid)
-        window = AnnotateWindow(branch, tree, paths[0], file_ids[0])
+        branch_info = \
+            self.log_list.log_model.graph_viz.get_revid_branch_info(top_revid)
+        tree = branch_info.branch.repository.revision_tree(top_revid)
+        window = AnnotateWindow(branch_info.branch, branch_info.tree, tree,
+                                paths[0], file_ids[0])
         window.show()
         self.window().windows.append(window)

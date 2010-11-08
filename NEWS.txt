@@ -18,18 +18,48 @@
    * Remove LogFilterProxyModel which improves performance.
    * --no-graph mode now shows nodes per revision, indented by merge depth.
    * Fix the layout of octopus merges. (Bug #489383)
+   * Add a option --show-trees that shows working tree changes as a node
+     in the graph.
+   * Fix bug with show log form the tree widget with remote branch.
+     (Bug #621934)
  * qcommit: added option to load commit message from a file.
    (Bug #640071, Philip Peitsch)
  * Use bzrlib.mergetools for managing and using external merge tools in qconfig
    and qconflicts. (Bug #489915, Gordon Tyler)
 
 
-0.19.1 - In development
------------------------
+0.19.3 - Under Development
+--------------------------
+
+ * qlog: fix actions that use the branch menu on PyQt 4.7.4.
+   (Bug #621158, Gary van der Merwe)
+ * Restore ignore button for error dialogs. (Gary van der Merwe)
+
+
+0.19.2 - 2010/09/24
+-------------------
+Maintenance release.
+
+ * Fix finding bzr.exe when running from bzrw.exe with out full path in the
+   command line. Handle been launched from tortoisebzr without it having to
+   change sys.executable. (Bug #640082, Bug #641557, Gary van der Merwe)
+
+
+0.19.1 "Chestnut" - 2010/09/13
+------------------------------
 Maintenance release.
 
  * Fix modeltest.py so that it works with Qt 4.7.
    (Bug #614123, Gary van der Merwe)
+ * qbrowse: fixed 'Mark as renamed' feature in treewidget.
+   (Bug #620433, Alexander Belchenko)
+ * qconfig: guess user id if there is no whoami set. 
+   (Bug #622336, Gary van der Merwe, Alexander Belchenko)
+ * qgetupdates: fixed API mismatch. (Bug #636510, Alexander Belchenko)
+ * qlog:
+   * better branch labels for `bzr qlog colo:` case. (Alexander Belchenko)
+   * give a size hint for the GraphTagsBugsItemDelegate so that blured 
+     rendering on Windows with PyQt 4.7 is avoided. (Gary van der Merwe)
  * qrun: fixed '--execute' mode. (Bug #590229, Simon Kersey) 
 
 

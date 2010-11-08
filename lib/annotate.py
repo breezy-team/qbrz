@@ -37,6 +37,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     runs_in_loading_queue,
     get_icon,
     FindToolbar,
+    get_monospace_font,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
@@ -230,8 +231,9 @@ class AnnotatedTextEdit(QtGui.QPlainTextEdit):
 
 class AnnotateWindow(QBzrWindow):
 
-    def __init__(self, branch, tree, path, fileId, encoding=None, parent=None,
-                 ui_mode=True, loader=None, loader_args=None, no_graph=False):
+    def __init__(self, branch, working_tree, annotate_tree, path, fileId,
+                 encoding=None, parent=None, ui_mode=True, no_graph=False,
+                 loader=None, loader_args=None):
         QBzrWindow.__init__(self,
                             [gettext("Annotate"), gettext("Loading...")],
                             parent, ui_mode=ui_mode)
@@ -240,11 +242,12 @@ class AnnotateWindow(QBzrWindow):
         self.windows = []
 
         self.branch = branch
-        self.tree = tree
-        if isinstance(tree, WorkingTree):
-            self.working_tree = tree
-        else:
-            self.working_tree = None
+        self.annotate_tree = annotate_tree
+        self.working_tree = working_tree
+        if (self.working_tree is None and 
+            isinstance(annotate_tree, WorkingTree)):
+            self.working_tree = annotate_tree
+        
         self.no_graph = no_graph
         self.old_lines = None
         
@@ -264,9 +267,7 @@ class AnnotateWindow(QBzrWindow):
             QtCore.Qt.TextSelectableByKeyboard)
         self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
         
-        self.text_edit.document().setDefaultFont(
-            QtGui.QFont("Courier New,courier", 
-                        self.text_edit.font().pointSize()))
+        self.text_edit.document().setDefaultFont(get_monospace_font())
         
         self.annotate_bar = AnnotateBar(self.text_edit, self, self.get_revno)
         annotate_spliter = QtGui.QSplitter(QtCore.Qt.Horizontal, self)
@@ -385,7 +386,7 @@ class AnnotateWindow(QBzrWindow):
         try:
             if self.loader_func is not None:
                 (self.branch,
-                 self.tree,
+                 self.annotate_tree,
                  self.working_tree,
                  self.path, self.fileId) = self.loader_func(*self.loader_args)
                 self.loader_func = self.loader_args = None # kill extra refs...
@@ -395,7 +396,7 @@ class AnnotateWindow(QBzrWindow):
             self.branch.lock_read()
             try:
                 self.set_annotate_title()
-                self.annotate(self.tree, self.fileId, self.path)
+                self.annotate(self.annotate_tree, self.fileId, self.path)
             finally:
                 self.branch.unlock()
         finally:
@@ -403,8 +404,8 @@ class AnnotateWindow(QBzrWindow):
     
     def set_annotate_title(self):
         # and update the title to show we are done.
-        if isinstance(self.tree, RevisionTree):
-            revno = self.get_revno(self.tree.get_revision_id())
+        if isinstance(self.annotate_tree, RevisionTree):
+            revno = self.get_revno(self.annotate_tree.get_revision_id())
             if revno:
                 self.set_title_and_icon([gettext("Annotate"), self.path,
                                          gettext("Revision %s") % revno])
@@ -419,7 +420,7 @@ class AnnotateWindow(QBzrWindow):
             return gv.revid_rev[revid].revno_str
         return ""
     
-    def annotate(self, tree, fileId, path):
+    def annotate(self, annotate_tree, fileId, path):
         self.now = time.time()
         self.rev_indexes = {}
         last_revid = None
@@ -429,9 +430,9 @@ class AnnotateWindow(QBzrWindow):
         
         
         self.processEvents()
-        for revid, text in tree.annotate_iter(fileId):
+        for revid, text in annotate_tree.annotate_iter(fileId):
             if revid == CURRENT_REVISION:
-                revid = CURRENT_REVISION + tree.basedir
+                revid = CURRENT_REVISION + annotate_tree.basedir
             
             text = text.decode(self.encoding, 'replace')
             
@@ -474,7 +475,7 @@ class AnnotateWindow(QBzrWindow):
         just_loaded_log = False
         if not self.log_branch_loaded:
             self.log_branch_loaded = True
-            bi = BranchInfo('', self.tree, self.branch)
+            bi = BranchInfo('', self.working_tree, self.branch)
             self.log_list.load(
                 (bi,), bi, [self.fileId], self.no_graph,
                 logmodel.WithWorkingTreeGraphVizLoader)
@@ -580,13 +581,13 @@ class AnnotateWindow(QBzrWindow):
                 revid = str(self.log_list.currentIndex().data(logmodel.RevIdRole).toString())
                 if revid.startswith(CURRENT_REVISION):
                     rev = cached_revisions[revid]
-                    self.tree = rev.tree
+                    self.annotate_tree = self.working_tree
                 else:
-                    self.tree = self.branch.repository.revision_tree(revid)
-                self.path = self.tree.id2path(self.fileId)
+                    self.annotate_tree = self.branch.repository.revision_tree(revid)
+                self.path = self.annotate_tree.id2path(self.fileId)
                 self.set_annotate_title()
                 self.processEvents()
-                self.annotate(self.tree, self.fileId, self.path)
+                self.annotate(self.annotate_tree, self.fileId, self.path)
             finally:
                 self.branch.unlock()
         finally:
@@ -600,7 +601,7 @@ class AnnotateWindow(QBzrWindow):
         try:
             self.branch.lock_read()
             try:
-                self.annotate(self.tree, self.fileId, self.path)
+                self.annotate(self.annotate_tree, self.fileId, self.path)
             finally:
                 self.branch.unlock()
         finally:

@@ -22,7 +22,7 @@ from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
                                                  RevNoItemDelegate,
                                                  get_text_color)
-from bzrlib.revision import NULL_REVISION
+from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.plugins.qbzr.lib.util import (
     runs_in_loading_queue,
     )
@@ -170,7 +170,7 @@ class LogList(RevisionTreeView):
                     menu = BranchMenu(text, self, self.log_model.graph_viz,
                                       require_wt)
                     self.connect(menu,
-                                 QtCore.SIGNAL("triggered(QVariant)"),
+                                 QtCore.SIGNAL("bm_triggered"),
                                  triggered)
                     action = self.context_menu.addMenu(menu)
                 return action
@@ -346,7 +346,7 @@ class LogList(RevisionTreeView):
         gv = self.log_model.graph_viz
         
         if selected_branch_info:
-            selected_branch_info = selected_branch_info.toPyObject()
+            selected_branch_info = selected_branch_info
         else:
             assert(len(gv.branches)==1)
             selected_branch_info = gv.branches[0]
@@ -366,10 +366,12 @@ class LogList(RevisionTreeView):
         (top_revid, old_revid), rev_count = \
                 self.get_selection_top_and_parent_revids_and_count()
         top_revno_str = gv.revid_rev[top_revid].revno_str
-        old_revno_str = gv.revid_rev[old_revid].revno_str
+        if old_revid==NULL_REVISION:
+            old_revno_str = 0
+        else:
+            old_revno_str = gv.revid_rev[old_revid].revno_str
         
         if selected_branch_info:
-            selected_branch_info = selected_branch_info.toPyObject()
             single_branch = False
         else:
             assert(len(gv.branches)==1)
@@ -494,11 +496,20 @@ class LogList(RevisionTreeView):
         new_branch = self.log_model.graph_viz.get_revid_branch(new_revid)
         old_branch =  self.log_model.graph_viz.get_revid_branch(old_revid)
         
+        def get_tree_if_current(revid):
+            if (revid.startswith(CURRENT_REVISION) and
+                isinstance(self.log_model.graph_viz,
+                            logmodel.WithWorkingTreeGraphVizLoader)):
+                return self.log_model.graph_viz.working_trees[revid]
+        
         arg_provider = diff.InternalDiffArgProvider(
-                                        old_revid, new_revid,
-                                        old_branch, new_branch,
-                                        specific_files = specific_files,
-                                        specific_file_ids = specific_file_ids)
+            old_revid, new_revid,
+            old_branch, new_branch,
+            old_tree=get_tree_if_current(old_revid),
+            new_tree=get_tree_if_current(new_revid), 
+            specific_files = specific_files,
+            specific_file_ids = specific_file_ids)
+        
         
         diff.show_diff(arg_provider, ext_diff = ext_diff,
                        parent_window = self.window())
@@ -591,7 +602,8 @@ class BranchMenu(QtGui.QMenu):
         return visible_action_count
     
     def triggered(self, action):
-        self.emit(QtCore.SIGNAL("triggered(QVariant)"), action.data())
+        branch_info = action.data().toPyObject()
+        self.emit(QtCore.SIGNAL("bm_triggered"), branch_info)
 
 
 class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
@@ -602,7 +614,20 @@ class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
         data = index.data(logmodel.GraphDataRole)
         if data.isValid():
             draw_graph = True
-            c_rev, prev_c_rev, labels, is_clicked = data.toPyObject()
+            if QtCore.PYQT_VERSION_STR.startswith('4.5.'):
+                # toPyObject is buggy in 4.5
+                def toPy (x):
+                    if isinstance(x, QtCore.QVariant):
+                        return x.toPyObject()
+                    else:
+                        return x
+                c_rev, prev_c_rev, labels, is_clicked = (
+                    toPy(item) for item in data.toPyObject())
+                labels = [[toPy(x) for x in toPy(label)]
+                           for label in toPy(labels)]
+            else:
+                c_rev, prev_c_rev, labels, is_clicked = data.toPyObject()
+            
         else:
             draw_graph = False
         
@@ -691,31 +716,31 @@ class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
                 painter.restore()
                 rect.adjust( (graphCols + 1.5) * boxsize, 0, 0, 0)        
                 
-                painter.save()
-                x = 0
-                try:
-                    tagFont = QtGui.QFont(option.font)
-                    tagFont.setPointSizeF(tagFont.pointSizeF() * 9 / 10)
-            
-                    for label, bg_color, text_color in labels:
-                        tagRect = rect.adjusted(1, 1, -1, -1)
-                        tagRect.setWidth(QtGui.QFontMetrics(tagFont).width(label) + 6)
-                        tagRect.moveLeft(tagRect.x() + x)
-                        painter.setPen(bg_color)
-                        painter.fillRect(tagRect.adjusted(1, 1, -1, -1), bg_color)
-                        tl = tagRect.topLeft()
-                        br = tagRect.bottomRight()
-                        painter.drawLine(tl.x(), tl.y() + 1, tl.x(), br.y() - 1)
-                        painter.drawLine(br.x(), tl.y() + 1, br.x(), br.y() - 1)
-                        painter.drawLine(tl.x() + 1, tl.y(), br.x() - 1, tl.y())
-                        painter.drawLine(tl.x() + 1, br.y(), br.x() - 1, br.y())
-                        painter.setFont(tagFont)
-                        painter.setPen(text_color)
-                        painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, label)
-                        x += tagRect.width() + text_margin
-                finally:
-                    painter.restore()
-                rect.adjust(x, 0, 0, 0)
+            painter.save()
+            x = 0
+            try:
+                tagFont = QtGui.QFont(option.font)
+                tagFont.setPointSizeF(tagFont.pointSizeF() * 9 / 10)
+        
+                for label, bg_color, text_color in labels:
+                    tagRect = rect.adjusted(1, 1, -1, -1)
+                    tagRect.setWidth(QtGui.QFontMetrics(tagFont).width(label) + 6)
+                    tagRect.moveLeft(tagRect.x() + x)
+                    painter.setPen(bg_color)
+                    painter.fillRect(tagRect.adjusted(1, 1, -1, -1), bg_color)
+                    tl = tagRect.topLeft()
+                    br = tagRect.bottomRight()
+                    painter.drawLine(tl.x(), tl.y() + 1, tl.x(), br.y() - 1)
+                    painter.drawLine(br.x(), tl.y() + 1, br.x(), br.y() - 1)
+                    painter.drawLine(tl.x() + 1, tl.y(), br.x() - 1, tl.y())
+                    painter.drawLine(tl.x() + 1, br.y(), br.x() - 1, br.y())
+                    painter.setFont(tagFont)
+                    painter.setPen(text_color)
+                    painter.drawText(tagRect.left() + 3, tagRect.bottom() - option.fontMetrics.descent() + 1, label)
+                    x += tagRect.width() + text_margin
+            finally:
+                painter.restore()
+            rect.adjust(x, 0, 0, 0)
         
         if not option.text.isEmpty():
             painter.setPen(get_text_color(option, style))

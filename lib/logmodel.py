@@ -34,6 +34,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
     get_apparent_author,
     runs_in_loading_queue,
+    run_in_loading_queue
     )
 
 RevIdRole = im_RevIdRole
@@ -96,13 +97,24 @@ class WithWorkingTreeGraphVizLoader(
         GraphVizLoader):
     
     def load(self):
-        super(GraphVizLoader, self).load()
+        super(WithWorkingTreeGraphVizLoader, self).load()
         
-        for bi in self.branches:
-            if not bi.tree is None:
-                wt_revid = CURRENT_REVISION + bi.tree.basedir
-                if wt_revid in self.revid_head_info:
-                    cached_revisions[wt_revid] = WorkingTreeRevision(wt_revid, bi.tree)
+        for wt_revid, tree in self.working_trees.iteritems():
+            # bla - nasty hack.
+            cached_revisions[wt_revid] = WorkingTreeRevision(wt_revid, tree)
+
+
+class FileIdFilter(loggraphviz.FileIdFilter):
+    @runs_in_loading_queue
+    def load(self, revids=None):
+        super(FileIdFilter, self).load(revids)
+
+
+class WorkingTreeHasChangeFilter(loggraphviz.WorkingTreeHasChangeFilter):
+    @runs_in_loading_queue
+    def load(self):
+        super(WorkingTreeHasChangeFilter, self).load()
+
 
 class FilterScheduler(object):
     def __init__(self, filter_changed_callback):
@@ -166,18 +178,28 @@ class LogModel(QtCore.QAbstractTableModel):
             state = loggraphviz.GraphVizFilterState(
                 graph_viz, self.compute_lines)
             # Copy the expanded branches from the old state to the new.
-            state.branch_line_state.update(self.state.branch_line_state)
+            for (branch_id, value) in self.state.branch_line_state.iteritems():
+                if branch_id in graph_viz.branch_lines:
+                    state.branch_line_state[branch_id] = value
             
             #for branch_id in graph_viz.branch_lines.keys():
             #    state.branch_line_state[branch_id] = None
             
             scheduler = FilterScheduler(state.filter_changed)
             if file_ids:
-                file_id_filter = loggraphviz.FileIdFilter(
+                file_id_filter = FileIdFilter(
                     graph_viz, scheduler.filter_changed, file_ids)
                 state.filters.append(file_id_filter)
             else:
                 file_id_filter = None
+            
+            if isinstance(graph_viz, WithWorkingTreeGraphVizLoader):
+                working_tree_filter = WorkingTreeHasChangeFilter(
+                    graph_viz, scheduler.filter_changed, file_ids)
+                state.filters.append(working_tree_filter)
+            else:
+                working_tree_filter = None
+            
             prop_search_filter = PropertySearchFilter(graph_viz,
                                                       scheduler.filter_changed)
             state.filters.append(prop_search_filter)
@@ -187,13 +209,16 @@ class LogModel(QtCore.QAbstractTableModel):
             self.state = state
             self.file_ids = file_ids
             self.file_id_filter = file_id_filter
+            self.working_tree_filter = working_tree_filter
             self.prop_search_filter = prop_search_filter
             self.computed = loggraphviz.ComputedGraphViz(graph_viz)
             self.emit(QtCore.SIGNAL("layoutChanged()"))
             
             self.compute_lines()
+            # Start later so that it does not run in the loading queue.
+            if self.working_tree_filter:
+                QtCore.QTimer.singleShot(1, self.working_tree_filter.load)
             if self.file_id_filter:
-                # Start later so that it does not run in the loading queue.
                 QtCore.QTimer.singleShot(1, self.file_id_filter.load)
         finally:
             self.throbber.hide()
