@@ -763,8 +763,10 @@ class MergeToolsListModel(QtCore.QAbstractListModel):
             # self._default must refer to an instance in self._merge_tools, so
             # we find the == instance in self._merge_tools and set self._default
             # to that instead.
-            self._default = [mt for mt in self._merge_tools
-                             if mt == new_default][0]
+            for mt in self._merge_tools:
+                if mt == default:
+                    self._default = mt
+                    break
         else:
             self._default = None
         if old_index:
