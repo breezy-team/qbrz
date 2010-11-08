@@ -1849,7 +1849,7 @@ class TreeWidget(RevisionTreeView):
         fileids = [item.item.file_id for item in items
                    if item.item.file_id is not None]
         
-        window = LogWindow(None, self.branch, fileids)
+        window = LogWindow(branch=self.branch,  specific_file_ids=fileids)
         window.show()
         self.window().windows.append(window)
     
