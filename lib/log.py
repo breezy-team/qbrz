@@ -33,7 +33,6 @@ from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
-from bzrlib.branch import Branch
 from bzrlib import osutils
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.plugins.qbzr.lib.diff import (
@@ -378,16 +377,16 @@ class LogWindow(QBzrWindow):
         if locations is None:
             return osutils.getcwd()
         else:
-            if len(locations) > 1:
-                return (", ".join(url_for_display(i) for i in locations
-                                 ).rstrip(", "))
-            else:
-                if isinstance(locations[0], Branch):
-                    location = locations[0].base
-                else:
-                    location = locations[0]
-                from bzrlib.directory_service import directories
-                return (url_for_display(directories.dereference(location)))
+            from bzrlib.branch import Branch
+            
+            def title_for_location(location):
+                if isinstance(location, basestring):
+                    return url_for_display(location)
+                if isinstance(location, Branch):
+                    return url_for_display(location.base)
+                return str(location)
+            
+            return ", ".join(title_for_location(l) for l in locations)
 
 
 class FileListContainer(QtGui.QWidget):
