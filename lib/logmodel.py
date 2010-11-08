@@ -34,6 +34,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
     get_apparent_author,
     runs_in_loading_queue,
+    run_in_loading_queue
     )
 
 RevIdRole = im_RevIdRole
@@ -101,6 +102,19 @@ class WithWorkingTreeGraphVizLoader(
         for wt_revid, tree in self.working_trees.iteritems():
             # bla - nasty hack.
             cached_revisions[wt_revid] = WorkingTreeRevision(wt_revid, tree)
+
+
+class FileIdFilter(loggraphviz.FileIdFilter):
+    @runs_in_loading_queue
+    def load(self, revids=None):
+        super(FileIdFilter, self).load(revids)
+
+
+class WorkingTreeHasChangeFilter(loggraphviz.WorkingTreeHasChangeFilter):
+    @runs_in_loading_queue
+    def load(self):
+        super(WorkingTreeHasChangeFilter, self).load()
+
 
 class FilterScheduler(object):
     def __init__(self, filter_changed_callback):
@@ -171,14 +185,14 @@ class LogModel(QtCore.QAbstractTableModel):
             
             scheduler = FilterScheduler(state.filter_changed)
             if file_ids:
-                file_id_filter = loggraphviz.FileIdFilter(
+                file_id_filter = FileIdFilter(
                     graph_viz, scheduler.filter_changed, file_ids)
                 state.filters.append(file_id_filter)
             else:
                 file_id_filter = None
             
             if isinstance(graph_viz, WithWorkingTreeGraphVizLoader):
-                working_tree_filter = loggraphviz.WorkingTreeHasChangeFilter(
+                working_tree_filter = WorkingTreeHasChangeFilter(
                     graph_viz, scheduler.filter_changed, file_ids)
                 state.filters.append(working_tree_filter)
             else:
