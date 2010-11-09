@@ -560,7 +560,7 @@ class QBzrConfigWindow(QBzrDialog):
     
     def get_selected_merge_tool(self):
         sel_model = self.merge_ui.tools.selectionModel()
-        if not sel_model.hasSelection:
+        if len(sel_model.selectedRows()) == 0:
             return None
         row = sel_model.selectedRows()[0].row()
         return self.merge_tools_model.get_merge_tool(row)
@@ -585,16 +585,13 @@ class QBzrConfigWindow(QBzrDialog):
         
     def merge_tools_remove_clicked(self):
         sel_model = self.merge_ui.tools.selectionModel()
-        assert sel_model.hasSelection()
+        assert len(sel_model.selectedRows()) > 0
         for index in sel_model.selectedRows():
             self.merge_tools_model.remove_merge_tool(index.row())
     
     def merge_tools_set_default_clicked(self):
         sel_model = self.merge_ui.tools.selectionModel()
-        assert sel_model.hasSelection()
-        row = sel_model.selectedRows()[0].row()
-        mt = self.merge_tools_model.get_merge_tool(row)
-        self.merge_tools_model.set_default(mt)
+        self.merge_tools_model.set_default(self.get_selected_merge_tool())
         
     def merge_tools_detect_clicked(self):
         self.merge_tools_model.detect_merge_tools()
