@@ -635,7 +635,7 @@ class QBzrConfigWindow(QBzrDialog):
         filename = QtGui.QFileDialog.getOpenFileName(self,
             gettext('Select merge tool executable'),
             '/')
-        if filename is not None:
+        if filename:
             curr = sel_model.currentIndex()
             mt = self.merge_tools_list_model.get_merge_tool(curr)
             mt.set_executable(unicode(filename))
