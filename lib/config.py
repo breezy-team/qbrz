@@ -799,13 +799,13 @@ class MergeToolsListModel(QtCore.QAbstractListModel):
         
     def detect_merge_tools(self):
         detected_tools = mergetools.detect_merge_tools()
-        combined_tools = {}
-        for tool in self._merge_tools + detected_tools:
-            combined_tools[tool.get_name()] = tool
-        new_tools = combined_tools.values()
-        default_tool = mergetools.get_default_merge_tool()
-        new_tools.sort(cmp=lambda x,y: cmp(x.get_name(), y.get_name()))
-        self.set_merge_tools(new_tools, default_tool)
+        for mt in detected_tools:
+            if mt not in self._merge_tools:
+                row = len(self._merge_tools)
+                self.beginInsertRows(QtCore.QModelIndex(), row, row)
+                self._merge_tools.append(mt)
+                self.endInsertRows()
+        self.sort(0, Qt.AscendingOrder)
         
     def set_merge_tool_name(self, index, name):
         self._merge_tools[index.row()].set_name(name)
