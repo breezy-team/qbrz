@@ -24,6 +24,7 @@
      (Bug #621934)
  * qcommit: added option to load commit message from a file.
    (Bug #640071, Philip Peitsch)
+ * qconflicts: fix bug with access to QBzr configuration. (Bug #675894)
 
 
 0.19.3 - Under Development
