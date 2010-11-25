@@ -65,10 +65,15 @@ class LogList(RevisionTreeView):
                                       self.rev_no_item_delegate)
 
         self.log_model = logmodel.LogModel(processEvents, throbber, self)
-        #self.connect(self.log_model,
-        #             QtCore.SIGNAL("linesUpdated()"),
-        #             self.make_selection_continuous)
+        self.lines_updated_selection = []
+        self.lines_updated_selection_current = None
         self.setModel(self.log_model)    
+        self.connect(self.log_model,
+                     QtCore.SIGNAL("layoutAboutToBeChanged()"),
+                     self.lines_updated_remember_selection)
+        self.connect(self.log_model,
+                     QtCore.SIGNAL("layoutChanged()"),
+                     self.lines_updated_restore_selection)
         
         header = self.header()
         header.setStretchLastSection(False)
@@ -290,15 +295,47 @@ class LogList(RevisionTreeView):
         if index:
             self.setCurrentIndex(index)
     
-    #def make_selection_continuous(self):
-    #    rows = self.selectionModel().selectedRows()
-    #    if len(rows)>2:
-    #        selection = QtGui.QItemSelection(rows[0], rows[-1])
-    #        self.selectionModel().select(selection,
-    #                                     (QtGui.QItemSelectionModel.Clear |
-    #                                      QtGui.QItemSelectionModel.Select |
-    #                                      QtGui.QItemSelectionModel.Rows))
+    # Remember the selection across layout changes.
+    # This use to be handeled by the fact that we use to use a proxy model to
+    # do filtering, but even that did not work 100%. I trided doing this by
+    # updating the models QPersistentModelIndex, but there is a bug with
+    # that in qt that not all columns are remembered.
+    def lines_updated_remember_selection(self):
+        selection_model = self.selectionModel()
+        rows = selection_model.selectedRows()
+        expand_indexes_to_ids = \
+            lambda l: [str(i.data(logmodel.RevIdRole).toString())
+                       for i in l]
+        # Note: we don't do anything is there are 0 selected rows
+        if rows:
+            self.lines_updated_selection = \
+                expand_indexes_to_ids((rows[0], rows[-1]))
+        current_index = self.currentIndex()
+        if current_index.isValid():
+            self.lines_updated_selection_current = \
+                str(current_index.data(logmodel.RevIdRole).toString())
+        else:
+            self.lines_updated_selection_current = None
+        print self.lines_updated_selection_current
 
+    def lines_updated_restore_selection(self):
+        selection_model = self.selectionModel()
+        indexes = [self.log_model.index_from_revid(revid)
+                   for revid in self.lines_updated_selection]
+        selection_model.clear()
+        if self.lines_updated_selection_current:
+            current_index = self.log_model.index_from_revid(
+                                    self.lines_updated_selection_current)
+            if current_index:
+                self.setCurrentIndex(current_index)
+        if not len(indexes) == 0 and indexes[0]:
+            if not indexes[1]:
+                indexes[1] = indexes[0]
+            selection = QtGui.QItemSelection(*indexes)
+            selection_model.select(selection,
+                                   (QtGui.QItemSelectionModel.SelectCurrent |
+                                    QtGui.QItemSelectionModel.Rows))
+    
     def get_selection_indexes(self, index=None):
         if index is None:
             return sorted(self.selectionModel().selectedRows(0), 
