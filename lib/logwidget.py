@@ -316,7 +316,6 @@ class LogList(RevisionTreeView):
                 str(current_index.data(logmodel.RevIdRole).toString())
         else:
             self.lines_updated_selection_current = None
-        print self.lines_updated_selection_current
 
     def lines_updated_restore_selection(self):
         selection_model = self.selectionModel()
