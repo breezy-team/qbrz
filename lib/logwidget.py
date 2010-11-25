@@ -357,7 +357,7 @@ class LogList(RevisionTreeView):
     def get_selection_top_and_parent_revids_and_count(self, index=None):
         indexes = self.get_selection_indexes(index)
         if len(indexes) == 0:
-            return None, None
+            return (None, None), 0
         top_revid = str(indexes[0].data(logmodel.RevIdRole).toString())
         bot_revid = str(indexes[-1].data(logmodel.RevIdRole).toString())
         parents = self.log_model.graph_viz.known_graph.get_parent_keys(bot_revid)

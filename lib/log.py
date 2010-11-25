@@ -706,6 +706,10 @@ class FileListContainer(QtGui.QWidget):
                     item.setFont(f)
 
     def show_file_list_context_menu(self, pos):
+        (top_revid, old_revid), count = \
+            self.log_list.get_selection_top_and_parent_revids_and_count()
+        if count == 0:
+            return
         # XXX - We should also check that the selected file is a file, and 
         # not a dir
         paths, file_ids = self.get_file_selection_paths_and_ids()
@@ -721,8 +725,6 @@ class FileListContainer(QtGui.QWidget):
         one_branch_with_tree = (len(gv.branches) == 1 and
                                 gv.branches[0].tree is not None)
 
-        (top_revid, old_revid), count = \
-            self.log_list.get_selection_top_and_parent_revids_and_count()
         self.file_list_context_menu_revert_file.setEnabled(one_branch_with_tree)
         self.file_list_context_menu_revert_file.setVisible(one_branch_with_tree)
             
