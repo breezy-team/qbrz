@@ -476,13 +476,15 @@ class QBzrConfigWindow(QBzrDialog):
         set_or_delete_option(parser, 'external_merge',
                              defaultMerge)
         
-        def save_config(config, parser):
-            ensure_config_dir_exists(os.path.dirname(config._get_filename()))
-            f = open(config._get_filename(), 'wb')
-            parser.write(f)
-            f.close()
+        if hasattr(config, 'file_name'):
+            file_name = config.file_name
+        else:
+            file_name = config._get_filename()
+        ensure_config_dir_exists(os.path.dirname(file_name))
+        f = open(file_name, 'wb')
+        parser.write(f)
+        f.close()
         
-        save_config(config, parser)
         qconfig.save()
 
     def do_accept(self):
