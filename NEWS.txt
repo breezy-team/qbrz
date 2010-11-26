@@ -1,8 +1,11 @@
 0.19.3 - Under Development
 --------------------------
 
- * qlog: fix actions that use the branch menu on PyQt 4.7.4.
-   (Bug #621158, Gary van der Merwe)
+ * qlog:
+   * Fix actions that use the branch menu on PyQt 4.7.4.
+     (Bug #621158, Gary van der Merwe)
+   * Fix crash when trying to "Revert to this revision",
+     "Update to this revision", etc. (Bug #680787, Gary van der Merwe)
  * Restore ignore button for error dialogs. (Gary van der Merwe)
 
 
