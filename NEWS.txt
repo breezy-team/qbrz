@@ -1,5 +1,6 @@
-0.19.3 - Under Development
---------------------------
+0.19.3 - 2010/11/26
+-------------------
+Maintenance release.
 
  * The 0.19 series is now marked as incompatible with bzr versions >= 2.3.
    This due to Bug #650905. (Gary van der Merwe)
