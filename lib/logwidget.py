@@ -433,7 +433,7 @@ class LogList(RevisionTreeView):
         if old_revid==NULL_REVISION:
             old_revno_str = 0
         else:
-            old_revno_str = gv.revid_rev[old_revid].revno_str
+            old_revno_str = gp.revid_rev[old_revid].revno_str
         
         if selected_branch_info:
             single_branch = False
