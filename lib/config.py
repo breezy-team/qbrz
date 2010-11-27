@@ -608,7 +608,7 @@ class QBzrConfigWindow(QBzrDialog):
     #        mt = self.merge_tools_model.get_merge_tool(curr)
     #        mt.set_executable(unicode(filename))
     #        self.merge_ui.merge_tool_commandline.setText(
-    #            mt.get_commandline(quote=True))
+    #            mt.get_commandline())
         
     def browseEditor(self):
         filename = QtGui.QFileDialog.getOpenFileName(self,
@@ -809,12 +809,12 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
                 name = mt.get_name()
                 return QtCore.QVariant(name)
             elif index.column() == self.COL_COMMANDLINE:
-                return QtCore.QVariant(mt.get_commandline(quote=True))
+                return QtCore.QVariant(mt.get_commandline())
         elif role == Qt.EditRole:
             if index.column() == self.COL_NAME:
                 return QtCore.QVariant(mt.get_name())
             elif index.column() == self.COL_COMMANDLINE:
-                return QtCore.QVariant(mt.get_commandline(quote=True))
+                return QtCore.QVariant(mt.get_commandline())
         elif role == Qt.CheckStateRole:
             if index.column() == self.COL_NAME:
                 return self._default == mt and Qt.Checked or Qt.Unchecked
