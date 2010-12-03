@@ -362,8 +362,8 @@ class QBzrConfigWindow(QBzrDialog):
         self.extDiffListIgnore = False
 
         # Merge
-        definedMergeTools = mergetools.get_merge_tools(config)
-        defaultMergeTool = mergetools.get_default_merge_tool(config)
+        definedMergeTools = config.get_merge_tools()
+        defaultMergeTool = config.get_default_merge_tool()
         self.merge_tools_model.set_merge_tools(definedMergeTools, defaultMergeTool)
         self.merge_tools_model.sort(0, Qt.AscendingOrder)
 
@@ -461,9 +461,9 @@ class QBzrConfigWindow(QBzrDialog):
         qconfig.save()
 
         # Merge
-        mergetools.set_merge_tools(self.merge_tools_model.get_merge_tools())
+        config.set_merge_tools(self.merge_tools_model.get_merge_tools())
         default_merge_tool = self.merge_tools_model.get_default()
-        mergetools.set_default_merge_tool(default_merge_tool)
+        config.set_default_merge_tool(default_merge_tool)
 
     def do_accept(self):
         """Save changes and close the window."""
