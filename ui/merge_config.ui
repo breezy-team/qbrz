@@ -101,13 +101,6 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="detect">
-           <property name="text">
-            <string>Detect</string>
-           </property>
-          </widget>
-         </item>
-         <item>
           <spacer name="spacer_2">
            <property name="orientation">
             <enum>Qt::Horizontal</enum>

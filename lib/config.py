@@ -217,9 +217,6 @@ class QBzrConfigWindow(QBzrDialog):
         self.connect(self.merge_ui.set_default,
                      QtCore.SIGNAL("clicked()"),
                      self.merge_tools_set_default_clicked)
-        self.connect(self.merge_ui.detect,
-                     QtCore.SIGNAL("clicked()"),
-                     self.merge_tools_detect_clicked)
         
         self.tabwidget.addTab(generalWidget, gettext("General"))
         self.tabwidget.addTab(aliasesWidget, gettext("Aliases"))
@@ -463,7 +460,7 @@ class QBzrConfigWindow(QBzrDialog):
         # Merge
         config.set_merge_tools(self.merge_tools_model.get_merge_tools())
         default_merge_tool = self.merge_tools_model.get_default()
-        config.set_default_merge_tool(default_merge_tool)
+        config.set_default_merge_tool(default_merge_tool.name)
 
     def do_accept(self):
         """Save changes and close the window."""
@@ -593,9 +590,6 @@ class QBzrConfigWindow(QBzrDialog):
         sel_model = self.merge_ui.tools.selectionModel()
         self.merge_tools_model.set_default(self.get_selected_merge_tool())
         
-    def merge_tools_detect_clicked(self):
-        self.merge_tools_model.detect_merge_tools()
-    
     #def merge_tool_browse_clicked(self):
     #    sel_model = self.merge_ui.tools.selectionModel()
     #    assert sel_model.hasSelection()
@@ -767,31 +761,15 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         del self._merge_tools[row]
         self.endRemoveRows()
         
-    def detect_merge_tools(self):
-        detected_tools = mergetools.detect_merge_tools()
-        for mt in detected_tools:
-            if mt not in self._merge_tools:
-                row = len(self._merge_tools)
-                self.beginInsertRows(QtCore.QModelIndex(), row, row)
-                self._merge_tools.append(mt)
-                self.endInsertRows()
-        self.sort(0, Qt.AscendingOrder)
-        
     def set_merge_tool_name(self, row, name):
-        self._merge_tools[row].set_name(name)
+        self._merge_tools[row].name = name
         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                   self.index(row, self.COL_NAME),
                   self.index(row, self.COL_NAME))
         self.sort(0, Qt.AscendingOrder)
         
     def set_merge_tool_commandline(self, row, commandline):
-        self._merge_tools[row].set_commandline(commandline)
-        self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                  self.index(row, self.COL_COMMANDLINE),
-                  self.index(row, self.COL_COMMANDLINE))
-        
-    def set_merge_tool_executable(self, row, executable):
-        self._merge_tools[row].set_executable(executable)
+        self._merge_tools[row].command_line = commandline
         self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                   self.index(row, self.COL_COMMANDLINE),
                   self.index(row, self.COL_COMMANDLINE))
@@ -806,15 +784,15 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         mt = self._merge_tools[index.row()]
         if role == Qt.DisplayRole:
             if index.column() == self.COL_NAME:
-                name = mt.get_name()
+                name = mt.name
                 return QtCore.QVariant(name)
             elif index.column() == self.COL_COMMANDLINE:
-                return QtCore.QVariant(mt.get_commandline())
+                return QtCore.QVariant(mt.command_line)
         elif role == Qt.EditRole:
             if index.column() == self.COL_NAME:
-                return QtCore.QVariant(mt.get_name())
+                return QtCore.QVariant(mt.name)
             elif index.column() == self.COL_COMMANDLINE:
-                return QtCore.QVariant(mt.get_commandline())
+                return QtCore.QVariant(mt.command_line)
         elif role == Qt.CheckStateRole:
             if index.column() == self.COL_NAME:
                 return self._default == mt and Qt.Checked or Qt.Unchecked
@@ -824,13 +802,13 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         mt = self._merge_tools[index.row()]
         if role == Qt.EditRole:
             if index.column() == self.COL_NAME:
-                mt.set_name(unicode(value.toString()))
+                mt.name = unicode(value.toString())
                 self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                           index, index)
                 self.sort(self.COL_NAME, Qt.AscendingOrder)
                 return True
             elif index.column() == self.COL_COMMANDLINE:
-                mt.set_commandline(unicode(value.toString()))
+                mt.command_line = unicode(value.toString())
                 self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                           index, index)
                 return True
@@ -864,9 +842,9 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         index_map = self._merge_tools[:] # copy
         def tool_cmp(a, b):
             if column == self.COL_NAME:
-                return cmp(a.get_name(), b.get_name())
+                return cmp(a.name, b.name)
             elif column == self.COL_COMMANDLINE:
-                return cmp(a.get_commandline(), b.get_commandline())
+                return cmp(a.command_line, b.command_line)
             return 0
         self._merge_tools.sort(cmp=tool_cmp,
                                reverse=sortOrder==Qt.DescendingOrder)

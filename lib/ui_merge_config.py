@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/merge_config.ui'
 #
-# Created: Tue Nov 09 00:06:40 2010
+# Created: Tue Dec 07 00:17:33 2010
 #      by: PyQt4 UI code generator 4.7.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -46,9 +46,6 @@ class Ui_MergeConfig(object):
         self.set_default = QtGui.QPushButton(self.widget)
         self.set_default.setObjectName("set_default")
         self.horizontalLayout.addWidget(self.set_default)
-        self.detect = QtGui.QPushButton(self.widget)
-        self.detect.setObjectName("detect")
-        self.horizontalLayout.addWidget(self.detect)
         spacerItem1 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem1)
         self.verticalLayout_2.addWidget(self.widget)
@@ -64,5 +61,4 @@ class Ui_MergeConfig(object):
         self.remove.setText(gettext("Remove"))
         self.set_default.setToolTip(gettext("Sets the selected merge tool as the default to use in qconflicts."))
         self.set_default.setText(gettext("Set Default"))
-        self.detect.setText(gettext("Detect"))
 
