@@ -794,7 +794,13 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         mt = self._merge_tools[index.row()]
         if role == Qt.EditRole:
             if index.column() == self.COL_NAME:
-                mt.name = unicode(value.toString())
+                # To properly update the config, renaming a merge tool must be
+                # handled as a remove and add.
+                self._removed_merge_tools.append(mt)
+                del self._merge_tools[index.row()]
+                mt = mergetools.MergeTool(unicode(value.toString()), mt
+                                          .command_line)
+                self._merge_tools.insert(index.row(), mt)
                 self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                           index, index)
                 self.sort(self.COL_NAME, Qt.AscendingOrder)
