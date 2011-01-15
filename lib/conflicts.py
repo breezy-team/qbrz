@@ -20,6 +20,7 @@
 from PyQt4 import QtCore, QtGui
 from bzrlib.config import GlobalConfig
 from bzrlib.conflicts import resolve
+from bzrlib.mergetools import known_merge_tools
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
 from bzrlib.plugins.qbzr.lib.util import (
@@ -119,12 +120,19 @@ class ConflictsWindow(QBzrWindow):
 
     def initialize_ui(self):
         config = GlobalConfig()
-        defined_tools = config.get_merge_tools()
-        default_tool = config.get_default_merge_tool()
+        # get user-defined merge tools
+        defined_tools = [mt.name for mt in config.get_merge_tools()]
+        # get predefined merge tools
+        defined_tools += known_merge_tools.keys()
+        # sort them nicely
+        defined_tools.sort()
         for merge_tool in defined_tools:
-            self.merge_tools_combo.insertItem(self.merge_tools_combo.count(), merge_tool.name)
+            self.merge_tools_combo.insertItem(self.merge_tools_combo.count(),
+                                              merge_tool)
+        default_tool = config.get_default_merge_tool()
         if default_tool is not None:
-            self.merge_tools_combo.setCurrentIndex(self.merge_tools_combo.findText(default_tool))
+            self.merge_tools_combo.setCurrentIndex(
+                self.merge_tools_combo.findText(default_tool))
         self.update_merge_tool_ui()
 
     def create_context_menu(self):
