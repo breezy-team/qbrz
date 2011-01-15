@@ -459,14 +459,15 @@ class QBzrConfigWindow(QBzrDialog):
 
         # Merge
         for mt in self.merge_tools_model.get_removed_merge_tools():
-            config.remove_merge_tool(mt.name)
+            config.remove_user_option('bzr.mergetool.%s' % mt.name)
         for mt in self.merge_tools_model.get_merge_tools():
             orig_mt = config.find_merge_tool(mt.name)
             if orig_mt is None or orig_mt.command_line != mt.command_line:
-                config.set_merge_tool(mt)
+                config.set_user_option('bzr.mergetool.%s' % mt.name,
+                                       mt.command_line)
         default_mt = self.merge_tools_model.get_default()
         if default_mt is not None:
-            config.set_default_merge_tool(default_mt)
+            config.set_user_option('bzr.default_mergetool', default_mt)
 
     def do_accept(self):
         """Save changes and close the window."""
