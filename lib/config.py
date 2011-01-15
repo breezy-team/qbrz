@@ -361,7 +361,7 @@ class QBzrConfigWindow(QBzrDialog):
         # Merge
         definedMergeTools = config.get_merge_tools()
         defaultMergeTool = config.get_default_merge_tool()
-        self.merge_tools_model.set_merge_tools(definedMergeTools, defaultMergeTool.name)
+        self.merge_tools_model.set_merge_tools(definedMergeTools, defaultMergeTool)
         self.merge_tools_model.sort(0, Qt.AscendingOrder)
 
     def save(self):
@@ -764,19 +764,6 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
             self._default = None
         del self._merge_tools[row]
         self.endRemoveRows()
-        
-    def set_merge_tool_name(self, row, name):
-        self._merge_tools[row].name = name
-        self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                  self.index(row, self.COL_NAME),
-                  self.index(row, self.COL_NAME))
-        self.sort(0, Qt.AscendingOrder)
-        
-    def set_merge_tool_commandline(self, row, commandline):
-        self._merge_tools[row].command_line = commandline
-        self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                  self.index(row, self.COL_COMMANDLINE),
-                  self.index(row, self.COL_COMMANDLINE))
         
     def rowCount(self, parent):
         return len(self._merge_tools)

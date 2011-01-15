@@ -20,7 +20,6 @@
 from PyQt4 import QtCore, QtGui
 from bzrlib.config import GlobalConfig
 from bzrlib.conflicts import resolve
-from bzrlib import mergetools
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
 from bzrlib.plugins.qbzr.lib.util import (
@@ -119,12 +118,13 @@ class ConflictsWindow(QBzrWindow):
         self.initialize_ui()        
 
     def initialize_ui(self):
-        defined_tools = mergetools.get_merge_tools()
-        default_tool = mergetools.get_default_merge_tool()
+        config = GlobalConfig()
+        defined_tools = config.get_merge_tools()
+        default_tool = config.get_default_merge_tool()
         for merge_tool in defined_tools:
-            self.merge_tools_combo.insertItem(self.merge_tools_combo.count(), merge_tool.get_name())
+            self.merge_tools_combo.insertItem(self.merge_tools_combo.count(), merge_tool.name)
         if default_tool is not None:
-            self.merge_tools_combo.setCurrentIndex(self.merge_tools_combo.findText(default_tool.get_name()))
+            self.merge_tools_combo.setCurrentIndex(self.merge_tools_combo.findText(default_tool))
         self.update_merge_tool_ui()
 
     def create_context_menu(self):
@@ -187,7 +187,8 @@ class ConflictsWindow(QBzrWindow):
         enabled, error_msg = self.is_merge_tool_launchable()
         if not enabled:
             return
-        merge_tool = mergetools.find_merge_tool(self.merge_tools_combo.currentText())
+        config = GlobalConfig()
+        merge_tool = config.find_merge_tool(unicode(self.merge_tools_combo.currentText()))
         file_id = str(items[0].data(0, QtCore.Qt.UserRole).toString())
         file_name = self.wt.abspath(self.wt.id2path(file_id))
         process = QtCore.QProcess(self)
@@ -228,14 +229,15 @@ class ConflictsWindow(QBzrWindow):
         enabled = True
         if len(items) != 1 or items[0].data(1, QtCore.Qt.UserRole).toString() != "text conflict":
             enabled = False
-        merge_tool = mergetools.find_merge_tool(self.merge_tools_combo.currentText())
+        config = GlobalConfig()
+        merge_tool = config.find_merge_tool(unicode(self.merge_tools_combo.currentText()))
         if merge_tool is None:
             error_msg = gettext("Set up external_merge app in qconfig under the Merge tab")
             enabled = False
         elif not merge_tool.is_available():
             enabled = False
             error_msg = gettext("External merge tool %(tool)s is not available") % \
-                    { 'tool': merge_tool.get_name() }
+                    { 'tool': merge_tool.name }
         return enabled, error_msg
 
     def is_extmerge_definition_valid(self, showErrorDialog):
