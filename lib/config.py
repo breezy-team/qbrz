@@ -361,7 +361,7 @@ class QBzrConfigWindow(QBzrDialog):
         # Merge
         definedMergeTools = config.get_merge_tools()
         defaultMergeTool = config.get_default_merge_tool()
-        self.merge_tools_model.set_merge_tools(definedMergeTools, defaultMergeTool)
+        self.merge_tools_model.set_merge_tools(definedMergeTools, defaultMergeTool.name)
         self.merge_tools_model.sort(0, Qt.AscendingOrder)
 
     def save(self):
@@ -458,9 +458,15 @@ class QBzrConfigWindow(QBzrDialog):
         qconfig.save()
 
         # Merge
-        config.set_merge_tools(self.merge_tools_model.get_merge_tools())
-        default_merge_tool = self.merge_tools_model.get_default()
-        config.set_default_merge_tool(default_merge_tool.name)
+        for mt in self.merge_tools_model.get_removed_merge_tools():
+            config.remove_merge_tool(mt.name)
+        for mt in self.merge_tools_model.get_merge_tools():
+            orig_mt = config.find_merge_tool(mt.name)
+            if orig_mt is None or orig_mt.command_line != mt.command_line:
+                config.set_merge_tool(mt)
+        default_mt = self.merge_tools_model.get_default()
+        if default_mt is not None:
+            config.set_default_merge_tool(default_mt)
 
     def do_accept(self):
         """Save changes and close the window."""
@@ -566,7 +572,7 @@ class QBzrConfigWindow(QBzrDialog):
         selected = self.get_selected_merge_tool()
         self.merge_ui.remove.setEnabled(selected is not None)
         self.merge_ui.set_default.setEnabled(selected is not None and
-            self.merge_tools_model.get_default() != selected)
+            self.merge_tools_model.get_default() != selected.name)
         
     def merge_tools_data_changed(self, top_left, bottom_right):
         self.update_buttons()
@@ -588,7 +594,7 @@ class QBzrConfigWindow(QBzrDialog):
     
     def merge_tools_set_default_clicked(self):
         sel_model = self.merge_ui.tools.selectionModel()
-        self.merge_tools_model.set_default(self.get_selected_merge_tool())
+        self.merge_tools_model.set_default(self.get_selected_merge_tool().name)
         
     #def merge_tool_browse_clicked(self):
     #    sel_model = self.merge_ui.tools.selectionModel()
@@ -699,6 +705,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         super(MergeToolsTableModel, self).__init__()
         self._merge_tools = []
         self._default = None
+        self._removed_merge_tools = []
         
     def get_merge_tools(self):
         return self._merge_tools
@@ -706,11 +713,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
     def set_merge_tools(self, merge_tools, default):
         self.beginResetModel()
         self._merge_tools = merge_tools
-        # see set_default for explanation
-        for mt in self._merge_tools:
-            if mt == default:
-                self._default = mt
-                break
+        self._default = default
         self.endResetModel()
 
     def get_default(self):
@@ -719,18 +722,15 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
     def set_default(self, new_default):
         old_row = None
         if self._default is not None:
-            old_row = self._merge_tools.index(self._default)
+            for mt in self._merge_tools:
+                if mt.name == self._default:
+                    old_row = self._merge_tools.index(mt)
         new_row = None
         if new_default is not None:
-            new_row = self._merge_tools.index(new_default)
-            # new_default may be == to an instance in self._merge_tools but not
-            # the same instance. To preserve editing semantics in this model,
-            # self._default must refer to an instance in self._merge_tools, so
-            # we find the == instance in self._merge_tools and set self._default
-            # to that instead.
             for mt in self._merge_tools:
-                if mt == new_default:
-                    self._default = mt
+                if mt.name == new_default:
+                    self._default = mt.name
+                    new_row = self._merge_tools.index(mt)
                     break
         else:
             self._default = None
@@ -742,7 +742,10 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
             self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                       self.index(new_row, self.COL_NAME),
                       self.index(new_row, self.COL_NAME))
-        
+    
+    def get_removed_merge_tools(self):
+        return self._removed_merge_tools
+    
     def get_merge_tool(self, row):
         return self._merge_tools[row]
         
@@ -756,7 +759,8 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         
     def remove_merge_tool(self, row):
         self.beginRemoveRows(QtCore.QModelIndex(), row, row)
-        if self._merge_tools[row] == self._default:
+        self._removed_merge_tools.append(self._merge_tools[row])
+        if self._merge_tools[row].name == self._default:
             self._default = None
         del self._merge_tools[row]
         self.endRemoveRows()
@@ -795,7 +799,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
                 return QtCore.QVariant(mt.command_line)
         elif role == Qt.CheckStateRole:
             if index.column() == self.COL_NAME:
-                return self._default == mt and Qt.Checked or Qt.Unchecked
+                return self._default == mt.name and Qt.Checked or Qt.Unchecked
         return QtCore.QVariant()
         
     def setData(self, index, value, role):
@@ -815,8 +819,9 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         elif role == Qt.CheckStateRole:
             if index.column() == self.COL_NAME:
                 if value.toInt() == (Qt.Checked, True):
-                    self.set_default(mt)
-                elif value.toInt() == (Qt.Unchecked, True) and self._default == mt:
+                    self.set_default(mt.name)
+                elif (value.toInt() == (Qt.Unchecked, True) and
+                      self._default == mt.name):
                     self.set_default(None)
         return False
         
