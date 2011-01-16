@@ -24,15 +24,21 @@
      (Bug #621934)
  * qcommit: added option to load commit message from a file.
    (Bug #640071, Philip Peitsch)
+ * qconflicts: fix bug with access to QBzr configuration. (Bug #675894)
  * Use bzrlib.mergetools for managing and using external merge tools in qconfig
    and qconflicts. (Bug #489915, Gordon Tyler)
 
 
-0.19.3 - Under Development
---------------------------
+0.19.3 - 2010/11/26
+Maintenance release.
 
- * qlog: fix actions that use the branch menu on PyQt 4.7.4.
-   (Bug #621158, Gary van der Merwe)
+ * The 0.19 series is now marked as incompatible with bzr versions >= 2.3.
+   This due to Bug #650905. (Gary van der Merwe)
+ * qlog:
+   * Fix actions that use the branch menu on PyQt 4.7.4.
+     (Bug #621158, Gary van der Merwe)
+   * Fix crash when trying to "Revert to this revision",
+     "Update to this revision", etc. (Bug #680787, Gary van der Merwe)
  * Restore ignore button for error dialogs. (Gary van der Merwe)
 
 

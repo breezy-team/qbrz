@@ -40,7 +40,6 @@ import re
 
 from bzrlib import errors
 from bzrlib import osutils
-from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
 from bzrlib.urlutils import determine_relative_path, join, split
 
@@ -523,16 +522,16 @@ class LogWindow(QBzrWindow):
         if locations is None:
             return osutils.getcwd()
         else:
-            if len(locations) > 1:
-                return (", ".join(url_for_display(i) for i in locations
-                                 ).rstrip(", "))
-            else:
-                if isinstance(locations[0], Branch):
-                    location = locations[0].base
-                else:
-                    location = locations[0]
-                from bzrlib.directory_service import directories
-                return (url_for_display(directories.dereference(location)))
+            from bzrlib.branch import Branch
+            
+            def title_for_location(location):
+                if isinstance(location, basestring):
+                    return url_for_display(location)
+                if isinstance(location, Branch):
+                    return url_for_display(location.base)
+                return str(location)
+            
+            return ", ".join(title_for_location(l) for l in locations)
 
 
 class FileListContainer(QtGui.QWidget):
@@ -707,6 +706,10 @@ class FileListContainer(QtGui.QWidget):
                     item.setFont(f)
 
     def show_file_list_context_menu(self, pos):
+        (top_revid, old_revid), count = \
+            self.log_list.get_selection_top_and_parent_revids_and_count()
+        if count == 0:
+            return
         # XXX - We should also check that the selected file is a file, and 
         # not a dir
         paths, file_ids = self.get_file_selection_paths_and_ids()
@@ -722,8 +725,6 @@ class FileListContainer(QtGui.QWidget):
         one_branch_with_tree = (len(gv.branches) == 1 and
                                 gv.branches[0].tree is not None)
 
-        (top_revid, old_revid), count = \
-            self.log_list.get_selection_top_and_parent_revids_and_count()
         self.file_list_context_menu_revert_file.setEnabled(one_branch_with_tree)
         self.file_list_context_menu_revert_file.setVisible(one_branch_with_tree)
             
