@@ -359,9 +359,14 @@ class QBzrConfigWindow(QBzrDialog):
         self.extDiffListIgnore = False
 
         # Merge
-        definedMergeTools = config.get_merge_tools()
-        defaultMergeTool = config.get_default_merge_tool()
-        self.merge_tools_model.set_merge_tools(definedMergeTools, defaultMergeTool)
+        user_merge_tools = config.get_merge_tools()
+        default_merge_tool = config.get_default_merge_tool()
+        known_merge_tools = [mergetools.MergeTool(name, command_line)
+                             for name, command_line
+                             in mergetools.known_merge_tools.iteritems()]
+        self.merge_tools_model.set_merge_tools(user_merge_tools,
+                                               known_merge_tools,
+                                               default_merge_tool)
         self.merge_tools_model.sort(0, Qt.AscendingOrder)
 
     def save(self):
@@ -711,9 +716,10 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
     def get_merge_tools(self):
         return self._merge_tools
     
-    def set_merge_tools(self, merge_tools, default):
+    def set_merge_tools(self, user, known, default):
         self.beginResetModel()
-        self._merge_tools = merge_tools
+        self._merge_tools = user+known
+        self._known_tools = known
         self._default = default
         self.endResetModel()
 
@@ -788,6 +794,10 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         elif role == Qt.CheckStateRole:
             if index.column() == self.COL_NAME:
                 return self._default == mt.name and Qt.Checked or Qt.Unchecked
+        elif role == Qt.BackgroundRole:
+            if mt in self._known_tools:
+                palette = QtGui.QApplication.palette()
+                return palette.alternateBase()
         return QtCore.QVariant()
         
     def setData(self, index, value, role):
@@ -821,7 +831,9 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         
     def flags(self, index):
         f = super(MergeToolsTableModel, self).flags(index)
-        f = f | Qt.ItemIsEditable
+        mt = self._merge_tools[index.row()]
+        if mt not in self._known_tools:
+            f = f | Qt.ItemIsEditable
         if index.column() == self.COL_NAME:
             f = f | Qt.ItemIsUserCheckable
         return f
