@@ -18,9 +18,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
+from bzrlib import mergetools
 from bzrlib.config import GlobalConfig
 from bzrlib.conflicts import resolve
-from bzrlib.mergetools import known_merge_tools
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
 from bzrlib.plugins.qbzr.lib.util import (
@@ -121,15 +121,15 @@ class ConflictsWindow(QBzrWindow):
     def initialize_ui(self):
         config = GlobalConfig()
         # get user-defined merge tools
-        defined_tools = [mt.name for mt in config.get_merge_tools()]
+        defined_tools = config.get_merge_tools().keys()
         # get predefined merge tools
-        defined_tools += known_merge_tools.keys()
+        defined_tools += mergetools.known_merge_tools.keys()
         # sort them nicely
         defined_tools.sort()
         for merge_tool in defined_tools:
             self.merge_tools_combo.insertItem(self.merge_tools_combo.count(),
                                               merge_tool)
-        default_tool = config.get_default_merge_tool()
+        default_tool = config.get_user_option('bzr.default_mergetool')
         if default_tool is not None:
             self.merge_tools_combo.setCurrentIndex(
                 self.merge_tools_combo.findText(default_tool))
@@ -196,7 +196,7 @@ class ConflictsWindow(QBzrWindow):
         if not enabled:
             return
         config = GlobalConfig()
-        merge_tool = config.find_merge_tool(unicode(self.merge_tools_combo.currentText()))
+        cmdline = config.find_merge_tool(unicode(self.merge_tools_combo.currentText()))
         file_id = str(items[0].data(0, QtCore.Qt.UserRole).toString())
         file_name = self.wt.abspath(self.wt.id2path(file_id))
         process = QtCore.QProcess(self)
@@ -209,7 +209,7 @@ class ConflictsWindow(QBzrWindow):
             self.connect(process, QtCore.SIGNAL("error(QProcess::ProcessError)"), qprocess_error)
             self.connect(process, QtCore.SIGNAL("finished(int,QProcess::ExitStatus)"), qprocess_finished)
             process.start(executable, args)
-        merge_tool.invoke(file_name, qprocess_invoker)
+        mergetools.invoke(cmdline, file_name, qprocess_invoker)
 
     def show_merge_tool_error(self, error):
         msg = gettext("Error while running merge tool (code %d)") % error
@@ -238,14 +238,15 @@ class ConflictsWindow(QBzrWindow):
         if len(items) != 1 or items[0].data(1, QtCore.Qt.UserRole).toString() != "text conflict":
             enabled = False
         config = GlobalConfig()
-        merge_tool = config.find_merge_tool(unicode(self.merge_tools_combo.currentText()))
-        if merge_tool is None:
+        tool = unicode(self.merge_tools_combo.currentText())
+        cmdline = config.find_merge_tool(tool)
+        if cmdline is None:
             error_msg = gettext("Set up external_merge app in qconfig under the Merge tab")
             enabled = False
-        elif not merge_tool.is_available():
+        elif not mergetools.check_availability(cmdline):
             enabled = False
             error_msg = gettext("External merge tool %(tool)s is not available") % \
-                    { 'tool': merge_tool.name }
+                    { 'tool': tool }
         return enabled, error_msg
 
     def is_extmerge_definition_valid(self, showErrorDialog):
