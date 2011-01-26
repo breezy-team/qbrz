@@ -405,10 +405,14 @@ class LogWindow(QBzrWindow):
         if location is None:
             return elided_text(branch.nick)
         
+        has_explicit_nickname = getattr(
+            branch.get_config(),
+            'has_explicit_nickname',
+            lambda: False)()
         append_nick = (
             location.startswith(':') or
             bool(self.no_usefull_info_in_location_re.match(location)) or
-            branch.get_config().has_explicit_nickname()
+            has_explicit_nickname
             )
         if append_nick:
             return '%s (%s)' % (elided_path(location), branch.nick)
