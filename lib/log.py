@@ -613,7 +613,7 @@ class FileListContainer(QtGui.QWidget):
         else:
             specific_file_ids = []
         
-        if not revids:
+        if not revids or revids == (None, None):
             return
         
         if revids not in self.delta_cache:
