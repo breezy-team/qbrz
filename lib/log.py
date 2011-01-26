@@ -608,6 +608,10 @@ class FileListContainer(QtGui.QWidget):
             self.log_list.get_selection_top_and_parent_revids_and_count()
         gv = self.log_list.log_model.graph_viz
         gv_is_wtgv = isinstance(gv, logmodel.WithWorkingTreeGraphVizLoader)
+        if self.log_list.log_model.file_id_filter:
+            specific_file_ids = self.log_list.log_model.file_id_filter.file_ids
+        else:
+            specific_file_ids = []
         
         if not revids:
             return
@@ -663,10 +667,7 @@ class FileListContainer(QtGui.QWidget):
             delta = self.delta_cache[revids]
         
         if delta:
-            items = []
-            #specific_file_ids = gv.file_ids
-            specific_file_ids = []
-            
+            items = []            
             for path, id, kind in delta.added:
                 items.append((id,
                               path,
