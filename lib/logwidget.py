@@ -401,11 +401,11 @@ class LogList(RevisionTreeView):
         gv = self.log_model.graph_viz
         (top_revid, old_revid), rev_count = \
                 self.get_selection_top_and_parent_revids_and_count()
-        top_revno_str = gp.revid_rev[top_revid].revno_str
+        top_revno_str = gv.revid_rev[top_revid].revno_str
         if old_revid==NULL_REVISION:
             old_revno_str = 0
         else:
-            old_revno_str = gp.revid_rev[old_revid].revno_str
+            old_revno_str = gv.revid_rev[old_revid].revno_str
         
         if selected_branch_info:
             single_branch = False
