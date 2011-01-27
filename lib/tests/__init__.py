@@ -68,7 +68,7 @@ def load_tests(basic_tests, module, loader):
 # The application should be initialized only once pre process, but this should
 # be delayed until the first tests is run in a given process, doing it when the
 # tests are loaded is too early and failed for selftest --parallel=fork
-qt_app = None
+_qt_app = None
 
 
 class QTestCase(tests.TestCaseWithTransport):
