@@ -19,7 +19,6 @@
 from bzrlib.tests import TestCase, TestCaseWithTransport
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib import tests as qtests
-from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
 from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
 
 
