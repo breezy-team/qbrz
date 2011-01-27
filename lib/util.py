@@ -862,7 +862,7 @@ def runs_in_loading_queue(f):
     """Methods decorated with this will not run at the same time, but will be
     queued. Methods decorated with this will not be able to return results,
     but should rather update the ui themselfs. Methods decorated with this
-    should detect, and stop if their execution is no longer requires.
+    should detect, and stop if their execution is no longer required.
     
     """
     
