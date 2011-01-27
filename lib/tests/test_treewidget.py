@@ -27,6 +27,7 @@ from bzrlib.conflicts import TextConflict, ConflictList
 from bzrlib import ignores
 
 from PyQt4 import QtCore, QtGui
+from bzrlib.plugins.qbzr.lib import tests as qtests
 from bzrlib.plugins.qbzr.lib.treewidget import (
     TreeWidget,
     TreeModel,
@@ -37,7 +38,6 @@ from bzrlib.plugins.qbzr.lib.treewidget import (
     group_large_dirs,
     )
 from bzrlib.plugins.qbzr.lib.tests.modeltest import ModelTest
-from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
 
 def load_tests(standard_tests, module, loader):
     result = loader.suiteClass()
@@ -53,23 +53,24 @@ def load_tests(standard_tests, module, loader):
                 TestTreeFilterProxyModel,
                 )))
     tests.multiply_tests(filter_tests, filter_scenarios, result)
-    
+
     # No parametrization for the remaining tests
     result.addTests(remaining_tests)
 
     return result
 
-class TestTreeWidget(TestWatchExceptHook, TestCaseWithTransport):
-    
+
+class TestTreeWidget(qtests.QTestCase):
+
     # Set by load_tests
     make_tree = None
     modify_tree = None
     changes_mode = False
-    
+
     def setUp(self):
         super(TestTreeWidget, self).setUp()
         self.tree, self.branch = self.make_tree(self)
-    
+
     def make_working_tree(self):
         #tree = WorkingTree()
         tree = self.make_branch_and_tree('trunk')
@@ -224,14 +225,15 @@ tree_scenarios = (
          'modify_tree': lambda self, tree: None,}),
 )
 
-class TestTreeFilterProxyModel(TestWatchExceptHook, TestCaseWithTransport):
+class TestTreeFilterProxyModel(qtests.QTestCase):
+
     # Set by load_tests
     filter = None
     expected_visible = None
-    
+
     def test_filters(self):
         tree = self.make_branch_and_tree('tree')
-        
+
         self.build_tree(['tree/dir-with-unversioned/',
                          'tree/ignored-dir-with-child/',])
         self.build_tree_contents([('tree/dir-with-unversioned/child', ''),
@@ -247,25 +249,24 @@ class TestTreeFilterProxyModel(TestWatchExceptHook, TestCaseWithTransport):
         ignores.tree_ignores_add_patterns(tree,
                                           ['ignored-dir-with-child',
                                            'ignored'])
-        
+
         tree.commit('a', rev_id='rev-a',
                     committer="joe@foo.com",
                     timestamp=1166046000.00, timezone=0)
-        
+
         self.build_tree_contents([('tree/changed', 'new')])
-        
+
         self.model = TreeModel()
         load_dirs=[PersistantItemReference(None, 'dir-with-unversioned'),
-                   PersistantItemReference(None, 'ignored-dir-with-child')]        
+                   PersistantItemReference(None, 'ignored-dir-with-child')]
         self.model.set_tree(tree, branch=tree.branch, load_dirs=load_dirs)
         self.filter_model = TreeFilterProxyModel()
         self.filter_model.setSourceModel(self.model)
-        
+
 
         self.filter_model.setFilters(self.filter)
         self.assertVisiblePaths(self.expected_visible)
 
-    
     def assertVisiblePaths(self, paths):
         visible_paths = []
         parent_indexes_to_visit = [QtCore.QModelIndex()]
@@ -277,18 +278,18 @@ class TestTreeFilterProxyModel(TestWatchExceptHook, TestCaseWithTransport):
                     str(self.filter_model.data(index, self.model.PATH).toString()))
                 if self.filter_model.hasChildren(index):
                     parent_indexes_to_visit.append(index)
-        
+
         # we do not care for the order in this test.
         visible_paths.sort()
         paths.sort()
         self.assertEqual(visible_paths, paths)
 
-class TestTreeWidgetSelectAll(TestWatchExceptHook, TestCaseWithTransport):
-    
+class TestTreeWidgetSelectAll(qtests.QTestCase):
+
     def setUp(self):
         super(TestTreeWidgetSelectAll, self).setUp()
         tree = self.make_branch_and_tree('tree')
-        
+
         self.build_tree(['tree/dir-with-unversioned/',
                          'tree/ignored-dir-with-child/',
                          'tree/unversioned-with-ignored/',
@@ -308,22 +309,20 @@ class TestTreeWidgetSelectAll(TestWatchExceptHook, TestCaseWithTransport):
         ignores.tree_ignores_add_patterns(tree,
                                           ['ignored-dir-with-child',
                                            'ignored'])
-        
+
         tree.commit('a', rev_id='rev-a',
                     committer="joe@foo.com",
                     timestamp=1166046000.00, timezone=0)
-        
+
         self.build_tree_contents([('tree/changed', 'new')])
         self.tree = tree
-    
+
     def assertSelectedPaths(self, treewidget, paths):
         if 0: treewidget = TreeWidget()
         selected = [item.path for item in treewidget.tree_model.iter_checked()]
         # we do not care for the order in this test.
-        selected.sort()
-        paths.sort()
-        self.assertEqual(selected, paths)
-    
+        self.assertEqual(set(selected), set(paths))
+
     def test_add_selectall(self):
         import bzrlib.plugins.qbzr.lib.add
         self.win = bzrlib.plugins.qbzr.lib.add.AddWindow(self.tree, None)
@@ -333,7 +332,7 @@ class TestTreeWidgetSelectAll(TestWatchExceptHook, TestCaseWithTransport):
                                                      'unversioned',
                                                      'unversioned-with-ignored'])
 
-    
+
     def test_commit_selectall(self):
         import bzrlib.plugins.qbzr.lib.commit
         self.win = bzrlib.plugins.qbzr.lib.commit.CommitWindow(self.tree, None)
@@ -357,7 +356,7 @@ class TestTreeWidgetSelectAll(TestWatchExceptHook, TestCaseWithTransport):
         self.win.initial_load()
         self.win.selectall_checkbox.click()
         self.assertSelectedPaths(self.win.filelist, ['changed'])
-    
+
     def cleanup_win(self):
         # Sometimes the model was getting deleted before the widget, and the
         # widget was trying to query the model. So we delete everything here.
@@ -365,6 +364,7 @@ class TestTreeWidgetSelectAll(TestWatchExceptHook, TestCaseWithTransport):
         self.win.filelist.deleteLater()
         self.win.filelist.tree_model.deleteLater()
         QtCore.QCoreApplication.processEvents()
+
 
 class TestModelItemData(TestCase):
 
@@ -408,16 +408,16 @@ filter_scenarios = (
                               'dir-with-unversioned/child',
                               'ignored-dir-with-child',
                               'ignored-dir-with-child/child',
-                              'unchanged', 
-                              'changed', 
-                              'unversioned', 
+                              'unchanged',
+                              'changed',
+                              'unversioned',
                               'ignored',
                               '.bzrignore',
                               ],}),
     ('Unchanged',
         {'filter': (True, False, False, False) ,
          'expected_visible': ['dir-with-unversioned',
-                              'unchanged', 
+                              'unchanged',
                               '.bzrignore',
                               ],}),
     ('Changed',
@@ -427,7 +427,7 @@ filter_scenarios = (
         {'filter': (False, False, True, False),
          'expected_visible': ['dir-with-unversioned',
                               'dir-with-unversioned/child',
-                              'unversioned', 
+                              'unversioned',
                               ],}),
     ('Ignored',
         {'filter': (False, False, False, True),
@@ -441,13 +441,13 @@ filter_scenarios = (
                               'ignored',
                               'dir-with-unversioned',
                               'dir-with-unversioned/child',
-                              'unversioned', 
+                              'unversioned',
                               ],}),
     )
 
 
 class TestGroupLargeDirs(TestCase):
-    
+
     def test_no_group_small(self):
         paths = frozenset(("a/1", "a/2", "a/3", "b"))
         self.assertEqual(group_large_dirs(paths), {"":paths})
@@ -472,13 +472,13 @@ class TestGroupLargeDirs(TestCase):
         paths = frozenset()
         self.assertEqual(group_large_dirs(paths),
                          {'': set([])})
-    
+
     def test_group_deeper_dir(self):
         paths = frozenset(("a/b/1", "a/b/2", "a/b/3", "a/b/4", "c"))
         self.assertEqual(group_large_dirs(paths),
                          {'': set(['a/b', 'c']),
-                          'a/b': set(['a/b/1', 'a/b/2', 'a/b/3', 'a/b/4'])}) 
-    
+                          'a/b': set(['a/b/1', 'a/b/2', 'a/b/3', 'a/b/4'])})
+
     def test_subdir_included(self):
         paths = frozenset([
             u'b',

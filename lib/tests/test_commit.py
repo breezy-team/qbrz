@@ -17,18 +17,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from bzrlib.tests import TestCase, TestCaseWithTransport
-from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib.tests import replace_report_exception
-from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
+from PyQt4 import QtCore
+from bzrlib.plugins.qbzr.lib import tests as qtests
 from bzrlib.plugins.qbzr.lib.commit import CommitWindow
 
 
-class TestCommit(TestWatchExceptHook, TestCaseWithTransport):
-    
-    def setUp(self):
-        super(TestCommit, self).setUp()
-        replace_report_exception(self)
-    
+class TestCommit(qtests.QTestCase):
+
     def test_bug_526011(self):
         tree = self.make_branch_and_tree('branch')
         self.build_tree(['branch/a/'])

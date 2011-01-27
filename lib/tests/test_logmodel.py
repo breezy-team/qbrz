@@ -19,27 +19,26 @@
 from bzrlib.tests import TestCase, TestCaseWithTransport
 from PyQt4 import QtCore
 
+from bzrlib.plugins.qbzr.lib import tests as qtests
 from bzrlib.plugins.qbzr.lib.logmodel import (LogModel, GraphVizLoader)
 from bzrlib.plugins.qbzr.lib.loggraphviz import BranchInfo
 from bzrlib.plugins.qbzr.lib.util import ThrobberWidget
 
 from bzrlib.plugins.qbzr.lib.tests.modeltest import ModelTest
-from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
 
 
-class TestModel(TestWatchExceptHook, TestCaseWithTransport):
-    
-    
+class TestModel(qtests.QTestCase):
+
     def _test(self, wt):
         def processEvents():
             pass
         throbber = ThrobberWidget(None)
         log_model = LogModel(processEvents, throbber)
         modeltest = ModelTest(log_model, None);
-        
+
         bi = BranchInfo('', wt, wt.branch)
         log_model.load((bi,), bi, None, False, GraphVizLoader)
-    
+
     def test_empty_branch(self):
         wt = self.make_branch_and_tree('.')
         self._test(wt)
