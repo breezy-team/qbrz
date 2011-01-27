@@ -19,13 +19,13 @@
 from bzrlib.tests import TestCase, TestCaseWithTransport
 from PyQt4 import QtCore, QtGui
 from bzrlib import conflicts
-from bzrlib.plugins.qbzr.lib.tests import replace_report_exception
+from bzrlib.plugins.qbzr.lib import tests as qtests
 from bzrlib.plugins.qbzr.lib.tests.excepthookwatcher import TestWatchExceptHook
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 
-class TestAnnotate(TestWatchExceptHook, TestCaseWithTransport):
-    
-    # Coppied from bzrlib/tests/test_annotate.py
+class TestAnnotate(qtests.QTestCase):
+
+    # Copied from bzrlib/tests/test_annotate.py
     def create_merged_trees(self):
         """create 2 trees with merges between them.
 
@@ -69,11 +69,7 @@ class TestAnnotate(TestWatchExceptHook, TestCaseWithTransport):
         tree1.lock_read()
         self.addCleanup(tree1.unlock)
         return tree1, tree2
-    
-    def setUp(self):
-        super(TestAnnotate, self).setUp()
-        replace_report_exception(self)
-    
+
     def test_just_show_annotate(self):
         tree1, tree2 = self.create_merged_trees()
         win = AnnotateWindow(tree1.branch, tree1, tree1, 'a', 'a-id')

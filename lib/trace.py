@@ -212,6 +212,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
             window.close()
     return error_type
 
+
 class ErrorReport(QtGui.QDialog):
     def __init__(self, title, message, trace_back, type=MAIN_LOAD_METHOD,
                  parent=None):

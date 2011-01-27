@@ -26,11 +26,14 @@ from bzrlib import (
     )
 from bzrlib.transport import memory
 
-from bzrlib.plugins.qbzr.lib import util
+from bzrlib.plugins.qbzr.lib import (
+    tests as qtests,
+    util,
+    )
 from bzrlib.plugins.qbzr.lib.tests import mock
 
 
-class TestUtil(tests.TestCase):
+class TestUtil(qtests.QTestCase):
 
     def test_file_extension(self):
         self.assertEquals('', util.file_extension(''))

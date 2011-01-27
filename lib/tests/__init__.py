@@ -19,21 +19,18 @@
 
 import os
 import sys
-from bzrlib import trace
+from bzrlib import (
+    tests,
+    trace,
+    )
 
 try:
     from PyQt4 import QtGui
 except ImportError:
-    _qt_app = "don't initialize it!"    # fake object to avoid QApplication call
-else:
-    _qt_app = None   # intended to hold global QApplication instance for tests.
+    pass
 
 
 def load_tests(basic_tests, module, loader):
-    global _qt_app
-    if _qt_app is None:
-        _qt_app = QtGui.QApplication(sys.argv)
-    
     testmod_names = [
         'mock',
         'test_annotate',
@@ -68,17 +65,22 @@ def load_tests(basic_tests, module, loader):
                 raise
     return basic_tests
 
+# The application should be initialized only once pre process, but this should
+# be delayed until the first tests is run in a given process, doing it when the
+# tests are loaded is too early and failed for selftest --parallel=fork
+qt_app = None
 
-def replace_report_exception(test_case):
-    import bzrlib.plugins.qbzr.lib.trace
-    def report_exception(exc_info=None, type=None, window=None,
-                         ui_mode=False):
-        raise
-    old_report_exception = bzrlib.plugins.qbzr.lib.trace.report_exception
-    bzrlib.plugins.qbzr.lib.trace.report_exception = report_exception
-    
-    def restore_report_exception():
-        bzrlib.plugins.qbzr.lib.trace.report_exception = old_report_exception
-    
-    test_case.addCleanup(restore_report_exception)
-    
+
+class QTestCase(tests.TestCaseWithTransport):
+
+    def setUp(self):
+        super(QTestCase, self).setUp()
+        global _qt_app
+        if _qt_app is None:
+            _qt_app = QtGui.QApplication(sys.argv)
+        import bzrlib.plugins.qbzr.lib.trace
+        def report_exception(exc_info=None, type=None, window=None,
+                             ui_mode=False):
+            raise
+        self.overrideAttr(bzrlib.plugins.qbzr.lib.trace, 'report_exception',
+                          report_exception)
