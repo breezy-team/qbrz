@@ -18,6 +18,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import signal
+
 from bzrlib import errors
 from bzrlib.commands import Command
 from bzrlib.option import Option
@@ -156,6 +158,9 @@ class QBzrCommand(Command):
         std_ui_factory = ui.ui_factory
         try:
             ui.ui_factory = QUIFactory()
+            
+            # Handle interupt signal correctly.
+            signal.signal(signal.SIGINT, signal.SIG_DFL)
             
             # Set up global exception handling.
             from bzrlib.plugins.qbzr.lib.trace import excepthook

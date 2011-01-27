@@ -25,6 +25,8 @@
  * qcommit: added option to load commit message from a file.
    (Bug #640071, Philip Peitsch)
  * qconflicts: fix bug with access to QBzr configuration. (Bug #675894)
+ * When a interupt signal is recived, close rather than showing a error
+   message. (Gary van der Merwe)
 
 
 0.19.3 - 2010/11/26
