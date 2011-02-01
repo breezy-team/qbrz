@@ -979,7 +979,8 @@ def launchpad_project_from_url(url):
     if (host.find('bazaar.launchpad.net') >= 0 or
         host.find('bazaar.launchpad.dev') >= 0):
         parts = path.strip('/').split('/')
-        if len(parts) == 3 and parts[0].startswith('~'):
+        if len(parts) == 3 and (parts[0].startswith('~')
+                                or (parts[0] in ('%2Bbranch', '+branch'))):
             return parts[1]
     return None
 

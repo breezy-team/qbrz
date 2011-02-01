@@ -27,6 +27,8 @@
  * qconflicts: fix bug with access to QBzr configuration. (Bug #675894)
  * When a interupt signal is recived, close rather than showing a error
    message. (Gary van der Merwe)
+ * qpush: fixed smart suggestion of new push URLs for lp branches.
+   (Bug #710767, Alexander Belchenko)
 
 
 0.19.3 - 2010/11/26
