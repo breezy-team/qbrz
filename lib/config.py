@@ -25,7 +25,7 @@ from bzrlib.config import (
     ensure_config_dir_exists,
     extract_email_address,
     )
-from bzrlib import errors, mergetools, trace
+from bzrlib import errors, trace
 
 from bzrlib.plugins.qbzr.lib import ui_merge_config
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
@@ -38,6 +38,11 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_qbzr_config,
     get_global_config,
     )
+
+try:
+    from bzrlib import mergetools
+except ImportError:
+    mergetools = None
 
 
 _mail_clients = [
@@ -190,33 +195,37 @@ class QBzrConfigWindow(QBzrDialog):
         diffLayout.addWidget(self.extDiffList)
         diffLayout.addLayout(extDiffButtonsLayout)
         
-        mergeWidget = QtGui.QWidget()
-        self.merge_ui = ui_merge_config.Ui_MergeConfig()
-        self.merge_ui.setupUi(mergeWidget)
-        self.merge_ui.tools.sortByColumn(0, Qt.AscendingOrder)
-        self.merge_ui.remove.setEnabled(False)
-        self.merge_ui.set_default.setEnabled(False)
-        
-        self.merge_tools_model = MergeToolsTableModel()
-        self.merge_ui.tools.setModel(self.merge_tools_model)
-        
-        self.connect(self.merge_tools_model,
-                     QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                     self.merge_tools_data_changed)
-
-        self.connect(self.merge_ui.tools.selectionModel(),
-                     QtCore.SIGNAL("selectionChanged(QItemSelection,QItemSelection)"),
-                     self.merge_tools_selectionChanged)
-        
-        self.connect(self.merge_ui.add,
-                     QtCore.SIGNAL("clicked()"),
-                     self.merge_tools_add_clicked)
-        self.connect(self.merge_ui.remove,
-                     QtCore.SIGNAL("clicked()"),
-                     self.merge_tools_remove_clicked)
-        self.connect(self.merge_ui.set_default,
-                     QtCore.SIGNAL("clicked()"),
-                     self.merge_tools_set_default_clicked)
+        if mergetools is not None:
+            mergeWidget = QtGui.QWidget()
+            self.merge_ui = ui_merge_config.Ui_MergeConfig()
+            self.merge_ui.setupUi(mergeWidget)
+            self.merge_ui.tools.sortByColumn(0, Qt.AscendingOrder)
+            self.merge_ui.remove.setEnabled(False)
+            self.merge_ui.set_default.setEnabled(False)
+            
+            self.merge_tools_model = MergeToolsTableModel()
+            self.merge_ui.tools.setModel(self.merge_tools_model)
+            
+            self.connect(self.merge_tools_model,
+                         QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+                         self.merge_tools_data_changed)
+    
+            self.connect(self.merge_ui.tools.selectionModel(),
+                         QtCore.SIGNAL("selectionChanged(QItemSelection,QItemSelection)"),
+                         self.merge_tools_selectionChanged)
+            
+            self.connect(self.merge_ui.add,
+                         QtCore.SIGNAL("clicked()"),
+                         self.merge_tools_add_clicked)
+            self.connect(self.merge_ui.remove,
+                         QtCore.SIGNAL("clicked()"),
+                         self.merge_tools_remove_clicked)
+            self.connect(self.merge_ui.set_default,
+                         QtCore.SIGNAL("clicked()"),
+                         self.merge_tools_set_default_clicked)
+        else:
+            mergeWidget = QtGui.QLabel(gettext("Bazaar 2.4 or newer is required to configure mergetools."))
+            mergeWidget.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
         
         self.tabwidget.addTab(generalWidget, gettext("General"))
         self.tabwidget.addTab(aliasesWidget, gettext("Aliases"))
@@ -359,12 +368,12 @@ class QBzrConfigWindow(QBzrDialog):
         self.extDiffListIgnore = False
 
         # Merge
-        user_merge_tools = config.get_merge_tools()
-        default_merge_tool = config.get_user_option('bzr.default_mergetool')
-        self.merge_tools_model.set_merge_tools(user_merge_tools,
-                                               mergetools.known_merge_tools,
-                                               default_merge_tool)
-        self.merge_tools_model.sort(0, Qt.AscendingOrder)
+        if mergetools is not None:
+            user_merge_tools = config.get_merge_tools()
+            default_merge_tool = config.get_user_option('bzr.default_mergetool')
+            self.merge_tools_model.set_merge_tools(user_merge_tools,
+                mergetools.known_merge_tools, default_merge_tool)
+            self.merge_tools_model.sort(0, Qt.AscendingOrder)
 
     def save(self):
         """Save the configuration."""
@@ -462,16 +471,17 @@ class QBzrConfigWindow(QBzrDialog):
         qconfig.save()
 
         # Merge
-        for name in self.merge_tools_model.get_removed_merge_tools():
-            config.remove_user_option('bzr.mergetool.%s' % name)
-        user_merge_tools = self.merge_tools_model.get_user_merge_tools()
-        for name, cmdline in user_merge_tools.iteritems():
-            orig_cmdline = config.find_merge_tool(name)
-            if orig_cmdline is None or orig_cmdline != cmdline:
-                config.set_user_option('bzr.mergetool.%s' % name, cmdline)
-        default_mt = self.merge_tools_model.get_default()
-        if default_mt is not None:
-            config.set_user_option('bzr.default_mergetool', default_mt)
+        if mergetools is not None:
+            for name in self.merge_tools_model.get_removed_merge_tools():
+                config.remove_user_option('bzr.mergetool.%s' % name)
+            user_merge_tools = self.merge_tools_model.get_user_merge_tools()
+            for name, cmdline in user_merge_tools.iteritems():
+                orig_cmdline = config.find_merge_tool(name)
+                if orig_cmdline is None or orig_cmdline != cmdline:
+                    config.set_user_option('bzr.mergetool.%s' % name, cmdline)
+            default_mt = self.merge_tools_model.get_default()
+            if default_mt is not None:
+                config.set_user_option('bzr.default_mergetool', default_mt)
 
     def do_accept(self):
         """Save changes and close the window."""
