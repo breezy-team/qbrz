@@ -1,5 +1,6 @@
 0.20.0 - 2011/02/03
 -------------------
+Bazaar 2.3 companion release. Suitable for bzr 2.3 and bzr 2.2.
 
  * Refactor the config code:
    * Remove the QBzrGlobalConfig class so that we only have one class that
