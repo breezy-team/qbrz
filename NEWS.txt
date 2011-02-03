@@ -1,5 +1,5 @@
-0.20 Beta 1 - In development
-----------------------------
+0.20.0 - 2011/02/03
+-------------------
 
  * Refactor the config code:
    * Remove the QBzrGlobalConfig class so that we only have one class that
