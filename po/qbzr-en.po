@@ -12,6 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Launchpad-Export-Date: 2010-08-03 12:24+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
+"Language: en\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
 #: lib\config.py:201
@@ -913,15 +914,15 @@ msgstr "About QBzr"
 #: lib\main.py:407
 #, python-format
 msgid ""
-"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
-"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
-"\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © "
+"2006-2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/"
+"QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
-"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
-"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
-"\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © "
+"2006-2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/"
+"QBzr\">http://bazaar-vcs.org/QBzr</a>"
 
 #: lib\main.py:472
 msgid "Add Bookmark"
