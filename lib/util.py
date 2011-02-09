@@ -51,7 +51,7 @@ from bzrlib import (
     osutils,
     urlutils,
 )
-from bzrlib.util.configobj import configobj
+import configobj
 from bzrlib.plugins.qbzr.lib import trace
 from bzrlib.workingtree import WorkingTree
 from bzrlib.transport import get_transport
