@@ -51,11 +51,12 @@ from bzrlib import (
     osutils,
     urlutils,
 )
-import configobj
 from bzrlib.plugins.qbzr.lib import trace
 from bzrlib.workingtree import WorkingTree
 from bzrlib.transport import get_transport
 from bzrlib.lockdir import LockDir
+
+from bzrlib.plugins.qbzr.lib.compatibility import configobj
 ''')
 
 # standard buttons with translatable labels
