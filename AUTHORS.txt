@@ -26,6 +26,7 @@ Contributors:
  * Max Bowsher <maxb at f2s dot com>
  * Neil Martinsen-Burrell <nmb at wartburg dot edu>
  * Nicholas Allen <nick dot allen at onlinehome dot de>
+ * Nick Sonneveld <nick at sonneveld dot name>
  * Ohad Kammar <ohad dot kammar at gmail dot com>
  * Philip Peitsch <philip dot peitsch at gmail dot com>
  * Robert Widhopf-Fenk <hack at robf dot de>

@@ -258,7 +258,7 @@ def _check_global_config_filename_valid(config):
         return not config.file_name == config_filename()
     else:
         return False
-    
+
 
 _qbzr_config = None
 def get_qbzr_config():

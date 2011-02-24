@@ -1,6 +1,10 @@
 0.21 - In development
 ---------------------
 
+ * qcommit:
+   * Remember "Show non-versioned" checkbox state. 
+     (Nick Sonneveld, Bug #258926)
+
 
 0.20.1 - development
 --------------------

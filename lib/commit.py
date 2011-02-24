@@ -27,6 +27,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_REFRESH,
     file_extension,
     get_global_config,
+    get_qbzr_config,
     url_for_display,
     ThrobberWidget,
     runs_in_loading_queue,
@@ -316,10 +317,18 @@ class CommitWindow(SubProcessDialog):
 
         self.show_nonversioned_checkbox = QtGui.QCheckBox(
             gettext("Show non-versioned files"))
+        show_nonversioned = get_qbzr_config().get_option_as_bool(self._window_name + "_show_nonversioned")
+        if show_nonversioned:
+            self.show_nonversioned_checkbox.setChecked(QtCore.Qt.Checked)
+        else:
+            self.show_nonversioned_checkbox.setChecked(QtCore.Qt.Unchecked)
 
         self.filelist = TreeWidget(self)
         self.filelist.throbber = self.throbber
-        self.filelist.tree_model.set_select_all_kind('versioned')
+        if show_nonversioned:
+            self.filelist.tree_model.set_select_all_kind('all')
+        else:
+            self.filelist.tree_model.set_select_all_kind('versioned')
         
         self.file_words = {}
         self.connect(self.filelist.tree_model,
@@ -718,6 +727,9 @@ class CommitWindow(SubProcessDialog):
 
     def closeEvent(self, event):
         self._save_or_wipe_commit_data()
+        qbzr_config = get_qbzr_config()
+        qbzr_config.set_option(self._window_name + "_show_nonversioned", self.show_nonversioned_checkbox.isChecked())
+        qbzr_config.save() # do I need this or is .saveSize() enough?
         return SubProcessDialog.closeEvent(self, event)
 
     def reject(self):
