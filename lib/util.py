@@ -50,6 +50,7 @@ lazy_import(globals(), '''
 from bzrlib import (
     osutils,
     urlutils,
+    ui,
 )
 from bzrlib.plugins.qbzr.lib import trace
 from bzrlib.workingtree import WorkingTree
@@ -114,6 +115,10 @@ class Config(object):
         if section not in self._configobj:
             self._configobj[section] = {}
         if value:
+            if not isinstance(value, (str,unicode)):
+                # [bialix 2011/02/11] related to bug #716384: if value is bool
+                # then sometimes configobj lost it in the output file
+                value = str(value)
             self._configobj[section][name] = value
         else:
             if name in self._configobj[section]:
@@ -127,6 +132,14 @@ class Config(object):
             return self._configobj[section][name]
         except KeyError:
             return None
+
+    def get_option_as_bool(self, name, section=None):
+        # imitate the code from bzrlib.config to read option as boolean
+        # until we will switch to use bzrlib.config instead of our re-implementation
+        value_maybe_str_or_bool = self.get_option(name, section)
+        if value_maybe_str_or_bool not in (None, ''):
+            value = ui.bool_from_string(value_maybe_str_or_bool)
+            return value
 
     def set_section(self, name, values):
         self._load()
@@ -340,8 +353,8 @@ class _QBzrWindowBase(object):
             self.resize(size.expandedTo(self.minimumSizeHint()))
         self._restore_size = size
 
-        is_maximized = config.get_option(name + "_window_maximized")
-        if is_maximized in ("True", "1"):
+        is_maximized = config.get_option_as_bool(name + "_window_maximized")
+        if is_maximized:
             self.setWindowState(QtCore.Qt.WindowMaximized)
         return config
 

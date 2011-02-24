@@ -2,6 +2,14 @@
 ---------------------
 
 
+0.20.1 - development
+--------------------
+Maintenance release.
+
+ * Compatibility with patched bzrlib on debian without copy of configobj
+   library inside it. (Bug #715067, Alexander Belchenko)
+
+
 0.20.0 - 2011/02/03
 -------------------
 Bazaar 2.3 companion release. Suitable for bzr 2.3 and bzr 2.2.
@@ -37,6 +45,7 @@ Bazaar 2.3 companion release. Suitable for bzr 2.3 and bzr 2.2.
 
 
 0.19.3 - 2010/11/26
+-------------------
 Maintenance release.
 
  * The 0.19 series is now marked as incompatible with bzr versions >= 2.3.
