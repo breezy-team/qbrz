@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/branch.ui'
 #
-# Created: Wed Mar 23 10:29:35 2011
+# Created: Wed Mar 23 10:39:16 2011
 #      by: PyQt4 UI code generator 4.7.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -34,7 +34,7 @@ class Ui_BranchForm(object):
         sizePolicy.setHeightForWidth(self.from_location.sizePolicy().hasHeightForWidth())
         self.from_location.setSizePolicy(sizePolicy)
         self.from_location.setEditable(True)
-        self.from_location.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        self.from_location.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContentsOnFirstShow)
         self.from_location.setObjectName("from_location")
         self.horizontalLayout_2.addWidget(self.from_location)
         self.from_picker = QtGui.QPushButton(self.groupBox)
@@ -53,7 +53,7 @@ class Ui_BranchForm(object):
         sizePolicy.setHeightForWidth(self.to_location.sizePolicy().hasHeightForWidth())
         self.to_location.setSizePolicy(sizePolicy)
         self.to_location.setEditable(True)
-        self.to_location.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContents)
+        self.to_location.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToContentsOnFirstShow)
         self.to_location.setObjectName("to_location")
         self.horizontalLayout_3.addWidget(self.to_location)
         self.to_picker = QtGui.QPushButton(self.groupBox)
