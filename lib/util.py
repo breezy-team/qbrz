@@ -986,16 +986,45 @@ def launchpad_project_from_url(url):
 
     @return: project name or None
     """
-    # The format ought to be scheme://host/~user-id/project-name/branch-name/
+    # The format ought to be one of the following:
+    #   scheme://host/~user-id/project-name/branch-name
+    #   scheme://host/+branch/project-name
+    #   scheme://host/+branch/project-name/series-name
+    # there could be distro branches, they are very complex,
+    # so we only support upstream branches based on source package
+    #   scheme://host/+branch/DISTRO/SOURCEPACKAGE
+    #   scheme://host/+branch/DISTRO/SERIES/SOURCEPACKAGE
+    #   scheme://host/+branch/DISTRO/POCKET/SOURCEPACKAGE
+    #   scheme://host/~USER/DISTRO/SERIES/SOURCEPACKAGE/BRANCHNAME
+    DISTROS = ('debian', 'ubuntu')
     from urlparse import urlsplit
     scheme, host, path = urlsplit(url)[:3]
     # Sanity check the host
-    if (host.find('bazaar.launchpad.net') >= 0 or
-        host.find('bazaar.launchpad.dev') >= 0):
+    if (host in ('bazaar.launchpad.net',
+                 'bazaar.launchpad.dev',
+                 'bazaar.qastaging.launchpad.net',
+                 'bazaar.staging.launchpad.net')):
         parts = path.strip('/').split('/')
-        if len(parts) == 3 and (parts[0].startswith('~')
-                                or (parts[0] in ('%2Bbranch', '+branch'))):
-            return parts[1]
+        if parts[0].startswith('~'):
+            if len(parts) == 3 and parts[1] not in DISTROS:
+                # scheme://host/~user-id/project-name/branch-name/
+                return parts[1]
+            elif len(parts) == 5 and parts[1] in DISTROS:
+                # scheme://host/~USER/DISTRO/SERIES/SOURCEPACKAGE/BRANCHNAME
+                return parts[-2]
+        elif parts[0] in ('%2Bbranch', '+branch'):
+            n = len(parts)
+            if n >= 2:
+                part1 = parts[1]
+                if n in (2,3) and part1 not in DISTROS:
+                    # scheme://host/+branch/project-name
+                    # scheme://host/+branch/project-name/series-name
+                    return part1
+                elif n in (3,4) and part1 in DISTROS:
+                    # scheme://host/+branch/DISTRO/SOURCEPACKAGE
+                    # scheme://host/+branch/DISTRO/SERIES/SOURCEPACKAGE
+                    # scheme://host/+branch/DISTRO/POCKET/SOURCEPACKAGE
+                    return parts[-1]
     return None
 
 
