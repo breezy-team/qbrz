@@ -111,6 +111,13 @@ class QBzrConfigWindow(QBzrDialog):
         generalGrid.addWidget(label, 3, 0)
         generalGrid.addWidget(self.emailClientCombo, 3, 1)
 
+        self.tabWidthSpinner = QtGui.QSpinBox()
+        self.tabWidthSpinner.setRange(1, 100)
+        label = QtGui.QLabel(gettext("Tab &Width:"))
+        label.setBuddy(self.tabWidthSpinner)
+        generalGrid.addWidget(label, 4, 0)
+        generalGrid.addWidget(self.tabWidthSpinner, 4, 1)
+
         generalVBox.addLayout(generalGrid)
         generalVBox.addStretch()
 
@@ -292,6 +299,13 @@ class QBzrConfigWindow(QBzrDialog):
             if index >= 0:
                 self.emailClientCombo.setCurrentIndex(index)
 
+        # Tab-width
+        try:
+            tabWidth = int(config.get_user_option('tab_width'))
+        except TypeError:
+            tabWidth = 8
+        self.tabWidthSpinner.setValue(tabWidth)
+
         # Spellcheck language
         spellcheck_language = config.get_user_option('spellcheck_language') or 'en'
         if spellcheck_language:
@@ -418,6 +432,9 @@ class QBzrConfigWindow(QBzrDialog):
         index = self.emailClientCombo.currentIndex()
         mail_client = unicode(self.emailClientCombo.itemData(index).toString())
         set_or_delete_option(parser, 'mail_client', mail_client)
+
+        tabWidth = self.tabWidthSpinner.value()
+        set_or_delete_option(parser, 'tab_width', tabWidth)
 
         # Spellcheck language
         index = self.spellcheck_language_combo.currentIndex()

@@ -38,6 +38,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_icon,
     FindToolbar,
     get_monospace_font,
+    get_global_config,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
@@ -267,7 +268,16 @@ class AnnotateWindow(QBzrWindow):
             QtCore.Qt.TextSelectableByKeyboard)
         self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
         
-        self.text_edit.document().setDefaultFont(get_monospace_font())
+        monospacedFont = get_monospace_font()
+        self.text_edit.document().setDefaultFont(monospacedFont)
+
+        bzr_config = get_global_config()
+        char_width = QtGui.QFontMetrics(monospacedFont).width(" ")
+        try:
+            tabWidth = int(bzr_config.get_user_option('tab_width'))
+        except TypeError:
+            tabWidth = 8
+        self.text_edit.setTabStopWidth(tabWidth*char_width)
         
         self.annotate_bar = AnnotateBar(self.text_edit, self, self.get_revno)
         annotate_spliter = QtGui.QSplitter(QtCore.Qt.Horizontal, self)

@@ -5,6 +5,10 @@
    * Remember "Show non-versioned" checkbox state. 
      (Nick Sonneveld, Bug #258926)
 
+ * qcat, qannotate, qdiff, qconfig:
+   * Added ability to customise the tab-stop width (setting in qconfig,
+     affects qcat, qannotate and qdiff). (Bug #490377, A. S. Budden)
+
 
 0.20.1 - development
 --------------------

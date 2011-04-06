@@ -27,6 +27,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     format_timestamp,
     get_qbzr_config,
+    get_global_config,
     get_monospace_font,
     )
 from bzrlib.trace import mutter
@@ -205,6 +206,7 @@ class SidebySideDiffView(QtGui.QSplitter):
         metadataFont.setPointSize(titleFont.pointSize() * 70 / 100)
         metadataLabelFont = QtGui.QFont(metadataFont)
         metadataLabelFont.setBold(True)
+        char_width = QtGui.QFontMetrics(self.monospacedFont).width(" ")
     
         self.monospacedFormat = QtGui.QTextCharFormat()
         self.monospacedFormat.setFont(self.monospacedFont)
@@ -224,6 +226,12 @@ class SidebySideDiffView(QtGui.QSplitter):
         self.browsers = (DiffSourceView(self),
                          DiffSourceView(self))
         self.cursors = [QtGui.QTextCursor(doc) for doc in self.docs]
+
+        bzr_config = get_global_config()
+        try:
+            tabWidth = int(bzr_config.get_user_option('tab_width'))
+        except TypeError:
+            tabWidth = 8
         
         for i, (browser, doc, cursor) in enumerate(zip(self.browsers, self.docs, self.cursors)):
             doc.setUndoRedoEnabled(False)
@@ -231,6 +239,7 @@ class SidebySideDiffView(QtGui.QSplitter):
             
             self.setCollapsible(i, False)
             browser.setDocument(doc)
+            browser.setTabStopWidth(tabWidth*char_width)
             self.addWidget(browser)
             
             format = QtGui.QTextCharFormat()
@@ -609,6 +618,14 @@ class SimpleDiffView(QtGui.QTextBrowser):
         self.monospacedHunkFormat = QtGui.QTextCharFormat()
         self.monospacedHunkFormat.setFont(monospacedItalicFont)
         self.monospacedHunkFormat.setForeground(QtGui.QColor(153, 30, 199))
+
+        char_width = QtGui.QFontMetrics(monospacedFont).width(" ")
+        bzr_config = get_global_config()
+        try:
+            tabWidth = int(bzr_config.get_user_option('tab_width'))
+        except TypeError:
+            tabWidth = 8
+        self.setTabStopWidth(tabWidth*char_width)
 
     def rewind(self):
         if not self.rewinded:
