@@ -41,7 +41,7 @@ from bzrlib.revisiontree import RevisionTree
 from bzrlib.osutils import file_kind, minimum_path_selection
 from bzrlib.conflicts import TextConflict, resolve
 
-from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, QBzrViewWindow
+from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, QBzrViewWindow, cat_to_native_app
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.lib.log import LogWindow
 from bzrlib.plugins.qbzr.lib.util import (
@@ -1744,7 +1744,6 @@ class TreeWidget(RevisionTreeView):
         single_versioned_file = (single_file and versioned[0])
         
         self.action_open_file.setEnabled(single_item_in_tree)
-        self.action_open_file.setVisible(is_working_tree)
         self.action_show_file.setEnabled(single_file)
         self.action_show_annotate.setEnabled(single_versioned_file)
         self.action_show_log.setEnabled(any(versioned))
@@ -1825,21 +1824,21 @@ class TreeWidget(RevisionTreeView):
     def open_file(self, index=None):
         """Open the file in the os specified editor."""
         
-        if not isinstance(self.tree, WorkingTree):
-            raise AttributeError("Tree must be a working tree to open a file.")
-            
         items = self.get_selection_items([index])
         if not len(items) == 1:
             return
         item = items[0]
         
-        self.tree.lock_read()
-        try:
-            abspath = self.tree.abspath(item.path)
-        finally:
-            self.tree.unlock()
-        url = QtCore.QUrl.fromLocalFile(abspath)
-        QtGui.QDesktopServices.openUrl(url)
+        if isinstance(self.tree, WorkingTree):
+            self.tree.lock_read()
+            try:
+                abspath = self.tree.abspath(item.path)
+            finally:
+                self.tree.unlock()
+            url = QtCore.QUrl.fromLocalFile(abspath)
+            QtGui.QDesktopServices.openUrl(url)
+        else:
+            cat_to_native_app(self.tree, item.path)
 
     @ui_current_widget
     def show_file_log(self):

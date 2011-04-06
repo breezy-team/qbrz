@@ -5,6 +5,10 @@
    * Remember "Show non-versioned" checkbox state. 
      (Nick Sonneveld, Bug #258926)
 
+ * qbrowse:
+   * Use qcat --native equivalent to allow opening copies of files from
+     branches without working trees. (A. S. Budden).
+
 
 0.20.1 - development
 --------------------

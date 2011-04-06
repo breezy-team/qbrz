@@ -350,7 +350,7 @@ def cat_to_native_app(tree, relpath):
         tree.unlock()
         f.close()
     # open it
-    url = QtCore.QUrl(fname)
+    url = QtCore.QUrl.fromLocalFile(fname)
     result = QtGui.QDesktopServices.openUrl(url)
     # now application is about to start and user will work with file
     # so we can do cleanup in "background"
