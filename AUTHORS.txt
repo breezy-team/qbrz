@@ -30,6 +30,7 @@ Contributors:
  * Philip Peitsch <philip dot peitsch at gmail dot com>
  * Robert Widhopf-Fenk <hack at robf dot de>
  * Simon Kersey <simon dot kersey at ipl dot com>
+ * Timothy Reaves <treaves at silverfieldstech dot com>
  * Toshio Kuratomi <toshio at tiki-lounge dot com>
  * Vincent Ladeuil <v dot ladeuil+lp at free dot fr>
 

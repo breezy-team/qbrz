@@ -4,6 +4,9 @@ Maintenance release.
 
  * Compatibility with patched bzrlib on debian without copy of configobj
    library inside it. (Bug #715067, Alexander Belchenko)
+ * qbranch:
+   * Fixed problem with very small width of input fields in the dialog
+     on Mac OSX. (Timothy Reaves, Bug #667090)
 
 
 0.20.0 - 2011/02/03
