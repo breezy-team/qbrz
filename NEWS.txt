@@ -1,6 +1,9 @@
 0.21 - In development
 ---------------------
 
+ * qbranch:
+   * Fixed problem with very small width of input fields in the dialog
+     on Mac OSX. (Timothy Reaves, Bug #667090)
  * qcommit:
    * Remember "Show non-versioned" checkbox state. 
      (Nick Sonneveld, Bug #258926)
