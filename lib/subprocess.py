@@ -867,6 +867,8 @@ def run_subprocess_command(cmd, bencoded=False):
         argv = [unicode(p, 'utf-8') for p in bencode.bdecode(cmd_utf8)]
     try:
         return commands.run_bzr(argv)
+    except (KeyboardInterrupt, SystemExit):
+        raise
     except Exception, e:
         print "%s%s" % (SUB_ERROR, bencode_exception_instance(e))
         raise
@@ -953,6 +955,8 @@ def bencode_exception_instance(e):
         # Assume all keys are valid python identifiers for the sake of sanity
         if not key.startswith('_'):
             if not isinstance(val, unicode):
+                # __repr__ can break in lots of ways, so catch everything but
+                # exceptions that occur as interrupts, allowing for Python 2.4
                 try:
                     if not isinstance(val, str):
                         val = repr(val)
