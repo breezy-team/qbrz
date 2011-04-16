@@ -85,3 +85,13 @@ class TestExceptionInstanceSerialisation(TestCase):
                 return self.attribute_that_does_not_exist
         self.check_exception_instance(ValueError(Bad()),
             {"args": "[QBzr could not serialize this attribute]"})
+
+    def test_public_instance_attribues_only(self):
+        """Limit serialisation to instance attributes without an underscore"""
+        class CustomException(Exception):
+            var_on_class = "one"
+            def __init__(self):
+                self.var_on_instance = "two"
+                self._private_var_on_instance = "three"
+        self.check_exception_instance(CustomException(),
+            {"var_on_instance": "two"})
