@@ -656,9 +656,8 @@ class SubProcessWidget(QtGui.QWidget):
                 data = (button == QtGui.QMessageBox.Yes)
                 self.process.write(SUB_GETBOOL + bencode.bencode(data) + "\n")
             elif line.startswith(SUB_ERROR):
-                data = bencode.bdecode(line[len(SUB_ERROR):])
-                self.error_class = data[0]
-                self.error_data = decode_unicode_escape(data[1])
+                self.error_class, self.error_data = bdecode_exception_instance(
+                    line[len(SUB_ERROR):])
             else:
                 line = line.decode(self.encoding, 'replace')
                 self.logMessageEx(line, 'plain', self.stdout)
@@ -869,15 +868,7 @@ def run_subprocess_command(cmd, bencoded=False):
     try:
         return commands.run_bzr(argv)
     except Exception, e:
-        d = {}
-        for key, val in e.__dict__.iteritems():
-            if not key.startswith('_'):
-                if not isinstance(val, unicode):
-                    val = unicode(val)
-                d[key] = val
-        print "%s%s" % (SUB_ERROR,
-                        bencode.bencode((e.__class__.__name__,
-                                         encode_unicode_escape(d))))
+        print "%s%s" % (SUB_ERROR, bencode_exception_instance(e))
         raise
 
 
@@ -944,6 +935,45 @@ def bencode_prompt(arg):
 def bdecode_prompt(s):
     return bencode.bdecode(s).decode('unicode-escape')
 
+
+def bencode_exception_instance(e):
+    """Serialise the main information about an exception instance with bencode
+
+    The aim is to transfer the details of the exception that may be useful for
+    diagnosing the problem, not to preserve the exact object.
+
+    The exception class name is encoded, and the names and values of public
+    instance attributes. All attribute values are converted to UTF-8, using
+    repr for non-strings, and replacing any undecodable bytes.
+    """
+    # GZ 2011-04-15: Could use bzrlib.trace._qualified_exception_name in 2.4
+    ename = e.__class__.__name__
+    d = {}
+    for key, val in e.__dict__.iteritems():
+        # Assume all keys are valid python identifiers for the sake of sanity
+        if not key.startswith('_'):
+            if not isinstance(val, unicode):
+                try:
+                    if not isinstance(val, str):
+                        val = repr(val)
+                    val = val.decode("ascii", "replace")
+                except (KeyboardInterrupt, SystemExit):
+                    raise
+                except:
+                    val = "[QBzr could not serialize this attribute]"
+            d[key] = val.encode("utf-8")
+    return bencode.bencode((ename, d))
+
+
+def bdecode_exception_instance(s):
+    """Deserialise information about an exception instance with bdecode"""
+    ename, d = bencode.bdecode(s)
+    for k in d:
+        d[k] = d[k].decode("utf-8")
+    return ename, d
+
+
+# GZ 2011-04-15: Remove or deprecate these functions if they remain unused?
 def encode_unicode_escape(obj):
     if isinstance(obj, dict):
         result = {}

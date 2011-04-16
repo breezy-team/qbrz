@@ -24,6 +24,8 @@ from bzrlib.plugins.qbzr.lib.subprocess import (
     bdecode_prompt,
     bencode_prompt,
     bencode_unicode,
+    bencode_exception_instance,
+    bdecode_exception_instance,
     encode_unicode_escape,
     decode_unicode_escape,
     )
@@ -55,3 +57,31 @@ class TestBencode(TestCase):
     def test_decode_unicode_escape_dict(self):
         self.assertEqual({'key': 'foo\nbar', 'ukey': u'\u1234'},
             decode_unicode_escape({'key': 'foo\\nbar', 'ukey': u'\\u1234'}))
+
+
+class TestExceptionInstanceSerialisation(TestCase):
+    """Check exceptions can serialised safely with useful details preserved"""
+
+    def check_exception_instance(self, e, expected_dict):
+        encoded = bencode_exception_instance(e)
+        decoded = bdecode_exception_instance(encoded)
+        self.assertEqual(decoded, (e.__class__.__name__, expected_dict))
+
+    def test_simple_error(self):
+        """A common error with just an args attribute should show the args"""
+        self.check_exception_instance(ValueError("Simple"),
+            {"args": "('Simple',)"})
+
+    def test_non_ascii_bytes(self):
+        """An error with a non-ascii bytestring attribute gets escaped"""
+        self.check_exception_instance(OSError(13, "Lupa ev\xc3\xa4tty"),
+            {"args": "(13, 'Lupa ev\\xc3\\xa4tty')", "errno": "13",
+                "strerror": u"Lupa ev\ufffd\ufffdtty", "filename": "None"})
+
+    def test_unreprable_obj(self):
+        """Ensure an object with a broken repr doesn't break the exception"""
+        class Bad(object):
+            def __repr__(self):
+                return self.attribute_that_does_not_exist
+        self.check_exception_instance(ValueError(Bad()),
+            {"args": "[QBzr could not serialize this attribute]"})
