@@ -7,6 +7,12 @@
  * qcommit:
    * Remember "Show non-versioned" checkbox state. 
      (Nick Sonneveld, Bug #258926)
+ * qinfo:
+   * Significantly simpler implementation that shows the information
+     provided by Bazaar.  This fills in the gaps in the data shown
+     by qinfo (such as details of checkouts) and means that changes
+     to 'bzr info' will automatically be reflected in qinfo.
+     (A. S. Budden, Bug #439624)
 
 
 0.20.1 - development
