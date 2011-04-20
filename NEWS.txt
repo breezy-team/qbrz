@@ -4,6 +4,9 @@
  * qbranch:
    * Fixed problem with very small width of input fields in the dialog
      on Mac OSX. (Timothy Reaves, Bug #667090)
+ * qbrowse:
+   * Use `qcat --native` equivalent to allow opening copies of files from
+     branches without working trees. (A. S. Budden, Bug #752422)
  * qcommit:
    * Remember "Show non-versioned" checkbox state. 
      (Nick Sonneveld, Bug #258926)

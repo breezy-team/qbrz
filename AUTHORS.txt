@@ -5,6 +5,7 @@ Contributors:
  * Alexey Borzenkov <snaury at gmail dot com>
  * Alexey Stukalov <astukalov at gmail dot com>
  * Atsuo Ishimoto <ishimoto@ishimoto-PC>
+ * A. S. Budden <abudden at gmail dot com>
  * B. Sygnat <b dot sygnat at gawab dot com>
  * Craig Hewetson <craighewetson at gmail dot com>
  * David Roberts <smartgpx at gmail dot com>
