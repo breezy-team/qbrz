@@ -52,6 +52,7 @@ import thread
 from bzrlib import (
     bencode,
     commands,
+    errors,
     osutils,
     ui,
     )
@@ -941,31 +942,30 @@ def bdecode_prompt(s):
 def bencode_exception_instance(e):
     """Serialise the main information about an exception instance with bencode
 
-    The aim is to transfer the details of the exception that may be useful for
-    diagnosing the problem, not to preserve the exact object.
-
-    The exception class name is encoded, and the names and values of public
-    instance attributes. All attribute values are saved unicode escaped, using
-    repr for non-strings, and replacing any undecodable bytes.
+    For now, nearly all exceptions just give the exception name as a string,
+    but a dictionary is also given that may contain unicode-escaped attributes.
     """
     # GZ 2011-04-15: Could use bzrlib.trace._qualified_exception_name in 2.4
     ename = e.__class__.__name__
     d = {}
-    for key, val in e.__dict__.iteritems():
-        # Assume all keys are valid python identifiers for the sake of sanity
-        if not key.startswith('_'):
+    # For now be conservative and only serialise attributes that will get used
+    keys = []
+    if isinstance(e, errors.UncommittedChanges):
+        keys.append("display_url")
+    for key in keys:
+        # getattr and __repr__ can break in lots of ways, so catch everything
+        # but exceptions that occur as interrupts, allowing for Python 2.4
+        try:
+            val = getattr(e, key)
             if not isinstance(val, unicode):
-                # __repr__ can break in lots of ways, so catch everything but
-                # exceptions that occur as interrupts, allowing for Python 2.4
-                try:
-                    if not isinstance(val, str):
-                        val = repr(val)
-                    val = val.decode("ascii", "replace")
-                except (KeyboardInterrupt, SystemExit):
-                    raise
-                except:
-                    val = "[QBzr could not serialize this attribute]"
-            d[key] = val.encode("unicode-escape")
+                if not isinstance(val, str):
+                    val = repr(val)
+                val = val.decode("ascii", "replace")
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+            val = "[QBzr could not serialize this attribute]"
+        d[key] = val.encode("unicode-escape")
     return bencode.bencode((ename, d))
 
 
