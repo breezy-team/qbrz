@@ -945,7 +945,7 @@ def bencode_exception_instance(e):
     diagnosing the problem, not to preserve the exact object.
 
     The exception class name is encoded, and the names and values of public
-    instance attributes. All attribute values are converted to UTF-8, using
+    instance attributes. All attribute values are saved unicode escaped, using
     repr for non-strings, and replacing any undecodable bytes.
     """
     # GZ 2011-04-15: Could use bzrlib.trace._qualified_exception_name in 2.4
@@ -965,7 +965,7 @@ def bencode_exception_instance(e):
                     raise
                 except:
                     val = "[QBzr could not serialize this attribute]"
-            d[key] = val.encode("utf-8")
+            d[key] = val.encode("unicode-escape")
     return bencode.bencode((ename, d))
 
 
@@ -973,7 +973,7 @@ def bdecode_exception_instance(s):
     """Deserialise information about an exception instance with bdecode"""
     ename, d = bencode.bdecode(s)
     for k in d:
-        d[k] = d[k].decode("utf-8")
+        d[k] = d[k].decode("unicode-escape")
     return ename, d
 
 
