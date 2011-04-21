@@ -1001,10 +1001,10 @@ if MS_WINDOWS:
 else:
     shlex_split_unicode = _shlex_split_unicode_linux
 
-def get_icon(name):
+def get_icon(name, size = 22):
     # TODO: Load multiple sizes
     # TODO: Try load from system theme
-    return QtGui.QIcon(":/22x22/%s.png" % name)
+    return QtGui.QIcon(":/%dx%d/%s.png" % (size, size, name))
 
 
 class FindToolbar(QtGui.QToolBar):

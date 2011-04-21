@@ -76,6 +76,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib.uifactory import QUIFactory
 from bzrlib.plugins.qbzr.lib.send import SendWindow
+from bzrlib.plugins.qbzr.lib.shelve import ShelveWindow
+from bzrlib.plugins.qbzr.lib.shelvelist import ShelveListWindow
 ''')
 
 from bzrlib.plugins.qbzr.lib.diff_arg import DiffArgProvider
@@ -1061,3 +1063,23 @@ class cmd_qrun(QBzrCommand):
             execute=execute)
         window.show()
         self._application.exec_()
+        
+class cmd_qshelve(QBzrCommand):
+    """Shelve selected changes away."""
+    takes_args = ['file*']
+    takes_options = [
+        ui_mode_option,
+        bzr_option('shelve', 'list'),
+        Option('complete', help='Show complete files.'),
+        Option('encoding', type=check_encoding,
+               help='Encoding of files content (default: utf-8).'),
+        ]
+
+    def _qbzr_run(self, file_list=None, list=False, complete = False, encoding=None):
+        if list:
+            self.main_window = ShelveListWindow(file_list=file_list, complete=complete)
+        else:
+            self.main_window = ShelveWindow(file_list=file_list, encoding=encoding)
+        self.main_window.show()
+        self._application.exec_()
+
