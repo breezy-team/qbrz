@@ -7,6 +7,9 @@ Maintenance release.
  * qbranch:
    * Fixed problem with very small width of input fields in the dialog
      on Mac OSX. (Timothy Reaves, Bug #667090)
+ * qsubprocess:
+   * Reliable exception encoding to pass exception attributes 
+     from subprocess to the GUI process. (Martin [gz], Bug #686735)
 
 
 0.20.0 - 2011/02/03
