@@ -21,13 +21,14 @@
 
 import sys, time
 from PyQt4 import QtCore, QtGui
+from PyQt4.QtGui import QKeySequence
 
 from bzrlib.revision import CURRENT_REVISION
 from bzrlib.errors import (
         NoSuchRevision, 
         NoSuchRevisionInTree,
         PathsNotVersionedError)
-from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE, BTN_REFRESH,
     QBzrWindow,
@@ -36,7 +37,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_set_encoding,
     runs_in_loading_queue,
     get_icon,
-    FindToolbar,
     get_monospace_font,
     StandardButton,
     )
@@ -55,19 +55,19 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
 from bzrlib.plugins.qbzr.lib.diffwindow import DiffItem
+from bzrlib.plugins.qbzr.lib.shelve import ShelveWindow
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.shelf import Unshelver
 ''')
 
 class ShelveListWindow(QBzrWindow):
 
-    def __init__(self, file_list = None, complete = False, encoding = None, parent = None, ui_mode=True):
+    def __init__(self, complete = False, encoding = None, parent = None, ui_mode=True):
         QBzrWindow.__init__(self,
                             [gettext("Shelve List")],
                             parent, ui_mode=ui_mode)
         self.restoreSize("shelvelist", (780, 680))
 
-        self.file_list = file_list
         self.encoding = encoding
         self.directory = '.'
         self.throbber = ToolBarThrobberWidget(self)
@@ -110,24 +110,26 @@ class ShelveListWindow(QBzrWindow):
         toolbar = self.addToolBar(gettext("Shelve"))
         toolbar.setMovable (False)
         toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+
+        def add_button(text, icon_name=None, onclick=None, enabled=True, shortcut=None):
+            if icon_name:
+                icon = get_icon(icon_name)
+            else:
+                icon = None
+            button = QtGui.QAction(icon, gettext(text), self)
+            if not enabled:
+                button.setEnabled(False)
+            if shortcut:
+                button.setShortcuts(shortcut)
+            if onclick:
+                self.connect(button, QtCore.SIGNAL("triggered()"), onclick)
+            toolbar.addAction(button)
+            return button
         
-        shelve_button = QtGui.QAction(get_icon("shelve"), gettext("Shelve"), self)
-        shelve_button.setShortcuts(QtGui.QKeySequence.New)
-        toolbar.addAction(shelve_button)
-
-        button = QtGui.QAction(get_icon("unshelve"), gettext("Unshelve"), self)
-        button.setEnabled(False)
-        toolbar.addAction(button)
-        self.unshelve_button = button
-
-        button = QtGui.QAction(get_icon("delete"), gettext("Delete"), self)
-        button.setShortcuts(QtGui.QKeySequence.Delete)
-        button.setEnabled(False)
-        toolbar.addAction(button)
-        self.delete_button = button
-
+        add_button(N_("Shelve"), icon_name="shelve", onclick=self.shelve_clicked, shortcut=QKeySequence.New)
+        self.unshelve_button = add_button(N_("Unshelve"), icon_name="unshelve", enabled=False)
+        self.delete_button = add_button(N_("Delete"), icon_name="delete", enabled=False, shortcut=QKeySequence.Delete)
         toolbar.addSeparator()
-        
         show_view_menu = QtGui.QAction(get_icon("document-properties"), gettext("&View Options"), self)
         view_menu = QtGui.QMenu(gettext('View Options'), self)
         show_view_menu.setMenu(view_menu)
@@ -149,21 +151,14 @@ class ShelveListWindow(QBzrWindow):
         view_menu.addAction(complete_menu)
 
         toolbar.addAction(show_view_menu)
+        add_button(N_("Refresh"), icon_name="view-refresh", onclick=self.refresh_clicked, shortcut=QKeySequence.Refresh)
         
         spacer = QtGui.QWidget()
         spacer.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         toolbar.addWidget(spacer) 
         toolbar.addWidget(self.throbber)
 
-        # build buttonbox
-        buttonbox = self.create_button_box(BTN_CLOSE)
-        refresh = StandardButton(BTN_REFRESH)
-        buttonbox.addButton(refresh, QtGui.QDialogButtonBox.ActionRole)
-        vbox.addWidget(buttonbox)
-
         # set signals
-        self.connect(refresh, QtCore.SIGNAL("clicked()"),
-                     self.refresh_clicked)
         self.connect(self.shelve_view, QtCore.SIGNAL("itemSelectionChanged()"),
                 self.selected_shelve_changed)
         self.connect(self.file_view, QtCore.SIGNAL("itemSelectionChanged()"),
@@ -186,8 +181,11 @@ class ShelveListWindow(QBzrWindow):
         throbber window, then loads the branches etc if they weren't specified
         in our constructor.
         """
+        self.refresh()
+
+    def refresh(self):
         self.throbber.show()
-        self.shelve_view.clear()
+        self.clear()
         tree = WorkingTree.open_containing(self.directory)[0]
         tree.lock_read()
         try:
@@ -311,6 +309,7 @@ class ShelveListWindow(QBzrWindow):
             self.unshelve_button.setEnabled(True)
             self.delete_button.setEnabled(True)
             self.show_changes(items[0].shelf_id)
+        self.file_view.viewport().update()
 
         
     def selected_files_changed(self):
@@ -330,10 +329,20 @@ class ShelveListWindow(QBzrWindow):
         self.complete = state
         self.show_selected_diff(refresh = True)
 
+    def shelve_clicked(self):
+        window = ShelveWindow(encoding=self.encoding, parent=self)
+        try:
+            if window.exec_() == QtGui.QDialog.Accepted:
+                self.refresh()
+        finally:
+            window.cleanup()
+
     def refresh_clicked(self):
-        self.initial_load()
-    
+        self.refresh()
 
     def encoding_changed(self, encoding):
         self.show_selected_diff(refresh = True)
         
+    def closeEvent(self, event):
+        self.saveSize()
+        QBzrWindow.closeEvent(self, event)

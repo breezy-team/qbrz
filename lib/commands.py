@@ -1077,7 +1077,7 @@ class cmd_qshelve(QBzrCommand):
 
     def _qbzr_run(self, file_list=None, list=False, complete = False, encoding=None):
         if list:
-            self.main_window = ShelveListWindow(file_list=file_list, complete=complete)
+            self.main_window = ShelveListWindow(encoding=encoding, complete=complete)
         else:
             self.main_window = ShelveWindow(file_list=file_list, encoding=encoding)
         self.main_window.show()
