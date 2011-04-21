@@ -10,6 +10,9 @@
  * qcommit:
    * Remember "Show non-versioned" checkbox state. 
      (Nick Sonneveld, Bug #258926)
+ * qsubprocess:
+   * Reliable exception encoding to pass exception attributes 
+     from subprocess to the GUI process. (Martin [gz], Bug #686735)
 
 
 0.20.1 - development
@@ -18,6 +21,12 @@ Maintenance release.
 
  * Compatibility with patched bzrlib on debian without copy of configobj
    library inside it. (Bug #715067, Alexander Belchenko)
+ * qbranch:
+   * Fixed problem with very small width of input fields in the dialog
+     on Mac OSX. (Timothy Reaves, Bug #667090)
+ * qsubprocess:
+   * Reliable exception encoding to pass exception attributes 
+     from subprocess to the GUI process. (Martin [gz], Bug #686735)
 
 
 0.20.0 - 2011/02/03

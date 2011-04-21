@@ -19,11 +19,17 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+from bzrlib import (
+    errors,
+    urlutils,
+    )
 from bzrlib.tests import TestCase
 from bzrlib.plugins.qbzr.lib.subprocess import (
     bdecode_prompt,
     bencode_prompt,
     bencode_unicode,
+    bencode_exception_instance,
+    bdecode_exception_instance,
     encode_unicode_escape,
     decode_unicode_escape,
     )
@@ -55,3 +61,42 @@ class TestBencode(TestCase):
     def test_decode_unicode_escape_dict(self):
         self.assertEqual({'key': 'foo\nbar', 'ukey': u'\u1234'},
             decode_unicode_escape({'key': 'foo\\nbar', 'ukey': u'\\u1234'}))
+
+
+class TestExceptionInstanceSerialisation(TestCase):
+    """Check exceptions can serialised safely with needed details preserved"""
+
+    def check_exception_instance(self, e):
+        encoded = bencode_exception_instance(e)
+        name, attr_dict = bdecode_exception_instance(encoded)
+        self.assertEqual(name, e.__class__.__name__)
+        return attr_dict
+
+    def test_simple_error(self):
+        """A common error with just an args attribute"""
+        self.check_exception_instance(ValueError("Simple"))
+        # TODO: if transmitted assert args/message in return dict
+
+    def test_non_ascii_bytes(self):
+        """An error with a non-ascii bytestring attribute"""
+        self.check_exception_instance(OSError(13, "Lupa ev\xc3\xa4tty"))
+        # TODO: if transmitted assert errno/strerror/etc in return dict
+
+    def test_unreprable_obj(self):
+        """Ensure an object with a broken repr doesn't break the exception"""
+        class Bad(object):
+            def __repr__(self):
+                return self.attribute_that_does_not_exist
+        self.check_exception_instance(ValueError(Bad()))
+        # TODO: if transmitted assert message equals the placeholder string
+
+    def test_uncommittedchanges_display_url(self):
+        """The display_url of UncommittedChanges errors should be serialised"""
+        path = u"\u1234"
+        class FakeTree(object):
+            def __init__(self, url):
+                self.user_url = url
+        attrs = self.check_exception_instance(errors.UncommittedChanges(
+            FakeTree(urlutils.local_path_to_url(path))))
+        self.assertIsSameRealPath(path,
+            urlutils.local_path_from_url(attrs["display_url"]))
