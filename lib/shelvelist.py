@@ -208,9 +208,20 @@ class ShelveListWindow(QBzrWindow):
         finally:
             tree.unlock()
             self.throbber.hide()
+        self.update()
+
+    def update(self):
+        for view in (self.shelve_view.viewport(), self.file_view.viewport()) + self.diffviews:
+            view.update()
+
+    def clear(self):
+        self.shelve_view.clear()
+        self.manager = None
 
     def show_changes(self, shelf_id):
+        cleanup = []
         shelf_file = self.manager.read_shelf(shelf_id)
+        cleanup.append(shelf_file.close)
         try:
             records = Unshelver.iter_records(shelf_file)
             revid = Unshelver.parse_metadata(records)['revision_id']
@@ -218,13 +229,15 @@ class ShelveListWindow(QBzrWindow):
                 base_tree = self.tree.revision_tree(revid)
             except NoSuchRevisionInTree:
                 base_tree = self.tree.branch.repository.revision_tree(revid)
-            tt = transform.TransformPreview(base_tree)
-            tt.deserialize(records)
-
-            self.load_diff(tt.get_preview_tree(), base_tree)
+            preview = transform.TransformPreview(base_tree)
+            cleanup.append(preview.finalize)
+            preview.deserialize(records)
+            
+            self.load_diff(preview.get_preview_tree(), base_tree)
 
         finally:
-            shelf_file.close()
+            for func in cleanup:
+                func()
 
     def load_diff(self, tree, base_tree):
         self.file_view.clear()
@@ -240,6 +253,8 @@ class ShelveListWindow(QBzrWindow):
                     versioned, parent, name, kind, executable)
             if not di:
                 continue
+
+            di.load()
 
             old_path, new_path = di.paths
             if di.versioned == (True, False):

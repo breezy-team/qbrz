@@ -198,6 +198,10 @@ class DiffItem(object):
         self._encodings = [None, None]
         self._ulines = [None, None]
 
+    def load(self):
+        if self._lines is None:
+            self._load_lines()
+
     def _load_lines(self):
         if ((self.versioned[0] != self.versioned[1] or self.changed_content)
             and (self.kind[0] == 'file' or self.kind[1] == 'file')):
