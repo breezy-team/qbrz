@@ -270,7 +270,7 @@ class AnnotateWindow(QBzrWindow):
         
         self.text_edit.document().setDefaultFont(get_monospace_font())
 
-        self.text_edit.setTabStopWidth(get_tab_width_pixels())
+        self.text_edit.setTabStopWidth(get_tab_width_pixels(branch))
         
         self.annotate_bar = AnnotateBar(self.text_edit, self, self.get_revno)
         annotate_spliter = QtGui.QSplitter(QtCore.Qt.Horizontal, self)

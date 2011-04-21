@@ -218,7 +218,7 @@ class QBzrCatWindow(QBzrWindow):
         edit.setReadOnly(True)
         edit.document().setDefaultFont(get_monospace_font())
 
-        edit.setTabStopWidth(get_tab_width_pixels())
+        edit.setTabStopWidth(get_tab_width_pixels(self.branch))
 
         self._set_text(edit, relpath, text, self.encoding)
         self.encoding_selector.setEnabled(True)
