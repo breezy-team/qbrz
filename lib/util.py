@@ -1201,7 +1201,6 @@ def _get_monospace_font():
     font.setFixedPitch(True)
     return font
 
-
 def get_tab_width_chars():
     """Function to get the tab width in characters from the configuration."""
     bzr_config = get_global_config()
