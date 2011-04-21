@@ -236,7 +236,7 @@ class ShelveListWindow(QBzrWindow):
         
         for (file_id, paths, changed_content, versioned, parent, 
                 name, kind, executable) in sorted(changes, key=changes_key):
-            di = DiffItem.create([tree, base_tree], file_id, paths, changed_content,
+            di = DiffItem.create([base_tree, tree], file_id, paths, changed_content,
                     versioned, parent, name, kind, executable)
             if not di:
                 continue
@@ -276,13 +276,13 @@ class ShelveListWindow(QBzrWindow):
         for d in appends:
             lines = d.lines
             groups = d.groups(self.complete)
-            data = [''.join(l) for l in lines]
             dates = d.dates[:]  # dates will be changed in append_diff
             ulines = d.encode((self.encoding_selector.encoding,
                                self.encoding_selector.encoding))
+            data = [''.join(l) for l in ulines]
             for view in self.diffviews:
                 view.append_diff(list(d.paths), d.file_id, d.kind, d.status, dates, 
-                                 d.versioned, d.binary, lines, groups, 
+                                 d.versioned, d.binary, ulines, groups, 
                                  data, d.properties_changed)
 
             
