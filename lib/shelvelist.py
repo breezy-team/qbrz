@@ -346,3 +346,6 @@ class ShelveListWindow(QBzrWindow):
     def closeEvent(self, event):
         self.saveSize()
         QBzrWindow.closeEvent(self, event)
+
+    def cleanup(self):
+        pass

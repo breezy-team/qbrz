@@ -1080,6 +1080,9 @@ class cmd_qshelve(QBzrCommand):
             self.main_window = ShelveListWindow(encoding=encoding, complete=complete)
         else:
             self.main_window = ShelveWindow(file_list=file_list, encoding=encoding)
-        self.main_window.show()
-        self._application.exec_()
+        try:
+            self.main_window.show()
+            self._application.exec_()
+        finally:
+            self.main_window.cleanup()
 
