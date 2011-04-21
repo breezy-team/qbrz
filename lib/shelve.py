@@ -530,7 +530,7 @@ class HunkView(QtGui.QTextBrowser):
             left = 2 - scroll_x
             for hunk, top in self.hunk_list:
                 top -= scroll_y
-                if left <= x <= left + 16 and top <= y <= top + 16:
+                if top <= y <= top + 16:
                     hunk.selected = not hunk.selected
                     self.viewport().repaint(left, top, 16, 16)
                     self.emit(QtCore.SIGNAL("selectionChanged()"))
