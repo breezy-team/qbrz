@@ -32,7 +32,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_set_encoding,
     runs_in_loading_queue,
     get_monospace_font,
-    get_global_config,
+    get_tab_width_pixels,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
@@ -216,16 +216,9 @@ class QBzrCatWindow(QBzrWindow):
         browser = LineNumberEditerFrame(self)
         edit = browser.edit
         edit.setReadOnly(True)
-        monospacedFont = get_monospace_font()
-        edit.document().setDefaultFont(monospacedFont)
+        edit.document().setDefaultFont(get_monospace_font())
 
-        char_width = QtGui.QFontMetrics(monospacedFont).width(" ")
-        bzr_config = get_global_config()
-        try:
-            tabWidth = int(bzr_config.get_user_option('tab_width'))
-        except TypeError:
-            tabWidth = 8
-        edit.setTabStopWidth(tabWidth*char_width)
+        edit.setTabStopWidth(get_tab_width_pixels())
 
         self._set_text(edit, relpath, text, self.encoding)
         self.encoding_selector.setEnabled(True)

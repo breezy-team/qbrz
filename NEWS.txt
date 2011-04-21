@@ -7,7 +7,10 @@
 
  * qcat, qannotate, qdiff, qconfig:
    * Added ability to customise the tab-stop width (setting in qconfig,
-     affects qcat, qannotate and qdiff). (Bug #490377, A. S. Budden)
+     affects qcat, qannotate and qdiff).  The setting is stored in bazaar.conf,
+     and is named tab_width (it can also be configured with qconfig).  Units
+     are characters (so 4 means a tab should be displayed with the width of 4
+     spaces).  The default value is 8.  (Bug #490377, A. S. Budden)
 
 
 0.20.1 - development
