@@ -55,7 +55,7 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
 from bzrlib.plugins.qbzr.lib.diffwindow import DiffItem
-from bzrlib.plugins.qbzr.lib.shelve import ShelveWindow
+from bzrlib.plugins.qbzr.lib.shelve import ShelveWindow, ToolbarPanel
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.shelf import Unshelver
 ''')
@@ -93,9 +93,21 @@ class ShelveListWindow(QBzrWindow):
         for view in self.diffviews:
             self.stack.addWidget(view)
 
+        diff_panel = ToolbarPanel(self)
+        diff_panel.add_widget(self.stack)
+
+        diff_panel.add_toolbar_button(N_("Unified"), icon_name="unidiff", checkable=True,
+                                        onclick=self.unidiff_toggled)
+        diff_panel.add_toolbar_button(N_("Complete"), icon_name="complete", checkable=True,
+                                        onclick=self.complete_toggled)
+        diff_panel.add_separator()
+        self.encoding_selector = EncodingMenuSelector(self.encoding,
+                                    gettext("Encoding"), self.encoding_changed)
+        diff_panel.add_toolbar_menu(N_("Encoding"), self.encoding_selector, icon_name="format-text-bold")
+
         vsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
         vsplitter.addWidget(self.file_view)
-        vsplitter.addWidget(self.stack)
+        vsplitter.addWidget(diff_panel)
 
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
         splitter.addWidget(self.shelve_view)
@@ -130,32 +142,8 @@ class ShelveListWindow(QBzrWindow):
         self.unshelve_button = add_button(N_("Unshelve"), icon_name="unshelve", enabled=False)
         self.delete_button = add_button(N_("Delete"), icon_name="delete", enabled=False, shortcut=QKeySequence.Delete)
         toolbar.addSeparator()
-        show_view_menu = QtGui.QAction(get_icon("document-properties"), gettext("&View Options"), self)
-        view_menu = QtGui.QMenu(gettext('View Options'), self)
-        show_view_menu.setMenu(view_menu)
-
-        self.encoding_selector = EncodingMenuSelector(self.encoding,
-            gettext("Encoding"),
-            self.encoding_changed)
-        
-        unidiff_menu = QtGui.QAction(get_icon("unidiff", size=16), gettext("Unified diff"), self)
-        unidiff_menu.setCheckable(True)
-        unidiff_menu.setChecked(False)
-
-        complete_menu = QtGui.QAction(get_icon("complete", size=16), gettext("Complete"), self)
-        complete_menu.setCheckable(True)
-        complete_menu.setChecked(False)
-        
-        view_menu.addMenu(self.encoding_selector)
-        view_menu.addAction(unidiff_menu)
-        view_menu.addAction(complete_menu)
-
-        toolbar.addAction(show_view_menu)
         add_button(N_("Refresh"), icon_name="view-refresh", onclick=self.refresh_clicked, shortcut=QKeySequence.Refresh)
         
-        spacer = QtGui.QWidget()
-        spacer.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-        toolbar.addWidget(spacer) 
         toolbar.addWidget(self.throbber)
 
         # set signals
@@ -163,11 +151,6 @@ class ShelveListWindow(QBzrWindow):
                 self.selected_shelve_changed)
         self.connect(self.file_view, QtCore.SIGNAL("itemSelectionChanged()"),
                 self.selected_files_changed)
-        self.connect(complete_menu, QtCore.SIGNAL("toggled(bool)"),
-                self.complete_toggled)
-        self.connect(unidiff_menu, QtCore.SIGNAL("toggled(bool)"),
-                self.unidiff_toggled)
-
 
     def show(self):
         QBzrWindow.show(self)

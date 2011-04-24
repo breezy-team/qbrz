@@ -78,6 +78,7 @@ class ToolbarPanel(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         vbox = QtGui.QVBoxLayout(self)
         vbox.setSpacing(0)
+        vbox.setMargin(0)
 
         toolbar = QtGui.QToolBar(self)
         toolbar.setMovable(False)
@@ -97,7 +98,7 @@ class ToolbarPanel(QtGui.QWidget):
         self.toolbar.addAction(button)
         return button
 
-    def add_menu(self, text, menu, icon_name=None, enabled=True, shortcut=None):
+    def add_toolbar_menu(self, text, menu, icon_name=None, enabled=True, shortcut=None):
         button = self.create_button(text, icon_name=icon_name, enabled=enabled, 
                                     shortcut=shortcut, 
                                     onclick=lambda:menu.exec_(QtGui.QCursor.pos()))
@@ -293,6 +294,7 @@ class ShelveWindow(QBzrDialog):
         fileview_panel = QtGui.QWidget()
         hsplitter.addWidget(fileview_panel)
         vbox = QtGui.QVBoxLayout(fileview_panel)
+        vbox.setMargin(0)
         
         self.file_view = QtGui.QTreeWidget(self)
         self.file_view.setHeaderLabels(
@@ -321,7 +323,7 @@ class ShelveWindow(QBzrDialog):
         
         self.encoding_selector = EncodingMenuSelector(self.encoding,
             gettext("Encoding"), self.encoding_changed)
-        hunk_panel.add_menu(N_("Encoding"), self.encoding_selector, icon_name="format-text-bold")
+        hunk_panel.add_toolbar_menu(N_("Encoding"), self.encoding_selector, icon_name="format-text-bold")
 
         self.hunk_view = HunkView()
         hunk_panel.add_widget(self.hunk_view)
