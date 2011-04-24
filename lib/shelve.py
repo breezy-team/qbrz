@@ -149,8 +149,8 @@ class Change(object):
                 work_lines = trees[1].get_file_lines(file_id)
                 textfile.check_text_lines(work_lines)
                 
-                self.target_lines = [None, target_lines, None]
-                self.work_lines = [None, work_lines, None]
+                self._target_lines = [None, target_lines, None]
+                self._work_lines = [None, work_lines, None]
 
                 parsed = shelver.get_parsed_patch(file_id, False)
                 for hunk in parsed.hunks:
@@ -163,6 +163,14 @@ class Change(object):
         self.data = change
         self.file_id = file_id
         self.status = status
+
+    @property
+    def target_lines(self):
+        return self._target_lines[1]
+
+    @property
+    def work_lines(self):
+        return self._work_lines[1]
 
     def encode_hunk_texts(self, encoding):
         if self.hunk_texts[0] == encoding:
@@ -193,10 +201,10 @@ class Change(object):
         return encoded_lines
 
     def encode_work_lines(self, encoding):
-        return self.encode(self.work_lines, encoding)
+        return self.encode(self._work_lines, encoding)
 
     def encode_target_lines(self, encoding):
-        return self.encode(self.target_lines, encoding)
+        return self.encode(self._target_lines, encoding)
 
 
 class SelectAllCheckBox(QtGui.QCheckBox):
@@ -587,13 +595,12 @@ class HunkSelector(QtGui.QFrame):
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
-            x, y = event.x(), event.y()
             scroll_y = self.browser.verticalScrollBar().value()
+            y = event.y() + scroll_y
             for hunk, top, bottom in self.browser.hunk_list:
-                top -= scroll_y
                 if top <= y <= bottom:
                     hunk.selected = not hunk.selected
-                    self.repaint(6, top + 3, 13, 13)
+                    self.repaint(6, top - scroll_y + 3, 13, 13)
                     self.parent().emit(QtCore.SIGNAL("selectionChanged()"))
                     return
         QtGui.QFrame.mousePressEvent(self, event)
