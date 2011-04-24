@@ -173,7 +173,7 @@ class Change(object):
                      for hunk in patch.hunks]
         except UnicodeError:
             if self.hunk_texts[1] is None:
-                texts = [[l for l in hunk.lines] for hunk in patch.hunks]
+                texts = [[str(l) for l in hunk.lines] for hunk in patch.hunks]
                 self.hunk_texts[1] = texts
             else:
                 texts = self.hunk_texts[1]
