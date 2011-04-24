@@ -28,7 +28,7 @@ from bzrlib.errors import (
         NoSuchRevisionInTree,
         PathsNotVersionedError,
         BinaryFile)
-from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_OK, BTN_CLOSE, BTN_REFRESH,
     get_apparent_author_name,
@@ -72,6 +72,131 @@ class DummyDiffWriter(object):
         pass
     def write(self, *args, **kwargs):
         pass
+
+class ToolbarPanel(QtGui.QWidget):
+    def __init__(self, parent = None):
+        QtGui.QWidget.__init__(self, parent)
+        vbox = QtGui.QVBoxLayout(self)
+        vbox.setSpacing(0)
+
+        toolbar = QtGui.QToolBar(self)
+        toolbar.setMovable(False)
+        toolbar.setIconSize(QtCore.QSize(16,16))
+        toolbar.setStyleSheet('QToolBar { margin:1px; padding:0px; border:none; }')
+        toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+
+        vbox.addWidget(toolbar)
+        self.vbox = vbox
+        self.toolbar = toolbar
+
+    def add_toolbar_button(self, text, icon_name=None, enabled=True, 
+            checkable=False, checked=False, shortcut=None, onclick=None):
+        button = self.create_button(text, icon_name=icon_name, enabled=enabled,
+                        checkable=checkable, checked=checked, 
+                        shortcut=shortcut, onclick=onclick)
+        self.toolbar.addAction(button)
+        return button
+
+    def add_menu(self, text, menu, icon_name=None, enabled=True, shortcut=None):
+        button = self.create_button(text, icon_name=icon_name, enabled=enabled, 
+                                    shortcut=shortcut, 
+                                    onclick=lambda:menu.exec_(QtGui.QCursor.pos()))
+        button.setMenu(menu)
+        self.toolbar.addAction(button)
+        return button
+
+    def create_button(self, text, icon_name=None, enabled=True, 
+            checkable=False, checked=False, shortcut=None, onclick=None):
+        if icon_name:
+            button = QtGui.QAction(get_icon(icon_name, size=16), gettext(text), self)
+        else:
+            button = QtGui.QAction(gettext(text), self)
+        if checkable:
+            button.setCheckable(True)
+            button.setChecked(checked)
+            signal = "toggled(bool)"
+        else:
+            signal = "triggered()"
+        if not enabled:
+            button.setEnabled(False)
+        if shortcut:
+            button.setShortcuts(shortcut)
+        if onclick:
+            self.connect(button, QtCore.SIGNAL(signal), onclick)
+        return button
+
+    def add_separator(self):
+        self.toolbar.addSeparator()
+
+    def add_widget(self, widget):
+        self.vbox.addWidget(widget)
+
+class Change(object):
+    def __init__(self, change, shelver, trees):
+        status = change[0]
+        file_id = change[1]
+        if status == 'delete file':
+            self.disp_text = trees[0].id2path(file_id)
+        elif status == 'rename':
+            self.disp_text = u'%s => %s' % (trees[0].id2path(file_id), trees[1].id2path(file_id))
+        else:
+            self.disp_text = trees[1].id2path(file_id)
+        if status == 'modify text':
+            try:
+                target_lines = trees[0].get_file_lines(file_id)
+                textfile.check_text_lines(target_lines)
+                work_lines = trees[1].get_file_lines(file_id)
+                textfile.check_text_lines(work_lines)
+                
+                self.target_lines = [None, target_lines, None]
+                self.work_lines = [None, work_lines, None]
+
+                parsed = shelver.get_parsed_patch(file_id, False)
+                for hunk in parsed.hunks:
+                    hunk.selected = False
+                self.parsed_patch = parsed
+                self.hunk_texts = [None, None, None]
+            except errors.BinaryFile:
+                status = 'modify binary'
+
+        self.data = change
+        self.file_id = file_id
+        self.status = status
+
+    def encode_hunk_texts(self, encoding):
+        if self.hunk_texts[0] == encoding:
+            return self.hunk_texts[2]
+        patch = self.parsed_patch
+        try:
+            texts = [[str(l).decode(encoding) for l in hunk.lines]
+                     for hunk in patch.hunks]
+        except UnicodeError:
+            if self.hunk_texts[1] is None:
+                texts = [[l for l in hunk.lines] for hunk in patch.hunks]
+                self.hunk_texts[1] = texts
+            else:
+                texts = self.hunk_texts[1]
+        self.hunk_texts[0] = encoding
+        self.hunk_texts[2] = texts
+
+        return texts
+
+    def encode(self, lines, encoding):
+        if lines[0] == encoding:
+            return lines[2]
+        try:
+            encoded_lines = [l.decode(encoding) for l in lines[1]]
+        except UnicodeError:
+            encoded_lines = lines[1]
+        lines[2] = encoded_lines
+        return encoded_lines
+
+    def encode_work_lines(self, encoding):
+        return self.encode(self.work_lines, encoding)
+
+    def encode_target_lines(self, encoding):
+        return self.encode(self.target_lines, encoding)
+
 
 class SelectAllCheckBox(QtGui.QCheckBox):
     def __init__(self, view, parent):
@@ -184,28 +309,25 @@ class ShelveWindow(QBzrDialog):
                                 view=self.file_view, parent=fileview_panel)
         vbox.addWidget(selectall_checkbox)
 
-        hunk_panel = QtGui.QWidget(self)
+        hunk_panel = ToolbarPanel(self)
         hsplitter.addWidget(hunk_panel)
-        vbox = QtGui.QVBoxLayout(hunk_panel)
 
-        toolbar = QtGui.QToolBar(self)
-        toolbar.setMovable(False)
-        toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        hunk_panel.add_toolbar_button(N_("Complete"), icon_name="complete", 
+                                  onclick=self.complete_toggled, checkable=True)
+        hunk_panel.add_separator()
+        hunk_panel.add_toolbar_button(N_("Previous"), icon_name="go-up")
+        hunk_panel.add_toolbar_button(N_("Next"), icon_name="go-down")
+        hunk_panel.add_separator()
+        
         self.encoding_selector = EncodingMenuSelector(self.encoding,
             gettext("Encoding"), self.encoding_changed)
-        show_view_menu = QtGui.QAction(get_icon("document-properties"), gettext("&View Options"), self)
-        view_menu = QtGui.QMenu(gettext('View Options'), self)
-        show_view_menu.setMenu(view_menu)
-        view_menu.addMenu(self.encoding_selector)
-        toolbar.addAction(show_view_menu)
+        hunk_panel.add_menu(N_("Encoding"), self.encoding_selector, icon_name="format-text-bold")
 
         self.hunk_view = HunkView()
-
-        vbox.addWidget(toolbar)
-        vbox.addWidget(self.hunk_view)
+        hunk_panel.add_widget(self.hunk_view)
 
         splitter.setStretchFactor(0, 1)
-        splitter.setStretchFactor(1, 4)
+        splitter.setStretchFactor(1, 6)
 
         layout = QtGui.QVBoxLayout(self)
         layout.addWidget(self.throbber)
@@ -265,56 +387,33 @@ class ShelveWindow(QBzrDialog):
                 func()
 
     def _create_item(self, change, shelver, trees):
-        status = change[0]
-        file_id = change[1]
-        if status == 'delete file':
-            path = trees[0].id2path(file_id)
-        elif status == 'rename':
-            path = u'%s => %s' % (trees[0].id2path(file_id), trees[1].id2path(file_id))
-        else:
-            path = trees[1].id2path(file_id)
+        ch = Change(change, shelver, trees)
         item = QtGui.QTreeWidgetItem()
-        if status == 'modify text':
-            try:
-                target_lines = trees[0].get_file_lines(file_id)
-                textfile.check_text_lines(target_lines)
-                work_lines = trees[1].get_file_lines(file_id)
-                textfile.check_text_lines(work_lines)
-                
-                item.target_lines = target_lines
-                item.work_lines = work_lines
-
-                parsed = shelver.get_parsed_patch(file_id, False)
-                item.setText(2, u'0/%d' % len(parsed.hunks))
-                for hunk in parsed.hunks:
-                    hunk.selected = False
-                item.parsed_patch = parsed
-            except errors.BinaryFile:
-                status = 'modify binary'
 
         item.setIcon(0, get_icon("file", 16))
-        item.change = change
-        item.file_id = file_id
-        item.status = status
-        item.setText(0, path)
-        item.setText(1, status)
+        item.change = ch
+        item.setText(0, ch.disp_text)
+        item.setText(1, ch.status)
+        if ch.status == 'modify text':
+            item.setText(2, u'0/%d' % len(ch.parsed_patch.hunks))
         item.setCheckState(0, QtCore.Qt.Unchecked)
         return item
 
     def selected_file_changed(self):
         items = self.file_view.selectedItems()
-        if len(items) != 1 or items[0].status != 'modify text':
+        if len(items) != 1 or items[0].change.status != 'modify text':
             self.hunk_view.clear()
         else:
             item = items[0]
             encoding = self.encoding_selector.encoding
-            self.hunk_view.set_parsed_patch(item.parsed_patch, encoding)
+            self.hunk_view.set_parsed_patch(item.change, encoding)
 
     def selected_hunk_changed(self):
         for item in self.file_view.selectedItems():
-            if item.status != 'modify text':
+            change = item.change
+            if change.status != 'modify text':
                 continue
-            hunks = item.parsed_patch.hunks
+            hunks = change.parsed_patch.hunks
             hunk_num = len(hunks)
             selected_hunk_num = 0
             for hunk in hunks:
@@ -340,9 +439,9 @@ class ShelveWindow(QBzrDialog):
         else:
             return
 
-        if item.status == 'modify text':
-            hunk_num = len(item.parsed_patch.hunks)
-            for hunk in item.parsed_patch.hunks:
+        if item.change.status == 'modify text':
+            hunk_num = len(item.change.parsed_patch.hunks)
+            for hunk in item.change.parsed_patch.hunks:
                 hunk.selected = selected
             self.hunk_view.update()
             item.setText(2, u'%d/%d' % (hunk_num if selected else 0, hunk_num))
@@ -351,6 +450,9 @@ class ShelveWindow(QBzrDialog):
         # refresh hunk view
         self.selected_file_changed()
 
+    def complete_toggled(self, checked):
+        self.hunk_view.set_complete(checked)
+    
     def do_accept(self):
         shelved = False
         for i in range(0, self.file_view.topLevelItemCount()):
@@ -359,12 +461,12 @@ class ShelveWindow(QBzrDialog):
                 continue
             shelved = True
             change = item.change
-            if item.status == 'modify text':
-                self.handle_modify_text(item)
-            elif item.status == 'modify binary':
-                self.creator.shelve_content_change(change[1])
+            if change.status == 'modify text':
+                self.handle_modify_text(change)
+            elif change.status == 'modify binary':
+                self.creator.shelve_content_change(change.data[1])
             else:
-                self.creator.shelve_change(change)
+                self.creator.shelve_change(change.data)
         if shelved:
             manager = self.shelver.work_tree.get_shelf_manager()
             message = unicode(self.message.toPlainText()).strip()
@@ -373,11 +475,11 @@ class ShelveWindow(QBzrDialog):
         else:
             QBzrDialog.do_reject(self)
 
-    def handle_modify_text(self, item):
+    def handle_modify_text(self, change):
         final_hunks = []
         offset = 0
         change_count = 0
-        for hunk in item.parsed_patch.hunks:
+        for hunk in change.parsed_patch.hunks:
             if hunk.selected:
                 offset -= (hunk.mod_range - hunk.orig_range)
                 change_count += 1
@@ -387,8 +489,8 @@ class ShelveWindow(QBzrDialog):
 
         if change_count == 0:
             return
-        patched = patches.iter_patched_from_hunks(item.target_lines, final_hunks)
-        self.creator.shelve_lines(item.file_id, list(patched))
+        patched = patches.iter_patched_from_hunks(change.target_lines, final_hunks)
+        self.creator.shelve_lines(change.file_id, list(patched))
 
     def add_cleanup(self, func):
         self._cleanup_funcs.append(func)
@@ -396,8 +498,7 @@ class ShelveWindow(QBzrDialog):
     def cleanup(self):
         while len(self._cleanup_funcs) > 0:
             try:
-                func = self._cleanup_funcs.pop()
-                func()
+                self._cleanup_funcs.pop()()
             except:
                 pass
 
@@ -405,8 +506,97 @@ class ShelveWindow(QBzrDialog):
         self.cleanup()
         self.saveSize()
 
+class HunkView(QtGui.QWidget):
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        layout = QtGui.QHBoxLayout(self)
+        layout.setSpacing(0)
+        layout.setMargin(0)
+        self.browser = HunkTextBrowser(self)
+        self.selector = HunkSelector(self.browser, self)
+        layout.addWidget(self.selector)
+        layout.addWidget(self.browser)
 
-class HunkView(QtGui.QTextBrowser):
+        self.change = None
+        self.encoding = None
+
+    def set_complete(self, value):
+        self.browser.complete = value
+        if self.change is not None:
+            self.set_parsed_patch(self.change, self.encoding)
+
+    def rewind(self):
+        self.browser.rewind()
+
+    def set_parsed_patch(self, change, encoding):
+        self.change = change
+        self.encoding = encoding
+        self.browser.set_parsed_patch(change, encoding)
+        self.update()
+
+    def update(self):
+        self.selector.update()
+        self.browser.update()
+
+    def clear(self):
+        self.browser.clear()
+
+class HunkSelector(QtGui.QFrame):
+    def __init__(self, browser, parent):
+        QtGui.QFrame.__init__(self, parent)
+        self.browser = browser
+        self.setFixedWidth(25)
+        self.setStyleSheet("border:1px solid lightgray; background-color:white;")
+        self.connect(browser.verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.scrolled)
+        self.frame_width = QtGui.QApplication.style().pixelMetric(QtGui.QStyle.PM_DefaultFrameWidth)
+
+    def scrolled(self, value):
+        self.update()
+
+    def paintEvent(self, event):
+        QtGui.QFrame.paintEvent(self, event) 
+        browser = self.browser
+        if not browser.hunk_list:
+            return
+        scroll_y = browser.verticalScrollBar().value() - self.frame_width
+        painter = QtGui.QPainter(self)
+        rect = event.rect()
+        top, bottom = rect.top(), rect.bottom()
+        painter.setClipRect(rect)
+        browser.paint_background(self.width(), rect.top(), rect.bottom(), painter, scroll_y)
+
+        # draw checkbox
+        painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
+        painter.setPen(browser.bold_pen)
+        for hunk, y1, y2 in browser.hunk_list:
+            y1 -= scroll_y
+            y1 += 4
+            if bottom < y1 or y1 + 13 < top:
+                continue
+
+            painter.fillRect(6, y1, 13, 13, QtCore.Qt.white)
+
+            painter.drawRect(6, y1, 13, 13)
+            if hunk.selected:
+                painter.drawLine(9, y1 + 7, 12, y1 + 10)
+                painter.drawLine(16, y1 + 3, 12, y1 + 10)
+
+        del painter
+
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.LeftButton:
+            x, y = event.x(), event.y()
+            scroll_y = self.browser.verticalScrollBar().value()
+            for hunk, top, bottom in self.browser.hunk_list:
+                top -= scroll_y
+                if top <= y <= bottom:
+                    hunk.selected = not hunk.selected
+                    self.repaint(6, top + 3, 13, 13)
+                    self.parent().emit(QtCore.SIGNAL("selectionChanged()"))
+                    return
+        QtGui.QFrame.mousePressEvent(self, event)
+
+class HunkTextBrowser(QtGui.QTextBrowser):
 
     def __init__(self, parent=None):
         # XXX: This code should be merged with QSimpleDiffView
@@ -432,6 +622,9 @@ class HunkView(QtGui.QTextBrowser):
         self.monospacedInsertFormat.setForeground(QtGui.QColor(0, 136, 11))
         self.monospacedDeleteFormat = QtGui.QTextCharFormat(self.monospacedFormat)
         self.monospacedDeleteFormat.setForeground(QtGui.QColor(204, 0, 0))
+        
+        self.monospacedInactiveFormat = QtGui.QTextCharFormat(self.monospacedFormat)
+        self.monospacedInactiveFormat.setForeground(QtGui.QColor(128, 128, 128))
     
         titleFont = QtGui.QFont(monospacedFont)
         titleFont.setPointSize(titleFont.pointSize() * 140 / 100)
@@ -445,30 +638,27 @@ class HunkView(QtGui.QTextBrowser):
         self.normal_pen = QtGui.QPen(QtCore.Qt.black)
         self.bold_pen = QtGui.QPen(QtCore.Qt.black)
         self.bold_pen.setWidth(2)
+        
+        from bzrlib.plugins.qbzr.lib.diffview import colors
+        self.header_color = colors['blank'][0]
+
+        self.complete = False 
 
     def rewind(self):
         if not self.rewinded:
             self.rewinded = True
             self.scrollToAnchor("top")
 
-    def set_parsed_patch(self, patch, encoding):
+    def set_parsed_patch(self, change, encoding):
         self.clear()
         cursor = self.cursor
 
-        try:
-            texts = [[str(l).decode(encoding) for l in hunk.lines]
-                     for hunk in patch.hunks]
-        except UnicodeError:
-            texts = [[str(l) for l in hunk.lines]
-                     for hunk in patch.hunks]
+        patch = change.parsed_patch
+        texts = change.encode_hunk_texts(encoding)
+        if self.complete:
+            work_lines = change.encode_work_lines(encoding)
 
-        for hunk, hunk_texts in zip(patch.hunks, texts):
-            cursor.beginEditBlock()
-            y = cursor.block().layout().position().y()
-            self.hunk_list.append((hunk, y))
-            cursor.insertText('  ' + str(hunk.get_header()),
-                    self.monospacedHunkFormat)
-            cursor.insertText("\n")
+        def print_hunk(hunk, hunk_texts):
             for line, text in zip(hunk.lines, hunk_texts):
                 if isinstance(line, InsertLine):
                     fmt = self.monospacedInsertFormat
@@ -477,8 +667,30 @@ class HunkView(QtGui.QTextBrowser):
                 else:
                     fmt = self.monospacedFormat
                 cursor.insertText(text, fmt)
-            cursor.insertText("\n", self.monospacedFormat)
-            cursor.endEditBlock()
+        
+        start = 0
+        for hunk, hunk_texts in zip(patch.hunks, texts):
+            # NOTE: hunk.mod_pos is 1 based value, not 0 based.
+            if self.complete:
+                for i in range(start, hunk.mod_pos - 1):
+                    cursor.insertText(' ' + work_lines[i], self.monospacedInactiveFormat)
+                start = hunk.mod_pos + hunk.mod_range - 1
+                cursor.beginEditBlock()
+                y1 = cursor.block().layout().position().y()
+                print_hunk(hunk, hunk_texts)
+                cursor.endEditBlock()
+                y2 = cursor.block().layout().position().y()
+
+            else:
+                cursor.beginEditBlock()
+                y1 = cursor.block().layout().position().y()
+                cursor.insertText(str(hunk.get_header()), self.monospacedHunkFormat)
+                print_hunk(hunk, hunk_texts)
+                cursor.insertText("\n", self.monospacedFormat)
+                cursor.endEditBlock()
+                y2 = cursor.block().layout().position().y()
+
+            self.hunk_list.append((hunk, y1, y2))
 
         self.update()
 
@@ -491,50 +703,33 @@ class HunkView(QtGui.QTextBrowser):
         del(self.hunk_list[:])
 
     def paintEvent(self, event):
-        QtGui.QTextBrowser.paintEvent(self, event) 
         if not self.hunk_list:
+            QtGui.QTextBrowser.paintEvent(self, event) 
             return
-        scroll_x = self.horizontalScrollBar().value()
         scroll_y = self.verticalScrollBar().value()
-        width = self.width()
-        rect = event.rect()
-        top, bottom = rect.top(), rect.bottom()
 
         painter = QtGui.QPainter(self.viewport())
+        rect = event.rect()
         painter.setClipRect(rect)
-        for hunk, y in self.hunk_list:
-            y -= scroll_y
-            if bottom < y or y + 21 < top:
-                continue
 
-            # draw checkbox
-            painter.setPen(self.normal_pen)
-            painter.fillRect(2 - scroll_x, y, 16, 16, QtCore.Qt.white)
-            painter.drawRect(2 - scroll_x, y, 16, 16)
+        self.paint_background(self.width(), rect.top(), rect.bottom(), painter, scroll_y)
 
-            painter.setPen(self.bold_pen)
-            if hunk.selected:
-                painter.drawLine(6 - scroll_x, y + 8, 10 - scroll_x, y + 12)
-                painter.drawLine(14 - scroll_x, y + 4, 10 - scroll_x, y + 12)
-
-            # draw bottom line
-            painter.drawLine(0, y + 20, width, y + 20)
-
+        QtGui.QTextBrowser.paintEvent(self, event) 
         del painter
 
-    def mousePressEvent(self, event):
-        if event.button() == QtCore.Qt.LeftButton:
-            x, y = event.x(), event.y()
-            scroll_x = self.horizontalScrollBar().value()
-            scroll_y = self.verticalScrollBar().value()
-            left = 2 - scroll_x
-            for hunk, top in self.hunk_list:
-                top -= scroll_y
-                if top <= y <= top + 16:
-                    hunk.selected = not hunk.selected
-                    self.viewport().repaint(left, top, 16, 16)
-                    self.emit(QtCore.SIGNAL("selectionChanged()"))
-                    return
-        QtGui.QTextBrowser.mousePressEvent(self, event)
-        
+    def paint_background(self, width, top, bottom, painter, offset):
+        painter.setPen(self.normal_pen)
+        for hunk, y1, y2 in self.hunk_list:
+            y1 -= offset
+            y2 -= offset
+            if self.complete:
+                if bottom < y1 or y2 < top:
+                    continue
+                painter.drawLine(0, y1, width, y1)
+                painter.drawLine(0, y2, width, y2)
+            else:
+                if bottom < y1 or y1 + 20 < top:
+                    continue
+                painter.fillRect(0, y1, width, 20, self.header_color)
+                painter.drawLine(0, y1, width, y1)
 
