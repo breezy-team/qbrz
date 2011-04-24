@@ -694,6 +694,10 @@ class HunkTextBrowser(QtGui.QTextBrowser):
 
             self.hunk_list.append((hunk, y1, y2))
 
+        if self.complete:
+            for i in range(start, len(work_lines)):
+                cursor.insertText(' ' + work_lines[i], self.monospacedInactiveFormat)
+
         self.update()
 
     def update(self):
