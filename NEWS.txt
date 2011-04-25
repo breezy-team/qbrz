@@ -1,4 +1,4 @@
-0.20.1 - development
+0.20.1 - 2011/04/26
 --------------------
 Maintenance release.
 
@@ -47,6 +47,7 @@ Bazaar 2.3 companion release. Suitable for bzr 2.3 and bzr 2.2.
 
 
 0.19.3 - 2010/11/26
+-------------------
 Maintenance release.
 
  * The 0.19 series is now marked as incompatible with bzr versions >= 2.3.
