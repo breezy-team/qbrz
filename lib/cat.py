@@ -32,6 +32,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_set_encoding,
     runs_in_loading_queue,
     get_monospace_font,
+    get_tab_width_pixels,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
@@ -216,6 +217,9 @@ class QBzrCatWindow(QBzrWindow):
         edit = browser.edit
         edit.setReadOnly(True)
         edit.document().setDefaultFont(get_monospace_font())
+
+        edit.setTabStopWidth(get_tab_width_pixels(self.branch))
+
         self._set_text(edit, relpath, text, self.encoding)
         self.encoding_selector.setEnabled(True)
         return browser
