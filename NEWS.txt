@@ -29,7 +29,7 @@
      branch.conf for specific branches.  (Bug #490377, A. S. Budden)
 
 
-0.20.1 - development
+0.20.1 - 2011/04/26
 --------------------
 Maintenance release.
 
