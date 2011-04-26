@@ -232,7 +232,6 @@ class SidebySideDiffView(QtGui.QSplitter):
             
             self.setCollapsible(i, False)
             browser.setDocument(doc)
-            browser.setTabStopWidth(get_tab_width_pixels())
             self.addWidget(browser)
             
             format = QtGui.QTextCharFormat()
@@ -257,6 +256,10 @@ class SidebySideDiffView(QtGui.QSplitter):
         
         config = get_qbzr_config()
         self.show_intergroup_colors = config.get_option("diff_show_intergroup_colors") in ("True", "1")
+
+    def setTabStopWidths(self, pixels):
+        for (pixel_width, browser) in zip(pixels, self.browsers):
+            browser.setTabStopWidth(pixel_width)
     
     def clear(self):
         
@@ -611,8 +614,6 @@ class SimpleDiffView(QtGui.QTextBrowser):
         self.monospacedHunkFormat = QtGui.QTextCharFormat()
         self.monospacedHunkFormat.setFont(monospacedItalicFont)
         self.monospacedHunkFormat.setForeground(QtGui.QColor(153, 30, 199))
-
-        self.setTabStopWidth(get_tab_width_pixels())
 
     def rewind(self):
         if not self.rewinded:

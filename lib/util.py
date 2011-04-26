@@ -1203,11 +1203,7 @@ def _get_monospace_font():
 
 def get_tab_width_chars(branch=None):
     """Function to get the tab width in characters from the configuration."""
-    if branch is not None:
-        config = get_branch_config(branch)
-    else:
-        config = get_global_config()
-
+    config = get_branch_config(branch)
     try:
         tabWidth = int(config.get_user_option('tab_width'))
     except TypeError:
