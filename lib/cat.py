@@ -31,6 +31,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     get_set_encoding,
     runs_in_loading_queue,
+    get_monospace_font,
+    get_tab_width_pixels,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
@@ -214,8 +216,10 @@ class QBzrCatWindow(QBzrWindow):
         browser = LineNumberEditerFrame(self)
         edit = browser.edit
         edit.setReadOnly(True)
-        edit.document().setDefaultFont(
-            QtGui.QFont("Courier New,courier", edit.font().pointSize()))
+        edit.document().setDefaultFont(get_monospace_font())
+
+        edit.setTabStopWidth(get_tab_width_pixels(self.branch))
+
         self._set_text(edit, relpath, text, self.encoding)
         self.encoding_selector.setEnabled(True)
         return browser
@@ -236,8 +240,7 @@ class QBzrCatWindow(QBzrWindow):
         """Create and return simple widget to show text-like content."""
         browser = QtGui.QPlainTextEdit(self)
         browser.setReadOnly(True)
-        browser.document().setDefaultFont(
-            QtGui.QFont("Courier New,courier", browser.font().pointSize()))
+        browser.document().setDefaultFont(get_monospace_font())
         return browser
 
     def _create_symlink_view(self, relpath, target):
@@ -351,7 +354,7 @@ def cat_to_native_app(tree, relpath):
         tree.unlock()
         f.close()
     # open it
-    url = QtCore.QUrl(fname)
+    url = QtCore.QUrl.fromLocalFile(fname)
     result = QtGui.QDesktopServices.openUrl(url)
     # now application is about to start and user will work with file
     # so we can do cleanup in "background"

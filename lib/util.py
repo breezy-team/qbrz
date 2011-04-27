@@ -50,12 +50,14 @@ lazy_import(globals(), '''
 from bzrlib import (
     osutils,
     urlutils,
+    ui,
 )
-from bzrlib.util.configobj import configobj
 from bzrlib.plugins.qbzr.lib import trace
 from bzrlib.workingtree import WorkingTree
 from bzrlib.transport import get_transport
 from bzrlib.lockdir import LockDir
+
+from bzrlib.plugins.qbzr.lib.compatibility import configobj
 ''')
 
 # standard buttons with translatable labels
@@ -113,6 +115,10 @@ class Config(object):
         if section not in self._configobj:
             self._configobj[section] = {}
         if value:
+            if not isinstance(value, (str,unicode)):
+                # [bialix 2011/02/11] related to bug #716384: if value is bool
+                # then sometimes configobj lost it in the output file
+                value = str(value)
             self._configobj[section][name] = value
         else:
             if name in self._configobj[section]:
@@ -126,6 +132,14 @@ class Config(object):
             return self._configobj[section][name]
         except KeyError:
             return None
+
+    def get_option_as_bool(self, name, section=None):
+        # imitate the code from bzrlib.config to read option as boolean
+        # until we will switch to use bzrlib.config instead of our re-implementation
+        value_maybe_str_or_bool = self.get_option(name, section)
+        if value_maybe_str_or_bool not in (None, ''):
+            value = ui.bool_from_string(value_maybe_str_or_bool)
+            return value
 
     def set_section(self, name, values):
         self._load()
@@ -244,7 +258,7 @@ def _check_global_config_filename_valid(config):
         return not config.file_name == config_filename()
     else:
         return False
-    
+
 
 _qbzr_config = None
 def get_qbzr_config():
@@ -339,8 +353,8 @@ class _QBzrWindowBase(object):
             self.resize(size.expandedTo(self.minimumSizeHint()))
         self._restore_size = size
 
-        is_maximized = config.get_option(name + "_window_maximized")
-        if is_maximized in ("True", "1"):
+        is_maximized = config.get_option_as_bool(name + "_window_maximized")
+        if is_maximized:
             self.setWindowState(QtCore.Qt.WindowMaximized)
         return config
 
@@ -870,8 +884,8 @@ loading_queue = None
 def runs_in_loading_queue(f):
     """Methods decorated with this will not run at the same time, but will be
     queued. Methods decorated with this will not be able to return results,
-    but should rather update the ui themselfs. Methods decorated with this
-    should detect, and stop if their execution is no longer requires.
+    but should rather update the ui themselves. Methods decorated with this
+    should detect, and stop if their execution is no longer required.
     
     """
     
@@ -884,13 +898,17 @@ def run_in_loading_queue(cur_f, *cur_args, **cur_kargs):
     global loading_queue
     if loading_queue is None:
         loading_queue = []
-        loading_queue.append((cur_f, cur_args, cur_kargs))
-        
-        while len(loading_queue):
-            f, args, kargs = loading_queue.pop(0)
-            f(*args, **kargs)
-        
-        loading_queue = None
+        try:
+            loading_queue.append((cur_f, cur_args, cur_kargs))
+            
+            while len(loading_queue):
+                try:
+                    f, args, kargs = loading_queue.pop(0)
+                    f(*args, **kargs)
+                except:
+                    trace.report_exception()
+        finally:
+            loading_queue = None
     else:
         loading_queue.append((cur_f, cur_args, cur_kargs))
 
@@ -977,15 +995,45 @@ def launchpad_project_from_url(url):
 
     @return: project name or None
     """
-    # The format ought to be scheme://host/~user-id/project-name/branch-name/
+    # The format ought to be one of the following:
+    #   scheme://host/~user-id/project-name/branch-name
+    #   scheme://host/+branch/project-name
+    #   scheme://host/+branch/project-name/series-name
+    # there could be distro branches, they are very complex,
+    # so we only support upstream branches based on source package
+    #   scheme://host/+branch/DISTRO/SOURCEPACKAGE
+    #   scheme://host/+branch/DISTRO/SERIES/SOURCEPACKAGE
+    #   scheme://host/+branch/DISTRO/POCKET/SOURCEPACKAGE
+    #   scheme://host/~USER/DISTRO/SERIES/SOURCEPACKAGE/BRANCHNAME
+    DISTROS = ('debian', 'ubuntu')
     from urlparse import urlsplit
     scheme, host, path = urlsplit(url)[:3]
     # Sanity check the host
-    if (host.find('bazaar.launchpad.net') >= 0 or
-        host.find('bazaar.launchpad.dev') >= 0):
+    if (host in ('bazaar.launchpad.net',
+                 'bazaar.launchpad.dev',
+                 'bazaar.qastaging.launchpad.net',
+                 'bazaar.staging.launchpad.net')):
         parts = path.strip('/').split('/')
-        if len(parts) == 3 and parts[0].startswith('~'):
-            return parts[1]
+        if parts[0].startswith('~'):
+            if len(parts) == 3 and parts[1] not in DISTROS:
+                # scheme://host/~user-id/project-name/branch-name/
+                return parts[1]
+            elif len(parts) == 5 and parts[1] in DISTROS:
+                # scheme://host/~USER/DISTRO/SERIES/SOURCEPACKAGE/BRANCHNAME
+                return parts[-2]
+        elif parts[0] in ('%2Bbranch', '+branch'):
+            n = len(parts)
+            if n >= 2:
+                part1 = parts[1]
+                if n in (2,3) and part1 not in DISTROS:
+                    # scheme://host/+branch/project-name
+                    # scheme://host/+branch/project-name/series-name
+                    return part1
+                elif n in (3,4) and part1 in DISTROS:
+                    # scheme://host/+branch/DISTRO/SOURCEPACKAGE
+                    # scheme://host/+branch/DISTRO/SERIES/SOURCEPACKAGE
+                    # scheme://host/+branch/DISTRO/POCKET/SOURCEPACKAGE
+                    return parts[-1]
     return None
 
 
@@ -1137,3 +1185,48 @@ class InfoWidget(QtGui.QFrame):
         self.setBackgroundRole(QtGui.QPalette.ToolTipBase) 
         self.setForegroundRole(QtGui.QPalette.ToolTipText)
 
+
+# Hackish test for monospace. Run bzr qcat lib/util.py to check.
+#888888888888888888888888888888888888888888888888888888888888888888888888888888
+#                                                                             8
+
+monospace_font = None
+def get_monospace_font():
+    global monospace_font
+    if monospace_font is None:
+        monospace_font = _get_monospace_font()
+    return monospace_font
+
+def _get_monospace_font():
+    # TODO: Get font from system settings for Gnome, KDE, Mac.
+    # (no windows option as far as I am aware)
+    # Maybe have our own config setting.
+    
+    # Get the defaul font size
+    size = QtGui.QApplication.font().pointSize()
+    
+    for font_family in ("Monospace", "Courier New"):
+        font = QtGui.QFont(font_family, size)
+        # check that this is really a monospace font
+        if QtGui.QFontInfo(font).fixedPitch():
+            return font
+    
+    # try use style hints to find font.
+    font = QtGui.QFont("", size)
+    font.setFixedPitch(True)
+    return font
+
+def get_tab_width_chars(branch=None):
+    """Function to get the tab width in characters from the configuration."""
+    config = get_branch_config(branch)
+    try:
+        tabWidth = int(config.get_user_option('tab_width'))
+    except TypeError:
+        tabWidth = 8
+    return tabWidth
+
+def get_tab_width_pixels(branch=None):
+    """Function to get the tab width in pixels based on a monospaced font."""
+    monospacedFont = get_monospace_font()
+    char_width = QtGui.QFontMetrics(monospacedFont).width(" ")
+    return char_width*get_tab_width_chars(branch)

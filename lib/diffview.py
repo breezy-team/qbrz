@@ -27,6 +27,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     file_extension,
     format_timestamp,
     get_qbzr_config,
+    get_monospace_font,
+    get_tab_width_pixels,
     )
 from bzrlib.trace import mutter
 from bzrlib.plugins.qbzr.lib.syntaxhighlighter import (
@@ -199,8 +201,7 @@ class SidebySideDiffView(QtGui.QSplitter):
         titleFont.setPointSize(titleFont.pointSize() * 140 / 100)
         titleFont.setBold(True)
         
-        self.monospacedFont = QtGui.QFont("Courier New, Courier",
-                                     self.font().pointSize())
+        self.monospacedFont = get_monospace_font()
         metadataFont = QtGui.QFont(self.font())
         metadataFont.setPointSize(titleFont.pointSize() * 70 / 100)
         metadataLabelFont = QtGui.QFont(metadataFont)
@@ -255,6 +256,10 @@ class SidebySideDiffView(QtGui.QSplitter):
         
         config = get_qbzr_config()
         self.show_intergroup_colors = config.get_option("diff_show_intergroup_colors") in ("True", "1")
+
+    def setTabStopWidths(self, pixels):
+        for (pixel_width, browser) in zip(pixels, self.browsers):
+            browser.setTabStopWidth(pixel_width)
     
     def clear(self):
         
@@ -581,8 +586,7 @@ class SimpleDiffView(QtGui.QTextBrowser):
         format = QtGui.QTextCharFormat()
         format.setAnchorNames(["top"])
         self.cursor.insertText("", format)
-        monospacedFont = QtGui.QFont("Courier New, Courier",
-                                     self.font().pointSize())
+        monospacedFont = get_monospace_font()
         self.monospacedFormat = QtGui.QTextCharFormat()
         self.monospacedFormat.setFont(monospacedFont)
 

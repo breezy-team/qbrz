@@ -49,15 +49,16 @@ from bzrlib.plugins.qbzr.lib.diff import (
 from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
     FilterOptions,
+    FindToolbar,
     QBzrWindow,
     ToolBarThrobberWidget,
+    get_icon,
     get_set_encoding,
+    get_tab_width_pixels,
     is_binary_content,
     run_in_loading_queue,
     runs_in_loading_queue,
-    FindToolbar,
-    get_icon,
-    show_shortcut_hint
+    show_shortcut_hint,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
@@ -337,6 +338,10 @@ class DiffWindow(QBzrWindow):
         self.process_delayed_connections()
         self.load_branch_info()
         self.load_diff()
+
+        tabWidths = (get_tab_width_pixels(branch1), get_tab_width_pixels(branch2))
+        self.diffview.setTabStopWidths(tabWidths)
+        self.sdiffview.setTabStopWidth(tabWidths[0])
 
     def load_branch_info(self):
         self.set_diff_title()

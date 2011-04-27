@@ -326,7 +326,7 @@ class ConflictsWindow(QBzrWindow):
                 self.program_edit.setText(error_msg)
         else:
             config = get_qbzr_config()
-            self.program_edit.setText((config.get_user_option("merge_tool") or "").strip() or "meld")
+            self.program_edit.setText((config.get_option("merge_tool") or "").strip() or "meld")
 
 if 0:
     N_("path conflict")

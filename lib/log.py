@@ -33,7 +33,6 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib.trace import reports_exception, SUB_LOAD_METHOD
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
@@ -41,7 +40,6 @@ import re
 
 from bzrlib import errors
 from bzrlib import osutils
-from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
 from bzrlib.urlutils import determine_relative_path, join, split
 
@@ -83,7 +81,8 @@ class LogWindow(QBzrWindow):
 
     def __init__(self, locations=None,
                  branch=None, tree=None, specific_file_ids=None,
-                 parent=None, ui_mode=True, no_graph=False):
+                 parent=None, ui_mode=True, no_graph=False,
+                 show_trees=False):
         """Create qlog window.
 
         Note: you must use either locations or branch+tree+specific_file_id
@@ -113,6 +112,7 @@ class LogWindow(QBzrWindow):
         self.restoreSize("log", (710, 580))
         
         self.no_graph = no_graph
+        self.show_trees = show_trees
         if branch:
             self.branch = branch
             self.tree = tree
@@ -240,8 +240,13 @@ class LogWindow(QBzrWindow):
                 self.set_title ((self.title, lt))
             
             branches, primary_bi, file_ids = self.get_branches_and_file_ids()
+            if self.show_trees:
+                gz_cls = logmodel.WithWorkingTreeGraphVizLoader
+            else:
+                gz_cls = logmodel.GraphVizLoader
+            
             self.log_list.load(branches, primary_bi, file_ids,
-                               self.no_graph, logmodel.GraphVizLoader)
+                               self.no_graph, gz_cls)
             self.connect(self.log_list.selectionModel(),
                          QtCore.SIGNAL("selectionChanged(QItemSelection, QItemSelection)"),
                          self.update_selection)
@@ -256,7 +261,7 @@ class LogWindow(QBzrWindow):
             if self.tree is None:
                 try:
                     self.tree = self.branch.bzrdir.open_workingtree()
-                except errors.NoWorkingTree:
+                except (errors.NoWorkingTree, errors.NotLocalUrl):
                     pass
             label = self.branch_label(None, self.branch)
             bi = BranchInfo(label, self.tree, self.branch)
@@ -300,7 +305,10 @@ class LogWindow(QBzrWindow):
                         if not primary_bi and br.nick in primary_branch_names:
                             primary_bi = bi
                 else:
-                    label = self.branch_label(location, br)
+                    if len(locations) > 1:
+                        label = self.branch_label(location, br)
+                    else:
+                        label = None
                     bi = BranchInfo(label, tree, br)
                     if len(branches)==0:
                         # The first sepecified branch becomes the primary
@@ -397,10 +405,14 @@ class LogWindow(QBzrWindow):
         if location is None:
             return elided_text(branch.nick)
         
+        has_explicit_nickname = getattr(
+            branch.get_config(),
+            'has_explicit_nickname',
+            lambda: False)()
         append_nick = (
             location.startswith(':') or
             bool(self.no_usefull_info_in_location_re.match(location)) or
-            branch.get_config().has_explicit_nickname()
+            has_explicit_nickname
             )
         if append_nick:
             return '%s (%s)' % (elided_path(location), branch.nick)
@@ -514,16 +526,16 @@ class LogWindow(QBzrWindow):
         if locations is None:
             return osutils.getcwd()
         else:
-            if len(locations) > 1:
-                return (", ".join(url_for_display(i) for i in locations
-                                 ).rstrip(", "))
-            else:
-                if isinstance(locations[0], Branch):
-                    location = locations[0].base
-                else:
-                    location = locations[0]
-                from bzrlib.directory_service import directories
-                return (url_for_display(directories.dereference(location)))
+            from bzrlib.branch import Branch
+            
+            def title_for_location(location):
+                if isinstance(location, basestring):
+                    return url_for_display(location)
+                if isinstance(location, Branch):
+                    return url_for_display(location.base)
+                return str(location)
+            
+            return ", ".join(title_for_location(l) for l in locations)
 
 
 class FileListContainer(QtGui.QWidget):
@@ -578,6 +590,7 @@ class FileListContainer(QtGui.QWidget):
         self.delta_load_timer.setSingleShot(True)
         self.connect(self.delta_load_timer, QtCore.SIGNAL("timeout()"),
                      self.load_delta)
+        self.current_revids = None
         
         self.tree_cache = {}
         self.delta_cache = {}
@@ -586,17 +599,29 @@ class FileListContainer(QtGui.QWidget):
         self.window().processEvents()
 
     def revision_selection_changed(self, selected, deselected):
-        self.file_list.clear()
-        self.delta_load_timer.start(1)
+        revids, count = \
+            self.log_list.get_selection_top_and_parent_revids_and_count()
+        if revids != self.current_revids:
+            self.file_list.clear()
+            self.current_revids = None
+            self.delta_load_timer.start(200)
     
     @runs_in_loading_queue
     @ui_current_widget
     def load_delta(self):
         revids, count = \
             self.log_list.get_selection_top_and_parent_revids_and_count()
-        gv = self.log_list.log_model.graph_viz
+        if revids == self.current_revids:
+            return
         
-        if not revids:
+        gv = self.log_list.log_model.graph_viz
+        gv_is_wtgv = isinstance(gv, logmodel.WithWorkingTreeGraphVizLoader)
+        if self.log_list.log_model.file_id_filter:
+            specific_file_ids = self.log_list.log_model.file_id_filter.file_ids
+        else:
+            specific_file_ids = []
+        
+        if not revids or revids == (None, None):
             return
         
         if revids not in self.delta_cache:
@@ -630,9 +655,9 @@ class FileListContainer(QtGui.QWidget):
                         self.processEvents()
                         try:
                             for revid in repo_revids:
-                                if revid.startswith(CURRENT_REVISION):
-                                    rev = cached_revisions[revid]
-                                    tree = rev.tree
+                                if (revid.startswith(CURRENT_REVISION) and
+                                    gv_is_wtgv):
+                                    tree = gv.working_trees[revid]
                                 else:
                                     tree = repo.revision_tree(revid)
                                 self.tree_cache[revid] = tree
@@ -649,11 +674,14 @@ class FileListContainer(QtGui.QWidget):
         else:
             delta = self.delta_cache[revids]
         
+        new_revids, count = \
+            self.log_list.get_selection_top_and_parent_revids_and_count()
+
+        if new_revids != revids:
+            return 
+        
         if delta:
-            items = []
-            #specific_file_ids = gv.file_ids
-            specific_file_ids = []
-            
+            items = []            
             for path, id, kind in delta.added:
                 items.append((id,
                               path,
@@ -695,8 +723,13 @@ class FileListContainer(QtGui.QWidget):
                     f = item.font()
                     f.setBold(True)
                     item.setFont(f)
+            self.current_revids = revids
 
     def show_file_list_context_menu(self, pos):
+        (top_revid, old_revid), count = \
+            self.log_list.get_selection_top_and_parent_revids_and_count()
+        if count == 0:
+            return
         # XXX - We should also check that the selected file is a file, and 
         # not a dir
         paths, file_ids = self.get_file_selection_paths_and_ids()
@@ -712,8 +745,6 @@ class FileListContainer(QtGui.QWidget):
         one_branch_with_tree = (len(gv.branches) == 1 and
                                 gv.branches[0].tree is not None)
 
-        (top_revid, old_revid), count = \
-            self.log_list.get_selection_top_and_parent_revids_and_count()
         self.file_list_context_menu_revert_file.setEnabled(one_branch_with_tree)
         self.file_list_context_menu_revert_file.setVisible(one_branch_with_tree)
             

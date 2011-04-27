@@ -56,6 +56,7 @@ import thread
 from bzrlib import (
     bencode,
     commands,
+    errors,
     osutils,
     ui,
     )
@@ -561,17 +562,34 @@ class SubProcessWidget(QtGui.QWidget):
         
         self.process.setWorkingDirectory(dir)
         if getattr(sys, "frozen", None) is not None:
-            bzr_exe = sys.argv[0]
-            if sys.frozen == 'windows_exe':
-                # bzrw.exe
-                exe = os.path.join(os.path.dirname(sys.argv[0]), 'bzr.exe')
-                if os.path.isfile(exe):
-                    bzr_exe = exe
+            bzr_exe = sys.executable
+            if os.path.basename(bzr_exe) != "bzr.exe":
+                # Was run from bzrw.exe or tbzrcommand.
+                bzr_exe = os.path.join(os.path.dirname(sys.executable), "bzr.exe")
+                if not os.path.isfile(bzr_exe):
+                    self.reportProcessError(
+                        None, gettext('Could not locate "bzr.exe".'))
             self.process.start(
                 bzr_exe, ['qsubprocess', '--bencode', args])
         else:
+            # otherwise running as python script.
+            # ensure run from bzr, and not others, e.g. tbzrcommand.py
+            script = sys.argv[0]
+            # make absolute, because we may be running in a different
+            # dir.
+            script = os.path.abspath(script)
+            if os.path.basename(script) != "bzr":
+                import bzrlib
+                # are we running directly from a bzr directory?
+                script = os.path.join(bzrlib.__path__[0], "..", "bzr")
+                if not os.path.isfile(script):
+                    # maybe from an installed bzr?
+                    script = os.path.join(sys.prefix, "scripts", "bzr")
+                if not os.path.isfile(script):
+                    self.reportProcessError(
+                        None, gettext('Could not locate "bzr" script.'))
             self.process.start(
-                sys.executable, [sys.argv[0], 'qsubprocess', '--bencode', args])
+                sys.executable, [script, 'qsubprocess', '--bencode', args])
 
     def _setup_stdout_stderr(self):
         if self.stdout is None:
@@ -656,9 +674,8 @@ class SubProcessWidget(QtGui.QWidget):
                 data = (button == QtGui.QMessageBox.Yes)
                 self.process.write(SUB_GETBOOL + bencode.bencode(data) + "\n")
             elif line.startswith(SUB_ERROR):
-                data = bencode.bdecode(line[len(SUB_ERROR):])
-                self.error_class = data[0]
-                self.error_data = decode_unicode_escape(data[1])
+                self.error_class, self.error_data = bdecode_exception_instance(
+                    line[len(SUB_ERROR):])
             else:
                 line = line.decode(self.encoding, 'replace')
                 self.logMessageEx(line, 'plain', self.stdout)
@@ -703,13 +720,14 @@ class SubProcessWidget(QtGui.QWidget):
             terminal_stream.write(message)
             terminal_stream.write('\n')
 
-    def reportProcessError(self, error):
+    def reportProcessError(self, error, message=None):
         self.aborting = False
         self.setProgress(1000000, [gettext("Failed!")])
-        if error == QtCore.QProcess.FailedToStart:
-            message = gettext("Failed to start bzr.")
-        else:
-            message = gettext("Error while running bzr. (error code: %d)" % error)
+        if message is None:
+            if error == QtCore.QProcess.FailedToStart:
+                message = gettext("Failed to start bzr.")
+            else:
+                message = gettext("Error while running bzr. (error code: %d)" % error)
         self.logMessage(message, True)
         self.emit(QtCore.SIGNAL("failed(QString)"), self.error_class)
 
@@ -868,16 +886,10 @@ def run_subprocess_command(cmd, bencoded=False):
         argv = [unicode(p, 'utf-8') for p in bencode.bdecode(cmd_utf8)]
     try:
         return commands.run_bzr(argv)
+    except (KeyboardInterrupt, SystemExit):
+        raise
     except Exception, e:
-        d = {}
-        for key, val in e.__dict__.iteritems():
-            if not key.startswith('_'):
-                if not isinstance(val, unicode):
-                    val = unicode(val)
-                d[key] = val
-        print "%s%s" % (SUB_ERROR,
-                        bencode.bencode((e.__class__.__name__,
-                                         encode_unicode_escape(d))))
+        print "%s%s" % (SUB_ERROR, bencode_exception_instance(e))
         raise
 
 
@@ -944,6 +956,46 @@ def bencode_prompt(arg):
 def bdecode_prompt(s):
     return bencode.bdecode(s).decode('unicode-escape')
 
+
+def bencode_exception_instance(e):
+    """Serialise the main information about an exception instance with bencode
+
+    For now, nearly all exceptions just give the exception name as a string,
+    but a dictionary is also given that may contain unicode-escaped attributes.
+    """
+    # GZ 2011-04-15: Could use bzrlib.trace._qualified_exception_name in 2.4
+    ename = e.__class__.__name__
+    d = {}
+    # For now be conservative and only serialise attributes that will get used
+    keys = []
+    if isinstance(e, errors.UncommittedChanges):
+        keys.append("display_url")
+    for key in keys:
+        # getattr and __repr__ can break in lots of ways, so catch everything
+        # but exceptions that occur as interrupts, allowing for Python 2.4
+        try:
+            val = getattr(e, key)
+            if not isinstance(val, unicode):
+                if not isinstance(val, str):
+                    val = repr(val)
+                val = val.decode("ascii", "replace")
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+            val = "[QBzr could not serialize this attribute]"
+        d[key] = val.encode("unicode-escape")
+    return bencode.bencode((ename, d))
+
+
+def bdecode_exception_instance(s):
+    """Deserialise information about an exception instance with bdecode"""
+    ename, d = bencode.bdecode(s)
+    for k in d:
+        d[k] = d[k].decode("unicode-escape")
+    return ename, d
+
+
+# GZ 2011-04-15: Remove or deprecate these functions if they remain unused?
 def encode_unicode_escape(obj):
     if isinstance(obj, dict):
         result = {}

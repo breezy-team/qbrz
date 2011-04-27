@@ -1,5 +1,51 @@
-0.20 Beta 1 - In development
-----------------------------
+0.21 - In development
+---------------------
+
+ * qbranch:
+   * Fixed problem with very small width of input fields in the dialog
+     on Mac OSX. (Timothy Reaves, Bug #667090)
+ * qbrowse:
+   * Use `qcat --native` equivalent to allow opening copies of files from
+     branches without working trees. (A. S. Budden, Bug #752422)
+ * qcommit:
+   * Remember "Show non-versioned" checkbox state. 
+     (Nick Sonneveld, Bug #258926)
+ * qinfo:
+   * Significantly simpler implementation that shows the information
+     provided by Bazaar.  This fills in the gaps in the data shown
+     by qinfo (such as details of checkouts) and means that changes
+     to 'bzr info' will automatically be reflected in qinfo.
+     (A. S. Budden, Bug #439624)
+ * qsubprocess:
+   * Reliable exception encoding to pass exception attributes 
+     from subprocess to the GUI process. (Martin [gz], Bug #686735)
+ * qcat, qannotate, qdiff, qconfig:
+   * Added ability to customise the tab-stop width (setting in qconfig,
+     affects qcat, qannotate and qdiff).  
+     The setting is stored in [DEFAULT] section of bazaar.conf,
+     and is named tab_width (it can also be configured with qconfig).  Units
+     are characters (so 4 means a tab should be displayed with the width of 4
+     spaces).  The default value is 8.  The setting can also be adjusted in
+     branch.conf for specific branches.  (Bug #490377, A. S. Budden)
+
+
+0.20.1 - 2011/04/26
+--------------------
+Maintenance release.
+
+ * Compatibility with patched bzrlib on debian without copy of configobj
+   library inside it. (Bug #715067, Alexander Belchenko)
+ * qbranch:
+   * Fixed problem with very small width of input fields in the dialog
+     on Mac OSX. (Timothy Reaves, Bug #667090)
+ * qsubprocess:
+   * Reliable exception encoding to pass exception attributes 
+     from subprocess to the GUI process. (Martin [gz], Bug #686735)
+
+
+0.20.0 - 2011/02/03
+-------------------
+Bazaar 2.3 companion release. Suitable for bzr 2.3 and bzr 2.2.
 
  * Refactor the config code:
    * Remove the QBzrGlobalConfig class so that we only have one class that
@@ -18,16 +64,57 @@
    * Remove LogFilterProxyModel which improves performance.
    * --no-graph mode now shows nodes per revision, indented by merge depth.
    * Fix the layout of octopus merges. (Bug #489383)
+   * Add a option --show-trees that shows working tree changes as a node
+     in the graph.
+   * Fix bug with show log form the tree widget with remote branch.
+     (Bug #621934)
  * qcommit: added option to load commit message from a file.
    (Bug #640071, Philip Peitsch)
+ * qconflicts: fix bug with access to QBzr configuration. (Bug #675894)
+ * When a interupt signal is recived, close rather than showing a error
+   message. (Gary van der Merwe)
+ * qpush: fixed smart suggestion of new push URLs for lp branches.
+   (Bug #710767, Alexander Belchenko)
 
 
-0.19.1 - In development
------------------------
+0.19.3 - 2010/11/26
+-------------------
+Maintenance release.
+
+ * The 0.19 series is now marked as incompatible with bzr versions >= 2.3.
+   This due to Bug #650905. (Gary van der Merwe)
+ * qlog:
+   * Fix actions that use the branch menu on PyQt 4.7.4.
+     (Bug #621158, Gary van der Merwe)
+   * Fix crash when trying to "Revert to this revision",
+     "Update to this revision", etc. (Bug #680787, Gary van der Merwe)
+ * Restore ignore button for error dialogs. (Gary van der Merwe)
+
+
+0.19.2 - 2010/09/24
+-------------------
+Maintenance release.
+
+ * Fix finding bzr.exe when running from bzrw.exe with out full path in the
+   command line. Handle been launched from tortoisebzr without it having to
+   change sys.executable. (Bug #640082, Bug #641557, Gary van der Merwe)
+
+
+0.19.1 "Chestnut" - 2010/09/13
+------------------------------
 Maintenance release.
 
  * Fix modeltest.py so that it works with Qt 4.7.
    (Bug #614123, Gary van der Merwe)
+ * qbrowse: fixed 'Mark as renamed' feature in treewidget.
+   (Bug #620433, Alexander Belchenko)
+ * qconfig: guess user id if there is no whoami set. 
+   (Bug #622336, Gary van der Merwe, Alexander Belchenko)
+ * qgetupdates: fixed API mismatch. (Bug #636510, Alexander Belchenko)
+ * qlog:
+   * better branch labels for `bzr qlog colo:` case. (Alexander Belchenko)
+   * give a size hint for the GraphTagsBugsItemDelegate so that blured 
+     rendering on Windows with PyQt 4.7 is avoided. (Gary van der Merwe)
  * qrun: fixed '--execute' mode. (Bug #590229, Simon Kersey) 
 
 
@@ -112,8 +199,8 @@ Changes since 0.19b2 release:
 Note: qbzr now requires bzr 2.1.
 
 
-0.18.8 "" - not released yet
-----------------------------
+0.18.8 - 2011/04/27
+-------------------
 Maintenance release.
 
  * qrun:
@@ -121,7 +208,7 @@ Maintenance release.
 
 
 0.18.7 "Juniper" - 2010/08/04
------------------------------------
+-----------------------------
 Maintenance release.
 
  * Don't break when bzr-search tries to import bzr-svn, 

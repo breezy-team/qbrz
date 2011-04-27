@@ -22,7 +22,7 @@ from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
                                                  RevNoItemDelegate,
                                                  get_text_color)
-from bzrlib.revision import NULL_REVISION
+from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
 from bzrlib.plugins.qbzr.lib.util import (
     runs_in_loading_queue,
     )
@@ -65,10 +65,15 @@ class LogList(RevisionTreeView):
                                       self.rev_no_item_delegate)
 
         self.log_model = logmodel.LogModel(processEvents, throbber, self)
-        #self.connect(self.log_model,
-        #             QtCore.SIGNAL("linesUpdated()"),
-        #             self.make_selection_continuous)
+        self.lines_updated_selection = []
+        self.lines_updated_selection_current = None
         self.setModel(self.log_model)    
+        self.connect(self.log_model,
+                     QtCore.SIGNAL("layoutAboutToBeChanged()"),
+                     self.lines_updated_remember_selection)
+        self.connect(self.log_model,
+                     QtCore.SIGNAL("layoutChanged()"),
+                     self.lines_updated_restore_selection)
         
         header = self.header()
         header.setStretchLastSection(False)
@@ -170,7 +175,7 @@ class LogList(RevisionTreeView):
                     menu = BranchMenu(text, self, self.log_model.graph_viz,
                                       require_wt)
                     self.connect(menu,
-                                 QtCore.SIGNAL("triggered(QVariant)"),
+                                 QtCore.SIGNAL("bm_triggered"),
                                  triggered)
                     action = self.context_menu.addMenu(menu)
                 return action
@@ -290,15 +295,46 @@ class LogList(RevisionTreeView):
         if index:
             self.setCurrentIndex(index)
     
-    #def make_selection_continuous(self):
-    #    rows = self.selectionModel().selectedRows()
-    #    if len(rows)>2:
-    #        selection = QtGui.QItemSelection(rows[0], rows[-1])
-    #        self.selectionModel().select(selection,
-    #                                     (QtGui.QItemSelectionModel.Clear |
-    #                                      QtGui.QItemSelectionModel.Select |
-    #                                      QtGui.QItemSelectionModel.Rows))
+    # Remember the selection across layout changes.
+    # This use to be handeled by the fact that we use to use a proxy model to
+    # do filtering, but even that did not work 100%. I trided doing this by
+    # updating the models QPersistentModelIndex, but there is a bug with
+    # that in qt that not all columns are remembered.
+    def lines_updated_remember_selection(self):
+        selection_model = self.selectionModel()
+        rows = selection_model.selectedRows()
+        expand_indexes_to_ids = \
+            lambda l: [str(i.data(logmodel.RevIdRole).toString())
+                       for i in l]
+        # Note: we don't do anything is there are 0 selected rows
+        if rows:
+            self.lines_updated_selection = \
+                expand_indexes_to_ids((rows[0], rows[-1]))
+        current_index = self.currentIndex()
+        if current_index.isValid():
+            self.lines_updated_selection_current = \
+                str(current_index.data(logmodel.RevIdRole).toString())
+        else:
+            self.lines_updated_selection_current = None
 
+    def lines_updated_restore_selection(self):
+        selection_model = self.selectionModel()
+        indexes = [self.log_model.index_from_revid(revid)
+                   for revid in self.lines_updated_selection]
+        selection_model.clear()
+        if self.lines_updated_selection_current:
+            current_index = self.log_model.index_from_revid(
+                                    self.lines_updated_selection_current)
+            if current_index:
+                self.setCurrentIndex(current_index)
+        if not len(indexes) == 0 and indexes[0]:
+            if not indexes[1]:
+                indexes[1] = indexes[0]
+            selection = QtGui.QItemSelection(*indexes)
+            selection_model.select(selection,
+                                   (QtGui.QItemSelectionModel.SelectCurrent |
+                                    QtGui.QItemSelectionModel.Rows))
+    
     def get_selection_indexes(self, index=None):
         if index is None:
             return sorted(self.selectionModel().selectedRows(0), 
@@ -321,7 +357,7 @@ class LogList(RevisionTreeView):
     def get_selection_top_and_parent_revids_and_count(self, index=None):
         indexes = self.get_selection_indexes(index)
         if len(indexes) == 0:
-            return None, None
+            return (None, None), 0
         top_revid = str(indexes[0].data(logmodel.RevIdRole).toString())
         bot_revid = str(indexes[-1].data(logmodel.RevIdRole).toString())
         parents = self.log_model.graph_viz.known_graph.get_parent_keys(bot_revid)
@@ -346,7 +382,7 @@ class LogList(RevisionTreeView):
         gv = self.log_model.graph_viz
         
         if selected_branch_info:
-            selected_branch_info = selected_branch_info.toPyObject()
+            selected_branch_info = selected_branch_info
         else:
             assert(len(gv.branches)==1)
             selected_branch_info = gv.branches[0]
@@ -366,10 +402,12 @@ class LogList(RevisionTreeView):
         (top_revid, old_revid), rev_count = \
                 self.get_selection_top_and_parent_revids_and_count()
         top_revno_str = gv.revid_rev[top_revid].revno_str
-        old_revno_str = gv.revid_rev[old_revid].revno_str
+        if old_revid==NULL_REVISION:
+            old_revno_str = 0
+        else:
+            old_revno_str = gv.revid_rev[old_revid].revno_str
         
         if selected_branch_info:
-            selected_branch_info = selected_branch_info.toPyObject()
             single_branch = False
         else:
             assert(len(gv.branches)==1)
@@ -494,11 +532,20 @@ class LogList(RevisionTreeView):
         new_branch = self.log_model.graph_viz.get_revid_branch(new_revid)
         old_branch =  self.log_model.graph_viz.get_revid_branch(old_revid)
         
+        def get_tree_if_current(revid):
+            if (revid.startswith(CURRENT_REVISION) and
+                isinstance(self.log_model.graph_viz,
+                            logmodel.WithWorkingTreeGraphVizLoader)):
+                return self.log_model.graph_viz.working_trees[revid]
+        
         arg_provider = diff.InternalDiffArgProvider(
-                                        old_revid, new_revid,
-                                        old_branch, new_branch,
-                                        specific_files = specific_files,
-                                        specific_file_ids = specific_file_ids)
+            old_revid, new_revid,
+            old_branch, new_branch,
+            old_tree=get_tree_if_current(old_revid),
+            new_tree=get_tree_if_current(new_revid), 
+            specific_files = specific_files,
+            specific_file_ids = specific_file_ids)
+        
         
         diff.show_diff(arg_provider, ext_diff = ext_diff,
                        parent_window = self.window())
@@ -591,7 +638,8 @@ class BranchMenu(QtGui.QMenu):
         return visible_action_count
     
     def triggered(self, action):
-        self.emit(QtCore.SIGNAL("triggered(QVariant)"), action.data())
+        branch_info = action.data().toPyObject()
+        self.emit(QtCore.SIGNAL("bm_triggered"), branch_info)
 
 
 class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):

@@ -5,6 +5,7 @@ Contributors:
  * Alexey Borzenkov <snaury at gmail dot com>
  * Alexey Stukalov <astukalov at gmail dot com>
  * Atsuo Ishimoto <ishimoto@ishimoto-PC>
+ * A. S. Budden <abudden at gmail dot com>
  * B. Sygnat <b dot sygnat at gawab dot com>
  * Craig Hewetson <craighewetson at gmail dot com>
  * David Roberts <smartgpx at gmail dot com>
@@ -22,14 +23,16 @@ Contributors:
  * Lukáš Lalinský <lalinsky at gmail dot com>
  * Mario del Pozo <mariodpros at gmail dot com>
  * Mark Hammond <mhammond at skippinet dot com au>
- * Martin <gzlist at googlemail dot com>
+ * Martin [gz] <gzlist at googlemail dot com>
  * Max Bowsher <maxb at f2s dot com>
  * Neil Martinsen-Burrell <nmb at wartburg dot edu>
  * Nicholas Allen <nick dot allen at onlinehome dot de>
+ * Nick Sonneveld <nick at sonneveld dot name>
  * Ohad Kammar <ohad dot kammar at gmail dot com>
  * Philip Peitsch <philip dot peitsch at gmail dot com>
  * Robert Widhopf-Fenk <hack at robf dot de>
  * Simon Kersey <simon dot kersey at ipl dot com>
+ * Timothy Reaves <treaves at silverfieldstech dot com>
  * Toshio Kuratomi <toshio at tiki-lounge dot com>
  * Vincent Ladeuil <v dot ladeuil+lp at free dot fr>
 

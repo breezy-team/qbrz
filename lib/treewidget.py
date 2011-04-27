@@ -41,7 +41,7 @@ from bzrlib.revisiontree import RevisionTree
 from bzrlib.osutils import file_kind, minimum_path_selection
 from bzrlib.conflicts import TextConflict, resolve
 
-from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, QBzrViewWindow
+from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, QBzrViewWindow, cat_to_native_app
 from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 from bzrlib.plugins.qbzr.lib.log import LogWindow
 from bzrlib.plugins.qbzr.lib.util import (
@@ -1744,7 +1744,6 @@ class TreeWidget(RevisionTreeView):
         single_versioned_file = (single_file and versioned[0])
         
         self.action_open_file.setEnabled(single_item_in_tree)
-        self.action_open_file.setVisible(is_working_tree)
         self.action_show_file.setEnabled(single_file)
         self.action_show_annotate.setEnabled(single_versioned_file)
         self.action_show_log.setEnabled(any(versioned))
@@ -1825,21 +1824,21 @@ class TreeWidget(RevisionTreeView):
     def open_file(self, index=None):
         """Open the file in the os specified editor."""
         
-        if not isinstance(self.tree, WorkingTree):
-            raise AttributeError("Tree must be a working tree to open a file.")
-            
         items = self.get_selection_items([index])
         if not len(items) == 1:
             return
         item = items[0]
         
-        self.tree.lock_read()
-        try:
-            abspath = self.tree.abspath(item.path)
-        finally:
-            self.tree.unlock()
-        url = QtCore.QUrl.fromLocalFile(abspath)
-        QtGui.QDesktopServices.openUrl(url)
+        if isinstance(self.tree, WorkingTree):
+            self.tree.lock_read()
+            try:
+                abspath = self.tree.abspath(item.path)
+            finally:
+                self.tree.unlock()
+            url = QtCore.QUrl.fromLocalFile(abspath)
+            QtGui.QDesktopServices.openUrl(url)
+        else:
+            cat_to_native_app(self.tree, item.path)
 
     @ui_current_widget
     def show_file_log(self):
@@ -1849,7 +1848,7 @@ class TreeWidget(RevisionTreeView):
         fileids = [item.item.file_id for item in items
                    if item.item.file_id is not None]
         
-        window = LogWindow(None, self.branch, fileids)
+        window = LogWindow(branch=self.branch,  specific_file_ids=fileids)
         window.show()
         self.window().windows.append(window)
     
@@ -1888,7 +1887,7 @@ class TreeWidget(RevisionTreeView):
         
         show_diff(arg_provider, ext_diff=ext_diff,
                   parent_window=self.window())
-    
+
     def unversioned_parents_paths(self, item, include_item=True):
         paths = []
         first = True
@@ -2006,12 +2005,12 @@ class TreeWidget(RevisionTreeView):
         except Exception:
             report_exception(type=SUB_LOAD_METHOD, window=self.window())
         self.refresh()
-    
+
     def mark_move(self):
         items = self.get_selection_items()
         if len(items) <> 2:
             return
-        
+
         if missing_unversioned(items[0], items[1]):
             old = items[0]
             new = items[1]
@@ -2022,9 +2021,7 @@ class TreeWidget(RevisionTreeView):
             return
         try:
             # add the new parent
-            self.tree.add(self.unversioned_parents_paths(
-                self.tree_model.inventory_data[new], False))
-            
+            self.tree.add(self.unversioned_parents_paths(new, False))
             self.tree.rename_one(old.path, new.path, after=True)
         except Exception:
             report_exception(type=SUB_LOAD_METHOD, window=self.window())
