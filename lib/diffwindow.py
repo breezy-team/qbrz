@@ -337,15 +337,11 @@ class DiffWindow(QBzrWindow):
 
         self.process_delayed_connections()
         self.load_branch_info()
+        self.setup_tab_width()
         self.load_diff()
-
-        tabWidths = (get_tab_width_pixels(branch1), get_tab_width_pixels(branch2))
-        self.diffview.setTabStopWidths(tabWidths)
-        self.sdiffview.setTabStopWidth(tabWidths[0])
 
     def load_branch_info(self):
         self.set_diff_title()
-
         self.encoding_selector_left.encoding = get_set_encoding(self.encoding, self.branches[0])
         self.encoding_selector_right.encoding = get_set_encoding(self.encoding, self.branches[1])
         self.processEvents()
@@ -371,6 +367,12 @@ class DiffWindow(QBzrWindow):
 
         self.set_title_and_icon(title)
         self.processEvents()
+
+    def setup_tab_width(self):
+        tabWidths = (get_tab_width_pixels(self.branches[0]),
+                     get_tab_width_pixels(self.branches[1]))
+        self.diffview.setTabStopWidths(tabWidths)
+        self.sdiffview.setTabStopWidth(tabWidths[0])
 
     def load_diff(self):
         self.view_refresh.setEnabled(False)
