@@ -1,5 +1,5 @@
-0.18.8 "" - not released yet
-----------------------------
+0.18.8 - 2011/04/27
+-------------------
 Maintenance release.
 
  * qrun:
@@ -7,7 +7,7 @@ Maintenance release.
 
 
 0.18.7 "Juniper" - 2010/08/04
------------------------------------
+-----------------------------
 Maintenance release.
 
  * Don't break when bzr-search tries to import bzr-svn, 
