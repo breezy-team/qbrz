@@ -9,8 +9,10 @@ Contributors:
  * B. Sygnat <b dot sygnat at gawab dot com>
  * Craig Hewetson <craighewetson at gmail dot com>
  * David Roberts <smartgpx at gmail dot com>
+ * Dorin Scutarașu <dorin scutarasu at gmail com>
  * Eugene Tarasenko <eugene dot tarasenko at googlemail dot com>
  * Gary van der Merwe <garyvdm at gmail dot com>
+ * Glen Mailer <glen at epigenesys co uk>
  * Goffredo Baroncelli <kreijack at tiscalinet dot it>
  * Gordon Tyler <gordon at doxxx dot net>
  * HAYASHI Kentaro <kenhys at gigo-ice dot org>

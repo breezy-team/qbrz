@@ -759,6 +759,15 @@ def fill_combo_with(combo, default, *iterables):
             done.add(item)
             combo.addItem(item)
 
+def show_shortcut_hint(action):
+    """Show this action's shortcut, if any, as part of the tooltip.
+    
+    Make sure to set the shortcut and tooltip *before* calling this.
+    """
+    shortcut = action.shortcut()
+    if shortcut and shortcut.toString():
+        toolTip = action.toolTip()
+        action.setToolTip("%s (%s)" % (toolTip, shortcut.toString()))
 
 def iter_saved_pull_locations():
     """ Iterate the 'pull' locations we have previously saved for the user.
@@ -1070,9 +1079,11 @@ class FindToolbar(QtGui.QToolBar):
         
         prev = self.addAction(get_icon("go-previous"), gettext("Previous"))
         prev.setShortcut(QtGui.QKeySequence.FindPrevious)
+        show_shortcut_hint(prev)
         
         next = self.addAction(get_icon("go-next"), gettext("Next"))
         next.setShortcut(QtGui.QKeySequence.FindNext)
+        show_shortcut_hint(next)
         
         self.case_sensitive = QtGui.QCheckBox(gettext("Case sensitive"), self)
         self.addWidget(self.case_sensitive)
@@ -1136,7 +1147,7 @@ class FindToolbar(QtGui.QToolBar):
         self.find(self.text_edit.textCursor().selectionStart(), 0,
                   self.find_get_flags())
     
-    def find_next(self, state):
+    def find_next(self):
         self.find(self.text_edit.textCursor().selectionEnd(), 0,
                   self.find_get_flags())
     
@@ -1160,6 +1171,10 @@ class FindToolbar(QtGui.QToolBar):
         else:
             self.text_edit.setTextCursor(cursor)
 
+    def set_text_edit(self, new_text_edit):
+        if self.text_edit:
+            self.text_edit.setTextCursor(QtGui.QTextCursor())
+        self.text_edit = new_text_edit
 
 class InfoWidget(QtGui.QFrame):
     def __init__(self, parent=None):

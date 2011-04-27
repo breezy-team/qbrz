@@ -146,7 +146,7 @@ class QBzrCommand(Command):
        self.main_window should be instance of QBzrWindow or QBzrDialog
        with attribute "return_code" set to 0 or 1.
     """
-    
+
     @install_gettext
     @report_missing_pyqt
     def run(self, *args, **kwargs):
@@ -165,7 +165,7 @@ class QBzrCommand(Command):
             # Set up global exception handling.
             from bzrlib.plugins.qbzr.lib.trace import excepthook
             sys.excepthook = excepthook
-            
+
             try:
                 try:
                     ret_code = self._qbzr_run(*args, **kwargs)
@@ -256,7 +256,7 @@ class cmd_qannotate(QBzrCommand):
             else:
                 tree = branch.repository.revision_tree(
                         revision_id = revision[0].in_history(branch).rev_id)
-            
+
             file_id = tree.path2id(relpath)
             if file_id is None:
                 raise errors.NotVersionedError(filename)
@@ -293,7 +293,7 @@ class cmd_qadd(QBzrCommand):
     """GUI for adding files or directories."""
     takes_args = ['selected*']
     takes_options = [ui_mode_option]
-    
+
     def _qbzr_run(self, selected_list=None, ui_mode=False):
         tree, selected_list = builtins.tree_files(selected_list)
         if selected_list == ['']:
@@ -392,6 +392,8 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
         Option('modified', short_name='M',
                help='Show diff for modified files.'),
         Option('renamed', short_name='R', help='Show diff for renamed files.'),
+        Option('ignore-whitespace', short_name='w',
+               help="Ignore whitespace when finding differences"),
         bzr_option('diff', 'old'),
         bzr_option('diff', 'new'),
         ]
@@ -400,24 +402,26 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
     aliases = ['qdi']
 
     def get_diff_window_args(self, processEvents, add_cleanup):
+        args = {}
         try:
             from bzrlib.diff import get_trees_and_branches_to_diff_locked
         except ImportError:
             from bzrlib.diff import get_trees_and_branches_to_diff
-            (old_tree, new_tree,
-             old_branch, new_branch,
-             specific_files, extra_trees) = \
+            (args["old_tree"], args["new_tree"],
+             args["old_branch"], args["new_branch"],
+             args["specific_files"], _) = \
                 get_trees_and_branches_to_diff(
                     self.file_list, self.revision, self.old, self.new)
         else:
-            (old_tree, new_tree,
-             old_branch, new_branch,
-             specific_files, extra_trees) = \
+            (args["old_tree"], args["new_tree"],
+             args["old_branch"], args["new_branch"],
+             args["specific_files"], _) = \
                 get_trees_and_branches_to_diff_locked(
                     self.file_list, self.revision, self.old, self.new,
                     add_cleanup)
-        return old_tree, new_tree, old_branch, new_branch, specific_files
-    
+        args["ignore_whitespace"] = self.ignore_whitespace
+        return args
+
     def get_ext_diff_args(self, processEvents):
         args = []
         if self.revision and len(self.revision) == 1:
@@ -430,14 +434,14 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
             args.append("--new=%s" % self.new)
         if self.old and not self.old == CUR_DIR:
             args.append("--old=%s" % self.old)
-        
+
         if self.file_list:
             args.extend(self.file_list)
-        
-        return None, args    
+
+        return None, args
 
     def _qbzr_run(self, revision=None, file_list=None, complete=False,
-            encoding=None,
+            encoding=None, ignore_whitespace=False,
             added=None, deleted=None, modified=None, renamed=None,
             old=None, new=None, ui_mode=False):
 
@@ -450,11 +454,12 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
         if not (added or deleted or modified or renamed):
             # if no filter option used then turn all on
             filter_options.all_enable()
-        
+
         self.revision = revision
         self.file_list = file_list
         self.old = old
         self.new = new
+        self.ignore_whitespace = ignore_whitespace
 
         window = DiffWindow(self,
                             complete=complete,
@@ -469,7 +474,7 @@ class cmd_qlog(QBzrCommand):
     """Show log of a repository, branch, file, or directory in a Qt window.
 
     By default show the log of the branch containing the working directory.
-    
+
     If multiple files are speciffied, they must be from the same branch.
 
     :Examples:
@@ -627,7 +632,7 @@ class cmd_qpush(QBzrCommand):
 
         if directory is None:
             directory = CUR_DIR
-        
+
         try:
             tree_to = WorkingTree.open_containing(directory)[0]
             branch_to = tree_to.branch
@@ -714,7 +719,7 @@ class cmd_merge(bzrlib.builtins.cmd_merge, DiffArgProvider):
         tree_merger = self.merger.make_merger()
         self.tt = tree_merger.make_preview_transform()
         result_tree = self.tt.get_preview_tree()
-        return self.merger.this_tree, result_tree, None, None, None
+        return {"old_tree": self.merger.this_tree, "new_tree": result_tree}
 
     @install_gettext
     @report_missing_pyqt
@@ -722,7 +727,7 @@ class cmd_merge(bzrlib.builtins.cmd_merge, DiffArgProvider):
         # Set up global execption handeling.
         from bzrlib.plugins.qbzr.lib.trace import excepthook
         sys.excepthook = excepthook
-        
+
         self.merger = merger
         try:
             window = DiffWindow(self, encoding=self._encoding)
@@ -770,12 +775,12 @@ class cmd_qmain(QBzrCommand):
 #     bzr qannotate commands.py -r1117
 
 class cmd_qsubprocess(Command):
-    """Run some bzr command as subprocess. 
+    """Run some bzr command as subprocess.
     Used with most of subprocess-based dialogs of QBzr.
-    
+
     If CMD argument starts with @ characters then it used as name of file with
     actual cmd string (in utf-8).
-    
+
     With --bencode option cmd string interpreted as bencoded list of utf-8
     strings. This is the recommended way to launch qsubprocess.
     """
@@ -938,7 +943,7 @@ class cmd_qsend(QBzrCommand):
 
     takes_args = ['submit_branch?', 'public_branch?']
     takes_options = [ui_mode_option]
-    
+
     def _qbzr_run(self, submit_branch=CUR_DIR, public_branch=None, ui_mode=False):
         branch = Branch.open_containing(submit_branch)[0]
         window = SendWindow(branch, ui_mode)
@@ -948,74 +953,74 @@ class cmd_qsend(QBzrCommand):
 
 class cmd_qswitch(QBzrCommand):
     """Set the branch of a checkout and update."""
-    
+
     takes_args = ['location?']
     takes_options = [ui_mode_option]
-    
+
     def _qbzr_run(self, location=None, ui_mode=False):
         from bzrlib.plugins.qbzr.lib.switch import QBzrSwitchWindow
-        
+
         branch = Branch.open_containing(CUR_DIR)[0]
         bzrdir = BzrDir.open_containing(CUR_DIR)[0]
         self.main_window = QBzrSwitchWindow(branch, bzrdir, location, ui_mode)
         self.main_window.show()
-        self._application.exec_() 
+        self._application.exec_()
 
 
 class cmd_qunbind(QBzrCommand):
     """Convert the current checkout into a regular branch."""
     takes_options = [ui_mode_option, execute_option]
-    
+
     def _qbzr_run(self, ui_mode=False, execute=False):
         from bzrlib.plugins.qbzr.lib.unbind import QBzrUnbindDialog
-        
+
         branch = Branch.open_containing(CUR_DIR)[0]
         if branch.get_bound_location() == None:
             raise errors.BzrCommandError("This branch is not bound.")
-        
+
         self.main_window = QBzrUnbindDialog(branch, ui_mode, execute)
         self.main_window.show()
-        self._application.exec_() 
+        self._application.exec_()
 
 
 class cmd_qexport(QBzrCommand):
     """Export current or past revision to a destination directory or archive.
-      
+
       DEST is the destination file or dir where the branch will be exported.
       If BRANCH_OR_SUBDIR is omitted then the branch containing the current working
       directory will be used.
     """
-    
+
     takes_args = ['dest?','branch_or_subdir?']
     takes_options = [ui_mode_option]
-    
+
     def _qbzr_run(self, dest=None, branch_or_subdir=None, ui_mode=False):
         from bzrlib.plugins.qbzr.lib.export import QBzrExportDialog
-        
+
         if branch_or_subdir == None:
             branch = Branch.open_containing(CUR_DIR)[0]
         else:
             branch = Branch.open_containing(branch_or_subdir)[0]
-        
+
         window = QBzrExportDialog(dest, branch, ui_mode)
         window.show()
-        self._application.exec_() 
+        self._application.exec_()
 
 
 class cmd_qbind(QBzrCommand):
     """Convert the current branch into a checkout of the supplied branch.
-    
+
     LOCATION is the branch where you want to bind your current branch.
     """
-    
+
     takes_args = ['location?']
     takes_options = [ui_mode_option]
-    
+
     def _qbzr_run(self, location=None, ui_mode=False):
         from bzrlib.plugins.qbzr.lib.bind import QBzrBindDialog
-        
+
         branch = Branch.open_containing(CUR_DIR)[0]
-        
+
         self.main_window = QBzrBindDialog(branch, location, ui_mode)
         self.main_window.show()
         self._application.exec_()

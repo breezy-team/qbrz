@@ -1,6 +1,8 @@
 0.21 - In development
 ---------------------
+What's new in this release:
 
+Changelog:
  * qbranch:
    * Fixed problem with very small width of input fields in the dialog
      on Mac OSX. (Timothy Reaves, Bug #667090)
@@ -10,6 +12,15 @@
  * qcommit:
    * Remember "Show non-versioned" checkbox state. 
      (Nick Sonneveld, Bug #258926)
+ * qdiff:
+   * New toolbar with controls and options (similar to qannotate's toolbar).
+     (Dorin Scutarașu)
+   * Support for ignore whitespace differences in changes. 
+     This mode can be turned on from command-line (`qdiff -w` 
+     or `qdiff --ignore-whitespace`) and from GUI itself (in View Options).
+     (Dorin Scutarașu, Glen Mailer, Bug #642000)
+   * Added Find action to do text search within either pane.
+     (Dorin Scutarașu, Bug #497832)
  * qinfo:
    * Significantly simpler implementation that shows the information
      provided by Bazaar.  This fills in the gaps in the data shown

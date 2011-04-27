@@ -29,10 +29,10 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     ThrobberWidget,
     file_extension,
-    get_set_encoding,
-    runs_in_loading_queue,
     get_monospace_font,
+    get_set_encoding,
     get_tab_width_pixels,
+    runs_in_loading_queue,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
