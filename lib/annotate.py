@@ -37,6 +37,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_icon,
     get_monospace_font,
     get_set_encoding,
+    get_tab_width_chars,
     get_tab_width_pixels,
     runs_in_loading_queue,
     )
@@ -53,6 +54,7 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
 from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
+from bzrlib.plugins.qbzr.lib.tab_width_selector import TabWidthMenuSelector
 from bzrlib.plugins.qbzr.lib.syntaxhighlighter import highlight_document
 from bzrlib.plugins.qbzr.lib.revtreeview import paint_revno, get_text_color
 from bzrlib.plugins.qbzr.lib import logmodel
@@ -269,8 +271,6 @@ class AnnotateWindow(QBzrWindow):
         self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
         
         self.text_edit.document().setDefaultFont(get_monospace_font())
-
-        self.text_edit.setTabStopWidth(get_tab_width_pixels(branch))
         
         self.annotate_bar = AnnotateBar(self.text_edit, self, self.get_revno)
         annotate_spliter = QtGui.QSplitter(QtCore.Qt.Horizontal, self)
@@ -337,7 +337,14 @@ class AnnotateWindow(QBzrWindow):
         self.connect(word_wrap,
                      QtCore.SIGNAL("toggled (bool)"),
                      self.word_wrap_toggle)
+
+        def setTabStopWidth(tw):
+            self.text_edit.setTabStopWidth(get_tab_width_pixels(tab_width_chars=tw))
+        self.tab_width_selector = TabWidthMenuSelector(get_tab_width_chars(branch),
+                gettext("Tab Width"),
+                setTabStopWidth)
         
+        view_menu.addMenu(self.tab_width_selector)
         view_menu.addMenu(self.encoding_selector)
         view_menu.addAction(word_wrap)
         

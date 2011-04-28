@@ -1221,12 +1221,16 @@ def get_tab_width_chars(branch=None):
     config = get_branch_config(branch)
     try:
         tabWidth = int(config.get_user_option('tab_width'))
+        if tabWidth < 0:
+            raise TypeError("Invalid tab width")
     except TypeError:
         tabWidth = 8
     return tabWidth
 
-def get_tab_width_pixels(branch=None):
+def get_tab_width_pixels(branch=None, tab_width_chars=None):
     """Function to get the tab width in pixels based on a monospaced font."""
     monospacedFont = get_monospace_font()
     char_width = QtGui.QFontMetrics(monospacedFont).width(" ")
-    return char_width*get_tab_width_chars(branch)
+    if tab_width_chars is None:
+        chars = get_tab_width_chars(branch)
+    return char_width*tab_width_chars
