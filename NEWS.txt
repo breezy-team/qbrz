@@ -21,6 +21,8 @@ Changelog:
      (Dorin Scutarașu, Glen Mailer, Bug #642000)
    * Added Find action to do text search within either pane.
      (Dorin Scutarașu, Bug #497832)
+   * Find text box turns red if no matches are found.
+     (A. S. Budden, Bug #772244)
  * qinfo:
    * Significantly simpler implementation that shows the information
      provided by Bazaar.  This fills in the gaps in the data shown

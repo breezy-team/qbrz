@@ -1076,6 +1076,15 @@ class FindToolbar(QtGui.QToolBar):
         self.find_text = QtGui.QLineEdit(self)
         self.addWidget(self.find_text)
         find_label.setBuddy(self.find_text)
+
+        self.found_palette = QtGui.QPalette()
+        self.not_found_palette = QtGui.QPalette()
+        self.not_found_palette.setColor(QtGui.QPalette.Active,
+                QtGui.QPalette.Base,
+                QtCore.Qt.red)
+        self.not_found_palette.setColor(QtGui.QPalette.Active,
+                QtGui.QPalette.Text,
+                QtCore.Qt.white)
         
         prev = self.addAction(get_icon("go-previous"), gettext("Previous"))
         prev.setShortcut(QtGui.QKeySequence.FindPrevious)
@@ -1167,9 +1176,14 @@ class FindToolbar(QtGui.QToolBar):
             cursor = self.text_edit.textCursor()
             cursor.setPosition(cursor.selectionStart())
             self.text_edit.setTextCursor(cursor)
-            # Maybe make find_text background red like Firefox?
+            # Make find_text background red like Firefox
+            if len(text) > 0:
+                self.find_text.setPalette(self.not_found_palette)
+            else:
+                self.find_text.setPalette(self.found_palette)
         else:
             self.text_edit.setTextCursor(cursor)
+            self.find_text.setPalette(self.found_palette)
 
     def set_text_edit(self, new_text_edit):
         if self.text_edit:
