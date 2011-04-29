@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Launchpad-Export-Date: 2010-08-03 12:24+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Launchpad-Export-Date: 2011-04-29 07:28+0000\n"
+"X-Generator: Launchpad (build 12915)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
 #: lib\config.py:201
@@ -1800,3 +1800,25 @@ msgstr "(aucun message)"
 
 #~ msgid "Stopped"
 #~ msgstr "Arrêté"
+
+#~ msgid "Mark as resolved"
+#~ msgstr "Marquer comme résolu"
+
+#~ msgid "Mail to address:"
+#~ msgstr "Envoyer par mail :"
+
+#~ msgid "&Replace"
+#~ msgstr "&Remplacer"
+
+#, python-format
+#~ msgid "Add %s to the tree."
+#~ msgstr "Ajouter %s à l'arbre."
+
+#~ msgid "Local location:"
+#~ msgstr "Emplacement local :"
+
+#~ msgid "Public branch location:"
+#~ msgstr "Emplacement de la branche publique :"
+
+#~ msgid "&Location"
+#~ msgstr "&Emplacement"
