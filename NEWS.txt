@@ -12,6 +12,9 @@ Changelog:
  * qcommit:
    * Remember "Show non-versioned" checkbox state. 
      (Nick Sonneveld, Bug #258926)
+ * qconflicts:
+   * Fixed internal error when deleting non-versioned files/directories.
+     (Alexander Belchenko, Bug #655451)
  * qdiff:
    * New toolbar with controls and options (similar to qannotate's toolbar).
      (Dorin Scutarașu)
