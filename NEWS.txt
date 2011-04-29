@@ -32,7 +32,7 @@ Changelog:
    * Remember "Show non-versioned" checkbox state. 
      (Nick Sonneveld, Bug #258926)
  * qconflicts:
-   * Fixed internal error when deleting non-versioned files/directories.
+   * Fixed internal error when there is conflict in non-versioned file.
      (Alexander Belchenko, Bug #655451)
  * qdiff:
    * New toolbar with controls and options (similar to qannotate's toolbar).
