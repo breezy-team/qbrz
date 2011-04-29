@@ -168,7 +168,7 @@ class ConflictsWindow(QBzrWindow):
             item = QtGui.QTreeWidgetItem()
             item.setText(0, conflict.path)
             item.setText(1, gettext(conflict.typestring))
-            item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(conflict.file_id))
+            item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(conflict.file_id or ''))  # file_id is None for non-versioned items, so we force it to be empty string to avoid Qt error
             item.setData(1, QtCore.Qt.UserRole, QtCore.QVariant(conflict.typestring))
             items.append(item)
         self.conflicts_list.clear()
@@ -212,6 +212,9 @@ class ConflictsWindow(QBzrWindow):
         if not merge_tool:
             return
         file_id = str(items[0].data(0, QtCore.Qt.UserRole).toString())
+        if not file_id:
+            # bug https://bugs.launchpad.net/qbzr/+bug/655451
+            return
         file_name = self.wt.abspath(self.wt.id2path(file_id))
         base_file_name = file_name + ".BASE"
         this_file_name = file_name + ".THIS"

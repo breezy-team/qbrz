@@ -2,6 +2,10 @@
 -----------------------
 Maintenance release.
 
+ * qconflicts:
+   * Fixed internal error when deleting non-versioned files/directories.
+     (Alexander Belchenko, Bug #655451)
+
 
 0.20.1 - 2011/04/26
 --------------------
