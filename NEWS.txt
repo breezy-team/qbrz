@@ -30,6 +30,9 @@ Changelog:
  * qsubprocess:
    * Reliable exception encoding to pass exception attributes 
      from subprocess to the GUI process. (Martin [gz], Bug #686735)
+ * qannotate, qdiff:
+   * Find text box turns red if no matches are found.
+     (A. S. Budden, Bug #772244)
  * qcat, qannotate, qdiff, qconfig:
    * Added ability to customise the tab-stop width (setting in qconfig,
      affects qcat, qannotate and qdiff).  
