@@ -252,6 +252,7 @@ class SelectAllCheckBox(QtGui.QCheckBox):
         view = self.view
         self.changed_by_code = True
         try:
+            self.setCheckState(state)
             for i in range(view.topLevelItemCount()):
                 item = view.topLevelItem(i)
                 if item.checkState(0) != state:
@@ -261,7 +262,7 @@ class SelectAllCheckBox(QtGui.QCheckBox):
 
 class ShelveWindow(QBzrDialog):
 
-    def __init__(self, file_list=None, encoding=None, dialog=True, parent=None, ui_mode=True):
+    def __init__(self, file_list=None, directory=None, complete=False, encoding=None, dialog=True, parent=None, ui_mode=True):
         QBzrDialog.__init__(self,
                             gettext("Shelve"),
                             parent, ui_mode=ui_mode)
@@ -270,8 +271,8 @@ class ShelveWindow(QBzrDialog):
 
         self.revision = None
         self.file_list = file_list
+        self.directory = directory
         self.message = None
-        self.directory = None
 
         self.encoding = encoding
 
@@ -320,21 +321,25 @@ class ShelveWindow(QBzrDialog):
         vbox.addWidget(selectall_checkbox)
 
         hunk_panel = ToolbarPanel(self)
+        self.hunk_view = HunkView(complete=complete)
+        hunk_panel.add_widget(self.hunk_view)
+
         hsplitter.addWidget(hunk_panel)
 
         hunk_panel.add_toolbar_button(N_("Complete"), icon_name="complete", 
-                                  onclick=self.complete_toggled, checkable=True)
+                          onclick=self.hunk_view.set_complete, 
+                          checkable=True, checked=complete)
         hunk_panel.add_separator()
-        hunk_panel.add_toolbar_button(N_("Previous"), icon_name="go-up")
-        hunk_panel.add_toolbar_button(N_("Next"), icon_name="go-down")
+        hunk_panel.add_toolbar_button(N_("Previous"), icon_name="go-up",
+                          onclick=self.hunk_view.move_previous)
+        hunk_panel.add_toolbar_button(N_("Next"), icon_name="go-down",
+                          onclick=self.hunk_view.move_next)
         hunk_panel.add_separator()
         
         self.encoding_selector = EncodingMenuSelector(self.encoding,
             gettext("Encoding"), self.encoding_changed)
-        hunk_panel.add_toolbar_menu(N_("Encoding"), self.encoding_selector, icon_name="format-text-bold")
-
-        self.hunk_view = HunkView()
-        hunk_panel.add_widget(self.hunk_view)
+        hunk_panel.add_toolbar_menu(N_("Encoding"), 
+                self.encoding_selector, icon_name="format-text-bold")
 
         splitter.setStretchFactor(0, 1)
         splitter.setStretchFactor(1, 6)
@@ -517,12 +522,12 @@ class ShelveWindow(QBzrDialog):
         self.saveSize()
 
 class HunkView(QtGui.QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, complete=False, parent=None):
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QHBoxLayout(self)
         layout.setSpacing(0)
         layout.setMargin(0)
-        self.browser = HunkTextBrowser(self)
+        self.browser = HunkTextBrowser(complete, self)
         self.selector = HunkSelector(self.browser, self)
         layout.addWidget(self.selector)
         layout.addWidget(self.browser)
@@ -534,6 +539,12 @@ class HunkView(QtGui.QWidget):
         self.browser.complete = value
         if self.change is not None:
             self.set_parsed_patch(self.change, self.encoding)
+
+    def move_previous(self):
+        self.browser.move_previous()
+
+    def move_next(self):
+        self.browser.move_next()
 
     def rewind(self):
         self.browser.rewind()
@@ -556,9 +567,13 @@ class HunkSelector(QtGui.QFrame):
         QtGui.QFrame.__init__(self, parent)
         self.browser = browser
         self.setFixedWidth(25)
-        self.setStyleSheet("border:1px solid lightgray; background-color:white;")
+        self.setStyleSheet("border:1px solid lightgray;")
         self.connect(browser.verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.scrolled)
+        self.connect(browser, QtCore.SIGNAL("focusedHunkChanged()"), self.update)
         self.frame_width = QtGui.QApplication.style().pixelMetric(QtGui.QStyle.PM_DefaultFrameWidth)
+
+        self.checkbox_pen = QtGui.QPen(QtCore.Qt.black)
+        self.checkbox_pen.setWidth(2)
 
     def scrolled(self, value):
         self.update()
@@ -571,19 +586,22 @@ class HunkSelector(QtGui.QFrame):
         scroll_y = browser.verticalScrollBar().value() - self.frame_width
         painter = QtGui.QPainter(self)
         rect = event.rect()
-        top, bottom = rect.top(), rect.bottom()
         painter.setClipRect(rect)
-        browser.paint_background(self.width(), rect.top(), rect.bottom(), painter, scroll_y)
+        browser.draw_background(
+                QtCore.QRect(1, rect.top(), self.width() - 2, rect.height()), 
+                painter, scroll_y)
 
         # draw checkbox
+        top, bottom = rect.top(), rect.bottom()
         painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
-        painter.setPen(browser.bold_pen)
+        painter.setPen(self.checkbox_pen)
         for hunk, y1, y2 in browser.hunk_list:
             y1 -= scroll_y
             y1 += 4
-            if bottom < y1 or y1 + 13 < top:
+            if y1 + 13 < top:
                 continue
-
+            if bottom < y1:
+                break
             painter.fillRect(6, y1, 13, 13, QtCore.Qt.white)
 
             painter.drawRect(6, y1, 13, 13)
@@ -595,19 +613,24 @@ class HunkSelector(QtGui.QFrame):
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
-            scroll_y = self.browser.verticalScrollBar().value()
-            y = event.y() + scroll_y
-            for hunk, top, bottom in self.browser.hunk_list:
+            browser = self.browser
+            scroll_y = browser.verticalScrollBar().value()
+
+            y = event.y() + scroll_y - self.frame_width
+            for hunk, top, bottom in browser.hunk_list:
                 if top <= y <= bottom:
                     hunk.selected = not hunk.selected
                     self.repaint(6, top - scroll_y + 3, 13, 13)
                     self.parent().emit(QtCore.SIGNAL("selectionChanged()"))
-                    return
+                    break
+                elif y < top:
+                    break
+            browser.focus_hunk_by_pos(event.y() - self.frame_width)
         QtGui.QFrame.mousePressEvent(self, event)
 
 class HunkTextBrowser(QtGui.QTextBrowser):
 
-    def __init__(self, parent=None):
+    def __init__(self, complete=False, parent=None):
         # XXX: This code should be merged with QSimpleDiffView
         QtGui.QTextBrowser.__init__(self, parent)
         self.hunk_list = []
@@ -620,9 +643,6 @@ class HunkTextBrowser(QtGui.QTextBrowser):
         self.doc.setDefaultTextOption(option)
         self.rewinded = False
         self.cursor = QtGui.QTextCursor(self.doc)
-        format = QtGui.QTextCharFormat()
-        format.setAnchorNames(["top"])
-        self.cursor.insertText("", format)
         
         monospacedFont = get_monospace_font()
         self.monospacedFormat = QtGui.QTextCharFormat()
@@ -643,20 +663,19 @@ class HunkTextBrowser(QtGui.QTextBrowser):
         self.monospacedHunkFormat = QtGui.QTextCharFormat()
         self.monospacedHunkFormat.setFont(titleFont)
         self.monospacedHunkFormat.setForeground(QtCore.Qt.black)
-
-        self.normal_pen = QtGui.QPen(QtCore.Qt.black)
-        self.bold_pen = QtGui.QPen(QtCore.Qt.black)
-        self.bold_pen.setWidth(2)
         
         from bzrlib.plugins.qbzr.lib.diffview import colors
         self.header_color = colors['blank'][0]
+        self.border_pen = QtGui.QPen(QtCore.Qt.gray)
+        self.focus_color = QtGui.QColor(0x87, 0xCE, 0xEB, 0x40) # lightBlue
 
-        self.complete = False 
+        self.complete = complete
+        self._focused_index = -1
 
     def rewind(self):
         if not self.rewinded:
             self.rewinded = True
-            self.scrollToAnchor("top")
+            self.verticalScrollBar().setValue(0)
 
     def set_parsed_patch(self, change, encoding):
         self.clear()
@@ -681,29 +700,30 @@ class HunkTextBrowser(QtGui.QTextBrowser):
         for hunk, hunk_texts in zip(patch.hunks, texts):
             # NOTE: hunk.mod_pos is 1 based value, not 0 based.
             if self.complete:
-                for i in range(start, hunk.mod_pos - 1):
-                    cursor.insertText(' ' + work_lines[i], self.monospacedInactiveFormat)
+                lines = "".join([' ' + l for l in work_lines[start:hunk.mod_pos - 1]])
+                if lines:
+                    cursor.insertText(lines, self.monospacedInactiveFormat)
                 start = hunk.mod_pos + hunk.mod_range - 1
-                cursor.beginEditBlock()
                 y1 = cursor.block().layout().position().y()
                 print_hunk(hunk, hunk_texts)
-                cursor.endEditBlock()
                 y2 = cursor.block().layout().position().y()
 
             else:
-                cursor.beginEditBlock()
                 y1 = cursor.block().layout().position().y()
                 cursor.insertText(str(hunk.get_header()), self.monospacedHunkFormat)
                 print_hunk(hunk, hunk_texts)
                 cursor.insertText("\n", self.monospacedFormat)
-                cursor.endEditBlock()
                 y2 = cursor.block().layout().position().y()
 
             self.hunk_list.append((hunk, y1, y2))
 
         if self.complete:
-            for i in range(start, len(work_lines)):
-                cursor.insertText(' ' + work_lines[i], self.monospacedInactiveFormat)
+            lines = "".join([' ' + l for l in work_lines[start:]])
+            if lines:
+                cursor.insertText(lines, self.monospacedInactiveFormat)
+
+        if self.hunk_list:
+            self._set_focused_hunk(0)
 
         self.update()
 
@@ -714,6 +734,7 @@ class HunkTextBrowser(QtGui.QTextBrowser):
     def clear(self):
         QtGui.QTextBrowser.clear(self)
         del(self.hunk_list[:])
+        self._set_focused_hunk(-1)
 
     def paintEvent(self, event):
         if not self.hunk_list:
@@ -725,24 +746,90 @@ class HunkTextBrowser(QtGui.QTextBrowser):
         rect = event.rect()
         painter.setClipRect(rect)
 
-        self.paint_background(self.width(), rect.top(), rect.bottom(), painter, scroll_y)
+        self.draw_background(rect, painter, scroll_y)
 
         QtGui.QTextBrowser.paintEvent(self, event) 
         del painter
 
-    def paint_background(self, width, top, bottom, painter, offset):
-        painter.setPen(self.normal_pen)
-        for hunk, y1, y2 in self.hunk_list:
+    def draw_background(self, rect, painter, offset):
+        left, right, width = rect.left(), rect.right(), rect.width()
+        top, bottom = rect.top(), rect.bottom()
+        painter.setPen(self.border_pen)
+        for i, (hunk, y1, y2) in enumerate(self.hunk_list):
             y1 -= offset
             y2 -= offset
-            if self.complete:
-                if bottom < y1 or y2 < top:
-                    continue
-                painter.drawLine(0, y1, width, y1)
-                painter.drawLine(0, y2, width, y2)
-            else:
-                if bottom < y1 or y1 + 20 < top:
-                    continue
-                painter.fillRect(0, y1, width, 20, self.header_color)
-                painter.drawLine(0, y1, width, y1)
+            if bottom < y1 or y2 < top:
+                continue
+            if not self.complete:
+                # Fill header rect.
+                painter.fillRect(left, y1, width, 20, self.header_color)
+            # Overlay focus rect.
+            if i == self._focused_index:
+                painter.fillRect(left, y1, width, y2 - y1, self.focus_color)
+            # Draw border.
+            painter.drawLine(left, y1, right, y1)
+            painter.drawLine(left, y2, right, y2)
+        
+    def move_next(self):
+        index = int(self._focused_index + 1)
+        if index == len(self.hunk_list):
+            index -= 1
+        self._set_focused_hunk(index)
+
+    def move_previous(self):
+        index = int(self._focused_index)
+        if 1 <= index and index == self._focused_index:
+            index -= 1
+        self._set_focused_hunk(index)
+
+
+    def focus_hunk_by_pos(self, y):
+        index = self.hittest(y)
+        self._set_focused_hunk(index, scroll=False)
+
+    def _set_focused_hunk(self, index, scroll=True):
+        self._focused_index = index
+        self.update()
+        self.emit(QtCore.SIGNAL("focusedHunkChanged()"))
+        if scroll and int(index) == index:
+            self.scroll_to_hunk(index)
+
+    def hittest(self, y):
+        # NOTE : Value of y is client coordinate.
+        # If y is between (N)th and (N+1)th hunks, return (N + 0.5)
+        if not self.hunk_list:
+            return -1
+        y += self.verticalScrollBar().value()
+        for i, (hunk, y1, y2) in enumerate(self.hunk_list):
+            if y1 <= y <= y2:
+                return i
+            elif y < y1:
+                return i - 0.5
+        return i + 0.5
+
+    def scroll_to_hunk(self, index):
+        sbar = self.verticalScrollBar()
+        if index < 0:
+            sbar.setValue(0)
+        elif len(self.hunk_list) <= index:
+            sbar.setValue(sbar.maximum())
+        else:
+            MARGIN = 24
+            height = self.viewport().height()
+            cur_pos = sbar.value()
+            max_pos = self.hunk_list[index][1] - MARGIN
+            min_pos = self.hunk_list[index][2] - height + MARGIN
+            if max_pos <= min_pos or max_pos < cur_pos:
+                sbar.setValue(max_pos)
+            elif cur_pos < min_pos:
+                sbar.setValue(min_pos)
+                
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.LeftButton:
+            self.focus_hunk_by_pos(event.y())
+
+        QtGui.QTextBrowser.mousePressEvent(self, event)
+
+
+
 

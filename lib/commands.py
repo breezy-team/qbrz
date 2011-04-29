@@ -1070,16 +1070,18 @@ class cmd_qshelve(QBzrCommand):
     takes_options = [
         ui_mode_option,
         bzr_option('shelve', 'list'),
+        bzr_option('shelve', 'directory'),
         Option('complete', help='Show complete files.'),
         Option('encoding', type=check_encoding,
                help='Encoding of files content (default: utf-8).'),
         ]
 
-    def _qbzr_run(self, file_list=None, list=False, complete = False, encoding=None):
+    def _qbzr_run(self, file_list=None, list=False, directory=None, complete = False, encoding=None):
         if list:
             self.main_window = ShelveListWindow(encoding=encoding, complete=complete)
         else:
-            self.main_window = ShelveWindow(file_list=file_list, encoding=encoding)
+            self.main_window = ShelveWindow(file_list=file_list, directory=directory, 
+                                            complete=complete, encoding=encoding)
         try:
             self.main_window.show()
             self._application.exec_()
