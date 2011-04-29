@@ -128,7 +128,7 @@ class DiffWindow(QBzrWindow):
 
     def __init__(self, arg_provider, parent=None,
                  complete=False, encoding=None,
-                 filter_options=None, ui_mode=True):
+                 filter_options=None, ui_mode=True, allow_refresh=True):
 
         title = [gettext("Diff"), gettext("Loading...")]
         QBzrWindow.__init__(self, title, parent, ui_mode=ui_mode)
@@ -157,7 +157,7 @@ class DiffWindow(QBzrWindow):
         for browser in self.diffview.browsers:
             browser.installEventFilter(self)
 
-        self.create_main_toolbar()
+        self.create_main_toolbar(allow_refresh)
         self.addToolBarBreak()
         self.find_toolbar = FindToolbar(self, self.diffview.browsers[0],
                 self.show_find)
@@ -175,7 +175,7 @@ class DiffWindow(QBzrWindow):
         for (args, kwargs) in self.delayed_signal_connections:
             self.connect(*args, **kwargs)
 
-    def create_main_toolbar(self):
+    def create_main_toolbar(self, allow_refresh=True):
         toolbar = self.addToolBar(gettext("Diff"))
         toolbar.setMovable (False)
         toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
@@ -183,9 +183,10 @@ class DiffWindow(QBzrWindow):
         self.show_find = self.create_find_action()
         toolbar.addAction(self.show_find)
         toolbar.addAction(self.create_toggle_view_mode())
-        self.view_refresh = self.create_refresh_action()
-        toolbar.addAction(self.view_refresh)
-
+        self.view_refresh = self.create_refresh_action(allow_refresh)
+        if allow_refresh:
+            toolbar.addAction(self.view_refresh)
+            
         if has_ext_diff():
             show_ext_diff_menu = self.create_ext_diff_action()
             toolbar.addAction(show_ext_diff_menu)
@@ -233,7 +234,7 @@ class DiffWindow(QBzrWindow):
                      self.click_toggle_view_mode)
         return action
 
-    def create_refresh_action(self):
+    def create_refresh_action(self, allow_refresh=True):
         action = QtGui.QAction(get_icon("view-refresh"),
                 gettext("&Refresh"), self)
         action.setShortcut("Ctrl+R")
@@ -241,6 +242,7 @@ class DiffWindow(QBzrWindow):
         self.connect(action,
                      QtCore.SIGNAL("triggered (bool)"),
                      self.click_refresh)
+        action.setEnabled(allow_refresh)
         return action
 
     def create_ext_diff_action(self):
