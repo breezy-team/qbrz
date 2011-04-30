@@ -39,7 +39,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrDialog,
     ToolBarThrobberWidget,
     get_monospace_font,
-    StandardButton,
+    FindToolbar,
     )
 from bzrlib import errors
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
@@ -83,7 +83,7 @@ class ToolbarPanel(QtGui.QWidget):
         toolbar = QtGui.QToolBar(self)
         toolbar.setMovable(False)
         toolbar.setIconSize(QtCore.QSize(16,16))
-        toolbar.setStyleSheet('QToolBar { margin:1px; padding:0px; border:none; }')
+        self.setStyleSheet('QToolBar { margin:1px; padding:0px; border:none; }')
         toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 
         vbox.addWidget(toolbar)
@@ -324,24 +324,32 @@ class ShelveWindow(QBzrDialog):
 
         hunk_panel = ToolbarPanel(self)
         self.hunk_view = HunkView(complete=complete)
-        hunk_panel.add_widget(self.hunk_view)
 
         hsplitter.addWidget(hunk_panel)
+
+        show_find = hunk_panel.add_toolbar_button(
+                        N_("Find"), icon_name="edit-find", checkable=True)
+        hunk_panel.add_separator()
 
         hunk_panel.add_toolbar_button(N_("Complete"), icon_name="complete", 
                           onclick=self.hunk_view.set_complete, 
                           checkable=True, checked=complete)
-        hunk_panel.add_separator()
-        hunk_panel.add_toolbar_button(N_("Previous"), icon_name="go-up",
-                          onclick=self.hunk_view.move_previous)
-        hunk_panel.add_toolbar_button(N_("Next"), icon_name="go-down",
-                          onclick=self.hunk_view.move_next)
-        hunk_panel.add_separator()
         
         self.encoding_selector = EncodingMenuSelector(self.encoding,
             gettext("Encoding"), self.encoding_changed)
         hunk_panel.add_toolbar_menu(N_("Encoding"), 
                 self.encoding_selector, icon_name="format-text-bold")
+
+        hunk_panel.add_separator()
+        hunk_panel.add_toolbar_button(N_("Previous"), icon_name="go-up",
+                          onclick=self.hunk_view.move_previous)
+        hunk_panel.add_toolbar_button(N_("Next"), icon_name="go-down",
+                          onclick=self.hunk_view.move_next)
+
+        find_toolbar = FindToolbar(self, self.hunk_view.browser, show_find)
+        hunk_panel.add_widget(find_toolbar)
+        hunk_panel.add_widget(self.hunk_view)
+        find_toolbar.hide()
 
         splitter.setStretchFactor(0, 1)
         splitter.setStretchFactor(1, 6)

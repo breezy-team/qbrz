@@ -58,6 +58,7 @@ from bzrlib.transport import get_transport
 from bzrlib.lockdir import LockDir
 
 from bzrlib.plugins.qbzr.lib.compatibility import configobj
+from types import MethodType
 ''')
 
 # standard buttons with translatable labels
@@ -1127,10 +1128,19 @@ class FindToolbar(QtGui.QToolBar):
         self.connect(self.whole_words,
                      QtCore.SIGNAL("stateChanged(int)"),
                      self.find_text_changed)
-        self.connect(self.find_text,
-                     QtCore.SIGNAL("returnPressed()"),
-                     self.find_next)        
         
+        # NOTE: returnPressed signal loses default button of QDialog.
+        #       So, use keyPressEvent instead.
+        def keyPressEvent(obj, event):
+            if event.key() in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
+                self.find_next()
+            else:
+                QtGui.QLineEdit.keyPressEvent(obj, event)
+
+        self.find_text.keyPressEvent = \
+                MethodType(keyPressEvent, self.find_text, QtGui.QLineEdit)
+        self.find_text.installEventFilter(self)
+
     def show_action_toggle(self, state):
         self.setVisible(state)
         if state:

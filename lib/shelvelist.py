@@ -40,6 +40,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_monospace_font,
     StandardButton,
     get_tab_width_pixels,
+    FindToolbar,
     )
 from bzrlib.plugins.qbzr.lib.diffview import (
     SidebySideDiffView,
@@ -94,20 +95,28 @@ class ShelveListWindow(QBzrWindow):
         self.diffviews = (SidebySideDiffView(self), SimpleDiffView(self))
         for view in self.diffviews:
             self.stack.addWidget(view)
+        for browser in self.diffviews[0].browsers:
+            browser.installEventFilter(self)
 
         diff_panel = ToolbarPanel(self)
-        diff_panel.add_widget(self.stack)
 
+        show_find = diff_panel.add_toolbar_button(
+                        N_("Find"), icon_name="edit-find", checkable=True)
+        diff_panel.add_separator()
         diff_panel.add_toolbar_button(N_("Unified"), icon_name="unidiff", 
                 checkable=True, onclick=self.unidiff_toggled)
         diff_panel.add_toolbar_button(N_("Complete"), icon_name="complete", 
                 checkable=True, checked=complete, onclick=self.complete_toggled)
         diff_panel.add_toolbar_button(N_("Ignore whitespace"), icon_name="whitespace", 
                 checkable=True, checked=ignore_whitespace, onclick=self.whitespace_toggled)
-        diff_panel.add_separator()
         self.encoding_selector = EncodingMenuSelector(self.encoding,
                                     gettext("Encoding"), self.encoding_changed)
         diff_panel.add_toolbar_menu(N_("Encoding"), self.encoding_selector, icon_name="format-text-bold")
+
+        self.find_toolbar = FindToolbar(self, self.diffviews[0].browsers[0], show_find)
+        diff_panel.add_widget(self.find_toolbar)
+        diff_panel.add_widget(self.stack)
+        self.find_toolbar.hide()
 
         vsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
         vsplitter.addWidget(self.file_view)
@@ -315,6 +324,10 @@ class ShelveListWindow(QBzrWindow):
         index = 1 if state else 0
         self.diffviews[index].rewind()
         self.stack.setCurrentIndex(index)
+        if index == 0:
+            self.find_toolbar.text_edit = self.diffviews[0].browsers[0]
+        else:
+            self.find_toolbar.text_edit = self.diffviews[1]
 
     def complete_toggled(self, state):
         self.complete = state
@@ -344,3 +357,10 @@ class ShelveListWindow(QBzrWindow):
 
     def cleanup(self):
         pass
+
+    def eventFilter(self, object, event):
+        if event.type() == QtCore.QEvent.FocusIn:
+            if object in self.diffviews[0].browsers:
+                self.find_toolbar.text_edit = object
+        return QBzrWindow.eventFilter(self, object, event)
+
