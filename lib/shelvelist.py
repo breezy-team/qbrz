@@ -39,6 +39,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_icon,
     get_monospace_font,
     StandardButton,
+    get_tab_width_pixels,
     )
 from bzrlib.plugins.qbzr.lib.diffview import (
     SidebySideDiffView,
@@ -62,7 +63,7 @@ from bzrlib.shelf import Unshelver
 
 class ShelveListWindow(QBzrWindow):
 
-    def __init__(self, complete = False, encoding = None, parent = None, ui_mode=True):
+    def __init__(self, complete = False, ignore_whitespace = False, encoding = None, parent = None, ui_mode=True):
         QBzrWindow.__init__(self,
                             [gettext("Shelve List")],
                             parent, ui_mode=ui_mode)
@@ -73,8 +74,8 @@ class ShelveListWindow(QBzrWindow):
         self.throbber = ToolBarThrobberWidget(self)
 
         self.current_diffs = []
-        self.complete = False
-        self.ignore_whitespace = False
+        self.complete = complete
+        self.ignore_whitespace = ignore_whitespace
 
         # build main widgets
         self.shelve_view = QtGui.QTreeWidget(self)
@@ -97,10 +98,12 @@ class ShelveListWindow(QBzrWindow):
         diff_panel = ToolbarPanel(self)
         diff_panel.add_widget(self.stack)
 
-        diff_panel.add_toolbar_button(N_("Unified"), icon_name="unidiff", checkable=True,
-                                        onclick=self.unidiff_toggled)
-        diff_panel.add_toolbar_button(N_("Complete"), icon_name="complete", checkable=True,
-                                        onclick=self.complete_toggled)
+        diff_panel.add_toolbar_button(N_("Unified"), icon_name="unidiff", 
+                checkable=True, onclick=self.unidiff_toggled)
+        diff_panel.add_toolbar_button(N_("Complete"), icon_name="complete", 
+                checkable=True, checked=complete, onclick=self.complete_toggled)
+        diff_panel.add_toolbar_button(N_("Ignore whitespace"), icon_name="whitespace", 
+                checkable=True, checked=ignore_whitespace, onclick=self.whitespace_toggled)
         diff_panel.add_separator()
         self.encoding_selector = EncodingMenuSelector(self.encoding,
                                     gettext("Encoding"), self.encoding_changed)
@@ -214,6 +217,10 @@ class ShelveListWindow(QBzrWindow):
             preview = transform.TransformPreview(base_tree)
             cleanup.append(preview.finalize)
             preview.deserialize(records)
+
+            tabwidth = get_tab_width_pixels(self.tree.branch)
+            self.diffviews[0].setTabStopWidths((tabwidth, tabwidth))
+            self.diffviews[1].setTabStopWidth(tabwidth)
             
             self.load_diff(preview.get_preview_tree(), base_tree)
 
@@ -311,6 +318,10 @@ class ShelveListWindow(QBzrWindow):
 
     def complete_toggled(self, state):
         self.complete = state
+        self.show_selected_diff(refresh = True)
+
+    def whitespace_toggled(self, state):
+        self.ignore_whitespace = state
         self.show_selected_diff(refresh = True)
 
     def shelve_clicked(self):
