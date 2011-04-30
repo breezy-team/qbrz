@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2010-08-03 12:24+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Launchpad-Export-Date: 2011-04-29 07:28+0000\n"
+"X-Generator: Launchpad (build 12915)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
 #: lib\config.py:201
@@ -1804,3 +1804,9 @@ msgstr "muudetud failid"
 #: lib\util.py:912 lib\util.py:913 lib\util.py:916
 msgid "(no message)"
 msgstr "(sõnum puudub)"
+
+#~ msgid "Line"
+#~ msgstr "Rida"
+
+#~ msgid "Stopped"
+#~ msgstr "Peatatud"

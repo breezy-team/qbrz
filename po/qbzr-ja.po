@@ -8,15 +8,15 @@ msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-01-16 13:16+0200\n"
-"PO-Revision-Date: 2010-05-17 05:07+0000\n"
+"PO-Revision-Date: 2010-08-11 22:19+0000\n"
 "Last-Translator: iwata <Unknown>\n"
 "Language-Team: Japanese <ja@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2010-08-03 12:24+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Launchpad-Export-Date: 2011-04-29 07:28+0000\n"
+"X-Generator: Launchpad (build 12915)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
 #: lib\config.py:201
@@ -1847,3 +1847,66 @@ msgstr "(メッセージなし)"
 #, python-format
 #~ msgid "Revert %s to latest revision."
 #~ msgstr "%sを最新のリビジョンに戻す"
+
+#~ msgid "modified (x-bit)"
+#~ msgstr "変更(x-bit)"
+
+#~ msgid "Mark as resolved"
+#~ msgstr "競合解消"
+
+#, python-format
+#~ msgid "Add %s to the tree."
+#~ msgstr "%sをツリーに追加"
+
+#~ msgid "Up to date"
+#~ msgstr "最新"
+
+#~ msgid "Goto Line"
+#~ msgstr "指定行へジャンプ"
+
+#~ msgid "&View Options"
+#~ msgstr "表示オプション(&V)"
+
+#~ msgid "Encoding"
+#~ msgstr "エンコーディング"
+
+#~ msgid "Find"
+#~ msgstr "検索"
+
+#~ msgid "Go"
+#~ msgstr "移動"
+
+#~ msgid "View Options"
+#~ msgstr "表示オプション"
+
+#~ msgid "Word Wrap"
+#~ msgstr "行の折り返し"
+
+#~ msgid "Goto Line: "
+#~ msgstr "指定行へジャンプ： "
+
+#~ msgid ""
+#~ "Local branch is out of date with master branch.\n"
+#~ "To commit to master branch, update the local branch.\n"
+#~ "You can also pass select local to commit to continue working disconnected."
+#~ msgstr ""
+#~ "ローカルブランチはマスターブランチよりも古くなっています。\n"
+#~ "マスターブランチにコミットするには、まずローカルブランチを更新してください。\n"
+#~ "ローカルコミットを選択してスタンドアロンで作業を続けることもできます。"
+
+#, python-format
+#~ msgid "Update to revision %s revid:%s."
+#~ msgstr "リビジョン%s(リビジョンID：%s)に更新します"
+
+#, python-format
+#~ msgid "Update %s to revision %s revid:%s."
+#~ msgstr "%sをリビジョン%s(リビジョンID：%s)に更新します"
+
+#~ msgid "&Update to this revision"
+#~ msgstr "このリビジョンに更新(&U)"
+
+#~ msgid "Update"
+#~ msgstr "更新"
+
+#~ msgid "Working tree is out of date. To commit, update the working tree."
+#~ msgstr "作業ツリーは古くなっています。コミットするには、まず作業ツリーを更新してください。"

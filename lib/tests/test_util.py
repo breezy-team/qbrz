@@ -180,6 +180,24 @@ class TestUtil(qtests.QTestCase):
         self.assertEquals([u'C:\\foo\\bar', u'\u1234'],
             util._shlex_split_unicode_windows(u"C:\\foo\\bar \u1234"))
 
+    def test_launchpad_project_from_url(self):
+        fut = util.launchpad_project_from_url  # fut = function under test
+        # classic
+        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/~qbzr-dev/qbzr/trunk'))
+        # lp:qbzr
+        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/+branch/qbzr'))
+        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/qbzr'))
+        # lp:qbzr/0.20
+        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/qbzr/0.20'))
+        # lp:ubuntu/qbzr
+        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/ubuntu/qbzr'))
+        # lp:ubuntu/natty/qbzr
+        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/ubuntu/natty/qbzr'))
+        # lp:ubuntu/natty-proposed/qbzr
+        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/ubuntu/natty-proposed/qbzr'))
+        # lp:~someone/ubuntu/maverick/qbzr/sru
+        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/~someone/ubuntu/maverick/qbzr/sru'))
+
 
 class TestOpenTree(tests.TestCaseWithTransport):
 

@@ -74,6 +74,7 @@ class ShelveListWindow(QBzrWindow):
 
         self.current_diffs = []
         self.complete = False
+        self.ignore_whitespace = False
 
         # build main widgets
         self.shelve_view = QtGui.QTreeWidget(self)
@@ -271,7 +272,7 @@ class ShelveListWindow(QBzrWindow):
         self.current_diffs = diffs
         for d in appends:
             lines = d.lines
-            groups = d.groups(self.complete)
+            groups = d.groups(self.complete, self.ignore_whitespace)
             dates = d.dates[:]  # dates will be changed in append_diff
             ulines = d.encode((self.encoding_selector.encoding,
                                self.encoding_selector.encoding))

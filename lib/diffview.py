@@ -28,6 +28,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     format_timestamp,
     get_qbzr_config,
     get_monospace_font,
+    get_tab_width_pixels,
     )
 from bzrlib.trace import mutter
 from bzrlib.plugins.qbzr.lib.syntaxhighlighter import (
@@ -255,6 +256,10 @@ class SidebySideDiffView(QtGui.QSplitter):
         
         config = get_qbzr_config()
         self.show_intergroup_colors = config.get_option("diff_show_intergroup_colors") in ("True", "1")
+
+    def setTabStopWidths(self, pixels):
+        for (pixel_width, browser) in zip(pixels, self.browsers):
+            browser.setTabStopWidth(pixel_width)
     
     def clear(self):
         

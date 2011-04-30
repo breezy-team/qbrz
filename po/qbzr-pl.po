@@ -8,16 +8,16 @@ msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-01-16 13:16+0200\n"
-"PO-Revision-Date: 2009-01-10 11:33+0000\n"
-"Last-Translator: faw <Unknown>\n"
+"PO-Revision-Date: 2010-10-02 10:55+0000\n"
+"Last-Translator: Radosław Piliszek <radzio.cool@gmail.com>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2;\n"
-"X-Launchpad-Export-Date: 2010-08-03 12:24+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Launchpad-Export-Date: 2011-04-29 07:28+0000\n"
+"X-Generator: Launchpad (build 12915)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
 #: lib\config.py:201
@@ -404,7 +404,7 @@ msgstr "Narzędzie M&erge:"
 
 #: lib\conflicts.py:112
 msgid "Auto-resolve"
-msgstr ""
+msgstr "Auto-rozwiązywanie"
 
 #: lib\conflicts.py:141 lib\treewidget.py:1598
 msgid "&Merge conflict"
@@ -418,8 +418,8 @@ msgstr "Oznacz jako &resolved"
 #, python-format
 msgid "%d conflict auto-resolved."
 msgid_plural "%d conflicts auto-resolved."
-msgstr[0] "Konflikt %d automatycznie rozwiązany."
-msgstr[1] "Konflikty %d automatycznie rozwiązane."
+msgstr[0] "%d konflikt automatycznie rozwiązany."
+msgstr[1] "%d konfliktów automatycznie rozwiązanych."
 
 #: lib\conflicts.py:184
 msgid "All conflicts resolved."
@@ -428,7 +428,7 @@ msgstr "Wszystkie konflikty rozwiązane"
 #: lib\conflicts.py:240
 #, python-format
 msgid "Error while running merge tool (code %d)"
-msgstr ""
+msgstr "Błąd podczas działania merge tool (kod %d)"
 
 #: lib\conflicts.py:241 lib\conflicts.py:305 lib\tag.py:204 lib\trace.py:186
 #: lib\trace.py:200 lib\tree_branch.py:95 lib\util.py:949 lib\util.py:959
@@ -635,7 +635,7 @@ msgstr "Złe kodowanie"
 #: lib\encoding_selector.py:115
 #, python-format
 msgid "Encoding \"%s\" is invalid or not supported."
-msgstr ""
+msgstr "Kodowanie \"%s\" jest nieprawidłowe lub nieobsługiwane."
 
 #: lib\export.py:61 lib\export.py:80
 msgid "Export"
@@ -706,7 +706,7 @@ msgstr "Przeglądaj katalog"
 
 #: lib\i18n.py:99
 msgid "No changes selected to commit"
-msgstr ""
+msgstr "Nie wybrano zmian do zatwierdzenia"
 
 #: lib\i18n.py:100
 msgid "No changes selected to revert"
@@ -718,11 +718,11 @@ msgstr "Informacje"
 
 #: lib\info.py:65
 msgid "Location has no working tree"
-msgstr ""
+msgstr "Ta lokacja nie posiada drzewa roboczego"
 
 #: lib\info.py:78
 msgid "Location has no branch"
-msgstr ""
+msgstr "Lokacja nie zawiera gałęzi"
 
 #: lib\init.py:37 lib\ui_init.py:118
 msgid "Initialize"
@@ -795,19 +795,19 @@ msgstr "błąd #%s"
 
 #: lib\logwidget.py:106
 msgid "Show file &differences"
-msgstr ""
+msgstr "Pokaż różnice pliku"
 
 #: lib\logwidget.py:112
 msgid "Show all &differences"
-msgstr ""
+msgstr "Pokaż wszystkie różnice"
 
 #: lib\logwidget.py:118
 msgid "Show file &differences..."
-msgstr ""
+msgstr "Pokaż różnice pliku"
 
 #: lib\logwidget.py:122
 msgid "Show all &differences..."
-msgstr ""
+msgstr "Pokaż wszystkie różnice"
 
 #: lib\logwidget.py:140
 msgid "Show &tree..."
@@ -815,7 +815,7 @@ msgstr "Pokaż drzewo..."
 
 #: lib\logwidget.py:142
 msgid "Tag &revision..."
-msgstr ""
+msgstr "Otaguj rewizję..."
 
 #: lib\main.py:120
 msgid "Computer"
@@ -977,11 +977,11 @@ msgstr "(brak opisu)"
 
 #: lib\pull.py:236
 msgid "Working tree has uncommitted changes."
-msgstr ""
+msgstr "Drzewo robocze posiada niezatwierdzone zmiany."
 
 #: lib\pull.py:241
 msgid "Working tree is out of date, please run 'bzr update'."
-msgstr ""
+msgstr "Drzewo robocze jest przedatowane, uruchom 'bzr update'."
 
 #: lib\pull.py:247 lib\ui_push.py:62
 msgid "Push"
@@ -1017,7 +1017,7 @@ msgstr ""
 
 #: lib\revert.py:144
 msgid "View changes in files selected to revert"
-msgstr ""
+msgstr "Pokaż zmiany w plikach do przywrócenia"
 
 #: lib\revert.py:242
 msgid ""
@@ -1078,7 +1078,7 @@ msgstr "&Edycja"
 
 #: lib\run.py:161
 msgid "Help for command"
-msgstr ""
+msgstr "Pomoc polecenia"
 
 #: lib\run.py:278
 msgid "Select path to insert"
@@ -1086,7 +1086,7 @@ msgstr ""
 
 #: lib\run.py:288
 msgid "Select files to insert"
-msgstr ""
+msgstr "Wybierz pliki do wstawienia"
 
 #: lib\send.py:34
 msgid "Send"
@@ -1223,6 +1223,8 @@ msgid ""
 "Tag \"%s\" already exists.\n"
 "Do you want to move existing tag?"
 msgstr ""
+"Tag \"%s\" już istnieje.\n"
+"Czy chcesz przenieść istniejący tag?"
 
 #: lib\tag.py:146
 msgid "&Move"
@@ -1230,7 +1232,7 @@ msgstr "&Przenieś"
 
 #: lib\tag.py:146 lib\tag.py:159 lib\util.py:59
 msgid "&Cancel"
-msgstr "&Porzuć"
+msgstr "&Anuluj"
 
 #: lib\tag.py:156
 #, python-format
@@ -1309,7 +1311,7 @@ msgstr "&Otwórz"
 
 #: lib\treewidget.py:1577
 msgid "&View file"
-msgstr ""
+msgstr "Pokaż plik"
 
 #: lib\treewidget.py:1580
 msgid "Show &annotate"
@@ -1370,12 +1372,12 @@ msgstr "Zaznacz / odznacz wszystkie"
 #: lib\tree_branch.py:91 lib\util.py:950
 #, python-format
 msgid "Not a branch \"%s\""
-msgstr ""
+msgstr "\"%s\" nie jest gałęzią"
 
 #: lib\tree_branch.py:93 lib\util.py:960
 #, python-format
 msgid "No working tree exists for \"%s\""
-msgstr ""
+msgstr "Nie istnieje drzewo robocze \"%s\""
 
 #: lib\ui_bookmark.py:51 lib\ui_branch.py:67 lib\ui_merge.py:64
 #: lib\ui_pull.py:62 lib\ui_push.py:64
@@ -1580,7 +1582,7 @@ msgstr ""
 
 #: lib\ui_run.py:116
 msgid "Insert &directory..."
-msgstr ""
+msgstr "Wstaw katalog"
 
 #: lib\ui_run.py:117
 msgid "Insert &filenames..."
@@ -1596,7 +1598,7 @@ msgstr "Wersja:"
 
 #: lib\ui_sysinfo.py:115
 msgid "(bzr-version)"
-msgstr ""
+msgstr "(bzr-version)"
 
 #: lib\ui_sysinfo.py:116 lib\ui_sysinfo.py:126
 msgid "Path:"
@@ -1604,11 +1606,11 @@ msgstr "Ścieżka:"
 
 #: lib\ui_sysinfo.py:117
 msgid "(bzr-lib-path)"
-msgstr ""
+msgstr "(bzr-lib-path)"
 
 #: lib\ui_sysinfo.py:118
 msgid "Bazaar Configuration"
-msgstr ""
+msgstr "Konfiguracja Bazaar"
 
 #: lib\ui_sysinfo.py:119
 msgid "Settings:"
@@ -1616,7 +1618,7 @@ msgstr "Ustawienia:"
 
 #: lib\ui_sysinfo.py:120
 msgid "(bzr-config-dir)"
-msgstr ""
+msgstr "(bzr-config-dir)"
 
 #: lib\ui_sysinfo.py:121
 msgid "Log File:"
@@ -1624,7 +1626,7 @@ msgstr "Plik dziennika:"
 
 #: lib\ui_sysinfo.py:122
 msgid "(bzr-log-file)"
-msgstr ""
+msgstr "(bzr-log-file)"
 
 #: lib\ui_sysinfo.py:123
 msgid "Python Interpreter"
@@ -1644,7 +1646,7 @@ msgstr "Biblioteka:"
 
 #: lib\ui_sysinfo.py:129
 msgid "(python-lib-dir)"
-msgstr ""
+msgstr "(python-lib-dir)"
 
 #: lib\ui_tag.py:88
 msgid "Edit tag"
@@ -1664,7 +1666,7 @@ msgstr "Utwórz nowy tag"
 
 #: lib\ui_tag.py:94
 msgid "Move existing tag"
-msgstr ""
+msgstr "Przenieś istniejący tag"
 
 #: lib\ui_tag.py:95
 msgid "Delete existing tag"
@@ -1796,3 +1798,151 @@ msgstr "zmodyfikowane pliki"
 #: lib\util.py:912 lib\util.py:913 lib\util.py:916
 msgid "(no message)"
 msgstr ""
+
+#~ msgid "Extension"
+#~ msgstr "Rozszerzenie"
+
+#, python-format
+#~ msgid "Revert %s to latest revision."
+#~ msgstr "Wycofaj %s do ostatniej rewizji."
+
+#~ msgid "Internal Error"
+#~ msgstr "Błąd wewnętrzny"
+
+#~ msgid "Stopped"
+#~ msgstr "Zatrzymano"
+
+#, python-format
+#~ msgid ""
+#~ "Tag \"%s\" already exists.\n"
+#~ "Do you want to replace existing tag?"
+#~ msgstr ""
+#~ "Tag \"%s\" już istnieje.\n"
+#~ "Chcesz podmienić istniejący tag?"
+
+#~ msgid "&Replace"
+#~ msgstr "&Zamień"
+
+#~ msgid "Replace existing tag"
+#~ msgstr "Zastąp istniejący tag"
+
+#~ msgid "Public branch location:"
+#~ msgstr "Publiczna lokalizacja gałęzi:"
+
+#~ msgid "&Location"
+#~ msgstr "&Lokalizacja"
+
+#~ msgid "Line"
+#~ msgstr "Linia"
+
+#~ msgid ""
+#~ "Branch source (enter a URL or select a local directory with an exiting "
+#~ "branch)"
+#~ msgstr ""
+#~ "Gałąź źródłowa (wprowadź URL lub wybierz lokalny katalog z istniejącą "
+#~ "gałęzią)"
+
+#~ msgid "Show log..."
+#~ msgstr "Pokaż historię..."
+
+#~ msgid "&Revert..."
+#~ msgstr "&Wycofaj..."
+
+#~ msgid "Local location:"
+#~ msgstr "Lokalna lokalizacja:"
+
+#, python-format
+#~ msgid ""
+#~ "Sorry, subprocess action \"%s\" cannot be started\n"
+#~ "because self.args is None.\n"
+#~ "Please, report bug at:\n"
+#~ "https://bugs.launchpad.net/qbzr/+filebug"
+#~ msgstr ""
+#~ "Przepraszamy, subproces \"%s\" nie może zostać uruchomiony,\n"
+#~ "ponieważ wartość self.args wynosi None.\n"
+#~ "Proszę, zgłoś błąd na:\n"
+#~ "https://bugs.launchpad.net/qbzr/+filebug"
+
+#~ msgid "Goto Line"
+#~ msgstr "Przejdź do linii"
+
+#~ msgid "&View Options"
+#~ msgstr "Pokaż opcje"
+
+#~ msgid "Encoding"
+#~ msgstr "Kodowanie"
+
+#~ msgid "Find"
+#~ msgstr "Szukaj"
+
+#~ msgid "Goto Line: "
+#~ msgstr "Przejdź do linii: "
+
+#~ msgid "Go"
+#~ msgstr "Przejdź"
+
+#~ msgid "Word Wrap"
+#~ msgstr "Zawijanie wierszy"
+
+#~ msgid "You should provide a commit message."
+#~ msgstr "Musisz wpisać wiadomość commitu."
+
+#~ msgid "Update"
+#~ msgstr "Aktualizuj"
+
+#~ msgid "Working tree is out of date. To commit, update the working tree."
+#~ msgstr ""
+#~ "Drzewo robocze jest przedatowane. Aby wykonać commit, zaktualizuj drzewo "
+#~ "robocze."
+
+#~ msgid "Revert File"
+#~ msgstr "Przywróć plik"
+
+#~ msgid "Revert to this revision"
+#~ msgstr "Przywróć do tej rewizji"
+
+#~ msgid "&Update to this revision"
+#~ msgstr "Zaktualizuj do tej rewizji"
+
+#~ msgid "R&evert to this revision"
+#~ msgstr "Przywróć stan z tej rewizji"
+
+#, python-format
+#~ msgid "Revert to revision %s revid:%s."
+#~ msgstr "Przywróć do rewizji %s revid:%s."
+
+#, python-format
+#~ msgid "Revert %s to revision %s revid:%s."
+#~ msgstr "Przywróć %s do rewizji %s revid:%s."
+
+#, python-format
+#~ msgid "Update to revision %s revid:%s."
+#~ msgstr "Zaktualizuj do rewizji %s revid:%s."
+
+#, python-format
+#~ msgid "Update %s to revision %s revid:%s."
+#~ msgstr "Zaktualizuj %s do rewizji %s revid:%s."
+
+#~ msgid "Close Error Dialog"
+#~ msgstr "Zamknij okno błędu"
+
+#~ msgid "Ignore Error"
+#~ msgstr "Zignoruj błąd"
+
+#~ msgid "Close Application"
+#~ msgstr "Zamknij aplikację"
+
+#~ msgid "Find: "
+#~ msgstr "Znajdź: "
+
+#~ msgid "Previous"
+#~ msgstr "Poprzedni"
+
+#~ msgid "Next"
+#~ msgstr "Następny"
+
+#~ msgid "Case sensitive"
+#~ msgstr "Rozróżniaj wielkość liter"
+
+#~ msgid "Whole words"
+#~ msgstr "Całe wyrazy"

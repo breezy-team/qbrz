@@ -1,12 +1,14 @@
 all:
 	@echo Targets:
-	@echo   test  - run tests
-	@echo   pot   - regenerate qbzr.pot translations template
-	@echo   mo    - build binary translations
-	@echo   clean - remove build products
-	@echo   tags  - collect tags with ctags utility
-	@echo   docs  - build htmls for texts in docs/ directory
+	@echo   test   - run tests
+	@echo   pot    - regenerate qbzr.pot translations template
+	@echo   mo     - build binary translations
+	@echo   clean  - remove build products
+	@echo   tags   - collect tags with ctags utility
+	@echo   docs   - build htmls for texts in docs/ directory
 	@echo   epydoc - build API docs with epydoc
+	@echo   ui     - compile UI files
+	@echo
 	@echo To build release run:
 	@echo    make release RELEASE=X.Y.Z
 

@@ -56,6 +56,7 @@ import thread
 from bzrlib import (
     bencode,
     commands,
+    errors,
     osutils,
     ui,
     )
@@ -673,9 +674,8 @@ class SubProcessWidget(QtGui.QWidget):
                 data = (button == QtGui.QMessageBox.Yes)
                 self.process.write(SUB_GETBOOL + bencode.bencode(data) + "\n")
             elif line.startswith(SUB_ERROR):
-                data = bencode.bdecode(line[len(SUB_ERROR):])
-                self.error_class = data[0]
-                self.error_data = decode_unicode_escape(data[1])
+                self.error_class, self.error_data = bdecode_exception_instance(
+                    line[len(SUB_ERROR):])
             else:
                 line = line.decode(self.encoding, 'replace')
                 self.logMessageEx(line, 'plain', self.stdout)
@@ -886,16 +886,10 @@ def run_subprocess_command(cmd, bencoded=False):
         argv = [unicode(p, 'utf-8') for p in bencode.bdecode(cmd_utf8)]
     try:
         return commands.run_bzr(argv)
+    except (KeyboardInterrupt, SystemExit):
+        raise
     except Exception, e:
-        d = {}
-        for key, val in e.__dict__.iteritems():
-            if not key.startswith('_'):
-                if not isinstance(val, unicode):
-                    val = unicode(val)
-                d[key] = val
-        print "%s%s" % (SUB_ERROR,
-                        bencode.bencode((e.__class__.__name__,
-                                         encode_unicode_escape(d))))
+        print "%s%s" % (SUB_ERROR, bencode_exception_instance(e))
         raise
 
 
@@ -962,6 +956,46 @@ def bencode_prompt(arg):
 def bdecode_prompt(s):
     return bencode.bdecode(s).decode('unicode-escape')
 
+
+def bencode_exception_instance(e):
+    """Serialise the main information about an exception instance with bencode
+
+    For now, nearly all exceptions just give the exception name as a string,
+    but a dictionary is also given that may contain unicode-escaped attributes.
+    """
+    # GZ 2011-04-15: Could use bzrlib.trace._qualified_exception_name in 2.4
+    ename = e.__class__.__name__
+    d = {}
+    # For now be conservative and only serialise attributes that will get used
+    keys = []
+    if isinstance(e, errors.UncommittedChanges):
+        keys.append("display_url")
+    for key in keys:
+        # getattr and __repr__ can break in lots of ways, so catch everything
+        # but exceptions that occur as interrupts, allowing for Python 2.4
+        try:
+            val = getattr(e, key)
+            if not isinstance(val, unicode):
+                if not isinstance(val, str):
+                    val = repr(val)
+                val = val.decode("ascii", "replace")
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except:
+            val = "[QBzr could not serialize this attribute]"
+        d[key] = val.encode("unicode-escape")
+    return bencode.bencode((ename, d))
+
+
+def bdecode_exception_instance(s):
+    """Deserialise information about an exception instance with bdecode"""
+    ename, d = bencode.bdecode(s)
+    for k in d:
+        d[k] = d[k].decode("unicode-escape")
+    return ename, d
+
+
+# GZ 2011-04-15: Remove or deprecate these functions if they remain unused?
 def encode_unicode_escape(obj):
     if isinstance(obj, dict):
         result = {}

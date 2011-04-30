@@ -1,0 +1,25 @@
+Explanation from Max Bowsher 2011/03/28
+
+
+lp: URL structure
+=================
+
+lp:bzr                            | PROJECT
+lp:bzr/2.3                        | PROJECT/SERIES
+lp:~maxb/bzr/foobar               | USER/PROJECT/BRANCHNAME
+
+lp:ubuntu/bzr                     | DISTRO/SOURCEPACKAGE
+lp:ubuntu/maverick/bzr            | DISTRO/SERIES/SOURCEPACKAGE
+lp:ubuntu/maverick-proposed/bzr   | DISTRO/POCKET/SOURCEPACKAGE
+lp:~maxb/ubuntu/maverick/bzr/sru  | USER/DISTRO/SERIES/SOURCEPACKAGE/BRANCHNAME
+
+
+bzr+ssh:b.l.n URL structure
+===========================
+
+bzr+ssh://b.l.n/~.....
+  Any of the ~user based lp: forms
+
+bzr+ssh://b.l.n/+branch/.....
+  Any of the non-~user based lp: forms
+

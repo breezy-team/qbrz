@@ -8,15 +8,15 @@ msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-01-16 13:16+0200\n"
-"PO-Revision-Date: 2010-02-19 09:57+0000\n"
-"Last-Translator: Hector Louzao <os390l@gmail.com>\n"
+"PO-Revision-Date: 2011-02-23 19:37+0000\n"
+"Last-Translator: Fitoschido <fitoschido@gmail.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2010-08-03 12:24+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Launchpad-Export-Date: 2011-04-29 07:28+0000\n"
+"X-Generator: Launchpad (build 12915)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
 #: lib\config.py:201
@@ -54,7 +54,7 @@ msgstr "&Anotar esta revisión"
 
 #: lib\bind.py:44
 msgid "Bind branch"
-msgstr "Rama enlazada"
+msgstr "Enlazar rama"
 
 #: lib\bind.py:54
 msgid "Bind"
@@ -125,8 +125,8 @@ msgid ""
 "Local commits are not pushed to the master branch until a normal commit is "
 "performed"
 msgstr ""
-"Envíos locales no pueden actualizar la rama principal hasta que se genere un "
-"envío normal"
+"Los envíos locales no pueden actualizar la rama principal hasta que se "
+"genere un envío normal"
 
 #: lib\commit.py:258
 msgid "Description:"
@@ -158,7 +158,7 @@ msgid ""
 "<i>project:123 project:765</i>"
 msgstr ""
 "Introduzca la lista de IDs de los errores en formato <i>etiqueta:id</i> "
-"separado por un espacio, ejemplo <i>projecto:123 projecto:765</i>"
+"separado por un espacio, ejemplo <i> proyecto:123 proyecto:765</i>"
 
 #: lib\commit.py:329
 msgid "&Author:"
@@ -203,7 +203,7 @@ msgstr "&Aceptar"
 
 #: lib\commit.py:621
 msgid "No changes to commit."
-msgstr "No hay cambios que enviar"
+msgstr "No hay cambios que enviar."
 
 #: lib\commit.py:629
 msgid ""
@@ -1812,3 +1812,98 @@ msgstr "(sin mensaje)"
 
 #~ msgid "Line"
 #~ msgstr "Línea"
+
+#~ msgid "&Revert..."
+#~ msgstr "Deshace&r..."
+
+#~ msgid "Extension"
+#~ msgstr "Extensión"
+
+#~ msgid "Internal Error"
+#~ msgstr "Error interno"
+
+#~ msgid "Stopped"
+#~ msgstr "Detenido"
+
+#~ msgid "&Replace"
+#~ msgstr "&Reemplazar"
+
+#~ msgid "&Location"
+#~ msgstr "Ubicación"
+
+#~ msgid "Local location:"
+#~ msgstr "Ruta local:"
+
+#, python-format
+#~ msgid "Revert %s to latest revision."
+#~ msgstr "Revertir %s a la última revisión."
+
+#~ msgid "Replace existing tag"
+#~ msgstr "Reemplazar etiqueta existente"
+
+#~ msgid "Mark as resolved"
+#~ msgstr "Marcar como resuleto"
+
+#~ msgid "Show log..."
+#~ msgstr "Mostrar minuta..."
+
+#, python-format
+#~ msgid ""
+#~ "Sorry, subprocess action \"%s\" cannot be started\n"
+#~ "because self.args is None.\n"
+#~ "Please, report bug at:\n"
+#~ "https://bugs.launchpad.net/qbzr/+filebug"
+#~ msgstr ""
+#~ "Lo sentimos, El proceso \"%s\" no le ha sido posible iniciar\n"
+#~ "porque self.args es Nulo.\n"
+#~ "Por favor, reporte el error a:\n"
+#~ "https://bugs.launchpad.net/qbzr/+filebug"
+
+#, python-format
+#~ msgid ""
+#~ "Tag \"%s\" already exists.\n"
+#~ "Do you want to replace existing tag?"
+#~ msgstr "Etiqueta \"%s\" actualmente existe."
+
+#~ msgid "Public branch location:"
+#~ msgstr "Ubicación de la rama pública:"
+
+#~ msgid ""
+#~ "Branch source (enter a URL or select a local directory with an exiting "
+#~ "branch)"
+#~ msgstr ""
+#~ "Código fuente de la rama (introduzca una URL ó seleccione un directorio "
+#~ "local con una rama existente)"
+
+#~ msgid "modified (x-bit)"
+#~ msgstr "modificado (x-bit)"
+
+#~ msgid "&Annotate this revision."
+#~ msgstr "&Anotar esta revisión."
+
+#~ msgid "Goto Line"
+#~ msgstr "Ir a la línea"
+
+#~ msgid "&View Options"
+#~ msgstr "&Ver opciones"
+
+#~ msgid "Goto Line: "
+#~ msgstr "Ir a la línea: "
+
+#~ msgid "View Options"
+#~ msgstr "Ver opciones"
+
+#~ msgid "Encoding"
+#~ msgstr "Codificación"
+
+#~ msgid "Find"
+#~ msgstr "Buscar"
+
+#~ msgid "Go"
+#~ msgstr "Ir"
+
+#~ msgid "Word Wrap"
+#~ msgstr "Ajuste de línea"
+
+#~ msgid "Update"
+#~ msgstr "Actualizar"

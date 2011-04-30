@@ -22,6 +22,7 @@
 
 import errno
 import time
+import string
 
 from PyQt4 import QtCore, QtGui
 
@@ -47,19 +48,21 @@ from bzrlib.plugins.qbzr.lib.diff import (
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
-    BTN_CLOSE, BTN_REFRESH,
     FilterOptions,
+    FindToolbar,
     QBzrWindow,
-    ThrobberWidget,
-    StandardButton,
+    ToolBarThrobberWidget,
+    get_icon,
     get_set_encoding,
+    get_tab_width_pixels,
     is_binary_content,
     run_in_loading_queue,
-    runs_in_loading_queue
+    runs_in_loading_queue,
+    show_shortcut_hint,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
-from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingSelector
+from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
 
 try:
     from bzrlib.errors import FileTimestampUnavailable
@@ -81,13 +84,13 @@ def get_title_for_tree(tree, branch, other_branch):
     branch_title = ""
     if None not in (branch, other_branch) and branch.base != other_branch.base:
         branch_title = branch.nick
-    
+
     if isinstance(tree, WorkingTree):
         if branch_title:
             return gettext("Working Tree for %s") % branch_title
         else:
             return gettext("Working Tree")
-    
+
     elif isinstance(tree, (RevisionTree, DirStateRevisionTree)):
         # revision_id_to_revno is faster, but only works on mainline rev
         revid = tree.get_revision_id()
@@ -117,7 +120,7 @@ def get_title_for_tree(tree, branch, other_branch):
     elif isinstance(tree, _PreviewTree):
         return gettext('Merge Preview')
 
-    # XXX I don't know what other cases we need to handle    
+    # XXX I don't know what other cases we need to handle
     return 'Unknown tree'
 
 
@@ -193,8 +196,7 @@ class DiffItem(object):
 
         self._lines = None
         self._binary = None
-        self._groups = None
-        self._groups_complete = None
+        self._group_cache = {}
         self._encodings = [None, None]
         self._ulines = [None, None]
 
@@ -231,11 +233,9 @@ class DiffItem(object):
             self._load_lines()
         return self._binary
 
-    def groups(self, complete):
-        if complete:
-            groups = self._groups_complete
-        else:
-            groups = self._groups
+    def groups(self, complete, ignore_whitespace):
+        key = (complete, ignore_whitespace)
+        groups = self._group_cache.get(key)
         if groups is not None:
             return groups
 
@@ -247,19 +247,28 @@ class DiffItem(object):
             elif self.versioned == (False, True):
                 groups = [[('insert', 0, 0, 0, len(lines[1]))]]
             else:
-                matcher = SequenceMatcher(None, lines[0], lines[1])
-                if complete:
-                    groups = list([matcher.get_opcodes()])
-                else:
-                    groups = list(matcher.get_grouped_opcodes())
+                groups = self.difference_groups(lines, complete, ignore_whitespace)
         else:
             groups = []
 
-        if complete:
-            self._groups_complete = groups
-        else:
-            self._groups = groups
+        self._group_cache[key] = groups
         return groups
+
+    def difference_groups(self, lines, complete, ignore_whitespace):
+        left, right = lines
+        if ignore_whitespace:
+            table = string.maketrans("", "")
+            strip = lambda l : l.translate(table, string.whitespace)
+            left  = (line.translate(table, string.whitespace) for line in left)
+            right = (line.translate(table, string.whitespace) for line in right)
+        matcher = SequenceMatcher(None, left, right)
+        if complete:
+            groups = list([matcher.get_opcodes()])
+        else:
+            groups = list(matcher.get_grouped_opcodes())
+
+        return groups
+
 
     def encode(self, encodings):
         lines = self.lines
@@ -281,7 +290,7 @@ class DiffWindow(QBzrWindow):
 
     def __init__(self, arg_provider, parent=None,
                  complete=False, encoding=None,
-                 filter_options=None, ui_mode=True):
+                 filter_options=None, ui_mode=True, allow_refresh=True):
 
         title = [gettext("Diff"), gettext("Loading...")]
         QBzrWindow.__init__(self, title, parent, ui_mode=ui_mode)
@@ -294,9 +303,9 @@ class DiffWindow(QBzrWindow):
         if filter_options is None:
             self.filter_options = FilterOptions(all_enable=True)
         self.complete = complete
+        self.ignore_whitespace = False
+        self.delayed_signal_connections = []
 
-        self.throbber = ThrobberWidget(self)
-        
         self.diffview = SidebySideDiffView(self)
         self.sdiffview = SimpleDiffView(self)
         self.views = (self.diffview, self.sdiffview)
@@ -304,74 +313,165 @@ class DiffWindow(QBzrWindow):
         self.stack = QtGui.QStackedWidget(self.centralwidget)
         self.stack.addWidget(self.diffview)
         self.stack.addWidget(self.sdiffview)
-
         vbox = QtGui.QVBoxLayout(self.centralwidget)
-        vbox.addWidget(self.throbber)
         vbox.addWidget(self.stack)
 
-        diffsidebyside = QtGui.QRadioButton(gettext("Side by side"),
-                                            self.centralwidget)
-        self.connect(diffsidebyside,
-                     QtCore.SIGNAL("clicked(bool)"),
-                     self.click_diffsidebyside)
-        diffsidebyside.setChecked(True);
+        for browser in self.diffview.browsers:
+            browser.installEventFilter(self)
 
-        unidiff = QtGui.QRadioButton(gettext("Unidiff"), self.centralwidget)
-        self.connect(unidiff,
-                     QtCore.SIGNAL("clicked(bool)"),
-                     self.click_unidiff)
+        self.create_main_toolbar(allow_refresh)
+        self.addToolBarBreak()
+        self.find_toolbar = FindToolbar(self, self.diffview.browsers[0],
+                self.show_find)
+        self.find_toolbar.hide()
+        self.addToolBar(self.find_toolbar)
+
+    def connect_later(self, *args, **kwargs):
+        """Schedules a signal to be connected after loading CLI arguments.
+        
+        Accepts the same arguments as QObject.connect method.
+        """
+        self.delayed_signal_connections.append((args, kwargs))
+
+    def process_delayed_connections(self):
+        for (args, kwargs) in self.delayed_signal_connections:
+            self.connect(*args, **kwargs)
+
+    def create_main_toolbar(self, allow_refresh=True):
+        toolbar = self.addToolBar(gettext("Diff"))
+        toolbar.setMovable (False)
+        toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+
+        self.show_find = self.create_find_action()
+        toolbar.addAction(self.show_find)
+        toolbar.addAction(self.create_toggle_view_mode())
+        self.view_refresh = self.create_refresh_action(allow_refresh)
+        if allow_refresh:
+            toolbar.addAction(self.view_refresh)
+            
+        if has_ext_diff():
+            show_ext_diff_menu = self.create_ext_diff_action()
+            toolbar.addAction(show_ext_diff_menu)
+            widget = toolbar.widgetForAction(show_ext_diff_menu)
+            widget.setPopupMode(QtGui.QToolButton.InstantPopup)
+            widget.setShortcut("Alt+E")
+            show_shortcut_hint(widget)
+
+        show_view_menu = self.create_view_menu()
+        toolbar.addAction(show_view_menu)
+        widget = toolbar.widgetForAction(show_view_menu)
+        widget.setPopupMode(QtGui.QToolButton.InstantPopup)
+        widget.setShortcut("Alt+V")
+        show_shortcut_hint(widget)
+
+        spacer = QtGui.QWidget()
+        spacer.setSizePolicy(QtGui.QSizePolicy.Expanding,
+                QtGui.QSizePolicy.Expanding)
+        toolbar.addWidget(spacer)
+
+        self.throbber = ToolBarThrobberWidget(self)
+        toolbar.addWidget(self.throbber)
+        return toolbar
+
+    def create_find_action(self):
+        action = QtGui.QAction(get_icon("edit-find"),
+                gettext("&Find"), self)
+        action.setShortcut(QtGui.QKeySequence.Find)
+        action.setToolTip(gettext("Find on active panel"))
+        show_shortcut_hint(action)
+        action.setCheckable(True)
+        return action
+
+    def create_toggle_view_mode(self):
+        action = QtGui.QAction(get_icon("view-split-left-right"),
+                gettext("Unidiff"), self)
+        action.setToolTip(
+                gettext("Toggle between Side by side and Unidiff view modes"))
+        action.setShortcut("Ctrl+U")
+        show_shortcut_hint(action)
+        action.setCheckable(True)
+        action.setChecked(False);
+        self.connect(action,
+                     QtCore.SIGNAL("toggled (bool)"),
+                     self.click_toggle_view_mode)
+        return action
+
+    def create_refresh_action(self, allow_refresh=True):
+        action = QtGui.QAction(get_icon("view-refresh"),
+                gettext("&Refresh"), self)
+        action.setShortcut("Ctrl+R")
+        show_shortcut_hint(action)
+        self.connect(action,
+                     QtCore.SIGNAL("triggered (bool)"),
+                     self.click_refresh)
+        action.setEnabled(allow_refresh)
+        return action
+
+    def create_ext_diff_action(self):
+        action = QtGui.QAction(get_icon("system-run"),
+                gettext("&External Diff"), self)
+        action.setToolTip(
+            gettext("Launch an external diff application"))
+        ext_diff_menu = ExtDiffMenu(parent=self, include_builtin = False)
+        action.setMenu(ext_diff_menu)
+        self.connect(ext_diff_menu,
+                QtCore.SIGNAL("triggered(QString)"),
+                self.ext_diff_triggered)
+        return action
+
+
+    def create_view_menu(self):
+        show_view_menu = QtGui.QAction(get_icon("document-properties"), gettext("&View Options"), self)
+        view_menu = QtGui.QMenu(gettext('View Options'), self)
+        show_view_menu.setMenu(view_menu)
+
+        view_complete = QtGui.QAction(gettext("&Complete"), self)
+        view_complete.setCheckable(True)
+        self.connect(view_complete,
+                     QtCore.SIGNAL("toggled (bool)"),
+                     self.click_complete)
+        view_menu.addAction(view_complete)
+
+        self.ignore_whitespace_action = self.create_ignore_ws_action()
+        view_menu.addAction(self.ignore_whitespace_action)
 
         def on_left_encoding_changed(encoding):
             if self.branches:
                 get_set_encoding(encoding, self.branches[0])
             self.click_refresh()
-        self.encoding_selector_left = EncodingSelector(encoding,
-                                            gettext("Left side encoding:"),
-                                            on_left_encoding_changed)
+
+        self.encoding_selector_left = EncodingMenuSelector(self.encoding,
+            gettext("Left side encoding"),
+            on_left_encoding_changed)
+        view_menu.addMenu(self.encoding_selector_left)
 
         def on_right_encoding_changed(encoding):
             if self.branches:
                 get_set_encoding(encoding, self.branches[1])
             self.click_refresh()
-        self.encoding_selector_right = EncodingSelector(encoding,
-                                            gettext("Right side encoding:"),
-                                            on_right_encoding_changed)
 
+        self.encoding_selector_right = EncodingMenuSelector(self.encoding,
+            gettext("Right side encoding"),
+            on_right_encoding_changed)
+        view_menu.addMenu(self.encoding_selector_right)
+        return show_view_menu
 
-        complete = QtGui.QCheckBox (gettext("Complete"),
-                                            self.centralwidget)
-        self.connect(complete,
-                     QtCore.SIGNAL("clicked(bool)"),
-                     self.click_complete)
-        complete.setChecked(self.complete);
-        
-        if has_ext_diff():
-            self.menu = ExtDiffMenu(include_builtin = False)
-            ext_diff_button = QtGui.QPushButton(gettext('Using'), self)
-            ext_diff_button.setMenu(self.menu)
-            self.connect(self.menu, QtCore.SIGNAL("triggered(QString)"),
-                         self.ext_diff_triggered)
+    def create_ignore_ws_action(self):
+        action = QtGui.QAction(gettext("&Ignore whitespace changes"), self)
+        action.setCheckable(True)
+        action.setChecked(self.ignore_whitespace);
+        self.connect_later(action,
+                     QtCore.SIGNAL("toggled (bool)"),
+                     self.click_ignore_whitespace)
+        return action
 
-        buttonbox = self.create_button_box(BTN_CLOSE)
-
-        refresh = StandardButton(BTN_REFRESH)
-        refresh.setEnabled(self.can_refresh())
-        buttonbox.addButton(refresh, QtGui.QDialogButtonBox.ActionRole)
-        self.connect(refresh,
-                     QtCore.SIGNAL("clicked()"),
-                     self.click_refresh)
-        self.refresh_button = refresh
-
-        hbox = QtGui.QHBoxLayout()
-        hbox.addWidget(diffsidebyside)
-        hbox.addWidget(unidiff)
-        hbox.addWidget(complete)
-        if has_ext_diff():
-            hbox.addWidget(ext_diff_button)
-        hbox.addWidget(self.encoding_selector_left)
-        hbox.addWidget(self.encoding_selector_right)
-        hbox.addWidget(buttonbox)
-        vbox.addLayout(hbox)
+    def eventFilter(self, object, event):
+        if event.type() == QtCore.QEvent.FocusIn:
+            if object in self.diffview.browsers:
+                self.find_toolbar.text_edit = object
+        return QBzrWindow.eventFilter(self, object, event)
+        # Why doesn't this work?
+        #return super(DiffWindow, self).eventFilter(object, event)
 
     def show(self):
         QBzrWindow.show(self)
@@ -389,33 +489,33 @@ class DiffWindow(QBzrWindow):
         self.throbber.show()
         op.add_cleanup(self.throbber.hide)
         op.run()
-    
+
     def _initial_load(self, op):
-        (tree1, tree2,
-         branch1, branch2,
-         specific_files) = self.arg_provider.get_diff_window_args(
-                                        self.processEvents, op.add_cleanup)
-        
-        self.trees = (tree1, tree2)
-        self.branches = (branch1, branch2)
-        self.specific_files = specific_files
-        
+        args = self.arg_provider.get_diff_window_args(self.processEvents, op.add_cleanup)
+
+        self.trees = (args["old_tree"], args["new_tree"])
+        self.branches = (args.get("old_branch", None), args.get("new_branch",None))
+        self.specific_files = args.get("specific_files", None)
+        self.ignore_whitespace = args.get("ignore_whitespace", False)
+        self.ignore_whitespace_action.setChecked(self.ignore_whitespace)
+
+        self.process_delayed_connections()
         self.load_branch_info()
+        self.setup_tab_width()
         self.load_diff()
-    
+
     def load_branch_info(self):
         self.set_diff_title()
-        
         self.encoding_selector_left.encoding = get_set_encoding(self.encoding, self.branches[0])
         self.encoding_selector_right.encoding = get_set_encoding(self.encoding, self.branches[1])
         self.processEvents()
-    
+
     def set_diff_title(self):
         rev1_title = get_title_for_tree(self.trees[0], self.branches[0],
                                         self.branches[1])
         rev2_title = get_title_for_tree(self.trees[1], self.branches[1],
                                         self.branches[0])
-        
+
         title = [gettext("Diff"), "%s..%s" % (rev1_title, rev2_title)]
 
         if self.specific_files:
@@ -432,8 +532,14 @@ class DiffWindow(QBzrWindow):
         self.set_title_and_icon(title)
         self.processEvents()
 
+    def setup_tab_width(self):
+        tabWidths = (get_tab_width_pixels(self.branches[0]),
+                     get_tab_width_pixels(self.branches[1]))
+        self.diffview.setTabStopWidths(tabWidths)
+        self.sdiffview.setTabStopWidth(tabWidths[0])
+
     def load_diff(self):
-        self.refresh_button.setEnabled(False)
+        self.view_refresh.setEnabled(False)
         for tree in self.trees: tree.lock_read()
         self.processEvents()
         try:
@@ -471,7 +577,7 @@ class DiffWindow(QBzrWindow):
 
                     lines = di.lines
                     self.processEvents()
-                    groups = di.groups(self.complete)
+                    groups = di.groups(self.complete, self.ignore_whitespace)
                     self.processEvents()
                     ulines = di.encode([self.encoding_selector_left.encoding,
                                         self.encoding_selector_right.encoding])
@@ -495,18 +601,19 @@ class DiffWindow(QBzrWindow):
             QtGui.QMessageBox.information(self, gettext('Diff'),
                 gettext('No changes found.'),
                 gettext('&OK'))
-        self.refresh_button.setEnabled(self.can_refresh())
+        self.view_refresh.setEnabled(self.can_refresh())
 
-    def click_unidiff(self, checked):
+    def click_toggle_view_mode(self, checked):
         if checked:
-            self.sdiffview.rewind()
-            self.stack.setCurrentIndex(1)
+            view = self.sdiffview
+            self.find_toolbar.text_edit = view
+        else:
+            view = self.diffview
+            self.find_toolbar.text_edit = view.browsers[0]
+        view.rewind()
+        index = self.stack.indexOf(view)
+        self.stack.setCurrentIndex(index)
 
-    def click_diffsidebyside(self, checked):
-        if checked:
-            self.diffview.rewind()
-            self.stack.setCurrentIndex(0)
-    
     def click_complete(self, checked ):
         self.complete = checked
         #Has the side effect of refreshing...
@@ -527,7 +634,15 @@ class DiffWindow(QBzrWindow):
         if isinstance(tree1, MutableTree) or isinstance(tree2, MutableTree):
             return True
         return False
-    
+
     def ext_diff_triggered(self, ext_diff):
         """@param ext_diff: path to external diff executable."""
         show_diff(self.arg_provider, ext_diff=ext_diff, parent_window = self)
+
+    def click_ignore_whitespace(self, checked ):
+        self.ignore_whitespace = checked
+        #Has the side effect of refreshing...
+        self.diffview.clear()
+        self.sdiffview.clear()
+        run_in_loading_queue(self.load_diff)
+
