@@ -10,7 +10,7 @@ the same names as CLI commands but with a prefix of "q".
 Requirements
 ============
 
- * Python 2.4, 2.5 or 2.6
+ * Python 2.4-2.7
               
  * Bazaar VCS itself (see below version compatibility information)
 
@@ -28,17 +28,21 @@ Requirements
 Compatibility between qbzr and bzr versions
 ===========================================
 
- * QBzr 0.14.x compatible with bzr 1.17, 1.18.x, 2.0.x. 
+ * QBzr 0.21 is targeted to bzr 2.4 and compatible with bzr 2.3.
+   It may not work with older versions of bzr.
+
+ * QBzr 0.20 is targeted to bzr 2.3 and compatible with bzr 2.2.
+   It may not work with older versions of bzr.
+
+ * QBzr 0.19 required bzr 2.2 and compatible with bzr 2.1.
+   It may not work with older versions of bzr.
 
  * QBzr 0.18.x required bzr 2.1.x.
    Some commands/dialogs are working with bzr 1.17, 1.18.x, 2.0.x.
    It may work with bzr 2.2 or later, but this is not guaranteed.
 
- * QBzr 0.19 required bzr 2.2 and compatible with bzr 2.1.
-   It may not work with older versions of bzr.
+ * QBzr 0.14.x compatible with bzr 1.17, 1.18.x, 2.0.x. 
 
- * QBzr 0.20 is targeted to bzr 2.3 and compatible with bzr 2.2.
-   It may not work with older versions of bzr.
 
 Other bzr plugins that improve QBzr
 ===================================
@@ -52,6 +56,7 @@ Other bzr plugins that improve QBzr
  * bzr-extmerge (Required to lauch external merge applications to resolve
    conficts.)
    https://launchpad.net/bzr-extmerge
+
 
 Provided Commands
 =================
