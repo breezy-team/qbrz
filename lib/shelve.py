@@ -531,6 +531,14 @@ class HunkView(QtGui.QWidget):
         self.selector = HunkSelector(self.browser, self)
         layout.addWidget(self.selector)
         layout.addWidget(self.browser)
+        self.connect(self.browser, QtCore.SIGNAL("focusedHunkChanged()"), 
+                     self.update)
+
+        def selected_hunk_changed():
+            self.update()
+            self.emit(QtCore.SIGNAL("selectionChanged()"))
+        self.connect(self.browser, QtCore.SIGNAL("selectedHunkChanged()"), 
+                     selected_hunk_changed)
 
         self.change = None
         self.encoding = None
@@ -569,7 +577,6 @@ class HunkSelector(QtGui.QFrame):
         self.setFixedWidth(25)
         self.setStyleSheet("border:1px solid lightgray;")
         self.connect(browser.verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.scrolled)
-        self.connect(browser, QtCore.SIGNAL("focusedHunkChanged()"), self.update)
         self.frame_width = QtGui.QApplication.style().pixelMetric(QtGui.QStyle.PM_DefaultFrameWidth)
 
         self.checkbox_pen = QtGui.QPen(QtCore.Qt.black)
@@ -617,11 +624,9 @@ class HunkSelector(QtGui.QFrame):
             scroll_y = browser.verticalScrollBar().value()
 
             y = event.y() + scroll_y - self.frame_width
-            for hunk, top, bottom in browser.hunk_list:
+            for i, (hunk, top, bottom) in enumerate(browser.hunk_list):
                 if top <= y <= bottom:
-                    hunk.selected = not hunk.selected
-                    self.repaint(6, top - scroll_y + 3, 13, 13)
-                    self.parent().emit(QtCore.SIGNAL("selectionChanged()"))
+                    browser.toggle_selection(i)
                     break
                 elif y < top:
                     break
@@ -668,6 +673,7 @@ class HunkTextBrowser(QtGui.QTextBrowser):
         self.header_color = colors['blank'][0]
         self.border_pen = QtGui.QPen(QtCore.Qt.gray)
         self.focus_color = QtGui.QColor(0x87, 0xCE, 0xEB, 0x40) # lightBlue
+        self.focus_pen = QtGui.QPen(QtGui.QColor(0x87, 0xCE, 0xEB)) # lightBlue
 
         self.complete = complete
         self._focused_index = -1
@@ -764,7 +770,7 @@ class HunkTextBrowser(QtGui.QTextBrowser):
                 # Fill header rect.
                 painter.fillRect(left, y1, width, 20, self.header_color)
             # Overlay focus rect.
-            if i == self._focused_index:
+            if i == self._focused_index and self.hasFocus():
                 painter.fillRect(left, y1, width, y2 - y1, self.focus_color)
             # Draw border.
             painter.drawLine(left, y1, right, y1)
@@ -782,6 +788,11 @@ class HunkTextBrowser(QtGui.QTextBrowser):
             index -= 1
         self._set_focused_hunk(index)
 
+    def toggle_selection(self, index):
+        if 0 <= index < len(self.hunk_list) and int(index) == index:
+            self.hunk_list[index][0].selected = \
+                    not self.hunk_list[index][0].selected
+            self.emit(QtCore.SIGNAL("selectedHunkChanged()"))
 
     def focus_hunk_by_pos(self, y):
         index = self.hittest(y)
@@ -829,6 +840,29 @@ class HunkTextBrowser(QtGui.QTextBrowser):
             self.focus_hunk_by_pos(event.y())
 
         QtGui.QTextBrowser.mousePressEvent(self, event)
+
+    def focusInEvent(self, event):
+        self.parent().update()
+        QtGui.QTextBrowser.focusInEvent(self, event)
+
+    def focusOutEvent(self, event):
+        self.parent().update()
+        QtGui.QTextBrowser.focusOutEvent(self, event)
+
+    def keyPressEvent(self, event):
+        mod, key = int(event.modifiers()), event.key()
+        if mod == QtCore.Qt.NoModifier:
+            if key == QtCore.Qt.Key_Space:
+                self.toggle_selection(self._focused_index)
+                return
+        elif mod == QtCore.Qt.ControlModifier:
+            if key == QtCore.Qt.Key_Up:
+                self.move_previous()
+                return
+            elif key == QtCore.Qt.Key_Down:
+                self.move_next()
+                return
+        QtGui.QTextBrowser.keyPressEvent(self, event)
 
 
 
