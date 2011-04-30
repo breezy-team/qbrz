@@ -8,15 +8,15 @@ msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-01-16 13:16+0200\n"
-"PO-Revision-Date: 2010-06-03 20:25+0000\n"
-"Last-Translator: Eduard Gotwig <eduardgotwig@gmail.com>\n"
+"PO-Revision-Date: 2010-09-26 09:05+0000\n"
+"Last-Translator: cmdrhenner <cmdrhenner@gmail.com>\n"
 "Language-Team: German <de@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2010-08-03 12:24+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Launchpad-Export-Date: 2011-04-29 07:28+0000\n"
+"X-Generator: Launchpad (build 12915)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
 #: lib\config.py:201
@@ -29,7 +29,7 @@ msgstr "Nicht versionierte Dateien"
 
 #: lib\add.py:104
 msgid "Show ignored files"
-msgstr "Zeige ignorierte Dateien"
+msgstr "Ignorierte Dateien zeigen"
 
 #: lib\annotate.py:199 lib\annotate.py:321 lib\annotate.py:325 lib\log.py:423
 msgid "Annotate"
@@ -109,7 +109,7 @@ msgstr "Ansicht"
 
 #: lib\commit.py:214 lib\commit.py:592 lib\commit.py:620 lib\commit.py:628
 msgid "Commit"
-msgstr "Übertragen"
+msgstr "Committen"
 
 #: lib\commit.py:240 lib\ui_branch.py:65 lib\ui_new_tree.py:130
 #: lib\ui_tag.py:89
@@ -118,14 +118,14 @@ msgstr "Zweig"
 
 #: lib\commit.py:252
 msgid "&Local commit"
-msgstr "&Lokale Übertragung"
+msgstr "&Lokaler Commit"
 
 #: lib\commit.py:254
 msgid ""
 "Local commits are not pushed to the master branch until a normal commit is "
 "performed"
 msgstr ""
-"Lokale Commits werden nicht zum Hauptzweig hochgereicht bis ein normaler "
+"Lokale Commits werden nicht zum Hauptzweig hochgereicht, bis ein normaler "
 "Commit durchgeführt wird"
 
 #: lib\commit.py:258
@@ -138,7 +138,7 @@ msgstr "Nachricht"
 
 #: lib\commit.py:281
 msgid "Show non-versioned files"
-msgstr "Zeige nicht versionierte Dateien"
+msgstr "Nicht versionierte Dateien zeigen"
 
 #: lib\commit.py:303
 msgid "Enter the commit message"
@@ -316,7 +316,7 @@ msgstr "URL"
 #: lib\config.py:160
 msgid "Show inter-group inserts and deletes in green and red"
 msgstr ""
-"Zeige Einfügungen und Entfernungen innherhalb von Gruppen in Grün und Rot"
+"Einfügungen und Entfernungen innerhalb von Gruppen in Grün und Rot anzeigen"
 
 #: lib\config.py:162
 msgid "External Diff Apps:"
@@ -411,7 +411,7 @@ msgstr "V&erschmelzungs-Werkzeug:"
 
 #: lib\conflicts.py:112
 msgid "Auto-resolve"
-msgstr "Automatisch Auflösen"
+msgstr "Automatisch auflösen"
 
 #: lib\conflicts.py:141 lib\treewidget.py:1598
 msgid "&Merge conflict"
@@ -579,11 +579,11 @@ msgstr "Unidiff"
 
 #: lib\diffwindow.py:163
 msgid "Left side encoding:"
-msgstr "Linke-Seite Verschlüsselung"
+msgstr "Zeichenkodierung links:"
 
 #: lib\diffwindow.py:171
 msgid "Right side encoding:"
-msgstr "Rechte-Seite Verschlüsselung"
+msgstr "Zeichenkodierung rechts:"
 
 #: lib\diffwindow.py:175
 msgid "Complete"
@@ -640,12 +640,12 @@ msgstr "Keine Änderungen gefunden."
 
 #: lib\encoding_selector.py:114
 msgid "Wrong encoding"
-msgstr "Falsche Verschlüsselung"
+msgstr "Falsche Zeichenkodierung"
 
 #: lib\encoding_selector.py:115
 #, python-format
 msgid "Encoding \"%s\" is invalid or not supported."
-msgstr "Verschlüsselung \"%s\" ist ungültig oder wird nicht unterstützt."
+msgstr "Zeichenkodierung »%s« ist ungültig oder wird nicht unterstützt."
 
 #: lib\export.py:61 lib\export.py:80
 msgid "Export"
@@ -744,7 +744,7 @@ msgstr "Es muss ein Ort angegeben werden"
 
 #: lib\log.py:98
 msgid "Log"
-msgstr "Log"
+msgstr "Protokoll"
 
 #: lib\log.py:125
 msgid "&Search:"
@@ -780,7 +780,7 @@ msgstr "Nachrichten und Datei-Text (indexiert)"
 
 #: lib\log.py:418 lib\logwidget.py:132
 msgid "Show &differences..."
-msgstr "Zeige Unterschiede..."
+msgstr "Zeige &Unterschiede …"
 
 #: lib\log.py:426
 msgid "View file"
@@ -817,7 +817,7 @@ msgstr "Zeige Unterschie&de in Datei"
 
 #: lib\logwidget.py:122
 msgid "Show all &differences..."
-msgstr "Zeige alle &Unterschiede..."
+msgstr "Zeige alle &Unterschiede …"
 
 #: lib\logwidget.py:140
 msgid "Show &tree..."
@@ -865,7 +865,7 @@ msgstr "&Drücken"
 
 #: lib\main.py:286
 msgid "Turn this branch into a mirror of another branch"
-msgstr "Verwandle diesen Ast in ein Spiegelbild eines anderen Astes"
+msgstr "Diesen Zweig in einen Spiegel eines anderen Zweigs umwandeln"
 
 #: lib\main.py:290
 msgid "Pu&ll"
@@ -1015,7 +1015,7 @@ msgstr "Zurücksetzen"
 
 #: lib\revert.py:65
 msgid "Select changes to revert"
-msgstr "Wähle Änderungen die rückgängig gemacht werden sollen"
+msgstr "Wählen Sie die Änderungen, die zurückgesetzt werden sollen."
 
 #: lib\revert.py:83
 msgid "Do not save backups of reverted files"
@@ -1027,7 +1027,7 @@ msgstr ""
 
 #: lib\revert.py:144
 msgid "View changes in files selected to revert"
-msgstr "Zeige Änderungen in den zum Zurücksetzen gewählten Dateien"
+msgstr "Änderungen in den zum Zurücksetzen gewählten Dateien anzeigen"
 
 #: lib\revert.py:242
 msgid ""
@@ -1061,7 +1061,7 @@ msgstr "Autor:"
 
 #: lib\revisionmessagebrowser.py:248 lib\unbind.py:49
 msgid "Branch:"
-msgstr "Ast:"
+msgstr "Zweig:"
 
 #: lib\revisionmessagebrowser.py:253
 msgid "Tags:"
@@ -1083,11 +1083,11 @@ msgstr "Arbeitsverzeichnis wählen"
 
 #: lib\run.py:118
 msgid "&Edit"
-msgstr ""
+msgstr "&Bearbeiten"
 
 #: lib\run.py:161
 msgid "Help for command"
-msgstr "Hilfe für kommando"
+msgstr "Hilfe für Befehl"
 
 #: lib\run.py:278
 msgid "Select path to insert"
@@ -1143,7 +1143,7 @@ msgstr "Dateiname:"
 
 #: lib\send.py:163
 msgid "Revisions:"
-msgstr ""
+msgstr "Revisionen:"
 
 #: lib\subprocess.py:103
 msgid "&Retry"
@@ -1316,7 +1316,7 @@ msgstr "Ignoriert"
 
 #: lib\treewidget.py:1574
 msgid "&Open"
-msgstr ""
+msgstr "&Öffnen"
 
 #: lib\treewidget.py:1577
 msgid "&View file"
@@ -1324,15 +1324,15 @@ msgstr "Datei &anzeigen"
 
 #: lib\treewidget.py:1580
 msgid "Show &annotate"
-msgstr "Zeige &Anmerkungen"
+msgstr "&Anmerkungen zeigen"
 
 #: lib\treewidget.py:1583
 msgid "Show &log"
-msgstr ""
+msgstr "&Protokoll anzeigen"
 
 #: lib\treewidget.py:1601
 msgid "Mark conflict &resolved"
-msgstr ""
+msgstr "Konflikt als ge&löst markieren"
 
 #: lib\treewidget.py:1606
 msgid "&Add"
@@ -1340,23 +1340,23 @@ msgstr "&Hinzufügen"
 
 #: lib\treewidget.py:1609
 msgid "&Revert"
-msgstr ""
+msgstr "&Zurücksetzen"
 
 #: lib\treewidget.py:1612
 msgid "Re&name"
-msgstr ""
+msgstr "&Umbenennen"
 
 #: lib\treewidget.py:1674
 msgid "&Mark as moved and renamed"
-msgstr ""
+msgstr "Als verschoben und umbenannt &markieren"
 
 #: lib\treewidget.py:1676
 msgid "&Mark as moved"
-msgstr ""
+msgstr "Als verschoben &markieren"
 
 #: lib\treewidget.py:1678
 msgid "&Mark as renamed"
-msgstr ""
+msgstr "Als umbenannt &markieren"
 
 #: lib\treewidget.py:1825
 msgid "Do you really want to revert the selected file(s)?"
@@ -1374,7 +1374,7 @@ msgstr ""
 
 #: lib\treewidget.py:1951
 msgid "Select / deselect all"
-msgstr "Alle an- / abwählen"
+msgstr "Alle an-/abwählen"
 
 #: lib\tree_branch.py:91 lib\util.py:950
 #, python-format
@@ -1414,7 +1414,7 @@ msgstr "..."
 
 #: lib\ui_info.py:148
 msgid "Parent branch:"
-msgstr "Eltern-Ast"
+msgstr "Eltern-Zweig:"
 
 #: lib\ui_info.py:150
 msgid "Push branch:"
@@ -1438,7 +1438,7 @@ msgstr "Arbeitsbaum-Format"
 
 #: lib\ui_info.py:159
 msgid "Branch format:"
-msgstr "Ast-Format"
+msgstr "Zweigformat:"
 
 #: lib\ui_info.py:161
 msgid "Repository format:"
@@ -1454,7 +1454,7 @@ msgstr "&Format"
 
 #: lib\ui_init.py:119
 msgid "Local Directory"
-msgstr "Lokales Verzeichnis"
+msgstr "Lokaler Ordner"
 
 #: lib\ui_init.py:121
 msgid "Repository"
@@ -1466,7 +1466,7 @@ msgstr "Erstelle einen neuen eigenständigen Baum"
 
 #: lib\ui_init.py:123
 msgid "Ensure all revisions are appended to the log"
-msgstr ""
+msgstr "Sicherstellen, dass alle Revisionen zum Protokoll hinzugefügt werden"
 
 #: lib\ui_init.py:124
 msgid "Create a new shared repository"
@@ -1514,7 +1514,7 @@ msgstr ""
 
 #: lib\ui_new_tree.py:133
 msgid "Local directory where the working tree will be created"
-msgstr "Lokales Verzeichnis in dem der Arbeitsbaum erstellt wird"
+msgstr "Lokaler Ordner, in dem der Arbeitsbaum erstellt wird"
 
 #: lib\ui_new_tree.py:135
 msgid "Working Tree Options"
@@ -1530,7 +1530,7 @@ msgstr "Leichtgewichtiger Checkout"
 
 #: lib\ui_new_tree.py:145
 msgid "Make a local copy of the branch"
-msgstr "Erstelle eine lokale Kopie des Astes"
+msgstr "Erstelle eine lokale Kopie des Zweigs"
 
 #: lib\ui_new_tree.py:151
 msgid "Create a stacked branch referring to the source branch"
@@ -1544,28 +1544,28 @@ msgstr ""
 
 #: lib\ui_new_tree.py:159
 msgid "Most recent (tip) revision"
-msgstr "Letzte revision (tip)"
+msgstr "Letzte Revision (Spitze)"
 
 #: lib\ui_new_tree.py:161
 msgid "Show Log..."
-msgstr "Zeige Log..."
+msgstr "Protokoll anzeigen …"
 
 #: lib\ui_pull.py:60
 msgid "Pull"
-msgstr ""
+msgstr "Herunterladen (pull)"
 
 #: lib\ui_pull.py:66 lib\ui_push.py:67 lib\ui_update_branch.py:88
 #: lib\ui_update_checkout.py:80
 msgid "Overwrite differences between branches"
-msgstr "Überschreibe Unterschiede zwischen Ästen"
+msgstr "Unterschiede zwischen Zweigen überschreiben"
 
 #: lib\ui_push.py:68
 msgid "Use existing directory"
-msgstr "Benutze vorhandenes Verzeichnis"
+msgstr "Vorhandenen Ordner benutzen"
 
 #: lib\ui_push.py:69
 msgid "Create the path up to the branch if it does not exist"
-msgstr "Erstelle den Pfad zum Ast wenn er nicht existiert"
+msgstr "Pfad zum Zweig anlegen, wenn er nicht existiert"
 
 #: lib\ui_run.py:109
 msgid "Run bzr command"
@@ -1577,7 +1577,7 @@ msgstr "&Arbeitsordner:"
 
 #: lib\ui_run.py:112
 msgid "C&ategory:"
-msgstr ""
+msgstr "&Kategorie:"
 
 #: lib\ui_run.py:113
 msgid "&Command:"
@@ -1585,11 +1585,11 @@ msgstr "&Befehl:"
 
 #: lib\ui_run.py:114
 msgid "&Show hidden commands"
-msgstr "Zeige ver&steckte Befehle"
+msgstr "Ver&steckte Befehle zeigen"
 
 #: lib\ui_run.py:115
 msgid "&Options and arguments for command:"
-msgstr "&Optionen und Argumente für Kommando:"
+msgstr "&Optionen und Argumente für Befehl:"
 
 #: lib\ui_run.py:116
 msgid "Insert &directory..."
@@ -1693,14 +1693,13 @@ msgstr "&Auswählen"
 
 #: lib\ui_update_branch.py:82
 msgid "Update Branch"
-msgstr "Aktualisiere Ast"
+msgstr "Zweig aktualisieren"
 
 #: lib\ui_update_branch.py:83
 msgid ""
 "This directory is a branch.  Please select what you would like to update"
 msgstr ""
-"Dieses Verzeichnis ist ein Ast. Bitte wählen Sie, was Sie aktualisieren "
-"möchten."
+"Dieser Ordner ist ein Zweig. Bitte wählen Sie, was Sie aktualisieren möchten."
 
 #: lib\ui_update_branch.py:84 lib\ui_update_checkout.py:76
 msgid "Update source"
@@ -1716,7 +1715,7 @@ msgstr ""
 
 #: lib\ui_update_branch.py:89
 msgid "<Parent Branch shown here>"
-msgstr "<Eltern-Ast wird hier angezeigt>"
+msgstr "<Eltern-Zweig wird hier angezeigt>"
 
 #: lib\ui_update_branch.py:90
 msgid "Update working tree to the latest changes in the branch"
@@ -1729,7 +1728,7 @@ msgstr "Aktualisiere Checkout"
 #: lib\ui_update_checkout.py:75
 #, python-format
 msgid "This directory is a checkout of: %s"
-msgstr "Dieses Verzeichnis ist ein Checkout von: %s"
+msgstr "Dieser Ordner ist ein Checkout von: %s"
 
 #: lib\ui_update_checkout.py:77
 msgid "Update the working tree from the bound branch"
@@ -1753,7 +1752,7 @@ msgstr "Gebunden an:"
 
 #: lib\uncommit.py:40 lib\uncommit.py:124
 msgid "Uncommit"
-msgstr ""
+msgstr "Commit zurückziehen"
 
 #: lib\uncommit.py:57
 msgid "Move tip to"
@@ -1765,15 +1764,15 @@ msgstr ""
 
 #: lib\uncommit.py:61
 msgid "Other revision:"
-msgstr ""
+msgstr "Andere Revision:"
 
 #: lib\uncommit.py:104
 msgid "No other revision specified."
-msgstr ""
+msgstr "Keine andere Revision festgelegt."
 
 #: lib\uncommit.py:122
 msgid "Do you really want to uncommit these revisions?"
-msgstr ""
+msgstr "Wollen Sie diese Revisionen wirklich zurückziehen?"
 
 #: lib\update.py:33
 msgid "Update working tree"
@@ -1815,6 +1814,9 @@ msgstr "(keine Meldung)"
 #~ msgid "Extension"
 #~ msgstr "Erweiterung"
 
+#~ msgid "Line"
+#~ msgstr "Zeile"
+
 #~ msgid "Show log..."
 #~ msgstr "Zeige Log..."
 
@@ -1842,3 +1844,63 @@ msgstr "(keine Meldung)"
 
 #~ msgid "&Location"
 #~ msgstr "Ort"
+
+#~ msgid "&Replace"
+#~ msgstr "&Ersetzen"
+
+#~ msgid "Mark as resolved"
+#~ msgstr "Als erledigt markieren"
+
+#~ msgid "Encoding"
+#~ msgstr "Zeichenkodierung"
+
+#~ msgid "Find"
+#~ msgstr "Suchen"
+
+#~ msgid "Update"
+#~ msgstr "Aktualisieren"
+
+#~ msgid "&From:"
+#~ msgstr "&Von:"
+
+#~ msgid "You should provide a commit message."
+#~ msgstr "Sie sollten einen Commit-Kommentar eingeben."
+
+#~ msgid "Go"
+#~ msgstr "Weiter"
+
+#~ msgid "View Options"
+#~ msgstr "Ansichtsoptionen"
+
+#~ msgid "Word Wrap"
+#~ msgstr "Zeilenumbruch"
+
+#, python-format
+#~ msgid "Revert to revision %s revid:%s."
+#~ msgstr "Zu Revision %s revid:%s zurücksetzen."
+
+#, python-format
+#~ msgid "Revert %s to revision %s revid:%s."
+#~ msgstr "%s zu Revision %s revid:%s zurücksetzen."
+
+#~ msgid ""
+#~ "Are you sure you want to revert this file to the state it was at the "
+#~ "selected revision?"
+#~ msgstr ""
+#~ "Sind Sie sicher, dass Sie diese Datei auf den Stand der gewählten Revision "
+#~ "zurücksetzen wollen?"
+
+#~ msgid "Revert File"
+#~ msgstr "Datei zurücksetzen"
+
+#~ msgid "Revert to this revision"
+#~ msgstr "Bis zu dieser Revision zurücksetzen"
+
+#~ msgid "R&evert to this revision"
+#~ msgstr "Zu dieser Revision &zurücksetzen"
+
+#~ msgid "Goto Line"
+#~ msgstr "Gehe zu Zeile"
+
+#~ msgid "Goto Line: "
+#~ msgstr "Gehe zu Zeile: "

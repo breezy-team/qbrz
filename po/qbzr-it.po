@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2010-08-03 12:24+0000\n"
-"X-Generator: Launchpad (build Unknown)\n"
+"X-Launchpad-Export-Date: 2011-04-29 07:28+0000\n"
+"X-Generator: Launchpad (build 12915)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
 #: lib\config.py:201
@@ -1871,3 +1871,26 @@ msgstr "(nessun messaggio)"
 #, python-format
 #~ msgid "Revert %s to latest revision."
 #~ msgstr "Ripristina %s all'ultima revisione."
+
+#~ msgid "Mark as resolved"
+#~ msgstr "Segna come risolto"
+
+#~ msgid "modified (x-bit)"
+#~ msgstr "modificato (x-bit)"
+
+#~ msgid "&Annotate this revision."
+#~ msgstr "&Annota questa revisione."
+
+#, python-format
+#~ msgid "Add %s to the tree."
+#~ msgstr "Aggiungi %s all'albero."
+
+#, python-format
+#~ msgid ""
+#~ "The extmerge definition: '%(tool)s' is invalid.\n"
+#~ "Missing the flag: %(flags)s. This must be fixed in qconflicts under the "
+#~ "Merge tab."
+#~ msgstr ""
+#~ "La definizione extmerge: '%(tool)s non è valida .\n"
+#~ "Flag mancante: %(flags)s. Deve essere risolto in qconfilcts nella pagina "
+#~ "Merge"

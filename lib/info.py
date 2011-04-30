@@ -19,6 +19,8 @@
 
 from bzrlib import bzrdir, osutils
 
+from bzrlib.info import show_bzrdir_info
+
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.ui_info import Ui_InfoForm
 from bzrlib.plugins.qbzr.lib.util import (
@@ -26,7 +28,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     url_for_display,
     )
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+
+import StringIO
 
 
 def _set_location(edit, location):
@@ -48,40 +51,17 @@ class QBzrInfoWindow(QBzrWindow):
         self.ui.tabWidget.setCurrentIndex(0)
 
     def refresh_view(self, location):
-        (tree, branch, repository, relpath) = \
-            bzrdir.BzrDir.open_containing_tree_branch_or_repository(location)
         path_to_display = osutils.abspath(location)
         _set_location(self.ui.local_location, path_to_display)
-        self.populate_tree_info(tree)
-        self.populate_branch_info(branch)
-        self.populate_repository_info(repository)
-        self.populate_bzrdir_info(repository.bzrdir)
+        self.populate_unparsed_info(location)
 
-    @ui_current_widget
-    def populate_tree_info(self, tree):
-        if tree:
-            format = tree._format.get_format_description()
-        else:
-            format = gettext("Location has no working tree")
-        self.ui.tree_format.setText(format)
-
-    def populate_branch_info(self, branch):
-        if branch:
-            _set_location(self.ui.push_branch, branch.get_push_location())
-            _set_location(self.ui.submit_branch, branch.get_submit_branch())
-            _set_location(self.ui.parent_branch, branch.get_parent())
-            _set_location(self.ui.public_branch_location, branch.get_public_branch())
-            format = branch._format.get_format_description()
-        else:
-            # Hide the Related branches tab
-            self.ui.tabWidget.removeTab(0)
-            format = gettext("Location has no branch")
-        self.ui.branch_format.setText(format)
-
-    def populate_repository_info(self, repo):
-        format = repo._format.get_format_description()
-        self.ui.repository_format.setText(format)
-
-    def populate_bzrdir_info(self, control):
-        format = control._format.get_format_description()
-        self.ui.bzrdir_format.setText(format)
+    def populate_unparsed_info(self, location):
+        basic = StringIO.StringIO()
+        detailed = StringIO.StringIO()
+        a_bzrdir = bzrdir.BzrDir.open_containing(location)[0]
+        show_bzrdir_info(a_bzrdir, 0, basic)
+        show_bzrdir_info(a_bzrdir, 2, detailed)
+        self.ui.basic_info.setText(basic.getvalue())
+        self.ui.detailed_info.setText(detailed.getvalue())
+        basic.close()
+        detailed.close()

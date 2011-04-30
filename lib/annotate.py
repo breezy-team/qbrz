@@ -30,14 +30,15 @@ from bzrlib.revision import CURRENT_REVISION
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
+    FindToolbar,
     QBzrWindow,
     ToolBarThrobberWidget,
     get_apparent_author_name,
-    get_set_encoding,
-    runs_in_loading_queue,
     get_icon,
-    FindToolbar,
     get_monospace_font,
+    get_set_encoding,
+    get_tab_width_pixels,
+    runs_in_loading_queue,
     )
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
@@ -268,6 +269,8 @@ class AnnotateWindow(QBzrWindow):
         self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
         
         self.text_edit.document().setDefaultFont(get_monospace_font())
+
+        self.text_edit.setTabStopWidth(get_tab_width_pixels(branch))
         
         self.annotate_bar = AnnotateBar(self.text_edit, self, self.get_revno)
         annotate_spliter = QtGui.QSplitter(QtCore.Qt.Horizontal, self)
