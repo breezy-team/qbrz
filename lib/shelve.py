@@ -682,8 +682,8 @@ class HunkTextBrowser(QtGui.QTextBrowser):
         from bzrlib.plugins.qbzr.lib.diffview import colors
         self.header_color = colors['blank'][0]
         self.border_pen = QtGui.QPen(QtCore.Qt.gray)
-        self.focus_color = QtGui.QColor(0x87, 0xCE, 0xEB, 0x40) # lightBlue
-        self.focus_pen = QtGui.QPen(QtGui.QColor(0x87, 0xCE, 0xEB)) # lightBlue
+        self.focus_color = QtGui.QColor(0x87, 0xCE, 0xEB, 0x48) # lightBlue
+        self.focus_color_inactive = QtGui.QColor(0x87, 0xCE, 0xEB, 0x20) # lightBlue
 
         self.complete = complete
         self._focused_index = -1
@@ -780,8 +780,12 @@ class HunkTextBrowser(QtGui.QTextBrowser):
                 # Fill header rect.
                 painter.fillRect(left, y1, width, 20, self.header_color)
             # Overlay focus rect.
-            if i == self._focused_index and self.hasFocus():
-                painter.fillRect(left, y1, width, y2 - y1, self.focus_color)
+            if i == self._focused_index:
+                if self.hasFocus():
+                    color = self.focus_color
+                else:
+                    color = self.focus_color_inactive
+                painter.fillRect(left, y1, width, y2 - y1, color)
             # Draw border.
             painter.drawLine(left, y1, right, y1)
             painter.drawLine(left, y2, right, y2)
