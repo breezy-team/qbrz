@@ -41,6 +41,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     StandardButton,
     get_tab_width_pixels,
     FindToolbar,
+    ToolbarPanel,
     )
 from bzrlib.plugins.qbzr.lib.diffview import (
     SidebySideDiffView,
@@ -57,21 +58,21 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
 from bzrlib.plugins.qbzr.lib.diffwindow import DiffItem
-from bzrlib.plugins.qbzr.lib.shelve import ShelveWindow, ToolbarPanel
+from bzrlib.plugins.qbzr.lib.shelve import ShelveWindow 
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.shelf import Unshelver
 ''')
 
 class ShelveListWindow(QBzrWindow):
 
-    def __init__(self, complete = False, ignore_whitespace = False, encoding = None, parent = None, ui_mode=True):
+    def __init__(self, directory=None, complete=False, ignore_whitespace=False, encoding=None, parent=None, ui_mode=True):
         QBzrWindow.__init__(self,
                             [gettext("Shelve List")],
                             parent, ui_mode=ui_mode)
         self.restoreSize("shelvelist", (780, 680))
 
         self.encoding = encoding
-        self.directory = '.'
+        self.directory = directory or '.'
         self.throbber = ToolBarThrobberWidget(self)
 
         self.current_diffs = []
@@ -338,7 +339,7 @@ class ShelveListWindow(QBzrWindow):
         self.show_selected_diff(refresh = True)
 
     def shelve_clicked(self):
-        window = ShelveWindow(encoding=self.encoding, parent=self)
+        window = ShelveWindow(encoding=self.encoding, directory=self.directory, complete=self.complete, parent=self)
         try:
             if window.exec_() == QtGui.QDialog.Accepted:
                 self.refresh()

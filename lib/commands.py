@@ -1077,13 +1077,17 @@ class cmd_qshelve(QBzrCommand):
         bzr_option('shelve', 'list'),
         bzr_option('shelve', 'directory'),
         Option('complete', help='Show complete files.'),
+        Option('ignore-whitespace', short_name='w',
+               help="Ignore whitespace when finding differences.(Only work when --list specified)"),
         Option('encoding', type=check_encoding,
                help='Encoding of files content (default: utf-8).'),
         ]
 
-    def _qbzr_run(self, file_list=None, list=False, directory=None, complete = False, encoding=None):
+    def _qbzr_run(self, file_list=None, list=False, directory=None, complete = False, ignore_whitespace=False, encoding=None):
         if list:
-            self.main_window = ShelveListWindow(encoding=encoding, complete=complete)
+            self.main_window = ShelveListWindow(directory=directory, complete=complete,
+                                            ignore_whitespace=ignore_whitespace,
+                                            encoding=encoding)
         else:
             self.main_window = ShelveWindow(file_list=file_list, directory=directory, 
                                             complete=complete, encoding=encoding)
