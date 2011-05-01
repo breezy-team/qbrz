@@ -427,9 +427,9 @@ class ShelveWindow(QBzrDialog):
             changes.append(item.change)
         if changes:
             ret = QtGui.QMessageBox.question(self, gettext('Shelve'),
-                    gettext('%d file(s) will be shelved. Continue?') % len(changes),
-                    QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-            if ret != QtGui.QMessageBox.Yes:
+                    gettext('%d file(s) will be shelved.') % len(changes),
+                    QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+            if ret != QtGui.QMessageBox.Ok:
                 return
         else:
             QtGui.QMessageBox.information(self, gettext('Shelve'),
@@ -444,7 +444,7 @@ class ShelveWindow(QBzrDialog):
             else:
                 self.creator.shelve_change(change.data)
         manager = self.shelver.work_tree.get_shelf_manager()
-        message = unicode(self.message.toPlainText()).strip()
+        message = unicode(self.message.toPlainText()).strip() or gettext(u'<no message>')
         shelf_id = manager.shelve_changes(self.creator, message)
         QBzrDialog.do_accept(self)
 

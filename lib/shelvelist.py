@@ -61,6 +61,7 @@ from bzrlib.plugins.qbzr.lib.diffwindow import DiffItem
 from bzrlib.plugins.qbzr.lib.shelve import ShelveWindow 
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.shelf import Unshelver
+from bzrlib.shelf_ui import Unshelver as Unshelver_ui
 ''')
 
 class ShelveListWindow(QBzrWindow):
@@ -152,13 +153,18 @@ class ShelveListWindow(QBzrWindow):
             toolbar.addAction(button)
             return button
         
-        add_button(N_("Shelve"), icon_name="shelve", onclick=self.shelve_clicked, shortcut=QKeySequence.New)
-        self.unshelve_button = add_button(N_("Unshelve"), icon_name="unshelve", enabled=False)
-        self.delete_button = add_button(N_("Delete"), icon_name="delete", enabled=False, shortcut=QKeySequence.Delete)
+        add_button(N_("Shelve"), icon_name="shelve", 
+                   onclick=self.shelve_clicked, shortcut=QKeySequence.New)
+        self.unshelve_button = add_button(N_("Unshelve"), icon_name="unshelve", 
+                                    onclick=self.unshelve_clicked, enabled=False)
+        self.delete_button = add_button(N_("Delete"), icon_name="delete", 
+                                    onclick=self.delete_clicked, enabled=False)
         toolbar.addSeparator()
-        add_button(N_("Refresh"), icon_name="view-refresh", onclick=self.refresh_clicked, shortcut=QKeySequence.Refresh)
+        add_button(N_("Refresh"), icon_name="view-refresh", onclick=self.refresh, shortcut=QKeySequence.Refresh)
         
         toolbar.addWidget(self.throbber)
+        
+        self.shelf_id = None
 
         # set signals
         self.connect(self.shelve_view, QtCore.SIGNAL("itemSelectionChanged()"),
@@ -303,16 +309,17 @@ class ShelveListWindow(QBzrWindow):
     def selected_shelve_changed(self):
         items = self.shelve_view.selectedItems()
         if len(items) != 1:
+            self.shelf_id = None
             self.unshelve_button.setEnabled(False)
             self.delete_button.setEnabled(False)
             self.file_view.clear()
         else:
+            self.shelf_id = items[0].shelf_id
             self.unshelve_button.setEnabled(True)
             self.delete_button.setEnabled(True)
-            self.show_changes(items[0].shelf_id)
+            self.show_changes(self.shelf_id)
         self.file_view.viewport().update()
 
-        
     def selected_files_changed(self):
         self.show_selected_diff()
 
@@ -346,7 +353,34 @@ class ShelveListWindow(QBzrWindow):
         finally:
             window.cleanup()
 
-    def refresh_clicked(self):
+    def prompt_bool(self, prompt, warning=False):
+        if warning:
+            func = QtGui.QMessageBox.warning
+        else:
+            func = QtGui.QMessageBox.question
+        ret = func(self, gettext('Shelve'), gettext(prompt), 
+                    QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
+        return (ret == QtGui.QMessageBox.Ok)
+
+    def unshelve_clicked(self):
+        if not self.shelf_id:
+            return
+        if not self.prompt_bool(
+                N_('Changes in shelf[%d] will be applied to working tree.') % self.shelf_id):
+            return
+
+        self.unshelve(self.shelf_id, 'apply')
+        self.refresh()
+
+    def delete_clicked(self):
+        if not self.shelf_id:
+            return
+        if not self.prompt_bool(
+                N_('Shelf[%d] will be deleted without applying.') % self.shelf_id, 
+                warning=True):
+            return
+
+        self.unshelve(self.shelf_id, 'delete-only')
         self.refresh()
 
     def encoding_changed(self, encoding):
@@ -358,6 +392,13 @@ class ShelveListWindow(QBzrWindow):
 
     def cleanup(self):
         pass
+
+    def unshelve(self, id, action):
+        unshelver = Unshelver_ui.from_args(id, action, directory=self.directory)
+        try:
+            unshelver.run()
+        finally:
+            unshelver.tree.unlock()
 
     def eventFilter(self, object, event):
         if event.type() == QtCore.QEvent.FocusIn:
