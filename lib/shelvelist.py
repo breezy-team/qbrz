@@ -107,13 +107,21 @@ class ShelveListWindow(QBzrWindow):
         diff_panel.add_separator()
         diff_panel.add_toolbar_button(N_("Unified"), icon_name="unidiff", 
                 checkable=True, onclick=self.unidiff_toggled)
-        diff_panel.add_toolbar_button(N_("Complete"), icon_name="complete", 
-                checkable=True, checked=complete, onclick=self.complete_toggled)
-        diff_panel.add_toolbar_button(N_("Ignore whitespace"), icon_name="whitespace", 
-                checkable=True, checked=ignore_whitespace, onclick=self.whitespace_toggled)
+
+        view_menu = QtGui.QMenu(gettext('View Options'), self)
+        view_menu.addAction(
+                diff_panel.create_button(N_("Complete"), icon_name="complete", 
+                    checkable=True, checked=complete, onclick=self.complete_toggled)
+                )
+        view_menu.addAction(
+                diff_panel.create_button(N_("Ignore whitespace"), icon_name="whitespace", 
+                    checkable=True, checked=ignore_whitespace, onclick=self.whitespace_toggled)
+                )
         self.encoding_selector = EncodingMenuSelector(self.encoding,
                                     gettext("Encoding"), self.encoding_changed)
-        diff_panel.add_toolbar_menu(N_("Encoding"), self.encoding_selector, icon_name="format-text-bold")
+        self.encoding_selector.setIcon(get_icon("format-text-bold", 16))
+        view_menu.addMenu(self.encoding_selector)
+        diff_panel.add_toolbar_menu(N_("View Options"), view_menu, icon_name="document-properties")
 
         self.find_toolbar = FindToolbar(self, self.diffviews[0].browsers[0], show_find)
         diff_panel.add_widget(self.find_toolbar)
