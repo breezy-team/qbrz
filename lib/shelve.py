@@ -419,26 +419,34 @@ class ShelveWindow(QBzrDialog):
         self.hunk_view.set_complete(checked)
     
     def do_accept(self):
-        shelved = False
+        changes = []
         for i in range(0, self.file_view.topLevelItemCount()):
             item = self.file_view.topLevelItem(i)
             if item.checkState(0) == QtCore.Qt.Unchecked:
                 continue
-            shelved = True
-            change = item.change
+            changes.append(item.change)
+        if changes:
+            ret = QtGui.QMessageBox.question(self, gettext('Shelve'),
+                    gettext('%d file(s) will be shelved. Continue?') % len(changes),
+                    QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+            if ret != QtGui.QMessageBox.Yes:
+                return
+        else:
+            QtGui.QMessageBox.information(self, gettext('Shelve'),
+                    gettext('No changes selected.'), gettext('&OK'))
+            return
+
+        for change in changes:
             if change.status == 'modify text':
                 self.handle_modify_text(change)
             elif change.status == 'modify binary':
                 self.creator.shelve_content_change(change.data[1])
             else:
                 self.creator.shelve_change(change.data)
-        if shelved:
-            manager = self.shelver.work_tree.get_shelf_manager()
-            message = unicode(self.message.toPlainText()).strip()
-            shelf_id = manager.shelve_changes(self.creator, message)
-            QBzrDialog.do_accept(self)
-        else:
-            QBzrDialog.do_reject(self)
+        manager = self.shelver.work_tree.get_shelf_manager()
+        message = unicode(self.message.toPlainText()).strip()
+        shelf_id = manager.shelve_changes(self.creator, message)
+        QBzrDialog.do_accept(self)
 
     def handle_modify_text(self, change):
         final_hunks = []
