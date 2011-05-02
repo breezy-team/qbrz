@@ -1,5 +1,5 @@
-0.21 beta 1 - In development
-----------------------------
+0.21 beta 1 - 2011/05/02
+------------------------
 What's new in this release:
 
 QBzr 0.21 is companion release for bzr 2.4, and compatible with bzr 2.3.
