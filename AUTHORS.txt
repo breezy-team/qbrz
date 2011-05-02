@@ -19,6 +19,7 @@ Contributors:
  * Ian Clatworthy <ian dot clatworthy at canonical dot com>
  * INADA Naoki <songofacandy at gmail dot com>
  * Javier Derderian <javierder at gmail dot com>
+ * Jelmer Vernooij <jelmer at samba org>
  * John Arbash Meinel <john at arbash-meinel dot com>
  * John Szakmeister <john at szakmeister dot net>
  * Luis Arias <luis at balsamiq dot com>
