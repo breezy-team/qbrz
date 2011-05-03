@@ -1232,21 +1232,26 @@ def _get_monospace_font():
     font.setFixedPitch(True)
     return font
 
-def get_tab_width_chars(branch=None):
+def get_set_tab_width_chars(tab_width=None, branch=None):
     """Function to get the tab width in characters from the configuration."""
-    config = get_branch_config(branch)
-    try:
-        tabWidth = int(config.get_user_option('tab_width'))
-        if tabWidth < 0:
-            raise TypeError("Invalid tab width")
-    except TypeError:
-        tabWidth = 8
-    return tabWidth
+    if tab_width is None:
+        config = get_branch_config(branch)
+        try:
+            tab_width = int(config.get_user_option('tab_width'))
+            if tab_width < 0:
+                raise TypeError("Invalid tab width")
+        except TypeError:
+            tab_width = 8
+    else:
+        if branch:
+            branch.get_config().set_user_option("tab_width", tab_width)
+
+    return tab_width
 
 def get_tab_width_pixels(branch=None, tab_width_chars=None):
     """Function to get the tab width in pixels based on a monospaced font."""
     monospacedFont = get_monospace_font()
     char_width = QtGui.QFontMetrics(monospacedFont).width(" ")
     if tab_width_chars is None:
-        chars = get_tab_width_chars(branch)
+        tab_width_chars = get_set_tab_width_chars(branch=branch)
     return char_width*tab_width_chars

@@ -35,7 +35,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
     get_qbzr_config,
     get_global_config,
-    get_tab_width_chars,
+    get_set_tab_width_chars,
     )
 
 
@@ -305,7 +305,7 @@ class QBzrConfigWindow(QBzrDialog):
                 self.emailClientCombo.setCurrentIndex(index)
 
         # Tab-width
-        self.tabWidthSpinner.setValue(get_tab_width_chars())
+        self.tabWidthSpinner.setValue(get_set_tab_width_chars())
 
         # Spellcheck language
         spellcheck_language = config.get_user_option('spellcheck_language') or 'en'

@@ -37,7 +37,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_icon,
     get_monospace_font,
     get_set_encoding,
-    get_tab_width_chars,
+    get_set_tab_width_chars,
     get_tab_width_pixels,
     runs_in_loading_queue,
     )
@@ -340,7 +340,8 @@ class AnnotateWindow(QBzrWindow):
 
         def setTabStopWidth(tw):
             self.text_edit.setTabStopWidth(get_tab_width_pixels(tab_width_chars=tw))
-        self.tab_width_selector = TabWidthMenuSelector(get_tab_width_chars(branch),
+            get_set_tab_width_chars(tab_width=tw,branch=self.branch)
+        self.tab_width_selector = TabWidthMenuSelector(get_set_tab_width_chars(branch=branch),
                 gettext("Tab Width"),
                 setTabStopWidth)
         

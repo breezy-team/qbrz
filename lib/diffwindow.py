@@ -54,7 +54,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     ToolBarThrobberWidget,
     get_icon,
     get_set_encoding,
-    get_tab_width_chars,
+    get_set_tab_width_chars,
     get_tab_width_pixels,
     is_binary_content,
     run_in_loading_queue,
@@ -281,6 +281,8 @@ class DiffWindow(QBzrWindow):
         view_menu.addAction(self.ignore_whitespace_action)
 
         def on_unidiff_tab_width_changed(tabwidth):
+            if self.branches:
+                get_set_tab_width_chars(tab_width=tabwidth,branch=self.branches[0])
             self.custom_tab_widths[2] = tabwidth
             self.setup_tab_width()
         self.tab_width_selector_unidiff = TabWidthMenuSelector(
@@ -289,6 +291,8 @@ class DiffWindow(QBzrWindow):
         view_menu.addMenu(self.tab_width_selector_unidiff)
 
         def on_left_tab_width_changed(tabwidth):
+            if self.branches:
+                get_set_tab_width_chars(tab_width=tabwidth,branch=self.branches[0])
             self.custom_tab_widths[0] = tabwidth
             self.setup_tab_width()
         self.tab_width_selector_left = TabWidthMenuSelector(
@@ -297,6 +301,8 @@ class DiffWindow(QBzrWindow):
         view_menu.addMenu(self.tab_width_selector_left)
 
         def on_right_tab_width_changed(tabwidth):
+            if self.branches:
+                get_set_tab_width_chars(tab_width=tabwidth,branch=self.branches[1])
             self.custom_tab_widths[1] = tabwidth
             self.setup_tab_width()
         self.tab_width_selector_right = TabWidthMenuSelector(
@@ -410,13 +416,13 @@ class DiffWindow(QBzrWindow):
     def setup_tab_width(self):
         tabWidths = self.custom_tab_widths
         if tabWidths[0] < 0:
-            tabWidths[0] = get_tab_width_chars(self.branches[0])
+            tabWidths[0] = get_set_tab_width_chars(branch=self.branches[0])
             self.tab_width_selector_left.setTabWidth(tabWidths[0])
         if tabWidths[1] < 0:
-            tabWidths[1] = get_tab_width_chars(self.branches[0])
+            tabWidths[1] = get_set_tab_width_chars(branch=self.branches[1])
             self.tab_width_selector_right.setTabWidth(tabWidths[1])
         if tabWidths[2] < 0:
-            tabWidths[2] = get_tab_width_chars(self.branches[0])
+            tabWidths[2] = get_set_tab_width_chars(branch=self.branches[0])
             self.tab_width_selector_unidiff.setTabWidth(tabWidths[2])
         tabWidthsPixels = [get_tab_width_pixels(tab_width_chars=i) for i in tabWidths]
         self.diffview.setTabStopWidths(tabWidthsPixels)
