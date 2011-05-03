@@ -23,7 +23,10 @@ from bzrlib import (
     errors,
     urlutils,
     )
-from bzrlib.tests import TestCase
+from bzrlib.tests import (
+    TestCase,
+    UnicodeFilenameFeature,
+    )
 from bzrlib.plugins.qbzr.lib.subprocess import (
     bdecode_prompt,
     bencode_prompt,
@@ -92,6 +95,7 @@ class TestExceptionInstanceSerialisation(TestCase):
 
     def test_uncommittedchanges_display_url(self):
         """The display_url of UncommittedChanges errors should be serialised"""
+        self.requireFeature(UnicodeFilenameFeature)
         path = u"\u1234"
         class FakeTree(object):
             def __init__(self, url):

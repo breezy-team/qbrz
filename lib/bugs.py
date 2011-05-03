@@ -47,7 +47,8 @@ def get_bug_id(bug_url):
     return None
 
 
-class FakeBranch(object):
+class FakeBranchForBugs(object):
+    """Fake branch required for bzrlib/bugtracker.py"""
 
     def __init__(self):
         self._config = config.GlobalConfig()
@@ -78,7 +79,7 @@ def bug_urls_to_ids(bug_urls, branch=None):
     if branch is not None:
         bug_tags.update(get_branch_bug_tags(branch))
     else:
-        branch = FakeBranch()
+        branch = FakeBranchForBugs()
     # try to convert bug urls to tag:id values
     for k,n in urls_dict.iteritems():
         for tag in bug_tags:

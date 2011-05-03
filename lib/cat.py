@@ -34,11 +34,12 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_tab_width_pixels,
     runs_in_loading_queue,
     )
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingSelector
+from bzrlib.plugins.qbzr.lib.fake_branch import FakeBranch
 from bzrlib.plugins.qbzr.lib.syntaxhighlighter import highlight_document
 from bzrlib.plugins.qbzr.lib.texteditannotate import LineNumberEditerFrame
+from bzrlib.plugins.qbzr.lib.trace import reports_exception
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 
 def hexdump(data):
@@ -312,16 +313,6 @@ class QBzrViewWindow(QBzrCatWindow):
             text = os.readlink(self.filename)
         self.text = text
         self._create_and_show_browser(self.filename, text, kind)
-
-
-class FakeBranch(object):
-    """Special branch object to disable save encodings to branch.conf"""
-
-    def __init__(self):
-        pass
-
-    def __nonzero__(self):
-        return False
 
 
 def cat_to_native_app(tree, relpath):
