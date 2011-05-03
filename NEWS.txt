@@ -1,3 +1,11 @@
+0.21 beta 2 - in development
+----------------------------
+
+ * qcat:
+   * Fixed problem with viewing file from qbrowse.
+     (Alexander Belchenko, Bug #776196)
+
+
 0.21 beta 1 - 2011/05/02
 ------------------------
 What's new in this release:

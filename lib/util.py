@@ -269,10 +269,11 @@ def get_qbzr_config():
     return _qbzr_config
 
 def get_branch_config(branch):
-    if branch is not None:
+    if branch: # we should check boolean branch value to support 2 fake branch cases: branch is None, branch is FakeBranch
         return branch.get_config()
     else:
         return get_global_config()
+
 
 class _QBzrWindowBase(object):
 
@@ -635,7 +636,7 @@ def get_set_encoding(encoding, branch):
                 'utf-8 will be used instead') % encoding)
             encoding = 'utf-8'
     else:
-        if branch is not None:
+        if branch: # we should check boolean branch value to support 2 fake branch cases: branch is None, branch is FakeBranch
             branch.get_config().set_user_option("encoding", encoding)
     return encoding
 
