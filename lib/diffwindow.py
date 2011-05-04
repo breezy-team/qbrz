@@ -282,7 +282,7 @@ class DiffWindow(QBzrWindow):
 
         def on_unidiff_tab_width_changed(tabwidth):
             if self.branches:
-                get_set_tab_width_chars(tab_width=tabwidth,branch=self.branches[0])
+                get_set_tab_width_chars(branch=self.branches[0],tab_width_chars=tabwidth)
             self.custom_tab_widths[2] = tabwidth
             self.setup_tab_width()
         self.tab_width_selector_unidiff = TabWidthMenuSelector(
@@ -292,7 +292,7 @@ class DiffWindow(QBzrWindow):
 
         def on_left_tab_width_changed(tabwidth):
             if self.branches:
-                get_set_tab_width_chars(tab_width=tabwidth,branch=self.branches[0])
+                get_set_tab_width_chars(branch=self.branches[0],tab_width_chars=tabwidth)
             self.custom_tab_widths[0] = tabwidth
             self.setup_tab_width()
         self.tab_width_selector_left = TabWidthMenuSelector(
@@ -302,7 +302,7 @@ class DiffWindow(QBzrWindow):
 
         def on_right_tab_width_changed(tabwidth):
             if self.branches:
-                get_set_tab_width_chars(tab_width=tabwidth,branch=self.branches[1])
+                get_set_tab_width_chars(branch=self.branches[1],tab_width_chars=tabwidth)
             self.custom_tab_widths[1] = tabwidth
             self.setup_tab_width()
         self.tab_width_selector_right = TabWidthMenuSelector(

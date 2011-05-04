@@ -1232,21 +1232,21 @@ def _get_monospace_font():
     font.setFixedPitch(True)
     return font
 
-def get_set_tab_width_chars(tab_width=None, branch=None):
+def get_set_tab_width_chars(branch=None, tab_width_chars=None):
     """Function to get the tab width in characters from the configuration."""
-    if tab_width is None:
+    if tab_width_chars is None:
         config = get_branch_config(branch)
         try:
-            tab_width = int(config.get_user_option('tab_width'))
-            if tab_width < 0:
+            tab_width_chars = int(config.get_user_option('tab_width'))
+            if tab_width_chars < 0:
                 raise TypeError("Invalid tab width")
         except TypeError:
-            tab_width = 8
+            tab_width_chars = 8
     else:
         if branch:
-            branch.get_config().set_user_option("tab_width", tab_width)
+            branch.get_config().set_user_option("tab_width", tab_width_chars)
 
-    return tab_width
+    return tab_width_chars
 
 def get_tab_width_pixels(branch=None, tab_width_chars=None):
     """Function to get the tab width in pixels based on a monospaced font."""

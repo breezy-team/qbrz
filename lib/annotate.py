@@ -340,7 +340,7 @@ class AnnotateWindow(QBzrWindow):
 
         def setTabStopWidth(tw):
             self.text_edit.setTabStopWidth(get_tab_width_pixels(tab_width_chars=tw))
-            get_set_tab_width_chars(tab_width=tw,branch=self.branch)
+            get_set_tab_width_chars(branch=self.branch,tab_width_chars=tw)
         self.tab_width_selector = TabWidthMenuSelector(get_set_tab_width_chars(branch=branch),
                 gettext("Tab Width"),
                 setTabStopWidth)
