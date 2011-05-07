@@ -20,17 +20,14 @@
 
 import os, sys
 
-if getattr(sys, "frozen", None):
-    # Add our required extra libraries for the standalone bzr.exe to path
-    sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '_lib')))
-
+# XXX maybe extract this into compatibility.py ?
 if sys.version_info < (2, 5):
     def _all_2_4_compat(iterable):
         for element in iterable:
             if not element:
                 return False
         return True
-        
+
     def _any_2_4_compat(iterable):
         for element in iterable:
             if element:
