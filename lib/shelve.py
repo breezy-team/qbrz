@@ -62,12 +62,20 @@ from bzrlib.shelf_ui import Shelver
 
 """
 TODO::
-  Auto complete of commit message.
-  Wordwrap
-  Tab width
-  Prev hunk / Next hunk
-  Complete view
+  Auto complete of shelve message.
+  Wordwrap mode
+  Side by side view
+  External diff (ShelveListWindow)
+  Lock management
+  Select hunk by Find.
 """
+
+# For i18n
+change_status = (
+        N_("delete file"), N_("rename"), N_("add file"), 
+        N_("modify text"), N_("modify target"), N_("modify binary")
+        )
+
 class DummyDiffWriter(object):
     def __init__(self):
         pass
@@ -86,6 +94,7 @@ class Change(object):
             self.disp_text = trees[1].id2path(file_id)
         if status == 'modify text':
             try:
+                self.sha1 = trees[1].get_file_sha1(file_id)
                 target_lines = trees[0].get_file_lines(file_id)
                 textfile.check_text_lines(target_lines)
                 work_lines = trees[1].get_file_lines(file_id)
@@ -106,15 +115,30 @@ class Change(object):
         self.file_id = file_id
         self.status = status
 
+    def is_same_change(self, other):
+        # NOTE: I does not use __cmp__ because this method does not compare entire data.
+        if self.data != other.data:
+            return False
+        if self.status in ('modify text', 'modify binary'):
+            if self.sha1 != other.sha1:
+                return False
+        return True
+
     @property
     def target_lines(self):
+        """Original file lines"""
         return self._target_lines[1]
 
     @property
     def work_lines(self):
+        """Working file lines"""
         return self._work_lines[1]
 
     def encode_hunk_texts(self, encoding):
+        """
+        Return encoded hunk texts.
+        hunk texts is nested list. Outer is per hunks, inner is per lines.
+        """
         if self.hunk_texts[0] == encoding:
             return self.hunk_texts[2]
         patch = self.parsed_patch
@@ -143,9 +167,11 @@ class Change(object):
         return encoded_lines
 
     def encode_work_lines(self, encoding):
+        """Return encoded working file lines. """
         return self.encode(self._work_lines, encoding)
 
     def encode_target_lines(self, encoding):
+        """Return encoded original file lines."""
         return self.encode(self._target_lines, encoding)
 
 
@@ -267,6 +293,7 @@ class ShelveWindow(QBzrDialog):
 
         hsplitter.addWidget(hunk_panel)
 
+        # Build hunk panel toolbar
         show_find = hunk_panel.add_toolbar_button(
                         N_("Find"), icon_name="edit-find", checkable=True)
         hunk_panel.add_separator()
@@ -322,7 +349,18 @@ class ShelveWindow(QBzrDialog):
         QtCore.QTimer.singleShot(1, self.load)
         return QBzrDialog.exec_(self)
 
-        
+    def _create_shelver_and_creator(self):
+        shelver = Shelver.from_args(DummyDiffWriter(), self.revision,
+                False, self.file_list, None, directory = self.directory)
+        try:
+            creator = ShelfCreator(
+                    shelver.work_tree, shelver.target_tree, self.file_list)
+        except:
+            shelver.finalize()
+            raise
+
+        return shelver, creator
+
     @runs_in_loading_queue
     @ui_current_widget
     @reports_exception()
@@ -331,20 +369,13 @@ class ShelveWindow(QBzrDialog):
         try:
             self.throbber.show()
             cleanup.append(self.throbber.hide)
-            self.shelver = Shelver.from_args(DummyDiffWriter(), self.revision,
-                    False, self.file_list, None, directory = self.directory)
-            self.add_cleanup(self.shelver.finalize)
-            
-            self.creator = ShelfCreator(
-                    self.shelver.work_tree, self.shelver.target_tree, self.file_list)
-            self.add_cleanup(self.creator.finalize)
+            shelver, creator = self._create_shelver_and_creator()
+            cleanup.append(shelver.finalize)
+            cleanup.append(creator.finalize)
 
-            trees = (self.shelver.target_tree, self.shelver.work_tree)
-            for tree in trees:
-                cleanup.append(tree.lock_read().unlock)
-                
-            for change in self.creator.iter_shelvable():
-                item = self._create_item(change, self.shelver, trees)
+            trees = (shelver.target_tree, shelver.work_tree)
+            for change in creator.iter_shelvable():
+                item = self._create_item(change, shelver, trees)
                 self.file_view.addTopLevelItem(item)
             
         finally:
@@ -352,13 +383,14 @@ class ShelveWindow(QBzrDialog):
                 func()
 
     def _create_item(self, change, shelver, trees):
+        """Create QTreeWidgetItem for file list from Change instance."""
         ch = Change(change, shelver, trees)
         item = QtGui.QTreeWidgetItem()
 
         item.setIcon(0, get_icon("file", 16))
         item.change = ch
         item.setText(0, ch.disp_text)
-        item.setText(1, ch.status)
+        item.setText(1, gettext(ch.status))
         if ch.status == 'modify text':
             item.setText(2, u'0/%d' % len(ch.parsed_patch.hunks))
         item.setCheckState(0, QtCore.Qt.Unchecked)
@@ -412,22 +444,22 @@ class ShelveWindow(QBzrDialog):
             item.setText(2, u'%d/%d' % (hunk_num if selected else 0, hunk_num))
 
     def encoding_changed(self, encoding):
-        # refresh hunk view
         self.selected_file_changed()
 
     def complete_toggled(self, checked):
         self.hunk_view.set_complete(checked)
     
     def do_accept(self):
-        changes = []
+        change_dict = {}
         for i in range(0, self.file_view.topLevelItemCount()):
             item = self.file_view.topLevelItem(i)
+            change = item.change
             if item.checkState(0) == QtCore.Qt.Unchecked:
                 continue
-            changes.append(item.change)
-        if changes:
+            change_dict[(change.file_id, change.status)] = change
+        if change_dict:
             ret = QtGui.QMessageBox.question(self, gettext('Shelve'),
-                    gettext('%d file(s) will be shelved.') % len(changes),
+                    gettext('%d file(s) will be shelved.') % len(change_dict),
                     QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
             if ret != QtGui.QMessageBox.Ok:
                 return
@@ -436,19 +468,47 @@ class ShelveWindow(QBzrDialog):
                     gettext('No changes selected.'), gettext('&OK'))
             return
 
-        for change in changes:
-            if change.status == 'modify text':
-                self.handle_modify_text(change)
-            elif change.status == 'modify binary':
-                self.creator.shelve_content_change(change.data[1])
-            else:
-                self.creator.shelve_change(change.data)
-        manager = self.shelver.work_tree.get_shelf_manager()
-        message = unicode(self.message.toPlainText()).strip() or gettext(u'<no message>')
-        shelf_id = manager.shelve_changes(self.creator, message)
+        cleanup = []
+        try:
+            shelver, creator = self._create_shelver_and_creator()
+            cleanup.append(shelver.finalize)
+            cleanup.append(creator.finalize)
+            trees = (shelver.target_tree, shelver.work_tree)
+            changes = []
+            for ch in creator.iter_shelvable():
+                change = Change(ch, shelver, trees)
+                key = (change.file_id, change.status)
+                org_change = change_dict.get(key)
+                if org_change is None:
+                    continue
+                if not change.is_same_change(org_change):
+                    QtGui.QMessageBox.warning(self, gettext('Shelve'),
+                            gettext('Operation aborted because target file(s) has been changed.'), gettext('&OK'))
+                    return
+                del(change_dict[key])
+                changes.append(org_change)
+
+            if change_dict:
+                QtGui.QMessageBox.warning(self, gettext('Shelve'),
+                        gettext('Operation aborted because target file(s) has been changed.'), gettext('&OK'))
+                return
+
+            for change in changes:
+                if change.status == 'modify text':
+                    self.handle_modify_text(creator, change)
+                elif change.status == 'modify binary':
+                    creator.shelve_content_change(change.data[1])
+                else:
+                    creator.shelve_change(change.data)
+            manager = shelver.work_tree.get_shelf_manager()
+            message = unicode(self.message.toPlainText()).strip() or gettext(u'<no message>')
+            shelf_id = manager.shelve_changes(creator, message)
+        finally:
+            while cleanup:
+                cleanup.pop()()
         QBzrDialog.do_accept(self)
 
-    def handle_modify_text(self, change):
+    def handle_modify_text(self, creator, change):
         final_hunks = []
         offset = 0
         change_count = 0
@@ -463,7 +523,7 @@ class ShelveWindow(QBzrDialog):
         if change_count == 0:
             return
         patched = patches.iter_patched_from_hunks(change.target_lines, final_hunks)
-        self.creator.shelve_lines(change.file_id, list(patched))
+        creator.shelve_lines(change.file_id, list(patched))
 
     def add_cleanup(self, func):
         self._cleanup_funcs.append(func)
