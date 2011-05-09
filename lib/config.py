@@ -20,7 +20,6 @@
 import re
 import os.path
 from PyQt4 import QtCore, QtGui
-from PyQt4.Qt import Qt
 from bzrlib.config import (
     ensure_config_dir_exists,
     extract_email_address,
@@ -211,7 +210,7 @@ class QBzrConfigWindow(QBzrDialog):
             mergeWidget = QtGui.QWidget()
             self.merge_ui = ui_merge_config.Ui_MergeConfig()
             self.merge_ui.setupUi(mergeWidget)
-            self.merge_ui.tools.sortByColumn(0, Qt.AscendingOrder)
+            self.merge_ui.tools.sortByColumn(0, QtCore.Qt.AscendingOrder)
             self.merge_ui.remove.setEnabled(False)
             self.merge_ui.set_default.setEnabled(False)
             
@@ -237,7 +236,7 @@ class QBzrConfigWindow(QBzrDialog):
                          self.merge_tools_set_default_clicked)
         else:
             mergeWidget = QtGui.QLabel(gettext("Bazaar 2.4 or newer is required to configure mergetools."))
-            mergeWidget.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            mergeWidget.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         
         self.tabwidget.addTab(generalWidget, gettext("General"))
         self.tabwidget.addTab(aliasesWidget, gettext("Aliases"))
@@ -388,7 +387,7 @@ class QBzrConfigWindow(QBzrDialog):
             default_merge_tool = config.get_user_option('bzr.default_mergetool')
             self.merge_tools_model.set_merge_tools(user_merge_tools,
                 mergetools.known_merge_tools, default_merge_tool)
-            self.merge_tools_model.sort(0, Qt.AscendingOrder)
+            self.merge_tools_model.sort(0, QtCore.Qt.AscendingOrder)
 
     def save(self):
         """Save the configuration."""
@@ -804,20 +803,20 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
     def data(self, index, role):
         name = self._order[index.row()]
         cmdline = self.get_merge_tool_command_line(index.row())
-        if role == Qt.DisplayRole:
+        if role == QtCore.Qt.DisplayRole:
             if index.column() == self.COL_NAME:
                 return QtCore.QVariant(name)
             elif index.column() == self.COL_COMMANDLINE:
                 return QtCore.QVariant(cmdline)
-        elif role == Qt.EditRole:
+        elif role == QtCore.Qt.EditRole:
             if index.column() == self.COL_NAME:
                 return QtCore.QVariant(name)
             elif index.column() == self.COL_COMMANDLINE:
                 return QtCore.QVariant(cmdline)
-        elif role == Qt.CheckStateRole:
+        elif role == QtCore.Qt.CheckStateRole:
             if index.column() == self.COL_NAME:
-                return self._default == name and Qt.Checked or Qt.Unchecked
-        elif role == Qt.BackgroundRole:
+                return self._default == name and QtCore.Qt.Checked or QtCore.Qt.Unchecked
+        elif role == QtCore.Qt.BackgroundRole:
             if name in self._known:
                 palette = QtGui.QApplication.palette()
                 return palette.alternateBase()
@@ -825,7 +824,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         
     def setData(self, index, value, role):
         name = self._order[index.row()]
-        if role == Qt.EditRole:
+        if role == QtCore.Qt.EditRole:
             if index.column() == self.COL_NAME:
                 # To properly update the config, renaming a merge tool must be
                 # handled as a remove and add.
@@ -840,18 +839,18 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
                     self._default = new_name
                 self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                           index, index)
-                self.sort(self.COL_NAME, Qt.AscendingOrder)
+                self.sort(self.COL_NAME, QtCore.Qt.AscendingOrder)
                 return True
             elif index.column() == self.COL_COMMANDLINE:
                 self._user[name] = unicode(value.toString())
                 self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                           index, index)
                 return True
-        elif role == Qt.CheckStateRole:
+        elif role == QtCore.Qt.CheckStateRole:
             if index.column() == self.COL_NAME:
-                if value.toInt() == (Qt.Checked, True):
+                if value.toInt() == (QtCore.Qt.Checked, True):
                     self.set_default(name)
-                elif (value.toInt() == (Qt.Unchecked, True) and
+                elif (value.toInt() == (QtCore.Qt.Unchecked, True) and
                       self._default == name):
                     self.set_default(None)
         return False
@@ -860,18 +859,18 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         f = super(MergeToolsTableModel, self).flags(index)
         name = self._order[index.row()]
         if name not in self._known:
-            f = f | Qt.ItemIsEditable
+            f = f | QtCore.Qt.ItemIsEditable
         if index.column() == self.COL_NAME:
-            f = f | Qt.ItemIsUserCheckable
+            f = f | QtCore.Qt.ItemIsUserCheckable
         return f
     
     def headerData(self, section, orientation, role):
-        if orientation == Qt.Horizontal:
+        if orientation == QtCore.Qt.Horizontal:
             if section == self.COL_NAME:
-                if role == Qt.DisplayRole:
+                if role == QtCore.Qt.DisplayRole:
                     return QtCore.QVariant(gettext("Name"))
             elif section == self.COL_COMMANDLINE:
-                if role == Qt.DisplayRole:
+                if role == QtCore.Qt.DisplayRole:
                     return QtCore.QVariant(gettext("Command Line"))
         return QtCore.QVariant()
 
@@ -886,7 +885,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
                            self.get_merge_tool_command_line(b))
             return 0
         self._order.sort(cmp=tool_cmp,
-                         reverse=sortOrder==Qt.DescendingOrder)
+                         reverse=sortOrder==QtCore.Qt.DescendingOrder)
         for i in range(0, len(index_map)):
             index_map[i] = self._order.index(index_map[i])
         from_list = []
