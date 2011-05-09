@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2010 Alexander Belchenko <bialix@ukr.net>
+# QBzr - Qt frontend to Bazaar commands
+# Copyright (C) 2011 QBzr Developers
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -16,21 +17,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib.tests import TestCase, TestCaseWithTransport
-from PyQt4 import QtCore
-from bzrlib.plugins.qbzr.lib import tests as qtests
-from bzrlib.plugins.qbzr.lib.commit import CommitWindow
+"""Compatibility module to allow lazy-import of its members."""
 
-
-class TestCommit(qtests.QTestCase):
-
-    def test_bug_526011(self):
-        tree = self.make_branch_and_tree('branch')
-        self.build_tree(['branch/a/'])
-        tree.add('a')
-        tree.commit(message='1')
-        win = CommitWindow(tree=tree, selected_list=['a'])
-        self.addCleanup(win.close)
-        win.show()
-        QtCore.QCoreApplication.processEvents()
-        QtCore.QCoreApplication.processEvents()
+# configobj library
+try:
+    from bzrlib.util.configobj import configobj
+except ImportError:
+    import configobj

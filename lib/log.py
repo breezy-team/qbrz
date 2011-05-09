@@ -405,10 +405,14 @@ class LogWindow(QBzrWindow):
         if location is None:
             return elided_text(branch.nick)
         
+        has_explicit_nickname = getattr(
+            branch.get_config(),
+            'has_explicit_nickname',
+            lambda: False)()
         append_nick = (
             location.startswith(':') or
             bool(self.no_usefull_info_in_location_re.match(location)) or
-            branch.get_config().has_explicit_nickname()
+            has_explicit_nickname
             )
         if append_nick:
             return '%s (%s)' % (elided_path(location), branch.nick)
@@ -586,6 +590,7 @@ class FileListContainer(QtGui.QWidget):
         self.delta_load_timer.setSingleShot(True)
         self.connect(self.delta_load_timer, QtCore.SIGNAL("timeout()"),
                      self.load_delta)
+        self.current_revids = None
         
         self.tree_cache = {}
         self.delta_cache = {}
@@ -594,18 +599,29 @@ class FileListContainer(QtGui.QWidget):
         self.window().processEvents()
 
     def revision_selection_changed(self, selected, deselected):
-        self.file_list.clear()
-        self.delta_load_timer.start(1)
+        revids, count = \
+            self.log_list.get_selection_top_and_parent_revids_and_count()
+        if revids != self.current_revids:
+            self.file_list.clear()
+            self.current_revids = None
+            self.delta_load_timer.start(200)
     
     @runs_in_loading_queue
     @ui_current_widget
     def load_delta(self):
         revids, count = \
             self.log_list.get_selection_top_and_parent_revids_and_count()
+        if revids == self.current_revids:
+            return
+        
         gv = self.log_list.log_model.graph_viz
         gv_is_wtgv = isinstance(gv, logmodel.WithWorkingTreeGraphVizLoader)
+        if self.log_list.log_model.file_id_filter:
+            specific_file_ids = self.log_list.log_model.file_id_filter.file_ids
+        else:
+            specific_file_ids = []
         
-        if not revids:
+        if not revids or revids == (None, None):
             return
         
         if revids not in self.delta_cache:
@@ -658,11 +674,14 @@ class FileListContainer(QtGui.QWidget):
         else:
             delta = self.delta_cache[revids]
         
+        new_revids, count = \
+            self.log_list.get_selection_top_and_parent_revids_and_count()
+
+        if new_revids != revids:
+            return 
+        
         if delta:
-            items = []
-            #specific_file_ids = gv.file_ids
-            specific_file_ids = []
-            
+            items = []            
             for path, id, kind in delta.added:
                 items.append((id,
                               path,
@@ -704,6 +723,7 @@ class FileListContainer(QtGui.QWidget):
                     f = item.font()
                     f.setBold(True)
                     item.setFont(f)
+            self.current_revids = revids
 
     def show_file_list_context_menu(self, pos):
         (top_revid, old_revid), count = \

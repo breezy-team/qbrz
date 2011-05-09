@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2010 Alexander Belchenko <bialix@ukr.net>
+# QBzr - Qt frontend to Bazaar commands
+# Copyright (C) 2011 QBzr Developers
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -16,21 +17,16 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib.tests import TestCase, TestCaseWithTransport
-from PyQt4 import QtCore
-from bzrlib.plugins.qbzr.lib import tests as qtests
-from bzrlib.plugins.qbzr.lib.commit import CommitWindow
+"""Special Fake branch because sometimes we lost the real branch."""
 
 
-class TestCommit(qtests.QTestCase):
+class FakeBranch(object):
+    """Special branch object to disable save any options to branch.conf"""
 
-    def test_bug_526011(self):
-        tree = self.make_branch_and_tree('branch')
-        self.build_tree(['branch/a/'])
-        tree.add('a')
-        tree.commit(message='1')
-        win = CommitWindow(tree=tree, selected_list=['a'])
-        self.addCleanup(win.close)
-        win.show()
-        QtCore.QCoreApplication.processEvents()
-        QtCore.QCoreApplication.processEvents()
+    def __init__(self):
+        pass
+
+    def __nonzero__(self):
+        # this method makes FakeBranch boolean False
+        # so we shouldn't check (branch is not None) but (not branch)
+        return False

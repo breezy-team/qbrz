@@ -33,7 +33,7 @@ class RevisionView(DiffWindow):
         self.revid = revid
         
         args = InternalDiffArgProvider(None, revid, branch, branch)
-        DiffWindow.__init__(self, args, parent)
+        DiffWindow.__init__(self, args, parent, allow_refresh=False)
         
         self.message_browser = RevisionMessageBrowser(self)
         self.message_browser.set_display_revids([self.revid], branch.repository)
@@ -47,7 +47,6 @@ class RevisionView(DiffWindow):
         self.centralwidget.layout().insertWidget(1, vsplitter)
         self.centralwidget.layout().removeWidget(self.stack)
         
-        self.refresh_button.setVisible(False)
         self.set_diff_title()
     
     def initial_load(self):

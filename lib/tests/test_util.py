@@ -21,16 +21,21 @@
 import sys
 
 from bzrlib import (
+    config,
     errors,
     tests,
     )
 from bzrlib.transport import memory
 
-from bzrlib.plugins.qbzr.lib import util
+from bzrlib.plugins.qbzr.lib import (
+    tests as qbzr_tests,
+    util,
+    )
+from bzrlib.plugins.qbzr.lib.fake_branch import FakeBranch
 from bzrlib.plugins.qbzr.lib.tests import mock
 
 
-class TestUtil(tests.TestCase):
+class TestUtil(qbzr_tests.QTestCase):
 
     def test_file_extension(self):
         self.assertEquals('', util.file_extension(''))
@@ -177,6 +182,24 @@ class TestUtil(tests.TestCase):
         self.assertEquals([u'C:\\foo\\bar', u'\u1234'],
             util._shlex_split_unicode_windows(u"C:\\foo\\bar \u1234"))
 
+    def test_launchpad_project_from_url(self):
+        fut = util.launchpad_project_from_url  # fut = function under test
+        # classic
+        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/~qbzr-dev/qbzr/trunk'))
+        # lp:qbzr
+        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/+branch/qbzr'))
+        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/qbzr'))
+        # lp:qbzr/0.20
+        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/qbzr/0.20'))
+        # lp:ubuntu/qbzr
+        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/ubuntu/qbzr'))
+        # lp:ubuntu/natty/qbzr
+        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/ubuntu/natty/qbzr'))
+        # lp:ubuntu/natty-proposed/qbzr
+        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/ubuntu/natty-proposed/qbzr'))
+        # lp:~someone/ubuntu/maverick/qbzr/sru
+        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/~someone/ubuntu/maverick/qbzr/sru'))
+
 
 class TestOpenTree(tests.TestCaseWithTransport):
 
@@ -221,3 +244,27 @@ class TestOpenTree(tests.TestCaseWithTransport):
         tree = util.open_tree('b', ui_mode=False, _critical_dialog=mf)
         self.assertNotEqual(None, tree)
         self.assertEqual(0, mf.count)
+
+
+class TestFakeBranch(tests.TestCaseInTempDir):
+
+    def test_get_branch_config(self):
+        br = FakeBranch()
+        br_cfg = util.get_branch_config(br)
+        self.assertTrue(isinstance(br_cfg, config.GlobalConfig))
+
+    def test_get_set_encoding_get(self):
+        br = FakeBranch()
+        enc = util.get_set_encoding(None, br)
+        self.assertEquals('utf-8', enc)
+
+    def test_get_set_encoding_set(self):
+        br = FakeBranch()
+        util.get_set_encoding('ascii', br)
+        # check that we don't overwrite encoding vaslue in bazaar.conf
+        self.assertEquals('utf-8', util.get_set_encoding(None,None))
+
+    def test_get_tab_width_chars(self):
+        br = FakeBranch()
+        w = util.get_tab_width_chars(br)
+        self.assertEquals(8, w)

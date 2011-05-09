@@ -29,15 +29,17 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrWindow,
     ThrobberWidget,
     file_extension,
-    get_set_encoding,
-    runs_in_loading_queue,
     get_monospace_font,
+    get_set_encoding,
+    get_tab_width_pixels,
+    runs_in_loading_queue,
     )
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingSelector
+from bzrlib.plugins.qbzr.lib.fake_branch import FakeBranch
 from bzrlib.plugins.qbzr.lib.syntaxhighlighter import highlight_document
 from bzrlib.plugins.qbzr.lib.texteditannotate import LineNumberEditerFrame
+from bzrlib.plugins.qbzr.lib.trace import reports_exception
+from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 
 
 def hexdump(data):
@@ -216,6 +218,9 @@ class QBzrCatWindow(QBzrWindow):
         edit = browser.edit
         edit.setReadOnly(True)
         edit.document().setDefaultFont(get_monospace_font())
+
+        edit.setTabStopWidth(get_tab_width_pixels(self.branch))
+
         self._set_text(edit, relpath, text, self.encoding)
         self.encoding_selector.setEnabled(True)
         return browser
@@ -310,16 +315,6 @@ class QBzrViewWindow(QBzrCatWindow):
         self._create_and_show_browser(self.filename, text, kind)
 
 
-class FakeBranch(object):
-    """Special branch object to disable save encodings to branch.conf"""
-
-    def __init__(self):
-        pass
-
-    def __nonzero__(self):
-        return False
-
-
 def cat_to_native_app(tree, relpath):
     """Extract file content to temp directory and then launch
     native application to open it.
@@ -350,7 +345,7 @@ def cat_to_native_app(tree, relpath):
         tree.unlock()
         f.close()
     # open it
-    url = QtCore.QUrl(fname)
+    url = QtCore.QUrl.fromLocalFile(fname)
     result = QtGui.QDesktopServices.openUrl(url)
     # now application is about to start and user will work with file
     # so we can do cleanup in "background"

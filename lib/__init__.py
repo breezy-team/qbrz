@@ -20,17 +20,14 @@
 
 import os, sys
 
-if getattr(sys, "frozen", None):
-    # Add our required extra libraries for the standalone bzr.exe to path
-    sys.path.append(os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '_lib')))
-
+# XXX maybe extract this into compatibility.py ?
 if sys.version_info < (2, 5):
     def _all_2_4_compat(iterable):
         for element in iterable:
             if not element:
                 return False
         return True
-        
+
     def _any_2_4_compat(iterable):
         for element in iterable:
             if element:
@@ -43,3 +40,26 @@ if sys.version_info < (2, 5):
 
 # Special constant
 MS_WINDOWS = (sys.platform == 'win32')
+
+
+# Features dictionary:
+# keys are feature names, values are optional parameters for those features.
+# the meaning of parameters depend on the feature, so it's more like config.
+# The keys names can use namespaces in the form 'domain.option'.
+#
+# Intended usage of this dict by the external code:
+#
+# if feature_name in FEATURES: then_do_something(); else: backward_compatible_code()
+#
+# or
+#
+# feature_value = FEATURES.get(feature_name); if feature_value == XXX: the_do_something()
+#
+# NOTE: No external code should add the keys or change the values to this dict!!!
+#
+FEATURES = dict(
+    # feature_name=None,        # for features without extra parameters
+    # feature_name='1.2.3',     # to specify optional version or parameter
+    # feature_name=[some list], # to specify the list of parameters
+    # etc.
+    )

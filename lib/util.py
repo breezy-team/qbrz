@@ -50,12 +50,14 @@ lazy_import(globals(), '''
 from bzrlib import (
     osutils,
     urlutils,
+    ui,
 )
-from bzrlib.util.configobj import configobj
 from bzrlib.plugins.qbzr.lib import trace
 from bzrlib.workingtree import WorkingTree
 from bzrlib.transport import get_transport
 from bzrlib.lockdir import LockDir
+
+from bzrlib.plugins.qbzr.lib.compatibility import configobj
 ''')
 
 # standard buttons with translatable labels
@@ -113,6 +115,10 @@ class Config(object):
         if section not in self._configobj:
             self._configobj[section] = {}
         if value:
+            if not isinstance(value, (str,unicode)):
+                # [bialix 2011/02/11] related to bug #716384: if value is bool
+                # then sometimes configobj lost it in the output file
+                value = str(value)
             self._configobj[section][name] = value
         else:
             if name in self._configobj[section]:
@@ -126,6 +132,14 @@ class Config(object):
             return self._configobj[section][name]
         except KeyError:
             return None
+
+    def get_option_as_bool(self, name, section=None):
+        # imitate the code from bzrlib.config to read option as boolean
+        # until we will switch to use bzrlib.config instead of our re-implementation
+        value_maybe_str_or_bool = self.get_option(name, section)
+        if value_maybe_str_or_bool not in (None, ''):
+            value = ui.bool_from_string(value_maybe_str_or_bool)
+            return value
 
     def set_section(self, name, values):
         self._load()
@@ -244,7 +258,7 @@ def _check_global_config_filename_valid(config):
         return not config.file_name == config_filename()
     else:
         return False
-    
+
 
 _qbzr_config = None
 def get_qbzr_config():
@@ -255,10 +269,11 @@ def get_qbzr_config():
     return _qbzr_config
 
 def get_branch_config(branch):
-    if branch is not None:
+    if branch: # we should check boolean branch value to support 2 fake branch cases: branch is None, branch is FakeBranch
         return branch.get_config()
     else:
         return get_global_config()
+
 
 class _QBzrWindowBase(object):
 
@@ -339,8 +354,8 @@ class _QBzrWindowBase(object):
             self.resize(size.expandedTo(self.minimumSizeHint()))
         self._restore_size = size
 
-        is_maximized = config.get_option(name + "_window_maximized")
-        if is_maximized in ("True", "1"):
+        is_maximized = config.get_option_as_bool(name + "_window_maximized")
+        if is_maximized:
             self.setWindowState(QtCore.Qt.WindowMaximized)
         return config
 
@@ -621,7 +636,7 @@ def get_set_encoding(encoding, branch):
                 'utf-8 will be used instead') % encoding)
             encoding = 'utf-8'
     else:
-        if branch is not None:
+        if branch: # we should check boolean branch value to support 2 fake branch cases: branch is None, branch is FakeBranch
             branch.get_config().set_user_option("encoding", encoding)
     return encoding
 
@@ -745,6 +760,15 @@ def fill_combo_with(combo, default, *iterables):
             done.add(item)
             combo.addItem(item)
 
+def show_shortcut_hint(action):
+    """Show this action's shortcut, if any, as part of the tooltip.
+    
+    Make sure to set the shortcut and tooltip *before* calling this.
+    """
+    shortcut = action.shortcut()
+    if shortcut and shortcut.toString():
+        toolTip = action.toolTip()
+        action.setToolTip("%s (%s)" % (toolTip, shortcut.toString()))
 
 def iter_saved_pull_locations():
     """ Iterate the 'pull' locations we have previously saved for the user.
@@ -861,8 +885,8 @@ loading_queue = None
 def runs_in_loading_queue(f):
     """Methods decorated with this will not run at the same time, but will be
     queued. Methods decorated with this will not be able to return results,
-    but should rather update the ui themselfs. Methods decorated with this
-    should detect, and stop if their execution is no longer requires.
+    but should rather update the ui themselves. Methods decorated with this
+    should detect, and stop if their execution is no longer required.
     
     """
     
@@ -875,13 +899,17 @@ def run_in_loading_queue(cur_f, *cur_args, **cur_kargs):
     global loading_queue
     if loading_queue is None:
         loading_queue = []
-        loading_queue.append((cur_f, cur_args, cur_kargs))
-        
-        while len(loading_queue):
-            f, args, kargs = loading_queue.pop(0)
-            f(*args, **kargs)
-        
-        loading_queue = None
+        try:
+            loading_queue.append((cur_f, cur_args, cur_kargs))
+            
+            while len(loading_queue):
+                try:
+                    f, args, kargs = loading_queue.pop(0)
+                    f(*args, **kargs)
+                except:
+                    trace.report_exception()
+        finally:
+            loading_queue = None
     else:
         loading_queue.append((cur_f, cur_args, cur_kargs))
 
@@ -968,15 +996,45 @@ def launchpad_project_from_url(url):
 
     @return: project name or None
     """
-    # The format ought to be scheme://host/~user-id/project-name/branch-name/
+    # The format ought to be one of the following:
+    #   scheme://host/~user-id/project-name/branch-name
+    #   scheme://host/+branch/project-name
+    #   scheme://host/+branch/project-name/series-name
+    # there could be distro branches, they are very complex,
+    # so we only support upstream branches based on source package
+    #   scheme://host/+branch/DISTRO/SOURCEPACKAGE
+    #   scheme://host/+branch/DISTRO/SERIES/SOURCEPACKAGE
+    #   scheme://host/+branch/DISTRO/POCKET/SOURCEPACKAGE
+    #   scheme://host/~USER/DISTRO/SERIES/SOURCEPACKAGE/BRANCHNAME
+    DISTROS = ('debian', 'ubuntu')
     from urlparse import urlsplit
     scheme, host, path = urlsplit(url)[:3]
     # Sanity check the host
-    if (host.find('bazaar.launchpad.net') >= 0 or
-        host.find('bazaar.launchpad.dev') >= 0):
+    if (host in ('bazaar.launchpad.net',
+                 'bazaar.launchpad.dev',
+                 'bazaar.qastaging.launchpad.net',
+                 'bazaar.staging.launchpad.net')):
         parts = path.strip('/').split('/')
-        if len(parts) == 3 and parts[0].startswith('~'):
-            return parts[1]
+        if parts[0].startswith('~'):
+            if len(parts) == 3 and parts[1] not in DISTROS:
+                # scheme://host/~user-id/project-name/branch-name/
+                return parts[1]
+            elif len(parts) == 5 and parts[1] in DISTROS:
+                # scheme://host/~USER/DISTRO/SERIES/SOURCEPACKAGE/BRANCHNAME
+                return parts[-2]
+        elif parts[0] in ('%2Bbranch', '+branch'):
+            n = len(parts)
+            if n >= 2:
+                part1 = parts[1]
+                if n in (2,3) and part1 not in DISTROS:
+                    # scheme://host/+branch/project-name
+                    # scheme://host/+branch/project-name/series-name
+                    return part1
+                elif n in (3,4) and part1 in DISTROS:
+                    # scheme://host/+branch/DISTRO/SOURCEPACKAGE
+                    # scheme://host/+branch/DISTRO/SERIES/SOURCEPACKAGE
+                    # scheme://host/+branch/DISTRO/POCKET/SOURCEPACKAGE
+                    return parts[-1]
     return None
 
 
@@ -996,14 +1054,14 @@ if MS_WINDOWS:
 else:
     shlex_split_unicode = _shlex_split_unicode_linux
 
-def get_icon(name):
+def get_icon(name, size=22):
     # TODO: Load multiple sizes
     # TODO: Try load from system theme
-    return QtGui.QIcon(":/22x22/%s.png" % name)
+    return QtGui.QIcon(":/%dx%d/%s.png" % (size, size, name))
 
 
 class FindToolbar(QtGui.QToolBar):
-    
+
     def __init__(self, window, text_edit, show_action):
         QtGui.QToolBar.__init__(self, gettext("Find"), window)
         self.text_edit = text_edit
@@ -1019,12 +1077,23 @@ class FindToolbar(QtGui.QToolBar):
         self.find_text = QtGui.QLineEdit(self)
         self.addWidget(self.find_text)
         find_label.setBuddy(self.find_text)
+
+        self.found_palette = QtGui.QPalette()
+        self.not_found_palette = QtGui.QPalette()
+        self.not_found_palette.setColor(QtGui.QPalette.Active,
+                QtGui.QPalette.Base,
+                QtCore.Qt.red)
+        self.not_found_palette.setColor(QtGui.QPalette.Active,
+                QtGui.QPalette.Text,
+                QtCore.Qt.white)
         
         prev = self.addAction(get_icon("go-previous"), gettext("Previous"))
         prev.setShortcut(QtGui.QKeySequence.FindPrevious)
+        show_shortcut_hint(prev)
         
         next = self.addAction(get_icon("go-next"), gettext("Next"))
         next.setShortcut(QtGui.QKeySequence.FindNext)
+        show_shortcut_hint(next)
         
         self.case_sensitive = QtGui.QCheckBox(gettext("Case sensitive"), self)
         self.addWidget(self.case_sensitive)
@@ -1088,7 +1157,7 @@ class FindToolbar(QtGui.QToolBar):
         self.find(self.text_edit.textCursor().selectionStart(), 0,
                   self.find_get_flags())
     
-    def find_next(self, state):
+    def find_next(self):
         self.find(self.text_edit.textCursor().selectionEnd(), 0,
                   self.find_get_flags())
     
@@ -1108,9 +1177,19 @@ class FindToolbar(QtGui.QToolBar):
             cursor = self.text_edit.textCursor()
             cursor.setPosition(cursor.selectionStart())
             self.text_edit.setTextCursor(cursor)
-            # Maybe make find_text background red like Firefox?
+            # Make find_text background red like Firefox
+            if len(text) > 0:
+                self.find_text.setPalette(self.not_found_palette)
+            else:
+                self.find_text.setPalette(self.found_palette)
         else:
             self.text_edit.setTextCursor(cursor)
+            self.find_text.setPalette(self.found_palette)
+
+    def set_text_edit(self, new_text_edit):
+        if self.text_edit:
+            self.text_edit.setTextCursor(QtGui.QTextCursor())
+        self.text_edit = new_text_edit
 
 
 class InfoWidget(QtGui.QFrame):
@@ -1153,3 +1232,17 @@ def _get_monospace_font():
     font.setFixedPitch(True)
     return font
 
+def get_tab_width_chars(branch=None):
+    """Function to get the tab width in characters from the configuration."""
+    config = get_branch_config(branch)
+    try:
+        tabWidth = int(config.get_user_option('tab_width'))
+    except TypeError:
+        tabWidth = 8
+    return tabWidth
+
+def get_tab_width_pixels(branch=None):
+    """Function to get the tab width in pixels based on a monospaced font."""
+    monospacedFont = get_monospace_font()
+    char_width = QtGui.QFontMetrics(monospacedFont).width(" ")
+    return char_width*get_tab_width_chars(branch)

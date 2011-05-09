@@ -37,6 +37,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     extract_name,
     get_qbzr_config,
     get_global_config,
+    get_tab_width_chars,
     )
 
 try:
@@ -118,6 +119,17 @@ class QBzrConfigWindow(QBzrDialog):
         generalGrid.addWidget(label, 3, 0)
         generalGrid.addWidget(self.emailClientCombo, 3, 1)
 
+        self.tabWidthSpinner = QtGui.QSpinBox()
+        self.tabWidthSpinner.setRange(1, 20)
+        self.tabWidthSpinner.setToolTip(gettext("Tab width in characters\n"
+            "option is used in qdiff, qannotate and qcat windows"))
+        label = QtGui.QLabel(gettext("Tab &Width:"))
+        label.setBuddy(self.tabWidthSpinner)
+        generalGrid.addWidget(label, 4, 0)
+        _hb = QtGui.QHBoxLayout()
+        _hb.addWidget(self.tabWidthSpinner)
+        _hb.addStretch(10)
+        generalGrid.addLayout(_hb, 4, 1)
         generalVBox.addLayout(generalGrid)
         generalVBox.addStretch()
 
@@ -303,6 +315,9 @@ class QBzrConfigWindow(QBzrDialog):
             if index >= 0:
                 self.emailClientCombo.setCurrentIndex(index)
 
+        # Tab-width
+        self.tabWidthSpinner.setValue(get_tab_width_chars())
+
         # Spellcheck language
         spellcheck_language = config.get_user_option('spellcheck_language') or 'en'
         if spellcheck_language:
@@ -411,6 +426,9 @@ class QBzrConfigWindow(QBzrDialog):
         index = self.emailClientCombo.currentIndex()
         mail_client = unicode(self.emailClientCombo.itemData(index).toString())
         set_or_delete_option(parser, 'mail_client', mail_client)
+
+        tabWidth = self.tabWidthSpinner.value()
+        set_or_delete_option(parser, 'tab_width', tabWidth)
 
         # Spellcheck language
         index = self.spellcheck_language_combo.currentIndex()
