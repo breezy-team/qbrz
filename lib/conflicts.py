@@ -18,7 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from bzrlib import mergetools
 from bzrlib.config import GlobalConfig
 from bzrlib.conflicts import resolve
 from bzrlib.workingtree import WorkingTree
@@ -34,6 +33,11 @@ try:
     from bzrlib.cmdline import split as cmdline_split
 except ImportError:
     from bzrlib.commands import shlex_split_unicode as cmdline_split
+
+try:
+    from bzrlib import mergetools
+except ImportError:
+    mergetools = None
 
 
 class ConflictsWindow(QBzrWindow):
@@ -120,19 +124,22 @@ class ConflictsWindow(QBzrWindow):
 
     def initialize_ui(self):
         config = GlobalConfig()
-        # get user-defined merge tools
-        defined_tools = config.get_merge_tools().keys()
-        # get predefined merge tools
-        defined_tools += mergetools.known_merge_tools.keys()
-        # sort them nicely
-        defined_tools.sort()
-        for merge_tool in defined_tools:
-            self.merge_tools_combo.insertItem(self.merge_tools_combo.count(),
-                                              merge_tool)
-        default_tool = config.get_user_option('bzr.default_mergetool')
-        if default_tool is not None:
-            self.merge_tools_combo.setCurrentIndex(
-                self.merge_tools_combo.findText(default_tool))
+        if mergetools is not None:
+            # get user-defined merge tools
+            defined_tools = config.get_merge_tools().keys()
+            # get predefined merge tools
+            defined_tools += mergetools.known_merge_tools.keys()
+            # sort them nicely
+            defined_tools.sort()
+            for merge_tool in defined_tools:
+                self.merge_tools_combo.insertItem(
+                    self.merge_tools_combo.count(), merge_tool)
+            default_tool = config.get_user_option('bzr.default_mergetool')
+            if default_tool is not None:
+                self.merge_tools_combo.setCurrentIndex(
+                    self.merge_tools_combo.findText(default_tool))
+        # update_merge_tool_ui invokes is_merge_tool_launchable, which displays
+        # error message if mergetools module is not available.
         self.update_merge_tool_ui()
 
     def create_context_menu(self):
@@ -235,6 +242,8 @@ class ConflictsWindow(QBzrWindow):
         self.context_menu.popup(self.conflicts_list.viewport().mapToGlobal(pos))
 
     def is_merge_tool_launchable(self):
+        if mergetools is None:
+            return False, gettext("bzr 2.4 or later is required for external mergetools support")
         items = self.conflicts_list.selectedItems()
         error_msg = ""
         enabled = True
