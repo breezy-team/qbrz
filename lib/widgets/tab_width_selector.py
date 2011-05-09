@@ -18,8 +18,6 @@
 
 from PyQt4 import QtGui, QtCore
 
-from bzrlib.plugins.qbzr.lib.util import get_tab_width_pixels
-
 # Range of tab widths to display by default on the menu (if others are
 # specified in either bazaar.conf or branch.conf they'll be added after
 # a separator).
