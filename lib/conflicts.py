@@ -243,7 +243,7 @@ class ConflictsWindow(QBzrWindow):
 
     def is_merge_tool_launchable(self):
         if mergetools is None:
-            return False, gettext("bzr 2.4 or later is required for external mergetools support")
+            return False, gettext("Bazaar 2.4 or later is required for external mergetools support")
         items = self.conflicts_list.selectedItems()
         error_msg = ""
         enabled = True
