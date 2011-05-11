@@ -54,6 +54,7 @@
 
     <file>22x22/select-all.png</file>
     <file>22x22/unselect-all.png</file>
+    <file>22x22/internet-news-reader.png</file>
 
 </qresource>
 </RCC>
