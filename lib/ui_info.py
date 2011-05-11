@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui/info.ui'
 #
-# Created: Thu Apr 21 08:14:52 2011
+# Created: Wed May 11 11:25:59 2011
 #      by: PyQt4 UI code generator 4.8.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -28,7 +28,7 @@ class Ui_InfoForm(object):
         self.label_2.setObjectName(_fromUtf8("label_2"))
         self.horizontalLayout.addWidget(self.label_2)
         self.local_location = QtGui.QLabel(InfoForm)
-        self.local_location.setWordWrap(True)
+        self.local_location.setWordWrap(False)
         self.local_location.setTextInteractionFlags(QtCore.Qt.LinksAccessibleByMouse|QtCore.Qt.TextSelectableByKeyboard|QtCore.Qt.TextSelectableByMouse)
         self.local_location.setObjectName(_fromUtf8("local_location"))
         self.horizontalLayout.addWidget(self.local_location)

@@ -4,6 +4,10 @@
  * qcat:
    * Fixed problem with viewing file from qbrowse.
      (Alexander Belchenko, Bug #776196)
+ * qinfo:
+   * Turned off word-wrap in location label: prevents strange
+     path display if there are spaces in the path.
+     (A. S. Budden, Bug #781040)
 
 
 0.21 beta 1 - 2011/05/02
