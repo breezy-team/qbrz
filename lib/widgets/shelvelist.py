@@ -189,6 +189,8 @@ class ShelveListWidget(ToolbarPanel):
 
         self.load_settings()
         self.loaded = False
+        self._loading_diff = False
+        self._pending_info = None
 
     def set_layout(self, type):
         if self.current_layout == type:
@@ -308,27 +310,34 @@ class ShelveListWidget(ToolbarPanel):
             self.file_view.addTopLevelItem(item)
 
     def show_diff(self, diffs, refresh):
-        cur_len = len(self.current_diffs)
-        if not refresh and cur_len <= len(diffs) and self.current_diffs == diffs[0:cur_len]:
-            appends = diffs[cur_len:]
-        else:
-            for view in self.diffviews:
-                view.clear()
-            appends = diffs 
-        self.current_diffs = diffs
-        for d in appends:
-            lines = d.lines
-            groups = d.groups(self.complete, self.ignore_whitespace)
-            dates = d.dates[:]  # dates will be changed in append_diff
-            ulines = d.encode((self.encoding_selector.encoding,
-                               self.encoding_selector.encoding))
-            data = [''.join(l) for l in ulines]
-            for view in self.diffviews:
-                view.append_diff(list(d.paths), d.file_id, d.kind, d.status, dates, 
-                                 d.versioned, d.binary, ulines, groups, 
-                                 data, d.properties_changed)
+        self._loading_diff = True 
+        try:
+            cur_len = len(self.current_diffs)
+            if not refresh and cur_len <= len(diffs) and self.current_diffs == diffs[0:cur_len]:
+                appends = diffs[cur_len:]
+            else:
+                for view in self.diffviews:
+                    view.clear()
+                self.current_diffs = []
+                appends = diffs 
+            for d in appends:
+                lines = d.lines
+                groups = d.groups(self.complete, self.ignore_whitespace)
+                dates = d.dates[:]  # dates will be changed in append_diff
+                ulines = d.encode((self.encoding_selector.encoding,
+                                   self.encoding_selector.encoding))
+                data = [''.join(l) for l in ulines]
+                for view in self.diffviews:
+                    view.append_diff(list(d.paths), d.file_id, d.kind, d.status, dates, 
+                                     d.versioned, d.binary, ulines, groups, 
+                                     data, d.properties_changed)
+                self.current_diffs.append(d)
+                if self._pending_info is not None:
+                    # Interrupted
+                    break
+        finally:
+            self._loading_diff = False
 
-            
     def selected_shelve_changed(self):
         items = self.shelve_view.selectedItems()
         if len(items) != 1:
@@ -347,9 +356,29 @@ class ShelveListWidget(ToolbarPanel):
         self.show_selected_diff()
 
     def show_selected_diff(self, refresh = False):
-        diffs = [x.diffitem for x in self.file_view.selectedItems()]
-        diffs.sort(key=lambda x:x.paths[0] or x.paths[1])
-        self.show_diff(diffs, refresh)
+        # NOTE: SideBySideDiffView.append_diff uses processEvents internally. 
+        #       So, show_selected_diff can be called during another 
+        #       show_selected_diff is running.
+        if self._loading_diff:
+            if self._pending_info is None:
+                self._pending_info = (refresh,)
+                self.show_selected_diff_delay()
+            elif refresh and not self._pending_info[0]:
+                self._pending_info = (True,)
+        else:
+            diffs = [x.diffitem for x in self.file_view.selectedItems()]
+            diffs.sort(key=lambda x:x.paths[0] or x.paths[1])
+            self.show_diff(diffs, refresh)
+
+    def show_selected_diff_delay(self):
+        if self._pending_info == None:
+            return
+        if self._loading_diff:
+            QtCore.QTimer.singleShot(100, self.show_selected_diff_delay)
+            return
+        refresh = self._pending_info[0]
+        self._pending_info = None
+        self.show_selected_diff(refresh)
 
     def unidiff_toggled(self, state):
         index = 1 if state else 0
