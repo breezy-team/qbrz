@@ -9,6 +9,7 @@
      path display if there are spaces in the path.
      (A. S. Budden, Bug #781040)
 
+
 0.21 beta 1 - 2011/05/02
 ------------------------
 What's new in this release:
