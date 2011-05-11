@@ -37,9 +37,9 @@ from bzrlib.plugins.qbzr.lib.util import (
     QBzrDialog,
     ToolBarThrobberWidget,
     get_monospace_font,
-    FindToolbar,
     ToolbarPanel,
     )
+from bzrlib.plugins.qbzr.lib.widgets.toolbars import FindToolbar
 from bzrlib import errors
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception

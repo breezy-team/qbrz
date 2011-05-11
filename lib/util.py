@@ -58,7 +58,6 @@ from bzrlib.transport import get_transport
 from bzrlib.lockdir import LockDir
 
 from bzrlib.plugins.qbzr.lib.compatibility import configobj
-from types import MethodType
 ''')
 
 # standard buttons with translatable labels
@@ -270,10 +269,11 @@ def get_qbzr_config():
     return _qbzr_config
 
 def get_branch_config(branch):
-    if branch is not None:
+    if branch: # we should check boolean branch value to support 2 fake branch cases: branch is None, branch is FakeBranch
         return branch.get_config()
     else:
         return get_global_config()
+
 
 class _QBzrWindowBase(object):
 
@@ -636,7 +636,7 @@ def get_set_encoding(encoding, branch):
                 'utf-8 will be used instead') % encoding)
             encoding = 'utf-8'
     else:
-        if branch is not None:
+        if branch: # we should check boolean branch value to support 2 fake branch cases: branch is None, branch is FakeBranch
             branch.get_config().set_user_option("encoding", encoding)
     return encoding
 
@@ -1054,151 +1054,10 @@ if MS_WINDOWS:
 else:
     shlex_split_unicode = _shlex_split_unicode_linux
 
-def get_icon(name, size = 22):
+def get_icon(name, size=22):
     # TODO: Load multiple sizes
     # TODO: Try load from system theme
     return QtGui.QIcon(":/%dx%d/%s.png" % (size, size, name))
-
-
-class FindToolbar(QtGui.QToolBar):
-
-    def __init__(self, window, text_edit, show_action):
-        QtGui.QToolBar.__init__(self, gettext("Find"), window)
-        self.text_edit = text_edit
-        if 0: self.text_edit = QtGui.QTextEdit()
-        self.show_action = show_action
-        
-        self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-        self.setMovable (False)
-        
-        find_label = QtGui.QLabel(gettext("Find: "), self)
-        self.addWidget(find_label)
-        
-        self.find_text = QtGui.QLineEdit(self)
-        self.addWidget(self.find_text)
-        find_label.setBuddy(self.find_text)
-
-        self.found_palette = QtGui.QPalette()
-        self.not_found_palette = QtGui.QPalette()
-        self.not_found_palette.setColor(QtGui.QPalette.Active,
-                QtGui.QPalette.Base,
-                QtCore.Qt.red)
-        self.not_found_palette.setColor(QtGui.QPalette.Active,
-                QtGui.QPalette.Text,
-                QtCore.Qt.white)
-        
-        prev = self.addAction(get_icon("go-previous"), gettext("Previous"))
-        prev.setShortcut(QtGui.QKeySequence.FindPrevious)
-        show_shortcut_hint(prev)
-        
-        next = self.addAction(get_icon("go-next"), gettext("Next"))
-        next.setShortcut(QtGui.QKeySequence.FindNext)
-        show_shortcut_hint(next)
-        
-        self.case_sensitive = QtGui.QCheckBox(gettext("Case sensitive"), self)
-        self.addWidget(self.case_sensitive)
-        self.whole_words = QtGui.QCheckBox(gettext("Whole words"), self)
-        self.addWidget(self.whole_words)
-        
-        close_find = QtGui.QAction(self)
-        close_find.setIcon(self.style().standardIcon(
-                                        QtGui.QStyle.SP_DialogCloseButton))
-        self.addAction(close_find)
-        close_find.setShortcut((QtCore.Qt.Key_Escape))
-        close_find.setShortcutContext(QtCore.Qt.WidgetWithChildrenShortcut)
-        close_find.setStatusTip(gettext("Close find"))
-        self.connect(self.show_action,
-                     QtCore.SIGNAL("toggled (bool)"),
-                     self.show_action_toggle)
-        self.connect(close_find,
-                     QtCore.SIGNAL("triggered(bool)"),
-                     self.close_triggered)
-        self.connect(self.find_text,
-                     QtCore.SIGNAL("textChanged(QString)"),
-                     self.find_text_changed)
-        self.connect(next,
-                     QtCore.SIGNAL("triggered(bool)"),
-                     self.find_next)
-        self.connect(prev,
-                     QtCore.SIGNAL("triggered(bool)"),
-                     self.find_prev)
-        self.connect(self.case_sensitive,
-                     QtCore.SIGNAL("stateChanged(int)"),
-                     self.find_text_changed)
-        self.connect(self.whole_words,
-                     QtCore.SIGNAL("stateChanged(int)"),
-                     self.find_text_changed)
-        
-        # NOTE: returnPressed signal loses default button of QDialog.
-        #       So, use keyPressEvent instead.
-        def keyPressEvent(obj, event):
-            if event.key() in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter):
-                self.find_next()
-            else:
-                QtGui.QLineEdit.keyPressEvent(obj, event)
-
-        self.find_text.keyPressEvent = \
-                MethodType(keyPressEvent, self.find_text, QtGui.QLineEdit)
-        self.find_text.installEventFilter(self)
-
-    def show_action_toggle(self, state):
-        self.setVisible(state)
-        if state:
-            self.find_text.setFocus()
-        else:
-            self.find_text.setText('')
-    
-    def close_triggered(self, state):
-        self.show_action.setChecked(False)
-    
-    def find_text_changed(self, text):
-        self.find_avoid_moving()
-    
-    def find_get_flags(self):
-        flags = QtGui.QTextDocument.FindFlags()
-        if self.case_sensitive.isChecked():
-            flags = flags | QtGui.QTextDocument.FindCaseSensitively
-        if self.whole_words.isChecked():
-            flags = flags | QtGui.QTextDocument.FindWholeWords
-        return flags
-    
-    def find_avoid_moving(self):
-        self.find(self.text_edit.textCursor().selectionStart(), 0,
-                  self.find_get_flags())
-    
-    def find_next(self):
-        self.find(self.text_edit.textCursor().selectionEnd(), 0,
-                  self.find_get_flags())
-    
-    def find_prev(self, state):
-        self.find(self.text_edit.textCursor().selectionStart(),
-                  self.text_edit.document().characterCount(),
-                  self.find_get_flags() | QtGui.QTextDocument.FindBackward)
-    
-    def find(self, from_pos, restart_pos, flags):
-        doc = self.text_edit.document()
-        text = self.find_text.text()
-        cursor = doc.find(text, from_pos, flags)
-        if cursor.isNull():
-            # try again from the restart pos
-            cursor = doc.find(text, restart_pos, flags)
-        if cursor.isNull():
-            cursor = self.text_edit.textCursor()
-            cursor.setPosition(cursor.selectionStart())
-            self.text_edit.setTextCursor(cursor)
-            # Make find_text background red like Firefox
-            if len(text) > 0:
-                self.find_text.setPalette(self.not_found_palette)
-            else:
-                self.find_text.setPalette(self.found_palette)
-        else:
-            self.text_edit.setTextCursor(cursor)
-            self.find_text.setPalette(self.found_palette)
-
-    def set_text_edit(self, new_text_edit):
-        if self.text_edit:
-            self.text_edit.setTextCursor(QtGui.QTextCursor())
-        self.text_edit = new_text_edit
 
 
 class InfoWidget(QtGui.QFrame):
@@ -1302,17 +1161,46 @@ def _get_monospace_font():
     font.setFixedPitch(True)
     return font
 
-def get_tab_width_chars(branch=None):
-    """Function to get the tab width in characters from the configuration."""
-    config = get_branch_config(branch)
-    try:
-        tabWidth = int(config.get_user_option('tab_width'))
-    except TypeError:
-        tabWidth = 8
-    return tabWidth
+def get_set_tab_width_chars(branch=None, tab_width_chars=None):
+    """Function to get the tab width in characters from the configuration.
 
-def get_tab_width_pixels(branch=None):
-    """Function to get the tab width in pixels based on a monospaced font."""
+    @param branch: Use branch.conf as well as bazaar.conf if this is provided.
+    @param tab_width_chars: Number of characters to use as tab width: if branch
+        is provided, the tab width will be stored in branch.conf
+
+    Both arguments are optional, but if tab_width_chars is provided and branch is
+    not, nothing will be done.
+    
+    @return: Tab width, in characters.
+    """
+    if tab_width_chars is None:
+        config = get_branch_config(branch)
+        try:
+            tab_width_chars = int(config.get_user_option('tab_width'))
+            if tab_width_chars < 0:
+                raise TypeError("Invalid tab width")
+        except TypeError:
+            tab_width_chars = 8
+    else:
+        if branch:
+            branch.get_config().set_user_option("tab_width", tab_width_chars)
+
+    return tab_width_chars
+
+def get_tab_width_pixels(branch=None, tab_width_chars=None):
+    """Function to get the tab width in pixels based on a monospaced font.
+
+    If tab_width_chars is provided, it is simply converted to a value in pixels.  If
+    it is not provided, the configuration is retrieved from bazaar.conf.  If branch is
+    provided (and tab_width_chars is not), branch.conf is also checked.
+
+    @param tab_width_chars: Number of characters of tab width to convert to pixels.
+    @param branch: Branch to use when retrieving tab width from configuration.
+    
+    @return: Tab width, in pixels.
+    """
     monospacedFont = get_monospace_font()
     char_width = QtGui.QFontMetrics(monospacedFont).width(" ")
-    return char_width*get_tab_width_chars(branch)
+    if tab_width_chars is None:
+        tab_width_chars = get_set_tab_width_chars(branch=branch)
+    return char_width*tab_width_chars

@@ -1,6 +1,40 @@
-0.21 - In development
----------------------
+0.21 beta 2 - in development
+----------------------------
+
+ * qcat:
+   * Fixed problem with viewing file from qbrowse.
+     (Alexander Belchenko, Bug #776196)
+ * qinfo:
+   * Turned off word-wrap in location label: prevents strange
+     path display if there are spaces in the path.
+     (A. S. Budden, Bug #781040)
+ * qdiff, qannotate:
+     Tab-width can be customised from the view menu.
+     (Bug #490377, A. S. Budden)
+
+
+0.21 beta 1 - 2011/05/02
+------------------------
 What's new in this release:
+
+QBzr 0.21 is companion release for bzr 2.4, and compatible with bzr 2.3.
+New features in this release:
+
+qdiff window has been reworked and all controls moved to a toolbar, similar to
+one in qannotate window. Also qdiff toolbar provides you new functions: text
+search within active pane and also knob to ignore whitespace changes (it's 
+also available as command-line option).
+
+User can configure the tab width and this setting affects qdiff, qannotate and
+qcat windows. By default tab width equals to 8 characters, user can set new
+default value in bazaar.conf as ``tab_width = N`` (either via qconfig or
+editing [DEFAULT] section of bazaar.conf). Also user can set individual tab
+width for branches in their branch.conf.
+
+Other changes include major rework of qinfo dialog (show the same information
+as CLI ``bzr info`` does), qcommit dialog now remembers state of "Show
+non-versioned" knob between runs, and several other improvements and bugfixes
+(see full changelog for details).
 
 Changelog:
  * qbranch:
@@ -13,7 +47,7 @@ Changelog:
    * Remember "Show non-versioned" checkbox state. 
      (Nick Sonneveld, Bug #258926)
  * qconflicts:
-   * Fixed internal error when deleting non-versioned files/directories.
+   * Fixed internal error when there is conflict in non-versioned file.
      (Alexander Belchenko, Bug #655451)
  * qdiff:
    * New toolbar with controls and options (similar to qannotate's toolbar).
@@ -38,7 +72,7 @@ Changelog:
      (A. S. Budden, Bug #772244)
  * qcat, qannotate, qdiff, qconfig:
    * Added ability to customise the tab-stop width (setting in qconfig,
-     affects qcat, qannotate and qdiff).  
+     affects qcat, qannotate and qdiff).
      The setting is stored in [DEFAULT] section of bazaar.conf,
      and is named tab_width (it can also be configured with qconfig).  Units
      are characters (so 4 means a tab should be displayed with the width of 4

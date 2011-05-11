@@ -22,7 +22,7 @@ from bzrlib.config import GlobalConfig
 from bzrlib.branch import Branch
 from bzrlib.option import Option
 
-from bzrlib.plugins.qbzr.lib.bugs import FakeBranch
+from bzrlib.plugins.qbzr.lib.bugs import FakeBranchForBugs
 
 
 class cmd_bug_url(commands.Command):
@@ -40,7 +40,7 @@ class cmd_bug_url(commands.Command):
         try:
             branch = Branch.open_containing(u'.')[0]
         except errors.NotBranchError:
-            branch = FakeBranch()
+            branch = FakeBranchForBugs()
         tokens = bug_id.split(':')
         if len(tokens) != 2:
             raise errors.BzrCommandError(

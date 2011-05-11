@@ -38,9 +38,9 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_monospace_font,
     StandardButton,
     get_tab_width_pixels,
-    FindToolbar,
     ToolbarPanel,
     )
+from bzrlib.plugins.qbzr.lib.widgets.toolbars import FindToolbar
 from bzrlib.plugins.qbzr.lib.diffview import (
     SidebySideDiffView,
     SimpleDiffView,
