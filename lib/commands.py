@@ -76,8 +76,8 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib.uifactory import QUIFactory
 from bzrlib.plugins.qbzr.lib.send import SendWindow
-from bzrlib.plugins.qbzr.lib.shelve import ShelveWindow
-from bzrlib.plugins.qbzr.lib.shelvelist import ShelveListWindow
+from bzrlib.plugins.qbzr.lib.widgets.shelve import ShelveWindow
+from bzrlib.plugins.qbzr.lib.widgets.shelvelist import ShelveListWindow
 ''')
 
 from bzrlib.plugins.qbzr.lib.diff_arg import DiffArgProvider
