@@ -295,19 +295,22 @@ class ShelveWindow(QBzrDialog):
                         N_("Find"), icon_name="edit-find", checkable=True)
         hunk_panel.add_separator()
 
-        hunk_panel.add_toolbar_button(N_("Complete"), icon_name="complete", 
-                          onclick=self.hunk_view.set_complete, 
-                          checkable=True, checked=complete)
-        
+        view_menu = QtGui.QMenu(gettext('View Options'), self)
+        view_menu.addAction(
+                hunk_panel.create_button(N_("Complete"), icon_name="complete", 
+                    onclick=self.hunk_view.set_complete,
+                    checkable=True, checked=complete)
+                )
         self.encoding_selector = EncodingMenuSelector(self.encoding,
-            gettext("Encoding"), self.encoding_changed)
-        hunk_panel.add_toolbar_menu(N_("Encoding"), 
-                self.encoding_selector, icon_name="format-text-bold")
+                                    gettext("Encoding"), self.encoding_changed)
+        self.encoding_selector.setIcon(get_icon("format-text-bold", 16))
+        view_menu.addMenu(self.encoding_selector)
+        hunk_panel.add_toolbar_menu(N_("View Options"), view_menu, icon_name="document-properties")
 
         hunk_panel.add_separator()
-        hunk_panel.add_toolbar_button(N_("Previous"), icon_name="go-up",
+        hunk_panel.add_toolbar_button(N_("Previous hunk"), icon_name="go-up",
                           onclick=self.hunk_view.move_previous)
-        hunk_panel.add_toolbar_button(N_("Next"), icon_name="go-down",
+        hunk_panel.add_toolbar_button(N_("Next hunk"), icon_name="go-down",
                           onclick=self.hunk_view.move_next)
 
         find_toolbar = FindToolbar(self, self.hunk_view.browser, show_find)
