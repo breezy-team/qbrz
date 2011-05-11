@@ -76,7 +76,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib.uifactory import QUIFactory
 from bzrlib.plugins.qbzr.lib.send import SendWindow
-from bzrlib.plugins.qbzr.lib.widgets.shelve import ShelveWindow
+from bzrlib.plugins.qbzr.lib.shelvewindow import ShelveWindow
 from bzrlib.plugins.qbzr.lib.widgets.shelvelist import ShelveListWindow
 ''')
 
@@ -1091,9 +1091,6 @@ class cmd_qshelve(QBzrCommand):
         else:
             self.main_window = ShelveWindow(file_list=file_list, directory=directory, 
                                             complete=complete, encoding=encoding)
-        try:
-            self.main_window.show()
-            self._application.exec_()
-        finally:
-            self.main_window.cleanup()
+        self.main_window.show()
+        self._application.exec_()
 

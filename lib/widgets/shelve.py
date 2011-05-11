@@ -20,21 +20,12 @@
 import sys, time
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.revision import CURRENT_REVISION
-from bzrlib.errors import (
-        NoSuchRevision, 
-        NoSuchRevisionInTree,
-        PathsNotVersionedError,
-        BinaryFile)
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
-    BTN_OK, BTN_CLOSE, BTN_REFRESH,
-    get_apparent_author_name,
     get_global_config,
     get_set_encoding,
     runs_in_loading_queue,
     get_icon,
-    QBzrDialog,
     ToolBarThrobberWidget,
     get_monospace_font,
     )
@@ -42,17 +33,14 @@ from bzrlib.plugins.qbzr.lib.widgets.toolbars import FindToolbar, ToolbarPanel
 from bzrlib import errors
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
-from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.patches import HunkLine, ContextLine, InsertLine, RemoveLine
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from bzrlib import transform, textfile, patches
 from bzrlib.workingtree import WorkingTree
-from bzrlib.revisiontree import RevisionTree
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
 from bzrlib.plugins.qbzr.lib.commit import TextEdit
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
-from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.shelf import ShelfCreator
 from bzrlib.shelf_ui import Shelver
 ''')
@@ -72,6 +60,9 @@ change_status = (
         N_("delete file"), N_("rename"), N_("add file"), 
         N_("modify text"), N_("modify target"), N_("modify binary")
         )
+
+class WorkingTreeHasChanged(errors.BzrError):
+    pass
 
 class DummyDiffWriter(object):
     def __init__(self):
@@ -172,67 +163,10 @@ class Change(object):
         return self.encode(self._target_lines, encoding)
 
 
-class SelectAllCheckBox(QtGui.QCheckBox):
-    def __init__(self, view, parent):
-        QtGui.QCheckBox.__init__(self, 
-                                 gettext("Select / deselect all"), 
-                                 parent)
-        self.changed_by_code = False
-        self.view = view
-        self.connect(self, QtCore.SIGNAL("clicked(bool)"),
-                self.clicked)
-        self.connect(self.view, QtCore.SIGNAL("itemChanged(QTreeWidgetItem *, int)"),
-                self.view_itemchecked)
+class ShelveWidget(ToolbarPanel):
 
-    def view_itemchecked(self, item, column):
-        if self.changed_by_code:
-            return
-        if column != 0:
-            return
-        view = self.view
-        state = None
-        for i in range(view.topLevelItemCount()):
-            item = view.topLevelItem(i)
-            if state is None:
-                state = item.checkState(0)
-                if state == QtCore.Qt.PartiallyChecked:
-                    break
-            elif state != item.checkState(0):
-                state = QtCore.Qt.PartiallyChecked
-                break
-        try:
-            self.changed_by_code = True
-            self.setCheckState(state)
-        finally:
-            self.changed_by_code = False
-
-    def clicked(self, state):
-        if self.changed_by_code:
-            return
-        if state:
-            state = QtCore.Qt.Checked
-        else:
-            state = QtCore.Qt.Unchecked
-
-        view = self.view
-        self.changed_by_code = True
-        try:
-            self.setCheckState(state)
-            for i in range(view.topLevelItemCount()):
-                item = view.topLevelItem(i)
-                if item.checkState(0) != state:
-                    item.setCheckState(0, state)
-        finally:
-            self.changed_by_code = False
-
-class ShelveWindow(QBzrDialog):
-
-    def __init__(self, file_list=None, directory=None, complete=False, encoding=None, dialog=True, parent=None, ui_mode=True):
-        QBzrDialog.__init__(self,
-                            gettext("Shelve"),
-                            parent, ui_mode=ui_mode)
-        self.restoreSize("shelve", (780, 680))
-        self._cleanup_funcs = []
+    def __init__(self, file_list=None, directory=None, complete=False, encoding=None, parent=None):
+        ToolbarPanel.__init__(self, slender=False, icon_size=22, parent=parent)
 
         self.revision = None
         self.file_list = file_list
@@ -241,9 +175,10 @@ class ShelveWindow(QBzrDialog):
 
         self.encoding = encoding
 
-        self.throbber = ToolBarThrobberWidget(self)
-
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self)
+        pal = QtGui.QPalette()
+        pal.setColor(QtGui.QPalette.Window, QtGui.QColor(0,0,0,0))
+        splitter.setPalette(pal)
         message_groupbox = QtGui.QGroupBox(gettext("Message"), splitter)
         message_layout = QtGui.QVBoxLayout(message_groupbox)
         splitter.addWidget(message_groupbox)
@@ -265,11 +200,6 @@ class ShelveWindow(QBzrDialog):
         hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal, splitter)
         splitter.addWidget(hsplitter)
 
-        fileview_panel = QtGui.QWidget()
-        hsplitter.addWidget(fileview_panel)
-        vbox = QtGui.QVBoxLayout(fileview_panel)
-        vbox.setMargin(0)
-        
         self.file_view = QtGui.QTreeWidget(self)
         self.file_view.setHeaderLabels(
                 [gettext("File Name"), gettext("Status"), gettext("Hunks")])
@@ -279,20 +209,17 @@ class ShelveWindow(QBzrDialog):
         header.setResizeMode(1, QtGui.QHeaderView.ResizeToContents)
         header.setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
 
-        vbox.addWidget(self.file_view)
+        hsplitter.addWidget(self.file_view)
 
-        selectall_checkbox = SelectAllCheckBox(
-                                view=self.file_view, parent=fileview_panel)
-        vbox.addWidget(selectall_checkbox)
-
-        hunk_panel = ToolbarPanel(self)
+        hunk_panel = ToolbarPanel(parent=self)
         self.hunk_view = HunkView(complete=complete)
 
         hsplitter.addWidget(hunk_panel)
 
         # Build hunk panel toolbar
         show_find = hunk_panel.add_toolbar_button(
-                        N_("Find"), icon_name="edit-find", checkable=True)
+                        N_("Find"), icon_name="edit-find", checkable=True,
+                        shortcut=QtGui.QKeySequence.Find)
         hunk_panel.add_separator()
 
         view_menu = QtGui.QMenu(gettext('View Options'), self)
@@ -305,13 +232,15 @@ class ShelveWindow(QBzrDialog):
                                     gettext("Encoding"), self.encoding_changed)
         self.encoding_selector.setIcon(get_icon("format-text-bold", 16))
         view_menu.addMenu(self.encoding_selector)
-        hunk_panel.add_toolbar_menu(N_("View Options"), view_menu, icon_name="document-properties")
+        hunk_panel.add_toolbar_menu(
+                N_("View Options"), view_menu, icon_name="document-properties",
+                shortcut="Alt+V")
 
         hunk_panel.add_separator()
         hunk_panel.add_toolbar_button(N_("Previous hunk"), icon_name="go-up",
-                          onclick=self.hunk_view.move_previous)
+                          onclick=self.hunk_view.move_previous, shortcut="Alt+Up")
         hunk_panel.add_toolbar_button(N_("Next hunk"), icon_name="go-down",
-                          onclick=self.hunk_view.move_next)
+                          onclick=self.hunk_view.move_next, shortcut="Alt+Down")
 
         find_toolbar = FindToolbar(self, self.hunk_view.browser, show_find)
         hunk_panel.add_widget(find_toolbar)
@@ -320,17 +249,24 @@ class ShelveWindow(QBzrDialog):
 
         splitter.setStretchFactor(0, 1)
         splitter.setStretchFactor(1, 6)
-
-        layout = QtGui.QVBoxLayout(self)
-        layout.addWidget(self.throbber)
+        layout = QtGui.QVBoxLayout()
+        layout.setMargin(10)
         layout.addWidget(splitter)
+        self.add_layout(layout)
 
-        # build buttonbox
-        buttonbox = self.create_button_box(BTN_OK, BTN_CLOSE)
-        layout.addWidget(buttonbox)
+        self.add_toolbar_button(N_('Shelve'), icon_name='shelve', 
+                shortcut=QtGui.QKeySequence.Save, onclick=self.do_shelve)
 
-        self.connect(self, QtCore.SIGNAL("finished(int)"),
-                self.finished)
+        self.add_separator()
+
+        self.add_toolbar_button(N_('Select all'), icon_name='select-all', 
+                onclick=lambda:self.check_all(True))
+
+        self.add_toolbar_button(N_('Unselect all'), icon_name='unselect-all', 
+                onclick=lambda:self.check_all(False))
+        
+        self.add_toolbar_button(N_('Refresh'), icon_name='view-refresh', 
+                shortcut=QtGui.QKeySequence.Refresh, onclick=self._reload)
 
         self.connect(self.file_view, QtCore.SIGNAL("itemSelectionChanged()"),
                 self.selected_file_changed)
@@ -341,16 +277,10 @@ class ShelveWindow(QBzrDialog):
         self.connect(self.hunk_view, QtCore.SIGNAL("selectionChanged()"),
                 self.selected_hunk_changed)
 
-    def show(self):
-        QtCore.QTimer.singleShot(1, self.load)
-        QBzrDialog.show(self)
-
-    def exec_(self):
-        QtCore.QTimer.singleShot(1, self.load)
-        return QBzrDialog.exec_(self)
+        self.loaded = False
 
     def _create_shelver_and_creator(self):
-        shelver = Shelver.from_args(DummyDiffWriter(), self.revision,
+        shelver = Shelver.from_args(DummyDiffWriter(), None,
                 False, self.file_list, None, directory = self.directory)
         try:
             creator = ShelfCreator(
@@ -365,24 +295,34 @@ class ShelveWindow(QBzrDialog):
     @ui_current_widget
     @reports_exception()
     def load(self):
+        self._reload()
+
+    def _reload(self):
         cleanup = []
         try:
-            self.throbber.show()
-            cleanup.append(self.throbber.hide)
+            old_rev = self.revision
+            old_changes = self._get_change_dictionary()
+            self.clear(clear_message = False)
+
             shelver, creator = self._create_shelver_and_creator()
             cleanup.append(shelver.finalize)
             cleanup.append(creator.finalize)
 
             trees = (shelver.target_tree, shelver.work_tree)
+            self.revision = trees[0].get_revision_id()
+            if self.revision != old_rev:
+                old_changes = None
             for change in creator.iter_shelvable():
-                item = self._create_item(change, shelver, trees)
+                item = self._create_item(change, shelver, trees, old_changes)
                 self.file_view.addTopLevelItem(item)
             
         finally:
             for func in cleanup:
                 func()
 
-    def _create_item(self, change, shelver, trees):
+        self.loaded = True
+
+    def _create_item(self, change, shelver, trees, old_changes):
         """Create QTreeWidgetItem for file list from Change instance."""
         ch = Change(change, shelver, trees)
         item = QtGui.QTreeWidgetItem()
@@ -394,6 +334,16 @@ class ShelveWindow(QBzrDialog):
         if ch.status == 'modify text':
             item.setText(2, u'0/%d' % len(ch.parsed_patch.hunks))
         item.setCheckState(0, QtCore.Qt.Unchecked)
+
+        if old_changes:
+            old_change = old_changes.get((ch.file_id, ch.status))
+            if old_change and old_change.is_same_change(ch):
+                # Keep selection when reloading
+                if ch.status == 'modify text':
+                    item.change = old_change
+                    self.update_item(item)
+                else:
+                    item.setCheckState(0, QtCore.Qt.Checked)
         return item
 
     def selected_file_changed(self):
@@ -407,22 +357,27 @@ class ShelveWindow(QBzrDialog):
 
     def selected_hunk_changed(self):
         for item in self.file_view.selectedItems():
-            change = item.change
-            if change.status != 'modify text':
-                continue
-            hunks = change.parsed_patch.hunks
-            hunk_num = len(hunks)
-            selected_hunk_num = 0
-            for hunk in hunks:
-                if hunk.selected:
-                    selected_hunk_num += 1
-            item.setText(2, "%d/%d" % (selected_hunk_num, hunk_num))
-            if selected_hunk_num == 0:
-                item.setCheckState(0, QtCore.Qt.Unchecked)
-            elif selected_hunk_num == hunk_num:
-                item.setCheckState(0, QtCore.Qt.Checked)
-            else:
-                item.setCheckState(0, QtCore.Qt.PartiallyChecked)
+            self.update_item(item)
+    
+    def update_item(self, item):
+        change = item.change
+        if change.status != 'modify text':
+            return
+            
+        hunks = change.parsed_patch.hunks
+        hunk_num = len(hunks)
+        selected_hunk_num = 0
+        for hunk in hunks:
+            if hunk.selected:
+                selected_hunk_num += 1
+        item.setText(2, "%d/%d" % (selected_hunk_num, hunk_num))
+        if selected_hunk_num == 0:
+            item.setCheckState(0, QtCore.Qt.Unchecked)
+        elif selected_hunk_num == hunk_num:
+            item.setCheckState(0, QtCore.Qt.Checked)
+        else:
+            item.setCheckState(0, QtCore.Qt.PartiallyChecked)
+
 
     def file_checked(self, item, column):
         if column != 0:
@@ -448,8 +403,29 @@ class ShelveWindow(QBzrDialog):
 
     def complete_toggled(self, checked):
         self.hunk_view.set_complete(checked)
-    
-    def do_accept(self):
+
+    def check_all(self, checked):
+        if checked:
+            state = QtCore.Qt.Checked
+        else:
+            state = QtCore.Qt.Unchecked
+
+        view = self.file_view
+        for i in range(view.topLevelItemCount()):
+            item = view.topLevelItem(i)
+            if item.checkState(0) != state:
+                item.setCheckState(0, state)
+
+    def clear(self, clear_message = True):
+        if clear_message:
+            self.message.clear()
+        self.file_view.clear()
+        self.file_view.viewport().update()
+        self.hunk_view.clear()
+        self.revision = None
+        self.loaded = False
+
+    def _get_change_dictionary(self):
         change_dict = {}
         for i in range(0, self.file_view.topLevelItemCount()):
             item = self.file_view.topLevelItem(i)
@@ -457,6 +433,10 @@ class ShelveWindow(QBzrDialog):
             if item.checkState(0) == QtCore.Qt.Unchecked:
                 continue
             change_dict[(change.file_id, change.status)] = change
+        return change_dict
+
+    def do_shelve(self):
+        change_dict = self._get_change_dictionary()
         if change_dict:
             ret = QtGui.QMessageBox.question(self, gettext('Shelve'),
                     gettext('%d file(s) will be shelved.') % len(change_dict),
@@ -474,6 +454,9 @@ class ShelveWindow(QBzrDialog):
             cleanup.append(shelver.finalize)
             cleanup.append(creator.finalize)
             trees = (shelver.target_tree, shelver.work_tree)
+            if self.revision != trees[0].get_revision_id():
+                raise WorkingTreeHasChanged
+
             changes = []
             for ch in creator.iter_shelvable():
                 change = Change(ch, shelver, trees)
@@ -482,16 +465,12 @@ class ShelveWindow(QBzrDialog):
                 if org_change is None:
                     continue
                 if not change.is_same_change(org_change):
-                    QtGui.QMessageBox.warning(self, gettext('Shelve'),
-                            gettext('Operation aborted because target file(s) has been changed.'), gettext('&OK'))
-                    return
+                    raise WorkingTreeHasChanged
                 del(change_dict[key])
                 changes.append(org_change)
 
             if change_dict:
-                QtGui.QMessageBox.warning(self, gettext('Shelve'),
-                        gettext('Operation aborted because target file(s) has been changed.'), gettext('&OK'))
-                return
+                raise WorkingTreeHasChanged
 
             for change in changes:
                 if change.status == 'modify text':
@@ -503,10 +482,17 @@ class ShelveWindow(QBzrDialog):
             manager = shelver.work_tree.get_shelf_manager()
             message = unicode(self.message.toPlainText()).strip() or gettext(u'<no message>')
             shelf_id = manager.shelve_changes(creator, message)
+
+        except WorkingTreeHasChanged:
+            QtGui.QMessageBox.warning(self, gettext('Shelve'),
+                    gettext('Operation aborted because target file(s) has been changed.'), gettext('&OK'))
+            return
+
         finally:
             while cleanup:
                 cleanup.pop()()
-        QBzrDialog.do_accept(self)
+        self.emit(QtCore.SIGNAL("shelfCreated(int)"), shelf_id)
+        self.clear()
 
     def handle_modify_text(self, creator, change):
         final_hunks = []
@@ -524,20 +510,6 @@ class ShelveWindow(QBzrDialog):
             return
         patched = patches.iter_patched_from_hunks(change.target_lines, final_hunks)
         creator.shelve_lines(change.file_id, list(patched))
-
-    def add_cleanup(self, func):
-        self._cleanup_funcs.append(func)
-        
-    def cleanup(self):
-        while len(self._cleanup_funcs) > 0:
-            try:
-                self._cleanup_funcs.pop()()
-            except:
-                pass
-
-    def finished(self, ret):
-        self.cleanup()
-        self.saveSize()
 
 class HunkView(QtGui.QWidget):
     def __init__(self, complete=False, parent=None):
@@ -803,12 +775,14 @@ class HunkTextBrowser(QtGui.QTextBrowser):
         if index == len(self.hunk_list):
             index -= 1
         self._set_focused_hunk(index)
+        self.setFocus(QtCore.Qt.OtherFocusReason)
 
     def move_previous(self):
         index = int(self._focused_index)
         if 1 <= index and index == self._focused_index:
             index -= 1
         self._set_focused_hunk(index)
+        self.setFocus(QtCore.Qt.OtherFocusReason)
 
     def toggle_selection(self, index):
         if 0 <= index < len(self.hunk_list) and int(index) == index:
@@ -876,13 +850,6 @@ class HunkTextBrowser(QtGui.QTextBrowser):
         if mod == QtCore.Qt.NoModifier:
             if key == QtCore.Qt.Key_Space:
                 self.toggle_selection(self._focused_index)
-                return
-        elif mod == QtCore.Qt.ControlModifier:
-            if key == QtCore.Qt.Key_Up:
-                self.move_previous()
-                return
-            elif key == QtCore.Qt.Key_Down:
-                self.move_next()
                 return
         QtGui.QTextBrowser.keyPressEvent(self, event)
 
