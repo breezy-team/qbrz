@@ -28,6 +28,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_icon,
     ToolBarThrobberWidget,
     get_monospace_font,
+    get_tab_width_pixels,
     )
 from bzrlib.plugins.qbzr.lib.widgets.toolbars import FindToolbar, ToolbarPanel
 from bzrlib import errors
@@ -304,6 +305,7 @@ class ShelveWidget(ToolbarPanel):
             cleanup.append(creator.finalize)
 
             trees = (shelver.target_tree, shelver.work_tree)
+            self.hunk_view.set_tab_width(get_tab_width_pixels(trees[1].branch))
             self.revision = trees[0].get_revision_id()
             if self.revision != old_rev:
                 old_changes = None
@@ -527,6 +529,9 @@ class HunkView(QtGui.QWidget):
 
         self.change = None
         self.encoding = None
+
+    def set_tab_width(self, pixels):
+        self.browser.setTabStopWidth(pixels)
 
     def set_complete(self, value):
         self.browser.complete = value
