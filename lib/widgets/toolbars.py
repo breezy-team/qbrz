@@ -25,6 +25,38 @@ from bzrlib.plugins.qbzr.lib.util import (
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 
+def create_toolbar_button(text, parent, icon_name=None, icon_size=22,
+                enabled=True, checkable=False, checked=False, 
+                shortcut=None, onclick=None):
+    if icon_name:
+        button = QtGui.QAction(get_icon(icon_name, size=icon_size),
+                                gettext(text), parent)
+    else:
+        button = QtGui.QAction(gettext(text), parent)
+    if checkable:
+        button.setCheckable(True)
+        button.setChecked(checked)
+        signal = "toggled(bool)"
+    else:
+        signal = "triggered()"
+    if not enabled:
+        button.setEnabled(False)
+    if shortcut:
+        button.setShortcut(shortcut)
+        show_shortcut_hint(button)
+    if onclick:
+        parent.connect(button, QtCore.SIGNAL(signal), onclick)
+    return button
+
+def add_toolbar_button(toolbar, text, parent, icon_name=None, icon_size=22, 
+                        enabled=True, checkable=False, checked=False,
+                        shortcut=None, onclick=None): 
+    button = create_toolbar_button(text, parent, icon_name, icon_size, 
+                        enabled, checkable, checked, shortcut, onclick)
+    toolbar.addAction(button)
+    return button
+
+        
 class FindToolbar(QtGui.QToolBar):
 
     def __init__(self, window, text_edit, show_action):
@@ -155,5 +187,59 @@ class FindToolbar(QtGui.QToolBar):
         if self.text_edit:
             self.text_edit.setTextCursor(QtGui.QTextCursor())
         self.text_edit = new_text_edit
+
+
+class ToolbarPanel(QtGui.QWidget):
+    def __init__(self, slender=True, icon_size=16, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        vbox = QtGui.QVBoxLayout(self)
+        vbox.setSpacing(0)
+        vbox.setMargin(0)
+
+        toolbar = QtGui.QToolBar(self)
+        toolbar.setMovable(False)
+        toolbar.setIconSize(QtCore.QSize(icon_size,icon_size))
+        self.icon_size=icon_size
+        if slender:
+            self.setStyleSheet('QToolBar { margin:1px; padding:0px; border:none; }')
+        toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+
+        vbox.addWidget(toolbar)
+        self.vbox = vbox
+        self.toolbar = toolbar
+
+    def add_toolbar_button(self, text, icon_name=None, icon_size=0, enabled=True, 
+            checkable=False, checked=False, shortcut=None, onclick=None):
+        button = create_toolbar_button(text, self, icon_name=icon_name, 
+                icon_size=icon_size or self.icon_size, checkable=checkable, 
+                checked=checked, shortcut=shortcut, onclick=onclick)
+        self.toolbar.addAction(button)
+        return button
+
+    def add_toolbar_menu(self, text, menu, icon_name=None, icon_size=0, enabled=True, shortcut=None):
+        button = create_toolbar_button(text, self, icon_name=icon_name, 
+                icon_size=icon_size or self.icon_size, enabled=enabled)
+        button.setMenu(menu)
+        self.toolbar.addAction(button)
+        widget = self.toolbar.widgetForAction(button)
+        widget.setPopupMode(QtGui.QToolButton.InstantPopup)
+        if shortcut:
+            widget.setShortcut(shortcut)
+        return button
+
+    def create_button(self, text, icon_name=None, icon_size=0, enabled=True, 
+            checkable=False, checked=False, shortcut=None, onclick=None):
+        return create_toolbar_button(text, self, icon_name=icon_name, 
+                icon_size=icon_size or self.icon_size, checkable=checkable, 
+                checked=checked, shortcut=shortcut, onclick=onclick)
+
+    def add_separator(self):
+        self.toolbar.addSeparator()
+
+    def add_widget(self, widget):
+        self.vbox.addWidget(widget)
+
+    def add_layout(self, layout):
+        self.vbox.addLayout(layout)
 
 
