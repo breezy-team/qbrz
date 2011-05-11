@@ -35,7 +35,7 @@ class Splitters(object):
     def restore_state(self):
         config = get_qbzr_config()
         for name, splitter in self.splitters:
-            data = config.get_option('%s_%s' % (prefix, name))
+            data = config.get_option('%s_%s' % (self.prefix, name))
             if data:
                 splitter.restoreState(QtCore.QByteArray.fromBase64(data))
 
@@ -43,5 +43,5 @@ class Splitters(object):
         config = get_qbzr_config()
         for name, splitter in self.splitters:
             value = splitter.saveState().toBase64().data()
-            config.set_option('%s_%s' % (prefix, name), value)
+            config.set_option('%s_%s' % (self.prefix, name), value)
         config.save()
