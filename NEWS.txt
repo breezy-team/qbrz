@@ -8,6 +8,9 @@
    * Turned off word-wrap in location label: prevents strange
      path display if there are spaces in the path.
      (A. S. Budden, Bug #781040)
+ * qdiff, qannotate:
+     Tab-width can be customised from the view menu.
+     (Bug #490377, A. S. Budden)
 
 
 0.21 beta 1 - 2011/05/02
@@ -69,7 +72,7 @@ Changelog:
      (A. S. Budden, Bug #772244)
  * qcat, qannotate, qdiff, qconfig:
    * Added ability to customise the tab-stop width (setting in qconfig,
-     affects qcat, qannotate and qdiff).  
+     affects qcat, qannotate and qdiff).
      The setting is stored in [DEFAULT] section of bazaar.conf,
      and is named tab_width (it can also be configured with qconfig).  Units
      are characters (so 4 means a tab should be displayed with the width of 4

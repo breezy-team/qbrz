@@ -54,6 +54,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     ToolBarThrobberWidget,
     get_icon,
     get_set_encoding,
+    get_set_tab_width_chars,
     get_tab_width_pixels,
     is_binary_content,
     run_in_loading_queue,
@@ -63,6 +64,7 @@ from bzrlib.plugins.qbzr.lib.util import (
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
+from bzrlib.plugins.qbzr.lib.widgets.tab_width_selector import TabWidthMenuSelector
 
 try:
     from bzrlib.errors import FileTimestampUnavailable
@@ -153,6 +155,11 @@ class DiffWindow(QBzrWindow):
         self.stack.addWidget(self.sdiffview)
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.addWidget(self.stack)
+
+        # Don't use a custom tab width by default
+        # Indices are left side, right side and unidiff
+        # respectively
+        self.custom_tab_widths = [-1,-1,-1]
 
         for browser in self.diffview.browsers:
             browser.installEventFilter(self)
@@ -273,6 +280,42 @@ class DiffWindow(QBzrWindow):
         self.ignore_whitespace_action = self.create_ignore_ws_action()
         view_menu.addAction(self.ignore_whitespace_action)
 
+        def on_unidiff_tab_width_changed(tabwidth):
+            if self.branches:
+                get_set_tab_width_chars(branch=self.branches[0],tab_width_chars=tabwidth)
+            self.custom_tab_widths[2] = tabwidth
+            self.setup_tab_width()
+        self.tab_width_selector_unidiff = TabWidthMenuSelector(
+                label_text=gettext("Tab width"),
+                onChanged=on_unidiff_tab_width_changed)
+        view_menu.addMenu(self.tab_width_selector_unidiff)
+
+        def on_left_tab_width_changed(tabwidth):
+            if self.branches:
+                get_set_tab_width_chars(branch=self.branches[0],tab_width_chars=tabwidth)
+            self.custom_tab_widths[0] = tabwidth
+            self.setup_tab_width()
+        self.tab_width_selector_left = TabWidthMenuSelector(
+                label_text=gettext("Left side tab width"),
+                onChanged=on_left_tab_width_changed)
+        view_menu.addMenu(self.tab_width_selector_left)
+
+        def on_right_tab_width_changed(tabwidth):
+            if self.branches:
+                get_set_tab_width_chars(branch=self.branches[1],tab_width_chars=tabwidth)
+            self.custom_tab_widths[1] = tabwidth
+            self.setup_tab_width()
+        self.tab_width_selector_right = TabWidthMenuSelector(
+                label_text=gettext("Right side tab width"),
+                onChanged=on_right_tab_width_changed)
+        view_menu.addMenu(self.tab_width_selector_right)
+
+        if self.stack.currentWidget() == self.diffview:
+            self.tab_width_selector_unidiff.menuAction().setVisible(False)
+        else:
+            self.tab_width_selector_left.menuAction().setVisible(False)
+            self.tab_width_selector_right.menuAction().setVisible(False)
+
         def on_left_encoding_changed(encoding):
             if self.branches:
                 get_set_encoding(encoding, self.branches[0])
@@ -371,10 +414,19 @@ class DiffWindow(QBzrWindow):
         self.processEvents()
 
     def setup_tab_width(self):
-        tabWidths = (get_tab_width_pixels(self.branches[0]),
-                     get_tab_width_pixels(self.branches[1]))
-        self.diffview.setTabStopWidths(tabWidths)
-        self.sdiffview.setTabStopWidth(tabWidths[0])
+        tabWidths = self.custom_tab_widths
+        if tabWidths[0] < 0:
+            tabWidths[0] = get_set_tab_width_chars(branch=self.branches[0])
+            self.tab_width_selector_left.setTabWidth(tabWidths[0])
+        if tabWidths[1] < 0:
+            tabWidths[1] = get_set_tab_width_chars(branch=self.branches[1])
+            self.tab_width_selector_right.setTabWidth(tabWidths[1])
+        if tabWidths[2] < 0:
+            tabWidths[2] = get_set_tab_width_chars(branch=self.branches[0])
+            self.tab_width_selector_unidiff.setTabWidth(tabWidths[2])
+        tabWidthsPixels = [get_tab_width_pixels(tab_width_chars=i) for i in tabWidths]
+        self.diffview.setTabStopWidths(tabWidthsPixels)
+        self.sdiffview.setTabStopWidth(tabWidthsPixels[2])
 
     def load_diff(self):
         self.view_refresh.setEnabled(False)
@@ -532,9 +584,15 @@ class DiffWindow(QBzrWindow):
         if checked:
             view = self.sdiffview
             self.find_toolbar.text_edit = view
+            self.tab_width_selector_left.menuAction().setVisible(False)
+            self.tab_width_selector_right.menuAction().setVisible(False)
+            self.tab_width_selector_unidiff.menuAction().setVisible(True)
         else:
             view = self.diffview
             self.find_toolbar.text_edit = view.browsers[0]
+            self.tab_width_selector_left.menuAction().setVisible(True)
+            self.tab_width_selector_right.menuAction().setVisible(True)
+            self.tab_width_selector_unidiff.menuAction().setVisible(False)
         view.rewind()
         index = self.stack.indexOf(view)
         self.stack.setCurrentIndex(index)

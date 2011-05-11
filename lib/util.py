@@ -1232,17 +1232,46 @@ def _get_monospace_font():
     font.setFixedPitch(True)
     return font
 
-def get_tab_width_chars(branch=None):
-    """Function to get the tab width in characters from the configuration."""
-    config = get_branch_config(branch)
-    try:
-        tabWidth = int(config.get_user_option('tab_width'))
-    except TypeError:
-        tabWidth = 8
-    return tabWidth
+def get_set_tab_width_chars(branch=None, tab_width_chars=None):
+    """Function to get the tab width in characters from the configuration.
 
-def get_tab_width_pixels(branch=None):
-    """Function to get the tab width in pixels based on a monospaced font."""
+    @param branch: Use branch.conf as well as bazaar.conf if this is provided.
+    @param tab_width_chars: Number of characters to use as tab width: if branch
+        is provided, the tab width will be stored in branch.conf
+
+    Both arguments are optional, but if tab_width_chars is provided and branch is
+    not, nothing will be done.
+    
+    @return: Tab width, in characters.
+    """
+    if tab_width_chars is None:
+        config = get_branch_config(branch)
+        try:
+            tab_width_chars = int(config.get_user_option('tab_width'))
+            if tab_width_chars < 0:
+                raise TypeError("Invalid tab width")
+        except TypeError:
+            tab_width_chars = 8
+    else:
+        if branch:
+            branch.get_config().set_user_option("tab_width", tab_width_chars)
+
+    return tab_width_chars
+
+def get_tab_width_pixels(branch=None, tab_width_chars=None):
+    """Function to get the tab width in pixels based on a monospaced font.
+
+    If tab_width_chars is provided, it is simply converted to a value in pixels.  If
+    it is not provided, the configuration is retrieved from bazaar.conf.  If branch is
+    provided (and tab_width_chars is not), branch.conf is also checked.
+
+    @param tab_width_chars: Number of characters of tab width to convert to pixels.
+    @param branch: Branch to use when retrieving tab width from configuration.
+    
+    @return: Tab width, in pixels.
+    """
     monospacedFont = get_monospace_font()
     char_width = QtGui.QFontMetrics(monospacedFont).width(" ")
-    return char_width*get_tab_width_chars(branch)
+    if tab_width_chars is None:
+        tab_width_chars = get_set_tab_width_chars(branch=branch)
+    return char_width*tab_width_chars
