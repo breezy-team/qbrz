@@ -166,7 +166,8 @@ class Change(object):
 
 class ShelveWidget(ToolbarPanel):
 
-    def __init__(self, file_list=None, directory=None, complete=False, encoding=None, parent=None):
+    def __init__(self, file_list=None, directory=None, complete=False, encoding=None, 
+                splitters=None, parent=None):
         ToolbarPanel.__init__(self, slender=False, icon_size=22, parent=parent)
 
         self.revision = None
@@ -278,6 +279,10 @@ class ShelveWidget(ToolbarPanel):
 
         self.connect(self.hunk_view, QtCore.SIGNAL("selectionChanged()"),
                 self.selected_hunk_changed)
+
+        if splitters:
+            splitters.add("shelve_splitter", splitter)
+            splitters.add("shelve_hsplitter", hsplitter)
 
         self.loaded = False
 

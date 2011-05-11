@@ -36,6 +36,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_monospace_font,
     StandardButton,
     get_tab_width_pixels,
+    get_qbzr_config,
     )
 from bzrlib.plugins.qbzr.lib.widgets.toolbars import FindToolbar, ToolbarPanel
 from bzrlib.plugins.qbzr.lib.diffview import (
@@ -58,7 +59,8 @@ from bzrlib.shelf_ui import Unshelver as Unshelver_ui
 
 class ShelveListWidget(ToolbarPanel):
 
-    def __init__(self, directory=None, complete=False, ignore_whitespace=False, encoding=None, parent=None):
+    def __init__(self, directory=None, complete=False, ignore_whitespace=False, 
+                 encoding=None, splitters=None, parent=None):
         ToolbarPanel.__init__(self, slender=False, icon_size=22, parent=parent)
 
         self.encoding = encoding
@@ -90,6 +92,7 @@ class ShelveListWidget(ToolbarPanel):
 
         diff_panel = ToolbarPanel(self)
 
+        # build diffpanel toolbar
         show_find = diff_panel.add_toolbar_button(
                         N_("Find"), icon_name="edit-find", checkable=True,
                         shortcut=QtGui.QKeySequence.Find)
@@ -119,35 +122,64 @@ class ShelveListWidget(ToolbarPanel):
         diff_panel.add_widget(self.stack)
         self.find_toolbar.hide()
 
-        vsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal)
-        vsplitter.addWidget(self.file_view)
-        vsplitter.addWidget(diff_panel)
+        # Layout widgets
+        self.splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
+        self.splitter1.addWidget(self.shelve_view)
 
-        splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
-        splitter.addWidget(self.shelve_view)
-        splitter.addWidget(vsplitter)
-        splitter.setStretchFactor(0, 1)
-        splitter.setStretchFactor(1, 3)
+        self.splitter2 = QtGui.QSplitter(QtCore.Qt.Horizontal)
+        self.splitter2.addWidget(self.file_view)
+        self.splitter2.addWidget(diff_panel)
+
+        self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        self.splitter.addWidget(self.splitter1)
+        self.splitter.addWidget(self.splitter2)
+        self.splitter.setStretchFactor(0, 1)
+
+        if splitters:
+            splitters.add("shelvelist_splitter", self.splitter)
+            splitters.add("shelvelist_splitter1", self.splitter1)
+            splitters.add("shelvelist_splitter2", self.splitter2)
+
+        self.splitter.setStretchFactor(1, 3)
 
         pal = QtGui.QPalette()
         pal.setColor(QtGui.QPalette.Window, QtGui.QColor(0,0,0,0))
-        splitter.setPalette(pal)
-
+        self.splitter.setPalette(pal)
 
         layout = QtGui.QVBoxLayout()
         layout.setMargin(10)
-        layout.addWidget(splitter)
+        layout.addWidget(self.splitter)
         self.add_layout(layout)
         
+        # build main toolbar
         self.unshelve_button = self.add_toolbar_button(N_("Unshelve"), icon_name="unshelve", 
                                 enabled=False, onclick=self.unshelve_clicked)
         self.delete_button = self.add_toolbar_button(N_("Delete"), icon_name="delete", 
                                 enabled=False, onclick=self.delete_clicked)
         self.add_separator()
+
+        def get_layout_changer(type):
+            return lambda:self.set_layout(type)
+        
+        group = QtGui.QActionGroup(self)
+        layout_menu = QtGui.QMenu(gettext('Layout'), self)
+        self.layout_buttons = []
+        for i in (1, 2, 3):
+            btn = self.create_button(gettext("Layout %d") % i, 
+                                     checkable=True, shortcut="Ctrl+%d" % i,
+                                     onclick=get_layout_changer(i))
+            group.addAction(btn)
+            layout_menu.addAction(btn)
+            self.layout_buttons.append(btn)
+
+        self.add_toolbar_menu(N_("&Layout"), layout_menu, icon_name="internet-news-reader",
+                shortcut="Ctrl+L")
+
         self.add_toolbar_button(N_("&Refresh"), icon_name="view-refresh", 
                 shortcut="Ctrl+R", onclick=self.refresh)
 
         self.shelf_id = None
+        self.current_layout = 0
 
         # set signals
         self.connect(self.shelve_view, QtCore.SIGNAL("itemSelectionChanged()"),
@@ -155,7 +187,27 @@ class ShelveListWidget(ToolbarPanel):
         self.connect(self.file_view, QtCore.SIGNAL("itemSelectionChanged()"),
                 self.selected_files_changed)
 
+        self.load_settings()
         self.loaded = False
+
+    def set_layout(self, type):
+        if self.current_layout == type:
+            return
+
+        self.current_layout = type
+        self.file_view.setParent(None)
+        if type == 1:
+            self.splitter.setOrientation(QtCore.Qt.Vertical)
+            self.splitter1.setOrientation(QtCore.Qt.Horizontal)
+            self.splitter1.insertWidget(1, self.file_view)
+        elif type == 2:
+            self.splitter.setOrientation(QtCore.Qt.Horizontal)
+            self.splitter1.setOrientation(QtCore.Qt.Vertical)
+            self.splitter1.insertWidget(1, self.file_view)
+        else:
+            self.splitter.setOrientation(QtCore.Qt.Vertical)
+            self.splitter2.setOrientation(QtCore.Qt.Horizontal)
+            self.splitter2.insertWidget(0, self.file_view)
 
     def refresh(self):
         self.loaded = False
@@ -369,4 +421,19 @@ class ShelveListWidget(ToolbarPanel):
             if object in self.diffviews[0].browsers:
                 self.find_toolbar.text_edit = object
         return ToolbarPanel.eventFilter(self, object, event)
+    
+    def load_settings(self):
+        config = get_qbzr_config()
+        layout = config.get_option("shelvelist_layout")
+        if layout not in ("2", "3"):
+            layout = "1"
+        self.layout_buttons[int(layout) - 1].setChecked(True)
+
+    def save_settings(self):
+        config = get_qbzr_config()
+        config.set_option("shelvelist_layout", str(self.current_layout))
+        config.save()
+
+    def hideEvent(self, event):
+        self.save_settings()
 

@@ -51,6 +51,7 @@ from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
 from bzrlib.plugins.qbzr.lib.diffwindow import DiffItem
 from bzrlib.plugins.qbzr.lib.widgets.shelve import ShelveWidget
 from bzrlib.plugins.qbzr.lib.widgets.shelvelist import ShelveListWidget
+from bzrlib.plugins.qbzr.lib.widgets.splitters import Splitters
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.shelf import Unshelver
 from bzrlib.shelf_ui import Unshelver as Unshelver_ui
@@ -71,13 +72,16 @@ class ShelveWindow(QBzrWindow):
         self.tab = QtGui.QTabWidget(self)
         vbox.addWidget(self.tab)
 
+        self.splitters = Splitters("shelve")
+
         self.directory = directory or '.'
 
         shelve_view = ShelveWidget(file_list=file_list, directory=self.directory,
-                                    complete=complete, encoding=encoding, parent=self)
+                                    complete=complete, encoding=encoding, 
+                                    splitters=self.splitters, parent=self)
         shelvelist_view = ShelveListWidget(directory=self.directory,
                                     complete=complete, ignore_whitespace=ignore_whitespace,
-                                    encoding=encoding, parent=self)
+                                    encoding=encoding, splitters=self.splitters, parent=self)
 
         self.tab.addTab(shelve_view, gettext('Shelve'))
         self.tab.addTab(shelvelist_view, gettext('View shelved changes'))
@@ -86,6 +90,8 @@ class ShelveWindow(QBzrWindow):
                 self.current_tab_changed)
         self.connect(shelve_view, QtCore.SIGNAL("shelfCreated(int)"),
                 self.shelf_created)
+
+        self.splitters.restore_state()
 
     def show(self):
         QBzrWindow.show(self)
@@ -111,4 +117,8 @@ class ShelveWindow(QBzrWindow):
         # Refresh shelf list after new shelf created.
         self.tab.widget(1).refresh()
         self.tab.setCurrentIndex(1)
+
+    def hideEvent(self, event):
+        self.splitters.save_state()
+        QBzrWindow.hideEvent(self, event)
 
