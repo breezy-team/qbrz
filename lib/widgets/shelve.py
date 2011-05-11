@@ -233,7 +233,7 @@ class ShelveWidget(ToolbarPanel):
         self.encoding_selector.setIcon(get_icon("format-text-bold", 16))
         view_menu.addMenu(self.encoding_selector)
         hunk_panel.add_toolbar_menu(
-                N_("View Options"), view_menu, icon_name="document-properties",
+                N_("&View Options"), view_menu, icon_name="document-properties",
                 shortcut="Alt+V")
 
         hunk_panel.add_separator()
@@ -249,6 +249,7 @@ class ShelveWidget(ToolbarPanel):
 
         splitter.setStretchFactor(0, 1)
         splitter.setStretchFactor(1, 6)
+        
         layout = QtGui.QVBoxLayout()
         layout.setMargin(10)
         layout.addWidget(splitter)
@@ -265,8 +266,8 @@ class ShelveWidget(ToolbarPanel):
         self.add_toolbar_button(N_('Unselect all'), icon_name='unselect-all', 
                 onclick=lambda:self.check_all(False))
         
-        self.add_toolbar_button(N_('Refresh'), icon_name='view-refresh', 
-                shortcut=QtGui.QKeySequence.Refresh, onclick=self._reload)
+        self.add_toolbar_button(N_('&Refresh'), icon_name='view-refresh', 
+                shortcut="Ctrl+R", onclick=self.refresh)
 
         self.connect(self.file_view, QtCore.SIGNAL("itemSelectionChanged()"),
                 self.selected_file_changed)
@@ -291,13 +292,7 @@ class ShelveWidget(ToolbarPanel):
 
         return shelver, creator
 
-    @runs_in_loading_queue
-    @ui_current_widget
-    @reports_exception()
-    def load(self):
-        self._reload()
-
-    def _reload(self):
+    def refresh(self):
         cleanup = []
         try:
             old_rev = self.revision

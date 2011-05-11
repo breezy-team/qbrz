@@ -50,6 +50,7 @@ from bzrlib.revisiontree import RevisionTree
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
 from bzrlib.plugins.qbzr.lib.diffwindow import DiffItem
 from bzrlib.plugins.qbzr.lib.widgets.shelve import ShelveWidget
+from bzrlib.plugins.qbzr.lib.widgets.shelvelist import ShelveListWidget
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.shelf import Unshelver
 from bzrlib.shelf_ui import Unshelver as Unshelver_ui
@@ -72,11 +73,19 @@ class ShelveWindow(QBzrWindow):
 
         self.directory = directory or '.'
 
-        self.shelve_view = ShelveWidget(file_list=file_list, directory=self.directory,
+        shelve_view = ShelveWidget(file_list=file_list, directory=self.directory,
                                     complete=complete, encoding=encoding, parent=self)
+        shelvelist_view = ShelveListWidget(directory=self.directory,
+                                    complete=complete, ignore_whitespace=ignore_whitespace,
+                                    encoding=encoding, parent=self)
 
-        self.tab.addTab(self.shelve_view, gettext('Shelve'))
-        self.tab.addTab(QtGui.QWidget(), gettext('View shelved changes'))
+        self.tab.addTab(shelve_view, gettext('Shelve'))
+        self.tab.addTab(shelvelist_view, gettext('View shelved changes'))
+        self.tab.setCurrentIndex(initial_tab)
+        self.connect(self.tab, QtCore.SIGNAL("currentChanged(int)"),
+                self.current_tab_changed)
+        self.connect(shelve_view, QtCore.SIGNAL("shelfCreated(int)"),
+                self.shelf_created)
 
     def show(self):
         QBzrWindow.show(self)
@@ -86,9 +95,20 @@ class ShelveWindow(QBzrWindow):
     @ui_current_widget
     @reports_exception()
     def initial_load(self):
-        """Called to perform the initial load of the form.  Enables a
-        throbber window, then loads the branches etc if they weren't specified
-        in our constructor.
-        """
-        self.shelve_view.load()
+        try:
+            self.throbber.show()
+            self.processEvents()
+            self.tab.currentWidget().refresh()
+        finally:
+            self.throbber.hide()
+
+    def current_tab_changed(self, index):
+        view = self.tab.currentWidget()
+        if not view.loaded:
+            view.refresh()
+
+    def shelf_created(self, id):
+        # Refresh shelf list after new shelf created.
+        self.tab.widget(1).refresh()
+        self.tab.setCurrentIndex(1)
 

@@ -1085,12 +1085,31 @@ class cmd_qshelve(QBzrCommand):
 
     def _qbzr_run(self, file_list=None, list=False, directory=None, complete = False, ignore_whitespace=False, encoding=None):
         if list:
-            self.main_window = ShelveListWindow(directory=directory, complete=complete,
-                                            ignore_whitespace=ignore_whitespace,
-                                            encoding=encoding)
+            initial_tab = 1
         else:
-            self.main_window = ShelveWindow(file_list=file_list, directory=directory, 
-                                            complete=complete, encoding=encoding)
+            initial_tab = 0
+        self.main_window = ShelveWindow(file_list=file_list, directory=directory, 
+                                initial_tab=initial_tab, complete=complete, 
+                                ignore_whitespace=ignore_whitespace, encoding=encoding)
+        self.main_window.show()
+        self._application.exec_()
+
+class cmd_qunshelve(QBzrCommand):
+    """Restore shalved changes."""
+    takes_options = [
+        ui_mode_option,
+        bzr_option('unshelve', 'directory'),
+        Option('complete', help='Show complete files.'),
+        Option('ignore-whitespace', short_name='w',
+               help="Ignore whitespace when finding differences.(Only work when --list specified)"),
+        Option('encoding', type=check_encoding,
+               help='Encoding of files content (default: utf-8).'),
+        ]
+
+    def _qbzr_run(self, directory=None, complete = False, ignore_whitespace=False, encoding=None):
+        self.main_window = ShelveWindow(directory=directory, 
+                                initial_tab=1, complete=complete, 
+                                ignore_whitespace=ignore_whitespace, encoding=encoding)
         self.main_window.show()
         self._application.exec_()
 

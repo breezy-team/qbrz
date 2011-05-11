@@ -28,8 +28,6 @@ from bzrlib.errors import (
         PathsNotVersionedError)
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
-    BTN_CLOSE, BTN_REFRESH,
-    QBzrWindow,
     ToolBarThrobberWidget,
     get_apparent_author_name,
     get_set_encoding,
@@ -52,26 +50,19 @@ from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from bzrlib import transform
 from bzrlib.workingtree import WorkingTree
-from bzrlib.revisiontree import RevisionTree
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
 from bzrlib.plugins.qbzr.lib.diffwindow import DiffItem
-from bzrlib.plugins.qbzr.lib.widgets.shelve import ShelveWindow 
-from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.shelf import Unshelver
 from bzrlib.shelf_ui import Unshelver as Unshelver_ui
 ''')
 
-class ShelveListWindow(QBzrWindow):
+class ShelveListWidget(ToolbarPanel):
 
-    def __init__(self, directory=None, complete=False, ignore_whitespace=False, encoding=None, parent=None, ui_mode=True):
-        QBzrWindow.__init__(self,
-                            [gettext("Shelve List")],
-                            parent, ui_mode=ui_mode)
-        self.restoreSize("shelvelist", (780, 680))
+    def __init__(self, directory=None, complete=False, ignore_whitespace=False, encoding=None, parent=None):
+        ToolbarPanel.__init__(self, slender=False, icon_size=22, parent=parent)
 
         self.encoding = encoding
-        self.directory = directory or '.'
-        self.throbber = ToolBarThrobberWidget(self)
+        self.directory = directory
 
         self.current_diffs = []
         self.complete = complete
@@ -100,14 +91,15 @@ class ShelveListWindow(QBzrWindow):
         diff_panel = ToolbarPanel(self)
 
         show_find = diff_panel.add_toolbar_button(
-                        N_("Find"), icon_name="edit-find", checkable=True)
+                        N_("Find"), icon_name="edit-find", checkable=True,
+                        shortcut=QtGui.QKeySequence.Find)
         diff_panel.add_separator()
-        diff_panel.add_toolbar_button(N_("Unified"), icon_name="unidiff", 
-                checkable=True, onclick=self.unidiff_toggled)
+        diff_panel.add_toolbar_button(N_("Unidiff"), icon_name="unidiff", 
+                checkable=True, shortcut="Ctrl+U", onclick=self.unidiff_toggled)
 
         view_menu = QtGui.QMenu(gettext('View Options'), self)
         view_menu.addAction(
-                diff_panel.create_button(N_("Complete"), icon_name="complete", 
+                diff_panel.create_button(N_("&Complete"), icon_name="complete", 
                     checkable=True, checked=complete, onclick=self.complete_toggled)
                 )
         view_menu.addAction(
@@ -118,7 +110,9 @@ class ShelveListWindow(QBzrWindow):
                                     gettext("Encoding"), self.encoding_changed)
         self.encoding_selector.setIcon(get_icon("format-text-bold", 16))
         view_menu.addMenu(self.encoding_selector)
-        diff_panel.add_toolbar_menu(N_("View Options"), view_menu, icon_name="document-properties")
+        diff_panel.add_toolbar_menu(
+                N_("&View Options"), view_menu, icon_name="document-properties",
+                shortcut="Alt+V")
 
         self.find_toolbar = FindToolbar(self, self.diffviews[0].browsers[0], show_find)
         diff_panel.add_widget(self.find_toolbar)
@@ -135,40 +129,24 @@ class ShelveListWindow(QBzrWindow):
         splitter.setStretchFactor(0, 1)
         splitter.setStretchFactor(1, 3)
 
-        vbox = QtGui.QVBoxLayout(self.centralwidget)
-        vbox.addWidget(splitter)
+        pal = QtGui.QPalette()
+        pal.setColor(QtGui.QPalette.Window, QtGui.QColor(0,0,0,0))
+        splitter.setPalette(pal)
 
-        # build toolbar
-        toolbar = self.addToolBar(gettext("Shelve"))
-        toolbar.setMovable (False)
-        toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
 
-        def add_button(text, icon_name=None, onclick=None, enabled=True, shortcut=None):
-            if icon_name:
-                icon = get_icon(icon_name)
-            else:
-                icon = None
-            button = QtGui.QAction(icon, gettext(text), self)
-            if not enabled:
-                button.setEnabled(False)
-            if shortcut:
-                button.setShortcuts(shortcut)
-            if onclick:
-                self.connect(button, QtCore.SIGNAL("triggered()"), onclick)
-            toolbar.addAction(button)
-            return button
+        layout = QtGui.QVBoxLayout()
+        layout.setMargin(10)
+        layout.addWidget(splitter)
+        self.add_layout(layout)
         
-        add_button(N_("Shelve"), icon_name="shelve", 
-                   onclick=self.shelve_clicked, shortcut=QKeySequence.New)
-        self.unshelve_button = add_button(N_("Unshelve"), icon_name="unshelve", 
-                                    onclick=self.unshelve_clicked, enabled=False)
-        self.delete_button = add_button(N_("Delete"), icon_name="delete", 
-                                    onclick=self.delete_clicked, enabled=False)
-        toolbar.addSeparator()
-        add_button(N_("Refresh"), icon_name="view-refresh", onclick=self.refresh, shortcut=QKeySequence.Refresh)
-        
-        toolbar.addWidget(self.throbber)
-        
+        self.unshelve_button = self.add_toolbar_button(N_("Unshelve"), icon_name="unshelve", 
+                                enabled=False, onclick=self.unshelve_clicked)
+        self.delete_button = self.add_toolbar_button(N_("Delete"), icon_name="delete", 
+                                enabled=False, onclick=self.delete_clicked)
+        self.add_separator()
+        self.add_toolbar_button(N_("&Refresh"), icon_name="view-refresh", 
+                shortcut="Ctrl+R", onclick=self.refresh)
+
         self.shelf_id = None
 
         # set signals
@@ -177,22 +155,10 @@ class ShelveListWindow(QBzrWindow):
         self.connect(self.file_view, QtCore.SIGNAL("itemSelectionChanged()"),
                 self.selected_files_changed)
 
-    def show(self):
-        QBzrWindow.show(self)
-        QtCore.QTimer.singleShot(0, self.initial_load)
-
-    @runs_in_loading_queue
-    @ui_current_widget
-    @reports_exception()
-    def initial_load(self):
-        """Called to perform the initial load of the form.  Enables a
-        throbber window, then loads the branches etc if they weren't specified
-        in our constructor.
-        """
-        self.refresh()
+        self.loaded = False
 
     def refresh(self):
-        self.throbber.show()
+        self.loaded = False
         self.clear()
         tree = WorkingTree.open_containing(self.directory)[0]
         tree.lock_read()
@@ -213,8 +179,8 @@ class ShelveListWindow(QBzrWindow):
 
         finally:
             tree.unlock()
-            self.throbber.hide()
         self.update()
+        self.loaded = True
 
     def update(self):
         for view in (self.shelve_view.viewport(), self.file_view.viewport()) + self.diffviews:
@@ -391,13 +357,6 @@ class ShelveListWindow(QBzrWindow):
     def encoding_changed(self, encoding):
         self.show_selected_diff(refresh = True)
         
-    def closeEvent(self, event):
-        self.saveSize()
-        QBzrWindow.closeEvent(self, event)
-
-    def cleanup(self):
-        pass
-
     def unshelve(self, id, action):
         unshelver = Unshelver_ui.from_args(id, action, directory=self.directory)
         try:
@@ -409,5 +368,5 @@ class ShelveListWindow(QBzrWindow):
         if event.type() == QtCore.QEvent.FocusIn:
             if object in self.diffviews[0].browsers:
                 self.find_toolbar.text_edit = object
-        return QBzrWindow.eventFilter(self, object, event)
+        return ToolbarPanel.eventFilter(self, object, event)
 
