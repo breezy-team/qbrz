@@ -64,7 +64,7 @@ from bzrlib.plugins.qbzr.lib.util import (
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
-from bzrlib.plugins.qbzr.lib.tab_width_selector import TabWidthMenuSelector
+from bzrlib.plugins.qbzr.lib.widgets.tab_width_selector import TabWidthMenuSelector
 
 try:
     from bzrlib.errors import FileTimestampUnavailable

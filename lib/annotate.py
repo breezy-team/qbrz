@@ -54,7 +54,7 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
 from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
-from bzrlib.plugins.qbzr.lib.tab_width_selector import TabWidthMenuSelector
+from bzrlib.plugins.qbzr.lib.widgets.tab_width_selector import TabWidthMenuSelector
 from bzrlib.plugins.qbzr.lib.syntaxhighlighter import highlight_document
 from bzrlib.plugins.qbzr.lib.revtreeview import paint_revno, get_text_color
 from bzrlib.plugins.qbzr.lib import logmodel

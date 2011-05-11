@@ -9,6 +9,7 @@
      Tab-width can be customised from the view menu.
      (Bug #490377, A. S. Budden)
 
+
 0.21 beta 1 - 2011/05/02
 ------------------------
 What's new in this release:
