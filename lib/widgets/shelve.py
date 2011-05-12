@@ -29,11 +29,13 @@ from bzrlib.plugins.qbzr.lib.util import (
     ToolBarThrobberWidget,
     get_monospace_font,
     get_tab_width_pixels,
+    get_set_tab_width_chars,
     get_qbzr_config,
     )
 from bzrlib.plugins.qbzr.lib.widgets.toolbars import (
     FindToolbar, ToolbarPanel, LayoutSelector
     )
+from bzrlib.plugins.qbzr.lib.widgets.tab_width_selector import TabWidthMenuSelector
 from bzrlib import errors
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
@@ -239,6 +241,11 @@ class ShelveWidget(ToolbarPanel):
                     onclick=self.hunk_view.set_complete,
                     checkable=True, checked=complete)
                 )
+        self.tabwidth_selector = \
+                TabWidthMenuSelector(label_text=gettext("Tab width"),
+                    onChanged=self.on_tabwidth_changed)
+        view_menu.addMenu(self.tabwidth_selector)
+                
         self.encoding_selector = EncodingMenuSelector(self.encoding,
                                     gettext("Encoding"), self.encoding_changed)
         self.encoding_selector.setIcon(get_icon("format-text-bold", 16))
@@ -346,6 +353,14 @@ class ShelveWidget(ToolbarPanel):
 
         return shelver, creator
 
+    def on_tabwidth_changed(self, width):
+        get_set_tab_width_chars(self.branch, tab_width_chars=width)
+        self._on_tabwidth_changed(width)
+
+    def _on_tabwidth_changed(self, width):
+        pixels = get_tab_width_pixels(tab_width_chars=width)
+        self.hunk_view.set_tab_width(pixels)
+
     def refresh(self):
         cleanup = []
         try:
@@ -358,7 +373,10 @@ class ShelveWidget(ToolbarPanel):
             cleanup.append(creator.finalize)
 
             trees = (shelver.target_tree, shelver.work_tree)
-            self.hunk_view.set_tab_width(get_tab_width_pixels(trees[1].branch))
+            self.branch = trees[1].branch
+            tabwidth = get_set_tab_width_chars(self.branch)
+            self.tabwidth_selector.setTabWidth(tabwidth)
+            self._on_tabwidth_changed(tabwidth)
             self.revision = trees[0].get_revision_id()
             if self.revision != old_rev:
                 old_changes = None

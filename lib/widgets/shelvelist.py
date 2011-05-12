@@ -36,11 +36,13 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_monospace_font,
     StandardButton,
     get_tab_width_pixels,
+    get_set_tab_width_chars,
     get_qbzr_config,
     )
 from bzrlib.plugins.qbzr.lib.widgets.toolbars import (
     FindToolbar, ToolbarPanel, LayoutSelector
     )
+from bzrlib.plugins.qbzr.lib.widgets.tab_width_selector import TabWidthMenuSelector
 from bzrlib.plugins.qbzr.lib.diffview import (
     SidebySideDiffView,
     SimpleDiffView,
@@ -113,6 +115,9 @@ class ShelveListWidget(ToolbarPanel):
                 diff_panel.create_button(N_("Ignore whitespace"), icon_name="whitespace", 
                     checkable=True, checked=ignore_whitespace, onclick=self.whitespace_toggled)
                 )
+        self.tabwidth_selector = TabWidthMenuSelector(label_text=gettext("Tab width"), 
+                                    onChanged=self.on_tabwidth_changed)
+        view_menu.addMenu(self.tabwidth_selector)
         self.encoding_selector = EncodingMenuSelector(self.encoding,
                                     gettext("Encoding"), self.encoding_changed)
         self.encoding_selector.setIcon(get_icon("format-text-bold", 16))
@@ -236,6 +241,16 @@ class ShelveListWidget(ToolbarPanel):
             # When filelist is hidden, select all files always.
             self.select_all_files()
 
+    def on_tabwidth_changed(self, width):
+        get_set_tab_width_chars(self.tree.branch, tab_width_chars=width)
+        self._on_tabwidth_changed(width)
+
+    def _on_tabwidth_changed(self, width):
+        pixels = get_tab_width_pixels(tab_width_chars=width)
+        self.diffviews[0].setTabStopWidths((pixels, pixels))
+        self.diffviews[1].setTabStopWidth(pixels)
+
+
     def refresh(self):
         self.loaded = False
         self.clear()
@@ -255,6 +270,10 @@ class ShelveListWidget(ToolbarPanel):
                 self.shelve_view.addTopLevelItem(item)
             self.tree = tree
             self.manager = manager
+
+            tabwidth = get_set_tab_width_chars(tree.branch)
+            self.tabwidth_selector.setTabWidth(tabwidth)
+            self._on_tabwidth_changed(tabwidth)
 
         finally:
             tree.unlock()
