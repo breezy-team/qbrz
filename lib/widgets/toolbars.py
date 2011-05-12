@@ -211,8 +211,8 @@ class ToolbarPanel(QtGui.QWidget):
     def add_toolbar_button(self, text, icon_name=None, icon_size=0, enabled=True, 
             checkable=False, checked=False, shortcut=None, onclick=None):
         button = create_toolbar_button(text, self, icon_name=icon_name, 
-                icon_size=icon_size or self.icon_size, checkable=checkable, 
-                checked=checked, shortcut=shortcut, onclick=onclick)
+                icon_size=icon_size or self.icon_size, enabled=enabled, 
+                checkable=checkable, checked=checked, shortcut=shortcut, onclick=onclick)
         self.toolbar.addAction(button)
         return button
 
@@ -225,13 +225,14 @@ class ToolbarPanel(QtGui.QWidget):
         widget.setPopupMode(QtGui.QToolButton.InstantPopup)
         if shortcut:
             widget.setShortcut(shortcut)
+            show_shortcut_hint(widget)
         return button
 
     def create_button(self, text, icon_name=None, icon_size=0, enabled=True, 
             checkable=False, checked=False, shortcut=None, onclick=None):
         return create_toolbar_button(text, self, icon_name=icon_name, 
-                icon_size=icon_size or self.icon_size, checkable=checkable, 
-                checked=checked, shortcut=shortcut, onclick=onclick)
+                icon_size=icon_size or self.icon_size, enabled=enabled, 
+                checkable=checkable, checked=checked, shortcut=shortcut, onclick=onclick)
 
     def add_separator(self):
         self.toolbar.addSeparator()
