@@ -291,7 +291,7 @@ class ShelveWidget(ToolbarPanel):
                 False, self.file_list, None, directory = self.directory)
         try:
             creator = ShelfCreator(
-                    shelver.work_tree, shelver.target_tree, self.file_list)
+                    shelver.work_tree, shelver.target_tree, shelver.file_list)
         except:
             shelver.finalize()
             raise
