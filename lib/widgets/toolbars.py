@@ -25,7 +25,7 @@ from bzrlib.plugins.qbzr.lib.util import (
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 
-def create_toolbar_button(text, parent, icon_name=None, icon_size=22,
+def create_toolbar_button(text, parent=None, icon_name=None, icon_size=22,
                 enabled=True, checkable=False, checked=False, 
                 shortcut=None, onclick=None):
     if icon_name:
@@ -243,4 +243,28 @@ class ToolbarPanel(QtGui.QWidget):
     def add_layout(self, layout):
         self.vbox.addLayout(layout)
 
+class LayoutSelector(QtGui.QMenu):
+    """Menu to select layout."""
+    def __init__(self, num, onchanged, parent=None, initial_no=1):
+        QtGui.QMenu.__init__(self, gettext('Layout'), parent)
+
+        self.current = initial_no
+        
+        def selected(no):
+            self.current = initial_no
+            onchanged(no)
+
+        def get_handler(no):
+            return lambda:selected(no)
+        
+        group = QtGui.QActionGroup(self)
+        self.buttons = []
+        for i in range(1, num + 1):
+            btn = create_toolbar_button(gettext("Layout %d") % i, self,
+                        checkable=True, shortcut="Ctrl+%d" % i, 
+                        checked=(i == initial_no),
+                        onclick=get_handler(i))
+            group.addAction(btn)
+            self.addAction(btn)
+            self.buttons.append(btn)
 

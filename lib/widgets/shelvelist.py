@@ -38,7 +38,9 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_tab_width_pixels,
     get_qbzr_config,
     )
-from bzrlib.plugins.qbzr.lib.widgets.toolbars import FindToolbar, ToolbarPanel
+from bzrlib.plugins.qbzr.lib.widgets.toolbars import (
+    FindToolbar, ToolbarPanel, LayoutSelector
+    )
 from bzrlib.plugins.qbzr.lib.diffview import (
     SidebySideDiffView,
     SimpleDiffView,
@@ -69,6 +71,8 @@ class ShelveListWidget(ToolbarPanel):
         self.current_diffs = []
         self.complete = complete
         self.ignore_whitespace = ignore_whitespace
+        self.show_files = False
+        self.load_settings()
 
         # build main widgets
         self.shelve_view = QtGui.QTreeWidget(self)
@@ -158,28 +162,27 @@ class ShelveListWidget(ToolbarPanel):
                                 enabled=False, onclick=self.delete_clicked)
         self.add_separator()
 
-        def get_layout_changer(type):
-            return lambda:self.set_layout(type)
-        
-        group = QtGui.QActionGroup(self)
-        layout_menu = QtGui.QMenu(gettext('Layout'), self)
-        self.layout_buttons = []
-        for i in (1, 2, 3):
-            btn = self.create_button(gettext("Layout %d") % i, 
-                                     checkable=True, shortcut="Ctrl+%d" % i,
-                                     onclick=get_layout_changer(i))
-            group.addAction(btn)
-            layout_menu.addAction(btn)
-            self.layout_buttons.append(btn)
+        layout_selector = \
+                LayoutSelector(num=3, onchanged=lambda val:self.set_layout(type=val),
+                    parent=self, initial_no=self.current_layout)
 
-        self.add_toolbar_menu(N_("&Layout"), layout_menu, icon_name="internet-news-reader",
-                shortcut="Ctrl+L")
+        layout_selector.addSeparator()
+        layout_selector.addAction(
+                self.create_button(gettext("Show filelist"),
+                    icon_name="file", icon_size=16, checkable=True, 
+                    checked=self.show_files, shortcut="Ctrl+L", 
+                    onclick=lambda val:self.set_layout(show_files=val))
+                )
+
+        self.add_toolbar_menu(N_("&Layout"), layout_selector, 
+                icon_name="internet-news-reader", shortcut="Alt+L")
 
         self.add_toolbar_button(N_("&Refresh"), icon_name="view-refresh", 
                 shortcut="Ctrl+R", onclick=self.refresh)
 
         self.shelf_id = None
-        self.current_layout = 0
+
+        self.set_layout()
 
         # set signals
         self.connect(self.shelve_view, QtCore.SIGNAL("itemSelectionChanged()"),
@@ -187,29 +190,51 @@ class ShelveListWidget(ToolbarPanel):
         self.connect(self.file_view, QtCore.SIGNAL("itemSelectionChanged()"),
                 self.selected_files_changed)
 
-        self.load_settings()
+        self.splitter.setChildrenCollapsible(False)
+        self.splitter1.setChildrenCollapsible(False)
+        self.splitter2.setChildrenCollapsible(False)
+
         self.loaded = False
         self._loading_diff = False
         self._pending_info = None
+        self._selecting_all_files = False
 
-    def set_layout(self, type):
-        if self.current_layout == type:
-            return
+    def set_layout(self, type=None, show_files=None):
+        if type is not None:
+            self.current_layout = type
+        if show_files is not None:
+            self.show_files = show_files
 
-        self.current_layout = type
         self.file_view.setParent(None)
-        if type == 1:
+        if self.current_layout == 1:
             self.splitter.setOrientation(QtCore.Qt.Vertical)
             self.splitter1.setOrientation(QtCore.Qt.Horizontal)
-            self.splitter1.insertWidget(1, self.file_view)
-        elif type == 2:
+            if self.show_files:
+                self.splitter1.insertWidget(1, self.file_view)
+        elif self.current_layout == 2:
             self.splitter.setOrientation(QtCore.Qt.Horizontal)
             self.splitter1.setOrientation(QtCore.Qt.Vertical)
-            self.splitter1.insertWidget(1, self.file_view)
+            if self.show_files:
+                self.splitter1.insertWidget(1, self.file_view)
         else:
             self.splitter.setOrientation(QtCore.Qt.Vertical)
             self.splitter2.setOrientation(QtCore.Qt.Horizontal)
-            self.splitter2.insertWidget(0, self.file_view)
+            if self.show_files:
+                self.splitter2.insertWidget(0, self.file_view)
+
+        for sp in (self.splitter, self.splitter1, self.splitter2):
+            if sp.count() != 2:
+                continue
+            size = sum(sp.sizes())
+            if sp.orientation() == QtCore.Qt.Vertical:
+                size1 = int(size * 0.2)
+            else:
+                size1 = int(size * 0.3)
+            sp.setSizes((size1, size - size1))
+
+        if show_files == False:
+            # When filelist is hidden, select all files always.
+            self.select_all_files()
 
     def refresh(self):
         self.loaded = False
@@ -225,7 +250,7 @@ class ShelveListWidget(ToolbarPanel):
                 item = QtGui.QTreeWidgetItem()
                 item.setText(0, unicode(shelf_id))
                 item.setText(1, message or gettext('<no message>'))
-                item.setIcon(0, get_icon("file", 16))
+                item.setIcon(0, get_icon("folder", 16))
                 item.shelf_id = shelf_id
                 self.shelve_view.addTopLevelItem(item)
             self.tree = tree
@@ -350,10 +375,28 @@ class ShelveListWidget(ToolbarPanel):
             self.unshelve_button.setEnabled(True)
             self.delete_button.setEnabled(True)
             self.show_changes(self.shelf_id)
+            if self.show_files:
+                self.select_first_file()
+            else:
+                self.select_all_files()
         self.file_view.viewport().update()
 
     def selected_files_changed(self):
-        self.show_selected_diff()
+        if not self._selecting_all_files:
+            self.show_selected_diff()
+
+    def select_all_files(self):
+        try:
+            self._selecting_all_files = True
+            for i in range(0, self.file_view.topLevelItemCount()):
+                self.file_view.topLevelItem(i).setSelected(True)
+        finally:
+            self._selecting_all_files = False
+            self.selected_files_changed()
+
+    def select_first_file(self):
+        if self.file_view.topLevelItemCount() > 0:
+            self.file_view.topLevelItem(0).setSelected(True)
 
     def show_selected_diff(self, refresh = False):
         # NOTE: SideBySideDiffView.append_diff uses processEvents internally. 
@@ -456,11 +499,13 @@ class ShelveListWidget(ToolbarPanel):
         layout = config.get_option("shelvelist_layout")
         if layout not in ("2", "3"):
             layout = "1"
-        self.layout_buttons[int(layout) - 1].setChecked(True)
+        self.current_layout = int(layout)
+        self.show_files = not not config.get_option_as_bool("shelvelist_show_filelist")
 
     def save_settings(self):
         config = get_qbzr_config()
         config.set_option("shelvelist_layout", str(self.current_layout))
+        config.set_option("shelvelist_show_filelist", str(self.show_files))
         config.save()
 
     def hideEvent(self, event):
