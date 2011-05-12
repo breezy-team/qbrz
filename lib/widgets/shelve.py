@@ -29,8 +29,11 @@ from bzrlib.plugins.qbzr.lib.util import (
     ToolBarThrobberWidget,
     get_monospace_font,
     get_tab_width_pixels,
+    get_qbzr_config,
     )
-from bzrlib.plugins.qbzr.lib.widgets.toolbars import FindToolbar, ToolbarPanel
+from bzrlib.plugins.qbzr.lib.widgets.toolbars import (
+    FindToolbar, ToolbarPanel, LayoutSelector
+    )
 from bzrlib import errors
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
@@ -176,20 +179,29 @@ class ShelveWidget(ToolbarPanel):
         self.message = None
 
         self.encoding = encoding
+        
+        self.current_layout = -1
+        self.load_settings()
 
-        splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self)
+        self.splitter = QtGui.QSplitter(QtCore.Qt.Vertical, self)
         pal = QtGui.QPalette()
         pal.setColor(QtGui.QPalette.Window, QtGui.QColor(0,0,0,0))
-        splitter.setPalette(pal)
-        message_groupbox = QtGui.QGroupBox(gettext("Message"), splitter)
+        self.splitter.setPalette(pal)
+
+        self.splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal, self)
+        self.splitter2 = QtGui.QSplitter(QtCore.Qt.Horizontal, self)
+        self.splitter.addWidget(self.splitter1)
+        self.splitter.addWidget(self.splitter2)
+        
+        message_groupbox = QtGui.QGroupBox(gettext("Message"), self)
         message_layout = QtGui.QVBoxLayout(message_groupbox)
-        splitter.addWidget(message_groupbox)
+        self.splitter1.addWidget(message_groupbox)
 
         language = get_global_config().get_user_option('spellcheck_language') or 'en'
         spell_checker = SpellChecker(language)
         
         self.message = TextEdit(spell_checker, message_groupbox, main_window=self)
-        self.message.setToolTip(gettext("Enter the commit message"))
+        self.message.setToolTip(gettext("Enter the shelve message"))
         self.completer = QtGui.QCompleter()
         self.completer_model = QtGui.QStringListModel(self.completer)
         self.completer.setModel(self.completer_model)
@@ -198,9 +210,6 @@ class ShelveWidget(ToolbarPanel):
         SpellCheckHighlighter(self.message.document(), spell_checker)
 
         message_layout.addWidget(self.message)
-
-        hsplitter = QtGui.QSplitter(QtCore.Qt.Horizontal, splitter)
-        splitter.addWidget(hsplitter)
 
         self.file_view = QtGui.QTreeWidget(self)
         self.file_view.setHeaderLabels(
@@ -211,12 +220,12 @@ class ShelveWidget(ToolbarPanel):
         header.setResizeMode(1, QtGui.QHeaderView.ResizeToContents)
         header.setResizeMode(2, QtGui.QHeaderView.ResizeToContents)
 
-        hsplitter.addWidget(self.file_view)
+        self.splitter1.addWidget(self.file_view)
 
         hunk_panel = ToolbarPanel(parent=self)
         self.hunk_view = HunkView(complete=complete)
 
-        hsplitter.addWidget(hunk_panel)
+        self.splitter2.addWidget(hunk_panel)
 
         # Build hunk panel toolbar
         show_find = hunk_panel.add_toolbar_button(
@@ -249,12 +258,10 @@ class ShelveWidget(ToolbarPanel):
         hunk_panel.add_widget(self.hunk_view)
         find_toolbar.hide()
 
-        splitter.setStretchFactor(0, 1)
-        splitter.setStretchFactor(1, 6)
-        
+
         layout = QtGui.QVBoxLayout()
         layout.setMargin(10)
-        layout.addWidget(splitter)
+        layout.addWidget(self.splitter)
         self.add_layout(layout)
 
         self.add_toolbar_button(N_('Shelve'), icon_name='shelve', 
@@ -267,6 +274,13 @@ class ShelveWidget(ToolbarPanel):
 
         self.add_toolbar_button(N_('Unselect all'), icon_name='unselect-all', 
                 onclick=lambda:self.check_all(False))
+
+        layout_selector = \
+                LayoutSelector(num=3, onchanged=self.set_layout, parent=self,
+                                initial_no=self.current_layout)
+
+        self.add_toolbar_menu(N_("&Layout"), layout_selector, 
+                icon_name="internet-news-reader", shortcut="Alt+L")
         
         self.add_toolbar_button(N_('&Refresh'), icon_name='view-refresh', 
                 shortcut="Ctrl+R", onclick=self.refresh)
@@ -280,11 +294,45 @@ class ShelveWidget(ToolbarPanel):
         self.connect(self.hunk_view, QtCore.SIGNAL("selectionChanged()"),
                 self.selected_hunk_changed)
 
+        self.set_layout()
+
         if splitters:
-            splitters.add("shelve_splitter", splitter)
-            splitters.add("shelve_hsplitter", hsplitter)
+            splitters.add("shelve_splitter", self.splitter)
+            splitters.add("shelve_splitter1", self.splitter1)
+            splitters.add("shelve_splitter2", self.splitter2)
+        self.splitter.setChildrenCollapsible(False)
+        self.splitter1.setChildrenCollapsible(False)
+        self.splitter2.setChildrenCollapsible(False)
 
         self.loaded = False
+
+    def set_layout(self, type=None):
+        if type:
+            self.current_layout = type
+
+        self.file_view.setParent(None)
+        if self.current_layout == 1:
+            self.splitter.setOrientation(QtCore.Qt.Vertical)
+            self.splitter1.setOrientation(QtCore.Qt.Horizontal)
+            self.splitter1.insertWidget(1, self.file_view)
+        elif self.current_layout == 2:
+            self.splitter.setOrientation(QtCore.Qt.Horizontal)
+            self.splitter1.setOrientation(QtCore.Qt.Vertical)
+            self.splitter1.insertWidget(1, self.file_view)
+        else:
+            self.splitter.setOrientation(QtCore.Qt.Vertical)
+            self.splitter2.setOrientation(QtCore.Qt.Horizontal)
+            self.splitter2.insertWidget(0, self.file_view)
+
+        for sp in (self.splitter, self.splitter1, self.splitter2):
+            if sp.count() != 2:
+                continue
+            size = sum(sp.sizes())
+            if sp.orientation() == QtCore.Qt.Vertical:
+                size1 = int(size * 0.2)
+            else:
+                size1 = int(size * 0.3)
+            sp.setSizes((size1, size - size1))
 
     def _create_shelver_and_creator(self):
         shelver = Shelver.from_args(DummyDiffWriter(), None,
@@ -512,6 +560,21 @@ class ShelveWidget(ToolbarPanel):
             return
         patched = patches.iter_patched_from_hunks(change.target_lines, final_hunks)
         creator.shelve_lines(change.file_id, list(patched))
+
+    def load_settings(self):
+        config = get_qbzr_config()
+        layout = config.get_option("shelve_layout")
+        if layout not in ("1", "3"):
+            layout = "2"
+        self.current_layout = int(layout)
+
+    def save_settings(self):
+        config = get_qbzr_config()
+        config.set_option("shelve_layout", str(self.current_layout))
+        config.save()
+
+    def hideEvent(self, event):
+        self.save_settings()
 
 class HunkView(QtGui.QWidget):
     def __init__(self, complete=False, parent=None):
