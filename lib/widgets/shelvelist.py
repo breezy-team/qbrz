@@ -149,7 +149,10 @@ class ShelveListWidget(ToolbarPanel):
             splitters.add("shelvelist_splitter1", self.splitter1)
             splitters.add("shelvelist_splitter2", self.splitter2)
 
-        self.splitter.setStretchFactor(1, 3)
+        for sp in (self.splitter, self.splitter1, self.splitter2):
+            sp.setChildrenCollapsible(False)
+            sp.setStretchFactor(0, 3)
+            sp.setStretchFactor(1, 7)
 
         pal = QtGui.QPalette()
         pal.setColor(QtGui.QPalette.Window, QtGui.QColor(0,0,0,0))
@@ -195,10 +198,6 @@ class ShelveListWidget(ToolbarPanel):
         self.connect(self.file_view, QtCore.SIGNAL("itemSelectionChanged()"),
                 self.selected_files_changed)
 
-        self.splitter.setChildrenCollapsible(False)
-        self.splitter1.setChildrenCollapsible(False)
-        self.splitter2.setChildrenCollapsible(False)
-
         self.loaded = False
         self._loading_diff = False
         self._pending_info = None
@@ -231,11 +230,9 @@ class ShelveListWidget(ToolbarPanel):
             if sp.count() != 2:
                 continue
             size = sum(sp.sizes())
-            if sp.orientation() == QtCore.Qt.Vertical:
-                size1 = int(size * 0.2)
-            else:
+            if size > 0:
                 size1 = int(size * 0.3)
-            sp.setSizes((size1, size - size1))
+                sp.setSizes((size1, size - size1))
 
         if show_files == False:
             # When filelist is hidden, select all files always.

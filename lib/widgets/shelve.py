@@ -307,9 +307,11 @@ class ShelveWidget(ToolbarPanel):
             splitters.add("shelve_splitter", self.splitter)
             splitters.add("shelve_splitter1", self.splitter1)
             splitters.add("shelve_splitter2", self.splitter2)
-        self.splitter.setChildrenCollapsible(False)
-        self.splitter1.setChildrenCollapsible(False)
-        self.splitter2.setChildrenCollapsible(False)
+        for sp in (self.splitter, self.splitter1, self.splitter2):
+            sp.setChildrenCollapsible(False)
+            sp.setStretchFactor(0, 3)
+            sp.setStretchFactor(1, 7)
+
 
         self.loaded = False
 
@@ -335,11 +337,9 @@ class ShelveWidget(ToolbarPanel):
             if sp.count() != 2:
                 continue
             size = sum(sp.sizes())
-            if sp.orientation() == QtCore.Qt.Vertical:
-                size1 = int(size * 0.2)
-            else:
+            if size > 0:
                 size1 = int(size * 0.3)
-            sp.setSizes((size1, size - size1))
+                sp.setSizes((size1, size - size1))
 
     def _create_shelver_and_creator(self):
         shelver = Shelver.from_args(DummyDiffWriter(), None,
@@ -445,7 +445,6 @@ class ShelveWidget(ToolbarPanel):
             item.setCheckState(0, QtCore.Qt.Checked)
         else:
             item.setCheckState(0, QtCore.Qt.PartiallyChecked)
-
 
     def file_checked(self, item, column):
         if column != 0:
