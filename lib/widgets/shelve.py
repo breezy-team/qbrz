@@ -49,6 +49,7 @@ from bzrlib.plugins.qbzr.lib.commit import TextEdit
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
 from bzrlib.shelf import ShelfCreator
 from bzrlib.shelf_ui import Shelver
+from bzrlib.osutils import split_lines
 ''')
 
 """
@@ -88,6 +89,7 @@ class Change(object):
             self.disp_text = trees[1].id2path(file_id)
         if status == 'modify text':
             try:
+                self.edited_lines = None
                 self.sha1 = trees[1].get_file_sha1(file_id)
                 target_lines = trees[0].get_file_lines(file_id)
                 textfile.check_text_lines(target_lines)
@@ -260,11 +262,13 @@ class ShelveWidget(ToolbarPanel):
         hunk_panel.add_toolbar_button(N_("Next hunk"), icon_name="go-down",
                           onclick=self.hunk_view.move_next, shortcut="Alt+Down")
 
+        self.editor_button = hunk_panel.add_toolbar_button(N_("Use editor"), 
+                                icon_name="accessories-text-editor", enabled=False,
+                                onclick=self.use_editor, shortcut="Ctrl+E")
         find_toolbar = FindToolbar(self, self.hunk_view.browser, show_find)
         hunk_panel.add_widget(find_toolbar)
         hunk_panel.add_widget(self.hunk_view)
         find_toolbar.hide()
-
 
         layout = QtGui.QVBoxLayout()
         layout.setMargin(10)
@@ -354,7 +358,7 @@ class ShelveWidget(ToolbarPanel):
         return shelver, creator
 
     def on_tabwidth_changed(self, width):
-        get_set_tab_width_chars(self.branch, tab_width_chars=width)
+        get_set_tab_width_chars(self.trees[1].branch, tab_width_chars=width)
         self._on_tabwidth_changed(width)
 
     def _on_tabwidth_changed(self, width):
@@ -372,16 +376,16 @@ class ShelveWidget(ToolbarPanel):
             cleanup.append(shelver.finalize)
             cleanup.append(creator.finalize)
 
-            trees = (shelver.target_tree, shelver.work_tree)
-            self.branch = trees[1].branch
-            tabwidth = get_set_tab_width_chars(self.branch)
+            self.trees = (shelver.target_tree, shelver.work_tree)
+            self.editor_available = (shelver.change_editor is not None)
+            tabwidth = get_set_tab_width_chars(self.trees[1].branch)
             self.tabwidth_selector.setTabWidth(tabwidth)
             self._on_tabwidth_changed(tabwidth)
-            self.revision = trees[0].get_revision_id()
+            self.revision = self.trees[0].get_revision_id()
             if self.revision != old_rev:
                 old_changes = None
             for change in creator.iter_shelvable():
-                item = self._create_item(change, shelver, trees, old_changes)
+                item = self._create_item(change, shelver, self.trees, old_changes)
                 self.file_view.addTopLevelItem(item)
             
         finally:
@@ -418,10 +422,12 @@ class ShelveWidget(ToolbarPanel):
         items = self.file_view.selectedItems()
         if len(items) != 1 or items[0].change.status != 'modify text':
             self.hunk_view.clear()
+            self.editor_button.setEnabled(False)
         else:
             item = items[0]
             encoding = self.encoding_selector.encoding
             self.hunk_view.set_parsed_patch(item.change, encoding)
+            self.editor_button.setEnabled(self.editor_available)
 
     def selected_hunk_changed(self):
         for item in self.file_view.selectedItems():
@@ -430,6 +436,11 @@ class ShelveWidget(ToolbarPanel):
     def update_item(self, item):
         change = item.change
         if change.status != 'modify text':
+            return
+
+        if change.edited_lines:
+            item.setCheckState(0, QtCore.Qt.PartiallyChecked)
+            item.setText(2, gettext("By editor"))
             return
             
         hunks = change.parsed_patch.hunks
@@ -462,7 +473,11 @@ class ShelveWidget(ToolbarPanel):
             hunk_num = len(item.change.parsed_patch.hunks)
             for hunk in item.change.parsed_patch.hunks:
                 hunk.selected = selected
-            self.hunk_view.update()
+            if item.change.edited_lines:
+                item.change.edited_lines = None
+                self.selected_file_changed()
+            else:
+                self.hunk_view.update()
             item.setText(2, u'%d/%d' % (hunk_num if selected else 0, hunk_num))
 
     def encoding_changed(self, encoding):
@@ -491,6 +506,37 @@ class ShelveWidget(ToolbarPanel):
         self.hunk_view.clear()
         self.revision = None
         self.loaded = False
+
+    def use_editor(self):
+        cleanup = []
+        items = self.file_view.selectedItems()
+        if len(items) != 1 or items[0].change.status != 'modify text':
+            return
+        else:
+            change = items[0].change
+        try:
+            target_tree, work_tree = self.trees
+            cleanup.append(work_tree.lock_read().unlock)
+            cleanup.append(target_tree.lock_read().unlock)
+            config = work_tree.branch.get_config()
+            change_editor = config.get_change_editor(target_tree, work_tree)
+            if change_editor is None:
+                QtGui.QMessageBox.information(self, gettext('Shelve'),
+                        gettext('Change editor is not defined.'), gettext('&OK'))
+                self.editor_available = False
+                self.editor_button.setEnabled(False)
+                return
+
+            cleanup.append(change_editor.finish)
+            lines = split_lines(change_editor.edit_file(change.file_id))
+            change_count = Shelver._count_changed_regions(change.work_lines, lines)
+            if change_count > 0:
+                change.edited_lines = lines
+                self.update_item(items[0])
+                self.selected_file_changed()
+        finally:
+            while cleanup:
+                cleanup.pop()()
 
     def _get_change_dictionary(self):
         change_dict = {}
@@ -565,18 +611,21 @@ class ShelveWidget(ToolbarPanel):
         final_hunks = []
         offset = 0
         change_count = 0
-        for hunk in change.parsed_patch.hunks:
-            if hunk.selected:
-                offset -= (hunk.mod_range - hunk.orig_range)
-                change_count += 1
-            else:
-                hunk.mod_pos += offset
-                final_hunks.append(hunk)
+        if change.edited_lines:
+            creator.shelve_lines(change.file_id, change.edited_lines)
+        else:
+            for hunk in change.parsed_patch.hunks:
+                if hunk.selected:
+                    offset -= (hunk.mod_range - hunk.orig_range)
+                    change_count += 1
+                else:
+                    hunk.mod_pos += offset
+                    final_hunks.append(hunk)
 
-        if change_count == 0:
-            return
-        patched = patches.iter_patched_from_hunks(change.target_lines, final_hunks)
-        creator.shelve_lines(change.file_id, list(patched))
+            if change_count == 0:
+                return
+            patched = patches.iter_patched_from_hunks(change.target_lines, final_hunks)
+            creator.shelve_lines(change.file_id, list(patched))
 
     def load_settings(self):
         config = get_qbzr_config()
@@ -761,6 +810,11 @@ class HunkTextBrowser(QtGui.QTextBrowser):
     def set_parsed_patch(self, change, encoding):
         self.clear()
         cursor = self.cursor
+
+        if change.edited_lines:
+            cursor.insertText(
+                    gettext("Edited by change editor."), self.monospacedHunkFormat)
+            return
 
         patch = change.parsed_patch
         texts = change.encode_hunk_texts(encoding)
