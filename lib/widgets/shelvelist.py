@@ -59,6 +59,7 @@ from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
 from bzrlib.plugins.qbzr.lib.diffwindow import DiffItem
 from bzrlib.shelf import Unshelver
 from bzrlib.shelf_ui import Unshelver as Unshelver_ui
+from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
 ''')
 
 class ShelveListWidget(ToolbarPanel):
@@ -226,13 +227,15 @@ class ShelveListWidget(ToolbarPanel):
             if self.show_files:
                 self.splitter2.insertWidget(0, self.file_view)
 
-        for sp in (self.splitter, self.splitter1, self.splitter2):
-            if sp.count() != 2:
-                continue
-            size = sum(sp.sizes())
-            if size > 0:
-                size1 = int(size * 0.3)
-                sp.setSizes((size1, size - size1))
+        if type is not None:
+            # Reset splitter pos after changing type.
+            for sp in (self.splitter, self.splitter1, self.splitter2):
+                if sp.count() != 2:
+                    continue
+                size = sum(sp.sizes())
+                if size > 0:
+                    size1 = int(size * 0.3)
+                    sp.setSizes((size1, size - size1))
 
         if show_files == False:
             # When filelist is hidden, select all files always.
@@ -246,7 +249,6 @@ class ShelveListWidget(ToolbarPanel):
         pixels = get_tab_width_pixels(tab_width_chars=width)
         self.diffviews[0].setTabStopWidths((pixels, pixels))
         self.diffviews[1].setTabStopWidth(pixels)
-
 
     def refresh(self):
         self.loaded = False
@@ -480,8 +482,8 @@ class ShelveListWidget(ToolbarPanel):
                 N_('Changes in shelf[%d] will be applied to working tree.') % self.shelf_id):
             return
 
-        self.unshelve(self.shelf_id, 'apply')
-        self.refresh()
+        self.unshelve(self.shelf_id, 
+                N_('Apply changes and remove from the shelf.'), '--apply')
 
     def delete_clicked(self):
         if not self.shelf_id:
@@ -491,18 +493,22 @@ class ShelveListWidget(ToolbarPanel):
                 warning=True):
             return
 
-        self.unshelve(self.shelf_id, 'delete-only')
-        self.refresh()
+        self.unshelve(self.shelf_id, 
+                N_('Delete changes without applying them.'), '--delete-only')
 
     def encoding_changed(self, encoding):
         self.show_selected_diff(refresh = True)
         
-    def unshelve(self, id, action):
-        unshelver = Unshelver_ui.from_args(id, action, directory=self.directory)
-        try:
-            unshelver.run()
-        finally:
-            unshelver.tree.unlock()
+    def unshelve(self, id, desc, action):
+        args = ['unshelve', str(id), action]
+        window = SimpleSubProcessDialog(gettext("Shelve Manager"),
+                                        desc=gettext(desc),
+                                        args=args,
+                                        dir=self.directory,
+                                        auto_start_show_on_failed=True,
+                                        parent=self.window())
+        window.exec_()
+        self.refresh()
 
     def eventFilter(self, object, event):
         if event.type() == QtCore.QEvent.FocusIn:
