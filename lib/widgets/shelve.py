@@ -92,7 +92,6 @@ class Change(object):
             self.disp_text = trees[1].id2path(file_id)
         if status == 'modify text':
             try:
-                self.edited_lines = None
                 self.sha1 = trees[1].get_file_sha1(file_id)
                 target_lines = trees[0].get_file_lines(file_id)
                 textfile.check_text_lines(target_lines)
@@ -101,6 +100,7 @@ class Change(object):
                 
                 self._target_lines = [None, target_lines, None]
                 self._work_lines = [None, work_lines, None]
+                self._edited_lines = [None, None, None]
 
                 parsed = shelver.get_parsed_patch(file_id, False)
                 for hunk in parsed.hunks:
@@ -132,6 +132,14 @@ class Change(object):
     def work_lines(self):
         """Working file lines"""
         return self._work_lines[1]
+
+    def get_edited_lines(self):
+        return self._edited_lines[1]
+
+    def set_edited_lines(self, lines):
+        self._edited_lines = [None, lines, None]
+
+    edited_lines = property(get_edited_lines, set_edited_lines)
 
     def encode_hunk_texts(self, encoding):
         """
@@ -172,6 +180,13 @@ class Change(object):
     def encode_target_lines(self, encoding):
         """Return encoded original file lines."""
         return self.encode(self._target_lines, encoding)
+
+    def encode_edited_lines(self, encoding):
+        """Return encoded edited lines by editor."""
+        if self._edited_lines[1] is None:
+            return None
+        return self.encode(self._edited_lines, encoding)
+
 
 
 class ShelveWidget(ToolbarPanel):
@@ -823,7 +838,10 @@ class HunkTextBrowser(QtGui.QTextBrowser):
 
         if change.edited_lines:
             cursor.insertText(
-                    gettext("Edited by change editor."), self.monospacedHunkFormat)
+                    gettext("Edited by change editor.\n"), self.monospacedHunkFormat)
+            lines = "".join(change.encode_edited_lines(encoding))
+            if lines:
+                cursor.insertText(lines, self.monospacedInactiveFormat)
             return
 
         patch = change.parsed_patch
