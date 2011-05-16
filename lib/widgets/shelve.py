@@ -378,6 +378,7 @@ class ShelveWidget(ToolbarPanel):
 
             self.trees = (shelver.target_tree, shelver.work_tree)
             self.editor_available = (shelver.change_editor is not None)
+            self.editor_button.setVisible(self.editor_available)
             tabwidth = get_set_tab_width_chars(self.trees[1].branch)
             self.tabwidth_selector.setTabWidth(tabwidth)
             self._on_tabwidth_changed(tabwidth)
@@ -991,7 +992,4 @@ class HunkTextBrowser(QtGui.QTextBrowser):
                 self.toggle_selection(self._focused_index)
                 return
         QtGui.QTextBrowser.keyPressEvent(self, event)
-
-
-
 
