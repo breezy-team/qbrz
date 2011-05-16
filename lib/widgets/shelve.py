@@ -444,7 +444,7 @@ class ShelveWidget(ToolbarPanel):
 
         if change.edited_lines:
             item.setCheckState(0, QtCore.Qt.PartiallyChecked)
-            item.setText(2, gettext("By editor"))
+            item.setText(2, "???")
             return
             
         hunks = change.parsed_patch.hunks
