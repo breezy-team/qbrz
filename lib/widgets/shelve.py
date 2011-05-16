@@ -71,6 +71,9 @@ change_status = (
 class WorkingTreeHasChanged(errors.BzrError):
     pass
 
+class WorkingTreeHasPendingMarge(errors.BzrError):
+    pass
+
 class DummyDiffWriter(object):
     def __init__(self):
         pass
@@ -568,6 +571,8 @@ class ShelveWidget(ToolbarPanel):
             cleanup.append(shelver.finalize)
             cleanup.append(creator.finalize)
             trees = (shelver.target_tree, shelver.work_tree)
+            if len(trees[1].get_parent_ids()) > 1:
+                raise WorkingTreeHasPendingMarge
             if self.revision != trees[0].get_revision_id():
                 raise WorkingTreeHasChanged
 
@@ -597,6 +602,10 @@ class ShelveWidget(ToolbarPanel):
             message = unicode(self.message.toPlainText()).strip() or gettext(u'<no message>')
             shelf_id = manager.shelve_changes(creator, message)
 
+        except WorkingTreeHasPendingMarge:
+            QtGui.QMessageBox.warning(self, gettext('Shelve'),
+                    gettext('Operation aborted because working tree has pending marges.'), gettext('&OK'))
+            return
         except WorkingTreeHasChanged:
             QtGui.QMessageBox.warning(self, gettext('Shelve'),
                     gettext('Operation aborted because target file(s) has been changed.'), gettext('&OK'))
