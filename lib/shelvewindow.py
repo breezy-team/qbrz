@@ -90,6 +90,8 @@ class ShelveWindow(QBzrWindow):
                 self.current_tab_changed)
         self.connect(shelve_view, QtCore.SIGNAL("shelfCreated(int)"),
                 self.shelf_created)
+        self.connect(shelvelist_view, QtCore.SIGNAL("unshelved(int, QString*)"),
+                self.unshelved)
 
         self.splitters.restore_state()
 
@@ -117,6 +119,10 @@ class ShelveWindow(QBzrWindow):
         # Refresh shelf list after new shelf created.
         self.tab.widget(1).refresh()
         self.tab.setCurrentIndex(1)
+
+    def unshelved(self, id, action):
+        if action in ('apply', 'keep'):
+            self.tab.widget(0).loaded = False
 
     def hideEvent(self, event):
         self.splitters.save_state()

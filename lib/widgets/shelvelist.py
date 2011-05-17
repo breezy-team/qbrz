@@ -502,6 +502,13 @@ class ShelveListWidget(ToolbarPanel):
                                         dir=self.directory,
                                         auto_start_show_on_failed=True,
                                         parent=self.window())
+        def finished(result):
+            if result:
+                self.emit(QtCore.SIGNAL("unshelved(int, QString*)"), 
+                          self.shelf_id, action)
+
+        self.connect(window, QtCore.SIGNAL("subprocessFinished(bool)"), finished)
+
         window.exec_()
         self.refresh()
 
@@ -530,4 +537,5 @@ class ShelveListWidget(ToolbarPanel):
 
     def hideEvent(self, event):
         self.save_settings()
+
 
