@@ -266,5 +266,5 @@ class TestFakeBranch(tests.TestCaseInTempDir):
 
     def test_get_tab_width_chars(self):
         br = FakeBranch()
-        w = util.get_tab_width_chars(br)
+        w = util.get_set_tab_width_chars(br)
         self.assertEquals(8, w)
