@@ -31,6 +31,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_tab_width_pixels,
     get_set_tab_width_chars,
     get_qbzr_config,
+    file_extension,
     )
 from bzrlib.plugins.qbzr.lib.widgets.toolbars import (
     FindToolbar, ToolbarPanel, LayoutSelector
@@ -47,9 +48,12 @@ from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
 from bzrlib.plugins.qbzr.lib.commit import TextEdit
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
+from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
 from bzrlib.shelf import ShelfCreator
 from bzrlib.shelf_ui import Shelver
 from bzrlib.osutils import split_lines
+from cStringIO import StringIO
+import os
 ''')
 
 """
@@ -68,6 +72,7 @@ change_status = (
         N_("modify text"), N_("modify target"), N_("modify binary")
         )
 
+MAX_AUTOCOMPLETE_FILES = 20
 class WorkingTreeHasChanged(errors.BzrError):
     pass
 
@@ -85,11 +90,14 @@ class Change(object):
         status = change[0]
         file_id = change[1]
         if status == 'delete file':
-            self.disp_text = trees[0].id2path(file_id)
+            self.path = trees[0].id2path(file_id)
+            self.disp_text = self.path
         elif status == 'rename':
-            self.disp_text = u'%s => %s' % (trees[0].id2path(file_id), trees[1].id2path(file_id))
+            self.path = [tree.id2path(file_id) for tree in trees] 
+            self.disp_text = u'%s => %s' % (self.path[0], self.path[1])
         else:
-            self.disp_text = trees[1].id2path(file_id)
+            self.path = trees[1].id2path(file_id)
+            self.disp_text = self.path
         if status == 'modify text':
             try:
                 self.sha1 = trees[1].get_file_sha1(file_id)
@@ -113,6 +121,7 @@ class Change(object):
         self.data = change
         self.file_id = file_id
         self.status = status
+        self._words = None
 
     def is_same_change(self, other):
         # NOTE: I does not use __cmp__ because this method does not compare entire data.
@@ -186,9 +195,33 @@ class Change(object):
         if self._edited_lines[1] is None:
             return None
         return self.encode(self._edited_lines, encoding)
+    
+    def get_words(self):
+        if self._words is not None:
+            return self._words, False
 
+        # Add path
+        self._words = set() 
+        if self.status == 'rename':
+            for path in self.path:
+                self._words.add(path)
+                self._words.add(os.path.split(path)[-1])
+        else:
+            self._words.add(self.path)
+            self._words.add(os.path.split(self.path)[-1])
 
+        if self.status == 'modify text':
+            ext = file_extension(self.path)
+            builder = get_wordlist_builder(ext)
+            if builder is not None:
+                try:
+                    self._words.update(builder.iter_words(StringIO("".join(self.work_lines))))
+                    return self._words, True
+                except EnvironmentError:
+                    pass
 
+        return self._words, False
+    
 class ShelveWidget(ToolbarPanel):
 
     def __init__(self, file_list=None, directory=None, complete=False, encoding=None, 
@@ -458,23 +491,26 @@ class ShelveWidget(ToolbarPanel):
             return
 
         if change.edited_lines:
-            item.setCheckState(0, QtCore.Qt.PartiallyChecked)
+            state = QtCore.Qt.PartiallyChecked
             item.setText(2, "???")
-            return
-            
-        hunks = change.parsed_patch.hunks
-        hunk_num = len(hunks)
-        selected_hunk_num = 0
-        for hunk in hunks:
-            if hunk.selected:
-                selected_hunk_num += 1
-        item.setText(2, "%d/%d" % (selected_hunk_num, hunk_num))
-        if selected_hunk_num == 0:
-            item.setCheckState(0, QtCore.Qt.Unchecked)
-        elif selected_hunk_num == hunk_num:
-            item.setCheckState(0, QtCore.Qt.Checked)
         else:
-            item.setCheckState(0, QtCore.Qt.PartiallyChecked)
+            hunks = change.parsed_patch.hunks
+            hunk_num = len(hunks)
+            selected_hunk_num = 0
+            for hunk in hunks:
+                if hunk.selected:
+                    selected_hunk_num += 1
+            item.setText(2, "%d/%d" % (selected_hunk_num, hunk_num))
+            if selected_hunk_num == 0:
+                state = QtCore.Qt.Unchecked
+            elif selected_hunk_num == hunk_num:
+                state = QtCore.Qt.Checked
+            else:
+                state = QtCore.Qt.PartiallyChecked
+
+        if item.checkState(0) != state:
+            item.setCheckState(0, state)
+            self.update_compleater_words()
 
     def file_checked(self, item, column):
         if column != 0:
@@ -498,6 +534,8 @@ class ShelveWidget(ToolbarPanel):
             else:
                 self.hunk_view.update()
             item.setText(2, u'%d/%d' % (hunk_num if selected else 0, hunk_num))
+
+        self.update_compleater_words()
 
     def encoding_changed(self, encoding):
         self.selected_file_changed()
@@ -667,6 +705,26 @@ class ShelveWidget(ToolbarPanel):
     def hideEvent(self, event):
         self.save_settings()
 
+    def update_compleater_words(self):
+        words = set()
+        num_files_loaded = 0
+        for i in range(0, self.file_view.topLevelItemCount()):
+            item = self.file_view.topLevelItem(i)
+            if item.checkState(0) == QtCore.Qt.Unchecked:
+                continue
+            ch = item.change
+
+            if num_files_loaded < MAX_AUTOCOMPLETE_FILES:
+                file_words, load_texts_first = ch.get_words()
+                words.update(file_words)
+                if load_texts_first:
+                    num_files_loaded += 1
+                    self.window().processEvents()
+
+        words = list(words)
+        words.sort(key=lambda x: x.lower())
+        self.completer_model.setStringList(words)
+    
 class HunkView(QtGui.QWidget):
     def __init__(self, complete=False, parent=None):
         QtGui.QWidget.__init__(self, parent)
