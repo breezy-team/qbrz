@@ -40,7 +40,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_qbzr_config,
     )
 from bzrlib.plugins.qbzr.lib.widgets.toolbars import (
-    FindToolbar, ToolbarPanel, LayoutSelector
+    FindToolbar, ToolbarPanel, LayoutSelector 
     )
 from bzrlib.plugins.qbzr.lib.widgets.tab_width_selector import TabWidthMenuSelector
 from bzrlib.plugins.qbzr.lib.diffview import (
@@ -165,10 +165,17 @@ class ShelveListWidget(ToolbarPanel):
         self.add_layout(layout)
         
         # build main toolbar
+        unshelve_menu = QtGui.QMenu(N_("Unshelve"), self)
+        unshelve_menu.addAction(self.create_button(N_("Dry run"), 
+                                    onclick=lambda:self.do_unshelve('dry-run')))
+        unshelve_menu.addAction(self.create_button(N_("Keep"),
+                                    onclick=lambda:self.do_unshelve('keep')))
+        unshelve_menu.addAction(self.create_button(N_("Delete"),
+                                    onclick=lambda:self.do_unshelve('delete-only')))
+        
         self.unshelve_button = self.add_toolbar_button(N_("Unshelve"), icon_name="unshelve", 
-                                enabled=False, onclick=self.unshelve_clicked)
-        self.delete_button = self.add_toolbar_button(N_("Delete"), icon_name="delete", 
-                                enabled=False, onclick=self.delete_clicked)
+                                    enabled=False, onclick=lambda:self.do_unshelve('apply'), 
+                                    menu=unshelve_menu)
         self.add_separator()
 
         layout_selector = \
@@ -386,12 +393,10 @@ class ShelveListWidget(ToolbarPanel):
         if len(items) != 1:
             self.shelf_id = None
             self.unshelve_button.setEnabled(False)
-            self.delete_button.setEnabled(False)
             self.file_view.clear()
         else:
             self.shelf_id = items[0].shelf_id
             self.unshelve_button.setEnabled(True)
-            self.delete_button.setEnabled(True)
             self.show_changes(self.shelf_id)
             if self.show_files:
                 self.select_first_file()
@@ -458,14 +463,6 @@ class ShelveListWidget(ToolbarPanel):
         self.ignore_whitespace = state
         self.show_selected_diff(refresh = True)
 
-    def shelve_clicked(self):
-        window = ShelveWindow(encoding=self.encoding, directory=self.directory, complete=self.complete, parent=self)
-        try:
-            if window.exec_() == QtGui.QDialog.Accepted:
-                self.refresh()
-        finally:
-            window.cleanup()
-
     def prompt_bool(self, prompt, warning=False):
         if warning:
             func = QtGui.QMessageBox.warning
@@ -475,32 +472,30 @@ class ShelveListWidget(ToolbarPanel):
                     QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
         return (ret == QtGui.QMessageBox.Ok)
 
-    def unshelve_clicked(self):
+    prompts = {
+        "apply" :
+            N_("Apply changes in shelf[%(id)d], and remove from the shelf"),
+        "dry-run" :
+            N_("Simulate to apply changes in shelf[%(id)d] without changing working tree"),
+        "keep" :
+            N_("Apply changes in shelf[%(id)d], but keep it shelved"),
+        "delete" :
+            N_("Remove shelf[%(id)d] without applying"),
+        }
+
+    def do_unshelve(self, action):
         if not self.shelf_id:
             return
-        if not self.prompt_bool(
-                N_('Changes in shelf[%d] will be applied to working tree.') % self.shelf_id):
-            return
-
-        self.unshelve(self.shelf_id, 
-                N_('Apply changes and remove from the shelf.'), '--apply')
-
-    def delete_clicked(self):
-        if not self.shelf_id:
-            return
-        if not self.prompt_bool(
-                N_('Shelf[%d] will be deleted without applying.') % self.shelf_id, 
-                warning=True):
-            return
-
-        self.unshelve(self.shelf_id, 
-                N_('Delete changes without applying them.'), '--delete-only')
-
-    def encoding_changed(self, encoding):
-        self.show_selected_diff(refresh = True)
         
+        prompt = gettext(self.prompts[action]) % {"id":self.shelf_id}
+        if action != "dry-run":
+            if not self.prompt_bool(prompt, warning=(action=="delete-only")):
+                return
+        self.unshelve(self.shelf_id, prompt, action)
+        self.refresh()
+
     def unshelve(self, id, desc, action):
-        args = ['unshelve', str(id), action]
+        args = ["unshelve", str(id), '--' + action]
         window = SimpleSubProcessDialog(gettext("Shelve Manager"),
                                         desc=gettext(desc),
                                         args=args,
@@ -510,6 +505,9 @@ class ShelveListWidget(ToolbarPanel):
         window.exec_()
         self.refresh()
 
+    def encoding_changed(self, encoding):
+        self.show_selected_diff(refresh = True)
+        
     def eventFilter(self, object, event):
         if event.type() == QtCore.QEvent.FocusIn:
             if object in self.diffviews[0].browsers:

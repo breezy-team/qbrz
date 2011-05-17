@@ -209,18 +209,18 @@ class ToolbarPanel(QtGui.QWidget):
         self.toolbar = toolbar
 
     def add_toolbar_button(self, text, icon_name=None, icon_size=0, enabled=True, 
-            checkable=False, checked=False, shortcut=None, onclick=None):
+            checkable=False, checked=False, shortcut=None, onclick=None, menu=None):
         button = create_toolbar_button(text, self, icon_name=icon_name, 
                 icon_size=icon_size or self.icon_size, enabled=enabled, 
                 checkable=checkable, checked=checked, shortcut=shortcut, onclick=onclick)
+        if menu is not None:
+            button.setMenu(menu)
         self.toolbar.addAction(button)
         return button
 
     def add_toolbar_menu(self, text, menu, icon_name=None, icon_size=0, enabled=True, shortcut=None):
-        button = create_toolbar_button(text, self, icon_name=icon_name, 
-                icon_size=icon_size or self.icon_size, enabled=enabled)
-        button.setMenu(menu)
-        self.toolbar.addAction(button)
+        button = self.add_toolbar_button(text, icon_name=icon_name, 
+                    icon_size=icon_size or self.icon_size, enabled=enabled, menu=menu)
         widget = self.toolbar.widgetForAction(button)
         widget.setPopupMode(QtGui.QToolButton.InstantPopup)
         if shortcut:
