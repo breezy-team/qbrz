@@ -264,7 +264,7 @@ class TestFakeBranch(tests.TestCaseInTempDir):
         # check that we don't overwrite encoding vaslue in bazaar.conf
         self.assertEquals('utf-8', util.get_set_encoding(None,None))
 
-    def test_get_tab_width_chars(self):
+    def test_get_set_tab_width_chars(self):
         br = FakeBranch()
         w = util.get_set_tab_width_chars(br)
         self.assertEquals(8, w)
