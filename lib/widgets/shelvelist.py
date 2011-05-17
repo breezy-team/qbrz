@@ -479,7 +479,7 @@ class ShelveListWidget(ToolbarPanel):
             N_("Simulate to apply changes in shelf[%(id)d] without changing working tree"),
         "keep" :
             N_("Apply changes in shelf[%(id)d], but keep it shelved"),
-        "delete" :
+        "delete-only" :
             N_("Remove shelf[%(id)d] without applying"),
         }
 
