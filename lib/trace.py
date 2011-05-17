@@ -32,6 +32,9 @@ from bzrlib import errors
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 
+from cStringIO import StringIO
+from bzrlib.trace import note, mutter
+
 class StopException(Exception):
     """A exception that is ignored in our error reporting, which can be used
     to stop a process due to user action. (Similar to KeyInterupt)
@@ -67,15 +70,15 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
     The error is reported to the console or a message box, depending
     on the type. 
     """
+
+    from bzrlib.trace import report_exception, print_exception
+    import traceback
     
     # We only want one error to show if the user chose Close
     global closing_due_to_error
     if closing_due_to_error or \
         getattr(window, 'closing_due_to_error', False):
         return
-    
-    from cStringIO import StringIO
-    from bzrlib.trace import report_exception, print_exception
 
     if exc_info is None:
         exc_info = sys.exc_info()
@@ -101,6 +104,8 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
     
     # always tell bzr to report it, so it ends up in the log.        
     error_type = report_exception(exc_info, err_file)
+    backtrace = traceback.format_exception(*exc_info)
+    mutter(''.join(backtrace))
     
     if (type == MAIN_LOAD_METHOD and window):
         window.ret_code = error_type
@@ -184,12 +189,28 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
                 buttons = QtGui.QMessageBox.Ok
             elif type == ITEM_OR_EVENT_METHOD:
                 buttons = QtGui.QMessageBox.Close | QtGui.QMessageBox.Ignore
-            
+
+            friendly_message = ("Bazaar has encountered an environmental error. Please report a"
+                               " bug if this is not the result of a local problem.")
+
             msg_box = QtGui.QMessageBox(QtGui.QMessageBox.Warning,
                                         gettext("Error"),
-                                        err_file.getvalue(),
+                                        "<big>%s</big><br><br>%s" % (friendly_message,  err_file.getvalue()),
                                         buttons,
                                         window)
+            def report_bug():
+                from bzrlib import crash
+                note("report_bug")
+                crash_filename = crash._write_apport_report_to_file(exc_info)
+
+            try:
+                import apport
+            except ImportError, e:
+                mutter("No Apport available to bzr explorer")
+            else:
+                report_bug_button = msg_box.addButton(gettext("Report Bzr Explorer Error"), QtGui.QMessageBox.ActionRole)
+                report_bug_button.connect(report_bug_button, QtCore.SIGNAL("clicked()"), report_bug)
+
         if window is None:
             import bzrlib.plugins.qbzr.lib.resources
             icon = QtGui.QIcon()
@@ -211,7 +232,6 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
             window.closing_due_to_error = True
             window.close()
     return error_type
-
 
 class ErrorReport(QtGui.QDialog):
     def __init__(self, title, message, trace_back, type=MAIN_LOAD_METHOD,
