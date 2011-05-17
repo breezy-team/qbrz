@@ -65,8 +65,6 @@ class TestAnnotate(qtests.QTestCase):
         tree1.commit('merge 2', rev_id='rev-3',
                      committer='sal@foo.com',
                      timestamp=1166046003.00, timezone=0)
-        tree1.lock_read()
-        self.addCleanup(tree1.unlock)
         return tree1, tree2
 
     def test_just_show_annotate(self):
