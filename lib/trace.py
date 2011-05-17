@@ -178,13 +178,6 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
                                   type,
                                   window)
         else:
-            if type == MAIN_LOAD_METHOD:
-                buttons = QtGui.QMessageBox.Close
-            elif type == SUB_LOAD_METHOD:
-                buttons = QtGui.QMessageBox.Ok
-            elif type == ITEM_OR_EVENT_METHOD:
-                buttons = QtGui.QMessageBox.Close | QtGui.QMessageBox.Ignore
-
             msg_box = ErrorReport(gettext("Error"),
                                   False,
                                   err_file.getvalue(),
@@ -220,8 +213,7 @@ class ErrorReport(QtGui.QDialog):
         QtGui.QDialog.__init__ (self, parent)
 
         self.buttonbox = QtGui.QDialogButtonBox()
-        
-        
+
         if parent:
             win_title = None
             if hasattr(parent, 'title'):
