@@ -165,7 +165,7 @@ class ShelveListWidget(ToolbarPanel):
         self.add_layout(layout)
         
         # build main toolbar
-        unshelve_menu = QtGui.QMenu(N_("Unshelve"), self)
+        unshelve_menu = QtGui.QMenu(gettext("Unshelve"), self)
         unshelve_menu.addAction(self.create_button(N_("Dry run"), 
                                     onclick=lambda:self.do_unshelve('dry-run')))
         unshelve_menu.addAction(self.create_button(N_("Keep"),
