@@ -243,17 +243,13 @@ class ErrorReport(QtGui.QDialog):
             button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Ok)
             button.setText(gettext("Close Error Dialog"))
         elif type == ITEM_OR_EVENT_METHOD:
-            mutter("ITEM_OR_EVENT_METHOD:")
             button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Close)
             button.setText(close_label)
             button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Ignore)
             button.setText(gettext("Ignore Error"))
 
-            mutter("buttons done")
-
         def report_bug():
             from bzrlib import crash
-            note("report_bug")
             crash_filename = crash._write_apport_report_to_file(exc_info)
 
         try:
