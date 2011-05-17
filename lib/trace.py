@@ -143,7 +143,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
     
     close = True
     if msg_box:
-        if error_type == errors.EXIT_INTERNAL_ERROR:
+        if error_type == errors.EXIT_INTERNAL_ERROR: #FIXME
             # this is a copy of bzrlib.trace.report_bug
             # but we seperate the message, and the trace back,
             # and addes a hyper link to the filebug page.
@@ -180,6 +180,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
             msg_box = ErrorReport(gettext("Error"),
                                   message,
                                   traceback_file.getvalue(),
+                                  exc_info,
                                   type,
                                   window)
         else:
@@ -193,24 +194,11 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
             friendly_message = ("Bazaar has encountered an environmental error. Please report a"
                                " bug if this is not the result of a local problem.")
 
-            msg_box = QtGui.QMessageBox(QtGui.QMessageBox.Warning,
-                                        gettext("Error"),
-                                        "<big>%s</big><br><br>%s" % (friendly_message,  err_file.getvalue()),
-                                        buttons,
-                                        window)
-            def report_bug():
-                from bzrlib import crash
-                note("report_bug")
-                crash_filename = crash._write_apport_report_to_file(exc_info)
-
-            try:
-                import apport
-            except ImportError, e:
-                mutter("No Apport available to bzr explorer")
-            else:
-                report_bug_button = msg_box.addButton(gettext("Report Bzr Explorer Error"), QtGui.QMessageBox.ActionRole)
-                report_bug_button.connect(report_bug_button, QtCore.SIGNAL("clicked()"), report_bug)
-
+            msg_box = ErrorReport(gettext("Error"),
+                                  "<big>%s</big>" % (friendly_message),
+                                  err_file.getvalue(),
+                                  type,
+                                  window)
         if window is None:
             import bzrlib.plugins.qbzr.lib.resources
             icon = QtGui.QIcon()
@@ -234,7 +222,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
     return error_type
 
 class ErrorReport(QtGui.QDialog):
-    def __init__(self, title, message, trace_back, type=MAIN_LOAD_METHOD,
+    def __init__(self, title, message, trace_back, exc_info, type=MAIN_LOAD_METHOD,
                  parent=None):
 
         QtGui.QDialog.__init__ (self, parent)
@@ -276,6 +264,19 @@ class ErrorReport(QtGui.QDialog):
             button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Ignore)
             button.setText(gettext("Ignore Error"))
 
+        def report_bug():
+            from bzrlib import crash
+            note("report_bug")
+            crash_filename = crash._write_apport_report_to_file(exc_info)
+
+        try:
+            import apport
+        except ImportError, e:
+            mutter("No Apport available to bzr explorer")
+        else:
+            report_bug_button = self.buttonbox.addButton(gettext("Report Bzr Explorer Error"), QtGui.QDialogButtonBox.ActionRole)
+            report_bug_button.connect(report_bug_button, QtCore.SIGNAL("clicked()"), report_bug)
+
         label = QtGui.QLabel(message)
         label.setWordWrap(True)
         label.setAlignment(QtCore.Qt.AlignVCenter|QtCore.Qt.AlignLeft)
@@ -286,10 +287,15 @@ class ErrorReport(QtGui.QDialog):
         icon_label = QtGui.QLabel()
         icon_label.setPixmap(self.style().standardPixmap(
             QtGui.QStyle.SP_MessageBoxCritical))
-        
-        trace_back_label = QtGui.QTextEdit()
-        trace_back_label.setPlainText (trace_back)
-        trace_back_label.setReadOnly(True)
+
+        self.show_trace_back_button = QtGui.QPushButton(gettext("Show Error Details >>>"))
+        self.connect(self.show_trace_back_button,
+                     QtCore.SIGNAL("clicked()"),
+                     self.show_trace_back)
+        self.trace_back_label = QtGui.QTextEdit()
+        self.trace_back_label.setPlainText (trace_back)
+        self.trace_back_label.setReadOnly(True)
+        self.trace_back_label.hide()
                     
         self.connect(self.buttonbox,
                      QtCore.SIGNAL("clicked (QAbstractButton *)"),
@@ -302,7 +308,11 @@ class ErrorReport(QtGui.QDialog):
         hbox.addWidget(label, 10)
         vbox.addLayout(hbox)
         
-        vbox.addWidget(trace_back_label)
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(self.show_trace_back_button)
+        hbox.addStretch()
+        vbox.addLayout(hbox)
+        vbox.addWidget(self.trace_back_label)
 
         hbox = QtGui.QHBoxLayout()
         hbox.addWidget(self.buttonbox)
@@ -317,10 +327,15 @@ class ErrorReport(QtGui.QDialog):
         icon.addFile(":/bzr-32.png", QtCore.QSize(32, 32))
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
-        
-        screen = QtGui.QApplication.desktop().screenGeometry()
-        self.resize (QtCore.QSize(screen.width()*0.8, screen.height()*0.8))
-        
+
+    def show_trace_back(self):
+        self.trace_back_label.setVisible(not self.trace_back_label.isVisible())
+        if self.trace_back_label.isVisible():
+            self.show_trace_back_button.setText(gettext("<<< Hide Error Details"))
+        else:
+            self.show_trace_back_button.setText(gettext("Show Error Details >>>"))
+        self.resize(self.sizeHint())
+
     def clicked(self, button):
         self.done(int(self.buttonbox.standardButton(button)))
 
