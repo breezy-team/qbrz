@@ -326,8 +326,13 @@ class ShelveWidget(ToolbarPanel):
         layout.addWidget(self.splitter)
         self.add_layout(layout)
 
+        shelve_menu = QtGui.QMenu(gettext("Shelve"), self)
+        shelve_menu.addAction(self.create_button(N_("Destroy"),
+                                    onclick=lambda:self.do_shelve(destroy=True)))
+
         self.add_toolbar_button(N_('Shelve'), icon_name='shelve', 
-                shortcut=QtGui.QKeySequence.Save, onclick=self.do_shelve)
+                shortcut=QtGui.QKeySequence.Save, onclick=self.do_shelve,
+                menu = shelve_menu)
 
         self.add_separator()
 
@@ -396,9 +401,10 @@ class ShelveWidget(ToolbarPanel):
                 size1 = int(size * 0.3)
                 sp.setSizes((size1, size - size1))
 
-    def _create_shelver_and_creator(self):
+    def _create_shelver_and_creator(self, destroy=False):
         shelver = Shelver.from_args(DummyDiffWriter(), None,
-                False, self.file_list, None, directory = self.directory)
+                    False, self.file_list, None, directory=self.directory,
+                    destroy=destroy)
         try:
             creator = ShelfCreator(
                     shelver.work_tree, shelver.target_tree, shelver.file_list)
@@ -605,11 +611,16 @@ class ShelveWidget(ToolbarPanel):
             change_dict[(change.file_id, change.status)] = change
         return change_dict
 
-    def do_shelve(self):
+    def do_shelve(self, destroy=False):
         change_dict = self._get_change_dictionary()
         if change_dict:
-            ret = QtGui.QMessageBox.question(self, gettext('Shelve'),
-                    gettext('%d file(s) will be shelved.') % len(change_dict),
+            if destroy:
+                prompt = gettext('Delete changes of %d file(s) without shelving') % len(change_dict) 
+                func = QtGui.QMessageBox.warning
+            else:
+                prompt = gettext('Shelve changes of %d file(s)') % len(change_dict) 
+                func = QtGui.QMessageBox.question
+            ret = func(self, gettext('Shelve'), prompt,
                     QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
             if ret != QtGui.QMessageBox.Ok:
                 return
@@ -620,7 +631,7 @@ class ShelveWidget(ToolbarPanel):
 
         cleanup = []
         try:
-            shelver, creator = self._create_shelver_and_creator()
+            shelver, creator = self._create_shelver_and_creator(destroy=destroy)
             cleanup.append(shelver.finalize)
             cleanup.append(creator.finalize)
             trees = (shelver.target_tree, shelver.work_tree)
@@ -653,7 +664,11 @@ class ShelveWidget(ToolbarPanel):
                     creator.shelve_change(change.data)
             manager = shelver.work_tree.get_shelf_manager()
             message = unicode(self.message.toPlainText()).strip() or gettext(u'<no message>')
-            shelf_id = manager.shelve_changes(creator, message)
+            if destroy:
+                creator.transform()
+                shelf_id = -1
+            else:
+                shelf_id = manager.shelve_changes(creator, message)
 
         except WorkingTreeHasPendingMarge:
             QtGui.QMessageBox.warning(self, gettext('Shelve'),
