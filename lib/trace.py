@@ -143,7 +143,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
     
     close = True
     if msg_box:
-        if error_type != errors.EXIT_INTERNAL_ERROR: #FIXME
+        if error_type == errors.EXIT_INTERNAL_ERROR:
             # this is a copy of bzrlib.trace.report_bug
             # but we seperate the message, and the trace back,
             # and addes a hyper link to the filebug page.
@@ -172,7 +172,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
             
             
             msg_box = ErrorReport(gettext("Error"),
-                                  False,
+                                  True,
                                   traceback_file.getvalue(),
                                   exc_info,
                                   type,
@@ -186,7 +186,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
                 buttons = QtGui.QMessageBox.Close | QtGui.QMessageBox.Ignore
 
             msg_box = ErrorReport(gettext("Error"),
-                                  True,
+                                  False,
                                   err_file.getvalue(),
                                   exc_info,
                                   type,
@@ -285,11 +285,11 @@ class ErrorReport(QtGui.QDialog):
             report_bug_button = self.buttonbox.addButton(gettext("Report Bzr Explorer Error"), QtGui.QDialogButtonBox.ActionRole)
             report_bug_button.connect(report_bug_button, QtCore.SIGNAL("clicked()"), report_bug)
             if message_internal:
-                message = ("Bazaar has encountered an environmental error. Please report a"
-                           " bug if this is not the result of a local problem.")
-            else:
                 message = ("Bazaar has encountered an internal error. Please report a"
                            " bug.")
+            else:
+                message = ("Bazaar has encountered an environmental error. Please report a"
+                           " bug if this is not the result of a local problem.")
         message = "<big>%s</big>" % (message)
 
         label = QtGui.QLabel(message)
