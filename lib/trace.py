@@ -207,6 +207,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
     return error_type
 
 class ErrorReport(QtGui.QDialog):
+    """A dialogue box for displaying and optionally reporting crashes in bzr/qbzr/bzr explorer."""
     def __init__(self, title, message_internal, trace_back, exc_info, type=MAIN_LOAD_METHOD,
                  parent=None):
 
@@ -334,6 +335,7 @@ class ErrorReport(QtGui.QDialog):
         self.setWindowIcon(icon)
 
     def show_trace_back(self):
+        """toggle the text box containing the full exception details"""
         self.trace_back_label.setVisible(not self.trace_back_label.isVisible())
         if self.trace_back_label.isVisible():
             self.show_trace_back_button.setText(gettext("<<< Hide Error Details"))
