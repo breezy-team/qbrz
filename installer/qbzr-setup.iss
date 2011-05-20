@@ -61,10 +61,13 @@ Type: files; Name: {app}\*.pyc
 Type: files; Name: {app}\lib\*.pyc
 Type: files; Name: {app}\lib\extra\*.pyc
 Type: files; Name: {app}\lib\tests\*.pyc
+Type: files; Name: {app}\lib\widgets\*.pyc
+
 Type: files; Name: {app}\*.pyo
 Type: files; Name: {app}\lib\*.pyo
 Type: files; Name: {app}\lib\extra\*.pyo
 Type: files; Name: {app}\lib\tests\*.pyo
+Type: files; Name: {app}\lib\widgets\*.pyo
 
 [Registry]
 Root: HKLM; Subkey: "Software\QBzr"; Flags: uninsdeletekey
