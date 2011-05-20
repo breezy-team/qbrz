@@ -257,7 +257,7 @@ class ErrorReport(QtGui.QDialog):
         try:
             import apport
         except ImportError, e:
-            mutter("No Apport available to bzr explorer")
+            mutter("No Apport available to Bazaar")
             if message_internal:
                 message = ('Bazaar has encountered an internal error. Please ' 
                            'report a bug at <a href="%s">%s</a> including this ' 
@@ -272,7 +272,7 @@ class ErrorReport(QtGui.QDialog):
                            'when the error occurred.'
                            % (_file_bugs_url, _file_bugs_url))                
         else:
-            report_bug_button = self.buttonbox.addButton(gettext("Report Bzr Explorer Error"), QtGui.QDialogButtonBox.ActionRole)
+            report_bug_button = self.buttonbox.addButton(gettext("Report Bazaar Error"), QtGui.QDialogButtonBox.ActionRole)
             report_bug_button.connect(report_bug_button, QtCore.SIGNAL("clicked()"), report_bug)
             if message_internal:
                 message = ("Bazaar has encountered an internal error. Please report a"
