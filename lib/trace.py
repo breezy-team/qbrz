@@ -25,15 +25,24 @@ Please see docs/exception_reporting.txt for info on how to use this.
 
 import sys
 import os
+from cStringIO import StringIO
+import traceback
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import errors
-
+import bzrlib            
+from bzrlib import (
+    errors,
+    osutils,
+    plugin,
+    )
+from bzrlib.trace import (
+    mutter,
+    note,
+    print_exception as _bzrlib_print_exception,
+    report_exception as _bzrlib_report_exception,
+    )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
-
-from cStringIO import StringIO
-from bzrlib.trace import note, mutter
 
 class StopException(Exception):
     """A exception that is ignored in our error reporting, which can be used
@@ -71,9 +80,6 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
     on the type. 
     """
 
-    from bzrlib.trace import report_exception, print_exception
-    import traceback
-    
     # We only want one error to show if the user chose Close
     global closing_due_to_error
     if closing_due_to_error or \
@@ -103,7 +109,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
         err_file = sys.stderr
     
     # always tell bzr to report it, so it ends up in the log.        
-    error_type = report_exception(exc_info, err_file)
+    error_type = _bzrlib_report_exception(exc_info, err_file)
     backtrace = traceback.format_exception(*exc_info)
     mutter(''.join(backtrace))
     
@@ -147,14 +153,8 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
             # this is a copy of bzrlib.trace.report_bug
             # but we seperate the message, and the trace back,
             # and addes a hyper link to the filebug page.
-            import bzrlib            
-            from bzrlib import (
-                osutils,
-                plugin,
-                )
-            
             traceback_file = StringIO()
-            print_exception(exc_info, traceback_file)
+            _bzrlib_print_exception(exc_info, traceback_file)
             traceback_file.write('\n')
             traceback_file.write('bzr %s on python %s (%s)\n' % \
                                (bzrlib.__version__,
@@ -250,6 +250,8 @@ class ErrorReport(QtGui.QDialog):
 
         def report_bug():
             from bzrlib import crash
+            #Using private method because bzrlib.crash is not currently intended for reuse from GUIs
+            #see https://bugs.launchpad.net/bzr/+bug/785696
             crash_filename = crash._write_apport_report_to_file(exc_info)
 
         try:
