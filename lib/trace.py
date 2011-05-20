@@ -109,6 +109,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
         err_file = sys.stderr
     
     # always tell bzr to report it, so it ends up in the log.        
+    # See https://bugs.launchpad.net/bzr/+bug/785695
     error_type = _bzrlib_report_exception(exc_info, err_file)
     backtrace = traceback.format_exception(*exc_info)
     mutter(''.join(backtrace))
