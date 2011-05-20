@@ -126,22 +126,26 @@ class QBzrSwitchWindow(SubProcessDialog):
         QBzrDialog.show(self)
         QtCore.QTimer.singleShot(0, self.initial_load)
 
+    def exec_(self):
+        QtCore.QTimer.singleShot(0, self.initial_load)
+        return QBzrDialog.exec_(self)
+
+    def _load_branch_names(self):
+        branch_combo = self.branch_combo
+        repo = self.branch.bzrdir.find_repository()
+        if repo is not None:
+            if getattr(repo, "iter_branches", None):
+                for br in repo.iter_branches():
+                    self.processEvents()
+                    branch_combo.addItem(url_for_display(br.base))
+
     @runs_in_loading_queue
     @ui_current_widget
     @reports_exception(type=SUB_LOAD_METHOD)   
     def initial_load(self):
         
         self.throbber.show()
-        branch_combo = self.branch_combo
-
-        repo = self.branch.bzrdir.find_repository()
-        
-        if repo is not None:
-            if getattr(repo, "iter_branches", None):
-                for br in repo.iter_branches():
-                    self.processEvents()
-                    branch_combo.addItem(url_for_display(br.base))
-                    
+        self._load_branch_names()
         self.throbber.hide()
 
     def browse_clicked(self):
