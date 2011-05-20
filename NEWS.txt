@@ -11,6 +11,9 @@
  * qdiff, qannotate:
      Tab-width can be customised from the view menu.
      (Bug #490377, A. S. Budden)
+ * Improved error dialogs on internal/other error, 
+   support for apport (if it's available).
+   (Jonathan Riddell)
 
 
 0.21 beta 1 - 2011/05/02

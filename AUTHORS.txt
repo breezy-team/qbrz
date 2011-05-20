@@ -22,6 +22,7 @@ Contributors:
  * Jelmer Vernooij <jelmer at samba org>
  * John Arbash Meinel <john at arbash-meinel dot com>
  * John Szakmeister <john at szakmeister dot net>
+ * Jonathan Riddell <jriddell at canonical com>
  * Luis Arias <luis at balsamiq dot com>
  * Lukáš Lalinský <lalinsky at gmail dot com>
  * Mario del Pozo <mariodpros at gmail dot com>

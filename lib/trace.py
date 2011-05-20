@@ -25,11 +25,23 @@ Please see docs/exception_reporting.txt for info on how to use this.
 
 import sys
 import os
+from cStringIO import StringIO
+import traceback
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import errors
-
+import bzrlib            
+from bzrlib import (
+    errors,
+    osutils,
+    plugin,
+    )
+from bzrlib.trace import (
+    mutter,
+    note,
+    print_exception as _bzrlib_print_exception,
+    report_exception as _bzrlib_report_exception,
+    )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 
 class StopException(Exception):
@@ -67,15 +79,12 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
     The error is reported to the console or a message box, depending
     on the type. 
     """
-    
+
     # We only want one error to show if the user chose Close
     global closing_due_to_error
     if closing_due_to_error or \
         getattr(window, 'closing_due_to_error', False):
         return
-    
-    from cStringIO import StringIO
-    from bzrlib.trace import report_exception, print_exception
 
     if exc_info is None:
         exc_info = sys.exc_info()
@@ -100,7 +109,10 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
         err_file = sys.stderr
     
     # always tell bzr to report it, so it ends up in the log.        
-    error_type = report_exception(exc_info, err_file)
+    # See https://bugs.launchpad.net/bzr/+bug/785695
+    error_type = _bzrlib_report_exception(exc_info, err_file)
+    backtrace = traceback.format_exception(*exc_info)
+    mutter(''.join(backtrace))
     
     if (type == MAIN_LOAD_METHOD and window):
         window.ret_code = error_type
@@ -142,20 +154,8 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
             # this is a copy of bzrlib.trace.report_bug
             # but we seperate the message, and the trace back,
             # and addes a hyper link to the filebug page.
-            import bzrlib            
-            from bzrlib import (
-                osutils,
-                plugin,
-                )
-            
-            message = ('Bazaar has encountered an internal error. Please ' 
-                       'report a bug at <a href="%s">%s</a> including this ' 
-                       'traceback, and a description of what you were doing ' 
-                       'when the error occurred.'
-                       % (_file_bugs_url, _file_bugs_url))
-            
             traceback_file = StringIO()
-            print_exception(exc_info, traceback_file)
+            _bzrlib_print_exception(exc_info, traceback_file)
             traceback_file.write('\n')
             traceback_file.write('bzr %s on python %s (%s)\n' % \
                                (bzrlib.__version__,
@@ -173,23 +173,18 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
             
             
             msg_box = ErrorReport(gettext("Error"),
-                                  message,
+                                  True,
                                   traceback_file.getvalue(),
+                                  exc_info,
                                   type,
                                   window)
         else:
-            if type == MAIN_LOAD_METHOD:
-                buttons = QtGui.QMessageBox.Close
-            elif type == SUB_LOAD_METHOD:
-                buttons = QtGui.QMessageBox.Ok
-            elif type == ITEM_OR_EVENT_METHOD:
-                buttons = QtGui.QMessageBox.Close | QtGui.QMessageBox.Ignore
-            
-            msg_box = QtGui.QMessageBox(QtGui.QMessageBox.Warning,
-                                        gettext("Error"),
-                                        err_file.getvalue(),
-                                        buttons,
-                                        window)
+            msg_box = ErrorReport(gettext("Error"),
+                                  False,
+                                  err_file.getvalue(),
+                                  exc_info,
+                                  type,
+                                  window)
         if window is None:
             import bzrlib.plugins.qbzr.lib.resources
             icon = QtGui.QIcon()
@@ -212,16 +207,15 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
             window.close()
     return error_type
 
-
 class ErrorReport(QtGui.QDialog):
-    def __init__(self, title, message, trace_back, type=MAIN_LOAD_METHOD,
+    """A dialogue box for displaying and optionally reporting crashes in bzr/qbzr/bzr explorer."""
+    def __init__(self, title, message_internal, trace_back, exc_info, type=MAIN_LOAD_METHOD,
                  parent=None):
 
         QtGui.QDialog.__init__ (self, parent)
 
         self.buttonbox = QtGui.QDialogButtonBox()
-        
-        
+
         if parent:
             win_title = None
             if hasattr(parent, 'title'):
@@ -256,6 +250,40 @@ class ErrorReport(QtGui.QDialog):
             button = self.buttonbox.addButton(QtGui.QDialogButtonBox.Ignore)
             button.setText(gettext("Ignore Error"))
 
+        def report_bug():
+            from bzrlib import crash
+            #Using private method because bzrlib.crash is not currently intended for reuse from GUIs
+            #see https://bugs.launchpad.net/bzr/+bug/785696
+            crash_filename = crash._write_apport_report_to_file(exc_info)
+
+        try:
+            import apport
+        except ImportError, e:
+            mutter("No Apport available to Bazaar")
+            if message_internal:
+                message = ('Bazaar has encountered an internal error. Please ' 
+                           'report a bug at <a href="%s">%s</a> including this ' 
+                           'traceback, and a description of what you were doing ' 
+                           'when the error occurred.'
+                           % (_file_bugs_url, _file_bugs_url))
+            else:
+                message = ('Bazaar has encountered an environmental error. Please ' 
+                           'report a bug if this is not the result of a local problem '
+                           'at <a href="%s">%s</a> including this ' 
+                           'traceback, and a description of what you were doing ' 
+                           'when the error occurred.'
+                           % (_file_bugs_url, _file_bugs_url))                
+        else:
+            report_bug_button = self.buttonbox.addButton(gettext("Report Bazaar Error"), QtGui.QDialogButtonBox.ActionRole)
+            report_bug_button.connect(report_bug_button, QtCore.SIGNAL("clicked()"), report_bug)
+            if message_internal:
+                message = ("Bazaar has encountered an internal error. Please report a"
+                           " bug.")
+            else:
+                message = ("Bazaar has encountered an environmental error. Please report a"
+                           " bug if this is not the result of a local problem.")
+        message = "<big>%s</big>" % (message)
+
         label = QtGui.QLabel(message)
         label.setWordWrap(True)
         label.setAlignment(QtCore.Qt.AlignVCenter|QtCore.Qt.AlignLeft)
@@ -266,10 +294,15 @@ class ErrorReport(QtGui.QDialog):
         icon_label = QtGui.QLabel()
         icon_label.setPixmap(self.style().standardPixmap(
             QtGui.QStyle.SP_MessageBoxCritical))
-        
-        trace_back_label = QtGui.QTextEdit()
-        trace_back_label.setPlainText (trace_back)
-        trace_back_label.setReadOnly(True)
+
+        self.show_trace_back_button = QtGui.QPushButton(gettext("Show Error Details >>>"))
+        self.connect(self.show_trace_back_button,
+                     QtCore.SIGNAL("clicked()"),
+                     self.show_trace_back)
+        self.trace_back_label = QtGui.QTextEdit()
+        self.trace_back_label.setPlainText (trace_back)
+        self.trace_back_label.setReadOnly(True)
+        self.trace_back_label.hide()
                     
         self.connect(self.buttonbox,
                      QtCore.SIGNAL("clicked (QAbstractButton *)"),
@@ -282,7 +315,11 @@ class ErrorReport(QtGui.QDialog):
         hbox.addWidget(label, 10)
         vbox.addLayout(hbox)
         
-        vbox.addWidget(trace_back_label)
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(self.show_trace_back_button)
+        hbox.addStretch()
+        vbox.addLayout(hbox)
+        vbox.addWidget(self.trace_back_label)
 
         hbox = QtGui.QHBoxLayout()
         hbox.addWidget(self.buttonbox)
@@ -297,10 +334,16 @@ class ErrorReport(QtGui.QDialog):
         icon.addFile(":/bzr-32.png", QtCore.QSize(32, 32))
         icon.addFile(":/bzr-48.png", QtCore.QSize(48, 48))
         self.setWindowIcon(icon)
-        
-        screen = QtGui.QApplication.desktop().screenGeometry()
-        self.resize (QtCore.QSize(screen.width()*0.8, screen.height()*0.8))
-        
+
+    def show_trace_back(self):
+        """toggle the text box containing the full exception details"""
+        self.trace_back_label.setVisible(not self.trace_back_label.isVisible())
+        if self.trace_back_label.isVisible():
+            self.show_trace_back_button.setText(gettext("<<< Hide Error Details"))
+        else:
+            self.show_trace_back_button.setText(gettext("Show Error Details >>>"))
+        self.resize(self.sizeHint())
+
     def clicked(self, button):
         self.done(int(self.buttonbox.standardButton(button)))
 
