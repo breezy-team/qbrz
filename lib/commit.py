@@ -467,6 +467,10 @@ class CommitWindow(SubProcessDialog):
         SubProcessDialog.show(self)
         QtCore.QTimer.singleShot(1, self.load)
 
+    def exec_(self):
+        QtCore.QTimer.singleShot(1, self.load)
+        return SubProcessDialog.exec_(self)
+
     @runs_in_loading_queue
     @ui_current_widget
     @reports_exception()
