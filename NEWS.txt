@@ -14,6 +14,9 @@
  * Improved error dialogs on internal/other error, 
    support for apport (if it's available).
    (Jonathan Riddell)
+ * Branch/Checkout dialogs:
+   * Fixed UnicodeDecodeError with non-ascii paths in target directory
+     picker. (Alexander Belchenko, Bug #789083)
 
 
 0.21 beta 1 - 2011/05/02
@@ -81,6 +84,18 @@ Changelog:
      are characters (so 4 means a tab should be displayed with the width of 4
      spaces).  The default value is 8.  The setting can also be adjusted in
      branch.conf for specific branches.  (Bug #490377, A. S. Budden)
+
+
+0.20.2 - in development
+-----------------------
+Maintenance release.
+
+ * qconflicts:
+   * Fixed internal error when there is conflict in non-versioned file.
+     (Alexander Belchenko, Bug #655451)
+ * Branch/Checkout dialogs:
+   * Fixed UnicodeDecodeError with non-ascii paths in target directory
+     picker. (Alexander Belchenko, Bug #789083)
 
 
 0.20.1 - 2011/04/26

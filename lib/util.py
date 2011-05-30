@@ -565,7 +565,7 @@ def hookup_directory_picker(dialog, chooser, target, chooser_type):
             # Or a QLineEdit
             getter = target.text
             setter = target.setText
-        dir = getter()
+        dir = unicode(getter())
         if not os.path.isdir(dir):
             dir = ""
         dir = QtGui.QFileDialog.getExistingDirectory(dlg, caption, dir)
