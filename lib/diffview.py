@@ -487,7 +487,7 @@ class SidebySideDiffView(QtGui.QSplitter):
                     if is_images[i]:
                         cursor.insertImage(file_id)
                     else:
-                        cursor.insertText(gettext('[binary file]'))
+                        cursor.insertText(gettext('[binary file (%d bytes)]') % len(data[i]))
                 else:
                     cursor.insertText(" ")
             #cursor.insertBlock(QtGui.QTextBlockFormat())
