@@ -32,12 +32,6 @@ from bzrlib.plugins.qbzr.lib.util import (
 import StringIO
 
 
-def _set_location(edit, location):
-    location = location or u'-'
-    location = url_for_display(location)
-    edit.setText(location)
-
-
 class QBzrInfoWindow(QBzrWindow):
 
     def __init__(self, location, parent=None):
@@ -51,9 +45,17 @@ class QBzrInfoWindow(QBzrWindow):
         self.ui.tabWidget.setCurrentIndex(0)
 
     def refresh_view(self, location):
-        path_to_display = osutils.abspath(location)
-        _set_location(self.ui.local_location, path_to_display)
+        self._set_location(location)
         self.populate_unparsed_info(location)
+
+    def _set_location(self, location):
+        if not location:
+            self.ui.local_location.setText('-')
+            return
+        if location != '.':
+            self.ui.local_location.setText(url_for_display(location))
+            return
+        self.ui.local_location.setText(osutils.abspath(location))
 
     def populate_unparsed_info(self, location):
         basic = StringIO.StringIO()

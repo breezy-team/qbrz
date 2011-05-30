@@ -8,6 +8,8 @@
    * Turned off word-wrap in location label: prevents strange
      path display if there are spaces in the path.
      (A. S. Budden, Bug #781040)
+   * Fixed UnicodeError for non-ascii paths.
+     (Alexander Belchenko, Bug #790138)
  * qdiff, qannotate:
      Tab-width can be customised from the view menu.
      (Bug #490377, A. S. Budden)
