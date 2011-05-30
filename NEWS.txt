@@ -5,6 +5,9 @@ Maintenance release.
  * qconflicts:
    * Fixed internal error when deleting non-versioned files/directories.
      (Alexander Belchenko, Bug #655451)
+ * qinfo:
+   * Fixed UnicodeError with non-ascii locations.
+     (Alexander Belchenko, Bug #790138)
  * Branch/Checkout dialogs:
    * Fixed UnicodeDecodeError with non-ascii paths in target directory
      picker. (Alexander Belchenko, Bug #789083)
