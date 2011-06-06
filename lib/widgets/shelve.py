@@ -20,7 +20,7 @@
 import sys, time
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
+from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
     get_global_config,
     get_set_encoding,
@@ -432,6 +432,14 @@ class ShelveWidget(ToolbarPanel):
             shelver, creator = self._create_shelver_and_creator()
             cleanup.append(shelver.finalize)
             cleanup.append(creator.finalize)
+
+            file_list = shelver.file_list
+            if file_list:
+                nfiles = len(file_list)
+                if nfiles > 2:
+                    self.files_str = ngettext("%d file", "%d files", nfiles) % nfiles
+                else:
+                    self.files_str = ", ".join(file_list)
 
             self.trees = (shelver.target_tree, shelver.work_tree)
             self.editor_available = (shelver.change_editor is not None)

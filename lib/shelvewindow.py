@@ -106,7 +106,10 @@ class ShelveWindow(QBzrWindow):
         try:
             self.throbber.show()
             self.processEvents()
-            self.tab.currentWidget().refresh()
+            view = self.tab.currentWidget()
+            view.refresh()
+            if hasattr(view, "files_str") and view.files_str:
+                self.setWindowTitle(gettext("Shelve Manager") + " - %s" % view.files_str)
         finally:
             self.throbber.hide()
 
@@ -114,6 +117,10 @@ class ShelveWindow(QBzrWindow):
         view = self.tab.currentWidget()
         if not view.loaded:
             view.refresh()
+        if hasattr(view, "files_str") and view.files_str:
+            self.setWindowTitle(gettext("Shelve Manager") + " - %s" % view.files_str)
+        else:
+            self.setWindowTitle(gettext("Shelve Manager"))
 
     def shelf_created(self, id):
         # Refresh shelf list after new shelf created.
