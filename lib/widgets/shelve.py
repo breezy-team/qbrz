@@ -622,11 +622,14 @@ class ShelveWidget(ToolbarPanel):
     def do_shelve(self, destroy=False):
         change_dict = self._get_change_dictionary()
         if change_dict:
+            nfiles = len(change_dict)
             if destroy:
-                prompt = gettext('Delete changes of %d file(s) without shelving') % len(change_dict) 
+                prompt = ngettext('Delete changes of %d file without shelving',
+                                  'Delete changes of %d files without shelving', nfiles) % nfiles 
                 func = QtGui.QMessageBox.warning
             else:
-                prompt = gettext('Shelve changes of %d file(s)') % len(change_dict) 
+                prompt = ngettext('Shelve changes of %d file',
+                                  'Shelve changes of %d files', nfiles) % nfiles 
                 func = QtGui.QMessageBox.question
             ret = func(self, gettext('Shelve'), prompt,
                     QtGui.QMessageBox.Ok | QtGui.QMessageBox.Cancel)
@@ -684,7 +687,7 @@ class ShelveWidget(ToolbarPanel):
             return
         except WorkingTreeHasChanged:
             QtGui.QMessageBox.warning(self, gettext('Shelve'),
-                    gettext('Operation aborted because target file(s) has been changed.'), gettext('&OK'))
+                    gettext('Operation aborted because target files has been changed.'), gettext('&OK'))
             return
 
         finally:
