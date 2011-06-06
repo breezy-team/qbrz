@@ -1083,12 +1083,13 @@ class cmd_qshelve(QBzrCommand):
                help='Encoding of files content (default: utf-8).'),
         ]
 
-    def _qbzr_run(self, file_list=None, list=False, directory=None, complete = False, ignore_whitespace=False, encoding=None):
+    def _qbzr_run(self, file_list=None, list=False, directory=None, ui_mode=False, 
+                            complete=False, ignore_whitespace=False, encoding=None):
         if list:
             initial_tab = 1
         else:
             initial_tab = 0
-        self.main_window = ShelveWindow(file_list=file_list, directory=directory, 
+        self.main_window = ShelveWindow(file_list=file_list, directory=directory, ui_mode=ui_mode,
                                 initial_tab=initial_tab, complete=complete, 
                                 ignore_whitespace=ignore_whitespace, encoding=encoding)
         self.main_window.show()
@@ -1106,8 +1107,9 @@ class cmd_qunshelve(QBzrCommand):
                help='Encoding of files content (default: utf-8).'),
         ]
 
-    def _qbzr_run(self, directory=None, complete = False, ignore_whitespace=False, encoding=None):
-        self.main_window = ShelveWindow(directory=directory, 
+    def _qbzr_run(self, directory=None, ui_mode=False, 
+                        complete=False, ignore_whitespace=False, encoding=None):
+        self.main_window = ShelveWindow(directory=directory, ui_mode=ui_mode,
                                 initial_tab=1, complete=complete, 
                                 ignore_whitespace=ignore_whitespace, encoding=encoding)
         self.main_window.show()
