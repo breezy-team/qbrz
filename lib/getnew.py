@@ -88,7 +88,7 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
         if tail:
             config = get_qbzr_config()
             basedir = config.get_option("checkout_basedir")
-            if basedir and projectname:
+            if basedir is not None and projectname is not None:
                 new_val = os.path.join(basedir, projectname)
             else:
                 new_val = os.path.join(new_val, tail)
