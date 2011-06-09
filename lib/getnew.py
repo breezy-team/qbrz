@@ -32,6 +32,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     hookup_directory_picker,
     DIRECTORYPICKER_SOURCE,
     DIRECTORYPICKER_TARGET,
+    get_qbzr_config,
     )
 
 
@@ -83,8 +84,14 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
     def from_location_changed(self, new_text):
         new_val = self.to_location
         tail = re.split("[:$#\\\\/]", unicode(new_text))[-1]
+        projectname = re.split("[:$#\\\\/]", unicode(new_text))[-2]
         if tail:
-            new_val = os.path.join(new_val, tail)
+            config = get_qbzr_config()
+            basedir = config.get_option("checkout_basedir")
+            if basedir and projectname:
+                new_val = os.path.join(basedir, projectname)
+            else:
+                new_val = os.path.join(new_val, tail)
         self.ui.to_location.setText(new_val)
 
     def do_start(self):
