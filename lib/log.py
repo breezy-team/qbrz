@@ -571,7 +571,7 @@ class FileListContainer(QtGui.QWidget):
         self.file_list_context_menu_cat = \
             self.file_list_context_menu.addAction(gettext("View file"),
                                                   self.show_file_content)
-        self.file_list_context_menu_save_revert_file = \
+        self.file_list_context_menu_save_old_file = \
             self.file_list_context_menu.addAction(
                             gettext("Save file on this revision as..."),
                             self.save_old_revision_of_file)
