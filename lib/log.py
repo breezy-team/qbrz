@@ -815,7 +815,7 @@ class FileListContainer(QtGui.QWidget):
         try:
             file_content_bytes = tree.get_file_text(file_ids[0])
             filename = QtGui.QFileDialog.getSaveFileName(
-                    self, 'Save file in this revision as...')
+                    self, gettext("Save file in this revision as..."))
             if filename:
                 file = open(unicode(filename), 'wb')
                 file.write(file_content_bytes)
