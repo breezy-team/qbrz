@@ -25,11 +25,13 @@ from bzrlib.revision import CURRENT_REVISION
 from bzrlib import (
     errors,
     lazy_regex,
+    log,
     )
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext
 
-from bzrlib.plugins.qbzr.lib.lazycachedrevloader import load_revisions
+from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
+cached_revisions)
 from bzrlib.plugins.qbzr.lib.util import (
     runs_in_loading_queue,
     format_timestamp,
@@ -145,6 +147,13 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
         rev_html = []
         min_merge_depth = min([self.get_merge_depth(revid) 
                                for revid in self._display_revids])
+
+        try:
+            import gpgme
+            gpgmeAvailable = True
+        except ImportError:
+            gpgmeAvailable = False
+
         for revid in self._display_revids:
             props = []
             message = ""
@@ -188,7 +197,14 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
             if children:
                 props.append((gettext("Children:"), 
                               revision_list_html(children)))
-            
+            if gpgmeAvailable:
+                try:
+                    signature_result_text = log.format_signature_validity(revid,
+                                            cached_revisions[revid].repository)
+                except KeyError:
+                    signature_result_text = gettext("Uncached revision")
+                props.append( (gettext("Signature:"), signature_result_text) )
+
             if not revid == CURRENT_REVISION:
                 if revid in self._all_loaded_revs:
                     rev = self._all_loaded_revs[revid]
