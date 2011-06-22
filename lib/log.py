@@ -811,11 +811,11 @@ class FileListContainer(QtGui.QWidget):
 
         branch = self.log_list.log_model.graph_viz.get_revid_branch(top_revid)
         tree = branch.repository.revision_tree(top_revid)
-        branch.lock_read()
+        tree.lock_read()
         try:
             file_content_bytes = tree.get_file_text(file_ids[0])
         finally:
-            branch.unlock()
+            tree.unlock()
         filename = QtGui.QFileDialog.getSaveFileName(
                 self, gettext("Save file in this revision as..."))
         if filename:
