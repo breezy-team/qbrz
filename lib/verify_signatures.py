@@ -35,8 +35,8 @@ import StringIO
 class QBzrVerifySignaturesWindow(QBzrWindow):
 
     def __init__(self, location, parent=None):
-        QBzrWindow.__init__(self, [gettext("Info")], parent)
-        self.restoreSize("info", (580, 250))
+        QBzrWindow.__init__(self, [gettext("Verify Signatures")], parent)
+        self.restoreSize("verify-signatures", (580, 250))
         self.buttonbox = self.create_button_box(BTN_CLOSE)
         self.ui = Ui_InfoForm()
         self.ui.setupUi(self.centralwidget)
