@@ -59,6 +59,8 @@ from bzrlib.plugins.qbzr.lib.log import LogWindow
 from bzrlib.plugins.qbzr.lib.info import QBzrInfoWindow
 from bzrlib.plugins.qbzr.lib.init import QBzrInitWindow
 from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
+from bzrlib.plugins.qbzr.lib.verify_signatures import \
+QBzrVerifySignaturesWindow
 from bzrlib.plugins.qbzr.lib.pull import (
     QBzrPullWindow,
     QBzrPushWindow,
@@ -678,6 +680,18 @@ class cmd_qinfo(QBzrCommand):
 
     def _qbzr_run(self, location=CUR_DIR):
         window = QBzrInfoWindow(location)
+        window.show()
+        self._application.exec_()
+
+
+class cmd_qverify_signatures(QBzrCommand):
+    """Shows information about the current location."""
+
+    takes_options = []
+    takes_args = ['location?']
+
+    def _qbzr_run(self, location=CUR_DIR):
+        window = QBzrVerifySignaturesWindow(location)
         window.show()
         self._application.exec_()
 
