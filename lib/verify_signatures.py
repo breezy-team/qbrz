@@ -22,48 +22,104 @@ from bzrlib import bzrdir, osutils
 from bzrlib.info import show_bzrdir_info
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.ui_info import Ui_InfoForm
+from bzrlib.plugins.qbzr.lib.ui_verify_signatures import Ui_VerifyForm
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
-    QBzrWindow,
+    QBzrWindow, QBzrDialog,
     url_for_display,
     )
+from bzrlib import (
+    bzrdir as _mod_bzrdir,
+    errors,
+    gpg,
+    revision as _mod_revision,
+    )
 
-import StringIO
+from StringIO import StringIO
 
 
-class QBzrVerifySignaturesWindow(QBzrWindow):
+class QBzrVerifySignaturesWindow(QBzrDialog):
 
     def __init__(self, location, parent=None):
-        QBzrWindow.__init__(self, [gettext("Verify Signatures")], parent)
+        QBzrDialog.__init__(self, [gettext("Verify Signatures")], parent)
         self.restoreSize("verify-signatures", (580, 250))
         self.buttonbox = self.create_button_box(BTN_CLOSE)
-        self.ui = Ui_InfoForm()
-        self.ui.setupUi(self.centralwidget)
+        self.ui = Ui_VerifyForm()
+        self.ui.setupUi(self)
         self.ui.verticalLayout.addWidget(self.buttonbox)
         self.refresh_view(location)
-        self.ui.tabWidget.setCurrentIndex(0)
 
     def refresh_view(self, location):
-        self._set_location(location)
-        self.populate_unparsed_info(location)
+        self.ui.label.setText("hello")
 
-    def _set_location(self, location):
-        if not location:
-            self.ui.local_location.setText('-')
-            return
-        if location != '.':
-            self.ui.local_location.setText(url_for_display(location))
-            return
-        self.ui.local_location.setText(osutils.abspath(location))
+        directory = u"."
+        revision = None
+        acceptable_keys = None
+        verbose = None
+        self.outf = StringIO()
 
-    def populate_unparsed_info(self, location):
-        basic = StringIO.StringIO()
-        detailed = StringIO.StringIO()
-        a_bzrdir = bzrdir.BzrDir.open_containing(location)[0]
-        show_bzrdir_info(a_bzrdir, 0, basic)
-        show_bzrdir_info(a_bzrdir, 2, detailed)
-        self.ui.basic_info.setText(basic.getvalue())
-        self.ui.detailed_info.setText(detailed.getvalue())
-        basic.close()
-        detailed.close()
+        bzrdir = _mod_bzrdir.BzrDir.open_containing(directory)[0]
+        branch = bzrdir.open_branch()
+        repo = branch.repository
+        branch_config = branch.get_config()
+        gpg_strategy = gpg.GPGStrategy(branch_config)
+
+        gpg_strategy.set_acceptable_keys(acceptable_keys)
+
+        #get our list of revisions
+        revisions = []
+        if revision is not None:
+            if len(revision) == 1:
+                revno, rev_id = revision[0].in_history(branch)
+                revisions.append(rev_id)
+            elif len(revision) == 2:
+                from_revno, from_revid = revision[0].in_history(branch)
+                to_revno, to_revid = revision[1].in_history(branch)
+                if to_revid is None:
+                    to_revno = branch.revno()
+                if from_revno is None or to_revno is None:
+                    raise errors.BzrCommandError('Cannot verify a range of '\
+                                               'non-revision-history revisions')
+                for revno in range(from_revno, to_revno + 1):
+                    revisions.append(branch.get_rev_id(revno))
+        else:
+            #all revisions by default including merges
+            graph = repo.get_graph()
+            revisions = []
+            repo.lock_read()
+            for rev_id, parents in graph.iter_ancestry(
+                    [branch.last_revision()]):
+                if _mod_revision.is_null(rev_id):
+                    continue
+                if parents is None:
+                    # Ignore ghosts
+                    continue
+                revisions.append(rev_id)
+            repo.unlock()
+        count, result, all_verifiable =\
+                                gpg_strategy.do_verifications(revisions, repo)
+        if all_verifiable:
+               self.outf.write(gettext(
+                            "All commits signed with verifiable keys\n"))
+               if verbose:
+                   self.outf.write(gpg_strategy.verbose_valid_message(result))
+               ##return 0
+        else:
+            self.outf.write(gpg_strategy.valid_commits_message(count))
+            if verbose:
+               self.outf.write(gpg_strategy.verbose_valid_message(result))
+            self.outf.write(gpg_strategy.unknown_key_message(count))
+            if verbose:
+                self.outf.write(gpg_strategy.verbose_missing_key_message(
+                                                                        result))
+            self.outf.write(gpg_strategy.commit_not_valid_message(count))
+            if verbose:
+                self.outf.write(gpg_strategy.verbose_not_valid_message(result,
+                                                                        repo))
+            self.outf.write(gpg_strategy.commit_not_signed_message(count))
+            if verbose:
+                self.outf.write(gpg_strategy.verbose_not_signed_message(result,
+                                                                          repo))
+            ##return 1
+
+        self.ui.label.setText(self.outf.getvalue())
