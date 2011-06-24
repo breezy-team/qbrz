@@ -52,13 +52,12 @@ class QBzrVerifySignaturesWindow(QBzrDialog):
         self.refresh_view(location)
 
     def refresh_view(self, location):
-        directory = u"."
         revision = None
         acceptable_keys = None
         verbose = None
         self.outf = StringIO()
 
-        bzrdir = _mod_bzrdir.BzrDir.open_containing(directory)[0]
+        bzrdir = _mod_bzrdir.BzrDir.open_containing(location)[0]
         branch = bzrdir.open_branch()
         repo = branch.repository
         branch_config = branch.get_config()
