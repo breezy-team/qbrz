@@ -42,21 +42,16 @@ from StringIO import StringIO
 
 class QBzrVerifySignaturesWindow(QBzrDialog):
 
-    def __init__(self, location, parent=None):
+    def __init__(self, acceptable_keys, revision, location, parent=None):
         QBzrDialog.__init__(self, [gettext("Verify Signatures")], parent)
         self.restoreSize("verify-signatures", (580, 250))
         self.buttonbox = self.create_button_box(BTN_CLOSE)
         self.ui = Ui_VerifyForm()
         self.ui.setupUi(self)
         self.ui.verticalLayout.addWidget(self.buttonbox)
-        self.refresh_view(location)
+        self.refresh_view(acceptable_keys, revision, location)
 
-    def refresh_view(self, location):
-        revision = None
-        acceptable_keys = None
-        verbose = None
-        self.outf = StringIO()
-
+    def refresh_view(self, acceptable_keys, revision, location):
         bzrdir = _mod_bzrdir.BzrDir.open_containing(location)[0]
         branch = bzrdir.open_branch()
         repo = branch.repository

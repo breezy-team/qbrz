@@ -687,11 +687,18 @@ class cmd_qinfo(QBzrCommand):
 class cmd_qverify_signatures(QBzrCommand):
     """Shows information about the current location."""
 
-    takes_options = []
+    takes_options = [
+            Option('acceptable-keys',
+                   help='Comma separated list of GPG key patterns which are'
+                        ' acceptable for verification.',
+                   short_name='k',
+                   type=str,),
+            'revision', 
+          ]
     takes_args = ['location?']
 
-    def _qbzr_run(self, location=CUR_DIR):
-        window = QBzrVerifySignaturesWindow(location)
+    def _qbzr_run(self, acceptable_keys=None, revision=None, location=CUR_DIR):
+        window = QBzrVerifySignaturesWindow(acceptable_keys, revision, location)
         window.show()
         self._application.exec_()
 
