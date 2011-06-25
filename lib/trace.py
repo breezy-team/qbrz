@@ -43,6 +43,8 @@ from bzrlib.trace import (
     report_exception as _bzrlib_report_exception,
     )
 from bzrlib.plugins.qbzr.lib.i18n import gettext
+import bzrlib.plugins.qbzr.lib.resources
+
 
 class StopException(Exception):
     """A exception that is ignored in our error reporting, which can be used
@@ -186,7 +188,6 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
                                   type,
                                   window)
         if window is None:
-            import bzrlib.plugins.qbzr.lib.resources
             icon = QtGui.QIcon()
             icon.addFile(":/bzr-16.png", QtCore.QSize(16, 16))
             icon.addFile(":/bzr-32.png", QtCore.QSize(32, 32))
