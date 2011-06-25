@@ -11,8 +11,11 @@
    * Fixed UnicodeError for non-ascii paths.
      (Alexander Belchenko, Bug #790138)
  * qdiff, qannotate:
-     Tab-width can be customised from the view menu.
+   * Tab-width can be customised from the view menu.
      (Bug #490377, A. S. Budden)
+ * qlog:
+   * File list context menu: added support to save content of a file 
+     of specific revision as a new file. (André Bachmann)
  * Improved error dialogs on internal/other error, 
    support for apport (if it's available).
    (Jonathan Riddell)

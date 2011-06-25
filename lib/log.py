@@ -571,6 +571,10 @@ class FileListContainer(QtGui.QWidget):
         self.file_list_context_menu_cat = \
             self.file_list_context_menu.addAction(gettext("View file"),
                                                   self.show_file_content)
+        self.file_list_context_menu_save_old_file = \
+            self.file_list_context_menu.addAction(
+                            gettext("Save file on this revision as..."),
+                            self.save_old_revision_of_file)
         self.file_list_context_menu_revert_file = \
                 self.file_list_context_menu.addAction(
                                         gettext("Revert to this revision"),
@@ -736,8 +740,8 @@ class FileListContainer(QtGui.QWidget):
         is_single_file = len(paths) == 1
         self.file_list_context_menu_annotate.setEnabled(is_single_file)
         self.file_list_context_menu_cat.setEnabled(is_single_file)
-        
-                   
+        self.file_list_context_menu_save_old_file.setEnabled(is_single_file)
+
         gv = self.log_list.log_model.graph_viz
         # It would be nice if there were more than one branch, that we
         # show a menu so the user can chose which branch actions should take
@@ -747,11 +751,10 @@ class FileListContainer(QtGui.QWidget):
 
         self.file_list_context_menu_revert_file.setEnabled(one_branch_with_tree)
         self.file_list_context_menu_revert_file.setVisible(one_branch_with_tree)
-            
-        
+
         self.file_list_context_menu.popup(
             self.file_list.viewport().mapToGlobal(pos))
-    
+
     def get_file_selection_indexes(self, index=None):
         if index is None:
             return self.file_list.selectionModel().selectedRows(0)
@@ -797,6 +800,36 @@ class FileListContainer(QtGui.QWidget):
             encoding=encoding)
         window.show()
         self.window().windows.append(window)
+
+    @ui_current_widget
+    def save_old_revision_of_file(self):
+        """Saves the selected file in its revision to a directory."""
+        paths, file_ids = self.get_file_selection_paths_and_ids()
+        (top_revid, old_revid), count = \
+            self.log_list.get_selection_top_and_parent_revids_and_count()
+
+        branch = self.log_list.log_model.graph_viz.get_revid_branch(top_revid)
+        tree = branch.repository.revision_tree(top_revid)
+        tree.lock_read()
+        try:
+            kind = self.tree.kind(self.file_id)
+            if kind == 'file':
+                file_content_bytes = tree.get_file_text(file_ids[0])
+        finally:
+            tree.unlock()
+        if kind != 'file':
+            QtGui.QMessageBox.information(self, gettext("Not a file"),
+                gettext("Operation is supported for a single file only,\n"
+                        "not for a %s." % kind))
+            return
+        filename = QtGui.QFileDialog.getSaveFileName(
+                self, gettext("Save file in this revision as..."))
+        if filename:
+            f = open(unicode(filename), 'wb')
+            try:
+                f.write(file_content_bytes)
+            finally:
+                f.close()
 
     @ui_current_widget    
     def revert_file(self):

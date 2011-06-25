@@ -4,6 +4,7 @@ Contributors:
  * Alexander Belchenko <bialix at ukr dot net>
  * Alexey Borzenkov <snaury at gmail dot com>
  * Alexey Stukalov <astukalov at gmail dot com>
+ * André Bachmann <bachmann at powerelectronics de>
  * Atsuo Ishimoto <ishimoto@ishimoto-PC>
  * A. S. Budden <abudden at gmail dot com>
  * B. Sygnat <b dot sygnat at gawab dot com>
