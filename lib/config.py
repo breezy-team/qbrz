@@ -26,6 +26,7 @@ from bzrlib.config import (
     )
 from bzrlib import errors, trace
 
+from bzrlib.plugins.qbzr.lib import ui_merge_config
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellChecker
 from bzrlib.plugins.qbzr.lib.util import (
@@ -37,6 +38,11 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_global_config,
     get_set_tab_width_chars,
     )
+
+try:
+    from bzrlib import mergetools
+except ImportError:
+    mergetools = None
 
 
 _mail_clients = [
@@ -200,33 +206,37 @@ class QBzrConfigWindow(QBzrDialog):
         diffLayout.addWidget(self.extDiffList)
         diffLayout.addLayout(extDiffButtonsLayout)
         
-        mergeWidget = QtGui.QWidget()
-
-        label = QtGui.QLabel(gettext("External Merge Apps:"))
-        self.extMergeList = QtGui.QTreeWidget(mergeWidget)
-        self.extMergeList.setRootIsDecorated(False)
-        self.extMergeList.setHeaderLabels([gettext("Definition")])
-        self.extMergeList.setItemDelegateForColumn(0,
-            QRadioCheckItemDelegate(self.extMergeList))
-        self.connect(self.extMergeList, QtCore.SIGNAL("itemChanged (QTreeWidgetItem *,int)"),
-                     self.extMergeListItemChanged)        
-
-        addExtMergeButton = QtGui.QPushButton(gettext("Add"), mergeWidget)
-        self.connect(addExtMergeButton, QtCore.SIGNAL("clicked()"),
-                     self.addExtMerge)
-        removeExtMergeButton = QtGui.QPushButton(gettext("Remove"), mergeWidget)
-        self.connect(removeExtMergeButton, QtCore.SIGNAL("clicked()"),
-                     self.removeExtMerge)
-
-        extMergeButtonsLayout = QtGui.QHBoxLayout()
-        extMergeButtonsLayout.addWidget(addExtMergeButton)
-        extMergeButtonsLayout.addWidget(removeExtMergeButton)
-        extMergeButtonsLayout.addStretch()
-
-        mergeLayout = QtGui.QVBoxLayout(mergeWidget)
-        mergeLayout.addWidget(label)
-        mergeLayout.addWidget(self.extMergeList)
-        mergeLayout.addLayout(extMergeButtonsLayout)
+        if mergetools is not None:
+            mergeWidget = QtGui.QWidget()
+            self.merge_ui = ui_merge_config.Ui_MergeConfig()
+            self.merge_ui.setupUi(mergeWidget)
+            self.merge_ui.tools.sortByColumn(0, QtCore.Qt.AscendingOrder)
+            self.merge_ui.remove.setEnabled(False)
+            self.merge_ui.set_default.setEnabled(False)
+            
+            self.merge_tools_model = MergeToolsTableModel()
+            self.merge_ui.tools.setModel(self.merge_tools_model)
+            
+            self.connect(self.merge_tools_model,
+                         QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+                         self.merge_tools_data_changed)
+    
+            self.connect(self.merge_ui.tools.selectionModel(),
+                         QtCore.SIGNAL("selectionChanged(QItemSelection,QItemSelection)"),
+                         self.merge_tools_selectionChanged)
+            
+            self.connect(self.merge_ui.add,
+                         QtCore.SIGNAL("clicked()"),
+                         self.merge_tools_add_clicked)
+            self.connect(self.merge_ui.remove,
+                         QtCore.SIGNAL("clicked()"),
+                         self.merge_tools_remove_clicked)
+            self.connect(self.merge_ui.set_default,
+                         QtCore.SIGNAL("clicked()"),
+                         self.merge_tools_set_default_clicked)
+        else:
+            mergeWidget = QtGui.QLabel(gettext("Bazaar 2.4 or newer is required to configure mergetools."))
+            mergeWidget.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         
         self.tabwidget.addTab(generalWidget, gettext("General"))
         self.tabwidget.addTab(aliasesWidget, gettext("Aliases"))
@@ -372,30 +382,12 @@ class QBzrConfigWindow(QBzrDialog):
         self.extDiffListIgnore = False
 
         # Merge
-        bzr_config = get_global_config()
-        defaultMerge = bzr_config.get_user_option("external_merge")
-        if defaultMerge is None:
-            defaultMerge = ""
-        
-        self.extMergeListIgnore = True
-        def create_ext_merge_item(definition):
-            item = QtGui.QTreeWidgetItem(self.extMergeList)
-            item.setFlags(QtCore.Qt.ItemIsSelectable |
-                          QtCore.Qt.ItemIsEditable |
-                          QtCore.Qt.ItemIsEnabled |
-                          QtCore.Qt.ItemIsUserCheckable)
-            if definition == defaultMerge:
-                item.setCheckState(0, QtCore.Qt.Checked)
-            else:
-                item.setCheckState(0, QtCore.Qt.Unchecked)
-            
-            item.setText(0, definition)
-            return item
-
-        for name, value in parser.get('DEFAULT', {}).items():
-            if name == "external_merge":
-                create_ext_merge_item(value)
-        self.extMergeListIgnore = False
+        if mergetools is not None:
+            user_merge_tools = config.get_merge_tools()
+            default_merge_tool = config.get_user_option('bzr.default_mergetool')
+            self.merge_tools_model.set_merge_tools(user_merge_tools,
+                mergetools.known_merge_tools, default_merge_tool)
+            self.merge_tools_model.sort(0, QtCore.Qt.AscendingOrder)
 
     def save(self):
         """Save the configuration."""
@@ -483,16 +475,6 @@ class QBzrConfigWindow(QBzrDialog):
         qconfig.set_option('default_diff',
                            defaultDiff)
         
-        # Merge        
-        defaultMerge = None
-        for index in range(self.extMergeList.topLevelItemCount()):
-            item = self.extMergeList.topLevelItem(index)
-            definition = unicode(item.text(0))
-            if item.checkState(0) == QtCore.Qt.Checked:
-                defaultMerge = definition
-            
-        set_or_delete_option(parser, 'external_merge',
-                             defaultMerge)
         
         if hasattr(config, 'file_name'):
             file_name = config.file_name
@@ -504,6 +486,19 @@ class QBzrConfigWindow(QBzrDialog):
         f.close()
         
         qconfig.save()
+
+        # Merge
+        if mergetools is not None:
+            for name in self.merge_tools_model.get_removed_merge_tools():
+                config.remove_user_option('bzr.mergetool.%s' % name)
+            user_merge_tools = self.merge_tools_model.get_user_merge_tools()
+            for name, cmdline in user_merge_tools.iteritems():
+                orig_cmdline = config.find_merge_tool(name)
+                if orig_cmdline is None or orig_cmdline != cmdline:
+                    config.set_user_option('bzr.mergetool.%s' % name, cmdline)
+            default_mt = self.merge_tools_model.get_default()
+            if default_mt is not None:
+                config.set_user_option('bzr.default_mergetool', default_mt)
 
     def do_accept(self):
         """Save changes and close the window."""
@@ -597,43 +592,43 @@ class QBzrConfigWindow(QBzrDialog):
                         item.setCheckState(0, QtCore.Qt.Unchecked)
                 changed_item.setCheckState(0, QtCore.Qt.Checked)
                 self.extDiffListIgnore = False
+    
+    def get_selected_merge_tool(self):
+        sel_model = self.merge_ui.tools.selectionModel()
+        if len(sel_model.selectedRows()) == 0:
+            return None
+        row = sel_model.selectedRows()[0].row()
+        return self.merge_tools_model.get_merge_tool_name(row)
+        
+    def update_buttons(self):
+        selected = self.get_selected_merge_tool()
+        self.merge_ui.remove.setEnabled(selected is not None and
+            self.merge_tools_model.is_user_merge_tool(selected))
+        self.merge_ui.set_default.setEnabled(selected is not None and
+            self.merge_tools_model.get_default() != selected)
+        
+    def merge_tools_data_changed(self, top_left, bottom_right):
+        self.update_buttons()
+        
+    def merge_tools_selectionChanged(self, selected, deselected):
+        self.update_buttons()
 
-    def addExtMerge(self):
-        item = QtGui.QTreeWidgetItem(self.extMergeList)
-        item.setFlags(QtCore.Qt.ItemIsSelectable |
-                      QtCore.Qt.ItemIsEditable |
-                      QtCore.Qt.ItemIsEnabled |
-                      QtCore.Qt.ItemIsUserCheckable)
-        item.setCheckState(0, QtCore.Qt.Unchecked)
-        self.extMergeList.setCurrentItem(item)
-        self.extMergeList.editItem(item, 0)
-
-    def removeExtMerge(self):
-        for item in self.extMergeList.selectedItems():
-            index = self.extMergeList.indexOfTopLevelItem(item)
-            self.extMergeList.takeTopLevelItem(index)
-
-    def extMergeListItemChanged(self, changed_item, col):
-        if col == 0 and not self.extMergeListIgnore:
-            checked_count = 0
-            for index in range(self.extMergeList.topLevelItemCount()):
-                item = self.extMergeList.topLevelItem(index)
-                if item.checkState(0) == QtCore.Qt.Checked:
-                    checked_count += 1
-            
-            if checked_count == 0:
-                self.extMergeListIgnore = True
-                changed_item.setCheckState(0, QtCore.Qt.Checked)
-                self.extMergeListIgnore = False
-            elif checked_count > 1:
-                self.extMergeListIgnore = True
-                for index in range(self.extMergeList.topLevelItemCount()):
-                    item = self.extMergeList.topLevelItem(index)
-                    if item.checkState(0) == QtCore.Qt.Checked:
-                        item.setCheckState(0, QtCore.Qt.Unchecked)
-                changed_item.setCheckState(0, QtCore.Qt.Checked)
-                self.extMergeListIgnore = False
-
+    def merge_tools_add_clicked(self):
+        index = self.merge_tools_model.new_merge_tool()
+        sel_model = self.merge_ui.tools.selectionModel()
+        sel_model.select(index, QtGui.QItemSelectionModel.ClearAndSelect)
+        self.merge_ui.tools.edit(index)
+        
+    def merge_tools_remove_clicked(self):
+        sel_model = self.merge_ui.tools.selectionModel()
+        assert len(sel_model.selectedRows()) > 0
+        for index in sel_model.selectedRows():
+            self.merge_tools_model.remove_merge_tool(index.row())
+    
+    def merge_tools_set_default_clicked(self):
+        sel_model = self.merge_ui.tools.selectionModel()
+        self.merge_tools_model.set_default(self.get_selected_merge_tool().name)
+        
     def browseEditor(self):
         filename = QtGui.QFileDialog.getOpenFileName(self,
             gettext('Select editor executable'),
@@ -718,3 +713,186 @@ def get_user_id_from_os():
 
     import socket
     return realname, (username + '@' + socket.gethostname())
+
+
+class MergeToolsTableModel(QtCore.QAbstractTableModel):
+    COL_NAME = 0
+    COL_COMMANDLINE = 1
+    COL_COUNT = 2
+    
+    def __init__(self):
+        super(MergeToolsTableModel, self).__init__()
+        self._order = []
+        self._user = {}
+        self._known = {}
+        self._default = None
+        self._removed = []
+        
+    def get_user_merge_tools(self):
+        return self._user
+    
+    def set_merge_tools(self, user, known, default):
+        self.beginResetModel()
+        self._user = user
+        self._known = known
+        self._order = user.keys() + known.keys()
+        self._default = default
+        self.endResetModel()
+
+    def get_default(self):
+        return self._default
+        
+    def set_default(self, new_default):
+        old_row = None
+        if self._default is not None:
+            old_row = self._order.index(self._default)
+        new_row = None
+        if new_default is not None:
+            new_row = self._order.index(new_default)
+            self._default = new_default
+        else:
+            self._default = None
+        if old_row is not None:
+            self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+                      self.index(old_row, self.COL_NAME),
+                      self.index(old_row, self.COL_NAME))
+        if new_row is not None:
+            self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+                      self.index(new_row, self.COL_NAME),
+                      self.index(new_row, self.COL_NAME))
+    
+    def get_removed_merge_tools(self):
+        return self._removed
+    
+    def get_merge_tool_name(self, row):
+        return self._order[row]
+        
+    def get_merge_tool_command_line(self, row):
+        name = self._order[row]
+        return self._user.get(name, self._known.get(name, None))
+        
+    def is_user_merge_tool(self, name):
+        return name in self._user
+        
+    def new_merge_tool(self):
+        index = self.createIndex(len(self._order), 0)
+        self.beginInsertRows(QtCore.QModelIndex(), index.row(), index.row())
+        self._order.append('')
+        self._user[''] = ''
+        self.endInsertRows()
+        return index
+        
+    def remove_merge_tool(self, row):
+        self.beginRemoveRows(QtCore.QModelIndex(), row, row)
+        name = self._order[row]
+        if name not in self._user:
+            return
+        self._removed.append(name)
+        if name == self._default:
+            self._default = None
+        del self._order[row]
+        del self._user[name]
+        self.endRemoveRows()
+        
+    def rowCount(self, parent):
+        return len(self._order)
+        
+    def columnCount(self, parent):
+        return self.COL_COUNT
+    
+    def data(self, index, role):
+        name = self._order[index.row()]
+        cmdline = self.get_merge_tool_command_line(index.row())
+        if role == QtCore.Qt.DisplayRole:
+            if index.column() == self.COL_NAME:
+                return QtCore.QVariant(name)
+            elif index.column() == self.COL_COMMANDLINE:
+                return QtCore.QVariant(cmdline)
+        elif role == QtCore.Qt.EditRole:
+            if index.column() == self.COL_NAME:
+                return QtCore.QVariant(name)
+            elif index.column() == self.COL_COMMANDLINE:
+                return QtCore.QVariant(cmdline)
+        elif role == QtCore.Qt.CheckStateRole:
+            if index.column() == self.COL_NAME:
+                return self._default == name and QtCore.Qt.Checked or QtCore.Qt.Unchecked
+        elif role == QtCore.Qt.BackgroundRole:
+            if name in self._known:
+                palette = QtGui.QApplication.palette()
+                return palette.alternateBase()
+        return QtCore.QVariant()
+        
+    def setData(self, index, value, role):
+        name = self._order[index.row()]
+        if role == QtCore.Qt.EditRole:
+            if index.column() == self.COL_NAME:
+                # To properly update the config, renaming a merge tool must be
+                # handled as a remove and add.
+                cmdline = self.get_merge_tool_command_line(index.row())
+                self._removed.append(name)
+                del self._order[index.row()]
+                del self._user[name]
+                new_name = unicode(value.toString())
+                self._order.insert(index.row(), new_name)
+                self._user[new_name] = cmdline
+                if self._default == name:
+                    self._default = new_name
+                self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+                          index, index)
+                self.sort(self.COL_NAME, QtCore.Qt.AscendingOrder)
+                return True
+            elif index.column() == self.COL_COMMANDLINE:
+                self._user[name] = unicode(value.toString())
+                self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
+                          index, index)
+                return True
+        elif role == QtCore.Qt.CheckStateRole:
+            if index.column() == self.COL_NAME:
+                if value.toInt() == (QtCore.Qt.Checked, True):
+                    self.set_default(name)
+                elif (value.toInt() == (QtCore.Qt.Unchecked, True) and
+                      self._default == name):
+                    self.set_default(None)
+        return False
+        
+    def flags(self, index):
+        f = super(MergeToolsTableModel, self).flags(index)
+        name = self._order[index.row()]
+        if name not in self._known:
+            f = f | QtCore.Qt.ItemIsEditable
+        if index.column() == self.COL_NAME:
+            f = f | QtCore.Qt.ItemIsUserCheckable
+        return f
+    
+    def headerData(self, section, orientation, role):
+        if orientation == QtCore.Qt.Horizontal:
+            if section == self.COL_NAME:
+                if role == QtCore.Qt.DisplayRole:
+                    return QtCore.QVariant(gettext("Name"))
+            elif section == self.COL_COMMANDLINE:
+                if role == QtCore.Qt.DisplayRole:
+                    return QtCore.QVariant(gettext("Command Line"))
+        return QtCore.QVariant()
+
+    def sort(self, column, sortOrder):
+        self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))
+        index_map = self._order[:] # copy
+        def tool_cmp(a, b):
+            if column == self.COL_NAME:
+                return cmp(a, b)
+            elif column == self.COL_COMMANDLINE:
+                return cmp(self.get_merge_tool_command_line(a),
+                           self.get_merge_tool_command_line(b))
+            return 0
+        self._order.sort(cmp=tool_cmp,
+                         reverse=sortOrder==QtCore.Qt.DescendingOrder)
+        for i in range(0, len(index_map)):
+            index_map[i] = self._order.index(index_map[i])
+        from_list = []
+        to_list = []
+        for col in range(0, self.columnCount(None)):
+            from_list.extend([self.index(i, col) for i in index_map])
+            to_list.extend([self.index(i, col)
+                            for i in range(0, len(index_map))])
+        self.changePersistentIndexList(from_list, to_list)
+        self.emit(QtCore.SIGNAL("layoutChanged()"))

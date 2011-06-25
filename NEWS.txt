@@ -22,6 +22,8 @@
  * Branch/Checkout dialogs:
    * Fixed UnicodeDecodeError with non-ascii paths in target directory
      picker. (Alexander Belchenko, Bug #789083)
+ * Use bzrlib.mergetools for managing and using external merge tools in qconfig
+   and qconflicts. (Bug #489915, Gordon Tyler)
 
 
 0.21 beta 1 - 2011/05/02
