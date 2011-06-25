@@ -810,11 +810,12 @@ class FileListContainer(QtGui.QWidget):
 
         branch = self.log_list.log_model.graph_viz.get_revid_branch(top_revid)
         tree = branch.repository.revision_tree(top_revid)
+        file_id = file_ids[0]
         tree.lock_read()
         try:
-            kind = tree.kind(self.file_id)
+            kind = tree.kind(file_id)
             if kind == 'file':
-                file_content_bytes = tree.get_file_text(file_ids[0])
+                file_content_bytes = tree.get_file_text(file_id)
         finally:
             tree.unlock()
         if kind != 'file':
