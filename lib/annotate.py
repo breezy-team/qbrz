@@ -30,7 +30,6 @@ from bzrlib.revision import CURRENT_REVISION
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
-    FindToolbar,
     QBzrWindow,
     ToolBarThrobberWidget,
     get_apparent_author_name,
@@ -41,6 +40,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_tab_width_pixels,
     runs_in_loading_queue,
     )
+from bzrlib.plugins.qbzr.lib.widgets.toolbars import FindToolbar
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
