@@ -812,7 +812,7 @@ class FileListContainer(QtGui.QWidget):
         tree = branch.repository.revision_tree(top_revid)
         tree.lock_read()
         try:
-            kind = self.tree.kind(self.file_id)
+            kind = tree.kind(self.file_id)
             if kind == 'file':
                 file_content_bytes = tree.get_file_text(file_ids[0])
         finally:
