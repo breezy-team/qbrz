@@ -197,7 +197,8 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                                             cached_revisions[revid].repository)
                     props.append((gettext("Signature:"), signature_result_text))
                 except KeyError:
-                    signature_result_text = gettext("Uncached revision")
+                    #can't get Repository object for uncached revisions
+                    pass
 
             if not revid == CURRENT_REVISION:
                 if revid in self._all_loaded_revs:
