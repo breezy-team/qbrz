@@ -35,6 +35,7 @@ from bzrlib import (
     builtins,
     osutils,
     ui,
+    gpg,
     )
 from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
@@ -698,10 +699,14 @@ class cmd_qverify_signatures(QBzrCommand):
     takes_args = ['location?']
 
     def _qbzr_run(self, acceptable_keys=None, revision=None, location=CUR_DIR):
-        window = QBzrVerifySignaturesWindow(acceptable_keys, revision, location)
-        window.show()
-        self._application.exec_()
-
+        if gpg.GPGStrategy.verify_signatures_available():
+            window = QBzrVerifySignaturesWindow(acceptable_keys, revision,
+                                                                    location)
+            window.show()
+            self._application.exec_()
+        else:
+            raise errors.DependencyNotPresent("python-gpgme", 
+                                        "python-gpgme not installed")
 
 class cmd_qinit(QBzrCommand):
     """Initializes a new branch or shared repository."""
