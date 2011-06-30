@@ -26,6 +26,7 @@ from bzrlib import (
     errors,
     lazy_regex,
     log,
+    gpg,
     )
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext
@@ -148,12 +149,6 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
         min_merge_depth = min([self.get_merge_depth(revid) 
                                for revid in self._display_revids])
 
-        try:
-            import gpgme
-            gpgmeAvailable = True
-        except ImportError:
-            gpgmeAvailable = False
-
         for revid in self._display_revids:
             props = []
             message = ""
@@ -197,13 +192,13 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
             if children:
                 props.append((gettext("Children:"), 
                               revision_list_html(children)))
-            if gpgmeAvailable:
+            if gpg.GPGStrategy.verify_signatures_available():
                 try:
                     signature_result_text = log.format_signature_validity(revid,
                                             cached_revisions[revid].repository)
+                    props.append((gettext("Signature:"), signature_result_text))
                 except KeyError:
                     signature_result_text = gettext("Uncached revision")
-                props.append( (gettext("Signature:"), signature_result_text) )
 
             if not revid == CURRENT_REVISION:
                 if revid in self._all_loaded_revs:
