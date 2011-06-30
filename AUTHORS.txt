@@ -4,6 +4,7 @@ Contributors:
  * Alexander Belchenko <bialix at ukr dot net>
  * Alexey Borzenkov <snaury at gmail dot com>
  * Alexey Stukalov <astukalov at gmail dot com>
+ * André Bachmann <bachmann at powerelectronics de>
  * Atsuo Ishimoto <ishimoto@ishimoto-PC>
  * A. S. Budden <abudden at gmail dot com>
  * B. Sygnat <b dot sygnat at gawab dot com>
@@ -18,6 +19,7 @@ Contributors:
  * HAYASHI Kentaro <kenhys at gigo-ice dot org>
  * Ian Clatworthy <ian dot clatworthy at canonical dot com>
  * INADA Naoki <songofacandy at gmail dot com>
+ * IWATA Hidetaka <iwata0303 at gmail com>
  * Javier Derderian <javierder at gmail dot com>
  * Jelmer Vernooij <jelmer at samba org>
  * John Arbash Meinel <john at arbash-meinel dot com>

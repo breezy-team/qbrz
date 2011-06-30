@@ -11,14 +11,20 @@
    * Fixed UnicodeError for non-ascii paths.
      (Alexander Belchenko, Bug #790138)
  * qdiff, qannotate:
-     Tab-width can be customised from the view menu.
+   * Tab-width can be customised from the view menu.
      (Bug #490377, A. S. Budden)
+ * qlog:
+   * File list context menu: added support to save content of a file 
+     of specific revision as a new file. (André Bachmann)
  * Improved error dialogs on internal/other error, 
    support for apport (if it's available).
    (Jonathan Riddell)
  * Branch/Checkout dialogs:
    * Fixed UnicodeDecodeError with non-ascii paths in target directory
      picker. (Alexander Belchenko, Bug #789083)
+ * Use bzrlib.mergetools for managing and using external merge tools in qconfig
+   and qconflicts. (Bug #489915, Gordon Tyler)
+ * New qshelve / qunshelve dialogs. (IWATA Hidetaka)
 
 
 0.21 beta 1 - 2011/05/02

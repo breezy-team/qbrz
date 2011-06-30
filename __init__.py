@@ -132,6 +132,8 @@ lazy_commands = (
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpush', []),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrevert', []),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrun', ['qcmd']),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qshelve', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qunshelve', []),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qtag', []),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_quncommit', []),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qupdate', ['qup']),
