@@ -148,7 +148,6 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
         rev_html = []
         min_merge_depth = min([self.get_merge_depth(revid) 
                                for revid in self._display_revids])
-
         for revid in self._display_revids:
             props = []
             message = ""
