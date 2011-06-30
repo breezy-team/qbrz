@@ -57,8 +57,13 @@ class QBzrVerifySignaturesWindow(QBzrDialog):
         repo = branch.repository
         branch_config = branch.get_config()
         gpg_strategy = gpg.GPGStrategy(branch_config)
-
         gpg_strategy.set_acceptable_keys(acceptable_keys)
+
+        if branch.name is None:
+            header = branch.user_url
+        else:
+            header = branch.name
+        self.ui.treeWidget.setHeaderLabels([str(header)])
 
         #get our list of revisions
         revisions = []
