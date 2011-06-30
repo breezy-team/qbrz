@@ -57,7 +57,7 @@ class QBzrVerifySignaturesWindow(QBzrDialog):
         self.acceptable_keys = acceptable_keys
         self.revision = revision
         self.location = location
-        QTimer.singleShot(100, self.refresh_view)
+        QTimer.singleShot(0, self.refresh_view)
 
     def refresh_view(self):
         self.throbber.show()
