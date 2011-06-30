@@ -25,6 +25,8 @@
  * Use bzrlib.mergetools for managing and using external merge tools in qconfig
    and qconflicts. (Bug #489915, Gordon Tyler)
  * New qshelve / qunshelve dialogs. (IWATA Hidetaka)
+ * New command qverify-signatures to show digital signature statuses
+   for branch commits
 
 
 0.21 beta 1 - 2011/05/02
