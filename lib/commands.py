@@ -688,7 +688,7 @@ class cmd_qinfo(QBzrCommand):
 
 
 class cmd_qverify_signatures(QBzrCommand):
-    """Shows information about the current location."""
+    """Shows digital signature statuses for branch commits"""
 
     takes_options = [
             Option('acceptable-keys',
