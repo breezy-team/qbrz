@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 #
 # QBzr - Qt frontend to Bazaar commands
-# Copyright (C) 2008 Lukáš Lalinský <lalinsky@gmail.com>
+# Copyright (C) 2011 Canonical Ltd
+# Author Jonathan Riddell <jriddell@ubuntu.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -43,8 +44,11 @@ from StringIO import StringIO
 
 
 class QBzrVerifySignaturesWindow(QBzrDialog):
+    """Show the user information on the status of digital signatures for the
+    commits on this branch"""
 
     def __init__(self, acceptable_keys, revision, location, parent=None):
+        """load UI file, add buttons and throbber, run refresh"""
         QBzrDialog.__init__(self, [gettext("Verify Signatures")], parent)
         self.restoreSize("verify-signatures", (580, 250))
         self.buttonbox = self.create_button_box(BTN_CLOSE)
@@ -60,6 +64,8 @@ class QBzrVerifySignaturesWindow(QBzrDialog):
         QTimer.singleShot(0, self.refresh_view)
 
     def refresh_view(self):
+        """get the revisions wanted by the user, do the verifications and
+        popular the tree widget with the results"""
         self.throbber.show()
         bzrdir = _mod_bzrdir.BzrDir.open_containing(self.location)[0]
         branch = bzrdir.open_branch()
