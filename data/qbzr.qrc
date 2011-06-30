@@ -27,6 +27,15 @@
     <file>16x16/folder-conflict.png</file>
     <file>16x16/process-working.gif</file>
 
+    <file>16x16/delete.png</file>
+    <file>16x16/complete.png</file>
+    <file>16x16/unidiff.png</file>
+    <file>16x16/format-text-bold.png</file>
+    <file>16x16/go-down.png</file>
+    <file>16x16/go-up.png</file>
+    <file>16x16/whitespace.png</file>
+    <file>16x16/document-properties.png</file>
+
     <file>22x22/document-properties.png</file>
     <file>22x22/edit-find.png</file>
     <file>22x22/go-jump.png</file>
@@ -34,6 +43,17 @@
     <file>22x22/go-previous.png</file>
     <file>22x22/view-split-left-right.png</file>
     <file>22x22/system-run.png</file>
+
+    <file>16x16/edit-find.png</file>
+    <file>16x16/accessories-text-editor.png</file>
+
+    <file>22x22/shelve.png</file>
+    <file>22x22/unshelve.png</file>
+    <file>22x22/delete.png</file>
+
+    <file>22x22/select-all.png</file>
+    <file>22x22/unselect-all.png</file>
+    <file>22x22/internet-news-reader.png</file>
 
 </qresource>
 </RCC>
