@@ -27,6 +27,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     BTN_CLOSE,
     QBzrWindow, QBzrDialog,
     url_for_display,
+    ThrobberWidget,
     )
 from bzrlib import (
     bzrdir as _mod_bzrdir,
@@ -35,7 +36,8 @@ from bzrlib import (
     revision as _mod_revision,
     )
 
-from PyQt4.QtGui import QTreeWidgetItem
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
 
 from StringIO import StringIO
 
@@ -49,15 +51,22 @@ class QBzrVerifySignaturesWindow(QBzrDialog):
         self.ui = Ui_VerifyForm()
         self.ui.setupUi(self)
         self.ui.verticalLayout.addWidget(self.buttonbox)
-        self.refresh_view(acceptable_keys, revision, location)
+        self.throbber = ThrobberWidget(self)
+        self.ui.verticalLayout.insertWidget(0, self.throbber)
+        
+        self.acceptable_keys = acceptable_keys
+        self.revision = revision
+        self.location = location
+        QTimer.singleShot(100, self.refresh_view)
 
-    def refresh_view(self, acceptable_keys, revision, location):
-        bzrdir = _mod_bzrdir.BzrDir.open_containing(location)[0]
+    def refresh_view(self):
+        self.throbber.show()
+        bzrdir = _mod_bzrdir.BzrDir.open_containing(self.location)[0]
         branch = bzrdir.open_branch()
         repo = branch.repository
         branch_config = branch.get_config()
         gpg_strategy = gpg.GPGStrategy(branch_config)
-        gpg_strategy.set_acceptable_keys(acceptable_keys)
+        gpg_strategy.set_acceptable_keys(self.acceptable_keys)
 
         if branch.name is None:
             header = branch.user_url
@@ -67,13 +76,13 @@ class QBzrVerifySignaturesWindow(QBzrDialog):
 
         #get our list of revisions
         revisions = []
-        if revision is not None:
-            if len(revision) == 1:
-                revno, rev_id = revision[0].in_history(branch)
+        if self.revision is not None:
+            if len(self.revision) == 1:
+                revno, rev_id = self.revision[0].in_history(branch)
                 revisions.append(rev_id)
-            elif len(revision) == 2:
-                from_revno, from_revid = revision[0].in_history(branch)
-                to_revno, to_revid = revision[1].in_history(branch)
+            elif len(sel.revision) == 2:
+                from_revno, from_revid = self.revision[0].in_history(branch)
+                to_revno, to_revid = self.revision[1].in_history(branch)
                 if to_revid is None:
                     to_revno = branch.revno()
                 if from_revno is None or to_revno is None:
@@ -96,7 +105,8 @@ class QBzrVerifySignaturesWindow(QBzrDialog):
                 revisions.append(rev_id)
             repo.unlock()
         count, result, all_verifiable =\
-                                gpg_strategy.do_verifications(revisions, repo)
+                                gpg_strategy.do_verifications(revisions, repo,
+                                                     QApplication.processEvents)
         if all_verifiable:
             message = QTreeWidgetItem( [gettext(
                             "All commits signed with verifiable keys")] )
@@ -130,3 +140,4 @@ class QBzrVerifySignaturesWindow(QBzrDialog):
             for verbose_message in gpg_strategy.verbose_not_signed_message(
                                                                 result, repo):
                 QTreeWidgetItem(commit_not_signed_message, [verbose_message])
+        self.throbber.hide()
