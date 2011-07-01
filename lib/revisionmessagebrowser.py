@@ -25,11 +25,14 @@ from bzrlib.revision import CURRENT_REVISION
 from bzrlib import (
     errors,
     lazy_regex,
+    log,
+    gpg,
     )
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext
 
-from bzrlib.plugins.qbzr.lib.lazycachedrevloader import load_revisions
+from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
+cached_revisions)
 from bzrlib.plugins.qbzr.lib.util import (
     runs_in_loading_queue,
     format_timestamp,
@@ -188,7 +191,15 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
             if children:
                 props.append((gettext("Children:"), 
                               revision_list_html(children)))
-            
+            if gpg.GPGStrategy.verify_signatures_available():
+                try:
+                    signature_result_text = log.format_signature_validity(revid,
+                                            cached_revisions[revid].repository)
+                    props.append((gettext("Signature:"), signature_result_text))
+                except KeyError:
+                    #can't get Repository object for uncached revisions
+                    pass
+
             if not revid == CURRENT_REVISION:
                 if revid in self._all_loaded_revs:
                     rev = self._all_loaded_revs[revid]

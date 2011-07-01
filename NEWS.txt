@@ -16,6 +16,8 @@
  * qlog:
    * File list context menu: added support to save content of a file 
      of specific revision as a new file. (André Bachmann)
+   * Show digital signature information for commits if python-gpgme is
+     installed
  * Improved error dialogs on internal/other error, 
    support for apport (if it's available).
    (Jonathan Riddell)
