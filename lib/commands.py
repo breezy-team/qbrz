@@ -35,6 +35,7 @@ from bzrlib import (
     builtins,
     osutils,
     ui,
+    gpg,
     )
 from bzrlib.branch import Branch
 from bzrlib.bzrdir import BzrDir
@@ -59,6 +60,8 @@ from bzrlib.plugins.qbzr.lib.log import LogWindow
 from bzrlib.plugins.qbzr.lib.info import QBzrInfoWindow
 from bzrlib.plugins.qbzr.lib.init import QBzrInitWindow
 from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
+from bzrlib.plugins.qbzr.lib.verify_signatures import \
+QBzrVerifySignaturesWindow
 from bzrlib.plugins.qbzr.lib.pull import (
     QBzrPullWindow,
     QBzrPushWindow,
@@ -683,6 +686,29 @@ class cmd_qinfo(QBzrCommand):
         window.show()
         self._application.exec_()
 
+
+class cmd_qverify_signatures(QBzrCommand):
+    """Shows digital signature statuses for branch commits"""
+
+    takes_options = [
+            Option('acceptable-keys',
+                   help='Comma separated list of GPG key patterns which are'
+                        ' acceptable for verification.',
+                   short_name='k',
+                   type=str,),
+            'revision', 
+          ]
+    takes_args = ['location?']
+
+    def _qbzr_run(self, acceptable_keys=None, revision=None, location=CUR_DIR):
+        if gpg.GPGStrategy.verify_signatures_available():
+            window = QBzrVerifySignaturesWindow(acceptable_keys, revision,
+                                                                    location)
+            window.show()
+            self._application.exec_()
+        else:
+            raise errors.DependencyNotPresent("python-gpgme", 
+                                        "python-gpgme not installed")
 
 class cmd_qinit(QBzrCommand):
     """Initializes a new branch or shared repository."""

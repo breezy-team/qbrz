@@ -51,6 +51,7 @@ Basic q-commands:
  * qunbind - Convert the current checkout into a regular branch.
  * quncommit - Move the tip of a branch to an earlier revision.
  * qupdate - Update working tree with latest changes in the branch.
+ * qverify-signatures - Show digital signatures information
  * qversion - Show version/system information.
 
 Hybrid dialogs:
@@ -136,6 +137,7 @@ lazy_commands = (
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qtag', []),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_quncommit', []),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qupdate', ['qup']),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qverify_signatures', []),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qversion', ['qsysinfo']),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qviewer', []),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsend', ['qsend']),
