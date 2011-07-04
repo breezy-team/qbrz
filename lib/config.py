@@ -420,6 +420,7 @@ class QBzrConfigWindow(QBzrDialog):
         # %b %t %o -o %r
         external_merge = external_merge.replace('%b', '{base}')
         external_merge = external_merge.replace('%t', '{this}')
+        external_merge = external_merge.replace('%T', '{this_temp}')
         external_merge = external_merge.replace('%o', '{other}')
         external_merge = external_merge.replace('%r', '{result}')
         return os.path.basename(args[0]), external_merge
