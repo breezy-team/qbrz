@@ -52,6 +52,12 @@ _tag_re = lazy_regex.lazy_compile(r'[, ]')
 _start_of_line_whitespace_re = lazy_regex.lazy_compile(r'(?m)^ +')
 
 
+def _dummy_gpg_verify():
+    return False
+
+gpg_verify_available_func = getattr(gpg.GPGStrategy, "verify_signatures_available", _dummy_gpg_verify)
+
+
 def htmlencode(s):
     """Convert single line to html snippet suitable to show in Qt widgets."""
     return (s.replace("&", "&amp;")
@@ -191,7 +197,8 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
             if children:
                 props.append((gettext("Children:"), 
                               revision_list_html(children)))
-            if gpg.GPGStrategy.verify_signatures_available():
+
+            if gpg_verify_available_func():
                 try:
                     signature_result_text = log.format_signature_validity(revid,
                                             cached_revisions[revid].repository)
