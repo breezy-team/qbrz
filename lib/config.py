@@ -829,7 +829,8 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
                 # To properly update the config, renaming a merge tool must be
                 # handled as a remove and add.
                 cmdline = self.get_merge_tool_command_line(index.row())
-                self._removed.append(name)
+                if name != '':
+                    self._removed.append(name)
                 del self._order[index.row()]
                 del self._user[name]
                 new_name = unicode(value.toString())
