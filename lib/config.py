@@ -403,8 +403,9 @@ class QBzrConfigWindow(QBzrDialog):
             self,
             gettext('Import old external merge tool'),
             gettext('Would you like to import your previously configured '
-                    'external merge tool:\n\n  %s\n\nas:\n\n  %s' %
-                    (external_merge, new_cmdline)),
+                    'external merge tool:\n\n  %(old_cmdline)s\n\nas:\n\n'
+                    '  %(new_cmdline)s' %
+                    {'old_cmdline':external_merge, 'new_cmdline':new_cmdline}),
             QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
             QtGui.QMessageBox.Yes
         )
