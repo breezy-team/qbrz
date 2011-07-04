@@ -396,6 +396,8 @@ class QBzrConfigWindow(QBzrDialog):
         if qconfig.get_option_as_bool('imported_external_merge'):
             return
         external_merge = config.get_user_option('external_merge')
+        if external_merge is None or external_merge.strip() == '':
+            return
         name, new_cmdline = self.convert_external_merge(external_merge)
         answer = QtGui.QMessageBox.question(
             self,
