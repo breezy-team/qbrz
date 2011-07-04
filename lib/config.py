@@ -490,7 +490,9 @@ class QBzrConfigWindow(QBzrDialog):
         # Merge
         if mergetools is not None:
             for name in self.merge_tools_model.get_removed_merge_tools():
-                config.remove_user_option('bzr.mergetool.%s' % name)
+                option = 'bzr.mergetool.%s' % name
+                if config.get_user_option(option) is not None:
+                    config.remove_user_option(option)
             user_merge_tools = self.merge_tools_model.get_user_merge_tools()
             for name, cmdline in user_merge_tools.iteritems():
                 orig_cmdline = config.find_merge_tool(name)
@@ -783,10 +785,10 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         return index
         
     def remove_merge_tool(self, row):
-        self.beginRemoveRows(QtCore.QModelIndex(), row, row)
         name = self._order[row]
         if name not in self._user:
             return
+        self.beginRemoveRows(QtCore.QModelIndex(), row, row)
         self._removed.append(name)
         if name == self._default:
             self._default = None
@@ -829,7 +831,8 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
                 # To properly update the config, renaming a merge tool must be
                 # handled as a remove and add.
                 cmdline = self.get_merge_tool_command_line(index.row())
-                self._removed.append(name)
+                if name != '':
+                    self._removed.append(name)
                 del self._order[index.row()]
                 del self._user[name]
                 new_name = unicode(value.toString())
