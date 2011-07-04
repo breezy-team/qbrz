@@ -24,7 +24,7 @@ from bzrlib.config import (
     ensure_config_dir_exists,
     extract_email_address,
     )
-from bzrlib import errors, trace
+from bzrlib import cmdline, errors, trace
 
 from bzrlib.plugins.qbzr.lib import ui_merge_config
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
@@ -385,9 +385,42 @@ class QBzrConfigWindow(QBzrDialog):
         if mergetools is not None:
             user_merge_tools = config.get_merge_tools()
             default_merge_tool = config.get_user_option('bzr.default_mergetool')
+            if len(user_merge_tools) == 0:
+                self.import_external_merge(user_merge_tools, config, qconfig)
             self.merge_tools_model.set_merge_tools(user_merge_tools,
                 mergetools.known_merge_tools, default_merge_tool)
             self.merge_tools_model.sort(0, QtCore.Qt.AscendingOrder)
+    
+    def import_external_merge(self, user_merge_tools, config, qconfig):
+        # don't ask to import if we already asked before
+        if qconfig.get_option_as_bool('imported_external_merge'):
+            return
+        external_merge = config.get_user_option('external_merge')
+        name, new_cmdline = self.convert_external_merge(external_merge)
+        answer = QtGui.QMessageBox.question(
+            self,
+            gettext('Import old external merge tool'),
+            gettext('Would you like to import your previously configured '
+                    'external merge tool:\n\n  %s\n\nas:\n\n  %s' %
+                    (external_merge, new_cmdline)),
+            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+            QtGui.QMessageBox.Yes
+        )
+        if answer == QtGui.QMessageBox.Yes:
+            if name in mergetools.known_merge_tools:
+                name = name + '-NEW'
+            user_merge_tools[name] = new_cmdline
+        # set a flag to indicate that we've already asked about this
+        qconfig.set_option('imported_external_merge', True)
+    
+    def convert_external_merge(self, external_merge):
+        args = cmdline.split(external_merge)
+        # %b %t %o -o %r
+        external_merge = external_merge.replace('%b', '{base}')
+        external_merge = external_merge.replace('%t', '{this}')
+        external_merge = external_merge.replace('%o', '{other}')
+        external_merge = external_merge.replace('%r', '{result}')
+        return os.path.basename(args[0]), external_merge
 
     def save(self):
         """Save the configuration."""
