@@ -783,10 +783,10 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         return index
         
     def remove_merge_tool(self, row):
-        self.beginRemoveRows(QtCore.QModelIndex(), row, row)
         name = self._order[row]
         if name not in self._user:
             return
+        self.beginRemoveRows(QtCore.QModelIndex(), row, row)
         self._removed.append(name)
         if name == self._default:
             self._default = None
