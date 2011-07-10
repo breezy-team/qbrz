@@ -1069,68 +1069,6 @@ class InfoWidget(QtGui.QFrame):
         self.setBackgroundRole(QtGui.QPalette.ToolTipBase) 
         self.setForegroundRole(QtGui.QPalette.ToolTipText)
 
-class ToolbarPanel(QtGui.QWidget):
-    def __init__(self, parent = None):
-        QtGui.QWidget.__init__(self, parent)
-        vbox = QtGui.QVBoxLayout(self)
-        vbox.setSpacing(0)
-        vbox.setMargin(0)
-
-        toolbar = QtGui.QToolBar(self)
-        toolbar.setMovable(False)
-        toolbar.setIconSize(QtCore.QSize(16,16))
-        self.setStyleSheet('QToolBar { margin:1px; padding:0px; border:none; }')
-        toolbar.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-
-        vbox.addWidget(toolbar)
-        self.vbox = vbox
-        self.toolbar = toolbar
-
-    def add_toolbar_button(self, text, icon_name=None, enabled=True, 
-            checkable=False, checked=False, shortcut=None, onclick=None):
-        button = self.create_button(text, icon_name=icon_name, enabled=enabled,
-                        checkable=checkable, checked=checked, 
-                        shortcut=shortcut, onclick=onclick)
-        self.toolbar.addAction(button)
-        return button
-
-    def add_toolbar_menu(self, text, menu, icon_name=None, enabled=True, shortcut=None):
-        button = self.create_button(text, icon_name=icon_name, enabled=enabled) 
-        button.setMenu(menu)
-        self.toolbar.addAction(button)
-        widget = self.toolbar.widgetForAction(button)
-        widget.setPopupMode(QtGui.QToolButton.InstantPopup)
-        if shortcut:
-            widget.setShortcut(shortcut)
-        return button
-
-    def create_button(self, text, icon_name=None, enabled=True, 
-            checkable=False, checked=False, shortcut=None, onclick=None):
-        if icon_name:
-            button = QtGui.QAction(get_icon(icon_name, size=16), gettext(text), self)
-        else:
-            button = QtGui.QAction(gettext(text), self)
-        if checkable:
-            button.setCheckable(True)
-            button.setChecked(checked)
-            signal = "toggled(bool)"
-        else:
-            signal = "triggered()"
-        if not enabled:
-            button.setEnabled(False)
-        if shortcut:
-            button.setShortcuts(shortcut)
-        if onclick:
-            self.connect(button, QtCore.SIGNAL(signal), onclick)
-        return button
-
-    def add_separator(self):
-        self.toolbar.addSeparator()
-
-    def add_widget(self, widget):
-        self.vbox.addWidget(widget)
-
-
 # Hackish test for monospace. Run bzr qcat lib/util.py to check.
 #888888888888888888888888888888888888888888888888888888888888888888888888888888
 #                                                                             8
