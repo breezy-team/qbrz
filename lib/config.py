@@ -132,6 +132,19 @@ class QBzrConfigWindow(QBzrDialog):
         generalVBox.addLayout(generalGrid)
         generalVBox.addStretch()
 
+        self.checkoutBasedirEdit = QtGui.QLineEdit()
+        btnCheckoutBasedirBrowse = QtGui.QPushButton(gettext('Browse...'))
+        self.connect(btnCheckoutBasedirBrowse,
+            QtCore.SIGNAL("clicked()"),
+            self.browseCheckoutBasedir)
+        checkoutBasedirHBox = QtGui.QHBoxLayout()
+        checkoutBasedirHBox.addWidget(self.checkoutBasedirEdit)
+        checkoutBasedirHBox.addWidget(btnCheckoutBasedirBrowse)
+        label = QtGui.QLabel(gettext("B&ase directory\nfor checkouts:"))
+        label.setBuddy(self.checkoutBasedirEdit)
+        generalGrid.addWidget(label, 5, 0)
+        generalGrid.addLayout(checkoutBasedirHBox, 5, 1)
+
         self.aliasesList = QtGui.QTreeWidget()
         self.aliasesList.setRootIsDecorated(False)
         self.aliasesList.setHeaderLabels([gettext("Alias"), gettext("Command")])
@@ -317,6 +330,11 @@ class QBzrConfigWindow(QBzrDialog):
         # Tab-width
         self.tabWidthSpinner.setValue(get_set_tab_width_chars())
 
+        # Checkout basedir
+        checkoutBasedir = qconfig.get_option('checkout_basedir')
+        if checkoutBasedir:
+            self.checkoutBasedirEdit.setText(checkoutBasedir)
+
         # Spellcheck language
         spellcheck_language = config.get_user_option('spellcheck_language') or 'en'
         if spellcheck_language:
@@ -465,6 +483,10 @@ class QBzrConfigWindow(QBzrDialog):
 
         tabWidth = self.tabWidthSpinner.value()
         set_or_delete_option(parser, 'tab_width', tabWidth)
+
+        # Checkout basedir
+        checkout_basedir = unicode(self.checkoutBasedirEdit.text())
+        qconfig.set_option('checkout_basedir', checkout_basedir)
 
         # Spellcheck language
         index = self.spellcheck_language_combo.currentIndex()
@@ -674,6 +696,13 @@ class QBzrConfigWindow(QBzrDialog):
             '/')
         if filename:
             self.editorEdit.setText(filename)
+            
+    def browseCheckoutBasedir(self):
+        filename = QtGui.QFileDialog.getExistingDirectory(self,
+            gettext('Select base directory for checkouts'),
+            '/')
+        if filename:
+            self.checkoutBasedirEdit.setText(filename)
 
 
 def get_user_id_from_os():
