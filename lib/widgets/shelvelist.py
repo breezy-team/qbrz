@@ -356,7 +356,10 @@ class ShelveListWidget(ToolbarPanel):
             item = QtGui.QTreeWidgetItem()
             item.setText(0, text)
             item.setText(1, gettext(di.status))
-            item.setIcon(0, get_icon("file", 16))
+            if (di.kind[1] or di.kind[0]) == 'directory':
+                item.setIcon(0, get_icon("folder", 16))
+            else:
+                item.setIcon(0, get_icon("file", 16))
             item.diffitem = di
             brush = self.brushes.get(di.status)
             if brush:

@@ -92,13 +92,16 @@ class Change(object):
         file_id = change[1]
         if status == 'delete file':
             self.path = trees[0].id2path(file_id)
+            self.kind = trees[0].kind(file_id)
             self.disp_text = self.path
         elif status == 'rename':
             self.path = [tree.id2path(file_id) for tree in trees] 
             self.disp_text = u'%s => %s' % (self.path[0], self.path[1])
+            self.kind = trees[1].kind(file_id)
         else:
             self.path = trees[1].id2path(file_id)
             self.disp_text = self.path
+            self.kind = trees[1].kind(file_id)
         if status == 'modify text':
             try:
                 self.sha1 = trees[1].get_file_sha1(file_id)
@@ -471,7 +474,10 @@ class ShelveWidget(ToolbarPanel):
         ch = Change(change, shelver, trees)
         item = QtGui.QTreeWidgetItem()
 
-        item.setIcon(0, get_icon("file", 16))
+        if ch.kind == 'directory':
+            item.setIcon(0, get_icon("folder", 16))
+        else:
+            item.setIcon(0, get_icon("file", 16))
         item.change = ch
         item.setText(0, ch.disp_text)
         item.setText(1, gettext(ch.status))
