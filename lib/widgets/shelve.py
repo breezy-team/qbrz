@@ -37,6 +37,7 @@ from bzrlib.plugins.qbzr.lib.widgets.toolbars import (
     FindToolbar, ToolbarPanel, LayoutSelector
     )
 from bzrlib.plugins.qbzr.lib.widgets.tab_width_selector import TabWidthMenuSelector
+from bzrlib.plugins.qbzr.lib.decorators import lazy_call
 from bzrlib import errors
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
@@ -372,6 +373,11 @@ class ShelveWidget(ToolbarPanel):
             sp.setStretchFactor(0, 3)
             sp.setStretchFactor(1, 7)
 
+        self.brushes = {
+            'add file' : QtGui.QBrush(QtCore.Qt.blue),
+            'delete file' : QtGui.QBrush(QtCore.Qt.red),
+            'rename' : QtGui.QBrush(QtGui.QColor(160, 32, 240)), # purple
+        }
 
         self.loaded = False
 
@@ -471,6 +477,10 @@ class ShelveWidget(ToolbarPanel):
         item.setText(1, gettext(ch.status))
         if ch.status == 'modify text':
             item.setText(2, u'0/%d' % len(ch.parsed_patch.hunks))
+        brush = self.brushes.get(ch.status)
+        if brush:
+            for i in range(3):
+                item.setForeground(i, brush)
         item.setCheckState(0, QtCore.Qt.Unchecked)
 
         if old_changes:

@@ -211,6 +211,12 @@ class ShelveListWidget(ToolbarPanel):
         self._interrupt_switch = False
         self._need_refresh = False
         self._selecting_all_files = False
+        self.brushes = {
+            'added' : QtGui.QBrush(QtCore.Qt.blue),
+            'removed' : QtGui.QBrush(QtCore.Qt.red),
+            'renamed' : QtGui.QBrush(QtGui.QColor(160, 32, 240)), # purple
+            'renamed and modified' : QtGui.QBrush(QtGui.QColor(160, 32, 240)),
+        }
 
     def set_layout(self, type=None, show_files=None):
         if type is not None:
@@ -340,24 +346,22 @@ class ShelveListWidget(ToolbarPanel):
             old_path, new_path = di.paths
             if di.versioned == (True, False):
                 text = old_path
-                color = 'red'
             elif di.versioned == (False, True):
                 text = new_path
-                color = 'blue'
             elif di.paths[0] != di.paths[1]:
                 text = u'%s => %s' % (old_path, new_path)
-                color = 'purple'
             else:
                 text = old_path
-                color = None
                 
             item = QtGui.QTreeWidgetItem()
             item.setText(0, text)
             item.setText(1, gettext(di.status))
             item.setIcon(0, get_icon("file", 16))
             item.diffitem = di
-            if color:
-                item.setData(0, QtCore.Qt.TextColorRole, color)
+            brush = self.brushes.get(di.status)
+            if brush:
+                item.setForeground(0, brush)
+                item.setForeground(1, brush)
             self.file_view.addTopLevelItem(item)
 
     @lazy_call(100, per_instance=True)
