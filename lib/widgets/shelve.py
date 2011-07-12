@@ -57,13 +57,12 @@ from cStringIO import StringIO
 import os
 ''')
 
+
 """
 TODO::
-  Auto complete of shelve message.
   Wordwrap mode
   Side by side view
   External diff (ShelveListWindow)
-  Lock management
   Select hunk by Find.
 """
 
