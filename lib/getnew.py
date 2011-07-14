@@ -39,9 +39,14 @@ from bzrlib.plugins.qbzr.lib.util import (
 class GetNewWorkingTreeWindow(SubProcessDialog):
 
     NAME = "new_tree"
-
+    config = get_qbzr_config()
+    checkout_basedir = config.get_option("checkout_basedir")
+    
     def __init__(self, to_location, ui_mode=True, parent=None):
-        self.to_location = os.path.abspath(to_location)
+        if self.checkout_basedir is not None:
+            self.to_location = os.path.abspath(self.checkout_basedir)
+        else:
+            self.to_location = os.path.abspath(to_location)
         super(GetNewWorkingTreeWindow, self).__init__(
                                   name = self.NAME,
                                   ui_mode = ui_mode,
@@ -84,12 +89,13 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
     def from_location_changed(self, new_text):
         new_val = self.to_location
         tail = re.split("[:$#\\\\/]", unicode(new_text))[-1]
-        projectname = re.split("[:$#\\\\/]", unicode(new_text))[-2]
+        try:
+            projectname = re.split("[:$#\\\\/]", unicode(new_text))[-2]
+        except:
+            projectname = ""
         if tail:
-            config = get_qbzr_config()
-            basedir = config.get_option("checkout_basedir")
-            if basedir is not None and projectname is not None:
-                new_val = os.path.join(basedir, projectname)
+            if self.checkout_basedir is not None:
+                new_val = os.path.join(self.checkout_basedir, projectname)
             else:
                 new_val = os.path.join(new_val, tail)
         self.ui.to_location.setText(new_val)
