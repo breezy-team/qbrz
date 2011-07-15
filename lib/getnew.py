@@ -67,10 +67,18 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
         # signal to manage updating the 'location' on the fly.
         self.connect(self.ui.from_location, QtCore.SIGNAL("editTextChanged(const QString &)"),
                      self.from_location_changed)
+        self.connect(self.ui.to_location, QtCore.SIGNAL("textEdited(const QString &)"),
+                     self.to_location_changed)
 
         self.ui.but_checkout.setChecked(True)
         self.ui.but_rev_tip.setChecked(True)
         self.ui.to_location.setText(self.to_location)
+
+    def to_location_changed(self):
+        self.disconnect(self.ui.from_location, QtCore.SIGNAL("editTextChanged(const QString &)"),
+                     self.from_location_changed)
+        self.disconnect(self.ui.to_location, QtCore.SIGNAL("textEdited(const QString &)"),
+                     self.to_location_changed)
 
     def from_location_changed(self, new_text):
         new_val = self.to_location
