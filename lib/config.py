@@ -132,6 +132,19 @@ class QBzrConfigWindow(QBzrDialog):
         generalVBox.addLayout(generalGrid)
         generalVBox.addStretch()
 
+        self.branchsourceBasedirEdit = QtGui.QLineEdit()
+        btnBranchsourceBasedirBrowse = QtGui.QPushButton(gettext('Browse...'))
+        self.connect(btnBranchsourceBasedirBrowse,
+            QtCore.SIGNAL("clicked()"),
+            self.browseBranchsourceBasedir)
+        branchsourceBasedirHBox = QtGui.QHBoxLayout()
+        branchsourceBasedirHBox.addWidget(self.branchsourceBasedirEdit)
+        branchsourceBasedirHBox.addWidget(btnBranchsourceBasedirBrowse)
+        label = QtGui.QLabel(gettext("Base directory\nfor branch sources:"))
+        label.setBuddy(self.branchsourceBasedirEdit)
+        generalGrid.addWidget(label, 5, 0)
+        generalGrid.addLayout(branchsourceBasedirHBox, 5, 1)
+
         self.checkoutBasedirEdit = QtGui.QLineEdit()
         btnCheckoutBasedirBrowse = QtGui.QPushButton(gettext('Browse...'))
         self.connect(btnCheckoutBasedirBrowse,
@@ -142,8 +155,8 @@ class QBzrConfigWindow(QBzrDialog):
         checkoutBasedirHBox.addWidget(btnCheckoutBasedirBrowse)
         label = QtGui.QLabel(gettext("B&ase directory\nfor checkouts:"))
         label.setBuddy(self.checkoutBasedirEdit)
-        generalGrid.addWidget(label, 5, 0)
-        generalGrid.addLayout(checkoutBasedirHBox, 5, 1)
+        generalGrid.addWidget(label, 6, 0)
+        generalGrid.addLayout(checkoutBasedirHBox, 6, 1)
 
         self.aliasesList = QtGui.QTreeWidget()
         self.aliasesList.setRootIsDecorated(False)
@@ -335,6 +348,11 @@ class QBzrConfigWindow(QBzrDialog):
         if checkoutBasedir:
             self.checkoutBasedirEdit.setText(checkoutBasedir)
 
+        # Branch source basedir
+        branchsourceBasedir = qconfig.get_option('branchsource_basedir')
+        if branchsourceBasedir:
+            self.branchsourceBasedirEdit.setText(branchsourceBasedir)
+
         # Spellcheck language
         spellcheck_language = config.get_user_option('spellcheck_language') or 'en'
         if spellcheck_language:
@@ -487,6 +505,10 @@ class QBzrConfigWindow(QBzrDialog):
         # Checkout basedir
         checkout_basedir = unicode(self.checkoutBasedirEdit.text())
         qconfig.set_option('checkout_basedir', checkout_basedir)
+
+        # Branch source basedir
+        branchsource_basedir = unicode(self.branchsourceBasedirEdit.text())
+        qconfig.set_option('branchsource_basedir', branchsource_basedir)
 
         # Spellcheck language
         index = self.spellcheck_language_combo.currentIndex()
@@ -703,6 +725,13 @@ class QBzrConfigWindow(QBzrDialog):
             '/')
         if filename:
             self.checkoutBasedirEdit.setText(filename)
+            
+    def browseBranchsourceBasedir(self):
+        filename = QtGui.QFileDialog.getExistingDirectory(self,
+            gettext('Select default directory for branch sources'),
+            '/')
+        if filename:
+            self.branchsourceBasedirEdit.setText(filename)
 
 
 def get_user_id_from_os():
