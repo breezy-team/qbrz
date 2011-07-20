@@ -8,15 +8,15 @@ msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-01-16 13:16+0200\n"
-"PO-Revision-Date: 2010-09-26 09:05+0000\n"
-"Last-Translator: cmdrhenner <cmdrhenner@gmail.com>\n"
+"PO-Revision-Date: 2011-07-17 13:43+0000\n"
+"Last-Translator: André Bachmann <Unknown>\n"
 "Language-Team: German <de@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2011-04-29 07:28+0000\n"
-"X-Generator: Launchpad (build 12915)\n"
+"X-Launchpad-Export-Date: 2011-07-20 19:41+0000\n"
+"X-Generator: Launchpad (build 13468)\n"
 
 #: lib\add.py:45 lib\config.py:120 lib\config.py:141 lib\config.py:172
 #: lib\config.py:201
@@ -80,11 +80,11 @@ msgstr "Durchsuchen"
 
 #: lib\bind.py:109 lib\switch.py:153 lib\tag.py:190
 msgid "Select branch location"
-msgstr "Wähle Ort des Zweigs"
+msgstr "Speicherort des Zweiges wählen"
 
 #: lib\bind.py:120
 msgid "Master branch location not specified."
-msgstr "Ort des Oberzweigs nicht angegeben"
+msgstr "Ort des Hauptzweiges nicht angegeben"
 
 #: lib\browse.py:73 lib\export.py:179 lib\ui_info.py:146
 msgid "Location:"
@@ -142,7 +142,7 @@ msgstr "Nicht versionierte Dateien zeigen"
 
 #: lib\commit.py:303
 msgid "Enter the commit message"
-msgstr "Trage die Übertragungsnachricht ein"
+msgstr "Commit-Nachricht eingeben"
 
 #: lib\commit.py:315
 msgid "&Fixed bugs:"
@@ -227,8 +227,8 @@ msgid ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
 msgstr ""
-"Ein lokaler Commit wird durchgeführt. Der Hauptzweig wird nicht Aufdatiert "
-"bis ein nicht-lokaler Commit gemacht wird."
+"Ein lokaler Commit wird durchgeführt. Der Hauptzweig wird solange nicht "
+"aktualisiert, wie ein nicht-lokaler Commit ausgeführt wird."
 
 #: lib\commit.py:733 lib\diff.py:104 lib\diffwindow.py:120
 #: lib\diffwindow.py:251 lib\diffwindow.py:393 lib\diffwindow.py:401
