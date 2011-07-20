@@ -1,5 +1,42 @@
-0.21 beta 2 - in development
-----------------------------
+0.21 final "Tilia" - in development
+-----------------------------------
+What's new in this release:
+
+QBzr 0.21 is companion release for bzr 2.4, and compatible with bzr 2.3.
+New features in this release:
+
+Now you can select changes to shelve and unshelve your saved changes with
+new shiny qshelve and qunshelve dialogs.
+
+qdiff window has been reworked and all controls moved to a toolbar, similar to
+one in qannotate window. Also qdiff toolbar provides you new functions: text
+search within active pane and also knob to ignore whitespace changes (it's 
+also available as command-line option).
+
+User can configure the tab width and this setting affects qdiff, qannotate and
+qcat windows. By default tab width equals to 8 characters, user can set new
+default value in bazaar.conf as ``tab_width = N`` (either via qconfig or
+editing [DEFAULT] section of bazaar.conf). Also user can set individual tab
+width for branches in their branch.conf. User can configure tab width via
+"View Options" menu in toolbars of qdiff, qannotate.
+
+QBzr provides support for new builtin feature of bzr: mergetools. Now you can
+easier configure your favorite diff/merge tool to be used from qconflicts or
+context menu in qbrowse (Working Tree browser in Bazaar Explorer).
+
+If you have python-gpgme installed and you have enabled gpg-signatures for
+your commits then you can see new messages regarding valid gpg-signatures
+available in qlog. Also you can run check of your signatures with new
+qverify-signatures command.
+
+Other changes include major rework of qinfo dialog (show the same information
+as CLI ``bzr info`` does), qcommit dialog now remembers state of "Show
+non-versioned" knob between runs, now it's possible to save old state of the
+file from qlog dialog (using context menu in file list), error dialogs has been
+improved (now also support apport if available) 
+and several other improvements and bugfixes (see full changelog for details).
+
+Changes after 0.21 beta 1:
 
  * qcat:
    * Fixed problem with viewing file from qbrowse.
@@ -36,28 +73,7 @@
 
 0.21 beta 1 - 2011/05/02
 ------------------------
-What's new in this release:
 
-QBzr 0.21 is companion release for bzr 2.4, and compatible with bzr 2.3.
-New features in this release:
-
-qdiff window has been reworked and all controls moved to a toolbar, similar to
-one in qannotate window. Also qdiff toolbar provides you new functions: text
-search within active pane and also knob to ignore whitespace changes (it's 
-also available as command-line option).
-
-User can configure the tab width and this setting affects qdiff, qannotate and
-qcat windows. By default tab width equals to 8 characters, user can set new
-default value in bazaar.conf as ``tab_width = N`` (either via qconfig or
-editing [DEFAULT] section of bazaar.conf). Also user can set individual tab
-width for branches in their branch.conf.
-
-Other changes include major rework of qinfo dialog (show the same information
-as CLI ``bzr info`` does), qcommit dialog now remembers state of "Show
-non-versioned" knob between runs, and several other improvements and bugfixes
-(see full changelog for details).
-
-Changelog:
  * qbranch:
    * Fixed problem with very small width of input fields in the dialog
      on Mac OSX. (Timothy Reaves, Bug #667090)
