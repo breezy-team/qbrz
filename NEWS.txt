@@ -101,13 +101,16 @@ Changelog:
      branch.conf for specific branches.  (Bug #490377, A. S. Budden)
 
 
-0.20.2 - in development
------------------------
+0.20.2 - 2011/07/20
+-------------------
 Maintenance release.
 
  * qconflicts:
    * Fixed internal error when there is conflict in non-versioned file.
      (Alexander Belchenko, Bug #655451)
+ * qinfo:
+   * Fixed UnicodeError with non-ascii locations.
+     (Alexander Belchenko, Bug #790138)
  * Branch/Checkout dialogs:
    * Fixed UnicodeDecodeError with non-ascii paths in target directory
      picker. (Alexander Belchenko, Bug #789083)
@@ -159,6 +162,15 @@ Bazaar 2.3 companion release. Suitable for bzr 2.3 and bzr 2.2.
    message. (Gary van der Merwe)
  * qpush: fixed smart suggestion of new push URLs for lp branches.
    (Bug #710767, Alexander Belchenko)
+
+
+0.19.4 - 2011/07/20
+-------------------
+Maintenance release.
+
+ * qconflicts:
+   * Fixed internal error when deleting non-versioned files/directories.
+     (Alexander Belchenko, Bug #655451)
 
 
 0.19.3 - 2010/11/26
