@@ -52,6 +52,7 @@ def load_tests(basic_tests, module, loader):
         'test_tree_branch',
         'test_treewidget',
         'test_util',
+        'test_decorator',
     ]
     for name in testmod_names:
         m = "%s.%s" % (__name__, name)

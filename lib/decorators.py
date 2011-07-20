@@ -17,6 +17,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+from PyQt4 import QtCore
+import time
+from collections import defaultdict
+from functools import wraps
+
 """Decorators for debugging and maybe main work mode."""
 
 def print_in_out(unbound):
@@ -35,3 +40,66 @@ def print_in_out(unbound):
         mutter('%s returned %r' % (func_name, result))
         return result
     return _run
+
+class LazyCall(object):
+
+    def __init__(self, millisec, func, callback=None):
+        self.func = func
+        self.millisec = millisec
+        self.callback = callback
+        self._last_scheduled_at = 0
+
+    def call(self, *args, **kargs):
+        self._func = lambda:self.func(*args, **kargs)
+        if self._last_scheduled_at == 0:
+            QtCore.QTimer.singleShot(self.millisec, self._exec)
+        self._last_scheduled_at = time.time()
+
+    def _exec(self):
+        elapsed = (time.time() - self._last_scheduled_at) * 1000
+        if elapsed < self.millisec:
+            # Retry
+            QtCore.QTimer.singleShot(self.millisec - elapsed, self._exec)
+            return
+
+        last_executed_at = self._last_scheduled_at
+        ret = self._func()
+        has_next = last_executed_at != self._last_scheduled_at
+        if self.callback:
+            self.callback(ret, has_next)
+
+        if has_next:
+            # One more call if there was another request when executing proc
+            QtCore.QTimer.singleShot(self.millisec, self._exec)
+            return
+        
+        self._last_scheduled_at = 0
+
+def lazy_call(millisec, per_instance=False):
+    """
+    Decorator to delay function call.
+    Specified function will called after waiting `millisec`,
+    if there are multiple call while waiting, only last one will be done.
+    """
+    def _lazy_call(function):
+        if per_instance:
+            _instances = defaultdict(lambda:LazyCall(millisec, function))
+            def __lazy_call(*args, **kwargs):
+                key = hash(args[0])
+                caller = _instances[key]
+                if not caller.callback:
+                    def cleanup(ret, has_next):
+                        if not has_next:
+                            del _instances[key]
+                    caller.callback = cleanup
+                caller.call(*args, **kwargs)
+        else:
+            caller = LazyCall(millisec, function)
+            def __lazy_call(*args, **kwargs):
+                caller.call(*args, **kwargs)
+        return __lazy_call
+    return _lazy_call
+
+
+
+

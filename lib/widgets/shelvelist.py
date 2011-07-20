@@ -51,6 +51,7 @@ from bzrlib.plugins.qbzr.lib.diffview import (
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
+from bzrlib.plugins.qbzr.lib.decorators import lazy_call
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from bzrlib import transform
@@ -207,9 +208,15 @@ class ShelveListWidget(ToolbarPanel):
                 self.selected_files_changed)
 
         self.loaded = False
-        self._loading_diff = False
-        self._pending_info = None
+        self._interrupt_switch = False
+        self._need_refresh = False
         self._selecting_all_files = False
+        self.brushes = {
+            'added' : QtGui.QBrush(QtCore.Qt.blue),
+            'removed' : QtGui.QBrush(QtCore.Qt.red),
+            'renamed' : QtGui.QBrush(QtGui.QColor(160, 32, 240)), # purple
+            'renamed and modified' : QtGui.QBrush(QtGui.QColor(160, 32, 240)),
+        }
 
     def set_layout(self, type=None, show_files=None):
         if type is not None:
@@ -339,29 +346,38 @@ class ShelveListWidget(ToolbarPanel):
             old_path, new_path = di.paths
             if di.versioned == (True, False):
                 text = old_path
-                color = 'red'
             elif di.versioned == (False, True):
                 text = new_path
-                color = 'blue'
             elif di.paths[0] != di.paths[1]:
                 text = u'%s => %s' % (old_path, new_path)
-                color = 'purple'
             else:
                 text = old_path
-                color = None
                 
             item = QtGui.QTreeWidgetItem()
             item.setText(0, text)
             item.setText(1, gettext(di.status))
-            item.setIcon(0, get_icon("file", 16))
+            if (di.kind[1] or di.kind[0]) == 'directory':
+                item.setIcon(0, get_icon("folder", 16))
+            else:
+                item.setIcon(0, get_icon("file", 16))
             item.diffitem = di
-            if color:
-                item.setData(0, QtCore.Qt.TextColorRole, color)
+            brush = self.brushes.get(di.status)
+            if brush:
+                item.setForeground(0, brush)
+                item.setForeground(1, brush)
             self.file_view.addTopLevelItem(item)
 
-    def show_diff(self, diffs, refresh):
-        self._loading_diff = True 
+    @lazy_call(100, per_instance=True)
+    @runs_in_loading_queue
+    def _show_selected_diff(self):
+        self._interrupt_switch = False 
         try:
+            refresh = self._need_refresh
+            self._need_refresh = False
+            
+            diffs = [x.diffitem for x in self.file_view.selectedItems()]
+            diffs.sort(key=lambda x:x.paths[0] or x.paths[1])
+
             cur_len = len(self.current_diffs)
             if not refresh and cur_len <= len(diffs) and self.current_diffs == diffs[0:cur_len]:
                 appends = diffs[cur_len:]
@@ -382,13 +398,18 @@ class ShelveListWidget(ToolbarPanel):
                                      d.versioned, d.binary, ulines, groups, 
                                      data, d.properties_changed)
                 self.current_diffs.append(d)
-                if self._pending_info is not None:
+                if self._interrupt_switch:
                     # Interrupted
                     break
         finally:
-            self._loading_diff = False
+            self._interrupt_switch = False
 
     def selected_shelve_changed(self):
+        self._change_current_shelve()
+
+    @lazy_call(100, per_instance=True)
+    @runs_in_loading_queue
+    def _change_current_shelve(self):
         items = self.shelve_view.selectedItems()
         if len(items) != 1:
             self.shelf_id = None
@@ -422,29 +443,8 @@ class ShelveListWidget(ToolbarPanel):
             self.file_view.topLevelItem(0).setSelected(True)
 
     def show_selected_diff(self, refresh = False):
-        # NOTE: SideBySideDiffView.append_diff uses processEvents internally. 
-        #       So, show_selected_diff can be called during another 
-        #       show_selected_diff is running.
-        if self._loading_diff:
-            if self._pending_info is None:
-                self._pending_info = (refresh,)
-                self.show_selected_diff_delay()
-            elif refresh and not self._pending_info[0]:
-                self._pending_info = (True,)
-        else:
-            diffs = [x.diffitem for x in self.file_view.selectedItems()]
-            diffs.sort(key=lambda x:x.paths[0] or x.paths[1])
-            self.show_diff(diffs, refresh)
-
-    def show_selected_diff_delay(self):
-        if self._pending_info == None:
-            return
-        if self._loading_diff:
-            QtCore.QTimer.singleShot(100, self.show_selected_diff_delay)
-            return
-        refresh = self._pending_info[0]
-        self._pending_info = None
-        self.show_selected_diff(refresh)
+        self._need_refresh = refresh or self._need_refresh
+        self._show_selected_diff()
 
     def unidiff_toggled(self, state):
         index = 1 if state else 0
