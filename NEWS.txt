@@ -13,6 +13,9 @@
  * qdiff, qannotate:
    * Tab-width can be customised from the view menu.
      (Bug #490377, A. S. Budden)
+ * qgetnew:
+   * The target location no longer gets overwritten 
+     when the source location changes. (André Bachmann)
  * qlog:
    * File list context menu: added support to save content of a file 
      of specific revision as a new file. (André Bachmann)
