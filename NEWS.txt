@@ -61,6 +61,15 @@ Bazaar 2.3 companion release. Suitable for bzr 2.3 and bzr 2.2.
    (Bug #710767, Alexander Belchenko)
 
 
+0.19.4 - 2011/07/20
+-------------------
+Maintenance release.
+
+ * qconflicts:
+   * Fixed internal error when deleting non-versioned files/directories.
+     (Alexander Belchenko, Bug #655451)
+
+
 0.19.3 - 2010/11/26
 -------------------
 Maintenance release.
