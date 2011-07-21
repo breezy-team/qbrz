@@ -98,7 +98,10 @@ class build_pot(Command):
                     '-p', self.build_dir,
                     '-o', self.output,
                     '__init__.py',
-                    ] + glob.glob('lib/*.py'))
+                    ]
+                    + glob.glob('lib/*.py')
+                    + glob.glob('lib/widgets/*.py')
+                    )
         self._force_LF(fullname)
         # regenerate english PO
         if self.english:
