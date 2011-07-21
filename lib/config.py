@@ -132,32 +132,6 @@ class QBzrConfigWindow(QBzrDialog):
         generalVBox.addLayout(generalGrid)
         generalVBox.addStretch()
 
-        self.branchsourceBasedirEdit = QtGui.QLineEdit()
-        btnBranchsourceBasedirBrowse = QtGui.QPushButton(gettext('Browse...'))
-        self.connect(btnBranchsourceBasedirBrowse,
-            QtCore.SIGNAL("clicked()"),
-            self.browseBranchsourceBasedir)
-        branchsourceBasedirHBox = QtGui.QHBoxLayout()
-        branchsourceBasedirHBox.addWidget(self.branchsourceBasedirEdit)
-        branchsourceBasedirHBox.addWidget(btnBranchsourceBasedirBrowse)
-        label = QtGui.QLabel(gettext("Base directory\nfor branch sources:"))
-        label.setBuddy(self.branchsourceBasedirEdit)
-        generalGrid.addWidget(label, 5, 0)
-        generalGrid.addLayout(branchsourceBasedirHBox, 5, 1)
-
-        self.checkoutBasedirEdit = QtGui.QLineEdit()
-        btnCheckoutBasedirBrowse = QtGui.QPushButton(gettext('Browse...'))
-        self.connect(btnCheckoutBasedirBrowse,
-            QtCore.SIGNAL("clicked()"),
-            self.browseCheckoutBasedir)
-        checkoutBasedirHBox = QtGui.QHBoxLayout()
-        checkoutBasedirHBox.addWidget(self.checkoutBasedirEdit)
-        checkoutBasedirHBox.addWidget(btnCheckoutBasedirBrowse)
-        label = QtGui.QLabel(gettext("B&ase directory\nfor checkouts:"))
-        label.setBuddy(self.checkoutBasedirEdit)
-        generalGrid.addWidget(label, 6, 0)
-        generalGrid.addLayout(checkoutBasedirHBox, 6, 1)
-
         self.aliasesList = QtGui.QTreeWidget()
         self.aliasesList.setRootIsDecorated(False)
         self.aliasesList.setHeaderLabels([gettext("Alias"), gettext("Command")])
@@ -300,6 +274,32 @@ class QBzrConfigWindow(QBzrDialog):
         grid.addWidget(label, 0, 0)
         grid.addWidget(self.spellcheck_language_combo, 0, 1)
 
+        self.branchsourceBasedirEdit = QtGui.QLineEdit()
+        btnBranchsourceBasedirBrowse = QtGui.QPushButton(gettext('Browse...'))
+        self.connect(btnBranchsourceBasedirBrowse,
+            QtCore.SIGNAL("clicked()"),
+            self.browseBranchsourceBasedir)
+        branchsourceBasedirHBox = QtGui.QHBoxLayout()
+        branchsourceBasedirHBox.addWidget(self.branchsourceBasedirEdit)
+        branchsourceBasedirHBox.addWidget(btnBranchsourceBasedirBrowse)
+        label = QtGui.QLabel(gettext("Base directory\nfor &branch sources:"))
+        label.setBuddy(self.branchsourceBasedirEdit)
+        grid.addWidget(label, 1, 0)
+        grid.addLayout(branchsourceBasedirHBox, 1, 1)
+        
+        self.checkoutBasedirEdit = QtGui.QLineEdit()
+        btnCheckoutBasedirBrowse = QtGui.QPushButton(gettext('Browse...'))
+        self.connect(btnCheckoutBasedirBrowse,
+            QtCore.SIGNAL("clicked()"),
+            self.browseCheckoutBasedir)
+        checkoutBasedirHBox = QtGui.QHBoxLayout()
+        checkoutBasedirHBox.addWidget(self.checkoutBasedirEdit)
+        checkoutBasedirHBox.addWidget(btnCheckoutBasedirBrowse)
+        label = QtGui.QLabel(gettext("Base directory\nfor &checkouts:"))
+        label.setBuddy(self.checkoutBasedirEdit)
+        grid.addWidget(label, 2, 0)
+        grid.addLayout(checkoutBasedirHBox, 2, 1)
+
         return tabwidget
 
     def load(self):
@@ -343,16 +343,6 @@ class QBzrConfigWindow(QBzrDialog):
         # Tab-width
         self.tabWidthSpinner.setValue(get_set_tab_width_chars())
 
-        # Checkout basedir
-        checkoutBasedir = qconfig.get_option('checkout_basedir')
-        if checkoutBasedir:
-            self.checkoutBasedirEdit.setText(checkoutBasedir)
-
-        # Branch source basedir
-        branchsourceBasedir = qconfig.get_option('branchsource_basedir')
-        if branchsourceBasedir:
-            self.branchsourceBasedirEdit.setText(branchsourceBasedir)
-
         # Spellcheck language
         spellcheck_language = config.get_user_option('spellcheck_language') or 'en'
         if spellcheck_language:
@@ -360,6 +350,16 @@ class QBzrConfigWindow(QBzrDialog):
                 QtCore.QVariant(spellcheck_language))
             if index >= 0:
                 self.spellcheck_language_combo.setCurrentIndex(index)
+
+        # Branch source basedir
+        branchsourceBasedir = qconfig.get_option('branchsource_basedir')
+        if branchsourceBasedir:
+            self.branchsourceBasedirEdit.setText(branchsourceBasedir)
+
+        # Checkout basedir
+        checkoutBasedir = qconfig.get_option('checkout_basedir')
+        if checkoutBasedir:
+            self.checkoutBasedirEdit.setText(checkoutBasedir)
 
         # Aliases
         aliases = parser.get('ALIASES', {})
@@ -502,18 +502,18 @@ class QBzrConfigWindow(QBzrDialog):
         tabWidth = self.tabWidthSpinner.value()
         set_or_delete_option(parser, 'tab_width', tabWidth)
 
-        # Checkout basedir
-        checkout_basedir = unicode(self.checkoutBasedirEdit.text())
-        qconfig.set_option('checkout_basedir', checkout_basedir)
+        # Spellcheck language
+        index = self.spellcheck_language_combo.currentIndex()
+        spellcheck_language = unicode(self.spellcheck_language_combo.itemData(index).toString())
+        set_or_delete_option(parser, 'spellcheck_language', spellcheck_language)
 
         # Branch source basedir
         branchsource_basedir = unicode(self.branchsourceBasedirEdit.text())
         qconfig.set_option('branchsource_basedir', branchsource_basedir)
 
-        # Spellcheck language
-        index = self.spellcheck_language_combo.currentIndex()
-        spellcheck_language = unicode(self.spellcheck_language_combo.itemData(index).toString())
-        set_or_delete_option(parser, 'spellcheck_language', spellcheck_language)
+        # Checkout basedir
+        checkout_basedir = unicode(self.checkoutBasedirEdit.text())
+        qconfig.set_option('checkout_basedir', checkout_basedir)
 
         # Aliases
         parser['ALIASES'] = {}
