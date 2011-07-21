@@ -275,6 +275,7 @@ class QBzrConfigWindow(QBzrDialog):
         grid.addWidget(self.spellcheck_language_combo, 0, 1)
 
         self.branchsourceBasedirEdit = QtGui.QLineEdit()
+        self.branchsourceBasedirEdit.setToolTip(gettext("This directory will be automatically filled in your branch source input field"))
         btnBranchsourceBasedirBrowse = QtGui.QPushButton(gettext('Browse...'))
         self.connect(btnBranchsourceBasedirBrowse,
             QtCore.SIGNAL("clicked()"),
@@ -288,6 +289,7 @@ class QBzrConfigWindow(QBzrDialog):
         grid.addLayout(branchsourceBasedirHBox, 1, 1)
         
         self.checkoutBasedirEdit = QtGui.QLineEdit()
+        self.checkoutBasedirEdit.setToolTip(gettext("This directory will be automatically filled in your checkout destination input field"))
         btnCheckoutBasedirBrowse = QtGui.QPushButton(gettext('Browse...'))
         self.connect(btnCheckoutBasedirBrowse,
             QtCore.SIGNAL("clicked()"),
