@@ -53,6 +53,8 @@ Changes after 0.21 beta 1:
  * qgetnew:
    * The target location no longer gets overwritten 
      when the source location changes. (André Bachmann)
+   * Base directories for the source branch and the destination checkout folder
+     can now be configured in qconfig, tab 'User Interface'. (André Bachmann)
  * qlog:
    * File list context menu: added support to save content of a file 
      of specific revision as a new file. (André Bachmann)
