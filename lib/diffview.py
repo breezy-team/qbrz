@@ -227,8 +227,9 @@ class SidebySideDiffView(QtGui.QFrame):
 SYNC_POSITION = 0.4
 
 class SidebySideDiffViewScrollBar(QtGui.QScrollBar):
-    def __init__(self, browsers):
+    def __init__(self, handle, browsers):
         QtGui.QScrollBar.__init__(self)
+        self.handle = handle
         self.browsers = browsers
         self.total_length = 0
         self.changes = []
@@ -330,6 +331,7 @@ class SidebySideDiffViewScrollBar(QtGui.QScrollBar):
             for t in range(3):
                 if t != target:
                     self.scroll_to(t, position)
+            self.handle.update()
         finally:
             self.syncing = False
 
@@ -406,11 +408,9 @@ class _SidebySideDiffView(QtGui.QSplitter):
             format.setAnchorNames(["top"])
             cursor.insertText("", format)
 
-        self.scrollbar = SidebySideDiffViewScrollBar(self.browsers)
+        self.scrollbar = SidebySideDiffViewScrollBar(self.handle(1), self.browsers)
 
         self.ignoreUpdate = False
-        self.connect(self.browsers[0].verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.updateHandle1)
-        self.connect(self.browsers[1].verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.updateHandle2)
         self.connect(self.browsers[0].horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.syncHorizontalSlider1)
         self.connect(self.browsers[1].horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.syncHorizontalSlider2)
 
@@ -721,20 +721,6 @@ class _SidebySideDiffView(QtGui.QSplitter):
             self.ignoreUpdate = True
             slider2.setValue(value)
             self.ignoreUpdate = False
-
-    def updateHandle1(self, value):
-        if not self.ignoreUpdate:
-            #slider1 = self.browsers[0].verticalScrollBar()
-            #slider2 = self.browsers[1].verticalScrollBar()
-            #self._syncSliders(slider1, slider2, value)
-            self.handle(1).update()
-
-    def updateHandle2(self, value):
-        if not self.ignoreUpdate:
-            #slider1 = self.browsers[0].verticalScrollBar()
-            #slider2 = self.browsers[1].verticalScrollBar()
-            #self._syncSliders(slider2, slider1, value)
-            self.handle(1).update()
 
     def syncHorizontalSlider1(self, value):
         if not self.ignoreUpdate:
