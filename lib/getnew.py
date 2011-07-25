@@ -44,7 +44,7 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
     branchsource_basedir = config.get_option("branchsource_basedir")
     
     def __init__(self, to_location, ui_mode=True, parent=None):
-        if self.checkout_basedir is not None:
+        if ui_mode and self.checkout_basedir is not None:
             self.to_location = os.path.abspath(self.checkout_basedir)
         else:
             self.to_location = os.path.abspath(to_location)
@@ -82,7 +82,7 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
         self.ui.but_rev_tip.setChecked(True)
         self.ui.to_location.setText(self.to_location)
         if self.branchsource_basedir is not None:
-            self.from_location = os.path.abspath(self.branchsource_basedir)
+            self.from_location = self.branchsource_basedir
             self.ui.from_location.setEditText(self.from_location)
 
     def to_location_changed(self):
