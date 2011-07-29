@@ -609,9 +609,7 @@ class FileListContainer(QtGui.QWidget):
         if revids != self.current_revids:
             self.file_list.clear()
             self.current_revids = None
-            print "delta_load_timer starting"
             self.delta_load_timer.start(200)
-            print "delta_load_timer done"
     
     @runs_in_loading_queue
     @ui_current_widget
@@ -638,11 +636,7 @@ class FileListContainer(QtGui.QWidget):
                                                                         revids]
             except GhostRevisionError:
                 delta = None
-                print "GhostRevisionError!"
             else:
-                print "else"
-                print "revids: " + str(revids)
-                print "repos: " + str(repos)
                 if (repos[0].__class__.__name__ == 'SvnRepository' or
                     repos[1].__class__.__name__ == 'SvnRepository'):
                     # Loading trees from a remote svn repo is unusably slow.
