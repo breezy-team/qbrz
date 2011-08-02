@@ -1,3 +1,10 @@
+0.21.1 development
+------------------
+
+ * qlog:
+   * Do not crash on ghost revisions.
+     (Jonathan Riddell, Bug: #785967)
+
 0.21 "Tilia" - 2011/07/21
 -------------------------
 What's new in this release:
