@@ -44,11 +44,9 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
     branchsource_basedir = config.get_option("branchsource_basedir")
     
     def __init__(self, to_location, ui_mode=True, parent=None):
-        if ui_mode and self.checkout_basedir is not None:
-            self.to_location = os.path.abspath(self.checkout_basedir)
-        else:
-            self.to_location = os.path.abspath(to_location)
-
+        if not to_location:
+            to_location = self.checkout_basedir or u'.'
+        self.to_location = os.path.abspath(to_location)
         super(GetNewWorkingTreeWindow, self).__init__(
                                   name = self.NAME,
                                   ui_mode = ui_mode,

@@ -851,7 +851,7 @@ class cmd_qgetnew(QBzrCommand):
     takes_options = [ui_mode_option]
     aliases = ['qgetn']
 
-    def _qbzr_run(self, location=CUR_DIR, ui_mode=False):
+    def _qbzr_run(self, location=None, ui_mode=False):
         from bzrlib.plugins.qbzr.lib.getnew import GetNewWorkingTreeWindow
         self.main_window = GetNewWorkingTreeWindow(location, ui_mode=ui_mode)
         self.main_window.show()
