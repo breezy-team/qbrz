@@ -33,6 +33,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     )
 from bzrlib.plugins.qbzr.lib.trace import reports_exception, SUB_LOAD_METHOD
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from bzrlib.plugins.qbzr.lib.loggraphviz import GhostRevisionError
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
@@ -630,51 +631,58 @@ class FileListContainer(QtGui.QWidget):
         
         if revids not in self.delta_cache:
             self.throbber.show()
-            repos = [gv.get_revid_branch(revid).repository for revid in revids]
-            if (repos[0].__class__.__name__ == 'SvnRepository' or
-                repos[1].__class__.__name__ == 'SvnRepository'):
-                # Loading trees from a remote svn repo is unusably slow.
-                # See https://bugs.launchpad.net/qbzr/+bug/450225
-                # If only 1 revision is selected, use a optimized svn method
-                # which actualy gets the server to do the delta,
-                # else, don't do any delta.
-                if count == 1:
-                    delta = repos[0].get_revision_delta(revids[0])
-                else:
-                    delta = None
+            try:
+                repos = [gv.get_revid_branch(revid).repository for revid in
+                                                                        revids]
+            except GhostRevisionError:
+                delta = None
             else:
-                if (len(repos)==2 and
-                    repos[0].base == repos[1].base):
-                    # Both revids are from the same repository. Load together.
-                    repos_revids = [(repos[0], revids)]
+                if (repos[0].__class__.__name__ == 'SvnRepository' or
+                    repos[1].__class__.__name__ == 'SvnRepository'):
+                    # Loading trees from a remote svn repo is unusably slow.
+                    # See https://bugs.launchpad.net/qbzr/+bug/450225
+                    # If only 1 revision is selected, use a optimized svn method
+                    # which actualy gets the server to do the delta,
+                    # else, don't do any delta.
+                    if count == 1:
+                        delta = repos[0].get_revision_delta(revids[0])
+                    else:
+                        delta = None
                 else:
-                    repos_revids = [(repo, [revid])
-                            for revid, repo in zip(revids, repos)]
-                
-                for repo, repo_revids in repos_revids:
-                    repo_revids = [revid for revid in repo_revids 
-                                   if revid not in self.tree_cache]
-                    if repo_revids:
-                        repo.lock_read()
-                        self.processEvents()
-                        try:
-                            for revid in repo_revids:
-                                if (revid.startswith(CURRENT_REVISION) and
-                                    gv_is_wtgv):
-                                    tree = gv.working_trees[revid]
-                                else:
-                                    tree = repo.revision_tree(revid)
-                                self.tree_cache[revid] = tree
+                    if (len(repos)==2 and
+                        repos[0].base == repos[1].base):
+                        # Both revids are from the same repository. Load
+                        #together.
+                        repos_revids = [(repos[0], revids)]
+                    else:
+                        repos_revids = [(repo, [revid])
+                                for revid, repo in zip(revids, repos)]
+                    
+                    for repo, repo_revids in repos_revids:
+                        repo_revids = [revid for revid in repo_revids 
+                                    if revid not in self.tree_cache]
+                        if repo_revids:
+                            repo.lock_read()
                             self.processEvents()
-                        finally:
-                            repo.unlock()
-                    self.processEvents()
-                
-                delta = self.tree_cache[revids[0]].changes_from(
-                                                self.tree_cache[revids[1]])
-            self.delta_cache[revids] = delta
-            self.throbber.hide()
-            self.processEvents()
+                            try:
+                                for revid in repo_revids:
+                                    if (revid.startswith(CURRENT_REVISION) and
+                                        gv_is_wtgv):
+                                        tree = gv.working_trees[revid]
+                                    else:
+                                        tree = repo.revision_tree(revid)
+                                    self.tree_cache[revid] = tree
+                                self.processEvents()
+                            finally:
+                                repo.unlock()
+                        self.processEvents()
+                    
+                    delta = self.tree_cache[revids[0]].changes_from(
+                                                    self.tree_cache[revids[1]])
+                self.delta_cache[revids] = delta
+            finally:
+                self.throbber.hide()
+                self.processEvents()
         else:
             delta = self.delta_cache[revids]
         
