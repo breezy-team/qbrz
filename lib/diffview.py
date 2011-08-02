@@ -49,6 +49,7 @@ colors = {
     'insert': [QtGui.QColor(180, 255, 180), QtGui.QColor(80, 210, 80)],
     'replace': [QtGui.QColor(206, 226, 250), QtGui.QColor(90, 130, 180)],
     'blank': [QtGui.QColor(240, 240, 240), QtGui.QColor(171, 171, 171)],
+    'dummy': [QtGui.QColor(0, 0, 0, 0), QtGui.QColor(0, 0, 0, 0)],
 }
 #The background color of the replacement text in a replacement group.
 interline_changes_background = QtGui.QColor(180, 210, 250)
@@ -95,10 +96,15 @@ class DiffSourceView(QtGui.QTextBrowser):
         QtGui.QTextBrowser.__init__(self, parent)
         self.setLineWrapMode(QtGui.QTextEdit.NoWrap)
         self.clear()
+        self.scrollbar = None
 
     def clear(self):
         self.changes = []
         self.infoBlocks = []
+
+    def resizeEvent(self, event):
+        QtGui.QTextBrowser.resizeEvent(self, event)
+        self.emit(QtCore.SIGNAL("resized()"))
 
     def paintEvent(self, event):
         w = self.width()
@@ -133,10 +139,17 @@ class DiffSourceView(QtGui.QTextBrowser):
         del painter
         QtGui.QTextBrowser.paintEvent(self, event) 
 
+    def wheelEvent(self, event):
+        if event.orientation() == QtCore.Qt.Vertical and self.scrollbar:
+            self.scrollbar.wheelEvent(event)
+        else:
+            QtGui.QTextBrowser.wheelEvent(self, event)
+
 class DiffViewHandle(QtGui.QSplitterHandle):
 
     def __init__(self, parent=None):
         QtGui.QSplitterHandle.__init__(self, QtCore.Qt.Horizontal, parent)
+        self.scrollbar = None
         self.view = parent
         self.clear()
         
@@ -189,13 +202,167 @@ class DiffViewHandle(QtGui.QSplitterHandle):
             painter.drawLine(0, ly_bot, w, ry_bot)
         del painter
 
+    def wheelEvent(self, event):
+        if event.orientation() == QtCore.Qt.Vertical:
+            self.view.scrollbar.wheelEvent(event)
+        else:
+            QtGui.QSplitterHandle.wheelEvent(self, event)
 
-class SidebySideDiffView(QtGui.QSplitter):
+class SidebySideDiffView(QtGui.QFrame):
+    def __init__(self, parent=None):
+        QtGui.QFrame.__init__(self, parent)
+        hbox = QtGui.QHBoxLayout(self)
+        hbox.setMargin(0)
+        hbox.setSpacing(0)
+        self.view = _SidebySideDiffView(parent)
+        self.browsers = self.view.browsers
+        hbox.addWidget(self.view)
+        hbox.addWidget(self.view.scrollbar)
+
+    def __getattr__(self, name):
+        """Delegate unknown methods to internal diffview."""
+        return getattr(self.view, name)
+
+
+SYNC_POSITION = 0.4
+
+class SidebySideDiffViewScrollBar(QtGui.QScrollBar):
+    def __init__(self, handle, browsers):
+        QtGui.QScrollBar.__init__(self)
+        self.handle = handle
+        self.browsers = browsers
+        self.total_length = 0
+        self.changes = []
+        self.complete = False
+
+        for b in browsers:
+            b.scrollbar = self
+
+        for i, scbar in enumerate([self] + [b.verticalScrollBar() for b in browsers]):
+            self.connect(scbar, QtCore.SIGNAL("valueChanged(int)"), 
+                                        lambda value, target=i : self.scrolled(target))
+
+        self.connect(browsers[0], QtCore.SIGNAL("resized()"), self.adjust_range)
+        self.setSingleStep(browsers[0].verticalScrollBar().singleStep())
+        self.adjust_range()
+        self.syncing = False
+        self.gap_with_left = 0
+
+    def clear(self):
+        self.gap_with_left = 0
+        self.total_length = 0
+        self.changes = []
+
+    def set_complete(self, complete):
+        if self.complete != complete:
+            self.complete = complete
+            self.clear()
+
+    def adjust_range(self):
+        page_step = self.browsers[0].verticalScrollBar().pageStep()
+        self.setPageStep(page_step)
+        self.setRange(0, self.total_length - page_step + 4)
+        self.setVisible(self.total_length > page_step)
+
+    def get_position_info(self, target):
+        """
+        Get position info should scroll to.
+        target: 0 is self, 1 is left browser, 2 is right browser
+        """
+        basis_y = self.height() * SYNC_POSITION
+        if target == 0:
+            scbar = self
+            changes = self.changes
+        else:
+            b = self.browsers[target - 1]
+            scbar, changes = b.verticalScrollBar(), b.changes
+
+        if not self.complete:
+            return 'exact', scbar.value()
+        else:
+            value = scbar.value() + basis_y
+            prev = (0, 0, None)
+            for i, ch in enumerate(changes):
+                if value <= ch[1]:
+                    if ch[0] <= value:
+                        ratio = float(value - ch[0]) / (ch[1] - ch[0])
+                        return 'in', i, ratio
+                    else:
+                        offset = value - prev[1]
+                        return 'after', i - 1, offset
+                    break
+                else:
+                    prev = ch
+            else:
+                offset = value - prev[1]
+                return 'after', len(self.changes) - 1, offset
+
+    def scroll_to(self, target, position):
+        """
+        Scroll to specified position.
+        target: 0 is self, 1 is left browser, 2 is right browser
+        """
+        basis_y = self.height() * SYNC_POSITION
+        if target == 0:
+            scbar, changes = self, self.changes
+        else:
+            b = self.browsers[target - 1]
+            scbar, changes = b.verticalScrollBar(), b.changes
+        if position[0] == 'exact':
+            scbar.setValue(position[1])
+        elif position[0] == 'in':
+            change_idx, ratio = position[1:]
+            start, end = changes[change_idx][:2]
+            scbar.setValue(start + float(end - start) * ratio - basis_y)
+        else:
+            change_idx, offset = position[1:]
+            if change_idx < 0:
+                start = 0
+            else:
+                start = changes[change_idx][1]
+            scbar.setValue(start + offset - basis_y)
+
+    def scrolled(self, target):
+        if self.syncing:
+            return
+        try:
+            self.syncing = True
+            position = self.get_position_info(target)
+            for t in range(3):
+                if t != target:
+                    self.scroll_to(t, position)
+            self.handle.update()
+        finally:
+            self.syncing = False
+
+    def append_change(self, l_top, l_bot, r_top, r_bot, kind):
+        if not self.complete:
+            return
+        changes = self.changes
+        height = max(l_bot - l_top, r_bot - r_top)
+        top = l_top + self.gap_with_left
+        changes.append((top, top + height, kind))
+        self.gap_with_left = top + height - l_bot
+
+    def fix_document_length(self, cursors):
+        if not self.complete:
+            scbar = self.browsers[0].verticalScrollBar()
+            self.total_length = scbar.maximum() + scbar.pageStep()
+        else:
+            l = cursors[0].block().layout()
+            self.total_length = l.position().y() + l.boundingRect().height() \
+                                 + self.gap_with_left
+
+        self.adjust_range()
+
+
+class _SidebySideDiffView(QtGui.QSplitter):
     """Widget to show differences in side-by-side format."""
 
     def __init__(self, parent=None):
         QtGui.QSplitter.__init__(self, QtCore.Qt.Horizontal, parent)
         self.setHandleWidth(30)
+        self.complete = False
 
         titleFont = QtGui.QFont(self.font())
         titleFont.setPointSize(titleFont.pointSize() * 140 / 100)
@@ -224,6 +391,9 @@ class SidebySideDiffView(QtGui.QSplitter):
                      QtGui.QTextDocument())
         self.browsers = (DiffSourceView(self),
                          DiffSourceView(self))
+        for b in self.browsers:
+            b.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+
         self.cursors = [QtGui.QTextCursor(doc) for doc in self.docs]
         
         for i, (browser, doc, cursor) in enumerate(zip(self.browsers, self.docs, self.cursors)):
@@ -238,9 +408,9 @@ class SidebySideDiffView(QtGui.QSplitter):
             format.setAnchorNames(["top"])
             cursor.insertText("", format)
 
+        self.scrollbar = SidebySideDiffViewScrollBar(self.handle(1), self.browsers)
+
         self.ignoreUpdate = False
-        self.connect(self.browsers[0].verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.updateHandle1)
-        self.connect(self.browsers[1].verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.updateHandle2)
         self.connect(self.browsers[0].horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.syncHorizontalSlider1)
         self.connect(self.browsers[1].horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.syncHorizontalSlider2)
 
@@ -262,14 +432,20 @@ class SidebySideDiffView(QtGui.QSplitter):
             browser.setTabStopWidth(pixel_width)
     
     def clear(self):
-        
         self.browsers[0].clear()
         self.browsers[1].clear()
         self.handle(1).clear()
+        self.scrollbar.clear()
         for doc in self.docs:
             doc.clear()
         self.update()
-        
+
+    def set_complete(self, complete):
+        if self.complete != complete:
+            self.complete = complete
+            self.clear()
+            self.scrollbar.set_complete(complete)
+
     def append_diff(self, paths, file_id, kind, status, dates,
                     present, binary, lines, groups, data, properties_changed):
         cursors = self.cursors
@@ -445,24 +621,26 @@ class SidebySideDiffView(QtGui.QSplitter):
                 
                 if linediff == 0:
                     continue
-                if linediff < 0:
-                    i0 = group[-1][2]
-                    i1 = i0 - linediff
-                    exlines = display_lines[0][i0:i1]
-                    linediff = -linediff - len(exlines)
-                    cursor = cursors[0]
-                else:
-                    j0 = group[-1][4]
-                    j1 = j0 + linediff
-                    exlines = display_lines[1][j0:j1]
-                    linediff = linediff - len(exlines)
-                    cursor = cursors[1]
-                for l in exlines:
-                    insertLine(cursor, l)
-                
+                if not self.complete:
+                    if linediff < 0:
+                        i0 = group[-1][2]
+                        i1 = i0 - linediff
+                        exlines = display_lines[0][i0:i1]
+                        linediff = -linediff - len(exlines)
+                        cursor = cursors[0]
+                    else:
+                        j0 = group[-1][4]
+                        j1 = j0 + linediff
+                        exlines = display_lines[1][j0:j1]
+                        linediff = linediff - len(exlines)
+                        cursor = cursors[1]
+                    for l in exlines:
+                        insertLine(cursor, l)
+
                 if i % 100 == 0:
                     QtCore.QCoreApplication.processEvents()
         else:
+            y_top = [cursor.block().layout() for cursor in self.cursors]
             heights = [0,0]
             is_images = [False, False]
             for i in range(2):
@@ -490,18 +668,22 @@ class SidebySideDiffView(QtGui.QSplitter):
                         cursor.insertText(gettext('[binary file (%d bytes)]') % len(data[i]))
                 else:
                     cursor.insertText(" ")
-            #cursor.insertBlock(QtGui.QTextBlockFormat())
+                cursor.insertBlock(QtGui.QTextBlockFormat())
+            y_bot = [cursor.block().layout() for cursor in self.cursors]
+            changes.append((y_top[0], y_bot[0], y_top[1], y_bot[1], 'dummy'))
 
         for cursor in cursors:
             cursor.endEditBlock()
             cursor.insertText("\n")
-        maxy = max([c.block().layout().position().y() for c in cursors])
-        for cursor in cursors:
-            format = QtGui.QTextBlockFormat()
-            format.setBottomMargin(maxy-cursor.block().layout().position().y())
-            cursor.setBlockFormat(format)
-            cursor.insertBlock(QtGui.QTextBlockFormat())
-        
+        y_top = [cursor.block().layout() for cursor in self.cursors]
+        if not self.complete:
+            maxy = max([l.position().y() for l in y_top])
+            for cursor in cursors:
+                format = QtGui.QTextBlockFormat()
+                format.setBottomMargin(maxy-cursor.block().layout().position().y())
+                cursor.setBlockFormat(format)
+                cursor.insertBlock(QtGui.QTextBlockFormat())
+
         l_block = infoBlocks[0].position().y()
         r_block = infoBlocks[1].position().y()
         self.browsers[0].infoBlocks.append(l_block)
@@ -513,9 +695,11 @@ class SidebySideDiffView(QtGui.QSplitter):
             ly_bot = ly_bot.position().y() + 1
             ry_top = ry_top.position().y() - 1
             ry_bot = ry_bot.position().y() + 1
+            self.scrollbar.append_change(ly_top, ly_bot, ry_top, ry_bot, kind)
             self.browsers[0].changes.append((ly_top, ly_bot, kind))
             self.browsers[1].changes.append((ry_top, ry_bot, kind))
             self.handle(1).changes.append((ly_top, ly_bot, ry_top, ry_bot, kind))
+        self.scrollbar.fix_document_length(cursors)
         
         # check horizontal scrollbars and force both if scrollbar visible only at one side
         if (self.browsers[0].horizontalScrollBar().isVisible()
@@ -537,20 +721,6 @@ class SidebySideDiffView(QtGui.QSplitter):
             self.ignoreUpdate = True
             slider2.setValue(value)
             self.ignoreUpdate = False
-
-    def updateHandle1(self, value):
-        if not self.ignoreUpdate:
-            slider1 = self.browsers[0].verticalScrollBar()
-            slider2 = self.browsers[1].verticalScrollBar()
-            self._syncSliders(slider1, slider2, value)
-            self.handle(1).update()
-
-    def updateHandle2(self, value):
-        if not self.ignoreUpdate:
-            slider1 = self.browsers[0].verticalScrollBar()
-            slider2 = self.browsers[1].verticalScrollBar()
-            self._syncSliders(slider2, slider1, value)
-            self.handle(1).update()
 
     def syncHorizontalSlider1(self, value):
         if not self.ignoreUpdate:
@@ -619,6 +789,9 @@ class SimpleDiffView(QtGui.QTextBrowser):
         if not self.rewinded:
             self.rewinded = True
             self.scrollToAnchor("top")
+
+    def set_complete(self, complete):
+        self.clear()
 
     def append_diff(self, paths, file_id, kind, status, dates,
                     present, binary, lines, groups, data, properties_changed):

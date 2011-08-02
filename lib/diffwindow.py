@@ -311,6 +311,8 @@ class DiffWindow(QBzrWindow):
         self.diffview = SidebySideDiffView(self)
         self.sdiffview = SimpleDiffView(self)
         self.views = (self.diffview, self.sdiffview)
+        for view in self.views:
+            view.set_complete(complete)
 
         self.stack = QtGui.QStackedWidget(self.centralwidget)
         self.stack.addWidget(self.diffview)
@@ -675,6 +677,8 @@ class DiffWindow(QBzrWindow):
     def click_complete(self, checked ):
         self.complete = checked
         #Has the side effect of refreshing...
+        self.diffview.set_complete(checked)
+        self.sdiffview.set_complete(checked)
         self.diffview.clear()
         self.sdiffview.clear()
         run_in_loading_queue(self.load_diff)

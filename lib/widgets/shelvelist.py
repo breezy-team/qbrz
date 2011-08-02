@@ -383,6 +383,7 @@ class ShelveListWidget(ToolbarPanel):
                 appends = diffs[cur_len:]
             else:
                 for view in self.diffviews:
+                    view.set_complete(self.complete)
                     view.clear()
                 self.current_diffs = []
                 appends = diffs 
