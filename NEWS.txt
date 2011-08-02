@@ -4,6 +4,10 @@ qbzr.dev
  * qlog:
    * Do not crash on ghost revisions.
      (Jonathan Riddell, Bug: #785967)
+ * qdiff:
+   * Smart scroll syncronizing for side by side view. (in complete mode)
+     (IWATA Hidetaka)
+   
 
 0.21 "Tilia" - 2011/07/21
 -------------------------
@@ -59,10 +63,10 @@ Changes after 0.21 beta 1:
      (Bug #490377, A. S. Budden)
  * qgetnew:
    * The target location no longer gets overwritten 
-     when the source location changes. (André Bachmann)
+     when the source location changes. (Andrﾃｩ Bachmann)
  * qlog:
    * File list context menu: added support to save content of a file 
-     of specific revision as a new file. (André Bachmann)
+     of specific revision as a new file. (Andrﾃｩ Bachmann)
    * Show digital signature information for commits if python-gpgme is
      installed
  * Improved error dialogs on internal/other error, 
@@ -95,13 +99,13 @@ Changes after 0.21 beta 1:
      (Alexander Belchenko, Bug #655451)
  * qdiff:
    * New toolbar with controls and options (similar to qannotate's toolbar).
-     (Dorin Scutarașu)
+     (Dorin Scutaraﾈ冰)
    * Support for ignore whitespace differences in changes. 
      This mode can be turned on from command-line (`qdiff -w` 
      or `qdiff --ignore-whitespace`) and from GUI itself (in View Options).
-     (Dorin Scutarașu, Glen Mailer, Bug #642000)
+     (Dorin Scutaraﾈ冰, Glen Mailer, Bug #642000)
    * Added Find action to do text search within either pane.
-     (Dorin Scutarașu, Bug #497832)
+     (Dorin Scutaraﾈ冰, Bug #497832)
  * qinfo:
    * Significantly simpler implementation that shows the information
      provided by Bazaar.  This fills in the gaps in the data shown
@@ -452,7 +456,7 @@ What's new in this release:
  * Serbian translations added.
 
 
-0.17 "Sapin de Noël" - 2009/12/12
+0.17 "Sapin de Noﾃｫl" - 2009/12/12
 ---------------------------------
 What's new in this release:
 
@@ -1297,34 +1301,34 @@ See "Help translate" section in README.txt for details.
 
  * qannotate:
     * Double clicking history in annotate window should open diff window.
-      (Lukáš Lalinský, #148024)
+      (Lukﾃ｡ﾅ｡ Lalinskﾃｽ, #148024)
  * qbrowse:
     * Context menu "Show log" now actually works.
       (Alexander Belchenko, Mario del Pozo, #147434)
  * qcat:
     * Show contents of a file in a particular revision.
-      (Lukáš Lalinský)
+      (Lukﾃ｡ﾅ｡ Lalinskﾃｽ)
  * qcommit:
     * Ask for confirmation when trying to commit with empty message.
-      (Lukáš Lalinský, #173327)
+      (Lukﾃ｡ﾅ｡ Lalinskﾃｽ, #173327)
     * Remember the last message on cancel or error.
-      (Lukáš Lalinský, #149743)
+      (Lukﾃ｡ﾅ｡ Lalinskﾃｽ, #149743)
  * qconfig:
-    * New command. (Lukáš Lalinský)
+    * New command. (Lukﾃ｡ﾅ｡ Lalinskﾃｽ)
  * qdiff:
     * Removed unused option --inline. (Alexander Belchenko, #148409)
     * Fix a special case where the line in the HTML view still contained
-      newline characters. (Lukáš Lalinský)
-    * Fix failure for modified file in moved directory. (Lukáš Lalinský)
+      newline characters. (Lukﾃ｡ﾅ｡ Lalinskﾃｽ)
+    * Fix failure for modified file in moved directory. (Lukﾃ｡ﾅ｡ Lalinskﾃｽ)
  * qlog:
     * Add a global branch lock around qlog to make showing of modified
-      files on packs faster. (Lukáš Lalinský, #173327)
-    * Use a flat list for single-file log. (Lukáš Lalinský, #172558)
+      files on packs faster. (Lukﾃ｡ﾅ｡ Lalinskﾃｽ, #173327)
+    * Use a flat list for single-file log. (Lukﾃ｡ﾅ｡ Lalinskﾃｽ, #172558)
     * Display text with the right color for selected but non-active lines
       with tags/bugs. (Alexander Belchenko)
     * Open a single-file diff window after double-clicking on a file.
-      (Lukáš Lalinský, #148410)
-    * Search in commit messages. (Lukáš Lalinský, #162952)
+      (Lukﾃ｡ﾅ｡ Lalinskﾃｽ, #148410)
+    * Search in commit messages. (Lukﾃ｡ﾅ｡ Lalinskﾃｽ, #162952)
 
 0.7.1 - 2007-11-17
 ------------------
