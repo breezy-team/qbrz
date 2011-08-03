@@ -1,13 +1,24 @@
-qbzr.dev 
---------
+0.22 beta 1 - not released yet
+------------------------------
 
  * qlog:
    * Do not crash on ghost revisions.
-     (Jonathan Riddell, Bug: #785967)
+     (Jonathan Riddell, Bug #785967)
  * qdiff:
    * Smart scroll syncronizing for side by side view. (in complete mode)
      (IWATA Hidetaka)
-   
+
+
+0.21.1 development
+------------------
+Maintenance release.
+
+ * qlog:
+   * Do not crash on ghost revisions.
+     (Jonathan Riddell, Bug #785967)
+ * qswitch:
+   * Support unicode locations. (Alexander Belchenko, Bug #819259)
+
 
 0.21 "Tilia" - 2011/07/21
 -------------------------
@@ -126,6 +137,14 @@ Changes after 0.21 beta 1:
      are characters (so 4 means a tab should be displayed with the width of 4
      spaces).  The default value is 8.  The setting can also be adjusted in
      branch.conf for specific branches.  (Bug #490377, A. S. Budden)
+
+
+0.20.3 - not released yet
+-------------------------
+Maintenance release.
+
+ * qswitch:
+   * Support unicode locations. (Alexander Belchenko, Bug #819259)
 
 
 0.20.2 - 2011/07/20
