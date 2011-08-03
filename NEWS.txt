@@ -2,6 +2,9 @@
 -------------------------
 Maintenance release.
 
+ * qswitch:
+   * Support unicode locations. (Alexander Belchenko, Bug #819259)
+
 
 0.20.2 - 2011/07/20
 -------------------

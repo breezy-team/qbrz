@@ -37,6 +37,7 @@ from bzrlib.plugins.qbzr.lib.trace import (
    reports_exception,
    SUB_LOAD_METHOD)
 
+
 class QBzrSwitchWindow(SubProcessDialog):
 
     def __init__(self, branch, bzrdir, location, ui_mode = None):
@@ -50,15 +51,15 @@ class QBzrSwitchWindow(SubProcessDialog):
                                   parent = None,
                                   hide_progress=False,
                                   )
-            
+
         self.branch = branch
-        
+
         gbSwitch = QtGui.QGroupBox(gettext("Switch checkout"), self)
 
         switch_box = QtGui.QFormLayout(gbSwitch)
-        
+
         branchbase = None
-        
+
         boundloc = branch.get_bound_location()
         if boundloc is not None:
             label = gettext("Heavyweight checkout:")
@@ -75,49 +76,49 @@ class QBzrSwitchWindow(SubProcessDialog):
         switch_box.addRow(gettext("Checkout of branch:"),
                           QtGui.QLabel(url_for_display(boundloc)))
         self.boundloc = url_for_display(boundloc)
-        
+
         throb_hbox = QtGui.QHBoxLayout()
-        
+
         self.throbber = ThrobberWidget(self)
         throb_hbox.addWidget(self.throbber)
         self.throbber.hide()
         switch_box.addRow(throb_hbox)
-        
+
         switch_hbox = QtGui.QHBoxLayout()
-        
+
         branch_label = QtGui.QLabel(gettext("Switch to branch:"))
         branch_combo = QtGui.QComboBox()   
         branch_combo.setEditable(True)
-        
+
         self.branch_combo = branch_combo
-        
+
         if location is not None:
             branch_combo.addItem(osutils.abspath(location))
         elif boundloc is not None:
             branch_combo.addItem(url_for_display(boundloc))
-            
+
         browse_button = QtGui.QPushButton(gettext("Browse"))
         QtCore.QObject.connect(browse_button, QtCore.SIGNAL("clicked(bool)"), self.browse_clicked)
-        
+
         switch_hbox.addWidget(branch_label)
         switch_hbox.addWidget(branch_combo)
         switch_hbox.addWidget(browse_button)
-        
+
         switch_hbox.setStretchFactor(branch_label,0)
         switch_hbox.setStretchFactor(branch_combo,1)
         switch_hbox.setStretchFactor(browse_button,0)
-        
+
         switch_box.addRow(switch_hbox)
 
         create_branch_box = QtGui.QCheckBox(gettext("Create Branch before switching"))
         create_branch_box.setChecked(False)
         switch_box.addRow(create_branch_box)
         self.create_branch_box = create_branch_box
-        
+
         layout = QtGui.QVBoxLayout(self)
-        
+
         layout.addWidget(gbSwitch)
-        
+
         layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
         self.branch_combo.setFocus()
@@ -128,20 +129,20 @@ class QBzrSwitchWindow(SubProcessDialog):
 
     @runs_in_loading_queue
     @ui_current_widget
-    @reports_exception(type=SUB_LOAD_METHOD)   
+    @reports_exception(type=SUB_LOAD_METHOD)
     def initial_load(self):
-        
+
         self.throbber.show()
         branch_combo = self.branch_combo
 
         repo = self.branch.bzrdir.find_repository()
-        
+
         if repo is not None:
             if getattr(repo, "iter_branches", None):
                 for br in repo.iter_branches():
                     self.processEvents()
                     branch_combo.addItem(url_for_display(br.base))
-                    
+
         self.throbber.hide()
 
     def browse_clicked(self):
@@ -156,19 +157,17 @@ class QBzrSwitchWindow(SubProcessDialog):
         if fileName:
             self.branch_combo.insertItem(0,fileName)
             self.branch_combo.setCurrentIndex(0)
-        
+
     @reports_exception(type=SUB_LOAD_METHOD)
     @ui_current_widget   
     def validate(self):
-        location = str(self.branch_combo.currentText())
-       
-        if(location == ''):
+        location = unicode(self.branch_combo.currentText())
+        if not location:
             raise errors.BzrCommandError("Branch location not specified.")
-        
         return True
-    
-    def do_start(self):        
-        location = str(self.branch_combo.currentText())
+
+    def do_start(self):
+        location = unicode(self.branch_combo.currentText())
         if self.create_branch_box.isChecked():
             self.process_widget.do_start(None, 'switch', '--create-branch', location)
         else:
