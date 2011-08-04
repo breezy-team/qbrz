@@ -9,13 +9,12 @@
      (IWATA Hidetaka)
 
 
-0.21.1 development
-------------------
+0.21.1 - 2011/08/04
+-------------------
 Maintenance release.
 
  * qlog:
-   * Do not crash on ghost revisions.
-     (Jonathan Riddell, Bug #785967)
+   * Do not crash on ghost revisions. (Jonathan Riddell, Bug #785967)
  * qswitch:
    * Support unicode locations. (Alexander Belchenko, Bug #819259)
 
