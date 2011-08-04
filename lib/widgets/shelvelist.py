@@ -391,8 +391,9 @@ class ShelveListWidget(ToolbarPanel):
                 lines = d.lines
                 groups = d.groups(self.complete, self.ignore_whitespace)
                 dates = d.dates[:]  # dates will be changed in append_diff
-                ulines = d.encode((self.encoding_selector.encoding,
-                                   self.encoding_selector.encoding))
+                ulines = d.get_unicode_lines(
+                    (self.encoding_selector.encoding,
+                     self.encoding_selector.encoding))
                 data = [''.join(l) for l in ulines]
                 for view in self.diffviews:
                     view.append_diff(list(d.paths), d.file_id, d.kind, d.status, dates, 

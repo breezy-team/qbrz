@@ -48,7 +48,6 @@ from bzrlib import transform
 from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
-from bzrlib.plugins.qbzr.lib.diffwindow import DiffItem
 from bzrlib.plugins.qbzr.lib.widgets.shelve import ShelveWidget
 from bzrlib.plugins.qbzr.lib.widgets.shelvelist import ShelveListWidget
 from bzrlib.plugins.qbzr.lib.widgets.splitters import Splitters
