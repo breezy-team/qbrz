@@ -288,8 +288,11 @@ class DiffItem(object):
                     try:
                         ulines[i] = [l.decode(encodings[i]) for l in lines[i]]
                     except UnicodeDecodeError, e:
-                        trace.note('Failed to decode using %s, falling back to latin1', e.encoding)
-                        ulines[i] = [l.decode('latin1') for l in lines[i]]
+                        trace.note("Some characters could not be properly decoded "
+                                   "using '%s' encoding "
+                                   "and therefore they replaced with special character",
+                                   e.encoding)
+                        ulines[i] = [l.decode(encodings[i], 'replace') for l in lines[i]]
         return ulines
 
 
