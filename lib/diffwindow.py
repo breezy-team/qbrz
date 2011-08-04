@@ -288,9 +288,12 @@ class DiffItem(object):
                     try:
                         ulines[i] = [l.decode(encodings[i]) for l in lines[i]]
                     except UnicodeDecodeError, e:
-                        trace.note("Some characters could not be properly decoded "
+                        filename = self.paths[i]
+                        trace.note("Some characters in file %s "
+                                   "could not be properly decoded "
                                    "using '%s' encoding "
-                                   "and therefore they replaced with special character",
+                                   "and therefore they replaced with special character.",
+                                   filename,
                                    e.encoding)
                         ulines[i] = [l.decode(encodings[i], 'replace') for l in lines[i]]
         return ulines
