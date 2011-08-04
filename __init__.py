@@ -51,7 +51,7 @@ Basic q-commands:
  * qunbind - Convert the current checkout into a regular branch.
  * quncommit - Move the tip of a branch to an earlier revision.
  * qupdate - Update working tree with latest changes in the branch.
- * qverify-signatures - Show digital signatures information
+ * qverify-signatures - Show digital signatures information.
  * qversion - Show version/system information.
 
 Hybrid dialogs:
@@ -71,7 +71,7 @@ Miscellaneous:
  * bug-url - print full URL to a specific bug, or open it in your browser.
 """
 
-version_info = (0, 21, 1, 'dev', 0)
+version_info = (0, 21, 1, 'final', 0)
 __version__ = '.'.join(map(str, version_info))
 
 
