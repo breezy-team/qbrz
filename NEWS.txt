@@ -7,6 +7,10 @@
  * qdiff:
    * Smart scroll syncronizing for side by side view. (in complete mode)
      (IWATA Hidetaka)
+   * In the case of file content has mixed encoding that cannot be safely
+     decode to unicode qdiff don't fallback to use latin-1 encoding anymore,
+     but try to decode such content in "replace" mode.
+     (Alexander Belchenko, Bug #814117)
 
 
 0.21.1 - 2011/08/04
