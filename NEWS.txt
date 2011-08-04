@@ -7,7 +7,9 @@
  * qdiff:
    * Smart scroll syncronizing for side by side view. (in complete mode)
      (IWATA Hidetaka)
-
+ * qverify-signatures:
+   * Report commits signed with expired keys in "verify-signatures".
+     (Jonathan Riddell, #804254)
 
 0.21.1 - 2011/08/04
 -------------------
