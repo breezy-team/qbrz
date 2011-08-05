@@ -666,7 +666,7 @@ class QBzrConfigWindow(QBzrDialog):
     
     def merge_tools_set_default_clicked(self):
         sel_model = self.merge_ui.tools.selectionModel()
-        self.merge_tools_model.set_default(self.get_selected_merge_tool().name)
+        self.merge_tools_model.set_default(self.get_selected_merge_tool())
         
     def browseEditor(self):
         filename = QtGui.QFileDialog.getOpenFileName(self,

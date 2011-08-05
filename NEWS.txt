@@ -2,6 +2,9 @@
 -----------------------
 Maintenance release.
 
+ * qconfig:
+   * Fixed Set Default button in Merge tab. (Gordon Tyler, Bug #820635)
+
 
 0.21.1 - 2011/08/04
 -------------------
