@@ -34,18 +34,21 @@ from bzrlib.plugins.qbzr.lib.util import (
     DIRECTORYPICKER_TARGET,
     get_qbzr_config,
     )
-
+#from bzrlib.trace import mutter
 
 class GetNewWorkingTreeWindow(SubProcessDialog):
 
     NAME = "new_tree"
-    config = get_qbzr_config()
-    checkout_basedir = config.get_option("checkout_basedir")
-    branchsource_basedir = config.get_option("branchsource_basedir")
-    
+
     def __init__(self, to_location, ui_mode=True, parent=None):
+        config = get_qbzr_config()
+        checkout_basedir = config.get_option("checkout_basedir")
+        branchsource_basedir = config.get_option("branchsource_basedir")
+        #mutter("*** co: %s", checkout_basedir)
+        #mutter("*** bs: %s", branchsource_basedir)
+        #mutter("*** to_l: %s", to_location)
         if not to_location:
-            to_location = self.checkout_basedir or u'.'
+            to_location = checkout_basedir or u'.'
         self.to_location = os.path.abspath(to_location)
         super(GetNewWorkingTreeWindow, self).__init__(
                                   name = self.NAME,
@@ -79,8 +82,8 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
         self.ui.but_checkout.setChecked(True)
         self.ui.but_rev_tip.setChecked(True)
         self.ui.to_location.setText(self.to_location)
-        if self.branchsource_basedir is not None:
-            self.from_location = self.branchsource_basedir
+        if branchsource_basedir is not None:
+            self.from_location = branchsource_basedir
             self.ui.from_location.setEditText(self.from_location)
 
     def to_location_changed(self):
