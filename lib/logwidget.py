@@ -100,6 +100,7 @@ class LogList(RevisionTreeView):
                          QtCore.SIGNAL("doubleClicked(QModelIndex)"),
                          self.default_action)
         self.context_menu = QtGui.QMenu(self)
+        self.context_menu_initialized = False
 
     def load(self, *args, **kargs):
         self.load_args = (args, kargs)
@@ -114,6 +115,9 @@ class LogList(RevisionTreeView):
         self.load(*args, **kargs)
     
     def create_context_menu(self, diff_is_default_action=True):
+        if self.context_menu_initialized:
+            return
+        self.context_menu_initialized = True
         branch_count = len(self.log_model.graph_viz.branches)
         has_file_filter = bool(self.log_model.file_id_filter)
         
