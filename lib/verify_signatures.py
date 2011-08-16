@@ -126,6 +126,14 @@ class QBzrVerifySignaturesWindow(QBzrDialog):
             for verbose_message in gpg_strategy.verbose_valid_message(result):
                 QTreeWidgetItem(valid_commit_message, [verbose_message])
 
+            expired_key_message = QTreeWidgetItem(
+                            [gpg_strategy.expired_commit_message(count)] )
+            self.ui.treeWidget.addTopLevelItem(expired_key_message)
+            for verbose_message in \
+                              gpg_strategy.verbose_expired_key_message(result,
+                                                                         repo):
+                QTreeWidgetItem(expired_key_message, [verbose_message])
+
             unknown_key_message = QTreeWidgetItem(
                             [gpg_strategy.unknown_key_message(count)] )
             self.ui.treeWidget.addTopLevelItem(unknown_key_message)
