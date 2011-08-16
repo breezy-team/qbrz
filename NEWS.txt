@@ -2,6 +2,9 @@
 -------------------------
 Maintenance release.
 
+ * qbrowse:
+   * Does not crash anymore when called for shared repository.
+     (André Bachmann, Alexander Belchenko, Bug #578935)
  * qlog:
    * Show context menu properly after re-load of branch(es).
      (IWATA Hidetaka, Bug #744904)
