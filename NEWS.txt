@@ -7,6 +7,9 @@ Maintenance release.
      (André Bachmann, Alexander Belchenko, Bug #578935)
  * qconfig:
    * Fixed Set Default button in Merge tab. (Gordon Tyler, Bug #820635)
+ * qdiff:
+   * Fixed ignore whitespace changes code.
+     (Alexander Belchenko, Bug #827391)
  * qlog:
    * Show context menu properly after re-load of branch(es).
      (IWATA Hidetaka, Bug #744904)

@@ -21,8 +21,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import errno
+import re
 import time
-import string
 
 from PyQt4 import QtCore, QtGui
 
@@ -259,10 +259,9 @@ class DiffItem(object):
     def difference_groups(self, lines, complete, ignore_whitespace):
         left, right = lines
         if ignore_whitespace:
-            table = string.maketrans("", "")
-            strip = lambda l : l.translate(table, string.whitespace)
-            left  = (line.translate(table, string.whitespace) for line in left)
-            right = (line.translate(table, string.whitespace) for line in right)
+            re_whitespaces = re.compile("\s+")
+            left  = (re_whitespaces.sub(" ", line) for line in left)
+            right = (re_whitespaces.sub(" ", line) for line in right)
         matcher = SequenceMatcher(None, left, right)
         if complete:
             groups = list([matcher.get_opcodes()])
@@ -270,7 +269,6 @@ class DiffItem(object):
             groups = list(matcher.get_grouped_opcodes())
 
         return groups
-
 
     def encode(self, encodings):
         lines = self.lines
@@ -287,6 +285,7 @@ class DiffItem(object):
                         trace.note('Failed to decode using %s, falling back to latin1', e.encoding)
                         ulines[i] = [l.decode('latin1') for l in lines[i]]
         return ulines
+
 
 class DiffWindow(QBzrWindow):
 
