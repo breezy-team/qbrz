@@ -4,6 +4,9 @@ Maintenance release.
 
  * qconfig:
    * Fixed Set Default button in Merge tab. (Gordon Tyler, Bug #820635)
+ * qlog:
+   * Show context menu properly after re-load of branch(es).
+     (IWATA Hidetaka, Bug #744904)
 
 
 0.21.1 - 2011/08/04
@@ -139,6 +142,9 @@ Changes after 0.21 beta 1:
 -------------------------
 Maintenance release.
 
+ * qlog:
+   * Show context menu properly after re-load of branch(es).
+     (IWATA Hidetaka, Bug #744904)
  * qswitch:
    * Support unicode locations. (Alexander Belchenko, Bug #819259)
 
