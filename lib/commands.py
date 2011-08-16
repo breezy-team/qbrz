@@ -344,6 +344,7 @@ class cmd_qbrowse(QBzrCommand):
     aliases = ['qbw']
 
     def _qbzr_run(self, revision=None, location=None):
+        Branch.open_containing(location or u'.')  # if there is no branch we want NotBranchError raised
         if revision is None:
             win = BrowseWindow(location = location)
         else:
