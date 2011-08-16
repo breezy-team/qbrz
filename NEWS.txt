@@ -2,6 +2,9 @@
 -----------------------
 Maintenance release.
 
+ * qbrowse:
+   * Does not crash anymore when called for shared repository.
+     (André Bachmann, Alexander Belchenko, Bug #578935)
  * qconfig:
    * Fixed Set Default button in Merge tab. (Gordon Tyler, Bug #820635)
  * qlog:
@@ -142,6 +145,9 @@ Changes after 0.21 beta 1:
 -------------------------
 Maintenance release.
 
+ * qbrowse:
+   * Does not crash anymore when called for shared repository.
+     (André Bachmann, Alexander Belchenko, Bug #578935)
  * qlog:
    * Show context menu properly after re-load of branch(es).
      (IWATA Hidetaka, Bug #744904)
