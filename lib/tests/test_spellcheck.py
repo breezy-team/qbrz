@@ -18,7 +18,11 @@
 
 """Tests for QBzr plugin."""
 
-from bzrlib.tests import TestCase, Feature
+from bzrlib.tests import TestCase
+try:
+    from bzrlib.tests.features import Feature
+except ImportError: # bzr < 2.5
+    from bzrlib.tests import Feature
 from bzrlib.plugins.qbzr.lib.spellcheck import SpellChecker
 
 
