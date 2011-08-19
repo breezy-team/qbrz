@@ -13,6 +13,7 @@ Maintenance release.
  * qlog:
    * Show context menu properly after re-load of branch(es).
      (IWATA Hidetaka, Bug #744904)
+ * Updated translations.
 
 
 0.21.1 - 2011/08/04
