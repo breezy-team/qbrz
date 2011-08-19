@@ -1052,7 +1052,11 @@ class cmd_qrun(QBzrCommand):
         directory=None, category=None, execute=False):
         from bzrlib.plugins.qbzr.lib.run import QBzrRunDialog
         if parameters_list:
-            parameters = " ".join(parameters_list)
+            def quote_spaces(s):
+                if " " in s:
+                    s = '"%s"' % s
+                return s
+            parameters = " ".join([quote_spaces(i) for i in parameters_list])
         else:
             parameters = None
         if not command:

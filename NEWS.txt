@@ -8,6 +8,9 @@ Maintenance release.
  * qlog:
    * Show context menu properly after re-load of branch(es).
      (IWATA Hidetaka, Bug #744904)
+ * qrun:
+   * Command-line arguments with spaces properly quoted.
+     (Alexander Belchenko, Bug #824381)
  * qswitch:
    * Support unicode locations. (Alexander Belchenko, Bug #819259)
 
