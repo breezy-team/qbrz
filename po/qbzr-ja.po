@@ -7,16 +7,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-03 22:29+0900\n"
-"PO-Revision-Date: 2010-08-11 22:19+0000\n"
-"Last-Translator: iwata <Unknown>\n"
+"POT-Creation-Date: 2011-08-03 08:37+0300\n"
+"PO-Revision-Date: 2011-08-04 14:34+0000\n"
+"Last-Translator: IWATA Hidetaka <Unknown>\n"
 "Language-Team: Japanese <ja@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2011-07-20 19:41+0000\n"
-"X-Generator: Launchpad (build 13468)\n"
+"X-Launchpad-Export-Date: 2011-08-16 16:08+0000\n"
+"X-Generator: Launchpad (build 13687)\n"
 
 #: lib\add.py:45 lib\config.py:139 lib\config.py:160 lib\config.py:191
 #: lib\ui_merge_config.py:60
@@ -42,7 +42,7 @@ msgstr "読み込み中..."
 
 #: lib\annotate.py:301 lib/widgets\shelve.py:306 lib/widgets\shelvelist.py:124
 msgid "Encoding"
-msgstr "エンコーディング"
+msgstr "エンコード"
 
 #: lib\annotate.py:323 lib/widgets\shelve.py:290 lib/widgets\shelvelist.py:105
 #: lib/widgets\toolbars.py:63
@@ -69,7 +69,7 @@ msgstr "行の折り返し"
 
 #: lib\annotate.py:345
 msgid "Tab Width"
-msgstr ""
+msgstr "タブ文字の幅"
 
 #: lib\annotate.py:422
 #, python-format
@@ -85,9 +85,8 @@ msgid "Go"
 msgstr "移動"
 
 #: lib\annotate.py:689
-#, fuzzy
 msgid "Close Goto Line"
-msgstr "指定行へジャンプ"
+msgstr "行指定パネルを閉じる"
 
 #: lib\annotate.py:724
 msgid "&Annotate this revision"
@@ -170,9 +169,7 @@ msgstr "ローカルコミット(&L)"
 msgid ""
 "Local commits are not pushed to the master branch until a normal commit is "
 "performed"
-msgstr ""
-"通常のコミットが行われるまで、ローカルコミットはマスターブランチへと送られる"
-"ことはありません"
+msgstr "通常のコミットが行われるまで、ローカルコミットはマスターブランチへと送られることはありません"
 
 #: lib\commit.py:267
 msgid "Description:"
@@ -185,15 +182,12 @@ msgid ""
 "You can also pass select local to commit to continue working disconnected."
 msgstr ""
 "ローカルブランチはマスターブランチよりも古くなっています。\n"
-"マスターブランチにコミットするには、まずローカルブランチを更新してくださ"
-"い。\n"
+"マスターブランチにコミットするには、まずローカルブランチを更新してください。\n"
 "ローカルコミットを選択してスタンドアロンで作業を続けることもできます。"
 
 #: lib\commit.py:286
 msgid "Working tree is out of date. To commit, update the working tree."
-msgstr ""
-"作業ツリーは古くなっています。コミットするには、まず作業ツリーを更新してくだ"
-"さい。"
+msgstr "作業ツリーは古くなっています。コミットするには、まず作業ツリーを更新してください。"
 
 #: lib\commit.py:300 lib\logwidget.py:471
 msgid "Update"
@@ -225,8 +219,7 @@ msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
 msgstr ""
-"バグIDのリストを入力する　フォーマットは <i>tag:id</i>でスペースで区切る。例 "
-"<i>project:123 project:765</i>"
+"バグIDのリストを入力する　フォーマットは <i>tag:id</i>でスペースで区切る。例 <i>project:123 project:765</i>"
 
 #: lib\commit.py:372
 msgid "&Author:"
@@ -237,9 +230,9 @@ msgid "Set the author of this change, if it's different from the committer"
 msgstr "この変更の著者がコミッターと異なるなら著者を設定"
 
 #: lib\commit.py:376
-msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
-msgstr ""
-"著者の名前を入力してください。(例: <i>John Doe &lt;jdoe@example.com&gt;</i>)"
+msgid ""
+"Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
+msgstr "著者の名前を入力してください。(例: <i>John Doe &lt;jdoe@example.com&gt;</i>)"
 
 #: lib\commit.py:391
 msgid "Changes"
@@ -260,9 +253,8 @@ msgid "View changes in files selected to commit"
 msgstr "選択されたファイルの変更点を見る"
 
 #: lib\commit.py:638
-#, fuzzy
 msgid "You should provide a commit message."
-msgstr "コミットメッセージを入力すべきです。"
+msgstr "コミットメッセージを入力してください"
 
 #: lib\commit.py:639 lib\conflicts.py:186 lib\conflicts.py:191
 #: lib\diffwindow.py:657 lib\util.py:69 lib/widgets\shelve.py:611
@@ -287,16 +279,13 @@ msgstr ""
 msgid ""
 "A commit will be made directly to the master branch, keeping the local and "
 "master branches in sync."
-msgstr ""
-"コミットはマスターブランチに送られ、ローカルとマスターブランチ間で同期します"
+msgstr "コミットはマスターブランチに送られ、ローカルとマスターブランチ間で同期します"
 
 #: lib\commit.py:753
 msgid ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
-msgstr ""
-"ブランチへのローカルコミットが行われます。ローカルコミットでないコミットをし"
-"ない限り、マスターブランチは更新されません。"
+msgstr "ブランチへのローカルコミットが行われます。ローカルコミットでないコミットをしない限り、マスターブランチは更新されません。"
 
 #: lib\commit.py:786 lib\diff.py:103 lib\diffwindow.py:297
 #: lib\diffwindow.py:350 lib\diffwindow.py:564 lib\diffwindow.py:647
@@ -365,10 +354,12 @@ msgid ""
 "Tab width in characters\n"
 "option is used in qdiff, qannotate and qcat windows"
 msgstr ""
+"タブ文字の幅\n"
+"qdiff、qannotate、qcatウインドウで使用されるオプションです。"
 
 #: lib\config.py:125
 msgid "Tab &Width:"
-msgstr ""
+msgstr "タブ文字の幅(&W)"
 
 #: lib\config.py:137
 msgid "Alias"
@@ -406,7 +397,7 @@ msgstr "名前"
 
 #: lib\config.py:238
 msgid "Bazaar 2.4 or newer is required to configure mergetools."
-msgstr ""
+msgstr "マージツールを設定するためにはBazaar 2.4以降が必要です"
 
 #: lib\config.py:241
 msgid "General"
@@ -442,7 +433,7 @@ msgstr "組み込みのdiff"
 
 #: lib\config.py:404
 msgid "Import old external merge tool"
-msgstr ""
+msgstr "古いマージツール設定の取り込み"
 
 #: lib\config.py:405
 #, python-format
@@ -455,6 +446,10 @@ msgid ""
 "\n"
 "  %(new_cmdline)s"
 msgstr ""
+"古い外部マージツール設定を取り込みますか？\n"
+"  %(old_cmdline)s\n"
+"新しい設定:\n"
+"  %(new_cmdline)s"
 
 #: lib\config.py:408
 msgid "old_cmdline"
@@ -462,20 +457,19 @@ msgstr ""
 
 #: lib\config.py:562
 msgid "&Ignore and proceed"
-msgstr ""
+msgstr "そのまま処理を進める(&I)"
 
 #: lib\config.py:563
 msgid "&Change the values"
-msgstr ""
+msgstr "値を変更する(&C)"
 
 #: lib\config.py:673
 msgid "Select editor executable"
 msgstr "エディタを選択"
 
 #: lib\config.py:914
-#, fuzzy
 msgid "Command Line"
-msgstr "コマンド"
+msgstr "コマンドライン"
 
 #: lib\conflicts.py:49 lib\conflicts.py:165 lib\conflicts.py:182
 #: lib\conflicts.py:189
@@ -532,7 +526,7 @@ msgstr "エラー"
 
 #: lib\conflicts.py:246
 msgid "Bazaar 2.4 or later is required for external mergetools support"
-msgstr ""
+msgstr "外部マージツールのサポートにはBazaar 2.4以降が必要です"
 
 #: lib\conflicts.py:256
 msgid "Set up external_merge app in qconfig under the Merge tab"
@@ -541,7 +535,7 @@ msgstr "qconfig の merge タブで外部のマージプログラムを設定し
 #: lib\conflicts.py:260
 #, python-format
 msgid "External merge tool %(tool)s is not available"
-msgstr ""
+msgstr "外部マージツール %(tool)s は使用できません"
 
 #: lib\conflicts.py:280
 #, python-format
@@ -551,8 +545,7 @@ msgid ""
 "tab."
 msgstr ""
 "外部マージツールの定義が無効です。: '%(tool)s'\n"
-"フラグ '%(flags)s' が指定されていません。qconfigのマージタブで修正してくださ"
-"い。"
+"フラグ '%(flags)s' が指定されていません。qconfigのマージタブで修正してください。"
 
 #: lib\conflicts.py:286
 #, python-format
@@ -620,9 +613,9 @@ msgid "Properties:"
 msgstr "プロパティ:"
 
 #: lib\diffview.py:668
-#, fuzzy, python-format
+#, python-format
 msgid "[binary file (%d bytes)]"
-msgstr "[バイナリファイル]"
+msgstr "[バイナリファイル (%d byte)]"
 
 #: lib\diffview.py:843
 msgid "\\ No newline at end of file"
@@ -682,13 +675,12 @@ msgid "modified"
 msgstr "変更"
 
 #: lib\diffwindow.py:387
-#, fuzzy
 msgid "&Find"
-msgstr "検索"
+msgstr "検索(&F)"
 
 #: lib\diffwindow.py:389
 msgid "Find on active panel"
-msgstr ""
+msgstr "アクティブなパネル上で検索します"
 
 #: lib\diffwindow.py:396 lib/widgets\shelvelist.py:108
 msgid "Unidiff"
@@ -696,7 +688,7 @@ msgstr "Unified形式で表示"
 
 #: lib\diffwindow.py:398
 msgid "Toggle between Side by side and Unidiff view modes"
-msgstr ""
+msgstr "サイドバイサイド表示とUnidiff表示を切り替えます"
 
 #: lib\diffwindow.py:410 lib\main.py:274 lib\util.py:73
 #: lib/widgets\shelve.py:355 lib/widgets\shelvelist.py:197
@@ -704,46 +696,41 @@ msgid "&Refresh"
 msgstr "更新(&R)"
 
 #: lib\diffwindow.py:421
-#, fuzzy
 msgid "&External Diff"
-msgstr "外部の diff プログラム"
+msgstr "外部Diffツール(&E)"
 
 #: lib\diffwindow.py:423
 msgid "Launch an external diff application"
-msgstr ""
+msgstr "外部Diffツールを起動します"
 
 #: lib\diffwindow.py:437 lib/widgets\shelvelist.py:113
-#, fuzzy
 msgid "&Complete"
-msgstr "すべて"
+msgstr "全体表示(&C)"
 
 #: lib\diffwindow.py:453 lib/widgets\shelve.py:301
 #: lib/widgets\shelvelist.py:120
 msgid "Tab width"
-msgstr ""
+msgstr "タブの幅"
 
 #: lib\diffwindow.py:463
 msgid "Left side tab width"
-msgstr ""
+msgstr "左側のタブ幅"
 
 #: lib\diffwindow.py:473
-#, fuzzy
 msgid "Right side tab width"
-msgstr "右側のエンコード"
+msgstr "右側のタブ幅"
 
 #: lib\diffwindow.py:489
-#, fuzzy
 msgid "Left side encoding"
 msgstr "左側のエンコード"
 
 #: lib\diffwindow.py:499
-#, fuzzy
 msgid "Right side encoding"
 msgstr "右側のエンコード"
 
 #: lib\diffwindow.py:505
 msgid "&Ignore whitespace changes"
-msgstr ""
+msgstr "空白の変更を無視する(&I)"
 
 #: lib\diffwindow.py:570 lib/widgets\shelve.py:448
 #, python-format
@@ -901,7 +888,7 @@ msgstr "バグ"
 msgid ""
 "It is not possible to specify different file paths and different branches at "
 "the same time."
-msgstr ""
+msgstr "違うファイルパスと違うブランチを同時に指定することはできません。"
 
 #: lib\log.py:364
 msgid "Messages and File text (indexed)"
@@ -916,18 +903,16 @@ msgid "View file"
 msgstr "ファイルを表示"
 
 #: lib\log.py:577
-#, fuzzy
 msgid "Save file on this revision as..."
-msgstr "このリビジョンに更新(&U)"
+msgstr "このリビジョンのファイルを保存する..."
 
 #: lib\log.py:581
-#, fuzzy
 msgid "Revert to this revision"
-msgstr "%sを最新のリビジョンに戻す"
+msgstr "このリビジョンに戻す"
 
 #: lib\log.py:830
 msgid "Not a file"
-msgstr ""
+msgstr "ファイルではありません"
 
 #: lib\log.py:831
 #, python-format
@@ -935,22 +920,22 @@ msgid ""
 "Operation is supported for a single file only,\n"
 "not for a %s."
 msgstr ""
+"この操作は単体ファイルに対してだけ実行できます。\n"
+"%s は対象外です。"
 
 #: lib\log.py:835
-#, fuzzy
 msgid "Save file in this revision as..."
-msgstr "このリビジョンに更新(&U)"
+msgstr "このリビジョンのファイルを保存する.."
 
 #: lib\log.py:846
-#, fuzzy
 msgid "Revert File"
-msgstr "元に戻す"
+msgstr "ファイルをこのバージョンに戻す"
 
 #: lib\log.py:847
 msgid ""
 "Are you sure you want to revert this file to the state it was at the "
 "selected revision?"
-msgstr ""
+msgstr "本当にこのファイルを選択したバージョンの時点の状態に戻してもよろしいですか？"
 
 #: lib\logmodel.py:43 lib\treewidget.py:354
 msgid "Rev"
@@ -994,9 +979,8 @@ msgid "Tag &revision..."
 msgstr "このリビジョンにタグを付加する(&R)"
 
 #: lib\logwidget.py:187
-#, fuzzy
 msgid "R&evert to this revision"
-msgstr "%sを最新のリビジョンに戻す"
+msgstr "このバージョンに戻す(&e)"
 
 #: lib\logwidget.py:191
 msgid "&Update to this revision"
@@ -1004,21 +988,21 @@ msgstr "このリビジョンに更新(&U)"
 
 #: lib\logwidget.py:199
 msgid "&Cherry pick"
-msgstr ""
+msgstr "チェリーピック(&C)"
 
 #: lib\logwidget.py:205
 msgid "Re&verse Cherry pick"
-msgstr ""
+msgstr "リバースチェリーピック(&v)"
 
 #: lib\logwidget.py:441
-#, fuzzy, python-format
+#, python-format
 msgid "Revert to revision %s revid:%s."
-msgstr "リビジョン%s(リビジョンID：%s)に更新します"
+msgstr "リビジョン%s (ID:%s)に戻す"
 
 #: lib\logwidget.py:444
-#, fuzzy, python-format
+#, python-format
 msgid "Revert %s to revision %s revid:%s."
-msgstr "%sをリビジョン%s(リビジョンID：%s)に更新します"
+msgstr "%sをリビジョン%s (ID:%s)に戻す"
 
 #: lib\logwidget.py:449 lib\revert.py:54 lib\subprocess.py:185
 #: lib\treewidget.py:1946
@@ -1038,25 +1022,25 @@ msgstr "%sをリビジョン%s(リビジョンID：%s)に更新します"
 #: lib\logwidget.py:487
 #, python-format
 msgid "Cherry-pick revisions %s - %s from %s to %s."
-msgstr ""
+msgstr "リビジョン%s～%s を、%sから%sに取り込みます。"
 
 #: lib\logwidget.py:494
 msgid "Cherry-pick"
-msgstr ""
+msgstr "チェリーピッキング"
 
 #: lib\logwidget.py:507
 #, python-format
 msgid "Reverse cherry-pick revisions %s - %s"
-msgstr ""
+msgstr "リビジョン%s～%sの変更を取り消し(リバースチェリーピッキング)します。"
 
 #: lib\logwidget.py:510
 #, python-format
 msgid "Reverse cherry-pick revisions %s - %s in %s."
-msgstr ""
+msgstr "リビジョン%s～%sの変更を%sで取り消し(リバースチェリーピッキング)します。"
 
 #: lib\logwidget.py:516
 msgid "Reverse cherry-pick"
-msgstr ""
+msgstr "リバースチェリーピッキング"
 
 #: lib\main.py:120
 msgid "Computer"
@@ -1153,15 +1137,15 @@ msgstr "QBzrについて"
 #: lib\main.py:407
 #, python-format
 msgid ""
-"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
-"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
-"\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
-"<b>QBzr</b> — Bazaarのグラフィカルインターフェース<br><small>バージョン %"
-"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2008 Lukáš Lalinský とその他の方々<br><br><a href=\"http://bazaar-vcs.org/"
-"QBzr\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — Bazaarのグラフィカルインターフェース<br><small>バージョン %(qbzr_version)s (bzrlib "
+"%(bzrlib_version)s)</small><br><br>Copyright © 2006-2008 Lukáš Lalinský "
+"とその他の方々<br><br><a href=\"http://bazaar-vcs.org/QBzr\">http://bazaar-"
+"vcs.org/QBzr</a>"
 
 #: lib\main.py:472
 msgid "Add Bookmark"
@@ -1268,7 +1252,7 @@ msgstr "子供:"
 
 #: lib\revisionmessagebrowser.py:205
 msgid "Signature:"
-msgstr ""
+msgstr "署名:"
 
 #: lib\revisionmessagebrowser.py:221
 msgid "Uncommited Working Tree Changes"
@@ -1374,18 +1358,18 @@ msgstr "リビジョン:"
 #: lib\shelvewindow.py:64 lib\shelvewindow.py:112 lib\shelvewindow.py:121
 #: lib\shelvewindow.py:123 lib/widgets\shelvelist.py:500
 msgid "Shelve Manager"
-msgstr ""
+msgstr "シェルフの管理"
 
 #: lib\shelvewindow.py:86 lib/widgets\shelve.py:332 lib/widgets\shelve.py:336
 #: lib/widgets\shelve.py:610 lib/widgets\shelve.py:649
 #: lib/widgets\shelve.py:654 lib/widgets\shelve.py:700
 #: lib/widgets\shelve.py:704 lib/widgets\shelvelist.py:472
 msgid "Shelve"
-msgstr ""
+msgstr "棚に上げる"
 
 #: lib\shelvewindow.py:87
 msgid "View shelved changes"
-msgstr ""
+msgstr "棚上げされた変更の表示"
 
 #: lib\subprocess.py:153
 msgid "&Retry"
@@ -1401,11 +1385,11 @@ msgstr "開始..."
 
 #: lib\subprocess.py:571
 msgid "Could not locate \"bzr.exe\"."
-msgstr ""
+msgstr "”bzr.exe”が見つかりません"
 
 #: lib\subprocess.py:590
 msgid "Could not locate \"bzr\" script."
-msgstr ""
+msgstr "”bzr”スクリプトが見つかりません"
 
 #: lib\subprocess.py:611
 msgid "Aborting..."
@@ -1523,36 +1507,35 @@ msgstr ""
 #: lib\trace.py:233
 #, python-format
 msgid "Close %s Window"
-msgstr ""
+msgstr "%sウインドウを閉じる"
 
 #: lib\trace.py:235
 msgid "Close Window"
-msgstr ""
+msgstr "ウインドウを閉じる"
 
 #: lib\trace.py:237
 msgid "Close Application"
-msgstr ""
+msgstr "アプリケーションを終了する"
 
 #: lib\trace.py:247
 msgid "Close Error Dialog"
-msgstr ""
+msgstr "エラーダイアログを閉じる"
 
 #: lib\trace.py:252
-#, fuzzy
 msgid "Ignore Error"
-msgstr "内部エラー"
+msgstr "エラーを無視する"
 
 #: lib\trace.py:278
 msgid "Report Bazaar Error"
-msgstr ""
+msgstr "Bazaarのエラーを報告する"
 
 #: lib\trace.py:299 lib\trace.py:345
 msgid "Show Error Details >>>"
-msgstr ""
+msgstr "エラーの詳細を表示する）>>>"
 
 #: lib\trace.py:343
 msgid "<<< Hide Error Details"
-msgstr ""
+msgstr "<<<エラーの詳細を隠す"
 
 #: lib\treewidget.py:322
 msgid "ignored"
@@ -1652,13 +1635,10 @@ msgid "External Merge"
 msgstr "外部マージ"
 
 #: lib\treewidget.py:2060
-#, fuzzy
 msgid ""
 "Some of the files selected cannot be recovered if removed. Are you sure you "
 "want to remove these files?"
-msgstr ""
-"削除すると元に戻せなくなるファイルがあります。本当にこれらのファイルを削除し"
-"てもよろしいですか？"
+msgstr "削除すると元に戻せなくなるファイルが選択されています。本当に削除してもよろしいですか？"
 
 #: lib\treewidget.py:2075
 msgid "Select / deselect all"
@@ -1680,9 +1660,8 @@ msgid "&Location:"
 msgstr "場所(&L):"
 
 #: lib\ui_branch.py:101
-#, fuzzy
 msgid "&From:"
-msgstr "フォーマット(&F)："
+msgstr ""
 
 #: lib\ui_branch.py:102 lib\ui_branch.py:104 lib\ui_init.py:120
 #: lib\ui_merge.py:65 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
@@ -1696,9 +1675,8 @@ msgid "&To:"
 msgstr "宛先(&T):"
 
 #: lib\ui_branch.py:106
-#, fuzzy
 msgid "Bind new branch to parent location"
-msgstr "ブランチの場所を選択"
+msgstr "新しいブランチを親ブランチにバインドする"
 
 #: lib\ui_branch.py:107 lib\ui_merge.py:66 lib\ui_pull.py:64 lib\ui_tag.py:97
 msgid "&Revision:"
@@ -1709,14 +1687,12 @@ msgid "..."
 msgstr "..."
 
 #: lib\ui_info.py:89
-#, fuzzy
 msgid "&Basic"
-msgstr "ブランチ(&B)"
+msgstr "基本(&B)"
 
 #: lib\ui_info.py:91
-#, fuzzy
 msgid "&Detailed"
-msgstr "失敗!"
+msgstr "詳細(&D)"
 
 #: lib\ui_init.py:119
 msgid "Local Directory"
@@ -1767,23 +1743,20 @@ msgid "Merge uncommitted changes instead of committed ones"
 msgstr "コミット済みの変更ではなくコミットしていない変更をマージする"
 
 #: lib\ui_merge_config.py:58
-#, fuzzy
 msgid "Form"
-msgstr "フォーマット(&F)："
+msgstr ""
 
 #: lib\ui_merge_config.py:59
-#, fuzzy
 msgid "External Merge Tools"
-msgstr "外部マージ"
+msgstr "外部マージツール"
 
 #: lib\ui_merge_config.py:62
 msgid "Sets the selected merge tool as the default to use in qconflicts."
-msgstr ""
+msgstr "選択されたマージツールをqconflictsのデフォルトにする"
 
 #: lib\ui_merge_config.py:63
-#, fuzzy
 msgid "Set Default"
-msgstr "デフォルト"
+msgstr "デフォルトに設定"
 
 #: lib\ui_new_tree.py:129
 msgid "Create a new Bazaar Working Tree"
@@ -1821,9 +1794,7 @@ msgstr "ソースブランチを参照する新たなスタックブランチを
 
 #: lib\ui_new_tree.py:152
 msgid "Click a link for more information about checkouts and branches."
-msgstr ""
-"チェックアウトとブランチに関するより多くの情報を得るにはリックをクリックして"
-"ください。"
+msgstr "チェックアウトとブランチに関するより多くの情報を得るにはリックをクリックしてください。"
 
 #: lib\ui_new_tree.py:159
 msgid "Most recent (tip) revision"
@@ -2095,48 +2066,43 @@ msgstr "(メッセージなし)"
 
 #: lib\verify_signatures.py:52
 msgid "Verify Signatures"
-msgstr ""
+msgstr "署名をチェックする"
 
 #: lib\verify_signatures.py:118
 msgid "All commits signed with verifiable keys"
 msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "delete file"
 msgstr "削除"
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "rename"
-msgstr "名称変更"
+msgstr "変名"
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "add file"
 msgstr "追加"
 
 #: lib/widgets\shelve.py:72
-#, fuzzy
 msgid "modify text"
-msgstr "変更"
+msgstr "テキストの変更"
 
 #: lib/widgets\shelve.py:72
 msgid "modify target"
-msgstr ""
+msgstr "ターゲットの変更"
 
 #: lib/widgets\shelve.py:72
 msgid "modify binary"
-msgstr ""
+msgstr "バイナリの変更"
 
 #: lib/widgets\shelve.py:262
-#, fuzzy
 msgid "Enter the shelve message"
-msgstr "コミットメッセージを入力してください。"
+msgstr "シェルフに登録する際のメッセージを入力してください"
 
 #: lib/widgets\shelve.py:274
 msgid "Hunks"
-msgstr ""
+msgstr "ハンク"
 
 #: lib/widgets\shelve.py:296
 msgid "Complete"
@@ -2144,207 +2110,161 @@ msgstr "すべて"
 
 #: lib/widgets\shelve.py:314
 msgid "Previous hunk"
-msgstr ""
+msgstr "前のハンク"
 
 #: lib/widgets\shelve.py:316
 msgid "Next hunk"
-msgstr ""
+msgstr "次のハンク"
 
 #: lib/widgets\shelve.py:319
-#, fuzzy
 msgid "Use editor"
-msgstr "エディタ"
+msgstr "エディタを使用"
 
 #: lib/widgets\shelve.py:333
-#, fuzzy
 msgid "Destroy"
-msgstr "ディレクトリ"
+msgstr "破棄"
 
 #: lib/widgets\shelve.py:342
-#, fuzzy
 msgid "Select all"
-msgstr "全選択/非選択"
+msgstr "すべて選択"
 
 #: lib/widgets\shelve.py:345
-#, fuzzy
 msgid "Unselect all"
-msgstr "全選択/非選択"
+msgstr "すべて選択解除"
 
 #: lib/widgets\shelve.py:352 lib/widgets\shelvelist.py:194
 msgid "&Layout"
-msgstr ""
+msgstr "レイアウト(&L)"
 
 #: lib/widgets\shelve.py:611
 msgid "Change editor is not defined."
-msgstr ""
+msgstr "変更エディタは設定されていません"
 
 #: lib/widgets\shelve.py:642
 #, python-format
 msgid "Delete changes of %d file without shelving"
 msgid_plural "Delete changes of %d files without shelving"
-msgstr[0] ""
+msgstr[0] "%d個のファイルの変更を、シェルフに登録せずに破棄します。"
 
 #: lib/widgets\shelve.py:646
-#, fuzzy, python-format
+#, python-format
 msgid "Shelve changes of %d file"
 msgid_plural "Shelve changes of %d files"
-msgstr[0] "元に戻す変更を選択してください"
+msgstr[0] "%d個のファイルの変更をシェルフに棚上げします。"
 
 #: lib/widgets\shelve.py:655
-#, fuzzy
 msgid "No changes selected."
-msgstr "revert する変更が選択されていません"
+msgstr "変更箇所が選択されていません"
 
 #: lib/widgets\shelve.py:692 lib/widgets\shelvelist.py:280
-#, fuzzy
 msgid "<no message>"
-msgstr "(メッセージなし)"
+msgstr "<no message>"
 
 #: lib/widgets\shelve.py:701
 msgid "Operation aborted because working tree has pending marges."
-msgstr ""
+msgstr "作業ツリーがマージ待ち状態なので、処理を中止しました"
 
 #: lib/widgets\shelve.py:705
 msgid "Operation aborted because target files has been changed."
-msgstr ""
+msgstr "処理対象のファイルが変更されたため、処理を中止しました"
 
 #: lib/widgets\shelve.py:940
 msgid "Edited by change editor.\n"
-msgstr ""
+msgstr "変更エディタで編集済み\n"
 
 #: lib/widgets\shelvelist.py:83
 msgid "Id"
-msgstr ""
+msgstr "ID"
 
 #: lib/widgets\shelvelist.py:117
 msgid "Ignore whitespace"
-msgstr ""
+msgstr "空白を無視する"
 
 #: lib/widgets\shelvelist.py:169 lib/widgets\shelvelist.py:177
 msgid "Unshelve"
-msgstr ""
+msgstr "シェルフから戻す"
 
 #: lib/widgets\shelvelist.py:170
 msgid "Dry run"
-msgstr ""
+msgstr "シミュレーション"
 
 #: lib/widgets\shelvelist.py:172
 msgid "Keep"
-msgstr ""
+msgstr "保持する"
 
 #: lib/widgets\shelvelist.py:174
-#, fuzzy
 msgid "Delete"
-msgstr "デフォルト"
+msgstr "削除する"
 
 #: lib/widgets\shelvelist.py:188
-#, fuzzy
 msgid "Show filelist"
-msgstr "無視したファイルを表示"
+msgstr "ファイル一覧を表示する"
 
 #: lib/widgets\shelvelist.py:478
 #, python-format
 msgid "Apply changes in shelf[%(id)d], and remove from the shelf"
-msgstr ""
+msgstr "シェルフ[%(id)d]の変更を適用し、シェルフからは削除します"
 
 #: lib/widgets\shelvelist.py:480
 #, python-format
 msgid ""
 "Simulate to apply changes in shelf[%(id)d] without changing working tree"
-msgstr ""
+msgstr "実際には作業ツリーは変更せずに、シェルフ[%(id)d]の変更を適用するシミュレーションを行います。"
 
 #: lib/widgets\shelvelist.py:482
 #, python-format
 msgid "Apply changes in shelf[%(id)d], but keep it shelved"
-msgstr ""
+msgstr "シェルフ[%(id)d]の変更を適用しますが、シェルフにも残したままにします。"
 
 #: lib/widgets\shelvelist.py:484
 #, python-format
 msgid "Remove shelf[%(id)d] without applying"
-msgstr ""
+msgstr "シェルフ[%(id)d]の変更を、適用せずに破棄します。"
 
 #: lib/widgets\toolbars.py:71
-#, fuzzy
 msgid "Find: "
-msgstr "検索"
+msgstr "検索: "
 
 #: lib/widgets\toolbars.py:87
 msgid "Previous"
-msgstr ""
+msgstr "前へ"
 
 #: lib/widgets\toolbars.py:91
 msgid "Next"
-msgstr ""
+msgstr "次へ"
 
 #: lib/widgets\toolbars.py:95
 msgid "Case sensitive"
-msgstr ""
+msgstr "大文字/小文字を区別"
 
 #: lib/widgets\toolbars.py:97
 msgid "Whole words"
-msgstr ""
+msgstr "単語で検索"
 
 #: lib/widgets\toolbars.py:106
-#, fuzzy
 msgid "Close find"
-msgstr "閉じる(&C)"
+msgstr "検索を閉じる"
 
 #: lib/widgets\toolbars.py:249
 msgid "Layout"
-msgstr ""
+msgstr "レイアウト"
 
 #: lib/widgets\toolbars.py:263
 #, python-format
 msgid "Layout %d"
-msgstr ""
-
-#~ msgid "External Merge Apps:"
-#~ msgstr "外部の merge プログラム"
-
-#~ msgid "Definition"
-#~ msgstr "定義"
-
-#~ msgid "Use Configured Default"
-#~ msgstr "設定されたデフォルトのツールを利用する"
-
-#~ msgid ""
-#~ "The merge tool configured in qconfig under Merge' file.\n"
-#~ "It follows the convention used in the bzr plugin: extmerge\n"
-#~ "external_merge = kdiff3 --output %r %b %t %o\n"
-#~ "%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."
-#~ msgstr ""
-#~ "qconfigで設定されたマージツール。\n"
-#~ "extmergeというプラグインの external_merge = kdiff3 --output %r %b %t %o と"
-#~ "いう設定方法と同じルールに従います。\n"
-#~ "%rは出力,%bは .BASE, %t は .THIS,  %o は .OTHER ファイルに置き換えられま"
-#~ "す。"
-
-#~ msgid "%s (Configured external merge definition in qconfig)"
-#~ msgstr "%s(qconfigで設定された外部マージツール)"
+msgstr "レイアウト %d"
 
 #~ msgid "Side by side"
 #~ msgstr "並べて表示"
 
-#~ msgid "Using"
-#~ msgstr "使用するツール"
-
-#~ msgid "Location has no working tree"
-#~ msgstr "作業ツリーはありません"
-
-#~ msgid "Location has no branch"
-#~ msgstr "ブランチはありません"
+#~ msgid "[binary file]"
+#~ msgstr "[バイナリファイル]"
 
 #~ msgid "Parent branch:"
 #~ msgstr "親ブランチ:"
 
-#~ msgid "Push branch:"
-#~ msgstr "プッシュ先ブランチ:"
-
 #~ msgid "Submit branch:"
 #~ msgstr "ブランチ送信先："
-
-#~ msgid "Public branch:"
-#~ msgstr "公開ブランチ:"
 
 #~ msgid "&Related Branches"
 #~ msgstr "関連ブランチ(&R)"
@@ -2361,66 +2281,58 @@ msgstr ""
 #~ msgid "Control directory format:"
 #~ msgstr "管理ディレクトリフォーマット："
 
-#~ msgid "Line"
-#~ msgstr "行"
+#~ msgid "&Format"
+#~ msgstr "フォーマット(&F)："
 
-#~ msgid "Show log..."
-#~ msgstr "ログを表示..."
+#~ msgid "You should provide commit message."
+#~ msgstr "コミットメッセージを入力すべきです。"
 
-#~ msgid "&Revert..."
-#~ msgstr "元に戻す(&R)..."
+#~ msgid "External Merge Apps:"
+#~ msgstr "外部の merge プログラム"
 
-#~ msgid "Stopped"
-#~ msgstr "停止"
+#~ msgid "Public branch:"
+#~ msgstr "公開ブランチ:"
 
-#~ msgid "Replace existing tag"
-#~ msgstr "既存のタグを置換"
+#~ msgid "Definition"
+#~ msgstr "定義"
 
-#~ msgid ""
-#~ "Sorry, subprocess action \"%s\" cannot be started\n"
-#~ "because self.args is None.\n"
-#~ "Please, report bug at:\n"
-#~ "https://bugs.launchpad.net/qbzr/+filebug"
-#~ msgstr ""
-#~ "サブプロセス処理 \"%s\" がself.argsがNoneのために開始されません。\n"
-#~ "https://bugs.launchpad.net/qbzr/+filebugにバグレポートをしてください。"
+#~ msgid "Using"
+#~ msgstr "使用するツール"
 
-#~ msgid ""
-#~ "Tag \"%s\" already exists.\n"
-#~ "Do you want to replace existing tag?"
-#~ msgstr ""
-#~ "タグ \"%s\"は既に存在します。\n"
-#~ "既存のタグを置き換えますか?"
+#~ msgid "Location has no branch"
+#~ msgstr "ブランチはありません"
 
-#~ msgid "&Replace"
-#~ msgstr "置換(&R)"
+#~ msgid "Location has no working tree"
+#~ msgstr "作業ツリーはありません"
 
-#~ msgid "Local location:"
-#~ msgstr "ローカル配置："
+#~ msgid "Right side encoding:"
+#~ msgstr "右側のエンコード"
 
-#~ msgid "Public branch location:"
-#~ msgstr "公開ブランチの場所："
+#~ msgid "Left side encoding:"
+#~ msgstr "左側のエンコード"
 
-#~ msgid "&Location"
-#~ msgstr "ロケーション(&L)"
+#, python-format
+#~ msgid "%s (Configured external merge definition in qconfig)"
+#~ msgstr "%s(qconfigで設定された外部マージツール)"
+
+#~ msgid "Use Configured Default"
+#~ msgstr "設定されたデフォルトのツールを利用する"
 
 #~ msgid ""
-#~ "Branch source (enter a URL or select a local directory with an exiting "
-#~ "branch)"
+#~ "The merge tool configured in qconfig under Merge' file.\n"
+#~ "It follows the convention used in the bzr plugin: extmerge\n"
+#~ "external_merge = kdiff3 --output %r %b %t %o\n"
+#~ "%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."
 #~ msgstr ""
-#~ "ブランチ元(URLを入力するか、ブランチのあるディレクトリを選択してください)"
+#~ "qconfigで設定されたマージツール。\n"
+#~ "extmergeというプラグインの external_merge = kdiff3 --output %r %b %t %o "
+#~ "という設定方法と同じルールに従います。\n"
+#~ "%rは出力,%bは .BASE, %t は .THIS,  %o は .OTHER ファイルに置き換えられます。"
 
-#~ msgid "Extension"
-#~ msgstr "拡張子"
+#~ msgid "Push branch:"
+#~ msgstr "プッシュ先ブランチ:"
 
-#~ msgid "modified (x-bit)"
-#~ msgstr "変更(x-bit)"
-
-#~ msgid "Mark as resolved"
-#~ msgstr "競合解消"
-
-#~ msgid "Add %s to the tree."
-#~ msgstr "%sをツリーに追加"
-
-#~ msgid "Up to date"
-#~ msgstr "最新"
+#~ msgid ""
+#~ "Some of the files selected cannot be recoverd if removed. Are you sure you "
+#~ "want to remove these files?"
+#~ msgstr "削除すると元に戻せなくなるファイルがあります。本当にこれらのファイルを削除してもよろしいですか？"

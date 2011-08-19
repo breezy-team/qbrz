@@ -7,16 +7,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-03 22:29+0900\n"
-"PO-Revision-Date: 2010-01-11 19:10+0000\n"
+"POT-Creation-Date: 2011-08-03 08:37+0300\n"
+"PO-Revision-Date: 2011-07-25 22:47+0000\n"
 "Last-Translator: Johan Helin <Unknown>\n"
 "Language-Team: Swedish <sv@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2011-07-20 19:41+0000\n"
-"X-Generator: Launchpad (build 13468)\n"
+"X-Launchpad-Export-Date: 2011-08-16 16:08+0000\n"
+"X-Generator: Launchpad (build 13687)\n"
 
 #: lib\add.py:45 lib\config.py:139 lib\config.py:160 lib\config.py:191
 #: lib\ui_merge_config.py:60
@@ -41,32 +41,27 @@ msgid "Loading..."
 msgstr "Laddar..."
 
 #: lib\annotate.py:301 lib/widgets\shelve.py:306 lib/widgets\shelvelist.py:124
-#, fuzzy
 msgid "Encoding"
-msgstr "Teckenkodning:"
+msgstr ""
 
 #: lib\annotate.py:323 lib/widgets\shelve.py:290 lib/widgets\shelvelist.py:105
 #: lib/widgets\toolbars.py:63
-#, fuzzy
 msgid "Find"
-msgstr "Sort:"
+msgstr ""
 
 #: lib\annotate.py:327 lib\annotate.py:661
-#, fuzzy
 msgid "Goto Line"
-msgstr "Linje"
+msgstr ""
 
 #: lib\annotate.py:331 lib\diffwindow.py:433 lib/widgets\shelve.py:310
 #: lib/widgets\shelvelist.py:128
-#, fuzzy
 msgid "&View Options"
-msgstr "Alternativ"
+msgstr ""
 
 #: lib\annotate.py:332 lib\diffwindow.py:434 lib/widgets\shelve.py:294
 #: lib/widgets\shelvelist.py:111
-#, fuzzy
 msgid "View Options"
-msgstr "Alternativ"
+msgstr ""
 
 #: lib\annotate.py:335
 msgid "Word Wrap"
@@ -192,9 +187,8 @@ msgid "Working tree is out of date. To commit, update the working tree."
 msgstr ""
 
 #: lib\commit.py:300 lib\logwidget.py:471
-#, fuzzy
 msgid "Update"
-msgstr "Datum"
+msgstr ""
 
 #: lib\commit.py:311 lib\logmodel.py:44 lib\treewidget.py:355
 #: lib/widgets\shelve.py:254 lib/widgets\shelvelist.py:83
@@ -232,7 +226,8 @@ msgid "Set the author of this change, if it's different from the committer"
 msgstr ""
 
 #: lib\commit.py:376
-msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
+msgid ""
+"Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
 
 #: lib\commit.py:391
@@ -461,9 +456,8 @@ msgid "Select editor executable"
 msgstr ""
 
 #: lib\config.py:914
-#, fuzzy
 msgid "Command Line"
-msgstr "Kommando"
+msgstr ""
 
 #: lib\conflicts.py:49 lib\conflicts.py:165 lib\conflicts.py:182
 #: lib\conflicts.py:189
@@ -668,9 +662,8 @@ msgid "modified"
 msgstr "ändrad"
 
 #: lib\diffwindow.py:387
-#, fuzzy
 msgid "&Find"
-msgstr "&Fil"
+msgstr ""
 
 #: lib\diffwindow.py:389
 msgid "Find on active panel"
@@ -698,9 +691,8 @@ msgid "Launch an external diff application"
 msgstr ""
 
 #: lib\diffwindow.py:437 lib/widgets\shelvelist.py:113
-#, fuzzy
 msgid "&Complete"
-msgstr "Dator"
+msgstr ""
 
 #: lib\diffwindow.py:453 lib/widgets\shelve.py:301
 #: lib/widgets\shelvelist.py:120
@@ -860,7 +852,7 @@ msgstr "Meddelanden"
 
 #: lib\log.py:159
 msgid "Authors"
-msgstr ""
+msgstr "Upphovsmän"
 
 #: lib\log.py:161
 msgid "Revision IDs"
@@ -920,9 +912,8 @@ msgid "Save file in this revision as..."
 msgstr ""
 
 #: lib\log.py:846
-#, fuzzy
 msgid "Revert File"
-msgstr "Återgå"
+msgstr ""
 
 #: lib\log.py:847
 msgid ""
@@ -1130,10 +1121,10 @@ msgstr "Om QBzr"
 #: lib\main.py:407
 #, python-format
 msgid ""
-"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
-"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
-"\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
 
 #: lib\main.py:472
@@ -1253,7 +1244,7 @@ msgstr ""
 
 #: lib\revisionmessagebrowser.py:258
 msgid "Committer:"
-msgstr ""
+msgstr "Incheckare:"
 
 #: lib\revisionmessagebrowser.py:264
 msgid "Author:"
@@ -1644,9 +1635,8 @@ msgid "&Location:"
 msgstr "&Plats:"
 
 #: lib\ui_branch.py:101
-#, fuzzy
 msgid "&From:"
-msgstr "&Till:"
+msgstr ""
 
 #: lib\ui_branch.py:102 lib\ui_branch.py:104 lib\ui_init.py:120
 #: lib\ui_merge.py:65 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
@@ -1740,9 +1730,8 @@ msgid "Sets the selected merge tool as the default to use in qconflicts."
 msgstr ""
 
 #: lib\ui_merge_config.py:63
-#, fuzzy
 msgid "Set Default"
-msgstr "Standard"
+msgstr ""
 
 #: lib\ui_new_tree.py:129
 msgid "Create a new Bazaar Working Tree"
@@ -2059,24 +2048,20 @@ msgid "All commits signed with verifiable keys"
 msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "delete file"
-msgstr "%d fil"
+msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "rename"
-msgstr "omdöpt"
+msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "add file"
-msgstr "%d fil"
+msgstr ""
 
 #: lib/widgets\shelve.py:72
-#, fuzzy
 msgid "modify text"
-msgstr "ändrad"
+msgstr ""
 
 #: lib/widgets\shelve.py:72
 msgid "modify target"
@@ -2107,9 +2092,8 @@ msgid "Next hunk"
 msgstr ""
 
 #: lib/widgets\shelve.py:319
-#, fuzzy
 msgid "Use editor"
-msgstr "Redigerare"
+msgstr ""
 
 #: lib/widgets\shelve.py:333
 msgid "Destroy"
@@ -2150,9 +2134,8 @@ msgid "No changes selected."
 msgstr ""
 
 #: lib/widgets\shelve.py:692 lib/widgets\shelvelist.py:280
-#, fuzzy
 msgid "<no message>"
-msgstr "Meddelande"
+msgstr ""
 
 #: lib/widgets\shelve.py:701
 msgid "Operation aborted because working tree has pending marges."
@@ -2187,9 +2170,8 @@ msgid "Keep"
 msgstr ""
 
 #: lib/widgets\shelvelist.py:174
-#, fuzzy
 msgid "Delete"
-msgstr "Standard"
+msgstr ""
 
 #: lib/widgets\shelvelist.py:188
 msgid "Show filelist"
@@ -2217,9 +2199,8 @@ msgid "Remove shelf[%(id)d] without applying"
 msgstr ""
 
 #: lib/widgets\toolbars.py:71
-#, fuzzy
 msgid "Find: "
-msgstr "Sort:"
+msgstr ""
 
 #: lib/widgets\toolbars.py:87
 msgid "Previous"
@@ -2238,9 +2219,8 @@ msgid "Whole words"
 msgstr ""
 
 #: lib/widgets\toolbars.py:106
-#, fuzzy
 msgid "Close find"
-msgstr "&Stäng"
+msgstr ""
 
 #: lib/widgets\toolbars.py:249
 msgid "Layout"
@@ -2253,15 +2233,3 @@ msgstr ""
 
 #~ msgid "Side by side"
 #~ msgstr "Sida vid sida"
-
-#~ msgid "Extension"
-#~ msgstr "Tillägg"
-
-#~ msgid "Show log..."
-#~ msgstr "Visa logg..."
-
-#~ msgid "&Revert..."
-#~ msgstr "&Återgå..."
-
-#~ msgid "Stopped"
-#~ msgstr "Stoppad"

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-03 22:29+0900\n"
+"POT-Creation-Date: 2011-08-03 08:37+0300\n"
 "PO-Revision-Date: 2008-11-22 15:14+0000\n"
 "Last-Translator: Lukáš Lalinský <lalinsky@gmail.com>\n"
 "Language-Team: Slovak <sk@li.org>\n"
@@ -14,8 +14,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 1 : (n>=2 && n<=4) ? 2 : 0;\n"
-"X-Launchpad-Export-Date: 2011-07-20 19:40+0000\n"
-"X-Generator: Launchpad (build 13468)\n"
+"X-Launchpad-Export-Date: 2011-08-16 16:08+0000\n"
+"X-Generator: Launchpad (build 13687)\n"
 
 #: lib\add.py:45 lib\config.py:139 lib\config.py:160 lib\config.py:191
 #: lib\ui_merge_config.py:60
@@ -45,9 +45,8 @@ msgstr ""
 
 #: lib\annotate.py:323 lib/widgets\shelve.py:290 lib/widgets\shelvelist.py:105
 #: lib/widgets\toolbars.py:63
-#, fuzzy
 msgid "Find"
-msgstr "Typ:"
+msgstr ""
 
 #: lib\annotate.py:327 lib\annotate.py:661
 msgid "Goto Line"
@@ -187,9 +186,8 @@ msgid "Working tree is out of date. To commit, update the working tree."
 msgstr ""
 
 #: lib\commit.py:300 lib\logwidget.py:471
-#, fuzzy
 msgid "Update"
-msgstr "Dátum"
+msgstr ""
 
 #: lib\commit.py:311 lib\logmodel.py:44 lib\treewidget.py:355
 #: lib/widgets\shelve.py:254 lib/widgets\shelvelist.py:83
@@ -230,7 +228,8 @@ msgstr ""
 "Nastaví meno autora tejto zmeny, v prípade že je odlišné od odovzdávateľa."
 
 #: lib\commit.py:376
-msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
+msgid ""
+"Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
 "Vložte meno autora, napr. <i>Ján Mrkvička &lt;jmrkvicka@example.com&gt;</i>"
 
@@ -253,9 +252,8 @@ msgid "View changes in files selected to commit"
 msgstr ""
 
 #: lib\commit.py:638
-#, fuzzy
 msgid "You should provide a commit message."
-msgstr "Vložte správu"
+msgstr ""
 
 #: lib\commit.py:639 lib\conflicts.py:186 lib\conflicts.py:191
 #: lib\diffwindow.py:657 lib\util.py:69 lib/widgets\shelve.py:611
@@ -461,9 +459,8 @@ msgid "Select editor executable"
 msgstr ""
 
 #: lib\config.py:914
-#, fuzzy
 msgid "Command Line"
-msgstr "Príkaz"
+msgstr ""
 
 #: lib\conflicts.py:49 lib\conflicts.py:165 lib\conflicts.py:182
 #: lib\conflicts.py:189
@@ -668,9 +665,8 @@ msgid "modified"
 msgstr "zmenené"
 
 #: lib\diffwindow.py:387
-#, fuzzy
 msgid "&Find"
-msgstr "Typ:"
+msgstr ""
 
 #: lib\diffwindow.py:389
 msgid "Find on active panel"
@@ -1129,10 +1125,10 @@ msgstr ""
 #: lib\main.py:407
 #, python-format
 msgid ""
-"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
-"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
-"\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
 
 #: lib\main.py:472
@@ -1738,9 +1734,8 @@ msgid "Sets the selected merge tool as the default to use in qconflicts."
 msgstr ""
 
 #: lib\ui_merge_config.py:63
-#, fuzzy
 msgid "Set Default"
-msgstr "Štandardný"
+msgstr ""
 
 #: lib\ui_new_tree.py:129
 msgid "Create a new Bazaar Working Tree"
@@ -2057,24 +2052,20 @@ msgid "All commits signed with verifiable keys"
 msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "delete file"
-msgstr "%d súborov"
+msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "rename"
-msgstr "premenované"
+msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "add file"
-msgstr "%d súborov"
+msgstr ""
 
 #: lib/widgets\shelve.py:72
-#, fuzzy
 msgid "modify text"
-msgstr "zmenené"
+msgstr ""
 
 #: lib/widgets\shelve.py:72
 msgid "modify target"
@@ -2085,9 +2076,8 @@ msgid "modify binary"
 msgstr ""
 
 #: lib/widgets\shelve.py:262
-#, fuzzy
 msgid "Enter the shelve message"
-msgstr "Vložte správu"
+msgstr ""
 
 #: lib/widgets\shelve.py:274
 msgid "Hunks"
@@ -2135,7 +2125,6 @@ msgid "Delete changes of %d file without shelving"
 msgid_plural "Delete changes of %d files without shelving"
 msgstr[0] ""
 msgstr[1] ""
-msgstr[2] ""
 
 #: lib/widgets\shelve.py:646
 #, python-format
@@ -2143,16 +2132,14 @@ msgid "Shelve changes of %d file"
 msgid_plural "Shelve changes of %d files"
 msgstr[0] ""
 msgstr[1] ""
-msgstr[2] ""
 
 #: lib/widgets\shelve.py:655
 msgid "No changes selected."
 msgstr ""
 
 #: lib/widgets\shelve.py:692 lib/widgets\shelvelist.py:280
-#, fuzzy
 msgid "<no message>"
-msgstr "Správa"
+msgstr ""
 
 #: lib/widgets\shelve.py:701
 msgid "Operation aborted because working tree has pending marges."
@@ -2187,9 +2174,8 @@ msgid "Keep"
 msgstr ""
 
 #: lib/widgets\shelvelist.py:174
-#, fuzzy
 msgid "Delete"
-msgstr "Štandardný"
+msgstr ""
 
 #: lib/widgets\shelvelist.py:188
 msgid "Show filelist"
@@ -2217,9 +2203,8 @@ msgid "Remove shelf[%(id)d] without applying"
 msgstr ""
 
 #: lib/widgets\toolbars.py:71
-#, fuzzy
 msgid "Find: "
-msgstr "Typ:"
+msgstr ""
 
 #: lib/widgets\toolbars.py:87
 msgid "Previous"
@@ -2238,9 +2223,8 @@ msgid "Whole words"
 msgstr ""
 
 #: lib/widgets\toolbars.py:106
-#, fuzzy
 msgid "Close find"
-msgstr "&Zavrieť"
+msgstr ""
 
 #: lib/widgets\toolbars.py:249
 msgid "Layout"
@@ -2253,12 +2237,3 @@ msgstr ""
 
 #~ msgid "Side by side"
 #~ msgstr "Po stránách"
-
-#~ msgid "Extension"
-#~ msgstr "Prípona"
-
-#~ msgid "&Revert..."
-#~ msgstr "&Revertovať..."
-
-#~ msgid "Show log..."
-#~ msgstr "Zobraziť históriu..."

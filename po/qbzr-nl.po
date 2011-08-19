@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-03 22:29+0900\n"
+"POT-Creation-Date: 2011-08-03 08:37+0300\n"
 "PO-Revision-Date: 2011-03-13 11:09+0000\n"
 "Last-Translator: Rachid <Unknown>\n"
 "Language-Team: Dutch <nl@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2011-07-20 19:41+0000\n"
-"X-Generator: Launchpad (build 13468)\n"
+"X-Launchpad-Export-Date: 2011-08-16 16:08+0000\n"
+"X-Generator: Launchpad (build 13687)\n"
 
 #: lib\add.py:45 lib\config.py:139 lib\config.py:160 lib\config.py:191
 #: lib\ui_merge_config.py:60
@@ -41,32 +41,27 @@ msgid "Loading..."
 msgstr "Bezig met laden..."
 
 #: lib\annotate.py:301 lib/widgets\shelve.py:306 lib/widgets\shelvelist.py:124
-#, fuzzy
 msgid "Encoding"
-msgstr "Codering:"
+msgstr ""
 
 #: lib\annotate.py:323 lib/widgets\shelve.py:290 lib/widgets\shelvelist.py:105
 #: lib/widgets\toolbars.py:63
-#, fuzzy
 msgid "Find"
-msgstr "Soort:"
+msgstr ""
 
 #: lib\annotate.py:327 lib\annotate.py:661
-#, fuzzy
 msgid "Goto Line"
-msgstr "Regel"
+msgstr ""
 
 #: lib\annotate.py:331 lib\diffwindow.py:433 lib/widgets\shelve.py:310
 #: lib/widgets\shelvelist.py:128
-#, fuzzy
 msgid "&View Options"
-msgstr "Opties"
+msgstr ""
 
 #: lib\annotate.py:332 lib\diffwindow.py:434 lib/widgets\shelve.py:294
 #: lib/widgets\shelvelist.py:111
-#, fuzzy
 msgid "View Options"
-msgstr "Opties"
+msgstr ""
 
 #: lib\annotate.py:335
 msgid "Word Wrap"
@@ -190,14 +185,12 @@ msgid ""
 msgstr ""
 
 #: lib\commit.py:286
-#, fuzzy
 msgid "Working tree is out of date. To commit, update the working tree."
-msgstr "De working tree is niet actueel, run aub 'bzr update'."
+msgstr ""
 
 #: lib\commit.py:300 lib\logwidget.py:471
-#, fuzzy
 msgid "Update"
-msgstr "Datum"
+msgstr ""
 
 #: lib\commit.py:311 lib\logmodel.py:44 lib\treewidget.py:355
 #: lib/widgets\shelve.py:254 lib/widgets\shelvelist.py:83
@@ -238,7 +231,8 @@ msgstr ""
 "Stel de auteur van deze wijziging in, als die anders is dan de committer"
 
 #: lib\commit.py:376
-msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
+msgid ""
+"Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
 "Voer de naam van de auteur in, b.v. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 
@@ -261,9 +255,8 @@ msgid "View changes in files selected to commit"
 msgstr "Bekijk de veranderingen in de bestanden geselecteerd voor de commit"
 
 #: lib\commit.py:638
-#, fuzzy
 msgid "You should provide a commit message."
-msgstr "U dient een commit bericht in te voeren"
+msgstr ""
 
 #: lib\commit.py:639 lib\conflicts.py:186 lib\conflicts.py:191
 #: lib\diffwindow.py:657 lib\util.py:69 lib/widgets\shelve.py:611
@@ -473,9 +466,8 @@ msgid "Select editor executable"
 msgstr ""
 
 #: lib\config.py:914
-#, fuzzy
 msgid "Command Line"
-msgstr "Opdracht"
+msgstr ""
 
 #: lib\conflicts.py:49 lib\conflicts.py:165 lib\conflicts.py:182
 #: lib\conflicts.py:189
@@ -555,7 +547,8 @@ msgstr ""
 #: lib\conflicts.py:286
 #, python-format
 msgid "Missing the flag: %s. Configure in qconfig under the merge tab."
-msgstr "De vlag %s ontbreekt. Configureer dit in qconfig onder het tab merge."
+msgstr ""
+"De vlag %s ontbreekt. Configureer dit in qconfig onder het tab merge."
 
 #: lib\conflicts.py:291
 msgid "path conflict"
@@ -618,9 +611,9 @@ msgid "Properties:"
 msgstr "Eigenschappen:"
 
 #: lib\diffview.py:668
-#, fuzzy, python-format
+#, python-format
 msgid "[binary file (%d bytes)]"
-msgstr "[binair bestand]"
+msgstr ""
 
 #: lib\diffview.py:843
 msgid "\\ No newline at end of file"
@@ -680,9 +673,8 @@ msgid "modified"
 msgstr "gewijzigd"
 
 #: lib\diffwindow.py:387
-#, fuzzy
 msgid "&Find"
-msgstr "&Bestand"
+msgstr ""
 
 #: lib\diffwindow.py:389
 msgid "Find on active panel"
@@ -702,18 +694,16 @@ msgid "&Refresh"
 msgstr "&Verversen"
 
 #: lib\diffwindow.py:421
-#, fuzzy
 msgid "&External Diff"
-msgstr "Externe Diff Applicaties:"
+msgstr ""
 
 #: lib\diffwindow.py:423
 msgid "Launch an external diff application"
 msgstr ""
 
 #: lib\diffwindow.py:437 lib/widgets\shelvelist.py:113
-#, fuzzy
 msgid "&Complete"
-msgstr "Voltooid"
+msgstr ""
 
 #: lib\diffwindow.py:453 lib/widgets\shelve.py:301
 #: lib/widgets\shelvelist.py:120
@@ -912,14 +902,12 @@ msgid "View file"
 msgstr "Bestand tonen"
 
 #: lib\log.py:577
-#, fuzzy
 msgid "Save file on this revision as..."
-msgstr "Maak een annotatie bij deze revisie"
+msgstr ""
 
 #: lib\log.py:581
-#, fuzzy
 msgid "Revert to this revision"
-msgstr "Maak een annotatie bij deze revisie"
+msgstr ""
 
 #: lib\log.py:830
 msgid "Not a file"
@@ -933,14 +921,12 @@ msgid ""
 msgstr ""
 
 #: lib\log.py:835
-#, fuzzy
 msgid "Save file in this revision as..."
-msgstr "Maak een annotatie bij deze revisie"
+msgstr ""
 
 #: lib\log.py:846
-#, fuzzy
 msgid "Revert File"
-msgstr "Ongedaan maken"
+msgstr ""
 
 #: lib\log.py:847
 msgid ""
@@ -990,14 +976,12 @@ msgid "Tag &revision..."
 msgstr ""
 
 #: lib\logwidget.py:187
-#, fuzzy
 msgid "R&evert to this revision"
-msgstr "Maak een annotatie bij deze revisie"
+msgstr ""
 
 #: lib\logwidget.py:191
-#, fuzzy
 msgid "&Update to this revision"
-msgstr "Maak een annotatie bij deze revisie"
+msgstr ""
 
 #: lib\logwidget.py:199
 msgid "&Cherry pick"
@@ -1150,15 +1134,15 @@ msgstr "Over QBzr"
 #: lib\main.py:407
 #, python-format
 msgid ""
-"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
-"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
-"\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
 "<b>QBzr</b> — Een grafische gebruikersinterface voor Bazaar<br><small>Versie "
 "%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2008 Lukáš Lalinský  en anderen<br><br><a href=\"http://bazaar-vcs.org/QBzr"
-"\">http://bazaar-vcs.org/QBzr</a>"
+"2008 Lukáš Lalinský  en anderen<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 
 #: lib\main.py:472
 msgid "Add Bookmark"
@@ -1670,9 +1654,8 @@ msgid "&Location:"
 msgstr "&Locatie:"
 
 #: lib\ui_branch.py:101
-#, fuzzy
 msgid "&From:"
-msgstr "&Naar:"
+msgstr ""
 
 #: lib\ui_branch.py:102 lib\ui_branch.py:104 lib\ui_init.py:120
 #: lib\ui_merge.py:65 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
@@ -1698,9 +1681,8 @@ msgid "..."
 msgstr ""
 
 #: lib\ui_info.py:89
-#, fuzzy
 msgid "&Basic"
-msgstr "&Branch"
+msgstr ""
 
 #: lib\ui_info.py:91
 msgid "&Detailed"
@@ -1759,18 +1741,16 @@ msgid "Form"
 msgstr ""
 
 #: lib\ui_merge_config.py:59
-#, fuzzy
 msgid "External Merge Tools"
-msgstr "Externe Merge Applicaties:"
+msgstr ""
 
 #: lib\ui_merge_config.py:62
 msgid "Sets the selected merge tool as the default to use in qconflicts."
 msgstr ""
 
 #: lib\ui_merge_config.py:63
-#, fuzzy
 msgid "Set Default"
-msgstr "Verstekwaarde"
+msgstr ""
 
 #: lib\ui_new_tree.py:129
 msgid "Create a new Bazaar Working Tree"
@@ -2087,24 +2067,20 @@ msgid "All commits signed with verifiable keys"
 msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "delete file"
-msgstr "%d bestand"
+msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "rename"
-msgstr "hernoemd"
+msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "add file"
-msgstr "toegevoegde bestanden"
+msgstr ""
 
 #: lib/widgets\shelve.py:72
-#, fuzzy
 msgid "modify text"
-msgstr "gewijzigd"
+msgstr ""
 
 #: lib/widgets\shelve.py:72
 msgid "modify target"
@@ -2115,9 +2091,8 @@ msgid "modify binary"
 msgstr ""
 
 #: lib/widgets\shelve.py:262
-#, fuzzy
 msgid "Enter the shelve message"
-msgstr "Voer het commit-bericht in"
+msgstr ""
 
 #: lib/widgets\shelve.py:274
 msgid "Hunks"
@@ -2136,9 +2111,8 @@ msgid "Next hunk"
 msgstr ""
 
 #: lib/widgets\shelve.py:319
-#, fuzzy
 msgid "Use editor"
-msgstr "Editor"
+msgstr ""
 
 #: lib/widgets\shelve.py:333
 msgid "Destroy"
@@ -2175,14 +2149,12 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: lib/widgets\shelve.py:655
-#, fuzzy
 msgid "No changes selected."
-msgstr "Geen wijzigengen geselecteerd om ongedaan te maken"
+msgstr ""
 
 #: lib/widgets\shelve.py:692 lib/widgets\shelvelist.py:280
-#, fuzzy
 msgid "<no message>"
-msgstr "Bericht"
+msgstr ""
 
 #: lib/widgets\shelve.py:701
 msgid "Operation aborted because working tree has pending marges."
@@ -2217,14 +2189,12 @@ msgid "Keep"
 msgstr ""
 
 #: lib/widgets\shelvelist.py:174
-#, fuzzy
 msgid "Delete"
-msgstr "Verstekwaarde"
+msgstr ""
 
 #: lib/widgets\shelvelist.py:188
-#, fuzzy
 msgid "Show filelist"
-msgstr "Toon genegeerde bestanden"
+msgstr ""
 
 #: lib/widgets\shelvelist.py:478
 #, python-format
@@ -2248,9 +2218,8 @@ msgid "Remove shelf[%(id)d] without applying"
 msgstr ""
 
 #: lib/widgets\toolbars.py:71
-#, fuzzy
 msgid "Find: "
-msgstr "Soort:"
+msgstr ""
 
 #: lib/widgets\toolbars.py:87
 msgid "Previous"
@@ -2269,9 +2238,8 @@ msgid "Whole words"
 msgstr ""
 
 #: lib/widgets\toolbars.py:106
-#, fuzzy
 msgid "Close find"
-msgstr "&Sluiten"
+msgstr ""
 
 #: lib/widgets\toolbars.py:249
 msgid "Layout"
@@ -2282,8 +2250,17 @@ msgstr ""
 msgid "Layout %d"
 msgstr ""
 
+#~ msgid "[binary file]"
+#~ msgstr "[binair bestand]"
+
+#~ msgid "You should provide commit message."
+#~ msgstr "U dient een commit bericht in te voeren"
+
 #~ msgid "Definition"
 #~ msgstr "Definitie"
+
+#~ msgid "External Merge Apps:"
+#~ msgstr "Externe Merge Applicaties:"
 
 #~ msgid "Use Configured Default"
 #~ msgstr "Gebruik ingestelde standaardwaarde"
@@ -2299,6 +2276,7 @@ msgstr ""
 #~ "external_merge = kdiff3 --output %r %b %t %o\n"
 #~ "%r is de uitvoer, %b is .BASE, %t is .THIS and %o is het .OTHER bestand."
 
+#, python-format
 #~ msgid "%s (Configured external merge definition in qconfig)"
 #~ msgstr "%s (Ingestelde externe merge definitie in qconfig)"
 
@@ -2307,27 +2285,3 @@ msgstr ""
 
 #~ msgid "Using"
 #~ msgstr "Gebruikt"
-
-#~ msgid "&Revert..."
-#~ msgstr "&Terugzetten..."
-
-#~ msgid "Extension"
-#~ msgstr "Extensie"
-
-#~ msgid "Stopped"
-#~ msgstr "Gestopt"
-
-#~ msgid "Show log..."
-#~ msgstr "Toon logboek..."
-
-#~ msgid "Mark as resolved"
-#~ msgstr "Markeer als opgelost"
-
-#~ msgid ""
-#~ "The extmerge definition: '%(tool)s' is invalid.\n"
-#~ "Missing the flag: %(flags)s. This must be fixed in qconflicts under the "
-#~ "Merge tab."
-#~ msgstr ""
-#~ "De extmerge definitie: '%(tool)s' is ongeldig.\n"
-#~ "De vlag: %(flags)s ontbreekt. Dit moet worden opgelost in qconflicts "
-#~ "onder de Merge tab."

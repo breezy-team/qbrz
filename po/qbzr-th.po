@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-03 22:29+0900\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2011-08-03 08:37+0300\n"
 "PO-Revision-Date: 2010-03-12 20:23+0000\n"
 "Last-Translator: Jeroen T. Vermeulen <Unknown>\n"
 "Language-Team: Thai <th@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2011-07-20 19:41+0000\n"
-"X-Generator: Launchpad (build 13468)\n"
+"X-Launchpad-Export-Date: 2011-08-16 16:08+0000\n"
+"X-Generator: Launchpad (build 13687)\n"
 
 #: lib\add.py:45 lib\config.py:139 lib\config.py:160 lib\config.py:191
 #: lib\ui_merge_config.py:60
@@ -226,7 +226,8 @@ msgid "Set the author of this change, if it's different from the committer"
 msgstr ""
 
 #: lib\commit.py:376
-msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
+msgid ""
+"Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
 
 #: lib\commit.py:391
@@ -455,9 +456,8 @@ msgid "Select editor executable"
 msgstr ""
 
 #: lib\config.py:914
-#, fuzzy
 msgid "Command Line"
-msgstr "คำสั่ง"
+msgstr ""
 
 #: lib\conflicts.py:49 lib\conflicts.py:165 lib\conflicts.py:182
 #: lib\conflicts.py:189
@@ -1121,10 +1121,10 @@ msgstr ""
 #: lib\main.py:407
 #, python-format
 msgid ""
-"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
-"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
-"\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
 
 #: lib\main.py:472
@@ -2052,9 +2052,8 @@ msgid "delete file"
 msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "rename"
-msgstr "ชื่อ"
+msgstr ""
 
 #: lib/widgets\shelve.py:71
 msgid "add file"
@@ -2121,12 +2120,14 @@ msgstr ""
 msgid "Delete changes of %d file without shelving"
 msgid_plural "Delete changes of %d files without shelving"
 msgstr[0] ""
+msgstr[1] ""
 
 #: lib/widgets\shelve.py:646
 #, python-format
 msgid "Shelve changes of %d file"
 msgid_plural "Shelve changes of %d files"
 msgstr[0] ""
+msgstr[1] ""
 
 #: lib/widgets\shelve.py:655
 msgid "No changes selected."

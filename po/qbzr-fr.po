@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-03 22:29+0900\n"
+"POT-Creation-Date: 2011-08-03 08:37+0300\n"
 "PO-Revision-Date: 2010-05-17 17:17+0000\n"
 "Last-Translator: François Blondel <Unknown>\n"
 "Language-Team: French <fr@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Launchpad-Export-Date: 2011-07-20 19:41+0000\n"
-"X-Generator: Launchpad (build 13468)\n"
+"X-Launchpad-Export-Date: 2011-08-16 16:08+0000\n"
+"X-Generator: Launchpad (build 13687)\n"
 
 #: lib\add.py:45 lib\config.py:139 lib\config.py:160 lib\config.py:191
 #: lib\ui_merge_config.py:60
@@ -41,32 +41,27 @@ msgid "Loading..."
 msgstr "Chargement..."
 
 #: lib\annotate.py:301 lib/widgets\shelve.py:306 lib/widgets\shelvelist.py:124
-#, fuzzy
 msgid "Encoding"
-msgstr "Encodage :"
+msgstr ""
 
 #: lib\annotate.py:323 lib/widgets\shelve.py:290 lib/widgets\shelvelist.py:105
 #: lib/widgets\toolbars.py:63
-#, fuzzy
 msgid "Find"
-msgstr "Lier"
+msgstr ""
 
 #: lib\annotate.py:327 lib\annotate.py:661
-#, fuzzy
 msgid "Goto Line"
-msgstr "Ligne"
+msgstr ""
 
 #: lib\annotate.py:331 lib\diffwindow.py:433 lib/widgets\shelve.py:310
 #: lib/widgets\shelvelist.py:128
-#, fuzzy
 msgid "&View Options"
-msgstr "Options"
+msgstr ""
 
 #: lib\annotate.py:332 lib\diffwindow.py:434 lib/widgets\shelve.py:294
 #: lib/widgets\shelvelist.py:111
-#, fuzzy
 msgid "View Options"
-msgstr "Options"
+msgstr ""
 
 #: lib\annotate.py:335
 msgid "Word Wrap"
@@ -190,16 +185,12 @@ msgid ""
 msgstr ""
 
 #: lib\commit.py:286
-#, fuzzy
 msgid "Working tree is out of date. To commit, update the working tree."
 msgstr ""
-"L'arbre de travail n'est pas à jour, merci d'exécuter la commande 'bzr "
-"update'"
 
 #: lib\commit.py:300 lib\logwidget.py:471
-#, fuzzy
 msgid "Update"
-msgstr "Date"
+msgstr ""
 
 #: lib\commit.py:311 lib\logmodel.py:44 lib\treewidget.py:355
 #: lib/widgets\shelve.py:254 lib/widgets\shelvelist.py:83
@@ -239,10 +230,11 @@ msgid "Set the author of this change, if it's different from the committer"
 msgstr "Définit l'auteur des changements s'il est différent du commiteur"
 
 #: lib\commit.py:376
-msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
+msgid ""
+"Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
-"Saisissez le nom de l'auteur, par exemple <i>John Doe &lt;jdoe@example."
-"com&gt;</i>"
+"Saisissez le nom de l'auteur, par exemple <i>John Doe "
+"&lt;jdoe@example.com&gt;</i>"
 
 #: lib\commit.py:391
 msgid "Changes"
@@ -264,9 +256,8 @@ msgstr ""
 "Voir les changements dans les fichiers sélectionnés pour l'enregistrement"
 
 #: lib\commit.py:638
-#, fuzzy
 msgid "You should provide a commit message."
-msgstr "Vous devriez fournir un message pour l'enregistrement."
+msgstr ""
 
 #: lib\commit.py:639 lib\conflicts.py:186 lib\conflicts.py:191
 #: lib\diffwindow.py:657 lib\util.py:69 lib/widgets\shelve.py:611
@@ -478,9 +469,8 @@ msgid "Select editor executable"
 msgstr ""
 
 #: lib\config.py:914
-#, fuzzy
 msgid "Command Line"
-msgstr "Commandes"
+msgstr ""
 
 #: lib\conflicts.py:49 lib\conflicts.py:165 lib\conflicts.py:182
 #: lib\conflicts.py:189
@@ -623,9 +613,9 @@ msgid "Properties:"
 msgstr "Propriétés :"
 
 #: lib\diffview.py:668
-#, fuzzy, python-format
+#, python-format
 msgid "[binary file (%d bytes)]"
-msgstr "[fichier binaire]"
+msgstr ""
 
 #: lib\diffview.py:843
 msgid "\\ No newline at end of file"
@@ -685,9 +675,8 @@ msgid "modified"
 msgstr "modifié"
 
 #: lib\diffwindow.py:387
-#, fuzzy
 msgid "&Find"
-msgstr "Lier"
+msgstr ""
 
 #: lib\diffwindow.py:389
 msgid "Find on active panel"
@@ -707,18 +696,16 @@ msgid "&Refresh"
 msgstr "&Actualiser"
 
 #: lib\diffwindow.py:421
-#, fuzzy
 msgid "&External Diff"
-msgstr "Applications de comparaison externes :"
+msgstr ""
 
 #: lib\diffwindow.py:423
 msgid "Launch an external diff application"
 msgstr ""
 
 #: lib\diffwindow.py:437 lib/widgets\shelvelist.py:113
-#, fuzzy
 msgid "&Complete"
-msgstr "Complet"
+msgstr ""
 
 #: lib\diffwindow.py:453 lib/widgets\shelve.py:301
 #: lib/widgets\shelvelist.py:120
@@ -921,9 +908,8 @@ msgid "Save file on this revision as..."
 msgstr ""
 
 #: lib\log.py:581
-#, fuzzy
 msgid "Revert to this revision"
-msgstr "&Annoter cette révision"
+msgstr ""
 
 #: lib\log.py:830
 msgid "Not a file"
@@ -941,9 +927,8 @@ msgid "Save file in this revision as..."
 msgstr ""
 
 #: lib\log.py:846
-#, fuzzy
 msgid "Revert File"
-msgstr "Rétablir"
+msgstr ""
 
 #: lib\log.py:847
 msgid ""
@@ -993,14 +978,12 @@ msgid "Tag &revision..."
 msgstr ""
 
 #: lib\logwidget.py:187
-#, fuzzy
 msgid "R&evert to this revision"
-msgstr "&Annoter cette révision"
+msgstr ""
 
 #: lib\logwidget.py:191
-#, fuzzy
 msgid "&Update to this revision"
-msgstr "&Annoter cette révision"
+msgstr ""
 
 #: lib\logwidget.py:199
 msgid "&Cherry pick"
@@ -1153,10 +1136,10 @@ msgstr "À propos de QBzr"
 #: lib\main.py:407
 #, python-format
 msgid ""
-"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
-"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
-"\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
 
 #: lib\main.py:472
@@ -1210,7 +1193,8 @@ msgstr ""
 
 #: lib\pull.py:251 lib\subprocess.py:176
 msgid "Working tree has uncommitted changes."
-msgstr "L'arborescence du travail contient des modifications non-enregistrées"
+msgstr ""
+"L'arborescence du travail contient des modifications non-enregistrées"
 
 #: lib\pull.py:256
 msgid "Working tree is out of date, please run 'bzr update'."
@@ -1532,9 +1516,8 @@ msgid "Close Error Dialog"
 msgstr ""
 
 #: lib\trace.py:252
-#, fuzzy
 msgid "Ignore Error"
-msgstr "Ignoré"
+msgstr ""
 
 #: lib\trace.py:278
 msgid "Report Bazaar Error"
@@ -1671,9 +1654,8 @@ msgid "&Location:"
 msgstr "&Emplacement  :"
 
 #: lib\ui_branch.py:101
-#, fuzzy
 msgid "&From:"
-msgstr "&Format"
+msgstr ""
 
 #: lib\ui_branch.py:102 lib\ui_branch.py:104 lib\ui_init.py:120
 #: lib\ui_merge.py:65 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
@@ -1687,9 +1669,8 @@ msgid "&To:"
 msgstr "&À :"
 
 #: lib\ui_branch.py:106
-#, fuzzy
 msgid "Bind new branch to parent location"
-msgstr "Choisissez l'emplacement de la branche"
+msgstr ""
 
 #: lib\ui_branch.py:107 lib\ui_merge.py:66 lib\ui_pull.py:64 lib\ui_tag.py:97
 msgid "&Revision:"
@@ -1700,14 +1681,12 @@ msgid "..."
 msgstr "..."
 
 #: lib\ui_info.py:89
-#, fuzzy
 msgid "&Basic"
-msgstr "&Branche"
+msgstr ""
 
 #: lib\ui_info.py:91
-#, fuzzy
 msgid "&Detailed"
-msgstr "Échec !"
+msgstr ""
 
 #: lib\ui_init.py:119
 msgid "Local Directory"
@@ -1758,23 +1737,20 @@ msgid "Merge uncommitted changes instead of committed ones"
 msgstr ""
 
 #: lib\ui_merge_config.py:58
-#, fuzzy
 msgid "Form"
-msgstr "&Format"
+msgstr ""
 
 #: lib\ui_merge_config.py:59
-#, fuzzy
 msgid "External Merge Tools"
-msgstr "Applications de fusion externes :"
+msgstr ""
 
 #: lib\ui_merge_config.py:62
 msgid "Sets the selected merge tool as the default to use in qconflicts."
 msgstr ""
 
 #: lib\ui_merge_config.py:63
-#, fuzzy
 msgid "Set Default"
-msgstr "Par défaut"
+msgstr ""
 
 #: lib\ui_new_tree.py:129
 msgid "Create a new Bazaar Working Tree"
@@ -2091,24 +2067,20 @@ msgid "All commits signed with verifiable keys"
 msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "delete file"
-msgstr "fichiers supprimés"
+msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "rename"
-msgstr "renommé"
+msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "add file"
-msgstr "fichiers ajoutés"
+msgstr ""
 
 #: lib/widgets\shelve.py:72
-#, fuzzy
 msgid "modify text"
-msgstr "modifié"
+msgstr ""
 
 #: lib/widgets\shelve.py:72
 msgid "modify target"
@@ -2119,9 +2091,8 @@ msgid "modify binary"
 msgstr ""
 
 #: lib/widgets\shelve.py:262
-#, fuzzy
 msgid "Enter the shelve message"
-msgstr "Entrez le message de commit"
+msgstr ""
 
 #: lib/widgets\shelve.py:274
 msgid "Hunks"
@@ -2140,9 +2111,8 @@ msgid "Next hunk"
 msgstr ""
 
 #: lib/widgets\shelve.py:319
-#, fuzzy
 msgid "Use editor"
-msgstr "Éditeur"
+msgstr ""
 
 #: lib/widgets\shelve.py:333
 msgid "Destroy"
@@ -2179,14 +2149,12 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: lib/widgets\shelve.py:655
-#, fuzzy
 msgid "No changes selected."
-msgstr "Aucuns changements sélectionnés pour l'annulation"
+msgstr ""
 
 #: lib/widgets\shelve.py:692 lib/widgets\shelvelist.py:280
-#, fuzzy
 msgid "<no message>"
-msgstr "(aucun message)"
+msgstr ""
 
 #: lib/widgets\shelve.py:701
 msgid "Operation aborted because working tree has pending marges."
@@ -2221,14 +2189,12 @@ msgid "Keep"
 msgstr ""
 
 #: lib/widgets\shelvelist.py:174
-#, fuzzy
 msgid "Delete"
-msgstr "Par défaut"
+msgstr ""
 
 #: lib/widgets\shelvelist.py:188
-#, fuzzy
 msgid "Show filelist"
-msgstr "Montrer les fichiers ignorés"
+msgstr ""
 
 #: lib/widgets\shelvelist.py:478
 #, python-format
@@ -2252,9 +2218,8 @@ msgid "Remove shelf[%(id)d] without applying"
 msgstr ""
 
 #: lib/widgets\toolbars.py:71
-#, fuzzy
 msgid "Find: "
-msgstr "Type :"
+msgstr ""
 
 #: lib/widgets\toolbars.py:87
 msgid "Previous"
@@ -2273,9 +2238,8 @@ msgid "Whole words"
 msgstr ""
 
 #: lib/widgets\toolbars.py:106
-#, fuzzy
 msgid "Close find"
-msgstr "&Fermer"
+msgstr ""
 
 #: lib/widgets\toolbars.py:249
 msgid "Layout"
@@ -2286,6 +2250,15 @@ msgstr ""
 msgid "Layout %d"
 msgstr ""
 
+#~ msgid "[binary file]"
+#~ msgstr "[fichier binaire]"
+
+#~ msgid "You should provide commit message."
+#~ msgstr "Vous devriez fournir un message pour l'enregistrement."
+
+#~ msgid "External Merge Apps:"
+#~ msgstr "Applications de fusion externes :"
+
 #~ msgid "Use Configured Default"
 #~ msgstr "Utiliser les paramètres par défaut"
 
@@ -2295,32 +2268,5 @@ msgstr ""
 #~ msgid "Repository format:"
 #~ msgstr "Format de dépôt :"
 
-#~ msgid "Show log..."
-#~ msgstr "Afficher le log..."
-
-#~ msgid "&Revert..."
-#~ msgstr "&Inverser..."
-
-#~ msgid "Stopped"
-#~ msgstr "Arrêté"
-
-#~ msgid "Mark as resolved"
-#~ msgstr "Marquer comme résolu"
-
-#~ msgid "Mail to address:"
-#~ msgstr "Envoyer par mail :"
-
-#~ msgid "&Replace"
-#~ msgstr "&Remplacer"
-
-#~ msgid "Add %s to the tree."
-#~ msgstr "Ajouter %s à l'arbre."
-
-#~ msgid "Local location:"
-#~ msgstr "Emplacement local :"
-
-#~ msgid "Public branch location:"
-#~ msgstr "Emplacement de la branche publique :"
-
-#~ msgid "&Location"
-#~ msgstr "&Emplacement"
+#~ msgid "&Format"
+#~ msgstr "&Format"

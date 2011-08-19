@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-03 22:29+0900\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2011-08-03 08:37+0300\n"
 "PO-Revision-Date: 2008-11-21 23:51+0000\n"
 "Last-Translator: Yaron <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <he@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2011-07-20 19:41+0000\n"
-"X-Generator: Launchpad (build 13468)\n"
+"X-Launchpad-Export-Date: 2011-08-16 16:08+0000\n"
+"X-Generator: Launchpad (build 13687)\n"
 
 #: lib\add.py:45 lib\config.py:139 lib\config.py:160 lib\config.py:191
 #: lib\ui_merge_config.py:60
@@ -46,9 +46,8 @@ msgstr ""
 
 #: lib\annotate.py:323 lib/widgets\shelve.py:290 lib/widgets\shelvelist.py:105
 #: lib/widgets\toolbars.py:63
-#, fuzzy
 msgid "Find"
-msgstr "הסתיים!"
+msgstr ""
 
 #: lib\annotate.py:327 lib\annotate.py:661
 msgid "Goto Line"
@@ -56,15 +55,13 @@ msgstr ""
 
 #: lib\annotate.py:331 lib\diffwindow.py:433 lib/widgets\shelve.py:310
 #: lib/widgets\shelvelist.py:128
-#, fuzzy
 msgid "&View Options"
-msgstr "אפשרויות"
+msgstr ""
 
 #: lib\annotate.py:332 lib\diffwindow.py:434 lib/widgets\shelve.py:294
 #: lib/widgets\shelvelist.py:111
-#, fuzzy
 msgid "View Options"
-msgstr "אפשרויות"
+msgstr ""
 
 #: lib\annotate.py:335
 msgid "Word Wrap"
@@ -190,9 +187,8 @@ msgid "Working tree is out of date. To commit, update the working tree."
 msgstr ""
 
 #: lib\commit.py:300 lib\logwidget.py:471
-#, fuzzy
 msgid "Update"
-msgstr "מקור העדכון"
+msgstr ""
 
 #: lib\commit.py:311 lib\logmodel.py:44 lib\treewidget.py:355
 #: lib/widgets\shelve.py:254 lib/widgets\shelvelist.py:83
@@ -230,7 +226,8 @@ msgid "Set the author of this change, if it's different from the committer"
 msgstr ""
 
 #: lib\commit.py:376
-msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
+msgid ""
+"Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
 
 #: lib\commit.py:391
@@ -252,9 +249,8 @@ msgid "View changes in files selected to commit"
 msgstr ""
 
 #: lib\commit.py:638
-#, fuzzy
 msgid "You should provide a commit message."
-msgstr "עליך לציין שם תגית"
+msgstr ""
 
 #: lib\commit.py:639 lib\conflicts.py:186 lib\conflicts.py:191
 #: lib\diffwindow.py:657 lib\util.py:69 lib/widgets\shelve.py:611
@@ -695,9 +691,8 @@ msgid "Launch an external diff application"
 msgstr ""
 
 #: lib\diffwindow.py:437 lib/widgets\shelvelist.py:113
-#, fuzzy
 msgid "&Complete"
-msgstr "הסתיים"
+msgstr ""
 
 #: lib\diffwindow.py:453 lib/widgets\shelve.py:301
 #: lib/widgets\shelvelist.py:120
@@ -900,9 +895,8 @@ msgid "Save file on this revision as..."
 msgstr ""
 
 #: lib\log.py:581
-#, fuzzy
 msgid "Revert to this revision"
-msgstr "החזר את %s למהדורה האחרונה."
+msgstr ""
 
 #: lib\log.py:830
 msgid "Not a file"
@@ -920,9 +914,8 @@ msgid "Save file in this revision as..."
 msgstr ""
 
 #: lib\log.py:846
-#, fuzzy
 msgid "Revert File"
-msgstr "ה&חזר"
+msgstr ""
 
 #: lib\log.py:847
 msgid ""
@@ -972,14 +965,12 @@ msgid "Tag &revision..."
 msgstr ""
 
 #: lib\logwidget.py:187
-#, fuzzy
 msgid "R&evert to this revision"
-msgstr "החזר את %s למהדורה האחרונה."
+msgstr ""
 
 #: lib\logwidget.py:191
-#, fuzzy
 msgid "&Update to this revision"
-msgstr "החזר את %s למהדורה האחרונה."
+msgstr ""
 
 #: lib\logwidget.py:199
 msgid "&Cherry pick"
@@ -990,14 +981,14 @@ msgid "Re&verse Cherry pick"
 msgstr ""
 
 #: lib\logwidget.py:441
-#, fuzzy, python-format
+#, python-format
 msgid "Revert to revision %s revid:%s."
-msgstr "החזר את %s למהדורה האחרונה."
+msgstr ""
 
 #: lib\logwidget.py:444
-#, fuzzy, python-format
+#, python-format
 msgid "Revert %s to revision %s revid:%s."
-msgstr "החזר את %s למהדורה האחרונה."
+msgstr ""
 
 #: lib\logwidget.py:449 lib\revert.py:54 lib\subprocess.py:185
 #: lib\treewidget.py:1946
@@ -1132,10 +1123,10 @@ msgstr ""
 #: lib\main.py:407
 #, python-format
 msgid ""
-"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
-"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
-"\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
 
 #: lib\main.py:472
@@ -1512,9 +1503,8 @@ msgid "Close Error Dialog"
 msgstr ""
 
 #: lib\trace.py:252
-#, fuzzy
 msgid "Ignore Error"
-msgstr "שגיאה פנימית"
+msgstr ""
 
 #: lib\trace.py:278
 msgid "Report Bazaar Error"
@@ -1666,9 +1656,8 @@ msgid "&To:"
 msgstr ""
 
 #: lib\ui_branch.py:106
-#, fuzzy
 msgid "Bind new branch to parent location"
-msgstr "בחר את מיקום הענף"
+msgstr ""
 
 #: lib\ui_branch.py:107 lib\ui_merge.py:66 lib\ui_pull.py:64 lib\ui_tag.py:97
 msgid "&Revision:"
@@ -1683,9 +1672,8 @@ msgid "&Basic"
 msgstr ""
 
 #: lib\ui_info.py:91
-#, fuzzy
 msgid "&Detailed"
-msgstr "נכשל!"
+msgstr ""
 
 #: lib\ui_init.py:119
 msgid "Local Directory"
@@ -2066,24 +2054,20 @@ msgid "All commits signed with verifiable keys"
 msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "delete file"
-msgstr "קובץ %d"
+msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "rename"
-msgstr "שונה שמו"
+msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "add file"
-msgstr "קובץ %d"
+msgstr ""
 
 #: lib/widgets\shelve.py:72
-#, fuzzy
 msgid "modify text"
-msgstr "עודכן"
+msgstr ""
 
 #: lib/widgets\shelve.py:72
 msgid "modify target"
@@ -2114,23 +2098,20 @@ msgid "Next hunk"
 msgstr ""
 
 #: lib/widgets\shelve.py:319
-#, fuzzy
 msgid "Use editor"
-msgstr "השתמש בתיקייה קיימת"
+msgstr ""
 
 #: lib/widgets\shelve.py:333
 msgid "Destroy"
 msgstr ""
 
 #: lib/widgets\shelve.py:342
-#, fuzzy
 msgid "Select all"
-msgstr "בחר / בטל בחירת הכל"
+msgstr ""
 
 #: lib/widgets\shelve.py:345
-#, fuzzy
 msgid "Unselect all"
-msgstr "בחר / בטל בחירת הכל"
+msgstr ""
 
 #: lib/widgets\shelve.py:352 lib/widgets\shelvelist.py:194
 msgid "&Layout"
@@ -2244,9 +2225,8 @@ msgid "Whole words"
 msgstr ""
 
 #: lib/widgets\toolbars.py:106
-#, fuzzy
 msgid "Close find"
-msgstr "ס&גור"
+msgstr ""
 
 #: lib/widgets\toolbars.py:249
 msgid "Layout"
@@ -2259,25 +2239,3 @@ msgstr ""
 
 #~ msgid "Side by side"
 #~ msgstr "זה לצד זה"
-
-#~ msgid "&Revert..."
-#~ msgstr "ה&חזר..."
-
-#~ msgid "Extension"
-#~ msgstr "הרחבה"
-
-#~ msgid "Stopped"
-#~ msgstr "נעצר"
-
-#~ msgid ""
-#~ "Tag \"%s\" already exists.\n"
-#~ "Do you want to replace existing tag?"
-#~ msgstr ""
-#~ "התגית \"%s\" כבר קיימת.\n"
-#~ "האם ברצונך להחליף תגית קיימת?"
-
-#~ msgid "&Replace"
-#~ msgstr "ה&חלף"
-
-#~ msgid "Replace existing tag"
-#~ msgstr "החלף תגית קיימת"

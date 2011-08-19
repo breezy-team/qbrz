@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-03 22:29+0900\n"
+"POT-Creation-Date: 2011-08-03 08:37+0300\n"
 "PO-Revision-Date: 2010-01-17 12:48+0000\n"
 "Last-Translator: Stefano Karapetsas <stefano@karapetsas.com>\n"
 "Language-Team: Italian <it@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2011-07-20 19:41+0000\n"
-"X-Generator: Launchpad (build 13468)\n"
+"X-Launchpad-Export-Date: 2011-08-16 16:08+0000\n"
+"X-Generator: Launchpad (build 13687)\n"
 
 #: lib\add.py:45 lib\config.py:139 lib\config.py:160 lib\config.py:191
 #: lib\ui_merge_config.py:60
@@ -41,32 +41,27 @@ msgid "Loading..."
 msgstr "Caricamento..."
 
 #: lib\annotate.py:301 lib/widgets\shelve.py:306 lib/widgets\shelvelist.py:124
-#, fuzzy
 msgid "Encoding"
-msgstr "Codifica:"
+msgstr ""
 
 #: lib\annotate.py:323 lib/widgets\shelve.py:290 lib/widgets\shelvelist.py:105
 #: lib/widgets\toolbars.py:63
-#, fuzzy
 msgid "Find"
-msgstr "Associa"
+msgstr ""
 
 #: lib\annotate.py:327 lib\annotate.py:661
-#, fuzzy
 msgid "Goto Line"
-msgstr "Riga"
+msgstr ""
 
 #: lib\annotate.py:331 lib\diffwindow.py:433 lib/widgets\shelve.py:310
 #: lib/widgets\shelvelist.py:128
-#, fuzzy
 msgid "&View Options"
-msgstr "Opzioni"
+msgstr ""
 
 #: lib\annotate.py:332 lib\diffwindow.py:434 lib/widgets\shelve.py:294
 #: lib/widgets\shelvelist.py:111
-#, fuzzy
 msgid "View Options"
-msgstr "Opzioni"
+msgstr ""
 
 #: lib\annotate.py:335
 msgid "Word Wrap"
@@ -190,14 +185,12 @@ msgid ""
 msgstr ""
 
 #: lib\commit.py:286
-#, fuzzy
 msgid "Working tree is out of date. To commit, update the working tree."
-msgstr "L'albero di lavoro non è aggiornato, eseguire 'bzr update'."
+msgstr ""
 
 #: lib\commit.py:300 lib\logwidget.py:471
-#, fuzzy
 msgid "Update"
-msgstr "Aggiorna sorgente"
+msgstr ""
 
 #: lib\commit.py:311 lib\logmodel.py:44 lib\treewidget.py:355
 #: lib/widgets\shelve.py:254 lib/widgets\shelvelist.py:83
@@ -237,10 +230,11 @@ msgid "Set the author of this change, if it's different from the committer"
 msgstr "Imposta l'autore di questa modifica, se diverso da chi la invia"
 
 #: lib\commit.py:376
-msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
+msgid ""
+"Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
-"Inserisci il nome dell'autore, ad esempio <i>John Doe &lt;jdoe@example."
-"com&gt;</i>"
+"Inserisci il nome dell'autore, ad esempio <i>John Doe "
+"&lt;jdoe@example.com&gt;</i>"
 
 #: lib\commit.py:391
 msgid "Changes"
@@ -261,9 +255,8 @@ msgid "View changes in files selected to commit"
 msgstr "Visualizza modifiche nei file selezionati per il commit"
 
 #: lib\commit.py:638
-#, fuzzy
 msgid "You should provide a commit message."
-msgstr "Si dovrebbe inserire un messaggio per il commit."
+msgstr ""
 
 #: lib\commit.py:639 lib\conflicts.py:186 lib\conflicts.py:191
 #: lib\diffwindow.py:657 lib\util.py:69 lib/widgets\shelve.py:611
@@ -395,7 +388,8 @@ msgstr "URL"
 
 #: lib\config.py:179
 msgid "Show inter-group inserts and deletes in green and red"
-msgstr "Mostra inserimenti e eliminazioni nei gruppi interni in verde e rosso"
+msgstr ""
+"Mostra inserimenti e eliminazioni nei gruppi interni in verde e rosso"
 
 #: lib\config.py:181
 msgid "External Diff Apps:"
@@ -475,9 +469,8 @@ msgid "Select editor executable"
 msgstr "Seleziona eseguibile editor"
 
 #: lib\config.py:914
-#, fuzzy
 msgid "Command Line"
-msgstr "Comando"
+msgstr ""
 
 #: lib\conflicts.py:49 lib\conflicts.py:165 lib\conflicts.py:182
 #: lib\conflicts.py:189
@@ -620,9 +613,9 @@ msgid "Properties:"
 msgstr "Proprietà:"
 
 #: lib\diffview.py:668
-#, fuzzy, python-format
+#, python-format
 msgid "[binary file (%d bytes)]"
-msgstr "[file binario]"
+msgstr ""
 
 #: lib\diffview.py:843
 msgid "\\ No newline at end of file"
@@ -682,9 +675,8 @@ msgid "modified"
 msgstr "modificato"
 
 #: lib\diffwindow.py:387
-#, fuzzy
 msgid "&Find"
-msgstr "Associa"
+msgstr ""
 
 #: lib\diffwindow.py:389
 msgid "Find on active panel"
@@ -704,18 +696,16 @@ msgid "&Refresh"
 msgstr "Aggio&rna"
 
 #: lib\diffwindow.py:421
-#, fuzzy
 msgid "&External Diff"
-msgstr "Applicazioni Esterne per il Diff:"
+msgstr ""
 
 #: lib\diffwindow.py:423
 msgid "Launch an external diff application"
 msgstr ""
 
 #: lib\diffwindow.py:437 lib/widgets\shelvelist.py:113
-#, fuzzy
 msgid "&Complete"
-msgstr "Completo"
+msgstr ""
 
 #: lib\diffwindow.py:453 lib/widgets\shelve.py:301
 #: lib/widgets\shelvelist.py:120
@@ -727,19 +717,16 @@ msgid "Left side tab width"
 msgstr ""
 
 #: lib\diffwindow.py:473
-#, fuzzy
 msgid "Right side tab width"
-msgstr "Codifica lato destro:"
+msgstr ""
 
 #: lib\diffwindow.py:489
-#, fuzzy
 msgid "Left side encoding"
-msgstr "Codifica lato sinistro:"
+msgstr ""
 
 #: lib\diffwindow.py:499
-#, fuzzy
 msgid "Right side encoding"
-msgstr "Codifica lato destro:"
+msgstr ""
 
 #: lib\diffwindow.py:505
 msgid "&Ignore whitespace changes"
@@ -917,14 +904,12 @@ msgid "View file"
 msgstr "Mostra il file"
 
 #: lib\log.py:577
-#, fuzzy
 msgid "Save file on this revision as..."
-msgstr "&Annota questa revisione."
+msgstr ""
 
 #: lib\log.py:581
-#, fuzzy
 msgid "Revert to this revision"
-msgstr "Ripristina %s all'ultima revisione."
+msgstr ""
 
 #: lib\log.py:830
 msgid "Not a file"
@@ -938,14 +923,12 @@ msgid ""
 msgstr ""
 
 #: lib\log.py:835
-#, fuzzy
 msgid "Save file in this revision as..."
-msgstr "&Annota questa revisione."
+msgstr ""
 
 #: lib\log.py:846
-#, fuzzy
 msgid "Revert File"
-msgstr "Ripristina"
+msgstr ""
 
 #: lib\log.py:847
 msgid ""
@@ -995,14 +978,12 @@ msgid "Tag &revision..."
 msgstr "Tag &revisione..."
 
 #: lib\logwidget.py:187
-#, fuzzy
 msgid "R&evert to this revision"
-msgstr "Ripristina %s all'ultima revisione."
+msgstr ""
 
 #: lib\logwidget.py:191
-#, fuzzy
 msgid "&Update to this revision"
-msgstr "&Annota questa revisione"
+msgstr ""
 
 #: lib\logwidget.py:199
 msgid "&Cherry pick"
@@ -1013,14 +994,14 @@ msgid "Re&verse Cherry pick"
 msgstr ""
 
 #: lib\logwidget.py:441
-#, fuzzy, python-format
+#, python-format
 msgid "Revert to revision %s revid:%s."
-msgstr "Ripristina %s all'ultima revisione."
+msgstr ""
 
 #: lib\logwidget.py:444
-#, fuzzy, python-format
+#, python-format
 msgid "Revert %s to revision %s revid:%s."
-msgstr "Ripristina %s all'ultima revisione."
+msgstr ""
 
 #: lib\logwidget.py:449 lib\revert.py:54 lib\subprocess.py:185
 #: lib\treewidget.py:1946
@@ -1155,15 +1136,15 @@ msgstr "Informazioni su QBzr"
 #: lib\main.py:407
 #, python-format
 msgid ""
-"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
-"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
-"\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
-"<b>QBzr</b> — Un'interfaccia grafica per Bazaar<br><small>Versione %"
-"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2008 Lukáš Lalinský e altri<br><br><a href=\"http://bazaar-vcs.org/QBzr"
-"\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — Un'interfaccia grafica per Bazaar<br><small>Versione "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2008 Lukáš Lalinský e altri<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 
 #: lib\main.py:472
 msgid "Add Bookmark"
@@ -1541,9 +1522,8 @@ msgid "Close Error Dialog"
 msgstr ""
 
 #: lib\trace.py:252
-#, fuzzy
 msgid "Ignore Error"
-msgstr "Errore Interno"
+msgstr ""
 
 #: lib\trace.py:278
 msgid "Report Bazaar Error"
@@ -1655,13 +1635,10 @@ msgid "External Merge"
 msgstr "Merge Esterno"
 
 #: lib\treewidget.py:2060
-#, fuzzy
 msgid ""
 "Some of the files selected cannot be recovered if removed. Are you sure you "
 "want to remove these files?"
 msgstr ""
-"Alcuni dei file selezionati non possono essere recuperati se eliminati. Si è "
-"sicuri di eliminare questi file?"
 
 #: lib\treewidget.py:2075
 msgid "Select / deselect all"
@@ -1683,9 +1660,8 @@ msgid "&Location:"
 msgstr "Posizione:"
 
 #: lib\ui_branch.py:101
-#, fuzzy
 msgid "&From:"
-msgstr "&Formato"
+msgstr ""
 
 #: lib\ui_branch.py:102 lib\ui_branch.py:104 lib\ui_init.py:120
 #: lib\ui_merge.py:65 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
@@ -1699,9 +1675,8 @@ msgid "&To:"
 msgstr "&A:"
 
 #: lib\ui_branch.py:106
-#, fuzzy
 msgid "Bind new branch to parent location"
-msgstr "Seleziona posizione branch"
+msgstr ""
 
 #: lib\ui_branch.py:107 lib\ui_merge.py:66 lib\ui_pull.py:64 lib\ui_tag.py:97
 msgid "&Revision:"
@@ -1712,14 +1687,12 @@ msgid "..."
 msgstr "..."
 
 #: lib\ui_info.py:89
-#, fuzzy
 msgid "&Basic"
-msgstr "&Branch"
+msgstr ""
 
 #: lib\ui_info.py:91
-#, fuzzy
 msgid "&Detailed"
-msgstr "Non riuscito!"
+msgstr ""
 
 #: lib\ui_init.py:119
 msgid "Local Directory"
@@ -1772,23 +1745,20 @@ msgid "Merge uncommitted changes instead of committed ones"
 msgstr "Merge delle modifiche senza commit al posto di quelle dei commit"
 
 #: lib\ui_merge_config.py:58
-#, fuzzy
 msgid "Form"
-msgstr "&Formato"
+msgstr ""
 
 #: lib\ui_merge_config.py:59
-#, fuzzy
 msgid "External Merge Tools"
-msgstr "Merge Esterno"
+msgstr ""
 
 #: lib\ui_merge_config.py:62
 msgid "Sets the selected merge tool as the default to use in qconflicts."
 msgstr ""
 
 #: lib\ui_merge_config.py:63
-#, fuzzy
 msgid "Set Default"
-msgstr "Predefinito"
+msgstr ""
 
 #: lib\ui_new_tree.py:129
 msgid "Create a new Bazaar Working Tree"
@@ -2109,24 +2079,20 @@ msgid "All commits signed with verifiable keys"
 msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "delete file"
-msgstr "file eliminati"
+msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "rename"
-msgstr "rinominato"
+msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "add file"
-msgstr "file aggiunti"
+msgstr ""
 
 #: lib/widgets\shelve.py:72
-#, fuzzy
 msgid "modify text"
-msgstr "modificato"
+msgstr ""
 
 #: lib/widgets\shelve.py:72
 msgid "modify target"
@@ -2137,9 +2103,8 @@ msgid "modify binary"
 msgstr ""
 
 #: lib/widgets\shelve.py:262
-#, fuzzy
 msgid "Enter the shelve message"
-msgstr "Inserisci il messaggio"
+msgstr ""
 
 #: lib/widgets\shelve.py:274
 msgid "Hunks"
@@ -2158,24 +2123,20 @@ msgid "Next hunk"
 msgstr ""
 
 #: lib/widgets\shelve.py:319
-#, fuzzy
 msgid "Use editor"
-msgstr "Editor"
+msgstr ""
 
 #: lib/widgets\shelve.py:333
-#, fuzzy
 msgid "Destroy"
-msgstr "Cartella"
+msgstr ""
 
 #: lib/widgets\shelve.py:342
-#, fuzzy
 msgid "Select all"
-msgstr "Seleziona / deseleziona tutto"
+msgstr ""
 
 #: lib/widgets\shelve.py:345
-#, fuzzy
 msgid "Unselect all"
-msgstr "Seleziona / deseleziona tutto"
+msgstr ""
 
 #: lib/widgets\shelve.py:352 lib/widgets\shelvelist.py:194
 msgid "&Layout"
@@ -2193,21 +2154,19 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: lib/widgets\shelve.py:646
-#, fuzzy, python-format
+#, python-format
 msgid "Shelve changes of %d file"
 msgid_plural "Shelve changes of %d files"
-msgstr[0] "Seleziona modifiche per il ripristino"
-msgstr[1] "Seleziona modifiche per il ripristino"
+msgstr[0] ""
+msgstr[1] ""
 
 #: lib/widgets\shelve.py:655
-#, fuzzy
 msgid "No changes selected."
-msgstr "Nessuna modifica selezionata per il revert"
+msgstr ""
 
 #: lib/widgets\shelve.py:692 lib/widgets\shelvelist.py:280
-#, fuzzy
 msgid "<no message>"
-msgstr "(nessun messaggio)"
+msgstr ""
 
 #: lib/widgets\shelve.py:701
 msgid "Operation aborted because working tree has pending marges."
@@ -2242,14 +2201,12 @@ msgid "Keep"
 msgstr ""
 
 #: lib/widgets\shelvelist.py:174
-#, fuzzy
 msgid "Delete"
-msgstr "Predefinito"
+msgstr ""
 
 #: lib/widgets\shelvelist.py:188
-#, fuzzy
 msgid "Show filelist"
-msgstr "Mostra file ignorati"
+msgstr ""
 
 #: lib/widgets\shelvelist.py:478
 #, python-format
@@ -2273,9 +2230,8 @@ msgid "Remove shelf[%(id)d] without applying"
 msgstr ""
 
 #: lib/widgets\toolbars.py:71
-#, fuzzy
 msgid "Find: "
-msgstr "Tipo:"
+msgstr ""
 
 #: lib/widgets\toolbars.py:87
 msgid "Previous"
@@ -2294,9 +2250,8 @@ msgid "Whole words"
 msgstr ""
 
 #: lib/widgets\toolbars.py:106
-#, fuzzy
 msgid "Close find"
-msgstr "&Chiudi"
+msgstr ""
 
 #: lib/widgets\toolbars.py:249
 msgid "Layout"
@@ -2307,14 +2262,79 @@ msgstr ""
 msgid "Layout %d"
 msgstr ""
 
-#~ msgid "External Merge Apps:"
-#~ msgstr "Applicazioni Esterne per il Merge:"
+#~ msgid "[binary file]"
+#~ msgstr "[file binario]"
+
+#~ msgid "Submit branch:"
+#~ msgstr "Invia branch:"
+
+#~ msgid "Branch format:"
+#~ msgstr "Formato branch:"
+
+#~ msgid "Repository format:"
+#~ msgstr "Formato repository:"
+
+#~ msgid "&Related Branches"
+#~ msgstr "B&ranch collegati:"
+
+#~ msgid "Push branch:"
+#~ msgstr "Push branch:"
+
+#~ msgid "Parent branch:"
+#~ msgstr "Branch genitore:"
+
+#~ msgid "Working tree format:"
+#~ msgstr "Formato dell'albero di lavoro:"
+
+#~ msgid "Side by side"
+#~ msgstr "Fianco a fianco"
+
+#~ msgid "You should provide commit message."
+#~ msgstr "Si dovrebbe inserire un messaggio per il commit."
+
+#~ msgid "Using"
+#~ msgstr "Usando"
 
 #~ msgid "Definition"
 #~ msgstr "Definizione"
 
+#~ msgid "External Merge Apps:"
+#~ msgstr "Applicazioni Esterne per il Merge:"
+
+#~ msgid "Public branch:"
+#~ msgstr "Branch pubblico:"
+
+#~ msgid "Location has no branch"
+#~ msgstr "La posizione non ha un branch"
+
+#~ msgid "Location has no working tree"
+#~ msgstr "La posizione non ha un albero di lavoro"
+
+#~ msgid ""
+#~ "Some of the files selected cannot be recoverd if removed. Are you sure you "
+#~ "want to remove these files?"
+#~ msgstr ""
+#~ "Alcuni dei file selezionati non possono essere recuperati se eliminati. Si è "
+#~ "sicuri di eliminare questi file?"
+
+#~ msgid "Left side encoding:"
+#~ msgstr "Codifica lato sinistro:"
+
+#~ msgid "Right side encoding:"
+#~ msgstr "Codifica lato destro:"
+
 #~ msgid "Use Configured Default"
 #~ msgstr "Usa Predefinito Configurato"
+
+#~ msgid "Control directory format:"
+#~ msgstr "Formato cartella di controllo:"
+
+#~ msgid "&Format"
+#~ msgstr "&Formato"
+
+#, python-format
+#~ msgid "%s (Configured external merge definition in qconfig)"
+#~ msgstr "%s (Definizione merge esterno configurato in qconfig)"
 
 #~ msgid ""
 #~ "The merge tool configured in qconfig under Merge' file.\n"
@@ -2325,117 +2345,5 @@ msgstr ""
 #~ "Lo strumento merge configurato in qconfig nella pagina Merge.\n"
 #~ "Segue la convenzione usata nel plugin bzr: extmerge\n"
 #~ "external_merge = kdiff3 --output %r %b %t %o\n"
-#~ "%r è il risultato, %b è il file .BASE, %t è il file .THIS e %o è il file ."
-#~ "OTHER."
-
-#~ msgid "%s (Configured external merge definition in qconfig)"
-#~ msgstr "%s (Definizione merge esterno configurato in qconfig)"
-
-#~ msgid "Side by side"
-#~ msgstr "Fianco a fianco"
-
-#~ msgid "Using"
-#~ msgstr "Usando"
-
-#~ msgid "Location has no working tree"
-#~ msgstr "La posizione non ha un albero di lavoro"
-
-#~ msgid "Location has no branch"
-#~ msgstr "La posizione non ha un branch"
-
-#~ msgid "Parent branch:"
-#~ msgstr "Branch genitore:"
-
-#~ msgid "Push branch:"
-#~ msgstr "Push branch:"
-
-#~ msgid "Submit branch:"
-#~ msgstr "Invia branch:"
-
-#~ msgid "Public branch:"
-#~ msgstr "Branch pubblico:"
-
-#~ msgid "&Related Branches"
-#~ msgstr "B&ranch collegati:"
-
-#~ msgid "Working tree format:"
-#~ msgstr "Formato dell'albero di lavoro:"
-
-#~ msgid "Branch format:"
-#~ msgstr "Formato branch:"
-
-#~ msgid "Repository format:"
-#~ msgstr "Formato repository:"
-
-#~ msgid "Control directory format:"
-#~ msgstr "Formato cartella di controllo:"
-
-#~ msgid "Stopped"
-#~ msgstr "Arrestato"
-
-#~ msgid "Show log..."
-#~ msgstr "Mostra log..."
-
-#~ msgid ""
-#~ "Sorry, subprocess action \"%s\" cannot be started\n"
-#~ "because self.args is None.\n"
-#~ "Please, report bug at:\n"
-#~ "https://bugs.launchpad.net/qbzr/+filebug"
-#~ msgstr ""
-#~ "Il sottoprocesso \"%s\" non può essere avviato\n"
-#~ "perchè self.args è None.\n"
-#~ "Si prega di riportare il bug su:\n"
-#~ "https://bugs.launchpad.net/qbzr/+filebug"
-
-#~ msgid ""
-#~ "Tag \"%s\" already exists.\n"
-#~ "Do you want to replace existing tag?"
-#~ msgstr ""
-#~ "Il tag \"%s\" esiste già.\n"
-#~ "Si vuole rimpiazzare il tag esistente?"
-
-#~ msgid "&Replace"
-#~ msgstr "&Rimpiazza"
-
-#~ msgid "Public branch location:"
-#~ msgstr "Posizione branch pubblico:"
-
-#~ msgid "&Location"
-#~ msgstr "&Posizione"
-
-#~ msgid "Local location:"
-#~ msgstr "Posizione locale:"
-
-#~ msgid ""
-#~ "Branch source (enter a URL or select a local directory with an exiting "
-#~ "branch)"
-#~ msgstr ""
-#~ "Sorgente branch (inserire un URL o selezionare una directory locale con "
-#~ "un branch esistente)"
-
-#~ msgid "Replace existing tag"
-#~ msgstr "Rimpiazza tag esistente"
-
-#~ msgid "Extension"
-#~ msgstr "Estensione"
-
-#~ msgid "&Revert..."
-#~ msgstr "&Ripristina..."
-
-#~ msgid "Mark as resolved"
-#~ msgstr "Segna come risolto"
-
-#~ msgid "modified (x-bit)"
-#~ msgstr "modificato (x-bit)"
-
-#~ msgid "Add %s to the tree."
-#~ msgstr "Aggiungi %s all'albero."
-
-#~ msgid ""
-#~ "The extmerge definition: '%(tool)s' is invalid.\n"
-#~ "Missing the flag: %(flags)s. This must be fixed in qconflicts under the "
-#~ "Merge tab."
-#~ msgstr ""
-#~ "La definizione extmerge: '%(tool)s non è valida .\n"
-#~ "Flag mancante: %(flags)s. Deve essere risolto in qconfilcts nella pagina "
-#~ "Merge"
+#~ "%r è il risultato, %b è il file .BASE, %t è il file .THIS e %o è il file "
+#~ ".OTHER."

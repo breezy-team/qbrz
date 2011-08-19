@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-03 22:29+0900\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2011-08-03 08:37+0300\n"
 "PO-Revision-Date: 2010-03-26 09:54+0000\n"
 "Last-Translator: René Pärts <Unknown>\n"
 "Language-Team: Estonian <et@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2011-07-20 19:41+0000\n"
-"X-Generator: Launchpad (build 13468)\n"
+"X-Launchpad-Export-Date: 2011-08-16 16:08+0000\n"
+"X-Generator: Launchpad (build 13687)\n"
 
 #: lib\add.py:45 lib\config.py:139 lib\config.py:160 lib\config.py:191
 #: lib\ui_merge_config.py:60
@@ -41,32 +41,27 @@ msgid "Loading..."
 msgstr "Laadimine..."
 
 #: lib\annotate.py:301 lib/widgets\shelve.py:306 lib/widgets\shelvelist.py:124
-#, fuzzy
 msgid "Encoding"
-msgstr "Kodeering:"
+msgstr ""
 
 #: lib\annotate.py:323 lib/widgets\shelve.py:290 lib/widgets\shelvelist.py:105
 #: lib/widgets\toolbars.py:63
-#, fuzzy
 msgid "Find"
-msgstr "Köida"
+msgstr ""
 
 #: lib\annotate.py:327 lib\annotate.py:661
-#, fuzzy
 msgid "Goto Line"
-msgstr "Rida"
+msgstr ""
 
 #: lib\annotate.py:331 lib\diffwindow.py:433 lib/widgets\shelve.py:310
 #: lib/widgets\shelvelist.py:128
-#, fuzzy
 msgid "&View Options"
-msgstr "Valikud"
+msgstr ""
 
 #: lib\annotate.py:332 lib\diffwindow.py:434 lib/widgets\shelve.py:294
 #: lib/widgets\shelvelist.py:111
-#, fuzzy
 msgid "View Options"
-msgstr "Valikud"
+msgstr ""
 
 #: lib\annotate.py:335
 msgid "Word Wrap"
@@ -190,14 +185,12 @@ msgid ""
 msgstr ""
 
 #: lib\commit.py:286
-#, fuzzy
 msgid "Working tree is out of date. To commit, update the working tree."
-msgstr "Tööpuu on aegunud, palun käivita 'bzr update'."
+msgstr ""
 
 #: lib\commit.py:300 lib\logwidget.py:471
-#, fuzzy
 msgid "Update"
-msgstr "Uuenduse allikas"
+msgstr ""
 
 #: lib\commit.py:311 lib\logmodel.py:44 lib\treewidget.py:355
 #: lib/widgets\shelve.py:254 lib/widgets\shelvelist.py:83
@@ -237,7 +230,8 @@ msgid "Set the author of this change, if it's different from the committer"
 msgstr "Määra muudatusele sissekandjast erinev autor"
 
 #: lib\commit.py:376
-msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
+msgid ""
+"Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
 "Sisesta autori nimi nagu näiteks <i>John Doe &lt;jdoe@example.com&gt;</i>"
 
@@ -260,9 +254,8 @@ msgid "View changes in files selected to commit"
 msgstr "Vaata sissekandeks valitud failide muudatusi"
 
 #: lib\commit.py:638
-#, fuzzy
 msgid "You should provide a commit message."
-msgstr "Peaksid sisestama sissekandesõnumi."
+msgstr ""
 
 #: lib\commit.py:639 lib\conflicts.py:186 lib\conflicts.py:191
 #: lib\diffwindow.py:657 lib\util.py:69 lib/widgets\shelve.py:611
@@ -474,9 +467,8 @@ msgid "Select editor executable"
 msgstr "Vali käivitatav redaktor"
 
 #: lib\config.py:914
-#, fuzzy
 msgid "Command Line"
-msgstr "Käsk"
+msgstr ""
 
 #: lib\conflicts.py:49 lib\conflicts.py:165 lib\conflicts.py:182
 #: lib\conflicts.py:189
@@ -622,9 +614,9 @@ msgid "Properties:"
 msgstr "Atribuudid:"
 
 #: lib\diffview.py:668
-#, fuzzy, python-format
+#, python-format
 msgid "[binary file (%d bytes)]"
-msgstr "[binaarfail]"
+msgstr ""
 
 #: lib\diffview.py:843
 msgid "\\ No newline at end of file"
@@ -684,9 +676,8 @@ msgid "modified"
 msgstr "muudetud"
 
 #: lib\diffwindow.py:387
-#, fuzzy
 msgid "&Find"
-msgstr "Köida"
+msgstr ""
 
 #: lib\diffwindow.py:389
 msgid "Find on active panel"
@@ -706,18 +697,16 @@ msgid "&Refresh"
 msgstr "&Värskenda"
 
 #: lib\diffwindow.py:421
-#, fuzzy
 msgid "&External Diff"
-msgstr "Välised erinevusrakendused:"
+msgstr ""
 
 #: lib\diffwindow.py:423
 msgid "Launch an external diff application"
 msgstr ""
 
 #: lib\diffwindow.py:437 lib/widgets\shelvelist.py:113
-#, fuzzy
 msgid "&Complete"
-msgstr "Valmis"
+msgstr ""
 
 #: lib\diffwindow.py:453 lib/widgets\shelve.py:301
 #: lib/widgets\shelvelist.py:120
@@ -729,19 +718,16 @@ msgid "Left side tab width"
 msgstr ""
 
 #: lib\diffwindow.py:473
-#, fuzzy
 msgid "Right side tab width"
-msgstr "Parempoolne kodeering:"
+msgstr ""
 
 #: lib\diffwindow.py:489
-#, fuzzy
 msgid "Left side encoding"
-msgstr "Vasakpoolne kodeering:"
+msgstr ""
 
 #: lib\diffwindow.py:499
-#, fuzzy
 msgid "Right side encoding"
-msgstr "Parempoolne kodeering:"
+msgstr ""
 
 #: lib\diffwindow.py:505
 msgid "&Ignore whitespace changes"
@@ -923,9 +909,8 @@ msgid "Save file on this revision as..."
 msgstr ""
 
 #: lib\log.py:581
-#, fuzzy
 msgid "Revert to this revision"
-msgstr "&Annoteeri see versioon"
+msgstr ""
 
 #: lib\log.py:830
 msgid "Not a file"
@@ -943,9 +928,8 @@ msgid "Save file in this revision as..."
 msgstr ""
 
 #: lib\log.py:846
-#, fuzzy
 msgid "Revert File"
-msgstr "&Võta tagasi"
+msgstr ""
 
 #: lib\log.py:847
 msgid ""
@@ -995,14 +979,12 @@ msgid "Tag &revision..."
 msgstr "Silt &versioon..."
 
 #: lib\logwidget.py:187
-#, fuzzy
 msgid "R&evert to this revision"
-msgstr "&Annoteeri see versioon"
+msgstr ""
 
 #: lib\logwidget.py:191
-#, fuzzy
 msgid "&Update to this revision"
-msgstr "&Annoteeri see versioon"
+msgstr ""
 
 #: lib\logwidget.py:199
 msgid "&Cherry pick"
@@ -1155,15 +1137,15 @@ msgstr "QBzr'i info"
 #: lib\main.py:407
 #, python-format
 msgid ""
-"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
-"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
-"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
-"\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
-"<b>QBzr</b> — Graafiline Bazaari kasutajaliides<br><small>Versioon %"
-"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Autoriõigus © "
-"2006-2008 Lukáš Lalinský ja teised<br><br><a href=\"http://bazaar-vcs.org/"
-"QBzr\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — Graafiline Bazaari kasutajaliides<br><small>Versioon "
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Autoriõigus © "
+"2006-2008 Lukáš Lalinský ja teised<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 
 #: lib\main.py:472
 msgid "Add Bookmark"
@@ -1543,9 +1525,8 @@ msgid "Close Error Dialog"
 msgstr ""
 
 #: lib\trace.py:252
-#, fuzzy
 msgid "Ignore Error"
-msgstr "Ignoreeritud"
+msgstr ""
 
 #: lib\trace.py:278
 msgid "Report Bazaar Error"
@@ -1657,13 +1638,10 @@ msgid "External Merge"
 msgstr "Väline liitmine"
 
 #: lib\treewidget.py:2060
-#, fuzzy
 msgid ""
 "Some of the files selected cannot be recovered if removed. Are you sure you "
 "want to remove these files?"
 msgstr ""
-"Mõningaid valitud faile ei olnud võimalik taastada. Oled sa kindel, et sa "
-"soovid need failid eemaldada?"
 
 #: lib\treewidget.py:2075
 msgid "Select / deselect all"
@@ -1685,9 +1663,8 @@ msgid "&Location:"
 msgstr "&Asukoht:"
 
 #: lib\ui_branch.py:101
-#, fuzzy
 msgid "&From:"
-msgstr "&Vorming"
+msgstr ""
 
 #: lib\ui_branch.py:102 lib\ui_branch.py:104 lib\ui_init.py:120
 #: lib\ui_merge.py:65 lib\ui_new_tree.py:132 lib\ui_new_tree.py:134
@@ -1701,9 +1678,8 @@ msgid "&To:"
 msgstr "&Kellele:"
 
 #: lib\ui_branch.py:106
-#, fuzzy
 msgid "Bind new branch to parent location"
-msgstr "Vali haru asukoht"
+msgstr ""
 
 #: lib\ui_branch.py:107 lib\ui_merge.py:66 lib\ui_pull.py:64 lib\ui_tag.py:97
 msgid "&Revision:"
@@ -1714,14 +1690,12 @@ msgid "..."
 msgstr "..."
 
 #: lib\ui_info.py:89
-#, fuzzy
 msgid "&Basic"
-msgstr "&Haru"
+msgstr ""
 
 #: lib\ui_info.py:91
-#, fuzzy
 msgid "&Detailed"
-msgstr "Ebaõnnestus!"
+msgstr ""
 
 #: lib\ui_init.py:119
 msgid "Local Directory"
@@ -1772,23 +1746,20 @@ msgid "Merge uncommitted changes instead of committed ones"
 msgstr "Liida sissekandmata muudatused sissekantute asemele"
 
 #: lib\ui_merge_config.py:58
-#, fuzzy
 msgid "Form"
-msgstr "&Vorming"
+msgstr ""
 
 #: lib\ui_merge_config.py:59
-#, fuzzy
 msgid "External Merge Tools"
-msgstr "Väline liitmine"
+msgstr ""
 
 #: lib\ui_merge_config.py:62
 msgid "Sets the selected merge tool as the default to use in qconflicts."
 msgstr ""
 
 #: lib\ui_merge_config.py:63
-#, fuzzy
 msgid "Set Default"
-msgstr "Vaikimisi"
+msgstr ""
 
 #: lib\ui_new_tree.py:129
 msgid "Create a new Bazaar Working Tree"
@@ -2106,24 +2077,20 @@ msgid "All commits signed with verifiable keys"
 msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "delete file"
-msgstr "kustutatud failid"
+msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "rename"
-msgstr "ümbernimetatud"
+msgstr ""
 
 #: lib/widgets\shelve.py:71
-#, fuzzy
 msgid "add file"
-msgstr "lisatud failid"
+msgstr ""
 
 #: lib/widgets\shelve.py:72
-#, fuzzy
 msgid "modify text"
-msgstr "muudetud"
+msgstr ""
 
 #: lib/widgets\shelve.py:72
 msgid "modify target"
@@ -2134,9 +2101,8 @@ msgid "modify binary"
 msgstr ""
 
 #: lib/widgets\shelve.py:262
-#, fuzzy
 msgid "Enter the shelve message"
-msgstr "Sisesta sissekande sõnum"
+msgstr ""
 
 #: lib/widgets\shelve.py:274
 msgid "Hunks"
@@ -2155,24 +2121,20 @@ msgid "Next hunk"
 msgstr ""
 
 #: lib/widgets\shelve.py:319
-#, fuzzy
 msgid "Use editor"
-msgstr "Redaktor"
+msgstr ""
 
 #: lib/widgets\shelve.py:333
-#, fuzzy
 msgid "Destroy"
-msgstr "Kataloog"
+msgstr ""
 
 #: lib/widgets\shelve.py:342
-#, fuzzy
 msgid "Select all"
-msgstr "Vali / ära vali kõik"
+msgstr ""
 
 #: lib/widgets\shelve.py:345
-#, fuzzy
 msgid "Unselect all"
-msgstr "Vali / ära vali kõik"
+msgstr ""
 
 #: lib/widgets\shelve.py:352 lib/widgets\shelvelist.py:194
 msgid "&Layout"
@@ -2190,21 +2152,19 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: lib/widgets\shelve.py:646
-#, fuzzy, python-format
+#, python-format
 msgid "Shelve changes of %d file"
 msgid_plural "Shelve changes of %d files"
-msgstr[0] "Vali tagasivõetavad muudatused"
-msgstr[1] "Vali tagasivõetavad muudatused"
+msgstr[0] ""
+msgstr[1] ""
 
 #: lib/widgets\shelve.py:655
-#, fuzzy
 msgid "No changes selected."
-msgstr "Valitud muudatusi tühistamiseks ei leitud"
+msgstr ""
 
 #: lib/widgets\shelve.py:692 lib/widgets\shelvelist.py:280
-#, fuzzy
 msgid "<no message>"
-msgstr "(sõnum puudub)"
+msgstr ""
 
 #: lib/widgets\shelve.py:701
 msgid "Operation aborted because working tree has pending marges."
@@ -2239,14 +2199,12 @@ msgid "Keep"
 msgstr ""
 
 #: lib/widgets\shelvelist.py:174
-#, fuzzy
 msgid "Delete"
-msgstr "Vaikimisi"
+msgstr ""
 
 #: lib/widgets\shelvelist.py:188
-#, fuzzy
 msgid "Show filelist"
-msgstr "Näita eiratud faile"
+msgstr ""
 
 #: lib/widgets\shelvelist.py:478
 #, python-format
@@ -2270,9 +2228,8 @@ msgid "Remove shelf[%(id)d] without applying"
 msgstr ""
 
 #: lib/widgets\toolbars.py:71
-#, fuzzy
 msgid "Find: "
-msgstr "Laad:"
+msgstr ""
 
 #: lib/widgets\toolbars.py:87
 msgid "Previous"
@@ -2291,9 +2248,8 @@ msgid "Whole words"
 msgstr ""
 
 #: lib/widgets\toolbars.py:106
-#, fuzzy
 msgid "Close find"
-msgstr "&Sulge"
+msgstr ""
 
 #: lib/widgets\toolbars.py:249
 msgid "Layout"
@@ -2303,9 +2259,6 @@ msgstr ""
 #, python-format
 msgid "Layout %d"
 msgstr ""
-
-#~ msgid "External Merge Apps:"
-#~ msgstr "Välised liitmisrakendused:"
 
 #~ msgid "Definition"
 #~ msgstr "Definitsioon"
@@ -2324,47 +2277,70 @@ msgstr ""
 #~ "external_merge = kdiff3 --output %r %b %t %o\n"
 #~ "%r is output, %b is .BASE, %t is .THIS and %o is .OTHER file."
 
-#~ msgid "%s (Configured external merge definition in qconfig)"
-#~ msgstr "%s (Seadistatud välise liitmise definitsioon qconfig'is)"
+#~ msgid "[binary file]"
+#~ msgstr "[binaarfail]"
 
 #~ msgid "Side by side"
 #~ msgstr "Kõrvuti"
 
-#~ msgid "Using"
-#~ msgstr "Kasutusel"
+#~ msgid "Left side encoding:"
+#~ msgstr "Vasakpoolne kodeering:"
 
-#~ msgid "Location has no working tree"
-#~ msgstr "Asukohal puudub tööpuu"
+#~ msgid "Right side encoding:"
+#~ msgstr "Parempoolne kodeering:"
 
 #~ msgid "Location has no branch"
 #~ msgstr "Asukohal puudub haru"
 
+#~ msgid "Location has no working tree"
+#~ msgstr "Asukohal puudub tööpuu"
+
+#~ msgid ""
+#~ "Some of the files selected cannot be recoverd if removed. Are you sure you "
+#~ "want to remove these files?"
+#~ msgstr ""
+#~ "Mõningaid valitud faile ei olnud võimalik taastada. Oled sa kindel, et sa "
+#~ "soovid need failid eemaldada?"
+
 #~ msgid "Parent branch:"
 #~ msgstr "Ülemharu:"
-
-#~ msgid "Push branch:"
-#~ msgstr "Lükka haru:"
-
-#~ msgid "Submit branch:"
-#~ msgstr "Saada haru:"
-
-#~ msgid "Public branch:"
-#~ msgstr "Avalik haru:"
-
-#~ msgid "&Related Branches"
-#~ msgstr "&Seotud harud"
-
-#~ msgid "Working tree format:"
-#~ msgstr "Tööpuu vorming:"
 
 #~ msgid "Branch format:"
 #~ msgstr "Haru vorming:"
 
+#~ msgid "Working tree format:"
+#~ msgstr "Tööpuu vorming:"
+
+#~ msgid "&Related Branches"
+#~ msgstr "&Seotud harud"
+
 #~ msgid "Repository format:"
 #~ msgstr "Hoidla vorming:"
+
+#~ msgid "&Format"
+#~ msgstr "&Vorming"
+
+#~ msgid "You should provide commit message."
+#~ msgstr "Peaksid sisestama sissekandesõnumi."
+
+#~ msgid "External Merge Apps:"
+#~ msgstr "Välised liitmisrakendused:"
+
+#, python-format
+#~ msgid "%s (Configured external merge definition in qconfig)"
+#~ msgstr "%s (Seadistatud välise liitmise definitsioon qconfig'is)"
+
+#~ msgid "Using"
+#~ msgstr "Kasutusel"
+
+#~ msgid "Submit branch:"
+#~ msgstr "Saada haru:"
 
 #~ msgid "Control directory format:"
 #~ msgstr "Kontrollkataloogi vorming:"
 
-#~ msgid "Stopped"
-#~ msgstr "Peatatud"
+#~ msgid "Public branch:"
+#~ msgstr "Avalik haru:"
+
+#~ msgid "Push branch:"
+#~ msgstr "Lükka haru:"

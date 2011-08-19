@@ -6,14 +6,19 @@
      (André Bachmann, Alexander Belchenko, Bug #578935)
  * qconfig:
    * Fixed Set Default button in Merge tab. (Gordon Tyler, Bug #820635)
+ * qdiff:
+   * Smart scroll syncronizing for side by side view (in complete mode).
+     (IWATA Hidetaka)
+   * Fixed ignore whitespace changes code.
+     (Alexander Belchenko, Bug #827391)
  * qlog:
    * Do not crash on ghost revisions.
      (Jonathan Riddell, Bug #785967)
    * Show context menu properly after re-load of branch(es).
      (IWATA Hidetaka, Bug #744904)
- * qdiff:
-   * Smart scroll syncronizing for side by side view. (in complete mode)
-     (IWATA Hidetaka)
+ * qrun:
+   * Command-line arguments with spaces properly quoted.
+     (Alexander Belchenko, Bug #824381)
  * qverify-signatures:
    * Report commits signed with expired keys in "verify-signatures".
      (Jonathan Riddell, #804254)
@@ -28,9 +33,16 @@ Maintenance release.
      (André Bachmann, Alexander Belchenko, Bug #578935)
  * qconfig:
    * Fixed Set Default button in Merge tab. (Gordon Tyler, Bug #820635)
+ * qdiff:
+   * Fixed ignore whitespace changes code.
+     (Alexander Belchenko, Bug #827391)
  * qlog:
    * Show context menu properly after re-load of branch(es).
      (IWATA Hidetaka, Bug #744904)
+ * qrun:
+   * Command-line arguments with spaces properly quoted.
+     (Alexander Belchenko, Bug #824381)
+ * Updated translations.
 
 
 0.21.1 - 2011/08/04
@@ -172,6 +184,9 @@ Maintenance release.
  * qlog:
    * Show context menu properly after re-load of branch(es).
      (IWATA Hidetaka, Bug #744904)
+ * qrun:
+   * Command-line arguments with spaces properly quoted.
+     (Alexander Belchenko, Bug #824381)
  * qswitch:
    * Support unicode locations. (Alexander Belchenko, Bug #819259)
 
