@@ -177,7 +177,8 @@ class QBzrConfigWindow(QBzrDialog):
         diffWidget = QtGui.QWidget()
 
         self.diffShowIntergroupColors = QtGui.QCheckBox(gettext("Show inter-group inserts and deletes in green and red"), diffWidget)
-        
+        self.diffUseCurvedMarker = QtGui.QCheckBox(gettext("Show change markers by curved lines"), diffWidget)
+
         label = QtGui.QLabel(gettext("External Diff Apps:"))
         self.extDiffList = QtGui.QTreeWidget(diffWidget)
         self.extDiffList.setRootIsDecorated(False)
@@ -202,6 +203,7 @@ class QBzrConfigWindow(QBzrDialog):
 
         diffLayout = QtGui.QVBoxLayout(diffWidget)
         diffLayout.addWidget(self.diffShowIntergroupColors)
+        diffLayout.addWidget(self.diffUseCurvedMarker)
         diffLayout.addWidget(label)
         diffLayout.addWidget(self.extDiffList)
         diffLayout.addLayout(extDiffButtonsLayout)
@@ -351,6 +353,7 @@ class QBzrConfigWindow(QBzrDialog):
         
         # Diff
         self.diffShowIntergroupColors.setChecked(qconfig.get_option("diff_show_intergroup_colors") in ("True", "1"))
+        self.diffUseCurvedMarker.setChecked(qconfig.get_option("diff_use_curved_marker") in ("True", "1"))
         defaultDiff = qconfig.get_option("default_diff")
         if defaultDiff is None:
             defaultDiff = ""
@@ -497,7 +500,9 @@ class QBzrConfigWindow(QBzrDialog):
         # Diff
         qconfig.set_option('diff_show_intergroup_colors',
                            self.diffShowIntergroupColors.isChecked())
-        
+        qconfig.set_option('diff_use_curved_marker',
+                           self.diffUseCurvedMarker.isChecked())
+
         defaultDiff = None
         ext_diffs = {}
         for index in range(1, self.extDiffList.topLevelItemCount()):
