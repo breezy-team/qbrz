@@ -89,18 +89,23 @@ class Change(object):
     def __init__(self, change, shelver, trees):
         status = change[0]
         file_id = change[1]
+        def get_kind(tree, id):
+            try:
+                return tree.kind(id)
+            except errors.NoSuchFile:
+                return 'file'
         if status == 'delete file':
             self.path = trees[0].id2path(file_id)
-            self.kind = trees[0].kind(file_id)
+            self.kind = get_kind(trees[0], file_id)
             self.disp_text = self.path
         elif status == 'rename':
             self.path = [tree.id2path(file_id) for tree in trees] 
             self.disp_text = u'%s => %s' % (self.path[0], self.path[1])
-            self.kind = trees[1].kind(file_id)
+            self.kind = get_kind(trees[1], file_id)
         else:
             self.path = trees[1].id2path(file_id)
             self.disp_text = self.path
-            self.kind = trees[1].kind(file_id)
+            self.kind = get_kind(trees[1], file_id)
         if status == 'modify text':
             try:
                 self.sha1 = trees[1].get_file_sha1(file_id)
