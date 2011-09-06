@@ -16,6 +16,8 @@ Maintenance release.
  * qrun:
    * Command-line arguments with spaces properly quoted.
      (Alexander Belchenko, Bug #824381)
+ * qunshelve:
+   * Disable OK button while executing unshelve. (IWATA Hidetaka, Bug #842818)
  * Updated translations.
 
 
