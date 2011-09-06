@@ -57,7 +57,7 @@ lazy_import(globals(), '''
 from bzrlib import transform
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
-from bzrlib.plugins.qbzr.lib.diffwindow import DiffItem
+from bzrlib.plugins.qbzr.lib.diff import DiffItem
 from bzrlib.shelf import Unshelver
 from bzrlib.shelf_ui import Unshelver as Unshelver_ui
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
