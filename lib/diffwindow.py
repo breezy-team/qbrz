@@ -82,6 +82,7 @@ def get_file_lines_from_tree(tree, file_id):
     except AttributeError:
         return tree.get_file(file_id).readlines()
 
+
 def get_title_for_tree(tree, branch, other_branch):
     branch_title = ""
     if None not in (branch, other_branch) and branch.base != other_branch.base:
@@ -127,7 +128,7 @@ def get_title_for_tree(tree, branch, other_branch):
 
 
 class DiffItem(object):
-    
+
     @classmethod
     def create(klass, trees, file_id, paths, changed_content, versioned, 
             parent, name, kind, executable, filter = None):
@@ -270,7 +271,11 @@ class DiffItem(object):
 
         return groups
 
-    def encode(self, encodings):
+    def get_unicode_lines(self, encodings):
+        """Return pair of unicode lines for each side of diff.
+        Parameter encodings is 2-list or 2-tuple with encoding names (str)
+        for each side of diff.
+        """
         lines = self.lines
         ulines = self._ulines
         for i in range(2):
@@ -282,8 +287,14 @@ class DiffItem(object):
                     try:
                         ulines[i] = [l.decode(encodings[i]) for l in lines[i]]
                     except UnicodeDecodeError, e:
-                        trace.note('Failed to decode using %s, falling back to latin1', e.encoding)
-                        ulines[i] = [l.decode('latin1') for l in lines[i]]
+                        filename = self.paths[i]
+                        trace.note("Some characters in file %s "
+                                   "could not be properly decoded "
+                                   "using '%s' encoding "
+                                   "and therefore they replaced with special character.",
+                                   filename,
+                                   e.encoding)
+                        ulines[i] = [l.decode(encodings[i], 'replace') for l in lines[i]]
         return ulines
 
 
@@ -632,8 +643,9 @@ class DiffWindow(QBzrWindow):
                     self.processEvents()
                     groups = di.groups(self.complete, self.ignore_whitespace)
                     self.processEvents()
-                    ulines = di.encode([self.encoding_selector_left.encoding,
-                                        self.encoding_selector_right.encoding])
+                    ulines = di.get_unicode_lines(
+                        (self.encoding_selector_left.encoding,
+                         self.encoding_selector_right.encoding))
                     data = [''.join(l) for l in ulines]
 
                     for view in self.views:
