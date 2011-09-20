@@ -151,10 +151,6 @@ class DiffViewHandle(QtGui.QSplitterHandle):
         QtGui.QSplitterHandle.__init__(self, QtCore.Qt.Horizontal, parent)
         self.scrollbar = None
         self.view = parent
-        if config.get_option_as_bool("diff_use_curved_marker"):
-            self.curve_factor = 16
-        else:
-            self.curve_factor = 0
         self.clear()
         
     def clear(self):
@@ -171,8 +167,12 @@ class DiffViewHandle(QtGui.QSplitterHandle):
         h = self.height()
         painter.setRenderHints(QtGui.QPainter.Antialiasing, True)
 
-        C = self.curve_factor
+        C = 16 # Curve factor.
+
         def create_line(ly, ry, right_to_left=False):
+            """
+            Create path which represents upper or lower line of change marker.
+            """
             line = QtGui.QPainterPath()
             if not right_to_left:
                 line.moveTo(0, ly)
