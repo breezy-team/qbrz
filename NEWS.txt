@@ -11,6 +11,8 @@
      (IWATA Hidetaka)
    * Fixed ignore whitespace changes code.
      (Alexander Belchenko, Bug #827391)
+   * Change appearance of change markers.
+     (IWATA Hidetaka)
  * qlog:
    * Do not crash on ghost revisions.
      (Jonathan Riddell, Bug #785967)
