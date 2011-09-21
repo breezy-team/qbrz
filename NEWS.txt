@@ -116,10 +116,10 @@ Changes after 0.21 beta 1:
      (Bug #490377, A. S. Budden)
  * qgetnew:
    * The target location no longer gets overwritten 
-     when the source location changes. (Andrﾃｩ Bachmann)
+     when the source location changes. (André Bachmann)
  * qlog:
    * File list context menu: added support to save content of a file 
-     of specific revision as a new file. (Andrﾃｩ Bachmann)
+     of specific revision as a new file. (André Bachmann)
    * Show digital signature information for commits if python-gpgme is
      installed
  * Improved error dialogs on internal/other error, 
@@ -152,13 +152,13 @@ Changes after 0.21 beta 1:
      (Alexander Belchenko, Bug #655451)
  * qdiff:
    * New toolbar with controls and options (similar to qannotate's toolbar).
-     (Dorin Scutaraﾈ冰)
+     (Dorin Scutarașu)
    * Support for ignore whitespace differences in changes. 
      This mode can be turned on from command-line (`qdiff -w` 
      or `qdiff --ignore-whitespace`) and from GUI itself (in View Options).
-     (Dorin Scutaraﾈ冰, Glen Mailer, Bug #642000)
+     (Dorin Scutarașu, Glen Mailer, Bug #642000)
    * Added Find action to do text search within either pane.
-     (Dorin Scutaraﾈ冰, Bug #497832)
+     (Dorin Scutarașu, Bug #497832)
  * qinfo:
    * Significantly simpler implementation that shows the information
      provided by Bazaar.  This fills in the gaps in the data shown
