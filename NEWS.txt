@@ -15,6 +15,9 @@
      decode to unicode qdiff don't fallback to use latin-1 encoding anymore,
      but try to decode such content in "replace" mode.
      (Alexander Belchenko, Bug #814117)
+ * qgetnew
+   * Base directories for the source branch and the destination checkout folder
+     can now be configured in qconfig, tab 'User Interface'. (André Bachmann)
  * qlog:
    * Do not crash on ghost revisions.
      (Jonathan Riddell, Bug #785967)

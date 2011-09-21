@@ -32,6 +32,7 @@ from bzrlib.plugins.qbzr.lib.util import (
     hookup_directory_picker,
     DIRECTORYPICKER_SOURCE,
     DIRECTORYPICKER_TARGET,
+    get_qbzr_config,
     )
 
 
@@ -40,6 +41,11 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
     NAME = "new_tree"
 
     def __init__(self, to_location, ui_mode=True, parent=None):
+        config = get_qbzr_config()
+        checkout_basedir = config.get_option("checkout_basedir")
+        branchsource_basedir = config.get_option("branchsource_basedir")
+        if not to_location:
+            to_location = checkout_basedir or u'.'
         self.to_location = os.path.abspath(to_location)
         super(GetNewWorkingTreeWindow, self).__init__(
                                   name = self.NAME,
@@ -73,6 +79,9 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
         self.ui.but_checkout.setChecked(True)
         self.ui.but_rev_tip.setChecked(True)
         self.ui.to_location.setText(self.to_location)
+        if branchsource_basedir is not None:
+            self.from_location = branchsource_basedir
+            self.ui.from_location.setEditText(self.from_location)
 
     def to_location_changed(self):
         self.disconnect(self.ui.from_location, QtCore.SIGNAL("editTextChanged(const QString &)"),
@@ -83,8 +92,15 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
     def from_location_changed(self, new_text):
         new_val = self.to_location
         tail = re.split("[:$#\\\\/]", unicode(new_text))[-1]
+        try:
+            projectname = re.split("[:$#\\\\/]", unicode(new_text))[-2]
+        except:
+            projectname = ""
         if tail:
-            new_val = os.path.join(new_val, tail)
+            if self.checkout_basedir is not None:
+                new_val = os.path.join(self.checkout_basedir, projectname)
+            else:
+                new_val = os.path.join(new_val, tail)
         self.ui.to_location.setText(new_val)
 
     def do_start(self):
