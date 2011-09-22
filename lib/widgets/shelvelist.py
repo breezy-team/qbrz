@@ -500,7 +500,7 @@ class ShelveListWidget(ToolbarPanel):
                                         desc=gettext(desc),
                                         args=args,
                                         dir=self.directory,
-                                        auto_start_show_on_failed=True,
+                                        immediate=True,
                                         parent=self.window())
         def finished(result):
             if result:

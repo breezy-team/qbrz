@@ -16,6 +16,9 @@ Maintenance release.
  * qrun:
    * Command-line arguments with spaces properly quoted.
      (Alexander Belchenko, Bug #824381)
+ * qunshelve:
+   * Disable OK button while executing unshelve. (IWATA Hidetaka, Bug #842818)
+   * Avoid NoSuchFile error when working tree has added and removed file. (IWATA Hidetaka, Bug #842842)
  * Updated translations.
 
 
