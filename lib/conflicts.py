@@ -44,6 +44,7 @@ class ConflictsWindow(QBzrWindow):
 
     def __init__(self, wt_dir, parent=None):
         self.merge_action = None
+        self.wt = None
         self.wt_dir = wt_dir
         QBzrWindow.__init__(self,
             [gettext("Conflicts")], parent)
@@ -176,6 +177,8 @@ class ConflictsWindow(QBzrWindow):
         self.conflicts_list.addTopLevelItems(items)
 
     def auto_resolve(self):
+        while self.wt is None:
+            QtGui.QApplication.processEvents()
         un_resolved, resolved = self.wt.auto_resolve()
         if len(un_resolved) > 0:
             n = len(resolved)
