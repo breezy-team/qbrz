@@ -11,7 +11,7 @@
      (IWATA Hidetaka)
    * Fixed ignore whitespace changes code.
      (Alexander Belchenko, Bug #827391)
-   * Change appearance of change markers.
+   * Use curved lines in central widget change markers.
      (IWATA Hidetaka)
    * In the case of file content has mixed encoding that cannot be safely
      decode to unicode qdiff don't fallback to use latin-1 encoding anymore,
