@@ -165,7 +165,23 @@ class DiffViewHandle(QtGui.QSplitterHandle):
         ry = self.view.browsers[1].verticalScrollBar().value() - frame
         w = self.width()
         h = self.height()
-        
+        painter.setRenderHints(QtGui.QPainter.Antialiasing, True)
+
+        C = 16 # Curve factor.
+
+        def create_line(ly, ry, right_to_left=False):
+            """
+            Create path which represents upper or lower line of change marker.
+            """
+            line = QtGui.QPainterPath()
+            if not right_to_left:
+                line.moveTo(0, ly)
+                line.cubicTo(C, ly, w - C, ry, w, ry)
+            else:
+                line.moveTo(w, ry)
+                line.cubicTo(w - C, ry, C, ly, 0, ly)
+            return line
+
         pen = QtGui.QPen(QtCore.Qt.black)
         pen.setWidth(2)
         painter.setPen(pen)
@@ -176,7 +192,8 @@ class DiffViewHandle(QtGui.QSplitterHandle):
                 continue
             if block_ly > h and block_ry > h:
                 break
-            painter.drawLine(0, block_ly, w, block_ry)
+
+            painter.drawPath(create_line(block_ly, block_ry))
 
         for ly_top, ly_bot, ry_top, ry_bot, kind in self.changes:
             ly_top -= ly
@@ -189,17 +206,22 @@ class DiffViewHandle(QtGui.QSplitterHandle):
             if ly_top > h and ly_bot > h and ry_top > h and ry_bot > h:
                 break
 
-            polygon = QtGui.QPolygon(4)
-            polygon.setPoints(0, ly_top, w, ry_top, w, ry_bot, 0, ly_bot)
-            painter.setPen(QtCore.Qt.NoPen)
-            painter.setBrush(brushes[kind][0])
-            painter.drawConvexPolygon(polygon)
+            upper_line = create_line(ly_top, ry_top)
+            lower_line = create_line(ly_bot, ry_bot, True)
 
+            region = QtGui.QPainterPath()
+            region.moveTo(0, ly_top)
+            region.connectPath(upper_line)
+            region.lineTo(w, ry_bot)
+            region.connectPath(lower_line)
+            region.closeSubpath()
+
+            painter.fillPath(region, brushes[kind][0])
             painter.setPen(colors[kind][1])
-            painter.setRenderHints(QtGui.QPainter.Antialiasing, ly_top != ry_top)
-            painter.drawLine(0, ly_top, w, ry_top)
-            painter.setRenderHints(QtGui.QPainter.Antialiasing, ly_bot != ry_bot)
-            painter.drawLine(0, ly_bot, w, ry_bot)
+            for path, aa in zip((upper_line, lower_line), 
+                                (ly_top != ry_top, ly_bot != ry_bot)):
+                painter.setRenderHints(QtGui.QPainter.Antialiasing, aa)
+                painter.drawPath(path)
         del painter
 
     def wheelEvent(self, event):
