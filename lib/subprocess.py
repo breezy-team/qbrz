@@ -621,10 +621,7 @@ class SubProcessWidget(QtGui.QWidget):
         if progress == 1000000 and not messages:
             text = gettext("Finished!")
         else:
-            if isinstance(messages, unicode):
-                text = messages
-            else:
-                text = " / ".join(messages)
+            text = " / ".join(messages)
         self.progressMessage.setText(text)
         if transport_activity is not None:
             self.transportActivity.setText(transport_activity)
@@ -636,9 +633,9 @@ class SubProcessWidget(QtGui.QWidget):
         for line in data.splitlines():
             if line.startswith(SUB_PROGRESS):
                 try:
-                    # map(ensure_unicode, ...) to ensure that we have unicode after bdecode
-                    progress, transport_activity, messages = map(ensure_unicode,
-                        bencode.bdecode(line[len(SUB_PROGRESS):]))
+                    progress, transport_activity, task_info = bencode.bdecode(
+                        line[len(SUB_PROGRESS):])
+                    messages = [b.decode("utf-8") for b in task_info]
                 except ValueError, e:
                     # we got malformed data from qsubprocess (bencode failed to decode)
                     # so just show it in the status console
@@ -788,20 +785,22 @@ class SubprocessProgressView (TextProgressView):
 
     def _repaint(self):
         if self._last_task:
-            task_msg = self._format_task(self._last_task)
+            # Since bzr 2.2 _format_task returns a 2-tuple of unicode
+            text, counter = self._format_task(self._last_task)
+            task_info = (text.encode("utf-8"), counter.encode("utf-8"))
             progress_frac = self._last_task._overall_completion_fraction()
             if progress_frac is not None:
                 progress = int(progress_frac * 1000000)
             else:
                 progress = 1
         else:
-            task_msg = ''
+            task_info = ()
             progress = 0
 
         trans = self._last_transport_msg
 
         self._term_file.write(
-            SUB_PROGRESS + bencode.bencode((progress, trans, task_msg)) + '\n')
+            SUB_PROGRESS + bencode.bencode((progress, trans, task_info)) + '\n')
         self._term_file.flush()
 
     def clear(self):
