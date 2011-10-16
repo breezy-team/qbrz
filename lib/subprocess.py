@@ -73,6 +73,7 @@ SUB_PROGRESS = "qbzr:PROGRESS:"
 SUB_GETPASS = "qbzr:GETPASS:"
 SUB_GETUSER = "qbzr:GETUSER:"
 SUB_GETBOOL = "qbzr:GETBOOL:"
+SUB_CHOOSE = "qbzr:CHOOSE:"
 SUB_ERROR = "qbzr:ERROR:"
 
 
@@ -673,6 +674,20 @@ class SubProcessWidget(QtGui.QWidget):
                 
                 data = (button == QtGui.QMessageBox.Yes)
                 self.process.write(SUB_GETBOOL + bencode.bencode(data) + "\n")
+            elif line.startswith(SUB_CHOOSE):
+                msg, choices, default = bdecode_choose_args(line[len(SUB_CHOOSE):])
+                mbox = QtGui.QMessageBox(parent=self)
+                mbox.setText(msg)
+                mbox.setIcon(QtGui.QMessageBox.Question)
+                choices = choices.split('\n')
+                index = 0
+                for c in choices:
+                    button = mbox.addButton(c, QtGui.QMessageBox.AcceptRole)
+                    if index == default:
+                        mbox.setDefaultButton(button)
+                    index += 1
+                index = mbox.exec_()
+                self.process.write(SUB_CHOOSE + bencode.bencode(index) + "\n")
             elif line.startswith(SUB_ERROR):
                 self.error_class, self.error_data = bdecode_exception_instance(
                     line[len(SUB_ERROR):])
@@ -831,6 +846,15 @@ class SubprocessUIFactory(TextUIFactory):
             return bencode.bdecode(line[len(name):].rstrip('\r\n'))
         raise Exception("Did not recive a answer from the main process.")
     
+    def _choose_from_main(self, msg, choices, default):
+        name = SUB_CHOOSE
+        self.stdout.write(name + bencode_choose_args(msg, choices, default) + '\n')
+        self.stdout.flush()
+        line = self.stdin.readline()
+        if line.startswith(name):
+            return bencode.bdecode(line[len(name):].rstrip('\r\n'))
+        raise Exception("Did not recive a answer from the main process.")
+    
     def get_password(self, prompt='', **kwargs):
         prompt = prompt % kwargs
         passwd, accepted = self._get_answer_from_main(SUB_GETPASS, prompt)
@@ -849,6 +873,12 @@ class SubprocessUIFactory(TextUIFactory):
 
     def get_boolean(self, prompt):
         return self._get_answer_from_main(SUB_GETBOOL, prompt+'?')
+
+    def choose(self, msg, choices, default=None):
+        if default is None:
+            default = -1
+        index = self._choose_from_main(msg, choices, default)
+        return index
 
 
 # [bialix 2010/02/04] body of cmd_qsubprocess has moved from commands.py
@@ -956,6 +986,20 @@ def bencode_prompt(arg):
 def bdecode_prompt(s):
     return bencode.bdecode(s).decode('unicode-escape')
 
+def bencode_choose_args(msg, choices, default):
+    if default is None:
+        default = -1
+    return bencode.bencode([
+        msg.encode('unicode-escape'),
+        choices.encode('unicode-escape'),
+        default
+    ])
+
+def bdecode_choose_args(s):
+    msg, choices, default = bencode.bdecode(s)
+    msg = msg.decode('unicode-escape')
+    choices = choices.decode('unicode-escape')
+    return msg, choices, default
 
 def bencode_exception_instance(e):
     """Serialise the main information about an exception instance with bencode
