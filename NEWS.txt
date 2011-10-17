@@ -31,6 +31,8 @@
  * qverify-signatures:
    * Report commits signed with expired keys in "verify-signatures".
      (Jonathan Riddell, #804254)
+ * Adapt command progress display to changes needed for translations in bzrlib
+   which was raising a TypeError with unicode. (Martin Packman, #872616)
 
 
 0.21.2 - in development
