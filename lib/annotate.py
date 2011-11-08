@@ -710,7 +710,7 @@ class GotoLineToolbar(QtGui.QToolBar):
             cursor = QtGui.QTextCursor(doc)
             cursor.setPosition(doc.findBlockByNumber(line).position())
             self.anotate_window.text_edit.setTextCursor(cursor)
-            
+            self.anotate_window.text_edit.centerCursor()
             self.show_action.setChecked(False)
 
 
