@@ -265,9 +265,10 @@ class TestTreeFilterProxyModel(qtests.QTestCase):
 
 
         self.filter_model.setFilters(self.filter)
-        self.assertVisiblePaths(self.expected_visible)
+        self.expected_visible.sort()
+        self.assertEqual(self.getVisiblePaths(), self.expected_visible)
 
-    def assertVisiblePaths(self, paths):
+    def getVisiblePaths(self):
         visible_paths = []
         parent_indexes_to_visit = [QtCore.QModelIndex()]
         while parent_indexes_to_visit:
@@ -278,11 +279,34 @@ class TestTreeFilterProxyModel(qtests.QTestCase):
                     str(self.filter_model.data(index, self.model.PATH).toString()))
                 if self.filter_model.hasChildren(index):
                     parent_indexes_to_visit.append(index)
-
-        # we do not care for the order in this test.
         visible_paths.sort()
-        paths.sort()
-        self.assertEqual(visible_paths, paths)
+        return visible_paths
+
+    def test_unversioned_move_conflict(self):
+        """Test for bug reported as lp:557603 lp:712931 lp:815822 lp:876180"""
+        tree = self.make_branch_and_tree("parent")
+        tree.commit("Base revision")
+        childtree = tree.bzrdir.sprout("child").open_workingtree()
+        self.build_tree(["parent/f", "child/f"])
+        childtree.add(["f"])
+        childtree.commit("Adding f")
+        tree.merge_from_branch(childtree.branch)
+        self.assertLength(1, tree.conflicts())
+        self.assertPathExists("parent/f.moved")
+        os.remove("parent/f.moved")
+        # At this point, the tree has a pending merge adding 'f' and a removed
+        # unversioned duplicate 'f.moved', which is enough to trigger the bug.
+        self.model = TreeModel()
+        load_dirs=[PersistantItemReference(None, "parent")]
+        self.model.set_tree(tree, branch=tree.branch, load_dirs=load_dirs)
+        self.filter_model = TreeFilterProxyModel()
+        self.filter_model.setSourceModel(self.model)
+        self.filter_model.setFilters(self.filter)
+        # Following line triggers filtering with throws an uncaught error that
+        # ends up on stderr, is there some way to catch that?
+        self.getVisiblePaths()
+        # TODO: correct assertion for different scenarios here
+
 
 class TestTreeWidgetSelectAll(qtests.QTestCase):
 
