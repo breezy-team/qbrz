@@ -302,10 +302,13 @@ class TestTreeFilterProxyModel(qtests.QTestCase):
         self.filter_model = TreeFilterProxyModel()
         self.filter_model.setSourceModel(self.model)
         self.filter_model.setFilters(self.filter)
-        # Following line triggers filtering with throws an uncaught error that
-        # ends up on stderr, is there some way to catch that?
-        self.getVisiblePaths()
-        # TODO: correct assertion for different scenarios here
+        expected_paths = []
+        if self.filter[TreeFilterProxyModel.CHANGED]:
+            expected_paths.append("f")
+        # This seems wrong, f.moved is deleted so should never be shown?
+        if self.filter[TreeFilterProxyModel.UNCHANGED]:
+            expected_paths.append("f.moved")
+        self.assertEqual(self.getVisiblePaths(), expected_paths)
 
 
 class TestTreeWidgetSelectAll(qtests.QTestCase):
