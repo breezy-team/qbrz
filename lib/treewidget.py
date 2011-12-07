@@ -1261,11 +1261,10 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         (unchanged, changed, unversioned, ignored) = self.filters
         
         is_changed = item_data.change is not None
-        
-        if not is_changed and unchanged:
-            return True
-        
         is_versioned = item_data.item.file_id is not None
+        
+        if is_versioned and not is_changed and unchanged:
+            return True
         
         if is_versioned and is_changed and changed:
             return True
