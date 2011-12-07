@@ -79,9 +79,8 @@ class QTestCase(tests.TestCaseWithTransport):
         global _qt_app
         if _qt_app is None:
             _qt_app = QtGui.QApplication(sys.argv)
-        import bzrlib.plugins.qbzr.lib.trace
-        def report_exception(exc_info=None, type=None, window=None,
-                             ui_mode=False):
-            raise
-        self.overrideAttr(bzrlib.plugins.qbzr.lib.trace, 'report_exception',
-                          report_exception)
+        def excepthook_tests(eclass, evalue, tb):
+            def _reraise_on_cleanup():
+                raise eclass, evalue, tb
+            self.addCleanup(_reraise_on_cleanup)
+        self.overrideAttr(sys, "excepthook", excepthook_tests)
