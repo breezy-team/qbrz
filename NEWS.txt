@@ -1,5 +1,5 @@
-0.21.2 - in development
------------------------
+0.21.2 - 2011/12/07
+-------------------
 Maintenance release.
 
  * qbrowse:
@@ -18,7 +18,8 @@ Maintenance release.
      (Alexander Belchenko, Bug #824381)
  * qunshelve:
    * Disable OK button while executing unshelve. (IWATA Hidetaka, Bug #842818)
-   * Avoid NoSuchFile error when working tree has added and removed file. (IWATA Hidetaka, Bug #842842)
+   * Avoid NoSuchFile error when working tree has added and removed file. 
+     (IWATA Hidetaka, Bug #842842)
  * Updated translations.
 
 
