@@ -151,8 +151,8 @@ Changes after 0.21 beta 1:
      branch.conf for specific branches.  (Bug #490377, A. S. Budden)
 
 
-0.20.3 - not released yet
--------------------------
+0.20.3 - 2011/12/07
+-------------------
 Maintenance release.
 
  * qbrowse:
