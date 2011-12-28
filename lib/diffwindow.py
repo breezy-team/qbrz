@@ -666,6 +666,8 @@ class DiffWindow(QBzrWindow):
             QtGui.QMessageBox.information(self, gettext('Diff'),
                 gettext('No changes found.'),
                 gettext('&OK'))
+        for t in self.views[0].browsers + (self.views[1],):
+            t.emit(QtCore.SIGNAL("documentChangeFinished()"))
         self.view_refresh.setEnabled(self.can_refresh())
 
     def click_toggle_view_mode(self, checked):

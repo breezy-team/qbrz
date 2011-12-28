@@ -992,6 +992,7 @@ class HunkTextBrowser(QtGui.QTextBrowser):
         if self.hunk_list:
             self._set_focused_hunk(0)
 
+        self.emit(QtCore.SIGNAL("documentChangeFinished()"))
         self.update()
 
     def update(self):
@@ -1002,6 +1003,7 @@ class HunkTextBrowser(QtGui.QTextBrowser):
         QtGui.QTextBrowser.clear(self)
         del(self.hunk_list[:])
         self._set_focused_hunk(-1)
+        self.emit(QtCore.SIGNAL("documentChangeFinished()"))
 
     def paintEvent(self, event):
         if not self.hunk_list:

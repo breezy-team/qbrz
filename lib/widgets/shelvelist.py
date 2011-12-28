@@ -405,6 +405,8 @@ class ShelveListWidget(ToolbarPanel):
                     break
         finally:
             self._interrupt_switch = False
+            for view in self.diffviews[0].browsers + (self.diffviews[1],):
+                view.emit(QtCore.SIGNAL("documentChangeFinished()"))
 
     def selected_shelve_changed(self):
         self._change_current_shelve()
