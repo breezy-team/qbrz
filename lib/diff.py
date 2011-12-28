@@ -19,6 +19,7 @@
 
 from PyQt4 import QtCore, QtGui
 
+from bzrlib.errors import FileTimestampUnavailable
 from bzrlib.plugins.qbzr.lib.diff_arg import *   # import DiffArgProvider classes
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
@@ -139,15 +140,6 @@ class DiffButtons(QtGui.QWidget):
             ext_diff = QtCore.QString(default_diff)
         self.emit(QtCore.SIGNAL("triggered(QString)"), ext_diff)
 
-try:
-    from bzrlib.errors import FileTimestampUnavailable
-except ImportError:
-    # FileTimestampUnavailable is available only in bzr 2.1.0rc1 and up
-    from bzrlib.errors import BzrError
-    class FileTimestampUnavailable(BzrError):
-        """Fake FileTimestampUnavailable error for older bzr."""
-        pass
-
 def get_file_lines_from_tree(tree, file_id):
     try:
         return tree.get_file_lines(file_id)
@@ -155,6 +147,14 @@ def get_file_lines_from_tree(tree, file_id):
         return tree.get_file(file_id).readlines()
 
 class DiffItem(object):
+    """
+    Diff data for each file.
+
+    This class has moved from lib/diffwindow.py.
+    You can see annotation of older code by::
+
+      bzr ann lib/diffwindow.py -r 1429
+    """
 
     @classmethod
     def create(klass, trees, file_id, paths, changed_content, versioned, 
