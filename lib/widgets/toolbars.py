@@ -188,6 +188,9 @@ class FindToolbar(QtGui.QToolBar):
             self.find_text.setPalette(self.found_palette)
 
     def set_text_edits(self, text_edits):
+        if len(text_edits) == 0:
+            raise ValueError('text_edits is empty.')
+
         for t in self.text_edits:
             self.disconnect(t, QtCore.SIGNAL("documentChangeFinished()"), 
                     self.highlight)
@@ -198,14 +201,11 @@ class FindToolbar(QtGui.QToolBar):
                     self.highlight)
 
         self.text_edits = text_edits
-        if text_edits:
-            self.text_edit = text_edits[0]
-        else:
-            self.text_edit = None
+        self.text_edit = text_edits[0]
         self.highlight()
 
     def set_text_edit(self, text_edit):
-        if text_edit is None or text_edit in self.text_edits:
+        if text_edit in self.text_edits:
             self.text_edit = text_edit
         else:
             raise ValueError('Invalid text_edit instance.')
