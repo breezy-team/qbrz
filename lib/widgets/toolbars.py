@@ -183,12 +183,6 @@ class FindToolbar(QtGui.QToolBar):
             self.text_edit.setTextCursor(cursor)
             self.find_text.setPalette(self.found_palette)
 
-    def set_text_edit(self, new_text_edit):
-        if self.text_edit:
-            self.text_edit.setTextCursor(QtGui.QTextCursor())
-        self.text_edit = new_text_edit
-
-
 class ToolbarPanel(QtGui.QWidget):
     def __init__(self, slender=True, icon_size=16, parent=None):
         QtGui.QWidget.__init__(self, parent)
