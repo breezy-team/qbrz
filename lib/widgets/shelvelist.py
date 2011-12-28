@@ -128,7 +128,7 @@ class ShelveListWidget(ToolbarPanel):
                 N_("&View Options"), view_menu, icon_name="document-properties",
                 shortcut="Alt+V")
 
-        self.find_toolbar = FindToolbar(self, self.diffviews[0].browsers[0], show_find)
+        self.find_toolbar = FindToolbar(self, self.diffviews[0].browsers, show_find)
         diff_panel.add_widget(self.find_toolbar)
         diff_panel.add_widget(self.stack)
         self.find_toolbar.hide()
@@ -455,9 +455,9 @@ class ShelveListWidget(ToolbarPanel):
         self.diffviews[index].rewind()
         self.stack.setCurrentIndex(index)
         if index == 0:
-            self.find_toolbar.text_edit = self.diffviews[0].browsers[0]
+            self.find_toolbar.set_text_edits(self.diffviews[0].browsers)
         else:
-            self.find_toolbar.text_edit = self.diffviews[1]
+            self.find_toolbar.set_text_edits([self.diffviews[1]])
 
     def complete_toggled(self, state):
         self.complete = state
@@ -522,7 +522,7 @@ class ShelveListWidget(ToolbarPanel):
     def eventFilter(self, object, event):
         if event.type() == QtCore.QEvent.FocusIn:
             if object in self.diffviews[0].browsers:
-                self.find_toolbar.text_edit = object
+                self.find_toolbar.set_text_edit(object)
         return ToolbarPanel.eventFilter(self, object, event)
     
     def load_settings(self):

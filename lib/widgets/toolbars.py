@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-
 from bzrlib.plugins.qbzr.lib.util import (
     get_icon,
     show_shortcut_hint
@@ -24,6 +23,7 @@ from bzrlib.plugins.qbzr.lib.util import (
 
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
+from bzrlib.plugins.qbzr.lib.decorators import lazy_call
 
 def create_toolbar_button(text, parent=None, icon_name=None, icon_size=22,
                 enabled=True, checkable=False, checked=False, 
@@ -61,8 +61,11 @@ class FindToolbar(QtGui.QToolBar):
 
     def __init__(self, window, text_edit, show_action):
         QtGui.QToolBar.__init__(self, gettext("Find"), window)
-        self.text_edit = text_edit
-        if 0: self.text_edit = QtGui.QTextEdit()
+        self.text_edits = []
+        if isinstance(text_edit, list) or isinstance(text_edit, tuple):
+            self.set_text_edits(text_edit)
+        else:
+            self.set_text_edits([text_edit])
         self.show_action = show_action
         
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
@@ -141,6 +144,7 @@ class FindToolbar(QtGui.QToolBar):
     
     def find_text_changed(self, text):
         self.find_avoid_moving()
+        self.highlight()
     
     def find_get_flags(self):
         flags = QtGui.QTextDocument.FindFlags()
@@ -182,6 +186,53 @@ class FindToolbar(QtGui.QToolBar):
         else:
             self.text_edit.setTextCursor(cursor)
             self.find_text.setPalette(self.found_palette)
+
+    def set_text_edits(self, text_edits):
+        for t in self.text_edits:
+            self.disconnect(t, QtCore.SIGNAL("documentChangeFinished()"), 
+                    self.highlight)
+            t.setExtraSelections([])
+
+        for t in text_edits:
+            self.connect(t, QtCore.SIGNAL("documentChangeFinished()"), 
+                    self.highlight)
+
+        self.text_edits = text_edits
+        if text_edits:
+            self.text_edit = text_edits[0]
+        else:
+            self.text_edit = None
+        self.highlight()
+
+    def set_text_edit(self, text_edit):
+        if text_edit is None or text_edit in self.text_edits:
+            self.text_edit = text_edit
+        else:
+            raise ValueError('Invalid text_edit instance.')
+
+    @lazy_call(200, per_instance=True)
+    def highlight(self):
+        """Highlight matched words in the text edits."""
+        text = self.find_text.text()
+        flags = self.find_get_flags()
+        for text_edit in self.text_edits:
+            selections = []
+            if text:
+                find = text_edit.document().find
+                pos = 0
+                fmt = QtGui.QTextCharFormat()
+                fmt.setBackground(QtCore.Qt.yellow)
+                while True:
+                    cursor = find(text, pos, flags)
+                    if cursor.isNull():
+                        break
+
+                    sel = QtGui.QTextEdit.ExtraSelection()
+                    sel.cursor, sel.format = cursor, fmt
+                    selections.append(sel)
+                    pos = cursor.selectionEnd()
+
+            text_edit.setExtraSelections(selections)
 
 class ToolbarPanel(QtGui.QWidget):
     def __init__(self, slender=True, icon_size=16, parent=None):
