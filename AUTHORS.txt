@@ -8,6 +8,7 @@ Contributors:
  * Atsuo Ishimoto <ishimoto@ishimoto-PC>
  * A. S. Budden <abudden at gmail dot com>
  * B. Sygnat <b dot sygnat at gawab dot com>
+ * Benoît Pierre <benoit dot pierre at gmail com>
  * Craig Hewetson <craighewetson at gmail dot com>
  * David Roberts <smartgpx at gmail dot com>
  * Dorin Scutarașu <dorin scutarasu at gmail com>

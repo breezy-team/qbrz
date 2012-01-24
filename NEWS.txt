@@ -28,6 +28,8 @@
  * qrun:
    * Command-line arguments with spaces properly quoted.
      (Alexander Belchenko, Bug #824381)
+   * Add support for UIFactory.choose. 
+     Make it possible to use 'shelve' in qrun. (Benoît Pierre)
  * qverify-signatures:
    * Report commits signed with expired keys in "verify-signatures".
      (Jonathan Riddell, #804254)
