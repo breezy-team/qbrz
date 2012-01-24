@@ -480,6 +480,8 @@ class AnnotateWindow(QBzrWindow):
         self.annotate_bar.annotate = annotate
         self.text_edit.annotate = annotate
         self.annotate_bar.show_current_line = False
+
+        self.text_edit.emit(QtCore.SIGNAL("documentChangeFinished()"))
         
         self.processEvents()
         

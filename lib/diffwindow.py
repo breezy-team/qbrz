@@ -154,7 +154,7 @@ class DiffWindow(QBzrWindow):
 
         self.create_main_toolbar(allow_refresh)
         self.addToolBarBreak()
-        self.find_toolbar = FindToolbar(self, self.diffview.browsers[0],
+        self.find_toolbar = FindToolbar(self, self.diffview.browsers,
                 self.show_find)
         self.find_toolbar.hide()
         self.addToolBar(self.find_toolbar)
@@ -337,7 +337,7 @@ class DiffWindow(QBzrWindow):
     def eventFilter(self, object, event):
         if event.type() == QtCore.QEvent.FocusIn:
             if object in self.diffview.browsers:
-                self.find_toolbar.text_edit = object
+                self.find_toolbar.set_text_edit(object)
         return QBzrWindow.eventFilter(self, object, event)
         # Why doesn't this work?
         #return super(DiffWindow, self).eventFilter(object, event)
@@ -480,18 +480,20 @@ class DiffWindow(QBzrWindow):
             QtGui.QMessageBox.information(self, gettext('Diff'),
                 gettext('No changes found.'),
                 gettext('&OK'))
+        for t in self.views[0].browsers + (self.views[1],):
+            t.emit(QtCore.SIGNAL("documentChangeFinished()"))
         self.view_refresh.setEnabled(self.can_refresh())
 
     def click_toggle_view_mode(self, checked):
         if checked:
             view = self.sdiffview
-            self.find_toolbar.text_edit = view
+            self.find_toolbar.set_text_edits([view])
             self.tab_width_selector_left.menuAction().setVisible(False)
             self.tab_width_selector_right.menuAction().setVisible(False)
             self.tab_width_selector_unidiff.menuAction().setVisible(True)
         else:
             view = self.diffview
-            self.find_toolbar.text_edit = view.browsers[0]
+            self.find_toolbar.set_text_edits(view.browsers)
             self.tab_width_selector_left.menuAction().setVisible(True)
             self.tab_width_selector_right.menuAction().setVisible(True)
             self.tab_width_selector_unidiff.menuAction().setVisible(False)

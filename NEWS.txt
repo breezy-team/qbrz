@@ -1,5 +1,9 @@
 0.22 beta 1 - not released yet
 ------------------------------
+What's new in this release:
+
+Implemented search highlight for all matches in the view.
+This change affects to qdiff, qshelve, qunshelve, qannotate.
 
  * qannotate:
    * Vertically center the target line when using "Goto Line" in qannotate.
@@ -20,6 +24,8 @@
      decode to unicode qdiff don't fallback to use latin-1 encoding anymore,
      but try to decode such content in "replace" mode.
      (Alexander Belchenko, Bug #814117)
+   * Implement search highlight. This change affects to qdiff, qshelve, 
+      qunshelve, qannotate. (IWATA Hidetaka, Bug #785565)
  * qgetnew
    * Base directories for the source branch and the destination checkout folder
      can now be configured in qconfig, tab 'User Interface'. (André Bachmann)
