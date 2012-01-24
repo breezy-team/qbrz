@@ -1,6 +1,9 @@
 0.22 beta 1 - not released yet
 ------------------------------
 
+ * qannotate:
+   * Vertically center the target line when using "Goto Line" in qannotate.
+     (Benoît Pierre)
  * qbrowse:
    * Does not crash anymore when called for shared repository.
      (André Bachmann, Alexander Belchenko, Bug #578935)
