@@ -305,9 +305,6 @@ class TestTreeFilterProxyModel(qtests.QTestCase):
         expected_paths = []
         if self.filter[TreeFilterProxyModel.CHANGED]:
             expected_paths.append("f")
-        # This seems wrong, f.moved is deleted so should never be shown?
-        if self.filter[TreeFilterProxyModel.UNCHANGED]:
-            expected_paths.append("f.moved")
         self.assertEqual(self.getVisiblePaths(), expected_paths)
 
 
