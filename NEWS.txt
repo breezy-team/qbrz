@@ -1,5 +1,5 @@
-0.22 "" - not released yet
---------------------------
+0.22 "Alder" - not released yet
+-------------------------------
 What's new in this release:
 
 Implemented search highlight for all matches in the view.
