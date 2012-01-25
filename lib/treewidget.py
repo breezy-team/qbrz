@@ -1251,24 +1251,27 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
         return False
     
     def filter_id(self, id, item_data):
-        """Determines wether a item should be displayed.
+        """Determines whether a item should be displayed.
         Returns :
             * True: Show the item
-            * False: Donot show the item
+            * False: Do not show the item
             * None: Show the item if there are any children that are visible.
         """
         
         (unchanged, changed, unversioned, ignored) = self.filters
         
-        if item_data.change is None and unchanged: return True
+        is_changed = item_data.change is not None
+        
+        if not is_changed and unchanged:
+            return True
         
         is_versioned = item_data.item.file_id is not None
         
-        if is_versioned and item_data.change is not None and changed:
+        if is_versioned and is_changed and changed:
             return True
         
         if not is_versioned:
-            if unversioned or ignored:
+            if is_changed and (unversioned or ignored):
                 is_ignored = item_data.change.is_ignored()
                 if not is_ignored and unversioned: return True
                 if is_ignored: return ignored
