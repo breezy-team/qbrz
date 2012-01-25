@@ -20,6 +20,8 @@ Maintenance release.
    * Disable OK button while executing unshelve. (IWATA Hidetaka, Bug #842818)
    * Avoid NoSuchFile error when working tree has added and removed file. 
      (IWATA Hidetaka, Bug #842842)
+ * Avoid AttributeError on 'is_ignored' from treewidget filtering involving
+   unversioned files that have been moved. (Martin Packman, Bug #557603)
  * Updated translations.
 
 
