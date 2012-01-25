@@ -33,6 +33,7 @@
      (Jonathan Riddell, #804254)
  * Adapt command progress display to changes needed for translations in bzrlib
    which was raising a TypeError with unicode. (Martin Packman, #872616)
+ * Treewidget 'unchanged' filter is now only versioned files. (Martin Packman)
 
 
 0.21.2 - in development
