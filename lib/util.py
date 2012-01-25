@@ -1121,7 +1121,7 @@ def get_set_tab_width_chars(branch=None, tab_width_chars=None):
             tab_width_chars = 8
     else:
         if branch:
-            branch.get_config().set_user_option("tab_width", tab_width_chars)
+            branch.get_config().set_user_option("tab_width", str(tab_width_chars))
 
     return tab_width_chars
 

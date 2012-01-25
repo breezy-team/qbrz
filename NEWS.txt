@@ -1,5 +1,5 @@
-0.22 beta 1 - not released yet
-------------------------------
+0.22 "" - not released yet
+--------------------------
 What's new in this release:
 
 Implemented search highlight for all matches in the view.
@@ -45,6 +45,8 @@ This change affects to qdiff, qshelve, qunshelve, qannotate.
  * Adapt command progress display to changes needed for translations in bzrlib
    which was raising a TypeError with unicode. (Martin Packman, #872616)
  * Treewidget 'unchanged' filter is now only versioned files. (Martin Packman)
+ * Stringify tab_width settings while writing it to branch config.
+   (Workaround for bug #912344, Alexander Belchenko)
 
 
 0.21.3 - in development
@@ -53,6 +55,8 @@ Maintenance release.
 
  * Avoid AttributeError on 'is_ignored' from treewidget filtering involving
    unversioned files that have been moved. (Martin Packman, Bug #557603)
+ * Stringify tab_width settings while writing it to branch config.
+   (Workaround for bug #912344, Alexander Belchenko)
 
 
 0.21.2 - 2011/12/07
