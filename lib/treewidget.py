@@ -480,12 +480,12 @@ class TreeModel(QtCore.QAbstractItemModel):
                         else:
                             name = path
                         if change and change.is_renamed():
-                            old_inventory_item = basis_tree.inventory[change.fileid()]
+                            old_inventory_item = self._get_entry(basis_tree, change.fileid())
                             old_names = [old_inventory_item.name]
                             while old_inventory_item.parent_id:
                                 if old_inventory_item.parent_id == dir_fileid:
                                     break
-                                old_inventory_item = basis_tree.inventory[old_inventory_item.parent_id]
+                                old_inventory_item = self._get_entry(basis_tree, old_inventory_item.parent_id)
                                 old_names.append(old_inventory_item.name)
                             old_names.reverse()
                             old_path = "/".join(old_names)
@@ -582,7 +582,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             item.kind == 'directory' and
             item.children is not None and not self.changes_mode):
             #Because we create copies, we have to get the real item.
-            item = self.tree.inventory[item.file_id]
+            item = self._get_entry(self.tree, item.file_id)
             for child in item.children.itervalues():
                 # Create a copy so that we don't have to hold a lock of the wt.
                 child = child.copy()
@@ -641,12 +641,15 @@ class TreeModel(QtCore.QAbstractItemModel):
         finally:
             if not self._many_loaddirs_started:
                 self.tree.unlock()
+
+    def _get_entry(self, tree, file_id):
+        return tree.iter_entries_by_dir([file_id]).next()[1]
     
     def process_inventory(self, get_children, initial_checked_paths, load_dirs):
         self.get_children = get_children
         
         root_item = ModelItemData(
-            '', item=self.tree.inventory[self.tree.get_root_id()])
+            '', item=self._get_entry(self.tree, self.tree.get_root_id()))
         
         root_id = self.append_item(root_item, None)
         self.load_dir(root_id)
@@ -1092,11 +1095,11 @@ class TreeModel(QtCore.QAbstractItemModel):
             key = ref.file_id
             dict = self.inventory_data_by_id
             def iter_parents():
-                parent_id = self.tree.inventory[ref.file_id].parent_id
+                parent_id = self._get_entry(self.tree, ref.file_id).parent_id
                 parent_ids = []
                 while parent_id is not None:
                     parent_ids.append(parent_id)
-                    parent_id = self.tree.inventory[parent_id].parent_id
+                    parent_id = self._get_entry(self.tree, parent_id).parent_id
                 return reversed(parent_ids)
         else:
             key = ref.path
