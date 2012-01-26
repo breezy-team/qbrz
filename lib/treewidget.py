@@ -271,7 +271,7 @@ class ChangeDesc(tuple):
     def is_tree_root(desc):
         """Check if entry actually tree root."""
         if desc[3] != (False, False) and desc[4] == (None, None):
-            # TREE_ROOT has not parents (desc[4]).
+            # TREE_ROOT has no parents (desc[4]).
             # But because we could want to see unversioned files
             # we need to check for versioned flag (desc[3])
             return True
@@ -410,7 +410,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.inventory_data_by_id = {}
         if is_refresh:
             self.endRemoveRows()
-        
+
         if isinstance(self.tree, WorkingTree):
             tree.lock_read()
             try:
@@ -535,12 +535,12 @@ class TreeModel(QtCore.QAbstractItemModel):
                                 item_data.change)
                 finally:
                     basis_tree.unlock()
-                self.process_inventory(self.working_tree_get_children,
+                self.process_tree(self.working_tree_get_children,
                                        initial_checked_paths, load_dirs)
             finally:
                 tree.unlock()
         else:
-            self.process_inventory(self.revision_tree_get_children,
+            self.process_tree(self.revision_tree_get_children,
                                    initial_checked_paths, load_dirs)
         
         self.emit(QtCore.SIGNAL("layoutChanged()"))
@@ -645,7 +645,7 @@ class TreeModel(QtCore.QAbstractItemModel):
     def _get_entry(self, tree, file_id):
         return tree.iter_entries_by_dir([file_id]).next()[1]
     
-    def process_inventory(self, get_children, initial_checked_paths, load_dirs):
+    def process_tree(self, get_children, initial_checked_paths, load_dirs):
         self.get_children = get_children
         
         root_item = ModelItemData(
