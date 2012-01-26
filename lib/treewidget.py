@@ -546,8 +546,9 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.emit(QtCore.SIGNAL("layoutChanged()"))
     
     def revision_tree_get_children(self, item_data):
-        for child in item_data.item.children.itervalues():
-            path = self.tree.id2path(child.file_id)
+        for child_id in self.tree.iter_children(item_data.item.file_id):
+            child = self._get_entry(self.tree, child_id)
+            path = self.tree.id2path(child_id)
             yield ModelItemData(path, item=child)
     
     def working_tree_get_children(self, item_data):
@@ -579,19 +580,18 @@ class TreeModel(QtCore.QAbstractItemModel):
                 yield ModelItemData(path, item=child, change=change)
         
         if (not isinstance(item, InternalItem) and
-            item.kind == 'directory' and
-            item.children is not None and not self.changes_mode):
+            item.kind == 'directory' and not self.changes_mode):
             #Because we create copies, we have to get the real item.
             item = self._get_entry(self.tree, item.file_id)
-            for child in item.children.itervalues():
-                # Create a copy so that we don't have to hold a lock of the wt.
-                child = child.copy()
-                if child.file_id in self.inventory_data_by_id:
-                    child_item_data = self.inventory_data_by_id[child.file_id]
+            for child_id in self.tree.iter_children(item.file_id):
+                if child_id in self.inventory_data_by_id:
+                    child_item_data = self.inventory_data_by_id[child_id]
                 else:
-                    path = self.tree.id2path(child.file_id)
+                    path = self.tree.id2path(child_id)
                     child_item_data = ModelItemData(path)
-                
+
+                # Create a copy so that we don't have to hold a lock of the wt.
+                child = self._get_entry(self.tree, child_id).copy()
                 child_item_data.item = child
                 yield child_item_data
         
