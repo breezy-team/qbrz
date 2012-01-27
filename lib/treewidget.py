@@ -271,7 +271,7 @@ class ChangeDesc(tuple):
     def is_tree_root(desc):
         """Check if entry actually tree root."""
         if desc[3] != (False, False) and desc[4] == (None, None):
-            # TREE_ROOT has not parents (desc[4]).
+            # TREE_ROOT has no parents (desc[4]).
             # But because we could want to see unversioned files
             # we need to check for versioned flag (desc[3])
             return True
@@ -410,7 +410,7 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.inventory_data_by_id = {}
         if is_refresh:
             self.endRemoveRows()
-        
+
         if isinstance(self.tree, WorkingTree):
             tree.lock_read()
             try:
@@ -480,12 +480,12 @@ class TreeModel(QtCore.QAbstractItemModel):
                         else:
                             name = path
                         if change and change.is_renamed():
-                            old_inventory_item = basis_tree.inventory[change.fileid()]
+                            old_inventory_item = self._get_entry(basis_tree, change.fileid())
                             old_names = [old_inventory_item.name]
                             while old_inventory_item.parent_id:
                                 if old_inventory_item.parent_id == dir_fileid:
                                     break
-                                old_inventory_item = basis_tree.inventory[old_inventory_item.parent_id]
+                                old_inventory_item = self._get_entry(basis_tree, old_inventory_item.parent_id)
                                 old_names.append(old_inventory_item.name)
                             old_names.reverse()
                             old_path = "/".join(old_names)
@@ -535,19 +535,20 @@ class TreeModel(QtCore.QAbstractItemModel):
                                 item_data.change)
                 finally:
                     basis_tree.unlock()
-                self.process_inventory(self.working_tree_get_children,
+                self.process_tree(self.working_tree_get_children,
                                        initial_checked_paths, load_dirs)
             finally:
                 tree.unlock()
         else:
-            self.process_inventory(self.revision_tree_get_children,
+            self.process_tree(self.revision_tree_get_children,
                                    initial_checked_paths, load_dirs)
         
         self.emit(QtCore.SIGNAL("layoutChanged()"))
     
     def revision_tree_get_children(self, item_data):
-        for child in item_data.item.children.itervalues():
-            path = self.tree.id2path(child.file_id)
+        for child_id in self.tree.iter_children(item_data.item.file_id):
+            child = self._get_entry(self.tree, child_id)
+            path = self.tree.id2path(child_id)
             yield ModelItemData(path, item=child)
     
     def working_tree_get_children(self, item_data):
@@ -579,19 +580,18 @@ class TreeModel(QtCore.QAbstractItemModel):
                 yield ModelItemData(path, item=child, change=change)
         
         if (not isinstance(item, InternalItem) and
-            item.kind == 'directory' and
-            item.children is not None and not self.changes_mode):
+            item.kind == 'directory' and not self.changes_mode):
             #Because we create copies, we have to get the real item.
-            item = self.tree.inventory[item.file_id]
-            for child in item.children.itervalues():
-                # Create a copy so that we don't have to hold a lock of the wt.
-                child = child.copy()
-                if child.file_id in self.inventory_data_by_id:
-                    child_item_data = self.inventory_data_by_id[child.file_id]
+            item = self._get_entry(self.tree, item.file_id)
+            for child_id in self.tree.iter_children(item.file_id):
+                if child_id in self.inventory_data_by_id:
+                    child_item_data = self.inventory_data_by_id[child_id]
                 else:
-                    path = self.tree.id2path(child.file_id)
+                    path = self.tree.id2path(child_id)
                     child_item_data = ModelItemData(path)
-                
+
+                # Create a copy so that we don't have to hold a lock of the wt.
+                child = self._get_entry(self.tree, child_id).copy()
                 child_item_data.item = child
                 yield child_item_data
         
@@ -641,12 +641,15 @@ class TreeModel(QtCore.QAbstractItemModel):
         finally:
             if not self._many_loaddirs_started:
                 self.tree.unlock()
+
+    def _get_entry(self, tree, file_id):
+        return tree.iter_entries_by_dir([file_id]).next()[1]
     
-    def process_inventory(self, get_children, initial_checked_paths, load_dirs):
+    def process_tree(self, get_children, initial_checked_paths, load_dirs):
         self.get_children = get_children
         
         root_item = ModelItemData(
-            '', item=self.tree.inventory[self.tree.get_root_id()])
+            '', item=self._get_entry(self.tree, self.tree.get_root_id()))
         
         root_id = self.append_item(root_item, None)
         self.load_dir(root_id)
@@ -1092,11 +1095,11 @@ class TreeModel(QtCore.QAbstractItemModel):
             key = ref.file_id
             dict = self.inventory_data_by_id
             def iter_parents():
-                parent_id = self.tree.inventory[ref.file_id].parent_id
+                parent_id = self._get_entry(self.tree, ref.file_id).parent_id
                 parent_ids = []
                 while parent_id is not None:
                     parent_ids.append(parent_id)
-                    parent_id = self.tree.inventory[parent_id].parent_id
+                    parent_id = self._get_entry(self.tree, parent_id).parent_id
                 return reversed(parent_ids)
         else:
             key = ref.path

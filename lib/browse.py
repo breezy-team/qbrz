@@ -60,7 +60,6 @@ class BrowseWindow(QBzrWindow):
         self.revision_id = revision_id
         self.revision_spec = revision_spec
         self.revision = revision
-        self.root_file_id = None
 
         QBzrWindow.__init__(self,
             [gettext("Browse"), self.location], parent)
