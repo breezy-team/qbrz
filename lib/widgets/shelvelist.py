@@ -453,11 +453,11 @@ class ShelveListWidget(ToolbarPanel):
     def unidiff_toggled(self, state):
         index = 1 if state else 0
         self.diffviews[index].rewind()
-        self.stack.setCurrentIndex(index)
         if index == 0:
             self.find_toolbar.set_text_edits(self.diffviews[0].browsers)
         else:
             self.find_toolbar.set_text_edits([self.diffviews[1]])
+        self.stack.setCurrentIndex(index)
 
     def complete_toggled(self, state):
         self.complete = state
