@@ -643,7 +643,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 self.tree.unlock()
 
     def _get_entry(self, tree, file_id):
-        return tree.iter_entries_by_dir([file_id]).next()[1]
+        return list(tree.iter_entries_by_dir([file_id]).next())[1]
     
     def process_tree(self, get_children, initial_checked_paths, load_dirs):
         self.get_children = get_children
