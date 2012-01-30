@@ -23,6 +23,7 @@
 #  - better annotate algorithm on packs
 
 import sys, time
+from itertools import groupby
 from PyQt4 import QtCore, QtGui
 
 from bzrlib.revision import CURRENT_REVISION
@@ -41,6 +42,9 @@ from bzrlib.plugins.qbzr.lib.util import (
     runs_in_loading_queue,
     )
 from bzrlib.plugins.qbzr.lib.widgets.toolbars import FindToolbar
+from bzrlib.plugins.qbzr.lib.widgets.texteditaccessory import (
+    GuideBarPanel, setup_guidebar_for_find
+)
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
@@ -70,7 +74,8 @@ class AnnotateBar(AnnotateBarBase):
         self.get_revno = get_revno
         self.annotate = None
         self.rev_colors = {}
-        self.highlight_revids = set()
+        self._highlight_revids = set()
+        self.highlight_lines = []
         
         self.splitter = None
         self.adjustWidth(1, 999)
@@ -79,6 +84,25 @@ class AnnotateBar(AnnotateBarBase):
             QtCore.SIGNAL("cursorPositionChanged()"),
             self.edit_cursorPositionChanged)
         self.show_current_line = False
+
+    def get_highlight_revids(self):
+        return self._highlight_revids
+
+    def set_highlight_revids(self, value):
+        self.highlight_lines = []
+        self._highlight_revids = value
+        if not self.annotate:
+            return
+        lines = [i for i, (revno, istop) in enumerate(self.annotate)
+                 if revno in value]
+
+        # Convert [0,1,2,5,6,9,14,15,16,17] to [(0,3),(5,2),(9,1),(14,4)]
+        def summarize(lines):
+            for k, g in groupby(enumerate(lines), key=lambda x:x[1]-x[0]):
+                yield [line for i, line in g]
+        self.highlight_lines = [(x[0], len(x)) for x in summarize(lines)]
+
+    highlight_revids = property(get_highlight_revids, set_highlight_revids)
 
     def edit_cursorPositionChanged(self):
         self.show_current_line = True
@@ -138,7 +162,7 @@ class AnnotateBar(AnnotateBarBase):
         if self.annotate and line_number-1 < len(self.annotate):
             revid, is_top = self.annotate[line_number - 1]
             if is_top:
-                if revid in self.highlight_revids:
+                if revid in self._highlight_revids:
                     font = painter.font()
                     font.setBold(True)
                     painter.setFont(font)
@@ -271,11 +295,13 @@ class AnnotateWindow(QBzrWindow):
         self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
         
         self.text_edit.document().setDefaultFont(get_monospace_font())
-        
+
+        self.guidebar_panel = GuideBarPanel(self.text_edit, parent=self)
+        self.guidebar_panel.add_entry('annotate', QtGui.QColor(255, 160, 180))
         self.annotate_bar = AnnotateBar(self.text_edit, self, self.get_revno)
         annotate_spliter = QtGui.QSplitter(QtCore.Qt.Horizontal, self)
         annotate_spliter.addWidget(self.annotate_bar)
-        annotate_spliter.addWidget(self.text_edit)
+        annotate_spliter.addWidget(self.guidebar_panel)
         self.annotate_bar.splitter = annotate_spliter
         self.text_edit_frame.hbox.addWidget(annotate_spliter)
         
@@ -372,6 +398,7 @@ class AnnotateWindow(QBzrWindow):
         self.connect(self.show_find,
                      QtCore.SIGNAL("toggled (bool)"),
                      self.show_find_toggle)
+        setup_guidebar_for_find(self.guidebar_panel, self.find_toolbar, index=1)
         
         self.goto_line_toolbar = GotoLineToolbar(self, self.show_goto_line)
         self.goto_line_toolbar.hide()
@@ -623,6 +650,7 @@ class AnnotateWindow(QBzrWindow):
     def log_list_selectionChanged(self, selected, deselected):
         revids = self.log_list.get_selection_and_merged_revids()
         self.annotate_bar.highlight_revids = revids
+        self.guidebar_panel.update_data(annotate=self.annotate_bar.highlight_lines)
         self.annotate_bar.update()
     
     def show_find_toggle(self, state):

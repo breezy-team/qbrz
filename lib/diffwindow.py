@@ -66,6 +66,7 @@ from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
 from bzrlib.plugins.qbzr.lib.widgets.tab_width_selector import TabWidthMenuSelector
+from bzrlib.plugins.qbzr.lib.widgets.texteditaccessory import setup_guidebar_for_find
 
 
 
@@ -158,6 +159,9 @@ class DiffWindow(QBzrWindow):
                 self.show_find)
         self.find_toolbar.hide()
         self.addToolBar(self.find_toolbar)
+        setup_guidebar_for_find(self.sdiffview, self.find_toolbar, 1)
+        for gb in self.diffview.guidebar_panels:
+            setup_guidebar_for_find(gb, self.find_toolbar, 1)
 
     def connect_later(self, *args, **kwargs):
         """Schedules a signal to be connected after loading CLI arguments.
@@ -487,7 +491,7 @@ class DiffWindow(QBzrWindow):
     def click_toggle_view_mode(self, checked):
         if checked:
             view = self.sdiffview
-            self.find_toolbar.set_text_edits([view])
+            self.find_toolbar.set_text_edits([view.view])
             self.tab_width_selector_left.menuAction().setVisible(False)
             self.tab_width_selector_right.menuAction().setVisible(False)
             self.tab_width_selector_unidiff.menuAction().setVisible(True)

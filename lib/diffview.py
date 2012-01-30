@@ -35,6 +35,9 @@ from bzrlib.plugins.qbzr.lib.syntaxhighlighter import (
     CachedTTypeFormater,
     split_tokens_at_lines,
     )
+from bzrlib.plugins.qbzr.lib.widgets.texteditaccessory import (
+    GuideBarPanel,    GBAR_LEFT,  GBAR_RIGHT
+)
 
 have_pygments = True
 try:
@@ -378,6 +381,12 @@ class SidebySideDiffViewScrollBar(QtGui.QScrollBar):
         self.adjust_range()
 
 
+
+def setup_guidebar_entries(gb):
+    gb.add_entry('title', QtGui.QColor(80, 80, 80), -1)
+    for tag in ('delete', 'insert', 'replace'):
+        gb.add_entry(tag, colors[tag][0], 0)
+
 class _SidebySideDiffView(QtGui.QSplitter):
     """Widget to show differences in side-by-side format."""
 
@@ -413,19 +422,30 @@ class _SidebySideDiffView(QtGui.QSplitter):
                      QtGui.QTextDocument())
         self.browsers = (DiffSourceView(self),
                          DiffSourceView(self))
+
+        self.guidebar_panels = [
+            GuideBarPanel(b, align=a)
+            for (b, a) in zip(self.browsers, (GBAR_LEFT, GBAR_RIGHT))
+        ]
+        for g in self.guidebar_panels:
+            setup_guidebar_entries(g.bar)
+
+        self.reset_guidebar_data()
+
         for b in self.browsers:
             b.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
         self.cursors = [QtGui.QTextCursor(doc) for doc in self.docs]
         
-        for i, (browser, doc, cursor) in enumerate(zip(self.browsers, self.docs, self.cursors)):
+        for i, (panel, doc, cursor) in enumerate(zip(self.guidebar_panels,
+                                                     self.docs, self.cursors)):
             doc.setUndoRedoEnabled(False)
             doc.setDefaultFont(self.monospacedFont)
             
+            panel.edit.setDocument(doc)
+            self.addWidget(panel)
             self.setCollapsible(i, False)
-            browser.setDocument(doc)
-            self.addWidget(browser)
-            
+
             format = QtGui.QTextCharFormat()
             format.setAnchorNames(["top"])
             cursor.insertText("", format)
@@ -452,7 +472,13 @@ class _SidebySideDiffView(QtGui.QSplitter):
     def setTabStopWidths(self, pixels):
         for (pixel_width, browser) in zip(pixels, self.browsers):
             browser.setTabStopWidth(pixel_width)
-    
+
+    def reset_guidebar_data(self):
+        self.guidebar_data = [
+            dict(title=[], delete=[], insert=[], replace=[]), # for left view
+            dict(title=[], delete=[], insert=[], replace=[]), # for right view
+        ]
+
     def clear(self):
         self.browsers[0].clear()
         self.browsers[1].clear()
@@ -460,6 +486,7 @@ class _SidebySideDiffView(QtGui.QSplitter):
         self.scrollbar.clear()
         for doc in self.docs:
             doc.clear()
+        self.reset_guidebar_data()
         self.update()
 
     def set_complete(self, complete):
@@ -471,8 +498,12 @@ class _SidebySideDiffView(QtGui.QSplitter):
     def append_diff(self, paths, file_id, kind, status, dates,
                     present, binary, lines, groups, data, properties_changed):
         cursors = self.cursors
+
+        guidebar_data = self.guidebar_data
+
         for i in range(2):
             cursor = cursors[i]
+            guidebar_data[i]['title'].append((cursor.block().blockNumber(), 2))
             cursor.beginEditBlock()
             cursor.insertText(paths[i] or " ", self.titleFormat)    # None or " " => " "
             cursor.insertBlock()
@@ -633,6 +664,7 @@ class _SidebySideDiffView(QtGui.QSplitter):
                         insertIxs(ixs)
                     else:
                         y_top = [cursor.block().layout() for cursor in self.cursors]
+                        g_top = [cursor.block().blockNumber() for cursor in self.cursors]
                         if tag == "replace":
                             insertIxsWithChangesHighlighted(ixs)
                         else:
@@ -640,7 +672,11 @@ class _SidebySideDiffView(QtGui.QSplitter):
                         linediff += n[0] - n[1]
                         y_bot = [cursor.block().layout() for cursor in self.cursors]
                         changes.append((y_top[0], y_bot[0], y_top[1], y_bot[1], tag))
-                
+
+                        g_bot = [cursor.block().blockNumber() for cursor in self.cursors]
+                        for data, top, bot in zip(guidebar_data, g_top, g_bot):
+                            data[tag].append((top, bot - top))
+
                 if linediff == 0:
                     continue
                 if not self.complete:
@@ -728,6 +764,8 @@ class _SidebySideDiffView(QtGui.QSplitter):
             or self.browsers[1].horizontalScrollBar().isVisible()):
             self.browsers[0].setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
             self.browsers[1].setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+
+        self.update_guidebar()
         self.update()
     
     def rewind(self):
@@ -761,8 +799,26 @@ class _SidebySideDiffView(QtGui.QSplitter):
     def createHandle(self):
         return DiffViewHandle(self)
 
+    def update_guidebar(self):
+        for gb, data in zip(self.guidebar_panels, self.guidebar_data):
+            gb.bar.update_data(**data)
 
-class SimpleDiffView(QtGui.QTextBrowser):
+class SimpleDiffView(GuideBarPanel):
+    def __init__(self, parent):
+        self.view = _SimpleDiffView(parent)
+        GuideBarPanel.__init__(self, self.view, parent=parent)
+        setup_guidebar_entries(self)
+
+    def append_diff(self, *args, **kwargs):
+        self.view.append_diff(*args, **kwargs)
+        self.update_data(**self.view.guidebar_data)
+
+    def __getattr__(self, name):
+        """Delegate unknown methods to internal diffview."""
+        return getattr(self.view, name)
+
+
+class _SimpleDiffView(QtGui.QTextBrowser):
     """Widget to show differences in unidiff format."""
 
     def __init__(self, parent=None):
@@ -807,6 +863,8 @@ class SimpleDiffView(QtGui.QTextBrowser):
         self.monospacedHunkFormat.setFont(monospacedItalicFont)
         self.monospacedHunkFormat.setForeground(QtGui.QColor(153, 30, 199))
 
+        self.reset_guidebar_data()
+
     def rewind(self):
         if not self.rewinded:
             self.rewinded = True
@@ -817,6 +875,8 @@ class SimpleDiffView(QtGui.QTextBrowser):
 
     def append_diff(self, paths, file_id, kind, status, dates,
                     present, binary, lines, groups, data, properties_changed):
+        guidebar_data = self.guidebar_data
+        guidebar_data['title'].append((self.cursor.block().blockNumber(), 2))
         self.cursor.beginEditBlock()
         path_info = paths[1] or paths[0]
         if status in ('renamed', 'renamed and modified'):
@@ -878,13 +938,24 @@ class SimpleDiffView(QtGui.QTextBrowser):
                         text = "".join(" " + l for l in a[i0:i1])
                         self.cursor.insertText(text, self.monospacedFormat)
                     else:
+                        start = self.cursor.block().blockNumber()
                         text = "".join("-" + l for l in a[i0:i1])
                         self.cursor.insertText(text, self.monospacedDeleteFormat)
                         text = "".join("+" + l for l in b[j0:j1])
                         self.cursor.insertText(text, self.monospacedInsertFormat)
+                        end = self.cursor.block().blockNumber()
+                        guidebar_data[tag].append((start, end - start))
         else:
             self.cursor.insertText("Binary files %s %s and %s %s differ\n" % \
                                    (paths[0], dates[0], paths[1], dates[1]))
         self.cursor.insertText("\n")
         self.cursor.endEditBlock()
         self.update()
+
+    def clear(self):
+        QtGui.QTextBrowser.clear(self)
+        self.reset_guidebar_data()
+
+    def reset_guidebar_data(self):
+        self.guidebar_data = dict(title=[], delete=[], insert=[], replace=[])
+

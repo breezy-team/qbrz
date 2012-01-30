@@ -456,7 +456,7 @@ class ShelveListWidget(ToolbarPanel):
         if index == 0:
             self.find_toolbar.set_text_edits(self.diffviews[0].browsers)
         else:
-            self.find_toolbar.set_text_edits([self.diffviews[1]])
+            self.find_toolbar.set_text_edits([self.diffviews[1].view])
         self.stack.setCurrentIndex(index)
 
     def complete_toggled(self, state):
