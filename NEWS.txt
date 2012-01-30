@@ -11,6 +11,8 @@ This change affects to qdiff, qshelve, qunshelve, qannotate.
  * qbrowse:
    * Does not crash anymore when called for shared repository.
      (André Bachmann, Alexander Belchenko, Bug #578935)
+   * Avoid using inventory for access to revision and working trees.
+     (Jelmer Vernooij, Bug #922121)
  * qconfig:
    * Fixed Set Default button in Merge tab. (Gordon Tyler, Bug #820635)
  * qdiff:

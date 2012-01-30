@@ -265,7 +265,8 @@ class cmd_qannotate(QBzrCommand):
             file_id = tree.path2id(relpath)
             if file_id is None:
                 raise errors.NotVersionedError(filename)
-            entry = tree.inventory[file_id]
+            [(path, entry)] = list(tree.iter_entries_by_dir(
+                specific_file_ids=[file_id]))
             if entry.kind != 'file':
                 raise errors.BzrCommandError(
                         'bzr qannotate only works for files (got %r)' % entry.kind)
