@@ -18,7 +18,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from bzrlib import errors
 
 GBAR_LEFT  = 1
 GBAR_RIGHT = 2
@@ -31,26 +30,76 @@ class _Entry(object):
         self.data = []
         self.index = index
 
+class PlainTextEditHelper(QtCore.QObject):
+    def __init__(self, edit):
+        QtCore.QObject.__init__(self)
+        if not isinstance(edit, QtGui.QPlainTextEdit):
+            raise ValueError('edit must be QPlainTextEdit')
+        self.edit = edit
+
+        self.connect(edit, QtCore.SIGNAL("updateRequest(const QRect&, int)"),
+                     self.onUpdateRequest)
+
+    def onUpdateRequest(self, rect, dy):
+        self.emit(QtCore.SIGNAL("updateRequest()"))
+
+    def center_block(self, block):
+        """
+        scroll textarea as specified block locates to center
+        """
+        edit = self.edit
+        height = edit.viewport().rect().height() / 2
+        h = self.edit.blockBoundingRect(block).center().y()
+        def iter_visible_block_backward(b):
+            while True:
+                b = b.previous()
+                if not b.isValid(): return
+                if b.isVisible():   yield b
+        for block in iter_visible_block_backward(block):
+            h += edit.blockBoundingRect(block).height()
+            if height < h:
+                break
+        edit.verticalScrollBar().setValue(block.firstLineNumber())
+
+class TextEditHelper(QtCore.QObject):
+    def __init__(self, edit):
+        QtCore.QObject.__init__(self)
+        if not isinstance(edit, QtGui.QTextEdit):
+            raise ValueError('edit must be QTextEdit')
+        self.edit = edit
+
+        self.connect(edit.verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"),
+                     self.onVerticalScroll)
+
+    def onVerticalScroll(self, value):
+        self.emit(QtCore.SIGNAL("updateRequest()"))
+
+    def center_block(self, block):
+        y = block.layout().position().y()
+        vscroll = self.edit.verticalScrollBar()
+        vscroll.setValue(y - vscroll.pageStep() / 2)
+
+def get_edit_helper(edit):
+    if isinstance(edit, QtGui.QPlainTextEdit):
+        return PlainTextEditHelper(edit)
+    if isinstance(edit, QtGui.QTextEdit):
+        return TextEditHelper(edit)
+    raise ValueError("edit is unsupported type.")
+
 class GuideBar(QtGui.QWidget):
     def __init__(self, edit, base_width=10, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.base_width = base_width
         self.edit = edit
+        self._helper = get_edit_helper(edit)
         self.block_count = 0
-
-        if not isinstance(edit, QtGui.QTextEdit) and \
-           not isinstance(edit, QtGui.QPlainTextEdit):
-            raise ValueError('edit must be QTextEdit or QPlainTextEdit')
 
         self.connect(edit, QtCore.SIGNAL("documentChangeFinished()"), 
                      self.reset_gui)
-        self.connect(edit.verticalScrollBar(), QtCore.SIGNAL("valueChanged(int)"),
-                     lambda val: self.update())
         self.connect(edit.verticalScrollBar(), QtCore.SIGNAL("rangeChanged(int, int)"),
                      self.vscroll_rangeChanged)
-        if isinstance(edit, QtGui.QPlainTextEdit):
-            self.connect(edit, QtCore.SIGNAL("updateRequest(const QRect&, int)"),
-                         lambda r, dy:self.update())
+
+        self.connect(self._helper, QtCore.SIGNAL("updateRequest()"), self.update)
 
         self.entries = {}
         self.vscroll_visible = None
@@ -98,10 +147,7 @@ class GuideBar(QtGui.QWidget):
         block = self.edit.cursorForPosition(pos).block()
         first_visible_block = block.blockNumber()
 
-        y = self.geometry().height()
-        scrollbar = self.edit.horizontalScrollBar()
-        if scrollbar.isVisible():
-            y -= scrollbar.height()
+        y = self.edit.viewport().height()
 
         pos = QtCore.QPoint(0, y)
         block = self.edit.cursorForPosition(pos).block()
@@ -147,6 +193,22 @@ class GuideBar(QtGui.QWidget):
         y, height = first_block * block_height, max(1, visible_blocks * block_height)
         painter.fillRect(x, y, width, height, QtGui.QColor(0, 0, 0, 24))
 
+    def mousePressEvent(self, event):
+        QtGui.QWidget.mousePressEvent(self, event)
+        if event.button() == QtCore.Qt.LeftButton:
+            self.scroll_to_pos(event.y())
+
+    def mouseMoveEvent(self, event):
+        QtGui.QWidget.mouseMoveEvent(self, event)
+        self.scroll_to_pos(event.y())
+
+    def scroll_to_pos(self, y):
+        block_no = int(float(y) / self.height() * self.block_count)
+        block = self.edit.document().findBlockByNumber(block_no)
+        if not block.isValid():
+            return
+        self._helper.center_block(block)
+
 class GuideBarPanel(QtGui.QWidget):
     def __init__(self, edit, base_width=10, align=GBAR_RIGHT, parent=None):
         QtGui.QWidget.__init__(self, parent)
@@ -177,6 +239,6 @@ def setup_guidebar_for_find(guidebar, find_toolbar, index=0):
             guidebar.update_data(
                 find=[(n, 1) for n in guidebar.edit.highlight_lines]
             )
-    guidebar.add_entry('find', QtGui.QColor(255, 196, 0), index)
+    guidebar.add_entry('find', QtGui.QColor(255, 196, 0), index) # Gold
     guidebar.connect(find_toolbar, QtCore.SIGNAL("highlightChanged()"),
                      on_highlight_changed)
