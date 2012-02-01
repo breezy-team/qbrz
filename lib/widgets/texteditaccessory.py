@@ -23,6 +23,16 @@ GBAR_LEFT  = 1
 GBAR_RIGHT = 2
 
 class _Entry(object):
+    """
+    Represent each group of guide bar.
+
+    :key:   string key to identify this group
+    :color: color or marker
+    :data:  marker positions, list of tuple (block index, num of blocks)
+    :index: index of the column to render this entry.
+            * Two or more groups can be rendered on same columns.
+            * If index == -1, the group is renderd on all columns.
+    """
     __slots__ = ['key', 'color', 'data', 'index']
     def __init__(self, key, color, index=0):
         self.key = key
@@ -31,6 +41,9 @@ class _Entry(object):
         self.index = index
 
 class PlainTextEditHelper(QtCore.QObject):
+    """
+    Helper class to encapsulate gap between QPlainTextEdit and QTextEdit
+    """
     def __init__(self, edit):
         QtCore.QObject.__init__(self)
         if not isinstance(edit, QtGui.QPlainTextEdit):
@@ -46,6 +59,8 @@ class PlainTextEditHelper(QtCore.QObject):
     def center_block(self, block):
         """
         scroll textarea as specified block locates to center
+
+        NOTE: This code is based on Qt source code (qplaintextedit.cpp)
         """
         edit = self.edit
         height = edit.viewport().rect().height() / 2
@@ -62,6 +77,9 @@ class PlainTextEditHelper(QtCore.QObject):
         edit.verticalScrollBar().setValue(block.firstLineNumber())
 
 class TextEditHelper(QtCore.QObject):
+    """
+    Helper class to encapsulate gap between QPlainTextEdit and QTextEdit
+    """
     def __init__(self, edit):
         QtCore.QObject.__init__(self)
         if not isinstance(edit, QtGui.QTextEdit):
@@ -75,6 +93,9 @@ class TextEditHelper(QtCore.QObject):
         self.emit(QtCore.SIGNAL("updateRequest()"))
 
     def center_block(self, block):
+        """
+        scroll textarea as specified block locates to center
+        """
         y = block.layout().position().y()
         vscroll = self.edit.verticalScrollBar()
         vscroll.setValue(y - vscroll.pageStep() / 2)
@@ -87,7 +108,17 @@ def get_edit_helper(edit):
     raise ValueError("edit is unsupported type.")
 
 class GuideBar(QtGui.QWidget):
+    """
+    Vertical bar attached to TextEdit.
+    This shows that where changed or highlighted lines are.
+
+    Guide bar can have multiple columns.
+    """
     def __init__(self, edit, base_width=10, parent=None):
+        """
+        :edit:          target widget, must be QPlainTextEdit or QTextEdit
+        :base_width:    width of each column.
+        """
         QtGui.QWidget.__init__(self, parent)
         self.base_width = base_width
         self.edit = edit
@@ -105,6 +136,9 @@ class GuideBar(QtGui.QWidget):
         self.vscroll_visible = None
 
     def add_entry(self, key, color, index=0):
+        """
+        Add marker group
+        """
         entry = _Entry(key, color, index)
         self.entries[key] = entry
 
@@ -117,7 +151,7 @@ class GuideBar(QtGui.QWidget):
 
     def reset_gui(self):
         """
-        Determine show or hide, and width of guidebar.
+        Determine show or hide, and num of columns.
         """
         # Hide when vertical scrollbar is not shown.
         if not self.vscroll_visible:
@@ -138,11 +172,21 @@ class GuideBar(QtGui.QWidget):
         self.update()
 
     def update_data(self, **data):
+        """
+        Update each marker positions.
+
+        :arg_name:  marker key
+        :value:     list of marker positions.
+                    Each position is tuple of (block index, num of blocks).
+        """
         for key, value in data.iteritems():
             self.entries[key].data[:] = value
         self.reset_gui()
 
     def get_visible_block_range(self):
+        """
+        Return tuple of (index of first visible block, num of visible block)
+        """
         pos = QtCore.QPoint(0, 1)
         block = self.edit.cursorForPosition(pos).block()
         first_visible_block = block.blockNumber()
@@ -210,6 +254,9 @@ class GuideBar(QtGui.QWidget):
         self._helper.center_block(block)
 
 class GuideBarPanel(QtGui.QWidget):
+    """
+    Composite widget of TextEdit and GuideBar
+    """
     def __init__(self, edit, base_width=10, align=GBAR_RIGHT, parent=None):
         QtGui.QWidget.__init__(self, parent)
         hbox = QtGui.QHBoxLayout(self)
@@ -234,6 +281,9 @@ class GuideBarPanel(QtGui.QWidget):
         return self.bar.update_data(**data)
 
 def setup_guidebar_for_find(guidebar, find_toolbar, index=0):
+    """
+    Make guidebar enable to show positions that highlighted by FindToolBar
+    """
     def on_highlight_changed():
         if guidebar.edit in find_toolbar.text_edits:
             guidebar.update_data(
