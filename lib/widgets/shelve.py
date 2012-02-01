@@ -786,10 +786,10 @@ class HunkView(QtGui.QWidget):
         self.guidebar = GuideBar(self.browser, parent=self)
         self.guidebar.add_entry('hunk', self.browser.focus_color)
         self.selector = HunkSelector(self.browser, self)
-        layout.addWidget(self.guidebar)
         layout.addWidget(self.selector)
         layout.addWidget(self.browser)
-        self.connect(self.browser, QtCore.SIGNAL("focusedHunkChanged()"), 
+        layout.addWidget(self.guidebar)
+        self.connect(self.browser, QtCore.SIGNAL("focusedHunkChanged()"),
                      self.update)
 
         def selected_hunk_changed():

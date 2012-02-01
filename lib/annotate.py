@@ -89,6 +89,9 @@ class AnnotateBar(AnnotateBarBase):
         return self._highlight_revids
 
     def set_highlight_revids(self, value):
+        if self._highlight_revids == value:
+            return
+
         self.highlight_lines = []
         self._highlight_revids = value
         if not self.annotate:
