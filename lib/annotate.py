@@ -92,12 +92,15 @@ class AnnotateBar(AnnotateBarBase):
         if self._highlight_revids == value:
             return
 
-        self.highlight_lines = []
         self._highlight_revids = value
+        self.update_highlight_lines()
+
+    def update_highlight_lines(self):
+        self.highlight_lines = []
         if not self.annotate:
             return
         lines = [i for i, (revno, istop) in enumerate(self.annotate)
-                 if revno in value]
+                 if revno in self._highlight_revids]
 
         # Convert [0,1,2,5,6,9,14,15,16,17] to [(0,3),(5,2),(9,1),(14,4)]
         def summarize(lines):
@@ -313,7 +316,10 @@ class AnnotateWindow(QBzrWindow):
                      self.edit_cursorPositionChanged)        
         self.connect(self.annotate_bar,
                      QtCore.SIGNAL("cursorPositionChanged()"),
-                     self.edit_cursorPositionChanged)        
+                     self.edit_cursorPositionChanged)
+        self.connect(self.text_edit,
+                     QtCore.SIGNAL("documentChangeFinished()"),
+                     self.edit_documentChangeFinished)
         
         self.log_list = AnnotateLogList(self.processEvents, self.throbber, self)
         self.log_list.header().hideSection(logmodel.COL_DATE)
@@ -614,6 +620,10 @@ class AnnotateWindow(QBzrWindow):
         if self.text_edit.annotate:
             rev_id, is_top = self.text_edit.annotate[current_line]
             self.log_list.select_revid(rev_id)
+            
+    def edit_documentChangeFinished(self):
+        self.annotate_bar.update_highlight_lines()
+        self.guidebar_panel.update_data(annotate=self.annotate_bar.highlight_lines)
 
     @runs_in_loading_queue
     def set_annotate_revision(self):
