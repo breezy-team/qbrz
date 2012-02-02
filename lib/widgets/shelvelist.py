@@ -52,6 +52,7 @@ from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.plugins.qbzr.lib.decorators import lazy_call
+from bzrlib.plugins.qbzr.lib.widgets.texteditaccessory import setup_guidebar_for_find
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from bzrlib import transform
@@ -132,6 +133,9 @@ class ShelveListWidget(ToolbarPanel):
         diff_panel.add_widget(self.find_toolbar)
         diff_panel.add_widget(self.stack)
         self.find_toolbar.hide()
+        for gb in self.diffviews[0].guidebar_panels:
+            setup_guidebar_for_find(gb, self.find_toolbar, 1)
+        setup_guidebar_for_find(self.diffviews[1], self.find_toolbar, 1)
 
         # Layout widgets
         self.splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
