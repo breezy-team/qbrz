@@ -42,6 +42,7 @@ from bzrlib.plugins.qbzr.lib.subprocess import (
     SubprocessProgressView,
     SUB_PROGRESS,
     )
+from bzrlib.plugins.qbzr.lib.tests import compatibility
 
 
 class TestBencode(TestCase):
@@ -101,7 +102,7 @@ class TestExceptionInstanceSerialisation(TestCase):
 
     def test_uncommittedchanges_display_url(self):
         """The display_url of UncommittedChanges errors should be serialised"""
-        self.requireFeature(features.UnicodeFilenameFeature)
+        self.requireFeature(compatibility.UnicodeFilenameFeature)
         path = u"\u1234"
         class FakeTree(object):
             def __init__(self, url):
