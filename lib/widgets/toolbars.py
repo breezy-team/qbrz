@@ -48,7 +48,7 @@ def create_toolbar_button(text, parent=None, icon_name=None, icon_size=22,
         parent.connect(button, QtCore.SIGNAL(signal), onclick)
     return button
 
-def add_toolbar_button(toolbar, text, parent, icon_name=None, icon_size=22, 
+def add_toolbar_button(toolbar, text, parent, icon_name=None, icon_size=22,
                         enabled=True, checkable=False, checked=False,
                         shortcut=None, onclick=None): 
     button = create_toolbar_button(text, parent, icon_name, icon_size, 
@@ -56,7 +56,7 @@ def add_toolbar_button(toolbar, text, parent, icon_name=None, icon_size=22,
     toolbar.addAction(button)
     return button
 
-        
+
 class FindToolbar(QtGui.QToolBar):
 
     def __init__(self, window, text_edit, show_action):
@@ -131,7 +131,7 @@ class FindToolbar(QtGui.QToolBar):
         self.connect(self.find_text,
                      QtCore.SIGNAL("returnPressed()"),
                      self.find_next)        
-        
+
     def show_action_toggle(self, state):
         self.setVisible(state)
         if state:
@@ -197,6 +197,7 @@ class FindToolbar(QtGui.QToolBar):
             t.setExtraSelections([])
 
         for t in text_edits:
+            t.highlight_lines = []
             self.connect(t, QtCore.SIGNAL("documentChangeFinished()"), 
                     self.highlight)
 
@@ -217,6 +218,7 @@ class FindToolbar(QtGui.QToolBar):
         flags = self.find_get_flags()
         for text_edit in self.text_edits:
             selections = []
+            highlight_lines = []
             if text:
                 find = text_edit.document().find
                 pos = 0
@@ -230,9 +232,13 @@ class FindToolbar(QtGui.QToolBar):
                     sel = QtGui.QTextEdit.ExtraSelection()
                     sel.cursor, sel.format = cursor, fmt
                     selections.append(sel)
+                    highlight_lines.append(cursor.blockNumber())
                     pos = cursor.selectionEnd()
 
             text_edit.setExtraSelections(selections)
+            text_edit.highlight_lines = highlight_lines
+
+        self.emit(QtCore.SIGNAL("highlightChanged()"))
 
 class ToolbarPanel(QtGui.QWidget):
     def __init__(self, slender=True, icon_size=16, parent=None):
@@ -255,7 +261,7 @@ class ToolbarPanel(QtGui.QWidget):
 
     def add_toolbar_button(self, text, icon_name=None, icon_size=0, enabled=True, 
             checkable=False, checked=False, shortcut=None, onclick=None, menu=None):
-        button = create_toolbar_button(text, self, icon_name=icon_name, 
+        button = create_toolbar_button(text, self, icon_name=icon_name,
                 icon_size=icon_size or self.icon_size, enabled=enabled, 
                 checkable=checkable, checked=checked, shortcut=shortcut, onclick=onclick)
         if menu is not None:
@@ -273,7 +279,7 @@ class ToolbarPanel(QtGui.QWidget):
             show_shortcut_hint(widget)
         return button
 
-    def create_button(self, text, icon_name=None, icon_size=0, enabled=True, 
+    def create_button(self, text, icon_name=None, icon_size=0, enabled=True,
             checkable=False, checked=False, shortcut=None, onclick=None):
         return create_toolbar_button(text, self, icon_name=icon_name, 
                 icon_size=icon_size or self.icon_size, enabled=enabled, 

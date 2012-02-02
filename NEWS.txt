@@ -5,9 +5,15 @@ What's new in this release:
 Implemented search highlight for all matches in the view.
 This change affects to qdiff, qshelve, qunshelve, qannotate.
 
+Implemented changes markers in qdiff, qannotate as a side guidebar for fast
+navigation.
+
  * qannotate:
    * Vertically center the target line when using "Goto Line" in qannotate.
      (Benoît Pierre)
+   * Show change markers side of annotate view.
+     It represents where lines changed by selected revisions are.
+     (IWATA Hidetaka)
  * qbrowse:
    * Does not crash anymore when called for shared repository.
      (André Bachmann, Alexander Belchenko, Bug #578935)
@@ -28,6 +34,7 @@ This change affects to qdiff, qshelve, qunshelve, qannotate.
      (Alexander Belchenko, Bug #814117)
    * Implement search highlight. This change affects to qdiff, qshelve, 
       qunshelve, qannotate. (IWATA Hidetaka, Bug #785565)
+   * Show change markers side of diff views. (IWATA Hidetaka Bug #827251)
  * qgetnew
    * Base directories for the source branch and the destination checkout folder
      can now be configured in qconfig, tab 'User Interface'. (André Bachmann)
