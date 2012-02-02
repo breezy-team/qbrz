@@ -208,7 +208,6 @@ class GuideBar(QtGui.QWidget):
         painter.fillRect(event.rect(), QtCore.Qt.white)
         if self.block_count == 0:
             return
-        painter.setRenderHints(QtGui.QPainter.Antialiasing, True)
         block_height = float(self.height()) / self.block_count
 
         def get_top_and_height(index, num):
