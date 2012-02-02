@@ -211,6 +211,14 @@ class GuideBar(QtGui.QWidget):
         painter.setRenderHints(QtGui.QPainter.Antialiasing, True)
         block_height = float(self.height()) / self.block_count
 
+        def get_top_and_height(index, num):
+            y, height = index * block_height, num * block_height
+            # Inflate height if it is smaller than 1.
+            if height < 1:
+                return y - (1-height)/2, 1
+            else:
+                return y, height
+
         # Draw entries
         x_origin = 2
         index = -1
@@ -227,15 +235,14 @@ class GuideBar(QtGui.QWidget):
                     prev_index = e.index
                 x, width = x_origin + index * self.base_width, self.base_width
             for block_index, block_num in e.data:
-                y = block_index * block_height
-                height = max(1, block_num * block_height)
-                painter.fillRect(x, y, width, height, e.color)
+                y, height = get_top_and_height(block_index, block_num)
+                painter.fillRect(QtCore.QRectF(x, y, width, height), e.color)
 
         # Draw scroll indicator.
         x, width = 0, self.width()
         first_block, visible_blocks = self.get_visible_block_range()
-        y, height = first_block * block_height, max(1, visible_blocks * block_height)
-        painter.fillRect(x, y, width, height, QtGui.QColor(0, 0, 0, 24))
+        y, height = get_top_and_height(first_block, visible_blocks)
+        painter.fillRect(QtCore.QRectF(x, y, width, height), QtGui.QColor(0, 0, 0, 24))
 
     def mousePressEvent(self, event):
         QtGui.QWidget.mousePressEvent(self, event)
