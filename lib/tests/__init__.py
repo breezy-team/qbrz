@@ -25,7 +25,7 @@ from bzrlib import (
     )
 
 try:
-    from PyQt4 import QtGui
+    from PyQt4 import QtGui, QtTest
 except ImportError:
     pass
 
@@ -53,6 +53,7 @@ def load_tests(basic_tests, module, loader):
         'test_treewidget',
         'test_util',
         'test_decorator',
+        'test_guidebar',
     ]
     for name in testmod_names:
         m = "%s.%s" % (__name__, name)
@@ -71,7 +72,6 @@ def load_tests(basic_tests, module, loader):
 # tests are loaded is too early and failed for selftest --parallel=fork
 _qt_app = None
 
-
 class QTestCase(tests.TestCaseWithTransport):
 
     def setUp(self):
@@ -84,3 +84,14 @@ class QTestCase(tests.TestCaseWithTransport):
                 raise eclass, evalue, tb
             self.addCleanup(_reraise_on_cleanup)
         self.overrideAttr(sys, "excepthook", excepthook_tests)
+
+    def waitUntil(self, break_condition, timeout, timeout_msg=None):
+        erapsed = 0
+        while (True):
+            if break_condition():
+                return
+            if timeout < erapsed:
+                self.fail(timeout_msg or 'Timeout!')
+            QtTest.QTest.qWait(200)
+            erapsed += 200
+
