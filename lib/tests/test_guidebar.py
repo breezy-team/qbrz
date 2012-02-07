@@ -1,4 +1,11 @@
 if __name__=='__main__':
+    import bzrlib
+    bzrlib.initialize()
+    try:
+        from bzrlib.commands import _register_builtin_commands
+        _register_builtin_commands()
+    except ImportError:
+        pass
     import bzrlib.plugin
     bzrlib.plugin.set_plugins_path()
     bzrlib.plugin.load_plugins()
@@ -9,6 +16,7 @@ from PyQt4.QtTest import QTest
 
 from bzrlib.plugins.qbzr.lib.diffwindow import DiffWindow
 from bzrlib.plugins.qbzr.lib.shelvewindow import ShelveWindow
+
 
 class WtDiffArgProvider(object):
     def __init__(self, tree):
@@ -55,19 +63,12 @@ class TestGuideBarBase(QTestCase):
 
         self.build_tree_contents([('tree/a', NEW_CONTENT)])
 
-class TestQDiff(TestGuideBarBase):
-
-    def setUp(self):
-        TestGuideBarBase.setUp(self)
-
-        self.win = DiffWindow(WtDiffArgProvider(self.tree))
-        self.addCleanup(self.win.close)
-
-    def assert_sidebyside_view(self):
-        for pos, panel in enumerate(self.win.diffview.guidebar_panels):
+    def assert_sidebyside_view(self, panels):
+        for pos, panel in enumerate(panels):
             bar = panel.bar
             doc = panel.edit.document()
             # Title
+            self.waitUntil(lambda:len(bar.entries['title'].data) > 0, 500)
             self.assertEqual(bar.entries['title'].data, [(0, 2)])
             # Replace/Delete/Insert
 
@@ -83,10 +84,11 @@ class TestQDiff(TestGuideBarBase):
                         self.assertEqual(texts[pos][j], text,
                                          '%s, %s, %r' % (tag, "RL"[pos], data))
 
-    def assert_unidiff_view(self):
-        bar = self.win.sdiffview.bar
-        doc = self.win.sdiffview.edit.document()
+    def assert_unidiff_view(self, panel):
+        bar = panel.bar
+        doc = panel.edit.document()
         # Title
+        self.waitUntil(lambda:len(bar.entries['title'].data) > 0, 500)
         self.assertEqual(bar.entries['title'].data, [(0, 2)])
         # Replace/Delete/Insert
         for tag, expected in DIFF_BY_TAGS.iteritems():
@@ -101,61 +103,61 @@ class TestQDiff(TestGuideBarBase):
                     self.assertEqual(unidiff_texts[j], text,
                                      '%s, %s, %r' % (tag, "U", data))
 
-    def test_sidebyside(self):
-        win = self.win
-        win.show()
-        self.waitUntil(lambda:win.view_refresh.isEnabled(), 1000)
-        QTest.qWait(200)
-        self.assert_sidebyside_view()
+    def set_find_text(self, find_toolbar, text):
+        find_toolbar.show_action_toggle(True)
+        find_toolbar.find_text.setText(text)
 
-        # show complete
-        win.click_complete(True)
-        self.waitUntil(lambda:win.view_refresh.isEnabled(), 1000)
-        QTest.qWait(200)
-        self.assert_sidebyside_view()
-
-    def test_unidiff(self):
-        win = self.win
-        win.show()
-        self.waitUntil(lambda:win.view_refresh.isEnabled(), 1000)
-        # show unidiff
-        win.click_toggle_view_mode(True)
-        QTest.qWait(200)
-        self.assert_unidiff_view()
-
-        # show complete
-        win.click_complete(True)
-        self.waitUntil(lambda:win.view_refresh.isEnabled(), 1000)
-        QTest.qWait(200)
-        self.assert_unidiff_view()
-
-    def test_find(self):
-        win = self.win
-        win.show()
-        self.waitUntil(lambda:win.view_refresh.isEnabled(), 1000)
-        win.find_toolbar.show_action_toggle(True)
-        win.find_toolbar.find_text.setText("j")
-        panels = win.diffview.guidebar_panels
-        self.waitUntil(lambda:panels[0].bar.entries['find'].data, 1000)
+    def assert_find(self, text, bar, edit, expected_num=None):
+        self.waitUntil(lambda:bar.entries['find'].data, 500)
         # Check side by side view
-        for p, expected_num in zip(panels, (1, 3)):
-            data = p.bar.entries['find'].data
+        data = bar.entries['find'].data
+        if expected_num is not None:
             self.assertEqual(len(data), expected_num)
-            for block_no, block_num in data:
-                self.assertEqual(block_num, 1)
-                text = str(p.edit.document().findBlockByNumber(block_no).text())
-                self.assertTrue(text.lower().find("j") >= 0)
-
-        # Check unidiff view
-        win.click_toggle_view_mode(True)
-        self.waitUntil(lambda:win.sdiffview.bar.entries['find'].data, 1000)
-        QTest.qWait(200)
-        data = win.sdiffview.bar.entries['find'].data
-        self.assertEqual(len(data), 4)
         for block_no, block_num in data:
             self.assertEqual(block_num, 1)
-            text = str(win.sdiffview.edit.document().findBlockByNumber(block_no).text())
-            self.assertTrue(text.lower().find("j") >= 0)
+            block_text = str(edit.document().findBlockByNumber(block_no).text())
+            self.assertTrue(block_text.lower().find(text.lower()) >= 0)
+
+class TestQDiff(TestGuideBarBase):
+
+    def setUp(self):
+        TestGuideBarBase.setUp(self)
+
+        self.win = DiffWindow(WtDiffArgProvider(self.tree))
+        self.addCleanup(self.win.close)
+        self.win.show()
+        self.waitUntil(lambda:self.win.view_refresh.isEnabled(), 500)
+
+    def test_sidebyside(self):
+        self.assert_sidebyside_view(self.win.diffview.guidebar_panels)
+
+        # show complete
+        self.win.click_complete(True)
+        self.waitUntil(lambda:self.win.view_refresh.isEnabled(), 500)
+        self.assert_sidebyside_view(self.win.diffview.guidebar_panels)
+
+    def test_unidiff(self):
+        # show unidiff
+        self.win.click_toggle_view_mode(True)
+        self.assert_unidiff_view(self.win.sdiffview)
+
+        # show complete
+        self.win.click_complete(True)
+        self.waitUntil(lambda:self.win.view_refresh.isEnabled(), 500)
+        self.assert_unidiff_view(self.win.sdiffview)
+
+    def test_find(self):
+        self.set_find_text(self.win.find_toolbar, "j")
+        panels = self.win.diffview.guidebar_panels
+        # Check side by side view
+        self.assert_find("j", panels[0].bar, panels[0].edit, 1)
+        self.assert_find("j", panels[1].bar, panels[1].edit, 3)
+
+        # Check unidiff view
+        self.win.click_toggle_view_mode(True)
+        panel = self.win.sdiffview
+        self.waitUntil(lambda:panel.bar.entries['find'].data, 500)
+        self.assert_find("j", panel.bar, panel.edit, 4)
 
 class TestQShelve(TestGuideBarBase):
 
@@ -164,33 +166,68 @@ class TestQShelve(TestGuideBarBase):
 
         self.win = ShelveWindow(directory=self.tree.abspath(''))
         self.addCleanup(self.win.close)
+        self.win.show()
+        self.main_widget = self.win.tab.widget(0)
+        self.waitUntil(lambda:self.main_widget.loaded, 500)
 
     def test_hunk(self):
-        self.win.show()
-        shelve_widget = self.win.tab.widget(0)
-        self.waitUntil(lambda:shelve_widget.loaded, 1000)
-        shelve_widget.file_view.topLevelItem(0).setSelected(True)
-        guidebar = shelve_widget.hunk_view.guidebar
+        self.main_widget.file_view.topLevelItem(0).setSelected(True)
+        guidebar = self.main_widget.hunk_view.guidebar
         # hunk guide is shown only when complete mode.
         self.assertEqual(len(guidebar.entries['hunk'].data), 0)
-        shelve_widget.complete_toggled(True)
-        QTest.qWait(200)
-        self.assertTrue(len(guidebar.entries['hunk'].data) > 0)
+        self.main_widget.complete_toggled(True)
+        self.waitUntil(lambda:len(guidebar.entries['hunk'].data) > 0, 500)
 
     def test_find(self):
+        self.waitUntil(lambda:self.main_widget.loaded, 500)
+        self.main_widget.file_view.topLevelItem(0).setSelected(True)
+        self.set_find_text(self.main_widget.find_toolbar, "j")
+        guidebar = self.main_widget.hunk_view.guidebar
+        edit = self.main_widget.hunk_view.browser
+        self.assert_find("j", guidebar, edit)
+
+class TestQUnshelve(TestGuideBarBase):
+    def setUp(self):
+        TestGuideBarBase.setUp(self)
+        self.run_bzr(['shelve', '--all'], working_dir=self.tree.abspath(''))
+
+        self.win = ShelveWindow(directory=self.tree.abspath(''),
+                                initial_tab=1)
+        self.addCleanup(self.win.close)
         self.win.show()
-        shelve_widget = self.win.tab.widget(0)
-        self.waitUntil(lambda:shelve_widget.loaded, 1000)
-        shelve_widget.file_view.topLevelItem(0).setSelected(True)
-        shelve_widget.find_toolbar.show_action_toggle(True)
-        shelve_widget.find_toolbar.find_text.setText("j")
-        guidebar = shelve_widget.hunk_view.guidebar
-        edit = shelve_widget.hunk_view.browser
-        self.waitUntil(lambda:len(guidebar.entries['find'].data) > 0, 1000)
-        for block_no, block_num in guidebar.entries['find'].data:
-            self.assertEqual(block_num, 1)
-            text = str(edit.document().findBlockByNumber(block_no).text())
-            self.assertTrue(text.lower().find("j") >= 0)
+        self.main_widget = self.win.tab.widget(1)
+        self.waitUntil(lambda:self.main_widget.loaded, 500)
+        self.main_widget.shelve_view.topLevelItem(0).setSelected(True)
+
+    def test_sidebyside(self):
+        diffviews = self.main_widget.diffviews
+        self.assert_sidebyside_view(diffviews[0].guidebar_panels)
+
+        # show complete
+        self.main_widget.complete_toggled(True)
+        self.assert_sidebyside_view(diffviews[0].guidebar_panels)
+
+    def test_unidiff(self):
+        diffviews = self.main_widget.diffviews
+        self.main_widget.unidiff_toggled(True)
+        self.assert_unidiff_view(diffviews[1])
+
+        # show complete
+        self.main_widget.complete_toggled(True)
+        self.assert_unidiff_view(diffviews[1])
+
+    def test_find(self):
+        diffviews = self.main_widget.diffviews
+        self.set_find_text(self.main_widget.find_toolbar, "j")
+        panels = diffviews[0].guidebar_panels
+        # Check side by side view
+        self.assert_find("j", panels[0].bar, panels[0].edit, 1)
+        self.assert_find("j", panels[1].bar, panels[1].edit, 3)
+
+        # Check unidiff view
+        self.main_widget.unidiff_toggled(True)
+        self.waitUntil(lambda:diffviews[1].bar.entries['find'].data, 500)
+        self.assert_find("j", diffviews[1].bar, diffviews[1].edit, 4)
 
 if __name__=='__main__':
     import unittest
