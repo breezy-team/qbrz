@@ -2,11 +2,24 @@
 -------------------------------
 What's new in this release:
 
-Implemented search highlight for all matches in the view.
-This change affects to qdiff, qshelve, qunshelve, qannotate.
+QBzr 0.22 is companion release for bzr 2.5, and compatible with bzr 2.4.
+This release has many improvements and bugfixes. As usual many improvements 
+related to qdiff dialog.
 
-Implemented changes markers in qdiff, qannotate as a side guidebar for fast
-navigation.
+While searching for the word or sentence all matches are highlighted.
+This highlighting works in qdiff, qshelve, qunshelve, qannotate.
+To make navigation faster through the long side-by-side diff, or inside big 
+annotated file you can use backside guide bar in qdiff and qannotate.
+
+Behavior change: "Unchanged" option in treewidget filter now only applies 
+to versioned files. (Before it was applied to unknown files too).
+
+Other qdiff improvements include: curved lines are using in side-by-side view, 
+smart synchronization of side-by-side view in "Complete" mode;
+files with wrong or mixed encoding no more shown as "latin-1", but in user-
+specified encoding.
+
+For full list of improvements and bugfixes please see changelog below.
 
  * qannotate:
    * Vertically center the target line when using "Goto Line" in qannotate.
