@@ -1,5 +1,5 @@
-0.22 "Alder" - not released yet
--------------------------------
+0.22.0 "Alder" - 2012/02/07
+---------------------------
 What's new in this release:
 
 QBzr 0.22 is companion release for bzr 2.5, and compatible with bzr 2.4.
