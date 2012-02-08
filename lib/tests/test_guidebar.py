@@ -16,6 +16,7 @@ from PyQt4.QtTest import QTest
 
 from bzrlib.plugins.qbzr.lib.diffwindow import DiffWindow
 from bzrlib.plugins.qbzr.lib.shelvewindow import ShelveWindow
+from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 
 
 class WtDiffArgProvider(object):
@@ -228,6 +229,42 @@ class TestQUnshelve(TestGuideBarBase):
         self.main_widget.unidiff_toggled(True)
         self.waitUntil(lambda:diffviews[1].bar.entries['find'].data, 500)
         self.assert_find("j", diffviews[1].bar, diffviews[1].edit, 4)
+
+class TestQAnnotate(TestGuideBarBase):
+    def load(self):
+        tree = self.tree
+        return tree.branch, tree, tree, 'a', tree.path2id('a')
+
+    def setUp(self):
+        TestGuideBarBase.setUp(self)
+        self.tree.commit(message='2')
+        self.win = AnnotateWindow(None, None, None, None, None,
+                                  loader=self.load, loader_args=[])
+        self.addCleanup(self.win.close)
+        self.win.show()
+        QTest.qWait(50)
+        self.waitUntil(lambda:self.win.throbber.isVisible() == False, 500)
+
+    def test_annotate(self):
+        self.win.log_list.select_revid(self.tree.branch.get_rev_id(2))
+        QTest.qWait(50)
+        doc = self.win.guidebar_panel.edit.document()
+        data = self.win.guidebar_panel.bar.entries['annotate'].data
+        expected = [x[1] for x in DIFF if len(x[1]) > 0]
+        self.assertEqual(len(data), len(expected))
+        for (block_no, num), lines in zip(data, expected):
+            self.assertEqual(num, len(lines))
+            for i in range(num):
+                text = str(doc.findBlockByNumber(block_no+i).text())
+                self.assertEqual(text, lines[i])
+
+    def test_find(self):
+        self.set_find_text(self.win.find_toolbar, "j")
+        guidebar = self.win.guidebar_panel.bar
+        edit = self.win.guidebar_panel.edit
+        self.assert_find("j", guidebar, edit)
+
+
 
 if __name__=='__main__':
     import unittest
