@@ -333,6 +333,7 @@ class ShelveWidget(ToolbarPanel):
         find_toolbar.hide()
 
         setup_guidebar_for_find(self.hunk_view.guidebar, find_toolbar, index=1)
+        self.find_toolbar = find_toolbar
 
         layout = QtGui.QVBoxLayout()
         layout.setMargin(10)
