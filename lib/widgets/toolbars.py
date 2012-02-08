@@ -24,6 +24,7 @@ from bzrlib.plugins.qbzr.lib.util import (
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.decorators import lazy_call
+import sip
 
 def create_toolbar_button(text, parent=None, icon_name=None, icon_size=22,
                 enabled=True, checkable=False, checked=False, 
@@ -214,6 +215,8 @@ class FindToolbar(QtGui.QToolBar):
     @lazy_call(200, per_instance=True)
     def highlight(self):
         """Highlight matched words in the text edits."""
+        if sip.isdeleted(self):
+            return
         text = self.find_text.text()
         flags = self.find_get_flags()
         for text_edit in self.text_edits:

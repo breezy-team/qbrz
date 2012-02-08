@@ -62,6 +62,7 @@ from bzrlib.plugins.qbzr.lib.diff import DiffItem
 from bzrlib.shelf import Unshelver
 from bzrlib.shelf_ui import Unshelver as Unshelver_ui
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
+import sip
 ''')
 
 class ShelveListWidget(ToolbarPanel):
@@ -374,6 +375,8 @@ class ShelveListWidget(ToolbarPanel):
     @lazy_call(100, per_instance=True)
     @runs_in_loading_queue
     def _show_selected_diff(self):
+        if sip.isdeleted(self):
+            return
         self._interrupt_switch = False 
         try:
             refresh = self._need_refresh
@@ -418,6 +421,8 @@ class ShelveListWidget(ToolbarPanel):
     @lazy_call(100, per_instance=True)
     @runs_in_loading_queue
     def _change_current_shelve(self):
+        if sip.isdeleted(self):
+            return
         items = self.shelve_view.selectedItems()
         if len(items) != 1:
             self.shelf_id = None
