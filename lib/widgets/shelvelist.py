@@ -333,19 +333,8 @@ class ShelveListWidget(ToolbarPanel):
 
     def load_diff(self, tree, base_tree):
         self.file_view.clear()
-
-        changes = tree.iter_changes(base_tree)
-
-        def changes_key(change):
-            return change[1][1] or change[1][0]
         
-        for (file_id, paths, changed_content, versioned, parent, 
-                name, kind, executable) in sorted(changes, key=changes_key):
-            di = DiffItem.create([base_tree, tree], file_id, paths, changed_content,
-                    versioned, parent, name, kind, executable)
-            if not di:
-                continue
-
+        for di in DiffItem.iter_items((base_tree, tree), lock_trees=False):
             di.load()
 
             old_path, new_path = di.paths

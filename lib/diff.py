@@ -157,7 +157,44 @@ class DiffItem(object):
     """
 
     @classmethod
-    def create(klass, trees, file_id, paths, changed_content, versioned, 
+    def iter_items(cls, trees, specific_files=None, filter=None, lock_trees=False):
+        try:
+            cleanup = []
+            if lock_trees:
+                for t in trees:
+                    cleanup.append(t.lock_read().unlock)
+
+            changes = trees[1].iter_changes(trees[0],
+                            specific_files=specific_files,
+                            require_versioned=True)
+
+            def changes_key(change):
+                return change[1][1] or change[1][0]
+
+            for (file_id, paths, changed_content, versioned, parent, name, kind,
+                 executable) in sorted(changes, key=changes_key):
+                # file_id         -> ascii string
+                # paths           -> 2-tuple (old, new) fullpaths unicode/None
+                # changed_content -> bool
+                # versioned       -> 2-tuple (bool, bool)
+                # parent          -> 2-tuple
+                # name            -> 2-tuple (old_name, new_name) utf-8?/None
+                # kind            -> 2-tuple (string/None, string/None)
+                # executable      -> 2-tuple (bool/None, bool/None)
+                # NOTE: None value used for non-existing entry in corresponding
+                #       tree, e.g. for added/deleted file
+                di = DiffItem.create(trees, file_id, paths, changed_content,
+                        versioned, parent, name, kind, executable,
+                        filter = filter)
+                if not di:
+                    continue
+                yield di
+        finally:
+            while cleanup:
+                cleanup.pop()()
+
+    @classmethod
+    def create(cls, trees, file_id, paths, changed_content, versioned, 
             parent, name, kind, executable, filter = None):
 
         if parent == (None, None): # filter out TREE_ROOT (?)
@@ -209,7 +246,7 @@ class DiffItem(object):
         if filter and not filter(status):
             return None
 
-        return klass(trees, file_id, paths, changed_content, versioned, kind, 
+        return cls(trees, file_id, paths, changed_content, versioned, kind, 
                         properties_changed, dates, status)
 
     def __init__(self, trees, file_id, paths, changed_content, versioned, kind,
