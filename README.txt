@@ -28,6 +28,12 @@ Requirements
 Compatibility between qbzr and bzr versions
 ===========================================
 
+ * QBzr 0.23 is targeted to bzr 2.6 and compatible with bzr 2.5.
+   It may not work with older versions of bzr.
+
+ * QBzr 0.22 is targeted to bzr 2.5 and compatible with bzr 2.4
+   It may not work with older versions of bzr.
+
  * QBzr 0.21 is targeted to bzr 2.4 and compatible with bzr 2.3.
    It may not work with older versions of bzr.
 
@@ -86,6 +92,7 @@ Basic q-commands:
  * qunbind - Convert the current checkout into a regular branch.
  * quncommit - Move the tip of a branch to an earlier revision.
  * qupdate - Update working tree with latest changes in the branch.
+ * qverify-signatures - Show digital signatures information
  * qversion - Show version/system information.
 
 Hybrid dialogs:
