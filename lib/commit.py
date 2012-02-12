@@ -779,7 +779,8 @@ class CommitWindow(SubProcessDialog):
                     self.tree.branch, self.tree.branch,
                     specific_files=checked)
                 
-                show_diff(arg_provider, ext_diff=ext_diff, parent_window = self)
+                show_diff(arg_provider, self.filelist.diff_context,
+                          ext_diff=ext_diff, parent_window = self)
             else:
                 msg = "No changes selected to " + dialog_action
                 QtGui.QMessageBox.warning(self,
@@ -794,7 +795,8 @@ class CommitWindow(SubProcessDialog):
             arg_provider = InternalWTDiffArgProvider(
                 self.tree.basis_tree().get_revision_id(), self.tree,
                 self.tree.branch, self.tree.branch)            
-            show_diff(arg_provider, ext_diff=ext_diff, parent_window = self)
+            show_diff(arg_provider, self.filelist.diff_context,
+                      ext_diff=ext_diff, parent_window = self)
     
     def on_failed(self, error):
         SubProcessDialog.on_failed(self, error)

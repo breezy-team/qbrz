@@ -551,7 +551,7 @@ class LogList(RevisionTreeView):
             specific_file_ids = specific_file_ids)
         
         
-        diff.show_diff(arg_provider, ext_diff = ext_diff,
+        diff.show_diff(arg_provider, self.diff_context, ext_diff = ext_diff,
                        parent_window = self.window())
     
     def show_diff_specified_files(self, ext_diff=None):

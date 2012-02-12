@@ -19,7 +19,7 @@
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.errors import FileTimestampUnavailable
+from bzrlib.errors import FileTimestampUnavailable, NoSuchId, ExecutableMissing
 from bzrlib.plugins.qbzr.lib.diff_arg import *   # import DiffArgProvider classes
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
@@ -33,10 +33,15 @@ lazy_import(globals(), '''
 import errno
 import re
 import time
+import sys
+import os
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
-from bzrlib import trace
+from bzrlib import trace, osutils, cmdline
+from bzrlib.workingtree import WorkingTree
 ''')
+from bzrlib.diff import DiffFromTool, DiffPath
+subprocess = __import__('subprocess', {}, {}, [])
 
 qconfig = get_qbzr_config()
 default_diff = qconfig.get_option("default_diff")
@@ -47,7 +52,7 @@ for name, command in qconfig.get_section('EXTDIFF').items():
     ext_diffs[name] = command
 
 
-def show_diff(arg_provider, ext_diff=None, parent_window=None):
+def show_diff(arg_provider, context=None, ext_diff=None, parent_window=None):
     
     if ext_diff is None:
         ext_diff = default_diff
@@ -62,6 +67,26 @@ def show_diff(arg_provider, ext_diff=None, parent_window=None):
         window.show()
         if parent_window:
             parent_window.windows.append(window)
+    elif context:
+        ext_diff = str(ext_diff) # convert QString to str
+        cleanup = []
+        try:
+            args = arg_provider.get_diff_window_args(
+                QtGui.QApplication.processEvents, cleanup.append
+            )
+            old_tree = args["old_tree"]
+            new_tree = args["new_tree"]
+            specific_files = args.get("specific_files")
+            context.setup(ext_diff, old_tree, new_tree)
+            if specific_files:
+                file_ids = [new_tree.path2id(p) or old_tree.path2id(p)
+                            for p in specific_files]
+                context.diff_ids(file_ids)
+            else:
+                context.diff_all()
+        finally:
+            while cleanup:
+                cleanup.pop()()
     else:
         args=["diff", "--using", ext_diff]  # NEVER USE --using=xxx, ALWAYS --using xxx
         # This should be move to after the window has been shown.
@@ -360,4 +385,142 @@ class DiffItem(object):
                                    e.encoding)
                         ulines[i] = [l.decode(encodings[i], 'replace') for l in lines[i]]
         return ulines
+
+class _ExtDiffer(DiffFromTool):
+    """
+    Run extdiff async.
+    XXX: This class is strongly depending on DiffFromTool internals now.
+    """
+    def __init__(self, command_string, old_tree, new_tree, to_file=None, path_encoding='utf-8'):
+        DiffPath.__init__(self, old_tree, new_tree, to_file or sys.stdout, path_encoding)
+        self.set_command_string(command_string)
+        self._root = osutils.mkdtemp(prefix='qbzr/bzr-diff-')
+        self.prefixes = {}
+        self._set_prefix()
+
+    @property
+    def trees(self):
+        return self.old_tree, self.new_tree
+
+    def set_trees(self, old_tree, new_tree):
+        self.old_tree = old_tree
+        self.new_tree = new_tree
+        self._set_prefix()
+
+    def _set_prefix(self):
+        self.old_prefix = self.get_prefix(self.old_tree)
+        self.new_prefix = self.get_prefix(self.new_tree)
+
+    def get_prefix(self, tree):
+        def get_key(tree):
+            if hasattr(tree, "get_revision_id"):
+                return tree.__class__.__name__ + ":" + tree.get_revision_id()
+            elif hasattr(tree, "abspath"):
+                return tree.__class__.__name__ + ":" + tree.abspath("")
+            else:
+                return None
+
+        if tree is None:
+            return None
+        key = get_key(tree)
+        if key and self.prefixes.has_key(key):
+            return self.prefixes[key]
+        prefix = str(len(self.prefixes) + 1)
+        if key:
+            self.prefixes[key] = prefix
+        return prefix
+
+    def set_command_string(self, command_string):
+        command_template = cmdline.split(command_string)
+        if '@' not in command_string:
+            command_template.extend(['@old_path', '@new_path'])
+        self.command_template = command_template
+
+    def _write_file(self, file_id, tree, prefix, relpath, force_temp=False,
+                    allow_write=False):
+        if force_temp or not isinstance(tree, WorkingTree):
+            full_path = self._safe_filename(prefix, relpath)
+            if os.path.isfile(full_path):
+                return full_path
+        return DiffFromTool._write_file(self, file_id, tree, prefix, 
+                                        relpath, force_temp, allow_write)
+
+    def _prepare_files(self, file_id, old_path, new_path, force_temp=False,
+                       allow_write_new=False):
+        old_disk_path = self._write_file(file_id, self.old_tree,
+                                         self.old_prefix, old_path, force_temp)
+        new_disk_path = self._write_file(file_id, self.new_tree,
+                                         self.new_prefix, new_path, force_temp,
+                                         allow_write=allow_write_new)
+        return old_disk_path, new_disk_path
+
+    def _execute(self, old_path, new_path):
+        command = self._get_command(old_path, new_path)
+        try:
+            subprocess.Popen(command, cwd=self._root)
+        except OSError, e:
+            if e.errno == errno.ENOENT:
+                raise ExecutableMissing(command[0])
+            else:
+                raise
+        return 0
+
+    def diff(self, file_id):
+        try:
+            new_path = self.new_tree.id2path(file_id)
+            new_kind = self.new_tree.kind(file_id)
+            old_path = self.old_tree.id2path(file_id)
+            old_kind = self.old_tree.kind(file_id)
+        except NoSuchId:
+            return DiffPath.CANNOT_DIFF
+        return DiffFromTool.diff(self, file_id, old_path, new_path, old_kind, new_kind)
+
+class ExtDiffContext(QtCore.QObject):
+    def __init__(self, parent, to_file=None, path_encoding='utf-8'):
+        QtCore.QObject.__init__(self, parent)
+        self.to_file = to_file
+        self.path_encoding = path_encoding
+        self._differ = None
+        if parent is not None:
+            parent.window().installEventFilter(self)
+
+    def finish(self):
+        try:
+            if self._differ:
+                self._differ.finish()
+                self._differ = None
+        except:
+            pass
+
+    def setup(self, command_string, old_tree, new_tree):
+        if self._differ is None:
+            self._differ = _ExtDiffer(command_string, old_tree, new_tree,
+                                      self.to_file, self.path_encoding)
+        else:
+            self._differ.set_trees(old_tree, new_tree)
+            self._differ.set_command_string(command_string)
+
+    def eventFilter(self, obj, event):
+        if event.type() == QtCore.QEvent.Close:
+            self.finish()
+        return QtCore.QObject.eventFilter(self, obj, event)
+
+    def diff_ids(self, file_ids, interval=50, lock_trees=True):
+        cleanup = []
+        try:
+            if lock_trees:
+                cleanup.append(self._differ.new_tree.lock_read().unlock)
+                cleanup.append(self._differ.old_tree.lock_read().unlock)
+            for file_id in file_ids:
+                self._differ.diff(file_id)
+                time.sleep(interval * 0.001)
+        finally:
+            while cleanup:
+                cleanup.pop()()
+
+    def diff_all(self, interval=50, lock_trees=True):
+        for di in DiffItem.iter_items(self._differ.trees, lock_trees=lock_trees):
+            if di.changed_content:
+                self._differ.diff(di.file_id)
+                time.sleep(interval * 0.001)
 

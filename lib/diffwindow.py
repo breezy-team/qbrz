@@ -45,6 +45,7 @@ from bzrlib.plugins.qbzr.lib.diff import (
     has_ext_diff,
     ExtDiffMenu,
     DiffItem,
+    ExtDiffContext,
     )
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
@@ -162,6 +163,7 @@ class DiffWindow(QBzrWindow):
         setup_guidebar_for_find(self.sdiffview, self.find_toolbar, 1)
         for gb in self.diffview.guidebar_panels:
             setup_guidebar_for_find(gb, self.find_toolbar, 1)
+        self.diff_context = ExtDiffContext(self)
 
     def connect_later(self, *args, **kwargs):
         """Schedules a signal to be connected after loading CLI arguments.
@@ -502,7 +504,8 @@ class DiffWindow(QBzrWindow):
 
     def ext_diff_triggered(self, ext_diff):
         """@param ext_diff: path to external diff executable."""
-        show_diff(self.arg_provider, ext_diff=ext_diff, parent_window = self)
+        show_diff(self.arg_provider, self.diff_context,
+                  ext_diff=ext_diff, parent_window = self)
 
     def click_ignore_whitespace(self, checked ):
         self.ignore_whitespace = checked
