@@ -1149,13 +1149,16 @@ class cmd_qunshelve(QBzrCommand):
 
 
 class cmd_qignore(QBzrCommand):
-    """Show conflicts."""
+    """Ignore files or patterns."""
     takes_args = []
-    takes_options = []
+    takes_options = [
+        ui_mode_option,
+        bzr_option('ignore', 'directory'),
+        ]
     aliases = []
 
-    def _qbzr_run(self):
+    def _qbzr_run(self, directory=None, ui_mode=False):
         from bzrlib.plugins.qbzr.lib.ignore import IgnoreWindow
-        self.main_window = IgnoreWindow()
+        self.main_window = IgnoreWindow(directory=directory, ui_mode=ui_mode)
         self.main_window.show()
         self._application.exec_()

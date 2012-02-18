@@ -19,14 +19,40 @@
 
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
-from bzrlib.plugins.qbzr.lib.util import (
-    QBzrWindow,
-    )
+from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 
 
-class IgnoreWindow(QBzrWindow):
+class IgnoreWindow(SubProcessDialog):
 
-    def __init__(self, parent=None):
-        QBzrWindow.__init__(self,
-            [gettext("Ignore")], parent)
-        self.restoreSize("ignore", (200, 100))
+    def __init__(self, directory=None, ui_mode=False, parent=None):
+        super(IgnoreWindow, self).__init__(
+                                  gettext("Ignore"),
+                                  name="ignore",
+                                  default_size=(400,400),
+                                  ui_mode=ui_mode,
+                                  dialog=False,
+                                  parent=parent,
+                                  hide_progress=True,
+                                  )
+
+        groupbox = QtGui.QGroupBox(gettext("Unknown Files"), self)
+        vbox = QtGui.QVBoxLayout(groupbox)
+
+        self.unknowns_list = QtGui.QTreeWidget(groupbox)
+        self.unknowns_list.setRootIsDecorated(False)
+        self.unknowns_list.setUniformRowHeights(True)
+        self.unknowns_list.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        self.unknowns_list.setHeaderLabels([
+            gettext("File"),
+            gettext("Extension"),
+            gettext("Ignore as"),
+            ])
+        self.unknowns_list.setSortingEnabled(True)
+        self.unknowns_list.sortByColumn(0, QtCore.Qt.AscendingOrder)
+
+        vbox.addWidget(self.unknowns_list)
+
+        layout = QtGui.QVBoxLayout(self)
+        layout.addWidget(groupbox)
+        layout.addWidget(self.make_default_status_box())
+        layout.addWidget(self.buttonbox)
