@@ -34,7 +34,6 @@ class MockFunction(object):
         self.count += 1
         self.args.append((args, kw))
 
-
 class TestMockFunction(TestCase):
 
     def test_call(self):

@@ -79,14 +79,13 @@ def show_diff(arg_provider, context=None, ext_diff=None, parent_window=None):
             specific_files = args.get("specific_files")
             context.setup(ext_diff, old_tree, new_tree)
             if specific_files:
-                file_ids = [new_tree.path2id(p) or old_tree.path2id(p)
-                            for p in specific_files]
-                context.diff_ids(file_ids)
+                context.diff_paths(specific_files)
             else:
-                context.diff_all()
+                context.diff_tree()
         finally:
             while cleanup:
                 cleanup.pop()()
+
     else:
         args=["diff", "--using", ext_diff]  # NEVER USE --using=xxx, ALWAYS --using xxx
         # This should be move to after the window has been shown.
@@ -418,16 +417,15 @@ class _ExtDiffer(DiffFromTool):
             elif hasattr(tree, "abspath"):
                 return tree.__class__.__name__ + ":" + tree.abspath("")
             else:
-                return None
+                return tree.__class__.__name__ + ":" + str(hash(tree))
 
         if tree is None:
             return None
         key = get_key(tree)
-        if key and self.prefixes.has_key(key):
+        if self.prefixes.has_key(key):
             return self.prefixes[key]
         prefix = str(len(self.prefixes) + 1)
-        if key:
-            self.prefixes[key] = prefix
+        self.prefixes[key] = prefix
         return prefix
 
     def set_command_string(self, command_string):
@@ -492,6 +490,13 @@ class ExtDiffContext(QtCore.QObject):
         except:
             pass
 
+    @property
+    def rootdir(self):
+        if self._differ:
+            return self._differ._root
+        else:
+            return None
+
     def setup(self, command_string, old_tree, new_tree):
         if self._differ is None:
             self._differ = _ExtDiffer(command_string, old_tree, new_tree,
@@ -518,9 +523,22 @@ class ExtDiffContext(QtCore.QObject):
             while cleanup:
                 cleanup.pop()()
 
-    def diff_all(self, interval=50, lock_trees=True):
-        for di in DiffItem.iter_items(self._differ.trees, lock_trees=lock_trees):
+    def diff_paths(self, paths, interval=50, lock_trees=True):
+        new_tree = self._differ.new_tree
+        ids = [new_tree.path2id(p) for p in paths]
+        for id in ids:
+            if new_tree.kind(id) != 'file':
+                self.diff_tree(paths, interval, lock_trees)
+                return
+        self.diff_ids(ids, interval, lock_trees)
+
+
+    def diff_tree(self, specific_files=None, interval=50, lock_trees=True):
+        for di in DiffItem.iter_items(self._differ.trees,
+                                      specific_files=specific_files,
+                                      lock_trees=lock_trees):
             if di.changed_content:
                 self._differ.diff(di.file_id)
                 time.sleep(interval * 0.001)
+
 
