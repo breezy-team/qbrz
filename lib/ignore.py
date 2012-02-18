@@ -72,3 +72,6 @@ class IgnoreWindow(SubProcessDialog):
             items.append(item)
         self.unknowns_list.clear()
         self.unknowns_list.addTopLevelItems(items)
+
+# ignore pattern for *.foo case-insensitive RE:(?i).*\.foo
+# ignore pattern for files without extension (.first dot allowed though) RE:\.?[^.]+
