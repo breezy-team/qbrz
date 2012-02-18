@@ -56,3 +56,10 @@ class IgnoreWindow(SubProcessDialog):
         layout.addWidget(groupbox)
         layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
+
+    def show(self):
+        SubProcessDialog.show(self)
+        QtCore.QTimer.singleShot(1, self.load)
+
+    def load(self):
+        pass
