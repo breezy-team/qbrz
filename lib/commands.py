@@ -1159,6 +1159,7 @@ class cmd_qignore(QBzrCommand):
 
     def _qbzr_run(self, directory=None, ui_mode=False):
         from bzrlib.plugins.qbzr.lib.ignore import IgnoreWindow
-        self.main_window = IgnoreWindow(directory=directory, ui_mode=ui_mode)
+        wt = WorkingTree.open_containing(directory)[0]
+        self.main_window = IgnoreWindow(tree=wt, ui_mode=ui_mode)
         self.main_window.show()
         self._application.exec_()

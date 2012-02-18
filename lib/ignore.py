@@ -24,7 +24,7 @@ from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 
 class IgnoreWindow(SubProcessDialog):
 
-    def __init__(self, directory=None, ui_mode=False, parent=None):
+    def __init__(self, tree, ui_mode=False, parent=None):
         super(IgnoreWindow, self).__init__(
                                   gettext("Ignore"),
                                   name="ignore",
@@ -34,6 +34,8 @@ class IgnoreWindow(SubProcessDialog):
                                   parent=parent,
                                   hide_progress=True,
                                   )
+
+        self.wt = tree
 
         groupbox = QtGui.QGroupBox(gettext("Unknown Files"), self)
         vbox = QtGui.QVBoxLayout(groupbox)
@@ -62,4 +64,11 @@ class IgnoreWindow(SubProcessDialog):
         QtCore.QTimer.singleShot(1, self.load)
 
     def load(self):
-        pass
+        self.set_title([gettext("Ignore"), self.wt.basedir])
+        items = []
+        for i in self.wt.unknowns():
+            item = QtGui.QTreeWidgetItem()
+            item.setText(0, i)
+            items.append(item)
+        self.unknowns_list.clear()
+        self.unknowns_list.addTopLevelItems(items)
