@@ -199,7 +199,7 @@ execute_option = Option("execute", short_name='e',
          "waiting for user input.")
 
 # A special option so 'revision' can be passed as a simple string, when we do
-# *not* wan't bzrlib's feature of parsing the revision string before passing it.
+# *not* want bzrlib's feature of parsing the revision string before passing it.
 # This is used when we just want a plain string to pass to our dialog for it to
 # display in the UI, and we will later pass it to bzr for parsing. If you want
 # bzrlib to parse and pass a revisionspec object, just pass the string
