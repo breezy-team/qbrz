@@ -52,7 +52,29 @@ class IgnoreWindow(SubProcessDialog):
         self.unknowns_list.setSortingEnabled(True)
         self.unknowns_list.sortByColumn(0, QtCore.Qt.AscendingOrder)
 
+        self.no_action = QtGui.QRadioButton(gettext('No action'), groupbox)
+        self.no_action.setChecked(True)
+        self.no_action.setDisabled(True)
+        self.by_extension = QtGui.QRadioButton(gettext('Ignore all files with this extension'), groupbox)
+        self.by_extension.setDisabled(True)
+
+        hbox = QtGui.QHBoxLayout()
+        hbox.insertSpacing(0, 20)
+        self.case_insensitive = QtGui.QCheckBox(gettext('Case-insensitive pattern'), groupbox)
+        self.case_insensitive.setDisabled(True)
+        hbox.addWidget(self.case_insensitive)
+
+        self.by_basename = QtGui.QRadioButton(gettext('Ignore by basename'), groupbox)
+        self.by_basename.setDisabled(True)
+        self.by_fullname = QtGui.QRadioButton(gettext('Ignore by fullname'), groupbox)
+        self.by_fullname.setDisabled(True)
+
         vbox.addWidget(self.unknowns_list)
+        vbox.addWidget(self.no_action)
+        vbox.addWidget(self.by_extension)
+        vbox.addLayout(hbox)
+        vbox.addWidget(self.by_basename)
+        vbox.addWidget(self.by_fullname)
 
         layout = QtGui.QVBoxLayout(self)
         layout.addWidget(groupbox)
