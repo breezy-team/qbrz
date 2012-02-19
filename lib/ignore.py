@@ -22,6 +22,11 @@ from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import file_extension
 
+ACTION_NONE = 'none'
+ACTION_BY_EXT = 'ext'
+ACTION_BY_EXT_CASE_INSENSITIVE = 'ext,case-insensitive'
+ACTION_BY_BASENAME = 'basename'
+ACTION_BY_FULLNAME = 'fullname'
 
 class IgnoreWindow(SubProcessDialog):
 
@@ -37,7 +42,7 @@ class IgnoreWindow(SubProcessDialog):
                                   )
 
         self.wt = tree
-        self.unknowns = {}
+        self.actions = {}
 
         groupbox = QtGui.QGroupBox(gettext("Unknown Files"), self)
         vbox = QtGui.QVBoxLayout(groupbox)
@@ -53,20 +58,24 @@ class IgnoreWindow(SubProcessDialog):
             ])
         self.unknowns_list.setSortingEnabled(True)
         self.unknowns_list.sortByColumn(0, QtCore.Qt.AscendingOrder)
-        self.connect(
-            self.unknowns_list,
+        self.connect(self.unknowns_list,
             QtCore.SIGNAL("itemClicked(QTreeWidgetItem*, int)"),
             self.item_clicked)
 
         self.no_action = QtGui.QRadioButton(gettext('No action'), groupbox)
         self.no_action.setChecked(True)
+        self.connect(self.no_action, QtCore.SIGNAL('clicked(bool)'), self.select_no_action)
         self.by_extension = QtGui.QRadioButton(gettext('Ignore all files with this extension'), groupbox)
+        self.connect(self.by_extension, QtCore.SIGNAL('clicked(bool)'), self.select_by_extension)
         hbox = QtGui.QHBoxLayout()
         hbox.insertSpacing(0, 20)
         self.case_insensitive = QtGui.QCheckBox(gettext('Case-insensitive pattern'), groupbox)
+        self.connect(self.case_insensitive, QtCore.SIGNAL('clicked(bool)'), self.select_case_insensitive)
         hbox.addWidget(self.case_insensitive)
         self.by_basename = QtGui.QRadioButton(gettext('Ignore by basename'), groupbox)
+        self.connect(self.by_basename, QtCore.SIGNAL('clicked(bool)'), self.select_by_basename)
         self.by_fullname = QtGui.QRadioButton(gettext('Ignore by fullname'), groupbox)
+        self.connect(self.by_fullname, QtCore.SIGNAL('clicked(bool)'), self.select_by_fullname)
         self._disable_actions()
 
         vbox.addWidget(self.unknowns_list)
@@ -106,15 +115,61 @@ class IgnoreWindow(SubProcessDialog):
             item.setText(0, i)
             item.setText(1, file_extension(i))
             item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(i))
+            item.setData(2, QtCore.Qt.UserRole, QtCore.QVariant(ACTION_NONE))
             items.append(item)
-            self.unknowns[i] = item
         self.unknowns_list.clear()
         self.unknowns_list.addTopLevelItems(items)
 
 # ignore pattern for *.foo case-insensitive RE:(?i).*\.foo
 # ignore pattern for files without extension (.first dot allowed though) RE:\.?[^.]+
 
+    def _filename_from_item(self, item):
+        return unicode(item.data(0, QtCore.Qt.UserRole).toString())
+
+    def _action_from_item(self, item):
+        return str(item.data(2, QtCore.Qt.UserRole).toString())
+
     def item_clicked(self, item, column):
-        print item, column
-        print unicode(item.data(0, QtCore.Qt.UserRole).toString())
         self._enable_actions()
+        action = self._action_from_item(item)
+        self._widgets_for_action(action)
+
+    def _widgets_for_action(self, action):
+        self.case_insensitive.setChecked(False)
+        if action == ACTION_NONE:
+            self.no_action.setChecked(True)
+        elif action == ACTION_BY_EXT:
+            self.by_extension.setChecked(True)
+        elif action == ACTION_BY_EXT_CASE_INSENSITIVE:
+            self.by_extension.setChecked(True)
+            self.case_insensitive.setChecked(True)
+        elif action == ACTION_BY_BASENAME:
+            self.by_basename.setChecked(True)
+        elif action == ACTION_BY_FULLNAME:
+            self.by_fullname.setChecked(True)
+
+    def select_no_action(self, checked):
+        self.change_action(ACTION_NONE)
+
+    def select_by_extension(self, checked):
+        self.change_action(ACTION_BY_EXT)
+
+    def select_case_insensitive(self, checked):
+        if checked:
+            self.by_extension.setChecked(True)
+            self.change_action(ACTION_BY_EXT_CASE_INSENSITIVE)
+        else:
+            self.change_action(ACTION_BY_EXT)
+
+    def select_by_basename(self, checked):
+        self.change_action(ACTION_BY_BASENAME)
+
+    def select_by_fullname(self, checked):
+        self.change_action(ACTION_BY_FULLNAME)
+
+    def change_action(self, new_action):
+        item = self.unknowns_list.currentItem()
+        old_action = self._action_from_item(item)
+        if old_action == new_action:
+            return
+        item.setData(2, QtCore.Qt.UserRole, QtCore.QVariant(new_action))
