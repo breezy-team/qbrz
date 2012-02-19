@@ -35,6 +35,7 @@ import re
 import time
 import sys
 import os
+import glob
 from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
 from bzrlib import trace, osutils, cmdline
@@ -434,6 +435,24 @@ class _ExtDiffer(DiffFromTool):
             command_template.extend(['@old_path', '@new_path'])
         self.command_template = command_template
 
+    def finish(self):
+        self._delete_tmpdir(self._root)
+        parent = os.path.dirname(self._root)
+        for path in glob.glob(os.path.join(parent, "*")):
+            if path == self._root or \
+               os.path.exists(os.path.join(path, ".delete")):
+                self._delete_tmpdir(path)
+
+    def finish_lazy(self):
+        pass
+
+    def _delete_tmpdir(self, path):
+        try:
+            osutils.rmtree(path)
+        except:
+            if os.path.isdir(path):
+                open(os.path.join(path, ".delete"), "w").close()
+
     def _write_file(self, file_id, tree, prefix, relpath, force_temp=False,
                     allow_write=False):
         if force_temp or not isinstance(tree, WorkingTree):
@@ -486,6 +505,14 @@ class ExtDiffContext(QtCore.QObject):
         try:
             if self._differ:
                 self._differ.finish()
+                self._differ = None
+        except:
+            pass
+
+    def finish_lazy(self):
+        try:
+            if self._differ:
+                self._differ.finish_lazy()
                 self._differ = None
         except:
             pass

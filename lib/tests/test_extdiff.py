@@ -5,11 +5,12 @@ if __name__=='__main__':
     bzrlib.plugin.set_plugins_path()
     bzrlib.plugin.load_plugins()
 
-import os
+import os, tempfile
 from bzrlib.plugins.qbzr.lib.tests import QTestCase
 from bzrlib.plugins.qbzr.lib.tests.mock import MockFunction
 from bzrlib.plugins.qbzr.lib import diff
 from bzrlib.workingtree import WorkingTree
+
 
 class TestCommandString(QTestCase):
     def setUp(self):
@@ -78,17 +79,86 @@ class TestPrefix(QTestCase):
         prefix = self.differ.get_prefix(obj)
         self.assertNotEqual(self.differ.get_prefix(object()), prefix)
 
-class TestExtDiff(QTestCase):
+class TestExtDiffBase(QTestCase):
     def setUp(self):
         QTestCase.setUp(self)
         self.popen_mock = MockFunction()
-        popen =diff.subprocess
+        popen = diff.subprocess
         diff.subprocess.Popen = self.popen_mock
         def restore():
             diff.subprocess.Popen = popen
         self.addCleanup(restore)
-
         self.tree = self.make_branch_and_tree('tree')
+        self.ctx = self.create_context()
+        self.addCleanup(self.ctx.finish)
+
+    def create_context(self, parent=None):
+        ctx = diff.ExtDiffContext(parent)
+        self.addCleanup(ctx.finish)
+        return ctx
+
+    def assertFileContent(self, path, content):
+        self.assertTrue(os.path.isfile(path))
+        f = open(path)
+        self.assertEqual("\n".join(f.readlines()), content)
+        f.close()
+
+class TestCleanup(TestExtDiffBase):
+    def setUp(self):
+        TestExtDiffBase.setUp(self)
+        self.build_tree_contents([('tree/a', "a")])
+        self.tree.add(['a'])
+        self.tree.commit(message='1')
+        self.build_tree_contents([('tree/a', "aa")])
+
+    def test_remove_root(self):
+        self.ctx.setup("diff.txt", self.tree.basis_tree(), self.tree)
+        rootdir = self.ctx.rootdir
+        self.assertTrue(len(rootdir) > 0)
+        self.assertTrue(os.path.isdir(rootdir))
+        self.ctx.finish()
+        self.assertTrue(self.ctx.rootdir is None)
+        self.assertFalse(os.path.exists(rootdir))
+
+    def test_dont_remove_root_of_other_context(self):
+        self.ctx.setup("diff.txt", self.tree.basis_tree(), self.tree)
+        ctx2 = self.create_context()
+        ctx2.setup("diff.txt", self.tree.basis_tree(), self.tree)
+        rootdir = self.ctx.rootdir
+        self.assertNotEqual(rootdir, ctx2.rootdir)
+        self.ctx.finish()
+        self.assertTrue(self.ctx.rootdir is None)
+        self.assertTrue(os.path.exists(ctx2.rootdir))
+
+    def test_mark_deletable_if_delete_failed(self):
+        # If failed to delete tempdir, mark it deletable to delete later.
+        self.ctx.setup("diff.txt", self.tree.basis_tree(), self.tree)
+        rootdir = self.ctx.rootdir
+        self.assertTrue(len(rootdir) > 0)
+        self.assertTrue(os.path.isdir(rootdir))
+        os.chdir(rootdir) # to block deletion.
+        self.ctx.finish()
+        self.assertTrue(self.ctx.rootdir is None)
+        self.assertTrue(os.path.isfile(os.path.join(rootdir, ".delete")))
+
+    def test_cleanup_deletable_roots(self):
+        ctx2 = self.create_context()
+        self.ctx.setup("diff.txt", self.tree.basis_tree(), self.tree)
+        ctx2.setup("diff.txt", self.tree.basis_tree(), self.tree)
+        root = self.ctx.rootdir
+        root2 = ctx2.rootdir
+        os.chdir(root) # to bock deletion
+        self.ctx.finish()
+        self.assertTrue(os.path.isfile(os.path.join(root, ".delete")))
+        os.chdir(tempfile.gettempdir())
+        ctx2.finish()
+        self.assertFalse(os.path.exists(root2))
+        self.assertFalse(os.path.exists(root))
+
+class TestWorkingTreeDiff(TestExtDiffBase):
+    def setUp(self):
+        TestExtDiffBase.setUp(self)
+
         self.build_tree(['tree/dir1/', 'tree/dir2/'])
         self.build_tree_contents([
             ('tree/a', "a"),
@@ -108,16 +178,7 @@ class TestExtDiff(QTestCase):
             ('tree/dir1/c', "C"),
             ('tree/dir2/e', "E"),
         ])
-
-        self.context = diff.ExtDiffContext(None)
-        self.context.setup("diff.exe", self.tree.basis_tree(), self.tree)
-        self.addCleanup(self.context.finish)
-
-    def assertFileContent(self, path, content):
-        self.assertTrue(os.path.isfile(path))
-        f = open(path)
-        self.assertEqual("\n".join(f.readlines()), content)
-        f.close()
+        self.ctx.setup("diff.exe", self.tree.basis_tree(), self.tree)
 
     def assertPopen(self, paths, old_contents):
         self.assertEqual(self.popen_mock.count, len(paths))
@@ -130,34 +191,29 @@ class TestExtDiff(QTestCase):
             self.assertEqual(new_path, self.tree.abspath(path))
 
     def test_diff_ids(self):
-        ctx = self.context
         paths = ['a', 'dir1/b']
-        ctx.diff_ids([self.tree.path2id(p) for p in paths])
+        self.ctx.diff_ids([self.tree.path2id(p) for p in paths])
         self.assertPopen(paths, ["a", "b"])
 
     def test_diff_paths(self):
-        ctx = self.context
         paths = ['a', 'dir1/b']
-        ctx.diff_paths(paths)
+        self.ctx.diff_paths(paths)
         self.assertPopen(paths, ["a", "b"])
 
     def test_diff_paths_for_dir(self):
-        ctx = self.context
         paths = ['dir1/b', 'dir1/c']
-        ctx.diff_paths(['dir1'])
+        self.ctx.diff_paths(['dir1'])
         self.assertPopen(paths, ["b", "c"])
 
     def test_diff_tree(self):
-        ctx = self.context
         paths = ['a', 'dir1/b', 'dir1/c', 'dir2/e']
         old_contents = ['a', 'b', 'c', 'e']
-        ctx.diff_tree()
+        self.ctx.diff_tree()
         self.assertPopen(paths, old_contents)
 
     def test_diff_tree_for_dir(self):
-        ctx = self.context
         paths = ['dir1/b', 'dir1/c']
-        ctx.diff_tree(specific_files=['dir1'])
+        self.ctx.diff_tree(specific_files=['dir1'])
         self.assertPopen(paths, ["b", "c"])
 
 if __name__=='__main__':
