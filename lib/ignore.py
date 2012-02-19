@@ -20,6 +20,7 @@
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
+from bzrlib.plugins.qbzr.lib.util import file_extension
 
 
 class IgnoreWindow(SubProcessDialog):
@@ -36,6 +37,7 @@ class IgnoreWindow(SubProcessDialog):
                                   )
 
         self.wt = tree
+        self.unknowns = {}
 
         groupbox = QtGui.QGroupBox(gettext("Unknown Files"), self)
         vbox = QtGui.QVBoxLayout(groupbox)
@@ -91,7 +93,9 @@ class IgnoreWindow(SubProcessDialog):
         for i in self.wt.unknowns():
             item = QtGui.QTreeWidgetItem()
             item.setText(0, i)
+            item.setText(1, file_extension(i))
             items.append(item)
+            self.unknowns[i] = item
         self.unknowns_list.clear()
         self.unknowns_list.addTopLevelItems(items)
 
