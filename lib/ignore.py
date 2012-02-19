@@ -17,6 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+import os
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
@@ -120,9 +121,6 @@ class IgnoreWindow(SubProcessDialog):
         self.unknowns_list.clear()
         self.unknowns_list.addTopLevelItems(items)
 
-# ignore pattern for *.foo case-insensitive RE:(?i).*\.foo
-# ignore pattern for files without extension (.first dot allowed though) RE:\.?[^.]+
-
     def _filename_from_item(self, item):
         return unicode(item.data(0, QtCore.Qt.UserRole).toString())
 
@@ -172,4 +170,31 @@ class IgnoreWindow(SubProcessDialog):
         old_action = self._action_from_item(item)
         if old_action == new_action:
             return
+        filename = self._filename_from_item(item)
+        #if old_action != ACTION_NONE:
+        #    pattern = self._pattern_for_action(filename, old_action)
+        item.setText(2, self._pattern_for_action(filename, new_action))
         item.setData(2, QtCore.Qt.UserRole, QtCore.QVariant(new_action))
+
+# ignore pattern for *.foo case-insensitive RE:(?i).*\.foo
+# ignore pattern for files without extension (.first dot allowed though) RE:\.?[^.]+
+
+    def _pattern_for_action(self, filename, action):
+        if action == ACTION_NONE:
+            return ''
+        elif action == ACTION_BY_EXT:
+            ext = file_extension(filename)
+            if ext:
+                return '*'+ext
+            else:
+                return 'RE:\.?[^.]+'
+        elif action == ACTION_BY_EXT_CASE_INSENSITIVE:
+            ext = file_extension(filename)
+            if ext:
+                return 'RE:(?i).*\\'+ext.lower()
+            else:
+                return 'RE:\.?[^.]+'
+        elif action == ACTION_BY_BASENAME:
+            return os.path.basename(filename)
+        elif action == ACTION_BY_FULLNAME:
+            return './'+filename
