@@ -208,14 +208,34 @@ class IgnoreWindow(SubProcessDialog):
             if ext:
                 return '*'+ext
             else:
-                return 'RE:\.?[^.]+'
+                return 'RE:\\.?[^.]+'
         elif action == ACTION_BY_EXT_CASE_INSENSITIVE:
             ext = file_extension(filename)
             if ext:
                 return 'RE:(?i).*\\'+ext.lower()
             else:
-                return 'RE:\.?[^.]+'
+                return 'RE:\\.?[^.]+'
         elif action == ACTION_BY_BASENAME:
             return os.path.basename(filename)
         elif action == ACTION_BY_FULLNAME:
             return './'+filename
+
+    def validate(self):
+        patterns = self._collect_patterns()
+        if not patterns:
+            QtGui.QMessageBox.critical(self,
+                gettext("Cancelled"),
+                gettext("No action selected"))
+            return False
+        self.args = ['ignore'] + patterns
+        self.process_widget.force_passing_args_via_file = True
+        return True
+
+    def _collect_patterns(self):
+        patterns = set()
+        for filename, item in self.unknowns.iteritems():
+            action = self._action_from_item(item)
+            if action != ACTION_NONE:
+                pattern = self._pattern_for_action(filename, action)
+                patterns.add(pattern)
+        return sorted(list(patterns))
