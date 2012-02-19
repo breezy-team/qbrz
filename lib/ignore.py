@@ -53,6 +53,10 @@ class IgnoreWindow(SubProcessDialog):
             ])
         self.unknowns_list.setSortingEnabled(True)
         self.unknowns_list.sortByColumn(0, QtCore.Qt.AscendingOrder)
+        self.connect(
+            self.unknowns_list,
+            QtCore.SIGNAL("itemClicked(QTreeWidgetItem*, int)"),
+            self.item_clicked)
 
         self.no_action = QtGui.QRadioButton(gettext('No action'), groupbox)
         self.no_action.setChecked(True)
@@ -94,6 +98,7 @@ class IgnoreWindow(SubProcessDialog):
             item = QtGui.QTreeWidgetItem()
             item.setText(0, i)
             item.setText(1, file_extension(i))
+            item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(i))
             items.append(item)
             self.unknowns[i] = item
         self.unknowns_list.clear()
@@ -101,3 +106,7 @@ class IgnoreWindow(SubProcessDialog):
 
 # ignore pattern for *.foo case-insensitive RE:(?i).*\.foo
 # ignore pattern for files without extension (.first dot allowed though) RE:\.?[^.]+
+
+    def item_clicked(self, item, column):
+        print item, column
+        print unicode(item.data(0, QtCore.Qt.UserRole).toString())
