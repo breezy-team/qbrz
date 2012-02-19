@@ -60,20 +60,14 @@ class IgnoreWindow(SubProcessDialog):
 
         self.no_action = QtGui.QRadioButton(gettext('No action'), groupbox)
         self.no_action.setChecked(True)
-        self.no_action.setDisabled(True)
         self.by_extension = QtGui.QRadioButton(gettext('Ignore all files with this extension'), groupbox)
-        self.by_extension.setDisabled(True)
-
         hbox = QtGui.QHBoxLayout()
         hbox.insertSpacing(0, 20)
         self.case_insensitive = QtGui.QCheckBox(gettext('Case-insensitive pattern'), groupbox)
-        self.case_insensitive.setDisabled(True)
         hbox.addWidget(self.case_insensitive)
-
         self.by_basename = QtGui.QRadioButton(gettext('Ignore by basename'), groupbox)
-        self.by_basename.setDisabled(True)
         self.by_fullname = QtGui.QRadioButton(gettext('Ignore by fullname'), groupbox)
-        self.by_fullname.setDisabled(True)
+        self._disable_actions()
 
         vbox.addWidget(self.unknowns_list)
         vbox.addWidget(self.no_action)
@@ -86,6 +80,19 @@ class IgnoreWindow(SubProcessDialog):
         layout.addWidget(groupbox)
         layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
+
+    def _disable_actions(self):
+        self._set_disabled_for_actions(True)
+
+    def _enable_actions(self):
+        self._set_disabled_for_actions(False)
+
+    def _set_disabled_for_actions(self, flag):
+        self.no_action.setDisabled(flag)
+        self.by_extension.setDisabled(flag)
+        self.case_insensitive.setDisabled(flag)
+        self.by_basename.setDisabled(flag)
+        self.by_fullname.setDisabled(flag)
 
     def show(self):
         SubProcessDialog.show(self)
@@ -110,3 +117,4 @@ class IgnoreWindow(SubProcessDialog):
     def item_clicked(self, item, column):
         print item, column
         print unicode(item.data(0, QtCore.Qt.UserRole).toString())
+        self._enable_actions()
