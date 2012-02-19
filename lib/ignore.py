@@ -19,6 +19,7 @@
 
 import os
 from PyQt4 import QtCore, QtGui
+from bzrlib.globbing import Globster
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.util import file_extension
@@ -43,7 +44,7 @@ class IgnoreWindow(SubProcessDialog):
                                   )
 
         self.wt = tree
-        self.actions = {}
+        self.unknowns = {}
 
         groupbox = QtGui.QGroupBox(gettext("Unknown Files"), self)
         vbox = QtGui.QVBoxLayout(groupbox)
@@ -118,6 +119,7 @@ class IgnoreWindow(SubProcessDialog):
             item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(i))
             item.setData(2, QtCore.Qt.UserRole, QtCore.QVariant(ACTION_NONE))
             items.append(item)
+            self.unknowns[i] = item
         self.unknowns_list.clear()
         self.unknowns_list.addTopLevelItems(items)
 
@@ -147,6 +149,7 @@ class IgnoreWindow(SubProcessDialog):
             self.by_fullname.setChecked(True)
 
     def select_no_action(self, checked):
+        self.case_insensitive.setChecked(False)
         self.change_action(ACTION_NONE)
 
     def select_by_extension(self, checked):
@@ -160,9 +163,11 @@ class IgnoreWindow(SubProcessDialog):
             self.change_action(ACTION_BY_EXT)
 
     def select_by_basename(self, checked):
+        self.case_insensitive.setChecked(False)
         self.change_action(ACTION_BY_BASENAME)
 
     def select_by_fullname(self, checked):
+        self.case_insensitive.setChecked(False)
         self.change_action(ACTION_BY_FULLNAME)
 
     def change_action(self, new_action):
@@ -171,10 +176,26 @@ class IgnoreWindow(SubProcessDialog):
         if old_action == new_action:
             return
         filename = self._filename_from_item(item)
-        #if old_action != ACTION_NONE:
-        #    pattern = self._pattern_for_action(filename, old_action)
-        item.setText(2, self._pattern_for_action(filename, new_action))
-        item.setData(2, QtCore.Qt.UserRole, QtCore.QVariant(new_action))
+        if old_action != ACTION_NONE:
+            old_pattern = self._pattern_for_action(filename, old_action)
+            self._update_items(old_pattern, ACTION_NONE, self._clear_action_for_item)
+        if new_action != ACTION_NONE:
+            new_pattern = self._pattern_for_action(filename, new_action)
+            self._update_items(new_pattern, new_action, self._set_pattern_action_for_item)
+
+    def _update_items(self, pattern, action, method):
+        globster = Globster([pattern])
+        for filename, item in self.unknowns.iteritems():
+            if globster.match(filename) is not None:
+                method(item, pattern, action)
+
+    def _clear_action_for_item(self, item, pattern, action):
+        item.setText(2, '')
+        item.setData(2, QtCore.Qt.UserRole, QtCore.QVariant(action))
+
+    def _set_pattern_action_for_item(self, item, pattern, action):
+        item.setText(2, pattern)
+        item.setData(2, QtCore.Qt.UserRole, QtCore.QVariant(action))
 
 # ignore pattern for *.foo case-insensitive RE:(?i).*\.foo
 # ignore pattern for files without extension (.first dot allowed though) RE:\.?[^.]+
