@@ -40,6 +40,7 @@ from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
 from bzrlib import trace, osutils, cmdline
 from bzrlib.workingtree import WorkingTree
+from bzrlib.trace import mutter
 ''')
 from bzrlib.diff import DiffFromTool, DiffPath
 subprocess = __import__('subprocess', {}, {}, [])
@@ -386,6 +387,8 @@ class DiffItem(object):
                         ulines[i] = [l.decode(encodings[i], 'replace') for l in lines[i]]
         return ulines
 
+CACHE_TIMEOUT = 3600
+
 class _ExtDiffer(DiffFromTool):
     """
     Run extdiff async.
@@ -436,15 +439,26 @@ class _ExtDiffer(DiffFromTool):
         self.command_template = command_template
 
     def finish(self):
-        self._delete_tmpdir(self._root)
         parent = os.path.dirname(self._root)
         for path in glob.glob(os.path.join(parent, "*")):
-            if path == self._root or \
-               os.path.exists(os.path.join(path, ".delete")):
+            if self._is_deletable(path):
                 self._delete_tmpdir(path)
+        self._delete_tmpdir(self._root)
 
     def finish_lazy(self):
-        pass
+        parent = os.path.dirname(self._root)
+        for path in glob.glob(os.path.join(parent, "*")):
+            if self._is_deletable(path):
+                self._delete_tmpdir(path)
+        open(os.path.join(self._root, ".delete"), "w").close()
+
+    def _is_deletable(self, root):
+        if os.path.exists(os.path.join(root, ".delete")):
+            return True
+        elif time.time() > os.path.getctime(root) + CACHE_TIMEOUT:
+            return True
+        else:
+            return False
 
     def _delete_tmpdir(self, path):
         try:
@@ -552,13 +566,24 @@ class ExtDiffContext(QtCore.QObject):
 
     def diff_paths(self, paths, interval=50, lock_trees=True):
         new_tree = self._differ.new_tree
-        ids = [new_tree.path2id(p) for p in paths]
-        for id in ids:
-            if new_tree.kind(id) != 'file':
-                self.diff_tree(paths, interval, lock_trees)
-                return
-        self.diff_ids(ids, interval, lock_trees)
 
+        valid_paths = []
+        ids = []
+        dir_included = False
+        for p in paths:
+            id = new_tree.path2id(p)
+            if id:
+                valid_paths.append(p)
+                ids.append(id)
+                dir_included = dir_included or (new_tree.kind(id) != 'file')
+            else:
+                mutter('%s does not exist in the new tree' % p)
+        if not ids:
+            return
+        if dir_included:
+            self.diff_tree(valid_paths, interval, lock_trees)
+        else:
+            self.diff_ids(ids, interval, lock_trees)
 
     def diff_tree(self, specific_files=None, interval=50, lock_trees=True):
         for di in DiffItem.iter_items(self._differ.trees,

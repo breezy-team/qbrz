@@ -143,17 +143,46 @@ class TestCleanup(TestExtDiffBase):
 
     def test_cleanup_deletable_roots(self):
         ctx2 = self.create_context()
+        ctx3 = self.create_context()
         self.ctx.setup("diff.txt", self.tree.basis_tree(), self.tree)
         ctx2.setup("diff.txt", self.tree.basis_tree(), self.tree)
+        ctx3.setup("diff.txt", self.tree.basis_tree(), self.tree)
         root = self.ctx.rootdir
         root2 = ctx2.rootdir
+        root3 = ctx3.rootdir
         os.chdir(root) # to bock deletion
         self.ctx.finish()
         self.assertTrue(os.path.isfile(os.path.join(root, ".delete")))
         os.chdir(tempfile.gettempdir())
         ctx2.finish()
-        self.assertFalse(os.path.exists(root2))
         self.assertFalse(os.path.exists(root))
+        self.assertFalse(os.path.exists(root2))
+        self.assertTrue(os.path.exists(root3))
+
+    def test_finish_lazy(self):
+        self.ctx.setup("diff.txt", self.tree.basis_tree(), self.tree)
+        rootdir = self.ctx.rootdir
+        self.assertTrue(len(rootdir) > 0)
+        self.assertTrue(os.path.isdir(rootdir))
+        self.ctx.finish_lazy()
+        self.assertTrue(self.ctx.rootdir is None)
+        self.assertTrue(os.path.isfile(os.path.join(rootdir, ".delete")))
+
+
+    def test_cleanup_deletable_roots_by_finish_lazy(self):
+        ctx2 = self.create_context()
+        ctx3 = self.create_context()
+        self.ctx.setup("diff.txt", self.tree.basis_tree(), self.tree)
+        ctx2.setup("diff.txt", self.tree.basis_tree(), self.tree)
+        ctx3.setup("diff.txt", self.tree.basis_tree(), self.tree)
+        root = self.ctx.rootdir
+        root2 = ctx2.rootdir
+        root3 = ctx3.rootdir
+        self.ctx.finish_lazy()
+        ctx2.finish()
+        self.assertFalse(os.path.exists(root))
+        self.assertFalse(os.path.exists(root2))
+        self.assertTrue(os.path.exists(root3))
 
 class TestWorkingTreeDiff(TestExtDiffBase):
     def setUp(self):
@@ -215,6 +244,31 @@ class TestWorkingTreeDiff(TestExtDiffBase):
         paths = ['dir1/b', 'dir1/c']
         self.ctx.diff_tree(specific_files=['dir1'])
         self.assertPopen(paths, ["b", "c"])
+
+    def test_diff_for_renamed_files(self):
+        self.tree.rename_one('a', 'a2')
+        paths = ['a2']
+        self.ctx.diff_paths(['a2'])
+        self.assertPopen(paths, ["a"])
+
+    def test_skip_added_file(self):
+        self.build_tree_contents([
+            ('tree/a2', "a"),
+        ])
+        self.tree.add(['a2'])
+        self.ctx.diff_paths(['a2'])
+        self.assertPopen([], [])
+
+
+    def test_skip_removed_file_1(self):
+        self.tree.remove(['a'], keep_files=True)
+        self.ctx.diff_paths(['a'])
+        self.assertPopen([], [])
+
+    def test_skip_removed_file_2(self):
+        self.tree.remove(['a'], keep_files=False)
+        self.ctx.diff_paths(['a'])
+        self.assertPopen([], [])
 
 if __name__=='__main__':
     import unittest
