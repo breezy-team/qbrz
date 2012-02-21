@@ -2,7 +2,6 @@
 -------------------
 Just in time for bzr 2.5.
 
-
  * New command: qignore. (Alexander Belchenko, Bug #524785)
 
 
