@@ -90,9 +90,7 @@ class TextEdit(QtGui.QTextEdit):
             and e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return)
             and (int(e.modifiers()) & QtCore.Qt.ControlModifier)):
                 e.ignore()
-                # FIXME probably this is ugly hack and main qcommit window
-                # should explicitly catch Ctrl+Enter by self
-                self.main_window.do_accept()
+                self.emit(QtCore.SIGNAL("messageEntered()"))
                 return
 
         isShortcut = e.modifiers() & QtCore.Qt.ControlModifier and e.key() == QtCore.Qt.Key_E
@@ -344,6 +342,8 @@ class CommitWindow(SubProcessDialog):
         # Equivalent for 'bzr commit --message'
         self.message = TextEdit(spell_checker, message_groupbox, main_window=self)
         self.message.setToolTip(gettext("Enter the commit message"))
+        self.connect(self.message, QtCore.SIGNAL("messageEntered()"),
+                     self.do_accept)
         self.completer = QtGui.QCompleter()
         self.completer_model = QtGui.QStringListModel(self.completer)
         self.completer.setModel(self.completer_model)
