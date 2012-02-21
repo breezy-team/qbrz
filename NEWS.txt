@@ -1,5 +1,7 @@
-0.22.1 - in development
------------------------
+0.22.1 - 2012/02/21
+-------------------
+Just in time for bzr 2.5.
+
 
  * New command: qignore. (Alexander Belchenko, Bug #524785)
 
