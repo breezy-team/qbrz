@@ -199,7 +199,7 @@ execute_option = Option("execute", short_name='e',
          "waiting for user input.")
 
 # A special option so 'revision' can be passed as a simple string, when we do
-# *not* wan't bzrlib's feature of parsing the revision string before passing it.
+# *not* want bzrlib's feature of parsing the revision string before passing it.
 # This is used when we just want a plain string to pass to our dialog for it to
 # display in the UI, and we will later pass it to bzr for parsing. If you want
 # bzrlib to parse and pass a revisionspec object, just pass the string
@@ -1147,3 +1147,19 @@ class cmd_qunshelve(QBzrCommand):
         self.main_window.show()
         self._application.exec_()
 
+
+class cmd_qignore(QBzrCommand):
+    """Ignore files or patterns."""
+    takes_args = []
+    takes_options = [
+        ui_mode_option,
+        bzr_option('ignore', 'directory'),
+        ]
+    aliases = []
+
+    def _qbzr_run(self, directory=None, ui_mode=False):
+        from bzrlib.plugins.qbzr.lib.ignore import IgnoreWindow
+        wt = WorkingTree.open_containing(directory)[0]
+        self.main_window = IgnoreWindow(tree=wt, ui_mode=ui_mode)
+        self.main_window.show()
+        self._application.exec_()

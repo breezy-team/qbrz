@@ -53,7 +53,7 @@ MS_WINDOWS = (sys.platform == 'win32')
 #
 # or
 #
-# feature_value = FEATURES.get(feature_name); if feature_value == XXX: the_do_something()
+# feature_value = FEATURES.get(feature_name); if feature_value == XXX: then_do_something()
 #
 # NOTE: No external code should add the keys or change the values to this dict!!!
 #
@@ -62,4 +62,5 @@ FEATURES = dict(
     # feature_name='1.2.3',     # to specify optional version or parameter
     # feature_name=[some list], # to specify the list of parameters
     # etc.
+    qignore=None,       # we have qignore
     )

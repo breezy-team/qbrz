@@ -485,6 +485,7 @@ class SubProcessWidget(QtGui.QWidget):
         if hide_progress:
             self.hide_progress()
 
+        self.force_passing_args_via_file = False
         self._args_file = None  # temp file to pass arguments to qsubprocess
         self.error_class = ''
         self.error_data = {}
@@ -550,17 +551,19 @@ class SubProcessWidget(QtGui.QWidget):
             or re.search(r"(?:"
                 r"\n|\r"            # workaround for bug #517420
                 r"|\\\\"            # workaround for bug #528944
-                r")", args) is not None):
+                r")", args) is not None
+            or self.force_passing_args_via_file     # workaround for bug #936587
+            ):
             # save the args to the file
             fname = self._create_args_file(args)
             args = "@" + fname.replace('\\', '/')
 
         if dir is None:
             dir = self.defaultWorkingDir
-            
+
         self.error_class = ''
         self.error_data = {}
-        
+
         self.process.setWorkingDirectory(dir)
         if getattr(sys, "frozen", None) is not None:
             bzr_exe = sys.executable

@@ -2,6 +2,13 @@
 --------------------------
 
 
+0.22.1 - 2012/02/21
+-------------------
+Just in time for bzr 2.5.
+
+ * New command: qignore. (Alexander Belchenko, Bug #524785)
+
+
 0.22.0 "Alder" - 2012/02/07
 ---------------------------
 What's new in this release:
