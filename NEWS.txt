@@ -1,6 +1,10 @@
 0.22.2 - in development
 -----------------------
 
+ * qshelve:
+   * Pressing Ctrl+Enter in message edit area triggers shelve action.
+     (IWATA Hidetaka, Bug #936982)
+
 
 0.22.1 - 2012/02/21
 -------------------
