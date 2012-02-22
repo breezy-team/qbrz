@@ -37,6 +37,7 @@ Basic q-commands:
  * qconflicts - Show conflicts.
  * qdiff - Show differences in working tree in a GUI window.
  * qexport - Export current or past revision to a destination directory or archive.
+ * qignore - Ignore files or patterns.
  * qinfo - Shows information about the current location.
  * qinit - Initializes a new branch or shared repository.
  * qlog - Show log of a repository, branch, file, or directory in a Qt window.
@@ -123,6 +124,7 @@ lazy_commands = (
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetnew', ['qgetn']),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetupdates', ['qgetu', 'qgetup']),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qhelp', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qignore', []),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinfo', []),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinit', []),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qlog', []),

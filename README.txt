@@ -78,6 +78,7 @@ Basic q-commands:
  * qconflicts - Show conflicts.
  * qdiff - Show differences in working tree in a GUI window.
  * qexport - Export current or past revision to a destination directory or archive.
+ * qignore - Ignore files or patterns.
  * qinfo - Shows information about the current location.
  * qinit - Initializes a new branch or shared repository.
  * qlog - Show log of a repository, branch, file, or directory in a Qt window.
