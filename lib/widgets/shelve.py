@@ -268,6 +268,8 @@ class ShelveWidget(ToolbarPanel):
         
         self.message = TextEdit(spell_checker, message_groupbox, main_window=self)
         self.message.setToolTip(gettext("Enter the shelve message"))
+        self.connect(self.message, QtCore.SIGNAL("messageEntered()"),
+                     self.do_shelve)
         self.completer = QtGui.QCompleter()
         self.completer_model = QtGui.QStringListModel(self.completer)
         self.completer.setModel(self.completer_model)
@@ -709,7 +711,8 @@ class ShelveWidget(ToolbarPanel):
 
         except WorkingTreeHasPendingMarge:
             QtGui.QMessageBox.warning(self, gettext('Shelve'),
-                    gettext('Operation aborted because working tree has pending marges.'), gettext('&OK'))
+                    gettext('Operation aborted because working tree has pending merges.'),
+                    gettext('&OK'))
             return
         except WorkingTreeHasChanged:
             QtGui.QMessageBox.warning(self, gettext('Shelve'),
