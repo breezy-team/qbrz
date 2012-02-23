@@ -510,7 +510,18 @@ class _ExtDiffer(DiffFromTool):
         return DiffFromTool.diff(self, file_id, old_path, new_path, old_kind, new_kind)
 
 class ExtDiffContext(QtCore.QObject):
+    """
+    Environment for external diff execution.
+    This class manages cache of diffed files and when it will be deleted.
+    """
     def __init__(self, parent, to_file=None, path_encoding='utf-8'):
+        """
+        :parent:  parent widget. If specified, cache is deleted automatically
+                  when parent is closed.
+        :to_file: stream to write output messages. If not specified, 
+                  stdout is used.
+        :path_encoding: encoding of path
+        """
         QtCore.QObject.__init__(self, parent)
         self.to_file = to_file
         self.path_encoding = path_encoding
@@ -519,6 +530,9 @@ class ExtDiffContext(QtCore.QObject):
             parent.window().installEventFilter(self)
 
     def finish(self):
+        """
+        Remove temporary directory which contains cached files.
+        """
         try:
             if self._differ:
                 self._differ.finish()
@@ -527,6 +541,10 @@ class ExtDiffContext(QtCore.QObject):
             pass
 
     def finish_lazy(self):
+        """
+        Mark temporary directory as deletable, without delete it actually.
+        XXX: Directory marked as deletable will be deleted next time.
+        """
         try:
             if self._differ:
                 self._differ.finish_lazy()
@@ -542,6 +560,9 @@ class ExtDiffContext(QtCore.QObject):
             return None
 
     def setup(self, command_string, old_tree, new_tree):
+        """
+        Set or change diff command and diffed trees.
+        """
         if self._differ is None:
             self._differ = _ExtDiffer(command_string, old_tree, new_tree,
                                       self.to_file, self.path_encoding)
@@ -555,6 +576,9 @@ class ExtDiffContext(QtCore.QObject):
         return QtCore.QObject.eventFilter(self, obj, event)
 
     def diff_ids(self, file_ids, interval=50, lock_trees=True):
+        """
+        Show diffs of specified file_ids.
+        """
         cleanup = []
         try:
             if lock_trees:
@@ -568,6 +592,11 @@ class ExtDiffContext(QtCore.QObject):
                 cleanup.pop()()
 
     def diff_paths(self, paths, interval=50, lock_trees=True):
+        """
+        Show diffs of specified file paths.
+        NOTE: Directory path cannot be specified.
+              Use diff_tree instead when specifing directory path. 
+        """
         new_tree = self._differ.new_tree
 
         valid_paths = []
@@ -589,6 +618,10 @@ class ExtDiffContext(QtCore.QObject):
             self.diff_ids(ids, interval, lock_trees)
 
     def diff_tree(self, specific_files=None, interval=50, lock_trees=True):
+        """
+        Show diffs between two trees. (trees must be set by setup method)
+        NOTE: Directory path can be specified to specific_files.
+        """
         for di in DiffItem.iter_items(self._differ.trees,
                                       specific_files=specific_files,
                                       lock_trees=lock_trees):
