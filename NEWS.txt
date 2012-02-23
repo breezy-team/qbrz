@@ -1,6 +1,12 @@
 0.23.0dev - in development
 --------------------------
+What's new in this release:
 
+Behavior change: External diff behavior is changed as below.
+ 1. When calling external diff for multiple files, all diffs shown at once.
+ 2. Working tree or branch is locked only when starting up of diff tools.
+This affects to all commands which use external diff. 
+(qdiff, qcommit, qbrowse, qannotate, ...)
 
 0.22.0 "Alder" - 2012/02/07
 ---------------------------
