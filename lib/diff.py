@@ -578,6 +578,8 @@ class ExtDiffContext(QtCore.QObject):
     def diff_ids(self, file_ids, interval=50, lock_trees=True):
         """
         Show diffs of specified file_ids.
+        NOTE: Directories cannot be specified.
+              Use diff_tree or diff_paths instead when specifing directory. 
         """
         cleanup = []
         try:
@@ -594,8 +596,6 @@ class ExtDiffContext(QtCore.QObject):
     def diff_paths(self, paths, interval=50, lock_trees=True):
         """
         Show diffs of specified file paths.
-        NOTE: Directory path cannot be specified.
-              Use diff_tree instead when specifing directory path. 
         """
         new_tree = self._differ.new_tree
 
