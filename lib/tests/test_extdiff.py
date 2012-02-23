@@ -10,6 +10,7 @@ from bzrlib.plugins.qbzr.lib.tests import QTestCase
 from bzrlib.plugins.qbzr.lib.tests.mock import MockFunction
 from bzrlib.plugins.qbzr.lib import diff
 from bzrlib.workingtree import WorkingTree
+from contextlib import contextmanager
 
 
 class TestCommandString(QTestCase):
@@ -83,7 +84,7 @@ class TestExtDiffBase(QTestCase):
     def setUp(self):
         QTestCase.setUp(self)
         self.popen_mock = MockFunction()
-        popen = diff.subprocess
+        popen = diff.subprocess.Popen
         diff.subprocess.Popen = self.popen_mock
         def restore():
             diff.subprocess.Popen = popen
@@ -129,6 +130,17 @@ class TestCleanup(TestExtDiffBase):
         self.ctx.finish()
         self.assertTrue(self.ctx.rootdir is None)
         self.assertTrue(os.path.exists(ctx2.rootdir))
+    
+    @contextmanager
+    def invalidate_rmtree(self):
+        rmtree = diff.osutils.rmtree
+        def rmtree_mock(path):
+            raise IOError("osutils.rmtree is now invalidated.")
+        try:
+            diff.osutils.rmtree = MockFunction(func=rmtree_mock)
+            yield
+        finally:
+            diff.osutils.rmtree = rmtree
 
     def test_mark_deletable_if_delete_failed(self):
         # If failed to delete tempdir, mark it deletable to delete later.
@@ -136,8 +148,8 @@ class TestCleanup(TestExtDiffBase):
         rootdir = self.ctx.rootdir
         self.assertTrue(len(rootdir) > 0)
         self.assertTrue(os.path.isdir(rootdir))
-        os.chdir(rootdir) # to block deletion.
-        self.ctx.finish()
+        with self.invalidate_rmtree():
+            self.ctx.finish()
         self.assertTrue(self.ctx.rootdir is None)
         self.assertTrue(os.path.isfile(os.path.join(rootdir, ".delete")))
 
@@ -150,8 +162,8 @@ class TestCleanup(TestExtDiffBase):
         root = self.ctx.rootdir
         root2 = ctx2.rootdir
         root3 = ctx3.rootdir
-        os.chdir(root) # to bock deletion
-        self.ctx.finish()
+        with self.invalidate_rmtree():
+            self.ctx.finish()
         self.assertTrue(os.path.isfile(os.path.join(root, ".delete")))
         os.chdir(tempfile.gettempdir())
         ctx2.finish()

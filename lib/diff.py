@@ -397,6 +397,9 @@ class _ExtDiffer(DiffFromTool):
     def __init__(self, command_string, old_tree, new_tree, to_file=None, path_encoding='utf-8'):
         DiffPath.__init__(self, old_tree, new_tree, to_file or sys.stdout, path_encoding)
         self.set_command_string(command_string)
+        parent = osutils.joinpath([osutils.tempfile.gettempdir(), 'qbzr'])
+        if not os.path.isdir(parent):
+            os.mkdir(parent)
         self._root = osutils.mkdtemp(prefix='qbzr/bzr-diff-')
         self.prefixes = {}
         self._set_prefix()
