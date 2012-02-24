@@ -504,8 +504,8 @@ class DiffWindow(QBzrWindow):
 
     def ext_diff_triggered(self, ext_diff):
         """@param ext_diff: path to external diff executable."""
-        show_diff(self.arg_provider, self.diff_context,
-                  ext_diff=ext_diff, parent_window = self)
+        show_diff(self.arg_provider, ext_diff=ext_diff, parent_window=self,
+                  context=self.diff_context)
 
     def click_ignore_whitespace(self, checked ):
         self.ignore_whitespace = checked

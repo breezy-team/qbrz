@@ -1892,8 +1892,8 @@ class TreeWidget(RevisionTreeView):
             self.tree.branch, self.tree.branch,
             specific_files=paths)
         
-        show_diff(arg_provider, self.diff_context, ext_diff=ext_diff,
-                  parent_window=self.window())
+        show_diff(arg_provider, ext_diff=ext_diff, parent_window=self.window(),
+                  context=self.diff_context)
 
     def unversioned_parents_paths(self, item, include_item=True):
         paths = []

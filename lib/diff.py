@@ -54,7 +54,7 @@ for name, command in qconfig.get_section('EXTDIFF').items():
     ext_diffs[name] = command
 
 
-def show_diff(arg_provider, context=None, ext_diff=None, parent_window=None):
+def show_diff(arg_provider, ext_diff=None, parent_window=None, context=None):
     
     if ext_diff is None:
         ext_diff = default_diff
