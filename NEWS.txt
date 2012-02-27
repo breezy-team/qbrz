@@ -2,9 +2,9 @@
 --------------------------
 What's new in this release:
 
-Behavior change: External diff behavior is changed as below.
- 1. When calling external diff for multiple files, all diffs shown at once.
- 2. Working tree or branch is locked only when starting up of diff tools.
+Behavior change: External diff behavior is changed as below.(IWATA Hidetaka)
+ 1. When calling external diff for multiple files, all diffs shown at once.(Bug #942218)
+ 2. Working tree or branch is locked only when starting up of diff tools.(Bug #942221)
 This affects to all commands which use external diff. 
 (qdiff, qcommit, qbrowse, qannotate, ...)
 
