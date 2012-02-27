@@ -23,6 +23,7 @@ from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from bzrlib.plugins.qbzr.lib.util import run_in_loading_queue
 from bzrlib.plugins.qbzr.lib.lazycachedrevloader import load_revisions
+from bzrlib.plugins.qbzr.lib.diff import ExtDiffContext
 from bzrlib.transport.local import LocalTransport
 ''')
 
@@ -57,7 +58,8 @@ class RevisionTreeView(QtGui.QTreeView):
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
         self.revision_loading_disabled = False
-    
+        self.diff_context = ExtDiffContext(self)
+
     def setModel(self, model):
         QtGui.QTreeView.setModel(self, model)
         

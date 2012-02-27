@@ -283,7 +283,8 @@ class RevertWindow(SubProcessDialog):
                 self.tree.branch, self.tree.branch,
                 specific_files=checked)
             
-            show_diff(arg_provider, ext_diff=ext_diff, parent_window=self)
+            show_diff(arg_provider, ext_diff=ext_diff, parent_window=self,
+                      context=self.filelist.diff_context)
 
         else:
             msg = "No changes selected to " + dialog_action

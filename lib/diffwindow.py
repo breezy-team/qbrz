@@ -45,6 +45,7 @@ from bzrlib.plugins.qbzr.lib.diff import (
     has_ext_diff,
     ExtDiffMenu,
     DiffItem,
+    ExtDiffContext,
     )
 
 from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
@@ -162,6 +163,7 @@ class DiffWindow(QBzrWindow):
         setup_guidebar_for_find(self.sdiffview, self.find_toolbar, 1)
         for gb in self.diffview.guidebar_panels:
             setup_guidebar_for_find(gb, self.find_toolbar, 1)
+        self.diff_context = ExtDiffContext(self)
 
     def connect_later(self, *args, **kwargs):
         """Schedules a signal to be connected after loading CLI arguments.
@@ -422,64 +424,36 @@ class DiffWindow(QBzrWindow):
 
     def load_diff(self):
         self.view_refresh.setEnabled(False)
-        for tree in self.trees: tree.lock_read()
         self.processEvents()
+        
         try:
-            changes = self.trees[1].iter_changes(self.trees[0],
-                                                 specific_files=self.specific_files,
-                                                 require_versioned=True)
-            def changes_key(change):
-                old_path, new_path = change[1]
-                path = new_path
-                if path is None:
-                    path = old_path
-                return path
+            no_changes = True   # if there is no changes found we need to inform the user
+            for di in DiffItem.iter_items(self.trees,
+                                          specific_files=self.specific_files,
+                                          filter=self.filter_options.check,
+                                          lock_trees=True):
+                lines = di.lines
+                self.processEvents()
+                groups = di.groups(self.complete, self.ignore_whitespace)
+                self.processEvents()
+                ulines = di.get_unicode_lines(
+                    (self.encoding_selector_left.encoding,
+                     self.encoding_selector_right.encoding))
+                data = [''.join(l) for l in ulines]
 
-            try:
-                no_changes = True   # if there is no changes found we need to inform the user
-                for (file_id, paths, changed_content, versioned, parent, name, kind,
-                     executable) in sorted(changes, key=changes_key):
-                    # file_id         -> ascii string
-                    # paths           -> 2-tuple (old, new) fullpaths unicode/None
-                    # changed_content -> bool
-                    # versioned       -> 2-tuple (bool, bool)
-                    # parent          -> 2-tuple
-                    # name            -> 2-tuple (old_name, new_name) utf-8?/None
-                    # kind            -> 2-tuple (string/None, string/None)
-                    # executable      -> 2-tuple (bool/None, bool/None)
-                    # NOTE: None value used for non-existing entry in corresponding
-                    #       tree, e.g. for added/deleted file
-
+                for view in self.views:
+                    view.append_diff(list(di.paths), di.file_id, di.kind, di.status,
+                                     di.dates, di.versioned, di.binary, ulines, groups,
+                                     data, di.properties_changed)
                     self.processEvents()
-                    di = DiffItem.create(self.trees, file_id, paths, changed_content,
-                            versioned, parent, name, kind, executable, 
-                            filter = self.filter_options.check)
-                    if not di:
-                        continue
-
-                    lines = di.lines
-                    self.processEvents()
-                    groups = di.groups(self.complete, self.ignore_whitespace)
-                    self.processEvents()
-                    ulines = di.get_unicode_lines(
-                        (self.encoding_selector_left.encoding,
-                         self.encoding_selector_right.encoding))
-                    data = [''.join(l) for l in ulines]
-
-                    for view in self.views:
-                        view.append_diff(list(di.paths), di.file_id, di.kind, di.status,
-                                         di.dates, di.versioned, di.binary, ulines, groups,
-                                         data, di.properties_changed)
-                        self.processEvents()
-                    no_changes = False
-            except PathsNotVersionedError, e:
-                    QtGui.QMessageBox.critical(self, gettext('Diff'),
-                        gettext(u'File %s is not versioned.\n'
-                            'Operation aborted.') % e.paths_as_string,
-                        gettext('&Close'))
-                    self.close()
-        finally:
-            for tree in self.trees: tree.unlock()
+                no_changes = False
+        except PathsNotVersionedError, e:
+                QtGui.QMessageBox.critical(self, gettext('Diff'),
+                    gettext(u'File %s is not versioned.\n'
+                        'Operation aborted.') % e.paths_as_string,
+                    gettext('&Close'))
+                self.close()
+    
         if no_changes:
             QtGui.QMessageBox.information(self, gettext('Diff'),
                 gettext('No changes found.'),
@@ -530,7 +504,8 @@ class DiffWindow(QBzrWindow):
 
     def ext_diff_triggered(self, ext_diff):
         """@param ext_diff: path to external diff executable."""
-        show_diff(self.arg_provider, ext_diff=ext_diff, parent_window = self)
+        show_diff(self.arg_provider, ext_diff=ext_diff, parent_window=self,
+                  context=self.diff_context)
 
     def click_ignore_whitespace(self, checked ):
         self.ignore_whitespace = checked

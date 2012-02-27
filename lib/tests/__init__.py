@@ -54,6 +54,7 @@ def load_tests(basic_tests, module, loader):
         'test_util',
         'test_decorator',
         'test_guidebar',
+        'test_extdiff',
     ]
     for name in testmod_names:
         m = "%s.%s" % (__name__, name)
