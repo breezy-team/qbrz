@@ -4,6 +4,11 @@
  * qannotate:
    * New command-line option `--line=N` (`-L`) to activate specified 
      line number on start of dialog. (Alexander Belchenko)
+ * qconflicts:
+   * Added 2 resolve actions to context menu: `Take "THIS"` 
+     and `Take "OTHER"`. (Alexander Belchenko)
+   * Auto-refresh conflicts list after selecting a resolve action.
+     (Alexander Belchenko)
 
 
 0.22.2 - in development

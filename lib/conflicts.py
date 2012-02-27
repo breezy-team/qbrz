@@ -151,6 +151,10 @@ class ConflictsWindow(QBzrWindow):
                      self.launch_merge_tool)
         self.context_menu.addAction(self.merge_action)
         self.context_menu.setDefaultAction(self.merge_action)
+        self.context_menu.addAction(gettext('Take "&THIS" version'),
+                                   self.take_this)
+        self.context_menu.addAction(gettext('Take "&OTHER" version'),
+                                   self.take_other)
         self.context_menu.addAction(gettext("Mark as &resolved"),
                                    self.mark_item_as_resolved)
 
@@ -228,7 +232,16 @@ class ConflictsWindow(QBzrWindow):
         msg = gettext("Error while running merge tool (code %d)") % error
         QtGui.QMessageBox.critical(self, gettext("Error"), msg)
 
+    def take_this(self):
+        self._resolve_action('take_this')
+
+    def take_other(self):
+        self._resolve_action('take_other')
+
     def mark_item_as_resolved(self):
+        self._resolve_action('done')
+
+    def _resolve_action(self, action):
         items = self.conflicts_list.selectedItems()
         file_names = []
         for item in items:
@@ -238,7 +251,7 @@ class ConflictsWindow(QBzrWindow):
             #~file_id = str(item.data(0, QtCore.Qt.UserRole).toString())
             #~file_names.append(self.wt.id2path(file_id))
             file_names.append(unicode(item.text(0)))
-        resolve(self.wt, file_names)
+        resolve(self.wt, file_names, action=action)
         self.refresh()
 
     def show_context_menu(self, pos):
