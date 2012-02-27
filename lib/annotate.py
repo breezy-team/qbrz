@@ -266,11 +266,13 @@ class AnnotateWindow(QBzrWindow):
 
     def __init__(self, branch, working_tree, annotate_tree, path, fileId,
                  encoding=None, parent=None, ui_mode=True, no_graph=False,
-                 loader=None, loader_args=None):
+                 loader=None, loader_args=None, activate_line=None):
         QBzrWindow.__init__(self,
                             [gettext("Annotate"), gettext("Loading...")],
                             parent, ui_mode=ui_mode)
         self.restoreSize("annotate", (780, 680))
+
+        self.activate_line_after_load = activate_line
 
         self.windows = []
 
@@ -448,7 +450,9 @@ class AnnotateWindow(QBzrWindow):
                 self.branch.unlock()
         finally:
             self.throbber.hide()
-    
+        if self.activate_line_after_load:
+            self.go_to_line(self.activate_line_after_load)
+
     def set_annotate_title(self):
         # and update the title to show we are done.
         if isinstance(self.annotate_tree, RevisionTree):

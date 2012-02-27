@@ -231,9 +231,12 @@ class cmd_qannotate(QBzrCommand):
     takes_args = ['filename']
     takes_options = ['revision',
                      Option('encoding', type=check_encoding,
-                     help='Encoding of files content (default: utf-8).'),
+                         help='Encoding of files content (default: utf-8).'),
                      ui_mode_option,
                      Option('no-graph', help="Shows the log with no graph."),
+                     Option('line', short_name='L', type=int, argname='N',
+                        param_name='activate_line',
+                        help='Activate line N on start.'),
                     ]
     aliases = ['qann', 'qblame']
 
@@ -285,12 +288,12 @@ class cmd_qannotate(QBzrCommand):
         return branch, tree, wt, relpath, file_id
 
     def _qbzr_run(self, filename=None, revision=None, encoding=None,
-                  ui_mode=False, no_graph=False):
+                  ui_mode=False, no_graph=False, activate_line=None):
         win = AnnotateWindow(None, None, None, None, None,
                              encoding=encoding, ui_mode=ui_mode,
                              loader=self._load_branch,
                              loader_args=(filename, revision),
-                             no_graph=no_graph)
+                             no_graph=no_graph, activate_line=activate_line)
         win.show()
         self._application.exec_()
 

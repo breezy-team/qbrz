@@ -1,6 +1,10 @@
 0.23.0dev - in development
 --------------------------
 
+ * qannotate:
+   * New command-line option `--line=N` (`-L`) to activate specified 
+     line number on start of dialog. (Alexander Belchenko)
+
 
 0.22.2 - in development
 -----------------------
