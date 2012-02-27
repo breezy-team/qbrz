@@ -266,11 +266,13 @@ class AnnotateWindow(QBzrWindow):
 
     def __init__(self, branch, working_tree, annotate_tree, path, fileId,
                  encoding=None, parent=None, ui_mode=True, no_graph=False,
-                 loader=None, loader_args=None):
+                 loader=None, loader_args=None, activate_line=None):
         QBzrWindow.__init__(self,
                             [gettext("Annotate"), gettext("Loading...")],
                             parent, ui_mode=ui_mode)
         self.restoreSize("annotate", (780, 680))
+
+        self.activate_line_after_load = activate_line
 
         self.windows = []
 
@@ -448,7 +450,9 @@ class AnnotateWindow(QBzrWindow):
                 self.branch.unlock()
         finally:
             self.throbber.hide()
-    
+        if self.activate_line_after_load:
+            self.go_to_line(self.activate_line_after_load)
+
     def set_annotate_title(self):
         # and update the title to show we are done.
         if isinstance(self.annotate_tree, RevisionTree):
@@ -474,8 +478,7 @@ class AnnotateWindow(QBzrWindow):
         lines = []
         annotate = []
         ordered_revids = []
-        
-        
+
         self.processEvents()
         for revid, text in annotate_tree.annotate_iter(fileId):
             if revid == CURRENT_REVISION:
@@ -684,6 +687,14 @@ class AnnotateWindow(QBzrWindow):
         else:
             self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
 
+    def go_to_line(self, line):
+        doc = self.text_edit.document()
+        cursor = QtGui.QTextCursor(doc)
+        cursor.setPosition(doc.findBlockByNumber(line-1).position())
+        self.text_edit.setTextCursor(cursor)
+        self.text_edit.centerCursor()
+
+
 # QIntValidator did not work on vila's setup, so this is a workaround.
 class IntValidator(QtGui.QValidator):
     def validate (self, input, pos):
@@ -697,6 +708,7 @@ class IntValidator(QtGui.QValidator):
             return (QtGui.QValidator.Acceptable, pos)
         else:
             return (QtGui.QValidator.Invalid, pos)
+
 
 class GotoLineToolbar(QtGui.QToolBar):
     
@@ -745,17 +757,12 @@ class GotoLineToolbar(QtGui.QToolBar):
     
     def go_triggered(self, state=True):
         try:
-            line = int(str(self.line_edit.text()))-1
+            line = int(str(self.line_edit.text()))
         except ValueError:
             pass
         else:
-            doc = self.anotate_window.text_edit.document()
-            cursor = QtGui.QTextCursor(doc)
-            cursor.setPosition(doc.findBlockByNumber(line).position())
-            self.anotate_window.text_edit.setTextCursor(cursor)
-            self.anotate_window.text_edit.centerCursor()
+            self.anotate_window.go_to_line(line)
             self.show_action.setChecked(False)
-
 
 
 class AnnotateLogList(LogList):
