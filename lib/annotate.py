@@ -474,8 +474,7 @@ class AnnotateWindow(QBzrWindow):
         lines = []
         annotate = []
         ordered_revids = []
-        
-        
+
         self.processEvents()
         for revid, text in annotate_tree.annotate_iter(fileId):
             if revid == CURRENT_REVISION:
@@ -684,6 +683,7 @@ class AnnotateWindow(QBzrWindow):
         else:
             self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
 
+
 # QIntValidator did not work on vila's setup, so this is a workaround.
 class IntValidator(QtGui.QValidator):
     def validate (self, input, pos):
@@ -697,6 +697,7 @@ class IntValidator(QtGui.QValidator):
             return (QtGui.QValidator.Acceptable, pos)
         else:
             return (QtGui.QValidator.Invalid, pos)
+
 
 class GotoLineToolbar(QtGui.QToolBar):
     
@@ -755,7 +756,6 @@ class GotoLineToolbar(QtGui.QToolBar):
             self.anotate_window.text_edit.setTextCursor(cursor)
             self.anotate_window.text_edit.centerCursor()
             self.show_action.setChecked(False)
-
 
 
 class AnnotateLogList(LogList):
