@@ -300,7 +300,7 @@ class cmd_qadd(QBzrCommand):
     takes_options = [ui_mode_option]
 
     def _qbzr_run(self, selected_list=None, ui_mode=False):
-        tree, selected_list = builtins.tree_files(selected_list)
+        tree, selected_list = WorkingTree.open_containing_paths(selected_list)
         if selected_list == ['']:
             selected_list = None
         self.main_window = AddWindow(tree, selected_list, dialog=False, ui_mode=ui_mode)
@@ -314,7 +314,7 @@ class cmd_qrevert(QBzrCommand):
     takes_options = [ui_mode_option, bzr_option('revert', 'no-backup')]
 
     def _qbzr_run(self, selected_list=None, ui_mode=False, no_backup=False):
-        tree, selected_list = builtins.tree_files(selected_list)
+        tree, selected_list = WorkingTree.open_containing_paths(selected_list)
         if selected_list == ['']:
             selected_list = None
         self.main_window = RevertWindow(tree, selected_list, dialog=False,
@@ -376,7 +376,7 @@ class cmd_qcommit(QBzrCommand):
                 message = f.read().decode(file_encoding or osutils.get_user_encoding())
             finally:
                 f.close()
-        tree, selected_list = builtins.tree_files(selected_list)
+        tree, selected_list = WorkingTree.open_containing_paths(selected_list)
         if selected_list == ['']:
             selected_list = None
         self.main_window = CommitWindow(tree, selected_list, dialog=False,

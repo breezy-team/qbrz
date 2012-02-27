@@ -6,6 +6,8 @@ Maintenance release.
    unversioned files that have been moved. (Martin Packman, Bug #557603)
  * Stringify tab_width settings while writing it to branch config.
    (Workaround for bug #912344, Alexander Belchenko)
+ * Don't use deprecated API (bzrlib.builtins.tree_files). 
+   (Alexander Belchenko, Bug #776241)
 
 
 0.21.2 - 2011/12/07
