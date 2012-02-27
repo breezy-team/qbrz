@@ -683,6 +683,13 @@ class AnnotateWindow(QBzrWindow):
         else:
             self.text_edit.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
 
+    def go_to_line(self, line):
+        doc = self.text_edit.document()
+        cursor = QtGui.QTextCursor(doc)
+        cursor.setPosition(doc.findBlockByNumber(line-1).position())
+        self.text_edit.setTextCursor(cursor)
+        self.text_edit.centerCursor()
+
 
 # QIntValidator did not work on vila's setup, so this is a workaround.
 class IntValidator(QtGui.QValidator):
@@ -746,15 +753,11 @@ class GotoLineToolbar(QtGui.QToolBar):
     
     def go_triggered(self, state=True):
         try:
-            line = int(str(self.line_edit.text()))-1
+            line = int(str(self.line_edit.text()))
         except ValueError:
             pass
         else:
-            doc = self.anotate_window.text_edit.document()
-            cursor = QtGui.QTextCursor(doc)
-            cursor.setPosition(doc.findBlockByNumber(line).position())
-            self.anotate_window.text_edit.setTextCursor(cursor)
-            self.anotate_window.text_edit.centerCursor()
+            self.anotate_window.go_to_line(line)
             self.show_action.setChecked(False)
 
 
