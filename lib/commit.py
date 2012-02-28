@@ -629,11 +629,32 @@ class CommitWindow(SubProcessDialog):
     def _get_message(self):
         return unicode(self.message.toPlainText()).strip()
 
+    def _get_selected_files(self):
+        """Return (has_files_to_commit[bool], files_to_commit[list], files_to_add[list])"""
+        if self.has_pending_merges:
+            return True, [], []
+
+        files_to_commit = []
+        files_to_add = []
+        for ref in self.filelist.tree_model.iter_checked():
+            if ref.file_id is None:
+                files_to_add.append(ref.path)
+            files_to_commit.append(ref.path)
+
+        if not files_to_commit:
+            return False, [], []
+        else:
+            return True, files_to_commit, files_to_add
+
     def validate(self):
         if not self._get_message():
             self.show_warning(gettext("You should provide a commit message."))
             self.message.setFocus()
             return False
+        if not self._get_selected_files()[0]:
+            if not self.ask_confirmation(gettext("No changes selected to commit.\n"
+                                                 "Do you want to commit anyway?")):
+                return False
         return True
 
     def do_start(self):
