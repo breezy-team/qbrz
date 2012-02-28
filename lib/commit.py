@@ -653,22 +653,8 @@ class CommitWindow(SubProcessDialog):
                 if ref.file_id is None:
                     files_to_add.append(ref.path)
                 args.append(ref.path)
-        
+
         if checkedFiles == 0: # BUG: 295116
-            # check for availability of --exclude option for commit
-            # (this option was introduced in bzr 1.6)
-            from bzrlib.commands import get_cmd_object
-            kmd = get_cmd_object('commit', False)
-            if kmd.options().get('exclude', None) is None:
-                # bzr < 1.6 -- sorry but we can't allow empty commit
-                QtGui.QMessageBox.warning(self,
-                    "QBzr - " + gettext("Commit"), 
-                    gettext("No changes to commit."),
-                    QtGui.QMessageBox.Ok) 
-                self.on_failed('PointlessCommit')
-                return
-            else:
-                # bzr >= 1.6
                 button = QtGui.QMessageBox.question(self,
                     "QBzr - " + gettext("Commit"), 
                     gettext("No changes selected to commit.\n"
