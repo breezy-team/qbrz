@@ -85,6 +85,7 @@ class QBzrBindDialog(SubProcessDialog):
             url = url_for_display(parent_location)
             if url not in suggestions:
                 suggestions.append(url)
+        # XXX add push_location to suggestions
         if suggestions:
             branch_combo.addItems(suggestions)
  
@@ -116,10 +117,7 @@ class QBzrBindDialog(SubProcessDialog):
 
     def validate(self):
         if not self._get_location():
-            QtGui.QMessageBox.critical(
-                self,
-                gettext("Bind"),
-                gettext("Master branch location not specified."))
+            self.show_error(gettext("Master branch location not specified."))
             return False
         return True
     
