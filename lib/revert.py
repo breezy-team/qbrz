@@ -229,7 +229,7 @@ class RevertWindow(SubProcessDialog):
         if (self.has_pending_merges and
             not self.merges_groupbox.isChecked() and
             self.selectall_checkbox.checkState() == QtCore.Qt.Checked):
-            
+
             button = QtGui.QMessageBox.question(self,
                 self.windowTitle(), 
                 gettext("You are reverting all changed paths without also "
@@ -237,14 +237,14 @@ class RevertWindow(SubProcessDialog):
                 QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
             if button == QtGui.QMessageBox.No:
                 return False
-        
+
         if ((not self.has_pending_merges or
              not self.merges_groupbox.isChecked()) and
             self.selectall_checkbox.checkState() == QtCore.Qt.Unchecked):
-            raise errors.BzrCommandError(
-                "You have not selected anything to revert.")
+                self.show_error(gettext("You have not selected anything to revert."))
+                return False
         return True
-    
+
     def do_start(self):
         """Revert the files."""
         args = ["revert"]
