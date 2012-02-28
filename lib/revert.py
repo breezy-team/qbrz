@@ -241,7 +241,7 @@ class RevertWindow(SubProcessDialog):
         if ((not self.has_pending_merges or
              not self.merges_groupbox.isChecked()) and
             self.selectall_checkbox.checkState() == QtCore.Qt.Unchecked):
-                self.show_error(gettext("You have not selected anything to revert."))
+                self.operation_blocked(gettext("You have not selected anything to revert."))
                 return False
         return True
 

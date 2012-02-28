@@ -205,23 +205,23 @@ class SendWindow(SubProcessDialog):
             location = str(self.mailto_edit.text())
             if not location:
                 self.mailto_edit.setFocus()
-                self.show_error(gettext("Email address not entered."))
+                self.operation_blocked(gettext("Email address not entered."))
                 return False
             if re.match("^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$", location) is None:
                 self.mailto_edit.setFocus()
-                self.show_error(gettext("Email address is not valid."))
+                self.operation_blocked(gettext("Email address is not valid."))
                 return False
         else:
             location = unicode(self.savefile_edit.text())
             if not location:
                 self.savefile_edit.setFocus()
-                self.show_error(gettext("Filename not entered."))
+                self.operation_blocked(gettext("Filename not entered."))
                 return False
 
         submit_branch = unicode(self.submit_branch_combo.currentText())
         if not submit_branch:
             self.submit_branch_combo.setFocus()
-            self.show_error(gettext("No submit branch entered."))
+            self.operation_blocked(gettext("No submit branch entered."))
             return False
         return True
 

@@ -406,6 +406,15 @@ class _QBzrWindowBase(object):
     def do_close(self):
         self.close()
 
+    def operation_blocked(self, message):
+        """Use self.operation_blocked in validate methods of q-dialogs
+        to show error message about incorrect or missing parameters.
+
+        We can easily switch between show_error and show_warning
+        inside this method if we want to change the overall qbzr behavior.
+        """
+        self.show_warning(message)
+
     def show_error(self, message):
         QtGui.QMessageBox.critical(self,
             gettext("Error"),

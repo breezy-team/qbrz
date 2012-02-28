@@ -223,7 +223,7 @@ class IgnoreWindow(SubProcessDialog):
     def validate(self):
         patterns = self._collect_patterns()
         if not patterns:
-            self.show_error(gettext("No action selected"))
+            self.operation_blocked(gettext("No action selected"))
             return False
         self.args = ['ignore'] + patterns
         self.process_widget.force_passing_args_via_file = True

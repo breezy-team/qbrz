@@ -165,7 +165,7 @@ class QBzrSwitchWindow(SubProcessDialog):
     def validate(self):
         location = unicode(self.branch_combo.currentText())
         if not location:
-            self.show_error(gettext("Branch location not specified."))
+            self.operation_blocked(gettext("Branch location not specified."))
             return False
         return True
 

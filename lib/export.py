@@ -318,17 +318,17 @@ class QBzrExportDialog(SubProcessDialog):
         if self.exportarch_radio.isChecked():
             location = unicode(self.locationfil_edit.text())
             if not location:
-                self.show_error(gettext("Export location is invalid"))
+                self.operation_blocked(gettext("Export location is invalid"))
                 return False
         elif self.exportdir_radio.isChecked():
             location = unicode(self.locationdir_edit.text())
             if not location:
-                self.show_error(gettext("Export location is invalid"))
+                self.operation_blocked(gettext("Export location is invalid"))
                 return False
 
         if self.revisions_other.isChecked():
             if str(self.revisions_edit.text()) == "":
-                self.show_error(gettext("Export revision is invalid"))
+                self.operation_blocked(gettext("Export revision is invalid"))
                 return False
         return True
 

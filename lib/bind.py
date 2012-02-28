@@ -117,7 +117,7 @@ class QBzrBindDialog(SubProcessDialog):
 
     def validate(self):
         if not self._get_location():
-            self.show_error(gettext("Master branch location not specified."))
+            self.operation_blocked(gettext("Master branch location not specified."))
             return False
         return True
 

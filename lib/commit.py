@@ -648,7 +648,7 @@ class CommitWindow(SubProcessDialog):
 
     def validate(self):
         if not self._get_message():
-            self.show_warning(gettext("You should provide a commit message."))
+            self.operation_blocked(gettext("You should provide a commit message."))
             self.message.setFocus()
             return False
         if not self._get_selected_files()[0]:
