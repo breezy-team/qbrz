@@ -659,35 +659,21 @@ class CommitWindow(SubProcessDialog):
 
     def do_start(self):
         args = ["commit"]
-        files_to_add = ["add", "--no-recurse"]
-        add_cmd_len = len(files_to_add)
 
         message = self._get_message()
         args.extend(['-m', message])    # keep them separated to avoid bug #297606
 
-        # starts with one because if pending changes are available the warning box will appear each time.
-        checkedFiles = 1 
-        if not self.has_pending_merges:
-            checkedFiles = 0
-            for ref in self.filelist.tree_model.iter_checked():
-                checkedFiles = checkedFiles+1
-                if ref.file_id is None:
-                    files_to_add.append(ref.path)
-                args.append(ref.path)
-
-        if checkedFiles == 0: # BUG: 295116
-                if not self.ask_confirmation(gettext("No changes selected to commit.\n"
-                                                     "Do you want to commit anyway?")):
-                    self.on_failed('PointlessCommit')
-                    return
-                else:
-                    # Possible [rare] problems:
-                    # 1. unicode tree root in non-user encoding
-                    #    may provoke UnicodeEncodeError in subprocess (@win32)
-                    # 2. if branch has no commits yet then operation may fail
-                    #    because of bug #299879
-                    args.extend(['--exclude', self.tree.basedir])
-                    args.append('--unchanged')
+        has_files_to_commit, files_to_commit, files_to_add = self._get_selected_files()
+        if not has_files_to_commit:
+            # Possible [rare] problems:
+            # 1. unicode tree root in non-user encoding
+            #    may provoke UnicodeEncodeError in subprocess (@win32)
+            # 2. if branch has no commits yet then operation may fail
+            #    because of bug #299879
+            args.extend(['--exclude', self.tree.basedir])
+            args.append('--unchanged')
+        else:
+            args.extend(files_to_commit)
 
         if self.bugsCheckBox.isChecked():
             for s in unicode(self.bugs.text()).split():
@@ -701,8 +687,8 @@ class CommitWindow(SubProcessDialog):
         
         dir = self.tree.basedir
         commands = []
-        if len(files_to_add) > add_cmd_len:
-            commands.append((dir, files_to_add))
+        if files_to_add:
+            commands.append((dir, ["add", "--no-recurse"] + files_to_add))
         commands.append((dir, args))
 
         self.tabWidget.setCurrentWidget(self.process_widget)
