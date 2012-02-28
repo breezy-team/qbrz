@@ -110,16 +110,18 @@ class QBzrBindDialog(SubProcessDialog):
         if fileName != '':
             self.branch_combo.insertItem(0,fileName)
             self.branch_combo.setCurrentIndex(0)
-        
-    @reports_exception(type=SUB_LOAD_METHOD)
-    @ui_current_widget   
+
+    def _get_location(self):
+        return unicode(self.branch_combo.currentText())
+
     def validate(self):
-        location = unicode(self.branch_combo.currentText())
-        if not location:
-            raise errors.BzrCommandError(
+        if not self._get_location():
+            QtGui.QMessageBox.critical(
+                self,
+                gettext("Bind"),
                 gettext("Master branch location not specified."))
+            return False
         return True
     
-    def do_start(self):        
-        location = unicode(self.branch_combo.currentText())
-        self.process_widget.do_start(None, 'bind', location)
+    def do_start(self):
+        self.process_widget.do_start(None, 'bind', self._get_location())
