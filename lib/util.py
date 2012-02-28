@@ -406,6 +406,11 @@ class _QBzrWindowBase(object):
     def do_close(self):
         self.close()
 
+    def show_error(self, message):
+        QtGui.QMessageBox.critical(self,
+            gettext("Error"),
+            message)
+
 
 class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
 
