@@ -11,6 +11,8 @@ This affects to all commands which use external diff.
  * qannotate:
    * New command-line option `--line=N` (`-L`) to activate specified 
      line number on start of dialog. (Alexander Belchenko)
+ * qbind:
+   * Add push location to suggestions. (Alexander Belchenko)
  * qconflicts:
    * Added 2 resolve actions to context menu: `Take "THIS"` 
      and `Take "OTHER"`. (Alexander Belchenko)

@@ -49,7 +49,7 @@ class QBzrBindDialog(SubProcessDialog):
                                   parent = None,
                                   hide_progress=False,
                                   )
- 
+
         # Display information fields
         gbBind = QtGui.QGroupBox(gettext("Bind"), self)
         bind_box = QtGui.QFormLayout(gbBind)
@@ -59,7 +59,7 @@ class QBzrBindDialog(SubProcessDialog):
         if self.currbound != None:
             bind_box.addRow(gettext("Currently bound to:"),
                 QtGui.QLabel(url_for_display(self.currbound)))
- 
+
         # Build the "Bind to" widgets
         branch_label = QtGui.QLabel(gettext("Bind to:"))
         branch_combo = QtGui.QComboBox()   
@@ -75,20 +75,12 @@ class QBzrBindDialog(SubProcessDialog):
         suggestions = []
         if location:
             suggestions.append(osutils.abspath(location))
-        old_location = branch.get_old_bound_location()
-        if old_location:
-            url = url_for_display(old_location)
-            if url not in suggestions:
-                suggestions.append(url)
-        parent_location = branch.get_parent()
-        if parent_location:
-            url = url_for_display(parent_location)
-            if url not in suggestions:
-                suggestions.append(url)
-        # XXX add push_location to suggestions
+        self._maybe_add_suggestion(suggestions, branch.get_old_bound_location())
+        self._maybe_add_suggestion(suggestions, branch.get_parent())
+        self._maybe_add_suggestion(suggestions, branch.get_push_location())
         if suggestions:
             branch_combo.addItems(suggestions)
- 
+
         # Build the "Bind to" row/panel
         bind_hbox = QtGui.QHBoxLayout()
         bind_hbox.addWidget(branch_label)
@@ -98,13 +90,21 @@ class QBzrBindDialog(SubProcessDialog):
         bind_hbox.setStretchFactor(branch_combo,1)
         bind_hbox.setStretchFactor(browse_button,0)
         bind_box.addRow(bind_hbox)
- 
+
         # Put the form together
         layout = QtGui.QVBoxLayout(self)
         layout.addWidget(gbBind)
         layout.addWidget(self.make_default_status_box())
         layout.addWidget(self.buttonbox)
-        
+
+        branch_combo.setFocus()
+
+    def _maybe_add_suggestion(self, suggestions, location):
+        if location:
+            url = url_for_display(location)
+            if url not in suggestions:
+                suggestions.append(url)
+
     def browse_clicked(self):
         fileName = QtGui.QFileDialog.getExistingDirectory(self,
             gettext("Select branch location"));
@@ -120,6 +120,6 @@ class QBzrBindDialog(SubProcessDialog):
             self.show_error(gettext("Master branch location not specified."))
             return False
         return True
-    
+
     def do_start(self):
         self.process_widget.do_start(None, 'bind', self._get_location())
