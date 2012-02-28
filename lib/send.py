@@ -199,37 +199,41 @@ class SendWindow(SubProcessDialog):
         if fileName != '':
             self.public_branch_combo.insertItem(0,fileName)
             self.public_branch_combo.setCurrentIndex(0)
-    
+
     def validate(self):
         if self.submit_email_radio.isChecked():
             location = str(self.mailto_edit.text())
-            if location == '' :
+            if not location:
                 self.mailto_edit.setFocus()
-                raise errors.BzrCommandError("Email address not entered.")
-            if re.match("^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$", location) == None:
+                self.show_error(gettext("Email address not entered."))
+                return False
+            if re.match("^.+\\@(\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,3}|[0-9]{1,3})(\\]?)$", location) is None:
                 self.mailto_edit.setFocus()
-                raise errors.BzrCommandError("Email address is not valid.")
+                self.show_error(gettext("Email address is not valid."))
+                return False
         else:
-            location = str(self.savefile_edit.text())
-            if location == '':
+            location = unicode(self.savefile_edit.text())
+            if not location:
                 self.savefile_edit.setFocus()
-                raise errors.BzrCommandError("Filename not entered.")
-        
-        submit_branch = str(self.submit_branch_combo.currentText())
-        if(submit_branch == ''):
+                self.show_error(gettext("Filename not entered."))
+                return False
+
+        submit_branch = unicode(self.submit_branch_combo.currentText())
+        if not submit_branch:
             self.submit_branch_combo.setFocus()
-            raise errors.BzrCommandError("No submit branch entered.")
+            self.show_error(gettext("No submit branch entered."))
+            return False
         return True
-    
+
     def do_start(self):
         args = []
-        submit_branch = str(self.submit_branch_combo.currentText())
-        public_branch = str(self.public_branch_combo.currentText())
+        submit_branch = unicode(self.submit_branch_combo.currentText())
+        public_branch = unicode(self.public_branch_combo.currentText())
         
-        if public_branch != '':
+        if public_branch:
             args.append(public_branch)
-            
-        mylocation =  url_for_display(self.branch.base)     
+
+        mylocation = url_for_display(self.branch.base)
         args.append("-f")
         args.append(mylocation)
 
@@ -237,28 +241,28 @@ class SendWindow(SubProcessDialog):
             location = str(self.mailto_edit.text())
             args.append("--mail-to=%s" % location)
         else:
-            location = str(self.savefile_edit.text())
+            location = unicode(self.savefile_edit.text())
             args.append("-o")
             args.append(location)
-            
+
         if self.remember_check.isChecked():
             args.append("--remember")
 
         if not self.patch_check.isChecked():
             args.append("--no-patch")
-            
+
         if not self.bundle_check.isChecked():
             args.append("--no-bundle")
-                    
-        if self.message_edit.text() != '':
-            args.append("--message=%s" % str(self.message_edit.text()))
-        
+
+        if unicode(self.message_edit.text()):
+            args.append("--message=%s" % unicode(self.message_edit.text()))
+
         revision = str(self.revisions_edit.text())
         if revision == '':
             args.append("--revision=-1")
         else:
             args.append("--revision=%s" % revision)
-            
+
         self.process_widget.do_start(None, 'send', submit_branch, *args)
 
     def _saveSize(self, config):
