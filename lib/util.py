@@ -411,6 +411,11 @@ class _QBzrWindowBase(object):
             gettext("Error"),
             message)
 
+    def show_warning(self, message):
+        QtGui.QMessageBox.warning(self,
+            gettext("Warning"),
+            message)
+
 
 class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
 
