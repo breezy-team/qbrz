@@ -416,6 +416,17 @@ class _QBzrWindowBase(object):
             gettext("Warning"),
             message)
 
+    def ask_confirmation(self, message):
+        """Return True if user selected Yes."""
+        button = QtGui.QMessageBox.question(self,
+            gettext("Confirm"),
+            message,
+            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+        if button == QtGui.QMessageBox.Yes:
+            return True
+        else:
+            return False
+
 
 class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
 
