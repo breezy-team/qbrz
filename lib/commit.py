@@ -655,12 +655,8 @@ class CommitWindow(SubProcessDialog):
                 args.append(ref.path)
 
         if checkedFiles == 0: # BUG: 295116
-                button = QtGui.QMessageBox.question(self,
-                    "QBzr - " + gettext("Commit"), 
-                    gettext("No changes selected to commit.\n"
-                        "Do you want to commit anyway?"),
-                    QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-                if button == QtGui.QMessageBox.No:
+                if not self.ask_confirmation(gettext("No changes selected to commit.\n"
+                                                     "Do you want to commit anyway?")):
                     self.on_failed('PointlessCommit')
                     return
                 else:
