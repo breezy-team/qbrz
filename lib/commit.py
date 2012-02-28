@@ -626,24 +626,24 @@ class CommitWindow(SubProcessDialog):
             return
         self.ci_data.wipe()
 
+    def _get_message(self):
+        return unicode(self.message.toPlainText()).strip()
+
+    def validate(self):
+        if not self._get_message():
+            self.show_warning(gettext("You should provide a commit message."))
+            self.message.setFocus()
+            return False
+        return True
+
     def do_start(self):
         args = ["commit"]
         files_to_add = ["add", "--no-recurse"]
         add_cmd_len = len(files_to_add)
-        
-        message = unicode(self.message.toPlainText()).strip() 
-        if not message: 
-            QtGui.QMessageBox.warning(self,
-                "QBzr - " + gettext("Commit"),
-                gettext("You should provide a commit message."),
-                gettext('&OK'))
-            # don't commit, but don't close the window either
-            self.on_failed('NoCommitMessage')
-            self.message.setFocus()
-            return
 
+        message = self._get_message()
         args.extend(['-m', message])    # keep them separated to avoid bug #297606
-        
+
         # starts with one because if pending changes are available the warning box will appear each time.
         checkedFiles = 1 
         if not self.has_pending_merges:
