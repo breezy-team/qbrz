@@ -258,15 +258,10 @@ class QBzrPushWindow(SubProcessDialog):
         #
         if blocker is None:
             return True
-        btn = QtGui.QMessageBox.warning(self,
-            "QBzr - " + gettext("Push"),
-            blocker + "\n\n" +
-            gettext("Do you want to continue anyway?"),
-            gettext("&Yes"), gettext("&No"), '',
-            0, 1)
-        if btn == 0: # QtGui.QMessageBox.Yes:
-            self._no_strict = True
-            return True
+        if self.ask_confirmation(blocker + "\n\n" +
+            gettext("Do you want to continue anyway?")):
+                self._no_strict = True
+                return True
         return False
 
 
