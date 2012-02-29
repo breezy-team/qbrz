@@ -4,6 +4,9 @@
  * qshelve:
    * Pressing Ctrl+Enter in message edit area triggers shelve action.
      (IWATA Hidetaka, Bug #936982)
+ * qgetnew:
+   * Ask for verification if a checkout should go to a non-empty
+     directory - this may cause unwanted conflicts (André Bachmann, Bug #938835)
 
 
 0.22.1 - 2012/02/21

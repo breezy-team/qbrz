@@ -23,7 +23,8 @@
 
 import os
 import re
-from PyQt4 import QtCore
+from PyQt4 import QtCore, QtGui
+from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_new_tree import Ui_NewWorkingTreeForm
 from bzrlib.plugins.qbzr.lib.util import (
@@ -130,3 +131,22 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
 
         self.process_widget.do_start(None, *args)
         save_pull_location(None, from_location)
+
+    def validate(self):
+        # This is a check if the user really wants to checkout to a non-empty directory.
+        # Because this may create conflicts, we want to make sure this is intended.
+        to_location = unicode(self.ui.to_location.text())
+        if os.path.exists(to_location) and os.listdir(to_location):
+            if self.ui.but_checkout.isChecked():
+                msg = gettext("Do you really want to checkout into a non-empty folder?")
+            else:
+                msg = gettext("Do you really want to branch into a non-empty folder?")
+            choice = QtGui.QMessageBox.question(self,
+                self.windowTitle(),
+                msg,
+                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                QtGui.QMessageBox.No)
+            if choice == QtGui.QMessageBox.No:
+                return False
+
+        return True
