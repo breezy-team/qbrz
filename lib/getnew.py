@@ -23,7 +23,7 @@
 
 import os
 import re
-from PyQt4 import QtCore
+from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_new_tree import Ui_NewWorkingTreeForm
@@ -110,13 +110,26 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
     def _get_to_location(self):
         return unicode(self.ui.to_location.text())
 
+    def _is_checkout_action(self):
+        return self.ui.but_checkout.isChecked()
+
     def validate(self):
         if not self._get_from_location():
             self.operation_blocked(gettext("You should specify branch source"))
             return False
-        if not self._get_to_location():
+        to_location = self._get_to_location()
+        if not to_location:
             self.operation_blocked(gettext("You should select destination directory"))
             return False
+        # This is a check if the user really wants to checkout to a non-empty directory.
+        # Because this may create conflicts, we want to make sure this is intended.
+        if os.path.exists(to_location) and os.listdir(to_location):
+            if self._is_checkout_action():
+                msg = gettext("Do you really want to checkout into a non-empty folder?")
+            else:
+                msg = gettext("Do you really want to branch into a non-empty folder?")
+            if not self.ask_confirmation(msg):
+                return False
         return True
 
     def do_start(self):
@@ -126,7 +139,7 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
         if self.ui.but_rev_specific.isChecked() and self.ui.revision.text():
             revision_args.append('--revision='+unicode(self.ui.revision.text()))
 
-        if self.ui.but_checkout.isChecked():
+        if self._is_checkout_action():
             args = ['checkout']
             if self.ui.but_lightweight.isChecked():
                 args.append('--lightweight')

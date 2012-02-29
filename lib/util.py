@@ -430,7 +430,8 @@ class _QBzrWindowBase(object):
         button = QtGui.QMessageBox.question(self,
             gettext("Confirm"),
             message,
-            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
+            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+            QtGui.QMessageBox.No)
         if button == QtGui.QMessageBox.Yes:
             return True
         else:
