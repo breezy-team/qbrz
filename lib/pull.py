@@ -259,7 +259,8 @@ class QBzrPushWindow(SubProcessDialog):
         if blocker is None:
             return True
         if self.ask_confirmation(blocker + "\n\n" +
-            gettext("Do you want to continue anyway?")):
+            gettext("Do you want to continue anyway?"),
+            type='warning'):
                 self._no_strict = True
                 return True
         return False
