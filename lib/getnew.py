@@ -125,10 +125,12 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
         # Because this may create conflicts, we want to make sure this is intended.
         if os.path.exists(to_location) and os.listdir(to_location):
             if self._is_checkout_action():
-                msg = gettext("Do you really want to checkout into a non-empty folder?")
+                quiz = gettext("Do you really want to checkout into a non-empty folder?")
             else:
-                msg = gettext("Do you really want to branch into a non-empty folder?")
-            if not self.ask_confirmation(msg):
+                quiz = gettext("Do you really want to branch into a non-empty folder?")
+            reason = gettext("The destination folder is not empty.\n"
+                             "Populating new working tree there may create conflicts.")
+            if not self.ask_confirmation(reason+'\n\n'+quiz, type='warning'):
                 return False
         return True
 
