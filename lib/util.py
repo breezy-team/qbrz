@@ -427,7 +427,7 @@ class _QBzrWindowBase(object):
 
     def ask_confirmation(self, message, type='question'):
         """Return True if user selected Yes.
-        Optional paramter type selects dialog type. Valid values: question, warning.
+        Optional parameter type selects dialog type. Valid values: question, warning.
         """
         klass = QtGui.QMessageBox.question
         if type == 'warning':
