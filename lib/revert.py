@@ -230,12 +230,11 @@ class RevertWindow(SubProcessDialog):
             not self.merges_groupbox.isChecked() and
             self.selectall_checkbox.checkState() == QtCore.Qt.Checked):
 
-            button = QtGui.QMessageBox.question(self,
-                self.windowTitle(), 
-                gettext("You are reverting all changed paths without also "
-                        "reverting pending merges. Do you want to continue?"),
-                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-            if button == QtGui.QMessageBox.No:
+            if not self.ask_confirmation(
+                gettext("You have selected revert for all changed paths\n"
+                        "but keep pending merges.\n\n"
+                        "Do you want to continue?")
+                ):
                 return False
 
         if ((not self.has_pending_merges or
