@@ -24,6 +24,7 @@
 import os
 import re
 from PyQt4 import QtCore
+from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_new_tree import Ui_NewWorkingTreeForm
 from bzrlib.plugins.qbzr.lib.util import (
@@ -103,11 +104,24 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
                 new_val = os.path.join(new_val, tail)
         self.ui.to_location.setText(new_val)
 
+    def _get_from_location(self):
+        return unicode(self.ui.from_location.currentText())
+
+    def _get_to_location(self):
+        return unicode(self.ui.to_location.text())
+
+    def validate(self):
+        if not self._get_from_location():
+            self.operation_blocked(gettext("You should specify branch source"))
+            return False
+        if not self._get_to_location():
+            self.operation_blocked(gettext("You should select destination directory"))
+            return False
+        return True
+
     def do_start(self):
-        from_location = unicode(self.ui.from_location.currentText())
-        to_location = unicode(self.ui.to_location.text())
-        if not from_location or not to_location:
-            return
+        from_location = self._get_from_location()
+        to_location = self._get_to_location()
         revision_args = []
         if self.ui.but_rev_specific.isChecked() and self.ui.revision.text():
             revision_args.append('--revision='+unicode(self.ui.revision.text()))
