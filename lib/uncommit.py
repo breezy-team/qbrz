@@ -120,13 +120,10 @@ class QBzrUncommitWindow(SubProcessDialog):
             log_rqst = log.make_log_request_dict(start_revision=revno+1)
         log_data = log_as_html(self.branch, log_rqst)
         question = gettext("Do you really want to uncommit these revisions?")
-        btn = QtGui.QMessageBox.warning(self,
-            "QBzr - " + gettext("Uncommit"),
+        if self.ask_confirmation(
             '<font color="red">%s</font><br/>%s' % (question, log_data),
-            gettext("&Yes"), gettext("&No"), '',
-            0, 1)
-        if btn == 0: # QtGui.QMessageBox.Yes:
-            return True
+            type='warning'):
+                return True
         return False
 
     def do_start(self):
