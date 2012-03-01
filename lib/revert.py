@@ -244,7 +244,7 @@ class RevertWindow(SubProcessDialog):
         check the 'select all' checkbox if there are no files selectable.
         """
         checked = [ref.path for ref in self.filelist.tree_model.iter_checked()]
-        if not checked:
+        if (not self.has_pending_merges or not self.merges_groupbox.isChecked()) and not checked:
             warningbox = QtGui.QMessageBox.warning(self,
                 self.windowTitle(),
                 gettext("You have not selected anything to revert."))
