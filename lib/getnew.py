@@ -104,16 +104,44 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
                 new_val = os.path.join(new_val, tail)
         self.ui.to_location.setText(new_val)
 
+    def _get_from_location(self):
+        return unicode(self.ui.from_location.currentText())
+
+    def _get_to_location(self):
+        return unicode(self.ui.to_location.text())
+
+    def _is_checkout_action(self):
+        return self.ui.but_checkout.isChecked()
+
+    def validate(self):
+        if not self._get_from_location():
+            self.operation_blocked(gettext("You should specify branch source"))
+            return False
+        to_location = self._get_to_location()
+        if not to_location:
+            self.operation_blocked(gettext("You should select destination directory"))
+            return False
+        # This is a check if the user really wants to checkout to a non-empty directory.
+        # Because this may create conflicts, we want to make sure this is intended.
+        if os.path.exists(to_location) and os.listdir(to_location):
+            if self._is_checkout_action():
+                quiz = gettext("Do you really want to checkout into a non-empty folder?")
+            else:
+                quiz = gettext("Do you really want to branch into a non-empty folder?")
+            reason = gettext("The destination folder is not empty.\n"
+                             "Populating new working tree there may create conflicts.")
+            if not self.ask_confirmation(reason+'\n\n'+quiz, type='warning'):
+                return False
+        return True
+
     def do_start(self):
-        from_location = unicode(self.ui.from_location.currentText())
-        to_location = unicode(self.ui.to_location.text())
-        if not from_location or not to_location:
-            return
+        from_location = self._get_from_location()
+        to_location = self._get_to_location()
         revision_args = []
         if self.ui.but_rev_specific.isChecked() and self.ui.revision.text():
             revision_args.append('--revision='+unicode(self.ui.revision.text()))
 
-        if self.ui.but_checkout.isChecked():
+        if self._is_checkout_action():
             args = ['checkout']
             if self.ui.but_lightweight.isChecked():
                 args.append('--lightweight')
@@ -131,22 +159,3 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
 
         self.process_widget.do_start(None, *args)
         save_pull_location(None, from_location)
-
-    def validate(self):
-        # This is a check if the user really wants to checkout to a non-empty directory.
-        # Because this may create conflicts, we want to make sure this is intended.
-        to_location = unicode(self.ui.to_location.text())
-        if os.path.exists(to_location) and os.listdir(to_location):
-            if self.ui.but_checkout.isChecked():
-                msg = gettext("Do you really want to checkout into a non-empty folder?")
-            else:
-                msg = gettext("Do you really want to branch into a non-empty folder?")
-            choice = QtGui.QMessageBox.question(self,
-                self.windowTitle(),
-                msg,
-                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-                QtGui.QMessageBox.No)
-            if choice == QtGui.QMessageBox.No:
-                return False
-
-        return True

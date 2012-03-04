@@ -21,6 +21,7 @@
 # that examines the tree being updated and displays one of 2 dialogs
 # depending on if the tree is bound (ie, a checkout) or not.
 
+from bzrlib.plugins.qbzr.lib.i18n import gettext
 from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
 from bzrlib.plugins.qbzr.lib.ui_update_branch import Ui_UpdateBranchForm
 from bzrlib.plugins.qbzr.lib.ui_update_checkout import Ui_UpdateCheckoutForm
@@ -65,18 +66,27 @@ class UpdateBranchWindow(SubProcessDialog):
 
         self.ui.but_pull.setChecked(not not self.branch.get_parent())
 
+    def _is_pull_selected(self):
+        return self.ui.but_pull.isChecked()
+
+    def _get_pull_location(self):
+        return unicode(self.ui.location.currentText())
+
+    def validate(self):
+        if self._is_pull_selected() and not self._get_pull_location():
+            self.operation_blocked(gettext("You should specify source branch location"))
+            return False
+        return True
+
     def do_start(self):
-        if self.ui.but_pull.isChecked():
+        if self._is_pull_selected():
             # its a 'pull'
             args = ['--directory', self.branch.base]
             if self.ui.but_pull_overwrite.isChecked():
                 args.append('--overwrite')
             if self.ui.but_pull_remember.isChecked():
                 args.append('--remember')
-            location = unicode(self.ui.location.currentText())
-            if not location:
-                return
-
+            location = self._get_pull_location()
             self.process_widget.do_start(None, 'pull', location, *args)
             save_pull_location(self.branch, location)
         else:
@@ -119,16 +129,24 @@ class UpdateCheckoutWindow(SubProcessDialog):
         self.ui.label.setText(unicode(self.ui.label.text()) % loc)
         self.ui.but_pull.setChecked(False)
 
+    def _is_pull_selected(self):
+        return self.ui.but_pull.isChecked()
+
+    def _get_pull_location(self):
+        return unicode(self.ui.location.currentText())
+
+    def validate(self):
+        if self._is_pull_selected() and not self._get_pull_location():
+            self.operation_blocked(gettext("You should specify source branch location"))
+            return False
+        return True
+
     def do_start(self):
-        if self.ui.but_pull.isChecked():
+        if self._is_pull_selected():
             args = ['--directory', self.branch.base]
             if self.ui.but_pull_overwrite.isChecked():
                 args.append('--overwrite')
-            #if self.ui.but_pull_remember.isChecked():
-            #    args.append('--remember')
-            location = unicode(self.ui.location.currentText())
-            if not location:
-                return
+            location = self._get_pull_location()
             self.process_widget.do_start(None, 'pull', location, *args)
         else:
             # its an update.

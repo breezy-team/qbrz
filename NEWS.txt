@@ -18,6 +18,9 @@ This affects to all commands which use external diff.
      and `Take "OTHER"`. (Alexander Belchenko)
    * Auto-refresh conflicts list after selecting a resolve action.
      (Alexander Belchenko)
+ * qrevert:
+    * it now does a real check to see if there are files (or merges) selected to revert -
+      if not, it shows a warning message. (André Bachmann, Bug #942744)
 
 
 0.22.2 - in development

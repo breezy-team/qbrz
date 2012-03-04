@@ -143,10 +143,18 @@ class AddWindow(SubProcessDialog):
             change_load_filter=lambda c:not c.is_versioned())
         self.throbber.hide()
 
+    def _get_files_to_add(self):
+        return [ref.path for ref in self.filelist.tree_model.iter_checked()]
+
+    def validate(self):
+        if not self._get_files_to_add():
+            self.operation_blocked(gettext("Nothing selected to add"))
+            return False
+        return True
+
     def do_start(self):
         """Add the files."""
-        files = [ref.path for ref in self.filelist.tree_model.iter_checked()]
-        
+        files = self._get_files_to_add()
         self.process_widget.do_start(self.tree.basedir, "add", "--no-recurse",
             *files)
 

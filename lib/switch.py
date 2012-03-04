@@ -162,12 +162,11 @@ class QBzrSwitchWindow(SubProcessDialog):
             self.branch_combo.insertItem(0,fileName)
             self.branch_combo.setCurrentIndex(0)
 
-    @reports_exception(type=SUB_LOAD_METHOD)
-    @ui_current_widget   
     def validate(self):
         location = unicode(self.branch_combo.currentText())
         if not location:
-            raise errors.BzrCommandError("Branch location not specified.")
+            self.operation_blocked(gettext("Branch location not specified."))
+            return False
         return True
 
     def do_start(self):

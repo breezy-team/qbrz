@@ -66,14 +66,16 @@ class QBzrInitWindow(SubProcessDialog):
         opt = cmd.options()['no-trees']
         self.ui.but_no_trees.setToolTip(opt.help)
 
-    def do_start(self):
-        location = unicode(self.ui.location.text())
-        if not location:
-            self.process_widget.logMessage(gettext("You must specify a location"),
-                                           error=True)
-            self.on_failed('NoLocation')
-            return
+    def _get_location(self):
+        return unicode(self.ui.location.text())
 
+    def validate(self):
+        if not self._get_location():
+            self.operation_blocked(gettext("You should specify a location"))
+            return False
+        return True
+
+    def do_start(self):
         if self.ui.but_init.isChecked():
             args = ['init']
             if self.ui.but_append_only.isChecked():
@@ -84,7 +86,7 @@ class QBzrInitWindow(SubProcessDialog):
                 args.append('--no-trees')
         args.append('--format=' + self.ui.combo_format.currentText())
 
-        args.append(location)
+        args.append(self._get_location())
 
         self.process_widget.do_start(None, *args)
 

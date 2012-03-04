@@ -225,41 +225,50 @@ class RevertWindow(SubProcessDialog):
             self.filelist_checked_base = list(
                 self.filelist.tree_model.iter_checked())
 
+    def _is_revert_pending_merges(self):
+        """Return True if selected to revert pending merges,
+        False if not selected, None if there is no pending merges.
+        """
+        if not self.has_pending_merges:
+            return None
+        return bool(self.merges_groupbox.isChecked())
+
+    def _get_files_to_revert(self):
+        return [ref.path
+                for ref in self.filelist.tree_model.iter_checked(
+                    include_unchanged_dirs=False)
+                ]
+
     def validate(self):
-        if (self.has_pending_merges and
-            not self.merges_groupbox.isChecked() and
+        if (self._is_revert_pending_merges() is False and
             self.selectall_checkbox.checkState() == QtCore.Qt.Checked):
-            
-            button = QtGui.QMessageBox.question(self,
-                self.windowTitle(), 
-                gettext("You are reverting all changed paths without also "
-                        "reverting pending merges. Do you want to continue?"),
-                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-            if button == QtGui.QMessageBox.No:
+
+            if not self.ask_confirmation(
+                gettext("You have selected revert for all changed paths\n"
+                        "but keep pending merges.\n\n"
+                        "Do you want to continue?")
+                ):
                 return False
-        
-        if ((not self.has_pending_merges or
-             not self.merges_groupbox.isChecked()) and
-            self.selectall_checkbox.checkState() == QtCore.Qt.Unchecked):
-            raise errors.BzrCommandError(
-                "You have not selected anything to revert.")
+
+        # It doesn't matter if selectall_checkbox checkbox is activated or not -
+        # we really need to check if there are files selected, because you can
+        # check the 'select all' checkbox if there are no files selectable.
+        if not self._is_revert_pending_merges() and not self._get_files_to_revert():
+            self.operation_blocked(gettext("You have not selected anything to revert."))
+            return False
+
         return True
-    
+
     def do_start(self):
         """Revert the files."""
         args = ["revert"]
-        if (not self.has_pending_merges or
-            (self.has_pending_merges and
-             self.file_groupbox.isChecked() and
-             not self.merges_groupbox.isChecked())):
-            args.extend([ref.path
-                         for ref in self.filelist.tree_model.iter_checked(
-                            include_unchanged_dirs=False)])
-        if (self.has_pending_merges and
-            self.merges_groupbox.isChecked() and
+        if (self._is_revert_pending_merges() is None or
+            (self._is_revert_pending_merges() is False and
+             self.file_groupbox.isChecked())):
+            args.extend(self._get_files_to_revert())
+        if (self._is_revert_pending_merges() is True and
             not self.file_groupbox.isChecked()):
             args.append("--forget-merges")
-        
         if self.no_backup_checkbox.checkState():
             args.append("--no-backup")
         self.process_widget.do_start(self.tree.basedir, *args)
