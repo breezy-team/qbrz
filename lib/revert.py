@@ -225,9 +225,16 @@ class RevertWindow(SubProcessDialog):
             self.filelist_checked_base = list(
                 self.filelist.tree_model.iter_checked())
 
+    def _is_revert_pending_merges(self):
+        """Return True if selected to revert pending merges,
+        False if not selected, None if there is no pending merges.
+        """
+        if not self.has_pending_merges:
+            return None
+        return bool(self.merges_groupbox.isChecked())
+
     def validate(self):
-        if (self.has_pending_merges and
-            not self.merges_groupbox.isChecked() and
+        if (self._is_revert_pending_merges() is False and
             self.selectall_checkbox.checkState() == QtCore.Qt.Checked):
 
             if not self.ask_confirmation(
@@ -241,7 +248,7 @@ class RevertWindow(SubProcessDialog):
         # we really need to check if there are files selected, because you can
         # check the 'select all' checkbox if there are no files selectable.
         checked = [ref.path for ref in self.filelist.tree_model.iter_checked()]
-        if (not self.has_pending_merges or not self.merges_groupbox.isChecked()) and not checked:
+        if not self._is_revert_pending_merges() and not checked:
             self.operation_blocked(gettext("You have not selected anything to revert."))
             return False
 
@@ -250,18 +257,16 @@ class RevertWindow(SubProcessDialog):
     def do_start(self):
         """Revert the files."""
         args = ["revert"]
-        if (not self.has_pending_merges or
-            (self.has_pending_merges and
-             self.file_groupbox.isChecked() and
-             not self.merges_groupbox.isChecked())):
+        if (self._is_revert_pending_merges() is None or
+            (self._is_revert_pending_merges() is False and
+             self.file_groupbox.isChecked())):
             args.extend([ref.path
                          for ref in self.filelist.tree_model.iter_checked(
                             include_unchanged_dirs=False)])
-        if (self.has_pending_merges and
-            self.merges_groupbox.isChecked() and
+        if (self._is_revert_pending_merges() is True and
             not self.file_groupbox.isChecked()):
             args.append("--forget-merges")
-        
+
         if self.no_backup_checkbox.checkState():
             args.append("--no-backup")
         self.process_widget.do_start(self.tree.basedir, *args)
