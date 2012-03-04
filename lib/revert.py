@@ -233,6 +233,12 @@ class RevertWindow(SubProcessDialog):
             return None
         return bool(self.merges_groupbox.isChecked())
 
+    def _get_files_to_revert(self):
+        return [ref.path
+                for ref in self.filelist.tree_model.iter_checked(
+                    include_unchanged_dirs=False)
+                ]
+
     def validate(self):
         if (self._is_revert_pending_merges() is False and
             self.selectall_checkbox.checkState() == QtCore.Qt.Checked):
@@ -247,8 +253,7 @@ class RevertWindow(SubProcessDialog):
         # It doesn't matter if selectall_checkbox checkbox is activated or not -
         # we really need to check if there are files selected, because you can
         # check the 'select all' checkbox if there are no files selectable.
-        checked = [ref.path for ref in self.filelist.tree_model.iter_checked()]
-        if not self._is_revert_pending_merges() and not checked:
+        if not self._is_revert_pending_merges() and not self._get_files_to_revert():
             self.operation_blocked(gettext("You have not selected anything to revert."))
             return False
 
@@ -260,13 +265,10 @@ class RevertWindow(SubProcessDialog):
         if (self._is_revert_pending_merges() is None or
             (self._is_revert_pending_merges() is False and
              self.file_groupbox.isChecked())):
-            args.extend([ref.path
-                         for ref in self.filelist.tree_model.iter_checked(
-                            include_unchanged_dirs=False)])
+            args.extend(self._get_files_to_revert())
         if (self._is_revert_pending_merges() is True and
             not self.file_groupbox.isChecked()):
             args.append("--forget-merges")
-
         if self.no_backup_checkbox.checkState():
             args.append("--no-backup")
         self.process_widget.do_start(self.tree.basedir, *args)
