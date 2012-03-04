@@ -237,11 +237,14 @@ class RevertWindow(SubProcessDialog):
                 ):
                 return False
 
-        if ((not self.has_pending_merges or
-             not self.merges_groupbox.isChecked()) and
-            self.selectall_checkbox.checkState() == QtCore.Qt.Unchecked):
-                self.operation_blocked(gettext("You have not selected anything to revert."))
-                return False
+        # It doesn't matter if selectall_checkbox checkbox is activated or not -
+        # we really need to check if there are files selected, because you can
+        # check the 'select all' checkbox if there are no files selectable.
+        checked = [ref.path for ref in self.filelist.tree_model.iter_checked()]
+        if (not self.has_pending_merges or not self.merges_groupbox.isChecked()) and not checked:
+            self.operation_blocked(gettext("You have not selected anything to revert."))
+            return False
+
         return True
 
     def do_start(self):
