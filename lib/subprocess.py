@@ -27,7 +27,7 @@ from PyQt4 import QtCore, QtGui
 
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
-from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     BTN_CLOSE,
@@ -76,6 +76,44 @@ SUB_GETBOOL = "qbzr:GETBOOL:"
 SUB_CHOOSE = "qbzr:CHOOSE:"
 SUB_ERROR = "qbzr:ERROR:"
 
+
+class WarningInfoWidget(InfoWidget):
+    def __init__(self, parent):
+        InfoWidget.__init__(self, parent)
+        layout = QtGui.QHBoxLayout(self)
+        
+        icon = QtGui.QLabel()
+        icon.setPixmap(self.style().standardPixmap(
+                       QtGui.QStyle.SP_MessageBoxWarning))
+        layout.addWidget(icon)
+        self.label = QtGui.QLabel()
+        layout.addWidget(self.label, 2)
+        self.button_layout = QtGui.QVBoxLayout()
+        layout.addLayout(self.button_layout)
+
+        self.buttons = []
+
+    def add_button(self, text, on_click):
+        button = QtGui.QPushButton(gettext(text))
+        self.connect(button, QtCore.SIGNAL("clicked(bool)"), on_click)
+        self.button_layout.addWidget(button)
+        self.buttons.append((button, on_click))
+
+    def remove_all_buttons(self):
+        for button, on_click in self.buttons:
+            self.disconnect(button, QtCore.SIGNAL("clicked(bool)"), on_click)
+            self.button_layout.removeWidget(button)
+            button.close()
+        del(self.buttons[:])
+
+    def set_label(self, text):
+        self.label.setText(gettext(text))
+
+    def setup_for_uncommitted(self, on_commit, on_revert):
+        self.remove_all_buttons()
+        self.set_label(N_('Working tree has uncommitted changes.'))
+        self.add_button(N_('Commit'), on_commit)
+        self.add_button(N_('Revert'), on_revert)
 
 class SubProcessWindowBase(object):
 
@@ -164,30 +202,10 @@ class SubProcessWindowBase(object):
         self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.do_reject)
         self.closeButton.setHidden(True) # but 'close' starts as hidden.
 
-        self.uncommitted_info = InfoWidget(self)
-        uncommitted_info_layout = QtGui.QHBoxLayout(self.uncommitted_info)
-        
-        # XXX this is to big. Resize
-        uncommitted_info_icon = QtGui.QLabel()
-        uncommitted_info_icon.setPixmap(self.style().standardPixmap(
-            QtGui.QStyle.SP_MessageBoxWarning))
-        uncommitted_info_layout.addWidget(uncommitted_info_icon)
-        
-        uncommitted_info_label = QtGui.QLabel(gettext(
-            'Working tree has uncommitted changes.'))
-        uncommitted_info_layout.addWidget(uncommitted_info_label, 2)
-        uncommitted_info_button_layout = QtGui.QVBoxLayout()
-        uncommitted_info_layout.addLayout(uncommitted_info_button_layout)
-        commit_button = QtGui.QPushButton(gettext('Commit'))
-        self.connect(commit_button, QtCore.SIGNAL("clicked(bool)"),
-                     self.open_commit_win)
-        uncommitted_info_button_layout.addWidget(commit_button)
-        
-        revert_button = QtGui.QPushButton(gettext('Revert'))
-        self.connect(revert_button, QtCore.SIGNAL("clicked(bool)"),
-                     self.open_revert_win)
-        uncommitted_info_button_layout.addWidget(revert_button)
-        self.uncommitted_info.hide()
+        self.infowidget = WarningInfoWidget(self)
+        self.infowidget.setup_for_uncommitted(self.open_commit_win, 
+                                              self.open_revert_win)
+        self.infowidget.hide()
         if immediate:
             self.do_accept()
 
@@ -204,7 +222,7 @@ class SubProcessWindowBase(object):
         Button box has 2 buttons: OK and Cancel (after successfull command 
         execution there will be Close and Cancel).
         """
-        yield self.uncommitted_info
+        yield self.infowidget
         yield self.make_default_status_box()
         yield self.buttonbox
 
@@ -268,7 +286,7 @@ class SubProcessWindowBase(object):
         
         if error=='UncommittedChanges':
             self.action_url = self.process_widget.error_data['display_url']
-            self.uncommitted_info.show()
+            self.infowidget.show()
 
     def on_error(self):
         self.emit(QtCore.SIGNAL("subprocessError(bool)"), False)
@@ -286,7 +304,7 @@ class SubProcessWindowBase(object):
         commit_window.show()
         QtCore.QObject.connect(commit_window,
                                QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self.uncommitted_info,
+                               self.infowidget,
                                QtCore.SLOT("setHidden(bool)"))
     
     def open_revert_win(self, b):
@@ -297,7 +315,7 @@ class SubProcessWindowBase(object):
         revert_window.show()
         QtCore.QObject.connect(revert_window,
                                QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self.uncommitted_info,
+                               self.infowidget,
                                QtCore.SLOT("setHidden(bool)")) 
 
 class SubProcessWindow(SubProcessWindowBase, QBzrWindow):
