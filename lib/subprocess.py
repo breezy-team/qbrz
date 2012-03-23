@@ -65,6 +65,7 @@ from bzrlib.bzrdir import BzrDir
 
 from bzrlib.plugins.qbzr.lib.commit import CommitWindow
 from bzrlib.plugins.qbzr.lib.revert import RevertWindow
+from bzrlib.plugins.qbzr.lib.shelvewindow import ShelveWindow
 from bzrlib.plugins.qbzr.lib.conflicts import ConflictsWindow
 ''')
 
@@ -113,11 +114,12 @@ class WarningInfoWidget(InfoWidget):
     def set_label(self, text):
         self.label.setText(gettext(text))
 
-    def setup_for_uncommitted(self, on_commit, on_revert):
+    def setup_for_uncommitted(self, on_commit, on_revert, on_shelve):
         self.remove_all_buttons()
         self.set_label(N_('Working tree has uncommitted changes.'))
         self.add_button(N_('Commit'), on_commit)
         self.add_button(N_('Revert'), on_revert)
+        self.add_button(N_('Shelve'), on_shelve)
 
     def setup_for_conflicted(self, on_conflict, on_revert):
         self.remove_all_buttons()
@@ -310,7 +312,8 @@ class SubProcessWindowBase(object):
         if error=='UncommittedChanges':
             self.action_url = self.process_widget.error_data['display_url']
             self.infowidget.setup_for_uncommitted(self.open_commit_win, 
-                                                  self.open_revert_win)
+                                                  self.open_revert_win,
+                                                  self.open_shelve_win)
             self.infowidget.show()
 
     def on_error(self):
@@ -342,6 +345,11 @@ class SubProcessWindowBase(object):
                                QtCore.SIGNAL("subprocessFinished(bool)"),
                                self.infowidget,
                                QtCore.SLOT("setHidden(bool)")) 
+
+    def open_shelve_win(self, b):
+        shelve_window = ShelveWindow(directory=self.action_url, parent=self)
+        self.windows.append(shelve_window)
+        shelve_window.show()
 
     def open_conflicts_win(self, b):
         window = ConflictsWindow(self.action_url, parent=self)
