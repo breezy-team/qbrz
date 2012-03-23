@@ -324,7 +324,7 @@ class SubProcessWindowBase(object):
     def open_commit_win(self, b):
         # XXX refactor so that the tree can be opened by the window
         tree, branch = BzrDir.open_tree_or_branch(self.action_url)
-        commit_window = CommitWindow(tree, None)
+        commit_window = CommitWindow(tree, None, parent=self)
         self.windows.append(commit_window)
         commit_window.show()
         QtCore.QObject.connect(commit_window,
@@ -335,7 +335,7 @@ class SubProcessWindowBase(object):
     def open_revert_win(self, b):
         # XXX refactor so that the tree can be opened by the window
         tree, branch = BzrDir.open_tree_or_branch(self.action_url)
-        revert_window = RevertWindow(tree, None)
+        revert_window = RevertWindow(tree, None, parent=self)
         self.windows.append(revert_window)
         revert_window.show()
         QtCore.QObject.connect(revert_window,
@@ -344,7 +344,7 @@ class SubProcessWindowBase(object):
                                QtCore.SLOT("setHidden(bool)")) 
 
     def open_conflicts_win(self, b):
-        window = ConflictsWindow(self.action_url, None)
+        window = ConflictsWindow(self.action_url, parent=self)
         self.windows.append(window)
         window.show()
         QtCore.QObject.connect(window,
