@@ -347,6 +347,10 @@ class SubProcessWindowBase(object):
         window = ConflictsWindow(self.action_url, None)
         self.windows.append(window)
         window.show()
+        QtCore.QObject.connect(window,
+                               QtCore.SIGNAL("allResolved(bool)"),
+                               self.infowidget,
+                               QtCore.SLOT("setHidden(bool)")) 
 
 class SubProcessWindow(SubProcessWindowBase, QBzrWindow):
 

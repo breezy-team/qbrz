@@ -177,6 +177,9 @@ class ConflictsWindow(QBzrWindow):
             item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(conflict.file_id or ''))  # file_id is None for non-versioned items, so we force it to be empty string to avoid Qt error
             item.setData(1, QtCore.Qt.UserRole, QtCore.QVariant(conflict.typestring))
             items.append(item)
+
+        if len(items) == 0 and self.conflicts_list.topLevelItemCount() > 0:
+            self.emit(QtCore.SIGNAL("allResolved(bool)"), True)
         self.conflicts_list.clear()
         self.conflicts_list.addTopLevelItems(items)
 
