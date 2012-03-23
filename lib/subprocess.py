@@ -85,15 +85,18 @@ NOTIFY_CONFLICT = "conflict:"
 class WarningInfoWidget(InfoWidget):
     def __init__(self, parent):
         InfoWidget.__init__(self, parent)
-        layout = QtGui.QHBoxLayout(self)
+        layout = QtGui.QVBoxLayout(self)
+        label_layout = QtGui.QHBoxLayout()
         
         icon = QtGui.QLabel()
         icon.setPixmap(self.style().standardPixmap(
                        QtGui.QStyle.SP_MessageBoxWarning))
-        layout.addWidget(icon)
+        label_layout.addWidget(icon)
         self.label = QtGui.QLabel()
-        layout.addWidget(self.label, 2)
-        self.button_layout = QtGui.QVBoxLayout()
+        label_layout.addWidget(self.label, 2)
+        layout.addLayout(label_layout)
+        self.button_layout = QtGui.QHBoxLayout()
+        self.button_layout.addStretch(1)
         layout.addLayout(self.button_layout)
 
         self.buttons = []
