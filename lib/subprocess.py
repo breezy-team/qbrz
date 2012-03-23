@@ -330,10 +330,6 @@ class SubProcessWindowBase(object):
         commit_window = CommitWindow(tree, None, parent=self)
         self.windows.append(commit_window)
         commit_window.show()
-        QtCore.QObject.connect(commit_window,
-                               QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self.infowidget,
-                               QtCore.SLOT("setHidden(bool)"))
     
     def open_revert_win(self, b):
         # XXX refactor so that the tree can be opened by the window
@@ -341,10 +337,6 @@ class SubProcessWindowBase(object):
         revert_window = RevertWindow(tree, None, parent=self)
         self.windows.append(revert_window)
         revert_window.show()
-        QtCore.QObject.connect(revert_window,
-                               QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self.infowidget,
-                               QtCore.SLOT("setHidden(bool)")) 
 
     def open_shelve_win(self, b):
         shelve_window = ShelveWindow(directory=self.action_url, parent=self)
