@@ -8,6 +8,9 @@ Behavior change: External diff behavior is changed as below.(IWATA Hidetaka)
 This affects to all commands which use external diff. 
 (qdiff, qcommit, qbrowse, qannotate, ...)
 
+Now, you can launch 'Shelve' directly from each dialog when uncommitted change blocks action.
+And you can launch 'Resolve' directly when conflicts generated. (IWATA Hidetaka #935903)
+
  * qannotate:
    * New command-line option `--line=N` (`-L`) to activate specified 
      line number on start of dialog. (Alexander Belchenko)
