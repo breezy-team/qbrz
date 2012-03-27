@@ -24,10 +24,10 @@ import os
 import sys
 
 from PyQt4 import QtCore, QtGui
-
+from contextlib import contextmanager
 
 from bzrlib.plugins.qbzr.lib import MS_WINDOWS
-from bzrlib.plugins.qbzr.lib.i18n import gettext
+from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
 from bzrlib.plugins.qbzr.lib.util import (
     BTN_CANCEL,
     BTN_CLOSE,
@@ -65,6 +65,8 @@ from bzrlib.bzrdir import BzrDir
 
 from bzrlib.plugins.qbzr.lib.commit import CommitWindow
 from bzrlib.plugins.qbzr.lib.revert import RevertWindow
+from bzrlib.plugins.qbzr.lib.shelvewindow import ShelveWindow
+from bzrlib.plugins.qbzr.lib.conflicts import ConflictsWindow
 ''')
 
 
@@ -75,7 +77,58 @@ SUB_GETUSER = "qbzr:GETUSER:"
 SUB_GETBOOL = "qbzr:GETBOOL:"
 SUB_CHOOSE = "qbzr:CHOOSE:"
 SUB_ERROR = "qbzr:ERROR:"
+SUB_NOTIFY = "qbzr:NOTIFY:"
 
+NOTIFY_CONFLICT = "conflict:"
+
+
+class WarningInfoWidget(InfoWidget):
+    def __init__(self, parent):
+        InfoWidget.__init__(self, parent)
+        layout = QtGui.QVBoxLayout(self)
+        label_layout = QtGui.QHBoxLayout()
+        
+        icon = QtGui.QLabel()
+        icon.setPixmap(self.style().standardPixmap(
+                       QtGui.QStyle.SP_MessageBoxWarning))
+        label_layout.addWidget(icon)
+        self.label = QtGui.QLabel()
+        label_layout.addWidget(self.label, 2)
+        layout.addLayout(label_layout)
+        self.button_layout = QtGui.QHBoxLayout()
+        self.button_layout.addStretch(1)
+        layout.addLayout(self.button_layout)
+
+        self.buttons = []
+
+    def add_button(self, text, on_click):
+        button = QtGui.QPushButton(gettext(text))
+        self.connect(button, QtCore.SIGNAL("clicked(bool)"), on_click)
+        self.button_layout.addWidget(button)
+        self.buttons.append((button, on_click))
+
+    def remove_all_buttons(self):
+        for button, on_click in self.buttons:
+            self.disconnect(button, QtCore.SIGNAL("clicked(bool)"), on_click)
+            self.button_layout.removeWidget(button)
+            button.close()
+        del(self.buttons[:])
+
+    def set_label(self, text):
+        self.label.setText(gettext(text))
+
+    def setup_for_uncommitted(self, on_commit, on_revert, on_shelve):
+        self.remove_all_buttons()
+        self.set_label(N_('Working tree has uncommitted changes.'))
+        self.add_button(N_('Commit'), on_commit)
+        self.add_button(N_('Revert'), on_revert)
+        self.add_button(N_('Shelve'), on_shelve)
+
+    def setup_for_conflicted(self, on_conflict, on_revert):
+        self.remove_all_buttons()
+        self.set_label(N_('Working tree has conflicts.'))
+        self.add_button(N_('Resolve'), on_conflict)
+        self.add_button(N_('Revert'), on_revert)
 
 class SubProcessWindowBase(object):
 
@@ -112,6 +165,9 @@ class SubProcessWindowBase(object):
         self.connect(self.process_widget,
             QtCore.SIGNAL("error()"),
             self.on_error)
+        self.connect(self.process_widget,
+            QtCore.SIGNAL("conflicted(QString)"),
+            self.on_conflicted)
 
         self.closeButton = StandardButton(BTN_CLOSE)
         self.okButton = StandardButton(BTN_OK)
@@ -164,30 +220,13 @@ class SubProcessWindowBase(object):
         self.connect(self.buttonbox, QtCore.SIGNAL("rejected()"), self.do_reject)
         self.closeButton.setHidden(True) # but 'close' starts as hidden.
 
-        self.uncommitted_info = InfoWidget(self)
-        uncommitted_info_layout = QtGui.QHBoxLayout(self.uncommitted_info)
-        
-        # XXX this is to big. Resize
-        uncommitted_info_icon = QtGui.QLabel()
-        uncommitted_info_icon.setPixmap(self.style().standardPixmap(
-            QtGui.QStyle.SP_MessageBoxWarning))
-        uncommitted_info_layout.addWidget(uncommitted_info_icon)
-        
-        uncommitted_info_label = QtGui.QLabel(gettext(
-            'Working tree has uncommitted changes.'))
-        uncommitted_info_layout.addWidget(uncommitted_info_label, 2)
-        uncommitted_info_button_layout = QtGui.QVBoxLayout()
-        uncommitted_info_layout.addLayout(uncommitted_info_button_layout)
-        commit_button = QtGui.QPushButton(gettext('Commit'))
-        self.connect(commit_button, QtCore.SIGNAL("clicked(bool)"),
-                     self.open_commit_win)
-        uncommitted_info_button_layout.addWidget(commit_button)
-        
-        revert_button = QtGui.QPushButton(gettext('Revert'))
-        self.connect(revert_button, QtCore.SIGNAL("clicked(bool)"),
-                     self.open_revert_win)
-        uncommitted_info_button_layout.addWidget(revert_button)
-        self.uncommitted_info.hide()
+        self.infowidget = WarningInfoWidget(self)
+        self.infowidget.hide()
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("subprocessStarted(bool)"),
+                               self.infowidget,
+                               QtCore.SLOT("setHidden(bool)"))
+
         if immediate:
             self.do_accept()
 
@@ -204,7 +243,7 @@ class SubProcessWindowBase(object):
         Button box has 2 buttons: OK and Cancel (after successfull command 
         execution there will be Close and Cancel).
         """
-        yield self.uncommitted_info
+        yield self.infowidget
         yield self.make_default_status_box()
         yield self.buttonbox
 
@@ -259,8 +298,15 @@ class SubProcessWindowBase(object):
 
         self.return_code = 0
 
-        if not self.ui_mode:
+        if not self.ui_mode and not self.infowidget.isVisible():
             self.close()
+
+    def on_conflicted(self, tree_path):
+        if tree_path:
+            self.action_url = unicode(tree_path) # QString -> unicode
+            self.infowidget.setup_for_conflicted(self.open_conflicts_win,
+                                                 self.open_revert_win)
+            self.infowidget.show()
 
     def on_failed(self, error):
         self.emit(QtCore.SIGNAL("subprocessFailed(bool)"), False)
@@ -268,7 +314,10 @@ class SubProcessWindowBase(object):
         
         if error=='UncommittedChanges':
             self.action_url = self.process_widget.error_data['display_url']
-            self.uncommitted_info.show()
+            self.infowidget.setup_for_uncommitted(self.open_commit_win, 
+                                                  self.open_revert_win,
+                                                  self.open_shelve_win)
+            self.infowidget.show()
 
     def on_error(self):
         self.emit(QtCore.SIGNAL("subprocessError(bool)"), False)
@@ -281,23 +330,29 @@ class SubProcessWindowBase(object):
     def open_commit_win(self, b):
         # XXX refactor so that the tree can be opened by the window
         tree, branch = BzrDir.open_tree_or_branch(self.action_url)
-        commit_window = CommitWindow(tree, None)
+        commit_window = CommitWindow(tree, None, parent=self)
         self.windows.append(commit_window)
         commit_window.show()
-        QtCore.QObject.connect(commit_window,
-                               QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self.uncommitted_info,
-                               QtCore.SLOT("setHidden(bool)"))
     
     def open_revert_win(self, b):
         # XXX refactor so that the tree can be opened by the window
         tree, branch = BzrDir.open_tree_or_branch(self.action_url)
-        revert_window = RevertWindow(tree, None)
+        revert_window = RevertWindow(tree, None, parent=self)
         self.windows.append(revert_window)
         revert_window.show()
-        QtCore.QObject.connect(revert_window,
-                               QtCore.SIGNAL("subprocessFinished(bool)"),
-                               self.uncommitted_info,
+
+    def open_shelve_win(self, b):
+        shelve_window = ShelveWindow(directory=self.action_url, parent=self)
+        self.windows.append(shelve_window)
+        shelve_window.show()
+
+    def open_conflicts_win(self, b):
+        window = ConflictsWindow(self.action_url, parent=self)
+        self.windows.append(window)
+        window.show()
+        QtCore.QObject.connect(window,
+                               QtCore.SIGNAL("allResolved(bool)"),
+                               self.infowidget,
                                QtCore.SLOT("setHidden(bool)")) 
 
 class SubProcessWindow(SubProcessWindowBase, QBzrWindow):
@@ -489,6 +544,7 @@ class SubProcessWidget(QtGui.QWidget):
         self._args_file = None  # temp file to pass arguments to qsubprocess
         self.error_class = ''
         self.error_data = {}
+        self.conflicted = False
 
     def hide_progress(self):
         self.progressMessage.setHidden(True)
@@ -691,6 +747,11 @@ class SubProcessWidget(QtGui.QWidget):
             elif line.startswith(SUB_ERROR):
                 self.error_class, self.error_data = bdecode_exception_instance(
                     line[len(SUB_ERROR):])
+            elif line.startswith(SUB_NOTIFY):
+                msg = line[len(SUB_NOTIFY):]
+                if msg.startswith(NOTIFY_CONFLICT):
+                    self.conflicted = True
+                    self.conflict_tree_path = bdecode_prompt(msg[len(NOTIFY_CONFLICT):])
             else:
                 line = line.decode(self.encoding, 'replace')
                 self.logMessageEx(line, 'plain', self.stdout)
@@ -758,6 +819,9 @@ class SubProcessWidget(QtGui.QWidget):
             else:
                 self.finished = True
                 self.setProgress(1000000, [gettext("Finished!")])
+                if self.conflicted:
+                    self.emit(QtCore.SIGNAL("conflicted(QString)"), 
+                              self.conflict_tree_path)
                 self.emit(QtCore.SIGNAL("finished()"))
         else:
             self.setProgress(1000000, [gettext("Failed!")])
@@ -887,6 +951,30 @@ class SubprocessUIFactory(TextUIFactory):
 # to see annotation of cmd_qsubprocess before move use:
 #     bzr qannotate commands.py -r1117
 
+@contextmanager
+def watch_conflicts(on_conflicted):
+    """
+    Call on_conflicted when conflicts generated in the context.
+    :on_conflicted: callable with 1 argument(abspath of wt).
+    """
+    from uuid import uuid1
+    hook_name = uuid1().hex
+
+    def post_merge(m):
+        if len(m.cooked_conflicts) > 0:
+            try:
+                abspath = m.this_tree.abspath('')
+            except AttributeError:
+                abspath = ""
+            on_conflicted(abspath)
+
+    try:
+        from bzrlib.merge import Merger
+        Merger.hooks.install_named_hook('post_merge', post_merge, hook_name)
+        yield
+    finally:
+        Merger.hooks.uninstall_named_hook('post_merge', hook_name)
+
 def run_subprocess_command(cmd, bencoded=False):
     """The actual body of qsubprocess.
     Running specified bzr command in the subprocess.
@@ -917,7 +1005,10 @@ def run_subprocess_command(cmd, bencoded=False):
     else:
         argv = [unicode(p, 'utf-8') for p in bencode.bdecode(cmd_utf8)]
     try:
-        return commands.run_bzr(argv)
+        def on_conflicted(wtpath):
+            print "%s%s%s" % (SUB_NOTIFY, NOTIFY_CONFLICT, bencode_prompt(wtpath))
+        with watch_conflicts(on_conflicted):
+            return commands.run_bzr(argv)
     except (KeyboardInterrupt, SystemExit):
         raise
     except Exception, e:
