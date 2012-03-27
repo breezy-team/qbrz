@@ -1034,8 +1034,8 @@ class HunkTextBrowser(QtGui.QTextBrowser):
 
         self.draw_background(rect, painter, scroll_y)
 
-        QtGui.QTextBrowser.paintEvent(self, event) 
         del painter
+        QtGui.QTextBrowser.paintEvent(self, event) 
 
     def draw_background(self, rect, painter, offset):
         left, right, width = rect.left(), rect.right(), rect.width()
