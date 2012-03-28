@@ -1390,7 +1390,7 @@ msgstr "&Изменить"
 
 #: lib\run.py:167
 msgid "Help for command"
-msgstr "Помощь по комманде"
+msgstr "Справка для выбранной команды"
 
 #: lib\run.py:284
 msgid "Select path to insert"
