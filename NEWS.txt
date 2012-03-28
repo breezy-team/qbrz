@@ -28,7 +28,11 @@ And you can launch 'Resolve' directly when conflicts generated. (IWATA Hidetaka 
 
 0.22.2 - in development
 -----------------------
+Maintenance release.
 
+ * qrun:
+   * Localized help text for selected command is shown correctly now.
+     (Alexander Belchenko, Bug #963542)
  * qshelve:
    * Pressing Ctrl+Enter in message edit area triggers shelve action.
      (IWATA Hidetaka, Bug #936982)
