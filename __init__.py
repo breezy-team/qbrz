@@ -2,7 +2,7 @@
 #
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2008 Lukáš Lalinský <lalinsky@gmail.com>
-# Copyright (C) 2009, 2010 QBzr Developers
+# Copyright (C) 2009, 2010, 2011, 2012 QBzr Developers
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -37,6 +37,7 @@ Basic q-commands:
  * qconflicts - Show conflicts.
  * qdiff - Show differences in working tree in a GUI window.
  * qexport - Export current or past revision to a destination directory or archive.
+ * qignore - Ignore files or patterns.
  * qinfo - Shows information about the current location.
  * qinit - Initializes a new branch or shared repository.
  * qlog - Show log of a repository, branch, file, or directory in a Qt window.
@@ -73,7 +74,7 @@ Miscellaneous:
 
 from __future__ import absolute_import
 
-version_info = (0, 22, 0, 'dev', 0)
+version_info = (0, 23, 0, 'dev', 0)
 __version__ = '.'.join(map(str, version_info))
 
 
@@ -125,6 +126,7 @@ lazy_commands = (
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetnew', ['qgetn']),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetupdates', ['qgetu', 'qgetup']),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qhelp', []),
+    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qignore', []),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinfo', []),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinit', []),
     ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qlog', []),

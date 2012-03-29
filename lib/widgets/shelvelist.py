@@ -52,15 +52,17 @@ from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
 from bzrlib.plugins.qbzr.lib.trace import reports_exception
 from bzrlib.plugins.qbzr.lib.logwidget import LogList
 from bzrlib.plugins.qbzr.lib.decorators import lazy_call
+from bzrlib.plugins.qbzr.lib.widgets.texteditaccessory import setup_guidebar_for_find
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
 from bzrlib import transform
 from bzrlib.workingtree import WorkingTree
 from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
-from bzrlib.plugins.qbzr.lib.diffwindow import DiffItem
+from bzrlib.plugins.qbzr.lib.diff import DiffItem
 from bzrlib.shelf import Unshelver
 from bzrlib.shelf_ui import Unshelver as Unshelver_ui
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
+import sip
 ''')
 
 class ShelveListWidget(ToolbarPanel):
@@ -128,10 +130,13 @@ class ShelveListWidget(ToolbarPanel):
                 N_("&View Options"), view_menu, icon_name="document-properties",
                 shortcut="Alt+V")
 
-        self.find_toolbar = FindToolbar(self, self.diffviews[0].browsers[0], show_find)
+        self.find_toolbar = FindToolbar(self, self.diffviews[0].browsers, show_find)
         diff_panel.add_widget(self.find_toolbar)
         diff_panel.add_widget(self.stack)
         self.find_toolbar.hide()
+        for gb in self.diffviews[0].guidebar_panels:
+            setup_guidebar_for_find(gb, self.find_toolbar, 1)
+        setup_guidebar_for_find(self.diffviews[1], self.find_toolbar, 1)
 
         # Layout widgets
         self.splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
@@ -328,19 +333,8 @@ class ShelveListWidget(ToolbarPanel):
 
     def load_diff(self, tree, base_tree):
         self.file_view.clear()
-
-        changes = tree.iter_changes(base_tree)
-
-        def changes_key(change):
-            return change[1][1] or change[1][0]
         
-        for (file_id, paths, changed_content, versioned, parent, 
-                name, kind, executable) in sorted(changes, key=changes_key):
-            di = DiffItem.create([base_tree, tree], file_id, paths, changed_content,
-                    versioned, parent, name, kind, executable)
-            if not di:
-                continue
-
+        for di in DiffItem.iter_items((base_tree, tree), lock_trees=False):
             di.load()
 
             old_path, new_path = di.paths
@@ -370,6 +364,8 @@ class ShelveListWidget(ToolbarPanel):
     @lazy_call(100, per_instance=True)
     @runs_in_loading_queue
     def _show_selected_diff(self):
+        if sip.isdeleted(self):
+            return
         self._interrupt_switch = False 
         try:
             refresh = self._need_refresh
@@ -405,6 +401,8 @@ class ShelveListWidget(ToolbarPanel):
                     break
         finally:
             self._interrupt_switch = False
+            for view in self.diffviews[0].browsers + (self.diffviews[1],):
+                view.emit(QtCore.SIGNAL("documentChangeFinished()"))
 
     def selected_shelve_changed(self):
         self._change_current_shelve()
@@ -412,6 +410,8 @@ class ShelveListWidget(ToolbarPanel):
     @lazy_call(100, per_instance=True)
     @runs_in_loading_queue
     def _change_current_shelve(self):
+        if sip.isdeleted(self):
+            return
         items = self.shelve_view.selectedItems()
         if len(items) != 1:
             self.shelf_id = None
@@ -451,11 +451,11 @@ class ShelveListWidget(ToolbarPanel):
     def unidiff_toggled(self, state):
         index = 1 if state else 0
         self.diffviews[index].rewind()
-        self.stack.setCurrentIndex(index)
         if index == 0:
-            self.find_toolbar.text_edit = self.diffviews[0].browsers[0]
+            self.find_toolbar.set_text_edits(self.diffviews[0].browsers)
         else:
-            self.find_toolbar.text_edit = self.diffviews[1]
+            self.find_toolbar.set_text_edits([self.diffviews[1].view])
+        self.stack.setCurrentIndex(index)
 
     def complete_toggled(self, state):
         self.complete = state
@@ -520,7 +520,7 @@ class ShelveListWidget(ToolbarPanel):
     def eventFilter(self, object, event):
         if event.type() == QtCore.QEvent.FocusIn:
             if object in self.diffviews[0].browsers:
-                self.find_toolbar.text_edit = object
+                self.find_toolbar.set_text_edit(object)
         return ToolbarPanel.eventFilter(self, object, event)
     
     def load_settings(self):

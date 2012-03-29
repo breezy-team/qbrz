@@ -90,9 +90,7 @@ class TextEdit(QtGui.QTextEdit):
             and e_key in (QtCore.Qt.Key_Enter, QtCore.Qt.Key_Return)
             and (int(e.modifiers()) & QtCore.Qt.ControlModifier)):
                 e.ignore()
-                # FIXME probably this is ugly hack and main qcommit window
-                # should explicitly catch Ctrl+Enter by self
-                self.main_window.do_accept()
+                self.emit(QtCore.SIGNAL("messageEntered()"))
                 return
 
         isShortcut = e.modifiers() & QtCore.Qt.ControlModifier and e.key() == QtCore.Qt.Key_E
@@ -344,6 +342,8 @@ class CommitWindow(SubProcessDialog):
         # Equivalent for 'bzr commit --message'
         self.message = TextEdit(spell_checker, message_groupbox, main_window=self)
         self.message.setToolTip(gettext("Enter the commit message"))
+        self.connect(self.message, QtCore.SIGNAL("messageEntered()"),
+                     self.do_accept)
         self.completer = QtGui.QCompleter()
         self.completer_model = QtGui.QStringListModel(self.completer)
         self.completer.setModel(self.completer_model)
@@ -626,65 +626,54 @@ class CommitWindow(SubProcessDialog):
             return
         self.ci_data.wipe()
 
+    def _get_message(self):
+        return unicode(self.message.toPlainText()).strip()
+
+    def _get_selected_files(self):
+        """Return (has_files_to_commit[bool], files_to_commit[list], files_to_add[list])"""
+        if self.has_pending_merges:
+            return True, [], []
+
+        files_to_commit = []
+        files_to_add = []
+        for ref in self.filelist.tree_model.iter_checked():
+            if ref.file_id is None:
+                files_to_add.append(ref.path)
+            files_to_commit.append(ref.path)
+
+        if not files_to_commit:
+            return False, [], []
+        else:
+            return True, files_to_commit, files_to_add
+
+    def validate(self):
+        if not self._get_message():
+            self.operation_blocked(gettext("You should provide a commit message."))
+            self.message.setFocus()
+            return False
+        if not self._get_selected_files()[0]:
+            if not self.ask_confirmation(gettext("No changes selected to commit.\n"
+                                                 "Do you want to commit anyway?")):
+                return False
+        return True
+
     def do_start(self):
         args = ["commit"]
-        files_to_add = ["add", "--no-recurse"]
-        add_cmd_len = len(files_to_add)
-        
-        message = unicode(self.message.toPlainText()).strip() 
-        if not message: 
-            QtGui.QMessageBox.warning(self,
-                "QBzr - " + gettext("Commit"),
-                gettext("You should provide a commit message."),
-                gettext('&OK'))
-            # don't commit, but don't close the window either
-            self.on_failed('NoCommitMessage')
-            self.message.setFocus()
-            return
 
+        message = self._get_message()
         args.extend(['-m', message])    # keep them separated to avoid bug #297606
-        
-        # starts with one because if pending changes are available the warning box will appear each time.
-        checkedFiles = 1 
-        if not self.has_pending_merges:
-            checkedFiles = 0
-            for ref in self.filelist.tree_model.iter_checked():
-                checkedFiles = checkedFiles+1
-                if ref.file_id is None:
-                    files_to_add.append(ref.path)
-                args.append(ref.path)
-        
-        if checkedFiles == 0: # BUG: 295116
-            # check for availability of --exclude option for commit
-            # (this option was introduced in bzr 1.6)
-            from bzrlib.commands import get_cmd_object
-            kmd = get_cmd_object('commit', False)
-            if kmd.options().get('exclude', None) is None:
-                # bzr < 1.6 -- sorry but we can't allow empty commit
-                QtGui.QMessageBox.warning(self,
-                    "QBzr - " + gettext("Commit"), 
-                    gettext("No changes to commit."),
-                    QtGui.QMessageBox.Ok) 
-                self.on_failed('PointlessCommit')
-                return
-            else:
-                # bzr >= 1.6
-                button = QtGui.QMessageBox.question(self,
-                    "QBzr - " + gettext("Commit"), 
-                    gettext("No changes selected to commit.\n"
-                        "Do you want to commit anyway?"),
-                    QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
-                if button == QtGui.QMessageBox.No:
-                    self.on_failed('PointlessCommit')
-                    return
-                else:
-                    # Possible [rare] problems:
-                    # 1. unicode tree root in non-user encoding
-                    #    may provoke UnicodeEncodeError in subprocess (@win32)
-                    # 2. if branch has no commits yet then operation may fail
-                    #    because of bug #299879
-                    args.extend(['--exclude', self.tree.basedir])
-                    args.append('--unchanged')
+
+        has_files_to_commit, files_to_commit, files_to_add = self._get_selected_files()
+        if not has_files_to_commit:
+            # Possible [rare] problems:
+            # 1. unicode tree root in non-user encoding
+            #    may provoke UnicodeEncodeError in subprocess (@win32)
+            # 2. if branch has no commits yet then operation may fail
+            #    because of bug #299879
+            args.extend(['--exclude', self.tree.basedir])
+            args.append('--unchanged')
+        else:
+            args.extend(files_to_commit)
 
         if self.bugsCheckBox.isChecked():
             for s in unicode(self.bugs.text()).split():
@@ -698,8 +687,8 @@ class CommitWindow(SubProcessDialog):
         
         dir = self.tree.basedir
         commands = []
-        if len(files_to_add) > add_cmd_len:
-            commands.append((dir, files_to_add))
+        if files_to_add:
+            commands.append((dir, ["add", "--no-recurse"] + files_to_add))
         commands.append((dir, args))
 
         self.tabWidget.setCurrentWidget(self.process_widget)
@@ -779,7 +768,8 @@ class CommitWindow(SubProcessDialog):
                     self.tree.branch, self.tree.branch,
                     specific_files=checked)
                 
-                show_diff(arg_provider, ext_diff=ext_diff, parent_window = self)
+                show_diff(arg_provider, ext_diff=ext_diff, parent_window=self,
+                          context=self.filelist.diff_context)
             else:
                 msg = "No changes selected to " + dialog_action
                 QtGui.QMessageBox.warning(self,
@@ -794,7 +784,8 @@ class CommitWindow(SubProcessDialog):
             arg_provider = InternalWTDiffArgProvider(
                 self.tree.basis_tree().get_revision_id(), self.tree,
                 self.tree.branch, self.tree.branch)            
-            show_diff(arg_provider, ext_diff=ext_diff, parent_window = self)
+            show_diff(arg_provider, ext_diff=ext_diff, parent_window=self,
+                      context=self.filelist.diff_context)
     
     def on_failed(self, error):
         SubProcessDialog.on_failed(self, error)

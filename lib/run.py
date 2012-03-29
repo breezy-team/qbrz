@@ -248,8 +248,11 @@ class QBzrRunDialog(SubProcessDialog):
         # XXX handle command aliases???
         cmd_object = self.cmds_dict.get(cmd_name)
         if cmd_object:
-            self.ui.help_browser.setHtml(
-                get_help_topic_as_html("commands/" + cmd_name))
+            # [Bug #963542] get_help_topic_as_html returns valid utf-8 encoded
+            # HTML document, but QTextBrowser expects unicode.
+            # (actually QString which is unicode in PyQt4).
+            html_utf8 = get_help_topic_as_html("commands/" + cmd_name)
+            self.ui.help_browser.setHtml(html_utf8.decode('utf-8'))
         else:
             self.set_default_help()
 

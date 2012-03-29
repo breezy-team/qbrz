@@ -199,7 +199,7 @@ execute_option = Option("execute", short_name='e',
          "waiting for user input.")
 
 # A special option so 'revision' can be passed as a simple string, when we do
-# *not* wan't bzrlib's feature of parsing the revision string before passing it.
+# *not* want bzrlib's feature of parsing the revision string before passing it.
 # This is used when we just want a plain string to pass to our dialog for it to
 # display in the UI, and we will later pass it to bzr for parsing. If you want
 # bzrlib to parse and pass a revisionspec object, just pass the string
@@ -231,9 +231,12 @@ class cmd_qannotate(QBzrCommand):
     takes_args = ['filename']
     takes_options = ['revision',
                      Option('encoding', type=check_encoding,
-                     help='Encoding of files content (default: utf-8).'),
+                         help='Encoding of files content (default: utf-8).'),
                      ui_mode_option,
                      Option('no-graph', help="Shows the log with no graph."),
+                     Option('line', short_name='L', type=int, argname='N',
+                        param_name='activate_line',
+                        help='Activate line N on start.'),
                     ]
     aliases = ['qann', 'qblame']
 
@@ -265,7 +268,8 @@ class cmd_qannotate(QBzrCommand):
             file_id = tree.path2id(relpath)
             if file_id is None:
                 raise errors.NotVersionedError(filename)
-            entry = tree.inventory[file_id]
+            [(path, entry)] = list(tree.iter_entries_by_dir(
+                specific_file_ids=[file_id]))
             if entry.kind != 'file':
                 raise errors.BzrCommandError(
                         'bzr qannotate only works for files (got %r)' % entry.kind)
@@ -284,12 +288,12 @@ class cmd_qannotate(QBzrCommand):
         return branch, tree, wt, relpath, file_id
 
     def _qbzr_run(self, filename=None, revision=None, encoding=None,
-                  ui_mode=False, no_graph=False):
+                  ui_mode=False, no_graph=False, activate_line=None):
         win = AnnotateWindow(None, None, None, None, None,
                              encoding=encoding, ui_mode=ui_mode,
                              loader=self._load_branch,
                              loader_args=(filename, revision),
-                             no_graph=no_graph)
+                             no_graph=no_graph, activate_line=activate_line)
         win.show()
         self._application.exec_()
 
@@ -300,7 +304,7 @@ class cmd_qadd(QBzrCommand):
     takes_options = [ui_mode_option]
 
     def _qbzr_run(self, selected_list=None, ui_mode=False):
-        tree, selected_list = builtins.tree_files(selected_list)
+        tree, selected_list = WorkingTree.open_containing_paths(selected_list)
         if selected_list == ['']:
             selected_list = None
         self.main_window = AddWindow(tree, selected_list, dialog=False, ui_mode=ui_mode)
@@ -314,7 +318,7 @@ class cmd_qrevert(QBzrCommand):
     takes_options = [ui_mode_option, bzr_option('revert', 'no-backup')]
 
     def _qbzr_run(self, selected_list=None, ui_mode=False, no_backup=False):
-        tree, selected_list = builtins.tree_files(selected_list)
+        tree, selected_list = WorkingTree.open_containing_paths(selected_list)
         if selected_list == ['']:
             selected_list = None
         self.main_window = RevertWindow(tree, selected_list, dialog=False,
@@ -376,7 +380,7 @@ class cmd_qcommit(QBzrCommand):
                 message = f.read().decode(file_encoding or osutils.get_user_encoding())
             finally:
                 f.close()
-        tree, selected_list = builtins.tree_files(selected_list)
+        tree, selected_list = WorkingTree.open_containing_paths(selected_list)
         if selected_list == ['']:
             selected_list = None
         self.main_window = CommitWindow(tree, selected_list, dialog=False,
@@ -1146,3 +1150,19 @@ class cmd_qunshelve(QBzrCommand):
         self.main_window.show()
         self._application.exec_()
 
+
+class cmd_qignore(QBzrCommand):
+    """Ignore files or patterns."""
+    takes_args = []
+    takes_options = [
+        ui_mode_option,
+        bzr_option('ignore', 'directory'),
+        ]
+    aliases = []
+
+    def _qbzr_run(self, directory=None, ui_mode=False):
+        from bzrlib.plugins.qbzr.lib.ignore import IgnoreWindow
+        wt = WorkingTree.open_containing(directory)[0]
+        self.main_window = IgnoreWindow(tree=wt, ui_mode=ui_mode)
+        self.main_window.show()
+        self._application.exec_()

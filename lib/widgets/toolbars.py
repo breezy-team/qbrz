@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-
 from bzrlib.plugins.qbzr.lib.util import (
     get_icon,
     show_shortcut_hint
@@ -24,6 +23,8 @@ from bzrlib.plugins.qbzr.lib.util import (
 
 from PyQt4 import QtCore, QtGui
 from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
+from bzrlib.plugins.qbzr.lib.decorators import lazy_call
+import sip
 
 def create_toolbar_button(text, parent=None, icon_name=None, icon_size=22,
                 enabled=True, checkable=False, checked=False, 
@@ -48,7 +49,7 @@ def create_toolbar_button(text, parent=None, icon_name=None, icon_size=22,
         parent.connect(button, QtCore.SIGNAL(signal), onclick)
     return button
 
-def add_toolbar_button(toolbar, text, parent, icon_name=None, icon_size=22, 
+def add_toolbar_button(toolbar, text, parent, icon_name=None, icon_size=22,
                         enabled=True, checkable=False, checked=False,
                         shortcut=None, onclick=None): 
     button = create_toolbar_button(text, parent, icon_name, icon_size, 
@@ -56,13 +57,16 @@ def add_toolbar_button(toolbar, text, parent, icon_name=None, icon_size=22,
     toolbar.addAction(button)
     return button
 
-        
+
 class FindToolbar(QtGui.QToolBar):
 
     def __init__(self, window, text_edit, show_action):
         QtGui.QToolBar.__init__(self, gettext("Find"), window)
-        self.text_edit = text_edit
-        if 0: self.text_edit = QtGui.QTextEdit()
+        self.text_edits = []
+        if isinstance(text_edit, list) or isinstance(text_edit, tuple):
+            self.set_text_edits(text_edit)
+        else:
+            self.set_text_edits([text_edit])
         self.show_action = show_action
         
         self.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
@@ -128,7 +132,7 @@ class FindToolbar(QtGui.QToolBar):
         self.connect(self.find_text,
                      QtCore.SIGNAL("returnPressed()"),
                      self.find_next)        
-        
+
     def show_action_toggle(self, state):
         self.setVisible(state)
         if state:
@@ -141,6 +145,7 @@ class FindToolbar(QtGui.QToolBar):
     
     def find_text_changed(self, text):
         self.find_avoid_moving()
+        self.highlight()
     
     def find_get_flags(self):
         flags = QtGui.QTextDocument.FindFlags()
@@ -183,11 +188,60 @@ class FindToolbar(QtGui.QToolBar):
             self.text_edit.setTextCursor(cursor)
             self.find_text.setPalette(self.found_palette)
 
-    def set_text_edit(self, new_text_edit):
-        if self.text_edit:
-            self.text_edit.setTextCursor(QtGui.QTextCursor())
-        self.text_edit = new_text_edit
+    def set_text_edits(self, text_edits):
+        if len(text_edits) == 0:
+            raise ValueError('text_edits is empty.')
 
+        for t in self.text_edits:
+            self.disconnect(t, QtCore.SIGNAL("documentChangeFinished()"), 
+                    self.highlight)
+            t.setExtraSelections([])
+
+        for t in text_edits:
+            t.highlight_lines = []
+            self.connect(t, QtCore.SIGNAL("documentChangeFinished()"), 
+                    self.highlight)
+
+        self.text_edits = text_edits
+        self.text_edit = text_edits[0]
+        self.highlight()
+
+    def set_text_edit(self, text_edit):
+        if text_edit in self.text_edits:
+            self.text_edit = text_edit
+        else:
+            raise ValueError('Invalid text_edit instance.')
+
+    @lazy_call(200, per_instance=True)
+    def highlight(self):
+        """Highlight matched words in the text edits."""
+        if sip.isdeleted(self):
+            return
+        text = self.find_text.text()
+        flags = self.find_get_flags()
+        for text_edit in self.text_edits:
+            selections = []
+            highlight_lines = []
+            if text:
+                find = text_edit.document().find
+                pos = 0
+                fmt = QtGui.QTextCharFormat()
+                fmt.setBackground(QtCore.Qt.yellow)
+                while True:
+                    cursor = find(text, pos, flags)
+                    if cursor.isNull():
+                        break
+
+                    sel = QtGui.QTextEdit.ExtraSelection()
+                    sel.cursor, sel.format = cursor, fmt
+                    selections.append(sel)
+                    highlight_lines.append(cursor.blockNumber())
+                    pos = cursor.selectionEnd()
+
+            text_edit.setExtraSelections(selections)
+            text_edit.highlight_lines = highlight_lines
+
+        self.emit(QtCore.SIGNAL("highlightChanged()"))
 
 class ToolbarPanel(QtGui.QWidget):
     def __init__(self, slender=True, icon_size=16, parent=None):
@@ -210,7 +264,7 @@ class ToolbarPanel(QtGui.QWidget):
 
     def add_toolbar_button(self, text, icon_name=None, icon_size=0, enabled=True, 
             checkable=False, checked=False, shortcut=None, onclick=None, menu=None):
-        button = create_toolbar_button(text, self, icon_name=icon_name, 
+        button = create_toolbar_button(text, self, icon_name=icon_name,
                 icon_size=icon_size or self.icon_size, enabled=enabled, 
                 checkable=checkable, checked=checked, shortcut=shortcut, onclick=onclick)
         if menu is not None:
@@ -228,7 +282,7 @@ class ToolbarPanel(QtGui.QWidget):
             show_shortcut_hint(widget)
         return button
 
-    def create_button(self, text, icon_name=None, icon_size=0, enabled=True, 
+    def create_button(self, text, icon_name=None, icon_size=0, enabled=True,
             checkable=False, checked=False, shortcut=None, onclick=None):
         return create_toolbar_button(text, self, icon_name=icon_name, 
                 icon_size=icon_size or self.icon_size, enabled=enabled, 

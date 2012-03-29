@@ -1,9 +1,88 @@
-0.22 beta 1 - not released yet
-------------------------------
+0.23.0dev - in development
+--------------------------
+What's new in this release:
 
+Behavior change: External diff behavior is changed as below.(IWATA Hidetaka)
+ 1. When calling external diff for multiple files, all diffs shown at once.(Bug #942218)
+ 2. Working tree or branch is locked only when starting up of diff tools.(Bug #942221)
+This affects to all commands which use external diff. 
+(qdiff, qcommit, qbrowse, qannotate, ...)
+
+Now, you can launch 'Shelve' directly from each dialog when uncommitted change blocks action.
+And you can launch 'Resolve' directly when conflicts generated. (IWATA Hidetaka #935903)
+
+ * qannotate:
+   * New command-line option `--line=N` (`-L`) to activate specified 
+     line number on start of dialog. (Alexander Belchenko)
+ * qbind:
+   * Add push location to suggestions. (Alexander Belchenko)
+ * qconflicts:
+   * Added 2 resolve actions to context menu: `Take "THIS"` 
+     and `Take "OTHER"`. (Alexander Belchenko)
+   * Auto-refresh conflicts list after selecting a resolve action.
+     (Alexander Belchenko)
+ * qrevert:
+    * it now does a real check to see if there are files (or merges) selected to revert -
+      if not, it shows a warning message. (André Bachmann, Bug #942744)
+
+
+0.22.2 - in development
+-----------------------
+Maintenance release.
+
+ * qrun:
+   * Localized help text for selected command is shown correctly now.
+     (Alexander Belchenko, Bug #963542)
+ * qshelve:
+   * Pressing Ctrl+Enter in message edit area triggers shelve action.
+     (IWATA Hidetaka, Bug #936982)
+   * Hunks are not displayed on Mac OS. (IWATA Hidetaka, Bug #955241)
+ * qgetnew:
+   * Ask for verification if a checkout should go to a non-empty
+     directory - this may cause unwanted conflicts (André Bachmann, Bug #938835)
+
+
+0.22.1 - 2012/02/21
+-------------------
+Just in time for bzr 2.5.
+
+ * New command: qignore. (Alexander Belchenko, Bug #524785)
+
+
+0.22.0 "Alder" - 2012/02/07
+---------------------------
+What's new in this release:
+
+QBzr 0.22 is companion release for bzr 2.5, and compatible with bzr 2.4.
+This release has many improvements and bugfixes. As usual many improvements 
+related to qdiff dialog.
+
+While searching for the word or sentence all matches are highlighted.
+This highlighting works in qdiff, qshelve, qunshelve, qannotate.
+To make navigation faster through the long side-by-side diff, or inside big 
+annotated file you can use backside guide bar in qdiff and qannotate.
+
+Behavior change: "Unchanged" option in treewidget filter now only applies 
+to versioned files. (Before it was applied to unknown files too).
+
+Other qdiff improvements include: curved lines are using in side-by-side view, 
+smart synchronization of side-by-side view in "Complete" mode;
+files with wrong or mixed encoding no more shown as "latin-1", but in user-
+specified encoding.
+
+For full list of improvements and bugfixes please see changelog below.
+
+ * qannotate:
+   * Vertically center the target line when using "Goto Line" in qannotate.
+     (Benoît Pierre)
+   * Show change markers side of annotate view.
+     It represents where lines changed by selected revisions are.
+     (IWATA Hidetaka)
  * qbrowse:
    * Does not crash anymore when called for shared repository.
      (André Bachmann, Alexander Belchenko, Bug #578935)
+   * Avoid using inventory for access to revision and working trees.
+     (Jelmer Vernooij, Bug #922121)
  * qconfig:
    * Fixed Set Default button in Merge tab. (Gordon Tyler, Bug #820635)
  * qdiff:
@@ -17,6 +96,9 @@
      decode to unicode qdiff don't fallback to use latin-1 encoding anymore,
      but try to decode such content in "replace" mode.
      (Alexander Belchenko, Bug #814117)
+   * Implement search highlight. This change affects to qdiff, qshelve, 
+      qunshelve, qannotate. (IWATA Hidetaka, Bug #785565)
+   * Show change markers side of diff views. (IWATA Hidetaka Bug #827251)
  * qgetnew
    * Base directories for the source branch and the destination checkout folder
      can now be configured in qconfig, tab 'User Interface'. (André Bachmann)
@@ -28,15 +110,32 @@
  * qrun:
    * Command-line arguments with spaces properly quoted.
      (Alexander Belchenko, Bug #824381)
+   * Add support for UIFactory.choose. 
+     Make it possible to use 'shelve' in qrun. (Benoît Pierre)
  * qverify-signatures:
    * Report commits signed with expired keys in "verify-signatures".
      (Jonathan Riddell, #804254)
  * Adapt command progress display to changes needed for translations in bzrlib
    which was raising a TypeError with unicode. (Martin Packman, #872616)
+ * Treewidget 'unchanged' filter is now only versioned files. (Martin Packman)
+ * Stringify tab_width settings while writing it to branch config.
+   (Workaround for bug #912344, Alexander Belchenko)
 
 
-0.21.2 - in development
+0.21.3 - in development
 -----------------------
+Maintenance release.
+
+ * Avoid AttributeError on 'is_ignored' from treewidget filtering involving
+   unversioned files that have been moved. (Martin Packman, Bug #557603)
+ * Stringify tab_width settings while writing it to branch config.
+   (Workaround for bug #912344, Alexander Belchenko)
+ * Don't use deprecated API (bzrlib.builtins.tree_files). 
+   (Alexander Belchenko, Bug #776241)
+
+
+0.21.2 - 2011/12/07
+-------------------
 Maintenance release.
 
  * qbrowse:
@@ -55,7 +154,8 @@ Maintenance release.
      (Alexander Belchenko, Bug #824381)
  * qunshelve:
    * Disable OK button while executing unshelve. (IWATA Hidetaka, Bug #842818)
-   * Avoid NoSuchFile error when working tree has added and removed file. (IWATA Hidetaka, Bug #842842)
+   * Avoid NoSuchFile error when working tree has added and removed file. 
+     (IWATA Hidetaka, Bug #842842)
  * Updated translations.
 
 
@@ -188,8 +288,8 @@ Changes after 0.21 beta 1:
      branch.conf for specific branches.  (Bug #490377, A. S. Budden)
 
 
-0.20.3 - not released yet
--------------------------
+0.20.3 - 2011/12/07
+-------------------
 Maintenance release.
 
  * qbrowse:

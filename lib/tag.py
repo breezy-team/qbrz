@@ -133,40 +133,30 @@ class TagWindow(SubProcessDialog):
         has_tag = tag in self.tags
         rev = unicode(self.ui.rev_edit.text())
         if not tag:
-            QtGui.QMessageBox.critical(self, title,
-                gettext('You should specify tag name'),
-                gettext('&Close'))
+            self.operation_blocked(gettext('You should specify tag name'))
             return False
         if action == self.IX_CREATE and has_tag:
-            btn = QtGui.QMessageBox.question(self, title,
-                gettext(
+            if self.ask_confirmation(gettext(
                     'Tag "%s" already exists.\n'
                     'Do you want to move existing tag?'
-                    ) % tag,
-                gettext('&Move'), gettext("&Cancel"), '',
-                0, 1)
-            if btn == 0:    # move
+                    ) % tag):
+                # move
                 action = self.IX_MOVE
                 title = self.ui.cb_action.itemText(action)
             else:   # cancel
                 return False
         if action == self.IX_MOVE and not has_tag:
-            btn = QtGui.QMessageBox.question(self, title,
-                gettext(
+            if self.ask_confirmation(gettext(
                     'Tag "%s" does not exists yet.\n'
                     'Do you want to create new tag?'
-                    ) % tag,
-                gettext('Cre&ate'), gettext("&Cancel"), '',
-                0, 1)
-            if btn == 0:    # create
+                    ) % tag):
+                # create
                 action = self.IX_CREATE
                 title = self.ui.cb_action.itemText(action)
             else:   # cancel
                 return False
         if action == self.IX_DELETE and not has_tag:
-            QtGui.QMessageBox.critical(self, title,
-                gettext('Tag "%s" does not exists') % tag,
-                gettext('&Close'))
+            self.operation_blocked(gettext('Tag "%s" does not exists') % tag)
             return False
         # create args to run subprocess
         args = ['tag']

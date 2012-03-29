@@ -406,6 +406,42 @@ class _QBzrWindowBase(object):
     def do_close(self):
         self.close()
 
+    def operation_blocked(self, message):
+        """Use self.operation_blocked in validate methods of q-dialogs
+        to show error message about incorrect or missing parameters.
+
+        We can easily switch between show_error and show_warning
+        inside this method if we want to change the overall qbzr behavior.
+        """
+        self.show_warning(message)
+
+    def show_error(self, message):
+        QtGui.QMessageBox.critical(self,
+            gettext("Error"),
+            message)
+
+    def show_warning(self, message):
+        QtGui.QMessageBox.warning(self,
+            gettext("Warning"),
+            message)
+
+    def ask_confirmation(self, message, type='question'):
+        """Return True if user selected Yes.
+        Optional parameter type selects dialog type. Valid values: question, warning.
+        """
+        klass = QtGui.QMessageBox.question
+        if type == 'warning':
+            klass = QtGui.QMessageBox.warning
+        button = klass(self,
+            gettext("Confirm"),
+            message,
+            QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+            QtGui.QMessageBox.No)
+        if button == QtGui.QMessageBox.Yes:
+            return True
+        else:
+            return False
+
 
 class QBzrWindow(QtGui.QMainWindow, _QBzrWindowBase):
 
@@ -1121,7 +1157,7 @@ def get_set_tab_width_chars(branch=None, tab_width_chars=None):
             tab_width_chars = 8
     else:
         if branch:
-            branch.get_config().set_user_option("tab_width", tab_width_chars)
+            branch.get_config().set_user_option("tab_width", str(tab_width_chars))
 
     return tab_width_chars
 

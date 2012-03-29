@@ -37,6 +37,9 @@ from bzrlib.plugins.qbzr.lib.widgets.toolbars import (
     FindToolbar, ToolbarPanel, LayoutSelector
     )
 from bzrlib.plugins.qbzr.lib.widgets.tab_width_selector import TabWidthMenuSelector
+from bzrlib.plugins.qbzr.lib.widgets.texteditaccessory import (
+    GuideBar, setup_guidebar_for_find
+    )
 from bzrlib.plugins.qbzr.lib.decorators import lazy_call
 from bzrlib import errors
 from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
@@ -265,6 +268,8 @@ class ShelveWidget(ToolbarPanel):
         
         self.message = TextEdit(spell_checker, message_groupbox, main_window=self)
         self.message.setToolTip(gettext("Enter the shelve message"))
+        self.connect(self.message, QtCore.SIGNAL("messageEntered()"),
+                     self.do_shelve)
         self.completer = QtGui.QCompleter()
         self.completer_model = QtGui.QStringListModel(self.completer)
         self.completer.setModel(self.completer_model)
@@ -328,6 +333,9 @@ class ShelveWidget(ToolbarPanel):
         hunk_panel.add_widget(find_toolbar)
         hunk_panel.add_widget(self.hunk_view)
         find_toolbar.hide()
+
+        setup_guidebar_for_find(self.hunk_view.guidebar, find_toolbar, index=1)
+        self.find_toolbar = find_toolbar
 
         layout = QtGui.QVBoxLayout()
         layout.setMargin(10)
@@ -703,7 +711,8 @@ class ShelveWidget(ToolbarPanel):
 
         except WorkingTreeHasPendingMarge:
             QtGui.QMessageBox.warning(self, gettext('Shelve'),
-                    gettext('Operation aborted because working tree has pending marges.'), gettext('&OK'))
+                    gettext('Operation aborted because working tree has pending merges.'),
+                    gettext('&OK'))
             return
         except WorkingTreeHasChanged:
             QtGui.QMessageBox.warning(self, gettext('Shelve'),
@@ -778,10 +787,13 @@ class HunkView(QtGui.QWidget):
         layout.setSpacing(0)
         layout.setMargin(0)
         self.browser = HunkTextBrowser(complete, self)
+        self.guidebar = GuideBar(self.browser, parent=self)
+        self.guidebar.add_entry('hunk', self.browser.focus_color)
         self.selector = HunkSelector(self.browser, self)
         layout.addWidget(self.selector)
         layout.addWidget(self.browser)
-        self.connect(self.browser, QtCore.SIGNAL("focusedHunkChanged()"), 
+        layout.addWidget(self.guidebar)
+        self.connect(self.browser, QtCore.SIGNAL("focusedHunkChanged()"),
                      self.update)
 
         def selected_hunk_changed():
@@ -814,6 +826,7 @@ class HunkView(QtGui.QWidget):
         self.change = change
         self.encoding = encoding
         self.browser.set_parsed_patch(change, encoding)
+        self.guidebar.update_data(hunk=self.browser.guidebar_deta)
         self.update()
 
     def update(self):
@@ -930,6 +943,7 @@ class HunkTextBrowser(QtGui.QTextBrowser):
 
         self.complete = complete
         self._focused_index = -1
+        self.guidebar_deta = []
 
     def rewind(self):
         if not self.rewinded:
@@ -972,9 +986,11 @@ class HunkTextBrowser(QtGui.QTextBrowser):
                     cursor.insertText(lines, self.monospacedInactiveFormat)
                 start = hunk.mod_pos + hunk.mod_range - 1
                 y1 = cursor.block().layout().position().y()
+                l1 = cursor.block().blockNumber()
                 print_hunk(hunk, hunk_texts)
                 y2 = cursor.block().layout().position().y()
-
+                l2 = cursor.block().blockNumber()
+                self.guidebar_deta.append((l1, l2 - l1))
             else:
                 y1 = cursor.block().layout().position().y()
                 cursor.insertText(str(hunk.get_header()), self.monospacedHunkFormat)
@@ -992,6 +1008,7 @@ class HunkTextBrowser(QtGui.QTextBrowser):
         if self.hunk_list:
             self._set_focused_hunk(0)
 
+        self.emit(QtCore.SIGNAL("documentChangeFinished()"))
         self.update()
 
     def update(self):
@@ -1002,6 +1019,8 @@ class HunkTextBrowser(QtGui.QTextBrowser):
         QtGui.QTextBrowser.clear(self)
         del(self.hunk_list[:])
         self._set_focused_hunk(-1)
+        self.guidebar_deta = []
+        self.emit(QtCore.SIGNAL("documentChangeFinished()"))
 
     def paintEvent(self, event):
         if not self.hunk_list:
@@ -1015,8 +1034,8 @@ class HunkTextBrowser(QtGui.QTextBrowser):
 
         self.draw_background(rect, painter, scroll_y)
 
-        QtGui.QTextBrowser.paintEvent(self, event) 
         del painter
+        QtGui.QTextBrowser.paintEvent(self, event) 
 
     def draw_background(self, rect, painter, offset):
         left, right, width = rect.left(), rect.right(), rect.width()

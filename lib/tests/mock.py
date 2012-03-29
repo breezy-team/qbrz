@@ -26,14 +26,19 @@ class MockFunction(object):
     and which arguments were used.
     """
 
-    def __init__(self):
+    def __init__(self, func=None, ret=None):
         self.count = 0
         self.args = []
+        self._func = func
+        self.ret = ret
 
     def __call__(self, *args, **kw):
         self.count += 1
         self.args.append((args, kw))
-
+        if self._func is not None:
+            return self._func(*args, **kw)
+        else:
+            return self.ret
 
 class TestMockFunction(TestCase):
 
