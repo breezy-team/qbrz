@@ -22,7 +22,7 @@
 # TODO:
 #  - better annotate algorithm on packs
 
-import sys, time
+import sys, time, md5
 from itertools import groupby
 from PyQt4 import QtCore, QtGui
 
@@ -54,6 +54,7 @@ from bzrlib.plugins.qbzr.lib.texteditannotate import (AnnotateBarBase,
                                                       AnnotateEditerFrameBase)
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
+from bzrlib.config import extract_email_address
 from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
 from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
@@ -419,6 +420,8 @@ class AnnotateWindow(QBzrWindow):
                      QtCore.SIGNAL("toggled (bool)"),
                      self.show_goto_line_toggle )
 
+        self.__hashes = {}
+
     def show(self):
         QBzrWindow.show(self)
         QtCore.QTimer.singleShot(0, self.initial_load)
@@ -594,28 +597,49 @@ class AnnotateWindow(QBzrWindow):
                 old_char_start += old_len
                 new_char_start += new_len
         return new_positions
-    
+
     def revisions_loaded(self, revisions, last_call):
         for rev in revisions.itervalues():
-            author_name = get_apparent_author_name(rev)
-            
+            authors = rev.get_apparent_authors()
+            emails = map(extract_email_address, authors)
+            author_id = ';'.join(emails)
+
             if rev.timestamp is None:
                 days = sys.maxint
             elif self.now < rev.timestamp:
                 days = 0
             else:
                 days = (self.now - rev.timestamp) / (24 * 60 * 60)
-            
+
             alpha = 0.5/((days/50) + 1)
-            hue =  1-float(abs(hash(author_name))) / sys.maxint 
+            h_sh = self._get_hash(author_id)
+            hue =  1-float(h_sh) / sys.maxint
             color = QtGui.QColor.fromHsvF(hue, 1, 1, alpha)
             brush = QtGui.QBrush(color)
-            
+
             self.annotate_bar.rev_colors[rev.revision_id] = brush
             self.text_edit.rev_colors[rev.revision_id] = brush
-        
+
         self.annotate_bar.update()
         self.text_edit.update()
+
+    def _get_hash(self, author_id):
+        h = self.__hashes.get(author_id)
+        if h is None:
+            h = abs(hash(author_id))
+            #h = abs(hash(md5.md5(author_id).hexdigest())) # maybe increase enthropy via md5?
+            # XXX [bialix 2012/03/30]
+            # I don't really like how we create colors for annotation.
+            # Also, abs(hash) loses 1 bit of the hash result.
+            # I think we can improve our algorithm to use more distinctive colors
+            # maybe we should use md5 as more enthropy source for hash,
+            # or maybe we can use some sort of predefined set of colors
+            # and each next author will use color from that set,
+            # but in this case we lose consistency of colors for the same author
+            # between different annotations
+            # I have no clever idea yet.
+            self.__hashes[author_id] = h
+        return h
 
     def edit_cursorPositionChanged(self):
         current_line = self.text_edit.document().findBlock(

@@ -11,9 +11,16 @@ This affects to all commands which use external diff.
 Now, you can launch 'Shelve' directly from each dialog when uncommitted change blocks action.
 And you can launch 'Resolve' directly when conflicts generated. (IWATA Hidetaka #935903)
 
+Annotation window now uses e-mail of revision author to define background 
+color of revision. Previously we've used author name to define background 
+color, so changes in different revisions made by user with the same e-mail 
+but with differently spelled name was highlighted with different colors.
+
  * qannotate:
    * New command-line option `--line=N` (`-L`) to activate specified 
      line number on start of dialog. (Alexander Belchenko)
+   * Use only e-mail as "author id" to define background color for lines.
+     (Alexander Belchenko, Bug #878204)
  * qbind:
    * Add push location to suggestions. (Alexander Belchenko)
  * qconflicts:
