@@ -72,6 +72,8 @@ Miscellaneous:
  * bug-url - print full URL to a specific bug, or open it in your browser.
 """
 
+from __future__ import absolute_import
+
 version_info = (0, 23, 0, 'dev', 0)
 __version__ = '.'.join(map(str, version_info))
 
@@ -164,9 +166,16 @@ def post_uncommit_hook(local, master, old_revno, old_tip, new_revno, hook_new_ti
     ci_data.set_data_on_uncommit(old_tip, hook_new_tip)
     ci_data.save()
 
-from bzrlib.branch import Branch
-Branch.hooks.install_named_hook('post_uncommit', post_uncommit_hook,
-    'Remember uncomitted revision data for qcommit')
+
+try:
+    from bzrlib.hooks import install_lazy_named_hook
+except ImportError:
+    from bzrlib.branch import Branch
+    Branch.hooks.install_named_hook('post_uncommit', post_uncommit_hook,
+        'Remember uncomitted revision data for qcommit')
+else:
+    install_lazy_named_hook("bzrlib.branch", "Branch.hooks", 'post_uncommit',
+        post_uncommit_hook, 'Remember uncomitted revision data for qcommit')
 
 
 def load_tests(basic_tests, module, loader):
