@@ -12,6 +12,8 @@ Maintenance release.
  * qgetnew:
    * Ask for verification if a checkout should go to a non-empty
      directory - this may cause unwanted conflicts (André Bachmann, Bug #938835)
+ * qdiff
+   * Fix - crashes when trying show complete diff of renamed file. (Bug #969055)
 
 
 0.22.1 - 2012/02/21
