@@ -310,7 +310,9 @@ class CommitWindow(SubProcessDialog):
         splitter.addWidget(message_groupbox)
         self.tabWidget = QtGui.QTabWidget()
         splitter.addWidget(self.tabWidget)
-        
+        splitter.setStretchFactor(0, 1)
+        splitter.setStretchFactor(1, 8)
+
         grid = QtGui.QGridLayout(message_groupbox)
 
         self.show_nonversioned_checkbox = QtGui.QCheckBox(
