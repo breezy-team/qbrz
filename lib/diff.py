@@ -598,24 +598,34 @@ class ExtDiffContext(QtCore.QObject):
         Show diffs of specified file paths.
         """
         new_tree = self._differ.new_tree
+        old_tree = self._differ.old_tree
 
         valid_paths = []
         ids = []
         dir_included = False
-        for p in paths:
-            id = new_tree.path2id(p)
-            if id:
-                valid_paths.append(p)
-                ids.append(id)
-                dir_included = dir_included or (new_tree.kind(id) != 'file')
+        cleanup = []
+        try:
+            # Sometimes, we must lock tree before calling tree.kind()
+            if lock_trees:
+                cleanup.append(new_tree.lock_read().unlock)
+                cleanup.append(old_tree.lock_read().unlock)
+            for p in paths:
+                id = new_tree.path2id(p)
+                if id:
+                    valid_paths.append(p)
+                    ids.append(id)
+                    dir_included = dir_included or (new_tree.kind(id) != 'file')
+                else:
+                    mutter('%s does not exist in the new tree' % p)
+            if not ids:
+                return
+            if dir_included:
+                self.diff_tree(valid_paths, interval, False)
             else:
-                mutter('%s does not exist in the new tree' % p)
-        if not ids:
-            return
-        if dir_included:
-            self.diff_tree(valid_paths, interval, lock_trees)
-        else:
-            self.diff_ids(ids, interval, lock_trees)
+                self.diff_ids(ids, interval, False)
+        finally:
+            while cleanup:
+                cleanup.pop()()
 
     def diff_tree(self, specific_files=None, interval=50, lock_trees=True):
         """
