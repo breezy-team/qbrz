@@ -19,7 +19,7 @@ but with differently spelled name was highlighted with different colors.
  * qannotate:
    * New command-line option `--line=N` (`-L`) to activate specified 
      line number on start of dialog. (Alexander Belchenko)
-   * Use only e-mail as "author id" to define background color for lines.
+   * Prefer e-mail as "author id" to define background color for lines.
      (Alexander Belchenko, Bug #878204)
  * qbind:
    * Add push location to suggestions. (Alexander Belchenko)

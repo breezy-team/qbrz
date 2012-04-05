@@ -54,7 +54,7 @@ from bzrlib.plugins.qbzr.lib.texteditannotate import (AnnotateBarBase,
                                                       AnnotateEditerFrameBase)
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
-from bzrlib.config import extract_email_address
+from bzrlib.config import parse_username
 from bzrlib.workingtree import WorkingTree
 from bzrlib.revisiontree import RevisionTree
 from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
@@ -601,7 +601,7 @@ class AnnotateWindow(QBzrWindow):
     def revisions_loaded(self, revisions, last_call):
         for rev in revisions.itervalues():
             authors = rev.get_apparent_authors()
-            emails = map(extract_email_address, authors)
+            emails = map(self._maybe_extract_email, authors)
             author_id = ';'.join(emails)
 
             if rev.timestamp is None:
@@ -622,6 +622,12 @@ class AnnotateWindow(QBzrWindow):
 
         self.annotate_bar.update()
         self.text_edit.update()
+
+    def _maybe_extract_email(self, author):
+        name, email = parse_username(author)
+        if email:
+            return email
+        return author
 
     def _get_hash(self, author_id):
         h = self.__hashes.get(author_id)
