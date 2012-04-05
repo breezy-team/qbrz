@@ -1,5 +1,5 @@
-0.22.2 - in development
------------------------
+0.22.2 - 2012/04/05
+-------------------
 Maintenance release.
 
  * qrun:
@@ -14,6 +14,8 @@ Maintenance release.
      directory - this may cause unwanted conflicts (André Bachmann, Bug #938835)
  * qdiff
    * Fix - crashes when trying show complete diff of renamed file. (Bug #969055)
+ * Don't use deprecated API (bzrlib.builtins.tree_files). 
+   (Alexander Belchenko, Bug #776241)
 
 
 0.22.1 - 2012/02/21
@@ -96,8 +98,8 @@ For full list of improvements and bugfixes please see changelog below.
    (Workaround for bug #912344, Alexander Belchenko)
 
 
-0.21.3 - in development
------------------------
+0.21.3 - 2012/04/05
+-------------------
 Maintenance release.
 
  * Avoid AttributeError on 'is_ignored' from treewidget filtering involving
