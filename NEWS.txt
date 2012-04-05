@@ -131,8 +131,8 @@ For full list of improvements and bugfixes please see changelog below.
    (Workaround for bug #912344, Alexander Belchenko)
 
 
-0.21.3 - in development
------------------------
+0.21.3 - 2012/04/05
+-------------------
 Maintenance release.
 
  * Avoid AttributeError on 'is_ignored' from treewidget filtering involving
