@@ -130,6 +130,13 @@ class WarningInfoWidget(InfoWidget):
         self.add_button(N_('Resolve'), on_conflict)
         self.add_button(N_('Revert'), on_revert)
 
+
+    def setup_for_locked(self, on_retry):
+        self.remove_all_buttons()
+        self.set_label(N_('Could not acquire lock. Please retry later.'))
+        self.add_button(N_('Retry'), on_retry)
+
+
 class SubProcessWindowBase(object):
 
     def __init_internal__(self, title,
@@ -329,6 +336,10 @@ class SubProcessWindowBase(object):
             self.infowidget.setup_for_uncommitted(self.open_commit_win, 
                                                   self.open_revert_win,
                                                   self.open_shelve_win)
+            self.infowidget.show()
+
+        elif error=='LockContention':
+            self.infowidget.setup_for_locked(self.do_accept)
             self.infowidget.show()
 
     def on_error(self):
