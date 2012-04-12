@@ -231,11 +231,24 @@ class SubProcessWindowBase(object):
             self.do_accept()
 
     def make_default_status_box(self):
+        panel = QtGui.QWidget()
+        vbox = QtGui.QVBoxLayout(panel)
+        vbox.setContentsMargins(0, 0, 0, 0)
+        vbox.addWidget(self.infowidget)
         status_group_box = QtGui.QGroupBox(gettext("Status"))
         status_layout = QtGui.QVBoxLayout(status_group_box)
         status_layout.setContentsMargins(0, 0, 0, 0)
         status_layout.addWidget(self.process_widget)
-        return status_group_box
+        vbox.addWidget(status_group_box)
+        return panel
+
+    def make_process_panel(self):
+        panel = QtGui.QWidget()
+        vbox = QtGui.QVBoxLayout(panel)
+        vbox.setContentsMargins(0, 0, 0, 0)
+        vbox.addWidget(self.infowidget)
+        vbox.addWidget(self.process_widget)
+        return panel
 
     def make_default_layout_widgets(self):
         """Yields widgets to add to main dialog layout: status and button boxes.
@@ -243,7 +256,6 @@ class SubProcessWindowBase(object):
         Button box has 2 buttons: OK and Cancel (after successfull command 
         execution there will be Close and Cancel).
         """
-        yield self.infowidget
         yield self.make_default_status_box()
         yield self.buttonbox
 

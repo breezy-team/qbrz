@@ -418,7 +418,8 @@ class CommitWindow(SubProcessDialog):
         else:
             self.pending_merges_list = False
 
-        self.tabWidget.addTab(self.process_widget, gettext("Status"))
+        self.process_panel = self.make_process_panel()
+        self.tabWidget.addTab(self.process_panel, gettext("Status"))
 
         splitter.setStretchFactor(0, 3)
 
@@ -693,7 +694,7 @@ class CommitWindow(SubProcessDialog):
             commands.append((dir, ["add", "--no-recurse"] + files_to_add))
         commands.append((dir, args))
 
-        self.tabWidget.setCurrentWidget(self.process_widget)
+        self.tabWidget.setCurrentWidget(self.process_panel)
         self.process_widget.start_multi(commands)
 
     def show_nonversioned(self, state):
