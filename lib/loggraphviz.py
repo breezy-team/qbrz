@@ -1456,6 +1456,8 @@ class FileIdFilter (object):
             
             if revids is None:
                 revids = [rev.revid for rev in self.graph_viz.revisions]
+            revids = [revid for revid in revids
+                      if not revid.startswith(CURRENT_REVISION)]
             
             for repo, revids in self.graph_viz.get_repo_revids(revids):
                 if self.uses_inventory():

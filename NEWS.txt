@@ -1,3 +1,12 @@
+0.22.3 - in development
+-----------------------
+Maintenance release.
+
+ * qlog
+   * Fix - crashes when trying show log of subdirectory with --show-trees option.
+     (IWATA Hidetaka, Bug #974362)
+
+
 0.22.2 - 2012/04/05
 -------------------
 Maintenance release.
