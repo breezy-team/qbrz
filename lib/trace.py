@@ -74,6 +74,16 @@ def set_file_bugs_url(url):
 
 closing_due_to_error = False
 
+def create_lockerror_dialog(type, window=None):
+    msgbox = QtGui.QMessageBox(parent=window)
+    msgbox.setIcon(QtGui.QMessageBox.Warning)
+    msgbox.setText(gettext("Could not acquire lock. Please retry later"))
+    if type == MAIN_LOAD_METHOD:
+        msgbox.addButton(QtGui.QMessageBox.Close)
+    else:
+        msgbox.addButton(QtGui.QMessageBox.Ok)
+    return msgbox
+
 def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
                      ui_mode=False):
     """Report an exception.
@@ -152,7 +162,10 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
     
     close = True
     if msg_box:
-        if error_type == errors.EXIT_INTERNAL_ERROR:
+        if isinstance(exc_object, errors.LockContention):
+            msg_box = create_lockerror_dialog(error_type, window)
+
+        elif error_type == errors.EXIT_INTERNAL_ERROR:
             # this is a copy of bzrlib.trace.report_bug
             # but we seperate the message, and the trace back,
             # and addes a hyper link to the filebug page.

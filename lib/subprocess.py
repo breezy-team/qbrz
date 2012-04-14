@@ -130,6 +130,13 @@ class WarningInfoWidget(InfoWidget):
         self.add_button(N_('Resolve'), on_conflict)
         self.add_button(N_('Revert'), on_revert)
 
+
+    def setup_for_locked(self, on_retry):
+        self.remove_all_buttons()
+        self.set_label(N_('Could not acquire lock. Please retry later.'))
+        self.add_button(N_('Retry'), on_retry)
+
+
 class SubProcessWindowBase(object):
 
     def __init_internal__(self, title,
@@ -231,11 +238,24 @@ class SubProcessWindowBase(object):
             self.do_accept()
 
     def make_default_status_box(self):
+        panel = QtGui.QWidget()
+        vbox = QtGui.QVBoxLayout(panel)
+        vbox.setContentsMargins(0, 0, 0, 0)
+        vbox.addWidget(self.infowidget)
         status_group_box = QtGui.QGroupBox(gettext("Status"))
         status_layout = QtGui.QVBoxLayout(status_group_box)
         status_layout.setContentsMargins(0, 0, 0, 0)
         status_layout.addWidget(self.process_widget)
-        return status_group_box
+        vbox.addWidget(status_group_box)
+        return panel
+
+    def make_process_panel(self):
+        panel = QtGui.QWidget()
+        vbox = QtGui.QVBoxLayout(panel)
+        vbox.setContentsMargins(0, 0, 0, 0)
+        vbox.addWidget(self.infowidget)
+        vbox.addWidget(self.process_widget)
+        return panel
 
     def make_default_layout_widgets(self):
         """Yields widgets to add to main dialog layout: status and button boxes.
@@ -243,7 +263,6 @@ class SubProcessWindowBase(object):
         Button box has 2 buttons: OK and Cancel (after successfull command 
         execution there will be Close and Cancel).
         """
-        yield self.infowidget
         yield self.make_default_status_box()
         yield self.buttonbox
 
@@ -317,6 +336,10 @@ class SubProcessWindowBase(object):
             self.infowidget.setup_for_uncommitted(self.open_commit_win, 
                                                   self.open_revert_win,
                                                   self.open_shelve_win)
+            self.infowidget.show()
+
+        elif error=='LockContention':
+            self.infowidget.setup_for_locked(self.do_accept)
             self.infowidget.show()
 
     def on_error(self):

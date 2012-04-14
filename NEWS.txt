@@ -16,6 +16,8 @@ color of revision. Previously we've used author name to define background
 color, so changes in different revisions made by user with the same e-mail 
 but with differently spelled name was highlighted with different colors.
 
+Show simple message box instead of exception report dialog when failing to lock. (#935902)
+
  * qannotate:
    * New command-line option `--line=N` (`-L`) to activate specified 
      line number on start of dialog. (Alexander Belchenko)
