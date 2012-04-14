@@ -77,7 +77,7 @@ closing_due_to_error = False
 def create_lockerror_dialog(type, window=None):
     msgbox = QtGui.QMessageBox(parent=window)
     msgbox.setIcon(QtGui.QMessageBox.Warning)
-    msgbox.setText(gettext("Could not acquire lock. Please retry later"))
+    msgbox.setText(gettext("Could not acquire lock. Please retry later."))
     if type == MAIN_LOAD_METHOD:
         msgbox.addButton(QtGui.QMessageBox.Close)
     else:
