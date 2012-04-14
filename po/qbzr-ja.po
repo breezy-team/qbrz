@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-28 05:31+0900\n"
+"POT-Creation-Date: 2012-04-14 09:48+0900\n"
 "PO-Revision-Date: 2011-08-04 14:34+0000\n"
 "Last-Translator: IWATA Hidetaka <Unknown>\n"
 "Language-Team: Japanese <ja@li.org>\n"
@@ -37,64 +37,64 @@ msgstr "無視したファイルを表示"
 msgid "Nothing selected to add"
 msgstr "commit する変更が選択されていません"
 
-#: lib\annotate.py:271 lib\annotate.py:389 lib\annotate.py:461
-#: lib\annotate.py:465 lib\log.py:570
+#: lib\annotate.py:272 lib\annotate.py:390 lib\annotate.py:464
+#: lib\annotate.py:468 lib\log.py:570
 msgid "Annotate"
 msgstr "注釈"
 
-#: lib\annotate.py:271 lib\diffwindow.py:123 lib\util.py:512
+#: lib\annotate.py:272 lib\diffwindow.py:123 lib\util.py:512
 msgid "Loading..."
 msgstr "読み込み中..."
 
-#: lib\annotate.py:338 lib/widgets\shelve.py:316 lib/widgets\shelvelist.py:126
+#: lib\annotate.py:339 lib/widgets\shelve.py:316 lib/widgets\shelvelist.py:126
 msgid "Encoding"
 msgstr "エンコード"
 
-#: lib\annotate.py:360 lib/widgets\shelve.py:300 lib/widgets\shelvelist.py:107
+#: lib\annotate.py:361 lib/widgets\shelve.py:300 lib/widgets\shelvelist.py:107
 #: lib/widgets\toolbars.py:64
 msgid "Find"
 msgstr "検索"
 
-#: lib\annotate.py:364 lib\annotate.py:716
+#: lib\annotate.py:365 lib\annotate.py:746
 msgid "Goto Line"
 msgstr "指定行へジャンプ"
 
-#: lib\annotate.py:368 lib\diffwindow.py:263 lib/widgets\shelve.py:320
+#: lib\annotate.py:369 lib\diffwindow.py:263 lib/widgets\shelve.py:320
 #: lib/widgets\shelvelist.py:130
 msgid "&View Options"
 msgstr "表示オプション(&V)"
 
-#: lib\annotate.py:369 lib\diffwindow.py:264 lib/widgets\shelve.py:304
+#: lib\annotate.py:370 lib\diffwindow.py:264 lib/widgets\shelve.py:304
 #: lib/widgets\shelvelist.py:113
 msgid "View Options"
 msgstr "表示オプション"
 
-#: lib\annotate.py:372
+#: lib\annotate.py:373
 msgid "Word Wrap"
 msgstr "行の折り返し"
 
-#: lib\annotate.py:382
+#: lib\annotate.py:383
 msgid "Tab Width"
 msgstr "タブ文字の幅"
 
-#: lib\annotate.py:462
+#: lib\annotate.py:465
 #, python-format
 msgid "Revision %s"
 msgstr "リビジョン %s"
 
-#: lib\annotate.py:724
+#: lib\annotate.py:754
 msgid "Goto Line: "
 msgstr "指定行へジャンプ： "
 
-#: lib\annotate.py:732
+#: lib\annotate.py:762
 msgid "Go"
 msgstr "移動"
 
-#: lib\annotate.py:744
+#: lib\annotate.py:774
 msgid "Close Goto Line"
 msgstr "行指定パネルを閉じる"
 
-#: lib\annotate.py:774
+#: lib\annotate.py:804
 msgid "&Annotate this revision"
 msgstr "このリビジョンを注釈する(&A)"
 
@@ -208,23 +208,23 @@ msgstr "更新"
 msgid "Message"
 msgstr "メッセージ"
 
-#: lib\commit.py:317
+#: lib\commit.py:319
 msgid "Show non-versioned files"
 msgstr "バージョン管理下にないファイルを表示"
 
-#: lib\commit.py:344
+#: lib\commit.py:346
 msgid "Enter the commit message"
 msgstr "コミットメッセージを入力してください。"
 
-#: lib\commit.py:358
+#: lib\commit.py:360
 msgid "&Fixed bugs:"
 msgstr "修正されたバグ(&F):"
 
-#: lib\commit.py:359
+#: lib\commit.py:361
 msgid "Set the IDs of bugs fixed by this commit"
 msgstr "このコミットにより修正されるバグのIDを設定"
 
-#: lib\commit.py:362
+#: lib\commit.py:364
 msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
@@ -232,42 +232,42 @@ msgstr ""
 "バグIDのリストを入力する　フォーマットは <i>tag:id</i>でスペースで区切る。例 "
 "<i>project:123 project:765</i>"
 
-#: lib\commit.py:372
+#: lib\commit.py:374
 msgid "&Author:"
 msgstr "著者(&A):"
 
-#: lib\commit.py:373
+#: lib\commit.py:375
 msgid "Set the author of this change, if it's different from the committer"
 msgstr "この変更の著者がコミッターと異なるなら著者を設定"
 
-#: lib\commit.py:376
+#: lib\commit.py:378
 msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
 "著者の名前を入力してください。(例: <i>John Doe &lt;jdoe@example.com&gt;</i>)"
 
-#: lib\commit.py:391
+#: lib\commit.py:393
 msgid "Changes"
 msgstr "変更点"
 
-#: lib\commit.py:408
+#: lib\commit.py:410
 msgid "Pending Merges"
 msgstr "マージ保留"
 
-#: lib\commit.py:419 lib\main.py:355 lib\subprocess.py:234
+#: lib\commit.py:422 lib\main.py:355 lib\subprocess.py:245
 #: lib\treewidget.py:357 lib/widgets\shelve.py:284
 #: lib/widgets\shelvelist.py:90
 msgid "Status"
 msgstr "状態"
 
-#: lib\commit.py:431
+#: lib\commit.py:434
 msgid "View changes in files selected to commit"
 msgstr "選択されたファイルの変更点を見る"
 
-#: lib\commit.py:651
+#: lib\commit.py:654
 msgid "You should provide a commit message."
 msgstr "コミットメッセージを入力してください"
 
-#: lib\commit.py:655
+#: lib\commit.py:658
 msgid ""
 "No changes selected to commit.\n"
 "Do you want to commit anyway?"
@@ -275,14 +275,14 @@ msgstr ""
 "コミットする変更が選択されていません。\n"
 "どうしてもコミットしたいですか?"
 
-#: lib\commit.py:736
+#: lib\commit.py:739
 msgid ""
 "A commit will be made directly to the master branch, keeping the local and "
 "master branches in sync."
 msgstr ""
 "コミットはマスターブランチに送られ、ローカルとマスターブランチ間で同期します"
 
-#: lib\commit.py:742
+#: lib\commit.py:745
 msgid ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
@@ -290,7 +290,7 @@ msgstr ""
 "ブランチへのローカルコミットが行われます。ローカルコミットでないコミットをし"
 "ない限り、マスターブランチは更新されません。"
 
-#: lib\commit.py:776 lib\diff.py:140 lib\diffwindow.py:123
+#: lib\commit.py:779 lib\diff.py:140 lib\diffwindow.py:123
 #: lib\diffwindow.py:180 lib\diffwindow.py:394 lib\diffwindow.py:451
 #: lib\diffwindow.py:458 lib\revert.py:301
 msgid "Diff"
@@ -572,8 +572,8 @@ msgstr "全ての競合は解決されました。"
 msgid "Error while running merge tool (code %d)"
 msgstr "merge ツールの実行中にエラーが発生しました (コード %d)"
 
-#: lib\conflicts.py:236 lib\conflicts.py:298 lib\tag.py:194 lib\trace.py:177
-#: lib\trace.py:184 lib\tree_branch.py:95 lib\util.py:420 lib\util.py:1011
+#: lib\conflicts.py:236 lib\conflicts.py:298 lib\tag.py:194 lib\trace.py:190
+#: lib\trace.py:197 lib\tree_branch.py:95 lib\util.py:420 lib\util.py:1011
 #: lib\util.py:1021
 msgid "Error"
 msgstr "エラー"
@@ -1314,7 +1314,7 @@ msgstr "プラグイン"
 msgid "Version"
 msgstr "バージョン"
 
-#: lib\plugins.py:58 lib\subprocess.py:457
+#: lib\plugins.py:58 lib\subprocess.py:480
 msgid "Description"
 msgstr "説明"
 
@@ -1438,11 +1438,11 @@ msgstr "編集(&E)"
 msgid "Help for command"
 msgstr "コマンドのヘルプ"
 
-#: lib\run.py:284
+#: lib\run.py:287
 msgid "Select path to insert"
 msgstr "挿入するパスを選択して下さい"
 
-#: lib\run.py:294
+#: lib\run.py:297
 msgid "Select files to insert"
 msgstr "挿入するファイルを選択して下さい"
 
@@ -1538,56 +1538,65 @@ msgstr "作業ツリーにはコミットしていない変更が含まれてい
 msgid "Resolve"
 msgstr "自動解決"
 
-#: lib\subprocess.py:210
+#: lib\subprocess.py:136 lib\trace.py:80
+msgid "Could not acquire lock. Please retry later."
+msgstr ""
+
+#: lib\subprocess.py:137
+#, fuzzy
+msgid "Retry"
+msgstr "再試行(&R)"
+
+#: lib\subprocess.py:217
 msgid "&Retry"
 msgstr "再試行(&R)"
 
-#: lib\subprocess.py:495
+#: lib\subprocess.py:518
 msgid "Ready"
 msgstr "待機中"
 
-#: lib\subprocess.py:568
+#: lib\subprocess.py:591
 msgid "Starting..."
 msgstr "開始..."
 
-#: lib\subprocess.py:631
+#: lib\subprocess.py:654
 msgid "Could not locate \"bzr.exe\"."
 msgstr "”bzr.exe”が見つかりません"
 
-#: lib\subprocess.py:650
+#: lib\subprocess.py:673
 msgid "Could not locate \"bzr\" script."
 msgstr "”bzr”スクリプトが見つかりません"
 
-#: lib\subprocess.py:671
+#: lib\subprocess.py:694
 msgid "Aborting..."
 msgstr "中止..."
 
-#: lib\subprocess.py:682 lib\subprocess.py:821
+#: lib\subprocess.py:705 lib\subprocess.py:844
 msgid "Finished!"
 msgstr "完了!"
 
-#: lib\subprocess.py:709 lib\uifactory.py:108
+#: lib\subprocess.py:732 lib\uifactory.py:108
 msgid "Enter Password"
 msgstr "パスワードを入力して下さい"
 
-#: lib\subprocess.py:719 lib\uifactory.py:119
+#: lib\subprocess.py:742 lib\uifactory.py:119
 msgid "Enter Username"
 msgstr "ユーザ名を入力してください"
 
-#: lib\subprocess.py:801 lib\subprocess.py:827
+#: lib\subprocess.py:824 lib\subprocess.py:850
 msgid "Failed!"
 msgstr "失敗!"
 
-#: lib\subprocess.py:804
+#: lib\subprocess.py:827
 msgid "Failed to start bzr."
 msgstr "bzrの実行に失敗しました。"
 
-#: lib\subprocess.py:806
+#: lib\subprocess.py:829
 #, python-format
 msgid "Error while running bzr. (error code: %d)"
 msgstr "bzr実行中にエラーが発生しました。(エラーコード: %d)"
 
-#: lib\subprocess.py:814
+#: lib\subprocess.py:837
 msgid "Aborted!"
 msgstr "中断しました！"
 
@@ -1664,36 +1673,36 @@ msgstr ""
 "ブランチではありません：\n"
 "%s"
 
-#: lib\trace.py:233
+#: lib\trace.py:246
 #, python-format
 msgid "Close %s Window"
 msgstr "%sウインドウを閉じる"
 
-#: lib\trace.py:235
+#: lib\trace.py:248
 msgid "Close Window"
 msgstr "ウインドウを閉じる"
 
-#: lib\trace.py:237
+#: lib\trace.py:250
 msgid "Close Application"
 msgstr "アプリケーションを終了する"
 
-#: lib\trace.py:247
+#: lib\trace.py:260
 msgid "Close Error Dialog"
 msgstr "エラーダイアログを閉じる"
 
-#: lib\trace.py:252
+#: lib\trace.py:265
 msgid "Ignore Error"
 msgstr "エラーを無視する"
 
-#: lib\trace.py:278
+#: lib\trace.py:291
 msgid "Report Bazaar Error"
 msgstr "Bazaarのエラーを報告する"
 
-#: lib\trace.py:299 lib\trace.py:345
+#: lib\trace.py:312 lib\trace.py:358
 msgid "Show Error Details >>>"
 msgstr "エラーの詳細を表示する）>>>"
 
-#: lib\trace.py:343
+#: lib\trace.py:356
 msgid "<<< Hide Error Details"
 msgstr "<<<エラーの詳細を隠す"
 

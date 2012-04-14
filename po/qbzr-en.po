@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-28 05:31+0900\n"
-"PO-Revision-Date: 2012-02-22 19:25+0900\n"
+"POT-Creation-Date: 2012-04-14 09:48+0900\n"
+"PO-Revision-Date: 2012-03-28 05:31+0900\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: en\n"
@@ -31,68 +31,67 @@ msgid "Show ignored files"
 msgstr "Show ignored files"
 
 #: lib\add.py:151
-#, fuzzy
 msgid "Nothing selected to add"
-msgstr "No changes selected to commit"
+msgstr "Nothing selected to add"
 
-#: lib\annotate.py:271 lib\annotate.py:389 lib\annotate.py:461
-#: lib\annotate.py:465 lib\log.py:570
+#: lib\annotate.py:272 lib\annotate.py:390 lib\annotate.py:464
+#: lib\annotate.py:468 lib\log.py:570
 msgid "Annotate"
 msgstr "Annotate"
 
-#: lib\annotate.py:271 lib\diffwindow.py:123 lib\util.py:512
+#: lib\annotate.py:272 lib\diffwindow.py:123 lib\util.py:512
 msgid "Loading..."
 msgstr "Loading..."
 
-#: lib\annotate.py:338 lib/widgets\shelve.py:316 lib/widgets\shelvelist.py:126
+#: lib\annotate.py:339 lib/widgets\shelve.py:316 lib/widgets\shelvelist.py:126
 msgid "Encoding"
 msgstr "Encoding"
 
-#: lib\annotate.py:360 lib/widgets\shelve.py:300 lib/widgets\shelvelist.py:107
+#: lib\annotate.py:361 lib/widgets\shelve.py:300 lib/widgets\shelvelist.py:107
 #: lib/widgets\toolbars.py:64
 msgid "Find"
 msgstr "Find"
 
-#: lib\annotate.py:364 lib\annotate.py:716
+#: lib\annotate.py:365 lib\annotate.py:746
 msgid "Goto Line"
 msgstr "Goto Line"
 
-#: lib\annotate.py:368 lib\diffwindow.py:263 lib/widgets\shelve.py:320
+#: lib\annotate.py:369 lib\diffwindow.py:263 lib/widgets\shelve.py:320
 #: lib/widgets\shelvelist.py:130
 msgid "&View Options"
 msgstr "&View Options"
 
-#: lib\annotate.py:369 lib\diffwindow.py:264 lib/widgets\shelve.py:304
+#: lib\annotate.py:370 lib\diffwindow.py:264 lib/widgets\shelve.py:304
 #: lib/widgets\shelvelist.py:113
 msgid "View Options"
 msgstr "View Options"
 
-#: lib\annotate.py:372
+#: lib\annotate.py:373
 msgid "Word Wrap"
 msgstr "Word Wrap"
 
-#: lib\annotate.py:382
+#: lib\annotate.py:383
 msgid "Tab Width"
 msgstr "Tab Width"
 
-#: lib\annotate.py:462
+#: lib\annotate.py:465
 #, python-format
 msgid "Revision %s"
 msgstr "Revision %s"
 
-#: lib\annotate.py:724
+#: lib\annotate.py:754
 msgid "Goto Line: "
 msgstr "Goto Line: "
 
-#: lib\annotate.py:732
+#: lib\annotate.py:762
 msgid "Go"
 msgstr "Go"
 
-#: lib\annotate.py:744
+#: lib\annotate.py:774
 msgid "Close Goto Line"
 msgstr "Close Goto Line"
 
-#: lib\annotate.py:774
+#: lib\annotate.py:804
 msgid "&Annotate this revision"
 msgstr "&Annotate this revision"
 
@@ -203,23 +202,23 @@ msgstr "Update"
 msgid "Message"
 msgstr "Message"
 
-#: lib\commit.py:317
+#: lib\commit.py:319
 msgid "Show non-versioned files"
 msgstr "Show non-versioned files"
 
-#: lib\commit.py:344
+#: lib\commit.py:346
 msgid "Enter the commit message"
 msgstr "Enter the commit message"
 
-#: lib\commit.py:358
+#: lib\commit.py:360
 msgid "&Fixed bugs:"
 msgstr "&Fixed bugs:"
 
-#: lib\commit.py:359
+#: lib\commit.py:361
 msgid "Set the IDs of bugs fixed by this commit"
 msgstr "Set the IDs of bugs fixed by this commit"
 
-#: lib\commit.py:362
+#: lib\commit.py:364
 msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
@@ -227,41 +226,41 @@ msgstr ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
 
-#: lib\commit.py:372
+#: lib\commit.py:374
 msgid "&Author:"
 msgstr "&Author:"
 
-#: lib\commit.py:373
+#: lib\commit.py:375
 msgid "Set the author of this change, if it's different from the committer"
 msgstr "Set the author of this change, if it's different from the committer"
 
-#: lib\commit.py:376
+#: lib\commit.py:378
 msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 
-#: lib\commit.py:391
+#: lib\commit.py:393
 msgid "Changes"
 msgstr "Changes"
 
-#: lib\commit.py:408
+#: lib\commit.py:410
 msgid "Pending Merges"
 msgstr "Pending Merges"
 
-#: lib\commit.py:419 lib\main.py:355 lib\subprocess.py:234
+#: lib\commit.py:422 lib\main.py:355 lib\subprocess.py:245
 #: lib\treewidget.py:357 lib/widgets\shelve.py:284
 #: lib/widgets\shelvelist.py:90
 msgid "Status"
 msgstr "Status"
 
-#: lib\commit.py:431
+#: lib\commit.py:434
 msgid "View changes in files selected to commit"
 msgstr "View changes in files selected to commit"
 
-#: lib\commit.py:651
+#: lib\commit.py:654
 msgid "You should provide a commit message."
 msgstr "You should provide a commit message."
 
-#: lib\commit.py:655
+#: lib\commit.py:658
 msgid ""
 "No changes selected to commit.\n"
 "Do you want to commit anyway?"
@@ -269,7 +268,7 @@ msgstr ""
 "No changes selected to commit.\n"
 "Do you want to commit anyway?"
 
-#: lib\commit.py:736
+#: lib\commit.py:739
 msgid ""
 "A commit will be made directly to the master branch, keeping the local and "
 "master branches in sync."
@@ -277,7 +276,7 @@ msgstr ""
 "A commit will be made directly to the master branch, keeping the local and "
 "master branches in sync."
 
-#: lib\commit.py:742
+#: lib\commit.py:745
 msgid ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
@@ -285,7 +284,7 @@ msgstr ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
 
-#: lib\commit.py:776 lib\diff.py:140 lib\diffwindow.py:123
+#: lib\commit.py:779 lib\diff.py:140 lib\diffwindow.py:123
 #: lib\diffwindow.py:180 lib\diffwindow.py:394 lib\diffwindow.py:451
 #: lib\diffwindow.py:458 lib\revert.py:301
 msgid "Diff"
@@ -544,11 +543,11 @@ msgstr "&Merge conflict"
 
 #: lib\conflicts.py:154
 msgid "Take \"&THIS\" version"
-msgstr ""
+msgstr "Take \"&THIS\" version"
 
 #: lib\conflicts.py:156
 msgid "Take \"&OTHER\" version"
-msgstr ""
+msgstr "Take \"&OTHER\" version"
 
 #: lib\conflicts.py:158
 msgid "Mark as &resolved"
@@ -576,8 +575,8 @@ msgstr "All conflicts resolved."
 msgid "Error while running merge tool (code %d)"
 msgstr "Error while running merge tool (code %d)"
 
-#: lib\conflicts.py:236 lib\conflicts.py:298 lib\tag.py:194 lib\trace.py:177
-#: lib\trace.py:184 lib\tree_branch.py:95 lib\util.py:420 lib\util.py:1011
+#: lib\conflicts.py:236 lib\conflicts.py:298 lib\tag.py:194 lib\trace.py:190
+#: lib\trace.py:197 lib\tree_branch.py:95 lib\util.py:420 lib\util.py:1011
 #: lib\util.py:1021
 msgid "Error"
 msgstr "Error"
@@ -849,41 +848,39 @@ msgstr "Options"
 
 #: lib\export.py:321 lib\export.py:326
 msgid "Export location is invalid"
-msgstr ""
+msgstr "Export location is invalid"
 
 #: lib\export.py:331
 msgid "Export revision is invalid"
-msgstr ""
+msgstr "Export revision is invalid"
 
 #: lib\getnew.py:118
-#, fuzzy
 msgid "You should specify branch source"
-msgstr "You should specify tag name"
+msgstr "You should specify branch source"
 
 #: lib\getnew.py:122
 msgid "You should select destination directory"
-msgstr ""
+msgstr "You should select destination directory"
 
 #: lib\getnew.py:128
-#, fuzzy
 msgid "Do you really want to checkout into a non-empty folder?"
-msgstr "Do you really want to revert the selected file(s)?"
+msgstr "Do you really want to checkout into a non-empty folder?"
 
 #: lib\getnew.py:130
-#, fuzzy
 msgid "Do you really want to branch into a non-empty folder?"
-msgstr "Do you really want to revert the selected file(s)?"
+msgstr "Do you really want to branch into a non-empty folder?"
 
 #: lib\getnew.py:131
 msgid ""
 "The destination folder is not empty.\n"
 "Populating new working tree there may create conflicts."
 msgstr ""
+"The destination folder is not empty.\n"
+"Populating new working tree there may create conflicts."
 
 #: lib\getupdates.py:77 lib\getupdates.py:140
-#, fuzzy
 msgid "You should specify source branch location"
-msgstr "You must specify a location"
+msgstr "You should specify source branch location"
 
 #: lib\help.py:59
 #, python-format
@@ -987,9 +984,8 @@ msgid "Initialize"
 msgstr "Initialize"
 
 #: lib\init.py:74
-#, fuzzy
 msgid "You should specify a location"
-msgstr "You must specify a location"
+msgstr "You should specify a location"
 
 #: lib\log.py:111
 msgid "Log"
@@ -1314,7 +1310,7 @@ msgstr "Plugins"
 msgid "Version"
 msgstr "Version"
 
-#: lib\plugins.py:58 lib\subprocess.py:457
+#: lib\plugins.py:58 lib\subprocess.py:480
 msgid "Description"
 msgstr "Description"
 
@@ -1368,20 +1364,20 @@ msgid "View changes in files selected to revert"
 msgstr "View changes in files selected to revert"
 
 #: lib\revert.py:247
-#, fuzzy
 msgid ""
 "You have selected revert for all changed paths\n"
 "but keep pending merges.\n"
 "\n"
 "Do you want to continue?"
 msgstr ""
-"You are reverting all changed paths without also reverting pending merges. "
+"You have selected revert for all changed paths\n"
+"but keep pending merges.\n"
+"\n"
 "Do you want to continue?"
 
 #: lib\revert.py:257
-#, fuzzy
 msgid "You have not selected anything to revert."
-msgstr "No changes selected to revert"
+msgstr "You have not selected anything to revert."
 
 #: lib\revisionmessagebrowser.py:195
 msgid "Parents:"
@@ -1441,11 +1437,11 @@ msgstr "&Edit"
 msgid "Help for command"
 msgstr "Help for command"
 
-#: lib\run.py:284
+#: lib\run.py:287
 msgid "Select path to insert"
 msgstr "Select path to insert"
 
-#: lib\run.py:294
+#: lib\run.py:297
 msgid "Select files to insert"
 msgstr "Select files to insert"
 
@@ -1499,19 +1495,19 @@ msgstr "Revisions:"
 
 #: lib\send.py:208
 msgid "Email address not entered."
-msgstr ""
+msgstr "Email address not entered."
 
 #: lib\send.py:212
 msgid "Email address is not valid."
-msgstr ""
+msgstr "Email address is not valid."
 
 #: lib\send.py:218
 msgid "Filename not entered."
-msgstr ""
+msgstr "Filename not entered."
 
 #: lib\send.py:224
 msgid "No submit branch entered."
-msgstr ""
+msgstr "No submit branch entered."
 
 #: lib\shelvewindow.py:63 lib\shelvewindow.py:111 lib\shelvewindow.py:120
 #: lib\shelvewindow.py:122 lib/widgets\shelvelist.py:501
@@ -1531,65 +1527,72 @@ msgid "View shelved changes"
 msgstr "View shelved changes"
 
 #: lib\subprocess.py:129
-#, fuzzy
 msgid "Working tree has conflicts."
-msgstr "Working tree has uncommitted changes."
+msgstr "Working tree has conflicts."
 
 #: lib\subprocess.py:130
-#, fuzzy
 msgid "Resolve"
-msgstr "Auto-resolve"
+msgstr "Resolve"
 
-#: lib\subprocess.py:210
+#: lib\subprocess.py:136 lib\trace.py:80
+msgid "Could not acquire lock. Please retry later."
+msgstr ""
+
+#: lib\subprocess.py:137
+#, fuzzy
+msgid "Retry"
+msgstr "&Retry"
+
+#: lib\subprocess.py:217
 msgid "&Retry"
 msgstr "&Retry"
 
-#: lib\subprocess.py:495
+#: lib\subprocess.py:518
 msgid "Ready"
 msgstr "Ready"
 
-#: lib\subprocess.py:568
+#: lib\subprocess.py:591
 msgid "Starting..."
 msgstr "Starting..."
 
-#: lib\subprocess.py:631
+#: lib\subprocess.py:654
 msgid "Could not locate \"bzr.exe\"."
 msgstr "Could not locate \"bzr.exe\"."
 
-#: lib\subprocess.py:650
+#: lib\subprocess.py:673
 msgid "Could not locate \"bzr\" script."
 msgstr "Could not locate \"bzr\" script."
 
-#: lib\subprocess.py:671
+#: lib\subprocess.py:694
 msgid "Aborting..."
 msgstr "Aborting..."
 
-#: lib\subprocess.py:682 lib\subprocess.py:821
+#: lib\subprocess.py:705 lib\subprocess.py:844
 msgid "Finished!"
 msgstr "Finished!"
 
-#: lib\subprocess.py:709 lib\uifactory.py:108
+#: lib\subprocess.py:732 lib\uifactory.py:108
 msgid "Enter Password"
 msgstr "Enter Password"
 
-#: lib\subprocess.py:719 lib\uifactory.py:119
+#: lib\subprocess.py:742 lib\uifactory.py:119
 msgid "Enter Username"
 msgstr "Enter Username"
 
-#: lib\subprocess.py:801 lib\subprocess.py:827
+#: lib\subprocess.py:824 lib\subprocess.py:850
 msgid "Failed!"
 msgstr "Failed!"
 
-#: lib\subprocess.py:804
+#: lib\subprocess.py:827
 msgid "Failed to start bzr."
 msgstr "Failed to start bzr."
 
-#: lib\subprocess.py:806
+#: lib\subprocess.py:829
 #, python-format
 msgid "Error while running bzr. (error code: %d)"
 msgstr "Error while running bzr. (error code: %d)"
 
-#: lib\subprocess.py:814
+#: lib\subprocess.py:837
 msgid "Aborted!"
 msgstr "Aborted!"
 
@@ -1622,9 +1625,8 @@ msgid "Create Branch before switching"
 msgstr "Create Branch before switching"
 
 #: lib\switch.py:168
-#, fuzzy
 msgid "Branch location not specified."
-msgstr "Master branch location not specified."
+msgstr "Branch location not specified."
 
 #: lib\sysinfo.py:35 lib\ui_sysinfo.py:112
 msgid "System Information"
@@ -1666,36 +1668,36 @@ msgstr ""
 "Not a branch:\n"
 "%s"
 
-#: lib\trace.py:233
+#: lib\trace.py:246
 #, python-format
 msgid "Close %s Window"
 msgstr "Close %s Window"
 
-#: lib\trace.py:235
+#: lib\trace.py:248
 msgid "Close Window"
 msgstr "Close Window"
 
-#: lib\trace.py:237
+#: lib\trace.py:250
 msgid "Close Application"
 msgstr "Close Application"
 
-#: lib\trace.py:247
+#: lib\trace.py:260
 msgid "Close Error Dialog"
 msgstr "Close Error Dialog"
 
-#: lib\trace.py:252
+#: lib\trace.py:265
 msgid "Ignore Error"
 msgstr "Ignore Error"
 
-#: lib\trace.py:278
+#: lib\trace.py:291
 msgid "Report Bazaar Error"
 msgstr "Report Bazaar Error"
 
-#: lib\trace.py:299 lib\trace.py:345
+#: lib\trace.py:312 lib\trace.py:358
 msgid "Show Error Details >>>"
 msgstr "Show Error Details >>>"
 
-#: lib\trace.py:343
+#: lib\trace.py:356
 msgid "<<< Hide Error Details"
 msgstr "<<< Hide Error Details"
 
@@ -2206,12 +2208,11 @@ msgstr "&Cancel"
 
 #: lib\util.py:425
 msgid "Warning"
-msgstr ""
+msgstr "Warning"
 
 #: lib\util.py:436
-#, fuzzy
 msgid "Confirm"
-msgstr "Conflict"
+msgstr "Confirm"
 
 #: lib\util.py:583
 msgid "Select Source Directory"
@@ -2433,21 +2434,3 @@ msgstr "Layout"
 #, python-format
 msgid "Layout %d"
 msgstr "Layout %d"
-
-#~ msgid "No changes to commit."
-#~ msgstr "No changes to commit."
-
-#~ msgid "Cancelled"
-#~ msgstr "Cancelled"
-
-#~ msgid "&Yes"
-#~ msgstr "&Yes"
-
-#~ msgid "&No"
-#~ msgstr "&No"
-
-#~ msgid "&Move"
-#~ msgstr "&Move"
-
-#~ msgid "Cre&ate"
-#~ msgstr "Cre&ate"

@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: QBzr 0.7.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-03-28 05:31+0900\n"
+"POT-Creation-Date: 2012-04-14 09:48+0900\n"
 "PO-Revision-Date: 2010-06-11 08:30+0000\n"
 "Last-Translator: Alex L. <Unknown>\n"
 "Language-Team: Russian\n"
@@ -36,64 +36,64 @@ msgstr "Показать игнорируемые файлы"
 msgid "Nothing selected to add"
 msgstr "Нет файлов для фиксации"
 
-#: lib\annotate.py:271 lib\annotate.py:389 lib\annotate.py:461
-#: lib\annotate.py:465 lib\log.py:570
+#: lib\annotate.py:272 lib\annotate.py:390 lib\annotate.py:464
+#: lib\annotate.py:468 lib\log.py:570
 msgid "Annotate"
 msgstr "Аннотация"
 
-#: lib\annotate.py:271 lib\diffwindow.py:123 lib\util.py:512
+#: lib\annotate.py:272 lib\diffwindow.py:123 lib\util.py:512
 msgid "Loading..."
 msgstr "Загрузка..."
 
-#: lib\annotate.py:338 lib/widgets\shelve.py:316 lib/widgets\shelvelist.py:126
+#: lib\annotate.py:339 lib/widgets\shelve.py:316 lib/widgets\shelvelist.py:126
 msgid "Encoding"
 msgstr ""
 
-#: lib\annotate.py:360 lib/widgets\shelve.py:300 lib/widgets\shelvelist.py:107
+#: lib\annotate.py:361 lib/widgets\shelve.py:300 lib/widgets\shelvelist.py:107
 #: lib/widgets\toolbars.py:64
 msgid "Find"
 msgstr ""
 
-#: lib\annotate.py:364 lib\annotate.py:716
+#: lib\annotate.py:365 lib\annotate.py:746
 msgid "Goto Line"
 msgstr ""
 
-#: lib\annotate.py:368 lib\diffwindow.py:263 lib/widgets\shelve.py:320
+#: lib\annotate.py:369 lib\diffwindow.py:263 lib/widgets\shelve.py:320
 #: lib/widgets\shelvelist.py:130
 msgid "&View Options"
 msgstr ""
 
-#: lib\annotate.py:369 lib\diffwindow.py:264 lib/widgets\shelve.py:304
+#: lib\annotate.py:370 lib\diffwindow.py:264 lib/widgets\shelve.py:304
 #: lib/widgets\shelvelist.py:113
 msgid "View Options"
 msgstr ""
 
-#: lib\annotate.py:372
+#: lib\annotate.py:373
 msgid "Word Wrap"
 msgstr ""
 
-#: lib\annotate.py:382
+#: lib\annotate.py:383
 msgid "Tab Width"
 msgstr ""
 
-#: lib\annotate.py:462
+#: lib\annotate.py:465
 #, python-format
 msgid "Revision %s"
 msgstr "Ревизия %s"
 
-#: lib\annotate.py:724
+#: lib\annotate.py:754
 msgid "Goto Line: "
 msgstr ""
 
-#: lib\annotate.py:732
+#: lib\annotate.py:762
 msgid "Go"
 msgstr ""
 
-#: lib\annotate.py:744
+#: lib\annotate.py:774
 msgid "Close Goto Line"
 msgstr ""
 
-#: lib\annotate.py:774
+#: lib\annotate.py:804
 msgid "&Annotate this revision"
 msgstr "Аннотация для этой ревизии"
 
@@ -201,23 +201,23 @@ msgstr ""
 msgid "Message"
 msgstr "Комментарий"
 
-#: lib\commit.py:317
+#: lib\commit.py:319
 msgid "Show non-versioned files"
 msgstr "Показать неизвестные файлы"
 
-#: lib\commit.py:344
+#: lib\commit.py:346
 msgid "Enter the commit message"
 msgstr "Введите комментарий к этой версии"
 
-#: lib\commit.py:358
+#: lib\commit.py:360
 msgid "&Fixed bugs:"
 msgstr "&Исправленные ошибки:"
 
-#: lib\commit.py:359
+#: lib\commit.py:361
 msgid "Set the IDs of bugs fixed by this commit"
 msgstr "Указать номера ошибок, исправленных в этой версии"
 
-#: lib\commit.py:362
+#: lib\commit.py:364
 msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
@@ -225,43 +225,43 @@ msgstr ""
 "Введите список номеров ошибок в формате <i>tag:id</i>, несколько ошибок "
 "разделяются пробелами, например: <i>project:123 project:765</i>"
 
-#: lib\commit.py:372
+#: lib\commit.py:374
 msgid "&Author:"
 msgstr "&Автор:"
 
-#: lib\commit.py:373
+#: lib\commit.py:375
 msgid "Set the author of this change, if it's different from the committer"
 msgstr ""
 "Указать автора этих изменений, если он отличается от того, кто делает "
 "фиксацию версии"
 
-#: lib\commit.py:376
+#: lib\commit.py:378
 msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr "Введите имя автора, например: <i>John Doe &lt;jdoe@example.com&gt;</i>"
 
-#: lib\commit.py:391
+#: lib\commit.py:393
 msgid "Changes"
 msgstr "Изменения"
 
-#: lib\commit.py:408
+#: lib\commit.py:410
 msgid "Pending Merges"
 msgstr "Незаконченное объединение"
 
-#: lib\commit.py:419 lib\main.py:355 lib\subprocess.py:234
+#: lib\commit.py:422 lib\main.py:355 lib\subprocess.py:245
 #: lib\treewidget.py:357 lib/widgets\shelve.py:284
 #: lib/widgets\shelvelist.py:90
 msgid "Status"
 msgstr "Состояние"
 
-#: lib\commit.py:431
+#: lib\commit.py:434
 msgid "View changes in files selected to commit"
 msgstr "Просмотр изменений в файлах, отобранных для фиксации"
 
-#: lib\commit.py:651
+#: lib\commit.py:654
 msgid "You should provide a commit message."
 msgstr ""
 
-#: lib\commit.py:655
+#: lib\commit.py:658
 msgid ""
 "No changes selected to commit.\n"
 "Do you want to commit anyway?"
@@ -269,7 +269,7 @@ msgstr ""
 "Вы не отметили ни одного файла для фиксации.\n"
 "Вы хотите зафикисировать в таком виде?"
 
-#: lib\commit.py:736
+#: lib\commit.py:739
 msgid ""
 "A commit will be made directly to the master branch, keeping the local and "
 "master branches in sync."
@@ -277,7 +277,7 @@ msgstr ""
 "В результате фиксации новая ревизия будет помещена в главную и локальную "
 "ветки, таким образом обе ветки будут синхронизированы."
 
-#: lib\commit.py:742
+#: lib\commit.py:745
 msgid ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
@@ -285,7 +285,7 @@ msgstr ""
 "Фиксация будет выполнена только в локальной ветке. Главная ветка не будет "
 "обновлена до тех пор, пока вы не сделаете обычную (не локальную) фиксацию."
 
-#: lib\commit.py:776 lib\diff.py:140 lib\diffwindow.py:123
+#: lib\commit.py:779 lib\diff.py:140 lib\diffwindow.py:123
 #: lib\diffwindow.py:180 lib\diffwindow.py:394 lib\diffwindow.py:451
 #: lib\diffwindow.py:458 lib\revert.py:301
 msgid "Diff"
@@ -563,8 +563,8 @@ msgstr "Все конфликты автоматически решены."
 msgid "Error while running merge tool (code %d)"
 msgstr "Ошибка при попытке запуска программы (код %d)"
 
-#: lib\conflicts.py:236 lib\conflicts.py:298 lib\tag.py:194 lib\trace.py:177
-#: lib\trace.py:184 lib\tree_branch.py:95 lib\util.py:420 lib\util.py:1011
+#: lib\conflicts.py:236 lib\conflicts.py:298 lib\tag.py:194 lib\trace.py:190
+#: lib\trace.py:197 lib\tree_branch.py:95 lib\util.py:420 lib\util.py:1011
 #: lib\util.py:1021
 msgid "Error"
 msgstr "Ошибка"
@@ -1298,7 +1298,7 @@ msgstr "Плагины"
 msgid "Version"
 msgstr "Версия"
 
-#: lib\plugins.py:58 lib\subprocess.py:457
+#: lib\plugins.py:58 lib\subprocess.py:480
 msgid "Description"
 msgstr "Описание"
 
@@ -1430,11 +1430,11 @@ msgstr "&Изменить"
 msgid "Help for command"
 msgstr "Справка для выбранной команды"
 
-#: lib\run.py:284
+#: lib\run.py:287
 msgid "Select path to insert"
 msgstr "Выберите путь для вставки"
 
-#: lib\run.py:294
+#: lib\run.py:297
 msgid "Select files to insert"
 msgstr "Выберите файлы для вставки"
 
@@ -1530,56 +1530,65 @@ msgstr "Рабочие файлы содержат незафиксирован�
 msgid "Resolve"
 msgstr "Автоматически"
 
-#: lib\subprocess.py:210
+#: lib\subprocess.py:136 lib\trace.py:80
+msgid "Could not acquire lock. Please retry later."
+msgstr ""
+
+#: lib\subprocess.py:137
+#, fuzzy
+msgid "Retry"
+msgstr "&Повторить"
+
+#: lib\subprocess.py:217
 msgid "&Retry"
 msgstr "&Повторить"
 
-#: lib\subprocess.py:495
+#: lib\subprocess.py:518
 msgid "Ready"
 msgstr "Готов"
 
-#: lib\subprocess.py:568
+#: lib\subprocess.py:591
 msgid "Starting..."
 msgstr "Начинаем операцию..."
 
-#: lib\subprocess.py:631
+#: lib\subprocess.py:654
 msgid "Could not locate \"bzr.exe\"."
 msgstr ""
 
-#: lib\subprocess.py:650
+#: lib\subprocess.py:673
 msgid "Could not locate \"bzr\" script."
 msgstr ""
 
-#: lib\subprocess.py:671
+#: lib\subprocess.py:694
 msgid "Aborting..."
 msgstr "Останавливаем операцию..."
 
-#: lib\subprocess.py:682 lib\subprocess.py:821
+#: lib\subprocess.py:705 lib\subprocess.py:844
 msgid "Finished!"
 msgstr "Завершено!"
 
-#: lib\subprocess.py:709 lib\uifactory.py:108
+#: lib\subprocess.py:732 lib\uifactory.py:108
 msgid "Enter Password"
 msgstr "Введите пароль"
 
-#: lib\subprocess.py:719 lib\uifactory.py:119
+#: lib\subprocess.py:742 lib\uifactory.py:119
 msgid "Enter Username"
 msgstr "Введите имя пользователя"
 
-#: lib\subprocess.py:801 lib\subprocess.py:827
+#: lib\subprocess.py:824 lib\subprocess.py:850
 msgid "Failed!"
 msgstr "Неудачно!"
 
-#: lib\subprocess.py:804
+#: lib\subprocess.py:827
 msgid "Failed to start bzr."
 msgstr "Не могу запустить bzr."
 
-#: lib\subprocess.py:806
+#: lib\subprocess.py:829
 #, python-format
 msgid "Error while running bzr. (error code: %d)"
 msgstr "Ошибка во время работы bzr. (код ошибки: %d)"
 
-#: lib\subprocess.py:814
+#: lib\subprocess.py:837
 msgid "Aborted!"
 msgstr "Прервано!"
 
@@ -1656,36 +1665,36 @@ msgstr ""
 "Это не ветка:\n"
 "%s"
 
-#: lib\trace.py:233
+#: lib\trace.py:246
 #, python-format
 msgid "Close %s Window"
 msgstr ""
 
-#: lib\trace.py:235
+#: lib\trace.py:248
 msgid "Close Window"
 msgstr ""
 
-#: lib\trace.py:237
+#: lib\trace.py:250
 msgid "Close Application"
 msgstr ""
 
-#: lib\trace.py:247
+#: lib\trace.py:260
 msgid "Close Error Dialog"
 msgstr ""
 
-#: lib\trace.py:252
+#: lib\trace.py:265
 msgid "Ignore Error"
 msgstr ""
 
-#: lib\trace.py:278
+#: lib\trace.py:291
 msgid "Report Bazaar Error"
 msgstr ""
 
-#: lib\trace.py:299 lib\trace.py:345
+#: lib\trace.py:312 lib\trace.py:358
 msgid "Show Error Details >>>"
 msgstr ""
 
-#: lib\trace.py:343
+#: lib\trace.py:356
 msgid "<<< Hide Error Details"
 msgstr ""
 
