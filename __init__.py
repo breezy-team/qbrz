@@ -72,7 +72,7 @@ Miscellaneous:
  * bug-url - print full URL to a specific bug, or open it in your browser.
 """
 
-version_info = (0, 22, 2, 'final', 0)
+version_info = (0, 22, 3, 'dev', 0)
 __version__ = '.'.join(map(str, version_info))
 
 
