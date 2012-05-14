@@ -5,6 +5,9 @@ Maintenance release.
  * qlog
    * Fix - crashes when trying show log of subdirectory with --show-trees option.
      (IWATA Hidetaka, Bug #974362)
+ * qshelve/qunshelve:
+   * Use `encoding` settings from branch or global config to properly show 
+     files content. (Alexander Belchenko, Bug #995943)
 
 
 0.22.2 - 2012/04/05

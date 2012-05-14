@@ -85,7 +85,7 @@ class BaseEncodingSelector(object):
         if is_valid_encoding(encoding):
             self._encoding = encoding
             self._setEncoding(encoding)
-    
+
     def _setEncoding(self, encoding):
         pass
 
@@ -143,6 +143,7 @@ class EncodingSelector(QtGui.QWidget, BaseEncodingSelector):
         self._label.setText(new_label)
 
     label = property(getLabel, setLabel)
+
 
 class EncodingMenuSelector(QtGui.QMenu, BaseEncodingSelector):
     """Menu to control encoding of text."""

@@ -64,13 +64,14 @@ from bzrlib.shelf_ui import Unshelver as Unshelver_ui
 from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
 ''')
 
+
 class ShelveListWidget(ToolbarPanel):
 
     def __init__(self, directory=None, complete=False, ignore_whitespace=False, 
                  encoding=None, splitters=None, parent=None):
         ToolbarPanel.__init__(self, slender=False, icon_size=22, parent=parent)
 
-        self.encoding = encoding
+        self.initial_encoding = encoding
         self.directory = directory
 
         self.current_diffs = []
@@ -121,7 +122,7 @@ class ShelveListWidget(ToolbarPanel):
         self.tabwidth_selector = TabWidthMenuSelector(label_text=gettext("Tab width"), 
                                     onChanged=self.on_tabwidth_changed)
         view_menu.addMenu(self.tabwidth_selector)
-        self.encoding_selector = EncodingMenuSelector(self.encoding,
+        self.encoding_selector = EncodingMenuSelector(encoding,
                                     gettext("Encoding"), self.encoding_changed)
         self.encoding_selector.setIcon(get_icon("format-text-bold", 16))
         view_menu.addMenu(self.encoding_selector)
@@ -277,7 +278,6 @@ class ShelveListWidget(ToolbarPanel):
             manager = tree.get_shelf_manager()
             shelves = manager.active_shelves()
             for shelf_id in reversed(shelves):
-
                 message = manager.get_metadata(shelf_id).get('message')
                 item = QtGui.QTreeWidgetItem()
                 item.setText(0, unicode(shelf_id))
@@ -288,7 +288,12 @@ class ShelveListWidget(ToolbarPanel):
             self.tree = tree
             self.manager = manager
 
-            tabwidth = get_set_tab_width_chars(tree.branch)
+            branch = tree.branch
+            if self.initial_encoding is None:
+                encoding = get_set_encoding(None, branch)
+                self.initial_encoding = encoding            # save real encoding for the next time
+                self.encoding_selector.encoding = encoding  # set encoding selector
+            tabwidth = get_set_tab_width_chars(branch)
             self.tabwidth_selector.setTabWidth(tabwidth)
             self._on_tabwidth_changed(tabwidth)
 
