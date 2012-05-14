@@ -232,7 +232,8 @@ class Change(object):
                     pass
 
         return self._words, False
-    
+
+
 class ShelveWidget(ToolbarPanel):
 
     def __init__(self, file_list=None, directory=None, complete=False, encoding=None, 
@@ -244,8 +245,8 @@ class ShelveWidget(ToolbarPanel):
         self.directory = directory
         self.message = None
 
-        self.encoding = encoding
-        
+        self.initial_encoding = encoding
+
         self.current_layout = -1
         self.load_settings()
 
@@ -312,7 +313,7 @@ class ShelveWidget(ToolbarPanel):
                     onChanged=self.on_tabwidth_changed)
         view_menu.addMenu(self.tabwidth_selector)
                 
-        self.encoding_selector = EncodingMenuSelector(self.encoding,
+        self.encoding_selector = EncodingMenuSelector(encoding,
                                     gettext("Encoding"), self.encoding_changed)
         self.encoding_selector.setIcon(get_icon("format-text-bold", 16))
         view_menu.addMenu(self.encoding_selector)
@@ -463,9 +464,14 @@ class ShelveWidget(ToolbarPanel):
                     self.files_str = ", ".join(file_list)
 
             self.trees = (shelver.target_tree, shelver.work_tree)
+            branch = shelver.work_tree.branch       # current branch corresponding to working tree
+            if self.initial_encoding is None:
+                encoding = get_set_encoding(None, branch)
+                self.initial_encoding = encoding            # save real encoding for the next time
+                self.encoding_selector.encoding = encoding  # set encoding selector
             self.editor_available = (shelver.change_editor is not None)
             self.editor_button.setVisible(self.editor_available)
-            tabwidth = get_set_tab_width_chars(self.trees[1].branch)
+            tabwidth = get_set_tab_width_chars(branch)
             self.tabwidth_selector.setTabWidth(tabwidth)
             self._on_tabwidth_changed(tabwidth)
             self.revision = self.trees[0].get_revision_id()
@@ -474,7 +480,7 @@ class ShelveWidget(ToolbarPanel):
             for change in creator.iter_shelvable():
                 item = self._create_item(change, shelver, self.trees, old_changes)
                 self.file_view.addTopLevelItem(item)
-            
+
         finally:
             for func in cleanup:
                 func()
@@ -1142,4 +1148,3 @@ class HunkTextBrowser(QtGui.QTextBrowser):
                 self.toggle_selection(self._focused_index)
                 return
         QtGui.QTextBrowser.keyPressEvent(self, event)
-

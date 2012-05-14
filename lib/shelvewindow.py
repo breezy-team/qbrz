@@ -58,7 +58,8 @@ from bzrlib.shelf_ui import Unshelver as Unshelver_ui
 
 class ShelveWindow(QBzrWindow):
 
-    def __init__(self, initial_tab=0, directory=None, file_list=None, complete=False, ignore_whitespace=False, encoding=None, parent=None, ui_mode=True):
+    def __init__(self, initial_tab=0, directory=None, file_list=None, complete=False,
+                 ignore_whitespace=False, encoding=None, parent=None, ui_mode=True):
         QBzrWindow.__init__(self,
                             [gettext("Shelve Manager")],
                             parent, ui_mode=ui_mode)

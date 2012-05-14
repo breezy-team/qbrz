@@ -33,6 +33,9 @@ Show simple message box instead of exception report dialog when failing to lock.
  * qrevert:
     * it now does a real check to see if there are files (or merges) selected to revert -
       if not, it shows a warning message. (André Bachmann, Bug #942744)
+ * qshelve/qunshelve:
+   * Use `encoding` settings from branch or global config to properly show 
+     files content. (Alexander Belchenko, Bug #995943)
 
 
 0.22.3 - in development
@@ -42,6 +45,9 @@ Maintenance release.
  * qlog
    * Fix - crashes when trying show log of subdirectory with --show-trees option.
      (IWATA Hidetaka, Bug #974362)
+ * qshelve/qunshelve:
+   * Use `encoding` settings from branch or global config to properly show 
+     files content. (Alexander Belchenko, Bug #995943)
 
 
 0.22.2 - 2012/04/05
