@@ -1,9 +1,14 @@
+# English translations for PACKAGE package.
+# Copyright (C) 2012 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# Automatically generated, 2012.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2012-02-22 19:25+0900\n"
-"PO-Revision-Date: 2011-08-03 08:37+0300\n"
+"PO-Revision-Date: 2012-02-22 19:25+0900\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: \n"
@@ -11,8 +16,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Launchpad-Export-Date: 2011-08-16 16:08+0000\n"
-"X-Generator: Launchpad (build 13687)\n"
 
 #: lib\add.py:45 lib\config.py:139 lib\config.py:160 lib\config.py:191
 #: lib\ui_merge_config.py:60
@@ -433,6 +436,7 @@ msgstr "Spell check &language:"
 msgid ""
 "This directory will be automatically filled in your branch source input field"
 msgstr ""
+"This directory will be automatically filled in your branch source input field"
 
 #: lib\config.py:279 lib\config.py:293 lib\ui_branch.py:102
 #: lib\ui_branch.py:104 lib\ui_init.py:120 lib\ui_merge.py:65
@@ -446,19 +450,24 @@ msgid ""
 "Base directory\n"
 "for &branch sources:"
 msgstr ""
+"Base directory\n"
+"for &branch sources:"
 
 #: lib\config.py:292
 msgid ""
 "This directory will be automatically filled in your checkout destination "
 "input field"
 msgstr ""
+"This directory will be automatically filled in your checkout destination "
+"input field"
 
 #: lib\config.py:300
-#, fuzzy
 msgid ""
 "Base directory\n"
 "for &checkouts:"
-msgstr "This directory is a checkout of: %s"
+msgstr ""
+"Base directory\n"
+"for &checkouts:"
 
 #: lib\config.py:412 lib\diff.py:45
 msgid "Builtin Diff"
@@ -500,13 +509,12 @@ msgid "Select editor executable"
 msgstr "Select editor executable"
 
 #: lib\config.py:726
-#, fuzzy
 msgid "Select base directory for checkouts"
-msgstr "This directory is a checkout of: %s"
+msgstr "Select base directory for checkouts"
 
 #: lib\config.py:733
 msgid "Select default directory for branch sources"
-msgstr ""
+msgstr "Select default directory for branch sources"
 
 #: lib\config.py:974
 msgid "Command Line"
@@ -885,56 +893,48 @@ msgid "No changes selected to revert"
 msgstr "No changes selected to revert"
 
 #: lib\ignore.py:37 lib\ignore.py:113
-#, fuzzy
 msgid "Ignore"
-msgstr "Ignored"
+msgstr "Ignore"
 
 #: lib\ignore.py:49
-#, fuzzy
 msgid "Unknown Files"
-msgstr "Unversioned Files"
+msgstr "Unknown Files"
 
 #: lib\ignore.py:58
-#, fuzzy
 msgid "Extension"
-msgstr "Version"
+msgstr "Extension"
 
 #: lib\ignore.py:59
-#, fuzzy
 msgid "Ignore as"
-msgstr "Ignored"
+msgstr "Ignore as"
 
 #: lib\ignore.py:67
-#, fuzzy
 msgid "No action"
-msgstr "Action"
+msgstr "No action"
 
 #: lib\ignore.py:70
 msgid "Ignore all files with this extension"
-msgstr ""
+msgstr "Ignore all files with this extension"
 
 #: lib\ignore.py:74
-#, fuzzy
 msgid "Case-insensitive pattern"
-msgstr "Case sensitive"
+msgstr "Case-insensitive pattern"
 
 #: lib\ignore.py:77
 msgid "Ignore by basename"
-msgstr ""
+msgstr "Ignore by basename"
 
 #: lib\ignore.py:79
 msgid "Ignore by fullname"
-msgstr ""
+msgstr "Ignore by fullname"
 
 #: lib\ignore.py:227
-#, fuzzy
 msgid "Cancelled"
-msgstr "&Cancel"
+msgstr "Cancelled"
 
 #: lib\ignore.py:228
-#, fuzzy
 msgid "No action selected"
-msgstr "No changes selected."
+msgstr "No action selected"
 
 #: lib\info.py:38 lib\ui_info.py:88 lib\ui_info.py:90
 msgid "Info"
@@ -1237,15 +1237,15 @@ msgstr "About QBzr"
 #: lib\main.py:407
 #, python-format
 msgid ""
-"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
-"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © "
-"2006-2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/"
-"QBzr\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
+"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
+"\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
-"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
-"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © "
-"2006-2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/"
-"QBzr\">http://bazaar-vcs.org/QBzr</a>"
+"<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version %"
+"(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/QBzr"
+"\">http://bazaar-vcs.org/QBzr</a>"
 
 #: lib\main.py:472
 msgid "Add Bookmark"
@@ -2264,9 +2264,8 @@ msgid "<no message>"
 msgstr "<no message>"
 
 #: lib/widgets\shelve.py:713
-#, fuzzy
 msgid "Operation aborted because working tree has pending merges."
-msgstr "Operation aborted because working tree has pending marges."
+msgstr "Operation aborted because working tree has pending merges."
 
 #: lib/widgets\shelve.py:718
 msgid "Operation aborted because target files has been changed."
@@ -2358,6 +2357,3 @@ msgstr "Layout"
 #, python-format
 msgid "Layout %d"
 msgstr "Layout %d"
-
-#~ msgid "old_cmdline"
-#~ msgstr "old_cmdline"
