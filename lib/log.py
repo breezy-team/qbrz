@@ -60,8 +60,9 @@ from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
 ''')
 
 
-PathRole = QtCore.Qt.UserRole + 1
+PathRole    = QtCore.Qt.UserRole + 1
 file_idRole = QtCore.Qt.UserRole + 2
+AliveRole   = QtCore.Qt.UserRole + 3
 
 
 class Compleater(QtGui.QCompleter):
@@ -691,44 +692,49 @@ class FileListContainer(QtGui.QWidget):
 
         if new_revids != revids:
             return 
-        
+
         if delta:
-            items = []            
+            items = [] # each item is 6-tuple: (id, path, is_not_specific_file_id, display, color, is_alive)
             for path, id, kind in delta.added:
                 items.append((id,
                               path,
                               id not in specific_file_ids,
                               path,
-                              "blue"))
-    
+                              "blue",
+                              True))
+
             for path, id, kind, text_modified, meta_modified in delta.modified:
                 items.append((id,
                               path,
                               id not in specific_file_ids,
                               path,
-                              None))
-    
+                              None,
+                              True))
+
             for path, id, kind in delta.removed:
                 items.append((id,
                               path,
                               id not in specific_file_ids,
                               path,
-                              "red"))
-    
+                              "red",
+                              False))
+
             for (oldpath, newpath, id, kind,
                 text_modified, meta_modified) in delta.renamed:
                 items.append((id,
                               newpath,
                               id not in specific_file_ids,
                               "%s => %s" % (oldpath, newpath),
-                              "purple"))
-            
+                              "purple",
+                              True))
+
             for (id, path,
                  is_not_specific_file_id,
-                 display, color) in sorted(items, key = lambda x: (x[2],x[1])):
+                 display, color, is_alive) in sorted(items, key = lambda x: (x[2],x[1])):
                 item = QtGui.QListWidgetItem(display, self.file_list)
                 item.setData(PathRole, QtCore.QVariant(path))
                 item.setData(file_idRole, QtCore.QVariant(id))
+                item.setData(AliveRole, QtCore.QVariant(is_alive))
                 if color:
                     item.setTextColor(QtGui.QColor(color))
                 if not is_not_specific_file_id:
@@ -744,11 +750,12 @@ class FileListContainer(QtGui.QWidget):
             return
         # XXX - We should also check that the selected file is a file, and 
         # not a dir
-        paths, file_ids = self.get_file_selection_paths_and_ids()
+        paths, file_ids, alives = self._get_file_selection_paths_ids_and_alives()
         is_single_file = len(paths) == 1
-        self.file_list_context_menu_annotate.setEnabled(is_single_file)
-        self.file_list_context_menu_cat.setEnabled(is_single_file)
-        self.file_list_context_menu_save_old_file.setEnabled(is_single_file)
+        menu_enabled = is_single_file and alives[0]
+        self.file_list_context_menu_annotate.setEnabled(menu_enabled)
+        self.file_list_context_menu_cat.setEnabled(menu_enabled)
+        self.file_list_context_menu_save_old_file.setEnabled(menu_enabled)
 
         gv = self.log_list.log_model.graph_viz
         # It would be nice if there were more than one branch, that we
@@ -770,17 +777,23 @@ class FileListContainer(QtGui.QWidget):
             return [index]
     
     def get_file_selection_paths_and_ids(self, index=None):
+        paths, ids, alives = self._get_file_selection_paths_ids_and_alives(index)
+        return paths, ids
+
+    def _get_file_selection_paths_ids_and_alives(self, index=None):
         indexes = self.get_file_selection_indexes(index)
-        
+        #
         paths = []
         ids = []
-        
+        alives = []
+        #
         for index in indexes:
             item = self.file_list.itemFromIndex(index)
             paths.append(unicode(item.data(PathRole).toString()))
             ids.append(str(item.data(file_idRole).toString()))
-        return paths, ids
-    
+            alives.append(bool(item.data(AliveRole).toBool()))
+        return paths, ids, alives
+
     @ui_current_widget
     def show_diff_files(self, index=None, ext_diff=None):
         """Show differences of a specific file in a single revision"""

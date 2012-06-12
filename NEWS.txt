@@ -30,6 +30,9 @@ Show simple message box instead of exception report dialog when failing to lock.
      and `Take "OTHER"`. (Alexander Belchenko)
    * Auto-refresh conflicts list after selecting a resolve action.
      (Alexander Belchenko)
+ * qlog:
+   * Disable context menu items (view, annotate, save) for deleted files.
+     (Alexander Belchenko, Bug #1009876)
  * qrevert:
     * it now does a real check to see if there are files (or merges) selected to revert -
       if not, it shows a warning message. (André Bachmann, Bug #942744)
@@ -38,8 +41,17 @@ Show simple message box instead of exception report dialog when failing to lock.
      files content. (Alexander Belchenko, Bug #995943)
 
 
-0.22.3 - in development
------------------------
+0.22.4 - development
+--------------------
+Maintenance release.
+
+ * qlog:
+   * Disable context menu items (view, annotate, save) for deleted files.
+     (Alexander Belchenko, Bug #1009876)
+
+
+0.22.3 - 2012/05/23
+-------------------
 Maintenance release.
 
  * qlog
@@ -148,6 +160,15 @@ For full list of improvements and bugfixes please see changelog below.
  * Treewidget 'unchanged' filter is now only versioned files. (Martin Packman)
  * Stringify tab_width settings while writing it to branch config.
    (Workaround for bug #912344, Alexander Belchenko)
+
+
+0.21.4 - development
+--------------------
+Maintenance release.
+
+ * qlog:
+   * Disable context menu items (view, annotate, save) for deleted files.
+     (Alexander Belchenko, Bug #1009876)
 
 
 0.21.3 - 2012/04/05
