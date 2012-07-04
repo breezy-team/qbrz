@@ -11,6 +11,8 @@ Maintenance release.
    * Some menus (tag, update, revert, ...) are disabled when Working tree
      revision selected.
      (IWATA Hidetaka, Bug #1020530)
+   * Working tree revision is never refreshed.
+     (IWATA Hidetaka, Bug #1021076)
 
 
 0.22.3 - 2012/05/23
