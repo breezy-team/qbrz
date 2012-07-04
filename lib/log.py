@@ -422,6 +422,7 @@ class LogWindow(QBzrWindow):
         return elided_text(location)
     
     def refresh(self):
+        self.file_list_container.drop_delta_cache_with_wt()
         self.replace = {}
         self.load()
 
@@ -742,6 +743,16 @@ class FileListContainer(QtGui.QWidget):
                     f.setBold(True)
                     item.setFont(f)
             self.current_revids = revids
+
+    def drop_delta_cache_with_wt(self):
+        gv = self.log_list.log_model.graph_viz
+        if not isinstance(gv, logmodel.WithWorkingTreeGraphVizLoader):
+            return
+        cache = self.delta_cache
+        keys = [k for k in cache.iterkeys()
+                if k[0].startswith(CURRENT_REVISION)]
+        for key in keys:
+            del(cache[key])
 
     def show_file_list_context_menu(self, pos):
         (top_revid, old_revid), count = \
