@@ -23,6 +23,10 @@ and for files from virtual "Working Tree" revision (available when
 qlog run with --show-tree option). Also properly refresh the state of changes
 in virtual "Working Tree" revision.
 
+New feature of qannotate: command-line option `--line=N` (`-L`) allows you 
+to jump right to specific line. That could be used for tighter integration 
+with editors and IDEs.
+
  * qannotate:
    * New command-line option `--line=N` (`-L`) to activate specified 
      line number on start of dialog. (Alexander Belchenko)
