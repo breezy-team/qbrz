@@ -2,6 +2,8 @@
 ---------------------------
 What's new in this release:
 
+QBzr 0.23 is companion release for bzr 2.6, and compatible with bzr 2.5.
+
 Behavior change: External diff behavior is changed as below.(IWATA Hidetaka)
  1. When calling external diff for multiple files, all diffs shown at once.(Bug #942218)
  2. Working tree or branch is locked only when starting up of diff tools.(Bug #942221)
