@@ -18,6 +18,11 @@ but with differently spelled name was highlighted with different colors.
 
 Show simple message box instead of exception report dialog when failing to lock. (#935902)
 
+Improvements of qlog's context menus: better context menu of deleted files,
+and for files from virtual "Working Tree" revision (available when
+qlog run with --show-tree option). Also properly refresh the state of changes
+in virtual "Working Tree" revision.
+
  * qannotate:
    * New command-line option `--line=N` (`-L`) to activate specified 
      line number on start of dialog. (Alexander Belchenko)
@@ -33,6 +38,14 @@ Show simple message box instead of exception report dialog when failing to lock.
  * qlog:
    * Disable context menu items (view, annotate, save) for deleted files.
      (Alexander Belchenko, Bug #1009876)
+   * Fix - Some menus (show tree, view, annotate) don't work when Working
+     tree revision selected.
+     (IWATA Hidetaka, Bug #1020530)
+   * Some menus (tag, update, revert, ...) are disabled when Working tree
+     revision selected.
+     (IWATA Hidetaka, Bug #1020530)
+   * Fixing issue: Working tree revision is never refreshed.
+     (IWATA Hidetaka, Bug #1021076)
  * qrevert:
     * it now does a real check to see if there are files (or merges) selected to revert -
       if not, it shows a warning message. (André Bachmann, Bug #942744)
@@ -41,13 +54,21 @@ Show simple message box instead of exception report dialog when failing to lock.
      files content. (Alexander Belchenko, Bug #995943)
 
 
-0.22.4 - development
---------------------
+0.22.4 - 2012/07/12
+-------------------
 Maintenance release.
 
  * qlog:
    * Disable context menu items (view, annotate, save) for deleted files.
      (Alexander Belchenko, Bug #1009876)
+   * Fix - Some menus (show tree, view, annotate) don't work when Working
+     tree revision selected.
+     (IWATA Hidetaka, Bug #1020530)
+   * Some menus (tag, update, revert, ...) are disabled when Working tree
+     revision selected.
+     (IWATA Hidetaka, Bug #1020530)
+   * Fixing issue: Working tree revision is never refreshed.
+     (IWATA Hidetaka, Bug #1021076)
 
 
 0.22.3 - 2012/05/23
