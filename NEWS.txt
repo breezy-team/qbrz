@@ -1,5 +1,5 @@
-0.23.0dev - in development
---------------------------
+0.23.0 "Birch" - 2012/07/12
+---------------------------
 What's new in this release:
 
 Behavior change: External diff behavior is changed as below.(IWATA Hidetaka)
