@@ -7,17 +7,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qbzr\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-04-14 09:48+0900\n"
-"PO-Revision-Date: 2011-07-17 13:43+0000\n"
+"POT-Creation-Date: 2012-02-27 18:25+0200\n"
+"PO-Revision-Date: 2012-06-22 03:38+0000\n"
 "Last-Translator: André Bachmann <Unknown>\n"
 "Language-Team: German <de@li.org>\n"
-"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2011-08-16 16:08+0000\n"
-"X-Generator: Launchpad (build 13687)\n"
+"X-Launchpad-Export-Date: 2012-07-11 21:56+0000\n"
+"X-Generator: Launchpad (build 15593)\n"
 
 #: lib\add.py:45 lib\config.py:139 lib\config.py:160 lib\config.py:191
 #: lib\ui_merge_config.py:60
@@ -32,69 +31,64 @@ msgstr "Nicht versionierte Dateien"
 msgid "Show ignored files"
 msgstr "Ignorierte Dateien zeigen"
 
-#: lib\add.py:151
-#, fuzzy
-msgid "Nothing selected to add"
-msgstr "Keine Änderungen für einen Commit"
-
-#: lib\annotate.py:272 lib\annotate.py:390 lib\annotate.py:464
-#: lib\annotate.py:468 lib\log.py:570
+#: lib\annotate.py:271 lib\annotate.py:389 lib\annotate.py:461
+#: lib\annotate.py:465 lib\log.py:570
 msgid "Annotate"
 msgstr "Beschreibe"
 
-#: lib\annotate.py:272 lib\diffwindow.py:123 lib\util.py:512
+#: lib\annotate.py:271 lib\diffwindow.py:122 lib\util.py:476
 msgid "Loading..."
 msgstr "Lade..."
 
-#: lib\annotate.py:339 lib/widgets\shelve.py:316 lib/widgets\shelvelist.py:126
+#: lib\annotate.py:338 lib/widgets\shelve.py:316 lib/widgets\shelvelist.py:126
 msgid "Encoding"
 msgstr "Zeichenkodierung"
 
-#: lib\annotate.py:361 lib/widgets\shelve.py:300 lib/widgets\shelvelist.py:107
+#: lib\annotate.py:360 lib/widgets\shelve.py:300 lib/widgets\shelvelist.py:107
 #: lib/widgets\toolbars.py:64
 msgid "Find"
 msgstr "Suchen"
 
-#: lib\annotate.py:365 lib\annotate.py:746
+#: lib\annotate.py:364 lib\annotate.py:716
 msgid "Goto Line"
 msgstr "Gehe zu Zeile"
 
-#: lib\annotate.py:369 lib\diffwindow.py:263 lib/widgets\shelve.py:320
+#: lib\annotate.py:368 lib\diffwindow.py:261 lib/widgets\shelve.py:320
 #: lib/widgets\shelvelist.py:130
 msgid "&View Options"
-msgstr ""
+msgstr "&Optionen anzeigen"
 
-#: lib\annotate.py:370 lib\diffwindow.py:264 lib/widgets\shelve.py:304
+#: lib\annotate.py:369 lib\diffwindow.py:262 lib/widgets\shelve.py:304
 #: lib/widgets\shelvelist.py:113
 msgid "View Options"
 msgstr "Ansichtsoptionen"
 
-#: lib\annotate.py:373
+#: lib\annotate.py:372
 msgid "Word Wrap"
 msgstr "Zeilenumbruch"
 
-#: lib\annotate.py:383
+#: lib\annotate.py:382
 msgid "Tab Width"
 msgstr ""
 
-#: lib\annotate.py:465
+#: lib\annotate.py:462
 #, python-format
 msgid "Revision %s"
 msgstr "Revision %s"
 
-#: lib\annotate.py:754
+#: lib\annotate.py:724
 msgid "Goto Line: "
 msgstr "Gehe zu Zeile: "
 
-#: lib\annotate.py:762
+#: lib\annotate.py:732
 msgid "Go"
 msgstr "Weiter"
 
-#: lib\annotate.py:774
+#: lib\annotate.py:744
 msgid "Close Goto Line"
 msgstr ""
 
-#: lib\annotate.py:804
+#: lib\annotate.py:774
 msgid "&Annotate this revision"
 msgstr "&Anmerkung zu dieser Revision"
 
@@ -124,7 +118,7 @@ msgstr "Binden an:"
 msgid "Browse"
 msgstr "Durchsuchen"
 
-#: lib\bind.py:110 lib\switch.py:158 lib\tag.py:180
+#: lib\bind.py:109 lib\switch.py:158 lib\tag.py:190
 msgid "Select branch location"
 msgstr "Speicherort des Zweiges wählen"
 
@@ -157,7 +151,8 @@ msgstr "Ansicht"
 msgid "Encoding:"
 msgstr "Zeichenkodierung:"
 
-#: lib\commit.py:221 lib\subprocess.py:123
+#: lib\commit.py:221 lib\commit.py:637 lib\commit.py:665 lib\commit.py:673
+#: lib\subprocess.py:181
 msgid "Commit"
 msgstr "Committen"
 
@@ -192,6 +187,8 @@ msgstr ""
 #: lib\commit.py:284
 msgid "Working tree is out of date. To commit, update the working tree."
 msgstr ""
+"Arbeitsbaum ist nicht mehr aktuell. Aktualisieren Sie ihn, um committen zu "
+"können."
 
 #: lib\commit.py:298 lib\logwidget.py:475
 msgid "Update"
@@ -202,23 +199,23 @@ msgstr "Aktualisieren"
 msgid "Message"
 msgstr "Nachricht"
 
-#: lib\commit.py:319
+#: lib\commit.py:317
 msgid "Show non-versioned files"
 msgstr "Nicht versionierte Dateien zeigen"
 
-#: lib\commit.py:346
+#: lib\commit.py:344
 msgid "Enter the commit message"
 msgstr "Commit-Nachricht eingeben"
 
-#: lib\commit.py:360
+#: lib\commit.py:358
 msgid "&Fixed bugs:"
 msgstr "Behobene Fehler:"
 
-#: lib\commit.py:361
+#: lib\commit.py:359
 msgid "Set the IDs of bugs fixed by this commit"
 msgstr "Setze die IDs der Bugs, die mit diesem Commit behoben wurden"
 
-#: lib\commit.py:364
+#: lib\commit.py:362
 msgid ""
 "Enter the list of bug IDs in format <i>tag:id</i> separated by a space, e.g. "
 "<i>project:123 project:765</i>"
@@ -226,44 +223,56 @@ msgstr ""
 "Eingeben der Liste der Bugs IDs im Format <i>tag:id</i> abgetrennt durch "
 "einen Abstand, z.B. <i>project:123 project:765</i>"
 
-#: lib\commit.py:374
+#: lib\commit.py:372
 msgid "&Author:"
 msgstr "&Autor:"
 
-#: lib\commit.py:375
+#: lib\commit.py:373
 msgid "Set the author of this change, if it's different from the committer"
 msgstr ""
 "Autor dieser Änderung setzen, falls er sich vom Committer unterscheidet"
 
-#: lib\commit.py:378
-msgid "Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
+#: lib\commit.py:376
+msgid ""
+"Enter the author's name, e.g. <i>John Doe &lt;jdoe@example.com&gt;</i>"
 msgstr ""
-"Gib den Namen des Autoren an, z.B. <i>Hans Müller &lt;hmueller@beispiel."
-"de&gt;</i>"
+"Gib den Namen des Autoren an, z.B. <i>Hans Müller "
+"&lt;hmueller@beispiel.de&gt;</i>"
 
-#: lib\commit.py:393
+#: lib\commit.py:391
 msgid "Changes"
 msgstr "Änderungen"
 
-#: lib\commit.py:410
+#: lib\commit.py:408
 msgid "Pending Merges"
 msgstr "Ausstehende Zusammenführungen"
 
-#: lib\commit.py:422 lib\main.py:355 lib\subprocess.py:245
+#: lib\commit.py:419 lib\main.py:355 lib\subprocess.py:195
 #: lib\treewidget.py:357 lib/widgets\shelve.py:284
 #: lib/widgets\shelvelist.py:90
 msgid "Status"
 msgstr "Status"
 
-#: lib\commit.py:434
+#: lib\commit.py:431
 msgid "View changes in files selected to commit"
 msgstr "Zeige Änderungen in den für den Commit ausgewählten Dateien"
 
-#: lib\commit.py:654
+#: lib\commit.py:638
 msgid "You should provide a commit message."
 msgstr "Sie sollten einen Commit-Kommentar eingeben."
 
-#: lib\commit.py:658
+#: lib\commit.py:639 lib\conflicts.py:193 lib\conflicts.py:198
+#: lib\diffwindow.py:486 lib\util.py:69 lib/widgets\shelve.py:624
+#: lib/widgets\shelve.py:668 lib/widgets\shelve.py:715
+#: lib/widgets\shelve.py:719
+msgid "&OK"
+msgstr "&OK"
+
+#: lib\commit.py:666
+msgid "No changes to commit."
+msgstr "Keine Änderungen zu übertragen."
+
+#: lib\commit.py:674
 msgid ""
 "No changes selected to commit.\n"
 "Do you want to commit anyway?"
@@ -271,7 +280,7 @@ msgstr ""
 "Keine Änderungen zum Übertragen ausgewählt.\n"
 "Soll sie dennoch durchgeführt werden?"
 
-#: lib\commit.py:739
+#: lib\commit.py:747
 msgid ""
 "A commit will be made directly to the master branch, keeping the local and "
 "master branches in sync."
@@ -279,7 +288,7 @@ msgstr ""
 "Ein Commit wird direkt in den Hauptzweig gemacht, lokaler und Hauptzweig "
 "werden synchron gehalten."
 
-#: lib\commit.py:745
+#: lib\commit.py:753
 msgid ""
 "A local commit to the branch will be performed. The master branch will not "
 "be updated until a non-local commit is made."
@@ -287,9 +296,9 @@ msgstr ""
 "Ein lokaler Commit wird durchgeführt. Der Hauptzweig wird solange nicht "
 "aktualisiert, wie ein nicht-lokaler Commit ausgeführt wird."
 
-#: lib\commit.py:779 lib\diff.py:140 lib\diffwindow.py:123
-#: lib\diffwindow.py:180 lib\diffwindow.py:394 lib\diffwindow.py:451
-#: lib\diffwindow.py:458 lib\revert.py:301
+#: lib\commit.py:786 lib\diff.py:114 lib\diffwindow.py:122
+#: lib\diffwindow.py:178 lib\diffwindow.py:392 lib\diffwindow.py:476
+#: lib\diffwindow.py:484 lib\revert.py:291
 msgid "Diff"
 msgstr "Diff"
 
@@ -354,10 +363,12 @@ msgid ""
 "Tab width in characters\n"
 "option is used in qdiff, qannotate and qcat windows"
 msgstr ""
+"Tabulatorbreite in Zeichen\n"
+"Option wird in den qdiff-, qannotate- und qcat-Fenstern benutzt"
 
 #: lib\config.py:125
 msgid "Tab &Width:"
-msgstr ""
+msgstr "Tabulator&breite"
 
 #: lib\config.py:137
 msgid "Alias"
@@ -397,6 +408,7 @@ msgstr "Name"
 #: lib\config.py:238
 msgid "Bazaar 2.4 or newer is required to configure mergetools."
 msgstr ""
+"Bazaar 2.4 oder neuer wird benötigt, um Merge-Tools zu konfigurieren."
 
 #: lib\config.py:241
 msgid "General"
@@ -430,6 +442,7 @@ msgstr "&Sprache für Rechtschreibung:"
 msgid ""
 "This directory will be automatically filled in your branch source input field"
 msgstr ""
+"Dieser Ordner wird automatisch in das Ursprungsfeld des Zweiges eingetragen"
 
 #: lib\config.py:279 lib\config.py:293 lib\ui_branch.py:102
 #: lib\ui_branch.py:104 lib\ui_init.py:120 lib\ui_merge.py:65
@@ -443,6 +456,8 @@ msgid ""
 "Base directory\n"
 "for &branch sources:"
 msgstr ""
+"Basisverzeichnis\n"
+"für neue &Zweige:"
 
 #: lib\config.py:292
 msgid ""
@@ -451,19 +466,18 @@ msgid ""
 msgstr ""
 
 #: lib\config.py:300
-#, fuzzy
 msgid ""
 "Base directory\n"
 "for &checkouts:"
-msgstr "Dieser Ordner ist ein Checkout von: %s"
+msgstr ""
 
-#: lib\config.py:412 lib\diff.py:52
+#: lib\config.py:412 lib\diff.py:45
 msgid "Builtin Diff"
 msgstr "Eingebaute Differenzanzeige"
 
 #: lib\config.py:442
 msgid "Import old external merge tool"
-msgstr ""
+msgstr "Altes externes Merge-Tool importieren"
 
 #: lib\config.py:443
 #, python-format
@@ -476,23 +490,33 @@ msgid ""
 "\n"
 "  %(new_cmdline)s"
 msgstr ""
+"Möchten Sie ihr vorher konfiguriertes externes Merge-Tool importieren:\n"
+"\n"
+"  %(old_cmdline)s\n"
+"\n"
+"als:\n"
+"\n"
+"  %(new_cmdline)s"
+
+#: lib\config.py:446
+msgid "old_cmdline"
+msgstr ""
 
 #: lib\config.py:608
 msgid "&Ignore and proceed"
-msgstr ""
+msgstr "&Ignorieren und Fortfahren"
 
 #: lib\config.py:609
 msgid "&Change the values"
-msgstr ""
+msgstr "&Werte ändern"
 
 #: lib\config.py:719
 msgid "Select editor executable"
 msgstr "Wählen Sie eine Editor Ausführungsdatei"
 
 #: lib\config.py:726
-#, fuzzy
 msgid "Select base directory for checkouts"
-msgstr "Dieser Ordner ist ein Checkout von: %s"
+msgstr ""
 
 #: lib\config.py:733
 msgid "Select default directory for branch sources"
@@ -500,10 +524,10 @@ msgstr ""
 
 #: lib\config.py:974
 msgid "Command Line"
-msgstr ""
+msgstr "Kommandozeile"
 
-#: lib\conflicts.py:50 lib\conflicts.py:170 lib\conflicts.py:192
-#: lib\conflicts.py:199
+#: lib\conflicts.py:50 lib\conflicts.py:170 lib\conflicts.py:189
+#: lib\conflicts.py:196
 msgid "Conflicts"
 msgstr "Konflikte"
 
@@ -543,48 +567,44 @@ msgstr ""
 msgid "Mark as &resolved"
 msgstr "Markiere als &gelöst"
 
-#: lib\conflicts.py:193
+#: lib\conflicts.py:190
 #, python-format
 msgid "%d conflict auto-resolved."
 msgid_plural "%d conflicts auto-resolved."
 msgstr[0] "%d Konflikt automatisch aufgelöst."
 msgstr[1] "%d Konflikte automatisch aufgelöst."
 
-#: lib\conflicts.py:196 lib\conflicts.py:201 lib\diffwindow.py:460
-#: lib\util.py:69 lib/widgets\shelve.py:624 lib/widgets\shelve.py:668
-#: lib/widgets\shelve.py:715 lib/widgets\shelve.py:719
-msgid "&OK"
-msgstr "&OK"
-
-#: lib\conflicts.py:200
+#: lib\conflicts.py:197
 msgid "All conflicts resolved."
 msgstr "Alle Konflikte gelöst"
 
-#: lib\conflicts.py:235
+#: lib\conflicts.py:232
 #, python-format
 msgid "Error while running merge tool (code %d)"
 msgstr "Fehler während der Ausführung vom Verschmelzungswerkzeug (code %d)"
 
-#: lib\conflicts.py:236 lib\conflicts.py:298 lib\tag.py:194 lib\trace.py:190
-#: lib\trace.py:197 lib\tree_branch.py:95 lib\util.py:420 lib\util.py:1011
-#: lib\util.py:1021
+#: lib\conflicts.py:233 lib\conflicts.py:295 lib\tag.py:204 lib\trace.py:177
+#: lib\trace.py:184 lib\tree_branch.py:95 lib\util.py:975 lib\util.py:985
 msgid "Error"
 msgstr "Fehler"
 
-#: lib\conflicts.py:265
+#: lib\conflicts.py:262
 msgid "Bazaar 2.4 or later is required for external mergetools support"
 msgstr ""
+"Bazaar 2.4 oder neuer wird für die Unterstützung von externen Merge-Tools "
+"benötigt."
 
-#: lib\conflicts.py:275
+#: lib\conflicts.py:272
 msgid "Set up external_merge app in qconfig under the Merge tab"
 msgstr ""
+"Richten Sie die external_merge-Anwendung in qconfig im Merge-Reiter ein"
 
-#: lib\conflicts.py:279
+#: lib\conflicts.py:276
 #, python-format
 msgid "External merge tool %(tool)s is not available"
-msgstr ""
+msgstr "Externes Merge-Tool %(tool)s ist nicht verfügbar"
 
-#: lib\conflicts.py:299
+#: lib\conflicts.py:296
 #, python-format
 msgid ""
 "The extmerge definition: '%(tool)s' is invalid.\n"
@@ -595,72 +615,72 @@ msgstr ""
 "Missing the flag: %(flags)s. This must be fixed in qconfig under the Merge "
 "tab."
 
-#: lib\conflicts.py:305
+#: lib\conflicts.py:302
 #, python-format
 msgid "Missing the flag: %s. Configure in qconfig under the merge tab."
 msgstr "Fehlender Schalter: %s. Einstellen in qconfig im Zusammenführen-Tab."
 
-#: lib\conflicts.py:310
+#: lib\conflicts.py:307
 msgid "path conflict"
 msgstr "Pfadkonflikt"
 
-#: lib\conflicts.py:311
+#: lib\conflicts.py:308
 msgid "contents conflict"
 msgstr "Inhaltskonflikt"
 
-#: lib\conflicts.py:312
+#: lib\conflicts.py:309
 msgid "text conflict"
 msgstr "Textkonflikt"
 
-#: lib\conflicts.py:313
+#: lib\conflicts.py:310
 msgid "duplicate id"
 msgstr "Doppelte ID"
 
-#: lib\conflicts.py:314
+#: lib\conflicts.py:311
 msgid "duplicate"
 msgstr "Duplikat"
 
-#: lib\conflicts.py:315
+#: lib\conflicts.py:312
 msgid "parent loop"
 msgstr "Eltern-Schleife"
 
-#: lib\conflicts.py:316
+#: lib\conflicts.py:313
 msgid "unversioned parent"
 msgstr ""
 
-#: lib\conflicts.py:317
+#: lib\conflicts.py:314
 msgid "missing parent"
 msgstr "fehlender Parent"
 
-#: lib\conflicts.py:318
+#: lib\conflicts.py:315
 msgid "deleting parent"
 msgstr "lösche Parent"
 
-#: lib\conflicts.py:319
+#: lib\conflicts.py:316
 msgid "non-directory parent"
 msgstr "kein-Ordner parent"
 
-#: lib\diff.py:116 lib\treewidget.py:1701
+#: lib\diff.py:90 lib\treewidget.py:1701
 msgid "Show &differences"
 msgstr "Unterschie&de zeigen"
 
-#: lib\diff.py:262 lib\treewidget.py:331
+#: lib\diff.py:199 lib\treewidget.py:331
 msgid "removed"
 msgstr "entfernt"
 
-#: lib\diff.py:264 lib\treewidget.py:329
+#: lib\diff.py:201 lib\treewidget.py:329
 msgid "added"
 msgstr "hinzugefügt"
 
-#: lib\diff.py:266
+#: lib\diff.py:203
 msgid "renamed and modified"
 msgstr "umbenannt und verändert"
 
-#: lib\diff.py:268 lib\treewidget.py:342
+#: lib\diff.py:205 lib\treewidget.py:342
 msgid "renamed"
 msgstr "umbenannt"
 
-#: lib\diff.py:270 lib\treewidget.py:344
+#: lib\diff.py:207 lib\treewidget.py:344
 msgid "modified"
 msgstr "verändert"
 
@@ -683,111 +703,111 @@ msgstr "Eigenschaften:"
 #: lib\diffview.py:726
 #, python-format
 msgid "[binary file (%d bytes)]"
-msgstr ""
+msgstr "[Binärdatei (%d bytes)]"
 
 #: lib\diffview.py:925
 msgid "\\ No newline at end of file"
 msgstr "\\ Kein Zeilenumbruch am Ende der Datei"
 
-#: lib\diffwindow.py:81
+#: lib\diffwindow.py:80
 #, python-format
 msgid "Working Tree for %s"
 msgstr "Arbeitsbaum für %s"
 
-#: lib\diffwindow.py:83
+#: lib\diffwindow.py:82
 msgid "Working Tree"
 msgstr "Arbeitsbaum"
 
-#: lib\diffwindow.py:102
+#: lib\diffwindow.py:101
 #, python-format
 msgid "Rev %(rev)s for %(branch)s"
 msgstr "Rev %(rev)s für %(branch)s"
 
-#: lib\diffwindow.py:104
+#: lib\diffwindow.py:103
 #, python-format
 msgid "Rev %s"
 msgstr "Rev %s"
 
-#: lib\diffwindow.py:107
+#: lib\diffwindow.py:106
 #, python-format
 msgid "Revid: %(revid)s for %(branch)s"
 msgstr "Revid: %(revid)s für %(branch)s"
 
-#: lib\diffwindow.py:109
+#: lib\diffwindow.py:108
 #, python-format
 msgid "Revid: %s"
 msgstr "Revid: %s"
 
-#: lib\diffwindow.py:112
+#: lib\diffwindow.py:111
 msgid "Merge Preview"
 msgstr "Zusammenführungsvorschau"
 
-#: lib\diffwindow.py:217
+#: lib\diffwindow.py:215
 msgid "&Find"
-msgstr ""
+msgstr "&Suchen"
 
-#: lib\diffwindow.py:219
+#: lib\diffwindow.py:217
 msgid "Find on active panel"
 msgstr ""
 
-#: lib\diffwindow.py:226 lib/widgets\shelvelist.py:110
+#: lib\diffwindow.py:224 lib/widgets\shelvelist.py:110
 msgid "Unidiff"
 msgstr "Unidiff"
 
-#: lib\diffwindow.py:228
+#: lib\diffwindow.py:226
 msgid "Toggle between Side by side and Unidiff view modes"
 msgstr ""
 
-#: lib\diffwindow.py:240 lib\main.py:274 lib\util.py:73
+#: lib\diffwindow.py:238 lib\main.py:274 lib\util.py:73
 #: lib/widgets\shelve.py:368 lib/widgets\shelvelist.py:202
 msgid "&Refresh"
 msgstr "Aktualisieren"
 
-#: lib\diffwindow.py:251
+#: lib\diffwindow.py:249
 msgid "&External Diff"
-msgstr ""
+msgstr "&Externes Diff-Tool"
 
-#: lib\diffwindow.py:253
+#: lib\diffwindow.py:251
 msgid "Launch an external diff application"
-msgstr ""
+msgstr "Externes Diff-Tool starten"
 
-#: lib\diffwindow.py:267 lib/widgets\shelvelist.py:115
+#: lib\diffwindow.py:265 lib/widgets\shelvelist.py:115
 msgid "&Complete"
-msgstr ""
+msgstr "&Vollständig"
 
-#: lib\diffwindow.py:283 lib/widgets\shelve.py:311
+#: lib\diffwindow.py:281 lib/widgets\shelve.py:311
 #: lib/widgets\shelvelist.py:122
 msgid "Tab width"
-msgstr ""
+msgstr "Tabulatorbreite"
 
-#: lib\diffwindow.py:293
+#: lib\diffwindow.py:291
 msgid "Left side tab width"
-msgstr ""
+msgstr "Tabulatorbreite linke Seite"
 
-#: lib\diffwindow.py:303
+#: lib\diffwindow.py:301
 msgid "Right side tab width"
-msgstr ""
+msgstr "Tabulatorbreite rechte Seite"
 
-#: lib\diffwindow.py:319
+#: lib\diffwindow.py:317
 msgid "Left side encoding"
-msgstr ""
+msgstr "Zeichensatzkodierung linke Seite"
 
-#: lib\diffwindow.py:329
+#: lib\diffwindow.py:327
 msgid "Right side encoding"
-msgstr ""
+msgstr "Zeichensatzkodierung rechte Seite"
 
-#: lib\diffwindow.py:335
+#: lib\diffwindow.py:333
 msgid "&Ignore whitespace changes"
-msgstr ""
+msgstr "Leerzeichenänderungen &ignorieren"
 
-#: lib\diffwindow.py:400 lib/widgets\shelve.py:461
+#: lib\diffwindow.py:398 lib/widgets\shelve.py:461
 #, python-format
 msgid "%d file"
 msgid_plural "%d files"
 msgstr[0] "%d Datei"
 msgstr[1] "%d Dateien"
 
-#: lib\diffwindow.py:452
+#: lib\diffwindow.py:477
 #, python-format
 msgid ""
 "File %s is not versioned.\n"
@@ -796,12 +816,12 @@ msgstr ""
 "Datei %s ist nicht versioniert.\n"
 "Operation abgebrochen."
 
-#: lib\diffwindow.py:454 lib\tag.py:196 lib\tree_branch.py:97 lib\util.py:71
-#: lib\util.py:1014 lib\util.py:1024
+#: lib\diffwindow.py:479 lib\tag.py:138 lib\tag.py:169 lib\tag.py:206
+#: lib\tree_branch.py:97 lib\util.py:71 lib\util.py:978 lib\util.py:988
 msgid "&Close"
 msgstr "&Schließen"
 
-#: lib\diffwindow.py:459
+#: lib\diffwindow.py:485
 msgid "No changes found."
 msgstr "Keine Änderungen gefunden."
 
@@ -835,44 +855,6 @@ msgstr "Name des Wurzelverzeichnises:"
 #: lib\ui_push.py:63 lib\ui_run.py:108
 msgid "Options"
 msgstr "Optionen"
-
-#: lib\export.py:321 lib\export.py:326
-msgid "Export location is invalid"
-msgstr ""
-
-#: lib\export.py:331
-msgid "Export revision is invalid"
-msgstr ""
-
-#: lib\getnew.py:118
-#, fuzzy
-msgid "You should specify branch source"
-msgstr "Sie sollten einen Tag-Namen angeben"
-
-#: lib\getnew.py:122
-msgid "You should select destination directory"
-msgstr ""
-
-#: lib\getnew.py:128
-#, fuzzy
-msgid "Do you really want to checkout into a non-empty folder?"
-msgstr "Wollen Sie wirklich das ausgewählte Lesezeichen entfernen?"
-
-#: lib\getnew.py:130
-#, fuzzy
-msgid "Do you really want to branch into a non-empty folder?"
-msgstr "Wollen Sie diese Revisionen wirklich zurückziehen?"
-
-#: lib\getnew.py:131
-msgid ""
-"The destination folder is not empty.\n"
-"Populating new working tree there may create conflicts."
-msgstr ""
-
-#: lib\getupdates.py:77 lib\getupdates.py:140
-#, fuzzy
-msgid "You should specify source branch location"
-msgstr "Es muss ein Ort angegeben werden"
 
 #: lib\help.py:59
 #, python-format
@@ -928,33 +910,28 @@ msgid "No changes selected to revert"
 msgstr "Keine Änderungen zum Zurücksetzen ausgewählt."
 
 #: lib\ignore.py:37 lib\ignore.py:113
-#, fuzzy
 msgid "Ignore"
-msgstr "Ignoriert"
+msgstr "Ignorieren"
 
 #: lib\ignore.py:49
-#, fuzzy
 msgid "Unknown Files"
-msgstr "Nicht versionierte Dateien"
+msgstr "Unbekannte Dateien"
 
 #: lib\ignore.py:58
-#, fuzzy
 msgid "Extension"
-msgstr "Version"
+msgstr "Endung"
 
 #: lib\ignore.py:59
-#, fuzzy
 msgid "Ignore as"
-msgstr "Ignoriert"
+msgstr "Ignorieren als"
 
 #: lib\ignore.py:67
-#, fuzzy
 msgid "No action"
-msgstr "Aktion"
+msgstr "Keine Aktion"
 
 #: lib\ignore.py:70
 msgid "Ignore all files with this extension"
-msgstr ""
+msgstr "Alle Dateien mit dieser Erweiterung ignorieren"
 
 #: lib\ignore.py:74
 msgid "Case-insensitive pattern"
@@ -962,15 +939,19 @@ msgstr ""
 
 #: lib\ignore.py:77
 msgid "Ignore by basename"
-msgstr ""
+msgstr "Anhand des Basisnamens ignorieren"
 
 #: lib\ignore.py:79
 msgid "Ignore by fullname"
-msgstr ""
+msgstr "Anhand des vollen Namens ignorieren"
 
-#: lib\ignore.py:226
+#: lib\ignore.py:227
+msgid "Cancelled"
+msgstr "Abgebrochen"
+
+#: lib\ignore.py:228
 msgid "No action selected"
-msgstr ""
+msgstr "Keine Aktion gewählt"
 
 #: lib\info.py:38 lib\ui_info.py:88 lib\ui_info.py:90
 msgid "Info"
@@ -980,9 +961,8 @@ msgstr "Info"
 msgid "Initialize"
 msgstr "Initialisieren"
 
-#: lib\init.py:74
-#, fuzzy
-msgid "You should specify a location"
+#: lib\init.py:72
+msgid "You must specify a location"
 msgstr "Es muss ein Ort angegeben werden"
 
 #: lib\log.py:111
@@ -1022,6 +1002,8 @@ msgid ""
 "It is not possible to specify different file paths and different branches at "
 "the same time."
 msgstr ""
+"Es ist nicht möglich, gleichzeitig verschiedene Dateipfade und verschiedene "
+"Zweige anzugeben."
 
 #: lib\log.py:364
 msgid "Messages and File text (indexed)"
@@ -1037,7 +1019,7 @@ msgstr "Zeige Datei"
 
 #: lib\log.py:577
 msgid "Save file on this revision as..."
-msgstr ""
+msgstr "Datei in dieser Revision speichern unter..."
 
 #: lib\log.py:581
 msgid "Revert to this revision"
@@ -1045,7 +1027,7 @@ msgstr "Bis zu dieser Revision zurücksetzen"
 
 #: lib\log.py:830
 msgid "Not a file"
-msgstr ""
+msgstr "Keine Datei"
 
 #: lib\log.py:831
 #, python-format
@@ -1056,7 +1038,7 @@ msgstr ""
 
 #: lib\log.py:835
 msgid "Save file in this revision as..."
-msgstr ""
+msgstr "Datei in dieser Revision speichern unter..."
 
 #: lib\log.py:846
 msgid "Revert File"
@@ -1117,7 +1099,7 @@ msgstr "Zu dieser Revision &zurücksetzen"
 
 #: lib\logwidget.py:195
 msgid "&Update to this revision"
-msgstr ""
+msgstr "Zu dieser Revision &aktualisieren"
 
 #: lib\logwidget.py:203
 msgid "&Cherry pick"
@@ -1137,20 +1119,20 @@ msgstr "Zu Revision %s revid:%s zurücksetzen."
 msgid "Revert %s to revision %s revid:%s."
 msgstr "%s zu Revision %s revid:%s zurücksetzen."
 
-#: lib\logwidget.py:453 lib\revert.py:54 lib\subprocess.py:124
-#: lib\subprocess.py:131 lib\treewidget.py:1953
+#: lib\logwidget.py:453 lib\revert.py:54 lib\subprocess.py:186
+#: lib\treewidget.py:1953
 msgid "Revert"
 msgstr "Zurücksetzen"
 
 #: lib\logwidget.py:467
 #, python-format
 msgid "Update to revision %s revid:%s."
-msgstr ""
+msgstr "Aktualisieren auf Revision %s revid:%s."
 
 #: lib\logwidget.py:470
 #, python-format
 msgid "Update %s to revision %s revid:%s."
-msgstr ""
+msgstr "Aktualisieren von %s auf Revision %s revid:%s."
 
 #: lib\logwidget.py:491
 #, python-format
@@ -1271,14 +1253,14 @@ msgstr "Über QBzr"
 #, python-format
 msgid ""
 "<b>QBzr</b> — A graphical user interface for Bazaar<br><small>Version "
-"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © "
-"2006-2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-vcs.org/"
-"QBzr\">http://bazaar-vcs.org/QBzr</a>"
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2008 Lukáš Lalinský and others<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 msgstr ""
 "<b>QBzr</b> — Eine grafische Benutzeroberfläche für Bazaar<br><small>Version "
-"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © "
-"2006-2008 Lukáš Lalinský und andere<br><br><a href=\"http://bazaar-vcs.org/"
-"QBzr\">http://bazaar-vcs.org/QBzr</a>"
+"%(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br><br>Copyright © 2006-"
+"2008 Lukáš Lalinský und andere<br><br><a href=\"http://bazaar-"
+"vcs.org/QBzr\">http://bazaar-vcs.org/QBzr</a>"
 
 #: lib\main.py:472
 msgid "Add Bookmark"
@@ -1304,7 +1286,7 @@ msgstr "Erweiterungen"
 msgid "Version"
 msgstr "Version"
 
-#: lib\plugins.py:58 lib\subprocess.py:480
+#: lib\plugins.py:58 lib\subprocess.py:402
 msgid "Description"
 msgstr "Beschreibung"
 
@@ -1329,7 +1311,7 @@ msgstr "Orte"
 msgid "(no description)"
 msgstr "(keine Beschreibung)"
 
-#: lib\pull.py:251 lib\subprocess.py:122
+#: lib\pull.py:251 lib\subprocess.py:177
 msgid "Working tree has uncommitted changes."
 msgstr "Arbeitsbaum hat nicht übertragene Änderungen"
 
@@ -1337,9 +1319,21 @@ msgstr "Arbeitsbaum hat nicht übertragene Änderungen"
 msgid "Working tree is out of date, please run 'bzr update'."
 msgstr "Arbeitsbaum ist nicht aktuell, bitte 'bzr update' ausführen."
 
-#: lib\pull.py:262
+#: lib\pull.py:262 lib\ui_push.py:62
+msgid "Push"
+msgstr "Hochladen"
+
+#: lib\pull.py:264
 msgid "Do you want to continue anyway?"
 msgstr "Möchten Sie trotzdem fortfahren?"
+
+#: lib\pull.py:265 lib\uncommit.py:126
+msgid "&Yes"
+msgstr "&Ja"
+
+#: lib\pull.py:265 lib\uncommit.py:126
+msgid "&No"
+msgstr "&Nein"
 
 #: lib\revert.py:65
 msgid "Select changes to revert"
@@ -1351,24 +1345,19 @@ msgstr "Keine Sicherungskopien von zurückgesetzten Dateien anlegen."
 
 #: lib\revert.py:93
 msgid "Forget pending merges"
-msgstr ""
+msgstr "Ausstehende Merge-Vorgänge verwerfen"
 
 #: lib\revert.py:140
 msgid "View changes in files selected to revert"
 msgstr "Änderungen in den zum Zurücksetzen gewählten Dateien anzeigen"
 
-#: lib\revert.py:247
+#: lib\revert.py:235
 msgid ""
-"You have selected revert for all changed paths\n"
-"but keep pending merges.\n"
-"\n"
+"You are reverting all changed paths without also reverting pending merges. "
 "Do you want to continue?"
 msgstr ""
-
-#: lib\revert.py:257
-#, fuzzy
-msgid "You have not selected anything to revert."
-msgstr "Keine Änderungen zum Zurücksetzen ausgewählt."
+"Sie wollen alle geänderten Pfade zurücksetzen, ohne auch die ausstehenden "
+"Merge-Vorgänge zurückzusetzen. Möchten Sie fortfahren?"
 
 #: lib\revisionmessagebrowser.py:195
 msgid "Parents:"
@@ -1380,7 +1369,7 @@ msgstr "Kinder:"
 
 #: lib\revisionmessagebrowser.py:205
 msgid "Signature:"
-msgstr ""
+msgstr "Signatur:"
 
 #: lib\revisionmessagebrowser.py:221
 msgid "Uncommited Working Tree Changes"
@@ -1428,11 +1417,11 @@ msgstr "&Bearbeiten"
 msgid "Help for command"
 msgstr "Hilfe für Befehl"
 
-#: lib\run.py:287
+#: lib\run.py:284
 msgid "Select path to insert"
 msgstr "Wähle Pfad zum Einfügen"
 
-#: lib\run.py:297
+#: lib\run.py:294
 msgid "Select files to insert"
 msgstr "Wähle Dateien zum Einfügen"
 
@@ -1484,113 +1473,78 @@ msgstr "Dateiname:"
 msgid "Revisions:"
 msgstr "Revisionen:"
 
-#: lib\send.py:208
-msgid "Email address not entered."
-msgstr ""
-
-#: lib\send.py:212
-msgid "Email address is not valid."
-msgstr ""
-
-#: lib\send.py:218
-msgid "Filename not entered."
-msgstr ""
-
-#: lib\send.py:224
-msgid "No submit branch entered."
-msgstr ""
-
 #: lib\shelvewindow.py:63 lib\shelvewindow.py:111 lib\shelvewindow.py:120
-#: lib\shelvewindow.py:122 lib/widgets\shelvelist.py:501
+#: lib\shelvewindow.py:122 lib/widgets\shelvelist.py:512
 msgid "Shelve Manager"
-msgstr ""
+msgstr "Zurückstellungsmanager"
 
-#: lib\shelvewindow.py:85 lib\subprocess.py:125 lib/widgets\shelve.py:345
-#: lib/widgets\shelve.py:349 lib/widgets\shelve.py:623
-#: lib/widgets\shelve.py:662 lib/widgets\shelve.py:667
-#: lib/widgets\shelve.py:713 lib/widgets\shelve.py:718
-#: lib/widgets\shelvelist.py:473
+#: lib\shelvewindow.py:85 lib/widgets\shelve.py:345 lib/widgets\shelve.py:349
+#: lib/widgets\shelve.py:623 lib/widgets\shelve.py:662
+#: lib/widgets\shelve.py:667 lib/widgets\shelve.py:713
+#: lib/widgets\shelve.py:718 lib/widgets\shelvelist.py:484
 msgid "Shelve"
-msgstr ""
+msgstr "Zurückstellen"
 
 #: lib\shelvewindow.py:86
 msgid "View shelved changes"
-msgstr ""
+msgstr "Zurückgestellte Änderungen ansehen"
 
-#: lib\subprocess.py:129
-#, fuzzy
-msgid "Working tree has conflicts."
-msgstr "Arbeitsbaum hat nicht übertragene Änderungen"
-
-#: lib\subprocess.py:130
-#, fuzzy
-msgid "Resolve"
-msgstr "Automatisch auflösen"
-
-#: lib\subprocess.py:136 lib\trace.py:80
-msgid "Could not acquire lock. Please retry later."
-msgstr ""
-
-#: lib\subprocess.py:137
-msgid "Retry"
-msgstr ""
-
-#: lib\subprocess.py:217
+#: lib\subprocess.py:154
 msgid "&Retry"
-msgstr ""
+msgstr "&Nochmals versuchen"
 
-#: lib\subprocess.py:518
+#: lib\subprocess.py:440
 msgid "Ready"
 msgstr "Bereit"
 
-#: lib\subprocess.py:591
+#: lib\subprocess.py:512
 msgid "Starting..."
 msgstr "Startet..."
 
-#: lib\subprocess.py:654
+#: lib\subprocess.py:575
 msgid "Could not locate \"bzr.exe\"."
-msgstr ""
+msgstr "\"bzr.exe\" konnte nicht gefunden werden."
 
-#: lib\subprocess.py:673
+#: lib\subprocess.py:594
 msgid "Could not locate \"bzr\" script."
-msgstr ""
+msgstr "Das Skript \"bzr\" konnte nicht gefunden werden."
 
-#: lib\subprocess.py:694
+#: lib\subprocess.py:615
 msgid "Aborting..."
 msgstr "Bricht ab..."
 
-#: lib\subprocess.py:705 lib\subprocess.py:844
+#: lib\subprocess.py:626 lib\subprocess.py:760
 msgid "Finished!"
 msgstr "Fertig!"
 
-#: lib\subprocess.py:732 lib\uifactory.py:108
+#: lib\subprocess.py:653 lib\uifactory.py:108
 msgid "Enter Password"
 msgstr "Trage Passwort ein"
 
-#: lib\subprocess.py:742 lib\uifactory.py:119
+#: lib\subprocess.py:663 lib\uifactory.py:119
 msgid "Enter Username"
-msgstr ""
+msgstr "Benutzernamen eingeben"
 
-#: lib\subprocess.py:824 lib\subprocess.py:850
+#: lib\subprocess.py:740 lib\subprocess.py:763
 msgid "Failed!"
 msgstr "Misserfolg!"
 
-#: lib\subprocess.py:827
+#: lib\subprocess.py:743
 msgid "Failed to start bzr."
 msgstr "Bzr konnte nicht gestartet werden"
 
-#: lib\subprocess.py:829
+#: lib\subprocess.py:745
 #, python-format
 msgid "Error while running bzr. (error code: %d)"
 msgstr "Fehler bei der Ausführung von bzr. (Fehler-Code: %d)"
 
-#: lib\subprocess.py:837
+#: lib\subprocess.py:753
 msgid "Aborted!"
 msgstr "Abgebrochen!"
 
 #: lib\switch.py:46
 msgid "Switch"
-msgstr ""
+msgstr "Umschalten"
 
 #: lib\switch.py:57
 msgid "Switch checkout"
@@ -1614,22 +1568,17 @@ msgstr "Wechseln zum Zweig:"
 
 #: lib\switch.py:113
 msgid "Create Branch before switching"
-msgstr ""
-
-#: lib\switch.py:168
-#, fuzzy
-msgid "Branch location not specified."
-msgstr "Ort des Hauptzweiges nicht angegeben"
+msgstr "Einen Zweig erstellen vor dem Umschalten"
 
 #: lib\sysinfo.py:35 lib\ui_sysinfo.py:112
 msgid "System Information"
 msgstr "Systeminformation"
 
-#: lib\tag.py:136
+#: lib\tag.py:137
 msgid "You should specify tag name"
 msgstr "Sie sollten einen Tag-Namen angeben"
 
-#: lib\tag.py:140
+#: lib\tag.py:143
 #, python-format
 msgid ""
 "Tag \"%s\" already exists.\n"
@@ -1638,7 +1587,15 @@ msgstr ""
 "Der Tag \"%s\" existiert bereits.\n"
 "Soll der existierende Tag verschoben werden?"
 
-#: lib\tag.py:150
+#: lib\tag.py:146
+msgid "&Move"
+msgstr "&Verschieben"
+
+#: lib\tag.py:146 lib\tag.py:159 lib\util.py:70
+msgid "&Cancel"
+msgstr "&Abbrechen"
+
+#: lib\tag.py:156
 #, python-format
 msgid ""
 "Tag \"%s\" does not exists yet.\n"
@@ -1648,11 +1605,15 @@ msgstr ""
 "Soll ein neuer Tag erzeugt werden?"
 
 #: lib\tag.py:159
+msgid "Cre&ate"
+msgstr "Erstellen"
+
+#: lib\tag.py:168
 #, python-format
 msgid "Tag \"%s\" does not exists"
 msgstr "Der Tag \"%s\" extistiert nicht"
 
-#: lib\tag.py:195
+#: lib\tag.py:205
 #, python-format
 msgid ""
 "Not a branch:\n"
@@ -1661,38 +1622,38 @@ msgstr ""
 "Kein Zweig:\n"
 "%s"
 
-#: lib\trace.py:246
+#: lib\trace.py:233
 #, python-format
 msgid "Close %s Window"
-msgstr ""
+msgstr "Fenster %s schließen"
 
-#: lib\trace.py:248
+#: lib\trace.py:235
 msgid "Close Window"
-msgstr ""
+msgstr "Fenster schließen"
 
-#: lib\trace.py:250
+#: lib\trace.py:237
 msgid "Close Application"
-msgstr ""
+msgstr "Anwendung beenden"
 
-#: lib\trace.py:260
+#: lib\trace.py:247
 msgid "Close Error Dialog"
-msgstr ""
+msgstr "Fehlerdialog schließen"
 
-#: lib\trace.py:265
+#: lib\trace.py:252
 msgid "Ignore Error"
-msgstr ""
+msgstr "Fehler ignorieren"
 
-#: lib\trace.py:291
+#: lib\trace.py:278
 msgid "Report Bazaar Error"
-msgstr ""
+msgstr "Bazaar-Fehler melden"
 
-#: lib\trace.py:312 lib\trace.py:358
+#: lib\trace.py:299 lib\trace.py:345
 msgid "Show Error Details >>>"
-msgstr ""
+msgstr "Fehlerdetails anzeigen >>>"
 
-#: lib\trace.py:356
+#: lib\trace.py:343
 msgid "<<< Hide Error Details"
-msgstr ""
+msgstr "<<< Fehlerdetails verbergen"
 
 #: lib\treewidget.py:322
 msgid "ignored"
@@ -1704,7 +1665,7 @@ msgstr "nicht versioniert"
 
 #: lib\treewidget.py:327
 msgid "added, missing"
-msgstr ""
+msgstr "hinzugefügt, fehlend"
 
 #: lib\treewidget.py:333
 msgid "missing"
@@ -1712,11 +1673,11 @@ msgstr "fehlend"
 
 #: lib\treewidget.py:340
 msgid "moved"
-msgstr ""
+msgstr "verschoben"
 
 #: lib\treewidget.py:346
 msgid "x-bit"
-msgstr ""
+msgstr "x-Bit"
 
 #: lib\treewidget.py:352 lib/widgets\shelve.py:284
 #: lib/widgets\shelvelist.py:90
@@ -1785,28 +1746,31 @@ msgstr "Als umbenannt &markieren"
 
 #: lib\treewidget.py:1954
 msgid "Do you really want to revert the selected file(s)?"
-msgstr ""
+msgstr "Möchten Sie wirklich die ausgewählte(n) Datei(en) zurücksetzen?"
 
 #: lib\treewidget.py:1987
 msgid "External Merge"
-msgstr ""
+msgstr "Externes Merge-Tool"
 
 #: lib\treewidget.py:2067
 msgid ""
 "Some of the files selected cannot be recovered if removed. Are you sure you "
 "want to remove these files?"
 msgstr ""
+"Einige der ausgewählten Dateien können nicht wiederhergestellt werden, "
+"nachdem sie gelöscht wurden. Sind Sie sicher, dass diese Dateien gelöscht "
+"werden sollen?"
 
 #: lib\treewidget.py:2082
 msgid "Select / deselect all"
 msgstr "Alle an-/abwählen"
 
-#: lib\tree_branch.py:91 lib\util.py:1012
+#: lib\tree_branch.py:91 lib\util.py:976
 #, python-format
 msgid "Not a branch \"%s\""
 msgstr "Kein Zweig \"%s\""
 
-#: lib\tree_branch.py:93 lib\util.py:1022
+#: lib\tree_branch.py:93 lib\util.py:986
 #, python-format
 msgid "No working tree exists for \"%s\""
 msgstr "Es existiert kein Arbeitsbaum für \"%s\""
@@ -1822,11 +1786,11 @@ msgstr "&Von:"
 
 #: lib\ui_branch.py:103
 msgid "&To:"
-msgstr ""
+msgstr "&An:"
 
 #: lib\ui_branch.py:106
 msgid "Bind new branch to parent location"
-msgstr ""
+msgstr "Neuen Zweig an den Ursprungsort binden"
 
 #: lib\ui_branch.py:107 lib\ui_merge.py:66 lib\ui_pull.py:64 lib\ui_tag.py:97
 msgid "&Revision:"
@@ -1838,11 +1802,11 @@ msgstr "..."
 
 #: lib\ui_info.py:89
 msgid "&Basic"
-msgstr ""
+msgstr "&Grundlegendes"
 
 #: lib\ui_info.py:91
 msgid "&Detailed"
-msgstr ""
+msgstr "&Detailliert"
 
 #: lib\ui_init.py:119
 msgid "Local Directory"
@@ -1894,19 +1858,20 @@ msgstr "Zusammenführen von ungesicherten Änderungen anstatt der gesicherten"
 
 #: lib\ui_merge_config.py:58
 msgid "Form"
-msgstr ""
+msgstr "Formular"
 
 #: lib\ui_merge_config.py:59
 msgid "External Merge Tools"
-msgstr ""
+msgstr "Externe Merge-Tools"
 
 #: lib\ui_merge_config.py:62
 msgid "Sets the selected merge tool as the default to use in qconflicts."
 msgstr ""
+"Setzt das ausgewählte Merge-Tool als Standardeinstellung in qconflicts."
 
 #: lib\ui_merge_config.py:63
 msgid "Set Default"
-msgstr ""
+msgstr "Standard setzen"
 
 #: lib\ui_new_tree.py:129
 msgid "Create a new Bazaar Working Tree"
@@ -1966,10 +1931,6 @@ msgstr "Herunterladen (pull)"
 #: lib\ui_update_checkout.py:80
 msgid "Overwrite differences between branches"
 msgstr "Unterschiede zwischen Zweigen überschreiben"
-
-#: lib\ui_push.py:62
-msgid "Push"
-msgstr "Hochladen"
 
 #: lib\ui_push.py:68
 msgid "Use existing directory"
@@ -2123,7 +2084,7 @@ msgstr "Hohle neueste Änderungen von:"
 
 #: lib\ui_update_branch.py:87
 msgid "Remember this as the new parent branch"
-msgstr ""
+msgstr "Diesen als neuen Elternzweig speichern"
 
 #: lib\ui_update_branch.py:89
 msgid "<Parent Branch shown here>"
@@ -2162,7 +2123,7 @@ msgstr "Lösen"
 msgid "Bound to:"
 msgstr "Gebunden an:"
 
-#: lib\uncommit.py:40
+#: lib\uncommit.py:40 lib\uncommit.py:124
 msgid "Uncommit"
 msgstr "Commit zurückziehen"
 
@@ -2193,52 +2154,39 @@ msgstr "Arbeitsbaum aufdatieren"
 #: lib\update.py:34
 #, python-format
 msgid "Update tree %s"
-msgstr ""
+msgstr "Arbeitsbaum %s aktualisieren"
 
-#: lib\util.py:70
-msgid "&Cancel"
-msgstr "&Abbrechen"
-
-#: lib\util.py:425
-msgid "Warning"
-msgstr ""
-
-#: lib\util.py:436
-#, fuzzy
-msgid "Confirm"
-msgstr "Konflikt"
-
-#: lib\util.py:583
+#: lib\util.py:547
 msgid "Select Source Directory"
 msgstr "Wähle Quellverzeichnis"
 
-#: lib\util.py:585
+#: lib\util.py:549
 msgid "Select Target Directory"
 msgstr "Wähle Zielverzeichnis"
 
-#: lib\util.py:726
+#: lib\util.py:690
 msgid "deleted files"
 msgstr "gelöschte Dateien"
 
-#: lib\util.py:728
+#: lib\util.py:692
 msgid "added files"
 msgstr "hinzugefügte Dateien"
 
-#: lib\util.py:730
+#: lib\util.py:694
 msgid "renamed files"
 msgstr "umbenannte Dateien"
 
-#: lib\util.py:732
+#: lib\util.py:696
 msgid "modified files"
 msgstr "geänderte Dateien"
 
-#: lib\util.py:974 lib\util.py:975 lib\util.py:978
+#: lib\util.py:938 lib\util.py:939 lib\util.py:942
 msgid "(no message)"
 msgstr "(keine Meldung)"
 
 #: lib\verify_signatures.py:52
 msgid "Verify Signatures"
-msgstr ""
+msgstr "Signaturen überprüfen"
 
 #: lib\verify_signatures.py:118
 msgid "All commits signed with verifiable keys"
@@ -2246,27 +2194,27 @@ msgstr ""
 
 #: lib/widgets\shelve.py:74
 msgid "delete file"
-msgstr ""
+msgstr "Datei löschen"
 
 #: lib/widgets\shelve.py:74
 msgid "rename"
-msgstr ""
+msgstr "umbenennen"
 
 #: lib/widgets\shelve.py:74
 msgid "add file"
-msgstr ""
+msgstr "Datei hinzufügen"
 
 #: lib/widgets\shelve.py:75
 msgid "modify text"
-msgstr ""
+msgstr "Text ändern"
 
 #: lib/widgets\shelve.py:75
 msgid "modify target"
-msgstr ""
+msgstr "Ziel ändern"
 
 #: lib/widgets\shelve.py:75
 msgid "modify binary"
-msgstr ""
+msgstr "Binärdatei ändern"
 
 #: lib/widgets\shelve.py:270
 msgid "Enter the shelve message"
@@ -2290,27 +2238,27 @@ msgstr ""
 
 #: lib/widgets\shelve.py:329
 msgid "Use editor"
-msgstr ""
+msgstr "Editor benutzen"
 
 #: lib/widgets\shelve.py:346
 msgid "Destroy"
-msgstr ""
+msgstr "Zerstören"
 
 #: lib/widgets\shelve.py:355
 msgid "Select all"
-msgstr ""
+msgstr "Alle auswählen"
 
 #: lib/widgets\shelve.py:358
 msgid "Unselect all"
-msgstr ""
+msgstr "Alle abwählen"
 
 #: lib/widgets\shelve.py:365 lib/widgets\shelvelist.py:199
 msgid "&Layout"
-msgstr ""
+msgstr "&Anordnung"
 
 #: lib/widgets\shelve.py:624
 msgid "Change editor is not defined."
-msgstr ""
+msgstr "Kein Editor zum Ändern ausgewählt."
 
 #: lib/widgets\shelve.py:655
 #, python-format
@@ -2328,19 +2276,20 @@ msgstr[1] ""
 
 #: lib/widgets\shelve.py:668
 msgid "No changes selected."
-msgstr ""
+msgstr "Keine Änderungen ausgewählt."
 
 #: lib/widgets\shelve.py:705 lib/widgets\shelvelist.py:285
 msgid "<no message>"
-msgstr ""
+msgstr "<keine Nachricht>"
 
 #: lib/widgets\shelve.py:714
 msgid "Operation aborted because working tree has pending merges."
 msgstr ""
+"Vorgang abgebrochen, weil der Arbeitsbaum ausstehende Merges besitzt."
 
 #: lib/widgets\shelve.py:719
 msgid "Operation aborted because target files has been changed."
-msgstr ""
+msgstr "Vorgang abgebrochen, weil sich die Zieldateien geändert haben."
 
 #: lib/widgets\shelve.py:959
 msgid "Edited by change editor.\n"
@@ -2348,11 +2297,11 @@ msgstr ""
 
 #: lib/widgets\shelvelist.py:85
 msgid "Id"
-msgstr ""
+msgstr "Id"
 
 #: lib/widgets\shelvelist.py:119
 msgid "Ignore whitespace"
-msgstr ""
+msgstr "Leerzeichen ignorieren"
 
 #: lib/widgets\shelvelist.py:174 lib/widgets\shelvelist.py:182
 msgid "Unshelve"
@@ -2360,60 +2309,60 @@ msgstr ""
 
 #: lib/widgets\shelvelist.py:175
 msgid "Dry run"
-msgstr ""
+msgstr "Testdurchlauf"
 
 #: lib/widgets\shelvelist.py:177
 msgid "Keep"
-msgstr ""
+msgstr "Beibehalten"
 
 #: lib/widgets\shelvelist.py:179
 msgid "Delete"
-msgstr ""
+msgstr "Löschen"
 
 #: lib/widgets\shelvelist.py:193
 msgid "Show filelist"
-msgstr ""
+msgstr "Dateiliste anzeigen"
 
-#: lib/widgets\shelvelist.py:479
+#: lib/widgets\shelvelist.py:490
 #, python-format
 msgid "Apply changes in shelf[%(id)d], and remove from the shelf"
 msgstr ""
 
-#: lib/widgets\shelvelist.py:481
+#: lib/widgets\shelvelist.py:492
 #, python-format
 msgid ""
 "Simulate to apply changes in shelf[%(id)d] without changing working tree"
 msgstr ""
 
-#: lib/widgets\shelvelist.py:483
+#: lib/widgets\shelvelist.py:494
 #, python-format
 msgid "Apply changes in shelf[%(id)d], but keep it shelved"
 msgstr ""
 
-#: lib/widgets\shelvelist.py:485
+#: lib/widgets\shelvelist.py:496
 #, python-format
 msgid "Remove shelf[%(id)d] without applying"
 msgstr ""
 
 #: lib/widgets\toolbars.py:75
 msgid "Find: "
-msgstr ""
+msgstr "Suchen: "
 
 #: lib/widgets\toolbars.py:91
 msgid "Previous"
-msgstr ""
+msgstr "Zurück"
 
 #: lib/widgets\toolbars.py:95
 msgid "Next"
-msgstr ""
+msgstr "Weiter"
 
 #: lib/widgets\toolbars.py:99
 msgid "Case sensitive"
-msgstr ""
+msgstr "Groß-/Kleinschreibung beachten"
 
 #: lib/widgets\toolbars.py:101
 msgid "Whole words"
-msgstr ""
+msgstr "Ganze Wörter"
 
 #: lib/widgets\toolbars.py:110
 msgid "Close find"
@@ -2421,31 +2370,12 @@ msgstr ""
 
 #: lib/widgets\toolbars.py:303
 msgid "Layout"
-msgstr ""
+msgstr "Layout"
 
 #: lib/widgets\toolbars.py:317
 #, python-format
 msgid "Layout %d"
-msgstr ""
-
-#~ msgid "No changes to commit."
-#~ msgstr "Keine Änderungen zu übertragen."
-
-#, fuzzy
-#~ msgid "Cancelled"
-#~ msgstr "&Abbrechen"
-
-#~ msgid "&Yes"
-#~ msgstr "&Ja"
-
-#~ msgid "&No"
-#~ msgstr "&Nein"
-
-#~ msgid "&Move"
-#~ msgstr "&Verschieben"
-
-#~ msgid "Cre&ate"
-#~ msgstr "Erstellen"
+msgstr "Layout %d"
 
 #~ msgid "Side by side"
 #~ msgstr "Seite an Seite"
@@ -2492,6 +2422,7 @@ msgstr ""
 #~ msgid "Location has no working tree"
 #~ msgstr "Ort hat keinen Arbeitsbaum"
 
+#, python-format
 #~ msgid "%s (Configured external merge definition in qconfig)"
 #~ msgstr ""
 #~ "%s (Eingestellt als externe Definition zum Zusammenführen in qconfig)"
@@ -2506,8 +2437,8 @@ msgstr ""
 #~ "Verschmelzung' Datei.\n"
 #~ "Es verfolgt die Konvention in der Bzr Erweiterung: extmerge\n"
 #~ "external_merge = kdiff3 --output %r %b %t %o\n"
-#~ "%r ist die Ausgabe, %b ist die .BASIS, %t ist .DIESE und %o ist die ."
-#~ "ANDERE Datei."
+#~ "%r ist die Ausgabe, %b ist die .BASIS, %t ist .DIESE und %o ist die .ANDERE "
+#~ "Datei."
 
 #~ msgid "&Related Branches"
 #~ msgstr "&Verwandte Zweige"
