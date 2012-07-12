@@ -571,10 +571,15 @@ class LogList(RevisionTreeView):
     def show_revision_tree(self):
         from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
         revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
-        revno = self.log_model.graph_viz.revid_rev[revid].revno_str
-        branch = self.log_model.graph_viz.get_revid_branch(revid)
-        window = BrowseWindow(branch, revision_id=revid,
-                              revision_spec=revno, parent=self)
+        gv = self.log_model.graph_viz
+        if revid.startswith(CURRENT_REVISION):
+            location = gv.working_trees[revid].abspath(u'')
+            window = BrowseWindow(location=location, parent=self)
+        else:
+            revno = gv.revid_rev[revid].revno_str
+            branch = gv.get_revid_branch(revid)
+            window = BrowseWindow(branch=branch, revision_id=revid,
+                                  revision_spec=revno, parent=self)
         window.show()
         self.window().windows.append(window)
 
@@ -582,6 +587,8 @@ class LogList(RevisionTreeView):
         branch_count = len(self.log_model.graph_viz.branches)
         (top_revid, old_revid), count = \
               self.get_selection_top_and_parent_revids_and_count()
+
+        wt_selected = top_revid.startswith(CURRENT_REVISION)
          
         def filter_rev_ancestor(action, is_ancestor=True):
             branch_menu = action.menu()
@@ -595,17 +602,23 @@ class LogList(RevisionTreeView):
             self.context_menu_show_tree.setVisible(count == 1)
         
         if self.action_commands:
-            self.context_menu_tag.setVisible(count == 1)
+            self.context_menu_tag.setVisible(count == 1 and not wt_selected)
             if count == 1:
                 filter_rev_ancestor(self.context_menu_tag)
-            self.context_menu_revert.setVisible(count == 1)
-            self.context_menu_update.setVisible(count == 1)
+            self.context_menu_revert.setVisible(count == 1 and not wt_selected)
+            self.context_menu_update.setVisible(count == 1 and not wt_selected)
             
             if branch_count>1:
-                filter_rev_ancestor(self.context_menu_cherry_pick,
-                                    is_ancestor=False)
+                if wt_selected:
+                    self.context_menu_cherry_pick.setVisible(False)
+                else:
+                    filter_rev_ancestor(self.context_menu_cherry_pick,
+                                        is_ancestor=False)
             
-            filter_rev_ancestor(self.context_menu_reverse_cherry_pick)
+            if wt_selected:
+                self.context_menu_reverse_cherry_pick.setVisible(False)
+            else:
+                filter_rev_ancestor(self.context_menu_reverse_cherry_pick)
             
         self.context_menu.popup(self.viewport().mapToGlobal(pos))
 

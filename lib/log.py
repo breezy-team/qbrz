@@ -752,20 +752,24 @@ class FileListContainer(QtGui.QWidget):
         # not a dir
         paths, file_ids, alives = self._get_file_selection_paths_ids_and_alives()
         is_single_file = len(paths) == 1
+        wt_selected = top_revid.startswith(CURRENT_REVISION)
         menu_enabled = is_single_file and alives[0]
         self.file_list_context_menu_annotate.setEnabled(menu_enabled)
         self.file_list_context_menu_cat.setEnabled(menu_enabled)
+        menu_enabled = is_single_file and alives[0] and not wt_selected
         self.file_list_context_menu_save_old_file.setEnabled(menu_enabled)
+        self.file_list_context_menu_save_old_file.setVisible(menu_enabled)
 
         gv = self.log_list.log_model.graph_viz
         # It would be nice if there were more than one branch, that we
         # show a menu so the user can chose which branch actions should take
         # place in.
-        one_branch_with_tree = (len(gv.branches) == 1 and
-                                gv.branches[0].tree is not None)
+        menu_enabled = (len(gv.branches) == 1 and
+                        gv.branches[0].tree is not None and 
+                        not wt_selected)
 
-        self.file_list_context_menu_revert_file.setEnabled(one_branch_with_tree)
-        self.file_list_context_menu_revert_file.setVisible(one_branch_with_tree)
+        self.file_list_context_menu_revert_file.setEnabled(menu_enabled)
+        self.file_list_context_menu_revert_file.setVisible(menu_enabled)
 
         self.file_list_context_menu.popup(
             self.file_list.viewport().mapToGlobal(pos))
@@ -814,8 +818,12 @@ class FileListContainer(QtGui.QWidget):
         (top_revid, old_revid), count = \
             self.log_list.get_selection_top_and_parent_revids_and_count()
         
-        branch = self.log_list.log_model.graph_viz.get_revid_branch(top_revid)
-        tree = branch.repository.revision_tree(top_revid)
+        gv = self.log_list.log_model.graph_viz
+        branch = gv.get_revid_branch(top_revid)
+        if top_revid.startswith(CURRENT_REVISION):
+            tree = gv.working_trees[top_revid]
+        else:
+            tree = branch.repository.revision_tree(top_revid)
         encoding = get_set_encoding(None, branch)
         window = QBzrCatWindow(filename = paths[0], tree = tree, parent=self,
             encoding=encoding)
@@ -881,7 +889,10 @@ class FileListContainer(QtGui.QWidget):
         
         branch_info = \
             self.log_list.log_model.graph_viz.get_revid_branch_info(top_revid)
-        tree = branch_info.branch.repository.revision_tree(top_revid)
+        if top_revid.startswith(CURRENT_REVISION):
+            tree = branch_info.tree
+        else:
+            tree = branch_info.branch.repository.revision_tree(top_revid)
         window = AnnotateWindow(branch_info.branch, branch_info.tree, tree,
                                 paths[0], file_ids[0])
         window.show()

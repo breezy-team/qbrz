@@ -5,6 +5,12 @@ Maintenance release.
  * qlog:
    * Disable context menu items (view, annotate, save) for deleted files.
      (Alexander Belchenko, Bug #1009876)
+   * Fix - Some menus (show tree, view, annotate) don't work when Working
+     tree revision selected.
+     (IWATA Hidetaka, Bug #1020530)
+   * Some menus (tag, update, revert, ...) are disabled when Working tree
+     revision selected.
+     (IWATA Hidetaka, Bug #1020530)
 
 
 0.22.3 - 2012/05/23
