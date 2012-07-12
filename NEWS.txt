@@ -128,8 +128,8 @@ For full list of improvements and bugfixes please see changelog below.
 
 
 
-0.21.4 - development
---------------------
+0.21.4 - 2012/07/12
+-------------------
 Maintenance release.
 
  * qlog:
