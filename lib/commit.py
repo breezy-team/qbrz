@@ -597,7 +597,7 @@ class CommitWindow(SubProcessDialog):
             self.bugsCheckBox.setChecked(True)
 
     def save_commit_data(self):
-        if (self.tree.branch.control_files.get_physical_lock_status()
+        if (self.tree.branch.get_physical_lock_status()
             or self.tree.branch.is_locked()):
             # XXX maybe show this in a GUI MessageBox (information box)???
             from bzrlib.trace import warning
