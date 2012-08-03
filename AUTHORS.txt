@@ -21,6 +21,7 @@ Contributors:
  * Ian Clatworthy <ian dot clatworthy at canonical dot com>
  * INADA Naoki <songofacandy at gmail dot com>
  * IWATA Hidetaka <iwata0303 at gmail com>
+ * Jared Silva <jayrod at gmail com>
  * Javier Derderian <javierder at gmail dot com>
  * Jelmer Vernooij <jelmer at samba org>
  * John Arbash Meinel <john at arbash-meinel dot com>
