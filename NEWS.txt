@@ -2,6 +2,10 @@
 -------------------
 Maintenance release.
 
+ * qcommit:
+   * Better support of cancel commit for foreign branches (git/svn/etc).
+     (Bug #1030343, Jared Silva, Jelmer Vernooij)
+
 
 0.23.0 "Birch" - 2012/07/12
 ---------------------------
