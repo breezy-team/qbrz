@@ -39,6 +39,9 @@ in virtual "Working Tree" revision.
      (Alexander Belchenko, Bug #878204)
  * qbind:
    * Add push location to suggestions. (Alexander Belchenko)
+ * qcommit:
+   * Better support of cancel commit for git branch.
+     (Bug #1030343, Jared Silva, Jelmer Vernooij)
  * qconflicts:
    * Added 2 resolve actions to context menu: `Take "THIS"` 
      and `Take "OTHER"`. (Alexander Belchenko)
