@@ -1,3 +1,8 @@
+0.23.1 - yyyy/mm/dd
+-------------------
+Maintenance release.
+
+
 0.23.0 "Birch" - 2012/07/12
 ---------------------------
 What's new in this release:
