@@ -574,7 +574,7 @@ class QBzrConfigWindow(QBzrDialog):
         if mergetools is not None:
             for name in self.merge_tools_model.get_removed_merge_tools():
                 option = 'bzr.mergetool.%s' % name
-                if config.get_user_option(option) is not None:
+                if config.get_user_option(option, expand=False) is not None:
                     config.remove_user_option(option)
             user_merge_tools = self.merge_tools_model.get_user_merge_tools()
             for name, cmdline in user_merge_tools.iteritems():
