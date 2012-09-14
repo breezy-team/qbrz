@@ -453,8 +453,23 @@ class AnnotateWindow(QBzrWindow):
                 self.branch.unlock()
         finally:
             self.throbber.hide()
-        if self.activate_line_after_load:
-            self.go_to_line(self.activate_line_after_load)
+        QtCore.QTimer.singleShot(1, self._activate_line)
+
+    def _activate_line(self):
+        # [bialix 2012/09/14] I have to use QtCore.QTimer.singleShot because
+        # otherwise the line with uncommitted changes is not highlighted
+        # properly: nothing appears in the revision message browser at all.
+        # I didn't find the reason behind it, shame on me.
+        n = self.activate_line_after_load
+        self.activate_line_after_load = None    # clear the line number just in case
+        if n:
+            if n == 1:
+                # [bialix 2012/09/13] actually after loading annotation
+                # document implictly sets current position to the first line.
+                # So we're unable to change position to 1st line.
+                # Make a hack: select 2nd line, and then actually select 1st one.
+                self.go_to_line(2)
+            self.go_to_line(n)
 
     def set_annotate_title(self):
         # and update the title to show we are done.
@@ -653,7 +668,7 @@ class AnnotateWindow(QBzrWindow):
         if self.text_edit.annotate:
             rev_id, is_top = self.text_edit.annotate[current_line]
             self.log_list.select_revid(rev_id)
-            
+
     def edit_documentChangeFinished(self):
         self.annotate_bar.update_highlight_lines()
         self.guidebar_panel.update_data(annotate=self.annotate_bar.highlight_lines)

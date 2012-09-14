@@ -2,10 +2,12 @@
 -------------------
 Maintenance release.
 
+ * qannotate:
+   * option --line=N: properly activate the first line and a line with
+     uncommitted changes. (Alexander Belchenko)
  * qcommit:
    * Better support of cancel commit for foreign branches (git/svn/etc).
      (Bug #1030343, Jared Silva, Jelmer Vernooij)
-
  * qconnfig:
    * Fix: Fails to modify or remove merge tool configuration. (Bug #1045827)
 
