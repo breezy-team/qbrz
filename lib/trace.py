@@ -69,7 +69,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
     """
     
     # We only want one error to show if the user chose Close
-    global closing_due_to_error0
+    global closing_due_to_error
     # 0.20 special: We check hasattr() first to work around
     # <http://bugs.python.org/issue4230>
     if closing_due_to_error or \
