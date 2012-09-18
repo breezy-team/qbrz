@@ -77,6 +77,15 @@ in virtual "Working Tree" revision.
      files content. (Alexander Belchenko, Bug #995943)
 
 
+0.22.5 - yyyy/mm/dd
+-------------------
+Maintenance release.
+
+ * qcommit:
+   * Better support of cancel commit for foreign branches (git/svn/etc).
+     (Bug #1030343, Jared Silva, Jelmer Vernooij)
+
+
 0.22.4 - 2012/07/12
 -------------------
 Maintenance release.
@@ -379,6 +388,15 @@ Changes after 0.21 beta 1:
      are characters (so 4 means a tab should be displayed with the width of 4
      spaces).  The default value is 8.  The setting can also be adjusted in
      branch.conf for specific branches.  (Bug #490377, A. S. Budden)
+
+
+0.20.4
+------
+NOTE: 0.20 is obsolete series as of September 2012.
+Maintenance fixes.
+
+ * Workaround for bug in Python http://bugs.python.org/issue4230
+   (Samuel Bronson, Bug #1051000; Alexander Belchenko, Bug #711602)
 
 
 0.20.3 - 2011/12/07
