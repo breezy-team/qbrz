@@ -38,6 +38,7 @@ Contributors:
  * Ohad Kammar <ohad dot kammar at gmail dot com>
  * Philip Peitsch <philip dot peitsch at gmail dot com>
  * Robert Widhopf-Fenk <hack at robf dot de>
+ * Samuel Bronson <naesten at gmail com>
  * Simon Kersey <simon dot kersey at ipl dot com>
  * Timothy Reaves <treaves at silverfieldstech dot com>
  * Toshio Kuratomi <toshio at tiki-lounge dot com>

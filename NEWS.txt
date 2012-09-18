@@ -182,6 +182,15 @@ Changes after 0.21 beta 1:
      branch.conf for specific branches.  (Bug #490377, A. S. Budden)
 
 
+0.20.4
+------
+NOTE: 0.20 is obsolete series as of September 2012.
+Maintenance fixes.
+
+ * Workaround for bug in Python http://bugs.python.org/issue4230
+   (Samuel Bronson, Bug #1051000; Alexander Belchenko, Bug #711602)
+
+
 0.20.3 - 2011/12/07
 -------------------
 Maintenance release.
