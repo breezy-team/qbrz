@@ -70,8 +70,11 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
     
     # We only want one error to show if the user chose Close
     global closing_due_to_error
+    # 0.20 special: We check hasattr() first to work around
+    # <http://bugs.python.org/issue4230>
     if closing_due_to_error or \
-        getattr(window, 'closing_due_to_error', False):
+            (hasattr(window, 'closing_due_to_error') and
+             window.closing_due_to_error):
         return
     
     from cStringIO import StringIO
