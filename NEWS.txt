@@ -8,7 +8,7 @@ Maintenance release.
  * qcommit:
    * Better support of cancel commit for foreign branches (git/svn/etc).
      (Bug #1030343, Jared Silva, Jelmer Vernooij)
- * qconnfig:
+ * qconfig:
    * Fix: Fails to modify or remove merge tool configuration. (Bug #1045827)
 
 
