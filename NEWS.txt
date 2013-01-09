@@ -10,6 +10,8 @@ Maintenance release.
      (Bug #1030343, Jared Silva, Jelmer Vernooij)
  * qconfig:
    * Fix: Fails to modify or remove merge tool configuration. (Bug #1045827)
+ * qlog:
+   * Support for FusionForge bug tracker. (Jérémy Subtil, Bug #1072044)
 
 
 0.23.0 "Birch" - 2012/07/12

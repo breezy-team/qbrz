@@ -54,6 +54,9 @@ class TestGetBugId(TestCase):
         self.assertEquals('7721', get_bug_id('http://www.mantisbt.org/bugs/view.php?id=7721'))
         self.assertEquals('123', get_bug_id('http://localhost/view.php?id=123'))
 
+    def test_fusionforge(self):
+        self.assertEquals('292', get_bug_id('https://fusionforge.org/tracker/index.php?func=detail&aid=292'))
+
 
 class TestGetBugTags(TestCase):
 

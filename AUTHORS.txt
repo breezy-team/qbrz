@@ -24,6 +24,7 @@ Contributors:
  * Jared Silva <jayrod at gmail com>
  * Javier Derderian <javierder at gmail dot com>
  * Jelmer Vernooij <jelmer at samba org>
+ * Jérémy Subtil <jeremy subtil at gmail com>
  * John Arbash Meinel <john at arbash-meinel dot com>
  * John Szakmeister <john at szakmeister dot net>
  * Jonathan Riddell <jriddell at canonical com>
