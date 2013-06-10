@@ -57,6 +57,8 @@ class TestGetBugId(TestCase):
     def test_fusionforge(self):
         self.assertEquals('292', get_bug_id('https://fusionforge.org/tracker/index.php?func=detail&aid=292'))
 
+    def test_jira(self):
+        self.assertEquals('AB-1234', get_bug_id('http://jiraserver/browse/AB-1234'))
 
 class TestGetBugTags(TestCase):
 
