@@ -59,6 +59,19 @@ class TestGetBugId(TestCase):
 
     def test_jira(self):
         self.assertEquals('AB-1234', get_bug_id('http://jiraserver/browse/AB-1234'))
+        self.assertEquals('A_B-1234', get_bug_id('http://jiraserver/browse/A_B-1234'))
+        self.assertEquals('AB_1-1234', get_bug_id('http://jiraserver/browse/AB_1-1234'))
+        self.assertEquals('AB_1A-1234', get_bug_id('http://jiraserver/browse/AB_1A-1234'))
+        self.assertEquals(None, get_bug_id('http://jiraserver/browse/1A-1234'))
+	self.assertEquals(None, get_bug_id('http://jiraserver/browse/_1A-1234'))
+	self.assertEquals(None, get_bug_id('http://jiraserver/browse/A-1234A'))
+	self.assertEquals(None, get_bug_id('http://jiraserver/browse/a-1'))
+	self.assertEquals(None, get_bug_id('http://jiraserver/browse/a'))
+	self.assertEquals(None, get_bug_id('http://jiraserver/browse/A'))
+	self.assertEquals(None, get_bug_id('http://jiraserver/browse/A-'))
+	self.assertEquals(None, get_bug_id('http://jiraserver/browse/A_1'))
+	self.assertEquals('A-1', get_bug_id('http://jiraserver/browse/A-1'))
+        self.assertEquals('ZZ12_SA__2__-122222222', get_bug_id('http://jiras1212erver/browse/ZZ12_SA__2__-122222222'))
 
 class TestGetBugTags(TestCase):
 
