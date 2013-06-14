@@ -36,6 +36,10 @@ _bug_id_re = lazy_regex.lazy_compile(r'(?:'
     r'|aid='                    # FusionForge bug tracker URL
     r')(\d+)(?:\b|$)')
 
+
+_jira_bug_id_re = lazy_regex.lazy_compile(r'(?:.*/browse/)([A-Z][A-Z0-9_]*-\d+)($)')
+
+
 _unique_bugtrackers = ('lp', 'deb', 'gnome')
 # bugtracker config settings
 _bugtracker_re = lazy_regex.lazy_compile('(bugtracker|trac|bugzilla)_(.+)_url')
@@ -43,6 +47,9 @@ _bugtracker_re = lazy_regex.lazy_compile('(bugtracker|trac|bugzilla)_(.+)_url')
 
 def get_bug_id(bug_url):
     match = _bug_id_re.search(bug_url)
+    if match:
+        return match.group(1)
+    match = _jira_bug_id_re.search(bug_url)
     if match:
         return match.group(1)
     return None
