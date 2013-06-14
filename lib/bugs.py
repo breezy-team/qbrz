@@ -37,7 +37,7 @@ _bug_id_re = lazy_regex.lazy_compile(r'(?:'
     r')(\d+)(?:\b|$)')
 
 
-_jira_bug_id_re = lazy_regex.lazy_compile(r'(?:.*/browse/)([A-Z]+[A-Z0-9_]*-\d+)($)')
+_jira_bug_id_re = lazy_regex.lazy_compile(r'(?:.*/browse/)([A-Z][A-Z0-9_]*-\d+)($)')
 
 
 _unique_bugtrackers = ('lp', 'deb', 'gnome')
