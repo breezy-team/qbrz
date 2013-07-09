@@ -34,6 +34,8 @@ _bug_id_re = lazy_regex.lazy_compile(r'(?:'
     r'|issue'                   # Roundup issue tracker URL
     r'|view.php\?id='           # Mantis bug tracker URL
     r'|aid='                    # FusionForge bug tracker URL
+    r'|task_id='                # Flyspray bug tracker URL (http://flyspray.org) - old style URLs(?)
+    r'|task/'                   # Flyspray itself bugtracker (https://bugs.flyspray.org)
     r')(\d+)(?:\b|$)')
 
 

@@ -57,6 +57,10 @@ class TestGetBugId(TestCase):
     def test_fusionforge(self):
         self.assertEquals('292', get_bug_id('https://fusionforge.org/tracker/index.php?func=detail&aid=292'))
 
+    def test_flyspray(self):
+        self.assertEquals('1234', get_bug_id('https://flyspray.example.com/index.php?do=details&task_id=1234'))
+        self.assertEquals('1234', get_bug_id('https://bugs.flyspray.org/task/1234'))
+
     def test_jira(self):
         self.assertEquals('AB-1234', get_bug_id('http://jiraserver/browse/AB-1234'))
         self.assertEquals('A_B-1234', get_bug_id('http://jiraserver/browse/A_B-1234'))
