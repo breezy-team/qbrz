@@ -18,6 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
+from bzrlib.plugins.qbzr.lib import MS_WINDOWS
 
 from bzrlib.lazy_import import lazy_import
 lazy_import(globals(), '''
@@ -166,9 +167,14 @@ class RevisionTreeView(QtGui.QTreeView):
 
 
 has_vista_style = hasattr(QtGui, "QWindowsVistaStyle")
+AERO_ENABLED = False
+if MS_WINDOWS:
+    from bzrlib.plugins.qbzr.lib.win32util import is_aero_enabled
+    AERO_ENABLED = is_aero_enabled()
 
 
-def get_text_color ( option, style):
+def get_text_color(option, style):
+    # cg == ColorGroup
     if option.state & QtGui.QStyle.State_Enabled:
         if option.state & QtGui.QStyle.State_Active:
             cg = QtGui.QPalette.Active
@@ -184,7 +190,11 @@ def get_text_color ( option, style):
             # what it does here.
             # https://bugs.edge.launchpad.net/qbzr/+bug/457895
             return option.palette.color(cg, QtGui.QPalette.Text)
-        
+        elif AERO_ENABLED:
+            # hack-hack-hack for Vista/Win7: we need to use the black text
+            # when aero selection of light blue with gradient is used
+            return option.palette.color(cg, QtGui.QPalette.Text)
+
         return option.palette.color(cg, QtGui.QPalette.HighlightedText)
     else:
         return option.palette.color(cg, QtGui.QPalette.Text)
