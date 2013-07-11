@@ -15,7 +15,9 @@ Maintenance release.
    * Support for Jira bug tracker. (Craig Hewetson, Bug #1189421)
    * Support for Flyspray bug tracker URLs (2 styles). (Alexander Belchenko)
    * Hack for Vista/Win7 aero style: selected rows should use black text
-     color. (Alexander Belchenko)
+     color. (Alexander Belchenko, Bug #790590)
+   * Workaround for date column width problem on Windows Vista and higher 
+     (1 pixel miscalculation). (Alexander Belchenko, Bug #430502)
 
 
 0.23.0 "Birch" - 2012/07/12

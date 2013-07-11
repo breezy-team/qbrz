@@ -88,7 +88,9 @@ class LogList(RevisionTreeView):
         header.resizeSection(logmodel.COL_REV,
                              fm.width("8888.8.888") + col_margin)
         header.resizeSection(logmodel.COL_DATE,
-                             fm.width("88-88-8888 88:88") + col_margin)
+                             # [bialix 2013/07/11]     v  I've added a space to sample string below to workaround bug https://bugs.launchpad.net/qbzr/+bug/430502
+                             #                         v  If this is a problem on non-Windows platforms - please let me know and I'll add a platform check
+                             fm.width("88-88-8888 88:88 ") + col_margin)
         header.resizeSection(logmodel.COL_AUTHOR,
                              fm.width("Joe I have a Long Name") + col_margin)
 
