@@ -22,10 +22,29 @@
 import ctypes
 import platform
 
+# Internal versions of Microsoft Windows
+XP    = '5.1'
+Vista = '6.0'
+Win7  = '6.1'
+Win8  = '6.2'
+
 def is_vista_or_higher():
     win_ver = platform.win32_ver()[1]
-    if win_ver >= '6':
-        # Vista and Win7 are v.6.x
+    if win_ver >= Vista:
+        return True
+    else:
+        return False
+
+def is_vista_or_win7():
+    win_ver = platform.win32_ver()[1]
+    if win_ver >= Vista and win_ver < Win8:
+        return True
+    else:
+        return False
+
+def is_win8_or_higher():
+    win_ver = platform.win32_ver()[1]
+    if win_ver >= Win8:
         return True
     else:
         return False
@@ -38,5 +57,6 @@ def is_aero_enabled():
         # DwmIsCompositionEnabled function should tell us whether aero is enabled
         ctypes.windll.dwmapi.DwmIsCompositionEnabled(ctypes.byref(bResult))
         return bool(bResult.value)
-    except Exception:   # that's really bad, I know, shame on me
+    except Exception, e:    # that's really bad, I know, shame on me
+        print e             # if we will be there somebody will let me know which exactly error there is
         return False

@@ -169,8 +169,13 @@ class RevisionTreeView(QtGui.QTreeView):
 has_vista_style = hasattr(QtGui, "QWindowsVistaStyle")
 AERO_ENABLED = False
 if MS_WINDOWS:
-    from bzrlib.plugins.qbzr.lib.win32util import is_aero_enabled
-    AERO_ENABLED = is_aero_enabled()
+    from bzrlib.plugins.qbzr.lib import win32util
+    # it seems that latest available bzr distributives for Windows
+    # contain a bit outdated version of PyQt which does not support Win8 styles well.
+    # But it does support Vista/Win7 good enough.
+    # So we enable our hack with selected text color only on Vista/Win7
+    if win32util.is_vista_or_win7():
+        AERO_ENABLED = win32util.is_aero_enabled()
 
 
 def get_text_color(option, style):
