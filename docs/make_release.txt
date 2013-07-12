@@ -26,6 +26,32 @@ Prepare code
 4. Push the code to Launchpad
 
 
+Prepare translations (optionally)
+---------------------------------
+* It makes sense to download fresh translations from Launchpad just before
+  major releases, or on regular basis. 
+* To do so, go to translation page
+  https://translations.launchpad.net/qbzr
+* Select series for which you want to get translations, usually it's ok
+  to go straight to trunk series:
+  https://translations.launchpad.net/qbzr/trunk/+translations
+* And in Manual Synchronization section select "download"
+  https://translations.launchpad.net/qbzr/trunk/+export
+  You need PO format of files.
+* After some time you'll get an e-mail with download link.
+* Download that tarball and place it to the root of your qbzr development tree,
+  then execute command
+      python setup.py import_po
+* Inspect changes, run 
+      make mo
+  to ensure that everything is OK.
+* If there are new translation files for new languages appear (not under
+  version control) - ensure you're `bzr add` them before commit 
+  (NOTE in NEWS.txt about new translations are very welcome).
+* Commit updated translations and push to Launchpad.
+* You'd better update transaltions before starting release process.
+
+
 Register release at Launchpad
 -----------------------------
 1. Make corresponding page for new release on Launchpad:
@@ -81,14 +107,6 @@ Building distribution files under the hood
         gpg -ab qbzr-setup-X.Y.Z.exe
 
 
-Update QBzr Wiki page
----------------------
-1. Update QBzr page at Bazaar wiki with corresponding NEWS entry,
-   update links to tarball and installers.
-   
-   	http://wiki.bazaar.canonical.com/QBzr
-
-
 Make announcement
 -----------------
 1. Send short e-mail with announcement to:
@@ -109,4 +127,4 @@ Finishing stuff at Launchpad
 
 Create deb packages with Launchpad PPA
 --------------------------------------
-Usually Gary van der Merwe do the packages for Ubuntu.
+???
