@@ -1,4 +1,4 @@
-0.23.1 - yyyy/mm/dd
+0.23.1 - 2013/07/29
 -------------------
 Maintenance release.
 
@@ -9,7 +9,8 @@ Maintenance release.
    * Better support of cancel commit for foreign branches (git/svn/etc).
      (Bug #1030343, Jared Silva, Jelmer Vernooij)
  * qconfig:
-   * Fix: Fails to modify or remove merge tool configuration. (Bug #1045827)
+   * Fix: Fails to modify or remove merge tool configuration. 
+     (IWATA Hidetaka, Bug #1045827)
  * qlog:
    * Support for FusionForge bug tracker. (Jérémy Subtil, Bug #1072044)
    * Support for Jira bug tracker. (Craig Hewetson, Bug #1189421)
