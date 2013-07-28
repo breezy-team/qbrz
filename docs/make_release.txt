@@ -39,12 +39,18 @@ Prepare translations (optionally)
   https://translations.launchpad.net/qbzr/trunk/+export
   You need PO format of files.
 * After some time you'll get an e-mail with download link.
+
 * Download that tarball and place it to the root of your qbzr development tree,
-  then execute command
+  then execute command::
+
       python setup.py import_po
-* Inspect changes, run 
+
+* Inspect changes, run::
+
       make mo
+
   to ensure that everything is OK.
+
 * If there are new translation files for new languages appear (not under
   version control) - ensure you're `bzr add` them before commit 
   (NOTE in NEWS.txt about new translations are very welcome).
