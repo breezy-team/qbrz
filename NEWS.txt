@@ -2,6 +2,9 @@
 ----------------------------------
 Maintenance release.
 
+ * qrun:
+   * More robust against unicode help from some hidden commands.
+     Attempt to fix bug #1217371. (Alexander Belchenko)
  * qshelve:
    * New command line option --all to start with all changes selected.
      (Sveinung Kvilhaugsvik, Bug #1227914)

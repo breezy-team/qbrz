@@ -252,7 +252,11 @@ class QBzrRunDialog(SubProcessDialog):
             # HTML document, but QTextBrowser expects unicode.
             # (actually QString which is unicode in PyQt4).
             html_utf8 = get_help_topic_as_html("commands/" + cmd_name)
-            self.ui.help_browser.setHtml(html_utf8.decode('utf-8'))
+            if isinstance(html_utf8, unicode):
+                html_unicode = html_utf8
+            else:
+                html_unicode = html_utf8.decode('utf-8')
+            self.ui.help_browser.setHtml(html_unicode)
         else:
             self.set_default_help()
 
