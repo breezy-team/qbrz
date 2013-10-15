@@ -2,7 +2,7 @@
 #
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2008 Lukáš Lalinský <lalinsky@gmail.com>
-# Copyright (C) 2009, 2010, 2011, 2012 QBzr Developers
+# Copyright (C) 2009, 2010, 2011, 2012, 2013 QBzr Developers
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -74,7 +74,7 @@ Miscellaneous:
 
 from __future__ import absolute_import
 
-version_info = (0,23,1,'final',0)
+version_info = (0,23,2,'dev',0)
 __version__ = '.'.join(map(str, version_info))
 
 
