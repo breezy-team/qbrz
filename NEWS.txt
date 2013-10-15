@@ -5,6 +5,8 @@ Maintenance release.
  * qshelve:
    * New command line option --all to start with all changes selected.
      (Sveinung Kvilhaugsvik, Bug #1227914)
+   * New command line option --m to set the message string.
+     (Sveinung Kvilhaugsvik, Bug #1233909)
 
 
 0.23.1 - 2013/07/29
