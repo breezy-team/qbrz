@@ -2,6 +2,10 @@
 ----------------------------------
 Maintenance release.
 
+ * qshelve:
+   * New command line option --all to start with all changes selected.
+     (Sveinung Kvilhaugsvik, Bug #1227914)
+
 
 0.23.1 - 2013/07/29
 -------------------
