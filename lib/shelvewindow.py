@@ -60,7 +60,7 @@ class ShelveWindow(QBzrWindow):
 
     def __init__(self, initial_tab=0, directory=None, file_list=None, complete=False,
                  ignore_whitespace=False, encoding=None, parent=None, ui_mode=True,
-                 select_all=False):
+                 select_all=False, message=None):
         QBzrWindow.__init__(self,
                             [gettext("Shelve Manager")],
                             parent, ui_mode=ui_mode)
@@ -80,7 +80,7 @@ class ShelveWindow(QBzrWindow):
         shelve_view = ShelveWidget(file_list=file_list, directory=self.directory,
                                     complete=complete, encoding=encoding, 
                                     splitters=self.splitters, parent=self,
-                                    select_all=select_all)
+                                    select_all=select_all, init_msg=message)
         shelvelist_view = ShelveListWidget(directory=self.directory,
                                     complete=complete, ignore_whitespace=ignore_whitespace,
                                     encoding=encoding, splitters=self.splitters, parent=self)

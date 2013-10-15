@@ -237,7 +237,7 @@ class Change(object):
 class ShelveWidget(ToolbarPanel):
 
     def __init__(self, file_list=None, directory=None, complete=False, encoding=None, 
-                splitters=None, parent=None, select_all=False):
+                splitters=None, parent=None, select_all=False, init_msg=None):
         ToolbarPanel.__init__(self, slender=False, icon_size=22, parent=parent)
 
         self.revision = None
@@ -277,6 +277,8 @@ class ShelveWidget(ToolbarPanel):
         self.completer.setModel(self.completer_model)
         self.message.setCompleter(self.completer)
         self.message.setAcceptRichText(False)
+        if init_msg is not None:
+            self.message.setText(init_msg)
         SpellCheckHighlighter(self.message.document(), spell_checker)
 
         message_layout.addWidget(self.message)
