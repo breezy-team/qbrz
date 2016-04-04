@@ -10,6 +10,10 @@ Maintenance release.
      (Sveinung Kvilhaugsvik, Bug #1227914)
    * New command line option --message (-m) to set the message string.
      (Sveinung Kvilhaugsvik, Bug #1233909)
+ * qcommit:
+   * Better compatibility with bzr 2.6+: fixed warning message 
+     `Cannot expand "commit_data": Dicts do not support option expansion`.
+     (Alexander Belchenko, Bug #1254838)
 
 
 0.23.1 - 2013/07/29

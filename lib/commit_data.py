@@ -154,7 +154,7 @@ class CommitData(object):
     def load(self):
         """Load saved data from branch/tree."""
         config = self._get_branch_config()
-        data = config.get_user_option('commit_data')
+        data = config.get_user_option('commit_data', expand=False)
         if data:
             self.set_data(data)
         else:
@@ -205,7 +205,7 @@ class CommitData(object):
 
     def _set_new_commit_data(self, new_data):
         config = self._get_branch_config()
-        old_data = config.get_user_option('commit_data')
+        old_data = config.get_user_option('commit_data', expand=False)
         if old_data == new_data:
             return
         try:
@@ -222,13 +222,13 @@ class QBzrCommitData(CommitData):
 
     def _load_old_data(self):
         config = self._get_branch_config()
-        old_data = config.get_user_option('qbzr_commit_message')
+        old_data = config.get_user_option('qbzr_commit_message', expand=False)
         if old_data:
             self.set_data(message=old_data)
 
     def _wipe_old_data(self):
         config = self._get_branch_config()
-        if config.get_user_option('qbzr_commit_message'):
+        if config.get_user_option('qbzr_commit_message', expand=False):
             config.set_user_option('qbzr_commit_message', '')
 
 
