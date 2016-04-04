@@ -22,7 +22,7 @@
 # TODO:
 #  - better annotate algorithm on packs
 
-import sys, time, md5
+import sys, time, hashlib
 from itertools import groupby
 from PyQt4 import QtCore, QtGui
 
@@ -648,7 +648,7 @@ class AnnotateWindow(QBzrWindow):
         h = self.__hashes.get(author_id)
         if h is None:
             h = abs(hash(author_id))
-            #h = abs(hash(md5.md5(author_id).hexdigest())) # maybe increase enthropy via md5?
+            #h = abs(hash(hashlib.md5(author_id).hexdigest())) # maybe increase enthropy via md5?
             # XXX [bialix 2012/03/30]
             # I don't really like how we create colors for annotation.
             # Also, abs(hash) loses 1 bit of the hash result.
