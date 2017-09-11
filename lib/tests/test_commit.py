@@ -16,10 +16,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib.tests import TestCase, TestCaseWithTransport
+from breezy.tests import TestCase, TestCaseWithTransport
 from PyQt4 import QtCore
-from bzrlib.plugins.qbzr.lib import tests as qtests
-from bzrlib.plugins.qbzr.lib.commit import CommitWindow
+from breezy.plugins.qbrz.lib import tests as qtests
+from breezy.plugins.qbrz.lib.commit import CommitWindow
 
 
 class TestCommit(qtests.QTestCase):

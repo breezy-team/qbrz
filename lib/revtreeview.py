@@ -18,14 +18,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib import MS_WINDOWS
+from breezy.plugins.qbrz.lib import MS_WINDOWS
 
-from bzrlib.lazy_import import lazy_import
+from breezy.lazy_import import lazy_import
 lazy_import(globals(), '''
-from bzrlib.plugins.qbzr.lib.util import run_in_loading_queue
-from bzrlib.plugins.qbzr.lib.lazycachedrevloader import load_revisions
-from bzrlib.plugins.qbzr.lib.diff import ExtDiffContext
-from bzrlib.transport.local import LocalTransport
+from breezy.plugins.qbrz.lib.util import run_in_loading_queue
+from breezy.plugins.qbrz.lib.lazycachedrevloader import load_revisions
+from breezy.plugins.qbrz.lib.diff import ExtDiffContext
+from breezy.transport.local import LocalTransport
 ''')
 
 RevIdRole = QtCore.Qt.UserRole + 1
@@ -131,7 +131,7 @@ class RevisionTreeView(QtGui.QTreeView):
             if current_call_count < self.load_revisions_call_count:
                 return True
             
-            repo_is_local = isinstance(repo.bzrdir.transport, LocalTransport)
+            repo_is_local = isinstance(repo.controldir.transport, LocalTransport)
             if not repo_is_local:
                 # Disable this until we have thobber that does not irratate
                 # users when we show and hide quickly.
@@ -169,7 +169,7 @@ class RevisionTreeView(QtGui.QTreeView):
 has_vista_style = hasattr(QtGui, "QWindowsVistaStyle")
 AERO_ENABLED = False
 if MS_WINDOWS:
-    from bzrlib.plugins.qbzr.lib import win32util
+    from breezy.plugins.qbrz.lib import win32util
     # it seems that latest available bzr distributives for Windows
     # contain a bit outdated version of PyQt which does not support Win8 styles well.
     # But it does support Vista/Win7 good enough.
@@ -193,7 +193,7 @@ def get_text_color(option, style):
             # QWindowsVistaStyle normally modifies it palette,
             # but as we can't reuse that code, we have to reproduce
             # what it does here.
-            # https://bugs.edge.launchpad.net/qbzr/+bug/457895
+            # https://bugs.edge.launchpad.net/qbrz/+bug/457895
             return option.palette.color(cg, QtGui.QPalette.Text)
         elif AERO_ENABLED:
             # hack-hack-hack for Vista/Win7: we need to use the black text

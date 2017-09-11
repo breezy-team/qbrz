@@ -20,22 +20,22 @@
 
 import sys
 
-from bzrlib import (
+from breezy import (
     config,
     errors,
     tests,
     )
-from bzrlib.transport import memory
+from breezy.transport import memory
 
-from bzrlib.plugins.qbzr.lib import (
-    tests as qbzr_tests,
+from breezy.plugins.qbrz.lib import (
+    tests as qbrz_tests,
     util,
     )
-from bzrlib.plugins.qbzr.lib.fake_branch import FakeBranch
-from bzrlib.plugins.qbzr.lib.tests import mock
+from breezy.plugins.qbrz.lib.fake_branch import FakeBranch
+from breezy.plugins.qbrz.lib.tests import mock
 
 
-class TestUtil(qbzr_tests.QTestCase):
+class TestUtil(qbrz_tests.QTestCase):
 
     def test_file_extension(self):
         self.assertEquals('', util.file_extension(''))
@@ -128,14 +128,14 @@ class TestUtil(qbzr_tests.QTestCase):
     def test_url_for_display(self):
         self.assertEquals(None, util.url_for_display(None))
         self.assertEquals('', util.url_for_display(''))
-        self.assertEquals('http://bazaar.launchpad.net/~qbzr-dev/qbzr/trunk',
-            util.url_for_display('http://bazaar.launchpad.net/%7Eqbzr-dev/qbzr/trunk'))
+        self.assertEquals('http://bazaar.launchpad.net/~qbrz-dev/qbrz/trunk',
+            util.url_for_display('http://bazaar.launchpad.net/%7Eqbrz-dev/qbrz/trunk'))
         if sys.platform == 'win32':
-            self.assertEquals('C:/work/qbzr/',
-                util.url_for_display('file:///C:/work/qbzr/'))
+            self.assertEquals('C:/work/qbrz/',
+                util.url_for_display('file:///C:/work/qbrz/'))
         else:
-            self.assertEquals('/home/work/qbzr/',
-                util.url_for_display('file:///home/work/qbzr/'))
+            self.assertEquals('/home/work/qbrz/',
+                util.url_for_display('file:///home/work/qbrz/'))
 
     def test_is_binary_content(self):
         self.assertEquals(False, util.is_binary_content([]))
@@ -144,9 +144,9 @@ class TestUtil(qbzr_tests.QTestCase):
         self.assertEquals(True, util.is_binary_content(['a'*2048 + '\x00']))
 
     def test_get_summary(self):
-        import bzrlib.revision
+        import breezy.revision
         
-        r = bzrlib.revision.Revision('1')
+        r = breezy.revision.Revision('1')
 
         r.message = None
         self.assertEquals('(no message)', util.get_summary(r))
@@ -158,9 +158,9 @@ class TestUtil(qbzr_tests.QTestCase):
         self.assertEquals('message', util.get_summary(r))
 
     def test_get_message(self):
-        import bzrlib.revision
+        import breezy.revision
         
-        r = bzrlib.revision.Revision('1')
+        r = breezy.revision.Revision('1')
 
         r.message = None
         self.assertEquals('(no message)', util.get_message(r))
@@ -185,20 +185,20 @@ class TestUtil(qbzr_tests.QTestCase):
     def test_launchpad_project_from_url(self):
         fut = util.launchpad_project_from_url  # fut = function under test
         # classic
-        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/~qbzr-dev/qbzr/trunk'))
-        # lp:qbzr
-        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/+branch/qbzr'))
-        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/qbzr'))
-        # lp:qbzr/0.20
-        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/qbzr/0.20'))
-        # lp:ubuntu/qbzr
-        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/ubuntu/qbzr'))
-        # lp:ubuntu/natty/qbzr
-        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/ubuntu/natty/qbzr'))
-        # lp:ubuntu/natty-proposed/qbzr
-        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/ubuntu/natty-proposed/qbzr'))
-        # lp:~someone/ubuntu/maverick/qbzr/sru
-        self.assertEquals('qbzr', fut('bzr+ssh://bazaar.launchpad.net/~someone/ubuntu/maverick/qbzr/sru'))
+        self.assertEquals('qbrz', fut('bzr+ssh://bazaar.launchpad.net/~qbrz-dev/qbrz/trunk'))
+        # lp:qbrz
+        self.assertEquals('qbrz', fut('bzr+ssh://bazaar.launchpad.net/+branch/qbrz'))
+        self.assertEquals('qbrz', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/qbrz'))
+        # lp:qbrz/0.20
+        self.assertEquals('qbrz', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/qbrz/0.20'))
+        # lp:ubuntu/qbrz
+        self.assertEquals('qbrz', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/ubuntu/qbrz'))
+        # lp:ubuntu/natty/qbrz
+        self.assertEquals('qbrz', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/ubuntu/natty/qbrz'))
+        # lp:ubuntu/natty-proposed/qbrz
+        self.assertEquals('qbrz', fut('bzr+ssh://bazaar.launchpad.net/%2Bbranch/ubuntu/natty-proposed/qbrz'))
+        # lp:~someone/ubuntu/maverick/qbrz/sru
+        self.assertEquals('qbrz', fut('bzr+ssh://bazaar.launchpad.net/~someone/ubuntu/maverick/qbrz/sru'))
 
 
 class TestOpenTree(tests.TestCaseWithTransport):

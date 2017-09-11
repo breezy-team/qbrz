@@ -41,13 +41,13 @@ def N_(s):
 def install():
     global _translation
     if not os.environ.get('LANGUAGE'):
-        from bzrlib import config
+        from breezy import config
         lang = config.GlobalConfig().get_user_option('language')
         if lang:
             os.environ['LANGUAGE'] = lang
     if sys.platform == 'win32':
         _check_win32_locale()
-    _translation = _gettext.translation('qbzr', localedir=_get_locale_dir(), fallback=True)
+    _translation = _gettext.translation('qbrz', localedir=_get_locale_dir(), fallback=True)
 
 
 def uninstall():

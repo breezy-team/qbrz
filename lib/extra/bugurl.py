@@ -17,12 +17,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib import commands, errors, trace, bugtracker
-from bzrlib.config import GlobalConfig
-from bzrlib.branch import Branch
-from bzrlib.option import Option
+from breezy import commands, errors, trace, bugtracker
+from breezy.config import GlobalConfig
+from breezy.branch import Branch
+from breezy.option import Option
 
-from bzrlib.plugins.qbzr.lib.bugs import FakeBranchForBugs
+from breezy.plugins.qbrz.lib.bugs import FakeBranchForBugs
 
 
 class cmd_bug_url(commands.Command):
@@ -34,9 +34,9 @@ class cmd_bug_url(commands.Command):
     ]
 
     def run(self, bug_id, open=False):
-        # we import from qbzr.lib.util here because that module
+        # we import from qbrz.lib.util here because that module
         # has dependency on PyQt4 (see bug #327487)
-        from bzrlib.plugins.qbzr.lib.util import open_browser, url_for_display
+        from breezy.plugins.qbrz.lib.util import open_browser, url_for_display
         try:
             branch = Branch.open_containing(u'.')[0]
         except errors.NotBranchError:

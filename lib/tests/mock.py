@@ -18,7 +18,7 @@
 
 """Simple mock objects."""
 
-from bzrlib.tests import TestCase
+from breezy.tests import TestCase
 
 
 class MockFunction(object):

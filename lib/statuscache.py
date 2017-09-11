@@ -19,7 +19,7 @@
 
 import sys
 
-from bzrlib import (
+from breezy import (
     errors,
     osutils,
     workingtree,

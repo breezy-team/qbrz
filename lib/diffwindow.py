@@ -26,21 +26,21 @@ import time
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.errors import NoSuchRevision, PathsNotVersionedError
-from bzrlib.mutabletree import MutableTree
-from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
-from bzrlib.revisiontree import RevisionTree
-from bzrlib.transform import _PreviewTree
-from bzrlib.workingtree import WorkingTree
-from bzrlib.workingtree_4 import DirStateRevisionTree
-from bzrlib import trace
-from bzrlib import cleanup
+from breezy.errors import NoSuchRevision, PathsNotVersionedError
+from breezy.mutabletree import MutableTree
+from breezy.patiencediff import PatienceSequenceMatcher as SequenceMatcher
+from breezy.revisiontree import RevisionTree
+from breezy.transform import _PreviewTree
+from breezy.workingtree import WorkingTree
+from breezy.workingtree_4 import DirStateRevisionTree
+from breezy import trace
+from breezy import cleanup
 
-from bzrlib.plugins.qbzr.lib.diffview import (
+from breezy.plugins.qbrz.lib.diffview import (
     SidebySideDiffView,
     SimpleDiffView,
     )
-from bzrlib.plugins.qbzr.lib.diff import (
+from breezy.plugins.qbrz.lib.diff import (
     show_diff,
     has_ext_diff,
     ExtDiffMenu,
@@ -48,8 +48,8 @@ from bzrlib.plugins.qbzr.lib.diff import (
     ExtDiffContext,
     )
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.i18n import gettext, ngettext, N_
+from breezy.plugins.qbrz.lib.util import (
     FilterOptions,
     QBzrWindow,
     ToolBarThrobberWidget,
@@ -62,12 +62,12 @@ from bzrlib.plugins.qbzr.lib.util import (
     runs_in_loading_queue,
     show_shortcut_hint,
     )
-from bzrlib.plugins.qbzr.lib.widgets.toolbars import FindToolbar
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.plugins.qbzr.lib.trace import reports_exception
-from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
-from bzrlib.plugins.qbzr.lib.widgets.tab_width_selector import TabWidthMenuSelector
-from bzrlib.plugins.qbzr.lib.widgets.texteditaccessory import setup_guidebar_for_find
+from breezy.plugins.qbrz.lib.widgets.toolbars import FindToolbar
+from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
+from breezy.plugins.qbrz.lib.trace import reports_exception
+from breezy.plugins.qbrz.lib.encoding_selector import EncodingMenuSelector
+from breezy.plugins.qbrz.lib.widgets.tab_width_selector import TabWidthMenuSelector
+from breezy.plugins.qbrz.lib.widgets.texteditaccessory import setup_guidebar_for_find
 
 
 

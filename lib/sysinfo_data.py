@@ -20,8 +20,8 @@
 import os
 import sys
 
-import bzrlib
-from bzrlib import bzrdir, config, errors, osutils, trace
+import breezy
+from breezy import controldir, config, errors, osutils, trace
 
 
 def get_sys_info():
@@ -29,7 +29,7 @@ def get_sys_info():
 
     :return: a dictionary mapping fields to values. Field names are:
       * bzr-version - version of Bazaar
-      * bzr-lib-path - paths to bzrlib roots (a list)
+      * bzr-lib-path - paths to breezy roots (a list)
       * bzr-source-tree - source tree holding Bazaar (None or a Tree object)
       * bzr-config-dir - configuration directory holding bazaar.conf, etc.
       * bzr-log-file - path to bzr.log file
@@ -40,9 +40,9 @@ def get_sys_info():
     result = {}
 
     # Bazaar installation
-    result["bzr-version"] = bzrlib.__version__
-    result["bzr-lib-path"] = bzrlib.__path__
-    # is bzrlib itself in a branch?
+    result["bzr-version"] = breezy.__version__
+    result["bzr-lib-path"] = breezy.__path__
+    # is breezy itself in a branch?
     source_tree = None  #_get_bzr_source_tree()
     if source_tree:
         result["bzr-source-tree"] = _source_tree_details()
@@ -68,7 +68,7 @@ def get_sys_info():
         python_dll = "python%d%d.dll" % sys.version_info[:2]
         py_file = os.path.join(basedir, python_dll)
     result["python-file"] = py_file
-    result["python-version"] = bzrlib._format_version_tuple(sys.version_info)
+    result["python-version"] = breezy._format_version_tuple(sys.version_info)
     result["python-lib-dir"] = os.path.dirname(os.__file__)
     return result
 
@@ -79,7 +79,7 @@ def _get_bzr_source_tree():
     If bzr is not being run from its working tree, returns None.
     """
     try:
-        control = bzrdir.BzrDir.open_containing(__file__)[0]
+        control = controldir.ControlDir.open_containing(__file__)[0]
         return control.open_workingtree(recommend_upgrade=False)
     except (errors.NotBranchError, errors.UnknownFormatError,
             errors.NoWorkingTree):

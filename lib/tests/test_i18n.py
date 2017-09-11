@@ -18,8 +18,8 @@
 
 """Tests for i18n module"""
 
-from bzrlib.tests import TestCase
-from bzrlib.plugins.qbzr.lib import i18n
+from breezy.tests import TestCase
+from breezy.plugins.qbrz.lib import i18n
 
 
 class TestI18n(TestCase):

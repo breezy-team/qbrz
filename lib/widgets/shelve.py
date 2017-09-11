@@ -20,8 +20,8 @@
 import sys, time
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.i18n import gettext, ngettext, N_
+from breezy.plugins.qbrz.lib.util import (
     get_global_config,
     get_set_encoding,
     runs_in_loading_queue,
@@ -30,32 +30,32 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_monospace_font,
     get_tab_width_pixels,
     get_set_tab_width_chars,
-    get_qbzr_config,
+    get_qbrz_config,
     file_extension,
     )
-from bzrlib.plugins.qbzr.lib.widgets.toolbars import (
+from breezy.plugins.qbrz.lib.widgets.toolbars import (
     FindToolbar, ToolbarPanel, LayoutSelector
     )
-from bzrlib.plugins.qbzr.lib.widgets.tab_width_selector import TabWidthMenuSelector
-from bzrlib.plugins.qbzr.lib.widgets.texteditaccessory import (
+from breezy.plugins.qbrz.lib.widgets.tab_width_selector import TabWidthMenuSelector
+from breezy.plugins.qbrz.lib.widgets.texteditaccessory import (
     GuideBar, setup_guidebar_for_find
     )
-from bzrlib.plugins.qbzr.lib.decorators import lazy_call
-from bzrlib import errors
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.plugins.qbzr.lib.trace import reports_exception
-from bzrlib.patches import HunkLine, ContextLine, InsertLine, RemoveLine
-from bzrlib.lazy_import import lazy_import
+from breezy.plugins.qbrz.lib.decorators import lazy_call
+from breezy import errors
+from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
+from breezy.plugins.qbrz.lib.trace import reports_exception
+from breezy.patches import HunkLine, ContextLine, InsertLine, RemoveLine
+from breezy.lazy_import import lazy_import
 lazy_import(globals(), '''
-from bzrlib import transform, textfile, patches
-from bzrlib.workingtree import WorkingTree
-from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
-from bzrlib.plugins.qbzr.lib.commit import TextEdit
-from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
-from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
-from bzrlib.shelf import ShelfCreator
-from bzrlib.shelf_ui import Shelver
-from bzrlib.osutils import split_lines
+from breezy import transform, textfile, patches
+from breezy.workingtree import WorkingTree
+from breezy.plugins.qbrz.lib.encoding_selector import EncodingMenuSelector
+from breezy.plugins.qbrz.lib.commit import TextEdit
+from breezy.plugins.qbrz.lib.spellcheck import SpellCheckHighlighter, SpellChecker
+from breezy.plugins.qbrz.lib.autocomplete import get_wordlist_builder
+from breezy.shelf import ShelfCreator
+from breezy.shelf_ui import Shelver
+from breezy.osutils import split_lines
 from cStringIO import StringIO
 import os
 ''')
@@ -759,14 +759,14 @@ class ShelveWidget(ToolbarPanel):
             creator.shelve_lines(change.file_id, list(patched))
 
     def load_settings(self):
-        config = get_qbzr_config()
+        config = get_qbrz_config()
         layout = config.get_option("shelve_layout")
         if layout not in ("1", "3"):
             layout = "2"
         self.current_layout = int(layout)
 
     def save_settings(self):
-        config = get_qbzr_config()
+        config = get_qbrz_config()
         config.set_option("shelve_layout", str(self.current_layout))
         config.save()
 
@@ -948,7 +948,7 @@ class HunkTextBrowser(QtGui.QTextBrowser):
         self.monospacedHunkFormat.setFont(titleFont)
         self.monospacedHunkFormat.setForeground(QtCore.Qt.black)
         
-        from bzrlib.plugins.qbzr.lib.diffview import colors
+        from breezy.plugins.qbrz.lib.diffview import colors
         self.header_color = colors['blank'][0]
         self.border_pen = QtGui.QPen(QtCore.Qt.gray)
         self.focus_color = QtGui.QColor(0x87, 0xCE, 0xEB, 0x48) # lightBlue

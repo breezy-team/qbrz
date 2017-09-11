@@ -21,14 +21,14 @@
 
 """Tests for TreeBranch wrapper object."""
 
-from bzrlib import (
+from breezy import (
     errors,
     osutils,
     tests,
     )
-from bzrlib.transport import memory
-from bzrlib.plugins.qbzr.lib import tree_branch
-from bzrlib.plugins.qbzr.lib.tests import mock
+from breezy.transport import memory
+from breezy.plugins.qbrz.lib import tree_branch
+from breezy.plugins.qbrz.lib.tests import mock
 
 
 class TestTreeBranch(tests.TestCaseWithTransport):

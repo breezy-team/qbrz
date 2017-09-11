@@ -18,24 +18,24 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.config import GlobalConfig
-from bzrlib.conflicts import resolve
-from bzrlib.workingtree import WorkingTree
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.config import GlobalConfig
+from breezy.conflicts import resolve
+from breezy.workingtree import WorkingTree
+from breezy.plugins.qbrz.lib.i18n import gettext, N_, ngettext
+from breezy.plugins.qbrz.lib.util import (
     BTN_CLOSE, BTN_REFRESH,
     QBzrWindow,
-    get_qbzr_config,
+    get_qbrz_config,
     StandardButton,
     )
 
 try:
-    from bzrlib.cmdline import split as cmdline_split
+    from breezy.cmdline import split as cmdline_split
 except ImportError:
-    from bzrlib.commands import shlex_split_unicode as cmdline_split
+    from breezy.commands import shlex_split_unicode as cmdline_split
 
 try:
-    from bzrlib import mergetools
+    from breezy import mergetools
 except ImportError:
     mergetools = None
 
@@ -216,7 +216,7 @@ class ConflictsWindow(QBzrWindow):
         cmdline = config.find_merge_tool(unicode(self.merge_tools_combo.currentText()))
         file_id = str(items[0].data(0, QtCore.Qt.UserRole).toString())
         if not file_id:
-            # bug https://bugs.launchpad.net/qbzr/+bug/655451
+            # bug https://bugs.launchpad.net/qbrz/+bug/655451
             return
         file_name = self.wt.abspath(self.wt.id2path(file_id))
         process = QtCore.QProcess(self)

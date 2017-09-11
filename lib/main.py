@@ -22,19 +22,19 @@ import sys
 from PyQt4 import QtCore, QtGui
 
 
-from bzrlib import (
+from breezy import (
     errors,
     osutils,
     )
-import bzrlib
+import breezy
 
-from bzrlib.plugins import qbzr
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.statuscache import StatusCache
-from bzrlib.plugins.qbzr.lib.ui_bookmark import Ui_BookmarkDialog
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins import qbrz
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.statuscache import StatusCache
+from breezy.plugins.qbrz.lib.ui_bookmark import Ui_BookmarkDialog
+from breezy.plugins.qbrz.lib.util import (
     QBzrWindow,
-    get_qbzr_config,
+    get_qbrz_config,
     open_browser,
     StandardButton,
     BTN_OK,
@@ -169,7 +169,7 @@ class BookmarksItem(SideBarItem):
         self.contextMenu.addAction(sidebar.window.actions['add-bookmark'])
 
     def load(self, sidebar):
-        config = get_qbzr_config()
+        config = get_qbrz_config()
         self.children = []
         for name, path in config.get_bookmarks():
             item = BookmarkItem(name, path, self, sidebar)
@@ -281,12 +281,12 @@ class QBzrMainWindow(QBzrWindow):
         action.setStatusTip(gettext("Commit changes into a new revision"))
         self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.commit)
         self.actions['commit'] = action
-        action = QtGui.QAction(self.icons['qbzr-push'],
+        action = QtGui.QAction(self.icons['qbrz-push'],
                                gettext("&Push"), self)
         action.setStatusTip(gettext("Turn this branch into a mirror of another branch"))
         self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.push)
         self.actions['push'] = action
-        action = QtGui.QAction(self.icons['qbzr-pull'],
+        action = QtGui.QAction(self.icons['qbrz-pull'],
                                gettext("Pu&ll"), self)
         action.setStatusTip(gettext("Update a mirror of this branch"))
         self.connect(action, QtCore.SIGNAL("triggered(bool)"), self.pull)
@@ -399,13 +399,13 @@ class QBzrMainWindow(QBzrWindow):
 
     def showAboutDialog(self):
         tpl = {
-            'qbzr_version': qbzr.__version__,
-            'bzrlib_version': bzrlib.__version__,
+            'qbrz_version': qbrz.__version__,
+            'breezy_version': breezy.__version__,
         }
         QtGui.QMessageBox.about(self,
             gettext("About QBzr"),
             gettext(u"<b>QBzr</b> \u2014 A graphical user interface for Bazaar<br>"
-                    u"<small>Version %(qbzr_version)s (bzrlib %(bzrlib_version)s)</small><br>"
+                    u"<small>Version %(qbrz_version)s (breezy %(breezy_version)s)</small><br>"
                     u"<br>"
                     u"Copyright \u00A9 2006-2008 Luk\xe1\u0161 Lalinsk\xfd and others<br>"
                     u"<br>"
@@ -416,8 +416,8 @@ class QBzrMainWindow(QBzrWindow):
             ('view-refresh', ('16x16', '22x22'), None),
             ('bookmark', ('16x16',), None),
             ('computer', ('16x16',), None),
-            ('qbzr-pull', ('22x22',), None),
-            ('qbzr-push', ('22x22',), None),
+            ('qbrz-pull', ('22x22',), None),
+            ('qbrz-push', ('22x22',), None),
             ('image-missing', ('22x22',), None),
             ('folder', ('16x16',), 'folder-open'),
             ('folder-branch', ('16x16',), None),
@@ -443,28 +443,28 @@ class QBzrMainWindow(QBzrWindow):
             self.icons[name] = icon
 
     def commit(self):
-        from bzrlib.workingtree import WorkingTree
-        from bzrlib.plugins.qbzr.lib.commit import CommitWindow
+        from breezy.workingtree import WorkingTree
+        from breezy.plugins.qbrz.lib.commit import CommitWindow
         tree = WorkingTree.open_containing(self.currentDirectory)[0]
         self.window = CommitWindow(tree, [], parent=self)
         self.window.show()
 
     def push(self):
-        from bzrlib.workingtree import WorkingTree
-        from bzrlib.plugins.qbzr.lib.pull import QBzrPushWindow
+        from breezy.workingtree import WorkingTree
+        from breezy.plugins.qbrz.lib.pull import QBzrPushWindow
         tree = WorkingTree.open_containing(self.currentDirectory)[0]
         self.window = QBzrPushWindow(tree.branch, parent=self)
         self.window.show()
 
     def pull(self):
-        from bzrlib.workingtree import WorkingTree
-        from bzrlib.plugins.qbzr.lib.pull import QBzrPullWindow
+        from breezy.workingtree import WorkingTree
+        from breezy.plugins.qbrz.lib.pull import QBzrPullWindow
         tree = WorkingTree.open_containing(self.currentDirectory)[0]
         self.window = QBzrPullWindow(tree.branch, parent=self)
         self.window.show()
 
     def configure(self):
-        from bzrlib.plugins.qbzr.lib.config import QBzrConfigWindow
+        from breezy.plugins.qbrz.lib.config import QBzrConfigWindow
         window = QBzrConfigWindow(self)
         window.exec_()
 
@@ -472,13 +472,13 @@ class QBzrMainWindow(QBzrWindow):
         dialog = BookmarkDialog(gettext("Add Bookmark"), self)
         if dialog.exec_() == QtGui.QDialog.Accepted:
             name, location = dialog.values()
-            config = get_qbzr_config()
+            config = get_qbrz_config()
             config.add_bookmark(name, location)
             config.save()
             self.sideBarModel.refresh(self.sideBarModel.bookmarksItem)
 
     def editBookmark(self, pos):
-        config = get_qbzr_config()
+        config = get_qbrz_config()
         bookmarks = list(config.getBookmarks())
         dialog = BookmarkDialog(gettext("Edit Bookmark"), self)
         dialog.setValues(*bookmarks[pos])
@@ -494,7 +494,7 @@ class QBzrMainWindow(QBzrWindow):
             gettext("Do you really want to remove the selected bookmark?"),
             QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
         if res == QtGui.QMessageBox.Yes:
-            config = get_qbzr_config()
+            config = get_qbrz_config()
             bookmarks = list(config.getBookmarks())
             del bookmarks[pos]
             config.set_bookmarks(bookmarks)

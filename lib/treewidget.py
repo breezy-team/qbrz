@@ -20,37 +20,37 @@
 import os, sys
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.i18n import gettext
 
-from bzrlib.plugins.qbzr.lib.revtreeview import (
+from breezy.plugins.qbrz.lib.revtreeview import (
     RevisionTreeView,
     RevNoItemDelegate,
     )
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.lazy_import import lazy_import
-from bzrlib.plugins.qbzr.lib.lazycachedrevloader import cached_revisions
-from bzrlib.plugins.qbzr.lib.trace import report_exception, SUB_LOAD_METHOD
+from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
+from breezy.lazy_import import lazy_import
+from breezy.plugins.qbrz.lib.lazycachedrevloader import cached_revisions
+from breezy.plugins.qbrz.lib.trace import report_exception, SUB_LOAD_METHOD
 
 lazy_import(globals(), '''
 import posixpath  # to use '/' path sep in path.join().
 from time import (strftime, localtime)
 
-from bzrlib import errors
-from bzrlib.workingtree import WorkingTree
-from bzrlib.revisiontree import RevisionTree
-from bzrlib.osutils import file_kind, minimum_path_selection
-from bzrlib.conflicts import TextConflict, resolve
+from breezy import errors
+from breezy.workingtree import WorkingTree
+from breezy.revisiontree import RevisionTree
+from breezy.osutils import file_kind, minimum_path_selection
+from breezy.conflicts import TextConflict, resolve
 
-from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow, QBzrViewWindow, cat_to_native_app
-from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
-from bzrlib.plugins.qbzr.lib.log import LogWindow
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.cat import QBzrCatWindow, QBzrViewWindow, cat_to_native_app
+from breezy.plugins.qbrz.lib.annotate import AnnotateWindow
+from breezy.plugins.qbrz.lib.log import LogWindow
+from breezy.plugins.qbrz.lib.util import (
     get_set_encoding,
     get_summary,
     get_apparent_author_name,
     )
-from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
-from bzrlib.plugins.qbzr.lib.diff import (
+from breezy.plugins.qbrz.lib.subprocess import SimpleSubProcessDialog
+from breezy.plugins.qbrz.lib.diff import (
     show_diff,
     has_ext_diff,
     ExtDiffMenu,
@@ -239,7 +239,7 @@ class ChangeDesc(tuple):
           tree, e.g. for added/deleted/ignored/unversioned
     """
     
-    # XXX We should may be try get this into bzrlib.
+    # XXX We should may be try get this into breezy.
     # XXX We should use this in qdiff.
     
     def fileid(desc):
@@ -1485,7 +1485,7 @@ class TreeWidget(RevisionTreeView):
         if sys.platform.startswith("win"):
             # This is to fix Bug 402276, where the treewidget does not get
             # repainted when you scroll.
-            # (https://bugs.launchpad.net/qbzr/+bug/402276)
+            # (https://bugs.launchpad.net/qbrz/+bug/402276)
             # I think that this is a bug with qt, and so this is just a work-
             # arround. We should check when we bump the min qt version to 4.5 if
             # we can take this out. I think it only happens on windows. This may

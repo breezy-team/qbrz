@@ -112,13 +112,13 @@ class CommitData(object):
         @param old_revid: old tip revid (before uncommit)
         @param new_revid: new tip revid (after uncommit). Could be None.
         """
-        from bzrlib.plugins.qbzr.lib.bugs import bug_urls_to_ids
+        from breezy.plugins.qbrz.lib.bugs import bug_urls_to_ids
         branch = self._get_branch()
         revision = branch.repository.get_revision(old_revid)
         # remember revids
         self._data['old_revid'] = old_revid
         if new_revid is None:
-            from bzrlib.revision import NULL_REVISION
+            from breezy.revision import NULL_REVISION
             new_revid = NULL_REVISION
         self._data['new_revid'] = new_revid
         # set data from revision
@@ -197,7 +197,7 @@ class CommitData(object):
         if self._tree:
             return self._tree.branch
         # too bad
-        from bzrlib import errors
+        from breezy import errors
         raise errors.BzrInternalError("CommitData has no saved branch or tree.")
 
     def _get_branch_config(self):
@@ -216,20 +216,20 @@ class CommitData(object):
 
 class QBzrCommitData(CommitData):
     """CommitData variant with backward compatibility support.
-    This class knows about old data saved as qbzr_commit_message
+    This class knows about old data saved as qbrz_commit_message
     and can provide automatic migration of data.
     """
 
     def _load_old_data(self):
         config = self._get_branch_config()
-        old_data = config.get_user_option('qbzr_commit_message', expand=False)
+        old_data = config.get_user_option('qbrz_commit_message', expand=False)
         if old_data:
             self.set_data(message=old_data)
 
     def _wipe_old_data(self):
         config = self._get_branch_config()
-        if config.get_user_option('qbzr_commit_message', expand=False):
-            config.set_user_option('qbzr_commit_message', '')
+        if config.get_user_option('qbrz_commit_message', expand=False):
+            config.set_user_option('qbrz_commit_message', '')
 
 
 # in similar way to QBzrCommitData it's possible to implement

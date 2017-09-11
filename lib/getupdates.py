@@ -21,11 +21,11 @@
 # that examines the tree being updated and displays one of 2 dialogs
 # depending on if the tree is bound (ie, a checkout) or not.
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.ui_update_branch import Ui_UpdateBranchForm
-from bzrlib.plugins.qbzr.lib.ui_update_checkout import Ui_UpdateCheckoutForm
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
+from breezy.plugins.qbrz.lib.ui_update_branch import Ui_UpdateBranchForm
+from breezy.plugins.qbrz.lib.ui_update_checkout import Ui_UpdateCheckoutForm
+from breezy.plugins.qbrz.lib.util import (
     iter_saved_pull_locations,
     save_pull_location,
     fill_combo_with,

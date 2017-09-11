@@ -19,17 +19,17 @@
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import bzrdir, errors, log
-from bzrlib.revisionspec import RevisionSpec
+from breezy import controldir, errors, log
+from breezy.revisionspec import RevisionSpec
 
-from bzrlib.plugins.qbzr.lib.html_log import log_as_html
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.trace import (
+from breezy.plugins.qbrz.lib.html_log import log_as_html
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
+from breezy.plugins.qbrz.lib.trace import (
    reports_exception,
    SUB_LOAD_METHOD,
    )
-from bzrlib.plugins.qbzr.lib.util import url_for_display
+from breezy.plugins.qbrz.lib.util import url_for_display
 
 
 class QBzrUncommitWindow(SubProcessDialog):
@@ -45,7 +45,7 @@ class QBzrUncommitWindow(SubProcessDialog):
                                   parent=parent,
                                   hide_progress=True,
                                   )
-        self.tree, self.branch = bzrdir.BzrDir.open_tree_or_branch(location)
+        self.tree, self.branch = controldir.ControlDir.open_tree_or_branch(location)
  
         # Display the branch
         branch_label = QtGui.QLabel(gettext("Branch: %s") %

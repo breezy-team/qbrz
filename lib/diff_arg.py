@@ -19,7 +19,7 @@
 
 """Diff Arg Provider classes."""
 
-from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
+from breezy.revision import NULL_REVISION, CURRENT_REVISION
 
 
 # These classes were extracted from diff.py to avoid dependency on PyQt4
@@ -113,15 +113,15 @@ class InternalDiffArgProvider(DiffArgProvider):
             get_revspec_part(self.new_revid))
     
     def get_ext_diff_args(self, processEvents):
-        from bzrlib import urlutils
-        from bzrlib import errors
+        from breezy import urlutils
+        from breezy import errors
 
         args = []
         revspec = self.get_revspec()
         if revspec:
             args.append(revspec)
 
-        from bzrlib.workingtree import WorkingTree
+        from breezy.workingtree import WorkingTree
         def get_base(branch, tree):
             if tree and isinstance(tree, WorkingTree):
                 return urlutils.local_path_to_url(tree.basedir)

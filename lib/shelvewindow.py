@@ -21,13 +21,13 @@ import sys, time
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtGui import QKeySequence
 
-from bzrlib.revision import CURRENT_REVISION
-from bzrlib.errors import (
+from breezy.revision import CURRENT_REVISION
+from breezy.errors import (
         NoSuchRevision, 
         NoSuchRevisionInTree,
         PathsNotVersionedError)
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.i18n import gettext, N_
+from breezy.plugins.qbrz.lib.util import (
     QBzrWindow,
     ToolBarThrobberWidget,
     get_apparent_author_name,
@@ -39,21 +39,21 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_tab_width_pixels,
     )
 
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.plugins.qbzr.lib.trace import reports_exception
-from bzrlib.plugins.qbzr.lib.logwidget import LogList
-from bzrlib.lazy_import import lazy_import
+from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
+from breezy.plugins.qbrz.lib.trace import reports_exception
+from breezy.plugins.qbrz.lib.logwidget import LogList
+from breezy.lazy_import import lazy_import
 lazy_import(globals(), '''
-from bzrlib import transform
-from bzrlib.workingtree import WorkingTree
-from bzrlib.revisiontree import RevisionTree
-from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
-from bzrlib.plugins.qbzr.lib.widgets.shelve import ShelveWidget
-from bzrlib.plugins.qbzr.lib.widgets.shelvelist import ShelveListWidget
-from bzrlib.plugins.qbzr.lib.widgets.splitters import Splitters
-from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
-from bzrlib.shelf import Unshelver
-from bzrlib.shelf_ui import Unshelver as Unshelver_ui
+from breezy import transform
+from breezy.workingtree import WorkingTree
+from breezy.revisiontree import RevisionTree
+from breezy.plugins.qbrz.lib.encoding_selector import EncodingMenuSelector
+from breezy.plugins.qbrz.lib.widgets.shelve import ShelveWidget
+from breezy.plugins.qbrz.lib.widgets.shelvelist import ShelveListWidget
+from breezy.plugins.qbrz.lib.widgets.splitters import Splitters
+from breezy.patiencediff import PatienceSequenceMatcher as SequenceMatcher
+from breezy.shelf import Unshelver
+from breezy.shelf_ui import Unshelver as Unshelver_ui
 ''')
 
 class ShelveWindow(QBzrWindow):

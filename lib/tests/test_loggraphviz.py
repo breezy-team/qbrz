@@ -16,11 +16,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib.tests import TestCase, TestCaseWithTransport
+from breezy.tests import TestCase, TestCaseWithTransport
 from StringIO import StringIO
 
-from bzrlib.plugins.qbzr.lib import loggraphviz
-from bzrlib.revision import NULL_REVISION
+from breezy.plugins.qbrz.lib import loggraphviz
+from breezy.revision import NULL_REVISION
 
 # TODO:
 # Tag loading
@@ -81,9 +81,9 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
         trunk = builder.get_branch()
         #trunk.set_last_revision('rev-trunk')
         
-        old = trunk.bzrdir.sprout('../old', revision_id='rev-old').open_branch()
+        old = trunk.controldir.sprout('../old', revision_id='rev-old').open_branch()
         
-        new = trunk.bzrdir.sprout('../new', revision_id='rev-new').open_branch()
+        new = trunk.controldir.sprout('../new', revision_id='rev-new').open_branch()
         
         return trunk, old, new
 
@@ -113,9 +113,9 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
     
     def test_branch_tips_date_sorted_with_working_tree_provider(self):
         trunk, old, new = self.make_banches_for_tips_date_sorted()
-        trunk_tree = trunk.bzrdir.create_workingtree()
-        old_tree = old.bzrdir.open_workingtree()
-        new_tree = new.bzrdir.open_workingtree()
+        trunk_tree = trunk.controldir.create_workingtree()
+        old_tree = old.controldir.open_workingtree()
+        new_tree = new.controldir.open_workingtree()
         
         trunk_bi = loggraphviz.BranchInfo('trunk', trunk_tree, trunk)
         gv = loggraphviz.WithWorkingTreeGraphVizLoader(
@@ -155,7 +155,7 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
         
         branch = builder.get_branch()
         branch.set_last_revision_info(1, 'rev-a') # go back to rev-a
-        tree = branch.bzrdir.create_workingtree()
+        tree = branch.controldir.create_workingtree()
         tree.merge_from_branch(branch, to_revision='rev-b')
         
         return tree
@@ -169,7 +169,7 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
         builder.finish_series()
         
         branch = builder.get_branch()
-        tree = branch.bzrdir.create_workingtree()
+        tree = branch.controldir.create_workingtree()
         tree.update(revision='rev-a')
         return tree
     
@@ -253,7 +253,7 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
         builder.finish_series()
         
         branch = builder.get_branch()
-        tree = branch.bzrdir.create_workingtree()
+        tree = branch.controldir.create_workingtree()
         tree.update(revision='rev-b')
         
         bi = loggraphviz.BranchInfo('branch', tree, tree.branch)
@@ -346,8 +346,7 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
         trunk = builder.get_branch()
         #trunk.set_last_revision('rev-trunk')
         
-        branch = trunk.bzrdir.sprout('../branch',
-                                     revision_id='rev-branch').open_branch()
+        branch = trunk.controldir.sprout('../branch', revision_id='rev-branch').open_branch()
         
         trunk_bi = loggraphviz.BranchInfo('trunk', None, trunk)
         branch_bi = loggraphviz.BranchInfo('branch', None, branch)

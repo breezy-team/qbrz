@@ -22,10 +22,10 @@ from time import clock
 
 from PyQt4 import QtCore
 
-from bzrlib.transport.local import LocalTransport
-from bzrlib.repository import Repository
-from bzrlib.remote import RemoteRepository
-from bzrlib.plugins.qbzr.lib.uifactory import current_throbber
+from breezy.transport.local import LocalTransport
+from breezy.repository import Repository
+from breezy.bzr.remote import RemoteRepository
+from breezy.plugins.qbrz.lib.uifactory import current_throbber
 
 cached_revisions = {} #weakref.WeakValueDictionary()
 """Global cache of revisions."""
@@ -61,7 +61,7 @@ def load_revisions(revids, repo,
                 repo_revids = repo(revids)
             
             for repo, revids in repo_revids:
-                repo_is_local = isinstance(repo.bzrdir.transport, LocalTransport)
+                repo_is_local = isinstance(repo.controldir.transport, LocalTransport)
                 if repo_is_local:
                     batch_size = local_batch_size
                 else:

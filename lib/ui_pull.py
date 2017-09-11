@@ -8,7 +8,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.i18n import gettext
 
 
 class Ui_PullForm(object):

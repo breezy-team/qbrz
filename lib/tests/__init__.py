@@ -19,7 +19,7 @@
 
 import os
 import sys
-from bzrlib import (
+from breezy import (
     tests,
     trace,
     )

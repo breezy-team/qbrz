@@ -24,16 +24,16 @@
 import os
 import re
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.ui_new_tree import Ui_NewWorkingTreeForm
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
+from breezy.plugins.qbrz.lib.ui_new_tree import Ui_NewWorkingTreeForm
+from breezy.plugins.qbrz.lib.util import (
     save_pull_location,
     fill_pull_combo,
     hookup_directory_picker,
     DIRECTORYPICKER_SOURCE,
     DIRECTORYPICKER_TARGET,
-    get_qbzr_config,
+    get_qbrz_config,
     )
 
 
@@ -42,7 +42,7 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
     NAME = "new_tree"
 
     def __init__(self, to_location, ui_mode=True, parent=None):
-        config = get_qbzr_config()
+        config = get_qbrz_config()
         checkout_basedir = config.get_option("checkout_basedir")
         branchsource_basedir = config.get_option("branchsource_basedir")
         if not to_location:

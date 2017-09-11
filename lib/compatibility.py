@@ -21,6 +21,6 @@
 
 # configobj library
 try:
-    from bzrlib.util.configobj import configobj
+    from breezy.util.configobj import configobj
 except ImportError:
     import configobj

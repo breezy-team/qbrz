@@ -18,19 +18,19 @@
 
 """Tests for QBzr plugin."""
 
-from bzrlib.tests import TestCase
+from breezy.tests import TestCase
 try:
-    from bzrlib.tests.features import Feature
+    from breezy.tests.features import Feature
 except ImportError: # bzr < 2.5
-    from bzrlib.tests import Feature
-from bzrlib.plugins.qbzr.lib.spellcheck import SpellChecker
+    from breezy.tests import Feature
+from breezy.plugins.qbrz.lib.spellcheck import SpellChecker
 
 
 class _PyEnchantFeature(Feature):
 
     def _probe(self):
         try:
-            from bzrlib.plugins.qbzr.lib.spellcheck_enchant import EnchantSpellChecker
+            from breezy.plugins.qbrz.lib.spellcheck_enchant import EnchantSpellChecker
         except ImportError:
             return False
         if "en-US" not in EnchantSpellChecker.list_languages():

@@ -18,17 +18,17 @@
 
 import os
 
-from bzrlib.tests import TestCase, TestCaseWithTransport
-from bzrlib import tests
-from bzrlib.workingtree import WorkingTree
-from bzrlib.branch import Branch
-from bzrlib.bzrdir import BzrDir
-from bzrlib.conflicts import TextConflict, ConflictList
-from bzrlib import ignores
+from breezy.tests import TestCase, TestCaseWithTransport
+from breezy import tests
+from breezy.workingtree import WorkingTree
+from breezy.branch import Branch
+from breezy.controldir import ControlDir
+from breezy.conflicts import TextConflict, ConflictList
+from breezy import ignores
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib import tests as qtests
-from bzrlib.plugins.qbzr.lib.treewidget import (
+from breezy.plugins.qbrz.lib import tests as qtests
+from breezy.plugins.qbrz.lib.treewidget import (
     TreeWidget,
     TreeModel,
     TreeFilterProxyModel,
@@ -37,7 +37,7 @@ from bzrlib.plugins.qbzr.lib.treewidget import (
     PersistantItemReference,
     group_large_dirs,
     )
-from bzrlib.plugins.qbzr.lib.tests.modeltest import ModelTest
+from breezy.plugins.qbrz.lib.tests.modeltest import ModelTest
 
 def load_tests(standard_tests, module, loader):
     result = loader.suiteClass()
@@ -80,7 +80,7 @@ class TestTreeWidget(qtests.QTestCase):
                     committer="joe@foo.com",
                     timestamp=1166046000.00, timezone=0)
         
-        branch_tree = tree.bzrdir.sprout('branch').open_workingtree()
+        branch_tree = tree.controldir.sprout('branch').open_workingtree()
         self.build_tree_contents([('branch/textconflict', 'other'),])
         branch_tree.commit('b', rev_id='rev-b',
                            committer="joe@foo.com",
@@ -134,7 +134,7 @@ class TestTreeWidget(qtests.QTestCase):
         os.remove('trunk/missing')
         os.remove('trunk/addedmissing')
         
-        # test for https://bugs.launchpad.net/qbzr/+bug/538753
+        # test for https://bugs.launchpad.net/qbrz/+bug/538753
         # must sort before trunk/dir
         self.build_tree(['trunk/a-newdir/'])
         self.build_tree_contents([('trunk/a-newdir/newdirchild', '')])
@@ -142,7 +142,7 @@ class TestTreeWidget(qtests.QTestCase):
         tree.add(['a-newdir/newdirchild'], ['newdirchild-id'])
         
         # manuly add conflicts for files that don't exist
-        # See https://bugs.launchpad.net/qbzr/+bug/528548
+        # See https://bugs.launchpad.net/qbrz/+bug/528548
         tree.add_conflicts([TextConflict('nofileconflict')])
     
     
@@ -286,7 +286,7 @@ class TestTreeFilterProxyModel(qtests.QTestCase):
         """Test for bug reported as lp:557603 lp:712931 lp:815822 lp:876180"""
         tree = self.make_branch_and_tree("parent")
         tree.commit("Base revision")
-        childtree = tree.bzrdir.sprout("child").open_workingtree()
+        childtree = tree.controldir.sprout("child").open_workingtree()
         self.build_tree(["parent/f", "child/f"])
         childtree.add(["f"])
         childtree.commit("Adding f")
@@ -348,8 +348,8 @@ class TestTreeWidgetSelectAll(qtests.QTestCase):
         self.assertEqual(set(selected), set(paths))
 
     def test_add_selectall(self):
-        import bzrlib.plugins.qbzr.lib.add
-        self.win = bzrlib.plugins.qbzr.lib.add.AddWindow(self.tree, None)
+        import breezy.plugins.qbrz.lib.add
+        self.win = breezy.plugins.qbrz.lib.add.AddWindow(self.tree, None)
         self.addCleanup(self.cleanup_win)
         self.win.initial_load()
         self.assertSelectedPaths(self.win.filelist, ['dir-with-unversioned/child',
@@ -358,8 +358,8 @@ class TestTreeWidgetSelectAll(qtests.QTestCase):
 
 
     def test_commit_selectall(self):
-        import bzrlib.plugins.qbzr.lib.commit
-        self.win = bzrlib.plugins.qbzr.lib.commit.CommitWindow(self.tree, None)
+        import breezy.plugins.qbrz.lib.commit
+        self.win = breezy.plugins.qbrz.lib.commit.CommitWindow(self.tree, None)
         self.addCleanup(self.cleanup_win)
         self.win.load()
         self.assertSelectedPaths(self.win.filelist, ['changed'])
@@ -374,8 +374,8 @@ class TestTreeWidgetSelectAll(qtests.QTestCase):
                                                      'unversioned-with-ignored'])
 
     def test_revert_selectall(self):
-        import bzrlib.plugins.qbzr.lib.revert
-        self.win = bzrlib.plugins.qbzr.lib.revert.RevertWindow(self.tree, None)
+        import breezy.plugins.qbrz.lib.revert
+        self.win = breezy.plugins.qbrz.lib.revert.RevertWindow(self.tree, None)
         self.addCleanup(self.cleanup_win)
         self.win.initial_load()
         self.win.selectall_checkbox.click()

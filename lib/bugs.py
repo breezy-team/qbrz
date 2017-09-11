@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib import (
+from breezy import (
     bugtracker,
     config,
     lazy_regex,
@@ -58,7 +58,7 @@ def get_bug_id(bug_url):
 
 
 class FakeBranchForBugs(object):
-    """Fake branch required for bzrlib/bugtracker.py"""
+    """Fake branch required for breezy/bugtracker.py"""
 
     def __init__(self):
         self._config = config.GlobalConfig()

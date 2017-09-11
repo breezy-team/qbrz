@@ -21,18 +21,18 @@
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.treewidget import (
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
+from breezy.plugins.qbrz.lib.treewidget import (
     TreeWidget,
     SelectAllCheckBox,
     )
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.util import (
     ThrobberWidget,
     runs_in_loading_queue,
     )
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.plugins.qbzr.lib.trace import reports_exception
+from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
+from breezy.plugins.qbrz.lib.trace import reports_exception
 
 
 class AddWindow(SubProcessDialog):

@@ -18,11 +18,11 @@
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.plugins.qbzr.lib.diffwindow import DiffWindow
-from bzrlib.plugins.qbzr.lib.diff_arg import InternalDiffArgProvider
-from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import RevisionMessageBrowser
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.lazycachedrevloader import load_revisions
+from breezy.plugins.qbrz.lib.diffwindow import DiffWindow
+from breezy.plugins.qbrz.lib.diff_arg import InternalDiffArgProvider
+from breezy.plugins.qbrz.lib.revisionmessagebrowser import RevisionMessageBrowser
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.lazycachedrevloader import load_revisions
 
 # DiffWindow has alot of stuff that we need, so we just extend it.
 class RevisionView(DiffWindow):

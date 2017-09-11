@@ -18,8 +18,8 @@
 
 """Tests for QBzr plugin."""
 
-from bzrlib.tests import TestCase
-from bzrlib.plugins.qbzr.lib.diffview import insert_intraline_changes
+from breezy.tests import TestCase
+from breezy.plugins.qbrz.lib.diffview import insert_intraline_changes
 
 
 class FakeCursor(object):

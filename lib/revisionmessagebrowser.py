@@ -21,19 +21,19 @@ import re
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.revision import CURRENT_REVISION
-from bzrlib import (
+from breezy.revision import CURRENT_REVISION
+from breezy import (
     errors,
     lazy_regex,
     log,
     gpg,
     )
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext
+from breezy.plugins.qbrz.lib.i18n import gettext, ngettext
 
-from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
+from breezy.plugins.qbrz.lib.lazycachedrevloader import (load_revisions,
 cached_revisions)
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.util import (
     runs_in_loading_queue,
     format_timestamp,
     get_message,
@@ -41,9 +41,9 @@ from bzrlib.plugins.qbzr.lib.util import (
     open_browser,
     )
 
-from bzrlib import foreign
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.plugins.qbzr.lib import logmodel
+from breezy import foreign
+from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
+from breezy.plugins.qbrz.lib import logmodel
 
 _email_re = lazy_regex.lazy_compile(r'([a-z0-9_\-.+]+@[a-z0-9_\-.+]+)', re.IGNORECASE)
 _link1_re = lazy_regex.lazy_compile(r'([\s>])(https?)://([^\s<>{}()]+[^\s.,<>{}()])', re.IGNORECASE)

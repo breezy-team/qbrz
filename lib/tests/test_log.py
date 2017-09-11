@@ -16,14 +16,14 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib.tests import TestCase, TestCaseWithTransport
-from bzrlib import errors
-from bzrlib.transport import memory
+from breezy.tests import TestCase, TestCaseWithTransport
+from breezy import errors
+from breezy.transport import memory
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.plugins.qbzr.lib import tests as qtests
-from bzrlib.plugins.qbzr.lib.log import LogWindow
+from breezy.plugins.qbrz.lib import tests as qtests
+from breezy.plugins.qbrz.lib.log import LogWindow
 
 class TestLogSmokeTests(qtests.QTestCase):
 
@@ -115,7 +115,7 @@ class TestLogGetBranchesAndFileIds(qtests.QTestCase):
     def test_open_branch_files_with_tree(self):
         tree = self.make_branch_and_tree_with_files_and_dir()
         branch = tree.branch
-        tree.bzrdir.destroy_workingtree()
+        tree.controldir.destroy_workingtree()
         self.check_open_branch_files(None, branch)
 
     def branches_to_base(self, branches):
@@ -138,7 +138,7 @@ class TestLogGetBranchesAndFileIds(qtests.QTestCase):
 
     def make_branch_in_shared_repo(self, relpath, format=None):
         """Create a branch on the transport at relpath."""
-        made_control = self.make_bzrdir(relpath, format=format)
+        made_control = self.make_controldir(relpath, format=format)
         return made_control.create_branch()
 
     def test_open_locations_shared_repo(self):
@@ -179,7 +179,7 @@ class TestLogGetBranchesAndFileIds(qtests.QTestCase):
     def test_open_locations_files_without_tree(self):
         tree = self.make_branch_and_tree_with_files_and_dir()
         branch = tree.branch
-        tree.bzrdir.destroy_workingtree()
+        tree.controldir.destroy_workingtree()
         self.check_open_location_files()
 
     def test_open_locations_raise_not_versioned(self):

@@ -19,7 +19,7 @@ from cgi import escape
 import codecs
 from cStringIO import StringIO
 
-from bzrlib import log
+from breezy import log
 
 
 def log_as_html(branch, rqst):

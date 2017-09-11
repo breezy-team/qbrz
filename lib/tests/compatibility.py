@@ -19,7 +19,7 @@
 
 try:
     # bzr 2.5
-    from bzrlib.tests.feature import UnicodeFilenameFeature
+    from breezy.tests.feature import UnicodeFilenameFeature
 except ImportError:
     # backward compatibility with bzr 2.4
-    from bzrlib.tests import UnicodeFilenameFeature
+    from breezy.tests import UnicodeFilenameFeature

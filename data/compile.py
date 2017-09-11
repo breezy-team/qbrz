@@ -4,7 +4,7 @@ import os, sys
 
 RESFILE = '../lib/resources.py'
 
-os.system("pyrcc4 qbzr.qrc -o "+RESFILE)
+os.system("pyrcc4 qbrz.qrc -o "+RESFILE)
 if sys.platform == 'win32':
     f = open(RESFILE, 'rU')
     s = f.read()

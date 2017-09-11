@@ -24,14 +24,14 @@
 import os
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import osutils
+from breezy import osutils
 
-from bzrlib.plugins.qbzr.lib import MS_WINDOWS
-from bzrlib.plugins.qbzr.lib.help import get_help_topic_as_html
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.ui_run import Ui_RunDialog
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib import MS_WINDOWS
+from breezy.plugins.qbrz.lib.help import get_help_topic_as_html
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
+from breezy.plugins.qbrz.lib.ui_run import Ui_RunDialog
+from breezy.plugins.qbrz.lib.util import (
     hookup_directory_picker,
     shlex_split_unicode,
     )
@@ -168,7 +168,7 @@ class QBzrRunDialog(SubProcessDialog):
 
     def collect_command_names(self):
         """Collect names of available bzr commands."""
-        from bzrlib import commands as _mod_commands
+        from breezy import commands as _mod_commands
         names = list(_mod_commands.all_command_names())
         self.cmds_dict = dict((n, _mod_commands.get_cmd_object(n)) 
                               for n in names)

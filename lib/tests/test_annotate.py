@@ -16,15 +16,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib.tests import TestCase, TestCaseWithTransport
+from breezy.tests import TestCase, TestCaseWithTransport
 from PyQt4 import QtCore, QtGui
-from bzrlib import conflicts
-from bzrlib.plugins.qbzr.lib import tests as qtests
-from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
+from breezy import conflicts
+from breezy.plugins.qbrz.lib import tests as qtests
+from breezy.plugins.qbrz.lib.annotate import AnnotateWindow
 
 class TestAnnotate(qtests.QTestCase):
 
-    # Copied from bzrlib/tests/test_annotate.py
+    # Copied from breezy/tests/test_annotate.py
     def create_merged_trees(self):
         """create 2 trees with merges between them.
 
@@ -44,7 +44,7 @@ class TestAnnotate(qtests.QTestCase):
                      committer="joe@foo.com",
                      timestamp=1166046000.00, timezone=0)
 
-        tree2 = tree1.bzrdir.sprout('tree2').open_workingtree()
+        tree2 = tree1.controldir.sprout('tree2').open_workingtree()
 
         self.build_tree_contents([('tree1/a', 'first\nsecond\n')])
         tree1.commit('b', rev_id='rev-2',

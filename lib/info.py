@@ -17,13 +17,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib import bzrdir, osutils
+from breezy import controldir, osutils
 
-from bzrlib.info import show_bzrdir_info
+from breezy.info import show_controldir_info
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.ui_info import Ui_InfoForm
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.ui_info import Ui_InfoForm
+from breezy.plugins.qbrz.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     url_for_display,
@@ -60,9 +60,9 @@ class QBzrInfoWindow(QBzrWindow):
     def populate_unparsed_info(self, location):
         basic = StringIO.StringIO()
         detailed = StringIO.StringIO()
-        a_bzrdir = bzrdir.BzrDir.open_containing(location)[0]
-        show_bzrdir_info(a_bzrdir, 0, basic)
-        show_bzrdir_info(a_bzrdir, 2, detailed)
+        a_controldir = controldir.ControlDir.open_containing(location)[0]
+        show_controldir_info(a_controldir, 0, basic)
+        show_controldir_info(a_controldir, 2, detailed)
         self.ui.basic_info.setText(basic.getvalue())
         self.ui.detailed_info.setText(detailed.getvalue())
         basic.close()

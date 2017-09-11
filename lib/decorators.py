@@ -27,7 +27,7 @@ from functools import wraps
 def print_in_out(unbound):
     """Decorator to print input arguments and return value of the function."""
     def _run(*args, **kwargs):
-        from bzrlib.trace import mutter
+        from breezy.trace import mutter
         a = ','.join(repr(i) for i in args)
         b = ','.join('%s=%r' % (i,j) for (i,j) in kwargs.iteritems())
         if a and b:

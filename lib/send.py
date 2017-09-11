@@ -22,10 +22,10 @@
 import re
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import errors
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.util import url_for_display
+from breezy import errors
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
+from breezy.plugins.qbrz.lib.util import url_for_display
 
 class SendWindow(SubProcessDialog):
 

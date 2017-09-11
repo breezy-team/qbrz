@@ -16,15 +16,15 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib.tests import TestCase, TestCaseWithTransport
+from breezy.tests import TestCase, TestCaseWithTransport
 from PyQt4 import QtCore
 
-from bzrlib.plugins.qbzr.lib import tests as qtests
-from bzrlib.plugins.qbzr.lib.logmodel import (LogModel, GraphVizLoader)
-from bzrlib.plugins.qbzr.lib.loggraphviz import BranchInfo
-from bzrlib.plugins.qbzr.lib.util import ThrobberWidget
+from breezy.plugins.qbrz.lib import tests as qtests
+from breezy.plugins.qbrz.lib.logmodel import (LogModel, GraphVizLoader)
+from breezy.plugins.qbrz.lib.loggraphviz import BranchInfo
+from breezy.plugins.qbrz.lib.util import ThrobberWidget
 
-from bzrlib.plugins.qbzr.lib.tests.modeltest import ModelTest
+from breezy.plugins.qbrz.lib.tests.modeltest import ModelTest
 
 
 class TestModel(qtests.QTestCase):
@@ -43,7 +43,7 @@ class TestModel(qtests.QTestCase):
         wt = self.make_branch_and_tree('.')
         self._test(wt)
 
-    # Copied for bzrlib/tests/test_log.py
+    # Copied for breezy/tests/test_log.py
     def _prepare_tree_with_merges(self, with_tags=False):
         wt = self.make_branch_and_memory_tree('.')
         wt.lock_write()

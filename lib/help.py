@@ -17,11 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.util import QBzrWindow
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.util import QBzrWindow
 
-from bzrlib.help import HelpIndices
-from bzrlib.errors import NoHelpTopic
+from breezy.help import HelpIndices
+from breezy.errors import NoHelpTopic
 try:
     from docutils.core import publish_string
     from docutils.writers.html4css1 import Writer as BaseHTMLWriter

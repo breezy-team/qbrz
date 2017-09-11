@@ -18,9 +18,9 @@
 
 """Tests for QBzr plugin."""
 
-from bzrlib.tests import TestCase
+from breezy.tests import TestCase
 from StringIO import StringIO
-from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
+from breezy.plugins.qbrz.lib.autocomplete import get_wordlist_builder
 
 
 class TestAutocomplete(TestCase):

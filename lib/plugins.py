@@ -21,17 +21,17 @@ from inspect import getdoc
 
 from PyQt4 import QtGui
 
-from bzrlib import (
+from breezy import (
     _format_version_tuple,
     osutils,
     plugin as mod_plugin,
     )
 
-from bzrlib.plugins.qbzr.lib.conditional_dataview import (
+from breezy.plugins.qbrz.lib.conditional_dataview import (
     QBzrConditionalDataView,
     )
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     )

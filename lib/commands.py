@@ -20,70 +20,70 @@
 
 import signal
 
-from bzrlib import errors
-from bzrlib.commands import Command
-from bzrlib.option import Option
-import bzrlib.builtins
+from breezy import errors
+from breezy.commands import Command
+from breezy.option import Option
+import breezy.builtins
 
-from bzrlib.lazy_import import lazy_import
+from breezy.lazy_import import lazy_import
 lazy_import(globals(), '''
 import sys
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import (
+from breezy import (
     builtins,
     osutils,
     ui,
     gpg,
     )
-from bzrlib.branch import Branch
-from bzrlib.bzrdir import BzrDir
-from bzrlib.workingtree import WorkingTree
+from breezy.branch import Branch
+from breezy.controldir import ControlDir
+from breezy.workingtree import WorkingTree
 
-from bzrlib.plugins.qbzr.lib import i18n
-from bzrlib.plugins.qbzr.lib.add import AddWindow
-from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
-from bzrlib.plugins.qbzr.lib.branch import QBzrBranchWindow
-from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
-from bzrlib.plugins.qbzr.lib.cat import (
+from breezy.plugins.qbrz.lib import i18n
+from breezy.plugins.qbrz.lib.add import AddWindow
+from breezy.plugins.qbrz.lib.annotate import AnnotateWindow
+from breezy.plugins.qbrz.lib.branch import QBzrBranchWindow
+from breezy.plugins.qbrz.lib.browse import BrowseWindow
+from breezy.plugins.qbrz.lib.cat import (
     QBzrCatWindow,
     QBzrViewWindow,
     cat_to_native_app,
     )
-from bzrlib.plugins.qbzr.lib.commit import CommitWindow
-from bzrlib.plugins.qbzr.lib.config import QBzrConfigWindow
-from bzrlib.plugins.qbzr.lib.diffwindow import DiffWindow
-from bzrlib.plugins.qbzr.lib.getupdates import UpdateBranchWindow, UpdateCheckoutWindow
-from bzrlib.plugins.qbzr.lib.help import show_help
-from bzrlib.plugins.qbzr.lib.log import LogWindow
-from bzrlib.plugins.qbzr.lib.info import QBzrInfoWindow
-from bzrlib.plugins.qbzr.lib.init import QBzrInitWindow
-from bzrlib.plugins.qbzr.lib.main import QBzrMainWindow
-from bzrlib.plugins.qbzr.lib.verify_signatures import \
+from breezy.plugins.qbrz.lib.commit import CommitWindow
+from breezy.plugins.qbrz.lib.config import QBzrConfigWindow
+from breezy.plugins.qbrz.lib.diffwindow import DiffWindow
+from breezy.plugins.qbrz.lib.getupdates import UpdateBranchWindow, UpdateCheckoutWindow
+from breezy.plugins.qbrz.lib.help import show_help
+from breezy.plugins.qbrz.lib.log import LogWindow
+from breezy.plugins.qbrz.lib.info import QBzrInfoWindow
+from breezy.plugins.qbrz.lib.init import QBzrInitWindow
+from breezy.plugins.qbrz.lib.main import QBzrMainWindow
+from breezy.plugins.qbrz.lib.verify_signatures import \
 QBzrVerifySignaturesWindow
-from bzrlib.plugins.qbzr.lib.pull import (
+from breezy.plugins.qbrz.lib.pull import (
     QBzrPullWindow,
     QBzrPushWindow,
     QBzrMergeWindow,
     )
-from bzrlib.plugins.qbzr.lib.revert import RevertWindow
-from bzrlib.plugins.qbzr.lib.tag import TagWindow
-from bzrlib.plugins.qbzr.lib.tree_branch import TreeBranch
-from bzrlib.plugins.qbzr.lib.uncommit import QBzrUncommitWindow
-from bzrlib.plugins.qbzr.lib.update import QBzrUpdateWindow
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.revert import RevertWindow
+from breezy.plugins.qbrz.lib.tag import TagWindow
+from breezy.plugins.qbrz.lib.tree_branch import TreeBranch
+from breezy.plugins.qbrz.lib.uncommit import QBzrUncommitWindow
+from breezy.plugins.qbrz.lib.update import QBzrUpdateWindow
+from breezy.plugins.qbrz.lib.util import (
     FilterOptions,
     is_valid_encoding,
     open_tree,
     )
-from bzrlib.plugins.qbzr.lib.uifactory import QUIFactory
-from bzrlib.plugins.qbzr.lib.send import SendWindow
-from bzrlib.plugins.qbzr.lib.shelvewindow import ShelveWindow
-from bzrlib.plugins.qbzr.lib.widgets.shelvelist import ShelveListWindow
+from breezy.plugins.qbrz.lib.uifactory import QUIFactory
+from breezy.plugins.qbrz.lib.send import SendWindow
+from breezy.plugins.qbrz.lib.shelvewindow import ShelveWindow
+from breezy.plugins.qbrz.lib.widgets.shelvelist import ShelveListWindow
 ''')
 
-from bzrlib.plugins.qbzr.lib.diff_arg import DiffArgProvider
+from breezy.plugins.qbrz.lib.diff_arg import DiffArgProvider
 
 CUR_DIR=u'.'
 
@@ -142,11 +142,11 @@ class QBzrCommand(Command):
     """Base class for all q-commands.
 
     NOTES:
-    1) q-command should define method '_qbzr_run' instead of 'run' (as in
-       bzrlib).
-    2) The _qbzr_run method should return 0 for successfull exit
+    1) q-command should define method '_qbrz_run' instead of 'run' (as in
+       breezy).
+    2) The _qbrz_run method should return 0 for successfull exit
        and 1 if operation was cancelled by user.
-    3) The _qbzr_run method can return None, in this case return code will be
+    3) The _qbrz_run method can return None, in this case return code will be
        asked from self.main_window instance (if there is one).
        self.main_window should be instance of QBzrWindow or QBzrDialog
        with attribute "return_code" set to 0 or 1.
@@ -168,12 +168,12 @@ class QBzrCommand(Command):
             signal.signal(signal.SIGINT, signal.SIG_DFL)
             
             # Set up global exception handling.
-            from bzrlib.plugins.qbzr.lib.trace import excepthook
+            from breezy.plugins.qbrz.lib.trace import excepthook
             sys.excepthook = excepthook
 
             try:
                 try:
-                    ret_code = self._qbzr_run(*args, **kwargs)
+                    ret_code = self._qbrz_run(*args, **kwargs)
                 finally:
                     # ensure we flush clipboard data (see bug #503401)
                     clipboard = self._application.clipboard()
@@ -189,7 +189,7 @@ class QBzrCommand(Command):
                 return ret_code
             except Exception:
                 ui_mode = kwargs.get("ui_mode", False)
-                from bzrlib.plugins.qbzr.lib.trace import report_exception
+                from breezy.plugins.qbrz.lib.trace import report_exception
                 return report_exception(ui_mode=ui_mode)
         finally:
             ui.ui_factory = std_ui_factory
@@ -202,10 +202,10 @@ execute_option = Option("execute", short_name='e',
          "waiting for user input.")
 
 # A special option so 'revision' can be passed as a simple string, when we do
-# *not* want bzrlib's feature of parsing the revision string before passing it.
+# *not* want breezy's feature of parsing the revision string before passing it.
 # This is used when we just want a plain string to pass to our dialog for it to
 # display in the UI, and we will later pass it to bzr for parsing. If you want
-# bzrlib to parse and pass a revisionspec object, just pass the string
+# breezy to parse and pass a revisionspec object, just pass the string
 # 'revision' as normal.
 simple_revision_option = Option("revision",
                              short_name='r',
@@ -224,7 +224,7 @@ def bzr_option(cmd_name, opt_name):
     would give a command the exact same '--create-prefix' option as bzr's
     push command has, including help text, parsing, etc.
     """
-    from bzrlib.commands import get_cmd_object
+    from breezy.commands import get_cmd_object
     cmd=get_cmd_object(cmd_name, False)
     return cmd.options()[opt_name]
 
@@ -249,7 +249,7 @@ class cmd_qannotate(QBzrCommand):
         them into the branch and tree etc needed by the UI.
         """
         wt, branch, relpath = \
-            BzrDir.open_containing_tree_or_branch(filename)
+            ControlDir.open_containing_tree_or_branch(filename)
         if wt is not None:
             wt.lock_read()
         else:
@@ -290,7 +290,7 @@ class cmd_qannotate(QBzrCommand):
 
         return branch, tree, wt, relpath, file_id
 
-    def _qbzr_run(self, filename=None, revision=None, encoding=None,
+    def _qbrz_run(self, filename=None, revision=None, encoding=None,
                   ui_mode=False, no_graph=False, activate_line=None):
         win = AnnotateWindow(None, None, None, None, None,
                              encoding=encoding, ui_mode=ui_mode,
@@ -306,7 +306,7 @@ class cmd_qadd(QBzrCommand):
     takes_args = ['selected*']
     takes_options = [ui_mode_option]
 
-    def _qbzr_run(self, selected_list=None, ui_mode=False):
+    def _qbrz_run(self, selected_list=None, ui_mode=False):
         tree, selected_list = WorkingTree.open_containing_paths(selected_list)
         if selected_list == ['']:
             selected_list = None
@@ -320,7 +320,7 @@ class cmd_qrevert(QBzrCommand):
     takes_args = ['selected*']
     takes_options = [ui_mode_option, bzr_option('revert', 'no-backup')]
 
-    def _qbzr_run(self, selected_list=None, ui_mode=False, no_backup=False):
+    def _qbrz_run(self, selected_list=None, ui_mode=False, no_backup=False):
         tree, selected_list = WorkingTree.open_containing_paths(selected_list)
         if selected_list == ['']:
             selected_list = None
@@ -337,8 +337,8 @@ class cmd_qconflicts(QBzrCommand):
     takes_options = []
     aliases = ['qresolve']
 
-    def _qbzr_run(self):
-        from bzrlib.plugins.qbzr.lib.conflicts import ConflictsWindow
+    def _qbrz_run(self):
+        from breezy.plugins.qbrz.lib.conflicts import ConflictsWindow
         self.main_window = ConflictsWindow(CUR_DIR)
         self.main_window.show()
         self._application.exec_()
@@ -350,7 +350,7 @@ class cmd_qbrowse(QBzrCommand):
     takes_options = ['revision']
     aliases = ['qbw']
 
-    def _qbzr_run(self, revision=None, location=None):
+    def _qbrz_run(self, revision=None, location=None):
         Branch.open_containing(location or u'.')  # if there is no branch we want NotBranchError raised
         if revision is None:
             win = BrowseWindow(location = location)
@@ -373,7 +373,7 @@ class cmd_qcommit(QBzrCommand):
             ]
     aliases = ['qci']
 
-    def _qbzr_run(self, selected_list=None, message=None, file=None,
+    def _qbrz_run(self, selected_list=None, message=None, file=None,
                   local=False, ui_mode=False, file_encoding=None):
         if message is not None and file:
             raise errors.BzrCommandError("please specify either --message or --file")
@@ -417,9 +417,9 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
     def get_diff_window_args(self, processEvents, add_cleanup):
         args = {}
         try:
-            from bzrlib.diff import get_trees_and_branches_to_diff_locked
+            from breezy.diff import get_trees_and_branches_to_diff_locked
         except ImportError:
-            from bzrlib.diff import get_trees_and_branches_to_diff
+            from breezy.diff import get_trees_and_branches_to_diff
             (args["old_tree"], args["new_tree"],
              args["old_branch"], args["new_branch"],
              args["specific_files"], _) = \
@@ -453,7 +453,7 @@ class cmd_qdiff(QBzrCommand, DiffArgProvider):
 
         return None, args
 
-    def _qbzr_run(self, revision=None, file_list=None, complete=False,
+    def _qbrz_run(self, revision=None, file_list=None, complete=False,
             encoding=None, ignore_whitespace=False,
             added=None, deleted=None, modified=None, renamed=None,
             old=None, new=None, ui_mode=False):
@@ -512,7 +512,7 @@ class cmd_qlog(QBzrCommand):
                                   "as nodes in the graph"),
         ]
 
-    def _qbzr_run(self, locations_list=None, ui_mode=False, no_graph=False,
+    def _qbrz_run(self, locations_list=None, ui_mode=False, no_graph=False,
                   show_trees=False):
         window = LogWindow(locations_list, None, None, ui_mode=ui_mode,
                            no_graph=no_graph, show_trees=show_trees)
@@ -527,7 +527,7 @@ class cmd_qconfig(QBzrCommand):
     takes_options = []
     aliases = ['qconfigure']
 
-    def _qbzr_run(self):
+    def _qbrz_run(self):
         window = QBzrConfigWindow()
         window.show()
         self._application.exec_()
@@ -548,7 +548,7 @@ class cmd_qcat(QBzrCommand):
         ]
     takes_args = ['filename']
 
-    def _qbzr_run(self, filename, revision=None, encoding=None, native=None):
+    def _qbrz_run(self, filename, revision=None, encoding=None, native=None):
         if revision is not None and len(revision) != 1:
             raise errors.BzrCommandError("bzr qcat --revision takes exactly"
                                          " one revision specifier")
@@ -581,7 +581,7 @@ class cmd_qpull(QBzrCommand):
         ]
     takes_args = ['location?']
 
-    def _qbzr_run(self, location=None, directory=None,
+    def _qbrz_run(self, location=None, directory=None,
                   remember=None, overwrite=None, revision=None, ui_mode=False):
         if directory is None:
             directory = CUR_DIR
@@ -611,7 +611,7 @@ class cmd_qmerge(QBzrCommand):
                      'remember']
     takes_args = ['location?']
 
-    def _qbzr_run(self, location=None, directory=None, revision=None,
+    def _qbrz_run(self, location=None, directory=None, revision=None,
                   remember=None, force=None, uncommitted=None, ui_mode=False):
         if directory is None:
             directory = CUR_DIR
@@ -638,7 +638,7 @@ class cmd_qpush(QBzrCommand):
                      ui_mode_option]
     takes_args = ['location?']
 
-    def _qbzr_run(self, location=None, directory=None,
+    def _qbrz_run(self, location=None, directory=None,
                   remember=None, overwrite=None,
                   create_prefix=None, use_existing_dir=None,
                   ui_mode=False):
@@ -675,7 +675,7 @@ class cmd_qbranch(QBzrCommand):
         pass
     takes_args = ['from_location?', 'to_location?']
 
-    def _qbzr_run(self, from_location=None, to_location=None,
+    def _qbrz_run(self, from_location=None, to_location=None,
                   revision=None, bind=False, ui_mode=False):
         self.main_window = QBzrBranchWindow(from_location, to_location,
             revision=revision, bind=bind, ui_mode=ui_mode)
@@ -689,7 +689,7 @@ class cmd_qinfo(QBzrCommand):
     takes_options = []
     takes_args = ['location?']
 
-    def _qbzr_run(self, location=CUR_DIR):
+    def _qbrz_run(self, location=CUR_DIR):
         window = QBzrInfoWindow(location)
         window.show()
         self._application.exec_()
@@ -708,7 +708,7 @@ class cmd_qverify_signatures(QBzrCommand):
           ]
     takes_args = ['location?']
 
-    def _qbzr_run(self, acceptable_keys=None, revision=None, location=CUR_DIR):
+    def _qbrz_run(self, acceptable_keys=None, revision=None, location=CUR_DIR):
         if gpg.GPGStrategy.verify_signatures_available():
             window = QBzrVerifySignaturesWindow(acceptable_keys, revision,
                                                                     location)
@@ -724,16 +724,16 @@ class cmd_qinit(QBzrCommand):
     takes_options = [ui_mode_option]
     takes_args = ['location?']
 
-    def _qbzr_run(self, location=CUR_DIR, ui_mode=False):
+    def _qbrz_run(self, location=CUR_DIR, ui_mode=False):
         self.main_window = QBzrInitWindow(location, ui_mode=ui_mode)
         self.main_window.show()
         self._application.exec_()
 
 
-class cmd_merge(bzrlib.builtins.cmd_merge, DiffArgProvider):
-    __doc__ = bzrlib.builtins.cmd_merge.__doc__
+class cmd_merge(breezy.builtins.cmd_merge, DiffArgProvider):
+    __doc__ = breezy.builtins.cmd_merge.__doc__
 
-    takes_options = bzrlib.builtins.cmd_merge.takes_options + [
+    takes_options = breezy.builtins.cmd_merge.takes_options + [
             Option('qpreview', help='Instead of merging, '
                 'show a diff of the merge in a GUI window.'),
             Option('encoding', type=check_encoding,
@@ -749,7 +749,7 @@ class cmd_merge(bzrlib.builtins.cmd_merge, DiffArgProvider):
         self._encoding = kw.get('encoding')
         if self._encoding:
             del kw['encoding']
-        return bzrlib.builtins.cmd_merge.run(self, *args, **kw)
+        return breezy.builtins.cmd_merge.run(self, *args, **kw)
 
     def get_diff_window_args(self, processEvents, add_cleanup):
         tree_merger = self.merger.make_merger()
@@ -761,7 +761,7 @@ class cmd_merge(bzrlib.builtins.cmd_merge, DiffArgProvider):
     @report_missing_pyqt
     def _do_qpreview(self, merger):
         # Set up global execption handeling.
-        from bzrlib.plugins.qbzr.lib.trace import excepthook
+        from breezy.plugins.qbrz.lib.trace import excepthook
         sys.excepthook = excepthook
 
         self.merger = merger
@@ -777,7 +777,7 @@ class cmd_merge(bzrlib.builtins.cmd_merge, DiffArgProvider):
         if self.qpreview:
             self._do_qpreview(merger)
         else:
-            bzrlib.builtins.cmd_merge._do_preview(self, merger, *args, **kw)
+            breezy.builtins.cmd_merge._do_preview(self, merger, *args, **kw)
 
 
 class cmd_qmain(QBzrCommand):
@@ -789,15 +789,15 @@ class cmd_qmain(QBzrCommand):
     takes_args = []
     hidden = True
 
-    def _qbzr_run(self):
+    def _qbrz_run(self):
         # Remove svn checkout support
         try:
-            from bzrlib.plugins.svn.format import SvnWorkingTreeDirFormat
+            from breezy.plugins.svn.format import SvnWorkingTreeDirFormat
         except ImportError:
             pass
         else:
-            from bzrlib.bzrdir import BzrDirFormat, format_registry
-            BzrDirFormat.unregister_control_format(SvnWorkingTreeDirFormat)
+            from breezy.controldir import ControlDirFormat, format_registry
+            ControlDirFormat.unregister_control_format(SvnWorkingTreeDirFormat)
             format_registry.remove('subversion-wc')
         # Start QBzr
         window = QBzrMainWindow()
@@ -825,7 +825,7 @@ class cmd_qsubprocess(Command):
     hidden = True
 
     def run(self, cmd, bencoded=False):
-        from bzrlib.plugins.qbzr.lib.subprocess import run_subprocess_command
+        from breezy.plugins.qbrz.lib.subprocess import run_subprocess_command
         return run_subprocess_command(cmd, bencoded)
 
 
@@ -836,7 +836,7 @@ class cmd_qgetupdates(QBzrCommand):
     takes_options = [ui_mode_option, execute_option]
     aliases = ['qgetu', 'qgetup']
 
-    def _qbzr_run(self, location=CUR_DIR, ui_mode=False, execute=False):
+    def _qbrz_run(self, location=CUR_DIR, ui_mode=False, execute=False):
         branch, relpath = Branch.open_containing(location)
         tb = TreeBranch.open_containing(location, ui_mode=ui_mode)
         if tb is None:
@@ -859,8 +859,8 @@ class cmd_qgetnew(QBzrCommand):
     takes_options = [ui_mode_option]
     aliases = ['qgetn']
 
-    def _qbzr_run(self, location=None, ui_mode=False):
-        from bzrlib.plugins.qbzr.lib.getnew import GetNewWorkingTreeWindow
+    def _qbrz_run(self, location=None, ui_mode=False):
+        from breezy.plugins.qbrz.lib.getnew import GetNewWorkingTreeWindow
         self.main_window = GetNewWorkingTreeWindow(location, ui_mode=ui_mode)
         self.main_window.show()
         self._application.exec_()
@@ -874,7 +874,7 @@ class cmd_qhelp(QBzrCommand):
     # until we get links and better HTML out of 'topics', this is hidden.
     hidden = True
 
-    def _qbzr_run(self, topic):
+    def _qbrz_run(self, topic):
         show_help(topic)
         self._application.exec_()
 
@@ -891,7 +891,7 @@ class cmd_qtag(QBzrCommand):
         'revision',
         ]
 
-    def _qbzr_run(self, tag_name=None, delete=None, directory=CUR_DIR,
+    def _qbrz_run(self, tag_name=None, delete=None, directory=CUR_DIR,
         force=None, revision=None, ui_mode=False):
         branch = Branch.open_containing(directory)[0]
         # determine action based on given options
@@ -910,7 +910,7 @@ class cmd_quncommit(QBzrCommand):
         ]
     takes_args = ["location?"]
 
-    def _qbzr_run(self, location=CUR_DIR, ui_mode=False):
+    def _qbrz_run(self, location=CUR_DIR, ui_mode=False):
         window = QBzrUncommitWindow(location, ui_mode=ui_mode)
         window.show()
         self._application.exec_()
@@ -926,7 +926,7 @@ class cmd_qviewer(QBzrCommand):
         ]
     _see_also = ['qcat']
 
-    def _qbzr_run(self, filename, encoding=None):
+    def _qbrz_run(self, filename, encoding=None):
         window = QBzrViewWindow(filename=filename, encoding=encoding)
         window.show()
         self._application.exec_()
@@ -938,8 +938,8 @@ class cmd_qversion(QBzrCommand):
     takes_options = []
     aliases = []
 
-    def _qbzr_run(self):
-        from bzrlib.plugins.qbzr.lib.sysinfo import QBzrSysInfoWindow
+    def _qbrz_run(self):
+        from breezy.plugins.qbrz.lib.sysinfo import QBzrSysInfoWindow
         window = QBzrSysInfoWindow()
         window.show()
         self._application.exec_()
@@ -952,8 +952,8 @@ class cmd_qplugins(QBzrCommand):
     takes_options = []
     aliases = []
 
-    def _qbzr_run(self):
-        from bzrlib.plugins.qbzr.lib.plugins import QBzrPluginsWindow
+    def _qbrz_run(self):
+        from breezy.plugins.qbrz.lib.plugins import QBzrPluginsWindow
         window = QBzrPluginsWindow()
         window.show()
         self._application.exec_()
@@ -965,7 +965,7 @@ class cmd_qupdate(QBzrCommand):
     takes_args = ['directory?']
     takes_options = [ui_mode_option, execute_option]
 
-    def _qbzr_run(self, directory=None, ui_mode=False, execute=False):
+    def _qbrz_run(self, directory=None, ui_mode=False, execute=False):
         tree = open_tree(directory, ui_mode)
         if tree is None:
             return
@@ -980,7 +980,7 @@ class cmd_qsend(QBzrCommand):
     takes_args = ['submit_branch?', 'public_branch?']
     takes_options = [ui_mode_option]
 
-    def _qbzr_run(self, submit_branch=CUR_DIR, public_branch=None, ui_mode=False):
+    def _qbrz_run(self, submit_branch=CUR_DIR, public_branch=None, ui_mode=False):
         branch = Branch.open_containing(submit_branch)[0]
         window = SendWindow(branch, ui_mode)
         window.show()
@@ -993,12 +993,12 @@ class cmd_qswitch(QBzrCommand):
     takes_args = ['location?']
     takes_options = [ui_mode_option]
 
-    def _qbzr_run(self, location=None, ui_mode=False):
-        from bzrlib.plugins.qbzr.lib.switch import QBzrSwitchWindow
+    def _qbrz_run(self, location=None, ui_mode=False):
+        from breezy.plugins.qbrz.lib.switch import QBzrSwitchWindow
 
         branch = Branch.open_containing(CUR_DIR)[0]
-        bzrdir = BzrDir.open_containing(CUR_DIR)[0]
-        self.main_window = QBzrSwitchWindow(branch, bzrdir, location, ui_mode)
+        contrldir = ControlDir.open_containing(CUR_DIR)[0]
+        self.main_window = QBzrSwitchWindow(branch, controldir, location, ui_mode)
         self.main_window.show()
         self._application.exec_()
 
@@ -1007,8 +1007,8 @@ class cmd_qunbind(QBzrCommand):
     """Convert the current checkout into a regular branch."""
     takes_options = [ui_mode_option, execute_option]
 
-    def _qbzr_run(self, ui_mode=False, execute=False):
-        from bzrlib.plugins.qbzr.lib.unbind import QBzrUnbindDialog
+    def _qbrz_run(self, ui_mode=False, execute=False):
+        from breezy.plugins.qbrz.lib.unbind import QBzrUnbindDialog
 
         branch = Branch.open_containing(CUR_DIR)[0]
         if branch.get_bound_location() == None:
@@ -1030,8 +1030,8 @@ class cmd_qexport(QBzrCommand):
     takes_args = ['dest?','branch_or_subdir?']
     takes_options = [ui_mode_option]
 
-    def _qbzr_run(self, dest=None, branch_or_subdir=None, ui_mode=False):
-        from bzrlib.plugins.qbzr.lib.export import QBzrExportDialog
+    def _qbrz_run(self, dest=None, branch_or_subdir=None, ui_mode=False):
+        from breezy.plugins.qbrz.lib.export import QBzrExportDialog
 
         if branch_or_subdir == None:
             branch = Branch.open_containing(CUR_DIR)[0]
@@ -1052,8 +1052,8 @@ class cmd_qbind(QBzrCommand):
     takes_args = ['location?']
     takes_options = [ui_mode_option]
 
-    def _qbzr_run(self, location=None, ui_mode=False):
-        from bzrlib.plugins.qbzr.lib.bind import QBzrBindDialog
+    def _qbrz_run(self, location=None, ui_mode=False):
+        from breezy.plugins.qbrz.lib.bind import QBzrBindDialog
 
         branch = Branch.open_containing(CUR_DIR)[0]
 
@@ -1088,9 +1088,9 @@ class cmd_qrun(QBzrCommand):
         ]
     aliases = ['qcmd']
 
-    def _qbzr_run(self, command=None, parameters_list=None, ui_mode=False,
+    def _qbrz_run(self, command=None, parameters_list=None, ui_mode=False,
         directory=None, category=None, execute=False):
-        from bzrlib.plugins.qbzr.lib.run import QBzrRunDialog
+        from breezy.plugins.qbrz.lib.run import QBzrRunDialog
         if parameters_list:
             def quote_spaces(s):
                 if " " in s:
@@ -1123,7 +1123,7 @@ class cmd_qshelve(QBzrCommand):
                help='Encoding of files content (default: utf-8).'),
         ]
 
-    def _qbzr_run(self, file_list=None, list=False, directory=None, ui_mode=False, 
+    def _qbrz_run(self, file_list=None, list=False, directory=None, ui_mode=False, 
                             complete=False, ignore_whitespace=False, encoding=None,
                             all=False, message=None):
         if list:
@@ -1149,7 +1149,7 @@ class cmd_qunshelve(QBzrCommand):
                help='Encoding of files content (default: utf-8).'),
         ]
 
-    def _qbzr_run(self, directory=None, ui_mode=False, 
+    def _qbrz_run(self, directory=None, ui_mode=False, 
                         complete=False, ignore_whitespace=False, encoding=None):
         self.main_window = ShelveWindow(directory=directory, ui_mode=ui_mode,
                                 initial_tab=1, complete=complete, 
@@ -1167,8 +1167,8 @@ class cmd_qignore(QBzrCommand):
         ]
     aliases = []
 
-    def _qbzr_run(self, directory=None, ui_mode=False):
-        from bzrlib.plugins.qbzr.lib.ignore import IgnoreWindow
+    def _qbrz_run(self, directory=None, ui_mode=False):
+        from breezy.plugins.qbrz.lib.ignore import IgnoreWindow
         wt = WorkingTree.open_containing(directory)[0]
         self.main_window = IgnoreWindow(tree=wt, ui_mode=ui_mode)
         self.main_window.show()

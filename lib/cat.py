@@ -20,11 +20,11 @@
 import os
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import errors, osutils
-from bzrlib.branch import Branch
+from breezy import errors, osutils
+from breezy.branch import Branch
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     ThrobberWidget,
@@ -34,12 +34,12 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_tab_width_pixels,
     runs_in_loading_queue,
     )
-from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingSelector
-from bzrlib.plugins.qbzr.lib.fake_branch import FakeBranch
-from bzrlib.plugins.qbzr.lib.syntaxhighlighter import highlight_document
-from bzrlib.plugins.qbzr.lib.texteditannotate import LineNumberEditerFrame
-from bzrlib.plugins.qbzr.lib.trace import reports_exception
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from breezy.plugins.qbrz.lib.encoding_selector import EncodingSelector
+from breezy.plugins.qbrz.lib.fake_branch import FakeBranch
+from breezy.plugins.qbrz.lib.syntaxhighlighter import highlight_document
+from breezy.plugins.qbrz.lib.texteditannotate import LineNumberEditerFrame
+from breezy.plugins.qbrz.lib.trace import reports_exception
+from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
 
 
 def hexdump(data):

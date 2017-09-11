@@ -22,12 +22,12 @@
 import os.path
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
+from breezy.plugins.qbrz.lib.util import (
     BTN_REFRESH,
     file_extension,
     get_global_config,
-    get_qbzr_config,
+    get_qbrz_config,
     url_for_display,
     ThrobberWidget,
     runs_in_loading_queue,
@@ -35,31 +35,31 @@ from bzrlib.plugins.qbzr.lib.util import (
     InfoWidget,
     )
 
-from bzrlib.plugins.qbzr.lib.logwidget import LogList
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.plugins.qbzr.lib.trace import reports_exception
+from breezy.plugins.qbrz.lib.logwidget import LogList
+from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
+from breezy.plugins.qbrz.lib.trace import reports_exception
 
-from bzrlib.lazy_import import lazy_import
+from breezy.lazy_import import lazy_import
 lazy_import(globals(), '''
 
-from bzrlib import errors
-from bzrlib.plugins.qbzr.lib.spellcheck import SpellCheckHighlighter, SpellChecker
-from bzrlib.plugins.qbzr.lib.autocomplete import get_wordlist_builder
-from bzrlib.plugins.qbzr.lib.commit_data import QBzrCommitData
-from bzrlib.plugins.qbzr.lib.diff import (
+from breezy import errors
+from breezy.plugins.qbrz.lib.spellcheck import SpellCheckHighlighter, SpellChecker
+from breezy.plugins.qbrz.lib.autocomplete import get_wordlist_builder
+from breezy.plugins.qbrz.lib.commit_data import QBzrCommitData
+from breezy.plugins.qbrz.lib.diff import (
     DiffButtons,
     show_diff,
     InternalWTDiffArgProvider,
     )
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib import logmodel
-from bzrlib.plugins.qbzr.lib.loggraphviz import BranchInfo
-from bzrlib.plugins.qbzr.lib.treewidget import (
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib import logmodel
+from breezy.plugins.qbrz.lib.loggraphviz import BranchInfo
+from breezy.plugins.qbrz.lib.treewidget import (
     TreeWidget,
     SelectAllCheckBox,
     )
-from bzrlib.plugins.qbzr.lib.revisionview import RevisionView
-from bzrlib.plugins.qbzr.lib.update import QBzrUpdateWindow
+from breezy.plugins.qbrz.lib.revisionview import RevisionView
+from breezy.plugins.qbrz.lib.update import QBzrUpdateWindow
 
 ''')
 MAX_AUTOCOMPLETE_FILES = 20
@@ -317,7 +317,7 @@ class CommitWindow(SubProcessDialog):
 
         self.show_nonversioned_checkbox = QtGui.QCheckBox(
             gettext("Show non-versioned files"))
-        show_nonversioned = get_qbzr_config().get_option_as_bool(self._window_name + "_show_nonversioned")
+        show_nonversioned = get_qbrz_config().get_option_as_bool(self._window_name + "_show_nonversioned")
         if show_nonversioned:
             self.show_nonversioned_checkbox.setChecked(QtCore.Qt.Checked)
         else:
@@ -603,7 +603,7 @@ class CommitWindow(SubProcessDialog):
         if (self.tree.branch.get_physical_lock_status()
             or self.tree.branch.is_locked()):
             # XXX maybe show this in a GUI MessageBox (information box)???
-            from bzrlib.trace import warning
+            from breezy.trace import warning
             warning("Cannot save commit data because the branch is locked.")
             return
         # collect data
@@ -624,7 +624,7 @@ class CommitWindow(SubProcessDialog):
         if (self.tree.branch.get_physical_lock_status()
             or self.tree.branch.is_locked()):
             # XXX maybe show this in a GUI MessageBox (information box)???
-            from bzrlib.trace import warning
+            from breezy.trace import warning
             warning("Cannot wipe commit data because the branch is locked.")
             return
         self.ci_data.wipe()
@@ -723,9 +723,9 @@ class CommitWindow(SubProcessDialog):
 
     def closeEvent(self, event):
         self._save_or_wipe_commit_data()
-        qbzr_config = get_qbzr_config()
-        qbzr_config.set_option(self._window_name + "_show_nonversioned", self.show_nonversioned_checkbox.isChecked())
-        qbzr_config.save() # do I need this or is .saveSize() enough?
+        qbrz_config = get_qbrz_config()
+        qbrz_config.set_option(self._window_name + "_show_nonversioned", self.show_nonversioned_checkbox.isChecked())
+        qbrz_config.save() # do I need this or is .saveSize() enough?
         return SubProcessDialog.closeEvent(self, event)
 
     def reject(self):

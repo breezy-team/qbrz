@@ -20,27 +20,27 @@
 import re
 import os.path
 from PyQt4 import QtCore, QtGui
-from bzrlib.config import (
+from breezy.config import (
     ensure_config_dir_exists,
     extract_email_address,
     )
-from bzrlib import cmdline, errors, trace
+from breezy import cmdline, errors, trace
 
-from bzrlib.plugins.qbzr.lib import ui_merge_config
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
-from bzrlib.plugins.qbzr.lib.spellcheck import SpellChecker
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib import ui_merge_config
+from breezy.plugins.qbrz.lib.i18n import gettext, N_
+from breezy.plugins.qbrz.lib.spellcheck import SpellChecker
+from breezy.plugins.qbrz.lib.util import (
     BTN_OK,
     BTN_CANCEL,
     QBzrDialog,
     extract_name,
-    get_qbzr_config,
+    get_qbrz_config,
     get_global_config,
     get_set_tab_width_chars,
     )
 
 try:
-    from bzrlib import mergetools
+    from breezy import mergetools
 except ImportError:
     mergetools = None
 
@@ -309,7 +309,7 @@ class QBzrConfigWindow(QBzrDialog):
         config = get_global_config()
         parser = config._get_parser()
         
-        qconfig = get_qbzr_config()
+        qconfig = get_qbrz_config()
 
         # Name & e-mail
         try:
@@ -469,7 +469,7 @@ class QBzrConfigWindow(QBzrDialog):
         config = get_global_config()
         parser = config._get_parser()
 
-        qconfig = get_qbzr_config()
+        qconfig = get_qbrz_config()
 
         def set_or_delete_option(parser, name, value):
             if value:
@@ -748,12 +748,12 @@ def get_user_id_from_os():
     use the hostname.
     """
     
-    # This use to live in bzrlib.config._auto_user_id, but got removed, so
+    # This use to live in breezy.config._auto_user_id, but got removed, so
     # we have a copy.
     
     import sys
     if sys.platform == 'win32':
-        from bzrlib import win32utils
+        from breezy import win32utils
         name = win32utils.get_user_name_unicode()
         if name is None:
             raise errors.BzrError("Cannot autodetect user name.\n"

@@ -19,16 +19,17 @@
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.errors import FileTimestampUnavailable, NoSuchId, ExecutableMissing
-from bzrlib.plugins.qbzr.lib.diff_arg import *   # import DiffArgProvider classes
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
-from bzrlib.plugins.qbzr.lib.util import ( 
-    get_qbzr_config,
+from breezy.errors import NoSuchId, ExecutableMissing
+from breezy.tree import FileTimestampUnavailable
+from breezy.plugins.qbrz.lib.diff_arg import *   # import DiffArgProvider classes
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.subprocess import SimpleSubProcessDialog
+from breezy.plugins.qbrz.lib.util import ( 
+    get_qbrz_config,
     is_binary_content,
     )
 
-from bzrlib.lazy_import import lazy_import
+from breezy.lazy_import import lazy_import
 lazy_import(globals(), '''
 import errno
 import re
@@ -36,16 +37,16 @@ import time
 import sys
 import os
 import glob
-from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
-from bzrlib.plugins.qbzr.lib.i18n import gettext, ngettext, N_
-from bzrlib import trace, osutils, cmdline
-from bzrlib.workingtree import WorkingTree
-from bzrlib.trace import mutter
+from breezy.patiencediff import PatienceSequenceMatcher as SequenceMatcher
+from breezy.plugins.qbrz.lib.i18n import gettext, ngettext, N_
+from breezy import trace, osutils, cmdline
+from breezy.workingtree import WorkingTree
+from breezy.trace import mutter
 ''')
-from bzrlib.diff import DiffFromTool, DiffPath
+from breezy.diff import DiffFromTool, DiffPath
 subprocess = __import__('subprocess', {}, {}, [])
 
-qconfig = get_qbzr_config()
+qconfig = get_qbrz_config()
 default_diff = qconfig.get_option("default_diff")
 if default_diff is None:
     default_diff = ""
@@ -63,7 +64,7 @@ def show_diff(arg_provider, ext_diff=None, parent_window=None, context=None):
         
         # We can't import this globaly becuse it ties to import us,
         # which causes and Import Error.
-        from bzrlib.plugins.qbzr.lib.diffwindow import DiffWindow
+        from breezy.plugins.qbrz.lib.diffwindow import DiffWindow
         
         window = DiffWindow(arg_provider, parent=parent_window)
         window.show()
@@ -246,7 +247,7 @@ class DiffItem(object):
                     if not renamed or e.errno != errno.ENOENT:
                         raise
                     # If we get ENOENT error then probably we trigger
-                    # bug #251532 in bzrlib. Take current time instead
+                    # bug #251532 in breezy. Take current time instead
                     dates[ix] = time.time()
                 except FileTimestampUnavailable:
                     # ghosts around us (see Bug #513096)
@@ -397,10 +398,10 @@ class _ExtDiffer(DiffFromTool):
     def __init__(self, command_string, old_tree, new_tree, to_file=None, path_encoding='utf-8'):
         DiffPath.__init__(self, old_tree, new_tree, to_file or sys.stdout, path_encoding)
         self.set_command_string(command_string)
-        parent = osutils.joinpath([osutils.tempfile.gettempdir(), 'qbzr'])
+        parent = osutils.joinpath([osutils.tempfile.gettempdir(), 'qbrz'])
         if not os.path.isdir(parent):
             os.mkdir(parent)
-        self._root = osutils.mkdtemp(prefix='qbzr/bzr-diff-')
+        self._root = osutils.mkdtemp(prefix='qbrz/bzr-diff-')
         self.prefixes = {}
         self._set_prefix()
 

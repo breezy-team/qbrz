@@ -20,22 +20,22 @@
 from PyQt4 import QtGui, QtCore
 
 import re
-from bzrlib import timestamp
-from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy import timestamp
+from breezy.patiencediff import PatienceSequenceMatcher as SequenceMatcher
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.util import (
     file_extension,
     format_timestamp,
-    get_qbzr_config,
+    get_qbrz_config,
     get_monospace_font,
     get_tab_width_pixels,
     )
-from bzrlib.trace import mutter
-from bzrlib.plugins.qbzr.lib.syntaxhighlighter import (
+from breezy.trace import mutter
+from breezy.plugins.qbrz.lib.syntaxhighlighter import (
     CachedTTypeFormater,
     split_tokens_at_lines,
     )
-from bzrlib.plugins.qbzr.lib.widgets.texteditaccessory import (
+from breezy.plugins.qbrz.lib.widgets.texteditaccessory import (
     GuideBarPanel,    GBAR_LEFT,  GBAR_RIGHT
 )
 
@@ -64,7 +64,7 @@ interline_changes_background = QtGui.QColor(180, 210, 250)
 #  kind_bound -- the color of the boundary of the rectangle this kind refers to.
 #  kind_fill  -- the color of the filling of that same rectangle.
 
-config = get_qbzr_config()
+config = get_qbrz_config()
 component_dict = {0:'fill', 1:'bound'}
 for key in colors.iterkeys():
     for comp in [0,1]:
@@ -466,7 +466,7 @@ class _SidebySideDiffView(QtGui.QSplitter):
         self.image_exts = ['.'+str(i)
             for i in QtGui.QImageReader.supportedImageFormats()]
         
-        config = get_qbzr_config()
+        config = get_qbrz_config()
         self.show_intergroup_colors = config.get_option("diff_show_intergroup_colors") in ("True", "1")
 
     def setTabStopWidths(self, pixels):

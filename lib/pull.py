@@ -21,19 +21,19 @@ import os
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import (
+from breezy import (
     errors,
     osutils,
     urlutils,
     )
-from bzrlib.commands import get_cmd_object
+from breezy.commands import get_cmd_object
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.ui_pull import Ui_PullForm
-from bzrlib.plugins.qbzr.lib.ui_push import Ui_PushForm
-from bzrlib.plugins.qbzr.lib.ui_merge import Ui_MergeForm
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
+from breezy.plugins.qbrz.lib.ui_pull import Ui_PullForm
+from breezy.plugins.qbrz.lib.ui_push import Ui_PushForm
+from breezy.plugins.qbrz.lib.ui_merge import Ui_MergeForm
+from breezy.plugins.qbrz.lib.util import (
     iter_branch_related_locations,
     save_pull_location,
     fill_pull_combo,
@@ -160,7 +160,7 @@ class QBzrPushWindow(SubProcessDialog):
         # If so, suggest a push location, otherwise don't.
         parent_url = self.branch.get_parent()
         if parent_url and parent_url.startswith("file://"):
-            from bzrlib.branch import Branch
+            from breezy.branch import Branch
             try:
                 parent_branch = Branch.open(parent_url)
             except errors.NotBranchError:
@@ -181,12 +181,12 @@ class QBzrPushWindow(SubProcessDialog):
 
     def _build_lp_push_suggestion(self, master_url):
         try:
-            from bzrlib.plugins.launchpad import account
+            from breezy.plugins.launchpad import account
         except ImportError:
             # yes, ImportError is possible with bzr.exe,
             # because user has option to not install launchpad plugin at all
             return ''
-        from bzrlib.plugins.qbzr.lib.util import launchpad_project_from_url
+        from breezy.plugins.qbrz.lib.util import launchpad_project_from_url
         user_name = account.get_lp_login()
         project_name = launchpad_project_from_url(master_url)
         branch_name = urlutils.basename(self.branch.base)
@@ -243,7 +243,7 @@ class QBzrPushWindow(SubProcessDialog):
             strict = bools.get(strict.lower(), None)
         if strict == False:
             return True     # don't check blocking conditions
-        # the code below based on check in from bzrlib/builtins.py: cmd_push
+        # the code below based on check in from breezy/builtins.py: cmd_push
         tree = self.tree
         blocker = None
         if (tree.has_changes(tree.basis_tree())

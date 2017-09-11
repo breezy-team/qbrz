@@ -21,13 +21,13 @@ import sys, time
 from PyQt4 import QtCore, QtGui
 from PyQt4.QtGui import QKeySequence
 
-from bzrlib.revision import CURRENT_REVISION
-from bzrlib.errors import (
+from breezy.revision import CURRENT_REVISION
+from breezy.errors import (
         NoSuchRevision, 
         NoSuchRevisionInTree,
         PathsNotVersionedError)
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.i18n import gettext, N_
+from breezy.plugins.qbrz.lib.util import (
     ToolBarThrobberWidget,
     get_apparent_author_name,
     get_set_encoding,
@@ -37,31 +37,31 @@ from bzrlib.plugins.qbzr.lib.util import (
     StandardButton,
     get_tab_width_pixels,
     get_set_tab_width_chars,
-    get_qbzr_config,
+    get_qbrz_config,
     )
-from bzrlib.plugins.qbzr.lib.widgets.toolbars import (
+from breezy.plugins.qbrz.lib.widgets.toolbars import (
     FindToolbar, ToolbarPanel, LayoutSelector 
     )
-from bzrlib.plugins.qbzr.lib.widgets.tab_width_selector import TabWidthMenuSelector
-from bzrlib.plugins.qbzr.lib.diffview import (
+from breezy.plugins.qbrz.lib.widgets.tab_width_selector import TabWidthMenuSelector
+from breezy.plugins.qbrz.lib.diffview import (
     SidebySideDiffView,
     SimpleDiffView,
     )
 
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.plugins.qbzr.lib.trace import reports_exception
-from bzrlib.plugins.qbzr.lib.logwidget import LogList
-from bzrlib.plugins.qbzr.lib.decorators import lazy_call
-from bzrlib.plugins.qbzr.lib.widgets.texteditaccessory import setup_guidebar_for_find
-from bzrlib.lazy_import import lazy_import
+from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
+from breezy.plugins.qbrz.lib.trace import reports_exception
+from breezy.plugins.qbrz.lib.logwidget import LogList
+from breezy.plugins.qbrz.lib.decorators import lazy_call
+from breezy.plugins.qbrz.lib.widgets.texteditaccessory import setup_guidebar_for_find
+from breezy.lazy_import import lazy_import
 lazy_import(globals(), '''
-from bzrlib import transform
-from bzrlib.workingtree import WorkingTree
-from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
-from bzrlib.plugins.qbzr.lib.diff import DiffItem
-from bzrlib.shelf import Unshelver
-from bzrlib.shelf_ui import Unshelver as Unshelver_ui
-from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
+from breezy import transform
+from breezy.workingtree import WorkingTree
+from breezy.plugins.qbrz.lib.encoding_selector import EncodingMenuSelector
+from breezy.plugins.qbrz.lib.diff import DiffItem
+from breezy.shelf import Unshelver
+from breezy.shelf_ui import Unshelver as Unshelver_ui
+from breezy.plugins.qbrz.lib.subprocess import SimpleSubProcessDialog
 import sip
 ''')
 
@@ -529,7 +529,7 @@ class ShelveListWidget(ToolbarPanel):
         return ToolbarPanel.eventFilter(self, object, event)
     
     def load_settings(self):
-        config = get_qbzr_config()
+        config = get_qbrz_config()
         layout = config.get_option("shelvelist_layout")
         if layout not in ("2", "3"):
             layout = "1"
@@ -537,7 +537,7 @@ class ShelveListWidget(ToolbarPanel):
         self.show_files = not not config.get_option_as_bool("shelvelist_show_filelist")
 
     def save_settings(self):
-        config = get_qbzr_config()
+        config = get_qbrz_config()
         config.set_option("shelvelist_layout", str(self.current_layout))
         config.set_option("shelvelist_show_filelist", str(self.show_files))
         config.save()

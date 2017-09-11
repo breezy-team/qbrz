@@ -18,14 +18,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.branch import Branch
-from bzrlib import (
+from breezy.branch import Branch
+from breezy import (
     errors,
     )
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.ui_tag import Ui_TagForm
-from bzrlib.plugins.qbzr.lib.util import url_for_display
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
+from breezy.plugins.qbrz.lib.ui_tag import Ui_TagForm
+from breezy.plugins.qbrz.lib.util import url_for_display
 
 
 class TagWindow(SubProcessDialog):

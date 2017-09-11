@@ -19,8 +19,8 @@
 
 """Tests for commit data object and operations."""
 
-from bzrlib.tests import TestCase, TestCaseWithTransport
-from bzrlib.plugins.qbzr.lib.commit_data import (
+from breezy.tests import TestCase, TestCaseWithTransport
+from breezy.plugins.qbrz.lib.commit_data import (
     CommitData,
     QBzrCommitData,
     )
@@ -186,10 +186,10 @@ class TestCommitDataWithTree(TestCaseWithTransport):
 class TestQBzrCommitData(TestCaseWithTransport):
 
     def test_io_old_data_transition(self):
-        # we should handle old data (i.e. qbzr_commit_message) gracefully
+        # we should handle old data (i.e. qbrz_commit_message) gracefully
         wt = self.make_branch_and_tree('.')
         cfg = wt.branch.get_config()
-        cfg.set_user_option('qbzr_commit_message', 'spam')
+        cfg.set_user_option('qbrz_commit_message', 'spam')
         # load
         d = QBzrCommitData(tree=wt)
         d.load()
@@ -209,7 +209,7 @@ class TestQBzrCommitData(TestCaseWithTransport):
         d.save()
         # check branch.conf
         cfg = wt.branch.get_config()
-        self.assertEqual('', cfg.get_user_option('qbzr_commit_message'))
+        self.assertEqual('', cfg.get_user_option('qbrz_commit_message'))
         self.assertEqual({'message': 'eggs',
                           'old_revid': 'foo',
                           'new_revid': 'bar',
@@ -217,10 +217,10 @@ class TestQBzrCommitData(TestCaseWithTransport):
         #
         # on wipe we should clear old data too
         cfg = wt.branch.get_config()
-        cfg.set_user_option('qbzr_commit_message', 'spam')
+        cfg.set_user_option('qbrz_commit_message', 'spam')
         d = QBzrCommitData(tree=wt)
         d.wipe()
         # check branch.conf
         cfg = wt.branch.get_config()
-        self.assertEqual('', cfg.get_user_option('qbzr_commit_message'))
+        self.assertEqual('', cfg.get_user_option('qbrz_commit_message'))
         self.assertEqual({}, cfg.get_user_option('commit_data'))

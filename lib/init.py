@@ -18,13 +18,13 @@
 from PyQt4 import QtCore
 import os
 
-from bzrlib.commands import get_cmd_object
+from breezy.commands import get_cmd_object
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.ui_init import Ui_InitForm
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
+from breezy.plugins.qbrz.lib.ui_init import Ui_InitForm
 
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.util import (
     hookup_directory_picker,
     DIRECTORYPICKER_TARGET,
     )

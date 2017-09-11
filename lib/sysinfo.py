@@ -17,10 +17,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.sysinfo_data import get_sys_info
-from bzrlib.plugins.qbzr.lib.ui_sysinfo import Ui_MainWindow
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.sysinfo_data import get_sys_info
+from breezy.plugins.qbrz.lib.ui_sysinfo import Ui_MainWindow
+from breezy.plugins.qbrz.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     )
@@ -45,12 +45,12 @@ class QBzrSysInfoWindow(QBzrWindow):
         """
         # Bazaar Library section
         self.ui.bzr_version.setText(props.get("bzr-version", "?"))
-        bzrlib_path = props.get("bzr-lib-path")
+        breezy_path = props.get("bzr-lib-path")
         try:
-            bzrlib_head = bzrlib_path[0]
+            breezy_head = breezy_path[0]
         except IndexError:
-            bzrlib_head = ""
-        self.ui.bzr_lib_path.setText(bzrlib_head)
+            breezy_head = ""
+        self.ui.bzr_lib_path.setText(breezy_head)
 
         # Bazaar Configuration section
         self.ui.bzr_config_dir.setText(props.get("bzr-config-dir", "?"))

@@ -21,12 +21,12 @@ import os
 
 from PyQt4 import QtCore
 
-from bzrlib import osutils
-from bzrlib.commands import get_cmd_object
+from breezy import osutils
+from breezy.commands import get_cmd_object
 
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.ui_branch import Ui_BranchForm
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
+from breezy.plugins.qbrz.lib.ui_branch import Ui_BranchForm
+from breezy.plugins.qbrz.lib.util import (
     iter_saved_pull_locations,
     save_pull_location,
     fill_combo_with,

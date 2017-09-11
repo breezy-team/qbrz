@@ -36,11 +36,11 @@ Usage example
 import gc
 from itertools import izip
 
-from bzrlib import errors
-from bzrlib.bzrdir import BzrDir
-from bzrlib.transport.local import LocalTransport
-from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
-from bzrlib.graph import (
+from breezy import errors
+from breezy.controldir import ControlDir
+from breezy.transport.local import LocalTransport
+from breezy.revision import NULL_REVISION, CURRENT_REVISION
+from breezy.graph import (
     Graph,
     StackedParentsProvider,
     KnownGraph,
@@ -227,8 +227,8 @@ class GraphVizLoader(object):
         # related to the current branch much faster, because most
         # of the revision can be loaded from the local repository.
         try:
-            bzrdir, relpath = BzrDir.open_containing(u".")
-            repo = bzrdir.find_repository()
+            controldir, relpath = ControlDir.open_containing(u".")
+            repo = controldir.find_repository()
             self.repos.add(repo)
             self.local_repo_copies.append(repo)
         except Exception:
@@ -1060,7 +1060,7 @@ class GraphVizLoader(object):
 
 
 def repo_is_local(repo):
-    return isinstance(repo.bzrdir.transport, LocalTransport)
+    return isinstance(repo.controldir.transport, LocalTransport)
 
 def group_overlapping(groups):
     """ Groups items with overlapping ranges together.

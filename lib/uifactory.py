@@ -21,8 +21,8 @@
 from PyQt4 import QtCore, QtGui
 import time
 
-from bzrlib import ui
-from bzrlib.plugins.qbzr.lib.i18n import gettext
+from breezy import ui
+from breezy.plugins.qbrz.lib.i18n import gettext
 
 def ui_current_widget(f):
     def decorate(*args, **kargs):

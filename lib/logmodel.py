@@ -22,15 +22,15 @@ from time import (strftime, localtime, clock)
 import re
 import fnmatch
 
-from bzrlib.revision import CURRENT_REVISION, Revision
+from breezy.revision import CURRENT_REVISION, Revision
 
-from bzrlib.plugins.qbzr.lib.bugs import get_bug_id
-from bzrlib.plugins.qbzr.lib import loggraphviz
-from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
+from breezy.plugins.qbrz.lib.bugs import get_bug_id
+from breezy.plugins.qbrz.lib import loggraphviz
+from breezy.plugins.qbrz.lib.lazycachedrevloader import (load_revisions,
                                                          cached_revisions)
-from bzrlib.plugins.qbzr.lib.revtreeview import RevIdRole as im_RevIdRole
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.revtreeview import RevIdRole as im_RevIdRole
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.util import (
     extract_name,
     get_apparent_author,
     runs_in_loading_queue,
@@ -447,7 +447,7 @@ class PropertySearchFilter (object):
             self.filter_changed_callback(None, True)
         else:
             if self.field == "index":
-                from bzrlib.plugins.search import index as search_index
+                from breezy.plugins.search import index as search_index
                 self.filter_re = None
                 indexes = [bi.index for bi in self.graph_viz.branches
                            if bi.index is not None]

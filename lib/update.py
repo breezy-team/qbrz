@@ -21,8 +21,8 @@
 of a branch.
 """
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.subprocess import SimpleSubProcessDialog
 
 
 class QBzrUpdateWindow(SimpleSubProcessDialog):

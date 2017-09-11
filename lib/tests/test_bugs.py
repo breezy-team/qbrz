@@ -16,10 +16,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib import config
-from bzrlib.tests import TestCase, TestCaseWithTransport
+from breezy import config
+from breezy.tests import TestCase, TestCaseWithTransport
 
-from bzrlib.plugins.qbzr.lib.bugs import (
+from breezy.plugins.qbrz.lib.bugs import (
     bug_urls_to_ids,
     get_branch_bug_tags,
     get_bug_id,

@@ -26,10 +26,10 @@ import sys, time, hashlib
 from itertools import groupby
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.revision import CURRENT_REVISION
+from breezy.revision import CURRENT_REVISION
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.util import (
     BTN_CLOSE,
     QBzrWindow,
     ToolBarThrobberWidget,
@@ -41,30 +41,30 @@ from bzrlib.plugins.qbzr.lib.util import (
     get_tab_width_pixels,
     runs_in_loading_queue,
     )
-from bzrlib.plugins.qbzr.lib.widgets.toolbars import FindToolbar
-from bzrlib.plugins.qbzr.lib.widgets.texteditaccessory import (
+from breezy.plugins.qbrz.lib.widgets.toolbars import FindToolbar
+from breezy.plugins.qbrz.lib.widgets.texteditaccessory import (
     GuideBarPanel, setup_guidebar_for_find
 )
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.plugins.qbzr.lib.trace import reports_exception
-from bzrlib.plugins.qbzr.lib.logwidget import LogList
-from bzrlib.plugins.qbzr.lib.lazycachedrevloader import (load_revisions,
+from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
+from breezy.plugins.qbrz.lib.trace import reports_exception
+from breezy.plugins.qbrz.lib.logwidget import LogList
+from breezy.plugins.qbrz.lib.lazycachedrevloader import (load_revisions,
                                                          cached_revisions)
-from bzrlib.plugins.qbzr.lib.texteditannotate import (AnnotateBarBase,
+from breezy.plugins.qbrz.lib.texteditannotate import (AnnotateBarBase,
                                                       AnnotateEditerFrameBase)
-from bzrlib.lazy_import import lazy_import
+from breezy.lazy_import import lazy_import
 lazy_import(globals(), '''
-from bzrlib.config import parse_username
-from bzrlib.workingtree import WorkingTree
-from bzrlib.revisiontree import RevisionTree
-from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
-from bzrlib.plugins.qbzr.lib.encoding_selector import EncodingMenuSelector
-from bzrlib.plugins.qbzr.lib.widgets.tab_width_selector import TabWidthMenuSelector
-from bzrlib.plugins.qbzr.lib.syntaxhighlighter import highlight_document
-from bzrlib.plugins.qbzr.lib.revtreeview import paint_revno, get_text_color
-from bzrlib.plugins.qbzr.lib import logmodel
-from bzrlib.plugins.qbzr.lib.loggraphviz import BranchInfo
-from bzrlib.patiencediff import PatienceSequenceMatcher as SequenceMatcher
+from breezy.config import parse_username
+from breezy.workingtree import WorkingTree
+from breezy.revisiontree import RevisionTree
+from breezy.plugins.qbrz.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
+from breezy.plugins.qbrz.lib.encoding_selector import EncodingMenuSelector
+from breezy.plugins.qbrz.lib.widgets.tab_width_selector import TabWidthMenuSelector
+from breezy.plugins.qbrz.lib.syntaxhighlighter import highlight_document
+from breezy.plugins.qbrz.lib.revtreeview import paint_revno, get_text_color
+from breezy.plugins.qbrz.lib import logmodel
+from breezy.plugins.qbrz.lib.loggraphviz import BranchInfo
+from breezy.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 ''')
 
 class AnnotateBar(AnnotateBarBase):

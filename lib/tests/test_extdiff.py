@@ -1,15 +1,15 @@
 if __name__=='__main__':
-    import bzrlib
-    bzrlib.initialize()
-    import bzrlib.plugin
-    bzrlib.plugin.set_plugins_path()
-    bzrlib.plugin.load_plugins()
+    import breezy
+    breezy.initialize()
+    import breezy.plugin
+    breezy.plugin.set_plugins_path()
+    breezy.plugin.load_plugins()
 
 import os, tempfile
-from bzrlib.plugins.qbzr.lib.tests import QTestCase
-from bzrlib.plugins.qbzr.lib.tests.mock import MockFunction
-from bzrlib.plugins.qbzr.lib import diff
-from bzrlib.workingtree import WorkingTree
+from breezy.plugins.qbrz.lib.tests import QTestCase
+from breezy.plugins.qbrz.lib.tests.mock import MockFunction
+from breezy.plugins.qbrz.lib import diff
+from breezy.workingtree import WorkingTree
 from contextlib import contextmanager
 
 

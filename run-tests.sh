@@ -1,2 +1,2 @@
 #!/bin/sh
-bzr selftest -s bzrlib.plugins.qbzr $@
+bzr selftest -s bzrlib.plugins.qbrz $@

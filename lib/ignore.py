@@ -19,10 +19,10 @@
 
 import os
 from PyQt4 import QtCore, QtGui
-from bzrlib.globbing import Globster
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_, ngettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.util import file_extension
+from breezy.globbing import Globster
+from breezy.plugins.qbrz.lib.i18n import gettext, N_, ngettext
+from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
+from breezy.plugins.qbrz.lib.util import file_extension
 
 ACTION_NONE = 'none'
 ACTION_BY_EXT = 'ext'

@@ -18,20 +18,20 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib import bzrdir, osutils
+from breezy import controldir, osutils
 
-from bzrlib.info import show_bzrdir_info
+from breezy.info import show_controldir_info
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.ui_verify_signatures import Ui_VerifyForm
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.ui_verify_signatures import Ui_VerifyForm
+from breezy.plugins.qbrz.lib.util import (
     BTN_CLOSE,
     QBzrWindow, QBzrDialog,
     url_for_display,
     ThrobberWidget,
     )
-from bzrlib import (
-    bzrdir as _mod_bzrdir,
+from breezy import (
+    controldir as _mod_controldir,
     errors,
     gpg,
     revision as _mod_revision,
@@ -67,8 +67,8 @@ class QBzrVerifySignaturesWindow(QBzrDialog):
         """get the revisions wanted by the user, do the verifications and
         popular the tree widget with the results"""
         self.throbber.show()
-        bzrdir = _mod_bzrdir.BzrDir.open_containing(self.location)[0]
-        branch = bzrdir.open_branch()
+        controldir = _mod_controldir.ControlDir.open_containing(self.location)[0]
+        branch = controldir.open_branch()
         repo = branch.repository
         branch_config = branch.get_config()
         gpg_strategy = gpg.GPGStrategy(branch_config)

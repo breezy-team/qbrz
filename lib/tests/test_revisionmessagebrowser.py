@@ -18,10 +18,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 
-from bzrlib import (
+from breezy import (
     tests,
     )
-from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import (
+from breezy.plugins.qbrz.lib.revisionmessagebrowser import (
     htmlencode,
     htmlize,
     )

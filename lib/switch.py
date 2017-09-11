@@ -22,25 +22,25 @@
 import os
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import errors, osutils
+from breezy import errors, osutils
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
+from breezy.plugins.qbrz.lib.util import (
     url_for_display,
     QBzrDialog,
     runs_in_loading_queue,
     ThrobberWidget
     )
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.plugins.qbzr.lib.trace import (
+from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
+from breezy.plugins.qbrz.lib.trace import (
    reports_exception,
    SUB_LOAD_METHOD)
 
 
 class QBzrSwitchWindow(SubProcessDialog):
 
-    def __init__(self, branch, bzrdir, location, ui_mode = None):
+    def __init__(self, branch, controldir, location, ui_mode = None):
 
         super(QBzrSwitchWindow, self).__init__(
                                   gettext("Switch"),
@@ -65,10 +65,10 @@ class QBzrSwitchWindow(SubProcessDialog):
             label = gettext("Heavyweight checkout:")
             branchbase = branch.base
         else:
-            if bzrdir.root_transport.base != branch.bzrdir.root_transport.base:
+            if controldir.root_transport.base != branch.controldir.root_transport.base:
                 label = gettext("Lightweight checkout:")
-                boundloc = branch.bzrdir.root_transport.base
-                branchbase = bzrdir.root_transport.base
+                boundloc = branch.controldir.root_transport.base
+                branchbase = controldir.root_transport.base
             else:
                 raise errors.BzrError("This branch is not checkout.")
 
@@ -133,7 +133,7 @@ class QBzrSwitchWindow(SubProcessDialog):
 
     def _load_branch_names(self):
         branch_combo = self.branch_combo
-        repo = self.branch.bzrdir.find_repository()
+        repo = self.branch.controldir.find_repository()
         if repo is not None:
             if getattr(repo, "iter_branches", None):
                 for br in repo.iter_branches():

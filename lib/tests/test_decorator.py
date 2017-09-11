@@ -19,9 +19,9 @@
 
 import time
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib.decorators import lazy_call
-from bzrlib.tests import TestCase, TestCaseWithTransport
-from bzrlib.plugins.qbzr.lib import tests as qtests
+from breezy.plugins.qbrz.lib.decorators import lazy_call
+from breezy.tests import TestCase, TestCaseWithTransport
+from breezy.plugins.qbrz.lib import tests as qtests
 
 
 test_value = 0

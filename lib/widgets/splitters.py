@@ -18,8 +18,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtGui, QtCore
-from bzrlib.plugins.qbzr.lib.util import (
-    get_qbzr_config,
+from breezy.plugins.qbrz.lib.util import (
+    get_qbrz_config,
     )
 
 class Splitters(object):
@@ -33,14 +33,14 @@ class Splitters(object):
         self.splitters.append((name, splitter))
 
     def restore_state(self):
-        config = get_qbzr_config()
+        config = get_qbrz_config()
         for name, splitter in self.splitters:
             data = config.get_option('%s_%s' % (self.prefix, name))
             if data:
                 splitter.restoreState(QtCore.QByteArray.fromBase64(data))
 
     def save_state(self):
-        config = get_qbzr_config()
+        config = get_qbrz_config()
         for name, splitter in self.splitters:
             value = splitter.saveState().toBase64().data()
             config.set_option('%s_%s' % (self.prefix, name), value)

@@ -26,9 +26,9 @@ import sys
 from PyQt4 import QtCore, QtGui
 from contextlib import contextmanager
 
-from bzrlib.plugins.qbzr.lib import MS_WINDOWS
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib import MS_WINDOWS
+from breezy.plugins.qbrz.lib.i18n import gettext, N_
+from breezy.plugins.qbrz.lib.util import (
     BTN_CANCEL,
     BTN_CLOSE,
     BTN_OK,
@@ -39,12 +39,12 @@ from bzrlib.plugins.qbzr.lib.util import (
     InfoWidget,
     )
 
-from bzrlib.ui.text import TextProgressView, TextUIFactory
-from bzrlib.plugins.qbzr.lib.trace import (
+from breezy.ui.text import TextProgressView, TextUIFactory
+from breezy.plugins.qbrz.lib.trace import (
    report_exception,
    SUB_LOAD_METHOD)
 
-from bzrlib.lazy_import import lazy_import
+from breezy.lazy_import import lazy_import
 lazy_import(globals(), '''
 import codecs
 import re
@@ -53,7 +53,7 @@ import signal
 import tempfile
 import thread
 
-from bzrlib import (
+from breezy import (
     bencode,
     commands,
     errors,
@@ -61,23 +61,23 @@ from bzrlib import (
     ui,
     )
 
-from bzrlib.bzrdir import BzrDir
+from breezy.controldir import ControlDir
 
-from bzrlib.plugins.qbzr.lib.commit import CommitWindow
-from bzrlib.plugins.qbzr.lib.revert import RevertWindow
-from bzrlib.plugins.qbzr.lib.shelvewindow import ShelveWindow
-from bzrlib.plugins.qbzr.lib.conflicts import ConflictsWindow
+from breezy.plugins.qbrz.lib.commit import CommitWindow
+from breezy.plugins.qbrz.lib.revert import RevertWindow
+from breezy.plugins.qbrz.lib.shelvewindow import ShelveWindow
+from breezy.plugins.qbrz.lib.conflicts import ConflictsWindow
 ''')
 
 
 # Subprocess service messages markers
-SUB_PROGRESS = "qbzr:PROGRESS:"
-SUB_GETPASS = "qbzr:GETPASS:"
-SUB_GETUSER = "qbzr:GETUSER:"
-SUB_GETBOOL = "qbzr:GETBOOL:"
-SUB_CHOOSE = "qbzr:CHOOSE:"
-SUB_ERROR = "qbzr:ERROR:"
-SUB_NOTIFY = "qbzr:NOTIFY:"
+SUB_PROGRESS = "qbrz:PROGRESS:"
+SUB_GETPASS = "qbrz:GETPASS:"
+SUB_GETUSER = "qbrz:GETUSER:"
+SUB_GETBOOL = "qbrz:GETBOOL:"
+SUB_CHOOSE = "qbrz:CHOOSE:"
+SUB_ERROR = "qbrz:ERROR:"
+SUB_NOTIFY = "qbrz:NOTIFY:"
 
 NOTIFY_CONFLICT = "conflict:"
 
@@ -622,11 +622,11 @@ class SubProcessWidget(QtGui.QWidget):
 
         # win32 has command-line length limit about 32K, but it seems 
         # problems with command-line buffer limit occurs not only on windows.
-        # see bug https://bugs.launchpad.net/qbzr/+bug/396165
+        # see bug https://bugs.launchpad.net/qbrz/+bug/396165
         # on Linux I believe command-line is in utf-8,
         # so we need to have some extra space
         # when converting unicode -> utf8
-        if (len(args) > 10000       # XXX make the threshold configurable in qbzr.conf?
+        if (len(args) > 10000       # XXX make the threshold configurable in qbrz.conf?
             or re.search(r"(?:"
                 r"\n|\r"            # workaround for bug #517420
                 r"|\\\\"            # workaround for bug #528944
@@ -662,9 +662,9 @@ class SubProcessWidget(QtGui.QWidget):
             # dir.
             script = os.path.abspath(script)
             if os.path.basename(script) != "bzr":
-                import bzrlib
+                import breezy
                 # are we running directly from a bzr directory?
-                script = os.path.join(bzrlib.__path__[0], "..", "bzr")
+                script = os.path.join(breezy.__path__[0], "..", "bzr")
                 if not os.path.isfile(script):
                     # maybe from an installed bzr?
                     script = os.path.join(sys.prefix, "scripts", "bzr")
@@ -992,7 +992,7 @@ def watch_conflicts(on_conflicted):
             on_conflicted(abspath)
 
     try:
-        from bzrlib.merge import Merger
+        from breezy.merge import Merger
         Merger.hooks.install_named_hook('post_merge', post_merge, hook_name)
         yield
     finally:
@@ -1065,7 +1065,7 @@ if MS_WINDOWS:
         return lp.contents.dwProcessID
 
     def get_event_name(child_pid):
-        return 'qbzr-qsubprocess-%d' % child_pid
+        return 'qbrz-qsubprocess-%d' % child_pid
 
     def signal_event(child_pid):
         import win32event
@@ -1123,7 +1123,7 @@ def bencode_exception_instance(e):
     For now, nearly all exceptions just give the exception name as a string,
     but a dictionary is also given that may contain unicode-escaped attributes.
     """
-    # GZ 2011-04-15: Could use bzrlib.trace._qualified_exception_name in 2.4
+    # GZ 2011-04-15: Could use breezy.trace._qualified_exception_name in 2.4
     ename = e.__class__.__name__
     d = {}
     # For now be conservative and only serialise attributes that will get used

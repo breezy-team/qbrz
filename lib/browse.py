@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.util import (
     BTN_CLOSE,
     BTN_REFRESH,
     StandardButton,
@@ -27,21 +27,21 @@ from bzrlib.plugins.qbzr.lib.util import (
     runs_in_loading_queue,
     url_for_display,
     )
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.plugins.qbzr.lib.trace import reports_exception
+from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
+from breezy.plugins.qbrz.lib.trace import reports_exception
 
-from bzrlib.lazy_import import lazy_import
+from breezy.lazy_import import lazy_import
 lazy_import(globals(), '''
-from bzrlib import (
+from breezy import (
     osutils,
     errors,
     )
-from bzrlib.bzrdir import BzrDir
-from bzrlib.revisionspec import RevisionSpec
+from breezy.controldir import ControlDir
+from breezy.revisionspec import RevisionSpec
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.treewidget import TreeWidget, TreeFilterMenu
-from bzrlib.plugins.qbzr.lib.diff import DiffButtons
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.treewidget import TreeWidget, TreeFilterMenu
+from breezy.plugins.qbrz.lib.diff import DiffButtons
 ''')
 class BrowseWindow(QBzrWindow):
 
@@ -139,7 +139,7 @@ class BrowseWindow(QBzrWindow):
             if not self.branch:
                 (self.workingtree,
                  self.branch,
-                 repo, path) = BzrDir.open_containing_tree_branch_or_repository(self.location)
+                 repo, path) = ControlDir.open_containing_tree_branch_or_repository(self.location)
             
             if self.revision is None:
                 if self.revision_id is None:

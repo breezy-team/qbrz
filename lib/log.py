@@ -19,9 +19,9 @@
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.revision import CURRENT_REVISION
+from breezy.revision import CURRENT_REVISION
 
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.util import (
     BTN_CLOSE,
     BTN_REFRESH,
     QBzrWindow,
@@ -31,32 +31,32 @@ from bzrlib.plugins.qbzr.lib.util import (
     runs_in_loading_queue,
     get_set_encoding,
     )
-from bzrlib.plugins.qbzr.lib.trace import reports_exception, SUB_LOAD_METHOD
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
-from bzrlib.plugins.qbzr.lib.loggraphviz import GhostRevisionError
+from breezy.plugins.qbrz.lib.trace import reports_exception, SUB_LOAD_METHOD
+from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
+from breezy.plugins.qbrz.lib.loggraphviz import GhostRevisionError
 
-from bzrlib.lazy_import import lazy_import
+from breezy.lazy_import import lazy_import
 lazy_import(globals(), '''
 import re
 
-from bzrlib import errors
-from bzrlib import osutils
-from bzrlib.bzrdir import BzrDir
-from bzrlib.urlutils import determine_relative_path, join, split
+from breezy import errors
+from breezy import osutils
+from breezy.controldir import ControlDir
+from breezy.urlutils import determine_relative_path, join, split
 
-from bzrlib.plugins.qbzr.lib.logwidget import LogList
-from bzrlib.plugins.qbzr.lib import logmodel
-from bzrlib.plugins.qbzr.lib.loggraphviz import BranchInfo
+from breezy.plugins.qbrz.lib.logwidget import LogList
+from breezy.plugins.qbrz.lib import logmodel
+from breezy.plugins.qbrz.lib.loggraphviz import BranchInfo
 
-from bzrlib.plugins.qbzr.lib.diff import (
+from breezy.plugins.qbrz.lib.diff import (
     has_ext_diff,
     ExtDiffMenu,
     DiffButtons,
     )
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
-from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
-from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.revisionmessagebrowser import LogListRevisionMessageBrowser
+from breezy.plugins.qbrz.lib.cat import QBzrCatWindow
+from breezy.plugins.qbrz.lib.annotate import AnnotateWindow
 ''')
 
 
@@ -262,7 +262,7 @@ class LogWindow(QBzrWindow):
         if self.branch:
             if self.tree is None:
                 try:
-                    self.tree = self.branch.bzrdir.open_workingtree()
+                    self.tree = self.branch.controldir.open_workingtree()
                 except (errors.NoWorkingTree, errors.NotLocalUrl):
                     pass
             label = self.branch_label(None, self.branch)
@@ -283,7 +283,7 @@ class LogWindow(QBzrWindow):
             
             for location in locations:
                 tree, br, repo, fp = \
-                    BzrDir.open_containing_tree_branch_or_repository(location)
+                    ControlDir.open_containing_tree_branch_or_repository(location)
                 self.processEvents()
                 
                 if br is None:
@@ -297,7 +297,7 @@ class LogWindow(QBzrWindow):
                     for br in repo_branches:
                         self.processEvents()
                         try:
-                            tree = br.bzrdir.open_workingtree()
+                            tree = br.controldir.open_workingtree()
                             self.processEvents()
                         except errors.NoWorkingTree:
                             tree = None
@@ -347,9 +347,9 @@ class LogWindow(QBzrWindow):
         if have_search is None:
             have_search = True
             try:
-                from bzrlib.plugins.search import errors as search_errors
-                from bzrlib.plugins.search import index as search_index
-            except (ImportError, errors.IncompatibleAPI):
+                from breezy.plugins.search import errors as search_errors
+                from breezy.plugins.search import index as search_index
+            except ImportError:
                 have_search = False            
         
         if have_search:
@@ -396,10 +396,10 @@ class LogWindow(QBzrWindow):
             return path
         
         if shared_repo_location and shared_repo and not location:
-            # Once we depend on bzrlib 2.2, this can become .user_url
+            # Once we depend on breezy 2.2, this can become .user_url
             branch_rel = determine_relative_path(
-                shared_repo.bzrdir.root_transport.base,
-                branch.bzrdir.root_transport.base)
+                shared_repo.controldir.root_transport.base,
+                branch.controldir.root_transport.base)
             if shared_repo_location == 'colo:':
                 location = shared_repo_location + branch_rel
             else:
@@ -529,7 +529,7 @@ class LogWindow(QBzrWindow):
         if locations is None:
             return osutils.getcwd()
         else:
-            from bzrlib.branch import Branch
+            from breezy.branch import Branch
             
             def title_for_location(location):
                 if isinstance(location, basestring):
@@ -642,7 +642,7 @@ class FileListContainer(QtGui.QWidget):
                 if (repos[0].__class__.__name__ == 'SvnRepository' or
                     repos[1].__class__.__name__ == 'SvnRepository'):
                     # Loading trees from a remote svn repo is unusably slow.
-                    # See https://bugs.launchpad.net/qbzr/+bug/450225
+                    # See https://bugs.launchpad.net/qbrz/+bug/450225
                     # If only 1 revision is selected, use a optimized svn method
                     # which actualy gets the server to do the delta,
                     # else, don't do any delta.

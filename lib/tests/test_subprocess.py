@@ -21,17 +21,17 @@
 
 from cStringIO import StringIO
 
-from bzrlib import (
+from breezy import (
     bencode,
     errors,
     progress,
     urlutils,
     )
-from bzrlib.tests import (
+from breezy.tests import (
     TestCase,
     features,
     )
-from bzrlib.plugins.qbzr.lib.subprocess import (
+from breezy.plugins.qbrz.lib.subprocess import (
     bdecode_prompt,
     bencode_prompt,
     bencode_unicode,
@@ -42,7 +42,7 @@ from bzrlib.plugins.qbzr.lib.subprocess import (
     SubprocessProgressView,
     SUB_PROGRESS,
     )
-from bzrlib.plugins.qbzr.lib.tests import compatibility
+from breezy.plugins.qbrz.lib.tests import compatibility
 
 
 class TestBencode(TestCase):

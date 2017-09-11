@@ -30,20 +30,20 @@ import traceback
 
 from PyQt4 import QtCore, QtGui
 
-import bzrlib            
-from bzrlib import (
+import breezy            
+from breezy import (
     errors,
     osutils,
     plugin,
     )
-from bzrlib.trace import (
+from breezy.trace import (
     mutter,
     note,
-    print_exception as _bzrlib_print_exception,
-    report_exception as _bzrlib_report_exception,
+    print_exception as _breezy_print_exception,
+    report_exception as _breezy_report_exception,
     )
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-import bzrlib.plugins.qbzr.lib.resources
+from breezy.plugins.qbrz.lib.i18n import gettext
+import breezy.plugins.qbrz.lib.resources
 
 
 class StopException(Exception):
@@ -66,7 +66,7 @@ ITEM_OR_EVENT_METHOD = 2
 The user is allowed to ignore the error, or close the window.
 """
 
-_file_bugs_url = "https://bugs.launchpad.net/qbzr/+filebug"
+_file_bugs_url = "https://bugs.launchpad.net/qbrz/+filebug"
 
 def set_file_bugs_url(url):
     global _file_bugs_url
@@ -125,14 +125,14 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
     
     # always tell bzr to report it, so it ends up in the log.        
     # See https://bugs.launchpad.net/bzr/+bug/785695
-    error_type = _bzrlib_report_exception(exc_info, err_file)
+    error_type = _breezy_report_exception(exc_info, err_file)
     backtrace = traceback.format_exception(*exc_info)
     mutter(''.join(backtrace))
     
     if (type == MAIN_LOAD_METHOD and window):
         window.ret_code = error_type
     
-    # XXX This is very similar to bzrlib.commands.exception_to_return_code.
+    # XXX This is very similar to breezy.commands.exception_to_return_code.
     # We shoud get bzr to refactor so that that this is reuseable.
     if pdb:
         # With out this - pyQt shows lot of warnings. see:
@@ -169,15 +169,15 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
             msg_box = create_lockerror_dialog(error_type, window)
 
         elif error_type == errors.EXIT_INTERNAL_ERROR:
-            # this is a copy of bzrlib.trace.report_bug
+            # this is a copy of breezy.trace.report_bug
             # but we seperate the message, and the trace back,
             # and addes a hyper link to the filebug page.
             traceback_file = StringIO()
-            _bzrlib_print_exception(exc_info, traceback_file)
+            _breezy_print_exception(exc_info, traceback_file)
             traceback_file.write('\n')
             traceback_file.write('bzr %s on python %s (%s)\n' % \
-                               (bzrlib.__version__,
-                                bzrlib._format_version_tuple(sys.version_info),
+                               (breezy.__version__,
+                                breezy._format_version_tuple(sys.version_info),
                                 sys.platform))
             traceback_file.write('arguments: %r\n' % sys.argv)
             traceback_file.write(
@@ -225,7 +225,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
     return error_type
 
 class ErrorReport(QtGui.QDialog):
-    """A dialogue box for displaying and optionally reporting crashes in bzr/qbzr/bzr explorer."""
+    """A dialogue box for displaying and optionally reporting crashes in bzr/qbrz/bzr explorer."""
     def __init__(self, title, message_internal, trace_back, exc_info, type=MAIN_LOAD_METHOD,
                  parent=None):
 
@@ -268,8 +268,8 @@ class ErrorReport(QtGui.QDialog):
             button.setText(gettext("Ignore Error"))
 
         def report_bug():
-            from bzrlib import crash
-            #Using private method because bzrlib.crash is not currently intended for reuse from GUIs
+            from breezy import crash
+            #Using private method because breezy.crash is not currently intended for reuse from GUIs
             #see https://bugs.launchpad.net/bzr/+bug/785696
             crash_filename = crash._write_apport_report_to_file(exc_info)
 
@@ -368,7 +368,7 @@ class ErrorReport(QtGui.QDialog):
         # We can't import this at the top of the file because util imports
         # this file. XXX - The is probably a sign that util is to big, and
         # we need to split it up.
-        from bzrlib.plugins.qbzr.lib.util import open_browser
+        from breezy.plugins.qbrz.lib.util import open_browser
         open_browser(str(url))
 
 def reports_exception(type=MAIN_LOAD_METHOD):

@@ -1,22 +1,22 @@
 if __name__=='__main__':
-    import bzrlib
-    bzrlib.initialize()
+    import breezy
+    breezy.initialize()
     try:
-        from bzrlib.commands import _register_builtin_commands
+        from breezy.commands import _register_builtin_commands
         _register_builtin_commands()
     except ImportError:
         pass
-    import bzrlib.plugin
-    bzrlib.plugin.set_plugins_path()
-    bzrlib.plugin.load_plugins()
+    import breezy.plugin
+    breezy.plugin.set_plugins_path()
+    breezy.plugin.load_plugins()
 
-from bzrlib.plugins.qbzr.lib.tests import QTestCase
+from breezy.plugins.qbrz.lib.tests import QTestCase
 from PyQt4 import QtCore
 from PyQt4.QtTest import QTest
 
-from bzrlib.plugins.qbzr.lib.diffwindow import DiffWindow
-from bzrlib.plugins.qbzr.lib.shelvewindow import ShelveWindow
-from bzrlib.plugins.qbzr.lib.annotate import AnnotateWindow
+from breezy.plugins.qbrz.lib.diffwindow import DiffWindow
+from breezy.plugins.qbrz.lib.shelvewindow import ShelveWindow
+from breezy.plugins.qbrz.lib.annotate import AnnotateWindow
 
 
 class WtDiffArgProvider(object):

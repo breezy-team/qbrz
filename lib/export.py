@@ -23,15 +23,15 @@ import os
 import sys
 from PyQt4 import QtCore, QtGui
 
-from bzrlib import (
-    bzrdir,
+from breezy import (
+    controldir,
     errors,
     export,
     osutils,
     )
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SubProcessDialog
-from bzrlib.plugins.qbzr.lib.util import url_for_display
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.subprocess import SubProcessDialog
+from breezy.plugins.qbrz.lib.util import url_for_display
 
 
 class QBzrExportDialog(SubProcessDialog):
@@ -251,7 +251,7 @@ class QBzrExportDialog(SubProcessDialog):
         else:
             export_name = "%s/%s.%s" % (base[0], root_folder, format)
         try:
-            basedir = bzrdir.BzrDir.open(base[0])
+            basedir = controldir.ControlDir.open(base[0])
         except errors.NotBranchError: #this is not even a bzr dir
             pass
         else:

@@ -23,14 +23,14 @@
 
 from PyQt4 import QtGui
 
-from bzrlib import (
-    bzrdir,
+from breezy import (
+    controldir,
     errors,
     osutils,
     urlutils,
     )
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.i18n import gettext
 
 
 class TreeBranch(object):
@@ -68,7 +68,7 @@ class TreeBranch(object):
             (tree,
              branch,
              relpath
-            ) = bzrdir.BzrDir.open_containing_tree_or_branch(location)
+            ) = controldir.ControlDir.open_containing_tree_or_branch(location)
 
             if require_tree and tree is None:
                 raise errors.NoWorkingTree(location)
@@ -98,8 +98,8 @@ class TreeBranch(object):
 
     def is_light_co(self):
         """Return True if location is lightweight checkout."""
-        if (self.tree and self.tree.bzrdir.root_transport.base !=
-            self.branch.bzrdir.root_transport.base):
+        if (self.tree and self.tree.controldir.root_transport.base !=
+            self.branch.controldir.root_transport.base):
             return True
         return False
 

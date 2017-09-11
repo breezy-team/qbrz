@@ -16,10 +16,10 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from bzrlib.tests import TestCase, TestCaseWithTransport
+from breezy.tests import TestCase, TestCaseWithTransport
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib import tests as qtests
-from bzrlib.plugins.qbzr.lib.cat import QBzrCatWindow
+from breezy.plugins.qbrz.lib import tests as qtests
+from breezy.plugins.qbrz.lib.cat import QBzrCatWindow
 
 
 class TestCat(qtests.QTestCase):

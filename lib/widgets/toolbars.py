@@ -16,14 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.plugins.qbrz.lib.util import (
     get_icon,
     show_shortcut_hint
     )
 
 from PyQt4 import QtCore, QtGui
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
-from bzrlib.plugins.qbzr.lib.decorators import lazy_call
+from breezy.plugins.qbrz.lib.i18n import gettext, N_
+from breezy.plugins.qbrz.lib.decorators import lazy_call
 import sip
 
 def create_toolbar_button(text, parent=None, icon_name=None, icon_size=22,

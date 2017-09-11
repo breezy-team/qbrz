@@ -26,38 +26,38 @@ import itertools
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.revision import Revision
-from bzrlib.config import (
+from breezy.revision import Revision
+from breezy.config import (
     GlobalConfig,
     config_dir,
     ensure_config_dir_exists,
     config_filename,
     )
-from bzrlib import lazy_regex
+from breezy import lazy_regex
 
 
-from bzrlib.plugins.qbzr.lib import MS_WINDOWS
+from breezy.plugins.qbrz.lib import MS_WINDOWS
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext, N_
+from breezy.plugins.qbrz.lib.i18n import gettext, N_
 
 # pyflakes says this is not needed, but it is.
-import bzrlib.plugins.qbzr.lib.resources
+import breezy.plugins.qbrz.lib.resources
 
-from bzrlib import errors
+from breezy import errors
 
-from bzrlib.lazy_import import lazy_import
+from breezy.lazy_import import lazy_import
 lazy_import(globals(), '''
-from bzrlib import (
+from breezy import (
     osutils,
     urlutils,
     ui,
 )
-from bzrlib.plugins.qbzr.lib import trace
-from bzrlib.workingtree import WorkingTree
-from bzrlib.transport import get_transport
-from bzrlib.lockdir import LockDir
+from breezy.plugins.qbrz.lib import trace
+from breezy.workingtree import WorkingTree
+from breezy.transport import get_transport
+from breezy.lockdir import LockDir
 
-from bzrlib.plugins.qbzr.lib.compatibility import configobj
+from breezy.plugins.qbrz.lib.compatibility import configobj
 ''')
 
 # standard buttons with translatable labels
@@ -90,7 +90,7 @@ class StandardButton(QtGui.QPushButton):
 
 
 def config_filename():
-    return osutils.pathjoin(config_dir(), 'qbzr.conf')
+    return osutils.pathjoin(config_dir(), 'qbrz.conf')
 
 
 class Config(object):
@@ -134,8 +134,8 @@ class Config(object):
             return None
 
     def get_option_as_bool(self, name, section=None):
-        # imitate the code from bzrlib.config to read option as boolean
-        # until we will switch to use bzrlib.config instead of our re-implementation
+        # imitate the code from breezy.config to read option as boolean
+        # until we will switch to use breezy.config instead of our re-implementation
         value_maybe_str_or_bool = self.get_option(name, section)
         if value_maybe_str_or_bool not in (None, ''):
             value = ui.bool_from_string(value_maybe_str_or_bool)
@@ -260,13 +260,13 @@ def _check_global_config_filename_valid(config):
         return False
 
 
-_qbzr_config = None
-def get_qbzr_config():
-    global _qbzr_config
-    if (_qbzr_config is None or
-        not _qbzr_config._filename == config_filename()):
-        _qbzr_config = QBzrConfig()
-    return _qbzr_config
+_qbrz_config = None
+def get_qbrz_config():
+    global _qbrz_config
+    if (_qbrz_config is None or
+        not _qbrz_config._filename == config_filename()):
+        _qbrz_config = QBzrConfig()
+    return _qbrz_config
 
 def get_branch_config(branch):
     if branch: # we should check boolean branch value to support 2 fake branch cases: branch is None, branch is FakeBranch
@@ -329,13 +329,13 @@ class _QBzrWindowBase(object):
         config.set_option(name + "_window_maximized", is_maximized)
     
     def saveSize(self):
-        config = get_qbzr_config()
+        config = get_qbrz_config()
         self._saveSize(config)
         config.save()
 
     def restoreSize(self, name, defaultSize):
         self._window_name = name
-        config = get_qbzr_config()
+        config = get_qbrz_config()
         size = config.get_option(name + "_window_size")
         if size:
             size = size.split("x")
@@ -366,7 +366,7 @@ class _QBzrWindowBase(object):
 
     def restoreSplitterSizes(self, default_sizes=None):
         name = self._window_name
-        config = get_qbzr_config()
+        config = get_qbrz_config()
         sizes = config.get_option(name + "_splitter_sizes")
         n = len(self.splitter.sizes())
         if sizes:
@@ -395,7 +395,7 @@ class _QBzrWindowBase(object):
         scheme, link = unicode(target).split(":", 1)
         if scheme != "bzrtopic":
             raise RuntimeError, "unknown scheme"
-        from bzrlib.plugins.qbzr.lib.help import show_help
+        from breezy.plugins.qbrz.lib.help import show_help
         show_help(link, self)
     
     def processEvents(self, flags=QtCore.QEventLoop.AllEvents):
@@ -411,7 +411,7 @@ class _QBzrWindowBase(object):
         to show error message about incorrect or missing parameters.
 
         We can easily switch between show_error and show_warning
-        inside this method if we want to change the overall qbzr behavior.
+        inside this method if we want to change the overall qbrz behavior.
         """
         self.show_warning(message)
 
@@ -477,7 +477,7 @@ class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
         # Even though this is a dialog, make it like a window. This allows us
         # to have the best of both worlds, e.g. Default buttons from dialogs,
         # and max and min buttons from window.
-        # It also fixes https://bugs.launchpad.net/qbzr/+bug/421039
+        # It also fixes https://bugs.launchpad.net/qbrz/+bug/421039
         self.setWindowFlags(QtCore.Qt.Window)
 
     def do_accept(self):
@@ -667,7 +667,7 @@ def get_set_encoding(encoding, branch):
         config = get_branch_config(branch)
         encoding = config.get_user_option("encoding") or 'utf-8'
         if not is_valid_encoding(encoding):
-            from bzrlib.trace import note
+            from breezy.trace import note
             note(('NOTE: Invalid encoding value in branch config: %s\n'
                 'utf-8 will be used instead') % encoding)
             encoding = 'utf-8'
@@ -809,7 +809,7 @@ def show_shortcut_hint(action):
 def iter_saved_pull_locations():
     """ Iterate the 'pull' locations we have previously saved for the user.
     """
-    config = get_qbzr_config()
+    config = get_qbrz_config()
     try:
         sect = config.get_section('Pull Locations')
     except KeyError:
@@ -842,7 +842,7 @@ def save_pull_location(branch, location):
     max_items = 20
     existing = existing[:max_items]
 
-    config = get_qbzr_config()
+    config = get_qbrz_config()
     # and save it to the ini
     section = {}
     for i, save_location in enumerate(existing):
@@ -857,7 +857,7 @@ def save_pull_location(branch, location):
 
 def url_for_display(url):
     """Return human-readable URL or local path for file:/// URLs.
-    Wrapper around bzrlib.urlutils.unescape_for_display
+    Wrapper around breezy.urlutils.unescape_for_display
     """
     if not url:
         return url

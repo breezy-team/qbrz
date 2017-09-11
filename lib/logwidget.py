@@ -19,25 +19,25 @@
 
 from PyQt4 import QtCore, QtGui
 
-from bzrlib.plugins.qbzr.lib.revtreeview import (RevisionTreeView,
+from breezy.plugins.qbrz.lib.revtreeview import (RevisionTreeView,
                                                  RevNoItemDelegate,
                                                  get_text_color)
-from bzrlib.revision import NULL_REVISION, CURRENT_REVISION
-from bzrlib.plugins.qbzr.lib.util import (
+from breezy.revision import NULL_REVISION, CURRENT_REVISION
+from breezy.plugins.qbrz.lib.util import (
     runs_in_loading_queue,
     )
-from bzrlib.plugins.qbzr.lib.trace import reports_exception, SUB_LOAD_METHOD
-from bzrlib.plugins.qbzr.lib.uifactory import ui_current_widget
+from breezy.plugins.qbrz.lib.trace import reports_exception, SUB_LOAD_METHOD
+from breezy.plugins.qbrz.lib.uifactory import ui_current_widget
 
-from bzrlib.lazy_import import lazy_import
+from breezy.lazy_import import lazy_import
 lazy_import(globals(), '''
-from bzrlib.bzrdir import BzrDir
-from bzrlib.revisionspec import RevisionSpec
-from bzrlib.plugins.qbzr.lib.tag import TagWindow, CallBackTagWindow
-from bzrlib.plugins.qbzr.lib import logmodel
-from bzrlib.plugins.qbzr.lib import diff
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.subprocess import SimpleSubProcessDialog
+from breezy.controldir import ControlDir
+from breezy.revisionspec import RevisionSpec
+from breezy.plugins.qbrz.lib.tag import TagWindow, CallBackTagWindow
+from breezy.plugins.qbrz.lib import logmodel
+from breezy.plugins.qbrz.lib import diff
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.subprocess import SimpleSubProcessDialog
 ''')
 
 
@@ -88,7 +88,7 @@ class LogList(RevisionTreeView):
         header.resizeSection(logmodel.COL_REV,
                              fm.width("8888.8.888") + col_margin)
         header.resizeSection(logmodel.COL_DATE,
-                             # [bialix 2013/07/11]     v  I've added a space to sample string below to workaround bug https://bugs.launchpad.net/qbzr/+bug/430502
+                             # [bialix 2013/07/11]     v  I've added a space to sample string below to workaround bug https://bugs.launchpad.net/qbrz/+bug/430502
                              #                         v  If this is a problem on non-Windows platforms - please let me know and I'll add a platform check
                              fm.width("88-88-8888 88:88 ") + col_margin)
         header.resizeSection(logmodel.COL_AUTHOR,
@@ -571,7 +571,7 @@ class LogList(RevisionTreeView):
         self.show_diff_specified_files(ext_diff=ext_diff)
     
     def show_revision_tree(self):
-        from bzrlib.plugins.qbzr.lib.browse import BrowseWindow
+        from breezy.plugins.qbrz.lib.browse import BrowseWindow
         revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
         gv = self.log_model.graph_viz
         if revid.startswith(CURRENT_REVISION):

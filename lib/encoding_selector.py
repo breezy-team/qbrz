@@ -22,9 +22,9 @@
 import codecs
 from PyQt4 import QtGui, QtCore
 
-from bzrlib.plugins.qbzr.lib.i18n import gettext
-from bzrlib.plugins.qbzr.lib.util import is_valid_encoding
-from bzrlib.osutils import get_user_encoding, get_terminal_encoding
+from breezy.plugins.qbrz.lib.i18n import gettext
+from breezy.plugins.qbrz.lib.util import is_valid_encoding
+from breezy.osutils import get_user_encoding, get_terminal_encoding
 
 
 class UniqueList(object):

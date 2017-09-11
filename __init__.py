@@ -78,81 +78,59 @@ version_info = (0,23,2,'final',0)
 __version__ = '.'.join(map(str, version_info))
 
 
-import bzrlib
-from bzrlib import api
+import breezy
 
-def require_mimimum_api(object_with_api, wanted_mimimum_api):
-    """Check if object_with_api supports the mimimum api version
-    wanted_mimimum_api.
-
-    :param object_with_api: An object which exports an API minimum and current
-        version. See get_minimum_api_version and get_current_api_version for
-        details.
-    :param wanted_mimimum_api: The API version for which support is required.
-    :return: None
-    :raises IncompatibleAPI: When the wanted_api is not supported by
-        object_with_api.
-    """
-    current = api.get_current_api_version(object_with_api)
-    minimum = api.get_minimum_api_version(object_with_api)
-    if wanted_mimimum_api > minimum:
-        from bzrlib.errors import IncompatibleAPI
-        raise IncompatibleAPI(object_with_api, wanted_mimimum_api,
-                              minimum, current)
-
-require_mimimum_api(bzrlib, (2, 1, 0))
-
-from bzrlib.commands import plugin_cmds
+from breezy.commands import plugin_cmds
 
 
-# merge --qpreview disabled for 0.14 because it makes qbzr incompatible with bzr-pipeline plugin
+# merge --qpreview disabled for 0.14 because it makes qbrz incompatible with bzr-pipeline plugin
 # see bug https://bugs.launchpad.net/bugs/395817
-#register_lazy_command('bzrlib.plugins.qbzr.lib.commands', 'cmd_merge', [], decorate=True)  # provides merge --qpreview
+#register_lazy_command('breezy.plugins.qbrz.lib.commands', 'cmd_merge', [], decorate=True)  # provides merge --qpreview
 
 lazy_commands = (
     # module, command, [aliases]
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qadd', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qannotate', ['qann', 'qblame']),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbind', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbranch', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qbrowse', ['qbw']),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qmain', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qcat', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qcommit', ['qci']),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qconfig', ['qconfigure']),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qconflicts', ['qresolve']),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qdiff', ['qdi']),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qexport', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetnew', ['qgetn']),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qgetupdates', ['qgetu', 'qgetup']),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qhelp', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qignore', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinfo', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qinit', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qlog', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qmerge', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qplugins', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpull', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qpush', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrevert', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qrun', ['qcmd']),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qshelve', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qunshelve', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qtag', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_quncommit', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qupdate', ['qup']),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qverify_signatures', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qversion', ['qsysinfo']),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qviewer', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsend', ['qsend']),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qswitch', []),
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qunbind', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qadd', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qannotate', ['qann', 'qblame']),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qbind', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qbranch', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qbrowse', ['qbw']),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qmain', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qcat', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qcommit', ['qci']),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qconfig', ['qconfigure']),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qconflicts', ['qresolve']),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qdiff', ['qdi']),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qexport', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qgetnew', ['qgetn']),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qgetupdates', ['qgetu', 'qgetup']),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qhelp', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qignore', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qinfo', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qinit', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qlog', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qmerge', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qplugins', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qpull', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qpush', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qrevert', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qrun', ['qcmd']),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qshelve', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qunshelve', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qtag', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_quncommit', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qupdate', ['qup']),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qverify_signatures', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qversion', ['qsysinfo']),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qviewer', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qsend', ['qsend']),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qswitch', []),
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qunbind', []),
     # extra commands
-    ('bzrlib.plugins.qbzr.lib.extra.bugurl', 'cmd_bug_url', []),
-    ('bzrlib.plugins.qbzr.lib.extra.isignored', 'cmd_is_ignored', []),
-    ('bzrlib.plugins.qbzr.lib.extra.isversioned', 'cmd_is_versioned', []),
-    # hidden power of qbzr ;-)
-    ('bzrlib.plugins.qbzr.lib.commands', 'cmd_qsubprocess', []),
+    ('breezy.plugins.qbrz.lib.extra.bugurl', 'cmd_bug_url', []),
+    ('breezy.plugins.qbrz.lib.extra.isignored', 'cmd_is_ignored', []),
+    ('breezy.plugins.qbrz.lib.extra.isversioned', 'cmd_is_versioned', []),
+    # hidden power of qbrz ;-)
+    ('breezy.plugins.qbrz.lib.commands', 'cmd_qsubprocess', []),
 )
 
 for module, name, aliases in lazy_commands:
@@ -160,7 +138,7 @@ for module, name, aliases in lazy_commands:
 
 
 def post_uncommit_hook(local, master, old_revno, old_tip, new_revno, hook_new_tip):
-    from bzrlib.plugins.qbzr.lib.commit_data import QBzrCommitData
+    from breezy.plugins.qbrz.lib.commit_data import QBzrCommitData
     branch = local or master
     ci_data = QBzrCommitData(branch=branch)
     ci_data.set_data_on_uncommit(old_tip, hook_new_tip)
@@ -168,16 +146,16 @@ def post_uncommit_hook(local, master, old_revno, old_tip, new_revno, hook_new_ti
 
 
 try:
-    from bzrlib.hooks import install_lazy_named_hook
+    from breezy.hooks import install_lazy_named_hook
 except ImportError:
-    from bzrlib.branch import Branch
+    from breezy.branch import Branch
     Branch.hooks.install_named_hook('post_uncommit', post_uncommit_hook,
         'Remember uncomitted revision data for qcommit')
 else:
-    install_lazy_named_hook("bzrlib.branch", "Branch.hooks", 'post_uncommit',
+    install_lazy_named_hook("breezy.branch", "Branch.hooks", 'post_uncommit',
         post_uncommit_hook, 'Remember uncomitted revision data for qcommit')
 
 
 def load_tests(basic_tests, module, loader):
-    from bzrlib.plugins.qbzr.lib.tests import load_tests
+    from breezy.plugins.qbrz.lib.tests import load_tests
     return load_tests(basic_tests, module, loader)
