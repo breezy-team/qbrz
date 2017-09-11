@@ -19,7 +19,7 @@
 
 from breezy import controldir, osutils
 
-from breezy.info import show_controldir_info
+from breezy.info import show_bzrdir_info
 
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.ui_info import Ui_InfoForm
@@ -61,8 +61,8 @@ class QBzrInfoWindow(QBzrWindow):
         basic = StringIO.StringIO()
         detailed = StringIO.StringIO()
         a_controldir = controldir.ControlDir.open_containing(location)[0]
-        show_controldir_info(a_controldir, 0, basic)
-        show_controldir_info(a_controldir, 2, detailed)
+        show_bzrdir_info(a_controldir, 0, basic)
+        show_bzrdir_info(a_controldir, 2, detailed)
         self.ui.basic_info.setText(basic.getvalue())
         self.ui.detailed_info.setText(detailed.getvalue())
         basic.close()

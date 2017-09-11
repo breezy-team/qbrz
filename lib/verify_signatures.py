@@ -20,7 +20,7 @@
 
 from breezy import controldir, osutils
 
-from breezy.info import show_controldir_info
+from breezy.info import show_bzrdir_info
 
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.ui_verify_signatures import Ui_VerifyForm
