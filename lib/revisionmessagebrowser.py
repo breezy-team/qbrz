@@ -23,6 +23,7 @@ from PyQt4 import QtCore, QtGui
 
 from breezy.revision import CURRENT_REVISION
 from breezy import (
+    config,
     errors,
     lazy_regex,
     log,
@@ -31,8 +32,8 @@ from breezy import (
 
 from breezy.plugins.qbrz.lib.i18n import gettext, ngettext
 
-from breezy.plugins.qbrz.lib.lazycachedrevloader import (load_revisions,
-cached_revisions)
+from breezy.plugins.qbrz.lib.lazycachedrevloader import (
+        load_revisions, cached_revisions)
 from breezy.plugins.qbrz.lib.util import (
     runs_in_loading_queue,
     format_timestamp,
@@ -84,12 +85,37 @@ def quote_tag(tag):
     return tag
 
 
+def format_signature_validity(rev_id, repository, gpg_strategy):
+    """get the signature validity
+
+    :param rev_id: revision id to validate
+    :param repository: branch of revision
+    :param gpg_strategy: GPG strategy
+    :return: human readable string to print to log
+    """
+    from breezy import gpg
+
+    result = repository.verify_revision_signature(rev_id, gpg_strategy)
+    if result[0] == gpg.SIGNATURE_VALID:
+        return u"valid signature from {0}".format(result[1])
+    if result[0] == gpg.SIGNATURE_KEY_MISSING:
+        return "unknown key {0}".format(result[1])
+    if result[0] == gpg.SIGNATURE_NOT_VALID:
+        return "invalid signature!"
+    if result[0] == gpg.SIGNATURE_NOT_SIGNED:
+        return "no signature"
+
+
 class RevisionMessageBrowser(QtGui.QTextBrowser):
     """Widget to display revision metadata and messages."""
     
     def __init__(self, parent=None):
         super(RevisionMessageBrowser, self).__init__(parent)
-        
+
+        # TODO(jelmer): Use branch stack
+        conf = config.GlobalStack()
+        self._gpg_strategy = gpg.GPGStrategy(conf)
+
         boxsize = self.fontMetrics().ascent()
         center = boxsize * 0.5
         dotsize = 0.7
@@ -200,8 +226,8 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
 
             if gpg_verify_available_func():
                 try:
-                    signature_result_text = log.format_signature_validity(revid,
-                                            cached_revisions[revid].repository)
+                    signature_result_text = format_signature_validity(
+                            revid, cached_revisions[revid].repository, self._gpg_strategy)
                     props.append((gettext("Signature:"), signature_result_text))
                 except KeyError:
                     #can't get Repository object for uncached revisions
