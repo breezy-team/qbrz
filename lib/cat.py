@@ -144,11 +144,11 @@ class QBzrCatWindow(QBzrWindow):
             
             self.tree.lock_read()
             try:
-                kind = self.tree.kind(self.file_id)
+                kind = self.tree.kind(self.filename, self.file_id)
                 if kind == 'file':
-                    text = self.tree.get_file_text(self.file_id)
+                    text = self.tree.get_file_text(self.filename, self.file_id)
                 elif kind == 'symlink':
-                    text = self.tree.get_symlink_target(self.file_id)
+                    text = self.tree.get_symlink_target(self.filename, self.file_id)
                 else:
                     text = ''
             finally:
@@ -324,8 +324,7 @@ def cat_to_native_app(tree, relpath):
     @raise  KindError:  if relpath entry has not file kind.
     @return:    True if native application was launched.
     """
-    file_id = tree.path2id(relpath)
-    kind = tree.kind(file_id)
+    kind = tree.kind(relpath)
     if kind != 'file':
         raise KindError('cat to native application is not supported '
             'for entry of kind %r' % kind)
@@ -340,7 +339,7 @@ def cat_to_native_app(tree, relpath):
     f = open(fname, 'wb')
     tree.lock_read()
     try:
-        f.write(tree.get_file_text(file_id))
+        f.write(tree.get_file_text(relpath))
     finally:
         tree.unlock()
         f.close()

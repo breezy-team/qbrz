@@ -53,8 +53,8 @@ def get_sys_info():
     config_dir = os.path.normpath(config.config_dir())  # use native slashes
     if not isinstance(config_dir, unicode):
         config_dir = config_dir.decode(osutils.get_user_encoding())
-    result["bzr-config-dir"] = config_dir
-    result["bzr-log-file"] = trace._bzr_log_filename
+    result["brz-config-dir"] = config_dir
+    result["brz-log-file"] = trace._brz_log_filename
 
     # Python installation
     # (bzr.exe use python interpreter from pythonXY.dll
