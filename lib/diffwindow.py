@@ -32,7 +32,7 @@ from breezy.patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from breezy.revisiontree import RevisionTree
 from breezy.transform import _PreviewTree
 from breezy.workingtree import WorkingTree
-from breezy.workingtree_4 import DirStateRevisionTree
+from breezy.bzr.workingtree_4 import DirStateRevisionTree
 from breezy import trace
 from breezy import cleanup
 

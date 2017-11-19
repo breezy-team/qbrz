@@ -92,31 +92,31 @@ class Change(object):
     def __init__(self, change, shelver, trees):
         status = change[0]
         file_id = change[1]
-        def get_kind(tree, id):
+        def get_kind(tree, path, id):
             try:
-                return tree.kind(id)
+                return tree.kind(path, id)
             except errors.NoSuchFile:
                 return 'file'
         if status == 'delete file':
             self.path = trees[0].id2path(file_id)
-            self.kind = get_kind(trees[0], file_id)
+            self.kind = get_kind(trees[0], self.path, file_id)
             self.disp_text = self.path
         elif status == 'rename':
             self.path = [tree.id2path(file_id) for tree in trees] 
             self.disp_text = u'%s => %s' % (self.path[0], self.path[1])
-            self.kind = get_kind(trees[1], file_id)
+            self.kind = get_kind(trees[1], self.path[1], file_id)
         else:
             self.path = trees[1].id2path(file_id)
             self.disp_text = self.path
-            self.kind = get_kind(trees[1], file_id)
+            self.kind = get_kind(trees[1], self.path[1], file_id)
         if status == 'modify text':
             try:
-                self.sha1 = trees[1].get_file_sha1(file_id)
-                target_lines = trees[0].get_file_lines(file_id)
+                self.sha1 = trees[1].get_file_sha1(paths[1])
+                target_lines = trees[0].get_file_lines(paths[0])
                 textfile.check_text_lines(target_lines)
-                work_lines = trees[1].get_file_lines(file_id)
+                work_lines = trees[1].get_file_lines(paths[1])
                 textfile.check_text_lines(work_lines)
-                
+
                 self._target_lines = [None, target_lines, None]
                 self._work_lines = [None, work_lines, None]
                 self._edited_lines = [None, None, None]

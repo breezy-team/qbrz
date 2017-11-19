@@ -498,7 +498,7 @@ class AnnotateWindow(QBzrWindow):
         ordered_revids = []
 
         self.processEvents()
-        for revid, text in annotate_tree.annotate_iter(fileId):
+        for revid, text in annotate_tree.annotate_iter(path, file_id=fileId):
             if revid == CURRENT_REVISION:
                 revid = CURRENT_REVISION + annotate_tree.basedir
             

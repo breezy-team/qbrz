@@ -167,11 +167,6 @@ class DiffButtons(QtGui.QWidget):
             ext_diff = QtCore.QString(default_diff)
         self.emit(QtCore.SIGNAL("triggered(QString)"), ext_diff)
 
-def get_file_lines_from_tree(tree, file_id):
-    try:
-        return tree.get_file_lines(file_id)
-    except AttributeError:
-        return tree.get_file(file_id).readlines()
 
 class DiffItem(object):
     """
@@ -242,7 +237,7 @@ class DiffItem(object):
         for ix in range(2):
             if versioned[ix]:
                 try:
-                    dates[ix] = trees[ix].get_file_mtime(file_id, paths[ix])
+                    dates[ix] = trees[ix].get_file_mtime(paths[ix], file_id)
                 except OSError, e:
                     if not renamed or e.errno != errno.ENOENT:
                         raise
@@ -306,7 +301,7 @@ class DiffItem(object):
             for ix, tree in enumerate(self.trees):
                 content = ()
                 if self.versioned[ix] and self.kind[ix] == 'file':
-                    content = get_file_lines_from_tree(tree, self.file_id)
+                    content = tree.get_file_lines(tree.id2path(self.file_id))
                 lines.append(content)
                 binary = binary or is_binary_content(content)
             self._lines = lines
@@ -503,9 +498,9 @@ class _ExtDiffer(DiffFromTool):
     def diff(self, file_id):
         try:
             new_path = self.new_tree.id2path(file_id)
-            new_kind = self.new_tree.kind(file_id)
+            new_kind = self.new_tree.kind(new_path, file_id)
             old_path = self.old_tree.id2path(file_id)
-            old_kind = self.old_tree.kind(file_id)
+            old_kind = self.old_tree.kind(old_path, file_id)
         except NoSuchId:
             return DiffPath.CANNOT_DIFF
         return DiffFromTool.diff(self, file_id, old_path, new_path, old_kind, new_kind)

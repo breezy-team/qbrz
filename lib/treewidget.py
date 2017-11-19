@@ -465,7 +465,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                         for path in initial_checked_paths:
                             fileid = self.tree.path2id(path)
                             if fileid:
-                                kind = self.tree.kind(fileid)
+                                kind = self.tree.kind(path, fileid)
                                 if kind == "directory":
                                     item_data = self.inventory_data_by_path.get(path)
                                     if item_data is None:
