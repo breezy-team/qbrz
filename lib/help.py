@@ -20,8 +20,7 @@ from PyQt4 import QtCore, QtGui
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.util import QBzrWindow
 
-from breezy.help import HelpIndices
-from breezy.errors import NoHelpTopic
+from breezy.help import HelpIndices, NoHelpTopic
 try:
     from docutils.core import publish_string
     from docutils.writers.html4css1 import Writer as BaseHTMLWriter
