@@ -30,7 +30,7 @@ except ImportError:
     pass
 
 
-def load_tests(basic_tests, module, loader):
+def load_tests(loader, basic_tests, pattern):
     testmod_names = [
         'mock',
         'test_annotate',

@@ -42,14 +42,13 @@ from breezy.plugins.qbrz.lib.subprocess import (
     SubprocessProgressView,
     SUB_PROGRESS,
     )
-from breezy.plugins.qbrz.lib.tests import compatibility
 
 
 class TestBencode(TestCase):
 
     def test_bencode_unicode(self):
         self.assertEqual(u"l7:versione", bencode_unicode(["version"]))
-        self.assertEqual(u"l3:add3:\u1234e", 
+        self.assertEqual(u"l3:add3:\u1234e",
             bencode_unicode([u"add", u"\u1234"]))
 
     def test_bencode_prompt(self):
@@ -102,7 +101,7 @@ class TestExceptionInstanceSerialisation(TestCase):
 
     def test_uncommittedchanges_display_url(self):
         """The display_url of UncommittedChanges errors should be serialised"""
-        self.requireFeature(compatibility.UnicodeFilenameFeature)
+        self.requireFeature(features.UnicodeFilenameFeature)
         path = u"\u1234"
         class FakeTree(object):
             def __init__(self, url):

@@ -14,8 +14,11 @@ all:
 
 .PHONY: test pot mo clean tags docs ui
 
+check: test
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -s bp.qbrz
+
 test:
-	bzr selftest -s bp.qbzr
+	brz selftest -s bp.qbzr
 
 pot:
 	python setup.py build_pot -N -d.

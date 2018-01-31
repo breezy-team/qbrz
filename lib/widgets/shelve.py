@@ -76,11 +76,14 @@ change_status = (
         )
 
 MAX_AUTOCOMPLETE_FILES = 20
+
 class WorkingTreeHasChanged(errors.BzrError):
     pass
 
+
 class WorkingTreeHasPendingMarge(errors.BzrError):
     pass
+
 
 class DummyDiffWriter(object):
     def __init__(self):
@@ -88,7 +91,9 @@ class DummyDiffWriter(object):
     def write(self, *args, **kwargs):
         pass
 
+
 class Change(object):
+
     def __init__(self, change, shelver, trees):
         status = change[0]
         file_id = change[1]
@@ -108,9 +113,10 @@ class Change(object):
         else:
             self.path = trees[1].id2path(file_id)
             self.disp_text = self.path
-            self.kind = get_kind(trees[1], self.path[1], file_id)
+            self.kind = get_kind(trees[1], self.path, file_id)
         if status == 'modify text':
             try:
+                paths = [tree.id2path(file_id) for tree in trees] 
                 self.sha1 = trees[1].get_file_sha1(paths[1])
                 target_lines = trees[0].get_file_lines(paths[0])
                 textfile.check_text_lines(target_lines)
@@ -135,7 +141,8 @@ class Change(object):
         self._words = None
 
     def is_same_change(self, other):
-        # NOTE: I does not use __cmp__ because this method does not compare entire data.
+        # NOTE: This does not use __cmp__ because this method does not compare
+        # all data.
         if self.data != other.data:
             return False
         if self.status in ('modify text', 'modify binary'):
@@ -206,13 +213,13 @@ class Change(object):
         if self._edited_lines[1] is None:
             return None
         return self.encode(self._edited_lines, encoding)
-    
+
     def get_words(self):
         if self._words is not None:
             return self._words, False
 
         # Add path
-        self._words = set() 
+        self._words = set()
         if self.status == 'rename':
             for path in self.path:
                 self._words.add(path)

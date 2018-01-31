@@ -466,22 +466,24 @@ class _ExtDiffer(DiffFromTool):
             if os.path.isdir(path):
                 open(os.path.join(path, ".delete"), "w").close()
 
-    def _write_file(self, file_id, tree, prefix, relpath, force_temp=False,
-                    allow_write=False):
+    def _write_file(self, relpath, tree, prefix, force_temp=False,
+                    allow_write=False, file_id=None):
         if force_temp or not isinstance(tree, WorkingTree):
             full_path = self._safe_filename(prefix, relpath)
             if os.path.isfile(full_path):
                 return full_path
-        return DiffFromTool._write_file(self, file_id, tree, prefix, 
-                                        relpath, force_temp, allow_write)
+        return DiffFromTool._write_file(self, relpath, tree, prefix,
+                                        force_temp, allow_write, file_id)
 
-    def _prepare_files(self, file_id, old_path, new_path, force_temp=False,
-                       allow_write_new=False):
-        old_disk_path = self._write_file(file_id, self.old_tree,
-                                         self.old_prefix, old_path, force_temp)
-        new_disk_path = self._write_file(file_id, self.new_tree,
-                                         self.new_prefix, new_path, force_temp,
-                                         allow_write=allow_write_new)
+    def _prepare_files(self, old_path, new_path, force_temp=False,
+                       file_id=None, allow_write_new=False):
+        old_disk_path = self._write_file(old_path, self.old_tree,
+                                         self.old_prefix, force_temp,
+                                         file_id=file_id)
+        new_disk_path = self._write_file(new_path, self.new_tree,
+                                         self.new_prefix, force_temp,
+                                         allow_write=allow_write_new,
+                                         file_id=file_id)
         return old_disk_path, new_disk_path
 
     def _execute(self, old_path, new_path):
@@ -610,7 +612,7 @@ class ExtDiffContext(QtCore.QObject):
                 if id:
                     valid_paths.append(p)
                     ids.append(id)
-                    dir_included = dir_included or (new_tree.kind(id) != 'file')
+                    dir_included = dir_included or (new_tree.kind(p) != 'file')
                 else:
                     mutter('%s does not exist in the new tree' % p)
             if not ids:

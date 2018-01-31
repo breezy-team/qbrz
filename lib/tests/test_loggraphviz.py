@@ -43,7 +43,7 @@ class TestLogGraphVizMixin(object):
                                   [label for bi, label in c_rev.branch_labels])
         
         return [item(c_rev) for c_rev in computed.filtered_revs]
-    
+
     def assertComputed(self, expected_list, computed, branch_labels=False):
         computed_list = self.computed_to_list(computed, branch_labels)
         if not expected_list == computed_list:
@@ -51,7 +51,7 @@ class TestLogGraphVizMixin(object):
                 "not equal: \nexpected_list = \n%scomputed_list = \n%s"
                 % (format_graph_lines(expected_list, use_unicode=True),
                    format_graph_lines(computed_list, use_unicode=True),))
-    
+
 
 class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
 
@@ -71,19 +71,19 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
     def make_banches_for_tips_date_sorted(self):
         builder = self.make_branch_builder('trunk')
         builder.start_series()
-        builder.build_snapshot('rev-a', None, [
+        rev_a = builder.build_snapshot(None, [
             ('add', ('', 'TREE_ROOT', 'directory', '')),])
-        builder.build_snapshot('rev-old', ['rev-a'], [])
-        builder.build_snapshot('rev-new', ['rev-a'], [])
-        builder.build_snapshot('rev-trunk', ['rev-a'], [])
+        rev_old = builder.build_snapshot([rev_a], [])
+        rev_new = builder.build_snapshot([rev_a], [])
+        rev_trunk = builder.build_snapshot([rev_a], [])
         builder.finish_series()
         
         trunk = builder.get_branch()
         #trunk.set_last_revision('rev-trunk')
         
-        old = trunk.controldir.sprout('../old', revision_id='rev-old').open_branch()
+        old = trunk.controldir.sprout('../old', revision_id=rev_old).open_branch()
         
-        new = trunk.controldir.sprout('../new', revision_id='rev-new').open_branch()
+        new = trunk.controldir.sprout('../new', revision_id=rev_new).open_branch()
         
         return trunk, old, new
 
@@ -110,7 +110,7 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
                                      (2, 0, 0, True)]),                # ├─╯─╯ 
              ('rev-a', 0, None, [])                                  ],# ○ 
             computed)
-    
+
     def test_branch_tips_date_sorted_with_working_tree_provider(self):
         trunk, old, new = self.make_banches_for_tips_date_sorted()
         trunk_tree = trunk.controldir.create_workingtree()
@@ -144,37 +144,37 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
              ('rev-a', 0, None, [])],                                  # ○ 
             computed)
  
-    
+
     def make_tree_with_pending_merge(self, path):
         builder = self.make_branch_builder('branch')
         builder.start_series()
-        builder.build_snapshot('rev-a', None, [
+        rev_a = builder.build_snapshot(None, [
             ('add', ('', 'TREE_ROOT', 'directory', '')),])
-        builder.build_snapshot('rev-b', ['rev-a'], [])
+        rev_b = builder.build_snapshot([rev_a], [])
         builder.finish_series()
         
         branch = builder.get_branch()
-        branch.set_last_revision_info(1, 'rev-a') # go back to rev-a
+        branch.set_last_revision_info(1, rev_a) # go back to rev-a
         tree = branch.controldir.create_workingtree()
-        tree.merge_from_branch(branch, to_revision='rev-b')
+        tree.merge_from_branch(branch, to_revision=rev_b)
         
-        return tree
-    
+        return tree, [rev_a, rev_b]
+
     def make_tree_not_up_to_date(self, path):
         builder = self.make_branch_builder('branch')
         builder.start_series()
-        builder.build_snapshot('rev-a', None, [
+        rev_a = builder.build_snapshot(None, [
             ('add', ('', 'TREE_ROOT', 'directory', '')),])
-        builder.build_snapshot('rev-b', ['rev-a'], [])
+        rev_b = builder.build_snapshot([rev_a], [])
         builder.finish_series()
         
         branch = builder.get_branch()
         tree = branch.controldir.create_workingtree()
         tree.update(revision='rev-a')
         return tree
-    
+
     def test_pending_merge(self):
-        tree = self.make_tree_with_pending_merge('branch')
+        tree, [rev_a, rev_b] = self.make_tree_with_pending_merge('branch')
         
         bi = loggraphviz.BranchInfo(None, tree, tree.branch)
         gv = loggraphviz.GraphVizLoader([bi], bi, False)
@@ -184,9 +184,9 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
         computed = gv.compute_viz(state)
         
         self.assertComputed(
-            [('rev-b', 1, None, [(1, 0, 0, True)], ['Pending Merge']), #   ○ 
+            [(rev_b, 1, None, [(1, 0, 0, True)], ['Pending Merge']), #   ○ 
                                                                        # ╭─╯ 
-             ('rev-a', 0, None, [], [None])                          ],# ○ 
+             (rev_a, 0, None, [], [None])                          ],# ○ 
             computed, branch_labels=True)
 
     def test_out_of_date_wt(self):
@@ -199,13 +199,13 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
         computed = gv.compute_viz(state)
         
         self.assertComputed(
-            [('rev-b', 0, None, [(0, 0, 0, True)], [None]), # ○ 
+            [(rev_b, 0, None, [(0, 0, 0, True)], [None]), # ○ 
                                                             # │ 
-             ('rev-a', 0, None, [], ['Working Tree'])     ],# ○
+             (rev_a, 0, None, [], ['Working Tree'])     ],# ○
             computed, branch_labels=True)
-    
+
     def test_with_working_tree_provider(self):
-        tree = self.make_tree_with_pending_merge('branch')
+        tree, [rev_a, rev_b] = self.make_tree_with_pending_merge('branch')
         
         bi = loggraphviz.BranchInfo('branch', tree, tree.branch)
         gv = loggraphviz.WithWorkingTreeGraphVizLoader([bi], bi, False)
@@ -218,11 +218,11 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
             [(u'current:%s' % tree.basedir, 0, True,                # ⊖  
               [(0, 0, 0, True), (0, 1, 2, True)],                   # ├─╮ 
               ['branch - Working Tree']),                           # │ │ 
-             ('rev-b', 1, None, [(0, 0, 0, True), (1, 0, 0, True)], # │ ○ 
+             (rev_b, 1, None, [(0, 0, 0, True), (1, 0, 0, True)], # │ ○ 
               ['branch - Pending Merge']),                          # ├─╯ 
-             ('rev-a', 0, None, [], ['branch'])],                   # ○ 
+             (rev_a, 0, None, [], ['branch'])],                   # ○ 
             computed, branch_labels=True)
-    
+
     def test_with_working_tree_provider_out_of_date_wt(self):
         tree = self.make_tree_not_up_to_date('branch')
         bi = loggraphviz.BranchInfo('branch', tree, tree.branch)
@@ -246,34 +246,34 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
         # filtered. 
         builder = self.make_branch_builder('branch')
         builder.start_series()
-        builder.build_snapshot('rev-a', None, [
+        rev_a = builder.build_snapshot(None, [
             ('add', ('', 'TREE_ROOT', 'directory', '')),])
-        builder.build_snapshot('rev-b', ['rev-a'], [])
-        builder.build_snapshot('rev-c', ['rev-a'], [])
+        rev_b = builder.build_snapshot([rev_a], [])
+        rev_c = builder.build_snapshot([rev_a], [])
         builder.finish_series()
-        
+
         branch = builder.get_branch()
         tree = branch.controldir.create_workingtree()
-        tree.update(revision='rev-b')
-        
+        tree.update(revision=rev_b)
+
         bi = loggraphviz.BranchInfo('branch', tree, tree.branch)
         gv = loggraphviz.WithWorkingTreeGraphVizLoader([bi], bi, False)
         gv.load()
-        
+
         state = loggraphviz.GraphVizFilterState(gv)
         state.filters.append(BasicFilterer(set([
             'current:%s' % tree.basedir.encode('unicode-escape')])))
         computed = gv.compute_viz(state)
         self.assertComputed(
-            [('rev-b', 1, None, [(1, 1, 0, True)], ['branch - Working Tree'])  , #   ○ 
+            [(rev_b, 1, None, [(1, 1, 0, True)], ['branch - Working Tree'])  , #   ○ 
                                                                                  #   │ 
-             ('rev-c', 0, None, [(0, 0, 0, True), (1, 0, 0, True)], ['branch']), # ○ │ 
+             (rev_c, 0, None, [(0, 0, 0, True), (1, 0, 0, True)], ['branch']), # ○ │ 
                                                                                  # ├─╯ 
-             ('rev-a', 0, None, [], [])                                        ],# ○ 
+             (rev_a, 0, None, [], [])                                        ],# ○ 
             computed, branch_labels=True)
-    
+
     def test_pending_merges_provider(self):
-        tree = self.make_tree_with_pending_merge('branch')
+        tree, [rev_a, rev_b] = self.make_tree_with_pending_merge('branch')
         
         bi = loggraphviz.BranchInfo(None, tree, tree.branch)
         gv = loggraphviz.PendingMergesGraphVizLoader([bi], bi, False)
@@ -283,38 +283,38 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
         computed = gv.compute_viz(state)
         
         self.assertComputed(
-            [('rev-b', 1, None, [(1, 0, 0, True)]), #   ○ 
+            [(rev_b, 1, None, [(1, 0, 0, True)]), #   ○ 
                                                     # ╭─╯ 
              ('root:', 0, None, [])               ],# ○ 
             computed)
-    
+
     def test_with_ghost(self):
         tree = self.make_branch_and_tree('tree')
-        tree.commit('a', rev_id='rev-a')
+        rev_a = tree.commit('a')
         tree.add_parent_tree_id('rev-b')
-        tree.commit('c', rev_id='rev-c')
+        rev_c = tree.commit('c')
         # rev-b is a ghost. We think he is there, but he dose not exist. Boo!
-        
+
         bi = loggraphviz.BranchInfo(None, tree, tree.branch)
         gv = loggraphviz.GraphVizLoader([bi], bi, False)
         gv.load()
-        
+
         state = loggraphviz.GraphVizFilterState(gv)
         state.expand_all_branch_lines()
         computed = gv.compute_viz(state)
         
         self.assertComputed(
-            [('rev-c', 0, True, [(0, 0, 0, True), (0, 1, 1, True)]), # ⊖   
+            [(rev_c, 0, True, [(0, 0, 0, True), (0, 1, 1, True)]), # ⊖   
                                                                      # ├─╮ 
              ('rev-b', 1, None, [(0, 0, 0, True)])                 , # │ ○ 
                                                                      # │   
-             ('rev-a', 0, None, [])                                ],# ○ 
+             (rev_a, 0, None, [])                                ],# ○ 
             computed)
 
     def test_with_ghost_mainline(self):
         tree = self.make_branch_and_tree('tree')
         tree.add_parent_tree_id('rev-a', allow_leftmost_as_ghost=True)
-        tree.commit('b', rev_id='rev-b')
+        rev_b = tree.commit('b')
         
         bi = loggraphviz.BranchInfo(None, tree, tree.branch)
         gv = loggraphviz.GraphVizLoader([bi], bi, False)
@@ -324,7 +324,7 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
         computed = gv.compute_viz(state)
         
         self.assertComputed(
-            [('rev-b', 0, None, [(0, 0, 0, True)]), # ○ 
+            [(rev_b, 0, None, [(0, 0, 0, True)]), # ○ 
                                                     # │ 
              ('rev-a', 0, None, [])               ],# ○
             computed)
@@ -332,10 +332,10 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
     def test_get_revid_branch_info(self):
         builder = self.make_branch_builder('trunk')
         builder.start_series()
-        builder.build_snapshot('rev-a', None, [
+        rev_a = builder.build_snapshot(None, [
             ('add', ('', 'TREE_ROOT', 'directory', '')),])
-        builder.build_snapshot('rev-branch', ['rev-a'], [])
-        builder.build_snapshot('rev-trunk', ['rev-a'], [])
+        rev_branch = builder.build_snapshot([rev_a], [])
+        rev_trunk = builder.build_snapshot([rev_a], [])
         builder.finish_series()
         #   ○ branch
         #   │ 
@@ -344,9 +344,9 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
         # ○ rev-a
         
         trunk = builder.get_branch()
-        #trunk.set_last_revision('rev-trunk')
+        #trunk.set_last_revision(rev_trunk)
         
-        branch = trunk.controldir.sprout('../branch', revision_id='rev-branch').open_branch()
+        branch = trunk.controldir.sprout('../branch', revision_id=rev_branch).open_branch()
         
         trunk_bi = loggraphviz.BranchInfo('trunk', None, trunk)
         branch_bi = loggraphviz.BranchInfo('branch', None, branch)
@@ -355,18 +355,18 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
             trunk_bi, False)
         gv.load()
         
-        self.assertEqual(trunk_bi, gv.get_revid_branch_info('rev-trunk'))
-        self.assertEqual(branch_bi, gv.get_revid_branch_info('rev-branch'))
+        self.assertEqual(trunk_bi, gv.get_revid_branch_info(rev_trunk))
+        self.assertEqual(branch_bi, gv.get_revid_branch_info(rev_branch))
         
         # may return either 
-        self.assertIn(gv.get_revid_branch_info('rev-a'),
+        self.assertIn(gv.get_revid_branch_info(rev_a),
                       (branch_bi, trunk_bi))
 
     def test_get_revid_branch_info_with_ghost(self):
         tree = self.make_branch_and_tree('tree')
-        tree.commit('a', rev_id='rev-a')
+        rev_a = tree.commit('a')
         tree.add_parent_tree_id('rev-b')
-        tree.commit('c', rev_id='rev-c')
+        rev_c = tree.commit('c')
         # rev-b is a ghost. We think he is there, but he dose not exist. Boo!
         # c 
         # ├─╮
@@ -381,8 +381,9 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
         self.assertRaises(loggraphviz.GhostRevisionError,
                           gv.get_revid_branch_info, 'rev-b')
 
+
 class TestLogGraphVizLayouts(TestCase, TestLogGraphVizMixin):
-    
+
     def test_basic_branch_line(self):
         gv = BasicGraphVizLoader(('rev-d',), {
          'rev-a': (NULL_REVISION, ), 
@@ -403,7 +404,7 @@ class TestLogGraphVizLayouts(TestCase, TestLogGraphVizMixin):
                                                      # │ 
              ('rev-a', 0, None, [])                ],# ○ 
              computed)
-      
+
         state.collapse_expand_rev(computed.filtered_revs[0])
         computed = gv.compute_viz(state)
         
@@ -417,7 +418,7 @@ class TestLogGraphVizLayouts(TestCase, TestLogGraphVizMixin):
                                                                      # ├─╯ 
              ('rev-a', 0, None, [])                                ],# ○ 
             computed)
-    
+
     def test_branch_line_order(self):
         gv = BasicGraphVizLoader(('rev-f',), {
          'rev-a': (NULL_REVISION, ), 
@@ -541,7 +542,7 @@ class TestLogGraphVizLayouts(TestCase, TestLogGraphVizMixin):
                                                                                                                 # ├───╯ 
              ('rev-a', 0, None, [])                                                                           ],# ○ 
             computed)
-    
+
     def test_hidden_branch_line_hides_child_line(self):
         gv = BasicGraphVizLoader(('rev-g',), {
          'rev-a': (NULL_REVISION, ), 
@@ -569,7 +570,7 @@ class TestLogGraphVizLayouts(TestCase, TestLogGraphVizMixin):
                                                                       # │ 
              ('rev-a', 0, None, [])                                 ],# ○ 
              computed)
-    
+
     def test_merge_line_hidden(self):
         gv = BasicGraphVizLoader(('rev-d',), {
          'rev-a': (NULL_REVISION, ), 
@@ -643,7 +644,7 @@ class TestLogGraphVizLayouts(TestCase, TestLogGraphVizMixin):
                                                                                                        # ├─╯─╯─╯ 
              ('rev-a', 0, None, [])                                                                  ],# ○ 
             computed)
-    
+
     def test_merge_line_hidden_merge_rev_filtered(self):
         gv = BasicGraphVizLoader(('rev-e',), {
          'rev-a': (NULL_REVISION, ), 
@@ -741,7 +742,7 @@ class TestLogGraphVizLayouts(TestCase, TestLogGraphVizMixin):
                                        #   
              ('rev-a', 0.0, None, [])],# ○ 
             computed)
-    
+
     def test_no_graph_filtered(self):
         gv = BasicGraphVizLoader(('rev-d',), {
          'rev-a': (NULL_REVISION, ), 
@@ -767,7 +768,7 @@ class TestLogGraphProviderState(TestCase):
     def assertFilteredRevisions(self, expected_revids, state):
         revids = [rev.revid for rev in state.get_filtered_revisions()]
         self.assertEqual(list(expected_revids), revids)
-    
+
     def test_collapse_expand_rev_basic(self):
         gv = BasicGraphVizLoader(('c',), {
          'a': (NULL_REVISION, ), 
@@ -821,7 +822,7 @@ class TestLogGraphProviderState(TestCase):
         # ├─╯─╯ 
         # a 
         return gv
-    
+
     def test_collapse_colapses_sub_expand(self):
         gv = self.get_expanded_by_graph_provider()
         
@@ -919,7 +920,7 @@ class TestLogGraphProviderState(TestCase):
         state.collapse_expand_rev(gv.compute_viz(state).filtered_revs[0])
         # back to just mainline showing
         self.assertFilteredRevisions('ga', state)
-    
+
     def test_filter(self):
         gv = BasicGraphVizLoader(('e',), {
          'a': (NULL_REVISION, ), 
@@ -955,15 +956,15 @@ class TestLogGraphProviderState(TestCase):
         self.assertFilteredRevisions('ecb', state)
 
 
-    
+
 class BasicGraphVizLoader(loggraphviz.GraphVizLoader):
-    
+
     def __init__(self, heads, graph_dict, no_graph=False):
         self.heads = heads
         self.graph_dict = graph_dict
         bi = loggraphviz.BranchInfo(None, None, None)
         loggraphviz.GraphVizLoader.__init__(self, [bi], bi, no_graph)
-    
+
     def load(self):
         for head in self.heads:
             self.append_head_info(head, self.branches[0], head)
@@ -980,7 +981,7 @@ class BasicGraphVizLoader(loggraphviz.GraphVizLoader):
 class BasicFilterer(object):
     def __init__(self, filtered_revids):
         self.filtered_revids = filtered_revids
-    
+
     def get_revision_visible(self, rev):
         return rev.revid not in self.filtered_revids
 
@@ -1022,7 +1023,7 @@ def format_graph_lines(list, use_unicode=True):
                    u'┄': u'┬',
                    u'┴': u'┼',
                    u'┤': u'┼',}
-    
+
         tr_char = {u' ': u'╮',
                    u'│': u'┤',
                    u'┆': u'┤',
@@ -1030,7 +1031,7 @@ def format_graph_lines(list, use_unicode=True):
                    u'┄': u'┬',
                    u'┴': u'┼',
                    u'├': u'┼',}
-    
+
         bl_char = {u' ': u'╰',
                    u'│': u'├',
                    u'┆': u'├',
@@ -1057,13 +1058,13 @@ def format_graph_lines(list, use_unicode=True):
                     False: {' ': '-'}}
         
         tl_char = {}
-    
+
         tr_char = {}
-    
+
         bl_char = {}
         
         br_char = {}
-    
+
     for row, (item, repr) in enumerate(zip(list, item_repr)):
         if row == 0:
             s.write('[')
