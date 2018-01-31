@@ -39,11 +39,11 @@ from breezy.plugins.qbrz.lib.treewidget import (
     )
 from breezy.plugins.qbrz.lib.tests.modeltest import ModelTest
 
-def load_tests(standard_tests, module, loader):
+def load_tests(loader, basic_tests, pattern):
     result = loader.suiteClass()
 
     tree_tests, remaining_tests = tests.split_suite_by_condition(
-        standard_tests, tests.condition_isinstance((
+        basic_tests, tests.condition_isinstance((
                 TestTreeWidget,
                 )))
     tests.multiply_tests(tree_tests, tree_scenarios, result)
