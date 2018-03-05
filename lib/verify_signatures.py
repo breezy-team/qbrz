@@ -70,7 +70,7 @@ class QBzrVerifySignaturesWindow(QBzrDialog):
         controldir = _mod_controldir.ControlDir.open_containing(self.location)[0]
         branch = controldir.open_branch()
         repo = branch.repository
-        branch_config = branch.get_config()
+        branch_config = branch.get_config_stack()
         gpg_strategy = gpg.GPGStrategy(branch_config)
         gpg_strategy.set_acceptable_keys(self.acceptable_keys)
 
@@ -110,48 +110,48 @@ class QBzrVerifySignaturesWindow(QBzrDialog):
                     continue
                 revisions.append(rev_id)
             repo.unlock()
-        count, result, all_verifiable =\
-                                gpg_strategy.do_verifications(revisions, repo,
-                                                     QApplication.processEvents)
+        count, result, all_verifiable = gpg.bulk_verify_signatures(
+                repo, revisions, gpg_strategy, QApplication.processEvents)
+
         if all_verifiable:
             message = QTreeWidgetItem( [gettext(
                             "All commits signed with verifiable keys")] )
             self.ui.treeWidget.addTopLevelItem(message)
-            for verbose_message in gpg_strategy.verbose_valid_message(result):
+            for verbose_message in gpg.verbose_valid_message(result):
                 QTreeWidgetItem(message, [verbose_message])
         else:
             valid_commit_message = QTreeWidgetItem(
-                            [gpg_strategy.valid_commits_message(count)] )
+                            [gpg.valid_commits_message(count)] )
             self.ui.treeWidget.addTopLevelItem(valid_commit_message)
-            for verbose_message in gpg_strategy.verbose_valid_message(result):
+            for verbose_message in gpg.verbose_valid_message(result):
                 QTreeWidgetItem(valid_commit_message, [verbose_message])
 
             expired_key_message = QTreeWidgetItem(
-                            [gpg_strategy.expired_commit_message(count)] )
+                            [gpg.expired_commit_message(count)] )
             self.ui.treeWidget.addTopLevelItem(expired_key_message)
             for verbose_message in \
-                              gpg_strategy.verbose_expired_key_message(result,
+                              gpg.verbose_expired_key_message(result,
                                                                          repo):
                 QTreeWidgetItem(expired_key_message, [verbose_message])
 
             unknown_key_message = QTreeWidgetItem(
-                            [gpg_strategy.unknown_key_message(count)] )
+                            [gpg.unknown_key_message(count)] )
             self.ui.treeWidget.addTopLevelItem(unknown_key_message)
-            for verbose_message in gpg_strategy.verbose_missing_key_message(
+            for verbose_message in gpg.verbose_missing_key_message(
                                                                         result):
                 QTreeWidgetItem(unknown_key_message, [verbose_message])
 
             commit_not_valid_message = QTreeWidgetItem(
-                            [gpg_strategy.commit_not_valid_message(count)] )
+                            [gpg.commit_not_valid_message(count)] )
             self.ui.treeWidget.addTopLevelItem(commit_not_valid_message)
-            for verbose_message in gpg_strategy.verbose_not_valid_message(
+            for verbose_message in gpg.verbose_not_valid_message(
                                                                 result, repo):
                 QTreeWidgetItem(commit_not_valid_message, [verbose_message])
 
             commit_not_signed_message = QTreeWidgetItem(
-                            [gpg_strategy.commit_not_signed_message(count)] )
+                            [gpg.commit_not_signed_message(count)] )
             self.ui.treeWidget.addTopLevelItem(commit_not_signed_message)
-            for verbose_message in gpg_strategy.verbose_not_signed_message(
+            for verbose_message in gpg.verbose_not_signed_message(
                                                                 result, repo):
                 QTreeWidgetItem(commit_not_signed_message, [verbose_message])
         self.throbber.hide()
