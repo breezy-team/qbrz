@@ -23,7 +23,7 @@ Contributors:
  * IWATA Hidetaka <iwata0303 at gmail com>
  * Jared Silva <jayrod at gmail com>
  * Javier Derderian <javierder at gmail dot com>
- * Jelmer Vernooij <jelmer at samba org>
+ * Jelmer Vernooĳ <jelmer at jelmer dot uk>
  * Jérémy Subtil <jeremy subtil at gmail com>
  * John Arbash Meinel <john at arbash-meinel dot com>
  * John Szakmeister <john at szakmeister dot net>
@@ -47,8 +47,8 @@ Contributors:
  * Vincent Ladeuil <v dot ladeuil+lp at free dot fr>
 
 
-The idea of an UI for Bazaar commands comes from bzr-gtk plugin by 
-Jelmer Vernooij <jelmer at samba dot org>.
+The idea of an UI for Bazaar commands comes from bzr-gtk plugin by
+Jelmer Vernooĳ <jelmer at jelmer dot uk>.
 
 Used icons:
 
