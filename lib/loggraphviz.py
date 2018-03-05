@@ -1472,9 +1472,10 @@ class FileIdFilter (object):
             self.load_filter_file_id_chunk_finished()
     
     def load_filter_file_id_chunk(self, repo, revids):
+        graph = repo.get_file_graph()
         def check_text_keys(text_keys):
             changed_revs = []
-            for file_id, revid in repo.texts.get_parent_map(text_keys):
+            for file_id, revid in graph.get_parent_map(text_keys):
                 rev = self.graph_viz.revid_rev[revid]
                 self.filter_file_id[rev.index] = True
                 changed_revs.append(rev)
