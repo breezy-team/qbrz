@@ -29,10 +29,12 @@ _translation = _null_translation
 
 
 def gettext(s):
-    return _translation.ugettext(s)
+    #return _translation.ugettext(s)
+    return s
 
 def ngettext(s, p, n):
-    return _translation.ungettext(s, p, n)
+    #return _translation.ungettext(s, p, n)
+    return s
 
 def N_(s):
     return s
