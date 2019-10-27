@@ -40,7 +40,7 @@ from breezy import (
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from StringIO import StringIO
+from io import StringIO
 
 
 class QBzrVerifySignaturesWindow(QBzrDialog):

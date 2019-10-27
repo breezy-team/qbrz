@@ -32,7 +32,7 @@ from breezy.plugins.qbrz.lib.util import (
 
 class QBzrInitWindow(SubProcessDialog):
 
-    def __init__(self, localdir=u".", parent=None, ui_mode=False):
+    def __init__(self, localdir=".", parent=None, ui_mode=False):
         super(QBzrInitWindow, self).__init__(
                                   gettext("Initialize"),
                                   name = "init",
@@ -67,7 +67,7 @@ class QBzrInitWindow(SubProcessDialog):
         self.ui.but_no_trees.setToolTip(opt.help)
 
     def _get_location(self):
-        return unicode(self.ui.location.text())
+        return str(self.ui.location.text())
 
     def validate(self):
         if not self._get_location():

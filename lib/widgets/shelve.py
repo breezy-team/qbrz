@@ -108,7 +108,7 @@ class Change(object):
             self.disp_text = self.path
         elif status == 'rename':
             self.path = [tree.id2path(file_id) for tree in trees] 
-            self.disp_text = u'%s => %s' % (self.path[0], self.path[1])
+            self.disp_text = '%s => %s' % (self.path[0], self.path[1])
             self.kind = get_kind(trees[1], self.path[1], file_id)
         else:
             self.path = trees[1].id2path(file_id)
@@ -514,7 +514,7 @@ class ShelveWidget(ToolbarPanel):
         item.setText(0, ch.disp_text)
         item.setText(1, gettext(ch.status))
         if ch.status == 'modify text':
-            item.setText(2, u'0/%d' % len(ch.parsed_patch.hunks))
+            item.setText(2, '0/%d' % len(ch.parsed_patch.hunks))
         brush = self.brushes.get(ch.status)
         if brush:
             for i in range(3):
@@ -595,7 +595,7 @@ class ShelveWidget(ToolbarPanel):
                 self.selected_file_changed()
             else:
                 self.hunk_view.update()
-            item.setText(2, u'%d/%d' % (hunk_num if selected else 0, hunk_num))
+            item.setText(2, '%d/%d' % (hunk_num if selected else 0, hunk_num))
 
         self.update_compleater_words()
 
@@ -722,7 +722,7 @@ class ShelveWidget(ToolbarPanel):
                 else:
                     creator.shelve_change(change.data)
             manager = shelver.work_tree.get_shelf_manager()
-            message = unicode(self.message.toPlainText()).strip() or gettext(u'<no message>')
+            message = str(self.message.toPlainText()).strip() or gettext('<no message>')
             if destroy:
                 creator.transform()
                 shelf_id = -1

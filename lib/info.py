@@ -29,7 +29,7 @@ from breezy.plugins.qbrz.lib.util import (
     url_for_display,
     )
 
-import StringIO
+import io
 
 
 class QBzrInfoWindow(QBzrWindow):
@@ -58,8 +58,8 @@ class QBzrInfoWindow(QBzrWindow):
         self.ui.local_location.setText(osutils.abspath(location))
 
     def populate_unparsed_info(self, location):
-        basic = StringIO.StringIO()
-        detailed = StringIO.StringIO()
+        basic = io.StringIO()
+        detailed = io.StringIO()
         a_controldir = controldir.ControlDir.open_containing(location)[0]
         show_bzrdir_info(a_controldir, 0, basic)
         show_bzrdir_info(a_controldir, 2, detailed)

@@ -25,7 +25,7 @@ Please see docs/exception_reporting.txt for info on how to use this.
 
 import sys
 import os
-from cStringIO import StringIO
+from io import StringIO
 import traceback
 
 from PyQt4 import QtCore, QtGui
@@ -139,7 +139,7 @@ def report_exception(exc_info=None, type=MAIN_LOAD_METHOD, window=None,
         # http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/pyqt4ref.html#using-pyqt-from-the-python-shell
         QtCore.pyqtRemoveInputHook()
         
-        print '**** entering debugger'
+        print('**** entering debugger')
         tb = exc_info[2]
         import pdb
         if sys.version_info[:2] < (2, 6):
@@ -236,7 +236,7 @@ class ErrorReport(QtGui.QDialog):
         if parent:
             win_title = None
             if hasattr(parent, 'title'):
-                if isinstance(parent.title, basestring):
+                if isinstance(parent.title, str):
                     win_title = parent.title
                 elif isinstance(title, (list, tuple)):
                     # just the first item is more usefull.
@@ -275,7 +275,7 @@ class ErrorReport(QtGui.QDialog):
 
         try:
             import apport
-        except ImportError, e:
+        except ImportError as e:
             mutter("No Apport available to Bazaar")
             if message_internal:
                 message = ('Bazaar has encountered an internal error. Please ' 

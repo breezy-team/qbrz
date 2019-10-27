@@ -17,7 +17,7 @@
 
 from cgi import escape
 import codecs
-from cStringIO import StringIO
+from io import StringIO
 
 from breezy import log
 

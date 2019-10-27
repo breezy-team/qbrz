@@ -29,12 +29,12 @@ def print_in_out(unbound):
     def _run(*args, **kwargs):
         from breezy.trace import mutter
         a = ','.join(repr(i) for i in args)
-        b = ','.join('%s=%r' % (i,j) for (i,j) in kwargs.iteritems())
+        b = ','.join('%s=%r' % (i,j) for (i,j) in kwargs.items())
         if a and b:
             a = a + ',' + b
         else:
             a = a or b
-        func_name = unbound.func_name
+        func_name = unbound.__name__
         mutter('Called %s(%s)' % (func_name, a))
         result = unbound(*args, **kwargs)
         mutter('%s returned %r' % (func_name, result))

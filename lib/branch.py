@@ -49,7 +49,7 @@ class QBzrBranchWindow(SubProcessDialog):
         # Unless instructed otherwise, use the current directory as
         # the parent directory.
         if parent_dir is None:
-            parent_dir = os.getcwdu()
+            parent_dir = os.getcwd()
         self.parent_dir = parent_dir
 
         # Layout the form, adding the subprocess widgets
@@ -68,7 +68,7 @@ class QBzrBranchWindow(SubProcessDialog):
 
         # Initialise the fields
         fill_combo_with(self.ui.from_location,
-                        u'',
+                        '',
                         iter_saved_pull_locations())
         if from_location:
             self.ui.from_location.setEditText(from_location)
@@ -96,7 +96,7 @@ class QBzrBranchWindow(SubProcessDialog):
             self.ui.from_location.setFocus()
 
     def from_changed(self, from_location):
-        to_location = self._default_to_location(unicode(from_location))
+        to_location = self._default_to_location(str(from_location))
         if to_location is not None:
             self.ui.to_location.setEditText(to_location)
 
@@ -129,7 +129,7 @@ class QBzrBranchWindow(SubProcessDialog):
     def get_to_location(self):
         """The path the branch was created in."""
         # This is used by explorer to find the location to open on completion
-        return unicode(self.ui.to_location.currentText())
+        return str(self.ui.to_location.currentText())
 
     def do_start(self):
         args = []
@@ -139,7 +139,7 @@ class QBzrBranchWindow(SubProcessDialog):
         if revision:
             args.append('--revision')
             args.append(revision)
-        from_location = unicode(self.ui.from_location.currentText())
+        from_location = str(self.ui.from_location.currentText())
         to_location = self.get_to_location()
         if 'use-existing-dir' in self.cmd_branch_options:
             # always use this options because it should be mostly harmless

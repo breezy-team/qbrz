@@ -66,13 +66,13 @@ interline_changes_background = QtGui.QColor(180, 210, 250)
 
 config = get_qbrz_config()
 component_dict = {0:'fill', 1:'bound'}
-for key in colors.iterkeys():
+for key in colors.keys():
     for comp in [0,1]:
         color = None
         try:
             color = config.get_color(key + '_' + component_dict[comp],
                                         'QDIFF COLORS')
-        except ValueError, msg:
+        except ValueError as msg:
             #error handling.
             mutter(str(msg))
         if None != color:
@@ -85,11 +85,11 @@ try:
                                          'QDIFF COLORS')
     if None != new_interline_bg:
       interline_changes_background = new_interline_bg
-except ValueError, msg:
+except ValueError as msg:
     mutter(str(msg))
 
 brushes = {}
-for kind, cols in colors.items():
+for kind, cols in list(colors.items()):
     brushes[kind] = (QtGui.QBrush(cols[0]), QtGui.QBrush(cols[1]))
 
 

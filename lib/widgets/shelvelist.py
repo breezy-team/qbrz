@@ -281,7 +281,7 @@ class ShelveListWidget(ToolbarPanel):
             for shelf_id in reversed(shelves):
                 message = manager.get_metadata(shelf_id).get('message')
                 item = QtGui.QTreeWidgetItem()
-                item.setText(0, unicode(shelf_id))
+                item.setText(0, str(shelf_id))
                 item.setText(1, message or gettext('<no message>'))
                 item.setIcon(0, get_icon("folder", 16))
                 item.shelf_id = shelf_id
@@ -348,7 +348,7 @@ class ShelveListWidget(ToolbarPanel):
             elif di.versioned == (False, True):
                 text = new_path
             elif di.paths[0] != di.paths[1]:
-                text = u'%s => %s' % (old_path, new_path)
+                text = '%s => %s' % (old_path, new_path)
             else:
                 text = old_path
                 

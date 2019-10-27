@@ -54,7 +54,7 @@ class AnnotateBarBase(QtGui.QWidget):
             if not block.isVisible() or rect.top() >= event.rect().bottom():
                 break
             self.paint_line(painter, rect, line_count, line_count==current_line)
-            block = block.next()
+            block = next(block)
 
         painter.end()
         
@@ -92,7 +92,7 @@ class LineNumberBar(AnnotateBarBase):
             self.adjustWidth)
 
     def adjustWidth(self, count):
-        width = self.fontMetrics().width(unicode(count))
+        width = self.fontMetrics().width(str(count))
         text_margin = self.style().pixelMetric(
             QtGui.QStyle.PM_FocusFrameHMargin, None, self) + 1
         width += text_margin * 2
@@ -103,7 +103,7 @@ class LineNumberBar(AnnotateBarBase):
         text_margin = self.style().pixelMetric(
             QtGui.QStyle.PM_FocusFrameHMargin, None, self) + 1
         painter.drawText(rect.adjusted(text_margin, 0, -text_margin, 0),
-                         QtCore.Qt.AlignRight, unicode(line_number))
+                         QtCore.Qt.AlignRight, str(line_number))
 
 
 class AnnotateEditerFrameBase(QtGui.QFrame):

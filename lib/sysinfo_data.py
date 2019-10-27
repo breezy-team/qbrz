@@ -51,7 +51,7 @@ def get_sys_info():
 
     # Bazaar configuration
     config_dir = os.path.normpath(config.config_dir())  # use native slashes
-    if not isinstance(config_dir, unicode):
+    if not isinstance(config_dir, str):
         config_dir = config_dir.decode(osutils.get_user_encoding())
     result["brz-config-dir"] = config_dir
     result["brz-log-file"] = trace._brz_log_filename

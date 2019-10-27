@@ -42,8 +42,8 @@ class TestLogSmokeTests(qtests.QTestCase):
         self.build_tree(['hello'])
         wt.add('hello')
         wt.commit('add one file',
-                  committer=u'\u013d\xf3r\xe9m \xcdp\u0161\xfam '
-                            u'<test@example.com>')
+                  committer='\u013d\xf3r\xe9m \xcdp\u0161\xfam '
+                            '<test@example.com>')
 
         win = LogWindow(['.'], None)
         self.addCleanup(win.close)

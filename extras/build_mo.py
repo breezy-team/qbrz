@@ -28,7 +28,7 @@ from distutils.spawn import find_executable
 import os
 import re
 
-from en_po import regenerate_en
+from .en_po import regenerate_en
 
 
 class build_mo(Command):

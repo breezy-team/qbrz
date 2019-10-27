@@ -72,7 +72,7 @@ class TreeBranch(object):
 
             if require_tree and tree is None:
                 raise errors.NoWorkingTree(location)
-        except (errors.NotBranchError, errors.NoWorkingTree), e:
+        except (errors.NotBranchError, errors.NoWorkingTree) as e:
             if not ui_mode:
                 raise
             TreeBranch._report_error(location, e, _critical_dialog)

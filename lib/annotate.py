@@ -119,11 +119,11 @@ class AnnotateBar(AnnotateBarBase):
         text_margin = self.style().pixelMetric(
             QtGui.QStyle.PM_FocusFrameHMargin, None, self) + 1
         
-        self.line_number_width = fm.width(unicode(lines))
+        self.line_number_width = fm.width(str(lines))
         self.line_number_width += (text_margin * 2)
         
-        self.revno_width = fm.width(unicode(max_revno)+".8.88")
-        self.max_mainline_digits = len(unicode(max_revno))
+        self.revno_width = fm.width(str(max_revno)+".8.88")
+        self.max_mainline_digits = len(str(max_revno))
         self.revno_width += (text_margin * 2)
         
         if self.splitter:
@@ -164,7 +164,7 @@ class AnnotateBar(AnnotateBarBase):
             rect.height())
         
         painter.drawText(line_number_rect, QtCore.Qt.AlignRight,
-                         unicode(line_number))
+                         str(line_number))
         
         if self.annotate and line_number-1 < len(self.annotate):
             revid, is_top = self.annotate[line_number - 1]
@@ -228,7 +228,7 @@ class AnnotatedTextEdit(QtGui.QPlainTextEdit):
                 if revid in self.rev_colors:
                     painter.fillRect(rect, self.rev_colors[revid])
                 
-                block = block.next()
+                block = next(block)
             del painter
         QtGui.QPlainTextEdit.paintEvent(self, event)
     
@@ -559,7 +559,7 @@ class AnnotateWindow(QBzrWindow):
             # Show the revisions the we know about from the annotate.
             filter = self.log_list.log_model.file_id_filter
             changed_revs = []
-            for revid in self.rev_indexes.keys():
+            for revid in list(self.rev_indexes.keys()):
                 rev = gv.revid_rev[revid]
                 filter.filter_file_id[rev.index] = True
                 changed_revs.append(rev)
@@ -614,13 +614,13 @@ class AnnotateWindow(QBzrWindow):
         return new_positions
 
     def revisions_loaded(self, revisions, last_call):
-        for rev in revisions.itervalues():
+        for rev in revisions.values():
             authors = rev.get_apparent_authors()
-            emails = map(self._maybe_extract_email, authors)
+            emails = list(map(self._maybe_extract_email, authors))
             author_id = ';'.join(emails)
 
             if rev.timestamp is None:
-                days = sys.maxint
+                days = sys.maxsize
             elif self.now < rev.timestamp:
                 days = 0
             else:
@@ -628,7 +628,7 @@ class AnnotateWindow(QBzrWindow):
 
             alpha = 0.5/((days/50) + 1)
             h_sh = self._get_hash(author_id)
-            hue =  1-float(h_sh) / sys.maxint
+            hue =  1-float(h_sh) / sys.maxsize
             color = QtGui.QColor.fromHsvF(hue, 1, 1, alpha)
             brush = QtGui.QBrush(color)
 

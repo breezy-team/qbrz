@@ -97,7 +97,7 @@ class QBzrPullWindow(SubProcessDialog):
         if revision:
             args.append('--revision')
             args.append(revision)
-        location = unicode(self.ui.location.currentText())
+        location = str(self.ui.location.currentText())
         if location and location != self.default_location:
             args.insert(0, location)
         self.process_widget.do_start(None, 'pull', *args)
@@ -220,7 +220,7 @@ class QBzrPushWindow(SubProcessDialog):
             # force --no-strict because we checking blocking conditions
             # in validate method (see below).
             args.append('--no-strict')
-        location = unicode(self.ui.location.currentText())
+        location = str(self.ui.location.currentText())
         if location and location != self.default_location:
             args.insert(0, location)
         self.process_widget.do_start(None, 'push', *args)
@@ -309,7 +309,7 @@ class QBzrMergeWindow(SubProcessDialog):
             dest = self.tree.basedir
         else:
             dest = self.branch.base
-        if dest == os.getcwdu():
+        if dest == os.getcwd():
             args = []
         else:
             args = ['--directory', dest]
@@ -319,9 +319,9 @@ class QBzrMergeWindow(SubProcessDialog):
             args.append('--force')
         if self.ui.uncommitted.isChecked():
             args.append('--uncommitted')
-        rev = unicode(self.ui.revision.text()).strip()
+        rev = str(self.ui.revision.text()).strip()
         if rev:
             args.extend(['--revision', rev])
-        location = unicode(self.ui.location.currentText())
+        location = str(self.ui.location.currentText())
         self.process_widget.do_start(None, 'merge', location, *args)
         save_pull_location(None, location)

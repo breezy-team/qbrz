@@ -32,56 +32,56 @@ from breezy.plugins.qbrz.lib.bugs import (
 class TestGetBugId(TestCase):
 
     def test_launchpad(self):
-        self.assertEquals('261234', get_bug_id('https://launchpad.net/bugs/261234'))
+        self.assertEqual('261234', get_bug_id('https://launchpad.net/bugs/261234'))
 
     def test_trac(self):
-        self.assertEquals('3852', get_bug_id('http://bugs.musicbrainz.org/ticket/3852'))
+        self.assertEqual('3852', get_bug_id('http://bugs.musicbrainz.org/ticket/3852'))
 
     def test_bugzilla(self):
-        self.assertEquals('169104', get_bug_id('http://bugs.kde.org/show_bug.cgi?id=169104'))
+        self.assertEqual('169104', get_bug_id('http://bugs.kde.org/show_bug.cgi?id=169104'))
 
     def test_redmine(self):
-        self.assertEquals('1832', get_bug_id('http://www.redmine.org/issues/show/1832'))
-        self.assertEquals('6', get_bug_id('https://rm.ftrahan.com/issues/6'))
+        self.assertEqual('1832', get_bug_id('http://www.redmine.org/issues/show/1832'))
+        self.assertEqual('6', get_bug_id('https://rm.ftrahan.com/issues/6'))
 
     def test_fogbugz(self):
-        self.assertEquals('1234', get_bug_id('http://test.fogbugz.com/default.asp?1234'))
+        self.assertEqual('1234', get_bug_id('http://test.fogbugz.com/default.asp?1234'))
 
     def test_roundup(self):
-        self.assertEquals('5243', get_bug_id('http://bugs.python.org/issue5243'))
+        self.assertEqual('5243', get_bug_id('http://bugs.python.org/issue5243'))
 
     def test_mantis(self):
-        self.assertEquals('7721', get_bug_id('http://www.mantisbt.org/bugs/view.php?id=7721'))
-        self.assertEquals('123', get_bug_id('http://localhost/view.php?id=123'))
+        self.assertEqual('7721', get_bug_id('http://www.mantisbt.org/bugs/view.php?id=7721'))
+        self.assertEqual('123', get_bug_id('http://localhost/view.php?id=123'))
 
     def test_fusionforge(self):
-        self.assertEquals('292', get_bug_id('https://fusionforge.org/tracker/index.php?func=detail&aid=292'))
+        self.assertEqual('292', get_bug_id('https://fusionforge.org/tracker/index.php?func=detail&aid=292'))
 
     def test_flyspray(self):
-        self.assertEquals('1234', get_bug_id('https://flyspray.example.com/index.php?do=details&task_id=1234'))
-        self.assertEquals('1234', get_bug_id('https://bugs.flyspray.org/task/1234'))
+        self.assertEqual('1234', get_bug_id('https://flyspray.example.com/index.php?do=details&task_id=1234'))
+        self.assertEqual('1234', get_bug_id('https://bugs.flyspray.org/task/1234'))
 
     def test_jira(self):
-        self.assertEquals('AB-1234', get_bug_id('http://jiraserver/browse/AB-1234'))
-        self.assertEquals('A_B-1234', get_bug_id('http://jiraserver/browse/A_B-1234'))
-        self.assertEquals('AB_1-1234', get_bug_id('http://jiraserver/browse/AB_1-1234'))
-        self.assertEquals('AB_1A-1234', get_bug_id('http://jiraserver/browse/AB_1A-1234'))
-        self.assertEquals(None, get_bug_id('http://jiraserver/browse/1A-1234'))
-        self.assertEquals(None, get_bug_id('http://jiraserver/browse/_1A-1234'))
-        self.assertEquals(None, get_bug_id('http://jiraserver/browse/A-1234A'))
-        self.assertEquals(None, get_bug_id('http://jiraserver/browse/a-1'))
-        self.assertEquals(None, get_bug_id('http://jiraserver/browse/a'))
-        self.assertEquals(None, get_bug_id('http://jiraserver/browse/A'))
-        self.assertEquals(None, get_bug_id('http://jiraserver/browse/A-'))
-        self.assertEquals(None, get_bug_id('http://jiraserver/browse/A_1'))
-        self.assertEquals('A-1', get_bug_id('http://jiraserver/browse/A-1'))
-        self.assertEquals('ZZ12_SA__2__-122222222', get_bug_id('http://jiras1212erver/browse/ZZ12_SA__2__-122222222'))
+        self.assertEqual('AB-1234', get_bug_id('http://jiraserver/browse/AB-1234'))
+        self.assertEqual('A_B-1234', get_bug_id('http://jiraserver/browse/A_B-1234'))
+        self.assertEqual('AB_1-1234', get_bug_id('http://jiraserver/browse/AB_1-1234'))
+        self.assertEqual('AB_1A-1234', get_bug_id('http://jiraserver/browse/AB_1A-1234'))
+        self.assertEqual(None, get_bug_id('http://jiraserver/browse/1A-1234'))
+        self.assertEqual(None, get_bug_id('http://jiraserver/browse/_1A-1234'))
+        self.assertEqual(None, get_bug_id('http://jiraserver/browse/A-1234A'))
+        self.assertEqual(None, get_bug_id('http://jiraserver/browse/a-1'))
+        self.assertEqual(None, get_bug_id('http://jiraserver/browse/a'))
+        self.assertEqual(None, get_bug_id('http://jiraserver/browse/A'))
+        self.assertEqual(None, get_bug_id('http://jiraserver/browse/A-'))
+        self.assertEqual(None, get_bug_id('http://jiraserver/browse/A_1'))
+        self.assertEqual('A-1', get_bug_id('http://jiraserver/browse/A-1'))
+        self.assertEqual('ZZ12_SA__2__-122222222', get_bug_id('http://jiras1212erver/browse/ZZ12_SA__2__-122222222'))
 
 class TestGetBugTags(TestCase):
 
     def test_get_user_bug_trackers_tags(self):
         self.assertEqual({}, get_user_bug_trackers_tags([]))
-        self.assertEquals({'foo': 'bugtracker',
+        self.assertEqual({'foo': 'bugtracker',
                            'bar': 'trac',
                            'spam': 'bugzilla'},
                            get_user_bug_trackers_tags([
@@ -112,7 +112,7 @@ class TestGetBugTagsFromConfig(TestCaseWithTransport):
             'http://bugs.kde.org/')
         cfg.set_user_option('trac_mbz_url',
             'http://bugs.musicbrainz.org/ticket/')
-        self.assertEquals({
+        self.assertEqual({
             'py': 'bugtracker',
             'kde': "bugzilla",
             'mbz': 'trac'},
@@ -131,7 +131,7 @@ class TestGetBugTagsFromConfig(TestCaseWithTransport):
             'http://bugs.kde.org/')
         cfg.set_user_option('trac_mbz_url',
             'http://bugs.musicbrainz.org/ticket/')
-        self.assertEquals({
+        self.assertEqual({
             'py': 'bugtracker',
             'kde': "bugzilla",
             'mbz': 'trac'},

@@ -91,7 +91,7 @@ def bug_urls_to_ids(bug_urls, branch=None):
     else:
         branch = FakeBranchForBugs()
     # try to convert bug urls to tag:id values
-    for k,n in urls_dict.iteritems():
+    for k,n in urls_dict.items():
         for tag in bug_tags:
             url = bugtracker.get_bug_url(tag, branch, n)
             if url == k:
@@ -124,7 +124,7 @@ def get_unique_bug_tags():
 def get_global_bug_tags():
     """Return bug tags collected from global config bazaar.conf"""
     cfg = config.GlobalConfig()
-    keys = cfg._get_parser().get('DEFAULT', {}).keys()
+    keys = list(cfg._get_parser().get('DEFAULT', {}).keys())
     return get_user_bug_trackers_tags(keys)
 
 def get_branch_bug_tags(branch):

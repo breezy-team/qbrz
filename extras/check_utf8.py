@@ -54,7 +54,7 @@ class check_utf8(Command):
                         f.close()
                         try:
                             content.decode('utf-8')
-                        except UnicodeDecodeError, e:
+                        except UnicodeDecodeError as e:
                             log.error(fullname + ': ' + str(e))
             # skip some directories
             for dname in dirs[:]:

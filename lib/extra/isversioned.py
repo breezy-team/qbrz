@@ -35,9 +35,9 @@ class cmd_is_versioned(commands.Command):
         tree, relpath = workingtree.WorkingTree.open_containing(filename)
         if tree.path2id(relpath):
             if not trace.is_quiet():
-                print >>self.outf, 'versioned'
+                print('versioned', file=self.outf)
             return 1
         else:
             if not trace.is_quiet():
-                print >>self.outf, 'not versioned'
+                print('not versioned', file=self.outf)
             return 0

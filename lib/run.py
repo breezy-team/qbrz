@@ -176,7 +176,7 @@ class QBzrRunDialog(SubProcessDialog):
         builtins = _mod_commands.builtin_command_names()
         self.all_cmds = {'All': []}
         self.public_cmds = {'All': []}
-        for name, cmd in self.cmds_dict.iteritems():
+        for name, cmd in self.cmds_dict.items():
             # If a command is builtin, we always put it into the Core
             # category, even if overridden in a plugin
             if name in builtins:
@@ -200,13 +200,13 @@ class QBzrRunDialog(SubProcessDialog):
     def set_category(self, category):
         cmd_name = self._get_cmd_name()
         all = self.ui.hidden_checkbox.isChecked()
-        category = unicode(category)
+        category = str(category)
         self.set_cmd_combobox(cmd_name=cmd_name, all=all, category=category)
 
     def set_show_hidden(self, show):
         cmd_name = self._get_cmd_name()
         all = bool(show)
-        category = unicode(self.ui.cat_combobox.currentText())
+        category = str(self.ui.cat_combobox.currentText())
         self.set_cmd_combobox(cmd_name=cmd_name, all=all, category=category)
 
     def set_cmd_combobox(self, cmd_name=None, all=False, category=None):
@@ -237,14 +237,14 @@ class QBzrRunDialog(SubProcessDialog):
 
     def _get_cmd_name(self):
         """Return the command name."""
-        return unicode(self.ui.cmd_combobox.currentText()).strip()
+        return str(self.ui.cmd_combobox.currentText()).strip()
 
     def set_cmd_help(self, cmd_name):
         """Show help for selected command in help widget.
 
         @param cmd_name: name of command to show help.
         """
-        cmd_name = unicode(cmd_name)
+        cmd_name = str(cmd_name)
         # XXX handle command aliases???
         cmd_object = self.cmds_dict.get(cmd_name)
         if cmd_object:
@@ -252,7 +252,7 @@ class QBzrRunDialog(SubProcessDialog):
             # HTML document, but QTextBrowser expects unicode.
             # (actually QString which is unicode in PyQt4).
             html_utf8 = get_help_topic_as_html("commands/" + cmd_name)
-            if isinstance(html_utf8, unicode):
+            if isinstance(html_utf8, str):
                 html_unicode = html_utf8
             else:
                 html_unicode = html_utf8.decode('utf-8')
@@ -266,7 +266,7 @@ class QBzrRunDialog(SubProcessDialog):
         @param default: if working dir is not exists then return this default 
             value.
         """
-        cwd = unicode(self.ui.wd_edit.text())
+        cwd = str(self.ui.wd_edit.text())
         if not os.path.isdir(cwd):
             cwd = default
         return cwd
@@ -292,7 +292,7 @@ class QBzrRunDialog(SubProcessDialog):
             cwd)
         if path:
             self.ui.opt_arg_edit.insert(
-                self._prepare_filepath(unicode(path))+" ")
+                self._prepare_filepath(str(path))+" ")
 
     def insert_filenames(self):
         """Select one or more existing files and insert them to command line."""
@@ -302,7 +302,7 @@ class QBzrRunDialog(SubProcessDialog):
             cwd)
         for i in filenames:
             self.ui.opt_arg_edit.insert(
-                self._prepare_filepath(unicode(i))+" ")
+                self._prepare_filepath(str(i))+" ")
 
     def validate(self):
         """Validate before launch command: start command only if there is one."""
@@ -314,7 +314,7 @@ class QBzrRunDialog(SubProcessDialog):
         """Launch command."""
         cwd = self._get_cwd()
         args = [self._get_cmd_name()]
-        opt_arg = unicode(self.ui.opt_arg_edit.text())
+        opt_arg = str(self.ui.opt_arg_edit.text())
         args.extend(shlex_split_unicode(opt_arg))
         self.process_widget.do_start(cwd, *args)
 

@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from breezy.tests import TestCase, TestCaseWithTransport
-from StringIO import StringIO
+from io import StringIO
 
 from breezy.plugins.qbrz.lib import loggraphviz
 from breezy.revision import NULL_REVISION
@@ -215,7 +215,7 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
         computed = gv.compute_viz(state)
         
         self.assertComputed(
-            [(u'current:%s' % tree.basedir, 0, True,                # ⊖  
+            [('current:%s' % tree.basedir, 0, True,                # ⊖  
               [(0, 0, 0, True), (0, 1, 2, True)],                   # ├─╮ 
               ['branch - Working Tree']),                           # │ │ 
              (rev_b, 1, None, [(0, 0, 0, True), (1, 0, 0, True)], # │ ○ 
@@ -233,7 +233,7 @@ class TestLogGraphVizWithBranches(TestCaseWithTransport, TestLogGraphVizMixin):
         computed = gv.compute_viz(state)
         
         self.assertComputed(
-            [(u'current:%s' % tree.basedir, 1, None, [(1, 1, 0, True)], #   ○ 
+            [('current:%s' % tree.basedir, 1, None, [(1, 1, 0, True)], #   ○ 
               ['branch - Working Tree']),                               #   │ 
              (rev_b, 0, None, [(0, 0, 0, True), (1, 0, 0, True)],     # ○ │ 
               ['branch']),                                              # ├─╯ 
@@ -969,7 +969,7 @@ class BasicGraphVizLoader(loggraphviz.GraphVizLoader):
         for head in self.heads:
             self.append_head_info(head, self.branches[0], head)
         
-        self.process_graph_parents(self.heads, self.graph_dict.items())
+        self.process_graph_parents(self.heads, list(self.graph_dict.items()))
         
         self.compute_head_info()
         
@@ -993,8 +993,8 @@ def print_computed(computed):
                 for c_rev in computed.filtered_revs])
 
 def print_lines(list):
-    print ''
-    print format_graph_lines(list)
+    print('')
+    print(format_graph_lines(list))
 
 def format_graph_lines(list, use_unicode=True):
     if not list:
@@ -1003,50 +1003,50 @@ def format_graph_lines(list, use_unicode=True):
     item_repr = [item.__repr__() for item in list]
     repr_width = max([len(repr) for repr in item_repr])
     if use_unicode:
-        twisty_char = {None: u'○',
-                      True: u'⊖',
-                      False: u'⊕'}
-        ver_char = {True: u'│',
-                    False: u'┆'}
+        twisty_char = {None: '○',
+                      True: '⊖',
+                      False: '⊕'}
+        ver_char = {True: '│',
+                    False: '┆'}
         
-        hor_char = {True: {u' ': u'─',
-                           u'│': u'┼',
-                           u'┆': u'┼'},
-                    False: {u' ': u'┄',
-                           u'│': u'┼',
-                           u'┆': u'┼'}}
+        hor_char = {True: {' ': '─',
+                           '│': '┼',
+                           '┆': '┼'},
+                    False: {' ': '┄',
+                           '│': '┼',
+                           '┆': '┼'}}
         
-        tl_char = {u' ': u'╭',
-                   u'│': u'├',
-                   u'┆': u'├',
-                   u'─': u'┬',
-                   u'┄': u'┬',
-                   u'┴': u'┼',
-                   u'┤': u'┼',}
+        tl_char = {' ': '╭',
+                   '│': '├',
+                   '┆': '├',
+                   '─': '┬',
+                   '┄': '┬',
+                   '┴': '┼',
+                   '┤': '┼',}
 
-        tr_char = {u' ': u'╮',
-                   u'│': u'┤',
-                   u'┆': u'┤',
-                   u'─': u'┬',
-                   u'┄': u'┬',
-                   u'┴': u'┼',
-                   u'├': u'┼',}
+        tr_char = {' ': '╮',
+                   '│': '┤',
+                   '┆': '┤',
+                   '─': '┬',
+                   '┄': '┬',
+                   '┴': '┼',
+                   '├': '┼',}
 
-        bl_char = {u' ': u'╰',
-                   u'│': u'├',
-                   u'┆': u'├',
-                   u'─': u'┴',
-                   u'┄': u'┴',
-                   u'┬': u'┼',
-                   u'┤': u'┼',}
+        bl_char = {' ': '╰',
+                   '│': '├',
+                   '┆': '├',
+                   '─': '┴',
+                   '┄': '┴',
+                   '┬': '┼',
+                   '┤': '┼',}
         
-        br_char = {u' ': u'╯',
-                   u'│': u'┤',
-                   u'┆': u'┤',
-                   u'─': u'┴',
-                   u'┄': u'┴',
-                   u'┬': u'┼',
-                   u'├': u'┼',}
+        br_char = {' ': '╯',
+                   '│': '┤',
+                   '┆': '┤',
+                   '─': '┴',
+                   '┄': '┴',
+                   '┬': '┼',
+                   '├': '┼',}
     else:
         twisty_char = {None: '*',
                       True: '~',

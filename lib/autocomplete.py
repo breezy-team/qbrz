@@ -68,7 +68,7 @@ class AutocompleteWordListBuilder(object):
 
     def compile_regexes(self):
         if self.compiled_regexes is None:
-            self.compiled_regexes = map(re.compile, self.regexes)
+            self.compiled_regexes = list(map(re.compile, self.regexes))
 
     def iter_words(self, file):
         self.compile_regexes()
@@ -77,7 +77,7 @@ class AutocompleteWordListBuilder(object):
                 for result in regex.findall(line):
                     if not isinstance(result, tuple):
                         result = (result,)
-                    for word in filter(None, result):
+                    for word in [_f for _f in result if _f]:
                         yield word
 
 

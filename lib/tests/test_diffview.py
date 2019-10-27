@@ -37,33 +37,33 @@ class TestInsertIntralineChanges(TestCase):
         cursor1 = FakeCursor()
         cursor2 = FakeCursor()
         insert_intraline_changes(cursor1, cursor2, 'foo', 'foo', 'n', 'ins', 'del')
-        self.assertEquals('<n>foo</n>', cursor1.text)
-        self.assertEquals('<n>foo</n>', cursor2.text)
+        self.assertEqual('<n>foo</n>', cursor1.text)
+        self.assertEqual('<n>foo</n>', cursor2.text)
 
     def test_whole_line_changed(self):
         cursor1 = FakeCursor()
         cursor2 = FakeCursor()
         insert_intraline_changes(cursor1, cursor2, 'foo', 'bar', 'n', 'ins', 'del')
-        self.assertEquals('<del>foo</del>', cursor1.text)
-        self.assertEquals('<ins>bar</ins>', cursor2.text)
+        self.assertEqual('<del>foo</del>', cursor1.text)
+        self.assertEqual('<ins>bar</ins>', cursor2.text)
 
     def test_delete_char(self):
         cursor1 = FakeCursor()
         cursor2 = FakeCursor()
         insert_intraline_changes(cursor1, cursor2, 'foo', 'fo', 'n', 'ins', 'del')
-        self.assertEquals('<n>fo</n><del>o</del>', cursor1.text)
-        self.assertEquals('<n>fo</n>', cursor2.text)
+        self.assertEqual('<n>fo</n><del>o</del>', cursor1.text)
+        self.assertEqual('<n>fo</n>', cursor2.text)
 
     def test_insert_char(self):
         cursor1 = FakeCursor()
         cursor2 = FakeCursor()
         insert_intraline_changes(cursor1, cursor2, 'fo', 'foo', 'n', 'ins', 'del')
-        self.assertEquals('<n>fo</n>', cursor1.text)
-        self.assertEquals('<n>fo</n><ins>o</ins>', cursor2.text)
+        self.assertEqual('<n>fo</n>', cursor1.text)
+        self.assertEqual('<n>fo</n><ins>o</ins>', cursor2.text)
 
     def test_replace_2_chars(self):
         cursor1 = FakeCursor()
         cursor2 = FakeCursor()
         insert_intraline_changes(cursor1, cursor2, 'foobar', 'foObAr', 'n', 'ins', 'del')
-        self.assertEquals('<n>fo</n><del>o</del><n>b</n><del>a</del><n>r</n>', cursor1.text)
-        self.assertEquals('<n>fo</n><ins>O</ins><n>b</n><ins>A</ins><n>r</n>', cursor2.text)
+        self.assertEqual('<n>fo</n><del>o</del><n>b</n><del>a</del><n>r</n>', cursor1.text)
+        self.assertEqual('<n>fo</n><ins>O</ins><n>b</n><ins>A</ins><n>r</n>', cursor2.text)

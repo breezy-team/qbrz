@@ -23,7 +23,7 @@ from distutils import log
 from distutils.core import Command
 from distutils.spawn import find_executable
 
-from en_po import regenerate_en
+from .en_po import regenerate_en
 
 
 class import_po(Command):

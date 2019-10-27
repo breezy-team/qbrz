@@ -146,7 +146,7 @@ class TextEdit(QtGui.QTextEdit):
         self.context_tc.movePosition(QtGui.QTextCursor.StartOfWord)
         self.context_tc.movePosition(QtGui.QTextCursor.EndOfWord,
                                      QtGui.QTextCursor.KeepAnchor)
-        text = unicode(self.context_tc.selectedText())
+        text = str(self.context_tc.selectedText())
         if list(self.spell_checker.check(text)):
             suggestions = self.spell_checker.suggest(text)
             first_action = menu.actions()[0]
@@ -460,7 +460,7 @@ class CommitWindow(SubProcessDialog):
 
         # Try to be smart: if there is no saved message
         # then set focus on Edit Area; otherwise on OK button.
-        if unicode(self.message.toPlainText()).strip():
+        if str(self.message.toPlainText()).strip():
             self.buttonbox.setFocus()
         else:
             self.message.setFocus()
@@ -608,12 +608,12 @@ class CommitWindow(SubProcessDialog):
             return
         # collect data
         ci_data = QBzrCommitData(tree=self.tree)
-        message = unicode(self.message.toPlainText()).strip()
+        message = str(self.message.toPlainText()).strip()
         if message:
             ci_data['message'] = message
         bug_str = ''
         if self.bugsCheckBox.isChecked():
-            bug_str = unicode(self.bugs.text()).strip()
+            bug_str = str(self.bugs.text()).strip()
         if bug_str:
             ci_data['bugs'] = bug_str
         # save only if data different
@@ -630,7 +630,7 @@ class CommitWindow(SubProcessDialog):
         self.ci_data.wipe()
 
     def _get_message(self):
-        return unicode(self.message.toPlainText()).strip()
+        return str(self.message.toPlainText()).strip()
 
     def _get_selected_files(self):
         """Return (has_files_to_commit[bool], files_to_commit[list], files_to_add[list])"""
@@ -679,11 +679,11 @@ class CommitWindow(SubProcessDialog):
             args.extend(files_to_commit)
 
         if self.bugsCheckBox.isChecked():
-            for s in unicode(self.bugs.text()).split():
+            for s in str(self.bugs.text()).split():
                 args.append(("--fixes=%s" % s))
         
         if self.authorCheckBox.isChecked():
-            args.append(("--author=%s" % unicode(self.author.text())))
+            args.append(("--author=%s" % str(self.author.text())))
         
         if self.is_bound and self.local_checkbox.isChecked():
             args.append("--local")

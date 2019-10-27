@@ -276,14 +276,14 @@ class QBzrExportDialog(SubProcessDialog):
 
     def detect_format(self, path):
         """Return archive type or None."""
-        for k, v in self.FORMATS.iteritems():
+        for k, v in self.FORMATS.items():
             for i in v:
                 if path.endswith(i):
                     return k
         return None
 
     def update_root_n_format(self):
-        path = unicode(self.locationfil_edit.text())
+        path = str(self.locationfil_edit.text())
         format = self.detect_format(path)
         if format is not None:
             ix = sorted(self.FORMATS.keys()).index(format)
@@ -316,12 +316,12 @@ class QBzrExportDialog(SubProcessDialog):
 
     def validate(self):
         if self.exportarch_radio.isChecked():
-            location = unicode(self.locationfil_edit.text())
+            location = str(self.locationfil_edit.text())
             if not location:
                 self.operation_blocked(gettext("Export location is invalid"))
                 return False
         elif self.exportdir_radio.isChecked():
-            location = unicode(self.locationdir_edit.text())
+            location = str(self.locationdir_edit.text())
             if not location:
                 self.operation_blocked(gettext("Export location is invalid"))
                 return False
@@ -337,15 +337,15 @@ class QBzrExportDialog(SubProcessDialog):
 
         # setup export to archive or directory
         if self.exportarch_radio.isChecked():
-            location = unicode(self.locationfil_edit.text())
+            location = str(self.locationfil_edit.text())
             format = self.get_current_format()
-            root = unicode(self.folder_edit.text())
+            root = str(self.folder_edit.text())
             if root:
                 args.append("--root=%s" % root)
             else:
                 args.append("--root=")
         else:
-            location = unicode(self.locationdir_edit.text())
+            location = str(self.locationdir_edit.text())
             format = 'dir'
         args.append(location)
         args.append("--format=%s" % format)
@@ -354,7 +354,7 @@ class QBzrExportDialog(SubProcessDialog):
         if self.revisions_tip.isChecked():
             args.append("--revision=-1")
         else:
-            revision = unicode(self.revisions_edit.text())
+            revision = str(self.revisions_edit.text())
             args.append("--revision=%s" % revision)
         if self.format_canonical.isChecked():
             args.append("--filters")

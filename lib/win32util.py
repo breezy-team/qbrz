@@ -57,6 +57,6 @@ def is_aero_enabled():
         # DwmIsCompositionEnabled function should tell us whether aero is enabled
         ctypes.windll.dwmapi.DwmIsCompositionEnabled(ctypes.byref(bResult))
         return bool(bResult.value)
-    except Exception, e:    # that's really bad, I know, shame on me
-        print e             # if we will be there somebody will let me know which exactly error there is
+    except Exception as e:    # that's really bad, I know, shame on me
+        print(e)             # if we will be there somebody will let me know which exactly error there is
         return False

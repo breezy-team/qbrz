@@ -46,6 +46,7 @@ import breezy.plugins.qbrz.lib.resources
 from breezy import errors
 
 from breezy.lazy_import import lazy_import
+from functools import reduce
 lazy_import(globals(), '''
 from breezy import (
     osutils,
@@ -61,7 +62,7 @@ from breezy.plugins.qbrz.lib.compatibility import configobj
 ''')
 
 # standard buttons with translatable labels
-BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP, BTN_REFRESH = range(5)
+BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP, BTN_REFRESH = list(range(5))
 
 class StandardButton(QtGui.QPushButton):
 
@@ -115,7 +116,7 @@ class Config(object):
         if section not in self._configobj:
             self._configobj[section] = {}
         if value:
-            if not isinstance(value, (str,unicode)):
+            if not isinstance(value, str):
                 # [bialix 2011/02/11] related to bug #716384: if value is bool
                 # then sometimes configobj lost it in the output file
                 value = str(value)
@@ -233,7 +234,7 @@ class QBzrConfig(Config):
           
         #Being here guarantees that color_value is a list
         #of three elements that represent numbers.
-        color_components = map(int, val)
+        color_components = list(map(int, val))
         if not reduce(lambda x,y: x and y < 256, color_components, True):
             raise ValueError(
               color_range_err_msg(", ".join(val)))
@@ -279,7 +280,7 @@ class _QBzrWindowBase(object):
 
     def set_title(self, title=None):
         if title:
-            if isinstance(title, basestring):
+            if isinstance(title, str):
                 self.setWindowTitle(title)
             elif isinstance(title, (list, tuple)):
                 self.setWindowTitle(" - ".join(title))
@@ -341,7 +342,7 @@ class _QBzrWindowBase(object):
             size = size.split("x")
             if len(size) == 2:
                 try:
-                    size = map(int, size)
+                    size = list(map(int, size))
                 except ValueError:
                     size = defaultSize
                 else:
@@ -370,7 +371,7 @@ class _QBzrWindowBase(object):
         sizes = config.get_option(name + "_splitter_sizes")
         n = len(self.splitter.sizes())
         if sizes:
-            sizes = map(int, sizes.split(':'))
+            sizes = list(map(int, sizes.split(':')))
             if len(sizes) != n:
                 sizes = None
         if not sizes and default_sizes and len(default_sizes) == n:
@@ -392,9 +393,9 @@ class _QBzrWindowBase(object):
         is clicked.
         """
         # Our help links all are of the form 'bzrtopic:topic-name'
-        scheme, link = unicode(target).split(":", 1)
+        scheme, link = str(target).split(":", 1)
         if scheme != "bzrtopic":
-            raise RuntimeError, "unknown scheme"
+            raise RuntimeError("unknown scheme")
         from breezy.plugins.qbrz.lib.help import show_help
         show_help(link, self)
     
@@ -601,7 +602,7 @@ def hookup_directory_picker(dialog, chooser, target, chooser_type):
             # Or a QLineEdit
             getter = target.text
             setter = target.setText
-        dir = unicode(getter())
+        dir = str(getter())
         if not os.path.isdir(dir):
             dir = ""
         dir = QtGui.QFileDialog.getExistingDirectory(dlg, caption, dir)
@@ -647,7 +648,7 @@ def format_timestamp(timestamp):
     formatted in user locale"""
     date = QtCore.QDateTime()
     date.setTime_t(int(timestamp))
-    return unicode(date.toString(QtCore.Qt.LocalDate))
+    return str(date.toString(QtCore.Qt.LocalDate))
 
 
 def is_valid_encoding(encoding):
@@ -714,7 +715,7 @@ class FilterOptions(object):
         for i in self.__slots__:
             setattr(self, i, True)
 
-    def __nonzero__(self):
+    def __bool__(self):
         return self.added or self.deleted or self.modified or self.renamed
 
     def is_all_enable(self):
@@ -778,7 +779,7 @@ def iter_branch_related_locations(branch):
 # A helper to fill a 'pull' combo. Returns the default value.
 def fill_pull_combo(combo, branch):
     if branch is None:
-        p = u''
+        p = ''
         related = []
     else:
         p = url_for_display(branch.get_parent() or '')
@@ -1002,7 +1003,7 @@ def open_tree(directory, ui_mode=False,
     @param _critical_dialog: could be used to provide mock object for testing.
     """
     if directory is None:
-        directory = u'.'
+        directory = '.'
     try:
         return WorkingTree.open_containing(directory)[0]
     except errors.NotBranchError:
@@ -1043,7 +1044,7 @@ def launchpad_project_from_url(url):
     #   scheme://host/+branch/DISTRO/POCKET/SOURCEPACKAGE
     #   scheme://host/~USER/DISTRO/SERIES/SOURCEPACKAGE/BRANCHNAME
     DISTROS = ('debian', 'ubuntu')
-    from urlparse import urlsplit
+    from urllib.parse import urlsplit
     scheme, host, path = urlsplit(url)[:3]
     # Sanity check the host
     if (host in ('bazaar.launchpad.net',
@@ -1076,14 +1077,14 @@ def launchpad_project_from_url(url):
 
 def _shlex_split_unicode_linux(unicode_string):
     """Split unicode string to list of unicode arguments."""
-    return [unicode(p,'utf8') for p in shlex.split(unicode_string.encode('utf-8'))]
+    return [str(p,'utf8') for p in shlex.split(unicode_string.encode('utf-8'))]
 
 def _shlex_split_unicode_windows(unicode_string):
     """Split unicode string to list of unicode arguments.
     Take care about backslashes as valid path separators.
     """
     utf8_string = unicode_string.replace('\\', '\\\\').encode('utf-8')
-    return [unicode(p,'utf8') for p in shlex.split(utf8_string)]
+    return [str(p,'utf8') for p in shlex.split(utf8_string)]
 
 if MS_WINDOWS:
     shlex_split_unicode = _shlex_split_unicode_windows

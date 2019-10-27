@@ -34,9 +34,9 @@ class TestI18n(TestCase):
 
     def test_gettext(self):
         # simple pass-through
-        self.assertEquals('file', i18n.gettext('file'))
+        self.assertEqual('file', i18n.gettext('file'))
 
     def test_ngettext(self):
-        self.assertEquals('singular', i18n.ngettext('singular', 'plural', 1))
-        self.assertEquals('plural', i18n.ngettext('singular', 'plural', 2))
-        self.assertEquals('plural', i18n.ngettext('singular', 'plural', 0))
+        self.assertEqual('singular', i18n.ngettext('singular', 'plural', 1))
+        self.assertEqual('plural', i18n.ngettext('singular', 'plural', 2))
+        self.assertEqual('plural', i18n.ngettext('singular', 'plural', 0))

@@ -66,8 +66,8 @@ class BookmarkDialog(QtGui.QDialog):
         self.ui.location.setText(location)
 
     def values(self):
-        return (unicode(self.ui.name.text()),
-                unicode(self.ui.location.text()))
+        return (str(self.ui.name.text()),
+                str(self.ui.location.text()))
 
 
 class SideBarItem(object):
@@ -404,12 +404,12 @@ class QBzrMainWindow(QBzrWindow):
         }
         QtGui.QMessageBox.about(self,
             gettext("About QBzr"),
-            gettext(u"<b>QBzr</b> \u2014 A graphical user interface for Bazaar<br>"
-                    u"<small>Version %(qbrz_version)s (breezy %(breezy_version)s)</small><br>"
-                    u"<br>"
-                    u"Copyright \u00A9 2006-2008 Luk\xe1\u0161 Lalinsk\xfd and others<br>"
-                    u"<br>"
-                    u'<a href="http://bazaar-vcs.org/QBzr">http://bazaar-vcs.org/QBzr</a>') % tpl)
+            gettext("<b>QBzr</b> \u2014 A graphical user interface for Bazaar<br>"
+                    "<small>Version %(qbrz_version)s (breezy %(breezy_version)s)</small><br>"
+                    "<br>"
+                    "Copyright \u00A9 2006-2008 Luk\xe1\u0161 Lalinsk\xfd and others<br>"
+                    "<br>"
+                    '<a href="http://bazaar-vcs.org/QBzr">http://bazaar-vcs.org/QBzr</a>') % tpl)
 
     def loadIcons(self):
         icons = [
@@ -471,7 +471,7 @@ class QBzrMainWindow(QBzrWindow):
     def addBookmark(self):
         dialog = BookmarkDialog(gettext("Add Bookmark"), self)
         if dialog.exec_() == QtGui.QDialog.Accepted:
-            name, location = dialog.values()
+            name, location = list(dialog.values())
             config = get_qbrz_config()
             config.add_bookmark(name, location)
             config.save()
@@ -483,7 +483,7 @@ class QBzrMainWindow(QBzrWindow):
         dialog = BookmarkDialog(gettext("Edit Bookmark"), self)
         dialog.setValues(*bookmarks[pos])
         if dialog.exec_() == QtGui.QDialog.Accepted:
-            bookmarks[pos] = dialog.values()
+            bookmarks[pos] = list(dialog.values())
             config.set_bookmarks(bookmarks)
             config.save()
             self.sideBarModel.refresh(self.sideBarModel.bookmarksItem)
@@ -502,22 +502,22 @@ class QBzrMainWindow(QBzrWindow):
             self.sideBarModel.refresh(self.sideBarModel.bookmarksItem)
 
     def updateFileList(self, selected, deselected):
-        items = map(self.sideBarModel.itemFromIndex, self.sideBarView.selectedIndexes())
+        items = list(map(self.sideBarModel.itemFromIndex, self.sideBarView.selectedIndexes()))
         if not items:
             return
         item = items[0]
         if not isinstance(item, DirectoryItem):
             return
-        self.setDirectory(unicode(item.path))
+        self.setDirectory(str(item.path))
 
     def onFileActivated(self, item, column):
         path = item.data(0, QtCore.Qt.UserRole).toString()
         if path:
             # directory
-            self.setDirectory(unicode(path))
+            self.setDirectory(str(path))
         else:
             # file
-            basename = unicode(item.text(0))
+            basename = str(item.text(0))
             filepath = osutils.pathjoin(self.currentDirectory, basename)
             url = QtCore.QUrl(filepath)
             QtGui.QDesktopServices.openUrl(url)
@@ -551,7 +551,7 @@ class QBzrMainWindow(QBzrWindow):
                 item = QtGui.QTreeWidgetItem(self.fileListView)
                 item.setText(0, fileInfo.fileName())
                 if fileInfo.isDir():
-                    status = self.cache.getDirectoryStatus(pathParts, unicode(fileInfo.fileName()))
+                    status = self.cache.getDirectoryStatus(pathParts, str(fileInfo.fileName()))
                     if status == 'non-versioned':
                         icon = 'folder'
                     else:
@@ -559,7 +559,7 @@ class QBzrMainWindow(QBzrWindow):
                     item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(fileInfo.filePath()))
                     item.setIcon(0, self.icons[icon])
                 else:
-                    status = self.cache.getFileStatus(pathParts, unicode(fileInfo.fileName()))
+                    status = self.cache.getFileStatus(pathParts, str(fileInfo.fileName()))
                     if status == 'non-versioned':
                         icon = 'file'
                     else:

@@ -322,7 +322,7 @@ class SubProcessWindowBase(object):
 
     def on_conflicted(self, tree_path):
         if tree_path:
-            self.action_url = unicode(tree_path) # QString -> unicode
+            self.action_url = str(tree_path) # QString -> unicode
             self.infowidget.setup_for_conflicted(self.open_conflicts_win,
                                                  self.open_revert_win)
             self.infowidget.show()
@@ -603,10 +603,10 @@ class SubProcessWidget(QtGui.QWidget):
         def format_args_for_log(args):
             r = ['bzr']
             for a in args:
-                a = unicode(a).translate({
-                        ord(u'\n'): u'\\n',
-                        ord(u'\r'): u'\\r',
-                        ord(u'\t'): u'\\t',
+                a = str(a).translate({
+                        ord('\n'): '\\n',
+                        ord('\r'): '\\r',
+                        ord('\t'): '\\t',
                         })
                 if " " in a:
                     r.append('"%s"' % a)
@@ -719,7 +719,7 @@ class SubProcessWidget(QtGui.QWidget):
                     progress, transport_activity, task_info = bencode.bdecode(
                         line[len(SUB_PROGRESS):])
                     messages = [b.decode("utf-8") for b in task_info]
-                except ValueError, e:
+                except ValueError as e:
                     # we got malformed data from qsubprocess (bencode failed to decode)
                     # so just show it in the status console
                     self.logMessageEx("qsubprocess error: "+str(e), "error", self.stderr)
@@ -732,7 +732,7 @@ class SubProcessWidget(QtGui.QWidget):
                                                         gettext("Enter Password"),
                                                         prompt,
                                                         QtGui.QLineEdit.Password)
-                data = unicode(passwd).encode('utf-8'), int(ok)
+                data = str(passwd).encode('utf-8'), int(ok)
                 self.process.write(SUB_GETPASS + bencode.bencode(data) + "\n")
                 if not ok:
                     self.abort_futher_processes()
@@ -741,7 +741,7 @@ class SubProcessWidget(QtGui.QWidget):
                 passwd, ok = QtGui.QInputDialog.getText(self,
                                                         gettext("Enter Username"),
                                                         prompt)
-                data = unicode(passwd).encode('utf-8'), int(ok)
+                data = str(passwd).encode('utf-8'), int(ok)
                 self.process.write(SUB_GETUSER + bencode.bencode(data) + "\n")
                 if not ok:
                     self.abort_futher_processes()
@@ -1024,18 +1024,18 @@ def run_subprocess_command(cmd, bencoded=False):
     else:
         cmd_utf8 = cmd.encode('utf8')
     if not bencoded:
-        argv = [unicode(p, 'utf-8') for p in shlex.split(cmd_utf8)]
+        argv = [str(p, 'utf-8') for p in shlex.split(cmd_utf8)]
     else:
-        argv = [unicode(p, 'utf-8') for p in bencode.bdecode(cmd_utf8)]
+        argv = [str(p, 'utf-8') for p in bencode.bdecode(cmd_utf8)]
     try:
         def on_conflicted(wtpath):
-            print "%s%s%s" % (SUB_NOTIFY, NOTIFY_CONFLICT, bencode_prompt(wtpath))
+            print("%s%s%s" % (SUB_NOTIFY, NOTIFY_CONFLICT, bencode_prompt(wtpath)))
         with watch_conflicts(on_conflicted):
             return commands.run_bzr(argv)
     except (KeyboardInterrupt, SystemExit):
         raise
-    except Exception, e:
-        print "%s%s" % (SUB_ERROR, bencode_exception_instance(e))
+    except Exception as e:
+        print("%s%s" % (SUB_ERROR, bencode_exception_instance(e)))
         raise
 
 
@@ -1093,8 +1093,8 @@ def bencode_unicode(args):
     """Bencode list of unicode strings as list of utf-8 strings and converting
     resulting string to unicode.
     """
-    args_utf8 = bencode.bencode([unicode(a).encode('utf-8') for a in args])
-    return unicode(args_utf8, 'utf-8')
+    args_utf8 = bencode.bencode([str(a).encode('utf-8') for a in args])
+    return str(args_utf8, 'utf-8')
 
 def bencode_prompt(arg):
     return bencode.bencode(arg.encode('unicode-escape'))
@@ -1135,7 +1135,7 @@ def bencode_exception_instance(e):
         # but exceptions that occur as interrupts, allowing for Python 2.4
         try:
             val = getattr(e, key)
-            if not isinstance(val, unicode):
+            if not isinstance(val, str):
                 if not isinstance(val, str):
                     val = repr(val)
                 val = val.decode("ascii", "replace")
@@ -1159,7 +1159,7 @@ def bdecode_exception_instance(s):
 def encode_unicode_escape(obj):
     if isinstance(obj, dict):
         result = {}
-        for k,v in obj.iteritems():
+        for k,v in obj.items():
             result[k] = v.encode('unicode-escape')
         return result
     else:
@@ -1168,7 +1168,7 @@ def encode_unicode_escape(obj):
 def decode_unicode_escape(obj):
     if isinstance(obj, dict):
         result = {}
-        for k,v in obj.iteritems():
+        for k,v in obj.items():
             result[k] = v.decode('unicode-escape')
         return result
     else:

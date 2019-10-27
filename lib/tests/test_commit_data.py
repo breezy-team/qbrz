@@ -34,7 +34,7 @@ class TestCommitDataBase(TestCase):
         self.assertFalse(bool(d))
         self.assertEqual(None, d['message'])
         self.assertEqual({}, d.as_dict())
-        self.assertEqual([], d.keys())
+        self.assertEqual([], list(d.keys()))
 
     def test_set_data_dict(self):
         d = CommitData()
@@ -43,7 +43,7 @@ class TestCommitDataBase(TestCase):
         self.assertTrue(bool(d))
         self.assertEqual('foo bar', d['message'])
         self.assertEqual({'message': 'foo bar'}, d.as_dict())
-        self.assertEqual(['message'], d.keys())
+        self.assertEqual(['message'], list(d.keys()))
 
     def test_set_data_kw(self):
         d = CommitData()
@@ -52,7 +52,7 @@ class TestCommitDataBase(TestCase):
         self.assertTrue(bool(d))
         self.assertEqual('foo bar', d['message'])
         self.assertEqual({'message': 'foo bar'}, d.as_dict())
-        self.assertEqual(['message'], d.keys())
+        self.assertEqual(['message'], list(d.keys()))
 
     def test_set_data_dict_and_kw(self):
         d = CommitData()

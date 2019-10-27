@@ -70,7 +70,7 @@ class UpdateBranchWindow(SubProcessDialog):
         return self.ui.but_pull.isChecked()
 
     def _get_pull_location(self):
-        return unicode(self.ui.location.currentText())
+        return str(self.ui.location.currentText())
 
     def validate(self):
         if self._is_pull_selected() and not self._get_pull_location():
@@ -116,7 +116,7 @@ class UpdateCheckoutWindow(SubProcessDialog):
         # We don't look at 'related' branches etc when doing a 'pull' from
         # a checkout - the default is empty, but saved locations are used.
         fill_combo_with(self.ui.location,
-                        u'',
+                        '',
                         iter_saved_pull_locations())
         # and the directory picker for the pull location.
         hookup_directory_picker(self,
@@ -126,14 +126,14 @@ class UpdateCheckoutWindow(SubProcessDialog):
 
         # Our 'label' object is ready to have the bound location specified.
         loc = url_for_display(self.branch.get_bound_location())
-        self.ui.label.setText(unicode(self.ui.label.text()) % loc)
+        self.ui.label.setText(str(self.ui.label.text()) % loc)
         self.ui.but_pull.setChecked(False)
 
     def _is_pull_selected(self):
         return self.ui.but_pull.isChecked()
 
     def _get_pull_location(self):
-        return unicode(self.ui.location.currentText())
+        return str(self.ui.location.currentText())
 
     def validate(self):
         if self._is_pull_selected() and not self._get_pull_location():

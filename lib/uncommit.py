@@ -97,7 +97,7 @@ class QBzrUncommitWindow(SubProcessDialog):
           Otherwise the revision identifier as a string.
         """
         if self.other_radio.isChecked():
-            result = unicode(self.other_revision.text())
+            result = str(self.other_revision.text())
             if result:
                 return result
             else:

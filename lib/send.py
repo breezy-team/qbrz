@@ -212,13 +212,13 @@ class SendWindow(SubProcessDialog):
                 self.operation_blocked(gettext("Email address is not valid."))
                 return False
         else:
-            location = unicode(self.savefile_edit.text())
+            location = str(self.savefile_edit.text())
             if not location:
                 self.savefile_edit.setFocus()
                 self.operation_blocked(gettext("Filename not entered."))
                 return False
 
-        submit_branch = unicode(self.submit_branch_combo.currentText())
+        submit_branch = str(self.submit_branch_combo.currentText())
         if not submit_branch:
             self.submit_branch_combo.setFocus()
             self.operation_blocked(gettext("No submit branch entered."))
@@ -227,8 +227,8 @@ class SendWindow(SubProcessDialog):
 
     def do_start(self):
         args = []
-        submit_branch = unicode(self.submit_branch_combo.currentText())
-        public_branch = unicode(self.public_branch_combo.currentText())
+        submit_branch = str(self.submit_branch_combo.currentText())
+        public_branch = str(self.public_branch_combo.currentText())
         
         if public_branch:
             args.append(public_branch)
@@ -241,7 +241,7 @@ class SendWindow(SubProcessDialog):
             location = str(self.mailto_edit.text())
             args.append("--mail-to=%s" % location)
         else:
-            location = unicode(self.savefile_edit.text())
+            location = str(self.savefile_edit.text())
             args.append("-o")
             args.append(location)
 
@@ -254,8 +254,8 @@ class SendWindow(SubProcessDialog):
         if not self.bundle_check.isChecked():
             args.append("--no-bundle")
 
-        if unicode(self.message_edit.text()):
-            args.append("--message=%s" % unicode(self.message_edit.text()))
+        if str(self.message_edit.text()):
+            args.append("--message=%s" % str(self.message_edit.text()))
 
         revision = str(self.revisions_edit.text())
         if revision == '':

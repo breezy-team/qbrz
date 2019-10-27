@@ -101,7 +101,7 @@ def group_large_dirs(paths):
     container_dirs = {}
     """Dict of a container dir path, with a set of it's decendents"""
     
-    paths_deep_first = sorted(all_paths_expanded.itervalues(),
+    paths_deep_first = sorted(iter(all_paths_expanded.values()),
                               key=lambda x: -x[1])
     
     def set_dir_as_container(path):
@@ -315,7 +315,7 @@ class ChangeDesc(tuple):
              changed_content, versioned, parent, name, kind,
              executable, is_ignored) = desc
         else:
-            raise RuntimeError, "Unkown number of items to unpack."
+            raise RuntimeError("Unkown number of items to unpack.")
             
         if versioned == (False, False):
             if is_ignored:
@@ -355,7 +355,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                      gettext("Message"),
                      gettext("Author"),
                      gettext("Status")]
-    NAME, DATE, REVNO, MESSAGE, AUTHOR, STATUS = range(len(HEADER_LABELS))
+    NAME, DATE, REVNO, MESSAGE, AUTHOR, STATUS = list(range(len(HEADER_LABELS)))
 
     def __init__(self, parent=None):
         # XXX parent object: instance of what class it supposed to be?
@@ -494,10 +494,10 @@ class TreeModel(QtCore.QAbstractItemModel):
                     
                     if changes_mode:
                         self.unver_by_parent = group_large_dirs(
-                            frozenset(self.inventory_data_by_path.iterkeys()))
+                            frozenset(iter(self.inventory_data_by_path.keys())))
                         
                         # Add items for directories added
-                        for path in self.unver_by_parent.iterkeys():
+                        for path in self.unver_by_parent.keys():
                             if path not in self.inventory_data_by_path:
                                 kind = "directory"
                                 file_id = self.tree.path2id(path)
@@ -509,7 +509,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                         
                         # Name setting
                         for dir_path, decendents in \
-                                self.unver_by_parent.iteritems():
+                                self.unver_by_parent.items():
                             dir_fileid = self.tree.path2id(dir_path)
                             for path in decendents:
                                 item_data = self.inventory_data_by_path[path]
@@ -518,7 +518,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                                     item_data.change)
                     else:
                         # record the unversioned items
-                        for item_data in self.inventory_data_by_path.itervalues() :
+                        for item_data in self.inventory_data_by_path.values() :
                             if (item_data.change and
                                 not item_data.change.is_versioned() or
                                 not item_data.change):
@@ -527,7 +527,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                                              item_data.path)
                         
                         # Name setting
-                        for item_data in self.inventory_data_by_path.itervalues():
+                        for item_data in self.inventory_data_by_path.values():
                             dir_path, name = os.path.split(item_data.path)
                             dir_fileid = self.tree.path2id(dir_path)
                             item_data.item.name = get_name(
@@ -904,7 +904,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             if not isinstance(self.tree, WorkingTree):
                 return False
             # Rename
-            value = unicode(value.toString())
+            value = str(value.toString())
             item_data = self.inventory_data[index.internalId()]
             parent = self.inventory_data[item_data.parent_id]
             new_path = posixpath.join(parent.path, value)
@@ -1184,7 +1184,7 @@ class TreeFilterProxyModel(QtGui.QSortFilterProxyModel):
     source_model = None
     
     filters = [True, True, True, False]
-    (UNCHANGED, CHANGED, UNVERSIONED, IGNORED) = range(4)
+    (UNCHANGED, CHANGED, UNVERSIONED, IGNORED) = list(range(4))
     
     filter_cache = {}
     
@@ -1502,7 +1502,7 @@ class TreeWidget(RevisionTreeView):
         parents_to_check = [QtCore.QModelIndex()]
         while parents_to_check:
             parent = parents_to_check.pop(0)
-            for row in xrange(self.tree_filter_model.rowCount(parent)):
+            for row in range(self.tree_filter_model.rowCount(parent)):
                 child = self.tree_filter_model.index(row, 0, parent)
                 if self.isExpanded(child):
                     parents_to_check.append(child)
@@ -1598,7 +1598,7 @@ class TreeWidget(RevisionTreeView):
                 item_by_path[item.path] = item
                 item_ids.add(item.id)
             root_dir = None
-            for path in minimum_path_selection(item_by_path.keys()):
+            for path in minimum_path_selection(list(item_by_path.keys())):
                 dir_path, name = os.path.split(path)
                 if root_dir is None:
                     root_dir = dir_path
@@ -1864,9 +1864,9 @@ class TreeWidget(RevisionTreeView):
         """Show qannotate for selected file."""
         index = self.currentIndex()
         file_id = str(index.data(self.tree_model.FILEID).toByteArray())
-        path = unicode(index.data(self.tree_model.PATH).toString())
+        path = str(index.data(self.tree_model.PATH).toString())
 
-        if isinstance(file_id, unicode):
+        if isinstance(file_id, str):
             raise errors.InternalBzrError('file_id should be plain string, not unicode')
         
         window = AnnotateWindow(self.branch, None, self.tree, path, file_id)
@@ -2015,7 +2015,7 @@ class TreeWidget(RevisionTreeView):
 
     def mark_move(self):
         items = self.get_selection_items()
-        if len(items) <> 2:
+        if len(items) != 2:
             return
 
         if missing_unversioned(items[0], items[1]):

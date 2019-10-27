@@ -30,8 +30,8 @@ from breezy.plugins.qbrz.lib.revisionmessagebrowser import (
 class TestHtmlUtils(tests.TestCase):
 
     def test_htmlencode(self):
-        self.assertEquals('&quot;&amp;&lt;&gt;', htmlencode('"&<>'))
-        self.assertEquals('\n', htmlencode('\n'))
+        self.assertEqual('&quot;&amp;&lt;&gt;', htmlencode('"&<>'))
+        self.assertEqual('\n', htmlencode('\n'))
 
     def test_htmlize_convert_leading_spaces_to_nbsp(self):
         self.assertEqual('foo bar', htmlize('foo bar'))

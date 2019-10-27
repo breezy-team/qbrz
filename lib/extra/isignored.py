@@ -35,9 +35,9 @@ class cmd_is_ignored(commands.Command):
         tree, relpath = workingtree.WorkingTree.open_containing(filename)
         if tree.is_ignored(relpath) and not tree.path2id(relpath):
             if not trace.is_quiet():
-                print >>self.outf, 'ignored'
+                print('ignored', file=self.outf)
             return 1
         else:
             if not trace.is_quiet():
-                print >>self.outf, 'not ignored'
+                print('not ignored', file=self.outf)
             return 0

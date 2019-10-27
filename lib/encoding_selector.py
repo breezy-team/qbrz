@@ -56,7 +56,7 @@ class BaseEncodingSelector(object):
         _encodings.append(get_user_encoding())
         _encodings.append(get_terminal_encoding())
         _encodings += python_encodings
-        self.encodings = filter(is_valid_encoding, _encodings)
+        self.encodings = list(filter(is_valid_encoding, _encodings))
 
         if initial_encoding:
             if initial_encoding not in self.encodings:
@@ -75,7 +75,7 @@ class BaseEncodingSelector(object):
             QtGui.QMessageBox.critical(self,
                 gettext("Wrong encoding"),
                 gettext('Encoding "%s" is invalid or not supported.') %
-                    unicode(encoding))
+                    str(encoding))
             self.setEncoding(self._encoding)
 
     def getEncoding(self):
@@ -137,7 +137,7 @@ class EncodingSelector(QtGui.QWidget, BaseEncodingSelector):
         self.chooser.setEditText(QtCore.QString(encoding))
 
     def getLabel(self):
-        return unicode(self._label.text())
+        return str(self._label.text())
 
     def setLabel(self, new_label):
         self._label.setText(new_label)
@@ -179,7 +179,7 @@ class EncodingMenuSelector(QtGui.QMenu, BaseEncodingSelector):
                      self.triggered)
     
     def triggered(self, action):
-        encoding = unicode(action.data().toString())
+        encoding = str(action.data().toString())
         self._encodingChanged(encoding)
 
     def _setEncoding(self, encoding):
@@ -187,7 +187,7 @@ class EncodingMenuSelector(QtGui.QMenu, BaseEncodingSelector):
             self.encoding_actions[encoding].setChecked(True)
 
     def getLabel(self):
-        return unicode(self.title())
+        return str(self.title())
 
     def setLabel(self, new_label):
         self.setTitle(new_label)

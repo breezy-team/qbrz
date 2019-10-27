@@ -64,12 +64,12 @@ class CommitData(object):
         string or None).
         """
         d = {}
-        for k,v in self._data.iteritems():
+        for k,v in self._data.items():
             if v not in (None, ''):
                 d[k] = v
         return d
 
-    def __nonzero__(self):
+    def __bool__(self):
         """Check if there is some data actually.
         @return: True if data dictionary is not empty.
         """
@@ -92,7 +92,7 @@ class CommitData(object):
 
     def keys(self):
         """Return keys of internal dict."""
-        return self._data.keys()
+        return list(self._data.keys())
 
     def as_dict(self):
         return self._data.copy()
@@ -104,7 +104,7 @@ class CommitData(object):
         """
         if data:
             self._data.update(data)
-        for key, value in kw.iteritems():
+        for key, value in kw.items():
             self._data[key] = value
 
     def set_data_on_uncommit(self, old_revid, new_revid):
@@ -137,7 +137,7 @@ class CommitData(object):
             instance.
         """
         try:
-            for k,v in self._data.iteritems():
+            for k,v in self._data.items():
                 if v != other[k]:
                     return False
         except KeyError:

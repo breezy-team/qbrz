@@ -275,7 +275,7 @@ class LogWindow(QBzrWindow):
             if self.locations is not None:
                 locations = self.locations
             else:
-                locations = [u'.']
+                locations = ['.']
             
             # Branch names that indicated primary branch.
             # TODO: Make config option.
@@ -455,8 +455,8 @@ class LogWindow(QBzrWindow):
         # TODO in_paths = self.search_in_paths.isChecked()
         gv = self.log_list.log_model.graph_viz
         role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
-        search_text = unicode(self.search_edit.text())
-        if search_text == u"":
+        search_text = str(self.search_edit.text())
+        if search_text == "":
             self.log_list.set_search(None, None)
         elif role == self.FilterIdRole:
             self.log_list.set_search(None, None)
@@ -495,7 +495,7 @@ class LogWindow(QBzrWindow):
     def update_search_completer(self, text):
         gv = self.log_list.log_model.graph_viz
         # We only load the suggestions a letter at a time when needed.
-        term = unicode(text).split(" ")[-1]
+        term = str(text).split(" ")[-1]
         if term:
             first_letter = term[0]
         else:
@@ -532,7 +532,7 @@ class LogWindow(QBzrWindow):
             from breezy.branch import Branch
             
             def title_for_location(location):
-                if isinstance(location, basestring):
+                if isinstance(location, str):
                     return url_for_display(location)
                 if isinstance(location, Branch):
                     return url_for_display(location.base)
@@ -749,7 +749,7 @@ class FileListContainer(QtGui.QWidget):
         if not isinstance(gv, logmodel.WithWorkingTreeGraphVizLoader):
             return
         cache = self.delta_cache
-        keys = [k for k in cache.iterkeys()
+        keys = [k for k in cache.keys()
                 if k[0].startswith(CURRENT_REVISION)]
         for key in keys:
             del(cache[key])
@@ -804,7 +804,7 @@ class FileListContainer(QtGui.QWidget):
         #
         for index in indexes:
             item = self.file_list.itemFromIndex(index)
-            paths.append(unicode(item.data(PathRole).toString()))
+            paths.append(str(item.data(PathRole).toString()))
             ids.append(str(item.data(file_idRole).toString()))
             alives.append(bool(item.data(AliveRole).toBool()))
         return paths, ids, alives
@@ -867,7 +867,7 @@ class FileListContainer(QtGui.QWidget):
         filename = QtGui.QFileDialog.getSaveFileName(
                 self, gettext("Save file in this revision as..."))
         if filename:
-            f = open(unicode(filename), 'wb')
+            f = open(str(filename), 'wb')
             try:
                 f.write(file_content_bytes)
             finally:

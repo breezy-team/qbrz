@@ -97,7 +97,7 @@ def format_signature_validity(rev_id, repository, gpg_strategy):
 
     result = repository.verify_revision_signature(rev_id, gpg_strategy)
     if result[0] == gpg.SIGNATURE_VALID:
-        return u"valid signature from {0}".format(result[1])
+        return "valid signature from {0}".format(result[1])
     if result[0] == gpg.SIGNATURE_KEY_MISSING:
         return "unknown key {0}".format(result[1])
     if result[0] == gpg.SIGNATURE_NOT_VALID:
@@ -125,7 +125,7 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                                   boxsize * dotsize)
         self.imagesize = boxsize
         self.images = []
-        for color in xrange(7):
+        for color in range(7):
             image = QtGui.QImage(boxsize, boxsize, QtGui.QImage.Format_ARGB32)
             image.fill(0)
             painter = QtGui.QPainter(image)
@@ -191,7 +191,7 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
             
             def short_text(summary, length):
                 if len(summary) > length:
-                    return summary[:length-1] + u"\u2026"
+                    return summary[:length-1] + "\u2026"
                 else:
                     return summary
         
@@ -295,7 +295,7 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
 
         tags = self.get_tags(rev.revision_id)
         if tags:
-            tags = map(quote_tag, tags)
+            tags = list(map(quote_tag, tags))
             props.append((gettext("Tags:"), htmlencode(", ".join(tags))))
 
         bugs = []
@@ -326,7 +326,7 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                 pass
         
         if foreign_attribs:
-            keys = foreign_attribs.keys()
+            keys = list(foreign_attribs.keys())
             keys.sort()
             for key in keys:
                 props.append((key + ":", foreign_attribs[key]))
@@ -391,9 +391,9 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
                 revids, self.log_list.log_model.graph_viz.get_repo_revids)
     
     def link_clicked(self, url):
-        scheme = unicode(url.scheme())
+        scheme = str(url.scheme())
         if scheme == 'qlog-revid':
-            revision_id = unicode(url.path())
+            revision_id = str(url.path())
             self.log_list.select_revid(revision_id)
         else:
             open_browser(str(url.toEncoded()))

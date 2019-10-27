@@ -4,7 +4,7 @@
 from distutils.core import setup
 
 try:
-    from extras import cmdclass
+    from .extras import cmdclass
 except ImportError:
     cmdclass = {}
 

@@ -86,7 +86,7 @@ class TestLazyCall(qtests.QTestCase):
         self.assertEqual(test_value, 6)
 
     def test_count_millisec_from_last_call(self):
-        for i in xrange(5):
+        for i in range(5):
             method_test(1)
             time.sleep(0.01)
             QtCore.QCoreApplication.processEvents()

@@ -34,7 +34,7 @@ class SpellCheckHighlighter(QtGui.QSyntaxHighlighter):
         self.format.setUnderlineStyle(QtGui.QTextCharFormat.SpellCheckUnderline)
 
     def highlightBlock(self, text):
-        for index, length in self.checker.check(unicode(text)):
+        for index, length in self.checker.check(str(text)):
             self.setFormat(index, length, self.format)
 
 

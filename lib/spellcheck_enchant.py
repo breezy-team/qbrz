@@ -25,7 +25,7 @@ from enchant.tokenize import EmailFilter, URLFilter, Filter, tokenize
 
 class camel_case_tokenize(tokenize):
 
-    def next(self):
+    def __next__(self):
         offset = self.offset
         text = self._text[offset:]
         if not text:

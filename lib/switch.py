@@ -153,7 +153,7 @@ class QBzrSwitchWindow(SubProcessDialog):
         if os.path.exists(self.boundloc):
             directory = self.boundloc
         else:
-            directory = os.getcwdu()
+            directory = os.getcwd()
         fileName = QtGui.QFileDialog.getExistingDirectory(self,
             gettext("Select branch location"),
             directory,
@@ -163,14 +163,14 @@ class QBzrSwitchWindow(SubProcessDialog):
             self.branch_combo.setCurrentIndex(0)
 
     def validate(self):
-        location = unicode(self.branch_combo.currentText())
+        location = str(self.branch_combo.currentText())
         if not location:
             self.operation_blocked(gettext("Branch location not specified."))
             return False
         return True
 
     def do_start(self):
-        location = unicode(self.branch_combo.currentText())
+        location = str(self.branch_combo.currentText())
         if self.create_branch_box.isChecked():
             self.process_widget.do_start(None, 'switch', '--create-branch', location)
         else:

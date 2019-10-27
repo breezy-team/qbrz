@@ -60,7 +60,7 @@ def load_tests(loader, basic_tests, pattern):
         m = "%s.%s" % (__name__, name)
         try:
             basic_tests.addTests(loader.loadTestsFromModuleName(m))
-        except ImportError, e:
+        except ImportError as e:
             if str(e).endswith('PyQt4'):
                 trace.note('QBzr: skip module %s '
                     'because PyQt4 is not installed' % m)
@@ -82,7 +82,7 @@ class QTestCase(tests.TestCaseWithTransport):
             _qt_app = QtGui.QApplication(sys.argv)
         def excepthook_tests(eclass, evalue, tb):
             def _reraise_on_cleanup():
-                raise eclass, evalue, tb
+                raise eclass(evalue).with_traceback(tb)
             self.addCleanup(_reraise_on_cleanup)
         self.overrideAttr(sys, "excepthook", excepthook_tests)
 

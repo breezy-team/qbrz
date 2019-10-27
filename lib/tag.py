@@ -80,8 +80,8 @@ class TagWindow(SubProcessDialog):
         # update ui
         self.ui.branch_location.setText(url_for_display(branch.base))
         self.ui.cb_tag.clear()
-        self.ui.cb_tag.addItems(QtCore.QStringList(sorted(self.tags.keys(),
-                                                          key=unicode.lower)))
+        self.ui.cb_tag.addItems(QtCore.QStringList(sorted(list(self.tags.keys()),
+                                                          key=str.lower)))
         self.ui.cb_tag.setEditText("")
         self.ui.cb_tag.setCurrentIndex(-1)
 
@@ -107,7 +107,7 @@ class TagWindow(SubProcessDialog):
 
     def on_tag_changed(self, index=None):
         if self.ui.cb_action.currentIndex() == self.IX_DELETE:
-            tag = unicode(self.ui.cb_tag.currentText())
+            tag = str(self.ui.cb_tag.currentText())
             revid = self.tags.get(tag)
             rev_str = ''
             tooltip = ''
@@ -129,9 +129,9 @@ class TagWindow(SubProcessDialog):
     def validate(self):
         action = self.ui.cb_action.currentIndex()
         title = self.ui.cb_action.currentText()
-        tag = unicode(self.ui.cb_tag.lineEdit().text())
+        tag = str(self.ui.cb_tag.lineEdit().text())
         has_tag = tag in self.tags
-        rev = unicode(self.ui.rev_edit.text())
+        rev = str(self.ui.rev_edit.text())
         if not tag:
             self.operation_blocked(gettext('You should specify tag name'))
             return False
@@ -161,7 +161,7 @@ class TagWindow(SubProcessDialog):
         # create args to run subprocess
         args = ['tag']
         args.append('--directory')
-        args.append(unicode(self.ui.branch_location.text()))
+        args.append(str(self.ui.branch_location.text()))
         if action != self.IX_CREATE:
             args.append({self.IX_MOVE: '--force',
                          self.IX_DELETE: '--delete'
@@ -186,7 +186,7 @@ class TagWindow(SubProcessDialog):
 
     def _try_to_open_branch(self, location):
         if location:
-            location = unicode(location)
+            location = str(location)
             try:
                 branch = Branch.open_containing(location)[0]
             except errors.NotBranchError:

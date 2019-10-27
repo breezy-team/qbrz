@@ -19,7 +19,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-from cStringIO import StringIO
+from io import StringIO
 
 from breezy import (
     bencode,
@@ -47,29 +47,29 @@ from breezy.plugins.qbrz.lib.subprocess import (
 class TestBencode(TestCase):
 
     def test_bencode_unicode(self):
-        self.assertEqual(u"l7:versione", bencode_unicode(["version"]))
-        self.assertEqual(u"l3:add3:\u1234e",
-            bencode_unicode([u"add", u"\u1234"]))
+        self.assertEqual("l7:versione", bencode_unicode(["version"]))
+        self.assertEqual("l3:add3:\u1234e",
+            bencode_unicode(["add", "\u1234"]))
 
     def test_bencode_prompt(self):
         self.assertEqual("4:spam", bencode_prompt('spam'))
         self.assertEqual("10:spam\\neggs", bencode_prompt('spam'+'\n'+'eggs'))
         self.assertEqual("14:\\u0420\\n\\u0421",
-            bencode_prompt(u'\u0420\n\u0421'))
+            bencode_prompt('\u0420\n\u0421'))
 
     def test_bdecode_prompt(self):
         self.assertEqual('spam', bdecode_prompt("4:spam"))
         self.assertEqual('spam'+'\n'+'eggs', bdecode_prompt("10:spam\\neggs"))
-        self.assertEqual(u'\u0420\n\u0421',
+        self.assertEqual('\u0420\n\u0421',
             bdecode_prompt("14:\\u0420\\n\\u0421"))
 
     def test_encode_unicode_escape_dict(self):
-        self.assertEqual({'key': 'foo\\nbar', 'ukey': u'\\u1234'},
-            encode_unicode_escape({'key': 'foo\nbar', 'ukey': u'\u1234'}))
+        self.assertEqual({'key': 'foo\\nbar', 'ukey': '\\u1234'},
+            encode_unicode_escape({'key': 'foo\nbar', 'ukey': '\u1234'}))
 
     def test_decode_unicode_escape_dict(self):
-        self.assertEqual({'key': 'foo\nbar', 'ukey': u'\u1234'},
-            decode_unicode_escape({'key': 'foo\\nbar', 'ukey': u'\\u1234'}))
+        self.assertEqual({'key': 'foo\nbar', 'ukey': '\u1234'},
+            decode_unicode_escape({'key': 'foo\\nbar', 'ukey': '\\u1234'}))
 
 
 class TestExceptionInstanceSerialisation(TestCase):
@@ -102,7 +102,7 @@ class TestExceptionInstanceSerialisation(TestCase):
     def test_uncommittedchanges_display_url(self):
         """The display_url of UncommittedChanges errors should be serialised"""
         self.requireFeature(features.UnicodeFilenameFeature)
-        path = u"\u1234"
+        path = "\u1234"
         class FakeTree(object):
             def __init__(self, url):
                 self.user_url = url
@@ -127,7 +127,7 @@ class TestSubprocessProgressView(TestCase):
                 n, transport_activity, task_info = bencode.bdecode(
                     line[len(SUB_PROGRESS):])
                 if n == 1000000 and not task_info:
-                    task_message = u"Finished!"
+                    task_message = "Finished!"
                 else:
                     task_message = " / ".join(task_info).decode("utf-8")
                 updates.append((n, transport_activity, task_message))
@@ -147,42 +147,42 @@ class TestSubprocessProgressView(TestCase):
     def test_task_one_update(self):
         """Sending a single progress update should work"""
         sio, task = self.make_stream_and_task()
-        task.update(u"Finding revisions", 0, 2)
-        self.assertEqual([(0, "", u"Finding revisions /  0/2")],
+        task.update("Finding revisions", 0, 2)
+        self.assertEqual([(0, "", "Finding revisions /  0/2")],
             self.decode_progress(sio.getvalue()))
 
     def test_task_multiple_updates(self):
         """Sending a single progress update should work"""
         sio, task = self.make_stream_and_task()
-        task.update(u"Finding revisions", 0, 2)
+        task.update("Finding revisions", 0, 2)
         self.refresh(task)
-        task.update(u"Finding revisions", 1, 2)
+        task.update("Finding revisions", 1, 2)
         self.refresh(task)
-        task.update(u"Finding revisions", 2, 2)
+        task.update("Finding revisions", 2, 2)
         self.assertEqual([
-                (0, "", u"Finding revisions /  0/2"), 
-                (500000, "", u"Finding revisions /  1/2"), 
-                (1000000, "", u"Finding revisions /  2/2")],
+                (0, "", "Finding revisions /  0/2"), 
+                (500000, "", "Finding revisions /  1/2"), 
+                (1000000, "", "Finding revisions /  2/2")],
             self.decode_progress(sio.getvalue()))
 
     def test_task_update_and_finished(self):
         """Sending a single progress update should work"""
         sio, task = self.make_stream_and_task()
-        task.update(u"Finding revisions", 0, 2)
+        task.update("Finding revisions", 0, 2)
         self.refresh(task)
         try:
             task.finished()
-        except AttributeError, e:
+        except AttributeError as e:
             self.knownFailure("No ui_factory so calls missing task_finished")
-        self.assertEqual([(0, "", u"Finding revisions /  0/2")],
+        self.assertEqual([(0, "", "Finding revisions /  0/2")],
             self.decode_progress(sio.getvalue()))
 
     def test_task_non_ascii_message(self):
         """A localised progress message should be transmitted cleanly"""
         sio, task = self.make_stream_and_task()
         # Would be nice to use an actual translation
-        task.update(u"\u1234", 0, 2)
-        self.assertEqual([(0, "", u"\u1234 /  0/2")],
+        task.update("\u1234", 0, 2)
+        self.assertEqual([(0, "", "\u1234 /  0/2")],
             self.decode_progress(sio.getvalue()))
 
 

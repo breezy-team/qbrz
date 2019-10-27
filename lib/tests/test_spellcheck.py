@@ -53,28 +53,28 @@ class TestSpellcheck(TestCase):
 
     def test_correct(self):
         result = list(self.checker.check("yes"))
-        self.assertEquals([], result)
+        self.assertEqual([], result)
 
     def test_incorrect(self):
         result = list(self.checker.check("yess"))
-        self.assertEquals([(0, 4)], result)
+        self.assertEqual([(0, 4)], result)
 
     def test_camel_case(self):
         result = list(self.checker.check("YesNo"))
-        self.assertEquals([], result)
+        self.assertEqual([], result)
 
     def test_camel_case_2(self):
         result = list(self.checker.check("yesNo"))
-        self.assertEquals([], result)
+        self.assertEqual([], result)
 
     def test_underscores(self):
         result = list(self.checker.check("Yes_No"))
-        self.assertEquals([], result)
+        self.assertEqual([], result)
 
     def test_email(self):
         result = list(self.checker.check("yes name@example.com no"))
-        self.assertEquals([], result)
+        self.assertEqual([], result)
 
     def test_url(self):
         result = list(self.checker.check("yes http://example.com/foo/bar no"))
-        self.assertEquals([], result)
+        self.assertEqual([], result)

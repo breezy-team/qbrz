@@ -322,7 +322,7 @@ class QBzrConfigWindow(QBzrDialog):
                     email = ''
             except errors.NoWhoami:
                 name, email = get_user_id_from_os()
-        except Exception, e:
+        except Exception as e:
             trace.mutter("qconfig: load name/email error: %s", str(e))
             name, email = '', ''
         
@@ -365,7 +365,7 @@ class QBzrConfigWindow(QBzrDialog):
 
         # Aliases
         aliases = parser.get('ALIASES', {})
-        for alias, command in aliases.items():
+        for alias, command in list(aliases.items()):
             item = QtGui.QTreeWidgetItem(self.aliasesList)
             item.setFlags(QtCore.Qt.ItemIsSelectable |
                           QtCore.Qt.ItemIsEditable |
@@ -375,7 +375,7 @@ class QBzrConfigWindow(QBzrDialog):
 
         # Bug trackers
         # XXX use special function from bugs.py
-        for name, value in parser.get('DEFAULT', {}).items():
+        for name, value in list(parser.get('DEFAULT', {}).items()):
             m = _bug_tracker_re.match(name)
             if not m:
                 continue
@@ -415,7 +415,7 @@ class QBzrConfigWindow(QBzrDialog):
                       QtCore.Qt.ItemIsUserCheckable)        
         
         extDiffs = qconfig.get_section('EXTDIFF')
-        for name, command in extDiffs.items():
+        for name, command in list(extDiffs.items()):
             create_ext_diff_item(name, command)
         self.extDiffListIgnore = False
 
@@ -483,9 +483,9 @@ class QBzrConfigWindow(QBzrDialog):
                     pass
 
         # Name & e-mail
-        _name = unicode(self.nameEdit.text()).strip()
-        _email = unicode(self.emailEdit.text()).strip()
-        username = u''
+        _name = str(self.nameEdit.text()).strip()
+        _email = str(self.emailEdit.text()).strip()
+        username = ''
         if _name:
             username = _name
         if _email:
@@ -493,12 +493,12 @@ class QBzrConfigWindow(QBzrDialog):
         set_or_delete_option(parser, 'email', username)
 
         # Editor
-        editor = unicode(self.editorEdit.text())
+        editor = str(self.editorEdit.text())
         set_or_delete_option(parser, 'editor', editor)
 
         # E-mail client
         index = self.emailClientCombo.currentIndex()
-        mail_client = unicode(self.emailClientCombo.itemData(index).toString())
+        mail_client = str(self.emailClientCombo.itemData(index).toString())
         set_or_delete_option(parser, 'mail_client', mail_client)
 
         tabWidth = self.tabWidthSpinner.value()
@@ -506,36 +506,36 @@ class QBzrConfigWindow(QBzrDialog):
 
         # Spellcheck language
         index = self.spellcheck_language_combo.currentIndex()
-        spellcheck_language = unicode(self.spellcheck_language_combo.itemData(index).toString())
+        spellcheck_language = str(self.spellcheck_language_combo.itemData(index).toString())
         set_or_delete_option(parser, 'spellcheck_language', spellcheck_language)
 
         # Branch source basedir
-        branchsource_basedir = unicode(self.branchsourceBasedirEdit.text())
+        branchsource_basedir = str(self.branchsourceBasedirEdit.text())
         qconfig.set_option('branchsource_basedir', branchsource_basedir)
 
         # Checkout basedir
-        checkout_basedir = unicode(self.checkoutBasedirEdit.text())
+        checkout_basedir = str(self.checkoutBasedirEdit.text())
         qconfig.set_option('checkout_basedir', checkout_basedir)
 
         # Aliases
         parser['ALIASES'] = {}
         for index in range(self.aliasesList.topLevelItemCount()):
             item = self.aliasesList.topLevelItem(index)
-            alias = unicode(item.text(0))
-            command = unicode(item.text(1))
+            alias = str(item.text(0))
+            command = str(item.text(1))
             if alias and command:
                 parser['ALIASES'][alias] = command
 
         # Bug trackers
-        for name, value in parser.get('DEFAULT', {}).items():
+        for name, value in list(parser.get('DEFAULT', {}).items()):
             m = _bug_tracker_re.match(name)
             if m:
                 abbrev = m.group(1)
                 del parser['DEFAULT']['bugtracker_%s_url' % abbrev]
         for index in range(self.bugTrackersList.topLevelItemCount()):
             item = self.bugTrackersList.topLevelItem(index)
-            abbrev = unicode(item.text(0))
-            url = unicode(item.text(1))
+            abbrev = str(item.text(0))
+            url = str(item.text(1))
             # FIXME add URL validation (must contain {id})
             if abbrev and url:
                 parser['DEFAULT']['bugtracker_%s_url' % abbrev] = url
@@ -548,8 +548,8 @@ class QBzrConfigWindow(QBzrDialog):
         ext_diffs = {}
         for index in range(1, self.extDiffList.topLevelItemCount()):
             item = self.extDiffList.topLevelItem(index)
-            name = unicode(item.text(0))
-            command = unicode(item.text(1))
+            name = str(item.text(0))
+            command = str(item.text(1))
             if item.checkState(0) == QtCore.Qt.Checked:
                 defaultDiff = command
             if name and command:
@@ -577,7 +577,7 @@ class QBzrConfigWindow(QBzrDialog):
                 if config.get_user_option(option, expand=False) is not None:
                     config.remove_user_option(option)
             user_merge_tools = self.merge_tools_model.get_user_merge_tools()
-            for name, cmdline in user_merge_tools.iteritems():
+            for name, cmdline in user_merge_tools.items():
                 orig_cmdline = config.find_merge_tool(name)
                 if orig_cmdline is None or orig_cmdline != cmdline:
                     config.set_user_option('bzr.mergetool.%s' % name, cmdline)
@@ -600,8 +600,8 @@ class QBzrConfigWindow(QBzrDialog):
         """Check the inputs and return False if there is something wrong
         and save should be prohibited."""
         # check whoami
-        _name = unicode(self.nameEdit.text()).strip()
-        _email = unicode(self.emailEdit.text()).strip()
+        _name = str(self.nameEdit.text()).strip()
+        _email = str(self.emailEdit.text()).strip()
         if (_name, _email) == ('', ''):
             if QtGui.QMessageBox.warning(self, "Configuration",
                 "Name and E-mail settings should not be empty",
@@ -834,7 +834,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         self.beginResetModel()
         self._user = user
         self._known = known
-        self._order = user.keys() + known.keys()
+        self._order = list(user.keys()) + list(known.keys())
         self._default = default
         self.endResetModel()
 
@@ -932,7 +932,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
                     self._removed.append(name)
                 del self._order[index.row()]
                 del self._user[name]
-                new_name = unicode(value.toString())
+                new_name = str(value.toString())
                 self._order.insert(index.row(), new_name)
                 self._user[new_name] = cmdline
                 if self._default == name:
@@ -942,7 +942,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
                 self.sort(self.COL_NAME, QtCore.Qt.AscendingOrder)
                 return True
             elif index.column() == self.COL_COMMANDLINE:
-                self._user[name] = unicode(value.toString())
+                self._user[name] = str(value.toString())
                 self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                           index, index)
                 return True

@@ -113,7 +113,7 @@ class QBzrBindDialog(SubProcessDialog):
             self.branch_combo.setCurrentIndex(0)
 
     def _get_location(self):
-        return unicode(self.branch_combo.currentText())
+        return str(self.branch_combo.currentText())
 
     def validate(self):
         if not self._get_location():

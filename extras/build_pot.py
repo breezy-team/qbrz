@@ -25,7 +25,7 @@ from distutils import log
 from distutils.core import Command
 from distutils.errors import DistutilsOptionError
 
-from en_po import regenerate_en
+from .en_po import regenerate_en
 
 
 class build_pot(Command):

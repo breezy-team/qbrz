@@ -145,5 +145,5 @@ class QUIFactory(ui.UIFactory):
 if __name__ == "__main__":
     application = QtGui.QApplication([])
     ui_factory = QUIFactory()
-    print ui_factory.get_username("Enter password 123")
+    print(ui_factory.get_username("Enter password 123"))
     #print ui_factory.get_boolean("Question?")

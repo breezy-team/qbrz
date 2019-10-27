@@ -157,7 +157,7 @@ class GuideBar(QtGui.QWidget):
         if not self.vscroll_visible:
             self.setVisible(False)
             return
-        valid_entries = [e for e in self.entries.itervalues() if e.data]
+        valid_entries = [e for e in self.entries.values() if e.data]
         if not valid_entries:
             self.setVisible(False)
             return
@@ -179,7 +179,7 @@ class GuideBar(QtGui.QWidget):
         :value:     list of marker positions.
                     Each position is tuple of (block index, num of blocks).
         """
-        for key, value in data.iteritems():
+        for key, value in data.items():
             self.entries[key].data[:] = value
         self.reset_gui()
 
@@ -222,7 +222,7 @@ class GuideBar(QtGui.QWidget):
         x_origin = 2
         index = -1
         prev_index = -1
-        for e in sorted(self.entries.itervalues(), 
+        for e in sorted(iter(self.entries.values()), 
                         key=lambda x:x.index if x.index >= 0 else 999):
             if not e.data:
                 continue

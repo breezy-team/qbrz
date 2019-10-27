@@ -448,9 +448,9 @@ class DiffWindow(QBzrWindow):
                                      data, di.properties_changed)
                     self.processEvents()
                 no_changes = False
-        except PathsNotVersionedError, e:
+        except PathsNotVersionedError as e:
                 QtGui.QMessageBox.critical(self, gettext('Diff'),
-                    gettext(u'File %s is not versioned.\n'
+                    gettext('File %s is not versioned.\n'
                         'Operation aborted.') % e.paths_as_string,
                     gettext('&Close'))
                 self.close()

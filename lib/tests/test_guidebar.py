@@ -73,7 +73,7 @@ class TestGuideBarBase(QTestCase):
             self.assertEqual(bar.entries['title'].data, [(0, 2)])
             # Replace/Delete/Insert
 
-            for tag, expected in DIFF_BY_TAGS.iteritems():
+            for tag, expected in DIFF_BY_TAGS.items():
                 data = bar.entries[tag].data
 
                 self.assertEqual(len(data), len(expected))
@@ -92,7 +92,7 @@ class TestGuideBarBase(QTestCase):
         self.waitUntil(lambda:len(bar.entries['title'].data) > 0, 500)
         self.assertEqual(bar.entries['title'].data, [(0, 2)])
         # Replace/Delete/Insert
-        for tag, expected in DIFF_BY_TAGS.iteritems():
+        for tag, expected in DIFF_BY_TAGS.items():
             data = bar.entries[tag].data
             self.assertEqual(len(data), len(expected))
             for texts, (block_no, block_num) in zip(expected, data):

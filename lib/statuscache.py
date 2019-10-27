@@ -123,7 +123,7 @@ class StatusCache(QtCore.QObject):
             else:
                 if sys.platform == 'win32':
                     return 'non-versioned'
-                print "NOW WHAT??"
+                print("NOW WHAT??")
         return entry.status
 
     def getDirectoryStatus(self, path, name):
@@ -139,13 +139,13 @@ class StatusCache(QtCore.QObject):
         return entry.status
 
     def invalidateDirectory(self, path):
-        path = unicode(path)
+        path = str(path)
         try:
             parts = osutils.splitpath(path)
             entry = self.cache
             for part in parts[:-1]:
                 entry = entry.children[part]
-            print "Removing", path, "from the cache"
+            print("Removing", path, "from the cache")
             del entry.children[parts[-1]]
         except KeyError:
             pass

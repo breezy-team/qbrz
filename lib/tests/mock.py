@@ -44,16 +44,16 @@ class TestMockFunction(TestCase):
 
     def test_call(self):
         mf = MockFunction()
-        self.assertEquals(0, mf.count)
-        self.assertEquals([], mf.args)
+        self.assertEqual(0, mf.count)
+        self.assertEqual([], mf.args)
         # 1st call
         mf(None, 1, 'foo')
-        self.assertEquals(1, mf.count)
-        self.assertEquals([((None, 1, 'foo'), {})], mf.args)
+        self.assertEqual(1, mf.count)
+        self.assertEqual([((None, 1, 'foo'), {})], mf.args)
         # 2nd call
         mf('bar', baz='spam')
-        self.assertEquals(2, mf.count)
-        self.assertEquals([
+        self.assertEqual(2, mf.count)
+        self.assertEqual([
             ((None, 1, 'foo'), {}),
             (('bar',), {'baz': 'spam'}),
             ], mf.args)

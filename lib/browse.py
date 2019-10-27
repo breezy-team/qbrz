@@ -214,7 +214,7 @@ class BrowseWindow(QBzrWindow):
 
     @ui_current_widget
     def reload_tree(self):
-        revstr = unicode(self.revision_edit.text())
+        revstr = str(self.revision_edit.text())
         if not revstr:
             if self.workingtree is not None:
                 self.revision_spec = "wt:"
@@ -231,7 +231,7 @@ class BrowseWindow(QBzrWindow):
             else:
                 try:
                     revspec = RevisionSpec.from_string(revstr)
-                except errors.NoSuchRevisionSpec, e:
+                except errors.NoSuchRevisionSpec as e:
                     QtGui.QMessageBox.warning(self,
                         gettext("Browse"), str(e),
                         QtGui.QMessageBox.Ok)

@@ -46,7 +46,7 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
         checkout_basedir = config.get_option("checkout_basedir")
         branchsource_basedir = config.get_option("branchsource_basedir")
         if not to_location:
-            to_location = checkout_basedir or u'.'
+            to_location = checkout_basedir or '.'
         self.to_location = os.path.abspath(to_location)
         super(GetNewWorkingTreeWindow, self).__init__(
                                   name = self.NAME,
@@ -92,9 +92,9 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
 
     def from_location_changed(self, new_text):
         new_val = self.to_location
-        tail = re.split("[:$#\\\\/]", unicode(new_text))[-1]
+        tail = re.split("[:$#\\\\/]", str(new_text))[-1]
         try:
-            projectname = re.split("[:$#\\\\/]", unicode(new_text))[-2]
+            projectname = re.split("[:$#\\\\/]", str(new_text))[-2]
         except:
             projectname = ""
         if tail:
@@ -105,10 +105,10 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
         self.ui.to_location.setText(new_val)
 
     def _get_from_location(self):
-        return unicode(self.ui.from_location.currentText())
+        return str(self.ui.from_location.currentText())
 
     def _get_to_location(self):
-        return unicode(self.ui.to_location.text())
+        return str(self.ui.to_location.text())
 
     def _is_checkout_action(self):
         return self.ui.but_checkout.isChecked()
@@ -139,7 +139,7 @@ class GetNewWorkingTreeWindow(SubProcessDialog):
         to_location = self._get_to_location()
         revision_args = []
         if self.ui.but_rev_specific.isChecked() and self.ui.revision.text():
-            revision_args.append('--revision='+unicode(self.ui.revision.text()))
+            revision_args.append('--revision='+str(self.ui.revision.text()))
 
         if self._is_checkout_action():
             args = ['checkout']

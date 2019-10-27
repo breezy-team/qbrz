@@ -26,7 +26,7 @@ class FakeBranch(object):
     def __init__(self):
         pass
 
-    def __nonzero__(self):
+    def __bool__(self):
         # this method makes FakeBranch boolean False
         # so we shouldn't check (branch is not None) but (not branch)
         return False

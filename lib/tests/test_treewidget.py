@@ -505,21 +505,21 @@ class TestGroupLargeDirs(TestCase):
 
     def test_subdir_included(self):
         paths = frozenset([
-            u'b',
-            u'b/1',
-            u'b/2',
-            u'b/3',
-            u'b/4',
-            u'b/c', 
-            u'b/c/1',
-            u'b/c/2',
-            u'b/c/3',
-            u'b/c/4',
+            'b',
+            'b/1',
+            'b/2',
+            'b/3',
+            'b/4',
+            'b/c', 
+            'b/c/1',
+            'b/c/2',
+            'b/c/3',
+            'b/c/4',
             ])
         self.assertEqual(group_large_dirs(paths),
-                         {'': set([u'b']),
-                          u'b': set([u'b/1', u'b/2', u'b/3', u'b/4', u'b/c']),
-                          u'b/c': set([u'b/c/1', u'b/c/2', u'b/c/3', u'b/c/4'])})
+                         {'': set(['b']),
+                          'b': set(['b/1', 'b/2', 'b/3', 'b/4', 'b/c']),
+                          'b/c': set(['b/c/1', 'b/c/2', 'b/c/3', 'b/c/4'])})
 
     def test_bug_580798(self):
         # Test for Bug #580798

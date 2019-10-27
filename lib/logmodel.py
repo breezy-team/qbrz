@@ -49,7 +49,7 @@ header_labels = (gettext("Rev"),
  COL_MESSAGE,
  COL_DATE,
  COL_AUTHOR,
-) = range(len(header_labels))
+) = list(range(len(header_labels)))
 
 
 class WorkingTreeRevision(Revision):
@@ -99,7 +99,7 @@ class WithWorkingTreeGraphVizLoader(
     def load(self):
         super(WithWorkingTreeGraphVizLoader, self).load()
         
-        for wt_revid, tree in self.working_trees.iteritems():
+        for wt_revid, tree in self.working_trees.items():
             # bla - nasty hack.
             cached_revisions[wt_revid] = WorkingTreeRevision(wt_revid, tree)
 
@@ -178,7 +178,7 @@ class LogModel(QtCore.QAbstractTableModel):
             state = loggraphviz.GraphVizFilterState(
                 graph_viz, self.compute_lines)
             # Copy the expanded branches from the old state to the new.
-            for (branch_id, value) in self.state.branch_line_state.iteritems():
+            for (branch_id, value) in self.state.branch_line_state.items():
                 if branch_id in graph_viz.branch_lines:
                     state.branch_line_state[branch_id] = value
             
@@ -360,7 +360,7 @@ class LogModel(QtCore.QAbstractTableModel):
         return QtCore.QVariant()
 
     def on_revisions_loaded(self, revisions, last_call):
-        for revid in revisions.iterkeys():
+        for revid in revisions.keys():
             rev = self.graph_viz.revid_rev[revid]
             self.emit(
                 QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
@@ -429,7 +429,7 @@ class PropertySearchFilter (object):
         
         def revisions_loaded(revisions, last_call):
             revs = [self.graph_viz.revid_rev[revid]
-                    for revid in revisions.iterkeys()]
+                    for revid in revisions.keys()]
             self.filter_changed_callback(revs, last_call)
         
         def before_batch_load(repo, revids):
@@ -441,7 +441,7 @@ class PropertySearchFilter (object):
             """Translate shel pattern to regexp."""
             return fnmatch.translate(wildcard + '*')
         
-        if str is None or str == u"":
+        if str is None or str == "":
             self.filter_re = None
             self.index_matched_revids = None
             self.filter_changed_callback(None, True)

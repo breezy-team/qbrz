@@ -34,9 +34,9 @@ if sys.version_info < (2, 5):
                 return True
         return False
 
-    import __builtin__
-    __builtin__.all = _all_2_4_compat
-    __builtin__.any = _any_2_4_compat
+    import builtins
+    builtins.all = _all_2_4_compat
+    builtins.any = _any_2_4_compat
 
 # Special constant
 MS_WINDOWS = (sys.platform == 'win32')

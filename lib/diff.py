@@ -51,7 +51,7 @@ default_diff = qconfig.get_option("default_diff")
 if default_diff is None:
     default_diff = ""
 ext_diffs = {gettext("Builtin Diff"):""}
-for name, command in qconfig.get_section('EXTDIFF').items():
+for name, command in list(qconfig.get_section('EXTDIFF').items()):
     ext_diffs[name] = command
 
 
@@ -116,7 +116,7 @@ class ExtDiffMenu(QtGui.QMenu):
     def __init__ (self, parent=None, include_builtin=True, set_default=True):
         QtGui.QMenu.__init__(self, gettext("Show &differences"), parent)
         
-        for name, command in ext_diffs.items():
+        for name, command in list(ext_diffs.items()):
             if command == "" and include_builtin or not command == "":
                 action = QtGui.QAction(name, self)
                 action.setData(QtCore.QVariant (command))
@@ -128,7 +128,7 @@ class ExtDiffMenu(QtGui.QMenu):
                      self.triggered)
     
     def triggered(self, action):
-        ext_diff = unicode(action.data().toString())
+        ext_diff = str(action.data().toString())
         self.emit(QtCore.SIGNAL("triggered(QString)"), QtCore.QString(ext_diff))
 
 
@@ -238,7 +238,7 @@ class DiffItem(object):
             if versioned[ix]:
                 try:
                     dates[ix] = trees[ix].get_file_mtime(paths[ix], file_id)
-                except OSError, e:
+                except OSError as e:
                     if not renamed or e.errno != errno.ENOENT:
                         raise
                     # If we get ENOENT error then probably we trigger
@@ -265,7 +265,7 @@ class DiffItem(object):
         else:
             status = N_('modified')
         # check filter options
-        if filter and not filter(status):
+        if filter and not list(filter(status)):
             return None
 
         return cls(trees, file_id, paths, changed_content, versioned, kind, 
@@ -372,7 +372,7 @@ class DiffItem(object):
                 else:
                     try:
                         ulines[i] = [l.decode(encodings[i]) for l in lines[i]]
-                    except UnicodeDecodeError, e:
+                    except UnicodeDecodeError as e:
                         filename = self.paths[i]
                         trace.note("Some characters in file %s "
                                    "could not be properly decoded "
@@ -425,7 +425,7 @@ class _ExtDiffer(DiffFromTool):
         if tree is None:
             return None
         key = get_key(tree)
-        if self.prefixes.has_key(key):
+        if key in self.prefixes:
             return self.prefixes[key]
         prefix = str(len(self.prefixes) + 1)
         self.prefixes[key] = prefix
@@ -490,7 +490,7 @@ class _ExtDiffer(DiffFromTool):
         command = self._get_command(old_path, new_path)
         try:
             subprocess.Popen(command, cwd=self._root)
-        except OSError, e:
+        except OSError as e:
             if e.errno == errno.ENOENT:
                 raise ExecutableMissing(command[0])
             else:

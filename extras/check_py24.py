@@ -58,7 +58,7 @@ class check_py24(Command):
                         f.close()
                         try:
                             compile(content, fullname, 'exec')
-                        except SyntaxError, e:
+                        except SyntaxError as e:
                             log.error(str(e))
                             if self.verbose:
                                 traceback.print_exc(0)

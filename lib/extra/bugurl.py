@@ -38,7 +38,7 @@ class cmd_bug_url(commands.Command):
         # has dependency on PyQt4 (see bug #327487)
         from breezy.plugins.qbrz.lib.util import open_browser, url_for_display
         try:
-            branch = Branch.open_containing(u'.')[0]
+            branch = Branch.open_containing('.')[0]
         except errors.NotBranchError:
             branch = FakeBranchForBugs()
         tokens = bug_id.split(':')

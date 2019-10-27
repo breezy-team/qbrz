@@ -124,7 +124,7 @@ class IgnoreWindow(SubProcessDialog):
         self.unknowns_list.addTopLevelItems(items)
 
     def _filename_from_item(self, item):
-        return unicode(item.data(0, QtCore.Qt.UserRole).toString())
+        return str(item.data(0, QtCore.Qt.UserRole).toString())
 
     def _action_from_item(self, item):
         return str(item.data(2, QtCore.Qt.UserRole).toString())
@@ -185,7 +185,7 @@ class IgnoreWindow(SubProcessDialog):
 
     def _update_items(self, pattern, action, method):
         globster = Globster([pattern])
-        for filename, item in self.unknowns.iteritems():
+        for filename, item in self.unknowns.items():
             if globster.match(filename) is not None:
                 method(item, pattern, action)
 
@@ -231,7 +231,7 @@ class IgnoreWindow(SubProcessDialog):
 
     def _collect_patterns(self):
         patterns = set()
-        for filename, item in self.unknowns.iteritems():
+        for filename, item in self.unknowns.items():
             action = self._action_from_item(item)
             if action != ACTION_NONE:
                 pattern = self._pattern_for_action(filename, action)

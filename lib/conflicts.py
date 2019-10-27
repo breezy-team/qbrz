@@ -127,9 +127,9 @@ class ConflictsWindow(QBzrWindow):
         config = GlobalConfig()
         if mergetools is not None:
             # get user-defined merge tools
-            defined_tools = config.get_merge_tools().keys()
+            defined_tools = list(config.get_merge_tools().keys())
             # get predefined merge tools
-            defined_tools += mergetools.known_merge_tools.keys()
+            defined_tools += list(mergetools.known_merge_tools.keys())
             # sort them nicely
             defined_tools.sort()
             for merge_tool in defined_tools:
@@ -213,7 +213,7 @@ class ConflictsWindow(QBzrWindow):
         if not enabled:
             return
         config = GlobalConfig()
-        cmdline = config.find_merge_tool(unicode(self.merge_tools_combo.currentText()))
+        cmdline = config.find_merge_tool(str(self.merge_tools_combo.currentText()))
         file_id = str(items[0].data(0, QtCore.Qt.UserRole).toString())
         if not file_id:
             # bug https://bugs.launchpad.net/qbrz/+bug/655451
@@ -253,7 +253,7 @@ class ConflictsWindow(QBzrWindow):
             # which marked as conflicted (e.g. in missing parent conflict case).
             #~file_id = str(item.data(0, QtCore.Qt.UserRole).toString())
             #~file_names.append(self.wt.id2path(file_id))
-            file_names.append(unicode(item.text(0)))
+            file_names.append(str(item.text(0)))
         resolve(self.wt, file_names, action=action)
         self.refresh()
 
@@ -269,7 +269,7 @@ class ConflictsWindow(QBzrWindow):
         if len(items) != 1 or items[0].data(1, QtCore.Qt.UserRole).toString() != "text conflict":
             enabled = False
         config = GlobalConfig()
-        tool = unicode(self.merge_tools_combo.currentText())
+        tool = str(self.merge_tools_combo.currentText())
         cmdline = config.find_merge_tool(tool)
         if cmdline is None:
             error_msg = gettext("Set up external_merge app in qconfig under the Merge tab")

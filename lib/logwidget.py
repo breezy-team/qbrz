@@ -575,7 +575,7 @@ class LogList(RevisionTreeView):
         revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
         gv = self.log_model.graph_viz
         if revid.startswith(CURRENT_REVISION):
-            location = gv.working_trees[revid].abspath(u'')
+            location = gv.working_trees[revid].abspath('')
             window = BrowseWindow(location=location, parent=self)
         else:
             revno = gv.revid_rev[revid].revno_str

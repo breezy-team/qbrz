@@ -85,7 +85,7 @@ from breezy.plugins.qbrz.lib.widgets.shelvelist import ShelveListWindow
 
 from breezy.plugins.qbrz.lib.diff_arg import DiffArgProvider
 
-CUR_DIR=u'.'
+CUR_DIR='.'
 
 class InvalidEncodingOption(errors.BzrError):
 
@@ -120,7 +120,7 @@ def report_missing_pyqt(unbound):
     def run(self, *args, **kwargs):
         try:
             return unbound(self, *args, **kwargs)
-        except ImportError, e:
+        except ImportError as e:
             if str(e).endswith('PyQt4'):
                 raise PyQt4NotInstalled
             raise
@@ -209,7 +209,7 @@ execute_option = Option("execute", short_name='e',
 # 'revision' as normal.
 simple_revision_option = Option("revision",
                              short_name='r',
-                             type=unicode,
+                             type=str,
                              help='See "help revisionspec" for details.')
 
 
@@ -351,7 +351,7 @@ class cmd_qbrowse(QBzrCommand):
     aliases = ['qbw']
 
     def _qbrz_run(self, revision=None, location=None):
-        Branch.open_containing(location or u'.')  # if there is no branch we want NotBranchError raised
+        Branch.open_containing(location or '.')  # if there is no branch we want NotBranchError raised
         if revision is None:
             win = BrowseWindow(location = location)
         else:
@@ -1078,11 +1078,11 @@ class cmd_qrun(QBzrCommand):
         Option('directory',
             help='Working directory.',
             short_name='d',
-            type=unicode,
+            type=str,
             ),
         Option('category',
             help='Initial category selection.',
-            type=unicode,
+            type=str,
             ),
         execute_option,
         ]
