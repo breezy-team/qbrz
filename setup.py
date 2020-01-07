@@ -12,7 +12,7 @@ from setuptools import setup
 
 # RJL Patched out temporarily
 try:
-    from .extras import cmdclass
+    from extras import cmdclass
 except (ImportError, SystemError):
     cmdclass = {}
 except ValueError:
