@@ -423,6 +423,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                         change = ChangeDesc(change)
                         path = change.path()
                         fileid = change.fileid()
+                        if fileid is None: # HOGEHOGE WORKAROUND
+                            continue       # HOGEHOGE
                         if fileid == root_id:
                             continue
                         is_ignored = self.tree.is_ignored(path)
@@ -465,7 +467,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                         for path in initial_checked_paths:
                             fileid = self.tree.path2id(path)
                             if fileid:
-                                kind = self.tree.kind(path, fileid)
+                                kind = self.tree.kind(path)
                                 if kind == "directory":
                                     item_data = self.inventory_data_by_path.get(path)
                                     if item_data is None:
@@ -546,9 +548,9 @@ class TreeModel(QtCore.QAbstractItemModel):
         self.emit(QtCore.SIGNAL("layoutChanged()"))
     
     def revision_tree_get_children(self, item_data):
-        for child_id in self.tree.iter_children(item_data.item.file_id):
-            child = self._get_entry(self.tree, child_id)
-            path = self.tree.id2path(child_id)
+        path = self.tree.id2path(item_data.item.file_id)
+        for child in self.tree.iter_child_entries(path):
+            path = self.tree.id2path(child.file_id)
             yield ModelItemData(path, item=child)
     
     def working_tree_get_children(self, item_data):
@@ -583,15 +585,17 @@ class TreeModel(QtCore.QAbstractItemModel):
             item.kind == 'directory' and not self.changes_mode):
             #Because we create copies, we have to get the real item.
             item = self._get_entry(self.tree, item.file_id)
-            for child_id in self.tree.iter_children(item.file_id):
-                if child_id in self.inventory_data_by_id:
-                    child_item_data = self.inventory_data_by_id[child_id]
+            path = self.tree.id2path(item.file_id)
+            for child in self.tree.iter_child_entries(path):
+
+                if child.file_id in self.inventory_data_by_id:
+                    child_item_data = self.inventory_data_by_id[child.file_id]
                 else:
-                    path = self.tree.id2path(child_id)
+                    path = self.tree.id2path(child.file_id)
                     child_item_data = ModelItemData(path)
 
                 # Create a copy so that we don't have to hold a lock of the wt.
-                child = self._get_entry(self.tree, child_id).copy()
+                child = self._get_entry(self.tree, child.file_id).copy()
                 child_item_data.item = child
                 yield child_item_data
         
@@ -643,7 +647,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 self.tree.unlock()
 
     def _get_entry(self, tree, file_id):
-        for _, entry in tree.iter_entries_by_dir([file_id]):
+        for _, entry in tree.iter_entries_by_dir([self.tree.id2path(file_id)]):
             return entry
         raise errors.NoSuchId(tree, file_id)
     
@@ -667,7 +671,7 @@ class TreeModel(QtCore.QAbstractItemModel):
                 self.set_checked_paths(initial_checked_paths)
             else:
                 self.setData(self._index_from_id(root_id,self.NAME), 
-                             QtCore.QVariant(QtCore.Qt.Checked),
+                             QtCore.Qt.Checked,
                              QtCore.Qt.CheckStateRole)
     
     def append_item(self, item_data, parent_id):
@@ -798,8 +802,8 @@ class TreeModel(QtCore.QAbstractItemModel):
                 old_checked = item_data.checked
                 item_data.checked = checked
                 return not old_checked == checked
-            
-            value = value.toInt()[0]
+
+            value = int(value)
             if index.internalId() >= len(self.inventory_data):
                 return False
             
@@ -904,7 +908,7 @@ class TreeModel(QtCore.QAbstractItemModel):
             if not isinstance(self.tree, WorkingTree):
                 return False
             # Rename
-            value = str(value.toString())
+            value = str(value)
             item_data = self.inventory_data[index.internalId()]
             parent = self.inventory_data[item_data.parent_id]
             new_path = posixpath.join(parent.path, value)
@@ -943,53 +947,52 @@ class TreeModel(QtCore.QAbstractItemModel):
     
     def data(self, index, role):
         if not index.isValid():
-            return QtCore.QVariant()
+            return None
         
         if role >= QtCore.Qt.FontRole and role <= QtCore.Qt.TextColorRole:
-            return QtCore.QVariant()
+            return None
         
         item_data = self.inventory_data[index.internalId()]
         item = item_data.item
         
         if role == self.FILEID:
-            return QtCore.QVariant(QtCore.QByteArray(item.file_id))
+            return QtCore.QByteArray(item.file_id)
         
         column = index.column()
         if column == self.NAME:
             if role == QtCore.Qt.DisplayRole:
-                return QtCore.QVariant(item.name)
+                return item.name
             if role == QtCore.Qt.EditRole:
                 path = item_data.path
                 if item_data.parent_id:
                     parent = self.inventory_data[item_data.parent_id]
                     path = path[len(parent.path)+1:]
-                return QtCore.QVariant(path)
+                return path
             if role == QtCore.Qt.DecorationRole:
                 if item_data.icon is None:
                     if (item_data.change and not item_data.change.is_on_disk()
                         or item.kind == ''):
-                        item_data.icon = QtCore.QVariant(self.missing_icon)
+                        item_data.icon = self.missing_icon
                     elif isinstance(self.tree, WorkingTree):
                         abspath = self.tree.abspath(item_data.path)
                         info = QtCore.QFileInfo(abspath)
-                        item_data.icon = \
-                                QtCore.QVariant(self.icon_provider.icon(info))
+                        item_data.icon = self.icon_provider.icon(info)
                     else:
                         if item.kind == "file":
-                            item_data.icon = QtCore.QVariant(self.file_icon)
+                            item_data.icon = self.file_icon
                         if item.kind == "directory":
-                            item_data.icon = QtCore.QVariant(self.dir_icon)
+                            item_data.icon = self.dir_icon
                         if item.kind == "symlink":
-                            item_data.icon = QtCore.QVariant(self.symlink_icon)
+                            item_data.icon = self.symlink_icon
                 if item_data.icon is None:
-                    item_data.icon = QtCore.QVariant()
+                    item_data.icon = None
                 return item_data.icon
             
             if role ==  QtCore.Qt.CheckStateRole:
                 if not self.checkable:
-                    return QtCore.QVariant()
+                    return None
                 else:
-                    return QtCore.QVariant(item_data.checked)
+                    return item_data.checked
         
         if column == self.STATUS:
             if role == QtCore.Qt.DisplayRole:
@@ -998,44 +1001,45 @@ class TreeModel(QtCore.QAbstractItemModel):
                     status.append(item_data.change.status())
                 for conflict in item_data.conflicts:
                     status.append(conflict.typestring)
-                return QtCore.QVariant(", ".join(status))
-        
-        revid = item_data.item.revision
+                return ", ".join(status)
+
+        try:
+            revid = item_data.item.revision
+        except AttributeError:
+            # GitTreeDirectory object has no attribute 'repository'
+            return None
+
         if role == self.REVID:
-            if revid is None:
-                return QtCore.QVariant()
-            else:
-                return QtCore.QVariant(revid)
+            return revid
         
         if column == self.REVNO:
             if role == QtCore.Qt.DisplayRole:
                 if self.revno_map is not None and revid in self.revno_map:
                     revno_sequence = self.revno_map[revid]
-                    return QtCore.QVariant(
-                        ".".join(["%d" % (revno) for revno in revno_sequence]))
+                    return \
+                        ".".join(["%d" % (revno) for revno in revno_sequence])
                 else:
-                    return QtCore.QVariant("")
+                    return ""
 
         if role == QtCore.Qt.DisplayRole:
             if revid in cached_revisions:
                 rev = cached_revisions[revid]
                 
                 if column == self.AUTHOR:
-                    return QtCore.QVariant(get_apparent_author_name(rev))
+                    return get_apparent_author_name(rev)
 
                 if column == self.MESSAGE:
-                    return QtCore.QVariant(get_summary(rev))
+                    return get_summary(rev)
         
                 if column == self.DATE:
-                    return QtCore.QVariant(strftime("%Y-%m-%d %H:%M",   
-                                                    localtime(rev.timestamp)))
+                    return strftime("%Y-%m-%d %H:%M", localtime(rev.timestamp))
         
         if role == self.PATH:
-            return QtCore.QVariant(item_data.path)
+            return item_data.path
         
         if role == QtCore.Qt.DisplayRole:
-            return QtCore.QVariant("")
-        return QtCore.QVariant()
+            return ""
+        return None
     
     def flags(self, index):
         if not index.isValid():
@@ -1062,8 +1066,8 @@ class TreeModel(QtCore.QAbstractItemModel):
 
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
-            return QtCore.QVariant(self.HEADER_LABELS[section])
-        return QtCore.QVariant()
+            return self.HEADER_LABELS[section]
+        return None
     
     def on_revisions_loaded(self, revisions, last_call):
         for item_data in self.inventory_data:
@@ -1076,7 +1080,10 @@ class TreeModel(QtCore.QAbstractItemModel):
                           self.createIndex (item_data.row, self.AUTHOR, item_data.id))
 
     def get_repo(self):
-        return self.branch.repository
+        if self.branch is not None:
+            return self.branch.repository
+        else:
+            return None
     
     def item2ref(self, item_data):
         return PersistantItemReference(item_data.item.file_id,
@@ -1165,11 +1172,11 @@ class TreeModel(QtCore.QAbstractItemModel):
     def set_checked_items(self, refs, ignore_no_file_error=True):
         # set every thing off
         root_index = self._index_from_id(0, self.NAME)
-        self.setData(root_index, QtCore.QVariant(QtCore.Qt.Unchecked),
+        self.setData(root_index, QtCore.Qt.Unchecked,
                      QtCore.Qt.CheckStateRole)
         
         for index in self.refs2indexes(refs, ignore_no_file_error):
-            self.setData(index, QtCore.QVariant(QtCore.Qt.Checked),
+            self.setData(index, QtCore.Qt.Checked,
                          QtCore.Qt.CheckStateRole)
 
     def set_checked_paths(self, paths):
@@ -1307,7 +1314,7 @@ class TreeFilterMenu(QtGui.QMenu):
         self.actions = []
         for i, text in enumerate(filters):
             action = QtGui.QAction(text, self)
-            action.setData(QtCore.QVariant (i))
+            action.setData(i)
             action.setCheckable(True)
             self.addAction(action)
             self.actions.append(action)
@@ -1541,7 +1548,7 @@ class TreeWidget(RevisionTreeView):
                         try:
                             index = self.tree_model.ref2index(ref)
                             self.tree_model.setData(index,
-                                                    QtCore.QVariant(state),
+                                                    state,
                                                     QtCore.Qt.CheckStateRole)
                         except (errors.NoSuchId, errors.NoSuchFile):
                             pass
@@ -1863,8 +1870,8 @@ class TreeWidget(RevisionTreeView):
     def show_file_annotate(self):
         """Show qannotate for selected file."""
         index = self.currentIndex()
-        file_id = str(index.data(self.tree_model.FILEID).toByteArray())
-        path = str(index.data(self.tree_model.PATH).toString())
+        file_id = bytes(index.data(self.tree_model.FILEID))
+        path = str(index.data(self.tree_model.PATH))
 
         if isinstance(file_id, str):
             raise errors.InternalBzrError('file_id should be plain string, not unicode')
@@ -2099,15 +2106,15 @@ class SelectAllCheckBox(QtGui.QCheckBox):
         root_index = model._index_from_id(0, model.NAME)
         
         state = model.data(root_index, QtCore.Qt.CheckStateRole)
-        self.setCheckState(QtCore.Qt.CheckState(state.toInt()[0]))
+        self.setCheckState(QtCore.Qt.CheckState(state))
     
     def clicked(self, state):
         model = self.tree_widget.tree_model
         root_index = model._index_from_id(0, model.NAME)
         if state:
-            state = QtCore.QVariant(QtCore.Qt.Checked)
+            state = QtCore.Qt.Checked
         else:
-            state = QtCore.QVariant(QtCore.Qt.Unchecked)
+            state = QtCore.Qt.Unchecked
         
-        model.setData(root_index, QtCore.QVariant(state),
+        model.setData(root_index, state,
                       QtCore.Qt.CheckStateRole)

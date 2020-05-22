@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-from PyQt4 import QtCore
+from PyQt4 import QtCore, QtGui
 import os
 
 from breezy.commands import get_cmd_object
@@ -105,7 +105,7 @@ def fill_option_combo(combo, option, default, desc_widget=None):
     """
 
     def index_changed(index, combo=combo, desc_widget=desc_widget):
-        help = combo.itemData(index).toString()
+        help = combo.itemData(index)
         desc_widget.setText(help)
 
     default_index = 0
@@ -116,7 +116,7 @@ def fill_option_combo(combo, option, default, desc_widget=None):
         name, short_name, argname, help = info
         if option.is_hidden(name):
             continue
-        user_data = QtCore.QVariant(help or '')
+        user_data = help or ''
         combo.addItem(name, user_data)
         if name == default:
             default_index = combo.count() - 1

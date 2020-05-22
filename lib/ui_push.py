@@ -15,7 +15,7 @@ class Ui_PushForm(object):
     def setupUi(self, PushForm):
         PushForm.setObjectName("PushForm")
         PushForm.resize(349, 175)
-        self.verticalLayout = QtGui.QVBoxLayout(PushForm)
+        self.verticalLayout = QtGui.QVBoxLayouty(PushForm)
         self.verticalLayout.setMargin(9)
         self.verticalLayout.setObjectName("verticalLayout")
         self.groupBox = QtGui.QGroupBox(PushForm)
@@ -26,7 +26,8 @@ class Ui_PushForm(object):
         self.label_2.setObjectName("label_2")
         self.gridLayout.addWidget(self.label_2, 0, 0, 1, 1)
         self.location = QtGui.QComboBox(self.groupBox)
-        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding,
+                                           QtGui.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.location.sizePolicy().hasHeightForWidth())

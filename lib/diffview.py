@@ -711,7 +711,7 @@ class _SidebySideDiffView(QtGui.QSplitter):
                         heights[i] = image.height()
                         self.docs[i].addResource(QtGui.QTextDocument.ImageResource,
                                         QtCore.QUrl(file_id),
-                                        QtCore.QVariant(image))
+                                        image)
             
             max_height = max(heights)
             for i, cursor in enumerate(self.cursors):

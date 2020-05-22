@@ -476,7 +476,7 @@ class GraphVizLoader(object):
         # appear to the left.
         
         if len(x) == 0:
-            return (merge_depth)
+            return (merge_depth, 0, 0)
         else:
             return (merge_depth, -x[0], x[1])
     
@@ -1446,7 +1446,7 @@ class FileIdFilter (object):
                 tree.lock_read()
                 try:
                     for file_id in self.file_ids:
-                        if tree.kind(tree.id2path(file_id), file_id) in ('directory',
+                        if tree.kind(tree.id2path(file_id)) in ('directory',
                                                   'tree-reference'):
                             self.has_dir = True
                             break

@@ -44,7 +44,7 @@ class TabWidthMenuSelector(QtGui.QMenu):
         for tabwidth in range(MIN_TAB_WIDTH, MAX_TAB_WIDTH+1):
             action = QtGui.QAction(str(tabwidth), self.action_group)
             action.setCheckable(True)
-            action.setData(QtCore.QVariant(tabwidth))
+            action.setData(tabwidth)
             self.addAction(action)
             self.tabwidth_actions[tabwidth] = action
 
@@ -58,8 +58,8 @@ class TabWidthMenuSelector(QtGui.QMenu):
             self.triggered(self.tabwidth_actions[initial_tab_width])
 
     def triggered(self, action):
-        tw, success = action.data().toInt()
-        if success and tw != self._tabwidth:
+        tw = action.data()
+        if tw != self._tabwidth:
             self._tabwidth = tw
             self.onChanged(tw)
 
@@ -67,7 +67,7 @@ class TabWidthMenuSelector(QtGui.QMenu):
         if width not in self.tabwidth_actions:
             action = QtGui.QAction(str(width), self.action_group)
             action.setCheckable(True)
-            action.setData(QtCore.QVariant(width))
+            action.setData(width)
             # Find the next highest tab width currently in the menu
             for tw in sorted(self.tabwidth_actions.keys()):
                 if tw > width:

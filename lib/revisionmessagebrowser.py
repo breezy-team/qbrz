@@ -139,7 +139,7 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
             painter.end()
             self.document().addResource(QtGui.QTextDocument.ImageResource,
                                         QtCore.QUrl("dot%d" % color),
-                                        QtCore.QVariant(image))
+                                        image)
             self.images.append(image)
         
         self.props_back_color_str = ("#%02X%02X%02X" % 
@@ -184,7 +184,8 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
             props = []
             message = ""
             props.append((gettext("Revision:"),
-                          "%s revid:%s" % (self.get_revno(revid), revid)))
+                          "%s revid:%s" % (self.get_revno(revid),
+                                           revid.decode('ascii'))))
             
             parents = self.get_parents(revid)
             children = self.get_children(revid)
@@ -209,12 +210,12 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                         summary = get_summary(self._all_loaded_revs[revid])
                         revs.append(
                             '<a href="qlog-revid:%s" title="%s">%s%s: %s</a>' %
-                            (revid, htmlencode(summary), color, revno,
+                            (revid.decode('ascii'), htmlencode(summary), color, revno,
                              htmlencode((short_text(summary, 60)))))
                     else:
                         revs.append(
                             '<a href="qlog-revid:%s">%s%srevid: %s</a>' %
-                            (revid, color, revno, revid))
+                            (revid.decode('ascii'), color, revno, revid))
                 return '<br>'.join(revs)
             
             if parents:
@@ -231,6 +232,9 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
                     props.append((gettext("Signature:"), signature_result_text))
                 except KeyError:
                     #can't get Repository object for uncached revisions
+                    pass
+                except AttributeError:
+                    # WorkingTreeRevision object has no attribute 'repository'
                     pass
 
             if not revid == CURRENT_REVISION:
@@ -274,7 +278,7 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
         for color, image in enumerate(self.images):
             self.document().addResource(QtGui.QTextDocument.ImageResource,
                                         QtCore.QUrl("dot%d" % color),
-                                        QtCore.QVariant(image))            
+                                        image)            
     
     def loaded_revision_props(self, rev):
         props = []
@@ -314,7 +318,7 @@ class RevisionMessageBrowser(QtGui.QTextBrowser):
         if isinstance(rev, foreign.ForeignRevision):
             foreign_attribs = \
                 rev.mapping.vcs.show_foreign_revid(rev.foreign_revid)
-        elif ":" in rev.revision_id:
+        elif b":" in rev.revision_id:
             try:
                 foreign_revid, mapping = \
                     foreign.foreign_vcs_registry.parse_revision_id(
@@ -385,7 +389,7 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
         if not indexes:
             self.setHtml("")
         else:
-            revids = [str(index.data(logmodel.RevIdRole).toString())
+            revids = [index.data(logmodel.RevIdRole)
                       for index in indexes]
             self.set_display_revids(
                 revids, self.log_list.log_model.graph_viz.get_repo_revids)
@@ -393,7 +397,7 @@ class LogListRevisionMessageBrowser(RevisionMessageBrowser):
     def link_clicked(self, url):
         scheme = str(url.scheme())
         if scheme == 'qlog-revid':
-            revision_id = str(url.path())
+            revision_id = str(url.path()).encode('ascii')
             self.log_list.select_revid(revision_id)
         else:
             open_browser(str(url.toEncoded()))

@@ -317,7 +317,7 @@ class ShelveListWidget(ToolbarPanel):
         cleanup.append(shelf_file.close)
         try:
             records = Unshelver.iter_records(shelf_file)
-            revid = Unshelver.parse_metadata(records)['revision_id']
+            revid = Unshelver.parse_metadata(records)[b'revision_id']
             try:
                 base_tree = self.tree.revision_tree(revid)
             except NoSuchRevisionInTree:

@@ -40,7 +40,8 @@ class UniqueList(object):
             self._data.append(item)
 
     def __add__(self, other):
-        self._data.extend(other)
+        for item in other:
+            self.append(item)
         return UniqueList(self._data)
 
     def __iter__(self):
@@ -119,7 +120,7 @@ class EncodingSelector(QtGui.QWidget, BaseEncodingSelector):
         self.chooser = QtGui.QComboBox()
         self.chooser.addItems(self.encodings)
         self.chooser.setEditable(True)
-        self.chooser.setEditText(QtCore.QString(self.encoding))
+        self.chooser.setEditText(self.encoding)
         self.connect(self.chooser, QtCore.SIGNAL("currentIndexChanged(QString)"),
                      self._encodingChanged)
         self.chooser.focusOutEvent = self._focusOut
@@ -134,7 +135,7 @@ class EncodingSelector(QtGui.QWidget, BaseEncodingSelector):
         QtGui.QComboBox.focusOutEvent(self.chooser, ev)
 
     def _setEncoding(self, encoding):
-        self.chooser.setEditText(QtCore.QString(encoding))
+        self.chooser.setEditText(encoding)
 
     def getLabel(self):
         return str(self._label.text())
@@ -163,6 +164,7 @@ class EncodingMenuSelector(QtGui.QMenu, BaseEncodingSelector):
             self.onChanged = lambda encoding: None
         
         self.setTitle(label_text)
+        self.setStyleSheet("QMenu { menu-scrollable: 1; }")
         
         self.action_group = QtGui.QActionGroup(self)
         
@@ -170,7 +172,7 @@ class EncodingMenuSelector(QtGui.QMenu, BaseEncodingSelector):
         for encoding in self.encodings:
             action = QtGui.QAction(encoding, self.action_group)
             action.setCheckable(True)
-            action.setData(QtCore.QVariant(encoding))
+            action.setData(encoding)
             self.addAction(action)
             self.encoding_actions[encoding] = action
         
@@ -179,7 +181,7 @@ class EncodingMenuSelector(QtGui.QMenu, BaseEncodingSelector):
                      self.triggered)
     
     def triggered(self, action):
-        encoding = str(action.data().toString())
+        encoding = action.data()
         self._encodingChanged(encoding)
 
     def _setEncoding(self, encoding):

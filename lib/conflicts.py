@@ -174,8 +174,8 @@ class ConflictsWindow(QBzrWindow):
             item = QtGui.QTreeWidgetItem()
             item.setText(0, conflict.path)
             item.setText(1, gettext(conflict.typestring))
-            item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(conflict.file_id or ''))  # file_id is None for non-versioned items, so we force it to be empty string to avoid Qt error
-            item.setData(1, QtCore.Qt.UserRole, QtCore.QVariant(conflict.typestring))
+            item.setData(0, QtCore.Qt.UserRole, conflict.file_id or '')  # file_id is None for non-versioned items, so we force it to be empty string to avoid Qt error
+            item.setData(1, QtCore.Qt.UserRole, conflict.typestring)
             items.append(item)
 
         if len(items) == 0 and self.conflicts_list.topLevelItemCount() > 0:
@@ -214,7 +214,7 @@ class ConflictsWindow(QBzrWindow):
             return
         config = GlobalConfig()
         cmdline = config.find_merge_tool(str(self.merge_tools_combo.currentText()))
-        file_id = str(items[0].data(0, QtCore.Qt.UserRole).toString())
+        file_id = items[0].data(0, QtCore.Qt.UserRole)
         if not file_id:
             # bug https://bugs.launchpad.net/qbrz/+bug/655451
             return
@@ -266,7 +266,7 @@ class ConflictsWindow(QBzrWindow):
         items = self.conflicts_list.selectedItems()
         error_msg = ""
         enabled = True
-        if len(items) != 1 or items[0].data(1, QtCore.Qt.UserRole).toString() != "text conflict":
+        if len(items) != 1 or items[0].data(1, QtCore.Qt.UserRole) != "text conflict":
             enabled = False
         config = GlobalConfig()
         tool = str(self.merge_tools_combo.currentText())

@@ -73,8 +73,8 @@ class BookmarkDialog(QtGui.QDialog):
 class SideBarItem(object):
 
     def __init__(self):
-        self.icon = QtCore.QVariant()
-        self.text = QtCore.QVariant()
+        self.icon = None
+        self.text = None
         self.parent = None
         self.children = []
 
@@ -92,8 +92,8 @@ class DirectoryItem(SideBarItem):
 
     def __init__(self, fileInfo, parent, sidebar):
         self.path = fileInfo.filePath()
-        self.icon = QtCore.QVariant(sidebar.window.icons['folder'])
-        self.text = QtCore.QVariant(fileInfo.fileName() or fileInfo.path())
+        self.icon = sidebar.window.icons['folder']
+        self.text = fileInfo.fileName() or fileInfo.path()
         self.parent = parent
         self.children = None
 
@@ -116,8 +116,8 @@ class FileSystemItem(DirectoryItem):
 
     def __init__(self, sidebar):
         self.isBranch = False
-        self.icon = QtCore.QVariant(sidebar.window.icons['computer'])
-        self.text = QtCore.QVariant(gettext("Computer"))
+        self.icon = sidebar.window.icons['computer']
+        self.text = gettext("Computer")
         self.parent = sidebar.root
         self.children = None
 
@@ -139,8 +139,8 @@ class BookmarkItem(DirectoryItem):
 
     def __init__(self, name, path, parent, sidebar):
         self.path = path
-        self.icon = QtCore.QVariant(sidebar.window.icons['folder'])
-        self.text = QtCore.QVariant(name)
+        self.icon = sidebar.window.icons['folder']
+        self.text = name
         self.parent = parent
         self.children = None
 
@@ -161,8 +161,8 @@ class BookmarksItem(SideBarItem):
 
     def __init__(self, sidebar):
         self.window = sidebar.window
-        self.icon = QtCore.QVariant(sidebar.window.icons['bookmark'])
-        self.text = QtCore.QVariant(gettext("Bookmarks"))
+        self.icon = sidebar.window.icons['bookmark']
+        self.text = gettext("Bookmarks")
         self.parent = sidebar.root
         self.children = None
         self.contextMenu = QtGui.QMenu()
@@ -205,7 +205,7 @@ class SideBarModel(QtCore.QAbstractItemModel):
             return item.icon
         elif role == QtCore.Qt.DisplayRole:
             return item.text
-        return QtCore.QVariant()
+        return None
 
     def columnCount(self, parent):
         return 1
@@ -543,7 +543,7 @@ class QBzrMainWindow(QBzrWindow):
             item = QtGui.QTreeWidgetItem(self.fileListView)
             item.setText(0, '..')
             item.setIcon(0, self.icons['folder'])
-            item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(os.path.dirname(path)))
+            item.setData(0, QtCore.Qt.UserRole, os.path.dirname(path))
             fileInfoList = QtCore.QDir(path).entryInfoList(
                 QtCore.QDir.AllEntries | QtCore.QDir.NoDotAndDotDot,
                 QtCore.QDir.DirsFirst)
@@ -556,7 +556,7 @@ class QBzrMainWindow(QBzrWindow):
                         icon = 'folder'
                     else:
                         icon = 'folder-' + status
-                    item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(fileInfo.filePath()))
+                    item.setData(0, QtCore.Qt.UserRole, fileInfo.filePath())
                     item.setIcon(0, self.icons[icon])
                 else:
                     status = self.cache.getFileStatus(pathParts, str(fileInfo.fileName()))

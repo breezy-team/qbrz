@@ -18,7 +18,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 from PyQt4 import QtCore, QtGui
-from time import (strftime, localtime, clock)
+from time import (strftime, localtime)
+import time
 import re
 import fnmatch
 
@@ -135,13 +136,13 @@ class FilterScheduler(object):
         # 10:1. If we spend 1 sec calling invaladate_filter_cache_revs, don't
         # call it again until we have spent 10 sec else where.
         if (last_call or revs is None or 
-            clock() - self.last_call_time > self.last_run_time * 10):
+            time.process_time() - self.last_call_time > self.last_run_time * 10):
             
-            start_time = clock()
+            start_time = time.process_time()
             self.filter_changed_callback(self.pending_revs, last_call)
             self.pending_revs = []
-            self.last_run_time = clock() - start_time
-            self.last_call_time = clock()
+            self.last_run_time = time.process_time() - start_time
+            self.last_call_time = time.process_time()
         
         if last_call:
             self.last_run_time = 0
@@ -264,12 +265,12 @@ class LogModel(QtCore.QAbstractTableModel):
     def data(self, index, role):
         
         if not index.isValid():
-            return QtCore.QVariant()
+            return None
         
         def blank():
             if role == QtCore.Qt.DisplayRole:
-                return QtCore.QVariant("")
-            return QtCore.QVariant()
+                return ""
+            return None
         
         c_rev = self.computed.filtered_revs[index.row()]
         if c_rev is None:
@@ -320,31 +321,30 @@ class LogModel(QtCore.QAbstractTableModel):
                              for bug in bugs])
             is_clicked = c_rev.f_index == self.clicked_f_index
             
-            return QtCore.QVariant((c_rev, prev_c_rev, tags, is_clicked))
+            return (c_rev, prev_c_rev, tags, is_clicked)
         
         if (role == QtCore.Qt.DisplayRole and index.column() == COL_REV):
-            return QtCore.QVariant(c_rev.rev.revno_str)
+            return c_rev.rev.revno_str
         
         if role == QtCore.Qt.ToolTipRole and index.column() == COL_MESSAGE:
             urls =  [branch_info.branch.base
                      for (branch_info, label) in c_rev.branch_labels
                      if label]
-            return QtCore.QVariant('\n'.join(urls))
+            return '\n'.join(urls)
         
         if role == RevIdRole:
-            return QtCore.QVariant(c_rev.rev.revid)
+            return c_rev.rev.revid
         
         #Everything from here foward will need to have the revision loaded.
         if revision is None:
             return blank()
         
         if role == QtCore.Qt.DisplayRole and index.column() == COL_DATE:
-            return QtCore.QVariant(strftime("%Y-%m-%d %H:%M",
-                                            localtime(revision.timestamp)))
+            return strftime("%Y-%m-%d %H:%M", localtime(revision.timestamp))
         if role == QtCore.Qt.DisplayRole and index.column() == COL_AUTHOR:
-            return QtCore.QVariant(extract_name(get_apparent_author(revision)))
+            return extract_name(get_apparent_author(revision))
         if role == QtCore.Qt.DisplayRole and index.column() == COL_MESSAGE:
-            return QtCore.QVariant(revision.get_summary())
+            return revision.get_summary()
         
         return blank()
 
@@ -356,8 +356,8 @@ class LogModel(QtCore.QAbstractTableModel):
 
     def headerData(self, section, orientation, role):
         if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
-            return QtCore.QVariant(header_labels[section])
-        return QtCore.QVariant()
+            return header_labels[section]
+        return None
 
     def on_revisions_loaded(self, revisions, last_call):
         for revid in revisions.keys():

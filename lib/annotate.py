@@ -180,7 +180,7 @@ class AnnotateBar(AnnotateBarBase):
                     self.revno_width - (2 * text_margin),
                     rect.height())
                 paint_revno(painter, revno_rect,
-                            QtCore.QString(self.get_revno(revid)),
+                            str(self.get_revno(revid)),
                             self.max_mainline_digits)
                 
                 if revid in cached_revisions:
@@ -191,7 +191,7 @@ class AnnotateBar(AnnotateBarBase):
                         rect.top(),
                         rect.right() - revno_rect.right() - (2 * text_margin),
                         rect.height())
-                    author = QtCore.QString(get_apparent_author_name(rev))
+                    author = get_apparent_author_name(rev)
                     if fm.width(author) > author_rect.width():
                         author= fm.elidedText(author, QtCore.Qt.ElideRight,
                                               author_rect.width())                    
@@ -228,7 +228,7 @@ class AnnotatedTextEdit(QtGui.QPlainTextEdit):
                 if revid in self.rev_colors:
                     painter.fillRect(rect, self.rev_colors[revid])
                 
-                block = next(block)
+                block = block.next()
             del painter
         QtGui.QPlainTextEdit.paintEvent(self, event)
     
@@ -498,9 +498,9 @@ class AnnotateWindow(QBzrWindow):
         ordered_revids = []
 
         self.processEvents()
-        for revid, text in annotate_tree.annotate_iter(path, file_id=fileId):
+        for revid, text in annotate_tree.annotate_iter(path):
             if revid == CURRENT_REVISION:
-                revid = CURRENT_REVISION + annotate_tree.basedir
+                revid = CURRENT_REVISION + annotate_tree.basedir.encode("utf-8")
             
             text = text.decode(self.encoding, 'replace')
             
@@ -679,7 +679,7 @@ class AnnotateWindow(QBzrWindow):
         try:
             self.branch.lock_read()
             try:
-                revid = str(self.log_list.currentIndex().data(logmodel.RevIdRole).toString())
+                revid = self.log_list.currentIndex().data(logmodel.RevIdRole)
                 if revid.startswith(CURRENT_REVISION):
                     rev = cached_revisions[revid]
                     self.annotate_tree = self.working_tree
@@ -777,7 +777,8 @@ class GotoLineToolbar(QtGui.QToolBar):
         go = self.addAction(get_icon("go-next"), gettext("Go"))
         
         spacer = QtGui.QWidget()
-        spacer.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        spacer.setSizePolicy(QtGui.QSizePolicy.Expanding,
+                             QtGui.QSizePolicy.Expanding)
         self.addWidget(spacer)
         
         close = QtGui.QAction(self)

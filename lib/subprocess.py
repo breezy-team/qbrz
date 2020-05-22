@@ -22,6 +22,7 @@
 
 import os
 import sys
+import time
 
 from PyQt4 import QtCore, QtGui
 from contextlib import contextmanager
@@ -677,8 +678,8 @@ class SubProcessWidget(QtGui.QWidget):
     def _setup_stdout_stderr(self):
         if self.stdout is None:
             writer = codecs.getwriter(osutils.get_terminal_encoding())
-            self.stdout = writer(sys.stdout, errors='replace')
-            self.stderr = writer(sys.stderr, errors='replace')
+            self.stdout = writer(sys.stdout.buffer, errors='replace')
+            self.stderr = writer(sys.stderr.buffer, errors='replace')
 
     def abort(self):
         if self.is_running():
@@ -711,21 +712,21 @@ class SubProcessWidget(QtGui.QWidget):
 
     def readStdout(self):
         # ensure we read from subprocess plain string
-        data = str(self.process.readAllStandardOutput())
+        data = self.process.readAllStandardOutput().data().decode(self.encoding)
         # we need unicode for all strings except bencoded streams
         for line in data.splitlines():
             if line.startswith(SUB_PROGRESS):
                 try:
                     progress, transport_activity, task_info = bencode.bdecode(
-                        line[len(SUB_PROGRESS):])
+                        line[len(SUB_PROGRESS):].encode(self.encoding))
                     messages = [b.decode("utf-8") for b in task_info]
                 except ValueError as e:
                     # we got malformed data from qsubprocess (bencode failed to decode)
                     # so just show it in the status console
                     self.logMessageEx("qsubprocess error: "+str(e), "error", self.stderr)
-                    self.logMessageEx(line.decode(self.encoding), "error", self.stderr)
+                    self.logMessageEx(line, "error", self.stderr)
                 else:
-                    self.setProgress(progress, messages, transport_activity)
+                    self.setProgress(progress, messages, transport_activity.decode("utf-8"))
             elif line.startswith(SUB_GETPASS):
                 prompt = bdecode_prompt(line[len(SUB_GETPASS):])
                 passwd, ok = QtGui.QInputDialog.getText(self,
@@ -776,11 +777,10 @@ class SubProcessWidget(QtGui.QWidget):
                     self.conflicted = True
                     self.conflict_tree_path = bdecode_prompt(msg[len(NOTIFY_CONFLICT):])
             else:
-                line = line.decode(self.encoding, 'replace')
                 self.logMessageEx(line, 'plain', self.stdout)
 
     def readStderr(self):
-        data = str(self.process.readAllStandardError()).decode(self.encoding, 'replace')
+        data = bytes(self.process.readAllStandardError()).decode(self.encoding, 'replace')
         if data:
             self.emit(QtCore.SIGNAL("error()"))
 
@@ -845,6 +845,7 @@ class SubProcessWidget(QtGui.QWidget):
                 if self.conflicted:
                     self.emit(QtCore.SIGNAL("conflicted(QString)"), 
                               self.conflict_tree_path)
+                time.sleep(2)
                 self.emit(QtCore.SIGNAL("finished()"))
         else:
             self.setProgress(1000000, [gettext("Failed!")])
@@ -902,10 +903,11 @@ class SubprocessProgressView (TextProgressView):
             task_info = ()
             progress = 0
 
-        trans = self._last_transport_msg
+        trans = self._last_transport_msg.encode("utf-8")
 
+        bdata = bencode.bencode((progress, trans, task_info))
         self._term_file.write(
-            SUB_PROGRESS + bencode.bencode((progress, trans, task_info)) + '\n')
+            SUB_PROGRESS + bdata.decode("utf-8") + '\n')
         self._term_file.flush()
 
     def clear(self):

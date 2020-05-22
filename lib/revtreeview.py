@@ -110,8 +110,7 @@ class RevisionTreeView(QtGui.QTreeView):
         revids = []
         while True:
             revid = index.data(RevIdRole)
-            if not revid.isNull():
-                revid = str(revid.toByteArray())
+            if revid is not None:
                 if revid not in revids:
                     revids.append(revid)
             if index == bottom_index:
@@ -228,7 +227,7 @@ class RevNoItemDelegate(QtGui.QStyledItemDelegate):
         
         painter.setPen(get_text_color(option, style))
         
-        if not option.text.isEmpty():
+        if option.text:
             text = option.text
             paint_revno(painter, text_rect, text, self.max_mainline_digits)
         
@@ -244,12 +243,12 @@ class RevNoItemDelegate(QtGui.QStyledItemDelegate):
 
 
 def paint_revno(painter, rect, revno, max_mainline_digits):
-    splitpoint = revno.indexOf(".")
+    splitpoint = revno.find(".")
     if splitpoint == -1:
         splitpoint = len(revno)
     mainline, therest = revno[:splitpoint], revno[splitpoint:]
     
-    if mainline.endsWith(" ?"):
+    if mainline.endswith(" ?"):
         mainline = mainline[:-2]
         therest = " ?"
     

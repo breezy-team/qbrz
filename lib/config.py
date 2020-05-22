@@ -112,7 +112,7 @@ class QBzrConfigWindow(QBzrDialog):
 
         self.emailClientCombo = QtGui.QComboBox()
         for name, label in _mail_clients:
-            self.emailClientCombo.addItem(gettext(label), QtCore.QVariant(name))
+            self.emailClientCombo.addItem(gettext(label), name)
         label = QtGui.QLabel(gettext("E-mail &client:"))
         label.setBuddy(self.emailClientCombo)
         generalGrid.addWidget(label, 3, 0)
@@ -265,7 +265,7 @@ class QBzrConfigWindow(QBzrDialog):
         self.spellcheck_language_combo = QtGui.QComboBox()
         languages = sorted(SpellChecker.list_languages())
         for name in languages:
-            self.spellcheck_language_combo.addItem(gettext(name), QtCore.QVariant(name))
+            self.spellcheck_language_combo.addItem(gettext(name), name)
         if not languages:
             self.spellcheck_language_combo.setEnabled(False)
         label = QtGui.QLabel(gettext("Spell check &language:"))
@@ -337,8 +337,7 @@ class QBzrConfigWindow(QBzrDialog):
         # E-mail client
         mailClient = config.get_user_option('mail_client')
         if mailClient:
-            index = self.emailClientCombo.findData(
-                QtCore.QVariant(mailClient))
+            index = self.emailClientCombo.findData(mailClient)
             if index >= 0:
                 self.emailClientCombo.setCurrentIndex(index)
 
@@ -348,8 +347,7 @@ class QBzrConfigWindow(QBzrDialog):
         # Spellcheck language
         spellcheck_language = config.get_user_option('spellcheck_language') or 'en'
         if spellcheck_language:
-            index = self.spellcheck_language_combo.findData(
-                QtCore.QVariant(spellcheck_language))
+            index = self.spellcheck_language_combo.findData(spellcheck_language)
             if index >= 0:
                 self.spellcheck_language_combo.setCurrentIndex(index)
 
@@ -498,7 +496,7 @@ class QBzrConfigWindow(QBzrDialog):
 
         # E-mail client
         index = self.emailClientCombo.currentIndex()
-        mail_client = str(self.emailClientCombo.itemData(index).toString())
+        mail_client = self.emailClientCombo.itemData(index)
         set_or_delete_option(parser, 'mail_client', mail_client)
 
         tabWidth = self.tabWidthSpinner.value()
@@ -506,7 +504,7 @@ class QBzrConfigWindow(QBzrDialog):
 
         # Spellcheck language
         index = self.spellcheck_language_combo.currentIndex()
-        spellcheck_language = str(self.spellcheck_language_combo.itemData(index).toString())
+        spellcheck_language = self.spellcheck_language_combo.itemData(index)
         set_or_delete_option(parser, 'spellcheck_language', spellcheck_language)
 
         # Branch source basedir
@@ -904,14 +902,14 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         cmdline = self.get_merge_tool_command_line(index.row())
         if role == QtCore.Qt.DisplayRole:
             if index.column() == self.COL_NAME:
-                return QtCore.QVariant(name)
+                return name
             elif index.column() == self.COL_COMMANDLINE:
-                return QtCore.QVariant(cmdline)
+                return cmdline
         elif role == QtCore.Qt.EditRole:
             if index.column() == self.COL_NAME:
-                return QtCore.QVariant(name)
+                return name
             elif index.column() == self.COL_COMMANDLINE:
-                return QtCore.QVariant(cmdline)
+                return cmdline
         elif role == QtCore.Qt.CheckStateRole:
             if index.column() == self.COL_NAME:
                 return self._default == name and QtCore.Qt.Checked or QtCore.Qt.Unchecked
@@ -919,7 +917,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
             if name in self._known:
                 palette = QtGui.QApplication.palette()
                 return palette.alternateBase()
-        return QtCore.QVariant()
+        return None
         
     def setData(self, index, value, role):
         name = self._order[index.row()]
@@ -932,7 +930,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
                     self._removed.append(name)
                 del self._order[index.row()]
                 del self._user[name]
-                new_name = str(value.toString())
+                new_name = str(value)
                 self._order.insert(index.row(), new_name)
                 self._user[new_name] = cmdline
                 if self._default == name:
@@ -942,7 +940,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
                 self.sort(self.COL_NAME, QtCore.Qt.AscendingOrder)
                 return True
             elif index.column() == self.COL_COMMANDLINE:
-                self._user[name] = str(value.toString())
+                self._user[name] = str(value)
                 self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                           index, index)
                 return True
@@ -956,7 +954,7 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         return False
         
     def flags(self, index):
-        f = super(MergeToolsTableModel, self).flags(index)
+        f = super().flags(index)
         name = self._order[index.row()]
         if name not in self._known:
             f = f | QtCore.Qt.ItemIsEditable
@@ -968,11 +966,11 @@ class MergeToolsTableModel(QtCore.QAbstractTableModel):
         if orientation == QtCore.Qt.Horizontal:
             if section == self.COL_NAME:
                 if role == QtCore.Qt.DisplayRole:
-                    return QtCore.QVariant(gettext("Name"))
+                    return gettext("Name")
             elif section == self.COL_COMMANDLINE:
                 if role == QtCore.Qt.DisplayRole:
-                    return QtCore.QVariant(gettext("Command Line"))
-        return QtCore.QVariant()
+                    return gettext("Command Line")
+        return None
 
     def sort(self, column, sortOrder):
         self.emit(QtCore.SIGNAL("layoutAboutToBeChanged()"))

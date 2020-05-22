@@ -40,7 +40,7 @@ class AnnotateBarBase(QtGui.QWidget):
         block = self.edit.firstVisibleBlock()
         line_count = block.blockNumber()
         painter = QtGui.QPainter(self)
-        painter.fillRect(event.rect(), self.palette().background())
+        painter.fillRect(event.rect(), self.palette().window())
 
         # Iterate over all visible text blocks in the document.
         while block.isValid():
@@ -54,7 +54,7 @@ class AnnotateBarBase(QtGui.QWidget):
             if not block.isVisible() or rect.top() >= event.rect().bottom():
                 break
             self.paint_line(painter, rect, line_count, line_count==current_line)
-            block = next(block)
+            block = block.next()
 
         painter.end()
         
@@ -115,7 +115,7 @@ class AnnotateEditerFrameBase(QtGui.QFrame):
 
         self.hbox = QtGui.QHBoxLayout(self)
         self.hbox.setSpacing(0)
-        self.hbox.setMargin(0)
+        self.hbox.setContentsMargins(0, 0, 0, 0)
 
 
 class LineNumberEditerFrame(AnnotateEditerFrameBase):

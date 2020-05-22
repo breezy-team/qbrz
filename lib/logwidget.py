@@ -310,7 +310,7 @@ class LogList(RevisionTreeView):
         selection_model = self.selectionModel()
         rows = selection_model.selectedRows()
         expand_indexes_to_ids = \
-            lambda l: [str(i.data(logmodel.RevIdRole).toString())
+            lambda l: [str(i.data(logmodel.RevIdRole))
                        for i in l]
         # Note: we don't do anything is there are 0 selected rows
         if rows:
@@ -319,7 +319,7 @@ class LogList(RevisionTreeView):
         current_index = self.currentIndex()
         if current_index.isValid():
             self.lines_updated_selection_current = \
-                str(current_index.data(logmodel.RevIdRole).toString())
+                str(current_index.data(logmodel.RevIdRole))
         else:
             self.lines_updated_selection_current = None
 
@@ -352,7 +352,7 @@ class LogList(RevisionTreeView):
         indexes = self.get_selection_indexes(index)
         revids = set()
         for index in indexes:
-            revid = str(index.data(logmodel.RevIdRole).toString())
+            revid = index.data(logmodel.RevIdRole)
             revids.add(revid)
             merges = [self.log_model.graph_viz.revisions[rev_index].revid
                       for rev_index in
@@ -364,8 +364,8 @@ class LogList(RevisionTreeView):
         indexes = self.get_selection_indexes(index)
         if len(indexes) == 0:
             return (None, None), 0
-        top_revid = str(indexes[0].data(logmodel.RevIdRole).toString())
-        bot_revid = str(indexes[-1].data(logmodel.RevIdRole).toString())
+        top_revid = indexes[0].data(logmodel.RevIdRole)
+        bot_revid = indexes[-1].data(logmodel.RevIdRole)
         parents = self.log_model.graph_viz.known_graph.get_parent_keys(bot_revid)
         if parents:
             # We need a ui to select which parent.
@@ -393,7 +393,7 @@ class LogList(RevisionTreeView):
             assert(len(gv.branches)==1)
             selected_branch_info = gv.branches[0]
         
-        revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
+        revid = self.currentIndex().data(logmodel.RevIdRole)
         revno = gv.revid_rev[revid].revno_str
         revs = [RevisionSpec.from_string(revno)]
         branch = selected_branch_info.branch
@@ -572,7 +572,7 @@ class LogList(RevisionTreeView):
     
     def show_revision_tree(self):
         from breezy.plugins.qbrz.lib.browse import BrowseWindow
-        revid = str(self.currentIndex().data(logmodel.RevIdRole).toString())
+        revid = self.currentIndex().data(logmodel.RevIdRole)
         gv = self.log_model.graph_viz
         if revid.startswith(CURRENT_REVISION):
             location = gv.working_trees[revid].abspath('')
@@ -632,7 +632,7 @@ class BranchMenu(QtGui.QMenu):
         self.graphprovider = graphprovider
         for branch in self.graphprovider.branches:
             action = QtGui.QAction(branch.label, self)
-            action.setData(QtCore.QVariant(branch))
+            action.setData(branch)
             self.addAction(action)
             if require_wt and branch.tree is None:
                 action.setDisabled(True)
@@ -666,23 +666,10 @@ class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
     _twistyColor = QtCore.Qt.black
 
     def paint(self, painter, option, index):
-        data = index.data(logmodel.GraphDataRole)
-        if data.isValid():
+        if index.isValid():
             draw_graph = True
-            if QtCore.PYQT_VERSION_STR.startswith('4.5.'):
-                # toPyObject is buggy in 4.5
-                def toPy (x):
-                    if isinstance(x, QtCore.QVariant):
-                        return x.toPyObject()
-                    else:
-                        return x
-                c_rev, prev_c_rev, labels, is_clicked = (
-                    toPy(item) for item in data.toPyObject())
-                labels = [[toPy(x) for x in toPy(label)]
-                           for label in toPy(labels)]
-            else:
-                c_rev, prev_c_rev, labels, is_clicked = data.toPyObject()
-            
+            data = index.data(logmodel.GraphDataRole)
+            c_rev, prev_c_rev, labels, is_clicked = data
         else:
             draw_graph = False
         
@@ -797,7 +784,7 @@ class GraphTagsBugsItemDelegate(QtGui.QStyledItemDelegate):
                 painter.restore()
             rect.adjust(x, 0, 0, 0)
         
-        if not option.text.isEmpty():
+        if option.text:
             painter.setPen(get_text_color(option, style))
             text_rect = rect.adjusted(0, 0, -text_margin, 0)
             painter.setFont(option.font)

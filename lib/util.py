@@ -871,7 +871,7 @@ def is_binary_content(lines):
     @return: True if 0x00 byte found.
     """
     for s in lines:
-        if '\x00' in s:
+        if b'\x00' in s:
             return True
     return False
 
@@ -1077,14 +1077,14 @@ def launchpad_project_from_url(url):
 
 def _shlex_split_unicode_linux(unicode_string):
     """Split unicode string to list of unicode arguments."""
-    return [str(p,'utf8') for p in shlex.split(unicode_string.encode('utf-8'))]
+    return [p for p in shlex.split(unicode_string)]
 
 def _shlex_split_unicode_windows(unicode_string):
     """Split unicode string to list of unicode arguments.
     Take care about backslashes as valid path separators.
     """
     utf8_string = unicode_string.replace('\\', '\\\\').encode('utf-8')
-    return [str(p,'utf8') for p in shlex.split(utf8_string)]
+    return [p for p in shlex.split(utf8_string)]
 
 if MS_WINDOWS:
     shlex_split_unicode = _shlex_split_unicode_windows

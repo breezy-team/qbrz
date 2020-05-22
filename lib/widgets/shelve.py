@@ -99,7 +99,7 @@ class Change(object):
         file_id = change[1]
         def get_kind(tree, path, id):
             try:
-                return tree.kind(path, id)
+                return tree.kind(path)
             except errors.NoSuchFile:
                 return 'file'
         if status == 'delete file':
@@ -177,7 +177,7 @@ class Change(object):
             return self.hunk_texts[2]
         patch = self.parsed_patch
         try:
-            texts = [[str(l).decode(encoding) for l in hunk.lines]
+            texts = [[l.as_bytes().decode(encoding) for l in hunk.lines]
                      for hunk in patch.hunks]
         except UnicodeError:
             if self.hunk_texts[1] is None:
@@ -1013,7 +1013,7 @@ class HunkTextBrowser(QtGui.QTextBrowser):
                 self.guidebar_deta.append((l1, l2 - l1))
             else:
                 y1 = cursor.block().layout().position().y()
-                cursor.insertText(str(hunk.get_header()), self.monospacedHunkFormat)
+                cursor.insertText(hunk.get_header().decode(encoding), self.monospacedHunkFormat)
                 print_hunk(hunk, hunk_texts)
                 cursor.insertText("\n", self.monospacedFormat)
                 y2 = cursor.block().layout().position().y()

@@ -144,11 +144,11 @@ class QBzrCatWindow(QBzrWindow):
             
             self.tree.lock_read()
             try:
-                kind = self.tree.kind(self.filename, self.file_id)
+                kind = self.tree.kind(self.filename)
                 if kind == 'file':
-                    text = self.tree.get_file_text(self.filename, self.file_id)
+                    text = self.tree.get_file_text(self.filename)
                 elif kind == 'symlink':
-                    text = self.tree.get_symlink_target(self.filename, self.file_id)
+                    text = self.tree.get_symlink_target(self.filename)
                 else:
                     text = ''
             finally:
@@ -184,7 +184,7 @@ class QBzrCatWindow(QBzrWindow):
         Supported file types: text, image, binary
         """
         if kind == 'file':
-            if not '\0' in text:
+            if not b'\0' in text:
                 return 'text file', self._create_text_view
             else:
                 ext = file_extension(relpath).lower()

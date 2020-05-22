@@ -116,18 +116,18 @@ class IgnoreWindow(SubProcessDialog):
             item = QtGui.QTreeWidgetItem()
             item.setText(0, i)
             item.setText(1, file_extension(i))
-            item.setData(0, QtCore.Qt.UserRole, QtCore.QVariant(i))
-            item.setData(2, QtCore.Qt.UserRole, QtCore.QVariant(ACTION_NONE))
+            item.setData(0, QtCore.Qt.UserRole, i)
+            item.setData(2, QtCore.Qt.UserRole, ACTION_NONE)
             items.append(item)
             self.unknowns[i] = item
         self.unknowns_list.clear()
         self.unknowns_list.addTopLevelItems(items)
 
     def _filename_from_item(self, item):
-        return str(item.data(0, QtCore.Qt.UserRole).toString())
+        return item.data(0, QtCore.Qt.UserRole)
 
     def _action_from_item(self, item):
-        return str(item.data(2, QtCore.Qt.UserRole).toString())
+        return item.data(2, QtCore.Qt.UserRole)
 
     def item_clicked(self, item, column):
         self._enable_actions()
@@ -191,11 +191,11 @@ class IgnoreWindow(SubProcessDialog):
 
     def _clear_action_for_item(self, item, pattern, action):
         item.setText(2, '')
-        item.setData(2, QtCore.Qt.UserRole, QtCore.QVariant(action))
+        item.setData(2, QtCore.Qt.UserRole, action)
 
     def _set_pattern_action_for_item(self, item, pattern, action):
         item.setText(2, pattern)
-        item.setData(2, QtCore.Qt.UserRole, QtCore.QVariant(action))
+        item.setData(2, QtCore.Qt.UserRole, action)
 
 # ignore pattern for *.foo case-insensitive RE:(?i).*\.foo
 # ignore pattern for files without extension (.first dot allowed though) RE:\.?[^.]+

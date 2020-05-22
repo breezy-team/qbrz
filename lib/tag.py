@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 #
 # QBzr - Qt frontend to Bazaar commands
@@ -80,8 +81,7 @@ class TagWindow(SubProcessDialog):
         # update ui
         self.ui.branch_location.setText(url_for_display(branch.base))
         self.ui.cb_tag.clear()
-        self.ui.cb_tag.addItems(QtCore.QStringList(sorted(list(self.tags.keys()),
-                                                          key=str.lower)))
+        self.ui.cb_tag.addItems(sorted(list(self.tags.keys()), key=str.lower))
         self.ui.cb_tag.setEditText("")
         self.ui.cb_tag.setCurrentIndex(-1)
 

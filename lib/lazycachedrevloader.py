@@ -18,7 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 #import weakref
-from time import clock
+import time
 
 from PyQt4 import QtCore
 
@@ -38,7 +38,7 @@ def load_revisions(revids, repo,
                    revisions_loaded = None,
                    pass_prev_loaded_rev = False):
     
-    start_time = clock()
+    start_time = time.process_time()
     showed_throbber = False
     revids = [revid for revid in revids if not revid == "root:"]
     return_revisions = {}
@@ -75,7 +75,7 @@ def load_revisions(revids, repo,
                         
                         for offset in range(0, len(revids), batch_size):
                             
-                            running_time = clock() - start_time
+                            running_time = time.process_time() - start_time
                             
                             if time_before_first_ui_update < running_time:
                                 if revisions_loaded is not None:

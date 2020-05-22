@@ -53,8 +53,8 @@ class QBzrSysInfoWindow(QBzrWindow):
         self.ui.bzr_lib_path.setText(breezy_head)
 
         # Bazaar Configuration section
-        self.ui.bzr_config_dir.setText(props.get("bzr-config-dir", "?"))
-        self.ui.bzr_log_file.setText(props.get("bzr-log-file", "?"))
+        self.ui.bzr_config_dir.setText(props.get("brz-config-dir", "?"))
+        self.ui.bzr_log_file.setText(props.get("brz-log-file", "?"))
 
         # Python Interpreter section
         self.ui.python_version.setText(props.get("python-version", "?"))

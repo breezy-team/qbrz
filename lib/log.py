@@ -156,17 +156,17 @@ class LogWindow(QBzrWindow):
         self.searchType = QtGui.QComboBox()
             
         self.searchType.addItem(gettext("Messages"),
-                                QtCore.QVariant(self.FilterMessageRole))
+                                self.FilterMessageRole)
         self.searchType.addItem(gettext("Authors"),
-                                QtCore.QVariant(self.FilterAuthorRole))
+                                self.FilterAuthorRole)
         self.searchType.addItem(gettext("Revision IDs"),
-                                QtCore.QVariant(self.FilterIdRole))
+                                self.FilterIdRole)
         self.searchType.addItem(gettext("Revision Numbers"),
-                                QtCore.QVariant(self.FilterRevnoRole))
+                                self.FilterRevnoRole)
         self.searchType.addItem(gettext("Tags"),
-                                QtCore.QVariant(self.FilterTagRole))
+                                self.FilterTagRole)
         self.searchType.addItem(gettext("Bugs"),
-                                QtCore.QVariant(self.FilterBugRole))
+                                self.FilterBugRole)
         searchbox.addWidget(self.searchType)
         self.connect(self.searchType,
                      QtCore.SIGNAL("currentIndexChanged(int)"),
@@ -363,7 +363,7 @@ class LogWindow(QBzrWindow):
             if indexes_availble:
                 self.searchType.insertItem(0,
                         gettext("Messages and File text (indexed)"),
-                        QtCore.QVariant(self.FilterSearchRole))
+                        self.FilterSearchRole)
                 self.searchType.setCurrentIndex(0)
                 
                 self.completer = Compleater(self)
@@ -454,7 +454,7 @@ class LogWindow(QBzrWindow):
     def update_search(self):
         # TODO in_paths = self.search_in_paths.isChecked()
         gv = self.log_list.log_model.graph_viz
-        role = self.searchType.itemData(self.searchType.currentIndex()).toInt()[0]
+        role = self.searchType.itemData(self.searchType.currentIndex())
         search_text = str(self.search_edit.text())
         if search_text == "":
             self.log_list.set_search(None, None)
@@ -733,9 +733,9 @@ class FileListContainer(QtGui.QWidget):
                  is_not_specific_file_id,
                  display, color, is_alive) in sorted(items, key = lambda x: (x[2],x[1])):
                 item = QtGui.QListWidgetItem(display, self.file_list)
-                item.setData(PathRole, QtCore.QVariant(path))
-                item.setData(file_idRole, QtCore.QVariant(id))
-                item.setData(AliveRole, QtCore.QVariant(is_alive))
+                item.setData(PathRole, path)
+                item.setData(file_idRole, id)
+                item.setData(AliveRole, is_alive)
                 if color:
                     item.setTextColor(QtGui.QColor(color))
                 if not is_not_specific_file_id:
@@ -804,9 +804,9 @@ class FileListContainer(QtGui.QWidget):
         #
         for index in indexes:
             item = self.file_list.itemFromIndex(index)
-            paths.append(str(item.data(PathRole).toString()))
-            ids.append(str(item.data(file_idRole).toString()))
-            alives.append(bool(item.data(AliveRole).toBool()))
+            paths.append(str(item.data(PathRole)))
+            ids.append(item.data(file_idRole))
+            alives.append(bool(item.data(AliveRole)))
         return paths, ids, alives
 
     @ui_current_widget
@@ -854,9 +854,9 @@ class FileListContainer(QtGui.QWidget):
         path = paths[0]
         tree.lock_read()
         try:
-            kind = tree.kind(path, file_id)
+            kind = tree.kind(path)
             if kind == 'file':
-                file_content_bytes = tree.get_file_text(path, file_id)
+                file_content_bytes = tree.get_file_text(path)
         finally:
             tree.unlock()
         if kind != 'file':

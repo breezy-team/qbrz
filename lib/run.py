@@ -183,6 +183,8 @@ class QBzrRunDialog(SubProcessDialog):
                 category = 'Core'
             else:
                 category = cmd.plugin_name()
+            if category is None:
+                continue
             self.all_cmds['All'].append(name)
             self.all_cmds.setdefault(category, []).append(name)
             if not cmd.hidden:
@@ -314,7 +316,7 @@ class QBzrRunDialog(SubProcessDialog):
         """Launch command."""
         cwd = self._get_cwd()
         args = [self._get_cmd_name()]
-        opt_arg = str(self.ui.opt_arg_edit.text())
+        opt_arg = self.ui.opt_arg_edit.text()
         args.extend(shlex_split_unicode(opt_arg))
         self.process_widget.do_start(cwd, *args)
 

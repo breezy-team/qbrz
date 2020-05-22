@@ -2,19 +2,25 @@
 
 # Form implementation generated from reading ui file 'ui/branch.ui'
 #
-# Created: Wed Mar 23 17:07:09 2011
-#      by: PyQt4 UI code generator 4.8.2
+# Created by: PyQt4 UI code generator 4.12.3
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
-from breezy.plugins.qbrz.lib.i18n import gettext
-
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
-    _fromUtf8 = lambda s: s
+    def _fromUtf8(s):
+        return s
+
+try:
+    _encoding = QtGui.QApplication.UnicodeUTF8
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig)
 
 class Ui_BranchForm(object):
     def setupUi(self, BranchForm):
@@ -96,13 +102,13 @@ class Ui_BranchForm(object):
         QtCore.QMetaObject.connectSlotsByName(BranchForm)
 
     def retranslateUi(self, BranchForm):
-        BranchForm.setWindowTitle(gettext("Branch"))
-        self.groupBox.setTitle(gettext("Locations"))
-        self.from_label.setText(gettext("&From:"))
-        self.from_picker.setText(gettext("Browse..."))
-        self.to_label.setText(gettext("&To:"))
-        self.to_picker.setText(gettext("Browse..."))
-        self.groupBox_2.setTitle(gettext("Options"))
-        self.bind.setText(gettext("Bind new branch to parent location"))
-        self.revision_label.setText(gettext("&Revision:"))
+        BranchForm.setWindowTitle(_translate("BranchForm", "Branch", None))
+        self.groupBox.setTitle(_translate("BranchForm", "Locations", None))
+        self.from_label.setText(_translate("BranchForm", "&From:", None))
+        self.from_picker.setText(_translate("BranchForm", "Browse...", None))
+        self.to_label.setText(_translate("BranchForm", "&To:", None))
+        self.to_picker.setText(_translate("BranchForm", "Browse...", None))
+        self.groupBox_2.setTitle(_translate("BranchForm", "Options", None))
+        self.bind.setText(_translate("BranchForm", "Bind new branch to parent location", None))
+        self.revision_label.setText(_translate("BranchForm", "&Revision:", None))
 

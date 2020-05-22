@@ -71,7 +71,7 @@ class TextEdit(QtGui.QTextEdit):
         QtGui.QTextEdit.__init__(self, parent)
         self.completer = None
         self.spell_checker = spell_checker
-        self.eow = QtCore.QString("~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-=")
+        self.eow = "~!@#$%^&*()_+{}|:\"<>?,./;'[]\\-="
         self.main_window = main_window
 
     def inputMethodEvent(self, e):
@@ -202,7 +202,7 @@ class PendingMergesList(LogList):
         
         # XXX We should make this show all selected revisions...
         
-        revid = str(index.data(logmodel.RevIdRole).toString())
+        revid = index.data(logmodel.RevIdRole)
         branch = self.log_model.graph_viz.get_revid_branch(revid)
         parent_window = self.window()
         window = RevisionView(revid, branch, parent=parent_window)

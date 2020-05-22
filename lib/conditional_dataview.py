@@ -16,7 +16,7 @@
 
 
 from PyQt4 import QtGui
-from PyQt4.QtCore import Qt, QVariant
+from PyQt4.QtCore import Qt
 
 
 class QBzrConditionalDataView(QtGui.QFrame):
@@ -113,11 +113,11 @@ class QBzrConditionalDataView(QtGui.QFrame):
                 icon = decoration_provider(row, record)
                 if icon:
                     index = model.index(row, 0)
-                    model.setData(index, QVariant(icon), Qt.DecorationRole)
+                    model.setData(index, icon, Qt.DecorationRole)
             for col, value in enumerate(record):
                 #print "putting %s into %d,%d" % (value, row, col)
                 index = model.index(row, col)
-                model.setData(index, QVariant(value or ''), cell_role)
+                model.setData(index, value or '', cell_role)
 
         # Update the view & label
         self._view.setVisible(row_count > 0)

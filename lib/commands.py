@@ -272,7 +272,7 @@ class cmd_qannotate(QBzrCommand):
             if file_id is None:
                 raise errors.NotVersionedError(filename)
             [(path, entry)] = list(tree.iter_entries_by_dir(
-                specific_file_ids=[file_id]))
+                specific_files=[filename]))
             if entry.kind != 'file':
                 raise errors.BzrCommandError(
                         'bzr qannotate only works for files (got %r)' % entry.kind)
@@ -997,7 +997,7 @@ class cmd_qswitch(QBzrCommand):
         from breezy.plugins.qbrz.lib.switch import QBzrSwitchWindow
 
         branch = Branch.open_containing(CUR_DIR)[0]
-        contrldir = ControlDir.open_containing(CUR_DIR)[0]
+        controldir = ControlDir.open_containing(CUR_DIR)[0]
         self.main_window = QBzrSwitchWindow(branch, controldir, location, ui_mode)
         self.main_window.show()
         self._application.exec_()

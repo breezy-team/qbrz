@@ -119,7 +119,7 @@ class ExtDiffMenu(QtGui.QMenu):
         for name, command in list(ext_diffs.items()):
             if command == "" and include_builtin or not command == "":
                 action = QtGui.QAction(name, self)
-                action.setData(QtCore.QVariant (command))
+                action.setData(command)
                 if command == default_diff and set_default:
                     self.setDefaultAction(action)
                 self.addAction(action)
@@ -128,8 +128,8 @@ class ExtDiffMenu(QtGui.QMenu):
                      self.triggered)
     
     def triggered(self, action):
-        ext_diff = str(action.data().toString())
-        self.emit(QtCore.SIGNAL("triggered(QString)"), QtCore.QString(ext_diff))
+        ext_diff = str(action.data())
+        self.emit(QtCore.SIGNAL("triggered(QString)"), ext_diff)
 
 
 class DiffButtons(QtGui.QWidget):
@@ -164,7 +164,7 @@ class DiffButtons(QtGui.QWidget):
 
     def triggered(self, ext_diff=None):
         if ext_diff is None:
-            ext_diff = QtCore.QString(default_diff)
+            ext_diff = default_diff
         self.emit(QtCore.SIGNAL("triggered(QString)"), ext_diff)
 
 
@@ -237,7 +237,7 @@ class DiffItem(object):
         for ix in range(2):
             if versioned[ix]:
                 try:
-                    dates[ix] = trees[ix].get_file_mtime(paths[ix], file_id)
+                    dates[ix] = trees[ix].get_file_mtime(paths[ix])
                 except OSError as e:
                     if not renamed or e.errno != errno.ENOENT:
                         raise
@@ -265,7 +265,7 @@ class DiffItem(object):
         else:
             status = N_('modified')
         # check filter options
-        if filter and not list(filter(status)):
+        if filter and not filter(status):
             return None
 
         return cls(trees, file_id, paths, changed_content, versioned, kind, 
