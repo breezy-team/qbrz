@@ -1,4 +1,6 @@
-# -*- coding: utf-8 -*-
+#!/usr/bin/python3 -bb
+# # -*- coding: utf-8 -*-
+
 #
 # QBzr - Qt frontend to Bazaar commands
 # Copyright (C) 2006-2008 Lukáš Lalinský <lalinsky@gmail.com>

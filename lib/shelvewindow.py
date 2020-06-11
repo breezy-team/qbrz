@@ -23,7 +23,7 @@ from PyQt4.QtGui import QKeySequence
 
 from breezy.revision import CURRENT_REVISION
 from breezy.errors import (
-        NoSuchRevision, 
+        NoSuchRevision,
         NoSuchRevisionInTree,
         PathsNotVersionedError)
 from breezy.plugins.qbrz.lib.i18n import gettext, N_
@@ -51,7 +51,7 @@ from breezy.plugins.qbrz.lib.encoding_selector import EncodingMenuSelector
 from breezy.plugins.qbrz.lib.widgets.shelve import ShelveWidget
 from breezy.plugins.qbrz.lib.widgets.shelvelist import ShelveListWidget
 from breezy.plugins.qbrz.lib.widgets.splitters import Splitters
-from breezy.patiencediff import PatienceSequenceMatcher as SequenceMatcher
+from patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from breezy.shelf import Unshelver
 from breezy.shelf_ui import Unshelver as Unshelver_ui
 ''')
@@ -65,7 +65,7 @@ class ShelveWindow(QBzrWindow):
                             [gettext("Shelve Manager")],
                             parent, ui_mode=ui_mode)
         self.restoreSize("shelve", (780, 680))
-        
+
         vbox = QtGui.QVBoxLayout(self.centralwidget)
         vbox.setMargin(2)
         self.throbber = ToolBarThrobberWidget(self)
@@ -78,7 +78,7 @@ class ShelveWindow(QBzrWindow):
         self.directory = directory or '.'
 
         shelve_view = ShelveWidget(file_list=file_list, directory=self.directory,
-                                    complete=complete, encoding=encoding, 
+                                    complete=complete, encoding=encoding,
                                     splitters=self.splitters, parent=self,
                                     select_all=select_all, init_msg=message)
         shelvelist_view = ShelveListWidget(directory=self.directory,

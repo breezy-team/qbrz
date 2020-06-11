@@ -27,12 +27,18 @@ import itertools
 from PyQt4 import QtCore, QtGui
 
 from breezy.revision import Revision
-from breezy.config import (
-    GlobalConfig,
-    config_dir,
-    ensure_config_dir_exists,
-    config_filename,
-    )
+
+# from breezy.config import (
+#     GlobalConfig,
+#     config_dir,
+#     ensure_config_dir_exists,
+#     config_filename,
+#     )
+
+# RJLRJL: config_dir and ensure_config_dire_exists are now in bedding..
+from breezy.config import GlobalConfig
+
+from breezy import bedding
 from breezy import lazy_regex
 
 
@@ -64,6 +70,7 @@ from breezy.plugins.qbrz.lib.compatibility import configobj
 # standard buttons with translatable labels
 BTN_OK, BTN_CANCEL, BTN_CLOSE, BTN_HELP, BTN_REFRESH = list(range(5))
 
+
 class StandardButton(QtGui.QPushButton):
 
     __types = {
@@ -91,7 +98,7 @@ class StandardButton(QtGui.QPushButton):
 
 
 def config_filename():
-    return osutils.pathjoin(config_dir(), 'qbrz.conf')
+    return osutils.pathjoin(bedding.config_dir(), 'qbrz.conf')
 
 
 class Config(object):
@@ -102,7 +109,7 @@ class Config(object):
         dir = osutils.dirname(osutils.safe_unicode(filename))
         transport = get_transport(dir)
         self._lock = LockDir(transport, 'lock')
-    
+
     def _load(self):
         if self._configobj is not None:
             return
@@ -123,7 +130,7 @@ class Config(object):
             self._configobj[section][name] = value
         else:
             if name in self._configobj[section]:
-                del self._configobj[section][name] 
+                del self._configobj[section][name]
 
     def get_option(self, name, section=None):
         self._load()
@@ -154,7 +161,7 @@ class Config(object):
             return {}
 
     def save(self):
-        ensure_config_dir_exists(os.path.dirname(self._filename))
+        bedding.ensure_config_dir_exists(os.path.dirname(self._filename))
         self._lock.lock_write()
         try:
             self._load()
@@ -193,18 +200,18 @@ class QBzrConfig(Config):
         bookmarks = list(self.getBookmarks())
         bookmarks.append((name, location))
         self.setBookmarks(bookmarks)
-        
+
     def get_color(self, name, section=None):
         """
           Get a color entry from the config file.
           Color entries have the syntax:
             name = R, G, B
           Where the color components are integers in the range 0..255.
-          
+
           Colors are returned as QtGui.QColor.
-          
+
           If input is erroneous, ErrorValue exception is raised.
-          
+
           e.g.
             replace_fill = 255, 0, 128
         """
@@ -213,32 +220,32 @@ class QBzrConfig(Config):
           name_str = '[DEFAULT]:' + name
         else:
           name_str = "[" + section + "]:" + name
-          
+
         color_format_err_msg = lambda given:\
             "Illegal color format for " + name_str +\
             ". Given '"+ given + "' expected '<red>, <green>, <blue>'."
-            
+
         color_range_err_msg = lambda given:\
             "Color components for " + name_str +\
             " should be in the range 0..255 only. Given: "+ given +"."
-            
+
         val = self.get_option(name, section)
         if None == val:
           return None
-          
+
         if list != type(val):
           raise ValueError(color_format_err_msg(val))
         if 3 != len(val) or not \
           reduce(lambda x,y: x and y.isdigit(), val, True):
               raise ValueError(color_format_err_msg(", ".join(val)))
-          
+
         #Being here guarantees that color_value is a list
         #of three elements that represent numbers.
         color_components = list(map(int, val))
         if not reduce(lambda x,y: x and y < 256, color_components, True):
             raise ValueError(
               color_range_err_msg(", ".join(val)))
-            
+
         #Now we know the given color is safe to use.
         return QtGui.QColor(*color_components)
 
@@ -246,7 +253,7 @@ class QBzrConfig(Config):
 _global_config = None
 def get_global_config():
     global _global_config
-    
+
     if (_global_config is None or
         _check_global_config_filename_valid(_global_config)):
         _global_config = GlobalConfig()
@@ -328,7 +335,7 @@ class _QBzrWindowBase(object):
             size = self.width(), self.height()
         config.set_option(name + "_window_size", "%dx%d" % size)
         config.set_option(name + "_window_maximized", is_maximized)
-    
+
     def saveSize(self):
         config = get_qbrz_config()
         self._saveSize(config)
@@ -398,7 +405,7 @@ class _QBzrWindowBase(object):
             raise RuntimeError("unknown scheme")
         from breezy.plugins.qbrz.lib.help import show_help
         show_help(link, self)
-    
+
     def processEvents(self, flags=QtCore.QEventLoop.AllEvents):
         QtCore.QCoreApplication.processEvents(flags)
         if self.closing:
@@ -469,12 +476,12 @@ class QBzrDialog(QtGui.QDialog, _QBzrWindowBase):
     def __init__(self, title=None, parent=None, ui_mode=True):
         self.ui_mode = ui_mode
         QtGui.QDialog.__init__(self, parent)
-        
+
         self.set_title_and_icon(title)
-        
+
         self.windows = []
         self.closing = False
-        
+
         # Even though this is a dialog, make it like a window. This allows us
         # to have the best of both worlds, e.g. Default buttons from dialogs,
         # and max and min buttons from window.
@@ -506,10 +513,10 @@ class ThrobberWidget(QtGui.QWidget):
         if not throber_movie:
             throber_movie = QtGui.QMovie(":/16x16/process-working.gif")
             throber_movie.start()
-        
-        self.spinner = QtGui.QLabel("", self)    
+
+        self.spinner = QtGui.QLabel("", self)
         self.spinner.setMovie(throber_movie)
-        
+
         self.message = QtGui.QLabel(gettext("Loading..."), self)
         #self.progress = QtGui.QProgressBar(self)
         #self.progress.setTextVisible (False)
@@ -521,7 +528,7 @@ class ThrobberWidget(QtGui.QWidget):
                        #self.progress,
                        self.transport):
             widget.hide()
-        
+
         self.widgets = []
         self.set_layout()
         self.num_show = 0
@@ -529,12 +536,12 @@ class ThrobberWidget(QtGui.QWidget):
     def set_layout(self):
         layout = QtGui.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        
+
         layout.addWidget(self.spinner)
         #layout.addWidget(self.progress)
         layout.addWidget(self.message, 1)
         layout.addWidget(self.transport)
-        
+
         self.widgets.append(self.spinner)
         #self.widgets.append(self.progress)
         self.widgets.append(self.message)
@@ -549,7 +556,7 @@ class ThrobberWidget(QtGui.QWidget):
             QtGui.QWidget.hide(self)
             for widget in self.widgets:
                 widget.hide()
-    
+
     def show(self):
         #QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
         # and show ourselves.
@@ -557,7 +564,7 @@ class ThrobberWidget(QtGui.QWidget):
         QtGui.QWidget.show(self)
         for widget in self.widgets:
             widget.show()
-    
+
 
 class ToolBarThrobberWidget(ThrobberWidget):
     """A widget that indicates activity. Smaller than ThrobberWidget, designed
@@ -566,12 +573,12 @@ class ToolBarThrobberWidget(ThrobberWidget):
     def set_layout(self):
         layout = QtGui.QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        
+
         layout.addWidget(self.transport)
         layout.addWidget(self.spinner)
         #layout.addWidget(self.progress)
         #layout.addWidget(self.message, 1)
-        
+
         self.widgets.append(self.spinner)
         #self.widgets.append(self.progress)
         #self.widgets.append(self.message)
@@ -799,7 +806,7 @@ def fill_combo_with(combo, default, *iterables):
 
 def show_shortcut_hint(action):
     """Show this action's shortcut, if any, as part of the tooltip.
-    
+
     Make sure to set the shortcut and tooltip *before* calling this.
     """
     shortcut = action.shortcut()
@@ -877,36 +884,36 @@ def is_binary_content(lines):
 
 
 class BackgroundJob(object):
-    
+
     def __init__(self, parent):
         self.is_running = False
         self.stoping = False
         self.parent = parent
         self.restart_timeout = None
-    
+
     def run(self):
         pass
-    
+
     def run_wrapper(self):
         try:
             self.run()
         except:
             self.parent.report_exception()
         self.is_running = False
-        
+
         if self.restart_timeout:
             self.start(self.restart_timeout)
-    
+
     def restart(self, timeout=0):
         self.restart_timeout = timeout
         raise trace.StopException()
-    
+
     def start(self, timeout=0):
         if not self.is_running:
             self.is_running = True
             self.stoping = False
             QtCore.QTimer.singleShot(timeout, self.run_wrapper)
-    
+
     def stop(self):
         self.stoping = True
 
@@ -924,12 +931,12 @@ def runs_in_loading_queue(f):
     queued. Methods decorated with this will not be able to return results,
     but should rather update the ui themselves. Methods decorated with this
     should detect, and stop if their execution is no longer required.
-    
+
     """
-    
+
     def decorate(*args, **kargs):
         run_in_loading_queue(f, *args, **kargs)
-    
+
     return decorate
 
 def run_in_loading_queue(cur_f, *cur_args, **cur_kargs):
@@ -938,7 +945,7 @@ def run_in_loading_queue(cur_f, *cur_args, **cur_kargs):
         loading_queue = []
         try:
             loading_queue.append((cur_f, cur_args, cur_kargs))
-            
+
             while len(loading_queue):
                 try:
                     f, args, kargs = loading_queue.pop(0)
@@ -1101,9 +1108,9 @@ class InfoWidget(QtGui.QFrame):
     def __init__(self, parent=None):
         QtGui.QFrame.__init__(self, parent)
         self.setFrameShape(QtGui.QFrame.StyledPanel)
-        
+
         self.setAutoFillBackground(True)
-        self.setBackgroundRole(QtGui.QPalette.ToolTipBase) 
+        self.setBackgroundRole(QtGui.QPalette.ToolTipBase)
         self.setForegroundRole(QtGui.QPalette.ToolTipText)
 
 # Hackish test for monospace. Run bzr qcat lib/util.py to check.
@@ -1121,16 +1128,16 @@ def _get_monospace_font():
     # TODO: Get font from system settings for Gnome, KDE, Mac.
     # (no windows option as far as I am aware)
     # Maybe have our own config setting.
-    
+
     # Get the defaul font size
     size = QtGui.QApplication.font().pointSize()
-    
+
     for font_family in ("Monospace", "Courier New"):
         font = QtGui.QFont(font_family, size)
         # check that this is really a monospace font
         if QtGui.QFontInfo(font).fixedPitch():
             return font
-    
+
     # try use style hints to find font.
     font = QtGui.QFont("", size)
     font.setFixedPitch(True)
@@ -1145,7 +1152,7 @@ def get_set_tab_width_chars(branch=None, tab_width_chars=None):
 
     Both arguments are optional, but if tab_width_chars is provided and branch is
     not, nothing will be done.
-    
+
     @return: Tab width, in characters.
     """
     if tab_width_chars is None:
@@ -1171,7 +1178,7 @@ def get_tab_width_pixels(branch=None, tab_width_chars=None):
 
     @param tab_width_chars: Number of characters of tab width to convert to pixels.
     @param branch: Branch to use when retrieving tab width from configuration.
-    
+
     @return: Tab width, in pixels.
     """
     monospacedFont = get_monospace_font()

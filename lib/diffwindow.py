@@ -28,7 +28,8 @@ from PyQt4 import QtCore, QtGui
 
 from breezy.errors import NoSuchRevision, PathsNotVersionedError
 from breezy.mutabletree import MutableTree
-from breezy.patiencediff import PatienceSequenceMatcher as SequenceMatcher
+# from patiencediff import PatienceSequenceMatcher as SequenceMatcher
+from patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from breezy.revisiontree import RevisionTree
 from breezy.transform import _PreviewTree
 from breezy.workingtree import WorkingTree
@@ -168,7 +169,7 @@ class DiffWindow(QBzrWindow):
 
     def connect_later(self, *args, **kwargs):
         """Schedules a signal to be connected after loading CLI arguments.
-        
+
         Accepts the same arguments as QObject.connect method.
         """
         self.delayed_signal_connections.append((args, kwargs))
@@ -188,7 +189,7 @@ class DiffWindow(QBzrWindow):
         self.view_refresh = self.create_refresh_action(allow_refresh)
         if allow_refresh:
             toolbar.addAction(self.view_refresh)
-            
+
         if has_ext_diff():
             show_ext_diff_menu = self.create_ext_diff_action()
             toolbar.addAction(show_ext_diff_menu)
@@ -426,7 +427,7 @@ class DiffWindow(QBzrWindow):
     def load_diff(self):
         self.view_refresh.setEnabled(False)
         self.processEvents()
-        
+
         try:
             no_changes = True   # if there is no changes found we need to inform the user
             for di in DiffItem.iter_items(self.trees,
@@ -454,7 +455,7 @@ class DiffWindow(QBzrWindow):
                         'Operation aborted.') % e.paths_as_string,
                     gettext('&Close'))
                 self.close()
-    
+
         if no_changes:
             QtGui.QMessageBox.information(self, gettext('Diff'),
                 gettext('No changes found.'),

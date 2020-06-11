@@ -1,3 +1,4 @@
+#!/usr/bin/python3 -bb
 # -*- coding: utf-8 -*-
 #
 # QBzr - Qt frontend to Bazaar commands

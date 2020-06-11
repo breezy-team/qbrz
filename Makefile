@@ -17,27 +17,32 @@ all:
 check: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -s bp.qbrz
 
+# Stop after first failure
+checkone: test
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -s -l -v bp.qbrz
+
 test:
-	brz selftest -s bp.qbzr
+	brz selftest -s bp.qbrz
 
 pot:
-	python setup.py build_pot -N -d.
+	python3 setup.py build_pot -N -d.
 
 mo:
-	python setup.py build_mo -f
+	python3 setup.py build_mo -f --verbose
 
 tarball:
-	bzr export --root=qbzr qbzr-$(RELEASE).tar.gz
-	gpg -ab qbzr-$(RELEASE).tar.gz
+	brz export --root=qbrz qbrz-$(RELEASE).tar.gz
+	gpg2 -ab qbrz-$(RELEASE).tar.gz
 
-inno: mo
-	iscc installer/qbzr-setup.iss
-	gpg -ab qbzr-setup-$(RELEASE).exe
+# inno: mo
+# 	./iscc installer/qbrz-setup.iss
+# 	gpg -ab qbrz-setup-$(RELEASE).exe
 
-release: tarball inno
+# release: tarball inno
+release: tarball
 
 clean:
-	python setup.py clean -a
+	python3 setup.py clean -a
 
 tags:
 	ctags *.py lib/*.py lib/extra/*.py lib/tests/*.py
@@ -49,4 +54,4 @@ docs:
 	$(MAKE) -C docs
 
 ui:
-	python setup.py build_ui
+	python3 setup.py build_ui

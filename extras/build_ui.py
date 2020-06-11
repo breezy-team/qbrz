@@ -65,6 +65,7 @@ class build_ui(Command):
                 source = source.replace("from PyQt4 import QtCore, QtGui",
                     "from PyQt4 import QtCore, QtGui\n"
                     "from breezy.plugins.%s.lib.i18n import gettext\n" % prj_name)
-                f = open(pyfile, "wb")
+                # f = open(pyfile, "wb")
+                f = open(pyfile, "w")
                 f.write(source)
                 f.close()

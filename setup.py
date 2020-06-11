@@ -3,16 +3,29 @@
 
 from distutils.core import setup
 
-try:
-    from .extras import cmdclass
-except ImportError:
-    cmdclass = {}
+# RJL Patched out temporarily
+# try:
+#     from .extras import cmdclass
+# except (ImportError, SystemError):
+#     cmdclass = {}
+# except ValueError:
+#     try:
+#         from extras import cmdclass
+#     except ImportError:
+#         cmdclass = {}
+
+# RJLRJL: patiencediff and dulwich also needed
+# https://katastrophos.net/andre/blog/2009/03/16/setting-up-the-inno-setup-compiler-on-debian/
+# ... is needed for inno setup
+
+from extras import cmdclass
+
 
 ext_modules = []
 
 setup(name='qbrz',
       description='Qt4 frontend for Bazaar',
-      keywords='plugin bzr qt qbrz',
+      keywords='plugin brz qt qbrz',
       version='0.23.2',
       url='http://wiki.bazaar.canonical.com/QBzr',
       license='GPL',

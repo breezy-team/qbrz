@@ -21,7 +21,7 @@ from PyQt4 import QtGui, QtCore
 
 import re
 from breezy import timestamp
-from breezy.patiencediff import PatienceSequenceMatcher as SequenceMatcher
+from patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.util import (
     file_extension,
@@ -77,7 +77,7 @@ for key in colors.keys():
             mutter(str(msg))
         if None != color:
             colors[key][comp] = color
-            
+
 
 #Get a user-defined replacement text background
 try:
@@ -126,7 +126,7 @@ class DiffSourceView(QtGui.QTextBrowser):
             if block_y > bot:
                 break
             painter.drawLine(0, block_y, w, block_y)
-        
+
         pen.setWidth(1)
         for y_top, y_bot, kind in self.changes:
             y_top -= y
@@ -140,7 +140,7 @@ class DiffSourceView(QtGui.QTextBrowser):
             painter.drawLine(0, y_top, w, y_top)
             painter.drawLine(0, y_bot - 1, w, y_bot - 1)
         del painter
-        QtGui.QTextBrowser.paintEvent(self, event) 
+        QtGui.QTextBrowser.paintEvent(self, event)
 
     def wheelEvent(self, event):
         if event.orientation() == QtCore.Qt.Vertical and self.scrollbar:
@@ -155,7 +155,7 @@ class DiffViewHandle(QtGui.QSplitterHandle):
         self.scrollbar = None
         self.view = parent
         self.clear()
-        
+
     def clear(self):
         self.changes = []
         self.infoBlocks = []
@@ -203,7 +203,7 @@ class DiffViewHandle(QtGui.QSplitterHandle):
             ly_bot -= ly + 1
             ry_top -= ry
             ry_bot -= ry + 1
-            
+
             if ly_top < 0 and ly_bot < 0 and ry_top < 0 and ry_bot < 0:
                 continue
             if ly_top > h and ly_bot > h and ry_top > h and ry_bot > h:
@@ -221,7 +221,7 @@ class DiffViewHandle(QtGui.QSplitterHandle):
 
             painter.fillPath(region, brushes[kind][0])
             painter.setPen(colors[kind][1])
-            for path, aa in zip((upper_line, lower_line), 
+            for path, aa in zip((upper_line, lower_line),
                                 (ly_top != ry_top, ly_bot != ry_bot)):
                 painter.setRenderHints(QtGui.QPainter.Antialiasing, aa)
                 painter.drawPath(path)
@@ -264,7 +264,7 @@ class SidebySideDiffViewScrollBar(QtGui.QScrollBar):
             b.scrollbar = self
 
         for i, scbar in enumerate([self] + [b.verticalScrollBar() for b in browsers]):
-            self.connect(scbar, QtCore.SIGNAL("valueChanged(int)"), 
+            self.connect(scbar, QtCore.SIGNAL("valueChanged(int)"),
                                         lambda value, target=i : self.scrolled(target))
 
         self.connect(browsers[0], QtCore.SIGNAL("resized()"), self.adjust_range)
@@ -398,19 +398,19 @@ class _SidebySideDiffView(QtGui.QSplitter):
         titleFont = QtGui.QFont(self.font())
         titleFont.setPointSize(titleFont.pointSize() * 140 / 100)
         titleFont.setBold(True)
-        
+
         self.monospacedFont = get_monospace_font()
         metadataFont = QtGui.QFont(self.font())
         metadataFont.setPointSize(titleFont.pointSize() * 70 / 100)
         metadataLabelFont = QtGui.QFont(metadataFont)
         metadataLabelFont.setBold(True)
-    
+
         self.monospacedFormat = QtGui.QTextCharFormat()
         self.monospacedFormat.setFont(self.monospacedFont)
         self.ttype_formater = CachedTTypeFormater(
                                 QtGui.QTextCharFormat(self.monospacedFormat))
         self.background = self.monospacedFormat.background()
-        
+
         self.titleFormat = QtGui.QTextCharFormat()
         self.titleFormat.setFont(titleFont)
         self.metadataFormat = QtGui.QTextCharFormat()
@@ -436,12 +436,12 @@ class _SidebySideDiffView(QtGui.QSplitter):
             b.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 
         self.cursors = [QtGui.QTextCursor(doc) for doc in self.docs]
-        
+
         for i, (panel, doc, cursor) in enumerate(zip(self.guidebar_panels,
                                                      self.docs, self.cursors)):
             doc.setUndoRedoEnabled(False)
             doc.setDefaultFont(self.monospacedFont)
-            
+
             panel.edit.setDocument(doc)
             self.addWidget(panel)
             self.setCollapsible(i, False)
@@ -457,15 +457,15 @@ class _SidebySideDiffView(QtGui.QSplitter):
         self.connect(self.browsers[1].horizontalScrollBar(), QtCore.SIGNAL("valueChanged(int)"), self.syncHorizontalSlider2)
 
         self.rewinded = False
-        
+
         self.lastModifiedLabel = gettext('Last modified:')
         self.statusLabel = gettext('Status:')
         self.kindLabel = gettext('Kind:')
         self.propertiesLabel = gettext('Properties:')
-        
+
         self.image_exts = ['.'+str(i)
             for i in QtGui.QImageReader.supportedImageFormats()]
-        
+
         config = get_qbrz_config()
         self.show_intergroup_colors = config.get_option("diff_show_intergroup_colors") in ("True", "1")
 
@@ -522,16 +522,16 @@ class _SidebySideDiffView(QtGui.QSplitter):
             else:
                 cursor.insertText(" ", self.metadataFormat)
             cursor.insertBlock()
-        
+
         infoBlocks = (cursors[0].block().layout(),
                       cursors[1].block().layout())
         changes = []
-            
+
         if not binary:
             for cursor in cursors:
                 cursor.setCharFormat(self.monospacedFormat)
                 cursor.insertBlock()
-            
+
             def fix_last_line(lines):
                 """Fix last line if there is no new line.
 
@@ -544,7 +544,7 @@ class _SidebySideDiffView(QtGui.QSplitter):
                     if last and last[-1] not in ('\r', '\n'):
                         lines = lines[:-1] + [last+'\n']
                 return lines
-            
+
             lines = [fix_last_line(l) for l in lines]
             if have_pygments:
                 use_pygments = True
@@ -570,7 +570,7 @@ class _SidebySideDiffView(QtGui.QSplitter):
             else:
                 use_pygments = False
                 display_lines = lines
-            
+
             def insertLine(cursor, line):
                 if use_pygments:
                     for ttype, value in line:
@@ -579,12 +579,12 @@ class _SidebySideDiffView(QtGui.QSplitter):
                         cursor.insertText(value, format)
                 else:
                     cursor.insertText(line)
-            
+
             def insertIxs(ixs):
                 for cursor, line, ix in zip(cursors, display_lines, ixs):
                     for l in line[ix[0]:ix[1]]:
                         insertLine(cursor, l)
-            
+
             def modifyFormatForTag (format, tag):
                 if tag == "replace":
                     format.setBackground(interline_changes_background)
@@ -594,7 +594,7 @@ class _SidebySideDiffView(QtGui.QSplitter):
                     format.setBackground(brushes[tag][0])
                 else:
                     format.setBackground(interline_changes_background)
-            
+
             split_words = re.compile(r"\w+|\n\r|\r\n|\W")
             def insertIxsWithChangesHighlighted(ixs):
                 texts = ["".join(l[ix[0]:ix[1]]) for l, ix in zip(lines, ixs)]
@@ -602,9 +602,9 @@ class _SidebySideDiffView(QtGui.QSplitter):
                     # This is what the pygments lexer does, so we need to do the
                     # same incase we have \r\n line endings.
                     texts = ["\n".join(t.splitlines()) for t in texts]
-                
+
                 texts = [split_words.findall(t) for t in texts]
-                
+
                 if use_pygments:
                     groups = ([], [])
                     for tag, i0, i1, j0, j1 in SequenceMatcher(None,
@@ -639,14 +639,14 @@ class _SidebySideDiffView(QtGui.QSplitter):
                         format = QtGui.QTextCharFormat()
                         format.setFont(self.monospacedFont)
                         modifyFormatForTag(format, tag)
-                        
+
                         cursors[0].insertText("".join(texts[0][i0:i1]),format)
                         cursors[1].insertText("".join(texts[1][j0:j1]),format)
-                    
+
                     for cursor in cursors:
                         cursor.setCharFormat (self.monospacedFormat)
 
-            
+
             for i, group in enumerate(groups):
                 if i > 0:
                     y_top = [cursor.block().layout() for cursor in self.cursors]
@@ -712,7 +712,7 @@ class _SidebySideDiffView(QtGui.QSplitter):
                         self.docs[i].addResource(QtGui.QTextDocument.ImageResource,
                                         QtCore.QUrl(file_id),
                                         image)
-            
+
             max_height = max(heights)
             for i, cursor in enumerate(self.cursors):
                 format = QtGui.QTextBlockFormat()
@@ -747,7 +747,7 @@ class _SidebySideDiffView(QtGui.QSplitter):
         self.browsers[0].infoBlocks.append(l_block)
         self.browsers[1].infoBlocks.append(r_block)
         self.handle(1).infoBlocks.append((l_block, r_block))
-        
+
         for (ly_top, ly_bot, ry_top, ry_bot, kind) in changes:
             ly_top = ly_top.position().y() - 1
             ly_bot = ly_bot.position().y() + 1
@@ -758,7 +758,7 @@ class _SidebySideDiffView(QtGui.QSplitter):
             self.browsers[1].changes.append((ry_top, ry_bot, kind))
             self.handle(1).changes.append((ly_top, ly_bot, ry_top, ry_bot, kind))
         self.scrollbar.fix_document_length(cursors)
-        
+
         # check horizontal scrollbars and force both if scrollbar visible only at one side
         if (self.browsers[0].horizontalScrollBar().isVisible()
             or self.browsers[1].horizontalScrollBar().isVisible()):
@@ -767,7 +767,7 @@ class _SidebySideDiffView(QtGui.QSplitter):
 
         self.update_guidebar()
         self.update()
-    
+
     def rewind(self):
         if not self.rewinded:
             self.rewinded = True
@@ -842,23 +842,23 @@ class _SimpleDiffView(QtGui.QTextBrowser):
         self.monospacedInsertFormat.setForeground(QtGui.QColor(0, 136, 11))
         self.monospacedDeleteFormat = QtGui.QTextCharFormat(self.monospacedFormat)
         self.monospacedDeleteFormat.setForeground(QtGui.QColor(204, 0, 0))
-    
+
         monospacedBoldFont = QtGui.QFont(monospacedFont)
         monospacedBoldFont.setBold(True)
-    
+
         monospacedItalicFont = QtGui.QFont(monospacedFont)
         monospacedItalicFont.setItalic(True)
-    
+
         self.monospacedBoldInsertFormat = QtGui.QTextCharFormat(self.monospacedInsertFormat)
         self.monospacedBoldInsertFormat.setFont(monospacedBoldFont)
         self.monospacedBoldDeleteFormat = QtGui.QTextCharFormat(self.monospacedDeleteFormat)
         self.monospacedBoldDeleteFormat.setFont(monospacedBoldFont)
-    
+
         self.monospacedHeaderFormat = QtGui.QTextCharFormat()
         self.monospacedHeaderFormat.setFont(monospacedBoldFont)
         self.monospacedHeaderFormat.setBackground(QtGui.QColor(246, 245, 238))
         self.monospacedHeaderFormat.setForeground(QtGui.QColor(117, 117, 117))
-    
+
         self.monospacedHunkFormat = QtGui.QTextCharFormat()
         self.monospacedHunkFormat.setFont(monospacedItalicFont)
         self.monospacedHunkFormat.setForeground(QtGui.QColor(153, 30, 199))
@@ -894,7 +894,7 @@ class _SimpleDiffView(QtGui.QTextBrowser):
                 self.cursor.insertText(
                     " (properties changed: %s)" % (", ".join(prop_str)))
         self.cursor.insertText("\n")
-        
+
         # GNU Patch uses the epoch date to detect files that are being added
         # or removed in a diff.
         EPOCH_DATE = '1970-01-01 00:00:00 +0000'
@@ -904,7 +904,7 @@ class _SimpleDiffView(QtGui.QTextBrowser):
             else:
                 paths[i] = paths[(i+1)%2]
                 dates[i] = EPOCH_DATE
-        
+
         if not binary:
             self.cursor.insertText('--- %s\t%s\n' % (paths[0], dates[0]),
                                       self.monospacedBoldInsertFormat)

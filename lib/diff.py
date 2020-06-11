@@ -24,7 +24,7 @@ from breezy.tree import FileTimestampUnavailable
 from breezy.plugins.qbrz.lib.diff_arg import *   # import DiffArgProvider classes
 from breezy.plugins.qbrz.lib.i18n import gettext
 from breezy.plugins.qbrz.lib.subprocess import SimpleSubProcessDialog
-from breezy.plugins.qbrz.lib.util import ( 
+from breezy.plugins.qbrz.lib.util import (
     get_qbrz_config,
     is_binary_content,
     )
@@ -37,7 +37,7 @@ import time
 import sys
 import os
 import glob
-from breezy.patiencediff import PatienceSequenceMatcher as SequenceMatcher
+from patiencediff import PatienceSequenceMatcher as SequenceMatcher
 from breezy.plugins.qbrz.lib.i18n import gettext, ngettext, N_
 from breezy import trace, osutils, cmdline
 from breezy.workingtree import WorkingTree
@@ -56,16 +56,16 @@ for name, command in list(qconfig.get_section('EXTDIFF').items()):
 
 
 def show_diff(arg_provider, ext_diff=None, parent_window=None, context=None):
-    
+
     if ext_diff is None:
         ext_diff = default_diff
-    
+
     if ext_diff == "":
-        
+
         # We can't import this globaly becuse it ties to import us,
         # which causes and Import Error.
         from breezy.plugins.qbrz.lib.diffwindow import DiffWindow
-        
+
         window = DiffWindow(arg_provider, parent=parent_window)
         window.show()
         if parent_window:
@@ -112,10 +112,10 @@ def has_ext_diff():
 
 
 class ExtDiffMenu(QtGui.QMenu):
-    
+
     def __init__ (self, parent=None, include_builtin=True, set_default=True):
         QtGui.QMenu.__init__(self, gettext("Show &differences"), parent)
-        
+
         for name, command in list(ext_diffs.items()):
             if command == "" and include_builtin or not command == "":
                 action = QtGui.QAction(name, self)
@@ -123,10 +123,10 @@ class ExtDiffMenu(QtGui.QMenu):
                 if command == default_diff and set_default:
                     self.setDefaultAction(action)
                 self.addAction(action)
-        
+
         self.connect(self, QtCore.SIGNAL("triggered(QAction *)"),
                      self.triggered)
-    
+
     def triggered(self, action):
         ext_diff = str(action.data())
         self.emit(QtCore.SIGNAL("triggered(QString)"), ext_diff)
@@ -216,7 +216,7 @@ class DiffItem(object):
                 cleanup.pop()()
 
     @classmethod
-    def create(cls, trees, file_id, paths, changed_content, versioned, 
+    def create(cls, trees, file_id, paths, changed_content, versioned,
             parent, name, kind, executable, filter = None):
 
         if parent == (None, None): # filter out TREE_ROOT (?)
@@ -248,7 +248,7 @@ class DiffItem(object):
                     # ghosts around us (see Bug #513096)
                     dates[ix] = 0  # using 1970/1/1 instead
 
-        properties_changed = [] 
+        properties_changed = []
         if bool(executable[0]) != bool(executable[1]):
             descr = {True: "+x", False: "-x", None: None}
             properties_changed.append((descr[executable[0]],
@@ -268,7 +268,7 @@ class DiffItem(object):
         if filter and not filter(status):
             return None
 
-        return cls(trees, file_id, paths, changed_content, versioned, kind, 
+        return cls(trees, file_id, paths, changed_content, versioned, kind,
                         properties_changed, dates, status)
 
     def __init__(self, trees, file_id, paths, changed_content, versioned, kind,
@@ -516,7 +516,7 @@ class ExtDiffContext(QtCore.QObject):
         """
         :parent:  parent widget. If specified, cache is deleted automatically
                   when parent is closed.
-        :to_file: stream to write output messages. If not specified, 
+        :to_file: stream to write output messages. If not specified,
                   stdout is used.
         :path_encoding: encoding of path
         """
@@ -577,7 +577,7 @@ class ExtDiffContext(QtCore.QObject):
         """
         Show diffs of specified file_ids.
         NOTE: Directories cannot be specified.
-              Use diff_tree or diff_paths instead when specifing directory. 
+              Use diff_tree or diff_paths instead when specifing directory.
         """
         cleanup = []
         try:
