@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # QBzr - Qt frontend to Bazaar commands
-# Copyright (C) 2006-2007 Gary van der Merwe <garyvdm@gmail.com> 
+# Copyright (C) 2006-2007 Gary van der Merwe <garyvdm@gmail.com>
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -33,9 +33,9 @@ RevIdRole = QtCore.Qt.UserRole + 1
 
 class RevisionTreeView(QtGui.QTreeView):
     """TreeView widget to shows revisions.
-    
+
     Only revisions that are visible on screen are loaded.
-    
+
     The model for this tree view must have the following methods:
     def on_revisions_loaded(self, revisions, last_call)
     def get_revid(self, index)
@@ -47,15 +47,15 @@ class RevisionTreeView(QtGui.QTreeView):
         self.connect(self.verticalScrollBar(),
                      QtCore.SIGNAL("valueChanged (int)"),
                      self.scroll_changed)
-            
+
         self.connect(self,
                      QtCore.SIGNAL("collapsed (QModelIndex)"),
                      self.collapsed_expanded)
-        
+
         self.connect(self,
                      QtCore.SIGNAL("expanded (QModelIndex)"),
                      self.collapsed_expanded)
-        
+
         self.load_revisions_call_count = 0
         self.load_revisions_throbber_shown = False
         self.revision_loading_disabled = False
@@ -63,50 +63,50 @@ class RevisionTreeView(QtGui.QTreeView):
 
     def setModel(self, model):
         QtGui.QTreeView.setModel(self, model)
-        
+
         if isinstance(model, QtGui.QAbstractProxyModel):
             # Connecting the below signal has funny results when we connect to
             # to a ProxyModel, so connect to the source model.
             model = model.sourceModel()
-            
+
         model.connect(model,
                       QtCore.SIGNAL("dataChanged(QModelIndex, QModelIndex)"),
                       self.data_changed)
         model.connect(model,
                       QtCore.SIGNAL("layoutChanged()"),
                       self.layout_changed)
-    
+
     def scroll_changed(self, value):
         self.load_visible_revisions()
-    
+
     def data_changed(self, start_index, end_index):
         self.load_visible_revisions()
-    
+
     def layout_changed(self):
         self.load_visible_revisions()
-    
+
     def collapsed_expanded(self, index):
         self.load_visible_revisions()
-    
+
     def resizeEvent(self, e):
         self.load_visible_revisions()
         QtGui.QTreeView.resizeEvent(self, e)
-    
+
     def load_visible_revisions(self):
         if not self.revision_loading_disabled:
             run_in_loading_queue(self._load_visible_revisions)
-    
+
     def _load_visible_revisions(self):
         model = self.model()
-        
+
         index = self.indexAt(self.viewport().rect().topLeft())
         if not index.isValid():
             return
-        
+
         #if self.throbber is not None:
-        #    throbber_height = self.throbber.   etc...        
+        #    throbber_height = self.throbber.   etc...
         bottom_index = self.indexAt(self.viewport().rect().bottomLeft()) # + throbber_height
-        
+
         revids = []
         while True:
             revid = index.data(RevIdRole)
@@ -118,18 +118,18 @@ class RevisionTreeView(QtGui.QTreeView):
             index = self.indexBelow(index)
             if not index.isValid():
                 break
-        
+
         revids = list(revids)
         if len(revids) == 0:
             return
-        
+
         self.load_revisions_call_count += 1
         current_call_count = self.load_revisions_call_count
 
         def before_batch_load(repo, revids):
             if current_call_count < self.load_revisions_call_count:
                 return True
-            
+
             repo_is_local = isinstance(repo.controldir.transport, LocalTransport)
             if not repo_is_local:
                 # Disable this until we have thobber that does not irratate
@@ -140,7 +140,7 @@ class RevisionTreeView(QtGui.QTreeView):
                 #    self.load_revisions_throbber_shown = True
                 # Allow for more scrolling to happen.
                 self.delay(0.5)
-            
+
             return False
 
         try:
@@ -154,12 +154,12 @@ class RevisionTreeView(QtGui.QTreeView):
                 if self.load_revisions_throbber_shown:
                     self.load_revisions_throbber_shown = False
                     self.throbber.hide()
-    
+
     def delay(self, timeout):
-        
+
         def null():
             pass
-        
+
         QtCore.QTimer.singleShot(timeout, null)
         QtCore.QCoreApplication.processEvents(
                             QtCore.QEventLoop.WaitForMoreEvents)
@@ -186,7 +186,7 @@ def get_text_color(option, style):
             cg = QtGui.QPalette.Inactive
     else:
         cg = QtGui.QPalette.Disabled
-    
+
     if option.state & QtGui.QStyle.State_Selected:
         if has_vista_style and isinstance(style, QtGui.QWindowsVistaStyle):
             # QWindowsVistaStyle normally modifies it palette,
@@ -209,28 +209,28 @@ class RevNoItemDelegate(QtGui.QStyledItemDelegate):
     def __init__ (self, max_mainline_digits=4, parent=None):
         QtGui.QItemDelegate.__init__(self, parent)
         self.max_mainline_digits = max_mainline_digits
-    
+
     def paint(self, painter, option, index):
         option = QtGui.QStyleOptionViewItemV4(option)
         self.initStyleOption(option, index)
         widget = self.parent()
         style = widget.style()
-        
+
         painter.save()
         painter.setClipRect(option.rect)
         style.drawPrimitive(QtGui.QStyle.PE_PanelItemViewItem,
                             option, painter, widget)
-        
+
         text_margin = style.pixelMetric(QtGui.QStyle.PM_FocusFrameHMargin,
                                         None, widget) + 1
         text_rect = option.rect.adjusted(text_margin, 0, -text_margin, 0)
-        
+
         painter.setPen(get_text_color(option, style))
-        
+
         if option.text:
             text = option.text
             paint_revno(painter, text_rect, text, self.max_mainline_digits)
-        
+
         painter.restore()
 
     def set_max_revno(self, revno):
@@ -247,15 +247,15 @@ def paint_revno(painter, rect, revno, max_mainline_digits):
     if splitpoint == -1:
         splitpoint = len(revno)
     mainline, therest = revno[:splitpoint], revno[splitpoint:]
-    
+
     if mainline.endswith(" ?"):
         mainline = mainline[:-2]
         therest = " ?"
-    
+
     fm = painter.fontMetrics()
     mainline_width = fm.width("8"*max_mainline_digits)
     therest_width = fm.width(therest)
-    
+
     if mainline_width + therest_width > rect.width():
         text = revno
         if fm.width(text) > rect.width():

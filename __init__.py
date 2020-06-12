@@ -73,7 +73,10 @@ Miscellaneous:
  * bug-url - print full URL to a specific bug, or open it in your browser.
 """
 
-
+# RJL to speed development, retain Qt4 for now: use ``sip.setapi`` to request
+# version 1 behaviour for ``QVariant`` (otherwise it's not available for python3)
+import sip
+sip.setapi('QVariant', 2)
 
 version_info = (0,23,2,'final',0)
 __version__ = '.'.join(map(str, version_info))

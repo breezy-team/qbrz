@@ -99,9 +99,10 @@ class TestCommitDataWithTree(TestCaseWithTransport):
         # imitate uncommit in branch with only one revision
         d = CommitData(branch=wt.branch)
         d.set_data_on_uncommit(revid1, None)
+
         self.assertEqual({'message': '1',
                           'old_revid': revid1,
-                          'new_revid': 'null:',
+                          'new_revid': b'null:',
                          }, d.as_dict())
         #
         revid2 = wt.commit(message='2')
@@ -122,7 +123,7 @@ class TestCommitDataWithTree(TestCaseWithTransport):
         self.assertEqual({'message': 'foo',
                           'bugs': 'lp:12345 lp:67890',
                           'old_revid': revid1,
-                          'new_revid': 'null:',
+                          'new_revid': b'null:',
                          }, d.as_dict())
 
     def test_load_nothing(self):

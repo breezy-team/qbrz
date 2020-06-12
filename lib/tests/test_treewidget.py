@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import os
+# import sip
+# sip.setapi('QVariant', 2)
 
 from breezy.tests import TestCase, TestCaseWithTransport
 from breezy import tests

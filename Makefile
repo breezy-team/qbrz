@@ -17,9 +17,13 @@ all:
 check: test
 	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -s bp.qbrz
 
-# Stop after first failure
+# Stop on first error
 checkone: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -v -s bp.qbrz TestTreeWidget
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz
+
+# Test specific item
+checkspecific: test
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -v -s bp.qbrz TestCommit
 
 test:
 	brz selftest -s bp.qbrz
