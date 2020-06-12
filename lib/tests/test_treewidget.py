@@ -74,20 +74,20 @@ class TestTreeWidget(qtests.QTestCase):
     def make_working_tree(self):
         #tree = WorkingTree()
         tree = self.make_branch_and_tree('trunk')
-        self.build_tree_contents([('trunk/textconflict', 'base'),])
-        tree.add(['textconflict'], ['textconflict-id'])
-        tree.commit('a', rev_id='rev-a',
+        self.build_tree_contents([('trunk/textconflict', b'base'),])
+        tree.add(['textconflict'], [b'textconflict-id'])
+        tree.commit('a', rev_id=b'rev-a',
                     committer="joe@foo.com",
                     timestamp=1166046000.00, timezone=0)
-        
+
         branch_tree = tree.controldir.sprout('branch').open_workingtree()
-        self.build_tree_contents([('branch/textconflict', 'other'),])
-        branch_tree.commit('b', rev_id='rev-b',
+        self.build_tree_contents([('branch/textconflict', b'other'),])
+        branch_tree.commit('b', rev_id=b'rev-b',
                            committer="joe@foo.com",
                            timestamp=1166046000.00, timezone=0)
         self.branch_tree = branch_tree
-        
-        
+
+
         self.build_tree(['trunk/dir/'])
         self.build_tree_contents([('trunk/dir/dirchild', ''),
                                   ('trunk/unmodified', ''),
@@ -99,26 +99,26 @@ class TestTreeWidget(qtests.QTestCase):
                                   ('trunk/modified', 'old'),
                                   ('trunk/textconflict', 'this'),
                                   ])
-        tree.add(['dir'], ['dir-id'])
-        tree.add(['dir/dirchild'], ['dirchild-id'])
-        tree.add(['unmodified'], ['unmodified-id'])
-        tree.add(['renamed'], ['renamed-id'])
-        tree.add(['moved'], ['moved-id'])
-        tree.add(['movedandrenamed'], ['movedandrenamed-id'])
-        tree.add(['removed'], ['removed-id'])
-        tree.add(['missing'], ['missing-id'])
-        tree.add(['modified'], ['modified-id'])
-        tree.commit('c', rev_id='rev-c',
+        tree.add(['dir'], [b'dir-id'])
+        tree.add(['dir/dirchild'], [b'dirchild-id'])
+        tree.add(['unmodified'], [b'unmodified-id'])
+        tree.add(['renamed'], [b'renamed-id'])
+        tree.add(['moved'], [b'moved-id'])
+        tree.add(['movedandrenamed'], [b'movedandrenamed-id'])
+        tree.add(['removed'], [b'removed-id'])
+        tree.add(['missing'], [b'missing-id'])
+        tree.add(['modified'], [b'modified-id'])
+        tree.commit('c', rev_id=b'rev-c',
                     committer="joe@foo.com",
                     timestamp=1166046000.00, timezone=0)
-        
+
         return tree, tree.branch
-    
+
     def modify_working_tree(self, tree):
         if 0: tree = WorkingTree()
         tree.merge_from_branch(self.branch_tree.branch, 'rev-b')
-    
-        
+
+
         self.build_tree_contents([('trunk/added', ''),
                                   ('trunk/addedmissing', ''),
                                   ('trunk/modified', 'new'),
@@ -133,19 +133,19 @@ class TestTreeWidget(qtests.QTestCase):
         tree.remove(('removed',))
         os.remove('trunk/missing')
         os.remove('trunk/addedmissing')
-        
+
         # test for https://bugs.launchpad.net/qbrz/+bug/538753
         # must sort before trunk/dir
         self.build_tree(['trunk/a-newdir/'])
         self.build_tree_contents([('trunk/a-newdir/newdirchild', '')])
         tree.add(['a-newdir'], ['a-newdir-id'])
         tree.add(['a-newdir/newdirchild'], ['newdirchild-id'])
-        
+
         # manuly add conflicts for files that don't exist
         # See https://bugs.launchpad.net/qbrz/+bug/528548
         tree.add_conflicts([TextConflict('nofileconflict')])
-    
-    
+
+
     def make_rev_tree(self):
         tree = self.make_branch_and_tree('tree')
         self.build_tree(['tree/b/'])
@@ -160,7 +160,7 @@ class TestTreeWidget(qtests.QTestCase):
                     timestamp=1166046000.00, timezone=0)
         revtree = tree.branch.repository.revision_tree('rev-1')
         return revtree, tree.branch
-    
+
     def run_model_tests(self):
         # Check that indexes point to their correct items.
         def check_item_children(index):
@@ -170,19 +170,19 @@ class TestTreeWidget(qtests.QTestCase):
                     child_index = self.widget.tree_model.index(row, 0, index)
                     self.assertEqual(child_index.internalId(), child_id)
                     check_item_children(child_index)
-        
+
         if self.widget.tree_model.inventory_data:
             check_item_children (
                 self.widget.tree_model._index_from_id(0, 0)) # root
-        
+
         ModelTest(self.widget.tree_model, None)
         ModelTest(self.widget.tree_filter_model, None)
-    
+
     def test_show_widget(self):
         widget = TreeWidget()
         self.widget = widget
         self.run_model_tests()
-        
+
         self.addCleanup(widget.close)
         # make the widget bigger so that we can see what is going on.
         widget.setGeometry(0,0,500,500)
@@ -191,24 +191,24 @@ class TestTreeWidget(qtests.QTestCase):
         widget.set_tree(self.tree, self.branch,
                         changes_mode=self.changes_mode)
         self.run_model_tests()
-        
+
         widget.update()
         QtCore.QCoreApplication.processEvents()
         widget.expandAll ()
         self.run_model_tests()
-        
+
         widget.update()
         QtCore.QCoreApplication.processEvents()
-        
+
         self.modify_tree(self, self.tree)
         widget.refresh()
         self.run_model_tests()
-        
+
         widget.update()
         QtCore.QCoreApplication.processEvents()
         widget.expandAll ()
         self.run_model_tests()
-        
+
         widget.update()
         QtCore.QCoreApplication.processEvents()
 
@@ -510,7 +510,7 @@ class TestGroupLargeDirs(TestCase):
             'b/2',
             'b/3',
             'b/4',
-            'b/c', 
+            'b/c',
             'b/c/1',
             'b/c/2',
             'b/c/3',

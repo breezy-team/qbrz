@@ -16,17 +16,21 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+# Updated RJL 2020 - added b(ytes) prefix to strings where needed
+
 from breezy.tests import TestCase, TestCaseWithTransport
 from PyQt4 import QtCore, QtGui
 from breezy.plugins.qbrz.lib import tests as qtests
 from breezy.plugins.qbrz.lib.cat import QBzrCatWindow
+
+from time import sleep
 
 
 class TestCat(qtests.QTestCase):
 
     def test_show_cat_change_encoding(self):
         tree = self.make_branch_and_tree('branch')
-        self.build_tree_contents([('branch/a', 'foo\n')])
+        self.build_tree_contents([('branch/a', b'foo\n')])
         tree.add('a')
         tree.commit(message='1')
         win = QBzrCatWindow('a', tree=tree, encoding='utf-8')
@@ -37,4 +41,5 @@ class TestCat(qtests.QTestCase):
         # Change the encoding.
         encode_combo = win.encoding_selector.chooser
         encode_combo.setCurrentIndex(encode_combo.findText("ascii"))
+        # If you want to see the output, add a sleep after this
         QtCore.QCoreApplication.processEvents()

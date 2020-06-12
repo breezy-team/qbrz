@@ -19,7 +19,7 @@ check: test
 
 # Stop after first failure
 checkone: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -s bp.qbrz TestAnnotate
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -v -s bp.qbrz TestTreeWidget
 
 test:
 	brz selftest -s bp.qbrz

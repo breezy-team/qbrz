@@ -16,6 +16,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+# Works without changes - RJL 2020s
+
 from breezy import config
 from breezy.tests import TestCase, TestCaseWithTransport
 
