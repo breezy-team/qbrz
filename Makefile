@@ -14,16 +14,17 @@ all:
 
 .PHONY: test pot mo clean tags docs ui
 
+# For now, ignore internationalization
 check: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -s bp.qbrz
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -s bp.qbrz -x TestI18n
 
-# Stop on first error
+# Stop on first error, ignore internationalization
 checkone: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest -v --one -s bp.qbrz -x TestI18n
 
 # Test specific item
 checkspecific: test
-	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict -v -s bp.qbrz TestCommit
+	BRZ_PLUGINS_AT=qbrz@$(shell pwd) brz selftest --one --strict  -s bp.qbrz TestLog
 
 test:
 	brz selftest -s bp.qbrz

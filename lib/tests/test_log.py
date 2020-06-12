@@ -25,6 +25,7 @@ from PyQt4 import QtCore, QtGui
 from breezy.plugins.qbrz.lib import tests as qtests
 from breezy.plugins.qbrz.lib.log import LogWindow
 
+
 class TestLogSmokeTests(qtests.QTestCase):
 
     def test_show_log_blank_branch(self):
@@ -92,14 +93,14 @@ class TestLogGetBranchesAndFileIds(qtests.QTestCase):
     def make_branch_and_tree_with_files_and_dir(self):
         tree = self.make_branch_and_tree("branch")
         self.build_tree(['branch/file1', 'branch/dir/', 'branch/file3'])
-        tree.add('file1', 'file1-id')
-        tree.add('dir', 'dir-id')
-        tree.add('file3', 'file3-id')
+        tree.add('file1', b'file1-id')
+        tree.add('dir', b'dir-id')
+        tree.add('file3', b'file3-id')
         tree.commit(message='add files')
         return tree
 
     def check_open_branch_files(self, tree, branch):
-        win = LogWindow(branch=branch, specific_file_ids = ['file1-id']) 
+        win = LogWindow(branch=branch, specific_file_ids = ['file1-id'])
         branches, primary_bi, file_ids = win.get_branches_and_file_ids()
 
         self.assertLength(1, branches)
@@ -132,7 +133,7 @@ class TestLogGetBranchesAndFileIds(qtests.QTestCase):
         win = LogWindow(locations=["branch1", "branch2"])
         branches, primary_bi, file_ids = win.get_branches_and_file_ids()
 
-        self.assertEqual(set(((None,          branch1.base, None),
+        self.assertEqual(set(((None, branch1.base, None),
                               (tree2.basedir, tree2.branch.base, None) )),
                          set(self.branches_to_base(branches)))
 
@@ -146,13 +147,10 @@ class TestLogGetBranchesAndFileIds(qtests.QTestCase):
         repo = self.make_repository("repo", shared=True)
         branch1 = self.make_branch("repo/branch1")
         tree2 = self.make_branch_and_tree("repo/branch2")
-
         win = LogWindow(locations=["repo"])
         branches, primary_bi, file_ids = win.get_branches_and_file_ids()
-
-        self.assertEqual(set(((None, branch1.base, None),
-                          (tree2.basedir, tree2.branch.base, None))),
-                         set(self.branches_to_base(branches)))
+        self.assertEqual(set(((None, branch1.base, None), (tree2.basedir, tree2.branch.base, None))),
+                        set(self.branches_to_base(branches)))
 
     def test_open_locations_in_shared_reporaise_not_a_branch(self):
         repo = self.make_repository("repo", shared=True)
@@ -170,7 +168,7 @@ class TestLogGetBranchesAndFileIds(qtests.QTestCase):
         win = LogWindow(locations=["branch/file1", 'branch/dir'])
         branches, primary_bi, file_ids = win.get_branches_and_file_ids()
 
-        self.assertEqual(['file1-id', 'dir-id'], file_ids)
+        self.assertEqual([b'file1-id', b'dir-id'], file_ids)
 
     def test_open_locations_files(self):
         tree = self.make_branch_and_tree_with_files_and_dir()
