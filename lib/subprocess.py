@@ -1113,29 +1113,6 @@ if MS_WINDOWS:
 #         default
 #     ])
 
-def bencode_unicode(args):
-    """Bencode list of unicode strings as list of utf-8 strings and converting
-    resulting string to unicode.
-    """
-    args_utf8 = bencode.bencode([str(a).encode('utf-8') for a in args])
-    return str(args_utf8, 'utf-8')
-
-def bencode_prompt(arg):
-    assert False
-    return bencode.bencode(arg.encode('unicode-escape'))
-
-def bdecode_prompt(s):
-    assert False
-    return bencode.bdecode(s).decode('unicode-escape')
-
-def bencode_choose_args(msg, choices, default):
-    if default is None:
-        default = -1
-    return bencode.bencode([
-        msg.encode('unicode-escape'),
-        choices.encode('unicode-escape'),
-        default
-    ])
 
 def bdecode_choose_args(s):
     msg, choices, default = bencode.bdecode(s)

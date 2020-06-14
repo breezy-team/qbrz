@@ -31,10 +31,20 @@ from breezy.tests import (
     TestCase,
     features,
     )
+# from breezy.plugins.qbrz.lib.subprocess import (
+#     bdecode_prompt,
+#     bencode_prompt,
+#     bencode_unicode,
+#     bencode_exception_instance,
+#     bdecode_exception_instance,
+#     encode_unicode_escape,
+#     decode_unicode_escape,
+#     SubprocessProgressView,
+#     SUB_PROGRESS,
+#     )
+
+
 from breezy.plugins.qbrz.lib.subprocess import (
-    bdecode_prompt,
-    bencode_prompt,
-    bencode_unicode,
     bencode_exception_instance,
     bdecode_exception_instance,
     encode_unicode_escape,
@@ -44,32 +54,32 @@ from breezy.plugins.qbrz.lib.subprocess import (
     )
 
 
-class TestBencode(TestCase):
+# class TestBencode(TestCase):
 
-    def test_bencode_unicode(self):
-        self.assertEqual("l7:versione", bencode_unicode(["version"]))
-        self.assertEqual("l3:add3:\u1234e",
-            bencode_unicode(["add", "\u1234"]))
+#     def test_bencode_unicode(self):
+#         self.assertEqual("l7:versione", bencode_unicode(["version"]))
+#         self.assertEqual("l3:add3:\u1234e",
+#             bencode_unicode(["add", "\u1234"]))
 
-    def test_bencode_prompt(self):
-        self.assertEqual("4:spam", bencode_prompt('spam'))
-        self.assertEqual("10:spam\\neggs", bencode_prompt('spam'+'\n'+'eggs'))
-        self.assertEqual("14:\\u0420\\n\\u0421",
-            bencode_prompt('\u0420\n\u0421'))
+#     def test_bencode_prompt(self):
+#         self.assertEqual("4:spam", bencode_prompt('spam'))
+#         self.assertEqual("10:spam\\neggs", bencode_prompt('spam'+'\n'+'eggs'))
+#         self.assertEqual("14:\\u0420\\n\\u0421",
+#             bencode_prompt('\u0420\n\u0421'))
 
-    def test_bdecode_prompt(self):
-        self.assertEqual('spam', bdecode_prompt("4:spam"))
-        self.assertEqual('spam'+'\n'+'eggs', bdecode_prompt("10:spam\\neggs"))
-        self.assertEqual('\u0420\n\u0421',
-            bdecode_prompt("14:\\u0420\\n\\u0421"))
+#     def test_bdecode_prompt(self):
+#         self.assertEqual('spam', bdecode_prompt("4:spam"))
+#         self.assertEqual('spam'+'\n'+'eggs', bdecode_prompt("10:spam\\neggs"))
+#         self.assertEqual('\u0420\n\u0421',
+#             bdecode_prompt("14:\\u0420\\n\\u0421"))
 
-    def test_encode_unicode_escape_dict(self):
-        self.assertEqual({'key': 'foo\\nbar', 'ukey': '\\u1234'},
-            encode_unicode_escape({'key': 'foo\nbar', 'ukey': '\u1234'}))
+#     def test_encode_unicode_escape_dict(self):
+#         self.assertEqual({'key': 'foo\\nbar', 'ukey': '\\u1234'},
+#             encode_unicode_escape({'key': 'foo\nbar', 'ukey': '\u1234'}))
 
-    def test_decode_unicode_escape_dict(self):
-        self.assertEqual({'key': 'foo\nbar', 'ukey': '\u1234'},
-            decode_unicode_escape({'key': 'foo\\nbar', 'ukey': '\\u1234'}))
+#     def test_decode_unicode_escape_dict(self):
+#         self.assertEqual({'key': 'foo\nbar', 'ukey': '\u1234'},
+#             decode_unicode_escape({'key': 'foo\\nbar', 'ukey': '\\u1234'}))
 
 
 class TestExceptionInstanceSerialisation(TestCase):
@@ -160,8 +170,8 @@ class TestSubprocessProgressView(TestCase):
         self.refresh(task)
         task.update("Finding revisions", 2, 2)
         self.assertEqual([
-                (0, "", "Finding revisions /  0/2"), 
-                (500000, "", "Finding revisions /  1/2"), 
+                (0, "", "Finding revisions /  0/2"),
+                (500000, "", "Finding revisions /  1/2"),
                 (1000000, "", "Finding revisions /  2/2")],
             self.decode_progress(sio.getvalue()))
 
